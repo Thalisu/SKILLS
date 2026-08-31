@@ -10,13 +10,16 @@ Install, migrate or refresh the canonical Testing Policy in this project.
 | Source (next to this file) | Installed as |
 |---|---|
 | `POLICY.md`, rendered by `scripts/render-policy.sh <surface>` | the marked `## Testing Policy (Definition of Done)` section in `CLAUDE.md` |
-| `AGENT-UNIT.md` | `.claude/agents/unit-test-author.md` |
-| `AGENT-E2E.md` | `.claude/agents/e2e-test-author.md` — native and mixed surfaces only |
-| `SKILL-TEST-AUTHOR.md` | `.claude/skills/test-author/SKILL.md` — the inline entry point for writers without the `Agent` tool |
+| `AGENT-UNIT.md`, rendered by `scripts/render-agent.sh unit` | `.claude/agents/unit-test-author.md` |
+| `AGENT-E2E.md`, rendered by `scripts/render-agent.sh e2e` | `.claude/agents/e2e-test-author.md` — native and mixed surfaces only |
+| `SKILL-TEST-AUTHOR.md`, rendered by `scripts/render-agent.sh test-author` | `.claude/skills/test-author/SKILL.md` — the inline entry point for writers without the `Agent` tool |
 | `scripts/scan-test-assets.sh` | `.claude/testing-policy/scan-test-assets.sh` — discovery and duplication scan |
-| `scripts/hooks/forbid-test-skips.sh` | `.claude/testing-policy/forbid-test-skips.sh` + a `PreToolUse` entry in `.claude/settings.json` — optional, offered in step 6 |
+| `scripts/skip-patterns.sh` | `.claude/testing-policy/skip-patterns.sh` — the skip markers and test-file classes shared by the scan and the hook; project additions live in `skip-patterns.local.sh` next to it |
+| `scripts/forbid-test-skips.sh` | `.claude/testing-policy/forbid-test-skips.sh` + a `PreToolUse` entry in `.claude/settings.json` — optional, offered in step 6 |
 | `scripts/verify-policy.sh` | not installed — run it from here in steps 0 and 8 |
 | `references/example-project-map.md` | not installed — calibration for the density of a Project map / Project facts |
+
+Generated vs preserved. Everything rendered from a template or copied from `scripts/` is **generated** — overwritten on refresh, never hand-edited. **Preserved** on refresh: Project facts, the agents' frontmatter and Project map, `skip-patterns.local.sh`, `.claude/settings.json`. The template version lives once, in `POLICY.md`; every rendered file carries it (`v=` on the section's start marker, `<!-- testing-policy:agent v=… -->` / `<!-- testing-policy:skill v=… -->` after an agent's or the skill's frontmatter).
 
 Two invariants. Every `{{slot}}` is filled from what exists in the project — never invent a path, a command or an example. Every command written into Project facts or a Project map was run once during this install and returned output.
 
@@ -25,11 +28,11 @@ Two invariants. Every `{{slot}}` is filled from what exists in the project — n
 Run `bash <skill-dir>/scripts/verify-policy.sh <project>`. `policy=` picks the mode:
 
 - `none` → **install**
-- `legacy` (a Testing Policy section without markers) → **migrate**
+- `legacy` (a Testing Policy section without markers; `legacy_lines=` gives its extent, `EOF` when it closes the file) → **migrate**
 - `stale` (marked, older version) or `drifted` (core hand-edited) → **refresh**
-- `current` → nothing to do unless a piece is reported missing or the user asked to re-map; say so and stop.
+- `current` → nothing to do unless another line is not `ok` / `n/a` / `none` or the user asked to re-map: a `stale` or `drifted` agent is refreshed alone (step 5), a `wired-missing` hook re-copied (step 6). Otherwise say so and stop.
 
-Keep the rest of the output (`agent_*`, `skill_test_author`, `scan_script`, `hook`, `gitignored`) — steps 5-7 use it.
+Keep the rest of the output — steps 5-7 use it: `agent_unit` / `agent_e2e` (`missing` · `unmarked` = hand-written, ask · `stale` = older template, v2 marker style included · `drifted` = current version, core hand-edited · `ok`), `skill_test_author` (`missing` · `stale` · `ok`), `scan_script`, `skip_patterns`, `hook` (`missing` · `script-only` · `wired` · `wired-missing` = wired in settings but the script is gone), `gitignored`.
 
 ## Step 1 — surface: native, consumer or mixed
 
@@ -42,7 +45,7 @@ For each consumer, read its CLAUDE.md and scripts for: E2E tool · single-flow c
 
 ## Step 2 — discover
 
-1. Copy `scripts/scan-test-assets.sh` to `.claude/testing-policy/` (overwrite — it is generated) and run it with this project's roots: `--root` for unit roots, `--flows` for E2E roots (native/mixed), `--shared` for the shared homes you already recognise. Keep the whole report: `candidate-homes` seeds the role map; `duplicate-symbols`, `local-factories`, `inline-helpers` and `skip-markers` are the debt list for step 8.
+1. Copy `scripts/scan-test-assets.sh` and `scripts/skip-patterns.sh` to `.claude/testing-policy/` (overwrite — both are generated) and run the scan with this project's roots: `--root` for unit roots, `--flows` for E2E roots (native/mixed), `--shared` for the shared homes you already recognise. Keep the whole report: `candidate-homes` seeds the role map; `duplicate-symbols`, `local-factories`, `inline-helpers` and `skip-markers` are the debt list for step 8.
 2. Read package.json scripts (or Makefile / justfile / pyproject) for: unit full-suite and single-file commands, mandatory flags and preload files, formatter, E2E single-flow and full-suite commands, remote-runner conventions.
 3. Build the role map — unit: mocks · helpers · factories · fixtures; E2E (native/mixed): page objects or shared subflows · data factories · backend/DB helpers · fixtures. Exactly one candidate → record it. Two or more, or none → collect for step 3; never guess, never list both. One directory may hold two roles (a `data/` with factories and DB helpers) — that is one path per role, not an ambiguity.
 4. Record the idiom: identifier language in the test tree (it may legitimately differ from the code policy), mocking convention, locator strategy, base classes, and 2-3 real well-shaped shared assets with their signatures — calibration, never a catalog. `references/example-project-map.md` shows the expected density.
@@ -59,24 +62,32 @@ A single `AskUserQuestion` call holding: one question per ambiguous or orphan ro
 1. `bash scripts/render-policy.sh <surface>` and fill the `{{slots}}` in **Project facts** only — the core has none. `SCAN_COMMAND` is the exact invocation from step 2. `WHY_IN_PLACE` states the project's real reason (the E2E stack serves the primary checkout; the unit runner's path-ignore for agent worktrees; ...).
 2. Place it:
    - **install**: after the section documenting test commands when one exists, before conventions. Never inside a managed block (`<!-- GSD:*-start -->` ... `<!-- GSD:*-end -->` or similar) — between blocks, so regeneration cannot overwrite it.
-   - **migrate**: replace the legacy section in place, same position. Slot values come from the legacy text where it named them (commands, flow examples, infra failures); the project-specific rules the user kept go into Project facts.
-   - **refresh**: replace only `core-start` .. `core-end` with `render-policy.sh <surface> --core-only`. Project facts are preserved verbatim.
+   - **migrate**: replace the legacy section (`legacy_lines=` from step 0) in place, same position. Slot values come from the legacy text where it named them (commands, flow examples, infra failures); the project-specific rules the user kept go into Project facts.
+   - **refresh**: replace only `core-start` .. `core-end` with `render-policy.sh <surface> --core-only`, and set `v=` on the start marker to the template version. Project facts are preserved verbatim.
 
 ## Step 5 — agents and the inline skill
 
 - `unit-test-author` always; `e2e-test-author` on native and mixed; the `test-author` skill always (`TEST_AUTHOR_E2E_LINE` names the consumer repos on a consumer surface).
-- New file: fill the Project map slots from the role map, drop the TEMPLATE comment, write. The Discovery block is the step-2 scan invocation (`--section duplicate-symbols`, plus `--section local-factories` for unit / `--section inline-helpers` for E2E) and 1-2 targeted greps over the shared homes — every line run once.
-- Existing file with `testing-policy:core-start/end` markers: replace only the text between the markers with the template's core; preserve frontmatter and Project map; report discovery disagreements (step 2).
-- Existing file without markers (hand-written): ask before touching it; never overwrite silently.
+- Render with `bash scripts/render-agent.sh <unit|e2e|test-author>`; what happens next follows the state from step 0:
+  - `missing` → write the whole render, Project map slots filled from the role map. The Discovery block is the step-2 scan invocation (`--section duplicate-symbols`, plus `--section local-factories` for unit / `--section inline-helpers` for E2E) and 1-2 targeted greps over the shared homes — every line run once.
+  - `stale` or `drifted` → replace only the core: from the line that starts with `<!-- testing-policy:core-start` (in the v2 style that comment spans two lines — replace through its `-->`) up to `<!-- testing-policy:core-end -->`, with `render-agent.sh <unit|e2e> --core-only`; add `<!-- testing-policy:agent v=<version> -->` right after the frontmatter when absent. Frontmatter and Project map stay verbatim; report discovery disagreements (step 2).
+  - `unmarked` (hand-written, no markers) → ask before touching it; never overwrite silently.
+  - `ok` → nothing.
+  - The `test-author` skill has no preserved part: `missing` or `stale` → write the whole render with its one slot filled.
 - Never set `model:` in the frontmatter — the agent inherits the session's model.
 
-## Step 6 — enforcement hook (offer)
+## Step 6 — enforcement hook
 
-Offer to install `forbid-test-skips.sh`: a `PreToolUse` hook on `Edit|Write|MultiEdit` that blocks an edit **introducing** `.skip(` / `.only(` / `xit(` (JS/TS), `pytest.mark.skip|xfail` (Python) or `optional: true` (Maestro) into a test file; edits that keep or remove existing markers pass. It needs `jq` (`command -v jq`; if absent, say so and skip the offer). It sees only Claude's edits — the user's editor is untouched. On yes: copy the script to `.claude/testing-policy/`, then merge this entry into `.claude/settings.json` → `hooks.PreToolUse` (append to the existing array; never overwrite other hooks; create the file if absent):
+`forbid-test-skips.sh` is a `PreToolUse` hook on `Edit|Write|MultiEdit` that blocks an edit **introducing** a skip marker into a test file; edits that keep or remove existing markers pass. Markers and test-file classes come from `skip-patterns.sh` (step 2) — built-in coverage: JS/TS (jest, vitest, bun, mocha, jasmine, node:test, Playwright, Cypress: `.skip/.only/.todo/.fixme/.fail/.fails/.failing/.skipIf/.runIf`, `xit`/`fit` and friends), Python (`pytest.mark.skip|skipif|xfail`, `pytest.skip()`, `unittest.skip*`/`expectedFailure`), Maestro (`optional: true`). It needs `jq` (`command -v jq`; if absent, say so and skip the offer). It sees only Claude's edits — the user's editor is untouched.
 
-```json
-{"matcher": "Edit|Write|MultiEdit", "hooks": [{"type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR\"/.claude/testing-policy/forbid-test-skips.sh"}]}
-```
+- `hook=missing` → offer it (the question rides in step 3). On yes: copy the script to `.claude/testing-policy/`, then merge this entry into `.claude/settings.json` → `hooks.PreToolUse` (append to the existing array; never overwrite other hooks; create the file if absent):
+
+  ```json
+  {"matcher": "Edit|Write|MultiEdit", "hooks": [{"type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR\"/.claude/testing-policy/forbid-test-skips.sh"}]}
+  ```
+
+- `script-only` → offer only the settings entry. `wired` → no offer; re-copy the script (generated) so it matches the installed `skip-patterns.sh`. `wired-missing` → re-copy the script and say so.
+- When Project facts name a skip mechanism or a test-file pattern the built-ins do not cover, write it into `.claude/testing-policy/skip-patterns.local.sh` (preserved; sourced last): append to a `SKIP_PAT_*` variable, or define `skip_pattern_local <path>` setting `SKIP_PAT` / `SKIP_KIND` for the extra files. Prove it once: pipe a synthetic `Edit` payload that introduces the marker through the hook and confirm exit 2.
 
 ## Step 7 — git visibility
 
@@ -85,16 +96,17 @@ Offer to install `forbid-test-skips.sh`: a `PreToolUse` hook on `Edit|Write|Mult
 ## Step 8 — verify and report
 
 1. Run every command written into Project facts and the Project maps once more; a command that errors or returns nothing is a wrong slot — fix it before finishing.
-2. `bash scripts/verify-policy.sh <project>` must print `policy=current`, no `policy_missing` and no `policy_unfilled_slots`, and exit 0 (`hook=missing` is fine when the offer was declined).
-3. Report: the state transition (`legacy → current v2`, ...); a diff-level summary per file; Project-map disagreements (refresh); the duplication and skip-marker debt from the scan — reported, **not fixed**: the second-use rule pays it organically, the next author that needs one of those assets consolidates first; hook installed or declined; gitignore status. Do not commit unless asked.
+2. `bash scripts/verify-policy.sh <project>` must print `policy=current`, every `agent_*` `ok` (or `n/a`), `skill_test_author=ok`, `scan_script=ok`, `skip_patterns=ok`, no `policy_missing`, no `policy_unfilled_slots`, and exit 0 (`hook=missing` is fine when the offer was declined).
+3. Report: the state transition (`legacy → current v2.1`, ...); a diff-level summary per file; Project-map disagreements (refresh); the duplication and skip-marker debt from the scan — reported, **not fixed**: the second-use rule pays it organically, the next author that needs one of those assets consolidates first; hook installed, re-copied or declined; gitignore status. Do not commit unless asked.
 
 ## Post-install checklist
 
 Must hold after any mode. Lines marked ✓ are checked mechanically by `verify-policy.sh`; check the rest by reading.
 
 - ✓ `testing-policy:start v=<template version> surface=<surface>` and `testing-policy:end` around the section; `core-start` / `core-end` inside; the core byte-identical to `render-policy.sh <surface> --core-only`.
-- ✓ Headings for the surface present — native: Success gate (tiered) · E2E mapping; consumer: E2E gate (consumer-side) · Coverage mapping (consumer-side); mixed: all four; always: TDD · Test authoring — delegation and reuse · Tests represent the real flow · Project facts.
-- ✓ No `{{slot}}` left; `/test-author` and the agent file(s) for the surface named in the delegation section.
-- ✓ Agents present with markers; `test-author` skill present; scan script present.
+- ✓ Every heading that `render-policy.sh <surface>` emits is present in the section, as a full line.
+- ✓ No `{{slot}}` left in the section.
+- ✓ Agents: `<!-- testing-policy:agent v=<template version> -->` after the frontmatter, bare `core-start` / `core-end` markers, core byte-identical to `render-agent.sh <unit|e2e> --core-only`; `test-author` skill carries `<!-- testing-policy:skill v=<template version> -->`; `scan-test-assets.sh` and `skip-patterns.sh` present.
 - Project facts name real commands that ran; consumer lines (consumer/mixed) carry the "run against this repo's local build" recipe.
 - Legacy project-specific rules the user kept survived into Project facts; nothing of the old section remains outside the markers.
+- `skip-patterns.local.sh` exists exactly when Project facts name a mechanism outside the built-ins, and a synthetic payload proved it blocks.

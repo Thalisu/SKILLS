@@ -1,4 +1,4 @@
-<!-- testing-policy version: 2 -->
+<!-- testing-policy version: 2.1 -->
 <!-- TEMPLATE — canonical Testing Policy, rendered into the project's CLAUDE.md by
      scripts/render-policy.sh <native|consumer|mixed>. A block opened by an "@surface,surface"
      comment and closed by an "@/" comment is emitted only for the listed surfaces; untagged
@@ -27,14 +27,18 @@ This repo has no user-facing surface of its own. Its real E2E coverage lives in 
 <!-- @mixed -->
 ### E2E gate (consumer-side)
 
-Besides its own surface, this repo is consumed by other repos (the consumer list in Project facts). For the consumed surface the real E2E coverage lives in those repos; an E2E suite here does not stand in for it.
+Besides its own surface, this repo is consumed by other repos (the consumer list in Project facts). For the consumed surface the real E2E coverage lives in those repos; an E2E suite here does not stand in for it. The tiered gate above extends to them: **per change**, the impacted consumers' flows that exercise the changed surface are green too (each consumer's "run against the local build" recipe in Project facts); **per phase/delivery**, each impacted consumer's full suite is green too; a consumer's E2E that cannot run (its known infra failures in Project facts are the usual suspects) blocks the same way.
 <!-- @/ -->
 <!-- @consumer,mixed -->
 
 - **Impact-scoped**: the gate applies only to the consumers whose flows the change impacts. A consumer that does not use the changed surface requires neither an E2E run nor new coverage for this change — but "not impacted" is a verified claim (check the consumer's actual calls to the changed routes, queues or exports), never a presumption.
+<!-- @/ -->
+<!-- @consumer -->
 - **Per change**: full unit suite green (unit command in Project facts) + the impacted consumers' E2E flows that exercise the changed surface green, run against this change (each consumer's "run against the local build" recipe in Project facts).
 - **Per phase/delivery**: full E2E suite of each impacted consumer green (each consumer's full-suite command in Project facts) before declaring the phase or delivery complete.
 - **Infra failure blocks**: if a consumer's E2E cannot run (its known infra failures in Project facts are the usual suspects), the work is BLOCKED, not done. Report the infra error as blocked status; fixing the infra is part of the delivery. Only the user can explicitly waive the E2E gate, and a waiver is recorded as pending debt — never as green.
+<!-- @/ -->
+<!-- @consumer,mixed -->
 - **New consumers**: when a new repo starts consuming this one, ask the user and add it to the consumer list — the gate covers every consumer, not just the first.
 <!-- @/ -->
 

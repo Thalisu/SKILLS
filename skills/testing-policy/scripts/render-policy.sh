@@ -8,7 +8,8 @@
 #
 # Blocks tagged "<!-- @a,b -->" ... "<!-- @/ -->" are emitted only when the chosen surface is in
 # the tag list; the TEMPLATE comment and the version line are dropped; {{VERSION}} and {{SURFACE}}
-# are substituted. Blank runs are squeezed. Tags do not nest.
+# are substituted. A heading is always preceded by a blank line (a block boundary may swallow the
+# template's own); blank runs are squeezed. Tags do not nest.
 set -euo pipefail
 
 policy="$(dirname "$0")/../POLICY.md"
@@ -25,13 +26,17 @@ while [ $# -gt 0 ]; do
 done
 [ -f "$policy" ] || { echo "policy template not found: $policy" >&2; exit 2; }
 
-version="$(sed -nE 's/^<!-- testing-policy version: ([0-9]+) -->$/\1/p' "$policy" | head -1)"
+version="$(sed -nE 's/^<!-- testing-policy version: ([0-9]+(\.[0-9]+)*) -->$/\1/p' "$policy" | head -1)"
 [ -n "$version" ] || { echo "no '<!-- testing-policy version: N -->' line in $policy" >&2; exit 2; }
 if [ "$want_version" = 1 ]; then echo "$version"; exit 0; fi
 [ -n "$surface" ] || { echo "usage: render-policy.sh <native|consumer|mixed> [--core-only]" >&2; exit 2; }
 
 awk -v surface="$surface" -v version="$version" -v core_only="$core_only" '
-  BEGIN { emit = 1; intpl = 0; incore = 0 }
+  function out(l) {
+    if (l ~ /^#+ / && last != "" && last !~ /^<!--/) print ""
+    print l; last = l
+  }
+  BEGIN { emit = 1; intpl = 0; incore = 0; last = "" }
   /^<!-- testing-policy version: / { next }
   /^<!-- TEMPLATE/ { intpl = 1 }
   intpl { if ($0 ~ /-->[[:space:]]*$/) intpl = 0; next }
@@ -50,10 +55,10 @@ awk -v surface="$surface" -v version="$version" -v core_only="$core_only" '
     if (core_only) {
       if (line ~ /^<!-- testing-policy:core-start -->$/) incore = 1
       if (!incore) next
-      print line
+      out(line)
       if (line ~ /^<!-- testing-policy:core-end -->$/) exit
       next
     }
-    print line
+    out(line)
   }
 ' "$policy" | cat -s

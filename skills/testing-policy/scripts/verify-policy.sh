@@ -6,11 +6,16 @@
 # Prints key=value lines. Exit codes: 0 current and complete · 1 stale, drifted or missing
 # pieces · 3 legacy (unmarked section present) · 4 none (no policy section).
 #   policy=none|legacy|stale|drifted|current
+#   legacy_lines=<start>-<end|EOF>          legacy only: the lines the migrate replaces
 #   installed_version / template_version / surface
-#   policy_missing=<comma-separated required headings absent from the section>
-#   agent_unit=missing|unmarked|ok   agent_e2e=missing|unmarked|ok|n/a
-#   skill_test_author=missing|ok     scan_script=missing|ok
-#   hook=missing|script-only|wired   gitignored=none|<paths>
+#   policy_missing=<headings of the rendered template absent from the section>
+#   policy_unfilled_slots=<first {{slots}} still in the section>
+#   agent_unit=missing|unmarked|stale|drifted|ok    agent_e2e=same values|n/a (consumer surface)
+#   skill_test_author=missing|stale|ok   scan_script=missing|ok   skip_patterns=missing|ok
+#   hook=missing|script-only|wired|wired-missing   gitignored=none|<paths>
+# unmarked = hand-written file (ask before touching) · stale = installed by an older template
+# (version line absent or different — the v2 marker style counts) · drifted = current version
+# but the core was edited by hand.
 set -uo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd)"
@@ -20,13 +25,15 @@ template_version="$(bash "$here/render-policy.sh" --version)"
 rc=0
 echo "template_version=$template_version"
 
+core_of() { awk '/^<!-- testing-policy:core-start -->$/{f=1} f{print} /^<!-- testing-policy:core-end -->$/{exit}' "$@"; }
+
 policy=none installed_version="" surface=""
 if [ -f "$claude_md" ]; then
-  start_line="$(grep -nE '^<!-- testing-policy:start v=[0-9]+ surface=(native|consumer|mixed) -->$' "$claude_md" | head -1 | cut -d: -f1)"
+  start_line="$(grep -nE '^<!-- testing-policy:start v=[0-9.]+ surface=(native|consumer|mixed) -->$' "$claude_md" | head -1 | cut -d: -f1)"
   if [ -n "$start_line" ]; then
     end_line="$(awk -v s="$start_line" 'NR>s && /^<!-- testing-policy:end -->$/ {print NR; exit}' "$claude_md")"
     hdr="$(sed -n "${start_line}p" "$claude_md")"
-    installed_version="$(sed -E 's/.* v=([0-9]+) .*/\1/' <<<"$hdr")"
+    installed_version="$(sed -E 's/.* v=([0-9.]+) .*/\1/' <<<"$hdr")"
     surface="$(sed -E 's/.* surface=([a-z]+) .*/\1/' <<<"$hdr")"
     if [ -z "$end_line" ]; then
       policy=drifted; echo "policy_error=start marker without end marker"
@@ -34,25 +41,26 @@ if [ -f "$claude_md" ]; then
       section="$(sed -n "${start_line},${end_line}p" "$claude_md")"
       if [ "$installed_version" != "$template_version" ]; then
         policy=stale
+      elif [ "$(core_of <<<"$section")" = "$(bash "$here/render-policy.sh" "$surface" --core-only)" ]; then
+        policy=current
       else
-        installed_core="$(awk '/^<!-- testing-policy:core-start -->$/{f=1} f{print} /^<!-- testing-policy:core-end -->$/{exit}' <<<"$section")"
-        rendered_core="$(bash "$here/render-policy.sh" "$surface" --core-only)"
-        if [ "$installed_core" = "$rendered_core" ]; then policy=current; else policy=drifted; fi
+        policy=drifted
       fi
-      required=( "## Testing Policy (Definition of Done)" "### TDD" "### Test authoring — delegation and reuse" "### Tests represent the real flow" "### Project facts" "/test-author" "unit-test-author.md" )
-      case "$surface" in
-        native)   required+=( "### Success gate (tiered)" "### E2E mapping" "e2e-test-author.md" ) ;;
-        consumer) required+=( "### E2E gate (consumer-side)" "### Coverage mapping (consumer-side)" "escaped a consumer's suite" ) ;;
-        mixed)    required+=( "### Success gate (tiered)" "### E2E mapping" "e2e-test-author.md" "### E2E gate (consumer-side)" "### Coverage mapping (consumer-side)" "escaped a consumer's suite" ) ;;
-      esac
       missing=()
-      for r in "${required[@]}"; do grep -qF -- "$r" <<<"$section" || missing+=("$r"); done
+      while IFS= read -r h; do grep -qxF -- "$h" <<<"$section" || missing+=("$h"); done \
+        < <(bash "$here/render-policy.sh" "$surface" | grep -E '^#+ ')
       if [ ${#missing[@]} -gt 0 ]; then printf 'policy_missing=%s\n' "$(IFS=,; echo "${missing[*]}")"; rc=1; fi
       leftover="$(grep -oE '\{\{[A-Z_][A-Za-z0-9_ —-]*' <<<"$section" | head -5 | tr '\n' ' ')"
       [ -n "$leftover" ] && { echo "policy_unfilled_slots=$leftover"; rc=1; }
     fi
-  elif grep -qE '^##+ .*(Testing Policy|Definition of Done)' "$claude_md"; then
-    policy=legacy
+  else
+    legacy_start="$(grep -nE '^##+ .*(Testing Policy|Definition of Done)' "$claude_md" | head -1 | cut -d: -f1)"
+    if [ -n "$legacy_start" ]; then
+      policy=legacy
+      hashes="$(sed -n "${legacy_start}p" "$claude_md" | grep -oE '^#+')"
+      legacy_end="$(awk -v s="$legacy_start" -v lv="${#hashes}" 'NR>s && /^#+ / { match($0, /^#+/); if (RLENGTH <= lv) { print NR-1; exit } }' "$claude_md")"
+      echo "legacy_lines=${legacy_start}-${legacy_end:-EOF}"
+    fi
   fi
 fi
 echo "policy=$policy"
@@ -60,26 +68,38 @@ echo "policy=$policy"
 [ -n "$surface" ] && echo "surface=$surface"
 
 agent_state() {
-  local f="$1"
-  if [ ! -f "$f" ]; then echo missing
-  elif grep -q '<!-- testing-policy:core-start' "$f" && grep -q '<!-- testing-policy:core-end' "$f"; then echo ok
-  else echo unmarked; fi
+  local f="$1" kind="$2" v
+  [ -f "$f" ] || { echo missing; return; }
+  if ! grep -q '^<!-- testing-policy:core-start' "$f" || ! grep -q '^<!-- testing-policy:core-end -->$' "$f"; then echo unmarked; return; fi
+  v="$(sed -nE 's/^<!-- testing-policy:agent v=([0-9.]+) -->$/\1/p' "$f" | head -1)"
+  if [ "$v" != "$template_version" ] || ! grep -q '^<!-- testing-policy:core-start -->$' "$f"; then echo stale; return; fi
+  if [ "$(core_of "$f")" = "$(bash "$here/render-agent.sh" "$kind" --core-only)" ]; then echo ok; else echo drifted; fi
+}
+skill_state() {
+  local f="$1" v
+  [ -f "$f" ] || { echo missing; return; }
+  v="$(sed -nE 's/^<!-- testing-policy:skill v=([0-9.]+) -->$/\1/p' "$f" | head -1)"
+  [ "$v" = "$template_version" ] && echo ok || echo stale
 }
 pieces_ok=1
-au="$(agent_state "$project/.claude/agents/unit-test-author.md")"; echo "agent_unit=$au"; [ "$au" = ok ] || pieces_ok=0
-if [ "$surface" = consumer ]; then echo "agent_e2e=n/a"; else ae="$(agent_state "$project/.claude/agents/e2e-test-author.md")"; echo "agent_e2e=$ae"; [ "$ae" = ok ] || pieces_ok=0; fi
-[ -f "$project/.claude/skills/test-author/SKILL.md" ] && echo "skill_test_author=ok" || { echo "skill_test_author=missing"; pieces_ok=0; }
+au="$(agent_state "$project/.claude/agents/unit-test-author.md" unit)"; echo "agent_unit=$au"; [ "$au" = ok ] || pieces_ok=0
+if [ "$surface" = consumer ]; then echo "agent_e2e=n/a"; else ae="$(agent_state "$project/.claude/agents/e2e-test-author.md" e2e)"; echo "agent_e2e=$ae"; [ "$ae" = ok ] || pieces_ok=0; fi
+st="$(skill_state "$project/.claude/skills/test-author/SKILL.md")"; echo "skill_test_author=$st"; [ "$st" = ok ] || pieces_ok=0
 [ -f "$project/.claude/testing-policy/scan-test-assets.sh" ] && echo "scan_script=ok" || { echo "scan_script=missing"; pieces_ok=0; }
+[ -f "$project/.claude/testing-policy/skip-patterns.sh" ] && echo "skip_patterns=ok" || { echo "skip_patterns=missing"; pieces_ok=0; }
 hook=missing
 [ -f "$project/.claude/testing-policy/forbid-test-skips.sh" ] && hook=script-only
-if grep -qs 'forbid-test-skips.sh' "$project/.claude/settings.json" "$project/.claude/settings.local.json"; then hook=wired; fi
+if grep -qs 'forbid-test-skips.sh' "$project/.claude/settings.json" "$project/.claude/settings.local.json"; then
+  [ "$hook" = script-only ] && hook=wired || hook=wired-missing
+fi
 echo "hook=$hook"
 
 ignored=()
 if git -C "$project" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-  for p in .claude/agents/unit-test-author.md .claude/skills/test-author/SKILL.md .claude/testing-policy/scan-test-assets.sh .claude/settings.json; do
-    git -C "$project" check-ignore -q "$p" 2>/dev/null && ignored+=("$p")
-  done
+  paths=( .claude/agents/unit-test-author.md .claude/skills/test-author/SKILL.md .claude/testing-policy/scan-test-assets.sh .claude/testing-policy/skip-patterns.sh .claude/settings.json )
+  [ "$surface" = consumer ] || paths+=( .claude/agents/e2e-test-author.md )
+  [ "$hook" = missing ] || paths+=( .claude/testing-policy/forbid-test-skips.sh )
+  for p in "${paths[@]}"; do git -C "$project" check-ignore -q "$p" 2>/dev/null && ignored+=("$p"); done
 fi
 if [ ${#ignored[@]} -gt 0 ]; then printf 'gitignored=%s\n' "$(IFS=,; echo "${ignored[*]}")"; else echo "gitignored=none"; fi
 

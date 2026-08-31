@@ -12,6 +12,10 @@
 #   --section NAME print only that section (roots layout candidate-homes duplicate-symbols
 #                  local-factories inline-helpers subflows skip-markers)
 #
+# Sections: duplicate-symbols = a name defined in two or more files (exports, plus top-level
+# function/class declarations); local-factories = builder-shaped definitions living in test files
+# instead of a shared home; inline-helpers = page-taking helpers and fixtures defined inside flow
+# files; skip-markers = every marker from skip-patterns.sh (sourced from this script's directory).
 # Output is plain text with fixed "## <section>" headers so callers can grep it.
 # Exit 0 whenever the scan ran (a finding is not an error); exit 2 on usage errors.
 set -uo pipefail
@@ -27,6 +31,10 @@ while [ $# -gt 0 ]; do
     *) echo "unknown argument: $1" >&2; exit 2 ;;
   esac
 done
+case "$only" in
+  ""|roots|layout|candidate-homes|duplicate-symbols|local-factories|inline-helpers|subflows|skip-markers) ;;
+  *) echo "unknown section: $only (roots layout candidate-homes duplicate-symbols local-factories inline-helpers subflows skip-markers)" >&2; exit 2 ;;
+esac
 
 if [ ${#roots[@]} -eq 0 ]; then
   for d in tests test __tests__ spec e2e e2e-tests .maestro src; do [ -d "$d" ] && roots+=("$d"); done
@@ -47,8 +55,10 @@ in_flows() {
 }
 is_test_file() {
   case "$1" in
-    *.test.ts|*.test.tsx|*.test.js|*.test.jsx|*.test.mjs|*.spec.ts|*.spec.tsx|*.spec.js|*.spec.jsx) return 0 ;;
-    */__tests__/*.ts|*/__tests__/*.tsx|*/__tests__/*.js|*/__tests__/*.jsx) return 0 ;;
+    *.test.ts|*.test.tsx|*.test.mts|*.test.cts|*.test.js|*.test.jsx|*.test.mjs|*.test.cjs) return 0 ;;
+    *.spec.ts|*.spec.tsx|*.spec.mts|*.spec.cts|*.spec.js|*.spec.jsx|*.spec.mjs|*.spec.cjs) return 0 ;;
+    *.cy.ts|*.cy.tsx|*.cy.js|*.cy.jsx) return 0 ;;
+    */__tests__/*.ts|*/__tests__/*.tsx|*/__tests__/*.mts|*/__tests__/*.cts|*/__tests__/*.js|*/__tests__/*.jsx|*/__tests__/*.mjs|*/__tests__/*.cjs) return 0 ;;
     test_*.py|*/test_*.py|*_test.py) return 0 ;;
     .maestro/*.yaml|.maestro/*.yml|*/.maestro/*.yaml|*/.maestro/*.yml) return 0 ;;
     *.yaml|*.yml) in_flows "$1" && return 0 ;;
@@ -70,7 +80,7 @@ for r in "${roots[@]}"; do
     all_files+=("$f")
     if is_test_file "$f"; then test_files+=("$f"); scan_files+=("$f"); continue; fi
     if [[ "$rb" =~ $TEST_ROOT_RE ]] || in_flows "$r"; then
-      case "$f" in *.ts|*.tsx|*.js|*.jsx|*.mjs|*.py|*.yaml|*.yml) scan_files+=("$f") ;; esac
+      case "$f" in *.ts|*.tsx|*.mts|*.cts|*.js|*.jsx|*.mjs|*.cjs|*.py|*.yaml|*.yml) scan_files+=("$f") ;; esac
     elif [[ "$f" =~ (^|/)(__tests__|__mocks__|__fixtures__|__helpers__|__factories__)(/|$) ]]; then
       scan_files+=("$f")
     fi
@@ -133,8 +143,8 @@ if want duplicate-symbols; then
   {
     for f in "${scan_files[@]}"; do
       case "$f" in
-        *.ts|*.tsx|*.js|*.jsx|*.mjs)
-          grep -HoE '^export (default )?(async )?(function\*? |const |let |class |type |interface |enum )[A-Za-z_$][A-Za-z0-9_$]*' "$f" 2>/dev/null | awk -F: '{n=split($0,a," "); print a[n] "\t" $1}' ;;
+        *.ts|*.tsx|*.mts|*.cts|*.js|*.jsx|*.mjs|*.cjs)
+          grep -HoE '^(export (default )?)?(async )?(function\*? |class )[A-Za-z_$][A-Za-z0-9_$]*|^export (default )?(const |let |type |interface |enum )[A-Za-z_$][A-Za-z0-9_$]*' "$f" 2>/dev/null | awk -F: '{n=split($0,a," "); print a[n] "\t" $1}' ;;
         *.py)
           grep -HoE '^(def|class) [A-Za-z_][A-Za-z0-9_]*' "$f" 2>/dev/null | awk -F: '{n=split($0,a," "); print a[n] "\t" $1}' | grep -vE '^(test_|Test[A-Z]|_)' ;;
       esac
@@ -149,10 +159,10 @@ if want local-factories; then
     for f in "${test_files[@]}"; do
       is_shared_path "$f" && continue
       case "$f" in
-        *.ts|*.tsx|*.js|*.jsx|*.mjs)
-          grep -HoE '^[[:space:]]*(export )?(async )?(function\*? |const |let )(make|build|create|fake|stub|mk|given|setup)[A-Z][A-Za-z0-9_]*' "$f" 2>/dev/null | awk -F: '{n=split($0,a," "); print a[n] "\t" $1}' ;;
+        *.ts|*.tsx|*.mts|*.cts|*.js|*.jsx|*.mjs|*.cjs)
+          grep -HoE '^[[:space:]]*(export )?(async )?(function\*? |const |let )(make|build|create|fake|stub|mk|mock|given|setup|render|seed|spy|with|sample|dummy|arrange|prepare)[A-Z][A-Za-z0-9_]*' "$f" 2>/dev/null | awk -F: '{n=split($0,a," "); print a[n] "\t" $1}' ;;
         *.py)
-          grep -HoE '^[[:space:]]*def (make|build|create|fake|stub|given|setup)_[a-z0-9_]+' "$f" 2>/dev/null | awk -F: '{n=split($0,a," "); print a[n] "\t" $1}' ;;
+          grep -HoE '^[[:space:]]*def (make|build|create|fake|stub|mock|given|setup|seed|sample|dummy|arrange|prepare)_[a-z0-9_]+' "$f" 2>/dev/null | awk -F: '{n=split($0,a," "); print a[n] "\t" $1}' ;;
       esac
     done
   } | sort -u | awk -F'\t' '{c[$1]++; f[$1]=f[$1] " " $2} END {for (k in c) printf "%s\t%d\t%s\n", k, c[k], f[k]}' | sort -t$'\t' -k2,2nr -k1,1
@@ -167,8 +177,10 @@ if want inline-helpers && [ ${#flows[@]} -gt 0 ]; then
       *.py)
         grep -HnE '^[[:space:]]*def [a-z_][a-z0-9_]*\(.*\b(page|context|browser)\b' "$f" 2>/dev/null | grep -vE 'def test_'
         grep -HnE '^[[:space:]]*@pytest\.fixture' "$f" 2>/dev/null | sed 's/$/\t<- fixture defined in a flow file/' ;;
-      *.ts|*.tsx|*.js|*.jsx)
-        grep -HnE '^[[:space:]]*(export )?(async )?function [A-Za-z_][A-Za-z0-9_]*\(.*\bpage\b' "$f" 2>/dev/null ;;
+      *.ts|*.tsx|*.mts|*.cts|*.js|*.jsx|*.mjs|*.cjs)
+        grep -HnE '^[[:space:]]*(export )?(async )?function [A-Za-z_$][A-Za-z0-9_$]*\(.*\bpage\b' "$f" 2>/dev/null
+        grep -HnE '^[[:space:]]*(export )?(const|let) [A-Za-z_$][A-Za-z0-9_$]* = (async )?\([^)]*\bpage\b[^)]*\)[^=]*=>' "$f" 2>/dev/null
+        grep -HnE '\b(test|base)\.extend(<[^>]*>)?\(' "$f" 2>/dev/null | sed 's/$/\t<- fixture defined in a flow file/' ;;
     esac
   done
 fi
@@ -188,12 +200,23 @@ fi
 # --- skip-markers ------------------------------------------------------------------------
 if want skip-markers; then
   hdr skip-markers
-  for f in "${scan_files[@]}"; do
-    case "$f" in
-      *.ts|*.tsx|*.js|*.jsx|*.mjs) grep -HnE '\.(skip|only)\(|\b(xit|xdescribe|xtest|fit|fdescribe)\(' "$f" 2>/dev/null ;;
-      *.py) grep -HnE 'pytest\.mark\.(skip|skipif|xfail)|pytest\.skip\(' "$f" 2>/dev/null ;;
-      *.yaml|*.yml) grep -HnE 'optional:[[:space:]]*true' "$f" 2>/dev/null ;;
-    esac
-  done
+  patterns="$(dirname "$0")/skip-patterns.sh"
+  if [ ! -f "$patterns" ]; then
+    echo "skip-patterns.sh not found next to $(basename "$0") — skip-markers not scanned" >&2
+  else
+    . "$patterns"
+    for f in "${scan_files[@]}"; do
+      skip_pattern_for "$f"
+      if [ -z "$SKIP_PAT" ]; then
+        case "$f" in
+          *.ts|*.tsx|*.mts|*.cts|*.js|*.jsx|*.mjs|*.cjs) SKIP_PAT="$SKIP_PAT_JS" ;;
+          *.py) SKIP_PAT="$SKIP_PAT_PY" ;;
+          *.yaml|*.yml) SKIP_PAT="$SKIP_PAT_MAESTRO" ;;
+        esac
+      fi
+      [ -n "$SKIP_PAT" ] || continue
+      grep -HnE "$SKIP_PAT" "$f" 2>/dev/null
+    done
+  fi
 fi
 exit 0
