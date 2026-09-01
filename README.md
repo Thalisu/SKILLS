@@ -7,6 +7,7 @@ Agent skills I maintain across projects. Each skill is a self-contained director
 | [`testing-policy`](skills/testing-policy) | Install and keep in sync a canonical Testing Policy (Definition of Done) across repos |
 | [`discover`](skills/discover) | Batch "does this already exist in the repo?" lookups answered by a Haiku subagent in one line per symbol |
 | [`discover-setup`](skills/discover-setup) | Wire the discover agent and skills on a machine and install the mandatory Discovery rule into a project's `CLAUDE.md` |
+| [`test-triage`](skills/test-triage) | Run a test target, cluster the failures, auto-fix and commit only the small ones, file a dossier in `docs/tests/` for the rest |
 
 ---
 
@@ -173,6 +174,71 @@ bash ~/SKILLS/skills/discover/scripts/selftest.sh                 # selftest: ok
 `skills/discover-setup/CLAUDE-SECTION.md`, stamped into every installed section as
 `<!-- discover:start v=N -->`. A project behind the tag reports `section=stale`; a hand-edited body
 reports `drifted`, and `install.sh` replaces it only with `--force`.
+
+## test-triage
+
+### The problem
+
+A red suite invites three bad reflexes: making the test pass by changing what it verifies, re-running until it
+goes green, and calling an unreachable database "a failing test". And the work of finding out *why* something
+is red evaporates when the session ends — the next one starts the same investigation from zero.
+
+### What it does
+
+`test-triage` runs one target (unit, e2e, all, a file or a filter), clusters the failures by root cause and
+splits them into two buckets with a hard line between them:
+
+- **Small fix** — root cause proven, the change fits in exactly one existing file: production code, or test
+  *access* code (selectors, labels, routes, fixture data) with git evidence that the UI or contract changed on
+  purpose. Applied, verified against the target and the full unit suite, committed one per cluster. Anything that
+  does not turn green is rolled back with `git checkout`; the tree always comes back clean.
+- **Hard work** — schema, contract, race condition, more than one file, uncertain cause, or a fix that would
+  change a result assertion. Never auto-fixed: registered as a numbered dossier in `docs/tests/` with a closed
+  `veto` vocabulary and a pt-BR body (`Erro`, `Hipótese`, `Descartado`, `Próximo passo`), committed on its own.
+
+Infra failures — connection refused, container down, app not answering — are a third thing: boot → one retry
+per cause → **BLOCKED**. Never green, never a test failure, never a dossier.
+
+| Piece | Role |
+|---|---|
+| `skills/test-triage/SKILL.md` | the workflow: target → command → run → cluster → flake check → classify → fix or dossier → reconcile → report |
+| `scripts/context.sh` | injected at load time through the `!` block: branch and protection, dirty files, `package.json` scripts tagged local / remote-smelling, `runner.json`, open dossiers; never exits non-zero |
+| `scripts/dossier.sh` | `next-id`, `new`, `list-open`, `bump`, `green` — every dossier write goes through it |
+| `assets/dossier-template.md` | the schema-2 frontmatter and the four body sections |
+| `references/runner-config.md` | `docs/tests/runner.json` schema, discovery precedence, single-target forms, the verified `${CLAUDE_SKILL_DIR}` / `allowed-tools` behaviour |
+| `references/dossier-schema.md` | frontmatter fields, veto vocabulary, reconcile rules, script reference |
+| `evals/` | five prepared cases for `claude plugin eval` |
+
+Two invariants:
+
+- **Nothing is invented.** Commands come from `docs/tests/runner.json` — the skill's own record, written only
+  from a command the user gave and that ran — or from `package.json` scripts by name, local before remote. Never
+  from another manifest, never from another repository.
+- **Memory lives in the repo.** Open dossiers are reconciled at the end of every run — bumped when the failure
+  repeats, closed when their test runs green (a flake needs two green runs) — and every write is its own commit.
+  Nothing is pushed.
+
+### Install
+
+```bash
+git clone https://github.com/Thalisu/SKILLS.git ~/SKILLS
+ln -s ~/SKILLS/skills/test-triage ~/.claude/skills/test-triage
+```
+
+Then, from a project:
+
+```
+/test-triage unit
+```
+
+The first run in a repository without a recognisable test script asks once for the suite and single-target
+commands and records them in `docs/tests/runner.json`. Default permission mode needs nothing else: the skill's
+`allowed-tools` covers the injected script.
+
+### Versioning
+
+`test-triage-v<N>` tags mark the skill versions: `v1` is the single-file skill as first authored, `v2` the
+versioned layout with scripts, references, evals and the `runner.json` record.
 
 ## License
 
