@@ -1,0 +1,33 @@
+1 | formatCpf, maskCpf | format a CPF string with dots and dash | - | no
+2 | useDebounce, debounce | delay a callback until input settles | - | no
+3 | withRetry, retryRequest, fetchWithRetry | exponential-backoff retry wrapper around fetch calls | - | no
+4 | Badge, Tag | small label component | - | no
+5 | exportedHelper, helperExport | helper re-exported under an alias | - | no
+6 | createInvoice, newInvoice | build an invoice record for a customer | - | yes
+7 | findUser | look a user up by id (ts method) | - | no
+8 | UserService | user service class | - | no
+9 | UserRecord | user record interface | - | no
+10 | UserStatus | user status enum | - | no
+11 | Invoice | invoice type alias | - | no
+12 | legacyHelper | esm helper (mjs) | - | no
+13 | load_config | load configuration (python function) | - | no
+14 | ConfigService | configuration class (python) | - | no
+15 | fetch_user | fetch a user (rust impl method, c, php, lua, ruby, bash) | - | no
+16 | find_user | trait method signature (rust) | - | no
+17 | User | user struct/type (rust, go, kotlin, swift, cpp) | - | no
+18 | FetchError | fetch error enum (rust) | - | no
+19 | MAX_RETRIES | max retries const (rust) | - | no
+20 | UserId | user id type alias (rust) | - | no
+21 | NewSvc | service constructor (go) | - | no
+22 | FetchUser | fetch a user (go receiver method, c#) | - | no
+23 | fetchUser | fetch a user (java, kotlin, swift, cpp, php) | - | no
+24 | Svc | service class (java, kotlin, swift, c#, ruby, php) | - | no
+25 | Repository | repository interface (java) | - | no
+26 | onSave | save callback property (kotlin) | - | no
+27 | retries | retries property (swift, ruby) | - | no
+28 | Retries | retries property (c#) | - | no
+29 | max_retries | inline header function (c .h) | - | no
+30 | max_attempts | inline header function (cpp .hpp) | - | no
+31 | users | users table (sql) | - | no
+32 | localOnly | a local variable must not be reported | - | no
+33 | doesNotExist | nothing matches at all | ^Z9Z9Z9$ | no

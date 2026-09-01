@@ -1,0 +1,7 @@
+{
+  "_meta": { "updated_at": "1970-01-01T00:00:00Z", "version": 1 },
+  "entries": {
+    "src/utils/format.ts": { "exports": ["formatCpf", "onlyDigits"], "imports": [], "type": "util" },
+    "src/lib/http/client.ts": { "exports": ["request"], "imports": [], "type": "http-client" }
+  }
+}

@@ -5,6 +5,8 @@ Agent skills I maintain across projects. Each skill is a self-contained director
 | Skill | Purpose |
 |---|---|
 | [`testing-policy`](skills/testing-policy) | Install and keep in sync a canonical Testing Policy (Definition of Done) across repos |
+| [`discover`](skills/discover) | Batch "does this already exist in the repo?" lookups answered by a Haiku subagent in one line per symbol |
+| [`discover-setup`](skills/discover-setup) | Wire the discover agent and skills on a machine and install the mandatory Discovery rule into a project's `CLAUDE.md` |
 
 ---
 
@@ -85,6 +87,92 @@ bash ~/SKILLS/skills/testing-policy/scripts/verify-policy.sh <project>
 ### Versioning
 
 Repo tags track the policy template version — the `<!-- testing-policy version: N -->` line in `POLICY.md`, which is stamped into every installed section as `<!-- testing-policy:start v=N surface=... -->`. A repo whose marker is behind the tag reports `policy=stale` and needs a refresh run, which is the whole point of the marker: drift becomes visible instead of silent.
+
+## discover
+
+### The problem
+
+In a long implementation session, every "does this already exist?" check is a glob → grep → read →
+grep sequence that leaves 8–15k tokens of low-density tool output in the main context, permanently.
+Six to eight of those per session is the difference between finishing a feature and compacting in the
+middle of it. Done inline, the lookup also misses when the name differs: `formatCpf` exists as
+`maskDocument`, the model reimplements it, and the repo now has two.
+
+### What it does
+
+`discover` moves the lookup into a **Haiku subagent with a strict, terse output contract**, driven by
+**one deterministic script call per batch**. The orchestrator asks once per feature, with every
+candidate in one batch, and gets one line per item back — roughly 40 tokens each:
+
+```
+1 DUPLICATE  src/utils/format.ts:1  formatCpf(value: string): string · 2 uses ‖ src/legacy/format.ts:1  formatCpf(value: string): string · 0 uses · HIGH
+2 PARTIAL    src/hooks/useThrottle.ts:3  useThrottle<T …>(callback: T, delay: number): T — throttles instead of debouncing · LOW
+3 NOT_FOUND  tried: withRetry,retryRequest,fetchWithRetry · analog: src/lib/http/client.ts:1 (generic HTTP request wrapper) · home: src/lib/http · HIGH
+4 FOUND      src/billing/invoice.ts:3  createInvoice(customerId: string, total: number): Invoice · 2 uses · callers: src/billing/checkout.ts:4, src/billing/report.ts:4 · HIGH
+```
+
+| Piece | Role |
+|---|---|
+| `skills/discover/AGENT.md` | the Haiku agent: `tools: Bash` only, `maxTurns: 5`, no memory, no LSP; the contract and the single heredoc call it may make |
+| `skills/discover/SKILL.md` | `/discover <batch>` — a `context: fork` wrapper on the agent with `background: false`, so the orchestrator waits for the result even with fork mode on |
+| `skills/discover/scripts/discover.sh` | one call per batch; spec on stdin; deterministic report (`DEF` / `NAME` / `ANALOG` / `HOME` / `CALLERS` / `STATE`) read by the agent only |
+| `skills/discover/scripts/selftest.sh` | runs the script on `tests/fixture` (35 files, 16 languages) and diffs `tests/expected.txt` |
+| `skills/discover/references/languages.md` | the ast-grep kind table per language, each kind tied to the fixture line that proves it |
+
+The script finds definitions with **kind-based ast-grep rules and a name filter** — never pattern
+syntax, which misses every definition with a type annotation — over a file list shared by every stage
+(`rg --files`, `.gitignore` respected, tests, snapshots, `node_modules` and `*.d.ts` excluded). Uses
+are counted per definition by resolving each importing file's specifier, so duplicates come out most
+used first; when nothing is defined, a stem search over names and behaviour text yields the closest
+analog and a suggested home. On a 1,000-file Next.js + Python repo a five-item batch runs in under a second.
+
+### Contract
+
+Input, one item per line: `<n>. <behaviour in one line> — names: <name1>, <name2>[, …] [— callers?]`.
+At least two names per item; the behaviour text feeds the stem search.
+
+| State | Meaning | Rule for the orchestrator |
+|---|---|---|
+| `FOUND` | exactly one definition matches a candidate name | import and reuse |
+| `DUPLICATE` | two or more, most used first | import the first; name the duplicate in the audit line |
+| `PARTIAL` | a sibling exists (throttle for a debounce request) | extend it, or say in one line why not |
+| `NOT_FOUND` | no definition; always with `tried:`, `analog:`, `home:` | create it in the suggested home |
+| `ERROR` | the script failed or the Bash call was not permitted | fix the cause; nothing was searched |
+
+Confidence closes every line: `HIGH` only for ast-parsed definitions; `MED` for word hits, items with
+fewer than two names and most `NOT_FOUND`; `LOW` means the orchestrator must search itself.
+
+### Install
+
+```bash
+git clone https://github.com/Thalisu/SKILLS.git ~/SKILLS
+ln -s ~/SKILLS/skills/discover-setup ~/.claude/skills/discover-setup
+```
+
+Then, from a project:
+
+```
+/discover-setup
+```
+
+That links `~/.claude/agents/discover.md` and both skills (idempotent), appends the marked
+`## Discovery (mandatory)` section to `CLAUDE.md` (`<!-- discover:start v=1 -->` … `<!-- discover:end -->`)
+and leaves the change uncommitted. In a default-permission session the agent's Bash call prompts once;
+the setup offers the `permissions.allow` entry and never writes it without a yes.
+
+### Verify
+
+```bash
+bash ~/SKILLS/skills/discover-setup/scripts/verify.sh <project>   # section=, agent_link=, skill_links=, deps=
+bash ~/SKILLS/skills/discover/scripts/selftest.sh                 # selftest: ok
+```
+
+### Versioning
+
+`discover-v<N>` tags track the section template version — the `<!-- discover version: N -->` line in
+`skills/discover-setup/CLAUDE-SECTION.md`, stamped into every installed section as
+`<!-- discover:start v=N -->`. A project behind the tag reports `section=stale`; a hand-edited body
+reports `drifted`, and `install.sh` replaces it only with `--force`.
 
 ## License
 

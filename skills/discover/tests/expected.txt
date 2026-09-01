@@ -1,0 +1,139 @@
+LANGS bash,c,cpp,csharp,go,java,javascript,kotlin,lua,php,python,ruby,rust,swift,ts,tsx
+GENERIC sql
+INTEL_FILE yes
+# 1 names=formatCpf,maskCpf
+INTEL src/utils/format.ts util exports=formatCpf,onlyDigits
+DEF src/utils/format.ts:1 formatCpf(value: string): string uses=2 via=ast
+DEF src/legacy/format.ts:1 formatCpf(value: string): string uses=0 via=ast
+STATE DUPLICATE
+# 2 names=useDebounce,debounce
+ANALOG src/hooks/useThrottle.ts:3 export function useThrottle<T extends (...args: unknown[]) => void>(callback: T, delay:... stems=callback,delay score=2
+HOME src/hooks
+STATE NOT_FOUND
+# 3 names=withRetry,retryRequest,fetchWithRetry
+ANALOG src/lib/http/client.ts:1 export async function request<T>(url: string, init?: RequestInit): Promise<T> { stems=fetch,request score=2
+ANALOG c/svc.c:1 #include "svc.h" stems=fetch score=1
+ANALOG c/svc.h:1 #ifndef SVC_H stems=fetch score=1
+HOME src/lib/http
+STATE NOT_FOUND
+# 4 names=Badge,Tag
+DEF src/components/Badge.tsx:5 Badge = memo(function BadgeInner({ label }: BadgeProps) uses=2 via=ast
+STATE FOUND
+# 5 names=exportedHelper,helperExport
+DEF src/index.ts:1 helper as exportedHelper uses=0 via=ast
+STATE FOUND
+# 6 names=createInvoice,newInvoice
+DEF src/billing/invoice.ts:3 createInvoice(customerId: string, total: number): Invoice uses=2 via=ast
+CALLERS src/billing/checkout.ts:4, src/billing/report.ts:4
+STATE FOUND
+# 7 names=findUser
+DEF src/services/UserService.ts:11 async findUser(id: string): Promise<UserRecord> uses=0 via=ast
+STATE FOUND
+# 8 names=UserService
+DEF src/services/UserService.ts:10 class UserService uses=0 via=ast
+STATE FOUND
+# 9 names=UserRecord
+DEF src/services/UserService.ts:1 interface UserRecord uses=0 via=ast
+STATE FOUND
+# 10 names=UserStatus
+DEF src/services/UserService.ts:5 enum UserStatus uses=0 via=ast
+STATE FOUND
+# 11 names=Invoice
+DEF src/billing/invoice.ts:1 type Invoice = { id: string; total: number } uses=0 via=ast
+STATE FOUND
+# 12 names=legacyHelper
+DEF js/legacy.mjs:1 legacyHelper(value) uses=0 via=ast
+STATE FOUND
+# 13 names=load_config
+DEF py/service.py:10 load_config(path: str) -> dict uses=0 via=ast
+STATE FOUND
+# 14 names=ConfigService
+DEF py/service.py:4 class ConfigService uses=0 via=ast
+STATE FOUND
+# 15 names=fetch_user
+DEF c/svc.c:3 int fetch_user(int id) uses=0 via=ast
+DEF lua/svc.lua:4 M.fetch_user(id) uses=0 via=ast
+DEF lua/svc.lua:8 Svc:fetch_user(id) uses=0 via=ast
+DEF php/Svc.php:3 fetch_user(int $id): User uses=0 via=ast
+DEF rb/svc.rb:2 self.fetch_user(id) uses=0 via=ast
+DEF rs/lib.rs:20 fetch_user(&self, id: UserId) -> Result<User, FetchError> uses=0 via=ast
+DEF sh/svc.sh:3 fetch_user() uses=0 via=ast
+UNATTRIBUTED 1
+STATE DUPLICATE
+# 16 names=find_user
+DEF rs/lib.rs:14 find_user(&self, id: UserId) -> Option<User> uses=0 via=ast
+STATE FOUND
+# 17 names=User
+DEF go/svc.go:3 type User struct uses=0 via=ast
+DEF kt/Svc.kt:7 data class User(val id: Int) uses=0 via=ast
+DEF rs/lib.rs:5 struct User uses=0 via=ast
+DEF swift/Svc.swift:1 struct User uses=0 via=ast
+UNATTRIBUTED 14
+STATE DUPLICATE
+# 18 names=FetchError
+DEF rs/lib.rs:9 enum FetchError uses=0 via=ast
+STATE FOUND
+# 19 names=MAX_RETRIES
+DEF rs/lib.rs:1 const MAX_RETRIES: u32 = 3 uses=0 via=ast
+STATE FOUND
+# 20 names=UserId
+DEF rs/lib.rs:3 type UserId = u32 uses=0 via=ast
+STATE FOUND
+# 21 names=NewSvc
+DEF go/svc.go:9 NewSvc() *Svc uses=0 via=ast
+STATE FOUND
+# 22 names=FetchUser
+DEF cs/Svc.cs:7 User FetchUser(int id) uses=0 via=ast
+DEF go/svc.go:13 (s *Svc) FetchUser(id int) (*User, error) uses=0 via=ast
+STATE DUPLICATE
+# 23 names=fetchUser
+DEF cpp/svc.cpp:10 User Svc::fetchUser(int id) uses=0 via=ast
+DEF java/Svc.java:18 User fetchUser(int id) uses=0 via=ast
+DEF kt/Svc.kt:2 fetchUser(id: Int): User = User(id) uses=0 via=ast
+DEF php/Svc.php:10 fetchUser(int $id): User uses=0 via=ast
+DEF swift/Svc.swift:10 fetchUser(id: Int) -> User uses=0 via=ast
+STATE DUPLICATE
+# 24 names=Svc
+DEF cs/Svc.cs:3 class Svc uses=0 via=ast
+DEF go/svc.go:7 type Svc struct{} uses=0 via=ast
+DEF java/Svc.java:7 class Svc implements Repository uses=0 via=ast
+DEF kt/Svc.kt:1 class Svc(private val retries: Int) uses=0 via=ast
+DEF php/Svc.php:8 class Svc uses=0 via=ast
+DEF rb/svc.rb:1 class Svc uses=0 via=ast
+DEF rs/lib.rs:17 struct Svc uses=0 via=ast
+DEF swift/Svc.swift:5 class Svc uses=0 via=ast
+UNATTRIBUTED 4
+STATE DUPLICATE
+# 25 names=Repository
+DEF java/Svc.java:3 interface Repository uses=1 via=ast
+STATE FOUND
+# 26 names=onSave
+DEF kt/Svc.kt:5 val onSave: (Int) -> Int = { value -> value * 2 } uses=0 via=ast
+STATE FOUND
+# 27 names=retries
+DEF rb/svc.rb:6 retries uses=0 via=ast
+DEF swift/Svc.swift:6 let retries: Int = 3 uses=0 via=ast
+UNATTRIBUTED 4
+STATE DUPLICATE
+# 28 names=Retries
+DEF cs/Svc.cs:5 int Retries { get; set; } = 3 uses=0 via=ast
+STATE FOUND
+# 29 names=max_retries
+DEF c/svc.h:6 int max_retries(void) uses=0 via=ast
+STATE FOUND
+# 30 names=max_attempts
+DEF cpp/svc.hpp:3 int max_attempts() uses=0 via=ast
+STATE FOUND
+# 31 names=users
+NAME db/schema.sql:1 CREATE TABLE users (id integer primary key); via=generic
+ANALOG src/services/UserService.ts:1 export interface UserRecord { stems=users score=1
+HOME src/services
+STATE NAME_ONLY
+# 32 names=localOnly
+NAME src/services/UserService.ts:12 const localOnly = id.trim(); via=generic
+ANALOG lua/svc.lua:4 function M.fetch_user(id) stems=local score=1
+HOME lua
+STATE NAME_ONLY
+# 33 names=doesNotExist
+HOME src/utils
+STATE NOT_FOUND
