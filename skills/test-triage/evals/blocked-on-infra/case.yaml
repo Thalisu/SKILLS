@@ -1,0 +1,30 @@
+name: blocked-on-infra
+tags: [workflow, infra]
+runs: 2
+max_turns: 25
+timeout_seconds: 600
+allowed_tools: [Bash, Read, Edit, Write]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # A throwaway project whose only test runner needs a service that is not running:
+    # port 1 is reserved and nothing listens on it, so the connection is always refused.
+    set -e
+    mkdir -p tests
+    cat > package.json <<'JSON'
+    {
+      "name": "infra-fixture",
+      "private": true,
+      "scripts": { "test": "node tests/run.js" }
+    }
+    JSON
+    cat > tests/run.js <<'JS'
+    const net = require("node:net");
+    const socket = net.connect({ host: "localhost", port: 1 });
+    socket.on("error", (err) => { console.error("cannot reach the test database:", err.code); process.exit(1); });
+    socket.on("connect", () => { console.log("ok"); process.exit(0); });
+    JS
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
+    git checkout -q -b feature/triage

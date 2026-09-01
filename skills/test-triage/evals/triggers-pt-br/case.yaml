@@ -1,0 +1,5 @@
+name: triggers-pt-br
+tags: [trigger]
+runs: 3
+max_turns: 3
+timeout_seconds: 120

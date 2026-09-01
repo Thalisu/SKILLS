@@ -1,0 +1,5 @@
+name: no-trigger-bare-run
+tags: [trigger, negative]
+runs: 3
+max_turns: 3
+timeout_seconds: 120
