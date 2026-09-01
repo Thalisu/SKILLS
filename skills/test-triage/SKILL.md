@@ -62,60 +62,40 @@ Output that describes the environment, not the code — connection refused, daem
 
 ## 4. Cluster the failures
 
-Group failing tests by signature: same error message shape, same source file,
-same suite. Report the cluster count, not the raw test count — one broken mock
-failing 15 tests is one problem.
+Group failing tests by signature: same error shape, same source file, same suite. Report clusters, not raw counts — one broken mock failing 15 tests is one problem.
 
-- **More than 50% of the run red** → do not triage. Report a systemic hypothesis
-  (environment, bad merge, global mock/setup) and stop.
-- **≤ 3 clusters** → deep review of each, sequentially, in this context. Read the
-  test, read the source under test, `git log`/`git diff` the involved files, run
-  the test in isolation. Do not spawn subagents.
-- **> 3 clusters** → shallow triage: list each cluster with a one-line hypothesis
-  and ask which one to dig into. The clusters left uninvestigated stay in the
-  terminal only; offer in one line to write a single triage doc, and write it
-  only if asked.
+- **Systemic** — only a suite run (`unit` / `e2e` / `all`) that executed ≥ 10 tests with more than half red: do not triage; report the hypothesis (environment, bad merge, global mock or setup) and stop. A targeted run is never systemic.
+- **≤ 3 clusters** → deep path, each cluster in turn, in this context: read the test and the source under test, `git log` / `git diff` the involved files, read the open dossier that matches the cluster (its `Descartado` is not repeated). Never spawn subagents.
+- **> 3 clusters** → shallow path: one line per cluster with a hypothesis, ask which one to dig into. The rest stays in the terminal; offer in one line to write a single triage note, and write it only if asked.
 
-## 5. Flake check
+## 5. Flake check (deep path only)
 
-For each failing test, re-run **that test alone, once**.
+Skipped when an infra cause was found in this run. Otherwise re-run **one representative per cluster, alone, once**, through `single`:
 
-- Still red → real failure, continue to classification.
-- Green in isolation → **it does not become green**. It is a flake / test
-  interference, classified `veto: race-condition`, and it gets a dossier. An
-  unstable test is a bug.
+- Still red → real failure; classify it.
+- Green alone → it does **not** become green. It is a flake or interference, `veto: race-condition`, and gets a dossier.
 
-Never re-run a test repeatedly hoping for green. Never add sleeps or timeout
-padding to stabilize anything.
+Never re-run hoping for green. Never add sleeps or timeout padding.
 
-## 6. Classify: small vs. hard work
+## 6. Classify: small fix vs hard work
 
-**Small** (→ fix and commit) requires BOTH:
-- the root cause is identified with real evidence, and
-- the fix fits in **one** production file.
+**Small fix** requires ALL of:
 
-**Hard work** (→ dossier, no fix) if ANY of these applies:
-- touches schema or a migration
-- touches an external API contract
-- race condition, flake, or timing
-- more than one production file
-- root cause uncertain
-- the only available fix is changing a **result assertion**
+- the root cause is proven with evidence — file:line, git history, the failing assertion explained;
+- the fix edits **exactly one existing file**: a production file, or a test *access-code* file (page-object selectors, labels, routes, fixture data) backed by `git log` / `git diff` evidence that the UI or contract changed on purpose. Never both, never a new file.
 
-### Test code: access vs. verification
+**Hard work** → dossier, with the matching `veto`:
 
-The dividing line is access code vs. verification code.
+| veto | when |
+|---|---|
+| `schema` | touches a schema or a migration |
+| `contract` | touches an external API contract |
+| `race-condition` | flake, timing, test interference |
+| `multi-file` | more than one file, or a new file |
+| `uncertain` | root cause not proven |
+| `assertion` | the only fix changes a result assertion or an expected value, adds `skip` / `xfail` or the like, or pads with `sleep` |
 
-**May be auto-fixed** — but only with evidence in `git log`/`git diff` that the
-UI or contract changed on purpose, and that evidence goes in the commit message:
-- page-object selectors, labels, routes
-- fixture data that tracked a legitimate change
-
-**Never auto-fixed, always a dossier:**
-- changing, loosening or removing a result assertion
-- changing an expected value to match the observed one
-- `sleep` / `wait_for_timeout` padding
-- `skip`, `xfail`, or any equivalent
+Changing what a test verifies is never an auto-fix.
 
 ## 7. Fix path (small only)
 
