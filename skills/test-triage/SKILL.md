@@ -109,65 +109,29 @@ Refuse before touching anything: on a **protected branch** (Hard rules) → diag
 
 For e2e the verification gate is the affected flow plus the full unit suite — never the full e2e suite; leave that to the user.
 
-## 8. Dossier path (hard work only)
+## 8. Dossier (hard work only)
 
-A dossier is written **only** for a failure that needs real work. A failure that
-was fixed needs no dossier — the commit is the record.
+One dossier per failure that needs real work. A fixed failure needs none — the commit is the record. A failure already covered by an open dossier (same `test`, or same `signature` when `test` is empty) is not registered again: it is bumped in step 9 and its body receives the new findings.
 
-Location: `docs/tests/`, created if missing. Number = highest existing `NNNN`
-prefix + 1, zero-padded to 4. Slug in kebab-case English.
+Frontmatter schema 2 — `status`, `kind`, `test`, `signature`, `repro`, `failed_at`, `veto`, `occurrences`, `first_seen`, `last_seen`, `green_runs`, `fixed_by` — with field rules, veto vocabulary and reconcile rules in [references/dossier-schema.md](references/dossier-schema.md). Create it with the script, never by hand:
 
-`docs/tests/0007-pix-reemission-timeout.md`:
-
-```markdown
----
-status: open
-kind: e2e
-repro: cd e2e-tests && pytest client_tests/test_pix.py
-failed_at: <sha of HEAD when it failed>
-veto: race-condition
-occurrences: 1
-first_seen: 2026-08-28
-last_seen: 2026-08-28
-green_runs: 0
----
-
-## Erro
-
-<verbatim excerpt, trimmed to the meaningful frames>
-
-## Hipótese
-
-<root cause with evidence: file:line, git log/blame references>
-
-## Descartado
-
-- <what was ruled out, and how it was ruled out>
-
-## Próximo passo
-
-<one concrete next action>
+```
+bash "${CLAUDE_SKILL_DIR}/scripts/dossier.sh" new <slug> --kind <unit|e2e> --test "<file::name or flow path>" \
+  --signature "<first meaningful error line>" --repro "<single-target command as run>" --veto <veto>
 ```
 
-`Descartado` is not optional — it is what stops the next session from repeating
-the same investigation. If nothing was ruled out, say what was not checked.
+It prints the path (`docs/tests/NNNN-<slug>.md`, English kebab-case slug) or refuses when an open dossier already has that `test`. Then fill the body in pt-BR: `## Erro` (verbatim excerpt trimmed to the meaningful frames), `## Hipótese` (root cause with evidence), `## Descartado` (what was ruled out and how — mandatory; when nothing was, say what was not checked), `## Próximo passo` (one concrete action).
 
-Commit the dossier on its own: `docs(tests): register <slug>`. Never in the same
-commit as a fix.
+Commit it alone: `docs(tests): register <slug>` — never in the same commit as a fix. On a protected branch: write it, leave it uncommitted, report it as "not committed: protected branch".
 
 ## 9. Reconcile open dossiers
 
-At the **start** of every run, read only the frontmatter of `docs/tests/*.md`
-with `status: open`. At the end, reconcile in both directions:
+The facts block lists the open dossiers (`dossier.sh list-open`, frontmatter only — bodies are never read for this). At the end of the run, for every open dossier whose `test` this run actually executed (a unit run never touches an e2e dossier; a targeted run only its own target):
 
-- A new failure matching an open dossier (same `repro` **and** same error
-  signature) → update that dossier: `occurrences` +1, new `last_seen`, new
-  `failed_at`. Do not create a duplicate.
-- An open dossier whose test **ran green in this run** → `status: fixed`,
-  `fixed_by: <sha>`. Only for dossiers actually covered by this run — a unit run
-  can never close an e2e dossier.
-- Exception: a dossier with a flake veto (`race-condition`) does not close on one
-  green run. Increment `green_runs`; close only at 2.
+- failed again → `bash "${CLAUDE_SKILL_DIR}/scripts/dossier.sh" bump <path> --failed-at <sha>`;
+- ran green → `bash "${CLAUDE_SKILL_DIR}/scripts/dossier.sh" green <path> --sha <sha>` — closes it (`status: fixed`, `fixed_by`), except `veto: race-condition`, which closes only on the second green run.
+
+Match by `test` first, then by `signature`. Commit every reconcile edit together, `docs(tests): reconcile <n> dossier(s)` — separate from fixes and from new dossiers.
 
 ## 10. Report
 
