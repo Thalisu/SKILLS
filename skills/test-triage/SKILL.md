@@ -137,13 +137,14 @@ Match by `test` first, then by `signature`. Commit every reconcile edit together
 
 Terminal summary in pt-BR:
 
-- verdict (verde / vermelho / BLOCKED / sistêmico) and the command that ran
-- cluster count and, per cluster, what was done (corrigido+commit / dossiê / não investigado)
-- dossiers created, updated, closed
-- commit SHAs created
-- what was left for the user, and why
+- verdict — verde / vermelho / BLOCKED / sistêmico / não terminou — and the command line that ran;
+- infra chain, when there was one: cause → remedy → outcome;
+- clusters and, per cluster: corrigido + commit / dossiê / não investigado;
+- dossiers created, bumped, closed; `runner.json` changes made this run;
+- commit SHAs; anything left uncommitted and why;
+- what is left for the user, and why.
 
-A green run writes nothing — it reconciles open dossiers and reports.
+A green run creates nothing — it reconciles open dossiers and reports.
 
 ## Hard rules
 
