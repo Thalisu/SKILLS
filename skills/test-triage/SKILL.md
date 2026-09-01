@@ -48,19 +48,17 @@ A command the user gave — typed or answered — is run and then recorded in `r
 
 **Always print the exact command line before running it.** A full e2e suite or any remote command additionally waits for an explicit yes — even after the user said "local" or "remote". A confirmed line stays confirmed for its re-runs in this run. Targeted runs go straight.
 
-## 3. Run and separate infra from tests
+## 3. Run, separate infra from tests
 
-Run the command. No preflight.
+Run with the tool's maximum timeout, or in the background with output to a file that you poll. A tool timeout is neither BLOCKED nor green: report "did not finish" with the command line and stop.
 
-If the output looks like the environment, not the code — `ECONNREFUSED`, docker
-daemon down, the app not answering on the base URL, a missing container, a DB
-that won't accept connections — this is **not a test failure**:
+Output that describes the environment, not the code — connection refused, daemon or container down, the app not answering on its base URL, a database refusing connections — is an **infra cause**, never a test failure:
 
-1. Look for a boot script in `package.json` (`dev:all`, `docker:dev`, `dev`, `start`).
-2. Ask the user whether to run it.
-3. Retry the test command **once**.
-4. Still broken → report **BLOCKED**, name the infra error, stop. No dossier, no
-   fix, no commit. Blocked is never reported as green or as a test failure.
+1. Match it against `runner.json.known_infra` (signature → remedy) before diagnosing from scratch.
+2. Boot: `runner.json.boot`, else a `package.json` script named like `dev:all`, `docker:*`, `dev` or `start`. Ask; then run it in the background and wait until the thing that failed answers (the port or URL named in the error) before retrying.
+3. Retry: **one retry per distinct cause, at most two causes per run.** After a remedy, re-run only the failing targets through `single` when they are ≤ 10 and a `single` form exists; otherwise the suite.
+4. The same cause after its remedy → **BLOCKED**: name the cause, stop. No dossier, no fix, no commit. A second, different cause gets its own retry; when it is cleared the run is reported as green or red **with the infra chain** (cause → remedy → outcome) — never as "BLOCKED then green".
+5. Every new cause goes to `known_infra` (cap 10, oldest dropped): `remedy` holds the action only when it worked, `null` otherwise. Committed as `docs(tests): record infra cause`. BLOCKED writes nothing else — no memory outside the repository.
 
 ## 4. Cluster the failures
 
