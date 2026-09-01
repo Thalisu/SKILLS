@@ -14,7 +14,7 @@
 
 ## What a dossier is
 
-One file per failure that needs real work: `docs/tests/NNNN-<slug>.md`, numbered by the highest existing prefix + 1, English kebab-case slug, pt-BR body. A failure that was fixed has no dossier — the commit is the record. A green run creates none.
+One file per failure that needs real work: `docs/tests/NNNN-<slug>.md`, numbered by the highest existing prefix + 1, English kebab-case slug, English body by default. A failure that was fixed has no dossier — the commit is the record. A green run creates none.
 
 ## Frontmatter fields
 
@@ -52,14 +52,14 @@ When more than one reason applies, the topmost applicable row wins; a test whose
 
 ## Body sections
 
-pt-BR, in this order, all mandatory:
+English by default — another language only when the user explicitly asks — in this order, all mandatory:
 
-- `## Erro` — verbatim excerpt trimmed to the meaningful frames.
-- `## Hipótese` — root cause with evidence: `file:line`, `git log` / `git blame` references.
-- `## Descartado` — what was ruled out and how. This is what stops the next session from repeating the investigation; when nothing was ruled out, say what was not checked.
-- `## Próximo passo` — one concrete next action.
+- `## Error` — verbatim excerpt trimmed to the meaningful frames.
+- `## Hypothesis` — root cause with evidence: `file:line`, `git log` / `git blame` references.
+- `## Ruled out` — what was ruled out and how. This is what stops the next session from repeating the investigation; when nothing was ruled out, say what was not checked.
+- `## Next step` — one concrete next action.
 
-A later run that investigates the same failure appends its findings to `Hipótese` / `Descartado`; the frontmatter is touched only by the script.
+A later run that investigates the same failure appends its findings to `Hypothesis` / `Ruled out`; the frontmatter is touched only by the script.
 
 ## Identity and matching
 

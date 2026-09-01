@@ -13,18 +13,18 @@ last_seen: {{today}}
 green_runs: 0
 ---
 
-## Erro
+## Error
 
 <verbatim excerpt of the failure, trimmed to the meaningful frames>
 
-## Hipótese
+## Hypothesis
 
 <root cause with evidence: file:line, git log / git blame references>
 
-## Descartado
+## Ruled out
 
 - <what was ruled out, and how it was ruled out — or what was not checked>
 
-## Próximo passo
+## Next step
 
 <one concrete next action>

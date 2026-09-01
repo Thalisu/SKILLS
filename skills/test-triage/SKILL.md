@@ -7,7 +7,7 @@ allowed-tools: Bash(${CLAUDE_SKILL_DIR}/scripts/context.sh)
 
 # Test Triage
 
-Every message to the user, starting with the first one, is written in **pt-BR**; so is every dossier body. File names, frontmatter keys, `runner.json` and commit messages are in **English**.
+Every message to the user, starting with the first one, is written in **pt-BR**. Everything written to the repository — file names, frontmatter keys, `runner.json`, commit messages and dossier bodies — is in **English**; write a dossier body in another language only when the user explicitly asks.
 
 Run → cluster → investigate → fix the small, document the hard.
 
@@ -85,7 +85,7 @@ Output that describes the environment, not the code — connection refused, daem
 Group failing tests by signature: same error shape, same source file, same suite. Report clusters, not raw counts — one broken mock failing 15 tests is one problem.
 
 - **Systemic** — only a suite run (`unit` / `e2e` / `all`) that executed ≥ 10 tests with more than half red: do not triage; report the hypothesis (environment, bad merge, global mock or setup) and stop. A targeted run is never systemic.
-- **≤ 3 clusters** → deep path, each cluster in turn, in this context: read the test and the source under test, `git log` / `git diff` the involved files, read the open dossier that matches the cluster (its `Descartado` is not repeated). Never spawn subagents.
+- **≤ 3 clusters** → deep path, each cluster in turn, in this context: read the test and the source under test, `git log` / `git diff` the involved files, read the open dossier that matches the cluster (its `Ruled out` is not repeated). Never spawn subagents.
 - **> 3 clusters** → shallow path: one line per cluster with a hypothesis, ask which one to dig into. The rest stays in the terminal; offer in one line to write a single triage note, and write it only if asked.
 
 ## 5. Flake check (deep path only)
@@ -142,7 +142,7 @@ bash "${CLAUDE_SKILL_DIR}/scripts/dossier.sh" new <slug> --kind <unit|e2e> --tes
   --signature "<first meaningful error line>" --repro "<single-target command as run>" --veto <veto>
 ```
 
-It prints the path (`docs/tests/NNNN-<slug>.md`, English kebab-case slug) or refuses when an open dossier already has that `test`. Then fill the body in pt-BR: `## Erro` (verbatim excerpt trimmed to the meaningful frames), `## Hipótese` (root cause with evidence), `## Descartado` (what was ruled out and how — mandatory; when nothing was, say what was not checked), `## Próximo passo` (one concrete action).
+It prints the path (`docs/tests/NNNN-<slug>.md`, English kebab-case slug) or refuses when an open dossier already has that `test`. Then fill the body in English (default): `## Error` (verbatim excerpt trimmed to the meaningful frames), `## Hypothesis` (root cause with evidence), `## Ruled out` (what was ruled out and how — mandatory; when nothing was, say what was not checked), `## Next step` (one concrete action).
 
 Commit it alone: `docs(tests): register <slug>` — never in the same commit as a fix. On a protected branch: write it, leave it uncommitted, report it as "not committed: protected branch".
 
