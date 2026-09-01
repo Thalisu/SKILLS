@@ -17,6 +17,26 @@ Run → cluster → investigate → fix the small, document the hard.
 
 If the block above is empty or shows a policy message, collect the same facts with tools once step 1 is done: `git branch -a`, `git status --short`, `package.json` scripts, `docs/tests/runner.json`, `bash "${CLAUDE_SKILL_DIR}/scripts/dossier.sh" list-open`. The facts are a snapshot taken at invocation: anything that must be current at decision time (dirty files, HEAD) is re-read then.
 
+## Checklist
+
+Track your progress against this checklist; show it to the user only in pt-BR:
+
+```
+Triage:
+- [ ] 1. Target resolved (asked first when empty)
+- [ ] 2. Command resolved; command line printed; confirmed when full e2e or remote
+- [ ] 3. Run; infra separated from tests (boot → retry → BLOCKED)
+- [ ] 4. Failures clustered; systemic check (suite runs only)
+- [ ] 5. Flake check (deep path, one representative per cluster)
+- [ ] 6. Every cluster classified: small fix or hard work
+- [ ] 7. Small fixes applied, verified, formatted, committed one per cluster
+- [ ] 8. Dossiers registered for hard work, one commit each
+- [ ] 9. Open dossiers reconciled, one commit
+- [ ] 10. Report in pt-BR
+```
+
+Vocabulary, used consistently: *target* (what runs), *kind* (`unit` or `e2e`), *runner* (the command that runs a kind), *cluster* (one root cause), *small fix* / *hard work*, *dossier*, *BLOCKED*, *protected branch*.
+
 ## 1. Resolve the target
 
 Target: `$ARGUMENTS`. Resolve in this order, first match wins:
@@ -148,9 +168,9 @@ A green run creates nothing — it reconciles open dossiers and reports.
 
 ## Hard rules
 
-- A red test is a product bug until proven otherwise. Making a test pass by
-  changing what it verifies is never an auto-fix.
-- "Tests didn't run" is never "tests passed". Infra failure is BLOCKED.
-- Never push, never open a PR, never commit on a protected branch (step 7).
-- Never stage files you did not touch.
-- Never spawn subagents.
+- A red test is a product bug until proven otherwise. Making a test pass by changing what it verifies is never an auto-fix.
+- "Tests didn't run" is never "tests passed". Infra failure is BLOCKED; a tool timeout is "did not finish".
+- **Protected branch**: `main` / `master` when `develop`, `development`, `staging` or `release*` exists locally or on a remote; `production` / `prod` when any of those or `main` / `master` exists. A default branch that is the only branch is the working branch. On a protected branch nothing is committed.
+- Never push, never open a PR.
+- Never stage a file you did not touch. Never spawn subagents.
+- Never invent a command; never record one that did not run in this session.
