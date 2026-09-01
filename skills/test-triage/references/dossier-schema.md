@@ -45,8 +45,10 @@ Exactly one per dossier — the reason it is hard work:
 | `contract` | the fix touches an external API contract | first green run |
 | `race-condition` | flake, timing, interference — green alone, red in the suite | **second** green run |
 | `multi-file` | the fix needs more than one file, or a new file | first green run |
-| `uncertain` | the root cause is not proven | first green run |
-| `assertion` | the only fix changes a result assertion or an expected value, skips the test, or pads it with a sleep | first green run |
+| `uncertain` | it is not established why the test is red | first green run |
+| `assertion` | the assertion or expected value disputes what the code deliberately does — the only path to green is changing what the test verifies, skipping it, or padding it with a sleep | first green run |
+
+When more than one reason applies, the topmost applicable row wins; a test whose only path to green is changing what it verifies is always `assertion`.
 
 ## Body sections
 

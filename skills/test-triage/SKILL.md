@@ -112,8 +112,10 @@ Never re-run hoping for green. Never add sleeps or timeout padding.
 | `contract` | touches an external API contract |
 | `race-condition` | flake, timing, test interference |
 | `multi-file` | more than one file, or a new file |
-| `uncertain` | root cause not proven |
-| `assertion` | the only fix changes a result assertion or an expected value, adds `skip` / `xfail` or the like, or pads with `sleep` |
+| `uncertain` | it is not established why the test is red |
+| `assertion` | the assertion or expected value disputes what the code deliberately does: the only path to green is changing what the test verifies, skipping it, or padding it with `sleep` |
+
+More than one reason → the topmost applicable row wins — except that a test whose only path to green is changing what it verifies is always `assertion`, even when other questions stay unresolved.
 
 Changing what a test verifies is never an auto-fix.
 
