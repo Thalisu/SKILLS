@@ -19,34 +19,34 @@ If the block above is empty or shows a policy message, collect the same facts wi
 
 ## 1. Resolve the target
 
-The argument is free-form. Resolve in this order, first match wins:
+Target: `$ARGUMENTS`. Resolve in this order, first match wins:
 
-1. Keyword `unit` / `e2e` / `all` → whole suite of that kind.
-2. A path that exists on disk → infer the kind from the path (a test file under
-   the repo's unit test layout vs. its e2e layout).
-3. Anything else → a filter passed to the runner (`jest <regex>`, `pytest -k <expr>`).
-4. Empty → ask the user: unit, e2e, or all.
+1. Empty → **ask before any tool call**: unit, e2e or all.
+2. Keyword `unit` / `e2e` / `all` → the whole suite of that kind.
+3. A path that exists on disk → one target; its kind comes from where it lives (unit test layout vs e2e layout).
+4. Anything else → one target, passed to the runner as a filter.
 
-`all` runs unit first. **If unit is red, do not run e2e** — report and stop; the
-unit failures almost always explain the e2e ones and e2e is expensive.
+`local` / `remote` in the argument or in the user's reply pins that choice for the run. Anything else the user typed with the target — a command, a flow name — is an answer already given: use it, never ask for it again.
+
+`all` runs unit first. **Unit red → do not run e2e**: report and stop.
 
 ## 2. Resolve the command
 
-**Only `package.json` scripts.** Do not read CLAUDE.md, Makefiles, or any other
-manifest to guess a command.
+Discovery reads **only two files**: `docs/tests/runner.json` — the skill's own record of commands that ran, schema in [references/runner-config.md](references/runner-config.md) — and `package.json` scripts. Never CLAUDE.md, Makefiles or other manifests; never a command remembered from another repository.
 
-- Match scripts by name (`test`, `test:unit`, `test:e2e*`, `e2e*`) against the
-  resolved kind.
-- **Nothing matches → ask the user how that kind of test is run** in this repo.
-  Then offer to write the answer into `package.json` as a script (show the exact
-  script name and body, ask before writing). Once accepted, use it — from the
-  next run on, discovery finds it by itself.
-- Never invent a command from what you saw in another repo.
+Precedence per kind:
 
-**Confirm before running** when the resolved command is (a) a full e2e suite, or
-(b) a script whose name or body smells remote/CI (`:remote`, `:ci`, `ssh`,
-`rsync`). Show the exact command line and wait. A targeted run (one file, one
-filter) goes straight through with no confirmation.
+1. `runner.json` entry for the kind: `suite` and `single`.
+2. `package.json` scripts by name, local before remote. Unit: `test:unit` → `test:local` / `test:unit:local` → `test` (only when not remote-smelling) → a remote-smelling script, only when no local candidate exists. E2e: `test:e2e:local` → `test:e2e` / `e2e` → `test:e2e:remote`. A script runs through the package manager the facts indicate (`package_manager`, `lockfiles`): `<pm> run <script>`.
+3. Nothing, or the user pinned a variant no script provides → **ask once, before running**: the suite command *and* the single-target form, in one question (scripts from the facts may be offered as options; the user picks). No question when the user already typed the command.
+
+A command the user gave — typed or answered — is run and then recorded in `runner.json`, committed as `docs(tests): record <kind> runner`. Never a second question to record it, never after the run. Nothing is ever written to `package.json`.
+
+*Remote-smelling*: `:remote`, `:ci`, `ssh`, `rsync` or `scp` in the script name or body.
+
+**Single-target form**: `runner.json.single`; else, when the suite script body is a bare runner invocation, `<suite> -- {target}`; else ask and record. `{target}` is a file, a flow or a filter — whatever the runner takes; never assume which.
+
+**Always print the exact command line before running it.** A full e2e suite or any remote command additionally waits for an explicit yes — even after the user said "local" or "remote". A confirmed line stays confirmed for its re-runs in this run. Targeted runs go straight.
 
 ## 3. Run and separate infra from tests
 
