@@ -122,7 +122,12 @@ if [ -f package.json ]; then
 else
   echo "package.json: absent"
 fi
-locks="$(ls -1 2>/dev/null | grep -i 'lock' | grep -v '/$' | tr '\n' ' ' | sed 's/ $//')"
+locks=""
+for f in *; do
+  [ -f "$f" ] || continue
+  case "${f,,}" in *lock*) locks="$locks$f " ;; esac
+done
+locks="${locks% }"
 echo "lockfiles: ${locks:-none}"
 
 if [ -d docs/tests ]; then

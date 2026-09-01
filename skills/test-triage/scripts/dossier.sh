@@ -65,11 +65,13 @@ yaml_str() { printf '"%s"' "$(printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\
 is_open() { [ "$(fm_get "$1" status)" = "open" ]; }
 
 cmd_next_id() {
-  local last=0 n
-  if [ -d "$dir" ]; then
-    n="$(ls -1 "$dir" 2>/dev/null | grep -E '^[0-9]{4}-' | cut -c1-4 | sort -n | tail -1)"
-    [ -n "$n" ] && last=$((10#$n))
-  fi
+  local last=0 f n
+  for f in "$dir"/[0-9][0-9][0-9][0-9]-*; do
+    [ -e "$f" ] || continue
+    n="${f##*/}"
+    n=$((10#${n:0:4}))
+    [ "$n" -gt "$last" ] && last=$n
+  done
   printf '%04d\n' $((last + 1))
 }
 
