@@ -1,6 +1,6 @@
 ---
 name: discover
-description: Batch existence lookup for symbols in the current repository. Input is numbered lines "<n>. <behaviour in one line> — names: <name1>, <name2>[, …] [— callers?]"; output is one line per item — FOUND / DUPLICATE / PARTIAL / NOT_FOUND / ERROR with path:line, signature, use count and confidence. Invoke through /discover; use Agent(subagent_type: discover) only in headless -p sessions.
+description: 'Batch existence lookup for symbols in the current repository. Input is numbered lines "<n>. <behaviour in one line> — names: <name1>, <name2>[, …] [— callers?]"; output is one line per item — FOUND / DUPLICATE / PARTIAL / NOT_FOUND / ERROR with path:line, signature, use count and confidence. Invoke through /discover; use Agent(subagent_type: discover) only in headless -p sessions.'
 model: haiku
 tools: Bash
 maxTurns: 5

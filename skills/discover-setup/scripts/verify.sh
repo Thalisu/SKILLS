@@ -14,8 +14,8 @@
 #   deps=rg:ok|missing,ast-grep:ok|missing,jq:ok|missing
 set -uo pipefail
 
-here="$(cd "$(dirname "$0")" && pwd)"
-skills_root="$(cd "$here/../.." && pwd)"
+here="$(cd "$(dirname "$0")" && pwd -P)"
+skills_root="$(cd "$here/../.." && pwd -P)"
 template="$here/../CLAUDE-SECTION.md"
 project="${1:-.}"
 claude_md="$project/CLAUDE.md"

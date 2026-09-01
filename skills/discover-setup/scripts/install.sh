@@ -15,8 +15,8 @@
 # Exit 0 done or nothing to do · 2 usage or template error · 5 drifted section without --force.
 set -euo pipefail
 
-here="$(cd "$(dirname "$0")" && pwd)"
-skills_root="$(cd "$here/../.." && pwd)"
+here="$(cd "$(dirname "$0")" && pwd -P)"
+skills_root="$(cd "$here/../.." && pwd -P)"
 template="$here/../CLAUDE-SECTION.md"
 project=. force=0
 while [ $# -gt 0 ]; do
