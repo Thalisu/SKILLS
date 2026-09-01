@@ -1,14 +1,21 @@
 ---
 name: test-triage
-description: Run a test target, cluster the failures, investigate them, auto-fix and commit only the small ones, and file a dossier in docs/tests/ for the ones that need real work. Use when the user asks to triage tests, run tests and investigate what broke, find out why tests are failing, or mentions "test-triage"/"triagem de testes". Do NOT use for a bare request to just run a test command.
+description: Runs a test target, clusters the failures, investigates them, auto-fixes and commits only the small ones, and files a dossier in docs/tests/ for the ones that need real work. Use when the user asks to triage tests, run tests and investigate what broke, find out why tests are failing or which tests broke, or mentions "test-triage", "triagem de testes", "por que os testes estão falhando" or "testes quebrados". Do NOT use for a bare request to just run a test command.
+argument-hint: "[unit|e2e|all|<path>|<filter>] [local|remote]"
+allowed-tools: Bash(${CLAUDE_SKILL_DIR}/scripts/context.sh)
 ---
 
 # Test Triage
 
-Run → cluster → investigate → fix the trivial, document the hard.
+Every message to the user, starting with the first one, is written in **pt-BR**; so is every dossier body. File names, frontmatter keys, `runner.json` and commit messages are in **English**.
 
-All terminal output and all dossier bodies are written in **pt-BR**. File names,
-frontmatter keys and commit messages are in **English**.
+Run → cluster → investigate → fix the small, document the hard.
+
+## Repository facts (collected before you start)
+
+!`"${CLAUDE_SKILL_DIR}/scripts/context.sh"`
+
+If the block above is empty or shows a policy message, collect the same facts with tools once step 1 is done: `git branch -a`, `git status --short`, `package.json` scripts, `docs/tests/runner.json`, `bash "${CLAUDE_SKILL_DIR}/scripts/dossier.sh" list-open`. The facts are a snapshot taken at invocation: anything that must be current at decision time (dirty files, HEAD) is re-read then.
 
 ## 1. Resolve the target
 
