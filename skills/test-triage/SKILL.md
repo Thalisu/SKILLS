@@ -97,28 +97,17 @@ Never re-run hoping for green. Never add sleeps or timeout padding.
 
 Changing what a test verifies is never an auto-fix.
 
-## 7. Fix path (small only)
+## 7. Fix path (small fix only)
+
+Refuse before touching anything: on a **protected branch** (Hard rules) → diagnose only, never commit; the file to edit shows in `git status --short` **read now** → do not touch it — the fix would ride with the user's work and the rollback would destroy it — downgrade to a dossier and say why.
 
 1. Apply the fix.
-2. Re-run the failing target. **Not green → `git checkout` every file you
-   touched** and reclassify as hard work. The tree always goes back clean.
-3. Green → run the **full unit suite**. Regression → `git checkout` everything
-   you touched and reclassify as hard work.
-4. Green → format only the files you touched, with whatever the repo uses
-   (Prettier for JS/TS, ruff for Python).
-5. `git add` the exact paths you touched. **Never `git add -A` or `git add .`.**
-6. One commit per cluster, conventional message (`fix(<scope>): ...`).
-7. **Never push.**
+2. Re-run the failing target. Not green → `git checkout -- <file>` and reclassify as hard work. A small fix creates no file, so this rollback is complete: the tree is clean again.
+3. Green → run the **full unit suite**. Regression → same rollback, reclassify.
+4. Format the touched file only, with the repository's own `package.json` script (`format` / `fmt` / `lint:fix`, given the path); none → skip. Then `git status --short` must show only the touched file: revert any other file that was clean before, and report — never revert — a file that was already dirty.
+5. `git add <file>` — the exact path, never `-A` or `.`. One commit per cluster: `fix(<scope>): ...`; for access-code fixes the git evidence goes in the message.
 
-### Refusals on the fix path
-
-- The file you would edit already had uncommitted changes → **do not fix it**.
-  The fix would ride along with the user's WIP and the rollback would destroy
-  their work. Downgrade to a dossier and say so.
-- On `main` or `production` → diagnose only, never commit.
-
-For e2e: the verification gate is the affected flow plus the full unit suite. Do
-not run the full e2e suite to validate a fix — leave that to the user.
+For e2e the verification gate is the affected flow plus the full unit suite — never the full e2e suite; leave that to the user.
 
 ## 8. Dossier path (hard work only)
 
@@ -197,6 +186,6 @@ A green run writes nothing — it reconciles open dossiers and reports.
 - A red test is a product bug until proven otherwise. Making a test pass by
   changing what it verifies is never an auto-fix.
 - "Tests didn't run" is never "tests passed". Infra failure is BLOCKED.
-- Never push, never open a PR, never commit on `main`/`production`.
+- Never push, never open a PR, never commit on a protected branch (step 7).
 - Never stage files you did not touch.
 - Never spawn subagents.
