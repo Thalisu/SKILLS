@@ -8,7 +8,7 @@
 - Body sections
 - Identity and matching
 - Reconcile rules
-- Commits
+- Never committed
 - `scripts/dossier.sh` reference
 - Dossiers written before schema 2
 
@@ -74,11 +74,9 @@ At the end of every run, for each open dossier whose `test` was actually execute
 
 A dossier is never closed by a run that did not execute its test.
 
-## Commits
+## Never committed
 
-- new dossier: `docs(tests): register <slug>` — one commit per dossier, never together with a fix;
-- reconcile edits: `docs(tests): reconcile <n> dossier(s)` — one commit per run;
-- on a protected branch: files are written and left uncommitted; the report lists them as "not committed: protected branch".
+`docs/tests/` is local-only. Nothing inside it — dossiers, `bump` / `green` edits, `runner.json` — is ever committed. `new` ensures the folder is gitignored before writing: it appends `docs/tests/` to the repository-root `.gitignore` when missing (`gitignore: added docs/tests/`) and warns when tracked files already exist under the folder — those are reported, never `git rm`ed. The only commit this produces is `.gitignore`'s own, alone, `chore: ignore docs/tests`, when the line was added — skipped and reported when the branch is protected or `.gitignore` was already dirty at the start of the run.
 
 ## `scripts/dossier.sh` reference
 
@@ -87,7 +85,8 @@ A dossier is never closed by a run that did not execute its test.
 | command | effect | prints |
 |---|---|---|
 | `next-id` | next `NNNN` | the id |
-| `new <slug> --kind K --test T --signature S --repro R --veto V` | creates the file from `assets/dossier-template.md`; `failed_at` = HEAD (`unknown` outside git), dates = today | the path — or `exists: <path>` with exit 3 for a duplicate |
+| `new <slug> --kind K --test T --signature S --repro R --veto V` | runs `ensure-ignored`, then creates the file from `assets/dossier-template.md`; `failed_at` = HEAD (`unknown` outside git), dates = today | the path as the last line — or `exists: <path>` with exit 3 for a duplicate |
+| `ensure-ignored` | appends `DIR/` to the repo-root `.gitignore` when `DIR` is not gitignored; no-op outside git | `gitignored: yes`, `gitignore: added DIR/` or `not a git repository`, plus a `warning:` line when tracked files exist under `DIR` |
 | `list-open` | open dossiers, oldest first | `path \| test \| signature \| veto \| occurrences \| green_runs` |
 | `bump <path> --failed-at SHA` | `occurrences`, `last_seen`, `failed_at` | `bumped: …`, or `unchanged: …` for the same sha on the same day |
 | `green <path> --sha SHA` | `green_runs`, then `status` / `fixed_by` per the veto | `fixed: …`, `green_runs=n (still open): …`, or `already fixed: …` |

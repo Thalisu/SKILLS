@@ -30,8 +30,8 @@ Triage:
 - [ ] 5. Flake check (deep path, one representative per cluster)
 - [ ] 6. Every cluster classified: small fix or hard work
 - [ ] 7. Small fixes applied, verified, formatted, committed one per cluster
-- [ ] 8. Dossiers registered for hard work, one commit each
-- [ ] 9. Open dossiers reconciled, one commit
+- [ ] 8. Dossiers registered for hard work; docs/tests gitignored, never committed
+- [ ] 9. Open dossiers reconciled
 - [ ] 10. Report in pt-BR
 ```
 
@@ -60,7 +60,7 @@ Precedence per kind:
 2. `package.json` scripts by name, local before remote. Unit: `test:unit` → `test:local` / `test:unit:local` → `test` (only when not remote-smelling) → a remote-smelling script, only when no local candidate exists. E2e: `test:e2e:local` → `test:e2e` / `e2e` → `test:e2e:remote`. A script runs through the package manager the facts indicate (`package_manager`, `lockfiles`): `<pm> run <script>`.
 3. Nothing, or the user pinned a variant no script provides → **ask once, before running**: the suite command *and* the single-target form, in one question (scripts from the facts may be offered as options; the user picks). No question when the user already typed the command.
 
-A command the user gave — typed or answered — is run and then recorded in `runner.json`, committed as `docs(tests): record <kind> runner`. Never a second question to record it, never after the run. Nothing is ever written to `package.json`.
+A command the user gave — typed or answered — is run and then recorded in `runner.json`. Before the first write into `docs/tests/` in a run, run `bash "${CLAUDE_SKILL_DIR}/scripts/dossier.sh" ensure-ignored` — the folder is local-only, kept in `.gitignore`, and nothing inside it is ever committed (see step 8 for the `.gitignore` commit). Never a second question to record it, never after the run. Nothing is ever written to `package.json`.
 
 *Remote-smelling*: `:remote`, `:ci`, `ssh`, `rsync` or `scp` in the script name or body.
 
@@ -78,7 +78,7 @@ Output that describes the environment, not the code — connection refused, daem
 2. Boot: `runner.json.boot`, else a `package.json` script named like `dev:all`, `docker:*`, `dev` or `start`. Ask; then run it in the background and wait until the thing that failed answers (the port or URL named in the error) before retrying.
 3. Retry: **one retry per distinct cause, at most two causes per run.** After a remedy, re-run only the failing targets through `single` when they are ≤ 10 and a `single` form exists; otherwise the suite.
 4. The same cause after its remedy → **BLOCKED**: name the cause, stop. No dossier, no fix, no commit. A second, different cause gets its own retry; when it is cleared the run is reported as green or red **with the infra chain** (cause → remedy → outcome) — never as "BLOCKED then green".
-5. Every new cause goes to `known_infra` (cap 10, oldest dropped): `remedy` holds the action only when it worked, `null` otherwise. Committed as `docs(tests): record infra cause`. BLOCKED writes nothing else — no memory outside the repository.
+5. Every new cause goes to `known_infra` (cap 10, oldest dropped): `remedy` holds the action only when it worked, `null` otherwise. BLOCKED writes nothing else — no memory outside the repository.
 
 ## 4. Cluster the failures
 
@@ -142,9 +142,9 @@ bash "${CLAUDE_SKILL_DIR}/scripts/dossier.sh" new <slug> --kind <unit|e2e> --tes
   --signature "<first meaningful error line>" --repro "<single-target command as run>" --veto <veto>
 ```
 
-It prints the path (`docs/tests/NNNN-<slug>.md`, English kebab-case slug) or refuses when an open dossier already has that `test`. Then fill the body in English (default): `## Error` (verbatim excerpt trimmed to the meaningful frames), `## Hypothesis` (root cause with evidence), `## Ruled out` (what was ruled out and how — mandatory; when nothing was, say what was not checked), `## Next step` (one concrete action).
+Before writing, `new` ensures `docs/tests/` is gitignored: it appends `docs/tests/` to the root `.gitignore` when missing (printing `gitignore: added docs/tests/`) and warns when tracked files already exist under the folder. Then it prints the path (`docs/tests/NNNN-<slug>.md`, English kebab-case slug) as its last line, or refuses when an open dossier already has that `test`. Fill the body in English (default): `## Error` (verbatim excerpt trimmed to the meaningful frames), `## Hypothesis` (root cause with evidence), `## Ruled out` (what was ruled out and how — mandatory; when nothing was, say what was not checked), `## Next step` (one concrete action).
 
-Commit it alone: `docs(tests): register <slug>` — never in the same commit as a fix. On a protected branch: write it, leave it uncommitted, report it as "not committed: protected branch".
+The dossier is **never committed** — `docs/tests/` is local-only. When the script added the `.gitignore` line, commit `.gitignore` alone as `chore: ignore docs/tests` — unless the branch is protected or `.gitignore` was already dirty in the facts: then leave it and report. A tracked-files warning from the script goes to the report verbatim; never `git rm` those files — the user decides.
 
 ## 9. Reconcile open dossiers
 
@@ -153,7 +153,7 @@ The facts block lists the open dossiers (`dossier.sh list-open`, frontmatter onl
 - failed again → `bash "${CLAUDE_SKILL_DIR}/scripts/dossier.sh" bump <path> --failed-at <sha>`;
 - ran green → `bash "${CLAUDE_SKILL_DIR}/scripts/dossier.sh" green <path> --sha <sha>` — closes it (`status: fixed`, `fixed_by`), except `veto: race-condition`, which closes only on the second green run.
 
-Match by `test` first, then by `signature`. Commit every reconcile edit together, `docs(tests): reconcile <n> dossier(s)` — separate from fixes and from new dossiers.
+Match by `test` first, then by `signature`. Reconcile edits stay uncommitted, like every other write under `docs/tests/`.
 
 ## 10. Report
 
@@ -162,7 +162,7 @@ Terminal summary in pt-BR:
 - verdict — verde / vermelho / BLOCKED / sistêmico / não terminou — and the command line that ran;
 - infra chain, when there was one: cause → remedy → outcome;
 - clusters and, per cluster: corrigido + commit / dossiê / não investigado;
-- dossiers created, bumped, closed; `runner.json` changes made this run;
+- dossiers created, bumped, closed; `runner.json` changes made this run; the `.gitignore` edit, when one was made, and any tracked-files warning from the script;
 - commit SHAs; anything left uncommitted and why;
 - what is left for the user, and why.
 
@@ -174,5 +174,6 @@ A green run creates nothing — it reconciles open dossiers and reports.
 - "Tests didn't run" is never "tests passed". Infra failure is BLOCKED; a tool timeout is "did not finish".
 - **Protected branch**: `main` / `master` when `develop`, `development`, `staging` or `release*` exists locally or on a remote; `production` / `prod` when any of those or `main` / `master` exists. A default branch that is the only branch is the working branch. On a protected branch nothing is committed.
 - Never push, never open a PR.
+- `docs/tests/` is never committed: it stays in `.gitignore` (`dossier.sh ensure-ignored`); files already tracked under it are reported, never removed.
 - Never stage a file you did not touch. Never spawn subagents.
 - Never invent a command; never record one that did not run in this session.

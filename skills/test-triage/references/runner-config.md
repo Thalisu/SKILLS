@@ -34,7 +34,7 @@ Written by the skill with an ordinary file write; read by `context.sh` verbatim.
 - Every key is optional; a missing kind means "discover or ask".
 - `{target}` is the only placeholder. It is replaced with a file, a flow or a filter — whatever the user said the runner takes.
 - `known_infra` is capped at 10 entries; the oldest is dropped. `remedy` is `null` when the action tried did not clear the cause — the signature alone still lets the next run recognise infra at once.
-- Commit messages: `docs(tests): record <kind> runner`, `docs(tests): record infra cause`.
+- Never committed: `docs/tests/` is kept in `.gitignore` (`dossier.sh ensure-ignored`, run before the first write of a run); `runner.json` and its `known_infra` entries stay local.
 
 ## Discovery precedence
 

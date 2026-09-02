@@ -8,6 +8,9 @@
 #                                            create NNNN-<slug>.md from assets/dossier-template.md
 #                                            with failed_at = HEAD and dates = today; prints the path.
 #                                            Exit 3 when an open dossier already has that test.
+#   ensure-ignored                           append "DIR/" to the repo-root .gitignore when DIR is
+#                                            not gitignored; warn when tracked files exist under DIR;
+#                                            no-op outside a git repository. Run by new before writing.
 #   list-open                                one line per open dossier, oldest first:
 #                                            path | test | signature | veto | occurrences | green_runs
 #   bump <path> --failed-at SHA              occurrences+1, last_seen = today, failed_at = SHA;
@@ -24,7 +27,7 @@ template="$here/../assets/dossier-template.md"
 dir="docs/tests"
 VETOS="schema contract race-condition multi-file uncertain assertion"
 
-usage() { sed -n '2,19p' "$0" >&2; exit 2; }
+usage() { sed -n '2,22p' "$0" >&2; exit 2; }
 die() { echo "dossier.sh: $*" >&2; exit 2; }
 
 # fm_get FILE KEY — value of KEY in the frontmatter, unquoted; empty when absent
@@ -87,6 +90,24 @@ cmd_list_open() {
   done
 }
 
+# A gitignore pattern with an inner slash is anchored to the .gitignore's own directory, so the
+# line is always appended to the repository-root .gitignore. The ignore check probes a phantom
+# path inside DIR: it works whatever pattern form already covers the directory.
+cmd_ensure_ignored() {
+  local root tracked
+  git rev-parse --is-inside-work-tree >/dev/null 2>&1 || { echo "not a git repository"; return 0; }
+  root="$(git rev-parse --show-toplevel)"
+  tracked="$(git ls-files -- "$dir" 2>/dev/null | grep -c .)"
+  [ "$tracked" -gt 0 ] && echo "warning: $tracked tracked file(s) under $dir/ — .gitignore does not untrack them"
+  if git check-ignore -q -- "$dir/x" 2>/dev/null; then
+    echo "gitignored: yes"
+  else
+    [ -s "$root/.gitignore" ] && [ -n "$(tail -c1 "$root/.gitignore")" ] && echo >> "$root/.gitignore"
+    printf '%s/\n' "$dir" >> "$root/.gitignore" || die "cannot write $root/.gitignore"
+    echo "gitignore: added $dir/"
+  fi
+}
+
 cmd_new() {
   local slug="" kind="" test="" signature="" repro="" veto="" id path today head existing
   [ $# -ge 1 ] && [ "${1#--}" = "$1" ] && { slug="$1"; shift; }
@@ -108,6 +129,7 @@ cmd_new() {
   [ -f "$template" ] || die "template missing: $template"
   existing="$(cmd_list_open | awk -F' \\| ' -v t="$(printf '%s' "$test" | tr '|' '/')" '$2 == t { print $1; exit }')"
   [ -z "$existing" ] || { echo "exists: $existing"; exit 3; }
+  cmd_ensure_ignored
   id="$(cmd_next_id)"
   path="$dir/$id-$slug.md"
   today="$(date +%F)"
@@ -180,7 +202,7 @@ cmd_green() {
 while [ $# -gt 0 ]; do
   case "$1" in
     --dir) dir="${2:?--dir needs a directory}"; shift 2 ;;
-    -h|--help) sed -n '2,19p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,22p' "$0"; exit 0 ;;
     *) break ;;
   esac
 done
@@ -189,6 +211,7 @@ cmd="$1"; shift
 case "$cmd" in
   next-id) cmd_next_id ;;
   new) cmd_new "$@" ;;
+  ensure-ignored) cmd_ensure_ignored ;;
   list-open) cmd_list_open ;;
   bump) cmd_bump "$@" ;;
   green) cmd_green "$@" ;;
