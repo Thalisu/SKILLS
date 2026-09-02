@@ -7,7 +7,11 @@
 set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
 skill="$(cd "$here/.." && pwd)"
-out="$(bash "$here/discover.sh" --root "$skill/tests/fixture" < "$skill/tests/spec.txt")"
+# The ROOT value is machine-specific; tests/root.sh asserts it, here it is normalized so
+# expected.txt stays portable. Only the exact fixture path is replaced — a wrong ROOT drifts.
+fixture_abs="$(cd "$skill/tests/fixture" && pwd -P)"
+out="$(bash "$here/discover.sh" --root "$skill/tests/fixture" < "$skill/tests/spec.txt" \
+  | sed "1s|^ROOT $fixture_abs\$|ROOT <fixture>|")"
 if [ "${1:-}" = --update ]; then
   printf '%s\n' "$out" > "$skill/tests/expected.txt"
   echo "selftest: expected.txt updated ($(wc -l < "$skill/tests/expected.txt") lines)"

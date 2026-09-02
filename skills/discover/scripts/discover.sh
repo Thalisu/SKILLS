@@ -7,6 +7,7 @@
 #   <id> | <names, comma-separated> | <behaviour text or -> | <extra rg regex or -> | <callers: yes|no>
 #
 # Output (read by the discover agent, not by people):
+#   ROOT <absolute root dir>                every relative path below is relative to this
 #   LANGS <ast-grep languages present>      GENERIC <code extensions without ast coverage>
 #   INTEL_FILE yes|no                       whether .planning/intel/file-roles.json exists
 #   # <id> names=<names>
@@ -28,7 +29,7 @@ root=.
 while [ $# -gt 0 ]; do
   case "$1" in
     --root) root="${2:?--root needs a directory}"; shift 2 ;;
-    -h|--help) sed -n '2,22p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,24p' "$0"; exit 0 ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
   esac
 done
@@ -36,6 +37,7 @@ for dep in rg ast-grep jq; do
   command -v "$dep" >/dev/null 2>&1 || { echo "missing dependency: $dep" >&2; exit 2; }
 done
 cd "$root" 2>/dev/null || { echo "not a directory: $root" >&2; exit 2; }
+echo "ROOT $(pwd -P)"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 

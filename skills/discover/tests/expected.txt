@@ -1,3 +1,4 @@
+ROOT <fixture>
 LANGS bash,c,cpp,csharp,go,java,javascript,kotlin,lua,php,python,ruby,rust,swift,ts,tsx
 GENERIC sql
 INTEL_FILE yes

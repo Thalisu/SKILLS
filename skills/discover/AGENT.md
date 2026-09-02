@@ -31,7 +31,7 @@ Turn them into spec lines for the script, one per item, five fields separated by
 
 Exactly one Bash call, the spec as a quoted heredoc:
 
-    bash ~/.claude/skills/discover/scripts/discover.sh <<'SPEC'
+    bash ~/.claude/skills/discover/scripts/discover.sh --root "$(git rev-parse --show-toplevel 2>/dev/null || pwd)" <<'SPEC'
     1 | formatCpf,maskCpf | format a CPF string with dots and dash | - | no
     2 | hasPermission,checkPermission | tell whether the current user holds a permission key | - | yes
     SPEC
@@ -45,8 +45,10 @@ for every item and stop; never work around it with other commands.
 
 ## Reading the report
 
-Header: `LANGS` (languages with ast coverage), `GENERIC` (code extensions without it, `-` when none),
-`INTEL_FILE yes|no`. Then, per item, after `# <n> names=…`:
+Header: `ROOT` (the absolute directory every relative path below is relative to — copy paths
+verbatim, they resolve from the repo toplevel), `LANGS` (languages with ast coverage), `GENERIC`
+(code extensions without it, `-` when none), `INTEL_FILE yes|no`. Then, per item, after
+`# <n> names=…`:
 
 | Line | Meaning |
 |---|---|
