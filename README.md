@@ -6,7 +6,7 @@ Agent skills I maintain across projects. Each skill is a self-contained director
 |---|---|
 | [`testing-policy`](skills/testing-policy) | Install and keep in sync a canonical Testing Policy (Definition of Done) across repos |
 | [`discover`](skills/discover) | Batch "does this already exist in the repo?" lookups answered by a Haiku subagent in one line per symbol |
-| [`discover-setup`](skills/discover-setup) | Wire the discover agent and skills on a machine and install the mandatory Discovery rule into a project's `CLAUDE.md` |
+| [`discover-setup`](skills/discover-setup) | Wire the discover agent and skills on a machine and install or update the mandatory Discovery rule in a project's `CLAUDE.md` or in the user's `~/.claude/CLAUDE.md` |
 | [`test-triage`](skills/test-triage) | Run a test target, cluster the failures, auto-fix and commit only the small ones, file a dossier in `docs/tests/` for the rest |
 
 ---
@@ -155,18 +155,22 @@ ln -s ~/SKILLS/skills/discover-setup ~/.claude/skills/discover-setup
 Then, from a project:
 
 ```
-/discover-setup
+/discover-setup            # asks: project, user, or both
+/discover-setup project    # <project>/CLAUDE.md — shared with teammates through the repo
+/discover-setup user       # ~/.claude/CLAUDE.md — every project on this machine, yours only
 ```
 
-That links `~/.claude/agents/discover.md` and both skills (idempotent), appends the marked
-`## Discovery (mandatory)` section to `CLAUDE.md` (`<!-- discover:start v=N -->` … `<!-- discover:end -->`)
-and leaves the change uncommitted. In a default-permission session the agent's Bash call prompts once;
+That links `~/.claude/agents/discover.md` and both skills (idempotent), reads the version already
+installed in the chosen `CLAUDE.md`, then appends the marked `## Discovery (mandatory)` section
+(`<!-- discover:start v=N -->` … `<!-- discover:end -->`) or updates an older one in place. A project
+change is left uncommitted. In a default-permission session the agent's Bash call prompts once;
 the setup offers the `permissions.allow` entry and never writes it without a yes.
 
 ### Verify
 
 ```bash
-bash ~/SKILLS/skills/discover-setup/scripts/verify.sh <project>   # section=, agent_link=, skill_links=, deps=
+bash ~/SKILLS/skills/discover-setup/scripts/verify.sh <project>   # scope=, section=, agent_link=, skill_links=, deps=
+bash ~/SKILLS/skills/discover-setup/scripts/verify.sh --user      # same, for ~/.claude/CLAUDE.md
 bash ~/SKILLS/skills/discover/scripts/selftest.sh                 # selftest: ok
 ```
 
@@ -196,7 +200,8 @@ splits them into two buckets with a hard line between them:
   does not turn green is rolled back with `git checkout`; the tree always comes back clean.
 - **Hard work** — schema, contract, race condition, more than one file, uncertain cause, or a fix that would
   change a result assertion. Never auto-fixed: registered as a numbered dossier in `docs/tests/` with a closed
-  `veto` vocabulary and a pt-BR body (`Erro`, `Hipótese`, `Descartado`, `Próximo passo`), committed on its own.
+  `veto` vocabulary and an English body (`Error`, `Hypothesis`, `Ruled out`, `Next step`) — never committed:
+  the skill keeps `docs/tests/` in `.gitignore`.
 
 Infra failures — connection refused, container down, app not answering — are a third thing: boot → one retry
 per cause → **BLOCKED**. Never green, never a test failure, never a dossier.
@@ -205,7 +210,7 @@ per cause → **BLOCKED**. Never green, never a test failure, never a dossier.
 |---|---|
 | `skills/test-triage/SKILL.md` | the workflow: target → command → run → cluster → flake check → classify → fix or dossier → reconcile → report |
 | `scripts/context.sh` | injected at load time through the `!` block: branch and protection, dirty files, `package.json` scripts tagged local / remote-smelling, `runner.json`, open dossiers; never exits non-zero |
-| `scripts/dossier.sh` | `next-id`, `new`, `list-open`, `bump`, `green` — every dossier write goes through it |
+| `scripts/dossier.sh` | `next-id`, `new`, `ensure-ignored`, `list-open`, `bump`, `green` — every dossier write goes through it, and `new` keeps `docs/tests/` gitignored |
 | `assets/dossier-template.md` | the schema-2 frontmatter and the four body sections |
 | `references/runner-config.md` | `docs/tests/runner.json` schema, discovery precedence, single-target forms, the verified `${CLAUDE_SKILL_DIR}` / `allowed-tools` behaviour |
 | `references/dossier-schema.md` | frontmatter fields, veto vocabulary, reconcile rules, script reference |
@@ -216,9 +221,9 @@ Two invariants:
 - **Nothing is invented.** Commands come from `docs/tests/runner.json` — the skill's own record, written only
   from a command the user gave and that ran — or from `package.json` scripts by name, local before remote. Never
   from another manifest, never from another repository.
-- **Memory lives in the repo.** Open dossiers are reconciled at the end of every run — bumped when the failure
-  repeats, closed when their test runs green (a flake needs two green runs) — and every write is its own commit.
-  Nothing is pushed.
+- **Memory lives in the repo, out of its history.** Open dossiers are reconciled at the end of every run —
+  bumped when the failure repeats, closed when their test runs green (a flake needs two green runs) — but
+  `docs/tests/` stays in `.gitignore`: nothing inside it is ever committed, and nothing is pushed.
 
 ### Install
 
