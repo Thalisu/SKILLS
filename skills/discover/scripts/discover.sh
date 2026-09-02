@@ -94,6 +94,11 @@ awk -v tmp="$tmp" '
 ' "$tmp/files" > "$tmp/classified"
 touch "$tmp/files.ast" "$tmp/files.code" "$tmp/langs" "$tmp/generic_ext"
 awk -F'\t' '$1 == "generic" {print $3}' "$tmp/classified" > "$tmp/files.generic"
+# language families for use counting: dialects that call each other freely count as one
+awk -F'\t' '{ l = $1
+  if (l == "ts" || l == "tsx" || l == "javascript") l = "js"
+  else if (l == "java" || l == "kotlin") l = "jvm"
+  print $3 "\t" l }' "$tmp/classified" > "$tmp/family"
 langs_present="$(sort "$tmp/langs" | paste -sd,)"
 generic_present="$(sort -t$'\t' -k1,1nr -k2,2 "$tmp/generic_ext" | first 10 | cut -f2 | paste -sd,)"
 echo "LANGS ${langs_present:--}"
@@ -190,17 +195,22 @@ first_def_line() {
   [ -n "$h" ] || h="1:$(head -1 "$1")"
   printf '%s' "$h"
 }
-use_lines() { # $1 name, $2 comma list of defining files → path<TAB>line<TAB>text, imports and defining files dropped
+use_lines() { # $1 name, $2 comma list of defining files → path<TAB>line<TAB>text
+  # imports, the defining files, and files outside the defining languages' family are dropped
+  # (a TS `id.trim()` must not count as a use of a bash `trim`); the NAME funnel and analogs
+  # stay cross-language on purpose.
   xargs -r -d '\n' -a "$tmp/files.code" rg -n -w -F -H --no-heading -e "$1" > "$tmp/hits" 2>/dev/null || true
   awk -v deffiles="$2" '
-    BEGIN { n = split(deffiles, d, ","); for (i = 1; i <= n; i++) skip[d[i]] = 1 }
+    NR == FNR { i = index($0, "\t"); fam[substr($0, 1, i - 1)] = substr($0, i + 1); next }
+    FNR == 1 { n = split(deffiles, d, ","); for (i = 1; i <= n; i++) { skip[d[i]] = 1; allowed[fam[d[i]]] = 1 } }
     { if (!match($0, /^[^:]+:[0-9]+:/)) next
       p = $0; sub(/:.*/, "", p); rest = substr($0, length(p) + 2); ln = rest; sub(/:.*/, "", ln); txt = substr(rest, length(ln) + 2)
       if (p in skip) next
+      if (!(fam[p] in allowed)) next
       if (txt ~ /^[ \t]*(import|from|use)[ \t{(]/) next
       if (txt ~ /^[ \t]*export[ \t]*(\{|\*|type[ \t]*\{)/) next
       if (txt ~ /^[ \t]*(const|let|var)[ \t].*=[ \t]*require\(/) next
-      print p "\t" ln "\t" txt }' "$tmp/hits" | sort -t$'\t' -k1,1 -k2,2n
+      print p "\t" ln "\t" txt }' "$tmp/family" "$tmp/hits" | sort -t$'\t' -k1,1 -k2,2n
 }
 import_specs() { # $1 importer file, $2 name → module specifiers through which the file imports the name
   awk -v name="$2" '

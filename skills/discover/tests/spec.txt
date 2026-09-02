@@ -31,3 +31,4 @@
 31 | users | users table (sql) | - | no
 32 | localOnly | a local variable must not be reported | - | no
 33 | doesNotExist | nothing matches at all | ^Z9Z9Z9$ | no
+34 | trim | trim helper (bash) | - | yes

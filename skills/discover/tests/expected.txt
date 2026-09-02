@@ -69,7 +69,7 @@ DEF go/svc.go:3 type User struct uses=0 via=ast
 DEF kt/Svc.kt:7 data class User(val id: Int) uses=0 via=ast
 DEF rs/lib.rs:5 struct User uses=0 via=ast
 DEF swift/Svc.swift:1 struct User uses=0 via=ast
-UNATTRIBUTED 14
+UNATTRIBUTED 4
 STATE DUPLICATE
 # 18 names=FetchError
 DEF rs/lib.rs:9 enum FetchError uses=0 via=ast
@@ -103,10 +103,9 @@ DEF php/Svc.php:8 class Svc uses=0 via=ast
 DEF rb/svc.rb:1 class Svc uses=0 via=ast
 DEF rs/lib.rs:17 struct Svc uses=0 via=ast
 DEF swift/Svc.swift:5 class Svc uses=0 via=ast
-UNATTRIBUTED 4
 STATE DUPLICATE
 # 25 names=Repository
-DEF java/Svc.java:3 interface Repository uses=1 via=ast
+DEF java/Svc.java:3 interface Repository uses=0 via=ast
 STATE FOUND
 # 26 names=onSave
 DEF kt/Svc.kt:5 val onSave: (Int) -> Int = { value -> value * 2 } uses=0 via=ast
@@ -114,7 +113,6 @@ STATE FOUND
 # 27 names=retries
 DEF rb/svc.rb:6 retries uses=0 via=ast
 DEF swift/Svc.swift:6 let retries: Int = 3 uses=0 via=ast
-UNATTRIBUTED 4
 STATE DUPLICATE
 # 28 names=Retries
 DEF cs/Svc.cs:5 int Retries { get; set; } = 3 uses=0 via=ast
@@ -138,3 +136,6 @@ STATE NAME_ONLY
 # 33 names=doesNotExist
 HOME src/utils
 STATE NOT_FOUND
+# 34 names=trim
+DEF sh/svc.sh:7 trim() uses=0 via=ast
+STATE FOUND
