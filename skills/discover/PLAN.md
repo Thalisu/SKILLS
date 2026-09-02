@@ -161,3 +161,28 @@ versioned-section machinery fires once, not five times (maintenance finding).
 Out of scope (explicitly deferred): LSP-backed reference counting (alternatives-d),
 intel-file investment (alternatives-c), any relaxation of the one-Bash-call agent
 contract.
+
+## Final gate — PASSED (recorded 2026-09-02, model sonnet)
+
+1. `selftest.sh` green; expected.txt updated only through reviewed diffs (slices 1, 2, 5). ✔
+2. `root.sh`, `contract.sh`, `errors.sh`, `section-lint.sh`, `setup-roundtrip.sh` all green. ✔
+3. Simulation 12/12 in one run: i 3/3 · ii 3/3 · iii 3/3 · iv 3/3 against section v2. ✔
+4. web-app re-run: report 2,742 B / 0.88 s (baseline 3,064 B / 1.0 s; caps 4 KB / 2 s);
+   formatCpf DUPLICATE order intact (namingFormatters 28 uses before general 2);
+   useDebouncedSubmit.ts now TOP analog (score 4, filename bonus) with `HOME src/hooks` — N1
+   closed; hasPermission callers spread across 7 distinct files (coverage script capped at
+   2 slots) — N2 closed; inline formatCurrency at InvoiceImportModal.tsx:117 still caught. ✔
+5. Version machinery fired exactly once, v1→v2 (per the phase-0 note the next version is 2,
+   not the v3 this plan says elsewhere), on ~/.claude; `verify.sh` exits 0 there. Two later
+   template-body resyncs used `install.sh --force` (template-side edits, same version). ✔
+
+Gate history: the 3-rep gate earned its keep twice — sonnet applied the small-repo carve-out
+to the 5-symbol spec verification (ii 2/3, then 1/3 after a bad restructure). Fix: the
+downgrade is keyed on item count, not repo size alone ("a single-item check in a repo under
+~50 files"); two or more items always batch. Probe ii 3/3 + iii 3/3, then the full 12/12.
+
+Deviations from the plan text: (a) slice 2 claimed the fixture already held both sides of
+the trim collision — the bash `trim()` def had to be added to sh/svc.sh as part of the red;
+(b) spec item 36 duplicates item 2 verbatim (kept as the plan wrote it — it documents N1);
+(c) setup-roundtrip.sh runs install/verify under a temp HOME so the test never mutates the
+real machine links; the real-machine check lives in gate item 5.
