@@ -116,8 +116,10 @@ candidate in one batch, and gets one line per item back — roughly 40 tokens ea
 |---|---|
 | `skills/discover/AGENT.md` | the Haiku agent: `tools: Bash` only, `maxTurns: 5`, no memory, no LSP; the contract and the single heredoc call it may make |
 | `skills/discover/SKILL.md` | `/discover <batch>` — a `context: fork` wrapper on the agent with `background: false`, so the orchestrator waits for the result even with fork mode on |
-| `skills/discover/scripts/discover.sh` | one call per batch; spec on stdin; deterministic report (`DEF` / `NAME` / `ANALOG` / `HOME` / `CALLERS` / `STATE`) read by the agent only |
-| `skills/discover/scripts/selftest.sh` | runs the script on `tests/fixture` (35 files, 16 languages) and diffs `tests/expected.txt` |
+| `skills/discover/scripts/discover.sh` | one call per batch; spec on stdin; deterministic report (`ROOT` / `DEF` / `NAME` / `ANALOG` / `HOME` / `CALLERS` / `STATE`) read by the agent only |
+| `skills/discover/scripts/selftest.sh` | runs the script on `tests/fixture` (37 files, 16 languages) and diffs `tests/expected.txt` |
+| `skills/discover/tests/*.sh` | invariant tests: `root.sh` (absolute-root header), `contract.sh` (AGENT.md pins `--root` to the repo toplevel), `errors.sh` (a malformed spec line never kills the batch), `section-lint.sh` (section text findings), `setup-roundtrip.sh` (stale→current machinery under a temp `HOME`) |
+| `skills/discover/tests/sim/run.sh` | compliance simulation — throwaway repos, the section rendered into their `CLAUDE.md`, headless `claude -p` sessions asserted on transcript + repo state; the acceptance gate runs every scenario at 3/3 reps |
 | `skills/discover/references/languages.md` | the ast-grep kind table per language, each kind tied to the fixture line that proves it |
 
 The script finds definitions with **kind-based ast-grep rules and a name filter** — never pattern
@@ -138,7 +140,7 @@ At least two names per item; the behaviour text feeds the stem search.
 | `DUPLICATE` | two or more, most used first | import the first; name the duplicate in the audit line |
 | `PARTIAL` | a sibling exists (throttle for a debounce request) | extend it, or say in one line why not |
 | `NOT_FOUND` | no definition; always with `tried:`, `analog:`, `home:` | create it in the suggested home |
-| `ERROR` | the script failed or the Bash call was not permitted | fix the cause; nothing was searched |
+| `ERROR` | the script failed, the call was not permitted, or that item's spec line was malformed (the other items still answer) | fix the cause; nothing was searched for that item |
 
 Confidence closes every line: `HIGH` only for ast-parsed definitions; `MED` for word hits, items with
 fewer than two names and most `NOT_FOUND`; `LOW` means the orchestrator must search itself.
@@ -157,7 +159,7 @@ Then, from a project:
 ```
 
 That links `~/.claude/agents/discover.md` and both skills (idempotent), appends the marked
-`## Discovery (mandatory)` section to `CLAUDE.md` (`<!-- discover:start v=1 -->` … `<!-- discover:end -->`)
+`## Discovery (mandatory)` section to `CLAUDE.md` (`<!-- discover:start v=N -->` … `<!-- discover:end -->`)
 and leaves the change uncommitted. In a default-permission session the agent's Bash call prompts once;
 the setup offers the `permissions.allow` entry and never writes it without a yes.
 
