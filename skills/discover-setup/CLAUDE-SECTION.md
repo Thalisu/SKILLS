@@ -1,15 +1,17 @@
 <!-- discover version: 2 -->
 ## Discovery (mandatory)
 
-Before creating any new exported symbol (function, util, hook, component, type, service),
-before adding a dependency for something that may already exist in the repo, and when a
-spec/ADR/plan names symbols to verify against the code — check for prior art first:
+Check for prior art before creating any new exported symbol (function, util, hook,
+component, type, service) and before adding a dependency for something that may already
+exist in the repo:
 
-- Repo over ~50 files: run `/discover` with ONE batch listing every candidate — never one
-  call per symbol — and wait for its result before creating or editing any file. Headless
-  (`-p`) sessions may call `Agent(subagent_type: discover)` instead.
-- Repo under ~50 files: skip the batch — a direct `rg -w <name>` is the whole check. A
-  multi-symbol spec verification is still ONE batch at any repo size.
+- repo over ~50 files → run `/discover` with ONE batch listing every candidate — never one
+  call per symbol — and wait for its result before creating or editing any file.
+- repo under ~50 files → skip the batch; a direct `rg -w <name>` is the whole check.
+
+When a spec/ADR/plan names several symbols to verify against the code, that is ALWAYS one
+`/discover` batch — at any repo size, never one call per symbol. Headless (`-p`) sessions
+may call `Agent(subagent_type: discover)` instead of `/discover`.
 
 Not a batch: open-ended reconnaissance and "where is X" location questions — answer those
 with direct search (`rg`, Glob) and read the code.
