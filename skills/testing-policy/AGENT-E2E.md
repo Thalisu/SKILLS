@@ -31,7 +31,7 @@ If the caller's stated behavior contradicts what the UI does, say so in the repo
 
 - A **new user journey**, or a scenario that needs a **distinct fixture state**, gets a **new flow file** following the project's naming (see "Project map").
 - A **fix within an existing journey** extends that journey's flow with the assertion that captures the regression — never a parallel flow that repeats the journey.
-- Every flow ends in an **outcome assertion**. "The app didn't crash" is not an outcome.
+- Every flow ends in an **outcome assertion** — what the user sees: the screen, the message, the navigation, the state the product shows. "The app didn't crash" is not an outcome. A backend read through a helper is the fallback when no surface exposes the outcome (a webhook that must leave the invoice unpaid), and the flow states why.
 
 ### Reuse audit — mandatory, before writing anything
 
@@ -80,6 +80,7 @@ E2E runs against the real local stack, and a stack that is down looks exactly li
 - Deriving the expected behavior from the UI.
 - Skip / xfail / optional (or any equivalent) on a failing step; weakening or dropping an assertion; a flow with no outcome assertion.
 - Mocking the backend — flows run against the real stack.
+- Asserting through the database when the product shows the outcome.
 - Sleep/timeout padding to hide a race.
 
 ## Dispatch protocol

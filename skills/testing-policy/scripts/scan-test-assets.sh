@@ -10,12 +10,16 @@
 #                  reported as "local" copies.
 #   --flows DIR    E2E flow root (repeatable). Enables the inline-helpers and subflows sections.
 #   --section NAME print only that section (roots layout candidate-homes duplicate-symbols
-#                  local-factories inline-helpers subflows skip-markers)
+#                  local-factories inline-helpers subflows mock-targets skip-markers)
 #
 # Sections: duplicate-symbols = a name defined in two or more files (exports, plus top-level
 # function/class declarations); local-factories = builder-shaped definitions living in test files
 # instead of a shared home; inline-helpers = page-taking helpers and fixtures defined inside flow
-# files; skip-markers = every marker from skip-patterns.sh (sourced from this script's directory).
+# files; mock-targets = every module-mock target (jest/vi mock, bun mock.module, unittest patch,
+# mocker.patch, monkeypatch.setattr) with its file count, classed `package` (a bare specifier or a
+# module outside the repo — a system boundary) or `internal` (a relative/alias path or a module of
+# this repo — either a thin wrapper around a boundary, or an internal collaborator: debt);
+# skip-markers = every marker from skip-patterns.sh (sourced from this script's directory).
 # Output is plain text with fixed "## <section>" headers so callers can grep it.
 # Exit 0 whenever the scan ran (a finding is not an error); exit 2 on usage errors.
 set -uo pipefail
@@ -32,8 +36,8 @@ while [ $# -gt 0 ]; do
   esac
 done
 case "$only" in
-  ""|roots|layout|candidate-homes|duplicate-symbols|local-factories|inline-helpers|subflows|skip-markers) ;;
-  *) echo "unknown section: $only (roots layout candidate-homes duplicate-symbols local-factories inline-helpers subflows skip-markers)" >&2; exit 2 ;;
+  ""|roots|layout|candidate-homes|duplicate-symbols|local-factories|inline-helpers|subflows|mock-targets|skip-markers) ;;
+  *) echo "unknown section: $only (roots layout candidate-homes duplicate-symbols local-factories inline-helpers subflows mock-targets skip-markers)" >&2; exit 2 ;;
 esac
 
 if [ ${#roots[@]} -eq 0 ]; then
@@ -195,6 +199,32 @@ if want subflows && [ ${#flows[@]} -gt 0 ]; then
     printf 'flows with no runFlow (candidates for shared steps):\n'
     for f in "${yaml_flows[@]}"; do case "$f" in */subflows/*) continue ;; esac; grep -q 'runFlow' "$f" || printf '%s\n' "$f"; done
   fi
+fi
+
+# --- mock-targets ------------------------------------------------------------------------
+if want mock-targets; then
+  hdr mock-targets
+  q="['\"]" nq="[^'\"]+"
+  py_class() {
+    local seg="${1%%.*}"
+    if [ -d "$seg" ] || [ -f "$seg.py" ] || [ -d "src/$seg" ] || [ -f "src/$seg.py" ]; then echo internal; else echo package; fi
+  }
+  {
+    for f in "${scan_files[@]}"; do
+      case "$f" in
+        *.ts|*.tsx|*.mts|*.cts|*.js|*.jsx|*.mjs|*.cjs)
+          grep -vE '^[[:space:]]*(//|/?\*)' "$f" 2>/dev/null \
+            | grep -oE "\b(jest|vi)\.(do[mM]ock|mock|unstable_mockModule)\([[:space:]]*$q$nq$q|\bmock\.module\([[:space:]]*$q$nq$q" \
+            | sed -E "s/^.*\([[:space:]]*$q//; s/$q\$//" \
+            | awk -v f="$f" '{ c = ($0 ~ /^(\.|\/|@\/|~\/|#|src\/|app\/|lib\/)/) ? "internal" : "package"; print $0 "\t" c "\t" f }' ;;
+        *.py)
+          grep -vE '^[[:space:]]*#' "$f" 2>/dev/null \
+            | grep -oE "\b(mock\.|mocker\.)?patch\([[:space:]]*$q$nq$q|\bmonkeypatch\.setattr\([[:space:]]*$q$nq$q" \
+            | sed -E "s/^.*\([[:space:]]*$q//; s/$q\$//" \
+            | while IFS= read -r t; do printf '%s\t%s\t%s\n' "$t" "$(py_class "$t")" "$f"; done ;;
+      esac
+    done
+  } | sort -u | awk -F'\t' '{k=$1 "\t" $2; c[k]++; f[k]=f[k] " " $3} END {for (k in c) printf "%s\t%d\t%s\n", k, c[k], f[k]}' | sort -t$'\t' -k2,2 -k3,3nr -k1,1
 fi
 
 # --- skip-markers ------------------------------------------------------------------------

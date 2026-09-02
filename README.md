@@ -32,16 +32,26 @@ A testing Definition of Done written once into a `CLAUDE.md` decays in three way
 | `AGENT-E2E.md` | `.claude/agents/e2e-test-author.md` — native and mixed surfaces only |
 | `SKILL-TEST-AUTHOR.md` | `.claude/skills/test-author/SKILL.md`, the inline path for writers without the `Agent` tool |
 | `scripts/scan-test-assets.sh` | `.claude/testing-policy/scan-test-assets.sh` — duplication and skip-marker scan |
-| `scripts/hooks/forbid-test-skips.sh` | optional `PreToolUse` hook blocking new `.skip` / `.only` / `xit` / `pytest.mark.skip` / Maestro `optional: true` in test files |
+| `scripts/forbid-test-skips.sh` | optional `PreToolUse` hook blocking new `.skip` / `.only` / `xit` / `pytest.mark.skip` / Maestro `optional: true` in test files |
 
 Two invariants hold across every mode:
 
 - **Nothing is invented.** Every slot is filled from something that exists in the project — never a guessed path, command or example.
 - **Nothing is written unverified.** Every command that lands in `Project facts` or an agent's `Project map` was run once during the install and returned output.
 
+### What the core says
+
+The rules between the markers are the same in every repo. In one breath:
+
+- **Done** is the full unit suite green plus the E2E coverage green, run against the change; an E2E stack that cannot run blocks, it never passes.
+- **Unit tests are written red-first, one at a time**: a tracer bullet, then red → minimal green → refactor on green → next test. Never a batch of tests ahead of the code.
+- **Tests describe behavior through the public interface**, named for what they prove; mocks only at system boundaries (the unit agent's map names them), never the repo's own modules. A test that is hard to write that way is a design signal for a seam, not a reason to mock an internal.
+- **A failing test is a product bug until shown otherwise.** Skips, weakened assertions, sleeps and adjusted expectations are forbidden; the one legitimate rewrite is a test that broke on a pure refactor, which was testing implementation.
+- **Reuse > extend > create**, with the second copy of any asset promoted to its shared home in the same changeset.
+
 ### Why the agents matter
 
-The `CLAUDE.md` section states the gate; the two agents are what make it hold at authoring time. Each carries a **Project map** — the real homes for mocks, helpers, factories, fixtures, page objects — discovered from the repo rather than assumed. That is what turns "reuse shared assets" from advice into something actionable: the author is told where the assets are before writing, and reports a **Reuse audit** of what was searched and what was decided.
+The `CLAUDE.md` section states the gate; the two agents are what make it hold at authoring time. Each carries a **Project map** — the real homes for mocks, helpers, factories, fixtures, page objects, and the system boundaries the tests are allowed to mock — discovered from the repo rather than assumed. That is what turns "reuse shared assets" and "mock at boundaries only" from advice into something actionable: the author is told where the assets are and what a boundary is before writing, and reports a **Reuse audit** of what was searched and what was decided.
 
 The duplication scan is reported, never auto-fixed. Debt is paid organically by the second-use rule: the next author who needs a duplicated asset consolidates it first.
 

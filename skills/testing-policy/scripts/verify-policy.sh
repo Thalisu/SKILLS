@@ -11,6 +11,7 @@
 #   policy_missing=<headings of the rendered template absent from the section>
 #   policy_unfilled_slots=<first {{slots}} still in the section>
 #   agent_unit=missing|unmarked|stale|drifted|ok    agent_e2e=same values|n/a (consumer surface)
+#   agent_<unit|e2e>_map_missing=<Project-map labels of the template absent from the installed agent>
 #   skill_test_author=missing|stale|ok   scan_script=missing|ok   skip_patterns=missing|ok
 #   hook=missing|script-only|wired|wired-missing   gitignored=none|<paths>
 # unmarked = hand-written file (ask before touching) · stale = installed by an older template
@@ -75,6 +76,16 @@ agent_state() {
   if [ "$v" != "$template_version" ] || ! grep -q '^<!-- testing-policy:core-start -->$' "$f"; then echo stale; return; fi
   if [ "$(core_of "$f")" = "$(bash "$here/render-agent.sh" "$kind" --core-only)" ]; then echo ok; else echo drifted; fi
 }
+# Project map labels the template expects (the bold lead of each line after core-end); a label the
+# installed agent lacks is a slot the template gained since that install — the refresh appends it.
+map_missing() {
+  local f="$1" kind="$2" label missing=()
+  [ -f "$f" ] || return 0
+  while IFS= read -r label; do grep -qF -- "$label" "$f" || missing+=("$label"); done \
+    < <(bash "$here/render-agent.sh" "$kind" | awk '/^<!-- testing-policy:core-end -->$/{f=1; next} f' | grep -oE '^\*\*[^*]+\*\*')
+  [ ${#missing[@]} -gt 0 ] && printf '%s' "$(IFS=,; echo "${missing[*]}")"
+  return 0
+}
 skill_state() {
   local f="$1" v
   [ -f "$f" ] || { echo missing; return; }
@@ -83,7 +94,11 @@ skill_state() {
 }
 pieces_ok=1
 au="$(agent_state "$project/.claude/agents/unit-test-author.md" unit)"; echo "agent_unit=$au"; [ "$au" = ok ] || pieces_ok=0
-if [ "$surface" = consumer ]; then echo "agent_e2e=n/a"; else ae="$(agent_state "$project/.claude/agents/e2e-test-author.md" e2e)"; echo "agent_e2e=$ae"; [ "$ae" = ok ] || pieces_ok=0; fi
+mm="$(map_missing "$project/.claude/agents/unit-test-author.md" unit)"; [ -z "$mm" ] || { echo "agent_unit_map_missing=$mm"; pieces_ok=0; }
+if [ "$surface" = consumer ]; then echo "agent_e2e=n/a"; else
+  ae="$(agent_state "$project/.claude/agents/e2e-test-author.md" e2e)"; echo "agent_e2e=$ae"; [ "$ae" = ok ] || pieces_ok=0
+  mm="$(map_missing "$project/.claude/agents/e2e-test-author.md" e2e)"; [ -z "$mm" ] || { echo "agent_e2e_map_missing=$mm"; pieces_ok=0; }
+fi
 st="$(skill_state "$project/.claude/skills/test-author/SKILL.md")"; echo "skill_test_author=$st"; [ "$st" = ok ] || pieces_ok=0
 [ -f "$project/.claude/testing-policy/scan-test-assets.sh" ] && echo "scan_script=ok" || { echo "scan_script=missing"; pieces_ok=0; }
 [ -f "$project/.claude/testing-policy/skip-patterns.sh" ] && echo "skip_patterns=ok" || { echo "skip_patterns=missing"; pieces_ok=0; }

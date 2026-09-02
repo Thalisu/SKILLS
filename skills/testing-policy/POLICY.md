@@ -1,4 +1,4 @@
-<!-- testing-policy version: 2.1 -->
+<!-- testing-policy version: 2.2 -->
 <!-- TEMPLATE — canonical Testing Policy, rendered into the project's CLAUDE.md by
      scripts/render-policy.sh <native|consumer|mixed>. A block opened by an "@surface,surface"
      comment and closed by an "@/" comment is emitted only for the listed surfaces; untagged
@@ -45,11 +45,24 @@ Besides its own surface, this repo is consumed by other repos (the consumer list
 ### TDD
 
 - **Unit — strict red-first**: write the failing test before the implementation. For a bugfix, the test must reproduce the bug (fail red) before the fix turns it green.
+- **One test at a time**: red → green → next. The first cycle is a tracer bullet — one test proving the path end to end — and each next test is chosen from what the previous cycle taught. Never the whole batch of tests first and the implementation after: tests written in bulk describe imagined behavior and the shape of things (signatures, data structures), not what the code does, and stay green when it breaks.
+- **Green is minimal**: only the code the current test needs — no branch, parameter or feature for a test not yet written.
+- **Refactor on green, never on red**: once green, extract duplication, move complexity behind the interface the test exercised, move logic to where its data lives — running the suite after every step. A test that goes red under a pure refactor was asserting implementation (see "Tests describe behavior") and is rewritten against the interface, not appeased.
+- **Behaviors, not branches**: the tests for a change are the behaviors its callers observe, prioritized — critical paths and the logic that can be wrong first; not one test per branch, not every edge case. The list is written before the first cycle, from the request, the plan or the user — never inferred from the implementation.
 <!-- @native,mixed -->
 - **E2E — prove after**: the E2E flow is authored or extended together with the feature and MUST pass before the work is declared done. No red-first requirement at E2E level — a flow written against a UI that doesn't exist yet fails trivially and proves nothing.
 <!-- @/ -->
 <!-- @consumer,mixed -->
 - **Consumer E2E — prove after**: the consumer flow is authored or extended in the consumer repo together with the consuming feature and MUST pass against this change before the work is declared done. No red-first requirement at E2E level — a flow written against a surface that doesn't exist yet fails trivially and proves nothing.
+<!-- @/ -->
+
+### Tests describe behavior, not implementation
+
+- **Through the public interface**: a test exercises the target the way its callers do and asserts what they can observe — the return value, the state read back through the same interface, the error raised. It is named for the behavior it proves, in the caller's words ("rejects an expired card", not "calls validateCard"), and it survives every refactor that keeps that behavior. A test that must reach into internals — a private function, a call on an internal collaborator, a row read straight from the table the code wrote — tests the implementation: it breaks on refactors that change nothing and passes on bugs that change everything.
+- **Mock at system boundaries only**: external services, the clock, randomness, the network, sometimes the database or the filesystem — the boundaries named in the unit-test-author's Project map, through their shared mocks. Never this repo's own modules or internal collaborators: a mocked internal pins the implementation and stays green when the real path is broken.
+- **A test that is hard to write is a design signal**: when a behavior can only be reached by mocking an internal, or by asserting on a side effect the interface does not expose, the fix is a seam in the code — pass the dependency in, return the result instead of mutating — and it lands before the test. Never mock around a missing seam.
+<!-- @native,mixed -->
+- **E2E asserts what the user sees**: the screen, the message, the navigation, the state the product shows. A backend read through a helper is the fallback when no surface exposes the outcome, and the flow states why.
 <!-- @/ -->
 
 ### Test authoring — delegation and reuse
@@ -69,7 +82,7 @@ Every new test — a new test file or a new test case — is written under the t
 - **Dispatch input** — the agent refuses incomplete input and never infers the expectation from the implementation:
 
   ```
-  Behavior to prove: <one sentence, in observable terms>
+  Behavior to prove: <one sentence, in observable terms — it becomes the test name>
   Target: <module / function>  (unit)   |   Journey / screen: <where in the product>  (E2E)
   Origin: bugfix | new feature
   Expected red: <failing assertion | unresolved import | error not thrown>  (unit)
@@ -78,6 +91,7 @@ Every new test — a new test file or a new test case — is written under the t
   Out of scope (optional): <...>
   ```
 
+- **One dispatch per cycle**: the next unit test is dispatched (or written inline) only after the previous one is green and its implementation exists — never a batch of tests ahead of the code (see "TDD").
 - **Editing an existing case** (one more assertion, adjusted data) stays with the caller — unless it needs a new shared asset (factory, mock, fixture, helper, page-object method), which escalates to the agent.
 - **Reuse over duplication**: reuse > extend > create. An asset that exists anywhere in the test tree — including local to another test file — is never rewritten; on its second use it is promoted to the shared home for its role (the agent's Project map names them) and every call site is updated. A separate near-duplicate asset requires a written semantic justification in the agent's report.
 - **Promotions are atomic**: the promoted asset and every updated call site are committed together with the test that motivated them, or in a refactor commit immediately before it — never split across commits, never left out of one. The agent reports the promotion as its own changeset for exactly this reason.
@@ -102,13 +116,16 @@ Every new test — a new test file or a new test case — is written under the t
 
 ### Tests represent the real flow
 
-**Principle: a failing test is presumed to expose a product bug, not a test bug.** Changing a test to make it pass requires demonstrating that the flow itself changed — stated explicitly in the commit/report, never done silently.
+**Principle: a failing test is presumed to expose a product bug, not a test bug.** Changing a test to make it pass requires demonstrating that the flow itself changed — stated explicitly in the commit/report, never done silently. The one other legitimate change is a test that goes red under a pure refactor, with the behavior through the public interface unchanged: it was asserting implementation (a mocked internal, a call count, a private symbol) and is rewritten against the interface, with that stated — the demonstration, not an exception to it.
 
 Forbidden:
 
 - Skipping, narrowing or marking optional a failing test or assertion (the skip mechanisms named in Project facts, or any equivalent).
 - Weakening or removing an assertion to get green.
 - Tests or flows without an outcome assertion (asserting only that nothing crashed).
+- Asserting the route instead of the outcome — that an internal collaborator was called, how many times, in what order. (A call into a mocked boundary is an outcome: the charge made, the email sent.)
+- Verifying through a side channel (reading the row the code wrote) when the interface can read the outcome back.
+- Mocking a module of this repo in a unit test — boundaries only (see "Tests describe behavior").
 <!-- @native,mixed -->
 - Mocking the backend in this repo's E2E — flows run against the real test stack (Project facts) with seeded fixtures.
 <!-- @/ -->

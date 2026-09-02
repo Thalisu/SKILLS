@@ -27,6 +27,14 @@ Read production code to learn signatures, import paths, and where the mock seams
 
 If the caller's stated behavior contradicts what the implementation does, say so in the report and write the test against the **caller's** behavior.
 
+### Through the interface
+
+The test calls the target the way its callers do and asserts what they can observe — the return value, the state read back through the same interface, the error raised. The **Behavior to prove** sentence is the test name; a name that says how ("calls validateCard") instead of what ("rejects an expired card") is a test of the implementation, and will break on refactors that change nothing.
+
+- **Mock at system boundaries only** — the boundaries listed in "Project map", through their shared mocks. Never this repo's own modules or internal collaborators: a mocked internal pins the implementation and stays green when the real path breaks. A boundary you need that the map does not list goes in the report as a candidate — never widen the map yourself.
+- **Assert the outcome, not the route.** A call on an internal collaborator, a call count, an order, a private function — none of these is an outcome. A call into a mocked boundary is one (the charge made, the email sent). Never verify through a side channel (reading the row the code wrote) when the interface can read the outcome back.
+- **A missing seam is production code.** When the declared behavior can only be reached by mocking an internal or asserting on a side effect, name the seam — pass the dependency in, return the result instead of mutating — and stop (see "Finish"); an inline writer makes that change before the test. Never mock around it.
+
 ### Reuse audit — mandatory, before writing anything
 
 Priority: **reuse > extend > create.** Never write a second copy of something that exists.
@@ -68,6 +76,7 @@ A promotion moves an asset out of a test file into the shared home for its role 
 
 - A second copy of an asset that exists anywhere in the test tree.
 - Deriving the expected behavior from the implementation.
+- Mocking a module of this repo; asserting on a call, a call count, an order or a private symbol as the outcome; verifying through a side channel the interface exposes.
 - Weakening or dropping an assertion to get green; a test with no outcome assertion.
 - Skipping, narrowing (`.only`) or marking a failing case as optional.
 - Sleep/timeout padding to hide a race.
@@ -96,7 +105,7 @@ Snapshot git before your first edit: `git status --porcelain`. The caller may ha
 ### Finish
 
 - **Never commit, stage, or branch.** The caller commits.
-- Never touch production code. If the test cannot be written without a production change, stop and say what change is needed.
+- Never touch production code. If the test cannot be written without a production change — a missing seam, above — stop and say exactly what change is needed.
 
 ### Report
 
@@ -112,7 +121,7 @@ Return exactly these sections:
 
 **Run** — command(s) and relevant output verbatim.
 
-**Notes** — contradictions between stated behavior and implementation, a third copy you found, debt you deliberately left.
+**Notes** — contradictions between stated behavior and implementation, a boundary you mocked that the Project map does not list, a third copy you found, debt you deliberately left.
 
 <!-- testing-policy:core-end -->
 
@@ -135,6 +144,9 @@ Return exactly these sections:
 - Helpers / wrappers: `{{UNIT_HELPERS_HOME}}`
 - Factories (data builders): `{{UNIT_FACTORIES_HOME}}`
 - Fixtures (static inputs): `{{UNIT_FIXTURES_HOME}}`
+
+**System boundaries** (the only things a unit test mocks — one line per boundary, what it is → the shared mock that replaces it; "none — pure modules" is a valid entry)
+{{UNIT_MOCK_BOUNDARIES — e.g. `Supabase → buildMockSupabaseFactory()` in `tests/helpers/mock-supabase.ts`; `the clock → withFrozenDate()`}}
 
 **Discovery — run all of these on every dispatch, before writing**
 ```
