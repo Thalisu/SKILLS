@@ -381,8 +381,12 @@ for i in "${!ids[@]}"; do
   [ "$unattributed" -gt 0 ] && echo "UNATTRIBUTED $unattributed"
   if [ "$want_callers" = yes ] && [ -s "$tmp/all_uses" ]; then
     total="$(wc -l < "$tmp/all_uses")"
-    shown="$(sort -t$'\t' -k1,1 -k2,2n "$tmp/all_uses" | first 8 | awk -F'\t' '{ printf "%s%s:%s", (NR > 1 ? ", " : ""), $1, $2 }')"
-    if [ "$total" -gt 8 ]; then echo "CALLERS $shown +$((total - 8)) more"; else echo "CALLERS $shown"; fi
+    # at most 2 callers per file so one hot file (a coverage script) cannot take every slot
+    sel="$(sort -t$'\t' -k1,1 -k2,2n "$tmp/all_uses" | awk -F'\t' '
+      perfile[$1]++ < 2 && shown < 8 { shown++; s = s (shown > 1 ? ", " : "") $1 ":" $2 }
+      END { print shown "\t" s }')"
+    nshown="${sel%%$'\t'*}"; shown="${sel#*$'\t'}"
+    if [ "$total" -gt "$nshown" ]; then echo "CALLERS $shown +$((total - nshown)) more"; else echo "CALLERS $shown"; fi
   fi
 
   if [ "$ndef" -ge 2 ]; then state=DUPLICATE
