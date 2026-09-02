@@ -346,10 +346,22 @@ for i in "${!ids[@]}"; do
             $1 != prev { if (prev != "") print cnt "\t" prev "\t" h; prev = $1; cnt = 0; h = "" }
             { cnt++; h = (h == "") ? $2 : h "," $2 }
             END { if (prev != "") print cnt "\t" prev "\t" h }' \
-        | awk -F'\t' '{ h = 0
-            if ($2 ~ /(^|\/)(utils|lib|helpers|hooks|shared|services)(\/|$)/) h = 1
-            if ($2 ~ /legacy|deprecated|__mocks__|old/) h = -1
-            print $1 "\t" h "\t" length($2) "\t" $2 "\t" $3 }' \
+        | awk -F'\t' -v stems="$stems" '
+            # a stem in the file NAME beats content-vocabulary noise: +2 (sibling files like
+            # useDebouncedSubmit.ts for a debounce request carry the concern in their basename)
+            BEGIN { ns = split(stems, sl, "|") }
+            { cnt = $1 + 0; p = $2; hits = $3
+              nb = split(hits, hv, ","); delete have; for (j = 1; j <= nb; j++) have[hv[j]] = 1
+              b = tolower(p); sub(/.*\//, "", b); sub(/\.[^.]*$/, "", b)
+              bonus = 0
+              for (i = 1; i <= ns; i++) if (sl[i] != "" && index(b, sl[i]) > 0) {
+                bonus = 2
+                if (!(sl[i] in have)) { hits = hits "," sl[i]; have[sl[i]] = 1 }
+              }
+              h = 0
+              if (p ~ /(^|\/)(utils|lib|helpers|hooks|shared|services)(\/|$)/) h = 1
+              if (p ~ /legacy|deprecated|__mocks__|old/) h = -1
+              print cnt + bonus "\t" h "\t" length(p) "\t" p "\t" hits }' \
         | sort -t$'\t' -k1,1nr -k2,2nr -k3,3n -k4,4 | first 3 > "$tmp/analogs"
     fi
     home=""

@@ -8,6 +8,7 @@ DEF src/utils/format.ts:1 formatCpf(value: string): string uses=2 via=ast
 DEF src/legacy/format.ts:1 formatCpf(value: string): string uses=0 via=ast
 STATE DUPLICATE
 # 2 names=useDebounce,debounce
+ANALOG src/hooks/useDebounceLead.ts:1 export function useDebounceLead<T extends (...args: unknown[]) => void>(fn: T, delay: n... stems=debounce,delay score=4
 ANALOG src/hooks/useThrottle.ts:3 export function useThrottle<T extends (...args: unknown[]) => void>(callback: T, delay:... stems=callback,delay score=2
 HOME src/hooks
 STATE NOT_FOUND
@@ -125,7 +126,7 @@ DEF cpp/svc.hpp:3 int max_attempts() uses=0 via=ast
 STATE FOUND
 # 31 names=users
 NAME db/schema.sql:1 CREATE TABLE users (id integer primary key); via=generic
-ANALOG src/services/UserService.ts:1 export interface UserRecord { stems=users score=1
+ANALOG src/services/UserService.ts:1 export interface UserRecord { stems=users score=3
 HOME src/services
 STATE NAME_ONLY
 # 32 names=localOnly
@@ -134,14 +135,19 @@ ANALOG lua/svc.lua:4 function M.fetch_user(id) stems=local score=1
 HOME lua
 STATE NAME_ONLY
 # 33 names=doesNotExist
-HOME src/utils
+HOME src/hooks
 STATE NOT_FOUND
 # 34 names=trim
 DEF sh/svc.sh:7 trim() uses=0 via=ast
 STATE FOUND
 # 35 names=voidInvoice,cancelInvoice
+ANALOG src/billing/invoice.ts:1 export type Invoice = { id: string; total: number }; stems=invoice score=3
 ANALOG src/billing/report.ts:3 export function sampleReport() { stems=invoice score=1
-ANALOG src/billing/invoice.ts:1 export type Invoice = { id: string; total: number }; stems=invoice score=1
 ANALOG src/billing/checkout.ts:3 export function checkout(customerId: string, total: number) { stems=invoice score=1
 HOME src/billing
+STATE NOT_FOUND
+# 36 names=useDebounce,debounce
+ANALOG src/hooks/useDebounceLead.ts:1 export function useDebounceLead<T extends (...args: unknown[]) => void>(fn: T, delay: n... stems=debounce,delay score=4
+ANALOG src/hooks/useThrottle.ts:3 export function useThrottle<T extends (...args: unknown[]) => void>(callback: T, delay:... stems=callback,delay score=2
+HOME src/hooks
 STATE NOT_FOUND
