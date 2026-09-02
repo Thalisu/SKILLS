@@ -60,6 +60,7 @@ verbatim, they resolve from the repo toplevel), `LANGS` (languages with ast cove
 | `CALLERS a:1, b:2 [+N more]` | call sites outside the defining file, imports excluded |
 | `INTEL <path> <type> exports=…` | matching entry of `.planning/intel/file-roles.json` |
 | `STATE FOUND\|DUPLICATE\|NAME_ONLY\|NOT_FOUND` | state suggested by the counts |
+| `STATE ERROR <reason>` | this item's spec line was malformed; the other items are unaffected |
 
 ## Output
 
@@ -86,6 +87,8 @@ Mapping the state:
 - `STATE NAME_ONLY` → FOUND · MED when a NAME line is itself the definition in a language without ast
   coverage (`CREATE TABLE users`, `CREATE FUNCTION …`); PARTIAL when a NAME line shows a definition
   that does part of the job (judge from that one line only); otherwise NOT_FOUND.
+- `STATE ERROR <reason>` → `<n> ERROR <reason>` for that item only; the other items are answered
+  normally.
 - `STATE NOT_FOUND` → PARTIAL only when the first ANALOG line's own definition is a sibling of the
   request — same concern, different variant (`useThrottle` for a debounce request, `formatCnpj` for a
   CPF formatter). A file that merely shares vocabulary (`stems=retry,request`) is not PARTIAL: it

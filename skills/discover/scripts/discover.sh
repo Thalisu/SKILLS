@@ -18,10 +18,10 @@
 #   HOME <dir>                              where a new symbol would go (only when nothing is defined)
 #   UNATTRIBUTED <n>                        uses whose import resolves to none of the duplicates
 #   CALLERS <path>:<line>, ... [+N more]    when the item asked for callers
-#   STATE FOUND|DUPLICATE|NAME_ONLY|NOT_FOUND
+#   STATE FOUND|DUPLICATE|NAME_ONLY|NOT_FOUND|ERROR <reason>
 # Uses, callers, analogs and the generic funnel only look at code files: docs, data, lock, style and
-# image extensions are ignored. Exit 0; exit 2 with one stderr line on a malformed spec or a missing
-# dependency (rg, ast-grep, jq).
+# image extensions are ignored. A malformed spec line yields STATE ERROR for that item only. Exit 0;
+# exit 2 with one stderr line on an empty/all-malformed spec or a missing dependency (rg, ast-grep, jq).
 set -euo pipefail
 export LC_ALL=C
 
@@ -51,18 +51,28 @@ clip() {
 }
 
 # ---------- spec ----------
-ids=() names=() texts=() regexes=() callers=()
+# A bad line is stored as a per-item error, not fatal: the rest of the batch is still
+# answered. Exit 2 only when the spec is empty or every line is malformed.
+ids=() names=() texts=() regexes=() callers=() errors=()
+lineno=0
 while IFS= read -r line || [ -n "$line" ]; do
   [ -z "$(trim "$line")" ] && continue
+  lineno=$((lineno + 1))
   IFS='|' read -r f1 f2 f3 f4 f5 _ <<<"$line"
   id="$(trim "$f1")"; nm="${f2//[[:space:]]/}"
   nm="$(tr ',' '\n' <<<"$nm" | awk 'NF && !seen[$0]++' | paste -sd,)"
   text="$(trim "$f3")"; re="$(trim "$f4")"; cl="$(trim "$f5")"
-  [ -n "$id" ] && [ -n "$nm" ] || { echo "malformed spec line: $line" >&2; exit 2; }
-  case "${cl:-no}" in yes|no) ;; *) echo "callers must be yes or no: $line" >&2; exit 2 ;; esac
-  ids+=("$id"); names+=("$nm"); texts+=("${text:--}"); regexes+=("${re:--}"); callers+=("${cl:-no}")
+  err=""
+  [ -n "$id" ] && [ -n "$nm" ] || err="malformed spec line"
+  case "${cl:-no}" in yes|no) ;; *) err="callers must be yes or no" ;; esac
+  [ "$cl" = yes ] || cl=no
+  ids+=("${id:-$lineno}"); names+=("$nm"); texts+=("${text:--}"); regexes+=("${re:--}")
+  callers+=("$cl"); errors+=("$err")
 done
 [ ${#ids[@]} -gt 0 ] || { echo "empty spec" >&2; exit 2; }
+n_ok=0
+for e in "${errors[@]}"; do [ -z "$e" ] && n_ok=$((n_ok + 1)); done
+[ "$n_ok" -gt 0 ] || { echo "every spec line malformed" >&2; exit 2; }
 
 # ---------- stage 0: file list ----------
 rg --files --no-require-git \
@@ -114,7 +124,8 @@ else
 fi
 
 # ---------- stage 2: definitions (one ast-grep run for the whole batch) ----------
-alt="$(printf '%s\n' "${names[@]}" | tr ',' '\n' | sort -u | while IFS= read -r n; do esc_re "$n"; echo; done | paste -sd'|')"
+alt="$(for i in "${!ids[@]}"; do [ -z "${errors[$i]}" ] && printf '%s\n' "${names[$i]}"; done \
+  | tr ',' '\n' | awk 'NF' | sort -u | while IFS= read -r n; do esc_re "$n"; echo; done | paste -sd'|')"
 R='^('"$alt"')$'
 RQ='(^|[.:])('"$alt"')$'
 fld() { printf "has: {field: %s, regex: '%s', pattern: \$NAME}" "$1" "$2"; }
@@ -263,7 +274,8 @@ stems_of() { # $1 names csv, $2 behaviour text → one stem per line
 # ---------- per item ----------
 for i in "${!ids[@]}"; do
   id="${ids[$i]}" nm="${names[$i]}" text="${texts[$i]}" ure="${regexes[$i]}" want_callers="${callers[$i]}"
-  echo "# $id names=$nm"
+  echo "# $id names=${nm:--}"
+  if [ -n "${errors[$i]}" ]; then echo "STATE ERROR ${errors[$i]}"; continue; fi
   item_alt="$(tr ',' '\n' <<<"$nm" | while IFS= read -r n; do esc_re "$n"; echo; done | paste -sd'|')"
   awk -F'\t' -v re="^($item_alt)\$" '$1 ~ re' "$tmp/defs.tsv" > "$tmp/item_defs"
   awk -F'\t' -v re="(^|,)($item_alt)(,|\$)" -v pre="(^|/)($(tr 'A-Z' 'a-z' <<<"$item_alt"))[.]" '$3 ~ re || tolower($1) ~ pre' "$tmp/intel" | first 5 \
