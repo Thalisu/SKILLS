@@ -32,3 +32,4 @@
 32 | localOnly | a local variable must not be reported | - | no
 33 | doesNotExist | nothing matches at all | ^Z9Z9Z9$ | no
 34 | trim | trim helper (bash) | - | yes
+35 | voidInvoice, cancelInvoice | void an issued invoice | - | no

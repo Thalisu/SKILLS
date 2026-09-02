@@ -139,3 +139,9 @@ STATE NOT_FOUND
 # 34 names=trim
 DEF sh/svc.sh:7 trim() uses=0 via=ast
 STATE FOUND
+# 35 names=voidInvoice,cancelInvoice
+ANALOG src/billing/report.ts:3 export function sampleReport() { stems=invoice score=1
+ANALOG src/billing/invoice.ts:1 export type Invoice = { id: string; total: number }; stems=invoice score=1
+ANALOG src/billing/checkout.ts:3 export function checkout(customerId: string, total: number) { stems=invoice score=1
+HOME src/billing
+STATE NOT_FOUND
