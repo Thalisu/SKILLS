@@ -1,20 +1,19 @@
 <!-- discover version: 2 -->
 ## Discovery (mandatory)
 
-Check for prior art before creating any new exported symbol (function, util, hook,
-component, type, service) and before adding a dependency for something that may already
-exist in the repo:
+Prior-art check — before creating any new exported symbol (function, util, hook,
+component, type, service), before adding a dependency for something that may already
+exist in the repo, and when a spec/ADR/plan names symbols to verify against the code:
+run `/discover` with ONE batch listing every candidate — never one call per symbol —
+and wait for its result before creating or editing any file. Headless (`-p`) sessions
+may call `Agent(subagent_type: discover)` instead.
 
-- repo over ~50 files → run `/discover` with ONE batch listing every candidate — never one
-  call per symbol — and wait for its result before creating or editing any file.
-- repo under ~50 files → skip the batch; a direct `rg -w <name>` is the whole check.
+Only downgrade: a single-item check in a repo under ~50 files — there one direct
+`rg -w <name>` is the whole check. Two or more items are ALWAYS one `/discover` batch,
+at any repo size.
 
-When a spec/ADR/plan names several symbols to verify against the code, that is ALWAYS one
-`/discover` batch — at any repo size, never one call per symbol. Headless (`-p`) sessions
-may call `Agent(subagent_type: discover)` instead of `/discover`.
-
-Not a batch: open-ended reconnaissance and "where is X" location questions — answer those
-with direct search (`rg`, Glob) and read the code.
+Not a batch: open-ended reconnaissance and "where is X" location questions — answer
+those with direct search (`rg`, Glob) and read the code.
 
 Batch line: `<n>. <behaviour in one line> — names: <name1>, <name2>[, …] [— callers?]`
 
