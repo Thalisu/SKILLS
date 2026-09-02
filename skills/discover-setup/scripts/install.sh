@@ -1,33 +1,36 @@
 #!/usr/bin/env bash
 # install.sh — wire the discover agent and skills on this machine and render the Discovery section
-# into a project's CLAUDE.md. Idempotent.
+# into one CLAUDE.md: the project's, or the user's global one. Idempotent.
 #
-# Usage: install.sh [PROJECT_DIR] [--force]      (default project: current directory)
+# Usage: install.sh [PROJECT_DIR] [--force]   project scope: PROJECT_DIR/CLAUDE.md (default: current directory)
+#        install.sh --user [--force]          user scope:    ~/.claude/CLAUDE.md
 #   --force  replace a drifted section (same version, body edited by hand) instead of stopping
 #
-# Machine side — only these entries are created or repaired, nothing else is touched:
+# Machine side (every scope) — only these entries are created or repaired, nothing else is touched:
 #   ~/.claude/agents/discover.md                -> <repo>/skills/discover/AGENT.md
 #   ~/.agents/skills/{discover,discover-setup}  -> <repo>/skills/<name>            (absolute)
 #   ~/.claude/skills/{discover,discover-setup}  -> ../../.agents/skills/<name>      (relative)
-# Project side — CLAUDE-SECTION.md rendered between "<!-- discover:start v=N -->" and
-# "<!-- discover:end -->": appended when absent, replaced when stale. Nothing else in CLAUDE.md is
-# read or written.
+# Target side — the installed version is read first (verify.sh), then CLAUDE-SECTION.md is rendered
+# between "<!-- discover:start v=N -->" and "<!-- discover:end -->": appended when absent, replaced
+# when an older version is there. Nothing else in that CLAUDE.md is read or written.
 # Exit 0 done or nothing to do · 2 usage or template error · 5 drifted section without --force.
 set -euo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd -P)"
 skills_root="$(cd "$here/../.." && pwd -P)"
 template="$here/../CLAUDE-SECTION.md"
-project=. force=0
+scope=project target=. force=0
 while [ $# -gt 0 ]; do
   case "$1" in
+    --user) scope=user; shift ;;
     --force) force=1; shift ;;
-    -h|--help) sed -n '2,17p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,16p' "$0"; exit 0 ;;
     -*) echo "unknown argument: $1" >&2; exit 2 ;;
-    *) project="$1"; shift ;;
+    *) target="$1"; shift ;;
   esac
 done
-[ -d "$project" ] || { echo "not a directory: $project" >&2; exit 2; }
+if [ "$scope" = user ]; then target="$HOME/.claude"; mkdir -p "$target"; fi
+[ -d "$target" ] || { echo "not a directory: $target" >&2; exit 2; }
 version="$(sed -nE '1s/^<!-- discover version: ([0-9]+(\.[0-9]+)*) -->$/\1/p' "$template")"
 [ -n "$version" ] || { echo "no '<!-- discover version: N -->' line in $template" >&2; exit 2; }
 
@@ -48,11 +51,13 @@ for n in discover discover-setup; do
   link "$HOME/.claude/skills/$n" "../../.agents/skills/$n"
 done
 
-claude_md="$project/CLAUDE.md"
+claude_md="$target/CLAUDE.md"
+echo "scope: $scope ($claude_md)"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 { echo "<!-- discover:start v=$version -->"; sed '1d' "$template"; echo "<!-- discover:end -->"; } > "$tmp/section"
-verify="$(bash "$here/verify.sh" "$project" || true)"
+if [ "$scope" = user ]; then verify="$(bash "$here/verify.sh" --user || true)"
+else verify="$(bash "$here/verify.sh" "$target" || true)"; fi
 state="$(sed -n 's/^section=//p' <<<"$verify")"
 installed="$(sed -n 's/^installed_version=//p' <<<"$verify")"
 

@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
-# verify.sh — report the discover install state of this machine and of a project.
+# verify.sh — report the discover install state of this machine and of one CLAUDE.md target.
 #
-# Usage: verify.sh [PROJECT_DIR]        (default: current directory)
+# Usage: verify.sh [PROJECT_DIR]        project scope: PROJECT_DIR/CLAUDE.md (default: current directory)
+#        verify.sh --user               user scope:    ~/.claude/CLAUDE.md
 #
 # Prints key=value lines. Exit 0 when the section is current, both link chains resolve into this
 # repo and every dependency is present; 1 otherwise.
 #   template_version=<n>
+#   scope=project|user
+#   claude_md=<path of the CLAUDE.md that was inspected>
 #   section=none|stale|drifted|current    stale = other version · drifted = same version, body edited
 #   installed_version=<n>                 only when a marked section exists
 #   agent_link=ok|dangling|other|missing  ~/.claude/agents/discover.md (other = resolves outside this repo)
@@ -17,11 +20,22 @@ set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
 skills_root="$(cd "$here/../.." && pwd -P)"
 template="$here/../CLAUDE-SECTION.md"
-project="${1:-.}"
-claude_md="$project/CLAUDE.md"
+scope=project target=.
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --user) scope=user; shift ;;
+    -h|--help) sed -n '2,17p' "$0"; exit 0 ;;
+    -*) echo "unknown argument: $1" >&2; exit 2 ;;
+    *) target="$1"; shift ;;
+  esac
+done
+[ "$scope" = user ] && target="$HOME/.claude"
+claude_md="$target/CLAUDE.md"
 version="$(sed -nE '1s/^<!-- discover version: ([0-9]+(\.[0-9]+)*) -->$/\1/p' "$template")"
 [ -n "$version" ] || { echo "no '<!-- discover version: N -->' line in $template" >&2; exit 2; }
 echo "template_version=$version"
+echo "scope=$scope"
+echo "claude_md=$claude_md"
 rc=0
 
 section=none installed=""
