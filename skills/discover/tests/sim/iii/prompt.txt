@@ -1,0 +1,1 @@
+Add a new exported util slugify(value: string): string under src/utils — lowercase the value, trim it, and collapse every run of non-alphanumeric characters into a single dash.

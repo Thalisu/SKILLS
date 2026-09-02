@@ -1,0 +1,5 @@
+onlyDigits in src/utils/format.ts is broken — onlyDigits("abc123") returns "abc" instead of "123". Here is the current code:
+
+    export const onlyDigits = (value: string): string => value.replace(/\d/g, "");
+
+Apply the one-line fix.

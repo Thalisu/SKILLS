@@ -1,0 +1,7 @@
+Here is an extract of our billing spec. Verify each listed operation against the code: which already exist, and where? Which are missing?
+
+- createInvoice — create an invoice record for a customer
+- voidInvoice — void an issued invoice
+- refundInvoice — refund a paid invoice
+- listInvoices — list the invoices of a customer
+- checkout — run checkout for a cart
