@@ -29,9 +29,9 @@ set -uo pipefail
 roots=() shared=() flows=() only=""
 while [ $# -gt 0 ]; do
   case "$1" in
-    --root)    roots+=("${2:?--root needs a dir}"); shift 2 ;;
-    --shared)  shared+=("${2:?--shared needs a dir}"); shift 2 ;;
-    --flows)   flows+=("${2:?--flows needs a dir}"); shift 2 ;;
+    --root)    arg="${2:?--root needs a dir}"; roots+=("${arg%/}"); shift 2 ;;
+    --shared)  arg="${2:?--shared needs a dir}"; shared+=("${arg%/}"); shift 2 ;;
+    --flows)   arg="${2:?--flows needs a dir}"; flows+=("${arg%/}"); shift 2 ;;
     --section) only="${2:?--section needs a name}"; shift 2 ;;
     -h|--help) sed -n '2,17p' "$0"; exit 0 ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
