@@ -33,11 +33,13 @@ A testing Definition of Done written once into a `CLAUDE.md` decays in three way
 | `SKILL-TEST-AUTHOR.md` | `.claude/skills/test-author/SKILL.md`, the inline path for writers without the `Agent` tool |
 | `scripts/scan-test-assets.sh` | `.claude/testing-policy/scan-test-assets.sh` — duplication and skip-marker scan |
 | `scripts/forbid-test-skips.sh` | optional `PreToolUse` hook blocking new `.skip` / `.only` / `xit` / `pytest.mark.skip` / Maestro `optional: true` in test files |
+| — | `.claude/testing-policy/local/` — the local-only, gitignored home for anything captured from the project |
 
-Two invariants hold across every mode:
+Three invariants hold across every mode:
 
 - **Nothing is invented.** Every slot is filled from something that exists in the project — never a guessed path, command or example.
 - **Nothing is written unverified.** Every command that lands in `Project facts` or an agent's `Project map` was run once during the install and returned output.
+- **Nothing captured leaves the project.** Material quoting the repo's real paths, services, boundaries or debt goes to `.claude/testing-policy/local/` and nowhere else — never into this skills directory, which is shared across projects and public. `scripts/ensure-local-ignored.sh` puts that folder in the repository-root `.gitignore`, and the install is **not finished** until `verify-policy.sh` reports `local_ignored=yes`. The generated files next to it stay tracked on purpose: agent worktrees, CI and the hook only see tracked files.
 
 ### What the core says
 
@@ -92,7 +94,13 @@ Then, from the project that should receive the policy:
 To check a project's state without changing anything:
 
 ```bash
-bash ~/SKILLS/skills/testing-policy/scripts/verify-policy.sh <project>
+bash ~/SKILLS/skills/testing-policy/scripts/verify-policy.sh <project>   # ... gitignored= local_ignored=
+```
+
+To put the capture folder in `.gitignore` by hand (the skill does it in step 7):
+
+```bash
+bash ~/SKILLS/skills/testing-policy/scripts/ensure-local-ignored.sh <project>
 ```
 
 ### Versioning

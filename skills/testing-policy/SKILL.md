@@ -17,11 +17,13 @@ Install, migrate or refresh the canonical Testing Policy in this project.
 | `scripts/skip-patterns.sh` | `.claude/testing-policy/skip-patterns.sh` — the skip markers and test-file classes shared by the scan and the hook; project additions live in `skip-patterns.local.sh` next to it |
 | `scripts/forbid-test-skips.sh` | `.claude/testing-policy/forbid-test-skips.sh` + a `PreToolUse` entry in `.claude/settings.json` — optional, offered in step 6 |
 | `scripts/verify-policy.sh` | not installed — run it from here in steps 0 and 8 |
+| `scripts/ensure-local-ignored.sh` | not installed — run it from here in step 7 |
+| (no source — created on demand) | `.claude/testing-policy/local/` — the local-only, gitignored home for anything captured from this project |
 | `references/example-project-map.md` | not installed — calibration for the density of a Project map / Project facts |
 
 Generated vs preserved. Everything rendered from a template or copied from `scripts/` is **generated** — overwritten on refresh, never hand-edited. **Preserved** on refresh: Project facts, the agents' frontmatter and Project map, `skip-patterns.local.sh`, `.claude/settings.json`. One addition is allowed in a preserved part: a line the template gained since the installed version (`verify-policy.sh` names it in `agent_*_map_missing=`; 2.2 added **System boundaries** to the unit map) is filled from this run's discovery and appended at its template position — existing lines stay verbatim, and the report names the appended line. The template version lives once, in `POLICY.md`; every rendered file carries it (`v=` on the section's start marker, `<!-- testing-policy:agent v=… -->` / `<!-- testing-policy:skill v=… -->` after an agent's or the skill's frontmatter).
 
-Two invariants. Every `{{slot}}` is filled from what exists in the project — never invent a path, a command or an example. Every command written into Project facts or a Project map was run once during this install and returned output.
+Three invariants. Every `{{slot}}` is filled from what exists in the project — never invent a path, a command or an example. Every command written into Project facts or a Project map was run once during this install and returned output. And nothing captured from this project is written outside it: material that quotes its real paths, service names, boundaries or debt goes to `.claude/testing-policy/local/`, which step 7 keeps out of git — never into this skill's own directory, which is shared across every project and may be public.
 
 ## Step 0 — detect state
 
@@ -32,7 +34,7 @@ Run `bash <skill-dir>/scripts/verify-policy.sh <project>`. `policy=` picks the m
 - `stale` (marked, older version) or `drifted` (core hand-edited) → **refresh**
 - `current` → nothing to do unless another line is not `ok` / `n/a` / `none` or the user asked to re-map: a `stale` or `drifted` agent is refreshed alone (step 5), a `wired-missing` hook re-copied (step 6). Otherwise say so and stop.
 
-Keep the rest of the output — steps 5-7 use it: `agent_unit` / `agent_e2e` (`missing` · `unmarked` = hand-written, ask · `stale` = older template, v2 marker style included · `drifted` = current version, core hand-edited · `ok`), `agent_unit_map_missing` / `agent_e2e_map_missing` (Project-map lines the template gained — appended in step 5), `skill_test_author` (`missing` · `stale` · `ok`), `scan_script`, `skip_patterns`, `hook` (`missing` · `script-only` · `wired` · `wired-missing` = wired in settings but the script is gone), `gitignored`.
+Keep the rest of the output — steps 5-7 use it: `agent_unit` / `agent_e2e` (`missing` · `unmarked` = hand-written, ask · `stale` = older template, v2 marker style included · `drifted` = current version, core hand-edited · `ok`), `agent_unit_map_missing` / `agent_e2e_map_missing` (Project-map lines the template gained — appended in step 5), `skill_test_author` (`missing` · `stale` · `ok`), `scan_script`, `skip_patterns`, `hook` (`missing` · `script-only` · `wired` · `wired-missing` = wired in settings but the script is gone), `gitignored`, `local_ignored`.
 
 ## Step 1 — surface: native, consumer or mixed
 
@@ -92,12 +94,16 @@ A single `AskUserQuestion` call holding: one question per ambiguous or orphan ro
 
 ## Step 7 — git visibility
 
-`verify-policy.sh` reports `gitignored=`. When any installed path is ignored, offer the fix — agent worktrees, CI and remote runners only see tracked files. Gotcha: git cannot re-include a path under an excluded parent, so a `.claude` or `.claude/` line must become `.claude/*` before `!.claude/agents/`, `!.claude/skills/`, `!.claude/testing-policy/` and `!.claude/settings.json` take effect. Show the resulting `.gitignore` lines; apply only with the user's yes.
+Two opposite rules, and `verify-policy.sh` reports both.
+
+**Mandatory — `local/` is ignored before anything is captured into it.** `.claude/testing-policy/local/` is the only path that may hold project-captured material: a filled example map, a kept scan report, any note quoting this repo's real paths, service names, boundaries or debt. It names internals, so it never enters history. On the first install — and on any run where `local_ignored` is not `yes` — run `bash <skill-dir>/scripts/ensure-local-ignored.sh <project>` **before** writing anything into the folder. This is not an offer and not skippable: an install whose `local_ignored` is not `yes` is unfinished, and step 8 fails on it. The script appends `.claude/testing-policy/local/` to the repository-root `.gitignore`, is a no-op when the folder is already covered, and warns when tracked files already exist under it — that warning goes to the report verbatim, and those files are never `git rm`ed: the user decides. Outside a git repository it prints `not a git repository` and there is nothing to enforce.
+
+**Offered — the generated files stay tracked.** `gitignored=` lists installed paths git is ignoring. Agent worktrees, CI, remote runners and the PreToolUse hook only see tracked files, so an ignored agent, `test-author` skill, `scan-test-assets.sh`, `skip-patterns.sh`, `forbid-test-skips.sh` or `settings.json` is a broken install — offer the fix. Gotcha: git cannot re-include a path under an excluded parent, so a `.claude` or `.claude/` line must become `.claude/*` before `!.claude/agents/`, `!.claude/skills/`, `!.claude/testing-policy/` and `!.claude/settings.json` take effect — and `.claude/testing-policy/local/` has to be re-excluded *after* those, or un-ignoring the parent silently un-ignores the capture folder too. Show the resulting `.gitignore` lines; apply only with the user's yes.
 
 ## Step 8 — verify and report
 
 1. Run every command written into Project facts and the Project maps once more; a command that errors or returns nothing is a wrong slot — fix it before finishing.
-2. `bash scripts/verify-policy.sh <project>` must print `policy=current`, every `agent_*` `ok` (or `n/a`), no `agent_*_map_missing`, `skill_test_author=ok`, `scan_script=ok`, `skip_patterns=ok`, no `policy_missing`, no `policy_unfilled_slots`, and exit 0 (`hook=missing` is fine when the offer was declined).
+2. `bash scripts/verify-policy.sh <project>` must print `policy=current`, every `agent_*` `ok` (or `n/a`), no `agent_*_map_missing`, `skill_test_author=ok`, `scan_script=ok`, `skip_patterns=ok`, `local_ignored=yes` (or `n/a` outside a git repo), no `policy_missing`, no `policy_unfilled_slots`, and exit 0 (`hook=missing` is fine when the offer was declined).
 3. Report: the state transition (`legacy → current v2.2`, ...); a diff-level summary per file; Project-map disagreements and appended lines (refresh); the duplication, skip-marker and internal-mock debt from the scan — reported, **not fixed**: the second-use rule pays the duplication organically (the next author that needs one of those assets consolidates first), and an internal mock is replaced by a seam the next time its test is touched; hook installed, re-copied or declined; gitignore status. Do not commit unless asked.
 
 ## Post-install checklist
@@ -108,6 +114,7 @@ Must hold after any mode. Lines marked ✓ are checked mechanically by `verify-p
 - ✓ Every heading that `render-policy.sh <surface>` emits is present in the section, as a full line.
 - ✓ No `{{slot}}` left in the section.
 - ✓ Agents: `<!-- testing-policy:agent v=<template version> -->` after the frontmatter, bare `core-start` / `core-end` markers, core byte-identical to `render-agent.sh <unit|e2e> --core-only`; every Project-map label of the template present; `test-author` skill carries `<!-- testing-policy:skill v=<template version> -->`; `scan-test-assets.sh` and `skip-patterns.sh` present.
+- ✓ `.claude/testing-policy/local/` is gitignored (`local_ignored=yes`), and nothing captured from this project was written outside it.
 - Project facts name real commands that ran; consumer lines (consumer/mixed) carry the "run against this repo's local build" recipe.
 - **System boundaries** in the unit map names only things outside the repo (packages, services, the clock, the filesystem) or the repo's thin wrappers around them, each with its shared mock; internal collaborators found mocked are in the report as debt, never in the map.
 - Legacy project-specific rules the user kept survived into Project facts; nothing of the old section remains outside the markers.
