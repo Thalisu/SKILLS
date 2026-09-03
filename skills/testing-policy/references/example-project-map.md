@@ -1,13 +1,17 @@
 # Example — filled Project map / Project facts
 
 Calibration for the density and shape the slots expect. Captured on 2026-08-31 from two real repos
-(`api-gateway` — Bun unit tests, consumer-side surface; `web-app/e2e-tests` —
-pytest + Playwright, native surface); the **System boundaries** block and its debt were captured on
-2026-09-02 with `--section mock-targets`. Every run, formatter and discovery command below ran and
-returned output on that day. The E2E preflight block shows the expected shape: at capture time the
-app was down (`curl` failed) — exactly the state a preflight exists to catch, so it was recorded, not
-skipped. Entries marked *(chosen at install)* are role decisions the user made when asked —
-illustrative, not prescriptive for your project.
+(`api-gateway` — Bun unit tests, consumer-side surface; `web-app/e2e-tests` — pytest + Playwright,
+native surface); the **System boundaries** block and its debt were captured on 2026-09-02 with
+`--section mock-targets`. Repo names, vendor names and product-specific identifiers are
+placeholders — structure, counts, commands and shapes are as captured. Every run, formatter and
+discovery command below ran and returned output on that day. The E2E preflight block shows the
+expected shape: at capture time the app was down (`curl` failed) — exactly the state a preflight
+exists to catch, so it was recorded, not skipped. Entries marked *(chosen at install)* are role
+decisions the user made when asked — illustrative, not prescriptive for your project.
+
+> Your project's real map is not this file. It is rendered into that project's own
+> `.claude/agents/` at install time, from discovery run against that repo.
 
 ---
 
@@ -26,12 +30,12 @@ illustrative, not prescriptive for your project.
 - Module mocks: `tests/helpers/` (`mock-supabase.ts`, `mock-payments.ts`)
 - Helpers / wrappers: `tests/helpers/`
 - Factories (data builders): none yet → `tests/factories/` *(chosen at install; 34 test files define local `make*`/`build*` builders — see debt)*
-- Fixtures (static inputs): `tests/fixtures/` (`billing/cert.pem`, `billing/key.pem`)
+- Fixtures (static inputs): `tests/fixtures/` (`payments/cert.pem`, `payments/key.pem`)
 
 **System boundaries** (the only things a unit test mocks — what it is → the shared mock that replaces it)
 - Supabase (`@supabase/supabase-js`, wrapped by `src/services/supabase` and `supabase-internal`) → `buildMockSupabaseFactory(opts)` in `tests/helpers/mock-supabase.ts`, module registration via `makeSupabaseModuleRegistrars()` in `tests/helpers/mock-supabase-modules.ts`
 - RabbitMQ (`amqplib`, wrapped by `src/services/rabbitmq`) → `installAmqpMock()` / `makeFakeChannel()` in `tests/helpers/mock-amqp.ts`
-- Payments and Billing HTTP APIs (global `fetch`, wrapped by `src/lib/http-client`) → `setupPaymentsMock()` in `tests/helpers/mock-payments.ts`
+- The two payment-provider HTTP APIs (global `fetch`, wrapped by `src/lib/http-client`) → `setupPaymentsMock()` in `tests/helpers/mock-payments.ts`
 - Redis (`ioredis`, wrapped by `src/services/redis`) → none yet → create at `tests/helpers/mock-redis.ts` *(mocked inline in 25 files — see debt)*
 - JWKS (`jose`, wrapped by `src/lib/jwks`) → none yet → create at `tests/helpers/mock-jwks.ts` *(mocked inline in 19 files — see debt)*
 - The clock → `withFrozenDate(iso, fn)` in `tests/helpers/with-frozen-date.ts`
@@ -49,9 +53,9 @@ grep -nE "^export (async )?function" tests/helpers/*.ts
 
 **Debt found at install** (reported, not fixed — the second-use rule pays it)
 - `makeApp` defined locally in 9 files, `buildApp` in 9, `makeFakeChannel`/`fakeChannel`/`fakeConn`/`fakeConsumeChannel` in 4 each, `makeFakeMsg` in 3, `buildValidSignaturePng`/`makeRequest`/`makeRow` in 2 each.
-- `describe.skip(...)` at `tests/client-subscription-pay-credit-card.test.ts:494`.
+- `describe.skip(...)` at `tests/subscription-pay-credit-card.test.ts:494`.
 - Boundaries mocked inline with no shared mock: `../src/services/redis` in 25 files, `../src/lib/jwks` in 19 — the next author needing either creates the shared mock and promotes.
-- Internal collaborators mocked (a seam is the fix, the next time each test is touched): `../src/services/billing/token` in 12 files, `../src/services/billing/index` in 6, `../src/services/billing/invoices` in 4, `../src/services/billing/pix-invoice` and `pix-status` in 3 each, `../src/services/invoices` in 2, `../src/services/open-invoices`, `../src/middleware/audit`, `../src/services/web-app` in 1 each — all modules with no external import of their own, sitting behind `src/lib/http-client`.
+- Internal collaborators mocked (a seam is the fix, the next time each test is touched): `../src/services/payments/token` in 12 files, `../src/services/payments/index` in 6, `../src/services/payments/invoices` in 4, `../src/services/payments/pix-invoice` and `pix-status` in 3 each, `../src/services/invoices` in 2, `../src/services/open-invoices`, `../src/middleware/audit`, `../src/services/web-app` in 1 each — all modules with no external import of their own, sitting behind `src/lib/http-client`.
 
 ---
 

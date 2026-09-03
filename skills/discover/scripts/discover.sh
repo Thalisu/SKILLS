@@ -348,7 +348,7 @@ for i in "${!ids[@]}"; do
             END { if (prev != "") print cnt "\t" prev "\t" h }' \
         | awk -F'\t' -v stems="$stems" '
             # a stem in the file NAME beats content-vocabulary noise: +2 (sibling files like
-            # useDebouncedSubmit.ts for a debounce request carry the concern in their basename)
+            # useDebounceLead.ts for a debounce request carry the concern in their basename)
             BEGIN { ns = split(stems, sl, "|") }
             { cnt = $1 + 0; p = $2; hits = $3
               nb = split(hits, hv, ","); delete have; for (j = 1; j <= nb; j++) have[hv[j]] = 1

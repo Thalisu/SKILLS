@@ -1,27 +1,27 @@
 # discover v3 — TDD plan for the review findings
 
 Scope: the nine findings of the 2026-09-01 review plus two new defects found in the
-web-app trial (2026-09-02). Outer loop is an acceptance-test gate (the compliance
+benchmark-repo trial (2026-09-02). Outer loop is an acceptance-test gate (the compliance
 simulation) written and baselined FIRST; it must be all green, 3/3 reps, before this plan
 is satisfied. Inner loop is strict red-green vertical slices — one failing test, one
 minimal fix, never two tests ahead.
 
-## Benchmark baseline (web-app, web-app, 167k lines src, 1258 files)
+## Benchmark baseline (a private product repo, 167k lines src, 1258 files)
 
 Recorded 2026-09-02, pre-fix. Re-run at the final gate; numbers must not regress.
 
 - 6-item batch: 1.0s wall, 3,064 bytes report. Same lookups as raw `rg -n -w`: 824 lines,
   114,564 bytes (~37× larger). The batch's token advantage is real on a product repo.
-- True positive worth keeping: `formatCpf`/`formatCnpj` DUPLICATE — namingFormatters.ts
-  (28/3 uses) vs general.ts (2/1 uses), correct most-used-first order. Also caught an
-  inline `formatCurrency` local to InvoiceImportModal.tsx:117.
-- Defect N1 (analogs ignore filenames): `useDebounce` request returned NOT_FOUND with
-  analogs sidebar.tsx / NewPlanModal.tsx / EditPlanModal.tsx and `HOME src/components/ui`,
-  while `src/hooks/useDebouncedSubmit.ts` — the true sibling, "debounce" in its filename —
-  matched only 2 content stems (score 2) and lost to score-3 noise.
-- Defect N2 (callers dominated by one file): `hasPermission` (305 uses) showed 8 callers,
-  7 from `scripts/verify-haspermission-coverage.cjs` — callers are sorted by path, not
-  spread across files.
+- True positive worth keeping: `formatCpf`/`formatCnpj` DUPLICATE — a dedicated formatters
+  module (28/3 uses) vs a catch-all one (2/1 uses), correct most-used-first order. Also caught
+  a `formatCurrency` inlined inside a single modal component.
+- Defect N1 (analogs ignore filenames): a `useDebounce` request returned NOT_FOUND with three
+  UI components as analogs and `HOME src/components/ui`, while the true sibling under
+  `src/hooks/` — "debounce" in its filename — matched only 2 content stems (score 2) and lost
+  to score-3 noise.
+- Defect N2 (callers dominated by one file): a 305-use permission helper showed 8 callers,
+  7 of them from a single coverage script — callers are sorted by path, not spread across
+  files.
 
 ## Phase 0 — simulation harness (FIRST; the acceptance gate)
 
@@ -118,13 +118,13 @@ change to `scripts/discover.sh`. Never edit expected.txt to match broken output.
   list useDebounceLead.ts as FIRST analog and `HOME src/hooks`. Today it ranks below
   content-stem noise.
 - GREEN: analog scoring adds +2 when any stem matches the file's basename
-  (case-insensitive) — mirrors web-app's buried useDebouncedSubmit.ts.
+  (case-insensitive) — mirrors the benchmark repo's buried debounce hook.
 
 ### Slice 6 — trial defect N2: callers dominated by one file
 - RED: extend the slice-2 area — fixture gets one file calling createInvoice 7 times;
   spec item 6 (`— callers?`) expected to show at most 2 callers per file before moving to
   the next file, `+N more` still correct. Today: alphabetical fill lets one file take 7
-  of 8 slots (web-app: verify-haspermission-coverage.cjs).
+  of 8 slots (in the benchmark repo, a coverage script).
 - GREEN: CALLERS selection round-robins across files (cap 2 per file until 8 filled).
 
 ### Slice 7 — section text v3 (findings 3, 4, 7, 8, 9 — ONE version bump)
@@ -152,10 +152,10 @@ versioned-section machinery fires once, not five times (maintenance finding).
 2. `tests/root.sh`, `contract.sh`, `errors.sh`, `section-lint.sh`, `setup-roundtrip.sh`
    all green.
 3. **Simulation all green: scenarios i–iv, 3/3 reps each, against the v3 section.**
-4. web-app benchmark re-run: formatCpf/formatCnpj DUPLICATE still caught with
-   correct order; report ≤ 4KB, ≤ 2s; `trim`-class phantom callers gone (spot-check:
-   `hasPermission` callers spread across ≥ 4 distinct files); useDebounce lookup now
-   surfaces useDebouncedSubmit.ts as top analog with `HOME src/hooks`.
+4. Benchmark re-run: formatCpf/formatCnpj DUPLICATE still caught with correct order;
+   report ≤ 4KB, ≤ 2s; `trim`-class phantom callers gone (spot-check: the permission
+   helper's callers spread across ≥ 4 distinct files); the useDebounce lookup now surfaces
+   the debounce hook as top analog with `HOME src/hooks`.
 5. Version machinery fired exactly once (v2→v3); `verify.sh` exits 0 on this machine.
 
 Out of scope (explicitly deferred): LSP-backed reference counting (alternatives-d),
@@ -167,11 +167,11 @@ contract.
 1. `selftest.sh` green; expected.txt updated only through reviewed diffs (slices 1, 2, 5). ✔
 2. `root.sh`, `contract.sh`, `errors.sh`, `section-lint.sh`, `setup-roundtrip.sh` all green. ✔
 3. Simulation 12/12 in one run: i 3/3 · ii 3/3 · iii 3/3 · iv 3/3 against section v2. ✔
-4. web-app re-run: report 2,742 B / 0.88 s (baseline 3,064 B / 1.0 s; caps 4 KB / 2 s);
-   formatCpf DUPLICATE order intact (namingFormatters 28 uses before general 2);
-   useDebouncedSubmit.ts now TOP analog (score 4, filename bonus) with `HOME src/hooks` — N1
-   closed; hasPermission callers spread across 7 distinct files (coverage script capped at
-   2 slots) — N2 closed; inline formatCurrency at InvoiceImportModal.tsx:117 still caught. ✔
+4. Benchmark re-run: report 2,742 B / 0.88 s (baseline 3,064 B / 1.0 s; caps 4 KB / 2 s);
+   formatCpf DUPLICATE order intact (formatters module 28 uses before catch-all 2); the
+   debounce hook is now TOP analog (score 4, filename bonus) with `HOME src/hooks` — N1
+   closed; the permission helper's callers spread across 7 distinct files (coverage script
+   capped at 2 slots) — N2 closed; the modal's inlined formatCurrency still caught. ✔
 5. Version machinery fired exactly once, v1→v2 (per the phase-0 note the next version is 2,
    not the v3 this plan says elsewhere), on ~/.claude; `verify.sh` exits 0 there. Two later
    template-body resyncs used `install.sh --force` (template-side edits, same version). ✔
