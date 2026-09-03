@@ -109,8 +109,9 @@ writes the entry without a yes.
 **Where did the section wording I remember go?**
 The Discovery section is versioned separately from this skill's script, with `discover-v<N>` tags
 on this repo. `v2` narrowed the mandate to creating symbols, added the carve-outs for reconnaissance
-and single names, and added the fallback for when `/discover` errors. A project on an older section
-reports `section=stale`, and [discover-setup](discover-setup.md) updates it in place.
+and single names, and added the fallback for when `/discover` errors. `v3` rewrote the section's
+prose without changing the rule. A project on an older section reports `section=stale`, and
+[discover-setup](discover-setup.md) updates it in place.
 
 ## It's working if
 

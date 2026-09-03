@@ -26,7 +26,7 @@ Scope argument: `$ARGUMENTS`
    replaced, and only then re-run with `--force`.
    The script touches nothing else in that `CLAUDE.md`, and nothing else in the project or in `~/.claude`.
 4. Run `bash <this-skill-dir>/scripts/verify.sh <scope-args>` again; it must exit 0. Report, per scope,
-   the transition (`section: none -> current v=2`, `stale v=1 -> current v=2`), the link states and `agent_ref`.
+   the transition (`section: none -> current v=3`, `stale v=2 -> current v=3`), the link states and `agent_ref`.
 5. Only if this session was prompted for permission on the agent's Bash call
    (`bash ~/.claude/skills/discover/scripts/discover.sh`): offer, and wait for a yes, to add
    `Bash(bash ~/.claude/skills/discover/scripts/discover.sh:*)` to `permissions.allow` in
