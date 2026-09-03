@@ -1,0 +1,3 @@
+interface:
+  display_name: "Testing Policy"
+  short_description: "Install or refresh the Testing Policy (Definition of Done)"

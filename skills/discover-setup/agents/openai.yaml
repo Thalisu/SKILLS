@@ -1,0 +1,5 @@
+interface:
+  display_name: "Discover Setup"
+  short_description: "Install or refresh discover in one CLAUDE.md"
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,3 @@
+interface:
+  display_name: "Test Triage"
+  short_description: "Run a test target, fix the small failures, file the rest"
