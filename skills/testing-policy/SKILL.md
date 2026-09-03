@@ -106,7 +106,7 @@ One rule in the project, one rule outside it, and `verify-policy.sh` reports the
 
 1. Run every command written into Project facts and the Project maps once more; a command that errors or returns nothing is a wrong slot; fix it before finishing.
 2. `bash scripts/verify-policy.sh <project>` must print `policy=current`, every `agent_*` `ok` (or `n/a`), no `agent_*_map_missing`, `skill_test_author=ok`, `scan_script=ok`, `skip_patterns=ok`, no `policy_missing`, no `policy_unfilled_slots`, and exit 0 (`hook=missing` is fine when the offer was declined).
-3. Report: the state transition (`legacy → current v2.2`, ...); a diff-level summary per file; Project-map disagreements and appended lines (refresh); the duplication, skip-marker and internal-mock debt from the scan, which is reported and **not fixed**: the second-use rule pays the duplication organically (the next author that needs one of those assets consolidates first), and an internal mock is replaced by a seam the next time its test is touched; hook installed, re-copied or declined; gitignore status. Do not commit unless asked.
+3. Report: the state transition (`legacy → current v2.3`, ...); a diff-level summary per file; Project-map disagreements and appended lines (refresh); the duplication, skip-marker and internal-mock debt from the scan, which is reported and **not fixed**: the second-use rule pays the duplication organically (the next author that needs one of those assets consolidates first), and an internal mock is replaced by a seam the next time its test is touched; hook installed, re-copied or declined; gitignore status. Do not commit unless asked.
 
 ## Post-install checklist
 

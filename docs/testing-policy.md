@@ -104,7 +104,10 @@ The template version moved. The version is stamped into every installed section 
 `<!-- testing-policy:start v=N surface=... -->` and into each agent after its frontmatter, and
 `testing-policy-v<N>` tags mark it on this repo. Run `/testing-policy` in the project: refresh
 replaces only the core and keeps everything the project filled in. Every installed project reports
-`stale` at the same moment, and each is refreshed the same way.
+`stale` at the same moment, and each is refreshed the same way. The history so far: 2.1 added
+agent drift detection, the shared skip patterns and the mixed gate; 2.2 moved the core to behaviour
+over implementation, boundary mocking and vertical TDD; 2.3 rewrote the templates' prose without
+changing a rule.
 
 **What is the difference between `stale` and `drifted`?**
 `stale` is an older version, the expected signal after the template moves. `drifted` is the
