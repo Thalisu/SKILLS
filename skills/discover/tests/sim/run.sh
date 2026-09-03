@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# run.sh — compliance simulation for the Discovery section (the acceptance gate of PLAN.md).
+# run.sh — compliance simulation for the Discovery section (the acceptance gate of the Discovery section).
 #
 # Usage: run.sh [all|i|ii|iii|iv ...] [--reps N] [--section FILE] [--model NAME] [--keep]
 #   --section FILE  section template whose first line is "<!-- discover version: N -->"

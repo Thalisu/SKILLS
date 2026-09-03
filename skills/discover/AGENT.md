@@ -90,8 +90,8 @@ Mapping the state:
 - `STATE ERROR <reason>` → `<n> ERROR <reason>` for that item only; the other items are answered
   normally.
 - `STATE NOT_FOUND` → PARTIAL only when the first ANALOG line's own definition is a sibling of the
-  request — same concern, different variant (`useThrottle` for a debounce request, `formatCnpj` for a
-  CPF formatter). A file that merely shares vocabulary (`stems=retry,request`) is not PARTIAL: it
+  request — same concern, different variant (`useThrottle` for a debounce request, `formatIban` for a
+  card-number formatter). A file that merely shares vocabulary (`stems=retry,request`) is not PARTIAL: it
   stays NOT_FOUND and becomes the `analog:`.
 - NOT_FOUND always carries `tried:` (every name you put in the spec), `analog:` (the first ANALOG line's
   `<path>:<line>`, or `none`) and `home:` (the HOME line's directory, verbatim).
