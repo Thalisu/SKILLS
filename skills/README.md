@@ -11,6 +11,7 @@ Reachable only by the human typing the name.
 | Skill | Purpose |
 |---|---|
 | [`discover-setup`](discover-setup/SKILL.md) | Link the discover agent and skills on this machine, then install or refresh the mandatory Discovery section in a project's `CLAUDE.md` or in `~/.claude/CLAUDE.md` |
+| [`discuss`](discuss/SKILL.md) | Interview the user about a plan before code, one question at a time with a recommendation, recording terms in `CONTEXT.md` and hard-to-reverse decisions in `docs/adr/` as they land |
 | [`testing-policy`](testing-policy/SKILL.md) | Install, migrate or refresh the canonical Testing Policy (Definition of Done) in a project |
 
 ## Model-invoked

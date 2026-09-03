@@ -1,0 +1,5 @@
+interface:
+  display_name: "Discuss"
+  short_description: "Interview the user about a plan before code, one question at a time"
+policy:
+  allow_implicit_invocation: false

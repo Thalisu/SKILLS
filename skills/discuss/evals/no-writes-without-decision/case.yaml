@@ -1,0 +1,23 @@
+name: no-writes-without-decision
+tags: [workflow, capture]
+runs: 2
+max_turns: 12
+timeout_seconds: 300
+allowed_tools: [Bash, Read, Edit, Write]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # No glossary and no ADRs: the session has nothing settled to write until the user decides,
+    # and the run ends at the first question, so the tree must stay clean.
+    set -e
+    mkdir -p src
+    cat > src/cart.js <<'JS'
+    function total(items, taxRate) {
+      const net = items.reduce((sum, price) => sum + price, 0);
+      return Math.round(net * (1 + taxRate) * 100) / 100;
+    }
+    module.exports = { total };
+    JS
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"

@@ -1,0 +1,37 @@
+name: explores-first
+tags: [workflow, grounding]
+runs: 2
+max_turns: 12
+timeout_seconds: 300
+allowed_tools: [Bash, Read, Edit, Write]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # The plan assumes partial cancellation; the code cancels whole orders only and the glossary
+    # already defines cancellation that way. Both branches are settled by the repository.
+    set -e
+    mkdir -p src
+    cat > CONTEXT.md <<'MD'
+    # Ordering
+
+    Receives and tracks customer orders from placement to fulfilment.
+
+    ## Language
+
+    **Order**:
+    A customer's request for goods, tracked from placement to fulfilment.
+
+    **Cancellation**:
+    Withdrawing an entire Order before it is fulfilled. An Order is cancelled whole or not at all.
+    _Avoid_: partial cancel, line removal
+    MD
+    cat > src/order.js <<'JS'
+    function cancel(order) {
+      if (order.status === "fulfilled") throw new Error("cannot cancel a fulfilled order");
+      return { ...order, status: "cancelled", lines: order.lines };
+    }
+    module.exports = { cancel };
+    JS
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"

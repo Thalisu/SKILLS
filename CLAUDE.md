@@ -40,6 +40,13 @@ Adding, renaming or removing a skill means updating both in the same change.
 Human-facing docs pages follow `.agents/writing-docs.md`: its page structure, its section order and
 its conventions. Read it before writing a page or re-syncing one after a skill changes.
 
+## Principles
+
+`.agents/principles/` holds design principles as plain reference documents, one per file, indexed in
+its `README.md`. They are not skills: no frontmatter, no invocation, and no harness lists them. A
+skill or a contract that leans on one links the file by path. Adding, renaming or removing a
+principle updates that index in the same change.
+
 ## Installing skills locally
 
 `scripts/link-skills.sh` (re)links every skill into the local harness skill directories,

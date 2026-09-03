@@ -1,0 +1,43 @@
+name: one-question
+tags: [workflow, interview]
+runs: 2
+max_turns: 12
+timeout_seconds: 300
+allowed_tools: [Bash, Read, Edit, Write]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # A small ordering module with a glossary, so the session has something to ground on and
+    # a real branch to open: soft delete touches Order, its status and the Invoice relationship.
+    set -e
+    mkdir -p src
+    cat > CONTEXT.md <<'MD'
+    # Ordering
+
+    Receives and tracks customer orders from placement to fulfilment.
+
+    ## Language
+
+    **Order**:
+    A customer's request for goods, tracked from placement to fulfilment.
+    _Avoid_: purchase
+
+    **Invoice**:
+    A request for payment sent to a customer after delivery.
+    _Avoid_: bill
+
+    ## Relationships
+
+    - An **Order** produces one or more **Invoices**
+    MD
+    cat > src/order.js <<'JS'
+    const STATUSES = ["placed", "fulfilled", "cancelled"];
+    function cancel(order) {
+      if (order.status === "fulfilled") throw new Error("cannot cancel a fulfilled order");
+      return { ...order, status: "cancelled" };
+    }
+    module.exports = { STATUSES, cancel };
+    JS
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
