@@ -56,7 +56,7 @@ English by default (another language only when the user explicitly asks), in thi
 
 - `## Error`: verbatim excerpt trimmed to the meaningful frames.
 - `## Hypothesis`: root cause with evidence: `file:line`, `git log` / `git blame` references.
-- `## Ruled out`: what was ruled out and how. This is what stops the next session from repeating the investigation; when nothing was ruled out, say what was not checked.
+- `## Ruled out`: each candidate cause that was eliminated and the evidence that eliminated it, one per line. This is what stops the next session from repeating the investigation; when nothing was ruled out, say what was not checked.
 - `## Next step`: one concrete next action.
 
 A later run that investigates the same failure appends its findings to `Hypothesis` / `Ruled out`; the frontmatter is touched only by the script.

@@ -1,6 +1,6 @@
 ---
 name: test-triage
-description: Runs a test target, clusters the failures, investigates them, auto-fixes and commits only the small ones, and files a dossier in docs/tests/ for the ones that need real work. Use when the user asks to triage tests, run tests and investigate what broke, find out why tests are failing or which tests broke, or mentions "test-triage", "triagem de testes", "por que os testes estão falhando" or "testes quebrados". Do NOT use for a bare request to just run a test command.
+description: Runs a test target, clusters the failures, investigates them, auto-fixes and commits only the small ones, and files a dossier in docs/tests/ for the ones that need real work. Use when the user asks to triage tests, run tests and investigate what broke, find out why tests are failing or which tests broke, or mentions "test-triage",  "why tests are failing" or "the tests not work". Do NOT use for a bare request to just run a test command.
 argument-hint: "[unit|e2e|all|<path>|<filter>] [local|remote]"
 allowed-tools: Bash(${CLAUDE_SKILL_DIR}/scripts/context.sh)
 ---
@@ -28,14 +28,14 @@ Triage:
 - [ ] 3. Run; infra separated from tests (boot → retry → BLOCKED)
 - [ ] 4. Failures clustered; systemic check (suite runs only)
 - [ ] 5. Flake check (deep path, one representative per cluster)
-- [ ] 6. Every cluster classified: small fix or hard work
+- [ ] 6. Every cluster classified: small fix or hard work; instrumentation reverted
 - [ ] 7. Small fixes applied, verified, formatted, committed one per cluster
 - [ ] 8. Dossiers registered for hard work; docs/tests/ visible to git, left uncommitted for the user
 - [ ] 9. Open dossiers reconciled
 - [ ] 10. Report in pt-BR
 ```
 
-Vocabulary, used consistently: *target* (what runs), *kind* (`unit` or `e2e`), *runner* (the command that runs a kind), *cluster* (one root cause), *small fix* / *hard work*, *dossier*, *BLOCKED*, *protected branch*.
+Vocabulary, used consistently: _target_ (what runs), _kind_ (`unit` or `e2e`), _runner_ (the command that runs a kind), _cluster_ (one root cause), _small fix_ / _hard work_, _dossier_, _BLOCKED_, _protected branch_.
 
 ## 1. Resolve the target
 
@@ -58,11 +58,11 @@ Precedence per kind:
 
 1. `runner.json` entry for the kind: `suite` and `single`.
 2. `package.json` scripts by name, local before remote. Unit: `test:unit` → `test:local` / `test:unit:local` → `test` (only when not remote-smelling) → a remote-smelling script, only when no local candidate exists. E2e: `test:e2e:local` → `test:e2e` / `e2e` → `test:e2e:remote`. A script runs through the package manager the facts indicate (`package_manager`, `lockfiles`): `<pm> run <script>`.
-3. Nothing, or the user pinned a variant no script provides → **ask once, before running**: the suite command *and* the single-target form, in one question (scripts from the facts may be offered as options; the user picks). No question when the user already typed the command.
+3. Nothing, or the user pinned a variant no script provides → **ask once, before running**: the suite command _and_ the single-target form, in one question (scripts from the facts may be offered as options; the user picks). No question when the user already typed the command.
 
 A command the user gave, typed or answered, is run and then recorded in `runner.json`. Before the first write into `docs/tests/` in a run, run `bash "${CLAUDE_SKILL_DIR}/scripts/dossier.sh" check-visible`: the folder belongs in git, because it is what the next person on the team reads instead of re-running this triage on their own machine. A `gitignored: <rule>` answer goes to the report with the rule that causes it; never edit `.gitignore` to fix it, that is the user's call (step 8). Never a second question to record it, never after the run. Nothing is ever written to `package.json`.
 
-*Remote-smelling*: `:remote`, `:ci`, `ssh`, `rsync` or `scp` in the script name or body.
+_Remote-smelling_: `:remote`, `:ci`, `ssh`, `rsync` or `scp` in the script name or body.
 
 **Single-target form**: `runner.json.single`; else, when the suite script body is a bare runner invocation, `<suite> -- {target}`; else ask and record. `{target}` is a file, a flow or a filter, whatever the runner takes; never assume which.
 
@@ -88,6 +88,10 @@ Group failing tests by signature: same error shape, same source file, same suite
 - **≤ 3 clusters** → deep path, each cluster in turn, in this context: read the test and the source under test, `git log` / `git diff` the involved files, read the open dossier that matches the cluster (its `Ruled out` is not repeated). Never spawn subagents.
 - **> 3 clusters** → shallow path: one line per cluster with a hypothesis, ask which one to dig into. The rest stays in the terminal; offer in one line to write a single triage note, and write it only if asked.
 
+**How a cluster is investigated (deep path).** By elimination, never by the first plausible story: name the candidate causes up front, then rule them out one at a time against evidence you can point at, a line of output, a diff, a `git log` entry, a log you added, taking the split that cuts the most remaining ground first. Stop when exactly one candidate survives and you can state the mechanism, not just the correlation. When evidence refutes a candidate, revert whatever it motivated before the next pass. What each pass eliminated, and how, is what `## Ruled out` records in step 8: write it as you go, never reconstructed at the end.
+
+**Instrumentation.** When reading the code and the history does not settle what the program does at runtime, add a temporary log or assertion and re-run the single target to read the real state. Do not guess, and do not classify a cluster `uncertain` over a question one log line would have answered. Instrumentation is scaffolding, not a fix: never add it to a file `git status --short` already shows as dirty (that is the user's work, and the revert would take their lines with it), revert it with `git checkout -- <file>` before the cluster is classified in step 6, so that step 7's dirty-file check reads the user's work and not your own scaffolding, and never let a target count as green while it is still in place.
+
 ## 5. Flake check (deep path only)
 
 Skipped when an infra cause was found in this run. Otherwise re-run **one representative per cluster, alone, once**, through `single`:
@@ -102,18 +106,18 @@ Never re-run hoping for green. Never add sleeps or timeout padding.
 **Small fix** requires ALL of:
 
 - the root cause is proven with evidence: file:line, git history, the failing assertion explained;
-- the fix edits **exactly one existing file**: a production file, or a test *access-code* file (page-object selectors, labels, routes, fixture data) backed by `git log` / `git diff` evidence that the UI or contract changed on purpose. Never both, never a new file.
+- the fix edits **exactly one existing file**: a production file, or a test _access-code_ file (page-object selectors, labels, routes, fixture data) backed by `git log` / `git diff` evidence that the UI or contract changed on purpose. Never both, never a new file.
 
 **Hard work** → dossier, with the matching `veto`:
 
-| veto | when |
-|---|---|
-| `schema` | touches a schema or a migration |
-| `contract` | touches an external API contract |
-| `race-condition` | flake, timing, test interference |
-| `multi-file` | more than one file, or a new file |
-| `uncertain` | it is not established why the test is red |
-| `assertion` | the assertion or expected value disputes what the code deliberately does: the only path to green is changing what the test verifies, skipping it, or padding it with `sleep` |
+| veto             | when                                                                                                                                                                         |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `schema`         | touches a schema or a migration                                                                                                                                              |
+| `contract`       | touches an external API contract                                                                                                                                             |
+| `race-condition` | flake, timing, test interference                                                                                                                                             |
+| `multi-file`     | more than one file, or a new file                                                                                                                                            |
+| `uncertain`      | it is not established why the test is red                                                                                                                                    |
+| `assertion`      | the assertion or expected value disputes what the code deliberately does: the only path to green is changing what the test verifies, skipping it, or padding it with `sleep` |
 
 More than one reason → the topmost applicable row wins, except that a test whose only path to green is changing what it verifies is always `assertion`, even when other questions stay unresolved.
 
@@ -123,11 +127,11 @@ Changing what a test verifies is never an auto-fix.
 
 Refuse before touching anything: on a **protected branch** (Hard rules) → diagnose only, never commit; the file to edit shows in `git status --short` **read now** → do not touch it (the fix would ride with the user's work and the rollback would destroy it); downgrade to a dossier and say why.
 
-1. Apply the fix.
-2. Re-run the failing target. Not green → `git checkout -- <file>` and reclassify as hard work. A small fix creates no file, so this rollback is complete: the tree is clean again.
-3. Green → run the **full unit suite**. Regression → same rollback, reclassify.
+1. Apply the fix: the smallest edit the evidence justifies, and nothing more. Every line of it answers to the proven root cause. A defensive guard for a case no failure showed, a widened catch, a broadened type, anything added because it might also help: that is a second hypothesis riding along untested, and it does not ship. If the target only goes green with changes the evidence does not cover, the root cause is not proven: roll back and file it as hard work, `veto: uncertain`.
+2. Re-run the failing target, the same one that was red, through `single`. That run is the only proof this failure is fixed, and it has to be the surface the failure happened on: a green unit test does not prove an e2e failure gone, and a suite that stopped mentioning the test is not a pass. Not green, or inconclusive → `git checkout -- <file>` and reclassify as hard work. A small fix creates no file, so this rollback is complete: the tree is clean again.
+3. Green → run the **full unit suite**. That gate answers a different question, not "is this failure fixed" (step 2 answered that) but "did the fix break something else". Regression → same rollback, reclassify.
 4. Format the touched file only, with the repository's own `package.json` script (`format` / `fmt` / `lint:fix`, given the path); none → skip. Then `git status --short` must show only the touched file: revert any other file that was clean before, and report, never revert, a file that was already dirty.
-5. `git add <file>` with the exact path, never `-A` or `.`. One commit per cluster: `fix(<scope>): ...`; for access-code fixes the git evidence goes in the message.
+5. `git add <file>` with the exact path, never `-A` or `.`. One commit per cluster: `fix(<scope>): ...`, carrying in the body the failing signature verbatim and the single-target command that now passes; for access-code fixes the git evidence goes in the message too.
 
 For e2e the verification gate is the affected flow plus the full unit suite, never the full e2e suite; leave that to the user.
 
@@ -161,7 +165,7 @@ Terminal summary in pt-BR:
 
 - verdict (verde / vermelho / BLOCKED / sistêmico / não terminou) and the command line that ran;
 - infra chain, when there was one: cause → remedy → outcome;
-- clusters and, per cluster: corrigido + commit / dossiê / não investigado;
+- clusters and, per cluster: corrigido + commit / dossiê / não investigado. For a fixed cluster, one verbatim line of the failure as it read before and one line of the green re-run that replaced it, never a pasted output block;
 - dossiers created, bumped, closed; `runner.json` changes made this run; everything under `docs/tests/` left uncommitted for the user, and the `gitignored:` warning from `check-visible` when the folder is hidden from git;
 - commit SHAs; anything left uncommitted and why;
 - what is left for the user, and why.
@@ -175,5 +179,8 @@ A green run creates nothing: it reconciles open dossiers and reports.
 - **Protected branch**: `main` / `master` when `develop`, `development`, `staging` or `release*` exists locally or on a remote; `production` / `prod` when any of those or `main` / `master` exists. A default branch that is the only branch is the working branch. On a protected branch nothing is committed.
 - Never push, never open a PR.
 - `docs/tests/` belongs in git: this skill never gitignores it, and never commits it either; the writes are left for the user. A rule that hides the folder (`dossier.sh check-visible`) is reported, never fixed here.
+- The smallest change the evidence justifies, and nothing more. A line added because it might also help is an untested hypothesis, not a fix.
+- A fix is proven only on the surface the failure happened on. The full unit suite is a regression gate, never proof that the original failure is gone.
+- Instrumentation is never committed and never left behind: it is reverted before the cluster is classified.
 - Never stage a file you did not touch. Never spawn subagents.
 - Never invent a command; never record one that did not run in this session.
