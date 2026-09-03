@@ -15,13 +15,16 @@ reach it:
   autonomously?_ (Reuse is the reason to extract a skill, not the test.)
 
 The choice is made when the skill is created, recorded in both harnesses at once, and there is no
-third state. In this repo, `discover-setup` and `testing-policy` are user-invoked: one edits a `CLAUDE.md` and
-creates links under `~/.claude`, the other writes agents, a skill and a marked section into a
-project, and both are the human's call. `discover` and `test-triage` are model-invoked.
+third state. In this repo, `discover-setup`, `testing-policy`, `discuss` and `prototype` are
+user-invoked: the first edits a `CLAUDE.md` and creates links under `~/.claude`, the second writes
+agents, a skill and a marked section into a project, the third interviews the human, the fourth
+writes throwaway files into a project, and each is the human's call. `discover` and `test-triage`
+are model-invoked.
 
 Each harness excludes a user-invoked skill from the model's reach in its own way, so nothing but the
 human can fire it: no other skill can. A user-invoked skill may invoke model-invoked skills, but it
-can never reach another user-invoked skill.
+can never reach another user-invoked skill. The agent a skill ships is a separate door, covered
+below.
 
 Every skill also carries an `agents/openai.yaml` beside its `SKILL.md`. It holds Codex UI metadata:
 `interface.display_name` and `interface.short_description` for the skill picker, and, for
@@ -47,7 +50,29 @@ chosen together:
   `CLAUDE.md`; `testing-policy` and `test-triage` run inline because they edit, commit and ask.
 
 Work that must talk to the user or write into the project runs inline. A lookup with a terse output
-contract forks.
+contract forks. `prototype` forks the same way, onto the `prototype` agent with `background: false`
+so the report is back before the human's turn ends; its agent has file tools and Bash and no way to
+ask, so the brief it receives has to be complete.
+
+## Agents a skill ships
+
+A skill that runs on its own agent ships the definition as `AGENT.md` beside its `SKILL.md`, linked
+into `~/.claude/agents/<name>.md` (by `scripts/link-skills.sh` here, by the skill's own installer or
+the README's `ln -s` elsewhere). That agent is a second door into the same contract: any session can
+fork it with the Agent tool (`subagent_type: <name>`), and no frontmatter closes that door. What
+gates it is the agent's `description`, which names the callers it accepts, so on this door the
+invariant is kept by the callers, not by the harness.
+
+| Agent | Skill | Doors |
+|---|---|---|
+| `discover` | model-invoked | `/discover`; `Agent(subagent_type: discover)` in headless `-p` sessions only |
+| `prototype` | user-invoked | `/prototype`; a `discuss` interview, for a branch that cannot be settled by talking. Nothing else forks it |
+
+So a step in another skill may reach the agent a user-invoked skill ships, never the skill itself,
+and only when that agent's description names the calling skill. The step spells it out as an Agent
+tool call (`call the Agent tool with subagent_type: prototype`), with the same explicitness the
+Skill tool convention below asks for, and the calling skill is added to the agent's description in
+the same change.
 
 ## Dependencies between them
 
@@ -77,4 +102,5 @@ This whole convention only holds when the named skill is **model-invoked**. A us
 never be reached this way, full stop: per the invariant above, no other skill can call it, including
 by naming it to the Skill tool. When a step's precondition is a user-invoked skill, phrase it as an
 instruction for the human to act on: when `discover` reports an unknown agent, "tell the user to run
-`/discover-setup`", never a Skill tool call.
+`/discover-setup`", never a Skill tool call. The one exception is the agent door above: a step may
+fork the agent a user-invoked skill ships when that agent's description names the calling skill.

@@ -1,0 +1,1 @@
+/prototype logic: can a coupon be applied after checkout, and what happens to the total when two percentage coupons stack? It lives beside src/cart.js. Decided: a coupon is a percentage off the total; "voucher" is not a term we use.

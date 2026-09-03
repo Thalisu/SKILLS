@@ -14,10 +14,11 @@ the moment the cases inspect.
 | `one-question` | the first message that asks something carries exactly one question, a recommendation and the tell |
 | `explores-first` | a branch the fixture's code settles is closed with `file:line`, never asked; the grounding note names the contradiction |
 | `no-writes-without-decision` | with no decision taken, nothing is created or edited in the project and nothing is committed |
+| `runnable-branch` | a branch about what a screen should look like is marked runnable and forks the `prototype` agent with a complete brief, instead of asking for a layout in words; every other branch stays a question |
 
 Run from the skill directory, granting the tools the cases need and opting in to their scaffold
 scripts:
 
 ```
-claude plugin eval . --scaffold --allow-tools Bash Read Edit Write
+claude plugin eval . --scaffold --allow-tools Bash Read Edit Write Agent
 ```

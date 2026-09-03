@@ -20,7 +20,8 @@ state, and the choice is made explicitly when the skill is created.
 Read `.agents/invocation.md` before adding a skill or changing how one is reached. It carries the
 full contract, including how skills depend on each other: a step may tell the agent to call the
 Skill tool with a model-invoked skill, and never with a user-invoked one, which only the human can
-fire.
+fire. A skill that ships an `AGENT.md` opens a second door, the Agent tool, gated by that agent's
+description naming the callers it accepts; `prototype` names `discuss` as its only one.
 
 ## READMEs
 

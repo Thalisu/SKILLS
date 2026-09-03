@@ -23,6 +23,7 @@ You invoke this by typing `/discuss`, and the agent won't reach for it on its ow
 | understand how a subsystem works, with no plan on the table | a walkthrough, or read the code |
 | settle the shape (types, signatures, module boundaries) once the decisions are made | an architect-style skill; the closing summary names the moment for it |
 | check whether something already exists in the repo | [discover](discover.md); the grounding runs it for the symbols the plan names |
+| see a screen or drive a state model before you can decide | the interview marks that branch _runnable_ and forks [prototype](prototype.md) for it |
 
 The plan is asked for when it is left out. Answers arrive in the language you opened the session
 in; everything written into the repository is in English.
@@ -32,7 +33,8 @@ in; everything written into the repository is in English.
 The skill writes into the project: `CONTEXT.md` (at the root, or the context's own when a
 `CONTEXT-MAP.md` names one) and numbered ADRs under `docs/adr/`. Both are created lazily, on the
 first term and the first ADR, and left uncommitted for you. Nothing else in the project is written,
-and no code is edited.
+and no code is edited. A runnable branch adds the prototype's own files, marked throwaway and listed
+in the closing summary.
 
 ## Branch, lens, tell
 
@@ -68,6 +70,12 @@ A branch closes in one of three states:
 Only a decision that is hard to reverse, surprising without context and the result of a real
 trade-off becomes an ADR. Everything else lives in the closing summary.
 
+A branch whose answer depends on seeing or driving the thing is marked **runnable**. Instead of a
+question you cannot answer from words, the session forks the [prototype](prototype.md) agent with a
+brief and, when its report lands, puts the question to you against the artifact: where to open it,
+what to look at, the recommendation and the tell. Talking stays the default; a prototype is built
+only for such a branch, or when you say you need to see it.
+
 ## Common questions
 
 **Why did it not ask me about something the plan clearly depends on?**
@@ -87,6 +95,8 @@ settle it.
   file and line.
 - `CONTEXT.md` and `docs/adr/` grow during the session, not at the end, and the working tree is
   clean apart from them.
+- A branch about what a screen should look like reaches you as something to open, with the
+  question put against it, never as a request to describe a layout in words.
 - The closing summary lists every branch as decided, default or deferred, and names the next step.
 
 ## Where it fits
@@ -96,6 +106,7 @@ shape is settled and before any code is written.
 
 - [discover](discover.md), because the grounding runs one batch for the symbols the plan names,
   so no branch is opened for something that already exists.
+- [prototype](prototype.md), because a runnable branch forks its agent, and nothing else does.
 - The principles under [`.agents/principles/`](../.agents/principles/README.md), because every
   lens is one of them turned into a question.
 

@@ -28,6 +28,7 @@ Reachable only by the human typing the name.
 | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
 | [`discover-setup`](skills/discover-setup/SKILL.md) | Wire the discover agent and skills on a machine and install or update the mandatory Discovery rule in a project's `CLAUDE.md` or in the user's `~/.claude/CLAUDE.md` | [docs/discover-setup.md](docs/discover-setup.md) |
 | [`discuss`](skills/discuss/SKILL.md) | Interview the user about a plan before code, one question at a time with a recommendation, recording terms in `CONTEXT.md` and hard-to-reverse decisions in `docs/adr/` as they land | [docs/discuss.md](docs/discuss.md) |
+| [`prototype`](skills/prototype/SKILL.md) | Build one throwaway, runnable prototype in a subagent to settle a design question you have to see or drive: a single HTML file that drives a state model, or three variants of a screen on its real route | [docs/prototype.md](docs/prototype.md) |
 | [`testing-policy`](skills/testing-policy/SKILL.md) | Install and keep in sync a canonical Testing Policy (Definition of Done) across repos                                                                                | [docs/testing-policy.md](docs/testing-policy.md) |
 
 ## Model-invoked
@@ -52,6 +53,14 @@ ln -s ~/SKILLS/skills/<name> ~/.claude/skills/<name>
 `discover` needs one more step: link `discover-setup` as above, then run `/discover-setup` from a
 project. It links the discover agent and both discover skills and installs the Discovery section in
 the `CLAUDE.md` you choose, the project's or your global one.
+
+`prototype` ships an agent too: beside the skill link, link `skills/prototype/AGENT.md` to
+`~/.claude/agents/prototype.md`. Typing `/prototype` forks that agent, and so does `discuss` for a
+branch that has to be seen.
+
+```bash
+ln -s ~/SKILLS/skills/prototype/AGENT.md ~/.claude/agents/prototype.md
+```
 
 Contributors enable the pre-commit hook once per clone, as shown above. Maintainers of this repo can
 run `scripts/link-skills.sh` to relink every skill at once; it is a dev-only script, not a supported

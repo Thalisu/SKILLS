@@ -1,0 +1,23 @@
+name: logic-single-file
+tags: [workflow, logic]
+runs: 2
+max_turns: 40
+timeout_seconds: 600
+allowed_tools: [Bash, Read, Edit, Write, Glob, Grep]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # A cart module with a total and no coupon logic yet: the prototype has a module to sit beside
+    # and a state model (coupons stacking, applying after checkout) worth pushing through cases.
+    set -e
+    mkdir -p src
+    cat > src/cart.js <<'JS'
+    function total(items, taxRate) {
+      const net = items.reduce((sum, price) => sum + price, 0);
+      return Math.round(net * (1 + taxRate) * 100) / 100;
+    }
+    module.exports = { total };
+    JS
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"

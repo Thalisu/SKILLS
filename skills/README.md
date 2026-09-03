@@ -12,6 +12,7 @@ Reachable only by the human typing the name.
 |---|---|
 | [`discover-setup`](discover-setup/SKILL.md) | Link the discover agent and skills on this machine, then install or refresh the mandatory Discovery section in a project's `CLAUDE.md` or in `~/.claude/CLAUDE.md` |
 | [`discuss`](discuss/SKILL.md) | Interview the user about a plan before code, one question at a time with a recommendation, recording terms in `CONTEXT.md` and hard-to-reverse decisions in `docs/adr/` as they land |
+| [`prototype`](prototype/SKILL.md) | Build one throwaway, runnable prototype in a subagent to settle a design question you have to see or drive: a single HTML file that drives a state model, or three variants of a screen on its real route |
 | [`testing-policy`](testing-policy/SKILL.md) | Install, migrate or refresh the canonical Testing Policy (Definition of Done) in a project |
 
 ## Model-invoked

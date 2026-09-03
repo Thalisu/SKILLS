@@ -1,0 +1,1 @@
+/prototype ui: what should the settings page look like so that export is easy to find and the danger zone is impossible to hit by accident? It lives on settings.html. Decided: the top header stays; the page keeps the four sections.

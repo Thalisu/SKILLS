@@ -1,0 +1,30 @@
+name: runnable-branch
+tags: [workflow, prototype]
+runs: 2
+max_turns: 16
+timeout_seconds: 600
+allowed_tools: [Bash, Read, Edit, Write, Agent]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # A static settings page with an export button and a delete button side by side: the plan is a
+    # layout question, which only a screen can settle, next to questions words can settle.
+    set -e
+    cat > settings.html <<'HTML'
+    <!doctype html>
+    <html><head><meta charset="utf-8"><title>Settings</title></head>
+    <body>
+    <main id="settings">
+      <h1>Settings</h1>
+      <section><h2>Profile</h2><label>Name <input value="Ada"></label></section>
+      <section><h2>Notifications</h2><label><input type="checkbox" checked> Email me</label></section>
+      <section><h2>Account</h2><button>Export my data</button> <button>Delete account</button></section>
+    </main>
+    <script src="app.js"></script></body></html>
+    HTML
+    cat > app.js <<'JS'
+    document.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => alert(b.textContent)));
+    JS
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"

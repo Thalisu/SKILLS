@@ -11,7 +11,7 @@ Every message to the user is written in the language the user opened the session
 
 Ground → tree → one question at a time → capture as it lands → close.
 
-Vocabulary, used consistently: _branch_ (one decision the plan needs), _tree_ (the branches and the dependencies between them), _lens_ (a principle turned into a question), _tell_ (the answer that fails a lens), _default_ (an answer taken and stated instead of asked), _deferral_ (a branch parked with the condition that reopens it).
+Vocabulary, used consistently: _branch_ (one decision the plan needs), _tree_ (the branches and the dependencies between them), _lens_ (a principle turned into a question), _tell_ (the answer that fails a lens), _default_ (an answer taken and stated instead of asked), _deferral_ (a branch parked with the condition that reopens it), _runnable_ (a branch only a running artifact can settle: a throwaway prototype is built and the question is put against it).
 
 ## 1. Ground
 
@@ -28,7 +28,7 @@ Output, in the thread, a grounding note of three to six lines: what already exis
 
 ## 2. Build the tree
 
-List the branches: every decision the plan needs, one line each. Mark the dependencies (a branch whose answer changes another branch's answer comes first) and order the walk by them. Tag each branch with the lenses from step 5 that apply to it.
+List the branches: every decision the plan needs, one line each. Mark the dependencies (a branch whose answer changes another branch's answer comes first) and order the walk by them. Tag each branch with the lenses from step 5 that apply to it, and mark it _runnable_ when its answer depends on seeing or driving the thing rather than on describing it: what a screen should look like, or how a state model behaves across a sequence too long to hold in the head.
 
 A branch the repository already answers is closed here, with the evidence, and is never asked.
 
@@ -39,11 +39,12 @@ Show the tree once, compact, with each branch's state: `open`, `decided`, `defau
 For the first open branch, in walk order:
 
 1. **Explore first.** Whatever can still be settled from the repository is settled there: close the branch, say so in one line, move on.
-2. **One question per message.** The message carries three things and nothing else: the question, the tell it hunts in one line, and the recommended answer with its reason. Never a list of questions, never a second question in the same message.
-3. **Wait for the answer.**
-4. **Check the answer.** Against the glossary: a term used in a sense `CONTEXT.md` does not give is called out immediately ("your glossary defines X as ..., you seem to mean ..."). Against the code: a claim about how something works is read in the code before it is accepted, and a contradiction is surfaced with `file:line`. Against a scenario: a domain relationship gets one concrete scenario that probes its boundary ("a Customer with two open Orders cancels one: what happens to the Invoice?"). A fuzzy or overloaded word gets a proposed canonical term. Push back once, with the evidence; the user's repeat is the decision.
-5. **Close the branch.** `decided` (the user chose), `default` (a reversible detail: state the choice and its reason instead of asking), or `deferred` (parked, with the condition that reopens it, in one line).
-6. **Capture** (step 4), then update the tree. A branch the answer opened joins the tree at its dependency position.
+2. **Talk before running.** A prototype is built only for a branch marked _runnable_ in the tree, or for one the user answers with "I need to see it"; a branch the user can answer from a description never gets one. For that branch, call the Agent tool with `subagent_type: prototype` and a brief: the question in one line, the shape (`ui` for what a screen should look like, `logic` for whether a state model holds up), the page or module it lives next to, the data or actions it has, and every constraint this session has already decided. The agent builds in the background and cannot ask anything, so the brief is complete. Keep walking the branches that do not depend on this one; when the six-line report lands, put the question against the artifact in the shape of item 3, with where to open it and what to look at.
+3. **One question per message.** The message carries three things and nothing else: the question, the tell it hunts in one line, and the recommended answer with its reason. Never a list of questions, never a second question in the same message.
+4. **Wait for the answer.**
+5. **Check the answer.** Against the glossary: a term used in a sense `CONTEXT.md` does not give is called out immediately ("your glossary defines X as ..., you seem to mean ..."). Against the code: a claim about how something works is read in the code before it is accepted, and a contradiction is surfaced with `file:line`. Against a scenario: a domain relationship gets one concrete scenario that probes its boundary ("a Customer with two open Orders cancels one: what happens to the Invoice?"). A fuzzy or overloaded word gets a proposed canonical term. Push back once, with the evidence; the user's repeat is the decision.
+6. **Close the branch.** `decided` (the user chose), `default` (a reversible detail: state the choice and its reason instead of asking), or `deferred` (parked, with the condition that reopens it, in one line).
+7. **Capture** (step 4), then update the tree. A branch the answer opened joins the tree at its dependency position.
 
 A reversible execution detail is never a question. The question budget goes to direction, trade-offs and anything hard to undo.
 
@@ -54,6 +55,7 @@ Never batched: each item is written the moment its branch closes, before the nex
 - **A resolved term** goes to `CONTEXT.md` (the root one, or the context's own when the map names it) in the format of [references/context-format.md](references/context-format.md). The file is created on the first term. Only terms a domain expert would recognise; no implementation detail.
 - **A decision** gets an ADR under `docs/adr/` in the format of [references/adr-format.md](references/adr-format.md) when all three hold: hard to reverse, surprising without context, the result of a real trade-off. Any one missing → no ADR; the closing summary carries the decision. The directory is created on the first ADR.
 - **A contradiction** between the user's answer and the code is never resolved by editing code here: the user says which side is right, and the branch and the summary record it.
+- **A prototype** is never captured, only its answer: the decision, and the variant or scenario that settled it, in one line of the ADR or the summary. Its files stay in the working tree, listed in the closing summary.
 
 ## 5. Lenses, in walk order
 
@@ -85,7 +87,7 @@ Each lens is the question it makes the session ask and the tell that fails it; t
 
 | Lens | Ask | Tell |
 |---|---|---|
-| [exhaust-the-design-space](../../.agents/principles/exhaust-the-design-space.md) | What is the second structurally different shape, and why is it worse? | One candidate, or a variant of the first. When the candidates deserve to be built, the closing summary hands off to an architect-style skill |
+| [exhaust-the-design-space](../../.agents/principles/exhaust-the-design-space.md) | What is the second structurally different shape, and why is it worse? | One candidate, or a variant of the first. Candidates that have to be seen make the branch runnable (step 3); candidates that are function shapes go to an architect-style skill in the closing summary |
 | [redesign-from-first-principles](../../.agents/principles/redesign-from-first-principles.md) | If this requirement had existed on day one, what would have been built, and how does the plan differ from that? | An adapter, a flag or a special case bolted on |
 
 ### Failure modes
@@ -116,7 +118,7 @@ Each fires only on the condition named with it.
 
 ### Conduct, not lenses
 
-Three principles shape how the session runs rather than what it asks. [never-block-on-the-human](../../.agents/principles/never-block-on-the-human.md): reversible details get a default; questions are spent on direction and irreversibles. [guard-the-context-window](../../.agents/principles/guard-the-context-window.md): exploration runs in subagents, the thread holds decisions. The feedback loop of [encode-lessons-in-structure](../../.agents/principles/encode-lessons-in-structure.md): a correction the user makes twice in the session becomes a rule, written into `CONTEXT.md` as a flagged ambiguity or proposed as a mechanism.
+Three principles shape how the session runs rather than what it asks. [never-block-on-the-human](../../.agents/principles/never-block-on-the-human.md): reversible details get a default; questions are spent on direction and irreversibles. [guard-the-context-window](../../.agents/principles/guard-the-context-window.md): exploration and prototype builds run in subagents; the thread holds decisions and the six-line report. The feedback loop of [encode-lessons-in-structure](../../.agents/principles/encode-lessons-in-structure.md): a correction the user makes twice in the session becomes a rule, written into `CONTEXT.md` as a flagged ambiguity or proposed as a mechanism.
 
 ## 6. Close
 
@@ -126,6 +128,7 @@ The session ends when every branch is `decided`, `default` or `deferred`. Then, 
 - defaults taken;
 - deferrals, each with the condition that reopens it;
 - files written: terms added to `CONTEXT.md`, ADR paths;
+- prototypes built: the branch each settled and the files it left, for the user to delete or park on a throwaway branch;
 - contradictions between the plan and the code, and which side the user picked;
 - next step: implement; or settle the shape first through an architect-style skill when the plan crosses a function boundary and the second shape was never built; or write the brief when a brief-writing skill is available. The summary is that skill's input.
 
@@ -136,7 +139,8 @@ Nothing is committed. `CONTEXT.md` and everything under `docs/adr/` stay in the 
 - One question per message, carrying a recommendation and the tell. Never a list of questions.
 - Never ask what the repository answers. Never ask about a reversible detail: take the default and say so.
 - A claim about how the code works is read in the code before it is accepted.
-- Captures are never batched. The only files written are `CONTEXT.md` and files under `docs/adr/`. No code is edited.
+- Captures are never batched. The session writes only `CONTEXT.md` and files under `docs/adr/`, and edits no code. A prototype's files belong to the prototype agent: new files marked throwaway, at most one mount in a host page, each listed in its report and in the closing summary.
+- A prototype is built only for a runnable branch, never for one a description can settle, and only by forking the `prototype` agent.
 - Never commit, never push.
 - Prose written into the project carries no em-dash.
 - Every message to the user in the session's opening language; every write into the repository in English.
