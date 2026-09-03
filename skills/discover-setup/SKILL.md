@@ -1,6 +1,6 @@
 ---
 name: discover-setup
-description: Install or refresh discover on this machine and in one CLAUDE.md — the project's or the user's global one. Wires the Haiku discover agent link and the /discover skill links, then installs or updates the mandatory "Discovery" section. Use when the user asks to set up, install, refresh, update or verify discover, or when /discover reports an unknown agent.
+description: "Install or refresh discover on this machine and in one CLAUDE.md, the project's or the user's global one: links the Haiku discover agent and the two discover skills, then installs or updates the mandatory Discovery section."
 disable-model-invocation: true
 ---
 Install or refresh discover. Runs inline: it edits a `CLAUDE.md`, which the forked discover agent
