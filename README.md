@@ -2,6 +2,9 @@
 
 Agent skills I maintain across projects. Each skill is a self-contained directory under `skills/`, following the [Agent Skills](https://docs.claude.com/en/docs/claude-code/skills) convention: a `SKILL.md` with YAML frontmatter, plus optional `scripts/`, `references/` and `assets/`.
 
+Captures from real projects never enter this repository: `skills/*/references/local/` and
+`skills/*/local/` are gitignored, and no skill ships an example taken from a private repo.
+
 | Skill | Purpose |
 |---|---|
 | [`testing-policy`](skills/testing-policy) | Install and keep in sync a canonical Testing Policy (Definition of Done) across repos |
@@ -39,7 +42,7 @@ Three invariants hold across every mode:
 
 - **Nothing is invented.** Every slot is filled from something that exists in the project — never a guessed path, command or example.
 - **Nothing is written unverified.** Every command that lands in `Project facts` or an agent's `Project map` was run once during the install and returned output.
-- **Nothing captured leaves the project.** Material quoting the repo's real paths, services, boundaries or debt goes to `.claude/testing-policy/local/` and nowhere else — never into this skills directory, which is shared across projects and public. `scripts/ensure-local-ignored.sh` puts that folder in the repository-root `.gitignore`, and the install is **not finished** until `verify-policy.sh` reports `local_ignored=yes`. The generated files next to it stay tracked on purpose: agent worktrees, CI and the hook only see tracked files.
+- **Nothing captured leaves the project.** A Project map is scoped to the repo the install ran in. Material quoting real paths, services, boundaries or debt goes to that project's `.claude/testing-policy/local/` and nowhere else — never into this skills directory, which every project shares and which is public. `scripts/ensure-local-ignored.sh` puts that folder in the project's root `.gitignore`, and the install is **not finished** until `verify-policy.sh` reports `local_ignored=yes`. The generated files next to it stay tracked on purpose: agent worktrees, CI and the hook only see tracked files. No example map ships with the skill: on a refresh the calibration is the project's own installed agent, and on a first install it is a written target, not a sample from someone else's repo.
 
 ### What the core says
 

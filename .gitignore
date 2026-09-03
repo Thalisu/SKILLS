@@ -1,0 +1,5 @@
+# Captures from real projects never enter this repo. A Project map is scoped to the repo its
+# install ran in; anything kept here for calibration is local-only, because this directory is
+# shared across every project and is public.
+skills/*/references/local/
+skills/*/local/
