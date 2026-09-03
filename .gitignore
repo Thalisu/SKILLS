@@ -1,6 +1,0 @@
-# Captures from real projects never enter this repo — not committed, not kept locally. A capture is
-# scoped to the repo it came from and is committed there, with that project. This directory is shared
-# across every project and is public, so a capture in it would be global by construction. These lines
-# are a backstop against an accidental commit; a capture found under them is deleted, not left here.
-skills/*/references/local/
-skills/*/local/

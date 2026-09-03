@@ -6,8 +6,13 @@ Captures from real projects never enter this repository, in any form. A skill th
 writes what it finds inside that project and commits it there, so the team reads it from git instead
 of re-running the skill on every machine. Nothing project-derived is kept in a skill's own directory
 — it is shared by every project and it is public — and no skill ships an example taken from a real
-repo. `skills/*/local/` and `skills/*/references/local/` stay gitignored as a backstop against an
-accidental commit, not as a sanctioned home.
+repo. Nothing is gitignored to that end: a stray `local/` or `capture/` directory under `skills/`
+shows up in `git status`, and the versioned `.githooks/pre-commit` refuses to commit one. Enable it
+once per clone:
+
+```bash
+git config core.hooksPath .githooks
+```
 
 | Skill | Purpose |
 |---|---|
