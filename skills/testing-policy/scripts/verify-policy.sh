@@ -14,7 +14,7 @@
 #   agent_<unit|e2e>_map_missing=<Project-map labels of the template absent from the installed agent>
 #   skill_test_author=missing|stale|ok   scan_script=missing|ok   skip_patterns=missing|ok
 #   hook=missing|script-only|wired|wired-missing   gitignored=none|<paths>
-#   local_ignored=yes|no|n/a                 .claude/testing-policy/local/ must be ignored
+#   capture_legacy=<path>                    a gitignored capture folder left by an earlier install
 # unmarked = hand-written file (ask before touching) · stale = installed by an older template
 # (version line absent or different — the v2 marker style counts) · drifted = current version
 # but the core was edited by hand.
@@ -115,22 +115,15 @@ if git -C "$project" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   paths=( .claude/agents/unit-test-author.md .claude/skills/test-author/SKILL.md .claude/testing-policy/scan-test-assets.sh .claude/testing-policy/skip-patterns.sh .claude/settings.json )
   [ "$surface" = consumer ] || paths+=( .claude/agents/e2e-test-author.md )
   [ "$hook" = missing ] || paths+=( .claude/testing-policy/forbid-test-skips.sh )
+  [ -d "$project/.claude/testing-policy/capture" ] && paths+=( .claude/testing-policy/capture )
   for p in "${paths[@]}"; do git -C "$project" check-ignore -q "$p" 2>/dev/null && ignored+=("$p"); done
 fi
 if [ ${#ignored[@]} -gt 0 ]; then printf 'gitignored=%s\n' "$(IFS=,; echo "${ignored[*]}")"; else echo "gitignored=none"; fi
 
-# The mirror of the check above: `local/` is the one installed path that MUST be ignored — it is
-# where project-captured material lands, and that material names real internals. Probing a phantom
-# path inside it holds before the folder exists.
-if git -C "$project" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-  if git -C "$project" check-ignore -q -- ".claude/testing-policy/local/x" 2>/dev/null; then
-    echo "local_ignored=yes"
-  else
-    echo "local_ignored=no"; pieces_ok=0
-  fi
-else
-  echo "local_ignored=n/a"
-fi
+# Earlier installs hid captures in a gitignored `.claude/testing-policy/local/`. That material is
+# about this repo and belongs to whoever clones it, so step 7 moves it into `capture/` and commits
+# it; the folder is reported (never failed on, never deleted here) until that move happens.
+[ -d "$project/.claude/testing-policy/local" ] && echo "capture_legacy=.claude/testing-policy/local"
 
 # The policy state decides the exit code; missing pieces only matter once a marked section exists.
 case "$policy" in

@@ -146,7 +146,7 @@ Return exactly these sections:
 - Fixtures (static inputs): `{{UNIT_FIXTURES_HOME}}`
 
 **System boundaries** (the only things a unit test mocks — one line per boundary, what it is → the shared mock that replaces it; "none — pure modules" is a valid entry)
-{{UNIT_MOCK_BOUNDARIES — e.g. `Supabase → buildMockSupabaseFactory()` in `tests/helpers/mock-supabase.ts`; `the clock → withFrozenDate()`}}
+{{UNIT_MOCK_BOUNDARIES — e.g. `<the database client> → <buildMockDb()>` in `<mocks home>/<file>`; `the clock → <freezeTime()>`}}
 
 **Discovery — run all of these on every dispatch, before writing**
 ```

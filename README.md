@@ -2,8 +2,12 @@
 
 Agent skills I maintain across projects. Each skill is a self-contained directory under `skills/`, following the [Agent Skills](https://docs.claude.com/en/docs/claude-code/skills) convention: a `SKILL.md` with YAML frontmatter, plus optional `scripts/`, `references/` and `assets/`.
 
-Captures from real projects never enter this repository: `skills/*/references/local/` and
-`skills/*/local/` are gitignored, and no skill ships an example taken from a private repo.
+Captures from real projects never enter this repository, in any form. A skill that reads a project
+writes what it finds inside that project and commits it there, so the team reads it from git instead
+of re-running the skill on every machine. Nothing project-derived is kept in a skill's own directory
+— it is shared by every project and it is public — and no skill ships an example taken from a real
+repo. `skills/*/local/` and `skills/*/references/local/` stay gitignored as a backstop against an
+accidental commit, not as a sanctioned home.
 
 | Skill | Purpose |
 |---|---|
@@ -36,13 +40,13 @@ A testing Definition of Done written once into a `CLAUDE.md` decays in three way
 | `SKILL-TEST-AUTHOR.md` | `.claude/skills/test-author/SKILL.md`, the inline path for writers without the `Agent` tool |
 | `scripts/scan-test-assets.sh` | `.claude/testing-policy/scan-test-assets.sh` — duplication and skip-marker scan |
 | `scripts/forbid-test-skips.sh` | optional `PreToolUse` hook blocking new `.skip` / `.only` / `xit` / `pytest.mark.skip` / Maestro `optional: true` in test files |
-| — | `.claude/testing-policy/local/` — the local-only, gitignored home for anything captured from the project |
+| — | `.claude/testing-policy/capture/` — the home for anything captured from the project, committed with it |
 
 Three invariants hold across every mode:
 
 - **Nothing is invented.** Every slot is filled from something that exists in the project — never a guessed path, command or example.
 - **Nothing is written unverified.** Every command that lands in `Project facts` or an agent's `Project map` was run once during the install and returned output.
-- **Nothing captured leaves the project.** A Project map is scoped to the repo the install ran in. Material quoting real paths, services, boundaries or debt goes to that project's `.claude/testing-policy/local/` and nowhere else — never into this skills directory, which every project shares and which is public. `scripts/ensure-local-ignored.sh` puts that folder in the project's root `.gitignore`, and the install is **not finished** until `verify-policy.sh` reports `local_ignored=yes`. The generated files next to it stay tracked on purpose: agent worktrees, CI and the hook only see tracked files. No example map ships with the skill: on a refresh the calibration is the project's own installed agent, and on a first install it is a written target, not a sample from someone else's repo.
+- **Nothing captured leaves the project — and inside it, everything captured is committed.** A Project map is scoped to the repo the install ran in. Material quoting real paths, services, boundaries or debt goes to that project (the agents' Project map, Project facts, `.claude/testing-policy/capture/`) and nowhere else — never into this skills directory, which every project shares and which is public. There it stays tracked, on purpose and twice over: agent worktrees, CI and the hook only see tracked files, and a teammate who clones the repo gets the maps and captures from git instead of re-running the install on their own machine. `verify-policy.sh` reports every installed path git is ignoring (`gitignored=`), and a gitignored capture folder from an older install as `capture_legacy=`. No example map ships with the skill: on a refresh the calibration is the project's own installed agent, and on a first install it is a written target, not a sample from someone else's repo.
 
 ### What the core says
 
@@ -97,13 +101,7 @@ Then, from the project that should receive the policy:
 To check a project's state without changing anything:
 
 ```bash
-bash ~/SKILLS/skills/testing-policy/scripts/verify-policy.sh <project>   # ... gitignored= local_ignored=
-```
-
-To put the capture folder in `.gitignore` by hand (the skill does it in step 7):
-
-```bash
-bash ~/SKILLS/skills/testing-policy/scripts/ensure-local-ignored.sh <project>
+bash ~/SKILLS/skills/testing-policy/scripts/verify-policy.sh <project>   # ... gitignored= capture_legacy=
 ```
 
 ### Versioning
@@ -221,8 +219,8 @@ splits them into two buckets with a hard line between them:
   does not turn green is rolled back with `git checkout`; the tree always comes back clean.
 - **Hard work** — schema, contract, race condition, more than one file, uncertain cause, or a fix that would
   change a result assertion. Never auto-fixed: registered as a numbered dossier in `docs/tests/` with a closed
-  `veto` vocabulary and an English body (`Error`, `Hypothesis`, `Ruled out`, `Next step`) — never committed:
-  the skill keeps `docs/tests/` in `.gitignore`.
+  `veto` vocabulary and an English body (`Error`, `Hypothesis`, `Ruled out`, `Next step`) — left in the
+  working tree for the user to commit: `docs/tests/` belongs in git, and the skill never hides it.
 
 Infra failures — connection refused, container down, app not answering — are a third thing: boot → one retry
 per cause → **BLOCKED**. Never green, never a test failure, never a dossier.
@@ -231,7 +229,7 @@ per cause → **BLOCKED**. Never green, never a test failure, never a dossier.
 |---|---|
 | `skills/test-triage/SKILL.md` | the workflow: target → command → run → cluster → flake check → classify → fix or dossier → reconcile → report |
 | `scripts/context.sh` | injected at load time through the `!` block: branch and protection, dirty files, `package.json` scripts tagged local / remote-smelling, `runner.json`, open dossiers; never exits non-zero |
-| `scripts/dossier.sh` | `next-id`, `new`, `ensure-ignored`, `list-open`, `bump`, `green` — every dossier write goes through it, and `new` keeps `docs/tests/` gitignored |
+| `scripts/dossier.sh` | `next-id`, `new`, `check-visible`, `list-open`, `bump`, `green` — every dossier write goes through it, and `new` reports a `.gitignore` rule hiding `docs/tests/` |
 | `assets/dossier-template.md` | the schema-2 frontmatter and the four body sections |
 | `references/runner-config.md` | `docs/tests/runner.json` schema, discovery precedence, single-target forms, the verified `${CLAUDE_SKILL_DIR}` / `allowed-tools` behaviour |
 | `references/dossier-schema.md` | frontmatter fields, veto vocabulary, reconcile rules, script reference |
@@ -242,9 +240,10 @@ Two invariants:
 - **Nothing is invented.** Commands come from `docs/tests/runner.json` — the skill's own record, written only
   from a command the user gave and that ran — or from `package.json` scripts by name, local before remote. Never
   from another manifest, never from another repository.
-- **Memory lives in the repo, out of its history.** Open dossiers are reconciled at the end of every run —
-  bumped when the failure repeats, closed when their test runs green (a flake needs two green runs) — but
-  `docs/tests/` stays in `.gitignore`: nothing inside it is ever committed, and nothing is pushed.
+- **Memory lives in the repo, and in its history.** Open dossiers are reconciled at the end of every run —
+  bumped when the failure repeats, closed when their test runs green (a flake needs two green runs). `docs/tests/`
+  belongs in git, so the next person inherits the investigation instead of re-running the triage: the skill never
+  gitignores it, commits only its fixes, and leaves the folder's writes for the user. Nothing is ever pushed.
 
 ### Install
 

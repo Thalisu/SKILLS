@@ -8,9 +8,9 @@
 #                                            create NNNN-<slug>.md from assets/dossier-template.md
 #                                            with failed_at = HEAD and dates = today; prints the path.
 #                                            Exit 3 when an open dossier already has that test.
-#   ensure-ignored                           append "DIR/" to the repo-root .gitignore when DIR is
-#                                            not gitignored; warn when tracked files exist under DIR;
-#                                            no-op outside a git repository. Run by new before writing.
+#   check-visible                            report whether DIR is hidden from git: "visible: yes",
+#                                            or "gitignored: <rule>" when a .gitignore rule hides it;
+#                                            never edits .gitignore. Run by new before writing.
 #   list-open                                one line per open dossier, oldest first:
 #                                            path | test | signature | veto | occurrences | green_runs
 #   bump <path> --failed-at SHA              occurrences+1, last_seen = today, failed_at = SHA;
@@ -90,21 +90,18 @@ cmd_list_open() {
   done
 }
 
-# A gitignore pattern with an inner slash is anchored to the .gitignore's own directory, so the
-# line is always appended to the repository-root .gitignore. The ignore check probes a phantom
-# path inside DIR: it works whatever pattern form already covers the directory.
-cmd_ensure_ignored() {
-  local root tracked
+# The dossiers and runner.json are this repo's own record of its test failures, meant to be committed:
+# whoever clones it inherits the investigation instead of re-running the triage on their machine. A
+# .gitignore rule hiding them is a defect — reported here, never fixed, because editing .gitignore is
+# the user's call. The probe uses a phantom path inside DIR, so it holds before the directory exists,
+# whatever pattern form covers it; `check-ignore -v` names the rule.
+cmd_check_visible() {
+  local v
   git rev-parse --is-inside-work-tree >/dev/null 2>&1 || { echo "not a git repository"; return 0; }
-  root="$(git rev-parse --show-toplevel)"
-  tracked="$(git ls-files -- "$dir" 2>/dev/null | grep -c .)"
-  [ "$tracked" -gt 0 ] && echo "warning: $tracked tracked file(s) under $dir/ — .gitignore does not untrack them"
-  if git check-ignore -q -- "$dir/x" 2>/dev/null; then
-    echo "gitignored: yes"
+  if v="$(git check-ignore -v -- "$dir/x" 2>/dev/null)"; then
+    echo "gitignored: ${v%%$'\t'*}"
   else
-    [ -s "$root/.gitignore" ] && [ -n "$(tail -c1 "$root/.gitignore")" ] && echo >> "$root/.gitignore"
-    printf '%s/\n' "$dir" >> "$root/.gitignore" || die "cannot write $root/.gitignore"
-    echo "gitignore: added $dir/"
+    echo "visible: yes"
   fi
 }
 
@@ -129,7 +126,7 @@ cmd_new() {
   [ -f "$template" ] || die "template missing: $template"
   existing="$(cmd_list_open | awk -F' \\| ' -v t="$(printf '%s' "$test" | tr '|' '/')" '$2 == t { print $1; exit }')"
   [ -z "$existing" ] || { echo "exists: $existing"; exit 3; }
-  cmd_ensure_ignored
+  cmd_check_visible
   id="$(cmd_next_id)"
   path="$dir/$id-$slug.md"
   today="$(date +%F)"
@@ -211,7 +208,7 @@ cmd="$1"; shift
 case "$cmd" in
   next-id) cmd_next_id ;;
   new) cmd_new "$@" ;;
-  ensure-ignored) cmd_ensure_ignored ;;
+  check-visible) cmd_check_visible ;;
   list-open) cmd_list_open ;;
   bump) cmd_bump "$@" ;;
   green) cmd_green "$@" ;;
