@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
-# install.sh — wire the discover agent and skills on this machine and render the Discovery section
+# install.sh: wire the discover agent and skills on this machine and render the Discovery section
 # into one CLAUDE.md: the project's, or the user's global one. Idempotent.
 #
 # Usage: install.sh [PROJECT_DIR] [--force]   project scope: PROJECT_DIR/CLAUDE.md (default: current directory)
 #        install.sh --user [--force]          user scope:    ~/.claude/CLAUDE.md
 #   --force  replace a drifted section (same version, body edited by hand) instead of stopping
 #
-# Machine side (every scope) — only these entries are created or repaired, nothing else is touched:
+# Machine side (every scope): only these entries are created or repaired, nothing else is touched:
 #   ~/.claude/agents/discover.md                -> <repo>/skills/discover/AGENT.md
 #   ~/.agents/skills/{discover,discover-setup}  -> <repo>/skills/<name>            (absolute)
 #   ~/.claude/skills/{discover,discover-setup}  -> ../../.agents/skills/<name>      (relative)
-# Target side — the installed version is read first (verify.sh), then CLAUDE-SECTION.md is rendered
+# Target side: the installed version is read first (verify.sh), then CLAUDE-SECTION.md is rendered
 # between "<!-- discover:start v=N -->" and "<!-- discover:end -->": appended when absent, replaced
 # when an older version is there. Nothing else in that CLAUDE.md is read or written.
 # Exit 0 done or nothing to do · 2 usage or template error · 5 drifted section without --force.
@@ -71,7 +71,7 @@ case "$state" in
   stale|drifted)
     if [ "$state" = drifted ] && [ "$force" = 0 ]; then
       awk '/^<!-- discover:start v=/ { p = 1 } p { print } /^<!-- discover:end -->$/ { exit }' "$claude_md" | diff -u - "$tmp/section" || true
-      echo "section: drifted v=$installed — hand edits inside the markers; re-run with --force to replace them" >&2
+      echo "section: drifted v=$installed, hand edits inside the markers; re-run with --force to replace them" >&2
       exit 5
     fi
     awk -v section="$tmp/section" '

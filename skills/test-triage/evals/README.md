@@ -1,6 +1,6 @@
 # Eval cases
 
-Prepared for `claude plugin eval` (`<case>/case.yaml` + `prompt.md` + `graders/*.md`, the layout its `--help` describes). The command is gated server-side per organization (early access; this account lacks it as of 2026-09-01 — self-test: in an empty dir it prints "currently in early access" when gated, "No eval cases found" when enabled), so the cases have been authored, not executed; the `case.yaml` keys and grader types beyond `tool_used` follow the runner's help text and may need adjusting once it runs.
+Prepared for `claude plugin eval` (`<case>/case.yaml` + `prompt.md` + `graders/*.md`, the layout its `--help` describes). The command is gated server-side per organization (early access; this account lacks it as of 2026-09-01, and the self-test is simple: in an empty dir it prints "currently in early access" when gated, "No eval cases found" when enabled), so the cases have been authored, not executed; the `case.yaml` keys and grader types beyond `tool_used` follow the runner's help text and may need adjusting once it runs.
 
 | case | checks |
 |---|---|

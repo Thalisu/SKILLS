@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# discover.sh — deterministic "does X exist / where is X" report for a batch of symbols.
+# discover.sh: deterministic "does X exist / where is X" report for a batch of symbols.
 #
 # Usage: discover.sh [--root DIR] < spec            (default root: current directory)
 #

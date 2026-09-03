@@ -3,7 +3,7 @@
 # skills/<skill>/**/local/ or skills/<skill>/**/capture/. A skill's directory is symlinked into
 # ~/.claude and shared by every project that installs it, and this repo is public, so a capture
 # (a filled map, a scan report, a note quoting real paths) can only live in the project it came
-# from — see README. Enable once per clone: git config core.hooksPath .githooks
+# from; see README. Enable once per clone: git config core.hooksPath .githooks
 set -uo pipefail
 staged="$(git diff --cached --name-only --diff-filter=ACR | grep -E '^skills/[^/]+/(.*/)?(local|capture)/' || true)"
 [ -z "$staged" ] && exit 0

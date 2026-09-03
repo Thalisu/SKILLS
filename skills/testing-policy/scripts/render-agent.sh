@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# render-agent.sh — render an agent or skill template for installation.
+# render-agent.sh: render an agent or skill template for installation.
 #
 # Usage: render-agent.sh <unit|e2e|test-author> [--core-only]
 #   unit         AGENT-UNIT.md        → .claude/agents/unit-test-author.md

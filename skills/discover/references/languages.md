@@ -23,13 +23,13 @@ attributed to its item. `has`/`inside` match direct children/parents only unless
 |---|---|---|---|---|
 | `ts` | `.ts` | `function_declaration` | `field: name` | `src/legacy/format.ts:1` (item 1) |
 | | | `method_definition` | `field: name` | `src/services/UserService.ts:11` (7) |
-| | | `variable_declarator` — top-level only, see below | `field: name` | `src/utils/format.ts:1` (1) |
+| | | `variable_declarator`, top-level only, see below | `field: name` | `src/utils/format.ts:1` (1) |
 | | | `class_declaration` | `field: name` | `src/services/UserService.ts:10` (8) |
 | | | `interface_declaration` | `field: name` | `src/services/UserService.ts:1` (9) |
 | | | `enum_declaration` | `field: name` | `src/services/UserService.ts:5` (10) |
 | | | `type_alias_declaration` | `field: name` | `src/billing/invoice.ts:1` (11) |
 | | | `export_specifier` (`export { a as b }`) | `field: alias` | `src/index.ts:1` (5) |
-| `tsx` | `.tsx` | same kinds as `ts` | | `src/components/Badge.tsx:5` — `memo(function …)` declarator (4) |
+| `tsx` | `.tsx` | same kinds as `ts` | | `src/components/Badge.tsx:5`, a `memo(function …)` declarator (4) |
 | `javascript` | `.js .jsx .mjs .cjs` | `ts` kinds minus interface/enum/type alias | | `js/legacy.mjs:1` (12) |
 | `python` | `.py` | `function_definition` (decorated ok) | `field: name` | `py/service.py:10` (13) |
 | | | `class_definition` | `field: name` | `py/service.py:4` (14) |
@@ -43,10 +43,10 @@ attributed to its item. `has`/`inside` match direct children/parents only unless
 | | | `method_declaration` (receiver) | `field: name` | `go/svc.go:13` (22) |
 | | | `type_declaration` | `has: {kind: type_spec, has: {field: name, …}}` | `go/svc.go:3` (17) |
 | `java` | `.java` | `method_declaration` | `field: name` | `java/Svc.java:18` (23) |
-| | | `constructor_declaration` | `field: name` | `java/Svc.java:10` — collapsed into the class, see below (24) |
+| | | `constructor_declaration` | `field: name` | `java/Svc.java:10`, collapsed into the class, see below (24) |
 | | | `class_declaration` | `field: name` | `java/Svc.java:7` (24) |
 | | | `interface_declaration` | `field: name` | `java/Svc.java:3` (25) |
-| `kotlin` | `.kt .kts` | `function_declaration` | `has: {kind: simple_identifier, …}` — no `name` field | `kt/Svc.kt:2` (23) |
+| `kotlin` | `.kt .kts` | `function_declaration` | `has: {kind: simple_identifier, …}`, no `name` field | `kt/Svc.kt:2` (23) |
 | | | `property_declaration` | `has: {kind: variable_declaration, has: {kind: simple_identifier, …}}` | `kt/Svc.kt:5` (26) |
 | | | `class_declaration` | `has: {kind: type_identifier, …}` | `kt/Svc.kt:1` (24), `kt/Svc.kt:7` data class (17) |
 | `swift` | `.swift` | `function_declaration` | `field: name` | `swift/Svc.swift:10` (23) |

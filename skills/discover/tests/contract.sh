@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# contract.sh — the agent's one tool call must pin --root to the repo toplevel, otherwise a
+# contract.sh: the agent's one tool call must pin --root to the repo toplevel, otherwise a
 # session started in a subdirectory reports paths that do not resolve from the repo root.
 set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"

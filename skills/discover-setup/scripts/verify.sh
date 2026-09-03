@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# verify.sh — report the discover install state of this machine and of one CLAUDE.md target.
+# verify.sh: report the discover install state of this machine and of one CLAUDE.md target.
 #
 # Usage: verify.sh [PROJECT_DIR]        project scope: PROJECT_DIR/CLAUDE.md (default: current directory)
 #        verify.sh --user               user scope:    ~/.claude/CLAUDE.md

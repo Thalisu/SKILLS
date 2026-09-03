@@ -23,7 +23,7 @@ green_runs: 0
 
 ## Ruled out
 
-- <what was ruled out, and how it was ruled out — or what was not checked>
+- <what was ruled out, and how it was ruled out, or what was not checked>
 
 ## Next step
 

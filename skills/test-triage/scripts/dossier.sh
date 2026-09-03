@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# dossier.sh — deterministic operations on test-triage dossiers (docs/tests/NNNN-<slug>.md).
+# dossier.sh: deterministic operations on test-triage dossiers (docs/tests/NNNN-<slug>.md).
 #
 # Usage: dossier.sh [--dir DIR] <command> [args]        (DIR defaults to docs/tests)
 #   next-id                                  highest NNNN prefix + 1, zero-padded; 0001 when the
@@ -15,7 +15,7 @@
 #                                            path | test | signature | veto | occurrences | green_runs
 #   bump <path> --failed-at SHA              occurrences+1, last_seen = today, failed_at = SHA;
 #                                            no-op when SHA and today are already recorded
-#   green <path> --sha SHA                   green_runs+1, then status: fixed + fixed_by: SHA — at once,
+#   green <path> --sha SHA                   green_runs+1, then status: fixed + fixed_by: SHA at once,
 #                                            or only at green_runs >= 2 for veto: race-condition;
 #                                            no-op on a dossier that is already fixed
 # Frontmatter edits rewrite single keys in place; the body is never touched. Exit 2 on misuse.
@@ -30,7 +30,7 @@ VETOS="schema contract race-condition multi-file uncertain assertion"
 usage() { sed -n '2,22p' "$0" >&2; exit 2; }
 die() { echo "dossier.sh: $*" >&2; exit 2; }
 
-# fm_get FILE KEY — value of KEY in the frontmatter, unquoted; empty when absent
+# fm_get FILE KEY: value of KEY in the frontmatter, unquoted; empty when absent
 fm_get() {
   awk -v key="$2" '
     function unq(v) {
@@ -44,7 +44,7 @@ fm_get() {
     }' "$1"
 }
 
-# fm_set FILE KEY VALUE — rewrite KEY in the frontmatter; a missing key is inserted after
+# fm_set FILE KEY VALUE: rewrite KEY in the frontmatter; a missing key is inserted after
 # failed_at (for fixed_by) or before the closing marker. Everything else is copied byte for byte.
 fm_set() {
   local file="$1" tmp
@@ -62,7 +62,7 @@ fm_set() {
   ' "$file" > "$tmp" && mv "$tmp" "$file"
 }
 
-# yaml_str VALUE — double-quoted YAML scalar
+# yaml_str VALUE: double-quoted YAML scalar
 yaml_str() { printf '"%s"' "$(printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g')"; }
 
 is_open() { [ "$(fm_get "$1" status)" = "open" ]; }
@@ -92,7 +92,7 @@ cmd_list_open() {
 
 # The dossiers and runner.json are this repo's own record of its test failures, meant to be committed:
 # whoever clones it inherits the investigation instead of re-running the triage on their machine. A
-# .gitignore rule hiding them is a defect — reported here, never fixed, because editing .gitignore is
+# .gitignore rule hiding them is a defect, reported here and never fixed, because editing .gitignore is
 # the user's call. The probe uses a phantom path inside DIR, so it holds before the directory exists,
 # whatever pattern form covers it; `check-ignore -v` names the rule.
 cmd_check_visible() {

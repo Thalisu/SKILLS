@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# render-policy.sh — render POLICY.md for one surface.
+# render-policy.sh: render POLICY.md for one surface.
 #
 # Usage: render-policy.sh <native|consumer|mixed> [--core-only] [--policy FILE]
 #        render-policy.sh --version [--policy FILE]

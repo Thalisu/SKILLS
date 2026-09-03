@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Scenario iii — greenfield 5-file repo; adding a small exported util must not force a
+# Scenario iii: greenfield 5-file repo; adding a small exported util must not force a
 # batch. Green: no discover call (a direct rg -w is compliant), the symbol gets created.
 set -euo pipefail
 mkdir -p "$1/src/utils"

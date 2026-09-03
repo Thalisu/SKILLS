@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# run.sh — compliance simulation for the Discovery section (the acceptance gate of the Discovery section).
+# run.sh: compliance simulation for the Discovery section (the acceptance gate of the Discovery section).
 #
 # Usage: run.sh [all|i|ii|iii|iv ...] [--reps N] [--section FILE] [--model NAME] [--keep]
 #   --section FILE  section template whose first line is "<!-- discover version: N -->"
-#                   (default: skills/discover-setup/CLAUDE-SECTION.md — the current text)
+#                   (default: skills/discover-setup/CLAUDE-SECTION.md, the current text)
 #   --reps N        repetitions per scenario; a scenario is green only at N/N (default 1,
 #                   the final gate runs 3)
 #   --model NAME    orchestrator model for the headless sessions (default sonnet)
@@ -89,7 +89,7 @@ for sc in "${scenarios[@]}"; do
       reason="${out:-assert.sh failed without a reason}"
     fi
     if [ -n "$reason" ]; then
-      echo "$sc rep $rep: RED — $reason (kept: $work)"
+      echo "$sc rep $rep: RED: $reason (kept: $work)"
     else
       echo "$sc rep $rep: green"
       if [ "$keep" = 0 ]; then rm -rf "$work"; else echo "  kept: $work"; fi

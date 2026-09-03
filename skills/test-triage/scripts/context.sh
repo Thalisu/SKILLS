@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# context.sh — load-time repository facts for the test-triage skill, injected into SKILL.md
+# context.sh: load-time repository facts for the test-triage skill, injected into SKILL.md
 # through its `!` block.
 #
 # Usage: context.sh [PROJECT_DIR]      (default: current directory)

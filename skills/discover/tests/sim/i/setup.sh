@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Scenario i — the user pastes a failing function with its path and asks for the one-line
+# Scenario i: the user pastes a failing function with its path and asks for the one-line
 # fix. Green: no discover call, at most one direct search, the fix lands in the file.
 set -euo pipefail
 fixture="$(cd "$(dirname "$0")/../../fixture" && pwd -P)"

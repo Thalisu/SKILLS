@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# errors.sh — one malformed spec line must not kill the batch: the healthy items are still
+# errors.sh: one malformed spec line must not kill the batch: the healthy items are still
 # answered, the broken one gets STATE ERROR, and the script exits 0.
 set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"

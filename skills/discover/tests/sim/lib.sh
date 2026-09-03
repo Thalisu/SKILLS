@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# lib.sh — helpers sourced by the sim assert scripts (via $SIM_LIB). Expects TRANSCRIPT
+# lib.sh: helpers sourced by the sim assert scripts (via $SIM_LIB). Expects TRANSCRIPT
 # (a stream-json transcript) and REPO (the throwaway repo's toplevel) in the environment.
 
 fail() { echo "FAIL: $*"; exit 1; }
 
-# tool_use blocks issued by the orchestrator itself — subagent activity carries a parent id
+# tool_use blocks issued by the orchestrator itself; subagent activity carries a parent id
 top_tool_uses() {
   jq -c 'select(.type == "assistant" and (.parent_tool_use_id // null) == null)
          | .message.content[]? | select(.type == "tool_use")' "$TRANSCRIPT"

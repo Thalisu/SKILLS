@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# setup-roundtrip.sh — the versioned-section machinery end to end, no LLM. Project scope: a
+# setup-roundtrip.sh: the versioned-section machinery end to end, no LLM. Project scope: a
 # project holding the previous section version must verify as stale, install.sh must replace it,
 # and verify.sh must then exit 0 with section=current. User scope: install.sh --user must create
 # ~/.claude/CLAUDE.md with the section and leave the project untouched. HOME is redirected to a

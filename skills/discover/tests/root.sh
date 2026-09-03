@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# root.sh — the report must open with the resolved absolute root, so every relative path
+# root.sh: the report must open with the resolved absolute root, so every relative path
 # line in it is unambiguous no matter where the caller sat.
 set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"

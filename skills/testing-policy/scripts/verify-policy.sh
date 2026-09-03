@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# verify-policy.sh — detect the Testing Policy state of a project and validate an install.
+# verify-policy.sh: detect the Testing Policy state of a project and validate an install.
 #
 # Usage: verify-policy.sh [PROJECT_DIR]      (default: current directory)
 #
@@ -16,7 +16,7 @@
 #   hook=missing|script-only|wired|wired-missing   gitignored=none|<paths>
 #   capture_legacy=<path>                    a gitignored capture folder left by an earlier install
 # unmarked = hand-written file (ask before touching) · stale = installed by an older template
-# (version line absent or different — the v2 marker style counts) · drifted = current version
+# (version line absent or different; the v2 marker style counts) · drifted = current version
 # but the core was edited by hand.
 set -uo pipefail
 
@@ -78,7 +78,7 @@ agent_state() {
   if [ "$(core_of "$f")" = "$(bash "$here/render-agent.sh" "$kind" --core-only)" ]; then echo ok; else echo drifted; fi
 }
 # Project map labels the template expects (the bold lead of each line after core-end); a label the
-# installed agent lacks is a slot the template gained since that install — the refresh appends it.
+# installed agent lacks is a slot the template gained since that install; the refresh appends it.
 map_missing() {
   local f="$1" kind="$2" label missing=()
   [ -f "$f" ] || return 0

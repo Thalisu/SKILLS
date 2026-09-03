@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# section-lint.sh — text invariants of the Discovery section (findings 3, 4, 7, 8, 9 of the
+# section-lint.sh: text invariants of the Discovery section (findings 3, 4, 7, 8, 9 of the
 # 2026-09-01 review). Guards the v2 rewrite and keeps later edits from regressing it.
 set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
