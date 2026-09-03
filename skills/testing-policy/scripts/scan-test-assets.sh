@@ -13,7 +13,9 @@
 #                  local-factories inline-helpers subflows mock-targets skip-markers)
 #
 # Sections: duplicate-symbols = a name defined in two or more files (exports, plus top-level
-# function/class declarations); local-factories = builder-shaped definitions living in test files
+# function/class declarations) — files under a fixtures-role directory (`__fixtures__/`, `fixtures/`)
+# that is not a declared --shared home are skipped: they are inputs, and a corpus repeats names on
+# purpose; local-factories = builder-shaped definitions living in test files
 # instead of a shared home; inline-helpers = page-taking helpers and fixtures defined inside flow
 # files; mock-targets = every module-mock target (jest/vi mock, bun mock.module, unittest patch,
 # mocker.patch, monkeypatch.setattr) with its file count, classed `package` (a bare specifier or a
@@ -73,6 +75,13 @@ is_shared_path() {
   local p="$1" s
   for s in "${shared[@]}"; do case "$p" in "$s"/*|"./$s"/*) return 0 ;; esac; done
   return 1
+}
+# A fixtures-role directory holds inputs (a scanner's corpus, recorded payloads), not assets, unless the
+# project declared it as a --shared home.
+is_input_corpus() {
+  [[ "$1" =~ (^|/)(__fixtures__|fixtures)/ ]] || return 1
+  is_shared_path "$1" && return 1
+  return 0
 }
 
 all_files=() test_files=() scan_files=()
@@ -146,6 +155,7 @@ if want duplicate-symbols; then
   hdr duplicate-symbols
   {
     for f in "${scan_files[@]}"; do
+      is_input_corpus "$f" && continue
       case "$f" in
         *.ts|*.tsx|*.mts|*.cts|*.js|*.jsx|*.mjs|*.cjs)
           grep -HoE '^(export (default )?)?(async )?(function\*? |class )[A-Za-z_$][A-Za-z0-9_$]*|^export (default )?(const |let |type |interface |enum )[A-Za-z_$][A-Za-z0-9_$]*' "$f" 2>/dev/null | awk -F: '{n=split($0,a," "); print a[n] "\t" $1}' ;;
