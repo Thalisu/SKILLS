@@ -59,6 +59,11 @@ or a conjunction, whichever the sentence actually wants. Never do a blind charac
 replacing every em-dash with a hyphen or a comma leaves prose that reads as if a machine ran over
 it.
 
+The character is still used as a delimiter in two machine contracts and stays there: the discover
+batch line (`<n>. <behaviour> — names: ...`, `[— callers?]`) and the discover PARTIAL output line
+(`<signature> — <how it differs>`). Those, and the test data that exercises them, are syntax, not
+prose.
+
 ## Setup skills stay project-scoped
 
 A skill that sets a project up writes its output into that project, scoped to it, never globally.
