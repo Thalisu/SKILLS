@@ -27,6 +27,7 @@ Reachable only by the human typing the name.
 | Skill | Purpose | Docs |
 |---|---|---|
 | [`discover-setup`](skills/discover-setup/SKILL.md) | Wire the discover agent and skills on a machine and install or update the mandatory Discovery rule in a project's `CLAUDE.md` or in the user's `~/.claude/CLAUDE.md` | [docs/discover-setup.md](docs/discover-setup.md) |
+| [`testing-policy`](skills/testing-policy/SKILL.md) | Install and keep in sync a canonical Testing Policy (Definition of Done) across repos | [docs/testing-policy.md](docs/testing-policy.md) |
 
 ## Model-invoked
 
@@ -35,7 +36,6 @@ Reachable by the model on its own, or by the human typing the name.
 | Skill | Purpose | Docs |
 |---|---|---|
 | [`discover`](skills/discover/SKILL.md) | Batch "does this already exist in the repo?" lookups answered by a Haiku subagent in one line per symbol | [docs/discover.md](docs/discover.md) |
-| [`testing-policy`](skills/testing-policy/SKILL.md) | Install and keep in sync a canonical Testing Policy (Definition of Done) across repos | [docs/testing-policy.md](docs/testing-policy.md) |
 | [`test-triage`](skills/test-triage/SKILL.md) | Run a test target, cluster the failures, auto-fix and commit only the small ones, file a dossier in `docs/tests/` for the rest | [docs/test-triage.md](docs/test-triage.md) |
 
 ## Install

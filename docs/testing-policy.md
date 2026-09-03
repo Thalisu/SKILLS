@@ -16,9 +16,9 @@ project is asked for or left out; it is never guessed.
 
 ## When to reach for it
 
-Type `/testing-policy`, or the agent reaches for it automatically when a task fits: a mention of
-the testing policy, the definition of done or the test-author agents, or a request to refresh the
-testing DoD.
+You invoke this by typing `/testing-policy`, and the agent won't reach for it on its own. It runs
+inline, in your session, because it discovers the repo, asks about the roles it cannot map alone,
+and writes into the project.
 
 | Situation | Reach for |
 |---|---|

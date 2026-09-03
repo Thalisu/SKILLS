@@ -15,9 +15,9 @@ reach it:
   autonomously?_ (Reuse is the reason to extract a skill, not the test.)
 
 The choice is made when the skill is created, recorded in both harnesses at once, and there is no
-third state. In this repo, `discover-setup` is user-invoked: it edits a `CLAUDE.md` and creates links
-under `~/.claude`, which is the human's call. `discover`, `testing-policy` and `test-triage` are
-model-invoked.
+third state. In this repo, `discover-setup` and `testing-policy` are user-invoked: one edits a `CLAUDE.md` and
+creates links under `~/.claude`, the other writes agents, a skill and a marked section into a
+project, and both are the human's call. `discover` and `test-triage` are model-invoked.
 
 Each harness excludes a user-invoked skill from the model's reach in its own way, so nothing but the
 human can fire it: no other skill can. A user-invoked skill may invoke model-invoked skills, but it

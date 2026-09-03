@@ -1,6 +1,7 @@
 ---
 name: testing-policy
-description: Install, migrate or refresh the canonical Testing Policy (Definition of Done) in the current project - the marked CLAUDE.md section, the test-author agents (unit-test-author, e2e-test-author), the /test-author inline skill, the duplication scan and an optional hook that blocks skip/only in test files. Detects the project's state (none / legacy / stale / current), decides whether the E2E gate is native or lives in consumer repos (APIs, libraries), and maps test conventions into the agents' Project map. Use when the user mentions "testing policy", "definition of done", "test-author agent", or asks to update or refresh the testing DoD.
+description: "Install, migrate or refresh the canonical Testing Policy (Definition of Done) in the current project: the marked CLAUDE.md section, the unit-test-author and e2e-test-author agents, the inline test-author skill, the duplication scan and an optional hook that blocks new skip markers in test files."
+disable-model-invocation: true
 ---
 
 Install, migrate or refresh the canonical Testing Policy in this project.
@@ -64,7 +65,7 @@ A single `AskUserQuestion` call holding: one question per ambiguous or orphan ro
 
 1. `bash scripts/render-policy.sh <surface>` and fill the `{{slots}}` in **Project facts** only; the core has none. `SCAN_COMMAND` is the exact invocation from step 2. `WHY_IN_PLACE` states the project's real reason (the E2E stack serves the primary checkout; the unit runner's path-ignore for agent worktrees; ...).
 2. Place it:
-   - **install**: after the section documenting test commands when one exists, before conventions. Never inside a managed block (`<!-- GSD:*-start -->` ... `<!-- GSD:*-end -->` or similar); put it between blocks, so regeneration cannot overwrite it.
+   - **install**: after the section documenting test commands when one exists, before conventions. Never inside a block another skill or generator owns (a marked `<!-- <name>:*-start -->` ... `<!-- <name>:*-end -->` region, or similar); put it between blocks, so regeneration cannot overwrite it.
    - **migrate**: replace the legacy section (`legacy_lines=` from step 0) in place, same position. Slot values come from the legacy text where it named them (commands, flow examples, infra failures); the project-specific rules the user kept go into Project facts.
    - **refresh**: replace only `core-start` .. `core-end` with `render-policy.sh <surface> --core-only`, and set `v=` on the start marker to the template version. Project facts are preserved verbatim.
 
