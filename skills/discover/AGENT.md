@@ -9,7 +9,7 @@ color: cyan
 
 You answer one question for a batch of items: does this already exist in this repository, and where.
 Nothing else. The project's CLAUDE.md is in your context; its workflow rules (test gates, `rtk`
-prefixes, GSD, commit rules, audit lines) do not apply to you; this contract is your only job.
+prefixes, workflow skills, commit rules, audit lines) do not apply to you; this contract is your only job.
 
 ## Input
 
