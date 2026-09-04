@@ -2,12 +2,14 @@
 set -euo pipefail
 
 # Dev-only, for maintainers of this repo; not a supported installer (the README says how to install).
-# Links every skill under skills/ into the local harness skill directories, links every AGENT.md a
-# skill ships into ~/.claude/agents, then prunes links into this repo whose skill is gone:
-#   ~/.agents/skills/<name>     -> <repo>/skills/<name>            absolute; Codex and other
-#                                                                  Agent Skills harnesses
-#   ~/.claude/skills/<name>     -> ../../.agents/skills/<name>     relative hop; Claude Code
-#   ~/.claude/agents/<name>.md  -> <repo>/skills/<name>/AGENT.md   absolute
+# Links every skill under skills/ and vendor/ into the local harness skill directories, links every
+# AGENT.md a skill ships into ~/.claude/agents, then prunes links into this repo whose skill is gone:
+#   ~/.agents/skills/<name>     -> <repo>/<skills|vendor>/<name>            absolute; Codex and
+#                                                                          other Agent Skills
+#                                                                          harnesses
+#   ~/.claude/skills/<name>     -> ../../.agents/skills/<name>              relative hop; Claude Code
+#   ~/.claude/agents/<agent>.md -> <repo>/<skills|vendor>/<name>/AGENT.md   absolute; <agent> is the
+#                                                                          `name` in its frontmatter
 # Same layout as skills/discover-setup/scripts/install.sh, so the two never rewrite each other's
 # links. Every entry is a symlink into this repo, so a `git pull` keeps the installed skills current.
 
@@ -49,28 +51,47 @@ link() { # $1 link path, $2 target
 }
 
 names=()
-for skill_md in "$REPO"/skills/*/SKILL.md; do
+agents=()
+for skill_md in "$REPO"/skills/*/SKILL.md "$REPO"/vendor/*/SKILL.md; do
+  [ -f "$skill_md" ] || continue
   dir="$(dirname "$skill_md")"
   name="$(basename "$dir")"
+  if [ -e "$REPO/skills/$name/SKILL.md" ] && [ -e "$REPO/vendor/$name/SKILL.md" ]; then
+    echo "error: $name exists under both skills/ and vendor/; rename one" >&2
+    exit 1
+  fi
   names+=("$name")
   link "$AGENTS_SKILLS/$name" "$dir"
   link "$CLAUDE_SKILLS/$name" "../../.agents/skills/$name"
   if [ -f "$dir/AGENT.md" ]; then
-    link "$CLAUDE_AGENTS/$name.md" "$dir/AGENT.md"
+    agent="$(sed -n 's/^name:[[:space:]]*//p' "$dir/AGENT.md" | head -1 | tr -d "\"'")"
+    agent="${agent:-$name}"
+    agents+=("$agent")
+    link "$CLAUDE_AGENTS/$agent.md" "$dir/AGENT.md"
   fi
 done
 
-current() {
+listed() { # $1 list name, $2 needle
+  local -n list="$1"
   local n
-  for n in ${names[@]+"${names[@]}"}; do [ "$n" = "$1" ] && return 0; done
+  for n in ${list[@]+"${list[@]}"}; do [ "$n" = "$2" ] && return 0; done
   return 1
 }
+current() { listed names "$1"; }
 
-for entry in "$AGENTS_SKILLS"/* "$CLAUDE_AGENTS"/*.md; do
+for entry in "$AGENTS_SKILLS"/*; do
   [ -L "$entry" ] || continue
   target="$(readlink "$entry")"
-  case "$target" in "$REPO"/skills/*) ;; *) continue ;; esac
-  current "$(basename "$entry" .md)" && continue
+  case "$target" in "$REPO"/skills/* | "$REPO"/vendor/*) ;; *) continue ;; esac
+  current "$(basename "$entry")" && continue
+  rm "$entry"
+  echo "pruned  $entry -> $target"
+done
+for entry in "$CLAUDE_AGENTS"/*.md; do
+  [ -L "$entry" ] || continue
+  target="$(readlink "$entry")"
+  case "$target" in "$REPO"/skills/* | "$REPO"/vendor/*) ;; *) continue ;; esac
+  listed agents "$(basename "$entry" .md)" && continue
   rm "$entry"
   echo "pruned  $entry -> $target"
 done
