@@ -52,8 +52,8 @@ A reversible execution detail is never a question. The question budget goes to d
 
 Never batched: each item is written the moment its branch closes, before the next question.
 
-- **A resolved term** goes to `CONTEXT.md` (the root one, or the context's own when the map names it) in the format of [references/context-format.md](references/context-format.md). The file is created on the first term. Only terms a domain expert would recognise; no implementation detail.
-- **A decision** gets an ADR under `docs/adr/` in the format of [references/adr-format.md](references/adr-format.md) when all three hold: hard to reverse, surprising without context, the result of a real trade-off. Any one missing → no ADR; the closing summary carries the decision. The directory is created on the first ADR.
+- **A resolved term** goes to `CONTEXT.md` (the root one, or the context's own when the map names it) in the format of [.agents/formats/context-format.md](../../.agents/formats/context-format.md). The file is created on the first term. Only terms a domain expert would recognise; no implementation detail.
+- **A decision** gets an ADR under `docs/adr/` in the format of [.agents/formats/adr-format.md](../../.agents/formats/adr-format.md) when all three hold: hard to reverse, surprising without context, the result of a real trade-off. Any one missing → no ADR; the closing summary carries the decision. The directory is created on the first ADR.
 - **A contradiction** between the user's answer and the code is never resolved by editing code here: the user says which side is right, and the branch and the summary record it.
 - **A prototype** is never captured, only its answer: the decision, and the variant or scenario that settled it, in one line of the ADR or the summary. Its files stay where the agent left them, outside version control, listed in the closing summary.
 
@@ -130,7 +130,7 @@ The session ends when every branch is `decided`, `default` or `deferred`. Then, 
 - files written: terms added to `CONTEXT.md`, ADR paths;
 - prototypes built: the branch each settled and the files it left (a temp directory, or excluded files plus a mount), for the user to delete;
 - contradictions between the plan and the code, and which side the user picked;
-- next step: implement; or settle the shape first through an architect-style skill when the plan crosses a function boundary and the second shape was never built; or write the brief when a brief-writing skill is available. The summary is that skill's input.
+- next step: the user runs `spec` on this conversation, and this summary is its input; when the plan crosses a function boundary and the second shape was never built, an architect-style skill settles the shape first, and `spec` follows it.
 
 Nothing is committed. `CONTEXT.md` and everything under `docs/adr/` stay in the working tree for the user.
 
