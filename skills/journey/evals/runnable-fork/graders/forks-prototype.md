@@ -1,0 +1,5 @@
+---
+type: llm
+criteria: "The tree marks the fork about what the scorecard looks like as runnable. If the session reached that fork within the run, it called the Agent tool with subagent_type prototype and a brief carrying the question in one line, the shape ui, where it lives (a new page reached from the top navigation, with index.html or customers.html as the nearest sibling, or a throwaway route), the data the screen renders (one on-time share per supplier per month, six months, worst first) and the constraints the spec already decided; it did not ask the user to describe the scorecard in words. Forks the user can answer from a description (how the period is switched, what the empty scorecard says) were put as ordinary questions, one per message, each with a recommendation and the tell. The session itself created no file other than the journey, CONTEXT.md and edits to the spec, and made no commit."
+---
+A screen with no precedent becomes a prototype to open; every other fork stays a question.

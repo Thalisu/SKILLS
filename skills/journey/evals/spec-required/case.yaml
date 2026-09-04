@@ -1,0 +1,141 @@
+name: spec-required
+tags: [workflow, input]
+runs: 2
+max_turns: 12
+timeout_seconds: 300
+allowed_tools: [Bash, Read, Edit, Write, Agent]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # A spec exists in the fixture but the command names none: the skill asks for it and does nothing else,
+    # since the chain is strict and a journey is never walked from the conversation.
+    set -e
+    mkdir -p docs/agents src
+    cat > index.html <<'HTML'
+    <!doctype html>
+    <html><head><meta charset="utf-8"><title>Backoffice</title></head>
+    <body>
+    <header><nav><a href="index.html">Home</a> <a href="customers.html">Customers</a> <a href="orders.html">Orders</a></nav></header>
+    <main><h1>Backoffice</h1><p>Pick a section above.</p></main>
+    </body></html>
+    HTML
+    cat > customers.html <<'HTML'
+    <!doctype html>
+    <html><head><meta charset="utf-8"><title>Customers</title></head>
+    <body>
+    <header><nav><a href="index.html">Home</a> <a href="customers.html">Customers</a> <a href="orders.html">Orders</a></nav></header>
+    <main>
+      <h1>Customers</h1>
+      <p id="status-line" hidden></p>
+      <form id="filter"><label>Search <input name="q" placeholder="Name or email"></label></form>
+      <button id="new-customer">New customer</button>
+      <form id="create" hidden>
+        <label>Name <input name="name" required></label>
+        <label>Email <input name="email" type="email" required></label>
+        <button type="submit">Save</button> <button type="button" id="cancel">Cancel</button>
+      </form>
+      <table id="list"><thead><tr><th>Name</th><th>Email</th><th></th></tr></thead><tbody></tbody></table>
+      <p id="empty" hidden>No customers yet. Add the first one.</p>
+      <dialog id="confirm-delete"><p>Delete this customer? This cannot be undone.</p><button id="confirm">Delete</button> <button id="keep">Keep</button></dialog>
+    </main>
+    <script src="app.js"></script></body></html>
+    HTML
+    cat > app.js <<'JS'
+    const customers = [{ name: "Ada", email: "ada@example.com" }];
+    const $ = (id) => document.getElementById(id);
+    function render(q = "") {
+      const rows = customers.filter((c) => (c.name + c.email).toLowerCase().includes(q.toLowerCase()));
+      $("list").querySelector("tbody").innerHTML = rows
+        .map((c, i) => `<tr><td>${c.name}</td><td>${c.email}</td><td><button data-delete="${i}">Delete</button></td></tr>`)
+        .join("");
+      $("empty").hidden = customers.length > 0;
+      $("list").hidden = customers.length === 0;
+    }
+    function say(text) { const line = $("status-line"); line.textContent = text; line.hidden = false; }
+    $("filter").addEventListener("input", (e) => render(e.target.value));
+    $("new-customer").addEventListener("click", () => { $("create").hidden = false; $("create").name.focus(); });
+    $("cancel").addEventListener("click", () => { $("create").hidden = true; });
+    $("create").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const form = e.target;
+      if (!form.reportValidity()) return;
+      customers.push({ name: form.name.value, email: form.email.value });
+      form.reset(); form.hidden = true; render(); say("Customer added");
+    });
+    $("list").addEventListener("click", (e) => {
+      const i = e.target.dataset.delete; if (i === undefined) return;
+      const dialog = $("confirm-delete"); dialog.showModal();
+      $("confirm").onclick = () => { customers.splice(Number(i), 1); dialog.close(); render(); say("Customer deleted"); };
+      $("keep").onclick = () => dialog.close();
+    });
+    render();
+    JS
+    cat > docs/agents/issue-tracker.md <<'MD'
+    # Issue tracker: Local Markdown
+
+    Issues and specs for this repo live as markdown files in `.scratch/`.
+
+    - One feature per directory: `.scratch/<feature-slug>/`
+    - The spec is `.scratch/<feature-slug>/spec.md`
+    - Implementation issues are one file per ticket at `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01`
+    - Triage state is a `Status:` line near the top of each issue file
+    MD
+    cat > CONTEXT.md <<'MD'
+    # Backoffice
+
+    The pages the purchasing and sales team use to keep customers and orders.
+
+    ## Language
+
+    **Customer**:
+    A person or organisation that places orders.
+    _Avoid_: client, account
+
+    **Order**:
+    A customer's request for goods, tracked from placement to fulfilment.
+    _Avoid_: purchase
+    MD
+    mkdir -p .scratch/suppliers
+    cat > .scratch/suppliers/spec.md <<'MD'
+    # Suppliers
+
+    Journey: required
+    Status: ready-for-agent
+
+    ## Problem Statement
+
+    Purchasing keeps the supplier list in a spreadsheet nobody else can open, so the team orders from suppliers that were blocked weeks ago.
+
+    ## Solution
+
+    A Suppliers page beside Customers: a list filtered by status, a form to add a supplier, and a way to remove one.
+
+    ## User Stories
+
+    1. As a buyer, I want to see the suppliers filtered by status, active or blocked, so that I only call the ones I can order from
+    2. As a buyer, I want to add a supplier with a name and an email, so that the team can order from it
+    3. As a buyer, I want to remove a supplier we no longer use, so that nobody orders from it by mistake
+    4. As a buyer, I want to be told when the list is empty, so that I know nothing is broken
+
+    ## Implementation Decisions
+
+    - A supplier has a name, an email and a status, active or blocked; a new supplier is active
+    - The page follows the Customers page: the same list, the same form, the same delete
+    - Removing a supplier deletes it; there is no archive
+
+    ## Testing Decisions
+
+    - Behaviour tests through the page, as the Customers page is tested
+
+    ## Out of Scope
+
+    - Editing a supplier: reopens when a buyer asks to correct an email
+    - Importing the spreadsheet
+
+    ## Further Notes
+
+    The team calls a blocked supplier "on hold" in conversation.
+    MD
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"

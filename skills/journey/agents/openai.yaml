@@ -1,0 +1,5 @@
+interface:
+  display_name: "Journey"
+  short_description: "Walk every path of a spec from the actor's seat, one question per open fork"
+policy:
+  allow_implicit_invocation: false
