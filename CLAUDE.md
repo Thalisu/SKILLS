@@ -33,8 +33,11 @@ Two levels, both kept in sync with the skills on disk:
 - **`skills/README.md`**: lists every skill in that folder, each with a one-line description and the
   skill name linked to its `SKILL.md`, under the same two groups. If skills are ever split into
   subfolders, every folder that holds skills carries its own `README.md` covering the skills in it.
+- **`vendor/README.md`**: the same for the vendored skills, plus the upstream, the pinned commit
+  and the local changes on top of it. The top-level `README.md` lists them under **Vendored**.
 
-Adding, renaming or removing a skill means updating both in the same change.
+Adding, renaming or removing a skill means updating the top-level `README.md` and its folder's
+`README.md` in the same change.
 
 ## Docs
 
@@ -56,11 +59,24 @@ writes or reads one links the file by relative path: never a copy, and never a l
 skill's folder. A format read by one skill only stays in that skill's `references/`. Adding,
 renaming or removing a format updates the index in the same change.
 
+## Vendored dependencies
+
+`vendor/` holds the skills this repo's skills call and does not own: a subset of pstack, copied at
+the upstream commit `vendor/README.md` pins, with every local change listed there. They are
+dependencies, not this repo's skills, so they live outside `skills/`, carry no page under `docs/`,
+and are edited only to adapt them to the harnesses or to refresh them from upstream; any other
+change goes upstream first. They keep the invocation contract like every skill here: frontmatter,
+`agents/openai.yaml`, and a row in `vendor/README.md` and in the top-level `README.md` under
+**Vendored**. A step in `skills/` that needs one calls the Skill tool with it like any model-invoked
+skill, and says in one line what it does when the skill is absent, since a machine may have linked
+`skills/` without `vendor/`.
+
 ## Installing skills locally
 
-`scripts/link-skills.sh` (re)links every skill into the local harness skill directories,
-`~/.claude/skills` and `~/.agents/skills`, links every `AGENT.md` a skill ships into
-`~/.claude/agents`, and prunes the links into this repo whose skill is gone. Each entry is a symlink
+`scripts/link-skills.sh` (re)links every skill under `skills/` and `vendor/` into the local harness
+skill directories, `~/.claude/skills` and `~/.agents/skills`, links every `AGENT.md` a skill ships
+into `~/.claude/agents` under the agent's own name, and prunes the links into this repo whose skill
+is gone. Each entry is a symlink
 into this repo, in the same layout `discover-setup` installs, so a `git pull` keeps installed skills
 current. Re-run the script after adding, removing or renaming a skill. It is a dev-only script for
 maintainers of this repo, not a supported installer.

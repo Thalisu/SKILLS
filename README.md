@@ -4,19 +4,8 @@ Agent skills I maintain across projects. Each skill is a self-contained director
 following the [Agent Skills](https://docs.claude.com/en/docs/claude-code/skills) convention: a
 `SKILL.md` with YAML frontmatter, plus optional `scripts/`, `references/`, `assets/`, `tests/` and
 `evals/`. Each skill also has a page under `docs/` that says what it does, when to reach for it and
-where it sits among the others.
-
-Captures from real projects never enter this repository, in any form. A skill that reads a project
-writes what it finds inside that project and commits it there, so the team reads it from git instead
-of re-running the skill on every machine. Nothing project-derived is kept in a skill's own directory,
-which is shared by every project and is public, and no skill ships an example taken from a real
-repo. Nothing is gitignored to that end: a stray `local/` or `capture/` directory under `skills/`
-shows up in `git status`, and the versioned `.githooks/pre-commit` refuses to commit one. Enable it
-once per clone:
-
-```bash
-git config core.hooksPath .githooks
-```
+where it sits among the others. A skill that reads a project writes what it learns inside that
+project and commits it there; nothing project-derived is ever kept in this repository.
 
 Grouped by who can fire the skill; the contract is in [`.agents/invocation.md`](.agents/invocation.md).
 
@@ -43,6 +32,24 @@ Reachable by the model on its own, or by the human typing the name.
 | [`discover`](skills/discover/SKILL.md)       | Batch "does this already exist in the repo?" lookups answered by a Haiku subagent in one line per symbol                       | [docs/discover.md](docs/discover.md)       |
 | [`test-triage`](skills/test-triage/SKILL.md) | Run a test target, cluster the failures, auto-fix and commit only the small ones, file a dossier in `docs/tests/` for the rest | [docs/test-triage.md](docs/test-triage.md) |
 
+## Vendored
+
+Skills this repo's skills call and does not own, copied from
+[pstack](https://github.com/cursor/plugins/tree/main/pstack) at a pinned commit with the local
+changes listed in [`vendor/README.md`](vendor/README.md). They install like any skill here and have
+no page under `docs/`.
+
+| Skill | Purpose |
+| --- | --- |
+| [`architect`](vendor/architect/SKILL.md) | Design the shape before code: the caller's usage, then types, signatures and module boundaries, rival candidates compared |
+| [`how`](vendor/how/SKILL.md) | Senior-engineer walkthrough of how a subsystem works, with a critique mode |
+| [`why`](vendor/why/SKILL.md) | Cited, confidence-calibrated read on why code was built a certain way |
+| [`teach`](vendor/teach/SKILL.md) | Explain a change or subsystem until it clicks, on top of `how` and `why` |
+| [`unslop`](vendor/unslop/SKILL.md) | Strip AI tells from prose and put human voice back |
+| [`technical-writing`](vendor/technical-writing/SKILL.md) | Writing standard for docs, RFCs, readmes, PR descriptions and commit messages |
+| [`typescript-best-practices`](vendor/typescript-best-practices/SKILL.md) | TypeScript typing and API-shape rules |
+| [`no-comments`](vendor/no-comments/SKILL.md) | User-invoked: spawn the `comment-sicko` agent over a diff and act on the accepted findings |
+
 ## Install
 
 Clone the repo and link a skill into the harness skill directory. Every link points into the clone,
@@ -51,7 +58,12 @@ so a `git pull` updates the installed skills.
 ```bash
 git clone https://github.com/Thalisu/SKILLS.git ~/SKILLS
 ln -s ~/SKILLS/skills/<name> ~/.claude/skills/<name>
+ln -s ~/SKILLS/vendor/<name> ~/.claude/skills/<name>
 ```
+
+The second line is for a vendored skill; `no-comments` also needs its agent linked, as `prototype`
+does below: `skills/prototype/AGENT.md` to `~/.claude/agents/prototype.md`, and
+`vendor/no-comments/AGENT.md` to `~/.claude/agents/comment-sicko.md`.
 
 `discover` needs one more step: link `discover-setup` as above, then run `/discover-setup` from a
 project. It links the discover agent and both discover skills and installs the Discovery section in
@@ -65,9 +77,20 @@ branch that has to be seen, and `journey`, for a fork of a path that has to be s
 ln -s ~/SKILLS/skills/prototype/AGENT.md ~/.claude/agents/prototype.md
 ```
 
-Contributors enable the pre-commit hook once per clone, as shown above. Maintainers of this repo can
-run `scripts/link-skills.sh` to relink every skill at once; it is a dev-only script, not a supported
-installer.
+Maintainers of this repo can run `scripts/link-skills.sh` to relink every skill at once; it is a
+dev-only script, not a supported installer.
+
+## Contributing
+
+The rules for changing this repo are in [`CLAUDE.md`](CLAUDE.md); they apply to humans and agents
+alike. The one with a mechanism behind it: captures from real projects never enter this repository,
+in any form. A stray `local/` or `capture/` directory under `skills/` or `vendor/` shows up in
+`git status`, and the versioned `.githooks/pre-commit` refuses to commit one. Enable the hook once
+per clone:
+
+```bash
+git config core.hooksPath .githooks
+```
 
 ## License
 
