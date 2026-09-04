@@ -28,8 +28,11 @@ Reachable only by the human typing the name.
 | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
 | [`discover-setup`](skills/discover-setup/SKILL.md) | Wire the discover agent and skills on a machine and install or update the mandatory Discovery rule in a project's `CLAUDE.md` or in the user's `~/.claude/CLAUDE.md` | [docs/discover-setup.md](docs/discover-setup.md) |
 | [`discuss`](skills/discuss/SKILL.md) | Interview the user about a plan before code, one question at a time with a recommendation, recording terms in `CONTEXT.md` and hard-to-reverse decisions in `docs/adr/` as they land | [docs/discuss.md](docs/discuss.md) |
+| [`journey`](skills/journey/SKILL.md) | Walk every path of a spec from the actor's seat, drafting each from the app's precedent and asking one question per fork it leaves open, then write the journey beside the spec and point the spec's `Journey:` line at it | [docs/journey.md](docs/journey.md) |
 | [`prototype`](skills/prototype/SKILL.md) | Build one throwaway, runnable prototype in a subagent to settle a design question you have to see or drive: a single HTML file that drives a state model, or three variants of a screen on its real route | [docs/prototype.md](docs/prototype.md) |
+| [`spec`](skills/spec/SKILL.md) | Turn the conversation into a spec, published where the project's issue tracker points, with a verdict that names the next command: `journey` when the stories add a screen or walk more than one path or step, `tickets` otherwise | [docs/spec.md](docs/spec.md) |
 | [`testing-policy`](skills/testing-policy/SKILL.md) | Install and keep in sync a canonical Testing Policy (Definition of Done) across repos                                                                                | [docs/testing-policy.md](docs/testing-policy.md) |
+| [`tickets`](skills/tickets/SKILL.md) | Cut a spec, and the journey its verdict points at, into tracer-bullet tickets with blocking edges, published one file or one issue per ticket, stopping before any write when the journey is required but missing, contested or already ticketed | [docs/tickets.md](docs/tickets.md) |
 
 ## Model-invoked
 
@@ -55,8 +58,8 @@ project. It links the discover agent and both discover skills and installs the D
 the `CLAUDE.md` you choose, the project's or your global one.
 
 `prototype` ships an agent too: beside the skill link, link `skills/prototype/AGENT.md` to
-`~/.claude/agents/prototype.md`. Typing `/prototype` forks that agent, and so does `discuss` for a
-branch that has to be seen.
+`~/.claude/agents/prototype.md`. Typing `/prototype` forks that agent, and so do `discuss`, for a
+branch that has to be seen, and `journey`, for a fork of a path that has to be seen.
 
 ```bash
 ln -s ~/SKILLS/skills/prototype/AGENT.md ~/.claude/agents/prototype.md

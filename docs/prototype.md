@@ -17,9 +17,10 @@ answer is the deliverable; the files are for you to delete once you have it.
 
 ## When to reach for it
 
-You invoke this by typing `/prototype`, and the agent won't reach for it on its own. The one other
-door is a [discuss](discuss.md) interview: when a branch of the plan is _runnable_, discuss forks
-the same agent with a brief and puts the question to you against the artifact.
+You invoke this by typing `/prototype`, and the agent won't reach for it on its own. The other doors
+are a [discuss](discuss.md) or a [journey](journey.md) interview: when a branch of the plan, or a
+fork of a path, is _runnable_, the interview forks the same agent with a brief and puts the
+question to you against the artifact.
 
 | Ask | Use |
 |---|---|
@@ -28,6 +29,7 @@ the same agent with a brief and puts the question to you against the artifact.
 | a question you can answer from a description | answer it; a prototype is the expensive path |
 | settle types, signatures and module boundaries | an architect-style skill |
 | a design decision inside a plan you are discussing | let [discuss](discuss.md) mark the branch runnable and fork this |
+| a screen in a path you are walking with no precedent in the app | let [journey](journey.md) mark the fork runnable and fork this |
 
 The brief carries the question, the shape (`ui` or `logic`), where it lives, what it has and
 anything already decided. Whatever is missing is inferred, and every inference is named on the
@@ -60,7 +62,7 @@ The **shape** decides everything, and getting it wrong wastes the whole prototyp
 | `ui` | three **variants** that disagree about structure, on the real route behind `?variant=`, with a switcher that also answers the arrow keys | flipping between them inside the real app, with the real header and real data around them |
 
 Whichever shape, the last message is the **report**: `PROTOTYPE`, then `open:`, `variants:` or
-`scenarios:`, `look at:`, `files:` and `assumed:`. It is short on purpose. It is what a discuss
+`scenarios:`, `look at:`, `files:` and `assumed:`. It is short on purpose. It is what a discuss or journey
 session reads, and it is all you need to open the artifact and decide. An ask is the same message
 cut short: `PROTOTYPE ask`, then `need:`, `readings:` and `files: none`, and nothing runs until you
 answer it.
@@ -81,7 +83,7 @@ once you answer. A brief that names what the screen renders or what the model do
 it.
 
 **What happens to the files afterwards?**
-Nothing, until you decide. The report and the discuss summary list every file, each marked
+Nothing, until you decide. The report and the closing summary of discuss or journey list every file, each marked
 throwaway in its name and its banner. Delete them once you have the answer. A `logic` file sits in
 a temp directory that most systems clear on reboot, which suits a throwaway: it cleans itself up. A
 `ui` prototype's files are invisible to `git status`, so the report's `files:` line is the list to
@@ -108,10 +110,11 @@ see, and it is two lines.
 ## Where it fits
 
 `prototype` is a step another skill fires and a standalone when you type it: [discuss](discuss.md)
-forks its agent for a runnable branch, and you fork it directly for a question of your own.
+forks its agent for a runnable branch, [journey](journey.md) for a runnable fork, and you fork it
+directly for a question of your own.
 
-- [discuss](discuss.md), because it is the only skill that reaches this one, and only when a branch
-  cannot be settled by talking.
+- [discuss](discuss.md) and [journey](journey.md), because they are the only skills that reach this
+  one, and only when a branch or a fork cannot be settled by talking.
 - The principles [exhaust-the-design-space](../.agents/principles/exhaust-the-design-space.md) and
   [experience-first](../.agents/principles/experience-first.md), because the three variants are the
   first rule made concrete, and the second says a design decision is cheaper in throwaway HTML than

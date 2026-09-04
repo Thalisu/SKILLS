@@ -21,7 +21,7 @@ Read `.agents/invocation.md` before adding a skill or changing how one is reache
 full contract, including how skills depend on each other: a step may tell the agent to call the
 Skill tool with a model-invoked skill, and never with a user-invoked one, which only the human can
 fire. A skill that ships an `AGENT.md` opens a second door, the Agent tool, gated by that agent's
-description naming the callers it accepts; `prototype` names `discuss` as its only one.
+description naming the callers it accepts; `prototype` names `discuss` and `journey`.
 
 ## READMEs
 
@@ -47,6 +47,14 @@ its conventions. Read it before writing a page or re-syncing one after a skill c
 its `README.md`. They are not skills: no frontmatter, no invocation, and no harness lists them. A
 skill or a contract that leans on one links the file by path. Adding, renaming or removing a
 principle updates that index in the same change.
+
+## Formats
+
+`.agents/formats/` holds the formats of the artifacts the skill chain shares (`CONTEXT.md`, an ADR,
+a spec, a journey), one per file, indexed in its `README.md`, per `docs/adr/0004`. A skill that
+writes or reads one links the file by relative path: never a copy, and never a link into another
+skill's folder. A format read by one skill only stays in that skill's `references/`. Adding,
+renaming or removing a format updates the index in the same change.
 
 ## Installing skills locally
 

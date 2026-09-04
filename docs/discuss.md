@@ -22,6 +22,7 @@ You invoke this by typing `/discuss`, and the agent won't reach for it on its ow
 | stress-test a plan, a feature, a refactor or a fix before building it | `/discuss <the plan>` |
 | understand how a subsystem works, with no plan on the table | a walkthrough, or read the code |
 | settle the shape (types, signatures, module boundaries) once the decisions are made | an architect-style skill; the closing summary names the moment for it |
+| turn the decisions into a spec once the session closes | [spec](spec.md), typed by you; the closing summary is its input and ends by naming it |
 | check whether something already exists in the repo | [discover](discover.md); the grounding runs it for the symbols the plan names |
 | see a screen or drive a state model before you can decide | the interview marks that branch _runnable_ and forks [prototype](prototype.md) for it |
 
@@ -112,7 +113,9 @@ shape is settled and before any code is written.
 
 - [discover](discover.md), because the grounding runs one batch for the symbols the plan names,
   so no branch is opened for something that already exists.
-- [prototype](prototype.md), because a runnable branch forks its agent, and nothing else does.
+- [prototype](prototype.md), because a runnable branch forks its agent; [journey](journey.md) does
+  the same for a runnable fork.
+- [spec](spec.md), because the closing summary is its input: the session ends by naming it.
 - The principles under [`.agents/principles/`](../.agents/principles/README.md), because every
   lens is one of them turned into a question.
 
