@@ -52,7 +52,12 @@ chosen together:
 Work that must talk to the user or write into the project runs inline. A lookup with a terse output
 contract forks. `prototype` forks the same way, onto the `prototype` agent with `background: false`
 so the report is back before the human's turn ends; its agent has file tools and Bash and no way to
-ask, so the brief it receives has to be complete.
+reach the human, so the brief it receives has to be complete. Its one exit is the report itself: an
+agent that has to ask ends its turn with a `PROTOTYPE ask` report before writing any file, and the
+caller, whichever door it came through, answer the question by itself or if extremely necessary relays the question to the human and resumes the same agent
+with the SendMessage tool. A forked agent keeps its context after it returns, which is what makes
+resuming cheaper than forking again: the second run starts where the first stopped, with everything
+it read.
 
 ## Agents a skill ships
 
@@ -63,10 +68,10 @@ fork it with the Agent tool (`subagent_type: <name>`), and no frontmatter closes
 gates it is the agent's `description`, which names the callers it accepts, so on this door the
 invariant is kept by the callers, not by the harness.
 
-| Agent | Skill | Doors |
-|---|---|---|
-| `discover` | model-invoked | `/discover`; `Agent(subagent_type: discover)` in headless `-p` sessions only |
-| `prototype` | user-invoked | `/prototype`; a `discuss` interview, for a branch that cannot be settled by talking. Nothing else forks it |
+| Agent       | Skill         | Doors                                                                                                                                                            |
+| ----------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `discover`  | model-invoked | `/discover`; `Agent(subagent_type: discover)` in headless `-p` sessions only                                                                                     |
+| `prototype` | user-invoked  | `/prototype`; a `discuss` interview, for a branch that cannot be settled by talking. Nothing else forks it, and whoever forked it answers its ask by resuming it |
 
 So a step in another skill may reach the agent a user-invoked skill ships, never the skill itself,
 and only when that agent's description names the calling skill. The step spells it out as an Agent

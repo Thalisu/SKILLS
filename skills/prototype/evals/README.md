@@ -13,6 +13,10 @@ forks the `prototype` agent, so the sandbox needs `skills/prototype/AGENT.md` li
 |---|---|
 | `logic-single-file` | a `logic` brief yields exactly one new self-contained HTML file with `prototype` in its name, in a temp directory outside the repository, nothing in the tree changes, and the last message is the six-line report |
 | `ui-variants` | a `ui` brief yields three structurally different variants behind `?variant=` and a switcher, listed in the repository's local exclude, with at most two mounted lines in the host page, and the report names the files |
+| `ask-before-writing` | a `ui` brief whose host code offers two sign-in flows and names neither ends in a four-line `PROTOTYPE ask` report, with nothing written, instead of picking one or spreading both across the variants |
+
+The resume leg of an ask (the caller answering with SendMessage and the same agent building on) has
+no case: it needs a second turn, and the runner gives each case one `prompt.md`.
 
 Run from the skill directory, granting the tools the cases need and opting in to their scaffold
 scripts:

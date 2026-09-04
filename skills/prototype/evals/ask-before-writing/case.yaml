@@ -1,0 +1,41 @@
+name: ask-before-writing
+tags: [workflow, ask]
+runs: 2
+max_turns: 30
+timeout_seconds: 600
+allowed_tools: [Bash, Read, Edit, Write, Glob, Grep]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # A landing page whose "Sign in" link points at a page that does not exist yet, beside an auth
+    # module that exports two sign-in flows nothing calls: the code cannot say which one the screen
+    # is for, and the two flows render different screens.
+    set -e
+    mkdir -p src
+    cat > index.html <<'HTML'
+    <!doctype html>
+    <html><head><meta charset="utf-8"><title>Home</title></head>
+    <body>
+    <header><a href="signin.html">Sign in</a></header>
+    <main><h1>Welcome</h1></main>
+    <script type="module" src="src/app.js"></script></body></html>
+    HTML
+    cat > src/auth.js <<'JS'
+    export async function signInWithPassword(email, password) {
+      const res = await fetch('/api/session', { method: 'POST', body: JSON.stringify({ email, password }) });
+      return res.json();
+    }
+    export async function requestCode(phone) {
+      await fetch('/api/otp', { method: 'POST', body: JSON.stringify({ phone }) });
+    }
+    export async function signInWithCode(phone, code) {
+      const res = await fetch('/api/session', { method: 'POST', body: JSON.stringify({ phone, code }) });
+      return res.json();
+    }
+    JS
+    cat > src/app.js <<'JS'
+    document.querySelector('h1').textContent = 'Welcome back';
+    JS
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"

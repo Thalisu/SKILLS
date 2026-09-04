@@ -31,8 +31,11 @@ the same agent with a brief and puts the question to you against the artifact.
 
 The brief carries the question, the shape (`ui` or `logic`), where it lives, what it has and
 anything already decided. Whatever is missing is inferred, and every inference is named on the
-report's last line. The agent cannot ask you anything, so a thin brief buys an assumption, not a
-question.
+report's last line. The agent cannot reach you while it builds, so a thin brief buys an assumption.
+It has one exit, the **ask**: when a missing part cannot be read off the code and the readings
+would settle different screens or different models, it stops before writing any file and reports
+one question with the readings it weighed. You answer, the same agent is resumed with your answer,
+and the six-line report follows. It asks at most once; everything after that is inferred.
 
 ## Prerequisites
 
@@ -58,7 +61,9 @@ The **shape** decides everything, and getting it wrong wastes the whole prototyp
 
 Whichever shape, the last message is the **report**: `PROTOTYPE`, then `open:`, `variants:` or
 `scenarios:`, `look at:`, `files:` and `assumed:`. It is short on purpose. It is what a discuss
-session reads, and it is all you need to open the artifact and decide.
+session reads, and it is all you need to open the artifact and decide. An ask is the same message
+cut short: `PROTOTYPE ask`, then `need:`, `readings:` and `files: none`, and nothing runs until you
+answer it.
 
 ## Common questions
 
@@ -67,6 +72,13 @@ Because a prototype is the expensive answer. Most design questions are settled b
 skill exists for the ones that are not: a screen you have to see, a model you have to drive.
 Leaving the call to you, or to discuss once a branch has proved unanswerable in words, keeps it from
 becoming the default.
+
+**It stopped and asked me something. Wasn't the brief supposed to be complete?**
+It was, and the ask is the exit for the case where it was not: a part of the brief the code could
+not answer, where an assumption would have spent the prototype on the wrong screen or the wrong
+model. It fires at most once, before any file exists, and the same agent picks up where it stopped
+once you answer. A brief that names what the screen renders or what the model does never triggers
+it.
 
 **What happens to the files afterwards?**
 Nothing, until you decide. The report and the discuss summary list every file, each marked
@@ -90,6 +102,8 @@ see, and it is two lines.
   prototype opens from the project's own dev command.
 - The variants disagree about layout and hierarchy, not just colour.
 - The report is the whole last message, and its `assumed:` line tells you what the brief left out.
+- An ask, when one comes, arrives before any file exists, names the readings it weighed, and never
+  comes twice.
 
 ## Where it fits
 

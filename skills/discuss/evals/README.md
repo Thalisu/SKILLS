@@ -16,6 +16,9 @@ the moment the cases inspect.
 | `no-writes-without-decision` | with no decision taken, nothing is created or edited in the project and nothing is committed |
 | `runnable-branch` | a branch about what a screen should look like is marked runnable and forks the `prototype` agent with a complete brief, instead of asking for a layout in words; every other branch stays a question |
 
+A `PROTOTYPE ask` answered by resuming the agent has no case either: the ask reaches the user only
+after the brief was sent, so the run has already ended at that question.
+
 Run from the skill directory, granting the tools the cases need and opting in to their scaffold
 scripts:
 

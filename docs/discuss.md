@@ -75,7 +75,10 @@ A branch whose answer depends on seeing or driving the thing is marked **runnabl
 question you cannot answer from words, the session forks the [prototype](prototype.md) agent with a
 brief and, when its report lands, puts the question to you against the artifact: where to open it,
 what to look at, the recommendation and the tell. Talking stays the default; a prototype is built
-only for such a branch, or when you say you need to see it.
+only for such a branch, or when you say you need to see it. When the agent stops with an ask
+instead, on a part of the brief it could neither read off the code nor infer safely, the session
+answers it from the repository when it can and otherwise puts it to you as an ordinary question,
+then resumes the same agent with the answer. A second prototype is never started for it.
 
 ## Common questions
 
@@ -98,6 +101,8 @@ settle it.
   clean apart from them.
 - A branch about what a screen should look like reaches you as something to open, with the
   question put against it, never as a request to describe a layout in words.
+- A prototype that had to ask reaches you as one ordinary question, and the same prototype carries
+  on after your answer.
 - The closing summary lists every branch as decided, default or deferred, and names the next step.
 
 ## Where it fits
