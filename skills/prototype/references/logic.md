@@ -47,7 +47,9 @@ scenarios outside the browser: the block extracts cleanly into `node`.
 ### 3. Build the HTML file
 
 One file, plain HTML, CSS and JavaScript: no framework, no bundler, no server, everything inline,
-so it opens by double-click and survives being emailed around.
+so it opens by double-click and survives being emailed around. It is written into the prototype's
+own temp directory (rule 1 of the agent contract), never into the project tree: nothing it needs
+lives there, and nothing in the tree should ever list it.
 
 Write it for a non-developer. Every label is in domain language, not code: buttons and state read
 like the business, not like the reducer. Where a term already exists in the project's `CONTEXT.md`
@@ -76,10 +78,11 @@ animations, nothing that competes with the state and the buttons.
 
 ### 4. Report
 
-The report's `open:` line is the file path and "double-click"; `scenarios:` lists the tab names;
-`look at:` names the scenario, or the moment inside it, where the model is most likely to feel
-wrong. The interesting answer from the reader is "wait, that should not be possible" or "I assumed
-X would be different": those are the bugs in the idea, and the whole point.
+The report's `open:` line is the file's full path in the temp directory and "double-click";
+`scenarios:` lists the tab names; `look at:` names the scenario, or the moment inside it, where the
+model is most likely to feel wrong. The interesting answer from the reader is "wait, that should
+not be possible" or "I assumed X would be different": those are the bugs in the idea, and the whole
+point.
 
 ## Anti-patterns
 

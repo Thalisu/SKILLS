@@ -11,8 +11,8 @@ forks the `prototype` agent, so the sandbox needs `skills/prototype/AGENT.md` li
 
 | case | checks |
 |---|---|
-| `logic-single-file` | a `logic` brief yields exactly one new self-contained HTML file with `prototype` in its name, nothing else in the tree changes, and the last message is the six-line report |
-| `ui-variants` | a `ui` brief yields three structurally different variants behind `?variant=` and a switcher, with at most two mounted lines in the host page, and the report names the files |
+| `logic-single-file` | a `logic` brief yields exactly one new self-contained HTML file with `prototype` in its name, in a temp directory outside the repository, nothing in the tree changes, and the last message is the six-line report |
+| `ui-variants` | a `ui` brief yields three structurally different variants behind `?variant=` and a switcher, listed in the repository's local exclude, with at most two mounted lines in the host page, and the report names the files |
 
 Run from the skill directory, granting the tools the cases need and opting in to their scaffold
 scripts:

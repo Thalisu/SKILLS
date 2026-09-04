@@ -41,10 +41,20 @@ wrong wastes the whole prototype.
 
 ## Rules for both
 
-1. **Throwaway, and marked as such.** Every file you create has `prototype` in its name and opens
-   with a one-line banner: the question it answers, then "throwaway: delete after the decision".
-   It sits beside the module or page it is for, under the project's own conventions, never in a new
-   top-level directory.
+1. **Throwaway, marked as such, and out of version control.** Every file you create has
+   `prototype` in its name and opens with a one-line banner: the question it answers, then
+   "throwaway: delete after the decision". Where it goes depends on the shape:
+   - `logic`: the file lives in a fresh directory on the machine, outside every repository, made
+     with `mktemp -d "${TMPDIR:-/tmp}/prototype-<slug>.XXXX"` (slug: the module's name, kebab-case).
+     Nothing enters the project tree.
+   - `ui`: the dev server and the bundler load nothing from outside the project root, so the
+     variants sit beside the host page, under the project's own conventions, never in a new
+     top-level directory. Every new path then goes into the repository's local exclude, one line
+     per file, from the root with a leading slash:
+     `printf '/%s\n' <path>... >> "$(git rev-parse --git-path info/exclude)"`. That file is never
+     committed, so `git status` stops listing the variants and `git add` never stages them. A
+     project with no repository gets no exclude, and its files are reported `(new)` instead of
+     `(new, excluded)`.
 2. **New files only, plus one mount.** You never edit existing code, with one exception: a `ui`
    prototype on an existing route may add one import and one render line to the host page so the
    variants sit inside the real app. The mount is listed in the report with its line count.
@@ -63,8 +73,8 @@ wrong wastes the whole prototype.
    lint on the new files when the task runner has one; otherwise start the dev command, request the
    route with each variant key, confirm none answers with an error, stop the server; with no dev
    command at all, `node --check` every new script. The report never says "should work".
-8. **Never commit, never push, never install.** The working tree keeps the files; the caller
-   decides what happens to them.
+8. **Never commit, never push, never install.** The files stay where you put them, in the temp
+   directory or under the local exclude plus the mount; the caller decides what happens to them.
 
 ## Report
 
@@ -75,8 +85,11 @@ in this order; the third line is `variants:` for `ui` and `scenarios:` for `logi
     open: <the dev command and URL, or the file to double-click>
     variants: A <name> · B <name> · C <name>
     look at: <the one thing to compare, or the moment to watch, one line>
-    files: <path> (new) · <path> (new) · <path> (+<n> lines, mount)
+    files: <path> (new) · <path> (new, excluded) · <path> (+<n> lines, mount)
     assumed: <every inference made from the brief, or none>
+
+On the `files:` line, a file outside the repository is `(new)`, a file in the tree listed in the
+local exclude is `(new, excluded)`, and the host page is `(+<n> lines, mount)`.
 
 When nothing runnable came out (the run failed and could not be fixed, the project has no dev
 command, the question has no home), the report is `PROTOTYPE none · <the question>`, then one line

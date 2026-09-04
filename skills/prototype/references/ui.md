@@ -33,6 +33,11 @@ empty route hides the design problems a populated one exposes.
 The host page gets the smallest possible mount, one import and one render line, so the whole thing
 reverts by deleting two lines and the new files. The mount goes in the report.
 
+The variants are served by the project's own dev server, which is why they live in the tree beside
+the host page rather than in a temp directory: a bundler loads nothing from outside the project
+root. To keep them out of version control, every new path goes into the repository's local exclude
+(rule 1 of the agent contract). After that, the mount is the only change `git status` shows.
+
 ## Process
 
 ### 1. State the question and the plan

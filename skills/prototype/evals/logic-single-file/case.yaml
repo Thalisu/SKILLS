@@ -7,8 +7,8 @@ allowed_tools: [Bash, Read, Edit, Write, Glob, Grep]
 context:
   scaffold_script: |
     #!/usr/bin/env bash
-    # A cart module with a total and no coupon logic yet: the prototype has a module to sit beside
-    # and a state model (coupons stacking, applying after checkout) worth pushing through cases.
+    # A cart module with a total and no coupon logic yet: the prototype has a module to read and
+    # a state model (coupons stacking, applying after checkout) worth pushing through cases.
     set -e
     mkdir -p src
     cat > src/cart.js <<'JS'
