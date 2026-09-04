@@ -1,0 +1,64 @@
+name: seams-once
+tags: [workflow, seams]
+runs: 2
+max_turns: 16
+timeout_seconds: 600
+allowed_tools: [Bash, Read, Edit, Write, Agent]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # The summary carries no testing decision and no seams, so the run must stop at its one question.
+    set -e
+    mkdir -p docs/agents
+    cat > docs/agents/issue-tracker.md <<'MD'
+    # Issue tracker: Local Markdown
+
+    Issues and specs for this repo live as markdown files in `.scratch/`.
+
+    ## Conventions
+
+    - One feature per directory: `.scratch/<feature-slug>/`
+    - The spec is `.scratch/<feature-slug>/spec.md`
+    - Implementation issues are one file per ticket at `.scratch/<feature-slug>/issues/<NN>-<slug>.md`
+    - Triage state is recorded as a `Status:` line near the top of each file
+
+    ## When a skill says "publish to the issue tracker"
+
+    Create a new file under `.scratch/<feature-slug>/` (creating the directory if needed).
+    MD
+    mkdir -p src
+    cat > CONTEXT.md <<'MD'
+    # Ordering
+
+    Receives and tracks customer orders from placement to fulfilment.
+
+    ## Language
+
+    **Order**:
+    A customer's request for goods, tracked from placement to fulfilment.
+    _Avoid_: purchase
+
+    **Customer**:
+    A person or organisation that places orders.
+    _Avoid_: client, account
+    MD
+    cat > src/order.js <<'JS'
+    const STATUSES = ["placed", "fulfilled", "cancelled"];
+    function cancel(order) {
+      if (order.status === "fulfilled") throw new Error("cannot cancel a fulfilled order");
+      return { ...order, status: "cancelled" };
+    }
+    function list(orders, customerId) {
+      return orders.filter((o) => o.customerId === customerId);
+    }
+    module.exports = { STATUSES, cancel, list };
+    JS
+    cat > src/order.test.js <<'JS'
+    const { cancel } = require("./order");
+    test("a placed order can be cancelled", () => {
+      expect(cancel({ status: "placed" }).status).toBe("cancelled");
+    });
+    JS
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"

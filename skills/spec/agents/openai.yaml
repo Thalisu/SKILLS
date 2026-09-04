@@ -1,0 +1,5 @@
+interface:
+  display_name: "Spec"
+  short_description: "Turn the conversation into a spec and name the next command"
+policy:
+  allow_implicit_invocation: false
