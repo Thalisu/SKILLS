@@ -95,6 +95,9 @@ _Avoid_: report (the message returned to the caller, not the file), task review,
   effect re-routes
 - `do` ships four **Playbooks**: `ticket` inside the chain; `trivial`, `bug-fix` and `refactoring`
   outside it. A question is `how`, `why` or `teach`; a feature is the chain; a sketch is `prototype`
+- The **Ticket** file belongs to the main checkout: the `ticket` **Playbook** claims it at the start
+  and closes it at the end with file writes there, its worktree branch never touches it, and `do`
+  never commits it; on a remote tracker the claim and the close wait for the developer's yes
 - `do` calls `do-code-review` once per run, before landing: on the diff of one **Ticket** after its
   gate in the `ticket` **Playbook**, on the branch's diff in `bug-fix` and `refactoring`, never in
   `trivial`; every **Axis** is put to that diff

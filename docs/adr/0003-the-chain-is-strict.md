@@ -7,3 +7,6 @@ a journey and has none, and `do` never runs on a spec or on a session summary. T
 `discuss` straight to `do` for work that fits one session, was dropped: judging "small" in the
 moment is the same drift ADR 0001 removes from the journey verdict, and one input per skill keeps
 every step checkable from its artifact.
+
+The `do` clause is superseded by ADR 0008: `do` routes, and only its `ticket` playbook takes
+the chain's artifact.

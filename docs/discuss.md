@@ -5,8 +5,10 @@
 `discuss` interviews you about a plan before any code is written. It reads what the repository
 already knows (the glossary in `CONTEXT.md`, the ADRs, the code the plan touches), lays the plan
 out as a tree of decisions, and walks that tree one question at a time, each question carrying a
-recommended answer and the failure it hunts. A resolved term is written into `CONTEXT.md` and a
-hard-to-reverse decision into `docs/adr/` the moment it lands, and the session closes with a
+recommended answer and the failure it hunts. A resolved term is written into `CONTEXT.md` the
+moment it lands. A decision stays on its branch until the close, where the ones that are hard to
+reverse, surprising without context and the result of a real trade-off are offered to you as ADR
+candidates, and only the ones you pick are written into `docs/adr/`. The session closes with a
 summary of every decision, default and deferral.
 
 It never asks what the repository can answer. A branch the code or the docs already settle is
@@ -33,10 +35,10 @@ in; everything written into the repository is in English.
 
 The skill writes into the project: `CONTEXT.md` (at the root, or the context's own when a
 `CONTEXT-MAP.md` names one) and numbered ADRs under `docs/adr/`. Both are created lazily, on the
-first term and the first ADR, and left uncommitted for you. Nothing else in the project is written,
-and no code is edited. A runnable branch adds the prototype's own files, marked throwaway, kept out
-of version control (a temp directory, or the repository's local exclude plus a two-line mount) and
-listed in the closing summary.
+first term and the first ADR you pick, and left uncommitted for you. Nothing else in the project
+is written, and no code is edited. A runnable branch adds the prototype's own files, marked
+throwaway, kept out of version control (a temp directory, or the repository's local exclude plus a
+two-line mount) and listed in the closing summary.
 
 ## Branch, lens, tell
 
@@ -69,8 +71,19 @@ A branch closes in one of three states:
 | default | a reversible detail; the skill states the choice and its reason instead of spending a question on it |
 | deferred | parked, with the condition that reopens it |
 
-Only a decision that is hard to reverse, surprising without context and the result of a real
-trade-off becomes an ADR. Everything else lives in the closing summary.
+A decision is not written the moment it lands. Each decided branch keeps its choice, its reason
+and the alternative it beat in one line, and at the close every branch that passes the three gates
+of an ADR (hard to reverse, surprising without context, the result of a real trade-off) is listed
+as a **candidate**, one line per gate, and you pick which ones become files under `docs/adr/`.
+Everything else goes to the closing summary, and from there into the spec's Implementation
+Decisions, which is where a decision scoped to one feature belongs. Three things never make the
+list:
+
+| Looks like a decision | Where it lives instead |
+|---|---|
+| a rule `CONTEXT.md` already carries | the glossary |
+| the modules, interfaces and contracts of this feature | the spec's Implementation Decisions |
+| a choice whose alternative lost only because a repo rule forbids it | the summary; nothing was traded off |
 
 A branch whose answer depends on seeing or driving the thing is marked **runnable**. Instead of a
 question you cannot answer from words, the session forks the [prototype](prototype.md) agent with a
@@ -93,13 +106,23 @@ The code was read before your claim was accepted, and the contradiction is shown
 line. You decide which side is right; the skill records the decision and never edits code to
 settle it.
 
+**It used to write an ADR the moment a branch closed. Why only at the end now?**
+One ADR per decided branch turned a single feature into a shelf of them, most restating what the
+spec was about to say, and every later step of the chain reads `docs/adr/` for the area it touches,
+so each weak ADR is context spent on every run after it. The three gates are judged better with
+the whole tree closed, when a later branch may have swallowed an earlier decision, and the
+candidate list is the one place you say no before anything lands in `docs/adr/`. Nothing is lost
+in between: the ADR is written from the line the branch kept, not from memory of the interview.
+
 ## It's working if
 
 - Every question reaches you alone, with a recommended answer and the failure it hunts.
 - A branch the code settles never reaches you as a question; the grounding note names it with a
   file and line.
-- `CONTEXT.md` and `docs/adr/` grow during the session, not at the end, and the working tree is
-  clean apart from them.
+- `CONTEXT.md` grows during the session; `docs/adr/` changes only at the close, and only with
+  the candidates you picked. The working tree is clean apart from them.
+- The close reaches you as one question listing the ADR candidates, each with its three gates
+  filled, before the summary.
 - A branch about what a screen should look like reaches you as something to open, with the
   question put against it, never as a request to describe a layout in words.
 - A prototype that had to ask reaches you as one ordinary question, and the same prototype carries
