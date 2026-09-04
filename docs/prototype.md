@@ -10,8 +10,10 @@ report saying how to open the thing, what to look at, and which files it wrote.
 
 The artifact is throwaway from the first line and never becomes production code: every file it
 creates has `prototype` in its name, the only existing file it may touch is the host page, for a
-two-line mount, and it commits nothing. The answer is the deliverable; the files are for you to
-delete once you have it.
+two-line mount, and it commits nothing. Nothing it writes enters version control either: a `logic`
+file lives in a temp directory on your machine, outside every repository, and a `ui` prototype's
+variants sit beside the host page under git's local exclude, so `git status` never lists them. The
+answer is the deliverable; the files are for you to delete once you have it.
 
 ## When to reach for it
 
@@ -37,9 +39,10 @@ question.
 - **The agent link.** The skill forks the `prototype` agent, so `skills/prototype/AGENT.md` has to
   be linked at `~/.claude/agents/prototype.md` beside the skill link; see
   [the top-level README](../README.md).
-- **A workspace it writes into.** New files beside the page or module the question is about, and,
-  for a `ui` prototype on an existing route, one import and one render line in the host page.
-  Nothing is committed.
+- **Somewhere to write.** A `logic` prototype is one file in a fresh temp directory (`$TMPDIR`, or
+  `/tmp`), outside every repository. A `ui` prototype writes its variants beside the host page,
+  adds them to the repository's local exclude file (`.git/info/exclude`, never committed), and
+  mounts them with one import and one render line in the host page. Nothing is committed.
 - **For `ui`, a project that runs.** The variants start from the project's existing dev command,
   or open as a file when the project has none; the agent adds no task-runner entry and installs
   nothing.
@@ -67,16 +70,24 @@ becoming the default.
 
 **What happens to the files afterwards?**
 Nothing, until you decide. The report and the discuss summary list every file, each marked
-throwaway in its name and its banner. Delete them, or park them on a throwaway branch as the
-primary source of the decision. The validated reducer or the winning variant is rewritten properly
-when it is folded into the real code; it is never promoted as is.
+throwaway in its name and its banner. Delete them once you have the answer. A `logic` file sits in
+a temp directory that most systems clear on reboot, which suits a throwaway: it cleans itself up. A
+`ui` prototype's files are invisible to `git status`, so the report's `files:` line is the list to
+delete, along with the two mounted lines. The validated reducer or the winning variant is rewritten
+properly when it is folded into the real code; it is never promoted as is.
+
+**Why isn't a `ui` prototype in the temp directory too?**
+Because its variants are components the host page imports, and a dev server or bundler loads
+nothing from outside the project root. They have to sit beside the host page to render inside the
+real app, so the local exclude is what keeps them out of git instead. The mount is the one diff you
+see, and it is two lines.
 
 ## It's working if
 
-- Every new file has `prototype` in its name, and `git status` shows nothing else changed apart
-  from at most two mounted lines in one host page.
-- A `logic` prototype opens by double-click with nothing installed; a `ui` prototype opens from the
-  project's own dev command.
+- Every new file has `prototype` in its name, and `git status` shows nothing new: a `logic` run
+  leaves the tree untouched, and a `ui` run shows only the two mounted lines in one host page.
+- A `logic` prototype opens by double-click from its temp directory with nothing installed; a `ui`
+  prototype opens from the project's own dev command.
 - The variants disagree about layout and hierarchy, not just colour.
 - The report is the whole last message, and its `assumed:` line tells you what the brief left out.
 

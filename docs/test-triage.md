@@ -94,10 +94,10 @@ A suite run executed at least ten tests with more than half red, which points at
 bad merge or a global mock rather than at individual tests. The report states the hypothesis; a
 targeted run is never classified as systemic.
 
-**The report is in Portuguese but the dossier is in English. Is that a bug?**
-No. Every message to the user is in pt-BR; everything written into the repository (file names,
-frontmatter, `runner.json`, commit messages and dossier bodies) is in English, and a dossier body
-in another language is written only on explicit request.
+**The report is in my language but the dossier is in English. Is that a bug?**
+No. Every message to the user is in the language you opened the session in; everything written
+into the repository (file names, frontmatter, `runner.json`, commit messages and dossier bodies) is
+in English, and a dossier body in another language is written only on explicit request.
 
 **Where did v1 go?**
 `test-triage-v1` is the single-file skill as first authored. `test-triage-v2` is the versioned

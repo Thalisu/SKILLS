@@ -33,8 +33,9 @@ in; everything written into the repository is in English.
 The skill writes into the project: `CONTEXT.md` (at the root, or the context's own when a
 `CONTEXT-MAP.md` names one) and numbered ADRs under `docs/adr/`. Both are created lazily, on the
 first term and the first ADR, and left uncommitted for you. Nothing else in the project is written,
-and no code is edited. A runnable branch adds the prototype's own files, marked throwaway and listed
-in the closing summary.
+and no code is edited. A runnable branch adds the prototype's own files, marked throwaway, kept out
+of version control (a temp directory, or the repository's local exclude plus a two-line mount) and
+listed in the closing summary.
 
 ## Branch, lens, tell
 
