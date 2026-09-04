@@ -55,7 +55,7 @@ Never batched: each item is written the moment its branch closes, before the nex
 - **A resolved term** goes to `CONTEXT.md` (the root one, or the context's own when the map names it) in the format of [references/context-format.md](references/context-format.md). The file is created on the first term. Only terms a domain expert would recognise; no implementation detail.
 - **A decision** gets an ADR under `docs/adr/` in the format of [references/adr-format.md](references/adr-format.md) when all three hold: hard to reverse, surprising without context, the result of a real trade-off. Any one missing → no ADR; the closing summary carries the decision. The directory is created on the first ADR.
 - **A contradiction** between the user's answer and the code is never resolved by editing code here: the user says which side is right, and the branch and the summary record it.
-- **A prototype** is never captured, only its answer: the decision, and the variant or scenario that settled it, in one line of the ADR or the summary. Its files stay in the working tree, listed in the closing summary.
+- **A prototype** is never captured, only its answer: the decision, and the variant or scenario that settled it, in one line of the ADR or the summary. Its files stay where the agent left them, outside version control, listed in the closing summary.
 
 ## 5. Lenses, in walk order
 
@@ -128,7 +128,7 @@ The session ends when every branch is `decided`, `default` or `deferred`. Then, 
 - defaults taken;
 - deferrals, each with the condition that reopens it;
 - files written: terms added to `CONTEXT.md`, ADR paths;
-- prototypes built: the branch each settled and the files it left, for the user to delete or park on a throwaway branch;
+- prototypes built: the branch each settled and the files it left (a temp directory, or excluded files plus a mount), for the user to delete;
 - contradictions between the plan and the code, and which side the user picked;
 - next step: implement; or settle the shape first through an architect-style skill when the plan crosses a function boundary and the second shape was never built; or write the brief when a brief-writing skill is available. The summary is that skill's input.
 
@@ -139,7 +139,7 @@ Nothing is committed. `CONTEXT.md` and everything under `docs/adr/` stay in the 
 - One question per message, carrying a recommendation and the tell. Never a list of questions.
 - Never ask what the repository answers. Never ask about a reversible detail: take the default and say so.
 - A claim about how the code works is read in the code before it is accepted.
-- Captures are never batched. The session writes only `CONTEXT.md` and files under `docs/adr/`, and edits no code. A prototype's files belong to the prototype agent: new files marked throwaway, at most one mount in a host page, each listed in its report and in the closing summary.
+- Captures are never batched. The session writes only `CONTEXT.md` and files under `docs/adr/`, and edits no code. A prototype's files belong to the prototype agent: new files marked throwaway and kept out of version control, at most one mount in a host page, each listed in its report and in the closing summary.
 - A prototype is built only for a runnable branch, never for one a description can settle, and only by forking the `prototype` agent.
 - Never commit, never push.
 - Prose written into the project carries no em-dash.
