@@ -1,6 +1,6 @@
 ---
 name: discuss
-description: "Interview the user about a plan before code is written: one question at a time, each with a recommended answer and the failure it hunts, answered from the repository whenever the repository can answer it, with terms recorded in CONTEXT.md and hard-to-reverse decisions in docs/adr/ as they land."
+description: "Interview the user about a plan before code is written: one question at a time, each with a recommended answer and the failure it hunts, answered from the repository whenever the repository can answer it, with terms recorded in CONTEXT.md as they land and hard-to-reverse decisions offered as ADRs at the close, for the user to pick."
 disable-model-invocation: true
 argument-hint: "[the plan, feature or change to discuss]"
 ---
@@ -9,9 +9,9 @@ argument-hint: "[the plan, feature or change to discuss]"
 
 Every message to the user is written in the language the user opened the session in. Everything written into the repository (`CONTEXT.md`, ADRs, file names) is in **English**.
 
-Ground → tree → one question at a time → capture as it lands → close.
+Ground → tree → one question at a time → capture as it lands → offer the ADRs → close.
 
-Vocabulary, used consistently: _branch_ (one decision the plan needs), _tree_ (the branches and the dependencies between them), _lens_ (a principle turned into a question), _tell_ (the answer that fails a lens), _default_ (an answer taken and stated instead of asked), _deferral_ (a branch parked with the condition that reopens it), _runnable_ (a branch only a running artifact can settle: a throwaway prototype is built and the question is put against it).
+Vocabulary, used consistently: _branch_ (one decision the plan needs), _tree_ (the branches and the dependencies between them), _lens_ (a principle turned into a question), _tell_ (the answer that fails a lens), _default_ (an answer taken and stated instead of asked), _deferral_ (a branch parked with the condition that reopens it), _runnable_ (a branch only a running artifact can settle: a throwaway prototype is built and the question is put against it), _candidate_ (a decided branch that passes the three gates of an ADR, offered at the close for the user to pick).
 
 ## 1. Ground
 
@@ -43,19 +43,19 @@ For the first open branch, in walk order:
 3. **One question per message.** The message carries three things and nothing else: the question, the tell it hunts in one line, and the recommended answer with its reason. Never a list of questions, never a second question in the same message.
 4. **Wait for the answer.**
 5. **Check the answer.** Against the glossary: a term used in a sense `CONTEXT.md` does not give is called out immediately ("your glossary defines X as ..., you seem to mean ..."). Against the code: a claim about how something works is read in the code before it is accepted, and a contradiction is surfaced with `file:line`. Against a scenario: a domain relationship gets one concrete scenario that probes its boundary ("a Customer with two open Orders cancels one: what happens to the Invoice?"). A fuzzy or overloaded word gets a proposed canonical term. Push back once, with the evidence; the user's repeat is the decision.
-6. **Close the branch.** `decided` (the user chose), `default` (a reversible detail: state the choice and its reason instead of asking), or `deferred` (parked, with the condition that reopens it, in one line).
+6. **Close the branch.** `decided` (the user chose; the branch keeps the choice, its reason and the alternative it beat, in one line), `default` (a reversible detail: state the choice and its reason instead of asking), or `deferred` (parked, with the condition that reopens it, in one line).
 7. **Capture** (step 4), then update the tree. A branch the answer opened joins the tree at its dependency position.
 
 A reversible execution detail is never a question. The question budget goes to direction, trade-offs and anything hard to undo.
 
 ## 4. Capture as it lands
 
-Never batched: each item is written the moment its branch closes, before the next question.
+A term is never batched: it is written the moment its branch closes, before the next question. A decision is held on its branch until the close (step 6), where the user picks which ones become ADRs with the whole tree in view.
 
 - **A resolved term** goes to `CONTEXT.md` (the root one, or the context's own when the map names it) in the format of [.agents/formats/context-format.md](../../.agents/formats/context-format.md). The file is created on the first term. Only terms a domain expert would recognise; no implementation detail.
-- **A decision** gets an ADR under `docs/adr/` in the format of [.agents/formats/adr-format.md](../../.agents/formats/adr-format.md) when all three hold: hard to reverse, surprising without context, the result of a real trade-off. Any one missing → no ADR; the closing summary carries the decision. The directory is created on the first ADR.
+- **A decision** stays on its branch, in one line: the choice, its reason, and the alternative it beat. Nothing is written under `docs/adr/` before the close. That line is what an ADR is written from when the branch becomes one, and what the summary carries otherwise; a decision scoped to this feature (a module, an interface, a contract) is the spec's to keep, in its Implementation Decisions, and reaches it through the summary.
 - **A contradiction** between the user's answer and the code is never resolved by editing code here: the user says which side is right, and the branch and the summary record it.
-- **A prototype** is never captured, only its answer: the decision, and the variant or scenario that settled it, in one line of the ADR or the summary. Its files stay where the agent left them, outside version control, listed in the closing summary.
+- **A prototype** is never captured, only its answer: the decision, and the variant or scenario that settled it, in the branch's line, carried into the ADR or the summary at the close. Its files stay where the agent left them, outside version control, listed in the closing summary.
 
 ## 5. Lenses, in walk order
 
@@ -122,12 +122,16 @@ Three principles shape how the session runs rather than what it asks. [never-blo
 
 ## 6. Close
 
-The session ends when every branch is `decided`, `default` or `deferred`. Then, in the thread, the decision summary:
+The session ends when every branch is `decided`, `default` or `deferred`. The close is two moves in this order: the ADR offer, then the summary.
 
-- decisions: branch, lens, choice, reason, one line each;
+**The ADR offer.** List the candidates: every `decided` branch that passes the three gates of [.agents/formats/adr-format.md](../../.agents/formats/adr-format.md) (hard to reverse, surprising without context, the result of a real trade-off), one line per candidate with each gate filled in one clause. A gate that cannot be filled in one clause drops the branch from the list without comment, and so does any of the format's three tells of a false candidate: a rule `CONTEXT.md` already carries, the artifact the spec is about to describe, an alternative that lost only to a rule of the repository. Those decisions are the spec's. Then one message: the list, and under it one question in the shape of step 3, which candidates to write, the recommendation for each with its reason, and the tell (a decision offered because it was discussed at length, not because a future reader will look for it). An empty list is one line in the summary and no question. Each picked candidate is written in the format of adr-format.md from its branch's line, never from memory of the interview; the directory is created on the first ADR. The rest stay in the summary.
+
+**The summary**, in the thread:
+
+- decisions: branch, lens, choice, reason and the alternative it beat, one line each; this is what `spec` carries into Implementation Decisions;
 - defaults taken;
 - deferrals, each with the condition that reopens it;
-- files written: terms added to `CONTEXT.md`, ADR paths;
+- files written: terms added to `CONTEXT.md`, ADR paths, and beside them each candidate the user declined, in one line;
 - prototypes built: the branch each settled and the files it left (a temp directory, or excluded files plus a mount), for the user to delete;
 - contradictions between the plan and the code, and which side the user picked;
 - next step: the user runs `spec` on this conversation, and this summary is its input; when the plan crosses a function boundary and the second shape was never built, an architect-style skill settles the shape first, and `spec` follows it.
@@ -139,7 +143,7 @@ Nothing is committed. `CONTEXT.md` and everything under `docs/adr/` stay in the 
 - One question per message, carrying a recommendation and the tell. Never a list of questions.
 - Never ask what the repository answers. Never ask about a reversible detail: take the default and say so.
 - A claim about how the code works is read in the code before it is accepted.
-- Captures are never batched. The session writes only `CONTEXT.md` and files under `docs/adr/`, and edits no code. A prototype's files belong to the prototype agent: new files marked throwaway and kept out of version control, at most one mount in a host page, each listed in its report and in the closing summary.
+- A term is never batched. An ADR is never written before the close, and only when the user picked it from the candidate list; a decision scoped to the feature never becomes one. The session writes only `CONTEXT.md` and files under `docs/adr/`, and edits no code. A prototype's files belong to the prototype agent: new files marked throwaway and kept out of version control, at most one mount in a host page, each listed in its report and in the closing summary.
 - A prototype is built only for a runnable branch, never for one a description can settle, and only by forking the `prototype` agent. An ask from that agent is answered by resuming it with the SendMessage tool, never by forking a second one.
 - Never commit, never push.
 - Prose written into the project carries no em-dash.
