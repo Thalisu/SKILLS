@@ -7,7 +7,7 @@ allowed-tools: Bash(${CLAUDE_SKILL_DIR}/scripts/context.sh)
 
 # Test Triage
 
-Every message to the user, starting with the first one, is written in **pt-BR**. Everything written to the repository (file names, frontmatter keys, `runner.json`, commit messages and dossier bodies) is in **English**; write a dossier body in another language only when the user explicitly asks.
+Every message to the user, starting with the first one, is written in the language the user opened the session in. Everything written to the repository (file names, frontmatter keys, `runner.json`, commit messages and dossier bodies) is in **English**; write a dossier body in another language only when the user explicitly asks.
 
 Run → cluster → investigate → fix the small, document the hard.
 
@@ -19,7 +19,7 @@ If the block above is empty or shows a policy message, collect the same facts wi
 
 ## Checklist
 
-Track your progress against this checklist; show it to the user only in pt-BR:
+Track your progress against this checklist; show it to the user only in the session's opening language:
 
 ```
 Triage:
@@ -32,7 +32,7 @@ Triage:
 - [ ] 7. Small fixes applied, verified, formatted, committed one per cluster
 - [ ] 8. Dossiers registered for hard work; docs/tests/ visible to git, left uncommitted for the user
 - [ ] 9. Open dossiers reconciled
-- [ ] 10. Report in pt-BR
+- [ ] 10. Report in the session's opening language
 ```
 
 Vocabulary, used consistently: _target_ (what runs), _kind_ (`unit` or `e2e`), _runner_ (the command that runs a kind), _cluster_ (one root cause), _small fix_ / _hard work_, _dossier_, _BLOCKED_, _protected branch_.
@@ -161,11 +161,11 @@ Match by `test` first, then by `signature`. Reconcile edits stay uncommitted, li
 
 ## 10. Report
 
-Terminal summary in pt-BR:
+Terminal summary, in the session's opening language:
 
-- verdict (verde / vermelho / BLOCKED / sistêmico / não terminou) and the command line that ran;
+- verdict (green / red / BLOCKED / systemic / did not finish) and the command line that ran;
 - infra chain, when there was one: cause → remedy → outcome;
-- clusters and, per cluster: corrigido + commit / dossiê / não investigado. For a fixed cluster, one verbatim line of the failure as it read before and one line of the green re-run that replaced it, never a pasted output block;
+- clusters and, per cluster: fixed + commit / dossier / not investigated. For a fixed cluster, one verbatim line of the failure as it read before and one line of the green re-run that replaced it, never a pasted output block;
 - dossiers created, bumped, closed; `runner.json` changes made this run; everything under `docs/tests/` left uncommitted for the user, and the `gitignored:` warning from `check-visible` when the folder is hidden from git;
 - commit SHAs; anything left uncommitted and why;
 - what is left for the user, and why.
@@ -184,3 +184,4 @@ A green run creates nothing: it reconciles open dossiers and reports.
 - Instrumentation is never committed and never left behind: it is reverted before the cluster is classified.
 - Never stage a file you did not touch. Never spawn subagents.
 - Never invent a command; never record one that did not run in this session.
+- Every message to the user in the session's opening language; every write into the repository in English.
