@@ -15,11 +15,13 @@ reach it:
   autonomously?_ (Reuse is the reason to extract a skill, not the test.)
 
 The choice is made when the skill is created, recorded in both harnesses at once, and there is no
-third state. In this repo, `discover-setup`, `testing-policy`, `discuss` and `prototype` are
-user-invoked: the first edits a `CLAUDE.md` and creates links under `~/.claude`, the second writes
-agents, a skill and a marked section into a project, the third interviews the human, the fourth
-writes throwaway files into a project, and each is the human's call. `discover` and `test-triage`
-are model-invoked.
+third state. In this repo, `discover-setup`, `testing-policy`, `discuss`, `prototype`, `spec`,
+`tickets` and `journey` are user-invoked: the first edits a `CLAUDE.md` and creates links under
+`~/.claude`, the second writes agents, a skill and a marked section into a project, the third
+interviews the human, the fourth writes throwaway files into a project, the fifth publishes a spec
+into a project, the sixth publishes tickets to a project's tracker, the seventh interviews the human
+about a spec and writes the journey into a project, and each is the human's call. `discover` and
+`test-triage` are model-invoked.
 
 Each harness excludes a user-invoked skill from the model's reach in its own way, so nothing but the
 human can fire it: no other skill can. A user-invoked skill may invoke model-invoked skills, but it
@@ -47,7 +49,9 @@ chosen together:
   nor edit a file, which is why the install that the lookup depends on is a separate skill.
 - No `context` runs the skill inline, in the caller's session, with the caller's tools.
   `discover-setup` runs inline because it must ask which scope to install and then edit a
-  `CLAUDE.md`; `testing-policy` and `test-triage` run inline because they edit, commit and ask.
+  `CLAUDE.md`; `testing-policy` and `test-triage` run inline because they edit, commit and ask;
+  `discuss` and `journey` run inline because an interview needs the human, who is only in the
+  caller's session.
 
 Work that must talk to the user or write into the project runs inline. A lookup with a terse output
 contract forks. `prototype` forks the same way, onto the `prototype` agent with `background: false`
@@ -71,7 +75,7 @@ invariant is kept by the callers, not by the harness.
 | Agent       | Skill         | Doors                                                                                                                                                            |
 | ----------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `discover`  | model-invoked | `/discover`; `Agent(subagent_type: discover)` in headless `-p` sessions only                                                                                     |
-| `prototype` | user-invoked  | `/prototype`; a `discuss` interview, for a branch that cannot be settled by talking. Nothing else forks it, and whoever forked it answers its ask by resuming it |
+| `prototype` | user-invoked  | `/prototype`; a `discuss` or `journey` interview, for a branch or a fork that cannot be settled by talking. Nothing else forks it, and whoever forked it answers its ask by resuming it |
 
 So a step in another skill may reach the agent a user-invoked skill ships, never the skill itself,
 and only when that agent's description names the calling skill. The step spells it out as an Agent
@@ -89,6 +93,9 @@ hit rate than dropping a `/name` into prose and hoping it is read as a command. 
 `/` also keeps this harness-neutral: a skill name on its own carries no assumption about which
 harness's trigger syntax it belongs to. Shared reference docs live inside the skill that owns them;
 other skills reach that material by calling the Skill tool with it, not by linking across folders.
+The formats of the artifacts the chain shares (`CONTEXT.md`, an ADR, a spec, a journey) are the
+exception: they live under `.agents/formats/`, outside every skill, and each skill that writes or
+reads one links it by relative path (`docs/adr/0004`).
 
 This is about **operative** instructions: a skill's own steps telling the agent to go run another
 skill right now. Router prose that just names skills for a human to pick from (the READMEs, the docs

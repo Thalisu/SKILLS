@@ -3,7 +3,8 @@
 Design principles kept as plain reference documents, one per file. They are not skills: nothing
 invokes them, no harness lists them, and they carry no frontmatter. A skill in this repo that
 wants one links it by path, and an agent working in this repo reads the ones the task calls for.
-The [discuss](../../skills/discuss/SKILL.md) skill turns a subset of them into interview lenses.
+The [discuss](../../skills/discuss/SKILL.md) and [journey](../../skills/journey/SKILL.md) skills
+turn a subset of them into interview lenses.
 
 Adapted from the `principle-*` skills of [pstack](https://github.com/cursor/plugins/tree/main/pstack)
 by Lauren Tan, MIT (see [PSTACK-LICENSE](PSTACK-LICENSE)), upstream commit `7314f723a487ec406b6369fe5865ba034cfed166`.
