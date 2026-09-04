@@ -1,0 +1,69 @@
+name: not-needed-cuts-from-stories
+tags: [workflow, cut]
+runs: 2
+max_turns: 16
+timeout_seconds: 300
+allowed_tools: [Bash, Read, Edit, Write, Agent]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # A spec whose verdict is 'not needed': there is no journey to look for, the cut comes from the
+    # User Stories, and the run says so in one line instead of stopping.
+    set -e
+    mkdir -p src docs/agents .scratch/archive-notes
+    cat > src/notes.js <<'JS'
+    const notes = [];
+    function create(title) {
+      const note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+    function list() {
+      return notes.filter((n) => n.status === "active");
+    }
+    module.exports = { create, list };
+    JS
+    cat > docs/agents/issue-tracker.md <<'MD'
+    # Issue tracker: Local Markdown
+
+    Issues and specs for this repo live as markdown files in `.scratch/`.
+
+    - One feature per directory: `.scratch/<feature-slug>/`
+    - The spec is `.scratch/<feature-slug>/spec.md`
+    - Implementation issues are one file per ticket at `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01`
+    - Triage state is a `Status:` line near the top of each issue file
+    MD
+    mkdir -p .scratch/export-notes
+    cat > .scratch/export-notes/spec.md <<'MD'
+    # Export notes
+
+    Journey: not needed, one interaction on the existing list
+    Status: ready-for-agent
+
+    ## Problem Statement
+
+    A writer has no way to take their notes out of the app.
+
+    ## Solution
+
+    An Export action on the list downloads every active note as one text file.
+
+    ## User Stories
+
+    1. As a writer, I want an Export action on the list, so that I download my notes as one file
+
+    ## Implementation Decisions
+
+    - The export is plain text, one note per block, active notes only
+
+    ## Testing Decisions
+
+    - Behaviour tests through the notes module's public functions
+
+    ## Out of Scope
+
+    - Exporting archived notes
+    MD
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"

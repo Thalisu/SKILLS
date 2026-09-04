@@ -1,0 +1,5 @@
+interface:
+  display_name: "Tickets"
+  short_description: "Cut a spec and its journey into tracer-bullet tickets with blocking edges"
+policy:
+  allow_implicit_invocation: false

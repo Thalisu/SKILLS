@@ -1,0 +1,72 @@
+name: journey-pointer-missing-stops
+tags: [workflow, stop]
+runs: 2
+max_turns: 10
+timeout_seconds: 300
+allowed_tools: [Bash, Read, Edit, Write]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # The verdict points at ./journey.md and the file is not there: a stop, one message, nothing
+    # explored, nothing written.
+    set -e
+    mkdir -p src docs/agents .scratch/archive-notes
+    cat > src/notes.js <<'JS'
+    const notes = [];
+    function create(title) {
+      const note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+    function list() {
+      return notes.filter((n) => n.status === "active");
+    }
+    module.exports = { create, list };
+    JS
+    cat > docs/agents/issue-tracker.md <<'MD'
+    # Issue tracker: Local Markdown
+
+    Issues and specs for this repo live as markdown files in `.scratch/`.
+
+    - One feature per directory: `.scratch/<feature-slug>/`
+    - The spec is `.scratch/<feature-slug>/spec.md`
+    - Implementation issues are one file per ticket at `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01`
+    - Triage state is a `Status:` line near the top of each issue file
+    MD
+    cat > .scratch/archive-notes/spec.md <<'MD'
+    # Archive notes
+
+    Journey: ./journey.md
+    Status: ready-for-agent
+
+    ## Problem Statement
+
+    Notes pile up in the list and there is no way to put one aside without deleting it.
+
+    ## Solution
+
+    A note can be archived. Archived notes leave the list and can be restored from an Archived view.
+
+    ## User Stories
+
+    1. As a writer, I want to archive a note, so that it leaves my list without being deleted
+    2. As a writer, I want to see my archived notes, so that I can find one I put aside
+    3. As a writer, I want to restore an archived note, so that it returns to my list
+    4. As a writer, I want to archive several notes at once, so that I can clear my list quickly
+
+    ## Implementation Decisions
+
+    - A note carries a status, active or archived; archiving never deletes
+    - The list shows active notes only; a separate Archived view shows the rest
+
+    ## Testing Decisions
+
+    - Behaviour tests through the notes module's public functions
+
+    ## Out of Scope
+
+    - Deleting archived notes permanently
+    MD
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"

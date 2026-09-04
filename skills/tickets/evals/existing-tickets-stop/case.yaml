@@ -1,0 +1,145 @@
+name: existing-tickets-stop
+tags: [workflow, stop, idempotency]
+runs: 2
+max_turns: 10
+timeout_seconds: 300
+allowed_tools: [Bash, Read, Edit, Write]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # A previous run already published one ticket for the feature: a second run stops and lists it
+    # instead of numbering over it.
+    set -e
+    mkdir -p src docs/agents .scratch/archive-notes
+    cat > src/notes.js <<'JS'
+    const notes = [];
+    function create(title) {
+      const note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+    function list() {
+      return notes.filter((n) => n.status === "active");
+    }
+    module.exports = { create, list };
+    JS
+    cat > docs/agents/issue-tracker.md <<'MD'
+    # Issue tracker: Local Markdown
+
+    Issues and specs for this repo live as markdown files in `.scratch/`.
+
+    - One feature per directory: `.scratch/<feature-slug>/`
+    - The spec is `.scratch/<feature-slug>/spec.md`
+    - Implementation issues are one file per ticket at `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01`
+    - Triage state is a `Status:` line near the top of each issue file
+    MD
+    cat > .scratch/archive-notes/spec.md <<'MD'
+    # Archive notes
+
+    Journey: ./journey.md
+    Status: ready-for-agent
+
+    ## Problem Statement
+
+    Notes pile up in the list and there is no way to put one aside without deleting it.
+
+    ## Solution
+
+    A note can be archived. Archived notes leave the list and can be restored from an Archived view.
+
+    ## User Stories
+
+    1. As a writer, I want to archive a note, so that it leaves my list without being deleted
+    2. As a writer, I want to see my archived notes, so that I can find one I put aside
+    3. As a writer, I want to restore an archived note, so that it returns to my list
+    4. As a writer, I want to archive several notes at once, so that I can clear my list quickly
+
+    ## Implementation Decisions
+
+    - A note carries a status, active or archived; archiving never deletes
+    - The list shows active notes only; a separate Archived view shows the rest
+
+    ## Testing Decisions
+
+    - Behaviour tests through the notes module's public functions
+
+    ## Out of Scope
+
+    - Deleting archived notes permanently
+    MD
+    cat > .scratch/archive-notes/journey.md <<'MD'
+    # Journey: Archive notes
+
+    Spec: ./spec.md
+    Actor: writer
+    Entry: the notes list
+
+    ## Path 1: Archive a note
+
+    Story: 1
+    Outcome: the note is gone from the list and the writer knows where it went.
+
+    | Step | Actor sees | Actor does | System answers |
+    |---|---|---|---|
+    | 1 | the list, each note with an Archive action | picks Archive on one note | the note leaves the list; a line says "Archived" with a link to Archived |
+    | 2 | the list without the note | nothing | the Archived link shows a count of one |
+
+    Failure branches:
+    - Archive picked twice on the same note: the second pick is a no-op, the line still says "Archived"
+
+    ## Path 2: Find and restore an archived note
+
+    Story: 2, 3
+    Outcome: the note is back in the list.
+
+    | Step | Actor sees | Actor does | System answers |
+    |---|---|---|---|
+    | 1 | the Archived link with a count | opens it | the Archived view lists archived notes, each with Restore |
+    | 2 | the Archived view | picks Restore on one note | the note leaves the view; a line says "Restored" with a link to the list |
+    | 3 | the Archived view, now empty | nothing | an empty state says "Nothing archived" |
+
+    Failure branches:
+    - Restore on a note archived twice: the note returns once
+
+    ## States
+
+    | State | The actor sees | Actions |
+    |---|---|---|
+    | active | the note in the list | Archive |
+    | archived | the note in the Archived view | Restore |
+
+    ## Cut
+
+    - Story 4, archive several notes at once: no observed need; one at a time is the whole path
+
+    ## Defaults taken
+
+    - "Archived" and "Restored" lines are the app's existing status line
+
+    ## Deferred
+
+    - An undo on the "Archived" line: reopens when a writer archives the wrong note twice in a week
+
+    ## Spec changes applied
+
+    - none
+
+    ## Reopen in discuss
+
+    - none
+    MD
+    mkdir -p .scratch/archive-notes/issues
+    cat > .scratch/archive-notes/issues/01-archive-a-note.md <<'MD'
+    # 01: Archive a note
+
+    **What to build:** Archive a note: the note leaves the list and the writer sees where it went.
+
+    **Blocked by:** None (can start immediately)
+
+    **Status:** ready-for-agent
+
+    - [ ] Picking Archive removes the note from the list and shows the Archived line
+    MD
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
