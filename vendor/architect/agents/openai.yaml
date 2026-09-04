@@ -1,0 +1,3 @@
+interface:
+  display_name: "Architect"
+  short_description: "Sketch the caller's usage, types, signatures and module boundaries before code, comparing rival candidates"

@@ -1,0 +1,3 @@
+interface:
+  display_name: "Why"
+  short_description: "Cited, confidence-calibrated read on why code was built a certain way, from every evidence source the session exposes"

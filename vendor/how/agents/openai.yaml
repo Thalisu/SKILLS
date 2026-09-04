@@ -1,0 +1,3 @@
+interface:
+  display_name: "How"
+  short_description: "Senior-engineer walkthrough of how a subsystem works, with an optional architecture critique"

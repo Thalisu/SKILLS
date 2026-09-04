@@ -1,0 +1,3 @@
+interface:
+  display_name: "Teach"
+  short_description: "Explain a change or subsystem until it clicks, weaving how and why into growing diagrams"

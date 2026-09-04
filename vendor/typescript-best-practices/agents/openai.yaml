@@ -1,0 +1,3 @@
+interface:
+  display_name: "TypeScript best practices"
+  short_description: "TypeScript typing and API-shape rules: unions, brands, unknown over any, no as casts"

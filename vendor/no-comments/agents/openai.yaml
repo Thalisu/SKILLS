@@ -1,0 +1,5 @@
+interface:
+  display_name: "No comments"
+  short_description: "Spawn the comment-sicko agent over a diff, act on accepted findings, offer encodings for claimed constraints"
+policy:
+  allow_implicit_invocation: false

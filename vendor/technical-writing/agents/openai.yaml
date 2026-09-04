@@ -1,0 +1,3 @@
+interface:
+  display_name: "Technical writing"
+  short_description: "Diátaxis, Google style, ASD-STE100 and Global English standard for docs, RFCs, readmes, PRs and commits"

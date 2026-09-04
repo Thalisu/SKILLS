@@ -1,0 +1,3 @@
+interface:
+  display_name: "Unslop"
+  short_description: "Strip AI tells from prose and put human voice back"

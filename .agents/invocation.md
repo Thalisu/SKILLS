@@ -21,7 +21,9 @@ third state. In this repo, `discover-setup`, `testing-policy`, `discuss`, `proto
 interviews the human, the fourth writes throwaway files into a project, the fifth publishes a spec
 into a project, the sixth publishes tickets to a project's tracker, the seventh interviews the human
 about a spec and writes the journey into a project, and each is the human's call. `discover` and
-`test-triage` are model-invoked.
+`test-triage` are model-invoked. Under `vendor/`, `no-comments` is user-invoked, and `architect`,
+`how`, `why`, `teach`, `unslop`, `technical-writing` and `typescript-best-practices` are
+model-invoked, so a step here may call them through the Skill tool.
 
 Each harness excludes a user-invoked skill from the model's reach in its own way, so nothing but the
 human can fire it: no other skill can. A user-invoked skill may invoke model-invoked skills, but it
@@ -67,7 +69,8 @@ it read.
 
 A skill that runs on its own agent ships the definition as `AGENT.md` beside its `SKILL.md`, linked
 into `~/.claude/agents/<name>.md` (by `scripts/link-skills.sh` here, by the skill's own installer or
-the README's `ln -s` elsewhere). That agent is a second door into the same contract: any session can
+the README's `ln -s` elsewhere), where `<name>` is the agent's `name` in its frontmatter: the
+skill's own name unless the skill spawns it under another, as `no-comments` spawns `comment-sicko`. That agent is a second door into the same contract: any session can
 fork it with the Agent tool (`subagent_type: <name>`), and no frontmatter closes that door. What
 gates it is the agent's `description`, which names the callers it accepts, so on this door the
 invariant is kept by the callers, not by the harness.
@@ -76,6 +79,7 @@ invariant is kept by the callers, not by the harness.
 | ----------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `discover`  | model-invoked | `/discover`; `Agent(subagent_type: discover)` in headless `-p` sessions only                                                                                     |
 | `prototype` | user-invoked  | `/prototype`; a `discuss` or `journey` interview, for a branch or a fork that cannot be settled by talking. Nothing else forks it, and whoever forked it answers its ask by resuming it |
+| `comment-sicko` | `no-comments`, user-invoked, vendored | `/no-comments` only |
 
 So a step in another skill may reach the agent a user-invoked skill ships, never the skill itself,
 and only when that agent's description names the calling skill. The step spells it out as an Agent
