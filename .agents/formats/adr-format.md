@@ -40,7 +40,8 @@ All three must hold:
 
 A decision that is easy to reverse gets reversed, not recorded. One that is not surprising leaves
 nobody wondering. One with no real alternative has nothing to record beyond "the obvious thing was
-done". Any of the three missing: no ADR; the closing summary carries the decision.
+done". Any of the three missing: no ADR; the closing summary carries the decision, and the
+spec's Implementation Decisions keep it from there.
 
 ### What qualifies
 
@@ -59,3 +60,14 @@ done". Any of the three missing: no ADR; the closing summary carries the decisio
   because of the partner contract."
 - **Rejected alternatives when the rejection is not obvious.** GraphQL considered and REST picked
   for subtle reasons: record it, or someone suggests GraphQL again in six months.
+
+### What does not
+
+Three things look like decisions and are not ADRs, whatever the weight of the conversation behind
+them:
+
+- **A rule the glossary already carries.** `CONTEXT.md` is its home; an ADR would be a second copy.
+- **The artifact the spec is about to describe.** The modules, interfaces and contracts of one
+  feature belong in the spec's Implementation Decisions.
+- **A choice whose alternative lost only to a rule of the repository.** Nothing was traded off, so
+  there is nothing to record beyond the rule, which is already written.
