@@ -2,7 +2,8 @@
 
 One directory per skill, each with a `SKILL.md` and, where the skill needs them, `scripts/`,
 `references/`, `assets/`, `tests/` or `evals/`. Grouped by who can fire the skill; the contract is in
-[`.agents/invocation.md`](../.agents/invocation.md).
+[`.agents/invocation.md`](../.agents/invocation.md). The skills these call and this repo does not
+own are under [`vendor/`](../vendor/README.md).
 
 ## User-invoked
 
