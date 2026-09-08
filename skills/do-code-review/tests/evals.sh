@@ -48,6 +48,16 @@ expect "standards: console.log sits in src/ against the documented rule" bash -c
 expect "principles: two booleans are kept in sync" bash -c 'grep -q "exported: false, unexported: true" src/notes.js && grep -q "note.unexported = false" src/notes.js'
 expect "blast radius: the caller outside the diff breaks" bash -c '! node -e "require(\"./src/report\").summary()" >/dev/null 2>&1'
 expect "blast radius: the caller is not in the diff" bash -c '! git diff --name-only main | grep -qx src/report.js'
+expect "security: the siblings of the new route call the auth gate" bash -c 'test "$(grep -c "requireOwner(request);" src/routes.js)" = 2'
+expect "security: the export route skips the gate, so a stranger reads every note" quiet node -e '
+  const { handle } = require("./src/routes");
+  const stranger = { params: { userId: "2" }, session: null };
+  let gated = false;
+  try { handle("GET /users/:userId/notes", stranger); } catch { gated = true; }
+  const csv = handle("GET /users/:userId/notes/export", stranger);
+  process.exit(gated && typeof csv === "string" ? 0 : 1);'
+expect "security: the route file is in the diff" bash -c 'git diff --name-only main | grep -qx src/routes.js'
+expect "security: the spec asks for the route, so only the missing gate is the defect" grep -q 'GET /users/:userId/notes/export' .scratch/export-notes/spec.md
 expect "the clean hunk has its green test" quiet node --test tests/csv.test.js
 expect "the Ticket the case hands over sits beside its spec" test -f .scratch/export-notes/issues/02-export-notes.md
 expect "the Ticket asks for the header line the export omits" grep -q 'header line `id,title`' .scratch/export-notes/issues/02-export-notes.md

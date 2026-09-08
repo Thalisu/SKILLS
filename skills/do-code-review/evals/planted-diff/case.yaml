@@ -7,14 +7,16 @@ allowed_tools: [Bash, Read, Write, Glob, Grep, Agent, Skill]
 context:
   scaffold_script: |
     #!/usr/bin/env bash
-    # A branch with five planted defects and one clean hunk, with a Ticket the prompt hands over as
+    # A branch with six planted defects and one clean hunk, with a Ticket the prompt hands over as
     # do does at its review step, and its spec in the folder above the issues folder: a correctness
     # bug (page returns one item short, so an export of eleven notes has
     # ten rows), a requirement missing against the spec (no header line), a breach of the rule
     # CLAUDE.md documents (a standards breach: console.log in src/), a second boolean kept in sync
     # with a first (exported and unexported), a caller outside the diff that the change breaks
-    # (src/report.js still passes the notes first to page), and one clean hunk (src/csv.js with its
-    # test). The suite is green on the branch: none of the defects is covered.
+    # (src/report.js still passes the notes first to page), a security defect (the export route
+    # skips the requireOwner gate both its siblings call, so any caller reads every note), and one
+    # clean hunk (src/csv.js with its test). The suite is green on the branch: none of the defects
+    # is covered.
     set -e
     mkdir -p src tests .scratch/export-notes/issues
     cat > package.json <<'JSON'
@@ -59,6 +61,50 @@ context:
     }
 
     module.exports = { create, list, archive, page };
+    JS
+    cat > src/routes.js <<'JS'
+    const { list, archive } = require("./notes");
+
+    function requireOwner(request) {
+      const session = request.session;
+      if (!session || String(session.userId) !== String(request.params.userId)) {
+        throw new Error("forbidden");
+      }
+    }
+
+    const routes = {
+      "GET /users/:userId/notes": (request) => {
+        requireOwner(request);
+        return list();
+      },
+      "POST /users/:userId/notes/:id/archive": (request) => {
+        requireOwner(request);
+        return archive(Number(request.params.id));
+      },
+    };
+
+    function handle(route, request) {
+      const handler = routes[route];
+      if (!handler) throw new Error("no route " + route);
+      return handler(request);
+    }
+
+    module.exports = { handle, requireOwner };
+    JS
+    cat > tests/routes.test.js <<'JS'
+    const test = require("node:test");
+    const assert = require("node:assert/strict");
+    const { handle } = require("../src/routes");
+
+    test("a stranger cannot read another user's notes", () => {
+      const stranger = { params: { userId: "2" }, session: { userId: "1" } };
+      assert.throws(() => handle("GET /users/:userId/notes", stranger), /forbidden/);
+    });
+
+    test("the owner reads their own notes", () => {
+      const owner = { params: { userId: "1" }, session: { userId: "1" } };
+      assert.deepEqual(handle("GET /users/:userId/notes", owner), []);
+    });
     JS
     cat > src/report.js <<'JS'
     const { list, page } = require("./notes");
@@ -114,6 +160,7 @@ context:
 
     - The export is `toCsv()` in `src/export.js`, one row per active note, read a page at a time through `page`.
     - A field that carries a comma, a quote or a line break is quoted through `escape()` in `src/csv.js`.
+    - The export is reachable at `GET /users/:userId/notes/export`, beside the other note routes in `src/routes.js`.
 
     ## Testing Decisions
 
@@ -225,6 +272,37 @@ context:
     }
 
     module.exports = { toCsv };
+    JS
+    cat > src/routes.js <<'JS'
+    const { list, archive } = require("./notes");
+    const { toCsv } = require("./export");
+
+    function requireOwner(request) {
+      const session = request.session;
+      if (!session || String(session.userId) !== String(request.params.userId)) {
+        throw new Error("forbidden");
+      }
+    }
+
+    const routes = {
+      "GET /users/:userId/notes": (request) => {
+        requireOwner(request);
+        return list();
+      },
+      "POST /users/:userId/notes/:id/archive": (request) => {
+        requireOwner(request);
+        return archive(Number(request.params.id));
+      },
+      "GET /users/:userId/notes/export": (request) => toCsv(),
+    };
+
+    function handle(route, request) {
+      const handler = routes[route];
+      if (!handler) throw new Error("no route " + route);
+      return handler(request);
+    }
+
+    module.exports = { handle, requireOwner };
     JS
     cat > tests/export.test.js <<'JS'
     const test = require("node:test");
