@@ -54,10 +54,10 @@ principle updates that index in the same change.
 ## Formats
 
 `.agents/formats/` holds the formats of the artifacts the skill chain shares (`CONTEXT.md`, an ADR,
-a spec, a journey), one per file, indexed in its `README.md`, per `docs/adr/0004`. A skill that
-writes or reads one links the file by relative path: never a copy, and never a link into another
-skill's folder. A format read by one skill only stays in that skill's `references/`. Adding,
-renaming or removing a format updates the index in the same change.
+a spec, a journey, a ticket), one per file, indexed in its `README.md`, per `docs/adr/0004`. A
+skill that writes or reads one links the file by relative path: never a copy, and never a link
+into another skill's folder. A format read by one skill only stays in that skill's `references/`.
+Adding, renaming or removing a format updates the index in the same change.
 
 ## Vendored dependencies
 

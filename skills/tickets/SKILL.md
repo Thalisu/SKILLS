@@ -149,55 +149,25 @@ Iterate until the user approves the breakdown. Nothing is published before that.
 Publish the approved tickets the way the tracker file describes. The tickets are the same either
 way; only the shape of the blocking edges changes.
 
+Every ticket is written in the format of
+[.agents/formats/ticket-format.md](../../.agents/formats/ticket-format.md), which carries both
+shapes. `ready-for-agent` is the first word of its status walk and the only one `tickets` writes;
+`do` writes the next two. The `## Evidence` heading is published empty, for `do` to fill at the
+close.
+
 - **Local markdown**: one file per ticket under `.scratch/<feature-slug>/issues/<NN>-<slug>.md`
   (or `issues/` beside a spec that lives elsewhere), numbered from `01` in dependency order
-  (blockers first), in the local template below. Each file's "Blocked by" lists the numbers and
+  (blockers first), in the format's local shape. Each file's "Blocked by" lists the numbers and
   titles it depends on. Never a single combined file.
 - **A real tracker (GitHub, GitLab, Linear)**: one issue per ticket in dependency order (blockers
-  first), so each ticket's blocking edges reference real identifiers, in the issue template below.
+  first), so each ticket's blocking edges reference real identifiers, in the format's issue shape.
   Use the platform's native blocking or sub-issue relationship where it has one; otherwise
   "Blocked by" names the blocking issues. Apply the `ready-for-agent` triage label unless told
   otherwise: the tickets are agent-grabbable by construction.
 
 Never close or modify the parent.
 
-<local-ticket-template>
-
-# <NN>: <Ticket title>
-
-**What to build:** the end-to-end behaviour this ticket makes work, from the actor's perspective, not a layer-by-layer implementation list.
-
-**Blocked by:** the numbers and titles of the tickets that gate this one, or "None (can start immediately)".
-
-**Status:** ready-for-agent
-
-- [ ] Acceptance criterion 1
-- [ ] Acceptance criterion 2
-
-</local-ticket-template>
-
-<issue-template>
-
-## Parent
-
-A reference to the parent spec on the tracker (omit when the source was not an issue).
-
-## What to build
-
-The end-to-end behaviour this ticket makes work, from the actor's perspective, not layer by layer.
-
-## Acceptance criteria
-
-- [ ] Criterion 1
-- [ ] Criterion 2
-
-## Blocked by
-
-- A reference to each blocking ticket, or "None (can start immediately)".
-
-</issue-template>
-
-In either form, no file paths and no code snippets: they go stale fast. The one exception is a
+In either shape, no file paths and no code snippets: they go stale fast. The one exception is a
 snippet a prototype produced, or the journey's `Settled by prototype:` line, when it encodes a
 decision more precisely than prose can (a state machine, a reducer, a schema, a type shape):
 inline the decision-rich part, trimmed, and say in a line where it came from.

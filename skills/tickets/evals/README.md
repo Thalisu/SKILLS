@@ -12,7 +12,8 @@ either.
 
 Every fixture is synthetic: a small notes module, a local-markdown tracker file, a spec in the
 format `spec` writes with its `Journey:` verdict under the title and, where the case needs one, a
-journey in the sections `tickets` reads.
+journey in the sections `tickets` reads. The idempotency case also plants one published ticket, in
+the local shape of the ticket format `tickets` links.
 
 | case | checks |
 |---|---|

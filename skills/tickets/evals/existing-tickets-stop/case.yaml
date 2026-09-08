@@ -139,6 +139,8 @@ context:
     **Status:** ready-for-agent
 
     - [ ] Picking Archive removes the note from the list and shows the Archived line
+
+    ## Evidence
     MD
     git init -q -b main
     git -c user.email=fixture@example.com -c user.name=fixture add -A
