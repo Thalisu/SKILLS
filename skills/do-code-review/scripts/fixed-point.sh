@@ -12,7 +12,13 @@
 # dirty (yes when the working tree has uncommitted or untracked changes), ref (the ref given, or
 # none), fixed_point (the full sha), base (only when inferred), diff (the command that shows the
 # working tree against the fixed point), commits (the commits between the fixed point and HEAD),
-# and review (the Review's path in the scratch reviews folder).
+# review (the Review's path in the scratch reviews folder), issue (a number in the branch name,
+# else one written as #<n> in a commit subject since the fixed point, else none), ticket (a Ticket
+# file under .scratch/*/issues/ named after the branch's slug, else none), spec (the spec beside
+# that Ticket, else the one spec in the usual spec homes, .scratch/<x>/spec.md, docs/specs/<x>.md,
+# specs/<x>.md, whose <x> is the slug or contains it, else none when there is none or more than
+# one), tracker (yes when docs/agents/issue-tracker.md exists) and scratch_ignored (yes when git
+# ignores .scratch).
 # Exit codes: 0 the door holds · 1 a refusal, with refusal=<the one line to print> · 2 usage, or not
 # a git repository.
 set -uo pipefail
@@ -53,6 +59,28 @@ if git diff --quiet "$fixed" && [ -z "$(git ls-files --others --exclude-standard
   refuse "no diff between $label and the working tree; nothing reviewed"
 fi
 
+core="${branch##*/}"
+core="$(sed -E 's/^[0-9]+-//' <<<"$core")"
+issue="$(grep -oE '(^|/)[0-9]+-' <<<"$branch" | head -1 | tr -dc '0-9')"
+[ -n "$issue" ] || issue="$(git log --format=%s "$fixed..HEAD" | grep -oE '#[0-9]+' | head -1 | tr -d '#')"
+ticket=none
+for f in .scratch/*/issues/[0-9][0-9]-"$core".md; do [ -f "$f" ] && { ticket="$f"; break; }; done
+spec=none
+if [ "$ticket" != none ] && [ -f "$(dirname "$(dirname "$ticket")")/spec.md" ]; then
+  spec="$(dirname "$(dirname "$ticket")")/spec.md"
+else
+  exact=""; containing=()
+  for f in .scratch/*/spec.md docs/specs/*.md specs/*.md; do
+    [ -f "$f" ] || continue
+    case "$f" in .scratch/*) x="$(basename "$(dirname "$f")")" ;; *) x="$(basename "$f" .md)" ;; esac
+    if [ "$x" = "$core" ]; then exact="$f"; break; fi
+    if [[ "$x" == *"$core"* || "$core" == *"$x"* ]]; then containing+=("$f"); fi
+  done
+  if [ -n "$exact" ]; then spec="$exact"; elif [ "${#containing[@]}" = 1 ]; then spec="${containing[0]}"; fi
+fi
+if [ -f docs/agents/issue-tracker.md ]; then tracker=yes; else tracker=no; fi
+if git check-ignore -q .scratch; then scratch_ignored=yes; else scratch_ignored=no; fi
+
 echo "branch=$branch"
 echo "slug=$slug"
 echo "head=$head"
@@ -63,4 +91,9 @@ echo "fixed_point=$fixed"
 echo "diff=git diff $fixed"
 echo "commits=$(git rev-list --count "$fixed..HEAD")"
 echo "review=.scratch/reviews/$slug.md"
+echo "issue=${issue:-none}"
+echo "ticket=$ticket"
+echo "spec=$spec"
+echo "tracker=$tracker"
+echo "scratch_ignored=$scratch_ignored"
 exit 0

@@ -103,4 +103,54 @@ git checkout -q --detach
 run trunk
 check "a detached HEAD has HEAD for its branch" 0 "$rc" "branch=HEAD" "slug=HEAD"
 
+# The spec source candidates, the issue reference, the tracker file and the ignore state.
+cd "$tmp/repo" && git checkout -q feat/7-export
+run
+check "a branch with no spec home names none" 0 "$rc" "issue=7" "spec=none" "ticket=none" "tracker=no" "scratch_ignored=no"
+mkdir -p .scratch/export-notes .scratch/archive
+printf '# Export notes\n' > .scratch/export-notes/spec.md
+printf '# Archive\n' > .scratch/archive/spec.md
+run
+check "a spec whose folder contains the branch's slug is the candidate" 0 "$rc" "spec=.scratch/export-notes/spec.md"
+mkdir -p .scratch/export && printf '# Export\n' > .scratch/export/spec.md
+run
+check "an exact match wins over a containing one" 0 "$rc" "spec=.scratch/export/spec.md"
+mkdir -p docs/agents && printf '# Issue tracker\n' > docs/agents/issue-tracker.md
+printf '.scratch\n' > .gitignore
+run
+check "the tracker file and the ignore state are named" 0 "$rc" "tracker=yes" "scratch_ignored=yes"
+rm -r .scratch docs .gitignore
+
+# The issue reference comes from the branch name first, then from the commit subjects.
+git checkout -q -b export-notes main
+printf 'x\n' > x.txt && git add x.txt && git commit -q -m "export notes (#42)"
+run
+check "an issue named in a commit subject is the reference" 0 "$rc" "issue=42" "slug=export-notes"
+git checkout -q -b plain main
+printf 'y\n' > y.txt && git add y.txt && git commit -q -m "plain"
+run
+check "no number anywhere names none" 0 "$rc" "issue=none"
+
+# A do/<slug> branch finds its Ticket by slug, and the spec beside its issues folder.
+git checkout -q -b do/export-notes main
+printf 'z\n' > z.txt && git add z.txt && git commit -q -m "build"
+mkdir -p .scratch/export-notes/issues .scratch/archive-notes
+printf '# 02: Export notes\n' > .scratch/export-notes/issues/02-export-notes.md
+printf '# Export notes\n' > .scratch/export-notes/spec.md
+printf '# Archive notes\n' > .scratch/archive-notes/spec.md
+run
+check "a do branch finds its Ticket and the spec beside it" 0 "$rc" \
+  "ticket=.scratch/export-notes/issues/02-export-notes.md" "spec=.scratch/export-notes/spec.md" "slug=do-export-notes"
+rm -r .scratch
+
+# More than one containing match is ambiguous: none.
+git checkout -q -b notes main
+printf 'w\n' > w.txt && git add w.txt && git commit -q -m "notes"
+mkdir -p .scratch/export-notes .scratch/archive-notes
+printf '# Export notes\n' > .scratch/export-notes/spec.md
+printf '# Archive notes\n' > .scratch/archive-notes/spec.md
+run
+check "two containing matches name none" 0 "$rc" "spec=none"
+rm -r .scratch
+
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi
