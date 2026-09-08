@@ -117,12 +117,9 @@ a pass on it.
 `do-code-review` is a reach-for-it-anytime standalone: you type it on any branch, at any point in
 the work, as often as you like. [do](../skills/do/SKILL.md) is its second caller and the only
 other one: at its review step it hands over the Ticket it built together with the branch's fixed
-point, so the Review lands beside that Ticket and names it in its header.
-
-In this checkout that step is not wired yet: `do` stops after its gate, its review step reads
-`skip: do-code-review not listed`, and its reply names the review and the landing as what you run
-next. So a Ticket `do` just built is reviewed by typing the skill on the worktree's branch it left
-behind, with the Ticket's path as the argument.
+point, so the Review lands beside that Ticket and names it in its header. `do` reads the outcome
+off the return and never opens the file, and it never fixes a Finding itself. On a machine where
+the skill is not installed, `do` says so, lands nothing and names the review as your next step.
 
 - [discuss](discuss.md), [spec](spec.md) and [tickets](tickets.md), because the spec and the
   Ticket they produce are what the Spec Axis reads.

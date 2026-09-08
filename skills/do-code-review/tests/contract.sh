@@ -166,9 +166,10 @@ has "the docs page names do as the second caller and both homes of the Review" "
 has "the run's last line names the ignore state either way" "$agent_md" "scratch_ignored=no" "scratch_ignored=yes"
 has "the docs page's working check holds in both ignore states" "$page" "is not ignored, nothing new when it is"
 # The page's claim about do and do's own review step move together, so the page never promises a
-# call do does not make.
-do_step="$repo/skills/do/references/ticket.md"
-if grep -qF -- "skip: do-code-review not listed" "$do_step"; then
+# call do does not make. The key is whether do's mechanics make the call, not whether they still
+# name the skip: the skip survives as the fallback for a session without the skill.
+do_step="$repo/skills/do/references/mechanics.md"
+if ! grep -qF -- 'Call the Skill tool with `do-code-review`' "$do_step"; then
   has "the docs page says do's review step is not wired yet" "$page" "that step is not wired yet"
   lacks "the docs page promises no call do does not make" "$page" \
     "calls it at its review step" "calls it once per landing"
