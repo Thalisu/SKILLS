@@ -1,0 +1,69 @@
+name: trivial-refuses-dirty-target
+tags: [trivial, door]
+runs: 2
+max_turns: 12
+timeout_seconds: 300
+allowed_tools: [Bash, Read, Edit, Write, Grep, Glob, Agent, Skill]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # A doc typo in a file the developer already modified and did not commit: the change would ride
+    # with their work in progress and a restore would destroy it. The door refuses before any edit,
+    # naming the file; README.md keeps the developer's line and nothing is committed.
+    set -e
+    mkdir -p src
+    cat > package.json <<'JSON'
+    {
+      "name": "notes",
+      "private": true,
+      "type": "module",
+      "scripts": {
+        "typecheck": "node --check src/notes.js",
+        "test": "node --test"
+      }
+    }
+    JSON
+    cat > README.md <<'MD'
+    # Notes
+
+    A notes module. Notes are listd by status, active first.
+    MD
+    cat > src/notes.js <<'JS'
+    const notes = [];
+
+    function nextIdentifier() {
+      return notes.length + 1;
+    }
+
+    export function create(title) {
+      const note = { id: nextIdentifier(), title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+
+    export function list() {
+      return notes.filter((n) => n.status === "active");
+    }
+    JS
+    cat > src/notes.test.js <<'JS'
+    import { test } from "node:test";
+    import assert from "node:assert/strict";
+    import { create, list } from "./notes.js";
+
+    test("create returns an active note with an id", () => {
+      const note = create("a");
+      assert.equal(note.status, "active");
+      assert.ok(note.id >= 1);
+    });
+
+    test("list shows active notes", () => {
+      create("b");
+      assert.ok(list().length >= 1);
+    });
+    JS
+    git init -q -b main
+    git config user.email fixture@example.com
+    git config user.name fixture
+    git add -A
+    git commit -q -m "fixture"
+    printf '\nWork in progress on the intro.\n' >> README.md

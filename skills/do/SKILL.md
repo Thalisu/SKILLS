@@ -16,7 +16,8 @@ Links is the run, and the non-negotiables hold in every run. Every reply opens w
 The argument's shape is read first, then its words. The lines are read in order and the first
 matching line wins, so each line sits above any broader condition it could shadow. An argument
 that opens with a Playbook's name is matched to that Playbook, subject to that Playbook's own door
-checks. A match reads that Playbook's reference and nothing else. A line that matches no Playbook
+checks. A match reads that Playbook's reference, and the references it links, and never another
+Playbook's. A line that matches no Playbook
 ends the run in one message: `Playbook: none` on the first line, then the door with the command
 to type; nothing is written and no reference is read.
 
@@ -30,6 +31,7 @@ to type; nothing is written and no reference is read.
 | a Spec's path, in the format of [spec-format.md](../../.agents/formats/spec-format.md), or a pasted session summary | `Playbook: none`; one line saying a Spec fits no Playbook, since `do` takes one Ticket, with the command: `/tickets <spec>`, or `/journey <spec>` first when the Spec's `Journey:` line reads `required` and no journey sits beside it; `/spec` for a summary, since the discussion already happened |
 | a question: how something works, why it was built that way | `Playbook: none`; `/how` for the mechanism, `/why` for the rationale, `/teach` to understand it end to end |
 | a sketch, a layout, a variant to try | `Playbook: none`; `/prototype` |
+| a change in words that no test could tell before from after: a typo, a doc line, a comment, a formatting fix, a log wording, a rename inside one file, dead code, a lint fix. Never a bug, a new exported symbol, a changed signature or a change the user sees, whatever its size | `trivial` |
 | a feature, and any other request with no Ticket | `Playbook: none`; `/discuss`, or `/spec` when the conversation already holds the discussion |
 
 A matched Playbook whose reference is missing from Links is not installed in this session:
@@ -51,7 +53,11 @@ Each holds in every Playbook.
 
 ## Links
 
-One per reference, read only when a router line names it.
+One per reference. A Playbook's reference is read only when a router line names it; the reply reference is read last by every Playbook.
 
+- [ticket.md](references/ticket.md): the `ticket` Playbook, which links the shared mechanics and the reply reference.
+- [mechanics.md](references/mechanics.md): the shared mechanics the Playbooks that build in a worktree read through their steps: the worktree, the protected branch, the Ticket file, the build loop, the gate.
+- [trivial.md](references/trivial.md): the `trivial` Playbook: its door checks, its steps and the door script they run.
+- [reply.md](references/reply.md): the reply every Playbook writes last, its sections in order.
 - [ticket-format.md](../../.agents/formats/ticket-format.md): the Ticket the `ticket` line matches, and the fields a run reads and writes.
 - [spec-format.md](../../.agents/formats/spec-format.md): the Spec the door recognises, and its `Journey:` line.
