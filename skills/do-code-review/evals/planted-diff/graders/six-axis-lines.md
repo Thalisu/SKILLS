@@ -1,5 +1,5 @@
 ---
 type: llm
-criteria: "The Review's ## Axes section holds exactly six lines, in this order: Correctness, Spec, Standards, Principles, Blast radius, Security. Each of the first five carries a count and its worst Finding by number and Bucket, or `0 findings`. The Security line reads `not run` with a reason in a few words, never `0 findings`."
+criteria: "The Review's ## Axes section holds exactly six lines, in this order: Correctness, Spec, Standards, Principles, Blast radius, Security. Each of them carries a count and its worst Finding by number and Bucket, or `0 findings`. The Security line is the security reviewer's own and reads a count with its worst Finding, since that reviewer ran on this fixture and had the ungated export route to find."
 ---
-One line per Axis, all six, with Security marked not run and its reason.
+One line per Axis, all six, the Security line carrying its own count.

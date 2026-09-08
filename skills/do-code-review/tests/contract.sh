@@ -244,15 +244,16 @@ for case in planted-diff ref-does-not-resolve empty-diff no-spec triggers-pt-br;
   expect "the $case case has its case file, prompt and graders" \
     test -f "$evals/$case/case.yaml" -a -f "$evals/$case/prompt.md" -a -n "$(ls "$evals/$case/graders/"*.md 2>/dev/null)"
 done
-has "the planted diff scaffolds five defects and a clean hunk" "$evals/planted-diff/case.yaml" \
-  "scaffold_script" "correctness" "spec" "standards" "boolean" "outside the diff" "clean hunk"
+has "the planted diff scaffolds six defects and a clean hunk" "$evals/planted-diff/case.yaml" \
+  "scaffold_script" "correctness" "spec" "standards" "boolean" "outside the diff" "security defect" \
+  "requireOwner" "clean hunk"
 has "the planted diff hands a Ticket over as do does" "$evals/planted-diff/case.yaml" \
   ".scratch/export-notes/issues/02-export-notes.md"
 has "the planted diff prompt hands the Ticket's location over" "$evals/planted-diff/prompt.md" \
   "/do-code-review .scratch/export-notes/issues/02-export-notes.md"
 for grader in correctness-in-act-on spec-in-act-on standards-cites-the-rule principles-in-consider \
-  blast-radius-in-act-on clean-hunk-untouched rung-gate location-once six-axis-lines principle-beside-location \
-  reviewer-no-write review-beside-the-ticket; do
+  blast-radius-in-act-on security-in-act-on security-never-in-noted clean-hunk-untouched rung-gate \
+  location-once six-axis-lines principle-beside-location reviewer-no-write review-beside-the-ticket; do
   expect "the planted diff has its $grader grader" test -f "$evals/planted-diff/graders/$grader.md"
 done
 # The planted diff hands its Ticket over, so every grader on that case reads one header and one
@@ -264,6 +265,19 @@ for grader in "$evals"/planted-diff/graders/*.md; do
   lacks "the ${grader##*/} grader carries no header the handed Ticket rules out" "$grader" \
     "Ticket: none" ".scratch/reviews/export-notes.md"
 done
+has "the security grader reads the exploit path at the ungated route" \
+  "$evals/planted-diff/graders/security-in-act-on.md" \
+  "src/routes.js" "requireOwner" "exploit path" "Risk:" "Rung: 3"
+has "the Noted grader bans a Security Finding from that Bucket" \
+  "$evals/planted-diff/graders/security-never-in-noted.md" "## Noted" "Security"
+has "the six-axis grader reads a Security count, not an unshipped reviewer" \
+  "$evals/planted-diff/graders/six-axis-lines.md" "Security" "worst"
+lacks "the six-axis grader no longer expects the Security line to read not run" \
+  "$evals/planted-diff/graders/six-axis-lines.md" "not run"
+has "the location grader names whose Finding survives a shared location" \
+  "$evals/planted-diff/graders/location-once.md" "security reviewer"
+has "the no-write grader covers both reviewers" \
+  "$evals/planted-diff/graders/reviewer-no-write.md" "do-code-review-security-reviewer"
 has "the Portuguese trigger fires the skill" "$evals/triggers-pt-br/graders/skill-fired.md" "type: tool_used" "do-code-review"
 has "the Portuguese prompt is bare" "$evals/triggers-pt-br/prompt.md" "revisa esse diff antes de eu dar push"
 expect "a script exercises every scaffold" test -x "$skill/tests/evals.sh"
