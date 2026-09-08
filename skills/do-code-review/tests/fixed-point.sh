@@ -162,4 +162,26 @@ run
 check "two containing matches name none" 0 "$rc" "spec=none"
 rm -r .scratch
 
+# The run's own output never counts as a change: a Review left by a previous run in the scratch
+# reviews folder, or beside a Ticket, neither dirties the tree nor defeats the empty-diff refusal.
+mkdir "$tmp/again" && cd "$tmp/again" && git init -q -b main
+printf 'a\n' > a.txt && git add a.txt && git commit -q -m "first"
+mkdir -p .scratch/reviews && printf '# Review: main\n' > .scratch/reviews/main.md
+run
+check "a previous Review does not defeat the empty-diff refusal" 1 "$rc" \
+  "refusal=no diff between main ($(sha main)) and the working tree; nothing reviewed"
+printf 'b\n' > b.txt
+run
+check "a real change beside the previous Review is still the diff" 0 "$rc" "dirty=yes"
+rm b.txt
+git checkout -q -b topic && printf 'c\n' > c.txt && git add c.txt && git commit -q -m "topic"
+run
+check "a previous Review does not mark the tree dirty" 0 "$rc" "dirty=no" "commits=1"
+git checkout -q main
+mkdir -p .scratch/x/issues && printf '# 01: x\n' > .scratch/x/issues/01-x.md && git add .scratch/x && git commit -q -m "ticket"
+printf '# Review: 01: x\n' > .scratch/x/issues/01-x.review.md
+run
+check "a Review beside a Ticket does not defeat the empty-diff refusal" 1 "$rc" \
+  "refusal=no diff between main ($(sha main)) and the working tree; nothing reviewed"
+
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi

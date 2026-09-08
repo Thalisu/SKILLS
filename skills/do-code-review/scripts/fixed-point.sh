@@ -10,7 +10,9 @@
 #                             itself when it sits on the branch
 #
 # Prints key=value lines: branch, slug (the branch with every slash turned into a dash), head,
-# dirty (yes when the working tree has uncommitted or untracked changes), ref (the ref given, or
+# dirty (yes when the working tree has uncommitted or untracked changes; a Review the run itself
+# leaves, under .scratch/reviews/ or as *.review.md beside a Ticket, never counts, here or in the
+# empty-diff check), ref (the ref given, or
 # none), fixed_point (the full sha), base (only when inferred), diff (the command that shows the
 # working tree against the fixed point), commits (the commits between the fixed point and HEAD),
 # review (the Review's path in the scratch reviews folder), issue (a number in the branch name,
@@ -35,7 +37,8 @@ ref="${1:-}"
 branch="$(git symbolic-ref -q --short HEAD || echo HEAD)"
 slug="${branch//\//-}"
 head="$(short HEAD)"
-if [ -n "$(git status --porcelain)" ]; then dirty=yes; else dirty=no; fi
+own=(':!.scratch/reviews' ':!*.review.md')
+if [ -n "$(git status --porcelain -- . "${own[@]}")" ]; then dirty=yes; else dirty=no; fi
 
 base=""
 if [ -n "$ref" ]; then
@@ -57,7 +60,7 @@ else
   label="$base ($(short "$fixed"))"
 fi
 
-if git diff --quiet "$fixed" && [ -z "$(git ls-files --others --exclude-standard | head -1)" ]; then
+if git diff --quiet "$fixed" -- . "${own[@]}" && [ -z "$(git ls-files --others --exclude-standard -- . "${own[@]}" | head -1)" ]; then
   refuse "no diff between $label and the working tree; nothing reviewed"
 fi
 
