@@ -1,0 +1,104 @@
+name: spec-required-goes-to-journey
+tags: [router, door, chain]
+runs: 2
+max_turns: 8
+timeout_seconds: 300
+allowed_tools: [Bash, Read, Edit, Write]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # A Spec's path whose Journey line reads required, with no journey beside it: the command is
+    # /journey first, since tickets refuses that spec. Nothing written.
+    set -e
+    mkdir -p src .scratch/archive-notes
+    cat > package.json <<'JSON'
+    {
+      "name": "notes",
+      "private": true,
+      "type": "module",
+      "scripts": {
+        "typecheck": "tsc --noEmit",
+        "test": "node --test"
+      }
+    }
+    JSON
+    cat > tsconfig.json <<'JSON'
+    {
+      "compilerOptions": {
+        "strict": true,
+        "target": "ES2022",
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
+        "noEmit": true
+      },
+      "include": ["src"]
+    }
+    JSON
+    cat > src/notes.ts <<'TS'
+    export type Status = "active" | "archived";
+    
+    export interface Note {
+      id: number;
+      title: string;
+      status: Status;
+    }
+    
+    const notes: Note[] = [];
+    
+    export function create(title: string): Note {
+      const note: Note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+    
+    export function list(): Note[] {
+      return notes.filter((n) => n.status === "active");
+    }
+    TS
+    mkdir -p docs/agents
+    cat > docs/agents/issue-tracker.md <<'MD'
+    # Issue tracker: Local Markdown
+    
+    Issues and specs for this repo live as markdown files in `.scratch/`.
+    
+    - One feature per directory: `.scratch/<feature-slug>/`
+    - The spec is `.scratch/<feature-slug>/spec.md`
+    - Implementation issues are one file per ticket at `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01`
+    - Triage state is a `Status:` line near the top of each issue file
+    MD
+    cat > .scratch/archive-notes/spec.md <<'MD'
+    # Archive notes
+    
+    Journey: required
+    Status: ready-for-agent
+    
+    ## Problem Statement
+    
+    Notes pile up in the list and there is no way to put one aside without deleting it.
+    
+    ## Solution
+    
+    A note can be archived. Archived notes leave the list and can be restored from an Archived view.
+    
+    ## User Stories
+    
+    1. As a writer, I want to archive a note, so that it leaves my list without being deleted
+    2. As a writer, I want to see my archived notes, so that I can find one I put aside
+    3. As a writer, I want to restore an archived note, so that it returns to my list
+    
+    ## Implementation Decisions
+    
+    - A note carries a status, active or archived; archiving never deletes
+    - The list shows active notes only; a separate Archived view shows the rest
+    
+    ## Testing Decisions
+    
+    - Behaviour tests through the notes module's exported functions
+    
+    ## Out of Scope
+    
+    - Deleting archived notes permanently
+    MD
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"

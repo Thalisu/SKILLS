@@ -16,12 +16,16 @@ reach it:
 
 The choice is made when the skill is created, recorded in both harnesses at once, and there is no
 third state. In this repo, `discover-setup`, `testing-policy`, `discuss`, `prototype`, `spec`,
-`tickets` and `journey` are user-invoked: the first edits a `CLAUDE.md` and creates links under
-`~/.claude`, the second writes agents, a skill and a marked section into a project, the third
+`tickets`, `journey` and `do` are user-invoked: the first edits a `CLAUDE.md` and creates links
+under `~/.claude`, the second writes agents, a skill and a marked section into a project, the third
 interviews the human, the fourth writes throwaway files into a project, the fifth publishes a spec
 into a project, the sixth publishes tickets to a project's tracker, the seventh interviews the human
-about a spec and writes the journey into a project, and each is the human's call. `discover` and
-`test-triage` are model-invoked. Under `vendor/`, `no-comments` is user-invoked, and `architect`,
+about a spec and writes the journey into a project, the eighth builds one Ticket or one change in a
+project and commits it there, and each is the human's call. `discover` and `test-triage` are
+model-invoked. `do` reaches other skills only through the Skill tool, and only model-invoked ones:
+`do-code-review`, the review it hands its branch to, and the vendored `architect`, `how`, `why`,
+`unslop` and `technical-writing`; a step that names one says in one line what it does when the
+session does not list it. Under `vendor/`, `no-comments` is user-invoked, and `architect`,
 `how`, `why`, `teach`, `unslop`, `technical-writing` and `typescript-best-practices` are
 model-invoked, so a step here may call them through the Skill tool.
 
@@ -53,7 +57,7 @@ chosen together:
   `discover-setup` runs inline because it must ask which scope to install and then edit a
   `CLAUDE.md`; `testing-policy` and `test-triage` run inline because they edit, commit and ask;
   `discuss` and `journey` run inline because an interview needs the human, who is only in the
-  caller's session.
+  caller's session; `do` runs inline because it asks, writes into the project and commits.
 
 Work that must talk to the user or write into the project runs inline. A lookup with a terse output
 contract forks. `prototype` forks the same way, onto the `prototype` agent with `background: false`

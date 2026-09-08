@@ -1,0 +1,194 @@
+name: sketch-goes-to-prototype
+tags: [router, door]
+runs: 2
+max_turns: 6
+timeout_seconds: 300
+allowed_tools: [Bash, Read, Edit, Write]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # A request to try a layout: a throwaway is never built by the skill that lands code. One message
+    # naming /prototype, nothing written.
+    set -e
+    mkdir -p src .scratch/archive-notes
+    cat > package.json <<'JSON'
+    {
+      "name": "notes",
+      "private": true,
+      "type": "module",
+      "scripts": {
+        "typecheck": "tsc --noEmit",
+        "test": "node --test"
+      }
+    }
+    JSON
+    cat > tsconfig.json <<'JSON'
+    {
+      "compilerOptions": {
+        "strict": true,
+        "target": "ES2022",
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
+        "noEmit": true
+      },
+      "include": ["src"]
+    }
+    JSON
+    cat > src/notes.ts <<'TS'
+    export type Status = "active" | "archived";
+    
+    export interface Note {
+      id: number;
+      title: string;
+      status: Status;
+    }
+    
+    const notes: Note[] = [];
+    
+    export function create(title: string): Note {
+      const note: Note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+    
+    export function list(): Note[] {
+      return notes.filter((n) => n.status === "active");
+    }
+    TS
+    mkdir -p docs/agents
+    cat > docs/agents/issue-tracker.md <<'MD'
+    # Issue tracker: Local Markdown
+    
+    Issues and specs for this repo live as markdown files in `.scratch/`.
+    
+    - One feature per directory: `.scratch/<feature-slug>/`
+    - The spec is `.scratch/<feature-slug>/spec.md`
+    - Implementation issues are one file per ticket at `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01`
+    - Triage state is a `Status:` line near the top of each issue file
+    MD
+    cat > .scratch/archive-notes/spec.md <<'MD'
+    # Archive notes
+    
+    Journey: ./journey.md
+    Status: ready-for-agent
+    
+    ## Problem Statement
+    
+    Notes pile up in the list and there is no way to put one aside without deleting it.
+    
+    ## Solution
+    
+    A note can be archived. Archived notes leave the list and can be restored from an Archived view.
+    
+    ## User Stories
+    
+    1. As a writer, I want to archive a note, so that it leaves my list without being deleted
+    2. As a writer, I want to see my archived notes, so that I can find one I put aside
+    3. As a writer, I want to restore an archived note, so that it returns to my list
+    
+    ## Implementation Decisions
+    
+    - A note carries a status, active or archived; archiving never deletes
+    - The list shows active notes only; a separate Archived view shows the rest
+    
+    ## Testing Decisions
+    
+    - Behaviour tests through the notes module's exported functions
+    
+    ## Out of Scope
+    
+    - Deleting archived notes permanently
+    MD
+    cat > .scratch/archive-notes/journey.md <<'MD'
+    # Journey: Archive notes
+    
+    Spec: ./spec.md
+    Actor: writer
+    Entry: the notes list
+    
+    ## Path 1: Archive a note
+    
+    Story: 1
+    Outcome: the note is gone from the list and the writer knows where it went.
+    
+    | Step | Actor sees | Actor does | System answers |
+    |---|---|---|---|
+    | 1 | the list, each note with an Archive action | picks Archive on one note | the note leaves the list; a line says "Archived" with a link to Archived |
+    
+    Failure branches:
+    - Archive picked twice on the same note: the second pick is a no-op
+    
+    ## Path 2: Find and restore an archived note
+    
+    Story: 2, 3
+    Outcome: the note is back in the list.
+    
+    | Step | Actor sees | Actor does | System answers |
+    |---|---|---|---|
+    | 1 | the Archived link with a count | opens it | the Archived view lists archived notes, each with Restore |
+    | 2 | the Archived view | picks Restore on one note | the note leaves the view; a line says "Restored" |
+    
+    Failure branches:
+    - Restore on a note archived twice: the note returns once
+    
+    ## States
+    
+    | State | The actor sees | Actions |
+    |---|---|---|
+    | active | the note in the list | Archive |
+    | archived | the note in the Archived view | Restore |
+    
+    ## Cut
+    
+    - none
+    
+    ## Defaults taken
+    
+    - "Archived" and "Restored" lines are the app's existing status line
+    
+    ## Deferred
+    
+    - none
+    
+    ## Spec changes applied
+    
+    - none
+    
+    ## Reopen in discuss
+    
+    - none
+    MD
+    mkdir -p .scratch/archive-notes/issues
+    cat > .scratch/archive-notes/issues/01-archive-a-note.md <<'MD'
+    # 01: Archive a note
+    
+    **What to build:** Archive a note. The writer picks Archive on a note in the list; the note leaves the list and a line says "Archived" with a link to the Archived view. Picking Archive twice on the same note is a no-op.
+    
+    **Blocked by:** None (can start immediately).
+    
+    **Status:** ready-for-agent
+    
+    - [ ] Each note in the list carries an Archive action
+    - [ ] Picking Archive removes the note from the list and shows the "Archived" line with a link to Archived
+    - [ ] Archive picked twice on the same note leaves it archived once
+    
+    ## Evidence
+    MD
+    cat > .scratch/archive-notes/issues/02-find-and-restore-a-note.md <<'MD'
+    # 02: Find and restore an archived note
+    
+    **What to build:** Find and restore an archived note. The writer opens the Archived view from its link, sees every archived note with a Restore action, and picks Restore; the note returns to the list and a line says "Restored".
+    
+    **Blocked by:** 01 Archive a note.
+    
+    **Status:** ready-for-agent
+    
+    - [ ] The Archived link shows a count and opens the Archived view
+    - [ ] Every archived note in the view carries a Restore action
+    - [ ] Picking Restore returns the note to the list and shows the "Restored" line
+    
+    ## Evidence
+    MD
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"

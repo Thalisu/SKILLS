@@ -1,0 +1,5 @@
+interface:
+  display_name: "Do"
+  short_description: "Match a request to one Playbook and run it: build a Ticket, or send the request to its door"
+policy:
+  allow_implicit_invocation: false
