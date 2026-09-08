@@ -323,11 +323,17 @@ has "the planted diff prompt hands the Ticket's location over" "$evals/planted-d
 for grader in correctness-in-act-on spec-in-act-on standards-cites-the-rule principles-in-consider \
   blast-radius-in-act-on security-in-act-on security-never-in-noted clean-hunk-untouched rung-gate \
   location-once six-axis-lines principle-beside-location reviewer-no-write review-beside-the-ticket \
-  one-safety-fact; do
+  one-safety-fact fixed-and-landed; do
   expect "the planted diff has its $grader grader" test -f "$evals/planted-diff/graders/$grader.md"
 done
 # The planted diff hands its Ticket over, so every grader on that case reads one header and one
 # home for the Review: the file beside the Ticket, never the scratch reviews folder.
+# The default run fixes and lands, per ADR 0015, so no grader on it may claim the Review is the
+# only thing the run left behind.
+lacks "no planted-diff grader claims the Review is the only new path" \
+  "$evals/planted-diff/graders/reviewer-no-write.md" "the only new path"
+has "the planted diff grades the default fix and the landing" \
+  "$evals/planted-diff/graders/fixed-and-landed.md" "## Fix run" "landed at" "git push"
 has "the header grader reads the handed Ticket in the header" \
   "$evals/planted-diff/graders/review-shows-in-status-line.md" \
   "Ticket: .scratch/export-notes/issues/02-export-notes.md"
