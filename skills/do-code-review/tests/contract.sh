@@ -375,6 +375,17 @@ ordered "the docs page keeps the contract's section order" "$page" \
 has "the docs page states the invocation mode and the leading words" "$page" \
   "Type \`/do-code-review\`" "reaches for it automatically" "Axis" "Bucket" "Rung" "../README.md" "/code-review"
 lacks "the docs page carries no install command" "$page" "ln -s" "git clone"
+has "the docs page covers the fix call and the hand-off by editing the file" "$page" \
+  "/do-code-review fix" "--no-fix" "## Act on" "by hand" "Fixer"
+has "the docs page says what never leaves the machine" "$page" \
+  "Nothing is pushed" "git push"
+lacks "the docs page no longer says the Review is all the run leaves" "$page" \
+  "The Review, and nothing else" "which ships separately; until then"
+has "the docs page carries the fix run's own working check" "$page" "## Fix run"
+has "the invocation row names the Fixer beside the reviewers" "$repo/.agents/invocation.md" \
+  "forks the reviewers below with the Agent tool" "the Fixer"
+has "both README rows say the run fixes and lands" "$repo/README.md" "fixes its \`Act on\` Findings and lands"
+has "the skills README row says the run fixes and lands" "$repo/skills/README.md" "fixes its \`Act on\` Findings and lands"
 has "the docs page states the no-write claim as a check, not a tool property" "$page" "compares"
 has "the docs page names both reviewers and the retry rule" "$page" \
   "do-code-review-security-reviewer" "attacker's seat" "forked once more"

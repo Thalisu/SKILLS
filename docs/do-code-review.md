@@ -12,6 +12,12 @@ return **Findings**; the orchestrator groups them by **Bucket** and writes the R
 Ticket is, beside the Ticket file when a caller hands one over and in the scratch reviews folder
 named after the branch when nobody does.
 
+Then it fixes what it found. When the Review carries an `Act on` Finding, the orchestrator forks
+the **Fixer** with that list, one commit per Finding under the project's Testing Policy, re-runs
+each Finding's own check and the project's suite itself, appends a `## Fix run` section to the same
+Review, and fast-forwards your branch onto the fixed one when the Review is **Green**. Nothing is
+pushed: the run ends with the `git push` command for you to type.
+
 Every Finding carries a **Rung**, how far the review climbed to back it, and nothing at Rung 1 or
 2 reaches `Act on`, whatever it looks like: a claim the review could not walk or run stays a
 judgment call in `Consider`, so nothing is fixed on a hunch. A Security Finding is the one that
@@ -39,6 +45,8 @@ push, in English or in Portuguese ("revisa esse diff").
 | review since a commit, a branch or a tag | `/do-code-review <ref>` |
 | a pull request you want reviewed and posted on GitHub | the bundled `/code-review`, which this skill leaves untouched |
 | the Ticket `do` just built | `/do-code-review <the Ticket's path>` on its worktree's branch, which puts the Review beside the Ticket |
+| read the Review before any agent touches the branch | `/do-code-review --no-fix`, which writes the file and stops |
+| fix a Review you have edited by hand | `/do-code-review fix <the Review's path>` |
 
 The session shows nothing while the run is in flight, as [prototype](prototype.md) does; the
 Review's text lands in the thread when it is written, with its location. The prose comes back in
@@ -93,11 +101,27 @@ so you can overrule). The **Rung** decides which of the first two a Finding can 
 The spec the run judges against is found, never asked for: an issue through the project's tracker
 file, else a spec file matching the branch in the usual spec homes, else `no spec`.
 
+## The fix, and the hand-off
+
+The Review on disk is the hand-off. Open it, and the `## Act on` section is the list the Fixer
+works from: delete a Finding you overrule, move a `Consider` you want fixed up into `Act on`, and
+the file is what the run reads next. With a clean tree, type `/do-code-review fix` with its path
+and the run does the same fixing, proving and landing the default run does, from the list as you
+left it. It touches nothing in `Consider`, `Noted` or `Cleared`, so the judgment calls stay yours.
+
+A `fix` call stops in one line, before anything is written, when the Review is not there, when its
+fixed point no longer resolves, or when your working tree has uncommitted changes. The tree has to
+be clean because the Review judged a diff, and a Fixer let loose on a tree nobody reviewed would
+commit work nobody read. An `Act on` location you changed since the review comes back `stale`, left
+alone.
+
 ## What the run leaves behind
 
-The Review, and nothing else. Proof scripts run in a temporary directory outside every
-repository; nothing is installed, committed or pushed. The report's section names and labels are
-fixed and in English, so a caller reads the Buckets off it by name.
+The Review, the Fixer's commits on the branch it reviewed, and your branch fast-forwarded onto
+them. Nothing is pushed, on any path, and the last line of the run is the `git push` you type
+yourself. Proof scripts run in a temporary directory outside every repository, and nothing is
+installed. The report's section names and labels are fixed and in English, so a caller reads the
+Buckets off it by name.
 
 ## Common questions
 
@@ -106,6 +130,13 @@ Because a user skill named `code-review` would replace the bundled `/code-review
 that installs this repo. The `do-` prefix keeps both: this skill for a branch on the machine,
 judged against the spec the chain wrote and this repo's principles, with each Finding proven to a
 Rung; the bundled one for a pull request you want posted on GitHub.
+
+**Why does the review fix and land, and not `do`?**
+Because one fixer for every caller is cheaper than one per caller. A Review that stopped at the
+document cost a human read, or a second full review, before a branch with an `Act on` Finding
+could land. The Fixer touches only `Act on`, which is Rung 3 or above with its check named, works
+in a worktree, and lands by fast-forward with nothing pushed, so the blast radius of letting it
+write is bounded. `/do-code-review --no-fix` is there for when you want to read first.
 
 **Why is security its own agent?**
 Because a security pass reads the same diff with a different question and a different knowledge
@@ -133,6 +164,10 @@ nobody asked is never read as a pass, and the safety fact names the Axis too.
   path and a risk class rather than a checklist item.
 - `git status` after a run agrees with that last line:
   the Review and nothing else when git does not ignore the file, nothing new when it does.
+- A Review that fixed anything carries a `## Fix run` section naming each Finding by number, the
+  suite, and either `landed at <sha>` or `not landed` with its reason and the branch left behind.
+- `git log` on your branch shows the Fixer's commits after a landing, and `git status` shows
+  nothing to push that you did not push yourself.
 
 ## Where it fits
 

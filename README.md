@@ -31,7 +31,7 @@ Reachable by the model on its own, or by the human typing the name.
 | Skill                                        | Purpose                                                                                                                        | Docs                                       |
 | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------ |
 | [`discover`](skills/discover/SKILL.md)       | Batch "does this already exist in the repo?" lookups answered by a Haiku subagent in one line per symbol                       | [docs/discover.md](docs/discover.md)       |
-| [`do-code-review`](skills/do-code-review/SKILL.md) | Review the branch since a fixed point on six Axes, every Finding proven to a Rung and written by Bucket into one Review file beside the branch; the spec Axis reads the spec the chain wrote | [docs/do-code-review.md](docs/do-code-review.md) |
+| [`do-code-review`](skills/do-code-review/SKILL.md) | Review the branch since a fixed point on six Axes, every Finding proven to a Rung and written by Bucket into one Review file beside the branch, then fixes its `Act on` Findings and lands by fast-forward; the spec Axis reads the spec the chain wrote | [docs/do-code-review.md](docs/do-code-review.md) |
 | [`test-triage`](skills/test-triage/SKILL.md) | Run a test target, cluster the failures, auto-fix and commit only the small ones, file a dossier in `docs/tests/` for the rest | [docs/test-triage.md](docs/test-triage.md) |
 
 ## Vendored
