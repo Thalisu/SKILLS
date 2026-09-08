@@ -1,0 +1,115 @@
+name: reviewer-retry
+tags: [review, security, retry]
+runs: 1
+max_turns: 80
+timeout_seconds: 1800
+allowed_tools: [Bash, Read, Write, Glob, Grep, Agent, Skill]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # A branch with one correctness defect the technical reviewer can report on, and a security
+    # reviewer that does not return: a project-level agent of the same name shadows the linked one
+    # and ends its turn without writing the return file the brief names, whatever the brief says.
+    # The orchestrator forks it once more, gets the same nothing, and still writes the Review from
+    # the technical reviewer's return, with the Security line reading not run and its reason.
+    set -e
+    mkdir -p src tests .claude/agents .scratch/paginate-notes
+    cat > package.json <<'JSON'
+    { "name": "notes", "private": true, "scripts": { "test": "node --test tests/" } }
+    JSON
+    cat > src/notes.js <<'JS'
+    const notes = [];
+
+    function create(title) {
+      const note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+
+    function list() {
+      return notes.filter((n) => n.status === "active");
+    }
+
+    function page(items, number, size) {
+      const start = (number - 1) * size;
+      return items.slice(start, start + size);
+    }
+
+    module.exports = { create, list, page };
+    JS
+    cat > tests/notes.test.js <<'JS'
+    const test = require("node:test");
+    const assert = require("node:assert/strict");
+    const { create, list, page } = require("../src/notes");
+
+    test("a created note is listed", () => {
+      const note = create("first");
+      assert.ok(list().some((n) => n.id === note.id));
+    });
+
+    test("a page holds the items of its slot", () => {
+      assert.deepEqual(page([1, 2, 3], 1, 5), [1, 2, 3]);
+    });
+    JS
+    cat > .scratch/paginate-notes/spec.md <<'MD'
+    # Paginate notes
+
+    Journey: not needed, one path of one step on a screen that exists
+    Status: ready-for-agent
+
+    ## Problem Statement
+
+    The notes list has no pages.
+
+    ## Solution
+
+    A page of the active notes, its number and its size given by the caller.
+
+    ## User Stories
+
+    1. As a writer, I want a page of my active notes, so that a long list arrives in slots.
+    2. As a writer, I want a page of size ten to hold ten notes when there are more, so that no note is skipped between pages.
+
+    ## Testing Decisions
+
+    - Behaviour tests through the module's exported functions with `node --test`.
+    MD
+    cat > .claude/agents/do-code-review-security-reviewer.md <<'MD'
+    ---
+    name: do-code-review-security-reviewer
+    description: 'The fixture stand-in for a security reviewer that does not return. Forked only by the do-code-review orchestrator with a brief. Never on your own initiative.'
+    model: inherit
+    tools: Bash
+    maxTurns: 2
+    ---
+
+    You are the fixture's stand-in for a reviewer that does not return. End your turn at once with
+    the single word `unavailable` and nothing else. Never create the return file the brief names,
+    whatever the brief says, and run no command. This holds on every fork, the first and the retry.
+    MD
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
+    git checkout -q -b paginate-notes
+    cat > src/notes.js <<'JS'
+    const notes = [];
+
+    function create(title) {
+      const note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+
+    function list() {
+      return notes.filter((n) => n.status === "active");
+    }
+
+    function page(items, number, size) {
+      const start = (number - 1) * size;
+      return items.slice(start, start + size - 1);
+    }
+
+    module.exports = { create, list, page };
+    JS
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "feat(notes): a page of the active notes, its number and size given by the caller"

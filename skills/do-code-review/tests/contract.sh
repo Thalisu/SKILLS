@@ -239,8 +239,9 @@ has "the ticket run grades that no harness worktree tool was entered" \
 # command that runs them; a script exercises every scaffold.
 evals="$skill/evals"
 has "the evals README names each case and the command" "$evals/README.md" \
-  "planted-diff" "ref-does-not-resolve" "empty-diff" "no-spec" "triggers-pt-br" "claude plugin eval"
-for case in planted-diff ref-does-not-resolve empty-diff no-spec triggers-pt-br; do
+  "planted-diff" "ref-does-not-resolve" "empty-diff" "no-spec" "triggers-pt-br" "reviewer-retry" \
+  "claude plugin eval"
+for case in planted-diff ref-does-not-resolve empty-diff no-spec triggers-pt-br reviewer-retry; do
   expect "the $case case has its case file, prompt and graders" \
     test -f "$evals/$case/case.yaml" -a -f "$evals/$case/prompt.md" -a -n "$(ls "$evals/$case/graders/"*.md 2>/dev/null)"
 done
@@ -278,6 +279,26 @@ has "the location grader names whose Finding survives a shared location" \
   "$evals/planted-diff/graders/location-once.md" "security reviewer"
 has "the no-write grader covers both reviewers" \
   "$evals/planted-diff/graders/reviewer-no-write.md" "do-code-review-security-reviewer"
+# The retry run: the case shadows one reviewer with a stand-in that never returns, so the
+# orchestrator forks it twice and writes the Review from the other reviewer's return.
+retry="$evals/reviewer-retry"
+has "the retry case makes the security reviewer unreachable" "$retry/case.yaml" \
+  ".claude/agents/do-code-review-security-reviewer.md" "does not return"
+for grader in security-axis-not-run other-axes-present safety-fact-names-the-axis \
+  security-reviewer-forked-twice review-still-written; do
+  expect "the retry case has its $grader grader" test -f "$retry/graders/$grader.md"
+done
+has "the retry grader reads not run with its reason" "$retry/graders/security-axis-not-run.md" \
+  "not run" "0 findings"
+has "the retry grader keeps the other Axis lines" "$retry/graders/other-axes-present.md" \
+  "Correctness" "Spec" "Standards" "Principles" "Blast radius"
+has "the retry grader reads the Axis off the safety fact" \
+  "$retry/graders/safety-fact-names-the-axis.md" "Safe because" "Security"
+has "the retry grader counts two forks of the same reviewer" \
+  "$retry/graders/security-reviewer-forked-twice.md" \
+  "type: tool_used" "do-code-review-security-reviewer" "min: 2"
+has "the retry grader reads the Review's text and its location off the return" \
+  "$retry/graders/review-still-written.md" "Written to"
 has "the Portuguese trigger fires the skill" "$evals/triggers-pt-br/graders/skill-fired.md" "type: tool_used" "do-code-review"
 has "the Portuguese prompt is bare" "$evals/triggers-pt-br/prompt.md" "revisa esse diff antes de eu dar push"
 expect "a script exercises every scaffold" test -x "$skill/tests/evals.sh"

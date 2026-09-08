@@ -96,4 +96,19 @@ expect "the tree carries a diff" test -n "$(git status --porcelain)"
 run_door
 check "the door names the case root as the main checkout" 0 "$rc" "main_checkout=$(pwd -P)"
 
+# reviewer-retry: a diff the technical reviewer can report on, with the security reviewer shadowed
+# by a stand-in that never writes its return file.
+expect "reviewer-retry scaffold runs" scaffold reviewer-retry
+expect "the branch carries a diff against main" bash -c 'test -n "$(git diff --name-only main)"'
+expect "the stand-in shadows the security reviewer in the project" \
+  test -f .claude/agents/do-code-review-security-reviewer.md
+expect "the stand-in writes no return file and ends at once" \
+  grep -q "create the return file the brief names" .claude/agents/do-code-review-security-reviewer.md
+expect "the technical reviewer is not shadowed" \
+  bash -c '! test -e .claude/agents/do-code-review-technical-reviewer.md'
+expect "the technical reviewer has a defect to report" quiet node -e 'const { page } = require("./src/notes"); process.exit(page([...Array(11).keys()], 1, 10).length === 9 ? 0 : 1)'
+run_door
+check "the door reads the retry fixture" 0 "$rc" "branch=paginate-notes" "dirty=no" "base=main" \
+  "spec=.scratch/paginate-notes/spec.md"
+
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi

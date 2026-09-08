@@ -20,6 +20,7 @@ its suite, so it runs offline with node alone. The planted diff keeps its Ticket
 | `empty-diff` | a clean tree on the base branch ends in one line, `no diff between main (<sha>) and the working tree; nothing reviewed`, and writes nothing |
 | `no-spec` | a branch with no spec and no tracker file: five Axes reported, the Spec line reading `no spec`, nothing asked, the Review named after the branch |
 | `triggers-pt-br` | a bare "revisa esse diff antes de eu dar push" fires the skill |
+| `reviewer-retry` | a project-level stand-in shadows the security reviewer and never returns: it is forked twice, the Review is written from the technical reviewer's return, the Security line reads `not run` with its reason, the safety fact names that Axis, and the run still ends with the Review's text and its location |
 
 Run from the skill directory, granting the tools the run needs and opting in to the scaffold
 scripts:
