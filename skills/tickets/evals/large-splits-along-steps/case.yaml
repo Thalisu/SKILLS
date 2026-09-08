@@ -1,0 +1,188 @@
+name: large-splits-along-steps
+tags: [workflow, cut, split]
+runs: 2
+max_turns: 20
+timeout_seconds: 400
+allowed_tools: [Bash, Read, Edit, Write, Agent]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # A journey with one path of ten steps that crosses every module in the repo, adds a storage
+    # migration and a background job: one ticket for the whole path lands in the large band, so the
+    # run splits it along its steps into several demoable tickets, none of them large.
+    set -e
+    mkdir -p src/ui docs/agents .scratch/import-notes
+    cat > src/notes.js <<'JS'
+    const notes = [];
+    function create(title, body) {
+      const note = { id: notes.length + 1, title, body, tags: [], status: "active" };
+      notes.push(note);
+      return note;
+    }
+    function list() {
+      return notes.filter((n) => n.status === "active");
+    }
+    function find(id) {
+      return notes.find((n) => n.id === id);
+    }
+    module.exports = { create, list, find };
+    JS
+    cat > src/tags.js <<'JS'
+    const tags = new Map();
+    function tag(note, name) {
+      if (!tags.has(name)) tags.set(name, new Set());
+      tags.get(name).add(note.id);
+      note.tags.push(name);
+    }
+    function byTag(name) {
+      return [...(tags.get(name) || [])];
+    }
+    module.exports = { tag, byTag };
+    JS
+    cat > src/storage.js <<'JS'
+    const fs = require("fs");
+    const FILE = "notes.v1.json";
+    function load() {
+      return fs.existsSync(FILE) ? JSON.parse(fs.readFileSync(FILE, "utf8")) : [];
+    }
+    function save(notes) {
+      fs.writeFileSync(FILE, JSON.stringify(notes));
+    }
+    module.exports = { load, save, FILE };
+    JS
+    cat > src/jobs.js <<'JS'
+    const queue = [];
+    function enqueue(name, run) {
+      queue.push({ name, run, progress: 0 });
+    }
+    function tick() {
+      const job = queue[0];
+      if (!job) return null;
+      job.progress = job.run(job.progress);
+      if (job.progress >= 100) queue.shift();
+      return job;
+    }
+    module.exports = { enqueue, tick };
+    JS
+    cat > src/ui/list.js <<'JS'
+    const { list } = require("../notes");
+    function render() {
+      return list().map((n) => `${n.id} ${n.title} [${n.tags.join(", ")}]`).join("\n");
+    }
+    module.exports = { render };
+    JS
+    cat > docs/agents/issue-tracker.md <<'MD'
+    # Issue tracker: Local Markdown
+
+    Issues and specs for this repo live as markdown files in `.scratch/`.
+
+    - One feature per directory: `.scratch/<feature-slug>/`
+    - The spec is `.scratch/<feature-slug>/spec.md`
+    - Implementation issues are one file per ticket at `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01`
+    - Triage state is a `Status:` line near the top of each issue file
+    MD
+    cat > .scratch/import-notes/spec.md <<'MD'
+    # Import notes from a file
+
+    Journey: ./journey.md
+    Status: ready-for-agent
+
+    ## Problem Statement
+
+    A writer arriving from another app has hundreds of notes in a CSV export and no way in but
+    retyping them.
+
+    ## Solution
+
+    An Import action on the list takes a CSV file, shows what it read, lets the writer map its
+    columns and pick tags, skips or merges duplicates, runs the import in the background with
+    progress, shows a report, and can undo the whole import.
+
+    ## User Stories
+
+    1. As a writer, I want to import a CSV of notes, so that my old notes land in the app without retyping
+    2. As a writer, I want to see and fix what the file was read as before anything lands, so that a wrong column never becomes a wrong note
+    3. As a writer, I want duplicates handled and the import undoable, so that a bad file costs me nothing
+
+    ## Implementation Decisions
+
+    - The storage file moves from notes.v1.json to notes.v2.json with an import id on every note; existing files are migrated on first load
+    - The import runs as a background job with progress; the list stays usable while it runs
+    - A duplicate is a note with the same title; the writer picks skip or merge per file, not per note
+    - Undo removes every note carrying the import id and restores the notes a merge replaced
+
+    ## Testing Decisions
+
+    - Behaviour tests through the notes, tags, storage and jobs modules' public functions
+    - One fixture CSV of two hundred rows with duplicates and a broken row
+
+    ## Out of Scope
+
+    - Importing from anything but CSV
+    - Importing archived notes
+    MD
+    cat > .scratch/import-notes/journey.md <<'MD'
+    # Journey: Import notes from a file
+
+    Spec: ./spec.md
+    Actor: writer
+    Entry: the Import action on the notes list
+
+    ## Path 1: Import a file of notes
+
+    Story: 1, 2, 3
+    Outcome: every note in the file is in the list, tagged, with a report of what happened and one Undo.
+
+    | Step | Actor sees | Actor does | System answers |
+    |---|---|---|---|
+    | 1 | the list with an Import action | picks Import and chooses a CSV file | a preview shows the first ten rows as the file was read, with the column headers |
+    | 2 | the preview | picks which column is the title, which is the body, which are tags | the preview re-renders as notes: title, body, tags |
+    | 3 | the preview as notes | nothing | rows the file could not read are marked "Skipped, unreadable" with the row number |
+    | 4 | the preview with a count of duplicates by title | picks Skip duplicates or Merge into existing | the count reads "N will be skipped" or "N will be merged" |
+    | 5 | a tag picker with the tags found in the file | adds a tag for the whole import, or none | every previewed note shows the added tag |
+    | 6 | a Start import action with the totals | picks it | the list is back, with an import bar showing progress and "Importing 200 notes" |
+    | 7 | the list, notes arriving | keeps using the list | the bar fills; the arriving notes carry an import mark |
+    | 8 | the bar at 100 | nothing | a report replaces the bar: imported, merged, skipped, unreadable, each a count, with Undo |
+    | 9 | the report | opens the merged count | the merged notes are listed, each with what the merge replaced |
+    | 10 | the report | picks Undo | every imported note is gone, every merge is reversed, a line says "Import undone" |
+
+    Failure branches:
+    - The file is not a CSV: a line says "Not a CSV file" and nothing is read
+    - The file has no title column mapped: Start import is disabled with "Pick a title column"
+    - The app is closed during the import: on reopen the bar resumes from where it was
+    - The storage file is still notes.v1.json: it is migrated before the preview, silently
+    - Undo picked twice: the second pick is a no-op, the line still says "Import undone"
+    - A merge replaces a note the writer edited since: the report marks it "merged over an edit"
+
+    ## States
+
+    | State | The actor sees | Actions |
+    |---|---|---|
+    | no import | the list with Import | Import (Path 1, to previewing) |
+    | previewing | the preview, the duplicate choice, the tag picker | Start import (Path 1, to importing) |
+    | importing | the list with the bar | wait (Path 1, to reported) |
+    | reported | the report with Undo | Undo (Path 1, to no import) |
+
+    ## Cut
+
+    - A per-note duplicate choice: one choice per file is the whole path
+
+    ## Defaults taken
+
+    - The preview shows ten rows: the app's existing page size
+
+    ## Deferred
+
+    - Importing tags as separate columns: reopens when a second export format is supported
+
+    ## Spec changes applied
+
+    - none
+
+    ## Reopen in discuss
+
+    - none
+    MD
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"

@@ -1,6 +1,6 @@
 ---
 name: tickets
-description: "Cut a spec, and the journey its verdict points at, into tracer-bullet tickets: one demoable vertical slice per ticket, each declaring the tickets that block it, published one file per ticket locally or one issue per ticket on the project's tracker. Stops before writing anything when the journey is required but missing, contested, or already ticketed."
+description: "Cut a spec, and the journey its verdict points at, into tracer-bullet tickets: one demoable vertical slice per ticket, sized by a token estimate, each declaring the tickets that block it, with the edges, folds and splits decided by the skill and only the approval asked. Published one file per ticket locally or one issue per ticket on the project's tracker. Stops before writing anything when the journey is required but missing, contested, or already ticketed."
 disable-model-invocation: true
 argument-hint: "[the spec: a path, the feature slug, or an issue reference]"
 ---
@@ -10,17 +10,21 @@ argument-hint: "[the spec: a path, the feature slug, or an issue reference]"
 Every message to the user is written in the language the user opened the session in. Everything
 written into the repository or the tracker is in **English**.
 
-Ground → stop on a broken input → explore → draft the slices → quiz → publish → close.
+Ground → stop on a broken input → explore → draft the slices → approve → publish → close.
 
 Vocabulary, used consistently: _ticket_ (one demoable slice cut from a spec, and from its journey
-when it has one: a narrow but complete path through every layer, sized to fit one session),
-_blocking edge_ (a ticket that must complete before another can start), _frontier_ (every ticket
-whose blockers are all done), _path_ (one thing the actor sets out to do end to end, as the journey
-walked it), _verdict_ (the `Journey:` line under the spec's title: `required`, `not needed` with
-the condition, or the journey's location once it is written), _tracker file_
-(`docs/agents/issue-tracker.md`, which says where specs and tickets live in this project), _parent_
-(the spec the tickets hang from), _stop_ (the run ending on a broken input, with one message and
-nothing written).
+when it has one: a narrow but complete path through every layer, sized by the tokens `do` is
+estimated to spend on it), _band_ (where a ticket's estimate falls: small under 150k tokens, medium
+up to 200k, large beyond), _blocking edge_ (a ticket that must complete before another can start,
+because the other reads what it writes), _fold_ (a small ticket merged into the one neighbour its
+single edge ties it to), _split_ (a large ticket cut along its steps into pieces, none of them
+large), _placement_ (a stray piece of work put in the ticket that builds what it describes),
+_frontier_ (every ticket whose blockers are all done), _path_ (one thing the actor sets out to do
+end to end, as the journey walked it), _verdict_ (the `Journey:` line under the spec's title:
+`required`, `not needed` with the condition, or the journey's location once it is written), _tracker
+file_ (`docs/agents/issue-tracker.md`, which says where specs and tickets live in this project),
+_parent_ (the spec the tickets hang from), _stop_ (the run ending on a broken input, with one
+message and nothing written).
 
 ## 1. Ground
 
@@ -96,22 +100,38 @@ Cut the work into tracer-bullet tickets.
 - Each slice cuts a narrow but complete path through every layer (schema, API, UI, tests):
   vertical, never a horizontal slice of one layer.
 - A completed slice is demoable or verifiable on its own.
-- Each slice is sized to fit in a single fresh context window.
+- Each slice carries an estimate of the tokens `do` will spend on it and the band it falls in. The
+  estimate is reasoned from what the slice crosses (the modules touched, the tests written, a
+  migration or not) and that reasoning is stated with it, so a reader can check the number. A
+  large slice is never published.
 - Any prefactoring comes first.
 
 **With a journey**, one path is one ticket, as the starting cut. The path's outcome is its "What to
 build", opening with the path's name. Its step table rows and its failure branches are the
 acceptance criteria, in the actor's words. `## States` orders the tickets and draws the blocking
-edges: a path that needs state another path creates is blocked by it (create before edit before
-delete). `## Cut` and `## Deferred` are never ticketed, and are listed in the quiz message under
-what was left out. A path's `Settled by prototype:` line, when the journey carries one, may be
-inlined under the snippet rule in step 5. A path too large for one context window is split along
-its steps, every piece still demoable.
+edges: a path that needs state another path creates is blocked by the path that creates it.
+`## Cut` and `## Deferred` are never ticketed, and are listed in the breakdown message under what
+was left out. A path's `Settled by prototype:` line, when the journey carries one, may be
+inlined under the snippet rule in step 5. A large path is split along its steps, every piece still
+demoable and none of them large.
 
 **Without a journey**, the User Stories are the paths, cut by the same rules.
 
-Give each ticket its blocking edges: the tickets that must complete before it can start. A ticket
-with no blockers can start immediately.
+Give each ticket its blocking edges: a ticket that reads what another ticket writes (a state, a
+section, a symbol) is blocked by the ticket that writes it, never by an earlier one, and a stub
+that would let it start sooner is never cut. Each edge names what is read and which ticket writes
+it. A ticket with no blockers can start immediately.
+
+**Splits, folds and placement.** Splits come first: a large ticket is cut along its steps, and the
+pieces of one split never fold back into each other. Then a small ticket whose single edge ties it
+to one neighbour is folded into that neighbour when the fold delays no ticket's start and the
+merged estimate stays medium at most: into its only blocker, or into its only dependent when that
+dependent has no other blocker, since folding into a neighbour that waits on something else would
+hold the small ticket's work behind it. The merged ticket keeps the earlier ticket's title and
+place and names every path it realises. A medium ticket is left as cut. A stray piece of work (a
+README line, a page re-synced after a change) is placed in the ticket that builds what it
+describes. Every split, fold and placement is decided here, from the estimates and the edge graph,
+and listed in the breakdown with the rule that fired: none is put to the user.
 
 **Wide refactors are the exception to vertical slicing.** A wide refactor is one mechanical change
 (rename a column, retype a shared symbol) whose blast radius fans across the whole codebase, so a
@@ -124,25 +144,24 @@ migrate batch. When even the batches cannot stay green alone, keep the sequence 
 an integration branch that all block a final integrate-and-verify ticket; green is promised only
 there.
 
-## 4. Quiz the user
+## 4. Put the breakdown to the user
 
 Present the breakdown as a numbered list. For each ticket:
 
 - **Title**: short, in the glossary's words
-- **Path**: the journey path it realises, when there is a journey
-- **Blocked by**: the tickets that must complete first, or none
+- **Path**: the journey path it realises, when there is a journey; every path when it is a fold
+- **Estimate**: the tokens `do` is expected to spend, the band, and what drives the number
+- **Blocked by**: each blocking ticket with what this one reads and that the blocker writes it, or
+  none
 - **What it delivers**: the end-to-end behaviour this ticket makes work
 
-After the list, what was left out: the journey's cut and deferred items, and the spec's Out of
-Scope.
+After the list: the splits, folds and placements taken, each with the rule that fired, or none;
+then what was left out: the journey's cut and deferred items, and the spec's Out of Scope.
 
-Ask the user:
-
-- Does the granularity feel right? (too coarse / too fine)
-- Are the blocking edges correct: does each ticket depend only on tickets that genuinely gate it?
-- Should any tickets be merged or split further?
-
-Iterate until the user approves the breakdown. Nothing is published before that.
+Then one question: does the breakdown go out as it stands? Granularity, edges, folds and splits
+are never asked. The skill decided them from the estimates and the edge graph, and the breakdown
+shows the reasoning so the user can overrule any of it. A correction is applied and the breakdown
+is shown again, with the same one question. Nothing is published before the yes.
 
 ## 5. Publish
 
@@ -183,6 +202,9 @@ what was left out. Nothing is committed. The next step is one ticket at a time f
 
 - The spec is the only input, and it is mandatory: never the conversation, never a session summary.
 - The four stops write nothing and end the run with one message. No override in the conversation.
+- The cut is decided, never asked: a ticket waits for the ticket that writes what it reads, a
+  small ticket on a single edge folds into its neighbour, a large ticket splits along its steps,
+  and the one question is whether the breakdown goes out.
 - Nothing is published before the user approves the breakdown.
 - One ticket per file or per issue, never a combined file. The parent is never closed or modified.
 - Ticket text in the glossary's words, with no file paths and no code, except a snippet that

@@ -5,9 +5,12 @@ Prepared for `claude plugin eval` (`<case>/case.yaml` + `prompt.md` + `graders/*
 have been authored, not executed; the `case.yaml` keys and grader types beyond `tool_used` follow
 the runner's help text and may need adjusting once it runs.
 
-`tickets` is user-invoked, so every prompt types the skill; there is no trigger case. A run ends
-either at a stop, or at the quiz, the first message that asks the user anything, since no user is
-there to approve the breakdown. Both are the moments the cases inspect: nothing is published in
+`tickets` is user-invoked, so every prompt types the skill; there is no trigger case. Every fixture
+is small, so nearly every ticket the run cuts is in the small band: a fixture that must not fold
+makes every neighbour of a single-edge ticket wait on a second blocker, so the fold would delay it,
+and a fixture that must split carries a path long enough to be judged large. A run ends either at a
+stop, or at the approval message, the only message that asks the user anything, since no user is
+there to say the breakdown goes out. Both are the moments the cases inspect: nothing is published in
 either.
 
 Every fixture is synthetic: a small notes module, a local-markdown tracker file, a spec in the
@@ -17,7 +20,9 @@ the local shape of the ticket format `tickets` links.
 
 | case | checks |
 |---|---|
-| `journey-paths-become-slices` | with a journey, the breakdown has one ticket per path, names the path, draws the blocking edge from `## States`, and lists the cut story as left out; nothing is published before approval |
+| `journey-paths-become-slices` | with a journey, the breakdown has one ticket per path, names the path, draws the blocking edges from `## States` with what each ticket reads and who writes it, states every estimate and band, folds nothing, and lists the cut story as left out; the one question is approval and nothing is published before it |
+| `small-folds-into-neighbour` | two one-step paths on a single edge fold into one ticket that names both paths, with the fold rule stated; nothing is asked but approval |
+| `large-splits-along-steps` | one long path across every module is split along its steps into several demoable tickets, none in the large band, later pieces blocked by earlier ones; the split rule is stated. This case leans on the run's own estimate: a fixture the run judges medium needs more weight, not a looser grader |
 | `not-needed-cuts-from-stories` | a verdict of `not needed` is cut from the User Stories, and the run says so in one line |
 | `verdict-required-stops` | a verdict of `required` with no journey ends the run with one message naming `/journey`; nothing is written |
 | `journey-pointer-missing-stops` | a verdict naming a missing file ends the run with one message naming the location; nothing is written |

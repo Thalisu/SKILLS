@@ -1,5 +1,5 @@
 interface:
   display_name: "Tickets"
-  short_description: "Cut a spec and its journey into tracer-bullet tickets with blocking edges"
+  short_description: "Cut a spec and its journey into tracer-bullet tickets with blocking edges, sized by a token estimate, asking only for approval"
 policy:
   allow_implicit_invocation: false

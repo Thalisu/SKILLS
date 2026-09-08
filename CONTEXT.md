@@ -29,9 +29,11 @@ The document that walks every path of one spec from the actor's seat, kept where
 _Avoid_: user flow, UX doc
 
 **Ticket**:
-One demoable slice cut from a spec, and from its journey when it has one, sized to fit one session.
-The skill that cuts the set is `tickets`.
-_Avoid_: issue (only when quoting a tracker that calls them issues), slice, task
+One demoable slice cut from a spec, and from its journey when it has one, sized by the tokens `do`
+is estimated to spend on it: small under 150k, medium up to 200k, large beyond that. The skill that
+cuts the set is `tickets`.
+_Avoid_: issue (only when quoting a tracker that calls them issues), slice, task, "fits one
+session" (a session is not a number; the estimate is)
 
 **Playbook**:
 One execution model `do` routes a request to, kept under the skill's `references/` and read only
@@ -42,7 +44,8 @@ list), route (the route is the match, the playbook is what runs)
 **Trivial**:
 A change no test could tell before from after, so the existing suite is its whole gate: a typo, a
 doc or a comment, formatting, log wording, a rename inside one file, dead code, a lint fix.
-_Avoid_: small, quick, minor, one-liner (size is never the test)
+_Avoid_: small (a small **Ticket** is a size band, never a Trivial change), quick, minor,
+one-liner (size is never the test)
 
 **Axis**:
 One independent question `do-code-review` puts to a diff, reported apart from the others so that a
@@ -85,6 +88,14 @@ _Avoid_: report (the message returned to the caller, not the file), task review,
 - A **Journey** walks every **Path** of exactly one **Spec**
 - **Tickets** are cut only from a **Spec** whose **Verdict** is met: `not needed`, or `required`
   with the **Journey** written beside it
+- A **Ticket** that reads what another **Ticket** writes (a state, a section, a symbol) is blocked
+  by the one that writes it, never by an earlier one, and a stub to start it sooner is never cut.
+  `tickets` reads the edges off the **Journey**'s `## States` or the stories and never asks
+- A small **Ticket** whose single edge ties it to one neighbour folds into that neighbour when
+  the fold delays no **Ticket**'s start and the merged estimate stays medium at most; a medium
+  **Ticket** is left as cut; a large **Ticket** is split along its steps and only small and medium
+  are published; a stray piece of work lives in the **Ticket** that builds what it describes.
+  `tickets` decides the cut, states each estimate in the breakdown, and asks only for approval
 - `do` routes a request to exactly one **Playbook**; the `ticket` **Playbook** builds exactly one
   **Ticket**, never a **Spec** and never a session summary, and is the only **Playbook** inside
   the chain
@@ -147,3 +158,7 @@ _Avoid_: report (the message returned to the caller, not the file), task review,
   lives beside the **Ticket** it reviews and names it.
 - "trivial" and "small" were used as a size. Resolved: **Trivial** is a structure, a change no test
   could tell before from after; a small bug is not trivial.
+- "fits one session" was the size of a **Ticket**. Resolved: the size is the tokens `do` is
+  estimated to spend on it, in three bands (small under 150k, medium up to 200k, large beyond), the
+  one yardstick that holds across harnesses; a fold is judged on the merged estimate, and the
+  estimate is stated in the breakdown.

@@ -18,7 +18,7 @@ Reachable only by the human typing the name.
 | [`prototype`](prototype/SKILL.md) | Build one throwaway, runnable prototype in a subagent to settle a design question you have to see or drive: a single HTML file that drives a state model, or three variants of a screen on its real route |
 | [`spec`](spec/SKILL.md) | Turn the conversation into a spec, published where the project's issue tracker points, with a verdict that names the next command: `journey` when the stories add a screen or walk more than one path or step, `tickets` otherwise |
 | [`testing-policy`](testing-policy/SKILL.md) | Install, migrate or refresh the canonical Testing Policy (Definition of Done) in a project |
-| [`tickets`](tickets/SKILL.md) | Cut a spec, and the journey its verdict points at, into tracer-bullet tickets with blocking edges, published one file or one issue per ticket |
+| [`tickets`](tickets/SKILL.md) | Cut a spec, and the journey its verdict points at, into tracer-bullet tickets with blocking edges, each sized by a token estimate, with edges, folds and splits decided by the skill and only the approval asked, published one file or one issue per ticket |
 
 ## Model-invoked
 

@@ -7,8 +7,10 @@ allowed_tools: [Bash, Read, Edit, Write, Agent]
 context:
   scaffold_script: |
     #!/usr/bin/env bash
-    # A spec whose verdict points at a journey with two paths, one cut story and one deferred fork:
-    # the breakdown has to come from the paths, not from the four stories.
+    # A spec whose verdict points at a journey with three paths in a diamond, one cut story and one
+    # deferred fork: the breakdown has to come from the paths, and the restore path has to wait for
+    # both the archive and the search paths. Archive and search each have one edge, to restore, but
+    # restore has another blocker, so folding either into it would delay it: nothing folds.
     set -e
     mkdir -p src docs/agents .scratch/archive-notes
     cat > src/notes.js <<'JS'
@@ -41,23 +43,26 @@ context:
 
     ## Problem Statement
 
-    Notes pile up in the list and there is no way to put one aside without deleting it.
+    Notes pile up in the list, there is no way to put one aside without deleting it, and a long list
+    cannot be searched.
 
     ## Solution
 
-    A note can be archived. Archived notes leave the list and can be restored from an Archived view.
+    A note can be archived, the list can be searched by title, and an archived note can be found by
+    the same search and restored.
 
     ## User Stories
 
     1. As a writer, I want to archive a note, so that it leaves my list without being deleted
-    2. As a writer, I want to see my archived notes, so that I can find one I put aside
-    3. As a writer, I want to restore an archived note, so that it returns to my list
+    2. As a writer, I want to search my notes by title, so that I find one in a long list
+    3. As a writer, I want to find an archived note by search and restore it, so that it returns to my list
     4. As a writer, I want to archive several notes at once, so that I can clear my list quickly
 
     ## Implementation Decisions
 
     - A note carries a status, active or archived; archiving never deletes
     - The list shows active notes only; a separate Archived view shows the rest
+    - Search matches on the title, case-insensitive, in the list and in the Archived view
 
     ## Testing Decisions
 
@@ -87,26 +92,41 @@ context:
     Failure branches:
     - Archive picked twice on the same note: the second pick is a no-op, the line still says "Archived"
 
-    ## Path 2: Find and restore an archived note
+    ## Path 2: Search notes by title
 
-    Story: 2, 3
+    Story: 2
+    Outcome: the list shows only the notes whose title matches.
+
+    | Step | Actor sees | Actor does | System answers |
+    |---|---|---|---|
+    | 1 | the list with a search box above it | types part of a title | the list narrows to the matching notes as the writer types |
+    | 2 | the narrowed list | clears the box | the full list is back |
+
+    Failure branches:
+    - Nothing matches: the list is empty and a line says "No notes match"
+
+    ## Path 3: Find an archived note by search and restore it
+
+    Story: 3
     Outcome: the note is back in the list.
 
     | Step | Actor sees | Actor does | System answers |
     |---|---|---|---|
-    | 1 | the Archived link with a count | opens it | the Archived view lists archived notes, each with Restore |
-    | 2 | the Archived view | picks Restore on one note | the note leaves the view; a line says "Restored" with a link to the list |
-    | 3 | the Archived view, now empty | nothing | an empty state says "Nothing archived" |
+    | 1 | the Archived link with a count | opens it | the Archived view lists archived notes, with the same search box and Restore on each |
+    | 2 | the Archived view | types part of the note's title | the view narrows to the matching archived notes |
+    | 3 | the matching note | picks Restore | the note leaves the view; a line says "Restored" with a link to the list |
+    | 4 | the Archived view, now empty | nothing | an empty state says "Nothing archived" |
 
     Failure branches:
     - Restore on a note archived twice: the note returns once
+    - Nothing matches in the Archived view: a line says "No archived notes match"
 
     ## States
 
     | State | The actor sees | Actions |
     |---|---|---|
-    | active | the note in the list | Archive |
-    | archived | the note in the Archived view | Restore |
+    | active | the note in the list, found by the search box | Archive (Path 1, to archived); Search (Path 2, stays active) |
+    | archived | the note in the Archived view, found by the same search box | Restore (Path 3, to active) |
 
     ## Cut
 

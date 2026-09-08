@@ -5,9 +5,13 @@
 `tickets` cuts a spec into tracer-bullet tickets: vertical slices, each a narrow but complete path
 through every layer, demoable on its own, declaring the tickets that block it. When the spec's
 verdict points at a journey, every walked path becomes one slice, its steps and failure branches
-become the acceptance criteria, and the states the actor sees set the order. The breakdown is put
-to you as a numbered list, and once you approve it the tickets are published one file per ticket
-locally, or one issue per ticket on the project's tracker with native blocking links.
+become the acceptance criteria, and the states the actor sees set the order. The skill decides the
+cut and never asks about it: every ticket carries an estimate of the tokens `do` will spend on it,
+a ticket waits for the ticket that writes what it reads, a small ticket on a single edge is folded
+into its neighbour, a large one is split along its steps, and the breakdown shows the reasoning
+behind each. The one question you get is whether the breakdown goes out; once you say yes the
+tickets are published one file per ticket locally, or one issue per ticket on the project's
+tracker with native blocking links.
 
 It publishes nothing when its input is broken. A verdict that requires a journey nobody walked, a
 verdict pointing at a file that is not there, a journey that lists branches to reopen in discuss,
@@ -40,8 +44,20 @@ local markdown, and no setup skill is demanded; an issue reference still needs t
 ## Path, slice, stop
 
 A **slice** is the unit: a tracer bullet through schema, API, UI and tests that a reviewer can demo
-when it lands, sized for one fresh context window. Every slice names its **blocking edges**, and
-the **frontier** is every slice whose blockers are done: the tickets an agent can grab right now.
+when it lands. Every slice names its **blocking edges**, and the **frontier** is every slice whose
+blockers are done: the tickets an agent can grab right now. An edge is never a guess: a slice that
+reads what another writes (a state, a section, a symbol) is blocked by the one that writes it, and
+a stub to let it start sooner is never cut.
+
+Every slice carries an **estimate**, the tokens `do` is expected to spend on it, with the modules,
+tests and migrations that drive the number, so you can check it. The estimate puts the slice in a
+**band**, and the band decides what the skill does with it:
+
+| Band | Estimate | What happens |
+|---|---|---|
+| small | under 150k | folds into the ticket at the other end of its single edge when the fold delays no ticket's start and the merged estimate stays medium at most |
+| medium | up to 200k | published as cut |
+| large | beyond 200k | split along its steps, every piece demoable; never published |
 
 Where the slices come from is decided by the spec's **verdict**, the `Journey:` line under its
 title:
@@ -87,12 +103,26 @@ No. The spec's verdict says whether there is a journey and where it is, and that
 lookup. A journey beside the spec that the verdict does not name is reported as an orphan, not
 read.
 
+**It used to ask whether the edges held and whether tickets should be merged. Where did that go?**
+Into the breakdown. Both were answers the skill could read off the cut, and each round trip stalled
+the chain on you. An edge now comes with what the ticket reads and who writes it, and a fold or a
+split comes with the rule that fired. Overrule any of it in your reply; the breakdown is redrawn and
+put to you again with the same one question.
+
+**Two of my paths came back as one ticket. Why?**
+Both were small and tied by a single edge, so the later folded into the earlier, and the ticket
+names both paths. In a small codebase that fires often, since nearly every path is small. Say so in
+your reply if you want them apart; the fold is a default, not a stop.
+
 ## It's working if
 
 - With a journey, the breakdown names the path each ticket realises, and each ticket reads as one
   thing the actor can do end to end, never as one layer of every path.
-- The first ticket has no blockers, and every other ticket's blockers are tickets that genuinely
-  gate it: a restore path is blocked by the archive path that creates the state it needs.
+- The first ticket has no blockers, and every other ticket's blockers are the tickets that write
+  what it reads: a restore path is blocked by the archive path that creates the state it needs,
+  never by an earlier ticket and never with a stub.
+- Every ticket in the breakdown carries an estimate and its band, a fold or a split names the rule
+  that fired, and the only question you get is whether the breakdown goes out.
 - What the journey cut or deferred shows up under what was left out, never as a ticket.
 - Nothing lands in `.scratch/` or on the tracker before you approve the breakdown, and nothing at
   all on a stop.
