@@ -129,10 +129,10 @@ git checkout -q --detach
 run trunk
 check "a detached HEAD has HEAD for its branch" 0 "$rc" "branch=HEAD" "slug=HEAD"
 
-# The spec source candidates, the issue reference, the tracker file and the ignore state.
+# The spec source candidates, the issue reference, the tracker file and the Review's own visibility.
 cd "$tmp/repo" && git checkout -q feat/7-export
 run
-check "a branch with no spec home names none" 0 "$rc" "issue=7" "spec=none" "ticket=none" "tracker=no" "scratch_ignored=no"
+check "a branch with no spec home names none" 0 "$rc" "issue=7" "spec=none" "ticket=none" "tracker=no" "review_in_status=yes"
 mkdir -p .scratch/export-notes .scratch/archive
 printf '# Export notes\n' > .scratch/export-notes/spec.md
 printf '# Archive\n' > .scratch/archive/spec.md
@@ -144,7 +144,7 @@ check "an exact match wins over a containing one" 0 "$rc" "spec=.scratch/export/
 mkdir -p docs/agents && printf '# Issue tracker\n' > docs/agents/issue-tracker.md
 printf '.scratch\n' > .gitignore
 run
-check "the tracker file and the ignore state are named" 0 "$rc" "tracker=yes" "scratch_ignored=yes"
+check "a Review under an ignored .scratch stays out of git status" 0 "$rc" "tracker=yes" "review_in_status=no"
 rm -r .scratch docs .gitignore
 
 # The issue reference comes from the branch name first, then from the commit subjects.
@@ -318,7 +318,7 @@ mkdir -p "$tmp/elsewhere/issues" && printf '# 04: outside\n' > "$tmp/elsewhere/i
 run --ticket "$tmp/elsewhere/issues/04-outside.md"
 check "a Ticket outside the worktree is still the Review's home" 0 "$rc" \
   "ticket_handed=yes" "ticket=$tmp/elsewhere/issues/04-outside.md" \
-  "review=$tmp/elsewhere/issues/04-outside.review.md" "dirty=no" "commits=1"
+  "review=$tmp/elsewhere/issues/04-outside.review.md" "dirty=no" "commits=1" "review_in_status=no"
 expect "the door's status command runs with that Ticket spared" \
   bash -c "eval \"$(sed -n 's/^status=//p' <<<"$out")\" >/dev/null"
 
@@ -348,5 +348,21 @@ run main --ticket ../../../../.scratch/notes/issues/05-export-notes.md
 check "a path out of the worktree resolves from the directory the caller ran in" 0 "$rc" \
   "ticket=$tmp/wt-main/.scratch/notes/issues/05-export-notes.md" \
   "review=$tmp/wt-main/.scratch/notes/issues/05-export-notes.review.md"
+
+# The last line of a run answers for the file at review=, not for a folder: a project that keeps
+# its Tickets under docs/ and ignores .scratch writes a Review git status shows.
+mkdir "$tmp/tracked" && cd "$tmp/tracked" && git init -q -b main
+printf '.scratch\n' > .gitignore
+mkdir -p docs/tickets && printf '# 02: x\n' > docs/tickets/02-x.md
+git add -A && git commit -q -m "first"
+git checkout -q -b do/x && printf 'b\n' > b.txt && git add b.txt && git commit -q -m "build"
+run --ticket docs/tickets/02-x.md
+check "a Review beside a Ticket the project tracks shows up in git status" 0 "$rc" \
+  "review=docs/tickets/02-x.review.md" "review_in_status=yes"
+expect "git status shows it once written" bash -c \
+  'printf "# Review\n" > docs/tickets/02-x.review.md; command git status --short | grep -qF "?? docs/tickets/02-x.review.md"'
+run
+check "the same run's scratch Review does not" 0 "$rc" \
+  "review=.scratch/reviews/do-x.md" "review_in_status=no"
 
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi

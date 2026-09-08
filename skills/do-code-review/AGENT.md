@@ -175,6 +175,7 @@ Review.
 ## 8. The return
 
 Your last message is the Review's text, then one line `Written to <the review= path>`, then one
-line for the ignore state the door read, either way: on `scratch_ignored=no`, that the scratch
-folder is not ignored by git so the file shows up in `git status`; on `scratch_ignored=yes`, that
-it is ignored so the file does not. Nothing else: no preamble, no summary of your own.
+line for that file's own visibility, the door's `review_in_status=`, either way: on
+`review_in_status=yes`, that the Review shows up in `git status` for the caller to keep or drop;
+on `review_in_status=no`, that git ignores that path, or it sits outside this repository, so the
+Review does not. Nothing else: no preamble, no summary of your own.

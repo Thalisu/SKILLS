@@ -34,7 +34,8 @@
 # beside that Ticket, else the one spec in the usual spec homes, .scratch/<x>/spec.md,
 # docs/specs/<x>.md, specs/<x>.md, whose <x> is the slug or contains it, else none when there is
 # none or more than one), tracker (yes when docs/agents/issue-tracker.md exists) and
-# scratch_ignored (yes when git ignores .scratch).
+# review_in_status (yes when the file at review= would show up in this repository's git status, no
+# when git ignores that path or it sits outside the repository).
 # Exit codes: 0 the door holds · 1 a refusal, with refusal=<the one line to print> · 2 usage, or not
 # a git repository.
 set -uo pipefail
@@ -142,7 +143,12 @@ else
   if [ -n "$exact" ]; then spec="$exact"; elif [ "${#containing[@]}" = 1 ]; then spec="${containing[0]}"; fi
 fi
 if [ -f docs/agents/issue-tracker.md ]; then tracker=yes; else tracker=no; fi
-if git check-ignore -q .scratch; then scratch_ignored=yes; else scratch_ignored=no; fi
+review_in_status=yes
+case "$review" in
+  "$top"/*) ;;
+  /*) review_in_status=no ;;
+esac
+if [ "$review_in_status" = yes ] && git check-ignore -q -- "$review"; then review_in_status=no; fi
 
 echo "branch=$branch"
 echo "slug=$slug"
@@ -160,5 +166,5 @@ echo "ticket=$ticket"
 echo "ticket_handed=$ticket_handed"
 echo "spec=$spec"
 echo "tracker=$tracker"
-echo "scratch_ignored=$scratch_ignored"
+echo "review_in_status=$review_in_status"
 exit 0

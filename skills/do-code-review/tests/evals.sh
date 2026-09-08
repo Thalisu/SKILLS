@@ -53,12 +53,12 @@ expect "the Ticket the case hands over sits beside its spec" test -f .scratch/ex
 expect "the Ticket asks for the header line the export omits" grep -q 'header line `id,title`' .scratch/export-notes/issues/02-export-notes.md
 run_door
 check "the door reads the planted fixture" 0 "$rc" "branch=export-notes" "dirty=no" "base=main" "commits=1" \
-  "spec=.scratch/export-notes/spec.md" "review=.scratch/reviews/export-notes.md" "scratch_ignored=no" "tracker=no" \
+  "spec=.scratch/export-notes/spec.md" "review=.scratch/reviews/export-notes.md" "review_in_status=yes" "tracker=no" \
   "ticket=.scratch/export-notes/issues/02-export-notes.md" "ticket_handed=no"
 run_door --ticket .scratch/export-notes/issues/02-export-notes.md
 check "the door puts the Review beside the Ticket the case hands over" 0 "$rc" \
   "ticket_handed=yes" "review=.scratch/export-notes/issues/02-export-notes.review.md" \
-  "spec=.scratch/export-notes/spec.md"
+  "spec=.scratch/export-notes/spec.md" "review_in_status=yes"
 
 # ref-does-not-resolve: the ref the prompt names is absent.
 expect "ref-does-not-resolve scaffold runs" scaffold ref-does-not-resolve

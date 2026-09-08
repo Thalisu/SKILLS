@@ -154,7 +154,7 @@ done
 # The planted diff hands its Ticket over, so every grader on that case reads one header and one
 # home for the Review: the file beside the Ticket, never the scratch reviews folder.
 has "the header grader reads the handed Ticket in the header" \
-  "$evals/planted-diff/graders/scratch-not-ignored-line.md" \
+  "$evals/planted-diff/graders/review-shows-in-status-line.md" \
   "Ticket: .scratch/export-notes/issues/02-export-notes.md"
 for grader in "$evals"/planted-diff/graders/*.md; do
   lacks "the ${grader##*/} grader carries no header the handed Ticket rules out" "$grader" \
@@ -175,8 +175,11 @@ lacks "the docs page carries no install command" "$page" "ln -s" "git clone"
 has "the docs page states the no-write claim as a check, not a tool property" "$page" "compares"
 has "the docs page names do as the second caller and both homes of the Review" "$page" \
   "second caller" "beside the Ticket" ".review.md" ".scratch/reviews/<branch>.md"
-has "the run's last line names the ignore state either way" "$agent_md" "scratch_ignored=no" "scratch_ignored=yes"
-has "the docs page's working check holds in both ignore states" "$page" "is not ignored, nothing new when it is"
+has "the run's last line answers for the file at review= either way" "$agent_md" \
+  "review_in_status=yes" "review_in_status=no"
+lacks "the run's last line no longer reports a folder's ignore state" "$agent_md" "scratch_ignored"
+has "the docs page's working check reads the Review's own visibility" "$page" \
+  "nothing else when git does not ignore the file, nothing new when it does"
 # The page's claim about do and do's own review step move together, so the page never promises a
 # call do does not make. The key is whether do's mechanics make the call, not whether they still
 # name the skip: the skip survives as the fallback for a session without the skill.

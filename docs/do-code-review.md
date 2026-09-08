@@ -45,9 +45,9 @@ the language of the words you typed; with a bare ref it is English.
 - **Somewhere to write.** Hand a Ticket's location over and the Review goes beside the Ticket
   file, taking its name with `.review` before the extension: `02-export-notes.review.md` beside
   `02-export-notes.md`. Otherwise it goes to `.scratch/reviews/<branch>.md` in the project, slashes
-  in the branch name turned into dashes. The run's last line says which way the project has it: with
-  `.scratch` ignored the file stays out of `git status`, without it the file shows up there for you
-  to keep or drop.
+  in the branch name turned into dashes. The run's last line says whether that file shows up in
+  `git status`: a Review beside a Ticket the project tracks does, one written under an ignored
+  `.scratch` does not.
 - **A base branch or a ref.** Without a ref, the fixed point is the merge-base with the remote's
   HEAD branch, else `main`, else `master`; a repository with none of those needs a ref.
 
@@ -103,14 +103,14 @@ a pass on it.
 
 ## It's working if
 
-- The run ends with the Review's text, one `Written to` line and one line saying whether `.scratch`
-  is ignored by git, or with one refusal line and no file.
+- The run ends with the Review's text, one `Written to` line and one line saying whether that file
+  shows up in `git status`, or with one refusal line and no file.
 - Nothing under `## Act on` reads `Rung: 1` or `Rung: 2`, and every `Act on` Finding names a
   behaviour to prove and where.
 - `## Axes` has six lines every time, and a `not run` or `no spec` line stands where a reviewer or
   a spec was missing.
-- `git status` after a run agrees with that last line: the Review and nothing else when `.scratch`
-  is not ignored, nothing new when it is.
+- `git status` after a run agrees with that last line: the Review and
+  nothing else when git does not ignore the file, nothing new when it does.
 
 ## Where it fits
 
