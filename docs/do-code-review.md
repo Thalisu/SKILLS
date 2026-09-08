@@ -44,10 +44,11 @@ the language of the words you typed; with a bare ref it is English.
   see [the top-level README](../README.md).
 - **Somewhere to write.** Hand a Ticket's location over and the Review goes beside the Ticket
   file, taking its name with `.review` before the extension: `02-export-notes.review.md` beside
-  `02-export-notes.md`. Otherwise it goes to `.scratch/reviews/<branch>.md` in the project, slashes
-  in the branch name turned into dashes. The run's last line says whether that file shows up in
-  `git status`: a Review beside a Ticket the project tracks does, one written under an ignored
-  `.scratch` does not.
+  `02-export-notes.md`. Otherwise it goes to `.scratch/reviews/<branch>.md` in the repository's
+  main checkout, slashes in the branch name turned into dashes: a run inside a linked worktree
+  still writes there, since the worktree has no scratch folder of its own and is removed with
+  everything in it. The run's last line says whether that file shows up in `git status`: a Review
+  beside a Ticket the project tracks does, one written under an ignored `.scratch` does not.
 - **A base branch or a ref.** Without a ref, the fixed point is the merge-base with the remote's
   HEAD branch, else `main`, else `master`; a repository with none of those needs a ref.
 

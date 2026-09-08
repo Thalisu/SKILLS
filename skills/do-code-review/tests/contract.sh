@@ -83,6 +83,14 @@ has "the orchestrator runs the door script" "$agent_md" "scripts/fixed-point.sh"
 # AGENT.md and worktrees.md both send the orchestrator to this line, so the door has to print it.
 has "the door publishes the main checkout" "$skill/scripts/fixed-point.sh" \
   'echo "main_checkout=$main_checkout"'
+# A Review written into a linked worktree's ignored scratch dies with the worktree, so the door,
+# the format, the page and the orchestrator all put the default home in the main checkout.
+has "the door anchors the default Review home at the main checkout" "$skill/scripts/fixed-point.sh" \
+  'review="$main_checkout/.scratch/reviews/$slug.md"'
+has "the format puts the scratch home in the main checkout" "$format" \
+  "main checkout's scratch reviews folder" "removed with everything written in it"
+has "the orchestrator names the main checkout's folder for a reference" "$agent_md" \
+  "main checkout's scratch reviews folder"
 has "the orchestrator forks the technical reviewer by name" "$agent_md" "subagent_type: do-code-review-technical-reviewer"
 has "the orchestrator describes the run" "$agent_md" \
   "no spec" "Inferred from the diff:" "once more" "one write" "unslop" "not run" ", inferred" "Ticket: none"
@@ -178,6 +186,7 @@ has "the docs page states the invocation mode and the leading words" "$page" \
   "Type \`/do-code-review\`" "reaches for it automatically" "Axis" "Bucket" "Rung" "../README.md" "/code-review"
 lacks "the docs page carries no install command" "$page" "ln -s" "git clone"
 has "the docs page states the no-write claim as a check, not a tool property" "$page" "compares"
+has "the docs page puts the scratch home in the main checkout" "$page" "main checkout" "linked worktree"
 has "the docs page names do as the second caller and both homes of the Review" "$page" \
   "second caller" "beside the Ticket" ".review.md" ".scratch/reviews/<branch>.md"
 has "the run's last line answers for the file at review= either way" "$agent_md" \

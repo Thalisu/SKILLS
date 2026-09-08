@@ -78,7 +78,7 @@ In this order, the first hit wins, and nothing is ever asked, because you cannot
    through `docs/agents/issue-tracker.md` with the CLI that file names, and fall through to the
    next line for the spec source when the CLI cannot open it. Either way the header reads
    `Ticket: <the location>`, and the Review goes where `review=` says, beside a local Ticket and in
-   the scratch reviews folder for a reference.
+   the main checkout's scratch reviews folder for a reference.
 2. `tracker=yes` and `issue=<n>`: read `docs/agents/issue-tracker.md` and open issue `<n>` the way
    it describes, with the CLI it names. The issue's body is the spec source, named `issue <n>`. A
    CLI that cannot open it falls through to the next line.
@@ -191,7 +191,7 @@ Review.
 Your last message is the Review's text, then one line `Written to <the review= path>`, then one
 line for that file's own visibility, the door's `review_in_status=`, either way: on
 `review_in_status=yes`, that the Review shows up in `git status` for the caller to keep or drop;
-on `review_in_status=no`, that git ignores that path, or it sits outside this repository, so the
-Review does not. Then, when a caller sent a landing target, one line naming that branch and saying
+on `review_in_status=no`, that git ignores that path in the tree it sits in, or it sits outside the
+repository, so the Review does not. Then, when a caller sent a landing target, one line naming that branch and saying
 nothing is landed on it, since the Fixer and the landing ship in a later ticket. Nothing else: no
 preamble, no summary of your own.
