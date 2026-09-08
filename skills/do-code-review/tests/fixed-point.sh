@@ -75,6 +75,18 @@ run HEAD
 check "a given ref with an empty diff refuses in one line" 1 "$rc" \
   "refusal=no diff between HEAD ($(sha HEAD)) and the working tree; nothing reviewed"
 
+# A linked worktree names the main checkout, and the main checkout names itself, so a caller in
+# either tree reaches the developer's checkout.
+main="$(pwd -P)"
+git worktree add -q "$tmp/repo-linked" -b do/linked
+cd "$tmp/repo-linked" && printf 'l\n' > l.txt && git add l.txt && git commit -q -m "linked"
+run
+check "a linked worktree names the main checkout" 0 "$rc" \
+  "branch=do/linked" "slug=do-linked" "commits=2" "main_checkout=$main"
+cd "$main" && run main
+check "the main checkout names itself" 0 "$rc" "main_checkout=$main"
+git worktree remove --force "$tmp/repo-linked" && git branch -q -D do/linked
+
 # The remote's HEAD branch wins over a local main.
 git clone -q --bare "$tmp/repo" "$tmp/origin.git"
 git -C "$tmp/origin.git" symbolic-ref HEAD refs/heads/feat/7-export

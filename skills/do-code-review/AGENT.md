@@ -48,7 +48,7 @@ is carried to the return and no branch is moved.
 ## 1. The door
 
 Run `bash ~/.claude/skills/do-code-review/scripts/fixed-point.sh [<ref>] [--ticket <location>]`
-once, from inside the project. Pass `--ticket` with the location a caller handed over, verbatim,
+once, from the tree under review. Pass `--ticket` with the location a caller handed over, verbatim,
 and never with a Ticket you found yourself: the flag is what makes the Ticket the run's own, and
 the door answers with `ticket_handed=`, `ticket=` and `review=` together. A location that is all
 digits or an http(s) URL is an issue reference and comes back as it went in; any other location is

@@ -83,5 +83,7 @@ check "the door names no spec and no tracker" 0 "$rc" "branch=restore-notes" "sp
 # triggers-pt-br: an uncommitted change, so the bare request names a diff.
 expect "triggers-pt-br scaffold runs" scaffold triggers-pt-br
 expect "the tree carries a diff" test -n "$(git status --porcelain)"
+run_door
+check "the door names the case root as the main checkout" 0 "$rc" "main_checkout=$(pwd -P)"
 
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi

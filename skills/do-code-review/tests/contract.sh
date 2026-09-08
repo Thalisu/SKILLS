@@ -143,6 +143,29 @@ has "the reviewer returns in the Review's shape" "$reviewer_md" "### <n>. <Axis>
 has "the reviewer reads the format through the shell and writes its return file" "$reviewer_md" \
   'readlink -f ~/.claude/skills/do-code-review' "Return file:" "before you end your turn"
 
+# The two trees: the worktree contract, linked by the orchestrator, the reviewer and do's
+# mechanics; no harness worktree tool entering or leaving a worktree anywhere in the chain, and a
+# grader that holds do to it.
+trees="$repo/.agents/worktrees.md"
+has "the worktree contract names the bare cd, the list command and the door's line" "$trees" \
+  "# Two trees: the worktree and the main checkout" "in a shell call of its own" \
+  "git worktree list --porcelain" "main_checkout=" "Never the harness's worktree tool"
+has "the orchestrator links the contract and reads the main checkout off the door" "$agent_md" \
+  "](../../.agents/worktrees.md)" "main_checkout=" "tree under review"
+lacks "the orchestrator runs the door from one tree only" "$agent_md" "from inside the project"
+has "the reviewer links the contract and stays in one tree" "$reviewer_md" \
+  "](../../../.agents/worktrees.md)" "tree under review"
+mechanics="$repo/skills/do/references/mechanics.md"
+has "do's mechanics enter the worktree by a bare cd and link the contract" "$mechanics" \
+  "](../../../.agents/worktrees.md)" "in a shell call of its own" "Never the harness's worktree tool"
+lacks "do's mechanics hand no switch to a harness worktree tool" "$mechanics" \
+  "worktree tool that accepts an existing path" "worktree tool with keep" "accepts a switch into"
+lacks "the research brief derives no worktree tool switch" "$repo/.agents/research/do.md" \
+  "worktree tool with \`path\`" "keeps every switch"
+has "the ticket run grades that no harness worktree tool was entered" \
+  "$repo/skills/do/evals/ticket-run-with-policy/graders/entered-by-cd-never-the-worktree-tool.md" \
+  "type: tool_used" "tool: EnterWorktree" "min: 0" "max: 0"
+
 # The evals: the planted diff, the two refusals, the no spec run and the Portuguese trigger, each
 # a case directory with its case file, its prompt and its graders, named in the README with the
 # command that runs them; a script exercises every scaffold.
@@ -227,7 +250,7 @@ has "the invocation contract's table gains the two rows" "$repo/.agents/invocati
   "| \`do-code-review\` | model-invoked |" "| \`do-code-review-technical-reviewer\` | \`do-code-review\`, model-invoked |"
 
 # No em-dash in any prose the skill adds.
-prose=("$format" "$skill_md" "$agent_md" "$reviewer_md" "$evals/README.md" "$evals"/*/prompt.md "$evals"/*/graders/*.md "$page")
+prose=("$format" "$trees" "$skill_md" "$agent_md" "$reviewer_md" "$evals/README.md" "$evals"/*/prompt.md "$evals"/*/graders/*.md "$page")
 for f in "${prose[@]}"; do
   [ -f "$f" ] || continue
   if grep -q $'\xe2\x80\x94' "$f"; then echo "FAIL  no em-dash in $f"; fails=$((fails + 1)); else echo "ok    no em-dash in ${f#"$repo/"}"; fi
