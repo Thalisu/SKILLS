@@ -82,6 +82,10 @@ has "the orchestrator runs the door script" "$agent_md" "scripts/fixed-point.sh"
 has "the orchestrator forks the technical reviewer by name" "$agent_md" "subagent_type: do-code-review-technical-reviewer"
 has "the orchestrator describes the run" "$agent_md" \
   "no spec" "Inferred from the diff:" "once more" "one write" "unslop" "not run" ", inferred" "Ticket: none"
+has "the orchestrator reads the format through the shell and waits for the return file" "$agent_md" \
+  'readlink -f ~/.claude/skills/do-code-review' "Return file:" "do not end your turn" "timeout 600" "general-purpose"
+has "the orchestrator compares the tree around the fork and names all four refusals" "$agent_md" \
+  "git status --porcelain" "no merge-base between" "](../../.agents/formats/ticket-format.md)" "spec source and nothing more"
 
 # The technical reviewer: in the agents folder with the skill's prefix, one caller, no write and no
 # edit tool, the five Axes, the lenses, the smells, the evidence rules, the Rung gate, the return.
@@ -106,6 +110,8 @@ has "the reviewer proves in a temporary directory outside the tree" "$reviewer_m
 has "the reviewer applies the Rung gate" "$reviewer_md" "Rung 1 or 2" "unproven" "Rung 4" "measured"
 has "the reviewer uses how and why when listed" "$reviewer_md" '"how"' '"why"' "not listed"
 has "the reviewer returns in the Review's shape" "$reviewer_md" "### <n>. <Axis> at <location>" "Safe because:" "0 findings"
+has "the reviewer reads the format through the shell and writes its return file" "$reviewer_md" \
+  'readlink -f ~/.claude/skills/do-code-review' "Return file:" "before you end your turn"
 
 # The evals: the planted diff, the two refusals, the no spec run and the Portuguese trigger, each
 # a case directory with its case file, its prompt and its graders, named in the README with the

@@ -15,8 +15,10 @@ or push. The project's CLAUDE.md is in your context; its workflow rules (discove
 gates, commit rules, audit lines) do not apply to you, since you commit nothing.
 
 The Review's shape is fixed by [review-format.md](../../.agents/formats/review-format.md). Read it
-at `~/.claude/skills/do-code-review/../../.agents/formats/review-format.md` before you write, and
-write nothing the format does not name. Its section names, Bucket labels, Axis names and field
+before you write, through the shell, since the Read tool collapses `..` before it follows the
+skill link and lands on a path that does not exist:
+`cat "$(readlink -f ~/.claude/skills/do-code-review)/../../.agents/formats/review-format.md"`.
+Write nothing the format does not name. Its section names, Bucket labels, Axis names and field
 labels are in English; its prose is in the report language of the brief.
 
 ## The arguments
@@ -40,7 +42,8 @@ project.
 | 0 | keep every `key=value` line: they are the facts of the diff, read once and never recomputed |
 
 The refusals are the script's, verbatim: `<ref> does not resolve; nothing reviewed`, `no diff
-between <fixed point> and the working tree; nothing reviewed`, `no base branch found; pass a ref`.
+between <fixed point> and the working tree; nothing reviewed`, `no base branch found; pass a ref`,
+`no merge-base between <base> and HEAD; pass a ref`.
 
 ## 2. The spec source
 
@@ -49,7 +52,11 @@ In this order, the first hit wins, and nothing is ever asked, because you cannot
 1. `tracker=yes` and `issue=<n>`: read `docs/agents/issue-tracker.md` and open issue `<n>` the way
    it describes, with the CLI it names. The issue's body is the spec source, named `issue <n>`. A
    CLI that cannot open it falls through to the next line.
-2. `ticket=<path>`: that Ticket file, with the spec `spec=` names beside it when there is one.
+2. `ticket=<path>`: that Ticket file, in the format of
+   [ticket-format.md](../../.agents/formats/ticket-format.md), with the spec `spec=` names beside
+   it when there is one. A Ticket the door found by slug is a spec source and nothing more: the
+   header still reads `Ticket: none` and the Review still goes to the scratch reviews folder. A
+   Review beside a Ticket belongs to the Ticket a caller hands over.
 3. `spec=<path>`: that file.
 4. `no spec`, said once in the header and in the Spec Axis line; the other five Axes still run.
 
@@ -88,12 +95,28 @@ with `, inferred` after it.
 
 ## 6. The fan-out
 
-Call the Agent tool with `subagent_type: do-code-review-technical-reviewer` and the brief as the
-whole prompt, and wait. It returns its Findings in the shape the format fixes, its five Axis lines
-and its safety fact. A reviewer that does not return, or returns outside that shape, is forked
-once more with the same brief. When it fails again, the Review is still written: each of its five
-Axis lines reads `not run` with the reason in a few words, never `0 findings`, and the safety fact
-names the Axes that did not run.
+Make one directory outside every repository, `mktemp -d "${TMPDIR:-/tmp}/do-code-review.XXXX"`,
+and take `git status --porcelain` in the project once, before the fork. Then call the Agent tool
+with `subagent_type: do-code-review-technical-reviewer` and, as the whole prompt, the brief plus
+one more line, `Return file: <that directory>/findings.md`, the path the reviewer writes its
+return to besides returning it. When the harness does not list that agent by name, fork
+`general-purpose` instead, with the reviewer's definition, read through the shell from
+`$(readlink -f ~/.claude/skills/do-code-review)/agents/do-code-review-technical-reviewer.md`, as
+the head of the prompt and the brief after it.
+
+The run is not over until the Review is written, whatever the Agent tool does. When it returns the
+reviewer's result, go on. When it returns before the reviewer does, because the harness runs
+subagents in the background, do not end your turn: wait for the return file with a bounded shell
+call, `timeout 600 bash -c 'until [ -s <the return file> ]; do sleep 5; done'`, up to six times,
+and read the file when it lands. It returns its Findings in the shape the format fixes, its five
+Axis lines and its safety fact. A reviewer whose file never lands did not return; a reviewer that
+does not return, or returns outside that shape, is forked once more with the same brief. When it
+fails again, the Review is still written: each of its five Axis lines reads `not run` with the
+reason in a few words, never `0 findings`, and the safety fact names the Axes that did not run.
+
+After the fork, take `git status --porcelain` again. A difference is the reviewer having written
+into the tree: name every such path in the safety line, before the fact the reviewer gave, and
+still write the Findings.
 
 The Security Axis line reads `not run, no security reviewer installed` until the security reviewer
 ships.
