@@ -59,6 +59,14 @@ skill that writes or reads one links the file by relative path: never a copy, an
 into another skill's folder. A format read by one skill only stays in that skill's `references/`.
 Adding, renaming or removing a format updates the index in the same change.
 
+## The scratch folder
+
+`.scratch/` is where a project keeps the chain's local artifacts, and it is always unversioned: it
+is one developer's own workspace and a teammate never reads it. `.agents/scratch.md` carries the
+contract, the line the project's `.gitignore` holds, the probes that read the state, what two runs
+at once share, and how a run inside a git worktree reaches the folder. A skill that reads or writes
+there links it by path, never a copy.
+
 ## Vendored dependencies
 
 `vendor/` holds the skills this repo's skills call and does not own: a subset of pstack, copied at
