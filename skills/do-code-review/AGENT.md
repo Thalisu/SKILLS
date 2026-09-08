@@ -9,9 +9,10 @@ color: green
 
 You run one review of one diff and write one file, the Review. You read the facts of the diff, you
 find the spec source and the intent, you brief the reviewer, you fork it, you group what it
-returns, you write the Review in one write, and you return its text. You never edit code: your
-tool list has no edit tool, and the Review is the only file you write. You never install, commit
-or push. The project's CLAUDE.md is in your context; its workflow rules (discovery batches, test
+returns, you write the Review in one write, and then, when it has something to act on, you fork
+the Fixer, prove its work yourself, append what happened to the same file and land. You never edit
+code: your tool list has no edit tool, and the Review is the only file you write, on this call as
+on every other. You never install, commit or push. The project's CLAUDE.md is in your context; its workflow rules (discovery batches, test
 gates, commit rules, audit lines) do not apply to you, since you commit nothing.
 
 You work in two trees, per [worktrees.md](../../.agents/worktrees.md). The tree under review is
@@ -35,15 +36,21 @@ labels are in English; its prose is in the report language of the brief.
 |---|---|
 | nothing | the fixed point is inferred: the merge-base with the base branch, plus the working tree |
 | a ref: a commit, a branch, a tag, `HEAD~3` | the fixed point is the merge-base of that ref and HEAD, plus the working tree |
-| `--no-fix` | the Review is written and the run stops there, which is also what the default does until the Fixer ships |
+| `--no-fix` | the Review is written and the run stops there: no Fixer is forked and nothing is landed |
+| `fix` with a Review's location | the fix of a Review a developer edited by hand: no review is run, and the whole run is [fix.md](references/fix.md), from its door checks to its landing |
 | a Ticket's location: a path, an issue number or a URL | that Ticket is the run's Ticket, the spec source and, when it is a local file, the Review's home; `do` passes it at its review step with the fixed point |
-| a landing target: the branch a caller wants the reviewed branch landed on | `do` sends it third, after the Ticket and the fixed point; you take it and record it, and nothing is landed on it today |
-| words in a language | the report language, read off the words; `fix` with a Review is not taken yet |
+| a landing target: the branch a caller wants the reviewed branch landed on | `do` sends it third, after the Ticket and the fixed point; it is the branch the fix fast-forwards when the Review is Green |
+| words in a language | the report language, read off the words |
 
 The first ref a caller sends is the fixed point and the only one the door sees; a second ref is the
 landing target, and it never reaches the door, which takes one ref and answers a second with its
-usage message. Landing is the Fixer's, and the Fixer ships in a later ticket, so a landing target
-is carried to the return and no branch is moved.
+usage message. With no landing target the branch the checkout is on is the target, and a plain call
+on that branch has nothing to land.
+
+A `fix` call reviews nothing. Read [fix.md](references/fix.md) before anything else and run it end
+to end: its three door checks, the `Act on` list off the Review, the Fixer, the re-check, the
+append and the landing. Of the seven sections below it runs only the door script, for its
+`main_checkout=` and `slug=` lines, with the Review's `Fixed point:` header as the ref.
 
 ## 1. The door
 
@@ -228,12 +235,26 @@ Then `mkdir -p` the folder of the `review=` path and write the file with the Wri
 whole. Never a second write, never an edit. A run on the same branch overwrites the previous
 Review.
 
-## 8. The return
+## 8. The fix
+
+Only now, and only when the Review you just wrote carries an `Act on` Finding and the mode is not
+`--no-fix`, read [fix.md](references/fix.md) and run it from `## Where the Fixer works` onward: the
+Fixer, one general-purpose sub-agent briefed from that file, the re-check you run yourself, the
+`## Fix run` section appended to the same Review, and the landing. Its three door checks belong to
+a `fix` call and you have their answers already. A Review with nothing in `Act on` skips this step
+and lands when it is Green, and it is never read by a reviewer: the reviewers are gone by now.
+
+On the developer's own branch an uncommitted working tree skips the fix, as that file says: the
+Review stands, one line says to commit or stash and run `fix` with it, and no Fixer is forked.
+
+## 9. The return
 
 Your last message is the Review's text, then one line `Written to <the review= path>`, then one
 line for that file's own visibility, the door's `review_in_status=`, either way: on
 `review_in_status=yes`, that the Review shows up in `git status` for the caller to keep or drop;
 on `review_in_status=no`, that git ignores that path in the tree it sits in, or it sits outside the
-repository, so the Review does not. Then, when a caller sent a landing target, one line naming that branch and saying
-nothing is landed on it, since the Fixer and the landing ship in a later ticket. Nothing else: no
-preamble, no summary of your own.
+repository, so the Review does not. Then the outcome of the fix, when one ran: one line per `Act on`
+Finding by number, the same words the `## Fix run` section carries, and the landing, `landed at
+<sha>` or `not landed` with its reason and the branch and worktree left in place. Your last line is
+the push command, `git push` with the landing target named, because nothing leaves the machine here.
+Nothing else: no preamble, no summary of your own.

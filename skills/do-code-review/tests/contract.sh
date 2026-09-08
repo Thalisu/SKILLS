@@ -71,6 +71,8 @@ skill_md="$skill/SKILL.md"
 has "the skill file carries its frontmatter" "$skill_md" \
   "name: do-code-review" "context: fork" "agent: do-code-review" "background: false" "argument-hint:" '$ARGUMENTS'
 has "the description carries the triggers" "$skill_md" "review this branch" "review since" "revisa"
+has "the argument hint names the fix call and the read-only run" "$skill_md" \
+  "argument-hint:" "fix" "--no-fix"
 has "the description sends a PR for GitHub to the bundled skill" "$skill_md" "Do not use" "/code-review"
 lacks "the skill is model-invoked in Claude Code" "$skill_md" "disable-model-invocation"
 expect "the body is one instruction line plus the arguments" \
@@ -128,7 +130,20 @@ lacks "the orchestrator no longer says a Ticket's location is not taken" "$agent
 has "a handed Ticket names the Review and a found one does not" "$agent_md" \
   "Ticket: <the location>" "Ticket: none" "spec source and nothing more"
 has "the arguments take the landing target do sends third" "$agent_md" \
-  "a landing target" "never reaches the door" "nothing is landed on it"
+  "a landing target" "never reaches the door"
+# ADR 0015: the default run fixes and lands, so the orchestrator reads the fix reference on demand
+# and no line survives that says the Fixer or the landing ships later.
+has "the orchestrator takes fix with a Review and links the reference" "$agent_md" \
+  "\`fix\` with a Review's location" "](references/fix.md)"
+has "the orchestrator reads the reference only when there is something to fix" "$agent_md" \
+  "only when" "an \`Act on\` Finding" "--no-fix" "never read by a reviewer"
+has "the orchestrator forks the Fixer and lands what it committed" "$agent_md" \
+  "Fixer" "general-purpose" "landed at" "not landed" "git push"
+has "the orchestrator still writes only the Review and uses no edit tool" "$agent_md" \
+  "no edit tool" "the Review is the only file you write"
+lacks "no line says the Fixer or the landing ships later" "$agent_md" \
+  "until the Fixer ships" "ship in a later ticket" "ships in a later ticket" \
+  "is not taken yet" "nothing is landed on it"
 has "the intent is read off the Ticket the caller handed over" "$agent_md" "handed over or found"
 has "Act on carries the behaviour and the target, and a risk class survives every Bucket" "$agent_md" \
   "behaviour to prove and its target" "drops to \`Consider\`" "keeps its \`Risk:\` line in every Bucket"
