@@ -4,6 +4,7 @@
 # metadata, the two agent definitions and their tool lists, the evals, the docs page, the README
 # rows, the invocation contract's rows, and no em-dash in any prose the skill adds.
 # Run: bash skills/do-code-review/tests/contract.sh
+# shellcheck disable=SC2016
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
 repo="$(cd "$here/../../.." && pwd -P)"

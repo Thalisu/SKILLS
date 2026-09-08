@@ -4,7 +4,8 @@
 # project.
 #
 #   fixed-point.sh            the fixed point is the merge-base with the base branch: the remote's
-#                             HEAD branch, else main, else master
+#                             HEAD branch (the local branch of that name when it exists, so unpushed
+#                             commits on it are never part of the diff), else main, else master
 #   fixed-point.sh <ref>      the fixed point is the merge-base of <ref> and HEAD, which is <ref>
 #                             itself when it sits on the branch
 #
@@ -44,6 +45,7 @@ if [ -n "$ref" ]; then
 else
   remote="$(git remote | grep -x origin || git remote | head -1)"
   if [ -n "$remote" ]; then base="$(git symbolic-ref -q --short "refs/remotes/$remote/HEAD" || true)"; fi
+  if [ -n "$base" ] && git rev-parse --verify -q "refs/heads/${base#"$remote/"}" >/dev/null; then base="${base#"$remote/"}"; fi
   if [ -z "$base" ]; then
     for candidate in main master; do
       if git rev-parse --verify -q "refs/heads/$candidate" >/dev/null; then base="$candidate"; break; fi

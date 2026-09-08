@@ -82,6 +82,15 @@ run
 check "the remote's HEAD branch is the base when it is set" 0 "$rc" \
   "base=origin/feat/7-export" "fixed_point=$(git rev-parse origin/feat/7-export)"
 
+# The local branch of the remote HEAD's name wins when it exists, so unpushed commits on the base
+# are never reviewed as part of the branch.
+git checkout -q -b feat/7-export origin/feat/7-export && printf 'f\n' > f.txt && git add f.txt && git commit -q -m "local base ahead"
+git checkout -q -b topic2 && printf 'g\n' > g.txt && git add g.txt && git commit -q -m "topic2"
+run
+check "the local branch of the remote HEAD's name is the base when it exists" 0 "$rc" \
+  "base=feat/7-export" "fixed_point=$(git rev-parse feat/7-export)" "commits=1"
+absent "the remote-tracking ref is not the base then" "base=origin/"
+
 # master when there is no main and no remote HEAD.
 mkdir "$tmp/legacy" && cd "$tmp/legacy" && git init -q -b master
 printf 'a\n' > a.txt && git add a.txt && git commit -q -m "first"
