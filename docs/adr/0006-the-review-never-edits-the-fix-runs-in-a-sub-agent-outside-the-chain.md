@@ -22,3 +22,10 @@ orchestrator, fixer, test author.
   review before the fixer acts on it, and the run has no artifact to hand a later session.
 - One fixer sub-agent for both paths: two writers in the `/do` worktree, and a fixer that has to
   re-implement the step 5 loop or skip it.
+
+ADR 0013 amends the landing: when the Review is green, `do-code-review` lands the reviewed branch
+itself; `do` no longer lands. The rest of this ADR stands.
+
+ADR 0015 reverses the two-call rule: the default run fixes its `Act on` Findings through the Fixer
+and lands, for every caller; `--no-fix` and `fix <review>` keep the human read as exceptions. The
+reviewer agents still never edit; the Fixer is the only writer, and it is not the reviewer.
