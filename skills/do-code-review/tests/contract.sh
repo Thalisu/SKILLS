@@ -82,8 +82,31 @@ has "the orchestrator forks the technical reviewer by name" "$agent_md" "subagen
 has "the orchestrator describes the run" "$agent_md" \
   "no spec" "Inferred from the diff:" "once more" "one write" "unslop" "not run" ", inferred" "Ticket: none"
 
+# The technical reviewer: in the agents folder with the skill's prefix, one caller, no write and no
+# edit tool, the five Axes, the lenses, the smells, the evidence rules, the Rung gate, the return.
+reviewer_md="$skill/agents/do-code-review-technical-reviewer.md"
+has "the reviewer carries its frontmatter" "$reviewer_md" "name: do-code-review-technical-reviewer" \
+  "model: inherit" "tools: Bash, Read, Glob, Grep, Skill"
+has "the reviewer names one caller" "$reviewer_md" "do-code-review orchestrator"
+lacks "the reviewer has no write and no edit tool" "$reviewer_md" "Write" "Edit"
+has "the reviewer links the format by relative path" "$reviewer_md" "](../../../.agents/formats/review-format.md)"
+has "the reviewer puts the five Axes to the diff" "$reviewer_md" \
+  "Correctness" "Spec" "Standards" "Principles" "Blast radius" "failure scenario" "quoting the spec line" "outside the diff"
+has "the reviewer carries the lenses with their tells" "$reviewer_md" \
+  "| Lens | Ask | Tell |" "](../../../.agents/principles/model-the-domain.md)" "second boolean" "fires only"
+has "the reviewer carries the twelve smells as judgment calls" "$reviewer_md" \
+  "Mysterious Name" "Duplicated Code" "Feature Envy" "Data Clumps" "Primitive Obsession" "Repeated Switches" \
+  "Shotgun Surgery" "Divergent Change" "Speculative Generality" "Message Chains" "Middle Man" "Refused Bequest" \
+  "judgment call" "tooling already enforces"
+has "the reviewer judges comments and prose under Standards" "$reviewer_md" "comment policy" "never deleted" "slop"
+has "the reviewer proves in a temporary directory outside the tree" "$reviewer_md" \
+  "mktemp -d" "outside every repository" "imports the real code" "installs nothing"
+has "the reviewer applies the Rung gate" "$reviewer_md" "Rung 1 or 2" "unproven" "Rung 4" "measured"
+has "the reviewer uses how and why when listed" "$reviewer_md" '"how"' '"why"' "not listed"
+has "the reviewer returns in the Review's shape" "$reviewer_md" "### <n>. <Axis> at <location>" "Safe because:" "0 findings"
+
 # No em-dash in any prose the skill adds.
-prose=("$format" "$skill_md" "$agent_md")
+prose=("$format" "$skill_md" "$agent_md" "$reviewer_md")
 for f in "${prose[@]}"; do
   [ -f "$f" ] || continue
   if grep -q $'\xe2\x80\x94' "$f"; then echo "FAIL  no em-dash in $f"; fails=$((fails + 1)); else echo "ok    no em-dash in ${f#"$repo/"}"; fi
