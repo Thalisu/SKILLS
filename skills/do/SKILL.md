@@ -37,7 +37,7 @@ A matched Playbook whose reference is missing from Links is not installed in thi
 
 ## Non-negotiables
 
-Each holds in every Playbook; a run that cannot keep one stops and says which.
+Each holds in every Playbook.
 
 - The matched Playbook's steps are copied verbatim as the checklist before any task-specific item, and a skipped step stays visible as `skip: <reason>`.
 - A principle is named in the reply only with the decision it changed.

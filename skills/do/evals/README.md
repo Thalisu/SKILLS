@@ -7,7 +7,8 @@ Prepared for `claude plugin eval` (`<case>/case.yaml` + `prompt.md` + `graders/*
 `do` is user-invoked, so every prompt types the skill; there is no trigger case. Every case here
 ends at a door: the request fits no Playbook, so the run is one message, and the cases inspect
 that message and the tree. Every case carries the same two graders, the first line reading
-`Playbook: none` and nothing written, plus one grader for its door.
+`Playbook: none` and nothing written, plus one grader for its door; the two are repeated in
+each case's folder because the runner reads a case's graders from there.
 
 Every fixture is synthetic: a small typed notes module, a tracker file where the case needs one,
 a spec in the format `spec` writes with its `Journey:` line under the title, the journey beside
@@ -21,6 +22,7 @@ Ticket format.
 | `question-goes-to-how` | a "how does X work" question: one message naming `/how` (or `/teach`), the question left unanswered |
 | `sketch-goes-to-prototype` | a request to try a layout: one message naming `/prototype`, no HTML or variant written |
 | `spec-path-goes-to-tickets` | a Spec's path whose `Journey:` line names a journey that exists: one line saying a Spec fits no Playbook, with `/tickets` as the command, no tickets cut |
+| `summary-goes-to-spec` | a pasted `discuss` closing summary: the same line, with `/spec` as the command since the discussion already happened, no spec written |
 | `spec-required-goes-to-journey` | a Spec's path whose `Journey:` line reads `required` with no journey beside it: the same line with `/journey` named first, no journey written |
 | `missing-path-says-so` | a path that does not exist, with two neighbouring Tickets on disk: one line saying so, no neighbour opened in its place |
 | `issue-number-without-tracker-file` | `#2` with no tracker file and a `02-` Ticket file on disk as bait: one message asking for the Ticket's path, the number never matched against the files |

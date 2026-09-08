@@ -22,7 +22,7 @@ interviews the human, the fourth writes throwaway files into a project, the fift
 into a project, the sixth publishes tickets to a project's tracker, the seventh interviews the human
 about a spec and writes the journey into a project, the eighth builds one Ticket or one change in a
 project and commits it there, and each is the human's call. `discover` and `test-triage` are
-model-invoked. `do` reaches other skills only through the Skill tool, and only model-invoked ones:
+model-invoked. The skills `do` calls through the Skill tool are all model-invoked:
 `do-code-review`, the review it hands its branch to, and the vendored `architect`, `how`, `why`,
 `unslop` and `technical-writing`; a step that names one says in one line what it does when the
 session does not list it. Under `vendor/`, `no-comments` is user-invoked, and `architect`,
