@@ -196,6 +196,8 @@ no longer shows the run's worktree, or the step reads `skip: nothing landed` and
 reads `claimed`.
 
 **11. Reply.** Written by [reply.md](reply.md). What this Playbook puts in its sections: the
-Ticket under the files left uncommitted, and, as the next step, the worktree, its branch, and the
+Ticket and the Review under the files left uncommitted; the flows the developer waived and the
+consumer flows not run under pending debt; and the next step, `git push` with the developer's
+branch named when the review landed, or, when nothing landed, the worktree, its branch, and the
 review and the landing as what the developer runs next. Done when the reply is sent with every
 section that applies.
