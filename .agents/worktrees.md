@@ -48,6 +48,14 @@ Leave the worktree with a bare `cd` to the main checkout, then, from there,
 `git worktree remove <path>` and `git branch -d do/<slug>`. The run removes the worktree it
 created; nothing else does.
 
+Before the remove, look inside the worktree's `.scratch/`. Git ignores the folder, so the remove
+deletes whatever is in it without a word and without needing `--force`, and nothing warns after
+the fact. Nothing of the run belongs there: the Ticket lives in the main checkout and the Review
+goes beside it or to the main checkout's scratch, per
+[ADR 0021](../docs/adr/0021-the-ticket-reaches-the-review-handed-over-and-the-review-defaults-to-the-main-checkouts-scratch.md).
+A file found there was written by hand or by an older run, and it is moved to the main checkout's
+`.scratch/` before the remove, never deleted with the tree.
+
 ## Where the worktree lives
 
 `.claude/worktrees/do-<slug>` is the place: the harness's own worktrees folder, so the run's
