@@ -2,8 +2,8 @@
 
 One file for the parts the Playbooks that build in a worktree share, read by `ticket`, `bug-fix`
 and `refactoring`, so a fix to a mechanic is made once. It carries the worktree, the protected
-branch, the Ticket file, the build loop with its test authors, and the gate. A Playbook links the
-section it needs and never copies it.
+branch, the Ticket file, the build loop with its test authors, the gate and the review. A Playbook
+links the section it needs and never copies it.
 
 ## The worktree
 
@@ -164,3 +164,41 @@ output line is quoted after.
 
 Done when the suite and the typecheck are green in output produced after the last edit, and every
 other check is green or reads `skip: <reason>`.
+
+## The review
+
+Run once per landing, after the gate, and never by hand: the review fixes and lands, the run reads.
+Call the Skill tool with `do-code-review` and three arguments: the spec source (the Ticket's
+location in `ticket`, so the Review lands beside it; the branch alone in `bug-fix` and
+`refactoring`), the fixed point of the branch under review (the commit the worktree was created
+from, or the commit the review last landed), and the developer's branch as the landing target.
+Never `fix`, never `--no-fix`: the default run is the one every Playbook wants, per ADR 0015. The
+run waits on the call. While the review runs, its Fixer is the only writer in the worktree, and
+the run touches nothing.
+
+What the review does with the call, so that the run does not: it writes the Review, forks its
+Fixer with the `Act on` list, which turns every `Act on` Finding into one commit on the reviewed
+branch under the project's Testing Policy, re-runs each Finding's check and the gate, and, when
+the Review is Green, lands the reviewed branch on the developer's branch by fast-forward under the
+landing rules of ADR 0013: a protected branch refused, the branch rebased first when the
+developer's branch moved, a rebase conflict aborted with the conflicting files named, a failed
+fast-forward left in place, nothing pushed.
+
+The run reads the outcome off the return and never opens the Review file. The thread shows the
+return, one line per part:
+
+- the Review's location;
+- the landing line, `landed at <commit>`, or `not landed` with the review's reason;
+- the Fixer's commits, one per `Act on` Finding, by the Finding's number;
+- every `Consider` Finding, the ones carrying a risk class flagged to the developer, since a
+  risk class is never dismissed silently;
+- an Axis marked `not run`, named to the developer with its reason.
+
+The run makes no commit for a Finding and fixes none by hand: a Finding the Fixer left standing
+is the review's reason for not landing, and the run stops on it. Landed, and the run goes on to
+the verification.
+
+When the session does not list `do-code-review`, the step reads
+`skip: do-code-review not listed`: nothing lands, the worktree and its branch stay in place and
+are named in the reply, and the reply names the review and the landing as the developer's next
+step.
