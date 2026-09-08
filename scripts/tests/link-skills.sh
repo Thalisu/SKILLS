@@ -85,4 +85,23 @@ expect "the real file keeps its content" test "$(cat "$claude_agents/beta-agent.
 expect "the other entries are still confirmed" grep -qF -- "ok      $agents_skills/alpha" <<<"$out"
 rm "$claude_agents/beta-agent.md"
 
+# Every markdown definition in a skill's agents folder links under its own file name; the Codex
+# metadata beside them never does, and the prune pass leaves the new links in place.
+printf -- '---\nname: beta-reviewer\ndescription: forked by beta\n---\n' > "$repo/skills/beta/agents/beta-reviewer.md"
+printf -- '---\nname: beta-security\ndescription: forked by beta\n---\n' > "$repo/skills/beta/agents/beta-security.md"
+run
+check "definitions in the agents folder are linked under their file names" 0 "$rc" \
+  "linked  $claude_agents/beta-reviewer.md -> $repo/skills/beta/agents/beta-reviewer.md" \
+  "linked  $claude_agents/beta-security.md -> $repo/skills/beta/agents/beta-security.md"
+expect "an agents-folder link is in place after the prune pass" links_to "$claude_agents/beta-reviewer.md" "$repo/skills/beta/agents/beta-reviewer.md"
+absent "the prune pass does not undo an agents-folder link" "pruned  $claude_agents/beta-reviewer.md"
+absent "the Codex metadata is never linked" "openai.yaml"
+expect "no link points at the Codex metadata" test ! -e "$claude_agents/openai.yaml"
+before="$(snapshot)"
+run
+check "a second run confirms the agents-folder links" 0 "$rc" \
+  "ok      $claude_agents/beta-reviewer.md" "ok      $claude_agents/beta-security.md"
+absent "a second run links no agents-folder entry" "linked "
+expect "a second run changes nothing under HOME" test "$before" = "$(snapshot)"
+
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi

@@ -3,13 +3,18 @@ set -euo pipefail
 
 # Dev-only, for maintainers of this repo; not a supported installer (the README says how to install).
 # Links every skill under skills/ and vendor/ into the local harness skill directories, links every
-# AGENT.md a skill ships into ~/.claude/agents, then prunes links into this repo whose skill is gone:
+# agent definition a skill ships into ~/.claude/agents, then prunes links into this repo whose skill
+# or definition is gone:
 #   ~/.agents/skills/<name>     -> <repo>/<skills|vendor>/<name>            absolute; Codex and
 #                                                                          other Agent Skills
 #                                                                          harnesses
 #   ~/.claude/skills/<name>     -> ../../.agents/skills/<name>              relative hop; Claude Code
 #   ~/.claude/agents/<agent>.md -> <repo>/<skills|vendor>/<name>/AGENT.md   absolute; <agent> is the
 #                                                                          `name` in its frontmatter
+#   ~/.claude/agents/<file>.md  -> <repo>/<skills|vendor>/<name>/agents/<file>.md
+#                                                                          absolute; every markdown
+#                                                                          file in the agents folder,
+#                                                                          under its own file name
 # Same layout as skills/discover-setup/scripts/install.sh, so the two never rewrite each other's
 # links. Every entry is a symlink into this repo, so a `git pull` keeps the installed skills current.
 
@@ -67,6 +72,10 @@ for skill_md in "$REPO"/skills/*/SKILL.md "$REPO"/vendor/*/SKILL.md; do
     agent="${agent:-$name}"
     link "$CLAUDE_AGENTS/$agent.md" "$dir/AGENT.md"
   fi
+  for definition in "$dir"/agents/*.md; do
+    [ -f "$definition" ] || continue
+    link "$CLAUDE_AGENTS/$(basename "$definition")" "$definition"
+  done
 done
 
 owns() { [ -n "${owned[$1]+x}" ]; } # $1 link path
