@@ -41,7 +41,7 @@ has "the build loop links the reference" "$mechanics" "](tdd-fallback.md)"
 lacks "no em-dash in the mechanics" "$mechanics" "$emdash"
 
 # The loop line: fallback without the author names the read, policy never reads it, Links lists it
-has "the loop line reads fallback without the unit test author" "$ticket" '`Loop: fallback` otherwise'
+has "the loop line reads fallback without the unit test author" "$ticket" "Loop: fallback"
 has "the loop line names the reference read under fallback" "$ticket" "](tdd-fallback.md)"
 has "the reference is never read under policy" "$ticket" "never read"
 has "the skill file lists the reference under Links" "$skillfile" "[tdd-fallback.md](references/tdd-fallback.md)"
@@ -55,7 +55,7 @@ has "the first line grader reads Playbook: ticket" "$case/graders/first-line-pla
 has "a grader checks the loop line and the reference read" "$case/graders/loop-line-fallback-reference-read.md" "tdd-fallback.md"
 has "a grader checks no test author was dispatched" "$case/graders/no-test-author-dispatched.md" "unit-test-author"
 has "a grader checks the failing test lands before the implementation" "$case/graders/failing-test-lands-before-implementation.md" "before"
-has "the README lists the case" "$skill/evals/README.md" '`ticket-run-without-policy`'
+has "the README lists the case" "$skill/evals/README.md" "ticket-run-without-policy"
 lacks "no em-dash in the case" "$case/case.yaml" "$emdash"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
