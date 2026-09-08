@@ -249,4 +249,31 @@ run
 check "a project file that ends in .review.md is reviewed, not spared" 0 "$rc" \
   "branch=rewrite" "commits=1" "dirty=no"
 
+# The Review of a handed-over Ticket is the run's own output: it never dirties the tree, never
+# defeats the empty-diff refusal, and never reaches the reviewer through the status line. The spec
+# beside its issues folder is the spec, whatever the branch is called.
+mkdir "$tmp/handover" && cd "$tmp/handover" && git init -q -b main
+mkdir -p .scratch/notes/issues && printf '# Export notes\n' > .scratch/notes/spec.md
+printf '# 03: Export notes\n' > .scratch/notes/issues/03-export-notes.md
+git add -A && git commit -q -m "first"
+git checkout -q -b do/export-notes
+printf '# Review: 03\n' > .scratch/notes/issues/03-export-notes.review.md
+run --ticket .scratch/notes/issues/03-export-notes.md
+check "the handed Ticket's Review does not defeat the empty-diff refusal" 1 "$rc" \
+  "refusal=no diff between main ($(sha main)) and the working tree; nothing reviewed"
+printf 'n\n' > n.txt && git add n.txt && git commit -q -m "build"
+run --ticket .scratch/notes/issues/03-export-notes.md
+check "the handed Ticket's Review does not mark the tree dirty" 0 "$rc" \
+  "spec=.scratch/notes/spec.md" \
+  "dirty=no" "review=.scratch/notes/issues/03-export-notes.review.md" \
+  "status=git status --short -- . ':!.scratch/notes/issues/03-export-notes.review.md'"
+out="$(eval "$(sed -n 's/^status=//p' <<<"$out")" 2>&1)"
+absent "the status line hands the handed Ticket's Review on to nobody" ".review.md"
+
+# A handed reference names no file, so nothing beside it is spared and no spec is read off it.
+run --ticket 42
+check "a handed reference spares only the scratch path" 0 "$rc" \
+  "status=git status --short -- . ':!.scratch/reviews/do-export-notes.md'"
+absent "a handed reference spares nothing beside itself" ":!42.review.md"
+
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi
