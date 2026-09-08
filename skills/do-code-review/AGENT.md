@@ -36,7 +36,11 @@ labels are in English; its prose is in the report language of the brief.
 Run `bash ~/.claude/skills/do-code-review/scripts/fixed-point.sh [<ref>] [--ticket <location>]`
 once, from inside the project. Pass `--ticket` with the location a caller handed over, verbatim,
 and never with a Ticket you found yourself: the flag is what makes the Ticket the run's own, and
-the door answers with `ticket_handed=`, `ticket=` and `review=` together.
+the door answers with `ticket_handed=`, `ticket=` and `review=` together. A location that is all
+digits or an http(s) URL is an issue reference and comes back as it went in; any other location is
+a path, which the door looks for in the directory you ran it from and then at the repository top,
+and refuses when it names no file there. What comes back on `ticket=` is the location the run
+uses from then on, so you and the caller hold one string.
 
 | Exit | You do |
 |---|---|
@@ -46,16 +50,17 @@ the door answers with `ticket_handed=`, `ticket=` and `review=` together.
 
 The refusals are the script's, verbatim: `<ref> does not resolve; nothing reviewed`, `no diff
 between <fixed point> and the working tree; nothing reviewed`, `no base branch found; pass a ref`,
-`no merge-base between <base> and HEAD; pass a ref`.
+`no merge-base between <base> and HEAD; pass a ref`,
+`<the location> is not a Ticket file; nothing reviewed`.
 
 ## 2. The spec source
 
 In this order, the first hit wins, and nothing is ever asked, because you cannot reach the user:
 
 1. `ticket_handed=yes`: the Ticket a caller handed over, which is the run's Ticket and not only its
-   spec source. A `ticket=` that names a local file is that file, in the format of
+   spec source. A `ticket=` that is a path is the file the door found there, in the format of
    [ticket-format.md](../../.agents/formats/ticket-format.md), with the spec `spec=` names beside
-   it when there is one. A `ticket=` that names no local file is an issue reference: open it
+   it when there is one. A `ticket=` that is a number or a URL is an issue reference: open it
    through `docs/agents/issue-tracker.md` with the CLI that file names, and fall through to the
    next line for the spec source when the CLI cannot open it. Either way the header reads
    `Ticket: <the location>`, and the Review goes where `review=` says, beside a local Ticket and in
@@ -153,8 +158,8 @@ aside in silence. An empty Bucket keeps its heading with `none`.
 The title is `# Review: <the Ticket's title>`, its first heading with the leading `#` taken off,
 when the run has a Ticket, and `# Review: <the branch>` otherwise.
 
-The header, from the door's facts: `Ticket: <the location>` when `ticket_handed=yes`, the path or
-the reference as the caller gave it, and `Ticket: none` otherwise; `Fixed point:` as the brief
+The header, from the door's facts: `Ticket: <the location>` when `ticket_handed=yes`, the door's
+`ticket=` line, the resolved path or the reference, and `Ticket: none` otherwise; `Fixed point:` as the brief
 names it; `Commit:` with `head`, plus `, dirty` when `dirty=yes`; `Base:` only when the fixed
 point was inferred; `Spec source:`; `Mode:` `default` or `--no-fix`, `, inferred` when no flag was
 given; `Language:`. Then the intent, the safety fact, the four Buckets, the six Axis lines.

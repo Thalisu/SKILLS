@@ -89,8 +89,11 @@ has "the wait's shell window closes inside the Bash tool's own maximum" "$agent_
 has "the brief hands the reviewer the door's status line whole" "$agent_md" \
   "untracked files in <the door's status= line>" "pathspec and all"
 lacks "the brief names no bare status command" "$agent_md" "git status --short"
-has "the orchestrator compares the tree around the fork and names all four refusals" "$agent_md" \
-  "git status --porcelain" "no merge-base between" "](../../.agents/formats/ticket-format.md)" "spec source and nothing more"
+has "the orchestrator compares the tree around the fork and names all five refusals" "$agent_md" \
+  "git status --porcelain" "no merge-base between" "is not a Ticket file; nothing reviewed" \
+  "](../../.agents/formats/ticket-format.md)" "spec source and nothing more"
+lacks "the orchestrator no longer reads a handed path that names no file as a reference" "$agent_md" \
+  "names no local file is an issue reference"
 has "the orchestrator takes a Ticket's location and hands it to the door" "$agent_md" \
   "--ticket <location>" "a Ticket's location" "ticket_handed=yes"
 lacks "the orchestrator no longer says a Ticket's location is not taken" "$agent_md" \

@@ -234,8 +234,17 @@ run --ticket https://github.com/o/r/issues/42
 check "a handed URL keeps the scratch path" 0 "$rc" \
   "ticket_handed=yes" "ticket=https://github.com/o/r/issues/42" "review=.scratch/reviews/do-handed.md"
 run --ticket .scratch/x/issues/99-gone.md
-check "a handed path that is not a file keeps the scratch path" 0 "$rc" \
-  "ticket_handed=yes" "review=.scratch/reviews/do-handed.md"
+check "a handed path that names no file refuses in one line" 1 "$rc" \
+  "refusal=.scratch/x/issues/99-gone.md is not a Ticket file; nothing reviewed"
+absent "that refusal prints no facts" "ticket_handed="
+
+# A handed path is resolved from the directory the caller ran in first, and the location the door
+# prints is the one the rest of the run uses, so the caller and the orchestrator hold one string.
+mkdir -p "$tmp/again/sub" && cd "$tmp/again/sub" || exit 1
+run --ticket ../.scratch/x/issues/01-x.md
+check "a path relative to the invocation directory resolves" 0 "$rc" \
+  "ticket_handed=yes" "ticket=.scratch/x/issues/01-x.md" "review=.scratch/x/issues/01-x.review.md"
+cd "$tmp/again" || exit 1
 
 # Without the flag a Ticket the door finds by slug stays a spec source and never the file's home.
 git checkout -q do/x
@@ -312,5 +321,32 @@ check "a Ticket outside the worktree is still the Review's home" 0 "$rc" \
   "review=$tmp/elsewhere/issues/04-outside.review.md" "dirty=no" "commits=1"
 expect "the door's status command runs with that Ticket spared" \
   bash -c "eval \"$(sed -n 's/^status=//p' <<<"$out")\" >/dev/null"
+
+# The Ticket of a do run lives in the main checkout under an ignored .scratch, which git never
+# copies into the worktree the branch is built in. A location that names no file there is refused
+# by name instead of passing as an issue reference, which would lose the Ticket and its spec; the
+# Ticket's own location finds both, from the worktree and from a directory under it.
+mkdir "$tmp/wt-main" && cd "$tmp/wt-main" && git init -q -b main
+printf '.scratch\n' > .gitignore && git add .gitignore && git commit -q -m "first"
+mkdir -p .scratch/notes/issues
+printf '# Export notes\n' > .scratch/notes/spec.md
+printf '# 05: Export notes\n' > .scratch/notes/issues/05-export-notes.md
+git worktree add -q "$tmp/wt-main/.claude/worktrees/w" -b do/export-notes >/dev/null
+cd "$tmp/wt-main/.claude/worktrees/w" || exit 1
+printf 'n\n' > n.txt && git add n.txt && git commit -q -m "build"
+run main --ticket .scratch/notes/issues/05-export-notes.md
+check "a Ticket the worktree holds no copy of refuses instead of passing as a reference" 1 "$rc" \
+  "refusal=.scratch/notes/issues/05-export-notes.md is not a Ticket file; nothing reviewed"
+absent "that refusal names no review path" "review="
+run main --ticket "$tmp/wt-main/.scratch/notes/issues/05-export-notes.md"
+check "the Ticket's own location finds it and the spec beside it from the worktree" 0 "$rc" \
+  "ticket_handed=yes" "ticket=$tmp/wt-main/.scratch/notes/issues/05-export-notes.md" \
+  "review=$tmp/wt-main/.scratch/notes/issues/05-export-notes.review.md" \
+  "spec=$tmp/wt-main/.scratch/notes/spec.md" "commits=1"
+mkdir -p "$tmp/wt-main/.claude/worktrees/w/sub" && cd "$tmp/wt-main/.claude/worktrees/w/sub" || exit 1
+run main --ticket ../../../../.scratch/notes/issues/05-export-notes.md
+check "a path out of the worktree resolves from the directory the caller ran in" 0 "$rc" \
+  "ticket=$tmp/wt-main/.scratch/notes/issues/05-export-notes.md" \
+  "review=$tmp/wt-main/.scratch/notes/issues/05-export-notes.review.md"
 
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi

@@ -11,8 +11,11 @@
 #                             master
 #   fixed-point.sh <ref>      the fixed point is the merge-base of <ref> and HEAD, which is <ref>
 #                             itself when it sits on the branch
-#   --ticket <location>       the Ticket a caller hands over, a local file or an issue reference; it
-#                             is the spec source, and a local file is also the Review's home
+#   --ticket <location>       the Ticket a caller hands over, a path or an issue reference (all
+#                             digits, or an http(s) URL); it is the spec source, and a path is also
+#                             the Review's home. A path is resolved from the directory the script
+#                             was invoked from first, then from the repository top; one that names
+#                             no file is a refusal, so a Ticket handed over is never lost quietly
 #
 # Prints key=value lines: branch, slug (the branch with every slash turned into a dash), head,
 # dirty (yes when the working tree has uncommitted or untracked changes; the two files this run
@@ -25,8 +28,8 @@
 # HEAD), review (the Review's path: beside a handed-over local Ticket, taking its name with .review
 # before the extension, else in the scratch reviews folder), issue (a number in the branch name,
 # else one written as #<n> in a commit subject since the fixed point, else none), ticket (the
-# location handed over, else a Ticket file under .scratch/*/issues/ named after the branch's slug,
-# else none), ticket_handed (yes when a caller handed the Ticket over, so it names the run's Ticket;
+# location handed over, a path resolved to where the run reads it, else a Ticket file under
+# .scratch/*/issues/ named after the branch's slug, else none), ticket_handed (yes when a caller handed the Ticket over, so it names the run's Ticket;
 # no when the door found it by slug, which makes it a spec source and nothing more), spec (the spec
 # beside that Ticket, else the one spec in the usual spec homes, .scratch/<x>/spec.md,
 # docs/specs/<x>.md, specs/<x>.md, whose <x> is the slug or contains it, else none when there is
@@ -45,10 +48,30 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 top="$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "not a git repository" >&2; exit 2; }
+invoked="$(pwd -P)"
 cd "$top" || exit 2
 
 refuse() { echo "refusal=$1"; exit 1; }
 short() { git rev-parse --short "$1"; }
+reference() { # a handed location that is an issue reference: all digits, or an http(s) URL
+  case "$1" in
+    http://*|https://*) return 0 ;;
+    ''|*[!0-9]*) return 1 ;;
+    *) return 0 ;;
+  esac
+}
+resolve() { # a handed path, from the directory the script was invoked from first and the
+            # repository top second, printed the way the rest of the run names it: relative to the
+            # top when it sits under it, absolute anywhere else
+  local p="$1" abs=""
+  case "$p" in
+    /*) [ -f "$p" ] && abs="$p" ;;
+    *) if [ -f "$invoked/$p" ]; then abs="$invoked/$p"; elif [ -f "$top/$p" ]; then abs="$top/$p"; fi ;;
+  esac
+  [ -n "$abs" ] || return 1
+  abs="$(cd "$(dirname "$abs")" && pwd -P)/$(basename "$abs")"
+  case "$abs" in "$top"/*) printf '%s\n' "${abs#"$top"/}" ;; *) printf '%s\n' "$abs" ;; esac
+}
 
 branch="$(git symbolic-ref -q --short HEAD || echo HEAD)"
 slug="${branch//\//-}"
@@ -61,8 +84,12 @@ for f in .scratch/*/issues/[0-9][0-9]-"$core".md; do [ -f "$f" ] && { ticket="$f
 ticket_handed=no
 if [ "$handed_given" = yes ]; then
   ticket_handed=yes
-  ticket="$handed"
-  [ -f "$ticket" ] && review="${ticket%.md}.review.md"
+  if reference "$handed"; then
+    ticket="$handed"
+  else
+    ticket="$(resolve "$handed")" || refuse "$handed is not a Ticket file; nothing reviewed"
+    review="${ticket%.md}.review.md"
+  fi
 fi
 own=(":!$review")
 case "$ticket" in
