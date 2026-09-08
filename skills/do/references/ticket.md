@@ -21,11 +21,32 @@ The argument is a Ticket's path, or an issue reference resolved through the trac
 - A Ticket whose `Blocked by` names one not `resolved` is refused before the claim, in one
   message naming the blocker and its status. Nothing is written; the developer builds the blocker
   first, or sets its status by hand when it was done outside the chain.
-- A `claimed` Ticket whose `do/<slug>` worktree exists stops in one line naming the worktree.
+- A `claimed` Ticket whose `do/<slug>` worktree exists is resumed, as the Resume section says:
+  never a second worktree, and the claim stands.
 - A `claimed` Ticket whose worktree is gone starts over: the first message says so in one line,
   and the claim stands, since the claim is idempotent.
 - On a remote tracker, an issue assigned to someone else stops the run in one line with their
   name.
+
+## Resume
+
+A `claimed` Ticket whose `do/<slug>` worktree exists, an entry of `git worktree list` on that
+branch, is picked up where the last run stopped and never restarted. The state a resume reads is
+the branch and its worktree, never a run-state file: the commits since the developer's branch,
+`git log <base>..do/<slug>` with `<base>` their merge base, each with the `Behaviour:` line its
+body carries per the build loop in [mechanics.md](mechanics.md), and the working tree,
+`git status --short` in the worktree. The Ticket is not written: the claim stands.
+
+- The first message says the run resumes, names the worktree and its branch, and lists the
+  commits found, one line each with its `Behaviour:` line. The claim line is not written again.
+  The checklist follows, with steps 0 and 1 reading `done: resumed`.
+- The worktree is entered, never created: a second worktree is never made.
+- The grounding, the shape and the behaviours list run again without a write. The list is
+  re-derived from the Ticket and its Spec as step 4 says, never from the commits; then every line
+  whose behaviour a commit body carries is ticked with that commit's sha beside it, and a commit
+  whose `Behaviour:` line matches no line of the list is kept and named in the thread.
+- The loop continues at the first behaviour without a commit, and from there the run is a first
+  run: the flows, the gate, the review, the close, the reply.
 
 ## Checklist
 
