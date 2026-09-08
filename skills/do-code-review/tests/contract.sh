@@ -73,10 +73,10 @@ lacks "the Codex metadata carries no policy block" "$codex" "policy:" "allow_imp
 
 # The orchestrator: beside the skill file, two callers, no edit tool, the run described.
 agent_md="$skill/AGENT.md"
-has "the orchestrator carries its frontmatter" "$agent_md" "name: do-code-review" "model: inherit" \
-  "tools: Bash, Read, Glob, Grep, Write, Agent, Skill"
+has "the orchestrator carries its frontmatter" "$agent_md" "name: do-code-review" "model: inherit"
+expect "the orchestrator's tools are exactly shell, reading, search, writing, the Agent tool and the Skill tool" \
+  test "$(sed -n 's/^tools: //p' "$agent_md" 2>/dev/null)" = "Bash, Read, Glob, Grep, Write, Agent, Skill"
 has "the orchestrator names its two callers" "$agent_md" "do" "developer"
-lacks "the orchestrator has no edit tool" "$agent_md" "Edit,"
 has "the orchestrator links the format by relative path" "$agent_md" "](../../.agents/formats/review-format.md)"
 has "the orchestrator runs the door script" "$agent_md" "scripts/fixed-point.sh" "refusal="
 has "the orchestrator forks the technical reviewer by name" "$agent_md" "subagent_type: do-code-review-technical-reviewer"
@@ -86,8 +86,9 @@ has "the orchestrator describes the run" "$agent_md" \
 # The technical reviewer: in the agents folder with the skill's prefix, one caller, no write and no
 # edit tool, the five Axes, the lenses, the smells, the evidence rules, the Rung gate, the return.
 reviewer_md="$skill/agents/do-code-review-technical-reviewer.md"
-has "the reviewer carries its frontmatter" "$reviewer_md" "name: do-code-review-technical-reviewer" \
-  "model: inherit" "tools: Bash, Read, Glob, Grep, Skill"
+has "the reviewer carries its frontmatter" "$reviewer_md" "name: do-code-review-technical-reviewer" "model: inherit"
+expect "the reviewer's tools are exactly shell, reading, search and the Skill tool" \
+  test "$(sed -n 's/^tools: //p' "$reviewer_md" 2>/dev/null)" = "Bash, Read, Glob, Grep, Skill"
 has "the reviewer names one caller" "$reviewer_md" "do-code-review orchestrator"
 lacks "the reviewer has no write and no edit tool" "$reviewer_md" "Write" "Edit"
 has "the reviewer links the format by relative path" "$reviewer_md" "](../../../.agents/formats/review-format.md)"
