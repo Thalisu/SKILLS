@@ -1,0 +1,176 @@
+name: calibrates-from-resolved-tickets
+tags: [workflow, cut, calibrate]
+runs: 2
+max_turns: 16
+timeout_seconds: 300
+allowed_tools: [Bash, Read, Edit, Write, Agent]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # The pin-notes journey of the fold case, plus a resolved ticket of an earlier feature whose
+    # evidence carries a Context line: the run calibrates its estimates from that line instead of
+    # the defaults, and says so.
+    set -e
+    mkdir -p src docs/agents .scratch/pin-notes .scratch/export-notes/issues
+    cat > .scratch/export-notes/spec.md <<'MD'
+    # Export notes
+
+    Journey: not needed, one interaction on the existing list
+    Status: resolved
+
+    ## Problem Statement
+
+    A writer has no way to take their notes out of the app.
+
+    ## Solution
+
+    An Export action on the list downloads every active note as one text file.
+
+    ## User Stories
+
+    1. As a writer, I want an Export action on the list, so that I download my notes as one file
+
+    ## Implementation Decisions
+
+    - The export is plain text, one note per block, active notes only
+
+    ## Testing Decisions
+
+    - Behaviour tests through the notes module's public functions
+
+    ## Out of Scope
+
+    - Exporting archived notes
+    MD
+    cat > .scratch/export-notes/issues/01-export-notes-as-one-file.md <<'MD'
+    # 01: Export notes as one file
+
+    **What to build:** Export the list: the writer picks Export on the list and gets one text file with every active note, one block per note.
+
+    **Blocked by:** None (can start immediately)
+
+    **Status:** resolved
+
+    - [x] Export on the list downloads one text file holding every active note, one block per note
+    - [x] An empty list exports an empty file and a line says "Nothing to export"
+
+    ## Evidence
+
+    Context: grounded 41000, peak 97000, small
+
+    - unit: `npm test` green, 2 passed, output produced after the last edit
+    MD
+    cat > src/notes.js <<'JS'
+    const notes = [];
+    function create(title) {
+      const note = { id: notes.length + 1, title };
+      notes.push(note);
+      return note;
+    }
+    function list() {
+      return notes.slice();
+    }
+    module.exports = { create, list };
+    JS
+    cat > docs/agents/issue-tracker.md <<'MD'
+    # Issue tracker: Local Markdown
+
+    Issues and specs for this repo live as markdown files in `.scratch/`.
+
+    - One feature per directory: `.scratch/<feature-slug>/`
+    - The spec is `.scratch/<feature-slug>/spec.md`
+    - Implementation issues are one file per ticket at `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01`
+    - Triage state is a `Status:` line near the top of each issue file
+    MD
+    cat > .scratch/pin-notes/spec.md <<'MD'
+    # Pin notes
+
+    Journey: ./journey.md
+    Status: ready-for-agent
+
+    ## Problem Statement
+
+    The note a writer needs most sinks in the list as newer notes arrive.
+
+    ## Solution
+
+    A note can be pinned to the top of the list and unpinned again.
+
+    ## User Stories
+
+    1. As a writer, I want to pin a note, so that it stays at the top of my list
+    2. As a writer, I want to unpin a note, so that it takes its place in the list again
+
+    ## Implementation Decisions
+
+    - A note carries a pinned flag; pinned notes sort first, then the rest in their usual order
+
+    ## Testing Decisions
+
+    - Behaviour tests through the notes module's public functions
+
+    ## Out of Scope
+
+    - Pinning more than one note
+    MD
+    cat > .scratch/pin-notes/journey.md <<'MD'
+    # Journey: Pin notes
+
+    Spec: ./spec.md
+    Actor: writer
+    Entry: the notes list
+
+    ## Path 1: Pin a note
+
+    Story: 1
+    Outcome: the note sits at the top of the list with a pin mark.
+
+    | Step | Actor sees | Actor does | System answers |
+    |---|---|---|---|
+    | 1 | the list, each note with a Pin action | picks Pin on one note | the note moves to the top with a pin mark; its Pin action reads Unpin |
+
+    Failure branches:
+    - Pin picked when another note is pinned: the earlier note is unpinned, a line says "Pinned, replaced <title>"
+
+    ## Path 2: Unpin a note
+
+    Story: 2
+    Outcome: the note is back in its usual place.
+
+    | Step | Actor sees | Actor does | System answers |
+    |---|---|---|---|
+    | 1 | the pinned note at the top with Unpin | picks Unpin | the note drops back to its usual place and the pin mark is gone |
+
+    Failure branches:
+    - none
+
+    ## States
+
+    | State | The actor sees | Actions |
+    |---|---|---|
+    | unpinned | the note in its usual place | Pin (Path 1, to pinned) |
+    | pinned | the note at the top with a pin mark | Unpin (Path 2, to unpinned) |
+
+    ## Cut
+
+    - none
+
+    ## Defaults taken
+
+    - The pin mark is the app's existing icon set
+
+    ## Deferred
+
+    - none
+
+    ## Spec changes applied
+
+    - none
+
+    ## Reopen in discuss
+
+    - none
+    MD
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"

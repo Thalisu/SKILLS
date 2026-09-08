@@ -51,6 +51,15 @@ empty; `do` appends the evidence under it at the close, after the last edit, and
 criterion only when the evidence under the heading proves it. In an issue the evidence is the
 comment `do` leaves at the close; the body carries no empty section.
 
+The first line under the heading is the session's context, `Context: grounded <tokens>, peak
+<tokens>, <band>`: the `do` session's context at the end of its ground step, its peak over the run,
+both read from the harness transcript by the `context-usage.sh` script `do` ships, and the band the
+peak falls in (small under 150k, medium up to 200k, large beyond). The agents the session forks
+hold their own windows and are not counted. A harness without a readable transcript writes
+`Context: not measured, <reason>`. `tickets` reads this line from every resolved ticket to
+calibrate its estimates: the fixed load from the grounded figures, the per-criterion cost from
+peak minus grounded over the ticket's criteria count.
+
 ## Template
 
 The local shape:

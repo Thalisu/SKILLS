@@ -29,11 +29,12 @@ The document that walks every path of one spec from the actor's seat, kept where
 _Avoid_: user flow, UX doc
 
 **Ticket**:
-One demoable slice cut from a spec, and from its journey when it has one, sized by the tokens `do`
-is estimated to spend on it: small under 150k, medium up to 200k, large beyond that. The skill that
-cuts the set is `tickets`.
+One demoable slice cut from a spec, and from its journey when it has one, sized by the peak context
+the `do` session reaches while building it: small under 150k tokens, medium up to 200k, large
+beyond that. The skill that cuts the set is `tickets`.
 _Avoid_: issue (only when quoting a tracker that calls them issues), slice, task, "fits one
-session" (a session is not a number; the estimate is)
+session" (a session is not a number; the peak context is), total tokens (the agents `do` forks
+hold their own windows; only the session's context counts)
 
 **Playbook**:
 One execution model `do` routes a request to, kept under the skill's `references/` and read only
@@ -96,6 +97,10 @@ _Avoid_: report (the message returned to the caller, not the file), task review,
   **Ticket** is left as cut; a large **Ticket** is split along its steps and only small and medium
   are published; a stray piece of work lives in the **Ticket** that builds what it describes.
   `tickets` decides the cut, states each estimate in the breakdown, and asks only for approval
+- `do` reads the session's context at the end of its ground step and at the close and writes both
+  into the resolved **Ticket**'s evidence as its `Context:` line; `tickets` calibrates the fixed
+  load and the per-criterion cost of its estimates from those lines, and cuts a repo with none on
+  stated defaults, saying so in the breakdown
 - `do` routes a request to exactly one **Playbook**; the `ticket` **Playbook** builds exactly one
   **Ticket**, never a **Spec** and never a session summary, and is the only **Playbook** inside
   the chain
@@ -158,7 +163,8 @@ _Avoid_: report (the message returned to the caller, not the file), task review,
   lives beside the **Ticket** it reviews and names it.
 - "trivial" and "small" were used as a size. Resolved: **Trivial** is a structure, a change no test
   could tell before from after; a small bug is not trivial.
-- "fits one session" was the size of a **Ticket**. Resolved: the size is the tokens `do` is
-  estimated to spend on it, in three bands (small under 150k, medium up to 200k, large beyond), the
-  one yardstick that holds across harnesses; a fold is judged on the merged estimate, and the
-  estimate is stated in the breakdown.
+- "fits one session" was the size of a **Ticket**. Resolved: the size is the peak context the `do`
+  session reaches while building it, measured at the close and estimated at the cut, in three bands
+  (small under 150k, medium up to 200k, large beyond), the one yardstick that holds across
+  harnesses; the agents the session forks do not count; a fold is judged on the merged estimate,
+  and the estimate is stated in the breakdown.

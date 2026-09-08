@@ -8,7 +8,9 @@ the runner's help text and may need adjusting once it runs.
 `tickets` is user-invoked, so every prompt types the skill; there is no trigger case. Every fixture
 is small, so nearly every ticket the run cuts is in the small band: a fixture that must not fold
 makes every neighbour of a single-edge ticket wait on a second blocker, so the fold would delay it,
-and a fixture that must split carries a path long enough to be judged large. A run ends either at a
+and a fixture that must split carries a path long enough to be judged large. No fixture but the
+calibration one holds a resolved ticket, so every other breakdown estimates on the defaults and says
+so. A run ends either at a
 stop, or at the approval message, the only message that asks the user anything, since no user is
 there to say the breakdown goes out. Both are the moments the cases inspect: nothing is published in
 either.
@@ -22,6 +24,7 @@ the local shape of the ticket format `tickets` links.
 |---|---|
 | `journey-paths-become-slices` | with a journey, the breakdown has one ticket per path, names the path, draws the blocking edges from `## States` with what each ticket reads and who writes it, states every estimate and band, folds nothing, and lists the cut story as left out; the one question is approval and nothing is published before it |
 | `small-folds-into-neighbour` | two one-step paths on a single edge fold into one ticket that names both paths, with the fold rule stated; nothing is asked but approval |
+| `calibrates-from-resolved-tickets` | a resolved ticket of an earlier feature carries a `Context:` line, so the breakdown states the fixed load and the per-criterion cost read from it and every estimate is calibrated, not on the defaults |
 | `large-splits-along-steps` | one long path across every module is split along its steps into several demoable tickets, none in the large band, later pieces blocked by earlier ones; the split rule is stated. This case leans on the run's own estimate: a fixture the run judges medium needs more weight, not a looser grader |
 | `not-needed-cuts-from-stories` | a verdict of `not needed` is cut from the User Stories, and the run says so in one line |
 | `verdict-required-stops` | a verdict of `required` with no journey ends the run with one message naming `/journey`; nothing is written |

@@ -6,11 +6,11 @@
 through every layer, demoable on its own, declaring the tickets that block it. When the spec's
 verdict points at a journey, every walked path becomes one slice, its steps and failure branches
 become the acceptance criteria, and the states the actor sees set the order. The skill decides the
-cut and never asks about it: every ticket carries an estimate of the tokens `do` will spend on it,
-a ticket waits for the ticket that writes what it reads, a small ticket on a single edge is folded
-into its neighbour, a large one is split along its steps, and the breakdown shows the reasoning
-behind each. The one question you get is whether the breakdown goes out; once you say yes the
-tickets are published one file per ticket locally, or one issue per ticket on the project's
+cut and never asks about it: every ticket carries an estimate of the context the `do` session will
+reach on it, a ticket waits for the ticket that writes what it reads, a small ticket on a single
+edge is folded into its neighbour, a large one is split along its steps, and the breakdown shows the
+reasoning behind each. The one question you get is whether the breakdown goes out; once you say yes
+the tickets are published one file per ticket locally, or one issue per ticket on the project's
 tracker with native blocking links.
 
 It publishes nothing when its input is broken. A verdict that requires a journey nobody walked, a
@@ -49,15 +49,23 @@ blockers are done: the tickets an agent can grab right now. An edge is never a g
 reads what another writes (a state, a section, a symbol) is blocked by the one that writes it, and
 a stub to let it start sooner is never cut.
 
-Every slice carries an **estimate**, the tokens `do` is expected to spend on it, with the modules,
-tests and migrations that drive the number, so you can check it. The estimate puts the slice in a
-**band**, and the band decides what the skill does with it:
+Every slice carries an **estimate**, the peak context the `do` session is expected to reach while
+building it, never the total its forked agents spend, with the criteria count and the modules
+crossed that drive the number, so you can check it. The estimate puts the slice in a **band**, and
+the band decides what the skill does with it:
 
-| Band | Estimate | What happens |
+| Band | Peak context | What happens |
 |---|---|---|
 | small | under 150k | folds into the ticket at the other end of its single edge when the fold delays no ticket's start and the merged estimate stays medium at most |
 | medium | up to 200k | published as cut |
 | large | beyond 200k | split along its steps, every piece demoable; never published |
+
+The estimate is calibrated, not only guessed. On every ticket it resolves, `do` reads the session's
+context from the harness transcript twice, at the end of grounding and at the close, where the peak
+is read, and writes both into the ticket's evidence as a `Context:` line. `tickets` reads those
+lines from the resolved tickets in the repo to set the fixed load and the per-criterion cost of the
+next cut. A repo with no measured ticket is cut on stated defaults, and every estimate in that
+breakdown says so.
 
 Where the slices come from is decided by the spec's **verdict**, the `Journey:` line under its
 title:
@@ -108,6 +116,11 @@ Into the breakdown. Both were answers the skill could read off the cut, and each
 the chain on you. An edge now comes with what the ticket reads and who writes it, and a fold or a
 split comes with the rule that fired. Overrule any of it in your reply; the breakdown is redrawn and
 put to you again with the same one question.
+
+**Every estimate says uncalibrated. What do I do?**
+Nothing in the cut. Build one ticket with `do`; its close writes the measured context into the
+ticket's evidence, and the next `/tickets` run in the repo calibrates from it. Until then the
+numbers are the defaults, which is why the breakdown says so beside each one.
 
 **Two of my paths came back as one ticket. Why?**
 Both were small and tied by a single edge, so the later folded into the earlier, and the ticket

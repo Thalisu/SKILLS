@@ -3,16 +3,21 @@
 `tickets` sized a ticket as "fits one session" and asked the user whether the edges held and whether
 tickets should be merged or split, while ADR 0003 calls judging "small" in the moment drift and ADR
 0010 and the glossary had resolved every other size word into structure. A ticket's size is now the
-tokens `do` is estimated to spend on it, in three bands: small under 150k, medium up to 200k, large
-beyond. A large ticket is split along its steps, a small ticket whose single edge ties it to one
-neighbour folds into it when the fold delays no ticket's start and the merged estimate stays medium
-at most, a medium ticket is left as cut, and every estimate is stated in the breakdown so a reader
-can check the reasoning that the in-the-moment judgement hid. A number beat structure because the
-window is the one yardstick that holds across harnesses and models, while "one session" and "one
-step" do not; the edge graph still names the pair, since an estimate says which ticket is small but
-not which neighbour it folds into. Edges are read off the journey's `## States` or the stories: a
-ticket that reads what another writes waits for the writer, and a stub to start it sooner is never
-cut. The one question left to the user is approval.
+peak context the `do` session reaches while building it, never the total the run's agents spend,
+since a forked test author, reviewer or delegate holds its own window per guard-the-context-window,
+in three bands: small under 150k, medium up to 200k, large beyond. A large ticket is split along its
+steps, a small ticket whose single edge ties it to one neighbour folds into it when the fold delays
+no ticket's start and the merged estimate stays medium at most, a medium ticket is left as cut, and
+every estimate is stated in the breakdown so a reader can check the reasoning that the in-the-moment
+judgement hid. A number beat structure because the window is the one yardstick that holds across
+harnesses and models, while "one session" and "one step" do not; the edge graph still names the
+pair, since an estimate says which ticket is small but not which neighbour it folds into. Edges are
+read off the journey's `## States` or the stories: a ticket that reads what another writes waits for
+the writer, and a stub to start it sooner is never cut. The one question left to the user is
+approval. The figure is measured, not only guessed: `do` reads the session's context from the
+harness transcript at the end of its ground step and at the close and writes both into the resolved
+ticket's evidence, and `tickets` calibrates the fixed load and the per-criterion cost of its next
+cut from those lines, cutting on stated defaults until the repo has one.
 
 ## Considered options
 

@@ -13,8 +13,10 @@ written into the repository or the tracker is in **English**.
 Ground → stop on a broken input → explore → draft the slices → approve → publish → close.
 
 Vocabulary, used consistently: _ticket_ (one demoable slice cut from a spec, and from its journey
-when it has one: a narrow but complete path through every layer, sized by the tokens `do` is
-estimated to spend on it), _band_ (where a ticket's estimate falls: small under 150k tokens, medium
+when it has one: a narrow but complete path through every layer, sized by the context the `do`
+session reaches while building it), _estimate_ (the peak context the `do` session is expected to
+reach on a ticket: the fixed load plus the per-criterion cost times its criteria, never the total
+the agents it forks spend), _band_ (where a ticket's estimate falls: small under 150k tokens, medium
 up to 200k, large beyond), _blocking edge_ (a ticket that must complete before another can start,
 because the other reads what it writes), _fold_ (a small ticket merged into the one neighbour its
 single edge ties it to), _split_ (a large ticket cut along its steps into pieces, none of them
@@ -93,6 +95,16 @@ respect the ADRs in that area. Large outputs go to a subagent; the thread keeps 
 Look for prefactoring that makes the slices easier to land: make the change easy, then make the
 easy change. Prefactoring is its own ticket, and comes first.
 
+**Calibrate.** Read the `Context:` line under `## Evidence` of every resolved ticket in the
+project, in the format of [ticket-format.md](../../.agents/formats/ticket-format.md): locally,
+every ticket file whose status is `resolved` under `.scratch/*/issues/` or beside the specs; on a
+tracker, the close comment of every closed issue that names a spec as its parent. The fixed load
+is the median of their grounded figures; the per-criterion cost is the median of peak minus
+grounded over each ticket's criteria count. A line reading `not measured` is skipped. With no
+measured ticket the defaults stand, a fixed load of 40k and 15k per criterion, and every estimate
+in the breakdown says uncalibrated. The measured figures and the defaults are the `do` session's
+own context, since the agents it forks hold their own windows.
+
 ## 3. Draft the slices
 
 Cut the work into tracer-bullet tickets.
@@ -100,10 +112,11 @@ Cut the work into tracer-bullet tickets.
 - Each slice cuts a narrow but complete path through every layer (schema, API, UI, tests):
   vertical, never a horizontal slice of one layer.
 - A completed slice is demoable or verifiable on its own.
-- Each slice carries an estimate of the tokens `do` will spend on it and the band it falls in. The
-  estimate is reasoned from what the slice crosses (the modules touched, the tests written, a
-  migration or not) and that reasoning is stated with it, so a reader can check the number. A
-  large slice is never published.
+- Each slice carries an estimate of the peak context the `do` session will reach on it and the
+  band it falls in: the fixed load plus the per-criterion cost times its criteria, from the
+  calibration in step 2, adjusted for what the slice crosses (a migration, a delegate's diff, or
+  files far larger than the measured tickets touched add to the load). The drivers are stated with
+  the number, so a reader can check it. A large slice is never published.
 - Any prefactoring comes first.
 
 **With a journey**, one path is one ticket, as the starting cut. The path's outcome is its "What to
@@ -125,7 +138,8 @@ it. A ticket with no blockers can start immediately.
 **Splits, folds and placement.** Splits come first: a large ticket is cut along its steps, and the
 pieces of one split never fold back into each other. Then a small ticket whose single edge ties it
 to one neighbour is folded into that neighbour when the fold delays no ticket's start and the
-merged estimate stays medium at most: into its only blocker, or into its only dependent when that
+merged estimate (the fixed load plus the per-criterion cost times the combined criteria) stays
+medium at most: into its only blocker, or into its only dependent when that
 dependent has no other blocker, since folding into a neighbour that waits on something else would
 hold the small ticket's work behind it. The merged ticket keeps the earlier ticket's title and
 place and names every path it realises. A medium ticket is left as cut. A stray piece of work (a
@@ -150,7 +164,8 @@ Present the breakdown as a numbered list. For each ticket:
 
 - **Title**: short, in the glossary's words
 - **Path**: the journey path it realises, when there is a journey; every path when it is a fold
-- **Estimate**: the tokens `do` is expected to spend, the band, and what drives the number
+- **Estimate**: the peak context the `do` session is expected to reach, the band, what drives
+  the number, and whether it is calibrated or on the defaults
 - **Blocked by**: each blocking ticket with what this one reads and that the blocker writes it, or
   none
 - **What it delivers**: the end-to-end behaviour this ticket makes work
