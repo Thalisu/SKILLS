@@ -276,4 +276,23 @@ check "a handed reference spares only the scratch path" 0 "$rc" \
   "status=git status --short -- . ':!.scratch/reviews/do-export-notes.md'"
 absent "a handed reference spares nothing beside itself" ":!42.review.md"
 
+
+# The refusals are the caller's whatever it handed over: a ref that does not resolve and an empty
+# diff each end in the same one line, so do reads them off the return and stops its review step.
+run nope --ticket .scratch/notes/issues/03-export-notes.md
+check "a ref that does not resolve refuses the same with a Ticket handed over" 1 "$rc" \
+  "refusal=nope does not resolve; nothing reviewed"
+absent "that refusal prints no facts" "ticket_handed="
+git checkout -q main
+run --ticket .scratch/notes/issues/03-export-notes.md
+check "an empty diff refuses the same with a Ticket handed over" 1 "$rc" \
+  "refusal=no diff between main ($(sha main)) and the working tree; nothing reviewed"
+absent "that refusal prints no review path" "review="
+
+# --ticket without a location is a usage error, not a refusal.
+run --ticket
+check "--ticket with no location is a usage error" 2 "$rc" "usage: fixed-point.sh [<ref>] [--ticket <location>]"
+run one two
+check "a second ref is a usage error" 2 "$rc" "usage: fixed-point.sh [<ref>] [--ticket <location>]"
+
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi
