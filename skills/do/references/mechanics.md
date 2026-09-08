@@ -124,7 +124,7 @@ script in the worktree, deleted before the commit, and never reaches the develop
 [never-block-on-the-human](../../../.agents/principles/never-block-on-the-human.md). A design
 fork (two shapes the Ticket, its Spec and the code cannot settle) means the Spec is incomplete:
 the run stops at its step with one message naming `discuss`, the Ticket left `claimed` and the
-worktree in place.
+worktree in place, so that the next `/do` on the Ticket resumes it once the Spec is amended.
 
 ### Delegates
 
