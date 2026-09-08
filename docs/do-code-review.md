@@ -109,8 +109,8 @@ a pass on it.
   behaviour to prove and where.
 - `## Axes` has six lines every time, and a `not run` or `no spec` line stands where a reviewer or
   a spec was missing.
-- `git status` after a run agrees with that last line: the Review and
-  nothing else when git does not ignore the file, nothing new when it does.
+- `git status` after a run agrees with that last line:
+  the Review and nothing else when git does not ignore the file, nothing new when it does.
 
 ## Where it fits
 

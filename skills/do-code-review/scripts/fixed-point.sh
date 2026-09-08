@@ -29,7 +29,8 @@
 # before the extension, else in the scratch reviews folder), issue (a number in the branch name,
 # else one written as #<n> in a commit subject since the fixed point, else none), ticket (the
 # location handed over, a path resolved to where the run reads it, else a Ticket file under
-# .scratch/*/issues/ named after the branch's slug, else none), ticket_handed (yes when a caller handed the Ticket over, so it names the run's Ticket;
+# .scratch/*/issues/ named after the branch's slug, else none), ticket_handed (yes when a caller
+# handed the Ticket over, so it names the run's Ticket;
 # no when the door found it by slug, which makes it a spec source and nothing more), spec (the spec
 # beside that Ticket, else the one spec in the usual spec homes, .scratch/<x>/spec.md,
 # docs/specs/<x>.md, specs/<x>.md, whose <x> is the slug or contains it, else none when there is

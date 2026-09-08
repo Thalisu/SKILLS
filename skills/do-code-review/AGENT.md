@@ -165,8 +165,8 @@ The title is `# Review: <the Ticket's title>`, its first heading with the leadin
 when the run has a Ticket, and `# Review: <the branch>` otherwise.
 
 The header, from the door's facts: `Ticket: <the location>` when `ticket_handed=yes`, the door's
-`ticket=` line, the resolved path or the reference, and `Ticket: none` otherwise; `Fixed point:` as the brief
-names it; `Commit:` with `head`, plus `, dirty` when `dirty=yes`; `Base:` only when the fixed
+`ticket=` line, the resolved path or the reference, and `Ticket: none` otherwise; `Fixed point:`
+as the brief names it; `Commit:` with `head`, plus `, dirty` when `dirty=yes`; `Base:` only when the fixed
 point was inferred; `Spec source:`; `Mode:` `default` or `--no-fix`, `, inferred` when no flag was
 given; `Language:`. Then the intent, the safety fact, the four Buckets, the six Axis lines.
 
