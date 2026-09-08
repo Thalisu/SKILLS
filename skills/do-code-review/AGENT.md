@@ -14,6 +14,14 @@ tool list has no edit tool, and the Review is the only file you write. You never
 or push. The project's CLAUDE.md is in your context; its workflow rules (discovery batches, test
 gates, commit rules, audit lines) do not apply to you, since you commit nothing.
 
+You work in two trees, per [worktrees.md](../../.agents/worktrees.md). The tree under review is
+the working directory you were forked in: the `do/<slug>` worktree when `do` calls you, the
+developer's checkout on a plain call; the diff is read there and the Fixer commits there. The
+main checkout is where the developer's branch is checked out and where a landing fast-forwards
+it: the door's `main_checkout=` line names it, and git reaches it with `-C <that path>`. On a
+plain call the two are the same tree. You never change the working directory and never use a
+worktree tool: a fork runs where it was forked.
+
 The Review's shape is fixed by [review-format.md](../../.agents/formats/review-format.md). Read it
 before you write, through the shell, since the Read tool collapses `..` before it follows the
 skill link and lands on a path that does not exist:
@@ -122,7 +130,7 @@ with `, inferred` after it.
 ## 6. The fan-out
 
 Make one directory outside every repository, `mktemp -d "${TMPDIR:-/tmp}/do-code-review.XXXX"`,
-and take `git status --porcelain` in the project once, before the fork. Then call the Agent tool
+and take `git status --porcelain` in the tree under review once, before the fork. Then call the Agent tool
 with `subagent_type: do-code-review-technical-reviewer` and, as the whole prompt, the brief plus
 one more line, `Return file: <that directory>/findings.md`, the path the reviewer writes its
 return to besides returning it. When the harness does not list that agent by name, fork

@@ -239,12 +239,13 @@ can overturn before the skill is written.
 - **Discovery.** One `discover` batch for the symbols the plan names, before the first one is
   created, and the audit line `Discovery: n FOUND · n DUPLICATE · n NOT_FOUND` in the thread.
 - **Worktree mechanics.** `/do` creates the worktree itself with `git worktree add
-  .claude/worktrees/do-<slug> -b do/<slug>` from the current HEAD, then switches the session into it.
-  In Claude Code that is the worktree tool with `path`, which accepts an existing worktree; the
-  tool's own create path branches from the remote default branch unless `worktree.baseRef` is set
-  to `head`, which is why `/do` does not use it to create. In Codex the switch is a `cd`. The
-  `.claude/worktrees/` location keeps every switch the Claude Code tool allows; any path works
-  elsewhere.
+  .claude/worktrees/do-<slug> -b do/<slug>` from the current HEAD, then enters it with a bare `cd`
+  in a shell call of its own, in Claude Code as in Codex, per `.agents/worktrees.md`. The Claude
+  Code worktree tool is used neither to create nor to enter: its create path branches from the
+  remote default branch unless `worktree.baseRef` is set to `head`, and its enter path isolates the
+  session, whose guard then refuses git against the main checkout, which steps 8 to 10 need. The
+  `.claude/worktrees/` location is the harness's worktrees folder, covered by one exclude line and
+  known to a resume; any path works elsewhere.
 - **Worktree lifetime.** The worktree stays until the E2E gate is green. A red flow after landing
   is fixed in the worktree as one more unit and handed to a second review call, which lands it
   again. The ticket is closed in the main checkout and never committed by the run. Then the
@@ -417,7 +418,7 @@ Verification, ready to paste. Pending debt: waivers, consumer coverage. The next
 - **Consumer surfaces.** The policy's per-change gate includes the impacted consumers' flows run
   against this repo's local build. How `/do` runs another repo's flows after landing is open; the
   brief records it as pending debt in the reply until decided.
-- **Codex wording.** The worktree switch is a `cd` there; the `SKILL.md` has to say both without
-  naming a harness tool as the only way.
+- **Codex wording.** The worktree switch is a bare `cd` in both harnesses, so the `SKILL.md` says
+  one thing and names no harness tool.
 - **Prototype door.** Not used by `/do`. Reopen only if a build regularly stalls on a fork that a
   probe script cannot settle.

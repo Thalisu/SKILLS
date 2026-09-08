@@ -15,23 +15,24 @@ tool that branches from the remote default branch.
    worktree starts from HEAD without them.
 2. Create it from the main checkout: `git worktree add .claude/worktrees/do-<slug> -b do/<slug>`,
    where `<slug>` is the Ticket's slug, or the request's outside the chain. `.claude/worktrees/`
-   is the harness's worktrees folder, the one place a harness worktree tool accepts a switch
-   into; any path works where there is no such tool.
+   is the harness's worktrees folder: the run's worktrees sit beside the harness's own, one
+   exclude line covers them all, and a resume knows where to look.
 3. Keep the main checkout's status as the developer left it: when
    `git check-ignore -q .claude/worktrees` fails, append `.claude/worktrees/` to
    `.git/info/exclude`. Never to the project's `.gitignore`: the ignore file is the project's,
    the exclude list is this clone's.
-4. Enter it: the run's working directory changes to the worktree. Where the harness has a
-   worktree tool that accepts an existing path, that tool makes the change; otherwise `cd` does.
-   Every command from here runs in the worktree, and the main checkout is reached by its own path
-   when a step needs it.
+4. Enter it with `cd <path>`, in a shell call of its own, per
+   [worktrees.md](../../../.agents/worktrees.md): the harness keeps the working directory across
+   calls, so every command from here runs in the worktree, and git reaches the main checkout with
+   `git -C <its path>` when a step needs it. Never the harness's worktree tool: it isolates the
+   session, and an isolated session refuses git against the main checkout, which the Ticket, the
+   landing, the flows and the worktree's removal all need.
 5. Done when `git status --short` in the worktree prints nothing and the branch name is in the
    thread.
 
 The worktree stays until the run's work has landed and its affected flows are green. The run
-removes it and its branch itself, from the main checkout, since a harness tool removes only the
-worktrees it created; a run that stops as blocked leaves both in place and names them in the
-reply. One writer at a time in the worktree, per
+removes it and its branch itself, from the main checkout; a run that stops as blocked leaves both
+in place and names them in the reply. One writer at a time in the worktree, per
 [separate-before-serializing-shared-state](../../../.agents/principles/separate-before-serializing-shared-state.md):
 the session, or the test author it dispatched while that author runs.
 
@@ -221,7 +222,9 @@ step.
 Run from the main checkout after the landing, per
 [prove-it-works](../../../.agents/principles/prove-it-works.md): the work is on the developer's
 branch now, and Project facts may say the E2E stack serves the primary checkout. The commands run
-there, the checkout reached by its path; the worktree stays, since it is where a red flow is fixed.
+there, per [worktrees.md](../../../.agents/worktrees.md): git with `-C <the main checkout>`, any
+other command after a bare `cd` to it and a bare `cd` back to the worktree; the worktree stays,
+since it is where a red flow is fixed.
 
 1. The affected flows are the flow the E2E step authored or extended and every existing flow over
    a screen, a route or a message the diff changed. Each runs with the single-flow command from
@@ -264,12 +267,11 @@ above: the run never commits it and the worktree branch never touches it.
 4. On a remote tracker the run asks first, per the tracker file: on the developer's yes it
    comments the evidence on the issue and closes it; a no leaves the issue open, with the
    evidence in the reply only.
-5. Remove the worktree and its branch, since the harness's worktree tool removes only the
-   worktrees it created itself. Leave the worktree first, by the harness's worktree tool with
-   keep where one exists and by a directory change to the main checkout otherwise, then, from
-   there, `git worktree remove <path>` and `git branch -d do/<slug>`. The branch landed, so the
-   delete is safe; a delete that refuses means something did not land, and the run stops there
-   with the worktree and its branch named.
+5. Remove the worktree and its branch: the run created them, so the run removes them. Leave the
+   worktree first, with a bare `cd` to the main checkout, then, from there,
+   `git worktree remove <path>` and `git branch -d do/<slug>`. The branch landed, so the delete is
+   safe; a delete that refuses means something did not land, and the run stops there with the
+   worktree and its branch named.
 
 Outside the chain there is no Ticket: the close is the worktree's removal alone. A run that stops
 as blocked closes nothing: the Ticket stays `claimed`, the worktree and its branch stay in place,

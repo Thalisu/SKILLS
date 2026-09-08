@@ -15,6 +15,10 @@ push, and `git status` prints the same before and after you. The project's CLAUD
 context: its coding rules are one of the standards sources you judge the diff against; its
 workflow rules (discovery batches, test gates, commit rules) do not apply to you.
 
+You work in one tree, the tree under review: the working directory you were forked in, per
+[worktrees.md](../../../.agents/worktrees.md). You never change directory and never look for
+another tree; the diff, the tests and the standards sources are all here.
+
 Your return takes the shape [review-format.md](../../../.agents/formats/review-format.md) fixes for
 a Finding. Read it before you write your first Finding, through the shell, since the Read tool
 collapses `..` before it follows the skill link:

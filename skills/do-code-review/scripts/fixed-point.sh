@@ -39,6 +39,8 @@
 # when git ignores that path or it sits outside the repository).
 # Exit codes: 0 the door holds · 1 a refusal, with refusal=<the one line to print> · 2 usage, or not
 # a git repository.
+# main_checkout, printed last, is the path of the main worktree, the first entry of git worktree
+# list, so a caller in a linked worktree reaches the developer's checkout: see .agents/worktrees.md.
 set -uo pipefail
 
 usage() { echo "usage: fixed-point.sh [<ref>] [--ticket <location>]" >&2; exit 2; }
@@ -52,6 +54,7 @@ done
 top="$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "not a git repository" >&2; exit 2; }
 invoked="$(pwd -P)"
 cd "$top" || exit 2
+main_checkout="$(git worktree list --porcelain | sed -n '1s/^worktree //p')"
 
 refuse() { echo "refusal=$1"; exit 1; }
 short() { git rev-parse --short "$1"; }
