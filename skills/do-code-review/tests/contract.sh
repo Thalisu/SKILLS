@@ -151,6 +151,15 @@ for grader in correctness-in-act-on spec-in-act-on standards-cites-the-rule prin
   reviewer-no-write review-beside-the-ticket; do
   expect "the planted diff has its $grader grader" test -f "$evals/planted-diff/graders/$grader.md"
 done
+# The planted diff hands its Ticket over, so every grader on that case reads one header and one
+# home for the Review: the file beside the Ticket, never the scratch reviews folder.
+has "the header grader reads the handed Ticket in the header" \
+  "$evals/planted-diff/graders/scratch-not-ignored-line.md" \
+  "Ticket: .scratch/export-notes/issues/02-export-notes.md"
+for grader in "$evals"/planted-diff/graders/*.md; do
+  lacks "the ${grader##*/} grader carries no header the handed Ticket rules out" "$grader" \
+    "Ticket: none" ".scratch/reviews/export-notes.md"
+done
 has "the Portuguese trigger fires the skill" "$evals/triggers-pt-br/graders/skill-fired.md" "type: tool_used" "do-code-review"
 has "the Portuguese prompt is bare" "$evals/triggers-pt-br/prompt.md" "revisa esse diff antes de eu dar push"
 expect "a script exercises every scaffold" test -x "$skill/tests/evals.sh"
