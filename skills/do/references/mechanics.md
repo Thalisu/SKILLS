@@ -2,8 +2,8 @@
 
 One file for the parts the Playbooks that build in a worktree share, read by `ticket`, `bug-fix`
 and `refactoring`, so a fix to a mechanic is made once. It carries the worktree, the protected
-branch, the Ticket file, the build loop with its test authors, the gate, the review and the
-verification. A Playbook links the section it needs and never copies it.
+branch, the Ticket file, the build loop with its test authors, the gate, the review, the
+verification and the close. A Playbook links the section it needs and never copies it.
 
 ## The worktree
 
@@ -243,3 +243,32 @@ there, the checkout reached by its path; the worktree stays, since it is where a
    the way the first one does.
 Done when every affected flow is green in output produced after the last landing, or recorded as
 not run on the developer's no, with every command line in the thread.
+
+## The close
+
+After the verification, in the main checkout's Ticket file and nowhere else, per the Ticket file
+above: the run never commits it and the worktree branch never touches it.
+
+1. Tick each criterion the evidence proves, and only those: a criterion whose flow the developer
+   waived stays unticked. The evidence is the run's own output, produced after the last edit.
+2. Append the evidence under `## Evidence`, the last heading of the format, added first when the
+   Ticket was published without it. The first line is the `Context:` line, from the `current`
+   figure kept at the ground step and a second reading of `scripts/context-usage.sh` now, for
+   the `peak` and the `band`; a reading that fails writes `Context: not measured` with the
+   script's reason. Then the landed commit, the Review's location, the command lines of the gate
+   and the flows with their quoted output lines, and each waiver.
+3. Set the `**Status:**` line to `resolved`. The file stays uncommitted, for the developer, and
+   the reply lists it beside the Review under the files left uncommitted.
+4. On a remote tracker the run asks first, per the tracker file: on the developer's yes it
+   comments the evidence on the issue and closes it; a no leaves the issue open, with the
+   evidence in the reply only.
+5. Remove the worktree and its branch, since the harness's worktree tool removes only the
+   worktrees it created itself. Leave the worktree first, by the harness's worktree tool with
+   keep where one exists and by a directory change to the main checkout otherwise, then, from
+   there, `git worktree remove <path>` and `git branch -d do/<slug>`. The branch landed, so the
+   delete is safe; a delete that refuses means something did not land, and the run stops there
+   with the worktree and its branch named.
+
+Outside the chain there is no Ticket: the close is the worktree's removal alone. A run that stops
+as blocked closes nothing: the Ticket stays `claimed`, the worktree and its branch stay in place,
+and the reply names them.

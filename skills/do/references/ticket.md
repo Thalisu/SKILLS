@@ -188,8 +188,12 @@ call with the landed commit as its fixed point, which lands it again. Done when 
 flow is green or recorded as not run on the developer's no, or the step reads
 `skip: nothing landed`.
 
-**10. Close.** `skip: nothing landed`. The Ticket stays `claimed` in the main checkout, left
-uncommitted. Done when the skip is in the checklist and the Ticket still reads `claimed`.
+**10. Close.** The close in [mechanics.md](mechanics.md): the Ticket file in the main checkout
+ticked where the evidence proves it, the evidence appended under `## Evidence` with the
+`Context:` line first, the status line set to `resolved`, the file left uncommitted; then the
+worktree and its branch removed. Done when the Ticket reads `resolved` and `git worktree list`
+no longer shows the run's worktree, or the step reads `skip: nothing landed` and the Ticket still
+reads `claimed`.
 
 **11. Reply.** Written by [reply.md](reply.md). What this Playbook puts in its sections: the
 Ticket under the files left uncommitted, and, as the next step, the worktree, its branch, and the
