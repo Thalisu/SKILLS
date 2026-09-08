@@ -185,6 +185,8 @@ has "the fix reference reads the Act on list off the file" "$fix_md" \
 has "the fix reference carries the three door checks, each one line and nothing written" "$fix_md" \
   "## The door" "not found; nothing fixed" "does not resolve; nothing fixed" \
   "working tree has uncommitted changes; commit or stash before fix" "nothing is written"
+has "the clean check is the door's dirty line, never a bare status" "$fix_md" \
+  "the door's \`dirty=no\` line" "never a bare status"
 has "the fix reference decides where the Fixer works by whose branch was reviewed" "$fix_md" \
   "## Where the Fixer works" "fix/<slug>" ".claude/worktrees/" "](../../../.agents/worktrees.md)" \
   "did not create" "removes nothing it did not create"
@@ -303,8 +305,9 @@ has "the ticket run grades that no harness worktree tool was entered" \
 evals="$skill/evals"
 has "the evals README names each case and the command" "$evals/README.md" \
   "planted-diff" "ref-does-not-resolve" "empty-diff" "no-spec" "triggers-pt-br" "reviewer-retry" \
-  "claude plugin eval"
-for case in planted-diff ref-does-not-resolve empty-diff no-spec triggers-pt-br reviewer-retry; do
+  "fix-run" "fix-dirty-tree" "fix-stale" "no-fix" "claude plugin eval"
+for case in planted-diff ref-does-not-resolve empty-diff no-spec triggers-pt-br reviewer-retry \
+  fix-run fix-dirty-tree fix-stale no-fix; do
   expect "the $case case has its case file, prompt and graders" \
     test -f "$evals/$case/case.yaml" -a -f "$evals/$case/prompt.md" -a -n "$(ls "$evals/$case/graders/"*.md 2>/dev/null)"
 done
@@ -365,6 +368,24 @@ has "the retry grader reads the Review's text and its location off the return" \
   "$retry/graders/review-still-written.md" "Written to"
 has "the Portuguese trigger fires the skill" "$evals/triggers-pt-br/graders/skill-fired.md" "type: tool_used" "do-code-review"
 has "the Portuguese prompt is bare" "$evals/triggers-pt-br/prompt.md" "revisa esse diff antes de eu dar push"
+has "the fix-run prompt types the fix call with the Review" "$evals/fix-run/prompt.md" \
+  "/do-code-review fix" ".scratch/reviews/export-notes.md"
+has "the fix-run case scaffolds a Review with an Act on Finding and a Consider" "$evals/fix-run/case.yaml" \
+  "## Act on" "## Consider" "Correctness at src/notes.js" "Rung: 4" "Fix:"
+for grader in one-commit-per-finding landed-by-fast-forward nothing-pushed-push-named \
+  consider-untouched fix-run-section fix-reference-read wrote-only-the-review; do
+  expect "the fix-run case has its $grader grader" test -f "$evals/fix-run/graders/$grader.md"
+done
+has "the dirty-tree refusal ends in one line and writes nothing" \
+  "$evals/fix-dirty-tree/graders/one-line-refusal.md" \
+  "working tree has uncommitted changes; commit or stash before fix"
+expect "the dirty-tree case leaves a change uncommitted" \
+  grep -q "uncommitted" "$evals/fix-dirty-tree/case.yaml"
+has "the stale case reports the moved location and commits nothing" \
+  "$evals/fix-stale/graders/stale-reported.md" "stale"
+has "the no-fix case never reads the fix reference" \
+  "$evals/no-fix/graders/fix-reference-never-read.md" "references/fix.md"
+has "the no-fix prompt passes the flag" "$evals/no-fix/prompt.md" "--no-fix"
 expect "a script exercises every scaffold" test -x "$skill/tests/evals.sh"
 
 # The docs page, both README rows and the invocation contract's rows.
@@ -437,7 +458,7 @@ has "the invocation contract's table gains the three rows" "$repo/.agents/invoca
   "| \`do-code-review-security-reviewer\` | \`do-code-review\`, model-invoked |"
 
 # No em-dash in any prose the skill adds.
-prose=("$format" "$trees" "$skill_md" "$agent_md" "$reviewer_md" "$security_md" "$evals/README.md" "$evals"/*/prompt.md "$evals"/*/graders/*.md "$page")
+prose=("$format" "$trees" "$skill_md" "$agent_md" "$reviewer_md" "$security_md" "$fix_md" "$evals/README.md" "$evals"/*/prompt.md "$evals"/*/graders/*.md "$page")
 for f in "${prose[@]}"; do
   [ -f "$f" ] || continue
   if grep -q $'\xe2\x80\x94' "$f"; then echo "FAIL  no em-dash in $f"; fails=$((fails + 1)); else echo "ok    no em-dash in ${f#"$repo/"}"; fi

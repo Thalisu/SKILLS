@@ -110,5 +110,44 @@ expect "the technical reviewer has a defect to report" quiet node -e 'const { pa
 run_door
 check "the door reads the retry fixture" 0 "$rc" "branch=paginate-notes" "dirty=no" "base=main" \
   "spec=.scratch/paginate-notes/spec.md"
+# fix-run: the Review the case wrote, one Act on Finding over a planted paging bug and one Consider
+# the fix must leave alone. The tree is clean, so the fix door holds.
+expect "fix-run scaffold runs" scaffold fix-run
+expect "the branch is export-notes" test "$(git branch --show-current)" = export-notes
+expect "the tree is clean, so the fix door holds" test -z "$(git status --porcelain)"
+expect "the suite is green around the planted bug" quiet node --test tests/
+expect "the Act on Finding reproduces: a page of ten over eleven returns nine" \
+  quiet node -e 'const { page } = require("./src/notes"); process.exit(page(1, 10, [...Array(11).keys()]).length === 9 ? 0 : 1)'
+expect "the Act on location still matches the tree" bash -c 'sed -n 15p src/notes.js | grep -q slice'
+expect "the Consider Finding is the console.log the fix must leave" grep -q "console.log" src/export.js
+expect "the Review sits where the door would put it" test -f .scratch/reviews/export-notes.md
+expect "the Review carries one Act on Finding and one Consider" \
+  bash -c 'test "$(awk "/^## Act on/,/^## Consider/" .scratch/reviews/export-notes.md | grep -c "^### ")" = 1 &&
+    test "$(awk "/^## Consider/,/^## Noted/" .scratch/reviews/export-notes.md | grep -c "^### ")" = 1'
+expect "the Review carries no Fix run section yet" bash -c '! grep -q "^## Fix run" .scratch/reviews/export-notes.md'
+run_door
+check "the door reads the fix fixture clean" 0 "$rc" "branch=export-notes" "slug=export-notes" "dirty=no" \
+  "base=main" "commits=1" "review=.scratch/reviews/export-notes.md" "review_in_status=no"
+
+# fix-dirty-tree: the same fixture with one change left uncommitted.
+expect "fix-dirty-tree scaffold runs" scaffold fix-dirty-tree
+expect "the tree carries an uncommitted change" test -n "$(git status --porcelain)"
+run_door
+check "the door calls the fix fixture dirty" 0 "$rc" "dirty=yes"
+
+# fix-stale: the code the one Act on Finding named moved before the fix call.
+expect "fix-stale scaffold runs" scaffold fix-stale
+expect "the tree is clean" test -z "$(git status --porcelain)"
+expect "the Act on location no longer holds the paging code" bash -c '! sed -n 15p src/notes.js | grep -q slice'
+expect "the paging bug moved to its own module" bash -c 'grep -q "size - 1" src/page.js'
+expect "the Review still names the location that moved" grep -q "Correctness at src/notes.js:15" .scratch/reviews/export-notes.md
+expect "the suite is green after the move" quiet node --test tests/
+
+# no-fix: the same branch with no Review yet, so the flag has something to write and nothing to fix.
+expect "no-fix scaffold runs" scaffold no-fix
+expect "no Review exists yet" bash -c '! test -e .scratch/reviews/export-notes.md'
+expect "the tree is clean" test -z "$(git status --porcelain)"
+run_door
+check "the door reads the no-fix fixture" 0 "$rc" "branch=export-notes" "dirty=no" "commits=1"
 
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi

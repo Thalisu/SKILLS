@@ -22,10 +22,12 @@ with the facts already in hand, from the door script and from the Review it just
 |---|---|
 | the Review at the location the caller named exists | `<the location> not found; nothing fixed` |
 | its `Fixed point:` header still resolves, `git rev-parse --verify` | `fixed point <ref> of <review> does not resolve; nothing fixed` |
-| the working tree is clean, `git status --porcelain` empty | `working tree has uncommitted changes; commit or stash before fix` |
+| the working tree is clean, the door's `dirty=no` line | `working tree has uncommitted changes; commit or stash before fix` |
 
 Each is one line and the run stops there: no worktree, no Fixer, nothing is written, and the reply
-is that line alone. The tree has to be clean because the Review judged a diff, and a Fixer let
+is that line alone. The clean check is the door script's `dirty=` line and never a bare status,
+because the Review the run is about to append to is untracked in most projects and a bare status
+would read the run's own file as the developer's uncommitted work. The tree has to be clean because the Review judged a diff, and a Fixer let
 loose on a tree the review never saw would commit work nobody read.
 
 A default run meets the same tree, and answers it the other way, since the Review is worth writing

@@ -1,0 +1,123 @@
+name: no-fix
+tags: [fix, read only]
+runs: 1
+max_turns: 60
+timeout_seconds: 1800
+allowed_tools: [Bash, Read, Write, Glob, Grep, Agent, Skill]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # The same branch with the same planted bug and no Review yet. The flag stops the run at the write,
+    # so nothing is fixed and the fix reference is never opened.
+    set -e
+    mkdir -p src tests .scratch/reviews
+    cat > package.json <<'JSON'
+    { "name": "notes", "private": true, "scripts": { "test": "node --test tests/" } }
+    JSON
+    cat > CLAUDE.md <<'MD'
+    # notes
+
+    Rules for code under `src/`:
+
+    - Never `console.log` in `src/`; write through `log()` from `src/log.js`.
+    MD
+    cat > src/log.js <<'JS'
+    function log(...parts) {
+      process.stderr.write(parts.join(" ") + "\n");
+    }
+
+    module.exports = { log };
+    JS
+    cat > src/notes.js <<'JS'
+    const notes = [];
+
+    function create(title) {
+      const note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+
+    function list() {
+      return notes.filter((n) => n.status === "active");
+    }
+
+    function page(items, number, size) {
+      const start = (number - 1) * size;
+      return items.slice(start, start + size);
+    }
+
+    module.exports = { create, list, page };
+    JS
+    cat > tests/notes.test.js <<'JS'
+    const test = require("node:test");
+    const assert = require("node:assert/strict");
+    const { create, list, page } = require("../src/notes");
+
+    test("a created note is listed", () => {
+      const note = create("first");
+      assert.ok(list().some((n) => n.id === note.id));
+    });
+
+    test("a page holds the items of its slot", () => {
+      assert.deepEqual(page([1, 2, 3], 1, 5), [1, 2, 3]);
+    });
+    JS
+    printf '.scratch/\n' > .gitignore
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
+    git checkout -q -b export-notes
+    cat > src/notes.js <<'JS'
+    const notes = [];
+
+    function create(title) {
+      const note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+
+    function list() {
+      return notes.filter((n) => n.status === "active");
+    }
+
+    function page(number, size, items) {
+      const start = (number - 1) * size;
+      return items.slice(start, start + size - 1);
+    }
+
+    module.exports = { create, list, page };
+    JS
+    cat > src/export.js <<'JS'
+    const { list, page } = require("./notes");
+
+    function toCsv() {
+      const rows = [];
+      let number = 1;
+      for (;;) {
+        const chunk = page(number, 10, list());
+        if (chunk.length === 0) break;
+        for (const note of chunk) rows.push([note.id, note.title].join(","));
+        number += 1;
+      }
+      console.log("exported", rows.length);
+      return rows.join("\n");
+    }
+
+    module.exports = { toCsv };
+    JS
+    cat > tests/notes.test.js <<'JS'
+    const test = require("node:test");
+    const assert = require("node:assert/strict");
+    const { create, list, page } = require("../src/notes");
+
+    test("a created note is listed", () => {
+      const note = create("first");
+      assert.ok(list().some((n) => n.id === note.id));
+    });
+
+    test("a page holds the items of its slot", () => {
+      assert.deepEqual(page(1, 5, [1, 2, 3]), [1, 2, 3]);
+    });
+    JS
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "feat(export): export the active notes as CSV, a page at a time"
