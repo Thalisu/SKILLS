@@ -75,10 +75,20 @@ _Avoid_: confidence, score, certainty
 
 **Review**:
 The file `do-code-review` writes for one diff: the intent, the one safety fact, the **Findings** by
-**Bucket**, one line per **Axis**, and, after a `fix` run, what was fixed and what was verified.
-Always a local markdown file, whatever the tracker. It belongs to one **Ticket** and lives beside
-it, naming it; outside the chain it names the branch and the fixed point instead.
+**Bucket**, one line per **Axis**, and, after the **Fixer** ran, what was fixed and what was
+verified. Always a local markdown file, whatever the tracker. It belongs to one **Ticket** and
+lives beside it, naming it; outside the chain it names the branch and the fixed point instead.
 _Avoid_: report (the message returned to the caller, not the file), task review, PR comments
+
+**Fixer**:
+The sub-agent `do-code-review` forks with a **Review**'s `Act on` list, writing one commit per
+**Finding** on the branch the review read.
+_Avoid_: fix agent, implementer, delegate (a delegate is `do`'s exception writer, not the review's)
+
+**Green**:
+The state of a **Review** that lets `do-code-review` land: no `Act on` **Finding** left standing
+(none, or every one `fixed` and `verified` by the **Fixer**) and every **Axis** run.
+_Avoid_: clean, passed, no findings (`Consider`, `Noted` and `Cleared` never block)
 
 ## Relationships
 
@@ -114,9 +124,16 @@ _Avoid_: report (the message returned to the caller, not the file), task review,
 - The **Ticket** file belongs to the main checkout: the `ticket` **Playbook** claims it at the start
   and closes it at the end with file writes there, its worktree branch never touches it, and `do`
   never commits it; on a remote tracker the claim and the close wait for the developer's yes
-- `do` calls `do-code-review` once per run, before landing: on the diff of one **Ticket** after its
-  gate in the `ticket` **Playbook**, on the branch's diff in `bug-fix` and `refactoring`, never in
-  `trivial`; every **Axis** is put to that diff
+- A **Ticket**'s status walks `ready-for-agent`, `claimed`, `resolved`. A second `/do` on a claimed
+  **Ticket** whose `do/<slug>` worktree exists resumes from the commits on that branch; without the
+  worktree it starts over and says so; on a resolved **Ticket** it stops
+- `do` calls `do-code-review` once per landing: on the diff of one **Ticket** after its gate in
+  the `ticket` **Playbook**, on the branch's diff in `bug-fix` and `refactoring`, never in
+  `trivial`; every **Axis** is put to that diff, and a call that returns without landing stops
+  the run as blocked
+- `do-code-review` lands the branch it reviewed on the developer's branch by fast-forward when the
+  **Review** is **Green**, whoever called it; a **Review** that is not **Green** lands nothing.
+  `do` never lands
 - A **Finding** belongs to exactly one **Axis** and sits in exactly one **Bucket**
 - Five **Axes** are put to the diff by the technical reviewer and the Security **Axis** by the
   security reviewer, whose posture is the attacker's: attack surface first, then STRIDE and OWASP.
@@ -130,11 +147,15 @@ _Avoid_: report (the message returned to the caller, not the file), task review,
 - An **Axis** whose reviewer did not return after one retry reads `not run` in the **Review**,
   never `0 findings`; the other reviewer's **Findings** are still written
 - A **Review** belongs to exactly one **Ticket** when one exists and is the only file
-  `do-code-review` writes; a `fix` run reads it, forks the fixer with its `Act on` list, then
-  appends what was fixed and what was verified to the same file
+  `do-code-review` writes; the default run writes it, forks the **Fixer** with its `Act on` list,
+  then appends what was fixed and what was verified to the same file. `--no-fix` stops at the
+  write; `fix` with a **Review** reads the file instead of writing it, for the developer who
+  edited it by hand
+- The **Fixer** corrects every `Act on` **Finding** for every caller, one commit per **Finding**
+  under the project's Testing Policy, and touches nothing in `Consider`, `Noted` or `Cleared`
 - `Act on` takes only a **Finding** at **Rung** 3 or above with its check named; **Rung** 1 and 2
   stop at `Consider`, whatever the severity
-- `do` turns every `Act on` **Finding** into one unit of its build loop, and never dismisses a
+- `do` reads the run's return and never fixes a **Finding** itself; it never dismisses a
   **Finding** with a risk class silently: that one goes to the user
 
 ## Example dialogue
@@ -151,6 +172,10 @@ _Avoid_: report (the message returned to the caller, not the file), task review,
 > **Dev:** "The review is sure the null path throws, but it only read the code. `Act on`?"
 > **Domain expert:** "**Rung** 2. It stops at `Consider` until the review walks or runs the
 > failure. Climb the ladder, then move it."
+> **Dev:** "The review found two `Act on`. Do I fix them in my session?"
+> **Domain expert:** "No. The **Fixer** already did, one commit each, and the run landed once the
+> **Review** was **Green**. Read the `## Fix run` section and push. To read before anything is
+> fixed, pass `--no-fix`."
 
 ## Flagged ambiguities
 
@@ -163,6 +188,8 @@ _Avoid_: report (the message returned to the caller, not the file), task review,
   lives beside the **Ticket** it reviews and names it.
 - "trivial" and "small" were used as a size. Resolved: **Trivial** is a structure, a change no test
   could tell before from after; a small bug is not trivial.
+- "no findings" was used for the state that lets the review land. Resolved: **Green** is no
+  `Act on` left standing and every **Axis** run; `Consider`, `Noted` and `Cleared` never block.
 - "fits one session" was the size of a **Ticket**. Resolved: the size is the peak context the `do`
   session reaches while building it, measured at the close and estimated at the cut, in three bands
   (small under 150k, medium up to 200k, large beyond), the one yardstick that holds across
