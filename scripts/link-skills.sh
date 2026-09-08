@@ -18,6 +18,7 @@ AGENTS_SKILLS="$HOME/.agents/skills"
 CLAUDE_SKILLS="$HOME/.claude/skills"
 CLAUDE_AGENTS="$HOME/.claude/agents"
 status=0
+declare -A owned=() # every link path this run wrote or confirmed; a link into this repo outside it is pruned
 
 # A destination that is itself a symlink into this repo would receive the per-skill links inside
 # the repo's own skills/ tree; a ~/.claude/skills that is a symlink anywhere breaks the relative hop,
@@ -38,6 +39,7 @@ done
 mkdir -p "$AGENTS_SKILLS" "$CLAUDE_SKILLS" "$CLAUDE_AGENTS"
 
 link() { # $1 link path, $2 target
+  owned["$1"]=1
   if [ -L "$1" ]; then
     [ "$(readlink "$1")" = "$2" ] && { echo "ok      $1"; return; }
     rm "$1"
@@ -50,8 +52,6 @@ link() { # $1 link path, $2 target
   echo "linked  $1 -> $2"
 }
 
-names=()
-agents=()
 for skill_md in "$REPO"/skills/*/SKILL.md "$REPO"/vendor/*/SKILL.md; do
   [ -f "$skill_md" ] || continue
   dir="$(dirname "$skill_md")"
@@ -60,38 +60,22 @@ for skill_md in "$REPO"/skills/*/SKILL.md "$REPO"/vendor/*/SKILL.md; do
     echo "error: $name exists under both skills/ and vendor/; rename one" >&2
     exit 1
   fi
-  names+=("$name")
   link "$AGENTS_SKILLS/$name" "$dir"
   link "$CLAUDE_SKILLS/$name" "../../.agents/skills/$name"
   if [ -f "$dir/AGENT.md" ]; then
     agent="$(sed -n 's/^name:[[:space:]]*//p' "$dir/AGENT.md" | head -1 | tr -d "\"'")"
     agent="${agent:-$name}"
-    agents+=("$agent")
     link "$CLAUDE_AGENTS/$agent.md" "$dir/AGENT.md"
   fi
 done
 
-listed() { # $1 list name, $2 needle
-  local -n list="$1"
-  local n
-  for n in ${list[@]+"${list[@]}"}; do [ "$n" = "$2" ] && return 0; done
-  return 1
-}
-current() { listed names "$1"; }
+owns() { [ -n "${owned[$1]+x}" ]; } # $1 link path
 
-for entry in "$AGENTS_SKILLS"/*; do
+for entry in "$AGENTS_SKILLS"/* "$CLAUDE_AGENTS"/*.md; do
   [ -L "$entry" ] || continue
   target="$(readlink "$entry")"
   case "$target" in "$REPO"/skills/* | "$REPO"/vendor/*) ;; *) continue ;; esac
-  current "$(basename "$entry")" && continue
-  rm "$entry"
-  echo "pruned  $entry -> $target"
-done
-for entry in "$CLAUDE_AGENTS"/*.md; do
-  [ -L "$entry" ] || continue
-  target="$(readlink "$entry")"
-  case "$target" in "$REPO"/skills/* | "$REPO"/vendor/*) ;; *) continue ;; esac
-  listed agents "$(basename "$entry" .md)" && continue
+  owns "$entry" && continue
   rm "$entry"
   echo "pruned  $entry -> $target"
 done
@@ -99,7 +83,7 @@ for entry in "$CLAUDE_SKILLS"/*; do
   [ -L "$entry" ] || continue
   name="$(basename "$entry")"
   [ "$(readlink "$entry")" = "../../.agents/skills/$name" ] || continue
-  current "$name" && continue
+  owns "$entry" && continue
   [ -e "$entry" ] && continue
   rm "$entry"
   echo "pruned  $entry -> ../../.agents/skills/$name (dangling)"
