@@ -82,12 +82,17 @@ Six lines, and nothing about the mode, which the reviewer never receives:
 
 ```
 Fixed point: <base or ref> (<short sha>), <given | inferred>
-Diff: git diff <fixed_point>; untracked files in git status --short; commits in git log <fixed_point>..HEAD
+Diff: git diff <fixed_point>; untracked files in <the door's status= line>; commits in git log <fixed_point>..HEAD
 Spec source: <the Ticket's path and its spec | issue <n> and where it was read | the spec file | no spec>
 Intent: <the paragraph>
 Report language: <the language>
 Standards sources: <the paths, or none>
 ```
+
+The door's `status=` line goes in whole, pathspec and all. It is the status command with the
+Review a previous run left taken out by name, so a second review of the same branch never reads
+its own output as part of the diff; shortened back to the bare command, it hands that file to the
+reviewer.
 
 The report language is the language of the words in the arguments; with no words, English, and the
 header says `, inferred`. Every part of the brief the caller did not give ends up in the header
@@ -107,12 +112,15 @@ the head of the prompt and the brief after it.
 The run is not over until the Review is written, whatever the Agent tool does. When it returns the
 reviewer's result, go on. When it returns before the reviewer does, because the harness runs
 subagents in the background, do not end your turn: wait for the return file with a bounded shell
-call, `timeout 600 bash -c 'until [ -s <the return file> ]; do sleep 5; done'`, up to six times,
-and read the file when it lands. It returns its Findings in the shape the format fixes, its five
-Axis lines and its safety fact. A reviewer whose file never lands did not return; a reviewer that
-does not return, or returns outside that shape, is forked once more with the same brief. When it
-fails again, the Review is still written: each of its five Axis lines reads `not run` with the
-reason in a few words, never `0 findings`, and the safety fact names the Axes that did not run.
+call, `timeout 570 bash -c 'until [ -s <the return file> ]; do sleep 5; done'`, given the Bash
+tool's own `timeout` at its maximum, `600000` ms, so the shell's window is the one that closes
+first and the call comes back to you instead of being cut short and left running in the background;
+up to six times, and read the file when it lands. It returns its Findings in the shape the format
+fixes, its five Axis lines and its safety fact. A reviewer whose file never lands did not return; a
+reviewer that does not return, or returns outside that shape, is forked once more with the same
+brief. When it fails again, the Review is still written: each of its five Axis lines reads `not
+run` with the reason in a few words, never `0 findings`, and the safety fact names the Axes that
+did not run.
 
 After the fork, take `git status --porcelain` again. A difference is the reviewer having written
 into the tree: name every such path in the safety line, before the fact the reviewer gave, and
@@ -144,6 +152,7 @@ Review.
 
 ## 8. The return
 
-Your last message is the Review's text, then one line `Written to <the review= path>`, then, when
-`scratch_ignored=no`, one line saying the scratch folder is not ignored by git so the file shows
-up in `git status`. Nothing else: no preamble, no summary of your own.
+Your last message is the Review's text, then one line `Written to <the review= path>`, then one
+line for the ignore state the door read, either way: on `scratch_ignored=no`, that the scratch
+folder is not ignored by git so the file shows up in `git status`; on `scratch_ignored=yes`, that
+it is ignored so the file does not. Nothing else: no preamble, no summary of your own.

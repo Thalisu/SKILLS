@@ -4,24 +4,29 @@
 # project.
 #
 #   fixed-point.sh            the fixed point is the merge-base with the base branch: the remote's
-#                             HEAD branch (the local branch of that name when it exists, so unpushed
-#                             commits on it are never part of the diff), else main, else master
+#                             HEAD branch (the local branch of that name when it holds every commit
+#                             the remote-tracking ref has, so unpushed commits on it are never part
+#                             of the diff, and the remote-tracking ref when that local branch is
+#                             behind, so commits the branch never wrote stay out), else main, else
+#                             master
 #   fixed-point.sh <ref>      the fixed point is the merge-base of <ref> and HEAD, which is <ref>
 #                             itself when it sits on the branch
 #
 # Prints key=value lines: branch, slug (the branch with every slash turned into a dash), head,
-# dirty (yes when the working tree has uncommitted or untracked changes; a Review the run itself
-# leaves, under .scratch/reviews/ or as *.review.md beside a Ticket, never counts, here or in the
-# empty-diff check), ref (the ref given, or
-# none), fixed_point (the full sha), base (only when inferred), diff (the command that shows the
-# working tree against the fixed point), commits (the commits between the fixed point and HEAD),
-# review (the Review's path in the scratch reviews folder), issue (a number in the branch name,
-# else one written as #<n> in a commit subject since the fixed point, else none), ticket (a Ticket
-# file under .scratch/*/issues/ named after the branch's slug, else none), spec (the spec beside
-# that Ticket, else the one spec in the usual spec homes, .scratch/<x>/spec.md, docs/specs/<x>.md,
-# specs/<x>.md, whose <x> is the slug or contains it, else none when there is none or more than
-# one), tracker (yes when docs/agents/issue-tracker.md exists) and scratch_ignored (yes when git
-# ignores .scratch).
+# dirty (yes when the working tree has uncommitted or untracked changes; the two files this run
+# itself would write, the Review at review= and the .review.md beside the Ticket at ticket=, never
+# count, here or in the empty-diff check, and nothing else is spared: a project's own
+# docs/api.review.md is a change like any other), ref (the ref given, or none), fixed_point (the
+# full sha), base (only when inferred), diff (the command that shows the working tree against the
+# fixed point), status (the command that shows the working tree's short status with those two
+# files left out, the one a caller passes on), commits (the commits between the fixed point and
+# HEAD), review (the Review's path in the scratch reviews folder), issue (a number in the branch
+# name, else one written as #<n> in a commit subject since the fixed point, else none), ticket (a
+# Ticket file under .scratch/*/issues/ named after the branch's slug, else none), spec (the spec
+# beside that Ticket, else the one spec in the usual spec homes, .scratch/<x>/spec.md,
+# docs/specs/<x>.md, specs/<x>.md, whose <x> is the slug or contains it, else none when there is
+# none or more than one), tracker (yes when docs/agents/issue-tracker.md exists) and
+# scratch_ignored (yes when git ignores .scratch).
 # Exit codes: 0 the door holds · 1 a refusal, with refusal=<the one line to print> · 2 usage, or not
 # a git repository.
 set -uo pipefail
@@ -37,7 +42,15 @@ ref="${1:-}"
 branch="$(git symbolic-ref -q --short HEAD || echo HEAD)"
 slug="${branch//\//-}"
 head="$(short HEAD)"
-own=(':!.scratch/reviews' ':!*.review.md')
+review=".scratch/reviews/$slug.md"
+core="${branch##*/}"
+core="$(sed -E 's/^[0-9]+-//' <<<"$core")"
+ticket=none
+for f in .scratch/*/issues/[0-9][0-9]-"$core".md; do [ -f "$f" ] && { ticket="$f"; break; }; done
+own=(":!$review")
+[ "$ticket" = none ] || own+=(":!${ticket%.md}.review.md")
+status="git status --short -- ."
+for p in "${own[@]}"; do status="$status '$p'"; done
 if [ -n "$(git status --porcelain -- . "${own[@]}")" ]; then dirty=yes; else dirty=no; fi
 
 base=""
@@ -48,7 +61,9 @@ if [ -n "$ref" ]; then
 else
   remote="$(git remote | grep -x origin || git remote | head -1)"
   if [ -n "$remote" ]; then base="$(git symbolic-ref -q --short "refs/remotes/$remote/HEAD" || true)"; fi
-  if [ -n "$base" ] && git rev-parse --verify -q "refs/heads/${base#"$remote/"}" >/dev/null; then base="${base#"$remote/"}"; fi
+  local_base="${base#"$remote/"}"
+  if [ -n "$base" ] && git rev-parse --verify -q "refs/heads/$local_base" >/dev/null &&
+    git merge-base --is-ancestor "$base" "refs/heads/$local_base"; then base="$local_base"; fi
   if [ -z "$base" ]; then
     for candidate in main master; do
       if git rev-parse --verify -q "refs/heads/$candidate" >/dev/null; then base="$candidate"; break; fi
@@ -64,12 +79,8 @@ if git diff --quiet "$fixed" -- . "${own[@]}" && [ -z "$(git ls-files --others -
   refuse "no diff between $label and the working tree; nothing reviewed"
 fi
 
-core="${branch##*/}"
-core="$(sed -E 's/^[0-9]+-//' <<<"$core")"
 issue="$(grep -oE '(^|/)[0-9]+-' <<<"$branch" | head -1 | tr -dc '0-9')"
 [ -n "$issue" ] || issue="$(git log --format=%s "$fixed..HEAD" | grep -oE '#[0-9]+' | head -1 | tr -d '#')"
-ticket=none
-for f in .scratch/*/issues/[0-9][0-9]-"$core".md; do [ -f "$f" ] && { ticket="$f"; break; }; done
 spec=none
 if [ "$ticket" != none ] && [ -f "$(dirname "$(dirname "$ticket")")/spec.md" ]; then
   spec="$(dirname "$(dirname "$ticket")")/spec.md"
@@ -94,8 +105,9 @@ echo "ref=${ref:-none}"
 echo "fixed_point=$fixed"
 [ -n "$base" ] && echo "base=$base"
 echo "diff=git diff $fixed"
+echo "status=$status"
 echo "commits=$(git rev-list --count "$fixed..HEAD")"
-echo "review=.scratch/reviews/$slug.md"
+echo "review=$review"
 echo "issue=${issue:-none}"
 echo "ticket=$ticket"
 echo "spec=$spec"

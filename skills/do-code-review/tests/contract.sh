@@ -83,7 +83,11 @@ has "the orchestrator forks the technical reviewer by name" "$agent_md" "subagen
 has "the orchestrator describes the run" "$agent_md" \
   "no spec" "Inferred from the diff:" "once more" "one write" "unslop" "not run" ", inferred" "Ticket: none"
 has "the orchestrator reads the format through the shell and waits for the return file" "$agent_md" \
-  'readlink -f ~/.claude/skills/do-code-review' "Return file:" "do not end your turn" "timeout 600" "general-purpose"
+  'readlink -f ~/.claude/skills/do-code-review' "Return file:" "do not end your turn" "general-purpose"
+has "the wait's shell window closes inside the Bash tool's own maximum" "$agent_md" "timeout 570" "600000"
+has "the brief hands the reviewer the door's status line whole" "$agent_md" \
+  "untracked files in <the door's status= line>" "pathspec and all"
+lacks "the brief names no bare status command" "$agent_md" "git status --short"
 has "the orchestrator compares the tree around the fork and names all four refusals" "$agent_md" \
   "git status --porcelain" "no merge-base between" "](../../.agents/formats/ticket-format.md)" "spec source and nothing more"
 
@@ -142,6 +146,19 @@ has "the docs page states the invocation mode and the leading words" "$page" \
   "Type \`/do-code-review\`" "reaches for it automatically" "Axis" "Bucket" "Rung" "../README.md" "/code-review"
 lacks "the docs page carries no install command" "$page" "ln -s" "git clone"
 has "the docs page states the no-write claim as a check, not a tool property" "$page" "compares"
+has "the run's last line names the ignore state either way" "$agent_md" "scratch_ignored=no" "scratch_ignored=yes"
+has "the docs page's working check holds in both ignore states" "$page" "is not ignored, nothing new when it is"
+# The page's claim about do and do's own review step move together, so the page never promises a
+# call do does not make.
+do_step="$repo/skills/do/references/ticket.md"
+if grep -qF -- "skip: do-code-review not listed" "$do_step"; then
+  has "the docs page says do's review step is not wired yet" "$page" "that step is not wired yet"
+  lacks "the docs page promises no call do does not make" "$page" \
+    "calls it at its review step" "calls it once per landing"
+else
+  has "the docs page says do calls the review at its step" "$page" "at its review step"
+  lacks "the docs page no longer calls the step unwired" "$page" "not wired yet"
+fi
 has "the format says whose Ticket the file sits beside" "$format" "handed one over" "never the file's home"
 has "the invocation contract gives the orchestrator its own sentence" "$repo/.agents/invocation.md" \
   "asks nothing, and writes one file, the Review"

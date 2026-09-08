@@ -91,6 +91,19 @@ check "the local branch of the remote HEAD's name is the base when it exists" 0 
   "base=feat/7-export" "fixed_point=$(git rev-parse feat/7-export)" "commits=1"
 absent "the remote-tracking ref is not the base then" "base=origin/"
 
+# A local branch of the remote HEAD's name that is behind it loses: a branch cut from the remote
+# base is reviewed since the remote-tracking ref, so commits it never wrote stay out of the diff.
+mkdir "$tmp/upstream" && cd "$tmp/upstream" && git init -q -b main
+printf 'a\n' > a.txt && git add a.txt && git commit -q -m "c1"
+git clone -q "$tmp/upstream" "$tmp/stale"
+printf 'b\n' > b.txt && git add b.txt && git commit -q -m "c2 by someone else"
+cd "$tmp/stale" && git fetch -q origin
+git checkout -q -b topic origin/main && printf 'c\n' > c.txt && git add c.txt && git commit -q -m "topic"
+run
+check "a local base behind its remote loses to the remote-tracking ref" 0 "$rc" \
+  "base=origin/main" "fixed_point=$(git rev-parse origin/main)" "commits=1"
+absent "the stale local branch is not the base" "base=main"
+
 # master when there is no main and no remote HEAD.
 mkdir "$tmp/legacy" && cd "$tmp/legacy" && git init -q -b master
 printf 'a\n' > a.txt && git add a.txt && git commit -q -m "first"
@@ -162,8 +175,9 @@ run
 check "two containing matches name none" 0 "$rc" "spec=none"
 rm -r .scratch
 
-# The run's own output never counts as a change: a Review left by a previous run in the scratch
-# reviews folder, or beside a Ticket, neither dirties the tree nor defeats the empty-diff refusal.
+# The run's own output never counts as a change: the Review this branch's run would write, in the
+# scratch reviews folder or beside the Ticket the door found, neither dirties the tree nor defeats
+# the empty-diff refusal. It is spared by name, and nothing else is.
 mkdir "$tmp/again" && cd "$tmp/again" && git init -q -b main
 printf 'a\n' > a.txt && git add a.txt && git commit -q -m "first"
 mkdir -p .scratch/reviews && printf '# Review: main\n' > .scratch/reviews/main.md
@@ -175,13 +189,34 @@ run
 check "a real change beside the previous Review is still the diff" 0 "$rc" "dirty=yes"
 rm b.txt
 git checkout -q -b topic && printf 'c\n' > c.txt && git add c.txt && git commit -q -m "topic"
+mv .scratch/reviews/main.md .scratch/reviews/topic.md
 run
-check "a previous Review does not mark the tree dirty" 0 "$rc" "dirty=no" "commits=1"
+check "a previous Review does not mark the tree dirty" 0 "$rc" "dirty=no" "commits=1" \
+  "status=git status --short -- . ':!.scratch/reviews/topic.md'"
+out="$(eval "$(sed -n 's/^status=//p' <<<"$out")" 2>&1)"
+absent "the status line the brief carries hands on no previous Review" ".scratch"
+printf '# Review: main\n' > .scratch/reviews/main.md
+run
+check "a Review another branch's run left is a change like any other" 0 "$rc" "dirty=yes"
+rm -r .scratch/reviews
+
+# A Review beside the Ticket the door found is spared too, and only that one path.
 git checkout -q main
 mkdir -p .scratch/x/issues && printf '# 01: x\n' > .scratch/x/issues/01-x.md && git add .scratch/x && git commit -q -m "ticket"
+git checkout -q -b do/x
 printf '# Review: 01: x\n' > .scratch/x/issues/01-x.review.md
 run
-check "a Review beside a Ticket does not defeat the empty-diff refusal" 1 "$rc" \
+check "a Review beside the Ticket does not defeat the empty-diff refusal" 1 "$rc" \
   "refusal=no diff between main ($(sha main)) and the working tree; nothing reviewed"
+rm .scratch/x/issues/01-x.review.md
+
+# A project's own file whose name ends in .review.md is not the run's output and is reviewed.
+git checkout -q main
+mkdir -p docs && printf '# API\n' > docs/api.review.md && git add docs && git commit -q -m "api notes"
+git checkout -q -b rewrite && printf '# API v2\n' > docs/api.review.md
+git add docs/api.review.md && git commit -q -m "rewrite the api notes"
+run
+check "a project file that ends in .review.md is reviewed, not spared" 0 "$rc" \
+  "branch=rewrite" "commits=1" "dirty=no"
 
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi

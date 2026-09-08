@@ -28,7 +28,7 @@ push, in English or in Portuguese ("revisa esse diff").
 | review the branch I am on, against where it left the base branch | `/do-code-review` |
 | review since a commit, a branch or a tag | `/do-code-review <ref>` |
 | a pull request you want reviewed and posted on GitHub | the bundled `/code-review`, which this skill leaves untouched |
-| the Ticket `do` just built | nothing to type: [do](../skills/do/SKILL.md) calls it at its review step |
+| the Ticket `do` just built | `/do-code-review` on its worktree's branch: [do](../skills/do/SKILL.md) does not call the review yet |
 
 The session shows nothing while the run is in flight, as [prototype](prototype.md) does; the
 Review's text lands in the thread when it is written, with its location. The prose comes back in
@@ -42,8 +42,9 @@ the language of the words you typed; with a bare ref it is English.
   orchestrator's name, and every markdown file in the skill's `agents/` folder under its own name;
   see [the top-level README](../README.md).
 - **Somewhere to write.** The Review goes to `.scratch/reviews/<branch>.md` in the project, slashes
-  in the branch name turned into dashes. When `.scratch` is not ignored by git, the report says so
-  in its last line, and the file shows up in `git status` for you to keep or drop.
+  in the branch name turned into dashes. The run's last line says which way the project has it: with
+  `.scratch` ignored the file stays out of `git status`, without it the file shows up there for you
+  to keep or drop.
 - **A base branch or a ref.** Without a ref, the fixed point is the merge-base with the remote's
   HEAD branch, else `main`, else `master`; a repository with none of those needs a ref.
 
@@ -99,19 +100,23 @@ a pass on it.
 
 ## It's working if
 
-- The run ends with the Review's text and one `Written to` line, or with one refusal line and no
-  file.
+- The run ends with the Review's text, one `Written to` line and one line saying whether `.scratch`
+  is ignored by git, or with one refusal line and no file.
 - Nothing under `## Act on` reads `Rung: 1` or `Rung: 2`, and every `Act on` Finding names a
   behaviour to prove and where.
 - `## Axes` has six lines every time, and a `not run` or `no spec` line stands where a reviewer or
   a spec was missing.
-- `git status` after a run shows the Review and nothing else.
+- `git status` after a run agrees with that last line: the Review and nothing else when `.scratch`
+  is not ignored, nothing new when it is.
 
 ## Where it fits
 
-`do-code-review` is a step another skill fires and a standalone when you type it:
-[do](../skills/do/SKILL.md) calls it once per landing at its review step, and you call it on any
-branch.
+`do-code-review` is a reach-for-it-anytime standalone: you type it on any branch, at any point in
+the work, as often as you like. It is also the review [do](../skills/do/SKILL.md) is built around,
+and that step is not wired yet: `do` stops after its gate, its review step reads
+`skip: do-code-review not listed`, and its reply names the review and the landing as what you run
+next. So a Ticket `do` just built is reviewed by typing the skill on the worktree's branch it left
+behind.
 
 - [discuss](discuss.md), [spec](spec.md) and [tickets](tickets.md), because the spec and the
   Ticket they produce are what the Spec Axis reads.
