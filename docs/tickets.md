@@ -92,11 +92,8 @@ ticket.
 
 ## Slots
 
-One neighbour of this skill is not in this repo yet.
-
-| Slot | Today |
-|---|---|
-| `do` | none; the chain ends at the tickets. The one line in the `SKILL.md` that leans on it carries the marker `stand-in until /do exists` |
+None. `do` is in this repo, so the close ends on the exact next command, `/do <ticket>`, with
+the first ticket of the frontier.
 
 ## Common questions
 

@@ -87,8 +87,8 @@ The skill writes no ADR and edits no code.
 
 ## Slots
 
-- `do` is not authored yet. The chain ends at the tickets, and the one line in the `SKILL.md`
-  that leans on it carries the marker `stand-in until /do exists`.
+- none. `do` is in this repo, so the chain continues after the tickets one ticket at a time,
+  `/do <ticket>`, the line `tickets` ends on.
 
 ## Common questions
 

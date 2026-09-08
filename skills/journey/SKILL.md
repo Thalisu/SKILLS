@@ -241,9 +241,9 @@ line is replaced as the table in step 4 says, and the thread gets the summary:
   | it lists a branch | `/discuss <the branch>`, then `/journey` on the spec again; `tickets` stops on that list |
 
 `tickets` cuts one ticket per path and orders them by `## States`, so every path is written to be
-cut that way: one thing the actor does end to end, never one layer of every path. The chain ends at
-the tickets (stand-in until /do exists: the line after them becomes `/do <ticket>`). Nothing is
-committed.
+cut that way: one thing the actor does end to end, never one layer of every path. After the
+tickets the chain continues one ticket at a time, `/do <ticket>`, the line `tickets` ends on.
+Nothing is committed.
 
 ## Hard rules
 

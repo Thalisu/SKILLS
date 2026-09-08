@@ -209,9 +209,9 @@ inline the decision-rich part, trimmed, and say in a line where it came from.
 ## 6. Close
 
 In the thread: every ticket published, with its identifier and its blocking edges; the frontier;
-what was left out. Nothing is committed. The next step is one ticket at a time from the frontier
-(stand-in until /do exists: none; the chain ends at the tickets, and the line becomes
-`/do <ticket>`).
+what was left out. Nothing is committed. The next step is one ticket at a time from the frontier,
+and the last line is the exact next command: `/do <ticket>`, with the first ticket of the frontier
+as its path, or as its issue reference on a tracker.
 
 ## Hard rules
 
