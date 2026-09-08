@@ -1,10 +1,13 @@
 # /do: research and design brief
 
-Research only. Nothing under `skills/` was written for `/do` yet. This brief records what was read,
-what each source gives the skill, where the sources contradict each other, and the decisions taken
-in the research session of 2026-09-03. It is the input for authoring `skills/do/SKILL.md`, its docs
-page and its evals. Two steps carry a `TBD` slot for skills this repo does not have yet, `code-review` and
-`bug-fix`. Authoring either one later replaces its slot instead of reopening the design.
+Research only. This brief records what was read, what each source gives the skill, where the
+sources contradict each other, and the decisions taken in the research session of 2026-09-03. The
+skill was authored from it, and the brief's run lives in the `ticket` Playbook now,
+`skills/do/references/ticket.md`, with the parts the Playbooks share in
+`skills/do/references/mechanics.md`; the brief stays as research. One step still carries a `TBD`
+slot for a skill this repo does not have yet, `bug-fix`; the review step's slot is closed by
+`do-code-review`, this repo's skill. Authoring the other one later replaces its slot instead of
+reopening the design.
 
 ## What /do is
 
@@ -12,8 +15,9 @@ page and its evals. Two steps carry a `TBD` slot for skills this repo does not h
 nothing else: the chain is strict
 (`docs/adr/0003`). The run creates a git worktree from the branch the user is on and
 builds behaviour by behaviour under the project's Testing Policy, one green commit per behaviour.
-It then reviews and fixes, lands the worktree branch on the user's branch without touching the
-network, runs the E2E gate from the main checkout, and closes the ticket with the evidence.
+It then hands the branch to `do-code-review`, which fixes what it finds and lands the branch on
+the user's branch when the Review is Green, without touching the network; `/do` runs the E2E gate
+from the main checkout and closes the ticket with the evidence. `/do` never lands.
 
 Two constraints define it. It never reopens the plan: no interview, no alternative approach, and a
 design fork the repository cannot settle stops the run and sends the user back to `/discuss`. And it
@@ -72,8 +76,8 @@ happens on green inside the loop.
 ### mattpocock code-review, to-tickets, to-spec and the tracker setup
 
 From `code-review`: the two separate axes (does the code follow the repo's standards, does it match
-the spec) and the scope-creep check. These are input for this repo's future `code-review` skill,
-not a dependency of `/do`. The plugin skill needs commits first and a tracker file from its setup
+the spec) and the scope-creep check. These are input for this repo's `do-code-review` skill, not
+a dependency of `/do`. The plugin skill needs commits first and a tracker file from its setup
 skill, and it is not something this repo owns.
 
 From `to-tickets` and the tracker templates: the ticket shape (`What to build`, `Blocked by`,
@@ -177,8 +181,8 @@ earlier" is stale. `decompose-into-slices` and `design-an-interface` overlap wit
 | Who writes tests | the session | a code delegate | the test-author agents; the caller never derives the expectation | the agents, or `/test-author` inline |
 | Refactor | at review stage | on green with the pin held | on green, inside the loop | on green, inside the loop |
 | Where code is written | in place, current branch | a worktree, a delegate per unit | in place, one writer, shared assets serialised | a worktree, one writer: the session |
-| Review | `code-review` before commit | `interrogate`, `no-comments`, `deslop` | not covered | this repo's `code-review`, TBD, after the commits |
-| Delivery | commit to the current branch | small ordered commits, PR opened ready | the caller commits, promotions atomic | one green commit per behaviour, landed on the user's branch, no push |
+| Review | `code-review` before commit | `interrogate`, `no-comments`, `deslop` | not covered | this repo's `do-code-review`, after the commits; it fixes and lands |
+| Delivery | commit to the current branch | small ordered commits, PR opened ready | the caller commits, promotions atomic | one green commit per behaviour, landed on the user's branch by the review, no push |
 | Verification | full suite once at the end | the real surface, inconclusive is not a pass | full unit suite plus affected E2E, BLOCKED on infra | the policy gate, E2E from the main checkout after landing |
 
 ## Decisions taken in the research session
@@ -195,22 +199,25 @@ earlier" is stale. `decompose-into-slices` and `design-an-interface` overlap wit
    `references/tdd-fallback.md` with MIT attribution, read only when `.claude/agents/unit-test-author.md`
    is absent. pstack wrote it for bug fixes; the feature case gets the same rule, failing test first
    where a cheap path exists, otherwise the closest executable check with the reason stated.
-4. **Worktree.** Every run works in a git worktree. The commits are cut per verifiable unit. A
-   review-then-fix step precedes landing, and landing puts the worktree branch on the user's branch.
+4. **Worktree.** Every run works in a git worktree. The commits are cut per verifiable unit. The
+   review fixes what it finds and lands the worktree branch on the user's branch; `/do` never lands.
 5. **E2E gate.** The unit loop and the full unit suite run in the worktree. After landing, `/do`
    runs the affected E2E flows from the main checkout, because Project facts may record that the
    E2E stack serves the primary checkout. A red flow becomes one more unit on the same branch. Done
    is reported only after that run.
-6. **Landing.** The worktree branch is fast-forwarded or merged into the branch the user invoked
-   `/do` from. Nothing leaves the machine; the user pushes.
+6. **Landing.** `do-code-review` fast-forwards the branch the user invoked `/do` from to the
+   worktree branch when the Review is Green (`docs/adr/0013`); `/do` never lands. Nothing leaves
+   the machine; the user pushes.
 7. **Commits.** One green commit per behaviour: the test, its implementation and any asset
    promotion together, so every commit is bisectable and the policy's atomic-promotion rule holds.
 8. **Ticket.** Claimed at the start the way the tracker file describes. At the end each proven
    acceptance criterion is ticked, the evidence is added, and the ticket is closed. A local ticket
-   file is edited in the last commit; a remote tracker write asks first.
+   file is edited in the main checkout and never committed by the run; a remote tracker write asks
+   first.
 9. **Bug tickets.** A future `bug-fix` skill in this repo owns diagnosis. The slot is `TBD`.
-10. **Review.** A future `code-review` skill in this repo owns the review. The slot is `TBD`, and
-    the step is written so that the new skill replaces it without other edits.
+10. **Review.** `do-code-review` owns the review, the fix of its `Act on` Findings and the landing
+    (`docs/adr/0005`, `docs/adr/0013`, `docs/adr/0015`); `/do` calls it once per landing and reads
+    its return.
 11. **Citation discipline.** Full: the checklist copied verbatim at the start, skips visible with
     their reason, and every principle that changed a decision named in the reply with the decision.
 12. **Language.** Messages to the user in the language the session was opened in, as `discuss`
@@ -239,12 +246,13 @@ can overturn before the skill is written.
   `.claude/worktrees/` location keeps every switch the Claude Code tool allows; any path works
   elsewhere.
 - **Worktree lifetime.** The worktree stays until the E2E gate is green. A red flow after landing
-  is fixed in the worktree as one more unit and landed again by fast-forward. The ticket close-out
-  commit is the last commit, made in the worktree after the gate, followed by a final fast-forward.
-  Then the worktree and the `do/<slug>` branch are removed.
+  is fixed in the worktree as one more unit and handed to a second review call, which lands it
+  again. The ticket is closed in the main checkout and never committed by the run. Then the
+  worktree and the `do/<slug>` branch are removed.
 - **Protected branch.** The `test-triage` rule applies to landing: when the user's branch is
   `main` or `master` beside a `develop`, `staging` or `release*` branch, or `production` beside any
-  of those, `/do` does not merge. The worktree branch is left in place and the reply says so.
+  of those, the review refuses to land. The worktree branch is left in place and the reply says
+  so, with the two commands that land it by hand from a branch that takes commits.
 - **Forks during the build.** An empirical fork (which timing, which output, whether an API does
   the thing) is settled with a throwaway probe script in the worktree, deleted afterwards. A design
   fork means the plan is incomplete. The run stops at that step and tells the user to run `/discuss`
@@ -263,7 +271,7 @@ can overturn before the skill is written.
 
 ## The run, step by step
 
-The checklist as the run would show it. Steps 8 and the bug branch of step 5 carry the `TBD` slots.
+The checklist as the run would show it. The bug branch of step 5 carries the `TBD` slot.
 
 ```
 Do:
@@ -275,8 +283,8 @@ Do:
 - [ ] 5. Build loop: one behaviour, one dispatch, one green commit, repeat
 - [ ] 6. E2E flows authored or extended (native and mixed surfaces)
 - [ ] 7. Gate in the worktree: full unit suite, typecheck, format
-- [ ] 8. Review, accepted findings become units                (TBD: code-review)
-- [ ] 9. Landed on the user branch; affected E2E flows run from the main checkout
+- [ ] 8. Review by do-code-review: Act on Findings fixed by its Fixer, landed when Green
+- [ ] 9. Affected E2E flows run from the main checkout
 - [ ] 10. Ticket closed with evidence; worktree removed
 - [ ] 11. Reply
 ```
@@ -351,24 +359,27 @@ last edit, with the output line quoted. Red goes back to step 5 as a unit. Never
 weakened assertion, never a sleep. An infra failure is BLOCKED. Done when the suite and the
 typecheck are green in output produced after the last edit.
 
-**Step 8, review, `TBD`.** Call the Skill tool with `code-review`, this repo's future skill. Each
-accepted finding becomes one more unit through step 5; a dismissed finding gets a one-line reason,
-in the skeptical posture pstack applies to bot reviews. Re-run step 7. Until the skill exists the
-step reads `skip: code-review not installed`, and the reply names the review as the user's next
-step.
+**Step 8, review and landing.** Call the Skill tool with `do-code-review`, passing the ticket's
+location so the Review lands beside it, the worktree branch's fixed point and the user's branch as
+the landing target, never `fix` and never `--no-fix`. The review's Fixer turns every `Act on`
+Finding into one commit on the worktree branch, the review re-runs each Finding's check and the
+gate, and lands the branch on the user's branch by fast-forward when the Review is Green. `/do`
+waits, reads the outcome off the return and never the file, hands every `Consider` Finding with a
+risk class to the user, names an Axis the Review marks `not run`, and never fixes a Finding by
+hand. A return that says not landed stops the run as blocked with the worktree and its branch
+named. Done when the return's landing line reads `landed at`.
 
-**Step 9, land, then E2E.** Switch back to the main checkout. On a protected branch, refuse: leave
-the worktree and its branch, say so. Otherwise fast-forward the user's branch to the worktree branch,
-rebasing the worktree branch first when the user's branch moved. No push. Run the affected E2E flows
-from the main checkout with the single-flow command from Project facts, the command line printed
-first. A full suite or a remote run waits for a yes. A red flow: back into the worktree, one more
-unit, land again. An infra failure: BLOCKED, the work is not done, only the user can waive it, and a
+**Step 9, E2E from the main checkout.** The branch landed in step 8; `/do` never lands. Run the
+affected E2E flows from the main checkout with the single-flow command from Project facts, the
+command line printed first. A full suite or a remote run waits for a yes. A red flow: back into the
+worktree, one more unit, a second review call with the landed commit as its fixed point, which
+lands it again. An infra failure: BLOCKED, the work is not done, only the user can waive it, and a
 waiver is recorded as debt. Done when the affected flows are green from the main checkout.
 
-**Step 10, close.** In the worktree, tick each proven acceptance criterion in the ticket file, set
-its status to resolved, append the evidence, commit, and fast-forward once more. On a remote tracker
-ask, then comment the evidence and close. Remove the worktree and the `do/<slug>` branch. Done when
-the ticket is closed and `git worktree list` no longer shows the run's worktree.
+**Step 10, close.** In the main checkout, tick each proven acceptance criterion in the ticket file,
+set its status to resolved and append the evidence; the run never commits the file. On a remote
+tracker ask, then comment the evidence and close. Remove the worktree and the `do/<slug>` branch.
+Done when the ticket is closed and `git worktree list` no longer shows the run's worktree.
 
 **Step 11, reply.** In the session's opening language. Who the work is for and what changes for
 them, then what the next maintainer inherits. The commits. The evidence lines quoted: unit suite,
@@ -398,8 +409,9 @@ Verification, ready to paste. Pending debt: waivers, consumer coverage. The next
 
 ## TBD slots and open items
 
-- **`code-review`.** Step 8 calls it. Until it exists the checklist shows the skip. When it lands,
-  its row joins the READMEs and the skip line is deleted; nothing else in `/do` changes.
+- **`do-code-review`.** Step 8 calls it, and it reviews, fixes and lands (`docs/adr/0005`,
+  `docs/adr/0013`, `docs/adr/0015`). The `do-` prefix is the convention for any skill this repo
+  adds to a slot, so it never shadows a bundled skill of the same name.
 - **`bug-fix`.** The bug branch of step 5 calls it. Until it exists a bug ticket without a stated
   cause stops at step 0. `diagnose`, present on the maintainer's machine, is a candidate base.
 - **Consumer surfaces.** The policy's per-change gate includes the impacted consumers' flows run
