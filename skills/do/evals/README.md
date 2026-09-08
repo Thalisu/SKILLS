@@ -47,6 +47,7 @@ typecheck and `node --test` as the suite, so both run offline with node alone.
 | `withheld-agent-tool` | the Agent tool withheld from the whole session, the nearest a case can get to withholding it from a delegate: no agent dispatched and no delegate forked, the inline test-author skill applied, the session's own commits carry the work |
 | `portuguese-session` | the Ticket's path followed by a Portuguese request, the one way a single prompt opens the session in Portuguese: the reply in Portuguese, the status line, the evidence and the commit messages in English |
 | `absent-vendored-skill` | a session that does not list `how`, which is the runner's own session (it lists the skill under test and the fixture's skills, never the vendored ones): the grounding step states the one-line fallback and completes, the build continues to the gate |
+| `ticket-run-without-policy` | the same Ticket in a project with no Testing Policy, on the plain JavaScript fixture: the first message reads `Loop: fallback`, the run reads `references/tdd-fallback.md` before its first test and never dispatches a test author, and for each behaviour the failing test is written and run red by the session before the implementation, both landing in one commit |
 
 The `ticket` cases scaffold the same fixture with a Testing Policy installed on a consumer surface
 (the marked section in `CLAUDE.md` with its Project facts, the `unit-test-author` agent with its
@@ -55,8 +56,11 @@ and, for the runs, an uncommitted line in `README.md` as the developer's work in
 resume cases add the `do/archive-a-note` worktree with two commits on it, one per behaviour, and
 one of them an uncommitted edit in that worktree. The
 fixture's commands are real: `node --test` runs the suite and `tsc --noEmit` typechecks `src/`.
-The review, the landing, the verification and the close have no case yet: the review step reads
-`skip: do-code-review not listed` in every run, and their cases arrive with the review.
+`ticket-run-without-policy` scaffolds the plain JavaScript fixture of the `trivial-` cases instead,
+with the same spec, journey and Tickets and no policy section, no agent and no inline skill, so the
+run takes the TDD fallback and node alone runs its suite. The review, the landing, the
+verification and the close have no case yet: the review step reads `skip: do-code-review not
+listed` in every run, and their cases arrive with the review.
 
 ## Running
 

@@ -47,4 +47,26 @@ has "the reference is never read under policy" "$ticket" "never read"
 has "the skill file lists the reference under Links" "$skillfile" "[tdd-fallback.md](references/tdd-fallback.md)"
 lacks "no em-dash in the ticket reference" "$ticket" "$emdash"
 
+# The eval case: a fixture with no policy, no agent and no inline skill, scaffolded and green with node alone
+case="$skill/evals/ticket-run-without-policy"
+if [ -f "$case/case.yaml" ]; then ok "the case exists"; else fail "the case exists at $case"; fi
+has "the prompt types the first Ticket" "$case/prompt.md" "/do .scratch/archive-notes/issues/01-archive-a-note.md"
+has "the first line grader reads Playbook: ticket" "$case/graders/first-line-playbook-ticket.md" "^Playbook: ticket"
+has "a grader checks the loop line and the reference read" "$case/graders/loop-line-fallback-reference-read.md" "tdd-fallback.md"
+has "a grader checks no test author was dispatched" "$case/graders/no-test-author-dispatched.md" "unit-test-author"
+has "a grader checks the failing test lands before the implementation" "$case/graders/failing-test-lands-before-implementation.md" "before"
+has "the README lists the case" "$skill/evals/README.md" '`ticket-run-without-policy`'
+lacks "no em-dash in the case" "$case/case.yaml" "$emdash"
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+awk '/^  scaffold_script: \|/ { f = 1; next } f && /^    / { sub(/^    /, ""); print; next } f && /^$/ { print; next } f { exit }' "$case/case.yaml" > "$tmp/scaffold.sh" 2>/dev/null || true
+mkdir -p "$tmp/fixture"
+if [ -s "$tmp/scaffold.sh" ] && (cd "$tmp/fixture" && bash "$tmp/scaffold.sh" >/dev/null 2>&1); then ok "the scaffold runs"; else fail "the scaffold runs"; fi
+if [ ! -e "$tmp/fixture/.claude/agents/unit-test-author.md" ]; then ok "no unit test author in the fixture"; else fail "no unit test author in the fixture"; fi
+if [ ! -e "$tmp/fixture/.claude/skills/test-author" ]; then ok "no inline test-author skill in the fixture"; else fail "no inline test-author skill in the fixture"; fi
+if [ -f "$tmp/fixture/CLAUDE.md" ] && ! grep -q "testing-policy:start" "$tmp/fixture/CLAUDE.md"; then ok "no Testing Policy section in the fixture"; else fail "no Testing Policy section in the fixture"; fi
+if [ -f "$tmp/fixture/.scratch/archive-notes/issues/01-archive-a-note.md" ]; then ok "the first Ticket is in the fixture"; else fail "the first Ticket is in the fixture"; fi
+suite="$(cd "$tmp/fixture" 2>/dev/null && node --test 2>&1 || true)"
+if grep -qE '(^|[^a-z])fail 0$' <<<"$suite" && grep -qE '(^|[^a-z])pass [1-9]' <<<"$suite"; then ok "the fixture's suite is green with node alone"; else fail "the fixture's suite is green with node alone"; fi
+
 if [ "$fails" = 0 ]; then echo "all ok"; else echo "$fails failing"; exit 1; fi
