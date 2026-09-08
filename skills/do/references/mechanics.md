@@ -102,9 +102,10 @@ verifiable unit that ends in one green commit, per
 
 Done when every behaviour line has a commit beside it.
 
-Under the fallback, when the project has no unit test author, the same loop runs with the run
-writing the failing test itself where a cheap path exists, and otherwise the closest executable
-check with the reason stated. Nothing else changes: red first, the smallest green, one commit.
+Under the fallback, when the project has no unit test author, the same loop runs by
+[tdd-fallback.md](tdd-fallback.md), read only then: the run writes the failing test itself where
+a cheap path exists, and otherwise the closest executable check with the reason stated, and no
+test author is dispatched. Nothing else changes: red first, the smallest green, one commit.
 
 ### The test authors
 
