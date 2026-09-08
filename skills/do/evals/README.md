@@ -36,31 +36,48 @@ typecheck and `node --test` as the suite, so both run offline with node alone.
 | `trivial-refuses-protected-branch` | a doc typo on `main` beside a `develop` branch: refused before any edit, the branch and the rule named, the tree unchanged |
 | `trivial-refuses-dirty-target` | a doc typo in a file already modified in the checkout: refused before any edit, the file named, the developer's uncommitted line intact |
 | `trivial-stops-on-signature-change` | a "typo" in a parameter name of an exported function, a rename inside one file from the request's seat: the edit made, the door script stopping the run on the diff, no commit, `src/notes.js` back at HEAD, `refactoring` named with the script's lines quoted |
-| `ticket-run-with-policy` | a Ticket built to the gate under an installed Testing Policy: the checklist verbatim before the first edit with every skipped step reasoned, the worktree before the first edit and the main checkout's dirty `README.md` untouched, one discover batch with its audit line, one dispatch in flight, one commit per behaviour holding a test and an implementation with the behaviour line in its body, the gate after the last edit, the Ticket `claimed` in the main checkout and absent from every commit, the review step `skip: do-code-review not listed`, the reply naming a principle only beside a decision |
+| `ticket-run-with-policy` | a Ticket built end to end under an installed Testing Policy on a native surface (a CLI with a flow under `e2e/`): the checklist verbatim before the first edit with every skipped step reasoned, the worktree before the first edit and the main checkout's dirty `README.md` untouched, one discover batch with its audit line, one dispatch in flight, one commit per behaviour holding a test and an implementation with the behaviour line in its body, the gate after the last edit, the review called once with the Ticket's location and the landing target and never with `fix` nor `--no-fix`, `main` fast-forwarded by the review and nothing pushed, the affected flow run from the main checkout, the Ticket `resolved` in the main checkout with its criteria ticked and the evidence appended only after the flow run, absent from every commit and untouched on the worktree branch, no worktree of the run remaining, the reply carrying the PR sections, naming a principle only beside a decision and listing the Ticket and the Review as left uncommitted |
+| `absent-review` | a session without `do-code-review` (the fixture installs no stand-in): the gate completed, the review step `skip: do-code-review not listed`, nothing landed, the worktree, its branch and the review named as the next step, the Ticket `claimed` and uncommitted |
+| `review-act-on-fixed-and-landed` | a Review with one `Act on` Finding, planted in the stand-in: the review's Fixer turns it into one commit on the worktree branch, the run makes no commit for it, the review is called once, and the landing follows it |
+| `review-not-landed-blocks` | a return that says not landed, the Finding `not fixed`, planted in the stand-in: the run stops as blocked with the review's reason quoted, the worktree and its branch named, nothing landed, the Ticket left `claimed` |
+| `red-flow-second-review` | the affected flow red after the first landing, since the stand-in's planted Fixer commit makes the CLI exit non-zero: the fix as one unit in the worktree, the review called a second time with the landed commit as its fixed point, and the landing after it |
 | `blocked-ticket-refused` | Ticket 02 blocked by Ticket 01 still `ready-for-agent`: refused before the claim in one message naming the blocker and its status, nothing written |
 | `resolved-ticket-stops` | a Ticket already `resolved`: one line saying so, nothing written |
 | `claimed-no-worktree-starts-over` | a `claimed` Ticket whose worktree is gone: one line saying the run starts over, the claim standing, a new worktree and the build |
 | `claimed-worktree-resumes` | a `claimed` Ticket whose `do/archive-a-note` worktree holds two commits, one per behaviour with its `Behaviour:` line: the first message says it resumes and lists them, no second worktree, the loop continues at the third behaviour and the first two get no new commit |
 | `resumed-worktree-uncommitted-asks` | the same worktree with an uncommitted half-written test in it: the first message says it resumes, names `src/notes.test.ts` and asks before discarding, then waits; nothing discarded, no commit, no second worktree |
-| `protected-branch-said-first` | `main` beside a `develop` branch: the first message names the branch and the rule and says landing will be refused; the run still builds to the gate, nothing lands, the worktree and its branch named |
+| `protected-branch-said-first` | `main` beside a `develop` branch: the first message names the branch and the rule and says landing will be refused; the run still builds to the gate and calls the review, the review lands nothing, and the reply names the worktree and its branch with the two commands that land by hand |
 | `design-fork-stops` | a Ticket whose third criterion contradicts the Spec's decision and the journey's failure branch: the run stops at its step naming `/discuss`, the Ticket left `claimed`, no commit |
 | `withheld-agent-tool` | the Agent tool withheld from the whole session, the nearest a case can get to withholding it from a delegate: no agent dispatched and no delegate forked, the inline test-author skill applied, the session's own commits carry the work |
 | `portuguese-session` | the Ticket's path followed by a Portuguese request, the one way a single prompt opens the session in Portuguese: the reply in Portuguese, the status line, the evidence and the commit messages in English |
 | `absent-vendored-skill` | a session that does not list `how`, which is the runner's own session (it lists the skill under test and the fixture's skills, never the vendored ones): the grounding step states the one-line fallback and completes, the build continues to the gate |
 | `ticket-run-without-policy` | the same Ticket in a project with no Testing Policy, on the plain JavaScript fixture: the first message reads `Loop: fallback`, the run reads `references/tdd-fallback.md` before its first test and never dispatches a test author, and for each behaviour the failing test is written and run red by the session before the implementation, both landing in one commit |
 
-The `ticket` cases scaffold the same fixture with a Testing Policy installed on a consumer surface
-(the marked section in `CLAUDE.md` with its Project facts, the `unit-test-author` agent with its
-Project map, the inline `test-author` skill), a spec, its journey and two Tickets under `issues/`,
-and, for the runs, an uncommitted line in `README.md` as the developer's work in progress; the
-resume cases add the `do/archive-a-note` worktree with two commits on it, one per behaviour, and
-one of them an uncommitted edit in that worktree. The
-fixture's commands are real: `node --test` runs the suite and `tsc --noEmit` typechecks `src/`.
+The `ticket` cases scaffold the same fixture with a Testing Policy installed (the marked section
+in `CLAUDE.md` with its Project facts, the `unit-test-author` agent with its Project map, the
+inline `test-author` skill), a spec, its journey and two Tickets under `issues/`, and, for the
+runs, an uncommitted line in `README.md` as the developer's work in progress; the resume cases add
+the `do/archive-a-note` worktree with two commits on it, one per behaviour, and one of them an
+uncommitted edit in that worktree. Most cases put the policy on a consumer surface with no
+consumer, so the verification has no flow to run; `ticket-run-with-policy` and
+`red-flow-second-review` put it on a native surface, with a CLI under `bin/`, the
+`e2e-test-author` agent and a flow under `e2e/` that drives the CLI, so the affected flow runs
+from the main checkout. The fixture's commands are real: `node --test src/` runs the unit suite,
+`node --test e2e/` the flows, and `tsc --noEmit` typechecks `src/`.
 `ticket-run-without-policy` scaffolds the plain JavaScript fixture of the `trivial-` cases instead,
 with the same spec, journey and Tickets and no policy section, no agent and no inline skill, so the
-run takes the TDD fallback and node alone runs its suite. The review, the landing, the
-verification and the close have no case yet: the review step reads `skip: do-code-review not
-listed` in every run, and their cases arrive with the review.
+run takes the TDD fallback and node alone runs its suite.
+
+The `do-code-review` in this repo takes a ref and writes the Review, and does not take a Ticket's
+location, fix or land yet, so the review-era cases install a stand-in for the contract `do` calls
+in the fixture, `.claude/skills/do-code-review/`: a skill whose one instruction runs `review.sh`
+and returns its output, and a script with that contract's call and return (the Ticket's location,
+the fixed point and the landing target in; the Review's location, its text and the landing line
+out; `fix` and `--no-fix` refused). It writes the Review beside the Ticket, plays the Fixer the
+case planted (`plant` reads `green`, `act-on`, `not-fixed` or `red-flow`; a second call is always
+green), re-runs the unit suite, fast-forwards the landing target when the Review is Green under
+the protected-branch rule, and logs every call and every landing under the fixture's `.git/` for
+the graders. `absent-review` installs none. The stand-in goes when the real skill takes the call.
 
 ## Running
 

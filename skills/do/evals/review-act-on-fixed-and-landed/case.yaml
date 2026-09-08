@@ -1,22 +1,17 @@
-name: ticket-run-with-policy
-tags: [playbook, ticket, run]
+name: review-act-on-fixed-and-landed
+tags: [playbook, ticket, run, review]
 runs: 1
-max_turns: 220
+max_turns: 200
 timeout_seconds: 3600
 allowed_tools: [Bash, Read, Edit, Write, Glob, Grep, Agent, Skill]
 context:
   scaffold_script: |
     #!/usr/bin/env bash
-    # A Ticket built end to end under an installed Testing Policy on a native surface (a CLI
-    # with flows under e2e/): the checklist before the first edit, the worktree before the
-    # first edit with the main checkout's dirty README untouched, one discover batch, one
-    # dispatch in flight, one commit per behaviour, the flow authored after the feature, the
-    # gate after the last edit, then the review called once through the fixture's stand-in
-    # do-code-review (planted Green), which fast-forwards main; the affected flow run from
-    # the main checkout; the Ticket resolved in the main checkout with its evidence, never
-    # committed; the worktree removed; the reply with the PR sections and the push command.
+    # The Review carries one Act on Finding (planted in the fixture's stand-in do-code-review):
+    # the review's Fixer turns it into one commit on the worktree branch, the run makes no
+    # commit for it, the review is called once, and the landing follows it.
     set -e
-    mkdir -p src bin e2e/helpers docs/agents .scratch/archive-notes/issues .claude/agents .claude/skills/test-author
+    mkdir -p src docs/agents .scratch/archive-notes/issues .claude/agents .claude/skills/test-author
     cat > package.json <<'JSON'
     {
       "name": "notes",
@@ -46,10 +41,10 @@ context:
     cat > README.md <<'MD'
     # notes
 
-    A small notes module with a CLI: create a note, list the active ones. The writer drives it through
-    `bin/notes.mjs`, one command per stdin line (`create <title>`, `list`). `node --test src/` runs the
-    unit suite, `node --test e2e/` the flows, and `tsc --noEmit` typechecks `src/`.
+    A small notes module: create a note, list the active ones. `node --test` runs the suite and
+    `tsc --noEmit` typechecks `src/`.
     MD
+
     cat > src/notes.ts <<'TS'
     export type Status = "active" | "archived";
 
@@ -97,19 +92,23 @@ context:
     cat > CLAUDE.md <<'POLICY_EOF'
     # notes
 
-    A small notes module with a CLI. Tests run with Node's own runner and the code is typechecked with `tsc`.
+    A small notes module. Tests run with Node's own runner and the code is typechecked with `tsc`.
 
-    <!-- testing-policy:start v=2.3 surface=native -->
+    <!-- testing-policy:start v=2.3 surface=consumer -->
     ## Testing Policy (Definition of Done)
 
     <!-- testing-policy:core-start -->
     A feature or fix is DONE only when the full unit suite passes AND its E2E coverage passes. "Tests didn't run" is never "tests passed". The rules below are fixed; the project's commands, paths and tool names live in **Project facts** at the end of this section.
 
-    ### Success gate (tiered)
+    ### E2E gate (consumer-side)
 
-    - **Per change**: full unit suite green (unit command in Project facts) + the affected E2E flows green (single-flow command in Project facts), run against this change.
-    - **Per phase/delivery**: full E2E suite green (full-suite command in Project facts) before declaring the phase or delivery complete.
-    - **Infra failure blocks**: if E2E cannot run (the known infra failures in Project facts are the usual suspects), the work is BLOCKED, not done. Report the infra error as blocked status; fixing the infra is part of the delivery. Only the user can explicitly waive the E2E gate, and a waiver is recorded as pending debt, never as green.
+    This repo has no user-facing surface of its own. Its real E2E coverage lives in the repos that consume it (the consumer list in Project facts). An E2E suite inside this repo would not represent the real flow and does not satisfy the gate.
+
+    - **Impact-scoped**: the gate applies only to the consumers whose flows the change impacts. A consumer that does not use the changed surface requires neither an E2E run nor new coverage for this change, but "not impacted" is a verified claim (check the consumer's actual calls to the changed routes, queues or exports), never a presumption.
+    - **Per change**: full unit suite green (unit command in Project facts) + the impacted consumers' E2E flows that exercise the changed surface green, run against this change (each consumer's "run against the local build" recipe in Project facts).
+    - **Per phase/delivery**: full E2E suite of each impacted consumer green (each consumer's full-suite command in Project facts) before declaring the phase or delivery complete.
+    - **Infra failure blocks**: if a consumer's E2E cannot run (its known infra failures in Project facts are the usual suspects), the work is BLOCKED, not done. Report the infra error as blocked status; fixing the infra is part of the delivery. Only the user can explicitly waive the E2E gate, and a waiver is recorded as pending debt, never as green.
+    - **New consumers**: when a new repo starts consuming this one, ask the user and add it to the consumer list; the gate covers every consumer, not just the first.
 
     ### TDD
 
@@ -118,19 +117,18 @@ context:
     - **Green is minimal**: only the code the current test needs; no branch, parameter or feature for a test not yet written.
     - **Refactor on green, never on red**: once green, extract duplication, move complexity behind the interface the test exercised, move logic to where its data lives, running the suite after every step. A test that goes red under a pure refactor was asserting implementation (see "Tests describe behavior") and is rewritten against the interface, not appeased.
     - **Behaviors, not branches**: the tests for a change are the behaviors its callers observe, prioritized with critical paths and the logic that can be wrong first; not one test per branch, not every edge case. The list is written before the first cycle, from the request, the plan or the user, never inferred from the implementation.
-    - **E2E is proven after**: the E2E flow is authored or extended together with the feature and MUST pass before the work is declared done. No red-first requirement at E2E level: a flow written against a UI that doesn't exist yet fails trivially and proves nothing.
+    - **Consumer E2E is proven after**: the consumer flow is authored or extended in the consumer repo together with the consuming feature and MUST pass against this change before the work is declared done. No red-first requirement at E2E level: a flow written against a surface that doesn't exist yet fails trivially and proves nothing.
 
     ### Tests describe behavior, not implementation
 
     - **Through the public interface**: a test exercises the target the way its callers do and asserts only what they can observe (the return value, the state read back through the same interface, the error raised). It is named for the behavior it proves, in the caller's words ("rejects an expired card", not "calls validateCard"), and it survives every refactor that keeps that behavior. A test that must reach into internals (a private function, a call on an internal collaborator, a row read straight from the table the code wrote) tests the implementation: it breaks on refactors that change nothing and passes on bugs that change everything.
     - **Mock at system boundaries only**: external services, the clock, randomness, the network, sometimes the database or the filesystem, as named in the unit-test-author's Project map, through their shared mocks. Never this repo's own modules or internal collaborators: a mocked internal pins the implementation and stays green when the real path is broken.
     - **A test that is hard to write is a design signal**: when a behavior can only be reached by mocking an internal, or by asserting on a side effect the interface does not expose, the fix is a seam in the code (pass the dependency in, return the result instead of mutating) and it lands before the test. Never mock around a missing seam.
-    - **E2E asserts what the user sees**: the screen, the message, the navigation, the state the product shows. A backend read through a helper is the fallback when no surface exposes the outcome, and the flow states why.
 
     ### Test authoring: delegation and reuse
 
     Every new test, a new test file or a new test case, is written under the test-author checklist, whose single source is the agent file:
-    `.claude/agents/unit-test-author.md` for unit tests and `.claude/agents/e2e-test-author.md` for E2E flows.
+    `.claude/agents/unit-test-author.md`. E2E flows are authored in the consumer repos, under their own `e2e-test-author`.
 
     - **Who is bound**: everyone who writes a test. With the `Agent` tool, dispatch the agent. Without it (executors, auditors, test generators), invoke `/test-author`, which applies the agent file's **Authoring rules** and **Project map** inline; the agent file's **Dispatch protocol** binds only the dispatched agent. Never copy the rules here.
     - **Dispatch input** (the agent refuses incomplete input and never infers the expectation from the implementation):
@@ -153,11 +151,11 @@ context:
     - **Shared-asset creation is serialized**: two authors creating shared assets in parallel cannot see each other's work and will each create the "missing" one. Prefer one author of each type in flight; when authors did run in parallel (parallel executors in a phase), the phase is not done until the duplication scan (Project facts) is clean.
     - **The agents run in place**, never in a worktree (reason in Project facts).
 
-    ### E2E mapping
+    ### Coverage mapping (consumer-side)
 
-    - **What requires E2E**: every change with a user-observable effect (screen, flow, navigation, message, state). Purely internal changes (refactor, script, build config) require unit coverage at the lowest level that captures the behavior; skipping E2E must be justified in that change, never presumed.
-    - **Flow per journey/scenario**: a new user journey, or a scenario needing a distinct fixture state, gets a new flow file (naming convention and real examples in Project facts). A fix within an existing journey extends that journey's flow with the assertions that capture the regression.
-    - **A bug that escaped the suite is a coverage gap**: the existing flow was incomplete, not wrong. Add the missing assertion or scenario so the bug would now be caught; never rewrite a green journey because of a fix that didn't change the journey.
+    - **What requires consumer E2E**: every change with a consumer-observable effect (response shape, status codes, new or changed routes, queue payloads, exported behavior, side effects a client sees). Purely internal changes (refactor, logging, build config) require unit coverage at the lowest level that captures the behavior; skipping the consumer E2E must be justified in that change, never presumed.
+    - **Coverage requirement**: every consumer-observable change is covered by a flow in each impacted consumer repo, following that repo's flow naming (Project facts). If no consumer exercises the new surface yet (surface built ahead of the client feature), the E2E lands together with the first consuming feature, recorded as pending debt against that feature until then, never as green.
+    - **A bug that escaped a consumer's suite is a coverage gap**: the existing flow was incomplete, not wrong. Add the missing assertion or scenario in that consumer so the bug would now be caught; never rewrite a green journey because of a fix that didn't change the journey.
 
     ### Tests represent the real flow
 
@@ -171,7 +169,7 @@ context:
     - Asserting the route instead of the outcome: that an internal collaborator was called, how many times, in what order. (A call into a mocked boundary is an outcome: the charge made, the email sent.)
     - Verifying through a side channel (reading the row the code wrote) when the interface can read the outcome back.
     - Mocking a module of this repo in a unit test; boundaries only (see "Tests describe behavior").
-    - Mocking the backend in this repo's E2E; flows run against the real test stack (Project facts) with seeded fixtures.
+    - Mocking this repo in a consumer's E2E; consumer flows run against the real local stack with this repo built from the working tree.
     - Adjusting a unit expectation to match buggy behavior.
     - Sleep/timeout padding to mask a race condition instead of fixing the race.
     <!-- testing-policy:core-end -->
@@ -181,13 +179,14 @@ context:
     <!-- Filled at install from the project's real setup; PRESERVED on refresh (the skill only reports
          when a fresh discovery disagrees). Every command here has been run once and returned output. -->
 
-    - **Unit**: full suite `node --test src/` · single file `node --test <file>` · mandatory flags / known phantom failures: none; test files are `src/**/*.test.ts`, import the module with its `.ts` extension and sit outside the typecheck (`tsc --noEmit` checks `src/` without them); the bare `node --test` would also run the flows under `e2e/`, so the unit suite names `src/` · skip mechanisms: `test.skip`, `test.todo`, `{ skip: true }`
-    - **E2E**: `node:test` flows that drive the CLI `bin/notes.mjs` through `e2e/helpers/cli.mjs` · single flow `node --test <file>` · full suite `node --test e2e/` · flow naming `e2e/<journey>.flow.test.ts` (e.g. `e2e/list-notes.flow.test.ts`) · skip mechanisms: `test.skip`, `test.todo`
-    - **Real test stack**: the CLI `bin/notes.mjs`, spawned by the flow from the checkout it runs in with its commands on stdin; nothing to bring up · **known infra failures**: none
-    - **Duplication scan**: `grep -rhoE '^(export )?(async )?function [A-Za-z_]+' src e2e --include='*.test.ts' --include='*.mjs' | sort | uniq -d` · shared homes per role: the agents' Project map
-    - **Why the agents run in place**: the runner and the CLI resolve `src/` from the checkout they run in, so an author in another worktree would test other files
+    - **Unit**: full suite `node --test` · single file `node --test <file>` · mandatory flags / known phantom failures: none; test files are `src/**/*.test.ts`, import the module with its `.ts` extension and sit outside the typecheck (`tsc --noEmit` checks `src/` without them) · skip mechanisms: `test.skip`, `test.todo`, `{ skip: true }`
+    - **Consumers**, one line each: repo · E2E tool · run against this repo's local build · single flow · full suite · flow naming · known infra failures
+      - none yet: no repository consumes this module, so the consumer gate has nothing to run until one does, and the first consuming feature carries the flow
+    - **Duplication scan**: `grep -rhoE '^(export )?(async )?function [A-Za-z_]+' src --include='*.test.ts' | sort | uniq -d` · shared homes per role: the agents' Project map
+    - **Why the agents run in place**: the runner resolves `src/` from the checkout it runs in, so an author in another worktree would test other files
     <!-- testing-policy:end -->
     POLICY_EOF
+
     cat > .claude/agents/unit-test-author.md <<'AGENT_EOF'
     ---
     name: unit-test-author
@@ -320,7 +319,7 @@ context:
 
     **Framework & run commands**
     - Single file: `node --test <file>`
-    - Full suite: `node --test src/`
+    - Full suite: `node --test`
     - Formatter: `none`
     - Node's own runner strips the types: a test file imports the module with its `.ts` extension (`./notes.ts`) and asserts with `node:assert/strict`; no preload, no flags
 
@@ -358,224 +357,14 @@ context:
     1. **Fill the dispatch input for yourself first**, for the one test you are about to write: behavior to prove (it becomes the test name), target (unit) or journey/screen (E2E), origin (`bugfix` / `new feature`), expected red (unit) or fixture state (E2E). If you cannot, you do not yet know what you are testing: stop and ask. One test per pass: the next input is written after this test is green and its implementation exists, never a batch ahead of the code.
     2. **Open the agent file** and apply **## Authoring rules** and **## Project map** in full:
        - `unit` → `.claude/agents/unit-test-author.md`
-       - `e2e` → `.claude/agents/e2e-test-author.md`
+       - `e2e` → this repo has no E2E of its own and no consumer exists yet, so the first consuming feature carries the flow
 
        **## Dispatch protocol** does not apply inline, since you are the caller: you own the feature code, the stack and the commit.
     3. **Run the Discovery block** from Project map before writing anything, and keep what it returned.
     4. **Write and run** as the rules say. Unit: red for the declared reason, then only the code this test needs, then green, then refactor on green with the suite rerun; E2E: preflight, then green against the real stack. Never weaken an assertion to get there.
     5. **Report inline** the same two sections the agent would: **Reuse audit** (searches run, what they returned, decision per asset; present even when nothing was created) and **Run** (command and output verbatim). A promotion is listed as its own changeset and lands in the same commit as the test, or in a refactor commit immediately before it.
     SKILL_EOF
-    cat > .claude/agents/e2e-test-author.md <<'AGENT_EOF'
-    ---
-    name: e2e-test-author
-    description: Authors and runs one E2E flow, a new flow file or a new scenario, after a mandatory reuse audit of page objects, data factories, backend helpers and fixtures. Dispatch it for every new E2E test; it never writes production code.
-    tools: Read, Write, Edit, Bash, Grep, Glob
-    ---
-    <!-- testing-policy:agent v=2.3 -->
 
-    You author exactly one E2E test, a new flow file or a new scenario in an existing flow, and you run it against the real local stack. You never write, edit, or delete production code, and you never operate the stack.
-
-    <!-- Regenerated by the testing-policy skill on every refresh; do not edit between the core
-         markers; edits are overwritten. Project-specific facts belong in "Project map". -->
-    <!-- testing-policy:core-start -->
-
-    ## Authoring rules
-
-    These bind everyone who writes an E2E flow in this project: this agent when dispatched, and any writer applying them inline through `/test-author`.
-
-    ### The golden rule
-
-    **The expectation comes from the caller. Never derive it from the UI.**
-
-    Read components and copy to find selectors, roles, labels, and routes. Never read them to decide what the flow should assert: a flow that asserts whatever the screen shows today is worthless when the screen is wrong, and it inverts the project's principle that a failing test is presumed to expose a product bug.
-
-    If the caller's stated behavior contradicts what the UI does, say so in the report and write the flow against the **caller's** behavior.
-
-    ### Flow placement
-
-    - A **new user journey**, or a scenario that needs a **distinct fixture state**, gets a **new flow file** following the project's naming (see "Project map").
-    - A **fix within an existing journey** extends that journey's flow with the assertion that captures the regression, never a parallel flow that repeats the journey.
-    - Every flow ends in an **outcome assertion**, what the user sees: the screen, the message, the navigation, the state the product shows. "The app didn't crash" is not an outcome. A backend read through a helper is the fallback when no surface exposes the outcome (a webhook that must leave the invoice unpaid), and the flow states why.
-
-    ### Reuse audit: mandatory, before writing anything
-
-    Priority: **reuse > extend > create.** Never write a second copy of something that exists.
-
-    Run the Discovery block from "Project map" first, then search for the specific thing you are about to build:
-
-    - A **page-object method** (or shared subflow) for the interaction, a **data factory** for the entity, a **backend helper** for the fixture state or assertion, a **fixture** for the session/context.
-    - Search **all** flow files, not only the shared homes. A helper written inline inside another flow counts as existing.
-    - Search by shape as well as by name.
-
-    For every asset you need, classify it:
-
-    | State | What you do |
-    |---|---|
-    | Exists in a shared home | Use it. |
-    | Exists, inline in another flow | **Second-use rule**: promote it (below). Never write the second copy. |
-    | Exists but doesn't quite fit | Strict order: **(1)** extend backward-compatibly (new method on the same page object, optional param) → **(2)** change it and update every call site → **(3)** create a separate asset. |
-    | Does not exist anywhere | Create it in the shared home for its role. A page-object method never lives inside a flow file. |
-
-    **(3) is a fork and is forbidden without a written semantic justification** in the report: a second page class for the same screen, or a second factory for the same entity, is a fork. Choosing **(2)** obliges you to run every flow that referenced the changed asset.
-
-    ### Promotion protocol (second-use rule)
-
-    A promotion moves an asset out of a flow into the shared home for its role and rewrites the call sites. It is behavior-preserving and touches files nobody asked you to touch, so it must stay a clean, separable changeset.
-
-    1. Move the asset to the shared home. Keep behavior identical; reconcile drift into a superset and say so.
-    2. Update every call site.
-    3. **Hunt orphans**: grep the old symbol across all flow and page files. A surviving reference means the promotion is unfinished.
-    4. Run **every flow that referenced the asset**; the grep in step 3 is the exact list. The full suite is the delivery gate, not yours.
-    5. Report the promotion as its own changeset, separate from the flow. It lands in the same commit as the motivating flow or in a refactor commit immediately before it; splitting them leaves the other flow broken at that commit.
-
-    ### Preflight, then run
-
-    E2E runs against the real local stack, and a stack that is down looks exactly like a red test. Before running:
-
-    1. Execute the preflight checks in "Project map" (app reachable, required services up).
-    2. **Any check fails → do not run.** A red produced on a broken stack proves nothing. The dispatched agent returns `BLOCKED` (see Dispatch protocol); an inline writer repairs the stack first; fixing the infra is part of the delivery.
-    3. All checks pass → run the flow. It MUST be green: E2E is proven after the feature exists. A red flow is a product bug or a flow bug: say which you believe and why; never weaken the assertion to find out.
-    4. Report the command and the relevant output verbatim. Never paraphrase a result.
-    5. Format every file you wrote or edited with the project formatter/linter (see "Project map").
-
-    ### Forbidden
-
-    - A second copy of an asset that exists anywhere under the E2E tree; a page-object method inside a flow file.
-    - Deriving the expected behavior from the UI.
-    - Skip / xfail / optional (or any equivalent) on a failing step; weakening or dropping an assertion; a flow with no outcome assertion.
-    - Mocking the backend; flows run against the real stack.
-    - Asserting through the database when the product shows the outcome.
-    - Sleep/timeout padding to hide a race.
-
-    ## Dispatch protocol
-
-    Binds this agent when dispatched. An inline writer under `/test-author` is the caller (it owns the feature code, the stack and the commit), so this part does not apply to it.
-
-    ### Required input: refuse if incomplete
-
-    The caller MUST supply:
-
-    - **Behavior to prove**: one sentence, in terms the user would observe (screen, message, state, navigation).
-    - **Journey / screen**: where in the product this happens.
-    - **Origin**: `bugfix` (the flow must capture the regression) or `new feature`.
-    - **Fixture state needed**: what must exist before the flow starts (a client with an open invoice, a company in onboarding, ...).
-
-    Optional: **Placement** (an existing flow to extend, or "new flow"); explicitly out of scope.
-
-    If any required field is missing, or too vague to become an outcome assertion, **stop and ask**. Return verdict `REFUSED_INCOMPLETE_INPUT` naming the missing fields. Do not write a file.
-
-    ### Baseline
-
-    Snapshot git before your first edit: `git status --porcelain`. Your changeset is the *difference* between this baseline and the end state, never the whole dirty tree.
-
-    ### Stack
-
-    **Never start, restart, or repair the stack, never edit env files**: that is the caller's job, and a red caused by infra you patched yourself is unreviewable. On a failed preflight return `BLOCKED`, naming the failed check and the service, with the flow already written and the reuse audit done.
-
-    ### Finish
-
-    - **Never commit, stage, or branch.** The caller commits.
-    - Never touch production code. If the flow cannot be written without a product change (a missing accessible name, an unreachable state), stop and say exactly what is needed.
-
-    ### Report
-
-    Return exactly these sections:
-
-    **Verdict**: `GREEN` · `RED` · `BLOCKED` · `REFUSED_INCOMPLETE_INPUT`
-
-    **Test changeset**: paths you wrote/edited for the flow itself, derived from the git diff against your baseline.
-
-    **Promotion changeset**: paths involved in a promotion, or "none". When present, state verbatim: *commit these together with the flow, or in a refactor commit immediately before it; splitting them leaves the other flow broken at that commit.* Note any drift you reconciled.
-
-    **Reuse audit**: for each asset you needed, the search commands you ran, what they returned, and the decision (reused / extended / changed / created / promoted). A creation carries its justification. Present even when nothing was created.
-
-    **Preflight & run**: checks executed with their result; run command(s) and relevant output verbatim.
-
-    **Notes**: contradictions between stated behavior and the UI, a third copy you found, product changes needed, debt you deliberately left.
-
-    <!-- testing-policy:core-end -->
-
-    ## Project map
-
-    <!-- Discovered by the testing-policy skill at install. Edits here are PRESERVED on re-run; the skill
-         only reports when a fresh discovery disagrees with what is written here. Every command below
-         was run once at install and returned output. -->
-
-    **Tool & run commands**
-    - Single flow: `node --test <file>`
-    - Full suite (delivery gate, not yours to run): `node --test e2e/`
-    - Formatter / linter: `none`
-    - Run from the checkout root: the flow spawns `node bin/notes.mjs` from the checkout it runs in and feeds it one command per stdin line (`create <title>`, `list`); the process keeps its notes in memory, so one flow is one process. No device, no server, no base URL
-
-    **Preflight: every check must pass before running**
-    ```
-    node --version
-    test -f bin/notes.mjs
-    ```
-
-    **Flow root & naming**: `e2e/<journey>.flow.test.ts`, one file per journey (`e2e/list-notes.flow.test.ts`)
-
-    **Shared homes by role** (canonical, one path per role; "none yet → create at X" is a valid entry)
-    - Page objects / interactions (or shared subflows): `e2e/helpers/ (the CLI driver `cli.mjs`, `runCli(lines)`)`
-    - Data factories (entity builders): `none yet → create at e2e/factories/`
-    - Backend / DB helpers (fixture state, direct assertions): `none: the CLI is the whole stack, and a flow reads the outcome back through `list``
-    - Fixtures (session, context, cleanup): `none yet → create at e2e/fixtures/`
-
-    **Discovery: run all of these on every dispatch, before writing**
-    ```
-    grep -rhoE '^(export )?(async )?function [A-Za-z_]+' e2e --include='*.ts' --include='*.mjs' | sort | uniq -d
-    grep -rnE '^export (async )?function' e2e/helpers || true
-    ls e2e e2e/helpers
-    ```
-
-    **Idiom** (calibration only, never a catalog)
-    English identifiers; `node:test` with `node:assert/strict`; a flow calls `runCli([...])` from `./helpers/cli.mjs` and asserts on `status` and on `stdout` split into lines, as `e2e/list-notes.flow.test.ts` does with `runCli(["create first", "create second", "list"])`; the outcome the writer sees is the CLI's output, never the module's state
-    AGENT_EOF
-    cat > bin/notes.mjs <<'JS'
-    import { createInterface } from "node:readline";
-    import { create, list } from "../src/notes.ts";
-
-    const lines = createInterface({ input: process.stdin });
-    for await (const line of lines) {
-      const [command, ...rest] = line.trim().split(" ");
-      const title = rest.join(" ");
-      if (command === "") continue;
-      if (command === "create") {
-        const note = create(title);
-        console.log(`created ${note.id} ${note.title}`);
-      } else if (command === "list") {
-        const active = list();
-        if (active.length === 0) console.log("(empty)");
-        for (const note of active) console.log(`${note.id} ${note.title}`);
-      } else {
-        console.log(`unknown command: ${command}`);
-      }
-    }
-    JS
-
-    cat > e2e/helpers/cli.mjs <<'JS'
-    import { spawnSync } from "node:child_process";
-    import { fileURLToPath } from "node:url";
-
-    const bin = fileURLToPath(new URL("../../bin/notes.mjs", import.meta.url));
-
-    export function runCli(lines) {
-      const run = spawnSync(process.execPath, [bin], { input: lines.join("\n") + "\n", encoding: "utf8" });
-      return { status: run.status, stdout: run.stdout, stderr: run.stderr };
-    }
-    JS
-
-    cat > e2e/list-notes.flow.test.ts <<'TS'
-    import { test } from "node:test";
-    import assert from "node:assert/strict";
-    import { runCli } from "./helpers/cli.mjs";
-
-    test("the list shows every created note, one per line", () => {
-      const run = runCli(["create first", "create second", "list"]);
-      assert.equal(run.status, 0, run.stderr);
-      assert.deepEqual(run.stdout.trim().split("\n"), ["created 1 first", "created 2 second", "1 first", "2 second"]);
-    });
-    TS
     cat > .scratch/archive-notes/spec.md <<'MD'
     # Archive notes
 
@@ -705,7 +494,7 @@ context:
     MD
 
     mkdir -p .claude/skills/do-code-review
-    echo "green" > .claude/skills/do-code-review/plant
+    echo "act-on" > .claude/skills/do-code-review/plant
     cat > .claude/skills/do-code-review/SKILL.md <<'REVIEW_SKILL_EOF'
     ---
     name: do-code-review

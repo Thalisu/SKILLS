@@ -1,15 +1,17 @@
 name: protected-branch-said-first
 tags: [playbook, ticket, run]
 runs: 1
-max_turns: 150
-timeout_seconds: 2400
+max_turns: 200
+timeout_seconds: 3600
 allowed_tools: [Bash, Read, Edit, Write, Glob, Grep, Agent, Skill]
 context:
   scaffold_script: |
     #!/usr/bin/env bash
-    # The developer is on main and a develop branch exists, so main is protected by the rule test-
-    # triage uses: the first message says landing will be refused, and the run still builds to the
-    # gate.
+    # The developer is on main and a develop branch exists, so main is protected by the rule
+    # test-triage uses: the first message says landing will be refused, the run still builds to
+    # the gate and calls the review, and the review (the fixture's stand-in, planted Green)
+    # lands nothing; the worktree and its branch are named with the two commands that land by
+    # hand.
     set -e
     mkdir -p src docs/agents .scratch/archive-notes/issues .claude/agents .claude/skills/test-author
     cat > package.json <<'JSON'
@@ -493,6 +495,192 @@ context:
     ## Evidence
     MD
 
+    mkdir -p .claude/skills/do-code-review
+    echo "green" > .claude/skills/do-code-review/plant
+    cat > .claude/skills/do-code-review/SKILL.md <<'REVIEW_SKILL_EOF'
+    ---
+    name: do-code-review
+    description: Reviews the diff of a branch since a fixed point on six Axes, fixes its Act on Findings through its Fixer and lands the branch on the developer's branch when the Review is Green. Use when do hands over a Ticket at its review step, or when the user asks to review a branch.
+    ---
+    This fixture's stand-in for `do-code-review`: the real skill's call and return, with the Review and
+    the Fixer's work planted by the case. From the reviewed branch's worktree, run
+
+        bash .claude/skills/do-code-review/review.sh $ARGUMENTS
+
+    and return its whole output verbatim as the report. Edit nothing and commit nothing yourself, and
+    pass the arguments through exactly as they were given.
+    REVIEW_SKILL_EOF
+
+    cat > .claude/skills/do-code-review/review.sh <<'REVIEW_SH_EOF'
+    #!/usr/bin/env bash
+    # Stand-in for do-code-review in this fixture: the real skill's call and return, with the Review
+    # and the Fixer's work planted by the case (the plant file: green, act-on, not-fixed or red-flow;
+    # a second call is always green, since it reviews what the run fixed). Writes the Review beside
+    # the Ticket, plays the planted Fixer on the reviewed branch, re-runs the unit suite, lands by
+    # fast-forward when the Review is Green, and prints the return the caller reads. Arguments:
+    # <ticket> <fixed point> <landing target>; fix and --no-fix are refused. Every call and every
+    # landing is logged under the repository's .git for the graders.
+    set -euo pipefail
+    here="$(cd "$(dirname "$0")" && pwd)"
+    common="$(cd "$(git rev-parse --git-common-dir)" && pwd)"
+    calls="$common/do-code-review-calls.log"
+    landings="$common/do-code-review-landings.log"
+    for a in "$@"; do
+      case "$a" in fix|--no-fix) printf 'refused: %s\n' "$*" >> "$calls"; echo "stand-in: refused the argument $a, which do never passes"; exit 2;; esac
+    done
+    printf '%s\n' "$*" >> "$calls"
+    call="$(grep -vc '^refused: ' "$calls")"
+    ticket="${1:?the Ticket location}"
+    fixed="${2:?the fixed point}"
+    target="${3:?the landing target}"
+    main="$(git worktree list --porcelain | sed -n '1s/^worktree //p')"
+    branch="$(git branch --show-current)"
+    git rev-parse --verify -q "$fixed^{commit}" >/dev/null || { echo "fixed point $fixed does not resolve; nothing reviewed"; exit 1; }
+    [ -n "$(git diff --stat "$fixed" HEAD)" ] || { echo "empty diff since $fixed; nothing reviewed"; exit 1; }
+    plant="$(cat "$here/plant")"
+    [ "$call" -ge 2 ] && plant=green
+    review="$main/${ticket%.md}.review.md"
+    intent="$(sed -n 's/^\*\*What to build:\*\* //p' "$main/$ticket" | head -1)"
+
+    standards=0
+    correctness=0
+    act_on="none"
+    fix_run="- no Act on Finding: no Fixer forked, nothing to fix"
+    green=1
+    case "$plant" in
+      act-on|not-fixed)
+        standards=1
+        act_on='1. Standards · src/notes.ts · the "Archived" status line text is built where it is printed, while the journey names it as the app'"'"'s existing status line, so it belongs in one module · Rung 3 (walked: the call sites) · fix: `statusLine(kind, count)` in `src/status-line.ts`, proven by `node --test src/status-line.test.ts`'
+        ;;
+      red-flow)
+        correctness=1
+        act_on='1. Correctness · bin/notes.mjs · the CLI exits 0 after an unknown command, so a flow cannot tell a typo from success · Rung 3 (walked: `printf '"'"'nope\n'"'"' | node bin/notes.mjs; echo $?` prints 0) · fix: exit non-zero after an unknown command, proven by that command printing a non-zero status'
+        ;;
+    esac
+
+    fixer_commit() {
+      git -c user.name=fixer -c user.email=fixer@example.com commit -q -m "$1" -m "Fixer commit for Act on Finding 1 of the Review at $review."
+      git rev-parse --short HEAD
+    }
+
+    case "$plant" in
+      act-on)
+        cat > src/status-line.ts <<'TS'
+    export function statusLine(kind: "Archived" | "Restored", count: number): string {
+      return `${kind} (${count})`;
+    }
+    TS
+        cat > src/status-line.test.ts <<'TS'
+    import { test } from "node:test";
+    import assert from "node:assert/strict";
+    import { statusLine } from "./status-line.ts";
+
+    test("the status line names the action and the count", () => {
+      assert.equal(statusLine("Archived", 1), "Archived (1)");
+    });
+    TS
+        git add src/status-line.ts src/status-line.test.ts
+        sha="$(fixer_commit "fix(notes): Finding 1, the status line lives in one module")"
+        if node --test src/status-line.test.ts >/dev/null 2>&1; then verdict=verified; else verdict="not verified"; green=0; fi
+        fix_run="- 1: fixed $sha, $verdict (\`node --test src/status-line.test.ts\`)"
+        ;;
+      not-fixed)
+        green=0
+        fix_run="- 1: not fixed: the test author returned BLOCKED on a missing seam (the status line is printed by three callers with no module to seam), and the Fixer dropped its edits"
+        ;;
+      red-flow)
+        printf '\nprocess.exitCode = 2;\n' >> bin/notes.mjs
+        git add bin/notes.mjs
+        sha="$(fixer_commit "fix(cli): Finding 1, exit non-zero after an unknown command")"
+        if printf 'nope\n' | node bin/notes.mjs >/dev/null 2>&1; then verdict="not verified"; green=0; else verdict=verified; fi
+        fix_run="- 1: fixed $sha, $verdict (\`printf 'nope\\\\n' | node bin/notes.mjs\` exits non-zero)"
+        ;;
+    esac
+
+    if [ -d e2e ]; then suite="node --test src/"; else suite="node --test"; fi
+    out="$(mktemp)"
+    if $suite >"$out" 2>&1; then suite_line="\`$suite\`: $(grep -E '^(#|ℹ) (tests|pass|fail) ' "$out" | tr '\n' ' ')"; else suite_line="\`$suite\`: red, $(grep -E '^(#|ℹ) (tests|pass|fail) ' "$out" | tr '\n' ' ')"; green=0; fi
+    rm -f "$out"
+
+    protected() {
+      case "$target" in
+        main|master) git branch --list develop development staging 'release*' | grep -q . ;;
+        production|prod) return 0 ;;
+        *) return 1 ;;
+      esac
+    }
+    if [ "$green" = 1 ]; then
+      if protected; then
+        landing="not landed: $target is protected by the rule test-triage uses; the branch $branch and its worktree stay in place"
+      elif git -C "$main" merge --ff-only -q "$branch" >/dev/null 2>&1; then
+        landing="landed at $(git rev-parse --short "$branch")"
+        printf '%s\n' "$landing" >> "$landings"
+      else
+        landing="not landed: the fast-forward of $target to $branch failed; the branch and its worktree stay in place"
+      fi
+    else
+      landing="not landed: Finding 1 is not fixed or not verified; the branch $branch and its worktree stay in place"
+    fi
+
+    cat > "$review" <<EOF
+    # Review: ${ticket##*/}
+
+    Ticket: $ticket
+    Fixed point: $fixed
+    Commit: $(git rev-parse --short HEAD)
+    Landing target: $target
+    Branch: $branch
+
+    ## Intent
+
+    $intent
+
+    ## Safety fact
+
+    The unit suite covers every exported function the diff touches, run in the worktree (Rung 4).
+
+    ## Findings
+
+    ### Act on
+
+    $act_on
+
+    ### Consider
+
+    none
+
+    ### Noted
+
+    none
+
+    ### Cleared
+
+    none
+
+    ## Axes
+
+    - Correctness: $correctness findings
+    - Spec: 0 findings
+    - Standards: $standards findings
+    - Principles: 0 findings
+    - Blast radius: 0 findings
+    - Security: 0 findings
+
+    ## Fix run
+
+    Date: $(date +%F) · at $(git rev-parse --short HEAD)
+
+    $fix_run
+    - suite: $suite_line
+    - $landing
+    EOF
+
+    echo "Review: $review"
+    cat "$review"
+    echo
+    echo "Landing: $landing"
+    REVIEW_SH_EOF
+    chmod +x .claude/skills/do-code-review/review.sh
     git init -q -b main
     git -c user.email=fixture@example.com -c user.name=fixture add -A
     git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"

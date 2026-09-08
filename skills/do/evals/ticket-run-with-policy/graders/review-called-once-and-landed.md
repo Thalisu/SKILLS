@@ -1,0 +1,5 @@
+---
+type: llm
+criteria: "The run called the do-code-review skill exactly once, through the Skill tool, with three arguments and no other: the Ticket's location (.scratch/archive-notes/issues/01-archive-a-note.md), the fixed point of the worktree branch (the commit the worktree was created from) and main as the landing target; never `fix` and never `--no-fix`. The fixture's stand-in logs every call to .git/do-code-review-calls.log, which holds one line. The run waited for the return, read the landing line off it (`landed at <commit>`) and never opened the Review file, made no commit for a Finding, and showed the return in the thread: the Review's location, the landing line, the Fixer's commits (none here), the Consider Findings (none) and any Axis not run (none). main was fast-forwarded to the worktree branch by the review, not by the run: the run issued no merge, no fast-forward and no push, and .git/do-code-review-landings.log holds the landing."
+---
+The review is called once with the Ticket's location and the landing target, and it lands; the run never lands.

@@ -1,20 +1,16 @@
-name: ticket-run-with-policy
-tags: [playbook, ticket, run]
+name: red-flow-second-review
+tags: [playbook, ticket, run, review]
 runs: 1
-max_turns: 220
+max_turns: 260
 timeout_seconds: 3600
 allowed_tools: [Bash, Read, Edit, Write, Glob, Grep, Agent, Skill]
 context:
   scaffold_script: |
     #!/usr/bin/env bash
-    # A Ticket built end to end under an installed Testing Policy on a native surface (a CLI
-    # with flows under e2e/): the checklist before the first edit, the worktree before the
-    # first edit with the main checkout's dirty README untouched, one discover batch, one
-    # dispatch in flight, one commit per behaviour, the flow authored after the feature, the
-    # gate after the last edit, then the review called once through the fixture's stand-in
-    # do-code-review (planted Green), which fast-forwards main; the affected flow run from
-    # the main checkout; the Ticket resolved in the main checkout with its evidence, never
-    # committed; the worktree removed; the reply with the PR sections and the push command.
+    # The affected flow fails after the first landing: the stand-in do-code-review's planted
+    # Fixer commit makes the CLI exit non-zero on every run, the review lands it, and the flow
+    # run from the main checkout goes red. The fix is one unit in the worktree, the review is
+    # called a second time with the landed commit as its fixed point, and the landing follows.
     set -e
     mkdir -p src bin e2e/helpers docs/agents .scratch/archive-notes/issues .claude/agents .claude/skills/test-author
     cat > package.json <<'JSON'
@@ -705,7 +701,7 @@ context:
     MD
 
     mkdir -p .claude/skills/do-code-review
-    echo "green" > .claude/skills/do-code-review/plant
+    echo "red-flow" > .claude/skills/do-code-review/plant
     cat > .claude/skills/do-code-review/SKILL.md <<'REVIEW_SKILL_EOF'
     ---
     name: do-code-review
