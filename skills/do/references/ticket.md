@@ -47,6 +47,11 @@ body carries per the build loop in [mechanics.md](mechanics.md), and the working
   whose `Behaviour:` line matches no line of the list is kept and named in the thread.
 - The loop continues at the first behaviour without a commit, and from there the run is a first
   run: the flows, the gate, the review, the close, the reply.
+- Uncommitted changes in the worktree are named in the first message, one line per file from
+  `git status --short`, and the run asks before discarding them, since the discard is the one
+  irreversible act on this path. A yes discards them, `git restore --staged --worktree .` then
+  `git clean -fd` in the worktree, and the first behaviour without a commit restarts red-first; a
+  no stops the run with the worktree as it is, the reply naming it and its branch.
 
 ## Checklist
 
