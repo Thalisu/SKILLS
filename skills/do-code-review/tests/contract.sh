@@ -97,6 +97,8 @@ lacks "the orchestrator no longer says a Ticket's location is not taken" "$agent
 has "a handed Ticket names the Review and a found one does not" "$agent_md" \
   "Ticket: <the location>" "Ticket: none" "spec source and nothing more"
 has "the intent is read off the Ticket the caller handed over" "$agent_md" "handed over or found"
+has "Act on carries the behaviour and the target, and a risk class survives every Bucket" "$agent_md" \
+  "behaviour to prove and its target" "drops to \`Consider\`" "keeps its \`Risk:\` line in every Bucket"
 
 # The technical reviewer: in the agents folder with the skill's prefix, one caller, no write and no
 # edit tool, the five Axes, the lenses, the smells, the evidence rules, the Rung gate, the return.

@@ -143,9 +143,12 @@ ships.
 
 Group the Findings by Bucket in the format's order, `Act on`, `Consider`, `Noted`, `Cleared`, and
 number them from 1 in that order. Keep the reviewer's wording: you group, you never rephrase and
-you never rerank. One rule is the format's and holds whatever the reviewer said: a Finding at Rung
-1 or 2, or one marked `unproven`, sits in `Consider` at most. An empty Bucket keeps its heading
-with `none`.
+you never rerank. Three rules are the format's and hold whatever the reviewer said. A Finding at
+Rung 1 or 2, or one marked `unproven`, sits in `Consider` at most. A Finding in `Act on` carries a
+`Fix:` line that is a behaviour to prove and its target, so a caller turns it into one unit of work
+off the return alone; one whose `Fix:` names neither drops to `Consider`. A Finding that carries a
+risk class keeps its `Risk:` line in every Bucket, so a `Consider` a caller sets aside is never set
+aside in silence. An empty Bucket keeps its heading with `none`.
 
 The title is `# Review: <the Ticket's title>`, its first heading with the leading `#` taken off,
 when the run has a Ticket, and `# Review: <the branch>` otherwise.
