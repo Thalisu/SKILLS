@@ -143,6 +143,50 @@ has "the reviewer returns in the Review's shape" "$reviewer_md" "### <n>. <Axis>
 has "the reviewer reads the format through the shell and writes its return file" "$reviewer_md" \
   'readlink -f ~/.claude/skills/do-code-review' "Return file:" "before you end your turn"
 
+# The security reviewer: beside the technical one with the skill's prefix, one caller, no write and
+# no edit tool, the attack surface before the checklists, the STRIDE pass, the OWASP cross-check,
+# the exploit path, the risk class on every Finding, the Rung rule and the Noted ban.
+security_md="$skill/agents/do-code-review-security-reviewer.md"
+has "the security reviewer carries its frontmatter" "$security_md" \
+  "name: do-code-review-security-reviewer" "model: inherit"
+expect "the security reviewer's tools are exactly shell, reading, search and the Skill tool" \
+  test "$(sed -n 's/^tools: //p' "$security_md" 2>/dev/null)" = "Bash, Read, Glob, Grep, Skill"
+has "the security reviewer names one caller" "$security_md" "do-code-review orchestrator"
+lacks "the security reviewer has no write and no edit tool" "$security_md" "Write" "Edit"
+has "the security reviewer links the format by relative path" "$security_md" \
+  "](../../../.agents/formats/review-format.md)"
+ordered "the security reviewer maps the surface before the checklists" "$security_md" \
+  "## The attack surface" "## The STRIDE pass" "## The OWASP cross-check"
+has "the security reviewer reads code before checklists" "$security_md" \
+  "Code before checklists" "who can reach it"
+has "the security reviewer walks all six STRIDE categories" "$security_md" \
+  "Spoofing" "Tampering" "Repudiation" "Information disclosure" "Denial of service" "Elevation of privilege"
+has "the security reviewer cross-checks OWASP on a web surface" "$security_md" \
+  "injection" "XSS" "SSRF" "path traversal" "IDOR" "CSRF" "web surface"
+has "the security reviewer's scope is the six the Axis owns" "$security_md" \
+  "spoofing and auth" "tampering and injection" "secrets and privacy" "permission boundaries" \
+  "input-driven cost" "privilege elevation"
+has "the security reviewer leaves the technical risk classes alone" "$security_md" \
+  "Migration" "idempotency" "race" "billing" "data loss" "risk classes on technical Findings"
+has "every Security Finding carries its exploit path and a risk class" "$security_md" \
+  "the input, the gate missing or present, and the sink" "always carries a risk class" \
+  "restated without a location is not a Finding"
+has "the security reviewer's Rungs are the walk and the run" "$security_md" \
+  "Walking the exploit is Rung 3" "Rung 4" "drives the exact surface"
+has "the security reviewer never uses Noted" "$security_md" \
+  "never lands in \`Noted\`" "Act on\`, \`Consider\` or \`Cleared"
+has "the security reviewer proves in a temporary directory outside the tree" "$security_md" \
+  "mktemp -d" "outside every repository" "installs nothing"
+has "the security reviewer stays in the tree under review" "$security_md" \
+  "](../../../.agents/worktrees.md)" "tree under review"
+has "the security reviewer returns in the Review's shape with one Axis line" "$security_md" \
+  "### <n>. Security at <location>" "- Security:" "Safe because:" "0 findings"
+has "the security reviewer reads the format through the shell and writes its return file" "$security_md" \
+  'readlink -f ~/.claude/skills/do-code-review' "Return file:" "before you end your turn"
+has "the security reviewer uses how and why when listed" "$security_md" '"how"' '"why"' "not listed"
+lacks "the security reviewer takes no standards source and no lens" "$security_md" \
+  "Standards sources:" "| Lens | Ask | Tell |"
+
 # The two trees: the worktree contract, linked by the orchestrator, the reviewer and do's
 # mechanics; no harness worktree tool entering or leaving a worktree anywhere in the chain, and a
 # grader that holds do to it.
