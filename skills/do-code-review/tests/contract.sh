@@ -141,6 +141,10 @@ ordered "the docs page keeps the contract's section order" "$page" \
 has "the docs page states the invocation mode and the leading words" "$page" \
   "Type \`/do-code-review\`" "reaches for it automatically" "Axis" "Bucket" "Rung" "../README.md" "/code-review"
 lacks "the docs page carries no install command" "$page" "ln -s" "git clone"
+has "the docs page states the no-write claim as a check, not a tool property" "$page" "compares"
+has "the format says whose Ticket the file sits beside" "$format" "handed one over" "never the file's home"
+has "the invocation contract gives the orchestrator its own sentence" "$repo/.agents/invocation.md" \
+  "asks nothing, and writes one file, the Review"
 links_ok=1
 while read -r target; do
   target="${target%%#*}"; [ -n "$target" ] || continue

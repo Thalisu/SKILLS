@@ -9,11 +9,13 @@ pass on one Axis never hides a fail on another.
 
 ## Where it lives
 
-- Beside the Ticket file when the run has one, taking the Ticket's file name with `.review`
-  before the extension: `02-export-notes.review.md` beside `02-export-notes.md`.
-- In the scratch reviews folder, `.scratch/reviews/<branch>.md`, when the run has no Ticket or the
-  Ticket is not a local file, `<branch>` being the branch name with every slash turned into a
-  dash: `feat/export-notes` writes `.scratch/reviews/feat-export-notes.md`.
+- Beside the Ticket file when the caller handed one over, as `do` does at its review step, taking
+  the Ticket's file name with `.review` before the extension: `02-export-notes.review.md` beside
+  `02-export-notes.md`.
+- In the scratch reviews folder, `.scratch/reviews/<branch>.md`, when no Ticket was handed over or
+  the Ticket is not a local file, `<branch>` being the branch name with every slash turned into a
+  dash: `feat/export-notes` writes `.scratch/reviews/feat-export-notes.md`. A Ticket the run found
+  by itself, matching the branch, is a spec source, never the file's home.
 
 A run on the same branch overwrites the file; a fix run appends to it. It is the only file the
 review writes.

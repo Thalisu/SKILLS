@@ -12,8 +12,9 @@ own reviewer and ships separately; until then its line reads `not run`.
 
 Every Finding carries a **Rung**, how far the review climbed to back it, and nothing at Rung 1 or
 2 reaches `Act on`, whatever it looks like: a claim the review could not walk or run stays a
-judgment call in `Consider`, so nothing is fixed on a hunch. The reviewer never edits code, and
-that is its tool list rather than a promise: it has no write and no edit tool, and the
+judgment call in `Consider`, so nothing is fixed on a hunch. The reviewer never edits code: it has
+no write and no edit tool, its shell is for reading and running, and the orchestrator compares
+`git status` before and after it, so a path it changed would be named in the Review. The
 orchestrator's one write is the Review.
 
 ## When to reach for it

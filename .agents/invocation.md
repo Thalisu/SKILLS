@@ -60,14 +60,14 @@ chosen together:
 
 Work that must talk to the user or write into the project runs inline. A lookup with a terse output
 contract forks. `prototype` forks the same way, onto the `prototype` agent with `background: false`
-so the report is back before the human's turn ends, and so does `do-code-review`, onto its
-orchestrator, which forks its reviewers with the Agent tool and writes one file; its agent has file tools and Bash and no way to
+so the report is back before the human's turn ends; its agent has file tools and Bash and no way to
 reach the human, so the brief it receives has to be complete. Its one exit is the report itself: an
 agent that has to ask ends its turn with a `PROTOTYPE ask` report before writing any file, and the
 caller, whichever door it came through, answer the question by itself or if extremely necessary relays the question to the human and resumes the same agent
 with the SendMessage tool. A forked agent keeps its context after it returns, which is what makes
 resuming cheaper than forking again: the second run starts where the first stopped, with everything
-it read.
+it read. `do-code-review` forks the same way, onto its orchestrator, which forks its reviewers with
+the Agent tool, asks nothing, and writes one file, the Review.
 
 ## Agents a skill ships
 
