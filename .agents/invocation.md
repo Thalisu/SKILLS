@@ -21,8 +21,7 @@ under `~/.claude`, the second writes agents, a skill and a marked section into a
 interviews the human, the fourth writes throwaway files into a project, the fifth publishes a spec
 into a project, the sixth publishes tickets to a project's tracker, the seventh interviews the human
 about a spec and writes the journey into a project, the eighth builds one Ticket or one change in a
-project and commits it there, and each is the human's call. `discover` and `test-triage` are
-model-invoked. The skills `do` calls through the Skill tool are all model-invoked:
+project and commits it there, and each is the human's call. `discover`, `test-triage` and `do-code-review` are model-invoked. The skills `do` calls through the Skill tool are all model-invoked:
 `do-code-review`, the review it hands its branch to, and the vendored `architect`, `how`, `why`,
 `unslop` and `technical-writing`; a step that names one says in one line what it does when the
 session does not list it. Under `vendor/`, `no-comments` is user-invoked, and `architect`,
@@ -61,7 +60,8 @@ chosen together:
 
 Work that must talk to the user or write into the project runs inline. A lookup with a terse output
 contract forks. `prototype` forks the same way, onto the `prototype` agent with `background: false`
-so the report is back before the human's turn ends; its agent has file tools and Bash and no way to
+so the report is back before the human's turn ends, and so does `do-code-review`, onto its
+orchestrator, which forks its reviewers with the Agent tool and writes one file; its agent has file tools and Bash and no way to
 reach the human, so the brief it receives has to be complete. Its one exit is the report itself: an
 agent that has to ask ends its turn with a `PROTOTYPE ask` report before writing any file, and the
 caller, whichever door it came through, answer the question by itself or if extremely necessary relays the question to the human and resumes the same agent
@@ -87,6 +87,8 @@ invariant is kept by the callers, not by the harness.
 | `discover`  | model-invoked | `/discover`; `Agent(subagent_type: discover)` in headless `-p` sessions only                                                                                     |
 | `prototype` | user-invoked  | `/prototype`; a `discuss` or `journey` interview, for a branch or a fork that cannot be settled by talking. Nothing else forks it, and whoever forked it answers its ask by resuming it |
 | `comment-sicko` | `no-comments`, user-invoked, vendored | `/no-comments` only |
+| `do-code-review` | model-invoked | `/do-code-review`, typed or fired by the model on a review request; `do` at its review step, through the Skill tool with a Ticket. The developer and `do` are its only callers; it forks the reviewers below with the Agent tool and never edits code |
+| `do-code-review-technical-reviewer` | `do-code-review`, model-invoked | `Agent(subagent_type: do-code-review-technical-reviewer)` from the `do-code-review` orchestrator only, with a brief; it has no write and no edit tool |
 
 So a step in another skill may reach the agent a user-invoked skill ships, never the skill itself,
 and only when that agent's description names the calling skill. The step spells it out as an Agent

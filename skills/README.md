@@ -27,4 +27,5 @@ Reachable by the model on its own, or by the human typing the name.
 | Skill | Purpose |
 |---|---|
 | [`discover`](discover/SKILL.md) | Batch "does this already exist in the repo?" lookups, answered by a Haiku subagent in one line per symbol |
+| [`do-code-review`](do-code-review/SKILL.md) | Review the branch since a fixed point on six Axes, every Finding proven to a Rung and written by Bucket into one Review file beside the branch; the spec Axis reads the spec the chain wrote |
 | [`test-triage`](test-triage/SKILL.md) | Run a test target, cluster the failures, auto-fix and commit only the small ones, file a dossier in `docs/tests/` for the rest |

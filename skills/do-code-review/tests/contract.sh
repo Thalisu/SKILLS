@@ -28,7 +28,7 @@ ordered() { # $1 label, $2 file, $3.. lines that must appear in this order
   local label="$1" file="$2"; shift 2
   local last=0 n line ok=1
   for line in "$@"; do
-    n="$(grep -nF -- "$line" "$file" 2>/dev/null | awk -F: -v l="$last" '$1 > l { print $1; exit }')"
+    n="$(grep -nF -- "$line" "$file" 2>/dev/null | awk -F: -v l="$last" '$1 >= l { print $1; exit }')"
     [ -n "$n" ] || ok=0
     last="${n:-$last}"
   done
@@ -125,8 +125,33 @@ has "the Portuguese trigger fires the skill" "$evals/triggers-pt-br/graders/skil
 has "the Portuguese prompt is bare" "$evals/triggers-pt-br/prompt.md" "revisa esse diff antes de eu dar push"
 expect "a script exercises every scaffold" test -x "$skill/tests/evals.sh"
 
+# The docs page, both README rows and the invocation contract's rows.
+page="$repo/docs/do-code-review.md"
+has "the docs page opens with the skill's name" "$page" "# do-code-review"
+ordered "the docs page keeps the contract's section order" "$page" \
+  "## What it does" "## When to reach for it" "## Prerequisites" "## Common questions" "## It's working if" "## Where it fits"
+has "the docs page states the invocation mode and the leading words" "$page" \
+  "Type \`/do-code-review\`" "reaches for it automatically" "Axis" "Bucket" "Rung" "../README.md" "/code-review"
+lacks "the docs page carries no install command" "$page" "ln -s" "git clone"
+links_ok=1
+while read -r target; do
+  target="${target%%#*}"; [ -n "$target" ] || continue
+  case "$target" in http*) continue ;; esac
+  [ -e "$repo/docs/$target" ] || { echo "      unresolved link: $target"; links_ok=0; }
+done < <(grep -o '](\([^)]*\))' "$page" 2>/dev/null | sed 's/^](//; s/)$//')
+expect "every link on the docs page resolves from docs/" test "$links_ok" = 1
+ordered "the top-level README lists the skill under Model-invoked" "$repo/README.md" \
+  "## Model-invoked" "| [\`do-code-review\`](skills/do-code-review/SKILL.md) |" "[docs/do-code-review.md](docs/do-code-review.md)" "## Vendored"
+has "the top-level README says how the two agents are linked" "$repo/README.md" \
+  "skills/do-code-review/AGENT.md" "skills/do-code-review/agents/do-code-review-technical-reviewer.md"
+ordered "the skills README lists the skill under Model-invoked" "$repo/skills/README.md" \
+  "## Model-invoked" "| [\`do-code-review\`](do-code-review/SKILL.md) |"
+has "the invocation contract names the skill as model-invoked" "$repo/.agents/invocation.md" "\`test-triage\` and \`do-code-review\` are model-invoked"
+has "the invocation contract's table gains the two rows" "$repo/.agents/invocation.md" \
+  "| \`do-code-review\` | model-invoked |" "| \`do-code-review-technical-reviewer\` | \`do-code-review\`, model-invoked |"
+
 # No em-dash in any prose the skill adds.
-prose=("$format" "$skill_md" "$agent_md" "$reviewer_md" "$evals/README.md" "$evals"/*/prompt.md "$evals"/*/graders/*.md)
+prose=("$format" "$skill_md" "$agent_md" "$reviewer_md" "$evals/README.md" "$evals"/*/prompt.md "$evals"/*/graders/*.md "$page")
 for f in "${prose[@]}"; do
   [ -f "$f" ] || continue
   if grep -q $'\xe2\x80\x94' "$f"; then echo "FAIL  no em-dash in $f"; fails=$((fails + 1)); else echo "ok    no em-dash in ${f#"$repo/"}"; fi

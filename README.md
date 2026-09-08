@@ -31,6 +31,7 @@ Reachable by the model on its own, or by the human typing the name.
 | Skill                                        | Purpose                                                                                                                        | Docs                                       |
 | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------ |
 | [`discover`](skills/discover/SKILL.md)       | Batch "does this already exist in the repo?" lookups answered by a Haiku subagent in one line per symbol                       | [docs/discover.md](docs/discover.md)       |
+| [`do-code-review`](skills/do-code-review/SKILL.md) | Review the branch since a fixed point on six Axes, every Finding proven to a Rung and written by Bucket into one Review file beside the branch; the spec Axis reads the spec the chain wrote | [docs/do-code-review.md](docs/do-code-review.md) |
 | [`test-triage`](skills/test-triage/SKILL.md) | Run a test target, cluster the failures, auto-fix and commit only the small ones, file a dossier in `docs/tests/` for the rest | [docs/test-triage.md](docs/test-triage.md) |
 
 ## Vendored
@@ -76,6 +77,14 @@ branch that has to be seen, and `journey`, for a fork of a path that has to be s
 
 ```bash
 ln -s ~/SKILLS/skills/prototype/AGENT.md ~/.claude/agents/prototype.md
+```
+
+`do-code-review` ships two agents: the orchestrator beside its skill file and the technical
+reviewer in its `agents/` folder. Link both by name, or the run has nothing to fork.
+
+```bash
+ln -s ~/SKILLS/skills/do-code-review/AGENT.md ~/.claude/agents/do-code-review.md
+ln -s ~/SKILLS/skills/do-code-review/agents/do-code-review-technical-reviewer.md ~/.claude/agents/do-code-review-technical-reviewer.md
 ```
 
 Maintainers of this repo can run `scripts/link-skills.sh` to relink every skill at once; it is a
