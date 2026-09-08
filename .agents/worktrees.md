@@ -30,10 +30,12 @@ cannot land, verify or close. A bare `cd` gives the same working directory witho
 ## Reaching the other tree
 
 From either tree, the main checkout is the first entry of the worktree list, since git lists the
-main worktree first:
+main worktree first. That entry is a `bare` line instead of a path when the repository is bare,
+which leaves no tree to reach, so the run falls back to the tree it sits in:
 
 ```
-git worktree list --porcelain | sed -n '1s/^worktree //p'
+git worktree list --porcelain |
+  awk '/^$/ { exit } /^worktree /{ p = substr($0, 10) } /^bare$/ { p = "" } END { print p }'
 ```
 
 The door of `do-code-review` prints it as its `main_checkout=` line. A git command reaches the

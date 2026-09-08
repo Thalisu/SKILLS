@@ -40,7 +40,8 @@
 # Exit codes: 0 the door holds · 1 a refusal, with refusal=<the one line to print> · 2 usage, or not
 # a git repository.
 # main_checkout, printed last, is the path of the main worktree, the first entry of git worktree
-# list, so a caller in a linked worktree reaches the developer's checkout: see .agents/worktrees.md.
+# list, so a caller in a linked worktree reaches the developer's checkout, and the tree the run sits
+# in when that entry is a bare repository: see .agents/worktrees.md.
 set -uo pipefail
 
 usage() { echo "usage: fixed-point.sh [<ref>] [--ticket <location>]" >&2; exit 2; }
@@ -54,7 +55,11 @@ done
 top="$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "not a git repository" >&2; exit 2; }
 invoked="$(pwd -P)"
 cd "$top" || exit 2
-main_checkout="$(git worktree list --porcelain | sed -n '1s/^worktree //p')"
+# A bare main worktree has no working tree to anchor on, and git lists it first all the same, so a
+# run in a linked worktree would resolve every path under it inside the bare repository.
+main_checkout="$(git worktree list --porcelain 2>/dev/null |
+  awk '/^$/ { exit } /^worktree /{ p = substr($0, 10) } /^bare$/ { p = "" } END { print p }')"
+[ -n "$main_checkout" ] && [ -d "$main_checkout" ] || main_checkout="$top"
 
 refuse() { echo "refusal=$1"; exit 1; }
 short() { git rev-parse --short "$1"; }
@@ -171,4 +176,5 @@ echo "ticket_handed=$ticket_handed"
 echo "spec=$spec"
 echo "tracker=$tracker"
 echo "review_in_status=$review_in_status"
+echo "main_checkout=$main_checkout"
 exit 0

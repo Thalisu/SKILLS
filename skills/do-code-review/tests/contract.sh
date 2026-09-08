@@ -80,6 +80,9 @@ has "the orchestrator names exactly two callers and no third" "$agent_md" \
   "the developer and do are its only callers"
 has "the orchestrator links the format by relative path" "$agent_md" "](../../.agents/formats/review-format.md)"
 has "the orchestrator runs the door script" "$agent_md" "scripts/fixed-point.sh" "refusal="
+# AGENT.md and worktrees.md both send the orchestrator to this line, so the door has to print it.
+has "the door publishes the main checkout" "$skill/scripts/fixed-point.sh" \
+  'echo "main_checkout=$main_checkout"'
 has "the orchestrator forks the technical reviewer by name" "$agent_md" "subagent_type: do-code-review-technical-reviewer"
 has "the orchestrator describes the run" "$agent_md" \
   "no spec" "Inferred from the diff:" "once more" "one write" "unslop" "not run" ", inferred" "Ticket: none"

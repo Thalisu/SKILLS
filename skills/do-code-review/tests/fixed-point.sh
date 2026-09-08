@@ -365,4 +365,15 @@ run
 check "the same run's scratch Review does not" 0 "$rc" \
   "review=.scratch/reviews/do-x.md" "review_in_status=no"
 
+# A bare main worktree has no working tree to anchor on, so the tree under review anchors itself:
+# without that, every path of the run resolves inside the bare repository.
+git clone -q --bare "$tmp/tracked" "$tmp/bare.git"
+git -C "$tmp/bare.git" worktree add -q "$tmp/bare-wt" -b feat
+cd "$tmp/bare-wt" || exit 1
+bare_wt="$(pwd -P)"
+printf 'c\n' > c.txt && git add c.txt && git commit -q -m "build"
+run main
+check "a bare main worktree is never the main checkout" 0 "$rc" "main_checkout=$bare_wt"
+absent "no path of the run resolves inside the bare repository" "$tmp/bare.git"
+
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi
