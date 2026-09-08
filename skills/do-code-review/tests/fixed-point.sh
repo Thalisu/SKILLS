@@ -20,6 +20,10 @@ check() { # $1 label, $2 expected exit, $3 actual exit, $4.. lines that must app
 absent() { # $1 label, $2 line that must not appear
   if grep -qF -- "$2" <<<"$out"; then echo "FAIL  $1 (found: $2)"; fails=$((fails + 1)); else echo "ok    $1"; fi
 }
+expect() { # $1 label, $2.. a command that must succeed
+  local label="$1"; shift
+  if "$@"; then echo "ok    $label"; else echo "FAIL  $label"; fails=$((fails + 1)); fi
+}
 run() { rc=0; out="$(bash "$door" "$@" 2>&1)" || rc=$?; }
 sha() { git rev-parse --short "$1"; }
 
@@ -294,5 +298,19 @@ run --ticket
 check "--ticket with no location is a usage error" 2 "$rc" "usage: fixed-point.sh [<ref>] [--ticket <location>]"
 run one two
 check "a second ref is a usage error" 2 "$rc" "usage: fixed-point.sh [<ref>] [--ticket <location>]"
+
+
+# do builds in a worktree and the Ticket belongs to the main checkout, which the worktree has no
+# copy of, so the location it hands over is a path outside the worktree. The Review goes there.
+mkdir "$tmp/outside" && cd "$tmp/outside" && git init -q -b main
+printf 'a\n' > a.txt && git add a.txt && git commit -q -m "first"
+git checkout -q -b do/outside && printf 'b\n' > b.txt && git add b.txt && git commit -q -m "build"
+mkdir -p "$tmp/elsewhere/issues" && printf '# 04: outside\n' > "$tmp/elsewhere/issues/04-outside.md"
+run --ticket "$tmp/elsewhere/issues/04-outside.md"
+check "a Ticket outside the worktree is still the Review's home" 0 "$rc" \
+  "ticket_handed=yes" "ticket=$tmp/elsewhere/issues/04-outside.md" \
+  "review=$tmp/elsewhere/issues/04-outside.review.md" "dirty=no" "commits=1"
+expect "the door's status command runs with that Ticket spared" \
+  bash -c "eval \"$(sed -n 's/^status=//p' <<<"$out")\" >/dev/null"
 
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi
