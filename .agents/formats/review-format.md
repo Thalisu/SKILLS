@@ -20,8 +20,8 @@ pass on one Axis never hides a fail on another.
   the worktree has no scratch of its own and is removed with everything written in it. A Ticket the
   run found by itself, matching the branch, is a spec source, never the file's home.
 
-A run on the same branch overwrites the file; a fix run appends to it. It is the only file the
-review writes.
+A run on the same branch overwrites the file and a fix appends its `## Fix run` section to it;
+a second `fix` appends a second section. It is the only file the review writes.
 
 ## Header
 
@@ -176,7 +176,49 @@ Refuted by: a proof script that imports src/report.js and calls `summary()` retu
 - Principles: 0 findings
 - Blast radius: 1 finding, worst #3 (Cleared)
 - Security: not run, no security reviewer installed
+
+## Fix run
+
+Date: 2026-04-18 · at 8b1d0e4
+
+- 1: fixed 4c07ab2, verified (`node --test tests/notes.test.js`)
+- suite: `npm test`: 14 passing
+- landed at 4c07ab2
 ```
+
+## Fix run
+
+The section a fix appends to the Review it read, one per fix, written after the Fixer returned and
+the orchestrator re-ran the checks itself. A `--no-fix` Review has none.
+A second `fix` appends a second section and never rewrites the first; a plain run on the same
+branch overwrites the whole file, this section with it.
+
+The first line is the date and the commit the fix ran at, `Date: <YYYY-MM-DD> · at <short sha>`.
+Then one line per `Act on` Finding, by its number, in the file's order, in one of four states:
+
+| Line | Means |
+|---|---|
+| `- <n>: fixed <sha>, verified (<the check>)` | the Fixer committed it and the check its `Fix:` named passed when the run re-ran it |
+| `- <n>: fixed <sha>, not verified` | the Fixer committed it and the Finding named no check to re-run |
+| `- <n>: stale` | the location no longer matches the tree, so the code was left alone and no commit was made for it |
+| `- <n>: not fixed: <the reason>` | the Fixer could not turn it green and dropped its edits for it, or never reached it |
+
+A Review whose `Act on` is empty, or whose Findings an earlier fix already settled, forks no Fixer
+and creates no worktree: the section reads `nothing remained` on that line, then the suite and the
+landing.
+
+Then the suite, `- suite: <the command>: <its result>`, and the landing on the last line:
+
+- `- landed at <sha>`, the landing target fast-forwarded to the branch the fix committed on.
+- `- not landed: <the reason>; the branch <name> and its worktree stay in place`, naming both, for
+  every reason the landing rules of
+  [ADR 0013](../../docs/adr/0013-do-code-review-lands-a-green-review-by-fast-forward.md) give: a
+  Finding `not fixed` or `not verified`, an Axis `not run`, a red suite, a protected target, a
+  rebase conflict, a failed fast-forward.
+- `- nothing to land`, on a Green Review of the branch the developer is already on when the Fixer
+  made no commit.
+
+Nothing is pushed under any of them.
 
 ## Rules
 

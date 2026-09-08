@@ -44,7 +44,7 @@ expect() { # $1 label, $2.. a command that must succeed
 format="$repo/.agents/formats/review-format.md"
 has "the format opens with its title" "$format" "# Review format"
 ordered "the sections come in the fixed order" "$format" \
-  "## Header" "## Intent" "## Safe because" "## Act on" "## Consider" "## Noted" "## Cleared" "## Axes" "## Rules"
+  "## Header" "## Intent" "## Safe because" "## Act on" "## Consider" "## Noted" "## Cleared" "## Axes" "## Fix run" "## Rules"
 has "the header names its keys" "$format" \
   "Ticket:" "Fixed point:" "Commit:" "Base:" "Spec source:" "Mode:" "Language:" ", inferred" "dirty"
 has "a Finding carries its fields" "$format" \
@@ -57,6 +57,10 @@ has "the Rung gate is stated" "$format" "Rung 1 or 2" "unproven"
 has "the safety line takes both facts when two reviewers returned" "$format" \
   "the one line carries both facts" "neither is rewritten"
 has "the two homes of the file are stated" "$format" ".scratch/reviews/" ".review" "Ticket: none"
+has "the format carries the Fix run section and its four states" "$format" \
+  "## Fix run" "Date:" "fixed" "verified" "not verified" "stale" "not fixed" "suite:" "landed at" "not landed"
+has "the format says a second fix appends and a plain run overwrites" "$format" \
+  "a second \`fix\` appends a second section" "overwrites"
 has "the index carries the format's row" "$repo/.agents/formats/README.md" \
   "| [review-format.md](review-format.md) | \`do-code-review\` | \`do\`, the Fixer |" "a review"
 has "the repo rules list the review among the formats" "$repo/CLAUDE.md" "a ticket, a review"
