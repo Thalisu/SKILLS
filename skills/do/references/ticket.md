@@ -182,9 +182,11 @@ blocked with the review's reason quoted and the worktree and its branch named, o
 `skip: do-code-review not listed` with the worktree and its branch named.
 
 **9. Verification.** The verification in [mechanics.md](mechanics.md): the affected flows from
-the main checkout with the command line printed first, and the one question before a full suite
-or a remote run. Done when every affected flow is green or recorded as not run on the
-developer's no, or the step reads `skip: nothing landed`.
+the main checkout with the command line printed first, the one question before a full suite or
+a remote run, and a red flow as one more unit of the loop, gated and handed to a second review
+call with the landed commit as its fixed point, which lands it again. Done when every affected
+flow is green or recorded as not run on the developer's no, or the step reads
+`skip: nothing landed`.
 
 **10. Close.** `skip: nothing landed`. The Ticket stays `claimed` in the main checkout, left
 uncommitted. Done when the skip is in the checklist and the Ticket still reads `claimed`.

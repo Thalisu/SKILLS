@@ -236,5 +236,10 @@ there, the checkout reached by its path; the worktree stays, since it is where a
    the run as blocked with the cause named and is never worked around; only the developer can
    waive it, and the waiver is debt in the reply, never green.
 
+4. A red flow is a defect in the landed work, not in the flow: it is fixed in the worktree as one
+   more unit of the build loop, with origin `bugfix` and the flow's failure as the expected red,
+   the gate run again, and the branch handed to a second review call with the landed commit as
+   its fixed point, which lands it again. A second call that returns not landed stops the run
+   the way the first one does.
 Done when every affected flow is green in output produced after the last landing, or recorded as
 not run on the developer's no, with every command line in the thread.
