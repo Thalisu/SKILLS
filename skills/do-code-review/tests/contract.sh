@@ -70,8 +70,20 @@ codex="$skill/agents/openai.yaml"
 has "the Codex metadata carries the interface" "$codex" "display_name:" "short_description:"
 lacks "the Codex metadata carries no policy block" "$codex" "policy:" "allow_implicit_invocation"
 
+# The orchestrator: beside the skill file, two callers, no edit tool, the run described.
+agent_md="$skill/AGENT.md"
+has "the orchestrator carries its frontmatter" "$agent_md" "name: do-code-review" "model: inherit" \
+  "tools: Bash, Read, Glob, Grep, Write, Agent, Skill"
+has "the orchestrator names its two callers" "$agent_md" "do" "developer"
+lacks "the orchestrator has no edit tool" "$agent_md" "Edit,"
+has "the orchestrator links the format by relative path" "$agent_md" "](../../.agents/formats/review-format.md)"
+has "the orchestrator runs the door script" "$agent_md" "scripts/fixed-point.sh" "refusal="
+has "the orchestrator forks the technical reviewer by name" "$agent_md" "subagent_type: do-code-review-technical-reviewer"
+has "the orchestrator describes the run" "$agent_md" \
+  "no spec" "Inferred from the diff:" "once more" "one write" "unslop" "not run" ", inferred" "Ticket: none"
+
 # No em-dash in any prose the skill adds.
-prose=("$format" "$skill_md")
+prose=("$format" "$skill_md" "$agent_md")
 for f in "${prose[@]}"; do
   [ -f "$f" ] || continue
   if grep -q $'\xe2\x80\x94' "$f"; then echo "FAIL  no em-dash in $f"; fails=$((fails + 1)); else echo "ok    no em-dash in ${f#"$repo/"}"; fi
