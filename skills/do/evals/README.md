@@ -40,6 +40,7 @@ typecheck and `node --test` as the suite, so both run offline with node alone.
 | `blocked-ticket-refused` | Ticket 02 blocked by Ticket 01 still `ready-for-agent`: refused before the claim in one message naming the blocker and its status, nothing written |
 | `resolved-ticket-stops` | a Ticket already `resolved`: one line saying so, nothing written |
 | `claimed-no-worktree-starts-over` | a `claimed` Ticket whose worktree is gone: one line saying the run starts over, the claim standing, a new worktree and the build |
+| `claimed-worktree-resumes` | a `claimed` Ticket whose `do/archive-a-note` worktree holds two commits, one per behaviour with its `Behaviour:` line: the first message says it resumes and lists them, no second worktree, the loop continues at the third behaviour and the first two get no new commit |
 | `protected-branch-said-first` | `main` beside a `develop` branch: the first message names the branch and the rule and says landing will be refused; the run still builds to the gate, nothing lands, the worktree and its branch named |
 | `design-fork-stops` | a Ticket whose third criterion contradicts the Spec's decision and the journey's failure branch: the run stops at its step naming `/discuss`, the Ticket left `claimed`, no commit |
 | `withheld-agent-tool` | the Agent tool withheld from the whole session, the nearest a case can get to withholding it from a delegate: no agent dispatched and no delegate forked, the inline test-author skill applied, the session's own commits carry the work |
@@ -49,7 +50,8 @@ typecheck and `node --test` as the suite, so both run offline with node alone.
 The `ticket` cases scaffold the same fixture with a Testing Policy installed on a consumer surface
 (the marked section in `CLAUDE.md` with its Project facts, the `unit-test-author` agent with its
 Project map, the inline `test-author` skill), a spec, its journey and two Tickets under `issues/`,
-and, for the runs, an uncommitted line in `README.md` as the developer's work in progress. The
+and, for the runs, an uncommitted line in `README.md` as the developer's work in progress; the
+resume cases add the `do/archive-a-note` worktree with two commits on it, one per behaviour. The
 fixture's commands are real: `node --test` runs the suite and `tsc --noEmit` typechecks `src/`.
 The review, the landing, the verification and the close have no case yet: the review step reads
 `skip: do-code-review not listed` in every run, and their cases arrive with the review.
