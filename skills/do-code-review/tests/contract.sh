@@ -105,8 +105,28 @@ has "the reviewer applies the Rung gate" "$reviewer_md" "Rung 1 or 2" "unproven"
 has "the reviewer uses how and why when listed" "$reviewer_md" '"how"' '"why"' "not listed"
 has "the reviewer returns in the Review's shape" "$reviewer_md" "### <n>. <Axis> at <location>" "Safe because:" "0 findings"
 
+# The evals: the planted diff, the two refusals, the no spec run and the Portuguese trigger, each
+# a case directory with its case file, its prompt and its graders, named in the README with the
+# command that runs them; a script exercises every scaffold.
+evals="$skill/evals"
+has "the evals README names each case and the command" "$evals/README.md" \
+  "planted-diff" "ref-does-not-resolve" "empty-diff" "no-spec" "triggers-pt-br" "claude plugin eval"
+for case in planted-diff ref-does-not-resolve empty-diff no-spec triggers-pt-br; do
+  expect "the $case case has its case file, prompt and graders" \
+    test -f "$evals/$case/case.yaml" -a -f "$evals/$case/prompt.md" -a -n "$(ls "$evals/$case/graders/"*.md 2>/dev/null)"
+done
+has "the planted diff scaffolds five defects and a clean hunk" "$evals/planted-diff/case.yaml" \
+  "scaffold_script" "correctness" "spec" "standards" "boolean" "outside the diff" "clean hunk"
+for grader in correctness-in-act-on spec-in-act-on standards-cites-the-rule principles-in-consider \
+  blast-radius-in-act-on clean-hunk-untouched rung-gate location-once six-axis-lines principle-beside-location reviewer-no-write; do
+  expect "the planted diff has its $grader grader" test -f "$evals/planted-diff/graders/$grader.md"
+done
+has "the Portuguese trigger fires the skill" "$evals/triggers-pt-br/graders/skill-fired.md" "type: tool_used" "do-code-review"
+has "the Portuguese prompt is bare" "$evals/triggers-pt-br/prompt.md" "revisa esse diff antes de eu dar push"
+expect "a script exercises every scaffold" test -x "$skill/tests/evals.sh"
+
 # No em-dash in any prose the skill adds.
-prose=("$format" "$skill_md" "$agent_md" "$reviewer_md")
+prose=("$format" "$skill_md" "$agent_md" "$reviewer_md" "$evals/README.md" "$evals"/*/prompt.md "$evals"/*/graders/*.md)
 for f in "${prose[@]}"; do
   [ -f "$f" ] || continue
   if grep -q $'\xe2\x80\x94' "$f"; then echo "FAIL  no em-dash in $f"; fails=$((fails + 1)); else echo "ok    no em-dash in ${f#"$repo/"}"; fi

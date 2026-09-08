@@ -1,0 +1,17 @@
+name: triggers-pt-br
+tags: [trigger]
+runs: 3
+max_turns: 3
+timeout_seconds: 180
+allowed_tools: [Bash, Read, Write, Glob, Grep, Agent, Skill]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # A repository with an uncommitted change, so "esse diff" names something.
+    set -e
+    mkdir -p src
+    printf 'module.exports = { notes: [] };\n' > src/notes.js
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
+    printf 'module.exports = { notes: [], archived: [] };\n' > src/notes.js

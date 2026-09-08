@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+# evals.sh: runs every eval case's scaffold in a throwaway directory and asserts the fixture the
+# case relies on, since the eval runner is gated on this machine and a case whose fixture drifted
+# would grade nothing. The planted defects are in place, the suite is green around them, the
+# caller outside the diff breaks, and the door script reads the facts each case expects.
+# Run: bash skills/do-code-review/tests/evals.sh
+# shellcheck disable=SC2016
+set -uo pipefail
+here="$(cd "$(dirname "$0")" && pwd -P)"
+skill="$here/.."
+door="$skill/scripts/fixed-point.sh"
+fails=0
+tmp="$(mktemp -d)"
+trap 'cd /; rm -rf "$tmp"' EXIT
+
+expect() { # $1 label, $2.. a command that must succeed
+  local label="$1"; shift
+  if "$@"; then echo "ok    $label"; else echo "FAIL  $label"; fails=$((fails + 1)); fi
+}
+quiet() { "$@" >/dev/null 2>&1; }
+check() { # $1 label, $2 expected exit, $3 actual exit, $4.. lines that must appear (fixed strings); output in $out
+  local label="$1" want="$2" rc="$3"; shift 3
+  local ok=1 line
+  [ "$rc" = "$want" ] || ok=0
+  for line in "$@"; do grep -qF -- "$line" <<<"$out" || ok=0; done
+  if [ "$ok" = 1 ]; then echo "ok    $label"; else
+    echo "FAIL  $label (exit $rc, wanted $want)"; echo "      ${out//$'\n'/$'\n'      }"; fails=$((fails + 1)); fi
+}
+run_door() { rc=0; out="$(bash "$door" "$@" 2>&1)" || rc=$?; }
+scaffold() { # $1 case: the scaffold_script block of its case file, run in a fresh directory that becomes the cwd
+  awk '/^  scaffold_script: \|/ { f = 1; next } f && /^    / { sub(/^    /, ""); print; next } f && /^[[:space:]]*$/ { print ""; next } f { exit }' \
+    "$skill/evals/$1/case.yaml" > "$tmp/$1.sh"
+  mkdir -p "$tmp/$1" && cd "$tmp/$1" || exit 1
+  bash "$tmp/$1.sh" >"$tmp/$1.log" 2>&1
+}
+
+# planted-diff: five defects and a clean hunk on export-notes, the spec beside the diff.
+expect "planted-diff scaffold runs" scaffold planted-diff
+expect "the branch is export-notes" test "$(git branch --show-current)" = export-notes
+expect "the tree is clean" test -z "$(git status --porcelain)"
+expect "the suite is green around the defects" quiet node --test tests/
+expect "the diff touches the planted files" bash -c 'git diff --name-only main | grep -qx src/notes.js && git diff --name-only main | grep -qx src/export.js && git diff --name-only main | grep -qx src/csv.js'
+expect "correctness: a page returns one item short" quiet node -e 'const { page } = require("./src/notes"); process.exit(page(1, 10, [...Array(11).keys()]).length === 9 ? 0 : 1)'
+expect "correctness: an export of eleven notes has ten rows" quiet node -e 'const n = require("./src/notes"); for (let i = 0; i < 11; i++) n.create("n" + i); const rows = require("./src/export").toCsv().split("\n"); process.exit(rows.length === 10 ? 0 : 1)'
+expect "spec: the export has no header line" quiet node -e 'const n = require("./src/notes"); n.create("a"); process.exit(require("./src/export").toCsv().split("\n")[0] === "id,title" ? 1 : 0)'
+expect "spec: the spec asks for the header line" grep -q 'header line `id,title`' .scratch/export-notes/spec.md
+expect "standards: console.log sits in src/ against the documented rule" bash -c 'grep -q "console.log" src/export.js && grep -q "Never \`console.log\`" CLAUDE.md'
+expect "principles: two booleans are kept in sync" bash -c 'grep -q "exported: false, unexported: true" src/notes.js && grep -q "note.unexported = false" src/notes.js'
+expect "blast radius: the caller outside the diff breaks" bash -c '! node -e "require(\"./src/report\").summary()" >/dev/null 2>&1'
+expect "blast radius: the caller is not in the diff" bash -c '! git diff --name-only main | grep -qx src/report.js'
+expect "the clean hunk has its green test" quiet node --test tests/csv.test.js
+run_door
+check "the door reads the planted fixture" 0 "$rc" "branch=export-notes" "dirty=no" "base=main" "commits=1" \
+  "spec=.scratch/export-notes/spec.md" "review=.scratch/reviews/export-notes.md" "scratch_ignored=no" "tracker=no" "ticket=none"
+
+# ref-does-not-resolve: the ref the prompt names is absent.
+expect "ref-does-not-resolve scaffold runs" scaffold ref-does-not-resolve
+expect "the ref nope is absent" bash -c '! git rev-parse --verify -q nope >/dev/null'
+run_door nope
+check "the door refuses the ref in one line" 1 "$rc" "refusal=nope does not resolve; nothing reviewed"
+
+# empty-diff: a clean tree on main with no remote.
+expect "empty-diff scaffold runs" scaffold empty-diff
+expect "the tree is clean on main" bash -c 'test "$(git branch --show-current)" = main && test -z "$(git status --porcelain)"'
+run_door
+check "the door refuses the empty diff in one line" 1 "$rc" "refusal=no diff between main ($(git rev-parse --short main)) and the working tree; nothing reviewed"
+
+# no-spec: a branch with a diff and no spec home anywhere.
+expect "no-spec scaffold runs" scaffold no-spec
+expect "no spec home exists" bash -c '! test -e .scratch && ! test -e docs && ! test -e specs'
+expect "the suite is green" quiet node --test tests/
+run_door
+check "the door names no spec and no tracker" 0 "$rc" "branch=restore-notes" "spec=none" "tracker=no" "commits=1" \
+  "review=.scratch/reviews/restore-notes.md"
+
+# triggers-pt-br: an uncommitted change, so the bare request names a diff.
+expect "triggers-pt-br scaffold runs" scaffold triggers-pt-br
+expect "the tree carries a diff" test -n "$(git status --porcelain)"
+
+if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi

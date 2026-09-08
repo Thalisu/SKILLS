@@ -1,0 +1,91 @@
+name: no-spec
+tags: [review, spec]
+runs: 1
+max_turns: 60
+timeout_seconds: 1200
+allowed_tools: [Bash, Read, Write, Glob, Grep, Agent, Skill]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # A branch with a small diff and no spec anywhere: no .scratch, no docs/specs, no tracker file.
+    # The Spec Axis has nothing to read and the other five still run.
+    set -e
+    mkdir -p src tests
+    cat > package.json <<'JSON'
+    { "name": "notes", "private": true, "scripts": { "test": "node --test tests/" } }
+    JSON
+    cat > src/notes.js <<'JS'
+    const notes = [];
+
+    function create(title) {
+      const note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+
+    function list() {
+      return notes.filter((n) => n.status === "active");
+    }
+
+    function archive(id) {
+      const note = notes.find((n) => n.id === id);
+      if (note) note.status = "archived";
+      return note;
+    }
+
+    module.exports = { create, list, archive };
+    JS
+    cat > tests/notes.test.js <<'JS'
+    const test = require("node:test");
+    const assert = require("node:assert/strict");
+    const { create, list, archive } = require("../src/notes");
+
+    test("an archived note leaves the list", () => {
+      const note = create("first");
+      archive(note.id);
+      assert.ok(!list().some((n) => n.id === note.id));
+    });
+    JS
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
+    git checkout -q -b restore-notes
+    cat > src/notes.js <<'JS'
+    const notes = [];
+
+    function create(title) {
+      const note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+
+    function list() {
+      return notes.filter((n) => n.status === "active");
+    }
+
+    function archive(id) {
+      const note = notes.find((n) => n.id === id);
+      if (note) note.status = "archived";
+      return note;
+    }
+
+    function restore(id) {
+      const note = notes.find((n) => n.id === id);
+      if (note) note.status = "active";
+      return note;
+    }
+
+    module.exports = { create, list, archive, restore };
+    JS
+    cat >> tests/notes.test.js <<'JS'
+
+    test("a restored note returns to the list", () => {
+      const { restore } = require("../src/notes");
+      const note = create("second");
+      archive(note.id);
+      restore(note.id);
+      assert.ok(list().some((n) => n.id === note.id));
+    });
+    JS
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "feat(notes): restore an archived note"

@@ -1,0 +1,18 @@
+name: empty-diff
+tags: [refusal]
+runs: 2
+max_turns: 8
+timeout_seconds: 300
+allowed_tools: [Bash, Read, Write, Glob, Grep, Agent, Skill]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # A clean tree on main with no remote: the base is main, the fixed point is HEAD, and there is
+    # nothing between it and the working tree.
+    set -e
+    mkdir -p src
+    printf '{ "name": "notes", "private": true }\n' > package.json
+    printf 'module.exports = { notes: [] };\n' > src/notes.js
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"

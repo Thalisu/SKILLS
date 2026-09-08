@@ -1,0 +1,246 @@
+name: planted-diff
+tags: [review, axes]
+runs: 1
+max_turns: 80
+timeout_seconds: 1800
+allowed_tools: [Bash, Read, Write, Glob, Grep, Agent, Skill]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # A branch with five planted defects and one clean hunk, with a spec beside the diff as the
+    # spec source: a correctness bug (page returns one item short, so an export of eleven notes has
+    # ten rows), a requirement missing against the spec (no header line), a breach of the rule
+    # CLAUDE.md documents (a standards breach: console.log in src/), a second boolean kept in sync
+    # with a first (exported and unexported), a caller outside the diff that the change breaks
+    # (src/report.js still passes the notes first to page), and one clean hunk (src/csv.js with its
+    # test). The suite is green on the branch: none of the defects is covered.
+    set -e
+    mkdir -p src tests .scratch/export-notes
+    cat > package.json <<'JSON'
+    { "name": "notes", "private": true, "scripts": { "test": "node --test tests/" } }
+    JSON
+    cat > CLAUDE.md <<'MD'
+    # notes
+
+    Rules for code under `src/`:
+
+    - Never `console.log` in `src/`; write through `log()` from `src/log.js`.
+    MD
+    cat > src/log.js <<'JS'
+    function log(...parts) {
+      process.stderr.write(parts.join(" ") + "\n");
+    }
+
+    module.exports = { log };
+    JS
+    cat > src/notes.js <<'JS'
+    const notes = [];
+
+    function create(title) {
+      const note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+
+    function list() {
+      return notes.filter((n) => n.status === "active");
+    }
+
+    function archive(id) {
+      const note = notes.find((n) => n.id === id);
+      if (note) note.status = "archived";
+      return note;
+    }
+
+    function page(items, number, size) {
+      const start = (number - 1) * size;
+      return items.slice(start, start + size);
+    }
+
+    module.exports = { create, list, archive, page };
+    JS
+    cat > src/report.js <<'JS'
+    const { list, page } = require("./notes");
+
+    function summary() {
+      const first = page(list(), 1, 10);
+      return { shown: first.length, total: list().length };
+    }
+
+    module.exports = { summary };
+    JS
+    cat > tests/notes.test.js <<'JS'
+    const test = require("node:test");
+    const assert = require("node:assert/strict");
+    const { create, list, archive, page } = require("../src/notes");
+
+    test("a created note is listed", () => {
+      const note = create("first");
+      assert.ok(list().some((n) => n.id === note.id));
+    });
+
+    test("an archived note leaves the list", () => {
+      const note = create("second");
+      archive(note.id);
+      assert.ok(!list().some((n) => n.id === note.id));
+    });
+
+    test("a page holds the items of its slot", () => {
+      assert.deepEqual(page([1, 2, 3], 1, 5), [1, 2, 3]);
+    });
+    JS
+    cat > .scratch/export-notes/spec.md <<'MD'
+    # Export notes
+
+    Journey: not needed, one path of one step on a screen that exists
+    Status: ready-for-agent
+
+    ## Problem Statement
+
+    The active notes cannot leave the app.
+
+    ## Solution
+
+    A CSV export of the active notes, one row per note.
+
+    ## User Stories
+
+    1. As a writer, I want to export my active notes as CSV, so that I can open them in a spreadsheet.
+    2. As a writer, I want the export to start with a header line `id,title`, so that the columns are named.
+    3. As a writer, I want archived notes left out of the export, so that the file holds what I see.
+
+    ## Implementation Decisions
+
+    - The export is `toCsv()` in `src/export.js`, one row per active note, read a page at a time through `page`.
+    - A field that carries a comma, a quote or a line break is quoted through `escape()` in `src/csv.js`.
+
+    ## Testing Decisions
+
+    - Behaviour tests through the modules' exported functions with `node --test`.
+
+    ## Out of Scope
+
+    - Importing CSV.
+    MD
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
+    git checkout -q -b export-notes
+    cat > src/csv.js <<'JS'
+    function escape(field) {
+      const text = String(field);
+      return /[",\n]/.test(text) ? '"' + text.replace(/"/g, '""') + '"' : text;
+    }
+
+    module.exports = { escape };
+    JS
+    cat > tests/csv.test.js <<'JS'
+    const test = require("node:test");
+    const assert = require("node:assert/strict");
+    const { escape } = require("../src/csv");
+
+    test("a plain field is left alone", () => {
+      assert.equal(escape("alpha"), "alpha");
+    });
+
+    test("a field with a comma is quoted", () => {
+      assert.equal(escape("beta, gamma"), '"beta, gamma"');
+    });
+
+    test("a quote is doubled inside the quotes", () => {
+      assert.equal(escape('say "hi"'), '"say ""hi"""');
+    });
+    JS
+    cat > src/notes.js <<'JS'
+    const notes = [];
+
+    function create(title) {
+      const note = { id: notes.length + 1, title, status: "active", exported: false, unexported: true };
+      notes.push(note);
+      return note;
+    }
+
+    function list() {
+      return notes.filter((n) => n.status === "active");
+    }
+
+    function archive(id) {
+      const note = notes.find((n) => n.id === id);
+      if (note) note.status = "archived";
+      return note;
+    }
+
+    function markExported(id) {
+      const note = notes.find((n) => n.id === id);
+      if (note) {
+        note.exported = true;
+        note.unexported = false;
+      }
+      return note;
+    }
+
+    function page(number, size, items) {
+      const start = (number - 1) * size;
+      return items.slice(start, start + size - 1);
+    }
+
+    module.exports = { create, list, archive, markExported, page };
+    JS
+    cat > src/export.js <<'JS'
+    const { list, page, markExported } = require("./notes");
+    const { escape } = require("./csv");
+
+    function toCsv() {
+      const rows = [];
+      let number = 1;
+      for (;;) {
+        const chunk = page(number, 10, list());
+        if (chunk.length === 0) break;
+        for (const note of chunk) {
+          rows.push([note.id, escape(note.title)].join(","));
+          markExported(note.id);
+        }
+        number += 1;
+      }
+      console.log("exported", rows.length);
+      return rows.join("\n");
+    }
+
+    module.exports = { toCsv };
+    JS
+    cat > tests/export.test.js <<'JS'
+    const test = require("node:test");
+    const assert = require("node:assert/strict");
+    const { create } = require("../src/notes");
+    const { toCsv } = require("../src/export");
+
+    test("each active note is one row", () => {
+      create("alpha");
+      create("beta, with a comma");
+      const rows = toCsv().split("\n");
+      assert.equal(rows.length, 2);
+      assert.equal(rows[1], '2,"beta, with a comma"');
+    });
+    JS
+    cat > tests/notes.test.js <<'JS'
+    const test = require("node:test");
+    const assert = require("node:assert/strict");
+    const { create, list, archive, page } = require("../src/notes");
+
+    test("a created note is listed", () => {
+      const note = create("first");
+      assert.ok(list().some((n) => n.id === note.id));
+    });
+
+    test("an archived note leaves the list", () => {
+      const note = create("second");
+      archive(note.id);
+      assert.ok(!list().some((n) => n.id === note.id));
+    });
+
+    test("a page holds the items of its slot", () => {
+      assert.deepEqual(page(1, 5, [1, 2, 3]), [1, 2, 3]);
+    });
+    JS
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "feat(export): export the active notes as CSV, a page at a time" -m "The export walks the active notes through page and marks each note exported."
