@@ -117,6 +117,30 @@ has "the intent is read off the Ticket the caller handed over" "$agent_md" "hand
 has "Act on carries the behaviour and the target, and a risk class survives every Bucket" "$agent_md" \
   "behaviour to prove and its target" "drops to \`Consider\`" "keeps its \`Risk:\` line in every Bucket"
 
+# The fan-out: both reviewers forked in parallel with the same brief, the standards sources and the
+# lenses for the technical one alone, one return file each, the merge that drops the technical
+# duplicate, the Security line, and the retry that leaves an Axis not run instead of nothing.
+has "the orchestrator forks the security reviewer by name" "$agent_md" \
+  "subagent_type: do-code-review-security-reviewer"
+has "the orchestrator forks both reviewers in parallel with the same brief" "$agent_md" \
+  "in parallel" "the same brief" "one message"
+has "the standards sources and the lenses reach the technical reviewer only" "$agent_md" \
+  "the technical reviewer only"
+has "each reviewer writes its own return file" "$agent_md" "technical.md" "security.md"
+has "the technical duplicate at a shared location is dropped" "$agent_md" \
+  "dropped as a duplicate" "nothing is merged and nothing is reranked across reviewers"
+has "a Security Finding the orchestrator never files under Noted" "$agent_md" \
+  "never lands in \`Noted\`" "goes to \`Consider\`"
+has "the Security line is the security reviewer's own" "$agent_md" \
+  "The Security line is the security reviewer's own" "0 findings"
+lacks "the orchestrator no longer calls the security reviewer unshipped" "$agent_md" \
+  "no security reviewer installed" "until the security reviewer ships"
+has "a reviewer that fails twice leaves its Axis not run and the other's Findings written" "$agent_md" \
+  "forked once more with the same brief" "safety fact names the Axis that did not run" \
+  "the other reviewer's Findings are still written" "never \`0 findings\`"
+has "the run still returns the text and the location after a reviewer failed twice" "$agent_md" \
+  "The run is not over until the Review is written"
+
 # The technical reviewer: in the agents folder with the skill's prefix, one caller, no write and no
 # edit tool, the five Axes, the lenses, the smells, the evidence rules, the Rung gate, the return.
 reviewer_md="$skill/agents/do-code-review-technical-reviewer.md"

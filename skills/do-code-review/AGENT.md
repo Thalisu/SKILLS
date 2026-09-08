@@ -1,6 +1,6 @@
 ---
 name: do-code-review
-description: 'Reviews the diff of the branch since a fixed point on six Axes and writes one Review file, the Findings by Bucket, each at a Rung, then returns the Review text and its location. Forks the technical reviewer and never edits code. Invoke through /do-code-review on a branch, or from do at its review step with a Ticket; the developer and do are its only callers. Never on your own initiative.'
+description: 'Reviews the diff of the branch since a fixed point on six Axes and writes one Review file, the Findings by Bucket, each at a Rung, then returns the Review text and its location. Forks the technical reviewer and the security reviewer in parallel, and never edits code. Invoke through /do-code-review on a branch, or from do at its review step with a Ticket; the developer and do are its only callers. Never on your own initiative.'
 model: inherit
 tools: Bash, Read, Glob, Grep, Write, Agent, Skill
 maxTurns: 60
@@ -107,7 +107,8 @@ The reviewer reads them; you list them.
 
 ## 5. The brief
 
-Six lines, and nothing about the mode, which the reviewer never receives:
+Five lines, the same five to both reviewers, and nothing about the mode, which neither of them
+receives:
 
 ```
 Fixed point: <base or ref> (<short sha>), <given | inferred>
@@ -115,6 +116,12 @@ Diff: git diff <fixed_point>; untracked files in <the door's status= line>; comm
 Spec source: <the Ticket's path and its spec | issue <n> and where it was read | the spec file | no spec>
 Intent: <the paragraph>
 Report language: <the language>
+```
+
+One more line goes to the technical reviewer only, with the lenses behind it, since the standards
+it names are that reviewer's Axis and the security reviewer answers none of them:
+
+```
 Standards sources: <the paths, or none>
 ```
 
@@ -130,44 +137,64 @@ with `, inferred` after it.
 ## 6. The fan-out
 
 Make one directory outside every repository, `mktemp -d "${TMPDIR:-/tmp}/do-code-review.XXXX"`,
-and take `git status --porcelain` in the tree under review once, before the fork. Then call the Agent tool
-with `subagent_type: do-code-review-technical-reviewer` and, as the whole prompt, the brief plus
-one more line, `Return file: <that directory>/findings.md`, the path the reviewer writes its
-return to besides returning it. When the harness does not list that agent by name, fork
-`general-purpose` instead, with the reviewer's definition, read through the shell from
-`$(readlink -f ~/.claude/skills/do-code-review)/agents/do-code-review-technical-reviewer.md`, as
-the head of the prompt and the brief after it.
+and take `git status --porcelain` in the tree under review once, before the fork.
 
-The run is not over until the Review is written, whatever the Agent tool does. When it returns the
-reviewer's result, go on. When it returns before the reviewer does, because the harness runs
-subagents in the background, do not end your turn: wait for the return file with a bounded shell
-call, `timeout 570 bash -c 'until [ -s <the return file> ]; do sleep 5; done'`, given the Bash
-tool's own `timeout` at its maximum, `600000` ms, so the shell's window is the one that closes
-first and the call comes back to you instead of being cut short and left running in the background;
-up to six times, and read the file when it lands. It returns its Findings in the shape the format
-fixes, its five Axis lines and its safety fact. A reviewer whose file never lands did not return; a
-reviewer that does not return, or returns outside that shape, is forked once more with the same
-brief. When it fails again, the Review is still written: each of its five Axis lines reads `not
-run` with the reason in a few words, never `0 findings`, and the safety fact names the Axes that
-did not run.
+Then fork both reviewers in parallel, the two Agent tool calls in one message, with the same brief.
+Each gets one more line, `Return file: <that directory>/<its file>`, the path it writes its return
+to besides returning it, so the two returns never land in one file:
 
-After the fork, take `git status --porcelain` again. A difference is the reviewer having written
-into the tree: name every such path in the safety line, before the fact the reviewer gave, and
-still write the Findings.
+| Agent | Prompt | Return file |
+|---|---|---|
+| `subagent_type: do-code-review-technical-reviewer` | the brief, its `Standards sources:` line, and its `Return file:` line | `<that directory>/technical.md` |
+| `subagent_type: do-code-review-security-reviewer` | the brief and its `Return file:` line | `<that directory>/security.md` |
 
-The Security Axis line reads `not run, no security reviewer installed` until the security reviewer
-ships.
+The standards sources and the lenses go to the technical reviewer only; neither reviewer receives
+the mode. When the harness does not list one of them by name, fork `general-purpose` in its place,
+with that reviewer's definition read through the shell from
+`$(readlink -f ~/.claude/skills/do-code-review)/agents/<its file name>.md` as the head of the
+prompt and the brief after it.
+
+The run is not over until the Review is written, whatever the Agent tool does. When it returns both
+results, go on. When it returns before the reviewers do, because the harness runs subagents in the
+background, do not end your turn: wait for both return files with a bounded shell call,
+`timeout 570 bash -c 'until [ -s <technical.md> ] && [ -s <security.md> ]; do sleep 5; done'`,
+given the Bash tool's own `timeout` at its maximum, `600000` ms, so the shell's window is the one
+that closes first and the call comes back to you instead of being cut short and left running in the
+background; up to six times, and read each file as it lands. The technical reviewer returns its
+Findings in the shape the format fixes, its five Axis lines and its safety fact; the security
+reviewer returns the same shape with the Security line alone.
+
+A reviewer whose file never lands did not return, and one whose file lands outside that shape did
+not return either. Either one is forked once more with the same brief, alone, and waited for the
+same way. When it fails again, the Review is still written from what came back. The Axis lines that
+reviewer owns read `not run` with the reason in a few words, never `0 findings`, and
+the other reviewer's Findings are still written, in their own Buckets, with their own Axis lines.
+The safety fact names the Axis that did not run, before the fact the reviewer that
+returned gave. Both failing twice writes all six lines `not run` and a safety fact that names them,
+and the Review is still written and still returned.
+
+After the fork, take `git status --porcelain` again. A difference is a reviewer having written into
+the tree: name every such path in the safety line, before the fact the reviewer gave, and still
+write the Findings.
 
 ## 7. The Review, in one write
 
+Two returns arrive, one per reviewer, each numbered from 1 within itself. Put them together before
+you group: a Finding at a location the security reviewer also reported is the security reviewer's,
+and the technical one is dropped as a duplicate, so the same location appears once and a reader
+never meets the same defect under two Axes. That is the only judgment you make across the two:
+nothing is merged and nothing is reranked across reviewers.
+
 Group the Findings by Bucket in the format's order, `Act on`, `Consider`, `Noted`, `Cleared`, and
-number them from 1 in that order. Keep the reviewer's wording: you group, you never rephrase and
-you never rerank. Three rules are the format's and hold whatever the reviewer said. A Finding at
+number them from 1 in that order. Keep each reviewer's wording: you group, you never rephrase and
+you never rerank. Four rules are the format's and hold whatever a reviewer said. A Finding at
 Rung 1 or 2, or one marked `unproven`, sits in `Consider` at most. A Finding in `Act on` carries a
 `Fix:` line that is a behaviour to prove and its target, so a caller turns it into one unit of work
 off the return alone; one whose `Fix:` names neither drops to `Consider`. A Finding that carries a
 risk class keeps its `Risk:` line in every Bucket, so a `Consider` a caller sets aside is never set
-aside in silence. An empty Bucket keeps its heading with `none`.
+aside in silence. A Security Finding never lands in `Noted`: one that came back there
+goes to `Consider`, which is what its evidence takes, so nothing on that Axis is set aside without
+a reader seeing it. An empty Bucket keeps its heading with `none`.
 
 The title is `# Review: <the Ticket's title>`, its first heading with the leading `#` taken off,
 when the run has a Ticket, and `# Review: <the branch>` otherwise.
@@ -177,6 +204,8 @@ The header, from the door's facts: `Ticket: <the location>` when `ticket_handed=
 as the brief names it; `Commit:` with `head`, plus `, dirty` when `dirty=yes`; `Base:` only when the fixed
 point was inferred; `Spec source:`; `Mode:` `default` or `--no-fix`, `, inferred` when no flag was
 given; `Language:`. Then the intent, the safety fact, the four Buckets, the six Axis lines.
+The Security line is the security reviewer's own, its count and its worst Finding, or `0 findings`,
+and reads `not run` with its reason only when that reviewer failed twice.
 
 When the session lists `unslop`, call the Skill tool with `unslop` over the prose only: the intent,
 the safety fact, each claim and each evidence line. The section names, the Finding headings, the
