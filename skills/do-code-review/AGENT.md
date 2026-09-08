@@ -28,12 +28,15 @@ labels are in English; its prose is in the report language of the brief.
 | nothing | the fixed point is inferred: the merge-base with the base branch, plus the working tree |
 | a ref: a commit, a branch, a tag, `HEAD~3` | the fixed point is the merge-base of that ref and HEAD, plus the working tree |
 | `--no-fix` | the Review is written and the run stops there, which is also what the default does until the Fixer ships |
-| words in a language | the report language, read off the words; a Ticket's location and `fix` with a Review are not taken yet |
+| a Ticket's location: a path, an issue number or a URL | that Ticket is the run's Ticket, the spec source and, when it is a local file, the Review's home; `do` passes it at its review step with the fixed point |
+| words in a language | the report language, read off the words; `fix` with a Review is not taken yet |
 
 ## 1. The door
 
-Run `bash ~/.claude/skills/do-code-review/scripts/fixed-point.sh [<ref>]` once, from inside the
-project.
+Run `bash ~/.claude/skills/do-code-review/scripts/fixed-point.sh [<ref>] [--ticket <location>]`
+once, from inside the project. Pass `--ticket` with the location a caller handed over, verbatim,
+and never with a Ticket you found yourself: the flag is what makes the Ticket the run's own, and
+the door answers with `ticket_handed=`, `ticket=` and `review=` together.
 
 | Exit | You do |
 |---|---|
@@ -49,22 +52,29 @@ between <fixed point> and the working tree; nothing reviewed`, `no base branch f
 
 In this order, the first hit wins, and nothing is ever asked, because you cannot reach the user:
 
-1. `tracker=yes` and `issue=<n>`: read `docs/agents/issue-tracker.md` and open issue `<n>` the way
+1. `ticket_handed=yes`: the Ticket a caller handed over, which is the run's Ticket and not only its
+   spec source. A `ticket=` that names a local file is that file, in the format of
+   [ticket-format.md](../../.agents/formats/ticket-format.md), with the spec `spec=` names beside
+   it when there is one. A `ticket=` that names no local file is an issue reference: open it
+   through `docs/agents/issue-tracker.md` with the CLI that file names, and fall through to the
+   next line for the spec source when the CLI cannot open it. Either way the header reads
+   `Ticket: <the location>`, and the Review goes where `review=` says, beside a local Ticket and in
+   the scratch reviews folder for a reference.
+2. `tracker=yes` and `issue=<n>`: read `docs/agents/issue-tracker.md` and open issue `<n>` the way
    it describes, with the CLI it names. The issue's body is the spec source, named `issue <n>`. A
    CLI that cannot open it falls through to the next line.
-2. `ticket=<path>`: that Ticket file, in the format of
-   [ticket-format.md](../../.agents/formats/ticket-format.md), with the spec `spec=` names beside
-   it when there is one. A Ticket the door found by slug is a spec source and nothing more: the
-   header still reads `Ticket: none` and the Review still goes to the scratch reviews folder. A
-   Review beside a Ticket belongs to the Ticket a caller hands over.
-3. `spec=<path>`: that file.
-4. `no spec`, said once in the header and in the Spec Axis line; the other five Axes still run.
+3. `ticket=<path>` with `ticket_handed=no`: that Ticket file, in the same format, with the spec
+   `spec=` names beside it when there is one. A Ticket the door found by slug is a
+   spec source and nothing more: the header still reads `Ticket: none` and the Review still goes
+   to the scratch reviews folder. A Review beside a Ticket belongs to the one a caller hands over.
+4. `spec=<path>`: that file.
+5. `no spec`, said once in the header and in the Spec Axis line; the other five Axes still run.
 
 ## 3. The intent
 
 One paragraph, what the change sets out to do, never whether it should.
 
-- A Ticket found: read off its `What to build` line.
+- A Ticket, handed over or found: read off its `What to build` line.
 - Else `commits` above zero: read off `git log --format='%s%n%b' <fixed_point>..HEAD`.
 - Else: read off the diff itself, and the paragraph opens with `Inferred from the diff:`.
 
@@ -137,7 +147,11 @@ you never rerank. One rule is the format's and holds whatever the reviewer said:
 1 or 2, or one marked `unproven`, sits in `Consider` at most. An empty Bucket keeps its heading
 with `none`.
 
-The header, from the door's facts: `Ticket: none` on a plain call; `Fixed point:` as the brief
+The title is `# Review: <the Ticket's title>`, its first heading with the leading `#` taken off,
+when the run has a Ticket, and `# Review: <the branch>` otherwise.
+
+The header, from the door's facts: `Ticket: <the location>` when `ticket_handed=yes`, the path or
+the reference as the caller gave it, and `Ticket: none` otherwise; `Fixed point:` as the brief
 names it; `Commit:` with `head`, plus `, dirty` when `dirty=yes`; `Base:` only when the fixed
 point was inferred; `Spec source:`; `Mode:` `default` or `--no-fix`, `, inferred` when no flag was
 given; `Language:`. Then the intent, the safety fact, the four Buckets, the six Axis lines.

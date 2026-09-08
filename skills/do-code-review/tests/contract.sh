@@ -90,6 +90,13 @@ has "the brief hands the reviewer the door's status line whole" "$agent_md" \
 lacks "the brief names no bare status command" "$agent_md" "git status --short"
 has "the orchestrator compares the tree around the fork and names all four refusals" "$agent_md" \
   "git status --porcelain" "no merge-base between" "](../../.agents/formats/ticket-format.md)" "spec source and nothing more"
+has "the orchestrator takes a Ticket's location and hands it to the door" "$agent_md" \
+  "--ticket <location>" "a Ticket's location" "ticket_handed=yes"
+lacks "the orchestrator no longer says a Ticket's location is not taken" "$agent_md" \
+  "a Ticket's location and \`fix\` with a Review are not taken yet"
+has "a handed Ticket names the Review and a found one does not" "$agent_md" \
+  "Ticket: <the location>" "Ticket: none" "spec source and nothing more"
+has "the intent is read off the Ticket the caller handed over" "$agent_md" "handed over or found"
 
 # The technical reviewer: in the agents folder with the skill's prefix, one caller, no write and no
 # edit tool, the five Axes, the lenses, the smells, the evidence rules, the Rung gate, the return.
