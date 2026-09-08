@@ -56,8 +56,22 @@ has "the index carries the format's row" "$repo/.agents/formats/README.md" \
   "| [review-format.md](review-format.md) | \`do-code-review\` | \`do\`, the Fixer |" "a review"
 has "the repo rules list the review among the formats" "$repo/CLAUDE.md" "a ticket, a review"
 
+# The skill file: one instruction line plus its arguments, forked onto the orchestrator with the
+# session waiting, model-invoked in both harnesses, with its triggers and its "do not use for".
+skill_md="$skill/SKILL.md"
+has "the skill file carries its frontmatter" "$skill_md" \
+  "name: do-code-review" "context: fork" "agent: do-code-review" "background: false" "argument-hint:" '$ARGUMENTS'
+has "the description carries the triggers" "$skill_md" "review this branch" "review since" "revisa"
+has "the description sends a PR for GitHub to the bundled skill" "$skill_md" "Do not use" "/code-review"
+lacks "the skill is model-invoked in Claude Code" "$skill_md" "disable-model-invocation"
+expect "the body is one instruction line plus the arguments" \
+  test "$(awk '/^---$/ { c++; next } c == 2 && NF { n++ } END { print n }' "$skill_md" 2>/dev/null)" = 2
+codex="$skill/agents/openai.yaml"
+has "the Codex metadata carries the interface" "$codex" "display_name:" "short_description:"
+lacks "the Codex metadata carries no policy block" "$codex" "policy:" "allow_implicit_invocation"
+
 # No em-dash in any prose the skill adds.
-prose=("$format")
+prose=("$format" "$skill_md")
 for f in "${prose[@]}"; do
   [ -f "$f" ] || continue
   if grep -q $'\xe2\x80\x94' "$f"; then echo "FAIL  no em-dash in $f"; fails=$((fails + 1)); else echo "ok    no em-dash in ${f#"$repo/"}"; fi
