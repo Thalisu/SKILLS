@@ -181,7 +181,10 @@ Done when the landing line in the thread reads `landed at <commit>`, or the run 
 blocked with the review's reason quoted and the worktree and its branch named, or the step reads
 `skip: do-code-review not listed` with the worktree and its branch named.
 
-**9. Verification.** `skip: nothing landed`. Done when the skip is in the checklist.
+**9. Verification.** The verification in [mechanics.md](mechanics.md): the affected flows from
+the main checkout with the command line printed first, and the one question before a full suite
+or a remote run. Done when every affected flow is green or recorded as not run on the
+developer's no, or the step reads `skip: nothing landed`.
 
 **10. Close.** `skip: nothing landed`. The Ticket stays `claimed` in the main checkout, left
 uncommitted. Done when the skip is in the checklist and the Ticket still reads `claimed`.

@@ -2,8 +2,8 @@
 
 One file for the parts the Playbooks that build in a worktree share, read by `ticket`, `bug-fix`
 and `refactoring`, so a fix to a mechanic is made once. It carries the worktree, the protected
-branch, the Ticket file, the build loop with its test authors, the gate and the review. A Playbook
-links the section it needs and never copies it.
+branch, the Ticket file, the build loop with its test authors, the gate, the review and the
+verification. A Playbook links the section it needs and never copies it.
 
 ## The worktree
 
@@ -213,3 +213,28 @@ When the session does not list `do-code-review`, the step reads
 `skip: do-code-review not listed`: nothing lands, the worktree and its branch stay in place and
 are named in the reply, and the reply names the review and the landing as the developer's next
 step.
+
+## The verification
+
+Run from the main checkout after the landing, per
+[prove-it-works](../../../.agents/principles/prove-it-works.md): the work is on the developer's
+branch now, and Project facts may say the E2E stack serves the primary checkout. The commands run
+there, the checkout reached by its path; the worktree stays, since it is where a red flow is fixed.
+
+1. The affected flows are the flow the E2E step authored or extended and every existing flow over
+   a screen, a route or a message the diff changed. Each runs with the single-flow command from
+   the project's facts, the command line printed before it runs and the relevant output line
+   quoted after. A change the E2E step called internal, with no user-observable surface, has no
+   affected flow: the step reads `skip: no affected flow` with that reason.
+2. A full suite or a remote run waits for the developer's yes, the command line shown first. It is
+   the only question asked on this path, per
+   [never-block-on-the-human](../../../.agents/principles/never-block-on-the-human.md), because
+   its cost is the one thing only the developer can weigh. A no records each flow that needed it
+   as not run, leaves the criterion it would have proven unticked, and records the waiver as debt
+   in the reply; the close still happens.
+3. An infrastructure failure (a service down, a runner that cannot start, a device missing) stops
+   the run as blocked with the cause named and is never worked around; only the developer can
+   waive it, and the waiver is debt in the reply, never green.
+
+Done when every affected flow is green in output produced after the last landing, or recorded as
+not run on the developer's no, with every command line in the thread.
