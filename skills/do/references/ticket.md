@@ -177,7 +177,8 @@ when the suite and the typecheck are green in output produced after the last edi
 **8. Review and landing.** The review in [mechanics.md](mechanics.md), with the Ticket's
 location as the spec source, the commit the worktree was created from as the fixed point, and the
 branch the run started on as the landing target. The thread shows the return, one line per part.
-Done when the landing line in the thread reads `landed at <commit>`, or the step reads
+Done when the landing line in the thread reads `landed at <commit>`, or the run stopped as
+blocked with the review's reason quoted and the worktree and its branch named, or the step reads
 `skip: do-code-review not listed` with the worktree and its branch named.
 
 **9. Verification.** `skip: nothing landed`. Done when the skip is in the checklist.

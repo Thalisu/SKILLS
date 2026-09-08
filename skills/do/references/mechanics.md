@@ -196,7 +196,18 @@ return, one line per part:
 
 The run makes no commit for a Finding and fixes none by hand: a Finding the Fixer left standing
 is the review's reason for not landing, and the run stops on it. Landed, and the run goes on to
-the verification.
+the verification. Not landed, for any reason the review gives (a Finding `not fixed` or
+`not verified`, an Axis `not run`, a red gate after the fix, a rebase conflict, a failed
+fast-forward, a protected branch), and the run stops as blocked: the review's reason quoted, the
+worktree and its branch left in place and named in the reply, the Ticket left `claimed`, so that
+nothing lands half fixed. On a protected branch the reply adds the two commands that land the
+reviewed branch by hand from a branch that takes commits, since the diff was reviewed and Green
+and only the target was wrong:
+
+```
+git switch <a branch that takes commits>
+git merge --ff-only do/<slug>
+```
 
 When the session does not list `do-code-review`, the step reads
 `skip: do-code-review not listed`: nothing lands, the worktree and its branch stay in place and
