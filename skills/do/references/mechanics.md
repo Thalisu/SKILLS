@@ -95,7 +95,8 @@ verifiable unit that ends in one green commit, per
    facts; a command the project does not have reads `skip: <reason>`.
 6. Commit the test, the implementation and any promotion changeset together, staged by path and
    never with `-A` or `.`. The title is a conventional commit, `type(scope): subject`, with
-   `feat`, `fix`, `refactor`, `test`, `docs` or `chore`; the body carries the behaviour line and
+   `feat`, `fix`, `refactor`, `test`, `docs` or `chore`; the body carries the behaviour line,
+   labelled `Behaviour: <line>` on a line of its own so that a resume reads it off the branch, and
    the single-file command that passes.
 7. Next behaviour.
 
