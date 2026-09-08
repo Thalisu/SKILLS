@@ -75,7 +75,8 @@ skill, and says in one line what it does when the skill is absent, since a machi
 
 `scripts/link-skills.sh` (re)links every skill under `skills/` and `vendor/` into the local harness
 skill directories, `~/.claude/skills` and `~/.agents/skills`, links every `AGENT.md` a skill ships
-into `~/.claude/agents` under the agent's own name, and prunes the links into this repo whose skill
+into `~/.claude/agents` under the agent's own name and every markdown definition in the skill's
+`agents/` folder under its file name, and prunes the links into this repo whose skill or definition
 is gone. Each entry is a symlink
 into this repo, in the same layout `discover-setup` installs, so a `git pull` keeps installed skills
 current. Re-run the script after adding, removing or renaming a skill. It is a dev-only script for

@@ -74,8 +74,11 @@ it read.
 A skill that runs on its own agent ships the definition as `AGENT.md` beside its `SKILL.md`, linked
 into `~/.claude/agents/<name>.md` (by `scripts/link-skills.sh` here, by the skill's own installer or
 the README's `ln -s` elsewhere), where `<name>` is the agent's `name` in its frontmatter: the
-skill's own name unless the skill spawns it under another, as `no-comments` spawns `comment-sicko`. That agent is a second door into the same contract: any session can
-fork it with the Agent tool (`subagent_type: <name>`), and no frontmatter closes that door. What
+skill's own name unless the skill spawns it under another, as `no-comments` spawns `comment-sicko`. A skill may ship further agent definitions as markdown files in its `agents/` folder, beside
+`agents/openai.yaml`; the same script links each one into `~/.claude/agents/` under its own file
+name and prunes it when the skill or the file goes. Each such agent is a second door into the same
+contract: any session can fork it with the Agent tool (`subagent_type: <name>`), and no frontmatter
+closes that door. What
 gates it is the agent's `description`, which names the callers it accepts, so on this door the
 invariant is kept by the callers, not by the harness.
 
