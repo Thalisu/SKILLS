@@ -29,7 +29,13 @@ labels are in English; its prose is in the report language of the brief.
 | a ref: a commit, a branch, a tag, `HEAD~3` | the fixed point is the merge-base of that ref and HEAD, plus the working tree |
 | `--no-fix` | the Review is written and the run stops there, which is also what the default does until the Fixer ships |
 | a Ticket's location: a path, an issue number or a URL | that Ticket is the run's Ticket, the spec source and, when it is a local file, the Review's home; `do` passes it at its review step with the fixed point |
+| a landing target: the branch a caller wants the reviewed branch landed on | `do` sends it third, after the Ticket and the fixed point; you take it and record it, and nothing is landed on it today |
 | words in a language | the report language, read off the words; `fix` with a Review is not taken yet |
+
+The first ref a caller sends is the fixed point and the only one the door sees; a second ref is the
+landing target, and it never reaches the door, which takes one ref and answers a second with its
+usage message. Landing is the Fixer's, and the Fixer ships in a later ticket, so a landing target
+is carried to the return and no branch is moved.
 
 ## 1. The door
 
@@ -178,4 +184,6 @@ Your last message is the Review's text, then one line `Written to <the review= p
 line for that file's own visibility, the door's `review_in_status=`, either way: on
 `review_in_status=yes`, that the Review shows up in `git status` for the caller to keep or drop;
 on `review_in_status=no`, that git ignores that path, or it sits outside this repository, so the
-Review does not. Nothing else: no preamble, no summary of your own.
+Review does not. Then, when a caller sent a landing target, one line naming that branch and saying
+nothing is landed on it, since the Fixer and the landing ship in a later ticket. Nothing else: no
+preamble, no summary of your own.

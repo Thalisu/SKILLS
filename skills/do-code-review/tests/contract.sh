@@ -100,6 +100,8 @@ lacks "the orchestrator no longer says a Ticket's location is not taken" "$agent
   "a Ticket's location and \`fix\` with a Review are not taken yet"
 has "a handed Ticket names the Review and a found one does not" "$agent_md" \
   "Ticket: <the location>" "Ticket: none" "spec source and nothing more"
+has "the arguments take the landing target do sends third" "$agent_md" \
+  "a landing target" "never reaches the door" "nothing is landed on it"
 has "the intent is read off the Ticket the caller handed over" "$agent_md" "handed over or found"
 has "Act on carries the behaviour and the target, and a risk class survives every Bucket" "$agent_md" \
   "behaviour to prove and its target" "drops to \`Consider\`" "keeps its \`Risk:\` line in every Bucket"
