@@ -192,7 +192,11 @@ close.
 - **Local markdown**: one file per ticket under `.scratch/<feature-slug>/issues/<NN>-<slug>.md`
   (or `issues/` beside a spec that lives elsewhere), numbered from `01` in dependency order
   (blockers first), in the format's local shape. Each file's "Blocked by" lists the numbers and
-  titles it depends on. Never a single combined file.
+  titles it depends on. Never a single combined file. The number is claimed by creating the file
+  under `set -C`, never by scanning the folder and then writing: a create that fails means a second
+  run took that number, so rescan and retry from the next free one. The project's `.gitignore`
+  carries the `.scratch/` line before the first write. Both per
+  [.agents/scratch.md](../../.agents/scratch.md).
 - **A real tracker (GitHub, GitLab, Linear)**: one issue per ticket in dependency order (blockers
   first), so each ticket's blocking edges reference real identifiers, in the format's issue shape.
   Use the platform's native blocking or sub-issue relationship where it has one; otherwise
@@ -209,7 +213,8 @@ inline the decision-rich part, trimmed, and say in a line where it came from.
 ## 6. Close
 
 In the thread: every ticket published, with its identifier and its blocking edges; the frontier;
-what was left out. Nothing is committed. The next step is one ticket at a time from the frontier,
+what was left out, and the `.scratch/` line when the publish added it to the project's
+`.gitignore`. Nothing is committed. The next step is one ticket at a time from the frontier,
 and the last line is the exact next command: `/do <ticket>`, with the first ticket of the frontier
 as its path, or as its issue reference on a tracker.
 

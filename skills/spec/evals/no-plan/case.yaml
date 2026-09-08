@@ -59,6 +59,7 @@ context:
       expect(cancel({ status: "placed" }).status).toBe("cancelled");
     });
     JS
+    printf '.scratch/\n' > .gitignore
     git init -q -b main
     git -c user.email=fixture@example.com -c user.name=fixture add -A
     git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"

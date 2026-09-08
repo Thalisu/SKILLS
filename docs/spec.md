@@ -31,8 +31,10 @@ You invoke this by typing `/spec`, and the agent won't reach for it on its own.
 The skill writes into the project: `.scratch/<feature-slug>/spec.md` when
 `docs/agents/issue-tracker.md` says local markdown or does not exist, or an issue when that file
 names GitHub or GitLab. The tracker file is the one the mattpocock plugin's setup skill writes;
-`spec` reads it when it is there and needs nothing else in place. The spec is left uncommitted, and
-when `.scratch/` is ignored by git the closing summary says so.
+`spec` reads it when it is there and needs nothing else in place. The spec is left uncommitted. The
+scratch folder is never versioned, so a project missing the `.scratch/` line in its `.gitignore`
+gets it before the write, and the closing summary says so along with where a spec the team has to
+read belongs instead.
 
 ## The verdict
 

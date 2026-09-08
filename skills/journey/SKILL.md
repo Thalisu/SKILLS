@@ -135,7 +135,9 @@ Never batched: each item is written the moment its fork or path closes, before t
   | GitHub or GitLab | `docs/journeys/<feature-slug>.md` in the repository, plus a comment on the spec issue that links it | `Journey: docs/journeys/<feature-slug>.md`, edited into the issue body through the CLI the tracker file names |
 
   The spec's `Status:` line is never touched. `tickets` finds the journey through the `Journey:`
-  line and stops on a `## Reopen in discuss` that lists anything.
+  line and stops on a `## Reopen in discuss` that lists anything. In the local row, the project's
+  `.gitignore` carries the `.scratch/` line before the first write, per
+  [.agents/scratch.md](../../.agents/scratch.md).
 - **A resolved term** goes to `CONTEXT.md` (the root one, or the context's own when the map names
   it) in the format of
   [.agents/formats/context-format.md](../../.agents/formats/context-format.md). The file is
@@ -231,8 +233,10 @@ line is replaced as the table in step 4 says, and the thread gets the summary:
 - prototypes built: the fork each settled and the files it left (a temp directory, or excluded
   files plus a mount), for the user to delete;
 - contradictions between a story and the app, and which side the user picked;
-- the durability line, when `git check-ignore -q .scratch` succeeds: the journey is unversioned,
-  so commit `.scratch/` or keep it under `docs/journeys/`;
+- the durability line, when the journey landed in the scratch: it is unversioned by design and a
+  teammate never reads it, so a journey the team has to read goes under `docs/journeys/`;
+- the `.scratch/` line, when the write added it to the project's `.gitignore`, per
+  [.agents/scratch.md](../../.agents/scratch.md);
 - as the last line, the exact next command:
 
   | The journey | Last line |

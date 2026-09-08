@@ -135,6 +135,7 @@ context:
     - Search and archived notes: the spec says the list shows active notes only, and the search
       precedent shows every note; the spec loses on path 2, step 1
     MD
+    printf '.scratch/\n' > .gitignore
     git init -q -b main
     git -c user.email=fixture@example.com -c user.name=fixture add -A
     git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"

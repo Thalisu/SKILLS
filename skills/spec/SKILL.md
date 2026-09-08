@@ -41,8 +41,10 @@ tickets live in this project).
   | something else, in prose | whatever the file describes |
   | no tracker file | `.scratch/<feature-slug>/spec.md`, and the closing summary says the file was absent. Never a demand to run a setup skill |
 
-  The slug is the spec's title in kebab-case. In local mode, `git check-ignore -q .scratch`
-  succeeding is noted for the durability line of the close.
+  The slug is the spec's title in kebab-case. In local mode the ignore state is read per
+  [.agents/scratch.md](../../.agents/scratch.md): `git check-ignore -v .scratch/` names the file
+  the rule comes from, and anything other than the project's own `.gitignore`, an empty answer
+  included, means the write appends the line there before it writes the spec.
 - `git status --short` and the branch: dirty files are the user's work in progress.
 
 ## 2. Seams, the one check
@@ -96,8 +98,9 @@ In the thread, the closing summary:
 - the verdict and the row that produced it;
 - the terms and decisions the synthesis found missing, each as one line to reopen in `discuss`
   (the skill writes no `CONTEXT.md` and no ADR);
-- the durability line, when `.scratch` is ignored by git: the spec is unversioned, so commit
-  `.scratch/` or keep the spec elsewhere;
+- the durability line, in local mode: the scratch is unversioned by design and a teammate never
+  reads it, so a spec the team has to read goes to the issue tracker or under `docs/`;
+- the `.scratch/` line, when the write added it to the project's `.gitignore`;
 - as the last line, the exact next command:
 
 | Verdict | Last line |

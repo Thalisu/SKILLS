@@ -37,7 +37,9 @@ skill resolves a slug through `docs/agents/issue-tracker.md` when that file exis
 `.scratch/<slug>/spec.md` when it does not. It writes into the project: the journey
 (`.scratch/<slug>/journey.md` beside a local spec, or `docs/journeys/<slug>.md` plus a comment on
 the spec issue when the spec is on a tracker), the spec's `Journey:` line and, for a reversible
-change, the spec's own sections, and `CONTEXT.md` for a term a label or a status resolves.
+change, the spec's own sections, `CONTEXT.md` for a term a label or a status resolves, and the
+`.scratch/` line in the project's `.gitignore` when a local journey needs it and the line is
+missing.
 Everything is left uncommitted. A runnable fork needs the `prototype` agent linked, as
 [prototype](prototype.md) describes, and adds that agent's throwaway files, listed in the closing
 summary.
