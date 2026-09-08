@@ -172,15 +172,17 @@ Call the Skill tool with `do-code-review` and three arguments: the spec source (
 location in `ticket`, so the Review lands beside it; the branch alone in `bug-fix` and
 `refactoring`), the fixed point of the branch under review (the commit the worktree was created
 from, or the commit the review last landed), and the developer's branch as the landing target.
-Never `fix`, never `--no-fix`: the default run is the one every Playbook wants, per ADR 0015. The
-run waits on the call. While the review runs, its Fixer is the only writer in the worktree, and
+Never `fix`, never `--no-fix`: the default run is the one every Playbook wants, per
+[ADR 0015](../../../docs/adr/0015-the-default-review-run-fixes-and-lands-and-the-fixer-corrects-for-every-caller.md).
+The run waits on the call. While the review runs, its Fixer is the only writer in the worktree, and
 the run touches nothing.
 
 What the review does with the call, so that the run does not: it writes the Review, forks its
 Fixer with the `Act on` list, which turns every `Act on` Finding into one commit on the reviewed
 branch under the project's Testing Policy, re-runs each Finding's check and the gate, and, when
 the Review is Green, lands the reviewed branch on the developer's branch by fast-forward under the
-landing rules of ADR 0013: a protected branch refused, the branch rebased first when the
+landing rules of [ADR 0013](../../../docs/adr/0013-do-code-review-lands-a-green-review-by-fast-forward.md):
+a protected branch refused, the branch rebased first when the
 developer's branch moved, a rebase conflict aborted with the conflicting files named, a failed
 fast-forward left in place, nothing pushed.
 
