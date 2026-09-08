@@ -83,8 +83,9 @@ Do:
 - Done as a predicate: the acceptance criteria plus the gate (the full unit suite, the typecheck,
   the lint and the format green in the worktree after the last edit), each part checkable.
 - The loop line: `Loop: policy` when `.claude/agents/unit-test-author.md` exists in the project,
-  `Loop: fallback` otherwise (the fallback rule is in the build loop of
-  [mechanics.md](mechanics.md)).
+  `Loop: fallback` otherwise. Under `fallback` the build loop of [mechanics.md](mechanics.md)
+  reads [tdd-fallback.md](tdd-fallback.md) and the run writes every test itself, with no test
+  author dispatched; under `policy` that file is never read.
 - A defect line when a behaviour reproduces a bug, judged from the Ticket's words per criterion
   line (a line that says something fails, throws, is wrong or came back) and never from a field:
   `Defect: origin bugfix, cause stated` when the Ticket names the cause, `Defect: cause unknown,

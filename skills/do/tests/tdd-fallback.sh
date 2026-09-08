@@ -7,6 +7,8 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 skill="$here/.."
 ref="$skill/references/tdd-fallback.md"
 mechanics="$skill/references/mechanics.md"
+ticket="$skill/references/ticket.md"
+skillfile="$skill/SKILL.md"
 emdash=$'\xe2\x80\x94'
 fails=0
 
@@ -37,5 +39,12 @@ lacks "no em-dash in the reference" "$ref" "$emdash"
 # The build loop's fallback paragraph points at the reference
 has "the build loop links the reference" "$mechanics" "](tdd-fallback.md)"
 lacks "no em-dash in the mechanics" "$mechanics" "$emdash"
+
+# The loop line: fallback without the author names the read, policy never reads it, Links lists it
+has "the loop line reads fallback without the unit test author" "$ticket" '`Loop: fallback` otherwise'
+has "the loop line names the reference read under fallback" "$ticket" "](tdd-fallback.md)"
+has "the reference is never read under policy" "$ticket" "never read"
+has "the skill file lists the reference under Links" "$skillfile" "[tdd-fallback.md](references/tdd-fallback.md)"
+lacks "no em-dash in the ticket reference" "$ticket" "$emdash"
 
 if [ "$fails" = 0 ]; then echo "all ok"; else echo "$fails failing"; exit 1; fi

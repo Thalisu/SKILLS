@@ -57,6 +57,7 @@ One per reference. A Playbook's reference is read only when a router line names 
 
 - [ticket.md](references/ticket.md): the `ticket` Playbook, which links the shared mechanics and the reply reference.
 - [mechanics.md](references/mechanics.md): the shared mechanics the Playbooks that build in a worktree read through their steps: the worktree, the protected branch, the Ticket file, the build loop, the gate.
+- [tdd-fallback.md](references/tdd-fallback.md): the TDD fallback the build loop reads when the project has no unit test author, and never otherwise: the run writes the failing test itself, and no test author is dispatched.
 - [trivial.md](references/trivial.md): the `trivial` Playbook: its door checks, its steps and the door script they run.
 - [reply.md](references/reply.md): the reply every Playbook writes last, its sections in order.
 - [ticket-format.md](../../.agents/formats/ticket-format.md): the Ticket the `ticket` line matches, and the fields a run reads and writes.
