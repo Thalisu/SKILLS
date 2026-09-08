@@ -26,7 +26,9 @@
 # fixed point), status (the command that shows the working tree's short status with those two
 # files left out, the one a caller passes on), commits (the commits between the fixed point and
 # HEAD), review (the Review's path: beside a handed-over local Ticket, taking its name with .review
-# before the extension, else in the scratch reviews folder), issue (a number in the branch name,
+# before the extension, else in the scratch reviews folder of the main checkout, relative when this
+# tree is the main checkout and absolute from a linked worktree, which has no scratch of its own
+# and is removed with everything in it), issue (a number in the branch name,
 # else one written as #<n> in a commit subject since the fixed point, else none), ticket (the
 # location handed over, a path resolved to where the run reads it, else a Ticket file under
 # .scratch/*/issues/ named after the branch's slug, else none), ticket_handed (yes when a caller
@@ -35,8 +37,9 @@
 # beside that Ticket, else the one spec in the usual spec homes, .scratch/<x>/spec.md,
 # docs/specs/<x>.md, specs/<x>.md, whose <x> is the slug or contains it, else none when there is
 # none or more than one), tracker (yes when docs/agents/issue-tracker.md exists) and
-# review_in_status (yes when the file at review= would show up in this repository's git status, no
-# when git ignores that path or it sits outside the repository).
+# review_in_status (yes when the file at review= would show up in git status, in this tree or in the
+# main checkout when it sits there, no when git ignores that path or it sits outside the
+# repository).
 # Exit codes: 0 the door holds · 1 a refusal, with refusal=<the one line to print> · 2 usage, or not
 # a git repository.
 # main_checkout, printed last, is the path of the main worktree, the first entry of git worktree
@@ -87,6 +90,9 @@ branch="$(git symbolic-ref -q --short HEAD || echo HEAD)"
 slug="${branch//\//-}"
 head="$(short HEAD)"
 review=".scratch/reviews/$slug.md"
+# A linked worktree has no scratch of its own and git worktree remove deletes an ignored one without
+# a word, so the default home is the main checkout's folder, by its absolute path.
+[ "$top" -ef "$main_checkout" ] || review="$main_checkout/.scratch/reviews/$slug.md"
 core="${branch##*/}"
 core="$(sed -E 's/^[0-9]+-//' <<<"$core")"
 ticket=none
@@ -154,10 +160,10 @@ fi
 if [ -f docs/agents/issue-tracker.md ]; then tracker=yes; else tracker=no; fi
 review_in_status=yes
 case "$review" in
-  "$top"/*) ;;
+  "$main_checkout"/*) git -C "$main_checkout" check-ignore -q -- "${review#"$main_checkout"/}" && review_in_status=no ;;
   /*) review_in_status=no ;;
+  *) git check-ignore -q -- "$review" && review_in_status=no ;;
 esac
-if [ "$review_in_status" = yes ] && git check-ignore -q -- "$review"; then review_in_status=no; fi
 
 echo "branch=$branch"
 echo "slug=$slug"

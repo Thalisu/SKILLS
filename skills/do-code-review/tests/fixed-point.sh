@@ -365,6 +365,29 @@ run
 check "the same run's scratch Review does not" 0 "$rc" \
   "review=.scratch/reviews/do-x.md" "review_in_status=no"
 
+# A run in a linked worktree writes its Review to the main checkout's scratch, by absolute path:
+# the worktree has no scratch of its own, and git worktree remove deletes an ignored one without a
+# word. The last line answers for the main checkout's ignore state, since that is where the file
+# lands.
+mkdir "$tmp/linked-main" && cd "$tmp/linked-main" && git init -q -b main
+linked_main="$(pwd -P)"
+printf 'a\n' > a.txt && printf '.scratch/\n' > .gitignore && git add -A && git commit -q -m "first"
+git worktree add -q "$tmp/linked-main/.claude/worktrees/l" -b do/linked >/dev/null
+cd "$tmp/linked-main/.claude/worktrees/l" || exit 1
+printf 'l\n' > l.txt && git add l.txt && git commit -q -m "build"
+run main
+check "a linked worktree puts the Review in the main checkout's scratch" 0 "$rc" \
+  "main_checkout=$linked_main" "review=$linked_main/.scratch/reviews/do-linked.md" \
+  "review_in_status=no" "dirty=no" "commits=1"
+absent "no path of the run resolves inside the worktree" "$tmp/linked-main/.claude/worktrees/l/.scratch"
+expect "the door's status command runs with that Review spared" \
+  bash -c "eval \"$(sed -n 's/^status=//p' <<<"$out")\" >/dev/null"
+rm "$linked_main/.gitignore"
+run main
+check "the last line answers for the main checkout's ignore state" 0 "$rc" "review_in_status=yes"
+printf '.scratch/\n' > "$linked_main/.gitignore"
+cd "$linked_main" && git worktree remove --force "$tmp/linked-main/.claude/worktrees/l"
+
 # A bare main worktree has no working tree to anchor on, so the tree under review anchors itself:
 # without that, every path of the run resolves inside the bare repository.
 git clone -q --bare "$tmp/tracked" "$tmp/bare.git"
@@ -373,7 +396,8 @@ cd "$tmp/bare-wt" || exit 1
 bare_wt="$(pwd -P)"
 printf 'c\n' > c.txt && git add c.txt && git commit -q -m "build"
 run main
-check "a bare main worktree is never the main checkout" 0 "$rc" "main_checkout=$bare_wt"
+check "a bare main worktree is never the main checkout" 0 "$rc" "main_checkout=$bare_wt" \
+  "review=.scratch/reviews/feat.md"
 absent "no path of the run resolves inside the bare repository" "$tmp/bare.git"
 
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi
