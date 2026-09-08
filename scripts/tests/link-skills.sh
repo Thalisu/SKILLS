@@ -104,4 +104,24 @@ check "a second run confirms the agents-folder links" 0 "$rc" \
 absent "a second run links no agents-folder entry" "linked "
 expect "a second run changes nothing under HOME" test "$before" = "$(snapshot)"
 
+# A definition removed from a current skill's agents folder loses its link; the skill's other
+# links and the other skills' links stay. A removed skill loses every link it had.
+rm "$repo/skills/beta/agents/beta-security.md"
+run
+check "a removed definition is pruned" 0 "$rc" \
+  "pruned  $claude_agents/beta-security.md -> $repo/skills/beta/agents/beta-security.md"
+expect "the removed definition's link is gone" test ! -e "$claude_agents/beta-security.md"
+expect "the skill's other agents-folder link is untouched" links_to "$claude_agents/beta-reviewer.md" "$repo/skills/beta/agents/beta-reviewer.md"
+expect "the skill's AGENT.md link is untouched" links_to "$claude_agents/beta-agent.md" "$repo/skills/beta/AGENT.md"
+expect "another skill's directory link is untouched" links_to "$agents_skills/alpha" "$repo/skills/alpha"
+absent "nothing else is pruned" "pruned  $claude_agents/beta-reviewer.md"
+rm -r "$repo/skills/beta"
+run
+check "a removed skill loses its agents-folder links with the rest" 0 "$rc" \
+  "pruned  $agents_skills/beta -> $repo/skills/beta" \
+  "pruned  $claude_agents/beta-agent.md -> $repo/skills/beta/AGENT.md" \
+  "pruned  $claude_agents/beta-reviewer.md -> $repo/skills/beta/agents/beta-reviewer.md" \
+  "pruned  $claude_skills/beta -> ../../.agents/skills/beta (dangling)"
+expect "the other skill keeps its links" links_to "$claude_skills/alpha" "../../.agents/skills/alpha"
+
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi
