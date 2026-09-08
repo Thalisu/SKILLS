@@ -48,6 +48,22 @@ doc or a comment, formatting, log wording, a rename inside one file, dead code, 
 _Avoid_: small (a small **Ticket** is a size band, never a Trivial change), quick, minor,
 one-liner (size is never the test)
 
+**Scratch**:
+The unversioned folder a project keeps its local chain artifacts in, `.scratch/`: a **Spec**, its
+**Journey**, its **Tickets** and the **Reviews** beside them. Always ignored by git, so it is one
+developer's own workspace and never reaches a teammate; what the team has to read goes to the
+issue tracker or under `docs/`.
+_Avoid_: temp, workspace, drafts folder
+
+**Main checkout**:
+The working tree a `do` run is invoked from, the one every artifact outside version control lives
+in: the **Ticket**, its **Spec**, its **Journey** and the **Review** beside it. A build runs in a
+git worktree created from its HEAD, a second working tree of the same repository that starts
+without any of them, so a step inside the worktree reaches them by the main checkout's absolute
+path.
+_Avoid_: main branch, current branch (an ignored file is on no branch and survives every switch),
+root, primary repo
+
 **Axis**:
 One independent question `do-code-review` puts to a diff, reported apart from the others so that a
 pass on one never hides a fail on another: correctness, spec fidelity, repo standards, principles,
@@ -190,6 +206,9 @@ _Avoid_: clean, passed, no findings (`Consider`, `Noted` and `Cleared` never blo
   could tell before from after; a small bug is not trivial.
 - "no findings" was used for the state that lets the review land. Resolved: **Green** is no
   `Act on` left standing and every **Axis** run; `Consider`, `Noted` and `Cleared` never block.
+- "the `.scratch` on my branch" was used for the **Ticket**'s folder. Resolved: a folder git
+  ignores is on no branch and in no commit; it belongs to the **Main checkout**'s working tree,
+  survives every branch switch there, and is absent from a worktree created from HEAD.
 - "fits one session" was the size of a **Ticket**. Resolved: the size is the peak context the `do`
   session reaches while building it, measured at the close and estimated at the cut, in three bands
   (small under 150k, medium up to 200k, large beyond), the one yardstick that holds across
