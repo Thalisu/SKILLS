@@ -194,8 +194,9 @@ close.
   (blockers first), in the format's local shape. Each file's "Blocked by" lists the numbers and
   titles it depends on. Never a single combined file. The number is claimed by creating the file
   under `set -C`, never by scanning the folder and then writing: a create that fails means a second
-  run took that number, so rescan and retry from the next free one. The project's `.gitignore`
-  carries the `.scratch/` line before the first write. Both per
+  run is publishing this feature, so the run stops there as it would have on tickets that already
+  exist, naming the file it hit, and never renumbers around it. The project's `.gitignore` carries
+  the `.scratch/` line before the first write. Both per
   [.agents/scratch.md](../../.agents/scratch.md).
 - **A real tracker (GitHub, GitLab, Linear)**: one issue per ticket in dependency order (blockers
   first), so each ticket's blocking edges reference real identifiers, in the format's issue shape.

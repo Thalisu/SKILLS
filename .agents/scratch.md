@@ -82,8 +82,11 @@ whatever tree each one sits in: see [worktrees.md](worktrees.md).
 A name a run allocates is claimed by creating it, never by scanning the folder and then writing.
 The scan and the write are far apart in a run, and in that window a second run reads the same
 folder and picks the same name. Under `set -C` the create fails when the name is already taken,
-which is the answer to rescan and retry from. A feature folder is claimed the same way, with
-`mkdir` and no `-p`.
+and a taken name means a second run is publishing the same feature, the scheduling mistake above,
+so the run stops on it the way it stops on tickets that already exist, and never renumbers around
+it: the numbers are per feature, so the loser of a race that retried from the next free number
+would interleave its breakdown with the winner's. A feature folder allocates no name, since its
+slug comes from the title and a rerun rewrites the spec in place.
 
 Never a lock file. An agent that crashes or is cancelled leaves its lock behind, and git ignores
 the whole folder, so the stale lock never appears in `git status` and the next run waits on a
