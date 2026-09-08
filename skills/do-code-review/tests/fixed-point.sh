@@ -210,6 +210,36 @@ check "a Review beside the Ticket does not defeat the empty-diff refusal" 1 "$rc
   "refusal=no diff between main ($(sha main)) and the working tree; nothing reviewed"
 rm .scratch/x/issues/01-x.review.md
 
+# A Ticket the caller hands over is the Review's home: the file sits beside it, named after it,
+# and the door names the hand-over so the header can tell it from a Ticket found by slug.
+git checkout -q main
+git checkout -q -b do/handed
+printf 'h\n' > h.txt && git add h.txt && git commit -q -m "handed"
+run --ticket .scratch/x/issues/01-x.md
+check "a handed-over local Ticket is the Review's home" 0 "$rc" \
+  "ticket_handed=yes" "ticket=.scratch/x/issues/01-x.md" "review=.scratch/x/issues/01-x.review.md"
+run main --ticket .scratch/x/issues/01-x.md
+check "a ref and a handed Ticket travel together" 0 "$rc" \
+  "ref=main" "ticket_handed=yes" "review=.scratch/x/issues/01-x.review.md"
+
+# A handed-over Ticket that is not a local file keeps the scratch path and carries its reference.
+run --ticket 42
+check "a handed reference keeps the scratch path" 0 "$rc" \
+  "ticket_handed=yes" "ticket=42" "review=.scratch/reviews/do-handed.md"
+run --ticket https://github.com/o/r/issues/42
+check "a handed URL keeps the scratch path" 0 "$rc" \
+  "ticket_handed=yes" "ticket=https://github.com/o/r/issues/42" "review=.scratch/reviews/do-handed.md"
+run --ticket .scratch/x/issues/99-gone.md
+check "a handed path that is not a file keeps the scratch path" 0 "$rc" \
+  "ticket_handed=yes" "review=.scratch/reviews/do-handed.md"
+
+# Without the flag a Ticket the door finds by slug stays a spec source and never the file's home.
+git checkout -q do/x
+printf 'i\n' > i.txt && git add i.txt && git commit -q -m "on do/x"
+run
+check "a Ticket found by slug is a spec source and not the home" 0 "$rc" \
+  "ticket_handed=no" "ticket=.scratch/x/issues/01-x.md" "review=.scratch/reviews/do-x.md"
+
 # A project's own file whose name ends in .review.md is not the run's output and is reviewed.
 git checkout -q main
 mkdir -p docs && printf '# API\n' > docs/api.review.md && git add docs && git commit -q -m "api notes"

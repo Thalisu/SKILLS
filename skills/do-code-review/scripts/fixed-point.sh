@@ -11,6 +11,8 @@
 #                             master
 #   fixed-point.sh <ref>      the fixed point is the merge-base of <ref> and HEAD, which is <ref>
 #                             itself when it sits on the branch
+#   --ticket <location>       the Ticket a caller hands over, a local file or an issue reference; it
+#                             is the spec source, and a local file is also the Review's home
 #
 # Prints key=value lines: branch, slug (the branch with every slash turned into a dash), head,
 # dirty (yes when the working tree has uncommitted or untracked changes; the two files this run
@@ -20,9 +22,12 @@
 # full sha), base (only when inferred), diff (the command that shows the working tree against the
 # fixed point), status (the command that shows the working tree's short status with those two
 # files left out, the one a caller passes on), commits (the commits between the fixed point and
-# HEAD), review (the Review's path in the scratch reviews folder), issue (a number in the branch
-# name, else one written as #<n> in a commit subject since the fixed point, else none), ticket (a
-# Ticket file under .scratch/*/issues/ named after the branch's slug, else none), spec (the spec
+# HEAD), review (the Review's path: beside a handed-over local Ticket, taking its name with .review
+# before the extension, else in the scratch reviews folder), issue (a number in the branch name,
+# else one written as #<n> in a commit subject since the fixed point, else none), ticket (the
+# location handed over, else a Ticket file under .scratch/*/issues/ named after the branch's slug,
+# else none), ticket_handed (yes when a caller handed the Ticket over, so it names the run's Ticket;
+# no when the door found it by slug, which makes it a spec source and nothing more), spec (the spec
 # beside that Ticket, else the one spec in the usual spec homes, .scratch/<x>/spec.md,
 # docs/specs/<x>.md, specs/<x>.md, whose <x> is the slug or contains it, else none when there is
 # none or more than one), tracker (yes when docs/agents/issue-tracker.md exists) and
@@ -31,14 +36,20 @@
 # a git repository.
 set -uo pipefail
 
-[ "$#" -le 1 ] || { echo "usage: fixed-point.sh [<ref>]" >&2; exit 2; }
+usage() { echo "usage: fixed-point.sh [<ref>] [--ticket <location>]" >&2; exit 2; }
+ref=""; handed=""; handed_given=no
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --ticket) [ "$#" -ge 2 ] || usage; handed="$2"; handed_given=yes; shift 2 ;;
+    *) [ -z "$ref" ] || usage; ref="$1"; shift ;;
+  esac
+done
 top="$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "not a git repository" >&2; exit 2; }
 cd "$top" || exit 2
 
 refuse() { echo "refusal=$1"; exit 1; }
 short() { git rev-parse --short "$1"; }
 
-ref="${1:-}"
 branch="$(git symbolic-ref -q --short HEAD || echo HEAD)"
 slug="${branch//\//-}"
 head="$(short HEAD)"
@@ -47,8 +58,17 @@ core="${branch##*/}"
 core="$(sed -E 's/^[0-9]+-//' <<<"$core")"
 ticket=none
 for f in .scratch/*/issues/[0-9][0-9]-"$core".md; do [ -f "$f" ] && { ticket="$f"; break; }; done
+ticket_handed=no
+if [ "$handed_given" = yes ]; then
+  ticket_handed=yes
+  ticket="$handed"
+  [ -f "$ticket" ] && review="${ticket%.md}.review.md"
+fi
 own=(":!$review")
-[ "$ticket" = none ] || own+=(":!${ticket%.md}.review.md")
+case "$ticket" in
+  none) ;;
+  *.md) [ "${ticket%.md}.review.md" = "$review" ] || own+=(":!${ticket%.md}.review.md") ;;
+esac
 status="git status --short -- ."
 for p in "${own[@]}"; do status="$status '$p'"; done
 if [ -n "$(git status --porcelain -- . "${own[@]}")" ]; then dirty=yes; else dirty=no; fi
@@ -82,7 +102,7 @@ fi
 issue="$(grep -oE '(^|/)[0-9]+-' <<<"$branch" | head -1 | tr -dc '0-9')"
 [ -n "$issue" ] || issue="$(git log --format=%s "$fixed..HEAD" | grep -oE '#[0-9]+' | head -1 | tr -d '#')"
 spec=none
-if [ "$ticket" != none ] && [ -f "$(dirname "$(dirname "$ticket")")/spec.md" ]; then
+if [ -f "$ticket" ] && [ -f "$(dirname "$(dirname "$ticket")")/spec.md" ]; then
   spec="$(dirname "$(dirname "$ticket")")/spec.md"
 else
   exact=""; containing=()
@@ -110,6 +130,7 @@ echo "commits=$(git rev-list --count "$fixed..HEAD")"
 echo "review=$review"
 echo "issue=${issue:-none}"
 echo "ticket=$ticket"
+echo "ticket_handed=$ticket_handed"
 echo "spec=$spec"
 echo "tracker=$tracker"
 echo "scratch_ignored=$scratch_ignored"
