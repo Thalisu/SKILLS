@@ -89,8 +89,10 @@ log the audit line, `Discovery: n FOUND · n DUPLICATE · n NOT_FOUND`. When `di
 listed, one `rg -n -w` per candidate stands in and the audit line says so. A symbol the sketch
 adds later is checked before it is created the way the Discovery rule allows: one direct
 `rg -n -w` for a single name, one more batch for two or more. Restate done as a predicate,
-sharpened by what the reading showed. Done when the predicate and the audit line are in the
-thread.
+sharpened by what the reading showed. Then read the session's context once, `bash
+<skill-dir>/scripts/context-usage.sh`, and keep its `current` figure: it is the `grounded` figure
+of the `Context:` line the close writes per [mechanics.md](mechanics.md). Done when the predicate,
+the audit line and the context reading are in the thread.
 
 **3. Shape.** Name the data shape and its organising structure before any logic, per
 [foundational-thinking](../../../.agents/principles/foundational-thinking.md) and

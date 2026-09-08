@@ -59,7 +59,11 @@ on the branch makes the landing fast-forward fail, so one rule covers the three 
 - During the build the file is read and never written: the criteria and the `What to build` line
   are where the behaviours come from.
 - The status walk and who writes each word are the format's. The run writes `claimed` at the
-  start and `resolved` at the close, and nothing in between.
+  start and `resolved` at the close, and nothing in between. With `resolved` it writes the
+  `Context:` line the format defines as the first line under `## Evidence`, from two readings of
+  `bash <skill-dir>/scripts/context-usage.sh`: the `current` figure read at the end of the ground
+  step, written as `grounded`, and the `peak` and `band` read at the close, after the last edit. A
+  reading that exits non-zero writes `Context: not measured` with the script's reason.
 
 ## The build loop
 
