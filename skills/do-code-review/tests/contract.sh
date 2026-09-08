@@ -76,7 +76,8 @@ agent_md="$skill/AGENT.md"
 has "the orchestrator carries its frontmatter" "$agent_md" "name: do-code-review" "model: inherit"
 expect "the orchestrator's tools are exactly shell, reading, search, writing, the Agent tool and the Skill tool" \
   test "$(sed -n 's/^tools: //p' "$agent_md" 2>/dev/null)" = "Bash, Read, Glob, Grep, Write, Agent, Skill"
-has "the orchestrator names its two callers" "$agent_md" "do" "developer"
+has "the orchestrator names exactly two callers and no third" "$agent_md" \
+  "the developer and do are its only callers"
 has "the orchestrator links the format by relative path" "$agent_md" "](../../.agents/formats/review-format.md)"
 has "the orchestrator runs the door script" "$agent_md" "scripts/fixed-point.sh" "refusal="
 has "the orchestrator forks the technical reviewer by name" "$agent_md" "subagent_type: do-code-review-technical-reviewer"
@@ -160,6 +161,8 @@ has "the docs page states the invocation mode and the leading words" "$page" \
   "Type \`/do-code-review\`" "reaches for it automatically" "Axis" "Bucket" "Rung" "../README.md" "/code-review"
 lacks "the docs page carries no install command" "$page" "ln -s" "git clone"
 has "the docs page states the no-write claim as a check, not a tool property" "$page" "compares"
+has "the docs page names do as the second caller and both homes of the Review" "$page" \
+  "second caller" "beside the Ticket" ".review.md" ".scratch/reviews/<branch>.md"
 has "the run's last line names the ignore state either way" "$agent_md" "scratch_ignored=no" "scratch_ignored=yes"
 has "the docs page's working check holds in both ignore states" "$page" "is not ignored, nothing new when it is"
 # The page's claim about do and do's own review step move together, so the page never promises a

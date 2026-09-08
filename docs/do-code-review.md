@@ -7,8 +7,9 @@ the **Review**, with everything it found. It forks its own orchestrator, which f
 reviewer that puts five **Axes** to the diff (correctness, spec fidelity, repo standards, this
 repo's principles, blast radius), proves what it can by running the code from a temporary
 directory, and returns **Findings**; the orchestrator groups them by **Bucket** and writes the
-Review in the scratch reviews folder, named after the branch. The sixth Axis, security, has its
-own reviewer and ships separately; until then its line reads `not run`.
+Review where its Ticket is, beside the Ticket file when a caller hands one over and in the scratch
+reviews folder named after the branch when nobody does. The sixth Axis, security, has its own
+reviewer and ships separately; until then its line reads `not run`.
 
 Every Finding carries a **Rung**, how far the review climbed to back it, and nothing at Rung 1 or
 2 reaches `Act on`, whatever it looks like: a claim the review could not walk or run stays a
@@ -28,7 +29,7 @@ push, in English or in Portuguese ("revisa esse diff").
 | review the branch I am on, against where it left the base branch | `/do-code-review` |
 | review since a commit, a branch or a tag | `/do-code-review <ref>` |
 | a pull request you want reviewed and posted on GitHub | the bundled `/code-review`, which this skill leaves untouched |
-| the Ticket `do` just built | `/do-code-review` on its worktree's branch: [do](../skills/do/SKILL.md) does not call the review yet |
+| the Ticket `do` just built | `/do-code-review <the Ticket's path>` on its worktree's branch, which puts the Review beside the Ticket |
 
 The session shows nothing while the run is in flight, as [prototype](prototype.md) does; the
 Review's text lands in the thread when it is written, with its location. The prose comes back in
@@ -41,7 +42,9 @@ the language of the words you typed; with a bare ref it is English.
   `~/.claude/agents/` beside the skill link: the `AGENT.md` beside the skill file under the
   orchestrator's name, and every markdown file in the skill's `agents/` folder under its own name;
   see [the top-level README](../README.md).
-- **Somewhere to write.** The Review goes to `.scratch/reviews/<branch>.md` in the project, slashes
+- **Somewhere to write.** Hand a Ticket's location over and the Review goes beside the Ticket
+  file, taking its name with `.review` before the extension: `02-export-notes.review.md` beside
+  `02-export-notes.md`. Otherwise it goes to `.scratch/reviews/<branch>.md` in the project, slashes
   in the branch name turned into dashes. The run's last line says which way the project has it: with
   `.scratch` ignored the file stays out of `git status`, without it the file shows up there for you
   to keep or drop.
@@ -112,11 +115,14 @@ a pass on it.
 ## Where it fits
 
 `do-code-review` is a reach-for-it-anytime standalone: you type it on any branch, at any point in
-the work, as often as you like. It is also the review [do](../skills/do/SKILL.md) is built around,
-and that step is not wired yet: `do` stops after its gate, its review step reads
+the work, as often as you like. [do](../skills/do/SKILL.md) is its second caller and the only
+other one: at its review step it hands over the Ticket it built together with the branch's fixed
+point, so the Review lands beside that Ticket and names it in its header.
+
+In this checkout that step is not wired yet: `do` stops after its gate, its review step reads
 `skip: do-code-review not listed`, and its reply names the review and the landing as what you run
 next. So a Ticket `do` just built is reviewed by typing the skill on the worktree's branch it left
-behind.
+behind, with the Ticket's path as the argument.
 
 - [discuss](discuss.md), [spec](spec.md) and [tickets](tickets.md), because the spec and the
   Ticket they produce are what the Spec Axis reads.
