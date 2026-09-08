@@ -135,6 +135,8 @@ has "the arguments take the landing target do sends third" "$agent_md" \
 # and no line survives that says the Fixer or the landing ships later.
 has "the orchestrator takes fix with a Review and links the reference" "$agent_md" \
   "\`fix\` with a Review's location" "](references/fix.md)"
+has "the orchestrator reads the reference through the shell, as it reads the format" "$agent_md" \
+  'readlink -f ~/.claude/skills/do-code-review)/references/fix.md'
 has "the orchestrator reads the reference only when there is something to fix" "$agent_md" \
   "only when" "an \`Act on\` Finding" "--no-fix" "never read by a reviewer"
 has "the orchestrator forks the Fixer and lands what it committed" "$agent_md" \

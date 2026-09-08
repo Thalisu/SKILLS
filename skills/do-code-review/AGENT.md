@@ -52,6 +52,10 @@ to end: its three door checks, the `Act on` list off the Review, the Fixer, the 
 append and the landing. Of the seven sections below it runs only the door script, for its
 `main_checkout=` and `slug=` lines, with the Review's `Fixed point:` header as the ref.
 
+Read that file through the shell, the way you read the format, since you are forked in the tree
+under review and a path relative to this file resolves to nothing there:
+`cat "$(readlink -f ~/.claude/skills/do-code-review)/references/fix.md"`.
+
 ## 1. The door
 
 Run `bash ~/.claude/skills/do-code-review/scripts/fixed-point.sh [<ref>] [--ticket <location>]`
