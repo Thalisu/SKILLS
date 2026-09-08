@@ -10,12 +10,12 @@ caller outside the diff breaks, and the door script reads the facts the case exp
 
 `do-code-review` is model-invoked, so one case is a bare trigger in Portuguese; the others type the
 skill. Every fixture is synthetic: a small notes module in plain JavaScript with `node --test` as
-its suite, so it runs offline with node alone. The planted diff keeps its spec in `.scratch/`
-tracked by git, so that run also exercises the durability line.
+its suite, so it runs offline with node alone. The planted diff keeps its Ticket and its spec in
+`.scratch/` tracked by git, so that run also exercises the durability line.
 
 | case | checks |
 |---|---|
-| `planted-diff` | five defects and a clean hunk on a branch with a spec beside it: each defect in its expected Bucket at or above its minimum Rung, the clean hunk with no `Act on`, no Rung 1 or 2 in `Act on`, each location once, six Axis lines, no principle without a location, the reviewer with no write or edit tool, the Review in the scratch reviews folder |
+| `planted-diff` | five defects and a clean hunk on a branch whose Ticket the prompt hands over as `do` does: each defect in its expected Bucket at or above its minimum Rung, the clean hunk with no `Act on`, no Rung 1 or 2 in `Act on`, each location once, six Axis lines, no principle without a location, the reviewer with no write or edit tool, the Review beside the Ticket, named after it, with `Ticket:` naming it |
 | `ref-does-not-resolve` | `/do-code-review nope` ends in one line, `nope does not resolve; nothing reviewed`, and writes nothing |
 | `empty-diff` | a clean tree on the base branch ends in one line, `no diff between main (<sha>) and the working tree; nothing reviewed`, and writes nothing |
 | `no-spec` | a branch with no spec and no tracker file: five Axes reported, the Spec line reading `no spec`, nothing asked, the Review named after the branch |

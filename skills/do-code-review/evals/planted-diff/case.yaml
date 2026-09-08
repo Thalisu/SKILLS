@@ -7,15 +7,16 @@ allowed_tools: [Bash, Read, Write, Glob, Grep, Agent, Skill]
 context:
   scaffold_script: |
     #!/usr/bin/env bash
-    # A branch with five planted defects and one clean hunk, with a spec beside the diff as the
-    # spec source: a correctness bug (page returns one item short, so an export of eleven notes has
+    # A branch with five planted defects and one clean hunk, with a Ticket the prompt hands over as
+    # do does at its review step, and its spec in the folder above the issues folder: a correctness
+    # bug (page returns one item short, so an export of eleven notes has
     # ten rows), a requirement missing against the spec (no header line), a breach of the rule
     # CLAUDE.md documents (a standards breach: console.log in src/), a second boolean kept in sync
     # with a first (exported and unexported), a caller outside the diff that the change breaks
     # (src/report.js still passes the notes first to page), and one clean hunk (src/csv.js with its
     # test). The suite is green on the branch: none of the defects is covered.
     set -e
-    mkdir -p src tests .scratch/export-notes
+    mkdir -p src tests .scratch/export-notes/issues
     cat > package.json <<'JSON'
     { "name": "notes", "private": true, "scripts": { "test": "node --test tests/" } }
     JSON
@@ -121,6 +122,23 @@ context:
     ## Out of Scope
 
     - Importing CSV.
+    MD
+    cat > .scratch/export-notes/issues/02-export-notes.md <<'MD'
+    # 02: Export the active notes as CSV
+
+    **What to build:** Export the active notes as CSV from the notes list, one row per active note
+    under a header line, so that a writer can open them in a spreadsheet.
+
+    **Blocked by:** None (can start immediately)
+
+    **Status:** claimed
+
+    - [ ] Exporting with three active notes writes one row per note.
+    - [ ] The export starts with the header line `id,title`, so the columns are named.
+    - [ ] An archived note is left out of the export.
+    - [ ] A title carrying a comma, a quote or a line break comes back quoted.
+
+    ## Evidence
     MD
     git init -q -b main
     git -c user.email=fixture@example.com -c user.name=fixture add -A

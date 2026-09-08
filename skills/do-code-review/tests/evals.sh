@@ -49,9 +49,16 @@ expect "principles: two booleans are kept in sync" bash -c 'grep -q "exported: f
 expect "blast radius: the caller outside the diff breaks" bash -c '! node -e "require(\"./src/report\").summary()" >/dev/null 2>&1'
 expect "blast radius: the caller is not in the diff" bash -c '! git diff --name-only main | grep -qx src/report.js'
 expect "the clean hunk has its green test" quiet node --test tests/csv.test.js
+expect "the Ticket the case hands over sits beside its spec" test -f .scratch/export-notes/issues/02-export-notes.md
+expect "the Ticket asks for the header line the export omits" grep -q 'header line `id,title`' .scratch/export-notes/issues/02-export-notes.md
 run_door
 check "the door reads the planted fixture" 0 "$rc" "branch=export-notes" "dirty=no" "base=main" "commits=1" \
-  "spec=.scratch/export-notes/spec.md" "review=.scratch/reviews/export-notes.md" "scratch_ignored=no" "tracker=no" "ticket=none"
+  "spec=.scratch/export-notes/spec.md" "review=.scratch/reviews/export-notes.md" "scratch_ignored=no" "tracker=no" \
+  "ticket=.scratch/export-notes/issues/02-export-notes.md" "ticket_handed=no"
+run_door --ticket .scratch/export-notes/issues/02-export-notes.md
+check "the door puts the Review beside the Ticket the case hands over" 0 "$rc" \
+  "ticket_handed=yes" "review=.scratch/export-notes/issues/02-export-notes.review.md" \
+  "spec=.scratch/export-notes/spec.md"
 
 # ref-does-not-resolve: the ref the prompt names is absent.
 expect "ref-does-not-resolve scaffold runs" scaffold ref-does-not-resolve

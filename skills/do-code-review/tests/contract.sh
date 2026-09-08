@@ -138,8 +138,13 @@ for case in planted-diff ref-does-not-resolve empty-diff no-spec triggers-pt-br;
 done
 has "the planted diff scaffolds five defects and a clean hunk" "$evals/planted-diff/case.yaml" \
   "scaffold_script" "correctness" "spec" "standards" "boolean" "outside the diff" "clean hunk"
+has "the planted diff hands a Ticket over as do does" "$evals/planted-diff/case.yaml" \
+  ".scratch/export-notes/issues/02-export-notes.md"
+has "the planted diff prompt hands the Ticket's location over" "$evals/planted-diff/prompt.md" \
+  "/do-code-review .scratch/export-notes/issues/02-export-notes.md"
 for grader in correctness-in-act-on spec-in-act-on standards-cites-the-rule principles-in-consider \
-  blast-radius-in-act-on clean-hunk-untouched rung-gate location-once six-axis-lines principle-beside-location reviewer-no-write; do
+  blast-radius-in-act-on clean-hunk-untouched rung-gate location-once six-axis-lines principle-beside-location \
+  reviewer-no-write review-beside-the-ticket; do
   expect "the planted diff has its $grader grader" test -f "$evals/planted-diff/graders/$grader.md"
 done
 has "the Portuguese trigger fires the skill" "$evals/triggers-pt-br/graders/skill-fired.md" "type: tool_used" "do-code-review"
