@@ -312,6 +312,13 @@ has "the docs page states the invocation mode and the leading words" "$page" \
   "Type \`/do-code-review\`" "reaches for it automatically" "Axis" "Bucket" "Rung" "../README.md" "/code-review"
 lacks "the docs page carries no install command" "$page" "ln -s" "git clone"
 has "the docs page states the no-write claim as a check, not a tool property" "$page" "compares"
+has "the docs page names both reviewers and the retry rule" "$page" \
+  "do-code-review-security-reviewer" "attacker's seat" "forked once more"
+lacks "the docs page no longer calls the security reviewer unshipped" "$page" \
+  "ships separately" "until then"
+has "the docs page answers why security is its own agent" "$page" "Why is security its own agent?"
+has "the docs page says a Security Finding never lands in Noted" "$page" \
+  "never lands in \`Noted\`"
 has "the docs page puts the scratch home in the main checkout" "$page" "main checkout" "linked worktree"
 has "the docs page names do as the second caller and both homes of the Review" "$page" \
   "second caller" "beside the Ticket" ".review.md" ".scratch/reviews/<branch>.md"
@@ -344,16 +351,18 @@ done < <(grep -o '](\([^)]*\))' "$page" 2>/dev/null | sed 's/^](//; s/)$//')
 expect "every link on the docs page resolves from docs/" test "$links_ok" = 1
 ordered "the top-level README lists the skill under Model-invoked" "$repo/README.md" \
   "## Model-invoked" "| [\`do-code-review\`](skills/do-code-review/SKILL.md) |" "[docs/do-code-review.md](docs/do-code-review.md)" "## Vendored"
-has "the top-level README says how the two agents are linked" "$repo/README.md" \
-  "skills/do-code-review/AGENT.md" "skills/do-code-review/agents/do-code-review-technical-reviewer.md"
+has "the top-level README says how the three agents are linked" "$repo/README.md" \
+  "skills/do-code-review/AGENT.md" "skills/do-code-review/agents/do-code-review-technical-reviewer.md" \
+  "skills/do-code-review/agents/do-code-review-security-reviewer.md"
 ordered "the skills README lists the skill under Model-invoked" "$repo/skills/README.md" \
   "## Model-invoked" "| [\`do-code-review\`](do-code-review/SKILL.md) |"
 has "the invocation contract names the skill as model-invoked" "$repo/.agents/invocation.md" "\`test-triage\` and \`do-code-review\` are model-invoked"
-has "the invocation contract's table gains the two rows" "$repo/.agents/invocation.md" \
-  "| \`do-code-review\` | model-invoked |" "| \`do-code-review-technical-reviewer\` | \`do-code-review\`, model-invoked |"
+has "the invocation contract's table gains the three rows" "$repo/.agents/invocation.md" \
+  "| \`do-code-review\` | model-invoked |" "| \`do-code-review-technical-reviewer\` | \`do-code-review\`, model-invoked |" \
+  "| \`do-code-review-security-reviewer\` | \`do-code-review\`, model-invoked |"
 
 # No em-dash in any prose the skill adds.
-prose=("$format" "$trees" "$skill_md" "$agent_md" "$reviewer_md" "$evals/README.md" "$evals"/*/prompt.md "$evals"/*/graders/*.md "$page")
+prose=("$format" "$trees" "$skill_md" "$agent_md" "$reviewer_md" "$security_md" "$evals/README.md" "$evals"/*/prompt.md "$evals"/*/graders/*.md "$page")
 for f in "${prose[@]}"; do
   [ -f "$f" ] || continue
   if grep -q $'\xe2\x80\x94' "$f"; then echo "FAIL  no em-dash in $f"; fails=$((fails + 1)); else echo "ok    no em-dash in ${f#"$repo/"}"; fi

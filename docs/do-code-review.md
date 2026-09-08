@@ -3,20 +3,29 @@
 ## What it does
 
 `do-code-review` reviews the diff of the branch you are on since a fixed point and writes one file,
-the **Review**, with everything it found. It forks its own orchestrator, which forks a technical
-reviewer that puts five **Axes** to the diff (correctness, spec fidelity, repo standards, this
-repo's principles, blast radius), proves what it can by running the code from a temporary
-directory, and returns **Findings**; the orchestrator groups them by **Bucket** and writes the
-Review where its Ticket is, beside the Ticket file when a caller hands one over and in the scratch
-reviews folder named after the branch when nobody does. The sixth Axis, security, has its own
-reviewer and ships separately; until then its line reads `not run`.
+the **Review**, with everything it found. It forks its own orchestrator, which forks two reviewers
+in parallel with the same brief: a technical reviewer that puts five **Axes** to the diff
+(correctness, spec fidelity, repo standards, this repo's principles, blast radius), and a security
+reviewer that puts the sixth to it from the attacker's seat, mapping the attack surface before it
+opens any checklist. Both prove what they can by running the code from a temporary directory and
+return **Findings**; the orchestrator groups them by **Bucket** and writes the Review where its
+Ticket is, beside the Ticket file when a caller hands one over and in the scratch reviews folder
+named after the branch when nobody does.
 
 Every Finding carries a **Rung**, how far the review climbed to back it, and nothing at Rung 1 or
 2 reaches `Act on`, whatever it looks like: a claim the review could not walk or run stays a
-judgment call in `Consider`, so nothing is fixed on a hunch. The reviewer never edits code: it has
-no write and no edit tool, its shell is for reading and running, and the orchestrator compares
-`git status` before and after it, so a path it changed would be named in the Review. The
-orchestrator's one write is the Review.
+judgment call in `Consider`, so nothing is fixed on a hunch. A Security Finding is the one that
+never lands in `Noted`: it is `Act on`, `Consider` or `Cleared`, so nothing on that Axis is set
+aside without you seeing it. Neither reviewer edits code: neither has a write or an edit tool,
+their shell is for reading and running, and the orchestrator compares `git status` before and after
+them, so a path one of them changed would be named in the Review. The orchestrator's one write is
+the Review.
+
+A reviewer that does not return, or returns in a shape the Review cannot take, is forked once more
+with the same brief. When it fails a second time the Review is still written, from what the other
+reviewer returned: its Axis lines read `not run` with the reason, and the safety fact names the
+Axis nobody answered. A partial review reaches you instead of nothing, and a pass never hides a
+reviewer that never ran.
 
 ## When to reach for it
 
@@ -38,10 +47,11 @@ the language of the words you typed; with a bare ref it is English.
 ## Prerequisites
 
 - **The agent links.** The skill forks the `do-code-review` agent, which forks
-  `do-code-review-technical-reviewer`, so both definitions have to be linked into
-  `~/.claude/agents/` beside the skill link: the `AGENT.md` beside the skill file under the
-  orchestrator's name, and every markdown file in the skill's `agents/` folder under its own name;
-  see [the top-level README](../README.md).
+  `do-code-review-technical-reviewer` and `do-code-review-security-reviewer`, so all three
+  definitions have to be linked into `~/.claude/agents/` beside the skill link: the `AGENT.md`
+  beside the skill file under the orchestrator's name, and every markdown file in the skill's
+  `agents/` folder under its own name; see [the top-level README](../README.md). A reviewer whose
+  link is missing is forked twice and then reported `not run` on its Axis.
 - **Somewhere to write.** Hand a Ticket's location over and the Review goes beside the Ticket
   file, taking its name with `.review` before the extension: `02-export-notes.review.md` beside
   `02-export-notes.md`. Otherwise it goes to `.scratch/reviews/<branch>.md` in the repository's
@@ -65,7 +75,7 @@ worst Finding.
 | Standards | the file and the rule the project documents, or one of twelve smells as a labelled judgment call; anything a linter enforces is skipped |
 | Principles | a principle of this repo whose tell the diff shows, named only beside a Finding at a location |
 | Blast radius | breakage outside the diff: callers, wire shapes, timing, flags; `unproven` when a check could not run |
-| Security | the attacker's seat, read by a second reviewer that ships separately; `not run` until then |
+| Security | the attack surface, then STRIDE and an OWASP cross-check on web surfaces, every Finding at a location with its exploit path (the input, the missing or present gate, the sink) and a risk class |
 
 A **Finding** lands in one **Bucket**: `Act on` (fix before landing), `Consider` (a judgment call,
 yours), `Noted` (an observation), `Cleared` (suspected, then refuted, shown with what refuted it
@@ -97,10 +107,19 @@ that installs this repo. The `do-` prefix keeps both: this skill for a branch on
 judged against the spec the chain wrote and this repo's principles, with each Finding proven to a
 Rung; the bundled one for a pull request you want posted on GitHub.
 
+**Why is security its own agent?**
+Because a security pass reads the same diff with a different question and a different knowledge
+base, and one agent holding both postures does neither well. The technical reviewer reads the diff
+as code; the security reviewer reads it as surface, and asks who can reach each entry point before
+it asks anything else. That split is also why the two never negotiate: a Finding both make at the
+same location is the security reviewer's, and the technical one is dropped, so you never read the
+same defect twice under two Axes.
+
 **The Security line says `not run`. Did something fail?**
-No. Security is a sixth Axis with its own reviewer, which ships separately; until it does, the
-line says so rather than `0 findings`, so a review that never asked the question is never read as
-a pass on it.
+Its reviewer did, twice: it never returned, or returned in a shape the Review could not take, and
+the second fork went the same way. The rest of the Review is real and was written from the other
+reviewer's return. The line says `not run` with the reason rather than `0 findings`, so a question
+nobody asked is never read as a pass, and the safety fact names the Axis too.
 
 ## It's working if
 
@@ -110,6 +129,8 @@ a pass on it.
   behaviour to prove and where.
 - `## Axes` has six lines every time, and a `not run` or `no spec` line stands where a reviewer or
   a spec was missing.
+- Nothing under `## Noted` carries the Security Axis, and every Security Finding names an exploit
+  path and a risk class rather than a checklist item.
 - `git status` after a run agrees with that last line:
   the Review and nothing else when git does not ignore the file, nothing new when it does.
 
