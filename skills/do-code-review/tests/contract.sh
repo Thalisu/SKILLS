@@ -159,6 +159,35 @@ has "a reviewer that fails twice leaves its Axis not run and the other's Finding
   "the other reviewer's Findings are still written" "never \`0 findings\`"
 has "the run still returns the text and the location after a reviewer failed twice" "$agent_md" \
   "The run is not over until the Review is written"
+# The fix reference: read on demand, never by a reviewer, holding the Act on read, the three door
+# checks, the Fixer brief, the two-case worktree, the re-check with the stale rule, the append and
+# the landing.
+fix_md="$skill/references/fix.md"
+has "the fix reference opens with its title and its one reader" "$fix_md" \
+  "# The fix" "read by the orchestrator" "never by a reviewer"
+has "the fix reference reads the Act on list off the file" "$fix_md" \
+  "## The Act on list" "the file's order" "by its number" "edited by hand"
+has "the fix reference carries the three door checks, each one line and nothing written" "$fix_md" \
+  "## The door" "not found; nothing fixed" "does not resolve; nothing fixed" \
+  "working tree has uncommitted changes; commit or stash before fix" "nothing is written"
+has "the fix reference decides where the Fixer works by whose branch was reviewed" "$fix_md" \
+  "## Where the Fixer works" "fix/<slug>" ".claude/worktrees/" "](../../../.agents/worktrees.md)" \
+  "did not create" "removes nothing it did not create"
+has "the fix reference carries the Fixer brief and its four rules" "$fix_md" \
+  "## The Fixer" "general-purpose" "Testing Policy" "origin \`bugfix\`" "one commit" \
+  "Touch nothing else" "Leave what no longer matches" "Report each commit"
+has "the fix reference names the Fixer's two failure branches" "$fix_md" \
+  "not fixed: test author unreachable" "drops its own edits"
+has "the fix reference re-runs the checks itself and never the reviewers" "$fix_md" \
+  "## The re-check" "never the Fixer's word" "not re-run" "no check named" "not verified" "stale"
+has "the fix reference appends the section the format fixes" "$fix_md" \
+  "## The append" "](../../../.agents/formats/review-format.md)" "## Fix run" "Write tool" "never an edit"
+has "the fix reference lands by the landing ADR and pushes nothing" "$fix_md" \
+  "## The landing" "0013-do-code-review-lands-a-green-review-by-fast-forward.md)" "fast-forward" \
+  "protected" "nothing is pushed" "git push"
+has "the fix reference says what Green means without redefining it" "$fix_md" "Green"
+expect "the fix reference is the skill's only reference" \
+  test "$(ls "$skill/references/" 2>/dev/null | wc -l)" = 1
 
 # The technical reviewer: in the agents folder with the skill's prefix, one caller, no write and no
 # edit tool, the five Axes, the lenses, the smells, the evidence rules, the Rung gate, the return.
