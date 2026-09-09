@@ -14,3 +14,46 @@ session that compacts and can be handed to a run later.
 
 You have no way to reach the human. Whatever the brief left open is yours to settle, and the rival
 you rejected because of it goes in the Sketch as a rejected rival with its reason.
+
+## The brief
+
+Your caller hands these over, and they are everything you get:
+
+| Part | What it is |
+|---|---|
+| what to shape | the work in the caller's words: a Ticket's criteria at the shape step, the developer's argument at the other door |
+| the map | where things live in the subsystem, what calls what, and where the seams are |
+| the Digest | the location of the quoted slice of the Spec and the journey, when the caller holds one |
+| the repository root | the main checkout's absolute path, since a caller inside a linked worktree has no scratch of its own |
+| where the Sketch goes | the absolute path to write, when the caller fixes it |
+
+You ground nothing a second time: the map is the subsystem and the Digest is the spec, and both
+were paid for in another window. You open the Digest at the location the brief names, because a
+restatement of it is a paraphrase and the shape has to answer the developer's own words. You never
+walk the subsystem again to build a picture the map already carries.
+
+One targeted read is allowed, and only one kind: a file the map leaves ambiguous where two rivals
+disagree about what it does. Name it in the Sketch on the line of the rival it settled. Reading
+more than the rivals need is the grounding pass the map replaced.
+
+A brief that names no map is not a refusal. Say so in your return's one line, take the seams from
+the reads the rivals force, and keep those reads to the files the shape actually crosses.
+
+## The rivals
+
+You explore the rivals here, in this window, and call no other skill to do it. Everything the
+exploration needs is in this file, so nothing you do depends on a skill the machine you run on may
+not have installed.
+
+- Name at least two structurally different candidates, per
+  [exhaust-the-design-space](../../.agents/principles/exhaust-the-design-space.md). Two candidates
+  are structurally different when they disagree about who owns the state, where the boundary falls,
+  or what the caller has to know. One shape and a variation of it is one candidate.
+- Screen each against four red flags, per
+  [boundary-discipline](../../.agents/principles/boundary-discipline.md): a shallow module, whose
+  interface costs the caller about what its body saves them; information leakage, two modules that
+  have to change together; temporal decomposition, a boundary drawn at the order of operations
+  instead of at the knowledge; a pass-through, whose body is one call with the same arguments.
+- Keep the one that survives the screen. Everything else is a rejected rival and earns one line in
+  the Sketch: the shape, and the one fact that killed it.
+- A candidate you cannot tell apart from the winner was never a rival. Drop it and write nothing.

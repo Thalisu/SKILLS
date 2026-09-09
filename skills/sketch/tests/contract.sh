@@ -61,4 +61,18 @@ has "the agent description names its only callers" "$agent_md" \
   "Invoke through /sketch" "do at its shape step" "the developer and do are its only callers" \
   "Never on your own initiative."
 
+# What it is handed, and what it never reads twice.
+has "the brief names every part the caller hands over" "$agent_md" \
+  "## The brief" "what to shape" "the map" "the Digest" "the repository root" "where the Sketch goes"
+has "the agent grounds the subsystem no second time" "$agent_md" \
+  "You ground nothing a second time" "the map is the subsystem"
+has "a missing part of the brief is named and never re-derived by exploring" "$agent_md" \
+  "A brief that names no map"
+
+# It explores the rivals itself, and depends on no skill this repository does not carry.
+has "the agent explores rival shapes in its own window" "$agent_md" \
+  "## The rivals" "two structurally different" "rejected"
+lacks "the agent calls no skill this repository does not carry" "$agent_md" \
+  "arena" "interrogate" "Skill tool"
+
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi
