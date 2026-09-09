@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# scan-test-assets.sh — discovery and duplication scan of a project's test tree.
+# scan-test-assets.sh: discovery and duplication scan of a project's test tree.
 # Installed by the testing-policy skill into <project>/.claude/testing-policy/ and invoked
 # from the test-author agents' "Project map" on every dispatch.
 #
@@ -14,14 +14,14 @@
 #                  type-assertions)
 #
 # Sections: duplicate-symbols = a name defined in two or more files (exports, plus top-level
-# function/class declarations) — files under a fixtures-role directory (`__fixtures__/`, `fixtures/`)
+# function/class declarations). Files under a fixtures-role directory (`__fixtures__/`, `fixtures/`)
 # that is not a declared --shared home are skipped: they are inputs, and a corpus repeats names on
 # purpose; local-factories = builder-shaped definitions living in test files
 # instead of a shared home; inline-helpers = page-taking helpers and fixtures defined inside flow
 # files; mock-targets = every module-mock target (jest/vi mock, bun mock.module, unittest patch,
 # mocker.patch, monkeypatch.setattr) with its file count, classed `package` (a bare specifier or a
-# module outside the repo — a system boundary) or `internal` (a relative/alias path or a module of
-# this repo — either a thin wrapper around a boundary, or an internal collaborator: debt);
+# module outside the repo, so a system boundary) or `internal` (a relative/alias path or a module of
+# this repo, so either a thin wrapper around a boundary or an internal collaborator: debt);
 # type-assertions = every TypeScript test file carrying a type assertion, with a count: a
 # double assertion (`as unknown as T`) counts once, and `as const` and an import or export
 # rename count as none;
@@ -262,7 +262,7 @@ if want skip-markers; then
   hdr skip-markers
   patterns="$(dirname "$0")/skip-patterns.sh"
   if [ ! -f "$patterns" ]; then
-    echo "skip-patterns.sh not found next to $(basename "$0") — skip-markers not scanned" >&2
+    echo "skip-patterns.sh not found next to $(basename "$0"), so skip-markers was not scanned" >&2
   else
     . "$patterns"
     for f in "${scan_files[@]}"; do

@@ -267,6 +267,7 @@ absent "the section reads the roots it was given and no others" 0 "$rc" \
   "tests/single.test.ts" "tests/double.test.ts"
 
 rc=0; out="$(cat "$skill/SKILL.md")" || rc=$?
+# shellcheck disable=SC2016  # the backticks are part of the fixed string SKILL.md carries
 check "the scan step counts the section among the debt list it keeps for the report" 0 "$rc" \
   '`inline-helpers`, `type-assertions` and `skip-markers` are the debt list for step 8'
 check "the report lists the type assertion debt beside the duplication and the internal mock debt" 0 "$rc" \
@@ -278,9 +279,10 @@ echo
 echo "# repository standards"
 emdash=$'\xe2\x80\x94'
 rc=0; out="$(LC_ALL=C grep -lae "$emdash" \
-  "$skill/AGENT-UNIT.md" "$skill/SKILL.md" "$skill/POLICY.md" "$here/partial-test-data.sh" || true)"
+  "$skill/AGENT-UNIT.md" "$skill/SKILL.md" "$skill/POLICY.md" \
+  "$skill/scripts/scan-test-assets.sh" "$here/partial-test-data.sh" || true)"
 absent "no em-dash in the prose this rule wrote" 0 "$rc" \
-  "AGENT-UNIT.md" "SKILL.md" "POLICY.md" "partial-test-data.sh"
+  "AGENT-UNIT.md" "SKILL.md" "POLICY.md" "scan-test-assets.sh" "partial-test-data.sh"
 
 # verify-policy.sh carries an em-dash inside a regex character class, which is syntax and not prose,
 # so the guard reads the em-dashes that follow a # on their line, whole-line comments and trailing
