@@ -55,7 +55,7 @@ and the door the request goes to with the command to type, nothing written.
    project, strings and prose included), because step 6 migrates all of them in one wave, per
    [migrate-callers-then-delete-legacy-apis](../../../.agents/principles/migrate-callers-then-delete-legacy-apis.md).
    A choice between two homes the request fits equally is a preference call and one of the two
-   questions this Playbook may ask; everything else is a fact a search settles.
+   questions this Playbook raises of its own; everything else is a fact a search settles.
 3. **The discover batch.** The names the reshape will create (the extracted module, the new type,
    the registry) are checked before the first of them exists, the way the Discovery rule fixes: one
    `discover` batch for two or more names, one `rg -n -w` for a single one. A name that comes back
@@ -268,12 +268,16 @@ moved code sideways passes neither axis and fails the test, however much cleaner
 
 A failure stops the run before the cleanup, because the answer is to revert and the revert deletes
 the branch with every commit on it. That is irreversible, so the run states why the test failed and
-asks one question, the second and last this Playbook may ask:
+asks one question, the second and last this Playbook raises of its own:
 
 - **Yes, revert.** A yes removes the worktree and its branch from the main checkout, with nothing
   landed, and the reply says what was tried and what it cost the reader.
 - **No, keep it.** A no continues to the cleanup, the gate, the review and the landing, and the reply
   carries the failed exit test as pending debt so the next reader knows the claim was not met.
+
+A yes that [mechanics.md](mechanics.md) reserves to the developer is not one of the two and is never
+waived here: step 12 carries one of those, the question before a full suite or a remote run, and it
+is asked whenever the verification reaches it.
 
 Done when the answer and its reason are in the thread, with the developer's answer when the test
 failed.
