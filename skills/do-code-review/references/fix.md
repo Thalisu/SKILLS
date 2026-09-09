@@ -2,9 +2,11 @@
 
 What the orchestrator does once there is something to fix: read the `Act on` list, put the Fixer
 where it belongs, brief it, re-run its work, append the record and land.
-It is read by the orchestrator alone, and only when its argument is `fix` or when the Review it has just written
-carries an `Act on` Finding. A `--no-fix` run and a Review with nothing to act on never open it,
-and it is never by a reviewer: the reviewers judge a diff and are gone before any of this runs.
+It is read by the orchestrator alone: whole on a `fix` call, from `## Where the Fixer works` on a
+default run whose Review carries an `Act on` Finding, and at `## The landing` on a default run
+whose Review carries none and is Green, since a Green Review lands either way. Only a `--no-fix`
+run never opens it, and it is never by a reviewer: the reviewers judge a diff and are gone before
+any of this runs.
 
 The parts it does not own it links and never restates: the two trees are
 [worktrees.md](../../../.agents/worktrees.md), the section it appends is

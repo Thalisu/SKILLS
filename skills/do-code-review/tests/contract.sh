@@ -137,8 +137,15 @@ has "the orchestrator takes fix with a Review and links the reference" "$agent_m
   "\`fix\` with a Review's location" "](references/fix.md)"
 has "the orchestrator reads the reference through the shell, as it reads the format" "$agent_md" \
   'readlink -f ~/.claude/skills/do-code-review)/references/fix.md'
-has "the orchestrator reads the reference only when there is something to fix" "$agent_md" \
+has "the orchestrator reads the reference on every run but a --no-fix one" "$agent_md" \
   "only when" "an \`Act on\` Finding" "--no-fix" "never read by a reviewer"
+# ADR 0013's fast-forward is the chain's only landing procedure and do reads a landing line off
+# every call, so a Green Review with nothing to act on reaches it: the gate is on the Fixer alone.
+has "the Act on gate holds the Fixer and never the landing" "$agent_md" \
+  "A Review with nothing in \`Act on\` forks no Fixer" "still lands when it is Green" \
+  "read the same file at \`## The landing\`"
+has "the return carries the landing line whether a fix ran or not" "$agent_md" \
+  "Then the landing, whether a fix ran or not"
 # The whole `Fixed point:` line resolves as no ref, and the door's refusals are worded for a review
 # the fix call never ran, so a fix call takes the sha out of the header and rewords what comes back.
 has "a fix call hands the door the sha inside the Fixed point header" "$agent_md" \
@@ -190,6 +197,10 @@ has "the run still returns the text and the location after a reviewer failed twi
 fix_md="$skill/references/fix.md"
 has "the fix reference opens with its title and its one reader" "$fix_md" \
   "# The fix" "read by the orchestrator" "never by a reviewer"
+has "the fix reference is opened at the landing by a Review with nothing to act on" "$fix_md" \
+  "at \`## The landing\` on a default run" "since a Green Review lands either way"
+lacks "no line in the fix reference makes the landing wait on an Act on Finding" "$fix_md" \
+  "A \`--no-fix\` run and a Review with nothing to act on never open it"
 has "the fix reference reads the Act on list off the file" "$fix_md" \
   "## The Act on list" "the file's order" "by its number" "edited by hand"
 has "the fix reference carries the three door checks, each one line and nothing written" "$fix_md" \

@@ -242,14 +242,19 @@ Then `mkdir -p` the folder of the `review=` path and write the file with the Wri
 whole. Never a second write, never an edit. A run on the same branch overwrites the previous
 Review.
 
-## 8. The fix
+## 8. The fix and the landing
 
-Only now, and only when the Review you just wrote carries an `Act on` Finding and the mode is not
-`--no-fix`, read [fix.md](references/fix.md) and run it from `## Where the Fixer works` onward: the
-Fixer, one general-purpose sub-agent briefed from that file, the re-check you run yourself, the
-`## Fix run` section appended to the same Review, and the landing. Its three door checks belong to
-a `fix` call and you have their answers already. A Review with nothing in `Act on` skips this step
-and lands when it is Green, and it is never read by a reviewer: the reviewers are gone by now.
+Only now, and only when the mode is not `--no-fix`, read [fix.md](references/fix.md). A Review that
+carries an `Act on` Finding runs it from `## Where the Fixer works` onward: the Fixer, one
+general-purpose sub-agent briefed from that file, the re-check you run yourself, the `## Fix run`
+section appended to the same Review, and the landing. Its three door checks belong to a `fix` call
+and you have their answers already.
+
+A Review with nothing in `Act on` forks no Fixer and appends no `## Fix run` section, and it
+still lands when it is Green: read the same file at `## The landing` and fast-forward the landing
+target under ADR 0013's rules, then end with the push command. The `Act on` gate holds the Fixer,
+never the landing, so a first clean build `do` sends here lands like any other. Either way the file
+is never read by a reviewer: the reviewers are gone by now.
 
 On the developer's own branch an uncommitted working tree skips the fix, as that file says: the
 Review stands, one line says to commit or stash and run `fix` with it, and no Fixer is forked.
@@ -261,7 +266,10 @@ line for that file's own visibility, the door's `review_in_status=`, either way:
 `review_in_status=yes`, that the Review shows up in `git status` for the caller to keep or drop;
 on `review_in_status=no`, that git ignores that path in the tree it sits in, or it sits outside the
 repository, so the Review does not. Then the outcome of the fix, when one ran: one line per `Act on`
-Finding by number, the same words the `## Fix run` section carries, and the landing, `landed at
-<sha>` or `not landed` with its reason and the branch and worktree left in place. Your last line is
-the push command, `git push` with the landing target named, because nothing leaves the machine here.
+Finding by number, the same words the `## Fix run` section carries.
+
+Then the landing, whether a fix ran or not: `landed at <sha>`, or `not landed` with its reason and
+the branch and worktree left in place, or `nothing to land` when the landing target is the branch
+the Review judged. Your last line is the push command, `git push` with the landing target named,
+because nothing leaves the machine here.
 Nothing else: no preamble, no summary of your own.
