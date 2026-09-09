@@ -246,6 +246,15 @@ output line is quoted after.
 Done when the suite and the typecheck are green in output produced after the last edit, and every
 other check is green or reads `skip: <reason>`.
 
+## The integration
+
+Run in the worktree after a green gate and before the review is called, so that the diff the
+reviewers read is the diff that lands. The run rebases the branch it built on onto the developer's
+branch, the branch the run started on, and nothing is written to the developer's branch: the branch
+that moves is the run's. A protected developer branch does not stop this step, since a rebase onto
+a branch writes nothing to it and this step lands nothing. The landing stays the review's, and a
+protected target is refused there as it is refused today.
+
 ## The review
 
 Run once per landing, after the gate, and never by hand: the review fixes and lands, the run reads.
