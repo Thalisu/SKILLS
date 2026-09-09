@@ -303,6 +303,16 @@ that change, so the continue has nothing left to apply and git says so. The run 
 `git rebase --skip`, and the commit is named in the reply. Nothing of the run's work is lost: the
 change is already on the branch it was going to land on.
 
+**Git refusing to continue for any other reason.** The run stops as blocked with the rebase left
+open at that commit, the conflicting files named, and the command that undoes it,
+`git rebase --abort`, since the rebase has not finished and the abort is still there to take. The
+worktree and its branch stay in place and are named, the Ticket stays `claimed`, nothing lands and
+nothing is pushed. The two blocked states carry two different undo commands, and each names its
+own: the abort while the rebase is open, the reset to the recorded commit once it has finished.
+
+Done when the step is ticked as a no-op, or ticked with the target and the count and the gate green
+after it, or the run stopped as blocked with its reason, its undo command and its worktree named.
+
 ## The review
 
 Run once per landing, after the gate, and never by hand: the review fixes and lands, the run reads.

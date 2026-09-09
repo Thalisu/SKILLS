@@ -128,6 +128,16 @@ has "a commit left empty by the resolution is skipped and named" "$mech" \
   "git rebase --skip" \
   "named in the reply"
 
+# The two blocked states need two different undo commands, and getting them the wrong way round
+# hands the developer a command that does nothing: the abort exists only while the rebase is open.
+has "git refusing for any other reason stops the run with the rebase left open" "$mech" \
+  "refusing to continue for any other reason" \
+  "the rebase left open at that commit" \
+  "the conflicting files named" \
+  "git rebase --abort"
+has "the undo command follows the state the rebase is in" "$mech" \
+  "since the rebase has not finished"
+
 # No em-dash in the prose this step writes, per CLAUDE.md.
 lacks "no em-dash in the shared mechanics" "$mech" "$emdash"
 
