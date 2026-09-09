@@ -81,7 +81,7 @@ command to type, with nothing written and no Playbook file read.
 | a pasted session summary | `/spec`, since the discussion already happened |
 | a feature, or anything else with no ticket | `/discuss`, or `/spec` when the conversation already holds the discussion |
 | how something works, or why it was built that way | `/how`, `/why`, `/teach` |
-| a sketch, a layout, a variant to try | `/prototype` |
+| a runnable throwaway: a layout, a variant to try | `/prototype` |
 | an issue number where the project has no tracker file | back to you, for the ticket's path. The number is never guessed against a list in the conversation |
 
 A Playbook has its own door on top of that one, and `trivial` is where it bites. **Trivial** is

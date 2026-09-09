@@ -16,6 +16,13 @@ has() { # $1 label, $2 file, $3.. fixed strings that must appear in the file
   for line in "$@"; do [ "$ok" = 1 ] && grep -qF -- "$line" "$file" || ok=0; done
   if [ "$ok" = 1 ]; then echo "ok    $label"; else echo "FAIL  $label ($file)"; fails=$((fails + 1)); fi
 }
+lacks() { # $1 label, $2 file, $3.. fixed strings that must not appear
+  local label="$1" file="$2"; shift 2
+  local ok=1 line
+  [ -f "$file" ] || ok=0
+  for line in "$@"; do grep -qF -- "$line" "$file" 2>/dev/null && ok=0; done
+  if [ "$ok" = 1 ]; then echo "ok    $label"; else echo "FAIL  $label ($file)"; fails=$((fails + 1)); fi
+}
 expect() { # $1 label, $2.. a command that must succeed
   local label="$1"; shift
   if "$@"; then echo "ok    $label"; else echo "FAIL  $label"; fails=$((fails + 1)); fi
@@ -30,5 +37,18 @@ has "the router sends a runnable throwaway to the prototype door" "$router" \
   "| a runnable throwaway: a layout, a variant to try | \`Playbook: none\`; \`/prototype\` |"
 expect "no row of the router table matches the word \`sketch\`" \
   test -z "$(table "$router" '| The argument | Match |' | grep -F sketch)"
+
+# The two places the repository repeats the row. A reader who takes either at its word and types
+# `/do sketch a shape` has to land on the same door the router sends them to.
+page="$repo/docs/do.md"
+has "the page's door table quotes the router's row" "$page" \
+  "| a runnable throwaway: a layout, a variant to try | \`/prototype\` |"
+expect "no row of the page's door table matches the word \`sketch\`" \
+  test -z "$(table "$page" '| The request | Where it goes |' | grep -F sketch)"
+glossary="$repo/CONTEXT.md"
+has "the glossary's Playbook rule sends a runnable throwaway to prototype" "$glossary" \
+  "throwaway is \`prototype\`"
+lacks "the glossary rule no longer calls a request for a throwaway a sketch" "$glossary" \
+  "a sketch is \`prototype\`"
 
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi

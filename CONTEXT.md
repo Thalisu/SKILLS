@@ -190,7 +190,8 @@ _Avoid_: theirs, mine, source, the run's side
   dispatches no test author; a bug, a new exported symbol, a changed signature or a user-observable
   effect re-routes
 - `do` ships five **Playbooks**: `ticket` inside the chain; `trivial`, `bug-fix`, `refactoring` and
-  `integrate` outside it. A question is `how`, `why` or `teach`; a feature is the chain; a sketch is `prototype`
+  `integrate` outside it. A question is `how`, `why` or `teach`; a feature is the chain; a runnable
+  throwaway is `prototype`
 - The **Ticket** file belongs to the main checkout: the `ticket` **Playbook** claims it at the start
   and closes it at the end with file writes there, its worktree branch never touches it, and `do`
   never commits it; on a remote tracker the claim and the close wait for the developer's yes
