@@ -148,11 +148,14 @@ Spec's stories and Testing Decisions, and the journey's step table and failure b
 Spec points at one; never from the implementation. It holds the behaviours callers observe,
 critical paths and the logic that can be wrong first, not one line per branch. Each line becomes
 one dispatch, and a line that reproduces a defect is marked `bugfix`. A defect whose cause the
-Ticket does not name is diagnosed before the list, as the `bug-fix` Playbook does: the defect
-reproduced on the matching surface, the hypotheses ruled out with runtime evidence, the
-instrumentation reverted, the mechanism confirmed, per
-[fix-root-causes](../../../.agents/principles/fix-root-causes.md); when `bug-fix` is not
-installed under Links, these four steps stand on their own. A design fork found here stops
+Ticket does not name, the one step 0 wrote a defect line for reading
+`cause unknown, diagnosis first`, is diagnosed before the list by the reproduce and cause steps of
+[bug-fix.md](bug-fix.md), steps 2 and 3 there: the defect reproduced on the matching surface, the
+hypotheses ruled out with runtime evidence, the instrumentation reverted, the mechanism confirmed,
+per [fix-root-causes](../../../.agents/principles/fix-root-causes.md). The list is written from the
+confirmed mechanism, its `bugfix` line carries the reproduction as its expected red, and that red
+run reproduces the defect before any production change. When `bug-fix` is not installed under
+Links, those two steps stand on their own. A design fork found here stops
 the run (the forks in [mechanics.md](mechanics.md)). Show the list once; the loop starts on the
 developer's silence. Done when the list is in the thread.
 

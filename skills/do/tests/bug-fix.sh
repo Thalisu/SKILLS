@@ -129,5 +129,14 @@ has "the reply names the root cause and the fix" "$ref" "the root cause"
 has "the reply pastes the failing then passing output" "$ref" "failing-then-passing output"
 has "the reply ends with the push command" "$ref" "\`git push\`"
 
+# The ticket Playbook hands a defect with no named cause to this Playbook's diagnosis steps
+has "the ticket Playbook links the reference" "$ticket" "](bug-fix.md)"
+has "the hand-off is keyed to the defect line" "$ticket" "cause unknown, diagnosis first"
+has "the diagnosis runs before the behaviours list" "$ticket" "before the list"
+has "the diagnosis is this Playbook's reproduce and cause steps" "$ticket" "reproduce and cause steps"
+has "the red run reproduces the defect before any production change" "$ticket" "before any production change"
+has "the steps stand alone when the reference is absent" "$ticket" "stand on their own"
+lacks "no em-dash in the ticket Playbook" "$ticket" "$emdash"
+
 [ "$fails" = 0 ] || { echo; echo "$fails failed"; exit 1; }
 echo; echo "all passed"
