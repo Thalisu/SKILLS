@@ -23,9 +23,9 @@
 # module outside the repo, so a system boundary) or `internal` (a relative/alias path or a module of
 # this repo, so either a thin wrapper around a boundary or an internal collaborator: debt);
 # type-assertions = every TypeScript test file carrying a type assertion, with a count: a
-# double assertion (`as unknown as T`) counts once, and `as const`, an import or export rename
-# over however many lines its specifier list spans, and the word "as" inside a string, a
-# template literal or a comment count as none;
+# double assertion counts once, written through `unknown` or through `any`, and `as const`, an
+# import or export rename over however many lines its specifier list spans, and the word "as"
+# inside a string, a template literal or a comment count as none;
 # skip-markers = every marker from skip-patterns.sh (sourced from this script's directory).
 # Output is plain text with fixed "## <section>" headers so callers can grep it.
 # Exit 0 whenever the scan ran (a finding is not an error); exit 2 on usage errors.
@@ -296,7 +296,7 @@ if want type-assertions; then
       case "$f" in
         *.ts|*.tsx|*.mts|*.cts)
           n="$(ts_code_only "$f" \
-            | grep -oE '\bas[[:space:]]+unknown[[:space:]]+as[[:space:]]+[A-Za-z_$][A-Za-z0-9_$]*|\bas[[:space:]]+[A-Za-z_$][A-Za-z0-9_$]*' \
+            | grep -oE '\bas[[:space:]]+(unknown|any)[[:space:]]+as[[:space:]]+[A-Za-z_$][A-Za-z0-9_$]*|\bas[[:space:]]+[A-Za-z_$][A-Za-z0-9_$]*' \
             | grep -cvE '^as[[:space:]]+const$')"
           [ "${n:-0}" -gt 0 ] && printf '%s\t%d\n' "$(row_path "$f")" "$n" ;;
       esac
