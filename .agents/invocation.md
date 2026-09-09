@@ -90,6 +90,7 @@ invariant is kept by the callers, not by the harness.
 | `do-code-review` | model-invoked | `/do-code-review`, typed or fired by the model on a review request; `do` at its review step, through the Skill tool with a Ticket. The developer and `do` are its only callers; it forks the reviewers below with the Agent tool, then the Fixer, and never edits code itself |
 | `do-code-review-technical-reviewer` | `do-code-review`, model-invoked | `Agent(subagent_type: do-code-review-technical-reviewer)` from the `do-code-review` orchestrator only, with a brief; it has no write and no edit tool |
 | `do-code-review-security-reviewer` | `do-code-review`, model-invoked | `Agent(subagent_type: do-code-review-security-reviewer)` from the `do-code-review` orchestrator only, with the same brief, forked in parallel with the technical reviewer; it has no write and no edit tool |
+| `do`'s reader | `do`, model-invoked | forked by `do`'s door only, once its stops have passed, over the Ticket's Spec and its journey with the brief `skills/do/references/digest.md` fixes. It ships no definition of its own, so the brief is what bounds it: it reads and searches, writes one file, the Digest, at the path the brief names, and the door compares `git status` in the main checkout across the fork |
 
 So a step in another skill may reach the agent a user-invoked skill ships, never the skill itself,
 and only when that agent's description names the calling skill. The step spells it out as an Agent

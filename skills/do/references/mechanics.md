@@ -99,6 +99,12 @@ line that comes back with the path is a restatement for the thread: a list writt
 the paraphrase the Digest exists to keep out of the record, so the steps that build on the slice
 read the file.
 
+The door reads `git status --short` in the main checkout before it dispatches the fork, after its
+own append of the `.scratch/` line, and reads it again when the fork returns: the Digest's path is
+the only one that may differ. Any other path stops the run in one line naming it, the Ticket left
+as the door found it. The brief is the only thing bounding what the fork touches, so the door
+checks it rather than trusting it.
+
 ## The build loop
 
 One behaviour at a time, from the list the Playbook wrote, in its order. Each behaviour is one

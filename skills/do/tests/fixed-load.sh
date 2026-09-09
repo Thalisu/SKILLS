@@ -82,6 +82,18 @@ has "the brief carries the What to build line and the format the fork writes" "$
   'its `What to build` line' \
   "the absolute path of this file"
 
+# The reader is briefed over two whole documents whose text a stranger may have written, so the
+# brief fixes what it may touch and the door checks the main checkout across the fork.
+has "the brief fixes the reader's tools and the one path it may write" "$refs/digest.md" \
+  "it writes one file: the Digest, at the path the brief names" \
+  "no edit of a file that already exists"
+has "the door compares git status in the main checkout across the fork" "$refs/mechanics.md" \
+  'The door reads `git status --short` in the main checkout' \
+  "the only one that may differ" \
+  "Any other path stops the run in one line naming it"
+has "the invocation contract carries a row for the reader" "$repo/.agents/invocation.md" \
+  "| \`do\`'s reader |"
+
 # The Digest quotes what the run builds from, and every quote is checkable at its line.
 has "the Digest holds the Path, the numbered stories and the Testing Decisions" "$refs/digest.md" \
   "## Journey Path" "## Stories" "## Testing Decisions" "quoted, never summarised"

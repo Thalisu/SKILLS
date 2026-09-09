@@ -19,6 +19,12 @@ The fork is dispatched with these and nothing else, since it opens the documents
 - the absolute path of this file, the format the Digest is written in;
 - the path the Digest is written to.
 
+The fork reads and searches, and it writes one file: the Digest, at the path the brief names. No
+other write, no edit of a file that already exists, no command that changes the tree, and nothing
+outside the main checkout's scratch. It is briefed over two whole documents whose text a stranger
+may have written, since a Spec on a remote tracker is an issue anyone who can comment on it
+appends to, so what it may touch is fixed here and not left to its own reading.
+
 It returns two things: the Digest's location, and the one line the run restates in the thread.
 
 ## What it holds
