@@ -77,10 +77,11 @@ bug-fix:
 - [ ] 6. Smallest fix on top: one commit through the shared loop, green, typecheck, format
 - [ ] 7. The original reproduction run again on the same surface: the passing output
 - [ ] 8. Gate in the worktree: full unit suite, typecheck, format
-- [ ] 9. Review by do-code-review: Act on Findings fixed by its Fixer, landed when Green
-- [ ] 10. Affected E2E flows run from the main checkout
-- [ ] 11. Worktree removed
-- [ ] 12. Reply
+- [ ] 9. Integration: the branch rebased onto the developer's branch, the gate again when it replayed
+- [ ] 10. Review by do-code-review: Act on Findings fixed by its Fixer, landed when Green
+- [ ] 11. Affected E2E flows run from the main checkout
+- [ ] 12. Worktree removed
+- [ ] 13. Reply
 ```
 
 ## Steps
@@ -155,7 +156,7 @@ stops the run as blocked with nothing landed and the hypotheses listed, the main
 first, since a defect nobody has observed is never called fixed.
 
 A bug that does not reproduce even when forced stops the run: the message says what it tried, and
-the run leaves nothing committed, the worktree removed by step 11 and the main checkout restored
+the run leaves nothing committed, the worktree removed by step 12 and the main checkout restored
 before the message. Done when the command line and the output showing the defect are in the
 thread, or the run stopped with what it tried named and the main checkout's status quoted.
 
@@ -236,7 +237,13 @@ reproduction's passing output is in the thread, or the developer's second report
 **8. Gate.** The gate in [mechanics.md](mechanics.md), in the worktree, after the last edit. Done
 when the suite and the typecheck are green in output produced after the last edit.
 
-**9. Review and landing.** The review in [mechanics.md](mechanics.md), called with
+**9. Integration.** The integration in [mechanics.md](mechanics.md), with the branch the run
+started on as the target: the branch it built on rebased onto that branch, every conflicted hunk
+classed by the door script before anything is resolved, and the gate's command lines run again when
+the rebase replayed commits. Done when the step reads the no-op, or the target and the count with
+the gate green after it, or the run stopped as blocked with the worktree and its branch named.
+
+**10. Review and landing.** The review in [mechanics.md](mechanics.md), called with
 the branch alone as the spec source, since no Ticket exists to hand over and the Review names the
 branch and its fixed point instead, with the commit the worktree was created from as the fixed
 point and the branch the run started on as the landing target. The thread shows the return, one line per part. A red gate, a
@@ -247,7 +254,7 @@ reply adds after a refused protected-branch landing. Done when the landing line 
 worktree and its branch named, or the step reads `skip: do-code-review not listed` with the
 worktree and its branch named.
 
-**10. Verification.** The verification in [mechanics.md](mechanics.md): the affected flows from the
+**11. Verification.** The verification in [mechanics.md](mechanics.md): the affected flows from the
 main checkout with the command line printed first, the one question before a full suite or a remote
 run, and a red flow as one more unit of the loop, gated and handed to a second review call with the
 landed commit as its fixed point, which lands it again. A defect with no user-observable surface
@@ -255,7 +262,7 @@ has no affected flow and the step reads `skip: no affected flow` with that reaso
 affected flow is green or recorded as not run on the developer's no, or the step reads
 `skip: nothing landed`.
 
-**11. Close.** Outside the chain there is no Ticket, so the close is the worktree's removal alone,
+**12. Close.** Outside the chain there is no Ticket, so the close is the worktree's removal alone,
 by the close in [mechanics.md](mechanics.md): no status line is written, no criterion is ticked and
 no evidence is appended, since the reply is where this run's evidence lives. Leave the worktree
 with a bare `cd` to the main checkout, then remove it and its branch from there. A delete that
@@ -263,7 +270,7 @@ refuses means something did not land, and the run stops with the worktree and it
 Done when `git worktree list` no longer shows the run's worktree, or the step reads
 `skip: nothing landed` with the worktree and its branch named.
 
-**12. Reply.** Written by [reply.md](reply.md), opening with four lines of its own before that
+**13. Reply.** Written by [reply.md](reply.md), opening with four lines of its own before that
 file's sections: what was broken, the root cause, the fix, and the verification with the
 failing-then-passing output pasted, the developer's reports among it marked as theirs when they
 drove the surface. What this Playbook puts in the reference's sections: the Review under the files

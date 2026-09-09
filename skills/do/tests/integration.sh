@@ -138,7 +138,48 @@ has "git refusing for any other reason stops the run with the rebase left open" 
 has "the undo command follows the state the rebase is in" "$mech" \
   "since the rebase has not finished"
 
+# The mechanic lives once, but it is only reached from a Playbook's checklist, so each of the three
+# that builds in a worktree carries the line between its gate and its review, and a step body for it.
+ticket="$refs/ticket.md"
+bugfix="$refs/bug-fix.md"
+refactor="$refs/refactoring.md"
+
+has "the ticket Playbook carries the integration between its gate and its review" "$ticket" \
+  "- [ ] 8. Integration:" "- [ ] 9. Review by do-code-review:"
+between "the ticket checklist orders gate, integration, review" "$ticket" \
+  "- [ ] 7. Gate in the worktree" "- [ ] 8. Integration:" "- [ ] 9. Review by do-code-review:"
+has "the ticket Playbook carries a step body for the integration" "$ticket" \
+  "**8. Integration.**" "The integration in [mechanics.md](mechanics.md)"
+has "the ticket Playbook renumbered the steps the integration displaced" "$ticket" \
+  "**9. Review and landing.**" "**10. Verification.**" "**11. Close.**" "**12. Reply.**"
+
+has "the bug-fix Playbook carries the integration between its gate and its review" "$bugfix" \
+  "- [ ] 9. Integration:" "- [ ] 10. Review by do-code-review:"
+between "the bug-fix checklist orders gate, integration, review" "$bugfix" \
+  "- [ ] 8. Gate in the worktree" "- [ ] 9. Integration:" "- [ ] 10. Review by do-code-review:"
+has "the bug-fix Playbook carries a step body for the integration" "$bugfix" \
+  "**9. Integration.**" "The integration in [mechanics.md](mechanics.md)"
+
+has "the refactoring Playbook carries the integration between its gate and its review" "$refactor" \
+  "11. integration:" "12. review:"
+between "the refactoring checklist orders gate, integration, review" "$refactor" \
+  "10. gate:" "11. integration:" "12. review:"
+has "the refactoring Playbook carries a step body for the integration" "$refactor" \
+  "### 11. Integration" "The integration in [mechanics.md](mechanics.md)"
+
+# A step number written into prose is a reference like any other: a renumber that leaves one behind
+# points the reader at the wrong step, and nothing else in the file would catch it.
+has "the ticket Playbook's own step reference followed the renumber" "$ticket" \
+  "the close here is step 11's"
+has "the bug-fix Playbook's own step reference followed the renumber" "$bugfix" \
+  "the worktree removed by step 12"
+has "the refactoring Playbook's own step references followed the renumber" "$refactor" \
+  "as step 12 says" "step 13 carries"
+
 # No em-dash in the prose this step writes, per CLAUDE.md.
+lacks "no em-dash in the ticket Playbook" "$ticket" "$emdash"
+lacks "no em-dash in the bug-fix Playbook" "$bugfix" "$emdash"
+lacks "no em-dash in the refactoring Playbook" "$refactor" "$emdash"
 lacks "no em-dash in the shared mechanics" "$mech" "$emdash"
 
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi

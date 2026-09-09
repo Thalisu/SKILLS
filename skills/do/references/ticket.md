@@ -93,10 +93,11 @@ Do:
 - [ ] 5. Build loop: one behaviour, one dispatch, one green commit, repeat
 - [ ] 6. E2E flows authored or extended (native and mixed surfaces)
 - [ ] 7. Gate in the worktree: full unit suite, typecheck, format
-- [ ] 8. Review by do-code-review: Act on Findings fixed by its Fixer, landed when Green
-- [ ] 9. Affected E2E flows run from the main checkout
-- [ ] 10. Ticket closed with evidence; worktree removed
-- [ ] 11. Reply
+- [ ] 8. Integration: the branch rebased onto the developer's branch, the gate again when it replayed
+- [ ] 9. Review by do-code-review: Act on Findings fixed by its Fixer, landed when Green
+- [ ] 10. Affected E2E flows run from the main checkout
+- [ ] 11. Ticket closed with evidence; worktree removed
+- [ ] 12. Reply
 ```
 
 ## Steps
@@ -189,7 +190,7 @@ Links, those two steps stand on their own. They are the exception the Links rule
 the second ask a surface the session cannot reach gets on the fixed build, `bug-fix`'s step 7,
 is asked here at step 5, once the `bugfix` line's fix is green in the loop, and a defect that will
 not reproduce even when forced stops this run as blocked, the Ticket left `claimed` and the
-worktree and its branch in place and named, never removed, since the close here is step 10's and
+worktree and its branch in place and named, never removed, since the close here is step 11's and
 a blocked run closes nothing. A design fork found here stops
 the run (the forks in [mechanics.md](mechanics.md)). Show the list once; the loop starts on the
 developer's silence. Done when the list is in the thread.
@@ -219,21 +220,27 @@ or a stated reason, or the skip is in the thread.
 **7. Gate.** The gate in [mechanics.md](mechanics.md), in the worktree, after the last edit. Done
 when the suite and the typecheck are green in output produced after the last edit.
 
-**8. Review and landing.** The review in [mechanics.md](mechanics.md), with the Ticket's
+**8. Integration.** The integration in [mechanics.md](mechanics.md), with the branch the run
+started on as the target: the branch it built on rebased onto that branch, every conflicted hunk
+classed by the door script before anything is resolved, and the gate's command lines run again when
+the rebase replayed commits. Done when the step reads the no-op, or the target and the count with
+the gate green after it, or the run stopped as blocked with the worktree and its branch named.
+
+**9. Review and landing.** The review in [mechanics.md](mechanics.md), with the Ticket's
 location as the spec source, the commit the worktree was created from as the fixed point, and the
 branch the run started on as the landing target. The thread shows the return, one line per part.
 Done when the landing line in the thread reads `landed at <commit>`, or the run stopped as
 blocked with the review's reason quoted and the worktree and its branch named, or the step reads
 `skip: do-code-review not listed` with the worktree and its branch named.
 
-**9. Verification.** The verification in [mechanics.md](mechanics.md): the affected flows from
+**10. Verification.** The verification in [mechanics.md](mechanics.md): the affected flows from
 the main checkout with the command line printed first, the one question before a full suite or
 a remote run, and a red flow as one more unit of the loop, gated and handed to a second review
 call with the landed commit as its fixed point, which lands it again. Done when every affected
 flow is green or recorded as not run on the developer's no, or the step reads
 `skip: nothing landed`.
 
-**10. Close.** The close in [mechanics.md](mechanics.md): the Ticket file in the main checkout
+**11. Close.** The close in [mechanics.md](mechanics.md): the Ticket file in the main checkout
 ticked where the evidence proves it, the evidence appended under `## Evidence` with the
 `Context:` line first, the status line set to `resolved`, the file left uncommitted; then the
 worktree and its branch removed. When the door appended the `.scratch/` line to the project's
@@ -242,7 +249,7 @@ changed a file git tracks, and the developer reads that here rather than finding
 `git status`. Done when the Ticket reads `resolved` and `git worktree list` no longer shows the
 run's worktree, or the step reads `skip: nothing landed` and the Ticket still reads `claimed`.
 
-**11. Reply.** Written by [reply.md](reply.md). What this Playbook puts in its sections: the
+**12. Reply.** Written by [reply.md](reply.md). What this Playbook puts in its sections: the
 Ticket and the Review under the files left uncommitted; the flows the developer waived and the
 consumer flows not run under pending debt; and the next step, `git push` with the developer's
 branch named when the review landed, or, when nothing landed, the worktree, its branch, and the

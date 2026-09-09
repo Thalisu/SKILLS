@@ -31,10 +31,11 @@ refactoring:
 8. exit test: reader load lower with the reason, or the one question before the revert
 9. cleanup: the speculative cleanup reverted, the harness deleted and its gap named, one commit
 10. gate: the full unit suite, the typecheck, the lint and the format in the worktree
-11. review: do-code-review on the branch's diff, landed when Green
-12. verification: the affected flows from the main checkout
-13. close: the worktree and its branch removed
-14. reply: by the reply reference
+11. integration: the branch rebased onto the developer's branch, the gate again when it replayed
+12. review: do-code-review on the branch's diff, landed when Green
+13. verification: the affected flows from the main checkout
+14. close: the worktree and its branch removed
+15. reply: by the reply reference
 ```
 
 ### 1. Door
@@ -62,7 +63,7 @@ and the door the request goes to with the command to type, nothing written.
    FOUND is reused rather than created, and the audit line goes in the thread,
    `Discovery: n FOUND · n DUPLICATE · n NOT_FOUND`.
 4. **The branch.** The protected branch in [mechanics.md](mechanics.md). This is a warning and not a
-   refusal: the run builds to the gate and the review refuses the landing, as step 11 says.
+   refusal: the run builds to the gate and the review refuses the landing, as step 12 says.
 
 Then the first message, before any edit, in this order:
 
@@ -298,7 +299,7 @@ asks one question, the second and last this Playbook raises of its own:
   carries the failed exit test as pending debt so the next reader knows the claim was not met.
 
 A yes that [mechanics.md](mechanics.md) reserves to the developer is not one of the two and is never
-waived here: step 3 carries one when the harness cannot stay inside its bound, and step 12 carries
+waived here: step 3 carries one when the harness cannot stay inside its bound, and step 13 carries
 the question before a full suite or a remote run. Both are asked whenever the run reaches them.
 
 Done when the answer and its reason are in the thread, with the developer's answer when the test
@@ -342,7 +343,15 @@ quoted. A red gate is one more step of the reshape, taken as step 6 takes one, a
 gate again; never a skipped test, a weakened assertion or a pin edited to fit. Done when the suite
 and the typecheck are green in output produced after the last edit.
 
-### 11. Review
+### 11. Integration
+
+The integration in [mechanics.md](mechanics.md), with the branch the run started on as the target:
+the branch it built on rebased onto that branch, every conflicted hunk classed by the door script
+before anything is resolved, and the gate's command lines run again when the rebase replayed
+commits. Done when the step reads the no-op, or the target and the count with the gate green after
+it, or the run stopped as blocked with the worktree and its branch named.
+
+### 12. Review
 
 The review in [mechanics.md](mechanics.md), called once, with the branch alone as its spec source
 since there is no Ticket outside the chain, the commit the worktree was created from as the fixed
@@ -370,7 +379,7 @@ git merge --ff-only do/<slug>
 Done when the landing line reads `landed at <commit>`, or the run stopped as blocked with the
 review's reason quoted, or the step reads its skip with the worktree and its branch named.
 
-### 12. Verification
+### 13. Verification
 
 The verification in [mechanics.md](mechanics.md), from the main checkout after the landing: the
 affected flows with the command line printed first, the one question before a full suite or a remote
@@ -380,7 +389,7 @@ has no affected flow, and the step reads `skip: no affected flow` with that reas
 affected flow is green or recorded as not run on the developer's no, or the step reads
 `skip: nothing landed`.
 
-### 13. Close
+### 14. Close
 
 The close in [mechanics.md](mechanics.md). Outside the chain there is no Ticket, so the close is the
 worktree's removal alone: leave it with a bare `cd` to the main checkout, then `git worktree remove
@@ -388,7 +397,7 @@ worktree's removal alone: leave it with a bare `cd` to the main checkout, then `
 and the run stops with the worktree and its branch named. Done when `git worktree list` no longer
 shows the run's worktree, or the step reads `skip: nothing landed`.
 
-### 14. Reply
+### 15. Reply
 
 Written by [reply.md](reply.md), with these lines before its sections, in this order:
 

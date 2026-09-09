@@ -91,7 +91,7 @@ has "the restored status matches what step 1 read" "$ref" "matching what step 1 
 has "the revert runs on every exit of steps 2 and 3" "$ref" "on every exit of steps 2 and 3"
 has "a stopping run restores before it stops" "$ref" "restores first and stops after"
 has "the blocked stop restores the main checkout" "$ref" "the hypotheses listed, the main checkout restored"
-has "the non-reproducing stop restores the main checkout" "$ref" "the worktree removed by step 11 and the main checkout restored"
+has "the non-reproducing stop restores the main checkout" "$ref" "the worktree removed by step 12 and the main checkout restored"
 has "step 3 is done with the main checkout's status quoted" "$ref" "the main checkout's \`git status --short\` quoted"
 
 # The surface that cannot be reached: the developer drives it, twice
