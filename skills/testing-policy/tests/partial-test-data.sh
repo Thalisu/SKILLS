@@ -218,9 +218,21 @@ absent "no em-dash in the prose this rule wrote" \
   "AGENT-UNIT.md" "SKILL.md" "POLICY.md" "partial-test-data.sh"
 
 # verify-policy.sh carries an em-dash inside a regex character class, which is syntax and not prose,
-# so this file is read for its comment lines, where a script's prose lives.
-rc=0; out="$(LC_ALL=C grep -nae "$emdash" "$verify" | grep -E '^[0-9]+:[[:space:]]*#' || true)"
+# so the guard reads the em-dashes that follow a # on their line, whole-line comments and trailing
+# ones alike. That class stays clear of it by carrying no # of its own.
+emdash_in_comments() { rc=0; out="$(LC_ALL=C grep -nae "#.*$emdash" "$1" || true)"; }
+
+emdash_in_comments "$verify"
 empty "no em-dash in the verifier's comment prose"
+
+# A trailing comment is prose too, and the guard is the only thing standing between it and the repo,
+# so it is put to a copy of the script that carries one.
+mutant="$tmp/verify-policy-with-trailing-comment.sh"
+cp "$verify" "$mutant"
+printf 'echo done  # a trailing comment whose prose carries %s an em-dash\n' "$emdash" >> "$mutant"
+emdash_in_comments "$mutant"
+check "the guard catches an em-dash in a trailing comment" 0 "$rc" \
+  "a trailing comment whose prose carries"
 
 echo
 if [ "$fails" = 0 ]; then echo "partial-test-data: all checks passed"; else echo "partial-test-data: $fails failed"; exit 1; fi
