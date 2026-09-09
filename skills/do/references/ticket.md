@@ -55,10 +55,11 @@ body carries per the build loop in [mechanics.md](mechanics.md), and the working
   irreversible act on this path. A yes discards them, `git restore --staged --worktree .` then
   `git clean -fd` in the worktree, and the first behaviour without a commit restarts red-first; a
   no stops the run with the worktree as it is, the reply naming it and its branch.
-- A run that stopped on a design fork (the forks in [mechanics.md](mechanics.md)) resumes the
-  same way once `discuss` amended the Spec: the reader is forked again over it and the list
-  re-derived from the Digest that comes back, and the loop continues at the first behaviour
-  without a commit.
+- A run that stopped on a design fork (the forks in [mechanics.md](mechanics.md)) resumes the same
+  way once `discuss` amended the Spec: the reader is forked again over the amended Spec and the
+  journey both, never over the Spec alone, whose Digest would come back with no Journey Path for
+  step 4 to read, and the list is re-derived from the Digest that comes back, then the loop
+  continues at the first behaviour without a commit.
 
 ## Checklist
 

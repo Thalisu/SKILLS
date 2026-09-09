@@ -89,6 +89,10 @@ has "every behaviour line traces to a quote and never to a paraphrase" "$refs/ti
 # A resume re-derives the list, so it must reach for the Digest and not for the Spec again.
 has "the resume re-derives the list from the Digest, never from the Spec" "$refs/ticket.md" \
   "re-derived from the Ticket and its Digest"
+# The re-fork after a design fork takes both documents: over the Spec alone the new Digest comes
+# back with no Journey Path, and the resumed list is shorter than the first run's.
+has "the design-fork resume forks the reader over the Spec and the journey both" "$refs/ticket.md" \
+  "journey both, never over the Spec alone"
 
 # The script is rerunnable by a reviewer who has only the file, since the repo has no runner. The
 # match is the header alone: the pattern is itself a line further down this script, so a whole-file
