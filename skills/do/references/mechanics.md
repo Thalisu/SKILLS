@@ -313,6 +313,18 @@ this step owes. Git writes the result and the session never edits a marker. Then
 the next commit, and every further stop is classed and resolved the same way. The reply names every
 hunk it resolved with its file and location.
 
+**A union that defines the same key twice.** A hunk classed `mechanical` says the two sides only
+added lines, never that the two additions mean the same thing. Where both sides added a definition
+of one key at the same anchor of a file whose reader takes the last definition it meets (JSON, YAML,
+TOML, an INI or a `.env` file), the union keeps both lines and the reader keeps one value: a `deny`
+list the developer's branch just added and an empty one from the replayed commit both land, and
+whatever reads the landed commit gets the empty one, a control of theirs undone with nothing asked.
+So before it marks a file resolved the run reads the union it wrote, and a key defined twice in one
+scope of that file is brought to the developer rather than resolved alone: the run stops as blocked
+with the file and the key named, the rebase left open at that commit, `git rebase --abort` as the
+undo, the worktree and its branch left in place and named and the Ticket left `claimed`. Which
+definition stands is theirs to say.
+
 **A replayed commit that is empty after the resolution.** The developer's branch already carries
 that change, so the continue has nothing left to apply and git says so. The run skips it,
 `git -c rerere.enabled=false -c rerere.autoupdate=false rebase --skip`, and the commit is named in
@@ -323,7 +335,7 @@ land on.
 open at that commit, the conflicting files named, and the command that undoes it,
 `git rebase --abort`, since the rebase has not finished and the abort is still there to take. The
 worktree and its branch stay in place and are named, the Ticket stays `claimed`, nothing lands and
-nothing is pushed. The two blocked states carry two different undo commands, and each names its
+nothing is pushed. The blocked states carry two different undo commands, and each names its
 own: the abort while the rebase is open, the reset to the recorded commit once it has finished.
 
 Done when the step is ticked as a no-op, or ticked with the target and the count and the gate green

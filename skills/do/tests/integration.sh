@@ -134,6 +134,15 @@ lacks "no use of a conflicted path reaches the shell bare" "$mech" \
   "git show :1:<path>" "git show :2:<path>" "git show :3:<path>" \
   "> <path>" "git add <path>"
 
+# The class is a shape, not a meaning: two sides that only added lines can have added two
+# definitions of one key, and in a last-wins format the union then keeps the line and drops the
+# value. A control the developer's branch just added is exactly the case, so this one is theirs.
+has "a union that defines one key twice is brought to the developer" "$mech" \
+  "A union that defines the same key twice" \
+  "brought to the developer rather than resolved alone" \
+  "the file and the key named" \
+  "never that the two additions mean the same thing"
+
 # A commit the resolution empties is not a loss: the change it carried is already on the branch it
 # was going to land on, so it is skipped rather than stopping the run.
 has "a commit left empty by the resolution is skipped and named" "$mech" \
