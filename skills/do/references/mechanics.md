@@ -260,6 +260,12 @@ The step walks one of four states, and the thread says which.
 **A rebase that replays no commit.** The developer's branch did not move under the run. The run
 ticks the step as a no-op, reruns nothing, and the review is called on the branch as it is.
 
+**A rebase that replayed commits.** The run ticks the step with the target and the count, the
+branch it rebased onto and how many of its own commits git replayed. The gate that was green before
+the replay is stale, since the run's commits now sit on code the branch had not seen: the gate's
+command lines run a second time, each shown before it runs and its output line quoted after, and a
+green gate calls the review on the rebased diff.
+
 ## The review
 
 Run once per landing, after the gate, and never by hand: the review fixes and lands, the run reads.

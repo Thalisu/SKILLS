@@ -63,6 +63,14 @@ has "a rebase that replayed nothing is a no-op that reruns nothing" "$mech" \
   "reruns nothing" \
   "the review is called on the branch as it is"
 
+# A replay rewrites the run's commits onto code the branch had not seen, so the gate that was green
+# before it is stale: it runs again, on the command lines the gate itself names, before the review.
+has "a rebase that replayed commits ticks with the target and the count" "$mech" \
+  "ticks the step with the target and the count"
+has "the gate runs a second time and green calls the review on the rebased diff" "$mech" \
+  "the gate's command lines run a second time" \
+  "a green gate calls the review on the rebased diff"
+
 # No em-dash in the prose this step writes, per CLAUDE.md.
 lacks "no em-dash in the shared mechanics" "$mech" "$emdash"
 
