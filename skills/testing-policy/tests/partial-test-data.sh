@@ -34,5 +34,8 @@ check "the unit core forbids building a fake by asserting a type at the compiler
 check "the unit core points at the Project map for the helper" 0 "$rc" \
   "Partial test data"
 
+absent "the unit core names no package, no helper function and no assertion keyword" \
+  "shoehorn" "@total-typescript" "fromPartial" "fromAny" "\`as\`" "as unknown as" "as any" "TypeScript"
+
 echo
 if [ "$fails" = 0 ]; then echo "partial-test-data: all checks passed"; else echo "partial-test-data: $fails failed"; exit 1; fi
