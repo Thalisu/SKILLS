@@ -96,7 +96,15 @@ has "the orchestrator describes the run" "$agent_md" \
   "no spec" "Inferred from the diff:" "once more" "one write" "unslop" "not run" ", inferred" "Ticket: none"
 has "the orchestrator reads the format through the shell and waits for the return file" "$agent_md" \
   'readlink -f ~/.claude/skills/do-code-review' "Return file:" "do not end your turn" "general-purpose"
-has "the wait's shell window closes inside the Bash tool's own maximum" "$agent_md" "timeout 570" "600000"
+has "the wait's shell window closes inside the Bash tool's own maximum" "$agent_md" "timeout 240" "600000"
+# A reviewer that never returns is declared failed by the wait running out, so the wait for the
+# first fork plus the wait for the retry have to close inside the budget the retry case gives the
+# whole run, or the case is cut off before the orchestrator can declare the first fork failed.
+# Both numbers are read off the files that carry them, never restated here.
+wait_budget="$(sed -n 's/.*the two forks together wait \([0-9]\{1,\}\) s at most.*/\1/p' "$agent_md" 2>/dev/null | head -1)"
+case_timeout="$(sed -n 's/^timeout_seconds: *\([0-9]\{1,\}\).*/\1/p' "$skill/evals/reviewer-retry/case.yaml" 2>/dev/null | head -1)"
+expect "the fan-out's whole wait closes inside the retry case's timeout" \
+  test "${wait_budget:-0}" -gt 0 -a "${wait_budget:-0}" -lt "${case_timeout:-0}"
 has "the brief hands the reviewer the door's status line whole" "$agent_md" \
   "untracked files in <the door's status= line>" "pathspec and all"
 lacks "the brief names no bare status command" "$agent_md" "git status --short"

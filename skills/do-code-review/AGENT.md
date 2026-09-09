@@ -156,13 +156,19 @@ prompt and the brief after it.
 
 The run is not over until the Review is written, whatever the Agent tool does. When it returns both
 results, go on. When it returns before the reviewers do, because the harness runs subagents in the
-background, do not end your turn: wait for both return files with a bounded shell call,
-`timeout 570 bash -c 'until [ -s <technical.md> ] && [ -s <security.md> ]; do sleep 5; done'`,
+background, do not end your turn: wait for the return files with a bounded shell call,
+`timeout 240 bash -c 'until [ -s <technical.md> ] && [ -s <security.md> ]; do sleep 5; done'`,
 given the Bash tool's own `timeout` at its maximum, `600000` ms, so the shell's window is the one
 that closes first and the call comes back to you instead of being cut short and left running in the
-background; up to six times, and read each file as it lands. The technical reviewer returns its
-Findings in the shape the format fixes, its five Axis lines and its safety fact; the security
-reviewer returns the same shape with the Security line alone.
+background. It comes back the moment both files are there. When it comes back at its window
+instead, with one file still missing, read the one that landed and wait again for the file still
+missing alone, the same call over that one path, so a return you already have is never waited on a
+second time. Three windows per fork and no more, which is 720 s, and the retry is waited for the
+same way, so the two forks together wait 1440 s at most, under the `timeout_seconds` of
+`evals/reviewer-retry/case.yaml`: that is what leaves a run whose reviewer never returns the room
+to declare it failed and still write the Review. The technical reviewer returns its Findings in the
+shape the format fixes, its five Axis lines and its safety fact; the security reviewer returns the
+same shape with the Security line alone.
 
 A reviewer whose file never lands did not return, and one whose file lands outside that shape did
 not return either. Either one is forked once more with the same brief, alone, and waited for the
