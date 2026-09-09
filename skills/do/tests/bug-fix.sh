@@ -116,5 +116,18 @@ has "it is run on the same surface" "$ref" "on the same surface"
 has "inconclusive is not a pass" "$ref" "Inconclusive is not a pass"
 has "an unreachable surface asks the developer a second time" "$ref" "their second report"
 
+# Steps 9 to 12: the shared review, verification and close, and the reply's own opening
+has "the review takes the branch alone as its spec source" "$ref" "the branch alone as the spec source"
+has "the fixed point is the commit the worktree came from" "$ref" "the commit the worktree was created from"
+has "the landing target is the branch the run started on" "$ref" "the branch the run started on"
+has "a red gate, a not-landed return and a protected branch read as the ticket Playbook's" "$ref" "the same way the \`ticket\` Playbook does"
+has "the verification comes from the shared mechanics" "$ref" "The verification in [mechanics.md](mechanics.md)"
+has "outside the chain the close is the worktree's removal alone" "$ref" "the close is the worktree's removal alone"
+has "no Ticket is ticked and none is closed" "$ref" "no criterion is ticked"
+has "the reply opens with what was broken" "$ref" "what was broken"
+has "the reply names the root cause and the fix" "$ref" "the root cause"
+has "the reply pastes the failing then passing output" "$ref" "failing-then-passing output"
+has "the reply ends with the push command" "$ref" "\`git push\`"
+
 [ "$fails" = 0 ] || { echo; echo "$fails failed"; exit 1; }
 echo; echo "all passed"

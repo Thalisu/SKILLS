@@ -176,14 +176,38 @@ reproduction's passing output is in the thread, or the developer's second report
 **8. Gate.** The gate in [mechanics.md](mechanics.md), in the worktree, after the last edit. Done
 when the suite and the typecheck are green in output produced after the last edit.
 
-**9. Review and landing.** Done when the landing line in the thread reads `landed at <commit>`, or
-the run stopped as blocked, or the step reads `skip: do-code-review not listed`.
+**9. Review and landing.** The review in [mechanics.md](mechanics.md), called with
+the branch alone as the spec source, since no Ticket exists to hand over and the Review names the
+branch and its fixed point instead, with the commit the worktree was created from as the fixed
+point and the branch the run started on as the landing target. The thread shows the return, one line per part. A red gate, a
+return that reads not landed, a `do-code-review` the session does not list and a protected branch
+are handled the same way the `ticket` Playbook does, and the mechanics carry the two commands the
+reply adds after a refused protected-branch landing. Done when the landing line in the thread reads
+`landed at <commit>`, or the run stopped as blocked with the review's reason quoted and the
+worktree and its branch named, or the step reads `skip: do-code-review not listed` with the
+worktree and its branch named.
 
-**10. Verification.** Done when every affected flow is green or recorded as not run on the
-developer's no, or the step reads `skip: nothing landed`.
+**10. Verification.** The verification in [mechanics.md](mechanics.md): the affected flows from the
+main checkout with the command line printed first, the one question before a full suite or a remote
+run, and a red flow as one more unit of the loop, gated and handed to a second review call with the
+landed commit as its fixed point, which lands it again. A defect with no user-observable surface
+has no affected flow and the step reads `skip: no affected flow` with that reason. Done when every
+affected flow is green or recorded as not run on the developer's no, or the step reads
+`skip: nothing landed`.
 
-**11. Close.** Done when `git worktree list` no longer shows the run's worktree, or the step reads
+**11. Close.** Outside the chain there is no Ticket, so the close is the worktree's removal alone,
+by the close in [mechanics.md](mechanics.md): no status line is written, no criterion is ticked and
+no evidence is appended, since the reply is where this run's evidence lives. Leave the worktree
+with a bare `cd` to the main checkout, then remove it and its branch from there. A delete that
+refuses means something did not land, and the run stops with the worktree and its branch named.
+Done when `git worktree list` no longer shows the run's worktree, or the step reads
 `skip: nothing landed` with the worktree and its branch named.
 
-**12. Reply.** Written by [reply.md](reply.md). Done when the reply is sent with every section that
-applies.
+**12. Reply.** Written by [reply.md](reply.md), opening with four lines of its own before that
+file's sections: what was broken, the root cause, the fix, and the verification with the
+failing-then-passing output pasted, the developer's reports among it marked as theirs when they
+drove the surface. What this Playbook puts in the reference's sections: the Review under the files
+left uncommitted; a waived flow and a check that stood in for a test under pending debt; and the
+next step, `git push` with the developer's branch named when the review landed, or, when nothing
+landed, the worktree, its branch, and the review and the landing as what the developer runs next.
+Done when the reply is sent with every section that applies.
