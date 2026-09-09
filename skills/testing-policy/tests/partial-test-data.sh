@@ -7,6 +7,7 @@ set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
 skill="$here/.."
 render="$skill/scripts/render-agent.sh"
+render_policy="$skill/scripts/render-policy.sh"
 fails=0
 tmp="$(mktemp -d)"
 trap 'cd /; rm -rf "$tmp"' EXIT
@@ -29,6 +30,7 @@ render() { rc=0; out="$(bash "$render" "$@" 2>&1)" || rc=$?; }
 # The labels verify-policy.sh's map_missing() reads: the bold lead of every line after core-end.
 map_labels() { rc=0; out="$(bash "$render" "$1" | awk '/^<!-- testing-policy:core-end -->$/{f=1; next} f' | grep -oE '^\*\*[^*]+\*\*')" || rc=$?; }
 # The map entry alone: the label at line start and the slot under it, never the core's pointer at it.
+policy() { rc=0; out="$(bash "$render_policy" "$@" 2>&1)" || rc=$?; }
 map_entry() { rc=0; out="$(bash "$render" "$1" | grep -A1 -E "^\\*\\*$2\\*\\*")" || rc=$?; }
 
 echo "# the rule in the core"
@@ -60,6 +62,26 @@ check "the entry carries the none yet form naming the command that would add the
   "none yet"
 check "the none yet form is a pointer, not a command that ran" 0 "$rc" \
   "not a command that ran"
+
+echo
+echo "# the rule binds the unit author alone"
+render e2e --core-only
+absent "the E2E core carries no partial test data rule of its own" \
+  "a fake by asserting a type at the compiler" "Partial test data"
+map_labels e2e
+absent "the E2E map carries no Partial test data label" "**Partial test data**"
+
+policy native
+absent "the policy section in the project's instructions file is untouched" \
+  "a fake by asserting a type at the compiler" "Partial test data"
+
+render test-author
+absent "the inline writer's skill carries no copy of the rule" \
+  "a fake by asserting a type at the compiler" "Partial test data"
+check "the inline writer reaches the rule and the entry through the agent file it already opens" 0 "$rc" \
+  "The agent file is the single source of the rules" \
+  "apply **## Authoring rules** and **## Project map** in full" \
+  ".claude/agents/unit-test-author.md"
 
 echo
 if [ "$fails" = 0 ]; then echo "partial-test-data: all checks passed"; else echo "partial-test-data: $fails failed"; exit 1; fi
