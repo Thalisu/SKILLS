@@ -33,14 +33,14 @@ in; everything written into the project is in English, except the UI copy the jo
 ## Prerequisites
 
 A spec in the format `spec` writes, with its sections and the `Journey:` line under its title; the
-skill resolves a slug through `docs/agents/issue-tracker.md` when that file exists and reads
-`.scratch/<slug>/spec.md` when it does not. It writes into the project: the journey
-(`.scratch/<slug>/journey.md` beside a local spec, or `docs/journeys/<slug>.md` plus a comment on
-the spec issue when the spec is on a tracker), the spec's `Journey:` line and, for a reversible
-change, the spec's own sections, `CONTEXT.md` for a term a label or a status resolves, and the
-`.scratch/` line in the project's `.gitignore` when a local journey needs it and the line is
-missing.
-Everything is left uncommitted. A runnable fork needs the `prototype` agent linked, as
+skill resolves a slug through `docs/agents/issue-tracker.md` when that file exists and reads the
+spec in the `.scratch/` feature folder that slug names when it does not, dated `<YYYYMMDD>-<slug>`
+or, for a folder from before that rule, the bare slug. It writes into the project: the journey
+(`journey.md` beside a local spec, in the spec's own folder, or `docs/journeys/<slug>.md` plus a
+comment on the spec issue when the spec is on a tracker), the spec's `Journey:` line and, for a
+reversible change, the spec's own sections, `CONTEXT.md` for a term a label or a status resolves,
+and the `.scratch/` line in the project's `.gitignore` when a local journey needs it and the line
+is missing. Everything is left uncommitted. A runnable fork needs the `prototype` agent linked, as
 [prototype](prototype.md) describes, and adds that agent's throwaway files, listed in the closing
 summary.
 

@@ -4,6 +4,28 @@
 and the reviews beside them. One contract for every skill that reads or writes there, so the rule
 is written once.
 
+## The feature folder is dated
+
+One feature is one folder, `.scratch/<YYYYMMDD>-<feature-slug>/`, holding its spec, its journey and
+its `issues/`. The date is the day the folder was allocated, so a scratch that has collected a
+dozen features reads as what was worked on and when, and it never changes: a rerun months later
+rewrites the spec in the folder it already has.
+
+The name is a script's to compose, `spec`'s `skills/spec/scripts/feature-folder.sh`, which takes
+the slug alone and prints the folder and the spec path in it. It allocates in the main checkout and
+answers with an absolute path from a linked worktree, for the reason "Reaching it from a worktree"
+below gives: a folder allocated in the worktree goes with `git worktree remove`, spec and all. The
+date is off a clock and the reuse is a lookup, neither of which an agent should be trusted to redo
+by hand on every run. Every other
+skill in the chain is handed the spec's path and reads the folder off it, so `feature-folder.sh` is
+called by `spec` and by nobody else.
+
+A slug on its own still resolves, since a user types `/journey nightly-purge` and not the date: it
+names the folder called `<slug>` or ending in `-<slug>`, and the newest of them when more than one
+matches. The undated form is what a folder from before this rule looks like, and it keeps working
+as it stands, never renamed. See
+[ADR 0030](../docs/adr/0030-the-feature-folder-is-dated-and-a-script-allocates-it.md).
+
 ## It is always unversioned
 
 The scratch is one developer's own workspace and a teammate never reads it. Git ignores it in
@@ -70,10 +92,10 @@ from there by its absolute path in the main checkout, which `do-code-review`'s d
 ## Two runs at once
 
 The path is the partition. Every artifact is keyed by the feature slug or by the branch,
-`.scratch/<feature-slug>/spec.md` and `.scratch/reviews/<branch>.md`, so two runs on different
-features or different branches never reach for the same file. Two runs on the same slug is a
-scheduling mistake, and no rule about files repairs it: both are writing the same artifact, so one
-of them is working for nothing whether or not it overwrites anything.
+`.scratch/<YYYYMMDD>-<feature-slug>/spec.md` and `.scratch/reviews/<branch>.md`, so two runs on
+different features or different branches never reach for the same file. Two runs on the same slug
+is a scheduling mistake, and no rule about files repairs it: both are writing the same artifact,
+so one of them is working for nothing whether or not it overwrites anything.
 
 Separate processes do not give separate files. A path that resolves into the main checkout, where a
 handed-over Ticket and the artifacts beside it live, is the same file for every run on the machine
@@ -85,8 +107,10 @@ folder and picks the same name. Under `set -C` the create fails when the name is
 and a taken name means a second run is publishing the same feature, the scheduling mistake above,
 so the run stops on it the way it stops on tickets that already exist, and never renumbers around
 it: the numbers are per feature, so the loser of a race that retried from the next free number
-would interleave its breakdown with the winner's. A feature folder allocates no name, since its
-slug comes from the title and a rerun rewrites the spec in place.
+would interleave its breakdown with the winner's. A feature folder is the other side of that rule:
+its `mkdir` is the claim too, and a create that fails means a folder for this feature is already
+there, which is what a rerun looks like, so the allocator reuses it and the spec is rewritten in
+place instead of the run stopping.
 
 Never a lock file. An agent that crashes or is cancelled leaves its lock behind, and git ignores
 the whole folder, so the stale lock never appears in `git status` and the next run waits on a

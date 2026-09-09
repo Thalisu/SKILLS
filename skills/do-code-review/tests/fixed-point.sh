@@ -153,6 +153,16 @@ check "a spec whose folder contains the branch's slug is the candidate" 0 "$rc" 
 mkdir -p .scratch/export && printf '# Export\n' > .scratch/export/spec.md
 run
 check "an exact match wins over a containing one" 0 "$rc" "spec=.scratch/export/spec.md"
+rm -r .scratch/export
+mkdir -p .scratch/20260909-export && printf '# Export\n' > .scratch/20260909-export/spec.md
+run
+check "a dated feature folder matches on its slug, not on the date" 0 "$rc" \
+  "spec=.scratch/20260909-export/spec.md"
+mkdir -p .scratch/20240101-export && printf '# Export\n' > .scratch/20240101-export/spec.md
+run
+check "two folders of one slug resolve to the newest spec" 0 "$rc" \
+  "spec=.scratch/20260909-export/spec.md"
+rm -r .scratch/20260909-export .scratch/20240101-export
 mkdir -p docs/agents && printf '# Issue tracker\n' > docs/agents/issue-tracker.md
 printf '.scratch\n' > .gitignore
 run
@@ -179,6 +189,16 @@ printf '# Archive notes\n' > .scratch/archive-notes/spec.md
 run
 check "a do branch finds its Ticket and the spec beside it" 0 "$rc" \
   "ticket=.scratch/export-notes/issues/02-export-notes.md" "spec=.scratch/export-notes/spec.md" "slug=do-export-notes"
+rm -r .scratch
+mkdir -p .scratch/20240101-export-notes/issues .scratch/20260909-export-notes/issues
+printf '# 02: Export notes\n' > .scratch/20240101-export-notes/issues/02-export-notes.md
+printf '# 02: Export notes\n' > .scratch/20260909-export-notes/issues/02-export-notes.md
+printf '# Export notes\n' > .scratch/20240101-export-notes/spec.md
+printf '# Export notes\n' > .scratch/20260909-export-notes/spec.md
+run
+check "two folders of one slug resolve to the newest Ticket" 0 "$rc" \
+  "ticket=.scratch/20260909-export-notes/issues/02-export-notes.md" \
+  "spec=.scratch/20260909-export-notes/spec.md"
 rm -r .scratch
 
 # More than one containing match is ambiguous: none.

@@ -54,6 +54,13 @@ forked agent at the run's door and returned quoted, with the location of every q
 _Avoid_: summary (a summary paraphrases, a **Digest** quotes), brief, extract, context pack,
 handoff
 
+**Map**:
+What a `do` run's ground step takes the subsystem as, in place of its code: where things live, what
+calls what, and where the seams are, returned by a fork so the exploration stays out of the
+session.
+_Avoid_: overview, walkthrough, summary, the code itself, **Project map** (that one names a
+project's run commands and test layout for a test author)
+
 **Sketch**:
 The shape a **Ticket**'s work takes before any logic: the caller's usage, the types, the
 signatures and the module boundaries, with unimplemented bodies. Written by the `sketch` skill.
@@ -118,6 +125,25 @@ The state of a **Review** that lets `do-code-review` land: no `Act on` **Finding
 (none, or every one `fixed` and `verified` by the **Fixer**) and every **Axis** run.
 _Avoid_: clean, passed, no findings (`Consider`, `Noted` and `Cleared` never block)
 
+**Conflict class**:
+What the door script says about one conflicted hunk, in a rebase or in a merge, and the only thing that decides who
+resolves it: `mechanical` when both sides only added lines, neither deleting nor modifying a line
+the other side kept, resolved by keeping both in base order; `contested` for every other shape,
+answered by the human and never by the run.
+_Avoid_: trivial (**Trivial** is a **Playbook**'s door, never a hunk), simple, auto-resolvable
+(the class is the script's verdict, never a guess about how hard the hunk looks)
+
+**Target**:
+The side of a conflicted hunk the replay lands on: the branch a rebase replays onto, or the branch
+a merge is made into.
+_Avoid_: ours, HEAD, base, upstream, mine (git calls this side `ours` in a merge and `HEAD` in a
+rebase, where it is not the developer's own work)
+
+**Incoming**:
+The side being applied to the **Target**: the commit a rebase is replaying, or the branch a merge
+is bringing in.
+_Avoid_: theirs, mine, source, the run's side
+
 ## Relationships
 
 - A **Spec** has one or more **Paths**, read off its user stories
@@ -145,6 +171,9 @@ _Avoid_: clean, passed, no findings (`Consider`, `Noted` and `Cleared` never blo
 - A **Digest** carries the **Spec** stories and Testing Decisions and the **Journey** **Path**
   one **Ticket** is cut from, and is what the `do` run derives its behaviours from; the run
   opens neither document itself
+- The ground step reads `CONTEXT.md`, the bodies of the ADRs the **Ticket** touches and a **Map**,
+  never the subsystem's code; the build loop reads each file at the moment it edits it, so the only
+  source the session holds is source the run changed
 - `do` routes a request to exactly one **Playbook**; the `ticket` **Playbook** builds exactly one
   **Ticket**, never a **Spec** and never a session summary, and is the only **Playbook** inside
   the chain
@@ -153,8 +182,8 @@ _Avoid_: clean, passed, no findings (`Consider`, `Noted` and `Cleared` never blo
 - The `trivial` **Playbook** takes only a **Trivial** change, in place and in one commit, and
   dispatches no test author; a bug, a new exported symbol, a changed signature or a user-observable
   effect re-routes
-- `do` ships four **Playbooks**: `ticket` inside the chain; `trivial`, `bug-fix` and `refactoring`
-  outside it. A question is `how`, `why` or `teach`; a feature is the chain; a sketch is `prototype`
+- `do` ships five **Playbooks**: `ticket` inside the chain; `trivial`, `bug-fix`, `refactoring` and
+  `integrate` outside it. A question is `how`, `why` or `teach`; a feature is the chain; a sketch is `prototype`
 - The **Ticket** file belongs to the main checkout: the `ticket` **Playbook** claims it at the start
   and closes it at the end with file writes there, its worktree branch never touches it, and `do`
   never commits it; on a remote tracker the claim and the close wait for the developer's yes
@@ -191,6 +220,9 @@ _Avoid_: clean, passed, no findings (`Consider`, `Noted` and `Cleared` never blo
   stop at `Consider`, whatever the severity
 - `do` reads the run's return and never fixes a **Finding** itself; it never dismisses a
   **Finding** with a risk class silently: that one goes to the user
+- A conflicted hunk has exactly one **Target** side and one **Incoming** side, whatever its
+  **Conflict class**; a contested one is answered `target`, `incoming`, `both` or `stop`, and a
+  `both` is resolved by the mechanical rule
 
 ## Example dialogue
 
@@ -227,6 +259,12 @@ _Avoid_: clean, passed, no findings (`Consider`, `Noted` and `Cleared` never blo
 - "the `.scratch` on my branch" was used for the **Ticket**'s folder. Resolved: a folder git
   ignores is on no branch and in no commit; it belongs to the **Main checkout**'s working tree,
   survives every branch switch there, and is absent from a worktree created from HEAD.
+- "map" was reaching for two things: the subsystem reading the ground step takes, and the slot
+  table a test author reads for a project's commands and layout. Resolved: the **Map** is the
+  subsystem reading; the **Project map** keeps its name and stays the test author's.
+- "ours" and "theirs" were the words for the two sides of a conflict. Resolved: they are the
+  **Target** and the **Incoming** side, because git's pair inverts between a merge and a rebase: in
+  a rebase `ours` is the branch being replayed onto, not the work being replayed.
 - "fits one session" was the size of a **Ticket**. Resolved: the size is the peak context the `do`
   session reaches while building it, measured at the close and estimated at the cut, in three bands
   (small under 150k, medium up to 200k, large beyond), the one yardstick that holds across

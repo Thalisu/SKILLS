@@ -24,8 +24,9 @@ the tracker numbers it, and its status is the tracker's label.
 ## Spec
 
 Nothing in a local ticket names its spec: the location is the pointer. The spec of a local ticket
-is the spec file in the folder above its `issues/` folder, `.scratch/<feature-slug>/spec.md` for a
-ticket at `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, or the spec beside `issues/` when the
+is the spec file in the folder above its `issues/` folder,
+`.scratch/<YYYYMMDD>-<feature-slug>/spec.md` for a ticket at
+`.scratch/<YYYYMMDD>-<feature-slug>/issues/<NN>-<slug>.md`, or the spec beside `issues/` when the
 spec lives elsewhere. An issue points at its spec through `## Parent`, a reference to the spec
 issue on the tracker, omitted only when the spec was not an issue. The spec is read from a ticket,
 never edited.

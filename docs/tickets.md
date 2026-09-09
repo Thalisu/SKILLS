@@ -36,12 +36,12 @@ repository or the tracker is in English.
 
 ## Prerequisites
 
-The skill writes into the project: one file per ticket under `.scratch/<feature-slug>/issues/`
-when the tracker is local markdown, or one issue per ticket on the tracker that
-`docs/agents/issue-tracker.md` describes. Without that file the tickets land beside the spec as
-local markdown, and no setup skill is demanded; an issue reference still needs the file to resolve.
-A project missing the `.scratch/` line in its `.gitignore` gets it before the first local write,
-since the scratch folder is never versioned.
+The skill writes into the project: one file per ticket under `issues/` in the spec's own feature
+folder, `.scratch/<YYYYMMDD>-<feature-slug>/issues/`, when the tracker is local markdown, or one
+issue per ticket on the tracker that `docs/agents/issue-tracker.md` describes. Without that file
+the tickets land beside the spec as local markdown, and no setup skill is demanded; an issue
+reference still needs the file to resolve. A project missing the `.scratch/` line in its
+`.gitignore` gets it before the first local write, since the scratch folder is never versioned.
 
 ## Path, slice, stop
 

@@ -28,7 +28,7 @@ You invoke this by typing `/spec`, and the agent won't reach for it on its own.
 
 ## Prerequisites
 
-The skill writes into the project: `.scratch/<feature-slug>/spec.md` when
+The skill writes into the project: `.scratch/<YYYYMMDD>-<feature-slug>/spec.md` when
 `docs/agents/issue-tracker.md` says local markdown or does not exist, or an issue when that file
 names GitHub or GitLab. The tracker file is the one the mattpocock plugin's setup skill writes;
 `spec` reads it when it is there and needs nothing else in place. The spec is left uncommitted. The
@@ -57,6 +57,16 @@ it, and `do` builds one ticket, so `spec` never names it.
 
 - `do` is not authored yet, and `spec` never names it either way.
 
+## The feature folder
+
+A local spec gets a folder of its own, dated with the day it was written:
+`.scratch/20260909-nightly-purge/spec.md`. Its journey and its `issues/` land beside it, so a
+scratch that has collected a dozen features reads as a list of what you worked on and when. The
+folder is allocated by a script, not composed by the agent, and the date never changes: a rerun
+weeks later rewrites the spec in the folder the feature already has. Folders from before this rule
+keep their undated names, and `/journey nightly-purge` or `/tickets nightly-purge` finds either
+shape from the slug alone.
+
 ## Common questions
 
 **It sent me to `/discuss` instead of writing anything. Why?**
@@ -73,6 +83,8 @@ about the forks the precedent does not settle, so a small page closes fast.
 - The only thing it asks is whether the seams match, and it does not ask even that when the
   summary already names them.
 - The spec appears at the path the closing summary prints, with a `Journey:` line under its title.
+- A local spec's folder carries the day it was written, and a rerun lands in that same folder
+  instead of opening a second one.
 - The last line of the summary is a command you can run as it is.
 - Nothing else in the tree changed, and nothing was committed.
 

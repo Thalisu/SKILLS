@@ -35,7 +35,7 @@ technical question.
   | The argument | Read as |
   |---|---|
   | a path | the file at that path |
-  | a bare slug | `.scratch/<slug>/spec.md`, when `docs/agents/issue-tracker.md` says local markdown or is absent |
+  | a bare slug | `spec.md` in the `.scratch/` folder named `<slug>` or ending in `-<slug>`, since a feature folder is dated `<YYYYMMDD>-<slug>`; the newest when more than one matches, per [.agents/scratch.md](../../.agents/scratch.md). Local markdown or no tracker file only |
   | an issue number or URL | the issue, body and comments, through the CLI the tracker file names |
 
   Nothing readable: one message asking for the path.
@@ -131,7 +131,7 @@ Never batched: each item is written the moment its fork or path closes, before t
 
   | Tracker file says | The journey is | The spec's `Journey:` line becomes, at the close |
   |---|---|---|
-  | local markdown, or no tracker file | `.scratch/<feature-slug>/journey.md`, beside the spec | `Journey: ./journey.md` |
+  | local markdown, or no tracker file | `journey.md` in the spec's own folder, beside it, never a folder of its own | `Journey: ./journey.md` |
   | GitHub or GitLab | `docs/journeys/<feature-slug>.md` in the repository, plus a comment on the spec issue that links it | `Journey: docs/journeys/<feature-slug>.md`, edited into the issue body through the CLI the tracker file names |
 
   The spec's `Status:` line is never touched. `tickets` finds the journey through the `Journey:`

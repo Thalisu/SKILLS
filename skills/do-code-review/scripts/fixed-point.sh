@@ -35,7 +35,8 @@
 # handed the Ticket over, so it names the run's Ticket;
 # no when the door found it by slug, which makes it a spec source and nothing more), spec (the spec
 # beside that Ticket, else the one spec in the usual spec homes, .scratch/<x>/spec.md,
-# docs/specs/<x>.md, specs/<x>.md, whose <x> is the slug or contains it, else none when there is
+# docs/specs/<x>.md, specs/<x>.md, whose <x> is the slug or contains it and never counts the date a
+# feature folder is prefixed with, else none when there is
 # none or more than one), tracker (yes when docs/agents/issue-tracker.md exists) and
 # review_in_status (yes when the file at review= would show up in git status, in this tree or in the
 # main checkout when it sits there, no when git ignores that path or it sits outside the
@@ -96,7 +97,10 @@ review=".scratch/reviews/$slug.md"
 core="${branch##*/}"
 core="$(sed -E 's/^[0-9]+-//' <<<"$core")"
 ticket=none
-for f in .scratch/*/issues/[0-9][0-9]-"$core".md; do [ -f "$f" ] && { ticket="$f"; break; }; done
+# One slug can carry more than one dated feature folder, and the newest of them wins: the glob is
+# sorted, so the last match is the one .agents/scratch.md names, and an undated folder, whose name
+# sorts after every date, wins the way the allocator prefers it.
+for f in .scratch/*/issues/[0-9][0-9]-"$core".md; do [ -f "$f" ] && ticket="$f"; done
 ticket_handed=no
 if [ "$handed_given" = yes ]; then
   ticket_handed=yes
@@ -151,9 +155,18 @@ else
   exact=""; containing=()
   for f in .scratch/*/spec.md docs/specs/*.md specs/*.md; do
     [ -f "$f" ] || continue
-    case "$f" in .scratch/*) x="$(basename "$(dirname "$f")")" ;; *) x="$(basename "$f" .md)" ;; esac
-    if [ "$x" = "$core" ]; then exact="$f"; break; fi
-    if [[ "$x" == *"$core"* || "$core" == *"$x"* ]]; then containing+=("$f"); fi
+    # A feature folder is dated, .scratch/<YYYYMMDD>-<slug>/, and the date is no part of the slug.
+    case "$f" in
+      .scratch/*) x="$(basename "$(dirname "$f")")"; x="${x#[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]-}" ;;
+      *) x="$(basename "$f" .md)" ;;
+    esac
+    # The newest of the scratch's matches wins, and a versioned home never displaces the scratch,
+    # which the glob visits first.
+    if [ "$x" = "$core" ]; then
+      case "$f" in .scratch/*) exact="$f" ;; *) [ -n "$exact" ] || exact="$f" ;; esac
+      continue
+    fi
+    if [ -z "$exact" ] && [[ "$x" == *"$core"* || "$core" == *"$x"* ]]; then containing+=("$f"); fi
   done
   if [ -n "$exact" ]; then spec="$exact"; elif [ "${#containing[@]}" = 1 ]; then spec="${containing[0]}"; fi
 fi

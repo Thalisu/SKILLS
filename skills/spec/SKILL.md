@@ -36,15 +36,16 @@ tickets live in this project).
 
   | Tracker file says | The spec is |
   |---|---|
-  | local markdown | `.scratch/<feature-slug>/spec.md` |
+  | local markdown | `.scratch/<YYYYMMDD>-<feature-slug>/spec.md`, the folder dated with the day it was allocated |
   | GitHub or GitLab | an issue, created with the CLI the file names |
   | something else, in prose | whatever the file describes |
-  | no tracker file | `.scratch/<feature-slug>/spec.md`, and the closing summary says the file was absent. Never a demand to run a setup skill |
+  | no tracker file | the same local path, and the closing summary says the file was absent. Never a demand to run a setup skill |
 
-  The slug is the spec's title in kebab-case. In local mode the ignore state is read per
-  [.agents/scratch.md](../../.agents/scratch.md): `git check-ignore -v .scratch/` names the file
-  the rule comes from, and anything other than the project's own `.gitignore`, an empty answer
-  included, means the write appends the line there before it writes the spec.
+  The slug is the spec's title in kebab-case, and the folder around it is never composed by hand:
+  step 3 runs `scripts/feature-folder.sh`, which dates it and owns the ignore line. Nothing is
+  created here, since step 2 comes first and nothing is written before its answer. A tracker file
+  that spells the local layout out as `.scratch/<feature-slug>/` is naming the home, not the
+  folder: the allocator dates it either way.
 - `git status --short` and the branch: dirty files are the user's work in progress.
 
 ## 2. Seams, the one check
@@ -58,6 +59,32 @@ expectations. Wait for the answer. This is the only question the skill asks, and
 before it is answered.
 
 ## 3. Write
+
+In local mode the folder comes from the allocator, never from a path the run composes:
+
+```sh
+bash <skill-dir>/scripts/feature-folder.sh <feature-slug>
+```
+
+The slug alone goes in. What comes back is `folder=`, the dated folder, and `spec=`, the exact path
+the spec is written at, which is absolute when the session sits in a linked worktree, since the
+folder is allocated in the main checkout. `created=no` makes the run the rerun below. `gitignore=`
+is the state of the ignore after the allocator was done with it, and the closing summary carries
+it:
+
+| `gitignore=` | What the summary says |
+|---|---|
+| `present` | nothing: the project's own `.gitignore` already carried the rule |
+| `appended` | the run added the `.scratch/` line to the project's `.gitignore` |
+| `symlink`, `not-ignored` | the line could not be added, so the spec sits in a `.scratch/` git shows in `git status`, one `git add -A` from a commit. Say which of the two, and that the line is the user's to add |
+| `no-repo` | nothing: the project is not a git repository |
+
+The script owns the date, the reuse and that line, per
+[.agents/scratch.md](../../.agents/scratch.md): the run never composes a folder name, never dates
+one itself and never appends the line on its own. Exit 2 is a refusal with its reason on stderr (a
+slug that normalises to nothing, a `.scratch` that is a symlink or a file): no spec is written,
+and the reason goes to the user as it stands. It runs here and never in step 1, because nothing is
+written before the seams answer.
 
 Write the spec in the format of [.agents/formats/spec-format.md](../../.agents/formats/spec-format.md), then
 publish it where step 1 resolved. The rules the format carries: glossary vocabulary throughout; no
@@ -100,7 +127,7 @@ In the thread, the closing summary:
   (the skill writes no `CONTEXT.md` and no ADR);
 - the durability line, in local mode: the scratch is unversioned by design and a teammate never
   reads it, so a spec the team has to read goes to the issue tracker or under `docs/`;
-- the `.scratch/` line, when the write added it to the project's `.gitignore`;
+- the `.scratch/` line, the row the allocator's `gitignore=` picks in step 3;
 - as the last line, the exact next command:
 
 | Verdict | Last line |
@@ -117,8 +144,10 @@ The chain is strict: `do` builds one ticket, so the last line never names it. No
   for piece by piece.
 - The verdict comes from the structure of the stories (a new screen, the number of paths, the
   number of steps), never from "large", "complex" or a count.
-- The spec goes where the tracker file says; with no tracker file, `.scratch/<feature-slug>/spec.md`,
-  and never a demand to run a setup skill.
+- The spec goes where the tracker file says; with no tracker file, the local path
+  `scripts/feature-folder.sh` prints, and never a demand to run a setup skill.
+- A local feature folder is the script's to name. The run passes the slug and writes at the `spec=`
+  it gets back: never a path it composed, never a date it read off the clock itself.
 - The skill writes the spec and nothing else: no code, no `CONTEXT.md`, no ADR. A rerun rewrites,
   never duplicates.
 - Never commit, never push.
