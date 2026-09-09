@@ -184,6 +184,16 @@ has "the docs page tells the reader what the integration step is for" "$repo/doc
 has "the docs page says which conflicts cost the reader nothing" "$repo/docs/do.md" \
   "both sides only added lines"
 
+# The skill file enumerates what the shared mechanics carry, and a step missing from that list is a
+# step a Playbook's author does not know is there to link.
+has "the skill file's enumeration of the mechanics names the integration" "$repo/skills/do/SKILL.md" \
+  "the gate, the integration, the review"
+# The step produces two things the developer reads only in the reply, so the reply reference says
+# where they go rather than leaving each run to invent a place.
+has "the reply reference gives the resolved hunks and the skipped commits a home" "$refs/reply.md" \
+  "every hunk it resolved with its file and location" \
+  "every replayed commit it skipped"
+
 # No em-dash in the prose this step writes, per CLAUDE.md.
 lacks "no em-dash in the ticket Playbook" "$ticket" "$emdash"
 lacks "no em-dash in the bug-fix Playbook" "$bugfix" "$emdash"
