@@ -185,6 +185,28 @@ check "a rename the file's own marker text hides: contested, from git's record o
 absent "and no hunk of that file is certified mechanical" 1 "$rc" \
   "mechanical guide.md"
 
+# A side that adds two lines reading like conflict markers, over a middle line the two sides rewrite
+# differently. The added markers must stay content: they say nothing about where a hunk begins or
+# what the two sides did to the base.
+fresh forged-markers
+printf 'x\ny\nz\n' > app.conf
+commit base
+g branch inc
+printf 'x\nallow_root = false\nz\n' > app.conf
+commit target
+g switch -q inc
+printf 'x\nallow_root = true\n<<<<<<< a\n>>>>>>> b\nz\n' > app.conf
+commit incoming
+g switch -q main
+g merge inc >/dev/null 2>&1
+
+run
+check "added lines that read like markers leave a rewrite contested" 1 "$rc" \
+  "contested app.conf" \
+  "verdict=contested"
+absent "and no hunk of that file is certified mechanical" 1 "$rc" \
+  "mechanical app.conf"
+
 # A tree holding one hunk of each class.
 fresh mixed
 printf 'a\nb\n' > added-to.txt

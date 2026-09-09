@@ -64,6 +64,14 @@ file_shape() { # $1 path
   echo rewrite-vs-rewrite
 }
 
+# One stage of a conflicted path, with every line of it prefixed by a space. Prefixing is a
+# bijection on lines, so the merge regenerated below is the same merge, and it takes every line of
+# file content out of the marker alphabet: a side that ships a line beginning with <<<<<<< is then
+# content, and only git writes structure.
+stage_body() { # $1 stage, $2 path, $3 destination
+  git cat-file blob ":$1:$2" 2>/dev/null | LC_ALL=C sed 's/^/ /' > "$3"
+}
+
 # The hunks of one both-modified text file, from a conflict presentation regenerated out of the
 # three stages. The working file supplies the locations and the regenerated merge the sides, matched
 # by ordinal; a file whose two hunk counts disagree is no longer what git left, so nothing in it is
@@ -71,9 +79,9 @@ file_shape() { # $1 path
 # moved on both sides or a file the attributes leave with no merge driver, is unmergeable.
 classify_hunks() { # $1 path
   local path="$1" i=0 line section base_lines=0 shape classes=() starts=() ends=()
-  git cat-file blob ":1:$path" > "$tmp/base" 2>/dev/null
-  git cat-file blob ":2:$path" > "$tmp/target" 2>/dev/null
-  git cat-file blob ":3:$path" > "$tmp/incoming" 2>/dev/null
+  stage_body 1 "$path" "$tmp/base"
+  stage_body 2 "$path" "$tmp/target"
+  stage_body 3 "$path" "$tmp/incoming"
   if is_binary "$tmp/base" || is_binary "$tmp/target" || is_binary "$tmp/incoming"; then
     emit contested "$path" whole-file binary
     return
