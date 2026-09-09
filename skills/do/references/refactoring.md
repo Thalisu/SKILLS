@@ -113,6 +113,17 @@ quoted; step 7 runs it again on the new code, and step 9 deletes it and names th
 debt in the reply. A reshape whose behaviour the suite already covers reads
 `skip: the suite covers the reshaped behaviour`.
 
+The harness executes the project's real code in the developer's shell, and no test rule bounds it,
+so this step does: in-process code only, no network call, no database, no read or write on the
+filesystem outside the worktree, and no credential read from the environment, with every input the
+harness drives written into the script itself. Inside that bound it runs unasked, as often as steps
+3, 5, 6 and 7 call for it. A behaviour that cannot be driven inside it, a mailer, a payments client,
+a migration runner, one that reads a credential to do its work, is not driven anyway: the run shows
+the harness's command line first and waits for the same yes [mechanics.md](mechanics.md) requires
+before a remote run, since the cost of touching the real system is the developer's to weigh. A no
+leaves the half reading `skip: the behaviour cannot be driven inside the harness's bound`, and the
+gap the harness would have covered is named as debt in the reply the same way step 9 names one.
+
 **The new shape** is pinned when the refactor extracts or moves something: one test on the target
 interface, written by the test authors in [mechanics.md](mechanics.md) and dispatched with the
 complete input, the behaviour to prove, the target the request names, origin `new feature`, and an
@@ -287,8 +298,8 @@ asks one question, the second and last this Playbook raises of its own:
   carries the failed exit test as pending debt so the next reader knows the claim was not met.
 
 A yes that [mechanics.md](mechanics.md) reserves to the developer is not one of the two and is never
-waived here: step 12 carries one of those, the question before a full suite or a remote run, and it
-is asked whenever the verification reaches it.
+waived here: step 3 carries one when the harness cannot stay inside its bound, and step 12 carries
+the question before a full suite or a remote run. Both are asked whenever the run reaches them.
 
 Done when the answer and its reason are in the thread, with the developer's answer when the test
 failed.
