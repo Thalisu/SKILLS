@@ -15,7 +15,7 @@ context:
     set -e
     mkdir -p src tests .claude/agents .scratch/paginate-notes
     cat > package.json <<'JSON'
-    { "name": "notes", "private": true, "scripts": { "test": "node --test tests/" } }
+    { "name": "notes", "private": true, "scripts": { "test": "node --test tests/*.test.js" } }
     JSON
     cat > src/notes.js <<'JS'
     const notes = [];

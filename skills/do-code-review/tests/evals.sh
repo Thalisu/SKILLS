@@ -38,7 +38,7 @@ scaffold() { # $1 case: the scaffold_script block of its case file, run in a fre
 expect "planted-diff scaffold runs" scaffold planted-diff
 expect "the branch is export-notes" test "$(git branch --show-current)" = export-notes
 expect "the tree is clean" test -z "$(git status --porcelain)"
-expect "the suite is green around the defects" quiet node --test tests/
+expect "the suite is green around the defects" quiet node --test tests/*.test.js
 expect "the diff touches the planted files" bash -c 'git diff --name-only main | grep -qx src/notes.js && git diff --name-only main | grep -qx src/export.js && git diff --name-only main | grep -qx src/csv.js'
 expect "correctness: a page returns one item short" quiet node -e 'const { page } = require("./src/notes"); process.exit(page(1, 10, [...Array(11).keys()]).length === 9 ? 0 : 1)'
 expect "correctness: an export of eleven notes has ten rows" quiet node -e 'const n = require("./src/notes"); for (let i = 0; i < 11; i++) n.create("n" + i); const rows = require("./src/export").toCsv().split("\n"); process.exit(rows.length === 10 ? 0 : 1)'
@@ -85,7 +85,7 @@ check "the door refuses the empty diff in one line" 1 "$rc" "refusal=no diff bet
 # no-spec: a branch with a diff and no spec home anywhere.
 expect "no-spec scaffold runs" scaffold no-spec
 expect "no spec home exists" bash -c '! test -e .scratch && ! test -e docs && ! test -e specs'
-expect "the suite is green" quiet node --test tests/
+expect "the suite is green" quiet node --test tests/*.test.js
 run_door
 check "the door names no spec and no tracker" 0 "$rc" "branch=restore-notes" "spec=none" "tracker=no" "commits=1" \
   "review=.scratch/reviews/restore-notes.md"
@@ -115,7 +115,7 @@ check "the door reads the retry fixture" 0 "$rc" "branch=paginate-notes" "dirty=
 expect "fix-run scaffold runs" scaffold fix-run
 expect "the branch is export-notes" test "$(git branch --show-current)" = export-notes
 expect "the tree is clean, so the fix door holds" test -z "$(git status --porcelain)"
-expect "the suite is green around the planted bug" quiet node --test tests/
+expect "the suite is green around the planted bug" quiet node --test tests/*.test.js
 expect "the Act on Finding reproduces: a page of ten over eleven returns nine" \
   quiet node -e 'const { page } = require("./src/notes"); process.exit(page(1, 10, [...Array(11).keys()]).length === 9 ? 0 : 1)'
 expect "the Act on location still matches the tree" bash -c 'sed -n 15p src/notes.js | grep -q slice'
@@ -141,7 +141,7 @@ expect "the tree is clean" test -z "$(git status --porcelain)"
 expect "the Act on location no longer holds the paging code" bash -c '! sed -n 15p src/notes.js | grep -q slice'
 expect "the paging bug moved to its own module" bash -c 'grep -q "size - 1" src/page.js'
 expect "the Review still names the location that moved" grep -q "Correctness at src/notes.js:15" .scratch/reviews/export-notes.md
-expect "the suite is green after the move" quiet node --test tests/
+expect "the suite is green after the move" quiet node --test tests/*.test.js
 
 # no-fix: the same branch with no Review yet, so the flag has something to write and nothing to fix.
 expect "no-fix scaffold runs" scaffold no-fix

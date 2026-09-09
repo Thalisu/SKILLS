@@ -20,7 +20,7 @@ context:
     set -e
     mkdir -p src tests .scratch/export-notes/issues
     cat > package.json <<'JSON'
-    { "name": "notes", "private": true, "scripts": { "test": "node --test tests/" } }
+    { "name": "notes", "private": true, "scripts": { "test": "node --test tests/*.test.js" } }
     JSON
     cat > CLAUDE.md <<'MD'
     # notes
