@@ -103,9 +103,14 @@ refactor on green, then one commit holding the test and the code. Each commit bo
 `Behaviour:` line, which is how a second `/do` on the same Ticket reads the run off the branch and
 picks up at the first behaviour with no commit beside it instead of starting over.
 
-The gate runs after the last edit and never before it, because "it passed earlier" is stale. Then
-the branch goes to the review, the affected flows run from your checkout, and the Ticket is closed
-with the command lines and their output quoted under `## Evidence`. A run that stops for any reason
+The gate runs after the last edit and never before it, because "it passed earlier" is stale. Then,
+if your branch moved while the run was building, the run rebases onto it and runs the gate again, so
+the diff the reviewers read is the diff that lands rather than one that was true a few commits ago.
+A conflict where both sides only added lines costs you nothing: a script decides that it is one, the
+run keeps both sides in order and says which hunks it resolved, and anything it cannot decide alone
+is brought to you rather than guessed at. Then the branch goes to the review, the affected flows run
+from your checkout, and the Ticket is closed with the command lines and their output quoted under
+`## Evidence`. A run that stops for any reason
 leaves the worktree and its branch in place and names both, so nothing is half landed and nothing is
 lost.
 
@@ -166,6 +171,8 @@ reason nothing landed, and the run stops on it with the worktree intact.
   after the run's last edit.
 - A run that stopped names its worktree and its branch, and the Ticket still reads `claimed`, so
   typing `/do` on it again picks up where it stopped rather than starting over.
+- A run whose branch moved says so: the step names what it rebased onto and how many commits
+  replayed, and the gate's output after it is quoted like any other.
 - A `trivial` request costs you one message, start to finish.
 
 ## Where it fits

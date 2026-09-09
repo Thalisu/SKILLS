@@ -176,6 +176,14 @@ has "the bug-fix Playbook's own step reference followed the renumber" "$bugfix" 
 has "the refactoring Playbook's own step references followed the renumber" "$refactor" \
   "as step 12 says" "step 13 carries"
 
+# The skill's behaviour changed, so its page is re-synced in the same change, per
+# .agents/writing-docs.md. The page carries the why, and the reference carries the process.
+has "the docs page tells the reader what the integration step is for" "$repo/docs/do.md" \
+  "if your branch moved while the run was building" \
+  "the diff the reviewers read is the diff that lands"
+has "the docs page says which conflicts cost the reader nothing" "$repo/docs/do.md" \
+  "both sides only added lines"
+
 # No em-dash in the prose this step writes, per CLAUDE.md.
 lacks "no em-dash in the ticket Playbook" "$ticket" "$emdash"
 lacks "no em-dash in the bug-fix Playbook" "$bugfix" "$emdash"
