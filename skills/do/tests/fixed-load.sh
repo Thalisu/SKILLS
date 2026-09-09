@@ -62,6 +62,10 @@ has "the Digest lives beside the Ticket, keyed by its slug, on an ignored path" 
 has "the run names the Digest's location and restates it in one line" "$refs/ticket.md" \
   "names the Digest's location and restates it in one line"
 
+# The list is traceable to the quotes, which is what makes the Digest the spec of record.
+has "every behaviour line traces to a quote and never to a paraphrase" "$refs/ticket.md" \
+  "quoted Testing Decision" "a Journey step" "never to a paraphrase"
+
 # No em-dash in the prose this feature writes, per CLAUDE.md.
 lacks "no em-dash in the Digest reference" "$refs/digest.md" "$emdash"
 
