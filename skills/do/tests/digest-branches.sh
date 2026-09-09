@@ -140,4 +140,11 @@ has "the flows step reads that section instead of judging the diff" "$refs/ticke
   'the Digest'"'"'s `## Observable criteria` section' \
   "never the run's own reading of the diff"
 
+# The eval runner is gated on this machine, so the case is written and the assertions above are the
+# withheld path's executable coverage. The case still has to exist, and the index has to name it.
+expect "an eval case grades the reader that was never forked" \
+  test -f "$repo/skills/do/evals/withheld-agent-tool/graders/no-reader-fork-session-reads-both.md"
+has "the eval index says the withheld case covers the door's reader" "$repo/skills/do/evals/README.md" \
+  "the Digest read by the session itself"
+
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi
