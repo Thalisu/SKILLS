@@ -94,8 +94,12 @@ never by reading the folder yourself, since the rule about which folder a slug n
 and nowhere else:
 
 ```sh
-bash <repository root>/.agents/scripts/resolve-feature-folder.sh <slug>
+bash "$(readlink -f ~/.claude/skills/sketch)/../../.agents/scripts/resolve-feature-folder.sh" <slug>
 ```
+
+The script ships beside the skill, not in the project you are shaping, so you reach it through the
+link the install leaves and never at `<repository root>/.agents/`, which is a path the project does
+not have. It resolves in the git top of the directory you run it from, which is the project.
 
 It prints `folder=` and `spec=`, either of which may read `none`, and it creates nothing.
 A machine without that script is not a stop: say so in your return and write to

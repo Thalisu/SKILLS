@@ -119,8 +119,12 @@ has "the agent degrades in one line when the resolver is absent" "$agent_md" \
   "A machine without that script"
 has "the return names the location and the shape" "$agent_md" \
   "## Your return" "the Sketch's location" "the shape in one line"
+has "the agent reaches the resolver through the link the install leaves" "$agent_md" \
+  '$(readlink -f ~/.claude/skills/sketch)/../../.agents/scripts/resolve-feature-folder.sh'
+resolver="$(grep -o '\.\./\.\./\.agents/scripts/[a-z0-9-]*\.sh' "$agent_md" | head -n 1)"
+resolver="${resolver#../../}"
 expect "the resolver the agent names is on disk and runnable" \
-  test -x "$repo/.agents/scripts/resolve-feature-folder.sh"
+  test -x "$repo/${resolver:-none.sh}"
 
 # The docs page, per .agents/writing-docs.md.
 page="$repo/docs/sketch.md"
