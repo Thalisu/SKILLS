@@ -140,10 +140,16 @@ check "an agent installed before the label gets it named among the labels the te
 
 echo "# the install names the line it appends"
 rc=0; out="$(cat "$skill/SKILL.md")" || rc=$?
-check "the refresh step names the label as the line it fills from discovery and appends" 0 "$rc" \
+check "the refresh step names the label as a line it appends" 0 "$rc" \
   "for 2.4, **Partial test data** in the unit map"
 check "the preserved-parts note names the version that added the label" 0 "$rc" \
   "2.4 added **Partial test data** to the unit map"
+check "the appended line goes to its template position and the rest of the map is left alone" 0 "$rc" \
+  "appended at its template position with every other line left as the project wrote it"
+# Step 2 discovers whether the project is eligible, never a value for the line, so the two labels the
+# refresh can append are filled from different places.
+check "the appended partial data line is filled from the offer and not from discovery" 0 "$rc" \
+  "**System boundaries** is filled from step 2, and **Partial test data** from the outcome of the offer below"
 
 echo
 echo "# the install's offer"
