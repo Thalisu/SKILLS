@@ -45,7 +45,7 @@ that step.
 | the **Ticket** itself, a file under `.scratch/` or an issue on the tracker `docs/agents/issue-tracker.md` describes | the `ticket` Playbook's whole input. With no file and no tracker entry there is nothing to match, so the run refuses a bare issue number and asks you for the ticket's path |
 | a Testing Policy with its unit test author at `.claude/agents/unit-test-author.md` | the first message reads `Loop: policy` and that author writes every new test. Without it the line reads `Loop: fallback` and the run writes each failing test itself, red before the fix either way |
 | [do-code-review](do-code-review.md) linked in the session | the review fixes its `Act on` Findings and lands the branch. Without it the step reads `skip: do-code-review not listed`, nothing lands, and the reply hands you the worktree, its branch and the review to run yourself |
-| the vendored `architect`, `how` and `unslop` | the run sketches the shape before it crosses a boundary, keeps the grounding out of its own context window, and cleans up the reply. Each is optional and each step says in one line what it does instead |
+| the vendored `architect`, `how`, `why` and `unslop` | the run sketches the shape before it crosses a boundary, keeps the grounding out of its own context window, reads the rationale behind the shape a defect sits in, and cleans up the reply. Each is optional and each step says in one line what it does instead, so a `bug-fix` run with neither `how` nor `why` reads the code with search and targeted reads and says so |
 
 The run writes into two places outside your branch: the worktree at `.claude/worktrees/do-<slug>`,
 excluded through this clone's `.git/info/exclude` and never through the project's `.gitignore`, and
