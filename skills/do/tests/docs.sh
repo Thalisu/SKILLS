@@ -43,7 +43,8 @@ expect() { # $1 label, $2.. a command that must succeed
 
 # The page, in the structure .agents/writing-docs.md fixes.
 expect "the docs page exists" test -f "$page"
-has "the docs page opens with the skill's name" "$page" "# do"
+expect "the docs page opens with the skill's name and nothing else on that line" \
+  test "$(head -n 1 "$page")" = "# do"
 ordered "the docs page keeps the contract's section order" "$page" \
   "## What it does" "## When to reach for it" "## Prerequisites" "## Common questions" "## It's working if" "## Where it fits"
 has "the docs page states the invocation mode and the trigger boundary" "$page" \
