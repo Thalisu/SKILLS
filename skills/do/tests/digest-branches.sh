@@ -56,6 +56,20 @@ blocker_read_returns_the_status_line_alone() { # the read the door names, run on
   [ "$out" = "**Status:** ready-for-agent" ]
 }
 
+the_scratch_read_sees_what_the_plain_read_hides() { # the two reads the door takes, run on a scaffolded checkout
+  local dir short ignored
+  grep -qF -- 'git status --short --ignored -- .scratch/' "$refs/mechanics.md" || return 1
+  dir="$(mktemp -d)" || return 1
+  git -C "$dir" init -q >/dev/null 2>&1 || { rm -rf "$dir"; return 1; }
+  printf '.scratch/\n' > "$dir/.gitignore"
+  mkdir -p "$dir/.scratch"
+  printf 'a digest\n' > "$dir/.scratch/01-a-ticket.digest.md"
+  short="$(git -C "$dir" status --short -- .scratch/ 2>/dev/null)"
+  ignored="$(git -C "$dir" status --short --ignored -- .scratch/ 2>/dev/null)"
+  rm -rf "$dir"
+  [ -z "$short" ] && [ -n "$ignored" ]
+}
+
 withheld_wording_is_the_one_already_fixed() { # the Delegates rule's own words, not a second phrasing
   [ "$(grep -cF -- "the session does that work itself" "$refs/mechanics.md")" -ge 2 ]
 }
@@ -117,6 +131,21 @@ has "a second run re-forks and names the document that changed" "$refs/mechanics
 # modification time would report an untouched Spec as changed after any checkout, and go red.
 expect "the command the contract records ignores a touch and catches an edit" \
   recorded_source_ignores_a_touch
+
+# The Digest is an unversioned file a fork wrote while two documents a stranger may have written
+# were open, so the gate that decides to reuse it takes neither its subject nor its bound from it:
+# the door resolves both paths from the Ticket, and a Sources line naming another path is no match.
+has "the door resolves the two paths from the Ticket and never from the Digest" "$refs/mechanics.md" \
+  "resolves both paths from the Ticket itself and never from the Digest" \
+  "the folder above the Ticket" \
+  'A `## Sources` path that is not the path the door resolved is not a match'
+# The `.scratch/` line the door appends hides the Digest and its neighbours from the plain read, so
+# the read across the fork that is meant to catch a fork writing elsewhere sees nothing at all.
+has "the read across the fork sees the scratch the appended ignore line hides" "$refs/mechanics.md" \
+  "git status --short --ignored -- .scratch/" \
+  "before the fork and again after"
+expect "the plain read is blind to the scratch and the ignored read is not" \
+  the_scratch_read_sees_what_the_plain_read_hides
 
 # A Ticket whose Spec or journey is not there still builds: the reader says which one is gone and
 # the run goes on from the Ticket alone, rather than stopping on a document it cannot open.

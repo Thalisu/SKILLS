@@ -112,17 +112,23 @@ line feed the behaviours list then, and the line of the list that would have tra
 that document traces to the criterion instead.
 
 The door reads `git status --short` in the main checkout before it dispatches the fork, after its
-own append of the `.scratch/` line, and reads it again when the fork returns: the Digest's path is
-the only one that may differ. Any other path stops the run in one line naming it, the Ticket left
-as the door found it. The brief is the only thing bounding what the fork touches, so the door
-checks it rather than trusting it.
+own append of the `.scratch/` line, and reads it again when the fork returns. That read is blind to
+the scratch the line it just appended ignores, and the Digest and its neighbours live there, so the
+door takes a second reading beside it, `git status --short --ignored -- .scratch/` and the
+`git hash-object` of every file that read lists, before the fork and again after.
+The Digest's path is the only one that may differ, in either reading.
+Any other path stops the run in one line naming it, the Ticket left as the door found it. The brief
+is the only thing bounding what the fork touches, so the door checks it rather than trusting it.
 
 ### A second run
 
 A Digest already sits beside the Ticket whenever a run reaches this point a second time, on a
 resume or on a `/do` typed again on the same Ticket. Before it dispatches anything the door
-recomputes the hash of each document the Digest's `## Sources` names, with the same
-`git hash-object` the reader ran, and compares the pair with the pair recorded there.
+resolves both paths from the Ticket itself and never from the Digest: the Spec is the spec file in
+the folder above the Ticket's `issues/` folder, and the journey is the one that Spec's `Journey:`
+line names. Then it recomputes the hash of each document at the path it resolved, with the same
+`git hash-object` the reader ran, and compares the pair with the pair the Digest's `## Sources`
+records.
 
 - Both match: the run reuses it, forks no second reader, and says in one line that it reused it.
 - Either differs: the run re-forks the reader over both documents, replacing the Digest at the same
@@ -134,6 +140,11 @@ first run cut. A document recorded `absent` and still not on disk is a match, si
 it moved; a document that appeared where the record says `absent`, one that is gone where the
 record carries a hash, and a `## Sources` line the Digest does not carry are each not a match: the
 run re-forks.
+
+A `## Sources` path that is not the path the door resolved is not a match either. Both the path and
+the hash on that line come out of the file the comparison is there to vouch for, so a Digest naming
+a document this Ticket does not reach for is a Digest cut from somewhere else, or one steered by a
+document a stranger wrote, and the run re-forks over the resolved paths rather than serving it.
 
 ## The build loop
 
