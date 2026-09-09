@@ -432,4 +432,46 @@ check "a bare main worktree is never the main checkout" 0 "$rc" "main_checkout=$
   "review=.scratch/reviews/feat.md"
 absent "no path of the run resolves inside the bare repository" "$tmp/bare.git"
 
+# The door turns a slug into a path under .scratch the way the allocator does, so it makes the
+# resolver's refusals too: a .scratch, a feature folder or a spec.md that is a symlink would put the
+# Review, and the spec read beside it, at a path the repository does not control.
+mkdir "$tmp/escape" && cd "$tmp/escape" && git init -q -b main
+printf 'a\n' > a.txt && git add a.txt && git commit -q -m "first"
+git checkout -q -b export-notes
+printf 'b\n' > b.txt && git add b.txt && git commit -q -m "build"
+mkdir -p "$tmp/escape-outside/reviews"
+ln -s "$tmp/escape-outside" .scratch
+run
+check "a symlinked .scratch is refused" 2 "$rc" \
+  ".scratch is not a plain directory of this checkout; nothing reviewed"
+absent "no Review path reached the caller through a symlinked .scratch" "review="
+expect "nothing was planted through the link" \
+  bash -c 'test -z "$(ls "'"$tmp"'/escape-outside/reviews")"'
+rm .scratch
+mkdir .scratch "$tmp/escape-victim"
+ln -s "$tmp/escape-victim" .scratch/20240101-export-notes
+run
+check "a symlinked feature folder is refused" 2 "$rc" \
+  ".scratch/20240101-export-notes is a symlink; nothing reviewed"
+rm .scratch/20240101-export-notes
+mkdir .scratch/20240101-export-notes && printf 'keep\n' > "$tmp/escape-spec.md"
+ln -s "$tmp/escape-spec.md" .scratch/20240101-export-notes/spec.md
+run
+check "a symlinked spec.md is refused" 2 "$rc" \
+  ".scratch/20240101-export-notes/spec.md is a symlink; nothing reviewed"
+absent "no spec reached the caller through a symlinked spec.md" "spec="
+expect "the symlink's target is untouched" grep -qxF keep "$tmp/escape-spec.md"
+rm .scratch/20240101-export-notes/spec.md
+run
+check "a feature folder the resolver accepts is reviewed as before" 0 "$rc" \
+  "branch=export-notes" "review=.scratch/reviews/export-notes.md"
+
+# A checkout that has no resolver keeps the answers the door gives today: a machine may have linked
+# skills/ on its own, and a script the tree does not carry is no reason to refuse a review.
+lonely="$tmp/lonely/skills/do-code-review/scripts"
+mkdir -p "$lonely" && cp "$door" "$lonely/fixed-point.sh"
+rc=0; out="$(bash "$lonely/fixed-point.sh" 2>&1)" || rc=$?
+check "a door that cannot find the resolver answers as it does today" 0 "$rc" \
+  "branch=export-notes" "review=.scratch/reviews/export-notes.md"
+
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi

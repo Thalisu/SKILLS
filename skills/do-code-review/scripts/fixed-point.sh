@@ -17,6 +17,14 @@
 #                             was invoked from first, then from the repository top; one that names
 #                             no file is a refusal, so a Ticket handed over is never lost quietly
 #
+# Which paths a slug can name under the scratch is not this door's rule to hold: before it answers
+# it asks ../../../.agents/scripts/resolve-feature-folder.sh, the one executable form of that rule,
+# and passes on every refusal it makes, so a .scratch, a feature folder or a spec.md that is a
+# symlink never puts the Review, or a spec read beside it, at a path the repository does not
+# control. The lookups below stay this door's own: a Ticket is named after its own slug and not
+# after its feature's, and the containing scan matches a branch name no resolver knows. A checkout
+# that has no resolver answers as it does today, since a machine may have linked skills/ on its own.
+#
 # Prints key=value lines: branch, slug (the branch with every slash turned into a dash), head,
 # dirty (yes when the working tree has uncommitted or untracked changes; the two files this run
 # itself would write, the Review at review= and the .review.md beside the Ticket at ticket=, never
@@ -41,8 +49,8 @@
 # review_in_status (yes when the file at review= would show up in git status, in this tree or in the
 # main checkout when it sits there, no when git ignores that path or it sits outside the
 # repository).
-# Exit codes: 0 the door holds · 1 a refusal, with refusal=<the one line to print> · 2 usage, or not
-# a git repository.
+# Exit codes: 0 the door holds · 1 a refusal, with refusal=<the one line to print> · 2 usage, not a
+# git repository, or a refusal the resolver makes over the scratch, reported in this door's words.
 # main_checkout, printed last, is the path of the main worktree, the first entry of git worktree
 # list, so a caller in a linked worktree reaches the developer's checkout, and the tree the run sits
 # in when that entry is a bare repository: see .agents/worktrees.md.
@@ -56,6 +64,8 @@ while [ "$#" -gt 0 ]; do
     *) [ -z "$ref" ] || usage; ref="$1"; shift ;;
   esac
 done
+here="$(cd "$(dirname "$0")" && pwd -P)"
+resolver="$here/../../../.agents/scripts/resolve-feature-folder.sh"
 top="$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "not a git repository" >&2; exit 2; }
 invoked="$(pwd -P)"
 cd "$top" || exit 2
@@ -96,6 +106,15 @@ review=".scratch/reviews/$slug.md"
 [ "$top" -ef "$main_checkout" ] || review="$main_checkout/.scratch/reviews/$slug.md"
 core="${branch##*/}"
 core="$(sed -E 's/^[0-9]+-//' <<<"$core")"
+if [ -f "$resolver" ]; then
+  resolved="$(bash "$resolver" "$core" 2>&1)" || case "$resolved" in
+    # Only the escapes: a branch whose name normalises to no slug names no feature folder, which is
+    # an answer of none here and never a refusal.
+    *"nothing resolved")
+      # The reason is the resolver's; the verb is this door's, which reviews where it only reads.
+      echo "${resolved/%nothing resolved/nothing reviewed}" >&2; exit 2 ;;
+  esac
+fi
 ticket=none
 # One slug can carry more than one dated feature folder, and the newest of them wins: the glob is
 # sorted, so the last match is the one .agents/scratch.md names, and an undated folder, whose name
