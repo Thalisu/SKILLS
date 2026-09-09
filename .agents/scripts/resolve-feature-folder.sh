@@ -23,8 +23,8 @@
 #
 # Exit codes: 0 it resolved, folder=none included, so a slug that names nothing never fails the
 # caller's run · 2 usage, a slug that normalises to nothing, a .scratch that is not a plain
-# directory of the checkout, or a feature folder that is a symlink, either of which would name a
-# folder the repository does not control.
+# directory of the checkout, a feature folder that is a symlink, or a spec.md that is a symlink,
+# any of which would name a path the repository does not control.
 set -uo pipefail
 
 usage() { echo "usage: resolve-feature-folder.sh <slug>" >&2; exit 2; }
@@ -61,6 +61,9 @@ done
 [ -d ".scratch/$slug" ] && folder=".scratch/$slug"
 if [ -n "$folder" ] && [ -L "$folder" ]; then
   echo "$prefix$folder is a symlink; nothing resolved" >&2; exit 2
+fi
+if [ -n "$folder" ] && [ -L "$folder/spec.md" ]; then
+  echo "$prefix$folder/spec.md is a symlink; nothing resolved" >&2; exit 2
 fi
 
 date_of="$(sed -E 's#^\.scratch/([0-9]{8})-.*#\1#' <<<"$folder")"

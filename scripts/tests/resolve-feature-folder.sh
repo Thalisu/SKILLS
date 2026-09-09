@@ -145,6 +145,17 @@ run nightly-purge
 check "a symlinked undated folder is refused" 2 "$rc" \
   ".scratch/nightly-purge is a symlink; nothing resolved"
 
+# A spec.md that is a symlink is the same escape one level down: git checks a committed link out
+# into a real folder, which passes the folder gate, and the caller reads and writes the spec key.
+mkdir "$tmp/spec-link" && cd "$tmp/spec-link" && git init -q
+mkdir -p ".scratch/$today-nightly-purge" && printf 'outside\n' > "$tmp/victim-spec.md"
+ln -s "$tmp/victim-spec.md" ".scratch/$today-nightly-purge/spec.md"
+run nightly-purge
+check "a symlinked spec is refused" 2 "$rc" \
+  ".scratch/$today-nightly-purge/spec.md is a symlink; nothing resolved"
+absent "no folder reached the caller past a symlinked spec" "folder="
+absent "no spec reached the caller past a symlinked spec" "spec="
+
 # A linked worktree holds no scratch of its own, so a slug resolves in the main checkout and the
 # paths come back absolute for a caller that stands somewhere else.
 mkdir "$tmp/wt" && cd "$tmp/wt" && git init -q
