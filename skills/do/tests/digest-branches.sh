@@ -9,6 +9,7 @@ set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
 repo="$(cd "$here/../../.." && pwd -P)"
 refs="$repo/skills/do/references"
+emdash=$'\xe2\x80\x94'
 fails=0
 
 has() { # $1 label, $2 file, $3.. fixed strings that must appear in the file
@@ -146,5 +147,15 @@ expect "an eval case grades the reader that was never forked" \
   test -f "$repo/skills/do/evals/withheld-agent-tool/graders/no-reader-fork-session-reads-both.md"
 has "the eval index says the withheld case covers the door's reader" "$repo/skills/do/evals/README.md" \
   "the Digest read by the session itself"
+
+# Rerunnable by a reviewer who has only the file, since the repo has no runner. The match is the
+# header alone: the pattern is itself a line further down this script.
+expect "the test script carries its own invocation line in its header" \
+  header_has "# Run: bash skills/do/tests/digest-branches.sh"
+
+# No em-dash in the prose these branches add, per CLAUDE.md. The Digest reference is swept by
+# fixed-load.sh; the Playbook and the shared mechanics had no sweep of their own until here.
+lacks "no em-dash in the Playbook's reference" "$refs/ticket.md" "$emdash"
+lacks "no em-dash in the shared mechanics" "$refs/mechanics.md" "$emdash"
 
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi
