@@ -1,0 +1,225 @@
+name: bug-fix-run
+tags: [playbook, bug-fix, run]
+runs: 1
+max_turns: 180
+timeout_seconds: 3000
+allowed_tools: [Bash, Read, Edit, Write, Glob, Grep, Agent, Skill]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # A bug outside the chain, reported in words with no Ticket behind it: archivedCount compares with
+    # an assignment, so it counts every note and empties the list as a side effect. The surface is the
+    # CLI under bin/, which prints "archived: 2" and an empty active line where it should print
+    # "archived: 1" and "active: second". The project has no Testing Policy, so the run takes the TDD
+    # fallback and writes the failing test itself. The stand-in for do-code-review is called the way
+    # this Playbook calls it, with the branch alone as the spec source, and lands the branch on main.
+    set -e
+    mkdir -p src bin .claude/skills/do-code-review
+    cat > package.json <<'JSON'
+    {
+      "name": "notes",
+      "private": true,
+      "type": "module",
+      "scripts": {
+        "typecheck": "node --check src/notes.js",
+        "test": "node --test"
+      }
+    }
+    JSON
+
+    cat > README.md <<'MD'
+    # notes
+
+    A small notes module with a CLI. `node --test` runs the suite, `node --check src/notes.js`
+    checks the syntax, and `node bin/notes.mjs` walks the archive scenario and prints what it sees.
+    MD
+
+    cat > CLAUDE.md <<'MD'
+    # notes
+
+    A small notes module with a CLI under `bin/`. Tests run with Node's own runner, `node --test`,
+    and the module is checked with `node --check src/notes.js`. Test files are `src/*.test.js` beside
+    the module they test and import it with its `.js` extension. The CLI runs from the checkout it is
+    invoked in, so `node bin/notes.mjs` is the surface the archive scenario is seen on.
+    MD
+
+    cat > src/notes.js <<'JS'
+    const notes = [];
+
+    export function create(title) {
+      const note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+
+    export function list() {
+      return notes.filter((n) => n.status === "active");
+    }
+
+    export function archive(id) {
+      const note = notes.find((n) => n.id === id);
+      if (note) note.status = "archived";
+      return note;
+    }
+
+    export function archivedCount() {
+      return notes.filter((n) => n.status = "archived").length;
+    }
+    JS
+
+    cat > src/notes.test.js <<'JS'
+    import { test } from "node:test";
+    import assert from "node:assert/strict";
+    import { create, list } from "./notes.js";
+
+    test("a created note is listed", () => {
+      const note = create("first");
+      assert.ok(list().some((n) => n.id === note.id));
+    });
+    JS
+
+    cat > bin/notes.mjs <<'JS'
+    #!/usr/bin/env node
+    import { create, list, archive, archivedCount } from "../src/notes.js";
+
+    create("first");
+    create("second");
+    archive(1);
+    console.log(`archived: ${archivedCount()}`);
+    console.log(`active: ${list().map((n) => n.title).join(", ")}`);
+    JS
+
+    cat > .claude/skills/do-code-review/SKILL.md <<'REVIEW_SKILL_EOF'
+    ---
+    name: do-code-review
+    description: Reviews the diff of a branch since a fixed point on six Axes, fixes its Act on Findings through its Fixer and lands the branch on the developer's branch when the Review is Green. Use when do hands over a branch or a Ticket at its review step, or when the user asks to review a branch.
+    ---
+    This fixture's stand-in for `do-code-review`: the real skill's call and return, with the Review
+    planted Green. From the reviewed branch's worktree, run
+
+        bash .claude/skills/do-code-review/review.sh $ARGUMENTS
+
+    and return its whole output verbatim as the report. Edit nothing and commit nothing yourself, and
+    pass the arguments through exactly as they were given.
+    REVIEW_SKILL_EOF
+
+    cat > .claude/skills/do-code-review/review.sh <<'REVIEW_SH_EOF'
+    #!/usr/bin/env bash
+    # Stand-in for do-code-review in this fixture, called the way the bug-fix Playbook calls it: the
+    # branch alone as the spec source, so the Review goes to the main checkout's .scratch/reviews/ and
+    # names the branch and its fixed point instead of a Ticket. The Review is planted Green with no Act
+    # on Finding, so no Fixer runs. Re-runs the unit suite, lands by fast-forward under the
+    # protected-branch rule and prints the return the caller reads. Arguments: <spec source>
+    # <fixed point> <landing target>; fix and --no-fix are refused. Every call and every landing is
+    # logged under the repository's .git for the graders.
+    set -euo pipefail
+    common="$(cd "$(git rev-parse --git-common-dir)" && pwd)"
+    calls="$common/do-code-review-calls.log"
+    landings="$common/do-code-review-landings.log"
+    for a in "$@"; do
+      case "$a" in fix|--no-fix) printf 'refused: %s\n' "$*" >> "$calls"; echo "stand-in: refused the argument $a, which do never passes"; exit 2;; esac
+    done
+    printf '%s\n' "$*" >> "$calls"
+    spec="${1:?the spec source}"
+    fixed="${2:?the fixed point}"
+    target="${3:?the landing target}"
+    main="$(git worktree list --porcelain | sed -n '1s/^worktree //p')"
+    branch="$(git branch --show-current)"
+    git rev-parse --verify -q "$fixed^{commit}" >/dev/null || { echo "fixed point $fixed does not resolve; nothing reviewed"; exit 1; }
+    [ -n "$(git diff --stat "$fixed" HEAD)" ] || { echo "empty diff since $fixed; nothing reviewed"; exit 1; }
+    mkdir -p "$main/.scratch/reviews"
+    review="$main/.scratch/reviews/${branch//\//-}.md"
+
+    green=1
+    out="$(mktemp)"
+    if node --test >"$out" 2>&1; then
+      suite_line="\`node --test\`: $(grep -E '^(#|.) (tests|pass|fail) ' "$out" | tr '\n' ' ')"
+    else
+      suite_line="\`node --test\`: red"; green=0
+    fi
+    rm -f "$out"
+
+    protected() {
+      case "$target" in
+        main|master) git branch --list develop development staging 'release*' | grep -q . ;;
+        production|prod) return 0 ;;
+        *) return 1 ;;
+      esac
+    }
+    if [ "$green" = 1 ]; then
+      if protected; then
+        landing="not landed: $target is protected by the rule test-triage uses; the branch $branch and its worktree stay in place"
+      elif git -C "$main" merge --ff-only -q "$branch" >/dev/null 2>&1; then
+        landing="landed at $(git rev-parse --short "$branch")"
+        printf '%s\n' "$landing" >> "$landings"
+      else
+        landing="not landed: the fast-forward of $target to $branch failed; the branch and its worktree stay in place"
+      fi
+    else
+      landing="not landed: the unit suite is red after the diff; the branch $branch and its worktree stay in place"
+    fi
+
+    cat > "$review" <<EOF
+    # Review: $branch
+
+    Branch: $branch
+    Fixed point: $fixed
+    Commit: $(git rev-parse --short HEAD)
+    Landing target: $target
+
+    ## Intent
+
+    The diff of $branch since $fixed, reviewed with the branch alone as the spec source.
+
+    ## Safety fact
+
+    The unit suite covers every exported function the diff touches, run in the worktree (Rung 4).
+
+    ## Findings
+
+    ### Act on
+
+    none
+
+    ### Consider
+
+    none
+
+    ### Noted
+
+    none
+
+    ### Cleared
+
+    none
+
+    ## Axes
+
+    - Correctness: 0 findings
+    - Spec: 0 findings
+    - Standards: 0 findings
+    - Principles: 0 findings
+    - Blast radius: 0 findings
+    - Security: 0 findings
+
+    ## Fix run
+
+    Date: $(date +%F) at $(git rev-parse --short HEAD)
+
+    - no Act on Finding: no Fixer forked, nothing to fix
+    - suite: $suite_line
+    - $landing
+    EOF
+
+    echo "Review: $review"
+    cat "$review"
+    echo
+    echo "Landing: $landing"
+    REVIEW_SH_EOF
+
+    chmod +x .claude/skills/do-code-review/review.sh
+    printf '.scratch/\n' > .gitignore
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
+    printf "\nWork in progress on the README, uncommitted.\n" >> README.md

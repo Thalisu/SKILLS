@@ -51,6 +51,8 @@ typecheck and `node --test` as the suite, so both run offline with node alone.
 | `withheld-agent-tool` | the Agent tool withheld from the whole session, the nearest a case can get to withholding it from a delegate: no agent dispatched and no delegate forked, the inline test-author skill applied, the session's own commits carry the work |
 | `portuguese-session` | the Ticket's path followed by a Portuguese request, the one way a single prompt opens the session in Portuguese: the reply in Portuguese, the status line, the evidence and the commit messages in English |
 | `absent-vendored-skill` | a session that does not list `how`, which is the runner's own session (it lists the skill under test and the fixture's skills, never the vendored ones): the grounding step states the one-line fallback and completes, the build continues to the gate |
+| `bug-fix-run` | a bug reported in words with no Ticket, on the CLI fixture whose `archivedCount` compares with an assignment: the run reproduces it itself on `node bin/notes.mjs`, rules the hypotheses out with runtime evidence, lands the failing reproduction as its own commit before the fix commit, re-runs the reproduction on the same surface, calls the review once with the branch alone as the spec source, and lets the review fast-forward `main`; the reply pastes the failing then passing output, no worktree remains and nothing is pushed |
+| `bug-ticket-no-cause` | the same defect as a Ticket that names no cause: the first message reads `Defect: cause unknown, diagnosis first`, the reproduce and cause steps of `bug-fix` run before the behaviours list, the instrumentation is reverted, and the red run reproduces the defect before any change to `src/notes.js` |
 | `ticket-run-without-policy` | the same Ticket in a project with no Testing Policy, on the plain JavaScript fixture: the first message reads `Loop: fallback`, the run reads `references/tdd-fallback.md` before its first test and never dispatches a test author, and for each behaviour the failing test is written and run red by the session before the implementation, both landing in one commit |
 | `refactoring-run` | a reshape asked for in words on the native fixture, the note status scattered over two independent booleans that four functions and the CLI read, plus a `countArchived` helper with no caller: `Playbook: refactoring` with the checklist verbatim, the pin before any structure moves (the suite and the typecheck quoted, an equivalence harness outside the test tree for the archive transitions no test in the tree covers (archiving a note clears its pin and drops it from the list, and pinning an archived note is refused), and a red-first test on `src/status.ts` through the test author), the subtraction commit carrying that still-red test, the reshape migrating the CLI and deleting `label`, the harness agreeing on the new code, the cleanup commit deleting it with its gap named as debt, then the gate and the review through the stand-in, which fast-forwards `main`; the fixture's assertions untouched throughout |
 
@@ -68,6 +70,11 @@ from the main checkout. The fixture's commands are real: `node --test src/` runs
 `ticket-run-without-policy` scaffolds the plain JavaScript fixture of the `trivial-` cases instead,
 with the same spec, journey and Tickets and no policy section, no agent and no inline skill, so the
 run takes the TDD fallback and node alone runs its suite.
+The two bug cases scaffold a third fixture, the plain JavaScript notes module with a CLI under
+`bin/` and a planted defect in `archivedCount`, so the run has a surface to reproduce on and the
+defect has a one-character cause: `bug-fix-run` ships it with no Ticket at all, and
+`bug-ticket-no-cause` ships it with a Ticket and a spec that describe the wrong output and never say
+why.
 
 `refactoring-run` runs outside the chain, so its fixture carries no spec, no journey and no Ticket: the
 request in words is the whole input and the branch is the whole state. It scaffolds the native fixture

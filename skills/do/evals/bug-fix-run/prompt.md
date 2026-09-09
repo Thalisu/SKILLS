@@ -1,0 +1,1 @@
+/do the Archived count is wrong. After I archive one of two notes, `node bin/notes.mjs` prints `archived: 2` and the active list comes back empty; it should print `archived: 1` and still list `second`.

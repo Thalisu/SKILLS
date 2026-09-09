@@ -138,5 +138,36 @@ has "the red run reproduces the defect before any production change" "$ticket" "
 has "the steps stand alone when the reference is absent" "$ticket" "stand on their own"
 lacks "no em-dash in the ticket Playbook" "$ticket" "$emdash"
 
+# The evals: the bug-fix run and the bug Ticket whose cause is not named
+run_case="$evals/bug-fix-run"
+noc_case="$evals/bug-ticket-no-cause"
+for c in "$run_case" "$noc_case"; do
+  n="$(basename "$c")"
+  [ -f "$c/case.yaml" ] && ok "$n has its case file" || fail "$n has its case file"
+  [ -f "$c/prompt.md" ] && ok "$n has its prompt" || fail "$n has its prompt"
+  [ -d "$c/graders" ] && [ -n "$(ls -A "$c/graders" 2>/dev/null)" ] && ok "$n has graders" || fail "$n has graders"
+done
+has "the run's prompt reports a bug in words" "$run_case/prompt.md" "/do "
+has "the run's fixture plants a reproducible defect" "$run_case/case.yaml" "archivedCount"
+has "the run's fixture installs the review stand-in" "$run_case/case.yaml" ".claude/skills/do-code-review"
+has "the stand-in takes the branch as its spec source" "$run_case/case.yaml" "branch alone"
+[ -f "$run_case/graders/reproduction-commit-before-the-fix.md" ] && ok "the run grades the commit order" || fail "the run grades the commit order"
+[ -f "$run_case/graders/failing-then-passing-output-pasted.md" ] && ok "the run grades the pasted output" || fail "the run grades the pasted output"
+[ -f "$run_case/graders/review-called-on-the-branch.md" ] && ok "the run grades the review call" || fail "the run grades the review call"
+[ -f "$run_case/graders/landed-by-the-review.md" ] && ok "the run grades the landing" || fail "the run grades the landing"
+[ -f "$run_case/graders/first-line-playbook-bug-fix.md" ] && ok "the run grades the first line" || fail "the run grades the first line"
+has "the Ticket case points at a Ticket" "$noc_case/prompt.md" ".scratch/"
+has "the Ticket names no cause" "$noc_case/case.yaml" "archivedCount"
+[ -f "$noc_case/graders/defect-line-cause-unknown.md" ] && ok "the Ticket case grades the defect line" || fail "the Ticket case grades the defect line"
+[ -f "$noc_case/graders/diagnosis-before-the-list.md" ] && ok "the Ticket case grades the diagnosis order" || fail "the Ticket case grades the diagnosis order"
+[ -f "$noc_case/graders/red-reproduces-before-any-production-change.md" ] && ok "the Ticket case grades the red run" || fail "the Ticket case grades the red run"
+[ -f "$noc_case/graders/first-line-playbook-ticket.md" ] && ok "the Ticket case grades the first line" || fail "the Ticket case grades the first line"
+has "the evals README carries the run" "$evals/README.md" "\`bug-fix-run\`"
+has "the evals README carries the Ticket with no cause" "$evals/README.md" "\`bug-ticket-no-cause\`"
+emd=""
+while read -r f; do grep -qF -- "$emdash" "$f" && emd="$emd $f"; done < <(find "$run_case" "$noc_case" -type f 2>/dev/null)
+grep -qF -- "$emdash" "$evals/README.md" && emd="$emd README.md"
+if [ -z "$emd" ]; then ok "no em-dash in the new eval files"; else fail "no em-dash in the new eval files (found:$emd)"; fi
+
 [ "$fails" = 0 ] || { echo; echo "$fails failed"; exit 1; }
 echo; echo "all passed"
