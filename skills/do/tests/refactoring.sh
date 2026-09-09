@@ -142,4 +142,10 @@ has "the reply is written by the reply reference" "$ref" "](reply.md)"
 has "the reply ends with the push command" "$ref" "ends with the push command"
 before "the cleanup step comes before the gate" "$ref" "### 9. Cleanup" "### 10. Gate"
 
+# 8b. The red target-interface test precedes any structural change in history
+has "the target-interface test rides in the subtraction commit" "$ref" "rides in the subtraction commit"
+has "it is still red there, for its declared reason" "$ref" "still red there"
+has "the reshape is the structural change" "$ref" "the first commit that moves structure"
+has "the pin's old-behaviour half is what green means at the subtraction" "$ref" "the old behaviour half"
+
 if [ "$fails" = 0 ]; then echo "all ok"; else echo "$fails failing"; exit 1; fi

@@ -126,6 +126,9 @@ boundary, an inline or a dedupe inside one module, has no target interface and t
 When the request does not settle the target interface, step 4's sketch settles it first and this half
 follows the sketch. The two halves above still come before any structure moves.
 
+The test file is not committed here. It rides in the subtraction commit of step 5, still red, so that
+the target interface is pinned in history before the reshape moves anything onto it.
+
 Done when the suite's and the typecheck's output lines are quoted, the harness's run on the old code
 is quoted or the half reads its skip, and the target-interface test is red for its declared reason or
 the half reads its skip.
@@ -168,7 +171,14 @@ comment that describes code that is gone.
 
 Nothing is added here. The pin runs again after the deletion, the suite and the typecheck with their
 output lines quoted, and the harness where step 3 wrote one. The pin still green is the condition to
-commit; red means something was load-bearing, and the deletion is undone and taken smaller.
+commit; red means something was load-bearing, and the deletion is undone and taken smaller. Green
+here means the old behaviour half of the pin: step 3's target-interface test is red by design until
+step 6 reaches it.
+
+Step 3's target-interface test rides in the subtraction commit, still red there for the reason step 3
+declared. That is what puts it in history before the reshape, which is the first commit that moves
+structure, so a reader walking the branch sees the target interface asserted before anything was
+moved onto it. Its red run is quoted in the commit body beside the pin's green lines.
 
 The subtraction is the smallest change that reaches the target and nothing more: a deletion the
 target shape does not need is a second improvement and belongs to the reply's pending debt, never to
