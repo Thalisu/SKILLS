@@ -84,4 +84,15 @@ check "the inline writer reaches the rule and the entry through the agent file i
   ".claude/agents/unit-test-author.md"
 
 echo
+echo "# the version"
+version="$(bash "$render_policy" --version)"
+rc=0; out="$(printf '%s\n%s\n' 2.4 "$version" | sort -V | head -1)"
+check "the template version is 2.4, the step this rule landed at, or beyond (found $version)" 0 "$rc" "2.4"
+
+render unit;        check "the rendered unit agent carries the template version"  0 "$rc" "<!-- testing-policy:agent v=$version -->"
+render e2e;         check "the rendered E2E agent carries the template version"   0 "$rc" "<!-- testing-policy:agent v=$version -->"
+render test-author; check "the rendered inline skill carries the template version" 0 "$rc" "<!-- testing-policy:skill v=$version -->"
+policy native;      check "the rendered policy section carries the template version" 0 "$rc" "<!-- testing-policy:start v=$version surface=native -->"
+
+echo
 if [ "$fails" = 0 ]; then echo "partial-test-data: all checks passed"; else echo "partial-test-data: $fails failed"; exit 1; fi

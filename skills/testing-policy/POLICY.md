@@ -1,4 +1,4 @@
-<!-- testing-policy version: 2.3 -->
+<!-- testing-policy version: 2.4 -->
 <!-- TEMPLATE: canonical Testing Policy, rendered into the project's CLAUDE.md by
      scripts/render-policy.sh <native|consumer|mixed>. A block opened by an "@surface,surface"
      comment and closed by an "@/" comment is emitted only for the listed surfaces; untagged
