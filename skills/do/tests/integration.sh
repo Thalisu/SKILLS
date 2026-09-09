@@ -202,7 +202,7 @@ expect "the integration eval case has its prompt" test -f "$evals/prompt.md"
 for g in first-line-playbook-ticket integration-ticked-with-target-and-count \
          classed-before-anything-was-resolved no-question-asked-of-the-developer \
          both-sides-landed-main-above-the-replay gate-again-after-the-rebase-then-the-review \
-         nothing-pushed; do
+         fixed-point-is-the-commit-the-rebase-landed-on nothing-pushed; do
   expect "the integration eval case grades $g" test -f "$evals/graders/$g.md"
 done
 # The developer's branch has to move after the worktree exists, and a scaffold runs before the

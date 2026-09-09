@@ -1,0 +1,5 @@
+---
+type: llm
+criteria: "do-code-review was called with the commit the rebase landed on as its fixed point, never the commit the worktree was created from. The fixture's stand-in logs every call as its three arguments, one line each, in .git/do-code-review-calls.log; the second field of the one line that is not a `refused:` line is the fixed point. That field resolves to the commit `feat(notes): read the titles of the active notes`, the commit the teammate's hook landed on main while the run was building and the commit the integration rebased onto: it is the tip main was on when the rebase ran, and `git log --oneline <the logged fixed point> -1` names it. It is not that commit's parent, the commit main was on when the run created its worktree, and not any commit of the run's own branch. `git diff <the logged fixed point> do/archive-a-note` carries the run's own work alone: the teammate's `titles` function does not appear in it as an added line."
+---
+The review was called with the commit the rebase landed on as its fixed point.
