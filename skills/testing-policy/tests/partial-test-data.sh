@@ -266,6 +266,14 @@ check "a root holding no test file prints the section header and no row" 0 "$rc"
 absent "the section reads the roots it was given and no others" 0 "$rc" \
   "tests/single.test.ts" "tests/double.test.ts"
 
+rc=0; out="$(cat "$skill/SKILL.md")" || rc=$?
+check "the scan step counts the section among the debt list it keeps for the report" 0 "$rc" \
+  '`inline-helpers`, `type-assertions` and `skip-markers` are the debt list for step 8'
+check "the report lists the type assertion debt beside the duplication and the internal mock debt" 0 "$rc" \
+  'the duplication, skip-marker, type-assertion and internal-mock debt from the scan'
+check "the type assertion debt is paid by the next author, and the install rewrites no test file" 0 "$rc" \
+  'a type assertion is replaced by the helper the unit map names the next time its test file is touched, so the install rewrites no test file'
+
 echo
 echo "# repository standards"
 emdash=$'\xe2\x80\x94'
