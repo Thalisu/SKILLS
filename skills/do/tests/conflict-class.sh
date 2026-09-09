@@ -19,6 +19,14 @@ fresh() { # $1 name: a new repository on main, entered
   g config maintenance.auto false
 }
 run() { rc=0; out="$(bash "$door" "$@" 2>&1)" || rc=$?; }
+absent() { # $1 label, $2 expected exit, $3 actual exit, $4.. lines that must not appear
+  local label="$1" want="$2" rc="$3"; shift 3
+  local ok=1 line
+  [ "$rc" = "$want" ] || ok=0
+  for line in "$@"; do grep -qF -- "$line" <<<"$out" && ok=0; done
+  if [ "$ok" = 1 ]; then echo "ok    $label"; else
+    echo "FAIL  $label (exit $rc, wanted $want)"; echo "      ${out//$'\n'/$'\n'      }"; fails=$((fails + 1)); fi
+}
 check() { # $1 label, $2 expected exit, $3 actual exit, $4.. lines that must appear (fixed strings)
   local label="$1" want="$2" rc="$3"; shift 3
   local ok=1 line
@@ -158,6 +166,16 @@ else
   echo "      rebase (exit $rebased_rc): ${rebased_out//$'\n'/$'\n'      }"
   fails=$((fails + 1))
 fi
+
+# A tree git stopped nothing in.
+fresh unconflicted
+printf 'a\nb\n' > settled.txt
+commit base
+
+run
+check "a tree carrying no conflicted state gets one line saying so" 0 "$rc" \
+  "no conflicted state, nothing classed"
+absent "and nothing is classed" 0 "$rc" "mechanical" "contested" "verdict="
 
 echo
 if [ "$fails" = 0 ]; then echo "all ok"; else echo "$fails failed"; exit 1; fi
