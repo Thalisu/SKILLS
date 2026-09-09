@@ -157,6 +157,9 @@ Return exactly these sections:
 **System boundaries** (the only things a unit test mocks; one line per boundary, what it is → the shared mock that replaces it; "none: pure modules" is a valid entry)
 {{UNIT_MOCK_BOUNDARIES: e.g. `<the database client> → <buildMockDb()>` in `<mocks home>/<file>`; `the clock → <freezeTime()>`}}
 
+**Partial test data** (the helper that builds a fake without asserting a type at the compiler, and the two functions it gives; `n/a` when the project's language has no type assertion to reach for; "none yet → <the command that would add it>" is a valid entry, and is a pointer, not a command that ran)
+{{UNIT_PARTIAL_DATA_HELPER: e.g. `fromPartial()` for partial data that still type checks and `fromAny()` for data that is wrong on purpose, from `@total-typescript/shoehorn`}}
+
 **Discovery: run all of these on every dispatch, before writing**
 ```
 bash .claude/testing-policy/scan-test-assets.sh {{SCAN_ARGS: the --root/--shared flags for this project}} --section duplicate-symbols

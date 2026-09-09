@@ -26,6 +26,10 @@ absent() { # $1 label, $2.. lines that must not appear; output in $out
   if [ "$ok" = 1 ]; then echo "ok    $label"; else echo "FAIL  $label (found:$found)"; fails=$((fails + 1)); fi
 }
 render() { rc=0; out="$(bash "$render" "$@" 2>&1)" || rc=$?; }
+# The labels verify-policy.sh's map_missing() reads: the bold lead of every line after core-end.
+map_labels() { rc=0; out="$(bash "$render" "$1" | awk '/^<!-- testing-policy:core-end -->$/{f=1; next} f' | grep -oE '^\*\*[^*]+\*\*')" || rc=$?; }
+# The map entry alone: the label at line start and the slot under it, never the core's pointer at it.
+map_entry() { rc=0; out="$(bash "$render" "$1" | grep -A1 -E "^\\*\\*$2\\*\\*")" || rc=$?; }
 
 echo "# the rule in the core"
 render unit --core-only
@@ -36,6 +40,26 @@ check "the unit core points at the Project map for the helper" 0 "$rc" \
 
 absent "the unit core names no package, no helper function and no assertion keyword" \
   "shoehorn" "@total-typescript" "fromPartial" "fromAny" "\`as\`" "as unknown as" "as any" "TypeScript"
+
+echo
+echo "# the tool in the Project map"
+map_labels unit
+check "the unit map carries a Partial test data label, where map_missing() reads labels" 0 "$rc" \
+  "**Partial test data**"
+
+rc=0; out="$(bash "$render" unit --core-only | grep -E '^\*\*Partial test data\*\*' || true)"
+absent "the label line is in the preserved map, never in the regenerated core" "**Partial test data**"
+
+map_entry unit "Partial test data"
+check "the entry names the helper and the function for partial data that still type checks" 0 "$rc" \
+  "fromPartial" "still type checks"
+check "the entry names the function for data that is wrong on purpose" 0 "$rc" \
+  "fromAny" "wrong on purpose"
+check "the entry carries the not applicable value" 0 "$rc" "n/a"
+check "the entry carries the none yet form naming the command that would add the helper" 0 "$rc" \
+  "none yet"
+check "the none yet form is a pointer, not a command that ran" 0 "$rc" \
+  "not a command that ran"
 
 echo
 if [ "$fails" = 0 ]; then echo "partial-test-data: all checks passed"; else echo "partial-test-data: $fails failed"; exit 1; fi
