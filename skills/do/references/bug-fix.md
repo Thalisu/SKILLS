@@ -141,11 +141,37 @@ with one message naming `discuss`, the evidence listed and nothing landed, the w
 branch left in place and named, so the developer decides the design and `do` never reopens a plan.
 Done when the fix is in the thread in a few lines, or the run stopped naming `discuss`.
 
-**5. Red.** Done when `RED_AS_EXPECTED` is in the thread and the reproduction is committed.
+**5. Red.** The build loop in [mechanics.md](mechanics.md), for one behaviour: the defect the run
+reproduced at step 2. The dispatch input carries origin `bugfix` and the failure scenario as the
+expected red, in the words step 2's output produced, so the test fails the way the surface did.
+The verdict is read and said in one line, `RED_AS_EXPECTED`, and the other verdicts are handled the
+way the loop handles them.
 
-**6. Fix.** Done when the fix commit sits on top of the reproduction commit with the suite green.
+The reproduction is committed before the fix, on its own, so the history carries the failure before
+its cure and one revert undoes one slice, per
+[sequence-verifiable-units](../../../.agents/principles/sequence-verifiable-units.md). It is the
+one place the loop's single commit is split in two. Done when `RED_AS_EXPECTED` is in the thread
+and the reproduction is committed.
 
-**7. Verify on the surface.** Done when the original reproduction's passing output is in the thread.
+**6. Fix.** The smallest fix that removes the mechanism step 3 confirmed, written by the session on
+top of the red, then the rest of the build loop in [mechanics.md](mechanics.md): the single-file
+command green, a refactor on green, then typecheck and format the touched files, each from the
+project's facts, with `skip: <reason>` for a command the project does not have. One commit, staged
+by path, its body carrying the behaviour line and the single-file command. A change to the test's
+assertion goes back to its author with the intended behaviour stated, never to make the red go
+away. Done when the fix commit sits on top of the reproduction commit with the suite green.
+
+**7. Verify on the surface.** The original reproduction is run again, the same command line on the
+same surface step 2 used, and its passing output goes in the thread beside the failing one. A green
+unit test is not this step: the failure was seen on a surface, and that surface is where the fix is
+proven, per [prove-it-works](../../../.agents/principles/prove-it-works.md).
+Inconclusive is not a pass: an output that neither shows the defect nor shows it gone sends the run
+back to step 3 with what it saw.
+
+When the surface cannot be reached, the developer is asked a second time to drive the fixed build,
+and their second report is pasted in the reply marked as theirs beside the run's own test output.
+No report, or a no, stops the run as blocked with nothing landed. Done when the original
+reproduction's passing output is in the thread, or the developer's second report is.
 
 **8. Gate.** The gate in [mechanics.md](mechanics.md), in the worktree, after the last edit. Done
 when the suite and the typecheck are green in output produced after the last edit.

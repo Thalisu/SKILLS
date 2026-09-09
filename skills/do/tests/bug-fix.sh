@@ -101,5 +101,20 @@ has "a new shape or a new feature stops the run" "$ref" "a new shape or a new fe
 has "the discuss stop lists the evidence and lands nothing" "$ref" "the evidence listed and nothing landed"
 has "a new exported symbol goes through the discover batch" "$ref" "Discovery:"
 
+# Step 5, the red: origin bugfix, the failure scenario as the expected red, committed before the fix
+has "the failing test is dispatched with origin bugfix" "$ref" "origin \`bugfix\`"
+has "the failure scenario is the expected red" "$ref" "the failure scenario"
+has "the verdict is shown" "$ref" "RED_AS_EXPECTED"
+has "the reproduction is committed before the fix" "$ref" "committed before the fix"
+has "the red goes through the shared build loop" "$ref" "The build loop in [mechanics.md](mechanics.md)"
+
+# Step 6, the fix, and step 7, the verification on the same surface
+has "the smallest fix sits on top as one commit" "$ref" "the smallest fix"
+has "the fix runs the loop's typecheck and format" "$ref" "typecheck and format"
+has "the original reproduction is run again" "$ref" "The original reproduction"
+has "it is run on the same surface" "$ref" "on the same surface"
+has "inconclusive is not a pass" "$ref" "Inconclusive is not a pass"
+has "an unreachable surface asks the developer a second time" "$ref" "their second report"
+
 [ "$fails" = 0 ] || { echo; echo "$fails failed"; exit 1; }
 echo; echo "all passed"
