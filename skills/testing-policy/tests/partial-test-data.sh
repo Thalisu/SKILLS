@@ -213,8 +213,24 @@ absent "a file that grew ten more calls does not read as the two the install has
 rc=0; out="$(cat "$skill/SKILL.md")" || rc=$?
 # shellcheck disable=SC2016
 check "the manager comes from the lockfile the project carries" 0 "$rc" \
-  '`pnpm-lock.yaml` → `pnpm add -D`' '`yarn.lock` → `yarn add -D`' \
-  '`package-lock.json` → `npm install -D`' '`bun.lockb` or `bun.lock` → `bun add -d`'
+  '`pnpm-lock.yaml` → `pnpm add -D' '`yarn.lock` → `yarn add -D' \
+  '`package-lock.json` → `npm install -D' '`bun.lockb` or `bun.lock` → `bun add -d'
+# A yes runs a package manager inside a clone, and what a clone configured is what would run with it:
+# the fetched package's install hooks, and pnpm's hooks from a `.pnpmfile.cjs` that survive scripts
+# being off. Both are turned off on the command line itself, in all four commands.
+# shellcheck disable=SC2016
+check "every add command turns the fetched package's lifecycle scripts off" 0 "$rc" \
+  '`pnpm add -D @total-typescript/shoehorn --ignore-scripts' \
+  '`yarn add -D @total-typescript/shoehorn --ignore-scripts' \
+  '`npm install -D @total-typescript/shoehorn --ignore-scripts' \
+  '`bun add -d @total-typescript/shoehorn --ignore-scripts'
+# shellcheck disable=SC2016
+check "the pnpm command also turns the repository's own pnpmfile hooks off" 0 "$rc" \
+  '`pnpm add -D @total-typescript/shoehorn --ignore-scripts --ignore-pnpmfile'
+check "the offer says what a yes fetches into the project" 0 "$rc" \
+  "fetches third-party code from the public npm registry into the project"
+check "the add carries the whole command its manager selected, with no flag dropped" 0 "$rc" \
+  "no flag is dropped from it"
 check "the add runs where the map is filled, in the workspace that holds the tests" 0 "$rc" \
   "run the add once from the workspace step 2 recorded" "@total-typescript/shoehorn"
 # The manager decides a command line the install runs, and `packageManager` is a field the cloned
