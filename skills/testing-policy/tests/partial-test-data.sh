@@ -231,6 +231,9 @@ FIXTURE
 cat > "$tree/tests/anyas.test.ts" <<'FIXTURE'
 const broken = { id: 1 } as any as User;
 FIXTURE
+cat > "$tree/tests/objtype.test.ts" <<'FIXTURE'
+const partial = { id: "1" } as { id: string; name: string };
+FIXTURE
 cat > "$tree/tests/support/factory.ts" <<'FIXTURE'
 export const makeUser = () => ({ id: "1" } as User);
 FIXTURE
@@ -253,6 +256,8 @@ check "a double assertion counts as one, and as const and an import rename count
   "$(row tests/double.test.ts 1)"
 check "a double assertion written through any counts as one, the way as unknown as does" 0 "$rc" \
   "$(row tests/anyas.test.ts 1)"
+check "an assertion to an object type written inline is an assertion, and is listed" 0 "$rc" \
+  "$(row tests/objtype.test.ts 1)"
 absent "a file that is not a test file is not listed, in the test root or in src" 0 "$rc" \
   "tests/support/factory.ts" "src/user.ts"
 absent "a Python test file is not listed" 0 "$rc" "tests/test_shape.py"

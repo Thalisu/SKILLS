@@ -296,7 +296,7 @@ if want type-assertions; then
       case "$f" in
         *.ts|*.tsx|*.mts|*.cts)
           n="$(ts_code_only "$f" \
-            | grep -oE '\bas[[:space:]]+(unknown|any)[[:space:]]+as[[:space:]]+[A-Za-z_$][A-Za-z0-9_$]*|\bas[[:space:]]+[A-Za-z_$][A-Za-z0-9_$]*' \
+            | grep -oE '\bas[[:space:]]+(unknown|any)[[:space:]]+as[[:space:]]+([A-Za-z_$][A-Za-z0-9_$]*|\{)|\bas[[:space:]]+([A-Za-z_$][A-Za-z0-9_$]*|\{)' \
             | grep -cvE '^as[[:space:]]+const$')"
           [ "${n:-0}" -gt 0 ] && printf '%s\t%d\n' "$(row_path "$f")" "$n" ;;
       esac
