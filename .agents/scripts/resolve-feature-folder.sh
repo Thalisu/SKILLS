@@ -10,10 +10,11 @@
 # every dated one, never renamed. Never a folder that merely ends in the slug.
 #
 # Prints key=value lines: slug, the normalised slug; root, the main checkout it resolved in;
-# folder, the feature folder it named; spec, the spec.md in that folder; date, the folder's date,
-# or none for an undated folder.
+# folder, the feature folder it named, or none; spec, the spec.md in that folder, or none; date,
+# the folder's date, or none for an undated folder.
 #
-# Exit codes: 0 it resolved.
+# Exit codes: 0 it resolved, folder=none included, so a slug that names nothing never fails the
+# caller's run.
 set -uo pipefail
 
 slug="$1"
@@ -32,9 +33,12 @@ done
 date_of="$(sed -E 's#^\.scratch/([0-9]{8})-.*#\1#' <<<"$folder")"
 [ "$date_of" = "$folder" ] && date_of=none
 
+spec=none
+if [ -n "$folder" ]; then spec="$folder/spec.md"; else folder=none; fi
+
 echo "slug=$slug"
 echo "root=$root"
 echo "folder=$folder"
-echo "spec=$folder/spec.md"
+echo "spec=$spec"
 echo "date=$date_of"
 exit 0

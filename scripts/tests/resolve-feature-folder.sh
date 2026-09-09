@@ -57,4 +57,21 @@ check "an undated folder wins over a dated one" 0 "$rc" \
 expect "the undated folder keeps its name" test -d .scratch/nightly-purge
 expect "the dated folder keeps its name" test -d .scratch/20260909-nightly-purge
 
+# A slug that is only the tail of another feature's slug names no folder, and a slug that names
+# nothing answers none for both without failing the caller's run.
+mkdir "$tmp/tail" && cd "$tmp/tail" && git init -q
+mkdir -p ".scratch/$today-nightly-purge"
+run purge
+check "the tail of another slug matches no folder" 0 "$rc" \
+  "slug=purge" \
+  "folder=none" \
+  "spec=none" \
+  "date=none"
+run no-such-feature
+check "a slug that matches nothing still succeeds" 0 "$rc" \
+  "slug=no-such-feature" \
+  "folder=none" \
+  "spec=none" \
+  "date=none"
+
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi
