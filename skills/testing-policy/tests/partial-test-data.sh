@@ -208,6 +208,18 @@ check "the manager comes from the lockfile the project carries" 0 "$rc" \
   '`package-lock.json` → `npm install -D`' '`bun.lockb` or `bun.lock` → `bun add -d`'
 check "the add runs where the map is filled, in the workspace that holds the tests" 0 "$rc" \
   "run the add once from the workspace step 2 recorded" "@total-typescript/shoehorn"
+# The manager decides a command line the install runs, and `packageManager` is a field the cloned
+# repository writes, so the value picks one of four fixed commands by name and is never run itself.
+# shellcheck disable=SC2016
+check "the manager is one of the four commands the mapping enumerates, never a string from a project file" 0 "$rc" \
+  "The manager is a name that selects one of four fixed commands and is never itself a command line" \
+  'read as its leading token up to the `@` and nothing else' \
+  "never run a string a project file supplied"
+# shellcheck disable=SC2016
+check "a packageManager naming anything else is debt, not a command that runs" 0 "$rc" \
+  '`packageManager` whose leading token is not `pnpm`, `yarn`, `npm` or `bun`'
+check "the exact command line is printed before the add runs" 0 "$rc" \
+  "print the exact command line first"
 # shellcheck disable=SC2016
 check "an add that succeeded writes the helper and its two functions into the map line" 0 "$rc" \
   '`fromPartial()` for partial data that still type checks and `fromAny()` for data that is wrong on purpose'
