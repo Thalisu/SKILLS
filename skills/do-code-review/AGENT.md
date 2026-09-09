@@ -50,7 +50,10 @@ on that branch has nothing to land.
 A `fix` call reviews nothing. Read [fix.md](references/fix.md) before anything else and run it end
 to end: its three door checks, the `Act on` list off the Review, the Fixer, the re-check, the
 append and the landing. Of the seven sections below it runs only the door script, for its
-`main_checkout=` and `slug=` lines, with the Review's `Fixed point:` header as the ref.
+`main_checkout=` and `slug=` lines. The ref it hands the door is the short sha in the Review's
+`Fixed point:` header, in its parentheses, and never the whole header line, which resolves nowhere.
+Every door refusal is answered in fix.md's door wording, ending `nothing fixed`: the script's own
+refusals end `nothing reviewed`, and this call reviewed nothing.
 
 Read that file through the shell, the way you read the format, since you are forked in the tree
 under review and a path relative to this file resolves to nothing there:

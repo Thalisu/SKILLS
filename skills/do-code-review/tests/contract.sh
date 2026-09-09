@@ -139,6 +139,14 @@ has "the orchestrator reads the reference through the shell, as it reads the for
   'readlink -f ~/.claude/skills/do-code-review)/references/fix.md'
 has "the orchestrator reads the reference only when there is something to fix" "$agent_md" \
   "only when" "an \`Act on\` Finding" "--no-fix" "never read by a reviewer"
+# The whole `Fixed point:` line resolves as no ref, and the door's refusals are worded for a review
+# the fix call never ran, so a fix call takes the sha out of the header and rewords what comes back.
+has "a fix call hands the door the sha inside the Fixed point header" "$agent_md" \
+  "The ref it hands the door is the short sha in the Review's" "never the whole header line"
+lacks "no line hands the door the whole Fixed point header" "$agent_md" \
+  "with the Review's \`Fixed point:\` header as the ref"
+has "a refused fix call answers in the fix wording" "$agent_md" \
+  "answered in fix.md's door wording, ending \`nothing fixed\`"
 has "the orchestrator forks the Fixer and lands what it committed" "$agent_md" \
   "Fixer" "general-purpose" "landed at" "not landed" "git push"
 has "the orchestrator still writes only the Review and uses no edit tool" "$agent_md" \
@@ -189,6 +197,9 @@ has "the fix reference carries the three door checks, each one line and nothing 
   "working tree has uncommitted changes; commit or stash before fix" "nothing is written"
 has "the clean check is the door's dirty line, never a bare status" "$fix_md" \
   "the door's \`dirty=no\` line" "never a bare status"
+has "the fix reference's door names the ref and rewords the script's refusals" "$fix_md" \
+  "The ref is the short sha in that header's parentheses" \
+  "all end \`nothing reviewed\`, reach the caller ending \`nothing fixed\`"
 has "the fix reference decides where the Fixer works by whose branch was reviewed" "$fix_md" \
   "## Where the Fixer works" "fix/<slug>" ".claude/worktrees/" "](../../../.agents/worktrees.md)" \
   "did not create" "removes nothing it did not create"

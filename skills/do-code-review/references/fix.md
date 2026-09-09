@@ -21,8 +21,14 @@ with the facts already in hand, from the door script and from the Review it just
 | The check | Fails with |
 |---|---|
 | the Review at the location the caller named exists | `<the location> not found; nothing fixed` |
-| its `Fixed point:` header still resolves, `git rev-parse --verify` | `fixed point <ref> of <review> does not resolve; nothing fixed` |
+| the ref in its `Fixed point:` header still resolves, `git rev-parse --verify <that ref>` | `fixed point <ref> of <review> does not resolve; nothing fixed` |
 | the working tree is clean, the door's `dirty=no` line | `working tree has uncommitted changes; commit or stash before fix` |
+
+The ref is the short sha in that header's parentheses, never the whole `Fixed point:` line, which
+carries the base name, the sha and an `, inferred` and resolves as no ref at all. The door script
+the run calls for its `main_checkout=` and `slug=` lines takes that same short sha, and its own
+refusals, which all end `nothing reviewed`, reach the caller ending `nothing fixed`: this call
+reviewed nothing.
 
 Each is one line and the run stops there: no worktree, no Fixer, nothing is written, and the reply
 is that line alone. The clean check is the door script's `dirty=` line and never a bare status,
