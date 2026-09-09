@@ -130,8 +130,10 @@ recomputes the hash of each document the Digest's `## Sources` names, with the s
 
 Both hashes are compared before the run decides, never one and then the other: a comparison that
 stopped at the first match would serve an amended Spec, or an amended journey, from the slice the
-first run cut. A `## Sources` line the Digest does not carry, or a document that is gone, is not a
-match: the run re-forks.
+first run cut. A document recorded `absent` and still not on disk is a match, since nothing about
+it moved; a document that appeared where the record says `absent`, one that is gone where the
+record carries a hash, and a `## Sources` line the Digest does not carry are each not a match: the
+run re-forks.
 
 ## The build loop
 

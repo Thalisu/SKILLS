@@ -120,6 +120,15 @@ has "an absent document is recorded and named by the reader" "$refs/digest.md" \
 has "the run goes on from the Ticket alone and says which document is absent" "$refs/mechanics.md" \
   "continues from the Ticket alone" \
   "naming the document that is absent"
+# A document that was absent when the Digest was written and is still absent is not a change, so a
+# Ticket whose Spec names no journey reuses its Digest instead of re-forking the reader for good
+# over a document nobody wrote.
+has "a document recorded absent and still absent is a match" "$refs/digest.md" \
+  '`<name>: absent` instead. A document still absent' \
+  "is a match, and only a document that appeared, vanished or changed re-forks"
+has "the second run re-forks for a change and never for an absence that held" "$refs/mechanics.md" \
+  'A document recorded `absent` and still not on disk is a match' \
+  "a document that appeared where the record says"
 
 # A session without the Agent tool has no fork to dispatch, and the run pays the whole read rather
 # than stopping on a tool the developer cannot hand it mid-run.

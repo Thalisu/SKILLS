@@ -41,8 +41,9 @@ values and not quotes.
   reading either document again. A hash rather than a modification time: `git checkout`, a rebase
   and `git worktree add` all rewrite the times of files whose bytes did not change, and a Digest is
   not stale because git touched its Spec. A document that is not on disk, and a journey the Spec's
-  `Journey:` line names none for, is recorded as `<name>: absent` instead, which is never a match,
-  so the next run reads for it again once it is there.
+  `Journey:` line names none for, is recorded as `<name>: absent` instead. A document still absent
+  on a later run is a match, and only a document that appeared, vanished or changed re-forks the
+  reader, so a Ticket whose Spec names no journey reuses its Digest like every other Ticket.
 - `## Journey Path`: the one Path of the journey the Ticket is cut from, quoted whole, its heading,
   its `Story:` and `Outcome:` lines, its step table and its `Failure branches:` list. It is the
   Path whose name opens the Ticket's `What to build` line, and, failing that, the Path whose
