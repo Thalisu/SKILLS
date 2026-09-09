@@ -190,6 +190,19 @@ install_fixture "$complete"
 verify "$complete"
 check "a complete install reading absent keeps its exit code" 0 "$rc" "partial_data_helper=absent"
 
+# The verifier's callers read its output as key=value lines, and the harness above captures with
+# 2>&1, so a walk that reports an unreadable directory lands in the stream they parse.
+noisy="$tmp/unreadable-dir"
+mkdir -p "$noisy/src" "$noisy/private/secret"
+printf 'test("thing", () => {});\n' > "$noisy/src/thing.test.ts"
+chmod 000 "$noisy/private/secret"
+rc=0; out="$(bash "$verify" "$noisy" 2>"$tmp/verify.err" | grep -vE '^[a-z0-9_]+=' || true)"
+noise="$(cat "$tmp/verify.err")"
+chmod 755 "$noisy/private/secret"
+empty "an unreadable directory leaves the verifier's stdout all key=value lines"
+out="$noise"
+empty "an unreadable directory leaves the verifier's stderr empty"
+
 # The header alone, never the body below it: the code carries the same strings, so a case over the
 # whole file would pass on a script that documents nothing.
 rc=0; out="$(sed -n '1,/^set -/p' "$verify")" || rc=$?

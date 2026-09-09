@@ -133,7 +133,7 @@ partial_data_pkg='@total-typescript/shoehorn'
 partial_data_state() {
   local p="$1"
   [ -n "$(find "$p" -maxdepth 4 \( -name node_modules -o -name .git \) -prune -o \
-    -type f -name 'tsconfig*.json' -print -quit)" ] || { echo "n/a"; return; }
+    -type f -name 'tsconfig*.json' -print -quit 2>/dev/null)" ] || { echo "n/a"; return; }
   if grep -rqF --include=package.json --exclude-dir=node_modules -- "\"$partial_data_pkg\"" "$p" 2>/dev/null
   then echo installed; else echo absent; fi
 }
