@@ -16,13 +16,6 @@ has() { # $1 label, $2 file, $3.. fixed strings that must appear in the file
   for line in "$@"; do [ "$ok" = 1 ] && grep -qF -- "$line" "$file" || ok=0; done
   if [ "$ok" = 1 ]; then echo "ok    $label"; else echo "FAIL  $label ($file)"; fails=$((fails + 1)); fi
 }
-lacks() { # $1 label, $2 file, $3.. fixed strings that must not appear
-  local label="$1" file="$2"; shift 2
-  local ok=1 line
-  [ -f "$file" ] || ok=0
-  for line in "$@"; do grep -qF -- "$line" "$file" 2>/dev/null && ok=0; done
-  if [ "$ok" = 1 ]; then echo "ok    $label"; else echo "FAIL  $label ($file)"; fails=$((fails + 1)); fi
-}
 expect() { # $1 label, $2.. a command that must succeed
   local label="$1"; shift
   if "$@"; then echo "ok    $label"; else echo "FAIL  $label"; fails=$((fails + 1)); fi
@@ -40,6 +33,29 @@ rows_lack() { # $1 label, $2 file, $3 the table's header line, $4.. fixed string
     echo "FAIL  $label (no rows under \"$header\") ($file)"; fails=$((fails + 1)); return
   fi
   for word in "$@"; do printf '%s\n' "$rows" | grep -qF -- "$word" && ok=0; done
+  if [ "$ok" = 1 ]; then echo "ok    $label"; else echo "FAIL  $label ($file)"; fails=$((fails + 1)); fi
+}
+# The lines of one markdown bullet: the line it opens with, then the indented lines under it, up to
+# the next bullet or the first line that is not indented.
+bullet() {
+  awk -v h="$2" '
+    index($0, h) == 1 { b = 1; print; next }
+    b && /^[[:space:]]*-[[:space:]]/ { exit }
+    b && /^[[:space:]]+[^[:space:]]/ { print; next }
+    b { exit }
+  ' "$1"
+}
+bullet_lacks() { # $1 label, $2 file, $3 the bullet's opening, $4.. fixed strings the bullet may not carry
+  # A reworded opening makes `bullet` print nothing, and a word looked for in nothing is always
+  # absent, so the bullet is demanded first and its absence fails the check like the word's
+  # presence does.
+  local label="$1" file="$2" opening="$3"; shift 3
+  local lines ok=1 word
+  lines="$(bullet "$file" "$opening")"
+  if [ -z "$lines" ]; then
+    echo "FAIL  $label (no bullet opening \"$opening\") ($file)"; fails=$((fails + 1)); return
+  fi
+  for word in "$@"; do printf '%s\n' "$lines" | grep -qF -- "$word" && ok=0; done
   if [ "$ok" = 1 ]; then echo "ok    $label"; else echo "FAIL  $label ($file)"; fails=$((fails + 1)); fi
 }
 
@@ -61,8 +77,8 @@ rows_lack "no row of the page's door table matches the word \`sketch\`" "$page" 
 glossary="$repo/CONTEXT.md"
 has "the glossary's Playbook rule sends a runnable throwaway to prototype" "$glossary" \
   "throwaway is \`prototype\`"
-lacks "the glossary rule no longer calls a request for a throwaway a sketch" "$glossary" \
-  "a sketch is \`prototype\`"
+bullet_lacks "no line of the glossary's Playbook rule matches the word \`sketch\`" "$glossary" \
+  "- \`do\` ships five **Playbooks**" sketch
 
 # The eval case that grades the row. Its name is the row's, so a case whose name still carries the
 # word grades a door the router no longer has.
