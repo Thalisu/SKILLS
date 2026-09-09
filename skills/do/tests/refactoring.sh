@@ -101,4 +101,21 @@ has "the equivalence script's output is quoted" "$ref" "output is quoted"
 has "the proof step cites prove-it-works" "$ref" "prove-it-works.md)"
 has "a disagreement sends the run back to the reshape" "$ref" "back to step 6"
 
+# 7. The exit test, the cleanup commit and the behaviour change split out
+has "the exit test is reader load" "$ref" "reader load lower"
+has "the exit test is one line with the reason" "$ref" "in one line with the reason"
+has "the exit test cites minimize-reader-load" "$ref" "minimize-reader-load.md)"
+has "a failed exit test asks one question before reverting" "$ref" "one question before"
+has "the revert deletes the branch" "$ref" "the revert deletes the branch"
+has "a yes removes the worktree and its branch with nothing landed" "$ref" "nothing landed"
+has "a no continues to the gate, the review and the landing" "$ref" "a no continues"
+has "a speculative cleanup is reverted before the cleanup commit" "$ref" "a speculative cleanup"
+has "the harness is deleted at the cleanup" "$ref" "the harness deleted"
+has "its gap is named as debt in the reply" "$ref" "named as debt"
+has "the cleanup is one commit" "$ref" "chore(<scope>): clean up"
+has "a behaviour change the cleanup reveals is split out and named" "$ref" "split out"
+has "the structural change ships first against the pin" "$ref" "ships first"
+has "a defect goes to do with the bug in words" "$ref" "with the bug in words"
+has "a feature goes to discuss" "$ref" "/discuss <the behaviour change>"
+
 if [ "$fails" = 0 ]; then echo "all ok"; else echo "$fails failing"; exit 1; fi

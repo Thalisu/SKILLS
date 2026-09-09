@@ -237,3 +237,53 @@ correct is not a refactor at all, and it is split out by step 9.
 
 Done when the harness's run on the new code is quoted, or the step reads its skip, and the
 equivalence script's output is quoted or reads its skip.
+
+### 8. Exit test
+
+One question, answered in one line with the reason: is the reader's load lower than it was, per
+[minimize-reader-load](../../../.agents/principles/minimize-reader-load.md)? The two axes are the
+layers between a question and its answer, and the state a reader has to hold to follow the code. The
+line names which of the two dropped and where: "the caller reads one call instead of walking three
+branches", "the status now has one home, so nothing has to be kept in sync". A reshape that only
+moved code sideways passes neither axis and fails the test, however much cleaner it looks.
+
+A failure stops the run before the cleanup, because the answer is to revert and the revert deletes
+the branch with every commit on it. That is irreversible, so the run states why the test failed and
+asks one question, the second and last this Playbook may ask:
+
+- **Yes, revert.** A yes removes the worktree and its branch from the main checkout, with nothing
+  landed, and the reply says what was tried and what it cost the reader.
+- **No, keep it.** A no continues to the cleanup, the gate, the review and the landing, and the reply
+  carries the failed exit test as pending debt so the next reader knows the claim was not met.
+
+Done when the answer and its reason are in the thread, with the developer's answer when the test
+failed.
+
+### 9. Cleanup
+
+The third and last slice, once the exit test passed or the developer said no.
+
+- A speculative cleanup is reverted before the commit: a rename nobody asked for, a helper extracted
+  for a second caller that does not exist, a comment explaining the reshape to a reviewer, a
+  formatting sweep over untouched lines. The target shape earns its place; a guess does not, per
+  [laziness-protocol](../../../.agents/principles/laziness-protocol.md).
+- The harness deleted, since it was a scaffold and never a test, and the gap it covered named as debt
+  in the reply: which behaviour it drove, and that no test in the tree covers it now. That is the
+  honest cost of the pin's second half, and it is stated rather than carried silently.
+- The equivalence script from step 7 goes the same way.
+
+One commit, staged by path, titled `chore(<scope>): clean up after the reshape`, its body naming the
+harness that went and the gap it leaves. Nothing to clean up reads `skip: nothing speculative and no
+harness` and the run goes to the gate with two commits.
+
+**A behaviour change the cleanup reveals.** Deleting the scaffold sometimes exposes something that
+was never behaviour-preserving: a branch that was wrong before the reshape, a case the old code
+silently swallowed. It is split out, never smuggled into the reshape. The structural change ships
+first against the pin, unchanged, and the reply names the behaviour change with the command that
+takes it: `/do` with the bug in words for a defect, and `/discuss <the behaviour change>` for a
+feature. The run does not fix it here, per
+[fix-root-causes](../../../.agents/principles/fix-root-causes.md): a defect gets its own reproduction
+and its own red-first fix, which this Playbook's pin is the wrong instrument for.
+
+Done when the cleanup is committed or reads its skip, and a behaviour change found here is named in
+the thread with its command.
