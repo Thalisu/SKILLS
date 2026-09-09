@@ -170,6 +170,16 @@ check "outside a repository the folder is still allocated" 0 "$rc" "folder=.scra
   "created=yes" "gitignore=no-repo"
 expect "no .gitignore was written outside a repository" bash -c '! test -e .gitignore'
 
+# The resolver is the allocator's one door to the rule, so a copy of this script that cannot
+# reach it says which script is missing and allocates nothing, rather than guessing the rule back.
+lonely="$tmp/lonely/skills/spec/scripts"
+mkdir -p "$lonely" && cd "$tmp/lonely" && git init -q
+cp "$allocate" "$lonely/feature-folder.sh"
+rc=0; out="$(bash "$lonely/feature-folder.sh" notes 2>&1)" || rc=$?
+check "an allocator that cannot find the resolver refuses, naming it" 2 "$rc" \
+  "resolve-feature-folder.sh not found at $lonely/../../../.agents/scripts/resolve-feature-folder.sh; nothing allocated"
+expect "the refusal allocated nothing" test ! -e "$tmp/lonely/.scratch"
+
 # The resolution rule lives in the resolver alone, so fixing it once fixes every door: the
 # allocator normalises no slug and looks up no folder of its own.
 absent_in "the allocator normalises no slug of its own" "tr -c" "$allocate"

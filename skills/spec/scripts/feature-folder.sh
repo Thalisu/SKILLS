@@ -52,6 +52,10 @@ usage() { echo "usage: feature-folder.sh <slug>" >&2; exit 2; }
 
 here="$(cd "$(dirname "$0")" && pwd -P)"
 resolver="$here/../../../.agents/scripts/resolve-feature-folder.sh"
+if [ ! -f "$resolver" ]; then
+  echo "resolve-feature-folder.sh not found at $resolver; nothing allocated" >&2
+  exit 2
+fi
 
 rc=0
 resolved="$(bash "$resolver" "$1" 2>&1)" || rc=$?
