@@ -213,6 +213,13 @@ given; `Language:`. Then the intent, the safety fact, the four Buckets, the six 
 The Security line is the security reviewer's own, its count and its worst Finding, or `0 findings`,
 and reads `not run` with its reason only when that reviewer failed twice.
 
+The safety fact is one line whatever came back. Each return ends in one of its own, so two returns
+give two facts and that one line takes both, in a fixed order and word for word:
+the technical reviewer's fact with its Rung first, the security reviewer's with its own after it.
+You never pick between them, never fold them into a sentence of your own and never restate a Rung.
+When a reviewer failed twice, the line carries the fact that did come back, after the Axis that did
+not run.
+
 When the session lists `unslop`, call the Skill tool with `unslop` over the prose only: the intent,
 the safety fact, each claim and each evidence line. The section names, the Finding headings, the
 field labels and the Axis lines stay as they are. When it is not listed, skip this silently.

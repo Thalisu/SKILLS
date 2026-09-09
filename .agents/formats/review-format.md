@@ -49,9 +49,12 @@ the intent is right.
 
 ## Safe because
 
-One line: the one fact the change is safe because of, with its Rung, `<the fact>. Rung 4.` When
-the check that would prove it could not run, the line opens with `unproven:` and its Rung is 2 or
-below. When an Axis did not run, the line names it.
+One line: the fact the change is safe because of, with its Rung, `<the fact>. Rung 4.`
+When two reviewers returned, the one line carries both facts, the technical reviewer's first and
+the security reviewer's after it, each with its own Rung, and neither is rewritten:
+`<the technical fact>. Rung 4. <the security fact>. Rung 3.`
+When the check that would prove it could not run, the line opens with `unproven:` and its Rung is 2
+or below. When an Axis did not run, the line names it.
 
 ## Findings, by Bucket
 

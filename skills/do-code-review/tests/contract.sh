@@ -52,6 +52,10 @@ has "a Finding carries its fields" "$format" \
 has "the six Axes are named" "$format" \
   "Correctness" "Spec" "Standards" "Principles" "Blast radius" "Security" "not run" "0 findings"
 has "the Rung gate is stated" "$format" "Rung 1 or 2" "unproven"
+# Two reviewers return two safety facts and the section takes one line, so the format says what
+# that one line holds and in which order, or the writer picks between the two facts on its own.
+has "the safety line takes both facts when two reviewers returned" "$format" \
+  "the one line carries both facts" "neither is rewritten"
 has "the two homes of the file are stated" "$format" ".scratch/reviews/" ".review" "Ticket: none"
 has "the index carries the format's row" "$repo/.agents/formats/README.md" \
   "| [review-format.md](review-format.md) | \`do-code-review\` | \`do\`, the Fixer |" "a review"
@@ -141,6 +145,9 @@ has "a Security Finding the orchestrator never files under Noted" "$agent_md" \
   "never lands in \`Noted\`" "goes to \`Consider\`"
 has "the Security line is the security reviewer's own" "$agent_md" \
   "The Security line is the security reviewer's own" "0 findings"
+has "one safety line takes both returns' facts in a fixed order" "$agent_md" \
+  "The safety fact is one line whatever came back" \
+  "the technical reviewer's fact with its Rung first, the security reviewer's with its own after it"
 lacks "the orchestrator no longer calls the security reviewer unshipped" "$agent_md" \
   "no security reviewer installed" "until the security reviewer ships"
 has "a reviewer that fails twice leaves its Axis not run and the other's Findings written" "$agent_md" \
@@ -262,7 +269,8 @@ has "the planted diff prompt hands the Ticket's location over" "$evals/planted-d
   "/do-code-review .scratch/export-notes/issues/02-export-notes.md"
 for grader in correctness-in-act-on spec-in-act-on standards-cites-the-rule principles-in-consider \
   blast-radius-in-act-on security-in-act-on security-never-in-noted clean-hunk-untouched rung-gate \
-  location-once six-axis-lines principle-beside-location reviewer-no-write review-beside-the-ticket; do
+  location-once six-axis-lines principle-beside-location reviewer-no-write review-beside-the-ticket \
+  one-safety-fact; do
   expect "the planted diff has its $grader grader" test -f "$evals/planted-diff/graders/$grader.md"
 done
 # The planted diff hands its Ticket over, so every grader on that case reads one header and one
