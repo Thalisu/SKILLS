@@ -159,6 +159,9 @@ has "the prompt types a reshape in words" "$case/prompt.md" "/do extract"
 has "the first line grader reads Playbook: refactoring" "$case/graders/first-line-playbook-refactoring.md" "^Playbook: refactoring"
 has "a grader checks the red-first target-interface test precedes any structural change" "$case/graders/red-first-target-interface-test-precedes.md" "src/status.test.ts"
 has "a grader checks the harness is gone and its gap is named as debt" "$case/graders/harness-gone-and-gap-named.md" "harness"
+has "that grader names the gap the fixture's tests leave" "$case/graders/harness-gone-and-gap-named.md" "the archive transitions"
+has "the case names the gap the harness covers" "$case/case.yaml" "the archive transitions"
+lacks "the README row does not call it that either" "$skill/evals/README.md" "the ordering and the labels the suite does not cover"
 has "a grader checks the fixture's assertions are unchanged" "$case/graders/fixture-assertions-unchanged.md" "src/notes.test.ts"
 has "a grader checks the old API has no caller and no longer exists" "$case/graders/old-api-gone-with-no-caller.md" "label"
 has "a grader checks the commits read subtraction, reshape, cleanup" "$case/graders/commits-read-subtraction-reshape-cleanup.md" "subtraction"
@@ -180,5 +183,23 @@ suite="$(cd "$tmp/fixture" 2>/dev/null && node --test src/ 2>&1 || true)"
 if grep -qE '(^|[^a-z])fail 0$' <<<"$suite" && grep -qE '(^|[^a-z])pass [1-9]' <<<"$suite"; then ok "the fixture's unit suite is green"; else fail "the fixture's unit suite is green"; fi
 flows="$(cd "$tmp/fixture" 2>/dev/null && node --test e2e/ 2>&1 || true)"
 if grep -qE '(^|[^a-z])fail 0$' <<<"$flows" && grep -qE '(^|[^a-z])pass [1-9]' <<<"$flows"; then ok "the fixture's flow is green"; else fail "the fixture's flow is green"; fi
+
+# the gap the case gives the harness is real: no test in the fixture's tree covers the archive
+# transitions, so breaking one leaves the unit suite and the flow green
+if [ -f "$tmp/fixture/src/notes.ts" ]; then
+  cp "$tmp/fixture/src/notes.ts" "$tmp/notes.ts.orig"
+  sed -i 's/  note.archived = true;/  note.archived = false;/' "$tmp/fixture/src/notes.ts"
+  broke_suite="$(cd "$tmp/fixture" && node --test src/ 2>&1 || true)"
+  broke_flows="$(cd "$tmp/fixture" && node --test e2e/ 2>&1 || true)"
+  cp "$tmp/notes.ts.orig" "$tmp/fixture/src/notes.ts"
+else
+  broke_suite=""; broke_flows=""
+fi
+if grep -qE '(^|[^a-z])fail 0$' <<<"$broke_suite" && grep -qE '(^|[^a-z])pass [1-9]' <<<"$broke_suite" \
+  && grep -qE '(^|[^a-z])fail 0$' <<<"$broke_flows" && grep -qE '(^|[^a-z])pass [1-9]' <<<"$broke_flows"; then
+  ok "no test in the fixture covers the archive transitions"
+else
+  fail "no test in the fixture covers the archive transitions"
+fi
 
 if [ "$fails" = 0 ]; then echo "all ok"; else echo "$fails failing"; exit 1; fi

@@ -10,12 +10,14 @@ context:
     # A reshape asked for in words on a native surface (a CLI with a flow under e2e/): the note
     # status is scattered over two independent booleans, archived and pinned, that four functions
     # and the CLI read, plus a countArchived helper with no caller. The run matches refactoring,
-    # pins the old behaviour with the suite and the typecheck plus an equivalence harness for the
-    # ordering and the labels the suite does not cover, dispatches the red-first test on the target
-    # interface src/status.ts, subtracts the dead helper, reshapes onto the state machine while
-    # migrating the CLI and deleting label, proves the harness agrees, cleans up and deletes the
-    # harness, then the gate and the review through the fixture's stand-in do-code-review (planted
-    # Green), which fast-forwards main. Nothing is pushed and no Ticket exists.
+    # pins the old behaviour with the suite and the typecheck plus an equivalence harness for
+    # the archive transitions, which no test in the tree covers: archiving a note clears its pin
+    # and drops it from the list, and pinning an archived note is refused. It dispatches the
+    # red-first test on the target interface src/status.ts, subtracts the dead helper, reshapes
+    # onto the state machine while migrating the CLI and deleting label, proves the harness
+    # agrees, cleans up and deletes the harness, then the gate and the review through the
+    # fixture's stand-in do-code-review (planted Green), which fast-forwards main. Nothing is
+    # pushed and no Ticket exists.
     set -e
     mkdir -p src bin e2e/helpers .claude/agents .claude/skills/test-author
     cat > package.json <<'JSON'
