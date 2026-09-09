@@ -227,6 +227,24 @@ check "every add command turns the fetched package's lifecycle scripts off" 0 "$
 # shellcheck disable=SC2016
 check "the pnpm command also turns the repository's own pnpmfile hooks off" 0 "$rc" \
   '`pnpm add -D @total-typescript/shoehorn --ignore-scripts --ignore-pnpmfile'
+# The registry is where the add's request goes and where the credentials for it go too, so the whole
+# command is pinned to its end: a `.npmrc` a clone carries names a host and expands the developer's
+# environment into a token for that host.
+# shellcheck disable=SC2016
+check "every add command pins the registry it fetches from, to the end of the line" 0 "$rc" \
+  '`pnpm add -D @total-typescript/shoehorn --ignore-scripts --ignore-pnpmfile --registry https://registry.npmjs.org/`' \
+  '`yarn add -D @total-typescript/shoehorn --ignore-scripts --registry https://registry.npmjs.org/`' \
+  '`npm install -D @total-typescript/shoehorn --ignore-scripts --registry https://registry.npmjs.org/`' \
+  '`bun add -d @total-typescript/shoehorn --ignore-scripts --registry https://registry.npmjs.org/`'
+# A flag closes the key it names, and a package-manager configuration file carries keys no flag on the
+# line covers, a proxy and a CA among them, so the file itself is what the add refuses to run under.
+# shellcheck disable=SC2016
+check "the add is never run under the package-manager configuration the project supplied" 0 "$rc" \
+  'carries `.npmrc`, `.yarnrc`, `.yarnrc.yml`, `.pnpmfile.cjs` or `bunfig.toml`, the add is not run at all' \
+  "the registry and the credentials are the developer's own"
+# shellcheck disable=SC2016
+check "every value the add takes from the project is named as untrusted" 0 "$rc" \
+  'the `packageManager` field, the lockfile it reads, the workspace path and the package-manager configuration that workspace carries'
 check "the offer says what a yes fetches into the project" 0 "$rc" \
   "fetches third-party code from the public npm registry into the project"
 check "the add carries the whole command its manager selected, with no flag dropped" 0 "$rc" \
