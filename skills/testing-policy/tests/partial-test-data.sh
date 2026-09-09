@@ -21,6 +21,10 @@ check() { # $1 label, $2 expected exit, $3 actual exit, $4.. lines that must app
   if [ "$ok" = 1 ]; then echo "ok    $label"; else
     echo "FAIL  $label (exit $rc, wanted $want)"; head -12 <<<"$out" | sed 's/^/      /'; fails=$((fails + 1)); fi
 }
+empty() { # $1 label; the output in $out must be empty
+  if [ -z "$out" ]; then echo "ok    $1"; else
+    echo "FAIL  $1"; head -12 <<<"$out" | sed 's/^/      /'; fails=$((fails + 1)); fi
+}
 absent() { # $1 label, $2.. lines that must not appear; output in $out
   local label="$1"; shift
   local ok=1 line found=""
@@ -179,6 +183,11 @@ rc=0; out="$(LC_ALL=C grep -lae "$emdash" \
   "$skill/AGENT-UNIT.md" "$skill/SKILL.md" "$skill/POLICY.md" "$here/partial-test-data.sh" || true)"
 absent "no em-dash in the prose this rule wrote" \
   "AGENT-UNIT.md" "SKILL.md" "POLICY.md" "partial-test-data.sh"
+
+# verify-policy.sh carries an em-dash inside a regex character class, which is syntax and not prose,
+# so this file is read for its comment lines, where a script's prose lives.
+rc=0; out="$(LC_ALL=C grep -nae "$emdash" "$verify" | grep -E '^[0-9]+:[[:space:]]*#' || true)"
+empty "no em-dash in the verifier's comment prose"
 
 echo
 if [ "$fails" = 0 ]; then echo "partial-test-data: all checks passed"; else echo "partial-test-data: $fails failed"; exit 1; fi
