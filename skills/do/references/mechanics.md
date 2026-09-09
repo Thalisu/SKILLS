@@ -253,7 +253,9 @@ reviewers read is the diff that lands. The run rebases the branch it built on on
 branch, the branch the run started on, and nothing is written to the developer's branch: the branch
 that moves is the run's. A protected developer branch does not stop this step, since a rebase onto
 a branch writes nothing to it and this step lands nothing. The landing stays the review's, and a
-protected target is refused there as it is refused today.
+protected target is refused there as it is refused today. The run records the commit its branch is
+on before the rebase starts: the command that undoes the rebase is not the same once the rebase has
+finished, and the recorded commit is what the later one names.
 
 The step walks one of four states, and the thread says which.
 
@@ -265,6 +267,13 @@ branch it rebased onto and how many of its own commits git replayed. The gate th
 the replay is stale, since the run's commits now sit on code the branch had not seen: the gate's
 command lines run a second time, each shown before it runs and its output line quoted after, and a
 green gate calls the review on the rebased diff.
+
+**A red gate after a rebase that replayed commits.** The run stops as blocked, the way a red gate
+after the review's fix run does and never back to the build loop: the replay brought in code the
+developer's branch carries, and a run that loops on it edits their work. The reply carries the
+failing check named, the command that undoes the rebase, `git reset --hard <the commit recorded
+before it started>`, the worktree and its branch left in place and named, the Ticket left
+`claimed`, nothing landed and nothing pushed.
 
 ## The review
 

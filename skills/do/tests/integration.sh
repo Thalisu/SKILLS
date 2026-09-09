@@ -71,6 +71,22 @@ has "the gate runs a second time and green calls the review on the rebased diff"
   "the gate's command lines run a second time" \
   "a green gate calls the review on the rebased diff"
 
+# The undo is a different command in each of the two states that need one, so the commit the branch
+# was on is recorded before the rebase starts rather than reconstructed after it.
+has "the commit the branch was on is recorded before the rebase starts" "$mech" \
+  "records the commit its branch is on before the rebase starts"
+# A red gate here is the review's red gate and not the build loop's: the replay brought in code the
+# developer wrote, and a run that looped on it would be editing their work.
+has "a red gate after a replaying rebase stops the run as blocked" "$mech" \
+  "stops the run as blocked" \
+  "the way a red gate after the review's fix run does" \
+  "never back to the build loop"
+has "the blocked stop names the check, the undo, the worktree and leaves the Ticket claimed" "$mech" \
+  "the failing check named" \
+  "git reset --hard" \
+  "the Ticket left \`claimed\`" \
+  "nothing landed and nothing pushed"
+
 # No em-dash in the prose this step writes, per CLAUDE.md.
 lacks "no em-dash in the shared mechanics" "$mech" "$emdash"
 
