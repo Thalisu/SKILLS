@@ -109,4 +109,38 @@ has "the return names the location and the shape" "$agent_md" \
 expect "the resolver the agent names is on disk and runnable" \
   test -x "$repo/.agents/scripts/resolve-feature-folder.sh"
 
+# The docs page, per .agents/writing-docs.md.
+page="$repo/docs/sketch.md"
+expect "the docs page opens with the skill's name" test "$(head -n 1 "$page" 2>/dev/null)" = "# sketch"
+ordered "the docs page keeps the contract's section order" "$page" \
+  "## What it does" "## When to reach for it" "## Prerequisites" "## Common questions" \
+  "## It's working if" "## Where it fits"
+has "the docs page states the invocation mode of a user-invoked skill" "$page" \
+  'You invoke this by typing `/sketch`, and the agent will not reach for it on its own.'
+has "the docs page surfaces the leading word" "$page" "Sketch" "rejected rival"
+has "the docs page points at the top-level README as the map" "$page" \
+  "[the top-level README](../README.md)"
+lacks "the docs page carries no install command" "$page" "ln -s" "git clone"
+links_ok=1
+while read -r target; do
+  target="${target%%#*}"; [ -n "$target" ] || continue
+  case "$target" in http*) continue ;; esac
+  [ -e "$repo/docs/$target" ] || { echo "      unresolved link: $target"; links_ok=0; }
+done < <(grep -o '](\([^)]*\))' "$page" 2>/dev/null | sed 's/^](//; s/)$//')
+expect "every link on the docs page resolves from docs/" test "$links_ok" = 1
+
+# The rows the repository keeps in step with the skills on disk.
+ordered "the top-level README lists the skill under User-invoked" "$repo/README.md" \
+  "## User-invoked" "| [\`sketch\`](skills/sketch/SKILL.md) |" "## Model-invoked"
+expect "the top-level README's \`sketch\` row carries the page link in its own docs cell" \
+  grep -qE "^\| \[\`sketch\`\]\(skills/sketch/SKILL\.md\) \|.*\[docs/sketch\.md\]\(docs/sketch\.md\)" "$repo/README.md"
+has "the top-level README says how the agent is linked" "$repo/README.md" \
+  "skills/sketch/AGENT.md ~/.claude/agents/sketch.md"
+ordered "the skills README lists the skill under User-invoked" "$repo/skills/README.md" \
+  "## User-invoked" "| [\`sketch\`](sketch/SKILL.md) |" "## Model-invoked"
+has "the invocation contract names the skill as user-invoked" "$repo/.agents/invocation.md" \
+  "\`journey\`, \`do\` and \`sketch\` are user-invoked"
+has "the invocation contract's table gains the agent row" "$repo/.agents/invocation.md" \
+  "| \`sketch\` | user-invoked |"
+
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi

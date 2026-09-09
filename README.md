@@ -20,6 +20,7 @@ Reachable only by the human typing the name.
 | [`do`](skills/do/SKILL.md) | Match a request to one Playbook and run its steps: a Ticket's path or issue reference builds that Ticket as the last step of the chain, a request in words runs outside it, and a request that fits no Playbook is sent to the door that owns it in one message | [docs/do.md](docs/do.md) |
 | [`journey`](skills/journey/SKILL.md) | Walk every path of a spec from the actor's seat, drafting each from the app's precedent and asking one question per fork it leaves open, then write the journey beside the spec and point the spec's `Journey:` line at it | [docs/journey.md](docs/journey.md) |
 | [`prototype`](skills/prototype/SKILL.md) | Build one throwaway, runnable prototype in a subagent to settle a design question you have to see or drive: a single HTML file that drives a state model, or three variants of a screen on its real route | [docs/prototype.md](docs/prototype.md) |
+| [`sketch`](skills/sketch/SKILL.md) | Settle the shape a piece of work has to hold before any logic in a subagent and file it: the caller's usage, the types, the signatures and the module boundaries with unimplemented bodies, plus each rival shape it rejected in one line | [docs/sketch.md](docs/sketch.md) |
 | [`spec`](skills/spec/SKILL.md) | Turn the conversation into a spec, published where the project's issue tracker points, with a verdict that names the next command: `journey` when the stories add a screen or walk more than one path or step, `tickets` otherwise | [docs/spec.md](docs/spec.md) |
 | [`testing-policy`](skills/testing-policy/SKILL.md) | Install and keep in sync a canonical Testing Policy (Definition of Done) across repos                                                                                | [docs/testing-policy.md](docs/testing-policy.md) |
 | [`tickets`](skills/tickets/SKILL.md) | Cut a spec, and the journey its verdict points at, into tracer-bullet tickets with blocking edges, each sized by a token estimate, with edges, folds and splits decided by the skill and only the approval asked, published one file or one issue per ticket, stopping before any write when the journey is required but missing, contested or already ticketed | [docs/tickets.md](docs/tickets.md) |
@@ -77,6 +78,13 @@ branch that has to be seen, and `journey`, for a fork of a path that has to be s
 
 ```bash
 ln -s ~/SKILLS/skills/prototype/AGENT.md ~/.claude/agents/prototype.md
+```
+
+`sketch` ships an agent too, and the same holds: link `skills/sketch/AGENT.md` to
+`~/.claude/agents/sketch.md`. Typing `/sketch` forks that agent, and so does `do` at its shape step.
+
+```bash
+ln -s ~/SKILLS/skills/sketch/AGENT.md ~/.claude/agents/sketch.md
 ```
 
 `do-code-review` ships three agents: the orchestrator beside its skill file, and the technical
