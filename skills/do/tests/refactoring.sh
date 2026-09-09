@@ -43,4 +43,17 @@ lacks "no em-dash in the reference" "$ref" "$emdash"
 lacks "no em-dash in the skill file" "$skillfile" "$emdash"
 lacks "no em-dash in the mechanics" "$mechanics" "$emdash"
 
+# 2. The pin: two halves, before any structure moves, never a characterisation test
+has "the pin comes before any structure moves" "$ref" "before any structure moves"
+has "the old behaviour is pinned by the existing suite and the typecheck" "$ref" "the existing suite"
+has "the harness is written where the reshaped behaviour has no coverage" "$ref" "has no coverage"
+has "the harness sits outside the test tree in the worktree" "$ref" "outside the test tree"
+has "the harness is run on the old code and quoted" "$ref" "on the old code"
+has "the target-interface test goes through the test author" "$ref" "the test authors in [mechanics.md](mechanics.md)"
+has "the target-interface test is red first" "$ref" "RED_AS_EXPECTED"
+has "its origin is new feature" "$ref" "origin \`new feature\`"
+has "an unresolved import is the expected red" "$ref" "unresolved import"
+has "a characterisation test is never dispatched" "$ref" "characterisation"
+has "the pin cites the ADR" "$ref" "0014-the-refactoring-pin-never-goes-through-the-test-author.md"
+
 if [ "$fails" = 0 ]; then echo "all ok"; else echo "$fails failing"; exit 1; fi

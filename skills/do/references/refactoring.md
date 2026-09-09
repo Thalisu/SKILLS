@@ -89,3 +89,43 @@ sent.
 The worktree in [mechanics.md](mechanics.md), created from the current HEAD on `do/<slug>`, where
 `<slug>` is the request's slug, excluded locally, entered with a bare `cd`. Done when its status
 prints nothing and the branch name is in the thread.
+
+### 3. Pin
+
+Before any structure moves, and in two halves, per
+[ADR 0014](../../../docs/adr/0014-the-refactoring-pin-never-goes-through-the-test-author.md).
+Neither half is a characterisation test: the Testing Policy's test author takes `bugfix` and
+`new feature` as its only origins, never derives an expectation from the implementation and needs a
+red run first, while a characterisation test is the implementation's present behaviour written down
+and born green. So no test that asserts the present enters the tree.
+
+**The old behaviour** is pinned by the existing suite and the typecheck, run in the worktree before
+the first edit, the command line shown before it runs and the relevant output line quoted. The
+commands come from the project's facts, the way the gate in [mechanics.md](mechanics.md) reads them.
+Red here is not this Playbook's to fix: the suite was red before the reshape, so the run stops in one
+message naming `test-triage` with the command `/test-triage <test file>`, and nothing is written.
+
+Where the reshaped behaviour has no coverage, the run writes an equivalence harness itself, since a
+gap the suite does not cover is a gap the pin does not hold. It is a script outside the test tree, in
+the worktree, that drives the real artifact over the inputs the reshape touches and prints what comes
+back. It is not a test and never enters the test tree. It runs on the old code now and its output is
+quoted; step 7 runs it again on the new code, and step 9 deletes it and names the gap it covered as
+debt in the reply. A reshape whose behaviour the suite already covers reads
+`skip: the suite covers the reshaped behaviour`.
+
+**The new shape** is pinned when the refactor extracts or moves something: one test on the target
+interface, written by the test authors in [mechanics.md](mechanics.md) and dispatched with the
+complete input, the behaviour to prove, the target the request names, origin `new feature`, and an
+unresolved import of the target interface as the expected red. The step waits for
+`RED_AS_EXPECTED`; step 6 turns it green. Its expectation comes from the target shape's contract and
+never from the code being moved. Under `Loop: fallback` the run writes that test itself by
+[tdd-fallback.md](tdd-fallback.md) and dispatches nobody. A reshape that moves nothing across a
+boundary, an inline or a dedupe inside one module, has no target interface and the half reads
+`skip: nothing extracted or moved`.
+
+When the request does not settle the target interface, step 4's sketch settles it first and this half
+follows the sketch. The two halves above still come before any structure moves.
+
+Done when the suite's and the typecheck's output lines are quoted, the harness's run on the old code
+is quoted or the half reads its skip, and the target-interface test is red for its declared reason or
+the half reads its skip.
