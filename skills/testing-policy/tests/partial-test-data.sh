@@ -162,6 +162,26 @@ check "an eligible project without the package reads absent" 4 "$rc" "partial_da
 verify "$tmp/ts-with"
 check "an eligible project with the package reads installed" 4 "$rc" "partial_data_helper=installed"
 
+# The roots a project keeps its tests under are its own: a monorepo keeps them under packages/, an
+# app under app/, and neither is a top-level entry of any fixed list. Both projects are TypeScript
+# and both carry the package, so a fixed list of roots is what would read them as not applicable.
+mkdir -p "$tmp/ts-monorepo/packages/api/src"
+echo '{}' > "$tmp/ts-monorepo/tsconfig.json"
+printf 'test("thing", () => {});\n' > "$tmp/ts-monorepo/packages/api/src/thing.test.ts"
+printf '{ "devDependencies": { "%s": "^0.1.2" } }\n' "$helper_pkg" > "$tmp/ts-monorepo/packages/api/package.json"
+
+mkdir -p "$tmp/ts-app-root/app/features"
+echo '{}' > "$tmp/ts-app-root/tsconfig.json"
+printf '{ "devDependencies": { "%s": "^0.1.2" } }\n' "$helper_pkg" > "$tmp/ts-app-root/package.json"
+printf 'test("thing", () => {});\n' > "$tmp/ts-app-root/app/features/thing.test.ts"
+
+verify "$tmp/ts-monorepo"
+check "a TypeScript monorepo whose tests sit under packages reads the package it carries" 4 "$rc" \
+  "partial_data_helper=installed"
+verify "$tmp/ts-app-root"
+check "a TypeScript project whose tests sit under app reads the package it carries" 4 "$rc" \
+  "partial_data_helper=installed"
+
 # Report only, stated as the exit code: the fixture is complete, so a key inside the gate would turn
 # this 0 into a 1, and the wanted 0 is what makes the case fail if it ever moves inside.
 complete="$tmp/complete-without-helper"
