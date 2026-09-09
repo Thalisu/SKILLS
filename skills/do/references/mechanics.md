@@ -2,8 +2,8 @@
 
 One file for the parts the Playbooks that build in a worktree share, read by `ticket`, `bug-fix`
 and `refactoring`, so a fix to a mechanic is made once. It carries the worktree, the protected
-branch, the Ticket file, the build loop with its test authors, the gate, the review, the
-verification and the close. A Playbook links the section it needs and never copies it.
+branch, the Ticket file, the reader, the build loop with its test authors, the gate, the review,
+the verification and the close. A Playbook links the section it needs and never copies it.
 
 ## The worktree
 
@@ -80,6 +80,19 @@ on the branch makes the landing fast-forward fail, so one rule covers the three 
   `bash <skill-dir>/scripts/context-usage.sh`: the `current` figure read at the end of the ground
   step, written as `grounded`, and the `peak` and `band` read at the close, after the last edit. A
   reading that exits non-zero writes `Context: not measured` with the script's reason.
+
+## The reader
+
+The Ticket's Spec and its journey are read by a fork, never by the session: they are two whole
+documents the run needs a slice of, which is the exploration the Delegates rule below forks for.
+The session opens neither document, and it opens neither afterwards to check the fork: what comes
+back is quoted with the location of every quote, so the check is a quote read against its line.
+
+The fork is dispatched with the brief [digest.md](digest.md) fixes and nothing else: the Ticket's
+path, its title and its criteria, the absolute paths of the Spec and the journey in the main
+checkout, and the path the Digest is written to. It writes the Digest there and returns that
+location and the one line the run restates in the thread. No other part of either document reaches
+the session.
 
 ## The build loop
 

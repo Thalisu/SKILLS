@@ -14,9 +14,12 @@ The argument is a Ticket's path, or an issue reference resolved through the trac
 `docs/agents/issue-tracker.md`. Before anything is written:
 
 - The Ticket is read: the file, or the issue's body and comments through the tracker's CLI as
-  the file describes. Its Spec is read where the format says it is (the spec file in the folder
-  above the `issues/` folder, or the issue the parent section names), with the journey the Spec's
-  `Journey:` line names when it names one. Every Ticket the `Blocked by` line names is read.
+  the file describes. Then the run forks the reader of [mechanics.md](mechanics.md) over its Spec,
+  where the format says it is (the spec file in the folder above the `issues/` folder, or the issue
+  the parent section names), and over the journey the Spec's `Journey:` line names when it names
+  one, and opens neither itself: it says in one line that both are being read in a window of their
+  own, and derives its behaviours from the Digest that comes back, in the format of
+  [digest.md](digest.md). Every Ticket the `Blocked by` line names is read.
 - A Ticket that is `resolved` stops the run in one line. Nothing is written.
 - A Ticket whose `Blocked by` names one not `resolved` is refused before the claim, in one
   message naming the blocker and its status. Nothing is written; the developer builds the blocker
