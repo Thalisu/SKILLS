@@ -77,4 +77,13 @@ has "a second run re-forks and names the document that changed" "$refs/mechanics
 expect "the command the contract records ignores a touch and catches an edit" \
   recorded_source_ignores_a_touch
 
+# A Ticket whose Spec or journey is not there still builds: the reader says which one is gone and
+# the run goes on from the Ticket alone, rather than stopping on a document it cannot open.
+has "an absent document is recorded and named by the reader" "$refs/digest.md" \
+  '`<name>: absent`' \
+  "section for a document that is not there says so"
+has "the run goes on from the Ticket alone and says which document is absent" "$refs/mechanics.md" \
+  "continues from the Ticket alone" \
+  "naming the document that is absent"
+
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi

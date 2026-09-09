@@ -99,6 +99,12 @@ line that comes back with the path is a restatement for the thread: a list writt
 the paraphrase the Digest exists to keep out of the record, so the steps that build on the slice
 read the file.
 
+A Ticket whose Spec or journey is not on disk still builds. The reader records the document as
+absent and quotes nothing under its section, and the run continues from the Ticket alone, saying so
+in one line naming the document that is absent. Only the Ticket's criteria and its `What to build`
+line feed the behaviours list then, and the line of the list that would have traced to a quote in
+that document traces to the criterion instead.
+
 The door reads `git status --short` in the main checkout before it dispatches the fork, after its
 own append of the `.scratch/` line, and reads it again when the fork returns: the Digest's path is
 the only one that may differ. Any other path stops the run in one line naming it, the Ticket left

@@ -39,7 +39,9 @@ is not one of them, since a hash is a value and not a quote.
   these, so a run decides whether to reuse the Digest by comparing two recorded values and never by
   reading either document again. A hash rather than a modification time: `git checkout`, a rebase
   and `git worktree add` all rewrite the times of files whose bytes did not change, and a Digest is
-  not stale because git touched its Spec.
+  not stale because git touched its Spec. A document that is not on disk, and a journey the Spec's
+  `Journey:` line names none for, is recorded as `<name>: absent` instead, which is never a match,
+  so the next run reads for it again once it is there.
 - `## Journey Path`: the one Path of the journey the Ticket is cut from, quoted whole, its heading,
   its `Story:` and `Outcome:` lines, its step table and its `Failure branches:` list. It is the
   Path whose name opens the Ticket's `What to build` line, and, failing that, the Path whose
@@ -79,6 +81,8 @@ headings, and a document whose lines moved since the last run still cuts in the 
 
 A document that does not carry the heading has that said under the Digest's own section for it,
 naming the heading that is absent; the reader never falls back to a range of its own choosing.
+The section for a document that is not there says so the same way, naming the document instead of
+the heading, and the reader quotes nothing under it and reaches for no substitute.
 
 ## Where it lives
 
