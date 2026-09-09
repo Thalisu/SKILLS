@@ -286,6 +286,11 @@ if want type-assertions; then
       }
     ' "$1" 2>/dev/null
   }
+  # A path is attacker-chosen in a cloned repository, and a name is allowed to hold a newline or a
+  # tab. Printed raw, either splits the row: a newline lets the name write lines of its own into
+  # the report the install keeps whole for the agent to read, a forged "## <section>" header among
+  # them, and a tab breaks the sort this section ends on. Both are escaped into the row instead.
+  row_path() { local p="${1//\\/\\\\}"; p="${p//$'\t'/\\t}"; printf '%s' "${p//$'\n'/\\n}"; }
   {
     for f in "${test_files[@]}"; do
       case "$f" in
@@ -293,7 +298,7 @@ if want type-assertions; then
           n="$(ts_code_only "$f" \
             | grep -oE '\bas[[:space:]]+unknown[[:space:]]+as[[:space:]]+[A-Za-z_$][A-Za-z0-9_$]*|\bas[[:space:]]+[A-Za-z_$][A-Za-z0-9_$]*' \
             | grep -cvE '^as[[:space:]]+const$')"
-          [ "${n:-0}" -gt 0 ] && printf '%s\t%d\n' "$f" "$n" ;;
+          [ "${n:-0}" -gt 0 ] && printf '%s\t%d\n' "$(row_path "$f")" "$n" ;;
       esac
     done
   } | sort -t$'\t' -k2,2nr -k1,1
