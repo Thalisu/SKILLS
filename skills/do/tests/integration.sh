@@ -121,6 +121,13 @@ has "the mechanical resolution asks nothing and is named hunk by hunk in the rep
   "nothing is asked of the developer" \
   "names every hunk it resolved with its file and location"
 
+# A commit the resolution empties is not a loss: the change it carried is already on the branch it
+# was going to land on, so it is skipped rather than stopping the run.
+has "a commit left empty by the resolution is skipped and named" "$mech" \
+  "empty after the resolution" \
+  "git rebase --skip" \
+  "named in the reply"
+
 # No em-dash in the prose this step writes, per CLAUDE.md.
 lacks "no em-dash in the shared mechanics" "$mech" "$emdash"
 

@@ -298,6 +298,11 @@ marks the file resolved, `git rebase --continue` carries the rebase to the next 
 further stop is classed and resolved the same way. The reply names every hunk it resolved with its
 file and location.
 
+**A replayed commit that is empty after the resolution.** The developer's branch already carries
+that change, so the continue has nothing left to apply and git says so. The run skips it,
+`git rebase --skip`, and the commit is named in the reply. Nothing of the run's work is lost: the
+change is already on the branch it was going to land on.
+
 ## The review
 
 Run once per landing, after the gate, and never by hand: the review fixes and lands, the run reads.
