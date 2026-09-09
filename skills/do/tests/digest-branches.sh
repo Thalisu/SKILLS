@@ -148,6 +148,9 @@ expect "an eval case grades the reader that was never forked" \
 has "the eval index says the withheld case covers the door's reader" "$repo/skills/do/evals/README.md" \
   "the Digest read by the session itself"
 
+expect "the blocker case grades the status-alone read" \
+  test -f "$repo/skills/do/evals/blocked-ticket-refused/graders/blocker-read-as-a-status-alone.md"
+
 # Rerunnable by a reviewer who has only the file, since the repo has no runner. The match is the
 # header alone: the pattern is itself a line further down this script.
 expect "the test script carries its own invocation line in its header" \
