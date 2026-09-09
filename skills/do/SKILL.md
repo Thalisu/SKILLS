@@ -3,6 +3,13 @@ name: do
 description: "Match a request to one Playbook and run its steps: a Ticket's path or issue reference builds that Ticket as the last step of the chain, a request in words runs outside it, and a request that fits no Playbook is sent to the door that owns it in one message."
 disable-model-invocation: true
 argument-hint: "[a Ticket's path, an issue reference, or the request in words]"
+disallowed-tools: EnterWorktree
+hooks:
+  PreToolUse:
+    - matcher: EnterWorktree
+      hooks:
+        - type: command
+          command: "printf '%s' '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"deny\", \"permissionDecisionReason\": \"EnterWorktree isolates the session, and a do run needs two trees: the door of do-code-review is bash <script>, the landing is git against the main checkout, and an isolated session refuses both. Create the worktree and enter it the way the worktree step of mechanics.md says: git worktree add .claude/worktrees/do-<slug> -b do/<slug>, then a bare cd into it.\"}}'"
 ---
 
 # Do
@@ -50,6 +57,7 @@ Each holds in every Playbook.
 - Every delegate's diff is read by the session, which writes its own summary.
 - A pause comes only before an irreversible write; reversible work is presented instead.
 - "no" is an acceptable answer.
+- The worktree is created with `git worktree add` and entered with a bare `cd`; the frontmatter above denies the harness's worktree tool for the session, per [worktrees.md](../../.agents/worktrees.md).
 - The run never lands and never fixes a Finding; the review does both.
 - The reply is in the language the session opened in, and everything written into the project is in English.
 

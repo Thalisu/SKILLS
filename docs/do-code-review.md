@@ -152,6 +152,16 @@ the second fork went the same way. The rest of the Review is real and was writte
 reviewer's return. The line says `not run` with the reason rather than `0 findings`, so a question
 nobody asked is never read as a pass, and the safety fact names the Axis too.
 
+**The run says the session is isolated in a worktree. What happened?**
+The worktree was entered with the harness's worktree tool instead of a bare `cd`, which puts the
+session under an isolation guard, and this skill's door is a script the guard refuses to run. So
+nothing was reviewed and nothing was written, and the landing, git against the main checkout, would
+have been refused next. Leave the isolation with the harness's exit tool and `keep`, never
+`remove`, which takes the branch and the commits on it, then `cd` back into the same worktree and
+call the review again. `/do` denies that tool in its own skill file, so its runs meet it as a
+refusal instead of as a rule to remember, per
+[ADR 0022](adr/0022-the-worktree-tool-is-denied-in-the-skill-file-and-the-contract-carries-the-recovery.md).
+
 ## It's working if
 
 - The run ends with the Review's text, one `Written to` line and one line saying whether that file

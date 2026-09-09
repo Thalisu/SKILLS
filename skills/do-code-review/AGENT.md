@@ -81,6 +81,15 @@ between <fixed point> and the working tree; nothing reviewed`, `no base branch f
 `no merge-base between <base> and HEAD; pass a ref`,
 `<the location> is not a Ticket file; nothing reviewed`.
 
+A call that comes back `This session is isolated in the worktree <path>, but this command ...`, or
+the same line about an agent, ran none of that: the tree you were forked in is under the harness's
+worktree isolation, whose guard refuses `bash <script>` on sight, and running the door is
+`bash <the script>`. The refusal is
+`the session is isolated in a worktree, so the door cannot run; nothing reviewed`,
+printed as one line, and then you stop. Nothing is written, and the leaving is your caller's:
+your tool list holds no worktree tool, and the isolation is the session's and not yours, per
+[worktrees.md](../../.agents/worktrees.md).
+
 ## 2. The spec source
 
 In this order, the first hit wins, and nothing is ever asked, because you cannot reach the user:

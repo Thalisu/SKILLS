@@ -10,9 +10,15 @@ verification and the close. A Playbook links the section it needs and never copi
 Every build runs in a git worktree the run creates itself from the current HEAD, never through a
 tool that branches from the remote default branch.
 
-1. In the main checkout, read the branch and `git status --short`. The dirty files are the
-   developer's work in progress: nothing in the run edits, stages or reverts them, and the
-   worktree starts from HEAD without them.
+1. Prove the run starts in the main checkout before anything is created:
+   `git rev-parse --show-toplevel` and the first entry of the worktree list, the derivation
+   [worktrees.md](../../../.agents/worktrees.md) carries, are the same path. Two paths mean the
+   session sits in a linked worktree, which the harness's worktree tool is the likely reason for,
+   and the run builds nothing from there: it leaves the isolation the way that file says, or moves
+   to the main checkout with a bare `cd` when nothing isolated it, and starts this step over.
+   Then, there, read the branch and `git status --short`. The dirty files are the developer's work
+   in progress: nothing in the run edits, stages or reverts them, and the worktree starts from
+   HEAD without them.
 2. Create it from the main checkout: `git worktree add .claude/worktrees/do-<slug> -b do/<slug>`,
    where `<slug>` is the Ticket's slug, or the request's outside the chain. `.claude/worktrees/`
    is the harness's worktrees folder: the run's worktrees sit beside the harness's own, one
@@ -26,9 +32,18 @@ tool that branches from the remote default branch.
    calls, so every command from here runs in the worktree, and git reaches the main checkout with
    `git -C <its path>` when a step needs it. Never the harness's worktree tool: it isolates the
    session, and an isolated session refuses git against the main checkout, which the Ticket, the
-   landing, the flows and the worktree's removal all need.
-5. Done when `git status --short` in the worktree prints nothing and the branch name is in the
-   thread.
+   landing, the flows and the worktree's removal all need. The skill file denies that tool, so the
+   run meets it as a refusal rather than as a rule to remember.
+5. Done when one call in the worktree prints the main checkout's top level, the branch and an empty
+   status, on one line:
+   `git -C <main checkout> rev-parse --show-toplevel && git branch --show-current && git status --short`.
+   The first of the three is the probe, and it is the backstop for step 1: a session that was
+   already isolated when the run started refuses this call, for the redirect or for the shape, and
+   that refusal is the state and not the command. The run has by then created a worktree from the
+   isolated tree and not from the developer's HEAD, so it leaves the isolation the way
+   [worktrees.md](../../../.agents/worktrees.md) says, removes the worktree and the branch it made
+   there, and starts this section over from step 1. Catching that state at step 1 costs nothing;
+   catching it here costs one worktree; catching it at the landing costs the build.
 
 The worktree stays until the run's work has landed and its affected flows are green. The run
 removes it and its branch itself, from the main checkout; a run that stops as blocked leaves both
@@ -177,6 +192,13 @@ Never `fix`, never `--no-fix`: the default run is the one every Playbook wants, 
 [ADR 0015](../../../docs/adr/0015-the-default-review-run-fixes-and-lands-and-the-fixer-corrects-for-every-caller.md).
 The run waits on the call. While the review runs, its Fixer is the only writer in the worktree, and
 the run touches nothing.
+
+A return that reads
+`the session is isolated in a worktree, so the door cannot run; nothing reviewed`
+reviewed nothing and wrote nothing: the door of the review is a script, and the guard of an
+isolated session refuses to run one. It is not a Finding and not a refusal of the diff. The run
+leaves the isolation per [worktrees.md](../../../.agents/worktrees.md) and calls the review again,
+once, with the same three arguments.
 
 What the review does with the call, so that the run does not: it writes the Review, forks its
 Fixer with the `Act on` list, which turns every `Act on` Finding into one commit on the reviewed

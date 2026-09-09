@@ -35,6 +35,12 @@ ordered() { # $1 label, $2 file, $3.. lines that must appear in this order
   done
   if [ "$ok" = 1 ]; then echo "ok    $label"; else echo "FAIL  $label ($file)"; fails=$((fails + 1)); fi
 }
+holds() { # $1 label, $2 the captured text, $3.. fixed strings it must contain
+  local label="$1" text="$2"; shift 2
+  local ok=1 s
+  for s in "$@"; do case "$text" in *"$s"*) ;; *) ok=0 ;; esac; done
+  if [ "$ok" = 1 ]; then echo "ok    $label"; else echo "FAIL  $label"; fails=$((fails + 1)); fi
+}
 expect() { # $1 label, $2.. a command that must succeed
   local label="$1"; shift
   if "$@"; then echo "ok    $label"; else echo "FAIL  $label"; fails=$((fails + 1)); fi
@@ -318,8 +324,9 @@ lacks "the security reviewer takes no standards source and no lens" "$security_m
   "Standards sources:" "| Lens | Ask | Tell |"
 
 # The two trees: the worktree contract, linked by the orchestrator, the reviewer and do's
-# mechanics; no harness worktree tool entering or leaving a worktree anywhere in the chain, and a
-# grader that holds do to it.
+# mechanics; no harness worktree tool entering a worktree anywhere in the chain, its exit tool
+# reached only by the recovery the contract writes, a grader that holds do to it, and the denial
+# that ships in do's own skill file.
 trees="$repo/.agents/worktrees.md"
 has "the worktree contract names the bare cd, the list command and the door's line" "$trees" \
   "# Two trees: the worktree and the main checkout" "in a shell call of its own" \
@@ -339,6 +346,49 @@ lacks "the research brief derives no worktree tool switch" "$repo/.agents/resear
 has "the ticket run grades that no harness worktree tool was entered" \
   "$repo/skills/do/evals/ticket-run-with-policy/graders/entered-by-cd-never-the-worktree-tool.md" \
   "type: tool_used" "tool: EnterWorktree" "min: 0" "max: 0"
+has "the contract carries the isolation line, the recovery and the two it forbids" "$trees" \
+  "## When the session is already isolated" "This session is isolated in the worktree" \
+  'bash <script>' 'exit tool and `keep`' 'Never `remove` and never `discard_changes`' \
+  "Never go looking for a command shape the guard accepts"
+has "the contract says where the denial lives and what it leaves to the run" "$trees" \
+  "disallowed-tools" "PreToolUse" "0022-the-worktree-tool-is-denied-in-the-skill-file" \
+  "no backtick and no" "apostrophe"
+adr22="$repo/docs/adr/0022-the-worktree-tool-is-denied-in-the-skill-file-and-the-contract-carries-the-recovery.md"
+has "ADR 0022 records the denial and the options it beat" "$adr22" \
+  "disallowed-tools" "PreToolUse" "## Considered options" "## Consequences" "once: true"
+has "do's mechanics probe the other tree at the entry and answer an isolated return" "$mechanics" \
+  "git -C <main checkout> rev-parse --show-toplevel" \
+  "the session is isolated in a worktree, so the door cannot run; nothing reviewed"
+has "the orchestrator answers the isolation line with one refusal and writes nothing" "$agent_md" \
+  "This session is isolated in the worktree <path>" \
+  "the session is isolated in a worktree, so the door cannot run; nothing reviewed" \
+  "your tool list holds no worktree tool"
+
+# The denial itself: do's skill file drops the tool for the invoking turn and refuses it for the
+# rest of the session. The reason a caller reads is read by a shell before the harness reads it, so
+# the command is run here and the decision read back: an apostrophe in the reason closes the quote
+# it sits in, and the caller reads an instruction with the commands missing.
+do_skill="$repo/skills/do/SKILL.md"
+has "do's skill file denies the harness worktree tool two ways" "$do_skill" \
+  "disallowed-tools: EnterWorktree" "hooks:" "PreToolUse:" "- matcher: EnterWorktree" "type: command"
+has "do's non-negotiables name the denial and link the contract" "$do_skill" \
+  "](../../.agents/worktrees.md)" 'entered with a bare `cd`'
+deny="$(sed -n 's/^ *command: "\(.*\)"$/\1/p' "$do_skill" | head -1 | sed 's/\\"/"/g')"
+case "$deny" in
+  "") echo "FAIL  the hook command could not be read off $do_skill"; fails=$((fails + 1)) ;;
+  *'`'*) echo "FAIL  the hook command carries a backtick, which a rewrite of its quoting would eat"; fails=$((fails + 1)) ;;
+  *) echo "ok    the hook command carries no backtick" ;;
+esac
+deny_out="$(eval "$deny" 2>/dev/null)"
+case "$deny_out" in
+  "") echo "FAIL  the hook command printed nothing; its quoting is broken"; fails=$((fails + 1)) ;;
+  *"'"*) echo "FAIL  the reason carries an apostrophe, which closes the quote it sits in"; fails=$((fails + 1)) ;;
+  *) echo "ok    the reason carries no apostrophe" ;;
+esac
+holds "the hook prints a deny decision the harness can read" "$deny_out" \
+  '"hookEventName": "PreToolUse"' '"permissionDecision": "deny"'
+holds "the reason reaches the caller with both commands whole" "$deny_out" \
+  "git worktree add .claude/worktrees/do-<slug> -b do/<slug>" "a bare cd into it"
 
 # The evals: the planted diff, the two refusals, the no spec run and the Portuguese trigger, each
 # a case directory with its case file, its prompt and its graders, named in the README with the
@@ -472,6 +522,9 @@ has "the docs page answers why security is its own agent" "$page" "Why is securi
 has "the docs page says a Security Finding never lands in Noted" "$page" \
   "never lands in \`Noted\`"
 has "the docs page puts the scratch home in the main checkout" "$page" "main checkout" "linked worktree"
+has "the docs page answers an isolated session and names the safe way out" "$page" \
+  "The run says the session is isolated in a worktree" 'exit tool and `keep`' \
+  "0022-the-worktree-tool-is-denied-in-the-skill-file"
 has "the docs page names do as the second caller and both homes of the Review" "$page" \
   "second caller" "beside the Ticket" ".review.md" ".scratch/reviews/<branch>.md"
 has "the run's last line answers for the file at review= either way" "$agent_md" \
@@ -514,7 +567,7 @@ has "the invocation contract's table gains the three rows" "$repo/.agents/invoca
   "| \`do-code-review-security-reviewer\` | \`do-code-review\`, model-invoked |"
 
 # No em-dash in any prose the skill adds.
-prose=("$format" "$trees" "$skill_md" "$agent_md" "$reviewer_md" "$security_md" "$fix_md" "$evals/README.md" "$evals"/*/prompt.md "$evals"/*/graders/*.md "$page")
+prose=("$format" "$trees" "$adr22" "$skill_md" "$agent_md" "$reviewer_md" "$security_md" "$fix_md" "$evals/README.md" "$evals"/*/prompt.md "$evals"/*/graders/*.md "$page")
 for f in "${prose[@]}"; do
   [ -f "$f" ] || continue
   if grep -q $'\xe2\x80\x94' "$f"; then echo "FAIL  no em-dash in $f"; fails=$((fails + 1)); else echo "ok    no em-dash in ${f#"$repo/"}"; fi

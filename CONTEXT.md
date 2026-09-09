@@ -48,6 +48,12 @@ doc or a comment, formatting, log wording, a rename inside one file, dead code, 
 _Avoid_: small (a small **Ticket** is a size band, never a Trivial change), quick, minor,
 one-liner (size is never the test)
 
+**Digest**:
+The slice of a **Ticket**'s **Spec** and **Journey** that a `do` run needs, read out of both by a
+forked agent at the run's door and returned quoted, with the location of every quote.
+_Avoid_: summary (a summary paraphrases, a **Digest** quotes), brief, extract, context pack,
+handoff
+
 **Scratch**:
 The unversioned folder a project keeps its local chain artifacts in, `.scratch/`: a **Spec**, its
 **Journey**, its **Tickets** and the **Reviews** beside them. Always ignored by git, so it is one
@@ -127,6 +133,9 @@ _Avoid_: clean, passed, no findings (`Consider`, `Noted` and `Cleared` never blo
   into the resolved **Ticket**'s evidence as its `Context:` line; `tickets` calibrates the fixed
   load and the per-criterion cost of its estimates from those lines, and cuts a repo with none on
   stated defaults, saying so in the breakdown
+- A **Digest** carries the **Spec** stories and Testing Decisions and the **Journey** **Path**
+  one **Ticket** is cut from, and is what the `do` run derives its behaviours from; the run
+  opens neither document itself
 - `do` routes a request to exactly one **Playbook**; the `ticket` **Playbook** builds exactly one
   **Ticket**, never a **Spec** and never a session summary, and is the only **Playbook** inside
   the chain
