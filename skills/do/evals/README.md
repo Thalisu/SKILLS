@@ -52,6 +52,7 @@ typecheck and `node --test` as the suite, so both run offline with node alone.
 | `portuguese-session` | the Ticket's path followed by a Portuguese request, the one way a single prompt opens the session in Portuguese: the reply in Portuguese, the status line, the evidence and the commit messages in English |
 | `absent-vendored-skill` | a session that does not list `how`, which is the runner's own session (it lists the skill under test and the fixture's skills, never the vendored ones): the grounding step states the one-line fallback and completes, the build continues to the gate |
 | `ticket-run-without-policy` | the same Ticket in a project with no Testing Policy, on the plain JavaScript fixture: the first message reads `Loop: fallback`, the run reads `references/tdd-fallback.md` before its first test and never dispatches a test author, and for each behaviour the failing test is written and run red by the session before the implementation, both landing in one commit |
+| `refactoring-run` | a reshape asked for in words on the native fixture, the note status scattered over two independent booleans that four functions and the CLI read, plus a `countArchived` helper with no caller: `Playbook: refactoring` with the checklist verbatim, the pin before any structure moves (the suite and the typecheck quoted, an equivalence harness outside the test tree for the ordering and the labels the suite does not cover, and a red-first test on `src/status.ts` through the test author), the subtraction commit carrying that still-red test, the reshape migrating the CLI and deleting `label`, the harness agreeing on the new code, the cleanup commit deleting it with its gap named as debt, then the gate and the review through the stand-in, which fast-forwards `main`; the fixture's assertions untouched throughout |
 
 The `ticket` cases scaffold the same fixture with a Testing Policy installed (the marked section
 in `CLAUDE.md` with its Project facts, the `unit-test-author` agent with its Project map, the
@@ -67,6 +68,16 @@ from the main checkout. The fixture's commands are real: `node --test src/` runs
 `ticket-run-without-policy` scaffolds the plain JavaScript fixture of the `trivial-` cases instead,
 with the same spec, journey and Tickets and no policy section, no agent and no inline skill, so the
 run takes the TDD fallback and node alone runs its suite.
+
+`refactoring-run` runs outside the chain, so its fixture carries no spec, no journey and no Ticket: the
+request in words is the whole input and the branch is the whole state. It scaffolds the native fixture
+with the policy, the two agents and the inline skill, and reshapes `src/notes.ts`, whose status lives in
+an `archived` and a `pinned` boolean that `archive`, `pin`, `label`, `list` and the CLI all read, so the
+reshape has a structure to name, callers to migrate and dead weight to subtract. Its stand-in review is
+the same one, with one change the branch-only spec source needs: a first argument that is not a file in
+the main checkout writes the Review to `.scratch/reviews/<branch>.md` there, per
+[ADR 0021](../../../docs/adr/0021-the-ticket-reaches-the-review-handed-over-and-the-review-defaults-to-the-main-checkouts-scratch.md),
+and reads the intent off the branch's first commit subject.
 
 The `do-code-review` in this repo takes a ref and writes the Review, and does not take a Ticket's
 location, fix or land yet, so the review-era cases install a stand-in for the contract `do` calls

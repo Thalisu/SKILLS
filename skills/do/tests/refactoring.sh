@@ -148,4 +148,33 @@ has "it is still red there, for its declared reason" "$ref" "still red there"
 has "the reshape is the structural change" "$ref" "the first commit that moves structure"
 has "the pin's old-behaviour half is what green means at the subtraction" "$ref" "the old behaviour half"
 
+# 9. The refactoring run eval case: the prompt, the graders, the README row and the scaffold
+case="$skill/evals/refactoring-run"
+if [ -f "$case/case.yaml" ]; then ok "the case exists"; else fail "the case exists at $case"; fi
+has "the prompt types a reshape in words" "$case/prompt.md" "/do extract"
+has "the first line grader reads Playbook: refactoring" "$case/graders/first-line-playbook-refactoring.md" "^Playbook: refactoring"
+has "a grader checks the red-first target-interface test precedes any structural change" "$case/graders/red-first-target-interface-test-precedes.md" "src/status.test.ts"
+has "a grader checks the harness is gone and its gap is named as debt" "$case/graders/harness-gone-and-gap-named.md" "harness"
+has "a grader checks the fixture's assertions are unchanged" "$case/graders/fixture-assertions-unchanged.md" "src/notes.test.ts"
+has "a grader checks the old API has no caller and no longer exists" "$case/graders/old-api-gone-with-no-caller.md" "label"
+has "a grader checks the commits read subtraction, reshape, cleanup" "$case/graders/commits-read-subtraction-reshape-cleanup.md" "subtraction"
+has "the README lists the case" "$skill/evals/README.md" "refactoring-run"
+lacks "no em-dash in the case" "$case/case.yaml" "$emdash"
+lacks "no em-dash in the evals README" "$skill/evals/README.md" "$emdash"
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+awk '/^  scaffold_script: \|/ { f = 1; next } f && /^    / { sub(/^    /, ""); print; next } f && /^$/ { print; next } f { exit }' "$case/case.yaml" > "$tmp/scaffold.sh" 2>/dev/null || true
+mkdir -p "$tmp/fixture"
+if [ -s "$tmp/scaffold.sh" ] && (cd "$tmp/fixture" && bash "$tmp/scaffold.sh" >/dev/null 2>&1); then ok "the scaffold runs"; else fail "the scaffold runs"; fi
+if [ -f "$tmp/fixture/.claude/agents/unit-test-author.md" ]; then ok "the unit test author is in the fixture"; else fail "the unit test author is in the fixture"; fi
+if grep -q "testing-policy:start" "$tmp/fixture/CLAUDE.md" 2>/dev/null; then ok "the Testing Policy is installed in the fixture"; else fail "the Testing Policy is installed in the fixture"; fi
+if [ ! -e "$tmp/fixture/src/status.ts" ]; then ok "the target interface does not exist yet"; else fail "the target interface does not exist yet"; fi
+if grep -q "archived" "$tmp/fixture/src/notes.ts" 2>/dev/null && grep -q "pinned" "$tmp/fixture/src/notes.ts" 2>/dev/null; then ok "the fixture scatters the status over booleans"; else fail "the fixture scatters the status over booleans"; fi
+if grep -q "label" "$tmp/fixture/bin/notes.mjs" 2>/dev/null; then ok "the CLI calls the old API"; else fail "the CLI calls the old API"; fi
+if [ "$(cat "$tmp/fixture/.claude/skills/do-code-review/plant" 2>/dev/null)" = green ]; then ok "the review stand-in is planted green"; else fail "the review stand-in is planted green"; fi
+suite="$(cd "$tmp/fixture" 2>/dev/null && node --test src/ 2>&1 || true)"
+if grep -qE '(^|[^a-z])fail 0$' <<<"$suite" && grep -qE '(^|[^a-z])pass [1-9]' <<<"$suite"; then ok "the fixture's unit suite is green"; else fail "the fixture's unit suite is green"; fi
+flows="$(cd "$tmp/fixture" 2>/dev/null && node --test e2e/ 2>&1 || true)"
+if grep -qE '(^|[^a-z])fail 0$' <<<"$flows" && grep -qE '(^|[^a-z])pass [1-9]' <<<"$flows"; then ok "the fixture's flow is green"; else fail "the fixture's flow is green"; fi
+
 if [ "$fails" = 0 ]; then echo "all ok"; else echo "$fails failing"; exit 1; fi
