@@ -34,6 +34,18 @@ map_labels() { rc=0; out="$(bash "$render" "$1" | awk '/^<!-- testing-policy:cor
 policy() { rc=0; out="$(bash "$render_policy" "$@" 2>&1)" || rc=$?; }
 map_entry() { rc=0; out="$(bash "$render" "$1" | grep -A1 -E "^\\*\\*$2\\*\\*")" || rc=$?; }
 verify() { rc=0; out="$(bash "$verify" "$1" 2>&1)" || rc=$?; }
+# Every piece the verifier folds into its exit code, so a case can show what a report-only key leaves
+# alone. The policy section's slots are filled because an unfilled one fails the install by itself.
+install_fixture() { # $1 project dir
+  local p="$1"
+  mkdir -p "$p/.claude/agents" "$p/.claude/skills/test-author" "$p/.claude/testing-policy"
+  { echo "# Project"; echo; bash "$render_policy" native; } | sed -E 's/\{\{[^}]*\}\}/filled/g' > "$p/CLAUDE.md"
+  bash "$render" unit > "$p/.claude/agents/unit-test-author.md"
+  bash "$render" e2e > "$p/.claude/agents/e2e-test-author.md"
+  bash "$render" test-author > "$p/.claude/skills/test-author/SKILL.md"
+  : > "$p/.claude/testing-policy/scan-test-assets.sh"
+  : > "$p/.claude/testing-policy/skip-patterns.sh"
+}
 
 echo "# the rule in the core"
 render unit --core-only
@@ -145,6 +157,14 @@ verify "$tmp/ts-without"
 check "an eligible project without the package reads absent" 4 "$rc" "partial_data_helper=absent"
 verify "$tmp/ts-with"
 check "an eligible project with the package reads installed" 4 "$rc" "partial_data_helper=installed"
+
+# Report only, stated as the exit code: the fixture is complete, so a key inside the gate would turn
+# this 0 into a 1, and the wanted 0 is what makes the case fail if it ever moves inside.
+complete="$tmp/complete-without-helper"
+cp -r "$tmp/ts-without" "$complete"
+install_fixture "$complete"
+verify "$complete"
+check "a complete install reading absent keeps its exit code" 0 "$rc" "partial_data_helper=absent"
 
 echo
 echo "# repository standards"
