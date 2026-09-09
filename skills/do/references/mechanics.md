@@ -282,6 +282,22 @@ the session's own reading of the markers, per
 The run shows the lines it printed, one per conflicted hunk, and states the counts before it does
 anything: how many hunks it resolved mechanically and how many it is bringing to the developer.
 
+Where every hunk of the stop is `mechanical`, the run resolves them itself and nothing is asked of
+the developer. For each conflicted file it takes the three stages out of the index and writes their
+union:
+
+```
+git show :1:<path> > <base> && git show :2:<path> > <target> && git show :3:<path> > <incoming>
+git merge-file --union -p <target> <base> <incoming> > <path>
+```
+
+Stage 2 is the developer's branch and stage 3 the commit being replayed, so the union in that order
+keeps both sides with the developer's branch above the replayed commit's, which is the base order
+this step owes. Git writes the result and the session never edits a marker. Then `git add <path>`
+marks the file resolved, `git rebase --continue` carries the rebase to the next commit, and every
+further stop is classed and resolved the same way. The reply names every hunk it resolved with its
+file and location.
+
 ## The review
 
 Run once per landing, after the gate, and never by hand: the review fixes and lands, the run reads.

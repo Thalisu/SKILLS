@@ -106,6 +106,21 @@ has "the run shows the script's lines and states both counts before it acts" "$m
   "how many hunks it resolved mechanically and how many it is bringing to the developer" \
   "before it does anything"
 
+# Keeping both sides is a git primitive over the index stages, not the session editing markers: the
+# union of stage 2 and stage 3 over stage 1, stage 2 first, which is the base order the step owes.
+has "an all-mechanical stop is resolved by keeping both sides in base order" "$mech" \
+  "Where every hunk of the stop is \`mechanical\`" \
+  "git merge-file --union" \
+  "the developer's branch above the replayed commit's"
+has "the resolution marks the files resolved and continues the rebase" "$mech" \
+  "git add" \
+  "git rebase --continue"
+# The whole point of the class is that this case costs the developer no attention, and the reply is
+# where they check what was decided for them.
+has "the mechanical resolution asks nothing and is named hunk by hunk in the reply" "$mech" \
+  "nothing is asked of the developer" \
+  "names every hunk it resolved with its file and location"
+
 # No em-dash in the prose this step writes, per CLAUDE.md.
 lacks "no em-dash in the shared mechanics" "$mech" "$emdash"
 
