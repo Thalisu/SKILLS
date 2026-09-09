@@ -105,6 +105,15 @@ the only one that may differ. Any other path stops the run in one line naming it
 as the door found it. The brief is the only thing bounding what the fork touches, so the door
 checks it rather than trusting it.
 
+### A second run
+
+A Digest already sits beside the Ticket whenever a run reaches this point a second time, on a
+resume or on a `/do` typed again on the same Ticket. Before it dispatches anything the door
+recomputes the hash of each document the Digest's `## Sources` names, with the same
+`git hash-object` the reader ran, and compares the pair with the pair recorded there.
+
+- Both match: the run reuses it, forks no second reader, and says in one line that it reused it.
+
 ## The build loop
 
 One behaviour at a time, from the list the Playbook wrote, in its order. Each behaviour is one

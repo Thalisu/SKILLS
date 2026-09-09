@@ -40,4 +40,10 @@ has "the Digest records its sources with the path and the hash of each document"
   "git hash-object" \
   "one line per document"
 
+# A second run over the same Ticket costs nothing when the developer changed neither document.
+has "a second run reuses an unchanged Digest and forks no reader" "$refs/mechanics.md" \
+  "recomputes the hash of each document" \
+  "reuses it, forks no second reader" \
+  "says in one line that it reused it"
+
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi
