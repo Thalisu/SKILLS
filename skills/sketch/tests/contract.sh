@@ -105,7 +105,8 @@ lacks "the agent names no path that resolves from this repository only" "$agent_
 has "the agent implements nothing" "$agent_md" \
   "## What you never do" "No implementation" "No test" "No commit" \
   "every test still goes through a test author"
-lacks "the agent has no tool that edits an existing file" "$agent_md" "Edit"
+expect "the agent is granted these tools and no other" \
+  test "$(awk -F'tools: *' '/^tools: /{ print $2; exit }' "$agent_md")" = "Read, Glob, Grep, Bash, Write"
 
 # Where the Sketch goes at each door, and what comes back.
 has "the agent names both doors and the path each writes to" "$agent_md" \
