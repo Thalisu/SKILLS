@@ -22,8 +22,9 @@
 # the folder's date, or none for an undated folder.
 #
 # Exit codes: 0 it resolved, folder=none included, so a slug that names nothing never fails the
-# caller's run · 2 usage, a slug that normalises to nothing, or a .scratch that is not a plain
-# directory of the checkout, which would name a folder the repository does not control.
+# caller's run · 2 usage, a slug that normalises to nothing, a .scratch that is not a plain
+# directory of the checkout, or a feature folder that is a symlink, either of which would name a
+# folder the repository does not control.
 set -uo pipefail
 
 usage() { echo "usage: resolve-feature-folder.sh <slug>" >&2; exit 2; }
@@ -58,6 +59,9 @@ for d in .scratch/[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]-"$slug"; do
   [ -d "$d" ] && folder="$d"   # the glob is sorted, so the last match is the newest date
 done
 [ -d ".scratch/$slug" ] && folder=".scratch/$slug"
+if [ -n "$folder" ] && [ -L "$folder" ]; then
+  echo "$prefix$folder is a symlink; nothing resolved" >&2; exit 2
+fi
 
 date_of="$(sed -E 's#^\.scratch/([0-9]{8})-.*#\1#' <<<"$folder")"
 [ "$date_of" = "$folder" ] && date_of=none

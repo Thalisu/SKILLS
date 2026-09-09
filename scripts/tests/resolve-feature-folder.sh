@@ -127,6 +127,21 @@ run nightly-purge
 check "a .scratch that is a file is refused" 2 "$rc" \
   ".scratch is not a plain directory of this checkout; nothing resolved"
 
+# A feature folder that is a symlink would put the folder, and the spec a caller reads out of it,
+# wherever the link points, the same escape a symlinked .scratch is refused for.
+mkdir "$tmp/folder-link" && cd "$tmp/folder-link" && git init -q
+mkdir -p .scratch "$tmp/victim"
+ln -s "$tmp/victim" ".scratch/$today-nightly-purge"
+run nightly-purge
+check "a symlinked dated folder is refused" 2 "$rc" \
+  ".scratch/$today-nightly-purge is a symlink; nothing resolved"
+expect "no folder reached the caller" bash -c '! grep -q "^folder=" <<<"$1"' _ "$out"
+rm ".scratch/$today-nightly-purge"
+ln -s "$tmp/victim" .scratch/nightly-purge
+run nightly-purge
+check "a symlinked undated folder is refused" 2 "$rc" \
+  ".scratch/nightly-purge is a symlink; nothing resolved"
+
 # A linked worktree holds no scratch of its own, so a slug resolves in the main checkout and the
 # paths come back absolute for a caller that stands somewhere else.
 mkdir "$tmp/wt" && cd "$tmp/wt" && git init -q
