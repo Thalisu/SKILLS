@@ -151,6 +151,15 @@ check "the appended line goes to its template position and the rest of the map i
 check "the appended partial data line is filled from the offer and not from discovery" 0 "$rc" \
   "**System boundaries** is filled from step 2, and **Partial test data** from the outcome of the offer below"
 
+# The preserved-parts paragraph is read on its own: step 5 spells the same rule a screen below, so a
+# case over the whole file would pass on a paragraph that still says the opposite.
+rc=0; out="$(grep -F 'Generated vs preserved.' "$skill/SKILL.md")" || rc=$?
+check "the preserved-parts paragraph names where each appended line is filled from" 0 "$rc" \
+  "**System boundaries** filled from this run's discovery and **Partial test data** from the outcome of step 5's offer"
+check "the preserved-parts paragraph carries the one exception to a line staying verbatim" 0 "$rc" \
+  "existing lines stay verbatim, with one exception" \
+  "a **Partial test data** line the map already carries is rewritten when the offer was accepted this run and the add succeeded"
+
 # A map that already carries the label is never named among the labels the template gained, so the
 # refresh branch leaves it verbatim and only the offer's outcome can move it.
 kept="$tmp/installed-with-the-line"
