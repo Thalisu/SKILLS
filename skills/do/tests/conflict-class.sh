@@ -265,6 +265,27 @@ check "a conflicted path that begins with a dash is a path and not an option" 1 
   "contested --help L2-L6 rewrite-vs-rewrite" \
   "verdict=contested mechanical=0 contested=3"
 
+# A conflicted file too big to copy. Its three stages and the merge regenerated out of them are four
+# copies of it in TMPDIR, which is RAM on many machines, so the size is read before anything is
+# written. The run below is given a file size limit of 128 KiB: a run that copies a stage of this
+# file dies on it, and a run that classes the file from its size alone never notices.
+fresh oversized
+seq 1 900000 > big.txt
+commit base
+g branch inc
+{ echo TARGET; tail -n +2 big.txt; } > big.new && mv big.new big.txt
+commit target
+g switch -q inc
+{ echo INCOMING; tail -n +2 big.txt; } > big.new && mv big.new big.txt
+commit incoming
+g switch -q main
+g merge inc >/dev/null 2>&1
+
+rc=0; out="$( (ulimit -f 256; bash "$door") 2>&1 )" || rc=$?
+check "a conflicted file above the copy limit: contested, with no stage of it copied" 1 "$rc" \
+  "contested big.txt whole-file too-large" \
+  "verdict=contested mechanical=0 contested=1"
+
 # A tree holding one hunk of each class.
 fresh mixed
 printf 'a\nb\n' > added-to.txt

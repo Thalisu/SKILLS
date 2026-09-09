@@ -7,14 +7,16 @@
 #
 # A hunk line reads: <class> <file> <location> [<shape>], the file always one whitespace-free field:
 # a path carrying a space, a tab, a newline, a quote or a backslash is printed in quotes with those
-# bytes escaped. The class is mechanical when both sides
-# only added lines, neither deleting nor modifying a line the other side kept, and contested for
-# every other shape, which is named as the line's last field. The location is the hunk's line range
-# in the working file, or whole-file when the conflict is the whole file. The last line reads
-# verdict=<class> mechanical=<n> contested=<n>.
+# bytes escaped. The class is mechanical when both sides only added lines, neither deleting nor
+# modifying a line the other side kept, and contested for every other shape, which is named as the
+# line's last field. The location is the hunk's line range in the working file, or whole-file when
+# the conflict is the whole file. The last line reads verdict=<class> mechanical=<n> contested=<n>.
 #
 # Exit codes: 0 every hunk mechanical, or no conflicted state · 1 any hunk contested · 2 usage, or
 # not a git repository.
+#
+# A conflicted file whose base, target or incoming stage weighs more than 4 MiB classes contested
+# too-large, read from the size git records and never copied.
 #
 # The class is read from the index stages and from the two side commits, never from the working
 # file's markers: stage 2 is the Target side and stage 3 the Incoming side in a rebase exactly as in
@@ -33,6 +35,11 @@ trap 'rm -rf "$tmp"' EXIT
 
 mechanical=0
 contested=0
+
+# The most one stage of a conflicted file may weigh before the door reads it. Classing a file copies
+# its three stages and the merge regenerated out of them into TMPDIR, RAM on many machines, so a
+# file past this classes contested on its size alone and nothing of it is ever copied.
+max_stage_bytes=$((4 * 1024 * 1024))
 
 # The file is one field of one line, and a side chooses the path: a path carrying a newline would
 # add a line to this report, the verdict line included, and one carrying a space would shift every
@@ -97,7 +104,14 @@ stage_body() { # $1 stage, $2 path, $3 destination
 # certified mechanical. A path git left unmerged with no hunk to read at all, a submodule pointer
 # moved on both sides or a file the attributes leave with no merge driver, is unmergeable.
 classify_hunks() { # $1 path
-  local path="$1" i=0 line section base_lines=0 shape classes=() starts=() ends=()
+  local path="$1" i=0 line section base_lines=0 shape classes=() starts=() ends=() stage size
+  for stage in 1 2 3; do
+    size="$(git cat-file -s ":$stage:$path" 2>/dev/null)"
+    if [ "${size:-0}" -gt "$max_stage_bytes" ]; then
+      emit contested "$path" whole-file too-large
+      return
+    fi
+  done
   stage_body 1 "$path" "$tmp/base"
   stage_body 2 "$path" "$tmp/target"
   stage_body 3 "$path" "$tmp/incoming"
