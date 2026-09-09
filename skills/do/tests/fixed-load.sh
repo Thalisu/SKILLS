@@ -67,6 +67,10 @@ has "the run names the Digest's location and restates it in one line" "$refs/tic
 has "every behaviour line traces to a quote and never to a paraphrase" "$refs/ticket.md" \
   "quoted Testing Decision" "a Journey step" "never to a paraphrase"
 
+# A resume re-derives the list, so it must reach for the Digest and not for the Spec again.
+has "the resume re-derives the list from the Digest, never from the Spec" "$refs/ticket.md" \
+  "re-derived from the Ticket and its Digest"
+
 # The script is rerunnable by a reviewer who has only the file, since the repo has no runner.
 expect "the test script carries its own invocation line in its header" \
   grep -qF "# Run: bash skills/do/tests/fixed-load.sh" "$here/fixed-load.sh"

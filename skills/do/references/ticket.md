@@ -45,7 +45,7 @@ body carries per the build loop in [mechanics.md](mechanics.md), and the working
   The checklist follows, with steps 0 and 1 reading `done: resumed`.
 - The worktree is entered, never created: a second worktree is never made.
 - The grounding, the shape and the behaviours list run again without a write. The list is
-  re-derived from the Ticket and its Spec as step 4 says, never from the commits; then every line
+  re-derived from the Ticket and its Digest as step 4 says, never from the commits; then every line
   whose behaviour a commit body carries is ticked with that commit's sha beside it, and a commit
   whose `Behaviour:` line matches no line of the list is kept and named in the thread.
 - The loop continues at the first behaviour without a commit, and from there the run is a first
@@ -56,8 +56,9 @@ body carries per the build loop in [mechanics.md](mechanics.md), and the working
   `git clean -fd` in the worktree, and the first behaviour without a commit restarts red-first; a
   no stops the run with the worktree as it is, the reply naming it and its branch.
 - A run that stopped on a design fork (the forks in [mechanics.md](mechanics.md)) resumes the
-  same way once `discuss` amended the Spec: the list is re-derived from the amended Spec, and the
-  loop continues at the first behaviour without a commit.
+  same way once `discuss` amended the Spec: the reader is forked again over it and the list
+  re-derived from the Digest that comes back, and the loop continues at the first behaviour
+  without a commit.
 
 ## Checklist
 
@@ -116,7 +117,7 @@ names. When the session lists `how`, call the Skill tool with `how` over the sub
 reshapes, so the exploration stays out of the thread, per
 [guard-the-context-window](../../../.agents/principles/guard-the-context-window.md); when it does
 not, explore with search and targeted reads, and say so in one line. Then the discover batch:
-call the Skill tool with `discover` once, with every symbol the Ticket, its Spec and the reading
+call the Skill tool with `discover` once, with every symbol the Ticket, its Digest and the reading
 name in one batch, in the form the Discovery rule fixes, before the first of them is created, and
 log the audit line, `Discovery: n FOUND · n DUPLICATE · n NOT_FOUND`. When `discover` is not
 listed, one `rg -n -w` per candidate stands in and the audit line says so. A symbol the sketch
@@ -136,7 +137,7 @@ obsolete before adding, per
 [subtract-before-you-add](../../../.agents/principles/subtract-before-you-add.md) and
 [laziness-protocol](../../../.agents/principles/laziness-protocol.md), as its own commit with the
 suite green. When the work crosses a function boundary (a new module, an exported function or
-type other code will call, a changed signature) and neither the Ticket, its Spec nor a
+type other code will call, a changed signature) and neither the Ticket, its Digest nor a
 `Settled by prototype:` snippet carries a sketch, call the Skill tool with `architect`, stop at
 the sketch, and implement the sketch under the loop, so every test still goes through a test
 author. The sketch is the contract: a deviation during the build is surfaced in the reply, and a
