@@ -75,8 +75,12 @@ has "the agent explores rival shapes in its own window" "$agent_md" \
 lacks "the agent calls no skill this repository does not carry" "$agent_md" \
   "arena" "interrogate" "Skill tool"
 
-# The Sketch it writes, and the line it stops at.
-format="$skill/references/sketch-format.md"
+# The Sketch it writes, and the line it stops at. Every path the agent names has to resolve from a
+# project's working directory under the installed layout, so the format is read off the agent and
+# checked on disk rather than looked up at a path only this repository has.
+named="$(grep -o '~/\.claude/skills/sketch/references/[a-z0-9-]*\.md' "$agent_md" | head -n 1)"
+format="$skill/${named#\~/.claude/skills/sketch/}"
+expect "the format the agent names is a file, at the path the install gives it" test -f "$format"
 has "the format opens with its title" "$format" "# Sketch format"
 ordered "the format's sections come in the fixed order" "$format" \
   "## Header" "## The caller's usage" "## The types" "## The signatures" "## The boundaries" \
@@ -87,8 +91,17 @@ has "a rejected rival is one line with the fact that killed it" "$format" \
   "one line" "the fact that killed it"
 has "a section with nothing to say reads none" "$format" "reads \`none\`"
 
-has "the agent stops at the Sketch and links the format" "$agent_md" \
-  "## The Sketch" "references/sketch-format.md" "always write" "always name"
+has "the agent stops at the Sketch and names the format at its installed path" "$agent_md" \
+  "## The Sketch" "~/.claude/skills/sketch/references/sketch-format.md" "always write" "always name"
+has "the agent reaches the principles through the link the install leaves" "$agent_md" \
+  '$(readlink -f ~/.claude/skills/sketch)/../../.agents/principles/exhaust-the-design-space.md' \
+  '$(readlink -f ~/.claude/skills/sketch)/../../.agents/principles/boundary-discipline.md'
+expect "the first principle the agent names is a file" \
+  test -f "$repo/.agents/principles/exhaust-the-design-space.md"
+expect "the second principle the agent names is a file" \
+  test -f "$repo/.agents/principles/boundary-discipline.md"
+lacks "the agent names no path that resolves from this repository only" "$agent_md" \
+  "](references/" "](../../.agents/"
 has "the agent implements nothing" "$agent_md" \
   "## What you never do" "No implementation" "No test" "No commit" \
   "every test still goes through a test author"

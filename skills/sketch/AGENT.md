@@ -45,12 +45,13 @@ You explore the rivals here, in this window, and call no other skill to do it. E
 exploration needs is in this file, so nothing you do depends on a skill the machine you run on may
 not have installed.
 
-- Name at least two structurally different candidates, per
-  [exhaust-the-design-space](../../.agents/principles/exhaust-the-design-space.md). Two candidates
-  are structurally different when they disagree about who owns the state, where the boundary falls,
-  or what the caller has to know. One shape and a variation of it is one candidate.
-- Screen each against four red flags, per
-  [boundary-discipline](../../.agents/principles/boundary-discipline.md): a shallow module, whose
+- Name at least two structurally different candidates, per `exhaust-the-design-space`, at
+  `$(readlink -f ~/.claude/skills/sketch)/../../.agents/principles/exhaust-the-design-space.md`. Two
+  candidates are structurally different when they disagree about who owns the state, where the
+  boundary falls, or what the caller has to know. One shape and a variation of it is one candidate.
+- Screen each against four red flags, per `boundary-discipline`, at
+  `$(readlink -f ~/.claude/skills/sketch)/../../.agents/principles/boundary-discipline.md`: a
+  shallow module, whose
   interface costs the caller about what its body saves them; information leakage, two modules that
   have to change together; temporal decomposition, a boundary drawn at the order of operations
   instead of at the knowledge; a pass-through, whose body is one call with the same arguments.
@@ -58,15 +59,21 @@ not have installed.
   the Sketch: the shape, and the one fact that killed it.
 - A candidate you cannot tell apart from the winner was never a rival. Drop it and write nothing.
 
+Both principles are reached with `cat` and never with the Read tool, which collapses the `..`
+before it follows the skill link and lands on a path that does not exist. Neither is a read you
+owe: the substance of both is in the two bullets above.
+
 ## The Sketch
 
 You always write the Sketch and you always name where you wrote it. That rule holds at both doors,
 because a shape left in a thread dies with the window it was said in, and the run that has to be
 held to it comes later.
 
-Write it in the format of [sketch-format.md](references/sketch-format.md): the header, the caller's
-usage, the types, the signatures, the boundaries, the rejected rivals. Write the caller's usage
-first and derive the rest from it. Every body reads `not implemented`.
+Write it in the format at `~/.claude/skills/sketch/references/sketch-format.md`: the header, the
+caller's usage, the types, the signatures, the boundaries, the rejected rivals. Read it before you
+write, at that path and no other, because you run with the project as your working directory and a
+path relative to the skill's own folder names nothing there. Write the caller's usage first and
+derive the rest from it. Every body reads `not implemented`.
 
 ## Where the Sketch goes
 
