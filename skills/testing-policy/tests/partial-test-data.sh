@@ -165,6 +165,17 @@ check "a project on another stack is never asked and never reads the package nam
 rc=0; out="$(grep -c 'AskUserQuestion' "$skill/SKILL.md")" || rc=$?
 check "the install still asks through the two calls it had" 0 "$rc" "2"
 
+rc=0; out="$(cat "$skill/SKILL.md")" || rc=$?
+# shellcheck disable=SC2016
+check "the manager comes from the lockfile the project carries" 0 "$rc" \
+  '`pnpm-lock.yaml` → `pnpm add -D`' '`yarn.lock` → `yarn add -D`' \
+  '`package-lock.json` → `npm install -D`' '`bun.lockb` or `bun.lock` → `bun add -d`'
+check "the add runs where the map is filled, in the workspace that holds the tests" 0 "$rc" \
+  "run the add once from the workspace step 2 recorded" "@total-typescript/shoehorn"
+# shellcheck disable=SC2016
+check "an add that succeeded writes the helper and its two functions into the map line" 0 "$rc" \
+  '`fromPartial()` for partial data that still type checks and `fromAny()` for data that is wrong on purpose'
+
 echo
 echo "# the verifier's partial data helper key"
 # The key reports the project's own state, so it is read off bare fixtures with no policy
