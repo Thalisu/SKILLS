@@ -143,4 +143,15 @@ has "the invocation contract names the skill as user-invoked" "$repo/.agents/inv
 has "the invocation contract's table gains the agent row" "$repo/.agents/invocation.md" \
   "| \`sketch\` | user-invoked |"
 
+# The script says how it is run, since this repository has no aggregate runner.
+expect "the header carries the invocation line" \
+  grep -qF "Run: bash skills/sketch/tests/contract.sh" "$here/contract.sh"
+
+# No em-dash in any prose the skill adds.
+prose=("$skill_md" "$agent_md" "$codex" "$format" "$page" "$here/contract.sh")
+for f in "${prose[@]}"; do
+  [ -f "$f" ] || continue
+  if grep -q $'\xe2\x80\x94' "$f"; then echo "FAIL  no em-dash in ${f#"$repo/"}"; fails=$((fails + 1)); else echo "ok    no em-dash in ${f#"$repo/"}"; fi
+done
+
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi
