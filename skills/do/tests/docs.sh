@@ -83,6 +83,18 @@ router="$repo/skills/do/SKILL.md"
 has "the router line the page quotes is still both halves" "$router" \
   "reads \`required\` and no journey sits beside it"
 
+# The other claims read off the skill's own files, not off the page again. A check that greps only
+# the page passes while the skill moves underneath it, which is the page going stale unnoticed.
+refs="$repo/skills/do/references"
+has "the loop line the Prerequisites row quotes is still the ticket Playbook's" "$refs/ticket.md" \
+  '`Loop: policy` when `.claude/agents/unit-test-author.md` exists in the project,' \
+  '`Loop: fallback` otherwise.'
+has "the review row's skip line is still what an absent do-code-review does" "$refs/mechanics.md" \
+  '`skip: do-code-review not listed`: nothing lands, the worktree and its branch stay in place and' \
+  "the reply names the review and the landing as the developer's next"
+has "the vendored row's \`unslop\` is still the reply's own call" "$refs/reply.md" \
+  'Call the Skill tool with `unslop` on the drafted reply when the session'
+
 # Every link on the page resolves from docs/, since that is where a reader clicks it.
 links_ok=1
 while read -r target; do
