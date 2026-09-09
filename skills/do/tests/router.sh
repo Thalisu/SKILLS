@@ -47,6 +47,15 @@ bullet() {
     b { exit }
   ' "$1"
 }
+bullet_has() { # $1 label, $2 file, $3 the bullet's opening, $4.. fixed strings the bullet must carry
+  # A rule the file states somewhere is not the rule the bullet states, so the strings are looked
+  # for in the bullet alone: a reworded opening prints nothing and fails here like a dropped rule.
+  local label="$1" file="$2" opening="$3"; shift 3
+  local lines ok=1 word
+  lines="$(bullet "$file" "$opening")"
+  for word in "$@"; do printf '%s\n' "$lines" | grep -qF -- "$word" || ok=0; done
+  if [ "$ok" = 1 ]; then echo "ok    $label"; else echo "FAIL  $label ($file)"; fails=$((fails + 1)); fi
+}
 bullet_lacks() { # $1 label, $2 file, $3 the bullet's opening, $4.. fixed strings the bullet may not carry
   # A reworded opening makes `bullet` print nothing, and a word looked for in nothing is always
   # absent, so the bullet is demanded first and its absence fails the check like the word's
@@ -77,8 +86,8 @@ has "the page's door table quotes the router's row" "$page" \
 rows_lack "no row of the page's door table matches the word \`sketch\`" "$page" \
   '| The request | Where it goes |' sketch
 glossary="$repo/CONTEXT.md"
-has "the glossary's Playbook rule sends a runnable throwaway to prototype" "$glossary" \
-  "throwaway is \`prototype\`"
+bullet_has "the glossary's Playbook rule sends a runnable throwaway to prototype" "$glossary" \
+  "- \`do\` ships five **Playbooks**" "throwaway is \`prototype\`"
 bullet_lacks "no line of the glossary's Playbook rule matches the word \`sketch\`" "$glossary" \
   "- \`do\` ships five **Playbooks**" sketch
 
