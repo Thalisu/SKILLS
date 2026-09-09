@@ -27,3 +27,6 @@ lacked.
 
 A long session holds its decisions on the tree until the close instead of on disk. The one-line row
 per branch is what an ADR is written from, never memory of the interview.
+
+The "candidates the user picks" clause is superseded by ADR 0026: the close writes every candidate
+the gates and the tells leave standing and asks nothing. The rest of this ADR stands.
