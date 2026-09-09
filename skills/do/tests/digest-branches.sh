@@ -33,6 +33,10 @@ header_has() { # $1 a fixed string that must appear in this script's own header 
   sed -n '1,7p' "$here/digest-branches.sh" | grep -qF -- "$1"
 }
 
+withheld_wording_is_the_one_already_fixed() { # the Delegates rule's own words, not a second phrasing
+  [ "$(grep -cF -- "the session does that work itself" "$refs/mechanics.md")" -ge 2 ]
+}
+
 recorded_source_ignores_a_touch() { # the command the contract names, read out of it and run
   local cmd dir written touched edited
   cmd="$(sed -n 's/.*the hash from `\([^`]*\)`.*/\1/p' "$refs/digest.md" | head -1)"
@@ -85,5 +89,13 @@ has "an absent document is recorded and named by the reader" "$refs/digest.md" \
 has "the run goes on from the Ticket alone and says which document is absent" "$refs/mechanics.md" \
   "continues from the Ticket alone" \
   "naming the document that is absent"
+
+# A session without the Agent tool has no fork to dispatch, and the run pays the whole read rather
+# than stopping on a tool the developer cannot hand it mid-run.
+has "a withheld Agent tool leaves the reading to the session" "$refs/mechanics.md" \
+  "the Agent tool is withheld from the session" \
+  "neither stops nor asks for the tool"
+expect "the withheld branch reuses the wording the Delegates rule already fixes" \
+  withheld_wording_is_the_one_already_fixed
 
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi

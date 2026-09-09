@@ -99,6 +99,12 @@ line that comes back with the path is a restatement for the thread: a list writt
 the paraphrase the Digest exists to keep out of the record, so the steps that build on the slice
 read the file.
 
+When the Agent tool is withheld from the session there is no fork to dispatch. The Delegates rule
+below is what holds: the fork writes nothing and says so, and the session does that work itself. It
+reads both documents, writes the Digest at the same path in the same format, and says so in one
+line. It neither stops nor asks for the tool, since the developer cannot hand one over mid-run and
+the slice is what the run needs, not the window it was read in.
+
 A Ticket whose Spec or journey is not on disk still builds. The reader records the document as
 absent and quotes nothing under its section, and the run continues from the Ticket alone, saying so
 in one line naming the document that is absent. Only the Ticket's criteria and its `What to build`
