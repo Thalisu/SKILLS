@@ -17,7 +17,7 @@ The argument's shape is read first, then its words. The lines are read in order 
 matching line wins, so each line sits above any broader condition it could shadow. An argument
 that opens with a Playbook's name is matched to that Playbook, subject to that Playbook's own door
 checks. A match reads that Playbook's reference, and the references it links, and never another
-Playbook's. A line that matches no Playbook
+Playbook's, with the one exception the Links section names. A line that matches no Playbook
 ends the run in one message: `Playbook: none` on the first line, then the door with the command
 to type; nothing is written and no reference is read.
 
@@ -55,7 +55,10 @@ Each holds in every Playbook.
 
 ## Links
 
-One per reference. A Playbook's reference is read only when a router line names it; the reply reference is read last by every Playbook.
+One per reference. A Playbook's reference is read only when a router line names it, with one
+exception: a `ticket` run whose Ticket carries a defect with no named cause reads the
+reproduce and cause steps of [bug-fix.md](references/bug-fix.md), those two and nothing else of
+that Playbook. The reply reference is read last by every Playbook.
 
 - [ticket.md](references/ticket.md): the `ticket` Playbook, which links the shared mechanics and the reply reference.
 - [bug-fix.md](references/bug-fix.md): the `bug-fix` Playbook, which links the shared mechanics and the reply reference.

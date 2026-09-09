@@ -155,7 +155,13 @@ hypotheses ruled out with runtime evidence, the instrumentation reverted, the me
 per [fix-root-causes](../../../.agents/principles/fix-root-causes.md). The list is written from the
 confirmed mechanism, its `bugfix` line carries the reproduction as its expected red, and that red
 run reproduces the defect before any production change. When `bug-fix` is not installed under
-Links, those two steps stand on their own. A design fork found here stops
+Links, those two steps stand on their own. They are the exception the Links rule of
+[SKILL.md](../SKILL.md) names, and the step numbers there are `bug-fix`'s, not this checklist's:
+the second ask a surface the session cannot reach gets on the fixed build, `bug-fix`'s step 7,
+is asked here at step 5, once the `bugfix` line's fix is green in the loop, and a defect that will
+not reproduce even when forced stops this run as blocked, the Ticket left `claimed` and the
+worktree and its branch in place and named, never removed, since the close here is step 10's and
+a blocked run closes nothing. A design fork found here stops
 the run (the forks in [mechanics.md](mechanics.md)). Show the list once; the loop starts on the
 developer's silence. Done when the list is in the thread.
 

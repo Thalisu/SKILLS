@@ -146,6 +146,12 @@ has "the diagnosis runs before the behaviours list" "$ticket" "before the list"
 has "the diagnosis is this Playbook's reproduce and cause steps" "$ticket" "reproduce and cause steps"
 has "the red run reproduces the defect before any production change" "$ticket" "before any production change"
 has "the steps stand alone when the reference is absent" "$ticket" "stand on their own"
+has "the Links rule names the hand-off as its one exception" "$skillfile" "with one"
+has "the exception names the two steps it covers" "$skillfile" "reproduce and cause steps of [bug-fix.md](references/bug-fix.md)"
+has "the router rule points at that exception" "$skillfile" "the one exception the Links section names"
+has "the hand-off says whose numbering its step numbers carry" "$ticket" "step numbers there are \`bug-fix\`'s"
+has "the second ask is restated in the ticket run's numbering" "$ticket" "is asked here at step 5"
+has "a defect that will not reproduce leaves the ticket run's worktree" "$ticket" "in place and named, never removed"
 lacks "no em-dash in the ticket Playbook" "$ticket" "$emdash"
 
 # The evals: the bug-fix run and the bug Ticket whose cause is not named
