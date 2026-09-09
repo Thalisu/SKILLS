@@ -59,10 +59,15 @@ One question decides it: is the branch the Review judged the branch the develope
   The worktree is `do`'s, it stays for `do`'s flows and its close, and taking it away would end the
   run that called us.
 - **Yes.** A plain call on the developer's own branch. The run creates the worktree itself, from
-  the branch's HEAD, `git worktree add .claude/worktrees/fix-<slug> -b fix/<slug>`, where `<slug>`
-  is the branch name with every slash turned into a dash, the door's `slug=` line. It is the
-  worktrees folder `do` uses and the mechanics `do` uses, so one exclude line covers them all. The
-  run removes it and its branch after a landing, and leaves both in place when nothing landed.
+  the branch's HEAD, by [do's mechanics](../../do/references/mechanics.md) and in two steps. First
+  the exclude line, when `git check-ignore -q .claude/worktrees` fails: append `.claude/worktrees/`
+  to `.git/info/exclude`, never to the project's `.gitignore`, since the ignore file is the
+  project's and the exclude list is this clone's. Then
+  `git worktree add .claude/worktrees/fix-<slug> -b fix/<slug>`, where `<slug>` is the branch name
+  with every slash turned into a dash, the door's `slug=` line. It is the worktrees folder `do`
+  uses, so one exclude line covers them all, and the developer's `git status` reads the same before
+  the run and after it, which matters because the fix door measures that status. The run removes it
+  and its branch on the rules `## The landing` carries.
 
 Either way the Fixer is forked from the tree it works in, so it needs no path argument: a fork runs
 where it was forked. The run never changes its own working directory and never uses a worktree

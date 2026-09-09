@@ -192,6 +192,12 @@ has "the clean check is the door's dirty line, never a bare status" "$fix_md" \
 has "the fix reference decides where the Fixer works by whose branch was reviewed" "$fix_md" \
   "## Where the Fixer works" "fix/<slug>" ".claude/worktrees/" "](../../../.agents/worktrees.md)" \
   "did not create" "removes nothing it did not create"
+# A worktree added under an unexcluded .claude/ leaves the developer's status dirty for good, and
+# the fix door reads that status, so the exclude line goes in before the add, as do's mechanics do.
+has "the fix run excludes the worktrees folder itself, never the project's gitignore" "$fix_md" \
+  "git check-ignore -q .claude/worktrees" ".git/info/exclude" "never to the project's \`.gitignore\`"
+ordered "the exclude step comes before the worktree add" "$fix_md" \
+  "git check-ignore -q .claude/worktrees" "git worktree add .claude/worktrees/fix-<slug> -b fix/<slug>"
 has "the fix reference carries the Fixer brief and its four rules" "$fix_md" \
   "## The Fixer" "general-purpose" "Testing Policy" "origin \`bugfix\`" "one commit" \
   "Touch nothing else" "Leave what no longer matches" "Report each commit"
