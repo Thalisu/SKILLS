@@ -10,7 +10,8 @@
 #                  reported as "local" copies.
 #   --flows DIR    E2E flow root (repeatable). Enables the inline-helpers and subflows sections.
 #   --section NAME print only that section (roots layout candidate-homes duplicate-symbols
-#                  local-factories inline-helpers subflows mock-targets skip-markers)
+#                  local-factories inline-helpers subflows mock-targets skip-markers
+#                  type-assertions)
 #
 # Sections: duplicate-symbols = a name defined in two or more files (exports, plus top-level
 # function/class declarations) — files under a fixtures-role directory (`__fixtures__/`, `fixtures/`)
@@ -21,6 +22,9 @@
 # mocker.patch, monkeypatch.setattr) with its file count, classed `package` (a bare specifier or a
 # module outside the repo — a system boundary) or `internal` (a relative/alias path or a module of
 # this repo — either a thin wrapper around a boundary, or an internal collaborator: debt);
+# type-assertions = every TypeScript test file carrying a type assertion, with a count: a
+# double assertion (`as unknown as T`) counts once, and `as const` and an import or export
+# rename count as none;
 # skip-markers = every marker from skip-patterns.sh (sourced from this script's directory).
 # Output is plain text with fixed "## <section>" headers so callers can grep it.
 # Exit 0 whenever the scan ran (a finding is not an error); exit 2 on usage errors.
@@ -33,13 +37,13 @@ while [ $# -gt 0 ]; do
     --shared)  arg="${2:?--shared needs a dir}"; shared+=("${arg%/}"); shift 2 ;;
     --flows)   arg="${2:?--flows needs a dir}"; flows+=("${arg%/}"); shift 2 ;;
     --section) only="${2:?--section needs a name}"; shift 2 ;;
-    -h|--help) sed -n '2,17p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,18p' "$0"; exit 0 ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
   esac
 done
 case "$only" in
-  ""|roots|layout|candidate-homes|duplicate-symbols|local-factories|inline-helpers|subflows|mock-targets|skip-markers) ;;
-  *) echo "unknown section: $only (roots layout candidate-homes duplicate-symbols local-factories inline-helpers subflows mock-targets skip-markers)" >&2; exit 2 ;;
+  ""|roots|layout|candidate-homes|duplicate-symbols|local-factories|inline-helpers|subflows|mock-targets|skip-markers|type-assertions) ;;
+  *) echo "unknown section: $only (roots layout candidate-homes duplicate-symbols local-factories inline-helpers subflows mock-targets skip-markers type-assertions)" >&2; exit 2 ;;
 esac
 
 if [ ${#roots[@]} -eq 0 ]; then
@@ -235,6 +239,22 @@ if want mock-targets; then
       esac
     done
   } | sort -u | awk -F'\t' '{k=$1 "\t" $2; c[k]++; f[k]=f[k] " " $3} END {for (k in c) printf "%s\t%d\t%s\n", k, c[k], f[k]}' | sort -t$'\t' -k2,2 -k3,3nr -k1,1
+fi
+
+# --- type-assertions ---------------------------------------------------------------------
+if want type-assertions; then
+  hdr type-assertions
+  {
+    for f in "${test_files[@]}"; do
+      case "$f" in
+        *.ts|*.tsx|*.mts|*.cts)
+          n="$(grep -vE '^[[:space:]]*(//|/?\*|import\b|export[[:space:]]*[{*])' "$f" 2>/dev/null \
+            | grep -oE '\bas[[:space:]]+unknown[[:space:]]+as[[:space:]]+[A-Za-z_$][A-Za-z0-9_$]*|\bas[[:space:]]+[A-Za-z_$][A-Za-z0-9_$]*' \
+            | grep -cvE '^as[[:space:]]+const$')"
+          [ "${n:-0}" -gt 0 ] && printf '%s\t%d\n' "$f" "$n" ;;
+      esac
+    done
+  } | sort -t$'\t' -k2,2nr -k1,1
 fi
 
 # --- skip-markers ------------------------------------------------------------------------

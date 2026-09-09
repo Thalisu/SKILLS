@@ -9,6 +9,7 @@ skill="$here/.."
 render="$skill/scripts/render-agent.sh"
 verify="$skill/scripts/verify-policy.sh"
 render_policy="$skill/scripts/render-policy.sh"
+scan="$skill/scripts/scan-test-assets.sh"
 fails=0
 tmp="$(mktemp -d)"
 trap 'cd /; rm -rf "$tmp"' EXIT
@@ -50,6 +51,9 @@ install_fixture() { # $1 project dir
   : > "$p/.claude/testing-policy/scan-test-assets.sh"
   : > "$p/.claude/testing-policy/skip-patterns.sh"
 }
+# The scan runs from inside the fixture tree, the way the install runs it from a project root.
+scan() { rc=0; out="$(cd "$tree" && bash "$scan" "$@" 2>&1)" || rc=$?; }
+row() { printf '%s\t%s' "$1" "$2"; }
 
 echo "# the rule in the core"
 render unit --core-only
@@ -208,6 +212,39 @@ empty "an unreadable directory leaves the verifier's stderr empty"
 rc=0; out="$(sed -n '1,/^set -/p' "$verify")" || rc=$?
 check "the usage header names the key and its three values" 0 "$rc" \
   "partial_data_helper=n/a|absent|installed"
+
+echo
+echo "# the scan counts the type assertions in the test tree"
+tree="$tmp/scan-tree"
+mkdir -p "$tree/tests/support" "$tree/src"
+cat > "$tree/tests/single.test.ts" <<'FIXTURE'
+import { makeUser as buildUser } from "./support/factory";
+const MODE = "strict" as const;
+const user = buildUser() as User;
+FIXTURE
+cat > "$tree/tests/double.test.ts" <<'FIXTURE'
+const broken = { id: 1 } as unknown as User;
+FIXTURE
+cat > "$tree/tests/support/factory.ts" <<'FIXTURE'
+export const makeUser = () => ({ id: "1" } as User);
+FIXTURE
+cat > "$tree/src/user.ts" <<'FIXTURE'
+export const currentUser = () => (globalThis.current as User);
+FIXTURE
+cat > "$tree/tests/test_shape.py" <<'FIXTURE'
+import json as j
+
+
+def test_shape():
+    with open("payload.json") as fh:
+        assert j.loads(fh.read()) == {}
+FIXTURE
+
+scan --root tests --root src --section type-assertions
+check "the section lists the test file carrying a single assertion, with its count" 0 "$rc" \
+  "## type-assertions" "$(row tests/single.test.ts 1)"
+check "a double assertion counts as one, and as const and an import rename count as none" 0 "$rc" \
+  "$(row tests/double.test.ts 1)"
 
 echo
 echo "# repository standards"
