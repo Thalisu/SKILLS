@@ -70,8 +70,13 @@ lacks "the Prerequisites intro no longer claims all four are reported up front" 
 has "the git status tell separates the checkout from the reply's Left uncommitted section" "$page" \
   "Your work in progress is unchanged" \
   "the worktree folder does not show up" \
-  "both sit under the ignored \`.scratch/\`" \
+  "only where git does not ignore the path they sit on" \
   "the reply's \`Left uncommitted\`"
+# Nothing in `do` appends the `.scratch/` line, and a Ticket the project tracks puts the Review on a
+# tracked path: a reader told the two never show up commits a Review into a shared repository.
+lacks "the git status tell no longer promises the Ticket and the Review are always ignored" "$page" \
+  "both sit under the ignored \`.scratch/\`" \
+  "The Ticket and the Review are not in"
 has "the other three prerequisite rows name their own step" "$page" \
   "asks you for the ticket's path" "skip: do-code-review not listed" \
   "each step says in one line what it does instead"
@@ -98,6 +103,9 @@ has "the review row's skip line is still what an absent do-code-review does" "$r
   "the reply names the review and the landing as the developer's next"
 has "the vendored row's \`unslop\` is still the reply's own call" "$refs/reply.md" \
   'Call the Skill tool with `unslop` on the drafted reply when the session'
+door="$repo/skills/do-code-review/AGENT.md"
+has "the Review's visibility the tell follows is still the door's own report" "$door" \
+  '`review_in_status=yes`, that the Review shows up in `git status` for the caller to keep or drop'
 has "the closing command the page names is still the reply's Next step rule" "$refs/reply.md" \
   'It ends with the push command when something landed on the' \
   "developer's branch, \`git push\` with the branch named; otherwise the command to type next."
