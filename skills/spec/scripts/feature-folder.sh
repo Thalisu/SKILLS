@@ -5,9 +5,17 @@
 # inside the project.
 #
 #   feature-folder.sh <slug>    the slug of the feature, the spec's title in kebab-case. It is
-#                               normalised (lowercased, every other character turned into a dash,
-#                               dashes squeezed and trimmed) and a `YYYYMMDD-` prefix already on it
-#                               is dropped, so handing back a folder name allocates nothing new
+#                               normalised by the resolver (lowercased, every other character
+#                               turned into a dash, dashes squeezed and trimmed) and a `YYYYMMDD-`
+#                               prefix already on it is dropped, so handing back a folder name
+#                               allocates nothing new
+#
+# Which folder a slug names is not this script's rule to hold: it asks
+# ../../../.agents/scripts/resolve-feature-folder.sh, the one executable form of it, and allocates
+# only when that answer is `none`. The resolver normalises the slug, finds the main checkout,
+# refuses a `.scratch` that is not a plain directory of it and refuses a folder or a `spec.md` that
+# is a symlink, so this script inherits all five and none of them is written twice. See
+# ../../../docs/adr/0031-a-shared-read-only-script-resolves-a-slug-to-its-feature-folder.md.
 #
 # A folder for the slug that already exists is reused whatever date it carries, and an undated one
 # left by an older run is reused too: a rerun rewrites its spec in place, and the date is the day
@@ -25,7 +33,8 @@
 # whenever the rule is not already coming from that file: `git check-ignore -v` names the file the
 # rule comes from, and `.git/info/exclude`, a global excludes file and no answer at all all mean
 # the line is owed. What is reported is the state after the write, read back with the same probe,
-# so a run never claims a line it did not manage to add.
+# so a run never claims a line it did not manage to add. The ignore is this script's alone: the
+# resolver only reads, so it never appends and never reports one.
 #
 # Prints key=value lines: slug (the normalised slug), folder, spec (the spec's path in it),
 # created (yes when this run created the folder, no when it reused one), date (the folder's date,
@@ -34,45 +43,37 @@
 # symlink (`.gitignore` is a symlink, so the append would write through it, outside the tree: it is
 # refused and nothing is written), not-ignored (the append did not take, so the scratch shows up in
 # `git status` and the caller says so) and no-repo (outside a git repository).
-# Exit codes: 0 the folder is there · 2 usage, a slug that normalises to nothing, or a `.scratch`
-# that is not a plain directory of this checkout, which would put the folder somewhere the
-# repository does not control.
+# Exit codes: 0 the folder is there · 2 usage, a missing resolver, or any refusal the resolver
+# makes, reported in this script's own words.
 set -uo pipefail
 
 usage() { echo "usage: feature-folder.sh <slug>" >&2; exit 2; }
 [ "$#" = 1 ] || usage
 
-slug="$(tr '[:upper:]' '[:lower:]' <<<"$1" | tr -c 'a-z0-9' '-' | tr -s '-')"
-slug="${slug#-}"; slug="${slug%-}"
-slug="$(sed -E 's/^[0-9]{8}-//' <<<"$slug")"
-[ -n "$slug" ] || { echo "a slug is needed: $1 normalises to nothing" >&2; exit 2; }
+here="$(cd "$(dirname "$0")" && pwd -P)"
+resolver="$here/../../../.agents/scripts/resolve-feature-folder.sh"
 
+rc=0
+resolved="$(bash "$resolver" "$1" 2>&1)" || rc=$?
+if [ "$rc" != 0 ]; then
+  # The reason is the resolver's; the verb is this script's, which allocates where it only reads.
+  echo "${resolved/%nothing resolved/nothing allocated}" >&2
+  exit "$rc"
+fi
+
+slug="$(sed -n 's/^slug=//p' <<<"$resolved")"
+root="$(sed -n 's/^root=//p' <<<"$resolved")"
+folder="$(sed -n 's/^folder=//p' <<<"$resolved")"
+date_of="$(sed -n 's/^date=//p' <<<"$resolved")"
+[ "$folder" = none ] && folder=""
+
+# The resolver answers in the main checkout's own paths, absolute only when the caller stands
+# somewhere else, so the prefix is read back off the tree this run was invoked from.
 top="$(git rev-parse --show-toplevel 2>/dev/null)"
-root="$top"
 prefix=""
-if [ -n "$top" ]; then
-  # A bare main worktree has no working tree to anchor on, and git lists it first all the same.
-  main_checkout="$(git worktree list --porcelain 2>/dev/null |
-    awk '/^$/ { exit } /^worktree /{ p = substr($0, 10) } /^bare$/ { p = "" } END { print p }')"
-  [ -n "$main_checkout" ] && [ -d "$main_checkout" ] || main_checkout="$top"
-  root="$main_checkout"
-  [ "$top" -ef "$root" ] || prefix="$root/"
-fi
-[ -n "$root" ] || root="$(pwd -P)"
+if [ -n "$top" ] && ! [ "$top" -ef "$root" ]; then prefix="$root/"; fi
+folder="${folder#"$prefix"}"
 cd "$root" || exit 2
-
-if [ -L .scratch ] || { [ -e .scratch ] && [ ! -d .scratch ]; }; then
-  echo ".scratch is not a plain directory of this checkout; nothing allocated" >&2; exit 2
-fi
-
-folder=""
-for d in .scratch/[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]-"$slug"; do
-  [ -d "$d" ] && folder="$d"   # the glob is sorted, so the last match is the newest date
-done
-[ -d ".scratch/$slug" ] && folder=".scratch/$slug"
-if [ -n "$folder" ] && [ -L "$folder" ]; then
-  echo "$prefix$folder is a symlink; nothing allocated" >&2; exit 2
-fi
 
 gitignore=no-repo
 if [ -n "$top" ]; then
@@ -92,15 +93,13 @@ fi
 
 created=no
 if [ -z "$folder" ]; then
-  folder=".scratch/$(date +%Y%m%d)-$slug"
+  date_of="$(date +%Y%m%d)"
+  folder=".scratch/$date_of-$slug"
   mkdir -p .scratch || exit 2
   if mkdir "$folder" 2>/dev/null; then created=yes; elif [ ! -d "$folder" ]; then
     echo "could not create $prefix$folder" >&2; exit 2
   fi
 fi
-
-date_of="$(sed -E 's#^\.scratch/([0-9]{8})-.*#\1#' <<<"$folder")"
-[ "$date_of" = "$folder" ] && date_of=none
 
 echo "slug=$slug"
 echo "folder=$prefix$folder"

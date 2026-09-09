@@ -22,6 +22,10 @@ expect() { # $1 label, $2.. a command that must succeed
   local label="$1"; shift
   if "$@"; then echo "ok    $label"; else echo "FAIL  $label"; fails=$((fails + 1)); fi
 }
+absent_in() { # $1 label, $2 a pattern that must not appear in the file $3
+  local label="$1"
+  if grep -q "$2" "$3"; then echo "FAIL  $label"; fails=$((fails + 1)); else echo "ok    $label"; fi
+}
 run() { rc=0; out="$(bash "$allocate" "$@" 2>&1)" || rc=$?; }
 
 # No slug, or more than one argument: usage.
@@ -148,11 +152,28 @@ check "a symlinked .scratch is refused" 2 "$rc" ".scratch is not a plain directo
 expect "nothing was planted through the link" bash -c 'test -z "$(ls "'"$tmp"'/victim")"'
 rm .scratch
 
+# A spec.md committed as a symlink inside a real folder escapes the checkout one level down: a
+# clone checks the link out with a clean git status, and the caller writes the spec through it.
+mkdir "$tmp/escape-spec" && cd "$tmp/escape-spec" && git init -q
+printf 'keep\n' > "$tmp/outside-spec.md"
+mkdir -p .scratch/20240101-notes
+ln -s "$tmp/outside-spec.md" .scratch/20240101-notes/spec.md
+run notes
+check "a spec.md that is a symlink is refused" 2 "$rc" \
+  ".scratch/20240101-notes/spec.md is a symlink; nothing allocated"
+expect "the symlink's target is untouched" grep -qxF keep "$tmp/outside-spec.md"
+
 # Outside a repository the folder is still allocated, and no ignore is claimed.
 mkdir "$tmp/plain" && cd "$tmp/plain" || exit 1
 run notes
 check "outside a repository the folder is still allocated" 0 "$rc" "folder=.scratch/$today-notes" \
   "created=yes" "gitignore=no-repo"
 expect "no .gitignore was written outside a repository" bash -c '! test -e .gitignore'
+
+# The resolution rule lives in the resolver alone, so fixing it once fixes every door: the
+# allocator normalises no slug and looks up no folder of its own.
+absent_in "the allocator normalises no slug of its own" "tr -c" "$allocate"
+absent_in "the allocator looks up no folder of its own" "scratch/\[0-9\]" "$allocate"
+expect "the allocator reaches the resolver" grep -q resolve-feature-folder.sh "$allocate"
 
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi
