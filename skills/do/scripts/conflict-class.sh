@@ -5,7 +5,9 @@
 #
 #   conflict-class.sh    one line per conflicted hunk, then the verdict
 #
-# A hunk line reads: <class> <file> <location> [<shape>]. The class is mechanical when both sides
+# A hunk line reads: <class> <file> <location> [<shape>], the file always one whitespace-free field:
+# a path carrying a space, a tab, a newline, a quote or a backslash is printed in quotes with those
+# bytes escaped. The class is mechanical when both sides
 # only added lines, neither deleting nor modifying a line the other side kept, and contested for
 # every other shape, which is named as the line's last field. The location is the hunk's line range
 # in the working file, or whole-file when the conflict is the whole file. The last line reads
@@ -32,10 +34,27 @@ trap 'rm -rf "$tmp"' EXIT
 mechanical=0
 contested=0
 
+# The file is one field of one line, and a side chooses the path: a path carrying a newline would
+# add a line to this report, the verdict line included, and one carrying a space would shift every
+# field to its right. A path that would do either is printed in quotes with the offending bytes
+# escaped, so a field of the report is never whitespace and never a line of its own.
+quote_path() { # $1 path
+  local raw="$1" quoted
+  quoted="${raw//\\/\\\\}"
+  quoted="${quoted//\"/\\\"}"
+  quoted="${quoted//$'\n'/\\n}"
+  quoted="${quoted//$'\r'/\\r}"
+  quoted="${quoted//$'\t'/\\t}"
+  quoted="${quoted// /\\040}"
+  if [ "$quoted" = "$raw" ]; then printf '%s' "$raw"; else printf '"%s"' "$quoted"; fi
+}
+
 emit() { # $1 class, $2 file, $3 location, $4 shape (contested only)
+  local file
+  file="$(quote_path "$2")"
   case "$1" in
-    mechanical) mechanical=$((mechanical + 1)); echo "mechanical $2 $3" ;;
-    *)          contested=$((contested + 1)); echo "contested $2 $3 $4" ;;
+    mechanical) mechanical=$((mechanical + 1)); echo "mechanical $file $3" ;;
+    *)          contested=$((contested + 1)); echo "contested $file $3 $4" ;;
   esac
 }
 

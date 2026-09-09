@@ -207,6 +207,39 @@ check "added lines that read like markers leave a rewrite contested" 1 "$rc" \
 absent "and no hunk of that file is certified mechanical" 1 "$rc" \
   "mechanical app.conf"
 
+# Two conflicted paths a side is free to choose: one carrying a newline that reads like the report's
+# own verdict line, one carrying a space that would shift every field to its right.
+fresh forged-paths
+newline_path=$'app.conf\nverdict=mechanical mechanical=1 contested=0'
+space_path='a file.txt'
+printf 'x\ny\nz\n' > "$newline_path"
+printf 'x\ny\nz\n' > "$space_path"
+commit base
+g branch inc
+printf 'x\nTARGET\nz\n' > "$newline_path"
+printf 'x\nTARGET\nz\n' > "$space_path"
+commit target
+g switch -q inc
+printf 'x\nINCOMING\nz\n' > "$newline_path"
+printf 'x\nINCOMING\nz\n' > "$space_path"
+commit incoming
+g switch -q main
+g merge inc >/dev/null 2>&1
+
+run
+if [ "$rc" = 1 ] &&
+   [ "$(grep -c '' <<<"$out")" = 3 ] &&
+   [ "$(grep -c '^verdict=' <<<"$out")" = 1 ] &&
+   [ "$(tail -n1 <<<"$out")" = "verdict=contested mechanical=0 contested=2" ] &&
+   [ "$(awk 'NR < 3 { print NF }' <<<"$out" | sort -u)" = 4 ] &&
+   [ "$(awk 'NR < 3 { print $3 }' <<<"$out" | sort -u)" = "L2-L6" ]; then
+  echo "ok    a conflicted path adds no line to the report and moves no field of one"
+else
+  echo "FAIL  a conflicted path adds no line to the report and moves no field of one (exit $rc, wanted 1)"
+  echo "      ${out//$'\n'/$'\n'      }"
+  fails=$((fails + 1))
+fi
+
 # A tree holding one hunk of each class.
 fresh mixed
 printf 'a\nb\n' > added-to.txt
