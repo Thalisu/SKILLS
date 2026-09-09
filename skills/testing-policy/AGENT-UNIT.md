@@ -35,6 +35,14 @@ The test calls the target the way its callers do and asserts what they can obser
 - **Assert the outcome, not the route.** A call on an internal collaborator, a call count, an order, a private function: none of these is an outcome. A call into a mocked boundary is one (the charge made, the email sent). Never verify through a side channel (reading the row the code wrote) when the interface can read the outcome back.
 - **A missing seam is production code.** When the declared behavior can only be reached by mocking an internal or asserting on a side effect, name the seam (pass the dependency in, return the result instead of mutating) and stop (see "Finish"); an inline writer makes that change before the test. Never mock around it.
 
+### Building the input
+
+The input a test passes in is built, never forced into place. A fake that stands in for a large type is built through the helper "Project map" names under **Partial test data**, so the type checker keeps checking it against the type it stands for.
+
+- **Never build a fake by asserting a type at the compiler.** A type assertion tells the checker to trust a value it cannot verify: the fake stops tracking the type it stands for, and the test goes on passing after that type changes under it. Reach for the helper in "Project map" instead.
+- **Data that is wrong on purpose is built too.** Proving the target rejects a malformed input needs a value the checker would refuse, and the map names the form of the helper for exactly that case. It keeps the wrongness readable at the call site instead of hidden behind a silenced error.
+- **A map that says the project has no helper yet is not a licence to assert.** Build the fake in full, or through a factory from its shared home, and name the missing helper in the report.
+
 ### Reuse audit: mandatory, before writing anything
 
 Priority: **reuse > extend > create.** Never write a second copy of something that exists.
@@ -76,6 +84,7 @@ A promotion moves an asset out of a test file into the shared home for its role 
 
 - A second copy of an asset that exists anywhere in the test tree.
 - Deriving the expected behavior from the implementation.
+- Building a fake by asserting a type at the compiler instead of the helper "Project map" names.
 - Mocking a module of this repo; asserting on a call, a call count, an order or a private symbol as the outcome; verifying through a side channel the interface exposes.
 - Weakening or dropping an assertion to get green; a test with no outcome assertion.
 - Skipping, narrowing (`.only`) or marking a failing case as optional.
