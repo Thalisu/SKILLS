@@ -121,6 +121,19 @@ has "the mechanical resolution asks nothing and is named hunk by hunk in the rep
   "nothing is asked of the developer" \
   "names every hunk it resolved with its file and location"
 
+# A conflicted path is a name either side of the rebase chose, and the resolution pastes it into the
+# run's own shell: in a bare or double-quoted command line `$(...)`, a backtick, `;` and `|` are
+# live, and a path carrying one of them runs as the run's own command. So the list comes back
+# NUL-delimited and every use of a path is single-quoted or passed after `--`.
+has "the conflicted paths are read from git NUL-delimited" "$mech" \
+  "git diff --name-only --diff-filter=U -z"
+has "every use of a conflicted path is single-quoted or passed after --" "$mech" \
+  "git show ':1:<path>'" "git show ':2:<path>'" "git show ':3:<path>'" \
+  "> '<path>'" "git add -- '<path>'"
+lacks "no use of a conflicted path reaches the shell bare" "$mech" \
+  "git show :1:<path>" "git show :2:<path>" "git show :3:<path>" \
+  "> <path>" "git add <path>"
+
 # A commit the resolution empties is not a loss: the change it carried is already on the branch it
 # was going to land on, so it is skipped rather than stopping the run.
 has "a commit left empty by the resolution is skipped and named" "$mech" \
