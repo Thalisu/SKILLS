@@ -194,6 +194,27 @@ has "the reply reference gives the resolved hunks and the skipped commits a home
   "every hunk it resolved with its file and location" \
   "every replayed commit it skipped"
 
+# The eval case is the one seam a static test cannot reach: whether a real run resolves the stop
+# without asking. The suite checks the case is there and intact, never that it passed.
+evals="$repo/skills/do/evals/integration-mechanical-conflict"
+expect "the integration eval case has its case file" test -f "$evals/case.yaml"
+expect "the integration eval case has its prompt" test -f "$evals/prompt.md"
+for g in first-line-playbook-ticket integration-ticked-with-target-and-count \
+         classed-before-anything-was-resolved no-question-asked-of-the-developer \
+         both-sides-landed-main-above-the-replay gate-again-after-the-rebase-then-the-review \
+         nothing-pushed; do
+  expect "the integration eval case grades $g" test -f "$evals/graders/$g.md"
+done
+# The developer's branch has to move after the worktree exists, and a scaffold runs before the
+# session: the hook is the whole reason this case can exercise a replay at all.
+has "the fixture moves the developer's branch with a post-commit hook" "$evals/case.yaml" \
+  ".git/hooks/post-commit" \
+  "do/*)" \
+  "update-ref refs/heads/main"
+has "the case is listed in the evals README" "$repo/skills/do/evals/README.md" \
+  "| \`integration-mechanical-conflict\` |"
+lacks "no em-dash in the integration eval case" "$evals/case.yaml" "$emdash"
+
 # No em-dash in the prose this step writes, per CLAUDE.md.
 lacks "no em-dash in the ticket Playbook" "$ticket" "$emdash"
 lacks "no em-dash in the bug-fix Playbook" "$bugfix" "$emdash"

@@ -37,6 +37,7 @@ typecheck and `node --test` as the suite, so both run offline with node alone.
 | `trivial-refuses-dirty-target` | a doc typo in a file already modified in the checkout: refused before any edit, the file named, the developer's uncommitted line intact |
 | `trivial-stops-on-signature-change` | a "typo" in a parameter name of an exported function, a rename inside one file from the request's seat: the edit made, the door script stopping the run on the diff, no commit, `src/notes.js` back at HEAD, `refactoring` named with the script's lines quoted |
 | `ticket-run-with-policy` | a Ticket built end to end under an installed Testing Policy on a native surface (a CLI with a flow under `e2e/`): the checklist verbatim before the first edit with every skipped step reasoned, the worktree before the first edit, entered with a bare `cd` and never with the harness's worktree tool, and the main checkout's dirty `README.md` untouched, one discover batch with its audit line, one dispatch in flight, one commit per behaviour holding a test and an implementation with the behaviour line in its body, the gate after the last edit, the review called once with the Ticket's location and the landing target and never with `fix` nor `--no-fix`, `main` fast-forwarded by the review and nothing pushed, the affected flow run from the main checkout, the Ticket `resolved` in the main checkout with its criteria ticked and the evidence appended only after the flow run, absent from every commit and untouched on the worktree branch, no worktree of the run remaining, the reply carrying the PR sections, naming a principle only beside a decision and listing the Ticket and the Review as left uncommitted |
+| `integration-mechanical-conflict` | the same Ticket on the same fixture, with a `post-commit` hook that lands one commit on `main` the first time a commit lands on the run's `do/` branch, adding lines at the end of `src/notes.ts` where the build adds its own: the rebase between the gate and the review stops on a conflict, the run shows the door script's lines and states the counts before it resolves anything, resolves every hunk itself with the union of the three index stages and asks the developer nothing, runs the gate's command lines a second time and calls the review after them; the landed file carries both sides with `main`'s above the replayed commit's, and nothing is pushed |
 | `absent-review` | a session without `do-code-review` (the fixture installs no stand-in): the gate completed, the review step `skip: do-code-review not listed`, nothing landed, the worktree, its branch and the review named as the next step, the Ticket `claimed` and uncommitted |
 | `review-act-on-fixed-and-landed` | a Review with one `Act on` Finding, planted in the stand-in: the review's Fixer turns it into one commit on the worktree branch, the run makes no commit for it, the review is called once, and the landing follows it |
 | `review-not-landed-blocks` | a return that says not landed, the Finding `not fixed`, planted in the stand-in: the run stops as blocked with the review's reason quoted, the worktree and its branch named, nothing landed, the Ticket left `claimed` |
@@ -62,10 +63,15 @@ inline `test-author` skill), a spec, its journey and two Tickets under `issues/`
 runs, an uncommitted line in `README.md` as the developer's work in progress; the resume cases add
 the `do/archive-a-note` worktree with two commits on it, one per behaviour, and one of them an
 uncommitted edit in that worktree. Most cases put the policy on a consumer surface with no
-consumer, so the verification has no flow to run; `ticket-run-with-policy` and
-`red-flow-second-review` put it on a native surface, with a CLI under `bin/`, the
-`e2e-test-author` agent and a flow under `e2e/` that drives the CLI, so the affected flow runs
-from the main checkout. The fixture's commands are real: `node --test src/` runs the unit suite,
+consumer, so the verification has no flow to run; `ticket-run-with-policy`,
+`red-flow-second-review` and `integration-mechanical-conflict` put it on a native surface, with a
+CLI under `bin/`, the `e2e-test-author` agent and a flow under `e2e/` that drives the CLI, so the
+affected flow runs from the main checkout. `integration-mechanical-conflict` adds one thing to that
+fixture, a `post-commit` hook under its `.git/`: the first commit on a `do/` branch fires it once,
+and it lands one commit on `main` with git's plumbing in a temporary index, so the developer's
+branch moves only after the run's worktree exists and the rebase has something to replay. Its
+commit only adds lines, at the end of the file the build appends to, which is what makes every hunk
+of the stop class `mechanical`. The fixture's commands are real: `node --test src/` runs the unit suite,
 `node --test e2e/` the flows, and `tsc --noEmit` typechecks `src/`.
 `ticket-run-without-policy` scaffolds the plain JavaScript fixture of the `trivial-` cases instead,
 with the same spec, journey and Tickets and no policy section, no agent and no inline skill, so the
