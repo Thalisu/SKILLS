@@ -42,6 +42,12 @@ expect "the Digest reference the door links exists" test -f "$refs/digest.md"
 has "SKILL.md lists the Digest reference under Links, so the door can read it" \
   "$repo/skills/do/SKILL.md" "[digest.md](references/digest.md)"
 
+# The Digest quotes what the run builds from, and every quote is checkable at its line.
+has "the Digest holds the Path, the numbered stories and the Testing Decisions" "$refs/digest.md" \
+  "## Journey Path" "## Stories" "## Testing Decisions" "quoted, never summarised"
+has "every quote carries its document, its heading and its line" "$refs/digest.md" \
+  '`<document> · <heading> · L<line>`'
+
 # No em-dash in the prose this feature writes, per CLAUDE.md.
 lacks "no em-dash in the Digest reference" "$refs/digest.md" "$emdash"
 
