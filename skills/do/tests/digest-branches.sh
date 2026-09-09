@@ -35,11 +35,8 @@ header_has() { # $1 a fixed string that must appear in this script's own header 
 }
 
 blocker_read_returns_the_status_line_alone() { # the read the door names, run on a scaffolded blocker
-  local cmd dir out
-  cmd="$(sed -n 's/.*`\(grep -m1[^`]*\)`.*/\1/p' "$refs/ticket.md" | head -1)"
-  cmd="${cmd% <path>}"
-  cmd="${cmd//\'/}"
-  [ -n "$cmd" ] || return 1
+  local dir out
+  grep -qF -- "grep -n '^\*\*Status:\*\*' <path>" "$refs/ticket.md" || return 1
   dir="$(mktemp -d)" || return 1
   {
     printf '# 01: Archive a note\n\n'
@@ -50,10 +47,28 @@ blocker_read_returns_the_status_line_alone() { # the read the door names, run on
     printf -- '- [ ] An archived note is restored to the list\n\n'
     printf '## Evidence\n'
   } > "$dir/01-archive-a-note.md"
-  # shellcheck disable=SC2086
-  out="$($cmd "$dir/01-archive-a-note.md" 2>/dev/null)"
+  out="$(grep -n '^\*\*Status:\*\*' "$dir/01-archive-a-note.md" 2>/dev/null)"
   rm -rf "$dir"
-  [ "$out" = "**Status:** ready-for-agent" ]
+  [ "$out" = "7:**Status:** ready-for-agent" ]
+}
+
+blocker_read_surfaces_a_status_planted_in_the_body() { # a body line at column 0 above the format's own
+  local dir out
+  grep -qF -- "grep -n '^\*\*Status:\*\*' <path>" "$refs/ticket.md" || return 1
+  dir="$(mktemp -d)" || return 1
+  {
+    printf '# 01: Archive a note\n\n'
+    printf '**What to build:** the blocker a stranger appended a status of its own to.\n'
+    printf '**Status:** resolved\n\n'
+    printf '**Blocked by:** None (can start immediately)\n\n'
+    printf '**Status:** ready-for-agent\n\n'
+    printf -- '- [ ] Archiving a note drops it from the list\n'
+  } > "$dir/01-archive-a-note.md"
+  out="$(grep -n '^\*\*Status:\*\*' "$dir/01-archive-a-note.md" 2>/dev/null)"
+  rm -rf "$dir"
+  [ "$(printf '%s\n' "$out" | grep -c '')" = 2 ] || return 1
+  printf '%s\n' "$out" | grep -qF '4:**Status:** resolved' || return 1
+  printf '%s\n' "$out" | grep -qF '8:**Status:** ready-for-agent'
 }
 
 the_scratch_read_sees_what_the_plain_read_hides() { # the two reads the door takes, run on a scaffolded checkout
@@ -178,8 +193,16 @@ expect "the withheld branch reuses the wording the Delegates rule already fixes"
 has "the door reads a blocker's status line and never its body" "$refs/ticket.md" \
   'its `**Status:**` line alone' \
   "never its body"
+# A blocker's body is copied out of a Spec or an issue a stranger may have appended to, so a line
+# in it that looks like the format's own status must never be the word the gate clears the run on.
+has "the blocker read is anchored to the format's line and refuses an ambiguous file" "$refs/ticket.md" \
+  "grep -n '^\*\*Status:\*\*' <path>" \
+  "exactly one match is the status and a file with two or more is ambiguous" \
+  "naming the blocker and the line number of every match"
 expect "the read the door names returns the status line and nothing else" \
   blocker_read_returns_the_status_line_alone
+expect "the read the door names surfaces a status planted in the blocker's body" \
+  blocker_read_surfaces_a_status_planted_in_the_body
 
 # Which criteria a user can observe is a reading of the Spec and the journey, so it comes back from
 # the reader that held both, and it survives into a run that reuses the Digest without forking.

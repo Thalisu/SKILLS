@@ -17,9 +17,15 @@ The argument is a Ticket's path, or an issue reference resolved through the trac
   the file describes. Nothing is written and no fork is dispatched: the run has not been cleared to
   build this Ticket yet.
 - Every Ticket the `Blocked by` line names is read for its `**Status:**` line alone, with
-  `grep -m1 '^\*\*Status:\*\*' <path>`, and never its body: one word settles whether this run may
+  `grep -n '^\*\*Status:\*\*' <path>`, and never its body: one word settles whether this run may
   start, and a blocker read whole is a second Ticket in the window before the run is cleared to
-  build the first. On a tracker the status is the issue's label, read the same way.
+  build the first. The format writes that line once, the third of the three bold lines directly
+  under the title, so exactly one match is the status and a file with two or more is ambiguous:
+  the run is refused in one line naming the blocker and the line number of every match, and no
+  word is taken out of them. A blocker's body is copied from a Spec or an issue a stranger may
+  have appended to, and a line planted at column 0 above the format's own would otherwise be the
+  word the gate clears the run on. A file with no match is refused the same way. On a tracker the
+  status is the issue's label, read the same way.
 - A Ticket that is `resolved` stops the run in one line. Nothing is written.
 - A Ticket whose `Blocked by` names one not `resolved` is refused before the claim, in one
   message naming the blocker and its status. Nothing is written; the developer builds the blocker
