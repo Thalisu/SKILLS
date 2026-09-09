@@ -51,6 +51,17 @@ expect "the Digest reference the door links exists" test -f "$refs/digest.md"
 has "SKILL.md lists the Digest reference under Links, so the door can read it" \
   "$repo/skills/do/SKILL.md" "[digest.md](references/digest.md)"
 
+# One brief, in the reference the fork is pointed at. A second enumeration in the mechanics drifts
+# from it, and the fork is briefed from whichever copy the run happened to read.
+has "the shared mechanics point at the brief instead of re-listing it" "$refs/mechanics.md" \
+  "never a second one here"
+lacks "the shared mechanics carry no second copy of the brief" "$refs/mechanics.md" \
+  "its title and its criteria" \
+  "the path the Digest is written to"
+has "the brief carries the What to build line and the format the fork writes" "$refs/digest.md" \
+  'its `What to build` line' \
+  "the absolute path of this file"
+
 # The Digest quotes what the run builds from, and every quote is checkable at its line.
 has "the Digest holds the Path, the numbered stories and the Testing Decisions" "$refs/digest.md" \
   "## Journey Path" "## Stories" "## Testing Decisions" "quoted, never summarised"

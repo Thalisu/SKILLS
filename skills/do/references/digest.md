@@ -16,6 +16,7 @@ The fork is dispatched with these and nothing else, since it opens the documents
 - the absolute path of the Spec in the main checkout;
 - the absolute path of the journey in the main checkout, or `none` when the Spec's `Journey:` line
   names none;
+- the absolute path of this file, the format the Digest is written in;
 - the path the Digest is written to.
 
 It returns two things: the Digest's location, and the one line the run restates in the thread.

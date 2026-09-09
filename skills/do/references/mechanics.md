@@ -88,9 +88,9 @@ documents the run needs a slice of, which is the exploration the Delegates rule 
 The session opens neither document, and it opens neither afterwards to check the fork: what comes
 back is quoted with the location of every quote, so the check is a quote read against its line.
 
-The fork is dispatched with the brief [digest.md](digest.md) fixes and nothing else: the Ticket's
-path, its title and its criteria, the absolute paths of the Spec and the journey in the main
-checkout, and the path the Digest is written to. It writes the Digest there and returns that
+The fork is dispatched with the brief [digest.md](digest.md) fixes and nothing else, that file's
+own list and never a second one here: a copy of the list in this file drifts from the brief the
+fork is actually handed. It writes the Digest at the path that brief names and returns that
 location and the one line the run restates in the thread. No other part of either document reaches
 the session.
 
