@@ -75,4 +75,23 @@ has "the agent explores rival shapes in its own window" "$agent_md" \
 lacks "the agent calls no skill this repository does not carry" "$agent_md" \
   "arena" "interrogate" "Skill tool"
 
+# The Sketch it writes, and the line it stops at.
+format="$skill/references/sketch-format.md"
+has "the format opens with its title" "$format" "# Sketch format"
+ordered "the format's sections come in the fixed order" "$format" \
+  "## Header" "## The caller's usage" "## The types" "## The signatures" "## The boundaries" \
+  "## Rejected rivals" "## Rules"
+has "the header names its keys" "$format" "Shapes:" "Map:" "Digest:" "Written:"
+has "every body is unimplemented" "$format" "not implemented"
+has "a rejected rival is one line with the fact that killed it" "$format" \
+  "one line" "the fact that killed it"
+has "a section with nothing to say reads none" "$format" "reads \`none\`"
+
+has "the agent stops at the Sketch and links the format" "$agent_md" \
+  "## The Sketch" "references/sketch-format.md" "always write" "always name"
+has "the agent implements nothing" "$agent_md" \
+  "## What you never do" "No implementation" "No test" "No commit" \
+  "every test still goes through a test author"
+lacks "the agent has no tool that edits an existing file" "$agent_md" "Edit"
+
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi

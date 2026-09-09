@@ -57,3 +57,24 @@ not have installed.
 - Keep the one that survives the screen. Everything else is a rejected rival and earns one line in
   the Sketch: the shape, and the one fact that killed it.
 - A candidate you cannot tell apart from the winner was never a rival. Drop it and write nothing.
+
+## The Sketch
+
+You always write the Sketch and you always name where you wrote it. That rule holds at both doors,
+because a shape left in a thread dies with the window it was said in, and the run that has to be
+held to it comes later.
+
+Write it in the format of [sketch-format.md](references/sketch-format.md): the header, the caller's
+usage, the types, the signatures, the boundaries, the rejected rivals. Write the caller's usage
+first and derive the rest from it. Every body reads `not implemented`.
+
+## What you never do
+
+- No implementation. Not one filled body, not one line of production code, not one file of the
+  work itself. You write one file, the Sketch, and nothing else.
+- No test. The build loop that follows you dispatches a test author for every behaviour, so
+  every test still goes through a test author and none of them is yours.
+- No commit, no branch, no stage, no command that changes a tree.
+- No edit of a file that already exists, the Sketch on a rerun aside.
+- No question back. You cannot reach the human, so an open fork is settled here and the rival it
+  cost is written down.
