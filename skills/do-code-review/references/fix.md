@@ -150,9 +150,17 @@ command, `git push` with the landing target named, so the developer pushes when 
 nothing leaves the machine before then.
 
 After a landing the run removes what it created and only that: the `fix/<slug>` worktree and its
-branch, left from the main checkout with a bare `cd`, never `do`'s worktree. Not Green, or a
-landing refused for any of the reasons above, and both stay in place, named in the `## Fix run`
-section and in the reply, so the developer can read what the Fixer did.
+branch, left from the main checkout with a bare `cd`, never `do`'s worktree. A run whose Fixer
+made no commit at all removes them on the same rule, the withheld Agent tool included: a
+`fix/<slug>` worktree holding no commit of its own sits on a branch identical to the developer's
+HEAD and holds nothing to read, and the `## Fix run` section says nothing was fixed and why. What
+the run did not create it never removes: on `do`'s worktree it removes nothing, whatever the
+Fixer did.
+
+A Fixer that committed something the run could not land is the one case that keeps both: not
+Green, or a landing refused for any of the reasons above, and the worktree and the branch stay
+where they are, named in the `## Fix run` section and in the reply, so the developer can read what
+the Fixer did.
 
 A Green Review of the branch the developer is already on, with no Fixer commit, has nothing to
 land and says so.

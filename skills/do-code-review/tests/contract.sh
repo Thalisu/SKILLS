@@ -233,6 +233,12 @@ has "the fix reference lands by the landing ADR and pushes nothing" "$fix_md" \
   "## The landing" "0013-do-code-review-lands-a-green-review-by-fast-forward.md)" "fast-forward" \
   "protected" "nothing is pushed" "git push"
 has "the fix reference says what Green means without redefining it" "$fix_md" "Green"
+# A fix/<slug> worktree the Fixer left no commit in sits on a branch identical to the developer's
+# HEAD and holds nothing to read, so the run takes back what it created, and only that.
+has "a fix that committed nothing removes the worktree it created and says why" "$fix_md" \
+  "removes them on the same rule" "section says nothing was fixed and why" \
+  "on \`do\`'s worktree it removes nothing"
+lacks "no line keeps a worktree the Fixer left no commit in" "$fix_md" "and both stay in place"
 expect "the fix reference is the skill's only reference" \
   test "$(ls "$skill/references/" 2>/dev/null | wc -l)" = 1
 
