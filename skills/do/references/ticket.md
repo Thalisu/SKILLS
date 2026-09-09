@@ -14,12 +14,8 @@ The argument is a Ticket's path, or an issue reference resolved through the trac
 `docs/agents/issue-tracker.md`. Before anything is written:
 
 - The Ticket is read: the file, or the issue's body and comments through the tracker's CLI as
-  the file describes. Then the run forks the reader of [mechanics.md](mechanics.md) over its Spec,
-  where the format says it is (the spec file in the folder above the `issues/` folder, or the issue
-  the parent section names), and over the journey the Spec's `Journey:` line names when it names
-  one, and opens neither itself: it says in one line that both are being read in a window of their
-  own, and derives its behaviours from the Digest that comes back, in the format of
-  [digest.md](digest.md). Every Ticket the `Blocked by` line names is read.
+  the file describes. Every Ticket the `Blocked by` line names is read. Nothing is written and no
+  fork is dispatched: the run has not been cleared to build this Ticket yet.
 - A Ticket that is `resolved` stops the run in one line. Nothing is written.
 - A Ticket whose `Blocked by` names one not `resolved` is refused before the claim, in one
   message naming the blocker and its status. Nothing is written; the developer builds the blocker
@@ -30,6 +26,15 @@ The argument is a Ticket's path, or an issue reference resolved through the trac
   and the claim stands, since the claim is idempotent.
 - On a remote tracker, an issue assigned to someone else stops the run in one line with their
   name.
+
+The first write comes after those stops and never before one of them. Then the run forks the reader
+of [mechanics.md](mechanics.md) over the Ticket's Spec, where the format says it is (the spec file
+in the folder above the `issues/` folder, or the issue the parent section names), and over the
+journey the Spec's `Journey:` line names when it names one, and opens neither itself: it says in
+one line that both are being read in a window of their own, and derives its behaviours from the
+Digest that comes back, in the format of [digest.md](digest.md). The Digest and the `.scratch/`
+line its write needs are the run's first marks on the developer's checkout, so a Ticket refused
+above leaves `git status` in the main checkout exactly as it found it.
 
 ## Resume
 

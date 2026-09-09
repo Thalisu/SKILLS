@@ -29,6 +29,17 @@ lacks() { # $1 label, $2 file, $3.. fixed strings that must not appear
 header_has() { # $1 a fixed string that must appear in this script's own header comment
   sed -n '1,7p' "$here/fixed-load.sh" | grep -qF -- "$1"
 }
+after() { # $1 label, $2 file, $3 the later fixed string, $4.. the strings that must precede it
+  local label="$1" file="$2" later="$3"; shift 3
+  local ok=1 lateline earlyline probe
+  lateline="$(grep -n -F -m1 -- "$later" "$file" 2>/dev/null | cut -d: -f1)"
+  [ -n "$lateline" ] || ok=0
+  for probe in "$@"; do
+    earlyline="$(grep -n -F -m1 -- "$probe" "$file" 2>/dev/null | cut -d: -f1)"
+    if [ "$ok" != 1 ] || [ -z "$earlyline" ] || [ "$earlyline" -ge "$lateline" ]; then ok=0; fi
+  done
+  if [ "$ok" = 1 ]; then echo "ok    $label"; else echo "FAIL  $label ($file)"; fails=$((fails + 1)); fi
+}
 expect() { # $1 label, $2.. a command that must succeed
   local label="$1"; shift
   if "$@"; then echo "ok    $label"; else echo "FAIL  $label"; fails=$((fails + 1)); fi
@@ -47,6 +58,15 @@ has "the shared mechanics carry the reader as a mechanic of its own" "$refs/mech
 has "the session opens the Digest itself and reads its quotes there" "$refs/mechanics.md" \
   "The session opens the Digest itself" \
   "reads its quotes there"
+# The fork writes into the developer's tracked tree, so it comes after the stops that refuse the
+# run: a Ticket refused at the door leaves `git status` in the main checkout as it found it.
+after "the door reaches the reader only after the stops that refuse the run" "$refs/ticket.md" \
+  "the run forks the reader" \
+  'A Ticket that is `resolved` stops the run' \
+  'A Ticket whose `Blocked by` names one not `resolved`' \
+  "an issue assigned to someone else stops the run"
+has "the door says a refused run leaves the main checkout as it found it" "$refs/ticket.md" \
+  "The first write comes after those stops"
 expect "the Digest reference the door links exists" test -f "$refs/digest.md"
 has "SKILL.md lists the Digest reference under Links, so the door can read it" \
   "$repo/skills/do/SKILL.md" "[digest.md](references/digest.md)"
