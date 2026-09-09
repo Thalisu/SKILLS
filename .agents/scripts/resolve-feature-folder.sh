@@ -63,7 +63,10 @@ date_of="$(sed -E 's#^\.scratch/([0-9]{8})-.*#\1#' <<<"$folder")"
 [ "$date_of" = "$folder" ] && date_of=none
 
 spec=none
-if [ -n "$folder" ]; then spec="$prefix$folder/spec.md"; folder="$prefix$folder"; else folder=none; fi
+if [ -n "$folder" ]; then
+  [ -f "$folder/spec.md" ] && spec="$prefix$folder/spec.md"
+  folder="$prefix$folder"
+else folder=none; fi
 
 echo "slug=$slug"
 echo "root=$root"

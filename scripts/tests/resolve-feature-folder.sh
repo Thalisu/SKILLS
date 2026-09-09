@@ -28,7 +28,7 @@ run() { rc=0; out="$(bash "$resolve" "$@" 2>&1)" || rc=$?; }
 
 # A slug whose scratch holds one dated feature folder answers with that folder and the spec in it.
 mkdir "$tmp/one" && cd "$tmp/one" && git init -q
-mkdir -p ".scratch/$today-nightly-purge"
+mkdir -p ".scratch/$today-nightly-purge" && touch ".scratch/$today-nightly-purge/spec.md"
 run nightly-purge
 check "one dated folder resolves to itself" 0 "$rc" \
   "slug=nightly-purge" \
@@ -40,6 +40,7 @@ check "one dated folder resolves to itself" 0 "$rc" \
 # Two dated folders for one slug: the newest wins, so a rerun reads what was written last.
 mkdir "$tmp/two" && cd "$tmp/two" && git init -q
 mkdir -p .scratch/20240101-nightly-purge .scratch/20260909-nightly-purge
+touch .scratch/20240101-nightly-purge/spec.md .scratch/20260909-nightly-purge/spec.md
 run nightly-purge
 check "the newest of two dated folders wins" 0 "$rc" \
   "folder=.scratch/20260909-nightly-purge" \
@@ -49,6 +50,7 @@ check "the newest of two dated folders wins" 0 "$rc" \
 # An undated folder from before the dated rule wins over every dated one, and is never renamed.
 mkdir "$tmp/undated" && cd "$tmp/undated" && git init -q
 mkdir -p .scratch/20260909-nightly-purge .scratch/nightly-purge
+touch .scratch/20260909-nightly-purge/spec.md .scratch/nightly-purge/spec.md
 run nightly-purge
 check "an undated folder wins over a dated one" 0 "$rc" \
   "folder=.scratch/nightly-purge" \
@@ -73,6 +75,16 @@ check "a slug that matches nothing still succeeds" 0 "$rc" \
   "folder=none" \
   "spec=none" \
   "date=none"
+
+# A feature folder a run left empty holds no spec, so the spec key answers none rather than a path
+# to a file that is not there.
+mkdir "$tmp/nospec" && cd "$tmp/nospec" && git init -q
+mkdir -p ".scratch/$today-nightly-purge"
+run nightly-purge
+check "a folder that holds no spec answers none for the spec" 0 "$rc" \
+  "folder=.scratch/$today-nightly-purge" \
+  "spec=none" \
+  "date=$today"
 
 # A slug typed with the date already on it, or in another case, names the folder the bare slug
 # names, so pasting a folder name back in works.
@@ -120,7 +132,7 @@ check "a .scratch that is a file is refused" 2 "$rc" \
 mkdir "$tmp/wt" && cd "$tmp/wt" && git init -q
 printf 'a\n' > a.txt && git add a.txt && git commit -q -m "first"
 main_checkout="$(pwd -P)"
-mkdir -p ".scratch/$today-nightly-purge"
+mkdir -p ".scratch/$today-nightly-purge" && touch ".scratch/$today-nightly-purge/spec.md"
 git worktree add -q "$tmp/wt-linked" -b build
 cd "$tmp/wt-linked" || exit 1
 run nightly-purge
