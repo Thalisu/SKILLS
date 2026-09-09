@@ -3,6 +3,8 @@
 # router writes it and everywhere the repository repeats it, so the word `sketch` cannot drift back
 # into a trigger the `sketch` skill owns: the row in the skill file, the door table on the docs page,
 # the Playbook rule in the glossary, and the eval case named for what it grades.
+# The word is looked for in any casing: the glossary spells the artifact `Sketch`, so a row or a
+# folder that brings the trigger back capitalized is the same drift as the lowercase one.
 # Run: bash skills/do/tests/router.sh
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
@@ -32,7 +34,7 @@ rows_lack() { # $1 label, $2 file, $3 the table's header line, $4.. fixed string
   if [ -z "$rows" ]; then
     echo "FAIL  $label (no rows under \"$header\") ($file)"; fails=$((fails + 1)); return
   fi
-  for word in "$@"; do printf '%s\n' "$rows" | grep -qF -- "$word" && ok=0; done
+  for word in "$@"; do printf '%s\n' "$rows" | grep -qiF -- "$word" && ok=0; done
   if [ "$ok" = 1 ]; then echo "ok    $label"; else echo "FAIL  $label ($file)"; fails=$((fails + 1)); fi
 }
 # The lines of one markdown bullet: the line it opens with, then the indented lines under it, up to
@@ -55,7 +57,7 @@ bullet_lacks() { # $1 label, $2 file, $3 the bullet's opening, $4.. fixed string
   if [ -z "$lines" ]; then
     echo "FAIL  $label (no bullet opening \"$opening\") ($file)"; fails=$((fails + 1)); return
   fi
-  for word in "$@"; do printf '%s\n' "$lines" | grep -qF -- "$word" && ok=0; done
+  for word in "$@"; do printf '%s\n' "$lines" | grep -qiF -- "$word" && ok=0; done
   if [ "$ok" = 1 ]; then echo "ok    $label"; else echo "FAIL  $label ($file)"; fails=$((fails + 1)); fi
 }
 
@@ -85,7 +87,7 @@ bullet_lacks "no line of the glossary's Playbook rule matches the word \`sketch\
 evals="$repo/skills/do/evals"
 case="$evals/layout-goes-to-prototype"
 expect "no eval case folder is named after the word the \`sketch\` skill owns" \
-  test -z "$(find "$evals" -maxdepth 1 -type d -name '*sketch*')"
+  test -z "$(find "$evals" -maxdepth 1 -type d -iname '*sketch*')"
 expect "the case that grades the row is named for what it grades" test -d "$case"
 has "the case file names the case" "$case/case.yaml" "name: layout-goes-to-prototype"
 has "the door grader's line names what the case grades" "$case/graders/names-prototype.md" \
