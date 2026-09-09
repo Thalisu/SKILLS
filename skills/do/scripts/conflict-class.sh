@@ -14,9 +14,10 @@
 # Exit codes: 0 every hunk mechanical, or no conflicted state · 1 any hunk contested · 2 usage, or
 # not a git repository.
 #
-# The class is read from the index stages, never from the working file's markers: stage 2 is the
-# Target side and stage 3 the Incoming side in a rebase exactly as in a merge, so the same pair of
-# sides classes the same whichever command git stopped in. The script writes nothing.
+# The class is read from the index stages and from the two side commits, never from the working
+# file's markers: stage 2 is the Target side and stage 3 the Incoming side in a rebase exactly as in
+# a merge, so the same pair of sides classes the same whichever command git stopped in. The working
+# file is read for the hunk locations alone. The script writes nothing.
 set -uo pipefail
 
 usage() { echo "usage: conflict-class.sh" >&2; exit 2; }
@@ -40,24 +41,27 @@ emit() { # $1 class, $2 file, $3 location, $4 shape (contested only)
 
 is_binary() { [ "$(tr -d '\000' < "$1" | wc -c)" -ne "$(wc -c < "$1")" ]; }
 
-# The shape every contested hunk of one both-modified file carries. Git suffixes both marker labels
-# with each side's own path when the two differ, and that suffix is the only record a conflicted
-# hunk keeps of a rename.
+# The commit stage 3 came from, whichever command left the tree unmerged. A stopped merge names it
+# MERGE_HEAD and a stopped rebase REBASE_HEAD, in both of git's rebase backends.
+incoming_head() {
+  local ref
+  for ref in MERGE_HEAD REBASE_HEAD CHERRY_PICK_HEAD REVERT_HEAD; do
+    git rev-parse -q --verify "$ref" >/dev/null 2>&1 && { echo "$ref"; return 0; }
+  done
+  return 1
+}
+incoming_ref="$(incoming_head || true)"
+
+# The shape every contested hunk of one both-modified file carries. The rename is read from the two
+# side commits, never from the working file's marker labels, which are file content a side chooses:
+# a side that reached the conflicted path by renaming carries no such path in its own tree.
 file_shape() { # $1 path
-  local path="$1" target incoming
-  target="$(grep -m1 '^<<<<<<< ' "$path" 2>/dev/null)"
-  incoming="$(grep -m1 '^>>>>>>> ' "$path" 2>/dev/null)"
-  target="${target#<<<<<<< }"
-  incoming="${incoming#>>>>>>> }"
-  case "$target" in *:*) ;; *) echo rewrite-vs-rewrite; return ;; esac
-  case "$incoming" in *:*) ;; *) echo rewrite-vs-rewrite; return ;; esac
-  target="${target##*:}"
-  incoming="${incoming##*:}"
-  if [ "$target" != "$incoming" ] && { [ "$target" = "$path" ] || [ "$incoming" = "$path" ]; }; then
-    echo rename-vs-edit
-  else
-    echo rewrite-vs-rewrite
+  local path="$1"
+  git cat-file -e "HEAD:$path" 2>/dev/null || { echo rename-vs-edit; return; }
+  if [ -n "$incoming_ref" ]; then
+    git cat-file -e "$incoming_ref:$path" 2>/dev/null || { echo rename-vs-edit; return; }
   fi
+  echo rewrite-vs-rewrite
 }
 
 # The hunks of one both-modified text file, from a conflict presentation regenerated out of the

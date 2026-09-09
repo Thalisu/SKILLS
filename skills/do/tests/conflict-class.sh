@@ -162,6 +162,29 @@ check "a file the attributes leave with no merge driver: contested, named as unm
   "contested report.txt whole-file unmergeable" \
   "verdict=contested mechanical=0 contested=1"
 
+# A file whose own text shows an example conflict, renamed by the incoming side and appended to by
+# both. The marker line the text carries sits above the one git wrote, so a rename read off the
+# working file reads the wrong pair of labels and never sees the rename.
+fresh rename-under-marker-text
+printf 'a conflict reads like this:\n<<<<<<< HEAD\nours\n=======\ntheirs\n>>>>>>> feature\nand that is all.\n' > notes.md
+commit base
+g branch inc
+printf '%s\nTARGET\n' "$(cat notes.md)" > notes.md
+commit target
+g switch -q inc
+g mv notes.md guide.md >/dev/null
+printf '%s\nINCOMING\n' "$(cat guide.md)" > guide.md
+commit incoming
+g switch -q main
+g merge inc >/dev/null 2>&1
+
+run
+check "a rename the file's own marker text hides: contested, from git's record of the sides" 1 "$rc" \
+  "contested guide.md" \
+  "verdict=contested"
+absent "and no hunk of that file is certified mechanical" 1 "$rc" \
+  "mechanical guide.md"
+
 # A tree holding one hunk of each class.
 fresh mixed
 printf 'a\nb\n' > added-to.txt
