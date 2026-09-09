@@ -102,4 +102,17 @@ run "!!!"
 check "a slug that normalises to nothing is refused by its own reason" 2 "$rc" \
   "a slug is needed: !!! normalises to nothing"
 
+# A .scratch that is not a plain directory of the checkout would resolve to a folder the repository
+# does not control, so it is refused rather than followed.
+mkdir "$tmp/link" && cd "$tmp/link" && git init -q
+mkdir -p "$tmp/elsewhere/$today-nightly-purge" && ln -s "$tmp/elsewhere" .scratch
+run nightly-purge
+check "a symlinked .scratch is refused" 2 "$rc" \
+  ".scratch is not a plain directory of this checkout; nothing resolved"
+mkdir "$tmp/file" && cd "$tmp/file" && git init -q
+printf 'not a folder\n' > .scratch
+run nightly-purge
+check "a .scratch that is a file is refused" 2 "$rc" \
+  ".scratch is not a plain directory of this checkout; nothing resolved"
+
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi

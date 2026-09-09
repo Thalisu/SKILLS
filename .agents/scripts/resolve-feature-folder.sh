@@ -17,7 +17,8 @@
 # the folder's date, or none for an undated folder.
 #
 # Exit codes: 0 it resolved, folder=none included, so a slug that names nothing never fails the
-# caller's run · 2 usage, or a slug that normalises to nothing.
+# caller's run · 2 usage, a slug that normalises to nothing, or a .scratch that is not a plain
+# directory of the checkout, which would name a folder the repository does not control.
 set -uo pipefail
 
 usage() { echo "usage: resolve-feature-folder.sh <slug>" >&2; exit 2; }
@@ -33,6 +34,10 @@ top="$(git rev-parse --show-toplevel 2>/dev/null)"
 root="$top"
 [ -n "$root" ] || root="$(pwd -P)"
 cd "$root" || exit 2
+
+if [ -L .scratch ] || { [ -e .scratch ] && [ ! -d .scratch ]; }; then
+  echo ".scratch is not a plain directory of this checkout; nothing resolved" >&2; exit 2
+fi
 
 folder=""
 for d in .scratch/[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]-"$slug"; do
