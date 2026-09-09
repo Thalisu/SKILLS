@@ -122,4 +122,12 @@ check "the preserved-parts note names the version that added the label" 0 "$rc" 
   "2.4 added **Partial test data** to the unit map"
 
 echo
+echo "# repository standards"
+emdash=$'\xe2\x80\x94'
+rc=0; out="$(LC_ALL=C grep -lae "$emdash" \
+  "$skill/AGENT-UNIT.md" "$skill/SKILL.md" "$skill/POLICY.md" "$here/partial-test-data.sh" || true)"
+absent "no em-dash in the prose this rule wrote" \
+  "AGENT-UNIT.md" "SKILL.md" "POLICY.md" "partial-test-data.sh"
+
+echo
 if [ "$fails" = 0 ]; then echo "partial-test-data: all checks passed"; else echo "partial-test-data: $fails failed"; exit 1; fi
