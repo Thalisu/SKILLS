@@ -54,6 +54,12 @@ forked agent at the run's door and returned quoted, with the location of every q
 _Avoid_: summary (a summary paraphrases, a **Digest** quotes), brief, extract, context pack,
 handoff
 
+**Sketch**:
+The shape a **Ticket**'s work takes before any logic: the caller's usage, the types, the
+signatures and the module boundaries, with unimplemented bodies. Written by the `sketch` skill.
+_Avoid_: design, design doc, blueprint, plan, architecture, prototype (a prototype is runnable and
+throwaway, a **Sketch** is the contract the build is held to)
+
 **Scratch**:
 The unversioned folder a project keeps its local chain artifacts in, `.scratch/`: a **Spec**, its
 **Journey**, its **Tickets** and the **Reviews** beside them. Always ignored by git, so it is one
@@ -133,6 +139,9 @@ _Avoid_: clean, passed, no findings (`Consider`, `Noted` and `Cleared` never blo
   into the resolved **Ticket**'s evidence as its `Context:` line; `tickets` calibrates the fixed
   load and the per-criterion cost of its estimates from those lines, and cuts a repo with none on
   stated defaults, saying so in the breakdown
+- A **Sketch** is written only when a **Ticket**'s work crosses a function boundary and neither
+  the **Ticket**, its **Spec** nor a prototype already carries one; the build is held to it, and
+  a second deviation of the same shape stops the run
 - A **Digest** carries the **Spec** stories and Testing Decisions and the **Journey** **Path**
   one **Ticket** is cut from, and is what the `do` run derives its behaviours from; the run
   opens neither document itself
