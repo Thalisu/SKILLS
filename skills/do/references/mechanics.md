@@ -257,7 +257,7 @@ protected target is refused there as it is refused today. The run records the co
 on before the rebase starts: the command that undoes the rebase is not the same once the rebase has
 finished, and the recorded commit is what the later one names.
 
-The step walks one of four states, and the thread says which.
+The step walks the states below, and the thread says which one it reached.
 
 **A rebase that replays no commit.** The developer's branch did not move under the run. The run
 ticks the step as a no-op, reruns nothing, and the review is called on the branch as it is.
