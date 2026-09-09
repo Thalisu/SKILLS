@@ -48,6 +48,12 @@ has "the Digest holds the Path, the numbered stories and the Testing Decisions" 
 has "every quote carries its document, its heading and its line" "$refs/digest.md" \
   '`<document> · <heading> · L<line>`'
 
+# The edges are a rule the developer can check, not a judgement only the fork saw.
+has "the Digest's edges are the headings the two formats fix" "$refs/digest.md" \
+  "never a line range only the reader saw" \
+  '`## Path <n>: <title>`' \
+  "journey-format.md" "spec-format.md"
+
 # No em-dash in the prose this feature writes, per CLAUDE.md.
 lacks "no em-dash in the Digest reference" "$refs/digest.md" "$emdash"
 

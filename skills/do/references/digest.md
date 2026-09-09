@@ -49,3 +49,18 @@ The location line is `<document> · <heading> · L<line>`: the document's file n
 quote sits under, and the line the quoted text starts on. The developer opens that line to check
 the slice instead of trusting it, which is why the Digest is quoted, never summarised, and why a
 quote that is shortened marks the cut with an ellipsis rather than closing the gap.
+
+## Its edges
+
+The Digest's edges are the headings the two formats already fix and
+never a line range only the reader saw. The developer checks the slice by reading the same
+headings, and a document whose lines moved since the last run still cuts in the same place.
+
+| What the run needs | The heading the format fixes it under |
+|---|---|
+| the Path | `## Path <n>: <title>` of [journey-format.md](../../../.agents/formats/journey-format.md), through its `Failure branches:` list, to the next `##` |
+| the stories | the numbered list under `## User Stories` of [spec-format.md](../../../.agents/formats/spec-format.md) |
+| the Testing Decisions | `## Testing Decisions` of that same format, to the next `##` |
+
+A document that does not carry the heading has that said under the Digest's own section for it,
+naming the heading that is absent; the reader never falls back to a range of its own choosing.
