@@ -344,11 +344,28 @@ check "the type assertion debt is paid by the next author, and the install rewri
 echo
 echo "# repository standards"
 emdash=$'\xe2\x80\x94'
-rc=0; out="$(LC_ALL=C grep -lae "$emdash" \
-  "$skill/AGENT-UNIT.md" "$skill/SKILL.md" "$skill/POLICY.md" \
-  "$skill/scripts/scan-test-assets.sh" "$here/partial-test-data.sh" || true)"
+prose_files=("$skill/AGENT-UNIT.md" "$skill/SKILL.md" "$skill/POLICY.md" \
+  "$skill/scripts/scan-test-assets.sh" "$here/partial-test-data.sh" \
+  "$(cd "$skill/../.." && pwd -P)/docs/testing-policy.md")
+emdash_in_files() { rc=0; out="$(LC_ALL=C grep -lae "$emdash" "$@" || true)"; }
+
+emdash_in_files "${prose_files[@]}"
 absent "no em-dash in the prose this rule wrote" 0 "$rc" \
-  "AGENT-UNIT.md" "SKILL.md" "POLICY.md" "scan-test-assets.sh" "partial-test-data.sh"
+  "AGENT-UNIT.md" "SKILL.md" "POLICY.md" "scan-test-assets.sh" "partial-test-data.sh" "testing-policy.md"
+
+# A file left off the list is a check that never ran, so the list is put to a copy of every file in
+# it carrying an em-dash: a file the guard does not read has no copy to report.
+mutants="$tmp/emdash-mutants"
+mkdir -p "$mutants"
+copies=()
+for f in "${prose_files[@]}"; do
+  cp "$f" "$mutants/$(basename "$f")"
+  printf 'prose carrying %s an em-dash\n' "$emdash" >> "$mutants/$(basename "$f")"
+  copies+=("$mutants/$(basename "$f")")
+done
+emdash_in_files "${copies[@]}"
+check "the guard reads every file this rule wrote prose into, the docs page among them" 0 "$rc" \
+  "AGENT-UNIT.md" "SKILL.md" "POLICY.md" "scan-test-assets.sh" "partial-test-data.sh" "testing-policy.md"
 
 # verify-policy.sh carries an em-dash inside a regex character class, which is syntax and not prose,
 # so the guard reads the em-dashes that follow a # on their line, whole-line comments and trailing
