@@ -156,3 +156,20 @@ reason nothing landed, and the run stops on it with the worktree intact.
   typing `/do` on it again picks up where it stopped rather than starting over.
 - A `trivial` request costs you one message, and a run that never reached a landing costs you no
   cleanup you have to do by hand.
+
+## Where it fits
+
+`do` closes the chain. [discuss](discuss.md) settles the plan, [spec](spec.md) writes it down,
+[journey](journey.md) walks it when the spec's verdict asks for one, [tickets](tickets.md) cuts it
+into tickets, and `do` builds one of them. Only the `ticket` Playbook stands in that line. The
+other three, `trivial`, `bug-fix` and `refactoring`, sit outside it and are reachable any time, for
+work no spec was ever written for.
+
+- [tickets](tickets.md), because it cuts the tickets this skill takes one at a time, and its closing
+  line hands you the exact `/do <ticket>` to type next.
+- [do-code-review](do-code-review.md), because every Playbook that builds stops at its review step,
+  and that skill is what fixes the `Act on` Findings and lands the branch on yours.
+- [discuss](discuss.md), because a request with no ticket behind it is refused at the door and sent
+  there.
+
+The grouped list of every skill is in [the top-level README](../README.md).
