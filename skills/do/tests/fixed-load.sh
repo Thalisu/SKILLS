@@ -4,6 +4,7 @@
 # over the Ticket's Spec and its Journey, the session opens neither document, and the Digest that
 # comes back is quoted, located and keyed by the Ticket's slug.
 # Run: bash skills/do/tests/fixed-load.sh
+# shellcheck disable=SC2016
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
 repo="$(cd "$here/../../.." && pwd -P)"
@@ -65,6 +66,10 @@ has "the run names the Digest's location and restates it in one line" "$refs/tic
 # The list is traceable to the quotes, which is what makes the Digest the spec of record.
 has "every behaviour line traces to a quote and never to a paraphrase" "$refs/ticket.md" \
   "quoted Testing Decision" "a Journey step" "never to a paraphrase"
+
+# The script is rerunnable by a reviewer who has only the file, since the repo has no runner.
+expect "the test script carries its own invocation line in its header" \
+  grep -qF "# Run: bash skills/do/tests/fixed-load.sh" "$here/fixed-load.sh"
 
 # No em-dash in the prose this feature writes, per CLAUDE.md.
 lacks "no em-dash in the Digest reference" "$refs/digest.md" "$emdash"
