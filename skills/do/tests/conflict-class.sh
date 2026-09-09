@@ -113,6 +113,51 @@ check "a file the script can no longer align with the tree: contested, named as 
 check "the verdict follows the contested hunk" 1 "$rc" \
   "verdict=contested mechanical=0 contested=7"
 
+# A tree holding the conflicted paths git leaves no marker in: a submodule pointer moved on both
+# sides, and a file whose merge driver the attributes turn off.
+fresh submodule-pointer
+printf 'x\n' > keep.txt
+commit base
+one="$(git rev-parse HEAD)"
+g commit -q --allow-empty -m "a commit the target's pointer names"
+two="$(git rev-parse HEAD)"
+g commit -q --allow-empty -m "a commit the incoming pointer names"
+three="$(git rev-parse HEAD)"
+g reset -q --hard "$one"
+g update-index --add --cacheinfo "160000,$one,sub"
+g commit -qm "the pointer enters"
+g branch inc
+g update-index --add --cacheinfo "160000,$two,sub"
+g commit -qm "the target moves the pointer"
+g switch -q inc
+g update-index --add --cacheinfo "160000,$three,sub"
+g commit -qm "the incoming side moves the pointer"
+g switch -q main
+g merge inc >/dev/null 2>&1
+
+run
+check "a submodule pointer moved on both sides: contested, named as unmergeable" 1 "$rc" \
+  "contested sub whole-file unmergeable" \
+  "verdict=contested mechanical=0 contested=1"
+
+fresh merge-driver-off
+printf 'report.txt -merge\n' > .gitattributes
+seq 1 10 > report.txt
+commit base
+g branch inc
+printf 'TARGET\n%s\n' "$(cat report.txt)" > report.txt
+commit target
+g switch -q inc
+printf '%s\nINCOMING\n' "$(cat report.txt)" > report.txt
+commit incoming
+g switch -q main
+g merge inc >/dev/null 2>&1
+
+run
+check "a file the attributes leave with no merge driver: contested, named as unmergeable" 1 "$rc" \
+  "contested report.txt whole-file unmergeable" \
+  "verdict=contested mechanical=0 contested=1"
+
 # A tree holding one hunk of each class.
 fresh mixed
 printf 'a\nb\n' > added-to.txt

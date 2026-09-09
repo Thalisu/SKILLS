@@ -63,7 +63,8 @@ file_shape() { # $1 path
 # The hunks of one both-modified text file, from a conflict presentation regenerated out of the
 # three stages. The working file supplies the locations and the regenerated merge the sides, matched
 # by ordinal; a file whose two hunk counts disagree is no longer what git left, so nothing in it is
-# certified mechanical.
+# certified mechanical. A path git left unmerged with no hunk to read at all, a submodule pointer
+# moved on both sides or a file the attributes leave with no merge driver, is unmergeable.
 classify_hunks() { # $1 path
   local path="$1" i=0 line section base_lines=0 shape classes=() starts=() ends=()
   git cat-file blob ":1:$path" > "$tmp/base" 2>/dev/null
@@ -96,7 +97,8 @@ classify_hunks() { # $1 path
 
   mapfile -t starts < <(grep -n '^<<<<<<< ' "$path" 2>/dev/null | cut -d: -f1)
   mapfile -t ends < <(grep -n '^>>>>>>> ' "$path" 2>/dev/null | cut -d: -f1)
-  if [ "${#starts[@]}" -ne "${#classes[@]}" ] || [ "${#ends[@]}" -ne "${#classes[@]}" ]; then
+  if [ "${#classes[@]}" -eq 0 ] ||
+     [ "${#starts[@]}" -ne "${#classes[@]}" ] || [ "${#ends[@]}" -ne "${#classes[@]}" ]; then
     emit contested "$path" whole-file unmergeable
     return
   fi
