@@ -55,6 +55,9 @@ has "Where it fits names the role and links the top-level README" "$page" \
 lacks "the docs page carries no install command" "$page" "ln -s" "git clone"
 
 # The claims a reader acts on, each one the skill's own text.
+has "What it does scopes the worktree and the review to the Playbooks that build" "$page" \
+  "The three Playbooks that build never land their own work" \
+  "\`trivial\` commits in place on your branch, with no worktree and no review"
 has "the Prerequisites intro claims only what the first message carries" "$page" \
   "The first message reports one of them, the loop line"
 lacks "the Prerequisites intro no longer claims all four are reported up front" "$page" \

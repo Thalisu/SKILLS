@@ -9,11 +9,13 @@ exist and one run reads one of them: `ticket`, `trivial`, `bug-fix`, `refactorin
 opens with the Playbook it matched, so a wrong match costs you one retyped request and nothing
 else.
 
-The run never lands its own work and never fixes what a review found. It builds in a git worktree
-of its own, one behaviour per green commit, runs the gate, and hands the branch to
-[do-code-review](do-code-review.md), which fixes the Findings it marked `Act on` and fast-forwards
-your branch when the **Review** is Green. Your branch takes reviewed commits or none. Nothing is
-pushed. The run ends on the `git push` for you to type.
+The three Playbooks that build never land their own work and never fix what a review found. Each
+builds in a git worktree of its own, one behaviour per green commit, runs the gate, and hands the
+branch to [do-code-review](do-code-review.md), which fixes the Findings it marked `Act on` and
+fast-forwards your branch when the **Review** is Green, so your branch takes reviewed commits or
+none. `trivial` commits in place on your branch, with no worktree and no review, because a change
+no test could tell before from after has the existing suite as its whole gate. Nothing is pushed.
+The run ends on the `git push` for you to type.
 
 ## When to reach for it
 
