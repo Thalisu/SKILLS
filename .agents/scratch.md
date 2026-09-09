@@ -12,13 +12,12 @@ dozen features reads as what was worked on and when, and it never changes: a rer
 rewrites the spec in the folder it already has.
 
 The name is a script's to compose, `spec`'s `skills/spec/scripts/feature-folder.sh`, which takes
-the slug alone and prints the folder and the spec path in it. It allocates in the main checkout and
-answers with an absolute path from a linked worktree, for the reason "Reaching it from a worktree"
-below gives: a folder allocated in the worktree goes with `git worktree remove`, spec and all. The
-date is off a clock and the reuse is a lookup, neither of which an agent should be trusted to redo
-by hand on every run. Every other
-skill in the chain is handed the spec's path and reads the folder off it, so `feature-folder.sh` is
-called by `spec` and by nobody else.
+the slug alone and prints the folder and the spec path in it. It allocates in the main checkout
+and answers with an absolute path from a linked worktree, for the reason "Reaching it from a
+worktree" below gives: a folder allocated in the worktree goes with `git worktree remove`, spec
+and all. The date is off a clock and the reuse is a lookup, neither of which an agent should be
+trusted to redo by hand on every run. Every other skill in the chain is handed the spec's path and
+reads the folder off it, so `feature-folder.sh` is called by `spec` and by nobody else.
 
 A slug on its own still resolves, since a user types `/journey nightly-purge` and not the date: it
 names the folder called `<slug>` or ending in `-<slug>`, and the newest of them when more than one

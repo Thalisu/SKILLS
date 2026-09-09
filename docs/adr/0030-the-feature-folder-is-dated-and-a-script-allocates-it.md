@@ -46,7 +46,9 @@ the developer.
 ## Consequences
 
 `spec` gains a `scripts/` folder and runs the allocator at its write step, reporting `gitignore=`
-and, on a rerun, `created=no`. `journey` and `tickets` resolve a bare slug through the dated shape
-and the undated one, and `do-code-review`'s door matches a spec folder on its slug with the date
-prefix stripped, so a branch still finds its spec. The shared contract in `.agents/scratch.md`
-carries the shape and the resolution rule, so no skill spells them out on its own.
+and, on a rerun, `created=no`, and writing at an absolute path when the session sits in a linked
+worktree. `journey` and `tickets` resolve a bare slug through the dated shape and the undated one,
+and `do-code-review`'s door matches a spec folder and a Ticket folder on the slug with the date
+prefix stripped, taking the newest when a slug carries more than one folder, so a branch still
+finds its spec. The shared contract in `.agents/scratch.md` carries the shape and the resolution
+rule, so no skill spells them out on its own.
