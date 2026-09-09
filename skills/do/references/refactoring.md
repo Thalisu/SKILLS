@@ -177,3 +177,40 @@ carrying the pin's command lines. Nothing to delete reads `skip: nothing the tar
 obsolete` and the run goes to step 6 with two commits instead of three.
 
 Done when the subtraction is committed with the pin green, or the step reads its skip.
+
+### 6. Reshape
+
+The second slice, in small steps with the pin green after each one, per
+[sequence-verifiable-units](../../../.agents/principles/sequence-verifiable-units.md). A step is as
+much of the target shape as can stand on its own: the structure introduced, one group of callers
+moved onto it, the old path narrowed. After each step the pin runs again, the suite and the typecheck
+with their output lines quoted, and the harness where step 3 wrote one. The target-interface test
+turns green in the step that reaches it, and that is the moment the new shape stops being a plan.
+
+Every caller of the old API is migrated and the old API deleted in the same wave, per
+[migrate-callers-then-delete-legacy-apis](../../../.agents/principles/migrate-callers-then-delete-legacy-apis.md).
+The inventory is the one step 1 took. No compatibility shim survives the wave: not a re-export, not
+an alias, not a wrapper kept "until the callers move", because the callers moved. A caller the run
+cannot reach, in another repository, is not a shim's excuse; it is named in the reply as pending debt
+with the consumer named.
+
+Every rename is spot-checked in strings and prose, not only in code: log lines, error messages,
+fixtures, configuration keys, documentation, comments and test names. A compiler and a typechecker do
+not read those, so `rg -n -w <the old name>` over the project is what proves the rename landed, and
+its empty output is quoted.
+
+Three reds, each with one answer:
+
+- **The pin goes red under a step.** The step did too much. It is undone and taken smaller, never
+  patched forward, and never made green by touching the pin.
+- **A test goes red under a pure reshape.** It was asserting the implementation and not the
+  behaviour. It is named in the reply and never edited here, since a test that describes behaviour
+  survives a reshape by construction; editing it would erase the one signal that the reshape changed
+  something.
+- **The harness disagrees after a step.** Behaviour changed. The step is undone until it agrees, and
+  what disagreed is stated in one line.
+
+The steps land as one commit or several, each titled `refactor(<scope>): <the step>` and staged by
+path, the body carrying the pin's command lines. Done when the target shape is reached, the
+target-interface test is green, `rg -n -w` finds no caller of the old API and no old name, and the
+pin is green.

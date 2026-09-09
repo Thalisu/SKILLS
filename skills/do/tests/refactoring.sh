@@ -14,8 +14,8 @@ fails=0
 ok() { echo "ok    $1"; }
 fail() { echo "FAIL  $1"; fails=$((fails + 1)); }
 flat() { tr '\n' ' ' < "$1" 2>/dev/null | tr -s ' '; }
-has() { # $1 label, $2 file, $3 fixed string that must appear in it, newlines flattened to spaces
-  if flat "$2" | grep -qF -- "$3"; then ok "$1"; else fail "$1"; fi
+has() { # $1 label, $2 file, $3 fixed string that must appear in it, newlines flattened, case ignored
+  if flat "$2" | grep -qiF -- "$3"; then ok "$1"; else fail "$1"; fi
 }
 lacks() { # $1 label, $2 file, $3 fixed string that must not appear in it
   if grep -qF -- "$3" "$2" 2>/dev/null; then fail "$1 (found: $3)"; else ok "$1"; fi
@@ -76,5 +76,21 @@ has "the subtraction is the smallest change that reaches the target" "$ref" "the
 has "the subtraction step cites subtract-before-you-add" "$ref" "subtract-before-you-add.md)"
 has "the subtraction step cites the laziness protocol" "$ref" "laziness-protocol.md)"
 has "the subtraction is one commit" "$ref" "refactor(<scope>): subtract"
+
+# 5. The reshape: small steps with the pin green, callers migrated, the old API deleted in one wave
+has "the reshape lands in small steps" "$ref" "small steps"
+has "the pin is green after each step" "$ref" "the pin green after each"
+has "the target-interface test turns green" "$ref" "the target-interface test turns green"
+has "every caller is migrated in the same wave" "$ref" "in the same wave"
+has "the old API is deleted" "$ref" "the old API deleted"
+has "no compatibility shim survives" "$ref" "no compatibility shim"
+has "the reshape cites migrate-callers-then-delete-legacy-apis" "$ref" "migrate-callers-then-delete-legacy-apis.md)"
+has "every rename is spot-checked in strings and prose" "$ref" "in strings and prose"
+has "a step that turns the pin red is undone and taken smaller" "$ref" "undone and taken smaller"
+has "a test red under a pure reshape asserted the implementation" "$ref" "was asserting the implementation"
+has "that test is named in the reply and never edited" "$ref" "never edited"
+has "a harness that disagrees means behaviour changed" "$ref" "behaviour changed"
+has "the step is undone until the harness agrees" "$ref" "until it agrees"
+before "the subtraction step comes before the reshape step" "$ref" "### 5. Subtract" "### 6. Reshape"
 
 if [ "$fails" = 0 ]; then echo "all ok"; else echo "$fails failing"; exit 1; fi
