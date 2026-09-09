@@ -62,6 +62,16 @@ has "the first message carries the protected-branch warning" "$ref" "landing wil
 has "nothing is claimed outside the chain" "$ref" "no claim line"
 has "the worktree comes from the shared mechanics" "$ref" "created from the current HEAD"
 
+# A second run on the same bug resumes the first instead of starting a second
+has "the reference carries a Resume section" "$ref" "## Resume"
+has "an existing worktree or branch is resumed" "$ref" "worktree or branch already exists"
+has "the resume cites make-operations-idempotent" "$ref" "make-operations-idempotent.md)"
+has "step 1 probes for the branch before it creates" "$ref" "git branch --list do/<slug>"
+has "the existing worktree is entered and never created twice" "$ref" "never created again"
+has "an existing branch gets its worktree back without -b" "$ref" "without \`-b\`"
+has "the resume continues at the first step the branch does not evidence" "$ref" "the first step the branch does not evidence"
+has "the resume never commits the reproduction twice" "$ref" "never committed twice"
+
 # Step 2, the reproduction: the run drives the surface, forces it, and says where it runs
 has "the reproduction shows the command line and the output" "$ref" "the command line and the output"
 has "the run drives the surface itself" "$ref" "The run drives the surface itself"

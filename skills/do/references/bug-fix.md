@@ -27,6 +27,40 @@ anything is written:
 
 There is no Ticket on this path, so the door reads no file and the run writes no claim line.
 
+## Resume
+
+A second run on a bug whose `do/<slug>` worktree or branch already exists continues that run and
+never starts a second, per
+[make-operations-idempotent](../../../.agents/principles/make-operations-idempotent.md). There is
+no Ticket and no claim here, so the state a resume reads is the branch and its worktree alone,
+never a run-state file: an entry of `git worktree list` on `do/<slug>`, then
+`git branch --list do/<slug>` when no entry is there, the commits since the branch the first run
+started from (`git log <base>..do/<slug>` with `<base>` their merge base), each with the
+`Behaviour:` line its body carries per the build loop in [mechanics.md](mechanics.md), and
+`git status --short` in the worktree.
+
+- Step 1 probes before it creates. An existing worktree is entered with a bare `cd`: it is
+  never created again. An existing branch with no worktree gets its worktree back on that
+  branch, `git worktree add .claude/worktrees/do-<slug> do/<slug>`, without `-b`: `-b` on a
+  branch that exists fails, and that failure is the state to read, not an error to work around
+  with a second slug.
+- The first message says the run resumes, names the worktree and its branch, and lists the commits
+  found, one line each with its `Behaviour:` line. Step 0's read-back, surface, predicate and loop
+  line are written again from the request, since nothing on the branch carries them, and the
+  checklist follows with step 1 reading `done: resumed`.
+- The run continues at the first step the branch does not evidence: no commit resumes at step 2,
+  the reproduction commit alone resumes at step 6, the reproduction and its fix resume at step 7.
+  The reproduction is never committed twice, and from the step it resumes at the run is a first
+  run.
+- Uncommitted changes in the worktree are named in the first message, one line per file from
+  `git status --short`, and the run asks before discarding them, since the discard is the one
+  irreversible act on this path. A yes discards them, `git restore --staged --worktree .` then
+  `git clean -fd` in the worktree; a no stops the run with the worktree as it is, the reply naming
+  it and its branch.
+- A run that stopped as blocked resumes the same way once its reason is gone, since every stop on
+  this path leaves the worktree and its branch in place and named: the developer's no at step 2 or
+  step 7, an inconclusive verification, a `discuss` stop at step 4 once the design is settled.
+
 ## Checklist
 
 Copied verbatim into the run before any task-specific item; each step is ticked with its done
@@ -79,7 +113,9 @@ shown.
 
 **1. Worktree.** The worktree in [mechanics.md](mechanics.md): created from the current HEAD on
 `do/<slug>`, where `<slug>` is a short slug of the bug in the developer's words, excluded locally,
-entered. Done when its status prints nothing and the branch name is in the thread.
+entered. It probes first, `git worktree list` and `git branch --list do/<slug>`: an entry in either
+is an earlier run on this bug, and the Resume section above takes the step over. Done when its
+status prints nothing and the branch name is in the thread, or the resume's first message is.
 
 **2. Reproduce.** The run drives the surface itself and shows the command line and the output that
 carries the defect, per
