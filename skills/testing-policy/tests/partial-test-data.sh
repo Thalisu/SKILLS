@@ -166,6 +166,12 @@ install_fixture "$complete"
 verify "$complete"
 check "a complete install reading absent keeps its exit code" 0 "$rc" "partial_data_helper=absent"
 
+# The header alone, never the body below it: the code carries the same strings, so a case over the
+# whole file would pass on a script that documents nothing.
+rc=0; out="$(sed -n '1,/^set -/p' "$verify")" || rc=$?
+check "the usage header names the key and its three values" 0 "$rc" \
+  "partial_data_helper=n/a|absent|installed"
+
 echo
 echo "# repository standards"
 emdash=$'\xe2\x80\x94'

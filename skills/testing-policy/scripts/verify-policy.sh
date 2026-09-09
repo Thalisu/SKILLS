@@ -15,6 +15,8 @@
 #   skill_test_author=missing|stale|ok   scan_script=missing|ok   skip_patterns=missing|ok
 #   hook=missing|script-only|wired|wired-missing   gitignored=none|<paths>
 #   capture_legacy=<path>                    a gitignored capture folder left by an earlier install
+#   partial_data_helper=n/a|absent|installed  report only: n/a is a project that is not TypeScript,
+#     absent an eligible one without the package, installed one with it
 # unmarked = hand-written file (ask before touching) · stale = installed by an older template
 # (version line absent or different; the v2 marker style counts) · drifted = current version
 # but the core was edited by hand.
