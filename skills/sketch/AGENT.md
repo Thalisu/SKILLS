@@ -118,8 +118,23 @@ case "$dest" in "$scratch"/*) echo inside ;; *) echo refused ;; esac
 `refused` ends the run: write nothing, and give your caller the destination that was refused and
 the part of the brief it came from. `readlink -m` collapses the `..` and follows the symlinks, so a
 path that only looks contained is caught here rather than after the write.
-A machine without that script is not a stop: say so in your return and write to
-`<root>/.scratch/sketches/<slug>.md`.
+
+The script's exit decides the run, and an empty stdout never does: a refusal and a missing file
+both leave stdout empty.
+
+| What came back | What you do |
+|---|---|
+| exit 0 | the keys are the answer: write where the table above says, once the check has passed |
+| any other exit, and `test -f` finds the script | stop. Write nothing, and hand your caller the script's own stderr line as the reason |
+| `test -f` does not find the script | not a stop: say so in your return and write to `<root>/.scratch/sketches/<slug>.md` |
+
+Take that `test -f` before you read the exit code, and never infer the last row from an empty
+stdout. The one refusal the script keeps for itself is a `.scratch` the checkout does not control,
+a symlink a branch or a pull request can carry, and a run that writes anyway plants the Sketch
+wherever that symlink points. With no script there is no `root=` and no normalised `slug=`: the
+root is the one the brief names, and the slug is lowercased, with every character that is not a
+letter or a digit turned into a dash and the dashes then squeezed and trimmed. The check above
+still runs on what that gives you.
 
 Before the write, read whether the project's own committed file carries the scratch ignore, because
 a rule that lives anywhere else holds on this machine and on no teammate's:

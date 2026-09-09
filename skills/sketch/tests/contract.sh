@@ -121,8 +121,11 @@ has "a destination that does not resolve under the Scratch is refused and nothin
   "$agent_md" "readlink -m" 'case "$dest" in' "refused\` ends the run" "write nothing"
 has "the agent appends the scratch ignore before it writes" "$agent_md" \
   "git check-ignore -v .scratch/" ".gitignore"
-has "the agent degrades in one line when the resolver is absent" "$agent_md" \
-  "A machine without that script"
+has "a resolver exit other than 0 stops the run on the resolver's own reason" "$agent_md" \
+  "The script's exit decides the run" "any other exit" "stop. Write nothing" \
+  "the script's own stderr line"
+has "the absent-script degrade is reached by testing for the file, never by an empty stdout" \
+  "$agent_md" "\`test -f\` does not find the script" "never infer the last row from an empty"
 has "the return names the location and the shape" "$agent_md" \
   "## Your return" "the Sketch's location" "the shape in one line"
 has "the agent reaches the resolver through the link the install leaves" "$agent_md" \
