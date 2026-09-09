@@ -76,6 +76,7 @@ has "the subtraction is the smallest change that reaches the target" "$ref" "the
 has "the subtraction step cites subtract-before-you-add" "$ref" "subtract-before-you-add.md)"
 has "the subtraction step cites the laziness protocol" "$ref" "laziness-protocol.md)"
 has "the subtraction is one commit" "$ref" "refactor(<scope>): subtract"
+has "the harness is tracked by the subtraction commit" "$ref" "the harness rides in the same commit"
 
 # 5. The reshape: small steps with the pin green, callers migrated, the old API deleted in one wave
 has "the reshape lands in small steps" "$ref" "small steps"
@@ -114,6 +115,7 @@ has "a no continues to the gate, the review and the landing" "$ref" "a no contin
 has "a speculative cleanup is reverted before the cleanup commit" "$ref" "a speculative cleanup"
 has "the harness is deleted at the cleanup" "$ref" "the harness deleted"
 has "its gap is named as debt in the reply" "$ref" "named as debt"
+has "the harness is deleted by a staged deletion, so the cleanup commit is not empty" "$ref" "a staged deletion"
 has "the cleanup is one commit" "$ref" "chore(<scope>): clean up"
 has "a behaviour change the cleanup reveals is split out and named" "$ref" "split out"
 has "the structural change ships first against the pin" "$ref" "ships first"

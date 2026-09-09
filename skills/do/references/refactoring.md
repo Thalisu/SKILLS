@@ -126,8 +126,10 @@ boundary, an inline or a dedupe inside one module, has no target interface and t
 When the request does not settle the target interface, step 4's sketch settles it first and this half
 follows the sketch. The two halves above still come before any structure moves.
 
-The test file is not committed here. It rides in the subtraction commit of step 5, still red, so that
-the target interface is pinned in history before the reshape moves anything onto it.
+Neither the test file nor the harness is committed here. Both ride in the subtraction commit of step
+5, the test still red, so that the target interface is pinned in history before the reshape moves
+anything onto it and the harness is tracked before step 9 deletes it. Where step 5 reads its skip,
+both ride in the first reshape commit instead.
 
 Done when the suite's and the typecheck's output lines are quoted, the harness's run on the old code
 is quoted or the half reads its skip, and the target-interface test is red for its declared reason or
@@ -169,16 +171,18 @@ what was actually removed. Dead weight is the code with no caller after the targ
 the branch the new structure absorbs, the option nobody passes, the layer with one caller, the
 comment that describes code that is gone.
 
-Nothing is added here. The pin runs again after the deletion, the suite and the typecheck with their
-output lines quoted, and the harness where step 3 wrote one. The pin still green is the condition to
-commit; red means something was load-bearing, and the deletion is undone and taken smaller. Green
-here means the old behaviour half of the pin: step 3's target-interface test is red by design until
-step 6 reaches it.
+No production code is added here. The pin runs again after the deletion, the suite and the
+typecheck with their output lines quoted, and the harness where step 3 wrote one. The pin still
+green is the condition to commit; red means something was load-bearing, and the deletion is undone
+and taken smaller. Green here means the old behaviour half of the pin: step 3's target-interface
+test is red by design until step 6 reaches it.
 
 Step 3's target-interface test rides in the subtraction commit, still red there for the reason step 3
 declared. That is what puts it in history before the reshape, which is the first commit that moves
 structure, so a reader walking the branch sees the target interface asserted before anything was
-moved onto it. Its red run is quoted in the commit body beside the pin's green lines.
+moved onto it. Its red run is quoted in the commit body beside the pin's green lines. The harness
+rides in the same commit, and that is what tracks it: an untracked harness is nothing for step 9 to
+delete, and the cleanup commit it promises would have nothing staged.
 
 The subtraction is the smallest change that reaches the target and nothing more: a deletion the
 target shape does not need is a second improvement and belongs to the reply's pending debt, never to
@@ -284,7 +288,8 @@ The third and last slice, once the exit test passed or the developer said no.
   [laziness-protocol](../../../.agents/principles/laziness-protocol.md).
 - The harness deleted, since it was a scaffold and never a test, and the gap it covered named as debt
   in the reply: which behaviour it drove, and that no test in the tree covers it now. That is the
-  honest cost of the pin's second half, and it is stated rather than carried silently.
+  honest cost of the pin's second half, and it is stated rather than carried silently. It has been
+  tracked since the subtraction commit, so this is a staged deletion and the commit below carries it.
 - The equivalence script from step 7 goes the same way.
 
 One commit, staged by path, titled `chore(<scope>): clean up after the reshape`, its body naming the
