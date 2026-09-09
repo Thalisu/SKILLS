@@ -14,6 +14,9 @@ commit() { g add -A >/dev/null; g commit -qm "$1"; }
 fresh() { # $1 name: a new repository on main, entered
   mkdir -p "$tmp/$1" && cd "$tmp/$1" || exit 1
   git init -q -b main
+  # Git's background maintenance races the trap's cleanup and leaves the repository undeletable.
+  g config gc.auto 0
+  g config maintenance.auto false
 }
 run() { rc=0; out="$(bash "$door" "$@" 2>&1)" || rc=$?; }
 check() { # $1 label, $2 expected exit, $3 actual exit, $4.. lines that must appear (fixed strings)
@@ -123,6 +126,38 @@ check "one contested hunk among mechanical ones makes the verdict contested and 
   "mechanical added-to.txt L2-L6" \
   "contested rewritten.txt L2-L6 rewrite-vs-rewrite" \
   "verdict=contested mechanical=1 contested=1"
+
+# The same pair of sides, once as a merge and once as a rebase.
+fresh rebase-equals-merge
+printf 'a\nb\n' > added-to.txt
+printf 'x\ny\nz\n' > rewritten.txt
+commit base
+g branch inc
+printf 'a\nTARGET\nb\n' > added-to.txt
+printf 'x\nTARGET\nz\n' > rewritten.txt
+commit target
+g switch -q inc
+printf 'a\nINCOMING\nb\n' > added-to.txt
+printf 'x\nINCOMING\nz\n' > rewritten.txt
+commit incoming
+
+g switch -q main
+g merge inc >/dev/null 2>&1
+run; merged_out="$out"; merged_rc="$rc"
+g merge --abort
+g switch -q inc
+g rebase main >/dev/null 2>&1
+run; rebased_out="$out"; rebased_rc="$rc"
+g rebase --abort >/dev/null 2>&1
+
+if [ "$merged_out" = "$rebased_out" ] && [ "$merged_rc" = "$rebased_rc" ]; then
+  echo "ok    the class reads the same in a stopped rebase as in a stopped merge"
+else
+  echo "FAIL  the class reads the same in a stopped rebase as in a stopped merge"
+  echo "      merge  (exit $merged_rc): ${merged_out//$'\n'/$'\n'      }"
+  echo "      rebase (exit $rebased_rc): ${rebased_out//$'\n'/$'\n'      }"
+  fails=$((fails + 1))
+fi
 
 echo
 if [ "$fails" = 0 ]; then echo "all ok"; else echo "$fails failed"; exit 1; fi
