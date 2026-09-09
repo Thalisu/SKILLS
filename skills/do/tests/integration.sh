@@ -221,6 +221,13 @@ has "a replay moves the fixed point the review is called with" "$mech" \
   "the fixed point the review is called with is the commit it rebased onto"
 has "the review's fixed point names the integration among its sources" "$mech" \
   "the commit the integration rebased onto"
+# The three Playbooks are what the run actually reads at its review step, so the rule has to stand in
+# each of them: the shared mechanics stating it is not the file the step is read from.
+for pb in "$ticket" "$bugfix" "$refactor"; do
+  has "the review step of $(basename "$pb" .md) takes its fixed point from the integration" "$pb" \
+    "the commit the integration rebased onto as the fixed point" \
+    "the commit the worktree was created from when the rebase replayed nothing"
+done
 
 # No em-dash in the prose this step writes, per CLAUDE.md.
 lacks "no em-dash in the ticket Playbook" "$ticket" "$emdash"

@@ -245,14 +245,15 @@ the gate green after it, or the run stopped as blocked with the worktree and its
 
 **10. Review and landing.** The review in [mechanics.md](mechanics.md), called with
 the branch alone as the spec source, since no Ticket exists to hand over and the Review names the
-branch and its fixed point instead, with the commit the worktree was created from as the fixed
-point and the branch the run started on as the landing target. The thread shows the return, one line per part. A red gate, a
-return that reads not landed, a `do-code-review` the session does not list and a protected branch
-are handled the same way the `ticket` Playbook does, and the mechanics carry the two commands the
-reply adds after a refused protected-branch landing. Done when the landing line in the thread reads
-`landed at <commit>`, or the run stopped as blocked with the review's reason quoted and the
-worktree and its branch named, or the step reads `skip: do-code-review not listed` with the
-worktree and its branch named.
+branch and its fixed point instead, with the commit the integration rebased onto as the fixed point,
+or the commit the worktree was created from when the rebase replayed nothing, and
+the branch the run started on as the landing target. The thread shows the return, one line per part.
+A red gate, a return that reads not landed, a `do-code-review` the session does not list and a
+protected branch are handled the same way the `ticket` Playbook does, and the mechanics carry the
+two commands the reply adds after a refused protected-branch landing. Done when the landing line in
+the thread reads `landed at <commit>`, or the run stopped as blocked with the review's reason quoted
+and the worktree and its branch named, or the step reads `skip: do-code-review not listed` with
+the worktree and its branch named.
 
 **11. Verification.** The verification in [mechanics.md](mechanics.md): the affected flows from the
 main checkout with the command line printed first, the one question before a full suite or a remote
