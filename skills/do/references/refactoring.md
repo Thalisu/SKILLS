@@ -155,3 +155,25 @@ no boundary is crossed the step reads `skip: no boundary crossed` and the missin
 named.
 
 Done when the structure and the target shape are in the thread, with the sketch or its skip.
+
+### 5. Subtract
+
+The first commit of the three deletes, per
+[subtract-before-you-add](../../../.agents/principles/subtract-before-you-add.md) and
+[laziness-protocol](../../../.agents/principles/laziness-protocol.md): the dead weight the reshape
+makes obsolete goes before the new shape arrives, so the reshape moves less code and the diff shows
+what was actually removed. Dead weight is the code with no caller after the target shape is known,
+the branch the new structure absorbs, the option nobody passes, the layer with one caller, the
+comment that describes code that is gone.
+
+Nothing is added here. The pin runs again after the deletion, the suite and the typecheck with their
+output lines quoted, and the harness where step 3 wrote one. The pin still green is the condition to
+commit; red means something was load-bearing, and the deletion is undone and taken smaller.
+
+The subtraction is the smallest change that reaches the target and nothing more: a deletion the
+target shape does not need is a second improvement and belongs to the reply's pending debt, never to
+this commit. One commit, staged by path, titled `refactor(<scope>): subtract <what went>`, its body
+carrying the pin's command lines. Nothing to delete reads `skip: nothing the target shape makes
+obsolete` and the run goes to step 6 with two commits instead of three.
+
+Done when the subtraction is committed with the pin green, or the step reads its skip.

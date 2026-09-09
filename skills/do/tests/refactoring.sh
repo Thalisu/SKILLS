@@ -69,4 +69,12 @@ has "the structure step cites model-the-domain" "$ref" "model-the-domain.md)"
 has "the reshape deletes branches instead of adding indirection" "$ref" "instead of adding indirection"
 before "the pin step comes before the structure step" "$ref" "### 3. Pin" "### 4. Structure"
 
+# 4. The subtraction commit comes first
+has "dead weight is deleted first" "$ref" "the dead weight the reshape makes obsolete"
+has "the pin is still green after the subtraction" "$ref" "the pin still green"
+has "the subtraction is the smallest change that reaches the target" "$ref" "the smallest change that reaches the target"
+has "the subtraction step cites subtract-before-you-add" "$ref" "subtract-before-you-add.md)"
+has "the subtraction step cites the laziness protocol" "$ref" "laziness-protocol.md)"
+has "the subtraction is one commit" "$ref" "refactor(<scope>): subtract"
+
 if [ "$fails" = 0 ]; then echo "all ok"; else echo "$fails failing"; exit 1; fi
