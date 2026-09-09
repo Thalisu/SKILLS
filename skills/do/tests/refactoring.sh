@@ -93,4 +93,12 @@ has "a harness that disagrees means behaviour changed" "$ref" "behaviour changed
 has "the step is undone until the harness agrees" "$ref" "until it agrees"
 before "the subtraction step comes before the reshape step" "$ref" "### 5. Subtract" "### 6. Reshape"
 
+# 6. Behaviour proven unchanged on the real artifact
+has "the proof runs on the real artifact" "$ref" "on the real artifact"
+has "the harness runs on the new code and is quoted" "$ref" "on the new code"
+has "a large reshape gets an equivalence script" "$ref" "equivalence script"
+has "the equivalence script's output is quoted" "$ref" "output is quoted"
+has "the proof step cites prove-it-works" "$ref" "prove-it-works.md)"
+has "a disagreement sends the run back to the reshape" "$ref" "back to step 6"
+
 if [ "$fails" = 0 ]; then echo "all ok"; else echo "$fails failing"; exit 1; fi

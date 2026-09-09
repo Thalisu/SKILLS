@@ -214,3 +214,26 @@ The steps land as one commit or several, each titled `refactor(<scope>): <the st
 path, the body carrying the pin's command lines. Done when the target shape is reached, the
 target-interface test is green, `rg -n -w` finds no caller of the old API and no old name, and the
 pin is green.
+
+### 7. Prove
+
+Behaviour unchanged, shown on the real artifact and not argued from the diff, per
+[prove-it-works](../../../.agents/principles/prove-it-works.md). "The suite is green" is the pin's
+half, not the whole proof: the suite covers what it covered before, and the harness exists because
+that was not everything.
+
+- The harness from step 3 runs again on the new code, with the same inputs, and its output is quoted
+  beside the run on the old code so a reader compares the two lines without leaving the reply. Where
+  step 3 read its skip, this step reads the same skip.
+- A large reshape, one that moves behaviour across a module boundary or touches more callers than a
+  reader will check by eye, gets an equivalence script: it drives both the old and the new artifact
+  over the same inputs, the old one from a worktree at the fixed point or from the harness's recorded
+  run, and prints the first difference or nothing. Its output is quoted. A small reshape reads
+  `skip: the harness covers the reshaped behaviour`.
+
+Output that differs means behaviour changed, and the run goes back to step 6 with the difference
+named: the last step is undone and taken smaller until the two agree. A difference the run decides is
+correct is not a refactor at all, and it is split out by step 9.
+
+Done when the harness's run on the new code is quoted, or the step reads its skip, and the
+equivalence script's output is quoted or reads its skip.
