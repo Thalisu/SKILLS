@@ -100,6 +100,12 @@ has "the design-fork resume forks the reader over the Spec and the journey both"
 expect "the test script carries its own invocation line in its header" \
   header_has "# Run: bash skills/do/tests/fixed-load.sh"
 
+# The scratch contract's ignore rule has two halves: the append before the write, and one line at
+# the close telling the developer a tracked file was changed. The door does the append.
+has "the close says the run appended the .scratch/ line" "$refs/ticket.md" \
+  'appended the `.scratch/` line to the project'"'"'s' \
+  "the close says so in one line"
+
 # No em-dash in the prose this feature writes, per CLAUDE.md.
 lacks "no em-dash in the Digest reference" "$refs/digest.md" "$emdash"
 
