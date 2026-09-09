@@ -202,6 +202,19 @@ check "the checklist covers the map line and the key that mirrors it" 0 "$rc" \
   "**Partial test data** in the unit map carries the helper and its two functions" \
   '`partial_data_helper=` in the verify output agrees with it'
 
+page="$(cd "$skill/../.." && pwd -P)/docs/testing-policy.md"
+rc=0; out="$(cat "$page")" || rc=$?
+check "the page describes the offer inside the question the install already asks" 0 "$rc" \
+  "inside the single question that already carries the hook offer"
+# shellcheck disable=SC2016
+check "the page gives the three shapes the map line takes" 0 "$rc" \
+  "the two functions it gives" \
+  '`n/a`, so the label is filled in every project and in every mode' \
+  "a pointer and not a command that ran"
+check "the page says a no comes back and a failed add costs nothing" 0 "$rc" \
+  "the next run reads the state again and offers again" \
+  "An add that fails costs the install nothing"
+
 # Step 0 hands the key forward, and step 2 is the first step to read it, so the span the line names
 # has to reach back to step 2 or the offer reads a field the install never kept.
 rc=0; out="$(grep -F 'Keep the rest of the output;' "$skill/SKILL.md")" || rc=$?

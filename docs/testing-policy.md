@@ -79,6 +79,23 @@ discovered from the repo and scoped to it; no example map ships with the skill, 
 another repo is never the model. With the map in hand an author is told where the assets are and
 what a boundary is before writing, and reports a **Reuse audit** of what was searched and decided.
 
+The unit map carries one more line, **Partial test data**, for the helper that builds a fake without
+asserting a type at the compiler. A TypeScript project whose tests are TypeScript is offered that
+helper once, inside the single question that already carries the hook offer, so adopting it costs
+one answer and no separate command. The install adds the package with the manager the project's
+lockfile implies, in the workspace that holds the tests, and what the map line then reads is the
+result:
+
+| The project | The line reads |
+|---|---|
+| took the offer, or already had the package | the helper and the two functions it gives, one for partial data that still type checks and one for data that is wrong on purpose |
+| is not TypeScript | `n/a`, so the label is filled in every project and in every mode |
+| declined, or the add could not run | `none yet` and the command that would add it, a pointer and not a command that ran |
+
+A no is not permanent, because nothing on disk records a decline:
+the next run reads the state again and offers again, the way the hook offer comes back.
+An add that fails costs the install nothing, and the report says the add failed and why.
+
 The duplication scan runs on every install and refresh, and its findings are reported, never
 auto-fixed. The debt is paid by the second-use rule: the next author who needs a duplicated asset
 consolidates it first. The scan counts the type assertions in the test files the same way, one
@@ -148,6 +165,8 @@ captured ever enters this skill's own directory.
 - Every path and command in an agent's Project map exists in this repo and runs.
 - With the hook installed, an edit that adds `.skip` or `.only` to a test file is blocked, and an
   edit that removes one passes.
+- The unit map's **Partial test data** line and the verify script's `partial_data_helper=` agree. A
+  disagreement is a project that dropped the package while its map still names the helper.
 
 ## Where it fits
 
