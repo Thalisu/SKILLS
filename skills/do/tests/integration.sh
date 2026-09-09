@@ -229,6 +229,18 @@ for pb in "$ticket" "$bugfix" "$refactor"; do
     "the commit the worktree was created from when the rebase replayed nothing"
 done
 
+# The integration's own blocked state leaves the rebase open, which is a detached HEAD: a Resume door
+# that keys on the branch does not see the worktree, and the start-over it falls through to dies on
+# the branch that is still there. So the door keys on the worktree's path and reads the branch back
+# out of the rebase state.
+has "the resume door keys on the worktree's path, not on the branch it is on" "$ticket" \
+  "an entry of \`git worktree list\` at that path"
+has "a worktree the integration left mid-rebase is recognised and resumed" "$ticket" \
+  "A worktree the integration left mid-rebase is resumed" \
+  "git rev-parse --git-path rebase-merge/head-name" \
+  "never from \`git branch --show-current\`" \
+  "never started over"
+
 # No em-dash in the prose this step writes, per CLAUDE.md.
 lacks "no em-dash in the ticket Playbook" "$ticket" "$emdash"
 lacks "no em-dash in the bug-fix Playbook" "$bugfix" "$emdash"

@@ -53,8 +53,8 @@ needs are the run's first marks on the developer's checkout, so a Ticket refused
 
 ## Resume
 
-A `claimed` Ticket whose `do/<slug>` worktree exists, an entry of `git worktree list` on that
-branch, is picked up where the last run stopped and never restarted. The state a resume reads is
+A `claimed` Ticket whose `do/<slug>` worktree exists, an entry of `git worktree list` at that path,
+is picked up where the last run stopped and never restarted. The state a resume reads is
 the branch and its worktree, never a run-state file: the commits since the developer's branch,
 `git log <base>..do/<slug>` with `<base>` their merge base, each with the `Behaviour:` line its
 body carries per the build loop in [mechanics.md](mechanics.md), and the working tree,
@@ -75,6 +75,15 @@ body carries per the build loop in [mechanics.md](mechanics.md), and the working
   irreversible act on this path. A yes discards them, `git restore --staged --worktree .` then
   `git clean -fd` in the worktree, and the first behaviour without a commit restarts red-first; a
   no stops the run with the worktree as it is, the reply naming it and its branch.
+- A worktree the integration left mid-rebase is resumed like any other, and never started over: the
+  stop leaves a detached HEAD, so `git worktree list` names the path without the branch and
+  `git branch --show-current` in it comes back empty, while the branch itself is still there and a
+  second `git worktree add <path> -b do/<slug>` would die on it. The branch is read from the rebase
+  state, `cat "$(git rev-parse --git-path rebase-merge/head-name)"`, which holds
+  `refs/heads/do/<slug>` while the rebase is open, never from `git branch --show-current`. The first
+  message names the worktree and that branch, says the rebase is open and names the files git left
+  conflicted, and the run picks up at the integration in [mechanics.md](mechanics.md), classing the
+  stop with the door script before it touches anything, rather than at the build loop.
 - A run that stopped on a design fork (the forks in [mechanics.md](mechanics.md)) resumes the same
   way once `discuss` amended the Spec: the reader is forked again over the amended Spec and the
   journey both, never over the Spec alone, whose Digest would come back with no Journey Path for
