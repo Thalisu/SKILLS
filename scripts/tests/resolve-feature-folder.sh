@@ -37,4 +37,13 @@ check "one dated folder resolves to itself" 0 "$rc" \
   "spec=.scratch/$today-nightly-purge/spec.md" \
   "date=$today"
 
+# Two dated folders for one slug: the newest wins, so a rerun reads what was written last.
+mkdir "$tmp/two" && cd "$tmp/two" && git init -q
+mkdir -p .scratch/20240101-nightly-purge .scratch/20260909-nightly-purge
+run nightly-purge
+check "the newest of two dated folders wins" 0 "$rc" \
+  "folder=.scratch/20260909-nightly-purge" \
+  "spec=.scratch/20260909-nightly-purge/spec.md" \
+  "date=20260909"
+
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi
