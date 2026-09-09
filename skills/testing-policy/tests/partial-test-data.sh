@@ -257,6 +257,15 @@ scan --section no-such-section
 check "the unknown section error lists the section among the names it accepts" 2 "$rc" \
   "unknown section: no-such-section" "type-assertions"
 
+scan --root tests --root src
+check "a finding is not an error: the full scan exits 0 with the section's rows in it" 0 "$rc" \
+  "## roots" "## duplicate-symbols" "## type-assertions" "$(row tests/single.test.ts 1)"
+
+scan --root src --section type-assertions
+check "a root holding no test file prints the section header and no row" 0 "$rc" "## type-assertions"
+absent "the section reads the roots it was given and no others" 0 "$rc" \
+  "tests/single.test.ts" "tests/double.test.ts"
+
 echo
 echo "# repository standards"
 emdash=$'\xe2\x80\x94'
