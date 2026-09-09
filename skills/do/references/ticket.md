@@ -146,9 +146,11 @@ shape (types, signatures, module boundaries) is stated in the thread and the ste
 no boundary is crossed the step reads `skip: no boundary crossed`. Done when the shape is in the
 thread, or the skip.
 
-**4. Behaviours.** Write the list from the Ticket's criteria and its `What to build` line, the
-Spec's stories and Testing Decisions, and the journey's step table and failure branches when the
-Spec points at one; never from the implementation. It holds the behaviours callers observe,
+**4. Behaviours.** The run
+names the Digest's location and restates it in one line, its Journey Path, the story numbers it
+carries and its Testing Decisions, so the developer checks the slice before the list is written.
+Then write the list from the Ticket's criteria and its `What to build` line and from the Digest's
+quotes, its Path's step table and failure branches among them; never from the implementation. It holds the behaviours callers observe,
 critical paths and the logic that can be wrong first, not one line per branch. Each line becomes
 one dispatch, and a line that reproduces a defect is marked `bugfix`. A defect whose cause the
 Ticket does not name, the one step 0 wrote a defect line for reading

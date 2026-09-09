@@ -64,3 +64,17 @@ headings, and a document whose lines moved since the last run still cuts in the 
 
 A document that does not carry the heading has that said under the Digest's own section for it,
 naming the heading that is absent; the reader never falls back to a range of its own choosing.
+
+## Where it lives
+
+In the main checkout's scratch, beside the Ticket file,
+taking the Ticket's file name with `.digest` before the extension:
+`02-export-notes.digest.md` beside `02-export-notes.md`. The Ticket's slug is the key, the Review's
+own rule, so two runs on two Tickets of the same feature never reach for the same file. A Ticket
+that is not a local file has no file to sit beside: it keys the Digest by the issue's reference
+under `.scratch/digests/` in the main checkout.
+
+The path is the main checkout's absolute one, since a run inside a worktree has no scratch of its
+own, per [scratch.md](../../../.agents/scratch.md). That file also carries the ignore: the run
+appends the `.scratch/` line before the write, whenever the rule is not already coming from the
+project's own `.gitignore`, so the Digest never turns up in a teammate's `git status`.

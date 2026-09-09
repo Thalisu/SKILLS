@@ -54,6 +54,14 @@ has "the Digest's edges are the headings the two formats fix" "$refs/digest.md" 
   '`## Path <n>: <title>`' \
   "journey-format.md" "spec-format.md"
 
+# The Digest is keyed by the Ticket, and the run says where it is and what it says.
+has "the Digest lives beside the Ticket, keyed by its slug, on an ignored path" "$refs/digest.md" \
+  "## Where it lives" \
+  'taking the Ticket'"'"'s file name with `.digest` before the extension' \
+  'appends the `.scratch/` line before the write'
+has "the run names the Digest's location and restates it in one line" "$refs/ticket.md" \
+  "names the Digest's location and restates it in one line"
+
 # No em-dash in the prose this feature writes, per CLAUDE.md.
 lacks "no em-dash in the Digest reference" "$refs/digest.md" "$emdash"
 
