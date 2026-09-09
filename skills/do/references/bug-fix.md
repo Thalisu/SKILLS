@@ -81,7 +81,29 @@ shown.
 `do/<slug>`, where `<slug>` is a short slug of the bug in the developer's words, excluded locally,
 entered. Done when its status prints nothing and the branch name is in the thread.
 
-**2. Reproduce.** Done when the command line and the output showing the defect are in the thread.
+**2. Reproduce.** The run drives the surface itself and shows the command line and the output that
+carries the defect, per
+[prove-it-works](../../../.agents/principles/prove-it-works.md): a reported bug is a claim until
+the run has seen it fail. A defect that will not reproduce directly is forced, and the forcing is
+named in the thread: the trigger synthesised, the conditions tightened, the code instrumented.
+
+Where the reproduction and its instrumentation run is decided by the surface, not by convenience.
+They run in the worktree by default. They run in the main checkout only when the project's facts
+say the stack serves the primary checkout, and there only in files clean in the status, so nothing
+rides with the developer's work in progress; every instrumentation line put there is reverted
+before step 4, with nothing committed from there.
+
+When the surface cannot be reached from the session (a device, a production-only dataset, a
+third-party callback), the reason is stated and the developer is asked to drive it and report what
+they see. They are asked twice: once here, before the cause hunt, and once more at step 7,
+on the fixed build. The reply pastes both reports marked as the developer's, beside the run's own
+test output, so a reader tells one from the other. No report, or a no,
+stops the run as blocked with nothing landed and the hypotheses listed, since a defect nobody has
+observed is never called fixed.
+
+A bug that does not reproduce even when forced stops the run: the message says what it tried, and
+the run leaves nothing committed, the worktree removed by step 11. Done when the command line and
+the output showing the defect are in the thread, or the run stopped with what it tried named.
 
 **3. Cause.** Done when every hypothesis has its evidence line, the mechanism is in the thread and
 every instrumentation line is reverted.

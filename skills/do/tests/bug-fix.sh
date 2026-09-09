@@ -62,5 +62,27 @@ has "the first message carries the protected-branch warning" "$ref" "landing wil
 has "nothing is claimed outside the chain" "$ref" "no claim line"
 has "the worktree comes from the shared mechanics" "$ref" "created from the current HEAD"
 
+# Step 2, the reproduction: the run drives the surface, forces it, and says where it runs
+has "the reproduction shows the command line and the output" "$ref" "the command line and the output"
+has "the run drives the surface itself" "$ref" "The run drives the surface itself"
+has "a reproduction that will not come directly is forced" "$ref" "the trigger synthesised, the conditions tightened, the code instrumented"
+has "the reproduction runs in the worktree by default" "$ref" "in the worktree by default"
+has "the main checkout only when the stack serves it" "$ref" "serves the primary checkout"
+has "there only in files clean in the status" "$ref" "clean in the status"
+has "nothing is committed from the main checkout" "$ref" "nothing committed from there"
+
+# The surface that cannot be reached: the developer drives it, twice
+has "an unreachable surface is named with its reason" "$ref" "cannot be reached"
+has "the developer is asked to drive the surface" "$ref" "asked to drive it"
+has "the developer is asked once here and once on the fixed build" "$ref" "on the fixed build"
+has "the reply pastes the two reports as the developer's" "$ref" "marked as the developer's"
+has "no report stops the run as blocked" "$ref" "stops the run as blocked with nothing landed"
+has "a blocked hand-over lists the hypotheses" "$ref" "the hypotheses listed"
+
+# A bug that will not reproduce even when forced
+has "a bug that will not reproduce stops the run" "$ref" "does not reproduce even when forced"
+has "the stop says what it tried" "$ref" "says what it tried"
+has "the stop commits nothing and removes the worktree" "$ref" "nothing committed, the worktree removed"
+
 [ "$fails" = 0 ] || { echo; echo "$fails failed"; exit 1; }
 echo; echo "all passed"
