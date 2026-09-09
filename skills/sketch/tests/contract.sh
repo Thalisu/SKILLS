@@ -94,4 +94,19 @@ has "the agent implements nothing" "$agent_md" \
   "every test still goes through a test author"
 lacks "the agent has no tool that edits an existing file" "$agent_md" "Edit"
 
+# Where the Sketch goes at each door, and what comes back.
+has "the agent names both doors and the path each writes to" "$agent_md" \
+  "## Where the Sketch goes" "the path the brief names" "resolve-feature-folder.sh" \
+  "sketch.md" ".scratch/sketches/" "absolute"
+has "the standalone door derives a slug when the developer passes none" "$agent_md" \
+  "the slug the developer passes" "derive one from the argument"
+has "the agent appends the scratch ignore before it writes" "$agent_md" \
+  "git check-ignore -v .scratch/" ".gitignore"
+has "the agent degrades in one line when the resolver is absent" "$agent_md" \
+  "A machine without that script"
+has "the return names the location and the shape" "$agent_md" \
+  "## Your return" "the Sketch's location" "the shape in one line"
+expect "the resolver the agent names is on disk and runnable" \
+  test -x "$repo/.agents/scripts/resolve-feature-folder.sh"
+
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi

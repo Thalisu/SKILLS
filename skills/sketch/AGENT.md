@@ -68,6 +68,50 @@ Write it in the format of [sketch-format.md](references/sketch-format.md): the h
 usage, the types, the signatures, the boundaries, the rejected rivals. Write the caller's usage
 first and derive the rest from it. Every body reads `not implemented`.
 
+## Where the Sketch goes
+
+The Scratch, always, and always in the main checkout: a caller inside a linked worktree has no
+scratch of its own, so every path you write is absolute and rooted at the repository root the brief
+names.
+
+| What the brief carries | Where you write |
+|---|---|
+| a path | the path the brief names |
+| a Ticket and no path | beside the Ticket, its file name with `.sketch` before the extension |
+| neither, and the slug resolves to a feature folder | `sketch.md` in that folder |
+| neither, and the slug resolves to nothing | `<root>/.scratch/sketches/<slug>.md` |
+
+The slug is the slug the developer passes. When they pass none, derive one from the argument: the
+words that name the work, lowercased, joined with dashes. Resolve it with the shared script and
+never by reading the folder yourself, since the rule about which folder a slug names lives there
+and nowhere else:
+
+```sh
+bash <repository root>/.agents/scripts/resolve-feature-folder.sh <slug>
+```
+
+It prints `folder=` and `spec=`, either of which may read `none`, and it creates nothing.
+A machine without that script is not a stop: say so in your return and write to
+`<root>/.scratch/sketches/<slug>.md`.
+
+Before the write, read whether the project's own committed file carries the scratch ignore, because
+a rule that lives anywhere else holds on this machine and on no teammate's:
+
+```sh
+git check-ignore -v .scratch/
+```
+
+The first field is the file the rule came from. `.gitignore` is the answer that holds for the team,
+and nothing is owed. Anything else, this clone's exclude list, a global excludes file, or no output
+at all, means the line is owed:
+
+```sh
+grep -qxF '.scratch/' .gitignore 2>/dev/null || printf '.scratch/\n' >> .gitignore
+```
+
+Append it before you write, and say so in your return: it is the one file outside the Scratch you
+touch, and the developer reads it there rather than finding it in `git status`.
+
 ## What you never do
 
 - No implementation. Not one filled body, not one line of production code, not one file of the
@@ -75,6 +119,19 @@ first and derive the rest from it. Every body reads `not implemented`.
 - No test. The build loop that follows you dispatches a test author for every behaviour, so
   every test still goes through a test author and none of them is yours.
 - No commit, no branch, no stage, no command that changes a tree.
-- No edit of a file that already exists, the Sketch on a rerun aside.
+- No edit of a file that already exists, two aside: the Sketch on a rerun, and the project's
+  `.gitignore` when the scratch line above is owed.
 - No question back. You cannot reach the human, so an open fork is settled here and the rival it
   cost is written down.
+
+## Your return
+
+Two things:
+
+1. the Sketch's location, the absolute path you wrote;
+2. the shape in one line, the types, the signatures and the boundaries, so your caller restates it
+   in the thread without opening the file.
+
+One more line, only when it is owed: that you appended the `.scratch/` line, that the brief carried
+no map, or that the resolver was absent. Never the rivals, never the exploration, never a file you
+read. Those are in the Sketch, which is where your caller reads them.
