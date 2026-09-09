@@ -138,4 +138,27 @@ check "outside a repository the caller's own directory is the root" 0 "$rc" \
   "root=$(cd "$tmp/plain" && pwd -P)" \
   "folder=.scratch/$today-nightly-purge"
 
+# The script only reads. The review door writes nothing into a project but its Review, so a door it
+# calls must create no folder and never touch the project's ignore file, whatever it answers.
+mkdir "$tmp/readonly" && cd "$tmp/readonly" && git init -q
+mkdir -p ".scratch/$today-nightly-purge"
+before="$(find . -path ./.git -prune -o -print | sort)"
+run nightly-purge
+check "a slug that resolves answers from the folder that was there" 0 "$rc" \
+  "folder=.scratch/$today-nightly-purge"
+run no-such-feature
+check "a slug that resolves to nothing still answers" 0 "$rc" "folder=none"
+run "!!!"
+check "a refused slug still refuses" 2 "$rc" "a slug is needed: !!! normalises to nothing"
+expect "no run created or removed a thing" \
+  test "$before" = "$(find . -path ./.git -prune -o -print | sort)"
+expect "no run wrote an ignore file" test ! -e .gitignore
+
+mkdir "$tmp/ignore" && cd "$tmp/ignore" && git init -q
+printf 'node_modules/\n' > .gitignore
+run nightly-purge
+expect "an existing ignore file is left untouched" \
+  test "$(cat .gitignore)" = "node_modules/"
+expect "no scratch was made for a slug that named nothing" test ! -e .scratch
+
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi
