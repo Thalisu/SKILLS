@@ -5,8 +5,9 @@
 #
 #   resolve-feature-folder.sh <slug>    the slug alone
 #
-# The rule: a slug names the folder called <slug> or <YYYYMMDD>-<slug> and no other, and the newest
-# of them when a slug carries more than one. Never a folder that merely ends in the slug.
+# The rule: a slug names the folder called <slug> or <YYYYMMDD>-<slug> and no other, the newest of
+# them when a slug carries more than one, and an undated folder from before the dated rule over
+# every dated one, never renamed. Never a folder that merely ends in the slug.
 #
 # Prints key=value lines: slug, the normalised slug; root, the main checkout it resolved in;
 # folder, the feature folder it named; spec, the spec.md in that folder; date, the folder's date,
@@ -26,6 +27,7 @@ folder=""
 for d in .scratch/[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]-"$slug"; do
   [ -d "$d" ] && folder="$d"   # the glob is sorted, so the last match is the newest date
 done
+[ -d ".scratch/$slug" ] && folder=".scratch/$slug"
 
 date_of="$(sed -E 's#^\.scratch/([0-9]{8})-.*#\1#' <<<"$folder")"
 [ "$date_of" = "$folder" ] && date_of=none

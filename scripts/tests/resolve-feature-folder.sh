@@ -46,4 +46,15 @@ check "the newest of two dated folders wins" 0 "$rc" \
   "spec=.scratch/20260909-nightly-purge/spec.md" \
   "date=20260909"
 
+# An undated folder from before the dated rule wins over every dated one, and is never renamed.
+mkdir "$tmp/undated" && cd "$tmp/undated" && git init -q
+mkdir -p .scratch/20260909-nightly-purge .scratch/nightly-purge
+run nightly-purge
+check "an undated folder wins over a dated one" 0 "$rc" \
+  "folder=.scratch/nightly-purge" \
+  "spec=.scratch/nightly-purge/spec.md" \
+  "date=none"
+expect "the undated folder keeps its name" test -d .scratch/nightly-purge
+expect "the dated folder keeps its name" test -d .scratch/20260909-nightly-purge
+
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi
