@@ -29,22 +29,35 @@ expect() { # $1 label, $2.. a command that must succeed
 }
 # The rows of one markdown table: from its header line to the first line that is not a row.
 table() { awk -v h="$2" 'index($0, h) == 1 { t = 1 } t && $0 !~ /^\|/ { exit } t' "$1"; }
+rows_lack() { # $1 label, $2 file, $3 the table's header line, $4.. fixed strings no row may carry
+  # A reworded header makes `table` print nothing, and a word looked for in nothing is always
+  # absent, so the rows are demanded first and their absence fails the check like the word's
+  # presence does.
+  local label="$1" file="$2" header="$3"; shift 3
+  local rows ok=1 word
+  rows="$(table "$file" "$header" | tail -n +3)"
+  if [ -z "$rows" ]; then
+    echo "FAIL  $label (no rows under \"$header\") ($file)"; fails=$((fails + 1)); return
+  fi
+  for word in "$@"; do printf '%s\n' "$rows" | grep -qF -- "$word" && ok=0; done
+  if [ "$ok" = 1 ]; then echo "ok    $label"; else echo "FAIL  $label ($file)"; fails=$((fails + 1)); fi
+}
 
 # The router row itself, where `do` reads it. The door is named by what the request is, a runnable
 # throwaway, so it still matches without the word the `sketch` skill took.
 router="$repo/skills/do/SKILL.md"
 has "the router sends a runnable throwaway to the prototype door" "$router" \
   "| a runnable throwaway: a layout, a variant to try | \`Playbook: none\`; \`/prototype\` |"
-expect "no row of the router table matches the word \`sketch\`" \
-  test -z "$(table "$router" '| The argument | Match |' | grep -F sketch)"
+rows_lack "no row of the router table matches the word \`sketch\`" "$router" \
+  '| The argument | Match |' sketch
 
 # The two places the repository repeats the row. A reader who takes either at its word and types
 # `/do sketch a shape` has to land on the same door the router sends them to.
 page="$repo/docs/do.md"
 has "the page's door table quotes the router's row" "$page" \
   "| a runnable throwaway: a layout, a variant to try | \`/prototype\` |"
-expect "no row of the page's door table matches the word \`sketch\`" \
-  test -z "$(table "$page" '| The request | Where it goes |' | grep -F sketch)"
+rows_lack "no row of the page's door table matches the word \`sketch\`" "$page" \
+  '| The request | Where it goes |' sketch
 glossary="$repo/CONTEXT.md"
 has "the glossary's Playbook rule sends a runnable throwaway to prototype" "$glossary" \
   "throwaway is \`prototype\`"
