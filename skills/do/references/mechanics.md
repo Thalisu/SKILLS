@@ -257,6 +257,13 @@ protected target is refused there as it is refused today. The run records the co
 on before the rebase starts: the command that undoes the rebase is not the same once the rebase has
 finished, and the recorded commit is what the later one names.
 
+Every command of this step that can meet a conflict runs with git's conflict-resolution reuse off,
+the rebase itself as `git -c rerere.enabled=false -c rerere.autoupdate=false rebase <the developer's
+branch>` and the continue and the skip below with the same prefix. The setting is the developer's
+own and may be on: then a resolution recorded at one stop is replayed into the next stop of the same
+shape, the class would be read from what the cache put back instead of from what git left, and the
+run's own resolutions would land in a cache that outlives it.
+
 The step walks the states below, and the thread says which one it reached.
 
 **A rebase that replays no commit.** The developer's branch did not move under the run. The run
@@ -297,14 +304,15 @@ git merge-file --union -p <target> <base> <incoming> > <path>
 Stage 2 is the developer's branch and stage 3 the commit being replayed, so the union in that order
 keeps both sides with the developer's branch above the replayed commit's, which is the base order
 this step owes. Git writes the result and the session never edits a marker. Then `git add <path>`
-marks the file resolved, `git rebase --continue` carries the rebase to the next commit, and every
-further stop is classed and resolved the same way. The reply names every hunk it resolved with its
-file and location.
+marks the file resolved, `git -c rerere.enabled=false -c rerere.autoupdate=false rebase --continue`
+carries the rebase to the next commit, and every further stop is classed and resolved the same way.
+The reply names every hunk it resolved with its file and location.
 
 **A replayed commit that is empty after the resolution.** The developer's branch already carries
 that change, so the continue has nothing left to apply and git says so. The run skips it,
-`git rebase --skip`, and the commit is named in the reply. Nothing of the run's work is lost: the
-change is already on the branch it was going to land on.
+`git -c rerere.enabled=false -c rerere.autoupdate=false rebase --skip`, and the commit is named in
+the reply. Nothing of the run's work is lost: the change is already on the branch it was going to
+land on.
 
 **Git refusing to continue for any other reason.** The run stops as blocked with the rebase left
 open at that commit, the conflicting files named, and the command that undoes it,

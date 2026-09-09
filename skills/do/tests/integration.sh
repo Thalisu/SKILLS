@@ -114,7 +114,7 @@ has "an all-mechanical stop is resolved by keeping both sides in base order" "$m
   "the developer's branch above the replayed commit's"
 has "the resolution marks the files resolved and continues the rebase" "$mech" \
   "git add" \
-  "git rebase --continue"
+  "rebase --continue"
 # The whole point of the class is that this case costs the developer no attention, and the reply is
 # where they check what was decided for them.
 has "the mechanical resolution asks nothing and is named hunk by hunk in the reply" "$mech" \
@@ -125,7 +125,7 @@ has "the mechanical resolution asks nothing and is named hunk by hunk in the rep
 # was going to land on, so it is skipped rather than stopping the run.
 has "a commit left empty by the resolution is skipped and named" "$mech" \
   "empty after the resolution" \
-  "git rebase --skip" \
+  "rebase --skip" \
   "named in the reply"
 
 # The two blocked states need two different undo commands, and getting them the wrong way round
@@ -228,6 +228,14 @@ for pb in "$ticket" "$bugfix" "$refactor"; do
     "the commit the integration rebased onto as the fixed point" \
     "the commit the worktree was created from when the rebase replayed nothing"
 done
+
+# Reuse is the developer's own git setting and the step would run under it, so the three commands of
+# the step that can meet a conflict turn it off: the class is then read from what git left, and no
+# resolution of this run reaches a cache that outlives it.
+has "the rebase, the continue and the skip run with git's conflict-resolution reuse off" "$mech" \
+  "git -c rerere.enabled=false -c rerere.autoupdate=false rebase <the developer's branch>" \
+  "git -c rerere.enabled=false -c rerere.autoupdate=false rebase --continue" \
+  "git -c rerere.enabled=false -c rerere.autoupdate=false rebase --skip"
 
 # The integration's own blocked state leaves the rebase open, which is a detached HEAD: a Resume door
 # that keys on the branch does not see the worktree, and the start-over it falls through to dies on

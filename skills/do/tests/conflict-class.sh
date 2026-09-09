@@ -371,6 +371,48 @@ else
   fails=$((fails + 1))
 fi
 
+# The same additive shape twice, in a repository whose config turns git's conflict-resolution reuse
+# on. Reuse is the developer's own setting and everything the integration runs would run under it: a
+# resolution recorded at one stop is replayed at the next stop of the same shape, which leaves the
+# index staged out of the cache and the door with nothing to class, so the mechanical path works
+# once and never again on that machine. The two rounds below play the invocation the integration
+# documents, its rebase, its continue and its skip with reuse off, and the class has to read the
+# same both times.
+step() { g -c rerere.enabled=false -c rerere.autoupdate=false "$@"; }
+fresh rerere
+g config rerere.enabled true
+printf 'a\nb\n' > added-to.txt
+commit base
+g branch inc
+printf 'a\nb\nTARGET\n' > added-to.txt
+commit target
+g switch -q inc
+printf 'a\nb\nINCOMING\n' > added-to.txt
+commit incoming
+incoming="$(g rev-parse HEAD)"
+
+for round in 1 2; do
+  step reset -q --hard "$incoming"
+  step rebase main >/dev/null 2>&1
+  run
+  check "round $round of the same additive shape classes mechanical under rerere.enabled" 0 "$rc" \
+    "mechanical added-to.txt L3-L7" \
+    "verdict=mechanical mechanical=1 contested=0"
+  # The step's own resolution, so what the second round meets is what a real first round leaves.
+  step show ":1:added-to.txt" > "$tmp/stage1"
+  step show ":2:added-to.txt" > "$tmp/stage2"
+  step show ":3:added-to.txt" > "$tmp/stage3"
+  step merge-file --union -p "$tmp/stage2" "$tmp/stage1" "$tmp/stage3" > added-to.txt
+  step add -- added-to.txt
+  step -c core.editor=true rebase --continue >/dev/null 2>&1
+done
+if [ -z "$(ls -A .git/rr-cache 2>/dev/null)" ]; then
+  echo "ok    nothing the two rounds resolved is recorded into the developer's reuse cache"
+else
+  echo "FAIL  nothing the two rounds resolved is recorded into the developer's reuse cache"
+  fails=$((fails + 1))
+fi
+
 # A tree git stopped nothing in.
 fresh unconflicted
 printf 'a\nb\n' > settled.txt
