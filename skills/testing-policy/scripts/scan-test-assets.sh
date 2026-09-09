@@ -108,6 +108,21 @@ done
 want() { [ -z "$only" ] || [ "$only" = "$1" ]; }
 hdr() { printf '\n## %s\n' "$1"; }
 
+# A path is attacker-chosen in a cloned repository, and a name is allowed to hold a newline or a
+# tab. Printed raw, either splits the row: a newline lets the name write lines of its own into the
+# report the install keeps whole for the agent to read, a forged "## <section>" header among them,
+# and a tab breaks the sorts the sections end on. Every section that prints a path from the scanned
+# tree prints it through row_path instead.
+row_path() { local p="${1//\\/\\\\}"; p="${p//$'\t'/\\t}"; printf '%s' "${p//$'\n'/\\n}"; }
+# awk reads the escape sequences in a -v assignment, so a path bound to an awk variable is escaped
+# once more on its way in and reaches the program as row_path wrote it.
+awk_path() { local p; p="$(row_path "$1")"; printf '%s' "${p//\\/\\\\}"; }
+# grep -H prints the path raw, so the hits are printed with the escaped path in its place.
+grep_hits() { # $1 file, $2 pattern
+  local p; p="$(row_path "$1")"
+  grep -nE "$2" "$1" 2>/dev/null | while IFS= read -r hit; do printf '%s:%s\n' "$p" "$hit"; done
+}
+
 # --- roots -------------------------------------------------------------------------------
 if want roots; then
   hdr roots
@@ -149,7 +164,7 @@ if want candidate-homes; then
         pages|page_objects|pageobjects|screens) role=page-objects ;;
         subflows|shared|common) role=subflows/shared-steps ;;
       esac
-      printf '%s\t%s\t%d files\n' "$d" "$role" "$n"
+      printf '%s\t%s\t%d files\n' "$(row_path "$d")" "$role" "$n"
     done
     [ -f "$r/conftest.py" ] && printf '%s/conftest.py\tfixtures (pytest)\t1 file\n' "$r"
   done
@@ -163,9 +178,9 @@ if want duplicate-symbols; then
       is_input_corpus "$f" && continue
       case "$f" in
         *.ts|*.tsx|*.mts|*.cts|*.js|*.jsx|*.mjs|*.cjs)
-          grep -HoE '^(export (default )?)?(async )?(function\*? |class )[A-Za-z_$][A-Za-z0-9_$]*|^export (default )?(const |let |type |interface |enum )[A-Za-z_$][A-Za-z0-9_$]*' "$f" 2>/dev/null | awk -F: '{n=split($0,a," "); print a[n] "\t" $1}' ;;
+          grep -oE '^(export (default )?)?(async )?(function\*? |class )[A-Za-z_$][A-Za-z0-9_$]*|^export (default )?(const |let |type |interface |enum )[A-Za-z_$][A-Za-z0-9_$]*' "$f" 2>/dev/null | awk -v p="$(awk_path "$f")" '{n=split($0,a," "); print a[n] "\t" p}' ;;
         *.py)
-          grep -HoE '^(def|class) [A-Za-z_][A-Za-z0-9_]*' "$f" 2>/dev/null | awk -F: '{n=split($0,a," "); print a[n] "\t" $1}' | grep -vE '^(test_|Test[A-Z]|_)' ;;
+          grep -oE '^(def|class) [A-Za-z_][A-Za-z0-9_]*' "$f" 2>/dev/null | awk -v p="$(awk_path "$f")" '{n=split($0,a," "); print a[n] "\t" p}' | grep -vE '^(test_|Test[A-Z]|_)' ;;
       esac
     done
   } | sort -u | awk -F'\t' '{c[$1]++; f[$1]=f[$1] " " $2} END {for (k in c) if (c[k]>1) printf "%s\t%d\t%s\n", k, c[k], f[k]}' | sort -t$'\t' -k2,2nr -k1,1
@@ -179,9 +194,9 @@ if want local-factories; then
       is_shared_path "$f" && continue
       case "$f" in
         *.ts|*.tsx|*.mts|*.cts|*.js|*.jsx|*.mjs|*.cjs)
-          grep -HoE '^[[:space:]]*(export )?(async )?(function\*? |const |let )(make|build|create|fake|stub|mk|mock|given|setup|render|seed|spy|with|sample|dummy|arrange|prepare)[A-Z][A-Za-z0-9_]*' "$f" 2>/dev/null | awk -F: '{n=split($0,a," "); print a[n] "\t" $1}' ;;
+          grep -oE '^[[:space:]]*(export )?(async )?(function\*? |const |let )(make|build|create|fake|stub|mk|mock|given|setup|render|seed|spy|with|sample|dummy|arrange|prepare)[A-Z][A-Za-z0-9_]*' "$f" 2>/dev/null | awk -v p="$(awk_path "$f")" '{n=split($0,a," "); print a[n] "\t" p}' ;;
         *.py)
-          grep -HoE '^[[:space:]]*def (make|build|create|fake|stub|mock|given|setup|seed|sample|dummy|arrange|prepare)_[a-z0-9_]+' "$f" 2>/dev/null | awk -F: '{n=split($0,a," "); print a[n] "\t" $1}' ;;
+          grep -oE '^[[:space:]]*def (make|build|create|fake|stub|mock|given|setup|seed|sample|dummy|arrange|prepare)_[a-z0-9_]+' "$f" 2>/dev/null | awk -v p="$(awk_path "$f")" '{n=split($0,a," "); print a[n] "\t" p}' ;;
       esac
     done
   } | sort -u | awk -F'\t' '{c[$1]++; f[$1]=f[$1] " " $2} END {for (k in c) printf "%s\t%d\t%s\n", k, c[k], f[k]}' | sort -t$'\t' -k2,2nr -k1,1
@@ -194,12 +209,12 @@ if want inline-helpers && [ ${#flows[@]} -gt 0 ]; then
     in_flows "$f" || continue
     case "$f" in
       *.py)
-        grep -HnE '^[[:space:]]*def [a-z_][a-z0-9_]*\(.*\b(page|context|browser)\b' "$f" 2>/dev/null | grep -vE 'def test_'
-        grep -HnE '^[[:space:]]*@pytest\.fixture' "$f" 2>/dev/null | sed 's/$/\t<- fixture defined in a flow file/' ;;
+        grep_hits "$f" '^[[:space:]]*def [a-z_][a-z0-9_]*\(.*\b(page|context|browser)\b' | grep -vE 'def test_'
+        grep_hits "$f" '^[[:space:]]*@pytest\.fixture' | sed 's/$/\t<- fixture defined in a flow file/' ;;
       *.ts|*.tsx|*.mts|*.cts|*.js|*.jsx|*.mjs|*.cjs)
-        grep -HnE '^[[:space:]]*(export )?(async )?function [A-Za-z_$][A-Za-z0-9_$]*\(.*\bpage\b' "$f" 2>/dev/null
-        grep -HnE '^[[:space:]]*(export )?(const|let) [A-Za-z_$][A-Za-z0-9_$]* = (async )?\([^)]*\bpage\b[^)]*\)[^=]*=>' "$f" 2>/dev/null
-        grep -HnE '\b(test|base)\.extend(<[^>]*>)?\(' "$f" 2>/dev/null | sed 's/$/\t<- fixture defined in a flow file/' ;;
+        grep_hits "$f" '^[[:space:]]*(export )?(async )?function [A-Za-z_$][A-Za-z0-9_$]*\(.*\bpage\b'
+        grep_hits "$f" '^[[:space:]]*(export )?(const|let) [A-Za-z_$][A-Za-z0-9_$]* = (async )?\([^)]*\bpage\b[^)]*\)[^=]*=>'
+        grep_hits "$f" '\b(test|base)\.extend(<[^>]*>)?\(' | sed 's/$/\t<- fixture defined in a flow file/' ;;
     esac
   done
 fi
@@ -212,7 +227,7 @@ if want subflows && [ ${#flows[@]} -gt 0 ]; then
     printf 'runFlow targets by use count:\n'
     grep -hoE '(runFlow:|file:)[[:space:]]*[^[:space:]]+\.ya?ml' "${yaml_flows[@]}" 2>/dev/null | sed -E 's/^(runFlow|file):[[:space:]]*//' | sort | uniq -c | sort -rn | awk '{printf "%s\t%d\n", $2, $1}'
     printf 'flows with no runFlow (candidates for shared steps):\n'
-    for f in "${yaml_flows[@]}"; do case "$f" in */subflows/*) continue ;; esac; grep -q 'runFlow' "$f" || printf '%s\n' "$f"; done
+    for f in "${yaml_flows[@]}"; do case "$f" in */subflows/*) continue ;; esac; grep -q 'runFlow' "$f" || printf '%s\n' "$(row_path "$f")"; done
   fi
 fi
 
@@ -231,12 +246,12 @@ if want mock-targets; then
           grep -vE '^[[:space:]]*(//|/?\*)' "$f" 2>/dev/null \
             | grep -oE "\b(jest|vi)\.(do[mM]ock|mock|unstable_mockModule)\([[:space:]]*$q$nq$q|\bmock\.module\([[:space:]]*$q$nq$q" \
             | sed -E "s/^.*\([[:space:]]*$q//; s/$q\$//" \
-            | awk -v f="$f" '{ c = ($0 ~ /^(\.|\/|@\/|~\/|#|src\/|app\/|lib\/)/) ? "internal" : "package"; print $0 "\t" c "\t" f }' ;;
+            | awk -v f="$(awk_path "$f")" '{ c = ($0 ~ /^(\.|\/|@\/|~\/|#|src\/|app\/|lib\/)/) ? "internal" : "package"; print $0 "\t" c "\t" f }' ;;
         *.py)
           grep -vE '^[[:space:]]*#' "$f" 2>/dev/null \
             | grep -oE "\b(mock\.|mocker\.)?patch\([[:space:]]*$q$nq$q|\bmonkeypatch\.setattr\([[:space:]]*$q$nq$q" \
             | sed -E "s/^.*\([[:space:]]*$q//; s/$q\$//" \
-            | while IFS= read -r t; do printf '%s\t%s\t%s\n' "$t" "$(py_class "$t")" "$f"; done ;;
+            | while IFS= read -r t; do printf '%s\t%s\t%s\n' "$t" "$(py_class "$t")" "$(row_path "$f")"; done ;;
       esac
     done
   } | sort -u | awk -F'\t' '{k=$1 "\t" $2; c[k]++; f[k]=f[k] " " $3} END {for (k in c) printf "%s\t%d\t%s\n", k, c[k], f[k]}' | sort -t$'\t' -k2,2 -k3,3nr -k1,1
@@ -286,11 +301,6 @@ if want type-assertions; then
       }
     ' "$1" 2>/dev/null
   }
-  # A path is attacker-chosen in a cloned repository, and a name is allowed to hold a newline or a
-  # tab. Printed raw, either splits the row: a newline lets the name write lines of its own into
-  # the report the install keeps whole for the agent to read, a forged "## <section>" header among
-  # them, and a tab breaks the sort this section ends on. Both are escaped into the row instead.
-  row_path() { local p="${1//\\/\\\\}"; p="${p//$'\t'/\\t}"; printf '%s' "${p//$'\n'/\\n}"; }
   {
     for f in "${test_files[@]}"; do
       case "$f" in
@@ -322,7 +332,7 @@ if want skip-markers; then
         esac
       fi
       [ -n "$SKIP_PAT" ] || continue
-      grep -HnE "$SKIP_PAT" "$f" 2>/dev/null
+      grep_hits "$f" "$SKIP_PAT"
     done
   fi
 fi
