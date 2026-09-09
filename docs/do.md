@@ -15,7 +15,8 @@ branch to [do-code-review](do-code-review.md), which fixes the Findings it marke
 fast-forwards your branch when the **Review** is Green, so your branch takes reviewed commits or
 none. `trivial` commits in place on your branch, with no worktree and no review, because a change
 no test could tell before from after has the existing suite as its whole gate. Nothing is pushed.
-The run ends on the `git push` for you to type.
+The run ends on the `git push` for you to type when something landed on your branch, and on the
+next command to type when nothing did.
 
 ## When to reach for it
 

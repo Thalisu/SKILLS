@@ -59,6 +59,10 @@ lacks "the docs page carries no install command" "$page" "ln -s" "git clone"
 has "What it does scopes the worktree and the review to the Playbooks that build" "$page" \
   "The three Playbooks that build never land their own work" \
   "\`trivial\` commits in place on your branch, with no worktree and no review"
+has "What it does conditions the closing push on something having landed" "$page" \
+  "The run ends on the \`git push\` for you to type when something landed"
+lacks "What it does no longer promises a push to every run" "$page" \
+  "The run ends on the \`git push\` for you to type."
 has "the Prerequisites intro claims only what the first message carries" "$page" \
   "The first message reports one of them, the loop line"
 lacks "the Prerequisites intro no longer claims all four are reported up front" "$page" \
@@ -94,6 +98,9 @@ has "the review row's skip line is still what an absent do-code-review does" "$r
   "the reply names the review and the landing as the developer's next"
 has "the vendored row's \`unslop\` is still the reply's own call" "$refs/reply.md" \
   'Call the Skill tool with `unslop` on the drafted reply when the session'
+has "the closing command the page names is still the reply's Next step rule" "$refs/reply.md" \
+  'It ends with the push command when something landed on the' \
+  "developer's branch, \`git push\` with the branch named; otherwise the command to type next."
 
 # Every link on the page resolves from docs/, since that is where a reader clicks it.
 links_ok=1
