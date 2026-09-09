@@ -105,11 +105,41 @@ A bug that does not reproduce even when forced stops the run: the message says w
 the run leaves nothing committed, the worktree removed by step 11. Done when the command line and
 the output showing the defect are in the thread, or the run stopped with what it tried named.
 
-**3. Cause.** Done when every hypothesis has its evidence line, the mechanism is in the thread and
-every instrumentation line is reverted.
+**3. Cause.** The cause is found by ruling hypotheses out, never by guessing at a likely one, per
+[fix-root-causes](../../../.agents/principles/fix-root-causes.md). The thread carries one line per
+hypothesis with the runtime evidence that ruled it out, and then the mechanism, stated in one line
+and confirmed before any design.
 
-**4. Plan the fix.** Done when the fix is in the thread in a few lines, or the run stopped naming
-`discuss`.
+Seed the hypotheses from the code, not from the symptom's neighbourhood. `how` and `why` are
+called when the session lists them: the Skill tool with `how` for the subsystem's runtime flow,
+with `why` for the rationale behind the shape the defect sits in, so exploration stays out of the
+thread, per
+[guard-the-context-window](../../../.agents/principles/guard-the-context-window.md); when it lists
+neither, read the code with search and targeted reads and say so in one line.
+
+Instrumentation is how a hypothesis is put to the runtime: it goes where the surface runs, by
+step 2's rule, is read, and is reverted before step 5 writes the failing test. Nothing a refuted
+hypothesis motivated survives into the fix: every line a refuted hypothesis motivated, and every
+line added because it might help, is reverted before the fix commit, so every shipped line traces
+to the evidence. Done when every hypothesis has its evidence line, the mechanism is in the thread
+and every instrumentation line is reverted.
+
+**4. Plan the fix.** The fix is planned in a few lines: where the change goes, what it changes, and
+which line of evidence from step 3 asks for it. It is the smallest change that removes the
+mechanism, never a guard that silences the symptom.
+
+When the fix crosses a function boundary (a new module, an exported function or type other code
+will call, a changed signature), call the Skill tool with `architect`, stop at the sketch, and
+implement the sketch under the loop. When `architect` is not listed, state the shape (types,
+signatures, module boundaries) in the thread and say so. A fix that creates a new exported symbol
+runs the Discovery rule's check before it is created, one `discover` batch for two or more names
+and one `rg -n -w` for a single one, with the audit line logged, `Discovery: n FOUND · n DUPLICATE
+· n NOT_FOUND`; a fix that creates none reads `skip: no symbol created`.
+
+A cause that needs a new shape or a new feature to remove is not a bug fix. The run stops there
+with one message naming `discuss`, the evidence listed and nothing landed, the worktree and its
+branch left in place and named, so the developer decides the design and `do` never reopens a plan.
+Done when the fix is in the thread in a few lines, or the run stopped naming `discuss`.
 
 **5. Red.** Done when `RED_AS_EXPECTED` is in the thread and the reproduction is committed.
 

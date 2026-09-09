@@ -84,5 +84,22 @@ has "a bug that will not reproduce stops the run" "$ref" "does not reproduce eve
 has "the stop says what it tried" "$ref" "says what it tried"
 has "the stop commits nothing and removes the worktree" "$ref" "nothing committed, the worktree removed"
 
+# Step 3, the cause: hypotheses ruled out with runtime evidence, instrumentation reverted
+has "one line per hypothesis with the evidence that ruled it out" "$ref" "one line per hypothesis"
+has "the evidence is runtime evidence" "$ref" "runtime evidence"
+has "the mechanism is confirmed before any design" "$ref" "before any design"
+has "how and why are called when the session lists them" "$ref" "\`how\` and \`why\`"
+has "the cause hunt cites fix-root-causes" "$ref" "fix-root-causes.md)"
+has "instrumentation goes where the surface runs" "$ref" "where the surface runs"
+has "a refuted hypothesis leaves no line behind" "$ref" "every line a refuted hypothesis motivated"
+has "a might help line is reverted" "$ref" "might help"
+
+# Step 4, the plan: a few lines, architect on a boundary, discuss when the cause needs a new shape
+has "the fix is planned in a few lines" "$ref" "planned in a few lines"
+has "architect is called when the fix crosses a boundary" "$ref" "call the Skill tool with \`architect\`"
+has "a new shape or a new feature stops the run" "$ref" "a new shape or a new feature"
+has "the discuss stop lists the evidence and lands nothing" "$ref" "the evidence listed and nothing landed"
+has "a new exported symbol goes through the discover batch" "$ref" "Discovery:"
+
 [ "$fails" = 0 ] || { echo; echo "$fails failed"; exit 1; }
 echo; echo "all passed"
