@@ -13,8 +13,9 @@ fails=0
 
 ok() { echo "ok    $1"; }
 fail() { echo "FAIL  $1"; fails=$((fails + 1)); }
-has() { # $1 label, $2 file, $3 fixed string that must appear in it
-  if grep -qF -- "$3" "$2" 2>/dev/null; then ok "$1"; else fail "$1"; fi
+flat() { tr '\n' ' ' < "$1" 2>/dev/null | tr -s ' '; }
+has() { # $1 label, $2 file, $3 fixed string that must appear in it, newlines flattened to spaces
+  if flat "$2" | grep -qF -- "$3"; then ok "$1"; else fail "$1"; fi
 }
 lacks() { # $1 label, $2 file, $3 fixed string that must not appear in it
   if grep -qF -- "$3" "$2" 2>/dev/null; then fail "$1 (found: $3)"; else ok "$1"; fi
@@ -55,5 +56,17 @@ has "its origin is new feature" "$ref" "origin \`new feature\`"
 has "an unresolved import is the expected red" "$ref" "unresolved import"
 has "a characterisation test is never dispatched" "$ref" "characterisation"
 has "the pin cites the ADR" "$ref" "0014-the-refactoring-pin-never-goes-through-the-test-author.md"
+
+# 3. The structure named and the target shape stated as if built today
+has "the missing structure is named" "$ref" "the structure the code is missing"
+has "a state machine over scattered booleans is an example" "$ref" "a state machine over scattered booleans"
+has "a registry over spread-out branching is an example" "$ref" "a registry over spread-out branching"
+has "a typed model over repeated shape assumptions is an example" "$ref" "a typed model over repeated shape assumptions"
+has "the target shape is stated as if built today" "$ref" "as if built today"
+has "architect is called when a boundary is crossed" "$ref" "architect"
+has "the structure step cites foundational-thinking" "$ref" "foundational-thinking.md)"
+has "the structure step cites model-the-domain" "$ref" "model-the-domain.md)"
+has "the reshape deletes branches instead of adding indirection" "$ref" "instead of adding indirection"
+before "the pin step comes before the structure step" "$ref" "### 3. Pin" "### 4. Structure"
 
 if [ "$fails" = 0 ]; then echo "all ok"; else echo "$fails failing"; exit 1; fi

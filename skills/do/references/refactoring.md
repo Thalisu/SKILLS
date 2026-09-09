@@ -129,3 +129,29 @@ follows the sketch. The two halves above still come before any structure moves.
 Done when the suite's and the typecheck's output lines are quoted, the harness's run on the old code
 is quoted or the half reads its skip, and the target-interface test is red for its declared reason or
 the half reads its skip.
+
+### 4. Structure
+
+Name the structure the code is missing, then state the target shape as if built today, per
+[foundational-thinking](../../../.agents/principles/foundational-thinking.md) and
+[model-the-domain](../../../.agents/principles/model-the-domain.md). The naming is what keeps the
+reshape from being movement: a state machine over scattered booleans, a registry over spread-out
+branching, a typed model over repeated shape assumptions, a reducer over a chain of mutations. The
+structure is the rule the code enforces, held in one place, so the reshape deletes branches instead
+of adding indirection.
+
+The target shape is stated as the code would look if this behaviour were built today with what the
+project knows now, not as the shortest edit from the code that is there, per
+[redesign-from-first-principles](../../../.agents/principles/redesign-from-first-principles.md). It
+names the types, the module boundaries and the interface the callers will use.
+
+When the reshape crosses a boundary, a new module, an exported function or type other code will
+call, or a changed signature, call the Skill tool with `architect`, stop at the sketch, and reshape
+against it. The sketch is the contract, and it is also what settles step 3's target interface when
+the request did not. A deviation during the reshape is surfaced in the reply, and a second deviation
+of the same shape stops the run as a wrong sketch, the deviations listed, the worktree and its branch
+named. When `architect` is not listed, the shape is stated in the thread and the step says so. When
+no boundary is crossed the step reads `skip: no boundary crossed` and the missing structure is still
+named.
+
+Done when the structure and the target shape are in the thread, with the sketch or its skip.
