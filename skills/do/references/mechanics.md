@@ -266,7 +266,10 @@ ticks the step as a no-op, reruns nothing, and the review is called on the branc
 branch it rebased onto and how many of its own commits git replayed. The gate that was green before
 the replay is stale, since the run's commits now sit on code the branch had not seen: the gate's
 command lines run a second time, each shown before it runs and its output line quoted after, and a
-green gate calls the review on the rebased diff.
+green gate calls the review on the rebased diff. The replay moves the branch's base, so the fixed
+point the review is called with is the commit it rebased onto, never the commit the worktree was
+created from: that one is behind the developer's own commits now, and a review given it would read
+their work as part of the diff under review.
 
 **A red gate after a rebase that replayed commits.** The run stops as blocked, the way a red gate
 after the review's fix run does and never back to the build loop: the replay brought in code the
@@ -318,8 +321,9 @@ after it, or the run stopped as blocked with its reason, its undo command and it
 Run once per landing, after the gate, and never by hand: the review fixes and lands, the run reads.
 Call the Skill tool with `do-code-review` and three arguments: the spec source (the Ticket's
 location in `ticket`, so the Review lands beside it; the branch alone in `bug-fix` and
-`refactoring`), the fixed point of the branch under review (the commit the worktree was created
-from, or the commit the review last landed), and the developer's branch as the landing target.
+`refactoring`), the fixed point of the branch under review (the commit the integration
+rebased onto, or the commit the worktree was created from when it replayed nothing, or the commit
+the review last landed), and the developer's branch as the landing target.
 Never `fix`, never `--no-fix`: the default run is the one every Playbook wants, per
 [ADR 0015](../../../docs/adr/0015-the-default-review-run-fixes-and-lands-and-the-fixer-corrects-for-every-caller.md).
 The run waits on the call. While the review runs, its Fixer is the only writer in the worktree, and

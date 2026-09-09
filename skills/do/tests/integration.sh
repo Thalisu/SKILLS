@@ -215,6 +215,13 @@ has "the case is listed in the evals README" "$repo/skills/do/evals/README.md" \
   "| \`integration-mechanical-conflict\` |"
 lacks "no em-dash in the integration eval case" "$evals/case.yaml" "$emdash"
 
+# After a replay the commit the worktree was created from is no longer the branch's base, and a
+# review given it would read the developer's own commits as part of the diff under review.
+has "a replay moves the fixed point the review is called with" "$mech" \
+  "the fixed point the review is called with is the commit it rebased onto"
+has "the review's fixed point names the integration among its sources" "$mech" \
+  "the commit the integration rebased onto"
+
 # No em-dash in the prose this step writes, per CLAUDE.md.
 lacks "no em-dash in the ticket Playbook" "$ticket" "$emdash"
 lacks "no em-dash in the bug-fix Playbook" "$bugfix" "$emdash"
