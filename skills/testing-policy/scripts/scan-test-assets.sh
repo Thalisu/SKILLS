@@ -108,12 +108,28 @@ done
 want() { [ -z "$only" ] || [ "$only" = "$1" ]; }
 hdr() { printf '\n## %s\n' "$1"; }
 
-# A path is attacker-chosen in a cloned repository, and a name is allowed to hold a newline or a
-# tab. Printed raw, either splits the row: a newline lets the name write lines of its own into the
-# report the install keeps whole for the agent to read, a forged "## <section>" header among them,
-# and a tab breaks the sorts the sections end on. Every section that prints a path from the scanned
-# tree prints it through row_path instead.
-row_path() { local p="${1//\\/\\\\}"; p="${p//$'\t'/\\t}"; printf '%s' "${p//$'\n'/\\n}"; }
+# A path is attacker-chosen in a cloned repository, and a name is allowed to hold any byte but NUL
+# and the slash. Printed raw, a control byte rewrites the report the install keeps whole for the
+# agent to read: a newline writes rows of its own into it, a forged "## <section>" header among
+# them, a tab breaks the sorts the sections end on, a carriage return is a line break to a reader
+# that splits on any of them and hides the rest of the row on a terminal, and an ESC drives the
+# terminal over the rows already drawn. Every section that prints a path from the scanned tree
+# prints it through row_path, which escapes every control byte into the row.
+row_path() {
+  local p="${1//\\/\\\\}" out c i
+  p="${p//$'\t'/\\t}"; p="${p//$'\n'/\\n}"; p="${p//$'\r'/\\r}"
+  case "$p" in
+    *[[:cntrl:]]*)
+      out=""
+      for ((i = 0; i < ${#p}; i++)); do
+        c="${p:i:1}"
+        case "$c" in [[:cntrl:]]) printf -v c '\\x%02x' "'$c" ;; esac
+        out+="$c"
+      done
+      p="$out" ;;
+  esac
+  printf '%s' "$p"
+}
 # awk reads the escape sequences in a -v assignment, so a path bound to an awk variable is escaped
 # once more on its way in and reaches the program as row_path wrote it.
 awk_path() { local p; p="$(row_path "$1")"; printf '%s' "${p//\\/\\\\}"; }
