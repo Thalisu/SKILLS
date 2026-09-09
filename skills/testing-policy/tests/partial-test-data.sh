@@ -175,6 +175,12 @@ check "the add runs where the map is filled, in the workspace that holds the tes
 # shellcheck disable=SC2016
 check "an add that succeeded writes the helper and its two functions into the map line" 0 "$rc" \
   '`fromPartial()` for partial data that still type checks and `fromAny()` for data that is wrong on purpose'
+# shellcheck disable=SC2016
+check "an add that cannot run leaves a pointer and never stops the install" 0 "$rc" \
+  'write `none yet → <that command>`, a pointer and not a command that ran' \
+  "A failed add never stops the install"
+check "the report names the outcome of the offer and the reason an add failed" 0 "$rc" \
+  "the partial data helper: added with the command that ran, already present, declined, or not added with the reason the add failed"
 
 echo
 echo "# the verifier's partial data helper key"
