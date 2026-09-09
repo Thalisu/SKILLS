@@ -190,6 +190,17 @@ check "the report names the outcome of the offer and the reason an add failed" 0
 # shellcheck disable=SC2016
 check "a no is recorded by absence, so a later run offers again" 0 "$rc" \
   'the next run reads `absent` again and offers again, the way the hook offer is offered again'
+# shellcheck disable=SC2016
+check "the verification step tolerates a project that has no helper" 0 "$rc" \
+  '`partial_data_helper=absent` is fine when the offer was declined or the add failed'
+
+# The checklist is read on its own: the steps above carry the same words, so a case over the whole
+# file would pass on a checklist that covers neither the line nor the key.
+rc=0; out="$(awk '/^## Post-install checklist$/{f=1} f' "$skill/SKILL.md")" || rc=$?
+# shellcheck disable=SC2016
+check "the checklist covers the map line and the key that mirrors it" 0 "$rc" \
+  "**Partial test data** in the unit map carries the helper and its two functions" \
+  '`partial_data_helper=` in the verify output agrees with it'
 
 # Step 0 hands the key forward, and step 2 is the first step to read it, so the span the line names
 # has to reach back to step 2 or the offer reads a field the install never kept.

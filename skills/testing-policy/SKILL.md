@@ -108,7 +108,7 @@ One rule in the project, one rule outside it, and `verify-policy.sh` reports the
 ## Step 8: verify and report
 
 1. Run every command written into Project facts and the Project maps once more; a command that errors or returns nothing is a wrong slot; fix it before finishing.
-2. `bash scripts/verify-policy.sh <project>` must print `policy=current`, every `agent_*` `ok` (or `n/a`), no `agent_*_map_missing`, `skill_test_author=ok`, `scan_script=ok`, `skip_patterns=ok`, no `policy_missing`, no `policy_unfilled_slots`, and exit 0 (`hook=missing` is fine when the offer was declined).
+2. `bash scripts/verify-policy.sh <project>` must print `policy=current`, every `agent_*` `ok` (or `n/a`), no `agent_*_map_missing`, `skill_test_author=ok`, `scan_script=ok`, `skip_patterns=ok`, no `policy_missing`, no `policy_unfilled_slots`, and exit 0 (`hook=missing` is fine when the offer was declined, and `partial_data_helper=absent` is fine when the offer was declined or the add failed: the key is report only and never moves the exit code).
 3. Report: the state transition (`legacy → current v2.4`, ...); a diff-level summary per file; Project-map disagreements and appended lines (refresh); the duplication, skip-marker, type-assertion and internal-mock debt from the scan, which is reported and **not fixed**: the second-use rule pays the duplication organically (the next author that needs one of those assets consolidates first), an internal mock is replaced by a seam the next time its test is touched, and a type assertion is replaced by the helper the unit map names the next time its test file is touched, so the install rewrites no test file; the partial data helper: added with the command that ran, already present, declined, or not added with the reason the add failed; hook installed, re-copied or declined; gitignore status. Do not commit unless asked.
 
 ## Post-install checklist
@@ -123,6 +123,7 @@ Must hold after any mode. Lines marked ✓ are checked mechanically by `verify-p
 - Nothing captured from this project was written outside it, this skill's own directory first of all.
 - The Project map is scoped to this repo: every path, command and signature in it was found here, and none was carried over from an example or another project.
 - Project facts name real commands that ran; consumer lines (consumer/mixed) carry the "run against this repo's local build" recipe.
+- **Partial test data** in the unit map carries the helper and its two functions when the project has the package, `n/a` when it is not TypeScript, and `none yet → <the command that would add it>` otherwise; `partial_data_helper=` in the verify output agrees with it, and a disagreement is a project that dropped the package after adopting it.
 - **System boundaries** in the unit map names only things outside the repo (packages, services, the clock, the filesystem) or the repo's thin wrappers around them, each with its shared mock; internal collaborators found mocked are in the report as debt, never in the map.
 - Legacy project-specific rules the user kept survived into Project facts; nothing of the old section remains outside the markers.
 - `skip-patterns.local.sh` exists exactly when Project facts name a mechanism outside the built-ins, and a synthetic payload proved it blocks.
