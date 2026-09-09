@@ -17,6 +17,10 @@ fresh() { # $1 name: a new repository on main, entered
   # Git's background maintenance races the trap's cleanup and leaves the repository undeletable.
   g config gc.auto 0
   g config maintenance.auto false
+  # Every location below is the presentation git writes into the working file, so a fixture pins the
+  # style rather than taking the machine's own merge.conflictStyle. The fixture at "the style git
+  # wrote" covers the other styles.
+  g config merge.conflictStyle merge
 }
 run() { rc=0; out="$(bash "$door" "$@" 2>&1)" || rc=$?; }
 absent() { # $1 label, $2 expected exit, $3 actual exit, $4.. lines that must not appear
@@ -179,6 +183,33 @@ check "one contested hunk among mechanical ones makes the verdict contested and 
   "mechanical added-to.txt L2-L6" \
   "contested rewritten.txt L2-L6 rewrite-vs-rewrite" \
   "verdict=contested mechanical=1 contested=1"
+
+# The style git wrote. The class is read from the stages, so it holds whatever the machine's
+# merge.conflictStyle is, and the location follows the presentation, whose base section moves the
+# closing marker down a line or two.
+for style in diff3 zdiff3; do
+  fresh "style-$style"
+  g config merge.conflictStyle "$style"
+  printf 'a\nb\n' > added-to.txt
+  printf 'x\ny\nz\n' > rewritten.txt
+  commit base
+  g branch inc
+  printf 'a\nTARGET\nb\n' > added-to.txt
+  printf 'x\nTARGET\nz\n' > rewritten.txt
+  commit target
+  g switch -q inc
+  printf 'a\nINCOMING\nb\n' > added-to.txt
+  printf 'x\nINCOMING\nz\n' > rewritten.txt
+  commit incoming
+  g switch -q main
+  g merge inc >/dev/null 2>&1
+
+  run
+  check "under $style the class holds and the location follows the presentation" 1 "$rc" \
+    "mechanical added-to.txt L2-L7" \
+    "contested rewritten.txt L2-L8 rewrite-vs-rewrite" \
+    "verdict=contested mechanical=1 contested=1"
+done
 
 # The same pair of sides, once as a merge and once as a rebase.
 fresh rebase-equals-merge
