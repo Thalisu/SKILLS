@@ -74,4 +74,21 @@ check "a slug that matches nothing still succeeds" 0 "$rc" \
   "spec=none" \
   "date=none"
 
+# A slug typed with the date already on it, or in another case, names the folder the bare slug
+# names, so pasting a folder name back in works.
+mkdir "$tmp/normalise" && cd "$tmp/normalise" && git init -q
+mkdir -p ".scratch/$today-nightly-purge"
+run "$today-nightly-purge"
+check "a slug typed with its date resolves to the same folder" 0 "$rc" \
+  "slug=nightly-purge" \
+  "folder=.scratch/$today-nightly-purge"
+run "Nightly Purge"
+check "a slug in another case resolves to the same folder" 0 "$rc" \
+  "slug=nightly-purge" \
+  "folder=.scratch/$today-nightly-purge"
+run "  Nightly__Purge!  "
+check "every other character becomes a dash, squeezed and trimmed" 0 "$rc" \
+  "slug=nightly-purge" \
+  "folder=.scratch/$today-nightly-purge"
+
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi

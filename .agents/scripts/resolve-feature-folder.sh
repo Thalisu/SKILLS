@@ -3,7 +3,10 @@
 # the main checkout's scratch. It is the one executable form of the rule, so every door that turns
 # a slug into a folder calls it instead of restating it. Run from anywhere inside the project.
 #
-#   resolve-feature-folder.sh <slug>    the slug alone
+#   resolve-feature-folder.sh <slug>    the slug alone, in any case, with or without the date the
+#                                       folder carries: it is lowercased, every other character
+#                                       becomes a dash, dashes are squeezed and trimmed, and a
+#                                       YYYYMMDD- prefix already on it is dropped
 #
 # The rule: a slug names the folder called <slug> or <YYYYMMDD>-<slug> and no other, the newest of
 # them when a slug carries more than one, and an undated folder from before the dated rule over
@@ -17,7 +20,9 @@
 # caller's run.
 set -uo pipefail
 
-slug="$1"
+slug="$(tr '[:upper:]' '[:lower:]' <<<"$1" | tr -c 'a-z0-9' '-' | tr -s '-')"
+slug="${slug#-}"; slug="${slug%-}"
+slug="$(sed -E 's/^[0-9]{8}-//' <<<"$slug")"
 
 top="$(git rev-parse --show-toplevel 2>/dev/null)"
 root="$top"
