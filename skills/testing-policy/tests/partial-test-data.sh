@@ -151,6 +151,27 @@ check "the appended line goes to its template position and the rest of the map i
 check "the appended partial data line is filled from the offer and not from discovery" 0 "$rc" \
   "**System boundaries** is filled from step 2, and **Partial test data** from the outcome of the offer below"
 
+# A map that already carries the label is never named among the labels the template gained, so the
+# refresh branch leaves it verbatim and only the offer's outcome can move it.
+kept="$tmp/installed-with-the-line"
+mkdir -p "$kept/.claude/agents"
+{ echo "# Project"; echo; bash "$render_policy" native; } > "$kept/CLAUDE.md"
+bash "$render" unit \
+  | sed -E 's|^\{\{UNIT_PARTIAL_DATA_HELPER.*|none yet → pnpm add -D @total-typescript/shoehorn|' \
+  | sed -E 's|^- \*\*Never build a fake by asserting a type at the compiler\.\*\*.*|- A rule the project hand-edited.|' \
+  > "$kept/.claude/agents/unit-test-author.md"
+verify "$kept"
+check "a map that already carries the line reads drifted, with the label present" 1 "$rc" \
+  "agent_unit=drifted"
+absent "the label it already carries is never named among the lines the refresh appends" 1 "$rc" \
+  "agent_unit_map_missing"
+
+rc=0; out="$(cat "$skill/SKILL.md")" || rc=$?
+check "the refresh rewrites a label the map already carries only after an add that succeeded" 0 "$rc" \
+  "rewritten only when the offer was accepted this run and the add succeeded"
+check "a refresh that added nothing leaves the line exactly as the project wrote it" 0 "$rc" \
+  "stays exactly as the project wrote it on every run that added nothing"
+
 echo
 echo "# the install's offer"
 rc=0; out="$(cat "$skill/SKILL.md")" || rc=$?
