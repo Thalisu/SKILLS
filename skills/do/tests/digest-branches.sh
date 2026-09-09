@@ -91,6 +91,14 @@ has "a second run reuses an unchanged Digest and forks no reader" "$refs/mechani
   "recomputes the hash of each document" \
   "reuses it, forks no second reader" \
   "says in one line that it reused it"
+# The door is the first text a run reads, so it carries the branch the second run decides on: a
+# Digest whose recorded hashes both match is announced as reused, and the fork is named only when
+# one of them moved, rather than a read the run never paid for.
+has "the door announces a reused Digest and forks the reader only when one hash differs" "$refs/ticket.md" \
+  "it reused the Digest and forked no reader" \
+  "A hash that differs, and a Ticket with no Digest yet, are the" \
+  "the run forks the reader for, and it forks it for no other" \
+  "both are being read in a window of their own"
 
 # An amended Spec is never served from the old slice, and the run says which document moved. Both
 # are compared before the decision: comparing the journey only when the Spec matched would serve an

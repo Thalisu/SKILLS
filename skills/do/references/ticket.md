@@ -31,14 +31,19 @@ The argument is a Ticket's path, or an issue reference resolved through the trac
 - On a remote tracker, an issue assigned to someone else stops the run in one line with their
   name.
 
-The first write comes after those stops and never before one of them. Then the run forks the reader
-of [mechanics.md](mechanics.md) over the Ticket's Spec, where the format says it is (the spec file
-in the folder above the `issues/` folder, or the issue the parent section names), and over the
-journey the Spec's `Journey:` line names when it names one, and opens neither itself: it says in
-one line that both are being read in a window of their own, and derives its behaviours from the
-Digest that comes back, in the format of [digest.md](digest.md). The Digest and the `.scratch/`
-line its write needs are the run's first marks on the developer's checkout, so a Ticket refused
-above leaves `git status` in the main checkout exactly as it found it.
+The first write comes after those stops and never before one of them. Then the door decides between
+the Digest already beside the Ticket and a reader, as the second run section of
+[mechanics.md](mechanics.md) fixes. Two recorded hashes that both match are a reuse: the run says
+in one line that it reused the Digest and forked no reader, and derives its behaviours from the
+Digest already beside the Ticket. A hash that differs, and a Ticket with no Digest yet, are the
+two states the run forks the reader for, and it forks it for no other. That fork runs over the
+Ticket's Spec, where the format says it is (the spec file in the folder above the `issues/`
+folder, or the issue the parent section names), and over the journey the Spec's `Journey:` line
+names when it names one, and the run opens neither itself: it says in one line
+that both are being read in a window of their own, and derives its behaviours from the Digest that
+comes back, in the format of [digest.md](digest.md). The Digest and the `.scratch/` line its write
+needs are the run's first marks on the developer's checkout, so a Ticket refused above leaves
+`git status` in the main checkout exactly as it found it.
 
 ## Resume
 
