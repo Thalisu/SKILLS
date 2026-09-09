@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # partial-test-data.sh: the contract of the partial test data rule, the Project map label that
-# carries its helper, the scan section that counts the assertions already in the tree and the
-# verifier key that reports the helper's state, exercised against throwaway fixture projects.
+# carries its helper, and the refresh that names that label to an agent installed before it,
+# exercised against throwaway fixture projects.
 # Run: bash skills/testing-policy/tests/partial-test-data.sh
 set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
