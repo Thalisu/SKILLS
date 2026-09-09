@@ -74,7 +74,7 @@ command to type, with nothing written and no Playbook file read.
 
 | The request | Where it goes |
 |---|---|
-| a spec | `/tickets <spec>`, or `/journey <spec>` first when the spec's verdict reads `required` |
+| a spec | `/tickets <spec>`, or `/journey <spec>` first when the spec's verdict reads `required` and no journey sits beside it |
 | a pasted session summary | `/spec`, since the discussion already happened |
 | a feature, or anything else with no ticket | `/discuss`, or `/spec` when the conversation already holds the discussion |
 | how something works, or why it was built that way | `/how`, `/why`, `/teach` |
@@ -115,7 +115,8 @@ demoable slice of it. Cutting the slices is [tickets](tickets.md)'s job, where e
 the context the `do` session will reach and blocked by the ticket that writes what it reads. Hand
 `do` a spec and that cut happens inside the build, where nothing checks it. The router refuses in
 one message and names `/tickets <spec>`, or `/journey <spec>` first when the spec's verdict reads
-`required`. A pasted session summary goes to `/spec` the same way.
+`required` and no journey sits beside the spec. A pasted session summary goes to `/spec` the same
+way.
 
 **Why is `trivial` not a size?**
 Because size does not predict what a change does. The test is whether a test could tell before from
