@@ -115,4 +115,27 @@ run nightly-purge
 check "a .scratch that is a file is refused" 2 "$rc" \
   ".scratch is not a plain directory of this checkout; nothing resolved"
 
+# A linked worktree holds no scratch of its own, so a slug resolves in the main checkout and the
+# paths come back absolute for a caller that stands somewhere else.
+mkdir "$tmp/wt" && cd "$tmp/wt" && git init -q
+printf 'a\n' > a.txt && git add a.txt && git commit -q -m "first"
+main_checkout="$(pwd -P)"
+mkdir -p ".scratch/$today-nightly-purge"
+git worktree add -q "$tmp/wt-linked" -b build
+cd "$tmp/wt-linked" || exit 1
+run nightly-purge
+check "a linked worktree resolves in the main checkout" 0 "$rc" \
+  "root=$main_checkout" \
+  "folder=$main_checkout/.scratch/$today-nightly-purge" \
+  "spec=$main_checkout/.scratch/$today-nightly-purge/spec.md"
+expect "the worktree got no scratch of its own" test ! -e "$tmp/wt-linked/.scratch"
+cd "$tmp" && git -C "$main_checkout" worktree remove --force "$tmp/wt-linked"
+
+# Outside a repository the slug resolves in the directory the caller stands in.
+mkdir -p "$tmp/plain/.scratch/$today-nightly-purge" && cd "$tmp/plain" || exit 1
+run nightly-purge
+check "outside a repository the caller's own directory is the root" 0 "$rc" \
+  "root=$(cd "$tmp/plain" && pwd -P)" \
+  "folder=.scratch/$today-nightly-purge"
+
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi

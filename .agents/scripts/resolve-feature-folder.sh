@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 # resolve-feature-folder.sh: the feature folder a bare slug names and the spec in it, read out of
 # the main checkout's scratch. It is the one executable form of the rule, so every door that turns
-# a slug into a folder calls it instead of restating it. Run from anywhere inside the project.
+# a slug into a folder calls it instead of restating it. Run from anywhere inside the project, or
+# outside a repository, where the caller's own directory is the root.
+#
+# It resolves in the main checkout, so a slug names one folder from whichever tree the caller
+# stands in. A linked worktree holds no scratch of its own, so from there the paths come back
+# absolute, the way the review door's Review path already does. See ../scratch.md.
 #
 #   resolve-feature-folder.sh <slug>    the slug alone, in any case, with or without the date the
 #                                       folder carries: it is lowercased, every other character
@@ -32,6 +37,15 @@ slug="$(sed -E 's/^[0-9]{8}-//' <<<"$slug")"
 
 top="$(git rev-parse --show-toplevel 2>/dev/null)"
 root="$top"
+prefix=""
+if [ -n "$top" ]; then
+  # A bare main worktree has no working tree to anchor on, and git lists it first all the same.
+  main_checkout="$(git worktree list --porcelain 2>/dev/null |
+    awk '/^$/ { exit } /^worktree /{ p = substr($0, 10) } /^bare$/ { p = "" } END { print p }')"
+  [ -n "$main_checkout" ] && [ -d "$main_checkout" ] || main_checkout="$top"
+  root="$main_checkout"
+  [ "$top" -ef "$root" ] || prefix="$root/"
+fi
 [ -n "$root" ] || root="$(pwd -P)"
 cd "$root" || exit 2
 
@@ -49,7 +63,7 @@ date_of="$(sed -E 's#^\.scratch/([0-9]{8})-.*#\1#' <<<"$folder")"
 [ "$date_of" = "$folder" ] && date_of=none
 
 spec=none
-if [ -n "$folder" ]; then spec="$folder/spec.md"; else folder=none; fi
+if [ -n "$folder" ]; then spec="$prefix$folder/spec.md"; folder="$prefix$folder"; else folder=none; fi
 
 echo "slug=$slug"
 echo "root=$root"
