@@ -36,5 +36,31 @@ fi
 lacks "no em-dash in the reference" "$ref" "$emdash"
 lacks "no em-dash in the skill file" "$skillfile" "$emdash"
 
+# The Playbook's shape: a door, one checklist fence, and one step per fence line
+has "the reference carries a door" "$ref" "## Door"
+has "the reference carries a checklist" "$ref" "## Checklist"
+has "the reference carries the steps" "$ref" "## Steps"
+has "the checklist fence is labelled by the Playbook" "$ref" "bug-fix:"
+missing=""
+while read -r n; do
+  grep -qF -- "**$n. " "$ref" || missing="$missing $n"
+done < <(sed -n 's/^- \[ \] \([0-9]\+\)\..*/\1/p' "$ref")
+if [ -z "$missing" ]; then ok "every checklist line has its step"; else fail "every checklist line has its step (missing:$missing)"; fi
+steps="$(sed -n 's/^- \[ \] \([0-9]\+\)\..*/\1/p' "$ref" | wc -l)"
+if [ "$steps" -ge 13 ]; then ok "the checklist holds every step of the path"; else fail "the checklist holds every step of the path (found $steps)"; fi
+
+# The door refuses before anything is written
+has "the door refuses a request that names no failure" "$ref" "names no failure"
+has "the door names where a non-bug goes" "$ref" "\`refactoring\`"
+has "the door sends a defect with a Ticket to the chain" "$ref" "\`ticket\`"
+
+# The first message and the worktree
+has "the first message opens with the Playbook" "$ref" "\`Playbook: bug-fix\`"
+has "the first message carries the loop line" "$ref" "Loop: policy"
+has "the first message names the surface" "$ref" "the surface"
+has "the first message carries the protected-branch warning" "$ref" "landing will be refused"
+has "nothing is claimed outside the chain" "$ref" "no claim line"
+has "the worktree comes from the shared mechanics" "$ref" "created from the current HEAD"
+
 [ "$fails" = 0 ] || { echo; echo "$fails failed"; exit 1; }
 echo; echo "all passed"
