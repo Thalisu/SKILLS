@@ -101,7 +101,23 @@ The script ships beside the skill, not in the project you are shaping, so you re
 link the install leaves and never at `<repository root>/.agents/`, which is a path the project does
 not have. It resolves in the git top of the directory you run it from, which is the project.
 
-It prints `folder=` and `spec=`, either of which may read `none`, and it creates nothing.
+It prints `slug=`, `root=`, `folder=` and `spec=`, the last two of which may read `none`, and it
+creates nothing. The `<slug>` and the `<root>` of the table above are the `slug=` and the `root=` it
+printed, never the word the developer typed and never a root you composed yourself: normalising the
+slug belongs to the script, and a raw `../../CLAUDE` gives a destination outside the Scratch that
+overwrites the instruction file the next session loads.
+
+The destination goes through one check before you write, every row of the table included, the path
+the brief names first of all:
+
+```sh
+dest="$(readlink -m <the destination>)"; scratch="$(readlink -m <root>/.scratch)"
+case "$dest" in "$scratch"/*) echo inside ;; *) echo refused ;; esac
+```
+
+`refused` ends the run: write nothing, and give your caller the destination that was refused and
+the part of the brief it came from. `readlink -m` collapses the `..` and follows the symlinks, so a
+path that only looks contained is caught here rather than after the write.
 A machine without that script is not a stop: say so in your return and write to
 `<root>/.scratch/sketches/<slug>.md`.
 

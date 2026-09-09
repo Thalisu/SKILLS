@@ -114,6 +114,11 @@ has "the agent names both doors and the path each writes to" "$agent_md" \
   "sketch.md" ".scratch/sketches/" "absolute"
 has "the standalone door derives a slug when the developer passes none" "$agent_md" \
   "the slug the developer passes" "derive one from the argument"
+has "the destination is composed from the resolver's own keys and never a raw slug" "$agent_md" \
+  "It prints \`slug=\`" "are the \`slug=\` and the \`root=\`" \
+  "never the word the developer typed"
+has "a destination that does not resolve under the Scratch is refused and nothing is written" \
+  "$agent_md" "readlink -m" 'case "$dest" in' "refused\` ends the run" "write nothing"
 has "the agent appends the scratch ignore before it writes" "$agent_md" \
   "git check-ignore -v .scratch/" ".gitignore"
 has "the agent degrades in one line when the resolver is absent" "$agent_md" \
