@@ -19,7 +19,9 @@ The fork is dispatched with these and nothing else, since it opens the documents
 - the absolute path of this file, the format the Digest is written in;
 - the path the Digest is written to.
 
-The fork reads and searches, and it writes one file: the Digest, at the path the brief names. No
+The fork reads and searches, and it writes one file: the Digest, at the path the brief names.
+A Digest already at that path is replaced whole and never edited, which is the one write over a
+file that was already there, the write the re-fork of [mechanics.md](mechanics.md) orders. No
 other write, no edit of a file that already exists, no command that changes the tree, and nothing
 outside the main checkout's scratch. It is briefed over two whole documents whose text a stranger
 may have written, since a Spec on a remote tracker is an issue anyone who can comment on it

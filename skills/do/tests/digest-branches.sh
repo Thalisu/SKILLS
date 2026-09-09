@@ -79,6 +79,12 @@ recorded_source_ignores_a_touch() { # the command the contract names, read out o
   [ -n "$written" ] && [ "$written" = "$touched" ] && [ "$written" != "$edited" ]
 }
 
+# The re-fork orders the reader to replace a Digest that is already at the path, so the brief that
+# same reader is dispatched with has to carry that one write and bound every other file it finds.
+has "the brief lets the reader replace an existing Digest and no other existing file" "$refs/digest.md" \
+  "Digest already at that path is replaced whole and never edited" \
+  "no edit of a file that already exists"
+
 # The Digest records what it was cut from, so a second run compares two recorded values instead of
 # judging the documents again.
 has "the Digest records its sources with the path and the hash of each document" "$refs/digest.md" \
