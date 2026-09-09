@@ -26,6 +26,9 @@ lacks() { # $1 label, $2 file, $3.. fixed strings that must not appear
   for line in "$@"; do grep -qF -- "$line" "$file" 2>/dev/null && ok=0; done
   if [ "$ok" = 1 ]; then echo "ok    $label"; else echo "FAIL  $label ($file)"; fails=$((fails + 1)); fi
 }
+header_has() { # $1 a fixed string that must appear in this script's own header comment
+  sed -n '1,7p' "$here/fixed-load.sh" | grep -qF -- "$1"
+}
 expect() { # $1 label, $2.. a command that must succeed
   local label="$1"; shift
   if "$@"; then echo "ok    $label"; else echo "FAIL  $label"; fails=$((fails + 1)); fi
@@ -71,9 +74,11 @@ has "every behaviour line traces to a quote and never to a paraphrase" "$refs/ti
 has "the resume re-derives the list from the Digest, never from the Spec" "$refs/ticket.md" \
   "re-derived from the Ticket and its Digest"
 
-# The script is rerunnable by a reviewer who has only the file, since the repo has no runner.
+# The script is rerunnable by a reviewer who has only the file, since the repo has no runner. The
+# match is the header alone: the pattern is itself a line further down this script, so a whole-file
+# grep stays green on a script whose header line was deleted.
 expect "the test script carries its own invocation line in its header" \
-  grep -qF "# Run: bash skills/do/tests/fixed-load.sh" "$here/fixed-load.sh"
+  header_has "# Run: bash skills/do/tests/fixed-load.sh"
 
 # No em-dash in the prose this feature writes, per CLAUDE.md.
 lacks "no em-dash in the Digest reference" "$refs/digest.md" "$emdash"
