@@ -20,6 +20,9 @@ check() { # $1 label, $2 expected exit, $3 actual exit, $4.. lines that must app
   if [ "$ok" = 1 ]; then echo "ok    $label"; else
     echo "FAIL  $label (exit $rc, wanted $want)"; echo "      ${out//$'\n'/$'\n'      }"; fails=$((fails + 1)); fi
 }
+absent() { # $1 label, $2 line that must not appear
+  if grep -qF -- "$2" <<<"$out"; then echo "FAIL  $1 (found: $2)"; fails=$((fails + 1)); else echo "ok    $1"; fi
+}
 expect() { # $1 label, $2.. a command that must succeed
   local label="$1"; shift
   if "$@"; then echo "ok    $label"; else echo "FAIL  $label"; fails=$((fails + 1)); fi
@@ -135,7 +138,7 @@ ln -s "$tmp/victim" ".scratch/$today-nightly-purge"
 run nightly-purge
 check "a symlinked dated folder is refused" 2 "$rc" \
   ".scratch/$today-nightly-purge is a symlink; nothing resolved"
-expect "no folder reached the caller" bash -c '! grep -q "^folder=" <<<"$1"' _ "$out"
+absent "no folder reached the caller" "folder="
 rm ".scratch/$today-nightly-purge"
 ln -s "$tmp/victim" .scratch/nightly-purge
 run nightly-purge
