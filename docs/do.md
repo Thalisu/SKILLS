@@ -13,7 +13,7 @@ The run never lands its own work and never fixes what a review found. It builds 
 of its own, one behaviour per green commit, runs the gate, and hands the branch to
 [do-code-review](do-code-review.md), which fixes the Findings it marked `Act on` and fast-forwards
 your branch when the **Review** is Green. Your branch takes reviewed commits or none. Nothing is
-pushed: the run ends on the `git push` for you to type.
+pushed. The run ends on the `git push` for you to type.
 
 ## When to reach for it
 
@@ -40,10 +40,10 @@ do, and the first message says which of them it found.
 
 | In the project | What `do` does with it, and without it |
 |---|---|
-| the **Ticket** itself, a file under `.scratch/` or an issue on the tracker `docs/agents/issue-tracker.md` describes | the `ticket` Playbook's whole input. No file and no tracker entry, and there is nothing to match: a bare issue number is refused and the ticket's path is asked for |
-| a Testing Policy with its unit test author at `.claude/agents/unit-test-author.md` | the first message reads `Loop: policy` and every new test is written by that author. Without it the line reads `Loop: fallback` and the run writes each failing test itself, red before the fix either way |
+| the **Ticket** itself, a file under `.scratch/` or an issue on the tracker `docs/agents/issue-tracker.md` describes | the `ticket` Playbook's whole input. With no file and no tracker entry there is nothing to match, so the run refuses a bare issue number and asks you for the ticket's path |
+| a Testing Policy with its unit test author at `.claude/agents/unit-test-author.md` | the first message reads `Loop: policy` and that author writes every new test. Without it the line reads `Loop: fallback` and the run writes each failing test itself, red before the fix either way |
 | [do-code-review](do-code-review.md) linked in the session | the review fixes its `Act on` Findings and lands the branch. Without it the step reads `skip: do-code-review not listed`, nothing lands, and the reply hands you the worktree, its branch and the review to run yourself |
-| the vendored `architect`, `how` and `unslop` | the shape is sketched before a boundary is crossed, the grounding stays out of the run's context window, and the reply is cleaned up. Each is optional and each step says in one line what it does instead |
+| the vendored `architect`, `how` and `unslop` | the run sketches the shape before it crosses a boundary, keeps the grounding out of its own context window, and cleans up the reply. Each is optional and each step says in one line what it does instead |
 
 The run writes into two places outside your branch: the worktree at `.claude/worktrees/do-<slug>`,
 excluded through this clone's `.git/info/exclude` and never through the project's `.gitignore`, and
@@ -85,8 +85,8 @@ the commit, the second time by a script a reviewer can rerun
 ([ADR 0010](adr/0010-the-trivial-playbook-takes-only-a-behaviour-preserving-change-judged-by-structure.md)).
 A one-character "typo" inside a string the code reads at runtime is a defect, so it leaves for
 `bug-fix` and gets a failing test first. A rename that adds or changes an export is a reshape, so it
-leaves for `refactoring`. A fifty-line comment sweep stays Trivial. When the diff check fires after
-the edit, the touched files are restored and nothing is committed.
+leaves for `refactoring`. A fifty-line comment sweep stays Trivial. When the check on the diff fires
+after the edit, the run restores the touched files and commits nothing.
 
 ## One behaviour, one green commit
 
@@ -107,8 +107,8 @@ lost.
 ## Common questions
 
 **Why can I not run `/do` on a spec?**
-Because the chain is strict: each skill takes only the artifact of the step before it
-([ADR 0003](adr/0003-the-chain-is-strict.md)). A spec is a whole feature, and `do` builds one
+Because the chain is strict. Each skill takes only the artifact of the step before it
+([ADR 0003](adr/0003-the-chain-is-strict.md)), and a spec is a whole feature while `do` builds one
 demoable slice of it. Cutting the slices is [tickets](tickets.md)'s job, where each one is sized by
 the context the `do` session will reach and blocked by the ticket that writes what it reads. Hand
 `do` a spec and that cut happens inside the build, where nothing checks it. The router refuses in
@@ -126,12 +126,14 @@ described as cleanups, which is the check doing its job rather than being strict
 **Why does the session write the code instead of handing it to a subagent?**
 Because whoever writes the diff owns it, and a summary is not the diff. A subagent hands back prose
 about what it did, and a session that accepted that prose cannot answer for what is on the branch.
-So the session writes and commits, and a delegate is the exception
+So the session writes and commits, and a delegate is forked only where that ownership is not at
+stake
 ([ADR 0009](adr/0009-the-session-writes-a-delegate-is-the-exception-and-no-playbook-depends-on-nesting-depth.md)):
 bulk mechanical work with a closed scope, after a script was considered, or exploration whose output
 would flood the context window. Even then the session reads the delegate's diff and writes its own
-summary. Test authors are the one standing exception, because a test written by whoever wrote the
-code tends to assert what the code does rather than what it should do.
+summary. Tests run the other way round on purpose. Every new test goes to a test author, because a
+test written by whoever wrote the code tends to assert what the code does rather than what it
+should do.
 
 **Why does the reviewer fix and land, and not `do`?**
 Because a run that could fix its own Findings would be grading its own diff. `do` hands over three
@@ -154,16 +156,15 @@ reason nothing landed, and the run stops on it with the worktree intact.
   after the run's last edit.
 - A run that stopped names its worktree and its branch, and the Ticket still reads `claimed`, so
   typing `/do` on it again picks up where it stopped rather than starting over.
-- A `trivial` request costs you one message, and a run that never reached a landing costs you no
-  cleanup you have to do by hand.
+- A `trivial` request costs you one message, start to finish.
 
 ## Where it fits
 
-`do` closes the chain. [discuss](discuss.md) settles the plan, [spec](spec.md) writes it down,
-[journey](journey.md) walks it when the spec's verdict asks for one, [tickets](tickets.md) cuts it
-into tickets, and `do` builds one of them. Only the `ticket` Playbook stands in that line. The
-other three, `trivial`, `bug-fix` and `refactoring`, sit outside it and are reachable any time, for
-work no spec was ever written for.
+`do` is the last step of a strict chain, and a standalone you reach for any time outside it.
+[discuss](discuss.md) settles the plan, [spec](spec.md) writes it down, [journey](journey.md) walks
+it when the spec's verdict asks for one, [tickets](tickets.md) cuts it into tickets, and `do` builds
+one of them. Only `ticket` is in that line. `trivial`, `bug-fix` and `refactoring` sit outside it,
+for work no spec was ever written for.
 
 - [tickets](tickets.md), because it cuts the tickets this skill takes one at a time, and its closing
   line hands you the exact `/do <ticket>` to type next.
