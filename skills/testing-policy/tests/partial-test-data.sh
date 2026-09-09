@@ -7,6 +7,7 @@ set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
 skill="$here/.."
 render="$skill/scripts/render-agent.sh"
+verify="$skill/scripts/verify-policy.sh"
 render_policy="$skill/scripts/render-policy.sh"
 fails=0
 tmp="$(mktemp -d)"
@@ -86,6 +87,7 @@ check "the inline writer reaches the rule and the entry through the agent file i
 echo
 echo "# the version"
 version="$(bash "$render_policy" --version)"
+old="2.3"  # the version before this rule landed, for the refresh fixture
 rc=0; out="$(printf '%s\n%s\n' 2.4 "$version" | sort -V | head -1)"
 check "the template version is 2.4, the step this rule landed at, or beyond (found $version)" 0 "$rc" "2.4"
 
@@ -93,6 +95,31 @@ render unit;        check "the rendered unit agent carries the template version"
 render e2e;         check "the rendered E2E agent carries the template version"   0 "$rc" "<!-- testing-policy:agent v=$version -->"
 render test-author; check "the rendered inline skill carries the template version" 0 "$rc" "<!-- testing-policy:skill v=$version -->"
 policy native;      check "the rendered policy section carries the template version" 0 "$rc" "<!-- testing-policy:start v=$version surface=native -->"
+
+echo
+echo "# the refresh"
+# map_missing() greps the whole installed file for the literal label, so a core that spelled the
+# cross-reference in the map's own bold form would read as the label already being there.
+render unit --core-only
+absent "the core's pointer does not wear the map's bold label form" "**Partial test data**"
+
+proj="$tmp/installed-at-2.3"
+mkdir -p "$proj/.claude/agents"
+{ echo "# Project"; echo; bash "$render_policy" native; } \
+  | sed -E 's/(testing-policy:start v=)[0-9.]+/\1'"$old"'/' > "$proj/CLAUDE.md"
+bash "$render" unit \
+  | grep -vE '^\*\*Partial test data\*\*|^\{\{UNIT_PARTIAL_DATA_HELPER' \
+  | sed -E 's/(testing-policy:agent v=)[0-9.]+/\1'"$old"'/' > "$proj/.claude/agents/unit-test-author.md"
+rc=0; out="$(bash "$verify" "$proj" 2>&1)" || rc=$?
+check "an agent installed before the label gets it named among the labels the template gained" 1 "$rc" \
+  "agent_unit_map_missing=**Partial test data**"
+
+echo "# the install names the line it appends"
+rc=0; out="$(cat "$skill/SKILL.md")" || rc=$?
+check "the refresh step names the label as the line it fills from discovery and appends" 0 "$rc" \
+  "for 2.4, **Partial test data** in the unit map"
+check "the preserved-parts note names the version that added the label" 0 "$rc" \
+  "2.4 added **Partial test data** to the unit map"
 
 echo
 if [ "$fails" = 0 ]; then echo "partial-test-data: all checks passed"; else echo "partial-test-data: $fails failed"; exit 1; fi

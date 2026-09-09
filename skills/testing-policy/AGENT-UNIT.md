@@ -37,7 +37,7 @@ The test calls the target the way its callers do and asserts what they can obser
 
 ### Building the input
 
-The input a test passes in is built, never forced into place. A fake that stands in for a large type is built through the helper "Project map" names under **Partial test data**, so the type checker keeps checking it against the type it stands for.
+The input a test passes in is built, never forced into place. A fake that stands in for a large type is built through the helper "Project map" names under "Partial test data", so the type checker keeps checking it against the type it stands for.
 
 - **Never build a fake by asserting a type at the compiler.** A type assertion tells the checker to trust a value it cannot verify: the fake stops tracking the type it stands for, and the test goes on passing after that type changes under it. Reach for the helper in "Project map" instead.
 - **Data that is wrong on purpose is built too.** Proving the target rejects a malformed input needs a value the checker would refuse, and the map names the form of the helper for exactly that case. It keeps the wrongness readable at the call site instead of hidden behind a silenced error.
