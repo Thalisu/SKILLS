@@ -107,8 +107,9 @@ The gate runs after the last edit and never before it, because "it passed earlie
 if your branch moved while the run was building, the run rebases onto it and runs the gate again, so
 the diff the reviewers read is the diff that lands rather than one that was true a few commits ago.
 A conflict where both sides only added lines costs you nothing: a script decides that it is one, the
-run keeps both sides in order and says which hunks it resolved, and anything it cannot decide alone
-is brought to you rather than guessed at. Then the branch goes to the review, the affected flows run
+run keeps both sides in order and says which hunks it resolved. A conflict it cannot class
+mechanically stops the run rather than being guessed at, with the rebase left open and the
+conflicting files named. Then the branch goes to the review, the affected flows run
 from your checkout, and the Ticket is closed with the command lines and their output quoted under
 `## Evidence`. A run that stops for any reason
 leaves the worktree and its branch in place and names both, so nothing is half landed and nothing is
