@@ -158,6 +158,10 @@ g rebase main >/dev/null 2>&1
 run; rebased_out="$out"; rebased_rc="$rc"
 g rebase --abort >/dev/null 2>&1
 
+out="$merged_out"; rc="$merged_rc"
+check "the merge classes both hunks before the two runs are compared" 1 "$rc" \
+  "mechanical added-to.txt L2-L6" \
+  "contested rewritten.txt L2-L6 rewrite-vs-rewrite"
 if [ "$merged_out" = "$rebased_out" ] && [ "$merged_rc" = "$rebased_rc" ]; then
   echo "ok    the class reads the same in a stopped rebase as in a stopped merge"
 else
@@ -176,6 +180,47 @@ run
 check "a tree carrying no conflicted state gets one line saying so" 0 "$rc" \
   "no conflicted state, nothing classed"
 absent "and nothing is classed" 0 "$rc" "mechanical" "contested" "verdict="
+
+# The doors, and the promise that no path writes.
+mkdir -p "$tmp/plain" && cd "$tmp/plain" || exit 1
+
+run classify
+check "a mistyped command gets the usage line" 2 "$rc" \
+  "usage: conflict-class.sh"
+absent "and nothing is read, so the place is never reported on" 2 "$rc" \
+  "not a git repository"
+
+run
+check "a place that is not a git repository gets its own line" 2 "$rc" \
+  "not a git repository"
+
+# A conflicted repository the script has not been run in, so a write from this run has nowhere to
+# hide behind an earlier one.
+fresh untouched
+printf 'x\ny\nz\n' > rewrite.txt
+commit base
+g branch inc
+printf 'x\nTARGET\nz\n' > rewrite.txt
+commit target
+g switch -q inc
+printf 'x\nINCOMING\nz\n' > rewrite.txt
+commit incoming
+g switch -q main
+g merge inc >/dev/null 2>&1
+
+state() { git status --porcelain=v2; find . -path ./.git -prune -o -type f -print | sort | xargs sha256sum; }
+before="$(state)"
+run
+after="$(state)"
+check "the run still classes, so the comparison below is over a real run" 1 "$rc" \
+  "contested rewrite.txt L2-L6 rewrite-vs-rewrite"
+if [ "$before" = "$after" ]; then
+  echo "ok    the tree is left as git left it"
+else
+  echo "FAIL  the tree is left as git left it"
+  diff <(echo "$before") <(echo "$after") | sed 's/^/      /'
+  fails=$((fails + 1))
+fi
 
 echo
 if [ "$fails" = 0 ]; then echo "all ok"; else echo "$fails failed"; exit 1; fi
