@@ -128,4 +128,16 @@ has "the door reads a blocker's status line and never its body" "$refs/ticket.md
 expect "the read the door names returns the status line and nothing else" \
   blocker_read_returns_the_status_line_alone
 
+# Which criteria a user can observe is a reading of the Spec and the journey, so it comes back from
+# the reader that held both, and it survives into a run that reuses the Digest without forking.
+has "the Digest carries the criteria whose change a user can observe" "$refs/digest.md" \
+  "## Observable criteria" \
+  "the numbers of the Ticket's criteria" \
+  "Five sections"
+has "the run restates the observable criteria with the rest of the slice" "$refs/ticket.md" \
+  "the criteria it marks observable"
+has "the flows step reads that section instead of judging the diff" "$refs/ticket.md" \
+  'the Digest'"'"'s `## Observable criteria` section' \
+  "never the run's own reading of the diff"
+
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi

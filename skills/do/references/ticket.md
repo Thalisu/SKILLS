@@ -158,15 +158,15 @@ no boundary is crossed the step reads `skip: no boundary crossed`. Done when the
 thread, or the skip.
 
 **4. Behaviours.** The run names the Digest's location and restates it in one line, its Journey
-Path, the story numbers it carries and its Testing Decisions, so the developer checks the slice
-before the list is written. Then write the list from the Ticket's criteria and its `What to build`
-line and from the Digest's quotes, its Path's step table and failure branches among them; never
-from the implementation. It holds the behaviours callers observe, critical paths and the logic that
-can be wrong first, not one line per branch. A line of the list traces to a quoted story, a
-quoted Testing Decision or a Journey step, never to a paraphrase: a line no quote in the Digest
-carries is one the run invented. Each line becomes
-one dispatch, and a line that reproduces a defect is marked `bugfix`. A defect whose cause the
-Ticket does not name, the one step 0 wrote a defect line for reading
+Path, the story numbers it carries, its Testing Decisions and the criteria it marks observable, so
+the developer checks the slice before the list is written. Then write the list from the Ticket's
+criteria and its `What to build` line and from the Digest's quotes, its Path's step table and
+failure branches among them; never from the implementation. It holds the behaviours callers
+observe, critical paths and the logic that can be wrong first, not one line per branch. A line of
+the list traces to a quoted story, a quoted Testing Decision or a Journey step,
+never to a paraphrase: a line no quote in the Digest carries is one the run invented. Each line
+becomes one dispatch, and a line that reproduces a defect is marked `bugfix`. A defect whose cause
+the Ticket does not name, the one step 0 wrote a defect line for reading
 `cause unknown, diagnosis first`, is diagnosed before the list by the reproduce and cause steps of
 [bug-fix.md](bug-fix.md), steps 2 and 3 there: the defect reproduced on the matching surface, the
 hypotheses ruled out with runtime evidence, the instrumentation reverted, the mechanism confirmed,
@@ -195,8 +195,11 @@ the complete input: the behaviour to prove, the journey or screen, the origin, t
 placement when it matters. The flow must return `GREEN`; `BLOCKED` on a preflight stops the run
 as blocked. The flow is committed on its own or with the last behaviour. On a consumer surface
 the flow lives in the consumer repository and is recorded as pending debt with the consumers
-named. A purely internal change states why no flow is needed, never presumed. Done when each
-user-observable change has a flow or a stated reason.
+named. Which changes a user can observe is the Digest's `## Observable criteria` section, the
+reading the reader returned from the Path's own steps, and never the run's own reading of the diff.
+A criterion that section leaves out states why no flow is needed, and a criterion it names with no
+flow authored stops the step. Done when each criterion the section names has a flow or a stated
+reason.
 
 **7. Gate.** The gate in [mechanics.md](mechanics.md), in the worktree, after the last edit. Done
 when the suite and the typecheck are green in output produced after the last edit.

@@ -29,9 +29,10 @@ It returns two things: the Digest's location, and the one line the run restates 
 
 ## What it holds
 
-Four sections, in this order. The three that carry the slice hold quote blocks and nothing else:
+Five sections, in this order. The three that carry the slice hold quote blocks and nothing else:
 the reader adds no sentence of its own there, and what is not a quote is not in them. `## Sources`
-is not one of them, since a hash is a value and not a quote.
+and `## Observable criteria` are not among the three, since a hash and a criterion number are
+values and not quotes.
 
 - `## Sources`: what the slice was cut from, one line per document, `<name>: <absolute path>
   <hash>`, with `spec` and `journey` as the two names and the hash from `git hash-object <path>`
@@ -50,6 +51,12 @@ is not one of them, since a hash is a value and not a quote.
   whole. Without a journey, the stories the Ticket's criteria answer to.
 - `## Testing Decisions`: the Spec's `## Testing Decisions` section, quoted by its bullets, or by
   its paragraphs when it has none.
+- `## Observable criteria`: the numbers of the Ticket's criteria whose change a user can observe,
+  one per line as `<n>: <the surface it shows on>`, and `none` when no criterion does. The reader
+  decides that from the Path it just quoted, whose steps say what the actor sees, which is the
+  reading the flows step of the `ticket` Playbook takes. It stays a list of numbers because it
+  survives into a run that reuses the Digest and forks nobody: a sentence about the criteria would
+  be the paraphrase the rest of the Digest exists to keep out.
 
 ## A quote block
 
