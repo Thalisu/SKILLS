@@ -54,16 +54,24 @@ fresh contested
 printf 'x\ny\nz\n' > rewrite.txt
 printf 'kept\n' > dropped-by-incoming.txt
 printf 'kept\n' > dropped-by-target.txt
+printf 'one\ntwo\nthree\n' > renamed.txt
+seq 1 12 > renamed-and-added-to.txt
 commit base
 g branch inc
 printf 'x\nTARGET\nz\n' > rewrite.txt
 printf 'kept\nedited by target\n' > dropped-by-incoming.txt
 rm dropped-by-target.txt
+printf 'one\nTARGET\nthree\n' > renamed.txt
+printf '%s\nTARGET\n' "$(cat renamed-and-added-to.txt)" > renamed-and-added-to.txt
 commit target
 g switch -q inc
 printf 'x\nINCOMING\nz\n' > rewrite.txt
 rm dropped-by-incoming.txt
 printf 'kept\nedited by incoming\n' > dropped-by-target.txt
+g mv renamed.txt moved.txt >/dev/null
+printf 'one\nINCOMING\nthree\n' > moved.txt
+g mv renamed-and-added-to.txt moved-and-added-to.txt >/dev/null
+printf '%s\nINCOMING\n' "$(cat moved-and-added-to.txt)" > moved-and-added-to.txt
 commit incoming
 g switch -q main
 g merge inc >/dev/null 2>&1
@@ -74,8 +82,12 @@ check "two sides rewriting the same lines: contested, with the shape named" 1 "$
 check "a delete against an edit: contested, whichever side deleted" 1 "$rc" \
   "contested dropped-by-incoming.txt whole-file delete-vs-edit" \
   "contested dropped-by-target.txt whole-file delete-vs-edit"
+check "a rename against an edit: contested, named as a rename and not as a rewrite" 1 "$rc" \
+  "contested moved.txt L2-L6 rename-vs-edit"
+check "a rename stays contested even where both sides only added" 1 "$rc" \
+  "contested moved-and-added-to.txt L13-L17 rename-vs-edit"
 check "the verdict follows the contested hunk" 1 "$rc" \
-  "verdict=contested mechanical=0 contested=3"
+  "verdict=contested mechanical=0 contested=5"
 
 echo
 if [ "$fails" = 0 ]; then echo "all ok"; else echo "$fails failed"; exit 1; fi

@@ -38,12 +38,32 @@ emit() { # $1 class, $2 file, $3 location, $4 shape (contested only)
   esac
 }
 
+# The shape every contested hunk of one both-modified file carries. Git suffixes both marker labels
+# with each side's own path when the two differ, and that suffix is the only record a conflicted
+# hunk keeps of a rename.
+file_shape() { # $1 path
+  local path="$1" target incoming
+  target="$(grep -m1 '^<<<<<<< ' "$path" 2>/dev/null)"
+  incoming="$(grep -m1 '^>>>>>>> ' "$path" 2>/dev/null)"
+  target="${target#<<<<<<< }"
+  incoming="${incoming#>>>>>>> }"
+  case "$target" in *:*) ;; *) echo rewrite-vs-rewrite; return ;; esac
+  case "$incoming" in *:*) ;; *) echo rewrite-vs-rewrite; return ;; esac
+  target="${target##*:}"
+  incoming="${incoming##*:}"
+  if [ "$target" != "$incoming" ] && { [ "$target" = "$path" ] || [ "$incoming" = "$path" ]; }; then
+    echo rename-vs-edit
+  else
+    echo rewrite-vs-rewrite
+  fi
+}
+
 # The hunks of one both-modified text file, from a conflict presentation regenerated out of the
 # three stages. The working file supplies the locations and the regenerated merge the sides, matched
 # by ordinal; a file whose two hunk counts disagree is no longer what git left, so nothing in it is
 # certified mechanical.
 classify_hunks() { # $1 path
-  local path="$1" i=0 line section base_lines=0 classes=() starts=() ends=()
+  local path="$1" i=0 line section base_lines=0 shape classes=() starts=() ends=()
   git cat-file blob ":1:$path" > "$tmp/base" 2>/dev/null
   git cat-file blob ":2:$path" > "$tmp/target" 2>/dev/null
   git cat-file blob ":3:$path" > "$tmp/incoming" 2>/dev/null
@@ -51,13 +71,18 @@ classify_hunks() { # $1 path
     "$tmp/target" "$tmp/base" "$tmp/incoming" > "$tmp/merged" 2>/dev/null
   [ "$?" -le 127 ] || { emit contested "$path" whole-file unmergeable; return; }
 
+  shape="$(file_shape "$path")"
   section=outside
   while IFS= read -r line; do
     case "$line" in
       '<<<<<<< '*) section=target; base_lines=0 ;;
       '||||||| '*) section=base ;;
       '=======')   section=incoming ;;
-      '>>>>>>> '*) [ "$base_lines" -eq 0 ] && classes+=(mechanical) || classes+=(contested)
+      '>>>>>>> '*) if [ "$base_lines" -eq 0 ] && [ "$shape" != rename-vs-edit ]; then
+                     classes+=(mechanical)
+                   else
+                     classes+=(contested)
+                   fi
                    section=outside ;;
       *)           [ "$section" = base ] && base_lines=$((base_lines + 1)) ;;
     esac
@@ -70,7 +95,7 @@ classify_hunks() { # $1 path
     return
   fi
   while [ "$i" -lt "${#classes[@]}" ]; do
-    emit "${classes[$i]}" "$path" "L${starts[$i]}-L${ends[$i]}" rewrite-vs-rewrite
+    emit "${classes[$i]}" "$path" "L${starts[$i]}-L${ends[$i]}" "$shape"
     i=$((i + 1))
   done
 }
