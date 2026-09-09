@@ -23,8 +23,9 @@
 # module outside the repo, so a system boundary) or `internal` (a relative/alias path or a module of
 # this repo, so either a thin wrapper around a boundary or an internal collaborator: debt);
 # type-assertions = every TypeScript test file carrying a type assertion, with a count: a
-# double assertion (`as unknown as T`) counts once, and `as const` and an import or export
-# rename count as none;
+# double assertion (`as unknown as T`) counts once, and `as const`, an import or export rename
+# over however many lines its specifier list spans, and the word "as" inside a string, a
+# template literal or a comment count as none;
 # skip-markers = every marker from skip-patterns.sh (sourced from this script's directory).
 # Output is plain text with fixed "## <section>" headers so callers can grep it.
 # Exit 0 whenever the scan ran (a finding is not an error); exit 2 on usage errors.
@@ -244,11 +245,52 @@ fi
 # --- type-assertions ---------------------------------------------------------------------
 if want type-assertions; then
   hdr type-assertions
+  # Blanks everything that can hold the English word "as" without asserting a type: string and
+  # template literals, comments, and whole import and export statements over however many lines
+  # their specifier list spans. A literal running past its line is blanked to the end of the file
+  # rather than guessed at, so the count only ever undershoots. \047 is the single quote, which
+  # cannot be written literally inside the shell string this program travels in.
+  ts_code_only() {
+    awk '
+      function clean(line,   p, cut, nst) {
+        if (st == 2) {
+          p = index(line, "*/"); if (p == 0) return ""
+          line = substr(line, p + 2); st = 0
+        } else if (st == 5) {
+          if (!match(line, /^([^`\\]|\\.)*`/)) return ""
+          line = substr(line, RLENGTH + 1); st = 0
+        }
+        gsub(/"([^"\\]|\\.)*"/, "", line)
+        gsub(/\047([^\047\\]|\\.)*\047/, "", line)
+        gsub(/`([^`\\]|\\.)*`/, "", line)
+        gsub(/\/\*([^*]|\*+[^*\/])*\*+\//, "", line)
+        cut = 0; nst = 0
+        p = index(line, "//");   if (p > 0)                     { cut = p; nst = 0 }
+        p = index(line, "/*");   if (p > 0 && (!cut || p < cut)) { cut = p; nst = 2 }
+        p = index(line, "`");    if (p > 0 && (!cut || p < cut)) { cut = p; nst = 5 }
+        p = index(line, "\"");   if (p > 0 && (!cut || p < cut)) { cut = p; nst = 0 }
+        p = index(line, "\047"); if (p > 0 && (!cut || p < cut)) { cut = p; nst = 0 }
+        if (!cut) return line
+        st = nst
+        return substr(line, 1, cut - 1)
+      }
+      function braces(s,   t, o, c) { t = s; o = gsub(/\{/, "", t); t = s; c = gsub(/\}/, "", t); return o - c }
+      {
+        code = clean($0)
+        if (imp) { depth += braces(code); if (depth <= 0) imp = 0; print ""; next }
+        if (code ~ /^[[:space:]]*(import([[:space:]]|\{|$)|export([[:space:]]+type)?[[:space:]]*[{*])/) {
+          depth = braces(code); if (depth > 0) imp = 1
+          print ""; next
+        }
+        print code
+      }
+    ' "$1" 2>/dev/null
+  }
   {
     for f in "${test_files[@]}"; do
       case "$f" in
         *.ts|*.tsx|*.mts|*.cts)
-          n="$(grep -vE '^[[:space:]]*(//|/?\*|import\b|export[[:space:]]*[{*])' "$f" 2>/dev/null \
+          n="$(ts_code_only "$f" \
             | grep -oE '\bas[[:space:]]+unknown[[:space:]]+as[[:space:]]+[A-Za-z_$][A-Za-z0-9_$]*|\bas[[:space:]]+[A-Za-z_$][A-Za-z0-9_$]*' \
             | grep -cvE '^as[[:space:]]+const$')"
           [ "${n:-0}" -gt 0 ] && printf '%s\t%d\n' "$f" "$n" ;;

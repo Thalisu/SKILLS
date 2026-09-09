@@ -267,6 +267,45 @@ check "a root holding no test file prints the section header and no row" 0 "$rc"
 absent "the section reads the roots it was given and no others" 0 "$rc" \
   "tests/single.test.ts" "tests/double.test.ts"
 
+prose="$tmp/scan-prose"
+mkdir -p "$prose/tests"
+cat > "$prose/tests/prose.test.ts" <<'FIXTURE'
+it("renders the total as currency", () => {});
+it("treats a missing due date as overdue", () => {});
+FIXTURE
+cat > "$prose/tests/aside.test.ts" <<'FIXTURE'
+const total = 10; // the API returns it as cents
+const label = `saved as draft`;
+/* the invoice reads as paid once the boleto settles */
+FIXTURE
+cat > "$prose/tests/wrapped.test.ts" <<'FIXTURE'
+import {
+  makeUser as buildUser,
+  makeInvoice as buildInvoice,
+} from "./support/factory";
+
+export {
+  buildUser as sharedUser,
+};
+FIXTURE
+cat > "$prose/tests/mixed.test.ts" <<'FIXTURE'
+import {
+  makeUser as buildUser,
+} from "./support/factory";
+
+it("renders the total as currency", () => {
+  const label = `saved as draft`; // reads as draft until it is sent
+  const user = buildUser() as User;
+});
+FIXTURE
+tree="$prose"
+scan --root tests --section type-assertions
+absent "prose, a trailing comment, a template literal and a wrapped rename count as no assertion" 0 "$rc" \
+  "tests/prose.test.ts" "tests/aside.test.ts" "tests/wrapped.test.ts"
+check "a file mixing those with one real assertion counts that one" 0 "$rc" \
+  "$(row tests/mixed.test.ts 1)"
+tree="$tmp/scan-tree"
+
 rc=0; out="$(cat "$skill/SKILL.md")" || rc=$?
 # shellcheck disable=SC2016  # the backticks are part of the fixed string SKILL.md carries
 check "the scan step counts the section among the debt list it keeps for the report" 0 "$rc" \
