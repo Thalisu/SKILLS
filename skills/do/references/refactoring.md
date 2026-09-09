@@ -209,9 +209,20 @@ cannot reach, in another repository, is not a shim's excuse; it is named in the 
 with the consumer named.
 
 Every rename is spot-checked in strings and prose, not only in code: log lines, error messages,
-fixtures, configuration keys, documentation, comments and test names. A compiler and a typechecker do
-not read those, so `rg -n -w <the old name>` over the project is what proves the rename landed, and
-its empty output is quoted.
+fixtures, documentation, comments and test names. A compiler and a typechecker do not read those, so
+`rg -n -w <the old name>` over the project is what proves the rename landed, and its empty output is
+quoted.
+
+The sweep stops at every name the project does not own at run time: an environment key or a
+configuration key a deployment sets, a deploy or a CI variable, a wire field a client sends or reads,
+a value already persisted in a database, a queue or a cache, an export another repository imports.
+Something outside the repository writes or reads those, and no instrument of the pin can see it,
+since the suite, the typecheck and the harness all supply their own environment. All three stay
+green while the deployment goes on setting the old name and the code now reads the new one, which is
+how a renamed flag switches a check off with nothing to show for it. Renaming one of those is a
+behaviour change, so it goes back through the door of step 1: the reshape keeps the old name, and
+the reply names the rename with the command that takes it, `/do` with the effect in words for a
+defect and `/discuss <the rename>` otherwise.
 
 Three reds, each with one answer:
 
