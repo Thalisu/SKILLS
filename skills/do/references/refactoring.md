@@ -287,3 +287,77 @@ and its own red-first fix, which this Playbook's pin is the wrong instrument for
 
 Done when the cleanup is committed or reads its skip, and a behaviour change found here is named in
 the thread with its command.
+
+### 10. Gate
+
+The gate in [mechanics.md](mechanics.md), in the worktree, after the last edit: the full unit suite,
+the typecheck, the lint and the format check, each command line shown and its relevant output line
+quoted. A red gate is one more step of the reshape, taken as step 6 takes one, and then the whole
+gate again; never a skipped test, a weakened assertion or a pin edited to fit. Done when the suite
+and the typecheck are green in output produced after the last edit.
+
+### 11. Review
+
+The review in [mechanics.md](mechanics.md), called once, with the branch alone as its spec source
+since there is no Ticket outside the chain, the commit the worktree was created from as the fixed
+point, and the branch the run started on as the landing target. The review writes the Review, fixes
+its `Act on` Findings through its Fixer and lands the branch by fast-forward when the Review is
+Green. The run fixes no Finding and lands nothing itself.
+
+The thread shows the return, one line per part, as the shared section says. The four returns are the
+ones the `ticket` Playbook gets:
+
+- **Landed.** The line reads `landed at <commit>` and the run goes to the verification.
+- **Not landed**, for any reason the review gives. The run stops as blocked with the reason quoted,
+  the worktree and its branch left in place and named in the reply, nothing half fixed.
+- **`do-code-review` not listed.** The step reads `skip: do-code-review not listed`, nothing lands,
+  and the reply names the worktree, its branch and the review as the developer's next step.
+- **A protected branch.** The review refuses the landing, as the first message warned it would, and
+  the reply adds the two commands that land the reviewed branch by hand from a branch that takes
+  commits:
+
+```
+git switch <a branch that takes commits>
+git merge --ff-only do/<slug>
+```
+
+Done when the landing line reads `landed at <commit>`, or the run stopped as blocked with the
+review's reason quoted, or the step reads its skip with the worktree and its branch named.
+
+### 12. Verification
+
+The verification in [mechanics.md](mechanics.md), from the main checkout after the landing: the
+affected flows with the command line printed first, the one question before a full suite or a remote
+run, and a red flow taken as one more step of the reshape, gated and handed to a second review call
+with the landed commit as its fixed point. A reshape whose diff changed no screen, route or message
+has no affected flow, and the step reads `skip: no affected flow` with that reason. Done when every
+affected flow is green or recorded as not run on the developer's no, or the step reads
+`skip: nothing landed`.
+
+### 13. Close
+
+The close in [mechanics.md](mechanics.md). Outside the chain there is no Ticket, so the close is the
+worktree's removal alone: leave it with a bare `cd` to the main checkout, then `git worktree remove
+<path>` and `git branch -d do/<slug>` from there. A delete that refuses means something did not land,
+and the run stops with the worktree and its branch named. Done when `git worktree list` no longer
+shows the run's worktree, or the step reads `skip: nothing landed`.
+
+### 14. Reply
+
+Written by [reply.md](reply.md), with these lines before its sections, in this order:
+
+- It names the structure the reshape gave the code, the one step 4 named, and the target shape it
+  reached.
+- The commits in order, subtraction, reshape, cleanup, each with its short sha, so a reader sees that
+  one revert undoes one slice.
+- The pin's before and after lines quoted, the suite, the typecheck and the harness's two runs. Those
+  quoted lines are the harness's only record, since step 9 deleted it, so a line missing here is a
+  proof nobody can reproduce.
+- The equivalence gap as debt: the behaviour the harness drove and that no test in the tree covers
+  now.
+
+Then the reply reference's sections in their order. Under pending debt: that gap, a caller in another
+repository the wave could not reach, a test that went red under a pure reshape and was named rather
+than edited, and a failed exit test the developer chose to keep. The reply ends with the push command
+naming the developer's branch when the review landed, and with the next command otherwise. Done when
+the reply is sent with every section that applies.
