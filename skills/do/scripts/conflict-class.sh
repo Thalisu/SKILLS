@@ -92,8 +92,9 @@ fi
 
 for path in "${paths[@]}"; do
   case "${stages[$path]}" in
-    " 1 2 3") classify_hunks "$path" ;;
-    *)        emit contested "$path" whole-file unmergeable ;;
+    " 1 2 3")      classify_hunks "$path" ;;
+    " 1 2"|" 1 3") emit contested "$path" whole-file delete-vs-edit ;;
+    *)             emit contested "$path" whole-file unmergeable ;;
   esac
 done
 
