@@ -25,14 +25,17 @@ check() { # $1 label, $2 expected exit, $3 actual exit, $4.. lines that must app
 cd "$tmp" || exit 1
 git init -q -b main
 printf 'a\nb\n' > adjacent.txt
+printf 'a\nb\n' > identical.txt
 commit base
 g branch inc
 
 printf 'a\nTARGET\nb\n' > adjacent.txt
+printf 'a\nb\nSAME\nTARGET\n' > identical.txt
 commit target
 
 g switch -q inc
 printf 'a\nINCOMING\nb\n' > adjacent.txt
+printf 'a\nb\nSAME\nINCOMING\n' > identical.txt
 commit incoming
 
 g switch -q main
@@ -41,8 +44,10 @@ g merge inc >/dev/null 2>&1
 run
 check "both sides only added: mechanical, with the file and the hunk's location" 0 "$rc" \
   "mechanical adjacent.txt L2-L6"
+check "identical additions are mechanical too, with neither copy of the shared line dropped" 0 "$rc" \
+  "mechanical identical.txt L4-L8"
 check "the last line carries the verdict" 0 "$rc" \
-  "verdict=mechanical mechanical=1 contested=0"
+  "verdict=mechanical mechanical=2 contested=0"
 
 echo
 if [ "$fails" = 0 ]; then echo "all ok"; else echo "$fails failed"; exit 1; fi
