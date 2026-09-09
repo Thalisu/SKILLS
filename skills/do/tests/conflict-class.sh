@@ -240,6 +240,31 @@ else
   fails=$((fails + 1))
 fi
 
+# Conflicted paths that begin with a dash. Every one of them has to reach a command as a path and
+# never as an option: named -i the door read its caller's stdin instead of the file, and the run
+# below hands it a stdin that never delivers, so a read of it costs the timeout.
+fresh dash-paths
+for f in -i -r --help; do printf 'x\ny\nz\n' > "$f"; done
+commit base
+g branch inc
+for f in -i -r --help; do printf 'x\nTARGET\nz\n' > "$f"; done
+commit target
+g switch -q inc
+for f in -i -r --help; do printf 'x\nINCOMING\nz\n' > "$f"; done
+commit incoming
+g switch -q main
+g merge inc >/dev/null 2>&1
+
+mkfifo "$tmp/never-delivers"
+exec 9<> "$tmp/never-delivers"
+rc=0; out="$(timeout 10 bash "$door" <&9 2>&1)" || rc=$?
+exec 9>&-
+check "a conflicted path that begins with a dash is a path and not an option" 1 "$rc" \
+  "contested -i L2-L6 rewrite-vs-rewrite" \
+  "contested -r L2-L6 rewrite-vs-rewrite" \
+  "contested --help L2-L6 rewrite-vs-rewrite" \
+  "verdict=contested mechanical=0 contested=3"
+
 # A tree holding one hunk of each class.
 fresh mixed
 printf 'a\nb\n' > added-to.txt

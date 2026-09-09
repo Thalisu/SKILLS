@@ -126,8 +126,10 @@ classify_hunks() { # $1 path
     esac
   done < "$tmp/merged"
 
-  mapfile -t starts < <(grep -n '^<<<<<<< ' "$path" 2>/dev/null | cut -d: -f1)
-  mapfile -t ends < <(grep -n '^>>>>>>> ' "$path" 2>/dev/null | cut -d: -f1)
+  # A conflicted path is free to begin with a dash, so it reaches grep behind --: a file named -i
+  # would otherwise be an option and turn both reads into a read of the caller's stdin.
+  mapfile -t starts < <(grep -n '^<<<<<<< ' -- "$path" 2>/dev/null | cut -d: -f1)
+  mapfile -t ends < <(grep -n '^>>>>>>> ' -- "$path" 2>/dev/null | cut -d: -f1)
   if [ "${#classes[@]}" -eq 0 ] ||
      [ "${#starts[@]}" -ne "${#classes[@]}" ] || [ "${#ends[@]}" -ne "${#classes[@]}" ]; then
     emit contested "$path" whole-file unmergeable
