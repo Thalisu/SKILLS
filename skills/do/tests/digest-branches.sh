@@ -30,6 +30,9 @@ expect() { # $1 label, $2.. a command that must succeed
   local label="$1"; shift
   if "$@"; then echo "ok    $label"; else echo "FAIL  $label"; fails=$((fails + 1)); fi
 }
+every_command_this_script_runs_is_a_literal() { # nothing lifted out of a document reaches argv
+  ! grep -qE '\$\(\$|\$\{?cmd' "$here/digest-branches.sh"
+}
 header_has() { # $1 a fixed string that must appear in this script's own header comment
   sed -n '1,7p' "$here/digest-branches.sh" | grep -qF -- "$1"
 }
@@ -89,21 +92,16 @@ withheld_wording_is_the_one_already_fixed() { # the Delegates rule's own words, 
   [ "$(grep -cF -- "the session does that work itself" "$refs/mechanics.md")" -ge 2 ]
 }
 
-recorded_source_ignores_a_touch() { # the command the contract names, read out of it and run
-  local cmd dir written touched edited
-  cmd="$(sed -n 's/.*the hash from `\([^`]*\)`.*/\1/p' "$refs/digest.md" | head -1)"
-  cmd="${cmd% <path>}"
-  [ -n "$cmd" ] || return 1
+recorded_source_ignores_a_touch() { # the command the contract names, asserted there and run as a literal
+  local dir written touched edited
+  grep -qF -- 'the hash from `git hash-object <path>`' "$refs/digest.md" || return 1
   dir="$(mktemp -d)" || return 1
   printf 'the spec\n' > "$dir/spec.md"
-  # shellcheck disable=SC2086
-  written="$($cmd "$dir/spec.md" 2>/dev/null)" || { rm -rf "$dir"; return 1; }
+  written="$(git hash-object "$dir/spec.md" 2>/dev/null)" || { rm -rf "$dir"; return 1; }
   touch "$dir/spec.md"
-  # shellcheck disable=SC2086
-  touched="$($cmd "$dir/spec.md" 2>/dev/null)"
+  touched="$(git hash-object "$dir/spec.md" 2>/dev/null)"
   printf 'the spec\namended\n' > "$dir/spec.md"
-  # shellcheck disable=SC2086
-  edited="$($cmd "$dir/spec.md" 2>/dev/null)"
+  edited="$(git hash-object "$dir/spec.md" 2>/dev/null)"
   rm -rf "$dir"
   [ -n "$written" ] && [ "$written" = "$touched" ] && [ "$written" != "$edited" ]
 }
@@ -234,6 +232,11 @@ has "the eval index says the withheld case covers the door's reader" "$repo/skil
 
 expect "the blocker case grades the status-alone read" \
   test -f "$repo/skills/do/evals/blocked-ticket-refused/graders/blocker-read-as-a-status-alone.md"
+
+# A markdown-only edit to a reference this script reads must not become a command on the machine of
+# whoever runs it: the doc is asserted to name the command it names, and what runs is the literal.
+expect "no command this script runs is lifted out of a document" \
+  every_command_this_script_runs_is_a_literal
 
 # Rerunnable by a reviewer who has only the file, since the repo has no runner. The match is the
 # header alone: the pattern is itself a line further down this script.
