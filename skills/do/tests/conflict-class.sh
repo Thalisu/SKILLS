@@ -222,5 +222,24 @@ else
   fails=$((fails + 1))
 fi
 
+# A run from a directory that is not the top.
+fresh subdirectory
+mkdir -p nested/deeper
+printf 'x\ny\nz\n' > nested/deeper/rewrite.txt
+commit base
+g branch inc
+printf 'x\nTARGET\nz\n' > nested/deeper/rewrite.txt
+commit target
+g switch -q inc
+printf 'x\nINCOMING\nz\n' > nested/deeper/rewrite.txt
+commit incoming
+g switch -q main
+g merge inc >/dev/null 2>&1
+cd nested || exit 1
+
+run
+check "run from a subdirectory, the file is named from the repository top" 1 "$rc" \
+  "contested nested/deeper/rewrite.txt L2-L6 rewrite-vs-rewrite"
+
 echo
 if [ "$fails" = 0 ]; then echo "all ok"; else echo "$fails failed"; exit 1; fi
