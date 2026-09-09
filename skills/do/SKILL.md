@@ -32,6 +32,7 @@ to type; nothing is written and no reference is read.
 | a question: how something works, why it was built that way | `Playbook: none`; `/how` for the mechanism, `/why` for the rationale, `/teach` to understand it end to end |
 | a sketch, a layout, a variant to try | `Playbook: none`; `/prototype` |
 | a change in words that no test could tell before from after: a typo, a doc line, a comment, a formatting fix, a log wording, a rename inside one file, dead code, a lint fix. Never a bug, a new exported symbol, a changed signature or a change the user sees, whatever its size | `trivial` |
+| a reshape of existing code in words, its behaviour unchanged: refactor, rename, extract, inline, dedupe, move this module. Never a request that moves behaviour a caller or a user observes | `refactoring` |
 | a feature, and any other request with no Ticket | `Playbook: none`; `/discuss`, or `/spec` when the conversation already holds the discussion |
 
 A matched Playbook whose reference is missing from Links is not installed in this session:
@@ -59,6 +60,7 @@ One per reference. A Playbook's reference is read only when a router line names 
 - [mechanics.md](references/mechanics.md): the shared mechanics the Playbooks that build in a worktree read through their steps: the worktree, the protected branch, the Ticket file, the build loop, the gate, the review, the verification, the close.
 - [tdd-fallback.md](references/tdd-fallback.md): the TDD fallback the build loop reads when the project has no unit test author, and never otherwise: the run writes the failing test itself, and no test author is dispatched.
 - [trivial.md](references/trivial.md): the `trivial` Playbook: its door checks, its steps and the door script they run.
+- [refactoring.md](references/refactoring.md): the `refactoring` Playbook: its door checks, its steps and the pin it holds the reshape against.
 - [reply.md](references/reply.md): the reply every Playbook writes last, its sections in order.
 - [ticket-format.md](../../.agents/formats/ticket-format.md): the Ticket the `ticket` line matches, and the fields a run reads and writes.
 - [spec-format.md](../../.agents/formats/spec-format.md): the Spec the door recognises, and its `Journey:` line.
