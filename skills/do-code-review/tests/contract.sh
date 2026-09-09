@@ -428,6 +428,15 @@ has "the dirty-tree refusal ends in one line and writes nothing" \
   "working tree has uncommitted changes; commit or stash before fix"
 expect "the dirty-tree case leaves a change uncommitted" \
   grep -q "uncommitted" "$evals/fix-dirty-tree/case.yaml"
+# Both scaffolds write .gitignore and commit before the heredoc writes the Review, so the Review is
+# ignored and never tracked: that, not a commit, is why the fix door reads the tree clean, and
+# evals.sh checks the fixture itself with its review_in_status=no assertion.
+for case in fix-run fix-dirty-tree; do
+  has "the $case scaffold says why the door reads the tree clean" "$evals/$case/case.yaml" \
+    "under the ignored \`.scratch/\`" "never committed"
+  lacks "the $case scaffold claims no committed Review" "$evals/$case/case.yaml" \
+    "Review is committed" "Review was committed"
+done
 has "the stale case reports the moved location and commits nothing" \
   "$evals/fix-stale/graders/stale-reported.md" "stale"
 has "the no-fix case never reads the fix reference" \

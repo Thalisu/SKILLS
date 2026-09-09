@@ -8,9 +8,9 @@ context:
   scaffold_script: |
     #!/usr/bin/env bash
     # A branch whose Review the case wrote, with one Act on Finding against a planted correctness bug
-    # (a page of ten over eleven items returns nine) and one Consider the fix must not touch. The tree
-    # is clean and the Review is committed, so the fix door holds and the run fixes, verifies, appends
-    # and lands on the branch the checkout is on.
+    # (a page of ten over eleven items returns nine) and one Consider the fix must not touch. The
+    # Review sits under the ignored `.scratch/` and is never committed, so the tree reads clean, the
+    # fix door holds, and the run fixes, verifies, appends and lands on the branch the checkout is on.
     set -e
     mkdir -p src tests .scratch/reviews
     cat > package.json <<'JSON'

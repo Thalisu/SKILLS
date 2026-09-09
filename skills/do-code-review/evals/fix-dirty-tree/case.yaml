@@ -7,8 +7,9 @@ allowed_tools: [Bash, Read, Write, Glob, Grep, Agent, Skill]
 context:
   scaffold_script: |
     #!/usr/bin/env bash
-    # The same Review and branch as fix-run, with one change left uncommitted in src/notes.js after the
-    # Review was committed, so the fix door refuses before anything is written.
+    # The same Review and branch as fix-run: the Review sits under the ignored `.scratch/` and is
+    # never committed, and one change is left uncommitted in src/notes.js, so the fix door refuses
+    # before anything is written.
     set -e
     mkdir -p src tests .scratch/reviews
     cat > package.json <<'JSON'
