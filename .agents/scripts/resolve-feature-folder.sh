@@ -17,12 +17,17 @@
 # the folder's date, or none for an undated folder.
 #
 # Exit codes: 0 it resolved, folder=none included, so a slug that names nothing never fails the
-# caller's run.
+# caller's run · 2 usage, or a slug that normalises to nothing.
 set -uo pipefail
+
+usage() { echo "usage: resolve-feature-folder.sh <slug>" >&2; exit 2; }
+
+[ "$#" = 1 ] || usage
 
 slug="$(tr '[:upper:]' '[:lower:]' <<<"$1" | tr -c 'a-z0-9' '-' | tr -s '-')"
 slug="${slug#-}"; slug="${slug%-}"
 slug="$(sed -E 's/^[0-9]{8}-//' <<<"$slug")"
+[ -n "$slug" ] || { echo "a slug is needed: $1 normalises to nothing" >&2; exit 2; }
 
 top="$(git rev-parse --show-toplevel 2>/dev/null)"
 root="$top"

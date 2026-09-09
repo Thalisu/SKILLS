@@ -91,4 +91,15 @@ check "every other character becomes a dash, squeezed and trimmed" 0 "$rc" \
   "slug=nightly-purge" \
   "folder=.scratch/$today-nightly-purge"
 
+# A usage error and a slug that normalises to nothing each refuse with their own reason, so a
+# caller never reads none for a slug it never managed to hand over.
+mkdir "$tmp/usage" && cd "$tmp/usage" && git init -q
+run
+check "no argument is a usage error" 2 "$rc" "usage: resolve-feature-folder.sh <slug>"
+run one two
+check "a second argument is a usage error" 2 "$rc" "usage: resolve-feature-folder.sh <slug>"
+run "!!!"
+check "a slug that normalises to nothing is refused by its own reason" 2 "$rc" \
+  "a slug is needed: !!! normalises to nothing"
+
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi
