@@ -109,7 +109,7 @@ and Bucket, or `0 findings`:
 - Standards: 1 finding, worst #3 (Consider)
 - Principles: 0 findings
 - Blast radius: 1 finding, worst #2 (Act on)
-- Security: not run, no security reviewer installed
+- Security: 0 findings
 ```
 
 The Spec line reads `no spec` when no Ticket and no spec file was found. An Axis whose reviewer did
@@ -175,7 +175,7 @@ Refuted by: a proof script that imports src/report.js and calls `summary()` retu
 - Standards: 1 finding, worst #2 (Consider)
 - Principles: 0 findings
 - Blast radius: 1 finding, worst #3 (Cleared)
-- Security: not run, no security reviewer installed
+- Security: 0 findings
 
 ## Fix run
 

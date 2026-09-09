@@ -173,5 +173,5 @@ context:
     - Standards: 1 finding, worst #2 (Consider)
     - Principles: 0 findings
     - Blast radius: 0 findings
-    - Security: not run, no security reviewer installed
+    - Security: 0 findings
     REVIEW_EOF
