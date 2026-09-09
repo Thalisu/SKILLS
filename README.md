@@ -81,7 +81,8 @@ ln -s ~/SKILLS/skills/prototype/AGENT.md ~/.claude/agents/prototype.md
 ```
 
 `sketch` ships an agent too, and the same holds: link `skills/sketch/AGENT.md` to
-`~/.claude/agents/sketch.md`. Typing `/sketch` forks that agent, and so does `do` at its shape step.
+`~/.claude/agents/sketch.md`. Typing `/sketch` forks that agent, and that is the only door open
+today; the agent's own description names who else may knock once a step does.
 
 ```bash
 ln -s ~/SKILLS/skills/sketch/AGENT.md ~/.claude/agents/sketch.md

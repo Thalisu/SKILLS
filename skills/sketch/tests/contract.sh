@@ -160,6 +160,21 @@ has "the invocation contract names the skill as user-invoked" "$repo/.agents/inv
 has "the invocation contract's table gains the agent row" "$repo/.agents/invocation.md" \
   "| \`sketch\` | user-invoked |"
 
+# A page names a caller of the agent only once that caller's step is in the tree, per
+# .agents/invocation.md: the step and the claim land in the same change.
+if grep -rqF -- "subagent_type: sketch" "$repo/skills/do" 2>/dev/null; then
+  has "the pages name do, whose shape step forks the agent" "$repo/README.md" \
+    "and so does \`do\` at its shape step"
+  has "the docs page names do, whose shape step forks the agent" "$page" \
+    "whose shape step calls this one"
+else
+  lacks "the top-level README names no caller the tree does not carry" "$repo/README.md" \
+    "and so does \`do\` at its shape step"
+  lacks "the docs page names no caller the tree does not carry" "$page" \
+    "\`do\` reaches it too" "whose shape step calls this one" "\`do\` calls it at its shape step" \
+    "\`do\` reaches the agent it ships instead"
+fi
+
 # The script says how it is run, since this repository has no aggregate runner.
 expect "the header carries the invocation line" \
   grep -qF "Run: bash skills/sketch/tests/contract.sh" "$here/contract.sh"

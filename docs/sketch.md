@@ -14,8 +14,9 @@ implementation.
 
 ## When to reach for it
 
-You invoke this by typing `/sketch`, and the agent will not reach for it on its own. `do` reaches
-it too, at its shape step, through the agent the skill ships rather than through the skill itself.
+You invoke this by typing `/sketch`, and the agent will not reach for it on its own. That is the
+only door open today: the skill also ships an agent, which a step of another skill may fork once
+that step exists and the agent's description names it.
 
 Reach for it when the work crosses a boundary somebody else will call, and you want the caller's
 usage, the types, the signatures and the module boundaries settled before the first line of it
@@ -25,7 +26,7 @@ exists.
 |---|---|
 | the shape of something other code will call, settled and written down | here |
 | something runnable you have to click through or drive | [prototype](prototype.md) |
-| the shape settled as part of building a Ticket | [do](do.md), whose shape step calls this one |
+| the shape settled as part of building a Ticket | [do](do.md), which settles it at its own shape step |
 | to understand a subsystem that already exists | `how` for the mechanism, `why` for the rationale |
 
 ## Prerequisites
@@ -69,8 +70,8 @@ and cannot be handed to a run tomorrow. Typed on its own, it files the Sketch un
 you pass, or one derived from your argument, and tells you the path.
 
 **Can another skill call it?**
-Not through the Skill tool: it is user-invoked, so only a person types it. `do` reaches the agent it
-ships instead, which is a separate door, and the agent's own description names who may knock.
+Not through the Skill tool: it is user-invoked, so only a person types it. The agent the skill
+ships is a separate door, and the agent's own description names who may knock. Nothing knocks yet.
 
 ## It's working if
 
@@ -83,9 +84,9 @@ ships instead, which is a separate door, and the agent's own description names w
 
 ## Where it fits
 
-A step another skill fires, and a standalone you can type. `do` calls it at its shape step when the
-work crosses a boundary and nothing in hand already carries a shape; you type it yourself when you
-want a shape settled without opening a run.
+A standalone you type, and an agent a step can fire. You type it when the work crosses a boundary
+and nothing in hand already carries a shape, whether or not a run is open. The agent is the second
+door, and no step in the chain forks it yet.
 
 Its neighbours are [prototype](prototype.md), because the two split on whether the question is seen
 or named, and [do](do.md), because that is where a Sketch is usually spent. The grouped list of
