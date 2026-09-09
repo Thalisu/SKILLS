@@ -189,8 +189,17 @@ check "a project on another stack is never asked and never reads the package nam
 
 # The offer is one more entry in a call that already exists, so the count of calls is what says no
 # second question was introduced: one in step 1 for the surface, one in step 3 for everything else.
-rc=0; out="$(grep -c 'AskUserQuestion' "$skill/SKILL.md")" || rc=$?
-check "the install still asks through the two calls it had" 0 "$rc" "2"
+ask_calls() { rc=0; out="calls=$(grep -c 'AskUserQuestion' "$1")"; }
+
+ask_calls "$skill/SKILL.md"
+check "the install still asks through the two calls it had" 0 "$rc" "calls=2"
+
+# The guard is put to a copy that grew ten more calls: a count read as a bare number matches by
+# substring, so twelve would read as the two the install has.
+grown="$tmp/skill-with-more-calls.md"
+{ cat "$skill/SKILL.md"; for _ in 1 2 3 4 5 6 7 8 9 10; do echo "one more AskUserQuestion call"; done; } > "$grown"
+ask_calls "$grown"
+absent "a file that grew ten more calls does not read as the two the install has" 0 "$rc" "calls=2"
 
 rc=0; out="$(cat "$skill/SKILL.md")" || rc=$?
 # shellcheck disable=SC2016
