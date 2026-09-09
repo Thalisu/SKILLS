@@ -212,7 +212,12 @@ its empty output is quoted.
 Three reds, each with one answer:
 
 - **The pin goes red under a step.** The step did too much. It is undone and taken smaller, never
-  patched forward, and never made green by touching the pin.
+  patched forward, and never made green by touching the pin. The one red this step tolerates is
+  step 3's target-interface test, still failing for the reason step 3 declared: until the step
+  that reaches it, the reshape tolerates exactly one red and that is it. The single-file command
+  from the project's facts, run on that test's file, is what separates it from a real red, and a
+  suite whose only failing file is that one counts as green here. A red anywhere else, or a second
+  failing file, is a real red and the step is undone.
 - **A test goes red under a pure reshape.** It was asserting the implementation and not the
   behaviour. It is named in the reply and never edited here, since a test that describes behaviour
   survives a reshape by construction; editing it would erase the one signal that the reshape changed
