@@ -29,9 +29,17 @@ It returns two things: the Digest's location, and the one line the run restates 
 
 ## What it holds
 
-Three sections, in this order, holding quote blocks and nothing else. The reader adds no sentence
-of its own: what is not a quote is not in the Digest.
+Four sections, in this order. The three that carry the slice hold quote blocks and nothing else:
+the reader adds no sentence of its own there, and what is not a quote is not in them. `## Sources`
+is not one of them, since a hash is a value and not a quote.
 
+- `## Sources`: what the slice was cut from, one line per document, `<name>: <absolute path>
+  <hash>`, with `spec` and `journey` as the two names and the hash from `git hash-object <path>`
+  run in the main checkout. The door recomputes both hashes on a later run and compares them with
+  these, so a run decides whether to reuse the Digest by comparing two recorded values and never by
+  reading either document again. A hash rather than a modification time: `git checkout`, a rebase
+  and `git worktree add` all rewrite the times of files whose bytes did not change, and a Digest is
+  not stale because git touched its Spec.
 - `## Journey Path`: the one Path of the journey the Ticket is cut from, quoted whole, its heading,
   its `Story:` and `Outcome:` lines, its step table and its `Failure branches:` list. It is the
   Path whose name opens the Ticket's `What to build` line, and, failing that, the Path whose
