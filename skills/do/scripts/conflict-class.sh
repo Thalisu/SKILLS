@@ -38,6 +38,8 @@ emit() { # $1 class, $2 file, $3 location, $4 shape (contested only)
   esac
 }
 
+is_binary() { [ "$(tr -d '\000' < "$1" | wc -c)" -ne "$(wc -c < "$1")" ]; }
+
 # The shape every contested hunk of one both-modified file carries. Git suffixes both marker labels
 # with each side's own path when the two differ, and that suffix is the only record a conflicted
 # hunk keeps of a rename.
@@ -67,6 +69,10 @@ classify_hunks() { # $1 path
   git cat-file blob ":1:$path" > "$tmp/base" 2>/dev/null
   git cat-file blob ":2:$path" > "$tmp/target" 2>/dev/null
   git cat-file blob ":3:$path" > "$tmp/incoming" 2>/dev/null
+  if is_binary "$tmp/base" || is_binary "$tmp/target" || is_binary "$tmp/incoming"; then
+    emit contested "$path" whole-file binary
+    return
+  fi
   git merge-file -p --diff3 -L target -L base -L incoming \
     "$tmp/target" "$tmp/base" "$tmp/incoming" > "$tmp/merged" 2>/dev/null
   [ "$?" -le 127 ] || { emit contested "$path" whole-file unmergeable; return; }

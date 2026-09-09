@@ -56,6 +56,8 @@ printf 'kept\n' > dropped-by-incoming.txt
 printf 'kept\n' > dropped-by-target.txt
 printf 'one\ntwo\nthree\n' > renamed.txt
 seq 1 12 > renamed-and-added-to.txt
+printf 'pixels\000\001\002\n' > picture.bin
+printf 'p\nq\nr\n' > half-resolved.txt
 commit base
 g branch inc
 printf 'x\nTARGET\nz\n' > rewrite.txt
@@ -63,6 +65,8 @@ printf 'kept\nedited by target\n' > dropped-by-incoming.txt
 rm dropped-by-target.txt
 printf 'one\nTARGET\nthree\n' > renamed.txt
 printf '%s\nTARGET\n' "$(cat renamed-and-added-to.txt)" > renamed-and-added-to.txt
+printf 'pixels\000\001\003target\n' > picture.bin
+printf 'p\nTARGET\nr\n' > half-resolved.txt
 commit target
 g switch -q inc
 printf 'x\nINCOMING\nz\n' > rewrite.txt
@@ -72,9 +76,14 @@ g mv renamed.txt moved.txt >/dev/null
 printf 'one\nINCOMING\nthree\n' > moved.txt
 g mv renamed-and-added-to.txt moved-and-added-to.txt >/dev/null
 printf '%s\nINCOMING\n' "$(cat moved-and-added-to.txt)" > moved-and-added-to.txt
+printf 'pixels\000\001\004incoming\n' > picture.bin
+printf 'p\nINCOMING\nr\n' > half-resolved.txt
 commit incoming
 g switch -q main
 g merge inc >/dev/null 2>&1
+# A file whose markers the developer has already taken out is no longer what git left, so the script
+# can no longer align what it reconstructs with the tree and certifies nothing in it.
+printf 'p\nRESOLVED BY HAND\nr\n' > half-resolved.txt
 
 run
 check "two sides rewriting the same lines: contested, with the shape named" 1 "$rc" \
@@ -86,8 +95,12 @@ check "a rename against an edit: contested, named as a rename and not as a rewri
   "contested moved.txt L2-L6 rename-vs-edit"
 check "a rename stays contested even where both sides only added" 1 "$rc" \
   "contested moved-and-added-to.txt L13-L17 rename-vs-edit"
+check "a binary file: contested, named as binary" 1 "$rc" \
+  "contested picture.bin whole-file binary"
+check "a file the script can no longer align with the tree: contested, named as unmergeable" 1 "$rc" \
+  "contested half-resolved.txt whole-file unmergeable"
 check "the verdict follows the contested hunk" 1 "$rc" \
-  "verdict=contested mechanical=0 contested=5"
+  "verdict=contested mechanical=0 contested=7"
 
 echo
 if [ "$fails" = 0 ]; then echo "all ok"; else echo "$fails failed"; exit 1; fi
