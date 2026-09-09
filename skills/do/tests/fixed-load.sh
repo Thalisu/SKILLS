@@ -42,6 +42,11 @@ has "the Playbook's door forks a reader over the Spec and the Journey" "$refs/ti
 has "the shared mechanics carry the reader as a mechanic of its own" "$refs/mechanics.md" \
   "## The reader" \
   "The session opens neither document"
+# The fork returns a path and a line, so the quotes only reach the run when the session opens the
+# file: without this the list at step 4 has nothing but the restatement to trace to.
+has "the session opens the Digest itself and reads its quotes there" "$refs/mechanics.md" \
+  "The session opens the Digest itself" \
+  "reads its quotes there"
 expect "the Digest reference the door links exists" test -f "$refs/digest.md"
 has "SKILL.md lists the Digest reference under Links, so the door can read it" \
   "$repo/skills/do/SKILL.md" "[digest.md](references/digest.md)"

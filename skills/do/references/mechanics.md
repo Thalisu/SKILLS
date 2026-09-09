@@ -94,6 +94,11 @@ checkout, and the path the Digest is written to. It writes the Digest there and 
 location and the one line the run restates in the thread. No other part of either document reaches
 the session.
 
+The session opens the Digest itself, at the path the fork returns, and reads its quotes there. The
+line that comes back with the path is a restatement for the thread: a list written from it would be
+the paraphrase the Digest exists to keep out of the record, so the steps that build on the slice
+read the file.
+
 ## The build loop
 
 One behaviour at a time, from the list the Playbook wrote, in its order. Each behaviour is one
