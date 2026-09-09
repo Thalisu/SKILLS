@@ -33,6 +33,25 @@ header_has() { # $1 a fixed string that must appear in this script's own header 
   sed -n '1,7p' "$here/digest-branches.sh" | grep -qF -- "$1"
 }
 
+recorded_source_ignores_a_touch() { # the command the contract names, read out of it and run
+  local cmd dir written touched edited
+  cmd="$(sed -n 's/.*the hash from `\([^`]*\)`.*/\1/p' "$refs/digest.md" | head -1)"
+  cmd="${cmd% <path>}"
+  [ -n "$cmd" ] || return 1
+  dir="$(mktemp -d)" || return 1
+  printf 'the spec\n' > "$dir/spec.md"
+  # shellcheck disable=SC2086
+  written="$($cmd "$dir/spec.md" 2>/dev/null)" || { rm -rf "$dir"; return 1; }
+  touch "$dir/spec.md"
+  # shellcheck disable=SC2086
+  touched="$($cmd "$dir/spec.md" 2>/dev/null)"
+  printf 'the spec\namended\n' > "$dir/spec.md"
+  # shellcheck disable=SC2086
+  edited="$($cmd "$dir/spec.md" 2>/dev/null)"
+  rm -rf "$dir"
+  [ -n "$written" ] && [ "$written" = "$touched" ] && [ "$written" != "$edited" ]
+}
+
 # The Digest records what it was cut from, so a second run compares two recorded values instead of
 # judging the documents again.
 has "the Digest records its sources with the path and the hash of each document" "$refs/digest.md" \
@@ -45,5 +64,17 @@ has "a second run reuses an unchanged Digest and forks no reader" "$refs/mechani
   "recomputes the hash of each document" \
   "reuses it, forks no second reader" \
   "says in one line that it reused it"
+
+# An amended Spec is never served from the old slice, and the run says which document moved. Both
+# are compared before the decision: comparing the journey only when the Spec matched would serve an
+# amended journey from the first run's Path.
+has "a second run re-forks and names the document that changed" "$refs/mechanics.md" \
+  "re-forks the reader" \
+  "names which of the two changed" \
+  "Both hashes are compared before the run decides"
+# The contract's own command is run here, not a copy of it: a Sources line that recorded a
+# modification time would report an untouched Spec as changed after any checkout, and go red.
+expect "the command the contract records ignores a touch and catches an edit" \
+  recorded_source_ignores_a_touch
 
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi

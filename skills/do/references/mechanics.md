@@ -113,6 +113,13 @@ recomputes the hash of each document the Digest's `## Sources` names, with the s
 `git hash-object` the reader ran, and compares the pair with the pair recorded there.
 
 - Both match: the run reuses it, forks no second reader, and says in one line that it reused it.
+- Either differs: the run re-forks the reader over both documents, replacing the Digest at the same
+  path, and names which of the two changed, in one line.
+
+Both hashes are compared before the run decides, never one and then the other: a comparison that
+stopped at the first match would serve an amended Spec, or an amended journey, from the slice the
+first run cut. A `## Sources` line the Digest does not carry, or a document that is gone, is not a
+match: the run re-forks.
 
 ## The build loop
 
