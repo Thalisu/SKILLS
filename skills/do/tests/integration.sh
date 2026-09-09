@@ -56,6 +56,13 @@ has "the rebase moves the run's branch onto the developer's and writes nothing t
 has "a protected developer branch does not stop the step" "$mech" \
   "A protected developer branch does not stop this step"
 
+# A branch nobody moved under costs the developer nothing: the step says so and goes straight on.
+has "a rebase that replayed nothing is a no-op that reruns nothing" "$mech" \
+  "replays no commit" \
+  "ticks the step as a no-op" \
+  "reruns nothing" \
+  "the review is called on the branch as it is"
+
 # No em-dash in the prose this step writes, per CLAUDE.md.
 lacks "no em-dash in the shared mechanics" "$mech" "$emdash"
 

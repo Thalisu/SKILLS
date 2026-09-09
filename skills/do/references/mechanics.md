@@ -255,6 +255,11 @@ that moves is the run's. A protected developer branch does not stop this step, s
 a branch writes nothing to it and this step lands nothing. The landing stays the review's, and a
 protected target is refused there as it is refused today.
 
+The step walks one of four states, and the thread says which.
+
+**A rebase that replays no commit.** The developer's branch did not move under the run. The run
+ticks the step as a no-op, reruns nothing, and the review is called on the branch as it is.
+
 ## The review
 
 Run once per landing, after the gate, and never by hand: the review fixes and lands, the run reads.
