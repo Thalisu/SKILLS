@@ -6,6 +6,6 @@ context: fork
 agent: do-code-review
 background: false
 ---
-Review the diff under the do-code-review contract for these arguments, and end with the Review's text and its location.
+Run the do-code-review contract for these arguments, in the mode they name: a `fix` call reviews nothing, fixes the Review it names and ends with the push command; `--no-fix` writes the Review and stops, ending with its text and its location; every other call reviews the diff, then fixes and lands, and ends with the Review's text, its location and the push command.
 
 $ARGUMENTS

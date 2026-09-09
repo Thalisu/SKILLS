@@ -73,6 +73,11 @@ has "the skill file carries its frontmatter" "$skill_md" \
 has "the description carries the triggers" "$skill_md" "review this branch" "review since" "revisa"
 has "the argument hint names the fix call and the read-only run" "$skill_md" \
   "argument-hint:" "fix" "--no-fix"
+# The body is the prompt the forked orchestrator opens on, so it has to cover the three modes: a
+# fix call that reviews nothing cannot be told to end with a Review's text.
+has "the body line covers the three modes and ends a fix call with the push command" "$skill_md" \
+  "a \`fix\` call reviews nothing" "ends with the push command" \
+  "\`--no-fix\` writes the Review and stops"
 has "the description sends a PR for GitHub to the bundled skill" "$skill_md" "Do not use" "/code-review"
 lacks "the skill is model-invoked in Claude Code" "$skill_md" "disable-model-invocation"
 expect "the body is one instruction line plus the arguments" \
