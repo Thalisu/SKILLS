@@ -1,0 +1,5 @@
+interface:
+  display_name: "Sketch"
+  short_description: "The shape before any logic, filed in the Scratch and never implemented"
+policy:
+  allow_implicit_invocation: false
