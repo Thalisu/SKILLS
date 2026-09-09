@@ -74,6 +74,13 @@ developer's own workspace and never reaches a teammate; what the team has to rea
 issue tracker or under `docs/`.
 _Avoid_: temp, workspace, drafts folder
 
+**Feature folder**:
+The directory in the **Scratch** that holds one feature's artifacts, `.scratch/<YYYYMMDD>-<feature-slug>/`,
+dated with the day it was allocated. A bare slug names the folder called `<slug>` or
+`<YYYYMMDD>-<slug>` and no other, the newest when a slug carries more than one, and an undated
+folder from before the dated rule over every dated one.
+_Avoid_: spec folder, slug folder, feature directory
+
 **Main checkout**:
 The working tree a `do` run is invoked from, the one every artifact outside version control lives
 in: the **Ticket**, its **Spec**, its **Journey** and the **Review** beside it. A build runs in a
