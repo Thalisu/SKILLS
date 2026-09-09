@@ -102,5 +102,27 @@ check "a file the script can no longer align with the tree: contested, named as 
 check "the verdict follows the contested hunk" 1 "$rc" \
   "verdict=contested mechanical=0 contested=7"
 
+# A tree holding one hunk of each class.
+fresh mixed
+printf 'a\nb\n' > added-to.txt
+printf 'x\ny\nz\n' > rewritten.txt
+commit base
+g branch inc
+printf 'a\nTARGET\nb\n' > added-to.txt
+printf 'x\nTARGET\nz\n' > rewritten.txt
+commit target
+g switch -q inc
+printf 'a\nINCOMING\nb\n' > added-to.txt
+printf 'x\nINCOMING\nz\n' > rewritten.txt
+commit incoming
+g switch -q main
+g merge inc >/dev/null 2>&1
+
+run
+check "one contested hunk among mechanical ones makes the verdict contested and the exit 1" 1 "$rc" \
+  "mechanical added-to.txt L2-L6" \
+  "contested rewritten.txt L2-L6 rewrite-vs-rewrite" \
+  "verdict=contested mechanical=1 contested=1"
+
 echo
 if [ "$fails" = 0 ]; then echo "all ok"; else echo "$fails failed"; exit 1; fi
