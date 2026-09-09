@@ -54,10 +54,13 @@ values and not quotes.
   its paragraphs when it has none.
 - `## Observable criteria`: the numbers of the Ticket's criteria whose change a user can observe,
   one per line as `<n>: <the surface it shows on>`, and `none` when no criterion does. The reader
-  decides that from the Path it just quoted, whose steps say what the actor sees, which is the
-  reading the flows step of the `ticket` Playbook takes. It stays a list of numbers because it
-  survives into a run that reuses the Digest and forks nobody: a sentence about the criteria would
-  be the paraphrase the rest of the Digest exists to keep out.
+  decides that from the Path it just quoted, whose steps say what the actor sees, and from the
+  quoted stories when there is no Path, whose actor and outcome say the same thing about the
+  surface, which is the reading the flows step of the `ticket` Playbook takes. A Digest that quotes
+  neither a Path nor a story leaves the section with nothing to read from, and the reader says so
+  on the line instead of a number, `none: no Path and no story to read`. It stays a list of numbers
+  because it survives into a run that reuses the Digest and forks nobody: a sentence about the
+  criteria would be the paraphrase the rest of the Digest exists to keep out.
 
 ## A quote block
 

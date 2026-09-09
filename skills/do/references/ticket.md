@@ -201,10 +201,14 @@ placement when it matters. The flow must return `GREEN`; `BLOCKED` on a prefligh
 as blocked. The flow is committed on its own or with the last behaviour. On a consumer surface
 the flow lives in the consumer repository and is recorded as pending debt with the consumers
 named. Which changes a user can observe is the Digest's `## Observable criteria` section, the
-reading the reader returned from the Path's own steps, and never the run's own reading of the diff.
-A criterion that section leaves out states why no flow is needed, and a criterion it names with no
-flow authored stops the step. Done when each criterion the section names has a flow or a stated
-reason.
+reading the reader returned from the Path's own steps, or from the stories it quoted when the
+Digest carries no Path, and never the run's own reading of the diff. A criterion that section
+leaves out states why no flow is needed, and a criterion it names with no flow authored stops the
+step. A section reading `none` closes the step as `skip: no criterion a user can observe`, naming
+the section it read that from; a `none` the reader marked as read from neither a Path nor a story
+has nothing behind it, and the step goes through the Ticket's criteria one by one instead, each
+with its flow or the reason it needs none. Done when each criterion the section names has a flow
+or a stated reason, or the skip is in the thread.
 
 **7. Gate.** The gate in [mechanics.md](mechanics.md), in the worktree, after the last edit. Done
 when the suite and the typecheck are green in output produced after the last edit.

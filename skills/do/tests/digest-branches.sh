@@ -157,6 +157,15 @@ has "the run restates the observable criteria with the rest of the slice" "$refs
 has "the flows step reads that section instead of judging the diff" "$refs/ticket.md" \
   'the Digest'"'"'s `## Observable criteria` section' \
   "never the run's own reading of the diff"
+# A Ticket whose Spec names no journey leaves the reader no Path to read the surfaces from, so it
+# reads them from the stories it quoted, and the flows step says what a section naming none closes
+# with rather than finishing with no flow authored and no reason asked for.
+has "the reader reads the observable criteria from the stories when there is no Path" "$refs/digest.md" \
+  "quoted stories when there is no Path" \
+  '`none: no Path and no story to read`'
+has "the flows step says what it does with a section that names none" "$refs/ticket.md" \
+  'A section reading `none` closes the step' \
+  "has nothing behind it, and the step goes through the Ticket's criteria one by one"
 
 # The eval runner is gated on this machine, so the case is written and the assertions above are the
 # withheld path's executable coverage. The case still has to exist, and the index has to name it.
