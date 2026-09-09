@@ -62,6 +62,11 @@ has "the Prerequisites intro claims only what the first message carries" "$page"
   "The first message reports one of them, the loop line"
 lacks "the Prerequisites intro no longer claims all four are reported up front" "$page" \
   "the first message says which of them it found"
+has "the git status tell separates the checkout from the reply's Left uncommitted section" "$page" \
+  "Your work in progress is unchanged" \
+  "the worktree folder does not show up" \
+  "both sit under the ignored \`.scratch/\`" \
+  "the reply's \`Left uncommitted\`"
 has "the other three prerequisite rows name their own step" "$page" \
   "asks you for the ticket's path" "skip: do-code-review not listed" \
   "each step says in one line what it does instead"

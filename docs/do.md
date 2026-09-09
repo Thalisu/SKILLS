@@ -153,8 +153,10 @@ reason nothing landed, and the run stops on it with the worktree intact.
 ## It's working if
 
 - The first line of every reply names the Playbook it matched, and it is the one you expected.
-- `git status` in your checkout is what you left it. Your work in progress was never staged, the
-  worktree folder is excluded, and the only files left uncommitted are the Ticket and the Review.
+- `git status` in your checkout is what you left it. Your work in progress is unchanged and was
+  never staged, and the worktree folder does not show up. The Ticket and the Review are not in
+  that list at all: both sit under the ignored `.scratch/`, and the reply's `Left uncommitted`
+  section is where they are named.
 - The branch history reads one commit per behaviour, each body carrying a `Behaviour:` line, with
   the review's fix commits on top and nothing pushed.
 - Every number and output line in the reply has a command line beside it, and that command ran
