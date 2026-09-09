@@ -116,6 +116,9 @@ has "the failing test is dispatched with origin bugfix" "$ref" "origin \`bugfix\
 has "the failure scenario is the expected red" "$ref" "the failure scenario"
 has "the verdict is shown" "$ref" "RED_AS_EXPECTED"
 has "the reproduction is committed before the fix" "$ref" "committed before the fix"
+has "the reproduction commit's title is a conventional commit" "$ref" "its title a conventional commit"
+has "the reproduction commit's body carries the behaviour line" "$ref" "\`Behaviour: <line>\`"
+has "the reproduction commit's body carries the failing single-file command" "$ref" "the single-file command with the failure it prints"
 has "the red goes through the shared build loop" "$ref" "The build loop in [mechanics.md](mechanics.md)"
 
 # Step 6, the fix, and step 7, the verification on the same surface

@@ -186,8 +186,13 @@ way the loop handles them.
 The reproduction is committed before the fix, on its own, so the history carries the failure before
 its cure and one revert undoes one slice, per
 [sequence-verifiable-units](../../../.agents/principles/sequence-verifiable-units.md). It is the
-one place the loop's single commit is split in two. Done when `RED_AS_EXPECTED` is in the thread
-and the reproduction is committed.
+one place the loop's single commit is split in two, and the split bends one line of the loop's
+commit rule. The reproduction commit is staged by path, its title a conventional commit,
+`test(<scope>): <subject>`, and its body carries the behaviour line, labelled `Behaviour: <line>`
+on a line of its own, and the single-file command with the failure it prints, since a red commit
+has no passing command to name; step 6's fix commit carries that same behaviour line and that same
+command, passing. Done when `RED_AS_EXPECTED` is in the thread and the reproduction is committed
+with its behaviour line and its failing command in the body.
 
 **6. Fix.** The smallest fix that removes the mechanism step 3 confirmed, written by the session on
 top of the red, then the rest of the build loop in [mechanics.md](mechanics.md): the single-file
