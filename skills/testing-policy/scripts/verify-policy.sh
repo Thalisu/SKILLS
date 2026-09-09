@@ -120,6 +120,30 @@ if git -C "$project" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
 fi
 if [ ${#ignored[@]} -gt 0 ]; then printf 'gitignored=%s\n' "$(IFS=,; echo "${ignored[*]}")"; else echo "gitignored=none"; fi
 
+# The partial data helper is a TypeScript package, so the key reads n/a unless the project both has
+# a TypeScript configuration and writes TypeScript tests under the roots scan-test-assets.sh reads
+# by default. The state comes from the package manifests and never from the installed Project map:
+# a project that dropped the package reads absent while its map still names the helper, and that
+# disagreement is the drift this key exists to catch. Report only, like capture_legacy below.
+partial_data_pkg='@total-typescript/shoehorn'
+partial_data_state() {
+  local p="$1" r roots=()
+  [ -n "$(find "$p" -maxdepth 4 \( -name node_modules -o -name .git \) -prune -o \
+    -type f -name 'tsconfig*.json' -print -quit)" ] || { echo "n/a"; return; }
+  for r in tests test __tests__ spec e2e e2e-tests .maestro src; do [ -d "$p/$r" ] && roots+=("$p/$r"); done
+  [ ${#roots[@]} -gt 0 ] || { echo "n/a"; return; }
+  [ -n "$(find "${roots[@]}" \( -name node_modules -o -name .git \) -prune -o \
+    -type f ! -name '*.d.ts' \( \
+      -name '*.test.ts' -o -name '*.test.tsx' -o -name '*.test.mts' -o -name '*.test.cts' -o \
+      -name '*.spec.ts' -o -name '*.spec.tsx' -o -name '*.spec.mts' -o -name '*.spec.cts' -o \
+      -name '*.cy.ts' -o -name '*.cy.tsx' -o \
+      \( -path '*/__tests__/*' -a \( -name '*.ts' -o -name '*.tsx' -o -name '*.mts' -o -name '*.cts' \) \) \
+    \) -print -quit)" ] || { echo "n/a"; return; }
+  if grep -rqF --include=package.json --exclude-dir=node_modules -- "\"$partial_data_pkg\"" "$p" 2>/dev/null
+  then echo installed; else echo absent; fi
+}
+echo "partial_data_helper=$(partial_data_state "$project")"
+
 # Earlier installs hid captures in a gitignored `.claude/testing-policy/local/`. That material is
 # about this repo and belongs to whoever clones it, so step 7 moves it into `capture/` and commits
 # it; the folder is reported (never failed on, never deleted here) until that move happens.

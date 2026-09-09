@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # partial-test-data.sh: the contract of the partial test data rule, the Project map label that
-# carries its helper, and the refresh that names that label to an agent installed before it,
-# exercised against throwaway fixture projects.
+# carries its helper, the refresh that names that label to an agent installed before it, and the
+# state verifier's key for the helper, exercised against throwaway fixture projects.
 # Run: bash skills/testing-policy/tests/partial-test-data.sh
 set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
@@ -33,6 +33,7 @@ map_labels() { rc=0; out="$(bash "$render" "$1" | awk '/^<!-- testing-policy:cor
 # The map entry alone: the label at line start and the slot under it, never the core's pointer at it.
 policy() { rc=0; out="$(bash "$render_policy" "$@" 2>&1)" || rc=$?; }
 map_entry() { rc=0; out="$(bash "$render" "$1" | grep -A1 -E "^\\*\\*$2\\*\\*")" || rc=$?; }
+verify() { rc=0; out="$(bash "$verify" "$1" 2>&1)" || rc=$?; }
 
 echo "# the rule in the core"
 render unit --core-only
@@ -110,7 +111,7 @@ mkdir -p "$proj/.claude/agents"
 bash "$render" unit \
   | grep -vE '^\*\*Partial test data\*\*|^\{\{UNIT_PARTIAL_DATA_HELPER' \
   | sed -E 's/(testing-policy:agent v=)[0-9.]+/\1'"$old"'/' > "$proj/.claude/agents/unit-test-author.md"
-rc=0; out="$(bash "$verify" "$proj" 2>&1)" || rc=$?
+verify "$proj"
 check "an agent installed before the label gets it named among the labels the template gained" 1 "$rc" \
   "agent_unit_map_missing=**Partial test data**"
 
@@ -120,6 +121,30 @@ check "the refresh step names the label as the line it fills from discovery and 
   "for 2.4, **Partial test data** in the unit map"
 check "the preserved-parts note names the version that added the label" 0 "$rc" \
   "2.4 added **Partial test data** to the unit map"
+
+echo
+echo "# the verifier's partial data helper key"
+# The key reports the project's own state, so it is read off bare fixtures with no policy
+# installed: exit 4 is `policy=none`, and the key prints all the same.
+helper_pkg="@total-typescript/shoehorn"
+
+mkdir -p "$tmp/not-ts/tests"
+printf 'def test_thing():\n    assert True\n' > "$tmp/not-ts/tests/test_thing.py"
+
+mkdir -p "$tmp/ts-without/tests"
+echo '{}' > "$tmp/ts-without/tsconfig.json"
+printf '{ "devDependencies": { "vitest": "^1" } }\n' > "$tmp/ts-without/package.json"
+printf 'test("thing", () => {});\n' > "$tmp/ts-without/tests/thing.test.ts"
+
+cp -r "$tmp/ts-without" "$tmp/ts-with"
+printf '{ "devDependencies": { "vitest": "^1", "%s": "^0.1.2" } }\n' "$helper_pkg" > "$tmp/ts-with/package.json"
+
+verify "$tmp/not-ts"
+check "a project that is not TypeScript reads not applicable" 4 "$rc" "partial_data_helper=n/a"
+verify "$tmp/ts-without"
+check "an eligible project without the package reads absent" 4 "$rc" "partial_data_helper=absent"
+verify "$tmp/ts-with"
+check "an eligible project with the package reads installed" 4 "$rc" "partial_data_helper=installed"
 
 echo
 echo "# repository standards"
