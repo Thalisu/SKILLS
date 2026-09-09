@@ -26,11 +26,13 @@ empty() { # $1 label; the output in $out must be empty
   if [ -z "$out" ]; then echo "ok    $1"; else
     echo "FAIL  $1"; head -12 <<<"$out" | sed 's/^/      /'; fails=$((fails + 1)); fi
 }
-absent() { # $1 label, $2.. lines that must not appear; output in $out
-  local label="$1"; shift
+absent() { # $1 label, $2 expected exit, $3 actual exit, $4.. lines that must not appear; output in $out
+  local label="$1" want="$2" rc="$3"; shift 3
   local ok=1 line found=""
+  [ "$rc" = "$want" ] || ok=0
   for line in "$@"; do if grep -qF -- "$line" <<<"$out"; then ok=0; found="$found $line"; fi; done
-  if [ "$ok" = 1 ]; then echo "ok    $label"; else echo "FAIL  $label (found:$found)"; fails=$((fails + 1)); fi
+  if [ "$ok" = 1 ]; then echo "ok    $label"; else
+    echo "FAIL  $label (exit $rc, wanted $want, found:$found)"; fails=$((fails + 1)); fi
 }
 render() { rc=0; out="$(bash "$render" "$@" 2>&1)" || rc=$?; }
 # The labels verify-policy.sh's map_missing() reads: the bold lead of every line after core-end.
@@ -62,7 +64,7 @@ check "the unit core forbids building a fake by asserting a type at the compiler
 check "the unit core points at the Project map for the helper" 0 "$rc" \
   "Partial test data"
 
-absent "the unit core names no package, no helper function and no assertion keyword" \
+absent "the unit core names no package, no helper function and no assertion keyword" 0 "$rc" \
   "shoehorn" "@total-typescript" "fromPartial" "fromAny" "\`as\`" "as unknown as" "as any" "TypeScript"
 
 echo
@@ -72,7 +74,7 @@ check "the unit map carries a Partial test data label, where map_missing() reads
   "**Partial test data**"
 
 rc=0; out="$(bash "$render" unit --core-only | grep -E '^\*\*Partial test data\*\*' || true)"
-absent "the label line is in the preserved map, never in the regenerated core" "**Partial test data**"
+absent "the label line is in the preserved map, never in the regenerated core" 0 "$rc" "**Partial test data**"
 
 map_entry unit "Partial test data"
 check "the entry names the helper and the function for partial data that still type checks" 0 "$rc" \
@@ -88,17 +90,17 @@ check "the none yet form is a pointer, not a command that ran" 0 "$rc" \
 echo
 echo "# the rule binds the unit author alone"
 render e2e --core-only
-absent "the E2E core carries no partial test data rule of its own" \
+absent "the E2E core carries no partial test data rule of its own" 0 "$rc" \
   "a fake by asserting a type at the compiler" "Partial test data"
 map_labels e2e
-absent "the E2E map carries no Partial test data label" "**Partial test data**"
+absent "the E2E map carries no Partial test data label" 0 "$rc" "**Partial test data**"
 
 policy native
-absent "the policy section in the project's instructions file is untouched" \
+absent "the policy section in the project's instructions file is untouched" 0 "$rc" \
   "a fake by asserting a type at the compiler" "Partial test data"
 
 render test-author
-absent "the inline writer's skill carries no copy of the rule" \
+absent "the inline writer's skill carries no copy of the rule" 0 "$rc" \
   "a fake by asserting a type at the compiler" "Partial test data"
 check "the inline writer reaches the rule and the entry through the agent file it already opens" 0 "$rc" \
   "The agent file is the single source of the rules" \
@@ -122,7 +124,7 @@ echo "# the refresh"
 # map_missing() greps the whole installed file for the literal label, so a core that spelled the
 # cross-reference in the map's own bold form would read as the label already being there.
 render unit --core-only
-absent "the core's pointer does not wear the map's bold label form" "**Partial test data**"
+absent "the core's pointer does not wear the map's bold label form" 0 "$rc" "**Partial test data**"
 
 proj="$tmp/installed-at-2.3"
 mkdir -p "$proj/.claude/agents"
@@ -251,7 +253,7 @@ echo "# repository standards"
 emdash=$'\xe2\x80\x94'
 rc=0; out="$(LC_ALL=C grep -lae "$emdash" \
   "$skill/AGENT-UNIT.md" "$skill/SKILL.md" "$skill/POLICY.md" "$here/partial-test-data.sh" || true)"
-absent "no em-dash in the prose this rule wrote" \
+absent "no em-dash in the prose this rule wrote" 0 "$rc" \
   "AGENT-UNIT.md" "SKILL.md" "POLICY.md" "partial-test-data.sh"
 
 # verify-policy.sh carries an em-dash inside a regex character class, which is syntax and not prose,
