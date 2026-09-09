@@ -14,8 +14,12 @@ The argument is a Ticket's path, or an issue reference resolved through the trac
 `docs/agents/issue-tracker.md`. Before anything is written:
 
 - The Ticket is read: the file, or the issue's body and comments through the tracker's CLI as
-  the file describes. Every Ticket the `Blocked by` line names is read. Nothing is written and no
-  fork is dispatched: the run has not been cleared to build this Ticket yet.
+  the file describes. Nothing is written and no fork is dispatched: the run has not been cleared to
+  build this Ticket yet.
+- Every Ticket the `Blocked by` line names is read for its `**Status:**` line alone, with
+  `grep -m1 '^\*\*Status:\*\*' <path>`, and never its body: one word settles whether this run may
+  start, and a blocker read whole is a second Ticket in the window before the run is cleared to
+  build the first. On a tracker the status is the issue's label, read the same way.
 - A Ticket that is `resolved` stops the run in one line. Nothing is written.
 - A Ticket whose `Blocked by` names one not `resolved` is refused before the claim, in one
   message naming the blocker and its status. Nothing is written; the developer builds the blocker

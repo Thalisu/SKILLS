@@ -33,6 +33,28 @@ header_has() { # $1 a fixed string that must appear in this script's own header 
   sed -n '1,7p' "$here/digest-branches.sh" | grep -qF -- "$1"
 }
 
+blocker_read_returns_the_status_line_alone() { # the read the door names, run on a scaffolded blocker
+  local cmd dir out
+  cmd="$(sed -n 's/.*`\(grep -m1[^`]*\)`.*/\1/p' "$refs/ticket.md" | head -1)"
+  cmd="${cmd% <path>}"
+  cmd="${cmd//\'/}"
+  [ -n "$cmd" ] || return 1
+  dir="$(mktemp -d)" || return 1
+  {
+    printf '# 01: Archive a note\n\n'
+    printf '**What to build:** the whole body a blocker costs when the door reads more than a word.\n\n'
+    printf '**Blocked by:** None (can start immediately)\n\n'
+    printf '**Status:** ready-for-agent\n\n'
+    printf -- '- [ ] Archiving a note drops it from the list\n'
+    printf -- '- [ ] An archived note is restored to the list\n\n'
+    printf '## Evidence\n'
+  } > "$dir/01-archive-a-note.md"
+  # shellcheck disable=SC2086
+  out="$($cmd "$dir/01-archive-a-note.md" 2>/dev/null)"
+  rm -rf "$dir"
+  [ "$out" = "**Status:** ready-for-agent" ]
+}
+
 withheld_wording_is_the_one_already_fixed() { # the Delegates rule's own words, not a second phrasing
   [ "$(grep -cF -- "the session does that work itself" "$refs/mechanics.md")" -ge 2 ]
 }
@@ -97,5 +119,13 @@ has "a withheld Agent tool leaves the reading to the session" "$refs/mechanics.m
   "neither stops nor asks for the tool"
 expect "the withheld branch reuses the wording the Delegates rule already fixes" \
   withheld_wording_is_the_one_already_fixed
+
+# A blocker costs one line, not a whole Ticket: the door needs its status word and nothing else, and
+# a blocker whose body it read would be a second Ticket in the window before the run is even cleared.
+has "the door reads a blocker's status line and never its body" "$refs/ticket.md" \
+  'its `**Status:**` line alone' \
+  "never its body"
+expect "the read the door names returns the status line and nothing else" \
+  blocker_read_returns_the_status_line_alone
 
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi
