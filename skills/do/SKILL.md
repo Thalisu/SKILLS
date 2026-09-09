@@ -37,7 +37,7 @@ to type; nothing is written and no reference is read.
 | an issue number or URL with no tracker file | `Playbook: none`; one message asking for the Ticket's path. The number is never matched against a list in the conversation |
 | a Spec's path, in the format of [spec-format.md](../../.agents/formats/spec-format.md), or a pasted session summary | `Playbook: none`; one line saying a Spec fits no Playbook, since `do` takes one Ticket, with the command: `/tickets <spec>`, or `/journey <spec>` first when the Spec's `Journey:` line reads `required` and no journey sits beside it; `/spec` for a summary, since the discussion already happened |
 | a question: how something works, why it was built that way | `Playbook: none`; `/how` for the mechanism, `/why` for the rationale, `/teach` to understand it end to end |
-| a sketch, a layout, a variant to try | `Playbook: none`; `/prototype` |
+| a runnable throwaway: a layout, a variant to try | `Playbook: none`; `/prototype` |
 | a bug in words: what happened, where, and the error or the wrong output. A defect a test can tell before from after, however small | `bug-fix` |
 | a change in words that no test could tell before from after: a typo, a doc line, a comment, a formatting fix, a log wording, a rename inside one file, dead code, a lint fix. Never a bug, a new exported symbol, a changed signature or a change the user sees, whatever its size | `trivial` |
 | a reshape of existing code in words, its behaviour unchanged: refactor, rename, extract, inline, dedupe, move this module. Never a request that moves behaviour a caller or a user observes | `refactoring` |
