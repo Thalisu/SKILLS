@@ -32,8 +32,10 @@ message and nothing written).
 
 `$ARGUMENTS` is the spec and it is mandatory: the chain is strict, `tickets` takes a spec and never
 the conversation. Empty: one message asking for it, nothing else. Resolve it as `spec` publishes
-it: a path is read as a file; a bare slug resolves to `.scratch/<slug>/spec.md` when the tracker
-file says local markdown or is absent; an issue number or URL is read through the tracker the file
+it: a path is read as a file; a bare slug resolves to `spec.md` in the `.scratch/` folder named
+`<slug>` or ending in `-<slug>`, a feature folder being dated `<YYYYMMDD>-<slug>`, the newest when
+more than one matches, per [.agents/scratch.md](../../.agents/scratch.md), when the tracker file
+says local markdown or is absent; an issue number or URL is read through the tracker the file
 describes, body and comments. Nothing readable: one message asking for the path.
 
 The tracker file says where tickets are published and which triage labels exist. Without it, the
@@ -189,8 +191,9 @@ shapes. `ready-for-agent` is the first word of its status walk and the only one 
 `do` writes the next two. The `## Evidence` heading is published empty, for `do` to fill at the
 close.
 
-- **Local markdown**: one file per ticket under `.scratch/<feature-slug>/issues/<NN>-<slug>.md`
-  (or `issues/` beside a spec that lives elsewhere), numbered from `01` in dependency order
+- **Local markdown**: one file per ticket under `issues/` in the spec's own folder,
+  `.scratch/<YYYYMMDD>-<feature-slug>/issues/<NN>-<slug>.md` (or `issues/` beside a spec that lives
+  elsewhere), numbered from `01` in dependency order
   (blockers first), in the format's local shape. Each file's "Blocked by" lists the numbers and
   titles it depends on. Never a single combined file. The number is claimed by creating the file
   under `set -C`, never by scanning the folder and then writing: a create that fails means a second
