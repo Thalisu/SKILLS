@@ -103,3 +103,56 @@ the branch goes to the review, the affected flows run from your checkout, and th
 with the command lines and their output quoted under `## Evidence`. A run that stops for any reason
 leaves the worktree and its branch in place and names both, so nothing is half landed and nothing is
 lost.
+
+## Common questions
+
+**Why can I not run `/do` on a spec?**
+Because the chain is strict: each skill takes only the artifact of the step before it
+([ADR 0003](adr/0003-the-chain-is-strict.md)). A spec is a whole feature, and `do` builds one
+demoable slice of it. Cutting the slices is [tickets](tickets.md)'s job, where each one is sized by
+the context the `do` session will reach and blocked by the ticket that writes what it reads. Hand
+`do` a spec and that cut happens inside the build, where nothing checks it. The router refuses in
+one message and names `/tickets <spec>`, or `/journey <spec>` first when the spec's verdict reads
+`required`. A pasted session summary goes to `/spec` the same way.
+
+**Why is `trivial` not a size?**
+Because size does not predict what a change does. The test is whether a test could tell before from
+after. A one-line rename of an export moves a contract other code depends on; a fifty-line comment
+sweep moves nothing. The door reads the request that way before any edit, and a script reads the
+diff that way before the commit, and a change that fails either one leaves for the Playbook that can
+prove it. If your "trivial" requests keep bouncing to `bug-fix`, they were behaviour changes
+described as cleanups, which is the check doing its job rather than being strict.
+
+**Why does the session write the code instead of handing it to a subagent?**
+Because whoever writes the diff owns it, and a summary is not the diff. A subagent hands back prose
+about what it did, and a session that accepted that prose cannot answer for what is on the branch.
+So the session writes and commits, and a delegate is the exception
+([ADR 0009](adr/0009-the-session-writes-a-delegate-is-the-exception-and-no-playbook-depends-on-nesting-depth.md)):
+bulk mechanical work with a closed scope, after a script was considered, or exploration whose output
+would flood the context window. Even then the session reads the delegate's diff and writes its own
+summary. Test authors are the one standing exception, because a test written by whoever wrote the
+code tends to assert what the code does rather than what it should do.
+
+**Why does the reviewer fix and land, and not `do`?**
+Because a run that could fix its own Findings would be grading its own diff. `do` hands over three
+things, the spec source, the fixed point and the landing target, and then stops. The review writes
+the Review, forks a Fixer that turns each `Act on` Finding into its own commit, re-runs each
+Finding's check and the whole gate, and fast-forwards your branch only when the Review is Green
+([ADR 0013](adr/0013-do-code-review-lands-a-green-review-by-fast-forward.md),
+[ADR 0015](adr/0015-the-default-review-run-fixes-and-lands-and-the-fixer-corrects-for-every-caller.md)).
+That is also why `do` never patches a Finding by hand: a Finding the Fixer left standing is the
+reason nothing landed, and the run stops on it with the worktree intact.
+
+## It's working if
+
+- The first line of every reply names the Playbook it matched, and it is the one you expected.
+- `git status` in your checkout is what you left it. Your work in progress was never staged, the
+  worktree folder is excluded, and the only files left uncommitted are the Ticket and the Review.
+- The branch history reads one commit per behaviour, each body carrying a `Behaviour:` line, with
+  the review's fix commits on top and nothing pushed.
+- Every number and output line in the reply has a command line beside it, and that command ran
+  after the run's last edit.
+- A run that stopped names its worktree and its branch, and the Ticket still reads `claimed`, so
+  typing `/do` on it again picks up where it stopped rather than starting over.
+- A `trivial` request costs you one message, and a run that never reached a landing costs you no
+  cleanup you have to do by hand.
