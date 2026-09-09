@@ -181,6 +181,16 @@ check "an add that cannot run leaves a pointer and never stops the install" 0 "$
   "A failed add never stops the install"
 check "the report names the outcome of the offer and the reason an add failed" 0 "$rc" \
   "the partial data helper: added with the command that ran, already present, declined, or not added with the reason the add failed"
+# shellcheck disable=SC2016
+check "a no is recorded by absence, so a later run offers again" 0 "$rc" \
+  'the next run reads `absent` again and offers again, the way the hook offer is offered again'
+
+# Step 0 hands the key forward, and step 2 is the first step to read it, so the span the line names
+# has to reach back to step 2 or the offer reads a field the install never kept.
+rc=0; out="$(grep -F 'Keep the rest of the output;' "$skill/SKILL.md")" || rc=$?
+# shellcheck disable=SC2016
+check "step 0 keeps the helper key for the step that reads it" 0 "$rc" \
+  "steps 2-7 use it" '`partial_data_helper`'
 
 echo
 echo "# the verifier's partial data helper key"
