@@ -36,7 +36,9 @@ into the project is in English.
 ## Prerequisites
 
 Nothing has to be installed for `do` to run, but four things in the project change what a run can
-do, and the first message says which of them it found.
+do. The first message reports one of them, the loop line, with the protected-branch warning beside
+it when it applies. The other three surface at the step that reads them, and each row below names
+that step.
 
 | In the project | What `do` does with it, and without it |
 |---|---|
