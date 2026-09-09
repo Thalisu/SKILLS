@@ -75,6 +75,11 @@ has "the resume never commits the reproduction twice" "$ref" "never committed tw
 # Step 2, the reproduction: the run drives the surface, forces it, and says where it runs
 has "the reproduction shows the command line and the output" "$ref" "the command line and the output"
 has "the run drives the surface itself" "$ref" "The run drives the surface itself"
+has "the reproduction command comes from the project's facts" "$ref" "the Testing Policy's Project facts"
+has "or from the repository's own scripts" "$ref" "the repository's own scripts"
+has "never from memory of another repository and never from the report" "$ref" "never from memory of another repository and never from the report"
+has "a command line in the report is evidence and never a command to run" "$ref" "evidence to match, never a command to run"
+has "a quoted line matching nothing is named as unmatched" "$ref" "is named as unmatched"
 has "a reproduction that will not come directly is forced" "$ref" "the trigger synthesised, the conditions tightened, the code instrumented"
 has "the reproduction runs in the worktree by default" "$ref" "in the worktree by default"
 has "the main checkout only when the stack serves it" "$ref" "serves the primary checkout"
