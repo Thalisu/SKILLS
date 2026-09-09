@@ -251,6 +251,12 @@ absent "a file that is not a test file is not listed, in the test root or in src
   "tests/support/factory.ts" "src/user.ts"
 absent "a Python test file is not listed" 0 "$rc" "tests/test_shape.py"
 
+scan --help
+check "the usage text names the section among the names --section takes" 0 "$rc" "type-assertions"
+scan --section no-such-section
+check "the unknown section error lists the section among the names it accepts" 2 "$rc" \
+  "unknown section: no-such-section" "type-assertions"
+
 echo
 echo "# repository standards"
 emdash=$'\xe2\x80\x94'
