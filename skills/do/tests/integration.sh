@@ -31,6 +31,10 @@ lacks() { # $1 label, $2 file, $3.. fixed strings that must not appear
   for line in "$@"; do grep -qF -- "$line" "$file" 2>/dev/null && ok=0; done
   if [ "$ok" = 1 ]; then echo "ok    $label"; else echo "FAIL  $label ($file)"; fails=$((fails + 1)); fi
 }
+expect() { # $1 label, $2.. a command that must succeed
+  local label="$1"; shift
+  if "$@"; then echo "ok    $label"; else echo "FAIL  $label"; fails=$((fails + 1)); fi
+}
 between() { # $1 label, $2 file, $3 the earlier string, $4 the string that must sit between, $5 the later
   local label="$1" file="$2" a b c
   a="$(grep -nF -m1 -- "$3" "$file" 2>/dev/null | cut -d: -f1)"
@@ -86,6 +90,21 @@ has "the blocked stop names the check, the undo, the worktree and leaves the Tic
   "git reset --hard" \
   "the Ticket left \`claimed\`" \
   "nothing landed and nothing pushed"
+
+# The class is the script's verdict and never the session's reading of the markers, per ADR 0028, so
+# the step names the script it runs rather than describing a judgement.
+has "every stop is classed by the door script, never by the session" "$mech" \
+  "At every stop of the rebase" \
+  "bash <skill-dir>/scripts/conflict-class.sh" \
+  "never the session's own reading of the markers"
+expect "the script the step names ships with the skill" \
+  test -x "$repo/skills/do/scripts/conflict-class.sh"
+# The counts come before any action, so the developer reads the size of what is happening rather
+# than reconstructing it from what the run did.
+has "the run shows the script's lines and states both counts before it acts" "$mech" \
+  "shows the lines it printed" \
+  "how many hunks it resolved mechanically and how many it is bringing to the developer" \
+  "before it does anything"
 
 # No em-dash in the prose this step writes, per CLAUDE.md.
 lacks "no em-dash in the shared mechanics" "$mech" "$emdash"

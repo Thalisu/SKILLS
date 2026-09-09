@@ -275,6 +275,13 @@ failing check named, the command that undoes the rebase, `git reset --hard <the 
 before it started>`, the worktree and its branch left in place and named, the Ticket left
 `claimed`, nothing landed and nothing pushed.
 
+**A rebase that stopped.** At every stop of the rebase, before anything else, the run classes the
+conflicted hunks: `bash <skill-dir>/scripts/conflict-class.sh`, whose verdict is the class, never
+the session's own reading of the markers, per
+[ADR 0028](../../../docs/adr/0028-the-conflict-class-is-a-scripts-verdict-never-the-sessions-reading.md).
+The run shows the lines it printed, one per conflicted hunk, and states the counts before it does
+anything: how many hunks it resolved mechanically and how many it is bringing to the developer.
+
 ## The review
 
 Run once per landing, after the gate, and never by hand: the review fixes and lands, the run reads.
