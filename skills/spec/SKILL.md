@@ -81,9 +81,9 @@ it:
 
 The script owns the date, the reuse and that line, per
 [.agents/scratch.md](../../.agents/scratch.md): the run never composes a folder name, never dates
-one itself and never appends the line on its own. Exit 2 is a refusal with its reason on stderr:
-a slug that normalises to nothing, a `.scratch` that is a symlink or a file,
-a feature folder that is a symlink, a `spec.md` that is a symlink, or a resolver it cannot find.
+one itself and never appends the line on its own. Exit 2 is a refusal with its reason on stderr: a
+slug that normalises to nothing, a resolver it cannot find, a `.scratch` that is a symlink or a
+file, a feature folder that is a symlink, or a `spec.md` or an `issues` folder that is a symlink.
 No spec is written, and the reason goes to the user as it stands. It runs here and never in step 1,
 because nothing is written before the seams answer.
 

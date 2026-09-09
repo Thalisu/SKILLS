@@ -187,17 +187,20 @@ absent_in "the allocator looks up no folder of its own" "scratch/\[0-9\]" "$allo
 expect "the allocator reaches the resolver" grep -q resolve-feature-folder.sh "$allocate"
 
 # The allocator's one caller reads what exit 2 means off its own prose, so step 3 names every
-# refusal the allocator makes and not the two it made before the resolver.
-skill="$here/../SKILL.md"
+# refusal the allocator makes and not the two it made before the resolver. The prose is read as one
+# line, so a reason still counts where the paragraph wraps it.
+skill="$(tr '\n' ' ' < "$here/../SKILL.md")"
 expect "the caller's exit-2 list names a slug that normalises to nothing" \
-  grep -qF 'a slug that normalises to nothing' "$skill"
+  grep -qF 'a slug that normalises to nothing' <<<"$skill"
 expect "the caller's exit-2 list names a .scratch that is a symlink or a file" \
-  grep -qF 'a `.scratch` that is a symlink or a file' "$skill"
+  grep -qF 'a `.scratch` that is a symlink or a file' <<<"$skill"
 expect "the caller's exit-2 list names a feature folder that is a symlink" \
-  grep -qF 'a feature folder that is a symlink' "$skill"
+  grep -qF 'a feature folder that is a symlink' <<<"$skill"
 expect "the caller's exit-2 list names a spec.md that is a symlink" \
-  grep -qF 'a `spec.md` that is a symlink' "$skill"
+  grep -qF 'a `spec.md` or an `issues` folder that is a symlink' <<<"$skill"
+expect "the caller's exit-2 list names an issues folder that is a symlink" \
+  grep -qF 'an `issues` folder that is a symlink' <<<"$skill"
 expect "the caller's exit-2 list names a resolver the allocator cannot find" \
-  grep -qF 'a resolver it cannot find' "$skill"
+  grep -qF 'a resolver it cannot find' <<<"$skill"
 
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi

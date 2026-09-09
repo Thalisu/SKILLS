@@ -19,11 +19,12 @@
 #
 # Which paths a slug can name under the scratch is not this door's rule to hold: before it answers
 # it asks ../../../.agents/scripts/resolve-feature-folder.sh, the one executable form of that rule,
-# and passes on every refusal it makes, so a .scratch, a feature folder or a spec.md that is a
-# symlink never puts the Review, or a spec read beside it, at a path the repository does not
-# control. The lookups below stay this door's own: a Ticket is named after its own slug and not
-# after its feature's, and the containing scan matches a branch name no resolver knows. A checkout
-# that has no resolver answers as it does today, since a machine may have linked skills/ on its own.
+# and passes on every refusal it makes, so a .scratch, a feature folder, or a spec.md or issues
+# folder in it that is a symlink never puts the Review, or a spec read beside it, at a path the
+# repository does not control. The lookups below stay this door's own: a Ticket is named after its
+# own slug and not after its feature's, and the containing scan matches a branch name no resolver
+# knows. A checkout that has no resolver answers as it does today, since a machine may have linked
+# skills/ on its own.
 #
 # Prints key=value lines: branch, slug (the branch with every slash turned into a dash), head,
 # dirty (yes when the working tree has uncommitted or untracked changes; the two files this run

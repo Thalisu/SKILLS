@@ -156,6 +156,17 @@ check "a symlinked spec is refused" 2 "$rc" \
 absent "no folder reached the caller past a symlinked spec" "folder="
 absent "no spec reached the caller past a symlinked spec" "spec="
 
+# An issues folder that is a symlink is the same escape as a symlinked spec: the folder handed back
+# is the home of the tickets the chain writes at issues/<NN>-<slug>.md, and the caller composes that
+# path itself and calls no gate of its own.
+mkdir "$tmp/issues-link" && cd "$tmp/issues-link" && git init -q
+mkdir -p ".scratch/$today-nightly-purge" "$tmp/victim-issues"
+ln -s "$tmp/victim-issues" ".scratch/$today-nightly-purge/issues"
+run nightly-purge
+check "a symlinked issues folder is refused" 2 "$rc" \
+  ".scratch/$today-nightly-purge/issues is a symlink; nothing resolved"
+absent "no folder reached the caller past a symlinked issues folder" "folder="
+
 # A linked worktree holds no scratch of its own, so a slug resolves in the main checkout and the
 # paths come back absolute for a caller that stands somewhere else.
 mkdir "$tmp/wt" && cd "$tmp/wt" && git init -q
