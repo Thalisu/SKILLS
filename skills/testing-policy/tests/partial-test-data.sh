@@ -146,6 +146,26 @@ check "the preserved-parts note names the version that added the label" 0 "$rc" 
   "2.4 added **Partial test data** to the unit map"
 
 echo
+echo "# the install's offer"
+rc=0; out="$(cat "$skill/SKILL.md")" || rc=$?
+# shellcheck disable=SC2016  # the backticks are part of the fixed strings SKILL.md carries
+check "eligibility is a TypeScript configuration and a TypeScript test file under the roots" 0 "$rc" \
+  '`partial_data_helper` from step 0 is not `n/a`' \
+  'at least one TypeScript test-file suffix'
+# shellcheck disable=SC2016
+check "an assertion already in the tree does not gate the offer" 0 "$rc" \
+  'whether `type-assertions` found anything does not gate it'
+check "the offer rides in the question that already carries the hook offer" 0 "$rc" \
+  "the partial data helper offer from step 2" "the hook offer from step 6"
+check "a project on another stack is never asked and never reads the package name" 0 "$rc" \
+  "never sees the offer and never sees the package name"
+
+# The offer is one more entry in a call that already exists, so the count of calls is what says no
+# second question was introduced: one in step 1 for the surface, one in step 3 for everything else.
+rc=0; out="$(grep -c 'AskUserQuestion' "$skill/SKILL.md")" || rc=$?
+check "the install still asks through the two calls it had" 0 "$rc" "2"
+
+echo
 echo "# the verifier's partial data helper key"
 # The key reports the project's own state, so it is read off bare fixtures with no policy
 # installed: exit 4 is `policy=none`, and the key prints all the same.
