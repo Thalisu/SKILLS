@@ -51,4 +51,23 @@ has "the glossary's Playbook rule sends a runnable throwaway to prototype" "$glo
 lacks "the glossary rule no longer calls a request for a throwaway a sketch" "$glossary" \
   "a sketch is \`prototype\`"
 
+# The eval case that grades the row. Its name is the row's, so a case whose name still carries the
+# word grades a door the router no longer has.
+evals="$repo/skills/do/evals"
+case="$evals/layout-goes-to-prototype"
+expect "no eval case folder is named after the word the \`sketch\` skill owns" \
+  test -z "$(find "$evals" -maxdepth 1 -type d -name '*sketch*')"
+expect "the case that grades the row is named for what it grades" test -d "$case"
+has "the case file names the case" "$case/case.yaml" "name: layout-goes-to-prototype"
+has "the door grader's line names what the case grades" "$case/graders/names-prototype.md" \
+  "A layout goes to prototype; do never builds a throwaway."
+has "the evals README carries the case's row" "$evals/README.md" \
+  "| \`layout-goes-to-prototype\` |"
+# A rename that misses the README leaves a row grading nothing, which reads as coverage.
+rows_ok=1
+while read -r name; do
+  [ -d "$evals/$name" ] || { echo "      README row with no case folder: $name"; rows_ok=0; }
+done < <(awk -F'|' '/^\| `/ { gsub(/[` ]/, "", $2); print $2 }' "$evals/README.md")
+expect "every row of the evals README names a case folder that exists" test "$rows_ok" = 1
+
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi

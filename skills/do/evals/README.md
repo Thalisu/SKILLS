@@ -23,7 +23,7 @@ typecheck and `node --test` as the suite, so both run offline with node alone.
 | `empty-asks-for-task` | no argument: one message asking for the task, no ticket picked from the fixture, nothing written |
 | `feature-goes-to-discuss` | a feature with no Ticket: one message naming `/discuss`, nothing built, no Playbook matched |
 | `question-goes-to-how` | a "how does X work" question: one message naming `/how` (or `/teach`), the question left unanswered |
-| `sketch-goes-to-prototype` | a request to try a layout: one message naming `/prototype`, no HTML or variant written |
+| `layout-goes-to-prototype` | a request to try a layout: one message naming `/prototype`, no HTML or variant written |
 | `spec-path-goes-to-tickets` | a Spec's path whose `Journey:` line names a journey that exists: one line saying a Spec fits no Playbook, with `/tickets` as the command, no tickets cut |
 | `summary-goes-to-spec` | a pasted `discuss` closing summary: the same line, with `/spec` as the command since the discussion already happened, no spec written |
 | `spec-required-goes-to-journey` | a Spec's path whose `Journey:` line reads `required` with no journey beside it: the same line with `/journey` named first, no journey written |

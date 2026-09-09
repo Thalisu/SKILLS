@@ -1,4 +1,4 @@
-name: sketch-goes-to-prototype
+name: layout-goes-to-prototype
 tags: [router, door]
 runs: 2
 max_turns: 6
