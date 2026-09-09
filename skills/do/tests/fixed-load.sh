@@ -106,6 +106,11 @@ has "the close says the run appended the .scratch/ line" "$refs/ticket.md" \
   'appended the `.scratch/` line to the project'"'"'s' \
   "the close says so in one line"
 
+# The appended line is the one file the developer actually sees in `git status`, since the Digest
+# itself lands on the ignored path, so the reply's list of what the run left has to name it.
+has "Left uncommitted names the .gitignore line the run appended" "$refs/reply.md" \
+  'the `.gitignore` line when the run appended it'
+
 # No em-dash in the prose this feature writes, per CLAUDE.md.
 lacks "no em-dash in the Digest reference" "$refs/digest.md" "$emdash"
 

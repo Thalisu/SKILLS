@@ -30,7 +30,8 @@ lists it; write it by this file alone otherwise.
    `Scope`, `Tradeoffs`, `Blast Radius`, `Verification`. Blast Radius names the one fact the
    change is safe because of and how it was proven; Verification repeats the evidence lines.
 8. **Left uncommitted.** The files the run wrote and did not commit, for the developer: the
-   Ticket, the Review. `none` when the run wrote only what it committed.
+   Ticket, the Review, and the `.gitignore` line when the run appended it. `none` when the run
+   wrote only what it committed.
 9. **Pending debt.** Waivers, consumer coverage not run, an equivalence gap, a second thing found
    on the way and not done.
 10. **Next step.** One line. It ends with the push command when something landed on the
