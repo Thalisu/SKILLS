@@ -125,21 +125,29 @@ named in the thread: the trigger synthesised, the conditions tightened, the code
 
 Where the reproduction and its instrumentation run is decided by the surface, not by convenience.
 They run in the worktree by default. They run in the main checkout only when the project's facts
-say the stack serves the primary checkout, and there only in files clean in the status, so nothing
-rides with the developer's work in progress; every instrumentation line put there is reverted
-before step 4, with nothing committed from there.
+say the stack serves the primary checkout, and there only in files clean in the status,
+`git status --short -- <files>` in the main checkout printing no line for them, so nothing rides
+with the developer's work in progress; every instrumentation line put there is reverted before
+step 4, with nothing committed from there.
+
+The revert in the main checkout is a command and not an intention: `git checkout -- <files>` over
+the files the run instrumented there, exact because they were clean when it wrote them, then
+`git status --short` in the main checkout quoted in the thread, matching what step 1 read. It runs
+on every exit of steps 2 and 3, and a run that stops there restores first and stops after, since
+debug lines left behind in the developer's tracked files ride into their next commit.
 
 When the surface cannot be reached from the session (a device, a production-only dataset, a
 third-party callback), the reason is stated and the developer is asked to drive it and report what
 they see. They are asked twice: once here, before the cause hunt, and once more at step 7,
 on the fixed build. The reply pastes both reports marked as the developer's, beside the run's own
 test output, so a reader tells one from the other. No report, or a no,
-stops the run as blocked with nothing landed and the hypotheses listed, since a defect nobody has
-observed is never called fixed.
+stops the run as blocked with nothing landed and the hypotheses listed, the main checkout restored
+first, since a defect nobody has observed is never called fixed.
 
 A bug that does not reproduce even when forced stops the run: the message says what it tried, and
-the run leaves nothing committed, the worktree removed by step 11. Done when the command line and
-the output showing the defect are in the thread, or the run stopped with what it tried named.
+the run leaves nothing committed, the worktree removed by step 11 and the main checkout restored
+before the message. Done when the command line and the output showing the defect are in the
+thread, or the run stopped with what it tried named and the main checkout's status quoted.
 
 **3. Cause.** The cause is found by ruling hypotheses out, never by guessing at a likely one, per
 [fix-root-causes](../../../.agents/principles/fix-root-causes.md). The thread carries one line per
@@ -158,7 +166,8 @@ step 2's rule, is read, and is reverted before step 5 writes the failing test. N
 hypothesis motivated survives into the fix: every line a refuted hypothesis motivated, and every
 line added because it might help, is reverted before the fix commit, so every shipped line traces
 to the evidence. Done when every hypothesis has its evidence line, the mechanism is in the thread
-and every instrumentation line is reverted.
+and every instrumentation line is reverted, with the main checkout's `git status --short` quoted
+when the run instrumented it.
 
 **4. Plan the fix.** The fix is planned in a few lines: where the change goes, what it changes, and
 which line of evidence from step 3 asks for it. It is the smallest change that removes the

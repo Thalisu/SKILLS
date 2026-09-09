@@ -80,6 +80,14 @@ has "the reproduction runs in the worktree by default" "$ref" "in the worktree b
 has "the main checkout only when the stack serves it" "$ref" "serves the primary checkout"
 has "there only in files clean in the status" "$ref" "clean in the status"
 has "nothing is committed from the main checkout" "$ref" "nothing committed from there"
+has "the main checkout's clean check is a command" "$ref" "git status --short -- <files>"
+has "the main checkout's revert is a command" "$ref" "git checkout -- <files>"
+has "the restored status matches what step 1 read" "$ref" "matching what step 1 read"
+has "the revert runs on every exit of steps 2 and 3" "$ref" "on every exit of steps 2 and 3"
+has "a stopping run restores before it stops" "$ref" "restores first and stops after"
+has "the blocked stop restores the main checkout" "$ref" "the hypotheses listed, the main checkout restored"
+has "the non-reproducing stop restores the main checkout" "$ref" "the worktree removed by step 11 and the main checkout restored"
+has "step 3 is done with the main checkout's status quoted" "$ref" "the main checkout's \`git status --short\` quoted"
 
 # The surface that cannot be reached: the developer drives it, twice
 has "an unreachable surface is named with its reason" "$ref" "cannot be reached"
