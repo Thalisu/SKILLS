@@ -81,7 +81,9 @@ what a boundary is before writing, and reports a **Reuse audit** of what was sea
 
 The duplication scan runs on every install and refresh, and its findings are reported, never
 auto-fixed. The debt is paid by the second-use rule: the next author who needs a duplicated asset
-consolidates it first.
+consolidates it first. The scan counts the type assertions in the test files the same way, one
+line per file with a count, and the install reports that debt beside the others and rewrites no
+test file: it is paid by the next author who touches the file.
 
 ## Modes
 
