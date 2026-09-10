@@ -112,7 +112,8 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   step 5 reads `done: resumed` and the run never waits on an empty loop. It goes on at step 6 as a
   first run does, a flow already on the branch counting as authored, then the gate, then
   the integration with the developer present to answer each contested hunk the review could not,
-  then the review on the rebased diff and the landing.
+  then the landing through the fix call on the Review that return names, never a second review,
+  as the bullet above says.
 - On `verdict=ask`, the uncommitted changes in the worktree are named in the first message, one
   line per file from the script's `uncommitted=` lines, which are `git status --short`'s, and
   the run asks before discarding them, since the discard is the one irreversible act on this path.

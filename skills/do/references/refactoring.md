@@ -358,8 +358,8 @@ since there is no Ticket outside the chain, the merge base of the branch and the
 started on, `git merge-base refs/heads/<that branch> HEAD`, qualified so a same-named tag can never
 shadow the branch, read after the integration as the fixed point, and
 the branch the run started on as the landing target. The review writes the Review, fixes
-its `Act on` Findings through its Fixer and lands the branch by fast-forward when the Review is
-Green. The run fixes no Finding and lands nothing itself.
+its `Act on` Findings through its Fixers, one per Finding, and lands the branch by fast-forward
+when the Review is Green. The run fixes no Finding and lands nothing itself.
 
 The thread shows the return, one line per part, as the shared section says. The four returns are the
 ones the `ticket` Playbook gets:

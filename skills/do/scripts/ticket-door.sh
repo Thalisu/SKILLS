@@ -9,7 +9,9 @@
 #
 # Prints key=value lines, in this order: ticket, title, status, one blocker=<NN> <status> <path> per
 # Ticket the Blocked by line names (blockers=none for None), slug, worktree (the do-<slug> worktree
-# when git lists one at that path, else none), loop (policy when the project has
+# when git lists one at that path, else none), run_branch (do/<slug> when git lists that branch
+# locally, else none, read beside worktree so a start-over knows whether the branch survived the
+# worktree's removal), loop (policy when the project has
 # .claude/agents/unit-test-author.md, else global when ~/.claude/agents/global-unit-test-author.md
 # is linked, else fallback), branch, protected and reason as
 # `trivial-door.sh branch` prints them in the main checkout, then verdict. An ambiguous=<what>
