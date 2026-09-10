@@ -69,11 +69,15 @@ You always write the Sketch and you always name where you wrote it. That rule ho
 because a shape left in a thread dies with the window it was said in, and the run that has to be
 held to it comes later.
 
-Write it in the format at `~/.claude/skills/sketch/references/sketch-format.md`: the header, the
-caller's usage, the types, the signatures, the boundaries, the rejected rivals. Read it before you
-write, at that path and no other, because you run with the project as your working directory and a
-path relative to the skill's own folder names nothing there. Write the caller's usage first and
-derive the rest from it. Every body reads `not implemented`.
+Write it in the format at
+`$(readlink -f ~/.claude/skills/sketch)/../../.agents/formats/sketch-format.md`: the header, the
+caller's usage, the types, the signatures, the boundaries, the rejected rivals. It sits with the
+formats the chain shares, since `do` writes a Sketch in it too when the Agent tool is withheld from
+its session. Read it with `cat` before you write, at that path and no other, for the reason the
+principles above are: you run with the project as your working directory, a path relative to the
+skill's own folder names nothing there, and the Read tool collapses the `..` before it follows the
+link. Write the caller's usage first and derive the rest from it. Every body reads
+`not implemented`.
 
 ## Where the Sketch goes
 

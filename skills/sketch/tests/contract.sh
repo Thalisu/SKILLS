@@ -75,12 +75,20 @@ has "the agent explores rival shapes in its own window" "$agent_md" \
 lacks "the agent calls no skill this repository does not carry" "$agent_md" \
   "arena" "interrogate" "Skill tool"
 
-# The Sketch it writes, and the line it stops at. Every path the agent names has to resolve from a
-# project's working directory under the installed layout, so the format is read off the agent and
-# checked on disk rather than looked up at a path only this repository has.
-named="$(grep -o '~/\.claude/skills/sketch/references/[a-z0-9-]*\.md' "$agent_md" | head -n 1)"
-format="$skill/${named#\~/.claude/skills/sketch/}"
+# The Sketch it writes, and the line it stops at. The format lives with the formats two skills share,
+# since `do` writes a Sketch too when the Agent tool is withheld, and the agent reaches it through the
+# link the install leaves. So the path is read off the agent and resolved from the skill's folder,
+# where `readlink -f ~/.claude/skills/sketch` lands, rather than looked up at a path only this
+# repository has.
+named="$(grep -o '\$(readlink -f ~/\.claude/skills/sketch)/\.\./\.\./\.agents/formats/[a-z0-9-]*\.md' "$agent_md" | head -n 1)"
+format="$skill/${named#'$(readlink -f ~/.claude/skills/sketch)/'}"
 expect "the format the agent names is a file, at the path the install gives it" test -f "$format"
+expect "the format lives with the formats the chain shares" \
+  test "$(cd "$(dirname "$format")" 2>/dev/null && pwd -P)" = "$repo/.agents/formats"
+expect "no second copy of the format stays in the skill's own folder" \
+  test ! -e "$skill/references/sketch-format.md"
+has "the formats index carries the Sketch format's row, with both writers" \
+  "$repo/.agents/formats/README.md" "| [sketch-format.md](sketch-format.md) | \`sketch\`; \`do\`"
 has "the format opens with its title" "$format" "# Sketch format"
 ordered "the format's sections come in the fixed order" "$format" \
   "## Header" "## The caller's usage" "## The types" "## The signatures" "## The boundaries" \
@@ -92,7 +100,10 @@ has "a rejected rival is one line with the fact that killed it" "$format" \
 has "a section with nothing to say reads none" "$format" "reads \`none\`"
 
 has "the agent stops at the Sketch and names the format at its installed path" "$agent_md" \
-  "## The Sketch" "~/.claude/skills/sketch/references/sketch-format.md" "always write" "always name"
+  "## The Sketch" '$(readlink -f ~/.claude/skills/sketch)/../../.agents/formats/sketch-format.md' \
+  "always write" "always name"
+lacks "the agent names no copy of the format in the skill's own folder" "$agent_md" \
+  "references/sketch-format.md"
 has "the agent reaches the principles through the link the install leaves" "$agent_md" \
   '$(readlink -f ~/.claude/skills/sketch)/../../.agents/principles/exhaust-the-design-space.md' \
   '$(readlink -f ~/.claude/skills/sketch)/../../.agents/principles/boundary-discipline.md'
