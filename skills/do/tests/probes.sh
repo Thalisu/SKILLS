@@ -201,5 +201,15 @@ has "uncommitted work is asked about on the probe's ask, and nothing goes withou
   "a no stops the run with the worktree as it is, the reply naming it and its branch" \
   "Nothing is discarded without the answer"
 
+echo "# a skip is written when its step is reached"
+reply_md="$skill/references/reply.md"
+has "each step of the ticket checklist writes its own skip when it is reached" "$ticket_md" \
+  "Each step writes its own skip, with its reason, when the run reaches it"
+has "the reply's Skipped section holds only the steps the run reached" "$reply_md" \
+  "only the steps the run reached"
+has "a blocked reply names where it stopped and lists no step after it" "$reply_md" \
+  "names the step it stopped at" \
+  "lists no step after it as skipped"
+
 echo
 if [ "$fails" = 0 ]; then echo "probes: all checks passed"; else echo "probes: $fails failed"; exit 1; fi

@@ -106,6 +106,9 @@ line per file, and a `verdict=` line, `build` (exit 0), `ask` (exit 1, uncommitt
 
 ## Checklist
 
+Each step writes its own skip, with its reason, when the run reaches it, and never earlier: a
+step the run never reaches is neither ticked nor skipped.
+
 ```
 Do:
 - [ ] 0. Input resolved and confirmed; policy or fallback detected; ticket claimed

@@ -27,7 +27,9 @@ lists it; write it by this file alone otherwise.
    replayed commit it skipped. A check that did not run appears under Skipped, never here.
 5. **Principles.** Every principle that changed a decision, with the decision it changed. A name
    without a decision is not allowed. `none` is common.
-6. **Skipped.** Every skipped step as `<step>: skip: <reason>`, copied from the checklist.
+6. **Skipped.** Every skipped step as `<step>: skip: <reason>`, copied from the checklist, and
+   only the steps the run reached: a step it never came to was never considered, so it is not a
+   skip and is not listed.
 7. **PR-ready description.** As the developer pastes it, with these headings and no other: `Why`,
    `Scope`, `Tradeoffs`, `Blast Radius`, `Verification`. Blast Radius names the one fact the
    change is safe because of and how it was proven; Verification repeats the evidence lines.
@@ -45,3 +47,6 @@ The first line, then the refusal or the blocker with its reason, then the Playbo
 request goes to with the command to type. A run that stopped after work exists adds the sections
 that apply: the commits made, the worktree and its branch named, the files restored. A run that
 refused before any edit adds nothing.
+
+A run that stopped as blocked names the step it stopped at, and its Skipped section
+lists no step after it as skipped: the run never reached those steps.
