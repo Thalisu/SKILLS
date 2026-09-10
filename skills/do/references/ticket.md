@@ -33,6 +33,9 @@ the tracker file describes. Before anything is written:
   have appended to, and a line planted at column 0 above the format's own would otherwise be the
   word the gate clears the run on. A file with no match is refused the same way. On a tracker the
   status is the issue's label, read the same way.
+- A Ticket whose own status the script prints as `ambiguous` (no `**Status:**` line, two of them,
+  or a word outside the walk) is refused in one line naming the cause from its `ambiguous=` line.
+  Nothing is written; the developer sets the status line by hand.
 - A Ticket that is `resolved` stops the run in one line. Nothing is written.
 - A Ticket whose `Blocked by` names one not `resolved` is refused before the claim, in one
   message naming the blocker and its status. Nothing is written; the developer builds the blocker
@@ -41,6 +44,9 @@ the tracker file describes. Before anything is written:
   never a second worktree, and the claim stands.
 - A `claimed` Ticket whose worktree is gone starts over: the first message says so in one line,
   and the claim stands, since the claim is idempotent.
+- A `ready-for-agent` Ticket whose `do/<slug>` worktree already exists is refused in one line
+  naming the worktree. Nothing is written: the worktree is a run no claim records, and the
+  developer removes it or sets the status by hand.
 - On a remote tracker, an issue assigned to someone else stops the run in one line with their
   name.
 

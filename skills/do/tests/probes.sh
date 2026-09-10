@@ -212,6 +212,12 @@ has "the door runs its script, named with its command line" "$ticket_md" \
   "\`bash <skill-dir>/scripts/ticket-door.sh <the Ticket's path>\`"
 has "the resume reads its script, named with its command line" "$ticket_md" \
   "\`bash <skill-dir>/scripts/resume-state.sh <the Ticket's path>\`"
+has "every ambiguous verdict of the door is refused in one line naming its cause, nothing written" "$ticket_md" \
+  "A Ticket whose own status the script prints as \`ambiguous\`" \
+  "is refused in one line naming the cause from its \`ambiguous=\` line." \
+  "Nothing is written; the developer sets the status line by hand." \
+  "A \`ready-for-agent\` Ticket whose \`do/<slug>\` worktree already exists is refused in one line" \
+  "naming the worktree. Nothing is written"
 has "the first message states the door script's facts and marks no step skipped" "$ticket_md" \
   "off the lines the door script printed" \
   "The checklist above, verbatim, with no step marked skipped"
