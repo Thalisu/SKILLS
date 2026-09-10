@@ -165,5 +165,11 @@ has "a grader checks the map is written beside the Ticket" "$case/graders/projec
   '01-archive-a-note.project-map.md'
 has "the evals README lists the case" "$skill/evals/README.md" "| \`global-loop-withheld-agent-tool\` |"
 
+echo "# both no-policy eval cases share one runner HOME"
+nopolicy="$skill/evals/ticket-run-without-policy"
+has "a grader checks the loop line reads global and dispatches the global unit author" \
+  "$nopolicy/graders/loop-line-fallback-reference-read.md" \
+  'Loop: global' 'global-unit-test-author'
+
 echo
 if [ "$fails" = 0 ]; then echo "all passed"; else echo "$fails failed"; exit 1; fi
