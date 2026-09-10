@@ -277,5 +277,22 @@ run "$gate"; check "no check is a usage error" 2 "$rc"
 run "$gate" "true"; check "a check with no key is a usage error" 2 "$rc"
 header_has "the gate script's header carries its own command line" "$gate" "#   gate.sh " 12
 
+echo "# gate.sh: a red check"
+run "$gate" "suite=true" "lint=seq 1 100; echo broke >&2; exit 4" "typecheck=echo 'x.ts:3 error'; exit 2" "format=true"
+log="$(sed -n 's/^lint=red exit=4 log=//p' <<<"$out")"
+tlog="$(sed -n 's/^typecheck=red exit=2 log=//p' <<<"$out")"
+check "a red check prints its key, its exit and the file holding its full output, and the gate exits 1" 1 "$rc" \
+  "suite=green" "lint=red exit=4 log=$log" "typecheck=red exit=2 log=$tlog" "format=green" "verdict=red" \
+  "  [capped: the last 20 of 101 lines]" "  99" "  broke" "  x.ts:3 error"
+ordered "the checks after a red one still run, in the order given" command= suite= lint= typecheck= format= verdict=
+absent "the capped block leaves out the lines before its last twenty" "  80$"
+[ "$(grep -c '^  ' <<<"$out")" = 22 ] && echo "ok    the failing blocks are capped, and a short one is printed whole" ||
+  { echo "FAIL  the failing blocks are capped, and a short one is printed whole"; fails=$((fails + 1)); }
+gate_out="$out"
+out="$(cat "$log" 2>/dev/null)"
+check "the file the red line names holds the full output" 0 0 "1" "50" "100" "broke"
+out="$(git status --short)"; same "the gate writes nothing in the tree it checks" ""
+out="$gate_out"
+
 echo
 if [ "$fails" = 0 ]; then echo "probes: all checks passed"; else echo "probes: $fails failed"; exit 1; fi

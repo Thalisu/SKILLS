@@ -6,12 +6,19 @@
 #                                 it stands for, run with bash -c in the order given
 #
 # Prints key=value lines, in this order: command, the line that reruns this gate as it was called;
-# one <key>=green per check that exits 0; then verdict.
+# one line per check, <key>=green when it exits 0, otherwise <key>=red exit=<n> log=<file>, the
+# file holding its full output, followed by its failing block: the output's last 20 lines, each
+# indented two spaces, under a [capped: ...] line when there were more; then verdict. Every check
+# runs whatever the one before it returned, so one gate puts every failing block in front of the
+# run at once. The logs are written under $TMPDIR, never in the tree the gate checks.
 #
-# Exit codes: 0 green · 2 usage.
+# verdict: red (a check exited non-zero) · green.
+#
+# Exit codes: 0 green · 1 red · 2 usage.
 set -uo pipefail
 
 gate_here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+cap=20
 
 usage() { echo "usage: gate.sh <key>=<command>..." >&2; exit 2; }
 [ "$#" -gt 0 ] || usage
@@ -20,10 +27,19 @@ for pair in "$@"; do
 done
 
 printf 'command=bash %q' "$gate_here/gate.sh"; printf ' %q' "$@"; echo
-verdict=green
+logs="$(mktemp -d "${TMPDIR:-/tmp}/do-gate.XXXXXX")" || { echo "cannot create a log directory" >&2; exit 2; }
+verdict=green n=0
 for pair in "$@"; do
-  key="${pair%%=*}"
-  if bash -c "${pair#*=}" >/dev/null 2>&1; then echo "$key=green"; else echo "$key=red"; verdict=red; fi
+  key="${pair%%=*}" n=$((n + 1))
+  log="$logs/$n-${key//\//_}.log"
+  rc=0; bash -c "${pair#*=}" >"$log" 2>&1 || rc=$?
+  if [ "$rc" = 0 ]; then echo "$key=green"; rm -f "$log"; continue; fi
+  verdict=red
+  echo "$key=red exit=$rc log=$log"
+  lines="$(wc -l <"$log")"
+  [ "$lines" -gt "$cap" ] && echo "  [capped: the last $cap of $lines lines]"
+  tail -n "$cap" "$log" | sed 's/^/  /'
 done
+rmdir "$logs" 2>/dev/null
 echo "verdict=$verdict"
 [ "$verdict" = green ]
