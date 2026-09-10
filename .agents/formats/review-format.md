@@ -217,9 +217,13 @@ Then the suite, `- suite: <the command>: <its result>`, and the landing on the l
   nowhere adds no line.
 - `- not landed: <the reason>; the branch <name> and its worktree stay in place`, naming both, for
   every reason the landing rules of
-  [ADR 0013](../../docs/adr/0013-do-code-review-lands-a-green-review-by-fast-forward.md) give: a
-  Finding `not fixed` or `not verified`, an Axis `not run`, a red suite, a protected target, a
-  rebase conflict, a failed fast-forward.
+  [ADR 0013](../../docs/adr/0013-do-code-review-lands-a-green-review-by-fast-forward.md) give, as
+  [ADR 0027](../../docs/adr/0027-the-rebase-runs-in-the-session-before-the-review-and-the-landing-retries-only-the-mechanical-class.md)
+  amends them: a Finding `not fixed` or `not verified`, an Axis `not run`, a red suite, a protected
+  target, a failed fast-forward, and a moved target with a `contested` hunk or a key the union
+  defines twice, whose reason reads
+  `not landed: target moved, <target> at <short sha>, conflicting <file> <file>`, each file as the
+  conflict class script printed it.
 - `- nothing to land`, on a Green Review of the branch the developer is already on when the Fixer
   made no commit.
 

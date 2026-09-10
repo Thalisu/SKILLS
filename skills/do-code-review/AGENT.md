@@ -284,7 +284,8 @@ Finding by number, the same words the `## Fix run` section carries.
 Then the landing, whether a fix ran or not: `landed at <sha>`, or `not landed` with its reason and
 the branch and worktree left in place, or `nothing to land` when the landing target is the branch
 the Review judged. A landing that retried over a moved target reads
-`landed at <sha>, rebased onto <target> at <short sha>`, then one line per hunk it resolved. Your
-last line is the push command, `git push` with the landing target named, because nothing leaves the
-machine here.
+`landed at <sha>, rebased onto <target> at <short sha>`, then one line per hunk it resolved; one
+that met a hunk nobody may judge alone reads `not landed: target moved`, with the target and
+the conflicting files. Your last line is the push command, `git push` with the landing target
+named, because nothing leaves the machine here.
 Nothing else: no preamble, no summary of your own.

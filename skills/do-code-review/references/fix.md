@@ -163,8 +163,9 @@ landing instead of waiting on one.
 
 1. The rebase runs with git's conflict-resolution reuse off,
    `git -c rerere.enabled=false -c rerere.autoupdate=false rebase <the landing target>`, and so do
-   the continue and the skip below, with the same prefix. The setting is the developer's and may be
-   on, and a resolution the cache replays into a stop would be classed in place of what git left.
+   the continue, the skip and the abort below, with the same prefix. The setting is the
+   developer's and may be on, and a resolution the cache replays into a stop would be classed in
+   place of what git left.
 2. At every stop, before anything is resolved, the conflicted hunks are classed by
    `bash ~/.claude/skills/do-code-review/scripts/conflict-class.sh`, whose verdict is the class and
    never the orchestrator's reading of the markers, per
@@ -188,7 +189,15 @@ landing instead of waiting on one.
    target's lines above the replayed commit's. Then `rebase --continue`, and every further stop is
    classed and resolved the same way. A replayed commit the resolution left empty is already on the
    target: `rebase --skip`, and the landing line names it.
-4. When the rebase finishes, the suite runs again in that tree, the suite the re-check ran, since
+4. Any hunk `contested`, or a union that, read back before its `git add`, defines one key twice in
+   one scope of a file whose reader keeps the last definition it meets (JSON, YAML, TOML, an INI or
+   a `.env` file), since both lines would land and the reader would quietly keep one of them. The
+   rebase is abandoned with `rebase --abort`, which puts the branch back where it was, and the
+   landing returns `not landed: target moved` with the target and the conflicting files: the files
+   each as the class script printed it, and the key named when one was defined twice. The branch
+   and its worktree stay in place, nothing is pushed, and the caller, who can reach a person, takes
+   the question from there.
+5. When the rebase finishes, the suite runs again in that tree, the suite the re-check ran, since
    the branch now sits on commits the reviewers never read. Green, and the target is fast-forwarded
    as above, once: a second failure is a failed fast-forward and is named.
 

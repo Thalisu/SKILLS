@@ -69,6 +69,8 @@ has "the format carries the Fix run section and its four states" "$format" \
 # names the rebase and each hunk it resolved.
 has "the landing line names a rebase onto a moved target and each hunk it resolved" "$format" \
   "- landed at <sha>, rebased onto <target> at <short sha>" "one line per hunk it resolved"
+has "a hunk nobody may judge alone over a moved target has its own not-landed reason" "$format" \
+  "not landed: target moved, <target> at <short sha>, conflicting <file>" "a moved target with a \`contested\` hunk"
 has "the format says a second fix appends and a plain run overwrites" "$format" \
   "a second \`fix\` appends a second section" "overwrites"
 has "the index carries the format's row" "$repo/.agents/formats/README.md" \
@@ -163,6 +165,8 @@ has "the return carries the landing line whether a fix ran or not" "$agent_md" \
   "Then the landing, whether a fix ran or not"
 has "the landing retries a moved target once and the return names the rebase" "$agent_md" \
   "retries once over a target that moved" "rebased onto <target> at <short sha>"
+has "the return names a moved target it could not land over, with the files" "$agent_md" \
+  "\`not landed: target moved\`" "the conflicting files"
 # The whole `Fixed point:` line resolves as no ref, and the door's refusals are worded for a review
 # the fix call never ran, so a fix call takes the sha out of the header and rewords what comes back.
 has "a fix call hands the door the sha inside the Fixed point header" "$agent_md" \
@@ -267,6 +271,12 @@ has "the suite runs again before the fast-forward, and the landing line names th
   "the suite runs again" "names the rebase onto the moved target"
 lacks "no line aborts every rebase conflict whatever its class" "$fix_md" \
   "rebase conflict is aborted with the conflicting files named"
+# ADR 0027: the review has nobody to put a contested hunk to, so it aborts and hands the question to
+# the caller; a union that defines one key twice is a judgement too, whatever its class.
+has "any contested hunk aborts the retry and returns target moved with the files" "$fix_md" \
+  "Any hunk \`contested\`" "rebase --abort" "\`not landed: target moved\`" "each as the class script printed it"
+has "a union that defines one key twice is aborted the same way" "$fix_md" \
+  "defines one key twice" "the key named"
 has "the fix reference says what Green means without redefining it" "$fix_md" "Green"
 # A fix/<slug> worktree the Fixer left no commit in sits on a branch identical to the developer's
 # HEAD and holds nothing to read, so the run takes back what it created, and only that.
