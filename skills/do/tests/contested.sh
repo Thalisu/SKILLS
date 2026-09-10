@@ -446,4 +446,43 @@ expect "each link is staged as the Target side's link" \
   test "$(git ls-files -s -- ':(literal)l1' ':(literal)l2' | awk '{ print $1, $2 }')" = "$target_links"
 expect "each link is still a link in the tree" test -L l1 -a -L l2
 
+# Sides far longer than a question can carry, the run showing every question as printed: a
+# whole-file side of thousands of lines, a hunk side of thousands of lines, and a hunk side that is
+# one enormous line. Each question quotes the head of each side and names its size and blob, and an
+# answer still takes the whole side.
+fresh long-sides
+seq 1 5000 | sed 's/^/big line /' > big.txt
+printf 'a\nb\nc\n' > long.txt
+commit base
+g switch -q -c do/run
+echo 'edited by incoming' >> big.txt
+{ echo a; head -c 100000 /dev/zero | tr '\0' x; echo; echo c; } > long.txt
+commit incoming
+g switch -q main
+g rm -q big.txt
+{ echo a; seq 1 3000 | sed 's/^/target line /'; echo c; } > long.txt
+commit target
+g switch -q do/run
+g rebase main >/dev/null 2>&1
+git cat-file blob :3:big.txt > "$tmp/big.incoming"
+git cat-file blob :2:long.txt > "$tmp/long.target"
+small() { test "$(printf '%s' "$out" | wc -c)" -lt 40000; }
+run; first="$(sed -n 's/^id //p' <<<"$out")"
+check "a whole-file side past the limit is quoted by its head, its size and its blob" 1 "$rc" \
+  "Conflict 1 of 2 · big.txt · whole-file · delete-vs-edit" "    big line 1" \
+  "5001 lines, $(git cat-file -s :3:big.txt) bytes, from blob $(git rev-parse --short :3:big.txt)"
+absent "the whole-file side's tail stays out of the question" 1 "$rc" "edited by incoming"
+expect "the whole-file question stays small" small
+run "$first:incoming"; second="$(sed -n 's/^id //p' <<<"$out")"
+check "hunk sides past the limit are quoted by their head, their size and their file's blob" 1 "$rc" \
+  "Conflict 2 of 2 · long.txt" "    target line 1" \
+  "3000 lines, " "from blob $(git rev-parse --short :2:long.txt)" \
+  "1 line, 100001 bytes, from blob $(git rev-parse --short :3:long.txt)"
+absent "a long hunk side's tail stays out of the question" 1 "$rc" "target line 3000"
+expect "the hunk question stays small, the one enormous line cut too" small
+run "$first:incoming" "$second:target"
+check "the answers apply to the sides the questions cut short" 0 "$rc" "wrote big.txt" "wrote long.txt"
+expect "incoming takes the whole Incoming side, not its quoted head" cmp -s big.txt "$tmp/big.incoming"
+expect "target takes the whole Target side, not its quoted head" cmp -s long.txt "$tmp/long.target"
+
 if [ "$fails" = 0 ]; then echo "all ok"; else echo "$fails failing"; exit 1; fi

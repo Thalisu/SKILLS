@@ -15,8 +15,9 @@
 # conflict-class.sh prints it, then `id <id>`, the Target and the Incoming side each quoted under its
 # own heading, a recommendation with the shape as its reason, the answers the shape offers, never
 # `both` where a stage of the file is a symlink or a submodule, and the command that undoes the
-# rebase. A whole-file hunk quotes each side whole, as `(deleted)` where that
-# side deleted the file, or by its size and blob where the file is binary or too large.
+# rebase. A whole-file hunk quotes each side whole, as `(deleted)` where that side deleted the file,
+# or by its size and blob where the file is binary or too large. A side past 200 lines or 16 KiB is
+# quoted by its head, then its line count, its size and the blob it came from.
 #
 # Once every contested hunk has an answer, each file carrying one is written once from its three
 # index stages, its mechanical hunks by the union rule, and staged: `wrote <file>` for each, or
@@ -164,13 +165,26 @@ sections() { # $1 path, $2 ordinal, $3 location, $4 shape
   done < "$tmp/merged"
 }
 
-quote() { # $1 file holding one side
-  if [ -s "$1" ]; then
+# The run shows every question as printed, so a side quoted whole would let whoever wrote it decide
+# how much of the session one question takes: past a fixed size a side is quoted by its head, and
+# its size and the blob it came from stand in for the rest.
+max_quote_lines=200
+max_quote_bytes=16384
+quote() { # $1 file holding one side, $2 the stage it came from, $3 path
+  local lines bytes unit=lines
+  if [ ! -s "$1" ]; then echo "    (nothing)"; return; fi
+  lines=$(( $(wc -l < "$1") )); bytes=$(( $(wc -c < "$1") ))
+  [ -z "$(tail -c1 "$1")" ] || lines=$((lines + 1))
+  if [ "$lines" -le "$max_quote_lines" ] && [ "$bytes" -le "$max_quote_bytes" ]; then
     sed 's/^/    /' "$1"
     [ -z "$(tail -c1 "$1")" ] || echo
-  else
-    echo "    (nothing)"
+    return
   fi
+  head -n "$max_quote_lines" "$1" | head -c "$max_quote_bytes" > "$tmp/head"
+  sed 's/^/    /' "$tmp/head"
+  [ -z "$(tail -c1 "$tmp/head")" ] || echo
+  [ "$lines" = 1 ] && unit=line
+  echo "    (cut short: $lines $unit, $bytes bytes, from blob $(git rev-parse --short ":$2:$3"))"
 }
 
 # The recommendation and its reason, keyed by the shape the classifier named.
@@ -213,11 +227,11 @@ ask() { # $1 position of the hunk among the contested ones, from 0
   echo
   echo "### Target"
   echo
-  quote "$tmp/target"
+  quote "$tmp/target" 2 "$path"
   echo
   echo "### Incoming"
   echo
-  quote "$tmp/incoming"
+  quote "$tmp/incoming" 3 "$path"
   echo
   echo "Recommendation: $(recommend "${shapes[$i]}")."
   echo "Answers: $(offered "${shapes[$i]}" "${files[$i]}")"
