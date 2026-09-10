@@ -135,6 +135,19 @@ check "a resolved blocker whose own slug carries a dot is read as resolved, and 
   "blocker=24 resolved $issues/24-upgrade-to-v1.2.md" "verdict=start"
 absent "a .project-map.md beside a dotted-slug blocker never makes its number ambiguous" "ambiguous="
 
+# A sidecar left behind once its blocker Ticket is gone is not the blocker: its own status line
+# never stands in for the Ticket's, so the number reads as missing and the run never starts.
+printf '# Project map\n\n**Status:** resolved\n' > "$issues/26-gone.project-map.md"
+printf 'a review\n\n**Status:** resolved\n' > "$issues/27-gone.review.md"
+ticket 28-after-lone-map.md '**Status:** ready-for-agent' '26, Gone'
+ticket 29-after-lone-review.md '**Status:** ready-for-agent' '27, Gone'
+for pair in 28-after-lone-map:26:project-map 29-after-lone-review:27:review; do
+  IFS=: read -r t b kind <<<"$pair"
+  run "$door" "$issues/$t.md"
+  check_lines "a blocker whose Ticket is gone and only a .$kind.md of it remains is missing, and the run is refused" 1 "$rc" \
+    "blocker=$b missing none" "ambiguous=$b files none" "verdict=ambiguous"
+done
+
 echo "# ticket-door.sh: the stops"
 run "$door" "$issues/01-first.md"
 check_lines "a resolved Ticket stops" 1 "$rc" "status=resolved" "verdict=resolved"
