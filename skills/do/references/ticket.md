@@ -151,7 +151,7 @@ not, explore with search and targeted reads, and say so in one line. Then the di
 call the Skill tool with `discover` once, with every symbol the Ticket, its Digest and the reading
 name in one batch, in the form the Discovery rule fixes, before the first of them is created, and
 log the audit line, `Discovery: n FOUND · n DUPLICATE · n NOT_FOUND`. When `discover` is not
-listed, one `rg -n -w` per candidate stands in and the audit line says so. A symbol the sketch
+listed, one `rg -n -w` per candidate stands in and the audit line says so. A symbol the Sketch
 adds later is checked before it is created the way the Discovery rule allows: one direct
 `rg -n -w` for a single name, one more batch for two or more. Restate done as a predicate,
 sharpened by what the reading showed. Then read the session's context once, `bash
@@ -187,13 +187,17 @@ that is not a local file, the issue's reference under `.scratch/sketches/` there
 Before it waits on the fork, the run names in one line what it handed over. The fork explores
 the rival shapes in a window of its own, per
 [guard-the-context-window](../../../.agents/principles/guard-the-context-window.md), stops at the
-Sketch and implements nothing.
+Sketch and implements nothing. What comes back is the Sketch's location and the shape in one line,
+and the run names the Sketch's location and the shape in one line in the thread: the types, the
+signatures and the module boundaries. It opens the Sketch when a behaviour needs more than that
+line, and never restates the rivals, which stay in the file.
 
-The build implements the sketch under the loop, so every test still goes through a test author.
-The sketch is the contract: a deviation during the build is surfaced in the reply, and a second
-deviation of the same shape stops the run as a wrong sketch, the deviations listed, the worktree
-and its branch named, the message naming `discuss`. Done when the shape is in the thread, or the
-skip.
+The build is held to the Sketch. The loop implements it one behaviour at a time, and
+every test still goes through a test author; a symbol it adds is checked the way step 2 says.
+A deviation from the Sketch during the build is surfaced in the reply, and a second deviation
+of the same shape stops the run as a wrong Sketch, the deviations listed, the worktree and its
+branch named, the message naming `discuss`. Done when the shape is in the thread with the
+Sketch's location, or the skip.
 
 **4. Behaviours.** The run names the Digest's location and restates it in one line, its Journey
 Path, the story numbers it carries, its Testing Decisions and the criteria it marks observable, so

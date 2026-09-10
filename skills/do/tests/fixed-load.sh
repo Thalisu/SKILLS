@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # fixed-load.sh: the cuts to the fixed context load a `do` run pays before its first behaviour,
 # asserted against the contract files on disk so a reviewer can rerun them: the door forks a reader
-# over the Ticket's Spec and its Journey, the session opens neither document, and the Digest that
-# comes back is quoted, located and keyed by the Ticket's slug.
+# over the Ticket's Spec and its Journey, the Digest that comes back is quoted, located and keyed by
+# the Ticket's slug, and the shape step forks `sketch` and holds the build to the Sketch it files.
 # Run: bash skills/do/tests/fixed-load.sh
 # shellcheck disable=SC2016
 set -uo pipefail
@@ -158,6 +158,16 @@ has "the run names in one line what it handed sketch" "$refs/ticket.md" \
   "names in one line what it handed over"
 has "a session that lists no sketch states the shape in the thread and says so" "$refs/ticket.md" \
   'a session whose Agent tool lists no `sketch`' "stated in the thread, the step says so in one line"
+# The Sketch is a file the build is held to, so the run names where it is and what it says, and a
+# shape that keeps failing the build is caught as a pattern rather than absorbed one case at a time.
+has "the run names the Sketch's location and the shape in one line" "$refs/ticket.md" \
+  "names the Sketch's location and the shape in one line"
+has "the build is held to the Sketch, and every test still goes through a test author" \
+  "$refs/ticket.md" "The build is held to the Sketch" "every test still goes through a test author"
+has "a second deviation of the same shape stops the run as a wrong Sketch, naming discuss" \
+  "$refs/ticket.md" "stops the run as a wrong Sketch" "the message naming \`discuss\`"
+lacks "the contract is the Sketch file, never a lowercase sketch in the thread" "$refs/ticket.md" \
+  "as a wrong sketch" "implements the sketch under the loop" "A symbol the sketch adds"
 
 # No em-dash in the prose this feature writes, per CLAUDE.md.
 lacks "no em-dash in the Digest reference" "$refs/digest.md" "$emdash"
