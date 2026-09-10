@@ -29,8 +29,8 @@
 # The other lookups stay this door's own: a Ticket is named after its own slug and not after its
 # feature's, and the containing scan matches a branch name no resolver knows, though it reads the
 # scratch the resolver read, so the two arms never name folders from different trees. A checkout
-# that has no resolver refuses nothing and names no spec in the scratch, since a machine may have
-# linked skills/ on its own.
+# that has no resolver names no spec through the slug's folder or through the containing scan, since
+# a machine may have linked skills/ on its own; the spec beside a Ticket it finds is still named.
 #
 # Prints key=value lines: branch, slug (the branch with every slash turned into a dash), head,
 # dirty (yes when the working tree has uncommitted or untracked changes; the two files this run

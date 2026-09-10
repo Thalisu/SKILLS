@@ -523,9 +523,10 @@ run
 check "the feature folder the resolver names is the spec" 0 "$rc" \
   "spec=.scratch/20240101-export-notes/spec.md"
 
-# A checkout that has no resolver refuses nothing and names no spec in the scratch, whose exact arm
-# is the resolver's: a machine may have linked skills/ on its own, and a script the tree does not
-# carry is no reason to refuse a review.
+# A checkout that has no resolver names no spec through the slug's folder, whose answer is the
+# resolver's, or through the containing scan, which reads the scratch the resolver read, and still
+# names the spec beside a Ticket it finds: a machine may have linked skills/ on its own, and a script
+# the tree does not carry is no reason to refuse a review.
 lonely="$tmp/lonely/skills/do-code-review/scripts"
 mkdir -p "$lonely" && cp "$door" "$lonely/fixed-point.sh"
 rc=0; out="$(bash "$lonely/fixed-point.sh" 2>&1)" || rc=$?
@@ -534,6 +535,11 @@ check "a door that cannot find the resolver names no spec and goes on" 0 "$rc" \
 mv .scratch/20240101-export-notes .scratch/export-notes-v2
 rc=0; out="$(bash "$lonely/fixed-point.sh" 2>&1)" || rc=$?
 check "a door that cannot find the resolver names no containing spec either" 0 "$rc" "spec=none"
+mkdir .scratch/export-notes-v2/issues && printf '# 01: Export notes\n' > .scratch/export-notes-v2/issues/01-export-notes.md
+rc=0; out="$(bash "$lonely/fixed-point.sh" 2>&1)" || rc=$?
+check "a door that cannot find the resolver names the spec beside a found Ticket" 0 "$rc" \
+  "ticket=.scratch/export-notes-v2/issues/01-export-notes.md" "spec=.scratch/export-notes-v2/spec.md"
+rm -r .scratch/export-notes-v2/issues
 
 # do names its branch after the Ticket's slug, while the Ticket sits in its feature's folder under
 # another slug: the door answers for that folder as well, found or handed, and for the Review beside
