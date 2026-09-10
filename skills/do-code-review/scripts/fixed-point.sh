@@ -61,8 +61,8 @@
 # main checkout when it sits there, no when git ignores that path or it sits outside the
 # repository).
 # Exit codes: 0 the door holds · 1 a refusal, with refusal=<the one line to print> · 2 usage, not a
-# git repository, a refusal the resolver makes over the scratch, reported in this door's words, or a
-# Ticket's feature folder, spec.md, issues folder or the Review beside it that is a symlink, the
+# git repository, a refusal the resolver makes over the scratch, reported in this door's words, a
+# .scratch in the tree under review that is not a plain directory, or a Ticket's feature folder, spec.md, issues folder or the Review beside it that is a symlink, the
 # file at review= or the folder it sits in that is one, or the feature folder or spec.md of a
 # containing match in the scratch that is one.
 # main_checkout, printed last, is the path of the main worktree, the first entry of git worktree
@@ -141,6 +141,11 @@ gate "$core"
 scratch_spec="$(sed -n 's/^spec=//p' <<<"$resolved")"
 scratch_root="$(sed -n 's/^root=//p' <<<"$resolved")"
 scratch_folder="$(sed -n 's/^folder=//p' <<<"$resolved")"
+# The resolver checks the main checkout's scratch alone, and the Ticket glob below reads this tree's,
+# which a branch reviewed from a linked worktree can commit as a link out of the repository.
+if [ -L .scratch ] || { [ -e .scratch ] && [ ! -d .scratch ]; }; then
+  echo ".scratch is not a plain directory of this checkout; nothing reviewed" >&2; exit 2
+fi
 ticket=none
 # One slug can carry more than one dated feature folder, and the newest of them wins: the glob is
 # sorted, so the last match is the one .agents/scratch.md names, and an undated folder, whose name

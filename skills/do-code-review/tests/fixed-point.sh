@@ -484,6 +484,26 @@ absent "no spec reached the linked worktree through a symlinked containing folde
 rm "$wt_spec/.scratch/export-notes" && mv "$tmp/wt-spec-folder" "$wt_spec/.scratch/export-notes"
 cd "$wt_spec" && git worktree remove --force "$wt_spec/.claude/worktrees/e"
 
+# The resolver reads the main checkout's scratch, and the Ticket glob reads the tree under review:
+# a branch that commits .scratch as a link out of the repository is refused from a linked worktree
+# before the glob follows it, as it is in the main checkout.
+mkdir "$tmp/wt-scratch" && cd "$tmp/wt-scratch" && git init -q -b main
+wt_scratch="$(pwd -P)"
+printf 'a\n' > a.txt && git add a.txt && git commit -q -m "first"
+mkdir -p "$tmp/wt-scratch-outside/feat/issues"
+printf '# Export\n' > "$tmp/wt-scratch-outside/feat/issues/01-export.md"
+printf '# Feat\n' > "$tmp/wt-scratch-outside/feat/spec.md"
+git worktree add -q "$wt_scratch/.claude/worktrees/e" -b export >/dev/null
+cd "$wt_scratch/.claude/worktrees/e" || exit 1
+ln -s "$tmp/wt-scratch-outside" .scratch
+git add .scratch && git commit -q -m "build"
+run main
+check "a linked worktree refuses its own symlinked .scratch before the Ticket glob" 2 "$rc" \
+  ".scratch is not a plain directory of this checkout; nothing reviewed"
+absent "no Ticket reached the caller through the worktree's symlinked .scratch" "ticket="
+absent "no spec reached the caller through the worktree's symlinked .scratch" "spec="
+cd "$wt_scratch" && git worktree remove --force "$wt_scratch/.claude/worktrees/e"
+
 # A bare main worktree has no working tree to anchor on, so the tree under review anchors itself:
 # without that, every path of the run resolves inside the bare repository.
 git clone -q --bare "$tmp/tracked" "$tmp/bare.git"
