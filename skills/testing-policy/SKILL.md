@@ -31,7 +31,7 @@ Run `bash <skill-dir>/scripts/verify-policy.sh <project>`. `policy=` picks the m
 - `none` → **install**
 - `legacy` (a Testing Policy section without markers; `legacy_lines=` gives its extent, `EOF` when it closes the file) → **migrate**
 - `stale` (marked, older version) or `drifted` (core hand-edited) → **refresh**
-- `current` → nothing to do unless another line is not `ok` / `n/a` / `none` or the user asked to re-map: a `stale` or `drifted` agent is refreshed alone (step 5), a `wired-missing` hook re-copied (step 6). Otherwise say so and stop.
+- `current` → nothing to do unless another line is not `ok` / `n/a` / `none` or the user asked to re-map: a `stale` or `drifted` agent is refreshed alone (step 5), a `wired-missing` hook re-copied (step 6), and a label named in `policy_facts_missing` appended alone at its template position with the core untouched (step 4), **Post-feature gate** with the answer step 3 asks for as it does on a refresh. Otherwise say so and stop.
 
 Keep the rest of the output; steps 2-7 use it: `agent_unit` / `agent_e2e` (`missing` · `unmarked` = hand-written, ask · `stale` = older template, v2 marker style included · `drifted` = current version, core hand-edited · `ok`), `agent_unit_map_missing` / `agent_e2e_map_missing` (Project-map lines the template gained, appended in step 5), `policy_facts_missing` (Project-facts lines the template gained, appended in step 4, **Post-feature gate** asked in step 3), `skill_test_author` (`missing` · `stale` · `ok`), `scan_script`, `skip_patterns`, `hook` (`missing` · `script-only` · `wired` · `wired-missing` = wired in settings but the script is gone), `gitignored`, `capture_legacy`, `partial_data_helper` (`n/a` = not TypeScript · `absent` · `installed`, read in step 2).
 
