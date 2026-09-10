@@ -22,8 +22,8 @@ Nothing is pushed: the run ends with the `git push` command for you to type.
 
 If you commit on your branch while the review runs, the fast-forward can no longer be made, so the
 landing rebases the reviewed branch onto yours first and runs the Gate again before it lands. It
-resolves a conflict alone only where both sides only added lines, a class a script decides and the
-review never judges. Any other conflict comes back to you as `not landed: target moved` with the
+resolves a conflict alone only where both sides only added lines, each opening on a line of its
+own, a class a script decides and the review never judges. Any other conflict comes back to you as `not landed: target moved` with the
 files named, since the review is a fork with nobody to ask, and a Gate red after the rebase lands
 nothing either.
 

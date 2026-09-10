@@ -9,7 +9,9 @@
 # a path carrying a space, a tab, a newline, a quote or a backslash is printed in quotes with those
 # bytes escaped. The class is mechanical when both sides only added lines, neither deleting nor
 # modifying a line the other side kept, and contested for every other shape, which is named as the
-# line's last field. The location is the hunk's line range in the working file, or whole-file when
+# line's last field. Two additions that open on the same non-blank line are one new text the sides
+# wrote and then split, whose union would keep both endings, so they class contested
+# add-vs-add-diverged. The location is the hunk's line range in the working file, or whole-file when
 # the conflict is the whole file. The last line reads verdict=<class> mechanical=<n> contested=<n>.
 #
 # Exit codes: 0 every hunk mechanical, or no conflicted state · 1 any hunk contested · 2 usage, or
@@ -104,7 +106,8 @@ stage_body() { # $1 stage, $2 path, $3 destination
 # certified mechanical. A path git left unmerged with no hunk to read at all, a submodule pointer
 # moved on both sides or a file the attributes leave with no merge driver, is unmergeable.
 classify_hunks() { # $1 path
-  local path="$1" i=0 line section base_lines=0 shape classes=() starts=() ends=() stage size
+  local path="$1" i=0 line section base_lines=0 shape classes=() shapes=() starts=() ends=() stage size
+  local target_first incoming_first
   for stage in 1 2 3; do
     size="$(git cat-file -s ":$stage:$path" 2>/dev/null)"
     if [ "${size:-0}" -gt "$max_stage_bytes" ]; then
@@ -125,18 +128,28 @@ classify_hunks() { # $1 path
 
   shape="$(file_shape "$path")"
   section=outside
+  # The regenerated merge is diff3 style, where git trims no line both sides added, so two sides
+  # that wrote the same new text and then split open their hunk on that same line.
   while IFS= read -r line; do
     case "$line" in
-      '<<<<<<< '*) section=target; base_lines=0 ;;
+      '<<<<<<< '*) section=target; base_lines=0; target_first=""; incoming_first="" ;;
       '||||||| '*) section=base ;;
       '=======')   section=incoming ;;
-      '>>>>>>> '*) if [ "$base_lines" -eq 0 ] && [ "$shape" != rename-vs-edit ]; then
-                     classes+=(mechanical)
+      '>>>>>>> '*) if [ "$base_lines" -gt 0 ] || [ "$shape" = rename-vs-edit ]; then
+                     classes+=(contested); shapes+=("$shape")
+                   elif [ -n "$target_first" ] && [ "$target_first" = "$incoming_first" ]; then
+                     classes+=(contested); shapes+=(add-vs-add-diverged)
                    else
-                     classes+=(contested)
+                     classes+=(mechanical); shapes+=("$shape")
                    fi
                    section=outside ;;
-      *)           [ "$section" = base ] && base_lines=$((base_lines + 1)) ;;
+      *)           case "$section" in
+                     base) base_lines=$((base_lines + 1)) ;;
+                     target)
+                       if [ -z "$target_first" ] && [[ "$line" =~ [^[:space:]] ]]; then target_first="$line"; fi ;;
+                     incoming)
+                       if [ -z "$incoming_first" ] && [[ "$line" =~ [^[:space:]] ]]; then incoming_first="$line"; fi ;;
+                   esac ;;
     esac
   done < "$tmp/merged"
 
@@ -150,7 +163,7 @@ classify_hunks() { # $1 path
     return
   fi
   while [ "$i" -lt "${#classes[@]}" ]; do
-    emit "${classes[$i]}" "$path" "L${starts[$i]}-L${ends[$i]}" "$shape"
+    emit "${classes[$i]}" "$path" "L${starts[$i]}-L${ends[$i]}" "${shapes[$i]}"
     i=$((i + 1))
   done
 }

@@ -191,6 +191,7 @@ quote() { # $1 file holding one side, $2 the stage it came from, $3 path
 recommend() { # $1 shape
   case "$1" in
     rewrite-vs-rewrite) echo "target, because both sides rewrote the same lines of the base, and Target is the branch the work lands on" ;;
+    add-vs-add-diverged) echo "target, because both sides added the same new text and then split, so both would say it twice, and Target is the branch the work lands on" ;;
     rename-vs-edit)     echo "target, because one side renamed the file and the other edited it, and Target keeps the name your branch gave it" ;;
     delete-vs-edit)     echo "target, because one side deleted the file and the other edited it, and Target keeps your branch's decision on whether it exists" ;;
     binary)             echo "target, because the file is binary and cannot be merged line by line, so one side's version stands whole" ;;

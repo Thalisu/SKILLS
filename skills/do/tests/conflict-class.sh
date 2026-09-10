@@ -40,18 +40,18 @@ check() { # $1 label, $2 expected exit, $3 actual exit, $4.. lines that must app
     echo "FAIL  $label (exit $rc, wanted $want)"; echo "      ${out//$'\n'/$'\n'      }"; fails=$((fails + 1)); fi
 }
 
-# A tree whose every hunk is one both sides only added to.
+# A tree whose every hunk is one both sides only added to, each side opening on a line of its own.
 fresh mechanical
 printf 'a\nb\n' > adjacent.txt
-printf 'a\nb\n' > identical.txt
+printf 'a\nb\n' > blank.txt
 commit base
 g branch inc
 printf 'a\nTARGET\nb\n' > adjacent.txt
-printf 'a\nb\nSAME\nTARGET\n' > identical.txt
+printf 'a\n\nTARGET\nb\n' > blank.txt
 commit target
 g switch -q inc
 printf 'a\nINCOMING\nb\n' > adjacent.txt
-printf 'a\nb\nSAME\nINCOMING\n' > identical.txt
+printf 'a\n\nINCOMING\nb\n' > blank.txt
 commit incoming
 g switch -q main
 g merge inc >/dev/null 2>&1
@@ -59,10 +59,28 @@ g merge inc >/dev/null 2>&1
 run
 check "both sides only added: mechanical, with the file and the hunk's location" 0 "$rc" \
   "mechanical adjacent.txt L2-L6"
-check "identical additions are mechanical too, with neither copy of the shared line dropped" 0 "$rc" \
-  "mechanical identical.txt L4-L8"
+check "a blank line both sides opened on does not make one text of them: still mechanical" 0 "$rc" \
+  "mechanical blank.txt L"
 check "the last line carries the verdict" 0 "$rc" \
   "verdict=mechanical mechanical=2 contested=0"
+
+# Two sides that added the same line and then went on differently wrote one new text and split. The
+# union would keep both endings one after the other, so the hunk is the developer's.
+fresh diverged
+printf 'a\nb\n' > identical.txt
+commit base
+g branch inc
+printf 'a\nb\nSAME\nTARGET\n' > identical.txt
+commit target
+g switch -q inc
+printf 'a\nb\nSAME\nINCOMING\n' > identical.txt
+commit incoming
+g switch -q main
+g merge inc >/dev/null 2>&1
+
+run
+check "additions that open on the same line and then diverge: contested, named as diverged" 1 "$rc" \
+  "contested identical.txt L4-L8 add-vs-add-diverged" "verdict=contested mechanical=0 contested=1"
 
 # A tree carrying the shapes that make a hunk contested.
 fresh contested

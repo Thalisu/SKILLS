@@ -115,8 +115,9 @@ the diff the reviewers read is the diff that lands rather than one that was true
 What a conflict costs you depends on its class, which a script decides and the session never
 guesses:
 
-- A hunk where both sides only added lines: nothing. The run keeps both sides in order and says
-  which hunks it resolved.
+- A hunk where both sides only added lines, each opening on a line of its own: nothing. The run
+  keeps both sides in order and says which hunks it resolved. Two additions that open on the same
+  line wrote one text and split, so keeping both would say it twice, and that hunk is a question.
 - Any other hunk, a _contested_ one: one question per hunk, with both sides quoted and a
   recommendation, which you answer in one word, `target`, `incoming`, `both` or `stop`. The files
   whose every hunk is mechanical are written and staged before the first question, and only the

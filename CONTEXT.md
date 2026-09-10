@@ -152,9 +152,10 @@ _Avoid_: ticket tests (a review outside the chain has no **Ticket**), smoke test
 **Conflict class**:
 What the door script says about one conflicted hunk, in a rebase or in a merge, and the only thing that decides who
 resolves it: `mechanical` when both sides only added lines, neither deleting nor modifying a line
-the other side kept, resolved by keeping both in base order; `contested` for every other shape,
-resolved by the script to the **Target** side, its **Incoming** side written whole to the
-**Loss ledger**. No one, human or run, writes a hunk of their own.
+the other side kept, and the two additions do not open on the same non-blank line, resolved by
+keeping both in base order; `contested` for every other shape, resolved by the script to the
+**Target** side, its **Incoming** side written whole to the **Loss ledger**. No one, human or run,
+writes a hunk of their own.
 _Avoid_: trivial (**Trivial** is a **Playbook**'s door, never a hunk), simple, auto-resolvable
 (the class is the script's verdict, never a guess about how hard the hunk looks)
 
