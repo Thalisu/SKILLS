@@ -121,14 +121,10 @@ continues from the Ticket alone, saying so in one line naming the document that 
 Ticket's criteria and its `What to build` line feed the behaviours list then, and the line of the
 list that would have traced to a quote in that document traces to the criterion instead.
 
-The door reads `git status --short` in the main checkout before it dispatches the fork, after its
-own append of the `.scratch/` line, and reads it again when the fork returns. That read is blind to
-the scratch the line it just appended ignores, and the Digest and its neighbours live there, so the
-door takes a second reading beside it, `git status --short --ignored -- .scratch/` and the
-`git hash-object` of every file that read lists, before the fork and again after.
-The Digest's path is the only one that may differ, in either reading.
-Any other path stops the run in one line naming it, the Ticket left as the door found it. The brief
-is the only thing bounding what the fork touches, so the door checks it rather than trusting it.
+Nothing reads the tree or the scratch across the reader's window. Such a reading cannot tell who
+wrote a file, and runs on two features share the scratch, so another run's write in that window
+would stop this one, while the reader holds no tool that writes and leaves nothing for it to catch.
+Another run writing in the scratch while the reader reads shows nothing, and the run goes on.
 
 ### A second run
 

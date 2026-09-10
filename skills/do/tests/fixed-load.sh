@@ -65,8 +65,8 @@ has "the Playbook's door writes the Digest from the text that comes back" "$refs
   "the session writes the Digest from the text that comes back"
 has "the Sources lines are the door's, never the reader's" "$refs/digest.md" \
   "the session writes them from the door's own hashes"
-# The fork writes into the developer's tracked tree, so it comes after the stops that refuse the
-# run: a Ticket refused at the door leaves `git status` in the main checkout as it found it.
+# The Digest the fork's text becomes is written into the developer's checkout, so the fork comes
+# after the stops that refuse the run: a Ticket refused at the door leaves `git status` as it was.
 after "the door reaches the reader only after the stops that refuse the run" "$refs/ticket.md" \
   "the run forks the reader" \
   'A Ticket that is `resolved` stops the run' \
@@ -99,8 +99,14 @@ lacks "the brief carries no Digest path and no one write" "$refs/digest.md" \
   "it writes one file"
 has "the reader returns the Digest's text without its Sources, and the line the run restates" \
   "$refs/digest.md" 'the Digest'"'"'s text, every section but `## Sources`' "the one line the run restates"
-has "the door compares git status in the main checkout across the fork" "$refs/mechanics.md" \
+# A reading across the window cannot tell who wrote a file, so another run's write in the scratch
+# stopped this one although runs on two features share it; with no write tool there is nothing left
+# for such a reading to catch.
+has "nothing reads the tree or the scratch across the reader's window" "$refs/mechanics.md" \
+  "Nothing reads the tree or the scratch across the reader's window"
+lacks "the door takes no reading across the fork and stops on no other path" "$refs/mechanics.md" \
   'The door reads `git status --short` in the main checkout' \
+  "git status --short --ignored -- .scratch/" \
   "the only one that may differ" \
   "Any other path stops the run in one line naming it"
 has "the invocation contract carries a row for the reader" "$repo/.agents/invocation.md" \
