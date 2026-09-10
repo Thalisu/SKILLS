@@ -153,7 +153,8 @@ _Avoid_: ticket tests (a review outside the chain has no **Ticket**), smoke test
 What the door script says about one conflicted hunk, in a rebase or in a merge, and the only thing that decides who
 resolves it: `mechanical` when both sides only added lines, neither deleting nor modifying a line
 the other side kept, resolved by keeping both in base order; `contested` for every other shape,
-answered by the human and never by the run.
+resolved by the script to the **Target** side, its **Incoming** side written whole to the
+**Loss ledger**. No one, human or run, writes a hunk of their own.
 _Avoid_: trivial (**Trivial** is a **Playbook**'s door, never a hunk), simple, auto-resolvable
 (the class is the script's verdict, never a guess about how hard the hunk looks)
 
@@ -167,6 +168,13 @@ rebase, where it is not the developer's own work)
 The side being applied to the **Target**: the commit a rebase is replaying, or the branch a merge
 is bringing in.
 _Avoid_: theirs, mine, source, the run's side
+
+**Loss ledger**:
+The file an integration writes with the **Incoming** side of every `contested` hunk the script
+resolved to the **Target**, one entry per hunk, each later marked `reapply` or `drop` with its
+reason and, for `reapply`, the commit that brought it back on top of the finished integration.
+_Avoid_: diff, backup, conflict log (it holds only what a resolution set aside, never the whole
+conflict)
 
 ## Relationships
 
@@ -217,8 +225,10 @@ _Avoid_: theirs, mine, source, the run's side
   worktree it starts over and says so; on a resolved **Ticket** it stops
 - `do` calls `do-code-review` once per landing: on the diff of one **Ticket** after its gate in
   the `ticket` **Playbook**, on the branch's diff in `bug-fix` and `refactoring`, never in
-  `trivial`; every **Axis** is put to that diff, and a call that returns without landing stops
-  the run as blocked
+  `trivial`; every **Axis** is put to that diff. A call that returns `not landed: target moved`
+  sends the run through its integration once more and lands it through `fix`, never a second
+  review; a second move of the target, or any other return without landing, stops the run as
+  blocked
 - `do-code-review` lands the branch it reviewed on the developer's branch by fast-forward when the
   **Review** is **Green**, whoever called it; a **Review** that is not **Green** lands nothing.
   `do` never lands
@@ -246,8 +256,11 @@ _Avoid_: theirs, mine, source, the run's side
 - `do` reads the run's return and never fixes a **Finding** itself; it never dismisses a
   **Finding** with a risk class silently: that one goes to the user
 - A conflicted hunk has exactly one **Target** side and one **Incoming** side, whatever its
-  **Conflict class**; a contested one is answered `target`, `incoming`, `both` or `stop`, and a
-  `both` is resolved by the mechanical rule
+  **Conflict class**; a contested one takes the **Target** side and leaves one **Loss ledger**
+  entry, and no question is put to anyone
+- Every entry of a **Loss ledger** is judged `reapply` or `drop` by a read-only agent; the session
+  applies each `reapply` as its own commit on top of the finished integration, and the **Gate**
+  runs whole after the last one
 
 ## Example dialogue
 
