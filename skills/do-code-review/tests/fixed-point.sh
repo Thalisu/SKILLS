@@ -150,6 +150,20 @@ printf '# Export notes\n' > .scratch/export-notes/spec.md
 printf '# Archive\n' > .scratch/archive/spec.md
 run
 check "a spec whose folder contains the branch's slug is the candidate" 0 "$rc" "spec=.scratch/export-notes/spec.md"
+# A containing candidate is refused as a symlink the way the exact arm is, so its spec never reads
+# from a path the repository does not control.
+mv .scratch/export-notes/spec.md "$tmp/containing-spec.md" && ln -s "$tmp/containing-spec.md" .scratch/export-notes/spec.md
+run
+check "a symlinked spec.md on the containing scan is refused" 2 "$rc" \
+  ".scratch/export-notes/spec.md is a symlink; nothing reviewed"
+absent "no spec reached the caller through a symlinked containing spec.md" "spec="
+rm .scratch/export-notes/spec.md && mv "$tmp/containing-spec.md" .scratch/export-notes/spec.md
+mv .scratch/export-notes "$tmp/containing-folder" && ln -s "$tmp/containing-folder" .scratch/export-notes
+run
+check "a symlinked feature folder on the containing scan is refused" 2 "$rc" \
+  ".scratch/export-notes is a symlink; nothing reviewed"
+absent "no spec reached the caller through a symlinked containing folder" "spec="
+rm .scratch/export-notes && mv "$tmp/containing-folder" .scratch/export-notes
 mkdir -p .scratch/export && printf '# Export\n' > .scratch/export/spec.md
 run
 check "an exact match wins over a containing one" 0 "$rc" "spec=.scratch/export/spec.md"
@@ -454,6 +468,20 @@ mkdir -p .scratch/archive-export && printf '# Archive\n' > .scratch/archive-expo
 run main
 check "the containing scan never reads the worktree's own scratch" 0 "$rc" \
   "spec=$wt_spec/.scratch/export-notes/spec.md"
+mv "$wt_spec/.scratch/export-notes/spec.md" "$tmp/wt-spec-secret"
+ln -s "$tmp/wt-spec-secret" "$wt_spec/.scratch/export-notes/spec.md"
+run main
+check "a linked worktree refuses a symlinked spec.md on the containing scan" 2 "$rc" \
+  "$wt_spec/.scratch/export-notes/spec.md is a symlink; nothing reviewed"
+absent "no spec reached the linked worktree through a symlinked containing spec.md" "spec="
+rm "$wt_spec/.scratch/export-notes/spec.md" && mv "$tmp/wt-spec-secret" "$wt_spec/.scratch/export-notes/spec.md"
+mv "$wt_spec/.scratch/export-notes" "$tmp/wt-spec-folder"
+ln -s "$tmp/wt-spec-folder" "$wt_spec/.scratch/export-notes"
+run main
+check "a linked worktree refuses a symlinked feature folder on the containing scan" 2 "$rc" \
+  "$wt_spec/.scratch/export-notes is a symlink; nothing reviewed"
+absent "no spec reached the linked worktree through a symlinked containing folder" "spec="
+rm "$wt_spec/.scratch/export-notes" && mv "$tmp/wt-spec-folder" "$wt_spec/.scratch/export-notes"
 cd "$wt_spec" && git worktree remove --force "$wt_spec/.claude/worktrees/e"
 
 # A bare main worktree has no working tree to anchor on, so the tree under review anchors itself:

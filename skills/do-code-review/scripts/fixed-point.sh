@@ -61,8 +61,9 @@
 # repository).
 # Exit codes: 0 the door holds · 1 a refusal, with refusal=<the one line to print> · 2 usage, not a
 # git repository, a refusal the resolver makes over the scratch, reported in this door's words, or a
-# Ticket's feature folder, spec.md, issues folder or the Review beside it that is a symlink, or the
-# file at review= or the folder it sits in that is one.
+# Ticket's feature folder, spec.md, issues folder or the Review beside it that is a symlink, the
+# file at review= or the folder it sits in that is one, or the feature folder or spec.md of a
+# containing match in the scratch that is one.
 # main_checkout, printed last, is the path of the main worktree, the first entry of git worktree
 # list, so a caller in a linked worktree reaches the developer's checkout, and the tree the run sits
 # in when that entry is a bare repository: see .agents/worktrees.md.
@@ -235,7 +236,11 @@ else
       case "$f" in docs/specs/*|specs/*) [ -n "$exact" ] || exact="$f" ;; esac
       continue
     fi
-    if [ -z "$exact" ] && [ "$contain" = yes ] && [[ "$x" == *"$core"* || "$core" == *"$x"* ]]; then containing+=("$f"); fi
+    if [ -z "$exact" ] && [ "$contain" = yes ] && [[ "$x" == *"$core"* || "$core" == *"$x"* ]]; then
+      # The glob and the -f test follow a link, and the resolver checks only the folder it names.
+      case "$f" in docs/specs/*|specs/*) ;; *) refuse_link "$(dirname "$f")"; refuse_link "$f" ;; esac
+      containing+=("$f")
+    fi
   done
   if [ -n "$exact" ]; then spec="$exact"; elif [ "${#containing[@]}" = 1 ]; then spec="${containing[0]}"; fi
 fi
