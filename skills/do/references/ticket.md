@@ -55,7 +55,9 @@ the Digest already beside the Ticket and a reader, as the second run section of
 [mechanics.md](mechanics.md) fixes. Two recorded hashes that both match are a reuse: the run says
 in one line that it reused the Digest and forked no reader, and derives its behaviours from the
 Digest already beside the Ticket. A hash that differs, and a Ticket with no Digest yet, are the
-two states the run forks the reader for, and it forks it for no other. That fork runs over the
+two states the run forks the reader for, and it forks it for no other. The door
+hashes both itself before it forks, the way the reader section of [mechanics.md](mechanics.md)
+says. That fork runs over the
 Ticket's Spec, where the format says it is (the spec file in the folder above the `issues/`
 folder, or the issue the parent section names), and over the journey the Spec's `Journey:` line
 names when it names one, and the run opens neither itself: it says in one line

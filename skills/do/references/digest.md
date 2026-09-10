@@ -37,8 +37,9 @@ and `## Observable criteria` are not among the three, since a hash and a criteri
 values and not quotes.
 
 - `## Sources`: what the slice was cut from, one line per document, `<name>: <absolute path>
-  <hash>`, with `spec` and `journey` as the two names and the hash from `git hash-object <path>`
-  run in the main checkout. The door recomputes both hashes on a later run and compares them with
+  <hash>`, with `spec` and `journey` as the two names and
+  the hash from `git hash-object <path>` the door runs in the main checkout before it forks the
+  reader. The door recomputes both hashes on a later run and compares them with
   these, so a run decides whether to reuse the Digest by comparing two recorded values and never by
   reading either document again. A hash rather than a modification time: `git checkout`, a rebase
   and `git worktree add` all rewrite the times of files whose bytes did not change, and a Digest is

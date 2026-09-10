@@ -88,6 +88,12 @@ documents the run needs a slice of, which is the exploration the Delegates rule 
 The session opens neither document, and it opens neither afterwards to check the fork: what comes
 back is quoted with the location of every quote, so the check is a quote read against its line.
 
+Before anything is forked, the door resolves both paths from the Ticket, the way the second run
+below does, and the door hashes both itself before it forks: `git hash-object <path>` in the main
+checkout for each, recording `absent` for a document not on disk. Those two values are the
+Digest's `## Sources` lines, so the record the reuse gate trusts is the run's own reading and never
+the fork's. Then the door says in one line that both are being read in a window of their own.
+
 The door calls the Agent tool with `subagent_type: do-reader`, the agent `do` ships in
 [do-reader.md](../agents/do-reader.md), on the model its definition names, since it quotes rather
 than designs, with the brief [digest.md](digest.md) fixes and nothing else, that file's

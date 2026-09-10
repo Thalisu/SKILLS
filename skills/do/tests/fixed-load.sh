@@ -111,6 +111,18 @@ lacks "the reader has no write tool, no edit tool and no shell" "$reader_md" "Wr
 has "the reader names do's door as its one caller" "$reader_md" \
   "Forked only by the do skill's door" "Never on your own initiative"
 has "the door forks the reader by name" "$refs/mechanics.md" "subagent_type: do-reader"
+# The `## Sources` lines are the record the reuse gate trusts, so they come from the door's own
+# reading taken before the fork, never from the fork that read the stranger's text.
+has "the door hashes both documents itself and records an absent one" "$refs/mechanics.md" \
+  "hashes both itself before it forks" \
+  'recording `absent` for a document not on disk'
+after "the door hashes both documents before it forks the reader" "$refs/mechanics.md" \
+  "subagent_type: do-reader" \
+  "hashes both itself before it forks"
+has "the Playbook's door hashes both documents before the fork" "$refs/ticket.md" \
+  "hashes both itself before it forks"
+has "the Sources hash is the door's, run in the main checkout before the fork" "$refs/digest.md" \
+  'the hash from `git hash-object <path>` the door runs in the main checkout before it forks'
 
 # The Digest quotes what the run builds from, and every quote is checkable at its line.
 has "the Digest holds the Path, the numbered stories and the Testing Decisions" "$refs/digest.md" \
