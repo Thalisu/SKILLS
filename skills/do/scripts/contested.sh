@@ -35,6 +35,11 @@
 # carries a contested hunk stays what git left until the stop's last answer.
 set -uo pipefail
 
+# A conflicted path is a name a side chose, and git reads a path argument as a glob even behind `--`:
+# `[ab].txt` would stage an untracked `a.txt` beside it, and a removal would take every tracked file
+# the name matches.
+export GIT_LITERAL_PATHSPECS=1
+
 usage() { echo "usage: contested.sh [<id>:<answer>...]" >&2; exit 2; }
 for arg in "$@"; do [[ "$arg" == ?*:?* ]] || usage; done
 

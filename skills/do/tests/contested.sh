@@ -347,4 +347,28 @@ expect "both on a hunk whose sides share a line is byte-equal to git's union of 
 expect "a mechanical hunk beside a contested one keeps the shared line once" \
   cmp -s mixed.txt "$tmp/mixed.expected"
 
+# A conflicted path is a name a side chose, and git reads a path argument as a glob unless told
+# otherwise: `[ab].txt` also names an untracked `a.txt`, which the run's continue would then commit.
+fresh glob-name
+printf 'one\n' > '[ab].txt'
+printf 'x\ny\n' > c.txt
+commit base
+g switch -q -c do/run
+printf 'one\nincoming line\n' > '[ab].txt'
+printf 'x\nINCOMING\n' > c.txt
+commit incoming
+g switch -q main
+printf 'one\ntarget line\n' > '[ab].txt'
+printf 'x\nTARGET\n' > c.txt
+commit target
+g switch -q do/run
+g rebase main >/dev/null 2>&1
+printf 'AWS_SECRET=hunter2\n' > a.txt
+run
+check "the first call writes the glob-named mechanical file" 1 "$rc" \
+  "wrote [ab].txt" "Conflict 1 of 1 · c.txt"
+expect "the glob-named file is staged" test -z "$(git ls-files -u -- ':(literal)[ab].txt')"
+expect "an untracked file the name matches as a glob is left unstaged" \
+  test -z "$(git ls-files -- ':(literal)a.txt')"
+
 if [ "$fails" = 0 ]; then echo "all ok"; else echo "$fails failing"; exit 1; fi
