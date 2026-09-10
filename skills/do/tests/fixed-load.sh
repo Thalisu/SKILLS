@@ -77,6 +77,10 @@ has "the door says a refused run leaves the main checkout as it found it" "$refs
 expect "the Digest reference the door links exists" test -f "$refs/digest.md"
 has "SKILL.md lists the Digest reference under Links, so the door can read it" \
   "$repo/skills/do/SKILL.md" "[digest.md](references/digest.md)"
+# The reader writes nothing; the session writes the Digest from the reader's text and the door's
+# hashes, so the index line naming the writer must never fall back to the reader's old contract.
+lacks "the index line no longer names the door's reader as the writer" \
+  "$repo/skills/do/SKILL.md" "the door's reader writes"
 
 # One brief, in the reference the fork is pointed at. A second enumeration in the mechanics drifts
 # from it, and the fork is briefed from whichever copy the run happened to read.
