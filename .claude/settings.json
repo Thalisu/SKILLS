@@ -1,0 +1,7 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {"matcher": "Edit|Write|MultiEdit", "hooks": [{"type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR\"/.claude/testing-policy/forbid-test-skips.sh"}]}
+    ]
+  }
+}
