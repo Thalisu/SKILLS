@@ -105,6 +105,14 @@ after "the door reaches the reader only after the stops that refuse the run" "$r
   "an issue assigned to someone else stops the run"
 has "the door says a refused run leaves the main checkout as it found it" "$refs/ticket.md" \
   "The first write comes after those stops"
+# The Playbook's door is where a run meets the fork, so it names the two branches that never reach
+# it rather than saying the run opens neither document on every branch.
+para_has "the Playbook's door names both no-reader branches and forks no other agent" "$refs/ticket.md" \
+  "The first write comes after those stops" \
+  'the Agent tool withheld or no `do-reader` listed' \
+  "the door still hashes both documents" \
+  "the session reads both itself" \
+  "never forks another agent in the reader's place"
 expect "the Digest reference the door links exists" test -f "$refs/digest.md"
 has "SKILL.md lists the Digest reference under Links, so the door can read it" \
   "$repo/skills/do/SKILL.md" "[digest.md](references/digest.md)"
