@@ -173,6 +173,11 @@ has "the absent-vendored-skill eval grades the map built from search output alon
   "search output alone" "thinner" "read no file whole"
 lacks "the absent-vendored-skill eval no longer grades a read of the code the Ticket names" \
   "$fallback" "read the code the Ticket names"
+# The source the ground step no longer reads is read by the loop, one file at a time, when the
+# behaviour that edits it comes up: the session then holds only source the run changed.
+has "the build loop reads each file at the moment it edits it and names it as it opens it" \
+  "$refs/mechanics.md" "read at the moment the loop edits it" "named in the thread as the loop opens it" \
+  "the only source the loop brings into the session is source the run changed"
 
 # The shape step takes the shape from `sketch`, forked with a brief filled from what the run already
 # holds, so the rivals behind a shape never enter the session and nothing is grounded a second time.

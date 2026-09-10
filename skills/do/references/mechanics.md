@@ -151,6 +151,9 @@ document a stranger wrote, and the run re-forks over the resolved paths rather t
 One behaviour at a time, from the list the Playbook wrote, in its order. Each behaviour is one
 verifiable unit that ends in one green commit, per
 [sequence-verifiable-units](../../../.agents/principles/sequence-verifiable-units.md).
+Each file is read at the moment the loop edits it and named in the thread as the loop opens it,
+never ahead of the behaviour that edits it, so that
+the only source the loop brings into the session is source the run changed.
 
 1. Dispatch the unit test author (the test authors, below) with the complete dispatch input: the
    behaviour to prove, the target, the origin (`new feature`, or `bugfix` when the line
