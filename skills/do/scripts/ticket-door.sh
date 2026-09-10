@@ -17,8 +17,9 @@
 # `trivial-door.sh branch` prints them in the main checkout, then verdict. An ambiguous=<what>
 # <detail> line follows the line it concerns. A blocker is the leading number of each part of the
 # Blocked by paragraph split on `;`, `,`, the word `and` and each line break, read from the Ticket's
-# own issues/ folder as the one <NN>-<slug>.md with no dot in its slug, so a <stem>.<kind>.md beside it
-# (its review, digest, project map or sketch) is never counted; a number elsewhere in the
+# own issues/ folder as the one <NN>-<slug>.md, where a <stem>.<kind>.md beside a <stem>.md (its
+# review, digest, project map or sketch) is never counted and a slug that itself holds a dot
+# (20-upgrade-to-v1.2.md) still is; a number elsewhere in the
 # paragraph that no part starts with is ambiguous. A status is the one **Status:** line at column
 # 0: none, two or a word outside the walk (ready-for-agent, claimed, resolved) is ambiguous, and no
 # word is taken out of it. The Blocked by line is held to the same rule: two or more at column 0
@@ -93,7 +94,8 @@ elif [ -z "$numbers" ]; then
   esac
 fi
 for n in $numbers; do
-  files="$(find "$folder" -maxdepth 1 -type f -name "$n-*.md" ! -name "$n-*.*.md" | sort)"
+  files="$(find "$folder" -maxdepth 1 -type f -name "$n-*.md" | sort | awk '{ c[NR] = $0; has[$0] = 1 }
+    END { for (i = 1; i <= NR; i++) { if (match(c[i], /\.[^.\/]+\.md$/) && has[substr(c[i], 1, RSTART - 1) ".md"]) continue; print c[i] } }')"
   count="$(grep -c . <<<"$files")"
   if [ "$count" != 1 ]; then
     rel=""

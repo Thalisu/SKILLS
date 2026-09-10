@@ -125,6 +125,16 @@ for pair in 22-after-grounded:20-grounded:project-map 23-after-shaped:21-shaped:
   absent "a .$kind.md beside a blocker never makes its number ambiguous" "ambiguous="
 done
 
+# A blocker Ticket's own slug can itself carry a dot (a version number), so the door's exclusion
+# of a sidecar (<n>-<slug>.<kind>.md) must not also drop the Ticket's own dotted-slug file.
+ticket 24-upgrade-to-v1.2.md '**Status:** resolved' 'None (can start immediately)'
+printf '# Project map\n\nmap=a project map\n' > "$issues/24-upgrade-to-v1.2.project-map.md"
+ticket 25-after-dotted.md '**Status:** ready-for-agent' '24, Upgrade'
+run "$door" "$issues/25-after-dotted.md"
+check "a resolved blocker whose own slug carries a dot is read as resolved, and the run starts" 0 "$rc" \
+  "blocker=24 resolved $issues/24-upgrade-to-v1.2.md" "verdict=start"
+absent "a .project-map.md beside a dotted-slug blocker never makes its number ambiguous" "ambiguous="
+
 echo "# ticket-door.sh: the stops"
 run "$door" "$issues/01-first.md"
 check_lines "a resolved Ticket stops" 1 "$rc" "status=resolved" "verdict=resolved"
