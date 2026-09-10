@@ -2,6 +2,7 @@
 name: do-code-review-technical-reviewer
 description: 'Puts five Axes to one diff (Correctness, Spec, Standards, Principles, Blast radius), proves what it can by running the code in a temporary directory, and returns its Findings in the shape the Review format fixes, grouped by Bucket, each at a Rung, with one line per Axis and the one fact the change is safe because of. Forked only by the do-code-review orchestrator with a brief. Never on your own initiative.'
 model: opus
+effort: xhigh
 tools: Bash, Read, Glob, Grep, Skill
 maxTurns: 80
 color: yellow

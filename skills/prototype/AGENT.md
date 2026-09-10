@@ -2,6 +2,7 @@
 name: prototype
 description: 'Builds one throwaway, runnable prototype that settles a design question the user has to see or drive: a single HTML file that pushes a state model through scenarios, or three structurally different variants of a screen on its real route behind a switcher. Input is a brief (question, shape, where it lives, what it has, constraints); output is a six-line report: how to open it, what to look at, which files it wrote, or, before any file is written, a one-question ask that the caller answers by resuming it. Invoke through /prototype, or from a discuss or journey interview when a branch or a fork cannot be settled by talking. Never on your own initiative.'
 model: sonnet
+effort: medium
 tools: Read, Write, Edit, Bash, Glob, Grep
 maxTurns: 80
 color: purple
