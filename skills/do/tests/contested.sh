@@ -91,4 +91,54 @@ absent "one question at a time: the second hunk is not asked yet" 1 "$rc" \
 expect "asking writes nothing: the index and the working files are as git left them" \
   test "$(state)" = "$before"
 
+# A stop carrying three contested hunks: one in a file that also carries a mechanical hunk, one whose
+# last line both sides kept without a final newline, and one whose conflict is its own last line,
+# without a final newline either.
+fresh three-answers
+seq 1 20 > mixed.txt
+printf 'a\nb\nc' > plain.txt
+printf 'p\nq' > third.txt
+commit base
+g switch -q -c do/run
+{ seq 1 2; echo I3; seq 4 20; echo INCOMING END; } > mixed.txt
+printf 'a\nIB\nc' > plain.txt
+printf 'p\nIQ' > third.txt
+commit incoming
+g switch -q main
+{ seq 1 2; echo T3; seq 4 20; echo TARGET END; } > mixed.txt
+printf 'a\nTB\nc' > plain.txt
+printf 'p\nTQ' > third.txt
+commit target
+g switch -q do/run
+g rebase main >/dev/null 2>&1
+for s in 1 2 3; do git cat-file blob ":$s:mixed.txt" > "$tmp/mixed.$s"; done
+git merge-file --union -p "$tmp/mixed.2" "$tmp/mixed.1" "$tmp/mixed.3" > "$tmp/mixed.both"
+git cat-file blob :2:plain.txt > "$tmp/plain.target"
+git cat-file blob :3:third.txt > "$tmp/third.incoming"
+before="$(state)"
+
+run; first="$(sed -n 's/^id //p' <<<"$out")"
+run "$first:both"; second="$(sed -n 's/^id //p' <<<"$out")"
+check "an answer short of the last brings the next contested hunk" 1 "$rc" \
+  "Conflict 2 of 3 · plain.txt"
+run "$first:both" "$second:target"; third="$(sed -n 's/^id //p' <<<"$out")"
+check "the answers so far are carried and the next question follows" 1 "$rc" \
+  "Conflict 3 of 3 · third.txt"
+expect "no file is written before the stop's last answer" test "$(state)" = "$before"
+
+run "$first:both" "$second:target" "$third:incoming"
+check "the last answer writes every file and states the answers by word" 0 "$rc" \
+  "wrote mixed.txt" "wrote plain.txt" "wrote third.txt" \
+  "resolved mechanical=1 target=1 incoming=1 both=1"
+expect "both keeps both sides in base order, the file's mechanical hunk by the same rule" \
+  cmp -s mixed.txt "$tmp/mixed.both"
+expect "target takes the Target side, the final newline as the file had it" \
+  cmp -s plain.txt "$tmp/plain.target"
+expect "incoming takes the Incoming side, even where the conflict is the file's last line" \
+  cmp -s third.txt "$tmp/third.incoming"
+expect "every written file is staged, so nothing is left unmerged" \
+  test -z "$(git ls-files -u)"
+expect "the rebase continues from there" \
+  g -c core.editor=true -c rerere.enabled=false rebase --continue
+
 if [ "$fails" = 0 ]; then echo "all ok"; else echo "$fails failing"; exit 1; fi

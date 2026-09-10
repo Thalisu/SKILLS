@@ -2,22 +2,29 @@
 # contested.sh: every contested hunk of a stopped rebase put to the developer as one question, and
 # their answers applied. Run from anywhere inside the project.
 #
-#   contested.sh    the stop's first contested hunk, as one question
+#   contested.sh                     the stop's first contested hunk, as one question
+#   contested.sh <id>:<answer>...    the answers so far, in the order asked: the next question, or,
+#                                    once every contested hunk has one, the files written
 #
 # A question opens with `Conflict <k> of <n> · <file> · <location> · <shape>`, the file in the form
 # conflict-class.sh prints it, then `id <id>`, the Target and the Incoming side each quoted under its
 # own heading, a recommendation with the shape as its reason, the answers the shape offers and the
 # command that undoes the rebase.
 #
-# Exit codes: 1 a question printed · 2 usage, or no stopped rebase.
+# Once every contested hunk has an answer, each file carrying one is written once from its three
+# index stages, its mechanical hunks by the union rule, and staged: `wrote <file>` for each, then
+# `resolved mechanical=<n> target=<n> incoming=<n> both=<n>`.
+#
+# Exit codes: 0 every contested hunk answered and its file written · 1 a question printed · 2 usage,
+# or no stopped rebase.
 #
 # The class, the order of the questions and the locations are conflict-class.sh's report, never read
 # again here from the working file's markers. The sides are quoted from the index stages. The script
-# writes nothing while it asks.
+# writes nothing while it asks, so the working file stays what git left until the stop's last answer.
 set -uo pipefail
 
-usage() { echo "usage: contested.sh" >&2; exit 2; }
-[ "$#" -eq 0 ] || usage
+usage() { echo "usage: contested.sh [<id>:<answer>...]" >&2; exit 2; }
+for arg in "$@"; do [[ "$arg" == ?*:?* ]] || usage; done
 
 here="$(cd "$(dirname "$0")" && pwd -P)"
 top="$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "not a git repository" >&2; exit 2; }
@@ -63,14 +70,18 @@ stage_body() { # $1 stage, $2 path, $3 destination
   git cat-file blob ":$1:$2" 2>/dev/null | LC_ALL=C sed 's/^/ /' > "$3"
 }
 
+regenerate() { # $1 path: the three stages into $tmp/s1..s3, their merge into $tmp/merged
+  stage_body 1 "$1" "$tmp/s1"; stage_body 2 "$1" "$tmp/s2"; stage_body 3 "$1" "$tmp/s3"
+  git merge-file -p --diff3 -L target -L base -L incoming "$tmp/s2" "$tmp/s1" "$tmp/s3" \
+    > "$tmp/merged" 2>/dev/null
+}
+
 # The Target and the Incoming section of one hunk, into $tmp/target and $tmp/incoming, the prefix
 # taken off again.
 sections() { # $1 path, $2 ordinal
-  local path="$1" want="$2" n=0 section=outside line
+  local want="$2" n=0 section=outside line
   : > "$tmp/target"; : > "$tmp/incoming"
-  stage_body 1 "$path" "$tmp/s1"; stage_body 2 "$path" "$tmp/s2"; stage_body 3 "$path" "$tmp/s3"
-  git merge-file -p --diff3 -L target -L base -L incoming "$tmp/s2" "$tmp/s1" "$tmp/s3" \
-    > "$tmp/merged" 2>/dev/null
+  regenerate "$1"
   while IFS= read -r line; do
     case "$line" in
       '<<<<<<< '*) n=$((n + 1)); section=target ;;
@@ -137,6 +148,71 @@ ask() { # $1 position of the hunk among the contested ones, from 0
   echo "Undo: git rebase --abort"
 }
 
+# One file written from its three stages and the answer keyed to each of its hunks, the prefix taken
+# off again, into the path itself so the file keeps its mode. A side's last line reaches the merged
+# file with a newline git added before the marker, so the file ends the way the side its last line
+# came from ends.
+resolve() { # $1 path, $2 the file as the report prints it
+  local path="$1" field="$2" n=0 section=outside word="" line from=merged
+  regenerate "$path"
+  : > "$tmp/out"
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in
+      '<<<<<<< '*) n=$((n + 1)); section=target; word="${answer_at["$field#$n"]:-}" ;;
+      '||||||| '*) section=base ;;
+      '=======')   section=incoming ;;
+      '>>>>>>> '*) section=outside ;;
+      *) case "$section:$word" in
+           outside:*)                       from=merged ;;
+           target:target|target:both)       from=s2 ;;
+           incoming:incoming|incoming:both) from=s3 ;;
+           *) continue ;;
+         esac
+         printf '%s\n' "${line# }" >> "$tmp/out" ;;
+    esac
+  done < "$tmp/merged"
+  if [ -s "$tmp/out" ] && [ -n "$(tail -c1 "$tmp/$from")" ]; then
+    head -c "$(( $(wc -c < "$tmp/out") - 1 ))" "$tmp/out" > "$tmp/trimmed"
+    mv "$tmp/trimmed" "$tmp/out"
+  fi
+  cat "$tmp/out" > "$path"
+}
+
 [ "${#contested[@]}" -gt 0 ] || { echo "no contested hunk at this stop" >&2; exit 2; }
-ask 0
-exit 1
+[ "$#" -le "${#contested[@]}" ] || usage
+if [ "$#" -lt "${#contested[@]}" ]; then ask "$#"; exit 1; fi
+
+# Every hunk of a file carrying a contested one is keyed by its file and ordinal: the mechanical ones
+# take both sides, the contested ones the word given for them, in the order they were asked.
+declare -A answer_at written
+declare -A tally=([target]=0 [incoming]=0 [both]=0)
+for i in "${!classes[@]}"; do
+  [ "${classes[$i]}" = mechanical ] && answer_at["${files[$i]}#${ordinals[$i]}"]=both
+done
+k=0
+for arg in "$@"; do
+  i="${contested[$k]}"; word="${arg#*:}"
+  answer_at["${files[$i]}#${ordinals[$i]}"]="$word"
+  tally["$word"]=$(( ${tally["$word"]:-0} + 1 ))
+  k=$((k + 1))
+done
+
+order=()
+for i in "${contested[@]}"; do
+  [ -n "${written["${files[$i]}"]+set}" ] && continue
+  written["${files[$i]}"]=1; order+=("${files[$i]}")
+done
+mechanical=0
+for i in "${!classes[@]}"; do
+  if [ "${classes[$i]}" = mechanical ] && [ -n "${written["${files[$i]}"]+set}" ]; then
+    mechanical=$((mechanical + 1))
+  fi
+done
+
+for file in "${order[@]}"; do
+  resolve "${raw_path["$file"]}" "$file"
+  git add -- "${raw_path["$file"]}"
+  echo "wrote $file"
+done
+echo "resolved mechanical=$mechanical target=${tally[target]} incoming=${tally[incoming]} both=${tally[both]}"
+exit 0
