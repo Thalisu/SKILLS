@@ -132,6 +132,16 @@ lacks "the reader has no write tool, no edit tool and no shell" "$reader_md" "Wr
 has "the reader names do's door as its one caller" "$reader_md" \
   "Forked only by the do skill's door" "Never on your own initiative"
 has "the door forks the reader by name" "$refs/mechanics.md" "subagent_type: do-reader"
+# A session whose Agent tool does not list `do-reader` has no agent by that name to fork, so the
+# only fallback left open must never be a general-purpose fork holding write tools over the same
+# brief: the session does the reading and the write itself, stated before the fork is even called.
+has "an Agent tool that lists no do-reader has the session read and write, never fork another agent" \
+  "$refs/mechanics.md" \
+  'the Agent tool lists no `do-reader`' \
+  "never forks another agent in the reader's place"
+after "the lists-no-do-reader fallback is stated before the door forks the reader by name" \
+  "$refs/mechanics.md" "subagent_type: do-reader" \
+  'the Agent tool lists no `do-reader`'
 # The `## Sources` lines are the record the reuse gate trusts, so they come from the door's own
 # reading taken before the fork, never from the fork that read the stranger's text.
 has "the door hashes both documents itself and records an absent one" "$refs/mechanics.md" \

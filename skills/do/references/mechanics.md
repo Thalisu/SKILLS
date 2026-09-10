@@ -94,6 +94,11 @@ checkout for each, recording `absent` for a document not on disk. Those two valu
 Digest's `## Sources` lines, so the record the reuse gate trusts is the run's own reading and never
 the fork's. Then the door says in one line that both are being read in a window of their own.
 
+When the Agent tool lists no `do-reader`, there is no agent by that name for the door to fork.
+The session reads both documents itself and writes the Digest at the same path and in the same
+format from what it read, saying so in one line. It never forks another agent in the reader's place.
+A fork under any other name could still hold the write tools `do-reader`'s own definition denies it.
+
 The door calls the Agent tool with `subagent_type: do-reader`, the agent `do` ships in
 [do-reader.md](../agents/do-reader.md), on the model its definition names, since it quotes rather
 than designs, with the brief [digest.md](digest.md) fixes and nothing else, that file's
