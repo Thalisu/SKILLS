@@ -124,4 +124,26 @@ check "a removed skill loses its agents-folder links with the rest" 0 "$rc" \
   "pruned  $claude_skills/beta -> ../../.agents/skills/beta (dangling)"
 expect "the other skill keeps its links" links_to "$claude_skills/alpha" "../../.agents/skills/alpha"
 
+# The real repo, installed into a HOME of its own: every skill and every agent definition on disk,
+# searched at any depth rather than where the script looks, comes out linked and resolving.
+real="$(cd "$here/../.." && pwd -P)"
+export HOME="$tmp/real-home"
+rc=0; out="$(bash "$real/scripts/link-skills.sh" 2>&1)" || rc=$?
+check "the real repo installs cleanly" 0 "$rc"
+while IFS= read -r skill_md; do
+  dir="$(dirname "$skill_md")"; name="$(basename "$dir")"
+  expect "skill $name is linked for Agent Skills harnesses" links_to "$HOME/.agents/skills/$name" "$dir"
+  expect "skill $name resolves for Claude Code" test -f "$HOME/.claude/skills/$name/SKILL.md"
+done < <(find "$real/skills" "$real/vendor" -name SKILL.md | sort)
+while IFS= read -r definition; do
+  if [ "$(basename "$definition")" = AGENT.md ]; then
+    agent="$(sed -n 's/^name:[[:space:]]*//p' "$definition" | head -1 | tr -d "\"'")"
+    agent="${agent:-$(basename "$(dirname "$definition")")}"
+  else
+    agent="$(basename "$definition" .md)"
+  fi
+  expect "agent $agent is linked" links_to "$HOME/.claude/agents/$agent.md" "$definition"
+done < <(find "$real/skills" "$real/vendor" \( -name AGENT.md -o -path '*/agents/*.md' \) | sort)
+expect "no installed link dangles" test -z "$(find "$HOME" -xtype l)"
+
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi

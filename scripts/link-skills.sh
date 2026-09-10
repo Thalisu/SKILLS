@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Dev-only, for maintainers of this repo; not a supported installer (the README says how to install).
+# The installer: the README's Install section is a clone and one run of this script.
 # Links every skill under skills/ and vendor/ into the local harness skill directories, links every
 # agent definition a skill ships into ~/.claude/agents, then prunes links into this repo whose skill
 # or definition is gone:

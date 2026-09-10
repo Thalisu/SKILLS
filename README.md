@@ -70,64 +70,34 @@ no page under `docs/`.
 
 ## Install
 
-Clone the repo and link a skill into the harness skill directory. Every link points into the clone,
-so a `git pull` updates the installed skills.
+Clone the repo and run the install script:
 
 ```bash
 git clone https://github.com/Thalisu/SKILLS.git ~/SKILLS
-ln -s ~/SKILLS/skills/<name> ~/.claude/skills/<name>
-ln -s ~/SKILLS/vendor/<name> ~/.claude/skills/<name>
+bash ~/SKILLS/scripts/link-skills.sh
 ```
 
-The second line is for a vendored skill; `no-comments` also needs its agent linked, as `prototype`
-does below: `skills/prototype/AGENT.md` to `~/.claude/agents/prototype.md`, and
-`vendor/no-comments/AGENT.md` to `~/.claude/agents/comment-sicko.md`.
+The script installs every skill in the tables above, vendored ones included, into `~/.claude/skills`
+for Claude Code and `~/.agents/skills` for Codex and other Agent Skills harnesses. It also links
+every agent the skills fork into `~/.claude/agents`:
 
-`discover` needs one more step: link `discover-setup` as above, then run `/discover-setup` from a
-project. It links the discover agent and both discover skills and installs the Discovery section in
-the `CLAUDE.md` you choose, the project's or your global one.
+| Skill | Agents |
+| --- | --- |
+| `discover` | `discover` |
+| `prototype` | `prototype`, forked by `/prototype`, `discuss` and `journey` |
+| `sketch` | `sketch`, forked by `/sketch` and by `do` at its shape step |
+| `do` | `do-reader`, `global-unit-test-author`, `global-e2e-test-author` |
+| `do-code-review` | `do-code-review`, `do-code-review-technical-reviewer`, `do-code-review-security-reviewer` |
+| `no-comments` | `comment-sicko` |
 
-`prototype` ships an agent too: beside the skill link, link `skills/prototype/AGENT.md` to
-`~/.claude/agents/prototype.md`. Typing `/prototype` forks that agent, and so do `discuss`, for a
-branch that has to be seen, and `journey`, for a fork of a path that has to be seen.
+Every entry is a symlink into the clone, so a `git pull` updates what is installed. Re-run the script
+after a pull that adds, renames or removes a skill: it links the new ones and prunes the links whose
+skill is gone. Running it twice changes nothing. A real file already sitting where a link goes is
+left alone, reported as `skipped`, and the run exits 1; move the file aside and re-run.
 
-```bash
-ln -s ~/SKILLS/skills/prototype/AGENT.md ~/.claude/agents/prototype.md
-```
-
-`sketch` ships an agent too, and the same holds: link `skills/sketch/AGENT.md` to
-`~/.claude/agents/sketch.md`. Typing `/sketch` forks that agent, and so does `do` at its shape step,
-when a Ticket's work crosses a boundary and nothing in hand carries a shape.
-
-```bash
-ln -s ~/SKILLS/skills/sketch/AGENT.md ~/.claude/agents/sketch.md
-```
-
-`do-code-review` ships three agents: the orchestrator beside its skill file, and the technical
-reviewer and the security reviewer in its `agents/` folder. Link all three by name, or the run has
-nothing to fork.
-
-```bash
-ln -s ~/SKILLS/skills/do-code-review/AGENT.md ~/.claude/agents/do-code-review.md
-ln -s ~/SKILLS/skills/do-code-review/agents/do-code-review-technical-reviewer.md ~/.claude/agents/do-code-review-technical-reviewer.md
-ln -s ~/SKILLS/skills/do-code-review/agents/do-code-review-security-reviewer.md ~/.claude/agents/do-code-review-security-reviewer.md
-```
-
-`do` ships three agents in its `agents/` folder. The first is the reader its door forks over a
-Ticket's Spec and journey. It holds reading and search alone, and the run writes the Digest from
-what it returns. The other two are the global unit and end-to-end test authors, which carry the
-Testing Policy's agent core for a project that never installed the policy; with them linked, the run
-on such a project reads `Loop: global` and its tests come from an author instead of from the run.
-Link all three by name.
-
-```bash
-ln -s ~/SKILLS/skills/do/agents/do-reader.md ~/.claude/agents/do-reader.md
-ln -s ~/SKILLS/skills/do/agents/global-unit-test-author.md ~/.claude/agents/global-unit-test-author.md
-ln -s ~/SKILLS/skills/do/agents/global-e2e-test-author.md ~/.claude/agents/global-e2e-test-author.md
-```
-
-Maintainers of this repo can run `scripts/link-skills.sh` to relink every skill at once; it is a
-dev-only script, not a supported installer.
+One step is per project rather than per machine: the Discovery rule. Run `/discover-setup` from a
+project to install the Discovery section in that project's `CLAUDE.md`, or in your global one if you
+ask for it.
 
 ## Contributing
 

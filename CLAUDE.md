@@ -87,8 +87,10 @@ into `~/.claude/agents` under the agent's own name and every markdown definition
 `agents/` folder under its file name, and prunes the links into this repo whose skill or definition
 is gone. Each entry is a symlink
 into this repo, in the same layout `discover-setup` installs, so a `git pull` keeps installed skills
-current. Re-run the script after adding, removing or renaming a skill. It is a dev-only script for
-maintainers of this repo, not a supported installer.
+current. Re-run the script after adding, removing or renaming a skill. It is the supported
+installer: the README's Install section is a clone and one run of it, so a skill or an agent
+definition it does not pick up is not installed at all. `scripts/tests/link-skills.sh` runs it
+against this repo and fails on anything on disk it leaves unlinked.
 
 ## Prose style: no em-dashes
 
