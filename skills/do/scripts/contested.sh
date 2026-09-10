@@ -6,6 +6,11 @@
 #   contested.sh <id>:<answer>...    the answers so far, in the order asked: the next question, or,
 #                                    once every contested hunk has one, the files written
 #
+# Every call first writes and stages each file whose hunks are all mechanical, by the union rule,
+# with `wrote <file>` for each: the run types no path into a command line, and the union it runs at
+# an all-mechanical stop takes every conflicted file, contested ones included. Such a file carries
+# no question, so the questions and their ids are the same before and after it is written.
+#
 # A question opens with `Conflict <k> of <n> · <file> · <location> · <shape>`, the file in the form
 # conflict-class.sh prints it, then `id <id>`, the Target and the Incoming side each quoted under its
 # own heading, a recommendation with the shape as its reason, the answers the shape offers and the
@@ -26,8 +31,8 @@
 # formed and with nothing written.
 #
 # The class, the order of the questions and the locations are conflict-class.sh's report, never read
-# again here from the working file's markers. The sides are quoted from the index stages. The script
-# writes nothing while it asks, so the working file stays what git left until the stop's last answer.
+# again here from the working file's markers. The sides are quoted from the index stages. A file that
+# carries a contested hunk stays what git left until the stop's last answer.
 set -uo pipefail
 
 usage() { echo "usage: contested.sh [<id>:<answer>...]" >&2; exit 2; }
@@ -82,16 +87,23 @@ case "${CLAUDE_CODE_ENTRYPOINT:-}" in
 esac
 
 # The report, one entry per hunk in the order the classifier printed it. A hunk's ordinal counts the
-# hunks of its own file, which is how the regenerated merge below is matched to it.
-classes=() files=() locations=() shapes=() ordinals=() contested=()
-declare -A seen whole
+# hunks of its own file, which is how the regenerated merge below is matched to it. Every hunk is
+# keyed by its file and ordinal: the mechanical ones take both sides, the contested ones the word
+# given for them further down.
+classes=() files=() locations=() shapes=() ordinals=() contested=() reported=()
+declare -A seen whole carries answer_at
 while read -r class file location shape; do
   case "$class" in mechanical|contested) ;; *) continue ;; esac
+  [ -n "${seen["$file"]+set}" ] || reported+=("$file")
   seen["$file"]=$(( ${seen["$file"]:-0} + 1 ))
   classes+=("$class"); files+=("$file"); locations+=("$location"); shapes+=("${shape:-}")
   ordinals+=("${seen["$file"]}")
   [ "$location" = whole-file ] && whole["$file"]=1
-  [ "$class" = contested ] && contested+=("$(( ${#classes[@]} - 1 ))")
+  if [ "$class" = contested ]; then
+    contested+=("$(( ${#classes[@]} - 1 ))"); carries["$file"]=1
+  else
+    answer_at["$file#${seen["$file"]}"]=both
+  fi
 done < <(bash "$here/conflict-class.sh" 2>/dev/null)
 
 # One stage of a path with every line prefixed by a space, so no line of content can be read as a
@@ -272,15 +284,16 @@ for arg in "$@"; do
   k=$((k + 1))
 done
 
+# The files whose hunks are all mechanical go first. One already written has left the unmerged list,
+# so a later call finds nothing more to write.
+for file in "${reported[@]}"; do
+  [ -n "${carries["$file"]+set}" ] || resolve "${raw_path["$file"]}" "$file"
+done
+
 if [ "$#" -lt "${#contested[@]}" ]; then ask "$#"; exit 1; fi
 
-# Every hunk of a file carrying a contested one is keyed by its file and ordinal: the mechanical ones
-# take both sides, the contested ones the word given for them, in the order they were asked.
-declare -A answer_at written
+declare -A written
 declare -A tally=([target]=0 [incoming]=0 [both]=0)
-for i in "${!classes[@]}"; do
-  [ "${classes[$i]}" = mechanical ] && answer_at["${files[$i]}#${ordinals[$i]}"]=both
-done
 k=0
 for arg in "$@"; do
   i="${contested[$k]}"; word="${arg#*:}"

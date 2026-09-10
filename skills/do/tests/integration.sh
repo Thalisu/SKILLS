@@ -196,10 +196,18 @@ has "a stop carrying a contested hunk is a state of its own" "$mech" \
 between "the contested stop sits after the union's key check and before the emptied commit" "$mech" \
   "A union that defines the same key twice" "A stop carrying a contested hunk" \
   "A replayed commit that is empty after the resolution"
-has "the mechanical files go first and the counts come before the first question" "$mech" \
-  "Every file whose hunks are all \`mechanical\` is resolved first, by the union above" \
+# The union above takes every conflicted file and no path may be typed into a command line, so at a
+# stop that also carries a contested hunk the mechanical files cannot go through it: the script,
+# which holds the raw paths, writes them, and the union above stays the all-mechanical stop's alone.
+has "the mechanical files go first, by the script, and the counts come before the first question" "$mech" \
+  "the script's first call writes and stages every file whose hunks are all \`mechanical\` itself" \
+  "since the union above takes every conflicted file and a path never enters a command line" \
   "the counts are stated before the first question" \
   "the rebase stays open at that commit"
+lacks "the contested stop no longer sends its mechanical files through the union above" "$mech" \
+  "is resolved first, by the union above"
+has "the walk-away state names the mechanical files the first call wrote" "$mech" \
+  "the files whose hunks are all \`mechanical\` written and staged"
 has "the questions come from the script the step names" "$mech" \
   "bash <skill-dir>/scripts/contested.sh"
 expect "the script the contested stop names ships with the skill" \

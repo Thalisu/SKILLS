@@ -343,11 +343,14 @@ undo, the worktree and its branch left in place and named and the Ticket left `c
 definition stands is theirs to say.
 
 **A stop carrying a contested hunk.** A hunk classed `contested` is the developer's to answer, and
-never the run's. Every file whose hunks are all `mechanical` is resolved first, by the union above,
-with its key check; the counts are stated before the first question, and the rebase stays open at
-that commit while the questions run. The questions come from the script that asks them and applies
-the answers, which takes the order, the class and the locations from `conflict-class.sh` and quotes
-both sides from the index stages, so the session reads no marker here either:
+never the run's. The two blocks above are the all-mechanical stop's alone, since the union above
+takes every conflicted file and a path never enters a command line: here the script's first call
+writes and stages every file whose hunks are all `mechanical` itself, by the same rule, and names
+each on a `wrote` line, which the run reads for a key defined twice as the paragraph above says; the
+counts are stated before the first question, and the rebase stays open at that commit while the
+questions run. The questions come from the same script, which asks them and applies the answers,
+takes the order, the class and the locations from `conflict-class.sh` and quotes both sides from the
+index stages, so the session reads no marker here either:
 
 ```
 bash <skill-dir>/scripts/contested.sh
@@ -379,8 +382,9 @@ What it prints and the code it exits with say what the run does next.
   and named, the Ticket left `claimed`, nothing landed and nothing pushed.
 
 A developer who walks away without answering is left in that same state: the rebase open at the
-conflicting commit, none of their answers written, since the script writes nothing until the stop's
-last one, and the undo already in the question. Once the rebase finishes, the step is ticked with the
+conflicting commit, the files whose hunks are all `mechanical` written and staged, none of their
+answers written, since the script writes no answer until the stop's last one, and the undo already
+in the question. Once the rebase finishes, the step is ticked with the
 totals across every stop, the mechanical and the contested hunks each verdict line counted and the
 answers by word from each `resolved` line, and then the gate's command lines run again and the review
 is called, as after any replay.

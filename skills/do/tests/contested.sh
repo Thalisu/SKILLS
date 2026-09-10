@@ -271,4 +271,43 @@ expect "no whole-file hunk is left unmerged" test -z "$(git ls-files -u)"
 expect "the rebase continues from there too" \
   g -c core.editor=true -c rerere.enabled=false rebase --continue
 
+# A contested stop that also carries a file whose every hunk is mechanical. No path may be typed into
+# a command line, so the script resolves that file itself on its first call, and the question that
+# follows is the one it would have asked without it.
+fresh mixed-stop
+printf 'a\nb\n' > mech.txt
+printf 'x\ny\nz\n' > rewrite.txt
+commit base
+g switch -q -c do/run
+printf 'a\nINCOMING\nb\n' > mech.txt
+printf 'x\nINCOMING\nz\n' > rewrite.txt
+commit incoming
+g switch -q main
+printf 'a\nTARGET\nb\n' > mech.txt
+printf 'x\nTARGET\nz\n' > rewrite.txt
+commit target
+g switch -q do/run
+g rebase main >/dev/null 2>&1
+for s in 1 2 3; do git cat-file blob ":$s:mech.txt" > "$tmp/mech.$s"; done
+git merge-file --union -p "$tmp/mech.2" "$tmp/mech.1" "$tmp/mech.3" > "$tmp/mech.union"
+untouched="$(g ls-files -s -u -- rewrite.txt; git hash-object -- rewrite.txt)"
+
+run; first="$(sed -n 's/^id //p' <<<"$out")"
+check "the first call writes the all-mechanical file before it asks the contested hunk" 1 "$rc" \
+  "wrote mech.txt" "Conflict 1 of 1 · rewrite.txt · L2-L6 · rewrite-vs-rewrite"
+expect "the all-mechanical file carries both sides in base order" cmp -s mech.txt "$tmp/mech.union"
+expect "the all-mechanical file is staged" test -z "$(git ls-files -u -- mech.txt)"
+expect "the contested file is left as git left it" \
+  test "$(g ls-files -s -u -- rewrite.txt; git hash-object -- rewrite.txt)" = "$untouched"
+after_first="$(state)"
+run
+check "a repeated first call asks the same question" 1 "$rc" "id $first"
+absent "a repeated first call writes nothing again" 1 "$rc" "wrote mech.txt"
+expect "a repeated first call leaves the tree as the first left it" test "$(state)" = "$after_first"
+run "$first:target"
+check "the answer still names its hunk once the mechanical file is written" 0 "$rc" \
+  "wrote rewrite.txt" "resolved mechanical=0 target=1 incoming=0 both=0"
+expect "the rebase continues from a stop that mixed the two classes" \
+  g -c core.editor=true -c rerere.enabled=false rebase --continue
+
 if [ "$fails" = 0 ]; then echo "all ok"; else echo "$fails failing"; exit 1; fi
