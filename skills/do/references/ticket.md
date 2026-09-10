@@ -268,7 +268,9 @@ so nothing is grounded a second time: what to shape, the Ticket's path, its `Wha
 and its criteria; the map, the subsystem as the ground step took it; the Digest's location;
 the repository root, the main checkout's absolute path; and where the Sketch goes, the absolute
 path beside the Ticket in the main checkout with `.sketch` before the extension, or, for a Ticket
-that is not a local file, the issue's reference under `.scratch/sketches/` there.
+that is not a local file, the issue's reference under `.scratch/sketches/` there; and
+the chain's `.agents/` folder, the absolute path `readlink -f <skill-dir>/../../.agents` prints,
+since the agent holds no shell to follow the install link itself.
 Before it forks, the destination the brief names goes through one check, with `<root>` the
 repository root the brief names:
 

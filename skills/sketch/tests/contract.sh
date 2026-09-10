@@ -51,14 +51,33 @@ has "the agent explores rival shapes in its own window" "$agent_md" \
 lacks "the agent calls no skill this repository does not carry" "$agent_md" \
   "arena" "interrogate" "Skill tool"
 
+# The agent can only read and search, so it has no shell to `cat` through the install link, and the
+# Read tool collapses the `..` before it follows that link. Its brief hands it the chain's `.agents/`
+# folder as an absolute path instead, and both callers fill that part.
+expect "the agent is granted reading and search and no other tool" \
+  test "$(sed -n 's/^tools: //p' "$agent_md" 2>/dev/null)" = "Read, Glob, Grep"
+lacks "the agent has no write tool, no edit tool and no shell" "$agent_md" "Write" "Edit" "Bash"
+has "the brief names the chain's .agents/ folder" "$agent_md" "the chain's \`.agents/\` folder"
+expect "the brief's .agents/ part is an absolute path the agent names as <agents-dir>" \
+  grep -qE "^\| the chain's \`\.agents/\` folder \|.*absolute path.*\`<agents-dir>\`" "$agent_md"
+has "the agent reads the format and the principles with the Read tool" "$agent_md" \
+  "with the Read tool"
+lacks "the agent reaches nothing through the install link, with cat, or around the Read tool" \
+  "$agent_md" "readlink -f ~/.claude/skills/sketch" "\`cat\`" "never with the Read tool"
+ordered "the typed door fills the chain's .agents/ folder in the brief it forks with" "$skill_md" \
+  "## 3. The shape" "the chain's \`.agents/\` folder" "## 4. The ignore"
+ordered "do's shape step fills the chain's .agents/ folder in the brief it forks with" \
+  "$repo/skills/do/references/ticket.md" \
+  "The brief is the one the \`sketch\` agent fixes" "the chain's \`.agents/\` folder" \
+  "Before it forks, the destination the brief names"
+
 # The Sketch it writes, and the line it stops at. The format lives with the formats two skills share,
-# since `do` writes a Sketch too when the Agent tool is withheld, and the agent reaches it through the
-# link the install leaves. So the path is read off the agent and resolved from the skill's folder,
-# where `readlink -f ~/.claude/skills/sketch` lands, rather than looked up at a path only this
-# repository has.
-named="$(grep -o '\$(readlink -f ~/\.claude/skills/sketch)/\.\./\.\./\.agents/formats/[a-z0-9-]*\.md' "$agent_md" | head -n 1)"
-format="$skill/${named#'$(readlink -f ~/.claude/skills/sketch)/'}"
-expect "the format the agent names is a file, at the path the install gives it" test -f "$format"
+# since `do` writes a Sketch too when the Agent tool is withheld. The agent names it under the
+# brief's `.agents/` folder, so the path is read off the agent and resolved under this repository's
+# `.agents/`, the folder a caller hands over, rather than looked up at a path the test assumes.
+named="$(grep -o '<agents-dir>/formats/[a-z0-9-]*\.md' "$agent_md" | head -n 1)"
+format="$repo/.agents/${named#'<agents-dir>/'}"
+expect "the format the agent names is a file under the brief's .agents/ folder" test -f "$format"
 expect "the format lives with the formats the chain shares" \
   test "$(cd "$(dirname "$format")" 2>/dev/null && pwd -P)" = "$repo/.agents/formats"
 expect "no second copy of the format stays in the skill's own folder" \
@@ -75,13 +94,13 @@ has "a rejected rival is one line with the fact that killed it" "$format" \
   "one line" "the fact that killed it"
 has "a section with nothing to say reads none" "$format" "reads \`none\`"
 
-has "the agent stops at the Sketch and names the format at its installed path" "$agent_md" \
-  "## The Sketch" '$(readlink -f ~/.claude/skills/sketch)/../../.agents/formats/sketch-format.md'
+has "the agent stops at the Sketch and names the format under the brief's .agents/ folder" \
+  "$agent_md" "## The Sketch" "<agents-dir>/formats/sketch-format.md"
 lacks "the agent names no copy of the format in the skill's own folder" "$agent_md" \
   "references/sketch-format.md"
-has "the agent reaches the principles through the link the install leaves" "$agent_md" \
-  '$(readlink -f ~/.claude/skills/sketch)/../../.agents/principles/exhaust-the-design-space.md' \
-  '$(readlink -f ~/.claude/skills/sketch)/../../.agents/principles/boundary-discipline.md'
+has "the agent names the principles under the brief's .agents/ folder" "$agent_md" \
+  "<agents-dir>/principles/exhaust-the-design-space.md" \
+  "<agents-dir>/principles/boundary-discipline.md"
 expect "the first principle the agent names is a file" \
   test -f "$repo/.agents/principles/exhaust-the-design-space.md"
 expect "the second principle the agent names is a file" \
@@ -91,8 +110,6 @@ lacks "the agent names no path that resolves from this repository only" "$agent_
 has "the agent implements nothing" "$agent_md" \
   "## What you never do" "No implementation" "No test" "No commit" \
   "every test still goes through a test author"
-expect "the agent is granted these tools and no other" \
-  test "$(awk -F'tools: *' '/^tools: /{ print $2; exit }' "$agent_md")" = "Read, Glob, Grep, Bash, Write"
 
 # Where a typed /sketch files the Sketch, and what comes back. The session owns the destination, the
 # containment check and the ignore probe; the agent returns the Sketch's text and writes nothing.

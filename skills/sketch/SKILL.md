@@ -51,8 +51,10 @@ caught here.
 
 Call the Agent tool with `subagent_type: sketch` and the brief its definition fixes: what to shape,
 the argument; the map, `none` unless the argument names one; the Digest, `none` unless the argument
-names one; the repository root, the `<root>` above; and where the Sketch goes, the destination
-above, which the agent puts on the header's `Written:` line. It returns the Sketch's text and the
+names one; the repository root, the `<root>` above; where the Sketch goes, the destination
+above, which the agent puts on the header's `Written:` line; and the chain's `.agents/` folder,
+the absolute path `readlink -f <skill-dir>/../../.agents` prints, since the agent holds no shell to
+follow the install link itself. It returns the Sketch's text and the
 shape in one line. A return that does not carry the sections of the
 [Sketch format](../../.agents/formats/sketch-format.md) is not a Sketch: nothing is written, and
 one line says so. When the Agent tool lists no `sketch`, nothing is written either, and one line
