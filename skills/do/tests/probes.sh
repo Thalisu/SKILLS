@@ -10,6 +10,8 @@ door="$skill/scripts/ticket-door.sh"
 fails=0
 tmp="$(mktemp -d)"
 trap 'cd /; rm -rf "$tmp"' EXIT
+# gate.sh keeps a red check's log under $TMPDIR, so the trap above removes it with the rest.
+export TMPDIR="$tmp"
 
 g() { git -c user.email=t@example.com -c user.name=t "$@"; }
 check() { # $1 label, $2 expected exit, $3 actual exit, $4.. whole lines that must appear; output in $out
@@ -303,6 +305,8 @@ absent "the capped block leaves out the lines before its last twenty" "  80$"
 gate_out="$out"
 out="$(cat "$log" 2>/dev/null)"
 check "the file the red line names holds the full output" 0 0 "1" "50" "100" "broke"
+case "$log" in "$tmp"/do-gate.*) echo "ok    the gate's red logs stay inside this run's temp dir" ;;
+  *) echo "FAIL  the gate's red logs stay inside this run's temp dir (log=$log)"; fails=$((fails + 1)) ;; esac
 out="$(git status --short)"; same "the gate writes nothing in the tree it checks" ""
 out="$gate_out"
 run "$gate" "unit=printf 'boom'; exit 1" "lint=true"
