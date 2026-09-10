@@ -127,6 +127,11 @@ has "the page names sketch where the ticket run takes its shape" "$page" \
   "| [sketch](sketch.md), with its agent linked |" "the \`ticket\` run's shape step forks it"
 has "the sketch row's fork is still the ticket Playbook's shape step" "$refs/ticket.md" \
   'call the Agent tool with `subagent_type: sketch`'
+has "the page names do-reader where the door cuts the Digest" "$page" \
+  "| [do-reader](../README.md), the reader \`do\` ships, linked |" \
+  "the session reads both documents itself and says so"
+has "the do-reader row's fallback is still the reader section's own wording" "$refs/mechanics.md" \
+  "The session reads both documents itself"
 door="$repo/skills/do-code-review/AGENT.md"
 has "the Review's visibility the tell follows is still the door's own report" "$door" \
   '`review_in_status=yes`, that the Review shows up in `git status` for the caller to keep or drop'
