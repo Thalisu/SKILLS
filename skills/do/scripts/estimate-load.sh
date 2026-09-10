@@ -18,6 +18,7 @@
 # shape the one line the shape step names. What is not a file is a stated allowance below.
 # Exit codes: 0 a reading, whatever the band · 2 usage · 3 a term could not be read, named on stderr
 set -uo pipefail
+[ "$#" -le 1 ] || { echo "usage: estimate-load.sh [<the Ticket's path>]" >&2; exit 2; }
 skill="$(cd "$(dirname "$0")/.." && pwd -P)"
 root="$(git rev-parse --show-toplevel 2>/dev/null || pwd -P)"
 
@@ -38,14 +39,27 @@ bytes() { # the bytes of every file named
   echo "$sum"
 }
 tokens() { echo $((($1 + 3) / 4)); }
+# Called in the main shell and never inside $(...), where the exit would leave only the subshell.
+refuse() { echo "cannot read $1: $2" >&2; exit 3; }
+need() { # $1 the term, $2.. the files it counts, each of which must be on disk
+  local term="$1" f
+  shift
+  for f in "$@"; do [ -f "$f" ] || refuse "$term" "no file at $f"; done
+}
 
-reference_chain="$(tokens "$(bytes "$skill/SKILL.md" "$skill/references/ticket.md" \
-  "$skill/references/mechanics.md" "$skill/references/reply.md" \
-  "$skill/../../.agents/formats/ticket-format.md")")"
+chain=("$skill/SKILL.md" "$skill/references/ticket.md" "$skill/references/mechanics.md"
+  "$skill/references/reply.md" "$skill/../../.agents/formats/ticket-format.md")
+need reference_chain "${chain[@]}"
+reference_chain="$(tokens "$(bytes "${chain[@]}")")"
+need door "$skill/references/digest.md"
 ticket="${1:-}"
 ticket_tokens=$ticket_allowance
 digest_tokens=$digest_allowance
 if [ -n "$ticket" ]; then
+  [ -f "$ticket" ] || refuse criteria "no Ticket at $ticket"
+  grep -q '^\*\*Status:\*\*' "$ticket" || refuse criteria "$ticket is not a Ticket: no **Status:** line"
+  criteria="$(grep -cE '^- \[[ xX]\] ' "$ticket")"
+  [ "$criteria" -gt 0 ] || refuse criteria "$ticket carries no criterion line"
   ticket_tokens="$(tokens "$(bytes "$ticket")")"
   digest="${ticket%.md}.digest.md"
   [ -f "$digest" ] && digest_tokens="$(tokens "$(bytes "$digest")")"
@@ -66,7 +80,6 @@ printf 'baseline=%s\nreference_chain=%s\ndoor=%s\nground=%s\nshape=%s\ntotal=%s\
   "$baseline" "$reference_chain" "$door" "$ground" "$shape" "$total"
 [ -n "$ticket" ] || exit 0
 
-criteria="$(grep -cE '^- \[[ xX]\] ' "$ticket")"
 peak=$((total + criteria * per_criterion))
 # A verbatim copy of context-usage.sh's band line, so the estimate and the measured Context: line
 # fall in the same bands; tests/fixed-load.sh checks the two stay equal.

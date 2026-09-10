@@ -320,6 +320,29 @@ has "the estimator's band line is a verbatim copy of context-usage.sh's" "$estim
 has "context-usage.sh still carries the band line the estimator copies" \
   "$repo/skills/do/scripts/context-usage.sh" "$band_line"
 
+# A reading it cannot take names the term it could not read, prints no figure and exits non-zero.
+refused() { # $1 the exit code, $2 the term the message must name
+  [ "$code" = "$1" ] && [ -z "$out" ] && err_has "cannot read $2:"
+}
+printf '# Notes\n\n- [ ] Not a criterion of any Ticket.\n' > "$tmp/t/notes.md"
+est t/notes.md
+expect "a path that is not a Ticket names the criteria it could not read and exits 3" refused 3 criteria
+est t/none.md
+expect "a Ticket that is not on disk names the criteria and exits 3" refused 3 criteria
+mv "$skill/references/mechanics.md" "$tmp/t/mechanics.md"
+est
+expect "a missing file of the reference chain names reference_chain and exits 3" \
+  refused 3 reference_chain
+mv "$tmp/t/mechanics.md" "$skill/references/mechanics.md"
+mv "$skill/references/digest.md" "$tmp/t/digest.md"
+est
+expect "a missing Digest brief names the door and exits 3" refused 3 door
+mv "$tmp/t/digest.md" "$skill/references/digest.md"
+est t/01-small.md t/02-medium.md
+expect "two arguments are a usage error and exit 2" \
+  sh -c '[ "$1" = 2 ] && [ -z "$2" ] && printf "%s\n" "$3" | grep -qF "usage: estimate-load.sh"' \
+  _ "$code" "$out" "$err"
+
 # No em-dash in the prose this feature writes, per CLAUDE.md.
 lacks "no em-dash in the Digest reference" "$refs/digest.md" "$emdash"
 
