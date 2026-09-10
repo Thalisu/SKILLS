@@ -147,7 +147,8 @@ blocks_of() { # $1 file, $2 the heading whose section holds the resolution: its 
   ' "$1"
 }
 resolves_safely() { # $1 label, $2 file, $3 heading
-  local label="$1" dir="$tmp/$(basename "$2" .md)" evil="x'\$(id>PWNED)'.txt" block rc
+  local label="$1" dir evil="x'\$(id>PWNED)'.txt" block rc
+  dir="$tmp/$(basename "$2" .md)"
   mkdir -p "$dir" || return
   g -C "$dir" init -q -b main
   # Git's background maintenance races the trap's cleanup and leaves the repository undeletable.
