@@ -63,6 +63,10 @@ printf '# 11: No status\n\n**What to build:** x.\n' > "$issues/11-nostatus.md"
 ticket 12-one.md '**Status:** resolved' 'None (can start immediately)'
 ticket 12-two.md '**Status:** resolved' 'None (can start immediately)'
 ticket 13-double.md '**Status:** ready-for-agent' '12, One of two'
+ticket 14-comma.md '**Status:** ready-for-agent' '01 Title of 01-first, 02 Title of 02-second'
+ticket 15-and.md '**Status:** ready-for-agent' '01 and 02'
+ticket 16-lines.md '**Status:** ready-for-agent' $'01 Title of 01-first\n02 Title of 02-second'
+ticket 17-unsplit.md '**Status:** ready-for-agent' '01 Title of 01-first (after 02)'
 echo ".claude/worktrees/" >> .git/info/exclude
 git worktree add -q .claude/worktrees/do-claimed -b do/claimed
 git worktree add -q .claude/worktrees/do-stale -b do/stale
@@ -89,6 +93,14 @@ check "a resolved Ticket stops" 1 "$rc" "status=resolved" "verdict=resolved"
 run "$door" "$issues/03-third.md"
 check "a blocker not resolved refuses the run, every blocker named" 1 "$rc" \
   "blocker=01 resolved $issues/01-first.md" "blocker=02 ready-for-agent $issues/02-second.md" "verdict=blocked"
+for t in 14-comma 15-and 16-lines; do
+  run "$door" "$issues/$t.md"
+  check "a Blocked by paragraph shaped as $t reads every blocker and refuses the run" 1 "$rc" \
+    "blocker=01 resolved $issues/01-first.md" "blocker=02 ready-for-agent $issues/02-second.md" "verdict=blocked"
+done
+run "$door" "$issues/17-unsplit.md"
+check "a Blocked by number the door cannot split out is ambiguous, never a start" 1 "$rc" \
+  "blocker=01 resolved $issues/01-first.md" "ambiguous=blocked-by numbers it cannot split 02" "verdict=ambiguous"
 run "$door" "$issues/05-twice.md"
 check "a Ticket with two status lines is ambiguous, naming both lines" 1 "$rc" \
   "status=ambiguous" "ambiguous=status lines 7 9" "verdict=ambiguous"
