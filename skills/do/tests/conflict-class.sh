@@ -483,5 +483,16 @@ run
 check "run from a subdirectory, the file is named from the repository top" 1 "$rc" \
   "contested nested/deeper/rewrite.txt L2-L6 rewrite-vs-rewrite"
 
+# The review's landing classes a moved target with its own copy, so a copy that drifts gives the
+# review back a judgement ADR 0028 took out of every agent.
+copy="$here/../../do-code-review/scripts/conflict-class.sh"
+if cmp -s "$door" "$copy"; then
+  echo "ok    do-code-review's conflict-class.sh is the verbatim copy of do's"
+else
+  echo "FAIL  do-code-review's conflict-class.sh drifted from do's, or is missing"; fails=$((fails + 1))
+fi
+if [ -x "$copy" ]; then echo "ok    do-code-review's copy is executable"; else
+  echo "FAIL  do-code-review's copy is not executable"; fails=$((fails + 1)); fi
+
 echo
 if [ "$fails" = 0 ]; then echo "all ok"; else echo "$fails failed"; exit 1; fi
