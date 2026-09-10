@@ -354,11 +354,11 @@ it, or the run stopped as blocked with the worktree and its branch named.
 ### 12. Review
 
 The review in [mechanics.md](mechanics.md), called once, with the branch alone as its spec source
-since there is no Ticket outside the chain, the commit the integration rebased onto as the fixed
-point, or the commit the worktree was created from when the rebase replayed nothing, and the branch
-the run started on as the landing target. The review writes the Review, fixes
-its `Act on` Findings through its Fixers, one per Finding, and lands the branch by fast-forward
-when the Review is Green. The run fixes no Finding and lands nothing itself.
+since there is no Ticket outside the chain, the merge base of the branch and the branch the run
+started on, `git merge-base <that branch> HEAD` read after the integration as the fixed point, and
+the branch the run started on as the landing target. The review writes the Review, fixes
+its `Act on` Findings through its Fixer and lands the branch by fast-forward when the Review is
+Green. The run fixes no Finding and lands nothing itself.
 
 The thread shows the return, one line per part, as the shared section says. The four returns are the
 ones the `ticket` Playbook gets:

@@ -436,12 +436,18 @@ has "a replay moves the fixed point the review is called with" "$mech" \
   "the fixed point the review is called with is the commit it rebased onto"
 has "the review's fixed point names the integration among its sources" "$mech" \
   "the commit the integration rebased onto"
+# A rebase that replays nothing does not prove the developer's branch never moved: a developer who
+# rebased the branch by hand between two runs leaves the commit the worktree was created from behind
+# their own commits. The merge base read after the integration is the right fixed point in every state.
+has "the fixed point is the merge base read after the integration, whatever state it reached" "$mech" \
+  "git merge-base <the developer's branch> HEAD" \
+  "rebased the branch onto it by hand"
 # The three Playbooks are what the run actually reads at its review step, so the rule has to stand in
 # each of them: the shared mechanics stating it is not the file the step is read from.
 for pb in "$ticket" "$bugfix" "$refactor"; do
-  has "the review step of $(basename "$pb" .md) takes its fixed point from the integration" "$pb" \
-    "the commit the integration rebased onto as the fixed point" \
-    "the commit the worktree was created from when the rebase replayed nothing"
+  has "the review step of $(basename "$pb" .md) takes its fixed point from the merge base" "$pb" \
+    "git merge-base" \
+    "read after the integration as the fixed point"
 done
 
 # Reuse is the developer's own git setting and the step would run under it, so the three commands of

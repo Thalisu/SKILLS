@@ -144,7 +144,7 @@ has "an unreachable surface asks the developer a second time" "$ref" "their seco
 
 # Steps 9 to 12: the shared review, verification and close, and the reply's own opening
 has "the review takes the branch alone as its spec source" "$ref" "the branch alone as the spec source"
-has "the fixed point is the commit the worktree came from" "$ref" "the commit the worktree was created from"
+has "the fixed point is the merge base read after the integration" "$ref" "\`git merge-base <that branch> HEAD\` read after the integration as the fixed point"
 has "the landing target is the branch the run started on" "$ref" "the branch the run started on"
 has "a red gate, a not-landed return and a protected branch read as the ticket Playbook's" "$ref" "the same way the \`ticket\` Playbook does"
 has "the verification comes from the shared mechanics" "$ref" "The verification in [mechanics.md](mechanics.md)"
