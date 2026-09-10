@@ -3,7 +3,8 @@
 # asserted against the contract files on disk so a reviewer can rerun them: the door forks a reader
 # over the Ticket's Spec and its Journey, the Digest that comes back is quoted, located and keyed by
 # the Ticket's slug, the ground step takes a map and reads no source, and the shape step forks
-# `sketch` and holds the build to the Sketch it files.
+# `sketch` and holds the build to the Sketch it files; and the estimator of that load, run against a
+# scaffolded fixture, prints it by term, projects a Ticket's peak and gates nothing.
 # Run: bash skills/do/tests/fixed-load.sh
 # shellcheck disable=SC2016
 set -uo pipefail
@@ -28,7 +29,7 @@ lacks() { # $1 label, $2 file, $3.. fixed strings that must not appear
   if [ "$ok" = 1 ]; then echo "ok    $label"; else echo "FAIL  $label ($file)"; fails=$((fails + 1)); fi
 }
 header_has() { # $1 a fixed string that must appear in this script's own header comment
-  sed -n '1,7p' "$here/fixed-load.sh" | grep -qF -- "$1"
+  sed -n '1,8p' "$here/fixed-load.sh" | grep -qF -- "$1"
 }
 after() { # $1 label, $2 file, $3 the later fixed string, $4.. the strings that must precede it
   local label="$1" file="$2" later="$3"; shift 3
@@ -247,6 +248,37 @@ after "the withheld row is read before the row for a session that lists no sketc
 grader="$repo/skills/do/evals/withheld-agent-tool/graders/no-sketch-fork-session-writes-sketch.md"
 has "the withheld-agent-tool eval grades the session writing the Sketch itself" "$grader" \
   "type: llm" "01-archive-a-note.sketch.md" "no Agent tool call"
+
+# The estimator runs against a scaffolded skill and project whose files have known sizes, so every
+# term it prints is a number this script can state: 4000 bytes is 1000 tokens.
+estimator="$repo/skills/do/scripts/estimate-load.sh"
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+skill="$tmp/skills/do"
+mkdir -p "$skill/scripts" "$skill/references" "$tmp/.agents/formats" "$tmp/docs/adr" "$tmp/t"
+cp "$estimator" "$skill/scripts/" 2>/dev/null
+mk() { head -c "$2" /dev/zero | tr '\0' a > "$1"; }
+for f in "$skill/SKILL.md" "$skill/references/ticket.md" "$skill/references/mechanics.md" \
+  "$skill/references/reply.md" "$skill/references/digest.md" "$tmp/.agents/formats/ticket-format.md"; do
+  mk "$f" 4000
+done
+mk "$tmp/docs/adr/0001-x.md" 10
+mk "$tmp/CONTEXT.md" 3990
+est() { # runs the scaffolded estimator from the fixture's root; sets out, err and code
+  out="$(cd "$tmp" && bash "$skill/scripts/estimate-load.sh" "$@" 2>"$tmp/t/err")"
+  code=$?
+  err="$(cat "$tmp/t/err")"
+}
+is() { [ "$1" = "$2" ]; }
+out_has() { printf '%s\n' "$out" | grep -qxF -- "$1"; }
+err_has() { printf '%s\n' "$err" | grep -qF -- "$1"; }
+
+est
+expect "with no argument the estimator exits zero" is "$code" 0
+expect "with no argument it prints the fixed load by term, in order, then the total" is "$out" \
+  "$(printf '%s\n' baseline=32000 reference_chain=5000 door=5000 ground=7500 shape=1000 total=50500)"
+expect "the estimator carries its own invocation line in its header" \
+  sh -c 'sed -n "1,12p" "$1" | grep -qF "estimate-load.sh <the Ticket'"'"'s path>"' _ "$estimator"
 
 # No em-dash in the prose this feature writes, per CLAUDE.md.
 lacks "no em-dash in the Digest reference" "$refs/digest.md" "$emdash"
