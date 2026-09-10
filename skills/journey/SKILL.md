@@ -35,10 +35,13 @@ technical question.
   | The argument | Read as |
   |---|---|
   | a path | the file at that path |
-  | a bare slug | `spec.md` in the `.scratch/` folder named `<slug>` or ending in `-<slug>`, since a feature folder is dated `<YYYYMMDD>-<slug>`; the newest when more than one matches, per [.agents/scratch.md](../../.agents/scratch.md). Local markdown or no tracker file only |
+  | a bare slug | the file the `spec=` line of `bash <skill-dir>/../../.agents/scripts/resolve-feature-folder.sh <slug>` names, the one executable form of the rule that says which feature folder a slug names, per [.agents/scratch.md](../../.agents/scratch.md). Local markdown or no tracker file only |
   | an issue number or URL | the issue, body and comments, through the CLI the tracker file names |
 
-  Nothing readable: one message asking for the path.
+  Nothing readable: one message asking for the path. A resolver that answers `spec=none` or exits
+  2, and a resolver the session cannot find at that path, since a machine may have linked `skills/`
+  without the rest of this repo, are nothing readable too: the run never falls back to a rule of
+  its own.
 - Read the spec fully, in the format of
   [.agents/formats/spec-format.md](../../.agents/formats/spec-format.md). Its User Stories are the
   candidate paths. Its Implementation Decisions, Testing Decisions and Out of Scope are constraints
