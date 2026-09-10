@@ -161,6 +161,18 @@ has "the ground step names the skill it called and the subsystem in one line" "$
   "names in one line the skill it called"
 has "the exploration stays in the window of the skill that made the map" "$refs/ticket.md" \
   "stays in that skill's window"
+# With `how` not listed, a file read whole puts the run back on the load this step cuts, so the map
+# comes from search output alone, is named as thinner, and the run goes on.
+has "without how the map is built from search output alone and named as thinner" "$refs/ticket.md" \
+  "from search output alone" "names, paths and one-line matches" "reads no file whole" \
+  "names the map as thinner" "the run continues"
+lacks "the fallback no longer explores with targeted reads" "$refs/ticket.md" \
+  "explore with search and targeted reads"
+fallback="$repo/skills/do/evals/absent-vendored-skill/graders/grounding-fallback-stated.md"
+has "the absent-vendored-skill eval grades the map built from search output alone" "$fallback" \
+  "search output alone" "thinner" "read no file whole"
+lacks "the absent-vendored-skill eval no longer grades a read of the code the Ticket names" \
+  "$fallback" "read the code the Ticket names"
 
 # The shape step takes the shape from `sketch`, forked with a brief filled from what the run already
 # holds, so the rivals behind a shape never enter the session and nothing is grounded a second time.

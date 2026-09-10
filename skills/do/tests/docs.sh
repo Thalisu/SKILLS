@@ -90,6 +90,8 @@ has "the other prerequisite rows name their own step" "$page" \
 has "the vendored row names every vendored skill the Playbooks call" "$page" \
   "the vendored \`architect\`, \`how\`, \`why\` and \`unslop\`" \
   "with neither \`how\` nor \`why\` reads the code with search and targeted reads"
+has "the vendored row says a ticket run without how builds a thinner map from search output" "$page" \
+  "a \`ticket\` run without \`how\` builds its map from search output alone"
 # The router sends a spec to /journey on both halves of one condition, so a spec that already has a
 # journey goes to /tickets: the page states both halves or it sends the reader back a step.
 has "the spec door and the question state the router's full condition" "$page" \

@@ -180,8 +180,10 @@ When the session lists `how`, call the Skill tool with `how` over the subsystem 
 reshapes, and take what comes back as the map: where things live, what calls what,
 where the seams are. The step names in one line the skill it called and the subsystem, and
 the exploration stays in that skill's window, since `how` forks its own explorers, per
-[guard-the-context-window](../../../.agents/principles/guard-the-context-window.md); when it does
-not, explore with search and targeted reads, and say so in one line. Then the discover batch:
+[guard-the-context-window](../../../.agents/principles/guard-the-context-window.md). When it does
+not, the step builds the map from search output alone (names, paths and one-line matches) and
+reads no file whole; it says so in one line, names the map as thinner, and the run continues.
+Then the discover batch:
 call the Skill tool with `discover` once, with every symbol the Ticket, its Digest and the reading
 name in one batch, in the form the Discovery rule fixes, before the first of them is created, and
 log the audit line, `Discovery: n FOUND · n DUPLICATE · n NOT_FOUND`. When `discover` is not
