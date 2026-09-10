@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# probes.sh: the contract of the ticket Playbook's probes, scripts/ticket-door.sh and
-# scripts/resume-state.sh, exercised in a throwaway git repository, and the sentences of the
-# Playbook's reference that name them. Run: bash skills/do/tests/probes.sh
+# probes.sh: the contract of the ticket Playbook's probes, scripts/ticket-door.sh,
+# scripts/resume-state.sh and scripts/gate.sh, exercised in a throwaway git repository, and the
+# sentences of the Playbook's reference that name them. Run: bash skills/do/tests/probes.sh
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
 skill="$here/.."
@@ -253,6 +253,29 @@ has "the reply's Skipped section holds only the steps the run reached" "$reply_m
 has "a blocked reply names where it stopped and lists no step after it" "$reply_md" \
   "names the step it stopped at" \
   "lists no step after it as skipped"
+
+echo "# gate.sh: every check green"
+gate="$skill/scripts/gate.sh"
+cd "$top" || exit 1
+run "$gate" "suite=printf 'ran\n'" "typecheck=true"
+check "a green gate prints one key and value line per check and exits 0" 0 "$rc" \
+  "suite=green" "typecheck=green" "verdict=green"
+ordered "the gate prints its command line first, then each check in the order given" \
+  command= suite= typecheck= verdict=
+absent "a green check prints none of its output" "ran"
+same() { # $1 label, $2 expected output; the whole of $out must equal it
+  if [ "$out" = "$2" ]; then echo "ok    $1"; else
+    echo "FAIL  $1"; echo "      ${out//$'\n'/$'\n'      }"; fails=$((fails + 1)); fi
+}
+rerun() { # reruns the command= line the last run printed first, the way a reviewer pastes it
+  local line; line="$(sed -n '1s/^command=//p' <<<"$out")"
+  rc=0; out="$(eval "$line" 2>&1)" || rc=$?
+}
+first_out="$out"; rerun
+same "the command line the gate prints reruns it for the same answer" "$first_out"
+run "$gate"; check "no check is a usage error" 2 "$rc"
+run "$gate" "true"; check "a check with no key is a usage error" 2 "$rc"
+header_has "the gate script's header carries its own command line" "$gate" "#   gate.sh " 12
 
 echo
 if [ "$fails" = 0 ]; then echo "probes: all checks passed"; else echo "probes: $fails failed"; exit 1; fi
