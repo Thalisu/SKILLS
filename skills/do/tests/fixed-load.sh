@@ -152,6 +152,15 @@ has "the ground step states the glossary words and reads the bodies of the ADRs 
 has "the ground step opens no source file" "$refs/ticket.md" "It opens no source file"
 lacks "the ground step no longer reads the code the Ticket names" "$refs/ticket.md" \
   "the code the Ticket"
+# The subsystem comes back as a map from `how`, whose own forks explore it, so the shape step can
+# name the boundaries without the source in the session.
+has "the ground step takes the subsystem as a map from how" "$refs/ticket.md" \
+  'call the Skill tool with `how` over the subsystem the Ticket' "as the map" \
+  "what calls what" "where the seams are"
+has "the ground step names the skill it called and the subsystem in one line" "$refs/ticket.md" \
+  "names in one line the skill it called"
+has "the exploration stays in the window of the skill that made the map" "$refs/ticket.md" \
+  "stays in that skill's window"
 
 # The shape step takes the shape from `sketch`, forked with a brief filled from what the run already
 # holds, so the rivals behind a shape never enter the session and nothing is grounded a second time.

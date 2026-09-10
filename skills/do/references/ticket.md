@@ -177,7 +177,9 @@ is not knowable before the behaviours list exists, so a file read here is paid f
 build edits it or not, per
 [ADR 0025](../../../docs/adr/0025-the-ground-step-reads-a-map-of-the-subsystem-never-its-code.md).
 When the session lists `how`, call the Skill tool with `how` over the subsystem the Ticket
-reshapes, so the exploration stays out of the thread, per
+reshapes, and take what comes back as the map: where things live, what calls what,
+where the seams are. The step names in one line the skill it called and the subsystem, and
+the exploration stays in that skill's window, since `how` forks its own explorers, per
 [guard-the-context-window](../../../.agents/principles/guard-the-context-window.md); when it does
 not, explore with search and targeted reads, and say so in one line. Then the discover batch:
 call the Skill tool with `discover` once, with every symbol the Ticket, its Digest and the reading
