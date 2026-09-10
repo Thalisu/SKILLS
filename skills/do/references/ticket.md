@@ -184,7 +184,7 @@ the exploration stays in that skill's window, since `how` forks its own explorer
 not, the step builds the map from search output alone (names, paths and one-line matches) and
 reads no file whole; it says so in one line, names the map as thinner, and the run continues.
 Then the discover batch:
-call the Skill tool with `discover` once, with every symbol the Ticket, its Digest and the reading
+call the Skill tool with `discover` once, with every symbol the Ticket, its Digest and the map
 name in one batch, in the form the Discovery rule fixes, before the first of them is created, and
 log the audit line, `Discovery: n FOUND · n DUPLICATE · n NOT_FOUND`. When `discover` is not
 listed, one `rg -n -w` per candidate stands in and the audit line says so. A symbol the Sketch

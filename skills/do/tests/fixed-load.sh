@@ -178,6 +178,15 @@ lacks "the absent-vendored-skill eval no longer grades a read of the code the Ti
 has "the build loop reads each file at the moment it edits it and names it as it opens it" \
   "$refs/mechanics.md" "read at the moment the loop edits it" "named in the thread as the loop opens it" \
   "the only source the loop brings into the session is source the run changed"
+# The map replaces the code read, so the discover batch takes its symbols from the map, and the
+# reading still sharpens done before the grounded figure is taken for the close.
+has "the discover batch covers every symbol the Ticket, the Digest and the map name" \
+  "$refs/ticket.md" "every symbol the Ticket, its Digest and the map"
+lacks "the discover batch no longer names a reading of the code" "$refs/ticket.md" \
+  "its Digest and the reading"
+after "done is restated as a predicate after the audit line and before the context reading" \
+  "$refs/ticket.md" '<skill-dir>/scripts/context-usage.sh`, and keep its `current` figure' \
+  "log the audit line" "Restate done as a predicate"
 
 # The shape step takes the shape from `sketch`, forked with a brief filled from what the run already
 # holds, so the rivals behind a shape never enter the session and nothing is grounded a second time.
