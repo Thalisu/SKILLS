@@ -144,6 +144,10 @@ rc=0; out="$(tr '\n' ' ' < "$page" | tr -s ' ')" || rc=$?
 check "the page says the project picks the gate after a feature" 0 "$rc" \
   "the post-feature gate" "the full unit suite, the full E2E suite, both, or none"
 check "the page records the version that made the gate a pick" 0 "$rc" "2.5 made the gate after a feature"
+# A reader refreshing an older install reads the history for every version it skips, so 2.4 sits
+# between 2.3 and 2.5 and is never jumped over.
+check "the page's history names 2.4 and its unit map line between 2.3 and 2.5" 0 "$rc" \
+  "changing a rule; 2.4 added the **Partial test data** line to the unit map; 2.5 made the gate"
 
 echo
 echo "# repository standards"

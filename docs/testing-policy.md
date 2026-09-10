@@ -132,9 +132,9 @@ replaces only the core and keeps everything the project filled in. Every install
 `stale` at the same moment, and each is refreshed the same way. The history so far: 2.1 added
 agent drift detection, the shared skip patterns and the mixed gate; 2.2 moved the core to behaviour
 over implementation, boundary mocking and vertical TDD; 2.3 rewrote the templates' prose without
-changing a rule; 2.5 made the gate after a feature a pick the install asks for, recorded as
-**Post-feature gate** in Project facts, and narrowed the per-change unit run to the tests the
-change adds or touches.
+changing a rule; 2.4 added the **Partial test data** line to the unit map; 2.5 made the gate after
+a feature a pick the install asks for, recorded as **Post-feature gate** in Project facts, and
+narrowed the per-change unit run to the tests the change adds or touches.
 
 **What is the difference between `stale` and `drifted`?**
 `stale` is an older version, the expected signal after the template moves. `drifted` is the
