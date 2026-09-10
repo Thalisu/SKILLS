@@ -132,6 +132,11 @@ has "the page names do-reader where the door cuts the Digest" "$page" \
   "the session reads both documents itself and says so"
 has "the do-reader row's fallback is still the reader section's own wording" "$refs/mechanics.md" \
   "The session reads both documents itself"
+has "the page tells the developer to delete a Digest a stopped run left, sibling Ticket included" \
+  "$page" \
+  "Delete it before your next \`/do\` on that Ticket" \
+  "whether it sits beside the Ticket" \
+  "that stopped or beside a sibling Ticket the stop's own line named"
 door="$repo/skills/do-code-review/AGENT.md"
 has "the Review's visibility the tell follows is still the door's own report" "$door" \
   '`review_in_status=yes`, that the Review shows up in `git status` for the caller to keep or drop'

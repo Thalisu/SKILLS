@@ -173,6 +173,14 @@ Finding's check and the whole gate, and fast-forwards your branch only when the 
 That is also why `do` never patches a Finding by hand: a Finding the Fixer left standing is the
 reason nothing landed, and the run stops on it with the worktree intact.
 
+**What do I do with a Digest a stopped run left behind?**
+Delete it before your next `/do` on that Ticket. A run that stopped inside the reader's window,
+before [ADR 0032](adr/0032-a-fork-that-reads-a-strangers-text-holds-no-write-tool.md) removed that
+check, could leave a `*.digest.md` on disk, and the gate judges a Digest by its record alone: one
+you don't trust is served again while its hashes still match, whether it sits beside the Ticket
+that stopped or beside a sibling Ticket the stop's own line named. Delete every `*.digest.md` such
+a stop named, and the next run on that Ticket forks the reader fresh.
+
 ## It's working if
 
 - The first line of every reply names the Playbook it matched, and it is the one you expected.

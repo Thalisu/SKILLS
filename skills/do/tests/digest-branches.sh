@@ -156,11 +156,14 @@ has "a re-fork with no usable Digest stops as a first fork does and the old Dige
   "A document restored to the exact bytes its record hashes is a match again"
 # The gate compares a record and never asks who wrote the file it sits in, so a Digest a run left
 # behind before ADR 0032 removed the reading that stopped it is reused like any other while its
-# hashes match, and only the developer's own delete retires it.
+# hashes match, whether it sits beside the Ticket that stopped or a sibling Ticket the stop named,
+# and only the developer's own delete retires it.
 has "a Digest a stopped run left is served while its hashes match and removed only by hand" \
   "$refs/mechanics.md" \
   "A Digest a run left behind when the reading of the tree and the scratch stopped it" \
   "is served like any other while both of its hashes match" \
+  "beside the Ticket the" \
+  "stopped run was on or beside a sibling Ticket the stop's own line named" \
   "deletes it by hand before running that Ticket again"
 
 # The Digest is an unversioned file a fork wrote while two documents a stranger may have written

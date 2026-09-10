@@ -184,9 +184,10 @@ A document restored to the exact bytes its record hashes is a match again, serve
 A Digest a run left behind when the reading of the tree and the scratch stopped it, the reading
 [ADR 0032](../../../docs/adr/0032-a-fork-that-reads-a-strangers-text-holds-no-write-tool.md)
 removed, is judged by its record alone, since the gate never asks who wrote the file, so it
-is served like any other while both of its hashes match. A developer who does not trust one
-deletes it by hand before running that Ticket again, and that run forks the reader as a first
-run does.
+is served like any other while both of its hashes match, whether it sits beside the Ticket the
+stopped run was on or beside a sibling Ticket the stop's own line named. A developer who does not
+trust one deletes it by hand before running that Ticket again, and that run forks the reader as a
+first run does.
 
 ## The build loop
 
