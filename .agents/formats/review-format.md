@@ -223,7 +223,8 @@ Then the suite, `- suite: <the command>: <its result>`, and the landing on the l
   target, a failed fast-forward, and a moved target with a `contested` hunk or a key the union
   defines twice, whose reason reads
   `not landed: target moved, <target> at <short sha>, conflicting <file> <file>`, each file as the
-  conflict class script printed it.
+  conflict class script printed it. A suite red after the retry's rebase reads
+  `not landed: suite red after the rebase onto <target>, <the failing check>`.
 - `- nothing to land`, on a Green Review of the branch the developer is already on when the Fixer
   made no commit.
 

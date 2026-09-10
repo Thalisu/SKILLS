@@ -71,6 +71,8 @@ has "the landing line names a rebase onto a moved target and each hunk it resolv
   "- landed at <sha>, rebased onto <target> at <short sha>" "one line per hunk it resolved"
 has "a hunk nobody may judge alone over a moved target has its own not-landed reason" "$format" \
   "not landed: target moved, <target> at <short sha>, conflicting <file>" "a moved target with a \`contested\` hunk"
+has "a red suite after the retry's rebase has its own not-landed reason" "$format" \
+  "not landed: suite red after the rebase onto <target>, <the failing check>"
 has "the format says a second fix appends and a plain run overwrites" "$format" \
   "a second \`fix\` appends a second section" "overwrites"
 has "the index carries the format's row" "$repo/.agents/formats/README.md" \
@@ -277,6 +279,11 @@ has "any contested hunk aborts the retry and returns target moved with the files
   "Any hunk \`contested\`" "rebase --abort" "\`not landed: target moved\`" "each as the class script printed it"
 has "a union that defines one key twice is aborted the same way" "$fix_md" \
   "defines one key twice" "the key named"
+# The rebased branch sits on commits the reviewers never read, so a red suite there is the branch's
+# failure to land, named by its check, and never a reason to loop.
+has "a red suite after the retry's rebase lands nothing and names the failing check" "$fix_md" \
+  "\`not landed: suite red after the rebase onto <target>, <the failing check>\`" \
+  "the rebased branch and its worktree stay in place"
 has "the fix reference says what Green means without redefining it" "$fix_md" "Green"
 # A fix/<slug> worktree the Fixer left no commit in sits on a branch identical to the developer's
 # HEAD and holds nothing to read, so the run takes back what it created, and only that.

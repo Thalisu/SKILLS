@@ -198,8 +198,11 @@ landing instead of waiting on one.
    and its worktree stay in place, nothing is pushed, and the caller, who can reach a person, takes
    the question from there.
 5. When the rebase finishes, the suite runs again in that tree, the suite the re-check ran, since
-   the branch now sits on commits the reviewers never read. Green, and the target is fast-forwarded
-   as above, once: a second failure is a failed fast-forward and is named.
+   the branch now sits on commits the reviewers never read. Red, and the landing returns
+   `not landed: suite red after the rebase onto <target>, <the failing check>`. Nothing is fixed,
+   since the failure may sit in the developer's own commits, nothing is pushed, and
+   the rebased branch and its worktree stay in place. Green, and the target is fast-forwarded as
+   above, once: a second failure is a failed fast-forward and is named.
 
 The landing line then names the rebase onto the moved target with the hunks it resolved, one line
 each, in the shape [review-format.md](../../../.agents/formats/review-format.md) fixes.
