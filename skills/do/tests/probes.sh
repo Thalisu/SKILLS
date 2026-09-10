@@ -129,5 +129,46 @@ run "$door"; check "no argument is a usage error" 2 "$rc"
 run "$door" "$issues/99-nothing.md"; check "a Ticket that is not there is an error" 2 "$rc"
 cd /; run "$door" x; check "outside a repository is an error" 2 "$rc"; cd "$top" || exit 1
 
+echo "# resume-state.sh: a clean worktree"
+resume="$skill/scripts/resume-state.sh"
+fork="$(git rev-parse HEAD)"
+printf 'two\n' >> "$wt/notes.txt"
+g -C "$wt" commit -q -am "feat: archive a note" -m "Behaviour: Picking Archive on a note removes it from the list"
+printf 'three\n' >> "$wt/notes.txt"
+g -C "$wt" commit -q -am "chore: tidy the notes"
+first="$(git rev-parse --short do/claimed~1)"; second="$(git rev-parse --short do/claimed)"
+run "$resume" "$issues/04-claimed.md"
+check "a clean worktree resumes at the build loop, every commit with its behaviour" 0 "$rc" \
+  "worktree=$wt" "branch=do/claimed" "rebase=none" "base=main" "merge_base=$fork" \
+  "commit=$first feat: archive a note" "behaviour=$first Picking Archive on a note removes it from the list" \
+  "commit=$second chore: tidy the notes" "behaviour=$second none" "commits=2" "verdict=build"
+ordered "the resume state comes in its key order" \
+  worktree= branch= rebase= base= merge_base= commit= behaviour= commits= verdict=
+absent "a clean worktree lists no uncommitted file" "uncommitted="
+
+echo "# resume-state.sh: uncommitted work"
+printf 'half written\n' >> "$wt/notes.txt"; printf 'x\n' > "$wt/a b.txt"
+run "$resume" "$issues/04-claimed.md"
+check "uncommitted work asks before anything, one line per file" 1 "$rc" \
+  "uncommitted= M notes.txt" 'uncommitted=?? "a b.txt"' "commits=2" "verdict=ask"
+out="$(git -C "$wt" status --short)"
+check "the probe leaves the uncommitted work where it was" 0 0 " M notes.txt" '?? "a b.txt"'
+git -C "$wt" checkout -q -- notes.txt; rm "$wt/a b.txt"
+
+echo "# resume-state.sh: a rebase the integration left open"
+printf 'one\nmain side\n' > notes.txt; g commit -q -am "main moves"
+g -C "$wt" -c rerere.enabled=false rebase main >/dev/null 2>&1
+run "$resume" "$issues/04-claimed.md"
+check "a worktree left mid-rebase goes to the integration, its branch read from the rebase state" 3 "$rc" \
+  "branch=do/claimed" "rebase=open" "conflicted=notes.txt" "commits=2" "verdict=integration"
+git -C "$wt" rebase --abort
+
+echo "# resume-state.sh: nothing to resume"
+git -C "$wt" checkout -q --detach
+run "$resume" "$issues/04-claimed.md"; check "a detached HEAD with no rebase open is not a resumable worktree" 2 "$rc"
+git -C "$wt" checkout -q do/claimed
+run "$resume" "$issues/07-gone.md"; check "a Ticket with no worktree has nothing to resume" 2 "$rc"
+run "$resume"; check "no argument is a usage error" 2 "$rc"
+
 echo
 if [ "$fails" = 0 ]; then echo "probes: all checks passed"; else echo "probes: $fails failed"; exit 1; fi
