@@ -420,6 +420,24 @@ check "the last line answers for the main checkout's ignore state" 0 "$rc" "revi
 printf '.scratch/\n' > "$linked_main/.gitignore"
 cd "$linked_main" && git worktree remove --force "$tmp/linked-main/.claude/worktrees/l"
 
+# The exact .scratch arm of spec= is the resolver's, which resolves in the main checkout: a run in a
+# linked worktree, which has no scratch of its own, names the main checkout's spec by absolute path,
+# and of two dated folders of one slug the newest, the one the allocator would have named.
+mkdir "$tmp/wt-spec" && cd "$tmp/wt-spec" && git init -q -b main
+wt_spec="$(pwd -P)"
+printf 'a\n' > a.txt && printf '.scratch/\n' > .gitignore && git add -A && git commit -q -m "first"
+mkdir -p .scratch/20240101-export && printf '# Export\n' > .scratch/20240101-export/spec.md
+git worktree add -q "$wt_spec/.claude/worktrees/e" -b export >/dev/null
+cd "$wt_spec/.claude/worktrees/e" || exit 1
+printf 'e\n' > e.txt && git add e.txt && git commit -q -m "build"
+run main
+check "a linked worktree names the main checkout's spec by absolute path" 0 "$rc" \
+  "spec=$wt_spec/.scratch/20240101-export/spec.md"
+mkdir -p "$wt_spec/.scratch/20260909-export" && printf '# Export\n' > "$wt_spec/.scratch/20260909-export/spec.md"
+run main
+check "a linked worktree names the newest of two dated folders of one slug" 0 "$rc" \
+  "spec=$wt_spec/.scratch/20260909-export/spec.md"
+
 # A bare main worktree has no working tree to anchor on, so the tree under review anchors itself:
 # without that, every path of the run resolves inside the bare repository.
 git clone -q --bare "$tmp/tracked" "$tmp/bare.git"
@@ -482,13 +500,19 @@ run
 check "a feature folder the resolver accepts is reviewed as before" 0 "$rc" \
   "branch=export-notes" "review=.scratch/reviews/export-notes.md"
 
-# A checkout that has no resolver keeps the answers the door gives today: a machine may have linked
-# skills/ on its own, and a script the tree does not carry is no reason to refuse a review.
+printf '# Export notes\n' > .scratch/20240101-export-notes/spec.md
+run
+check "the feature folder the resolver names is the spec" 0 "$rc" \
+  "spec=.scratch/20240101-export-notes/spec.md"
+
+# A checkout that has no resolver refuses nothing and names no spec in the scratch, whose exact arm
+# is the resolver's: a machine may have linked skills/ on its own, and a script the tree does not
+# carry is no reason to refuse a review.
 lonely="$tmp/lonely/skills/do-code-review/scripts"
 mkdir -p "$lonely" && cp "$door" "$lonely/fixed-point.sh"
 rc=0; out="$(bash "$lonely/fixed-point.sh" 2>&1)" || rc=$?
-check "a door that cannot find the resolver answers as it does today" 0 "$rc" \
-  "branch=export-notes" "review=.scratch/reviews/export-notes.md"
+check "a door that cannot find the resolver names no spec and goes on" 0 "$rc" \
+  "branch=export-notes" "review=.scratch/reviews/export-notes.md" "spec=none"
 
 # do names its branch after the Ticket's slug, while the Ticket sits in its feature's folder under
 # another slug: the door answers for that folder as well, found or handed, and for the Review beside
