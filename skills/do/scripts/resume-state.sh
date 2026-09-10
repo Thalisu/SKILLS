@@ -39,7 +39,9 @@ esac
 
 slug="$(basename "$path" .md)"; slug="$(sed -E 's/^[0-9]+-//' <<<"$slug")"
 wt="$main/.claude/worktrees/do-$slug"
-git worktree list --porcelain | grep -qxF -- "worktree $wt" || { echo "no worktree at $wt: nothing to resume" >&2; exit 2; }
+# grep -q would stop reading at the match and git would die of SIGPIPE on a long list, which
+# pipefail turns into a missing worktree.
+git worktree list --porcelain | grep -xF -- "worktree $wt" >/dev/null || { echo "no worktree at $wt: nothing to resume" >&2; exit 2; }
 
 rebase=none
 branch="$(cd "$wt" && for d in rebase-merge rebase-apply; do

@@ -182,6 +182,17 @@ git -C "$wt" checkout -q do/claimed
 run "$resume" "$issues/07-gone.md"; check "a Ticket with no worktree has nothing to resume" 2 "$rc"
 run "$resume"; check "no argument is a usage error" 2 "$rc"
 
+echo "# a worktree list longer than one pipe read"
+for i in $(seq -w 1 60); do git worktree add -q --detach --no-checkout ".claude/worktrees/zz-$i"; done
+out="$(git worktree list --porcelain | grep '^worktree ' | sed -n 2p)"
+check "the Ticket's worktree is the first one listed after the main checkout" 0 0 "worktree $wt"
+run "$door" "$issues/04-claimed.md"
+check "the door finds the Ticket's worktree listed first among sixty more and resumes" 0 "$rc" \
+  "worktree=$wt" "verdict=resume"
+run "$resume" "$issues/04-claimed.md"
+check "the resume finds the Ticket's worktree listed first among sixty more" 0 "$rc" \
+  "worktree=$wt" "verdict=build"
+
 echo "# the reference names each probe with its command line"
 ticket_md="$skill/references/ticket.md"
 has() { # $1 label, $2 file, $3.. fixed strings that must appear in the file
