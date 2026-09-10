@@ -183,4 +183,34 @@ run "$first:target" "$second:target" "$second:target"
 blocked "more answers than the stop has hunks is never guessed at" \
   "blocked more answers than contested hunks"
 
+# A session nobody is there to answer: `claude -p` reads sdk-cli, and the SDK's other entrypoints
+# share the prefix. The script refuses before a question can be printed, so no answer is ever guessed.
+fresh headless
+printf 'x\ny\nz\n' > rewrite.txt
+printf 'a\nb\nc\n' > second.txt
+commit base
+g switch -q -c do/run
+printf 'x\nINCOMING\nz\n' > rewrite.txt
+printf 'a\nINCOMING TOO\nc\n' > second.txt
+commit incoming
+g switch -q main
+printf 'x\nTARGET\nz\n' > rewrite.txt
+printf 'a\nTARGET TOO\nc\n' > second.txt
+commit target
+g switch -q do/run
+g rebase main >/dev/null 2>&1
+before="$(state)"
+run; first="$(sed -n 's/^id //p' <<<"$out")"
+headless() { rc=0; out="$(CLAUDE_CODE_ENTRYPOINT="$1" bash "$door" "${@:2}" 2>&1)" || rc=$?; }
+
+headless sdk-cli
+check "a headless session is told no human is there, with the files it would have asked about" 4 "$rc" \
+  "no human CLAUDE_CODE_ENTRYPOINT=sdk-cli" "conflicted rewrite.txt" "conflicted second.txt"
+absent "a headless session is never asked a question" 4 "$rc" "Conflict 1 of"
+expect "a headless session writes nothing" test "$(state)" = "$before"
+headless sdk-ts "$first:target"
+check "answers carried into a headless session are refused all the same" 4 "$rc" \
+  "no human CLAUDE_CODE_ENTRYPOINT=sdk-ts"
+expect "a headless session writes nothing of an answer it was handed" test "$(state)" = "$before"
+
 if [ "$fails" = 0 ]; then echo "all ok"; else echo "$fails failing"; exit 1; fi

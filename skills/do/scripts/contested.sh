@@ -18,7 +18,10 @@
 # Exit codes: 0 every contested hunk answered and its file written · 1 a question printed · 2 usage,
 # or no stopped rebase · 3 blocked: `stop`, an answer the hunk does not offer, an id that names no
 # open hunk, or more answers than hunks, printed as `blocked <reason>`, one `conflicted <file>` line
-# per file git left unmerged and `undo git rebase --abort`, with nothing written.
+# per file git left unmerged and `undo git rebase --abort`, with nothing written · 4 no human: the
+# session's CLAUDE_CODE_ENTRYPOINT starts with `sdk-` (`claude -p` reads `sdk-cli`), printed as
+# `no human CLAUDE_CODE_ENTRYPOINT=<value>` and the same `conflicted` lines, before any question is
+# formed and with nothing written.
 #
 # The class, the order of the questions and the locations are conflict-class.sh's report, never read
 # again here from the working file's markers. The sides are quoted from the index stages. The script
@@ -65,6 +68,16 @@ blocked() { # $1 reason
   echo "undo git rebase --abort"
   exit 3
 }
+
+# A session the SDK drives, `claude -p` among them, has nobody to read a question, so the stop is
+# refused before one is formed and the run aborts the rebase itself: an answer is never guessed,
+# not even one a resumed run carried in.
+case "${CLAUDE_CODE_ENTRYPOINT:-}" in
+  sdk-*)
+    echo "no human CLAUDE_CODE_ENTRYPOINT=$CLAUDE_CODE_ENTRYPOINT"
+    for file in "${unmerged[@]}"; do echo "conflicted $file"; done
+    exit 4 ;;
+esac
 
 # The report, one entry per hunk in the order the classifier printed it. A hunk's ordinal counts the
 # hunks of its own file, which is how the regenerated merge below is matched to it.
