@@ -293,7 +293,19 @@ the complete input: the behaviour to prove, the journey or screen, the origin, t
 placement when it matters. The flow must return `GREEN`; `BLOCKED` on a preflight stops the run
 as blocked. The flow is committed on its own or with the last behaviour. On a consumer surface
 the flow lives in the consumer repository and is recorded as pending debt with the consumers
-named. Which changes a user can observe is the Digest's `## Observable criteria` section, the
+named. Under `Loop: global` the project has no Testing Policy and so no section marker naming a
+surface, and the Project map the ground step derived stands in for it. When the map's single-flow
+command is filled, each criterion the Digest marks observable
+gets its flow from `global-e2e-test-author` (the test authors in [mechanics.md](mechanics.md))
+with the same complete input and the map's path, and the flow returns `GREEN`,
+or `BLOCKED` on a preflight, which stops the run as blocked. When that command reads
+`none yet → /testing-policy`, no author is dispatched: the step reads
+`skip: no end-to-end command in the project`,
+names `/testing-policy` as the command that would fill the slot,
+leaves the criterion it would have proven unticked at the close, and records it as pending debt in
+the reply, the shape a consumer surface already takes. Under `Loop: fallback` the same map
+decides, and where its command is filled the session authors the flow itself and says so in one
+line. Which changes a user can observe is the Digest's `## Observable criteria` section, the
 reading the reader returned from the Path's own steps, or from the stories it quoted when the
 Digest carries no Path, and never the run's own reading of the diff. A criterion that section
 leaves out states why no flow is needed, and a criterion it names with no flow authored stops the
@@ -340,7 +352,8 @@ run's worktree, or the step reads `skip: nothing landed` and the Ticket still re
 
 **12. Reply.** Written by [reply.md](reply.md). What this Playbook puts in its sections: the
 Ticket and the Review under the files left uncommitted; the flows the developer waived and the
-consumer flows not run under pending debt; and the next step, `git push` with the developer's
+consumer flows not run under pending debt, beside
+a criterion the flows step skipped for no end-to-end command, with the command that would fill it; and the next step, `git push` with the developer's
 branch named when the review landed, or, when nothing landed, the worktree, its branch, and the
 review and the landing as what the developer runs next. Done when the reply is sent with every
 section that applies.

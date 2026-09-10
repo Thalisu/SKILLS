@@ -126,5 +126,17 @@ has "the skill file's Links line says when the fallback is read" "$skill/SKILL.m
 has "the docs page's Prerequisites row names the global loop" "$repo/docs/do.md" \
   'it reads `Loop: global`'
 
+echo "# the flows step under Loop: global"
+has "each observable criterion gets its flow from the global end-to-end author" "$refs/ticket.md" \
+  'gets its flow from `global-e2e-test-author`' 'or `BLOCKED` on a preflight, which stops the run as blocked'
+has "no end-to-end command in the map dispatches no author and states the gap" "$refs/ticket.md" \
+  '`skip: no end-to-end command in the project`' \
+  'names `/testing-policy` as the command that would fill the slot' \
+  'leaves the criterion it would have proven unticked'
+has "the fallback authors the flow itself" "$refs/ticket.md" \
+  'the session authors the flow itself'
+has "the reply carries the skipped flow as pending debt" "$refs/ticket.md" \
+  'a criterion the flows step skipped for no end-to-end command'
+
 echo
 if [ "$fails" = 0 ]; then echo "all passed"; else echo "$fails failed"; exit 1; fi
