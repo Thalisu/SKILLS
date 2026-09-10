@@ -27,9 +27,10 @@
 # that is a symlink is refused the same way. Its answer for the branch's slug is also the exact
 # .scratch arm of spec=, so the door names the spec the allocator would have named, from any tree.
 # The other lookups stay this door's own: a Ticket is named after its own slug and not after its
-# feature's, and the containing scan matches a branch name no resolver knows. A checkout that has no
-# resolver refuses nothing and names no spec in the scratch, since a machine may have linked skills/
-# on its own.
+# feature's, and the containing scan matches a branch name no resolver knows, though it reads the
+# scratch the resolver read, so the two arms never name folders from different trees. A checkout
+# that has no resolver refuses nothing and names no spec in the scratch, since a machine may have
+# linked skills/ on its own.
 #
 # Prints key=value lines: branch, slug (the branch with every slash turned into a dash), head,
 # dirty (yes when the working tree has uncommitted or untracked changes; the two files this run
@@ -50,10 +51,10 @@
 # no when the door found it by slug, which makes it a spec source and nothing more), spec (the spec
 # beside that Ticket, else the spec of the feature folder the resolver names for the branch's slug,
 # absolute from a linked worktree the way review= is, else docs/specs/<x>.md or specs/<x>.md whose
-# <x> is the slug, else the one spec in the usual spec homes, .scratch/<x>/spec.md,
-# docs/specs/<x>.md, specs/<x>.md, whose <x> contains the slug and never counts the date a feature
-# folder is prefixed with, else none when there is none or more than one), tracker (yes when
-# docs/agents/issue-tracker.md exists) and
+# <x> is the slug, else the one spec in the usual spec homes, .scratch/<x>/spec.md in the scratch
+# the resolver read, docs/specs/<x>.md, specs/<x>.md, whose <x> contains the slug and never counts
+# the date a feature folder is prefixed with, else none when there is none or more than one),
+# tracker (yes when docs/agents/issue-tracker.md exists) and
 # review_in_status (yes when the file at review= would show up in git status, in this tree or in the
 # main checkout when it sits there, no when git ignores that path or it sits outside the
 # repository).
@@ -135,6 +136,7 @@ gate() { # leaves the resolver's answer in resolved, empty when it has none to g
 }
 gate "$core"
 scratch_spec="$(sed -n 's/^spec=//p' <<<"$resolved")"
+scratch_root="$(sed -n 's/^root=//p' <<<"$resolved")"
 ticket=none
 # One slug can carry more than one dated feature folder, and the newest of them wins: the glob is
 # sorted, so the last match is the one .agents/scratch.md names, and an undated folder, whose name
@@ -208,17 +210,24 @@ if [ -f "$ticket" ] && [ -f "$(dirname "$(dirname "$ticket")")/spec.md" ]; then
 else
   exact=""; containing=()
   [ "${scratch_spec:-none}" = none ] || exact="$scratch_spec"
-  for f in .scratch/*/spec.md docs/specs/*.md specs/*.md; do
+  # The containing scan reads the scratch the resolver read, in the paths the resolver prints:
+  # relative when this tree is the main checkout, absolute from a linked worktree.
+  homes=()
+  if [ -n "$scratch_root" ]; then
+    homes=("$scratch_root"/.scratch/*/spec.md)
+    [ "$top" -ef "$scratch_root" ] && homes=("${homes[@]#"$scratch_root"/}")
+  fi
+  for f in "${homes[@]}" docs/specs/*.md specs/*.md; do
     [ -f "$f" ] || continue
     # A feature folder is dated, .scratch/<YYYYMMDD>-<slug>/, and the date is no part of the slug.
     case "$f" in
-      .scratch/*) x="$(basename "$(dirname "$f")")"; x="${x#[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]-}" ;;
-      *) x="$(basename "$f" .md)" ;;
+      docs/specs/*|specs/*) x="$(basename "$f" .md)" ;;
+      *) x="$(basename "$(dirname "$f")")"; x="${x#[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]-}" ;;
     esac
     # The exact .scratch match is the resolver's answer, and only for the newest folder of the slug,
     # so an older folder of it is neither exact nor containing; a versioned home never displaces it.
     if [ "$x" = "$core" ]; then
-      case "$f" in .scratch/*) ;; *) [ -n "$exact" ] || exact="$f" ;; esac
+      case "$f" in docs/specs/*|specs/*) [ -n "$exact" ] || exact="$f" ;; esac
       continue
     fi
     if [ -z "$exact" ] && [[ "$x" == *"$core"* || "$core" == *"$x"* ]]; then containing+=("$f"); fi

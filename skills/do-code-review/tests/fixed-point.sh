@@ -437,6 +437,18 @@ mkdir -p "$wt_spec/.scratch/20260909-export" && printf '# Export\n' > "$wt_spec/
 run main
 check "a linked worktree names the newest of two dated folders of one slug" 0 "$rc" \
   "spec=$wt_spec/.scratch/20260909-export/spec.md"
+# The containing scan reads the scratch the resolver read, so from a linked worktree it names the
+# main checkout's folder whose slug contains the branch's, and never one the worktree holds itself.
+rm -r "$wt_spec/.scratch/20240101-export" "$wt_spec/.scratch/20260909-export"
+mkdir -p "$wt_spec/.scratch/export-notes" && printf '# Export notes\n' > "$wt_spec/.scratch/export-notes/spec.md"
+run main
+check "a linked worktree names the main checkout's containing match by absolute path" 0 "$rc" \
+  "spec=$wt_spec/.scratch/export-notes/spec.md"
+mkdir -p .scratch/archive-export && printf '# Archive\n' > .scratch/archive-export/spec.md
+run main
+check "the containing scan never reads the worktree's own scratch" 0 "$rc" \
+  "spec=$wt_spec/.scratch/export-notes/spec.md"
+cd "$wt_spec" && git worktree remove --force "$wt_spec/.claude/worktrees/e"
 
 # A bare main worktree has no working tree to anchor on, so the tree under review anchors itself:
 # without that, every path of the run resolves inside the bare repository.
@@ -513,6 +525,9 @@ mkdir -p "$lonely" && cp "$door" "$lonely/fixed-point.sh"
 rc=0; out="$(bash "$lonely/fixed-point.sh" 2>&1)" || rc=$?
 check "a door that cannot find the resolver names no spec and goes on" 0 "$rc" \
   "branch=export-notes" "review=.scratch/reviews/export-notes.md" "spec=none"
+mv .scratch/20240101-export-notes .scratch/export-notes-v2
+rc=0; out="$(bash "$lonely/fixed-point.sh" 2>&1)" || rc=$?
+check "a door that cannot find the resolver names no containing spec either" 0 "$rc" "spec=none"
 
 # do names its branch after the Ticket's slug, while the Ticket sits in its feature's folder under
 # another slug: the door answers for that folder as well, found or handed, and for the Review beside
