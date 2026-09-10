@@ -71,10 +71,11 @@ ordered "do's shape step fills the chain's .agents/ folder in the brief it forks
   "The brief is the one the \`sketch\` agent fixes" "the chain's \`.agents/\` folder" \
   "Before it forks, the destination the brief names"
 
-# The Sketch it writes, and the line it stops at. The format lives with the formats two skills share,
-# since `do` writes a Sketch too when the Agent tool is withheld. The agent names it under the
-# brief's `.agents/` folder, so the path is read off the agent and resolved under this repository's
-# `.agents/`, the folder a caller hands over, rather than looked up at a path the test assumes.
+# The Sketch it returns, and the line it stops at. The format lives with the formats two skills
+# share, since the Sketch is written by the session that called the agent: a typed `/sketch`, or `do`.
+# The agent names it under the brief's `.agents/` folder, so the path is read off the agent and
+# resolved under this repository's `.agents/`, the folder a caller hands over, rather than looked up
+# at a path the test assumes.
 named="$(grep -o '<agents-dir>/formats/[a-z0-9-]*\.md' "$agent_md" | head -n 1)"
 format="$repo/.agents/${named#'<agents-dir>/'}"
 expect "the format the agent names is a file under the brief's .agents/ folder" test -f "$format"
@@ -82,8 +83,12 @@ expect "the format lives with the formats the chain shares" \
   test "$(cd "$(dirname "$format")" 2>/dev/null && pwd -P)" = "$repo/.agents/formats"
 expect "no second copy of the format stays in the skill's own folder" \
   test ! -e "$skill/references/sketch-format.md"
-has "the formats index carries the Sketch format's row, with both writers" \
-  "$repo/.agents/formats/README.md" "| [sketch-format.md](sketch-format.md) | \`sketch\`; \`do\`"
+format_writers="$(grep -F "| [sketch-format.md](sketch-format.md) |" "$repo/.agents/formats/README.md" 2>/dev/null | awk -F'|' '{ print $3 }')"
+expect "the formats index names the /sketch session as a writer of the Sketch" \
+  grep -qF "the \`/sketch\` session" <<<"$format_writers"
+expect "the formats index names do as a writer of the Sketch" grep -qF "\`do\`" <<<"$format_writers"
+expect "the formats index no longer names the agent, which writes nothing, as a writer" \
+  test -z "$(grep -F "\`sketch\`" <<<"$format_writers")"
 has "the format opens with its title" "$format" "# Sketch format"
 ordered "the format's sections come in the fixed order" "$format" \
   "## Header" "## The caller's usage" "## The types" "## The signatures" "## The boundaries" \
@@ -159,20 +164,53 @@ while read -r target; do
 done < <(grep -o '](\([^)]*\))' "$page" 2>/dev/null | sed 's/^](//; s/)$//')
 expect "every link on the docs page resolves from docs/" test "$links_ok" = 1
 
+# Who writes: the agent reads and searches and writes nothing, and the /sketch session files the
+# Sketch and appends the .gitignore line when it is owed.
+has "the docs page says the agent writes nothing" "$page" "writes nothing"
+has "the docs page names the /sketch session, which files the Sketch" "$page" "the \`/sketch\` session"
+lacks "the docs page no longer says the agent comes back from writing the Sketch" "$page" \
+  "where it wrote the Sketch"
+lacks "the docs page no longer has the agent append the .gitignore line" "$page" \
+  "and it appends the \`.scratch/\` line"
+
 # The rows the repository keeps in step with the skills on disk. The top-level README's tables are
 # column-aligned, so a pin on its cells allows any padding.
 ordered "the top-level README lists the skill under User-invoked" "$repo/README.md" \
   "## User-invoked" "| [\`sketch\`](skills/sketch/SKILL.md)" "## Model-invoked"
 expect "the top-level README's \`sketch\` row carries the page link in its own docs cell" \
   grep -qE "^\| \[\`sketch\`\]\(skills/sketch/SKILL\.md\) +\|.*\[docs/sketch\.md\]\(docs/sketch\.md\)" "$repo/README.md"
-expect "the top-level README names the agent the install links" \
-  grep -qE "^\| \`sketch\` +\| \`sketch\`, forked by \`/sketch\`" "$repo/README.md"
+readme_agent_row="$(grep -E "^\| \`sketch\` +\| \`sketch\`" "$repo/README.md" 2>/dev/null)"
+expect "the top-level README names the agent the install links, and /sketch among its callers" \
+  grep -qF "\`/sketch\`" <<<"$readme_agent_row"
+expect "the top-level README no longer calls /sketch a fork of the agent" \
+  test -z "$(grep -F "forked by \`/sketch\`" <<<"$readme_agent_row")"
+lacks "the top-level README's skill row no longer has the subagent file the Sketch" "$repo/README.md" \
+  "in a subagent and file it"
 ordered "the skills README lists the skill under User-invoked" "$repo/skills/README.md" \
   "## User-invoked" "| [\`sketch\`](sketch/SKILL.md) |" "## Model-invoked"
+lacks "the skills README's row no longer has the subagent file the Sketch" "$repo/skills/README.md" \
+  "in a subagent and file it"
 has "the invocation contract names the skill as user-invoked" "$repo/.agents/invocation.md" \
   "\`journey\`, \`do\` and \`sketch\` are user-invoked"
 has "the invocation contract's table gains the agent row" "$repo/.agents/invocation.md" \
   "| \`sketch\` | user-invoked |"
+# The contract's rows are pinned one at a time: the do-reader row carries the same tools line.
+invocation_row="$(grep -F "| \`sketch\` | user-invoked |" "$repo/.agents/invocation.md" 2>/dev/null)"
+expect "the invocation row says the agent holds reading and search" \
+  grep -qF "holds \`Read, Glob, Grep\`" <<<"$invocation_row"
+expect "the invocation row says the agent writes nothing" grep -qF "writes nothing" <<<"$invocation_row"
+expect "the invocation row says its caller files the Sketch" \
+  grep -qE "(writes|files) the Sketch" <<<"$invocation_row"
+expect "the invocation row names the /sketch session as one such caller" \
+  grep -qF "the \`/sketch\` session" <<<"$invocation_row"
+expect "the invocation row keeps do at its shape step" \
+  grep -qF "\`do\` at its shape step" <<<"$invocation_row"
+expect "the invocation row no longer says the agent writes the Sketch" \
+  test -z "$(grep -F "it writes one file, the Sketch" <<<"$invocation_row")"
+do_row="$(grep -F "| [sketch](sketch.md)" "$repo/docs/do.md" 2>/dev/null)"
+expect "do's page still files the Sketch beside the Ticket" grep -qF "beside the Ticket" <<<"$do_row"
+expect "do's page does not name the agent as the Sketch's writer" \
+  test -z "$(grep -E "agent (writes|files)" <<<"$do_row")"
 
 # A page names a caller of the agent only once that caller's step is in the tree, per
 # .agents/invocation.md: the step and the claim land in the same change.

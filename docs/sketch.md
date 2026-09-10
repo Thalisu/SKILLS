@@ -3,20 +3,22 @@
 ## What it does
 
 `sketch` settles the shape a piece of work has to hold before any logic is written, and files it.
-It runs in a window of its own, explores rival shapes there, keeps the one that survives, and comes
-back with two things: where it wrote the Sketch, and the shape in one line.
+The `sketch` agent runs in a window of its own, explores rival shapes there, keeps the one that
+survives, and returns two things: the Sketch's text, and the shape in one line. The agent holds
+reading and search and writes nothing; the `/sketch` session that forked it files the Sketch in the
+Scratch and tells you where.
 
-It always writes a file and it never writes code. That is the constraint the whole skill is built
-around: a shape agreed in a thread dies with the window it was said in, and the run that has to be
-held to it usually comes later, so the Sketch is a file on disk before it is an answer. The bodies
-in it read `not implemented` by rule, which is what keeps the skill from quietly becoming the
-implementation.
+A Sketch always ends up as a file, and it is never code. That is the constraint the whole skill is
+built around: a shape agreed in a thread dies with the window it was said in, and the run that has
+to be held to it usually comes later, so the Sketch is a file on disk before it is an answer. The
+bodies in it read `not implemented` by rule, which is what keeps the skill from quietly becoming
+the implementation.
 
 ## When to reach for it
 
 You invoke this by typing `/sketch`, and the agent will not reach for it on its own. The skill
-also ships an agent, and [do](do.md) forks it at its shape step, so the shape of a Ticket's work is
-settled the same way without you typing anything.
+ships an agent, which your session forks, and [do](do.md) forks it too at its shape step, so the
+shape of a Ticket's work is settled the same way without you typing anything.
 
 Reach for it when the work crosses a boundary somebody else will call, and you want the caller's
 usage, the types, the signatures and the module boundaries settled before the first line of it
@@ -34,8 +36,8 @@ exists.
 The skill forks the `sketch` agent, so `skills/sketch/AGENT.md` has to be linked at
 `~/.claude/agents/sketch.md` beside the skill link; see [the top-level README](../README.md).
 
-It writes into the project's `.scratch/`, and it appends the `.scratch/` line to the project's
-`.gitignore` first when that line is not already there, telling you it did.
+The `/sketch` session writes into the project's `.scratch/`, appending the `.scratch/` line to the
+project's `.gitignore` first when that line is not already there, and tells you it did.
 
 ## The Sketch, and the rivals that lost
 
@@ -59,6 +61,12 @@ A prototype is runnable and throwaway, and you settle the question by driving it
 runnable and not throwaway: it is the contract the build is then held to. Reach for the prototype
 when you have to see it, and for the Sketch when you have to name it.
 
+**Why does the agent not write the Sketch itself?**
+Because it reads a Digest that can quote text a stranger wrote, since a Spec on a remote tracker is
+an issue anyone who can comment on it appends to. An agent that holds no tool to write, edit or run
+a command cannot be steered into a write by that text, whatever it says. So your session resolves
+where the Sketch goes, checks it stays inside the Scratch, and writes it.
+
 **There is already a vendored design skill. Why a second one?**
 The vendored one runs its exploration through a skill this repository does not carry, so its
 sketching phase cannot actually run here. `sketch` explores the rivals in its own window instead,
@@ -72,8 +80,9 @@ you pass, or one derived from your argument, and tells you the path.
 **Can another skill call it?**
 Not through the Skill tool: it is user-invoked, so only a person types it. The agent the skill
 ships is a separate door, and the agent's own description names who may knock: `do`, at its shape
-step, and nobody else. When `do`'s session has no Agent tool, the run writes the Sketch itself in
-the same format, so the file is beside the Ticket either way.
+step, and nobody else. The run writes the Sketch the agent returns beside the Ticket, and when
+`do`'s session has no Agent tool, it writes the Sketch itself in the same format, so the file is
+there either way.
 
 ## It's working if
 

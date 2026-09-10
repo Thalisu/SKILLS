@@ -14,6 +14,6 @@ read by one skill only stays in that skill's `references/`.
 | [journey-format.md](journey-format.md) | `journey` | `tickets` |
 | [ticket-format.md](ticket-format.md) | `tickets`; `do` edits it in place | `do`, `do-code-review` |
 | [review-format.md](review-format.md) | `do-code-review` | `do`, the Fixer |
-| [sketch-format.md](sketch-format.md) | `sketch`; `do` when the Agent tool is withheld from its session | `do`, which holds the build to it |
+| [sketch-format.md](sketch-format.md) | the `/sketch` session; `do` at its shape step | `do`, which holds the build to it |
 
 Adding, renaming or removing a format updates this table in the same change.
