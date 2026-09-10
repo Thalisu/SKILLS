@@ -560,6 +560,14 @@ after "the containment check runs before the ignore probe appends anything" "$sh
   "git check-ignore -v .scratch/" "readlink -m"
 after "the containment check and the ignore probe come before the Sketch is written" "$shape_step" \
   "the text the agent return" "readlink -m" "git check-ignore -v .scratch/"
+# A destination outside the root's `.scratch` is never written and never handed to a fork: the
+# check's `refused` answer ends the run before anything lands, and the stop line names what a
+# developer needs to find the run again. Anchored on the answer the check prints, so the code block
+# that echoes it cannot stand in for the prose that says what it does.
+para_has "a refused destination writes nothing, forks no sketch, and stops naming the path, the worktree and its branch" \
+  "$shape_step" '`refused`' \
+  "writes nothing" 'forks no `sketch`' "stops" "in one line" "the refused path" \
+  "the worktree and its branch"
 # A refusal, an error or a return in a shape the Sketch format does not fix is no Sketch, and filing
 # it would hold the build to it: the step reads the return against the format, writes nothing, and
 # lands where a session that lists no `sketch` lands. Read from the containment check on, so the

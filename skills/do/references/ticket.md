@@ -277,6 +277,10 @@ dest="$(readlink -m <the destination>)"; scratch="$(readlink -m <root>/.scratch)
 case "$dest" in "$scratch"/*) echo inside ;; *) echo refused ;; esac
 ```
 
+`refused` writes nothing and forks no `sketch`: the run stops in one line naming the refused path,
+the worktree and its branch, both left in place. `readlink -m` collapses the `..` and follows the
+symlinks, so a path that only looks contained is caught here rather than after the write.
+
 Before it waits on the fork, the run names in one line what it handed over. The fork explores
 the rival shapes in a window of its own, per
 [guard-the-context-window](../../../.agents/principles/guard-the-context-window.md), stops at the
