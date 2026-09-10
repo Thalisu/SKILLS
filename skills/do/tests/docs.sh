@@ -132,6 +132,12 @@ has "the page names do-reader where the door cuts the Digest" "$page" \
   "the session reads both documents itself and says so"
 has "the do-reader row's fallback is still the reader section's own wording" "$refs/mechanics.md" \
   "The session reads both documents itself"
+# A developer who never linked the reader learns it from the one line the run prints, so the row
+# says the line names it, and that the run never falls back to a fork holding write tools.
+has "the do-reader row names both no-reader branches and forks no other agent" "$page" \
+  'With the Agent tool withheld, or no `do-reader` agent listed' \
+  '`do-reader` by name when it is not linked' \
+  "never forks another agent in its place"
 has "the page tells the developer to delete a Digest a stopped run left, sibling Ticket included" \
   "$page" \
   "Delete it before your next \`/do\` on that Ticket" \
