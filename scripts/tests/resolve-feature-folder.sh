@@ -223,4 +223,16 @@ expect "the suite sits under the root scripts/tests, where its own line says" \
 expect "the script sits under .agents, outside every skill's folder" \
   test "$resolve" -ef "$root/.agents/scripts/resolve-feature-folder.sh"
 
+# The shared Scratch contract is where a skill links for the rule, so it names this script as the
+# rule's one implementation and spells none of the rule out, or a link to it would restate the rule
+# by proxy. The prose is read as one line, so a phrase still counts where the paragraph wraps it.
+contract="$(tr '\n' ' ' < "$root/.agents/scratch.md" | tr -s ' ')"
+expect "the scratch contract names the resolver" \
+  grep -qF '[scripts/resolve-feature-folder.sh](scripts/resolve-feature-folder.sh)' <<<"$contract"
+expect "the scratch contract names it as the rule's one implementation" \
+  grep -qF 'the one executable form of the rule' <<<"$contract"
+out="$contract"
+absent "the scratch contract restates no tail match" "ending in"
+absent "the scratch contract restates no newest-wins rule" "the newest of them"
+
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi

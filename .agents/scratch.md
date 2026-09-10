@@ -16,14 +16,17 @@ the slug alone and prints the folder and the spec path in it. It allocates in th
 and answers with an absolute path from a linked worktree, for the reason "Reaching it from a
 worktree" below gives: a folder allocated in the worktree goes with `git worktree remove`, spec
 and all. The date is off a clock and the reuse is a lookup, neither of which an agent should be
-trusted to redo by hand on every run. Every other skill in the chain is handed the spec's path and
-reads the folder off it, so `feature-folder.sh` is called by `spec` and by nobody else.
+trusted to redo by hand on every run. `feature-folder.sh` is called by `spec` and by nobody else:
+every other skill only looks a folder up, and never allocates one.
 
-A slug on its own still resolves, since a user types `/journey nightly-purge` and not the date: it
-names the folder called `<slug>` or ending in `-<slug>`, and the newest of them when more than one
-matches. The undated form is what a folder from before this rule looks like, and it keeps working
-as it stands, never renamed. See
-[ADR 0030](../docs/adr/0030-the-feature-folder-is-dated-and-a-script-allocates-it.md).
+A slug on its own still resolves, since a user types `/journey nightly-purge` and not the date.
+Which folder it names is for [scripts/resolve-feature-folder.sh](scripts/resolve-feature-folder.sh)
+to say, the one executable form of the rule, and no prose here or in a skill spells the rule out:
+the script only reads, and `feature-folder.sh`, `journey`, `tickets` and `do-code-review`'s door
+all ask it, so fixing it once fixes every door. A folder from before the dated rule keeps its
+undated name and is never renamed. See
+[ADR 0030](../docs/adr/0030-the-feature-folder-is-dated-and-a-script-allocates-it.md) and
+[ADR 0031](../docs/adr/0031-a-shared-read-only-script-resolves-a-slug-to-its-feature-folder.md).
 
 ## It is always unversioned
 
