@@ -46,7 +46,8 @@ live in one template, and a render fills its slots from what the run discovered.
 `core-start` and `core-end` markers the text is identical in every repo; the `Project facts` block
 after it holds the project-specific values. In one breath, the core says:
 
-- **Done** is the full unit suite green plus the E2E coverage green, run against the change; an
+- **Done** is the change's own unit tests and E2E flows green, run against the change, then the
+  post-feature gate the project picked: the full unit suite, the full E2E suite, both, or none. An
   E2E stack that cannot run blocks, it never passes.
 - **Unit tests are written red-first, one at a time**: a tracer bullet, then red, minimal green,
   refactor on green, next test. Never a batch of tests ahead of the code.
@@ -58,6 +59,11 @@ after it holds the project-specific values. In one breath, the core says:
   pure refactor, because it was testing implementation.
 - **Reuse, then extend, then create**, with the second copy of any asset promoted to its shared
   home in the same changeset.
+
+The post-feature gate is the one rule a project picks instead of inheriting, because what a full
+suite costs differs from repo to repo. The install asks for it once, inside the single question it
+already asks, and writes the answer to Project facts, where every refresh preserves it. A refresh
+asks again only when the section predates the line.
 
 ## The surface
 
@@ -126,7 +132,9 @@ replaces only the core and keeps everything the project filled in. Every install
 `stale` at the same moment, and each is refreshed the same way. The history so far: 2.1 added
 agent drift detection, the shared skip patterns and the mixed gate; 2.2 moved the core to behaviour
 over implementation, boundary mocking and vertical TDD; 2.3 rewrote the templates' prose without
-changing a rule.
+changing a rule; 2.5 made the gate after a feature a pick the install asks for, recorded as
+**Post-feature gate** in Project facts, and narrowed the per-change unit run to the tests the
+change adds or touches.
 
 **What is the difference between `stale` and `drifted`?**
 `stale` is an older version, the expected signal after the template moves. `drifted` is the

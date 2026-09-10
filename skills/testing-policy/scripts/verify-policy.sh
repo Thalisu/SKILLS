@@ -10,6 +10,7 @@
 #   installed_version / template_version / surface
 #   policy_missing=<headings of the rendered template absent from the section>
 #   policy_unfilled_slots=<first {{slots}} still in the section>
+#   policy_facts_missing=<Project-facts labels of the template absent from the section>
 #   agent_unit=missing|unmarked|stale|drifted|ok    agent_e2e=same values|n/a (consumer surface)
 #   agent_<unit|e2e>_map_missing=<Project-map labels of the template absent from the installed agent>
 #   skill_test_author=missing|stale|ok   scan_script=missing|ok   skip_patterns=missing|ok
@@ -54,6 +55,13 @@ if [ -f "$claude_md" ]; then
       while IFS= read -r h; do grep -qxF -- "$h" <<<"$section" || missing+=("$h"); done \
         < <(bash "$here/render-policy.sh" "$surface" | grep -E '^#+ ')
       if [ ${#missing[@]} -gt 0 ]; then printf 'policy_missing=%s\n' "$(IFS=,; echo "${missing[*]}")"; rc=1; fi
+      # Project facts are preserved on refresh, so a label the template gained since the install is
+      # absent from the section until the refresh appends it.
+      facts_missing=()
+      while IFS= read -r label; do grep -qF -- "$label" <<<"$section" || facts_missing+=("$label"); done \
+        < <(bash "$here/render-policy.sh" "$surface" | awk '/^<!-- testing-policy:core-end -->$/{f=1; next} f' \
+          | grep -oE '^- \*\*[^*]+\*\*' | sed 's/^- //')
+      if [ ${#facts_missing[@]} -gt 0 ]; then printf 'policy_facts_missing=%s\n' "$(IFS=,; echo "${facts_missing[*]}")"; rc=1; fi
       leftover="$(grep -oE '\{\{[A-Z_][A-Za-z0-9_ —-]*' <<<"$section" | head -5 | tr '\n' ' ')"
       [ -n "$leftover" ] && { echo "policy_unfilled_slots=$leftover"; rc=1; }
     fi

@@ -1,4 +1,4 @@
-<!-- testing-policy version: 2.4 -->
+<!-- testing-policy version: 2.5 -->
 <!-- TEMPLATE: canonical Testing Policy, rendered into the project's CLAUDE.md by
      scripts/render-policy.sh <native|consumer|mixed>. A block opened by an "@surface,surface"
      comment and closed by an "@/" comment is emitted only for the listed surfaces; untagged
@@ -10,13 +10,13 @@
 ## Testing Policy (Definition of Done)
 
 <!-- testing-policy:core-start -->
-A feature or fix is DONE only when the full unit suite passes AND its E2E coverage passes. "Tests didn't run" is never "tests passed". The rules below are fixed; the project's commands, paths and tool names live in **Project facts** at the end of this section.
+A feature or fix is DONE only when its own tests pass, the unit tests and the E2E coverage of the change, and then the post-feature gate passes. "Tests didn't run" is never "tests passed". The rules below are fixed; the project's commands, paths, tool names and the post-feature gate it picked live in **Project facts** at the end of this section.
 
 <!-- @native,mixed -->
 ### Success gate (tiered)
 
-- **Per change**: full unit suite green (unit command in Project facts) + the affected E2E flows green (single-flow command in Project facts), run against this change.
-- **Per phase/delivery**: full E2E suite green (full-suite command in Project facts) before declaring the phase or delivery complete.
+- **Per change**: the change's own tests green, run against this change: the unit tests it added and the ones covering the code it touches (single-file command in Project facts), and the E2E flows it added or affects (single-flow command in Project facts).
+- **Per feature**: once every change of a feature is green, the post-feature gate in Project facts runs on the integrated result before the feature, phase or delivery is declared complete. It is one of four: the full unit suite, the full E2E suite, both, or none (full-suite commands in Project facts); with none, the per-change tier is the whole gate.
 - **Infra failure blocks**: if E2E cannot run (the known infra failures in Project facts are the usual suspects), the work is BLOCKED, not done. Report the infra error as blocked status; fixing the infra is part of the delivery. Only the user can explicitly waive the E2E gate, and a waiver is recorded as pending debt, never as green.
 <!-- @/ -->
 <!-- @consumer -->
@@ -27,15 +27,15 @@ This repo has no user-facing surface of its own. Its real E2E coverage lives in 
 <!-- @mixed -->
 ### E2E gate (consumer-side)
 
-Besides its own surface, this repo is consumed by other repos (the consumer list in Project facts). For the consumed surface the real E2E coverage lives in those repos; an E2E suite here does not stand in for it. The tiered gate above extends to them: **per change**, the impacted consumers' flows that exercise the changed surface are green too (each consumer's "run against the local build" recipe in Project facts); **per phase/delivery**, each impacted consumer's full suite is green too; a consumer's E2E that cannot run (its known infra failures in Project facts are the usual suspects) blocks the same way.
+Besides its own surface, this repo is consumed by other repos (the consumer list in Project facts). For the consumed surface the real E2E coverage lives in those repos; an E2E suite here does not stand in for it. The tiered gate above extends to them: **per change**, the impacted consumers' flows that exercise the changed surface are green too (each consumer's "run against the local build" recipe in Project facts); **per feature**, a post-feature gate that includes the full E2E suite runs each impacted consumer's full suite too; a consumer's E2E that cannot run (its known infra failures in Project facts are the usual suspects) blocks the same way.
 <!-- @/ -->
 <!-- @consumer,mixed -->
 
 - **Impact-scoped**: the gate applies only to the consumers whose flows the change impacts. A consumer that does not use the changed surface requires neither an E2E run nor new coverage for this change, but "not impacted" is a verified claim (check the consumer's actual calls to the changed routes, queues or exports), never a presumption.
 <!-- @/ -->
 <!-- @consumer -->
-- **Per change**: full unit suite green (unit command in Project facts) + the impacted consumers' E2E flows that exercise the changed surface green, run against this change (each consumer's "run against the local build" recipe in Project facts).
-- **Per phase/delivery**: full E2E suite of each impacted consumer green (each consumer's full-suite command in Project facts) before declaring the phase or delivery complete.
+- **Per change**: the change's own tests green, run against this change: the unit tests it added and the ones covering the code it touches (single-file command in Project facts), and the impacted consumers' E2E flows that exercise the changed surface (each consumer's "run against the local build" recipe in Project facts).
+- **Per feature**: once every change of a feature is green, the post-feature gate in Project facts runs on the integrated result before the feature, phase or delivery is declared complete. It is one of four: the full unit suite, the full E2E suite of each impacted consumer (each consumer's full-suite command in Project facts), both, or none; with none, the per-change tier is the whole gate.
 - **Infra failure blocks**: if a consumer's E2E cannot run (its known infra failures in Project facts are the usual suspects), the work is BLOCKED, not done. Report the infra error as blocked status; fixing the infra is part of the delivery. Only the user can explicitly waive the E2E gate, and a waiver is recorded as pending debt, never as green.
 <!-- @/ -->
 <!-- @consumer,mixed -->
@@ -142,6 +142,7 @@ Forbidden:
      when a fresh discovery disagrees). Every command here has been run once and returned output. -->
 
 - **Unit**: full suite `{{UNIT_FULL_COMMAND}}` · single file `{{UNIT_FILE_COMMAND}}` · mandatory flags / known phantom failures: {{UNIT_GOTCHAS}} · skip mechanisms: {{UNIT_SKIP_MECHANISMS}}
+- **Post-feature gate**: {{POST_FEATURE_GATE: full unit suite | full E2E suite | both | none, the project's answer at install}}
 <!-- @native,mixed -->
 - **E2E**: {{E2E_TOOL}} · single flow `{{E2E_FLOW_COMMAND}}` · full suite `{{E2E_FULL_COMMAND}}` · flow naming `{{E2E_FLOW_NAMING}}` (e.g. {{E2E_FLOW_EXAMPLES: 2-3 real file names}}) · skip mechanisms: {{E2E_SKIP_MECHANISMS}}
 - **Real test stack**: {{E2E_STACK: what the flows run against and how it is brought up}} · **known infra failures**: {{E2E_INFRA_FAILURES}}
