@@ -34,6 +34,10 @@ has "else the closest executable check with the reason stated" "$ref" "closest e
 has "the feature case follows the bug case's rule" "$ref" "feature case"
 has "no test author is dispatched" "$ref" "no test author is dispatched"
 has "the reference links the build loop" "$ref" "](mechanics.md)"
+has "the reference names ticket as the only Playbook with a global loop" "$ref" \
+  "The \`ticket\` Playbook is the only one whose loop line ever reads \`Loop: global\`"
+has "bug-fix and refactoring are named as never setting the global loop" "$ref" \
+  "\`bug-fix\` and \`refactoring\` never check for a global author and never set \`Loop: global\`"
 lacks "no em-dash in the reference" "$ref" "$emdash"
 
 # The build loop's fallback paragraph points at the reference
