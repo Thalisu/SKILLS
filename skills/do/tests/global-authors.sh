@@ -42,8 +42,10 @@ for kind in unit e2e; do
     "## Project map" "The Project map is not in this file."
   if grep -q '—' "$agent"; then fail "global-$kind-test-author carries no em-dash"; else ok "global-$kind-test-author carries no em-dash"; fi
 done
-has "the README names both global authors among the agents the install links" "$repo/README.md" \
-  "| \`do\` | \`do-reader\`, \`global-unit-test-author\`, \`global-e2e-test-author\` |"
+# The README's install table is column-aligned, so the pin allows any padding around each cell.
+if grep -qE "^\| \`do\` +\| \`do-reader\`, \`global-unit-test-author\`, \`global-e2e-test-author\` +\|" "$repo/README.md"
+then ok "the README names both global authors among the agents the install links"
+else fail "the README names both global authors among the agents the install links"; fi
 has "the invocation contract names both global authors and their caller" "$repo/.agents/invocation.md" \
   "| \`global-unit-test-author\` | \`do\`, user-invoked |" "| \`global-e2e-test-author\` | \`do\`, user-invoked |"
 

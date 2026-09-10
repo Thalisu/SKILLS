@@ -160,12 +160,13 @@ done < <(grep -o '](\([^)]*\))' "$page" 2>/dev/null | sed 's/^](//; s/)$//')
 expect "every link on the docs page resolves from docs/" test "$links_ok" = 1
 
 # Both README rows, the skill user-invoked in each, with the page linked from the top-level one.
+# The top-level README's tables are column-aligned, so a pin on its cells allows any padding.
 ordered "the top-level README lists the skill under User-invoked" "$repo/README.md" \
-  "## User-invoked" "| [\`do\`](skills/do/SKILL.md) |" "## Model-invoked"
+  "## User-invoked" "| [\`do\`](skills/do/SKILL.md)" "## Model-invoked"
 # One line carrying both strings: `ordered` alone passes with the docs cell empty and the page link
 # on any later row, which is the regression this README row exists to prevent.
 expect "the top-level README's \`do\` row carries the page link in its own docs cell" \
-  grep -qE "^\| \[\`do\`\]\(skills/do/SKILL\.md\) \|.*\[docs/do\.md\]\(docs/do\.md\)" "$repo/README.md"
+  grep -qE "^\| \[\`do\`\]\(skills/do/SKILL\.md\) +\|.*\[docs/do\.md\]\(docs/do\.md\)" "$repo/README.md"
 ordered "the skills README lists the skill under User-invoked" "$repo/skills/README.md" \
   "## User-invoked" "| [\`do\`](do/SKILL.md) |" "## Model-invoked"
 

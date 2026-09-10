@@ -166,13 +166,14 @@ while read -r target; do
 done < <(grep -o '](\([^)]*\))' "$page" 2>/dev/null | sed 's/^](//; s/)$//')
 expect "every link on the docs page resolves from docs/" test "$links_ok" = 1
 
-# The rows the repository keeps in step with the skills on disk.
+# The rows the repository keeps in step with the skills on disk. The top-level README's tables are
+# column-aligned, so a pin on its cells allows any padding.
 ordered "the top-level README lists the skill under User-invoked" "$repo/README.md" \
-  "## User-invoked" "| [\`sketch\`](skills/sketch/SKILL.md) |" "## Model-invoked"
+  "## User-invoked" "| [\`sketch\`](skills/sketch/SKILL.md)" "## Model-invoked"
 expect "the top-level README's \`sketch\` row carries the page link in its own docs cell" \
-  grep -qE "^\| \[\`sketch\`\]\(skills/sketch/SKILL\.md\) \|.*\[docs/sketch\.md\]\(docs/sketch\.md\)" "$repo/README.md"
-has "the top-level README names the agent the install links" "$repo/README.md" \
-  "| \`sketch\` | \`sketch\`, forked by \`/sketch\`"
+  grep -qE "^\| \[\`sketch\`\]\(skills/sketch/SKILL\.md\) +\|.*\[docs/sketch\.md\]\(docs/sketch\.md\)" "$repo/README.md"
+expect "the top-level README names the agent the install links" \
+  grep -qE "^\| \`sketch\` +\| \`sketch\`, forked by \`/sketch\`" "$repo/README.md"
 ordered "the skills README lists the skill under User-invoked" "$repo/skills/README.md" \
   "## User-invoked" "| [\`sketch\`](sketch/SKILL.md) |" "## Model-invoked"
 has "the invocation contract names the skill as user-invoked" "$repo/.agents/invocation.md" \

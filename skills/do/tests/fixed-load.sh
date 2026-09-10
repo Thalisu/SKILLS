@@ -158,8 +158,9 @@ has "the invocation contract's row names the reader do ships and its one caller"
   "skills/do/agents/do-reader.md" "\`do\`'s door is its only caller"
 lacks "the invocation row no longer says the reader ships no definition" "$repo/.agents/invocation.md" \
   "It ships no definition of its own"
-has "the README names the reader do ships among the agents the install links" "$repo/README.md" \
-  "| \`do\` | \`do-reader\`,"
+# The README's install table is column-aligned, so the pin allows any padding in the skill's cell.
+expect "the README names the reader do ships among the agents the install links" \
+  grep -qE "^\| \`do\` +\| \`do-reader\`," "$repo/README.md"
 
 # The reader reads a stranger's text, so what bounds it is the tool list the harness enforces and
 # never its brief: an agent `do` ships, forked by `do` alone, holding reading and search alone.
