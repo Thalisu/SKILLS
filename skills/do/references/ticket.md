@@ -170,9 +170,13 @@ predicate, the loop line and the claim line are in the thread and the Ticket rea
 `do/<slug>`, where `<slug>` is the Ticket file's slug without its number, excluded locally,
 entered. Done when its status prints nothing and the branch name is in the thread.
 
-**2. Ground.** Read `CONTEXT.md` (the root one, or the one `CONTEXT-MAP.md` names), the ADR
-titles under `docs/adr/` and the bodies of the ones the Ticket touches, and the code the Ticket
-names. When the session lists `how`, call the Skill tool with `how` over the subsystem the Ticket
+**2. Ground.** Read `CONTEXT.md` (the root one, or the one `CONTEXT-MAP.md` names), and
+state the glossary words it will use; then the ADR titles under `docs/adr/`, and read whole
+the bodies of the ones the Ticket touches. It opens no source file: which files the build edits
+is not knowable before the behaviours list exists, so a file read here is paid for whether the
+build edits it or not, per
+[ADR 0025](../../../docs/adr/0025-the-ground-step-reads-a-map-of-the-subsystem-never-its-code.md).
+When the session lists `how`, call the Skill tool with `how` over the subsystem the Ticket
 reshapes, so the exploration stays out of the thread, per
 [guard-the-context-window](../../../.agents/principles/guard-the-context-window.md); when it does
 not, explore with search and targeted reads, and say so in one line. Then the discover batch:

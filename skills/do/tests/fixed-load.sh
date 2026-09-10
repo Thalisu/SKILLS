@@ -2,7 +2,8 @@
 # fixed-load.sh: the cuts to the fixed context load a `do` run pays before its first behaviour,
 # asserted against the contract files on disk so a reviewer can rerun them: the door forks a reader
 # over the Ticket's Spec and its Journey, the Digest that comes back is quoted, located and keyed by
-# the Ticket's slug, and the shape step forks `sketch` and holds the build to the Sketch it files.
+# the Ticket's slug, the ground step takes a map and reads no source, and the shape step forks
+# `sketch` and holds the build to the Sketch it files.
 # Run: bash skills/do/tests/fixed-load.sh
 # shellcheck disable=SC2016
 set -uo pipefail
@@ -142,6 +143,15 @@ has "the close says the run appended the .scratch/ line" "$refs/ticket.md" \
 # itself lands on the ignored path, so the reply's list of what the run left has to name it.
 has "Left uncommitted names the .gitignore line the run appended" "$refs/reply.md" \
   'the `.gitignore` line when the run appended it'
+
+# The ground step reads the glossary and the ADRs the Ticket touches and never the code: which files
+# the build edits is not knowable before the behaviours list, so any file read here may be paid for
+# and never edited.
+has "the ground step states the glossary words and reads the bodies of the ADRs it touches" \
+  "$refs/ticket.md" "state the glossary words it will use" "the bodies of the ones the Ticket touches"
+has "the ground step opens no source file" "$refs/ticket.md" "It opens no source file"
+lacks "the ground step no longer reads the code the Ticket names" "$refs/ticket.md" \
+  "the code the Ticket"
 
 # The shape step takes the shape from `sketch`, forked with a brief filled from what the run already
 # holds, so the rivals behind a shape never enter the session and nothing is grounded a second time.
