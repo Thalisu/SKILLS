@@ -11,8 +11,10 @@ moment the cases inspect: the precedent note, the tree and the first drafted pat
 by then, and nothing has been written.
 
 Every fixture is synthetic: a two-page backoffice (a Customers page with a search box, a create
-form, a delete dialog and an empty state, under a top navigation), a local-markdown tracker file, a
-glossary, and a spec in the format `spec` writes with `Journey: required` under its title.
+form, a delete dialog and an empty state, under a top navigation), a glossary, and a spec in the
+format `spec` writes with `Journey: required` under its title. Every fixture also carries a
+local-markdown tracker file except `dated-slug-newest`, which carries no tracker file, so its bare
+slug resolves in the scratch.
 
 | case | checks |
 |---|---|

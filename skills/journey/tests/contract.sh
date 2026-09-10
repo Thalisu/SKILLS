@@ -43,6 +43,15 @@ expect "the prompt passes the bare slug" bash -c 'test "$(cat "$1")" = "/journey
 expect "a grader expects the newest spec" grep -qF '20260905-suppliers' "$case/graders/newest-spec-opened.md"
 expect "a grader expects the resolver called" grep -qF 'resolve-feature-folder.sh' "$case/graders/resolver-called.md"
 expect "the README lists the case" grep -qF '| `dated-slug-newest` |' "$skill/evals/README.md"
+# The index tells a maintainer which branch of the door each case takes, tracker file or none, so a
+# case whose scaffold writes no tracker file is named there as the exception.
+index="$(tr '\n' ' ' < "$skill/evals/README.md" | tr -s ' ')"
+for c in "$skill"/evals/*/case.yaml; do
+  grep -qF 'docs/agents/issue-tracker.md' "$c" && continue
+  name="$(basename "$(dirname "$c")")"
+  expect "the README names $name as the fixture with no tracker file" \
+    grep -qF "except \`$name\`, which carries no tracker file" <<<"$index"
+done
 expect "no em-dash in the case" bash -c '! grep -rqF "$1" "$2"' _ "$emdash" "$case"
 tmp="$(mktemp -d)"
 trap 'cd /; rm -rf "$tmp"' EXIT
