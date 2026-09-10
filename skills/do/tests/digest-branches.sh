@@ -243,6 +243,13 @@ expect "an eval case grades the reader that was never forked" \
   test -f "$repo/skills/do/evals/withheld-agent-tool/graders/no-reader-fork-session-reads-both.md"
 has "the eval index says the withheld case covers the door's reader" "$repo/skills/do/evals/README.md" \
   "the Digest read by the session itself"
+# The runner links every agent into its sandbox, so the branch where the Agent tool lists no reader
+# needs a case that keeps the reader out of it.
+expect "an eval case grades the branch where the Agent tool lists no reader" \
+  test -f "$repo/skills/do/evals/unlisted-reader/graders/no-reader-listed-session-reads-both.md"
+has "the unlisted case keeps do-reader out of the runner's sandbox" \
+  "$repo/skills/do/evals/unlisted-reader/case.yaml" "unlinked_agents: [do-reader]"
+has "the eval index names the unlisted case" "$repo/skills/do/evals/README.md" "| \`unlisted-reader\` |"
 
 expect "the blocker case grades the status-alone read" \
   test -f "$repo/skills/do/evals/blocked-ticket-refused/graders/blocker-read-as-a-status-alone.md"

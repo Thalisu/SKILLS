@@ -46,9 +46,10 @@ for a in "$@"; do
   fi
 done
 journey=no; [ -e "${CLAUDE_CONFIG_DIR:-/nonexistent}/skills/journey/SKILL.md" ] && journey=yes
+reader=no; [ -e "${CLAUDE_CONFIG_DIR:-/nonexistent}/agents/do-reader.md" ] && reader=yes
 { printf 'call'; printf ' [%s]' "$@"
-  printf ' config=%s claudecode=%s journey=%s creds=%s cwd=%s\n' "${CLAUDE_CONFIG_DIR:-unset}" \
-    "${CLAUDECODE:-unset}" "$journey" "$(readlink "${CLAUDE_CONFIG_DIR:-/nonexistent}/.credentials.json")" "$(pwd -P)"
+  printf ' config=%s claudecode=%s journey=%s reader=%s creds=%s cwd=%s\n' "${CLAUDE_CONFIG_DIR:-unset}" \
+    "${CLAUDECODE:-unset}" "$journey" "$reader" "$(readlink "${CLAUDE_CONFIG_DIR:-/nonexistent}/.credentials.json")" "$(pwd -P)"
 } >> "$STUB_DIR/calls"
 [ -z "${STUB_TOUCH:-}" ] || : > "$STUB_TOUCH"
 [ -z "${STUB_TRANSCRIPT:-}" ] || cat "$STUB_TRANSCRIPT"
@@ -197,5 +198,30 @@ run "$evals" broken
 check "a scaffold that fails is red before any session" 1 "$rc" \
   "FAIL  broken run 1/1: the scaffold script failed: the fixture could not be laid"
 expect "a failed scaffold started no session" test "$(calls)" = 0
+
+# A case can keep one of this repo's agents out of its sessions, so a branch that needs an agent
+# missing can be graded; the next case in the same invocation lists it again.
+unlink_case() { # $1 case, $2 the agent it unlinks
+  mkdir -p "$evals/$1"
+  printf 'runs: 1\ncontext:\n  unlinked_agents: [%s]\n' "$2" > "$evals/$1/case.yaml"
+  printf 'hi\n' > "$evals/$1/prompt.md"
+  grader "$1" one-bash-of-its-own 'type: tool_used
+tool: Bash
+min: 1
+max: 1'
+}
+unlink_case unlink do-reader
+unlink_case unlink-unknown no-such-agent
+reset
+STUB_TOUCH=made-by-run.txt run "$evals" unlink walk --runs 1
+check "a case that unlinks an agent runs green, and so does the case after it" 0 "$rc" \
+  "unlink: 1/1 green" "walk: 1/1 green" "PASS"
+expect "the unlinking case's session lists no do-reader" grep -qF "reader=no" <<<"$(sed -n 1p "$STUB_DIR/calls")"
+expect "the next case's session lists do-reader again" grep -qF "reader=yes" <<<"$(sed -n 2p "$STUB_DIR/calls")"
+reset
+run "$evals" unlink-unknown
+check "a case that unlinks an agent the sandbox never linked is red before any session" 1 "$rc" \
+  "FAIL  unlink-unknown: the case unlinks no-such-agent, which the sandbox never linked"
+expect "that case started no session" test "$(calls)" = 0
 
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi

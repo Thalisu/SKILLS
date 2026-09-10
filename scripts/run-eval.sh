@@ -11,9 +11,10 @@
 #     --judge-model NAME  the model that reads an llm grader (default: sonnet)
 #     --keep              keeps the work folder of a green run too; a red run's is always kept
 #
-# A case is <case>/case.yaml (runs, max_turns, timeout_seconds, allowed_tools, and the
-# context.scaffold_script that lays the fixture in an empty folder), prompt.md and graders/*.md,
-# each grader a frontmatter of one type:
+# A case is <case>/case.yaml (runs, max_turns, timeout_seconds, allowed_tools, the
+# context.scaffold_script that lays the fixture in an empty folder, and context.unlinked_agents,
+# the agents of this repo its sessions must not list), prompt.md and graders/*.md, each grader a
+# frontmatter of one type:
 #   llm          criteria, read by a judge session against the run's transcript and what the run
 #                changed in the fixture
 #   regex        pattern (PCRE), match: contains, target: last_message
@@ -184,6 +185,13 @@ grade() { # $1 grader, $2 work folder: prints why the run fails the grader, noth
   esac
 }
 
+restore_agents() { # puts back every agent a case moved out of the sandbox, for the next case
+  local f
+  for f in "$sandbox/unlinked"/*.md; do
+    if [ -L "$f" ] || [ -e "$f" ]; then mv "$f" "$config/agents/"; fi
+  done
+}
+
 failing=0; summary=""
 for c in "${cases[@]}"; do
   case_file="$evals/$c/case.yaml"
@@ -191,6 +199,19 @@ for c in "${cases[@]}"; do
   max_turns="$(yq -r '.max_turns // 20' "$case_file")"
   limit="$(yq -r '.timeout_seconds // 600' "$case_file")"
   allowed="$(yq -r '.allowed_tools // [] | join(",")' "$case_file")"
+  missing=""
+  while IFS= read -r a; do
+    [ -n "$a" ] || continue
+    if [ -L "$config/agents/$a.md" ] || [ -e "$config/agents/$a.md" ]; then
+      mkdir -p "$sandbox/unlinked" && mv "$config/agents/$a.md" "$sandbox/unlinked/$a.md"
+    else missing="$a"; fi
+  done < <(yq -r '.context.unlinked_agents // [] | .[]' "$case_file")
+  if [ -n "$missing" ]; then
+    restore_agents
+    echo "FAIL  $c: the case unlinks $missing, which the sandbox never linked"
+    failing=$((failing + 1)); summary+="$c: 0 run, an agent it unlinks was never linked"$'\n'
+    continue
+  fi
   graders=()
   for g in "$evals/$c"/graders/*.md; do [ -f "$g" ] && graders+=("$g"); done
   green=0
@@ -246,6 +267,7 @@ for c in "${cases[@]}"; do
       if [ "$keep" = yes ]; then echo "      kept: $work"; else rm -rf "$work"; fi
     fi
   done
+  restore_agents
   summary+="$c: $green/$runs green"$'\n'
 done
 
