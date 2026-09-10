@@ -11,14 +11,14 @@ project and commits it there; nothing project-derived is ever kept in this repos
 
 The main path for a task, from idea to built code:
 
-| Step | Command            | What it does                                                                                              |
-| ---- | ------------------ | --------------------------------------------------------------------------------------------------------- |
-| 1    | `/discuss`         | Interview you about the plan, one question at a time; terms land in `CONTEXT.md`, hard calls in ADRs      |
-| 2    | `/spec`            | Turn the conversation into a spec, published where the project's issue tracker points                     |
-| 3    | `/clear`           | Drop the conversation; everything the next steps need is in the spec now                                  |
-| 4    | `/journey <spec>`  | Only when the spec's verdict says `Journey: required`: walk every path of the spec from the actor's seat  |
-| 5    | `/tickets <spec>`  | Cut the spec, and its journey when there is one, into tracer-bullet tickets with blocking edges           |
-| 6    | `/do <ticket>`     | Build one ticket; run it once per ticket, in the order the blocking edges allow                           |
+| Step | Command           | What it does                                                                                                                                   |
+| ---- | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | `/discuss`        | Interview you about the plan, one question at a time; terms land in `CONTEXT.md`, hard calls in ADRs                                           |
+| 2    | `/spec`           | Turn the conversation into a spec, published where the project's issue tracker points                                                          |
+| 3    | `/clear`          | Drop the conversation; everything the next steps need is in the spec now                                                                       |
+| 4    | `/journey <spec>` | Only when the spec's verdict says `Journey: required`: walk every path of the spec from the actor's seat, at the end clear again with `/clear` |
+| 5    | `/tickets <spec>` | Cut the spec, and its journey when there is one, into tracer-bullet tickets with blocking edges                                                |
+| 6    | `/do <ticket>`    | Build one ticket; run it once per ticket, in the order the blocking edges allow                                                                |
 
 `spec` prints the next command when it closes, so step 4 is either `/journey` or skipped straight to `/tickets`.
 
@@ -28,27 +28,27 @@ Grouped by who can fire the skill; the contract is in [`.agents/invocation.md`](
 
 Reachable only by the human typing the name.
 
-| Skill                                              | Purpose                                                                                                                                                              | Docs                                             |
-| -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
-| [`discover-setup`](skills/discover-setup/SKILL.md) | Wire the discover agent and skills on a machine and install or update the mandatory Discovery rule in a project's `CLAUDE.md` or in the user's `~/.claude/CLAUDE.md` | [docs/discover-setup.md](docs/discover-setup.md) |
-| [`discuss`](skills/discuss/SKILL.md) | Interview the user about a plan before code, one question at a time with a recommendation, recording terms in `CONTEXT.md` as they land and writing the hard-to-reverse decisions as ADRs at the close | [docs/discuss.md](docs/discuss.md) |
-| [`do`](skills/do/SKILL.md) | Match a request to one Playbook and run its steps: a Ticket's path or issue reference builds that Ticket as the last step of the chain, a request in words runs outside it, and a request that fits no Playbook is sent to the door that owns it in one message | [docs/do.md](docs/do.md) |
-| [`journey`](skills/journey/SKILL.md) | Walk every path of a spec from the actor's seat, drafting each from the app's precedent and asking one question per fork it leaves open, then write the journey beside the spec and point the spec's `Journey:` line at it | [docs/journey.md](docs/journey.md) |
-| [`prototype`](skills/prototype/SKILL.md) | Build one throwaway, runnable prototype in a subagent to settle a design question you have to see or drive: a single HTML file that drives a state model, or three variants of a screen on its real route | [docs/prototype.md](docs/prototype.md) |
-| [`sketch`](skills/sketch/SKILL.md) | Settle the shape a piece of work has to hold before any logic in a subagent and file it: the caller's usage, the types, the signatures and the module boundaries with unimplemented bodies, plus each rival shape it rejected in one line | [docs/sketch.md](docs/sketch.md) |
-| [`spec`](skills/spec/SKILL.md) | Turn the conversation into a spec, published where the project's issue tracker points, with a verdict that names the next command: `journey` when the stories add a screen or walk more than one path or step, `tickets` otherwise | [docs/spec.md](docs/spec.md) |
-| [`testing-policy`](skills/testing-policy/SKILL.md) | Install and keep in sync a canonical Testing Policy (Definition of Done) across repos                                                                                | [docs/testing-policy.md](docs/testing-policy.md) |
-| [`tickets`](skills/tickets/SKILL.md) | Cut a spec, and the journey its verdict points at, into tracer-bullet tickets with blocking edges, each sized by a token estimate, with edges, folds and splits decided by the skill and only the approval asked, published one file or one issue per ticket, stopping before any write when the journey is required but missing, contested or already ticketed | [docs/tickets.md](docs/tickets.md) |
+| Skill                                              | Purpose                                                                                                                                                                                                                                                                                                                                                         | Docs                                             |
+| -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| [`discover-setup`](skills/discover-setup/SKILL.md) | Wire the discover agent and skills on a machine and install or update the mandatory Discovery rule in a project's `CLAUDE.md` or in the user's `~/.claude/CLAUDE.md`                                                                                                                                                                                            | [docs/discover-setup.md](docs/discover-setup.md) |
+| [`discuss`](skills/discuss/SKILL.md)               | Interview the user about a plan before code, one question at a time with a recommendation, recording terms in `CONTEXT.md` as they land and writing the hard-to-reverse decisions as ADRs at the close                                                                                                                                                          | [docs/discuss.md](docs/discuss.md)               |
+| [`do`](skills/do/SKILL.md)                         | Match a request to one Playbook and run its steps: a Ticket's path or issue reference builds that Ticket as the last step of the chain, a request in words runs outside it, and a request that fits no Playbook is sent to the door that owns it in one message                                                                                                 | [docs/do.md](docs/do.md)                         |
+| [`journey`](skills/journey/SKILL.md)               | Walk every path of a spec from the actor's seat, drafting each from the app's precedent and asking one question per fork it leaves open, then write the journey beside the spec and point the spec's `Journey:` line at it                                                                                                                                      | [docs/journey.md](docs/journey.md)               |
+| [`prototype`](skills/prototype/SKILL.md)           | Build one throwaway, runnable prototype in a subagent to settle a design question you have to see or drive: a single HTML file that drives a state model, or three variants of a screen on its real route                                                                                                                                                       | [docs/prototype.md](docs/prototype.md)           |
+| [`sketch`](skills/sketch/SKILL.md)                 | Settle the shape a piece of work has to hold before any logic in a subagent and file it: the caller's usage, the types, the signatures and the module boundaries with unimplemented bodies, plus each rival shape it rejected in one line                                                                                                                       | [docs/sketch.md](docs/sketch.md)                 |
+| [`spec`](skills/spec/SKILL.md)                     | Turn the conversation into a spec, published where the project's issue tracker points, with a verdict that names the next command: `journey` when the stories add a screen or walk more than one path or step, `tickets` otherwise                                                                                                                              | [docs/spec.md](docs/spec.md)                     |
+| [`testing-policy`](skills/testing-policy/SKILL.md) | Install and keep in sync a canonical Testing Policy (Definition of Done) across repos                                                                                                                                                                                                                                                                           | [docs/testing-policy.md](docs/testing-policy.md) |
+| [`tickets`](skills/tickets/SKILL.md)               | Cut a spec, and the journey its verdict points at, into tracer-bullet tickets with blocking edges, each sized by a token estimate, with edges, folds and splits decided by the skill and only the approval asked, published one file or one issue per ticket, stopping before any write when the journey is required but missing, contested or already ticketed | [docs/tickets.md](docs/tickets.md)               |
 
 ## Model-invoked
 
 Reachable by the model on its own, or by the human typing the name.
 
-| Skill                                        | Purpose                                                                                                                        | Docs                                       |
-| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------ |
-| [`discover`](skills/discover/SKILL.md)       | Batch "does this already exist in the repo?" lookups answered by a Haiku subagent in one line per symbol                       | [docs/discover.md](docs/discover.md)       |
+| Skill                                              | Purpose                                                                                                                                                                                                                                                  | Docs                                             |
+| -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| [`discover`](skills/discover/SKILL.md)             | Batch "does this already exist in the repo?" lookups answered by a Haiku subagent in one line per symbol                                                                                                                                                 | [docs/discover.md](docs/discover.md)             |
 | [`do-code-review`](skills/do-code-review/SKILL.md) | Review the branch since a fixed point on six Axes, every Finding proven to a Rung and written by Bucket into one Review file beside the branch, then fixes its `Act on` Findings and lands by fast-forward; the spec Axis reads the spec the chain wrote | [docs/do-code-review.md](docs/do-code-review.md) |
-| [`test-triage`](skills/test-triage/SKILL.md) | Run a test target, cluster the failures, auto-fix and commit only the small ones, file a dossier in `docs/tests/` for the rest | [docs/test-triage.md](docs/test-triage.md) |
+| [`test-triage`](skills/test-triage/SKILL.md)       | Run a test target, cluster the failures, auto-fix and commit only the small ones, file a dossier in `docs/tests/` for the rest                                                                                                                           | [docs/test-triage.md](docs/test-triage.md)       |
 
 ## Vendored
 
@@ -57,16 +57,16 @@ Skills this repo's skills call and does not own, copied from
 changes listed in [`vendor/README.md`](vendor/README.md). They install like any skill here and have
 no page under `docs/`.
 
-| Skill | Purpose |
-| --- | --- |
-| [`architect`](vendor/architect/SKILL.md) | Design the shape before code: the caller's usage, then types, signatures and module boundaries, rival candidates compared |
-| [`how`](vendor/how/SKILL.md) | Senior-engineer walkthrough of how a subsystem works, with a critique mode |
-| [`why`](vendor/why/SKILL.md) | Cited, confidence-calibrated read on why code was built a certain way |
-| [`teach`](vendor/teach/SKILL.md) | Explain a change or subsystem until it clicks, on top of `how` and `why` |
-| [`unslop`](vendor/unslop/SKILL.md) | Strip AI tells from prose and put human voice back |
-| [`technical-writing`](vendor/technical-writing/SKILL.md) | Writing standard for docs, RFCs, readmes, PR descriptions and commit messages |
-| [`typescript-best-practices`](vendor/typescript-best-practices/SKILL.md) | TypeScript typing and API-shape rules |
-| [`no-comments`](vendor/no-comments/SKILL.md) | User-invoked: spawn the `comment-sicko` agent over a diff and act on the accepted findings |
+| Skill                                                                    | Purpose                                                                                                                   |
+| ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| [`architect`](vendor/architect/SKILL.md)                                 | Design the shape before code: the caller's usage, then types, signatures and module boundaries, rival candidates compared |
+| [`how`](vendor/how/SKILL.md)                                             | Senior-engineer walkthrough of how a subsystem works, with a critique mode                                                |
+| [`why`](vendor/why/SKILL.md)                                             | Cited, confidence-calibrated read on why code was built a certain way                                                     |
+| [`teach`](vendor/teach/SKILL.md)                                         | Explain a change or subsystem until it clicks, on top of `how` and `why`                                                  |
+| [`unslop`](vendor/unslop/SKILL.md)                                       | Strip AI tells from prose and put human voice back                                                                        |
+| [`technical-writing`](vendor/technical-writing/SKILL.md)                 | Writing standard for docs, RFCs, readmes, PR descriptions and commit messages                                             |
+| [`typescript-best-practices`](vendor/typescript-best-practices/SKILL.md) | TypeScript typing and API-shape rules                                                                                     |
+| [`no-comments`](vendor/no-comments/SKILL.md)                             | User-invoked: spawn the `comment-sicko` agent over a diff and act on the accepted findings                                |
 
 ## Install
 
@@ -81,14 +81,14 @@ The script installs every skill in the tables above, vendored ones included, int
 for Claude Code and `~/.agents/skills` for Codex and other Agent Skills harnesses. It also links
 every agent the skills fork into `~/.claude/agents`:
 
-| Skill | Agents |
-| --- | --- |
-| `discover` | `discover` |
-| `prototype` | `prototype`, forked by `/prototype`, `discuss` and `journey` |
-| `sketch` | `sketch`, forked by `/sketch` and by `do` at its shape step |
-| `do` | `do-reader`, `global-unit-test-author`, `global-e2e-test-author` |
+| Skill            | Agents                                                                                    |
+| ---------------- | ----------------------------------------------------------------------------------------- |
+| `discover`       | `discover`                                                                                |
+| `prototype`      | `prototype`, forked by `/prototype`, `discuss` and `journey`                              |
+| `sketch`         | `sketch`, forked by `/sketch` and by `do` at its shape step                               |
+| `do`             | `do-reader`, `global-unit-test-author`, `global-e2e-test-author`                          |
 | `do-code-review` | `do-code-review`, `do-code-review-technical-reviewer`, `do-code-review-security-reviewer` |
-| `no-comments` | `comment-sicko` |
+| `no-comments`    | `comment-sicko`                                                                           |
 
 Every entry is a symlink into the clone, so a `git pull` updates what is installed. Re-run the script
 after a pull that adds, renames or removes a skill: it links the new ones and prunes the links whose
