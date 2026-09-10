@@ -143,6 +143,22 @@ has "the close says the run appended the .scratch/ line" "$refs/ticket.md" \
 has "Left uncommitted names the .gitignore line the run appended" "$refs/reply.md" \
   'the `.gitignore` line when the run appended it'
 
+# The shape step takes the shape from `sketch`, forked with a brief filled from what the run already
+# holds, so the rivals behind a shape never enter the session and nothing is grounded a second time.
+has "the checklist's shape step names sketch" "$refs/ticket.md" \
+  '3. Shape named; `sketch` forked when a boundary is crossed'
+has "the shape step forks sketch through the Agent tool" "$refs/ticket.md" \
+  'call the Agent tool with `subagent_type: sketch`'
+lacks "the ticket Playbook's shape step no longer calls architect" "$refs/ticket.md" \
+  'call the Skill tool with `architect`' "architect sketch"
+has "the brief hands sketch what the run holds, so nothing is grounded a second time" \
+  "$refs/ticket.md" "so nothing is grounded a second time" "the Digest's location" \
+  "the repository root" "where the Sketch goes"
+has "the run names in one line what it handed sketch" "$refs/ticket.md" \
+  "names in one line what it handed over"
+has "a session that lists no sketch states the shape in the thread and says so" "$refs/ticket.md" \
+  'a session whose Agent tool lists no `sketch`' "stated in the thread, the step says so in one line"
+
 # No em-dash in the prose this feature writes, per CLAUDE.md.
 lacks "no em-dash in the Digest reference" "$refs/digest.md" "$emdash"
 

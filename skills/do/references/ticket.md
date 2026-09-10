@@ -6,7 +6,7 @@ never a session summary. The parts it shares with the other Playbooks that build
 are in [mechanics.md](mechanics.md), linked from the steps that use them, and the reply is
 written by [reply.md](reply.md). The checklist below is copied verbatim into the run before any
 task-specific item, the research brief's twelve steps with the review and landing step reading as
-the review's; each step carries its done condition below.
+the review's and the shape step as `sketch`'s; each step carries its done condition below.
 
 ## Door
 
@@ -97,7 +97,7 @@ Do:
 - [ ] 0. Input resolved and confirmed; policy or fallback detected; ticket claimed
 - [ ] 1. Worktree created from HEAD and entered; tree clean
 - [ ] 2. Grounded: done stated as a predicate; discover batch run and audited
-- [ ] 3. Shape named; architect sketch when a boundary is crossed
+- [ ] 3. Shape named; `sketch` forked when a boundary is crossed
 - [ ] 4. Behaviours listed from the plan, critical paths first
 - [ ] 5. Build loop: one behaviour, one dispatch, one green commit, repeat
 - [ ] 6. E2E flows authored or extended (native and mixed surfaces)
@@ -167,16 +167,33 @@ registry, a reducer) instead of scattered conditionals. Delete the dead weight t
 obsolete before adding, per
 [subtract-before-you-add](../../../.agents/principles/subtract-before-you-add.md) and
 [laziness-protocol](../../../.agents/principles/laziness-protocol.md), as its own commit with the
-suite green. When the work crosses a function boundary (a new module, an exported function or
-type other code will call, a changed signature) and neither the Ticket, its Digest nor a
-`Settled by prototype:` snippet carries a sketch, call the Skill tool with `architect`, stop at
-the sketch, and implement the sketch under the loop, so every test still goes through a test
-author. The sketch is the contract: a deviation during the build is surfaced in the reply, and a
-second deviation of the same shape stops the run as a wrong sketch, the deviations listed, the
-worktree and its branch named, the message naming `discuss`. When `architect` is not listed, the
-shape (types, signatures, module boundaries) is stated in the thread and the step says so. When
-no boundary is crossed the step reads `skip: no boundary crossed`. Done when the shape is in the
-thread, or the skip.
+suite green.
+
+Who names the shape is decided by the first line of this table that holds, read in order:
+
+| The work | The step |
+|---|---|
+| crosses no function boundary: no new module, no exported function or type other code will call, no changed signature | reads `skip: no boundary crossed`, and the run goes on to the behaviours list |
+| already carries a shape: the Ticket, its Digest or a `Settled by prototype:` snippet | calls nothing, since the step never names a shape twice; that shape is the one the build is held to |
+| runs in a session whose Agent tool lists no `sketch` | the shape, the types, the signatures and the module boundaries are stated in the thread, the step says so in one line, and the run continues |
+| anything else | call the Agent tool with `subagent_type: sketch` and the brief below |
+
+The brief is the one the `sketch` agent fixes, and the run fills it from what it already holds,
+so nothing is grounded a second time: what to shape, the Ticket's path, its `What to build` line
+and its criteria; the map, the subsystem as the ground step took it; the Digest's location;
+the repository root, the main checkout's absolute path; and where the Sketch goes, the absolute
+path beside the Ticket in the main checkout with `.sketch` before the extension, or, for a Ticket
+that is not a local file, the issue's reference under `.scratch/sketches/` there.
+Before it waits on the fork, the run names in one line what it handed over. The fork explores
+the rival shapes in a window of its own, per
+[guard-the-context-window](../../../.agents/principles/guard-the-context-window.md), stops at the
+Sketch and implements nothing.
+
+The build implements the sketch under the loop, so every test still goes through a test author.
+The sketch is the contract: a deviation during the build is surfaced in the reply, and a second
+deviation of the same shape stops the run as a wrong sketch, the deviations listed, the worktree
+and its branch named, the message naming `discuss`. Done when the shape is in the thread, or the
+skip.
 
 **4. Behaviours.** The run names the Digest's location and restates it in one line, its Journey
 Path, the story numbers it carries, its Testing Decisions and the criteria it marks observable, so
