@@ -371,4 +371,41 @@ expect "the glob-named file is staged" test -z "$(git ls-files -u -- ':(literal)
 expect "an untracked file the name matches as a glob is left unstaged" \
   test -z "$(git ls-files -- ':(literal)a.txt')"
 
+# A side's version is taken through git by name, the deletion by `git rm` and the kept version by
+# `git checkout`, and each reads a glob-named path as a glob too: `app/[ab].tsx` also names the
+# tracked `app/a.tsx` and `app/b.tsx`, and `lib/[cd].ts` a `lib/c.ts` with an edit of its own.
+fresh glob-whole
+mkdir app lib
+printf 'page\n' > 'app/[ab].tsx'
+printf 'route a\n' > app/a.tsx
+printf 'route b\n' > app/b.tsx
+printf 'module\n' > 'lib/[cd].ts'
+printf 'lib c\n' > lib/c.ts
+commit base
+g switch -q -c do/run
+printf 'page\nedited by incoming\n' > 'app/[ab].tsx'
+g rm -q -- ':(literal)lib/[cd].ts'
+commit incoming
+g switch -q main
+g rm -q -- ':(literal)app/[ab].tsx'
+printf 'module\nedited by target\n' > 'lib/[cd].ts'
+commit target
+g switch -q do/run
+g rebase main >/dev/null 2>&1
+printf 'lib c\nedited during the stop\n' > lib/c.ts
+cp lib/c.ts "$tmp/c.edited"
+run; first="$(sed -n 's/^id //p' <<<"$out")"
+check "a glob-named file deleted by the Target side is asked whole" 1 "$rc" \
+  "Conflict 1 of 2 · app/[ab].tsx · whole-file · delete-vs-edit"
+run "$first:target"; second="$(sed -n 's/^id //p' <<<"$out")"
+run "$first:target" "$second:target"
+check "target removes the one glob-named file and keeps the other's Target version" 0 "$rc" \
+  "removed app/[ab].tsx" "wrote lib/[cd].ts"
+expect "the removal takes the glob-named file alone" \
+  test -z "$(git ls-files -- ':(literal)app/[ab].tsx')" -a ! -e 'app/[ab].tsx'
+expect "the tracked files its name matches as a glob stay tracked and on disk" \
+  test "$(git ls-files -- app/a.tsx app/b.tsx | wc -l)" = 2 -a -f app/a.tsx -a -f app/b.tsx
+expect "taking a side's version rewrites no other file its name matches as a glob" \
+  cmp -s lib/c.ts "$tmp/c.edited"
+
 if [ "$fails" = 0 ]; then echo "all ok"; else echo "$fails failing"; exit 1; fi
