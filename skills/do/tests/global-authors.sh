@@ -104,5 +104,27 @@ check "a map path outside the project's own Scratch is refused" 2 "$rc"
 map "$p"
 check "a missing argument is a usage error" 2 "$rc"
 
+echo "# the Playbook dispatches them under Loop: global"
+refs="$skill/references"
+has "the loop line takes a third value and names the author it will dispatch" "$refs/ticket.md" \
+  '`Loop: global` when it does not and `~/.claude/agents/global-unit-test-author.md` is linked,' \
+  'naming `global-unit-test-author` as the unit author it will dispatch'
+has "a withheld Agent tool turns global into the fallback, said in one line" "$refs/ticket.md" \
+  'a door that printed `loop=global` reads `Loop: fallback` instead' \
+  'says in one line that the Agent tool is withheld'
+has "the ground step derives the map once, in the project's own Scratch" "$refs/ticket.md" \
+  'bash <skill-dir>/scripts/project-map.sh <the main checkout> <the map'"'"'s path>' \
+  'once for the whole run, never once per behaviour' '`.project-map` before the extension' \
+  'never travels back to the repository the authors came from'
+has "the build loop dispatches the global authors with the map's path" "$refs/mechanics.md" \
+  '`subagent_type: global-unit-test-author`' '`subagent_type: global-e2e-test-author`' \
+  '`Project map: <the map'"'"'s path>`' 'The global authors have no inline entry point'
+has "the fallback is read only when no author can be dispatched" "$refs/tdd-fallback.md" \
+  '`global-unit-test-author` not linked or the Agent tool withheld'
+has "the skill file's Links line says when the fallback is read" "$skill/SKILL.md" \
+  'when the loop line reads `Loop: fallback`'
+has "the docs page's Prerequisites row names the global loop" "$repo/docs/do.md" \
+  'it reads `Loop: global`'
+
 echo
 if [ "$fails" = 0 ]; then echo "all passed"; else echo "$fails failed"; exit 1; fi

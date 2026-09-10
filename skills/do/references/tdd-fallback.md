@@ -5,13 +5,15 @@ Lauren Tan, MIT (see [PSTACK-LICENSE](../../../vendor/PSTACK-LICENSE)), upstream
 `7314f723a487ec406b6369fe5865ba034cfed166`, with the frontmatter stripped and the changes listed at
 the end.
 
-The build loop of [mechanics.md](mechanics.md) reads this file only when the project has no unit
-test author, `.claude/agents/unit-test-author.md`, which is when the first message's loop line
-reads `Loop: fallback`. With the author present the Testing Policy is the loop and this file is
-never read. The loop does not change: one behaviour at a time, red first, the smallest green, a
-refactor on green, one commit holding the test and the implementation with the behaviour line in
-its body. What changes is who writes the test. The run writes the failing test itself, and
-no test author is dispatched, since the project has none to dispatch.
+The build loop of [mechanics.md](mechanics.md) reads this file only when the first message's loop
+line reads `Loop: fallback`: the project has no unit test author,
+`.claude/agents/unit-test-author.md`, and no global one can be dispatched,
+`global-unit-test-author` not linked or the Agent tool withheld. With an author present, the
+project's or the global one, the Testing Policy's core is the loop and this file is never read.
+The loop does not change: one behaviour at a time, red first, the smallest green, a refactor on
+green, one commit holding the test and the implementation with the behaviour line in its body.
+What changes is who writes the test. The run writes the failing test itself, and
+no test author is dispatched, since none can be.
 
 ## The rule
 
@@ -90,7 +92,7 @@ closest check used instead. These are the lines the reply's Evidence section quo
 
 - The frontmatter is stripped. Upstream's door, a skill used only when the user asks for TDD or the
   bug has an obvious cheap test target, is replaced by the loop line: this file is read when the
-  project has no unit test author, never on request.
+  loop line reads `Loop: fallback`, never on request.
 - Upstream is written for a bug fix. The feature case follows the same rule here: the failing test
   first where a cheap path exists, else the closest executable check with the reason stated.
 - The workflow is folded into the build loop of `mechanics.md`: the same steps, the loop's

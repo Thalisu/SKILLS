@@ -146,10 +146,16 @@ taken off the lines the door script printed and never restated from a file the s
 - The title confirmed back, `<NN>: <title>`.
 - Done as a predicate: the acceptance criteria plus the gate (the full unit suite, the typecheck,
   the lint and the format green in the worktree after the last edit), each part checkable.
-- The loop line: `Loop: policy` when `.claude/agents/unit-test-author.md` exists in the project,
-  `Loop: fallback` otherwise. Under `fallback` the build loop of [mechanics.md](mechanics.md)
-  reads [tdd-fallback.md](tdd-fallback.md) and the run writes every test itself, with no test
-  author dispatched; under `policy` that file is never read.
+- The loop line, off the door's `loop=` line:
+  `Loop: policy` when `.claude/agents/unit-test-author.md` exists in the project,
+  `Loop: global` when it does not and `~/.claude/agents/global-unit-test-author.md` is linked,
+  naming `global-unit-test-author` as the unit author it will dispatch, and
+  `Loop: fallback` otherwise. With the Agent tool withheld from the session there is no author to
+  dispatch: a door that printed `loop=global` reads `Loop: fallback` instead, and the first
+  message says in one line that the Agent tool is withheld, so the run writes every unit test
+  itself, red first, and authors the flow itself. Under `fallback` the build loop of
+  [mechanics.md](mechanics.md) reads [tdd-fallback.md](tdd-fallback.md) and the run writes every
+  test itself, with no test author dispatched; under `policy` and `global` that file is never read.
 - A defect line when a behaviour reproduces a bug, judged from the Ticket's words per criterion
   line (a line that says something fails, throws, is wrong or came back) and never from a field:
   `Defect: origin bugfix, cause stated` when the Ticket names the cause, `Defect: cause unknown,
@@ -192,10 +198,21 @@ log the audit line, `Discovery: n FOUND · n DUPLICATE · n NOT_FOUND`. When `di
 listed, one `rg -n -w` per candidate stands in and the audit line says so. A symbol the Sketch
 adds later is checked before it is created the way the Discovery rule allows: one direct
 `rg -n -w` for a single name, one more batch for two or more. Restate done as a predicate,
-sharpened by what the reading showed. Then read the session's context once, `bash
+sharpened by what the reading showed. With no Testing Policy in the project, the loop line reading
+`Loop: global` or `Loop: fallback`, derive the Project map the authors read from the project,
+once for the whole run, never once per behaviour:
+`bash <skill-dir>/scripts/project-map.sh <the main checkout> <the map's path>`. The path is beside
+the Ticket in the main checkout's scratch, with `.project-map` before the extension, or, for a
+Ticket that is not a local file, the issue's reference under `.scratch/project-maps/` there, per
+[scratch.md](../../../.agents/scratch.md): the map is cached in the project's own Scratch, so it
+never travels back to the repository the authors came from, and the script refuses any other path.
+It fills only the slots a command read, the run commands and the test layout, and every other slot
+reads `none yet → /testing-policy`. The step names in one line the map's location and the slots
+it filled, off the lines the script printed; the loop and the flows step read that file and never
+derive it again. Then read the session's context once, `bash
 <skill-dir>/scripts/context-usage.sh`, and keep its `current` figure: it is the `grounded` figure
 of the `Context:` line the close writes per [mechanics.md](mechanics.md). Done when the predicate,
-the audit line and the context reading are in the thread.
+the audit line and the context reading are in the thread, and the map line with no Testing Policy.
 
 **3. Shape.** Name the data shape and its organising structure before any logic, per
 [foundational-thinking](../../../.agents/principles/foundational-thinking.md) and

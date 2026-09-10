@@ -229,7 +229,8 @@ the only source the loop brings into the session is source the run changed.
 
 Done when every behaviour line has a commit beside it.
 
-Under the fallback, when the project has no unit test author, the same loop runs by
+Under the fallback, when the first message's loop line reads `Loop: fallback` (no unit test author
+in the project and no global one that can be dispatched), the same loop runs by
 [tdd-fallback.md](tdd-fallback.md), read only then: the run writes the failing test itself where
 a cheap path exists, and otherwise the closest executable check with the reason stated, and no
 test author is dispatched. Nothing else changes: red first, the smallest green, one commit.
@@ -243,6 +244,16 @@ flow. Without the Agent tool, call the Skill tool with `test-author` and the arg
 The unit author returns `RED_AS_EXPECTED`, `GREEN`, `BLOCKED` or `REFUSED_INCOMPLETE_INPUT`; the
 E2E author returns `GREEN`, `RED`, `BLOCKED` or `REFUSED_INCOMPLETE_INPUT`, and its `BLOCKED` on a
 preflight is an infrastructure failure.
+
+Under `Loop: global` the project has no Testing Policy, and the authors are the two `do` ships in
+its `agents/` folder, each carrying the policy's agent core unchanged: call the Agent tool with
+`subagent_type: global-unit-test-author` for a unit test and
+`subagent_type: global-e2e-test-author` for a flow, with the same dispatch input and one more line,
+`Project map: <the map's path>`, the file the ground step derived. Each author reads its commands
+and its layout from that file, so no dispatch derives the map again, and the verdicts are the ones
+above. The global authors have no inline entry point: with the Agent tool withheld the loop line
+already reads `Loop: fallback`, the run writes every unit test itself by
+[tdd-fallback.md](tdd-fallback.md) and authors the flow itself, and no author is dispatched.
 
 ### Forks
 
