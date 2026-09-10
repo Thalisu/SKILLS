@@ -284,6 +284,14 @@ has "a union that defines one key twice is aborted the same way" "$fix_md" \
 has "a red suite after the retry's rebase lands nothing and names the failing check" "$fix_md" \
   "\`not landed: suite red after the rebase onto <target>, <the failing check>\`" \
   "the rebased branch and its worktree stay in place"
+# The class script exits 0 on a tree with no conflicted state as on an all-mechanical stop, so a
+# rebase git refused to start, or stopped with nothing conflicted, needs its own outcome, or the
+# landing reads it as mechanical and continues a rebase that is not there.
+has "a rebase that stops with nothing conflicted lands nothing and names git's message" "$fix_md" \
+  "\`no conflicted state, nothing classed\`" \
+  "\`not landed: rebase onto <target> stopped with nothing conflicted, <git's message>\`" \
+  "git rev-parse --git-path rebase-merge/head-name" \
+  "a rebase git refused to start left nothing to abort"
 has "the fix reference says what Green means without redefining it" "$fix_md" "Green"
 # A fix/<slug> worktree the Fixer left no commit in sits on a branch identical to the developer's
 # HEAD and holds nothing to read, so the run takes back what it created, and only that.

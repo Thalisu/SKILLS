@@ -197,7 +197,19 @@ landing instead of waiting on one.
    each as the class script printed it, and the key named when one was defined twice. The branch
    and its worktree stay in place, nothing is pushed, and the caller, who can reach a person, takes
    the question from there.
-5. When the rebase finishes, the suite runs again in that tree, the suite the re-check ran, since
+5. A rebase, a continue or a skip that exits non-zero while the class script prints
+   `no conflicted state, nothing classed` stopped on something no hunk carries: git refused to
+   start, over a tracked file the suite rewrote or an untracked file the moved target adds, or
+   stopped with nothing conflicted. The script's exit 0 there is not every hunk `mechanical`, and
+   a continue would have nothing to continue. The one exception is a continue over a replayed
+   commit the resolution left empty, which step 3 skips. The landing returns
+   `not landed: rebase onto <target> stopped with nothing conflicted, <git's message>`, with git's
+   own error line as it printed it. A rebase still open, the file
+   `git rev-parse --git-path rebase-merge/head-name` names existing, is abandoned with
+   `rebase --abort`, which puts the branch back where it was, while
+   a rebase git refused to start left nothing to abort. The branch and its worktree stay in place,
+   and nothing is pushed.
+6. When the rebase finishes, the suite runs again in that tree, the suite the re-check ran, since
    the branch now sits on commits the reviewers never read. Red, and the landing returns
    `not landed: suite red after the rebase onto <target>, <the failing check>`. Nothing is fixed,
    since the failure may sit in the developer's own commits, nothing is pushed, and
