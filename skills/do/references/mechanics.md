@@ -209,6 +209,11 @@ the only source the loop brings into the session is source the run changed.
      it and dispatch again.
    - `BLOCKED` on a missing seam: build the seam in production code first (pass the dependency
      in, return the result instead of mutating), then dispatch again. Never a mock around it.
+   - `BLOCKED` naming a run command the project map lacks, a slot reading
+     `none yet → /testing-policy`: the map does not change during the run, so a second dispatch
+     would meet the same `BLOCKED`. The run writes this behaviour and every remaining one itself,
+     under [tdd-fallback.md](tdd-fallback.md), naming the missing slot and `/testing-policy` as the
+     command that would fill it, and dispatches the unit test author no more this run.
    - `GREEN` before any implementation: the behaviour already holds, or the test asserts nothing.
      Back to the author with that said.
 3. Write the smallest production change that turns the test green, and run the single file with

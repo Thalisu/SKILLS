@@ -104,8 +104,19 @@ check "a map path outside the project's own Scratch is refused" 2 "$rc"
 map "$p"
 check "a missing argument is a usage error" 2 "$rc"
 
-echo "# the Playbook dispatches them under Loop: global"
+echo "# a map with no unit run command has a route for the loop's BLOCKED verdict"
+p="$tmp/no-runner"; mkdir -p "$p/skills/a/tests"
+: > "$p/skills/a/tests/one.sh"
+project "$p"
+map "$p" "$p/.scratch/map.md"
+check "the no-runner fixture leaves both unit run slots unfilled, the case the new route covers" 0 "$rc" \
+  "unit_run_file=$none" "unit_run_all=$none"
 refs="$skill/references"
+has "the build loop names a route for BLOCKED on a missing map slot" "$refs/mechanics.md" \
+  "a run command the project map lacks" "the map does not change during the run" \
+  "dispatches the unit test author no more this run"
+
+echo "# the Playbook dispatches them under Loop: global"
 has "the loop line takes a third value and names the author it will dispatch" "$refs/ticket.md" \
   '`Loop: global` when it does not and `~/.claude/agents/global-unit-test-author.md` is linked,' \
   'naming `global-unit-test-author` as the unit author it will dispatch'
