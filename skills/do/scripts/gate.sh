@@ -55,7 +55,8 @@ gate_run() { # runs gate_checks in the current directory, one line per check, th
   for pair in "${gate_checks[@]}"; do
     key="${pair%%=*}" n=$((n + 1))
     log="$logs/$n-${key//\//_}.log"
-    rc=0; bash -c "${pair#*=}" >"$log" 2>&1 || rc=$?
+    # stdin is /dev/null so a check reads the same in a terminal as in the agent's tool, which has no tty.
+    rc=0; bash -c "${pair#*=}" </dev/null >"$log" 2>&1 || rc=$?
     if [ "$rc" = 0 ]; then echo "$key=green"; rm -f "$log"; continue; fi
     case "$rc" in
       126 | 127) cause="runner cannot start" ;;

@@ -277,6 +277,17 @@ same "the command line the gate prints reruns it for the same answer" "$first_ou
 run "$gate"; check "no check is a usage error" 2 "$rc"
 run "$gate" "true"; check "a check with no key is a usage error" 2 "$rc"
 header_has "the gate script's header carries its own command line" "$gate" "#   gate.sh " 12
+if script -qec true /dev/null </dev/null >/dev/null 2>&1; then
+  run "$gate" "stdin=test ! -t 0" </dev/null
+  bare_out="$out"
+  out="$(script -qec "bash $(printf %q "$gate") 'stdin=test ! -t 0'" /dev/null </dev/null 2>&1 | tr -d '\r')"
+  pty_verdict="$(grep '^verdict=' <<<"$out")"
+  out="$bare_out"
+  check "a check probing its stdin reads the same verdict under a pty as without one" 0 "$rc" \
+    "stdin=green" "$pty_verdict"
+else
+  echo "skip  a check probing its stdin reads the same verdict under a pty as without one (no util-linux script)"
+fi
 
 echo "# gate.sh: a red check"
 run "$gate" "suite=true" "lint=seq 1 100; echo broke >&2; exit 4" "typecheck=echo 'x.ts:3 error'; exit 2" "format=true"
