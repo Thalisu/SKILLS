@@ -56,7 +56,7 @@ has "the Codex metadata closes implicit invocation" "$codex" \
 
 # The agent definition: the second door, gated by the callers its description names.
 agent_md="$skill/AGENT.md"
-has "the agent carries its frontmatter" "$agent_md" "name: sketch" "model: inherit"
+has "the agent carries its frontmatter" "$agent_md" "name: sketch" "model: opus"
 has "the agent description names its only callers" "$agent_md" \
   "Invoke through /sketch" "do at its shape step" "the developer and do are its only callers" \
   "Never on your own initiative."

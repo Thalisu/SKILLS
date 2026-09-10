@@ -68,6 +68,8 @@ Cursor-isms that do not exist in Claude Code or Codex, and this repo's conventio
 9. `comment-sicko` ships as `no-comments/AGENT.md`, its description naming `no-comments` as its
    only caller. `scripts/link-skills.sh` reads the agent's `name` off the frontmatter, so the link
    lands at `~/.claude/agents/comment-sicko.md`, which is the `subagent_type` the skill spawns.
+   Upstream sets no model; it carries `model: sonnet` here, judgment on one comment at a time,
+   with the deep reads left to the `how` and `why` it runs.
 
 Other upstream references left as-is: `architect/references/rationale-template.md` links to the
 `arena` skill, which is not vendored, and `typescript-best-practices` keeps its Cursor-only

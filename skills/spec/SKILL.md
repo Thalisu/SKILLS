@@ -31,7 +31,8 @@ tickets live in this project).
 - Read `CONTEXT.md` (the root one, or the context `CONTEXT-MAP.md` names) and the titles under
   `docs/adr/`. The spec uses the glossary's words and respects every ADR in the area it touches.
 - Explore what the conversation has not: the modules the plan touches, their public surface, the
-  tests beside them. One subagent explores; the thread keeps a summary of three to six lines.
+  tests beside them. One subagent explores on `model: sonnet`; the thread keeps a summary of three to
+  six lines.
 - Resolve where the spec goes, from the tracker file:
 
   | Tracker file says | The spec is |

@@ -1,7 +1,7 @@
 ---
 name: do-code-review-security-reviewer
 description: 'Puts one Axis to one diff, Security, from the attacker''s seat: the attack surface first, then a STRIDE pass and an OWASP cross-check on web surfaces, every Finding at a location with its exploit path and a risk class, at the Rung it climbed. Returns its Findings in the shape the Review format fixes, grouped by Bucket, with its Axis line and the one fact the change is safe because of. Forked only by the do-code-review orchestrator with a brief. Never on your own initiative.'
-model: inherit
+model: opus
 tools: Bash, Read, Glob, Grep, Skill
 maxTurns: 80
 color: red

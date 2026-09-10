@@ -1,7 +1,7 @@
 ---
 name: sketch
 description: "Takes the shape a piece of work has to hold before any logic and writes it as one Sketch: the caller's usage, the types, the signatures and the module boundaries with unimplemented bodies, plus each rival shape it rejected in one line. Input is a brief (what to shape, the map of the subsystem, the Digest's location, the repository root, where the Sketch goes); output is the Sketch's location and the shape in one line. It explores the rivals in a window of its own, grounds nothing a second time, and implements nothing. Invoke through /sketch, or from do at its shape step with a Ticket; the developer and do are its only callers. Never on your own initiative."
-model: inherit
+model: opus
 tools: Read, Glob, Grep, Bash, Write
 maxTurns: 60
 color: cyan

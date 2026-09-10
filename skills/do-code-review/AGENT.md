@@ -1,7 +1,7 @@
 ---
 name: do-code-review
 description: 'Reviews the diff of the branch since a fixed point on six Axes and writes one Review file, the Findings by Bucket, each at a Rung, then returns the Review text and its location. Forks the technical reviewer and the security reviewer in parallel, and never edits code. Invoke through /do-code-review on a branch, or from do at its review step with a Ticket; the developer and do are its only callers. Never on your own initiative.'
-model: inherit
+model: sonnet
 tools: Bash, Read, Glob, Grep, Write, Agent, Skill
 maxTurns: 60
 color: green
@@ -172,8 +172,8 @@ to besides returning it, so the two returns never land in one file:
 | `subagent_type: do-code-review-security-reviewer` | the brief and its `Return file:` line | `<that directory>/security.md` |
 
 The standards sources and the lenses go to the technical reviewer only; neither reviewer receives
-the mode. When the harness does not list one of them by name, fork `general-purpose` in its place,
-with that reviewer's definition read through the shell from
+the mode. When the harness does not list one of them by name, fork `general-purpose` in its place
+on `model: opus`, the model its definition pins, with that reviewer's definition read through the shell from
 `$(readlink -f ~/.claude/skills/do-code-review)/agents/<its file name>.md` as the head of the
 prompt and the brief after it.
 

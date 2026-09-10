@@ -96,7 +96,8 @@ a stop is to fix the input and run again.
 
 Explore the codebase the spec touches, unless the conversation already did: enough to name the
 modules a slice crosses, to write every title and description in the glossary's words, and to
-respect the ADRs in that area. Large outputs go to a subagent; the thread keeps the summary.
+respect the ADRs in that area. Large outputs go to a subagent on `model: sonnet`; the thread keeps the
+summary.
 
 Look for prefactoring that makes the slices easier to land: make the change easy, then make the
 easy change. Prefactoring is its own ticket, and comes first.

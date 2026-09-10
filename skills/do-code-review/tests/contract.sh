@@ -102,7 +102,7 @@ lacks "the Codex metadata carries no policy block" "$codex" "policy:" "allow_imp
 
 # The orchestrator: beside the skill file, two callers, no edit tool, the run described.
 agent_md="$skill/AGENT.md"
-has "the orchestrator carries its frontmatter" "$agent_md" "name: do-code-review" "model: inherit"
+has "the orchestrator carries its frontmatter" "$agent_md" "name: do-code-review" "model: sonnet"
 expect "the orchestrator's tools are exactly shell, reading, search, writing, the Agent tool and the Skill tool" \
   test "$(sed -n 's/^tools: //p' "$agent_md" 2>/dev/null)" = "Bash, Read, Glob, Grep, Write, Agent, Skill"
 has "the orchestrator names exactly two callers and no third" "$agent_md" \
@@ -317,7 +317,7 @@ expect "the fix reference is the skill's only reference" \
 # The technical reviewer: in the agents folder with the skill's prefix, one caller, no write and no
 # edit tool, the five Axes, the lenses, the smells, the evidence rules, the Rung gate, the return.
 reviewer_md="$skill/agents/do-code-review-technical-reviewer.md"
-has "the reviewer carries its frontmatter" "$reviewer_md" "name: do-code-review-technical-reviewer" "model: inherit"
+has "the reviewer carries its frontmatter" "$reviewer_md" "name: do-code-review-technical-reviewer" "model: opus"
 expect "the reviewer's tools are exactly shell, reading, search and the Skill tool" \
   test "$(sed -n 's/^tools: //p' "$reviewer_md" 2>/dev/null)" = "Bash, Read, Glob, Grep, Skill"
 has "the reviewer names one caller" "$reviewer_md" "do-code-review orchestrator"
@@ -345,7 +345,7 @@ has "the reviewer reads the format through the shell and writes its return file"
 # the exploit path, the risk class on every Finding, the Rung rule and the Noted ban.
 security_md="$skill/agents/do-code-review-security-reviewer.md"
 has "the security reviewer carries its frontmatter" "$security_md" \
-  "name: do-code-review-security-reviewer" "model: inherit"
+  "name: do-code-review-security-reviewer" "model: opus"
 expect "the security reviewer's tools are exactly shell, reading, search and the Skill tool" \
   test "$(sed -n 's/^tools: //p' "$security_md" 2>/dev/null)" = "Bash, Read, Glob, Grep, Skill"
 has "the security reviewer names one caller" "$security_md" "do-code-review orchestrator"
