@@ -144,6 +144,11 @@ wrote a file, and runs on two features share the scratch, so another run's write
 would stop this one, while the reader holds no tool that writes and leaves nothing for it to catch.
 Another run writing in the scratch while the reader reads shows nothing, and the run goes on.
 
+A Spec or a journey that changes while the reader reads it shows nothing in this run either.
+Since the door hashed it before the fork, the Digest records the hash it had then, the next run's
+comparison finds it moved, and that run re-forks the reader and names the document, as the
+second run below says.
+
 ### A second run
 
 A Digest already sits beside the Ticket whenever a run reaches this point a second time, on a

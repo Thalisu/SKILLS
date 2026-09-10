@@ -138,6 +138,13 @@ lacks "the second run recomputes what the door itself ran before the fork, never
 # modification time would report an untouched Spec as changed after any checkout, and go red.
 expect "the command the contract records ignores a touch and catches an edit" \
   recorded_source_ignores_a_touch
+# The door hashed both documents before the fork, so an edit inside the reader's window stops
+# nothing now and is caught by the next run's comparison, never served from the stale slice.
+has "a document changed in the reader's window shows nothing now and re-forks the next run" \
+  "$refs/mechanics.md" \
+  "changes while the reader reads it shows nothing in this run" \
+  "the door hashed it before the fork" \
+  "re-forks the reader and names the document"
 
 # The Digest is an unversioned file a fork wrote while two documents a stranger may have written
 # were open, so the gate that decides to reuse it takes neither its subject nor its bound from it:
