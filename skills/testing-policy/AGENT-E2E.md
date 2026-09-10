@@ -61,7 +61,7 @@ A promotion moves an asset out of a flow into the shared home for its role and r
 1. Move the asset to the shared home. Keep behavior identical; reconcile drift into a superset and say so.
 2. Update every call site.
 3. **Hunt orphans**: grep the old symbol across all flow and page files. A surviving reference means the promotion is unfinished.
-4. Run **every flow that referenced the asset**; the grep in step 3 is the exact list. The full suite belongs to the post-feature gate, not to you.
+4. Run **every flow that referenced the asset**; the grep in step 3 is the exact list. The full suite is not yours to run: it runs only when the project's post-feature gate names it.
 5. Report the promotion as its own changeset, separate from the flow. It lands in the same commit as the motivating flow or in a refactor commit immediately before it; splitting them leaves the other flow broken at that commit.
 
 ### Preflight, then run
@@ -139,7 +139,7 @@ Return exactly these sections:
 
 **Tool & run commands**
 - Single flow: `{{E2E_RUN_FLOW_COMMAND}}`
-- Full suite (post-feature gate, not yours to run): `{{E2E_RUN_ALL_COMMAND}}`
+- Full suite (not yours to run; it runs only when the post-feature gate in Project facts names it): `{{E2E_RUN_ALL_COMMAND}}`
 - Formatter / linter: `{{E2E_FORMAT_COMMAND}}`
 {{E2E_RUN_GOTCHAS: working directory, base_url default, xdist caveats, emulator/device requirements}}
 
