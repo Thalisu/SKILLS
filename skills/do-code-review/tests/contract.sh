@@ -65,6 +65,10 @@ has "the safety line takes both facts when two reviewers returned" "$format" \
 has "the two homes of the file are stated" "$format" ".scratch/reviews/" ".review" "Ticket: none"
 has "the format carries the Fix run section and its four states" "$format" \
   "## Fix run" "Date:" "fixed" "verified" "not verified" "stale" "not fixed" "suite:" "landed at" "not landed"
+# ADR 0027: a landing whose target moved retries once by the mechanical rule, so the landing line
+# names the rebase and each hunk it resolved.
+has "the landing line names a rebase onto a moved target and each hunk it resolved" "$format" \
+  "- landed at <sha>, rebased onto <target> at <short sha>" "one line per hunk it resolved"
 has "the format says a second fix appends and a plain run overwrites" "$format" \
   "a second \`fix\` appends a second section" "overwrites"
 has "the index carries the format's row" "$repo/.agents/formats/README.md" \
@@ -157,6 +161,8 @@ has "the Act on gate holds the Fixer and never the landing" "$agent_md" \
   "read the same file at \`## The landing\`"
 has "the return carries the landing line whether a fix ran or not" "$agent_md" \
   "Then the landing, whether a fix ran or not"
+has "the landing retries a moved target once and the return names the rebase" "$agent_md" \
+  "retries once over a target that moved" "rebased onto <target> at <short sha>"
 # The whole `Fixed point:` line resolves as no ref, and the door's refusals are worded for a review
 # the fix call never ran, so a fix call takes the sha out of the header and rewords what comes back.
 has "a fix call hands the door the sha inside the Fixed point header" "$agent_md" \
@@ -243,6 +249,24 @@ has "the fix reference appends the section the format fixes" "$fix_md" \
 has "the fix reference lands by the landing ADR and pushes nothing" "$fix_md" \
   "## The landing" "0013-do-code-review-lands-a-green-review-by-fast-forward.md)" "fast-forward" \
   "protected" "nothing is pushed" "git push"
+# ADR 0027 and 0028: a fast-forward refused because the target moved retries once, by a rebase whose
+# every stop the review's copy of the conflict class classes, resolved by the union in base order.
+has "a moved target is told apart from any other failed fast-forward" "$fix_md" \
+  "### A target that moved while the review ran" \
+  "git merge-base --is-ancestor <the landing target> <that branch>"
+has "the retry rebases with conflict-resolution reuse off" "$fix_md" \
+  "git -c rerere.enabled=false -c rerere.autoupdate=false rebase <the landing target>"
+has "every stop is classed by the review's own copy of the script" "$fix_md" \
+  "bash ~/.claude/skills/do-code-review/scripts/conflict-class.sh" \
+  "](../../../docs/adr/0028-the-conflict-class-is-a-scripts-verdict-never-the-sessions-reading.md)"
+has "a mechanical stop is resolved by the union in base order, every path quoted" "$fix_md" \
+  "git diff --name-only --diff-filter=U -z" \
+  "git merge-file --union -p <target> <base> <incoming> > '<path>'" "git add -- '<path>'" \
+  "rebase --continue" "rebase --skip"
+has "the suite runs again before the fast-forward, and the landing line names the rebase" "$fix_md" \
+  "the suite runs again" "names the rebase onto the moved target"
+lacks "no line aborts every rebase conflict whatever its class" "$fix_md" \
+  "rebase conflict is aborted with the conflicting files named"
 has "the fix reference says what Green means without redefining it" "$fix_md" "Green"
 # A fix/<slug> worktree the Fixer left no commit in sits on a branch identical to the developer's
 # HEAD and holds nothing to read, so the run takes back what it created, and only that.

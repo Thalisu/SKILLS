@@ -11,8 +11,9 @@ any of this runs.
 The parts it does not own it links and never restates: the two trees are
 [worktrees.md](../../../.agents/worktrees.md), the section it appends is
 [review-format.md](../../../.agents/formats/review-format.md), the landing rules are
-[ADR 0013](../../../docs/adr/0013-do-code-review-lands-a-green-review-by-fast-forward.md), and why
-the default run fixes at all is
+[ADR 0013](../../../docs/adr/0013-do-code-review-lands-a-green-review-by-fast-forward.md) as
+[ADR 0027](../../../docs/adr/0027-the-rebase-runs-in-the-session-before-the-review-and-the-landing-retries-only-the-mechanical-class.md)
+amends them for a target that moved, and why the default run fixes at all is
 [ADR 0015](../../../docs/adr/0015-the-default-review-run-fixes-and-lands-and-the-fixer-corrects-for-every-caller.md).
 
 ## The door
@@ -141,13 +142,58 @@ not.
 The Review is Green when every `Act on` Finding reads `fixed` and `verified`, every Axis ran and
 the suite is green. `Consider`, `Noted` and `Cleared` never block.
 
-Green lands, under ADR 0013's rules and no others: the landing target is fast-forwarded to the
-branch the Fixer committed on, `git -C <the main checkout> merge --ff-only <that branch>`; a
-protected target is refused and named; the branch is rebased first when the target moved, and a
-rebase conflict is aborted with the conflicting files named; a fast-forward that fails leaves
-everything in place and is named. On every one of those paths nothing is pushed. The reply's last line is the push
-command, `git push` with the landing target named, so the developer pushes when they choose and
-nothing leaves the machine before then.
+Green lands, under ADR 0013's rules as ADR 0027 amends them and no others: the landing target is
+fast-forwarded to the branch the Fixer committed on,
+`git -C <the main checkout> merge --ff-only <that branch>`; a protected target is refused and
+named; a target that moved while the review ran is retried once, as below; a fast-forward that
+fails for any other reason leaves everything in place and is named. On every one of those paths
+nothing is pushed. The reply's last line is the push command, `git push` with the landing target
+named, so the developer pushes when they choose and nothing leaves the machine before then.
+
+### A target that moved while the review ran
+
+The developer may commit on the landing target while the review runs. The target is then no longer
+an ancestor of the branch, which is what tells this case from any other failed fast-forward:
+`git merge-base --is-ancestor <the landing target> <that branch>` fails. The landing retries once,
+by rebasing the branch onto the moved target, and only over hunks nobody has to judge. Every command
+below runs in the tree the branch is checked out in, where the re-check ran, and
+`git -C <the main checkout>` stays for the fast-forward alone. Nothing on these paths asks a
+question: the orchestrator is a fork with nobody to answer, so a hunk a person must judge ends the
+landing instead of waiting on one.
+
+1. The rebase runs with git's conflict-resolution reuse off,
+   `git -c rerere.enabled=false -c rerere.autoupdate=false rebase <the landing target>`, and so do
+   the continue and the skip below, with the same prefix. The setting is the developer's and may be
+   on, and a resolution the cache replays into a stop would be classed in place of what git left.
+2. At every stop, before anything is resolved, the conflicted hunks are classed by
+   `bash ~/.claude/skills/do-code-review/scripts/conflict-class.sh`, whose verdict is the class and
+   never the orchestrator's reading of the markers, per
+   [ADR 0028](../../../docs/adr/0028-the-conflict-class-is-a-scripts-verdict-never-the-sessions-reading.md).
+   It is a verbatim copy of the script `do`'s integration runs, kept in this skill so the review
+   classes the same way where `do` is not installed, and `do`'s test of that script fails when the
+   two drift.
+3. Every hunk `mechanical`: the orchestrator resolves them itself by keeping both sides in base
+   order, the rule `do`'s integration applies, restated here for the same reason. The conflicted
+   files are the list git left, read NUL-delimited, `git diff --name-only --diff-filter=U -z`, and a
+   path is only ever used inside single quotes or after `--`, never bare and never in double
+   quotes, since either side of the rebase chose it. Per file:
+
+   ```
+   git show ':1:<path>' > <base> && git show ':2:<path>' > <target> && git show ':3:<path>' > <incoming>
+   git merge-file --union -p <target> <base> <incoming> > '<path>'
+   git add -- '<path>'
+   ```
+
+   Stage 2 is the landing target and stage 3 the commit being replayed, so the union keeps the
+   target's lines above the replayed commit's. Then `rebase --continue`, and every further stop is
+   classed and resolved the same way. A replayed commit the resolution left empty is already on the
+   target: `rebase --skip`, and the landing line names it.
+4. When the rebase finishes, the suite runs again in that tree, the suite the re-check ran, since
+   the branch now sits on commits the reviewers never read. Green, and the target is fast-forwarded
+   as above, once: a second failure is a failed fast-forward and is named.
+
+The landing line then names the rebase onto the moved target with the hunks it resolved, one line
+each, in the shape [review-format.md](../../../.agents/formats/review-format.md) fixes.
 
 After a landing the run removes what it created and only that: the `fix/<slug>` worktree and its
 branch, left from the main checkout with a bare `cd`, never `do`'s worktree. A run whose Fixer

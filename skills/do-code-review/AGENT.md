@@ -265,6 +265,10 @@ target under ADR 0013's rules, then end with the push command. The `Act on` gate
 never the landing, so a first clean build `do` sends here lands like any other. Either way the file
 is never read by a reviewer: the reviewers are gone by now.
 
+Either way the landing retries once over a target that moved while you ran, rebasing only over
+hunks the conflict class script calls `mechanical`, and asks nothing: you are a fork with nobody to
+answer.
+
 On the developer's own branch an uncommitted working tree skips the fix, as that file says: the
 Review stands, one line says to commit or stash and run `fix` with it, and no Fixer is forked.
 
@@ -279,6 +283,8 @@ Finding by number, the same words the `## Fix run` section carries.
 
 Then the landing, whether a fix ran or not: `landed at <sha>`, or `not landed` with its reason and
 the branch and worktree left in place, or `nothing to land` when the landing target is the branch
-the Review judged. Your last line is the push command, `git push` with the landing target named,
-because nothing leaves the machine here.
+the Review judged. A landing that retried over a moved target reads
+`landed at <sha>, rebased onto <target> at <short sha>`, then one line per hunk it resolved. Your
+last line is the push command, `git push` with the landing target named, because nothing leaves the
+machine here.
 Nothing else: no preamble, no summary of your own.

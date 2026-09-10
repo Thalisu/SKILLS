@@ -210,6 +210,11 @@ landing.
 Then the suite, `- suite: <the command>: <its result>`, and the landing on the last line:
 
 - `- landed at <sha>`, the landing target fast-forwarded to the branch the fix committed on.
+- `- landed at <sha>, rebased onto <target> at <short sha>`, when the target moved while the review
+  ran and the landing rebased the branch onto it first, then one line per hunk it resolved,
+  `  - <file> <location>` as the conflict class script printed them, and one line per replayed
+  commit it skipped as already on the target, `  - skipped <short sha>`. A rebase that stopped
+  nowhere adds no line.
 - `- not landed: <the reason>; the branch <name> and its worktree stay in place`, naming both, for
   every reason the landing rules of
   [ADR 0013](../../docs/adr/0013-do-code-review-lands-a-green-review-by-fast-forward.md) give: a
