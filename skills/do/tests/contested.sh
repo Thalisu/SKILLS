@@ -213,4 +213,62 @@ check "answers carried into a headless session are refused all the same" 4 "$rc"
   "no human CLAUDE_CODE_ENTRYPOINT=sdk-ts"
 expect "a headless session writes nothing of an answer it was handed" test "$(state)" = "$before"
 
+# A stop whose every hunk is a whole file: a rewrite next to an addition that git's own presentation
+# joins into one hunk, a file each side deleted while the other edited it, and a binary file. The
+# answer takes a side's version whole, or its deletion, and the union only where both sides are text.
+fresh whole-files
+seq 1 6 > collapsed.txt
+printf 'kept\n' > gone.txt
+printf 'kept\n' > kept.txt
+printf 'pixels\000\001\002\n' > picture.bin
+commit base
+g switch -q -c do/run
+printf '1\n2i\n3\n4\ny\n5\n6\n' > collapsed.txt
+printf 'kept\nedited by incoming\n' > gone.txt
+rm kept.txt
+printf 'pixels\000\001\004incoming\n' > picture.bin
+commit incoming
+g switch -q main
+printf '1\n2t\n3\n4\nx\n5\n6\n' > collapsed.txt
+rm gone.txt
+printf 'kept\nedited by target\n' > kept.txt
+printf 'pixels\000\001\003target\n' > picture.bin
+commit target
+g switch -q do/run
+g rebase main >/dev/null 2>&1
+for s in 1 2 3; do git cat-file blob ":$s:collapsed.txt" > "$tmp/collapsed.$s"; done
+git merge-file --union -p "$tmp/collapsed.2" "$tmp/collapsed.1" "$tmp/collapsed.3" > "$tmp/collapsed.both"
+git cat-file blob :2:kept.txt > "$tmp/kept.target"
+git cat-file blob :3:picture.bin > "$tmp/picture.incoming"
+
+run; first="$(sed -n 's/^id //p' <<<"$out")"
+check "a whole-file hunk that git's presentation joined is asked whole, with stop recommended" 1 "$rc" \
+  "Conflict 1 of 4 · collapsed.txt · whole-file · unmergeable" \
+  "    2t" "    x" "    2i" "    y" "Recommendation: stop, because" \
+  "Answers: target · incoming · both · stop"
+run "$first:both"; second="$(sed -n 's/^id //p' <<<"$out")"
+check "a side that deleted the file is quoted as the deletion" 1 "$rc" \
+  "Conflict 2 of 4 · gone.txt · whole-file · delete-vs-edit" \
+  "    (deleted)" "    edited by incoming" "Answers: target · incoming · stop"
+run "$first:both" "$second:target"; third="$(sed -n 's/^id //p' <<<"$out")"
+run "$first:both" "$second:target" "$third:target"; fourth="$(sed -n 's/^id //p' <<<"$out")"
+check "a binary side is named by its size and blob, never pasted" 1 "$rc" \
+  "Conflict 4 of 4 · picture.bin · whole-file · binary" "    (binary, "
+absent "no byte of a binary side reaches the question" 1 "$rc" "pixels"
+
+run "$first:both" "$second:target" "$third:target" "$fourth:incoming"
+check "whole-file answers write or remove each file and state the answers by word" 0 "$rc" \
+  "wrote collapsed.txt" "removed gone.txt" "wrote kept.txt" "wrote picture.bin" \
+  "resolved mechanical=0 target=2 incoming=1 both=1"
+expect "both on a joined hunk is the union of the whole file" cmp -s collapsed.txt "$tmp/collapsed.both"
+expect "target where the Target side deleted the file removes it" \
+  test ! -e gone.txt -a -z "$(git ls-files -- gone.txt)"
+expect "target where the Incoming side deleted the file keeps the Target's version" \
+  cmp -s kept.txt "$tmp/kept.target"
+expect "incoming on a binary file takes the Incoming side's bytes whole" \
+  cmp -s picture.bin "$tmp/picture.incoming"
+expect "no whole-file hunk is left unmerged" test -z "$(git ls-files -u)"
+expect "the rebase continues from there too" \
+  g -c core.editor=true -c rerere.enabled=false rebase --continue
+
 if [ "$fails" = 0 ]; then echo "all ok"; else echo "$fails failing"; exit 1; fi

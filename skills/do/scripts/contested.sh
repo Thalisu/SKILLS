@@ -9,10 +9,12 @@
 # A question opens with `Conflict <k> of <n> · <file> · <location> · <shape>`, the file in the form
 # conflict-class.sh prints it, then `id <id>`, the Target and the Incoming side each quoted under its
 # own heading, a recommendation with the shape as its reason, the answers the shape offers and the
-# command that undoes the rebase.
+# command that undoes the rebase. A whole-file hunk quotes each side whole, as `(deleted)` where that
+# side deleted the file, or by its size and blob where the file is binary or too large.
 #
 # Once every contested hunk has an answer, each file carrying one is written once from its three
-# index stages, its mechanical hunks by the union rule, and staged: `wrote <file>` for each, then
+# index stages, its mechanical hunks by the union rule, and staged: `wrote <file>` for each, or
+# `removed <file>` where the answer took a side that deleted it, then
 # `resolved mechanical=<n> target=<n> incoming=<n> both=<n>`.
 #
 # Exit codes: 0 every contested hunk answered and its file written · 1 a question printed · 2 usage,
@@ -82,12 +84,13 @@ esac
 # The report, one entry per hunk in the order the classifier printed it. A hunk's ordinal counts the
 # hunks of its own file, which is how the regenerated merge below is matched to it.
 classes=() files=() locations=() shapes=() ordinals=() contested=()
-declare -A seen
+declare -A seen whole
 while read -r class file location shape; do
   case "$class" in mechanical|contested) ;; *) continue ;; esac
   seen["$file"]=$(( ${seen["$file"]:-0} + 1 ))
   classes+=("$class"); files+=("$file"); locations+=("$location"); shapes+=("${shape:-}")
   ordinals+=("${seen["$file"]}")
+  [ "$location" = whole-file ] && whole["$file"]=1
   [ "$class" = contested ] && contested+=("$(( ${#classes[@]} - 1 ))")
 done < <(bash "$here/conflict-class.sh" 2>/dev/null)
 
@@ -103,10 +106,26 @@ regenerate() { # $1 path: the three stages into $tmp/s1..s3, their merge into $t
     > "$tmp/merged" 2>/dev/null
 }
 
+# One side of a whole-file hunk: its stage whole, its deletion, or, where the file cannot be read
+# line by line, its size and blob, so no byte of it reaches the question.
+whole_side() { # $1 stage, $2 path, $3 shape
+  git cat-file -e ":$1:$2" 2>/dev/null || { echo "(deleted)"; return; }
+  case "$3" in
+    binary)    echo "(binary, $(git cat-file -s ":$1:$2") bytes, blob $(git rev-parse --short ":$1:$2"))" ;;
+    too-large) echo "(too large, $(git cat-file -s ":$1:$2") bytes, blob $(git rev-parse --short ":$1:$2"))" ;;
+    *)         git cat-file blob ":$1:$2" ;;
+  esac
+}
+
 # The Target and the Incoming section of one hunk, into $tmp/target and $tmp/incoming, the prefix
 # taken off again.
-sections() { # $1 path, $2 ordinal
+sections() { # $1 path, $2 ordinal, $3 location, $4 shape
   local want="$2" n=0 section=outside line
+  if [ "$3" = whole-file ]; then
+    whole_side 2 "$1" "$4" > "$tmp/target"
+    whole_side 3 "$1" "$4" > "$tmp/incoming"
+    return
+  fi
   : > "$tmp/target"; : > "$tmp/incoming"
   regenerate "$1"
   while IFS= read -r line; do
@@ -126,7 +145,12 @@ sections() { # $1 path, $2 ordinal
 }
 
 quote() { # $1 file holding one side
-  if [ -s "$1" ]; then sed 's/^/    /' "$1"; else echo "    (nothing)"; fi
+  if [ -s "$1" ]; then
+    sed 's/^/    /' "$1"
+    [ -z "$(tail -c1 "$1")" ] || echo
+  else
+    echo "    (nothing)"
+  fi
 }
 
 # The recommendation and its reason, keyed by the shape the classifier named.
@@ -158,7 +182,7 @@ hunk_id() { # $1 path, $2 location
 ask() { # $1 position of the hunk among the contested ones, from 0
   local i="${contested[$1]}" path
   path="${raw_path["${files[$i]}"]}"
-  sections "$path" "${ordinals[$i]}"
+  sections "$path" "${ordinals[$i]}" "${locations[$i]}" "${shapes[$i]}"
   echo "Conflict $(( $1 + 1 )) of ${#contested[@]} · ${files[$i]} · ${locations[$i]} · ${shapes[$i]}"
   echo "id $(hunk_id "$path" "${locations[$i]}")"
   echo
@@ -203,6 +227,31 @@ resolve() { # $1 path, $2 the file as the report prints it
     mv "$tmp/trimmed" "$tmp/out"
   fi
   cat "$tmp/out" > "$path"
+  git add -- "$path"
+  echo "wrote $field"
+}
+
+# A whole-file hunk takes its side's version whole, or that side's deletion, and git writes it; both
+# is the union of the whole file, offered only where both sides are text.
+resolve_whole() { # $1 path, $2 the file as the report prints it, $3 answer
+  local path="$1" stage=2 s
+  case "$3" in
+    incoming) stage=3 ;;
+    both)
+      for s in 1 2 3; do git cat-file blob ":$s:$path" > "$tmp/w$s" 2>/dev/null; done
+      git merge-file --union -p "$tmp/w2" "$tmp/w1" "$tmp/w3" > "$path"
+      git add -- "$path"
+      echo "wrote $2"
+      return ;;
+  esac
+  if ! git cat-file -e ":$stage:$path" 2>/dev/null; then
+    git rm -q -- "$path" >/dev/null
+    echo "removed $2"
+    return
+  fi
+  if [ "$stage" = 2 ]; then git checkout -q --ours -- "$path"; else git checkout -q --theirs -- "$path"; fi
+  git add -- "$path"
+  echo "wrote $2"
 }
 
 [ "${#contested[@]}" -gt 0 ] || { echo "no contested hunk at this stop" >&2; exit 2; }
@@ -213,7 +262,7 @@ resolve() { # $1 path, $2 the file as the report prints it
 k=0
 for arg in "$@"; do
   i="${contested[$k]}"; id="${arg%%:*}"; word="${arg#*:}"
-  sections "${raw_path["${files[$i]}"]}" "${ordinals[$i]}"
+  sections "${raw_path["${files[$i]}"]}" "${ordinals[$i]}" "${locations[$i]}" "${shapes[$i]}"
   [ "$id" = "$(hunk_id "${raw_path["${files[$i]}"]}" "${locations[$i]}")" ] || blocked "$id is no longer open"
   [ "$word" = stop ] && blocked stop
   case " $(offered "${shapes[$i]}") " in
@@ -253,9 +302,11 @@ for i in "${!classes[@]}"; do
 done
 
 for file in "${order[@]}"; do
-  resolve "${raw_path["$file"]}" "$file"
-  git add -- "${raw_path["$file"]}"
-  echo "wrote $file"
+  if [ -n "${whole["$file"]+set}" ]; then
+    resolve_whole "${raw_path["$file"]}" "$file" "${answer_at["$file#1"]}"
+  else
+    resolve "${raw_path["$file"]}" "$file"
+  fi
 done
 echo "resolved mechanical=$mechanical target=${tally[target]} incoming=${tally[incoming]} both=${tally[both]}"
 exit 0
