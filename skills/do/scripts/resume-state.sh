@@ -59,7 +59,11 @@ branch="${branch#refs/heads/}"
 [ -n "$branch" ] || { echo "$wt is on a detached HEAD with no rebase open: nothing to resume" >&2; exit 2; }
 
 base="$(git -C "$main" symbolic-ref --short -q HEAD || git -C "$main" rev-parse HEAD)"
-merge_base="$(git -C "$wt" merge-base "$base" "refs/heads/$branch" 2>/dev/null || echo none)"
+# A same-named tag resolves ahead of a branch and would shift the merge base onto it, so the
+# developer's branch is read qualified; a detached HEAD's own sha has no such ambiguity to qualify.
+base_ref="refs/heads/$base"
+git -C "$main" show-ref --verify --quiet "$base_ref" || base_ref="$base"
+merge_base="$(git -C "$wt" merge-base "$base_ref" "refs/heads/$branch" 2>/dev/null || echo none)"
 
 echo "worktree=$wt"
 echo "branch=$branch"
@@ -74,7 +78,7 @@ while IFS= read -r sha; do
   echo "commit=$short $(git -C "$wt" log -1 --format=%s "$sha")"
   echo "behaviour=$short ${behaviour:-none}"
   n=$((n + 1))
-done < <(git -C "$wt" rev-list --reverse "$base..refs/heads/$branch")
+done < <(git -C "$wt" rev-list --reverse "$base_ref..refs/heads/$branch")
 echo "commits=$n"
 
 dirty=0

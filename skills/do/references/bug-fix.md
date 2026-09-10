@@ -256,7 +256,8 @@ the gate green after it, or the run stopped as blocked with the worktree and its
 **10. Review and landing.** The review in [mechanics.md](mechanics.md), called with
 the branch alone as the spec source, since no Ticket exists to hand over and the Review names the
 branch and its fixed point instead, with the merge base of the branch and the branch the run
-started on, `git merge-base <that branch> HEAD` read after the integration as the fixed point, and
+started on, `git merge-base refs/heads/<that branch> HEAD`, qualified so a same-named tag can never
+shadow the branch, read after the integration as the fixed point, and
 the branch the run started on as the landing target. The thread shows the return, one line per part.
 A red gate, a return that reads not landed, a `do-code-review` the session does not list and a
 protected branch are handled the same way the `ticket` Playbook does, and the mechanics carry the

@@ -335,8 +335,9 @@ the fix call the review section names, never a second review, per
 [ADR 0033](../../../docs/adr/0033-the-review-runs-once-per-run-and-what-comes-after-it-lands-through-the-gate-alone.md).
 
 Every command of this step that can meet a conflict runs with git's conflict-resolution reuse off,
-the rebase itself as `git -c rerere.enabled=false -c rerere.autoupdate=false rebase <the developer's
-branch>` and the continue and the skip below with the same prefix. The setting is the developer's
+the rebase itself as `git -c rerere.enabled=false -c rerere.autoupdate=false rebase refs/heads/<the
+developer's branch>`, qualified so a tag sharing the branch's name can never shadow it, and the
+continue and the skip below with the same prefix. The setting is the developer's
 own and may be on: then a resolution recorded at one stop is replayed into the next stop of the same
 shape, the class would be read from what the cache put back instead of from what git left, and the
 run's own resolutions would land in a cache that outlives it.
@@ -344,8 +345,9 @@ run's own resolutions would land in a cache that outlives it.
 The step walks the states below, and the thread says which one it reached.
 
 **A rebase that replays no commit.** Before the rebase runs, the step checks whether the
-developer's branch is already merged into the run's own: `git merge-base --is-ancestor <the
-developer's branch> HEAD`. Where it exits 0, the developer's branch did not move under the run, or
+developer's branch is already merged into the run's own: `git merge-base --is-ancestor
+refs/heads/<the developer's branch> HEAD`, the ref qualified so a same-named tag can never shadow
+it. Where it exits 0, the developer's branch did not move under the run, or
 the developer rebased or merged it into `do/<slug>` by hand between two runs, resolving any
 conflict along the way, and running the rebase now would only replay a commit git may not drop as
 empty, or hand the developer the same hunk their own merge just settled. The run skips the rebase:
@@ -483,7 +485,8 @@ nothing is pushed. The blocked states carry two different undo commands, and eac
 own: the abort while the rebase is open, the reset to the recorded commit once it has finished.
 
 The fixed point the review is called with is read once the step is done, whichever state it
-reached: `git merge-base <the developer's branch> HEAD` in the worktree. After a replay it is the
+reached: `git merge-base refs/heads/<the developer's branch> HEAD` in the worktree, the ref
+qualified for the same reason the rebase above is. After a replay it is the
 commit the rebase landed on. After a no-op it is the commit the worktree was created from when
 nothing moved, and the tip of the developer's branch when they rebased or merged it into
 `do/<slug>` by hand, which the ancestor check above already read before the no-op ticked.

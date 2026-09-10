@@ -450,21 +450,40 @@ has "the review's fixed point names the integration among its sources" "$mech" \
 # rebased the branch by hand between two runs leaves the commit the worktree was created from behind
 # their own commits. The merge base read after the integration is the right fixed point in every state.
 has "the fixed point is the merge base read after the integration, whatever state it reached" "$mech" \
-  "git merge-base <the developer's branch> HEAD" \
+  "git merge-base refs/heads/<the developer's branch> HEAD" \
   "rebased or merged it into \`do/<slug>\` by hand"
 # The three Playbooks are what the run actually reads at its review step, so the rule has to stand in
 # each of them: the shared mechanics stating it is not the file the step is read from.
 for pb in "$ticket" "$bugfix" "$refactor"; do
   has "the review step of $(basename "$pb" .md) takes its fixed point from the merge base" "$pb" \
-    "git merge-base" \
+    "git merge-base refs/heads/<that branch> HEAD" \
     "read after the integration as the fixed point"
 done
+
+# A tag sharing the developer's branch name resolves ahead of `refs/heads/<name>`, so a bare name
+# in the rebase or the merge base would rebase onto, and read the fixed point from, the tag's
+# commit instead: the qualified form is what stands in every one of these lookups.
+for f in "$mech" "$ticket" "$bugfix" "$refactor"; do
+  has "$(basename "$f") qualifies the developer's branch as refs/heads/ so no tag can shadow it" "$f" \
+    "refs/heads/"
+done
+resume="$repo/skills/do/scripts/resume-state.sh"
+has "resume-state.sh resolves the developer's own branch to a qualified ref before it is read" \
+  "$resume" \
+  'base_ref="refs/heads/$base"'
+has "resume-state.sh's merge base and commit list read the qualified ref, never the bare name" \
+  "$resume" \
+  'merge-base "$base_ref" "refs/heads/$branch"' \
+  'rev-list --reverse "$base_ref..refs/heads/$branch"'
+lacks "resume-state.sh no longer feeds the bare developer's branch name to merge-base" \
+  "$resume" \
+  'merge-base "$base" "refs/heads/$branch"'
 
 # Reuse is the developer's own git setting and the step would run under it, so the three commands of
 # the step that can meet a conflict turn it off: the class is then read from what git left, and no
 # resolution of this run reaches a cache that outlives it.
 has "the rebase, the continue and the skip run with git's conflict-resolution reuse off" "$mech" \
-  "git -c rerere.enabled=false -c rerere.autoupdate=false rebase <the developer's branch>" \
+  "git -c rerere.enabled=false -c rerere.autoupdate=false rebase refs/heads/<the developer's branch>" \
   "git -c rerere.enabled=false -c rerere.autoupdate=false rebase --continue" \
   "git -c rerere.enabled=false -c rerere.autoupdate=false rebase --skip"
 
