@@ -84,11 +84,16 @@ has "the brief carries the What to build line and the format the fork writes" "$
   'its `What to build` line' \
   "the absolute path of this file"
 
-# The reader is briefed over two whole documents whose text a stranger may have written, so the
-# brief fixes what it may touch and the door checks the main checkout across the fork.
-has "the brief fixes the reader's tools and the one path it may write" "$refs/digest.md" \
-  "it writes one file: the Digest, at the path the brief names" \
-  "no edit of a file that already exists"
+# The reader is briefed over two whole documents whose text a stranger may have written, so it
+# writes nothing and its brief hands it nothing to write with: no path, and no hash to record.
+has "the brief leaves the reader nothing to write" "$refs/digest.md" \
+  "The brief names no path to write and no hash to compute" \
+  "it writes nothing"
+lacks "the brief carries no Digest path and no one write" "$refs/digest.md" \
+  "the path the Digest is written to" \
+  "it writes one file"
+has "the reader returns the Digest's text without its Sources, and the line the run restates" \
+  "$refs/digest.md" 'the Digest'"'"'s text, every section but `## Sources`' "the one line the run restates"
 has "the door compares git status in the main checkout across the fork" "$refs/mechanics.md" \
   'The door reads `git status --short` in the main checkout' \
   "the only one that may differ" \

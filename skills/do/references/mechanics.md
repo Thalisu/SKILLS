@@ -92,9 +92,9 @@ The door calls the Agent tool with `subagent_type: do-reader`, the agent `do` sh
 [do-reader.md](../agents/do-reader.md), on the model its definition names, since it quotes rather
 than designs, with the brief [digest.md](digest.md) fixes and nothing else, that file's
 own list and never a second one here: a copy of the list in this file drifts from the brief the
-fork is actually handed. It writes the Digest at the path that brief names and returns that
-location and the one line the run restates in the thread. No other part of either document reaches
-the session.
+fork is actually handed. It writes nothing and returns the Digest's text, every section but
+`## Sources`, and the one line the run restates in the thread. No other part of either document
+reaches the session.
 
 The session opens the Digest itself, at the path the fork returns, and reads its quotes there. The
 line that comes back with the path is a restatement for the thread: a list written from it would be

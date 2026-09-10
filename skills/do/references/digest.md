@@ -9,25 +9,25 @@ been the developer's words.
 
 ## The brief
 
-The fork is dispatched with these and nothing else, since it opens the documents itself:
+The fork is the `do-reader` agent `do` ships, and it is dispatched with these and nothing else,
+since it opens the documents itself:
 
 - the Ticket's path, its title, its `What to build` line and its criteria, which are what the
   reader matches its slice against;
 - the absolute path of the Spec in the main checkout;
 - the absolute path of the journey in the main checkout, or `none` when the Spec's `Journey:` line
   names none;
-- the absolute path of this file, the format the Digest is written in;
-- the path the Digest is written to.
+- the absolute path of this file, the format the Digest is written in.
 
-The fork reads and searches, and it writes one file: the Digest, at the path the brief names.
-A Digest already at that path is replaced whole and never edited, which is the one write over a
-file that was already there, the write the re-fork of [mechanics.md](mechanics.md) orders. No
-other write, no edit of a file that already exists, no command that changes the tree, and nothing
-outside the main checkout's scratch. It is briefed over two whole documents whose text a stranger
-may have written, since a Spec on a remote tracker is an issue anyone who can comment on it
-appends to, so what it may touch is fixed here and not left to its own reading.
+The brief names no path to write and no hash to compute. The reader reads and searches, and
+it writes nothing: its tool list holds `Read`, `Glob` and `Grep`, no tool that writes a file,
+changes one or runs a command. It is briefed over two whole documents whose text a stranger may
+have written, since a Spec on a remote tracker is an issue anyone who can comment on it appends
+to, so what it may touch is fixed by the tool list the harness enforces and never by a brief the
+stranger's text can argue with.
 
-It returns two things: the Digest's location, and the one line the run restates in the thread.
+It returns two things: the Digest's text, every section but `## Sources`, and
+the one line the run restates in the thread.
 
 ## What it holds
 
