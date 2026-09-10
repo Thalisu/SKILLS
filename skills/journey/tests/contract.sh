@@ -55,8 +55,11 @@ done
 expect "no em-dash in the case" bash -c '! grep -rqF "$1" "$2"' _ "$emdash" "$case"
 tmp="$(mktemp -d)"
 trap 'cd /; rm -rf "$tmp"' EXIT
-awk '/^  scaffold_script: \|/ { f = 1; next } f && /^    / { sub(/^    /, ""); print; next } f && /^[[:space:]]*$/ { print ""; next } f { exit }' \
-  "$case/case.yaml" > "$tmp/scaffold.sh" 2>/dev/null
+scaffold_of() { # $1 case folder: the scaffold_script block of its case file
+  awk '/^  scaffold_script: \|/ { f = 1; next } f && /^    / { sub(/^    /, ""); print; next } f && /^[[:space:]]*$/ { print ""; next } f { exit }' \
+    "$1/case.yaml" 2>/dev/null
+}
+scaffold_of "$case" > "$tmp/scaffold.sh"
 mkdir -p "$tmp/fixture"
 expect "the scaffold runs" bash -c 'test -s "$1" && cd "$2" && bash "$1" >/dev/null 2>&1' _ "$tmp/scaffold.sh" "$tmp/fixture"
 expect "the fixture holds two dated folders for the slug" \
@@ -64,6 +67,19 @@ expect "the fixture holds two dated folders for the slug" \
 out="$(cd "$tmp/fixture" && bash "$resolver" suppliers 2>&1)"
 expect "the resolver names the newest spec in the fixture" \
   grep -qxF 'spec=.scratch/20260905-suppliers/spec.md' <<<"$out"
+
+# unknown-slug-stops: a bare slug that names no feature folder, beside a neighbour whose folder only
+# ends in it. A grader expecting the stop is only right while the resolver answers none there.
+stop="$skill/evals/unknown-slug-stops"
+expect "the stop case's prompt passes the bare slug" bash -c 'test "$(cat "$1")" = "/journey suppliers"' _ "$stop/prompt.md"
+expect "the README lists the stop case" grep -qF '| `unknown-slug-stops` |' "$skill/evals/README.md"
+expect "no em-dash in the stop case" bash -c '! grep -rqF "$1" "$2"' _ "$emdash" "$stop"
+scaffold_of "$stop" > "$tmp/stop.sh"
+mkdir -p "$tmp/stop"
+expect "the stop case's scaffold runs" bash -c 'test -s "$1" && cd "$2" && bash "$1" >/dev/null 2>&1' _ "$tmp/stop.sh" "$tmp/stop"
+expect "the stop case's fixture holds only the neighbour" test -f "$tmp/stop/.scratch/20260905-blocked-suppliers/spec.md"
+out="$(cd "$tmp/stop" && bash "$resolver" suppliers 2>&1)"
+expect "the resolver names no spec in the stop case's fixture" grep -qxF 'spec=none' <<<"$out"
 
 # The documentation page is where a person reads the rule the skill no longer spells out, so it
 # states it the way the resolver's own header does, normalisation included, and names the script.

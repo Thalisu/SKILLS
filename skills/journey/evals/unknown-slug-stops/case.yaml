@@ -1,0 +1,94 @@
+name: unknown-slug-stops
+tags: [door, slug]
+runs: 2
+max_turns: 12
+timeout_seconds: 300
+allowed_tools: [Bash, Read, Edit, Write, Agent]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # The slug suppliers names no feature folder: the only feature in the scratch is
+    # blocked-suppliers, whose folder merely ends in the slug. The resolver answers spec=none, so
+    # the run ends in one message asking for the spec's path and never walks the neighbour's spec.
+    set -e
+    mkdir -p docs/agents
+    cat > index.html <<'HTML'
+    <!doctype html>
+    <html><head><meta charset="utf-8"><title>Backoffice</title></head>
+    <body>
+    <header><nav><a href="index.html">Home</a> <a href="customers.html">Customers</a></nav></header>
+    <main><h1>Backoffice</h1><p>Pick a section above.</p></main>
+    </body></html>
+    HTML
+    cat > customers.html <<'HTML'
+    <!doctype html>
+    <html><head><meta charset="utf-8"><title>Customers</title></head>
+    <body>
+    <header><nav><a href="index.html">Home</a> <a href="customers.html">Customers</a></nav></header>
+    <main>
+      <h1>Customers</h1>
+      <form id="filter"><label>Search <input name="q" placeholder="Name or email"></label></form>
+      <button id="new-customer">New customer</button>
+      <table id="list"><thead><tr><th>Name</th><th>Email</th><th></th></tr></thead><tbody></tbody></table>
+      <p id="empty" hidden>No customers yet. Add the first one.</p>
+      <dialog id="confirm-delete"><p>Delete this customer? This cannot be undone.</p><button id="confirm">Delete</button> <button id="keep">Keep</button></dialog>
+    </main>
+    </body></html>
+    HTML
+    cat > CONTEXT.md <<'MD'
+    # Backoffice
+
+    The pages the purchasing and sales team use to keep customers and suppliers.
+
+    ## Language
+
+    **Customer**:
+    A person or organisation that places orders.
+    _Avoid_: client, account
+    MD
+    cat > docs/agents/issue-tracker.md <<'MD'
+    # Issue tracker: Local Markdown
+
+    Issues and specs for this repo live as markdown files in `.scratch/`.
+
+    - One feature per directory: `.scratch/<feature-slug>/`
+    - The spec is `.scratch/<feature-slug>/spec.md`
+    - Implementation issues are one file per ticket at `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01`
+    - Triage state is a `Status:` line near the top of each issue file
+    MD
+    mkdir -p .scratch/20260905-blocked-suppliers
+    cat > .scratch/20260905-blocked-suppliers/spec.md <<'MD'
+    # Blocked suppliers
+
+    Journey: required
+    Status: ready-for-agent
+
+    ## Problem Statement
+
+    A buyer who blocks a supplier has no way to say why, so the next buyer unblocks it by mistake.
+
+    ## Solution
+
+    A reason field on the block action of the Suppliers page, shown beside every blocked supplier.
+
+    ## User Stories
+
+    1. As a buyer, I want to give a reason when I block a supplier, so that the next buyer knows why it was blocked
+    2. As a buyer, I want to see the reason beside a blocked supplier, so that I do not unblock it by mistake
+
+    ## Implementation Decisions
+
+    - The reason is free text, and it is required when blocking
+
+    ## Testing Decisions
+
+    - Behaviour tests through the page, as the Customers page is tested
+
+    ## Out of Scope
+
+    - A history of past blocks
+    MD
+    printf '.scratch/\n' > .gitignore
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"

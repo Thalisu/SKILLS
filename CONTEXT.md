@@ -123,14 +123,30 @@ lives beside it, naming it; outside the chain it names the branch and the fixed 
 _Avoid_: report (the message returned to the caller, not the file), task review, PR comments
 
 **Fixer**:
-The sub-agent `do-code-review` forks with a **Review**'s `Act on` list, writing one commit per
-**Finding** on the branch the review read.
+The sub-agent `do-code-review` forks for one `Act on` **Finding** of a **Review**, writing that
+**Finding**'s one commit on the branch the review read; one **Fixer** per **Finding**, one at a
+time.
 _Avoid_: fix agent, implementer, delegate (a delegate is `do`'s exception writer, not the review's)
+
+**Gate fixer**:
+The sub-agent `do-code-review` forks when the **Diff tests** or the **Gate** come back red after the
+**Fixers**, holding only the red block, with two attempts before the review stops without landing.
+_Avoid_: fixer (a **Fixer** owns one **Finding**), retry agent
 
 **Green**:
 The state of a **Review** that lets `do-code-review` land: no `Act on` **Finding** left standing
 (none, or every one `fixed` and `verified` by the **Fixer**) and every **Axis** run.
 _Avoid_: clean, passed, no findings (`Consider`, `Noted` and `Cleared` never block)
+
+**Gate**:
+The full set of checks a branch passes after its last edit and before it lands: the unit suite,
+the typecheck, the lint and the format check.
+_Avoid_: tests, suite (the suite is one check of the Gate), CI
+
+**Diff tests**:
+The tests whose files the diff since the fixed point touched or added, run after the **Fixers** as
+the fast check that comes before the **Gate**.
+_Avoid_: ticket tests (a review outside the chain has no **Ticket**), smoke tests
 
 **Conflict class**:
 What the door script says about one conflicted hunk, in a rebase or in a merge, and the only thing that decides who
@@ -278,3 +294,6 @@ _Avoid_: theirs, mine, source, the run's side
   (small under 150k, medium up to 200k, large beyond), the one yardstick that holds across
   harnesses; the agents the session forks do not count; a fold is judged on the merged estimate,
   and the estimate is stated in the breakdown.
+- "gate" was used for the Ticket's own tests passing after the fixes. Resolved: the **Gate** is
+  the full set of checks, run once before a landing; the tests the diff touched are the **Diff
+  tests**, the fast check the **Fixers** are held to first.

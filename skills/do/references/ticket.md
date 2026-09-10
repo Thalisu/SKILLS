@@ -76,8 +76,9 @@ body carries per the build loop in [mechanics.md](mechanics.md), and the working
 `git status --short` in the worktree. The run reads all of it from one script,
 `bash <skill-dir>/scripts/resume-state.sh <the Ticket's path>`: `worktree=` and `branch=`, one
 `commit=` line per commit with the `behaviour=` line its body carries under it, one `uncommitted=`
-line per file, and a `verdict=` line, `build` (exit 0), `ask` (exit 1, uncommitted work) or
-`integration` (exit 3, a rebase left open). The Ticket is not written: the claim stands.
+line per file, `review=`, the Review beside the Ticket or `none`, and a `verdict=` line, `build`
+(exit 0), `ask` (exit 1, uncommitted work), `integration` (exit 3, a rebase left open) or `land`
+(exit 4, the review already read the branch). The Ticket is not written: the claim stands.
 Exit 2 after the door's `resume` is a worktree on a detached HEAD with no rebase open:
 the run stops as blocked in one line naming the worktree and the script's reason, writes nothing,
 and leaves the worktree as it is, since no branch can be read from it to build on.
@@ -92,6 +93,12 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   whose `Behaviour:` line matches no line of the list is kept and named in the thread.
 - The loop continues at the first behaviour without a commit, and from there the run is a first
   run: the flows, the gate, the review, the close, the reply.
+- On `verdict=land`, the review already read this branch: its Review is the script's `review=`
+  line, and the review runs once per run, per
+  [ADR 0033](../../../docs/adr/0033-the-review-runs-once-per-run-and-what-comes-after-it-lands-through-the-gate-alone.md),
+  so the resume is never a second review. The loop is skipped, the gate and the integration run,
+  and the branch lands through the fix call on that Review, as the review in
+  [mechanics.md](mechanics.md) says for a branch the review already read.
 - On `verdict=ask`, the uncommitted changes in the worktree are named in the first message, one
   line per file from the script's `uncommitted=` lines, which are `git status --short`'s, and
   the run asks before discarding them, since the discard is the one irreversible act on this path.
@@ -108,7 +115,10 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   `refs/heads/do/<slug>` while the rebase is open, never from `git branch --show-current`. The first
   message names the worktree and that branch, says the rebase is open and names the files git left
   conflicted, and the run picks up at the integration in [mechanics.md](mechanics.md), classing the
-  stop with the door script before it touches anything, rather than at the build loop.
+  stop with the door script before it touches anything, rather than at the build loop. A
+  `review=` line that names a Review means the rebase came after the review: once it finishes and
+  the gate is green, the branch lands through the fix call on that Review, and is never reviewed a
+  second time.
 - A run that stopped on a design fork (the forks in [mechanics.md](mechanics.md)) resumes the same
   way once `discuss` amended the Spec: the reader is forked again over the amended Spec and the
   journey both, never over the Spec alone, whose Digest would come back with no Journey Path for

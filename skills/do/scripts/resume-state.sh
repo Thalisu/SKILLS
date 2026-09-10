@@ -13,13 +13,16 @@
 # commit since the merge base, oldest first, each followed by behaviour=<short sha> <its
 # Behaviour: line, or none>; commits; one uncommitted=<the git status --short line> per entry,
 # paths quoted by git as core.quotePath does; one conflicted=<path> per file an open rebase left
-# unmerged; then verdict. It only reads: the ask before a discard is the run's, never this script's.
+# unmerged; review, the Review beside the Ticket when one is there, else none; then verdict. It
+# only reads: the ask before a discard is the run's, never this script's.
 #
 # verdict, first match wins: integration (a rebase is open) · ask (uncommitted work in the
-# worktree) · build (the loop continues at the first behaviour without a commit).
+# worktree) · land (the review already read the branch, so the run goes to the Gate and the fix
+# call, never to a second review) · build (the loop continues at the first behaviour without a
+# commit).
 #
-# Exit codes: 0 build · 1 ask · 3 integration · 2 usage, no Ticket at the path, no worktree git
-# lists at its path, a detached HEAD with no rebase open, or not a git repository.
+# Exit codes: 0 build · 1 ask · 3 integration · 4 land · 2 usage, no Ticket at the path, no
+# worktree git lists at its path, a detached HEAD with no rebase open, or not a git repository.
 set -uo pipefail
 
 usage() { echo "usage: resume-state.sh <the Ticket's path>" >&2; exit 2; }
@@ -79,8 +82,12 @@ done < <(git -C "$wt" -c core.quotePath=true status --short)
 if [ "$rebase" = open ]; then
   git -C "$wt" -c core.quotePath=true diff --name-only --diff-filter=U | sed 's/^/conflicted=/'
 fi
+review="${path%.md}.review.md"
+[ -f "$review" ] || review=none
+echo "review=$review"
 
 if [ "$rebase" = open ]; then echo "verdict=integration"; exit 3; fi
 if [ "$dirty" = 1 ]; then echo "verdict=ask"; exit 1; fi
+if [ "$review" != none ]; then echo "verdict=land"; exit 4; fi
 echo "verdict=build"
 exit 0

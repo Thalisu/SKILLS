@@ -26,3 +26,7 @@ the whole answer.
 The review now reads the diff that actually lands. Until now the branch could be rebased after the
 reviewers had read it, so the reviewed diff and the landed diff were not guaranteed to be the same
 bytes.
+
+[ADR 0033](0033-the-review-runs-once-per-run-and-what-comes-after-it-lands-through-the-gate-alone.md)
+narrows this to a first run: a rebase a resumed run resolves after the review is held to the Gate
+and lands through `fix`, and is never reviewed a second time.

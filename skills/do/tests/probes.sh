@@ -172,9 +172,9 @@ run "$resume" "$issues/04-claimed.md"
 check "a clean worktree resumes at the build loop, every commit with its behaviour" 0 "$rc" \
   "worktree=$wt" "branch=do/claimed" "rebase=none" "base=main" "merge_base=$fork" \
   "commit=$first feat: archive a note" "behaviour=$first Picking Archive on a note removes it from the list" \
-  "commit=$second chore: tidy the notes" "behaviour=$second none" "commits=2" "verdict=build"
+  "commit=$second chore: tidy the notes" "behaviour=$second none" "commits=2" "review=none" "verdict=build"
 ordered "the resume state comes in its key order" \
-  worktree= branch= rebase= base= merge_base= commit= behaviour= commits= verdict=
+  worktree= branch= rebase= base= merge_base= commit= behaviour= commits= review= verdict=
 absent "a clean worktree lists no uncommitted file" "uncommitted="
 
 echo "# resume-state.sh: uncommitted work"
@@ -186,13 +186,23 @@ out="$(git -C "$wt" status --short)"
 check "the probe leaves the uncommitted work where it was" 0 0 " M notes.txt" '?? "a b.txt"'
 git -C "$wt" checkout -q -- notes.txt; rm "$wt/a b.txt"
 
+# ADR 0033: the review runs once per run, so a branch whose Review already sits beside the Ticket
+# resumes at the landing through fix, never at a second review.
+echo "# resume-state.sh: a branch the review already read"
+printf 'a review\n' > "$issues/04-claimed.review.md"
+run "$resume" "$issues/04-claimed.md"
+check "a Review beside the Ticket sends the resume to the landing, never to a second review" 4 "$rc" \
+  "review=$top/$issues/04-claimed.review.md" "commits=2" "verdict=land"
+
 echo "# resume-state.sh: a rebase the integration left open"
 printf 'one\nmain side\n' > notes.txt; g commit -q -am "main moves"
 g -C "$wt" -c rerere.enabled=false rebase main >/dev/null 2>&1
 run "$resume" "$issues/04-claimed.md"
 check "a worktree left mid-rebase goes to the integration, its branch read from the rebase state" 3 "$rc" \
-  "branch=do/claimed" "rebase=open" "conflicted=notes.txt" "commits=2" "verdict=integration"
+  "branch=do/claimed" "rebase=open" "conflicted=notes.txt" "commits=2" \
+  "review=$top/$issues/04-claimed.review.md" "verdict=integration"
 git -C "$wt" rebase --abort
+rm "$issues/04-claimed.review.md"
 
 echo "# resume-state.sh: nothing to resume"
 git -C "$wt" checkout -q --detach
@@ -244,6 +254,9 @@ has "every ambiguous verdict of the door is refused in one line naming its cause
 has "the first message states the door script's facts and marks no step skipped" "$ticket_md" \
   "off the lines the door script printed" \
   "The checklist above, verbatim, with no step marked skipped"
+
+has "a resume the review already read goes to the Gate and the fix call, never a second review" "$ticket_md" \
+  "On \`verdict=land\`" "never a second review"
 
 has "the resume says what the run does when the script exits 2 after the door's resume" "$ticket_md" \
   "Exit 2 after the door's \`resume\`" \

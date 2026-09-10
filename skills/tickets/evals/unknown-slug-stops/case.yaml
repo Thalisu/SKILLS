@@ -1,0 +1,71 @@
+name: unknown-slug-stops
+tags: [door, slug]
+runs: 2
+max_turns: 12
+timeout_seconds: 300
+allowed_tools: [Bash, Read, Edit, Write, Agent]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # The slug archive-notes names no feature folder: the only feature in the scratch is
+    # bulk-archive-notes, whose folder merely ends in the slug. The resolver answers spec=none, so
+    # the run ends in one message asking for the spec's path and cuts nothing from the neighbour.
+    set -e
+    mkdir -p src docs/agents
+    cat > src/notes.js <<'JS'
+    const notes = [];
+    function create(title) {
+      const note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+    function list() {
+      return notes.filter((n) => n.status === "active");
+    }
+    module.exports = { create, list };
+    JS
+    cat > docs/agents/issue-tracker.md <<'MD'
+    # Issue tracker: Local Markdown
+
+    Issues and specs for this repo live as markdown files in `.scratch/`.
+
+    - One feature per directory: `.scratch/<feature-slug>/`
+    - The spec is `.scratch/<feature-slug>/spec.md`
+    - Implementation issues are one file per ticket at `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01`
+    - Triage state is a `Status:` line near the top of each issue file
+    MD
+    mkdir -p .scratch/20260905-bulk-archive-notes
+    cat > .scratch/20260905-bulk-archive-notes/spec.md <<'MD'
+    # Bulk archive notes
+
+    Journey: not needed, one interaction on the existing list
+    Status: ready-for-agent
+
+    ## Problem Statement
+
+    A writer with hundreds of stale notes cannot clear them one at a time.
+
+    ## Solution
+
+    A selection mode on the list archives every selected note in one action.
+
+    ## User Stories
+
+    1. As a writer, I want to select several notes and archive them in one action, so that I clear the list in one go
+
+    ## Implementation Decisions
+
+    - The selection is lost when the writer leaves the list
+
+    ## Testing Decisions
+
+    - Behaviour tests through the notes module's public functions
+
+    ## Out of Scope
+
+    - Archiving notes on a schedule
+    MD
+    printf '.scratch/\n' > .gitignore
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"

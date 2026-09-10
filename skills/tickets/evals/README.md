@@ -33,10 +33,20 @@ the local shape of the ticket format `tickets` links.
 | `existing-tickets-stop` | tickets already under `issues/` beside the spec end the run with one message listing them; nothing is written or renumbered |
 | `spec-required` | no argument: one message asking for the spec, nothing cut from the conversation, nothing written |
 | `dated-slug` | a bare slug goes through the resolver to its dated feature folder, `20260901-archive-notes`, and the breakdown is cut from that spec, never from the newer `20260905-bulk-archive-notes` a tail match would have taken; the one question is approval |
+| `unknown-slug-stops` | a bare slug that names no feature folder, beside a feature whose folder only ends in it, goes through the resolver, and its `spec=none` ends the run in one message asking for the spec's path; nothing is cut or written |
 
 Run from the skill directory, granting the tools the cases need and opting in to their scaffold
 scripts:
 
 ```
 claude plugin eval . --scaffold --allow-tools Bash Read Edit Write Agent
+```
+
+While that command stays gated, `scripts/run-eval.sh` runs the same cases headlessly from the repo
+root, under a sandboxed config with this repo's skills linked in, and grades them itself: a judge
+session reads each `llm` grader, and the other grader types are checked by the script. Name the
+cases to run only some of them:
+
+```
+bash scripts/run-eval.sh tickets dated-slug
 ```

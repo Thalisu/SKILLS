@@ -65,7 +65,7 @@ has "a rebase that replayed nothing is a no-op that reruns nothing" "$mech" \
   "replays no commit" \
   "ticks the step as a no-op" \
   "reruns nothing" \
-  "the review is called on the branch as it is"
+  "asks nothing"
 
 # A replay rewrites the run's commits onto code the branch had not seen, so the gate that was green
 # before it is stale: it runs again, on the command lines the gate itself names, before the review.
@@ -177,6 +177,56 @@ resolves_safely() { # $1 label, $2 file, $3 heading
 resolves_safely "do's integration" "$mech" "## The integration"
 resolves_safely "the review's landing" "$repo/skills/do-code-review/references/fix.md" \
   "### A target that moved while the review ran"
+
+# A developer who integrates by hand between two runs, by a merge and not a rebase, already carries
+# the developer's branch inside the run's own: rebasing onto it a second time has nothing left to
+# replay and, where the developer resolved a conflict during that merge, would ask them the same
+# hunk again. The step now reads the ancestry first and skips the rebase when it already holds.
+has "the no-op state checks the ancestry before the rebase runs, and covers a hand merge too" "$mech" \
+  "git merge-base --is-ancestor" \
+  "the developer rebased or merged it into \`do/<slug>\` by hand between two runs" \
+  "resolving any conflict along the way" \
+  "asks nothing"
+has "the no-op's fixed point is the tip of the developer's branch the ancestry already gives" "$mech" \
+  "the tip of the developer's branch when they rebased or merged it into" \
+  "the ancestor check above already read before the no-op ticked"
+
+hand_merge_is_a_noop() {
+  local dir="$tmp/hand-merge" rc
+  mkdir -p "$dir" || return
+  g -C "$dir" init -q -b main
+  g -C "$dir" config gc.auto 0; g -C "$dir" config maintenance.auto false
+  printf 'a\n' > "$dir/f.txt"; g -C "$dir" add -A; g -C "$dir" commit -qm base
+  g -C "$dir" branch do/x
+  printf 'b\n' > "$dir/f.txt"; g -C "$dir" commit -qam "main moves"
+  g -C "$dir" switch -q do/x
+  printf 'c\n' > "$dir/f.txt"; g -C "$dir" commit -qam "the run's commit"
+  # The developer merges main into do/x by hand, hitting the same conflict a hand rebase would, and
+  # resolves it themselves.
+  g -C "$dir" -c rerere.enabled=false merge -q --no-edit main >/dev/null 2>&1
+  rc=$?
+  if [ "$rc" != 0 ]; then
+    printf 'resolved by hand\n' > "$dir/f.txt"
+    g -C "$dir" add -A
+    g -C "$dir" -c rerere.enabled=false commit -q -m "hand merge, conflict resolved"
+  fi
+  expect "a hand merge that resolved a conflict leaves a merge commit, not a fast-forward" \
+    test -n "$(g -C "$dir" show -s --format=%P HEAD | tr ' ' '\n' | sed -n 2p)"
+  g -C "$dir" merge-base --is-ancestor refs/heads/main HEAD
+  expect "the ancestor check the fix reads finds the hand-merged branch already inside do/x" \
+    test "$?" = 0
+
+  # Without the check, rebasing onto main again meets the same hunk the hand merge already settled.
+  local before after
+  before="$(g -C "$dir" rev-parse HEAD)"
+  g -C "$dir" -c rerere.enabled=false rebase main >/dev/null 2>&1
+  after="$?"
+  if [ "$after" != 0 ]; then g -C "$dir" rebase --abort >/dev/null 2>&1; fi
+  expect "a naive rebase over that state meets the hunk again, which the fix's check now skips" \
+    test "$after" != 0
+  g -C "$dir" reset -q --hard "$before"
+}
+hand_merge_is_a_noop
 
 # The class is a shape, not a meaning: two sides that only added lines can have added two
 # definitions of one key, and in a last-wins format the union then keeps the line and drops the
