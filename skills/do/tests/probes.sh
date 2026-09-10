@@ -221,6 +221,15 @@ check "a worktree left mid-rebase goes to the integration, its branch read from 
 git -C "$wt" rebase --abort
 rm "$issues/04-claimed.review.md"
 
+echo "# resume-state.sh: a branch left behind a target that moved"
+# The state a `not landed: target moved` return leaves: every behaviour committed, the tree clean, no
+# rebase open, and the developer's branch ahead of the merge base. The resume reads it as a branch to
+# build on, so the run re-derives its list, ticks every line and goes on at the gate.
+run "$resume" "$issues/04-claimed.md"
+check "a branch behind a moved target resumes with every commit and its behaviour listed" 0 "$rc" \
+  "rebase=none" "merge_base=$fork" "commit=$first feat: archive a note" \
+  "behaviour=$first Picking Archive on a note removes it from the list" "commits=2" "verdict=build"
+
 echo "# resume-state.sh: nothing to resume"
 git -C "$wt" checkout -q --detach
 run "$door" "$issues/04-claimed.md"
@@ -303,6 +312,12 @@ has "uncommitted work is asked about on the probe's ask, and nothing goes withou
   "A yes discards them" "restarts red-first" \
   "a no stops the run with the worktree as it is, the reply naming it and its branch" \
   "Nothing is discarded without the answer"
+
+echo "# a resume after a landing that did not happen"
+has "a resume with every behaviour committed goes on at the gate, never waiting on an empty loop" "$ticket_md" \
+  "When every line of the list is ticked" \
+  "step 5 reads \`done: resumed\`" \
+  "the integration with the developer present"
 
 echo "# a skip is written when its step is reached"
 reply_md="$skill/references/reply.md"

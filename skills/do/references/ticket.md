@@ -106,6 +106,11 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   so the resume is never a second review. The loop is skipped, the gate and the integration run,
   and the branch lands through the fix call on that Review, as the review in
   [mechanics.md](mechanics.md) says for a branch the review already read.
+- When every line of the list is ticked, as on the branch a `not landed: target moved` return left,
+  step 5 reads `done: resumed` and the run never waits on an empty loop. It goes on at step 6 as a
+  first run does, a flow already on the branch counting as authored, then the gate, then
+  the integration with the developer present to answer each contested hunk the review could not,
+  then the review on the rebased diff and the landing.
 - On `verdict=ask`, the uncommitted changes in the worktree are named in the first message, one
   line per file from the script's `uncommitted=` lines, which are `git status --short`'s, and
   the run asks before discarding them, since the discard is the one irreversible act on this path.
