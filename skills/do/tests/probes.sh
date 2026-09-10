@@ -193,5 +193,13 @@ has "the first message states the door script's facts and marks no step skipped"
   "off the lines the door script printed" \
   "The checklist above, verbatim, with no step marked skipped"
 
+echo "# the resume asks before it discards"
+has "uncommitted work is asked about on the probe's ask, and nothing goes without the answer" "$ticket_md" \
+  "On \`verdict=ask\`" \
+  "the run asks before discarding them" \
+  "A yes discards them" "restarts red-first" \
+  "a no stops the run with the worktree as it is, the reply naming it and its branch" \
+  "Nothing is discarded without the answer"
+
 echo
 if [ "$fails" = 0 ]; then echo "probes: all checks passed"; else echo "probes: $fails failed"; exit 1; fi

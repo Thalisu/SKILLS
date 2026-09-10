@@ -81,11 +81,14 @@ line per file, and a `verdict=` line, `build` (exit 0), `ask` (exit 1, uncommitt
   whose `Behaviour:` line matches no line of the list is kept and named in the thread.
 - The loop continues at the first behaviour without a commit, and from there the run is a first
   run: the flows, the gate, the review, the close, the reply.
-- Uncommitted changes in the worktree are named in the first message, one line per file from
-  `git status --short`, and the run asks before discarding them, since the discard is the one
-  irreversible act on this path. A yes discards them, `git restore --staged --worktree .` then
-  `git clean -fd` in the worktree, and the first behaviour without a commit restarts red-first; a
-  no stops the run with the worktree as it is, the reply naming it and its branch.
+- On `verdict=ask`, the uncommitted changes in the worktree are named in the first message, one
+  line per file from the script's `uncommitted=` lines, which are `git status --short`'s, and
+  the run asks before discarding them, since the discard is the one irreversible act on this path.
+  Nothing is discarded without the answer: no stash, no commit and no restore comes before it, and
+  the run does not answer its own question or go on building. A yes discards them,
+  `git restore --staged --worktree .` then `git clean -fd` in the worktree, and the first
+  behaviour without a commit restarts red-first;
+  a no stops the run with the worktree as it is, the reply naming it and its branch.
 - A worktree the integration left mid-rebase is resumed like any other, and never started over: the
   stop leaves a detached HEAD, so `git worktree list` names the path without the branch and
   `git branch --show-current` in it comes back empty, while the branch itself is still there and a
