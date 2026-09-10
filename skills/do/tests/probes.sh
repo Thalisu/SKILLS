@@ -170,5 +170,28 @@ git -C "$wt" checkout -q do/claimed
 run "$resume" "$issues/07-gone.md"; check "a Ticket with no worktree has nothing to resume" 2 "$rc"
 run "$resume"; check "no argument is a usage error" 2 "$rc"
 
+echo "# the reference names each probe with its command line"
+ticket_md="$skill/references/ticket.md"
+has() { # $1 label, $2 file, $3.. fixed strings that must appear in the file
+  local label="$1" file="$2"; shift 2
+  local ok=1 s
+  [ -f "$file" ] || ok=0
+  for s in "$@"; do [ "$ok" = 1 ] && grep -qF -- "$s" "$file" || ok=0; done
+  if [ "$ok" = 1 ]; then echo "ok    $label"; else echo "FAIL  $label ($file)"; fails=$((fails + 1)); fi
+}
+header_has() { # $1 label, $2 file, $3 fixed string that must appear in its first $4 lines
+  if sed -n "1,${4}p" "$2" | grep -qF -- "$3"; then echo "ok    $1"; else echo "FAIL  $1 ($2)"; fails=$((fails + 1)); fi
+}
+header_has "the door script's header carries its own command line" "$door" "#   ticket-door.sh <the Ticket's path>" 12
+header_has "the resume script's header carries its own command line" "$resume" "#   resume-state.sh <the Ticket's path>" 12
+header_has "this test's header carries its own command line" "$here/probes.sh" "Run: bash skills/do/tests/probes.sh" 7
+has "the door runs its script, named with its command line" "$ticket_md" \
+  "\`bash <skill-dir>/scripts/ticket-door.sh <the Ticket's path>\`"
+has "the resume reads its script, named with its command line" "$ticket_md" \
+  "\`bash <skill-dir>/scripts/resume-state.sh <the Ticket's path>\`"
+has "the first message states the door script's facts and marks no step skipped" "$ticket_md" \
+  "off the lines the door script printed" \
+  "The checklist above, verbatim, with no step marked skipped"
+
 echo
 if [ "$fails" = 0 ]; then echo "probes: all checks passed"; else echo "probes: $fails failed"; exit 1; fi

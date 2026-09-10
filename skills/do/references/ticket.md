@@ -11,7 +11,14 @@ the review's and the shape step as `sketch`'s; each step carries its done condit
 ## Door
 
 The argument is a Ticket's path, or an issue reference resolved through the tracker file,
-`docs/agents/issue-tracker.md`. Before anything is written:
+`docs/agents/issue-tracker.md`. On a local Ticket the door reads its facts from one script,
+`bash <skill-dir>/scripts/ticket-door.sh <the Ticket's path>`, and never from files it opens to
+find out: the Ticket's `status=`, one `blocker=` line per Ticket its `Blocked by` line names with
+that Ticket's status, `worktree=` for the run's `do/<slug>` worktree, `loop=` for the Testing
+Policy, `protected=` for the developer's branch, and a `verdict=` line, the script exiting non-zero
+on every stop. The developer reruns that line and gets the same answer. The bullets below are what
+the script checks and what each verdict does; on a tracker the session reads the same facts the way
+the tracker file describes. Before anything is written:
 
 - The Ticket is read: the file, or the issue's body and comments through the tracker's CLI as
   the file describes. Nothing is written and no fork is dispatched: the run has not been cleared to
@@ -58,7 +65,11 @@ is picked up where the last run stopped and never restarted. The state a resume 
 the branch and its worktree, never a run-state file: the commits since the developer's branch,
 `git log <base>..do/<slug>` with `<base>` their merge base, each with the `Behaviour:` line its
 body carries per the build loop in [mechanics.md](mechanics.md), and the working tree,
-`git status --short` in the worktree. The Ticket is not written: the claim stands.
+`git status --short` in the worktree. The run reads all of it from one script,
+`bash <skill-dir>/scripts/resume-state.sh <the Ticket's path>`: `worktree=` and `branch=`, one
+`commit=` line per commit with the `behaviour=` line its body carries under it, one `uncommitted=`
+line per file, and a `verdict=` line, `build` (exit 0), `ask` (exit 1, uncommitted work) or
+`integration` (exit 3, a rebase left open). The Ticket is not written: the claim stands.
 
 - The first message says the run resumes, names the worktree and its branch, and lists the
   commits found, one line each with its `Behaviour:` line. The claim line is not written again.
@@ -111,7 +122,8 @@ Do:
 
 ## Steps
 
-**0. Resolve, claim, show.** The first message, before any edit, holds in this order:
+**0. Resolve, claim, show.** The first message, before any edit, holds in this order, its facts
+taken off the lines the door script printed and never restated from a file the session read:
 
 - `Playbook: ticket`.
 - The title confirmed back, `<NN>: <title>`.
@@ -131,7 +143,8 @@ Do:
 - The claim line, `Claimed: <the Ticket's path or reference>`, once the claim is written as the
   Ticket file in [mechanics.md](mechanics.md) says. On a remote tracker the run waits for a yes
   before it; a no stops the run with nothing written.
-- The checklist above, verbatim.
+- The checklist above, verbatim, with no step marked skipped: every step stays open until the run
+  reaches it.
 
 On a local Ticket the run proceeds without a yes, per
 [never-block-on-the-human](../../../.agents/principles/never-block-on-the-human.md): the claim is
