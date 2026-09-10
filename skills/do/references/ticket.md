@@ -42,8 +42,10 @@ the tracker file describes. Before anything is written:
   first, or sets its status by hand when it was done outside the chain.
 - A `claimed` Ticket whose `do/<slug>` worktree exists is resumed, as the Resume section says:
   never a second worktree, and the claim stands.
-- A `claimed` Ticket whose worktree is gone starts over: the first message says so in one line,
-  and the claim stands, since the claim is idempotent.
+- A `claimed` Ticket whose worktree is gone starts over: the first message says so in one line
+  and names the door's `run_branch=` fact, and the claim stands, since the claim is idempotent. A
+  `do/<slug>` branch the worktree's removal left behind is named there rather than left for step 1
+  to meet as a dead `git worktree add -b`.
 - A `ready-for-agent` Ticket whose `do/<slug>` worktree already exists is refused in one line
   naming the worktree. Nothing is written: the worktree is a run no claim records, and the
   developer removes it or sets the status by hand.
@@ -198,7 +200,11 @@ predicate, the loop line and the claim line are in the thread and the Ticket rea
 
 **1. Worktree.** The worktree in [mechanics.md](mechanics.md): created from the current HEAD on
 `do/<slug>`, where `<slug>` is the Ticket file's slug without its number, excluded locally,
-entered. Done when its status prints nothing and the branch name is in the thread.
+entered. On a start-over whose `run_branch=` fact names `do/<slug>`, the branch survived the
+worktree's removal, so the worktree is entered on it instead: `git worktree add
+.claude/worktrees/do-<slug> do/<slug>`, without `-b`, the way bug-fix's Resume already reads the
+same state, since `-b` on a branch that exists fails and that failure is not one to work around
+with a second slug. Done when its status prints nothing and the branch name is in the thread.
 
 **2. Ground.** Read `CONTEXT.md` (the root one, or the one `CONTEXT-MAP.md` names), and
 state the glossary words it will use; then the ADR titles under `docs/adr/`, and read whole

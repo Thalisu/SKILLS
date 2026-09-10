@@ -116,6 +116,7 @@ worktree="$main/.claude/worktrees/do-$slug"
 # grep -q would stop reading at the match and git would die of SIGPIPE on a long list, which
 # pipefail turns into a missing worktree.
 if git worktree list --porcelain | grep -xF -- "worktree $worktree" >/dev/null; then echo "worktree=$worktree"; else worktree=none; echo "worktree=none"; fi
+if git -C "$main" show-ref --verify --quiet "refs/heads/do/$slug"; then echo "run_branch=do/$slug"; else echo "run_branch=none"; fi
 stale=0
 if [ "$status" = ready-for-agent ] && [ "$worktree" != none ]; then echo "ambiguous=worktree exists for a ready-for-agent Ticket"; stale=1; fi
 

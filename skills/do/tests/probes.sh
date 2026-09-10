@@ -86,13 +86,21 @@ check "a ready Ticket whose blocker is resolved starts" 0 "$rc" \
   "blocker=01 resolved $issues/01-first.md" "slug=second" "worktree=none" "loop=fallback" \
   "branch=main" "protected=no" "verdict=start"
 ordered "the facts come in the order the first message states them" \
-  ticket= title= status= blocker= slug= worktree= loop= branch= protected= verdict=
+  ticket= title= status= blocker= slug= worktree= run_branch= loop= branch= protected= verdict=
 run "$door" "$issues/04-claimed.md"
 check "a claimed Ticket whose worktree exists resumes" 0 "$rc" \
   "status=claimed" "blockers=none" "worktree=$wt" "verdict=resume"
 run "$door" "$issues/07-gone.md"
 check "a claimed Ticket whose worktree is gone starts over" 0 "$rc" \
-  "status=claimed" "worktree=none" "verdict=start-over"
+  "status=claimed" "worktree=none" "run_branch=none" "verdict=start-over"
+
+ticket 18-orphan.md '**Status:** claimed' 'None (can start immediately)'
+git worktree add -q .claude/worktrees/do-orphan -b do/orphan
+git -C .claude/worktrees/do-orphan commit -q --allow-empty -m "the first run's own work"
+git worktree remove .claude/worktrees/do-orphan
+run "$door" "$issues/18-orphan.md"
+check "a claimed Ticket whose worktree is gone but its branch remains names the branch" 0 "$rc" \
+  "status=claimed" "worktree=none" "run_branch=do/orphan" "verdict=start-over"
 
 echo "# ticket-door.sh: the stops"
 run "$door" "$issues/01-first.md"
