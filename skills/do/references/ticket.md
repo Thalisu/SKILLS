@@ -67,10 +67,10 @@ the session writes the Digest from the text that comes back, in the format of
 [digest.md](digest.md), and the run derives its behaviours from that file. When no reader can be
 forked, the Agent tool withheld or no `do-reader` listed, the door still hashes both documents,
 the session reads both itself and writes the Digest, and one line says which of the two holds,
-the way the reader section of [mechanics.md](mechanics.md) says. The run
-never forks another agent in the reader's place. The Digest and the
-`.scratch/` line its write needs are the run's first marks on the developer's checkout, so a Ticket
-refused above leaves `git status` in the main checkout exactly as it found it.
+the way the reader section of [mechanics.md](mechanics.md) says. The run never forks another agent
+in the reader's place. The Digest and the `.scratch/` line its write needs are the run's first
+marks on the developer's checkout, so a Ticket refused above leaves `git status` in the main
+checkout exactly as it found it.
 
 ## Resume
 

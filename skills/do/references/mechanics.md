@@ -83,10 +83,11 @@ on the branch makes the landing fast-forward fail, so one rule covers the three 
 
 ## The reader
 
-The Ticket's Spec and its journey are read by a fork, never by the session: they are two whole
-documents the run needs a slice of, which is the exploration the Delegates rule below forks for.
-The session opens neither document, and it opens neither afterwards to check the fork: what comes
-back is quoted with the location of every quote, so the check is a quote read against its line.
+The Ticket's Spec and its journey are read by a fork, never by the session, except on the two
+branches below where no reader can be forked. They are two whole documents the run needs a slice
+of, which is the exploration the Delegates rule below forks for. The session opens neither
+document, and it opens neither afterwards to check the fork: what comes back is quoted with the
+location of every quote, so the check is a quote read against its line.
 
 Before anything is forked, the door resolves both paths from the Ticket, the way the second run
 below does, and the door hashes both itself before it forks: `git hash-object <path>` in the main
@@ -98,17 +99,17 @@ window of their own.
 
 No reader can be forked on two branches: the Agent tool is withheld from the session, or
 the Agent tool lists no `do-reader`, as it does on a machine that never linked the reader `do`
-ships. On either branch the door has already run its stops and hashed both documents as a first
-run does, and nothing is forked. The session reads both documents itself and writes the Digest at
-the same path and in the same format, its `## Sources` lines from the door's own hashes, a
-document not on disk recorded `absent` and named in one line as below. It says in one line which
-branch holds: the Agent tool withheld, or `do-reader` not listed, the reader this machine has not
-linked. With the tool withheld this is the Delegates rule below, where the fork writes nothing and
-says so, and the session does that work itself. On either branch the run
-neither stops nor asks for the tool or the agent, since the developer cannot hand one over mid-run
-and the slice is what the run needs, not the window it was read in.
-It never forks another agent in the reader's place: a fork under any other name could still hold
-the write tools `do-reader`'s own definition denies it.
+ships. On either branch the door has already run its stops, nothing is forked, and the session
+reads both documents itself and writes the Digest at the same path and in the same format, its
+`## Sources` lines from the door's own hashes, a document not on disk recorded `absent` and named
+in one line as below. It says in one line which branch holds: the Agent tool withheld, or
+`do-reader` not listed, the reader this machine has not linked, which one run of the skills
+repository's `scripts/link-skills.sh` links before the next `/do`. With the tool withheld this is
+the case the Delegates rule below covers, and as there the session does that work itself. On
+either branch the run neither stops nor asks for the tool or the agent, since the developer cannot
+hand one over mid-run and the slice is what the run needs, not the window it was read in. It never
+forks another agent in the reader's place: a fork under any other name could still hold the write
+tools `do-reader`'s own definition denies it.
 
 The door calls the Agent tool with `subagent_type: do-reader`, the agent `do` ships in
 [do-reader.md](../agents/do-reader.md), on the model its definition names, since it quotes rather

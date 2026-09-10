@@ -76,7 +76,12 @@ has "the Playbook's door forks a reader over the Spec and the Journey" "$refs/ti
   "the run forks the reader" \
   "opens neither itself"
 has "the shared mechanics carry the reader as a mechanic of its own" "$refs/mechanics.md" \
-  "## The reader" \
+  "## The reader"
+# The section opens on the rule and its one exception, so a session reading it from the top never
+# meets "never by the session" before the branches that have it read both documents.
+para_has "the reader section opens by naming the no-reader branches as the exception" \
+  "$refs/mechanics.md" "The Ticket's Spec and its journey are read by a fork" \
+  "except on the two branches below where no reader can be forked" \
   "The session opens neither document"
 # The fork returns text and a line, and the session writes that text to the file the later steps
 # read: without the file the list at step 4 has nothing but the restatement to trace to.
@@ -190,28 +195,38 @@ has "the door forks the reader by name" "$refs/mechanics.md" "subagent_type: do-
 # A session whose Agent tool does not list `do-reader` has no agent by that name to fork, so the
 # only fallback left open must never be a general-purpose fork holding write tools over the same
 # brief: the session does the reading and the write itself, stated before the fork is even called.
-has "an Agent tool that lists no do-reader has the session read and write, never fork another agent" \
-  "$refs/mechanics.md" \
+para_has "an Agent tool that lists no do-reader has the session read and write, never fork another agent" \
+  "$refs/mechanics.md" "No reader can be forked on two branches" \
   'the Agent tool lists no `do-reader`' \
   "never forks another agent in the reader's place"
 after "the lists-no-do-reader fallback is stated before the door forks the reader by name" \
   "$refs/mechanics.md" "subagent_type: do-reader" \
   'the Agent tool lists no `do-reader`'
 # The withheld tool and the unlinked reader are the same branch to the run, so one paragraph carries
-# both: the line names which one holds, `do-reader` by name when a machine never linked it, and the
-# Digest the session writes keeps the door's hashes and the absent record a first run keeps.
+# both: the line names which one holds, `do-reader` by name and the installer that links it when a
+# machine never linked it, and the Digest the session writes keeps the door's hashes and the absent
+# record a first run keeps. The withheld branch cites the Delegates rule without a fork that writes,
+# since on this branch nothing is forked at all.
 para_has "one paragraph carries both no-reader branches, the line naming do-reader when unlisted" \
   "$refs/mechanics.md" "No reader can be forked on two branches" \
   "the Agent tool is withheld from the session" \
   'the Agent tool lists no `do-reader`' \
-  "The session reads both documents itself" \
+  "the session reads both documents itself" \
   '`do-reader` not listed' \
+  '`scripts/link-skills.sh` links before the next `/do`' \
+  "the case the Delegates rule below covers, and as there the session does that work itself" \
   'its `## Sources` lines from the door'"'"'s own hashes' \
   'recorded `absent` and named in one line' \
   "neither stops nor asks for the tool" \
   "never forks another agent in the reader's place"
 lacks "the withheld branch no longer sits in a paragraph of its own" "$refs/mechanics.md" \
   "When the Agent tool is withheld from the session there is no fork to dispatch."
+# The door's hashing on those branches is said once, in the paragraph the window pin below reads, so
+# the two can never drift apart.
+lacks "the no-reader paragraph neither restates the hashing nor names a fork that writes" \
+  "$refs/mechanics.md" \
+  "hashed both documents as a first" \
+  "where the fork writes nothing and"
 # The `## Sources` lines are the record the reuse gate trusts, so they come from the door's own
 # reading taken before the fork, never from the fork that read the stranger's text.
 has "the door hashes both documents itself and records an absent one" "$refs/mechanics.md" \
