@@ -39,7 +39,8 @@ values and not quotes.
 - `## Sources`: what the slice was cut from, one line per document, `<name>: <absolute path>
   <hash>`, with `spec` and `journey` as the two names and
   the hash from `git hash-object <path>` the door runs in the main checkout before it forks the
-  reader. The door recomputes both hashes on a later run and compares them with
+  reader, and the session writes them from the door's own hashes, never from the reader's text.
+  The door recomputes both hashes on a later run and compares them with
   these, so a run decides whether to reuse the Digest by comparing two recorded values and never by
   reading either document again. A hash rather than a modification time: `git checkout`, a rebase
   and `git worktree add` all rewrite the times of files whose bytes did not change, and a Digest is

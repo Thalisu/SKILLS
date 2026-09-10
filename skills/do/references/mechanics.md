@@ -102,10 +102,12 @@ fork is actually handed. It writes nothing and returns the Digest's text, every 
 `## Sources`, and the one line the run restates in the thread. No other part of either document
 reaches the session.
 
-The session opens the Digest itself, at the path the fork returns, and reads its quotes there. The
-line that comes back with the path is a restatement for the thread: a list written from it would be
-the paraphrase the Digest exists to keep out of the record, so the steps that build on the slice
-read the file.
+The session writes the Digest itself, whole, at the path [digest.md](digest.md) fixes beside the
+Ticket in the main checkout's scratch: its `## Sources` lines from the door's own hashes first,
+then the text the reader returned. A Digest already at that path is replaced whole and never edited.
+The run shows the Digest's location and the one line in the thread, and the steps that build on
+the slice open that file and read its quotes there. The line is a restatement for the thread: a list
+written from it would be the paraphrase the Digest exists to keep out of the record.
 
 When the Agent tool is withheld from the session there is no fork to dispatch. The Delegates rule
 below is what holds: the fork writes nothing and says so, and the session does that work itself. It
@@ -113,11 +115,11 @@ reads both documents, writes the Digest at the same path in the same format, and
 line. It neither stops nor asks for the tool, since the developer cannot hand one over mid-run and
 the slice is what the run needs, not the window it was read in.
 
-A Ticket whose Spec or journey is not on disk still builds. The reader records the document as
-absent and quotes nothing under its section, and the run continues from the Ticket alone, saying so
-in one line naming the document that is absent. Only the Ticket's criteria and its `What to build`
-line feed the behaviours list then, and the line of the list that would have traced to a quote in
-that document traces to the criterion instead.
+A Ticket whose Spec or journey is not on disk still builds. The door records the document as
+`absent` among its hashes and the reader quotes nothing under its section, and the run
+continues from the Ticket alone, saying so in one line naming the document that is absent. Only the
+Ticket's criteria and its `What to build` line feed the behaviours list then, and the line of the
+list that would have traced to a quote in that document traces to the criterion instead.
 
 The door reads `git status --short` in the main checkout before it dispatches the fork, after its
 own append of the `.scratch/` line, and reads it again when the fork returns. That read is blind to

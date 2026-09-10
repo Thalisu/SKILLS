@@ -55,11 +55,16 @@ has "the Playbook's door forks a reader over the Spec and the Journey" "$refs/ti
 has "the shared mechanics carry the reader as a mechanic of its own" "$refs/mechanics.md" \
   "## The reader" \
   "The session opens neither document"
-# The fork returns a path and a line, so the quotes only reach the run when the session opens the
-# file: without this the list at step 4 has nothing but the restatement to trace to.
-has "the session opens the Digest itself and reads its quotes there" "$refs/mechanics.md" \
-  "The session opens the Digest itself" \
-  "reads its quotes there"
+# The fork returns text and a line, and the session writes that text to the file the later steps
+# read: without the file the list at step 4 has nothing but the restatement to trace to.
+has "the session writes the Digest whole, the door's hashes as its Sources" "$refs/mechanics.md" \
+  "The session writes the Digest itself, whole" \
+  'its `## Sources` lines from the door'"'"'s own hashes' \
+  "read its quotes there"
+has "the Playbook's door writes the Digest from the text that comes back" "$refs/ticket.md" \
+  "the session writes the Digest from the text that comes back"
+has "the Sources lines are the door's, never the reader's" "$refs/digest.md" \
+  "the session writes them from the door's own hashes"
 # The fork writes into the developer's tracked tree, so it comes after the stops that refuse the
 # run: a Ticket refused at the door leaves `git status` in the main checkout as it found it.
 after "the door reaches the reader only after the stops that refuse the run" "$refs/ticket.md" \

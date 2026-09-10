@@ -113,6 +113,8 @@ has "the reader writes nothing, on a re-fork as on a first fork" "$refs/digest.m
   "no tool that writes a file"
 lacks "the brief orders the reader no write over an existing Digest" "$refs/digest.md" \
   "the write the re-fork of"
+has "the session replaces an existing Digest whole and never edits it" "$refs/mechanics.md" \
+  "A Digest already at that path is replaced whole and never edited"
 
 # The Digest records what it was cut from, so a second run compares two recorded values instead of
 # judging the documents again.
