@@ -21,8 +21,9 @@
 # unit_run_file, unit_run_all, unit_format, unit_test_layout, e2e_run_flow, e2e_run_all,
 # e2e_format, e2e_flow_root, then verdict=written.
 #
-# Exit codes: 0 written · 2 usage, a root that is not a directory, or a map path outside the root's
-# Scratch.
+# Exit codes: 0 written · 2 usage, a root that is not a directory, a map path outside the root's
+# Scratch, or no `realpath` on PATH to resolve it safely (a `..` or a symlink could otherwise carry
+# the write outside the project, so the script fails closed instead of trusting the raw string).
 set -uo pipefail
 
 none='none yet → /testing-policy'
@@ -31,7 +32,12 @@ usage() { echo "usage: project-map.sh <project root> <map path under <root>/.scr
 root="$(cd "$1" 2>/dev/null && pwd -P)" || usage
 out="$2"
 case "$out" in /*) ;; *) out="$PWD/$out" ;; esac
-command -v realpath >/dev/null 2>&1 && out="$(realpath -m -- "$out")"
+if command -v realpath >/dev/null 2>&1; then
+  out="$(realpath -m -- "$out")"
+else
+  echo "realpath is not on PATH; the map path cannot be resolved safely, refusing to write $out" >&2
+  exit 2
+fi
 case "$out" in
   "$root/.scratch/"*) ;;
   *) echo "the map path is not under $root/.scratch/: $out" >&2; exit 2 ;;

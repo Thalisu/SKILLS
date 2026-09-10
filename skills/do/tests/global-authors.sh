@@ -106,6 +106,16 @@ check "a project with no runner reads none yet for every command and still reads
 map "$p" "$tmp/elsewhere.md"
 check "a map path outside the project's own Scratch is refused" 2 "$rc"
 if [ ! -e "$tmp/elsewhere.md" ]; then ok "a refused map is never written"; else fail "a refused map is never written"; fi
+
+shimbin="$tmp/shimbin"; mkdir -p "$shimbin"
+for t in awk cat dirname git grep head jq mkdir sed sort uniq bash env sh tr wc basename; do
+  real="$(command -v "$t" 2>/dev/null)"; [ -n "$real" ] && ln -sf "$real" "$shimbin/$t"
+done
+rc=0; out="$(PATH="$shimbin" bash "$mapper" "$p" "$p/.scratch/no-realpath.md" 2>&1)" || rc=$?
+check "with no realpath on PATH the map path is refused, never resolved as the raw string" 2 "$rc"
+if [ ! -e "$p/.scratch/no-realpath.md" ]; then ok "a map is never written with no realpath on PATH"
+else fail "a map is never written with no realpath on PATH"; fi
+
 map "$p"
 check "a missing argument is a usage error" 2 "$rc"
 
