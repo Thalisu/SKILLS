@@ -451,7 +451,7 @@ has "the review's fixed point names the integration among its sources" "$mech" \
 # their own commits. The merge base read after the integration is the right fixed point in every state.
 has "the fixed point is the merge base read after the integration, whatever state it reached" "$mech" \
   "git merge-base <the developer's branch> HEAD" \
-  "rebased the branch onto it by hand"
+  "rebased or merged it into \`do/<slug>\` by hand"
 # The three Playbooks are what the run actually reads at its review step, so the rule has to stand in
 # each of them: the shared mechanics stating it is not the file the step is read from.
 for pb in "$ticket" "$bugfix" "$refactor"; do

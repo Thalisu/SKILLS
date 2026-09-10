@@ -487,8 +487,6 @@ reached: `git merge-base <the developer's branch> HEAD` in the worktree. After a
 commit the rebase landed on. After a no-op it is the commit the worktree was created from when
 nothing moved, and the tip of the developer's branch when they rebased or merged it into
 `do/<slug>` by hand, which the ancestor check above already read before the no-op ticked.
-nothing moved, and the developer's own commit when they rebased the branch onto their branch by
-hand, which leaves the commit the worktree was created from behind their work.
 
 Done when the step is ticked as a no-op, or ticked with the target and the count and the gate green
 after it, or the run stopped as blocked with its reason, its undo command and its worktree named.
