@@ -13,8 +13,9 @@
 # Which folder a slug names is not this script's rule to hold: it asks
 # ../../../.agents/scripts/resolve-feature-folder.sh, the one executable form of it, and allocates
 # only when that answer is `none`. The resolver normalises the slug, finds the main checkout, and
-# refuses a `.scratch` that is not a plain directory of it, a folder, a `spec.md` or an `issues`
-# folder that is a symlink, so this script inherits all six and none of them is written twice. See
+# refuses a `.scratch` that is not a plain directory of it, a folder, a `spec.md`, an `issues`
+# folder or a `journey.md` that is a symlink, so this script inherits all seven and none of them is
+# written twice. See
 # ../../../docs/adr/0031-a-shared-read-only-script-resolves-a-slug-to-its-feature-folder.md.
 #
 # A folder for the slug that already exists is reused whatever date it carries, and an undated one

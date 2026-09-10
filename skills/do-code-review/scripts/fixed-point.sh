@@ -19,9 +19,10 @@
 #
 # Which paths a slug can name under the scratch is not this door's rule to hold: before it answers
 # it asks ../../../.agents/scripts/resolve-feature-folder.sh, the one executable form of that rule,
-# and passes on every refusal it makes, so a .scratch, a feature folder, or a spec.md or issues
-# folder in it that is a symlink never puts the Review, or a spec read beside it, at a path the
-# repository does not control. It asks for the branch's slug, and for the slug of the feature folder
+# and passes on every refusal it makes, so a .scratch, a feature folder, or a spec.md, issues
+# folder or journey.md in it that is a symlink never puts the Review, or a spec read beside it, at
+# a path the repository does not control. It asks for the branch's slug, and for the slug of the
+# feature folder
 # a Ticket found or handed sits in, whose folder, spec.md and issues folder the door checks itself
 # as well, since the resolver names only the newest folder of a slug. A Review beside the Ticket
 # that is a symlink is refused the same way. Its answer for the branch's slug is also the exact

@@ -167,6 +167,18 @@ check "a symlinked issues folder is refused" 2 "$rc" \
   ".scratch/$today-nightly-purge/issues is a symlink; nothing resolved"
 absent "no folder reached the caller past a symlinked issues folder" "folder="
 
+# A journey.md that is a symlink is the same escape again: journey opens the spec the resolver names
+# and writes journey.md beside it, so a committed link would carry that write outside the checkout.
+mkdir "$tmp/journey-link" && cd "$tmp/journey-link" && git init -q
+mkdir -p ".scratch/$today-nightly-purge" && touch ".scratch/$today-nightly-purge/spec.md"
+printf 'keep\n' > "$tmp/victim-journey.md"
+ln -s "$tmp/victim-journey.md" ".scratch/$today-nightly-purge/journey.md"
+run nightly-purge
+check "a symlinked journey.md is refused" 2 "$rc" \
+  ".scratch/$today-nightly-purge/journey.md is a symlink; nothing resolved"
+absent "no spec reached the caller past a symlinked journey.md" "spec="
+expect "the journey.md link's target is untouched" grep -qxF keep "$tmp/victim-journey.md"
+
 # A linked worktree holds no scratch of its own, so a slug resolves in the main checkout and the
 # paths come back absolute for a caller that stands somewhere else.
 mkdir "$tmp/wt" && cd "$tmp/wt" && git init -q
