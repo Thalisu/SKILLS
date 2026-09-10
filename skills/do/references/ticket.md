@@ -76,6 +76,9 @@ body carries per the build loop in [mechanics.md](mechanics.md), and the working
 `commit=` line per commit with the `behaviour=` line its body carries under it, one `uncommitted=`
 line per file, and a `verdict=` line, `build` (exit 0), `ask` (exit 1, uncommitted work) or
 `integration` (exit 3, a rebase left open). The Ticket is not written: the claim stands.
+Exit 2 after the door's `resume` is a worktree on a detached HEAD with no rebase open:
+the run stops as blocked in one line naming the worktree and the script's reason, writes nothing,
+and leaves the worktree as it is, since no branch can be read from it to build on.
 
 - The first message says the run resumes, names the worktree and its branch, and lists the
   commits found, one line each with its `Behaviour:` line. The claim line is not written again.

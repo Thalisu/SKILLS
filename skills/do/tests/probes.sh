@@ -177,7 +177,11 @@ git -C "$wt" rebase --abort
 
 echo "# resume-state.sh: nothing to resume"
 git -C "$wt" checkout -q --detach
-run "$resume" "$issues/04-claimed.md"; check "a detached HEAD with no rebase open is not a resumable worktree" 2 "$rc"
+run "$door" "$issues/04-claimed.md"
+check "the door still says resume for a claimed Ticket's worktree on a detached HEAD" 0 "$rc" \
+  "worktree=$wt" "verdict=resume"
+run "$resume" "$issues/04-claimed.md"; check "a detached HEAD with no rebase open is not a resumable worktree" 2 "$rc" \
+  "$wt is on a detached HEAD with no rebase open: nothing to resume"
 git -C "$wt" checkout -q do/claimed
 run "$resume" "$issues/07-gone.md"; check "a Ticket with no worktree has nothing to resume" 2 "$rc"
 run "$resume"; check "no argument is a usage error" 2 "$rc"
@@ -221,6 +225,10 @@ has "every ambiguous verdict of the door is refused in one line naming its cause
 has "the first message states the door script's facts and marks no step skipped" "$ticket_md" \
   "off the lines the door script printed" \
   "The checklist above, verbatim, with no step marked skipped"
+
+has "the resume says what the run does when the script exits 2 after the door's resume" "$ticket_md" \
+  "Exit 2 after the door's \`resume\`" \
+  "the run stops as blocked in one line naming the worktree and the script's reason"
 
 echo "# the resume asks before it discards"
 has "uncommitted work is asked about on the probe's ask, and nothing goes without the answer" "$ticket_md" \
