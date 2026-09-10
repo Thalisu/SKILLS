@@ -338,8 +338,14 @@ run's own resolutions would land in a cache that outlives it.
 
 The step walks the states below, and the thread says which one it reached.
 
-**A rebase that replays no commit.** The developer's branch did not move under the run. The run
-ticks the step as a no-op, reruns nothing, and the review is called on the branch as it is.
+**A rebase that replays no commit.** Before the rebase runs, the step checks whether the
+developer's branch is already merged into the run's own: `git merge-base --is-ancestor <the
+developer's branch> HEAD`. Where it exits 0, the developer's branch did not move under the run, or
+the developer rebased or merged it into `do/<slug>` by hand between two runs, resolving any
+conflict along the way, and running the rebase now would only replay a commit git may not drop as
+empty, or hand the developer the same hunk their own merge just settled. The run skips the rebase:
+it ticks the step as a no-op, reruns nothing, asks nothing, and the review is called with the fixed
+point this ancestry already gives, the tip of the developer's branch.
 
 **A rebase that replayed commits.** The run ticks the step with the target and the count, the
 branch it rebased onto and how many of its own commits git replayed. The gate that was green before
@@ -471,6 +477,12 @@ worktree and its branch stay in place and are named, the Ticket stays `claimed`,
 nothing is pushed. The blocked states carry two different undo commands, and each names its
 own: the abort while the rebase is open, the reset to the recorded commit once it has finished.
 
+The fixed point the review is called with is read once the step is done, whichever state it
+reached: `git merge-base <the developer's branch> HEAD` in the worktree. After a replay it is the
+commit the rebase landed on. After a no-op it is the commit the worktree was created from when
+nothing moved, and the tip of the developer's branch when they rebased or merged it into
+`do/<slug>` by hand, which the ancestor check above already read before the no-op ticked.
+
 Done when the step is ticked as a no-op, or ticked with the target and the count and the gate green
 after it, or the run stopped as blocked with its reason, its undo command and its worktree named.
 
@@ -481,8 +493,8 @@ and whatever the run commits after it lands through the fix call below, never a 
 [ADR 0033](../../../docs/adr/0033-the-review-runs-once-per-run-and-what-comes-after-it-lands-through-the-gate-alone.md).
 Call the Skill tool with `do-code-review` and four arguments: the spec source (the Ticket's
 location in `ticket`, so the Review lands beside it; the branch alone in `bug-fix` and
-`refactoring`), the fixed point of the branch under review (the commit the integration
-rebased onto, or the commit the worktree was created from when it replayed nothing), the
+`refactoring`), the fixed point of the branch under review (the merge base the integration reads
+once it is done, which is the commit the integration rebased onto when it replayed), the
 developer's branch as the landing target, and the Gate, the `command=` line the gate printed, so
 the review holds its fixes to the checks the run held its own work to.
 Never `--no-fix`, and `fix` only on the path below: the default run is the one every Playbook
