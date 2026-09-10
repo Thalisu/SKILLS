@@ -294,6 +294,9 @@ out="$(cat "$log" 2>/dev/null)"
 check "the file the red line names holds the full output" 0 0 "1" "50" "100" "broke"
 out="$(git status --short)"; same "the gate writes nothing in the tree it checks" ""
 out="$gate_out"
+run "$gate" "unit=printf 'boom'; exit 1" "lint=true"
+check "a red check whose output ends without a newline leaves the next key and the verdict on lines of their own" 1 "$rc" \
+  "  boom" "lint=green" "verdict=red"
 
 echo "# gate.sh: a check the environment stops"
 logof() { sed -n "s/^$1=[a-z]* exit=[0-9]* log=\([^ ]*\).*/\1/p" <<<"$out"; }

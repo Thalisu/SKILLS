@@ -68,7 +68,8 @@ gate_run() { # runs gate_checks in the current directory, one line per check, th
     fi
     lines="$(wc -l <"$log")"
     [ "$lines" -gt "$gate_cap" ] && echo "  [capped: the last $gate_cap of $lines lines]"
-    tail -n "$gate_cap" "$log" | sed 's/^/  /'
+    # awk ends every line it prints, where sed keeps a last line's missing newline and glues the next key onto it.
+    tail -n "$gate_cap" "$log" | awk '{ print "  " $0 }'
   done
   rmdir "$logs" 2>/dev/null
   echo "verdict=$verdict"
