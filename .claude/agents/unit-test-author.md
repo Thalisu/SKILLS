@@ -138,9 +138,10 @@ Return exactly these sections:
 
 **Framework & run commands**
 - Single file: `bash skills/<skill>/tests/<name>.sh`
-- Full suite: `fails=0; for t in $(git ls-files | grep -E '^(scripts|skills/[^/]+)/tests/[^/]+\.sh$'); do bash "$t" >/dev/null 2>&1 || { echo "RED $t"; fails=$((fails+1)); }; done; echo "red: $fails"; [ "$fails" = 0 ]`
-- Formatter: none configured (`shfmt -l` flags every test script, so the repo does not format with it); match the surrounding file by hand. `shellcheck -S warning <file>` is the lint available on this machine.
+- Full suite: `fails=0; for t in $(git ls-files | grep -E '^(scripts|skills/[^/]+)/tests/[^/]+\.sh$' | grep -vx 'scripts/tests/lib.sh'); do bash "$t" >/dev/null 2>&1 || { echo "RED $t"; fails=$((fails+1)); }; done; echo "red: $fails"; [ "$fails" = 0 ]`
+- Formatter: `shfmt -i 2 -ci -w <file>`. `shellcheck -S warning <file>` is the lint available on this machine.
 - Every script is standalone, with no runner and no framework: it prints one `ok` or `FAIL` line per case and exits non-zero on a red. The full-suite loop is the only aggregate (32 scripts, about 62s).
+- A script that uses a shared helper sources `scripts/tests/lib.sh` right after its `here=` line (`. "$here/../../../scripts/tests/lib.sh"` from a skill, `. "$here/lib.sh"` from `scripts/tests/`) and sets `fails=0`. `lib.sh` is not a test; the full-suite loop skips it.
 - Scripts work in a `mktemp -d` throwaway (24 of 32) removed by an `EXIT` trap, and 3 of 32 export a throwaway `HOME` so the developer's linked skills and agents never leak into a case; a new script that reads anything under `~/.claude` does the same.
 - `skills/do/tests/context-usage.sh` prints `skip  live session: CLAUDE_CODE_SESSION_ID not set` outside a live Claude session: that case only runs inside one, and the line is not a red.
 - `skills/do-code-review/tests/evals.sh` runs `node -e`, so it needs `node` on `PATH`.
@@ -150,15 +151,15 @@ Return exactly these sections:
 **Test root & layout**: `skills/<skill>/tests/*.sh` tests that skill's `scripts/` and pins its `SKILL.md`, references and `docs/<skill>.md`; `scripts/tests/<name>.sh` tests the repo-level script of that name (`scripts/link-skills.sh`, `scripts/run-eval.sh`, `.agents/scripts/resolve-feature-folder.sh`). One script per contract, named for it (`probes.sh`, `fixed-point.sh`, `contract.sh`). `skills/discover/tests/sim/` is a headless-session simulation with its own runner, not a unit test.
 
 **Shared homes by role** (canonical, one path per role; "none yet → create at X" is a valid entry)
-- Module mocks: none yet → create at `scripts/tests/stubs/` (executables a test puts first on `PATH`)
-- Helpers / wrappers: none yet → create at `scripts/tests/lib.sh`
-- Factories (data builders): none yet → create at `scripts/tests/lib.sh` (throwaway-repo and Ticket builders)
+- Module mocks: none yet → create at `scripts/tests/stubs/` (executables a test puts first on `PATH`) when a stub gets its second use
+- Helpers / wrappers: `scripts/tests/lib.sh`
+- Factories (data builders): `scripts/tests/lib.sh` (`g`, `commit`, `fresh`, `scaffold_of`)
 - Fixtures (static inputs): `skills/<skill>/tests/fixture/`, one today: `skills/discover/tests/fixture/`, a multi-language corpus whose repeated `formatCpf` is deliberate. Other scripts write their inputs inline with heredocs.
 
 **System boundaries** (the only things a unit test mocks; one line per boundary, what it is → the shared mock that replaces it; "none: pure modules" is a valid entry)
-- the `claude` CLI → none yet → create at `scripts/tests/stubs/claude` (inline `PATH` stub in `scripts/tests/run-eval.sh`, 1 of 32 files)
-- the tools on `PATH` (a missing `realpath`) → none yet → `scripts/tests/stubs/` (inline shim dir in `skills/do/tests/global-authors.sh`)
-- the developer's `HOME` (skills and agents linked under `~/.claude`) → none yet → a sandbox-`HOME` helper in `scripts/tests/lib.sh` (inline `export HOME="$tmp/home"` in 3 of 32 files)
+- the `claude` CLI → a stand-in written on `PATH`, local to `scripts/tests/run-eval.sh` (its one use); moves to `scripts/tests/stubs/claude` on a second use
+- the tools on `PATH` (a missing `realpath`) → a shim dir local to `skills/do/tests/global-authors.sh` (its one use); moves to `scripts/tests/stubs/` on a second use
+- the developer's `HOME` (skills and agents linked under `~/.claude`) → a one-line `export HOME="$tmp/home"` (3 of 32 files), the idiom rather than a helper
 - `TMPDIR` → inline export in `skills/do/tests/probes.sh`, so the trap removes what `gate.sh` leaves there
 - git and the filesystem → not mocked: real git in a `mktemp -d` throwaway repo, removed by an `EXIT` trap
 
@@ -174,8 +175,8 @@ git grep -nE 'PATH="?\$|export (HOME|TMPDIR)=' -- 'scripts/tests/*.sh' 'skills/*
 ```
 
 **Idiom** (calibration only, never a catalog)
-English identifiers. A script opens with `set -uo pipefail` (or `-euo`), `here="$(cd "$(dirname "$0")" && pwd -P)"`, a `mktemp -d` throwaway and an `EXIT` trap; it captures `out` and `rc` per case, bumps a `fails` counter and exits on it. No mocking library: a boundary is replaced by an executable put first on `PATH` or an exported variable. Assertion helpers take the behaviour label first, with a trailing comment stating their arguments:
-- `check <label> <want-rc> <rc> <line>...`: lines that must appear in `$out` (`scripts/tests/link-skills.sh:16`)
-- `absent <label> <line>` (`scripts/tests/link-skills.sh:24`) and `expect <label> <command>...` (`scripts/tests/link-skills.sh:27`)
-- `has <label> <file> <string>...`: fixed strings a document must carry (`skills/do-code-review/tests/contract.sh:14`)
-They are copied per file today (`expect` in 17, `check` in 15, `has` in 12, `absent` in 10, `lacks` in 9), and the copies drifted: `skills/do/tests/probes.sh` matches whole lines (`grep -qxF`), the `scripts/tests/` copies match substrings (`grep -qF`). The next author who needs one promotes it to `scripts/tests/lib.sh` under the second-use rule and reconciles the drift.
+English identifiers. A script opens with `set -uo pipefail` (or `-euo`), `here="$(cd "$(dirname "$0")" && pwd -P)"`, a `mktemp -d` throwaway and an `EXIT` trap; it captures `out` and `rc` per case, bumps a `fails` counter and exits on it. No mocking library: a boundary is replaced by an executable put first on `PATH` or an exported variable. Assertion helpers in `scripts/tests/lib.sh` take the behaviour label first, with a trailing comment stating their arguments:
+- `check <label> <want-rc> <rc> <string>...`: fixed strings that must appear in `$out`; `check_lines` is the same with whole lines, and `check_absent` with strings that must not appear
+- `absent <label> <string>` over `$out`, and `expect <label> <command>...`
+- `has <label> <file> <string>...` and `lacks <label> <file> <string>...`: fixed strings a document must or must not carry, a missing file failing both; `ordered <label> <file> <string>...` for their order
+Variants with their own semantics stay local to their one file, under names that do not hide the lib's: `absent_prefix` and `ordered_out` in `skills/do/tests/probes.sh`, `has_flat` in `skills/do/tests/integration.sh`, `has_flat_nocase` in `skills/do/tests/refactoring.sh`. Each file's `run` closes over the script it tests and is not shared.
