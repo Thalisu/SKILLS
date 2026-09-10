@@ -36,6 +36,12 @@ has "no test author is dispatched" "$ref" "no test author is dispatched"
 has "the reference links the build loop" "$ref" "](mechanics.md)"
 has "the reference names ticket as the only Playbook with a global loop" "$ref" \
   "The \`ticket\` Playbook is the only one whose loop line ever reads \`Loop: global\`"
+has "Loop: global is read when the global author is linked and the Agent tool is present" "$ref" \
+  "the global one,
+\`global-unit-test-author\`, is linked and the Agent tool is present"
+has "Loop: fallback is read otherwise, not attached to the Loop: global condition" "$ref" \
+  "\`Loop: fallback\` is read
+otherwise, \`global-unit-test-author\` not linked or the Agent tool withheld:"
 has "bug-fix and refactoring are named as never setting the global loop" "$ref" \
   "\`bug-fix\` and \`refactoring\` never check for a global author and never set \`Loop: global\`"
 lacks "no em-dash in the reference" "$ref" "$emdash"
