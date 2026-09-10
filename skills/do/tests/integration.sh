@@ -351,6 +351,27 @@ has "the case is listed in the evals README" "$repo/skills/do/evals/README.md" \
   "| \`integration-mechanical-conflict\` |"
 lacks "no em-dash in the integration eval case" "$evals/case.yaml" "$emdash"
 
+# A session nobody can answer is the other seam a static test cannot reach: whether a real run aborts
+# at a contested stop instead of asking. The suite checks the case is there and intact, never that
+# it passed.
+nohuman="$repo/skills/do/evals/integration-no-human-aborts"
+expect "the no-human eval case has its case file" test -f "$nohuman/case.yaml"
+expect "the no-human eval case has its prompt" test -f "$nohuman/prompt.md"
+for g in first-line-playbook-ticket no-question-asked-of-the-developer aborted-with-the-files-named \
+         branch-left-as-it-was ticket-left-claimed nothing-landed-nothing-pushed; do
+  expect "the no-human eval case grades $g" test -f "$nohuman/graders/$g.md"
+done
+# The teammate's commit rewrites list() through its closing line and the build appends right after it,
+# so the stop classes contested whichever blank line the build leaves before its function.
+has "the no-human fixture moves main with a rewrite the build's append sits against" "$nohuman/case.yaml" \
+  ".git/hooks/post-commit" \
+  "do/*)" \
+  "update-ref refs/heads/main" \
+  "export const list = (): Note[] =>"
+has "the no-human case is listed in the evals README" "$repo/skills/do/evals/README.md" \
+  "| \`integration-no-human-aborts\` |"
+lacks "no em-dash in the no-human eval case" "$nohuman/case.yaml" "$emdash"
+
 # After a replay the commit the worktree was created from is no longer the branch's base, and a
 # review given it would read the developer's own commits as part of the diff under review.
 has "a replay moves the fixed point the review is called with" "$mech" \
