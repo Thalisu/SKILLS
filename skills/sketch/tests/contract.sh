@@ -14,11 +14,15 @@ fails=0
 
 # The skill file: user-invoked in Claude Code, forked onto its own agent.
 skill_md="$skill/SKILL.md"
-has "the skill file carries its fork keys" "$skill_md" \
-  "name: sketch" "context: fork" "agent: sketch" "background: false" "argument-hint:" '$ARGUMENTS'
+has "the skill file carries its keys and the arguments" "$skill_md" \
+  "name: sketch" "argument-hint:" '$ARGUMENTS'
 has "the skill is user-invoked in Claude Code" "$skill_md" "disable-model-invocation: true"
-expect "the body is one instruction line plus the arguments" \
-  test "$(awk '/^---$/ { c++; next } c == 2 && NF { n++ } END { print n }' "$skill_md" 2>/dev/null)" = 2
+frontmatter="$(awk '/^---$/ { c++; next } c == 1' "$skill_md" 2>/dev/null)"
+expect "a typed /sketch runs in the developer's session: no fork context in the frontmatter" \
+  test -z "$(grep -E '^context: *fork' <<<"$frontmatter")"
+expect "a typed /sketch runs in the developer's session: no agent key in the frontmatter" \
+  test -z "$(grep -E '^agent:' <<<"$frontmatter")"
+has "the typed door calls the agent through the Agent tool" "$skill_md" "subagent_type: sketch"
 
 # The Codex half of the same choice.
 codex="$skill/agents/openai.yaml"
@@ -72,8 +76,7 @@ has "a rejected rival is one line with the fact that killed it" "$format" \
 has "a section with nothing to say reads none" "$format" "reads \`none\`"
 
 has "the agent stops at the Sketch and names the format at its installed path" "$agent_md" \
-  "## The Sketch" '$(readlink -f ~/.claude/skills/sketch)/../../.agents/formats/sketch-format.md' \
-  "always write" "always name"
+  "## The Sketch" '$(readlink -f ~/.claude/skills/sketch)/../../.agents/formats/sketch-format.md'
 lacks "the agent names no copy of the format in the skill's own folder" "$agent_md" \
   "references/sketch-format.md"
 has "the agent reaches the principles through the link the install leaves" "$agent_md" \
@@ -91,32 +94,29 @@ has "the agent implements nothing" "$agent_md" \
 expect "the agent is granted these tools and no other" \
   test "$(awk -F'tools: *' '/^tools: /{ print $2; exit }' "$agent_md")" = "Read, Glob, Grep, Bash, Write"
 
-# Where the Sketch goes at each door, and what comes back.
-has "the agent names both doors and the path each writes to" "$agent_md" \
-  "## Where the Sketch goes" "the path the brief names" "resolve-feature-folder.sh" \
-  "sketch.md" ".scratch/sketches/" "absolute"
-has "the standalone door derives a slug when the developer passes none" "$agent_md" \
-  "the slug the developer passes" "derive one from the argument"
-has "the destination is composed from the resolver's own keys and never a raw slug" "$agent_md" \
-  "It prints \`slug=\`" "are the \`slug=\` and the \`root=\`" \
-  "never the word the developer typed"
-has "a destination that does not resolve under the Scratch is refused and nothing is written" \
-  "$agent_md" "readlink -m" 'case "$dest" in' "refused\` ends the run" "write nothing"
-has "the agent appends the scratch ignore before it writes" "$agent_md" \
-  "git check-ignore -v .scratch/" ".gitignore"
-has "a resolver exit other than 0 stops the run on the resolver's own reason" "$agent_md" \
-  "The script's exit decides the run" "any other exit" "stop. Write nothing" \
-  "the script's own stderr line"
-has "the absent-script degrade is reached by testing for the file, never by an empty stdout" \
-  "$agent_md" "\`test -f\` does not find the script" "never infer the last row from an empty"
-has "the return names the location and the shape" "$agent_md" \
-  "## Your return" "the Sketch's location" "the shape in one line"
-has "the agent reaches the resolver through the link the install leaves" "$agent_md" \
-  '$(readlink -f ~/.claude/skills/sketch)/../../.agents/scripts/resolve-feature-folder.sh'
-resolver="$(grep -o '\.\./\.\./\.agents/scripts/[a-z0-9-]*\.sh' "$agent_md" | head -n 1)"
+# Where a typed /sketch files the Sketch, and what comes back. The session owns the destination, the
+# containment check and the ignore probe; the agent returns the Sketch's text and writes nothing.
+has "the typed door resolves the Feature folder through the shared resolver" "$skill_md" \
+  "/../../.agents/scripts/resolve-feature-folder.sh"
+resolver="$(grep -o '\.\./\.\./\.agents/scripts/[a-z0-9-]*\.sh' "$skill_md" 2>/dev/null | head -n 1)"
 resolver="${resolver#../../}"
-expect "the resolver the agent names is on disk and runnable" \
+expect "the resolver the typed door names is on disk and runnable" \
   test -x "$repo/${resolver:-none.sh}"
+has "the typed door files the Sketch in the Feature folder, or under sketches when none resolves" \
+  "$skill_md" "sketch.md" ".scratch/sketches/"
+has "the destination is composed from the resolver's own keys" "$skill_md" "slug=" "root="
+has "a resolver exit other than 0 stops the run, and a missing script is found by testing for it" \
+  "$skill_md" "exit 0" "any other exit" "test -f"
+has "a destination that does not resolve under the Scratch is refused" "$skill_md" \
+  "readlink -m" 'case "$dest" in "$scratch"/*)' "refused"
+has "the typed door probes the scratch ignore and appends it to .gitignore when owed" "$skill_md" \
+  "git check-ignore -v .scratch/" ">> .gitignore"
+has "the typed door ends with the Sketch's location and the shape in one line" "$skill_md" \
+  "the Sketch's location" "the shape in one line"
+lacks "the agent carries no destination, containment or ignore step" "$agent_md" \
+  "## Where the Sketch goes" "resolve-feature-folder.sh" "readlink -m" 'case "$dest" in' \
+  "git check-ignore" ">> .gitignore"
+has "the agent returns the shape in one line" "$agent_md" "## Your return" "the shape in one line"
 
 # The docs page, per .agents/writing-docs.md.
 page="$repo/docs/sketch.md"
