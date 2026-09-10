@@ -43,6 +43,16 @@ section_fixture() { # $1 project dir, $2 grep -v pattern (empty keeps every line
     | { if [ -n "$2" ]; then grep -vE -- "$2"; else cat; fi; } \
     | sed -E 's/\{\{[^}]*\}\}/filled/g' > "$1/CLAUDE.md"
 }
+# Every other piece the verifier folds into its exit code, so the exit code a case reads is the one the
+# policy section alone decides: a fixture missing a piece exits 1 whatever the section holds.
+install_pieces() { # $1 project dir
+  local p="$1"
+  mkdir -p "$p/.claude/agents" "$p/.claude/skills/test-author" "$p/.claude/testing-policy"
+  bash "$render_agent" unit > "$p/.claude/agents/unit-test-author.md"
+  bash "$render_agent" e2e > "$p/.claude/agents/e2e-test-author.md"
+  bash "$render_agent" test-author > "$p/.claude/skills/test-author/SKILL.md"
+  cp "$skill/scripts/scan-test-assets.sh" "$skill/scripts/skip-patterns.sh" "$p/.claude/testing-policy/"
+}
 
 echo "# the tiers in the core"
 for surface in native consumer mixed; do
@@ -68,14 +78,18 @@ done
 
 echo
 echo "# the verifier names a Project facts line the template gained"
+# Both fixtures carry every piece, so the key is the only thing between them: the wanted 1 fails the
+# first case on a verifier that prints the key without failing the install.
 section_fixture "$tmp/installed-before-the-gate" '^- \*\*Post-feature gate\*\*'
+install_pieces "$tmp/installed-before-the-gate"
 verify "$tmp/installed-before-the-gate"
-check "a section installed before the line gets it named among the facts the template gained" 1 "$rc" \
+check "a complete install whose section lacks the line fails, naming it among the facts the template gained" 1 "$rc" \
   "policy=current" "policy_facts_missing=**Post-feature gate**"
 
 section_fixture "$tmp/installed-with-the-gate" ""
+install_pieces "$tmp/installed-with-the-gate"
 verify "$tmp/installed-with-the-gate"
-absent "a section carrying every Project facts line names none" 1 "$rc" "policy_facts_missing"
+absent "a complete install carrying every Project facts line passes and names none" 0 "$rc" "policy_facts_missing"
 
 # The header alone, never the body below it: the code carries the same strings, so a case over the
 # whole file would pass on a script that documents nothing.
