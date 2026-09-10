@@ -177,9 +177,9 @@ document a stranger wrote, and the run re-forks over the resolved paths rather t
 
 A re-forked reader whose return is not a usable Digest stops the door as a first fork's does, in one
 line naming what is missing, since the session writes only from a return it checked.
-The Digest already at that path stays where it was, untouched, and no run serves it: its
-`## Sources` still records the hashes the documents had before they changed, so every later run's
-comparison finds them moved and re-forks the reader until a return comes back whole.
+The Digest already at that path stays where it was, untouched. No run serves it while a recorded
+hash or path differs from what the door resolves and hashes there.
+A document restored to the exact bytes its record hashes is a match again, served like any other.
 
 A Digest a run left behind when the reading of the tree and the scratch stopped it, the reading
 [ADR 0032](../../../docs/adr/0032-a-fork-that-reads-a-strangers-text-holds-no-write-tool.md)

@@ -146,13 +146,14 @@ has "a document changed in the reader's window shows nothing now and re-forks th
   "the door hashed it before the fork" \
   "re-forks the reader and names the document"
 # A re-fork that comes back without a usable Digest stops as a first fork does, and the Digest the
-# earlier run wrote is never served in its place: its recorded hashes are ones the documents no
-# longer have, so every later run re-forks rather than reusing it.
+# earlier run wrote is not served in its place while its recorded hash or path differs from what
+# the door resolves and hashes; a document restored to those exact bytes is a match again.
 has "a re-fork with no usable Digest stops as a first fork does and the old Digest is not served" \
   "$refs/mechanics.md" \
   "A re-forked reader whose return is not a usable Digest stops the door as a first fork's does" \
   "The Digest already at that path stays where it was" \
-  "no run serves it"
+  "No run serves it while a recorded" \
+  "A document restored to the exact bytes its record hashes is a match again"
 # The gate compares a record and never asks who wrote the file it sits in, so a Digest a run left
 # behind before ADR 0032 removed the reading that stopped it is reused like any other while its
 # hashes match, and only the developer's own delete retires it.
