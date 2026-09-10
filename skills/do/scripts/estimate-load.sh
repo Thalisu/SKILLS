@@ -21,8 +21,9 @@ set -uo pipefail
 skill="$(cd "$(dirname "$0")/.." && pwd -P)"
 root="$(git rev-parse --show-toplevel 2>/dev/null || pwd -P)"
 
-# The Spec's measured figure: a session baseline of about 32k.
+# The Spec's measured figures: a session baseline of about 32k and 17k to 18k per criterion.
 baseline=32000
+per_criterion=18000
 door_output=500
 ticket_allowance=1000
 # ADR 0024: a run used between 4.0KB and 9.7KB of its Spec and journey, the slice a Digest quotes.
@@ -41,8 +42,16 @@ tokens() { echo $((($1 + 3) / 4)); }
 reference_chain="$(tokens "$(bytes "$skill/SKILL.md" "$skill/references/ticket.md" \
   "$skill/references/mechanics.md" "$skill/references/reply.md" \
   "$skill/../../.agents/formats/ticket-format.md")")"
-door=$((door_output + $(tokens "$(bytes "$skill/references/digest.md")") + ticket_allowance \
-  + digest_allowance))
+ticket="${1:-}"
+ticket_tokens=$ticket_allowance
+digest_tokens=$digest_allowance
+if [ -n "$ticket" ]; then
+  ticket_tokens="$(tokens "$(bytes "$ticket")")"
+  digest="${ticket%.md}.digest.md"
+  [ -f "$digest" ] && digest_tokens="$(tokens "$(bytes "$digest")")"
+fi
+door=$((door_output + $(tokens "$(bytes "$skill/references/digest.md")") + ticket_tokens \
+  + digest_tokens))
 ground_bytes=0
 [ -f "$root/CONTEXT.md" ] && ground_bytes="$(bytes "$root/CONTEXT.md")"
 for adr in "$root"/docs/adr/*; do
@@ -55,3 +64,11 @@ total=$((baseline + reference_chain + door + ground + shape))
 
 printf 'baseline=%s\nreference_chain=%s\ndoor=%s\nground=%s\nshape=%s\ntotal=%s\n' \
   "$baseline" "$reference_chain" "$door" "$ground" "$shape" "$total"
+[ -n "$ticket" ] || exit 0
+
+criteria="$(grep -cE '^- \[[ xX]\] ' "$ticket")"
+peak=$((total + criteria * per_criterion))
+# A verbatim copy of context-usage.sh's band line, so the estimate and the measured Context: line
+# fall in the same bands; tests/fixed-load.sh checks the two stay equal.
+if [ "$peak" -lt 150000 ]; then band=small; elif [ "$peak" -le 200000 ]; then band=medium; else band=large; fi
+printf 'criteria=%s\nper_criterion=%s\npeak=%s\nband=%s\n' "$criteria" "$per_criterion" "$peak" "$band"

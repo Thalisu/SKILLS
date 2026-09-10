@@ -280,6 +280,46 @@ expect "with no argument it prints the fixed load by term, in order, then the to
 expect "the estimator carries its own invocation line in its header" \
   sh -c 'sed -n "1,12p" "$1" | grep -qF "estimate-load.sh <the Ticket'"'"'s path>"' _ "$estimator"
 
+ticket() { # $1 path, $2 criteria: a Ticket in the format, padded to 4000 bytes
+  {
+    printf '# 01: A slice\n\n**What to build:** A slice.\n\n**Blocked by:** None\n\n'
+    printf '**Status:** ready-for-agent\n\n'
+    for _ in $(seq "$2"); do printf -- '- [ ] A criterion.\n'; done
+    printf '\n## Evidence\n'
+  } > "$1"
+  local size
+  size="$(wc -c < "$1")"
+  head -c $((4000 - size - 1)) /dev/zero | tr '\0' a >> "$1"
+  echo >> "$1"
+}
+fixed="$(printf '%s\n' baseline=32000 reference_chain=5000 door=5000 ground=7500 shape=1000 total=50500)"
+ticket "$tmp/t/01-small.md" 2
+est t/01-small.md
+expect "given a Ticket the estimator exits zero" is "$code" 0
+expect "given a Ticket it adds the criteria, the per-criterion term, the peak and the band" is "$out" \
+  "$fixed"$'\n'"$(printf '%s\n' criteria=2 per_criterion=18000 peak=86500 band=small)"
+ticket "$tmp/t/02-medium.md" 6
+est t/02-medium.md
+expect "a medium Ticket reads its band and exits zero" \
+  sh -c '[ "$1" = 0 ] && printf "%s\n" "$2" | grep -qx "peak=158500" && printf "%s\n" "$2" | grep -qx "band=medium"' \
+  _ "$code" "$out"
+ticket "$tmp/t/03-large.md" 10
+est t/03-large.md
+expect "a large Ticket reads its band and still exits zero, since the estimate gates nothing" \
+  sh -c '[ "$1" = 0 ] && printf "%s\n" "$2" | grep -qx "peak=230500" && printf "%s\n" "$2" | grep -qx "band=large"' \
+  _ "$code" "$out"
+# The Digest beside the Ticket is the one the door reads, so its size replaces the allowance.
+ticket "$tmp/t/04-digested.md" 2
+mk "$tmp/t/04-digested.digest.md" 4000
+est t/04-digested.md
+expect "a Digest beside the Ticket is counted in place of the allowance" \
+  sh -c 'printf "%s\n" "$1" | grep -qx "door=3500" && printf "%s\n" "$1" | grep -qx "peak=85000"' _ "$out"
+# The bands are the ones the measured Context: line is written in, so the two readings compare.
+band_line='if [ "$peak" -lt 150000 ]; then band=small; elif [ "$peak" -le 200000 ]; then band=medium; else band=large; fi'
+has "the estimator's band line is a verbatim copy of context-usage.sh's" "$estimator" "$band_line"
+has "context-usage.sh still carries the band line the estimator copies" \
+  "$repo/skills/do/scripts/context-usage.sh" "$band_line"
+
 # No em-dash in the prose this feature writes, per CLAUDE.md.
 lacks "no em-dash in the Digest reference" "$refs/digest.md" "$emdash"
 
