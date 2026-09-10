@@ -550,7 +550,10 @@ the verification. Not landed, for any reason the review gives (a Finding `not fi
 gate after the retry's rebase, a failed fast-forward, a protected branch), and the run stops as
 blocked: the review's reason quoted, the
 worktree and its branch left in place and named in the reply, the Ticket left `claimed`, so that
-nothing lands half fixed. On a protected branch the reply adds the two commands that land the
+nothing lands half fixed. On `not landed: target moved` the reply names the one command that
+recovers it, the same run request typed again on the Ticket in `ticket`: its resume finds every
+behaviour committed and runs the integration with the developer present to answer the hunks the
+review had nobody to ask about. On a protected branch the reply adds the two commands that land the
 reviewed branch by hand from a branch that takes commits, since the diff was reviewed and Green
 and only the target was wrong:
 

@@ -382,5 +382,6 @@ Ticket and the Review under the files left uncommitted; the flows the developer 
 consumer flows not run under pending debt, beside
 a criterion the flows step skipped for no end-to-end command, with the command that would fill it; and the next step, `git push` with the developer's
 branch named when the review landed, or, when nothing landed, the worktree, its branch, and the
-review and the landing as what the developer runs next. Done when the reply is sent with every
-section that applies.
+review and the landing as what the developer runs next, or, on `not landed: target moved` the
+same run request typed again on the Ticket instead, since its resume runs the integration with the
+developer present. Done when the reply is sent with every section that applies.

@@ -313,6 +313,16 @@ has "the run names target moved among the reasons it stops as blocked" "$mech" \
   "\`not landed: target moved\`, a red gate after the retry's rebase"
 lacks "no line says the review aborts every rebase conflict whatever its class" "$mech" \
   "a rebase conflict aborted with the conflicting files named"
+# The review stopped because a hunk needed a person and it had nobody to ask. The run that reads the
+# return does have one, so the stop hands over the one command that brings them to that hunk, and
+# never the review and the landing by hand, which would meet the same hunk with nobody again.
+has "a stop on target moved names the one command that recovers it" "$mech" \
+  "On \`not landed: target moved\` the reply names the one command that recovers it" \
+  "the same run request typed again on the Ticket"
+has "the ticket reply's next step after target moved is the run typed again" "$refs/ticket.md" \
+  "on \`not landed: target moved\` the same run request typed again on the Ticket"
+has "the docs page says a landing your branch moved under is recovered by typing the run again" "$repo/docs/do.md" \
+  "because your branch moved while it ran is recovered the same way"
 
 # The mechanic lives once, but it is only reached from a Playbook's checklist, so each of the three
 # that builds in a worktree carries the line between its gate and its review, and a step body for it.
