@@ -343,7 +343,21 @@ expect "two arguments are a usage error and exit 2" \
   sh -c '[ "$1" = 2 ] && [ -z "$2" ] && printf "%s\n" "$3" | grep -qF "usage: estimate-load.sh"' \
   _ "$code" "$out" "$err"
 
+# The estimate gates nothing: no skill, no vendored skill and no contract names it, so a Ticket it
+# calls small still runs whatever it turns out to cost.
+unread() { ! grep -rlF --exclude=estimate-load.sh --exclude=fixed-load.sh -- estimate-load.sh \
+  "$repo/skills" "$repo/vendor" "$repo/.agents"; }
+expect "no skill or contract reads the estimator" unread
+# The measured line stays the ground truth that corrects the next estimate, so the run keeps writing it.
+has "the close still writes the Context: line first under the evidence" "$refs/ticket.md" \
+  '`Context:` line first'
+has "the shared mechanics still write the Context: line with resolved" "$refs/mechanics.md" \
+  'line the format defines as the first line under `## Evidence`'
+has "the Ticket format still defines the measured Context: line" \
+  "$repo/.agents/formats/ticket-format.md" '`Context: grounded <tokens>, peak'
+
 # No em-dash in the prose this feature writes, per CLAUDE.md.
 lacks "no em-dash in the Digest reference" "$refs/digest.md" "$emdash"
+lacks "no em-dash in the estimator" "$estimator" "$emdash"
 
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi
