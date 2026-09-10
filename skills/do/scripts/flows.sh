@@ -33,6 +33,8 @@ done
 template="$1"; shift
 pairs=()
 for flow in "$@"; do
+  # The flow becomes gate.sh's key, and gate.sh runs everything after the key's first = as shell.
+  [[ "$flow" =~ ^[A-Za-z0-9_.:/-]+$ ]] || usage
   # A flow is a name the run passes in, so it reaches the command line quoted and never as text.
   quoted="$(printf %q "$flow")"
   if [[ "$template" == *"{}"* ]]; then cmd="${template%%\{\}*}$quoted${template#*\{\}}"; else cmd="$template $quoted"; fi

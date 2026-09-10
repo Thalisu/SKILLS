@@ -349,6 +349,11 @@ check "a flow runner that cannot start is blocked, its cause named" 3 "$rc" \
   "e2e/login.flow=blocked exit=127 log=$(logof e2e/login.flow) cause=runner cannot start" "verdict=blocked"
 run "$flows"; check "no single-flow command is a usage error" 2 "$rc"
 run "$flows" 'bash {}'; check "no flow is a usage error" 2 "$rc"
+marker="$tmp/flow-injected"
+run "$flows" 'bash {}' "e2e/x=\$(touch $marker).flow"
+check "a flow name holding = is a usage error" 2 "$rc"
+[ ! -e "$marker" ] && echo "ok    a flow name holding = runs nothing it carries" ||
+  { echo "FAIL  a flow name holding = runs nothing it carries ($marker exists)"; fails=$((fails + 1)); }
 header_has "the flows script's header carries its own command line" "$flows" \
   "#   flows.sh [--infra <pattern>]... <single-flow command> <flow>..." 12
 cd "$top" || exit 1

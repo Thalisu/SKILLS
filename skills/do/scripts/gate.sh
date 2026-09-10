@@ -42,7 +42,7 @@ gate_parse() { # [--infra <pattern>]... <key>=<command>...: sets gate_checks and
   done
   [ "$#" -gt 0 ] || return 1
   for p in "$@"; do
-    [[ "$p" =~ ^[A-Za-z0-9_.:/-]+= ]] || return 1
+    [[ "$p" == *=* && "${p%%=*}" =~ ^[A-Za-z0-9_.:/-]+$ ]] || return 1
     gate_checks+=("$p")
   done
   gate_patterns=()
