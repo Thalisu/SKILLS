@@ -138,5 +138,21 @@ has "the fallback authors the flow itself" "$refs/ticket.md" \
 has "the reply carries the skipped flow as pending debt" "$refs/ticket.md" \
   'a criterion the flows step skipped for no end-to-end command'
 
+echo "# the withheld path has its eval case"
+case="$skill/evals/global-loop-withheld-agent-tool"
+has "the case withholds the Agent tool from the whole session" "$case/case.yaml" \
+  'name: global-loop-withheld-agent-tool' 'allowed_tools: [Bash, Read, Edit, Write, Glob, Grep, Skill]'
+if grep -q 'unit-test-author\.md <<' "$case/case.yaml" 2>/dev/null; then fail "the fixture installs no Testing Policy"
+else ok "the fixture installs no Testing Policy"; fi
+has "a grader checks the loop line falls back and says why" "$case/graders/loop-line-fallback-withheld.md" \
+  'Loop: fallback' 'withheld' 'tdd-fallback.md'
+has "a grader checks no author is dispatched and the loop runs red first" "$case/graders/no-author-red-first.md" \
+  'global-unit-test-author' 'global-e2e-test-author' 'red'
+has "a grader checks the flows step states the gap or authors the flow itself" "$case/graders/flow-gap-stated.md" \
+  'skip: no end-to-end command in the project' '/testing-policy'
+has "a grader checks the map is written beside the Ticket" "$case/graders/project-map-beside-ticket.md" \
+  '01-archive-a-note.project-map.md'
+has "the evals README lists the case" "$skill/evals/README.md" '| `global-loop-withheld-agent-tool` |'
+
 echo
 if [ "$fails" = 0 ]; then echo "all passed"; else echo "$fails failed"; exit 1; fi

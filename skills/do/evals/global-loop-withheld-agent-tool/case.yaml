@@ -1,0 +1,215 @@
+name: global-loop-withheld-agent-tool
+tags: [playbook, ticket, run, fallback, agents]
+runs: 1
+max_turns: 150
+timeout_seconds: 2400
+allowed_tools: [Bash, Read, Edit, Write, Glob, Grep, Skill]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # The Ticket of ticket-run-without-policy in a project with no Testing Policy, with the Agent
+    # tool withheld from the whole session. The case assumes the runner's HOME links the global
+    # authors do ships, as scripts/link-skills.sh leaves a maintainer's machine, so the door may
+    # print loop=global; with no Agent tool no author can be dispatched, so the first message reads
+    # Loop: fallback and says in one line that the tool is withheld. The run derives the Project map
+    # beside the Ticket, writes every test itself red first, and, its package.json carrying no
+    # end-to-end script, states the flows step's gap rather than dispatching an author.
+    set -e
+    mkdir -p src docs/agents .scratch/archive-notes/issues
+    cat > package.json <<'JSON'
+    {
+      "name": "notes",
+      "private": true,
+      "type": "module",
+      "scripts": {
+        "typecheck": "node --check src/notes.js",
+        "test": "node --test"
+      }
+    }
+    JSON
+
+    cat > README.md <<'MD'
+    # notes
+
+    A small notes module: create a note, list the active ones. `node --test` runs the suite and
+    `node --check src/notes.js` checks the syntax.
+    MD
+
+    cat > CLAUDE.md <<'MD'
+    # notes
+
+    A small notes module. Tests run with Node's own runner, `node --test`, and the module is
+    checked with `node --check src/notes.js`. Test files are `src/*.test.js` beside the module
+    they test and import it with its `.js` extension.
+    MD
+
+    cat > src/notes.js <<'JS'
+    const notes = [];
+
+    export function create(title) {
+      const note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+
+    export function list() {
+      return notes.filter((n) => n.status === "active");
+    }
+    JS
+
+    cat > src/notes.test.js <<'JS'
+    import { test } from "node:test";
+    import assert from "node:assert/strict";
+    import { create, list } from "./notes.js";
+
+    test("a created note is listed", () => {
+      const note = create("first");
+      assert.ok(list().some((n) => n.id === note.id));
+    });
+    JS
+
+    cat > docs/agents/issue-tracker.md <<'MD'
+    # Issue tracker: Local Markdown
+
+    Issues and specs for this repo live as markdown files in `.scratch/`.
+
+    - One feature per directory: `.scratch/<feature-slug>/`
+    - The spec is `.scratch/<feature-slug>/spec.md`
+    - Implementation issues are one file per ticket at `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01`
+    - Triage state is a `Status:` line near the top of each issue file
+    MD
+
+    cat > .scratch/archive-notes/spec.md <<'MD'
+    # Archive notes
+
+    Journey: ./journey.md
+    Status: ready-for-agent
+
+    ## Problem Statement
+
+    Notes pile up in the list and there is no way to put one aside without deleting it.
+
+    ## Solution
+
+    A note can be archived. Archived notes leave the list and can be restored from an Archived view.
+
+    ## User Stories
+
+    1. As a writer, I want to archive a note, so that it leaves my list without being deleted
+    2. As a writer, I want to see my archived notes, so that I can find one I put aside
+    3. As a writer, I want to restore an archived note, so that it returns to my list
+
+    ## Implementation Decisions
+
+    - A note carries a status, active or archived; archiving never deletes
+    - The list shows active notes only; a separate Archived view shows the rest
+    - Archiving is one way: a second Archive on the same note is a no-op, and Restore is its own action
+
+    ## Testing Decisions
+
+    - Behaviour tests through the notes module's exported functions, with Node's own test runner
+    - This project has no Testing Policy; the run writes its own tests, red first
+
+    ## Out of Scope
+
+    - Deleting archived notes permanently
+    MD
+
+    cat > .scratch/archive-notes/journey.md <<'MD'
+    # Journey: Archive notes
+
+    Spec: ./spec.md
+    Actor: writer
+    Entry: the notes list
+
+    ## Path 1: Archive a note
+
+    Story: 1
+    Outcome: the note is gone from the list and the writer knows where it went.
+
+    | Step | Actor sees | Actor does | System answers |
+    |---|---|---|---|
+    | 1 | the list, each note with an Archive action | picks Archive on one note | the note leaves the list; a line says "Archived" with a link to Archived |
+    | 2 | the list without the note | nothing | the Archived link shows a count of one |
+
+    Failure branches:
+    - Archive picked twice on the same note: the second pick is a no-op, the count stays one
+
+    ## Path 2: Find and restore an archived note
+
+    Story: 2, 3
+    Outcome: the note is back in the list.
+
+    | Step | Actor sees | Actor does | System answers |
+    |---|---|---|---|
+    | 1 | the Archived link with a count | opens it | the Archived view lists archived notes, each with Restore |
+    | 2 | the Archived view | picks Restore on one note | the note leaves the view; a line says "Restored" |
+
+    Failure branches:
+    - Restore on a note archived twice: the note returns once
+
+    ## States
+
+    | State | The actor sees | Actions |
+    |---|---|---|
+    | active | the note in the list | Archive |
+    | archived | the note in the Archived view | Restore |
+
+    ## Cut
+
+    - none
+
+    ## Defaults taken
+
+    - "Archived" and "Restored" lines are the app's existing status line
+
+    ## Deferred
+
+    - none
+
+    ## Spec changes applied
+
+    - none
+
+    ## Reopen in discuss
+
+    - none
+    MD
+
+    cat > .scratch/archive-notes/issues/01-archive-a-note.md <<'MD'
+    # 01: Archive a note
+
+    **What to build:** Archive a note: the note leaves the list and the writer knows where it went.
+
+    **Blocked by:** None (can start immediately)
+
+    **Status:** ready-for-agent
+
+    - [ ] Picking Archive on a note removes it from the list
+    - [ ] After archiving one note, the Archived count reads one
+    - [ ] Archive picked twice on the same note is a no-op: the note stays out of the list and the count stays one
+
+    ## Evidence
+    MD
+
+    cat > .scratch/archive-notes/issues/02-find-and-restore-an-archived-note.md <<'MD'
+    # 02: Find and restore an archived note
+
+    **What to build:** Find and restore an archived note: the writer opens the Archived view, restores a note, and it is back in the list.
+
+    **Blocked by:** 01 Archive a note
+
+    **Status:** ready-for-agent
+
+    - [ ] The Archived view lists the archived notes
+    - [ ] Picking Restore on an archived note puts it back in the list and out of the view
+    - [ ] Restore on a note archived twice returns it once
+
+    ## Evidence
+    MD
+
+    printf '.scratch/\n' > .gitignore
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
+    printf "\nWork in progress on the README, uncommitted.\n" >> README.md
