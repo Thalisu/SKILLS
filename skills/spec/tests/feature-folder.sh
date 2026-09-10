@@ -163,6 +163,23 @@ check "a spec.md that is a symlink is refused" 2 "$rc" \
   ".scratch/20240101-notes/spec.md is a symlink; nothing allocated"
 expect "the symlink's target is untouched" grep -qxF keep "$tmp/outside-spec.md"
 
+# The chain writes its tickets into issues/ and the journey beside the spec, so a link in either
+# place escapes the checkout the same way, and the allocator reuses no folder that holds one.
+rm .scratch/20240101-notes/spec.md
+mkdir "$tmp/outside-issues"
+ln -s "$tmp/outside-issues" .scratch/20240101-notes/issues
+run notes
+check "an issues folder that is a symlink is refused" 2 "$rc" \
+  ".scratch/20240101-notes/issues is a symlink; nothing allocated"
+expect "no folder reached the caller through a symlinked issues folder" test -z "$(grep '^folder=' <<<"$out")"
+rm .scratch/20240101-notes/issues
+printf 'keep\n' > "$tmp/outside-journey.md"
+ln -s "$tmp/outside-journey.md" .scratch/20240101-notes/journey.md
+run notes
+check "a journey.md that is a symlink is refused" 2 "$rc" \
+  ".scratch/20240101-notes/journey.md is a symlink; nothing allocated"
+expect "no folder reached the caller through a symlinked journey.md" test -z "$(grep '^folder=' <<<"$out")"
+
 # Outside a repository the folder is still allocated, and no ignore is claimed.
 mkdir "$tmp/plain" && cd "$tmp/plain" || exit 1
 run notes
