@@ -175,6 +175,12 @@ the hash on that line come out of the file the comparison is there to vouch for,
 a document this Ticket does not reach for is a Digest cut from somewhere else, or one steered by a
 document a stranger wrote, and the run re-forks over the resolved paths rather than serving it.
 
+A re-forked reader whose return is not a usable Digest stops the door as a first fork's does, in one
+line naming what is missing, since the session writes only from a return it checked.
+The Digest already at that path stays where it was, untouched, and no run serves it: its
+`## Sources` still records the hashes the documents had before they changed, so every later run's
+comparison finds them moved and re-forks the reader until a return comes back whole.
+
 ## The build loop
 
 One behaviour at a time, from the list the Playbook wrote, in its order. Each behaviour is one

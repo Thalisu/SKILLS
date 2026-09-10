@@ -145,6 +145,14 @@ has "a document changed in the reader's window shows nothing now and re-forks th
   "changes while the reader reads it shows nothing in this run" \
   "the door hashed it before the fork" \
   "re-forks the reader and names the document"
+# A re-fork that comes back without a usable Digest stops as a first fork does, and the Digest the
+# earlier run wrote is never served in its place: its recorded hashes are ones the documents no
+# longer have, so every later run re-forks rather than reusing it.
+has "a re-fork with no usable Digest stops as a first fork does and the old Digest is not served" \
+  "$refs/mechanics.md" \
+  "A re-forked reader whose return is not a usable Digest stops the door as a first fork's does" \
+  "The Digest already at that path stays where it was" \
+  "no run serves it"
 
 # The Digest is an unversioned file a fork wrote while two documents a stranger may have written
 # were open, so the gate that decides to reuse it takes neither its subject nor its bound from it:
