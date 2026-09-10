@@ -474,4 +474,74 @@ rc=0; out="$(bash "$lonely/fixed-point.sh" 2>&1)" || rc=$?
 check "a door that cannot find the resolver answers as it does today" 0 "$rc" \
   "branch=export-notes" "review=.scratch/reviews/export-notes.md"
 
+# do names its branch after the Ticket's slug, while the Ticket sits in its feature's folder under
+# another slug: the door answers for that folder as well, found or handed, and for the Review beside
+# the Ticket, so neither the spec it reads nor the Review it writes lands outside the checkout.
+mkdir "$tmp/ticket-escape" && cd "$tmp/ticket-escape" && git init -q -b main
+printf 'a\n' > a.txt && git add a.txt && git commit -q -m "first"
+git checkout -q -b do/the-allocator-step
+printf 'b\n' > b.txt && git add b.txt && git commit -q -m "build"
+feature=.scratch/20240101-feature
+ticket_md="$feature/issues/02-the-allocator-step.md"
+mkdir -p "$feature/issues" && printf '# 02: The allocator step\n' > "$ticket_md"
+printf '# Feature\n' > "$feature/spec.md"
+run
+check "a do branch reads the spec of its Ticket's own feature folder" 0 "$rc" \
+  "ticket=$ticket_md" "spec=$feature/spec.md" "review=.scratch/reviews/do-the-allocator-step.md"
+printf 'SECRET-TOKEN\n' > "$tmp/ticket-secret"
+rm "$feature/spec.md" && ln -s "$tmp/ticket-secret" "$feature/spec.md"
+run
+check "a symlinked spec.md beside a found Ticket is refused" 2 "$rc" \
+  "$feature/spec.md is a symlink; nothing reviewed"
+absent "no spec reached the caller through it" "spec="
+run --ticket "$ticket_md"
+check "a symlinked spec.md beside a handed Ticket is refused" 2 "$rc" \
+  "$feature/spec.md is a symlink; nothing reviewed"
+absent "no Review path reached the caller through it" "review="
+rm "$feature/spec.md" && printf '# Feature\n' > "$feature/spec.md"
+mv "$feature/issues" "$tmp/ticket-issues" && ln -s "$tmp/ticket-issues" "$feature/issues"
+run
+check "a symlinked issues folder holding a found Ticket is refused" 2 "$rc" \
+  "$feature/issues is a symlink; nothing reviewed"
+run --ticket "$ticket_md"
+check "a symlinked issues folder holding a handed Ticket is refused" 2 "$rc" \
+  "$feature/issues is a symlink; nothing reviewed"
+rm "$feature/issues" && mv "$tmp/ticket-issues" "$feature/issues"
+mv "$feature" "$tmp/ticket-feature" && ln -s "$tmp/ticket-feature" "$feature"
+run
+check "a symlinked feature folder holding a found Ticket is refused" 2 "$rc" \
+  "$feature is a symlink; nothing reviewed"
+run --ticket "$ticket_md"
+check "a symlinked feature folder holding a handed Ticket is refused" 2 "$rc" \
+  "$feature is a symlink; nothing reviewed"
+rm "$feature" && mv "$tmp/ticket-feature" "$feature"
+printf 'keep\n' > "$tmp/ticket-victim"
+ln -s "$tmp/ticket-victim" "$feature/issues/02-the-allocator-step.review.md"
+run --ticket "$ticket_md"
+check "a symlinked Review beside a handed Ticket is refused" 2 "$rc" \
+  "$feature/issues/02-the-allocator-step.review.md is a symlink; nothing reviewed"
+absent "no Review path reached the caller through it" "review="
+run
+check "a symlinked Review beside a found Ticket is refused" 2 "$rc" \
+  "$feature/issues/02-the-allocator-step.review.md is a symlink; nothing reviewed"
+expect "the Review's symlink target is untouched" grep -qxF keep "$tmp/ticket-victim"
+rm "$feature/issues/02-the-allocator-step.review.md"
+# The resolver names the newest folder of a slug, and the Ticket may sit in an older one.
+mkdir -p .scratch/20250101-feature
+rm "$feature/spec.md" && ln -s "$tmp/ticket-secret" "$feature/spec.md"
+run
+check "a symlinked spec.md beside a Ticket in an older folder of its slug is refused" 2 "$rc" \
+  "$feature/spec.md is a symlink; nothing reviewed"
+rm -r .scratch
+# A Ticket handed outside the scratch keeps its answers, save a Review beside it that is a symlink.
+mkdir -p "$tmp/ticket-docs/issues" && printf '# 04: outside\n' > "$tmp/ticket-docs/issues/04-outside.md"
+run --ticket "$tmp/ticket-docs/issues/04-outside.md"
+check "a Ticket handed outside the scratch is still the Review's home" 0 "$rc" \
+  "review=$tmp/ticket-docs/issues/04-outside.review.md"
+ln -s "$tmp/ticket-victim" "$tmp/ticket-docs/issues/04-outside.review.md"
+run --ticket "$tmp/ticket-docs/issues/04-outside.md"
+check "a symlinked Review beside a Ticket handed outside the scratch is refused" 2 "$rc" \
+  "$tmp/ticket-docs/issues/04-outside.review.md is a symlink; nothing reviewed"
+expect "that Review's symlink target is untouched" grep -qxF keep "$tmp/ticket-victim"
+
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi

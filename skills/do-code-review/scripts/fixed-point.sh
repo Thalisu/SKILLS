@@ -21,10 +21,13 @@
 # it asks ../../../.agents/scripts/resolve-feature-folder.sh, the one executable form of that rule,
 # and passes on every refusal it makes, so a .scratch, a feature folder, or a spec.md or issues
 # folder in it that is a symlink never puts the Review, or a spec read beside it, at a path the
-# repository does not control. The lookups below stay this door's own: a Ticket is named after its
-# own slug and not after its feature's, and the containing scan matches a branch name no resolver
-# knows. A checkout that has no resolver answers as it does today, since a machine may have linked
-# skills/ on its own.
+# repository does not control. It asks for the branch's slug, and for the slug of the feature folder
+# a Ticket found or handed sits in, whose folder, spec.md and issues folder the door checks itself
+# as well, since the resolver names only the newest folder of a slug. A Review beside the Ticket
+# that is a symlink is refused the same way. The lookups below stay this door's own: a Ticket is
+# named after its own slug and not after its feature's, and the containing scan matches a branch
+# name no resolver knows. A checkout that has no resolver answers as it does today, since a machine
+# may have linked skills/ on its own.
 #
 # Prints key=value lines: branch, slug (the branch with every slash turned into a dash), head,
 # dirty (yes when the working tree has uncommitted or untracked changes; the two files this run
@@ -51,7 +54,8 @@
 # main checkout when it sits there, no when git ignores that path or it sits outside the
 # repository).
 # Exit codes: 0 the door holds · 1 a refusal, with refusal=<the one line to print> · 2 usage, not a
-# git repository, or a refusal the resolver makes over the scratch, reported in this door's words.
+# git repository, a refusal the resolver makes over the scratch, reported in this door's words, or a
+# Ticket's feature folder, spec.md, issues folder or the Review beside it that is a symlink.
 # main_checkout, printed last, is the path of the main worktree, the first entry of git worktree
 # list, so a caller in a linked worktree reaches the developer's checkout, and the tree the run sits
 # in when that entry is a bare repository: see .agents/worktrees.md.
@@ -77,6 +81,7 @@ main_checkout="$(git worktree list --porcelain 2>/dev/null |
 [ -n "$main_checkout" ] && [ -d "$main_checkout" ] || main_checkout="$top"
 
 refuse() { echo "refusal=$1"; exit 1; }
+refuse_link() { [ -L "$1" ] || return 0; echo "$1 is a symlink; nothing reviewed" >&2; exit 2; }
 short() { git rev-parse --short "$1"; }
 reference() { # a handed location that is an issue reference: all digits, or an http(s) URL
   case "$1" in
@@ -85,15 +90,18 @@ reference() { # a handed location that is an issue reference: all digits, or an 
     *) return 0 ;;
   esac
 }
+locate() { # the file resolve finds, named the way the caller named it, so a symlink on the way stays
+           # visible to the gate
+  case "$1" in
+    /*) [ -f "$1" ] && printf '%s\n' "$1" ;;
+    *) if [ -f "$invoked/$1" ]; then printf '%s\n' "$invoked/$1"; elif [ -f "$top/$1" ]; then printf '%s\n' "$top/$1"; else return 1; fi ;;
+  esac
+}
 resolve() { # a handed path, from the directory the script was invoked from first and the
             # repository top second, printed the way the rest of the run names it: relative to the
             # top when it sits under it, absolute anywhere else
-  local p="$1" abs=""
-  case "$p" in
-    /*) [ -f "$p" ] && abs="$p" ;;
-    *) if [ -f "$invoked/$p" ]; then abs="$invoked/$p"; elif [ -f "$top/$p" ]; then abs="$top/$p"; fi ;;
-  esac
-  [ -n "$abs" ] || return 1
+  local abs
+  abs="$(locate "$1")" || return 1
   abs="$(cd "$(dirname "$abs")" && pwd -P)/$(basename "$abs")"
   case "$abs" in "$top"/*) printf '%s\n' "${abs#"$top"/}" ;; *) printf '%s\n' "$abs" ;; esac
 }
@@ -107,29 +115,44 @@ review=".scratch/reviews/$slug.md"
 [ "$top" -ef "$main_checkout" ] || review="$main_checkout/.scratch/reviews/$slug.md"
 core="${branch##*/}"
 core="$(sed -E 's/^[0-9]+-//' <<<"$core")"
-if [ -f "$resolver" ]; then
-  resolved="$(bash "$resolver" "$core" 2>&1)" || case "$resolved" in
+gate() {
+  local resolved
+  [ -f "$resolver" ] || return 0
+  resolved="$(bash "$resolver" "$1" 2>&1)" || case "$resolved" in
     # Only the escapes: a branch whose name normalises to no slug names no feature folder, which is
     # an answer of none here and never a refusal.
     *"nothing resolved")
       # The reason is the resolver's; the verb is this door's, which reviews where it only reads.
       echo "${resolved/%nothing resolved/nothing reviewed}" >&2; exit 2 ;;
   esac
-fi
+}
+gate "$core"
 ticket=none
 # One slug can carry more than one dated feature folder, and the newest of them wins: the glob is
 # sorted, so the last match is the one .agents/scratch.md names, and an undated folder, whose name
 # sorts after every date, wins the way the allocator prefers it.
 for f in .scratch/*/issues/[0-9][0-9]-"$core".md; do [ -f "$f" ] && ticket="$f"; done
+located="$ticket"
 ticket_handed=no
 if [ "$handed_given" = yes ]; then
   ticket_handed=yes
   if reference "$handed"; then
-    ticket="$handed"
+    ticket="$handed"; located=none
   else
     ticket="$(resolve "$handed")" || refuse "$handed is not a Ticket file; nothing reviewed"
     review="${ticket%.md}.review.md"
+    located="$(locate "$handed")"; located="${located#"$top"/}"
   fi
+fi
+# do names its branch after the Ticket's slug and not after its feature's, so the gate above never
+# reached the folder the spec is read from and a handed Ticket's Review is written into.
+if [ "$located" != none ]; then
+  folder="$(dirname "$(dirname "$located")")"
+  if [ -f "$resolver" ] && [ "$(basename "$(dirname "$folder")")" = .scratch ]; then
+    gate "$(basename "$folder")"
+    for p in "$folder" "$folder/spec.md" "$folder/issues"; do refuse_link "$p"; done
+  fi
+  refuse_link "${ticket%.md}.review.md"
 fi
 own=(":!$review")
 case "$ticket" in
