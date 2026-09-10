@@ -119,7 +119,10 @@ actually made.
 
 The session writes the Digest itself, whole, at the path [digest.md](digest.md) fixes beside the
 Ticket in the main checkout's scratch: its `## Sources` lines from the door's own hashes first,
-then the text the reader returned. A Digest already at that path is replaced whole and never edited.
+then the text the reader returned. A `## Sources` section in the text the reader returned is
+dropped before the write, since a stranger's text can steer the reader into returning one of its
+own, and the run says so in one line, so the written Digest carries exactly one `## Sources`
+section, the door's own. A Digest already at that path is replaced whole and never edited.
 The run shows the Digest's location and the one line in the thread, and the steps that build on
 the slice open that file and read its quotes there. The line is a restatement for the thread: a list
 written from it would be the paraphrase the Digest exists to keep out of the record.

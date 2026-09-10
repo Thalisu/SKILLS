@@ -75,6 +75,15 @@ has "a return missing a required section stops the door before anything is writt
   "stops the door in one line naming what is missing" \
   "No Digest is written, the Ticket is left as the" \
   "door found it, and the next run forks the reader again"
+# A `## Sources` section is a value the door alone computes, never a quote, so a `## Sources`
+# section a stranger's text steered the reader into returning must never reach the write: the
+# reuse gate would then have two pairs of hashes to choose from.
+has "a Sources section in the reader's return is dropped before the write, and the run says so" \
+  "$refs/mechanics.md" \
+  'A `## Sources` section in the text the reader returned is' \
+  "dropped before the write" \
+  "the run says so in one line, so the written Digest carries exactly one \`## Sources\`" \
+  "section, the door's own"
 has "the session never falls back to reading the Spec and journey itself on a reader failure" \
   "$refs/mechanics.md" \
   "The session never reads the Spec or the" \
