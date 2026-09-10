@@ -10,7 +10,9 @@ context:
     #!/usr/bin/env bash
     # A Ticket built end to end under an installed Testing Policy on a native surface (a CLI
     # with flows under e2e/): the checklist before the first edit, the worktree before the
-    # first edit with the main checkout's dirty README untouched, one discover batch, one
+    # first edit with the main checkout's dirty README untouched, one discover batch, the
+    # shape step forking `sketch` (Ticket 01 adds exported functions and carries no shape) and
+    # filing the Sketch it returns beside the Ticket in the main checkout, one
     # dispatch in flight, one commit per behaviour, the flow authored after the feature, the
     # gate after the last edit, then the review called once through the fixture's stand-in
     # do-code-review (planted Green), which fast-forwards main; the affected flow run from
