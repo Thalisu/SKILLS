@@ -343,6 +343,31 @@ expect "two arguments are a usage error and exit 2" \
   sh -c '[ "$1" = 2 ] && [ -z "$2" ] && printf "%s\n" "$3" | grep -qF "usage: estimate-load.sh"' \
   _ "$code" "$out" "$err"
 
+# A project with several contexts keeps its glossary through CONTEXT-MAP.md, and the ground step reads
+# the map and the one context it names that the plan touches. Which one is not knowable without the
+# Ticket, so the largest named is counted, beside the map itself.
+mv "$tmp/CONTEXT.md" "$tmp/t/CONTEXT.md"
+mkdir -p "$tmp/ctx/a" "$tmp/ctx/b"
+mk "$tmp/ctx/a/CONTEXT.md" 8000
+mk "$tmp/ctx/b/CONTEXT.md" 4000
+printf '# Context map\n\n## Contexts\n\n- [A](./ctx/a/CONTEXT.md): one\n- [B](./ctx/b/CONTEXT.md): two\n' \
+  > "$tmp/CONTEXT-MAP.md"
+map_size="$(wc -c < "$tmp/CONTEXT-MAP.md")"
+head -c $((1990 - map_size - 1)) /dev/zero | tr '\0' a >> "$tmp/CONTEXT-MAP.md"
+echo >> "$tmp/CONTEXT-MAP.md"
+est
+expect "with CONTEXT-MAP.md the ground term counts the map and the largest context it names" \
+  sh -c '[ "$1" = 0 ] && printf "%s\n" "$2" | grep -qx "ground=9000"' _ "$code" "$out"
+mv "$tmp/ctx/a/CONTEXT.md" "$tmp/t/ctx-a.md"
+est
+expect "a context the map names that is not on disk names ground and exits 3" refused 3 ground
+mv "$tmp/t/ctx-a.md" "$tmp/ctx/a/CONTEXT.md"
+printf '# Context map\n' > "$tmp/CONTEXT-MAP.md"
+est
+expect "a map that names no context names ground and exits 3" refused 3 ground
+rm -r "$tmp/CONTEXT-MAP.md" "$tmp/ctx"
+mv "$tmp/t/CONTEXT.md" "$tmp/CONTEXT.md"
+
 # The estimate gates nothing: no skill, no vendored skill and no contract names it, so a Ticket it
 # calls small still runs whatever it turns out to cost.
 unread() { ! grep -rlF --exclude=estimate-load.sh --exclude=fixed-load.sh -- estimate-load.sh \

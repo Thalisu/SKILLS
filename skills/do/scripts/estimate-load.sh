@@ -14,7 +14,9 @@
 # bytes a token. baseline is the harness's own prompt and listings; reference_chain the skill file,
 # the Playbook's reference, the shared mechanics, the reply reference and the Ticket format; door the
 # door script's output, the Digest's brief, the Ticket and its Digest; ground the project's
-# CONTEXT.md and its ADR titles, then the map, the discover return and the ADR bodies the step reads;
+# CONTEXT.md, or its CONTEXT-MAP.md and the largest CONTEXT.md the map names, since which one the
+# step picks is not knowable here, and its ADR titles, then the map, the discover return and the ADR
+# bodies the step reads;
 # shape the one line the shape step names. What is not a file is a stated allowance below.
 # Exit codes: 0 a reading, whatever the band · 2 usage · 3 a term could not be read, named on stderr
 set -uo pipefail
@@ -67,7 +69,20 @@ fi
 door=$((door_output + $(tokens "$(bytes "$skill/references/digest.md")") + ticket_tokens \
   + digest_tokens))
 ground_bytes=0
-[ -f "$root/CONTEXT.md" ] && ground_bytes="$(bytes "$root/CONTEXT.md")"
+map="$root/CONTEXT-MAP.md"
+if [ -f "$map" ]; then
+  mapfile -t contexts < <(grep -oE '\]\([^)]*CONTEXT\.md\)' "$map" | sed -E 's/^\]\(//; s/\)$//')
+  [ "${#contexts[@]}" -gt 0 ] || refuse ground "$map names no CONTEXT.md"
+  largest=0
+  for context in "${contexts[@]}"; do
+    need ground "$root/$context"
+    size="$(bytes "$root/$context")"
+    [ "$size" -gt "$largest" ] && largest=$size
+  done
+  ground_bytes=$(($(bytes "$map") + largest))
+elif [ -f "$root/CONTEXT.md" ]; then
+  ground_bytes="$(bytes "$root/CONTEXT.md")"
+fi
 for adr in "$root"/docs/adr/*; do
   name="${adr##*/}"
   [ -e "$adr" ] && ground_bytes=$((ground_bytes + ${#name} + 1))
