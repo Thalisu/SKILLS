@@ -300,6 +300,12 @@ nothing added, and the run names the Sketch's location and the shape in one line
 the types, the signatures and the module boundaries. It opens the Sketch when a behaviour needs
 more than that line, and never restates the rivals, which stay in the file.
 
+A return that does not carry every section of
+[sketch-format.md](../../../.agents/formats/sketch-format.md), whether a refusal, an error or a
+shape the format does not fix, is not a usable Sketch: the session writes no Sketch, the shape, the
+types, the signatures and the module boundaries are stated in the thread, the step says so in one
+line, and the run continues, as it does when the Agent tool lists no `sketch`.
+
 The build is held to the Sketch, or to the shape in hand when no Sketch was filed. The loop
 implements it one behaviour at a time, and every test still goes through a test author; a symbol
 it adds is checked the way step 2 says. A deviation from that contract during the build is

@@ -560,12 +560,23 @@ after "the containment check runs before the ignore probe appends anything" "$sh
   "git check-ignore -v .scratch/" "readlink -m"
 after "the containment check and the ignore probe come before the Sketch is written" "$shape_step" \
   "the text the agent return" "readlink -m" "git check-ignore -v .scratch/"
+# A refusal, an error or a return in a shape the Sketch format does not fix is no Sketch, and filing
+# it would hold the build to it: the step reads the return against the format, writes nothing, and
+# lands where a session that lists no `sketch` lands. Read from the containment check on, so the
+# format link the withheld row carries cannot stand in for the one the return is checked against.
+sketch_return="$(mktemp)"
+awk '/readlink -m/ { on = 1 } on' "$shape_step" > "$sketch_return" 2>/dev/null
+para_has "a return that is not a usable Sketch files none, and the shape is stated in the thread" \
+  "$sketch_return" "[sketch-format.md](../../../.agents/formats/sketch-format.md)" \
+  "writes no Sketch" \
+  "the types, the signatures and the module boundaries" "stated in the thread" \
+  "says so in one line" "the run continues"
 
 # The estimator runs against a scaffolded skill and project whose files have known sizes, so every
 # term it prints is a number this script can state: 4000 bytes is 1000 tokens.
 estimator="$repo/skills/do/scripts/estimate-load.sh"
 tmp="$(mktemp -d)"
-trap 'rm -rf "$tmp" "$shape_step"' EXIT
+trap 'rm -rf "$tmp" "$shape_step" "$sketch_return"' EXIT
 skill="$tmp/skills/do"
 mkdir -p "$skill/scripts" "$skill/references" "$tmp/.agents/formats" "$tmp/docs/adr" "$tmp/t"
 cp "$estimator" "$skill/scripts/" 2>/dev/null
