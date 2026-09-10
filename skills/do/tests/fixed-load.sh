@@ -198,6 +198,14 @@ after "the door hashes both documents before it forks the reader" "$refs/mechani
   "hashes both itself before it forks"
 has "the Playbook's door hashes both documents before the fork" "$refs/ticket.md" \
   "hashes both itself before it forks"
+# The hashes are the record the reuse gate trusts on every branch, forked or not, and a run that
+# forks nothing never says the documents are being read in a window of their own.
+para_has "the door hashes both documents on the no-reader branches and names the window only on a fork" \
+  "$refs/mechanics.md" "Before anything is forked, the door resolves both paths" \
+  "the same way when no reader can be forked" \
+  "When it forks the reader, the door says in one line"
+lacks "the window line is never said unconditionally" "$refs/mechanics.md" \
+  "Then the door says in one line that both are being read"
 has "the Sources hash is the door's, run in the main checkout before the fork" "$refs/digest.md" \
   'the hash from `git hash-object <path>` the door runs in the main checkout before it forks'
 

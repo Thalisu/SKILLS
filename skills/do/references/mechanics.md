@@ -90,9 +90,11 @@ back is quoted with the location of every quote, so the check is a quote read ag
 
 Before anything is forked, the door resolves both paths from the Ticket, the way the second run
 below does, and the door hashes both itself before it forks: `git hash-object <path>` in the main
-checkout for each, recording `absent` for a document not on disk. Those two values are the
+checkout for each, recording `absent` for a document not on disk. It resolves and hashes them
+the same way when no reader can be forked, on the two branches below. Those two values are the
 Digest's `## Sources` lines, so the record the reuse gate trusts is the run's own reading and never
-the fork's. Then the door says in one line that both are being read in a window of their own.
+the fork's. When it forks the reader, the door says in one line that both are being read in a
+window of their own.
 
 No reader can be forked on two branches: the Agent tool is withheld from the session, or
 the Agent tool lists no `do-reader`, as it does on a machine that never linked the reader `do`
