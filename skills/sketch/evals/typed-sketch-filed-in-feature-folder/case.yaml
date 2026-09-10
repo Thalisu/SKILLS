@@ -1,0 +1,65 @@
+name: typed-sketch-filed-in-feature-folder
+tags: [sketch, typed, run]
+runs: 1
+max_turns: 40
+timeout_seconds: 1800
+allowed_tools: [Bash, Read, Edit, Write, Glob, Grep, Agent, Skill]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # One commit: a .gitignore that already carries the scratch line and a small notes module. The
+    # Feature folder is untracked and ignored, dated so the bare slug `export-notes` resolves to it,
+    # and holds a spec and no Sketch yet.
+    set -e
+    mkdir -p src .scratch/20260101-export-notes
+    printf '.scratch/\n' > .gitignore
+
+    cat > src/notes.ts <<'TS'
+    export type Status = "active" | "archived";
+
+    export interface Note {
+      id: number;
+      title: string;
+      body: string;
+      status: Status;
+    }
+
+    const notes: Note[] = [];
+
+    export function create(title: string, body: string): Note {
+      const note: Note = { id: notes.length + 1, title, body, status: "active" };
+      notes.push(note);
+      return note;
+    }
+
+    export function list(): Note[] {
+      return notes.filter((n) => n.status === "active");
+    }
+    TS
+
+    git init -q -b main
+    git config user.email fixture@example.com
+    git config user.name fixture
+    git add -A
+    git commit -q -m "fixture"
+
+    cat > .scratch/20260101-export-notes/spec.md <<'MD'
+    # Export notes
+
+    Journey: none
+
+    ## Problem
+
+    A user keeps notes in the app and cannot take them anywhere else.
+
+    ## Stories
+
+    1. As a user, I export my active notes as one markdown document, so I can paste them elsewhere.
+    2. As a user, archived notes stay out of the export.
+
+    ## Decisions
+
+    - The export is a markdown string: one `## <title>` heading per note, its body under it, in the
+      order the notes were created.
+    - Writing the string to a file is the caller's business, not the notes module's.
+    MD
