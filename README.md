@@ -113,12 +113,17 @@ ln -s ~/SKILLS/skills/do-code-review/agents/do-code-review-technical-reviewer.md
 ln -s ~/SKILLS/skills/do-code-review/agents/do-code-review-security-reviewer.md ~/.claude/agents/do-code-review-security-reviewer.md
 ```
 
-`do` ships one agent in its `agents/` folder, the reader its door forks over a Ticket's Spec and
-journey. It holds reading and search alone, and the run writes the Digest from what it returns.
-Link it by name so the door has a reader to fork.
+`do` ships three agents in its `agents/` folder. The first is the reader its door forks over a
+Ticket's Spec and journey. It holds reading and search alone, and the run writes the Digest from
+what it returns. The other two are the global unit and end-to-end test authors, which carry the
+Testing Policy's agent core for a project that never installed the policy; with them linked, the run
+on such a project reads `Loop: global` and its tests come from an author instead of from the run.
+Link all three by name.
 
 ```bash
 ln -s ~/SKILLS/skills/do/agents/do-reader.md ~/.claude/agents/do-reader.md
+ln -s ~/SKILLS/skills/do/agents/global-unit-test-author.md ~/.claude/agents/global-unit-test-author.md
+ln -s ~/SKILLS/skills/do/agents/global-e2e-test-author.md ~/.claude/agents/global-e2e-test-author.md
 ```
 
 Maintainers of this repo can run `scripts/link-skills.sh` to relink every skill at once; it is a
