@@ -573,6 +573,8 @@ has "the run's last line answers for the file at review= either way" "$agent_md"
 lacks "the run's last line no longer reports a folder's ignore state" "$agent_md" "scratch_ignored"
 has "the docs page's working check reads the Review's own visibility" "$page" \
   "nothing else when git does not ignore the file, nothing new when it does"
+has "the docs page says a branch that moved is rebased over added lines only" "$page" \
+  "commit on your branch while the review runs" "both sides only added lines" "\`not landed: target moved\`"
 # The page's claim about do and do's own review step move together, so the page never promises a
 # call do does not make. The key is whether do's mechanics make the call, not whether they still
 # name the skip: the skip survives as the fallback for a session without the skill.

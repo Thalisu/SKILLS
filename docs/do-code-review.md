@@ -18,6 +18,13 @@ each Finding's own check and the project's suite itself, appends a `## Fix run` 
 Review, and fast-forwards your branch onto the fixed one when the Review is **Green**. Nothing is
 pushed: the run ends with the `git push` command for you to type.
 
+If you commit on your branch while the review runs, the fast-forward can no longer be made, so the
+landing rebases the reviewed branch onto yours first and runs the suite again before it lands. It
+resolves a conflict alone only where both sides only added lines, a class a script decides and the
+review never judges. Any other conflict comes back to you as `not landed: target moved` with the
+files named, since the review is a fork with nobody to ask, and a suite red after the rebase lands
+nothing either.
+
 Every Finding carries a **Rung**, how far the review climbed to back it, and nothing at Rung 1 or
 2 reaches `Act on`, whatever it looks like: a claim the review could not walk or run stays a
 judgment call in `Consider`, so nothing is fixed on a hunch. A Security Finding is the one that

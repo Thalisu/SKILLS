@@ -160,6 +160,16 @@ has "git refusing for any other reason stops the run with the rebase left open" 
 has "the undo command follows the state the rebase is in" "$mech" \
   "since the rebase has not finished"
 
+# ADR 0027: the review's landing retries a moved target only over mechanical hunks and hands every
+# other one back, since it is a fork with nobody to ask, so the run reading its return stops on it.
+has "the review's landing rule rebases over the mechanical class only and asks nobody" "$mech" \
+  "retried once, by a rebase whose every hunk the review's copy of the conflict class calls \`mechanical\`" \
+  "since it is a fork with nobody to ask"
+has "the run names target moved among the reasons it stops as blocked" "$mech" \
+  "\`not landed: target moved\`, a red suite after the retry's rebase"
+lacks "no line says the review aborts every rebase conflict whatever its class" "$mech" \
+  "a rebase conflict aborted with the conflicting files named"
+
 # The mechanic lives once, but it is only reached from a Playbook's checklist, so each of the three
 # that builds in a worktree carries the line between its gate and its review, and a step body for it.
 ticket="$refs/ticket.md"

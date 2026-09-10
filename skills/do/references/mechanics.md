@@ -365,10 +365,15 @@ What the review does with the call, so that the run does not: it writes the Revi
 Fixer with the `Act on` list, which turns every `Act on` Finding into one commit on the reviewed
 branch under the project's Testing Policy, re-runs each Finding's check and the gate, and, when
 the Review is Green, lands the reviewed branch on the developer's branch by fast-forward under the
-landing rules of [ADR 0013](../../../docs/adr/0013-do-code-review-lands-a-green-review-by-fast-forward.md):
-a protected branch refused, the branch rebased first when the
-developer's branch moved, a rebase conflict aborted with the conflicting files named, a failed
-fast-forward left in place, nothing pushed.
+landing rules of [ADR 0013](../../../docs/adr/0013-do-code-review-lands-a-green-review-by-fast-forward.md)
+as [ADR 0027](../../../docs/adr/0027-the-rebase-runs-in-the-session-before-the-review-and-the-landing-retries-only-the-mechanical-class.md)
+amends them: a protected branch refused; a developer's branch that moved while the review ran
+retried once, by a rebase whose every hunk the review's copy of the conflict class calls
+`mechanical`, resolved by the union in base order, and the suite run again before the
+fast-forward; any `contested` hunk aborted and returned as `not landed: target moved` with the
+target and the conflicting files; a failed fast-forward left in place; nothing pushed. The review
+asks nobody anything on those paths, since it is a fork with nobody to ask: a hunk a person must
+judge comes back to this run in its return.
 
 The run reads the outcome off the return and never opens the Review file. The thread shows the
 return, one line per part:
@@ -383,8 +388,9 @@ return, one line per part:
 The run makes no commit for a Finding and fixes none by hand: a Finding the Fixer left standing
 is the review's reason for not landing, and the run stops on it. Landed, and the run goes on to
 the verification. Not landed, for any reason the review gives (a Finding `not fixed` or
-`not verified`, an Axis `not run`, a red gate after the fix, a rebase conflict, a failed
-fast-forward, a protected branch), and the run stops as blocked: the review's reason quoted, the
+`not verified`, an Axis `not run`, a red gate after the fix, `not landed: target moved`, a red
+suite after the retry's rebase, a failed fast-forward, a protected branch), and the run stops as
+blocked: the review's reason quoted, the
 worktree and its branch left in place and named in the reply, the Ticket left `claimed`, so that
 nothing lands half fixed. On a protected branch the reply adds the two commands that land the
 reviewed branch by hand from a branch that takes commits, since the diff was reviewed and Green
