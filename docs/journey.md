@@ -33,9 +33,15 @@ in; everything written into the project is in English, except the UI copy the jo
 ## Prerequisites
 
 A spec in the format `spec` writes, with its sections and the `Journey:` line under its title; the
-skill resolves a slug through `docs/agents/issue-tracker.md` when that file exists and reads the
-spec in the `.scratch/` feature folder that slug names when it does not, dated `<YYYYMMDD>-<slug>`
-or, for a folder from before that rule, the bare slug. It writes into the project: the journey
+skill resolves a slug through `docs/agents/issue-tracker.md` when that file names a tracker other
+than local markdown, and otherwise reads the spec in the `.scratch/` feature folder that slug
+names. Which folder that is comes from `.agents/scripts/resolve-feature-folder.sh`, so the skill
+needs this repo cloned whole and not `skills/` linked on its own; without the script it asks for
+the spec's path. The rule the script holds: the slug is lowercased, every other character becomes a
+dash, dashes are squeezed and trimmed, and a date typed in front of it is dropped; it then names
+the folder called `<slug>` or `<YYYYMMDD>-<slug>` and no other, the newest of them when the slug
+carries more than one, and an undated folder from before the dated rule over every dated one,
+never a folder that only ends in the slug. It writes into the project: the journey
 (`journey.md` beside a local spec, in the spec's own folder, or `docs/journeys/<slug>.md` plus a
 comment on the spec issue when the spec is on a tracker), the spec's `Journey:` line and, for a
 reversible change, the spec's own sections, `CONTEXT.md` for a term a label or a status resolves,

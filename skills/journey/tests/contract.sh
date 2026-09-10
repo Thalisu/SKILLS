@@ -56,4 +56,21 @@ out="$(cd "$tmp/fixture" && bash "$resolver" suppliers 2>&1)"
 expect "the resolver names the newest spec in the fixture" \
   grep -qxF 'spec=.scratch/20260905-suppliers/spec.md' <<<"$out"
 
+# The documentation page is where a person reads the rule the skill no longer spells out, so it
+# states it the way the resolver's own header does, normalisation included, and names the script.
+page="$(tr '\n' ' ' < "$skill/../../docs/journey.md" | tr -s ' ')"
+expect "the page names the resolver" grep -qF 'resolve-feature-folder.sh' <<<"$page"
+expect "the page states the slug is normalised" \
+  grep -qF 'lowercased, every other character becomes a dash' <<<"$page"
+expect "the page states a date typed with the slug is dropped" \
+  grep -qF 'a date typed in front of it is dropped' <<<"$page"
+expect "the page states the two folder names and no other" \
+  grep -qF '`<slug>` or `<YYYYMMDD>-<slug>` and no other' <<<"$page"
+expect "the page states the newest dated folder wins" grep -qF 'the newest of them' <<<"$page"
+expect "the page states an undated folder wins over every dated one" \
+  grep -qF 'an undated folder from before the dated rule over every dated one' <<<"$page"
+expect "the page states a tail match is never taken" \
+  grep -qF 'never a folder that only ends in the slug' <<<"$page"
+expect "the page restates no tail match as the rule" bash -c '! grep -qF "ending in" <<<"$1"' _ "$page"
+
 if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi
