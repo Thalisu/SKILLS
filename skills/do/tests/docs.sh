@@ -7,39 +7,11 @@
 # shellcheck disable=SC2016
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
+. "$here/../../../scripts/tests/lib.sh"
 repo="$(cd "$here/../../.." && pwd -P)"
 page="$repo/docs/do.md"
 emdash=$'\xe2\x80\x94'
 fails=0
-
-has() { # $1 label, $2 file, $3.. fixed strings that must appear in the file
-  local label="$1" file="$2"; shift 2
-  local ok=1 line
-  [ -f "$file" ] || ok=0
-  for line in "$@"; do [ "$ok" = 1 ] && grep -qF -- "$line" "$file" || ok=0; done
-  if [ "$ok" = 1 ]; then echo "ok    $label"; else echo "FAIL  $label ($file)"; fails=$((fails + 1)); fi
-}
-lacks() { # $1 label, $2 file, $3.. fixed strings that must not appear
-  local label="$1" file="$2"; shift 2
-  local ok=1 line
-  [ -f "$file" ] || ok=0
-  for line in "$@"; do grep -qF -- "$line" "$file" 2>/dev/null && ok=0; done
-  if [ "$ok" = 1 ]; then echo "ok    $label"; else echo "FAIL  $label ($file)"; fails=$((fails + 1)); fi
-}
-ordered() { # $1 label, $2 file, $3.. lines that must appear in this order
-  local label="$1" file="$2"; shift 2
-  local last=0 n line ok=1
-  for line in "$@"; do
-    n="$(grep -nF -- "$line" "$file" 2>/dev/null | awk -F: -v l="$last" '$1 >= l { print $1; exit }')"
-    [ -n "$n" ] || ok=0
-    last="${n:-$last}"
-  done
-  if [ "$ok" = 1 ]; then echo "ok    $label"; else echo "FAIL  $label ($file)"; fails=$((fails + 1)); fi
-}
-expect() { # $1 label, $2.. a command that must succeed
-  local label="$1"; shift
-  if "$@"; then echo "ok    $label"; else echo "FAIL  $label"; fails=$((fails + 1)); fi
-}
 
 # The page, in the structure .agents/writing-docs.md fixes.
 expect "the docs page exists" test -f "$page"
@@ -154,9 +126,13 @@ has "the closing command the page names is still the reply's Next step rule" "$r
 # Every link on the page resolves from docs/, since that is where a reader clicks it.
 links_ok=1
 while read -r target; do
-  target="${target%%#*}"; [ -n "$target" ] || continue
+  target="${target%%#*}"
+  [ -n "$target" ] || continue
   case "$target" in http*) continue ;; esac
-  [ -e "$repo/docs/$target" ] || { echo "      unresolved link: $target"; links_ok=0; }
+  [ -e "$repo/docs/$target" ] || {
+    echo "      unresolved link: $target"
+    links_ok=0
+  }
 done < <(grep -o '](\([^)]*\))' "$page" 2>/dev/null | sed 's/^](//; s/)$//')
 expect "every link on the docs page resolves from docs/" test "$links_ok" = 1
 
@@ -174,4 +150,7 @@ ordered "the skills README lists the skill under User-invoked" "$repo/skills/REA
 # No em-dash in the page, per CLAUDE.md.
 lacks "no em-dash in the docs page" "$page" "$emdash"
 
-if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi
+if [ "$fails" = 0 ]; then echo "PASS"; else
+  echo "$fails failing"
+  exit 1
+fi

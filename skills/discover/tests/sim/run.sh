@@ -26,23 +26,56 @@ section="$skills_root/discover-setup/CLAUDE-SECTION.md"
 reps=1 model=sonnet keep=0 scenarios=()
 while [ $# -gt 0 ]; do
   case "$1" in
-    --reps) reps="${2:?--reps needs a number}"; shift 2 ;;
-    --section) section="${2:?--section needs a file}"; shift 2 ;;
-    --model) model="${2:?--model needs a name}"; shift 2 ;;
-    --keep) keep=1; shift ;;
-    -h|--help) sed -n '2,22p' "$0"; exit 0 ;;
-    all) scenarios=(i ii iii iv); shift ;;
-    i|ii|iii|iv) scenarios+=("$1"); shift ;;
-    *) echo "unknown argument: $1" >&2; exit 2 ;;
+    --reps)
+      reps="${2:?--reps needs a number}"
+      shift 2
+      ;;
+    --section)
+      section="${2:?--section needs a file}"
+      shift 2
+      ;;
+    --model)
+      model="${2:?--model needs a name}"
+      shift 2
+      ;;
+    --keep)
+      keep=1
+      shift
+      ;;
+    -h | --help)
+      sed -n '2,22p' "$0"
+      exit 0
+      ;;
+    all)
+      scenarios=(i ii iii iv)
+      shift
+      ;;
+    i | ii | iii | iv)
+      scenarios+=("$1")
+      shift
+      ;;
+    *)
+      echo "unknown argument: $1" >&2
+      exit 2
+      ;;
   esac
 done
 [ ${#scenarios[@]} -gt 0 ] || scenarios=(i ii iii iv)
-[ -f "$section" ] || { echo "no such section file: $section" >&2; exit 2; }
+[ -f "$section" ] || {
+  echo "no such section file: $section" >&2
+  exit 2
+}
 for dep in claude jq rg git; do
-  command -v "$dep" >/dev/null 2>&1 || { echo "missing dependency: $dep" >&2; exit 2; }
+  command -v "$dep" >/dev/null 2>&1 || {
+    echo "missing dependency: $dep" >&2
+    exit 2
+  }
 done
 version="$(sed -nE '1s/^<!-- discover version: ([0-9]+(\.[0-9]+)*) -->$/\1/p' "$section")"
-[ -n "$version" ] || { echo "no '<!-- discover version: N -->' line in $section" >&2; exit 2; }
+[ -n "$version" ] || {
+  echo "no '<!-- discover version: N -->' line in $section" >&2
+  exit 2
+}
 
 sandbox="$(mktemp -d -t discover-sim-config.XXXXXX)"
 trap 'rm -rf "$sandbox"' EXIT
@@ -50,8 +83,8 @@ mkdir -p "$sandbox/agents" "$sandbox/skills"
 if [ -f "$HOME/.claude/.credentials.json" ]; then
   ln -s "$HOME/.claude/.credentials.json" "$sandbox/.credentials.json"
 fi
-printf '{"hasCompletedOnboarding":true,"bypassPermissionsModeAccepted":true}\n' > "$sandbox/.claude.json"
-printf '{}\n' > "$sandbox/settings.json"
+printf '{"hasCompletedOnboarding":true,"bypassPermissionsModeAccepted":true}\n' >"$sandbox/.claude.json"
+printf '{}\n' >"$sandbox/settings.json"
 ln -s "$skills_root/discover/AGENT.md" "$sandbox/agents/discover.md"
 ln -s "$skills_root/discover" "$sandbox/skills/discover"
 
@@ -63,7 +96,11 @@ for sc in "${scenarios[@]}"; do
     repo="$work/repo"
     mkdir "$repo"
     bash "$here/$sc/setup.sh" "$repo"
-    { echo "<!-- discover:start v=$version -->"; sed '1d' "$section"; echo "<!-- discover:end -->"; } >> "$repo/CLAUDE.md"
+    {
+      echo "<!-- discover:start v=$version -->"
+      sed '1d' "$section"
+      echo "<!-- discover:end -->"
+    } >>"$repo/CLAUDE.md"
     git -C "$repo" init -q
     git -C "$repo" add -A
     git -C "$repo" -c user.email=sim@discover -c user.name=discover-sim commit -qm fixture
@@ -77,13 +114,13 @@ for sc in "${scenarios[@]}"; do
         timeout 600 claude -p "$(cat "$here/$sc/prompt.txt")" \
         --output-format stream-json --verbose --max-turns 15 \
         --dangerously-skip-permissions --model "$model"
-    ) > "$work/transcript.jsonl" 2> "$work/claude-stderr.log" || status=$?
+    ) >"$work/transcript.jsonl" 2>"$work/claude-stderr.log" || status=$?
 
     reason=""
     if [ "$status" -ne 0 ] && ! grep -q '"type":"result"' "$work/transcript.jsonl"; then
       reason="claude exited $status: $(head -1 "$work/claude-stderr.log")"
     elif out="$(TRANSCRIPT="$work/transcript.jsonl" REPO="$repo" SIM_LIB="$here/lib.sh" \
-                bash "$here/$sc/assert.sh" 2>&1)"; then
+      bash "$here/$sc/assert.sh" 2>&1)"; then
       green=$((green + 1))
     else
       reason="${out:-assert.sh failed without a reason}"

@@ -2,7 +2,10 @@
 # lib.sh: helpers sourced by the sim assert scripts (via $SIM_LIB). Expects TRANSCRIPT
 # (a stream-json transcript) and REPO (the throwaway repo's toplevel) in the environment.
 
-fail() { echo "FAIL: $*"; exit 1; }
+fail() {
+  echo "FAIL: $*"
+  exit 1
+}
 
 # tool_use blocks issued by the orchestrator itself; subagent activity carries a parent id
 top_tool_uses() {
@@ -21,15 +24,15 @@ discover_count() { discover_uses | grep -c . || true; }
 
 # numbered "<n>. …" lines across every discover call's arguments
 batch_items() {
-  discover_uses | jq -r '.input.args // .input.prompt // ""' \
-    | grep -cE '^[[:space:]]*[0-9]+[.)] ' || true
+  discover_uses | jq -r '.input.args // .input.prompt // ""' |
+    grep -cE '^[[:space:]]*[0-9]+[.)] ' || true
 }
 
 # direct searches the orchestrator ran itself: the Grep tool, or rg/grep in a Bash command
 search_count() {
   top_tool_uses | jq -r 'select(.name == "Grep" or (.name == "Bash" and
-    ((.input.command // "") | test("(^|[^[:alnum:]_.-])(rg|grep)([^[:alnum:]_.-]|$)")))) | .name' \
-    | grep -c . || true
+    ((.input.command // "") | test("(^|[^[:alnum:]_.-])(rg|grep)([^[:alnum:]_.-]|$)")))) | .name' |
+    grep -c . || true
 }
 
 final_text() { jq -r 'select(.type == "result") | .result // ""' "$TRANSCRIPT"; }
@@ -46,7 +49,7 @@ discover_result_text() {
 
 # unique <path> part of every <path>.<ext>:<line> token in the discover results
 reported_paths() {
-  discover_result_text \
-    | grep -oE '[A-Za-z0-9_@./-]+\.[A-Za-z0-9]{1,5}:[0-9]+' \
-    | sed -E 's/:[0-9]+$//; s|^\./||' | sort -u
+  discover_result_text |
+    grep -oE '[A-Za-z0-9_@./-]+\.[A-Za-z0-9]{1,5}:[0-9]+' |
+    sed -E 's/:[0-9]+$//; s|^\./||' | sort -u
 }

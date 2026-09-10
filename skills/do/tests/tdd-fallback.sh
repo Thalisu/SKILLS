@@ -4,6 +4,7 @@
 # Run: bash skills/do/tests/tdd-fallback.sh
 set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
+. "$here/../../../scripts/tests/lib.sh"
 skill="$here/.."
 ref="$skill/references/tdd-fallback.md"
 mechanics="$skill/references/mechanics.md"
@@ -11,15 +12,6 @@ ticket="$skill/references/ticket.md"
 skillfile="$skill/SKILL.md"
 emdash=$'\xe2\x80\x94'
 fails=0
-
-ok() { echo "ok    $1"; }
-fail() { echo "FAIL  $1"; fails=$((fails + 1)); }
-has() { # $1 label, $2 file, $3 fixed string that must appear in it
-  if grep -qF -- "$3" "$2" 2>/dev/null; then ok "$1"; else fail "$1"; fi
-}
-lacks() { # $1 label, $2 file, $3 fixed string that must not appear in it
-  if grep -qF -- "$3" "$2" 2>/dev/null; then fail "$1 (found: $3)"; else ok "$1"; fi
-}
 
 # The reference: pstack's tdd skill adapted, attributed in the vendor form, one rule for both cases
 if [ -f "$ref" ]; then ok "the reference exists"; else fail "the reference exists at $ref"; fi
@@ -73,7 +65,7 @@ has "the README lists the case" "$skill/evals/README.md" "ticket-run-without-pol
 lacks "no em-dash in the case" "$case/case.yaml" "$emdash"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
-awk '/^  scaffold_script: \|/ { f = 1; next } f && /^    / { sub(/^    /, ""); print; next } f && /^$/ { print; next } f { exit }' "$case/case.yaml" > "$tmp/scaffold.sh" 2>/dev/null || true
+awk '/^  scaffold_script: \|/ { f = 1; next } f && /^    / { sub(/^    /, ""); print; next } f && /^$/ { print; next } f { exit }' "$case/case.yaml" >"$tmp/scaffold.sh" 2>/dev/null || true
 mkdir -p "$tmp/fixture"
 if [ -s "$tmp/scaffold.sh" ] && (cd "$tmp/fixture" && bash "$tmp/scaffold.sh" >/dev/null 2>&1); then ok "the scaffold runs"; else fail "the scaffold runs"; fi
 if [ ! -e "$tmp/fixture/.claude/agents/unit-test-author.md" ]; then ok "no unit test author in the fixture"; else fail "no unit test author in the fixture"; fi
@@ -83,4 +75,7 @@ if [ -f "$tmp/fixture/.scratch/archive-notes/issues/01-archive-a-note.md" ]; the
 suite="$(cd "$tmp/fixture" 2>/dev/null && node --test 2>&1 || true)"
 if grep -qE '(^|[^a-z])fail 0$' <<<"$suite" && grep -qE '(^|[^a-z])pass [1-9]' <<<"$suite"; then ok "the fixture's suite is green with node alone"; else fail "the fixture's suite is green with node alone"; fi
 
-if [ "$fails" = 0 ]; then echo "all ok"; else echo "$fails failing"; exit 1; fi
+if [ "$fails" = 0 ]; then echo "all ok"; else
+  echo "$fails failing"
+  exit 1
+fi

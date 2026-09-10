@@ -7,7 +7,8 @@ skill="$(cd "$here/.." && pwd -P)"
 fixture="$here/fixture"
 expected="ROOT $(cd "$fixture" && pwd -P)"
 
-out="$(cd / && bash "$skill/scripts/discover.sh" --root "$fixture" <<'SPEC'
+out="$(
+  cd / && bash "$skill/scripts/discover.sh" --root "$fixture" <<'SPEC'
 1 | formatCpf | - | - | no
 SPEC
 )"

@@ -9,30 +9,18 @@
 # shellcheck disable=SC2016
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
+. "$here/../../../scripts/tests/lib.sh"
 repo="$(cd "$here/../../.." && pwd -P)"
 refs="$repo/skills/do/references"
 emdash=$'\xe2\x80\x94'
 fails=0
 
-has() { # $1 label, $2 file, $3.. fixed strings that must appear in the file
-  local label="$1" file="$2"; shift 2
-  local ok=1 line
-  [ -f "$file" ] || ok=0
-  for line in "$@"; do [ "$ok" = 1 ] && grep -qF -- "$line" "$file" || ok=0; done
-  if [ "$ok" = 1 ]; then echo "ok    $label"; else echo "FAIL  $label ($file)"; fails=$((fails + 1)); fi
-}
-lacks() { # $1 label, $2 file, $3.. fixed strings that must not appear
-  local label="$1" file="$2"; shift 2
-  local ok=1 line
-  [ -f "$file" ] || ok=0
-  for line in "$@"; do grep -qF -- "$line" "$file" 2>/dev/null && ok=0; done
-  if [ "$ok" = 1 ]; then echo "ok    $label"; else echo "FAIL  $label ($file)"; fails=$((fails + 1)); fi
-}
 header_has() { # $1 a fixed string that must appear in this script's own header comment
   sed -n '1,8p' "$here/fixed-load.sh" | grep -qF -- "$1"
 }
 after() { # $1 label, $2 file, $3 the later fixed string, $4.. the strings that must precede it
-  local label="$1" file="$2" later="$3"; shift 3
+  local label="$1" file="$2" later="$3"
+  shift 3
   local ok=1 lateline earlyline probe
   lateline="$(grep -n -F -m1 -- "$later" "$file" 2>/dev/null | cut -d: -f1)"
   [ -n "$lateline" ] || ok=0
@@ -40,14 +28,14 @@ after() { # $1 label, $2 file, $3 the later fixed string, $4.. the strings that 
     earlyline="$(grep -n -F -m1 -- "$probe" "$file" 2>/dev/null | cut -d: -f1)"
     if [ "$ok" != 1 ] || [ -z "$earlyline" ] || [ "$earlyline" -ge "$lateline" ]; then ok=0; fi
   done
-  if [ "$ok" = 1 ]; then echo "ok    $label"; else echo "FAIL  $label ($file)"; fails=$((fails + 1)); fi
-}
-expect() { # $1 label, $2.. a command that must succeed
-  local label="$1"; shift
-  if "$@"; then echo "ok    $label"; else echo "FAIL  $label"; fails=$((fails + 1)); fi
+  if [ "$ok" = 1 ]; then echo "ok    $label"; else
+    echo "FAIL  $label ($file)"
+    fails=$((fails + 1))
+  fi
 }
 para_has() { # $1 label, $2 file, $3 a fixed string opening the paragraph, $4.. strings in that same paragraph
-  local label="$1" file="$2" anchor="$3"; shift 3
+  local label="$1" file="$2" anchor="$3"
+  shift 3
   local ok=1 para joined line
   para="$(awk -v a="$anchor" 'BEGIN { RS = "" } index($0, a) { print; exit }' "$file" 2>/dev/null)"
   [ -n "$para" ] || ok=0
@@ -56,7 +44,10 @@ para_has() { # $1 label, $2 file, $3 a fixed string opening the paragraph, $4.. 
   # still matches.
   joined="${para//$'\n'/ }"
   for line in "$@"; do [ "$ok" = 1 ] && grep -qF -- "$line" <<<"$joined" || ok=0; done
-  if [ "$ok" = 1 ]; then echo "ok    $label"; else echo "FAIL  $label ($file)"; fails=$((fails + 1)); fi
+  if [ "$ok" = 1 ]; then echo "ok    $label"; else
+    echo "FAIL  $label ($file)"
+    fails=$((fails + 1))
+  fi
 }
 
 # para_has must find a string still whole in the paragraph's prose even when the paragraph's own
@@ -409,7 +400,7 @@ trap 'rm -rf "$tmp"' EXIT
 skill="$tmp/skills/do"
 mkdir -p "$skill/scripts" "$skill/references" "$tmp/.agents/formats" "$tmp/docs/adr" "$tmp/t"
 cp "$estimator" "$skill/scripts/" 2>/dev/null
-mk() { head -c "$2" /dev/zero | tr '\0' a > "$1"; }
+mk() { head -c "$2" /dev/zero | tr '\0' a >"$1"; }
 for f in "$skill/SKILL.md" "$skill/references/ticket.md" "$skill/references/mechanics.md" \
   "$skill/references/reply.md" "$skill/references/digest.md" "$tmp/.agents/formats/ticket-format.md"; do
   mk "$f" 4000
@@ -438,11 +429,11 @@ ticket() { # $1 path, $2 criteria: a Ticket in the format, padded to 4000 bytes
     printf '**Status:** ready-for-agent\n\n'
     for _ in $(seq "$2"); do printf -- '- [ ] A criterion.\n'; done
     printf '\n## Evidence\n'
-  } > "$1"
+  } >"$1"
   local size
-  size="$(wc -c < "$1")"
-  head -c $((4000 - size - 1)) /dev/zero | tr '\0' a >> "$1"
-  echo >> "$1"
+  size="$(wc -c <"$1")"
+  head -c $((4000 - size - 1)) /dev/zero | tr '\0' a >>"$1"
+  echo >>"$1"
 }
 fixed="$(printf '%s\n' baseline=32000 reference_chain=5000 door=5000 ground=7500 shape=1000 total=50500)"
 ticket "$tmp/t/01-small.md" 2
@@ -476,7 +467,7 @@ has "context-usage.sh still carries the band line the estimator copies" \
 refused() { # $1 the exit code, $2 the term the message must name
   [ "$code" = "$1" ] && [ -z "$out" ] && err_has "cannot read $2:"
 }
-printf '# Notes\n\n- [ ] Not a criterion of any Ticket.\n' > "$tmp/t/notes.md"
+printf '# Notes\n\n- [ ] Not a criterion of any Ticket.\n' >"$tmp/t/notes.md"
 est t/notes.md
 expect "a path that is not a Ticket names the criteria it could not read and exits 3" refused 3 criteria
 est t/none.md
@@ -503,10 +494,10 @@ mkdir -p "$tmp/ctx/a" "$tmp/ctx/b"
 mk "$tmp/ctx/a/CONTEXT.md" 8000
 mk "$tmp/ctx/b/CONTEXT.md" 4000
 printf '# Context map\n\n## Contexts\n\n- [A](./ctx/a/CONTEXT.md): one\n- [B](./ctx/b/CONTEXT.md): two\n' \
-  > "$tmp/CONTEXT-MAP.md"
-map_size="$(wc -c < "$tmp/CONTEXT-MAP.md")"
-head -c $((1990 - map_size - 1)) /dev/zero | tr '\0' a >> "$tmp/CONTEXT-MAP.md"
-echo >> "$tmp/CONTEXT-MAP.md"
+  >"$tmp/CONTEXT-MAP.md"
+map_size="$(wc -c <"$tmp/CONTEXT-MAP.md")"
+head -c $((1990 - map_size - 1)) /dev/zero | tr '\0' a >>"$tmp/CONTEXT-MAP.md"
+echo >>"$tmp/CONTEXT-MAP.md"
 est
 expect "with CONTEXT-MAP.md the ground term counts the map and the largest context it names" \
   sh -c '[ "$1" = 0 ] && printf "%s\n" "$2" | grep -qx "ground=9000"' _ "$code" "$out"
@@ -514,7 +505,7 @@ mv "$tmp/ctx/a/CONTEXT.md" "$tmp/t/ctx-a.md"
 est
 expect "a context the map names that is not on disk names ground and exits 3" refused 3 ground
 mv "$tmp/t/ctx-a.md" "$tmp/ctx/a/CONTEXT.md"
-printf '# Context map\n' > "$tmp/CONTEXT-MAP.md"
+printf '# Context map\n' >"$tmp/CONTEXT-MAP.md"
 est
 expect "a map that names no context names ground and exits 3" refused 3 ground
 rm -r "$tmp/CONTEXT-MAP.md" "$tmp/ctx"
@@ -537,4 +528,7 @@ has "the Ticket format still defines the measured Context: line" \
 lacks "no em-dash in the Digest reference" "$refs/digest.md" "$emdash"
 lacks "no em-dash in the estimator" "$estimator" "$emdash"
 
-if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi
+if [ "$fails" = 0 ]; then echo "PASS"; else
+  echo "$fails failing"
+  exit 1
+fi

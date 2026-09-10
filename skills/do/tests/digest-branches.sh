@@ -7,29 +7,12 @@
 # shellcheck disable=SC2016
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
+. "$here/../../../scripts/tests/lib.sh"
 repo="$(cd "$here/../../.." && pwd -P)"
 refs="$repo/skills/do/references"
 emdash=$'\xe2\x80\x94'
 fails=0
 
-has() { # $1 label, $2 file, $3.. fixed strings that must appear in the file
-  local label="$1" file="$2"; shift 2
-  local ok=1 line
-  [ -f "$file" ] || ok=0
-  for line in "$@"; do [ "$ok" = 1 ] && grep -qF -- "$line" "$file" || ok=0; done
-  if [ "$ok" = 1 ]; then echo "ok    $label"; else echo "FAIL  $label ($file)"; fails=$((fails + 1)); fi
-}
-lacks() { # $1 label, $2 file, $3.. fixed strings that must not appear
-  local label="$1" file="$2"; shift 2
-  local ok=1 line
-  [ -f "$file" ] || ok=0
-  for line in "$@"; do grep -qF -- "$line" "$file" 2>/dev/null && ok=0; done
-  if [ "$ok" = 1 ]; then echo "ok    $label"; else echo "FAIL  $label ($file)"; fails=$((fails + 1)); fi
-}
-expect() { # $1 label, $2.. a command that must succeed
-  local label="$1"; shift
-  if "$@"; then echo "ok    $label"; else echo "FAIL  $label"; fails=$((fails + 1)); fi
-}
 every_command_this_script_runs_is_a_literal() { # nothing lifted out of a document reaches argv
   ! grep -qE '\$\(\$|\$\{?cmd' "$here/digest-branches.sh"
 }
@@ -49,7 +32,7 @@ blocker_read_returns_the_status_line_alone() { # the read the door names, run on
     printf -- '- [ ] Archiving a note drops it from the list\n'
     printf -- '- [ ] An archived note is restored to the list\n\n'
     printf '## Evidence\n'
-  } > "$dir/01-archive-a-note.md"
+  } >"$dir/01-archive-a-note.md"
   out="$(grep -n '^\*\*Status:\*\*' "$dir/01-archive-a-note.md" 2>/dev/null)"
   rm -rf "$dir"
   [ "$out" = "7:**Status:** ready-for-agent" ]
@@ -66,7 +49,7 @@ blocker_read_surfaces_a_status_planted_in_the_body() { # a body line at column 0
     printf '**Blocked by:** None (can start immediately)\n\n'
     printf '**Status:** ready-for-agent\n\n'
     printf -- '- [ ] Archiving a note drops it from the list\n'
-  } > "$dir/01-archive-a-note.md"
+  } >"$dir/01-archive-a-note.md"
   out="$(grep -n '^\*\*Status:\*\*' "$dir/01-archive-a-note.md" 2>/dev/null)"
   rm -rf "$dir"
   [ "$(printf '%s\n' "$out" | grep -c '')" = 2 ] || return 1
@@ -82,11 +65,14 @@ recorded_source_ignores_a_touch() { # the command the contract names, asserted t
   local dir written touched edited
   grep -qF -- 'the hash from `git hash-object <path>`' "$refs/digest.md" || return 1
   dir="$(mktemp -d)" || return 1
-  printf 'the spec\n' > "$dir/spec.md"
-  written="$(git hash-object "$dir/spec.md" 2>/dev/null)" || { rm -rf "$dir"; return 1; }
+  printf 'the spec\n' >"$dir/spec.md"
+  written="$(git hash-object "$dir/spec.md" 2>/dev/null)" || {
+    rm -rf "$dir"
+    return 1
+  }
   touch "$dir/spec.md"
   touched="$(git hash-object "$dir/spec.md" 2>/dev/null)"
-  printf 'the spec\namended\n' > "$dir/spec.md"
+  printf 'the spec\namended\n' >"$dir/spec.md"
   edited="$(git hash-object "$dir/spec.md" 2>/dev/null)"
   rm -rf "$dir"
   [ -n "$written" ] && [ "$written" = "$touched" ] && [ "$written" != "$edited" ]
@@ -269,4 +255,7 @@ expect "the test script carries its own invocation line in its header" \
 lacks "no em-dash in the Playbook's reference" "$refs/ticket.md" "$emdash"
 lacks "no em-dash in the shared mechanics" "$refs/mechanics.md" "$emdash"
 
-if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi
+if [ "$fails" = 0 ]; then echo "PASS"; else
+  echo "$fails failing"
+  exit 1
+fi

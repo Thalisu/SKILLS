@@ -3,6 +3,7 @@
 # and of the lines that point at it. Run: bash skills/do/tests/bug-fix.sh
 set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
+. "$here/../../../scripts/tests/lib.sh"
 skill="$here/.."
 ref="$skill/references/bug-fix.md"
 ticket="$skill/references/ticket.md"
@@ -11,14 +12,6 @@ evals="$skill/evals"
 emdash=$'\xe2\x80\x94'
 fails=0
 
-ok() { echo "ok    $1"; }
-fail() { echo "FAIL  $1"; fails=$((fails + 1)); }
-has() { # $1 label, $2 file, $3 fixed string that must appear in it
-  if grep -qF -- "$3" "$2" 2>/dev/null; then ok "$1"; else fail "$1"; fi
-}
-lacks() { # $1 label, $2 file, $3 fixed string that must not appear in it
-  if grep -qF -- "$3" "$2" 2>/dev/null; then fail "$1 (found: $3)"; else ok "$1"; fi
-}
 line_of() { grep -n -- "$2" "$1" | head -1 | cut -d: -f1; }
 
 # The router sends a bug in words to bug-fix, and the reference is linked under Links
@@ -201,5 +194,10 @@ while read -r f; do grep -qF -- "$emdash" "$f" && emd="$emd $f"; done < <(find "
 grep -qF -- "$emdash" "$evals/README.md" && emd="$emd README.md"
 if [ -z "$emd" ]; then ok "no em-dash in the new eval files"; else fail "no em-dash in the new eval files (found:$emd)"; fi
 
-[ "$fails" = 0 ] || { echo; echo "$fails failed"; exit 1; }
-echo; echo "all passed"
+[ "$fails" = 0 ] || {
+  echo
+  echo "$fails failed"
+  exit 1
+}
+echo
+echo "all passed"

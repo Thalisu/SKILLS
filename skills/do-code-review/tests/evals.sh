@@ -7,29 +7,21 @@
 # shellcheck disable=SC2016
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
+. "$here/../../../scripts/tests/lib.sh"
 skill="$here/.."
 door="$skill/scripts/fixed-point.sh"
 fails=0
 tmp="$(mktemp -d)"
 trap 'cd /; rm -rf "$tmp"' EXIT
 
-expect() { # $1 label, $2.. a command that must succeed
-  local label="$1"; shift
-  if "$@"; then echo "ok    $label"; else echo "FAIL  $label"; fails=$((fails + 1)); fi
-}
 quiet() { "$@" >/dev/null 2>&1; }
-check() { # $1 label, $2 expected exit, $3 actual exit, $4.. lines that must appear (fixed strings); output in $out
-  local label="$1" want="$2" rc="$3"; shift 3
-  local ok=1 line
-  [ "$rc" = "$want" ] || ok=0
-  for line in "$@"; do grep -qF -- "$line" <<<"$out" || ok=0; done
-  if [ "$ok" = 1 ]; then echo "ok    $label"; else
-    echo "FAIL  $label (exit $rc, wanted $want)"; echo "      ${out//$'\n'/$'\n'      }"; fails=$((fails + 1)); fi
+run_door() {
+  rc=0
+  out="$(bash "$door" "$@" 2>&1)" || rc=$?
 }
-run_door() { rc=0; out="$(bash "$door" "$@" 2>&1)" || rc=$?; }
 scaffold() { # $1 case: the scaffold_script block of its case file, run in a fresh directory that becomes the cwd
   awk '/^  scaffold_script: \|/ { f = 1; next } f && /^    / { sub(/^    /, ""); print; next } f && /^[[:space:]]*$/ { print ""; next } f { exit }' \
-    "$skill/evals/$1/case.yaml" > "$tmp/$1.sh"
+    "$skill/evals/$1/case.yaml" >"$tmp/$1.sh"
   mkdir -p "$tmp/$1" && cd "$tmp/$1" || exit 1
   bash "$tmp/$1.sh" >"$tmp/$1.log" 2>&1
 }
@@ -150,4 +142,7 @@ expect "the tree is clean" test -z "$(git status --porcelain)"
 run_door
 check "the door reads the no-fix fixture" 0 "$rc" "branch=export-notes" "dirty=no" "commits=1"
 
-if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi
+if [ "$fails" = 0 ]; then echo "PASS"; else
+  echo "$fails failing"
+  exit 1
+fi

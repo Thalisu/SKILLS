@@ -7,43 +7,20 @@
 # shellcheck disable=SC2016
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
+. "$here/../../../scripts/tests/lib.sh"
 repo="$(cd "$here/../../.." && pwd -P)"
 skill="$repo/skills/do-code-review"
 fails=0
 
-has() { # $1 label, $2 file, $3.. fixed strings that must appear in the file
-  local label="$1" file="$2"; shift 2
-  local ok=1 line
-  [ -f "$file" ] || ok=0
-  for line in "$@"; do [ "$ok" = 1 ] && grep -qF -- "$line" "$file" || ok=0; done
-  if [ "$ok" = 1 ]; then echo "ok    $label"; else echo "FAIL  $label ($file)"; fails=$((fails + 1)); fi
-}
-lacks() { # $1 label, $2 file, $3.. fixed strings that must not appear
-  local label="$1" file="$2"; shift 2
-  local ok=1 line
-  [ -f "$file" ] || ok=0
-  for line in "$@"; do grep -qF -- "$line" "$file" 2>/dev/null && ok=0; done
-  if [ "$ok" = 1 ]; then echo "ok    $label"; else echo "FAIL  $label ($file)"; fails=$((fails + 1)); fi
-}
-ordered() { # $1 label, $2 file, $3.. lines that must appear in this order
-  local label="$1" file="$2"; shift 2
-  local last=0 n line ok=1
-  for line in "$@"; do
-    n="$(grep -nF -- "$line" "$file" 2>/dev/null | awk -F: -v l="$last" '$1 >= l { print $1; exit }')"
-    [ -n "$n" ] || ok=0
-    last="${n:-$last}"
-  done
-  if [ "$ok" = 1 ]; then echo "ok    $label"; else echo "FAIL  $label ($file)"; fails=$((fails + 1)); fi
-}
 holds() { # $1 label, $2 the captured text, $3.. fixed strings it must contain
-  local label="$1" text="$2"; shift 2
+  local label="$1" text="$2"
+  shift 2
   local ok=1 s
-  for s in "$@"; do case "$text" in *"$s"*) ;; *) ok=0 ;; esac; done
-  if [ "$ok" = 1 ]; then echo "ok    $label"; else echo "FAIL  $label"; fails=$((fails + 1)); fi
-}
-expect() { # $1 label, $2.. a command that must succeed
-  local label="$1"; shift
-  if "$@"; then echo "ok    $label"; else echo "FAIL  $label"; fails=$((fails + 1)); fi
+  for s in "$@"; do case "$text" in *"$s"*) ;; *) ok=0 ;; esac done
+  if [ "$ok" = 1 ]; then echo "ok    $label"; else
+    echo "FAIL  $label"
+    fails=$((fails + 1))
+  fi
 }
 
 # The Review format: a chain format with fixed section names, indexed with its writer and readers.
@@ -462,14 +439,26 @@ has "do's non-negotiables name the denial and link the contract" "$do_skill" \
   "](../../.agents/worktrees.md)" 'entered with a bare `cd`'
 deny="$(sed -n 's/^ *command: "\(.*\)"$/\1/p' "$do_skill" | head -1 | sed 's/\\"/"/g')"
 case "$deny" in
-  "") echo "FAIL  the hook command could not be read off $do_skill"; fails=$((fails + 1)) ;;
-  *'`'*) echo "FAIL  the hook command carries a backtick, which a rewrite of its quoting would eat"; fails=$((fails + 1)) ;;
+  "")
+    echo "FAIL  the hook command could not be read off $do_skill"
+    fails=$((fails + 1))
+    ;;
+  *'`'*)
+    echo "FAIL  the hook command carries a backtick, which a rewrite of its quoting would eat"
+    fails=$((fails + 1))
+    ;;
   *) echo "ok    the hook command carries no backtick" ;;
 esac
 deny_out="$(eval "$deny" 2>/dev/null)"
 case "$deny_out" in
-  "") echo "FAIL  the hook command printed nothing; its quoting is broken"; fails=$((fails + 1)) ;;
-  *"'"*) echo "FAIL  the reason carries an apostrophe, which closes the quote it sits in"; fails=$((fails + 1)) ;;
+  "")
+    echo "FAIL  the hook command printed nothing; its quoting is broken"
+    fails=$((fails + 1))
+    ;;
+  *"'"*)
+    echo "FAIL  the reason carries an apostrophe, which closes the quote it sits in"
+    fails=$((fails + 1))
+    ;;
   *) echo "ok    the reason carries no apostrophe" ;;
 esac
 holds "the hook prints a deny decision the harness can read" "$deny_out" \
@@ -638,9 +627,13 @@ has "the invocation contract gives the orchestrator its own sentence" "$repo/.ag
   "asks nothing, and writes one file, the Review"
 links_ok=1
 while read -r target; do
-  target="${target%%#*}"; [ -n "$target" ] || continue
+  target="${target%%#*}"
+  [ -n "$target" ] || continue
   case "$target" in http*) continue ;; esac
-  [ -e "$repo/docs/$target" ] || { echo "      unresolved link: $target"; links_ok=0; }
+  [ -e "$repo/docs/$target" ] || {
+    echo "      unresolved link: $target"
+    links_ok=0
+  }
 done < <(grep -o '](\([^)]*\))' "$page" 2>/dev/null | sed 's/^](//; s/)$//')
 expect "every link on the docs page resolves from docs/" test "$links_ok" = 1
 ordered "the top-level README lists the skill under Model-invoked" "$repo/README.md" \
@@ -658,7 +651,13 @@ has "the invocation contract's table gains the three rows" "$repo/.agents/invoca
 prose=("$format" "$trees" "$adr22" "$skill_md" "$agent_md" "$reviewer_md" "$security_md" "$fix_md" "$evals/README.md" "$evals"/*/prompt.md "$evals"/*/graders/*.md "$page")
 for f in "${prose[@]}"; do
   [ -f "$f" ] || continue
-  if grep -q $'\xe2\x80\x94' "$f"; then echo "FAIL  no em-dash in $f"; fails=$((fails + 1)); else echo "ok    no em-dash in ${f#"$repo/"}"; fi
+  if grep -q $'\xe2\x80\x94' "$f"; then
+    echo "FAIL  no em-dash in $f"
+    fails=$((fails + 1))
+  else echo "ok    no em-dash in ${f#"$repo/"}"; fi
 done
 
-if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi
+if [ "$fails" = 0 ]; then echo "PASS"; else
+  echo "$fails failing"
+  exit 1
+fi

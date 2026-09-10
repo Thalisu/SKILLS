@@ -4,6 +4,7 @@
 # shellcheck disable=SC2016
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
+. "$here/lib.sh"
 runner="$here/../run-eval.sh"
 repo="$(cd "$here/../.." && pwd -P)"
 fails=0
@@ -11,31 +12,19 @@ tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 export HOME="$tmp/home" STUB_DIR="$tmp/stub" TMPDIR="$tmp/t" CLAUDECODE=1
 mkdir -p "$HOME/.claude" "$STUB_DIR" "$TMPDIR" "$tmp/bin"
-printf '{}\n' > "$HOME/.claude/.credentials.json"
+printf '{}\n' >"$HOME/.claude/.credentials.json"
 export PATH="$tmp/bin:$PATH"
 
-check() { # $1 label, $2 expected exit, $3 actual exit, $4.. lines that must appear (fixed strings); output in $out
-  local label="$1" want="$2" rc="$3"; shift 3
-  local ok=1 line
-  [ "$rc" = "$want" ] || ok=0
-  for line in "$@"; do grep -qF -- "$line" <<<"$out" || ok=0; done
-  if [ "$ok" = 1 ]; then echo "ok    $label"; else
-    echo "FAIL  $label (exit $rc, wanted $want)"; echo "      ${out//$'\n'/$'\n'      }"; fails=$((fails + 1)); fi
+run() {
+  rc=0
+  out="$(bash "$runner" "$@" 2>&1)" || rc=$?
 }
-absent() { # $1 label, $2 line that must not appear
-  if grep -qF -- "$2" <<<"$out"; then echo "FAIL  $1 (found: $2)"; fails=$((fails + 1)); else echo "ok    $1"; fi
-}
-expect() { # $1 label, $2.. a command that must succeed
-  local label="$1"; shift
-  if "$@"; then echo "ok    $label"; else echo "FAIL  $label"; fails=$((fails + 1)); fi
-}
-run() { rc=0; out="$(bash "$runner" "$@" 2>&1)" || rc=$?; }
-calls() { if [ -f "$STUB_DIR/calls" ]; then wc -l < "$STUB_DIR/calls"; else echo 0; fi; }
+calls() { if [ -f "$STUB_DIR/calls" ]; then wc -l <"$STUB_DIR/calls"; else echo 0; fi; }
 reset() { rm -f "$STUB_DIR/calls" "$STUB_DIR/judge-prompts"; }
 
 # The stand-in CLI: a judge call carries --tools, and every other call is the session under test,
 # which logs its arguments and environment, prints the canned transcript and touches a file.
-cat > "$tmp/bin/claude" <<'SH'
+cat >"$tmp/bin/claude" <<'SH'
 #!/usr/bin/env bash
 for a in "$@"; do
   if [ "$a" = --tools ]; then
@@ -59,7 +48,7 @@ chmod +x "$tmp/bin/claude"
 
 # One run: the session calls the resolver itself, a subagent runs a Bash call of its own, and the
 # last message opens with the Playbook line.
-cat > "$tmp/transcript.jsonl" <<'JSONL'
+cat >"$tmp/transcript.jsonl" <<'JSONL'
 {"type":"system","subtype":"init"}
 {"type":"assistant","parent_tool_use_id":null,"message":{"content":[{"type":"tool_use","id":"t1","name":"Bash","input":{"command":"bash .agents/scripts/resolve-feature-folder.sh suppliers"}}]}}
 {"type":"user","parent_tool_use_id":null,"message":{"content":[{"type":"tool_result","tool_use_id":"t1","content":"spec=.scratch/20260905-suppliers/spec.md"}]}}
@@ -72,10 +61,10 @@ export STUB_TRANSCRIPT="$tmp/transcript.jsonl"
 evals="$tmp/evals"
 grader() { # $1 case, $2 name, $3 frontmatter lines
   mkdir -p "$evals/$1/graders"
-  printf -- '---\n%s\n---\nWhat the grader checks.\n' "$3" > "$evals/$1/graders/$2.md"
+  printf -- '---\n%s\n---\nWhat the grader checks.\n' "$3" >"$evals/$1/graders/$2.md"
 }
 mkdir -p "$evals/walk"
-cat > "$evals/walk/case.yaml" <<'YAML'
+cat >"$evals/walk/case.yaml" <<'YAML'
 name: walk
 runs: 2
 max_turns: 7
@@ -90,7 +79,7 @@ context:
     git -c user.email=f@example.com -c user.name=f add -A
     git -c user.email=f@example.com -c user.name=f commit -q -m fixture
 YAML
-printf '/journey suppliers\n' > "$evals/walk/prompt.md"
+printf '/journey suppliers\n' >"$evals/walk/prompt.md"
 grader walk judged 'type: llm
 criteria: "The run resolved the slug suppliers through the resolver."'
 grader walk first-line 'type: regex
@@ -109,10 +98,10 @@ max: 1'
 grader walk made-file 'type: file_exists
 path: made-*.txt'
 mkdir -p "$evals/odd" "$evals/broken"
-printf 'runs: 1\n' > "$evals/odd/case.yaml" && printf 'hi\n' > "$evals/odd/prompt.md"
+printf 'runs: 1\n' >"$evals/odd/case.yaml" && printf 'hi\n' >"$evals/odd/prompt.md"
 grader odd weird 'type: shell'
-printf 'runs: 1\ncontext:\n  scaffold_script: |\n    echo the fixture could not be laid\n    exit 3\n' > "$evals/broken/case.yaml"
-printf 'hi\n' > "$evals/broken/prompt.md"
+printf 'runs: 1\ncontext:\n  scaffold_script: |\n    echo the fixture could not be laid\n    exit 3\n' >"$evals/broken/case.yaml"
+printf 'hi\n' >"$evals/broken/prompt.md"
 grader broken judged 'type: llm
 criteria: "Anything."'
 
@@ -203,8 +192,8 @@ expect "a failed scaffold started no session" test "$(calls)" = 0
 # missing can be graded; the next case in the same invocation lists it again.
 unlink_case() { # $1 case, $2 the agent it unlinks
   mkdir -p "$evals/$1"
-  printf 'runs: 1\ncontext:\n  unlinked_agents: [%s]\n' "$2" > "$evals/$1/case.yaml"
-  printf 'hi\n' > "$evals/$1/prompt.md"
+  printf 'runs: 1\ncontext:\n  unlinked_agents: [%s]\n' "$2" >"$evals/$1/case.yaml"
+  printf 'hi\n' >"$evals/$1/prompt.md"
   grader "$1" one-bash-of-its-own 'type: tool_used
 tool: Bash
 min: 1
@@ -224,4 +213,7 @@ check "a case that unlinks an agent the sandbox never linked is red before any s
   "FAIL  unlink-unknown: the case unlinks no-such-agent, which the sandbox never linked"
 expect "that case started no session" test "$(calls)" = 0
 
-if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi
+if [ "$fails" = 0 ]; then echo "PASS"; else
+  echo "$fails failing"
+  exit 1
+fi

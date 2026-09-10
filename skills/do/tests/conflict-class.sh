@@ -4,54 +4,29 @@
 # scenario. Run: bash skills/do/tests/conflict-class.sh
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
+. "$here/../../../scripts/tests/lib.sh"
 door="$here/../scripts/conflict-class.sh"
 fails=0
 tmp="$(mktemp -d)"
 trap 'cd /; rm -rf "$tmp"' EXIT
 
-g() { git -c user.email=t@example.com -c user.name=t "$@"; }
-commit() { g add -A >/dev/null; g commit -qm "$1"; }
-fresh() { # $1 name: a new repository on main, entered
-  mkdir -p "$tmp/$1" && cd "$tmp/$1" || exit 1
-  git init -q -b main
-  # Git's background maintenance races the trap's cleanup and leaves the repository undeletable.
-  g config gc.auto 0
-  g config maintenance.auto false
-  # Every location below is the presentation git writes into the working file, so a fixture pins the
-  # style rather than taking the machine's own merge.conflictStyle. The fixture at "the style git
-  # wrote" covers the other styles.
-  g config merge.conflictStyle merge
-}
-run() { rc=0; out="$(bash "$door" "$@" 2>&1)" || rc=$?; }
-absent() { # $1 label, $2 expected exit, $3 actual exit, $4.. lines that must not appear
-  local label="$1" want="$2" rc="$3"; shift 3
-  local ok=1 line
-  [ "$rc" = "$want" ] || ok=0
-  for line in "$@"; do grep -qF -- "$line" <<<"$out" && ok=0; done
-  if [ "$ok" = 1 ]; then echo "ok    $label"; else
-    echo "FAIL  $label (exit $rc, wanted $want)"; echo "      ${out//$'\n'/$'\n'      }"; fails=$((fails + 1)); fi
-}
-check() { # $1 label, $2 expected exit, $3 actual exit, $4.. lines that must appear (fixed strings)
-  local label="$1" want="$2" rc="$3"; shift 3
-  local ok=1 line
-  [ "$rc" = "$want" ] || ok=0
-  for line in "$@"; do grep -qF -- "$line" <<<"$out" || ok=0; done
-  if [ "$ok" = 1 ]; then echo "ok    $label"; else
-    echo "FAIL  $label (exit $rc, wanted $want)"; echo "      ${out//$'\n'/$'\n'      }"; fails=$((fails + 1)); fi
+run() {
+  rc=0
+  out="$(bash "$door" "$@" 2>&1)" || rc=$?
 }
 
 # A tree whose every hunk is one both sides only added to, each side opening on a line of its own.
 fresh mechanical
-printf 'a\nb\n' > adjacent.txt
-printf 'a\nb\n' > blank.txt
+printf 'a\nb\n' >adjacent.txt
+printf 'a\nb\n' >blank.txt
 commit base
 g branch inc
-printf 'a\nTARGET\nb\n' > adjacent.txt
-printf 'a\n\nTARGET\nb\n' > blank.txt
+printf 'a\nTARGET\nb\n' >adjacent.txt
+printf 'a\n\nTARGET\nb\n' >blank.txt
 commit target
 g switch -q inc
-printf 'a\nINCOMING\nb\n' > adjacent.txt
-printf 'a\n\nINCOMING\nb\n' > blank.txt
+printf 'a\nINCOMING\nb\n' >adjacent.txt
+printf 'a\n\nINCOMING\nb\n' >blank.txt
 commit incoming
 g switch -q main
 g merge inc >/dev/null 2>&1
@@ -67,13 +42,13 @@ check "the last line carries the verdict" 0 "$rc" \
 # Two sides that added the same line and then went on differently wrote one new text and split. The
 # union would keep both endings one after the other, so the hunk is the developer's.
 fresh diverged
-printf 'a\nb\n' > identical.txt
+printf 'a\nb\n' >identical.txt
 commit base
 g branch inc
-printf 'a\nb\nSAME\nTARGET\n' > identical.txt
+printf 'a\nb\nSAME\nTARGET\n' >identical.txt
 commit target
 g switch -q inc
-printf 'a\nb\nSAME\nINCOMING\n' > identical.txt
+printf 'a\nb\nSAME\nINCOMING\n' >identical.txt
 commit incoming
 g switch -q main
 g merge inc >/dev/null 2>&1
@@ -84,39 +59,39 @@ check "additions that open on the same line and then diverge: contested, named a
 
 # A tree carrying the shapes that make a hunk contested.
 fresh contested
-printf 'x\ny\nz\n' > rewrite.txt
-printf 'kept\n' > dropped-by-incoming.txt
-printf 'kept\n' > dropped-by-target.txt
-printf 'one\ntwo\nthree\n' > renamed.txt
-seq 1 12 > renamed-and-added-to.txt
-printf 'pixels\000\001\002\n' > picture.bin
-printf 'p\nq\nr\n' > half-resolved.txt
+printf 'x\ny\nz\n' >rewrite.txt
+printf 'kept\n' >dropped-by-incoming.txt
+printf 'kept\n' >dropped-by-target.txt
+printf 'one\ntwo\nthree\n' >renamed.txt
+seq 1 12 >renamed-and-added-to.txt
+printf 'pixels\000\001\002\n' >picture.bin
+printf 'p\nq\nr\n' >half-resolved.txt
 commit base
 g branch inc
-printf 'x\nTARGET\nz\n' > rewrite.txt
-printf 'kept\nedited by target\n' > dropped-by-incoming.txt
+printf 'x\nTARGET\nz\n' >rewrite.txt
+printf 'kept\nedited by target\n' >dropped-by-incoming.txt
 rm dropped-by-target.txt
-printf 'one\nTARGET\nthree\n' > renamed.txt
-printf '%s\nTARGET\n' "$(cat renamed-and-added-to.txt)" > renamed-and-added-to.txt
-printf 'pixels\000\001\003target\n' > picture.bin
-printf 'p\nTARGET\nr\n' > half-resolved.txt
+printf 'one\nTARGET\nthree\n' >renamed.txt
+printf '%s\nTARGET\n' "$(cat renamed-and-added-to.txt)" >renamed-and-added-to.txt
+printf 'pixels\000\001\003target\n' >picture.bin
+printf 'p\nTARGET\nr\n' >half-resolved.txt
 commit target
 g switch -q inc
-printf 'x\nINCOMING\nz\n' > rewrite.txt
+printf 'x\nINCOMING\nz\n' >rewrite.txt
 rm dropped-by-incoming.txt
-printf 'kept\nedited by incoming\n' > dropped-by-target.txt
+printf 'kept\nedited by incoming\n' >dropped-by-target.txt
 g mv renamed.txt moved.txt >/dev/null
-printf 'one\nINCOMING\nthree\n' > moved.txt
+printf 'one\nINCOMING\nthree\n' >moved.txt
 g mv renamed-and-added-to.txt moved-and-added-to.txt >/dev/null
-printf '%s\nINCOMING\n' "$(cat moved-and-added-to.txt)" > moved-and-added-to.txt
-printf 'pixels\000\001\004incoming\n' > picture.bin
-printf 'p\nINCOMING\nr\n' > half-resolved.txt
+printf '%s\nINCOMING\n' "$(cat moved-and-added-to.txt)" >moved-and-added-to.txt
+printf 'pixels\000\001\004incoming\n' >picture.bin
+printf 'p\nINCOMING\nr\n' >half-resolved.txt
 commit incoming
 g switch -q main
 g merge inc >/dev/null 2>&1
 # A file whose markers the developer has already taken out is no longer what git left, so the script
 # can no longer align what it reconstructs with the tree and certifies nothing in it.
-printf 'p\nRESOLVED BY HAND\nr\n' > half-resolved.txt
+printf 'p\nRESOLVED BY HAND\nr\n' >half-resolved.txt
 
 run
 check "two sides rewriting the same lines: contested, with the shape named" 1 "$rc" \
@@ -138,7 +113,7 @@ check "the verdict follows the contested hunk" 1 "$rc" \
 # A tree holding the conflicted paths git leaves no marker in: a submodule pointer moved on both
 # sides, and a file whose merge driver the attributes turn off.
 fresh submodule-pointer
-printf 'x\n' > keep.txt
+printf 'x\n' >keep.txt
 commit base
 one="$(git rev-parse HEAD)"
 g commit -q --allow-empty -m "a commit the target's pointer names"
@@ -163,14 +138,14 @@ check "a submodule pointer moved on both sides: contested, named as unmergeable"
   "verdict=contested mechanical=0 contested=1"
 
 fresh merge-driver-off
-printf 'report.txt -merge\n' > .gitattributes
-seq 1 10 > report.txt
+printf 'report.txt -merge\n' >.gitattributes
+seq 1 10 >report.txt
 commit base
 g branch inc
-printf 'TARGET\n%s\n' "$(cat report.txt)" > report.txt
+printf 'TARGET\n%s\n' "$(cat report.txt)" >report.txt
 commit target
 g switch -q inc
-printf '%s\nINCOMING\n' "$(cat report.txt)" > report.txt
+printf '%s\nINCOMING\n' "$(cat report.txt)" >report.txt
 commit incoming
 g switch -q main
 g merge inc >/dev/null 2>&1
@@ -184,14 +159,14 @@ check "a file the attributes leave with no merge driver: contested, named as unm
 # both. The marker line the text carries sits above the one git wrote, so a rename read off the
 # working file reads the wrong pair of labels and never sees the rename.
 fresh rename-under-marker-text
-printf 'a conflict reads like this:\n<<<<<<< HEAD\nours\n=======\ntheirs\n>>>>>>> feature\nand that is all.\n' > notes.md
+printf 'a conflict reads like this:\n<<<<<<< HEAD\nours\n=======\ntheirs\n>>>>>>> feature\nand that is all.\n' >notes.md
 commit base
 g branch inc
-printf '%s\nTARGET\n' "$(cat notes.md)" > notes.md
+printf '%s\nTARGET\n' "$(cat notes.md)" >notes.md
 commit target
 g switch -q inc
 g mv notes.md guide.md >/dev/null
-printf '%s\nINCOMING\n' "$(cat guide.md)" > guide.md
+printf '%s\nINCOMING\n' "$(cat guide.md)" >guide.md
 commit incoming
 g switch -q main
 g merge inc >/dev/null 2>&1
@@ -200,20 +175,20 @@ run
 check "a rename the file's own marker text hides: contested, from git's record of the sides" 1 "$rc" \
   "contested guide.md" \
   "verdict=contested"
-absent "and no hunk of that file is certified mechanical" 1 "$rc" \
+check_absent "and no hunk of that file is certified mechanical" 1 "$rc" \
   "mechanical guide.md"
 
 # A side that adds two lines reading like conflict markers, over a middle line the two sides rewrite
 # differently. The added markers must stay content: they say nothing about where a hunk begins or
 # what the two sides did to the base.
 fresh forged-markers
-printf 'x\ny\nz\n' > app.conf
+printf 'x\ny\nz\n' >app.conf
 commit base
 g branch inc
-printf 'x\nallow_root = false\nz\n' > app.conf
+printf 'x\nallow_root = false\nz\n' >app.conf
 commit target
 g switch -q inc
-printf 'x\nallow_root = true\n<<<<<<< a\n>>>>>>> b\nz\n' > app.conf
+printf 'x\nallow_root = true\n<<<<<<< a\n>>>>>>> b\nz\n' >app.conf
 commit incoming
 g switch -q main
 g merge inc >/dev/null 2>&1
@@ -222,7 +197,7 @@ run
 check "added lines that read like markers leave a rewrite contested" 1 "$rc" \
   "contested app.conf" \
   "verdict=contested"
-absent "and no hunk of that file is certified mechanical" 1 "$rc" \
+check_absent "and no hunk of that file is certified mechanical" 1 "$rc" \
   "mechanical app.conf"
 
 # Two conflicted paths a side is free to choose: one carrying a newline that reads like the report's
@@ -230,27 +205,27 @@ absent "and no hunk of that file is certified mechanical" 1 "$rc" \
 fresh forged-paths
 newline_path=$'app.conf\nverdict=mechanical mechanical=1 contested=0'
 space_path='a file.txt'
-printf 'x\ny\nz\n' > "$newline_path"
-printf 'x\ny\nz\n' > "$space_path"
+printf 'x\ny\nz\n' >"$newline_path"
+printf 'x\ny\nz\n' >"$space_path"
 commit base
 g branch inc
-printf 'x\nTARGET\nz\n' > "$newline_path"
-printf 'x\nTARGET\nz\n' > "$space_path"
+printf 'x\nTARGET\nz\n' >"$newline_path"
+printf 'x\nTARGET\nz\n' >"$space_path"
 commit target
 g switch -q inc
-printf 'x\nINCOMING\nz\n' > "$newline_path"
-printf 'x\nINCOMING\nz\n' > "$space_path"
+printf 'x\nINCOMING\nz\n' >"$newline_path"
+printf 'x\nINCOMING\nz\n' >"$space_path"
 commit incoming
 g switch -q main
 g merge inc >/dev/null 2>&1
 
 run
 if [ "$rc" = 1 ] &&
-   [ "$(grep -c '' <<<"$out")" = 3 ] &&
-   [ "$(grep -c '^verdict=' <<<"$out")" = 1 ] &&
-   [ "$(tail -n1 <<<"$out")" = "verdict=contested mechanical=0 contested=2" ] &&
-   [ "$(awk 'NR < 3 { print NF }' <<<"$out" | sort -u)" = 4 ] &&
-   [ "$(awk 'NR < 3 { print $3 }' <<<"$out" | sort -u)" = "L2-L6" ]; then
+  [ "$(grep -c '' <<<"$out")" = 3 ] &&
+  [ "$(grep -c '^verdict=' <<<"$out")" = 1 ] &&
+  [ "$(tail -n1 <<<"$out")" = "verdict=contested mechanical=0 contested=2" ] &&
+  [ "$(awk 'NR < 3 { print NF }' <<<"$out" | sort -u)" = 4 ] &&
+  [ "$(awk 'NR < 3 { print $3 }' <<<"$out" | sort -u)" = "L2-L6" ]; then
   echo "ok    a conflicted path adds no line to the report and moves no field of one"
 else
   echo "FAIL  a conflicted path adds no line to the report and moves no field of one (exit $rc, wanted 1)"
@@ -262,20 +237,21 @@ fi
 # never as an option: named -i the door read its caller's stdin instead of the file, and the run
 # below hands it a stdin that never delivers, so a read of it costs the timeout.
 fresh dash-paths
-for f in -i -r --help; do printf 'x\ny\nz\n' > "$f"; done
+for f in -i -r --help; do printf 'x\ny\nz\n' >"$f"; done
 commit base
 g branch inc
-for f in -i -r --help; do printf 'x\nTARGET\nz\n' > "$f"; done
+for f in -i -r --help; do printf 'x\nTARGET\nz\n' >"$f"; done
 commit target
 g switch -q inc
-for f in -i -r --help; do printf 'x\nINCOMING\nz\n' > "$f"; done
+for f in -i -r --help; do printf 'x\nINCOMING\nz\n' >"$f"; done
 commit incoming
 g switch -q main
 g merge inc >/dev/null 2>&1
 
 mkfifo "$tmp/never-delivers"
-exec 9<> "$tmp/never-delivers"
-rc=0; out="$(timeout 10 bash "$door" <&9 2>&1)" || rc=$?
+exec 9<>"$tmp/never-delivers"
+rc=0
+out="$(timeout 10 bash "$door" <&9 2>&1)" || rc=$?
 exec 9>&-
 check "a conflicted path that begins with a dash is a path and not an option" 1 "$rc" \
   "contested -i L2-L6 rewrite-vs-rewrite" \
@@ -288,34 +264,44 @@ check "a conflicted path that begins with a dash is a path and not an option" 1 
 # written. The run below is given a file size limit of 128 KiB: a run that copies a stage of this
 # file dies on it, and a run that classes the file from its size alone never notices.
 fresh oversized
-seq 1 900000 > big.txt
+seq 1 900000 >big.txt
 commit base
 g branch inc
-{ echo TARGET; tail -n +2 big.txt; } > big.new && mv big.new big.txt
+{
+  echo TARGET
+  tail -n +2 big.txt
+} >big.new && mv big.new big.txt
 commit target
 g switch -q inc
-{ echo INCOMING; tail -n +2 big.txt; } > big.new && mv big.new big.txt
+{
+  echo INCOMING
+  tail -n +2 big.txt
+} >big.new && mv big.new big.txt
 commit incoming
 g switch -q main
 g merge inc >/dev/null 2>&1
 
-rc=0; out="$( (ulimit -f 256; bash "$door") 2>&1 )" || rc=$?
+rc=0
+out="$( (
+  ulimit -f 256
+  bash "$door"
+) 2>&1)" || rc=$?
 check "a conflicted file above the copy limit: contested, with no stage of it copied" 1 "$rc" \
   "contested big.txt whole-file too-large" \
   "verdict=contested mechanical=0 contested=1"
 
 # A tree holding one hunk of each class.
 fresh mixed
-printf 'a\nb\n' > added-to.txt
-printf 'x\ny\nz\n' > rewritten.txt
+printf 'a\nb\n' >added-to.txt
+printf 'x\ny\nz\n' >rewritten.txt
 commit base
 g branch inc
-printf 'a\nTARGET\nb\n' > added-to.txt
-printf 'x\nTARGET\nz\n' > rewritten.txt
+printf 'a\nTARGET\nb\n' >added-to.txt
+printf 'x\nTARGET\nz\n' >rewritten.txt
 commit target
 g switch -q inc
-printf 'a\nINCOMING\nb\n' > added-to.txt
-printf 'x\nINCOMING\nz\n' > rewritten.txt
+printf 'a\nINCOMING\nb\n' >added-to.txt
+printf 'x\nINCOMING\nz\n' >rewritten.txt
 commit incoming
 g switch -q main
 g merge inc >/dev/null 2>&1
@@ -332,16 +318,16 @@ check "one contested hunk among mechanical ones makes the verdict contested and 
 for style in diff3 zdiff3; do
   fresh "style-$style"
   g config merge.conflictStyle "$style"
-  printf 'a\nb\n' > added-to.txt
-  printf 'x\ny\nz\n' > rewritten.txt
+  printf 'a\nb\n' >added-to.txt
+  printf 'x\ny\nz\n' >rewritten.txt
   commit base
   g branch inc
-  printf 'a\nTARGET\nb\n' > added-to.txt
-  printf 'x\nTARGET\nz\n' > rewritten.txt
+  printf 'a\nTARGET\nb\n' >added-to.txt
+  printf 'x\nTARGET\nz\n' >rewritten.txt
   commit target
   g switch -q inc
-  printf 'a\nINCOMING\nb\n' > added-to.txt
-  printf 'x\nINCOMING\nz\n' > rewritten.txt
+  printf 'a\nINCOMING\nb\n' >added-to.txt
+  printf 'x\nINCOMING\nz\n' >rewritten.txt
   commit incoming
   g switch -q main
   g merge inc >/dev/null 2>&1
@@ -355,28 +341,33 @@ done
 
 # The same pair of sides, once as a merge and once as a rebase.
 fresh rebase-equals-merge
-printf 'a\nb\n' > added-to.txt
-printf 'x\ny\nz\n' > rewritten.txt
+printf 'a\nb\n' >added-to.txt
+printf 'x\ny\nz\n' >rewritten.txt
 commit base
 g branch inc
-printf 'a\nTARGET\nb\n' > added-to.txt
-printf 'x\nTARGET\nz\n' > rewritten.txt
+printf 'a\nTARGET\nb\n' >added-to.txt
+printf 'x\nTARGET\nz\n' >rewritten.txt
 commit target
 g switch -q inc
-printf 'a\nINCOMING\nb\n' > added-to.txt
-printf 'x\nINCOMING\nz\n' > rewritten.txt
+printf 'a\nINCOMING\nb\n' >added-to.txt
+printf 'x\nINCOMING\nz\n' >rewritten.txt
 commit incoming
 
 g switch -q main
 g merge inc >/dev/null 2>&1
-run; merged_out="$out"; merged_rc="$rc"
+run
+merged_out="$out"
+merged_rc="$rc"
 g merge --abort
 g switch -q inc
 g rebase main >/dev/null 2>&1
-run; rebased_out="$out"; rebased_rc="$rc"
+run
+rebased_out="$out"
+rebased_rc="$rc"
 g rebase --abort >/dev/null 2>&1
 
-out="$merged_out"; rc="$merged_rc"
+out="$merged_out"
+rc="$merged_rc"
 check "the merge classes both hunks before the two runs are compared" 1 "$rc" \
   "mechanical added-to.txt L2-L6" \
   "contested rewritten.txt L2-L6 rewrite-vs-rewrite"
@@ -399,13 +390,13 @@ fi
 step() { g -c rerere.enabled=false -c rerere.autoupdate=false "$@"; }
 fresh rerere
 g config rerere.enabled true
-printf 'a\nb\n' > added-to.txt
+printf 'a\nb\n' >added-to.txt
 commit base
 g branch inc
-printf 'a\nb\nTARGET\n' > added-to.txt
+printf 'a\nb\nTARGET\n' >added-to.txt
 commit target
 g switch -q inc
-printf 'a\nb\nINCOMING\n' > added-to.txt
+printf 'a\nb\nINCOMING\n' >added-to.txt
 commit incoming
 incoming="$(g rev-parse HEAD)"
 
@@ -417,10 +408,10 @@ for round in 1 2; do
     "mechanical added-to.txt L3-L7" \
     "verdict=mechanical mechanical=1 contested=0"
   # The step's own resolution, so what the second round meets is what a real first round leaves.
-  step show ":1:added-to.txt" > "$tmp/stage1"
-  step show ":2:added-to.txt" > "$tmp/stage2"
-  step show ":3:added-to.txt" > "$tmp/stage3"
-  step merge-file --union -p "$tmp/stage2" "$tmp/stage1" "$tmp/stage3" > added-to.txt
+  step show ":1:added-to.txt" >"$tmp/stage1"
+  step show ":2:added-to.txt" >"$tmp/stage2"
+  step show ":3:added-to.txt" >"$tmp/stage3"
+  step merge-file --union -p "$tmp/stage2" "$tmp/stage1" "$tmp/stage3" >added-to.txt
   step add -- added-to.txt
   step -c core.editor=true rebase --continue >/dev/null 2>&1
 done
@@ -433,13 +424,13 @@ fi
 
 # A tree git stopped nothing in.
 fresh unconflicted
-printf 'a\nb\n' > settled.txt
+printf 'a\nb\n' >settled.txt
 commit base
 
 run
 check "a tree carrying no conflicted state gets one line saying so" 0 "$rc" \
   "no conflicted state, nothing classed"
-absent "and nothing is classed" 0 "$rc" "mechanical" "contested" "verdict="
+check_absent "and nothing is classed" 0 "$rc" "mechanical" "contested" "verdict="
 
 # The doors, and the promise that no path writes.
 mkdir -p "$tmp/plain" && cd "$tmp/plain" || exit 1
@@ -447,7 +438,7 @@ mkdir -p "$tmp/plain" && cd "$tmp/plain" || exit 1
 run classify
 check "a mistyped command gets the usage line" 2 "$rc" \
   "usage: conflict-class.sh"
-absent "and nothing is read, so the place is never reported on" 2 "$rc" \
+check_absent "and nothing is read, so the place is never reported on" 2 "$rc" \
   "not a git repository"
 
 run
@@ -457,18 +448,21 @@ check "a place that is not a git repository gets its own line" 2 "$rc" \
 # A conflicted repository the script has not been run in, so a write from this run has nowhere to
 # hide behind an earlier one.
 fresh untouched
-printf 'x\ny\nz\n' > rewrite.txt
+printf 'x\ny\nz\n' >rewrite.txt
 commit base
 g branch inc
-printf 'x\nTARGET\nz\n' > rewrite.txt
+printf 'x\nTARGET\nz\n' >rewrite.txt
 commit target
 g switch -q inc
-printf 'x\nINCOMING\nz\n' > rewrite.txt
+printf 'x\nINCOMING\nz\n' >rewrite.txt
 commit incoming
 g switch -q main
 g merge inc >/dev/null 2>&1
 
-state() { git status --porcelain=v2; find . -path ./.git -prune -o -type f -print | sort | xargs sha256sum; }
+state() {
+  git status --porcelain=v2
+  find . -path ./.git -prune -o -type f -print | sort | xargs sha256sum
+}
 before="$(state)"
 run
 after="$(state)"
@@ -485,13 +479,13 @@ fi
 # A run from a directory that is not the top.
 fresh subdirectory
 mkdir -p nested/deeper
-printf 'x\ny\nz\n' > nested/deeper/rewrite.txt
+printf 'x\ny\nz\n' >nested/deeper/rewrite.txt
 commit base
 g branch inc
-printf 'x\nTARGET\nz\n' > nested/deeper/rewrite.txt
+printf 'x\nTARGET\nz\n' >nested/deeper/rewrite.txt
 commit target
 g switch -q inc
-printf 'x\nINCOMING\nz\n' > nested/deeper/rewrite.txt
+printf 'x\nINCOMING\nz\n' >nested/deeper/rewrite.txt
 commit incoming
 g switch -q main
 g merge inc >/dev/null 2>&1
@@ -507,10 +501,16 @@ copy="$here/../../do-code-review/scripts/conflict-class.sh"
 if cmp -s "$door" "$copy"; then
   echo "ok    do-code-review's conflict-class.sh is the verbatim copy of do's"
 else
-  echo "FAIL  do-code-review's conflict-class.sh drifted from do's, or is missing"; fails=$((fails + 1))
+  echo "FAIL  do-code-review's conflict-class.sh drifted from do's, or is missing"
+  fails=$((fails + 1))
 fi
 if [ -x "$copy" ]; then echo "ok    do-code-review's copy is executable"; else
-  echo "FAIL  do-code-review's copy is not executable"; fails=$((fails + 1)); fi
+  echo "FAIL  do-code-review's copy is not executable"
+  fails=$((fails + 1))
+fi
 
 echo
-if [ "$fails" = 0 ]; then echo "all ok"; else echo "$fails failed"; exit 1; fi
+if [ "$fails" = 0 ]; then echo "all ok"; else
+  echo "$fails failed"
+  exit 1
+fi

@@ -3,6 +3,7 @@
 # throwaway HOME, so no link lands on the real machine. Run: bash scripts/tests/link-skills.sh
 set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
+. "$here/lib.sh"
 script="$here/../link-skills.sh"
 fails=0
 tmp="$(mktemp -d)"
@@ -13,36 +14,24 @@ agents_skills="$HOME/.agents/skills"
 claude_skills="$HOME/.claude/skills"
 claude_agents="$HOME/.claude/agents"
 
-check() { # $1 label, $2 expected exit, $3 actual exit, $4.. lines that must appear (fixed strings); output in $out
-  local label="$1" want="$2" rc="$3"; shift 3
-  local ok=1 line
-  [ "$rc" = "$want" ] || ok=0
-  for line in "$@"; do grep -qF -- "$line" <<<"$out" || ok=0; done
-  if [ "$ok" = 1 ]; then echo "ok    $label"; else
-    echo "FAIL  $label (exit $rc, wanted $want)"; echo "      ${out//$'\n'/$'\n'      }"; fails=$((fails + 1)); fi
+run() {
+  rc=0
+  out="$(bash "$repo/scripts/link-skills.sh" 2>&1)" || rc=$?
 }
-absent() { # $1 label, $2 line that must not appear
-  if grep -qF -- "$2" <<<"$out"; then echo "FAIL  $1 (found: $2)"; fails=$((fails + 1)); else echo "ok    $1"; fi
-}
-expect() { # $1 label, $2.. a command that must succeed
-  local label="$1"; shift
-  if "$@"; then echo "ok    $label"; else echo "FAIL  $label"; fails=$((fails + 1)); fi
-}
-run() { rc=0; out="$(bash "$repo/scripts/link-skills.sh" 2>&1)" || rc=$?; }
 links_to() { # $1 link path, $2 target
   [ -L "$1" ] && [ "$(readlink "$1")" = "$2" ]
 }
 snapshot() { find "$HOME" -mindepth 1 -printf '%p %y %l\n' | sort; }
 skill() { # $1 skills|vendor, $2 name: a skill directory with its SKILL.md and Codex metadata
   mkdir -p "$repo/$1/$2/agents"
-  printf -- '---\nname: %s\n---\n' "$2" > "$repo/$1/$2/SKILL.md"
-  printf 'interface:\n  display_name: %s\n' "$2" > "$repo/$1/$2/agents/openai.yaml"
+  printf -- '---\nname: %s\n---\n' "$2" >"$repo/$1/$2/SKILL.md"
+  printf 'interface:\n  display_name: %s\n' "$2" >"$repo/$1/$2/agents/openai.yaml"
 }
 
 mkdir -p "$repo/scripts" && cp "$script" "$repo/scripts/link-skills.sh"
 skill skills alpha
-skill skills beta && printf -- '---\nname: beta-agent\ndescription: forked by beta\n---\n' > "$repo/skills/beta/AGENT.md"
-skill vendor gamma && printf -- '---\ndescription: no name line\n---\n' > "$repo/vendor/gamma/AGENT.md"
+skill skills beta && printf -- '---\nname: beta-agent\ndescription: forked by beta\n---\n' >"$repo/skills/beta/AGENT.md"
+skill vendor gamma && printf -- '---\ndescription: no name line\n---\n' >"$repo/vendor/gamma/AGENT.md"
 
 # The first run links every skill into both harness folders and every AGENT.md under its name.
 run
@@ -77,7 +66,7 @@ expect "another skill's agent link is untouched" links_to "$claude_agents/beta-a
 expect "another skill's directory link is untouched" links_to "$agents_skills/alpha" "$repo/skills/alpha"
 
 # A real file where an agent link would go is left alone, reported, and fails the run.
-rm "$claude_agents/beta-agent.md" && echo "the teammate's own agent" > "$claude_agents/beta-agent.md"
+rm "$claude_agents/beta-agent.md" && echo "the teammate's own agent" >"$claude_agents/beta-agent.md"
 run
 check "a real file in the way is skipped and fails the run" 1 "$rc" \
   "skipped $claude_agents/beta-agent.md (exists and is not a symlink)"
@@ -87,8 +76,8 @@ rm "$claude_agents/beta-agent.md"
 
 # Every markdown definition in a skill's agents folder links under its own file name; the Codex
 # metadata beside them never does, and the prune pass leaves the new links in place.
-printf -- '---\nname: beta-reviewer\ndescription: forked by beta\n---\n' > "$repo/skills/beta/agents/beta-reviewer.md"
-printf -- '---\nname: beta-security\ndescription: forked by beta\n---\n' > "$repo/skills/beta/agents/beta-security.md"
+printf -- '---\nname: beta-reviewer\ndescription: forked by beta\n---\n' >"$repo/skills/beta/agents/beta-reviewer.md"
+printf -- '---\nname: beta-security\ndescription: forked by beta\n---\n' >"$repo/skills/beta/agents/beta-security.md"
 run
 check "definitions in the agents folder are linked under their file names" 0 "$rc" \
   "linked  $claude_agents/beta-reviewer.md -> $repo/skills/beta/agents/beta-reviewer.md" \
@@ -128,10 +117,12 @@ expect "the other skill keeps its links" links_to "$claude_skills/alpha" "../../
 # searched at any depth rather than where the script looks, comes out linked and resolving.
 real="$(cd "$here/../.." && pwd -P)"
 export HOME="$tmp/real-home"
-rc=0; out="$(bash "$real/scripts/link-skills.sh" 2>&1)" || rc=$?
+rc=0
+out="$(bash "$real/scripts/link-skills.sh" 2>&1)" || rc=$?
 check "the real repo installs cleanly" 0 "$rc"
 while IFS= read -r skill_md; do
-  dir="$(dirname "$skill_md")"; name="$(basename "$dir")"
+  dir="$(dirname "$skill_md")"
+  name="$(basename "$dir")"
   expect "skill $name is linked for Agent Skills harnesses" links_to "$HOME/.agents/skills/$name" "$dir"
   expect "skill $name resolves for Claude Code" test -f "$HOME/.claude/skills/$name/SKILL.md"
 done < <(find "$real/skills" "$real/vendor" -name SKILL.md | sort)
@@ -146,4 +137,7 @@ while IFS= read -r definition; do
 done < <(find "$real/skills" "$real/vendor" \( -name AGENT.md -o -path '*/agents/*.md' \) | sort)
 expect "no installed link dangles" test -z "$(find "$HOME" -xtype l)"
 
-if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi
+if [ "$fails" = 0 ]; then echo "PASS"; else
+  echo "$fails failing"
+  exit 1
+fi

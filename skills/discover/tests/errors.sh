@@ -4,10 +4,14 @@
 set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
 skill="$(cd "$here/.." && pwd -P)"
-fail() { echo "FAIL: $*" >&2; exit 1; }
+fail() {
+  echo "FAIL: $*" >&2
+  exit 1
+}
 
 status=0
-out="$(bash "$skill/scripts/discover.sh" --root "$skill/tests/fixture" 2>&1 <<'SPEC'
+out="$(
+  bash "$skill/scripts/discover.sh" --root "$skill/tests/fixture" 2>&1 <<'SPEC'
 1 | formatCpf | format a CPF string | - | no
 2 |  | the names field is empty | - | no
 3 | createInvoice | build an invoice record | - | no

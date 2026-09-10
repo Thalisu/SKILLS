@@ -8,7 +8,10 @@ set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
 setup="$(cd "$here/../../discover-setup" && pwd -P)"
 template="$setup/CLAUDE-SECTION.md"
-fail() { echo "FAIL: $*" >&2; exit 1; }
+fail() {
+  echo "FAIL: $*" >&2
+  exit 1
+}
 
 version="$(sed -nE '1s/^<!-- discover version: ([0-9]+) -->$/\1/p' "$template")"
 [ -n "$version" ] || fail "no version line in $template"
@@ -23,7 +26,7 @@ mkdir -p "$tmp/home" "$tmp/project"
   echo "<!-- discover:start v=$prev -->"
   sed '1d' "$template"
   echo "<!-- discover:end -->"
-} > "$tmp/project/CLAUDE.md"
+} >"$tmp/project/CLAUDE.md"
 
 out="$(HOME="$tmp/home" bash "$setup/scripts/verify.sh" "$tmp/project" || true)"
 grep -qx "scope=project" <<<"$out" || fail "pre-install: expected scope=project"

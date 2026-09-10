@@ -4,17 +4,13 @@
 # shellcheck disable=SC2016
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
+. "$here/../../../scripts/tests/lib.sh"
 skill="$here/.."
 fails=0
 
-expect() { # $1 label, $2.. a command that must succeed
-  local label="$1"; shift
-  if "$@"; then echo "ok    $label"; else echo "FAIL  $label"; fails=$((fails + 1)); fi
-}
-
 # The resolver is the one executable form of the slug rule, so the door calls it and restates
 # nothing of it. The prose is read as one line, so a phrase still counts where the paragraph wraps it.
-text="$(tr '\n' ' ' < "$skill/SKILL.md" | tr -s ' ')"
+text="$(tr '\n' ' ' <"$skill/SKILL.md" | tr -s ' ')"
 expect "the door calls the resolver through the skill's own folder" \
   grep -qF 'bash <skill-dir>/../../.agents/scripts/resolve-feature-folder.sh <slug>' <<<"$text"
 expect "the door names the resolver as the rule's one implementation" \
@@ -45,7 +41,7 @@ expect "a grader expects the resolver called" grep -qF 'resolve-feature-folder.s
 expect "the README lists the case" grep -qF '| `dated-slug-newest` |' "$skill/evals/README.md"
 # The index tells a maintainer which branch of the door each case takes, tracker file or none, so a
 # case whose scaffold writes no tracker file is named there as the exception.
-index="$(tr '\n' ' ' < "$skill/evals/README.md" | tr -s ' ')"
+index="$(tr '\n' ' ' <"$skill/evals/README.md" | tr -s ' ')"
 for c in "$skill"/evals/*/case.yaml; do
   grep -qF 'docs/agents/issue-tracker.md' "$c" && continue
   name="$(basename "$(dirname "$c")")"
@@ -55,11 +51,7 @@ done
 expect "no em-dash in the case" bash -c '! grep -rqF "$1" "$2"' _ "$emdash" "$case"
 tmp="$(mktemp -d)"
 trap 'cd /; rm -rf "$tmp"' EXIT
-scaffold_of() { # $1 case folder: the scaffold_script block of its case file
-  awk '/^  scaffold_script: \|/ { f = 1; next } f && /^    / { sub(/^    /, ""); print; next } f && /^[[:space:]]*$/ { print ""; next } f { exit }' \
-    "$1/case.yaml" 2>/dev/null
-}
-scaffold_of "$case" > "$tmp/scaffold.sh"
+scaffold_of "$case" >"$tmp/scaffold.sh"
 mkdir -p "$tmp/fixture"
 expect "the scaffold runs" bash -c 'test -s "$1" && cd "$2" && bash "$1" >/dev/null 2>&1' _ "$tmp/scaffold.sh" "$tmp/fixture"
 expect "the fixture holds two dated folders for the slug" \
@@ -74,7 +66,7 @@ stop="$skill/evals/unknown-slug-stops"
 expect "the stop case's prompt passes the bare slug" bash -c 'test "$(cat "$1")" = "/journey suppliers"' _ "$stop/prompt.md"
 expect "the README lists the stop case" grep -qF '| `unknown-slug-stops` |' "$skill/evals/README.md"
 expect "no em-dash in the stop case" bash -c '! grep -rqF "$1" "$2"' _ "$emdash" "$stop"
-scaffold_of "$stop" > "$tmp/stop.sh"
+scaffold_of "$stop" >"$tmp/stop.sh"
 mkdir -p "$tmp/stop"
 expect "the stop case's scaffold runs" bash -c 'test -s "$1" && cd "$2" && bash "$1" >/dev/null 2>&1' _ "$tmp/stop.sh" "$tmp/stop"
 expect "the stop case's fixture holds only the neighbour" test -f "$tmp/stop/.scratch/20260905-blocked-suppliers/spec.md"
@@ -83,7 +75,7 @@ expect "the resolver names no spec in the stop case's fixture" grep -qxF 'spec=n
 
 # The documentation page is where a person reads the rule the skill no longer spells out, so it
 # states it the way the resolver's own header does, normalisation included, and names the script.
-page="$(tr '\n' ' ' < "$skill/../../docs/journey.md" | tr -s ' ')"
+page="$(tr '\n' ' ' <"$skill/../../docs/journey.md" | tr -s ' ')"
 expect "the page names the resolver" grep -qF 'resolve-feature-folder.sh' <<<"$page"
 expect "the page states the slug is normalised" \
   grep -qF 'lowercased, every other character becomes a dash' <<<"$page"
@@ -98,4 +90,7 @@ expect "the page states a tail match is never taken" \
   grep -qF 'never a folder that only ends in the slug' <<<"$page"
 expect "the page restates no tail match as the rule" bash -c '! grep -qF "ending in" <<<"$1"' _ "$page"
 
-if [ "$fails" = 0 ]; then echo "PASS"; else echo "$fails failing"; exit 1; fi
+if [ "$fails" = 0 ]; then echo "PASS"; else
+  echo "$fails failing"
+  exit 1
+fi
