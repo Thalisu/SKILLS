@@ -96,6 +96,17 @@ has "the door compares git status in the main checkout across the fork" "$refs/m
 has "the invocation contract carries a row for the reader" "$repo/.agents/invocation.md" \
   "| \`do\`'s reader |"
 
+# The reader reads a stranger's text, so what bounds it is the tool list the harness enforces and
+# never its brief: an agent `do` ships, forked by `do` alone, holding reading and search alone.
+reader_md="$repo/skills/do/agents/do-reader.md"
+has "the reader carries its frontmatter" "$reader_md" "name: do-reader" "model: sonnet"
+expect "the reader's tools are exactly reading and search" \
+  test "$(sed -n 's/^tools: //p' "$reader_md" 2>/dev/null)" = "Read, Glob, Grep"
+lacks "the reader has no write tool, no edit tool and no shell" "$reader_md" "Write" "Edit" "Bash"
+has "the reader names do's door as its one caller" "$reader_md" \
+  "Forked only by the do skill's door" "Never on your own initiative"
+has "the door forks the reader by name" "$refs/mechanics.md" "subagent_type: do-reader"
+
 # The Digest quotes what the run builds from, and every quote is checkable at its line.
 has "the Digest holds the Path, the numbered stories and the Testing Decisions" "$refs/digest.md" \
   "## Journey Path" "## Stories" "## Testing Decisions" "quoted, never summarised"
