@@ -5,13 +5,18 @@ Lauren Tan, MIT (see [PSTACK-LICENSE](../../../vendor/PSTACK-LICENSE)), upstream
 `7314f723a487ec406b6369fe5865ba034cfed166`, with the frontmatter stripped and the changes listed at
 the end.
 
-The build loop of [mechanics.md](mechanics.md) reads this file only when the first message's
-loop line reads `Loop: fallback`.
+The build loop of [mechanics.md](mechanics.md) reads this file when the first message's loop
+line reads `Loop: fallback`, and it has a second way in that leaves the loop line reading
+`Loop: global`: mechanics.md's `BLOCKED` route, taken when the global unit test author comes back
+`BLOCKED` naming a run command the project map lacks (the map does not change during the run, so a
+second dispatch would meet the same `BLOCKED`), which reads this file from there for that
+behaviour and every one remaining, and dispatches the unit test author no more this run.
 The `ticket` Playbook is the only one whose loop line ever reads `Loop: global`, when the
 project has no unit test author, `.claude/agents/unit-test-author.md`, and no global one
 can be dispatched either, `global-unit-test-author` not linked or the Agent tool withheld:
-with either author present, the project's or the global one, the Testing Policy's core is
-the loop and this file is never read.
+with the project's own author present, the Testing Policy's core is the loop and this file
+is never read; with the global author present, this file is never read except through the
+`BLOCKED` route above.
 `bug-fix` and `refactoring` never check for a global author and never set `Loop: global`:
 their `Loop: fallback` means only that the project has no unit test author, and this file
 is read there whether or not a global one is linked.

@@ -49,6 +49,10 @@ has "the loop line reads fallback without the unit test author" "$ticket" "Loop:
 has "the loop line names the reference read under fallback" "$ticket" "](tdd-fallback.md)"
 has "the reference is never read under policy" "$ticket" "never read"
 has "the skill file lists the reference under Links" "$skillfile" "[tdd-fallback.md](references/tdd-fallback.md)"
+has "the skill file names the BLOCKED route as a second way in under Loop: global" "$skillfile" \
+  "a second way in under \`Loop: global\`, mechanics.md's \`BLOCKED\` route"
+has "the reference names its own second way in under Loop: global" "$ref" \
+  "it has a second way in that leaves the loop line reading"
 lacks "no em-dash in the ticket reference" "$ticket" "$emdash"
 
 # The eval case: a fixture with no policy, no agent and no inline skill, scaffolded and green with node alone
@@ -56,7 +60,7 @@ case="$skill/evals/ticket-run-without-policy"
 if [ -f "$case/case.yaml" ]; then ok "the case exists"; else fail "the case exists at $case"; fi
 has "the prompt types the first Ticket" "$case/prompt.md" "/do .scratch/archive-notes/issues/01-archive-a-note.md"
 has "the first line grader reads Playbook: ticket" "$case/graders/first-line-playbook-ticket.md" "^Playbook: ticket"
-has "a grader checks the loop line and the reference read" "$case/graders/loop-line-fallback-reference-read.md" "tdd-fallback.md"
+has "a grader checks the loop line reads global and dispatches the global unit author" "$case/graders/loop-line-fallback-reference-read.md" "Loop: global"
 has "a grader checks no test author was dispatched" "$case/graders/no-test-author-dispatched.md" "unit-test-author"
 has "a grader checks the failing test lands before the implementation" "$case/graders/failing-test-lands-before-implementation.md" "before"
 has "the README lists the case" "$skill/evals/README.md" "ticket-run-without-policy"

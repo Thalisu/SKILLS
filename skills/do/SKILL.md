@@ -73,7 +73,7 @@ that Playbook. The reply reference is read last by every Playbook.
 - [mechanics.md](references/mechanics.md): the shared mechanics the Playbooks that build in a worktree read through their steps: the worktree, the protected branch, the Ticket file, the build loop, the gate, the integration, the review, the verification, the close.
 - [digest.md](references/digest.md): the Digest the session writes from the reader's text and the run derives
   its behaviours from: the reader's brief, what the Digest holds, and where it is written.
-- [tdd-fallback.md](references/tdd-fallback.md): the TDD fallback the build loop reads when the loop line reads `Loop: fallback`, with no unit test author in the project and no global one that can be dispatched, and never otherwise: the run writes the failing test itself, and no test author is dispatched.
+- [tdd-fallback.md](references/tdd-fallback.md): the TDD fallback the build loop reads when the loop line reads `Loop: fallback`, with no unit test author in the project and no global one that can be dispatched, and a second way in under `Loop: global`, mechanics.md's `BLOCKED` route when the global unit test author comes back `BLOCKED` naming a run command the project map lacks: the run writes the failing test itself, and no test author is dispatched.
 - [trivial.md](references/trivial.md): the `trivial` Playbook: its door checks, its steps and the door script they run.
 - [refactoring.md](references/refactoring.md): the `refactoring` Playbook: its door checks, its steps and the pin it holds the reshape against.
 - [reply.md](references/reply.md): the reply every Playbook writes last, its sections in order.
