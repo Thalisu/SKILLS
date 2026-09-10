@@ -16,7 +16,9 @@
 # `resolved mechanical=<n> target=<n> incoming=<n> both=<n>`.
 #
 # Exit codes: 0 every contested hunk answered and its file written · 1 a question printed · 2 usage,
-# or no stopped rebase.
+# or no stopped rebase · 3 blocked: `stop`, an answer the hunk does not offer, an id that names no
+# open hunk, or more answers than hunks, printed as `blocked <reason>`, one `conflicted <file>` line
+# per file git left unmerged and `undo git rebase --abort`, with nothing written.
 #
 # The class, the order of the questions and the locations are conflict-class.sh's report, never read
 # again here from the working file's markers. The sides are quoted from the index stages. The script
@@ -47,10 +49,22 @@ quote_path() { # $1 path
 }
 
 declare -A raw_path
+unmerged=()
 while IFS= read -r -d '' record; do
   path="${record#*	}"
+  [ -n "${raw_path["$(quote_path "$path")"]+set}" ] || unmerged+=("$(quote_path "$path")")
   raw_path["$(quote_path "$path")"]="$path"
 done < <(git ls-files -u -z)
+
+# The stop is left exactly as git left it: no answer of this call is written, the rebase stays open
+# at the commit it stopped on, and the undo is the developer's to run.
+blocked() { # $1 reason
+  local file
+  echo "blocked $1"
+  for file in "${unmerged[@]}"; do echo "conflicted $file"; done
+  echo "undo git rebase --abort"
+  exit 3
+}
 
 # The report, one entry per hunk in the order the classifier printed it. A hunk's ordinal counts the
 # hunks of its own file, which is how the regenerated merge below is matched to it.
@@ -179,7 +193,23 @@ resolve() { # $1 path, $2 the file as the report prints it
 }
 
 [ "${#contested[@]}" -gt 0 ] || { echo "no contested hunk at this stop" >&2; exit 2; }
-[ "$#" -le "${#contested[@]}" ] || usage
+[ "$#" -le "${#contested[@]}" ] || blocked "more answers than contested hunks"
+
+# Every answer is checked before anything is asked or written: it has to name the hunk asked at its
+# position, as the tree holds it now, and be one of the answers that hunk's shape offers.
+k=0
+for arg in "$@"; do
+  i="${contested[$k]}"; id="${arg%%:*}"; word="${arg#*:}"
+  sections "${raw_path["${files[$i]}"]}" "${ordinals[$i]}"
+  [ "$id" = "$(hunk_id "${raw_path["${files[$i]}"]}" "${locations[$i]}")" ] || blocked "$id is no longer open"
+  [ "$word" = stop ] && blocked stop
+  case " $(offered "${shapes[$i]}") " in
+    *" $word "*) ;;
+    *) blocked "$word is none of the answers offered for $id" ;;
+  esac
+  k=$((k + 1))
+done
+
 if [ "$#" -lt "${#contested[@]}" ]; then ask "$#"; exit 1; fi
 
 # Every hunk of a file carrying a contested one is keyed by its file and ordinal: the mechanical ones
@@ -193,7 +223,7 @@ k=0
 for arg in "$@"; do
   i="${contested[$k]}"; word="${arg#*:}"
   answer_at["${files[$i]}#${ordinals[$i]}"]="$word"
-  tally["$word"]=$(( ${tally["$word"]:-0} + 1 ))
+  tally["$word"]=$(( ${tally["$word"]} + 1 ))
   k=$((k + 1))
 done
 

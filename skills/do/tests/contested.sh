@@ -141,4 +141,46 @@ expect "every written file is staged, so nothing is left unmerged" \
 expect "the rebase continues from there" \
   g -c core.editor=true -c rerere.enabled=false rebase --continue
 
+# A stop the developer declines to answer: a file the developer's branch deleted and the replayed
+# commit edited, and a line both sides rewrote. Every way out short of an answer leaves the rebase
+# open, names the files and gives the undo, and writes nothing.
+fresh blocked
+printf 'kept\n' > gone.txt
+printf 'x\ny\nz\n' > rewrite.txt
+commit base
+g switch -q -c do/run
+printf 'kept\nedited by incoming\n' > gone.txt
+printf 'x\nINCOMING\nz\n' > rewrite.txt
+commit incoming
+g switch -q main
+rm gone.txt
+printf 'x\nTARGET\nz\n' > rewrite.txt
+commit target
+g switch -q do/run
+g rebase main >/dev/null 2>&1
+before="$(state)"
+run; first="$(sed -n 's/^id //p' <<<"$out")"
+run "$first:target"; second="$(sed -n 's/^id //p' <<<"$out")"
+
+blocked() { # $1 label, $2 the reason line
+  check "$1" 3 "$rc" "$2" "conflicted gone.txt" "conflicted rewrite.txt" "undo git rebase --abort"
+  expect "$1: nothing written" test "$(state)" = "$before"
+}
+run "$first:stop"
+blocked "stop leaves the rebase open with the files named and the undo given" "blocked stop"
+run "$first:maybe"
+blocked "an answer that is none of the four stops the same way" \
+  "blocked maybe is none of the answers offered for $first"
+run "$first:both"
+blocked "both where the shape offers no union stops the same way" \
+  "blocked both is none of the answers offered for $first"
+run "000000000000:target"
+blocked "an id that names no open hunk is never applied to another" \
+  "blocked 000000000000 is no longer open"
+run "$first:target" "$second:stop"
+blocked "a stop after an answer writes nothing of the answer before it" "blocked stop"
+run "$first:target" "$second:target" "$second:target"
+blocked "more answers than the stop has hunks is never guessed at" \
+  "blocked more answers than contested hunks"
+
 if [ "$fails" = 0 ]; then echo "all ok"; else echo "$fails failing"; exit 1; fi
