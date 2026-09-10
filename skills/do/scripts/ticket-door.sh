@@ -10,7 +10,8 @@
 # Prints key=value lines, in this order: ticket, title, status, one blocker=<NN> <status> <path> per
 # Ticket the Blocked by line names (blockers=none for None), slug, worktree (the do-<slug> worktree
 # when git lists one at that path, else none), loop (policy when the project has
-# .claude/agents/unit-test-author.md, else fallback), branch, protected and reason as
+# .claude/agents/unit-test-author.md, else global when ~/.claude/agents/global-unit-test-author.md
+# is linked, else fallback), branch, protected and reason as
 # `trivial-door.sh branch` prints them in the main checkout, then verdict. An ambiguous=<what>
 # <detail> line follows the line it concerns. A blocker is the leading number of each part of the
 # Blocked by paragraph split on `;`, `,`, the word `and` and each line break, read from the Ticket's
@@ -118,7 +119,9 @@ if git worktree list --porcelain | grep -xF -- "worktree $worktree" >/dev/null; 
 stale=0
 if [ "$status" = ready-for-agent ] && [ "$worktree" != none ]; then echo "ambiguous=worktree exists for a ready-for-agent Ticket"; stale=1; fi
 
-if [ -f "$main/.claude/agents/unit-test-author.md" ]; then echo "loop=policy"; else echo "loop=fallback"; fi
+if [ -f "$main/.claude/agents/unit-test-author.md" ]; then echo "loop=policy"
+elif [ -f "$HOME/.claude/agents/global-unit-test-author.md" ]; then echo "loop=global"
+else echo "loop=fallback"; fi
 (cd "$main" && bash "$here/trivial-door.sh" branch) | grep -E '^(branch|protected|reason)='
 
 if [ "$status" = ambiguous ]; then verdict=ambiguous

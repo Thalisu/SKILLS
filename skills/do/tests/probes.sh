@@ -12,6 +12,10 @@ tmp="$(mktemp -d)"
 trap 'cd /; rm -rf "$tmp"' EXIT
 # gate.sh keeps a red check's log under $TMPDIR, so the trap above removes it with the rest.
 export TMPDIR="$tmp"
+# The door reads the global unit author under $HOME, so the developer's own linked agents would
+# otherwise turn every fallback case below into a global one.
+export HOME="$tmp/home"
+mkdir -p "$HOME"
 
 g() { git -c user.email=t@example.com -c user.name=t "$@"; }
 check() { # $1 label, $2 expected exit, $3 actual exit, $4.. whole lines that must appear; output in $out
@@ -133,7 +137,13 @@ echo "# ticket-door.sh: the facts beside the verdict"
 mkdir -p .claude/agents && : > .claude/agents/unit-test-author.md
 run "$door" "$issues/02-second.md"
 check "an installed unit test author reads as the policy loop" 0 "$rc" "loop=policy"
+mkdir -p "$HOME/.claude/agents" && : > "$HOME/.claude/agents/global-unit-test-author.md"
+run "$door" "$issues/02-second.md"
+check "the project's own author wins over the global one" 0 "$rc" "loop=policy"
 rm -rf .claude/agents
+run "$door" "$issues/02-second.md"
+check "no project author and the global unit author linked reads as the global loop" 0 "$rc" "loop=global"
+rm -rf "$HOME/.claude"
 g branch develop
 run "$door" "$issues/02-second.md"
 check "a protected branch is stated and never stops the door" 0 "$rc" \
