@@ -162,6 +162,12 @@ mkdir -p .scratch/20240101-export && printf '# Export\n' > .scratch/20240101-exp
 run
 check "two folders of one slug resolve to the newest spec" 0 "$rc" \
   "spec=.scratch/20260909-export/spec.md"
+# The allocator makes the folder before the session writes its spec, so the branch's feature can
+# hold no spec.md yet, and a neighbour's spec never stands in for it.
+rm .scratch/20260909-export/spec.md
+printf '# Journey\n' > .scratch/20260909-export/journey.md && mkdir .scratch/20260909-export/issues
+run
+check "a feature folder of the slug with no spec yet names no neighbour's spec" 0 "$rc" "spec=none"
 rm -r .scratch/20260909-export .scratch/20240101-export
 mkdir -p docs/agents && printf '# Issue tracker\n' > docs/agents/issue-tracker.md
 printf '.scratch\n' > .gitignore

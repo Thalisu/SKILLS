@@ -51,7 +51,8 @@
 # no when the door found it by slug, which makes it a spec source and nothing more), spec (the spec
 # beside that Ticket, else the spec of the feature folder the resolver names for the branch's slug,
 # absolute from a linked worktree the way review= is, else docs/specs/<x>.md or specs/<x>.md whose
-# <x> is the slug, else the one spec in the usual spec homes, .scratch/<x>/spec.md in the scratch
+# <x> is the slug, else, when the resolver names no feature folder for the slug, the one spec in
+# the usual spec homes, .scratch/<x>/spec.md in the scratch
 # the resolver read, docs/specs/<x>.md, specs/<x>.md, whose <x> contains the slug and never counts
 # the date a feature folder is prefixed with, else none when there is none or more than one),
 # tracker (yes when docs/agents/issue-tracker.md exists) and
@@ -137,6 +138,7 @@ gate() { # leaves the resolver's answer in resolved, empty when it has none to g
 gate "$core"
 scratch_spec="$(sed -n 's/^spec=//p' <<<"$resolved")"
 scratch_root="$(sed -n 's/^root=//p' <<<"$resolved")"
+scratch_folder="$(sed -n 's/^folder=//p' <<<"$resolved")"
 ticket=none
 # One slug can carry more than one dated feature folder, and the newest of them wins: the glob is
 # sorted, so the last match is the one .agents/scratch.md names, and an undated folder, whose name
@@ -208,8 +210,11 @@ spec=none
 if [ -f "$ticket" ] && [ -f "$(dirname "$(dirname "$ticket")")/spec.md" ]; then
   spec="$(dirname "$(dirname "$ticket")")/spec.md"
 else
-  exact=""; containing=()
+  exact=""; containing=(); contain=yes
   [ "${scratch_spec:-none}" = none ] || exact="$scratch_spec"
+  # The allocator makes the folder before the session writes its spec, so a folder the resolver
+  # names with no spec.md in it is still the branch's feature, and no neighbour's spec stands in.
+  [ "${scratch_folder:-none}" = none ] || contain=no
   # The containing scan reads the scratch the resolver read, in the paths the resolver prints:
   # relative when this tree is the main checkout, absolute from a linked worktree.
   homes=()
@@ -230,7 +235,7 @@ else
       case "$f" in docs/specs/*|specs/*) [ -n "$exact" ] || exact="$f" ;; esac
       continue
     fi
-    if [ -z "$exact" ] && [[ "$x" == *"$core"* || "$core" == *"$x"* ]]; then containing+=("$f"); fi
+    if [ -z "$exact" ] && [ "$contain" = yes ] && [[ "$x" == *"$core"* || "$core" == *"$x"* ]]; then containing+=("$f"); fi
   done
   if [ -n "$exact" ]; then spec="$exact"; elif [ "${#containing[@]}" = 1 ]; then spec="${containing[0]}"; fi
 fi
