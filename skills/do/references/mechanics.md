@@ -94,10 +94,19 @@ checkout for each, recording `absent` for a document not on disk. Those two valu
 Digest's `## Sources` lines, so the record the reuse gate trusts is the run's own reading and never
 the fork's. Then the door says in one line that both are being read in a window of their own.
 
-When the Agent tool lists no `do-reader`, there is no agent by that name for the door to fork.
-The session reads both documents itself and writes the Digest at the same path and in the same
-format from what it read, saying so in one line. It never forks another agent in the reader's place.
-A fork under any other name could still hold the write tools `do-reader`'s own definition denies it.
+No reader can be forked on two branches: the Agent tool is withheld from the session, or
+the Agent tool lists no `do-reader`, as it does on a machine that never linked the reader `do`
+ships. On either branch the door has already run its stops and hashed both documents as a first
+run does, and nothing is forked. The session reads both documents itself and writes the Digest at
+the same path and in the same format, its `## Sources` lines from the door's own hashes, a
+document not on disk recorded `absent` and named in one line as below. It says in one line which
+branch holds: the Agent tool withheld, or `do-reader` not listed, the reader this machine has not
+linked. With the tool withheld this is the Delegates rule below, where the fork writes nothing and
+says so, and the session does that work itself. On either branch the run
+neither stops nor asks for the tool or the agent, since the developer cannot hand one over mid-run
+and the slice is what the run needs, not the window it was read in.
+It never forks another agent in the reader's place: a fork under any other name could still hold
+the write tools `do-reader`'s own definition denies it.
 
 The door calls the Agent tool with `subagent_type: do-reader`, the agent `do` ships in
 [do-reader.md](../agents/do-reader.md), on the model its definition names, since it quotes rather
@@ -126,12 +135,6 @@ section, the door's own. A Digest already at that path is replaced whole and nev
 The run shows the Digest's location and the one line in the thread, and the steps that build on
 the slice open that file and read its quotes there. The line is a restatement for the thread: a list
 written from it would be the paraphrase the Digest exists to keep out of the record.
-
-When the Agent tool is withheld from the session there is no fork to dispatch. The Delegates rule
-below is what holds: the fork writes nothing and says so, and the session does that work itself. It
-reads both documents, writes the Digest at the same path in the same format, and says so in one
-line. It neither stops nor asks for the tool, since the developer cannot hand one over mid-run and
-the slice is what the run needs, not the window it was read in.
 
 A Ticket whose Spec or journey is not on disk still builds. The door records the document as
 `absent` among its hashes and the reader quotes nothing under its section, and the run

@@ -46,6 +46,14 @@ expect() { # $1 label, $2.. a command that must succeed
   local label="$1"; shift
   if "$@"; then echo "ok    $label"; else echo "FAIL  $label"; fails=$((fails + 1)); fi
 }
+para_has() { # $1 label, $2 file, $3 a fixed string opening the paragraph, $4.. strings in that same paragraph
+  local label="$1" file="$2" anchor="$3"; shift 3
+  local ok=1 para line
+  para="$(awk -v a="$anchor" 'BEGIN { RS = "" } index($0, a) { print; exit }' "$file" 2>/dev/null)"
+  [ -n "$para" ] || ok=0
+  for line in "$@"; do [ "$ok" = 1 ] && grep -qF -- "$line" <<<"$para" || ok=0; done
+  if [ "$ok" = 1 ]; then echo "ok    $label"; else echo "FAIL  $label ($file)"; fails=$((fails + 1)); fi
+}
 
 # The door forks the reader, and the session opens neither document. Both files carry it: the
 # Playbook's door is where the fork happens, the shared mechanics is where the mechanic lives.
@@ -165,6 +173,21 @@ has "an Agent tool that lists no do-reader has the session read and write, never
 after "the lists-no-do-reader fallback is stated before the door forks the reader by name" \
   "$refs/mechanics.md" "subagent_type: do-reader" \
   'the Agent tool lists no `do-reader`'
+# The withheld tool and the unlinked reader are the same branch to the run, so one paragraph carries
+# both: the line names which one holds, `do-reader` by name when a machine never linked it, and the
+# Digest the session writes keeps the door's hashes and the absent record a first run keeps.
+para_has "one paragraph carries both no-reader branches, the line naming do-reader when unlisted" \
+  "$refs/mechanics.md" "No reader can be forked on two branches" \
+  "the Agent tool is withheld from the session" \
+  'the Agent tool lists no `do-reader`' \
+  "The session reads both documents itself" \
+  '`do-reader` not listed' \
+  'its `## Sources` lines from the door'"'"'s own hashes' \
+  'recorded `absent` and named in one line' \
+  "neither stops nor asks for the tool" \
+  "never forks another agent in the reader's place"
+lacks "the withheld branch no longer sits in a paragraph of its own" "$refs/mechanics.md" \
+  "When the Agent tool is withheld from the session there is no fork to dispatch."
 # The `## Sources` lines are the record the reuse gate trusts, so they come from the door's own
 # reading taken before the fork, never from the fork that read the stranger's text.
 has "the door hashes both documents itself and records an absent one" "$refs/mechanics.md" \
