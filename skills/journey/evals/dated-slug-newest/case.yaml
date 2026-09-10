@@ -1,0 +1,117 @@
+name: dated-slug-newest
+tags: [door, slug]
+runs: 2
+max_turns: 12
+timeout_seconds: 300
+allowed_tools: [Bash, Read, Edit, Write, Agent]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # The slug suppliers carries two dated feature folders: an abandoned draft from August and the
+    # spec written last, in September. The bare slug has to reach the September spec, the one the
+    # resolver names, and the two specs share no story, so the walked tree tells which was opened.
+    # There is no tracker file, so the slug resolves in the scratch.
+    set -e
+    cat > index.html <<'HTML'
+    <!doctype html>
+    <html><head><meta charset="utf-8"><title>Backoffice</title></head>
+    <body>
+    <header><nav><a href="index.html">Home</a> <a href="customers.html">Customers</a></nav></header>
+    <main><h1>Backoffice</h1><p>Pick a section above.</p></main>
+    </body></html>
+    HTML
+    cat > customers.html <<'HTML'
+    <!doctype html>
+    <html><head><meta charset="utf-8"><title>Customers</title></head>
+    <body>
+    <header><nav><a href="index.html">Home</a> <a href="customers.html">Customers</a></nav></header>
+    <main>
+      <h1>Customers</h1>
+      <form id="filter"><label>Search <input name="q" placeholder="Name or email"></label></form>
+      <button id="new-customer">New customer</button>
+      <table id="list"><thead><tr><th>Name</th><th>Email</th><th></th></tr></thead><tbody></tbody></table>
+      <p id="empty" hidden>No customers yet. Add the first one.</p>
+      <dialog id="confirm-delete"><p>Delete this customer? This cannot be undone.</p><button id="confirm">Delete</button> <button id="keep">Keep</button></dialog>
+    </main>
+    </body></html>
+    HTML
+    cat > CONTEXT.md <<'MD'
+    # Backoffice
+
+    The pages the purchasing and sales team use to keep customers and suppliers.
+
+    ## Language
+
+    **Customer**:
+    A person or organisation that places orders.
+    _Avoid_: client, account
+    MD
+    mkdir -p .scratch/20260801-suppliers .scratch/20260905-suppliers
+    cat > .scratch/20260801-suppliers/spec.md <<'MD'
+    # Suppliers import
+
+    Journey: required
+    Status: ready-for-agent
+
+    ## Problem Statement
+
+    Purchasing keeps the supplier list in a spreadsheet, and the team wants it loaded into the backoffice.
+
+    ## Solution
+
+    An import screen that reads the purchasing spreadsheet and loads every row as a supplier.
+
+    ## User Stories
+
+    1. As a buyer, I want to upload the purchasing spreadsheet, so that every supplier in it is loaded at once
+    2. As a buyer, I want to see the rows the import rejected, so that I can fix them in the spreadsheet
+
+    ## Implementation Decisions
+
+    - The import accepts a CSV export of the spreadsheet
+
+    ## Testing Decisions
+
+    - Behaviour tests through the import screen
+
+    ## Out of Scope
+
+    - Editing a supplier after the import
+    MD
+    cat > .scratch/20260905-suppliers/spec.md <<'MD'
+    # Suppliers
+
+    Journey: required
+    Status: ready-for-agent
+
+    ## Problem Statement
+
+    Purchasing keeps the supplier list in a spreadsheet nobody else can open, so the team orders from suppliers that were blocked weeks ago.
+
+    ## Solution
+
+    A Suppliers page beside Customers: a list filtered by status, a form to add a supplier, and a way to remove one.
+
+    ## User Stories
+
+    1. As a buyer, I want to see the suppliers filtered by status, active or blocked, so that I only call the ones I can order from
+    2. As a buyer, I want to add a supplier with a name and an email, so that the team can order from it
+    3. As a buyer, I want to remove a supplier we no longer use, so that nobody orders from it by mistake
+
+    ## Implementation Decisions
+
+    - A supplier has a name, an email and a status, active or blocked; a new supplier is active
+    - The page follows the Customers page: the same list, the same delete
+
+    ## Testing Decisions
+
+    - Behaviour tests through the page, as the Customers page is tested
+
+    ## Out of Scope
+
+    - Importing the spreadsheet: the August draft was abandoned for this page
+    MD
+    printf '.scratch/\n' > .gitignore
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"

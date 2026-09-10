@@ -17,6 +17,7 @@ glossary, and a spec in the format `spec` writes with `Journey: required` under 
 | case | checks |
 |---|---|
 | `spec-required` | no argument: one message asking for the spec, nothing else, nothing written |
+| `dated-slug-newest` | a bare slug that carries two dated feature folders goes through the resolver, and the spec walked is the newest, `20260905-suppliers`, never the abandoned `20260801` draft |
 | `one-question` | the first path is drafted from precedent and shown before any question; the first message that asks something carries exactly one question, a recommendation and the tell, from the actor's seat |
 | `precedent-first` | a fork the sibling page settles (the delete confirmation, the empty state, the form's cancel) is closed with `file:line` and never asked |
 | `spec-contradiction` | a story the app refutes (a sidebar the app does not have) is named in the precedent note with `file:line`, and the question is which side wins |
