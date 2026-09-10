@@ -294,5 +294,19 @@ check "the file the red line names holds the full output" 0 0 "1" "50" "100" "br
 out="$(git status --short)"; same "the gate writes nothing in the tree it checks" ""
 out="$gate_out"
 
+echo "# gate.sh: a check the environment stops"
+logof() { sed -n "s/^$1=[a-z]* exit=[0-9]* log=\([^ ]*\).*/\1/p" <<<"$out"; }
+run "$gate" --infra 'test database is not up' "suite=exit 1" "e2e=no-such-runner-for-the-gate" \
+  "api=echo 'connect ECONNREFUSED 127.0.0.1:5432'; exit 1" "db=echo 'FATAL: the test database is not up'; exit 1"
+check "a runner that cannot start and a service down are blocked, each cause named, and blocked outweighs red" 3 "$rc" \
+  "suite=red exit=1 log=$(logof suite)" \
+  "e2e=blocked exit=127 log=$(logof e2e) cause=runner cannot start" \
+  "api=blocked exit=1 log=$(logof api) cause=connect ECONNREFUSED 127.0.0.1:5432" \
+  "db=blocked exit=1 log=$(logof db) cause=FATAL: the test database is not up" \
+  "verdict=blocked"
+run "$gate" --infra; check "an --infra with no pattern is a usage error" 2 "$rc"
+header_has "the gate script's header carries its full command line" "$gate" \
+  "#   gate.sh [--infra <pattern>]... <key>=<command>..." 12
+
 echo
 if [ "$fails" = 0 ]; then echo "probes: all checks passed"; else echo "probes: $fails failed"; exit 1; fi
