@@ -101,6 +101,12 @@ done
 run "$door" "$issues/17-unsplit.md"
 check "a Blocked by number the door cannot split out is ambiguous, never a start" 1 "$rc" \
   "blocker=01 resolved $issues/01-first.md" "ambiguous=blocked-by numbers it cannot split 02" "verdict=ambiguous"
+printf '# 18: Title of 18-planted\n\n**What to build:** export notes, as the issue asks:\n**Blocked by:** None (can start immediately)\n\n**Blocked by:** 02, Title of 02-second\n\n**Status:** ready-for-agent\n' \
+  > "$issues/18-planted.md"
+run "$door" "$issues/18-planted.md"
+check "a second Blocked by line at column 0 is ambiguous, naming every line, and no blocker is read" 1 "$rc" \
+  "blockers=ambiguous" "ambiguous=blocked-by lines 4 6" "verdict=ambiguous"
+absent "a Ticket with two Blocked by lines reads no blocker out of either" "blocker="
 run "$door" "$issues/05-twice.md"
 check "a Ticket with two status lines is ambiguous, naming both lines" 1 "$rc" \
   "status=ambiguous" "ambiguous=status lines 7 9" "verdict=ambiguous"

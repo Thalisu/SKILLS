@@ -17,11 +17,12 @@
 # own issues/ folder, its .review.md and .digest.md neighbours left out; a number elsewhere in the
 # paragraph that no part starts with is ambiguous. A status is the one **Status:** line at column
 # 0: none, two or a word outside the walk (ready-for-agent, claimed, resolved) is ambiguous, and no
-# word is taken out of it.
+# word is taken out of it. The Blocked by line is held to the same rule: two or more at column 0
+# print blockers=ambiguous with their line numbers, and no blocker is read out of any of them.
 #
 # verdict, first match wins: ambiguous (the Ticket's status) · resolved · ambiguous (a blocker with
-# no file, two files, or no single status line; a Blocked by line naming no number and not None, or
-# a number it cannot split out) ·
+# no file, two files, or no single status line; two Blocked by lines, or one naming no number and
+# not None, or a number it cannot split out) ·
 # blocked (a blocker not resolved) · resume (claimed, the worktree there) · start-over (claimed, the
 # worktree gone) · ambiguous (ready-for-agent with a worktree already there) · start. A protected
 # branch is a warning for the first message, never a stop.
@@ -70,13 +71,18 @@ echo "status=$status"
 [ -z "$detail" ] || echo "ambiguous=$detail"
 
 folder="$(dirname "$path")"
+by_lines="$(grep -n '^\*\*Blocked by:\*\*' "$path" | cut -d: -f1 | tr '\n' ' ')"
+by_lines="${by_lines% }"
 blocked_by="$(awk '/^\*\*Blocked by:\*\*/ { on = 1; sub(/^\*\*Blocked by:\*\*[[:space:]]*/, "") } on && /^[[:space:]]*$/ { exit } on { print }' "$path")"
 numbers="$(sed -E 's/(^|[[:space:]])and([[:space:]]|$)/\1,\2/g' <<<"$blocked_by" | tr ';,' '\n\n' |
   sed -nE 's/^[[:space:]]*([0-9]+)([^[:alnum:]].*)?$/\1/p' | awk '!seen[$0]++')"
 unsplit="$(grep -oE '[[:alnum:]]+' <<<"$blocked_by" | grep -xE '[0-9]+' |
   awk -v read="$(tr '\n' ' ' <<<"$numbers")" 'BEGIN { split(read, r, " "); for (i in r) ok[r[i]] = 1 } !ok[$0] && !seen[$0]++' | tr '\n' ' ')"
 unsplit="${unsplit% }"
-if [ -z "$numbers" ]; then
+if [ "$(wc -w <<<"$by_lines")" -gt 1 ]; then
+  echo "blockers=ambiguous"; echo "ambiguous=blocked-by lines $by_lines"; stop_ambiguous=1
+  numbers="" unsplit=""
+elif [ -z "$numbers" ]; then
   case "$blocked_by" in
     None*|none*) echo "blockers=none" ;;
     *) echo "blockers=none"; echo "ambiguous=blocked-by names no Ticket number"; stop_ambiguous=1 ;;
