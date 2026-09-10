@@ -168,6 +168,14 @@ has "a second deviation of the same shape stops the run as a wrong Sketch, namin
   "$refs/ticket.md" "stops the run as a wrong Sketch" "the message naming \`discuss\`"
 lacks "the contract is the Sketch file, never a lowercase sketch in the thread" "$refs/ticket.md" \
   "as a wrong sketch" "implements the sketch under the loop" "A symbol the sketch adds"
+# A shape in hand from the Ticket, its Digest or a prototype, and a session that lists no `sketch`,
+# file no Sketch, so a done condition that always wants its location leaves step 3 undone on them.
+has "step 3 is done with the Sketch's location only when a Sketch was filed, or the skip" \
+  "$refs/ticket.md" \
+  "when the shape is in the thread, with the Sketch's location when a Sketch was filed, or the skip."
+has "with no Sketch filed, the build and its deviations are held to the shape in hand" \
+  "$refs/ticket.md" "The build is held to the Sketch, or to the shape in hand when no Sketch was filed" \
+  "A deviation from that contract during the build"
 # The step never names a shape twice. A resume runs the shape step again without a write, and the
 # Sketch the first run filed is the shape it finds, so the fork is the table's last line.
 has "a Sketch already beside the Ticket is a shape in hand, so a resume forks no second sketch" \

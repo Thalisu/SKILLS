@@ -193,12 +193,12 @@ and the run names the Sketch's location and the shape in one line in the thread:
 signatures and the module boundaries. It opens the Sketch when a behaviour needs more than that
 line, and never restates the rivals, which stay in the file.
 
-The build is held to the Sketch. The loop implements it one behaviour at a time, and
-every test still goes through a test author; a symbol it adds is checked the way step 2 says.
-A deviation from the Sketch during the build is surfaced in the reply, and a second deviation
-of the same shape stops the run as a wrong Sketch, the deviations listed, the worktree and its
-branch named, the message naming `discuss`. Done when the shape is in the thread with the
-Sketch's location, or the skip.
+The build is held to the Sketch, or to the shape in hand when no Sketch was filed. The loop
+implements it one behaviour at a time, and every test still goes through a test author; a symbol
+it adds is checked the way step 2 says. A deviation from that contract during the build is
+surfaced in the reply, and a second deviation of the same shape stops the run as a wrong Sketch,
+the deviations listed, the worktree and its branch named, the message naming `discuss`. Done
+when the shape is in the thread, with the Sketch's location when a Sketch was filed, or the skip.
 
 **4. Behaviours.** The run names the Digest's location and restates it in one line, its Journey
 Path, the story numbers it carries, its Testing Decisions and the criteria it marks observable, so
