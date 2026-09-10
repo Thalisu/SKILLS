@@ -335,5 +335,25 @@ header_has "the flows script's header carries its own command line" "$flows" \
   "#   flows.sh [--infra <pattern>]... <single-flow command> <flow>..." 12
 cd "$top" || exit 1
 
+echo "# the shared mechanics run the gate and the flows from their scripts"
+mechanics_md="$skill/references/mechanics.md"
+has "the gate runs from its script, named with its command line" "$mechanics_md" \
+  "\`bash <skill-dir>/scripts/gate.sh [--infra <pattern>]... <key>=<command>...\`"
+has "the affected flows run from their script, named with its command line and printed first" "$mechanics_md" \
+  "\`bash <skill-dir>/scripts/flows.sh [--infra <pattern>]... <single-flow command> <flow>...\`" \
+  "its \`command=\` line printed first"
+has "a red gate goes back to the loop on the block already in the thread, never a rerun" "$mechanics_md" \
+  "the failing block is already in the thread, so the work goes back to the build loop as one more" \
+  "unit without rerunning the command, then the whole gate again"
+has "an environment failure the script reads as blocked stops the run, and a waiver is debt" "$mechanics_md" \
+  "\`verdict=blocked\`" "stops as blocked and names the cause from its \`cause=\` line" \
+  "a waiver is recorded as debt in the reply, never as green"
+has "the full suite or remote run stays the session's question, and a no is debt with the close still made" "$mechanics_md" \
+  "The script asks nothing" \
+  "A no records each flow that needed it as not run, leaves the criterion it would have proven" \
+  "records the waiver as debt in the reply; the close still happens"
+has "the ticket Playbook's gate and verification steps name the scripts" "$ticket_md" \
+  "\`scripts/gate.sh\`" "\`scripts/flows.sh\`"
+
 echo
 if [ "$fails" = 0 ]; then echo "probes: all checks passed"; else echo "probes: $fails failed"; exit 1; fi

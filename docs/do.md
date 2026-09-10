@@ -104,7 +104,11 @@ refactor on green, then one commit holding the test and the code. Each commit bo
 `Behaviour:` line, which is how a second `/do` on the same Ticket reads the run off the branch and
 picks up at the first behaviour with no commit beside it instead of starting over.
 
-The gate runs after the last edit and never before it, because "it passed earlier" is stale. Then,
+The gate runs after the last edit and never before it, because "it passed earlier" is stale. It runs
+from one script that prints the line to rerun it first, one line per green check and the capped
+failing block of a red one with the file holding its full output, so you rerun the gate yourself and
+get the same answer, and a red gate goes back to the build loop on the block already in the thread.
+Then,
 if your branch moved while the run was building, the run rebases onto it and runs the gate again, so
 the diff the reviewers read is the diff that lands rather than one that was true a few commits ago.
 What a conflict costs you depends on its class, which a script decides and the session never

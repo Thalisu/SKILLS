@@ -234,15 +234,22 @@ last edit runs again.
 The commands come from the project's facts, the Testing Policy's Project facts in `CLAUDE.md`. A
 command the facts do not carry comes from the repository's own scripts (`package.json` scripts, a
 Makefile, a justfile, `pyproject`), never from memory of another repository, and a check with
-nothing to run reads `skip: <reason>`. Each command line is shown before it runs and the relevant
-output line is quoted after.
+nothing to run reads `skip: <reason>`. The rest run from one script, each check a key and the
+command line it stands for, with one `--infra` pattern per known infra failure the facts name:
+`bash <skill-dir>/scripts/gate.sh [--infra <pattern>]... <key>=<command>...`. It prints its
+`command=` line first, which the developer reruns for the same answer. A green check is one
+`<key>=green` line. A red one is `<key>=red exit=<n> log=<file>` with its failing block under it,
+capped at the last twenty lines, and the full output in the file that line names, so the thread
+holds the lines to act on and never the whole output. Every check runs whatever the one before it
+returned, and the script exits 0 on `verdict=green`, 1 on `verdict=red` and 3 on `verdict=blocked`.
 
-- Red: back to the build loop as one more unit, then the whole gate again. Never a skipped test,
-  a weakened assertion or a sleep.
-- Output that describes the environment and not the code (a connection refused, a service down, a
-  runner that cannot start) is an infrastructure failure. The run stops as blocked, names the
-  cause and never works around it. Only the developer can waive it, and a waiver is recorded as
-  debt in the reply, never as green.
+- Red: the failing block is already in the thread, so the work goes back to the build loop as one more
+  unit without rerunning the command, then the whole gate again. The log is opened only when the
+  block does not show the cause. Never a skipped test, a weakened assertion or a sleep.
+- `verdict=blocked`: a check exited 126 or 127, a runner that cannot start, or printed a line
+  matching a pattern for a service down or unreachable, an infrastructure failure and not the code's.
+  The run stops as blocked and names the cause from its `cause=` line, and never works around it.
+  Only the developer can waive it, and a waiver is recorded as debt in the reply, never as green.
 - A tool timeout is "did not finish", neither red nor green: the command line is reported and the
   run stops.
 
@@ -475,24 +482,30 @@ step.
 Run from the main checkout after the landing, per
 [prove-it-works](../../../.agents/principles/prove-it-works.md): the work is on the developer's
 branch now, and Project facts may say the E2E stack serves the primary checkout. The commands run
-there, per [worktrees.md](../../../.agents/worktrees.md): git with `-C <the main checkout>`, any
-other command after a bare `cd` to it and a bare `cd` back to the worktree; the worktree stays,
-since it is where a red flow is fixed.
+there, per [worktrees.md](../../../.agents/worktrees.md): git with `-C <the main checkout>`, the
+flows through their script, which runs them from the main checkout whichever tree it is called
+from, and any other command after a bare `cd` to it and a bare `cd` back to the worktree; the
+worktree stays, since it is where a red flow is fixed.
 
 1. The affected flows are the flow the E2E step authored or extended and every existing flow over
-   a screen, a route or a message the diff changed. Each runs with the single-flow command from
-   the project's facts, the command line printed before it runs and the relevant output line
-   quoted after. A change the E2E step called internal, with no user-observable surface, has no
+   a screen, a route or a message the diff changed. They run from one script, with the single-flow
+   command from the project's facts and one `--infra` pattern per known infra failure they name:
+   `bash <skill-dir>/scripts/flows.sh [--infra <pattern>]... <single-flow command> <flow>...`,
+   its `command=` line printed first, so the verification is a line a reviewer reruns rather than
+   the run's account of it. Each flow prints in the gate's shape, keyed by the flow: one
+   `<flow>=green` line, or its red or blocked line with its capped block and the file holding its
+   full output. A change the E2E step called internal, with no user-observable surface, has no
    affected flow: the step reads `skip: no affected flow` with that reason.
-2. A full suite or a remote run waits for the developer's yes, the command line shown first. It is
-   the only question asked on this path, per
-   [never-block-on-the-human](../../../.agents/principles/never-block-on-the-human.md), because
-   its cost is the one thing only the developer can weigh. A no records each flow that needed it
-   as not run, leaves the criterion it would have proven unticked, and records the waiver as debt
-   in the reply; the close still happens.
-3. An infrastructure failure (a service down, a runner that cannot start, a device missing) stops
-   the run as blocked with the cause named and is never worked around; only the developer can
-   waive it, and the waiver is debt in the reply, never green.
+2. A full suite or a remote run waits for the developer's yes, the command line shown first.
+   The script asks nothing: this is the only question asked on this path, and the session puts it,
+   per [never-block-on-the-human](../../../.agents/principles/never-block-on-the-human.md), because
+   its cost is the one thing only the developer can weigh.
+   A no records each flow that needed it as not run, leaves the criterion it would have proven
+   unticked, and records the waiver as debt in the reply; the close still happens.
+3. An infrastructure failure, the script's `verdict=blocked` (a service down, a runner that cannot
+   start, a device missing), stops the run as blocked with the cause named from its `cause=` line
+   and is never worked around; only the developer can waive it, and the waiver is debt in the
+   reply, never green.
 
 4. A red flow is a defect in the landed work, not in the flow: it is fixed in the worktree as one
    more unit of the build loop, with origin `bugfix` and the flow's failure as the expected red,

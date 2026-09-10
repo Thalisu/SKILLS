@@ -284,8 +284,9 @@ has nothing behind it, and the step goes through the Ticket's criteria one by on
 with its flow or the reason it needs none. Done when each criterion the section names has a flow
 or a stated reason, or the skip is in the thread.
 
-**7. Gate.** The gate in [mechanics.md](mechanics.md), in the worktree, after the last edit. Done
-when the suite and the typecheck are green in output produced after the last edit.
+**7. Gate.** The gate in [mechanics.md](mechanics.md), in the worktree, after the last edit, run
+from `scripts/gate.sh` with its `command=` line in the thread. Done when the suite and the
+typecheck are green in output produced after the last edit.
 
 **8. Integration.** The integration in [mechanics.md](mechanics.md), with the branch the run
 started on as the target: the branch it built on rebased onto that branch, every conflicted hunk
@@ -302,7 +303,8 @@ blocked with the review's reason quoted and the worktree and its branch named, o
 `skip: do-code-review not listed` with the worktree and its branch named.
 
 **10. Verification.** The verification in [mechanics.md](mechanics.md): the affected flows from
-the main checkout with the command line printed first, the one question before a full suite or
+the main checkout through `scripts/flows.sh`, its command line printed first, the one question
+before a full suite or
 a remote run, and a red flow as one more unit of the loop, gated and handed to a second review
 call with the landed commit as its fixed point, which lands it again. Done when every affected
 flow is green or recorded as not run on the developer's no, or the step reads
