@@ -55,7 +55,8 @@
 # repository).
 # Exit codes: 0 the door holds · 1 a refusal, with refusal=<the one line to print> · 2 usage, not a
 # git repository, a refusal the resolver makes over the scratch, reported in this door's words, or a
-# Ticket's feature folder, spec.md, issues folder or the Review beside it that is a symlink.
+# Ticket's feature folder, spec.md, issues folder or the Review beside it that is a symlink, or the
+# file at review= or the folder it sits in that is one.
 # main_checkout, printed last, is the path of the main worktree, the first entry of git worktree
 # list, so a caller in a linked worktree reaches the developer's checkout, and the tree the run sits
 # in when that entry is a bare repository: see .agents/worktrees.md.
@@ -154,6 +155,9 @@ if [ "$located" != none ]; then
   fi
   refuse_link "${ticket%.md}.review.md"
 fi
+# The Review is written with a tool that follows a link, wherever review= puts it.
+refuse_link "$(dirname "$review")"
+refuse_link "$review"
 own=(":!$review")
 case "$ticket" in
   none) ;;

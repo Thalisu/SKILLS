@@ -448,6 +448,22 @@ absent "no Review path reached the caller through a symlinked .scratch" "review=
 expect "nothing was planted through the link" \
   bash -c 'test -z "$(ls "'"$tmp"'/escape-outside/reviews")"'
 rm .scratch
+# The default Review home is written with a tool that follows links, so its folder and the file
+# at review= are refused as a symlink too.
+mkdir .scratch "$tmp/escape-reviews"
+ln -s "$tmp/escape-reviews" .scratch/reviews
+run
+check "a symlinked reviews folder is refused" 2 "$rc" \
+  ".scratch/reviews is a symlink; nothing reviewed"
+absent "no Review path reached the caller through a symlinked reviews folder" "review="
+rm .scratch/reviews && mkdir .scratch/reviews && printf 'keep\n' > "$tmp/escape-review"
+ln -s "$tmp/escape-review" .scratch/reviews/export-notes.md
+run
+check "a symlinked Review file is refused" 2 "$rc" \
+  ".scratch/reviews/export-notes.md is a symlink; nothing reviewed"
+absent "no Review path reached the caller through a symlinked Review file" "review="
+expect "the Review file's symlink target is untouched" grep -qxF keep "$tmp/escape-review"
+rm -r .scratch
 mkdir .scratch "$tmp/escape-victim"
 ln -s "$tmp/escape-victim" .scratch/20240101-export-notes
 run
