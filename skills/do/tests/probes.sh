@@ -338,7 +338,8 @@ header_has "the gate script's header carries its full command line" "$gate" \
   "#   gate.sh [--infra <pattern>]... <key>=<command>..." 12
 
 echo "# flows.sh: the affected flows, from the main checkout"
-logof() { sed -n "s|^$1=[a-z]* exit=[0-9]* log=\([^ ]*\).*|\1|p" <<<"$out"; }
+# A flow key holds a slash, so this reading takes `|` as its sed delimiter where logof takes `/`.
+flowlog() { sed -n "s|^$1=[a-z]* exit=[0-9]* log=\([^ ]*\).*|\1|p" <<<"$out"; }
 flows="$skill/scripts/flows.sh"
 mkdir -p e2e
 printf 'exit 0\n' > e2e/login.flow
@@ -346,7 +347,7 @@ printf 'echo "ran in $(pwd -P)"; exit 1\n' > e2e/export.flow
 cd "$wt" || exit 1
 run "$flows" 'bash {}' e2e/login.flow e2e/export.flow
 check "each flow runs from the main checkout through the single-flow command, a red one with its block" 1 "$rc" \
-  "e2e/login.flow=green" "e2e/export.flow=red exit=1 log=$(logof e2e/export.flow)" "  ran in $top" "verdict=red"
+  "e2e/login.flow=green" "e2e/export.flow=red exit=1 log=$(flowlog e2e/export.flow)" "  ran in $top" "verdict=red"
 ordered "the flows print their command line first, then each flow in the order given" \
   "command=bash $(printf %q "$(cd "$skill/scripts" && pwd -P)/flows.sh") " e2e/login.flow= e2e/export.flow= verdict=
 run "$flows" 'bash {}' e2e/login.flow
@@ -356,7 +357,7 @@ run "$flows" bash e2e/login.flow
 check "a single-flow command with no {} takes the flow at its end" 0 "$rc" "e2e/login.flow=green" "verdict=green"
 run "$flows" 'no-such-flow-runner {}' e2e/login.flow
 check "a flow runner that cannot start is blocked, its cause named" 3 "$rc" \
-  "e2e/login.flow=blocked exit=127 log=$(logof e2e/login.flow) cause=runner cannot start" "verdict=blocked"
+  "e2e/login.flow=blocked exit=127 log=$(flowlog e2e/login.flow) cause=runner cannot start" "verdict=blocked"
 run "$flows"; check "no single-flow command is a usage error" 2 "$rc"
 run "$flows" 'bash {}'; check "no flow is a usage error" 2 "$rc"
 marker="$tmp/flow-injected"
