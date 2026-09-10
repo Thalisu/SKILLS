@@ -63,11 +63,12 @@ has "What it does conditions the closing push on something having landed" "$page
   "The run ends on the \`git push\` for you to type when something landed"
 lacks "What it does no longer promises a push to every run" "$page" \
   "The run ends on the \`git push\` for you to type."
-# The page is kept level with the skill and never ahead of it, per .agents/writing-docs.md. This
-# slice ships the mechanical path alone, so the page says what a conflict outside it does instead of
-# promising a question the run has no rule to ask.
-has "the page promises only the mechanical path the skill ships" "$page" \
-  "mechanically stops the run rather than being guessed at"
+# The page is kept level with the skill and never ahead of it, per .agents/writing-docs.md. The skill
+# now ships the contested path, so the page promises the question the run asks and the abort a run
+# nobody can answer takes, each a rule the reference carries and a script enforces.
+has "the page promises the contested path the skill ships" "$page" \
+  "one question per hunk, with both sides quoted" \
+  "the run aborts the rebase, leaves your branch as it"
 lacks "the page no longer promises the conflict it cannot decide is brought to the reader" "$page" \
   "is brought to you rather than guessed at"
 has "the Prerequisites intro claims only what the first message carries" "$page" \

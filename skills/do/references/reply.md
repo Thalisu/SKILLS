@@ -23,8 +23,9 @@ lists it; write it by this file alone otherwise.
 4. **Evidence.** The command lines and the relevant output line of each check, quoted: the unit
    suite or the covering suite, the flows, typecheck, and the door script's lines where a Playbook
    runs one. The integration's lines belong here too, where it did anything: what it rebased onto
-   and how many commits replayed, every hunk it resolved with its file and location, and every
-   replayed commit it skipped. A check that did not run appears under Skipped, never here.
+   and how many commits replayed, every hunk it resolved with its file and location, every contested
+   hunk the developer answered with its file, its location and the answer, and every replayed commit
+   it skipped. A check that did not run appears under Skipped, never here.
 5. **Principles.** Every principle that changed a decision, with the decision it changed. A name
    without a decision is not allowed. `none` is common.
 6. **Skipped.** Every skipped step as `<step>: skip: <reason>`, copied from the checklist, and

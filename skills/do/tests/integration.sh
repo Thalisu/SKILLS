@@ -311,6 +311,24 @@ has "the skill file's enumeration of the mechanics names the integration" "$repo
 has "the reply reference gives the resolved hunks and the skipped commits a home" "$refs/reply.md" \
   "every hunk it resolved with its file and location" \
   "every replayed commit it skipped"
+# An answered hunk is a decision the developer made mid-run, and the reply is where they read back
+# what they decided.
+has "the reply reference gives the answered hunks a home" "$refs/reply.md" \
+  "every contested hunk the developer answered with its file, its location and the answer"
+# The page promised that a contested conflict stops the run. It now reaches the reader as questions,
+# and the page says what each class costs them, as a list since it is a branch.
+has "the docs page says what each class of conflict costs the reader" "$repo/docs/do.md" \
+  "What a conflict costs you depends on its class" \
+  "one question per hunk, with both sides quoted and a recommendation" \
+  "which you answer in one word" \
+  "walking away leaves the rebase open"
+has "the docs page says a run nobody can answer never guesses" "$repo/docs/do.md" \
+  "A run nobody can answer" \
+  "the run aborts the rebase, leaves your branch as it was"
+has "the docs page gives the reader a tell for the contested path" "$repo/docs/do.md" \
+  "reaches you as one question per hunk"
+lacks "the docs page no longer promises that a contested conflict stops the run" "$repo/docs/do.md" \
+  "stops the run rather than being guessed at"
 
 # The eval case is the one seam a static test cannot reach: whether a real run resolves the stop
 # without asking. The suite checks the case is there and intact, never that it passed.

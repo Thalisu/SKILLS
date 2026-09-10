@@ -107,14 +107,22 @@ picks up at the first behaviour with no commit beside it instead of starting ove
 The gate runs after the last edit and never before it, because "it passed earlier" is stale. Then,
 if your branch moved while the run was building, the run rebases onto it and runs the gate again, so
 the diff the reviewers read is the diff that lands rather than one that was true a few commits ago.
-A conflict where both sides only added lines costs you nothing: a script decides that it is one, the
-run keeps both sides in order and says which hunks it resolved. A conflict it cannot class
-mechanically stops the run rather than being guessed at, with the rebase left open and the
-conflicting files named. Then the branch goes to the review, the affected flows run
-from your checkout, and the Ticket is closed with the command lines and their output quoted under
-`## Evidence`. A run that stops for any reason
-leaves the worktree and its branch in place and names both, so nothing is half landed and nothing is
-lost.
+What a conflict costs you depends on its class, which a script decides and the session never
+guesses:
+
+- A hunk where both sides only added lines: nothing. The run keeps both sides in order and says
+  which hunks it resolved.
+- Any other hunk, a _contested_ one: one question per hunk, with both sides quoted and a
+  recommendation, which you answer in one word, `target`, `incoming`, `both` or `stop`. Nothing is
+  written until you answer the last one, so walking away leaves the rebase open, and the question
+  already carries the command that undoes it.
+- A run nobody can answer, `claude -p` for one: the run aborts the rebase, leaves your branch as it
+  was and names the conflicting files, rather than guess an answer.
+
+Then the branch goes to the review, the affected flows run from your checkout, and the Ticket is
+closed with the command lines and their output quoted under `## Evidence`. A run that stops for any
+reason leaves the worktree and its branch in place and names both, so nothing is half landed and
+nothing is lost.
 
 ## Common questions
 
@@ -175,6 +183,9 @@ reason nothing landed, and the run stops on it with the worktree intact.
   typing `/do` on it again picks up where it stopped rather than starting over.
 - A run whose branch moved says so: the step names what it rebased onto and how many commits
   replayed, and the gate's output after it is quoted like any other.
+- A contested conflict reaches you as one question per hunk, the file, both sides and a
+  recommendation in front of you, and your files stay as git left them until you answer the last
+  one.
 - A `trivial` request costs you one message, start to finish.
 
 ## Where it fits
