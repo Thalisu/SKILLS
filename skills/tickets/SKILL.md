@@ -32,11 +32,15 @@ message and nothing written).
 
 `$ARGUMENTS` is the spec and it is mandatory: the chain is strict, `tickets` takes a spec and never
 the conversation. Empty: one message asking for it, nothing else. Resolve it as `spec` publishes
-it: a path is read as a file; a bare slug resolves to `spec.md` in the `.scratch/` folder named
-`<slug>` or ending in `-<slug>`, a feature folder being dated `<YYYYMMDD>-<slug>`, the newest when
-more than one matches, per [.agents/scratch.md](../../.agents/scratch.md), when the tracker file
-says local markdown or is absent; an issue number or URL is read through the tracker the file
-describes, body and comments. Nothing readable: one message asking for the path.
+it: a path is read as a file; a bare slug is read as the file the `spec=` line of
+`bash <skill-dir>/../../.agents/scripts/resolve-feature-folder.sh <slug>` names, the one
+executable form of the rule that says which feature folder a slug names, per
+[.agents/scratch.md](../../.agents/scratch.md), when the tracker file says local markdown or is
+absent, so `/journey <slug>` and `/tickets <slug>` open the same spec; an issue number or URL is
+read through the tracker the file describes, body and comments. Nothing readable: one message
+asking for the path. A resolver that answers `spec=none` or exits 2, and a resolver the session
+cannot find at that path, since a machine may have linked `skills/` without the rest of this repo,
+are nothing readable too: the run never falls back to a rule of its own.
 
 The tracker file says where tickets are published and which triage labels exist. Without it, the
 tickets are published as local markdown under `issues/` in the spec's directory, the thread says
