@@ -111,6 +111,15 @@ check "the refresh appends the line and keeps every other Project facts line ver
 check "the verification step requires no Project facts line missing" 0 "$rc" \
   'no `policy_facts_missing`'
 
+# The tool takes at most four questions per call, and the gate is one more on every install, so step 3
+# is read on its own for the cap and for where the questions past it go.
+rc=0; out="$(awk '/^## Step 3:/{f=1; next} /^## Step 4:/{exit} f' "$skill/SKILL.md")" || rc=$?
+check "step 3 names the four-question cap and the call the rest ride in" 0 "$rc" \
+  "at most four questions per call" "in the order listed above, four per call" "a second call right after it"
+# shellcheck disable=SC2016
+absent "step 3 no longer promises that one call holds every question" 0 "$rc" \
+  'A single `AskUserQuestion` call' "this one call"
+
 # The preserved-parts paragraph is read on its own: the steps spell the same rule, so a case over the
 # whole file would pass on a paragraph that still says the opposite.
 rc=0; out="$(grep -F 'Generated vs preserved.' "$skill/SKILL.md")" || rc=$?
