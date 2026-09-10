@@ -408,4 +408,42 @@ expect "the tracked files its name matches as a glob stay tracked and on disk" \
 expect "taking a side's version rewrites no other file its name matches as a glob" \
   cmp -s lib/c.ts "$tmp/c.edited"
 
+# A symlink both sides changed, left in the tree as the Target side's link to a file outside the
+# repository: a write into the path lands in that file. `l2`'s outside file carries marker lines, so
+# the classifier reads it as a line hunk and the answer goes through the hunk writer, not the
+# whole-file one.
+fresh links
+printf 'precious one\n' > "$tmp/outside1.txt"
+printf 'precious two\n<<<<<<< a\n>>>>>>> b\n' > "$tmp/outside2.txt"
+cp "$tmp/outside1.txt" "$tmp/outside1.before"; cp "$tmp/outside2.txt" "$tmp/outside2.before"
+ln -s t0 l1; ln -s t0 l2
+commit base
+g switch -q -c do/run
+ln -sfn t1 l1; ln -sfn t1 l2
+commit incoming
+g switch -q main
+ln -sfn "$tmp/outside1.txt" l1; ln -sfn "$tmp/outside2.txt" l2
+commit target
+g switch -q do/run
+g rebase main >/dev/null 2>&1
+target_links="$(git ls-files -s -- ':(literal)l1' ':(literal)l2' | awk '$3 == 2 { print $1, $2 }')"
+outside_same() {
+  cmp -s "$tmp/outside1.txt" "$tmp/outside1.before" && cmp -s "$tmp/outside2.txt" "$tmp/outside2.before"
+}
+run; first="$(sed -n 's/^id //p' <<<"$out")"
+check "a symlink conflict never offers both" 1 "$rc" \
+  "Conflict 1 of 2 · l1 · whole-file" "Answers: target · incoming · stop"
+run "$first:both"
+check "both on a symlink is refused like any answer not offered" 3 "$rc" \
+  "blocked both is none of the answers offered for $first"
+run "$first:target"; second="$(sed -n 's/^id //p' <<<"$out")"
+check "a symlink read as a line hunk never offers both either" 1 "$rc" \
+  "Conflict 2 of 2 · l2 · L2-L3" "Answers: target · incoming · stop"
+run "$first:target" "$second:target"
+check "target writes both links" 0 "$rc" "wrote l1" "wrote l2"
+expect "no answer writes into a file a link points at" outside_same
+expect "each link is staged as the Target side's link" \
+  test "$(git ls-files -s -- ':(literal)l1' ':(literal)l2' | awk '{ print $1, $2 }')" = "$target_links"
+expect "each link is still a link in the tree" test -L l1 -a -L l2
+
 if [ "$fails" = 0 ]; then echo "all ok"; else echo "$fails failing"; exit 1; fi

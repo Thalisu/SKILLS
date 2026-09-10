@@ -13,8 +13,9 @@
 #
 # A question opens with `Conflict <k> of <n> · <file> · <location> · <shape>`, the file in the form
 # conflict-class.sh prints it, then `id <id>`, the Target and the Incoming side each quoted under its
-# own heading, a recommendation with the shape as its reason, the answers the shape offers and the
-# command that undoes the rebase. A whole-file hunk quotes each side whole, as `(deleted)` where that
+# own heading, a recommendation with the shape as its reason, the answers the shape offers, never
+# `both` where a stage of the file is a symlink or a submodule, and the command that undoes the
+# rebase. A whole-file hunk quotes each side whole, as `(deleted)` where that
 # side deleted the file, or by its size and blob where the file is binary or too large.
 #
 # Once every contested hunk has an answer, each file carrying one is written once from its three
@@ -63,12 +64,14 @@ quote_path() { # $1 path
   if [ "$quoted" = "$raw" ]; then printf '%s' "$raw"; else printf '"%s"' "$quoted"; fi
 }
 
-declare -A raw_path
+declare -A raw_path mode_at
 unmerged=()
 while IFS= read -r -d '' record; do
   path="${record#*	}"
+  meta="${record%%	*}"
   [ -n "${raw_path["$(quote_path "$path")"]+set}" ] || unmerged+=("$(quote_path "$path")")
   raw_path["$(quote_path "$path")"]="$path"
+  mode_at["$(quote_path "$path")#${meta##* }"]="${meta%% *}"
 done < <(git ls-files -u -z)
 
 # The stop is left exactly as git left it: no answer of this call is written, the rebase stays open
@@ -182,9 +185,14 @@ recommend() { # $1 shape
   esac
 }
 
-# The answers a shape offers: keeping both sides is the mechanical rule, which has nothing to keep
-# when one side is a deletion or the file cannot be read line by line.
-offered() { # $1 shape
+# The answers a hunk offers: keeping both sides is the mechanical rule, which has nothing to keep
+# when one side is a deletion or the file cannot be read line by line, and no file to write where a
+# stage is a symlink or a submodule.
+offered() { # $1 shape, $2 the file as the report prints it
+  local s
+  for s in 1 2 3; do
+    case "${mode_at["$2#$s"]:-}" in 120000|160000) echo "target · incoming · stop"; return ;; esac
+  done
   case "$1" in
     delete-vs-edit|binary|too-large) echo "target · incoming · stop" ;;
     *)                               echo "target · incoming · both · stop" ;;
@@ -212,14 +220,25 @@ ask() { # $1 position of the hunk among the contested ones, from 0
   quote "$tmp/incoming"
   echo
   echo "Recommendation: $(recommend "${shapes[$i]}")."
-  echo "Answers: $(offered "${shapes[$i]}")"
+  echo "Answers: $(offered "${shapes[$i]}" "${files[$i]}")"
   echo "Undo: git rebase --abort"
 }
 
+# A written file reaches the tree through the index, never through a redirect into its path: git
+# leaves the Target side's version there, and where that is a symlink a redirect writes into the file
+# it points at, inside the repository or not. The mode is the one the two sides' modes merge to.
+stage_file() { # $1 path, $2 the file as the report prints it, $3 file holding its content
+  local m1="${mode_at["$2#1"]:-}" m2="${mode_at["$2#2"]:-}" m3="${mode_at["$2#3"]:-}" mode sha
+  mode="${m2:-$m3}"
+  [ -n "$m3" ] && [ "$m2" = "$m1" ] && mode="$m3"
+  sha="$(git hash-object -w --no-filters -- "$3")" || return 1
+  git update-index --cacheinfo "${mode:-100644},$sha,$1"
+  git checkout-index -f -u -- "$1"
+}
+
 # One file written from its three stages and the answer keyed to each of its hunks, the prefix taken
-# off again, into the path itself so the file keeps its mode. A side's last line reaches the merged
-# file with a newline git added before the marker, so the file ends the way the side its last line
-# came from ends.
+# off again, and staged. A side's last line reaches the merged file with a newline git added before
+# the marker, so the file ends the way the side its last line came from ends.
 #
 # A hunk that takes both is git's union of its own three sections, never its Target section followed
 # by its Incoming one: the --diff3 presentation keeps a line both sides added inside the hunk, where
@@ -255,8 +274,7 @@ resolve() { # $1 path, $2 the file as the report prints it
     head -c "$(( $(wc -c < "$tmp/out") - 1 ))" "$tmp/out" > "$tmp/trimmed"
     mv "$tmp/trimmed" "$tmp/out"
   fi
-  cat "$tmp/out" > "$path"
-  git add -- "$path"
+  stage_file "$path" "$field" "$tmp/out"
   echo "wrote $field"
 }
 
@@ -268,8 +286,8 @@ resolve_whole() { # $1 path, $2 the file as the report prints it, $3 answer
     incoming) stage=3 ;;
     both)
       for s in 1 2 3; do git cat-file blob ":$s:$path" > "$tmp/w$s" 2>/dev/null; done
-      git merge-file --union -p "$tmp/w2" "$tmp/w1" "$tmp/w3" > "$path"
-      git add -- "$path"
+      git merge-file --union -p "$tmp/w2" "$tmp/w1" "$tmp/w3" > "$tmp/union"
+      stage_file "$path" "$2" "$tmp/union"
       echo "wrote $2"
       return ;;
   esac
@@ -294,7 +312,7 @@ for arg in "$@"; do
   sections "${raw_path["${files[$i]}"]}" "${ordinals[$i]}" "${locations[$i]}" "${shapes[$i]}"
   [ "$id" = "$(hunk_id "${raw_path["${files[$i]}"]}" "${locations[$i]}")" ] || blocked "$id is no longer open"
   [ "$word" = stop ] && blocked stop
-  case " $(offered "${shapes[$i]}") " in
+  case " $(offered "${shapes[$i]}" "${files[$i]}") " in
     *" $word "*) ;;
     *) blocked "$word is none of the answers offered for $id" ;;
   esac
