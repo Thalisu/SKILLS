@@ -13,16 +13,18 @@ Ticket is, beside the Ticket file when a caller hands one over and in the scratc
 named after the branch when nobody does.
 
 Then it fixes what it found. When the Review carries an `Act on` Finding, the orchestrator forks
-the **Fixer** with that list, one commit per Finding under the project's Testing Policy, re-runs
-each Finding's own check and the project's suite itself, appends a `## Fix run` section to the same
-Review, and fast-forwards your branch onto the fixed one when the Review is **Green**. Nothing is
-pushed: the run ends with the `git push` command for you to type.
+one **Fixer** per Finding, one at a time, each turning its Finding into one commit under the
+project's Testing Policy. It re-runs each Finding's own check itself, then the **Diff tests** (the
+tests the diff touched) and the whole **Gate** (the suite, the typecheck, the lint and the format
+check), hands a red one to a **Gate fixer** that gets two attempts, appends a `## Fix run` section
+to the same Review, and fast-forwards your branch onto the fixed one when the Review is **Green**.
+Nothing is pushed: the run ends with the `git push` command for you to type.
 
 If you commit on your branch while the review runs, the fast-forward can no longer be made, so the
-landing rebases the reviewed branch onto yours first and runs the suite again before it lands. It
+landing rebases the reviewed branch onto yours first and runs the Gate again before it lands. It
 resolves a conflict alone only where both sides only added lines, a class a script decides and the
 review never judges. Any other conflict comes back to you as `not landed: target moved` with the
-files named, since the review is a fork with nobody to ask, and a suite red after the rebase lands
+files named, since the review is a fork with nobody to ask, and a Gate red after the rebase lands
 nothing either.
 
 Every Finding carries a **Rung**, how far the review climbed to back it, and nothing at Rung 1 or
@@ -35,7 +37,8 @@ them, so a path one of them changed would be named in the Review. The orchestrat
 the Review.
 
 A reviewer that does not return, or returns in a shape the Review cannot take, is forked once more
-with the same brief. When it fails a second time the Review is still written, from what the other
+with the same brief, alone: the other reviewer's return is kept as it came, never waited on or
+forked again. When it fails a second time the Review is still written, from what the other
 reviewer returned: its Axis lines read `not run` with the reason, and the safety fact names the
 Axis nobody answered. A partial review reaches you instead of nothing, and a pass never hides a
 reviewer that never ran.
@@ -57,7 +60,9 @@ push, in English or in Portuguese ("revisa esse diff").
 
 The session shows nothing while the run is in flight, as [prototype](prototype.md) does; the
 Review's text lands in the thread when it is written, with its location. The prose comes back in
-the language of the words you typed; with a bare ref it is English.
+the language of the words you typed; with a bare ref it is English. When `do` calls it, the
+Review's text stays in the file and only the outcome comes back: the Review's location, how many
+`Act on` Findings it found and fixed, the landing line, and any risk class or Axis nobody answered.
 
 ## Prerequisites
 
@@ -145,6 +150,14 @@ could land. The Fixer touches only `Act on`, which is Rung 3 or above with its c
 in a worktree, and lands by fast-forward with nothing pushed, so the blast radius of letting it
 write is bounded. `/do-code-review --no-fix` is there for when you want to read first.
 
+**`do` fixed something after the review. Why was it not reviewed again?**
+Because the review runs once per run. What `do` commits after it, the fix of a red flow or a rebase
+it finished on a resume, is held to the Gate and lands through a `fix` call on the same Review,
+which forks no reviewer
+([ADR 0033](adr/0033-the-review-runs-once-per-run-and-what-comes-after-it-lands-through-the-gate-alone.md)).
+A second full review cost more than any other step, and the only code it would read that the first
+did not is code the Gate already checks.
+
 **Why is security its own agent?**
 Because a security pass reads the same diff with a different question and a different knowledge
 base, and one agent holding both postures does neither well. The technical reviewer reads the diff
@@ -182,7 +195,8 @@ refusal instead of as a rule to remember, per
 - `git status` after a run agrees with that last line:
   the Review and nothing else when git does not ignore the file, nothing new when it does.
 - A Review that fixed anything carries a `## Fix run` section naming each Finding by number, the
-  suite, and either `landed at <sha>` or `not landed` with its reason and the branch left behind.
+  Diff tests, the Gate fixer and the Gate, and either `landed at <sha>` or `not landed` with its
+  reason and the branch left behind.
 - `git log` on your branch shows the Fixer's commits after a landing, and `git status` shows
   nothing to push that you did not push yourself.
 

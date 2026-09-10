@@ -182,14 +182,16 @@ Refuted by: a proof script that imports src/report.js and calls `summary()` retu
 Date: 2026-04-18 · at 8b1d0e4
 
 - 1: fixed 4c07ab2, verified (`node --test tests/notes.test.js`)
-- suite: `npm test`: 14 passing
+- diff tests: `node --test tests/notes.test.js`: 3 passing
+- gate fixer: not needed
+- gate: `npm test && npx tsc --noEmit`: green
 - landed at 4c07ab2
 ```
 
 ## Fix run
 
-The section a fix appends to the Review it read, one per fix, written after the Fixer returned and
-the orchestrator re-ran the checks itself. A `--no-fix` Review has none.
+The section a fix appends to the Review it read, one per fix, written after the last Fixer returned
+and the orchestrator re-ran the checks itself. A `--no-fix` Review has none.
 A second `fix` appends a second section and never rewrites the first; a plain run on the same
 branch overwrites the whole file, this section with it.
 
@@ -204,10 +206,14 @@ Then one line per `Act on` Finding, by its number, in the file's order, in one o
 | `- <n>: not fixed: <the reason>` | the Fixer could not turn it green and dropped its edits for it, or never reached it |
 
 A Review whose `Act on` is empty, or whose Findings an earlier fix already settled, forks no Fixer
-and creates no worktree: the section reads `nothing remained` on that line, then the suite and the
-landing.
+and creates no worktree: the section reads `nothing remained` on that line, then the Gate and the
+landing, with the Diff tests reading `skip: no Fixer commit`.
 
-Then the suite, `- suite: <the command>: <its result>`, and the landing on the last line:
+Then three lines, in this order. The Diff tests, `- diff tests: <the commands>: <their result>`, or
+`- diff tests: skip: <the reason>`. The Gate fixer, `- gate fixer: not needed` when the Diff tests
+and the Gate were green the first time, `- gate fixer: <sha>` or `- gate fixer: <sha>, <sha>` for
+the attempts that turned them green, or `- gate fixer: two attempts, still red`. The Gate,
+`- gate: <the command line>: <its verdict>`. Then the landing on the last line:
 
 - `- landed at <sha>`, the landing target fast-forwarded to the branch the fix committed on.
 - `- landed at <sha>, rebased onto <target> at <short sha>`, when the target moved while the review
@@ -219,12 +225,15 @@ Then the suite, `- suite: <the command>: <its result>`, and the landing on the l
   every reason the landing rules of
   [ADR 0013](../../docs/adr/0013-do-code-review-lands-a-green-review-by-fast-forward.md) give, as
   [ADR 0027](../../docs/adr/0027-the-rebase-runs-in-the-session-before-the-review-and-the-landing-retries-only-the-mechanical-class.md)
-  amends them: a Finding `not fixed` or `not verified`, an Axis `not run`, a red suite, a protected
+  amends them: a Finding `not fixed` or `not verified`, an Axis `not run`, a red Gate, a protected
   target, a failed fast-forward, and a moved target with a `contested` hunk or a key the union
   defines twice, whose reason reads
   `not landed: target moved, <target> at <short sha>, conflicting <file> <file>`, each file as the
-  conflict class script printed it. A suite red after the retry's rebase reads
-  `not landed: suite red after the rebase onto <target>, <the failing check>`.
+  conflict class script printed it. A Gate still red after the Gate fixer's two attempts reads
+  `not landed: gate red after the fixes, <the failing check>`; a Gate red with no Fixer commit
+  reads `not landed: gate red, <the failing check>`; a Gate that failed on its environment reads
+  `not landed: gate blocked, <its cause>`; a Gate red after the retry's rebase reads
+  `not landed: gate red after the rebase onto <target>, <the failing check>`.
 - `- nothing to land`, on a Green Review of the branch the developer is already on when the Fixer
   made no commit.
 

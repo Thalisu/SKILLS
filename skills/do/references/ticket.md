@@ -76,7 +76,10 @@ body carries per the build loop in [mechanics.md](mechanics.md), and the working
 `git status --short` in the worktree. The run reads all of it from one script,
 `bash <skill-dir>/scripts/resume-state.sh <the Ticket's path>`: `worktree=` and `branch=`, one
 `commit=` line per commit with the `behaviour=` line its body carries under it, one `uncommitted=`
-line per file, `review=`, the Review beside the Ticket or `none`, and a `verdict=` line, `build`
+line per file, `review=`, the Review beside the Ticket or `none`, with a `review_skipped=` line
+before it when a Review there does not count (`stale`, a Review of a commit this branch was never
+at, left by a run that started over; `axis-not-run`, a review that never finished), since only a
+finished review of this branch spares a second one, and a `verdict=` line, `build`
 (exit 0), `ask` (exit 1, uncommitted work), `integration` (exit 3, a rebase left open) or `land`
 (exit 4, the review already read the branch). The Ticket is not written: the claim stands.
 Exit 2 after the door's `resume` is a worktree on a detached HEAD with no rebase open:

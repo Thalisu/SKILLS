@@ -13,8 +13,11 @@
 # commit since the merge base, oldest first, each followed by behaviour=<short sha> <its
 # Behaviour: line, or none>; commits; one uncommitted=<the git status --short line> per entry,
 # paths quoted by git as core.quotePath does; one conflicted=<path> per file an open rebase left
-# unmerged; review, the Review beside the Ticket when one is there, else none; then verdict. It
-# only reads: the ask before a discard is the run's, never this script's.
+# unmerged; review_skipped=<stale | axis-not-run> <path> when a Review beside the Ticket does not
+# count; review, the Review beside the Ticket when it counts, else none; then verdict. A Review
+# counts when the commit its Commit: header names is one this branch has been at, read off the
+# branch's reflog, and none of its Axis lines reads not run. It only reads: the ask before a
+# discard is the run's, never this script's.
 #
 # verdict, first match wins: integration (a rebase is open) · ask (uncommitted work in the
 # worktree) · land (the review already read the branch, so the run goes to the Gate and the fix
@@ -83,7 +86,24 @@ if [ "$rebase" = open ]; then
   git -C "$wt" -c core.quotePath=true diff --name-only --diff-filter=U | sed 's/^/conflicted=/'
 fi
 review="${path%.md}.review.md"
-[ -f "$review" ] || review=none
+skipped=""
+if [ -f "$review" ]; then
+  reviewed="$(sed -n 's/^Commit: \([0-9a-f]\{4,\}\).*/\1/p' "$review" | head -1)"
+  # A rebase rewrites the commit the review read, so ancestry cannot tie a Review to this branch;
+  # the branch's reflog keeps every commit it has been at, rebased away or not, while a branch made
+  # again for a run that started over begins a fresh one. grep without -q reads to the end, so git
+  # never dies of SIGPIPE and pipefail never turns a match into a miss.
+  if [ -z "$reviewed" ] || ! git -C "$wt" log -g --format=%H "refs/heads/$branch" 2>/dev/null |
+    grep "^$reviewed" >/dev/null; then
+    skipped="stale $review"
+  elif grep -E '^- (Correctness|Spec|Standards|Principles|Blast radius|Security): not run' "$review" >/dev/null; then
+    skipped="axis-not-run $review"
+  fi
+  [ -z "$skipped" ] || review=none
+else
+  review=none
+fi
+[ -z "$skipped" ] || echo "review_skipped=$skipped"
 echo "review=$review"
 
 if [ "$rebase" = open ]; then echo "verdict=integration"; exit 3; fi

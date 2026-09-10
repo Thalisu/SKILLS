@@ -324,7 +324,10 @@ that moves is the run's. A protected developer branch does not stop this step, s
 a branch writes nothing to it and this step lands nothing. The landing stays the review's, and a
 protected target is refused there as it is refused today. The run records the commit its branch is
 on before the rebase starts: the command that undoes the rebase is not the same once the rebase has
-finished, and the recorded commit is what the later one names.
+finished, and the recorded commit is what the later one names. A run the review already read, a
+resume whose `review=` line names a Review, walks this step the same way and then lands through
+the fix call the review section names, never a second review, per
+[ADR 0033](../../../docs/adr/0033-the-review-runs-once-per-run-and-what-comes-after-it-lands-through-the-gate-alone.md).
 
 Every command of this step that can meet a conflict runs with git's conflict-resolution reuse off,
 the rebase itself as `git -c rerere.enabled=false -c rerere.autoupdate=false rebase <the developer's
@@ -453,7 +456,7 @@ answers written, since the script writes no answer until the stop's last one, an
 in the question. Once the rebase finishes, the step is ticked with the
 totals across every stop, the mechanical and the contested hunks each verdict line counted and the
 answers by word from each `resolved` line, and then the gate's command lines run again and the review
-is called, as after any replay.
+is called, as after any replay, or the fix call on a run the review already read.
 
 **A replayed commit that is empty after the resolution.** The developer's branch already carries
 that change, so the continue has nothing left to apply and git says so. The run skips it,
@@ -473,53 +476,59 @@ after it, or the run stopped as blocked with its reason, its undo command and it
 
 ## The review
 
-Run once per landing, after the gate, and never by hand: the review fixes and lands, the run reads.
-Call the Skill tool with `do-code-review` and three arguments: the spec source (the Ticket's
+Run once per run, after the gate, and never by hand: the review fixes and lands, the run reads,
+and whatever the run commits after it lands through the fix call below, never a second review, per
+[ADR 0033](../../../docs/adr/0033-the-review-runs-once-per-run-and-what-comes-after-it-lands-through-the-gate-alone.md).
+Call the Skill tool with `do-code-review` and four arguments: the spec source (the Ticket's
 location in `ticket`, so the Review lands beside it; the branch alone in `bug-fix` and
 `refactoring`), the fixed point of the branch under review (the commit the integration
-rebased onto, or the commit the worktree was created from when it replayed nothing, or the commit
-the review last landed), and the developer's branch as the landing target.
-Never `fix`, never `--no-fix`: the default run is the one every Playbook wants, per
+rebased onto, or the commit the worktree was created from when it replayed nothing), the
+developer's branch as the landing target, and the Gate, the `command=` line the gate printed, so
+the review holds its fixes to the checks the run held its own work to.
+Never `--no-fix`, and `fix` only on the path below: the default run is the one every Playbook
+wants, per
 [ADR 0015](../../../docs/adr/0015-the-default-review-run-fixes-and-lands-and-the-fixer-corrects-for-every-caller.md).
-The run waits on the call. While the review runs, its Fixer is the only writer in the worktree, and
-the run touches nothing.
+The run waits on the call. While the review runs, its Fixers, one at a time, are the only writer in
+the worktree, and the run touches nothing.
 
 A return that reads
 `the session is isolated in a worktree, so the door cannot run; nothing reviewed`
 reviewed nothing and wrote nothing: the door of the review is a script, and the guard of an
 isolated session refuses to run one. It is not a Finding and not a refusal of the diff. The run
 leaves the isolation per [worktrees.md](../../../.agents/worktrees.md) and calls the review again,
-once, with the same three arguments.
+once, with the same four arguments.
 
-What the review does with the call, so that the run does not: it writes the Review, forks its
-Fixer with the `Act on` list, which turns every `Act on` Finding into one commit on the reviewed
-branch under the project's Testing Policy, re-runs each Finding's check and the gate, and, when
+What the review does with the call, so that the run does not: it writes the Review, forks one
+Fixer per `Act on` Finding, one at a time, each turning its Finding into one commit on the
+reviewed branch under the project's Testing Policy, re-runs each Finding's check, the Diff tests
+and the Gate, with a Gate fixer on a red one, and, when
 the Review is Green, lands the reviewed branch on the developer's branch by fast-forward under the
 landing rules of [ADR 0013](../../../docs/adr/0013-do-code-review-lands-a-green-review-by-fast-forward.md)
 as [ADR 0027](../../../docs/adr/0027-the-rebase-runs-in-the-session-before-the-review-and-the-landing-retries-only-the-mechanical-class.md)
 amends them: a protected branch refused; a developer's branch that moved while the review ran
 retried once, by a rebase whose every hunk the review's copy of the conflict class calls
-`mechanical`, resolved by the union in base order, and the suite run again before the
+`mechanical`, resolved by the union in base order, and the Gate run again before the
 fast-forward; any `contested` hunk aborted and returned as `not landed: target moved` with the
 target and the conflicting files; a failed fast-forward left in place; nothing pushed. The review
 asks nobody anything on those paths, since it is a fork with nobody to ask: a hunk a person must
 judge comes back to this run in its return.
 
-The run reads the outcome off the return and never opens the Review file. The thread shows the
-return, one line per part:
+The run reads the outcome off the return and never opens the Review file: the return carries no
+Review text, only the outcome, so the Review's Findings never reach the session's window. The
+thread shows the return, one line per part:
 
-- the Review's location;
+- the Review's location, its `Review:` line;
+- the `Act on:` line, how many Findings the review found and how many its Fixers fixed;
 - the landing line, `landed at <commit>`, or `not landed` with the review's reason;
-- the Fixer's commits, one per `Act on` Finding, by the Finding's number;
-- every `Consider` Finding, the ones carrying a risk class flagged to the developer, since a
+- every `Risk:` line, a `Consider` Finding carrying a risk class, flagged to the developer, since a
   risk class is never dismissed silently;
-- an Axis marked `not run`, named to the developer with its reason.
+- every `Axis not run:` line, named to the developer with its reason.
 
-The run makes no commit for a Finding and fixes none by hand: a Finding the Fixer left standing
+The run makes no commit for a Finding and fixes none by hand: a Finding a Fixer left standing
 is the review's reason for not landing, and the run stops on it. Landed, and the run goes on to
 the verification. Not landed, for any reason the review gives (a Finding `not fixed` or
-`not verified`, an Axis `not run`, a red gate after the fix, `not landed: target moved`, a red
-suite after the retry's rebase, a failed fast-forward, a protected branch), and the run stops as
+`not verified`, an Axis `not run`, a red gate after the fixes, `not landed: target moved`, a red
+gate after the retry's rebase, a failed fast-forward, a protected branch), and the run stops as
 blocked: the review's reason quoted, the
 worktree and its branch left in place and named in the reply, the Ticket left `claimed`, so that
 nothing lands half fixed. On a protected branch the reply adds the two commands that land the
@@ -530,6 +539,15 @@ and only the target was wrong:
 git switch <a branch that takes commits>
 git merge --ff-only do/<slug>
 ```
+
+**What the run commits after the review.** The review read the branch once, and nothing the run
+commits after it is read by a reviewer again: the fix of a red flow, or a rebase a resumed run
+finished after the review. Such a branch is gated, then handed to `do-code-review` with
+`fix` with the Review's location, then the developer's branch as the landing target and the
+`command=` line the gate printed. No reviewer is forked: a Finding the first call
+left `not fixed` goes to a Fixer again, and a list with nothing left forks no Fixer,
+and the call runs the Gate and the landing alone. Its return reads like the first one's, and a
+return that reads not landed stops the run the way the first one does.
 
 When the session does not list `do-code-review`, the step reads
 `skip: do-code-review not listed`: nothing lands, the worktree and its branch stay in place and
@@ -568,9 +586,9 @@ worktree stays, since it is where a red flow is fixed.
 
 4. A red flow is a defect in the landed work, not in the flow: it is fixed in the worktree as one
    more unit of the build loop, with origin `bugfix` and the flow's failure as the expected red,
-   the gate run again, and the branch handed to a second review call with the landed commit as
-   its fixed point, which lands it again. A second call that returns not landed stops the run
-   the way the first one does.
+   the gate run again, and the branch handed to the fix call on the same Review, as the review
+   section says for what the run commits after it, which runs the Gate and lands it again with no
+   second review. A fix call that returns not landed stops the run the way the first call does.
 Done when every affected flow is green in output produced after the last landing, or recorded as
 not run on the developer's no, with every command line in the thread.
 

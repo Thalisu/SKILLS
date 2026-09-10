@@ -1,4 +1,4 @@
-name: red-flow-second-review
+name: red-flow-lands-through-fix
 tags: [playbook, ticket, run, review]
 runs: 1
 max_turns: 260
@@ -9,8 +9,8 @@ context:
     #!/usr/bin/env bash
     # The affected flow fails after the first landing: the stand-in do-code-review's planted
     # Fixer commit makes the CLI exit non-zero on every run, the review lands it, and the flow
-    # run from the main checkout goes red. The fix is one unit in the worktree, the review is
-    # called a second time with the landed commit as its fixed point, and the landing follows.
+    # run from the main checkout goes red. The fix is one unit in the worktree, gated, and handed
+    # to the fix call on the same Review, which lands it with no second review (ADR 0033).
     set -e
     mkdir -p src bin e2e/helpers docs/agents .scratch/archive-notes/issues .claude/agents .claude/skills/test-author
     cat > package.json <<'JSON'
@@ -719,27 +719,56 @@ context:
     cat > .claude/skills/do-code-review/review.sh <<'REVIEW_SH_EOF'
     #!/usr/bin/env bash
     # Stand-in for do-code-review in this fixture: the real skill's call and return, with the Review
-    # and the Fixer's work planted by the case (the plant file: green, act-on, not-fixed or red-flow;
-    # a second call is always green, since it reviews what the run fixed). Writes the Review beside
-    # the Ticket, plays the planted Fixer on the reviewed branch, re-runs the unit suite, lands by
-    # fast-forward when the Review is Green, and prints the return the caller reads. Arguments:
-    # <ticket> <fixed point> <landing target>; fix and --no-fix are refused. Every call and every
-    # landing is logged under the repository's .git for the graders.
+    # and the Fixer's work planted by the case (the plant file: green, act-on, not-fixed or red-flow).
+    # A review call, <ticket> <fixed point> <landing target> [the gate's command= line], writes the
+    # Review beside the Ticket, plays the planted Fixer on the reviewed branch, re-runs the unit
+    # suite, lands by fast-forward when the Review is Green, and prints the outcome the caller reads.
+    # A fix call, fix <the Review> <landing target> [the gate's command= line], is do's landing of
+    # what it committed after the one review (ADR 0033): no reviewer and no Fixer, the suite and the
+    # landing alone, appended to the same Review. --no-fix is refused. Every call and every landing
+    # is logged under the repository's .git for the graders.
     set -euo pipefail
     here="$(cd "$(dirname "$0")" && pwd)"
     common="$(cd "$(git rev-parse --git-common-dir)" && pwd)"
     calls="$common/do-code-review-calls.log"
     landings="$common/do-code-review-landings.log"
     for a in "$@"; do
-      case "$a" in fix|--no-fix) printf 'refused: %s\n' "$*" >> "$calls"; echo "stand-in: refused the argument $a, which do never passes"; exit 2;; esac
+      case "$a" in --no-fix) printf 'refused: %s\n' "$*" >> "$calls"; echo "stand-in: refused the argument $a, which do never passes"; exit 2;; esac
     done
     printf '%s\n' "$*" >> "$calls"
+    main="$(git worktree list --porcelain | sed -n '1s/^worktree //p')"
+    branch="$(git branch --show-current)"
+    if [ "${1:-}" = fix ]; then
+      review="${2:?the Review location}"
+      target="${3:?the landing target}"
+      case "$review" in /*) ;; *) review="$main/$review" ;; esac
+      [ -f "$review" ] || { echo "$2 not found; nothing fixed"; exit 1; }
+      [ -z "$(git status --porcelain)" ] || { echo "working tree has uncommitted changes; commit or stash before fix"; exit 1; }
+      if [ -d e2e ]; then suite="node --test src/"; else suite="node --test"; fi
+      if $suite >/dev/null 2>&1; then
+        gate=green
+        if git -C "$main" merge --ff-only -q "$branch" >/dev/null 2>&1; then
+          landing="landed at $(git rev-parse --short "$branch")"
+          printf '%s\n' "$landing" >> "$landings"
+        else
+          landing="not landed: the fast-forward of $target to $branch failed; the branch and its worktree stay in place"
+        fi
+      else
+        gate=red
+        landing="not landed: gate red, \`$suite\`; the branch $branch and its worktree stay in place"
+      fi
+      printf '\n## Fix run\n\nDate: %s · at %s\n\n- nothing remained\n- diff tests: skip: no Fixer commit\n- gate fixer: not needed\n- gate: `%s`: %s\n- %s\n' \
+        "$(date +%F)" "$(git rev-parse --short HEAD)" "$suite" "$gate" "$landing" >> "$review"
+      echo "Review: $review"
+      echo "Act on: nothing remained"
+      echo "$landing"
+      echo "git push origin $target"
+      exit 0
+    fi
     call="$(grep -vc '^refused: ' "$calls")"
     ticket="${1:?the Ticket location}"
     fixed="${2:?the fixed point}"
     target="${3:?the landing target}"
-    main="$(git worktree list --porcelain | sed -n '1s/^worktree //p')"
-    branch="$(git branch --show-current)"
     git rev-parse --verify -q "$fixed^{commit}" >/dev/null || { echo "fixed point $fixed does not resolve; nothing reviewed"; exit 1; }
     [ -n "$(git diff --stat "$fixed" HEAD)" ] || { echo "empty diff since $fixed; nothing reviewed"; exit 1; }
     plant="$(cat "$here/plant")"
@@ -880,10 +909,13 @@ context:
     - $landing
     EOF
 
+    fixed_n=0
+    case "$fix_run" in *": fixed "*) fixed_n=1 ;; esac
+    if [ "$act_on" = none ]; then found=0; else found=1; fi
     echo "Review: $review"
-    cat "$review"
-    echo
-    echo "Landing: $landing"
+    echo "Act on: $found found, $fixed_n fixed"
+    echo "$landing"
+    echo "git push origin $target"
     REVIEW_SH_EOF
     chmod +x .claude/skills/do-code-review/review.sh
     printf '.scratch/\n' > .gitignore

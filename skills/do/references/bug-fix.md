@@ -52,6 +52,16 @@ started from (`git log <base>..do/<slug>` with `<base>` their merge base), each 
   the reproduction commit alone resumes at step 6, the reproduction and its fix resume at step 7.
   The reproduction is never committed twice, and from the step it resumes at the run is a first
   run.
+- A Review of the branch, `.scratch/reviews/<the branch, each slash a dash>.md` in the main
+  checkout, evidences the review step only when it read this branch and finished: the commit its
+  `Commit:` header names is one the branch has been at,
+  `git log -g --format=%H refs/heads/do/<slug>`, which a rebase does not erase, and none of its
+  Axis lines reads `not run`. Any other Review there is an earlier branch's of the same name, or a
+  review that never finished, and the review runs as on a first run. A Review that counts means
+  the review already read the branch, and it runs once per run, per
+  [ADR 0033](../../../docs/adr/0033-the-review-runs-once-per-run-and-what-comes-after-it-lands-through-the-gate-alone.md),
+  so the run gates, integrates and lands through the fix call on that Review, never a second
+  review.
 - Uncommitted changes in the worktree are named in the first message, one line per file from
   `git status --short`, and the run asks before discarding them, since the discard is the one
   irreversible act on this path. A yes discards them, `git restore --staged --worktree .` then
@@ -257,8 +267,8 @@ the worktree and its branch named.
 
 **11. Verification.** The verification in [mechanics.md](mechanics.md): the affected flows from the
 main checkout with the command line printed first, the one question before a full suite or a remote
-run, and a red flow as one more unit of the loop, gated and handed to a second review call with the
-landed commit as its fixed point, which lands it again. A defect with no user-observable surface
+run, and a red flow as one more unit of the loop, gated and handed to the fix call on the same
+Review, which lands it again with no second review. A defect with no user-observable surface
 has no affected flow and the step reads `skip: no affected flow` with that reason. Done when every
 affected flow is green or recorded as not run on the developer's no, or the step reads
 `skip: nothing landed`.

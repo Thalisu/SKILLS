@@ -135,7 +135,8 @@ _Avoid_: fixer (a **Fixer** owns one **Finding**), retry agent
 
 **Green**:
 The state of a **Review** that lets `do-code-review` land: no `Act on` **Finding** left standing
-(none, or every one `fixed` and `verified` by the **Fixer**) and every **Axis** run.
+(none, or every one `fixed` and `verified` by its **Fixer**), every **Axis** run and the **Gate**
+green.
 _Avoid_: clean, passed, no findings (`Consider`, `Noted` and `Cleared` never block)
 
 **Gate**:

@@ -189,10 +189,27 @@ git -C "$wt" checkout -q -- notes.txt; rm "$wt/a b.txt"
 # ADR 0033: the review runs once per run, so a branch whose Review already sits beside the Ticket
 # resumes at the landing through fix, never at a second review.
 echo "# resume-state.sh: a branch the review already read"
-printf 'a review\n' > "$issues/04-claimed.review.md"
+review_file() { # $1 the Review's Commit: sha, $2 its Security Axis line
+  printf '# Review: 04\n\nCommit: %s\n\n## Axes\n\n- Correctness: 0 findings\n- Security: %s\n' "$1" "$2" \
+    > "$issues/04-claimed.review.md"
+}
+review_file "$second" "0 findings"
 run "$resume" "$issues/04-claimed.md"
-check "a Review beside the Ticket sends the resume to the landing, never to a second review" 4 "$rc" \
+check "a Review of a commit this branch has been at, every Axis run, sends the resume to the landing" 4 "$rc" \
   "review=$top/$issues/04-claimed.review.md" "commits=2" "verdict=land"
+absent "a Review that counts is never reported skipped" "review_skipped="
+
+echo "# resume-state.sh: a Review that does not count"
+stale="$(g commit-tree -m "an earlier branch's commit" "HEAD^{tree}")"
+review_file "$(git rev-parse --short "$stale")" "0 findings"
+run "$resume" "$issues/04-claimed.md"
+check "a Review of a commit this branch was never at is an earlier run's, and the review runs" 0 "$rc" \
+  "review_skipped=stale $top/$issues/04-claimed.review.md" "review=none" "verdict=build"
+review_file "$second" "not run, the reviewer did not return"
+run "$resume" "$issues/04-claimed.md"
+check "a Review with an Axis that did not run is an unfinished review, and the review runs" 0 "$rc" \
+  "review_skipped=axis-not-run $top/$issues/04-claimed.review.md" "review=none" "verdict=build"
+review_file "$second" "0 findings"
 
 echo "# resume-state.sh: a rebase the integration left open"
 printf 'one\nmain side\n' > notes.txt; g commit -q -am "main moves"
@@ -257,6 +274,23 @@ has "the first message states the door script's facts and marks no step skipped"
 
 has "a resume the review already read goes to the Gate and the fix call, never a second review" "$ticket_md" \
   "On \`verdict=land\`" "never a second review"
+
+echo "# the review runs once per run (ADR 0033)"
+mech="$skill/references/mechanics.md"
+has "the review runs once per run, and what comes after it lands through the fix call" "$mech" \
+  "Run once per run" "never a second review" "\`fix\` with the Review's location" \
+  "the \`command=\` line the gate printed"
+has "a red flow lands through the fix call on the same Review" "$mech" \
+  "handed to the fix call on the same Review"
+has "a resume says why a Review beside the Ticket does not count" "$ticket_md" "review_skipped="
+has "a bug-fix resume counts only a Review of this branch whose every Axis ran" "$skill/references/bug-fix.md" \
+  "git log -g --format=%H refs/heads/do/<slug>" "\`not run\`"
+has "a Finding the first call left not fixed goes to a Fixer again on the fix call" "$mech" \
+  "left \`not fixed\` goes to a Fixer again"
+for f in "$mech" "$ticket_md" "$skill/references/bug-fix.md" "$skill/references/refactoring.md"; do
+  if grep -qF -- "second review call" "$f"; then echo "FAIL  no Playbook hands a red flow to a second review call ($f)"; fails=$((fails + 1))
+  else echo "ok    no second review call in ${f##*/}"; fi
+done
 
 has "the resume says what the run does when the script exits 2 after the door's resume" "$ticket_md" \
   "Exit 2 after the door's \`resume\`" \

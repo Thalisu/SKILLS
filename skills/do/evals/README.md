@@ -42,7 +42,7 @@ typecheck and `node --test` as the suite, so both run offline with node alone.
 | `absent-review` | a session without `do-code-review` (the fixture installs no stand-in): the gate completed, the review step `skip: do-code-review not listed`, nothing landed, the worktree, its branch and the review named as the next step, the Ticket `claimed` and uncommitted |
 | `review-act-on-fixed-and-landed` | a Review with one `Act on` Finding, planted in the stand-in: the review's Fixer turns it into one commit on the worktree branch, the run makes no commit for it, the review is called once, and the landing follows it |
 | `review-not-landed-blocks` | a return that says not landed, the Finding `not fixed`, planted in the stand-in: the run stops as blocked with the review's reason quoted, the worktree and its branch named, nothing landed, the Ticket left `claimed` |
-| `red-flow-second-review` | the affected flow red after the first landing, since the stand-in's planted Fixer commit makes the CLI exit non-zero: the fix as one unit in the worktree, the review called a second time with the landed commit as its fixed point, and the landing after it |
+| `red-flow-lands-through-fix` | the affected flow red after the first landing, since the stand-in's planted Fixer commit makes the CLI exit non-zero: the fix as one unit in the worktree, gated, then handed to the fix call on the same Review with `main` as the landing target, which lands it with no second review |
 | `blocked-ticket-refused` | Ticket 02 blocked by Ticket 01 still `ready-for-agent`: refused before the claim in one message naming the blocker and its status, the blocker read for its status line and never for its body, nothing written |
 | `resolved-ticket-stops` | a Ticket already `resolved`: one line saying so, nothing written |
 | `claimed-no-worktree-starts-over` | a `claimed` Ticket whose worktree is gone: one line saying the run starts over, the claim standing, a new worktree and the build |
@@ -66,7 +66,7 @@ runs, an uncommitted line in `README.md` as the developer's work in progress; th
 the `do/archive-a-note` worktree with two commits on it, one per behaviour, and one of them an
 uncommitted edit in that worktree. Most cases put the policy on a consumer surface with no
 consumer, so the verification has no flow to run; `ticket-run-with-policy`,
-`red-flow-second-review` and `integration-mechanical-conflict` put it on a native surface, with a
+`red-flow-lands-through-fix` and `integration-mechanical-conflict` put it on a native surface, with a
 CLI under `bin/`, the `e2e-test-author` agent and a flow under `e2e/` that drives the CLI, so the
 affected flow runs from the main checkout. `integration-mechanical-conflict` adds one thing to that
 fixture, a `post-commit` hook under its `.git/`: the first commit on a `do/` branch fires it once,
@@ -104,6 +104,12 @@ case planted (`plant` reads `green`, `act-on`, `not-fixed` or `red-flow`; a seco
 green), re-runs the unit suite, fast-forwards the landing target when the Review is Green under
 the protected-branch rule, and logs every call and every landing under the fixture's `.git/` for
 the graders. `absent-review` installs none. The stand-in goes when the real skill takes the call.
+`red-flow-lands-through-fix` carries the one stand-in that takes `fix`: `do`'s landing of what it
+committed after its one review, per
+[ADR 0033](../../../docs/adr/0033-the-review-runs-once-per-run-and-what-comes-after-it-lands-through-the-gate-alone.md),
+which re-runs the unit suite and fast-forwards with no reviewer and no Fixer, appends its
+`## Fix run` to the same Review, and, like its review call, prints the outcome alone rather than
+the Review's text, as the real skill does for a caller that hands the Gate.
 
 ## Running
 

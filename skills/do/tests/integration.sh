@@ -310,7 +310,7 @@ has "the review's landing rule rebases over the mechanical class only and asks n
   "retried once, by a rebase whose every hunk the review's copy of the conflict class calls \`mechanical\`" \
   "since it is a fork with nobody to ask"
 has "the run names target moved among the reasons it stops as blocked" "$mech" \
-  "\`not landed: target moved\`, a red suite after the retry's rebase"
+  "\`not landed: target moved\`, a red gate after the retry's rebase"
 lacks "no line says the review aborts every rebase conflict whatever its class" "$mech" \
   "a rebase conflict aborted with the conflicting files named"
 

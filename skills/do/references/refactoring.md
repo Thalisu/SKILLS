@@ -357,8 +357,8 @@ The review in [mechanics.md](mechanics.md), called once, with the branch alone a
 since there is no Ticket outside the chain, the commit the integration rebased onto as the fixed
 point, or the commit the worktree was created from when the rebase replayed nothing, and the branch
 the run started on as the landing target. The review writes the Review, fixes
-its `Act on` Findings through its Fixer and lands the branch by fast-forward when the Review is
-Green. The run fixes no Finding and lands nothing itself.
+its `Act on` Findings through its Fixers, one per Finding, and lands the branch by fast-forward
+when the Review is Green. The run fixes no Finding and lands nothing itself.
 
 The thread shows the return, one line per part, as the shared section says. The four returns are the
 ones the `ticket` Playbook gets:
@@ -384,8 +384,9 @@ review's reason quoted, or the step reads its skip with the worktree and its bra
 
 The verification in [mechanics.md](mechanics.md), from the main checkout after the landing: the
 affected flows with the command line printed first, the one question before a full suite or a remote
-run, and a red flow taken as one more step of the reshape, gated and handed to a second review call
-with the landed commit as its fixed point. A reshape whose diff changed no screen, route or message
+run, and a red flow taken as one more step of the reshape, gated and handed to the fix call on the
+same Review, which lands it again with no second review. A reshape whose diff changed no screen,
+route or message
 has no affected flow, and the step reads `skip: no affected flow` with that reason. Done when every
 affected flow is green or recorded as not run on the developer's no, or the step reads
 `skip: nothing landed`.

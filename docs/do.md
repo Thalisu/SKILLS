@@ -125,8 +125,11 @@ guesses:
 - A run nobody can answer, `claude -p` for one: the run aborts the rebase, leaves your branch as it
   was and names the conflicting files, rather than guess an answer.
 
-Then the branch goes to the review, the affected flows run from your checkout through a script of
-their own whose command line comes first, and the Ticket is closed with the command lines and their
+Then the branch goes to the review, once per run: the run hands it the gate's command line too, so
+the review's fixes are held to the same checks, and only the outcome comes back, never the Review's
+text. The affected flows run from your checkout through a script of their own whose command line
+comes first, and a red one is fixed in the worktree, gated and landed through a `fix` call on the
+same Review, never a second review. The Ticket is closed with the command lines and their
 output quoted under `## Evidence`. A run that stops for any
 reason leaves the worktree and its branch in place and names both, so nothing is half landed and
 nothing is lost.
@@ -164,14 +167,24 @@ test written by whoever wrote the code tends to assert what the code does rather
 should do.
 
 **Why does the reviewer fix and land, and not `do`?**
-Because a run that could fix its own Findings would be grading its own diff. `do` hands over three
-things, the spec source, the fixed point and the landing target, and then stops. The review writes
-the Review, forks a Fixer that turns each `Act on` Finding into its own commit, re-runs each
-Finding's check and the whole gate, and fast-forwards your branch only when the Review is Green
+Because a run that could fix its own Findings would be grading its own diff. `do` hands over four
+things, the spec source, the fixed point, the landing target and the gate's command line, and then
+stops. The review writes the Review, forks one Fixer per `Act on` Finding, one at a time, each
+turning its Finding into its own commit, re-runs each Finding's check, the tests the diff touched
+and the whole gate, with a Gate fixer on a red one, and fast-forwards your branch only when the
+Review is Green
 ([ADR 0013](adr/0013-do-code-review-lands-a-green-review-by-fast-forward.md),
 [ADR 0015](adr/0015-the-default-review-run-fixes-and-lands-and-the-fixer-corrects-for-every-caller.md)).
 That is also why `do` never patches a Finding by hand: a Finding the Fixer left standing is the
 reason nothing landed, and the run stops on it with the worktree intact.
+
+**Why is the fix of a red flow not reviewed again?**
+Because the review runs once per run
+([ADR 0033](adr/0033-the-review-runs-once-per-run-and-what-comes-after-it-lands-through-the-gate-alone.md)).
+Whatever the run commits after it, the fix of a red flow or a rebase it finished when you ran `/do`
+again, is held to the gate and lands through a `fix` call on the same Review, which forks no
+reviewer. A second full review cost the session more than any other step, and what it would have
+read that the first did not is code the gate already checks.
 
 **What do I do with a Digest a stopped run left behind?**
 Delete it before your next `/do` on that Ticket. A run that stopped inside the reader's window,
@@ -192,6 +205,8 @@ a stop named, and the next run on that Ticket forks the reader fresh.
   commit or drop. Either way, the reply's `Left uncommitted` section is where they are named.
 - The branch history reads one commit per behaviour, each body carrying a `Behaviour:` line, with
   the review's fix commits on top and nothing pushed.
+- The review ran once. A run that fixed a red flow, or that you resumed after the review, shows one
+  review call and a `fix` call after it, never two reviews.
 - Every number and output line in the reply has a command line beside it, and that command ran
   after the run's last edit.
 - A run that stopped names its worktree and its branch, and the Ticket still reads `claimed`, so

@@ -64,15 +64,19 @@ has "the safety line takes both facts when two reviewers returned" "$format" \
   "the one line carries both facts" "neither is rewritten"
 has "the two homes of the file are stated" "$format" ".scratch/reviews/" ".review" "Ticket: none"
 has "the format carries the Fix run section and its four states" "$format" \
-  "## Fix run" "Date:" "fixed" "verified" "not verified" "stale" "not fixed" "suite:" "landed at" "not landed"
+  "## Fix run" "Date:" "fixed" "verified" "not verified" "stale" "not fixed" "diff tests:" "gate fixer:" \
+  "gate:" "landed at" "not landed"
 # ADR 0027: a landing whose target moved retries once by the mechanical rule, so the landing line
 # names the rebase and each hunk it resolved.
 has "the landing line names a rebase onto a moved target and each hunk it resolved" "$format" \
   "- landed at <sha>, rebased onto <target> at <short sha>" "one line per hunk it resolved"
 has "a hunk nobody may judge alone over a moved target has its own not-landed reason" "$format" \
   "not landed: target moved, <target> at <short sha>, conflicting <file>" "a moved target with a \`contested\` hunk"
-has "a red suite after the retry's rebase has its own not-landed reason" "$format" \
-  "not landed: suite red after the rebase onto <target>, <the failing check>"
+has "a red Gate after the retry's rebase has its own not-landed reason" "$format" \
+  "not landed: gate red after the rebase onto <target>, <the failing check>"
+has "a red that outlives the Gate fixer has its own not-landed reason" "$format" \
+  "not landed: gate red after the fixes, <the failing check>"
+lacks "no line of the format names the suite where the Gate runs" "$format" "- suite:" "suite red after"
 has "the format says a second fix appends and a plain run overwrites" "$format" \
   "a second \`fix\` appends a second section" "overwrites"
 has "the index carries the format's row" "$repo/.agents/formats/README.md" \
@@ -125,7 +129,9 @@ has "the orchestrator describes the run" "$agent_md" \
   "no spec" "Inferred from the diff:" "once more" "one write" "unslop" "not run" ", inferred" "Ticket: none"
 has "the orchestrator reads the format through the shell and waits for the return file" "$agent_md" \
   'readlink -f ~/.claude/skills/do-code-review' "Return file:" "do not end your turn" "general-purpose"
-has "the wait's shell window closes inside the Bash tool's own maximum" "$agent_md" "timeout 240" "600000"
+has "the wait's window closes inside the Bash tool's own maximum" "$agent_md" "returns.sh 240" "600000"
+has "the wait names what came back, and only a missing reviewer is forked again" "$agent_md" \
+  "scripts/returns.sh" "\`missing=\`" "only the reviewer a \`missing=\` line names"
 # A reviewer that never returns is declared failed by the wait running out, so the wait for the
 # first fork plus the wait for the retry have to close inside the budget the retry case gives the
 # whole run, or the case is cut off before the orchestrator can declare the first fork failed.
@@ -150,6 +156,8 @@ has "a handed Ticket names the Review and a found one does not" "$agent_md" \
   "Ticket: <the location>" "Ticket: none" "spec source and nothing more"
 has "the arguments take the landing target do sends third" "$agent_md" \
   "a landing target" "never reaches the door"
+has "the arguments take the Gate do sends fourth" "$agent_md" \
+  "the \`command=\` line of \`do\`'s gate script" "sends it fourth"
 # ADR 0015: the default run fixes and lands, so the orchestrator reads the fix reference on demand
 # and no line survives that says the Fixer or the landing ships later.
 has "the orchestrator takes fix with a Review and links the reference" "$agent_md" \
@@ -165,6 +173,13 @@ has "the Act on gate holds the Fixer and never the landing" "$agent_md" \
   "read the same file at \`## The landing\`"
 has "the return carries the landing line whether a fix ran or not" "$agent_md" \
   "Then the landing, whether a fix ran or not"
+# ADR 0033: a caller that hands a landing target reads the outcome off the return, never the Review,
+# and a risk class still reaches it, since a Consider nobody fixes is never set aside in silence.
+has "only a caller that hands the Gate, which only do sends, gets the outcome alone" "$agent_md" \
+  "A caller that handed the Gate, which only \`do\` sends"
+has "a caller that hands a landing target gets the outcome, never the Review's text" "$agent_md" \
+  "never the Review's text" "Act on: <n> found, <n> fixed" "Risk: <n> <class> at <location>" \
+  "Axis not run: <Axis>, <the reason>"
 has "the landing retries a moved target once and the return names the rebase" "$agent_md" \
   "retries once over a target that moved" "rebased onto <target> at <short sha>"
 has "the return names a moved target it could not land over, with the files" "$agent_md" \
@@ -248,6 +263,17 @@ has "the fix reference carries the Fixer brief and its four rules" "$fix_md" \
   "Touch nothing else" "Leave what no longer matches" "Report each commit"
 has "the fix reference names the Fixer's two failure branches" "$fix_md" \
   "not fixed: test author unreachable" "drops its own edits"
+# One Fixer per Finding, one at a time: they all write in the one worktree, one writer at a time.
+has "the Fixers run one per Finding, one at a time" "$fix_md" \
+  "One Fixer per \`Act on\` Finding" "one at a time" "never two at once"
+has "the Diff tests run once every Fixer returned" "$fix_md" \
+  "## The Diff tests" "git diff --name-only --diff-filter=d <the fixed point>..HEAD" "single-file command"
+has "the Gate fixer takes the red block and two attempts, and weakens nothing" "$fix_md" \
+  "## The Gate fixer" "two attempts" "the red block" "a skipped test, a weakened assertion or a sleep"
+has "a red that outlives the Gate fixer lands nothing" "$fix_md" \
+  "\`not landed: gate red after the fixes, <the failing check>\`"
+has "the Gate runs once before the landing, the caller's line or the project's" "$fix_md" \
+  "## The Gate" "the \`command=\` line the caller handed"
 has "the fix reference re-runs the checks itself and never the reviewers" "$fix_md" \
   "## The re-check" "never the Fixer's word" "not re-run" "no check named" "not verified" "stale"
 has "the fix reference appends the section the format fixes" "$fix_md" \
@@ -273,13 +299,13 @@ has "a mechanical stop is resolved by the union in base order, no path pasted in
   'git merge-file --union -p "$stages/target" "$stages/base" "$stages/incoming" > "$file"' \
   "xargs -0 git add --" "rebase --continue" "rebase --skip"
 lacks "no conflicted path is pasted into a command line" "$fix_md" "'<path>'"
-has "the suite runs again before the fast-forward, and the landing line names the rebase" "$fix_md" \
-  "the suite runs again" "names the rebase onto the moved target"
+has "the Gate runs again before the fast-forward, and the landing line names the rebase" "$fix_md" \
+  "the Gate runs again" "names the rebase onto the moved target"
 # A Green Review with nothing in Act on reaches the landing with no Fixer and no re-check, so the
 # retry names its suite and its tree by rules that hold on that path too, never by the re-check.
-has "the retry's suite and tree are named by rules that hold with no Fixer" "$fix_md" \
+has "the retry's Gate and tree are named by rules that hold with no Fixer" "$fix_md" \
   "the tree the reviewed branch is checked out in" \
-  "the gate the Testing Policy names, else the tests the reviewers ran" \
+  "the Gate as \`## The Gate\` defines it" \
   "whether or not a re-check ran"
 lacks "the retry names neither its suite nor its tree by the re-check" "$fix_md" \
   "the suite the re-check ran" "where the re-check ran"
@@ -293,9 +319,9 @@ has "a union that defines one key twice is aborted the same way" "$fix_md" \
   "defines one key twice" "the key named"
 # The rebased branch sits on commits the reviewers never read, so a red suite there is the branch's
 # failure to land, named by its check, and never a reason to loop.
-has "a red suite after the retry's rebase lands nothing and names the failing check" "$fix_md" \
-  "\`not landed: suite red after the rebase onto <target>, <the failing check>\`" \
-  "the rebased branch and its worktree stay in place"
+has "a red Gate after the retry's rebase lands nothing, names the failing check and fixes nothing" "$fix_md" \
+  "\`not landed: gate red after the rebase onto <target>, <the failing check>\`" \
+  "the rebased branch and its worktree stay in place" "no Gate fixer runs here"
 # The class script exits 0 on a tree with no conflicted state as on an all-mechanical stop, so a
 # rebase git refused to start, or stopped with nothing conflicted, needs its own outcome, or the
 # landing reads it as mechanical and continues a rebase that is not there.
