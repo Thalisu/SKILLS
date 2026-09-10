@@ -295,20 +295,34 @@ anything: how many hunks it resolved mechanically and how many it is bringing to
 Where every hunk of the stop is `mechanical`, the run resolves them itself and nothing is asked of
 the developer. The conflicted files are the list git left, read NUL-delimited so that a path
 carrying a space or a newline comes back as one entry and needs no unescaping:
-`git diff --name-only --diff-filter=U -z`. A path is a name either side of the rebase chose, so
-every use of one is inside single quotes or after `--`, never bare and never in double quotes,
-where `$(...)`, a backtick, `;` and `|` are still live and would run as the run's own commands. For
-each conflicted file the run takes the three stages out of the index and writes their union:
+`git diff --name-only --diff-filter=U -z`. A path is a name either side of the rebase chose, so it
+never enters a command line as text: pasted in, a single quote in it closes whatever quotes it sits
+in, and the `$(...)`, backtick, `;` or `|` after it runs as the run's own command. The two blocks
+below run as they stand, with nothing pasted into them, and each path reaches git through a shell
+variable, whose value is never evaluated again, or through `xargs -0`, which starts no shell. The
+first takes the three stages of every conflicted file out of the index and writes their union:
 
 ```
-git show ':1:<path>' > <base> && git show ':2:<path>' > <target> && git show ':3:<path>' > <incoming>
-git merge-file --union -p <target> <base> <incoming> > '<path>'
+stages="$(mktemp -d)"
+git diff --name-only --diff-filter=U -z | while IFS= read -r -d '' file; do
+  git show ":1:$file" > "$stages/base" && git show ":2:$file" > "$stages/target" &&
+    git show ":3:$file" > "$stages/incoming" &&
+    git merge-file --union -p "$stages/target" "$stages/base" "$stages/incoming" > "$file"
+done
+rm -rf "$stages"
 ```
 
 Stage 2 is the developer's branch and stage 3 the commit being replayed, so the union in that order
 keeps both sides with the developer's branch above the replayed commit's, which is the base order
-this step owes. Git writes the result and the session never edits a marker. Then
-`git add -- '<path>'` marks the file resolved, and the continue with the same prefix,
+this step owes. Git writes the result and the session never edits a marker. Once every union is
+read back, as the next state says, with the file-reading tool and never through a command line, the
+second block marks the files resolved:
+
+```
+git diff --name-only --diff-filter=U -z | xargs -0 git add --
+```
+
+Then the continue with the same prefix,
 `git -c rerere.enabled=false -c rerere.autoupdate=false rebase --continue`, carries the rebase to
 the next commit, and every further stop is classed and resolved the same way. The reply names every
 hunk it resolved with its file and location.

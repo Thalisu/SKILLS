@@ -265,10 +265,14 @@ has "the retry rebases with conflict-resolution reuse off" "$fix_md" \
 has "every stop is classed by the review's own copy of the script" "$fix_md" \
   "bash ~/.claude/skills/do-code-review/scripts/conflict-class.sh" \
   "](../../../docs/adr/0028-the-conflict-class-is-a-scripts-verdict-never-the-sessions-reading.md)"
-has "a mechanical stop is resolved by the union in base order, every path quoted" "$fix_md" \
+# A single quote in a conflicted path closes the quotes it is pasted into, so no path is pasted: the
+# block reads each one into a variable and stages them through xargs. skills/do/tests/integration.sh
+# runs the block itself over such a path.
+has "a mechanical stop is resolved by the union in base order, no path pasted into a command" "$fix_md" \
   "git diff --name-only --diff-filter=U -z" \
-  "git merge-file --union -p <target> <base> <incoming> > '<path>'" "git add -- '<path>'" \
-  "rebase --continue" "rebase --skip"
+  'git merge-file --union -p "$stages/target" "$stages/base" "$stages/incoming" > "$file"' \
+  "xargs -0 git add --" "rebase --continue" "rebase --skip"
+lacks "no conflicted path is pasted into a command line" "$fix_md" "'<path>'"
 has "the suite runs again before the fast-forward, and the landing line names the rebase" "$fix_md" \
   "the suite runs again" "names the rebase onto the moved target"
 # A Green Review with nothing in Act on reaches the landing with no Fixer and no re-check, so the

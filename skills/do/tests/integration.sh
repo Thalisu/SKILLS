@@ -121,18 +121,62 @@ has "the mechanical resolution asks nothing and is named hunk by hunk in the rep
   "nothing is asked of the developer" \
   "names every hunk it resolved with its file and location"
 
-# A conflicted path is a name either side of the rebase chose, and the resolution pastes it into the
-# run's own shell: in a bare or double-quoted command line `$(...)`, a backtick, `;` and `|` are
-# live, and a path carrying one of them runs as the run's own command. So the list comes back
-# NUL-delimited and every use of a path is single-quoted or passed after `--`.
+# A conflicted path is a name either side of the rebase chose. Pasted into a command line it is
+# code: a single quote in it closes whatever quotes it sits in, and the `$(...)` after it runs as the
+# run's own command. So the list comes back NUL-delimited and each path reaches git through a shell
+# variable, whose value is never evaluated again, or through `xargs -0`, which starts no shell.
 has "the conflicted paths are read from git NUL-delimited" "$mech" \
   "git diff --name-only --diff-filter=U -z"
-has "every use of a conflicted path is single-quoted or passed after --" "$mech" \
-  "git show ':1:<path>'" "git show ':2:<path>'" "git show ':3:<path>'" \
-  "> '<path>'" "git add -- '<path>'"
-lacks "no use of a conflicted path reaches the shell bare" "$mech" \
-  "git show :1:<path>" "git show :2:<path>" "git show :3:<path>" \
-  "> <path>" "git add <path>"
+has "a conflicted path reaches git through a variable or xargs, never as text" "$mech" \
+  "while IFS= read -r -d '' file; do" 'git show ":1:$file"' "xargs -0 git add --"
+lacks "no conflicted path is pasted into a command line" "$mech" "'<path>'" "git show ':1:"
+
+# The static checks above read the block's text; this one runs it. Each file's resolution blocks
+# are run the way a session runs them, any placeholder filled in with the path, over a conflicted
+# path that carries a single quote and a command substitution: the substitution must never fire,
+# and the path must come out resolved and staged.
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+g() { git -c user.email=t@example.com -c user.name=t "$@"; }
+blocks_of() { # $1 file, $2 the heading whose section holds the resolution: its fenced blocks, unindented
+  awk -v h="$2" '
+    $0 == h { on = 1; next }
+    on && !fence && /^#+ / { exit }
+    on && /^ *```/ { if (fence) fence = 0; else { fence = 1; match($0, /^ */); ind = RLENGTH }; next }
+    on && fence { print substr($0, ind + 1) }
+  ' "$1"
+}
+resolves_safely() { # $1 label, $2 file, $3 heading
+  local label="$1" dir="$tmp/$(basename "$2" .md)" evil="x'\$(id>PWNED)'.txt" block rc
+  mkdir -p "$dir" || return
+  g -C "$dir" init -q -b main
+  # Git's background maintenance races the trap's cleanup and leaves the repository undeletable.
+  g -C "$dir" config gc.auto 0; g -C "$dir" config maintenance.auto false
+  g -C "$dir" config merge.conflictStyle merge
+  printf 'a\nb\nc\n' > "$dir/$evil"; g -C "$dir" add -A; g -C "$dir" commit -qm base
+  g -C "$dir" branch fix
+  printf 'a\nb\nTARGET\nc\n' > "$dir/$evil"; g -C "$dir" commit -qam target
+  g -C "$dir" switch -q fix
+  printf 'a\nb\nINCOMING\nc\n' > "$dir/$evil"; g -C "$dir" commit -qam incoming
+  g -C "$dir" -c rerere.enabled=false rebase main >/dev/null 2>&1
+  rc=0; (cd "$dir" && bash "$repo/skills/do/scripts/conflict-class.sh") >/dev/null 2>&1 || rc=$?
+  expect "the path in $label's fixture is classed mechanical, so it reaches the block" test "$rc" = 0
+  block="$(blocks_of "$2" "$3")"
+  expect "$label carries a resolution block to run" test -n "$block"
+  block="${block//"<path>"/"$evil"}"
+  block="${block//"<base>"/"$dir.base"}"
+  block="${block//"<target>"/"$dir.target"}"
+  block="${block//"<incoming>"/"$dir.incoming"}"
+  printf '%s\n' "$block" > "$dir.sh"
+  (cd "$dir" && bash "$dir.sh") >/dev/null 2>&1
+  expect "$label's resolution runs no command a conflicted path carries" \
+    test -z "$(find "$tmp" -name PWNED 2>/dev/null)"
+  expect "$label's resolution leaves that path resolved in both sides' base order and staged" \
+    test "$(g -C "$dir" show ":$evil" 2>/dev/null)" = "$(printf 'a\nb\nTARGET\nINCOMING\nc')"
+}
+resolves_safely "do's integration" "$mech" "## The integration"
+resolves_safely "the review's landing" "$repo/skills/do-code-review/references/fix.md" \
+  "### A target that moved while the review ran"
 
 # The class is a shape, not a meaning: two sides that only added lines can have added two
 # definitions of one key, and in a last-wins format the union then keeps the line and drops the

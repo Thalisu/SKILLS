@@ -177,19 +177,32 @@ to answer, so a hunk a person must judge ends the landing instead of waiting on 
 3. Every hunk `mechanical`: the orchestrator resolves them itself by keeping both sides in base
    order, the rule `do`'s integration applies, restated here for the same reason. The conflicted
    files are the list git left, read NUL-delimited, `git diff --name-only --diff-filter=U -z`, and a
-   path is only ever used inside single quotes or after `--`, never bare and never in double
-   quotes, since either side of the rebase chose it. Per file:
+   path never enters a command line as text, since either side of the rebase chose it and a single
+   quote in it closes whatever quotes it is pasted into. The two blocks run as they stand, nothing
+   pasted into them, each path reaching git through a shell variable or `xargs -0`. The first
+   writes every conflicted file's union:
 
    ```
-   git show ':1:<path>' > <base> && git show ':2:<path>' > <target> && git show ':3:<path>' > <incoming>
-   git merge-file --union -p <target> <base> <incoming> > '<path>'
-   git add -- '<path>'
+   stages="$(mktemp -d)"
+   git diff --name-only --diff-filter=U -z | while IFS= read -r -d '' file; do
+     git show ":1:$file" > "$stages/base" && git show ":2:$file" > "$stages/target" &&
+       git show ":3:$file" > "$stages/incoming" &&
+       git merge-file --union -p "$stages/target" "$stages/base" "$stages/incoming" > "$file"
+   done
+   rm -rf "$stages"
    ```
 
    Stage 2 is the landing target and stage 3 the commit being replayed, so the union keeps the
-   target's lines above the replayed commit's. Then `rebase --continue`, and every further stop is
-   classed and resolved the same way. A replayed commit the resolution left empty is already on the
-   target: `rebase --skip`, and the landing line names it.
+   target's lines above the replayed commit's. Once every union is read back with the Read tool,
+   never through a command line, as step 4 needs, the second block marks the files resolved:
+
+   ```
+   git diff --name-only --diff-filter=U -z | xargs -0 git add --
+   ```
+
+   Then `rebase --continue`, and every further stop is classed and resolved the same way. A
+   replayed commit the resolution left empty is already on the target: `rebase --skip`, and the
+   landing line names it.
 4. Any hunk `contested`, or a union that, read back before its `git add`, defines one key twice in
    one scope of a file whose reader keeps the last definition it meets (JSON, YAML, TOML, an INI or
    a `.env` file), since both lines would land and the reader would quietly keep one of them. The
