@@ -107,6 +107,16 @@ fork is actually handed. It writes nothing and returns the Digest's text, every 
 `## Sources`, and the one line the run restates in the thread. No other part of either document
 reaches the session.
 
+The session checks what comes back before it writes: a return must carry every section the Digest
+format fixes other than `## Sources`, `## Journey Path`, `## Stories`, `## Testing Decisions` and
+`## Observable criteria`, a section that says its heading or its document is absent counting as
+present. A return missing one, whether a refusal, an error or a shape the format does not fix,
+stops the door in one line naming what is missing. No Digest is written, the Ticket is left as the
+door found it, and the next run forks the reader again. The session never reads the Spec or the
+journey itself on a reader failure: that fallback belongs only to the two branches that never reach
+the fork at all, the Agent tool withheld and no `do-reader` listed, and never to a return the fork
+actually made.
+
 The session writes the Digest itself, whole, at the path [digest.md](digest.md) fixes beside the
 Ticket in the main checkout's scratch: its `## Sources` lines from the door's own hashes first,
 then the text the reader returned. A Digest already at that path is replaced whole and never edited.

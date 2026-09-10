@@ -65,6 +65,20 @@ has "the Playbook's door writes the Digest from the text that comes back" "$refs
   "the session writes the Digest from the text that comes back"
 has "the Sources lines are the door's, never the reader's" "$refs/digest.md" \
   "the session writes them from the door's own hashes"
+# A return steered to look like a failure, or one merely missing a section, must never be written
+# through: the reuse gate would then serve it on every later run since its recorded hashes still
+# match. A section that says its heading or its document is absent still counts as present.
+has "a return missing a required section stops the door before anything is written" \
+  "$refs/mechanics.md" \
+  "The session checks what comes back before it writes" \
+  "## Journey Path" "## Stories" "## Testing Decisions" "## Observable criteria" \
+  "stops the door in one line naming what is missing" \
+  "No Digest is written, the Ticket is left as the" \
+  "door found it, and the next run forks the reader again"
+has "the session never falls back to reading the Spec and journey itself on a reader failure" \
+  "$refs/mechanics.md" \
+  "The session never reads the Spec or the" \
+  "journey itself on a reader failure"
 # The Digest the fork's text becomes is written into the developer's checkout, so the fork comes
 # after the stops that refuse the run: a Ticket refused at the door leaves `git status` as it was.
 after "the door reaches the reader only after the stops that refuse the run" "$refs/ticket.md" \
