@@ -271,6 +271,14 @@ has "a mechanical stop is resolved by the union in base order, every path quoted
   "rebase --continue" "rebase --skip"
 has "the suite runs again before the fast-forward, and the landing line names the rebase" "$fix_md" \
   "the suite runs again" "names the rebase onto the moved target"
+# A Green Review with nothing in Act on reaches the landing with no Fixer and no re-check, so the
+# retry names its suite and its tree by rules that hold on that path too, never by the re-check.
+has "the retry's suite and tree are named by rules that hold with no Fixer" "$fix_md" \
+  "the tree the reviewed branch is checked out in" \
+  "the gate the Testing Policy names, else the tests the reviewers ran" \
+  "whether or not a re-check ran"
+lacks "the retry names neither its suite nor its tree by the re-check" "$fix_md" \
+  "the suite the re-check ran" "where the re-check ran"
 lacks "no line aborts every rebase conflict whatever its class" "$fix_md" \
   "rebase conflict is aborted with the conflicting files named"
 # ADR 0027: the review has nobody to put a contested hunk to, so it aborts and hands the question to

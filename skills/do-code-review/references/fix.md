@@ -156,10 +156,11 @@ The developer may commit on the landing target while the review runs. The target
 an ancestor of the branch, which is what tells this case from any other failed fast-forward:
 `git merge-base --is-ancestor <the landing target> <that branch>` fails. The landing retries once,
 by rebasing the branch onto the moved target, and only over hunks nobody has to judge. Every command
-below runs in the tree the branch is checked out in, where the re-check ran, and
-`git -C <the main checkout>` stays for the fast-forward alone. Nothing on these paths asks a
-question: the orchestrator is a fork with nobody to answer, so a hunk a person must judge ends the
-landing instead of waiting on one.
+below runs in the tree the reviewed branch is checked out in, with the Fixer's commits on it when
+there are any: `do`'s worktree when `do` called, the `fix/<slug>` worktree on a plain call. That
+holds whether or not a re-check ran there, and `git -C <the main checkout>` stays for the
+fast-forward alone. Nothing on these paths asks a question: the orchestrator is a fork with nobody
+to answer, so a hunk a person must judge ends the landing instead of waiting on one.
 
 1. The rebase runs with git's conflict-resolution reuse off,
    `git -c rerere.enabled=false -c rerere.autoupdate=false rebase <the landing target>`, and so do
@@ -209,8 +210,11 @@ landing instead of waiting on one.
    `rebase --abort`, which puts the branch back where it was, while
    a rebase git refused to start left nothing to abort. The branch and its worktree stay in place,
    and nothing is pushed.
-6. When the rebase finishes, the suite runs again in that tree, the suite the re-check ran, since
-   the branch now sits on commits the reviewers never read. Red, and the landing returns
+6. When the rebase finishes, the suite runs again in that tree, since the branch now sits on
+   commits the reviewers never read. It is the project's suite as `## The re-check` defines it,
+   the gate the Testing Policy names, else the tests the reviewers ran, and it runs
+   whether or not a re-check ran before it: a Green Review with nothing in `Act on` reaches the
+   landing with no Fixer and no re-check. Red, and the landing returns
    `not landed: suite red after the rebase onto <target>, <the failing check>`. Nothing is fixed,
    since the failure may sit in the developer's own commits, nothing is pushed, and
    the rebased branch and its worktree stay in place. Green, and the target is fast-forwarded as
