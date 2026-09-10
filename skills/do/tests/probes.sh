@@ -109,6 +109,22 @@ run "$door" "$issues/18-orphan.md"
 check_lines "a claimed Ticket whose worktree is gone but its branch remains names the branch" 0 "$rc" \
   "status=claimed" "worktree=none" "run_branch=do/orphan" "verdict=start-over"
 
+# The ticket Playbook's ground step writes <Ticket>.project-map.md and its shape step <Ticket>.sketch.md
+# beside the Ticket, so a blocker that ran through them carries its own number on a second file.
+ticket 20-grounded.md '**Status:** resolved' 'None (can start immediately)'
+printf '# Project map\n\nmap=a project map\n' > "$issues/20-grounded.project-map.md"
+ticket 21-shaped.md '**Status:** resolved' 'None (can start immediately)'
+printf '# Sketch\n\nthe shape of the change\n' > "$issues/21-shaped.sketch.md"
+ticket 22-after-grounded.md '**Status:** ready-for-agent' '20, Title of 20-grounded'
+ticket 23-after-shaped.md '**Status:** ready-for-agent' '21, Title of 21-shaped'
+for pair in 22-after-grounded:20-grounded:project-map 23-after-shaped:21-shaped:sketch; do
+  IFS=: read -r t b kind <<<"$pair"
+  run "$door" "$issues/$t.md"
+  check "a resolved blocker with a .$kind.md beside it is read from its Ticket alone, and the run starts" 0 "$rc" \
+    "blocker=${b%%-*} resolved $issues/$b.md" "verdict=start"
+  absent "a .$kind.md beside a blocker never makes its number ambiguous" "ambiguous="
+done
+
 echo "# ticket-door.sh: the stops"
 run "$door" "$issues/01-first.md"
 check_lines "a resolved Ticket stops" 1 "$rc" "status=resolved" "verdict=resolved"
