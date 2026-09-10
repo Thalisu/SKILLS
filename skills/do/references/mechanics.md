@@ -181,6 +181,13 @@ The Digest already at that path stays where it was, untouched, and no run serves
 `## Sources` still records the hashes the documents had before they changed, so every later run's
 comparison finds them moved and re-forks the reader until a return comes back whole.
 
+A Digest a run left behind when the reading of the tree and the scratch stopped it, the reading
+[ADR 0032](../../../docs/adr/0032-a-fork-that-reads-a-strangers-text-holds-no-write-tool.md)
+removed, is judged by its record alone, since the gate never asks who wrote the file, so it
+is served like any other while both of its hashes match. A developer who does not trust one
+deletes it by hand before running that Ticket again, and that run forks the reader as a first
+run does.
+
 ## The build loop
 
 One behaviour at a time, from the list the Playbook wrote, in its order. Each behaviour is one

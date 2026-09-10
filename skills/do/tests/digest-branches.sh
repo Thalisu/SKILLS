@@ -153,6 +153,14 @@ has "a re-fork with no usable Digest stops as a first fork does and the old Dige
   "A re-forked reader whose return is not a usable Digest stops the door as a first fork's does" \
   "The Digest already at that path stays where it was" \
   "no run serves it"
+# The gate compares a record and never asks who wrote the file it sits in, so a Digest a run left
+# behind before ADR 0032 removed the reading that stopped it is reused like any other while its
+# hashes match, and only the developer's own delete retires it.
+has "a Digest a stopped run left is served while its hashes match and removed only by hand" \
+  "$refs/mechanics.md" \
+  "A Digest a run left behind when the reading of the tree and the scratch stopped it" \
+  "is served like any other while both of its hashes match" \
+  "deletes it by hand before running that Ticket again"
 
 # The Digest is an unversioned file a fork wrote while two documents a stranger may have written
 # were open, so the gate that decides to reuse it takes neither its subject nor its bound from it:
