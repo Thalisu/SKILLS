@@ -108,8 +108,8 @@ The gate runs after the last edit and never before it, because "it passed earlie
 from one script that prints the line to rerun it first, one line per green check and the capped
 failing block of a red one with the file holding its full output, so you rerun the gate yourself and
 get the same answer, and a red gate goes back to the build loop on the block already in the thread.
-Then,
-if your branch moved while the run was building, the run rebases onto it and runs the gate again, so
+Then, if your branch moved while the run was building, the run rebases onto it and runs the gate
+again, so
 the diff the reviewers read is the diff that lands rather than one that was true a few commits ago.
 What a conflict costs you depends on its class, which a script decides and the session never
 guesses:
@@ -124,8 +124,9 @@ guesses:
 - A run nobody can answer, `claude -p` for one: the run aborts the rebase, leaves your branch as it
   was and names the conflicting files, rather than guess an answer.
 
-Then the branch goes to the review, the affected flows run from your checkout, and the Ticket is
-closed with the command lines and their output quoted under `## Evidence`. A run that stops for any
+Then the branch goes to the review, the affected flows run from your checkout through a script of
+their own whose command line comes first, and the Ticket is closed with the command lines and their
+output quoted under `## Evidence`. A run that stops for any
 reason leaves the worktree and its branch in place and names both, so nothing is half landed and
 nothing is lost.
 
