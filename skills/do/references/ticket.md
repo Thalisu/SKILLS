@@ -299,8 +299,13 @@ command is filled, each criterion the Digest marks observable
 gets its flow from `global-e2e-test-author` (the test authors in [mechanics.md](mechanics.md))
 with the same complete input and the map's path, and the flow returns `GREEN`,
 or `BLOCKED` on a preflight, which stops the run as blocked. When that command reads
-`none yet → /testing-policy`, no author is dispatched: the step reads
-`skip: no end-to-end command in the project`,
+`none yet → /testing-policy` and the map's full-suite end-to-end command is filled too (a
+Makefile's or a justfile's `e2e` target, or a `package.json` script the mapper could not read a
+path from), no author is dispatched: the step names the single-flow slot the map left unfilled and
+quotes the full-suite command the map does carry, `skip: no single-flow end-to-end command, only
+<the full-suite command>`, leaves the criterion it would have proven unticked at the close, and
+records it as pending debt in the reply. When both commands read `none yet → /testing-policy`, no
+author is dispatched: the step reads `skip: no end-to-end command in the project`,
 names `/testing-policy` as the command that would fill the slot,
 leaves the criterion it would have proven unticked at the close, and records it as pending debt in
 the reply, the shape a consumer surface already takes. Under `Loop: fallback` the same map

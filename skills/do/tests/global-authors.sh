@@ -89,6 +89,11 @@ project "$p"
 map "$p" "$p/.scratch/map.md"
 check "a Makefile's targets fill the suites, never a single-file command it did not read" 0 "$rc" \
   "read=Makefile" "unit_run_all=make test" "unit_run_file=$none" "e2e_run_all=make e2e" "e2e_run_flow=$none"
+has "a filled full-suite command with no single-flow one never reads no end-to-end command" \
+  "$skill/references/ticket.md" \
+  "the map's full-suite end-to-end command is filled too" \
+  "names the single-flow slot the map left unfilled and" \
+  "quotes the full-suite command the map does carry"
 
 p="$tmp/bare"; mkdir -p "$p/skills/a/tests"
 : > "$p/skills/a/tests/one.sh"; : > "$p/README.md"
