@@ -187,6 +187,48 @@ has "a union that defines one key twice is brought to the developer" "$mech" \
   "the file and the key named" \
   "never that the two additions mean the same thing"
 
+# A contested hunk is the developer's to answer, so the stop that carries one becomes questions: the
+# mechanical files first, the counts before the first question, then one question per hunk through
+# the script, which reads the stages and never the markers. The state sits where it runs, after the
+# union and its key check, before the commit a resolution empties.
+has "a stop carrying a contested hunk is a state of its own" "$mech" \
+  "**A stop carrying a contested hunk.**"
+between "the contested stop sits after the union's key check and before the emptied commit" "$mech" \
+  "A union that defines the same key twice" "A stop carrying a contested hunk" \
+  "A replayed commit that is empty after the resolution"
+has "the mechanical files go first and the counts come before the first question" "$mech" \
+  "Every file whose hunks are all \`mechanical\` is resolved first, by the union above" \
+  "the counts are stated before the first question" \
+  "the rebase stays open at that commit"
+has "the questions come from the script the step names" "$mech" \
+  "bash <skill-dir>/scripts/contested.sh"
+expect "the script the contested stop names ships with the skill" \
+  test -x "$repo/skills/do/scripts/contested.sh"
+# Nobody is there in a headless session, so the run aborts rather than guessing, and the abort is the
+# step's own command, with conflict-resolution reuse off like every other command of the step.
+has "a session nobody can answer aborts the integration and guesses nothing" "$mech" \
+  "\`no human\` (exit 4)" \
+  "git -c rerere.enabled=false -c rerere.autoupdate=false rebase --abort" \
+  "leaves the branch as it was" \
+  "No answer is guessed"
+# The question is the script's text, and the developer's word reaches the shell only as one of the
+# answers offered: anything else is typed as stop.
+has "the question is relayed as printed and the answers go back against their ids" "$mech" \
+  "shows it as the script printed it, never reworded" \
+  "each against the id its question carried" \
+  "\`stop\` in its place otherwise"
+has "a written file is read for a key defined twice before the continue" "$mech" \
+  "reads each file the script \`wrote\` for a key defined twice"
+has "stop, or an answer none of the four, leaves the rebase open with the undo" "$mech" \
+  "\`blocked\` (exit 3)" \
+  "an answer that is none of the four"
+has "a developer who walks away is left the same state, the undo already given" "$mech" \
+  "A developer who walks away without answering is left in that same state" \
+  "the undo already in the question"
+has "the step ticks with the totals across every stop, then the gate and the review" "$mech" \
+  "ticked with the totals across every stop" \
+  "the gate's command lines run again and the review is called"
+
 # A commit the resolution empties is not a loss: the change it carried is already on the branch it
 # was going to land on, so it is skipped rather than stopping the run.
 has "a commit left empty by the resolution is skipped and named" "$mech" \

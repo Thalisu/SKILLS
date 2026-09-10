@@ -342,6 +342,49 @@ with the file and the key named, the rebase left open at that commit, `git rebas
 undo, the worktree and its branch left in place and named and the Ticket left `claimed`. Which
 definition stands is theirs to say.
 
+**A stop carrying a contested hunk.** A hunk classed `contested` is the developer's to answer, and
+never the run's. Every file whose hunks are all `mechanical` is resolved first, by the union above,
+with its key check; the counts are stated before the first question, and the rebase stays open at
+that commit while the questions run. The questions come from the script that asks them and applies
+the answers, which takes the order, the class and the locations from `conflict-class.sh` and quotes
+both sides from the index stages, so the session reads no marker here either:
+
+```
+bash <skill-dir>/scripts/contested.sh
+```
+
+What it prints and the code it exits with say what the run does next.
+
+- `no human` (exit 4): nobody can answer in this session, `claude -p` among them, and the script
+  says so before it forms a question. The run aborts the integration,
+  `git -c rerere.enabled=false -c rerere.autoupdate=false rebase --abort`, which leaves the branch
+  as it was, and stops as blocked with the conflicting files the script named, the worktree and its
+  branch in place and named and the Ticket left `claimed`. No answer is guessed.
+- A question (exit 1): which conflict of how many, the file and the hunk's location, the shape, the
+  **Target** and the **Incoming** side quoted each under its own heading, a recommendation with the
+  shape as its reason, the answers the shape offers and the undo. The run shows it as the script
+  printed it, never reworded, and waits for the developer's one word. Then it passes every answer so
+  far back in the order they were asked, each against the id its question carried,
+  `bash <skill-dir>/scripts/contested.sh <id>:<answer> ...`, typing the developer's word only when
+  it is one of the answers the question offered and `stop` in its place otherwise, since the word
+  reaches the shell. The next contested hunk's question follows, or the files are written.
+- `resolved` (exit 0): every file carrying a contested hunk was written once from its three index
+  stages, `target` taking the Target side, `incoming` the Incoming side and `both` the two in base
+  order by the mechanical rule, and staged. The run reads each file the script `wrote` for a key
+  defined twice, as the paragraph above says, then continues with the same prefix, and the next
+  stop is classed like any other.
+- `blocked` (exit 3): the developer answered `stop`, or an answer that is none of the four. The run
+  stops as blocked with the rebase left open at that commit, the conflicting files the script
+  named, the command that undoes it, `git rebase --abort`, the worktree and its branch left in place
+  and named, the Ticket left `claimed`, nothing landed and nothing pushed.
+
+A developer who walks away without answering is left in that same state: the rebase open at the
+conflicting commit, none of their answers written, since the script writes nothing until the stop's
+last one, and the undo already in the question. Once the rebase finishes, the step is ticked with the
+totals across every stop, the mechanical and the contested hunks each verdict line counted and the
+answers by word from each `resolved` line, and then the gate's command lines run again and the review
+is called, as after any replay.
+
 **A replayed commit that is empty after the resolution.** The developer's branch already carries
 that change, so the continue has nothing left to apply and git says so. The run skips it,
 `git -c rerere.enabled=false -c rerere.autoupdate=false rebase --skip`, and the commit is named in
