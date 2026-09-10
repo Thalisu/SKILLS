@@ -1,0 +1,103 @@
+name: dated-slug
+tags: [door, slug]
+runs: 2
+max_turns: 16
+timeout_seconds: 300
+allowed_tools: [Bash, Read, Edit, Write, Agent]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # The slug archive-notes names one dated feature folder. Beside it sits a newer feature whose
+    # folder only ends in the slug, bulk-archive-notes: a tail match would take it as the newest,
+    # and the resolver never does. The tracker file still spells the undated layout, which names
+    # the home and not the folder's date. Both verdicts read 'not needed', so the cut comes from the
+    # stories, and the two specs share no story, so the breakdown tells which was opened.
+    set -e
+    mkdir -p src docs/agents
+    cat > src/notes.js <<'JS'
+    const notes = [];
+    function create(title) {
+      const note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+    function list() {
+      return notes.filter((n) => n.status === "active");
+    }
+    module.exports = { create, list };
+    JS
+    cat > docs/agents/issue-tracker.md <<'MD'
+    # Issue tracker: Local Markdown
+
+    Issues and specs for this repo live as markdown files in `.scratch/`.
+
+    - One feature per directory: `.scratch/<feature-slug>/`
+    - The spec is `.scratch/<feature-slug>/spec.md`
+    - Implementation issues are one file per ticket at `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01`
+    - Triage state is a `Status:` line near the top of each issue file
+    MD
+    mkdir -p .scratch/20260901-archive-notes .scratch/20260905-bulk-archive-notes
+    cat > .scratch/20260901-archive-notes/spec.md <<'MD'
+    # Archive notes
+
+    Journey: not needed, one interaction on the existing list
+    Status: ready-for-agent
+
+    ## Problem Statement
+
+    A writer's list fills up with notes they are done with, and the only way out is to delete them.
+
+    ## Solution
+
+    An Archive action on each note moves it off the active list without deleting it.
+
+    ## User Stories
+
+    1. As a writer, I want an Archive action on a note in the list, so that a note I am done with leaves the list without being deleted
+
+    ## Implementation Decisions
+
+    - An archived note keeps its id and title and takes the status archived
+
+    ## Testing Decisions
+
+    - Behaviour tests through the notes module's public functions
+
+    ## Out of Scope
+
+    - A page listing the archived notes
+    MD
+    cat > .scratch/20260905-bulk-archive-notes/spec.md <<'MD'
+    # Bulk archive notes
+
+    Journey: not needed, one interaction on the existing list
+    Status: ready-for-agent
+
+    ## Problem Statement
+
+    A writer with hundreds of stale notes cannot clear them one at a time.
+
+    ## Solution
+
+    A selection mode on the list archives every selected note in one action.
+
+    ## User Stories
+
+    1. As a writer, I want to select several notes and archive them in one action, so that I clear the list in one go
+
+    ## Implementation Decisions
+
+    - The selection is lost when the writer leaves the list
+
+    ## Testing Decisions
+
+    - Behaviour tests through the notes module's public functions
+
+    ## Out of Scope
+
+    - Archiving notes on a schedule
+    MD
+    printf '.scratch/\n' > .gitignore
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"

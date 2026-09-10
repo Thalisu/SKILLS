@@ -32,6 +32,7 @@ the local shape of the ticket format `tickets` links.
 | `reopen-stops` | a journey with a branch under `## Reopen in discuss` ends the run with one message naming the branch and `/discuss`; nothing is written |
 | `existing-tickets-stop` | tickets already under `issues/` beside the spec end the run with one message listing them; nothing is written or renumbered |
 | `spec-required` | no argument: one message asking for the spec, nothing cut from the conversation, nothing written |
+| `dated-slug` | a bare slug goes through the resolver to its dated feature folder, `20260901-archive-notes`, and the breakdown is cut from that spec, never from the newer `20260905-bulk-archive-notes` a tail match would have taken; the one question is approval |
 
 Run from the skill directory, granting the tools the cases need and opting in to their scaffold
 scripts:
