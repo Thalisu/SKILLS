@@ -46,7 +46,7 @@ has "the README links both global authors by name" "$repo/README.md" \
   "ln -s ~/SKILLS/skills/do/agents/global-unit-test-author.md ~/.claude/agents/global-unit-test-author.md" \
   "ln -s ~/SKILLS/skills/do/agents/global-e2e-test-author.md ~/.claude/agents/global-e2e-test-author.md"
 has "the invocation contract names both global authors and their caller" "$repo/.agents/invocation.md" \
-  '| `global-unit-test-author` | `do`, user-invoked |' '| `global-e2e-test-author` | `do`, user-invoked |'
+  "| \`global-unit-test-author\` | \`do\`, user-invoked |" "| \`global-e2e-test-author\` | \`do\`, user-invoked |"
 
 echo "# scripts/project-map.sh: only what a command read"
 mapper="$skill/scripts/project-map.sh"
@@ -71,9 +71,9 @@ map "$p" "$p/.scratch/f/issues/01-x.project-map.md"
 check "a package.json's scripts fill the run commands and the files fill the layout" 0 "$rc" \
   "map=$p/.scratch/f/issues/01-x.project-map.md" "read=package.json" \
   "unit_run_file=npm run test -- <file>" "unit_run_all=npm run test" "unit_format=npm run format" \
-  'unit_test_layout=`src/` (2 files)' \
+  "unit_test_layout=\`src/\` (2 files)" \
   "e2e_run_flow=npm run test:e2e -- <flow>" "e2e_run_all=npm run test:e2e" \
-  'e2e_flow_root=`e2e/` (1 file)' "verdict=written"
+  "e2e_flow_root=\`e2e/\` (1 file)" "verdict=written"
 written="$p/.scratch/f/issues/01-x.project-map.md"
 has "the map is written at the path given, every template label present" "$written" \
   "**Framework & run commands**" "- Single file: \`npm run test -- <file>\`" "**Test root & layout**" \
@@ -96,11 +96,11 @@ project "$p"
 map "$p" "$p/.scratch/map.md"
 check "a project with no runner reads none yet for every command and still reads its layout" 0 "$rc" \
   "read=none" "unit_run_all=$none" "unit_run_file=$none" "unit_format=$none" \
-  'unit_test_layout=`skills/a/tests/` (1 file)' "e2e_run_flow=$none" "e2e_flow_root=$none" "verdict=written"
+  "unit_test_layout=\`skills/a/tests/\` (1 file)" "e2e_run_flow=$none" "e2e_flow_root=$none" "verdict=written"
 
 map "$p" "$tmp/elsewhere.md"
 check "a map path outside the project's own Scratch is refused" 2 "$rc"
-[ ! -e "$tmp/elsewhere.md" ] && ok "a refused map is never written" || fail "a refused map is never written"
+if [ ! -e "$tmp/elsewhere.md" ]; then ok "a refused map is never written"; else fail "a refused map is never written"; fi
 map "$p"
 check "a missing argument is a usage error" 2 "$rc"
 
@@ -118,31 +118,31 @@ has "the build loop names a route for BLOCKED on a missing map slot" "$refs/mech
 
 echo "# the Playbook dispatches them under Loop: global"
 has "the loop line takes a third value and names the author it will dispatch" "$refs/ticket.md" \
-  '`Loop: global` when it does not and `~/.claude/agents/global-unit-test-author.md` is linked,' \
-  'naming `global-unit-test-author` as the unit author it will dispatch'
+  "\`Loop: global\` when it does not and \`~/.claude/agents/global-unit-test-author.md\` is linked," \
+  "naming \`global-unit-test-author\` as the unit author it will dispatch"
 has "a withheld Agent tool turns global into the fallback, said in one line" "$refs/ticket.md" \
-  'a door that printed `loop=global` reads `Loop: fallback` instead' \
+  "a door that printed \`loop=global\` reads \`Loop: fallback\` instead" \
   'says in one line that the Agent tool is withheld'
 has "the ground step derives the map once, in the project's own Scratch" "$refs/ticket.md" \
   'bash <skill-dir>/scripts/project-map.sh <the main checkout> <the map'"'"'s path>' \
-  'once for the whole run, never once per behaviour' '`.project-map` before the extension' \
+  'once for the whole run, never once per behaviour' "\`.project-map\` before the extension" \
   'never travels back to the repository the authors came from'
 has "the build loop dispatches the global authors with the map's path" "$refs/mechanics.md" \
-  '`subagent_type: global-unit-test-author`' '`subagent_type: global-e2e-test-author`' \
+  "\`subagent_type: global-unit-test-author\`" "\`subagent_type: global-e2e-test-author\`" \
   '`Project map: <the map'"'"'s path>`' 'The global authors have no inline entry point'
 has "the fallback is read only when no author can be dispatched" "$refs/tdd-fallback.md" \
-  '`global-unit-test-author` not linked or the Agent tool withheld'
+  "\`global-unit-test-author\` not linked or the Agent tool withheld"
 has "the skill file's Links line says when the fallback is read" "$skill/SKILL.md" \
-  'when the loop line reads `Loop: fallback`'
+  "when the loop line reads \`Loop: fallback\`"
 has "the docs page's Prerequisites row names the global loop" "$repo/docs/do.md" \
-  'it reads `Loop: global`'
+  "it reads \`Loop: global\`"
 
 echo "# the flows step under Loop: global"
 has "each observable criterion gets its flow from the global end-to-end author" "$refs/ticket.md" \
-  'gets its flow from `global-e2e-test-author`' 'or `BLOCKED` on a preflight, which stops the run as blocked'
+  "gets its flow from \`global-e2e-test-author\`" "or \`BLOCKED\` on a preflight, which stops the run as blocked"
 has "no end-to-end command in the map dispatches no author and states the gap" "$refs/ticket.md" \
-  '`skip: no end-to-end command in the project`' \
-  'names `/testing-policy` as the command that would fill the slot' \
+  "\`skip: no end-to-end command in the project\`" \
+  "names \`/testing-policy\` as the command that would fill the slot" \
   'leaves the criterion it would have proven unticked'
 has "the fallback authors the flow itself" "$refs/ticket.md" \
   'the session authors the flow itself'
@@ -163,7 +163,7 @@ has "a grader checks the flows step states the gap or authors the flow itself" "
   'skip: no end-to-end command in the project' '/testing-policy'
 has "a grader checks the map is written beside the Ticket" "$case/graders/project-map-beside-ticket.md" \
   '01-archive-a-note.project-map.md'
-has "the evals README lists the case" "$skill/evals/README.md" '| `global-loop-withheld-agent-tool` |'
+has "the evals README lists the case" "$skill/evals/README.md" "| \`global-loop-withheld-agent-tool\` |"
 
 echo
 if [ "$fails" = 0 ]; then echo "all passed"; else echo "$fails failed"; exit 1; fi
