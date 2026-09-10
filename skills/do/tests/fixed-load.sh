@@ -177,6 +177,23 @@ has "no boundary crossed reads the skip and goes on to the behaviours list" "$re
 after "the skip and a shape in hand are read before the fork" "$refs/ticket.md" \
   'call the Agent tool with `subagent_type: sketch`' \
   '`skip: no boundary crossed`' "a Sketch already beside the Ticket"
+# The withheld path of the new fork, in the wording the shared mechanics fix. The eval that grades it
+# cannot run on this machine, so this is the path's only executable coverage.
+has "with the Agent tool withheld, sketch writes nothing and the session does that work itself" \
+  "$refs/ticket.md" "runs in a session with the Agent tool withheld" \
+  '`sketch` writes nothing and says so, and the session does that work itself'
+has "the shared mechanics still fix the wording the withheld row cites" "$refs/mechanics.md" \
+  "When the Agent tool is withheld from it, it writes nothing" \
+  "and says so, and the session does that work itself."
+has "the session writes the Sketch in the shared format and says so in one line" "$refs/ticket.md" \
+  "[sketch-format.md](../../../.agents/formats/sketch-format.md)" "writes the Sketch itself"
+expect "the format the withheld row links resolves" test -f "$repo/.agents/formats/sketch-format.md"
+after "the withheld row is read before the row for a session that lists no sketch" \
+  "$refs/ticket.md" 'a session whose Agent tool lists no `sketch`' \
+  "runs in a session with the Agent tool withheld"
+grader="$repo/skills/do/evals/withheld-agent-tool/graders/no-sketch-fork-session-writes-sketch.md"
+has "the withheld-agent-tool eval grades the session writing the Sketch itself" "$grader" \
+  "type: llm" "01-archive-a-note.sketch.md" "no Agent tool call"
 
 # No em-dash in the prose this feature writes, per CLAUDE.md.
 lacks "no em-dash in the Digest reference" "$refs/digest.md" "$emdash"

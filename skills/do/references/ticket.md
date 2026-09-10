@@ -175,6 +175,7 @@ Who names the shape is decided by the first line of this table that holds, read 
 |---|---|
 | crosses no function boundary: no new module, no exported function or type other code will call, no changed signature | reads `skip: no boundary crossed`, and the run goes on to the behaviours list |
 | already carries a shape: the Ticket, its Digest, a `Settled by prototype:` snippet, or a Sketch already beside the Ticket, which is what a resume finds | calls nothing, since the step never names a shape twice; that shape is the one the build is held to |
+| runs in a session with the Agent tool withheld | `sketch` writes nothing and says so, and the session does that work itself, the Delegates rule of [mechanics.md](mechanics.md): it writes the Sketch itself at the path the brief below names, in the format of [sketch-format.md](../../../.agents/formats/sketch-format.md), says so in one line, and neither stops nor asks for the tool |
 | runs in a session whose Agent tool lists no `sketch` | the shape, the types, the signatures and the module boundaries are stated in the thread, the step says so in one line, and the run continues |
 | anything else | call the Agent tool with `subagent_type: sketch` and the brief below |
 
