@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # probes.sh: the contract of the ticket Playbook's probes, scripts/ticket-door.sh,
-# scripts/resume-state.sh and scripts/gate.sh, exercised in a throwaway git repository, and the
-# sentences of the Playbook's reference that name them. Run: bash skills/do/tests/probes.sh
+# scripts/resume-state.sh, scripts/gate.sh and scripts/flows.sh, exercised in a throwaway git
+# repository, and the sentences of the Playbook's reference and the shared mechanics that name
+# them. Run: bash skills/do/tests/probes.sh
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
 skill="$here/.."
@@ -307,6 +308,32 @@ check "a runner that cannot start and a service down are blocked, each cause nam
 run "$gate" --infra; check "an --infra with no pattern is a usage error" 2 "$rc"
 header_has "the gate script's header carries its full command line" "$gate" \
   "#   gate.sh [--infra <pattern>]... <key>=<command>..." 12
+
+echo "# flows.sh: the affected flows, from the main checkout"
+logof() { sed -n "s|^$1=[a-z]* exit=[0-9]* log=\([^ ]*\).*|\1|p" <<<"$out"; }
+flows="$skill/scripts/flows.sh"
+mkdir -p e2e
+printf 'exit 0\n' > e2e/login.flow
+printf 'echo "ran in $(pwd -P)"; exit 1\n' > e2e/export.flow
+cd "$wt" || exit 1
+run "$flows" 'bash {}' e2e/login.flow e2e/export.flow
+check "each flow runs from the main checkout through the single-flow command, a red one with its block" 1 "$rc" \
+  "e2e/login.flow=green" "e2e/export.flow=red exit=1 log=$(logof e2e/export.flow)" "  ran in $top" "verdict=red"
+ordered "the flows print their command line first, then each flow in the order given" \
+  "command=bash $(printf %q "$(cd "$skill/scripts" && pwd -P)/flows.sh") " e2e/login.flow= e2e/export.flow= verdict=
+run "$flows" 'bash {}' e2e/login.flow
+first_out="$out"; rerun
+same "the command line the flows print reruns them for the same answer" "$first_out"
+run "$flows" bash e2e/login.flow
+check "a single-flow command with no {} takes the flow at its end" 0 "$rc" "e2e/login.flow=green" "verdict=green"
+run "$flows" 'no-such-flow-runner {}' e2e/login.flow
+check "a flow runner that cannot start is blocked, its cause named" 3 "$rc" \
+  "e2e/login.flow=blocked exit=127 log=$(logof e2e/login.flow) cause=runner cannot start" "verdict=blocked"
+run "$flows"; check "no single-flow command is a usage error" 2 "$rc"
+run "$flows" 'bash {}'; check "no flow is a usage error" 2 "$rc"
+header_has "the flows script's header carries its own command line" "$flows" \
+  "#   flows.sh [--infra <pattern>]... <single-flow command> <flow>..." 12
+cd "$top" || exit 1
 
 echo
 if [ "$fails" = 0 ]; then echo "probes: all checks passed"; else echo "probes: $fails failed"; exit 1; fi
