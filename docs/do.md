@@ -113,9 +113,10 @@ guesses:
 - A hunk where both sides only added lines: nothing. The run keeps both sides in order and says
   which hunks it resolved.
 - Any other hunk, a _contested_ one: one question per hunk, with both sides quoted and a
-  recommendation, which you answer in one word, `target`, `incoming`, `both` or `stop`. Nothing is
-  written until you answer the last one, so walking away leaves the rebase open, and the question
-  already carries the command that undoes it.
+  recommendation, which you answer in one word, `target`, `incoming`, `both` or `stop`. The files
+  whose every hunk is mechanical are written and staged before the first question, and only the
+  answers wait for the last one, so walking away leaves the rebase open, and the question already
+  carries the command that undoes it.
 - A run nobody can answer, `claude -p` for one: the run aborts the rebase, leaves your branch as it
   was and names the conflicting files, rather than guess an answer.
 
@@ -184,8 +185,9 @@ reason nothing landed, and the run stops on it with the worktree intact.
 - A run whose branch moved says so: the step names what it rebased onto and how many commits
   replayed, and the gate's output after it is quoted like any other.
 - A contested conflict reaches you as one question per hunk, the file, both sides and a
-  recommendation in front of you, and your files stay as git left them until you answer the last
-  one.
+  recommendation in front of you. The files whose every hunk is mechanical are written and staged
+  before the first question, and a file carrying a contested hunk stays as git left it until you
+  answer the last one.
 - A `trivial` request costs you one message, start to finish.
 
 ## Where it fits

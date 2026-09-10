@@ -71,6 +71,16 @@ has "the page promises the contested path the skill ships" "$page" \
   "the run aborts the rebase, leaves your branch as it"
 lacks "the page no longer promises the conflict it cannot decide is brought to the reader" "$page" \
   "is brought to you rather than guessed at"
+# The script's first call writes and stages every all-mechanical file before it asks anything, so
+# only the answers wait for the last one: the page promising that nothing is written until then
+# tells a reader who walks away that files git had left unmerged are still unmerged.
+has "the page says the all-mechanical files are written before the first question" "$page" \
+  "whose every hunk is mechanical are written and staged before the first question"
+has "the script's first call still writes the all-mechanical files" "$repo/skills/do/scripts/contested.sh" \
+  "Every call first writes and stages each file whose hunks are all mechanical"
+lacks "the page no longer promises nothing is written until the last answer" "$page" \
+  "written until you answer the last one" \
+  "your files stay as git left them until you answer the last"
 has "the Prerequisites intro claims only what the first message carries" "$page" \
   "The first message reports one of them, the loop line"
 lacks "the Prerequisites intro no longer claims all four are reported up front" "$page" \
