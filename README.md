@@ -98,6 +98,14 @@ ln -s ~/SKILLS/skills/do-code-review/agents/do-code-review-technical-reviewer.md
 ln -s ~/SKILLS/skills/do-code-review/agents/do-code-review-security-reviewer.md ~/.claude/agents/do-code-review-security-reviewer.md
 ```
 
+`do` ships one agent in its `agents/` folder, the reader its door forks over a Ticket's Spec and
+journey. It holds reading and search alone, and the run writes the Digest from what it returns.
+Link it by name so the door has a reader to fork.
+
+```bash
+ln -s ~/SKILLS/skills/do/agents/do-reader.md ~/.claude/agents/do-reader.md
+```
+
 Maintainers of this repo can run `scripts/link-skills.sh` to relink every skill at once; it is a
 dev-only script, not a supported installer.
 

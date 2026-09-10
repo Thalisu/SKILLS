@@ -109,8 +109,14 @@ lacks "the door takes no reading across the fork and stops on no other path" "$r
   "git status --short --ignored -- .scratch/" \
   "the only one that may differ" \
   "Any other path stops the run in one line naming it"
-has "the invocation contract carries a row for the reader" "$repo/.agents/invocation.md" \
-  "| \`do\`'s reader |"
+# The reader is a second door into `do`, and only its description and the contract's row close it.
+has "the invocation contract's row names the reader do ships and its one caller" \
+  "$repo/.agents/invocation.md" "| \`do-reader\` | \`do\`, user-invoked |" \
+  "skills/do/agents/do-reader.md" "\`do\`'s door is its only caller"
+lacks "the invocation row no longer says the reader ships no definition" "$repo/.agents/invocation.md" \
+  "It ships no definition of its own"
+has "the README links the reader do ships" "$repo/README.md" \
+  "ln -s ~/SKILLS/skills/do/agents/do-reader.md ~/.claude/agents/do-reader.md"
 
 # The reader reads a stranger's text, so what bounds it is the tool list the harness enforces and
 # never its brief: an agent `do` ships, forked by `do` alone, holding reading and search alone.
