@@ -7,6 +7,21 @@ following the [Agent Skills](https://docs.claude.com/en/docs/claude-code/skills)
 where it sits among the others. A skill that reads a project writes what it learns inside that
 project and commits it there; nothing project-derived is ever kept in this repository.
 
+## Usage
+
+The main path for a task, from idea to built code:
+
+| Step | Command            | What it does                                                                                              |
+| ---- | ------------------ | --------------------------------------------------------------------------------------------------------- |
+| 1    | `/discuss`         | Interview you about the plan, one question at a time; terms land in `CONTEXT.md`, hard calls in ADRs      |
+| 2    | `/spec`            | Turn the conversation into a spec, published where the project's issue tracker points                     |
+| 3    | `/clear`           | Drop the conversation; everything the next steps need is in the spec now                                  |
+| 4    | `/journey <spec>`  | Only when the spec's verdict says `Journey: required`: walk every path of the spec from the actor's seat  |
+| 5    | `/tickets <spec>`  | Cut the spec, and its journey when there is one, into tracer-bullet tickets with blocking edges           |
+| 6    | `/do <ticket>`     | Build one ticket; run it once per ticket, in the order the blocking edges allow                           |
+
+`spec` prints the next command when it closes, so step 4 is either `/journey` or skipped straight to `/tickets`.
+
 Grouped by who can fire the skill; the contract is in [`.agents/invocation.md`](.agents/invocation.md).
 
 ## User-invoked
