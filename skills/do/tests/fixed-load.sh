@@ -543,12 +543,29 @@ after "the withheld row is read before the row for a session that lists no sketc
 grader="$repo/skills/do/evals/withheld-agent-tool/graders/no-sketch-fork-session-writes-sketch.md"
 has "the withheld-agent-tool eval grades the session writing the Sketch itself" "$grader" \
   "type: llm" "01-archive-a-note.sketch.md" "no Agent tool call"
+# The sketch agent returns the Sketch as text and the session files it, so the containment check,
+# the ignore probe and the write are read in step 3 alone: the close step names `.gitignore` too.
+shape_step="$(mktemp)"
+awk '/^\*\*3\. Shape\.\*\*/ { on = 1 } /^\*\*4\. Behaviours\.\*\*/ { on = 0 } on' \
+  "$refs/ticket.md" > "$shape_step" 2>/dev/null
+lacks "what comes back from the sketch agent is no longer the Sketch's location" "$refs/ticket.md" \
+  "What comes back is the Sketch's location"
+has "the shape step checks with readlink -m that the destination stays under the root's .scratch" \
+  "$shape_step" "readlink -m" "<root>/.scratch" 'case "$dest" in "$scratch"/*)'
+has "the shape step probes the scratch ignore and appends the .scratch/ line to .gitignore when owed" \
+  "$shape_step" "git check-ignore -v .scratch/" ".scratch/" ">> .gitignore"
+has "the shape step writes the Sketch whole from the text the agent returns" "$shape_step" \
+  "whole" "the text the agent return"
+after "the containment check runs before the ignore probe appends anything" "$shape_step" \
+  "git check-ignore -v .scratch/" "readlink -m"
+after "the containment check and the ignore probe come before the Sketch is written" "$shape_step" \
+  "the text the agent return" "readlink -m" "git check-ignore -v .scratch/"
 
 # The estimator runs against a scaffolded skill and project whose files have known sizes, so every
 # term it prints is a number this script can state: 4000 bytes is 1000 tokens.
 estimator="$repo/skills/do/scripts/estimate-load.sh"
 tmp="$(mktemp -d)"
-trap 'rm -rf "$tmp"' EXIT
+trap 'rm -rf "$tmp" "$shape_step"' EXIT
 skill="$tmp/skills/do"
 mkdir -p "$skill/scripts" "$skill/references" "$tmp/.agents/formats" "$tmp/docs/adr" "$tmp/t"
 cp "$estimator" "$skill/scripts/" 2>/dev/null

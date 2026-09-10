@@ -269,13 +269,36 @@ and its criteria; the map, the subsystem as the ground step took it; the Digest'
 the repository root, the main checkout's absolute path; and where the Sketch goes, the absolute
 path beside the Ticket in the main checkout with `.sketch` before the extension, or, for a Ticket
 that is not a local file, the issue's reference under `.scratch/sketches/` there.
+Before it forks, the destination the brief names goes through one check, with `<root>` the
+repository root the brief names:
+
+```sh
+dest="$(readlink -m <the destination>)"; scratch="$(readlink -m <root>/.scratch)"
+case "$dest" in "$scratch"/*) echo inside ;; *) echo refused ;; esac
+```
+
 Before it waits on the fork, the run names in one line what it handed over. The fork explores
 the rival shapes in a window of its own, per
 [guard-the-context-window](../../../.agents/principles/guard-the-context-window.md), stops at the
-Sketch and implements nothing. What comes back is the Sketch's location and the shape in one line,
-and the run names the Sketch's location and the shape in one line in the thread: the types, the
-signatures and the module boundaries. It opens the Sketch when a behaviour needs more than that
-line, and never restates the rivals, which stay in the file.
+Sketch, implements nothing and writes nothing. What comes back is the Sketch's text and the shape
+in one line, and the session files it, per [scratch.md](../../../.agents/scratch.md). It reads
+whether the project's own committed file carries the scratch ignore:
+
+```sh
+( cd <root> && git check-ignore -v .scratch/ )
+```
+
+A first field of `.gitignore` owes nothing; anything else owes the line, appended before the
+write and said in one line:
+
+```sh
+( cd <root> && { grep -qxF '.scratch/' .gitignore 2>/dev/null || printf '.scratch/\n' >> .gitignore; } )
+```
+
+Then the session writes the Sketch whole at the destination, the text the agent returned and
+nothing added, and the run names the Sketch's location and the shape in one line in the thread:
+the types, the signatures and the module boundaries. It opens the Sketch when a behaviour needs
+more than that line, and never restates the rivals, which stay in the file.
 
 The build is held to the Sketch, or to the shape in hand when no Sketch was filed. The loop
 implements it one behaviour at a time, and every test still goes through a test author; a symbol
