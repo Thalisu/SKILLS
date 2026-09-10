@@ -42,9 +42,8 @@ for kind in unit e2e; do
     "## Project map" "The Project map is not in this file."
   if grep -q '—' "$agent"; then fail "global-$kind-test-author carries no em-dash"; else ok "global-$kind-test-author carries no em-dash"; fi
 done
-has "the README links both global authors by name" "$repo/README.md" \
-  "ln -s ~/SKILLS/skills/do/agents/global-unit-test-author.md ~/.claude/agents/global-unit-test-author.md" \
-  "ln -s ~/SKILLS/skills/do/agents/global-e2e-test-author.md ~/.claude/agents/global-e2e-test-author.md"
+has "the README names both global authors among the agents the install links" "$repo/README.md" \
+  "| \`do\` | \`do-reader\`, \`global-unit-test-author\`, \`global-e2e-test-author\` |"
 has "the invocation contract names both global authors and their caller" "$repo/.agents/invocation.md" \
   "| \`global-unit-test-author\` | \`do\`, user-invoked |" "| \`global-e2e-test-author\` | \`do\`, user-invoked |"
 

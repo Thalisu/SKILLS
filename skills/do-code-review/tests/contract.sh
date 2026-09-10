@@ -645,9 +645,8 @@ done < <(grep -o '](\([^)]*\))' "$page" 2>/dev/null | sed 's/^](//; s/)$//')
 expect "every link on the docs page resolves from docs/" test "$links_ok" = 1
 ordered "the top-level README lists the skill under Model-invoked" "$repo/README.md" \
   "## Model-invoked" "| [\`do-code-review\`](skills/do-code-review/SKILL.md) |" "[docs/do-code-review.md](docs/do-code-review.md)" "## Vendored"
-has "the top-level README says how the three agents are linked" "$repo/README.md" \
-  "skills/do-code-review/AGENT.md" "skills/do-code-review/agents/do-code-review-technical-reviewer.md" \
-  "skills/do-code-review/agents/do-code-review-security-reviewer.md"
+has "the top-level README names the three agents the install links" "$repo/README.md" \
+  "| \`do-code-review\` | \`do-code-review\`, \`do-code-review-technical-reviewer\`, \`do-code-review-security-reviewer\` |"
 ordered "the skills README lists the skill under Model-invoked" "$repo/skills/README.md" \
   "## Model-invoked" "| [\`do-code-review\`](do-code-review/SKILL.md) |"
 has "the invocation contract names the skill as model-invoked" "$repo/.agents/invocation.md" "\`test-triage\` and \`do-code-review\` are model-invoked"

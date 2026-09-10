@@ -171,8 +171,8 @@ ordered "the top-level README lists the skill under User-invoked" "$repo/README.
   "## User-invoked" "| [\`sketch\`](skills/sketch/SKILL.md) |" "## Model-invoked"
 expect "the top-level README's \`sketch\` row carries the page link in its own docs cell" \
   grep -qE "^\| \[\`sketch\`\]\(skills/sketch/SKILL\.md\) \|.*\[docs/sketch\.md\]\(docs/sketch\.md\)" "$repo/README.md"
-has "the top-level README says how the agent is linked" "$repo/README.md" \
-  "skills/sketch/AGENT.md ~/.claude/agents/sketch.md"
+has "the top-level README names the agent the install links" "$repo/README.md" \
+  "| \`sketch\` | \`sketch\`, forked by \`/sketch\`"
 ordered "the skills README lists the skill under User-invoked" "$repo/skills/README.md" \
   "## User-invoked" "| [\`sketch\`](sketch/SKILL.md) |" "## Model-invoked"
 has "the invocation contract names the skill as user-invoked" "$repo/.agents/invocation.md" \
@@ -184,12 +184,12 @@ has "the invocation contract's table gains the agent row" "$repo/.agents/invocat
 # .agents/invocation.md: the step and the claim land in the same change.
 if grep -rqF -- "subagent_type: sketch" "$repo/skills/do" 2>/dev/null; then
   has "the pages name do, whose shape step forks the agent" "$repo/README.md" \
-    "and so does \`do\` at its shape step"
+    "and by \`do\` at its shape step"
   has "the docs page names do, whose shape step forks the agent" "$page" \
     "whose shape step calls this one"
 else
   lacks "the top-level README names no caller the tree does not carry" "$repo/README.md" \
-    "and so does \`do\` at its shape step"
+    "and by \`do\` at its shape step"
   lacks "the docs page names no caller the tree does not carry" "$page" \
     "\`do\` reaches it too" "whose shape step calls this one" "\`do\` calls it at its shape step" \
     "\`do\` reaches the agent it ships instead"
