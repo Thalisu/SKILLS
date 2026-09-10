@@ -168,6 +168,15 @@ has "a second deviation of the same shape stops the run as a wrong Sketch, namin
   "$refs/ticket.md" "stops the run as a wrong Sketch" "the message naming \`discuss\`"
 lacks "the contract is the Sketch file, never a lowercase sketch in the thread" "$refs/ticket.md" \
   "as a wrong sketch" "implements the sketch under the loop" "A symbol the sketch adds"
+# The step never names a shape twice. A resume runs the shape step again without a write, and the
+# Sketch the first run filed is the shape it finds, so the fork is the table's last line.
+has "a Sketch already beside the Ticket is a shape in hand, so a resume forks no second sketch" \
+  "$refs/ticket.md" "a Sketch already beside the Ticket, which is what a resume finds"
+has "no boundary crossed reads the skip and goes on to the behaviours list" "$refs/ticket.md" \
+  '`skip: no boundary crossed`, and the run goes on to the behaviours list'
+after "the skip and a shape in hand are read before the fork" "$refs/ticket.md" \
+  'call the Agent tool with `subagent_type: sketch`' \
+  '`skip: no boundary crossed`' "a Sketch already beside the Ticket"
 
 # No em-dash in the prose this feature writes, per CLAUDE.md.
 lacks "no em-dash in the Digest reference" "$refs/digest.md" "$emdash"
