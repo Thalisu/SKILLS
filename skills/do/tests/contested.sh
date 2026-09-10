@@ -310,4 +310,41 @@ check "the answer still names its hunk once the mechanical file is written" 0 "$
 expect "the rebase continues from a stop that mixed the two classes" \
   g -c core.editor=true -c rerere.enabled=false rebase --continue
 
+# A mixed stop whose two additions end on the same line. Git's union keeps that shared line once,
+# which the presentation the questions come from does not, so each written file is held to what
+# `git merge-file --union` makes of the same hunks.
+fresh shared-line
+printf 'a\nb\n' > mech.txt
+printf 'x\ny\nz\n' > both.txt
+seq 1 10 > mixed.txt
+commit base
+g switch -q -c do/run
+printf 'a\nI1\nCOMMON\nb\n' > mech.txt
+printf 'x\nINCOMING\nCOMMON\nz\n' > both.txt
+{ seq 1 2; printf 'I\nSHARED\n'; seq 3 7; echo I8; seq 9 10; } > mixed.txt
+commit incoming
+g switch -q main
+printf 'a\nT1\nCOMMON\nb\n' > mech.txt
+printf 'x\nTARGET\nCOMMON\nz\n' > both.txt
+{ seq 1 2; printf 'T\nSHARED\n'; seq 3 7; echo T8; seq 9 10; } > mixed.txt
+commit target
+g switch -q do/run
+g rebase main >/dev/null 2>&1
+for f in mech both; do
+  for s in 1 2 3; do git cat-file blob ":$s:$f.txt" > "$tmp/$f.$s"; done
+  git merge-file --union -p "$tmp/$f.2" "$tmp/$f.1" "$tmp/$f.3" > "$tmp/$f.union"
+done
+{ seq 1 2; printf 'T\nI\nSHARED\n'; seq 3 7; echo T8; seq 9 10; } > "$tmp/mixed.expected"
+run; first="$(sed -n 's/^id //p' <<<"$out")"
+check "the first call writes the all-mechanical file whose additions share a line" 1 "$rc" \
+  "wrote mech.txt" "Conflict 1 of 2 · both.txt"
+expect "that file is byte-equal to git's union of its three stages" cmp -s mech.txt "$tmp/mech.union"
+run "$first:both"; second="$(sed -n 's/^id //p' <<<"$out")"
+run "$first:both" "$second:target"
+check "the answers write the files that carry a contested hunk" 0 "$rc" "wrote both.txt" "wrote mixed.txt"
+expect "both on a hunk whose sides share a line is byte-equal to git's union of the stages" \
+  cmp -s both.txt "$tmp/both.union"
+expect "a mechanical hunk beside a contested one keeps the shared line once" \
+  cmp -s mixed.txt "$tmp/mixed.expected"
+
 if [ "$fails" = 0 ]; then echo "all ok"; else echo "$fails failing"; exit 1; fi

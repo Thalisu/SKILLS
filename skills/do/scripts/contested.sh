@@ -215,20 +215,32 @@ ask() { # $1 position of the hunk among the contested ones, from 0
 # off again, into the path itself so the file keeps its mode. A side's last line reaches the merged
 # file with a newline git added before the marker, so the file ends the way the side its last line
 # came from ends.
+#
+# A hunk that takes both is git's union of its own three sections, never its Target section followed
+# by its Incoming one: the --diff3 presentation keeps a line both sides added inside the hunk, where
+# the union rule of an all-mechanical stop keeps it once.
 resolve() { # $1 path, $2 the file as the report prints it
   local path="$1" field="$2" n=0 section=outside word="" line from=merged
   regenerate "$path"
   : > "$tmp/out"
   while IFS= read -r line || [ -n "$line" ]; do
     case "$line" in
-      '<<<<<<< '*) n=$((n + 1)); section=target; word="${answer_at["$field#$n"]:-}" ;;
+      '<<<<<<< '*) n=$((n + 1)); section=target; word="${answer_at["$field#$n"]:-}"
+                   : > "$tmp/h1"; : > "$tmp/h2"; : > "$tmp/h3" ;;
       '||||||| '*) section=base ;;
       '=======')   section=incoming ;;
-      '>>>>>>> '*) section=outside ;;
+      '>>>>>>> '*) section=outside
+                   if [ "$word" = both ]; then
+                     git merge-file --union -p "$tmp/h2" "$tmp/h1" "$tmp/h3" >> "$tmp/out"
+                     if [ -s "$tmp/h3" ]; then from=s3; elif [ -s "$tmp/h2" ]; then from=s2; fi
+                   fi ;;
       *) case "$section:$word" in
-           outside:*)                       from=merged ;;
-           target:target|target:both)       from=s2 ;;
-           incoming:incoming|incoming:both) from=s3 ;;
+           outside:*)          from=merged ;;
+           target:target)      from=s2 ;;
+           incoming:incoming)  from=s3 ;;
+           target:both)        printf '%s\n' "${line# }" >> "$tmp/h2"; continue ;;
+           base:both)          printf '%s\n' "${line# }" >> "$tmp/h1"; continue ;;
+           incoming:both)      printf '%s\n' "${line# }" >> "$tmp/h3"; continue ;;
            *) continue ;;
          esac
          printf '%s\n' "${line# }" >> "$tmp/out" ;;
