@@ -468,13 +468,16 @@ for f in "$mech" "$ticket" "$bugfix" "$refactor"; do
     "refs/heads/"
 done
 resume="$repo/skills/do/scripts/resume-state.sh"
+# shellcheck disable=SC2016  # the variables are part of the fixed strings resume-state.sh carries
 has "resume-state.sh resolves the developer's own branch to a qualified ref before it is read" \
   "$resume" \
   'base_ref="refs/heads/$base"'
+# shellcheck disable=SC2016
 has "resume-state.sh's merge base and commit list read the qualified ref, never the bare name" \
   "$resume" \
   'merge-base "$base_ref" "refs/heads/$branch"' \
   'rev-list --reverse "$base_ref..refs/heads/$branch"'
+# shellcheck disable=SC2016
 lacks "resume-state.sh no longer feeds the bare developer's branch name to merge-base" \
   "$resume" \
   'merge-base "$base" "refs/heads/$branch"'
