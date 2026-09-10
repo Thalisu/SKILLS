@@ -352,9 +352,17 @@ writes its own summary; the delegate's summary is never passed through.
 ## The gate
 
 Run in the worktree after the last edit, never earlier, per
-[prove-it-works](../../../.agents/principles/prove-it-works.md): the full unit suite, the
-typecheck, the lint and the format check. "Passed earlier" is stale; a check that ran before the
-last edit runs again.
+[prove-it-works](../../../.agents/principles/prove-it-works.md): the unit tests the run added and
+the ones covering the code it touched, the typecheck, the lint and the format check. "Passed
+earlier" is stale; a check that ran before the last edit runs again.
+
+The full suites follow the project's **Post-feature gate** in Project facts and run once per
+feature, never on every Ticket. The feature's last Ticket is the run's Ticket when every other
+Ticket of its Spec already reads `resolved`, and any run with no Spec behind it. There, the gate
+adds the full unit suite when the line reads `full unit suite` or `both`, and the full E2E suite
+of `full E2E suite` or `both` runs in the verification from the main checkout, where a full suite
+waits for the developer's yes; `none` adds nothing. Facts with no **Post-feature gate** line run
+the full unit suite on every Ticket.
 
 The commands come from the project's facts, the Testing Policy's Project facts in `CLAUDE.md`. A
 command the facts do not carry comes from the repository's own scripts (`package.json` scripts, a
@@ -378,8 +386,8 @@ returned, and the script exits 0 on `verdict=green`, 1 on `verdict=red` and 3 on
 - A tool timeout is "did not finish", neither red nor green: the command line is reported and the
   run stops.
 
-Done when the suite and the typecheck are green in output produced after the last edit, and every
-other check is green or reads `skip: <reason>`.
+Done when the unit tests the gate runs and the typecheck are green in output produced after the
+last edit, and every other check is green or reads `skip: <reason>`.
 
 ## The integration
 
