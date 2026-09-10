@@ -130,6 +130,10 @@ has "a second run re-forks and names the document that changed" "$refs/mechanics
   "re-forks the reader" \
   "names which of the two changed" \
   "Both hashes are compared before the run decides"
+# The door hashes both documents itself before it forks, so on a second run it is the door's own
+# earlier reading it recomputes against, never a command the reader ran: the reader runs no command.
+lacks "the second run recomputes what the door itself ran before the fork, never the reader's" \
+  "$refs/mechanics.md" "the reader ran"
 # The contract's own command is run here, not a copy of it: a Sources line that recorded a
 # modification time would report an untouched Spec as changed after any checkout, and go red.
 expect "the command the contract records ignores a touch and catches an edit" \

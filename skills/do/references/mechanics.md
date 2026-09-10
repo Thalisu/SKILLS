@@ -133,7 +133,7 @@ resume or on a `/do` typed again on the same Ticket. Before it dispatches anythi
 resolves both paths from the Ticket itself and never from the Digest: the Spec is the spec file in
 the folder above the Ticket's `issues/` folder, and the journey is the one that Spec's `Journey:`
 line names. Then it recomputes the hash of each document at the path it resolved, with the same
-`git hash-object` the reader ran, and compares the pair with the pair the Digest's `## Sources`
+`git hash-object` it ran before the fork, and compares the pair with the pair the Digest's `## Sources`
 records.
 
 - Both match: the run reuses it, forks no second reader, and says in one line that it reused it.
