@@ -181,6 +181,34 @@ has "the choice-taker names the ticket Playbook's shape or build step as its one
 expect "the choice-taker's description ends on never on your own initiative" \
   sh -c 'case "$1" in *"Never on your own initiative." | *"Never on your own initiative.\"") ;; *) exit 1 ;; esac' \
   _ "$(front description)"
+# A Design fork the run meets at its shape or build step is ruled inside the run: the run names the
+# fork and both its sides in one line and forks the choice-taker by name with them, where it once
+# stopped naming `discuss`. The rule lives once in the Forks section, and each step that can meet a
+# fork sends it there, so a pin on the file as a whole would pass on a rule stated in the wrong place.
+span_has() { # $1 label, $2 file, $3 the span's opening line, $4 the next span's opening, $5.. fixed strings the span must carry, newlines flattened
+  local label="$1" file="$2" open="$3" close="$4"
+  shift 4
+  local ok=1 body line
+  body="$(awk -v a="$open" -v b="$close" 'index($0, a) == 1 { s = 1 } s && index($0, b) == 1 { exit } s' "$file" 2>/dev/null |
+    tr '\n' ' ' | tr -s ' ')"
+  [ -n "$body" ] || ok=0
+  for line in "$@"; do [ "$ok" = 1 ] && grep -qF -- "$line" <<<"$body" || ok=0; done
+  if [ "$ok" = 1 ]; then echo "ok    $label"; else
+    echo "FAIL  $label ($file)"
+    fails=$((fails + 1))
+  fi
+}
+span_has "a Design fork is named with both sides in one line and ruled by the choice-taker forked by name" \
+  "$refs/mechanics.md" "### Forks" "### Delegates" \
+  "Design fork" "says in one line" "both sides" "subagent_type: choice-taker"
+expect "the Forks section no longer stops the run on a design fork" \
+  sh -c '! printf %s "$1" | grep -qF "the Spec is incomplete: the run stops at its step"' _ "$(flat "$refs/mechanics.md")"
+span_has "the shape step sends a Design fork it meets to the forks rule" "$refs/ticket.md" \
+  "**3. Shape.**" "**4. Behaviours.**" "Design fork" "the forks in [mechanics.md](mechanics.md)"
+span_has "the build step sends a Design fork it meets to the forks rule" "$refs/ticket.md" \
+  "**5. Build loop.**" "**6. E2E flows.**" "Design fork" "the forks in [mechanics.md](mechanics.md)"
+expect "the behaviours step no longer says a design fork found there stops the run" \
+  sh -c '! printf %s "$1" | grep -qF "A design fork found here stops the run"' _ "$(flat "$refs/ticket.md")"
 # A session whose Agent tool does not list `do-reader` has no agent by that name to fork, so the
 # only fallback left open must never be a general-purpose fork holding write tools over the same
 # brief: the session does the reading and the write itself, stated before the fork is even called.

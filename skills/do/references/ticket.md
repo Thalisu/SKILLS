@@ -281,7 +281,9 @@ The build is held to the Sketch, or to the shape in hand when no Sketch was file
 implements it one behaviour at a time, and every test still goes through a test author; a symbol
 it adds is checked the way step 2 says. A deviation from that contract during the build is
 surfaced in the reply, and a second deviation of the same shape stops the run as a wrong Sketch,
-the deviations listed, the worktree and its branch named, the message naming `discuss`. Done
+the deviations listed, the worktree and its branch named, the message naming `discuss`. A
+Design fork the shape meets, two shapes the Ticket, its Spec and the code cannot settle, goes to
+the forks in [mechanics.md](mechanics.md). Done
 when the shape is in the thread, with the Sketch's location when a Sketch was filed, or the skip.
 
 **4. Behaviours.** The run names the Digest's location and restates it in one line, its Journey
@@ -306,13 +308,14 @@ the second ask a surface the session cannot reach gets on the fixed build, `bug-
 is asked here at step 5, once the `bugfix` line's fix is green in the loop, and a defect that will
 not reproduce even when forced stops this run as blocked, the Ticket left `claimed` and the
 worktree and its branch in place and named, never removed, since the close here is step 11's and
-a blocked run closes nothing. A design fork found here stops
-the run (the forks in [mechanics.md](mechanics.md)). Show the list once; the loop starts on the
+a blocked run closes nothing. A Design fork found here goes to
+the forks in [mechanics.md](mechanics.md). Show the list once; the loop starts on the
 developer's silence. Done when the list is in the thread.
 
 **5. Build loop.** The build loop in [mechanics.md](mechanics.md), one behaviour per dispatch,
 under the loop the first message named. Each behaviour is one line in the thread as it lands: the
-line, `RED_AS_EXPECTED`, green, the commit. Done when every line has a commit beside it.
+line, `RED_AS_EXPECTED`, green, the commit. A Design fork a behaviour meets goes to the forks in
+[mechanics.md](mechanics.md). Done when every line has a commit beside it.
 
 **6. E2E flows.** The surface is the one the project's Testing Policy names on its section
 marker. On a native or mixed surface, every user-observable change (a screen, a flow, a
