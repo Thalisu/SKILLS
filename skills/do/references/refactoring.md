@@ -88,8 +88,14 @@ sent.
 ### 2. Worktree
 
 The worktree in [mechanics.md](mechanics.md), created from the current HEAD on `do/<slug>`, where
-`<slug>` is the request's slug, excluded locally, entered with a bare `cd`. Done when its status
-prints nothing and the branch name is in the thread.
+`<slug>` is the request's slug, excluded locally, entered with a bare `cd`. The step probes before it
+creates: a `do/<slug>` worktree or branch that already exists is an earlier run of this request,
+and the Resume of [bug-fix.md](bug-fix.md) takes the step over, the way it reads that state there,
+so an existing worktree is entered, a gone one is recreated on the existing branch, and a Review of
+the branch that counts lands through the fix call on it, never a second review. The run continues
+at the first step its branch does not evidence: a branch carrying its cleanup commit, the one a
+`not landed: target moved` return leaves, resumes at step 10. Done when its status prints nothing
+and the branch name is in the thread.
 
 ### 3. Pin
 

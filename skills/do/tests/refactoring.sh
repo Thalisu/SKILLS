@@ -35,6 +35,11 @@ has_flat_nocase "the first message carries the protected-branch warning" "$ref" 
 has_flat_nocase "the checklist is copied verbatim" "$ref" "Copied verbatim into the run"
 has_flat_nocase "the door refuses a behaviour change" "$ref" "/discuss"
 has_flat_nocase "the worktree is the shared one" "$ref" "](mechanics.md)"
+para_has "a refactoring request typed again enters the run's existing worktree and branch through bug-fix's Resume, linked" \
+  "$ref" "The worktree in [mechanics.md](mechanics.md), created from the current HEAD" \
+  "probes before it creates" "[bug-fix.md](bug-fix.md)" "Resume"
+lacks "the resume's rules live once, in bug-fix.md, never copied into the reference" "$ref" \
+  "git log -g --format=%H" "git branch --list do/<slug>"
 lacks "no em-dash in the reference" "$ref" "$emdash"
 lacks "no em-dash in the skill file" "$skillfile" "$emdash"
 lacks "no em-dash in the mechanics" "$mechanics" "$emdash"
