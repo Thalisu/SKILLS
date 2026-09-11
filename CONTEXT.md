@@ -67,6 +67,18 @@ signatures and the module boundaries, with unimplemented bodies. Written by the 
 _Avoid_: design, design doc, blueprint, plan, architecture, prototype (a prototype is runnable and
 throwaway, a **Sketch** is the contract the build is held to)
 
+**Design fork**:
+Two shapes a `do` run's work could take that neither the **Ticket**, its **Spec** nor the code
+settles.
+_Avoid_: blocker, gap, open question, empirical fork (a fact a probe script can observe is never a
+**Design fork**)
+
+**Extreme fork**:
+A **Design fork** one of whose sides weakens a guarantee in a risk class (security, privacy, data
+loss, auth, billing, migration, idempotency, race) or cannot be undone once landed.
+_Avoid_: dangerous, harmful, big decision, sensitive (each is a judgment a run makes differently
+every time; the test is whether a side weakens a guarantee or cannot be undone)
+
 **Scratch**:
 The unversioned folder a project keeps its local chain artifacts in, `.scratch/`: a **Spec**, its
 **Journey**, its **Tickets** and the **Reviews** beside them. Always ignored by git, so it is one
@@ -201,6 +213,9 @@ conflict)
 - A **Sketch** is written only when a **Ticket**'s work crosses a function boundary and neither
   the **Ticket**, its **Spec** nor a prototype already carries one; the build is held to it, and
   a second deviation of the same shape stops the run
+- A **Design fork** is settled inside the run by the `choice-taker` agent, on the norm the repo
+  writes down when one backs a side and on the side easiest to undo when none does; only an
+  **Extreme fork** stops the run and goes to `discuss`
 - A **Digest** carries the **Spec** stories and Testing Decisions and the **Journey** **Path**
   one **Ticket** is cut from, and is what the `do` run derives its behaviours from; the run
   opens neither document itself
@@ -312,3 +327,7 @@ conflict)
 - "gate" was used for the Ticket's own tests passing after the fixes. Resolved: the **Gate** is
   the full set of checks, run once before a landing; the tests the diff touched are the **Diff
   tests**, the fast check the **Fixers** are held to first.
+- "extreme" and "too harmful for the AI" were the words for the fork a run must not settle alone.
+  Resolved: that is an **Extreme fork**, a side that weakens a guarantee in a risk class or cannot
+  be undone once landed; touching a risk class is not enough, since both sides can keep the
+  guarantee whole.
