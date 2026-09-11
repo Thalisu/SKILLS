@@ -212,8 +212,8 @@ printed it, the capped lines and never the full log or the Review, the branch it
 
 As a Fixer does, the Gate fixer writes its line to its return file, and it is waited for the same
 way, three windows and no more. One whose file never lands ends the attempts, since it may still be
-writing in the tree: nothing lands, and the landing line reads
-`not landed: gate red after the fixes, <the failing check>`.
+writing in the tree: nothing lands, the `## Fix run` section reads `- gate fixer: no return`, and
+the landing line reads `not landed: gate fixer did not return, <the failing check>`.
 
 After each attempt the orchestrator runs every Finding's check, the Diff tests and the Gate again
 itself, and never takes the Gate fixer's word for it. Green, and the run goes on. Red after the

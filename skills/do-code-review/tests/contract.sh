@@ -53,6 +53,12 @@ has "a red Gate after the retry's rebase has its own not-landed reason" "$format
   "not landed: gate red after the rebase onto <target>, <the failing check>"
 has "a red that outlives the Gate fixer has its own not-landed reason" "$format" \
   "not landed: gate red after the fixes, <the failing check>"
+# A Gate fixer attempt that never returns may still be writing in the tree, so its `gate fixer:`
+# value and its landing reason are their own, never the two-full-attempts wording.
+has "a Gate fixer that never returns has its own gate-fixer value and not-landed reason" "$format" \
+  "\`- gate fixer: no return\`" "not landed: gate fixer did not return, <the failing check>"
+has "the not-fixed row covers a Fixer that never returned" "$format" \
+  "or never returned, so nothing is known to have been dropped"
 lacks "no line of the format names the suite where the Gate runs" "$format" "- suite:" "suite red after"
 has "the format says a second fix appends and a plain run overwrites" "$format" \
   "a second \`fix\` appends a second section" "overwrites"

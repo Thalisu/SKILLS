@@ -203,7 +203,7 @@ Then one line per `Act on` Finding, by its number, in the file's order, in one o
 | `- <n>: fixed <sha>, verified (<the check>)` | the Fixer committed it and the check its `Fix:` named passed when the run re-ran it |
 | `- <n>: fixed <sha>, not verified` | the Fixer committed it and the Finding named no check to re-run |
 | `- <n>: stale` | the location no longer matches the tree, so the code was left alone and no commit was made for it |
-| `- <n>: not fixed: <the reason>` | the Fixer could not turn it green and dropped its edits for it, or never reached it |
+| `- <n>: not fixed: <the reason>` | the Fixer could not turn it green and dropped its edits for it, never reached it, or never returned, so nothing is known to have been dropped |
 
 A Review whose `Act on` is empty, or whose Findings an earlier fix already settled, forks no Fixer
 and creates no worktree: the section reads `nothing remained` on that line, then the Gate and the
@@ -212,7 +212,9 @@ landing, with the Diff tests reading `skip: no Fixer commit`.
 Then three lines, in this order. The Diff tests, `- diff tests: <the commands>: <their result>`, or
 `- diff tests: skip: <the reason>`. The Gate fixer, `- gate fixer: not needed` when the Diff tests
 and the Gate were green the first time, `- gate fixer: <sha>` or `- gate fixer: <sha>, <sha>` for
-the attempts that turned them green, or `- gate fixer: two attempts, still red`. The Gate,
+the attempts that turned them green, `- gate fixer: two attempts, still red` for two attempts that
+ran and stayed red, or `- gate fixer: no return` for an attempt whose return file never landed. The
+Gate,
 `- gate: <the command line>: <its verdict>`. Then the landing on the last line:
 
 - `- landed at <sha>`, the landing target fast-forwarded to the branch the fix committed on.
@@ -230,7 +232,9 @@ the attempts that turned them green, or `- gate fixer: two attempts, still red`.
   defines twice, whose reason reads
   `not landed: target moved, <target> at <short sha>, conflicting <file> <file>`, each file as the
   conflict class script printed it. A Gate still red after the Gate fixer's two attempts reads
-  `not landed: gate red after the fixes, <the failing check>`; a Gate red with no Fixer commit
+  `not landed: gate red after the fixes, <the failing check>`; a Gate fixer attempt whose return
+  file never landed, which may still be committing in the tree, reads
+  `not landed: gate fixer did not return, <the failing check>`; a Gate red with no Fixer commit
   reads `not landed: gate red, <the failing check>`; a Gate that failed on its environment reads
   `not landed: gate blocked, <its cause>`; a Gate red after the retry's rebase reads
   `not landed: gate red after the rebase onto <target>, <the failing check>`.
