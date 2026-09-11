@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 # conflict-class.sh: the Conflict class of every conflicted hunk of a stopped rebase or a stopped
 # merge, so a developer can rerun the classification the run acted on. Run from anywhere inside the
-# project, with no arguments.
+# project.
 #
-#   conflict-class.sh    one line per conflicted hunk, then the verdict
+#   conflict-class.sh                one line per conflicted hunk, then the verdict
+#   conflict-class.sh --trusted -z   only the paths printed trusted, raw and NUL-terminated, and
+#                                    nothing else, exit 0: what the all-mechanical resolution stages
+#                                    before its union loop, so a hand resolution is never rewritten
 #
 # A hunk line reads: <class> <file> <location> [<shape>], the file always one whitespace-free field:
 # a path carrying a space, a tab, a newline, a quote or a backslash is printed in quotes with those
@@ -30,8 +33,13 @@
 # file is read for the hunk locations alone. The script writes nothing.
 set -uo pipefail
 
-usage() { echo "usage: conflict-class.sh" >&2; exit 2; }
-[ "$#" -eq 0 ] || usage
+usage() { echo "usage: conflict-class.sh [--trusted -z]" >&2; exit 2; }
+list_trusted=""
+case "$#:${1:-}:${2:-}" in
+  0::)             ;;
+  "2:--trusted:-z") list_trusted=1 ;;
+  *)               usage ;;
+esac
 
 top="$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "not a git repository" >&2; exit 2; }
 cd "$top" || exit 2
@@ -65,6 +73,10 @@ quote_path() { # $1 path
 
 emit() { # $1 class, $2 file, $3 location, $4 shape (contested only)
   local file
+  if [ -n "$list_trusted" ]; then
+    [ "$1" = trusted ] && printf '%s\0' "$2"
+    return 0
+  fi
   file="$(quote_path "$2")"
   case "$1" in
     mechanical) mechanical=$((mechanical + 1)); echo "mechanical $file $3" ;;
@@ -242,7 +254,7 @@ while IFS= read -r -d '' record; do
 done < <(git ls-files -u -z)
 
 if [ "${#paths[@]}" -eq 0 ]; then
-  echo "no conflicted state, nothing classed"
+  [ -n "$list_trusted" ] || echo "no conflicted state, nothing classed"
   exit 0
 fi
 
@@ -253,6 +265,7 @@ for path in "${paths[@]}"; do
     *)             emit contested "$path" whole-file unmergeable ;;
   esac
 done
+[ -z "$list_trusted" ] || exit 0
 
 if [ "$contested" -gt 0 ]; then
   echo "verdict=contested mechanical=$mechanical contested=$contested trusted=$trusted"

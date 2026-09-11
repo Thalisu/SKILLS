@@ -386,9 +386,13 @@ never enters a command line as text: pasted in, a single quote in it closes what
 in, and the `$(...)`, backtick, `;` or `|` after it runs as the run's own command. The two blocks
 below run as they stand, with nothing pasted into them, and each path reaches git through a shell
 variable, whose value is never evaluated again, or through `xargs -0`, which starts no shell. The
-first takes the three stages of every conflicted file out of the index and writes their union:
+first stages every file the script printed `trusted`, one the developer resolved by hand and never
+staged, from the script's own read-only list of them, so git no longer lists it unmerged and nothing
+below rewrites it; then it takes the three stages of every file still conflicted out of the index
+and writes their union:
 
 ```
+bash <skill-dir>/scripts/conflict-class.sh --trusted -z | xargs -0 -r git add --
 stages="$(mktemp -d)"
 git diff --name-only --diff-filter=U -z | while IFS= read -r -d '' file; do
   git show ":1:$file" > "$stages/base" && git show ":2:$file" > "$stages/target" &&
@@ -411,7 +415,8 @@ git diff --name-only --diff-filter=U -z | xargs -0 git add --
 Then the continue with the same prefix,
 `git -c rerere.enabled=false -c rerere.autoupdate=false rebase --continue`, carries the rebase to
 the next commit, and every further stop is classed and resolved the same way. The reply names every
-hunk it resolved with its file and location.
+hunk it resolved with its file and location, and every `trusted` file as taken on trust, kept as the
+developer wrote it: the run staged it and never read it for a key defined twice, since it is theirs.
 
 **A union that defines the same key twice.** A hunk classed `mechanical` says the two sides only
 added lines, never that the two additions mean the same thing. Where both sides added a definition

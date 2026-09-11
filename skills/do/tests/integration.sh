@@ -137,11 +137,13 @@ lacks "no conflicted path is pasted into a command line" "$mech" "'<path>'" "git
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 blocks_of() { # $1 file, $2 the heading whose section holds the resolution: its fenced blocks, unindented
-  awk -v h="$2" '
-    $0 == h { on = 1; next }
+  # Optional: $3 the opening of the line from which blocks are read, $4 n: only the nth block from it
+  awk -v h="$2" -v a="${3:-}" -v n="${4:-0}" '
+    $0 == h { on = 1; from = (a == ""); next }
     on && !fence && /^#+ / { exit }
-    on && /^ *```/ { if (fence) fence = 0; else { fence = 1; match($0, /^ */); ind = RLENGTH }; next }
-    on && fence { print substr($0, ind + 1) }
+    on && !fence && !from && index($0, a) == 1 { from = 1 }
+    on && /^ *```/ { if (fence) fence = 0; else { fence = 1; if (from) k++; match($0, /^ */); ind = RLENGTH }; next }
+    on && fence && from && (n == 0 || k == n) { print substr($0, ind + 1) }
   ' "$1"
 }
 resolves_safely() { # $1 label, $2 file, $3 heading
@@ -168,6 +170,7 @@ resolves_safely() { # $1 label, $2 file, $3 heading
   expect "the path in $label's fixture is classed mechanical, so it reaches the block" test "$rc" = 0
   block="$(blocks_of "$2" "$3")"
   expect "$label carries a resolution block to run" test -n "$block"
+  block="${block//"<skill-dir>"/"$repo/skills/do"}"
   block="${block//"<path>"/"$evil"}"
   block="${block//"<base>"/"$dir.base"}"
   block="${block//"<target>"/"$dir.target"}"
@@ -182,6 +185,62 @@ resolves_safely() { # $1 label, $2 file, $3 heading
 resolves_safely "do's integration" "$mech" "## The integration"
 resolves_safely "the review's landing" "$repo/skills/do-code-review/references/fix.md" \
   "### A target that moved while the review ran"
+
+# A resumed run can meet a stop the developer already worked on and never staged: one file written as
+# the union of its stages, one resolved by hand. The all-mechanical blocks run as mechanics.md prints
+# them: the hand resolution is the developer's answer and comes out as they wrote it, staged, and the
+# union file's rewrite reaches the bytes it already held.
+resumed_stop_keeps_the_hand_resolution() {
+  local write mark rc
+  write="$(blocks_of "$mech" "## The integration" "**A rebase that stopped.**" 1)"
+  mark="$(blocks_of "$mech" "## The integration" "**A rebase that stopped.**" 2)"
+  expect "the all-mechanical stop carries its union block" test -n "$write"
+  expect "the all-mechanical stop carries its staging block" test -n "$mark"
+  printf '%s\n' "${write//"<skill-dir>"/"$repo/skills/do"}" >"$tmp/write.sh"
+  printf '%s\n' "$mark" >"$tmp/mark.sh"
+
+  fresh resumed-stop
+  printf 'a\nb\nc\nd\ne\nf\n' >union.txt
+  printf 'a\nb\nc\nd\ne\nf\n' >hand.txt
+  commit base
+  g branch inc
+  printf 'a\nTARGET ONE\nb\nc\nd\ne\nTARGET TWO\nf\n' >union.txt
+  printf 'a\nTARGET ONE\nb\nc\nd\ne\nTARGET TWO\nf\n' >hand.txt
+  commit target
+  g switch -q inc
+  printf 'a\nINCOMING ONE\nb\nc\nd\ne\nINCOMING TWO\nf\n' >union.txt
+  printf 'a\nINCOMING ONE\nb\nc\nd\ne\nINCOMING TWO\nf\n' >hand.txt
+  commit incoming
+  g -c rerere.enabled=false -c rerere.autoupdate=false rebase refs/heads/main >/dev/null 2>&1
+  g show ":1:union.txt" >"$tmp/union.1"
+  g show ":2:union.txt" >"$tmp/union.2"
+  g show ":3:union.txt" >"$tmp/union.3"
+  g merge-file --union -p "$tmp/union.2" "$tmp/union.1" "$tmp/union.3" >union.txt
+  printf 'a\nONE, merged by hand\nb\nc\nd\ne\nTWO, merged by hand\nf\n' >hand.txt
+  cp union.txt "$tmp/union.before"
+  cp hand.txt "$tmp/hand.before"
+
+  rc=0
+  # shellcheck disable=SC2034  # lib.sh's check reads $out
+  out="$(bash "$repo/skills/do/scripts/conflict-class.sh" 2>&1)" || rc=$?
+  check "the resumed stop is classed all-mechanical with the hand-resolved file trusted, so it reaches the block" \
+    0 "$rc" "trusted hand.txt whole-file hand-resolved" "verdict=mechanical mechanical=2 contested=0 trusted=1"
+
+  bash "$tmp/write.sh" >/dev/null 2>&1
+  expect "a resumed all-mechanical stop keeps the file resolved by hand byte for byte as the developer wrote it" \
+    cmp -s hand.txt "$tmp/hand.before"
+  expect "and rewrites the file already written as its stages' union to the bytes it already held" \
+    cmp -s union.txt "$tmp/union.before"
+
+  bash "$tmp/mark.sh" >/dev/null 2>&1
+  g show ":0:hand.txt" >"$tmp/hand.staged" 2>/dev/null
+  expect "and the staging block stages the file resolved by hand with the developer's bytes" \
+    cmp -s "$tmp/hand.staged" "$tmp/hand.before"
+  expect "after the staging block nothing at the resumed stop is left unmerged" \
+    test -z "$(g ls-files -u)"
+  cd "$repo" || exit 1
+}
+resumed_stop_keeps_the_hand_resolution
 
 # A developer who integrates by hand between two runs, by a merge and not a rebase, already carries
 # the developer's branch inside the run's own: rebasing onto it a second time has nothing left to
