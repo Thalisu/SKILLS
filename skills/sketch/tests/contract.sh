@@ -274,6 +274,41 @@ expect "from a subdirectory of the main checkout, the exit-0 destination is the 
   test "$sketch_dest_resolved" = "$sketch_want_dest"
 rm -rf "$sketch_tmp"
 
+# do's shape step runs its own containment check, in skills/do/references/ticket.md, before it
+# forks the agent. Run for real, against a main checkout whose `.scratch` is itself a symlink: the
+# resolved destination and the unresolved root/.scratch prefix must still refuse it, never compare
+# the two sides through the same link.
+door_snippet="$(awk '
+  /^Before it forks, the destination the brief names goes through one check/ { f = 1 }
+  f && /^```sh$/ { c++; if (c == 1) { p = 1; next } }
+  p && /^```$/ { exit }
+  p
+' "$repo/skills/do/references/ticket.md")"
+expect "the shape step's containment check is found in ticket.md" test -n "$door_snippet"
+
+door_tmp="$(mktemp -d)"
+mkdir -p "$door_tmp/outside" "$door_tmp/repo"
+ln -s "$door_tmp/outside" "$door_tmp/repo/.scratch"
+door_root="$(cd "$door_tmp/repo" && pwd -P)"
+door_dest="$door_root/.scratch/sketches/42.md"
+door_filled="${door_snippet//<the destination>/$door_dest}"
+door_filled="${door_filled//<root>/$door_root}"
+door_result="$(bash -c "$door_filled")"
+expect "a main checkout whose .scratch is a symlink is refused, never compared through the link" \
+  test "$door_result" = "refused"
+rm -rf "$door_tmp"
+
+door_tmp2="$(mktemp -d)"
+mkdir -p "$door_tmp2/repo/.scratch/sketches"
+door_root2="$(cd "$door_tmp2/repo" && pwd -P)"
+door_dest2="$door_root2/.scratch/sketches/42.md"
+door_filled2="${door_snippet//<the destination>/$door_dest2}"
+door_filled2="${door_filled2//<root>/$door_root2}"
+door_result2="$(bash -c "$door_filled2")"
+expect "a plain .scratch directory still lets a destination inside it through" \
+  test "$door_result2" = "inside"
+rm -rf "$door_tmp2"
+
 if [ "$fails" = 0 ]; then echo "PASS"; else
   echo "$fails failing"
   exit 1

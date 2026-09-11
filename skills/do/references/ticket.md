@@ -275,13 +275,17 @@ Before it forks, the destination the brief names goes through one check, with `<
 repository root the brief names:
 
 ```sh
-dest="$(readlink -m <the destination>)"; scratch="$(readlink -m <root>/.scratch)"
-case "$dest" in "$scratch"/*) echo inside ;; *) echo refused ;; esac
+dest="$(readlink -m <the destination>)"
+case "$dest" in "<root>/.scratch/"*) echo inside ;; *) echo refused ;; esac
 ```
 
 `refused` writes nothing and forks no `sketch`: the run stops in one line naming the refused path,
 the worktree and its branch, both left in place. `readlink -m` collapses the `..` and follows the
-symlinks, so a path that only looks contained is caught here rather than after the write.
+symlinks in the destination, so a path that only looks contained is caught here rather than after
+the write; the other side of the case stays the unresolved `<root>/.scratch/`, the way
+`project-map.sh`'s own containment check reads it, so a `.scratch` that is itself a symlink, or
+anything else standing in for a plain directory there, resolves away from that prefix and is
+refused rather than compared against where the link points.
 
 Before it calls the Agent tool, the run names in one line what it handed over, as text of its own
 in the thread and never only inside the call: what to shape, the map, the Digest's location and

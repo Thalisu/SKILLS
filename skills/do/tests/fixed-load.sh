@@ -551,7 +551,7 @@ awk '/^\*\*3\. Shape\.\*\*/ { on = 1 } /^\*\*4\. Behaviours\.\*\*/ { on = 0 } on
 lacks "what comes back from the sketch agent is no longer the Sketch's location" "$refs/ticket.md" \
   "What comes back is the Sketch's location"
 has "the shape step checks with readlink -m that the destination stays under the root's .scratch" \
-  "$shape_step" "readlink -m" "<root>/.scratch" 'case "$dest" in "$scratch"/*)'
+  "$shape_step" "readlink -m" 'case "$dest" in "<root>/.scratch/"*)'
 has "the shape step probes the scratch ignore and appends the .scratch/ line to .gitignore when owed" \
   "$shape_step" "git check-ignore -v .scratch/" ".scratch/" ">> .gitignore"
 has "the shape step writes the Sketch whole from the text the agent returns" "$shape_step" \
