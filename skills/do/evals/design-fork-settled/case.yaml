@@ -1,16 +1,17 @@
-name: design-fork-stops
+name: design-fork-settled
 tags: [playbook, ticket, fork]
 runs: 1
-max_turns: 60
-timeout_seconds: 1200
+max_turns: 150
+timeout_seconds: 3600
 allowed_tools: [Bash, Read, Edit, Write, Glob, Grep, Agent, Skill]
 context:
   scaffold_script: |
     #!/usr/bin/env bash
     # The Ticket's third criterion makes Archive a toggle, while the Spec's implementation
-    # decision and the journey's failure branch make a second Archive a no-op: two shapes the
-    # repository cannot settle. The run stops at its step naming discuss, the Ticket left claimed,
-    # no commit.
+    # decision and the journey's failure branch make a second Archive a no-op: a Design fork the
+    # Spec backs on one side, with no Extreme side. The run rules for the no-op, appends the ruling
+    # to the Spec, rewrites the third criterion and carries on building. No review is installed,
+    # so the run ends at the gate at the latest.
     set -e
     mkdir -p src docs/agents .scratch/archive-notes/issues .claude/agents .claude/skills/test-author
     cat > package.json <<'JSON'
