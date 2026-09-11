@@ -156,6 +156,15 @@ lacks "the invocation row no longer says the reader ships no definition" "$repo/
 # The README's install table is column-aligned, so the pin allows any padding in the skill's cell.
 expect "the README names the reader do ships among the agents the install links" \
   grep -qE "^\| \`do\` +\| \`do-reader\`," "$repo/README.md"
+# The choice-taker is one more door into `do`, closed the same way as the reader's: its own row, read
+# alone so a string the reader's row carries cannot stand in for it, and its name in the install row.
+out="$(grep -E '^\| `choice-taker` +\|' "$repo/.agents/invocation.md")"
+check "the invocation contract's row names the choice-taker do ships, its one door, its tools and the Ruling it returns" 0 $? \
+  '`do`, user-invoked' \
+  "\`Agent(subagent_type: choice-taker)\` from \`do\`'s ticket Playbook at its shape or build step only" \
+  "with the two sides" '`Read, Glob, Grep`' "writes nothing" "Ruling"
+expect "the README names the choice-taker do ships among the agents the install links, after the reader" \
+  grep -qE "^\| \`do\` +\| \`do-reader\`,[^|]*\`choice-taker\`" "$repo/README.md"
 
 # The reader reads a stranger's text, so what bounds it is the tool list the harness enforces and
 # never its brief: an agent `do` ships, forked by `do` alone, holding reading and search alone.

@@ -38,9 +38,9 @@ into the project is in English.
 
 ## Prerequisites
 
-Nothing has to be installed for `do` to run, but six things in the project change what a run can
+Nothing has to be installed for `do` to run, but seven things in the project change what a run can
 do. The first message reports one of them, the loop line, with the protected-branch warning beside
-it when it applies. The other five surface at the step that reads them, and each row below names
+it when it applies. The other six surface at the step that reads them, and each row below names
 that step.
 
 | In the project | What `do` does with it, and without it |
@@ -50,6 +50,7 @@ that step.
 | a Testing Policy with its unit test author at `.claude/agents/unit-test-author.md`, or [the global authors](../README.md) `do` ships, linked | the first message reads `Loop: policy` and that author writes every new test. With no policy and `global-unit-test-author` linked, it reads `Loop: global`: the run derives a Project map from what the project's own scripts and files say, keeps it in the project's `.scratch/`, and the global authors write the tests and the flows against it. With neither, or with the Agent tool withheld, the line reads `Loop: fallback` and the run writes each failing test itself, red before the fix either way |
 | [do-code-review](do-code-review.md) linked in the session | the review fixes its `Act on` Findings and lands the branch. Without it the step reads `skip: do-code-review not listed`, nothing lands, and the reply hands you the worktree, its branch and the review to run yourself |
 | [sketch](sketch.md), with its agent linked | the `ticket` run's shape step forks it when the work crosses a boundary and nothing in hand carries a shape, so the rival shapes stay out of your context window and the Sketch is filed beside the Ticket. With no `sketch` agent listed, the step states the shape in the thread and says so |
+| [choice-taker](../README.md), the agent `do` ships to rule a Design fork, linked | a `ticket` run that meets a Design fork at its shape or build step forks it with the two sides, writes the Ruling it returns as one line in the Spec's Implementation Decisions, and carries on over the amended Spec instead of stopping for your confirmation. An Extreme fork, one side weakening a guarantee in a risk class or unable to be undone once landed, still stops the run naming `discuss` |
 | the vendored `architect`, `how`, `why` and `unslop` | `bug-fix` and `refactoring` sketch the shape with `architect` before they cross a boundary, and a run keeps the grounding out of its own context window, reads the rationale behind the shape a defect sits in, and cleans up the reply. Each is optional and each step says in one line what it does instead, so a `bug-fix` run with neither `how` nor `why` reads the code with search and targeted reads and says so, and a `ticket` run without `how` builds its map from search output alone, reads no file whole and names the map as thinner |
 
 The run writes into two places outside your branch: the worktree at `.claude/worktrees/do-<slug>`,
@@ -227,6 +228,10 @@ a stop named, and the next run on that Ticket forks the reader fresh.
   recommendation in front of you. The files whose every hunk is mechanical are written and staged
   before the first question, and a file carrying a contested hunk stays as git left it until you
   answer the last one.
+- A `ticket` run that met a Design fork says so in one line naming both sides, then goes on: the
+  Spec's Implementation Decisions gain one line marked as the choice-taker's, and a Ticket criterion
+  changes only when it was the side that lost. Only an Extreme fork stops the run and names
+  `discuss`.
 - A `trivial` request costs you one message, start to finish.
 
 ## Where it fits

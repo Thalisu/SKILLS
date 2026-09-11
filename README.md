@@ -86,7 +86,7 @@ every agent the skills fork into `~/.claude/agents`:
 | `discover`       | `discover`                                                                                |
 | `prototype`      | `prototype`, forked by `/prototype`, `discuss` and `journey`                              |
 | `sketch`         | `sketch`, forked by `/sketch` and by `do` at its shape step                               |
-| `do`             | `do-reader`, `global-unit-test-author`, `global-e2e-test-author`                          |
+| `do`             | `do-reader`, `choice-taker`, `global-unit-test-author`, `global-e2e-test-author`          |
 | `do-code-review` | `do-code-review`, `do-code-review-technical-reviewer`, `do-code-review-security-reviewer` |
 | `no-comments`    | `comment-sicko`                                                                           |
 

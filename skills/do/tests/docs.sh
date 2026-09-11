@@ -104,6 +104,19 @@ has "the page names do-reader where the door cuts the Digest" "$page" \
   "the session reads both documents itself and says so"
 has "the do-reader row's fallback is still the reader section's own wording" "$refs/mechanics.md" \
   "reads both documents itself and writes the Digest"
+# The choice-taker is a thing in the project that changes what a run does, so it has a row of its own,
+# read alone so a string another row carries cannot stand in for it, and the lead counts it.
+# shellcheck disable=SC2034 # lib.sh's check reads $out, which shellcheck cannot follow.
+out="$(grep -E '^\| [^|]*choice-taker[^|]*\|' "$page")"
+check "the page names the choice-taker: a Design fork at the shape or build step is ruled and the run carries on, an Extreme fork still stops naming discuss" 0 $? \
+  "Design fork" "shape" "build" "carries on" "Extreme fork" "stops" '`discuss`'
+para_has "the Prerequisites lead counts the choice-taker among the things that change a run" "$page" \
+  "Nothing has to be installed for \`do\` to run" \
+  "seven things in the project change what a run can do" \
+  "The other six surface at the step that reads them"
+has "the choice-taker row's carry-on and Extreme stop are still the forks rule's own wording" "$refs/mechanics.md" \
+  "the run carries on in the same session and never stops for it" \
+  'stops at its step with one message naming `discuss`'
 # A developer who never linked the reader learns it from the one line the run prints, so the row
 # says the line names it, and that the run never falls back to a fork holding write tools.
 has "the do-reader row names both no-reader branches and forks no other agent" "$page" \
