@@ -159,7 +159,8 @@ second run below says.
 ### A second run
 
 A Digest already sits beside the Ticket whenever a run reaches this point a second time, on a
-resume or on a `/do` typed again on the same Ticket. Before it dispatches anything the door
+resume, on a `/do` typed again on the same Ticket, or inside the run once a Ruling amended the
+Spec, the forks below. Before it dispatches anything the door
 resolves both paths from the Ticket itself and never from the Digest: the Spec is the spec file in
 the folder above the Ticket's `issues/` folder, and the journey is the one that Spec's `Journey:`
 line names. Then it recomputes the hash of each document at the path it resolved, with the same
@@ -298,6 +299,12 @@ Only when a Ticket criterion is the losing side does the session also write the 
 main checkout: that criterion's text is replaced by the side that won, its tick kept as it was, and
 every other criterion is left untouched, so a Ruling never rewrites more of the Ticket than the fork
 reached and the review holds the build to the rewritten criterion.
+
+Once the Ruling is written, the run carries on in the same session and never stops for it: it
+prints the one line naming the Spec as changed, forks the reader again over the Spec and the journey
+both, never over the Spec alone, whose Digest would come back with no Journey Path, and replaces
+the Digest the way a second run does; then it re-derives the behaviours list from the Digest that
+comes back and continues at the first behaviour without a commit.
 
 ### Delegates
 

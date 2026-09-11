@@ -239,6 +239,20 @@ span_has "the ticket format's list of do's writes names a criterion's text when 
 span_has "the Ticket file section admits a criterion's text rewritten by a Ruling during the build" \
   "$refs/mechanics.md" "## The Ticket file" "## The reader" \
   "a criterion's text" "Ruling"
+# A settled Ruling changed the Spec the Digest was cut from, so the run carries on rather than
+# stopping: it names the Spec as changed, forks the reader again over both documents (a reader over
+# the Spec alone would cut a Digest the journey no longer backs), rebuilds the behaviours list from
+# the new Digest and resumes at its first behaviour, all in the same session and before any commit.
+# The second-run rule is the one that re-forks on a moved hash, so it names this occasion beside the
+# resume and the `/do` typed again, or a Ruling's re-fork would follow no rule at all.
+span_has "a settled Ruling names the Spec as changed, re-forks the reader over the Spec and the journey and continues at the first behaviour without a commit" \
+  "$refs/mechanics.md" "### Forks" "### Delegates" \
+  "the Spec as changed" "forks the reader again" "the Spec and the journey" \
+  "never over the Spec alone" "behaviours list" "Digest that comes back" \
+  "the first behaviour" "without a commit" "same session"
+para_has "the second-run rule covers the re-fork a Ruling triggers mid-run beside a resume and a /do typed again" \
+  "$refs/mechanics.md" "A Digest already sits beside the Ticket" \
+  "on a resume" "typed again on the same Ticket" "Ruling"
 # A session whose Agent tool does not list `do-reader` has no agent by that name to fork, so the
 # only fallback left open must never be a general-purpose fork holding write tools over the same
 # brief: the session does the reading and the write itself, stated before the fork is even called.
