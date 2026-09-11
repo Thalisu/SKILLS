@@ -117,6 +117,14 @@ para_has "the Prerequisites lead counts the choice-taker among the things that c
 has "the choice-taker row's carry-on and Extreme stop are still the forks rule's own wording" "$refs/mechanics.md" \
   "the run carries on in the same session and never stops for it" \
   'stops at its step with one message naming `discuss`'
+# A developer who never linked the choice-taker learns it from the one line the run prints, the way
+# the do-reader row already does, so the row says the line names it, and that the run never falls
+# back to a fork holding write tools in the choice-taker's place.
+has "the choice-taker row names both no-choice-taker branches and forks no other agent" "$page" \
+  'With the Agent tool withheld, or no `choice-taker` agent listed' \
+  '`choice-taker` by name when it is not linked' \
+  'with `scripts/link-skills.sh` as the run that links it' \
+  "never forks another agent in its place"
 # A developer who never linked the reader learns it from the one line the run prints, so the row
 # says the line names it, and that the run never falls back to a fork holding write tools.
 has "the do-reader row names both no-reader branches and forks no other agent" "$page" \

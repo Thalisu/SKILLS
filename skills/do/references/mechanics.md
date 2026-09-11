@@ -289,6 +289,15 @@ and the session writes what it returns. The `choice-taker` is forked by name and
 another agent: a general-purpose fork would read the same Spec holding the write tools that ADR
 withholds.
 
+No choice-taker can be forked on two branches: the Agent tool is withheld from the session, or
+the Agent tool lists no `choice-taker`, as it does on a machine that never linked the agent `do`
+ships. On either branch the run rules nothing itself and never forks another agent in the
+choice-taker's place: it stops at its step with one message naming `discuss`, as every Design fork
+did before ADR 0036, the Ticket left `claimed` and the worktree in place, so that the next `/do` on
+the Ticket resumes it. The message says which branch holds: the Agent tool withheld, or
+`choice-taker` not listed, the agent this machine has not linked, which one run of the skills
+repository's `scripts/link-skills.sh` links before the next `/do`.
+
 A `settled` Ruling is written by the session as one line appended to the Spec's Implementation
 Decisions, marked as the choice-taker's, per
 [ADR 0037](../../../docs/adr/0037-a-choice-takers-ruling-amends-the-spec-and-a-ticket-criterion-only-when-it-is-the-losing-side.md),

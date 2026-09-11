@@ -223,6 +223,21 @@ span_has "a Design fork is named with both sides in one line and ruled by the ch
 span_has "the Forks section states the choice-taker is never replaced by another agent" \
   "$refs/mechanics.md" "### Forks" "### Delegates" \
   "never replaced by another agent"
+# The reader's section already states the same guarantee for the two branches where no agent can be
+# forked: the Agent tool withheld from the session, or the Agent tool listing no agent by that name.
+# The Forks section must state the same two branches for the choice-taker, stopping at its step the
+# way every design fork stopped before ADR 0036 introduced the choice-taker, and naming
+# `scripts/link-skills.sh` as the run that links the agent before the next `/do`, or a machine that
+# has not re-linked `choice-taker` has no rule against forking a different agent in its place, one
+# that could hold the write tools ADR 0032 denies it.
+span_has "the Forks section states the two no-choice-taker branches, stops at its step naming discuss and cites link-skills.sh" \
+  "$refs/mechanics.md" "### Forks" "### Delegates" \
+  "the Agent tool is withheld from the session" \
+  'the Agent tool lists no `choice-taker`' \
+  "stops at its step" \
+  'naming `discuss`' \
+  "never forks another agent in the choice-taker's place" \
+  "scripts/link-skills.sh"
 # The Forks section briefs the choice-taker on where a principle norm is opened from, the skills
 # checkout it runs from, the way sketch's rivals step opens exhaust-the-design-space and
 # boundary-discipline, never `.agents/principles/` at the repository root the brief hands it.
