@@ -198,9 +198,10 @@ if [ ! -e "$tmp/fixture/src/status.ts" ]; then ok "the target interface does not
 if grep -q "archived" "$tmp/fixture/src/notes.ts" 2>/dev/null && grep -q "pinned" "$tmp/fixture/src/notes.ts" 2>/dev/null; then ok "the fixture scatters the status over booleans"; else fail "the fixture scatters the status over booleans"; fi
 if grep -q "label" "$tmp/fixture/bin/notes.mjs" 2>/dev/null; then ok "the CLI calls the old API"; else fail "the CLI calls the old API"; fi
 if [ "$(cat "$tmp/fixture/.claude/skills/do-code-review/plant" 2>/dev/null)" = green ]; then ok "the review stand-in is planted green"; else fail "the review stand-in is planted green"; fi
-suite="$(cd "$tmp/fixture" 2>/dev/null && node --test src/ 2>&1 || true)"
+# node 22+ reads a --test argument as a glob, so a bare directory runs as one failing file: name the files
+suite="$(cd "$tmp/fixture" 2>/dev/null && node --test 'src/**/*.test.ts' 2>&1 || true)"
 if grep -qE '(^|[^a-z])fail 0$' <<<"$suite" && grep -qE '(^|[^a-z])pass [1-9]' <<<"$suite"; then ok "the fixture's unit suite is green"; else fail "the fixture's unit suite is green"; fi
-flows="$(cd "$tmp/fixture" 2>/dev/null && node --test e2e/ 2>&1 || true)"
+flows="$(cd "$tmp/fixture" 2>/dev/null && node --test 'e2e/**/*.test.ts' 2>&1 || true)"
 if grep -qE '(^|[^a-z])fail 0$' <<<"$flows" && grep -qE '(^|[^a-z])pass [1-9]' <<<"$flows"; then ok "the fixture's flow is green"; else fail "the fixture's flow is green"; fi
 
 # the gap the case gives the harness is real: no test in the fixture's tree covers the archive
@@ -208,8 +209,8 @@ if grep -qE '(^|[^a-z])fail 0$' <<<"$flows" && grep -qE '(^|[^a-z])pass [1-9]' <
 if [ -f "$tmp/fixture/src/notes.ts" ]; then
   cp "$tmp/fixture/src/notes.ts" "$tmp/notes.ts.orig"
   sed -i 's/  note.archived = true;/  note.archived = false;/' "$tmp/fixture/src/notes.ts"
-  broke_suite="$(cd "$tmp/fixture" && node --test src/ 2>&1 || true)"
-  broke_flows="$(cd "$tmp/fixture" && node --test e2e/ 2>&1 || true)"
+  broke_suite="$(cd "$tmp/fixture" && node --test 'src/**/*.test.ts' 2>&1 || true)"
+  broke_flows="$(cd "$tmp/fixture" && node --test 'e2e/**/*.test.ts' 2>&1 || true)"
   cp "$tmp/notes.ts.orig" "$tmp/fixture/src/notes.ts"
 else
   broke_suite=""
