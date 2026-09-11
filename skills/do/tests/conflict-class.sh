@@ -395,10 +395,7 @@ g switch -q inc
 printf 'a\nINCOMING ONE\nb\nc\nd\ne\nINCOMING TWO\nf\n' >resumed.txt
 commit incoming
 g rebase main >/dev/null 2>&1
-g show ":1:resumed.txt" >"$tmp/resumed.1"
-g show ":2:resumed.txt" >"$tmp/resumed.2"
-g show ":3:resumed.txt" >"$tmp/resumed.3"
-g merge-file --union -p "$tmp/resumed.2" "$tmp/resumed.1" "$tmp/resumed.3" >resumed.txt
+union_of resumed.txt >resumed.txt
 
 run
 check "a file already written as the union of mechanical hunks: mechanical hunk by hunk, where they sit" 0 "$rc" \
@@ -421,10 +418,7 @@ g switch -q inc
 printf 'a\nINCOMING ONE\nb\nc\nd\ne\nINCOMING TWO\ng\n' >resumed.txt
 commit incoming
 g rebase main >/dev/null 2>&1
-g show ":1:resumed.txt" >"$tmp/resumed.1"
-g show ":2:resumed.txt" >"$tmp/resumed.2"
-g show ":3:resumed.txt" >"$tmp/resumed.3"
-g merge-file --union -p "$tmp/resumed.2" "$tmp/resumed.1" "$tmp/resumed.3" >resumed.txt
+union_of resumed.txt >resumed.txt
 
 run
 check "a union written over a contested hunk is never its answer: that hunk stays contested, where it sits" 1 "$rc" \
@@ -485,10 +479,7 @@ for round in 1 2; do
     "mechanical added-to.txt L3-L7" \
     "verdict=mechanical mechanical=1 contested=0"
   # The step's own resolution, so what the second round meets is what a real first round leaves.
-  step show ":1:added-to.txt" >"$tmp/stage1"
-  step show ":2:added-to.txt" >"$tmp/stage2"
-  step show ":3:added-to.txt" >"$tmp/stage3"
-  step merge-file --union -p "$tmp/stage2" "$tmp/stage1" "$tmp/stage3" >added-to.txt
+  union_of added-to.txt >added-to.txt
   step add -- added-to.txt
   step -c core.editor=true rebase --continue >/dev/null 2>&1
 done

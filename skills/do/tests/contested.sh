@@ -96,8 +96,7 @@ printf 'p\nTQ' >third.txt
 commit target
 g switch -q do/run
 g rebase main >/dev/null 2>&1
-for s in 1 2 3; do git cat-file blob ":$s:mixed.txt" >"$tmp/mixed.$s"; done
-git merge-file --union -p "$tmp/mixed.2" "$tmp/mixed.1" "$tmp/mixed.3" >"$tmp/mixed.both"
+union_of mixed.txt >"$tmp/mixed.both"
 git cat-file blob :2:plain.txt >"$tmp/plain.target"
 git cat-file blob :3:third.txt >"$tmp/third.incoming"
 before="$(state)"
@@ -230,8 +229,7 @@ printf 'pixels\000\001\003target\n' >picture.bin
 commit target
 g switch -q do/run
 g rebase main >/dev/null 2>&1
-for s in 1 2 3; do git cat-file blob ":$s:collapsed.txt" >"$tmp/collapsed.$s"; done
-git merge-file --union -p "$tmp/collapsed.2" "$tmp/collapsed.1" "$tmp/collapsed.3" >"$tmp/collapsed.both"
+union_of collapsed.txt >"$tmp/collapsed.both"
 git cat-file blob :2:kept.txt >"$tmp/kept.target"
 git cat-file blob :3:picture.bin >"$tmp/picture.incoming"
 
@@ -286,8 +284,7 @@ printf 'x\nTARGET\nz\n' >rewrite.txt
 commit target
 g switch -q do/run
 g rebase main >/dev/null 2>&1
-for s in 1 2 3; do git cat-file blob ":$s:mech.txt" >"$tmp/mech.$s"; done
-git merge-file --union -p "$tmp/mech.2" "$tmp/mech.1" "$tmp/mech.3" >"$tmp/mech.union"
+union_of mech.txt >"$tmp/mech.union"
 untouched="$(
   g ls-files -s -u -- rewrite.txt
   git hash-object -- rewrite.txt
@@ -347,10 +344,7 @@ printf 'x\nTARGET\nCOMMON\nz\n' >both.txt
 commit target
 g switch -q do/run
 g rebase main >/dev/null 2>&1
-for f in mech both; do
-  for s in 1 2 3; do git cat-file blob ":$s:$f.txt" >"$tmp/$f.$s"; done
-  git merge-file --union -p "$tmp/$f.2" "$tmp/$f.1" "$tmp/$f.3" >"$tmp/$f.union"
-done
+for f in mech both; do union_of "$f.txt" >"$tmp/$f.union"; done
 {
   seq 1 2
   printf 'T\nI\nSHARED\n'
@@ -528,6 +522,45 @@ run "$first:incoming" "$second:target"
 check "the answers apply to the sides the questions cut short" 0 "$rc" "wrote big.txt" "wrote long.txt"
 expect "incoming takes the whole Incoming side, not its quoted head" cmp -s big.txt "$tmp/big.incoming"
 expect "target takes the whole Target side, not its quoted head" cmp -s long.txt "$tmp/long.target"
+
+# A resumed stop: one file carrying a hunk both sides rewrote, and one the developer already resolved
+# by hand and never staged, marker-free and neither side nor the union of its stages. That file is the
+# developer's answer, so it is never asked about, and the stop's answers leave it as they wrote it.
+fresh resumed-hand
+printf 'x\ny\nz\n' >rewrite.txt
+printf 'a\nb\nc\nd\ne\nf\n' >hand.txt
+commit base
+g switch -q -c do/run
+printf 'x\nINCOMING\nz\n' >rewrite.txt
+printf 'a\nINCOMING ONE\nb\nc\nd\ne\nINCOMING TWO\nf\n' >hand.txt
+commit incoming
+g switch -q main
+printf 'x\nTARGET\nz\n' >rewrite.txt
+printf 'a\nTARGET ONE\nb\nc\nd\ne\nTARGET TWO\nf\n' >hand.txt
+commit target
+g switch -q do/run
+g rebase main >/dev/null 2>&1
+printf 'a\nONE, merged by hand\nb\nc\nd\ne\nTWO, merged by hand\nf\n' >hand.txt
+cp hand.txt "$tmp/hand.before"
+expect "the hand resolution is not the union of its stages" test "$(union_of hand.txt)" != "$(cat hand.txt)"
+
+run
+first="$(sed -n 's/^id //p' <<<"$out")"
+check "a resumed stop asks the contested hunk alone, the hand-resolved file never counted in" 1 "$rc" \
+  "Conflict 1 of 1 · rewrite.txt · L2-L6 · rewrite-vs-rewrite"
+check_absent "no question is put about the file resolved by hand" 1 "$rc" "· hand.txt"
+expect "asking leaves the hand resolution as the developer wrote it" cmp -s hand.txt "$tmp/hand.before"
+
+run "$first:target"
+check "the answer writes the contested file" 0 "$rc" "wrote rewrite.txt"
+check_lines "the answer names the hand-resolved file on a trusted line" 0 "$rc" "trusted hand.txt"
+expect "the final line counts the hand-resolved file last, as trusted" \
+  test "$(tail -n 1 <<<"$out")" = "resolved mechanical=0 target=1 incoming=0 both=0 trusted=1"
+expect "the hand resolution comes out byte for byte as the developer wrote it" \
+  cmp -s hand.txt "$tmp/hand.before"
+git cat-file blob :0:hand.txt >"$tmp/hand.staged" 2>/dev/null
+expect "and it is staged with those bytes" cmp -s "$tmp/hand.staged" "$tmp/hand.before"
+expect "nothing at the resumed stop is left unmerged" test -z "$(git ls-files -u)"
 
 if [ "$fails" = 0 ]; then echo "all ok"; else
   echo "$fails failing"

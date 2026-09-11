@@ -21,8 +21,10 @@
 #
 # Once every contested hunk has an answer, each file carrying one is written once from its three
 # index stages, its mechanical hunks by the union rule, and staged: `wrote <file>` for each, or
-# `removed <file>` where the answer took a side that deleted it, then
-# `resolved mechanical=<n> target=<n> incoming=<n> both=<n>`.
+# `removed <file>` where the answer took a side that deleted it. Each file conflict-class.sh printed
+# `trusted`, one the developer resolved by hand and never staged, is never a question and never
+# written: it is staged as it stands, `trusted <file>` for each, then
+# `resolved mechanical=<n> target=<n> incoming=<n> both=<n> trusted=<n>`.
 #
 # Exit codes: 0 every contested hunk answered and its file written · 1 a question printed · 2 usage,
 # or no stopped rebase · 3 blocked: `stop`, an answer the hunk does not offer, an id that names no
@@ -99,10 +101,14 @@ esac
 # hunks of its own file, which is how the regenerated merge below is matched to it. Every hunk is
 # keyed by its file and ordinal: the mechanical ones take both sides, the contested ones the word
 # given for them further down.
-classes=() files=() locations=() shapes=() ordinals=() contested=() reported=()
+classes=() files=() locations=() shapes=() ordinals=() contested=() reported=() trusted=()
 declare -A seen whole carries answer_at
 while read -r class file location shape; do
-  case "$class" in mechanical|contested) ;; *) continue ;; esac
+  case "$class" in
+    mechanical|contested) ;;
+    trusted)              trusted+=("$file"); continue ;;
+    *)                    continue ;;
+  esac
   [ -n "${seen["$file"]+set}" ] || reported+=("$file")
   seen["$file"]=$(( ${seen["$file"]:-0} + 1 ))
   classes+=("$class"); files+=("$file"); locations+=("$location"); shapes+=("${shape:-}")
@@ -371,5 +377,11 @@ for file in "${order[@]}"; do
     resolve "${raw_path["$file"]}" "$file"
   fi
 done
-echo "resolved mechanical=$mechanical target=${tally[target]} incoming=${tally[incoming]} both=${tally[both]}"
+# A trusted file is staged only here, with the stop's last answer: staged on an asking call, it would
+# leave the unmerged list and the call that answers would no longer see it to count.
+for file in "${trusted[@]}"; do
+  git add -- "${raw_path["$file"]}"
+  echo "trusted $file"
+done
+echo "resolved mechanical=$mechanical target=${tally[target]} incoming=${tally[incoming]} both=${tally[both]} trusted=${#trusted[@]}"
 exit 0

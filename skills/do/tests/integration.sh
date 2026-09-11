@@ -212,10 +212,7 @@ resumed_stop_keeps_the_hand_resolution() {
   printf 'a\nINCOMING ONE\nb\nc\nd\ne\nINCOMING TWO\nf\n' >hand.txt
   commit incoming
   g -c rerere.enabled=false -c rerere.autoupdate=false rebase refs/heads/main >/dev/null 2>&1
-  g show ":1:union.txt" >"$tmp/union.1"
-  g show ":2:union.txt" >"$tmp/union.2"
-  g show ":3:union.txt" >"$tmp/union.3"
-  g merge-file --union -p "$tmp/union.2" "$tmp/union.1" "$tmp/union.3" >union.txt
+  union_of union.txt >union.txt
   printf 'a\nONE, merged by hand\nb\nc\nd\ne\nTWO, merged by hand\nf\n' >hand.txt
   cp union.txt "$tmp/union.before"
   cp hand.txt "$tmp/hand.before"

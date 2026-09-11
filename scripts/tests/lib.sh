@@ -128,6 +128,12 @@ fresh() { # $1 name: a new repository at $tmp/<name>, entered
   g config rerere.enabled false
   g config merge.conflictStyle merge
 }
+union_of() { # $1 a conflicted path: the union of its three index stages, Target side first, on stdout
+  local dir s
+  dir="$(mktemp -d "$tmp/union.XXXXXX")" || return
+  for s in 1 2 3; do git cat-file blob ":$s:$1" >"$dir/$s" || return; done
+  git merge-file --union -p "$dir/2" "$dir/1" "$dir/3"
+}
 scaffold_of() { # $1 case folder: the scaffold_script block of its case file
   awk '/^  scaffold_script: \|/ { f = 1; next } f && /^    / { sub(/^    /, ""); print; next } f && /^[[:space:]]*$/ { print ""; next } f { exit }' \
     "$1/case.yaml" 2>/dev/null
