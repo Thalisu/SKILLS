@@ -16,7 +16,8 @@
 # unmerged; review_skipped=<stale | axis-not-run> <path> when a Review beside the Ticket does not
 # count; review, the Review beside the Ticket when it counts, else none; then verdict. A Review
 # counts when the commit its Commit: header names is one this branch has been at, read off the
-# branch's reflog, and none of its Axis lines reads not run. It only reads: the ask before a
+# branch's reflog, is not reachable from the commit the branch was created at, the reflog's oldest
+# entry, and none of its Axis lines reads not run. It only reads: the ask before a
 # discard is the run's, never this script's.
 #
 # verdict, first match wins: integration (a rebase is open) · ask (uncommitted work in the
@@ -97,8 +98,13 @@ if [ -f "$review" ]; then
   # the branch's reflog keeps every commit it has been at, rebased away or not, while a branch made
   # again for a run that started over begins a fresh one. grep without -q reads to the end, so git
   # never dies of SIGPIPE and pipefail never turns a match into a miss.
+  # The reflog's oldest entry is the commit the branch was created at: a branch made again from an
+  # unmoved HEAD has been at the commit an earlier branch's Review names, yet that Review read none
+  # of this branch's own commits.
+  created="$(git -C "$wt" log -g --format=%H "refs/heads/$branch" 2>/dev/null | tail -1)"
   if [ -z "$reviewed" ] || ! git -C "$wt" log -g --format=%H "refs/heads/$branch" 2>/dev/null |
-    grep "^$reviewed" >/dev/null; then
+    grep "^$reviewed" >/dev/null ||
+    { [ -n "$created" ] && git -C "$wt" merge-base --is-ancestor "$reviewed" "$created" 2>/dev/null; }; then
     skipped="stale $review"
   elif grep -E '^- (Correctness|Spec|Standards|Principles|Blast radius|Security): not run' "$review" >/dev/null; then
     skipped="axis-not-run $review"

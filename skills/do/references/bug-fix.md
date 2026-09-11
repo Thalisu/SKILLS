@@ -55,9 +55,11 @@ started from (`git log <base>..do/<slug>` with `<base>` their merge base), each 
 - A Review of the branch, `.scratch/reviews/<the branch, each slash a dash>.md` in the main
   checkout, evidences the review step only when it read this branch and finished: the commit its
   `Commit:` header names is one the branch has been at,
-  `git log -g --format=%H refs/heads/do/<slug>`, which a rebase does not erase, and none of its
-  Axis lines reads `not run`. Any other Review there is an earlier branch's of the same name, or a
-  review that never finished, and the review runs as on a first run. A Review that counts means
+  `git log -g --format=%H refs/heads/do/<slug>`, which a rebase does not erase; it is not reachable
+  from the commit the branch was created at, the oldest entry of that reflog, since a branch made
+  again from an unmoved HEAD has been at the commit an earlier branch's Review names; and none of
+  its Axis lines reads `not run`. Any other Review there is an earlier branch's of the same name, or
+  a review that never finished, and the review runs as on a first run. A Review that counts means
   the review already read the branch, and it runs once per run, per
   [ADR 0033](../../../docs/adr/0033-the-review-runs-once-per-run-and-what-comes-after-it-lands-through-the-gate-alone.md),
   so the run gates, integrates and lands through the fix call on that Review, never a second

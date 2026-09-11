@@ -251,9 +251,9 @@ rm "$wt/a b.txt"
 # ADR 0033: the review runs once per run, so a branch whose Review already sits beside the Ticket
 # resumes at the landing through fix, never at a second review.
 echo "# resume-state.sh: a branch the review already read"
-review_file() { # $1 the Review's Commit: sha, $2 its Security Axis line
+review_file() { # $1 the Review's Commit: sha, $2 its Security Axis line, $3 the review file path (default 04-claimed's)
   printf '# Review: 04\n\nCommit: %s\n\n## Axes\n\n- Correctness: 0 findings\n- Security: %s\n' "$1" "$2" \
-    >"$issues/04-claimed.review.md"
+    >"${3:-$issues/04-claimed.review.md}"
 }
 review_file "$second" "0 findings"
 run "$resume" "$issues/04-claimed.md"
@@ -272,6 +272,24 @@ run "$resume" "$issues/04-claimed.md"
 check_lines "a Review with an Axis that did not run is an unfinished review, and the review runs" 0 "$rc" \
   "review_skipped=axis-not-run $top/$issues/04-claimed.review.md" "review=none" "verdict=build"
 review_file "$second" "0 findings"
+
+# A `do/<slug>` branch reviewed, landed and deleted, then made again from the same commit, starts
+# a fresh reflog whose first entry is the commit the old run's leftover Review still names.
+echo "# resume-state.sh: a stale Review from a branch recreated at the same HEAD"
+rt="$top/.claude/worktrees/do-recreated"
+ticket 30-recreated.md '**Status:** claimed' 'None (can start immediately)'
+g worktree add -q .claude/worktrees/do-recreated -b do/recreated "$fork"
+review_file "$(git rev-parse --short "$fork")" "0 findings" "$issues/30-recreated.review.md"
+printf 'four\n' >>"$rt/notes.txt"
+g -C "$rt" commit -q -am "fix: two, never reviewed"
+new="$(git rev-parse --short do/recreated)"
+run "$resume" "$issues/30-recreated.md"
+check_lines "a Review naming the commit a recreated branch's fresh reflog begins at is stale, never the landing" 0 "$rc" \
+  "review_skipped=stale $top/$issues/30-recreated.review.md" "review=none" \
+  "commit=$new fix: two, never reviewed" "verdict=build"
+git worktree remove --force .claude/worktrees/do-recreated
+g branch -D do/recreated >/dev/null
+rm "$issues/30-recreated.review.md" "$issues/30-recreated.md"
 
 echo "# resume-state.sh: a rebase the integration left open"
 printf 'one\nmain side\n' >notes.txt
