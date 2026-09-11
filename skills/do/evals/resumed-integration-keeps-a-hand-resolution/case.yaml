@@ -903,10 +903,13 @@ context:
     git -C "$wt" show :3:union.txt > "$stages/incoming"
     git merge-file --union -p "$stages/target" "$stages/base" "$stages/incoming" > "$wt/union.txt"
     rm -rf "$stages"
+    # The hand resolution keeps both sides' lines as they were written, so it loses nothing, and puts
+    # the replayed commit's line above main's, so it is not the union and classes trusted.
     cat > "$wt/hand.txt" <<'TXT'
     Notes changelog, one line per change.
     - create and list notes
-    merged by hand
+    - archive a note out of the list
+    - read the titles of the active notes
     TXT
     [ "$(git -C "$wt" diff --name-only --diff-filter=U | sort | tr '\n' ' ')" = "hand.txt union.txt " ] ||
       { echo "the stop does not leave exactly hand.txt and union.txt conflicted" >&2; exit 1; }
