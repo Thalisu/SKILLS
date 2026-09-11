@@ -250,6 +250,14 @@ for c in "${cases[@]}"; do
           echo "Commits the run made:"
           if [ -n "$head_before" ]; then
             git -C "$work/fixture" log --oneline "$head_before..HEAD" 2>/dev/null | grep . || echo "no commit"
+            # A landing and the removal of a worktree run in forks the top transcript does not show,
+            # so the fixture's git state is the judge's only evidence of them.
+            echo
+            echo "Branches after the run:"
+            git -C "$work/fixture" branch 2>/dev/null | grep . || echo "no branch"
+            echo
+            echo "Worktrees after the run:"
+            git -C "$work/fixture" worktree list 2>/dev/null | grep . || echo "no worktree"
           else echo "no commit: the fixture is not a git repository with a commit"; fi
         } > "$work/changes"
         for g in "${graders[@]}"; do
