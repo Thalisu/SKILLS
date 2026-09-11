@@ -153,29 +153,32 @@ marker_size() { # $1 path
 }
 
 # A stop someone already resolved and never staged leaves a working file with no marker to locate a
-# hunk by. When its bytes are the union the all-mechanical resolution writes from the raw stages,
-# each hunk sits where the default-style regeneration's markers would, less the three marker lines
-# of every hunk above it and its own opening two: the union is merge-file's default level, which
-# --diff3 lowers, so the ranges come from that style and never from the diff3 parse. Prints
-# "<start> <end>" per hunk, and nothing for a file that is not that union. merge-file with no style
-# flag honours merge.conflictStyle, whose diff3 and zdiff3 add a base section to every hunk, so the
-# regeneration pins the default style the three-marker arithmetic counts.
-union_locations() { # $1 path; the prefixed stages already in $tmp/base, $tmp/target, $tmp/incoming
-  local path="$1" k=0 opens=() closes=()
+# hunk by. Its hunks are read off $tmp/merged, the same --diff3 regeneration classify_hunks already
+# parsed into classes, so the two counts can never disagree: a default-style regeneration splits its
+# hunks at a coarser grain, merging two --diff3 hunks separated only by non-alphanumeric lines into
+# one, which left a class with nowhere to sit. Each printed line counts only what a whole-file union
+# keeps: every outside line, then every hunk's target section and its incoming section in order,
+# with every marker line and the base section dropped, the same lines the raw stages' union keeps.
+# Prints "<start> <end>" per hunk, in classify_hunks's own order, and nothing for a file that is not
+# that union.
+union_locations() { # $1 path; $tmp/merged already holds this path's --diff3 regeneration
+  local path="$1" section=outside final=0 start=0 line
   git cat-file blob ":1:$path" > "$tmp/raw-base" 2>/dev/null &&
     git cat-file blob ":2:$path" > "$tmp/raw-target" 2>/dev/null &&
     git cat-file blob ":3:$path" > "$tmp/raw-incoming" 2>/dev/null || return 0
   git merge-file --union -p "$tmp/raw-target" "$tmp/raw-base" "$tmp/raw-incoming" > "$tmp/union" 2>/dev/null
   cmp -s -- "$tmp/union" "$path" || return 0
-  git -c merge.conflictStyle=merge merge-file -p -L target -L base -L incoming \
-    "$tmp/target" "$tmp/base" "$tmp/incoming" > "$tmp/zealous" 2>/dev/null
-  mapfile -t opens < <(grep -n '^<<<<<<< ' "$tmp/zealous" | cut -d: -f1)
-  mapfile -t closes < <(grep -n '^>>>>>>> ' "$tmp/zealous" | cut -d: -f1)
-  [ "${#opens[@]}" -eq "${#closes[@]}" ] || return 0
-  while [ "$k" -lt "${#opens[@]}" ]; do
-    echo "$((opens[k] - 3 * k)) $((closes[k] - 3 * k - 3))"
-    k=$((k + 1))
-  done
+  while IFS= read -r line; do
+    case "$line" in
+      '<<<<<<< '*) section=target; start=$((final + 1)) ;;
+      '||||||| '*) section=base ;;
+      '=======')   section=incoming ;;
+      '>>>>>>> '*) echo "$start $final"; section=outside ;;
+      *)           case "$section" in
+                     outside|target|incoming) final=$((final + 1)) ;;
+                   esac ;;
+    esac
+  done < "$tmp/merged"
 }
 
 # The hunks of one both-modified text file, from a conflict presentation regenerated out of the

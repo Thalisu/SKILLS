@@ -429,6 +429,37 @@ for style in diff3 zdiff3; do
     "verdict=mechanical mechanical=2 contested=0"
 done
 
+# A resumed rebase stop whose two additive hunks sit apart only by blank lines, with no common
+# alphanumeric line between them, and whose working file is already written as the union of the raw
+# stages. The class comes off a diff3 regeneration, which opens a hunk on the blank-line gap and
+# reads two of them; the location comes off a different regeneration, which closes the gap into one
+# hunk. The two counts must never mismatch and fall back to a whole-file verdict: both hunks class
+# mechanical, one line each.
+fresh resumed-union-blank-gap
+printf 'a\n\nf\n' >resumed.txt
+commit base
+g branch inc
+printf 'a\nTARGET ONE\n\nTARGET TWO\nf\n' >resumed.txt
+commit target
+g switch -q inc
+printf 'a\nINCOMING ONE\n\nINCOMING TWO\nf\n' >resumed.txt
+commit incoming
+g rebase main >/dev/null 2>&1
+union_of resumed.txt >resumed.txt
+
+run
+if [ "$rc" = 0 ] &&
+  [ "$(grep -c '^mechanical ' <<<"$out")" = 2 ] &&
+  [ "$(tail -n1 <<<"$out")" = "verdict=mechanical mechanical=2 contested=0 trusted=0" ]; then
+  echo "ok    two additive hunks separated only by blank lines: two mechanical lines, not one whole-file verdict"
+else
+  echo "FAIL  two additive hunks separated only by blank lines: two mechanical lines, not one whole-file verdict (exit $rc, wanted 0)"
+  echo "      ${out//$'\n'/$'\n'      }"
+  fails=$((fails + 1))
+fi
+check_absent "and it is never whole-file unmergeable" 0 "$rc" \
+  "contested resumed.txt whole-file unmergeable"
+
 # The same resumed stop, over one hunk both sides only added to and one both sides rewrote. The union
 # keeps both rewrites and no base line, and that text is not the answer to the rewrite: the hunk is
 # still the developer's, located in the union's lines as above (L2-L3 and L8-L9).
