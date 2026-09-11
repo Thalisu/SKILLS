@@ -314,6 +314,19 @@ has "any contested hunk aborts the retry and returns target moved with the files
   "Any hunk \`contested\`" "rebase --abort" "\`not landed: target moved\`" "each as the class script printed it"
 has "a union that defines one key twice is aborted the same way" "$fix_md" \
   "defines one key twice" "the key named"
+# A file the developer resolved by hand is classed `trusted <file> whole-file hand-resolved` under a
+# verdict that still reads mechanical, so a step 3 gated on that word alone would write a union over
+# the developer's resolution. The retry has nobody to ask whether to keep it, so it aborts instead.
+moved_step() { # $1 step number: that step of the moved-target section, on one line
+  awk -v n="$1" '/^### A target that moved while the review ran/ { s = 1; next }
+    s && /^##/ { s = 0 } s && /^[0-9]+\. / { in_step = ($0 ~ "^" n "\\. ") } s && in_step' "$fix_md" |
+    tr '\n' ' ' | tr -s ' '
+}
+holds "the retry resolves a stop itself only when no file is trusted" "$(moved_step 3)" \
+  "trusted=0"
+holds "a stop carrying a trusted file aborts the retry and returns target moved with the file named" \
+  "$(moved_step 4)" "\`trusted" "rebase --abort" "\`not landed: target moved\`" \
+  "each as the class script printed it"
 # The rebased branch sits on commits the reviewers never read, so a red suite there is the branch's
 # failure to land, named by its check, and never a reason to loop.
 has "a red Gate after the retry's rebase lands nothing, names the failing check and fixes nothing" "$fix_md" \

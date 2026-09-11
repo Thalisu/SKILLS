@@ -270,8 +270,8 @@ to answer, so a hunk a person must judge ends the landing instead of waiting on 
    It is a verbatim copy of the script `do`'s integration runs, kept in this skill so the review
    classes the same way where `do` is not installed, and `do`'s test of that script fails when the
    two drift.
-3. Every hunk `mechanical`: the orchestrator resolves them itself by keeping both sides in base
-   order, the rule `do`'s integration applies, restated here for the same reason. The conflicted
+3. Every hunk `mechanical` and the verdict line reading `trusted=0`: the orchestrator resolves them
+   itself by keeping both sides in base order, the rule `do`'s integration applies, restated here for the same reason. The conflicted
    files are the list git left, read NUL-delimited, `git diff --name-only --diff-filter=U -z`, and a
    path never enters a command line as text, since either side of the rebase chose it and a single
    quote in it closes whatever quotes it is pasted into. The two blocks run as they stand, nothing
@@ -299,8 +299,9 @@ to answer, so a hunk a person must judge ends the landing instead of waiting on 
    Then `rebase --continue`, and every further stop is classed and resolved the same way. A
    replayed commit the resolution left empty is already on the target: `rebase --skip`, and the
    landing line names it.
-4. Any hunk `contested`, or a union that, read back before its `git add`, defines one key twice in
-   one scope of a file whose reader keeps the last definition it meets (JSON, YAML, TOML, an INI or
+4. Any hunk `contested`, any `trusted` line, a file the class script found resolved by hand and
+   never staged, which step 3's union would overwrite with nobody here to read its name, or a union
+   that, read back before its `git add`, defines one key twice in one scope of a file whose reader keeps the last definition it meets (JSON, YAML, TOML, an INI or
    a `.env` file), since both lines would land and the reader would quietly keep one of them. The
    rebase is abandoned with `rebase --abort`, which puts the branch back where it was, and the
    landing returns `not landed: target moved` with the target and the conflicting files: the files
