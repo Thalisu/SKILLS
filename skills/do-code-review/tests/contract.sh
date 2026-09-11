@@ -243,6 +243,15 @@ has "the fix reference names the Fixer's two failure branches" "$fix_md" \
 # One Fixer per Finding, one at a time: they all write in the one worktree, one writer at a time.
 has "the Fixers run one per Finding, one at a time" "$fix_md" \
   "One Fixer per \`Act on\` Finding" "one at a time" "never two at once"
+# A Fixer forked in the background returns from its Agent call at once; with no wait the
+# orchestrator ends its turn and the caller gets the Fixer's result, so the Gate and the landing
+# never run. Every Fixer and the Gate fixer get a return file the orchestrator waits on.
+has "the orchestrator waits for every Fixer and the Gate fixer through a return file" "$fix_md" \
+  "Return file:" "do not end your turn" "scripts/returns.sh 240" "600000"
+has "the Gate fixer writes its line to its own return file" "$fix_md" \
+  "the Gate fixer writes its line to its return file"
+has "a Fixer whose return file never lands ends the Fixers" "$fix_md" \
+  "\`not fixed: the Fixer did not return\`" "no further Fixer is forked"
 has "the Diff tests run once every Fixer returned" "$fix_md" \
   "## The Diff tests" "git diff --name-only --diff-filter=d <the fixed point>..HEAD" "single-file command"
 has "the Gate fixer takes the red block and two attempts, and weakens nothing" "$fix_md" \
