@@ -329,6 +329,13 @@ lacks "no line says the review aborts every rebase conflict whatever its class" 
 has_flat "a stop on target moved names the one command that recovers it" "$mech" \
   "On \`not landed: target moved\` the reply names the one command that recovers it" \
   "the same run request typed again on the Ticket"
+# Every Playbook that builds in a worktree lands through the same review, so a moved target stops a
+# `bug-fix` or a `refactoring` run as well, and its reply needs the same recovery as a Ticket's.
+para_has "a stop on target moved names the run typed again for bug-fix and refactoring too" "$mech" \
+  "The run makes no commit for a Finding" \
+  "in \`bug-fix\` and \`refactoring\`" \
+  "the same run request typed again" \
+  "the Review the first run wrote"
 has_flat "the ticket reply's next step after target moved is the run typed again" "$refs/ticket.md" \
   "on \`not landed: target moved\` the same run request typed again on the Ticket"
 has_flat "the docs page says a landing your branch moved under is recovered by typing the run again" "$repo/docs/do.md" \

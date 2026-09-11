@@ -555,7 +555,9 @@ worktree and its branch left in place and named in the reply, the Ticket left `c
 nothing lands half fixed. On `not landed: target moved` the reply names the one command that
 recovers it, the same run request typed again on the Ticket in `ticket`: its resume finds every
 behaviour committed and runs the integration with the developer present to answer the hunks the
-review had nobody to ask about. On a protected branch the reply adds the two commands that land the
+review had nobody to ask about, and in `bug-fix` and `refactoring` it is the same run request typed
+again, in the developer's same words, whose resume, the Resume of [bug-fix.md](bug-fix.md), finds
+the Review the first run wrote and lands through the fix call on it. On a protected branch the reply adds the two commands that land the
 reviewed branch by hand from a branch that takes commits, since the diff was reviewed and Green
 and only the target was wrong:
 
