@@ -161,7 +161,7 @@ expect "the README names the reader do ships among the agents the install links"
 out="$(grep -E '^\| `choice-taker` +\|' "$repo/.agents/invocation.md")"
 check "the invocation contract's row names the choice-taker do ships, its one door, its tools and the Ruling it returns" 0 $? \
   '`do`, user-invoked' \
-  "\`Agent(subagent_type: choice-taker)\` from \`do\`'s ticket Playbook at its shape or build step only" \
+  "\`Agent(subagent_type: choice-taker)\` from \`do\`'s ticket Playbook at its shape step, behaviours step or build step only" \
   "with the two sides" '`Read, Glob, Grep`' "writes nothing" "Ruling"
 expect "the README names the choice-taker do ships among the agents the install links, after the reader" \
   grep -qE "^\| \`do\` +\| \`do-reader\`,[^|]*\`choice-taker\`" "$repo/README.md"
@@ -176,7 +176,7 @@ lacks "the reader has no write tool, no edit tool and no shell" "$reader_md" "Wr
 has "the reader names do's door as its one caller" "$reader_md" \
   "Forked only by the do skill's door" "Never on your own initiative"
 has "the door forks the reader by name" "$refs/mechanics.md" "subagent_type: do-reader"
-# The choice-taker rules a design fork the run meets at its shape or build step, so like the reader it
+# The choice-taker rules a design fork the run meets at its shape, behaviours or build step, so like the reader it
 # is an agent `do` ships, forked by `do` alone, bounded by a tool list that reads and never writes.
 chooser_md="$repo/skills/do/agents/choice-taker.md"
 front() { sed -n "s/^$1: //p" "$chooser_md" 2>/dev/null; } # $1 a frontmatter key: its value
@@ -185,12 +185,12 @@ expect "the choice-taker runs on fable at high effort" \
   sh -c '[ "$1" = fable ] && [ "$2" = high ]' _ "$(front model)" "$(front effort)"
 expect "the choice-taker's tools are exactly reading and search" test "$(front tools)" = "Read, Glob, Grep"
 lacks "the choice-taker has no write tool, no edit tool and no shell" "$chooser_md" "Write" "Edit" "Bash"
-has "the choice-taker names the ticket Playbook's shape or build step as its one caller" "$chooser_md" \
-  "Forked only by the do skill's ticket Playbook at its shape or build step"
+has "the choice-taker names the ticket Playbook's shape, behaviours or build step as its one caller" "$chooser_md" \
+  "Forked only by the do skill's ticket Playbook at its shape step, behaviours step or build step"
 expect "the choice-taker's description ends on never on your own initiative" \
   sh -c 'case "$1" in *"Never on your own initiative." | *"Never on your own initiative.\"") ;; *) exit 1 ;; esac' \
   _ "$(front description)"
-# A Design fork the run meets at its shape or build step is ruled inside the run: the run names the
+# A Design fork the run meets at its shape, behaviours or build step is ruled inside the run: the run names the
 # fork and both its sides in one line and forks the choice-taker by name with them, where it once
 # stopped naming `discuss`. The rule lives once in the Forks section, and each step that can meet a
 # fork sends it there, so a pin on the file as a whole would pass on a rule stated in the wrong place.
@@ -210,6 +210,18 @@ span_has() { # $1 label, $2 file, $3 the span's opening line, $4 the next span's
 span_has "a Design fork is named with both sides in one line and ruled by the choice-taker forked by name" \
   "$refs/mechanics.md" "### Forks" "### Delegates" \
   "Design fork" "says in one line" "both sides" "subagent_type: choice-taker"
+# The Forks section is where the rule lives, and three steps can meet a Design fork and send it
+# there: the shape step, the behaviours step and the build step. A rule naming only two of the three
+# leaves the third step's fork with no rule to follow, so the section, the choice-taker's own
+# description and the invocation contract's row must each name all three, not just "shape or build".
+span_has "the Forks section names the shape, behaviours and build steps as the three that send a Design fork to it" \
+  "$refs/mechanics.md" "### Forks" "### Delegates" \
+  "shape" "behaviours step" "build"
+has "the choice-taker names the shape, behaviours and build steps as its callers" "$chooser_md" \
+  "shape" "behaviours step" "build"
+out="$(grep -E '^\| `choice-taker` +\|' "$repo/.agents/invocation.md")"
+check "the invocation contract's row names the shape, behaviours and build steps as the choice-taker's callers" 0 $? \
+  "shape" "behaviours step" "build"
 expect "the Forks section no longer stops the run on every design fork" \
   sh -c '! printf %s "$1" | grep -qF "the Spec is incomplete: the run stops at its step"' _ "$(flat "$refs/mechanics.md")"
 span_has "the shape step sends a Design fork it meets to the forks rule" "$refs/ticket.md" \

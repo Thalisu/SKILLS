@@ -274,8 +274,8 @@ A question is classified before it is asked. An empirical fork (which timing, wh
 whether an API does the thing) is a fact a script can observe: it is settled by a throwaway probe
 script in the worktree, deleted before the commit, and never reaches the developer, per
 [never-block-on-the-human](../../../.agents/principles/never-block-on-the-human.md). A Design
-fork (two shapes the Ticket, its Spec and the code cannot settle) met at the shape step or in the
-build loop is ruled on inside the run, per
+fork (two shapes the Ticket, its Spec and the code cannot settle) met at the shape step, the
+behaviours step or in the build loop is ruled on inside the run, per
 [ADR 0036](../../../docs/adr/0036-a-design-fork-is-settled-in-the-run-by-a-read-only-choice-taker-and-only-an-extreme-fork-stops-it.md):
 the run says in one line that it met a Design fork at that step and names both sides, then calls
 the Agent tool with `subagent_type: choice-taker`, the agent `do` ships in

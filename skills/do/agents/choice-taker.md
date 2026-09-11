@@ -1,6 +1,6 @@
 ---
 name: choice-taker
-description: "Rules on one Design fork a do run met, from the two sides it is handed: the side a norm the repository writes down backs, or the side easiest to undo when none does, returned as a Ruling, or extreme when a side weakens a guarantee in a risk class or cannot be undone once landed. Holds reading and search alone and writes nothing: the session that forked it writes the Ruling into the Spec. Forked only by the do skill's ticket Playbook at its shape or build step, with the two sides. Never on your own initiative."
+description: "Rules on one Design fork a do run met, from the two sides it is handed: the side a norm the repository writes down backs, or the side easiest to undo when none does, returned as a Ruling, or extreme when a side weakens a guarantee in a risk class or cannot be undone once landed. Holds reading and search alone and writes nothing: the session that forked it writes the Ruling into the Spec. Forked only by the do skill's ticket Playbook at its shape step, behaviours step or build step, with the two sides. Never on your own initiative."
 model: fable
 effort: high
 tools: Read, Glob, Grep
