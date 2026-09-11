@@ -3,7 +3,12 @@
 Prepared for `claude plugin eval` (`<case>/case.yaml` + `prompt.md` + `graders/*.md`, the layout its
 `--help` describes). The command is gated server-side per organization (early access), so the cases
 follow the runner's help text for the `case.yaml` keys and the grader types (`llm`, `regex`,
-`file_exists`) and may need adjusting once it runs.
+`tool_used`, `file_exists`) and may need adjusting once it runs.
+
+A Sketch runs longer than the 2000 characters `scripts/run-eval.sh` shows its judge of any one tool
+call, so the filed Sketch's format is graded by `tool_used` patterns over the session's own Write
+input, which the runner reads whole. The one `llm` grader on the Sketch judges only its opening,
+the title, the header and the caller's usage, which the format puts before the clip.
 
 `sketch` is user-invoked, so every prompt types the skill; there is no trigger case. The skill
 forks the `sketch` agent, so the sandbox needs `skills/sketch/AGENT.md` linked at

@@ -1,5 +1,7 @@
 ---
-type: llm
-criteria: "The text written to .scratch/20260101-export-notes/sketch.md (the Write or shell call that files it, and, where that call's input is clipped, the Sketch text the session filed it from, which it writes with nothing added) is a Sketch in the Sketch format. Under its title are the four header keys, one per line: `Shapes:` holding the developer's argument, `Map:`, `Digest:`, and `Written:` holding the file's own absolute path ending in .scratch/20260101-export-notes/sketch.md. Then these sections, in this order: the caller's usage, a call site for exporting the active notes to markdown; the types; the signatures, each exported function with its parameters, its return and a body that reads `not implemented`, with no body filled in with working logic; the boundaries, one line per module saying what it knows and what it hands over; and the rejected rivals, at least one, each a shape structurally different from the winner with the fact that killed it beside it. No section is missing."
+type: tool_used
+tool: Write
+input_match: '^(?=.*"file_path":"/[^"]*/\.scratch/20260101-export-notes/sketch\.md").*"content":"# .*?\\nWritten: .*?\\n## The caller(?:\x27|’)s usage\\n.*?\\n## The types\\n.*?\\n## The signatures\\n.*?\\n## The boundaries\\n.*?\\n## Rejected rivals(?:\\n|")'
+min: 1
 ---
-The filed Sketch carries the header keys and every section the Sketch format fixes, with unimplemented bodies and a rejected rival.
+The text the session files at `.scratch/20260101-export-notes/sketch.md` carries, after its header, every section the Sketch format fixes in the format's order: the caller's usage, the types, the signatures, the boundaries, the rejected rivals.
