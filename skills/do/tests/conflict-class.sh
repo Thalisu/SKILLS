@@ -544,6 +544,25 @@ else
   fails=$((fails + 1))
 fi
 
+# A path whose conflict-marker-size attribute is not the default 7: git writes wider markers, and the
+# hunk has to be located and reported off them, never mistaken for a file with none left in it.
+fresh marker-size-32
+printf '*.txt conflict-marker-size=32\n' >.gitattributes
+printf 'x\ny\nz\n' >rewrite.txt
+commit base
+g branch inc
+printf 'x\nTARGET\nz\n' >rewrite.txt
+commit target
+g switch -q inc
+printf 'x\nINCOMING\nz\n' >rewrite.txt
+commit incoming
+g switch -q main
+g merge inc >/dev/null 2>&1
+
+run
+check "a wider conflict-marker-size still leaves the hunk contested, never trusted as hand-resolved" 1 "$rc" \
+  "contested rewrite.txt L2-L6 rewrite-vs-rewrite"
+
 # A run from a directory that is not the top.
 fresh subdirectory
 mkdir -p nested/deeper

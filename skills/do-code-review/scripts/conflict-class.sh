@@ -141,6 +141,17 @@ text_driver() { # $1 path
   esac
 }
 
+# The opening and closing markers git writes into this path's working file, in $marker_open and
+# $marker_close, at the size its conflict-marker-size attribute names, seven when it names none.
+marker_size() { # $1 path
+  local size
+  size="$(git check-attr -z conflict-marker-size -- "$1" 2>/dev/null | tr '\0' '\n' | sed -n 3p)"
+  [[ "$size" =~ ^[0-9]+$ ]] && [ "$size" -gt 0 ] || size=7
+  printf -v marker_open '%*s' "$size" ''
+  marker_close="${marker_open// />}"
+  marker_open="${marker_open// /<}"
+}
+
 # A stop someone already resolved and never staged leaves a working file with no marker to locate a
 # hunk by. When its bytes are the union the all-mechanical resolution writes from the raw stages,
 # each hunk sits where the default-style regeneration's markers would, less the three marker lines
@@ -218,10 +229,13 @@ classify_hunks() { # $1 path
     esac
   done < "$tmp/merged"
 
+  # Git writes the working file's markers at the path's own conflict-marker-size, so a marker read
+  # at the default seven would find none in a file git left untouched and take it for a hand's work.
   # A conflicted path is free to begin with a dash, so it reaches grep behind --: a file named -i
   # would otherwise be an option and turn both reads into a read of the caller's stdin.
-  mapfile -t starts < <(grep -n '^<<<<<<< ' -- "$path" 2>/dev/null | cut -d: -f1)
-  mapfile -t ends < <(grep -n '^>>>>>>> ' -- "$path" 2>/dev/null | cut -d: -f1)
+  marker_size "$path"
+  mapfile -t starts < <(grep -n "^${marker_open} " -- "$path" 2>/dev/null | cut -d: -f1)
+  mapfile -t ends < <(grep -n "^${marker_close} " -- "$path" 2>/dev/null | cut -d: -f1)
   if [ "${#classes[@]}" -gt 0 ] && [ "${#starts[@]}" -eq 0 ] && [ "${#ends[@]}" -eq 0 ] &&
      regular_file "$path"; then
     while read -r start end; do starts+=("$start"); ends+=("$end"); done < <(union_locations "$path")
