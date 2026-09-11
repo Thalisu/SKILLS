@@ -123,6 +123,10 @@ guesses:
   whose every hunk is mechanical are written and staged before the first question, and only the
   answers wait for the last one, so walking away leaves the rebase open, and the question already
   carries the command that undoes it.
+- A file you already resolved and never staged, which a second `/do` finds at the stop it resumes:
+  when it holds exactly the union of its two sides it is classed hunk by hunk like any other, so a
+  contested hunk in it is still a question; when it holds anything else it is yours, kept as you
+  wrote it, staged, and named in the reply as taken on trust.
 - A run nobody can answer, `claude -p` for one: the run aborts the rebase, leaves your branch as it
   was and names the conflicting files, rather than guess an answer.
 
