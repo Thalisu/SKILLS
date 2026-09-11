@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # lib.sh: the assertions and fixture builders the test scripts share. A script sources it after its
 # `here=` line and sets fails=0; the assertions read the caller's $out and bump the caller's $fails.
+# shellcheck disable=SC2154 # $out and $tmp belong to the sourcing script, which assigns them first.
 
 ok() { echo "ok    $1"; }
 fail() {
