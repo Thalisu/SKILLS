@@ -43,6 +43,9 @@ to type; nothing is written and no reference is read.
 | a reshape of existing code in words, its behaviour unchanged: refactor, rename, extract, inline, dedupe, move this module. Never a request that moves behaviour a caller or a user observes | `refactoring` |
 | a feature, and any other request with no Ticket | `Playbook: none`; `/discuss`, or `/spec` when the conversation already holds the discussion |
 
+A Ticket's path is matched on that file alone: a Ticket its `Blocked by` line names is never opened
+before the `ticket` door, whose script reads a blocker's `**Status:**` line and never its body.
+
 A matched Playbook whose reference is missing from Links is not installed in this session:
 `Playbook: none`, one line naming the Playbook and the missing reference, nothing written.
 
