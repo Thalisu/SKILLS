@@ -12,7 +12,8 @@ repo="$(cd "$here/../../.." && pwd -P)"
 skill="$repo/skills/sketch"
 fails=0
 
-# The skill file: user-invoked in Claude Code, forked onto its own agent.
+# The skill file: user-invoked in Claude Code, run in the developer's own session, which forks the
+# agent and files the Sketch the agent returns.
 skill_md="$skill/SKILL.md"
 has "the skill file carries its keys and the arguments" "$skill_md" \
   "name: sketch" "argument-hint:" '$ARGUMENTS'
