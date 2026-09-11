@@ -226,6 +226,19 @@ span_has "the spec format's Implementation Decisions admits the line a choice-ta
 span_has "the ticket format names the choice-taker's Ruling as the one edit a ticket makes to its spec" \
   "$repo/.agents/formats/ticket-format.md" "## Spec" "## Status" \
   "choice-taker" "Ruling"
+# A Ruling touches a Ticket criterion only when that criterion is the side that lost: its text becomes
+# the side that won and its tick stays as it was, and no other criterion changes. The two places that
+# today confine `do`'s writes to the Status line, the ticks and the Evidence each name that one more
+# write, or a run obeying them could never make the rewrite.
+span_has "only a criterion on the losing side of a settled Ruling is rewritten to the side that won, its tick kept" \
+  "$refs/mechanics.md" "### Forks" "### Delegates" \
+  "criterion" "losing side" "the side that won" "its tick" "every other criterion" "untouched"
+span_has "the ticket format's list of do's writes names a criterion's text when a Ruling rewrote it" \
+  "$repo/.agents/formats/ticket-format.md" "# Ticket format" "## Header" \
+  "the ticks" '`## Evidence`' "a criterion's text" "Ruling"
+span_has "the Ticket file section admits a criterion's text rewritten by a Ruling during the build" \
+  "$refs/mechanics.md" "## The Ticket file" "## The reader" \
+  "a criterion's text" "Ruling"
 # A session whose Agent tool does not list `do-reader` has no agent by that name to fork, so the
 # only fallback left open must never be a general-purpose fork holding write tools over the same
 # brief: the session does the reading and the write itself, stated before the fork is even called.

@@ -73,7 +73,8 @@ on the branch makes the landing fast-forward fail, so one rule covers the three 
   remote tracker the claim is the issue assigned to the developer, the way the tracker file
   describes, made after the developer's yes.
 - During the build the file is read and never written: the criteria and the `What to build` line
-  are where the behaviours come from.
+  are where the behaviours come from. The one exception is a criterion's text a Ruling rewrote as
+  the losing side, the forks below.
 - The status walk and who writes each word are the format's. The run writes `claimed` at the
   start and `resolved` at the close, and nothing in between. With `resolved` it writes the
   `Context:` line the format defines as the first line under `## Evidence`, from two readings of
@@ -292,6 +293,11 @@ same fork the other way:
 ```
 - Ruled by the choice-taker on Ticket <the Ticket> at the <step> step: <the side taken>. Norm: <the principle, the ADR by title, the CONTEXT.md term or the Spec decision, or "no norm: the side easiest to undo">. Fork: <side A> or <side B>.
 ```
+
+Only when a Ticket criterion is the losing side does the session also write the Ticket, in the
+main checkout: that criterion's text is replaced by the side that won, its tick kept as it was, and
+every other criterion is left untouched, so a Ruling never rewrites more of the Ticket than the fork
+reached and the review holds the build to the rewritten criterion.
 
 ### Delegates
 

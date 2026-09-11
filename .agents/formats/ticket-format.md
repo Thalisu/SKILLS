@@ -2,7 +2,8 @@
 
 A ticket is one document, written in English, in one of the two shapes below: a local markdown
 file, or an issue on the project's tracker. The field names are fixed: `do` reads Blocked by, the
-Status line and the criteria by name, and writes the Status line, the ticks and `## Evidence`;
+Status line and the criteria by name, and writes the Status line, the ticks, `## Evidence`, and
+a criterion's text when a `choice-taker` Ruling rewrote it as the losing side;
 `do-code-review` reads What to build and the criteria by name as its spec source, and reaches the
 spec through the pointer this format defines.
 
