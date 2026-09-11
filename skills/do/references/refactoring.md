@@ -372,7 +372,10 @@ ones the `ticket` Playbook gets:
 
 - **Landed.** The line reads `landed at <commit>` and the run goes to the verification.
 - **Not landed**, for any reason the review gives. The run stops as blocked with the reason quoted,
-  the worktree and its branch left in place and named in the reply, nothing half fixed.
+  the worktree and its branch left in place and named in the reply, nothing half fixed, and
+  on `not landed: target moved` the reply names the same run request typed again as the one
+  command that recovers it, never the review and the landing by hand: its resume, step 2's, finds
+  the Review that counts and runs the integration with the developer present.
 - **`do-code-review` not listed.** The step reads `skip: do-code-review not listed`, nothing lands,
   and the reply names the worktree, its branch and the review as the developer's next step.
 - **A protected branch.** The review refuses the landing, as the first message warned it would, and
@@ -423,5 +426,8 @@ Written by [reply.md](reply.md), with these lines before its sections, in this o
 Then the reply reference's sections in their order. Under pending debt: that gap, a caller in another
 repository the wave could not reach, a test that went red under a pure reshape and was named rather
 than edited, and a failed exit test the developer chose to keep. The reply ends with the push command
-naming the developer's branch when the review landed, and with the next command otherwise. Done when
-the reply is sent with every section that applies.
+naming the developer's branch when the review landed, and with the next command otherwise, which,
+on `not landed: target moved`, is the same run request typed again, since its resume runs the
+integration with the developer present to answer the hunks the review had nobody to ask about, then
+lands through the fix call on the Review. Done when the reply is sent with every section that
+applies.

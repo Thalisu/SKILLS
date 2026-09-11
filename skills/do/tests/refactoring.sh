@@ -139,6 +139,15 @@ has_flat_nocase "the fixed point is the merge base read after the integration" "
 has_flat_nocase "the landing target is the branch the run started on" "$ref" "the branch the run started on"
 has_flat_nocase "a red gate goes back to the reshape" "$ref" "a red gate"
 has_flat_nocase "a not-landed return stops the run as blocked" "$ref" "not landed"
+para_has "a review that returns not landed: target moved stops the run and names the same refactoring request typed again as its recovery" \
+  "$ref" "- **Not landed**, for any reason the review gives" \
+  "on \`not landed: target moved\`" \
+  "the same run request typed again"
+para_has "on not landed: target moved the reply names the same refactoring request typed again as the one recovery, whose resume integrates with the developer present" \
+  "$ref" "Then the reply reference's sections in their order" \
+  "on \`not landed: target moved\`" \
+  "the same run request typed again" \
+  "the integration with the developer present"
 has_flat_nocase "an absent do-code-review skips the step" "$ref" "skip: do-code-review not listed"
 has_flat_nocase "a protected branch is refused by the review" "$ref" "git merge --ff-only do/"
 has_flat_nocase "the verification is the shared one" "$ref" "the verification in [mechanics.md](mechanics.md)"
