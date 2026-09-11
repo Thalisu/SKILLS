@@ -639,6 +639,26 @@ run
 check "a path whose attributes spell out merge=text is still trusted as hand-resolved" 0 "$rc" \
   "trusted half-resolved.txt whole-file hand-resolved"
 
+# A path whose working-tree-encoding attribute is not UTF-8: git writes the on-disk conflict markers
+# in that encoding, so the script's ASCII marker grep finds none, exactly as it would for a file
+# genuinely hand-resolved with the markers removed. The two must never be conflated.
+fresh working-tree-encoding
+printf '*.txt working-tree-encoding=UTF-16LE\n' >.gitattributes
+printf 'x\ny\nz\n' | iconv -f UTF-8 -t UTF-16LE >rewrite.txt
+commit base
+g branch inc
+printf 'x\nTARGET\nz\n' | iconv -f UTF-8 -t UTF-16LE >rewrite.txt
+commit target
+g switch -q inc
+printf 'x\nINCOMING\nz\n' | iconv -f UTF-8 -t UTF-16LE >rewrite.txt
+commit incoming
+g switch -q main
+g merge inc >/dev/null 2>&1
+
+run
+check "a working-tree-encoding attribute leaves the hunk contested, never trusted as hand-resolved" 1 "$rc" \
+  "contested rewrite.txt whole-file unmergeable"
+
 # A run from a directory that is not the top.
 fresh subdirectory
 mkdir -p nested/deeper

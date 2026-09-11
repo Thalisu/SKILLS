@@ -152,6 +152,14 @@ marker_size() { # $1 path
   marker_open="${marker_open// /<}"
 }
 
+# Whether git re-encodes this path's working file on checkout. Git then writes its markers in that
+# encoding, where a grep for ASCII markers finds none, so a missing marker says nothing about a hand.
+reencoded() { # $1 path
+  local encoding
+  encoding="$(git check-attr -z working-tree-encoding -- "$1" 2>/dev/null | tr '\0' '\n' | sed -n 3p)"
+  case "$encoding" in unspecified | unset | '') return 1 ;; esac
+}
+
 # A stop someone already resolved and never staged leaves a working file with no marker to locate a
 # hunk by. Its hunks are read off $tmp/merged, the same --diff3 regeneration classify_hunks already
 # parsed into classes, so the two counts can never disagree: a default-style regeneration splits its
@@ -242,7 +250,7 @@ classify_hunks() { # $1 path
   mapfile -t starts < <(grep -n "^${marker_open} " -- "$path" 2>/dev/null | cut -d: -f1)
   mapfile -t ends < <(grep -n "^${marker_close} " -- "$path" 2>/dev/null | cut -d: -f1)
   if [ "${#classes[@]}" -gt 0 ] && [ "${#starts[@]}" -eq 0 ] && [ "${#ends[@]}" -eq 0 ] &&
-     regular_file "$path"; then
+     regular_file "$path" && ! reencoded "$path"; then
     while read -r start end; do starts+=("$start"); ends+=("$end"); done < <(union_locations "$path")
     # No marker and not the union: someone wrote this file by hand, and it is theirs.
     if [ "${#starts[@]}" -eq 0 ] && text_driver "$path"; then
