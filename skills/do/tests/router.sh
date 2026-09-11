@@ -5,6 +5,8 @@
 # the Playbook rule in the glossary, and the eval case named for what it grades.
 # The word is looked for in any casing: the glossary spells the artifact `Sketch`, so a row or a
 # folder that brings the trigger back capitalized is the same drift as the lowercase one.
+# It also checks the router's rule for a Ticket's blockers: a session matching a Ticket's path opens
+# no Ticket its Blocked by line names before the ticket door reads that blocker's status line.
 # Run: bash skills/do/tests/router.sh
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
@@ -83,6 +85,28 @@ has "the router sends a runnable throwaway to the prototype door" "$router" \
   "| a runnable throwaway: a layout, a variant to try | \`Playbook: none\`; \`/prototype\` |"
 rows_lack "no row of the router table matches the word \`sketch\`" "$router" \
   '| The argument | Match |' sketch
+
+# The sentences and table cells of one section, from its heading to the next `## ` heading, with the
+# wrapping flattened. A rule the file states in another section is not the router's rule.
+section_sentences() { # $1 file, $2 the section's heading line
+  awk -v h="$2" '$0 == h { s = 1; next } s && /^## / { exit } s' "$1" | tr '\n' ' ' | tr -s ' ' |
+    sed 's/\. /.\n/g; s/ *| */\n/g'
+}
+one_sentence_says() { # $1.. extended regexes, case ignored, that one sentence of $out must all match
+  local sentences="$out" re
+  for re in "$@"; do sentences="$(grep -iE -- "$re" <<<"$sentences")"; done
+  [ -n "$sentences" ]
+}
+
+# A session that opens a blocker to learn its state reads the blocker's whole body before the ticket
+# door does the read it names, the status line alone. The rule is matched by meaning: one sentence
+# of the Router section names the blocker, forbids opening or reading it, and sends it to the door
+# or its status line.
+out="$(section_sentences "$router" "## Router")"
+expect "the router tells a Ticket's path to open no blocker before the ticket door reads its status line" \
+  one_sentence_says 'blocker|blocked by' \
+  '(never|not|no|nothing)( [a-z`*]+){0,3} (open|read)|(open|read)[a-z]*( [a-z`*]+){0,1} (no|never)' \
+  'door|status'
 
 # The two places the repository repeats the row. A reader who takes either at its word and types
 # `/do sketch a shape` has to land on the same door the router sends them to.
