@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# returns.sh: the wait the do-code-review orchestrator runs on its reviewers' return files, so a
-# retry forks only the reviewer whose file never landed and a return already in hand is never
-# waited on again.
+# returns.sh: the wait the do-code-review orchestrator runs on the return files of its reviewers,
+# its Fixers and its Gate fixer, so a retry forks only the reviewer whose file never landed, a
+# return already in hand is never waited on again, and a fork the harness ran in the background
+# never ends the orchestrator's turn.
 #
 #   returns.sh <window in seconds> <return file>...
 #

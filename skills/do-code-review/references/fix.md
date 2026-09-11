@@ -100,7 +100,8 @@ a test author running its red against another Fixer's half-made edit proves noth
 commits at once fight over the index. A Fixer holds its one Finding and nothing else, so its
 window stays the size of that Finding. It has no definition of its own: its whole contract is the
 brief below, which is why this file exists. It gets the Review's location, the branch it commits
-on, its one Finding with its number, location, `Claim:` and `Fix:` line, and four rules.
+on, its one Finding with its number, location, `Claim:` and `Fix:` line, its `Return file:` line,
+and four rules.
 
 1. **Follow the Testing Policy when one is installed.** Dispatch the project's unit test author
    with the behaviour to prove and the target from the Finding's `Fix:` line, with
@@ -114,6 +115,21 @@ on, its one Finding with its number, location, `Claim:` and `Fix:` line, and fou
    it. A location that has moved or gone is reported and left alone: no commit, and no guess at
    where the code went.
 4. **Report each commit.** One line for its Finding, by its number: the sha, or what stopped it.
+   The same line goes to its return file, in one shell command, before it ends its turn.
+
+The run is not over until the landing line is written, whatever the Agent tool does. Make one
+directory outside every repository before the first Fixer,
+`mktemp -d "${TMPDIR:-/tmp}/do-code-review-fix.XXXX"`, and give each Fixer
+`Return file: <that directory>/fixer-<its number>.md`. When the Agent tool returns the Fixer's
+line, go on. When it returns before the Fixer does, because the harness runs sub-agents in the
+background, do not end your turn: a turn ended there hands the Fixer's result to your caller
+instead of to you, and the re-check, the Gate and the landing never run. Wait for its return file
+with `bash ~/.claude/skills/do-code-review/scripts/returns.sh 240 <its return file>`, given the
+Bash tool's own `timeout` at its maximum, `600000` ms, so the script's window closes first, and
+call it again on a `missing=` line, three windows and no more. A Fixer whose file has not landed
+after the third reads `not fixed: the Fixer did not return`,
+and no further Fixer is forked, since it may still be writing in the tree; every Finding left reads
+the same, and the run goes on to the re-check.
 
 Two branches end in no commit and are reported, never worked around:
 
@@ -136,7 +152,7 @@ per `Act on` Finding, run the check its `Fix:` line named.
 | the Fixer committed it and the check passes | `fixed <sha>, verified` |
 | the Fixer committed it and there is no check named | `fixed <sha>, not verified` |
 | the Fixer reported the location no longer matches | `stale` |
-| no commit, for either branch above | `not fixed` with the reason |
+| no commit, for either branch above, or a Fixer that did not return | `not fixed` with the reason |
 
 The two reviewers are not re-run on the Fixers' commits, and never on anything after them: the
 review runs once per run. Each Finding's own check, the Diff tests and the Gate are what stand in
@@ -179,8 +195,8 @@ tests the reviewers ran. A Review with nothing in `Act on` runs it too, at the s
 
 One general-purpose sub-agent, forked when the Diff tests or the Gate come back red after a Fixer
 committed, with two attempts in all, shared by both checks. Its brief is the red block as the check
-printed it, the capped lines and never the full log or the Review, the branch it commits on, and
-four rules:
+printed it, the capped lines and never the full log or the Review, the branch it commits on, a
+`Return file:` line in the Fixers' directory, `gate-fixer-<the attempt>.md`, and four rules:
 
 1. **Fix the code, never the check.** Never a skipped test, a weakened assertion or a sleep. A
    test whose assertion it would have to change to pass is reported, never changed: an assertion
@@ -190,6 +206,11 @@ four rules:
 3. **Touch nothing the red block does not point at.**
 4. **One commit per attempt**, its body naming the check it turned green, and one line back: the
    sha, or what stopped it.
+
+As a Fixer does, the Gate fixer writes its line to its return file, and it is waited for the same
+way, three windows and no more. One whose file never lands ends the attempts, since it may still be
+writing in the tree: nothing lands, and the landing line reads
+`not landed: gate red after the fixes, <the failing check>`.
 
 After each attempt the orchestrator runs every Finding's check, the Diff tests and the Gate again
 itself, and never takes the Gate fixer's word for it. Green, and the run goes on. Red after the
