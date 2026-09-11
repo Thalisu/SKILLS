@@ -93,9 +93,10 @@ creates: a `do/<slug>` worktree or branch that already exists is an earlier run 
 and the Resume of [bug-fix.md](bug-fix.md) takes the step over, the way it reads that state there,
 so an existing worktree is entered, a gone one is recreated on the existing branch, and a Review of
 the branch that counts lands through the fix call on it, never a second review. The run continues
-at the first step its branch does not evidence: a branch carrying its cleanup commit, the one a
-`not landed: target moved` return leaves, resumes at step 10. Done when its status prints nothing
-and the branch name is in the thread.
+at the first step its branch does not evidence, and a Review that counts decides the jump, not the
+cleanup commit: a branch carrying one, which a `not landed: target moved` return leaves, resumes at
+step 10 whether or not step 9 left a cleanup commit. Done when its status prints nothing and the
+branch name is in the thread.
 
 ### 3. Pin
 

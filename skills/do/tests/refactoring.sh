@@ -38,6 +38,9 @@ has_flat_nocase "the worktree is the shared one" "$ref" "](mechanics.md)"
 para_has "a refactoring request typed again enters the run's existing worktree and branch through bug-fix's Resume, linked" \
   "$ref" "The worktree in [mechanics.md](mechanics.md), created from the current HEAD" \
   "probes before it creates" "[bug-fix.md](bug-fix.md)" "Resume"
+para_has "a branch carrying a Review that counts resumes at step 10 whether or not step 9 left a cleanup commit" \
+  "$ref" "The worktree in [mechanics.md](mechanics.md), created from the current HEAD" \
+  "a Review that counts" "not the cleanup commit" "whether or not" "a cleanup commit" "resumes at step 10"
 lacks "the resume's rules live once, in bug-fix.md, never copied into the reference" "$ref" \
   "git log -g --format=%H" "git branch --list do/<slug>"
 lacks "no em-dash in the reference" "$ref" "$emdash"
