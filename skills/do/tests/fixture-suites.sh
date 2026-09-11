@@ -14,9 +14,6 @@ evals="$here/../evals"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
-facts_cmd() { # $1 fixture dir, $2 Unit|E2E: the full-suite command its Project facts line names
-  sed -n "s/^- \*\*$2\*\*:.* full suite \`\([^\`]*\)\`.*/\1/p" "$1/CLAUDE.md" 2>/dev/null | head -1
-}
 dir_args() { # $1 fixture dir, $2 command: each argument of the command that is a directory of the fixture
   local a
   while IFS= read -r a; do
@@ -59,7 +56,7 @@ review_green() { # $1 fixture dir, $2 worktree dir: the stand-in's return on a g
 }
 
 cases=()
-while IFS= read -r f; do cases+=("$(basename "$(dirname "$f")")"); done < <(grep -lE 'if \[ -d e2e \]; then suite=' "$evals"/*/case.yaml)
+while IFS= read -r f; do cases+=("$(basename "$(dirname "$f")")"); done < <(grep -lZF -- "cat > .claude/skills/do-code-review/review.sh" "$evals"/*/case.yaml | xargs -0 -r grep -lF -- "- **Unit**: full suite")
 if [ "${#cases[@]}" -ge 9 ]; then ok "nine or more fixtures install the stand-in review"; else fail "nine or more fixtures install the stand-in review (found ${#cases[@]})"; fi
 
 for c in "${cases[@]}"; do

@@ -75,8 +75,8 @@ fixture, a `post-commit` hook under its `.git/`: the first commit on a `do/` bra
 and it lands one commit on `main` with git's plumbing in a temporary index, so the developer's
 branch moves only after the run's worktree exists and the rebase has something to replay. Its
 commit only adds lines, at the end of the file the build appends to, which is what makes every hunk
-of the stop class `mechanical`. The fixture's commands are real: `node --test src/` runs the unit suite,
-`node --test e2e/` the flows, and `tsc --noEmit` typechecks `src/`.
+of the stop class `mechanical`. The fixture's commands are real: `node --test 'src/**/*.test.ts'` runs the unit suite,
+`node --test 'e2e/**/*.test.ts'` the flows, and `tsc --noEmit` typechecks `src/`.
 `ticket-run-without-policy` scaffolds the plain JavaScript fixture of the `trivial-` cases instead,
 with the same spec, journey and Tickets and no policy section, no agent and no inline skill, so the
 run takes the TDD fallback and node alone runs its suite.

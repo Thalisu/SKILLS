@@ -138,3 +138,6 @@ scaffold_of() { # $1 case folder: the scaffold_script block of its case file
   awk '/^  scaffold_script: \|/ { f = 1; next } f && /^    / { sub(/^    /, ""); print; next } f && /^[[:space:]]*$/ { print ""; next } f { exit }' \
     "$1/case.yaml" 2>/dev/null
 }
+facts_cmd() { # $1 scaffolded fixture, $2 Unit|E2E: the full-suite command its Project facts name
+  sed -n "s/^- \*\*$2\*\*:.* full suite \`\([^\`]*\)\`.*/\1/p" "$1/CLAUDE.md" 2>/dev/null | head -1
+}

@@ -595,9 +595,9 @@ context:
         ;;
     esac
 
-    if [ -d e2e ]; then suite="node --test src/"; else suite="node --test"; fi
+    suite="$(sed -n 's/^- \*\*Unit\*\*:.* full suite `\([^`]*\)`.*/\1/p' CLAUDE.md | head -1)"; [ -n "$suite" ] || { echo "the Project facts in CLAUDE.md name no Unit full suite; nothing reviewed"; exit 1; }
     out="$(mktemp)"
-    if $suite >"$out" 2>&1; then suite_line="\`$suite\`: $(grep -E '^(#|ℹ) (tests|pass|fail) ' "$out" | tr '\n' ' ')"; else suite_line="\`$suite\`: red, $(grep -E '^(#|ℹ) (tests|pass|fail) ' "$out" | tr '\n' ' ')"; green=0; fi
+    if bash -c "$suite" >"$out" 2>&1; then suite_line="\`$suite\`: $(grep -E '^(#|ℹ) (tests|pass|fail) ' "$out" | tr '\n' ' ')"; else suite_line="\`$suite\`: red, $(grep -E '^(#|ℹ) (tests|pass|fail) ' "$out" | tr '\n' ' ')"; green=0; fi
     rm -f "$out"
 
     protected() {

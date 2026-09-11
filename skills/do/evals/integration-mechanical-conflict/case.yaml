@@ -47,8 +47,8 @@ context:
     # notes
 
     A small notes module with a CLI: create a note, list the active ones. The writer drives it through
-    `bin/notes.mjs`, one command per stdin line (`create <title>`, `list`). `node --test src/` runs the
-    unit suite, `node --test e2e/` the flows, and `tsc --noEmit` typechecks `src/`.
+    `bin/notes.mjs`, one command per stdin line (`create <title>`, `list`). `node --test 'src/**/*.test.ts'` runs the
+    unit suite, `node --test 'e2e/**/*.test.ts'` the flows, and `tsc --noEmit` typechecks `src/`.
 
     A new exported function goes at the end of `src/notes.ts`, after the last one, so the module reads
     in the order it grew.
@@ -186,8 +186,8 @@ context:
     <!-- Filled at install from the project's real setup; PRESERVED on refresh (the skill only reports
          when a fresh discovery disagrees). Every command here has been run once and returned output. -->
 
-    - **Unit**: full suite `node --test src/` · single file `node --test <file>` · mandatory flags / known phantom failures: none; test files are `src/**/*.test.ts`, import the module with its `.ts` extension and sit outside the typecheck (`tsc --noEmit` checks `src/` without them); the bare `node --test` would also run the flows under `e2e/`, so the unit suite names `src/` · skip mechanisms: `test.skip`, `test.todo`, `{ skip: true }`
-    - **E2E**: `node:test` flows that drive the CLI `bin/notes.mjs` through `e2e/helpers/cli.mjs` · single flow `node --test <file>` · full suite `node --test e2e/` · flow naming `e2e/<journey>.flow.test.ts` (e.g. `e2e/list-notes.flow.test.ts`) · skip mechanisms: `test.skip`, `test.todo`
+    - **Unit**: full suite `node --test 'src/**/*.test.ts'` · single file `node --test <file>` · mandatory flags / known phantom failures: none; test files are `src/**/*.test.ts`, import the module with its `.ts` extension and sit outside the typecheck (`tsc --noEmit` checks `src/` without them); the bare `node --test` would also run the flows under `e2e/`, so the unit suite names the test files under `src/` by a glob Node expands itself, since Node 24 and 25 load a directory argument as one module · skip mechanisms: `test.skip`, `test.todo`, `{ skip: true }`
+    - **E2E**: `node:test` flows that drive the CLI `bin/notes.mjs` through `e2e/helpers/cli.mjs` · single flow `node --test <file>` · full suite `node --test 'e2e/**/*.test.ts'` · flow naming `e2e/<journey>.flow.test.ts` (e.g. `e2e/list-notes.flow.test.ts`) · skip mechanisms: `test.skip`, `test.todo`
     - **Real test stack**: the CLI `bin/notes.mjs`, spawned by the flow from the checkout it runs in with its commands on stdin; nothing to bring up · **known infra failures**: none
     - **Duplication scan**: `grep -rhoE '^(export )?(async )?function [A-Za-z_]+' src e2e --include='*.test.ts' --include='*.mjs' | sort | uniq -d` · shared homes per role: the agents' Project map
     - **Why the agents run in place**: the runner and the CLI resolve `src/` from the checkout they run in, so an author in another worktree would test other files
@@ -325,7 +325,7 @@ context:
 
     **Framework & run commands**
     - Single file: `node --test <file>`
-    - Full suite: `node --test src/`
+    - Full suite: `node --test 'src/**/*.test.ts'`
     - Formatter: `none`
     - Node's own runner strips the types: a test file imports the module with its `.ts` extension (`./notes.ts`) and asserts with `node:assert/strict`; no preload, no flags
 
@@ -508,7 +508,7 @@ context:
 
     **Tool & run commands**
     - Single flow: `node --test <file>`
-    - Full suite (delivery gate, not yours to run): `node --test e2e/`
+    - Full suite (delivery gate, not yours to run): `node --test 'e2e/**/*.test.ts'`
     - Formatter / linter: `none`
     - Run from the checkout root: the flow spawns `node bin/notes.mjs` from the checkout it runs in and feeds it one command per stdin line (`create <title>`, `list`); the process keeps its notes in memory, so one flow is one process. No device, no server, no base URL
 
@@ -811,9 +811,9 @@ context:
         ;;
     esac
 
-    if [ -d e2e ]; then suite="node --test src/"; else suite="node --test"; fi
+    suite="$(sed -n 's/^- \*\*Unit\*\*:.* full suite `\([^`]*\)`.*/\1/p' CLAUDE.md | head -1)"; [ -n "$suite" ] || { echo "the Project facts in CLAUDE.md name no Unit full suite; nothing reviewed"; exit 1; }
     out="$(mktemp)"
-    if $suite >"$out" 2>&1; then suite_line="\`$suite\`: $(grep -E '^(#|ℹ) (tests|pass|fail) ' "$out" | tr '\n' ' ')"; else suite_line="\`$suite\`: red, $(grep -E '^(#|ℹ) (tests|pass|fail) ' "$out" | tr '\n' ' ')"; green=0; fi
+    if bash -c "$suite" >"$out" 2>&1; then suite_line="\`$suite\`: $(grep -E '^(#|ℹ) (tests|pass|fail) ' "$out" | tr '\n' ' ')"; else suite_line="\`$suite\`: red, $(grep -E '^(#|ℹ) (tests|pass|fail) ' "$out" | tr '\n' ' ')"; green=0; fi
     rm -f "$out"
 
     protected() {
