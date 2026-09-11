@@ -134,7 +134,7 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   `review=` line that names a Review means the rebase came after the review: once it finishes and
   the gate is green, the branch lands through the fix call on that Review, and is never reviewed a
   second time.
-- A run that stopped on a design fork (the forks in [mechanics.md](mechanics.md)) resumes the same
+- A run that stopped on an Extreme fork (the forks in [mechanics.md](mechanics.md)) resumes the same
   way once `discuss` amended the Spec: the reader is forked again over the amended Spec and the
   journey both, never over the Spec alone, whose Digest would come back with no Journey Path for
   step 4 to read, and the list is re-derived from the Digest that comes back, then the loop

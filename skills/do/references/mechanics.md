@@ -306,6 +306,13 @@ both, never over the Spec alone, whose Digest would come back with no Journey Pa
 the Digest the way a second run does; then it re-derives the behaviours list from the Digest that
 comes back and continues at the first behaviour without a commit.
 
+A fork that touches a risk class with both sides keeping the guarantee whole is ruled on like any
+other and never stops the run. An Extreme fork, one of whose sides weakens a guarantee in a risk
+class (security, privacy, data loss, auth, billing, migration, idempotency, race) or cannot be
+undone once landed, is the one the `choice-taker` does not rule: it returns `extreme`, and the run
+stops at its step with one message naming `discuss`, the Ticket left `claimed` and the worktree in
+place, so that the next `/do` on the Ticket resumes it once the Spec is amended.
+
 ### Delegates
 
 The session writes the production code and commits. A delegate is forked by exception, per

@@ -201,7 +201,7 @@ span_has() { # $1 label, $2 file, $3 the span's opening line, $4 the next span's
 span_has "a Design fork is named with both sides in one line and ruled by the choice-taker forked by name" \
   "$refs/mechanics.md" "### Forks" "### Delegates" \
   "Design fork" "says in one line" "both sides" "subagent_type: choice-taker"
-expect "the Forks section no longer stops the run on a design fork" \
+expect "the Forks section no longer stops the run on every design fork" \
   sh -c '! printf %s "$1" | grep -qF "the Spec is incomplete: the run stops at its step"' _ "$(flat "$refs/mechanics.md")"
 span_has "the shape step sends a Design fork it meets to the forks rule" "$refs/ticket.md" \
   "**3. Shape.**" "**4. Behaviours.**" "Design fork" "the forks in [mechanics.md](mechanics.md)"
@@ -253,6 +253,18 @@ span_has "a settled Ruling names the Spec as changed, re-forks the reader over t
 para_has "the second-run rule covers the re-fork a Ruling triggers mid-run beside a resume and a /do typed again" \
   "$refs/mechanics.md" "A Digest already sits beside the Ticket" \
   "on a resume" "typed again on the same Ticket" "Ruling"
+# Touching a risk class is not what stops a run: a Spec about security would stop on every fork. A
+# fork whose two sides both keep the guarantee whole is ruled on like any other, and only an Extreme
+# fork, one side weakening a guarantee in a risk class or landing what cannot be undone, still stops
+# the run where it met it, handing the fork to `discuss` with the claim and the worktree kept.
+span_has "a Design fork touching a risk class with both sides keeping the guarantee whole is ruled on and never stops the run" \
+  "$refs/mechanics.md" "### Forks" "### Delegates" \
+  "risk class" "guarantee whole" "never stops"
+span_has "an Extreme fork, a side weakening a risk-class guarantee or not undoable once landed, has the choice-taker return extreme and stops the run naming discuss, Ticket claimed, worktree in place" \
+  "$refs/mechanics.md" "### Forks" "### Delegates" \
+  "Extreme fork" "security, privacy, data loss, auth, billing, migration, idempotency, race" \
+  "cannot be undone once landed" '`extreme`' "stops at its step" \
+  'one message naming `discuss`' 'the Ticket left `claimed`' "the worktree in place"
 # A session whose Agent tool does not list `do-reader` has no agent by that name to fork, so the
 # only fallback left open must never be a general-purpose fork holding write tools over the same
 # brief: the session does the reading and the write itself, stated before the fork is even called.
@@ -336,10 +348,14 @@ has "every behaviour line traces to a quote and never to a paraphrase" "$refs/ti
 # A resume re-derives the list, so it must reach for the Digest and not for the Spec again.
 has "the resume re-derives the list from the Digest, never from the Spec" "$refs/ticket.md" \
   "re-derived from the Ticket and its Digest"
-# The re-fork after a design fork takes both documents: over the Spec alone the new Digest comes
-# back with no Journey Path, and the resumed list is shorter than the first run's.
-has "the design-fork resume forks the reader over the Spec and the journey both" "$refs/ticket.md" \
-  "journey both, never over the Spec alone"
+# Only an Extreme fork still stops a run, so the Resume bullet that picks such a run up names that
+# stop. The re-fork after it takes both documents: over the Spec alone the new Digest comes back with
+# no Journey Path, and the resumed list is shorter than the first run's.
+span_has "the Extreme fork resume re-forks the reader over the amended Spec and the journey both" \
+  "$refs/ticket.md" "- A run that stopped on" "## Checklist" \
+  "Extreme fork" '`discuss`' "amended Spec" "journey both, never over the Spec alone"
+expect "the Resume bullet no longer speaks of a run stopped on a design fork" \
+  sh -c '! printf %s "$1" | grep -qF "A run that stopped on a design fork"' _ "$(flat "$refs/ticket.md")"
 
 # The script is rerunnable by a reviewer who has only the file, since the repo has no runner. The
 # match is the header alone: the pattern is itself a line further down this script, so a whole-file
