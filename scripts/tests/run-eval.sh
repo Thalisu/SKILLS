@@ -78,6 +78,7 @@ context:
     git init -q -b main
     git -c user.email=f@example.com -c user.name=f add -A
     git -c user.email=f@example.com -c user.name=f commit -q -m fixture
+    git branch export-notes
 YAML
 printf '/journey suppliers\n' >"$evals/walk/prompt.md"
 grader walk judged 'type: llm
@@ -150,6 +151,12 @@ expect "the judge reads the file the run created" grep -qF "made-by-run.txt" <<<
 expect "a run that made a file is never reported as changing nothing" \
   bash -c '! grep -qF "no file changed" <<<"$1"' _ "$judged"
 expect "the fixture's own files are no change of the run's" bash -c '! grep -qF "./a.txt" <<<"$1"' _ "$judged"
+# A landing and the cleanup of its worktree run in a forked orchestrator the top transcript does not
+# show, so the fixture's git state after the run is the judge's only evidence of them.
+expect "the judge is shown the fixture's branches after the run, the scaffold's second one among them" \
+  bash -c 'sed -n "/^Branches after the run:\$/,/^\$/p" <<<"$1" | grep -qF export-notes' _ "$judged"
+expect "the judge is shown the fixture's worktrees after the run" \
+  bash -c 'sed -n "/^Worktrees after the run:\$/,/^\$/p" <<<"$1" | grep -qF "[main]"' _ "$judged"
 expect "no work folder or sandbox is left behind" test -z "$(ls "$TMPDIR")"
 
 reset
