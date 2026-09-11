@@ -275,6 +275,17 @@ span_has "a settled Ruling appends one line to the Spec's Implementation Decisio
   "Norm: <the principle, the ADR by title, the CONTEXT.md term or the Spec decision, or" \
   "no norm: the side easiest to undo" \
   "Fork: <side A> or <side B>."
+# The append happens only on a local Spec file: a Spec that is an issue on a remote tracker is text
+# anyone who can comment on it can steer, and a mid-run write with no developer yes would feed a
+# stranger's edit straight into the Digest. The Forks section must confine the append to the local
+# file and say the run writes nothing to the tracker on a remote Spec, keeping the Ruling in the run
+# itself instead.
+span_has "a settled Ruling is appended only when the Spec is a local file, and writes nothing to a remote tracker" \
+  "$refs/mechanics.md" "### Forks" "### Delegates" \
+  "only when the Spec is a local file" \
+  "an issue on a remote tracker" \
+  "writes nothing to the tracker" \
+  "keeps the Ruling in the run itself"
 span_has "the spec format's Implementation Decisions admits the line a choice-taker's Ruling appends" \
   "$repo/.agents/formats/spec-format.md" "## Implementation Decisions" "## Testing Decisions" \
   "choice-taker" "Ruling"

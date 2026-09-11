@@ -298,8 +298,8 @@ the Ticket resumes it. The message says which branch holds: the Agent tool withh
 `choice-taker` not listed, the agent this machine has not linked, which one run of the skills
 repository's `scripts/link-skills.sh` links before the next `/do`.
 
-A `settled` Ruling is written by the session as one line appended to the Spec's Implementation
-Decisions, marked as the choice-taker's, per
+A `settled` Ruling is written by the session only when the Spec is a local file, as one line
+appended to the Spec's Implementation Decisions, marked as the choice-taker's, per
 [ADR 0037](../../../docs/adr/0037-a-choice-takers-ruling-amends-the-spec-and-a-ticket-criterion-only-when-it-is-the-losing-side.md),
 so every Ticket of the feature reads the same Ruling rather than a second `choice-taker` ruling the
 same fork the other way:
@@ -308,16 +308,24 @@ same fork the other way:
 - Ruled by the choice-taker on Ticket <the Ticket> at the <step> step: <the side taken>. Norm: <the principle, the ADR by title, the CONTEXT.md term or the Spec decision, or "no norm: the side easiest to undo">. Fork: <side A> or <side B>.
 ```
 
+When the Spec is an issue on a remote tracker, the session writes nothing to the tracker mid-run
+and keeps the Ruling in the run itself. Every write `do` makes to a tracker waits for the
+developer's yes, the claim and the close alike, and an issue is text anyone who can comment on it
+can steer, so a Ruling drawn from it is never posted back there unasked. The Ruling's line goes in
+the reply instead, for the developer to carry to the issue, and the run continues on the Digest it
+already holds, with no reader forked again, since the Spec it was cut from did not change.
+
 Only when a Ticket criterion is the losing side does the session also write the Ticket, in the
 main checkout: that criterion's text is replaced by the side that won, its tick kept as it was, and
 every other criterion is left untouched, so a Ruling never rewrites more of the Ticket than the fork
 reached and the review holds the build to the rewritten criterion.
 
-Once the Ruling is written, the run carries on in the same session and never stops for it: it
-prints the one line naming the Spec as changed, forks the reader again over the Spec and the journey
-both, never over the Spec alone, whose Digest would come back with no Journey Path, and replaces
-the Digest the way a second run does; then it re-derives the behaviours list from the Digest that
-comes back and continues at the first behaviour without a commit.
+Once the Ruling is written to a local Spec,
+the run carries on in the same session and never stops for it: it prints the one line naming the
+Spec as changed, forks the reader again over the Spec and the journey both, never over the Spec
+alone, whose Digest would come back with no Journey Path, and replaces the Digest the way a second
+run does; then it re-derives the behaviours list from the Digest that comes back and continues at
+the first behaviour without a commit.
 
 A fork that touches a risk class with both sides keeping the guarantee whole is ruled on like any
 other and never stops the run. An Extreme fork, one of whose sides weakens a guarantee in a risk
