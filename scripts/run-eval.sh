@@ -15,8 +15,8 @@
 # context.scaffold_script that lays the fixture in an empty folder, and context.unlinked_agents,
 # the agents of this repo its sessions must not list), prompt.md and graders/*.md, each grader a
 # frontmatter of one type:
-#   llm          criteria, read by a judge session against the run's transcript and what the run
-#                changed in the fixture
+#   llm          criteria, read against the run's transcript and what the run changed in the
+#                fixture by one judge session, which answers for every llm grader of the run
 #   regex        pattern (PCRE), match: contains, target: last_message
 #   tool_used    tool, input_match (PCRE over the input as compact JSON), min, max; it counts the
 #                calls the session makes itself, never a subagent's
@@ -112,38 +112,42 @@ snapshot() { # $1 fixture: a checksum per file, so a change the run made shows u
   (cd "$1" && find . -path ./.git -prune -o -type f -print0 | sort -z | xargs -0 -r sha1sum)
 }
 
-judge() { # $1 grader, $2 work folder: the judge's answer, the verdict on its first line; its raw
-          # reply and its errors stay in the work folder as judge-<grader>.json and .err
-  local raw
-  raw="$2/judge-$(basename "$1" .md)"
-  cat <<EOF | (cd "$2" && timeout 300 "${claude_cmd[@]}" --output-format json --max-turns 1 --tools "" \
-    --no-session-persistence --model "$judge_model") >"$raw.json" 2>"$raw.err"
-You grade one run of an eval case. Decide whether the run meets every part of the criteria below,
-judging only on what the transcript and the changes to the fixture show: a claim the run makes
-about its own work is not proof of it.
+# One judge session reads every llm grader of a run: the transcript is most of each judge's input,
+# and the CLI never serves it from cache to a second session whose prompt differs after it.
+judge() { # $1 work folder, then the run's llm graders: the judge's answer, a verdict line per
+          # grader; its raw reply and its errors stay in the work folder as judge.json and .err
+  local w="$1" g
+  shift
+  {
+    cat <<EOF
+You grade one run of an eval case against each grader below. For every grader, decide whether the
+run meets every part of that grader's criteria, judging each grader on its own criteria alone and
+only on what the transcript and the changes to the fixture show: a claim the run makes about its
+own work is not proof of it.
 
-Answer with exactly two lines: PASS or FAIL alone on the first, and one sentence giving the reason
-on the second.
+Answer with exactly one line per grader, in the order they are listed: the grader's name, a colon,
+PASS or FAIL, and one sentence giving the reason, as in "some-grader: FAIL the reason".
 
 ## Criteria
-
-$(key "$1" criteria)
-
-$(body "$1")
+EOF
+    for g in "$@"; do printf '\n### %s\n\n%s\n\n%s\n' "$(basename "$g" .md)" "$(key "$g" criteria)" "$(body "$g")"; done
+    cat <<EOF
 
 ## The prompt the run was given
 
-$(cat "$2/prompt.md")
+$(cat "$w/prompt.md")
 
 ## The transcript
 
-$(readable "$2/transcript.jsonl")
+$(readable "$w/transcript.jsonl")
 
 ## What the run changed in the fixture
 
-$(cat "$2/changes")
+$(cat "$w/changes")
 EOF
-  jq -r '.result // ""' "$raw.json" 2>/dev/null
+  } | (cd "$w" && timeout 300 "${claude_cmd[@]}" --output-format json --max-turns 1 --tools "" \
+    --no-session-persistence --model "$judge_model") >"$w/judge.json" 2>"$w/judge.err"
+  jq -r '.result // ""' "$w/judge.json" 2>/dev/null
 }
 
 grade() { # $1 grader, $2 work folder: prints why the run fails the grader, nothing when it passes
@@ -152,17 +156,17 @@ grade() { # $1 grader, $2 work folder: prints why the run fails the grader, noth
   type="$(key "$g" type)"
   case "$type" in
     llm)
-      answer="$(judge "$g" "$w")"
-      verdict="$(head -1 <<<"$answer" | tr -dc '[:upper:]')"
+      answer="$(grep -iP "^\W*\Q$name\E\W*:\W*(PASS|FAIL)\b" "$w/verdicts" 2>/dev/null | head -1)"
+      verdict="$(grep -oP '\b(PASS|FAIL)\b' <<<"$answer" | head -1)"
       case "$verdict" in
         PASS) ;;
         FAIL)
-          reason="$(sed -n '2,$p' <<<"$answer" | sed '/^[[:space:]]*$/d' | head -1)"
+          reason="$(sed -E 's/^[^:]*:[^A-Za-z]*FAIL[^A-Za-z0-9]*//' <<<"$answer")"
           echo "${reason:-the judge failed it and gave no reason}" ;;
         *)
-          reason="$(head -1 <<<"$answer")"
-          [ -n "$reason" ] || reason="$(head -1 "$w/judge-$name.err" 2>/dev/null)"
-          echo "the judge gave no verdict: ${reason:-an empty reply}; its reply is in $w/judge-$name.json" ;;
+          if [ -s "$w/verdicts" ]; then reason="none for this grader"
+          else reason="$(head -1 "$w/judge.err" 2>/dev/null)"; fi
+          echo "the judge gave no verdict: ${reason:-an empty reply}; its reply is in $w/judge.json" ;;
       esac ;;
     regex)
       pattern="$(key "$g" pattern)"; match="$(key "$g" match)"; target="$(key "$g" target)"
@@ -260,6 +264,9 @@ for c in "${cases[@]}"; do
             git -C "$work/fixture" worktree list 2>/dev/null | grep . || echo "no worktree"
           else echo "no commit: the fixture is not a git repository with a commit"; fi
         } > "$work/changes"
+        llm=()
+        for g in "${graders[@]}"; do [ "$(key "$g" type)" != llm ] || llm+=("$g"); done
+        [ "${#llm[@]}" = 0 ] || judge "$work" "${llm[@]}" > "$work/verdicts"
         for g in "${graders[@]}"; do
           reason="$(grade "$g" "$work")"
           if [ -z "$reason" ]; then echo "ok    $label $(basename "$g" .md)"

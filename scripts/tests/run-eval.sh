@@ -20,17 +20,28 @@ run() {
   out="$(bash "$runner" "$@" 2>&1)" || rc=$?
 }
 calls() { if [ -f "$STUB_DIR/calls" ]; then wc -l <"$STUB_DIR/calls"; else echo 0; fi; }
-reset() { rm -f "$STUB_DIR/calls" "$STUB_DIR/judge-prompts"; }
+judge_calls() { if [ -f "$STUB_DIR/judge-calls" ]; then wc -l <"$STUB_DIR/judge-calls"; else echo 0; fi; }
+reset() { rm -f "$STUB_DIR/calls" "$STUB_DIR/judge-calls" "$STUB_DIR/judge-prompts"; }
 
 # The stand-in CLI: a judge call carries --tools, and every other call is the session under test,
 # which logs its arguments and environment, prints the canned transcript and touches a file.
+# The judge answers one line per "### <grader>" heading of its prompt: STUB_VERDICT for every
+# grader (PASS by default), FAIL for the graders STUB_FAIL names.
 cat >"$tmp/bin/claude" <<'SH'
 #!/usr/bin/env bash
 for a in "$@"; do
   if [ "$a" = --tools ]; then
-    cat >> "$STUB_DIR/judge-prompts"
+    echo judge >> "$STUB_DIR/judge-calls"
+    prompt="$(cat)"
+    printf '%s\n' "$prompt" >> "$STUB_DIR/judge-prompts"
     [ -z "${STUB_JUDGE_ERR:-}" ] || { echo "$STUB_JUDGE_ERR" >&2; exit 1; }
-    printf '{"type":"result","result":"%s\\nthe stand-in judge says so"}\n' "${STUB_VERDICT:-PASS}"
+    reply=""
+    while IFS= read -r name; do
+      verdict="${STUB_VERDICT:-PASS}"
+      case " ${STUB_FAIL:-} " in *" $name "*) verdict=FAIL ;; esac
+      reply="$reply$name: $verdict the stand-in judge says so"$'\n'
+    done < <(sed -n 's/^### //p' <<<"$prompt")
+    jq -cn --arg r "${reply%$'\n'}" '{type: "result", result: $r}'
     exit 0
   fi
 done
@@ -173,10 +184,29 @@ expect "a red run keeps its work folder with the transcript" test -s "$kept/tran
 rm -rf "$kept"
 STUB_TOUCH=made-by-run.txt STUB_JUDGE_ERR="the judge fell over" run "$evals" walk --runs 1
 check "a judge that answers nothing is red, with its error and where its reply is kept" 1 "$rc" \
-  "FAIL  walk run 1/1 judged: the judge gave no verdict: the judge fell over; its reply is in" "judge-judged.json"
+  "FAIL  walk run 1/1 judged: the judge gave no verdict: the judge fell over; its reply is in" "judge.json"
 kept="$(sed -n 's/^ *kept: //p' <<<"$out")"
-expect "the judge's error is kept beside the run" grep -qF "the judge fell over" "$kept/judge-judged.err"
+expect "the judge's error is kept beside the run" grep -qF "the judge fell over" "$kept/judge.err"
 rm -rf "$kept"
+
+# One judge session reads every llm grader of a run, each under its own name, and hands each
+# grader its own verdict.
+mkdir -p "$evals/pair"
+printf 'runs: 1\n' >"$evals/pair/case.yaml" && printf 'hi\n' >"$evals/pair/prompt.md"
+grader pair holds 'type: llm
+criteria: "The run kept the notes it was given."'
+grader pair breaks 'type: llm
+criteria: "The run exported the notes to a file."'
+reset
+STUB_FAIL=breaks run "$evals" pair
+check "one judge session grades every llm grader of a run, each with its own verdict" 1 "$rc" \
+  "ok    pair run 1/1 holds" "FAIL  pair run 1/1 breaks: the stand-in judge says so" "pair: 0/1 green"
+expect "a run with two llm graders started one judge session" test "$(judge_calls)" = 1
+expect "the judge reads the first grader's criteria under its name" \
+  bash -c 'sed -n "/^### holds\$/,/^### /p" "$1" | grep -qF "The run kept the notes it was given."' _ "$STUB_DIR/judge-prompts"
+expect "the judge reads the second grader's criteria under its name" \
+  bash -c 'sed -n "/^### breaks\$/,/^### /p" "$1" | grep -qF "The run exported the notes to a file."' _ "$STUB_DIR/judge-prompts"
+rm -rf "$(sed -n 's/^ *kept: //p' <<<"$out")"
 reset
 run "$evals" walk --runs 1
 check "a file the run never made fails file_exists" 1 "$rc" "FAIL  walk run 1/1 made-file: no file matches made-*.txt"
