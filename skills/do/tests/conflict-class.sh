@@ -407,6 +407,32 @@ check "a file already written as the union of mechanical hunks: mechanical hunk 
 check_absent "and it is never whole-file unmergeable" 0 "$rc" \
   "contested resumed.txt whole-file unmergeable"
 
+# The same resumed stop, over one hunk both sides only added to and one both sides rewrote. The union
+# keeps both rewrites and no base line, and that text is not the answer to the rewrite: the hunk is
+# still the developer's, located in the union's lines as above (L2-L3 and L8-L9).
+fresh resumed-union-contested
+printf 'a\nb\nc\nd\ne\nf\ng\n' >resumed.txt
+commit base
+g branch inc
+printf 'a\nTARGET ONE\nb\nc\nd\ne\nTARGET TWO\ng\n' >resumed.txt
+commit target
+g switch -q inc
+printf 'a\nINCOMING ONE\nb\nc\nd\ne\nINCOMING TWO\ng\n' >resumed.txt
+commit incoming
+g rebase main >/dev/null 2>&1
+g show ":1:resumed.txt" >"$tmp/resumed.1"
+g show ":2:resumed.txt" >"$tmp/resumed.2"
+g show ":3:resumed.txt" >"$tmp/resumed.3"
+g merge-file --union -p "$tmp/resumed.2" "$tmp/resumed.1" "$tmp/resumed.3" >resumed.txt
+
+run
+check "a union written over a contested hunk is never its answer: that hunk stays contested, where it sits" 1 "$rc" \
+  "mechanical resumed.txt L2-L3" \
+  "contested resumed.txt L8-L9 rewrite-vs-rewrite" \
+  "verdict=contested mechanical=1 contested=1"
+check_absent "and the file is never whole-file unmergeable" 1 "$rc" \
+  "contested resumed.txt whole-file unmergeable"
+
 # The same additive shape twice, in a repository whose config turns git's conflict-resolution reuse
 # on. Reuse is the developer's own setting and everything the integration runs would run under it: a
 # resolution recorded at one stop is replayed at the next stop of the same shape, which leaves the
