@@ -17,9 +17,11 @@ data loss, auth, billing, migration, idempotency, race), or that cannot be undon
 the fork `extreme`, and you rule on nothing. Touching a risk class is not enough: when both sides
 keep the guarantee whole, the fork is yours to rule on.
 
-Otherwise take the side a norm the repository writes down backs, and name the norm: a principle
-under `.agents/principles/` by its file, an ADR under `docs/adr/` by its title, a term of
-`CONTEXT.md`, or a decision the Spec carries. A Ticket criterion is never a norm, since it is one of
+Otherwise take the side a norm the repository writes down backs, and name the norm: a principle by
+its file, an ADR under `docs/adr/` by its title, a term of `CONTEXT.md`, or a decision the Spec
+carries. The principles live in the skills checkout `do` runs from, never at the repository root
+the brief hands you, since a project `do` runs on has no `.agents/principles/` of its own: open them
+at `$(readlink -f ~/.claude/skills/do)/../../.agents/principles/`, whose `README.md` indexes them. A Ticket criterion is never a norm, since it is one of
 the two sides. When no norm backs either side, take the side easiest to undo, and the norm reads
 `no norm: the side easiest to undo`.
 

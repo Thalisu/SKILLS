@@ -280,8 +280,10 @@ behaviours step or in the build loop is ruled on inside the run, per
 the run says in one line that it met a Design fork at that step and names both sides, then calls
 the Agent tool with `subagent_type: choice-taker`, the agent `do` ships in
 [choice-taker.md](../agents/choice-taker.md), with the brief its definition names: the Ticket, the
-step, the two sides, the Spec, the Digest and the repository root. The fork holds reading and
-search alone, per
+step, the two sides, the Spec, the Digest and the repository root. The brief hands no path to the
+principles: the fork opens them from the skills checkout, at
+`$(readlink -f ~/.claude/skills/do)/../../.agents/principles/`, since a project `do` runs on has no
+`.agents/principles/` at its root. The fork holds reading and search alone, per
 [ADR 0032](../../../docs/adr/0032-a-fork-that-reads-a-strangers-text-holds-no-write-tool.md),
 and the session writes what it returns.
 

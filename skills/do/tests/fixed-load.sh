@@ -190,6 +190,12 @@ has "the choice-taker names the ticket Playbook's shape, behaviours or build ste
 expect "the choice-taker's description ends on never on your own initiative" \
   sh -c 'case "$1" in *"Never on your own initiative." | *"Never on your own initiative.\"") ;; *) exit 1 ;; esac' \
   _ "$(front description)"
+# A principle the choice-taker names as a norm is opened from the skills checkout it runs from, the
+# way sketch's rivals step opens exhaust-the-design-space and boundary-discipline, never from
+# `.agents/principles/` at the repository root the brief hands it: that folder exists only in this
+# skills repo and never in a project `do` runs on.
+has "the choice-taker resolves a principle norm from the skills checkout, not the repository root" \
+  "$chooser_md" '$(readlink -f ~/.claude/skills/do)/../../.agents/principles/'
 # A Design fork the run meets at its shape, behaviours or build step is ruled inside the run: the run names the
 # fork and both its sides in one line and forks the choice-taker by name with them, where it once
 # stopped naming `discuss`. The rule lives once in the Forks section, and each step that can meet a
@@ -210,6 +216,12 @@ span_has() { # $1 label, $2 file, $3 the span's opening line, $4 the next span's
 span_has "a Design fork is named with both sides in one line and ruled by the choice-taker forked by name" \
   "$refs/mechanics.md" "### Forks" "### Delegates" \
   "Design fork" "says in one line" "both sides" "subagent_type: choice-taker"
+# The Forks section briefs the choice-taker on where a principle norm is opened from, the skills
+# checkout it runs from, the way sketch's rivals step opens exhaust-the-design-space and
+# boundary-discipline, never `.agents/principles/` at the repository root the brief hands it.
+span_has "the Forks section states a principle norm is opened from the skills checkout, not the repository root" \
+  "$refs/mechanics.md" "### Forks" "### Delegates" \
+  '$(readlink -f ~/.claude/skills/do)/../../.agents/principles/'
 # The Forks section is where the rule lives, and three steps can meet a Design fork and send it
 # there: the shape step, the behaviours step and the build step. A rule naming only two of the three
 # leaves the third step's fork with no rule to follow, so the section, the choice-taker's own
