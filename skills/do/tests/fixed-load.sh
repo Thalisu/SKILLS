@@ -216,6 +216,13 @@ span_has() { # $1 label, $2 file, $3 the span's opening line, $4 the next span's
 span_has "a Design fork is named with both sides in one line and ruled by the choice-taker forked by name" \
   "$refs/mechanics.md" "### Forks" "### Delegates" \
   "Design fork" "says in one line" "both sides" "subagent_type: choice-taker"
+# A session whose Agent tool lists no choice-taker must not fall back to a general-purpose fork,
+# which would read the Spec, on a remote tracker a stranger's text, while holding write tools
+# (docs/adr/0032). The rule must say the choice-taker is never swapped for another agent, the same
+# guarantee the reader's section already states for itself.
+span_has "the Forks section states the choice-taker is never replaced by another agent" \
+  "$refs/mechanics.md" "### Forks" "### Delegates" \
+  "never replaced by another agent"
 # The Forks section briefs the choice-taker on where a principle norm is opened from, the skills
 # checkout it runs from, the way sketch's rivals step opens exhaust-the-design-space and
 # boundary-discipline, never `.agents/principles/` at the repository root the brief hands it.

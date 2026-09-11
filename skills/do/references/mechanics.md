@@ -285,7 +285,9 @@ principles: the fork opens them from the skills checkout, at
 `$(readlink -f ~/.claude/skills/do)/../../.agents/principles/`, since a project `do` runs on has no
 `.agents/principles/` at its root. The fork holds reading and search alone, per
 [ADR 0032](../../../docs/adr/0032-a-fork-that-reads-a-strangers-text-holds-no-write-tool.md),
-and the session writes what it returns.
+and the session writes what it returns. The `choice-taker` is forked by name and never replaced by
+another agent: a general-purpose fork would read the same Spec holding the write tools that ADR
+withholds.
 
 A `settled` Ruling is written by the session as one line appended to the Spec's Implementation
 Decisions, marked as the choice-taker's, per
