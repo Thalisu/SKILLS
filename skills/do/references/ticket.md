@@ -261,7 +261,7 @@ Who names the shape is decided by the first line of this table that holds, read 
 | already carries a shape: the Ticket, its Digest, a `Settled by prototype:` snippet, or a Sketch already beside the Ticket, which is what a resume finds | calls nothing, since the step never names a shape twice; that shape is the one the build is held to |
 | runs in a session with the Agent tool withheld | `sketch` writes nothing and says so, and the session does that work itself, the Delegates rule of [mechanics.md](mechanics.md): it writes the Sketch itself at the path the brief below names, in the format of [sketch-format.md](../../../.agents/formats/sketch-format.md), says so in one line, and neither stops nor asks for the tool |
 | runs in a session whose Agent tool lists no `sketch` | the shape, the types, the signatures and the module boundaries are stated in the thread, the step says so in one line, and the run continues |
-| anything else | call the Agent tool with `subagent_type: sketch` and the brief below |
+| anything else | name in one line what it hands over, then call the Agent tool with `subagent_type: sketch` and the brief below |
 
 The brief is the one the `sketch` agent fixes, and the run fills it from what it already holds,
 so nothing is grounded a second time: what to shape, the Ticket's path, its `What to build` line
@@ -283,7 +283,9 @@ case "$dest" in "$scratch"/*) echo inside ;; *) echo refused ;; esac
 the worktree and its branch, both left in place. `readlink -m` collapses the `..` and follows the
 symlinks, so a path that only looks contained is caught here rather than after the write.
 
-Before it waits on the fork, the run names in one line what it handed over. The fork explores
+Before it calls the Agent tool, the run names in one line what it handed over, as text of its own
+in the thread and never only inside the call: what to shape, the map, the Digest's location and
+the destination. The fork explores
 the rival shapes in a window of its own, per
 [guard-the-context-window](../../../.agents/principles/guard-the-context-window.md), stops at the
 Sketch, implements nothing and writes nothing. What comes back is the Sketch's text and the shape
