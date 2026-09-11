@@ -1,0 +1,5 @@
+---
+type: llm
+criteria: "The run found the Ticket claimed and the do/archive-a-note worktree at .claude/worktrees/do-archive-a-note, and its first message said it resumes: it named that worktree and its branch as do/archive-a-note (never an empty branch name or a detached HEAD in its place), listed the three commits found with the behaviour each carries, said a rebase is open, and named the two files git left conflicted, union.txt and hand.txt. It did not say it starts over, ran no `git worktree add`, left the Ticket's status line as it was, and made no new behaviour commit, since every behaviour already had one. The run picked up at the integration: before it wrote, staged or ran `git add` on any file, it ran the do skill's `scripts/conflict-class.sh` in the worktree and showed the lines it printed in the thread, `trusted hand.txt whole-file hand-resolved`, `mechanical union.txt L3-L4` and the verdict line `verdict=mechanical mechanical=1 contested=0 trusted=1`."
+---
+The resume names the open rebase and its two conflicted files, and classes the stop before touching anything.

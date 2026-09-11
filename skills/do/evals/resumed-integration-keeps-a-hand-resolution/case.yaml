@@ -1,0 +1,912 @@
+name: resumed-integration-keeps-a-hand-resolution
+tags: [playbook, ticket, run, resume, integration]
+runs: 1
+max_turns: 150
+timeout_seconds: 2400
+allowed_tools: [Bash, Read, Edit, Write, Glob, Grep, Agent, Skill]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # Ticket 01 is claimed, its do/archive-a-note worktree holds a commit for each of its three
+    # behaviours, and the last run's integration stopped mid-rebase onto main at the third commit,
+    # leaving two conflicted files that nobody staged. union.txt already holds the union of its three
+    # index stages. hand.txt holds a resolution the developer typed by hand, which differs from that
+    # union. The second /do resumes at the integration, classes hand.txt trusted, stages it as it
+    # stands, asks nothing and finishes the rebase.
+    set -e
+    mkdir -p src docs/agents .scratch/archive-notes/issues .claude/agents .claude/skills/test-author
+    cat > package.json <<'JSON'
+    {
+      "name": "notes",
+      "private": true,
+      "type": "module",
+      "scripts": {
+        "typecheck": "tsc --noEmit",
+        "test": "node --test"
+      }
+    }
+    JSON
+
+    cat > tsconfig.json <<'JSON'
+    {
+      "compilerOptions": {
+        "strict": true,
+        "target": "ES2022",
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
+        "noEmit": true
+      },
+      "include": ["src"],
+      "exclude": ["src/**/*.test.ts"]
+    }
+    JSON
+
+    cat > README.md <<'MD'
+    # notes
+
+    A small notes module: create a note, list the active ones. `node --test` runs the suite and
+    `tsc --noEmit` typechecks `src/`.
+    MD
+
+    cat > src/notes.ts <<'TS'
+    export type Status = "active" | "archived";
+
+    export interface Note {
+      id: number;
+      title: string;
+      status: Status;
+    }
+
+    const notes: Note[] = [];
+
+    export function create(title: string): Note {
+      const note: Note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+
+    export function list(): Note[] {
+      return notes.filter((n) => n.status === "active");
+    }
+    TS
+
+    cat > src/notes.test.ts <<'TS'
+    import { test } from "node:test";
+    import assert from "node:assert/strict";
+    import { create, list } from "./notes.ts";
+
+    test("a created note is listed", () => {
+      const note = create("first");
+      assert.ok(list().some((n) => n.id === note.id));
+    });
+    TS
+
+    cat > docs/agents/issue-tracker.md <<'MD'
+    # Issue tracker: Local Markdown
+
+    Issues and specs for this repo live as markdown files in `.scratch/`.
+
+    - One feature per directory: `.scratch/<feature-slug>/`
+    - The spec is `.scratch/<feature-slug>/spec.md`
+    - Implementation issues are one file per ticket at `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01`
+    - Triage state is a `Status:` line near the top of each issue file
+    MD
+
+    cat > CLAUDE.md <<'POLICY_EOF'
+    # notes
+
+    A small notes module. Tests run with Node's own runner and the code is typechecked with `tsc`.
+
+    <!-- testing-policy:start v=2.3 surface=consumer -->
+    ## Testing Policy (Definition of Done)
+
+    <!-- testing-policy:core-start -->
+    A feature or fix is DONE only when the full unit suite passes AND its E2E coverage passes. "Tests didn't run" is never "tests passed". The rules below are fixed; the project's commands, paths and tool names live in **Project facts** at the end of this section.
+
+    ### E2E gate (consumer-side)
+
+    This repo has no user-facing surface of its own. Its real E2E coverage lives in the repos that consume it (the consumer list in Project facts). An E2E suite inside this repo would not represent the real flow and does not satisfy the gate.
+
+    - **Impact-scoped**: the gate applies only to the consumers whose flows the change impacts. A consumer that does not use the changed surface requires neither an E2E run nor new coverage for this change, but "not impacted" is a verified claim (check the consumer's actual calls to the changed routes, queues or exports), never a presumption.
+    - **Per change**: full unit suite green (unit command in Project facts) + the impacted consumers' E2E flows that exercise the changed surface green, run against this change (each consumer's "run against the local build" recipe in Project facts).
+    - **Per phase/delivery**: full E2E suite of each impacted consumer green (each consumer's full-suite command in Project facts) before declaring the phase or delivery complete.
+    - **Infra failure blocks**: if a consumer's E2E cannot run (its known infra failures in Project facts are the usual suspects), the work is BLOCKED, not done. Report the infra error as blocked status; fixing the infra is part of the delivery. Only the user can explicitly waive the E2E gate, and a waiver is recorded as pending debt, never as green.
+    - **New consumers**: when a new repo starts consuming this one, ask the user and add it to the consumer list; the gate covers every consumer, not just the first.
+
+    ### TDD
+
+    - **Unit is strict red-first**: write the failing test before the implementation. For a bugfix, the test must reproduce the bug (fail red) before the fix turns it green.
+    - **One test at a time**: red → green → next. The first cycle is a tracer bullet, one test proving the path end to end, and each next test is chosen from what the previous cycle taught. Never the whole batch of tests first and the implementation after: tests written in bulk describe imagined behavior and the shape of things (signatures, data structures), not what the code does, and stay green when it breaks.
+    - **Green is minimal**: only the code the current test needs; no branch, parameter or feature for a test not yet written.
+    - **Refactor on green, never on red**: once green, extract duplication, move complexity behind the interface the test exercised, move logic to where its data lives, running the suite after every step. A test that goes red under a pure refactor was asserting implementation (see "Tests describe behavior") and is rewritten against the interface, not appeased.
+    - **Behaviors, not branches**: the tests for a change are the behaviors its callers observe, prioritized with critical paths and the logic that can be wrong first; not one test per branch, not every edge case. The list is written before the first cycle, from the request, the plan or the user, never inferred from the implementation.
+    - **Consumer E2E is proven after**: the consumer flow is authored or extended in the consumer repo together with the consuming feature and MUST pass against this change before the work is declared done. No red-first requirement at E2E level: a flow written against a surface that doesn't exist yet fails trivially and proves nothing.
+
+    ### Tests describe behavior, not implementation
+
+    - **Through the public interface**: a test exercises the target the way its callers do and asserts only what they can observe (the return value, the state read back through the same interface, the error raised). It is named for the behavior it proves, in the caller's words ("rejects an expired card", not "calls validateCard"), and it survives every refactor that keeps that behavior. A test that must reach into internals (a private function, a call on an internal collaborator, a row read straight from the table the code wrote) tests the implementation: it breaks on refactors that change nothing and passes on bugs that change everything.
+    - **Mock at system boundaries only**: external services, the clock, randomness, the network, sometimes the database or the filesystem, as named in the unit-test-author's Project map, through their shared mocks. Never this repo's own modules or internal collaborators: a mocked internal pins the implementation and stays green when the real path is broken.
+    - **A test that is hard to write is a design signal**: when a behavior can only be reached by mocking an internal, or by asserting on a side effect the interface does not expose, the fix is a seam in the code (pass the dependency in, return the result instead of mutating) and it lands before the test. Never mock around a missing seam.
+
+    ### Test authoring: delegation and reuse
+
+    Every new test, a new test file or a new test case, is written under the test-author checklist, whose single source is the agent file:
+    `.claude/agents/unit-test-author.md`. E2E flows are authored in the consumer repos, under their own `e2e-test-author`.
+
+    - **Who is bound**: everyone who writes a test. With the `Agent` tool, dispatch the agent. Without it (executors, auditors, test generators), invoke `/test-author`, which applies the agent file's **Authoring rules** and **Project map** inline; the agent file's **Dispatch protocol** binds only the dispatched agent. Never copy the rules here.
+    - **Dispatch input** (the agent refuses incomplete input and never infers the expectation from the implementation):
+
+      ```
+      Behavior to prove: <one sentence, in observable terms; it becomes the test name>
+      Target: <module / function>  (unit)   |   Journey / screen: <where in the product>  (E2E)
+      Origin: bugfix | new feature
+      Expected red: <failing assertion | unresolved import | error not thrown>  (unit)
+      Fixture state: <what must exist before the flow starts>  (E2E)
+      Placement (optional): <existing file to extend> | new file
+      Out of scope (optional): <...>
+      ```
+
+    - **One dispatch per cycle**: the next unit test is dispatched (or written inline) only after the previous one is green and its implementation exists, never a batch of tests ahead of the code (see "TDD").
+    - **Editing an existing case** (one more assertion, adjusted data) stays with the caller, unless it needs a new shared asset (factory, mock, fixture, helper, page-object method), which escalates to the agent.
+    - **Reuse over duplication**: reuse > extend > create. An asset that exists anywhere in the test tree, including local to another test file, is never rewritten; on its second use it is promoted to the shared home for its role (the agent's Project map names them) and every call site is updated. A separate near-duplicate asset requires a written semantic justification in the agent's report.
+    - **Promotions are atomic**: the promoted asset and every updated call site are committed together with the test that motivated them, or in a refactor commit immediately before it, never split across commits, never left out of one. The agent reports the promotion as its own changeset for exactly this reason.
+    - **A test still red after implementation**: the caller may fix mechanical breakage (import path, renamed symbol, typo). Any change to an assertion, an expectation, or expected data goes back to the agent, with the reason stated in terms of the contract ("the intended behavior was X"), never in terms of the result ("the test is catching it").
+    - **Shared-asset creation is serialized**: two authors creating shared assets in parallel cannot see each other's work and will each create the "missing" one. Prefer one author of each type in flight; when authors did run in parallel (parallel executors in a phase), the phase is not done until the duplication scan (Project facts) is clean.
+    - **The agents run in place**, never in a worktree (reason in Project facts).
+
+    ### Coverage mapping (consumer-side)
+
+    - **What requires consumer E2E**: every change with a consumer-observable effect (response shape, status codes, new or changed routes, queue payloads, exported behavior, side effects a client sees). Purely internal changes (refactor, logging, build config) require unit coverage at the lowest level that captures the behavior; skipping the consumer E2E must be justified in that change, never presumed.
+    - **Coverage requirement**: every consumer-observable change is covered by a flow in each impacted consumer repo, following that repo's flow naming (Project facts). If no consumer exercises the new surface yet (surface built ahead of the client feature), the E2E lands together with the first consuming feature, recorded as pending debt against that feature until then, never as green.
+    - **A bug that escaped a consumer's suite is a coverage gap**: the existing flow was incomplete, not wrong. Add the missing assertion or scenario in that consumer so the bug would now be caught; never rewrite a green journey because of a fix that didn't change the journey.
+
+    ### Tests represent the real flow
+
+    **Principle: a failing test is presumed to expose a product bug, not a test bug.** Changing a test to make it pass requires demonstrating that the flow itself changed, stated explicitly in the commit/report, never done silently. The one other legitimate change is a test that goes red under a pure refactor, with the behavior through the public interface unchanged: it was asserting implementation (a mocked internal, a call count, a private symbol) and is rewritten against the interface, with that stated: the demonstration, not an exception to it.
+
+    Forbidden:
+
+    - Skipping, narrowing or marking optional a failing test or assertion (the skip mechanisms named in Project facts, or any equivalent).
+    - Weakening or removing an assertion to get green.
+    - Tests or flows without an outcome assertion (asserting only that nothing crashed).
+    - Asserting the route instead of the outcome: that an internal collaborator was called, how many times, in what order. (A call into a mocked boundary is an outcome: the charge made, the email sent.)
+    - Verifying through a side channel (reading the row the code wrote) when the interface can read the outcome back.
+    - Mocking a module of this repo in a unit test; boundaries only (see "Tests describe behavior").
+    - Mocking this repo in a consumer's E2E; consumer flows run against the real local stack with this repo built from the working tree.
+    - Adjusting a unit expectation to match buggy behavior.
+    - Sleep/timeout padding to mask a race condition instead of fixing the race.
+    <!-- testing-policy:core-end -->
+
+    ### Project facts
+
+    <!-- Filled at install from the project's real setup; PRESERVED on refresh (the skill only reports
+         when a fresh discovery disagrees). Every command here has been run once and returned output. -->
+
+    - **Unit**: full suite `node --test` · single file `node --test <file>` · mandatory flags / known phantom failures: none; test files are `src/**/*.test.ts`, import the module with its `.ts` extension and sit outside the typecheck (`tsc --noEmit` checks `src/` without them) · skip mechanisms: `test.skip`, `test.todo`, `{ skip: true }`
+    - **Consumers**, one line each: repo · E2E tool · run against this repo's local build · single flow · full suite · flow naming · known infra failures
+      - none yet: no repository consumes this module, so the consumer gate has nothing to run until one does, and the first consuming feature carries the flow
+    - **Duplication scan**: `grep -rhoE '^(export )?(async )?function [A-Za-z_]+' src --include='*.test.ts' | sort | uniq -d` · shared homes per role: the agents' Project map
+    - **Why the agents run in place**: the runner resolves `src/` from the checkout it runs in, so an author in another worktree would test other files
+    <!-- testing-policy:end -->
+    POLICY_EOF
+
+    cat > .claude/agents/unit-test-author.md <<'AGENT_EOF'
+    ---
+    name: unit-test-author
+    description: Authors and runs one unit test, a new test file or a new test case, after a mandatory reuse audit. Dispatch it for every new unit test; it never writes production code.
+    tools: Read, Write, Edit, Bash, Grep, Glob
+    ---
+    <!-- testing-policy:agent v=2.3 -->
+
+    You author exactly one unit test, a new file or a new case in an existing file, and you run it. You never write, edit, or delete production code.
+
+    <!-- Regenerated by the testing-policy skill on every refresh; do not edit between the core
+         markers; edits are overwritten. Project-specific facts belong in "Project map". -->
+    <!-- testing-policy:core-start -->
+
+    ## Authoring rules
+
+    These bind everyone who writes a unit test in this project: this agent when dispatched, and any writer applying them inline through `/test-author`.
+
+    ### The golden rule
+
+    **The expectation comes from the caller. Never derive it from the implementation.**
+
+    Read production code to learn signatures, import paths, and where the mock seams are. Never read it to decide what to assert: a test that asserts what the code currently does is worthless when the code is wrong, and it inverts the project's principle that a failing test is presumed to expose a product bug.
+
+    If the caller's stated behavior contradicts what the implementation does, say so in the report and write the test against the **caller's** behavior.
+
+    ### Through the interface
+
+    The test calls the target the way its callers do and asserts what they can observe: the return value, the state read back through the same interface, the error raised. The **Behavior to prove** sentence is the test name; a name that says how ("calls validateCard") instead of what ("rejects an expired card") is a test of the implementation, and will break on refactors that change nothing.
+
+    - **Mock at system boundaries only**: the boundaries listed in "Project map", through their shared mocks. Never this repo's own modules or internal collaborators: a mocked internal pins the implementation and stays green when the real path breaks. A boundary you need that the map does not list goes in the report as a candidate; never widen the map yourself.
+    - **Assert the outcome, not the route.** A call on an internal collaborator, a call count, an order, a private function: none of these is an outcome. A call into a mocked boundary is one (the charge made, the email sent). Never verify through a side channel (reading the row the code wrote) when the interface can read the outcome back.
+    - **A missing seam is production code.** When the declared behavior can only be reached by mocking an internal or asserting on a side effect, name the seam (pass the dependency in, return the result instead of mutating) and stop (see "Finish"); an inline writer makes that change before the test. Never mock around it.
+
+    ### Reuse audit: mandatory, before writing anything
+
+    Priority: **reuse > extend > create.** Never write a second copy of something that exists.
+
+    Run the Discovery block from "Project map" first, then search for the specific thing you are about to build:
+
+    - Search **all** test files, not only the shared homes. A factory living locally inside another test file counts as existing.
+    - Search by shape as well as by name: the `makeX` you need may exist as `buildX` next door.
+
+    For every asset you need (factory, mock, helper, fixture, wrapper) classify it:
+
+    | State | What you do |
+    |---|---|
+    | Exists in a shared home | Use it. |
+    | Exists, local to another test file | **Second-use rule**: promote it (below). Never write the second copy. |
+    | Exists but doesn't quite fit | Strict order: **(1)** extend backward-compatibly (optional param, sibling function) → **(2)** change it and update every call site → **(3)** create a separate asset. |
+    | Does not exist anywhere | Create it. A first occurrence may live local to your test file. |
+
+    **(3) is a fork and is forbidden without a written semantic justification** in the report: "different domain concept", never "easier" or "the existing one is confusing". Choosing **(2)** obliges you to run the full unit suite, not only your file.
+
+    ### Promotion protocol (second-use rule)
+
+    A promotion moves an asset out of a test file into the shared home for its role and rewrites the call sites. It is behavior-preserving and it touches files nobody asked you to touch, so it must stay a clean, separable changeset.
+
+    1. Move the asset to the shared home. Keep behavior identical. If the copies had drifted, reconcile into a superset and say so in the report.
+    2. Update every call site.
+    3. **Hunt orphans**: grep the old symbol across all test files. A surviving reference means the promotion is unfinished: there may be a third copy you did not see.
+    4. Run the **full** unit suite. A promotion that turns anything red is not done.
+    5. Report the promotion as its own changeset, separate from the test. It lands in the same commit as the motivating test or in a refactor commit immediately before it; splitting them leaves the other test file broken at that commit.
+
+    ### Running
+
+    - Run your new/edited file and confirm it is red **for the reason the caller declared**. Red from a typo, a wrong import path, or a mis-mocked module is *your* bug; fix and rerun. Only red matching the declared reason counts.
+    - Run the **full** unit suite whenever you created, extended, changed, or promoted a shared asset.
+    - Report the command and the relevant output verbatim. Never paraphrase a result.
+    - Format every file you wrote or edited with the project formatter (see "Project map").
+
+    ### Forbidden
+
+    - A second copy of an asset that exists anywhere in the test tree.
+    - Deriving the expected behavior from the implementation.
+    - Mocking a module of this repo; asserting on a call, a call count, an order or a private symbol as the outcome; verifying through a side channel the interface exposes.
+    - Weakening or dropping an assertion to get green; a test with no outcome assertion.
+    - Skipping, narrowing (`.only`) or marking a failing case as optional.
+    - Sleep/timeout padding to hide a race.
+
+    ## Dispatch protocol
+
+    Binds this agent when dispatched. An inline writer under `/test-author` is the caller (it owns the feature code and the commit), so this part does not apply to it.
+
+    ### Required input: refuse if incomplete
+
+    The caller MUST supply:
+
+    - **Behavior to prove**: one sentence, in observable terms, not "test function X".
+    - **Target**: the module/service/function under test.
+    - **Origin**: `bugfix` (the test must reproduce the bug) or `new feature`.
+    - **Expected reason for red**: what specifically fails before the implementation exists, such as a failing assertion, an unresolved import of a module that doesn't exist yet, an error not thrown yet.
+
+    Optional: **Placement** (an existing file to extend, or "new file"); fixture/state needed; explicitly out of scope.
+
+    If any required field is missing, or too vague to become an assertion, **stop and ask**. Return verdict `REFUSED_INCOMPLETE_INPUT` naming the missing fields. Do not write a file.
+
+    ### Baseline
+
+    Snapshot git before your first edit: `git status --porcelain`. The caller may have work in flight; your changeset is the *difference* between this baseline and the end state, never the whole dirty tree.
+
+    ### Finish
+
+    - **Never commit, stage, or branch.** The caller commits.
+    - Never touch production code. If the test cannot be written without a production change (a missing seam, above), stop and say exactly what change is needed.
+
+    ### Report
+
+    Return exactly these sections:
+
+    **Verdict**: `RED_AS_EXPECTED` · `GREEN` · `BLOCKED` · `REFUSED_INCOMPLETE_INPUT`
+
+    **Test changeset**: paths you wrote/edited for the test itself, derived from the git diff against your baseline.
+
+    **Promotion changeset**: paths involved in a promotion, or "none". When present, state verbatim: *commit these together with the test, or in a refactor commit immediately before it; splitting them leaves the other test file broken at that commit.* Note any drift you reconciled.
+
+    **Reuse audit**: for each asset you needed, the search commands you ran, what they returned, and the decision (reused / extended / changed / created / promoted). A creation carries its justification. This section is present even when nothing was created; "I searched and found nothing" is only credible with the search shown.
+
+    **Run**: command(s) and relevant output verbatim.
+
+    **Notes**: contradictions between stated behavior and implementation, a boundary you mocked that the Project map does not list, a third copy you found, debt you deliberately left.
+
+    <!-- testing-policy:core-end -->
+
+    ## Project map
+
+    <!-- Discovered by the testing-policy skill at install. Edits here are PRESERVED on re-run; the skill
+         only reports when a fresh discovery disagrees with what is written here. Every command below
+         was run once at install and returned output. -->
+
+    **Framework & run commands**
+    - Single file: `node --test <file>`
+    - Full suite: `node --test`
+    - Formatter: `none`
+    - Node's own runner strips the types: a test file imports the module with its `.ts` extension (`./notes.ts`) and asserts with `node:assert/strict`; no preload, no flags
+
+    **Test root & layout**: colocated, `src/<module>.test.ts` beside `src/<module>.ts` (`src/notes.test.ts` beside `src/notes.ts`)
+
+    **Shared homes by role** (canonical, one path per role; "none yet → create at X" is a valid entry)
+    - Module mocks: `none yet → create at src/test/mocks/`
+    - Helpers / wrappers: `none yet → create at src/test/helpers/`
+    - Factories (data builders): `none yet → create at src/test/factories/`
+    - Fixtures (static inputs): `none yet → create at src/test/fixtures/`
+
+    **System boundaries** (the only things a unit test mocks; one line per boundary, what it is → the shared mock that replaces it; "none: pure modules" is a valid entry)
+    none: pure modules
+
+    **Discovery: run all of these on every dispatch, before writing**
+    ```
+    grep -rhoE '^(export )?(async )?function [A-Za-z_]+' src --include='*.test.ts' | sort | uniq -d
+    grep -rnE '^(function|const) (make|build|create)[A-Z]' src --include='*.test.ts' || true
+    ls src/test 2>/dev/null || true
+    ```
+
+    **Idiom** (calibration only, never a catalog)
+    English identifiers; `node:test` with `node:assert/strict`; a test is named for the behaviour in the caller's words, as `test("a created note is listed", ...)` in `src/notes.test.ts`; no shared assets yet, so there is nothing to reuse until a second test needs the same builder
+    AGENT_EOF
+
+    cat > .claude/skills/test-author/SKILL.md <<'SKILL_EOF'
+    ---
+    name: test-author
+    description: Write a new unit test or E2E flow under this project's Testing Policy when you cannot dispatch the unit-test-author / e2e-test-author agent (no Agent tool). Invoke before adding any new test file or test case. Args - unit | e2e.
+    ---
+    <!-- testing-policy:skill v=2.3 -->
+
+    You are about to write a new test inline, without the test-author agent. The agent file is the single source of the rules; this skill only routes you to the parts that bind inline.
+
+    1. **Fill the dispatch input for yourself first**, for the one test you are about to write: behavior to prove (it becomes the test name), target (unit) or journey/screen (E2E), origin (`bugfix` / `new feature`), expected red (unit) or fixture state (E2E). If you cannot, you do not yet know what you are testing: stop and ask. One test per pass: the next input is written after this test is green and its implementation exists, never a batch ahead of the code.
+    2. **Open the agent file** and apply **## Authoring rules** and **## Project map** in full:
+       - `unit` → `.claude/agents/unit-test-author.md`
+       - `e2e` → this repo has no E2E of its own and no consumer exists yet, so the first consuming feature carries the flow
+
+       **## Dispatch protocol** does not apply inline, since you are the caller: you own the feature code, the stack and the commit.
+    3. **Run the Discovery block** from Project map before writing anything, and keep what it returned.
+    4. **Write and run** as the rules say. Unit: red for the declared reason, then only the code this test needs, then green, then refactor on green with the suite rerun; E2E: preflight, then green against the real stack. Never weaken an assertion to get there.
+    5. **Report inline** the same two sections the agent would: **Reuse audit** (searches run, what they returned, decision per asset; present even when nothing was created) and **Run** (command and output verbatim). A promotion is listed as its own changeset and lands in the same commit as the test, or in a refactor commit immediately before it.
+    SKILL_EOF
+
+    cat > .scratch/archive-notes/spec.md <<'MD'
+    # Archive notes
+
+    Journey: ./journey.md
+    Status: ready-for-agent
+
+    ## Problem Statement
+
+    Notes pile up in the list and there is no way to put one aside without deleting it.
+
+    ## Solution
+
+    A note can be archived. Archived notes leave the list and can be restored from an Archived view.
+
+    ## User Stories
+
+    1. As a writer, I want to archive a note, so that it leaves my list without being deleted
+    2. As a writer, I want to see my archived notes, so that I can find one I put aside
+    3. As a writer, I want to restore an archived note, so that it returns to my list
+
+    ## Implementation Decisions
+
+    - A note carries a status, active or archived; archiving never deletes
+    - The list shows active notes only; a separate Archived view shows the rest
+    - Archiving is one way: a second Archive on the same note is a no-op, and Restore is its own action
+
+    ## Testing Decisions
+
+    - Behaviour tests through the notes module's exported functions, with Node's own test runner
+
+    ## Out of Scope
+
+    - Deleting archived notes permanently
+    MD
+
+    cat > .scratch/archive-notes/journey.md <<'MD'
+    # Journey: Archive notes
+
+    Spec: ./spec.md
+    Actor: writer
+    Entry: the notes list
+
+    ## Path 1: Archive a note
+
+    Story: 1
+    Outcome: the note is gone from the list and the writer knows where it went.
+
+    | Step | Actor sees | Actor does | System answers |
+    |---|---|---|---|
+    | 1 | the list, each note with an Archive action | picks Archive on one note | the note leaves the list; a line says "Archived" with a link to Archived |
+    | 2 | the list without the note | nothing | the Archived link shows a count of one |
+
+    Failure branches:
+    - Archive picked twice on the same note: the second pick is a no-op, the count stays one
+
+    ## Path 2: Find and restore an archived note
+
+    Story: 2, 3
+    Outcome: the note is back in the list.
+
+    | Step | Actor sees | Actor does | System answers |
+    |---|---|---|---|
+    | 1 | the Archived link with a count | opens it | the Archived view lists archived notes, each with Restore |
+    | 2 | the Archived view | picks Restore on one note | the note leaves the view; a line says "Restored" |
+
+    Failure branches:
+    - Restore on a note archived twice: the note returns once
+
+    ## States
+
+    | State | The actor sees | Actions |
+    |---|---|---|
+    | active | the note in the list | Archive |
+    | archived | the note in the Archived view | Restore |
+
+    ## Cut
+
+    - none
+
+    ## Defaults taken
+
+    - "Archived" and "Restored" lines are the app's existing status line
+
+    ## Deferred
+
+    - none
+
+    ## Spec changes applied
+
+    - none
+
+    ## Reopen in discuss
+
+    - none
+    MD
+
+    cat > .scratch/archive-notes/issues/01-archive-a-note.md <<'MD'
+    # 01: Archive a note
+
+    **What to build:** Archive a note: the note leaves the list and the writer knows where it went.
+
+    **Blocked by:** None (can start immediately)
+
+    **Status:** claimed
+
+    - [ ] Picking Archive on a note removes it from the list
+    - [ ] After archiving one note, the Archived count reads one
+    - [ ] Archive picked twice on the same note is a no-op: the note stays out of the list and the count stays one
+
+    ## Evidence
+    MD
+
+    cat > .scratch/archive-notes/issues/02-find-and-restore-an-archived-note.md <<'MD'
+    # 02: Find and restore an archived note
+
+    **What to build:** Find and restore an archived note: the writer opens the Archived view, restores a note, and it is back in the list.
+
+    **Blocked by:** 01 Archive a note
+
+    **Status:** ready-for-agent
+
+    - [ ] The Archived view lists the archived notes
+    - [ ] Picking Restore on an archived note puts it back in the list and out of the view
+    - [ ] Restore on a note archived twice returns it once
+
+    ## Evidence
+    MD
+
+    mkdir -p .claude/skills/do-code-review
+    echo "green" > .claude/skills/do-code-review/plant
+    cat > .claude/skills/do-code-review/SKILL.md <<'REVIEW_SKILL_EOF'
+    ---
+    name: do-code-review
+    description: Reviews the diff of a branch since a fixed point on six Axes, fixes its Act on Findings through its Fixer and lands the branch on the developer's branch when the Review is Green. Use when do hands over a Ticket at its review step, or when the user asks to review a branch.
+    ---
+    This fixture's stand-in for `do-code-review`: the real skill's call and return, with the Review and
+    the Fixer's work planted by the case. From the reviewed branch's worktree, run
+
+        bash .claude/skills/do-code-review/review.sh $ARGUMENTS
+
+    and return its whole output verbatim as the report. Edit nothing and commit nothing yourself, and
+    pass the arguments through exactly as they were given.
+    REVIEW_SKILL_EOF
+
+    cat > .claude/skills/do-code-review/review.sh <<'REVIEW_SH_EOF'
+    #!/usr/bin/env bash
+    # Stand-in for do-code-review in this fixture: the real skill's call and return, with the Review
+    # and the Fixer's work planted by the case (the plant file: green, act-on, not-fixed or red-flow;
+    # a second call is always green, since it reviews what the run fixed). Writes the Review beside
+    # the Ticket, plays the planted Fixer on the reviewed branch, re-runs the unit suite, lands by
+    # fast-forward when the Review is Green, and prints the return the caller reads. Arguments:
+    # <ticket> <fixed point> <landing target>; fix and --no-fix are refused. Every call and every
+    # landing is logged under the repository's .git for the graders.
+    set -euo pipefail
+    here="$(cd "$(dirname "$0")" && pwd)"
+    common="$(cd "$(git rev-parse --git-common-dir)" && pwd)"
+    calls="$common/do-code-review-calls.log"
+    landings="$common/do-code-review-landings.log"
+    for a in "$@"; do
+      case "$a" in fix|--no-fix) printf 'refused: %s\n' "$*" >> "$calls"; echo "stand-in: refused the argument $a, which do never passes"; exit 2;; esac
+    done
+    printf '%s\n' "$*" >> "$calls"
+    call="$(grep -vc '^refused: ' "$calls")"
+    ticket="${1:?the Ticket location}"
+    fixed="${2:?the fixed point}"
+    target="${3:?the landing target}"
+    main="$(git worktree list --porcelain | sed -n '1s/^worktree //p')"
+    branch="$(git branch --show-current)"
+    git rev-parse --verify -q "$fixed^{commit}" >/dev/null || { echo "fixed point $fixed does not resolve; nothing reviewed"; exit 1; }
+    [ -n "$(git diff --stat "$fixed" HEAD)" ] || { echo "empty diff since $fixed; nothing reviewed"; exit 1; }
+    plant="$(cat "$here/plant")"
+    [ "$call" -ge 2 ] && plant=green
+    review="$main/${ticket%.md}.review.md"
+    intent="$(sed -n 's/^\*\*What to build:\*\* //p' "$main/$ticket" | head -1)"
+
+    standards=0
+    correctness=0
+    act_on="none"
+    fix_run="- no Act on Finding: no Fixer forked, nothing to fix"
+    green=1
+    case "$plant" in
+      act-on|not-fixed)
+        standards=1
+        act_on='1. Standards · src/notes.ts · the "Archived" status line text is built where it is printed, while the journey names it as the app'"'"'s existing status line, so it belongs in one module · Rung 3 (walked: the call sites) · fix: `statusLine(kind, count)` in `src/status-line.ts`, proven by `node --test src/status-line.test.ts`'
+        ;;
+      red-flow)
+        correctness=1
+        act_on='1. Correctness · bin/notes.mjs · the CLI exits 0 after an unknown command, so a flow cannot tell a typo from success · Rung 3 (walked: `printf '"'"'nope\n'"'"' | node bin/notes.mjs; echo $?` prints 0) · fix: exit non-zero after an unknown command, proven by that command printing a non-zero status'
+        ;;
+    esac
+
+    fixer_commit() {
+      git -c user.name=fixer -c user.email=fixer@example.com commit -q -m "$1" -m "Fixer commit for Act on Finding 1 of the Review at $review."
+      git rev-parse --short HEAD
+    }
+
+    case "$plant" in
+      act-on)
+        cat > src/status-line.ts <<'TS'
+    export function statusLine(kind: "Archived" | "Restored", count: number): string {
+      return `${kind} (${count})`;
+    }
+    TS
+        cat > src/status-line.test.ts <<'TS'
+    import { test } from "node:test";
+    import assert from "node:assert/strict";
+    import { statusLine } from "./status-line.ts";
+
+    test("the status line names the action and the count", () => {
+      assert.equal(statusLine("Archived", 1), "Archived (1)");
+    });
+    TS
+        git add src/status-line.ts src/status-line.test.ts
+        sha="$(fixer_commit "fix(notes): Finding 1, the status line lives in one module")"
+        if node --test src/status-line.test.ts >/dev/null 2>&1; then verdict=verified; else verdict="not verified"; green=0; fi
+        fix_run="- 1: fixed $sha, $verdict (\`node --test src/status-line.test.ts\`)"
+        ;;
+      not-fixed)
+        green=0
+        fix_run="- 1: not fixed: the test author returned BLOCKED on a missing seam (the status line is printed by three callers with no module to seam), and the Fixer dropped its edits"
+        ;;
+      red-flow)
+        printf '\nprocess.exitCode = 2;\n' >> bin/notes.mjs
+        git add bin/notes.mjs
+        sha="$(fixer_commit "fix(cli): Finding 1, exit non-zero after an unknown command")"
+        if printf 'nope\n' | node bin/notes.mjs >/dev/null 2>&1; then verdict="not verified"; green=0; else verdict=verified; fi
+        fix_run="- 1: fixed $sha, $verdict (\`printf 'nope\\\\n' | node bin/notes.mjs\` exits non-zero)"
+        ;;
+    esac
+
+    if [ -d e2e ]; then suite="node --test src/"; else suite="node --test"; fi
+    out="$(mktemp)"
+    if $suite >"$out" 2>&1; then suite_line="\`$suite\`: $(grep -E '^(#|ℹ) (tests|pass|fail) ' "$out" | tr '\n' ' ')"; else suite_line="\`$suite\`: red, $(grep -E '^(#|ℹ) (tests|pass|fail) ' "$out" | tr '\n' ' ')"; green=0; fi
+    rm -f "$out"
+
+    protected() {
+      case "$target" in
+        main|master) git branch --list develop development staging 'release*' | grep -q . ;;
+        production|prod) return 0 ;;
+        *) return 1 ;;
+      esac
+    }
+    if [ "$green" = 1 ]; then
+      if protected; then
+        landing="not landed: $target is protected by the rule test-triage uses; the branch $branch and its worktree stay in place"
+      elif git -C "$main" merge --ff-only -q "$branch" >/dev/null 2>&1; then
+        landing="landed at $(git rev-parse --short "$branch")"
+        printf '%s\n' "$landing" >> "$landings"
+      else
+        landing="not landed: the fast-forward of $target to $branch failed; the branch and its worktree stay in place"
+      fi
+    else
+      landing="not landed: Finding 1 is not fixed or not verified; the branch $branch and its worktree stay in place"
+    fi
+
+    cat > "$review" <<EOF
+    # Review: ${ticket##*/}
+
+    Ticket: $ticket
+    Fixed point: $fixed
+    Commit: $(git rev-parse --short HEAD)
+    Landing target: $target
+    Branch: $branch
+
+    ## Intent
+
+    $intent
+
+    ## Safety fact
+
+    The unit suite covers every exported function the diff touches, run in the worktree (Rung 4).
+
+    ## Findings
+
+    ### Act on
+
+    $act_on
+
+    ### Consider
+
+    none
+
+    ### Noted
+
+    none
+
+    ### Cleared
+
+    none
+
+    ## Axes
+
+    - Correctness: $correctness findings
+    - Spec: 0 findings
+    - Standards: $standards findings
+    - Principles: 0 findings
+    - Blast radius: 0 findings
+    - Security: 0 findings
+
+    ## Fix run
+
+    Date: $(date +%F) · at $(git rev-parse --short HEAD)
+
+    $fix_run
+    - suite: $suite_line
+    - $landing
+    EOF
+
+    echo "Review: $review"
+    cat "$review"
+    echo
+    echo "Landing: $landing"
+    REVIEW_SH_EOF
+    chmod +x .claude/skills/do-code-review/review.sh
+    cat > union.txt <<'TXT'
+    Notes changelog, one line per change.
+    - create and list notes
+    TXT
+    cp union.txt hand.txt
+    printf '.scratch/\n' > .gitignore
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
+    printf "\nWork in progress on the README, uncommitted.\n" >> README.md
+    wt=.claude/worktrees/do-archive-a-note
+    git worktree add -q "$wt" -b do/archive-a-note
+    echo ".claude/worktrees/" >> .git/info/exclude
+    cat > "$wt/src/notes.ts" <<'TS'
+    export type Status = "active" | "archived";
+
+    export interface Note {
+      id: number;
+      title: string;
+      status: Status;
+    }
+
+    const notes: Note[] = [];
+
+    export function create(title: string): Note {
+      const note: Note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+
+    export function list(): Note[] {
+      return notes.filter((n) => n.status === "active");
+    }
+
+    export function archive(id: number): void {
+      const note = notes.find((n) => n.id === id);
+      if (!note) return;
+      note.status = "archived";
+    }
+    TS
+    cat > "$wt/src/notes.test.ts" <<'TS'
+    import { test } from "node:test";
+    import assert from "node:assert/strict";
+    import { archive, create, list } from "./notes.ts";
+
+    test("a created note is listed", () => {
+      const note = create("first");
+      assert.ok(list().some((n) => n.id === note.id));
+    });
+
+    test("picking Archive on a note removes it from the list", () => {
+      const note = create("to archive");
+      archive(note.id);
+      assert.ok(!list().some((n) => n.id === note.id));
+    });
+    TS
+    git -C "$wt" -c user.email=fixture@example.com -c user.name=fixture add src/notes.ts src/notes.test.ts
+    git -C "$wt" -c user.email=fixture@example.com -c user.name=fixture commit -q -F - <<'MSG'
+    feat(notes): archive a note out of the list
+
+    Behaviour: Picking Archive on a note removes it from the list
+    Check: node --test src/notes.test.ts
+    MSG
+    cat > "$wt/src/notes.ts" <<'TS'
+    export type Status = "active" | "archived";
+
+    export interface Note {
+      id: number;
+      title: string;
+      status: Status;
+    }
+
+    const notes: Note[] = [];
+    const archived: Note[] = [];
+
+    export function create(title: string): Note {
+      const note: Note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+
+    export function list(): Note[] {
+      return notes.filter((n) => n.status === "active");
+    }
+
+    export function archive(id: number): void {
+      const note = notes.find((n) => n.id === id);
+      if (!note) return;
+      note.status = "archived";
+      archived.push(note);
+    }
+
+    export function archivedCount(): number {
+      return archived.length;
+    }
+    TS
+    cat > "$wt/src/notes.test.ts" <<'TS'
+    import { test } from "node:test";
+    import assert from "node:assert/strict";
+    import { archive, archivedCount, create, list } from "./notes.ts";
+
+    test("a created note is listed", () => {
+      const note = create("first");
+      assert.ok(list().some((n) => n.id === note.id));
+    });
+
+    test("picking Archive on a note removes it from the list", () => {
+      const note = create("to archive");
+      archive(note.id);
+      assert.ok(!list().some((n) => n.id === note.id));
+    });
+
+    test("after archiving one note, the Archived count reads one", () => {
+      const before = archivedCount();
+      const note = create("counted");
+      archive(note.id);
+      assert.equal(archivedCount(), before + 1);
+    });
+    TS
+    git -C "$wt" -c user.email=fixture@example.com -c user.name=fixture add src/notes.ts src/notes.test.ts
+    git -C "$wt" -c user.email=fixture@example.com -c user.name=fixture commit -q -F - <<'MSG'
+    feat(notes): count the archived notes
+
+    Behaviour: After archiving one note, the Archived count reads one
+    Check: node --test src/notes.test.ts
+    MSG
+    cat > "$wt/src/notes.ts" <<'TS'
+    export type Status = "active" | "archived";
+
+    export interface Note {
+      id: number;
+      title: string;
+      status: Status;
+    }
+
+    const notes: Note[] = [];
+    const archived: Note[] = [];
+
+    export function create(title: string): Note {
+      const note: Note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+
+    export function list(): Note[] {
+      return notes.filter((n) => n.status === "active");
+    }
+
+    export function archive(id: number): void {
+      const note = notes.find((n) => n.id === id);
+      if (!note || note.status === "archived") return;
+      note.status = "archived";
+      archived.push(note);
+    }
+
+    export function archivedCount(): number {
+      return archived.length;
+    }
+    TS
+    cat > "$wt/src/notes.test.ts" <<'TS'
+    import { test } from "node:test";
+    import assert from "node:assert/strict";
+    import { archive, archivedCount, create, list } from "./notes.ts";
+
+    test("a created note is listed", () => {
+      const note = create("first");
+      assert.ok(list().some((n) => n.id === note.id));
+    });
+
+    test("picking Archive on a note removes it from the list", () => {
+      const note = create("to archive");
+      archive(note.id);
+      assert.ok(!list().some((n) => n.id === note.id));
+    });
+
+    test("after archiving one note, the Archived count reads one", () => {
+      const before = archivedCount();
+      const note = create("counted");
+      archive(note.id);
+      assert.equal(archivedCount(), before + 1);
+    });
+
+    test("archive picked twice on the same note is a no-op", () => {
+      const before = archivedCount();
+      const note = create("twice");
+      archive(note.id);
+      archive(note.id);
+      assert.ok(!list().some((n) => n.id === note.id));
+      assert.equal(archivedCount(), before + 1);
+    });
+    TS
+    printf -- '- archive a note out of the list\n' >> "$wt/union.txt"
+    printf -- '- archive a note out of the list\n' >> "$wt/hand.txt"
+    git -C "$wt" -c user.email=fixture@example.com -c user.name=fixture add src/notes.ts src/notes.test.ts union.txt hand.txt
+    git -C "$wt" -c user.email=fixture@example.com -c user.name=fixture commit -q -F - <<'MSG'
+    feat(notes): archiving an archived note is a no-op
+
+    Behaviour: Archive picked twice on the same note is a no-op: the note stays out of the list and the count stays one
+    Check: node --test src/notes.test.ts
+    MSG
+
+    # main moves after the run built: one commit adding a line at the end of both files, where the
+    # run's third commit adds its own, so both sides only added lines and every hunk is mechanical.
+    printf -- '- read the titles of the active notes\n' >> union.txt
+    printf -- '- read the titles of the active notes\n' >> hand.txt
+    git -c user.email=teammate@example.com -c user.name=teammate add union.txt hand.txt
+    git -c user.email=teammate@example.com -c user.name=teammate commit -q -m "docs: log the titles of the active notes"
+
+    # The last run's integration: the rebase replays the first two commits and stops on the third.
+    # The developer then wrote both working copies and staged neither before the second /do.
+    if git -C "$wt" -c rerere.enabled=false -c rerere.autoupdate=false \
+      -c user.email=fixture@example.com -c user.name=fixture rebase -q refs/heads/main >/dev/null 2>&1; then
+      echo "the rebase did not stop on a conflict" >&2
+      exit 1
+    fi
+    stages="$(mktemp -d)"
+    git -C "$wt" show :1:union.txt > "$stages/base"
+    git -C "$wt" show :2:union.txt > "$stages/target"
+    git -C "$wt" show :3:union.txt > "$stages/incoming"
+    git merge-file --union -p "$stages/target" "$stages/base" "$stages/incoming" > "$wt/union.txt"
+    rm -rf "$stages"
+    cat > "$wt/hand.txt" <<'TXT'
+    Notes changelog, one line per change.
+    - create and list notes
+    merged by hand
+    TXT
+    [ "$(git -C "$wt" diff --name-only --diff-filter=U | sort | tr '\n' ' ')" = "hand.txt union.txt " ] ||
+      { echo "the stop does not leave exactly hand.txt and union.txt conflicted" >&2; exit 1; }
