@@ -33,22 +33,6 @@ after() { # $1 label, $2 file, $3 the later fixed string, $4.. the strings that 
     fails=$((fails + 1))
   fi
 }
-para_has() { # $1 label, $2 file, $3 a fixed string opening the paragraph, $4.. strings in that same paragraph
-  local label="$1" file="$2" anchor="$3"
-  shift 3
-  local ok=1 para joined line
-  para="$(awk -v a="$anchor" 'BEGIN { RS = "" } index($0, a) { print; exit }' "$file" 2>/dev/null)"
-  [ -n "$para" ] || ok=0
-  # A paragraph's own line-wrapping must never hide a string that is whole in its prose: join the
-  # paragraph's lines with a space before the search, so a string that wraps across two lines
-  # still matches.
-  joined="${para//$'\n'/ }"
-  for line in "$@"; do [ "$ok" = 1 ] && grep -qF -- "$line" <<<"$joined" || ok=0; done
-  if [ "$ok" = 1 ]; then echo "ok    $label"; else
-    echo "FAIL  $label ($file)"
-    fails=$((fails + 1))
-  fi
-}
 
 # para_has must find a string still whole in the paragraph's prose even when the paragraph's own
 # line-wrapping splits it across two lines: a paragraph is one unit of text, and reflowing it

@@ -64,6 +64,13 @@ has "the existing worktree is entered and never created twice" "$ref" "never cre
 has "an existing branch gets its worktree back without -b" "$ref" "without \`-b\`"
 has "the resume continues at the first step the branch does not evidence" "$ref" "the first step the branch does not evidence"
 has "the resume never commits the reproduction twice" "$ref" "never committed twice"
+para_has "a resume whose branch has a Review that counts runs the gate and the integration, lands through the fix call on that Review, and is never reviewed a second time" \
+  "$ref" "Step 1 probes before it creates" \
+  "\`.scratch/reviews/" \
+  "A Review that counts" \
+  "the run gates, integrates" \
+  "lands through the fix call on that Review" \
+  "never a second review"
 
 # Step 2, the reproduction: the run drives the surface, forces it, and says where it runs
 has "the reproduction shows the command line and the output" "$ref" "the command line and the output"

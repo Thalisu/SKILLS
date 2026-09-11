@@ -94,6 +94,23 @@ ordered() { # $1 label, $2 file, $3.. fixed strings that must appear in the file
 }
 flat() { tr '\n' ' ' <"$1" 2>/dev/null | tr -s ' '; } # $1 file: its text on one line, so a wrapped sentence matches
 
+para_has() { # $1 label, $2 file, $3 a fixed string opening the paragraph, $4.. strings in that same paragraph
+  local label="$1" file="$2" anchor="$3"
+  shift 3
+  local ok=1 para joined line
+  para="$(awk -v a="$anchor" 'BEGIN { RS = "" } index($0, a) { print; exit }' "$file" 2>/dev/null)"
+  [ -n "$para" ] || ok=0
+  # A paragraph's own line-wrapping must never hide a string that is whole in its prose: each line
+  # break and the indentation after it read as one space, so a string that wraps across two lines
+  # still matches, in a plain paragraph or in an indented bullet.
+  joined="$(awk 'NR > 1 { sub(/^[[:space:]]+/, ""); printf " " } { printf "%s", $0 }' <<<"$para")"
+  for line in "$@"; do [ "$ok" = 1 ] && grep -qF -- "$line" <<<"$joined" || ok=0; done
+  if [ "$ok" = 1 ]; then echo "ok    $label"; else
+    echo "FAIL  $label ($file)"
+    fails=$((fails + 1))
+  fi
+}
+
 g() { command git -c user.email=t@example.com -c user.name=t -c init.defaultBranch=main "$@"; }
 commit() {
   g add -A >/dev/null
