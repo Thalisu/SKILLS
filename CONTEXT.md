@@ -79,6 +79,13 @@ loss, auth, billing, migration, idempotency, race) or cannot be undone once land
 _Avoid_: dangerous, harmful, big decision, sensitive (each is a judgment a run makes differently
 every time; the test is whether a side weakens a guarantee or cannot be undone)
 
+**Ruling**:
+What the `choice-taker` returns on a **Design fork** it settles: the side taken, and the norm that
+backs it or "no norm: the side easiest to undo". Written as one line in the **Spec**'s
+Implementation Decisions and listed under `Rulings` in the run's reply.
+_Avoid_: verdict (the **Verdict** is a spec's `Journey:` line), decision (the **Spec**'s decisions
+come from `discuss`; a **Ruling** is appended to them and marked as the `choice-taker`'s), answer
+
 **Scratch**:
 The unversioned folder a project keeps its local chain artifacts in, `.scratch/`: a **Spec**, its
 **Journey**, its **Tickets** and the **Reviews** beside them. Always ignored by git, so it is one
