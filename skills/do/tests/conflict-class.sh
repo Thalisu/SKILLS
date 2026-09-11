@@ -380,6 +380,33 @@ else
   fails=$((fails + 1))
 fi
 
+# The stop a resumed run meets: a rebase stop whose file the developer already wrote as the union of
+# its stages, marker-free and never staged, over two hunks both sides only added to. The locations
+# are the union's own lines, where the default-style regeneration's markers would sit: its hunks at
+# L2-L6 and L11-L15 lose their marker lines, leaving L2-L3 and L8-L9.
+fresh resumed-union
+printf 'a\nb\nc\nd\ne\nf\n' >resumed.txt
+commit base
+g branch inc
+printf 'a\nTARGET ONE\nb\nc\nd\ne\nTARGET TWO\nf\n' >resumed.txt
+commit target
+g switch -q inc
+printf 'a\nINCOMING ONE\nb\nc\nd\ne\nINCOMING TWO\nf\n' >resumed.txt
+commit incoming
+g rebase main >/dev/null 2>&1
+g show ":1:resumed.txt" >"$tmp/resumed.1"
+g show ":2:resumed.txt" >"$tmp/resumed.2"
+g show ":3:resumed.txt" >"$tmp/resumed.3"
+g merge-file --union -p "$tmp/resumed.2" "$tmp/resumed.1" "$tmp/resumed.3" >resumed.txt
+
+run
+check "a file already written as the union of mechanical hunks: mechanical hunk by hunk, where they sit" 0 "$rc" \
+  "mechanical resumed.txt L2-L3" \
+  "mechanical resumed.txt L8-L9" \
+  "verdict=mechanical mechanical=2 contested=0"
+check_absent "and it is never whole-file unmergeable" 0 "$rc" \
+  "contested resumed.txt whole-file unmergeable"
+
 # The same additive shape twice, in a repository whose config turns git's conflict-resolution reuse
 # on. Reuse is the developer's own setting and everything the integration runs would run under it: a
 # resolution recorded at one stop is replayed at the next stop of the same shape, which leaves the

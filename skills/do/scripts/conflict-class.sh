@@ -100,6 +100,30 @@ stage_body() { # $1 stage, $2 path, $3 destination
   git cat-file blob ":$1:$2" 2>/dev/null | LC_ALL=C sed 's/^/ /' > "$3"
 }
 
+# A stop someone already resolved and never staged leaves a working file with no marker to locate a
+# hunk by. When its bytes are the union the all-mechanical resolution writes from the raw stages,
+# each hunk sits where the default-style regeneration's markers would, less the three marker lines
+# of every hunk above it and its own opening two: the union is merge-file's default level, which
+# --diff3 lowers, so the ranges come from that style and never from the diff3 parse. Prints
+# "<start> <end>" per hunk, and nothing for a file that is not that union.
+union_locations() { # $1 path; the prefixed stages already in $tmp/base, $tmp/target, $tmp/incoming
+  local path="$1" k=0 opens=() closes=()
+  git cat-file blob ":1:$path" > "$tmp/raw-base" 2>/dev/null &&
+    git cat-file blob ":2:$path" > "$tmp/raw-target" 2>/dev/null &&
+    git cat-file blob ":3:$path" > "$tmp/raw-incoming" 2>/dev/null || return 0
+  git merge-file --union -p "$tmp/raw-target" "$tmp/raw-base" "$tmp/raw-incoming" > "$tmp/union" 2>/dev/null
+  cmp -s -- "$tmp/union" "$path" || return 0
+  git merge-file -p -L target -L base -L incoming \
+    "$tmp/target" "$tmp/base" "$tmp/incoming" > "$tmp/zealous" 2>/dev/null
+  mapfile -t opens < <(grep -n '^<<<<<<< ' "$tmp/zealous" | cut -d: -f1)
+  mapfile -t closes < <(grep -n '^>>>>>>> ' "$tmp/zealous" | cut -d: -f1)
+  [ "${#opens[@]}" -eq "${#closes[@]}" ] || return 0
+  while [ "$k" -lt "${#opens[@]}" ]; do
+    echo "$((opens[k] - 3 * k)) $((closes[k] - 3 * k - 3))"
+    k=$((k + 1))
+  done
+}
+
 # The hunks of one both-modified text file, from a conflict presentation regenerated out of the
 # three stages. The working file supplies the locations and the regenerated merge the sides, matched
 # by ordinal; a file whose two hunk counts disagree is no longer what git left, so nothing in it is
@@ -107,7 +131,7 @@ stage_body() { # $1 stage, $2 path, $3 destination
 # moved on both sides or a file the attributes leave with no merge driver, is unmergeable.
 classify_hunks() { # $1 path
   local path="$1" i=0 line section base_lines=0 shape classes=() shapes=() starts=() ends=() stage size
-  local target_first incoming_first
+  local target_first incoming_first start end
   for stage in 1 2 3; do
     size="$(git cat-file -s ":$stage:$path" 2>/dev/null)"
     if [ "${size:-0}" -gt "$max_stage_bytes" ]; then
@@ -157,6 +181,9 @@ classify_hunks() { # $1 path
   # would otherwise be an option and turn both reads into a read of the caller's stdin.
   mapfile -t starts < <(grep -n '^<<<<<<< ' -- "$path" 2>/dev/null | cut -d: -f1)
   mapfile -t ends < <(grep -n '^>>>>>>> ' -- "$path" 2>/dev/null | cut -d: -f1)
+  if [ "${#classes[@]}" -gt 0 ] && [ "${#starts[@]}" -eq 0 ] && [ "${#ends[@]}" -eq 0 ]; then
+    while read -r start end; do starts+=("$start"); ends+=("$end"); done < <(union_locations "$path")
+  fi
   if [ "${#classes[@]}" -eq 0 ] ||
      [ "${#starts[@]}" -ne "${#classes[@]}" ] || [ "${#ends[@]}" -ne "${#classes[@]}" ]; then
     emit contested "$path" whole-file unmergeable
