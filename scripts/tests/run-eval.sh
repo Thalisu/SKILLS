@@ -21,10 +21,11 @@ run() {
 }
 calls() { if [ -f "$STUB_DIR/calls" ]; then wc -l <"$STUB_DIR/calls"; else echo 0; fi; }
 judge_calls() { if [ -f "$STUB_DIR/judge-calls" ]; then wc -l <"$STUB_DIR/judge-calls"; else echo 0; fi; }
-reset() { rm -f "$STUB_DIR/calls" "$STUB_DIR/judge-calls" "$STUB_DIR/judge-prompts"; }
+reset() { rm -f "$STUB_DIR/calls" "$STUB_DIR/judge-calls" "$STUB_DIR/judge-prompts" "$STUB_DIR/judge-args"; }
 
-# The stand-in CLI: a judge call carries --tools, and every other call is the session under test,
-# which logs its arguments and environment, prints the canned transcript and touches a file.
+# The stand-in CLI: a judge call carries --tools and logs its arguments and prompt, and every other
+# call is the session under test, which logs its arguments and environment, prints the canned
+# transcript and touches a file.
 # The judge answers one line per "### <grader>" heading of its prompt: STUB_VERDICT for every
 # grader (PASS by default), FAIL for the graders STUB_FAIL names.
 cat >"$tmp/bin/claude" <<'SH'
@@ -32,6 +33,7 @@ cat >"$tmp/bin/claude" <<'SH'
 for a in "$@"; do
   if [ "$a" = --tools ]; then
     echo judge >> "$STUB_DIR/judge-calls"
+    { printf 'judge'; printf ' [%s]' "$@"; printf '\n'; } >> "$STUB_DIR/judge-args"
     prompt="$(cat)"
     printf '%s\n' "$prompt" >> "$STUB_DIR/judge-prompts"
     [ -z "${STUB_JUDGE_ERR:-}" ] || { echo "$STUB_JUDGE_ERR" >&2; exit 1; }
@@ -159,6 +161,8 @@ expect "the judge reads the session's own calls" grep -qF "TOOL CALL Bash" <<<"$
 expect "the judge reads a subagent's call as the subagent's" grep -qF "[subagent] TOOL CALL Bash" <<<"$judged"
 expect "the judge reads the final message" grep -qF "FINAL MESSAGE: Playbook: ticket" <<<"$judged"
 expect "the judge reads the file the run created" grep -qF "made-by-run.txt" <<<"$judged"
+expect "every judge session loads no MCP server, so its one turn goes to a verdict" \
+  bash -c 'test -s "$1" && ! grep -vF "[--strict-mcp-config]" "$1"' _ "$STUB_DIR/judge-args"
 expect "a run that made a file is never reported as changing nothing" \
   bash -c '! grep -qF "no file changed" <<<"$1"' _ "$judged"
 expect "the fixture's own files are no change of the run's" bash -c '! grep -qF "./a.txt" <<<"$1"' _ "$judged"

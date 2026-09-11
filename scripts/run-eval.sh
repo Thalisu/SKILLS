@@ -148,7 +148,7 @@ $(readable "$w/transcript.jsonl")
 $(cat "$w/changes")
 EOF
   } | (cd "$w" && timeout 300 "${claude_cmd[@]}" --output-format json --max-turns 1 --tools "" \
-    --no-session-persistence --model "$judge_model") >"$w/judge.json" 2>"$w/judge.err"
+    --strict-mcp-config --no-session-persistence --model "$judge_model") >"$w/judge.json" 2>"$w/judge.err"
   jq -r '.result // ""' "$w/judge.json" 2>/dev/null
 }
 
