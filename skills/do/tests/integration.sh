@@ -239,6 +239,59 @@ resumed_stop_keeps_the_hand_resolution() {
 }
 resumed_stop_keeps_the_hand_resolution
 
+# A conflicted path is a name a side chose, and git reads a path argument as a glob pathspec unless
+# told otherwise, `[` and `]` included: staging a trusted path literally named `[ab].txt` must never
+# sweep in an unrelated untracked `a.txt` sitting beside it, the pair skills/do/scripts/contested.sh
+# already uses to prove the same glob bug for its own `git add`.
+resumed_stop_stages_a_glob_named_trusted_path_literally() {
+  local write mark rc
+  write="$(blocks_of "$mech" "## The integration" "**A rebase that stopped.**" 1)"
+  mark="$(blocks_of "$mech" "## The integration" "**A rebase that stopped.**" 2)"
+  expect "the all-mechanical stop's union block extracts for the glob fixture" test -n "$write"
+  expect "the all-mechanical stop's staging block extracts for the glob fixture" test -n "$mark"
+  printf '%s\n' "${write//"<skill-dir>"/"$repo/skills/do"}" >"$tmp/write-glob.sh"
+  printf '%s\n' "$mark" >"$tmp/mark-glob.sh"
+
+  fresh resumed-stop-glob
+  printf 'a\nb\nc\nd\ne\nf\n' >b.txt
+  printf 'a\nb\nc\nd\ne\nf\n' >'[ab].txt'
+  commit base
+  g branch inc
+  printf 'a\nTARGET ONE\nb\nc\nd\ne\nTARGET TWO\nf\n' >b.txt
+  printf 'a\nTARGET ONE\nb\nc\nd\ne\nTARGET TWO\nf\n' >'[ab].txt'
+  commit target
+  g switch -q inc
+  printf 'a\nINCOMING ONE\nb\nc\nd\ne\nINCOMING TWO\nf\n' >b.txt
+  printf 'a\nINCOMING ONE\nb\nc\nd\ne\nINCOMING TWO\nf\n' >'[ab].txt'
+  commit incoming
+  g -c rerere.enabled=false -c rerere.autoupdate=false rebase refs/heads/main >/dev/null 2>&1
+  # b.txt keeps the markers git left, so only the union loop may stage it.
+  union_of b.txt >"$tmp/b.union"
+  printf 'a\nONE, merged by hand\nb\nc\nd\ne\nTWO, merged by hand\nf\n' >'[ab].txt'
+  # An unrelated untracked file whose literal name the trusted path's glob metacharacters would
+  # also match, sitting beside it when the resolution blocks run.
+  printf 'unrelated untracked content\n' >a.txt
+
+  rc=0
+  # shellcheck disable=SC2034  # lib.sh's check reads $out
+  out="$(bash "$repo/skills/do/scripts/conflict-class.sh" 2>&1)" || rc=$?
+  check "the glob-named path is classed trusted so it reaches the block" \
+    0 "$rc" "trusted [ab].txt whole-file hand-resolved" "verdict=mechanical mechanical=2 contested=0 trusted=1"
+
+  bash "$tmp/write-glob.sh" >/dev/null 2>&1
+  bash "$tmp/mark-glob.sh" >/dev/null 2>&1
+
+  expect "staging a trusted path named with glob metacharacters never sweeps in an unrelated untracked file" \
+    test -z "$(g ls-files -- ':(literal)a.txt')"
+  expect "the trusted path itself still lands in the index despite its glob-shaped name" \
+    test -n "$(g ls-files -- ':(literal)[ab].txt')"
+  g show ":0:b.txt" >"$tmp/b.staged" 2>/dev/null
+  expect "a conflicted file the trusted path's name also matches is staged as its union, never with its markers" \
+    cmp -s "$tmp/b.staged" "$tmp/b.union"
+  cd "$repo" || exit 1
+}
+resumed_stop_stages_a_glob_named_trusted_path_literally
+
 # A developer who integrates by hand between two runs, by a merge and not a rebase, already carries
 # the developer's branch inside the run's own: rebasing onto it a second time has nothing left to
 # replay and, where the developer resolved a conflict during that merge, would ask them the same

@@ -392,7 +392,7 @@ below rewrites it; then it takes the three stages of every file still conflicted
 and writes their union:
 
 ```
-bash <skill-dir>/scripts/conflict-class.sh --trusted -z | xargs -0 -r git add --
+bash <skill-dir>/scripts/conflict-class.sh --trusted -z | GIT_LITERAL_PATHSPECS=1 xargs -0 -r git add --
 stages="$(mktemp -d)"
 git diff --name-only --diff-filter=U -z | while IFS= read -r -d '' file; do
   git show ":1:$file" > "$stages/base" && git show ":2:$file" > "$stages/target" &&
@@ -409,7 +409,7 @@ read back, as the next state says, with the file-reading tool and never through 
 second block marks the files resolved:
 
 ```
-git diff --name-only --diff-filter=U -z | xargs -0 git add --
+git diff --name-only --diff-filter=U -z | GIT_LITERAL_PATHSPECS=1 xargs -0 git add --
 ```
 
 Then the continue with the same prefix,
