@@ -242,6 +242,38 @@ for f in "${prose[@]}"; do
   else echo "ok    no em-dash in ${f#"$repo/"}"; fi
 done
 
+# The exit-0 row's own composition, read off the row and run for real: a subdirectory of the main
+# checkout (not the root, and not a linked worktree) is where the resolver's `folder=` comes back
+# relative to the root, so the destination the row composes, and the containment check that
+# follows it, must land the same place a session standing at the root would.
+sketch_row="$(grep -E '^\| exit 0 \|' "$skill_md" 2>/dev/null | head -n 1)"
+sketch_template="$(grep -o '`[^`]*`' <<<"$sketch_row" | tr -d '`' |
+  grep -F '<folder>' | grep -E 'sketch\.md$' | head -n 1)"
+expect "the exit-0 row carries a destination template built on <folder> and ending in sketch.md" \
+  test -n "$sketch_template"
+sketch_tmp="$(mktemp -d)"
+sketch_today="$(date +%Y%m%d)"
+mkdir -p "$sketch_tmp/repo/src"
+(cd "$sketch_tmp/repo" && g init -q -b main)
+mkdir -p "$sketch_tmp/repo/.scratch/${sketch_today}-export-notes"
+sketch_resolver_out="$(cd "$sketch_tmp/repo/src" && bash "$repo/${resolver:-none.sh}" export-notes 2>&1)"
+sketch_folder="$(sed -n 's/^folder=//p' <<<"$sketch_resolver_out")"
+sketch_root="$(sed -n 's/^root=//p' <<<"$sketch_resolver_out")"
+sketch_destination="${sketch_template//<root>/$sketch_root}"
+sketch_destination="${sketch_destination//<folder>/$sketch_folder}"
+sketch_dest_resolved="$(cd "$sketch_tmp/repo/src" && readlink -m "$sketch_destination")"
+sketch_scratch_resolved="$(cd "$sketch_tmp/repo/src" && readlink -m "$sketch_root/.scratch")"
+case "$sketch_dest_resolved" in
+  "$sketch_scratch_resolved"/*) sketch_result="inside" ;;
+  *) sketch_result="refused" ;;
+esac
+sketch_want_dest="$sketch_root/$sketch_folder/sketch.md"
+expect "from a subdirectory of the main checkout, the exit-0 destination passes the containment check" \
+  test "$sketch_result" = "inside"
+expect "from a subdirectory of the main checkout, the exit-0 destination is the absolute <root>/<folder>/sketch.md" \
+  test "$sketch_dest_resolved" = "$sketch_want_dest"
+rm -rf "$sketch_tmp"
+
 if [ "$fails" = 0 ]; then echo "PASS"; else
   echo "$fails failing"
   exit 1

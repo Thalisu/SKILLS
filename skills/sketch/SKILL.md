@@ -29,7 +29,7 @@ never an empty stdout, since a refusal and a missing file both leave stdout empt
 
 | What came back | What this session does |
 |---|---|
-| exit 0 | the Sketch goes to `<folder>/sketch.md`, or to `<root>/.scratch/sketches/<slug>.md` when `folder=none`, with `<slug>` and `<root>` the `slug=` and `root=` it printed, never the word the developer typed |
+| exit 0 | the Sketch goes to `<root>/<folder>/sketch.md` when `folder=` is relative, as it is from anywhere in the main checkout, to `<folder>/sketch.md` when it is absolute, as it is from a linked worktree, or to `<root>/.scratch/sketches/<slug>.md` when `folder=none`, with `<slug>`, `<root>` and `<folder>` the `slug=`, `root=` and `folder=` it printed, never the word the developer typed, so the destination is always absolute |
 | any other exit, and `test -f` finds the script | stop: nothing is written, and the one line is the script's own stderr line |
 | `test -f` does not find the script | not a stop: the root is the first entry of `git worktree list --porcelain`, the slug is lowercased with every character that is not a letter or a digit turned into a dash and the dashes squeezed and trimmed, the Sketch goes to `<root>/.scratch/sketches/<slug>.md`, and the end owes the line that the resolver was absent |
 
