@@ -129,7 +129,10 @@ Bash tool's own `timeout` at its maximum, `600000` ms, so the script's window cl
 call it again on a `missing=` line, three windows and no more. A Fixer whose file has not landed
 after the third reads `not fixed: the Fixer did not return`,
 and no further Fixer is forked, since it may still be writing in the tree; every Finding left reads
-the same, and the run goes on to the re-check.
+the same, and the run goes on to the re-check, which only reads what is already committed. From
+there nothing else writes in that tree or removes it: no Gate fixer is forked from there on,
+whatever the Diff tests or the Gate read, the `fix/<slug>` worktree and its branch stay in place
+and are named, and the landing line reads `not landed: a Fixer did not return`.
 
 Two branches end in no commit and are reported, never worked around:
 
@@ -335,6 +338,12 @@ made no commit at all removes them on the same rule, the withheld Agent tool inc
 HEAD and holds nothing to read, and the `## Fix run` section says nothing was fixed and why. What
 the run did not create it never removes: on `do`'s worktree it removes nothing, whatever the
 Fixers did.
+
+A Fixer or the Gate fixer that never returned is not that case even with no commit of its own: it
+may still be writing in the tree, so the run removes nothing, forks no Gate fixer, and the landing
+line reads `not landed: a Fixer did not return` or `not landed: the Gate fixer did not return`,
+with the `fix/<slug>` worktree and its branch staying in place and named the same as a commit the
+run could not land.
 
 A Fixer or a Gate fixer that committed something the run could not land is the one case that keeps
 both: not Green, or a landing refused for any of the reasons above, and the worktree and the branch

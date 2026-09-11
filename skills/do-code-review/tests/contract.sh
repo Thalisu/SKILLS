@@ -252,6 +252,11 @@ has "the Gate fixer writes its line to its own return file" "$fix_md" \
   "the Gate fixer writes its line to its return file"
 has "a Fixer whose return file never lands ends the Fixers" "$fix_md" \
   "\`not fixed: the Fixer did not return\`" "no further Fixer is forked"
+# A Fixer that did not return may still be writing in the tree it worked in, so nothing else writes
+# there or removes it once that happens: no Gate fixer is forked, and the tree stays named.
+has "a Fixer that did not return forks no Gate fixer and keeps its tree" "$fix_md" \
+  "no Gate fixer is forked from there on" \
+  "\`not landed: a Fixer did not return\`"
 has "the Diff tests run once every Fixer returned" "$fix_md" \
   "## The Diff tests" "git diff --name-only --diff-filter=d <the fixed point>..HEAD" "single-file command"
 has "the Gate fixer takes the red block and two attempts, and weakens nothing" "$fix_md" \
@@ -323,6 +328,11 @@ has "a fix that committed nothing removes the worktree it created and says why" 
   "removes them on the same rule" "section says nothing was fixed and why" \
   "on \`do\`'s worktree it removes nothing"
 lacks "no line keeps a worktree the Fixer left no commit in" "$fix_md" "and both stay in place"
+# A Fixer or the Gate fixer that never returned is not the same case as one that returned with no
+# commit: it may still be writing in the tree, so the run removes nothing and forks no further one.
+has "a Fixer or the Gate fixer that never returned is not removed as a no-commit case" "$fix_md" \
+  "is not that case even with no commit of its own" \
+  "the run removes nothing, forks no Gate fixer"
 expect "the fix reference is the skill's only reference" \
   test "$(ls "$skill/references/" 2>/dev/null | wc -l)" = 1
 
