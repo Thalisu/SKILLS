@@ -167,6 +167,20 @@ lacks "the reader has no write tool, no edit tool and no shell" "$reader_md" "Wr
 has "the reader names do's door as its one caller" "$reader_md" \
   "Forked only by the do skill's door" "Never on your own initiative"
 has "the door forks the reader by name" "$refs/mechanics.md" "subagent_type: do-reader"
+# The choice-taker rules a design fork the run meets at its shape or build step, so like the reader it
+# is an agent `do` ships, forked by `do` alone, bounded by a tool list that reads and never writes.
+chooser_md="$repo/skills/do/agents/choice-taker.md"
+front() { sed -n "s/^$1: //p" "$chooser_md" 2>/dev/null; } # $1 a frontmatter key: its value
+has "the choice-taker carries its frontmatter" "$chooser_md" "name: choice-taker"
+expect "the choice-taker runs on fable at high effort" \
+  sh -c '[ "$1" = fable ] && [ "$2" = high ]' _ "$(front model)" "$(front effort)"
+expect "the choice-taker's tools are exactly reading and search" test "$(front tools)" = "Read, Glob, Grep"
+lacks "the choice-taker has no write tool, no edit tool and no shell" "$chooser_md" "Write" "Edit" "Bash"
+has "the choice-taker names the ticket Playbook's shape or build step as its one caller" "$chooser_md" \
+  "Forked only by the do skill's ticket Playbook at its shape or build step"
+expect "the choice-taker's description ends on never on your own initiative" \
+  sh -c 'case "$1" in *"Never on your own initiative." | *"Never on your own initiative.\"") ;; *) exit 1 ;; esac' \
+  _ "$(front description)"
 # A session whose Agent tool does not list `do-reader` has no agent by that name to fork, so the
 # only fallback left open must never be a general-purpose fork holding write tools over the same
 # brief: the session does the reading and the write itself, stated before the fork is even called.
