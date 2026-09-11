@@ -157,7 +157,9 @@ marker_size() { # $1 path
 # each hunk sits where the default-style regeneration's markers would, less the three marker lines
 # of every hunk above it and its own opening two: the union is merge-file's default level, which
 # --diff3 lowers, so the ranges come from that style and never from the diff3 parse. Prints
-# "<start> <end>" per hunk, and nothing for a file that is not that union.
+# "<start> <end>" per hunk, and nothing for a file that is not that union. merge-file with no style
+# flag honours merge.conflictStyle, whose diff3 and zdiff3 add a base section to every hunk, so the
+# regeneration pins the default style the three-marker arithmetic counts.
 union_locations() { # $1 path; the prefixed stages already in $tmp/base, $tmp/target, $tmp/incoming
   local path="$1" k=0 opens=() closes=()
   git cat-file blob ":1:$path" > "$tmp/raw-base" 2>/dev/null &&
@@ -165,7 +167,7 @@ union_locations() { # $1 path; the prefixed stages already in $tmp/base, $tmp/ta
     git cat-file blob ":3:$path" > "$tmp/raw-incoming" 2>/dev/null || return 0
   git merge-file --union -p "$tmp/raw-target" "$tmp/raw-base" "$tmp/raw-incoming" > "$tmp/union" 2>/dev/null
   cmp -s -- "$tmp/union" "$path" || return 0
-  git merge-file -p -L target -L base -L incoming \
+  git -c merge.conflictStyle=merge merge-file -p -L target -L base -L incoming \
     "$tmp/target" "$tmp/base" "$tmp/incoming" > "$tmp/zealous" 2>/dev/null
   mapfile -t opens < <(grep -n '^<<<<<<< ' "$tmp/zealous" | cut -d: -f1)
   mapfile -t closes < <(grep -n '^>>>>>>> ' "$tmp/zealous" | cut -d: -f1)

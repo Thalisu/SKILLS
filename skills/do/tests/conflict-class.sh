@@ -405,6 +405,30 @@ check "a file already written as the union of mechanical hunks: mechanical hunk 
 check_absent "and it is never whole-file unmergeable" 0 "$rc" \
   "contested resumed.txt whole-file unmergeable"
 
+# The same resumed union, on a machine whose merge.conflictStyle is diff3 or zdiff3. The location is
+# read off the union the developer wrote, not off the machine's ambient presentation of the conflict,
+# so it holds at the same lines as under the default style.
+for style in diff3 zdiff3; do
+  fresh "resumed-union-$style"
+  g config merge.conflictStyle "$style"
+  printf 'a\nb\nc\nd\ne\nf\n' >resumed.txt
+  commit base
+  g branch inc
+  printf 'a\nTARGET ONE\nb\nc\nd\ne\nTARGET TWO\nf\n' >resumed.txt
+  commit target
+  g switch -q inc
+  printf 'a\nINCOMING ONE\nb\nc\nd\ne\nINCOMING TWO\nf\n' >resumed.txt
+  commit incoming
+  g rebase main >/dev/null 2>&1
+  union_of resumed.txt >resumed.txt
+
+  run
+  check "under $style a resumed union is still mechanical, at the union's own lines" 0 "$rc" \
+    "mechanical resumed.txt L2-L3" \
+    "mechanical resumed.txt L8-L9" \
+    "verdict=mechanical mechanical=2 contested=0"
+done
+
 # The same resumed stop, over one hunk both sides only added to and one both sides rewrote. The union
 # keeps both rewrites and no base line, and that text is not the answer to the rewrite: the hunk is
 # still the developer's, located in the union's lines as above (L2-L3 and L8-L9).
