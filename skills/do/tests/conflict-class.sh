@@ -618,6 +618,27 @@ run
 check "a wider conflict-marker-size still leaves the hunk contested, never trusted as hand-resolved" 1 "$rc" \
   "contested rewrite.txt L2-L6 rewrite-vs-rewrite"
 
+# A path whose attributes name git's own text merge driver explicitly, spelled merge=text, instead of
+# leaving the attribute unset or unspecified. It is still git's own driver, so a hand resolution with
+# no marker left is still the developer's, trusted the same as a path with no merge attribute at all.
+fresh merge-driver-text
+printf '*.txt merge=text\n' >.gitattributes
+printf 'p\nq\nr\n' >half-resolved.txt
+commit base
+g branch inc
+printf 'p\nTARGET\nr\n' >half-resolved.txt
+commit target
+g switch -q inc
+printf 'p\nINCOMING\nr\n' >half-resolved.txt
+commit incoming
+g switch -q main
+g merge inc >/dev/null 2>&1
+printf 'p\nRESOLVED BY HAND\nr\n' >half-resolved.txt
+
+run
+check "a path whose attributes spell out merge=text is still trusted as hand-resolved" 0 "$rc" \
+  "trusted half-resolved.txt whole-file hand-resolved"
+
 # A run from a directory that is not the top.
 fresh subdirectory
 mkdir -p nested/deeper

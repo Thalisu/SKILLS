@@ -133,7 +133,7 @@ text_driver() { # $1 path
   local attr default
   attr="$(git check-attr -z merge -- "$1" 2>/dev/null | tr '\0' '\n' | sed -n 3p)"
   case "$attr" in
-    set) return 0 ;;
+    set | text) return 0 ;;
     unspecified)
       default="$(git config --get merge.default 2>/dev/null)"
       [ -z "$default" ] || [ "$default" = text ] ;;
