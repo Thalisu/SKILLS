@@ -16,6 +16,7 @@ mkdir -p "$fixture"
 # The caller (skills/do/tests/refactoring.sh, skills/do/tests/fixture-suites.sh) sources lib.sh and
 # runs under `set -euo pipefail`; a nonzero exit from facts_cmd would abort it before it reaches the
 # marker line below.
+# shellcheck disable=SC2034 # lib.sh's check reads $out, which shellcheck cannot follow.
 out="$(bash -euo pipefail -c '
   . "'"$here"'/lib.sh"
   cmd="$(facts_cmd "'"$fixture"'" Unit)"
