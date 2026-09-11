@@ -283,6 +283,16 @@ search alone, per
 [ADR 0032](../../../docs/adr/0032-a-fork-that-reads-a-strangers-text-holds-no-write-tool.md),
 and the session writes what it returns.
 
+A `settled` Ruling is written by the session as one line appended to the Spec's Implementation
+Decisions, marked as the choice-taker's, per
+[ADR 0037](../../../docs/adr/0037-a-choice-takers-ruling-amends-the-spec-and-a-ticket-criterion-only-when-it-is-the-losing-side.md),
+so every Ticket of the feature reads the same Ruling rather than a second `choice-taker` ruling the
+same fork the other way:
+
+```
+- Ruled by the choice-taker on Ticket <the Ticket> at the <step> step: <the side taken>. Norm: <the principle, the ADR by title, the CONTEXT.md term or the Spec decision, or "no norm: the side easiest to undo">. Fork: <side A> or <side B>.
+```
+
 ### Delegates
 
 The session writes the production code and commits. A delegate is forked by exception, per

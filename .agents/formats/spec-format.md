@@ -44,7 +44,9 @@ schema changes, API contracts, specific interactions, technical clarifications t
 A decision a `discuss` session recorded in an ADR is named by the ADR's title. No file paths and no
 code snippets. Exception: a snippet a prototype produced that encodes a decision more precisely
 than prose (a state machine, a reducer, a schema, a type shape), trimmed to the decision-rich part
-and marked as coming from the prototype.
+and marked as coming from the prototype. The one line `do` appends: a `choice-taker` Ruling on a
+Design fork a run met, marked as the choice-taker's, naming the Ticket, the step, the side taken,
+the norm that backs it or "no norm: the side easiest to undo", and both sides of the fork.
 
 ## Testing Decisions
 

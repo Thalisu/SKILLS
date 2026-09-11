@@ -209,6 +209,23 @@ span_has "the build step sends a Design fork it meets to the forks rule" "$refs/
   "**5. Build loop.**" "**6. E2E flows.**" "Design fork" "the forks in [mechanics.md](mechanics.md)"
 expect "the behaviours step no longer says a design fork found there stops the run" \
   sh -c '! printf %s "$1" | grep -qF "A design fork found here stops the run"' _ "$(flat "$refs/ticket.md")"
+# A settled Ruling is the one edit a run makes to the Spec: a single line in its Implementation
+# Decisions, marked as the choice-taker's, carrying the side, the norm and both sides of the fork, so a
+# later reader sees what was ruled and on what ground. The two formats that forbid a ticket-side edit
+# of the Spec each name that line as their one exception, or a run obeying them could never write it.
+span_has "a settled Ruling appends one line to the Spec's Implementation Decisions in the choice-taker's shape" \
+  "$refs/mechanics.md" "### Forks" "### Delegates" \
+  "settled" "Implementation Decisions" \
+  "- Ruled by the choice-taker on Ticket <the Ticket> at the <step> step: <the side taken>." \
+  "Norm: <the principle, the ADR by title, the CONTEXT.md term or the Spec decision, or" \
+  "no norm: the side easiest to undo" \
+  "Fork: <side A> or <side B>."
+span_has "the spec format's Implementation Decisions admits the line a choice-taker's Ruling appends" \
+  "$repo/.agents/formats/spec-format.md" "## Implementation Decisions" "## Testing Decisions" \
+  "choice-taker" "Ruling"
+span_has "the ticket format names the choice-taker's Ruling as the one edit a ticket makes to its spec" \
+  "$repo/.agents/formats/ticket-format.md" "## Spec" "## Status" \
+  "choice-taker" "Ruling"
 # A session whose Agent tool does not list `do-reader` has no agent by that name to fork, so the
 # only fallback left open must never be a general-purpose fork holding write tools over the same
 # brief: the session does the reading and the write itself, stated before the fork is even called.

@@ -29,7 +29,8 @@ is the spec file in the folder above its `issues/` folder,
 `.scratch/<YYYYMMDD>-<feature-slug>/issues/<NN>-<slug>.md`, or the spec beside `issues/` when the
 spec lives elsewhere. An issue points at its spec through `## Parent`, a reference to the spec
 issue on the tracker, omitted only when the spec was not an issue. The spec is read from a ticket,
-never edited.
+never edited, with one exception: the line a `choice-taker` Ruling appends to its Implementation
+Decisions when a `do` run settles a Design fork, in the shape the spec format fixes.
 
 ## Status
 
