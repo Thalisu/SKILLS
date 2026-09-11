@@ -89,8 +89,9 @@ printf 'p\nINCOMING\nr\n' >half-resolved.txt
 commit incoming
 g switch -q main
 g merge inc >/dev/null 2>&1
-# A file whose markers the developer has already taken out is no longer what git left, so the script
-# can no longer align what it reconstructs with the tree and certifies nothing in it.
+# A file whose markers the developer has already taken out, written as neither side nor their union:
+# the developer's own resolution, which the script takes as it stands and never hands back as a
+# conflict.
 printf 'p\nRESOLVED BY HAND\nr\n' >half-resolved.txt
 
 run
@@ -105,10 +106,10 @@ check "a rename stays contested even where both sides only added" 1 "$rc" \
   "contested moved-and-added-to.txt L13-L17 rename-vs-edit"
 check "a binary file: contested, named as binary" 1 "$rc" \
   "contested picture.bin whole-file binary"
-check "a file the script can no longer align with the tree: contested, named as unmergeable" 1 "$rc" \
-  "contested half-resolved.txt whole-file unmergeable"
-check "the verdict follows the contested hunk" 1 "$rc" \
-  "verdict=contested mechanical=0 contested=7"
+check "a file resolved by hand with no marker left: trusted as the developer's, named as hand-resolved" 1 "$rc" \
+  "trusted half-resolved.txt whole-file hand-resolved"
+check "the verdict follows the contested hunk and counts the trusted file apart" 1 "$rc" \
+  "verdict=contested mechanical=0 contested=6 trusted=1"
 
 # A tree holding the conflicted paths git leaves no marker in: a submodule pointer moved on both
 # sides, and a file whose merge driver the attributes turn off.
@@ -223,7 +224,7 @@ run
 if [ "$rc" = 1 ] &&
   [ "$(grep -c '' <<<"$out")" = 3 ] &&
   [ "$(grep -c '^verdict=' <<<"$out")" = 1 ] &&
-  [ "$(tail -n1 <<<"$out")" = "verdict=contested mechanical=0 contested=2" ] &&
+  [ "$(tail -n1 <<<"$out")" = "verdict=contested mechanical=0 contested=2 trusted=0" ] &&
   [ "$(awk 'NR < 3 { print NF }' <<<"$out" | sort -u)" = 4 ] &&
   [ "$(awk 'NR < 3 { print $3 }' <<<"$out" | sort -u)" = "L2-L6" ]; then
   echo "ok    a conflicted path adds no line to the report and moves no field of one"
@@ -432,6 +433,29 @@ check "a union written over a contested hunk is never its answer: that hunk stay
   "verdict=contested mechanical=1 contested=1"
 check_absent "and the file is never whole-file unmergeable" 1 "$rc" \
   "contested resumed.txt whole-file unmergeable"
+
+# The same resumed stop, with the file resolved by hand instead: marker-free, never staged, and
+# neither side nor the union of its stages. It is the developer's answer, taken as it stands.
+fresh resumed-hand-resolved
+printf 'a\nb\nc\nd\ne\nf\n' >resumed.txt
+commit base
+g branch inc
+printf 'a\nTARGET ONE\nb\nc\nd\ne\nTARGET TWO\nf\n' >resumed.txt
+commit target
+g switch -q inc
+printf 'a\nINCOMING ONE\nb\nc\nd\ne\nINCOMING TWO\nf\n' >resumed.txt
+commit incoming
+g rebase main >/dev/null 2>&1
+printf 'a\nONE, merged by hand\nb\nc\nd\ne\nTWO, merged by hand\nf\n' >resumed.txt
+
+run
+check "a file resolved by hand and never staged: trusted as the developer's, named as hand-resolved" 0 "$rc" \
+  "trusted resumed.txt whole-file hand-resolved"
+check_lines "a stop whose only conflicted file is trusted: a mechanical verdict counting it as trusted alone" 0 "$rc" \
+  "verdict=mechanical mechanical=0 contested=0 trusted=1"
+check_absent "and it is neither mechanical nor contested, never whole-file unmergeable" 0 "$rc" \
+  "mechanical resumed.txt" \
+  "contested resumed.txt"
 
 # The same additive shape twice, in a repository whose config turns git's conflict-resolution reuse
 # on. Reuse is the developer's own setting and everything the integration runs would run under it: a

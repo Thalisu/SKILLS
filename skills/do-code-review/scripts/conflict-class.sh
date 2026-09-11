@@ -12,7 +12,11 @@
 # line's last field. Two additions that open on the same non-blank line are one new text the sides
 # wrote and then split, whose union would keep both endings, so they class contested
 # add-vs-add-diverged. The location is the hunk's line range in the working file, or whole-file when
-# the conflict is the whole file. The last line reads verdict=<class> mechanical=<n> contested=<n>.
+# the conflict is the whole file. A text file someone already resolved and never staged holds no
+# marker: when its bytes are the union of its stages it is classed hunk by hunk as if they were
+# still there, and otherwise it is the developer's, printed `trusted <file> whole-file
+# hand-resolved`, a file no hunk of which is classed and nothing may rewrite. The last line reads
+# verdict=<class> mechanical=<n> contested=<n> trusted=<n>, the class contested when any hunk is.
 #
 # Exit codes: 0 every hunk mechanical, or no conflicted state · 1 any hunk contested · 2 usage, or
 # not a git repository.
@@ -37,6 +41,7 @@ trap 'rm -rf "$tmp"' EXIT
 
 mechanical=0
 contested=0
+trusted=0
 
 # The most one stage of a conflicted file may weigh before the door reads it. Classing a file copies
 # its three stages and the merge regenerated out of them into TMPDIR, RAM on many machines, so a
@@ -63,6 +68,7 @@ emit() { # $1 class, $2 file, $3 location, $4 shape (contested only)
   file="$(quote_path "$2")"
   case "$1" in
     mechanical) mechanical=$((mechanical + 1)); echo "mechanical $file $3" ;;
+    trusted)    trusted=$((trusted + 1)); echo "trusted $file $3 $4" ;;
     *)          contested=$((contested + 1)); echo "contested $file $3 $4" ;;
   esac
 }
@@ -98,6 +104,29 @@ file_shape() { # $1 path
 # content, and only git writes structure.
 stage_body() { # $1 stage, $2 path, $3 destination
   git cat-file blob ":$1:$2" 2>/dev/null | LC_ALL=C sed 's/^/ /' > "$3"
+}
+
+# Whether the working file is one someone could have typed a resolution into. A symlink or a
+# submodule on any stage leaves a link or a pointer there, which holds no marker whoever touched it.
+regular_file() { # $1 path
+  [ -f "$1" ] && [ ! -L "$1" ] || return 1
+  case "${modes[$1]:-}" in *120000*|*160000*) return 1 ;; esac
+}
+
+# Whether git's own text merge wrote this path, and so would have left markers in it. A path whose
+# merge attribute is unset, binary or a named driver is left holding one side's bytes with no
+# marker, which nobody resolved, so its missing markers say nothing about a hand. An unspecified
+# attribute falls to merge.default, which may name another driver too.
+text_driver() { # $1 path
+  local attr default
+  attr="$(git check-attr -z merge -- "$1" 2>/dev/null | tr '\0' '\n' | sed -n 3p)"
+  case "$attr" in
+    set) return 0 ;;
+    unspecified)
+      default="$(git config --get merge.default 2>/dev/null)"
+      [ -z "$default" ] || [ "$default" = text ] ;;
+    *) return 1 ;;
+  esac
 }
 
 # A stop someone already resolved and never staged leaves a working file with no marker to locate a
@@ -181,8 +210,14 @@ classify_hunks() { # $1 path
   # would otherwise be an option and turn both reads into a read of the caller's stdin.
   mapfile -t starts < <(grep -n '^<<<<<<< ' -- "$path" 2>/dev/null | cut -d: -f1)
   mapfile -t ends < <(grep -n '^>>>>>>> ' -- "$path" 2>/dev/null | cut -d: -f1)
-  if [ "${#classes[@]}" -gt 0 ] && [ "${#starts[@]}" -eq 0 ] && [ "${#ends[@]}" -eq 0 ]; then
+  if [ "${#classes[@]}" -gt 0 ] && [ "${#starts[@]}" -eq 0 ] && [ "${#ends[@]}" -eq 0 ] &&
+     regular_file "$path"; then
     while read -r start end; do starts+=("$start"); ends+=("$end"); done < <(union_locations "$path")
+    # No marker and not the union: someone wrote this file by hand, and it is theirs.
+    if [ "${#starts[@]}" -eq 0 ] && text_driver "$path"; then
+      emit trusted "$path" whole-file hand-resolved
+      return
+    fi
   fi
   if [ "${#classes[@]}" -eq 0 ] ||
      [ "${#starts[@]}" -ne "${#classes[@]}" ] || [ "${#ends[@]}" -ne "${#classes[@]}" ]; then
@@ -195,7 +230,7 @@ classify_hunks() { # $1 path
   done
 }
 
-declare -A stages
+declare -A stages modes
 paths=()
 while IFS= read -r -d '' record; do
   meta="${record%%	*}"
@@ -203,6 +238,7 @@ while IFS= read -r -d '' record; do
   stage="${meta##* }"
   [ -n "${stages[$path]+set}" ] || paths+=("$path")
   stages["$path"]="${stages[$path]:-} $stage"
+  modes["$path"]="${modes[$path]:-} ${meta%% *}"
 done < <(git ls-files -u -z)
 
 if [ "${#paths[@]}" -eq 0 ]; then
@@ -219,8 +255,8 @@ for path in "${paths[@]}"; do
 done
 
 if [ "$contested" -gt 0 ]; then
-  echo "verdict=contested mechanical=$mechanical contested=$contested"
+  echo "verdict=contested mechanical=$mechanical contested=$contested trusted=$trusted"
   exit 1
 fi
-echo "verdict=mechanical mechanical=$mechanical contested=$contested"
+echo "verdict=mechanical mechanical=$mechanical contested=$contested trusted=$trusted"
 exit 0
