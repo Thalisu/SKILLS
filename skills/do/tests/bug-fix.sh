@@ -154,6 +154,11 @@ has "the reply opens with what was broken" "$ref" "what was broken"
 has "the reply names the root cause and the fix" "$ref" "the root cause"
 has "the reply pastes the failing then passing output" "$ref" "failing-then-passing output"
 has "the reply ends with the push command" "$ref" "\`git push\`"
+para_has "a review that returns not landed: target moved has the reply name the same bug-fix request typed again as the one recovery, whose resume integrates with the developer present" \
+  "$ref" "**13. Reply.**" \
+  "on \`not landed: target moved\`" \
+  "the same run request typed again" \
+  "the integration with the developer present"
 
 # The ticket Playbook hands a defect with no named cause to this Playbook's diagnosis steps
 has "the ticket Playbook links the reference" "$ticket" "](bug-fix.md)"

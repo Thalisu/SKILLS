@@ -288,5 +288,8 @@ failing-then-passing output pasted, the developer's reports among it marked as t
 drove the surface. What this Playbook puts in the reference's sections: the Review under the files
 left uncommitted; a waived flow and a check that stood in for a test under pending debt; and the
 next step, `git push` with the developer's branch named when the review landed, or, when nothing
-landed, the worktree, its branch, and the review and the landing as what the developer runs next.
-Done when the reply is sent with every section that applies.
+landed, the worktree, its branch, and the review and the landing as what the developer runs next,
+or, on `not landed: target moved`, the same run request typed again instead, in the developer's
+same words, since its resume finds the Review that counts and runs the integration with the
+developer present to answer the hunks the review had nobody to ask about, then lands through the
+fix call on that Review. Done when the reply is sent with every section that applies.
