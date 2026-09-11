@@ -340,6 +340,12 @@ has_flat "the ticket reply's next step after target moved is the run typed again
   "on \`not landed: target moved\` the same run request typed again on the Ticket"
 has_flat "the docs page says a landing your branch moved under is recovered by typing the run again" "$repo/docs/do.md" \
   "because your branch moved while it ran is recovered the same way"
+# A `bug-fix` or `refactoring` run has no Ticket to type `/do` on, so the page tells its reader that
+# the same request typed again is what picks the landing up.
+para_has "the docs page says a bug-fix or refactoring run your branch moved under is recovered by typing the same request again" "$repo/docs/do.md" \
+  "A run that stopped names its worktree and its branch" \
+  "\`bug-fix\` or \`refactoring\`" \
+  "the same request again"
 
 # The mechanic lives once, but it is only reached from a Playbook's checklist, so each of the three
 # that builds in a worktree carries the line between its gate and its review, and a step body for it.

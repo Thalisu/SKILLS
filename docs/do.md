@@ -211,7 +211,9 @@ a stop named, and the next run on that Ticket forks the reader fresh.
 - Every number and output line in the reply has a command line beside it, and that command ran
   after the run's last edit.
 - A run that stopped names its worktree and its branch, and the Ticket still reads `claimed`, so
-  typing `/do` on it again picks up where it stopped rather than starting over. A review that could
+  typing `/do` on it again picks up where it stopped rather than starting over. A `bug-fix` or
+  `refactoring` run has no Ticket, so typing the same request again, in the same words, picks it up
+  on its own branch the same way. A review that could
   not land because your branch moved while it ran is recovered the same way: the second run rebases
   with you there to answer the conflicts the review had nobody to ask about, and the review then
   lands it.
