@@ -13,6 +13,8 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/../../../scripts/tests/lib.sh"
 repo="$(cd "$here/../../.." && pwd -P)"
 fails=0
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
 
 # The rows of one markdown table: from its header line to the first line that is not a row.
 table() { awk -v h="$2" 'index($0, h) == 1 { t = 1 } t && $0 !~ /^\|/ { exit } t' "$1"; }
@@ -99,13 +101,34 @@ one_sentence_says() { # $1.. extended regexes, case ignored, that one sentence o
 }
 
 # A session that opens a blocker to learn its state reads the blocker's whole body before the ticket
-# door does the read it names, the status line alone. The rule is matched by meaning: one sentence
-# of the Router section names the blocker, forbids opening or reading it, and sends it to the door
-# or its status line.
+# door does the read it names, the status line alone. One sentence of the Router section names the
+# blocker, forbids opening or reading it, and sends it to the door or its status line. The negation
+# is tied to the verb whose object is the blocker: the blocker's own mention, a short run of filler
+# words (the clause naming it: "line names is"), the negation, then the verb, in that order. A
+# negation that sits on some other clause's verb (a later "reads no other file", or a "nothing else
+# is read" far from the blocker's mention) does not satisfy this chain.
 out="$(section_sentences "$router" "## Router")"
 expect "the router tells a Ticket's path to open no blocker before the ticket door reads its status line" \
   one_sentence_says 'blocker|blocked by' \
-  '(never|not|no|nothing)( [a-z`*]+){0,3} (open|read)|(open|read)[a-z]*( [a-z`*]+){0,1} (no|never)' \
+  '(blocked by|blocker)([^ ]+ ){1,8}(never|not|no|nothing) ([^ ]+ ){0,2}(open|read)' \
+  'door|status'
+
+# A Router sentence that inverts the rule (the blocker opened whole, some other read negated
+# instead) must not pass as if it stated the rule: the negation has to sit on the verb whose object
+# is the blocker, not on an unrelated clause that only happens to share the sentence.
+not() { ! "$@"; }
+inverted_router="$tmp/inverted-router.md"
+cat >"$inverted_router" <<'EOF'
+## Router
+
+A Ticket's path is matched on that file alone: a Ticket its `Blocked by` line names is opened whole before the ticket door, and nothing else is read.
+
+## Non-negotiables
+EOF
+out="$(section_sentences "$inverted_router" "## Router")"
+expect "the check rejects a Router sentence that opens the blocker whole and negates an unrelated read" \
+  not one_sentence_says 'blocker|blocked by' \
+  '(blocked by|blocker)([^ ]+ ){1,8}(never|not|no|nothing) ([^ ]+ ){0,2}(open|read)' \
   'door|status'
 
 # The two places the repository repeats the row. A reader who takes either at its word and types
