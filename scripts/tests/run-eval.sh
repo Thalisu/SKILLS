@@ -253,12 +253,19 @@ expect "that case started no session" test "$(calls)" = 0
 # A case can keep one of this repo's skills out of its sessions the same way, and the next case in
 # the same invocation lists it again.
 unlink_case unlink-skill journey unlinked_skills
+unlink_case unlink-skill-unknown no-such-skill unlinked_skills
 reset
 STUB_TOUCH=made-by-run.txt run "$evals" unlink-skill walk --runs 1
 check "a case that unlinks a skill runs green, and so does the case after it" 0 "$rc" \
   "unlink-skill: 1/1 green" "walk: 1/1 green" "PASS"
 expect "the unlinking case's session lists no journey skill" grep -qF "journey=no" <<<"$(sed -n 1p "$STUB_DIR/calls")"
 expect "the next case's session lists the journey skill again" grep -qF "journey=yes" <<<"$(sed -n 2p "$STUB_DIR/calls")"
+reset
+run "$evals" unlink-skill-unknown
+check "a case that unlinks a skill the sandbox never linked is red before any session" 1 "$rc" \
+  "FAIL  unlink-skill-unknown: the case unlinks no-such-skill, which the sandbox never linked" \
+  "unlink-skill-unknown: 0 run, a skill it unlinks was never linked"
+expect "that case started no session" test "$(calls)" = 0
 
 if [ "$fails" = 0 ]; then echo "PASS"; else
   echo "$fails failing"

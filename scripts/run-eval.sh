@@ -12,8 +12,10 @@
 #     --keep              keeps the work folder of a green run too; a red run's is always kept
 #
 # A case is <case>/case.yaml (runs, max_turns, timeout_seconds, allowed_tools, the
-# context.scaffold_script that lays the fixture in an empty folder, and context.unlinked_agents,
-# the agents of this repo its sessions must not list), prompt.md and graders/*.md, each grader a
+# context.scaffold_script that lays the fixture in an empty folder, context.unlinked_agents,
+# the agents of this repo its sessions must not list, and context.unlinked_skills, the skills they
+# must not list, which is how a fixture's own stand-in under .claude/skills/<name> wins over the
+# linked one), prompt.md and graders/*.md, each grader a
 # frontmatter of one type:
 #   llm          criteria, read against the run's transcript and what the run changed in the
 #                fixture by one judge session, which answers for every llm grader of the run
@@ -206,23 +208,23 @@ for c in "${cases[@]}"; do
   max_turns="$(yq -r '.max_turns // 20' "$case_file")"
   limit="$(yq -r '.timeout_seconds // 600' "$case_file")"
   allowed="$(yq -r '.allowed_tools // [] | join(",")' "$case_file")"
-  missing=""
+  missing=""; missing_kind=""
   while IFS= read -r a; do
     [ -n "$a" ] || continue
     if [ -L "$config/agents/$a.md" ] || [ -e "$config/agents/$a.md" ]; then
       mkdir -p "$sandbox/unlinked" && mv "$config/agents/$a.md" "$sandbox/unlinked/$a.md"
-    else missing="$a"; fi
+    else missing="$a"; missing_kind="an agent"; fi
   done < <(yq -r '.context.unlinked_agents // [] | .[]' "$case_file")
   while IFS= read -r s; do
     [ -n "$s" ] || continue
     if [ -L "$config/skills/$s" ] || [ -e "$config/skills/$s" ]; then
       mkdir -p "$sandbox/unlinked-skills" && mv "$config/skills/$s" "$sandbox/unlinked-skills/$s"
-    fi
+    else missing="$s"; missing_kind="a skill"; fi
   done < <(yq -r '.context.unlinked_skills // [] | .[]' "$case_file")
   if [ -n "$missing" ]; then
     restore_agents
     echo "FAIL  $c: the case unlinks $missing, which the sandbox never linked"
-    failing=$((failing + 1)); summary+="$c: 0 run, an agent it unlinks was never linked"$'\n'
+    failing=$((failing + 1)); summary+="$c: 0 run, $missing_kind it unlinks was never linked"$'\n'
     continue
   fi
   graders=()
