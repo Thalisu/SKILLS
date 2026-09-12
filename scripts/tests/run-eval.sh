@@ -227,9 +227,9 @@ expect "a failed scaffold started no session" test "$(calls)" = 0
 
 # A case can keep one of this repo's agents out of its sessions, so a branch that needs an agent
 # missing can be graded; the next case in the same invocation lists it again.
-unlink_case() { # $1 case, $2 the agent it unlinks
+unlink_case() { # $1 case, $2 what it unlinks, $3 the context key (default unlinked_agents)
   mkdir -p "$evals/$1"
-  printf 'runs: 1\ncontext:\n  unlinked_agents: [%s]\n' "$2" >"$evals/$1/case.yaml"
+  printf 'runs: 1\ncontext:\n  %s: [%s]\n' "${3:-unlinked_agents}" "$2" >"$evals/$1/case.yaml"
   printf 'hi\n' >"$evals/$1/prompt.md"
   grader "$1" one-bash-of-its-own 'type: tool_used
 tool: Bash
@@ -249,6 +249,16 @@ run "$evals" unlink-unknown
 check "a case that unlinks an agent the sandbox never linked is red before any session" 1 "$rc" \
   "FAIL  unlink-unknown: the case unlinks no-such-agent, which the sandbox never linked"
 expect "that case started no session" test "$(calls)" = 0
+
+# A case can keep one of this repo's skills out of its sessions the same way, and the next case in
+# the same invocation lists it again.
+unlink_case unlink-skill journey unlinked_skills
+reset
+STUB_TOUCH=made-by-run.txt run "$evals" unlink-skill walk --runs 1
+check "a case that unlinks a skill runs green, and so does the case after it" 0 "$rc" \
+  "unlink-skill: 1/1 green" "walk: 1/1 green" "PASS"
+expect "the unlinking case's session lists no journey skill" grep -qF "journey=no" <<<"$(sed -n 1p "$STUB_DIR/calls")"
+expect "the next case's session lists the journey skill again" grep -qF "journey=yes" <<<"$(sed -n 2p "$STUB_DIR/calls")"
 
 if [ "$fails" = 0 ]; then echo "PASS"; else
   echo "$fails failing"

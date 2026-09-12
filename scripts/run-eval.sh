@@ -189,10 +189,13 @@ grade() { # $1 grader, $2 work folder: prints why the run fails the grader, noth
   esac
 }
 
-restore_agents() { # puts back every agent a case moved out of the sandbox, for the next case
+restore_agents() { # puts back every agent and skill a case moved out of the sandbox, for the next case
   local f
   for f in "$sandbox/unlinked"/*.md; do
     if [ -L "$f" ] || [ -e "$f" ]; then mv "$f" "$config/agents/"; fi
+  done
+  for f in "$sandbox/unlinked-skills"/*; do
+    if [ -L "$f" ] || [ -e "$f" ]; then mv "$f" "$config/skills/"; fi
   done
 }
 
@@ -210,6 +213,12 @@ for c in "${cases[@]}"; do
       mkdir -p "$sandbox/unlinked" && mv "$config/agents/$a.md" "$sandbox/unlinked/$a.md"
     else missing="$a"; fi
   done < <(yq -r '.context.unlinked_agents // [] | .[]' "$case_file")
+  while IFS= read -r s; do
+    [ -n "$s" ] || continue
+    if [ -L "$config/skills/$s" ] || [ -e "$config/skills/$s" ]; then
+      mkdir -p "$sandbox/unlinked-skills" && mv "$config/skills/$s" "$sandbox/unlinked-skills/$s"
+    fi
+  done < <(yq -r '.context.unlinked_skills // [] | .[]' "$case_file")
   if [ -n "$missing" ]; then
     restore_agents
     echo "FAIL  $c: the case unlinks $missing, which the sandbox never linked"
