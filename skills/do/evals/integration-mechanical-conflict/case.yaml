@@ -5,6 +5,7 @@ max_turns: 240
 timeout_seconds: 3600
 allowed_tools: [Bash, Read, Edit, Write, Glob, Grep, Agent, Skill]
 context:
+  unlinked_skills: [do-code-review]
   scaffold_script: |
     #!/usr/bin/env bash
     # The developer's branch moves under the run, so the integration step has commits to

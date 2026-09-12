@@ -5,6 +5,7 @@ max_turns: 180
 timeout_seconds: 3000
 allowed_tools: [Bash, Read, Edit, Write, Glob, Grep, Agent, Skill]
 context:
+  unlinked_skills: [do-code-review]
   scaffold_script: |
     #!/usr/bin/env bash
     # A bug outside the chain, reported in words with no Ticket behind it: archivedCount compares with

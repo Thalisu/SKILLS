@@ -4,6 +4,11 @@ Prepared for `claude plugin eval` (`<case>/case.yaml` + `prompt.md` + `graders/*
 `--help` describes). The `case.yaml` keys and the grader types (`llm`, `regex`, `tool_used`,
 `file_exists`) follow the runner's help text and may need adjusting once it runs here.
 
+A case whose fixture installs its own stand-in of a skill this repo ships names that skill under
+`context.unlinked_skills`, the way `unlisted-reader` names an agent under `context.unlinked_agents`.
+The runner links every skill of this repo into the session's sandbox, so without that key the linked
+skill wins and the stand-in never runs. `skills/do/tests/stand-in-skills.sh` holds every case to it.
+
 `do` is user-invoked, so every prompt types the skill; there is no trigger case. The door cases
 end at a door: the request fits no Playbook, so the run is one message, and the cases inspect
 that message and the tree. Every door case carries the same two graders, the first line reading

@@ -5,6 +5,7 @@ max_turns: 150
 timeout_seconds: 2400
 allowed_tools: [Bash, Read, Edit, Write, Glob, Grep, Agent, Skill]
 context:
+  unlinked_skills: [do-code-review]
   scaffold_script: |
     #!/usr/bin/env bash
     # Ticket 01 is claimed, its do/archive-a-note worktree holds a commit for each of its three

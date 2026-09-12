@@ -5,6 +5,7 @@ max_turns: 220
 timeout_seconds: 3600
 allowed_tools: [Bash, Read, Edit, Write, Glob, Grep, Agent, Skill]
 context:
+  unlinked_skills: [do-code-review]
   scaffold_script: |
     #!/usr/bin/env bash
     # A bug Ticket whose cause it does not name: the criteria say the Archived count reads two and the
