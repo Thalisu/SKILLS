@@ -48,6 +48,12 @@ doc or a comment, formatting, log wording, a rename inside one file, dead code, 
 _Avoid_: small (a small **Ticket** is a size band, never a Trivial change), quick, minor,
 one-liner (size is never the test)
 
+**Reply**:
+The one message a `do` run ends with, and the record every line a step names reaches the developer
+through: the read-back, the checklist, the audit line, what was handed to a fork and what came back.
+_Avoid_: the thread (a line written mid-run, before a tool call, is never where a line has to be),
+narration, first message
+
 **Digest**:
 The slice of a **Ticket**'s **Spec** and **Journey** that a `do` run needs, read out of both by a
 forked agent at the run's door and returned quoted, with the location of every quote.
