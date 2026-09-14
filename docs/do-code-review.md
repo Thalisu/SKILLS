@@ -125,7 +125,8 @@ A `fix` call stops in one line, before anything is written, when the Review is n
 fixed point no longer resolves, or when your working tree has uncommitted changes. The tree has to
 be clean because the Review judged a diff, and a Fixer let loose on a tree nobody reviewed would
 commit work nobody read. An `Act on` location you changed since the review comes back `stale`, left
-alone.
+alone, once the run has read that location in the tree itself, and the next `fix` call on the Review
+tries it again.
 
 ## What the run leaves behind
 

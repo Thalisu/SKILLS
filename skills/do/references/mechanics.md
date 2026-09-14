@@ -636,7 +636,7 @@ commits after it is read by a reviewer again: the fix of a red flow, or a rebase
 finished after the review. Such a branch is gated, then handed to `do-code-review` with
 `fix` with the Review's location, then the developer's branch as the landing target and the
 `command=` line the gate printed. No reviewer is forked: a Finding the first call
-left `not fixed` goes to a Fixer again, and a list with nothing left forks no Fixer,
+left `not fixed` or `stale` goes to a Fixer again, and a list with nothing left forks no Fixer,
 and the call runs the Gate and the landing alone. Its return reads like the first one's, and a
 return that reads not landed stops the run the way the first one does.
 

@@ -48,8 +48,9 @@ Fixer is forked.
 
 `do` makes a `fix` call of its own after its one review, for what it committed since: the fix of a
 red flow, or a rebase a resumed run finished. It sends the landing target and the Gate after the
-Review's location, and the call forks no reviewer: a Finding the first call left `not fixed` goes to
-a Fixer again, and a list with nothing left in it comes down to the Gate and the landing.
+Review's location, and the call forks no reviewer: a Finding the first call left `not fixed` or
+`stale` goes to a Fixer again, and a list with nothing left in it comes down to the Gate and the
+landing.
 
 ## The Act on list
 
@@ -65,7 +66,10 @@ carry no check in its `Fix:` line; that is allowed, and the re-check below repor
 
 An empty list, or one whose Findings an earlier fix already settled, forks no Fixer and creates no
 worktree. The re-check, the Gate and the append still run, and the section reads `nothing remained`,
-so a second `fix` on the same Review is harmless.
+so a second `fix` on the same Review is harmless. Settled means the last `## Fix run` reads the
+Finding `fixed`. A Finding it reads `not fixed` or `stale` is not settled and goes to a Fixer again:
+a `stale` the Fixer reported from the wrong tree is otherwise never read again, and the Review never
+turns Green.
 
 ## Where the Fixer works
 
@@ -86,9 +90,12 @@ One question decides it: is the branch the Review judged the branch the develope
   the run and after it, which matters because the fix door measures that status. The run removes it
   and its branch on the rules `## The landing` carries.
 
-Either way every Fixer, and the Gate fixer, is forked from the tree it works in, so it needs no
-path argument: a fork runs where it was forked. The run never changes its own working directory and
-never uses a worktree tool, per the two-trees contract.
+Either way every Fixer, and the Gate fixer, is forked from the tree it works in, and its brief
+still names that tree, `Tree: <its absolute path>`. A fork's shell starts in the tree it was forked
+from, but its file tools take absolute paths, and a Fixer has built them from the main checkout,
+where the diff under review is not: it read a line the branch changed as gone and reported a live
+Finding `stale`. The run never changes its own working directory and never uses a worktree tool,
+per the two-trees contract.
 
 ## The Fixer
 
@@ -100,8 +107,9 @@ a test author running its red against another Fixer's half-made edit proves noth
 commits at once fight over the index. A Fixer holds its one Finding and nothing else, so its
 window stays the size of that Finding. It has no definition of its own: its whole contract is the
 brief below, which is why this file exists. It gets the Review's location, the branch it commits
-on, its one Finding with its number, location, `Claim:` and `Fix:` line, its `Return file:` line,
-and four rules.
+on, its `Tree:` line, its one Finding with its number, location, `Claim:` and `Fix:` line, its
+`Return file:` line, and four rules. Every path it reads, checks or edits is under its `Tree:` path,
+never under another checkout.
 
 1. **Follow the Testing Policy when one is installed.** Dispatch the project's unit test author
    with the behaviour to prove and the target from the Finding's `Fix:` line, with
@@ -112,8 +120,11 @@ and four rules.
    Fixer of its own, and nothing in `Consider`, `Noted` or `Cleared`, however tempting it looks on
    the way past. Those Buckets are the developer's judgment calls and this run does not make them.
 3. **Leave what no longer matches.** Check the Finding's location against the tree before touching
-   it. A location that has moved or gone is reported and left alone: no commit, and no guess at
-   where the code went.
+   it: a `file:line` at that line under its `Tree:` path; a Spec Finding, whose location is the spec
+   line quoted, by that quote in the source the Review's `Spec source:` header names, and by the
+   target its `Fix:` line names under its `Tree:` path. A location that has moved or gone is
+   reported and left alone, with the command that showed it gone: no commit, and no guess at where
+   the code went.
 4. **Report each commit.** One line for its Finding, by its number: the sha, or what stopped it.
    The same line goes to its return file, in one shell command, before it ends its turn.
 
@@ -154,7 +165,8 @@ per `Act on` Finding, run the check its `Fix:` line named.
 |---|---|
 | the Fixer committed it and the check passes | `fixed <sha>, verified` |
 | the Fixer committed it and there is no check named | `fixed <sha>, not verified` |
-| the Fixer reported the location no longer matches | `stale` |
+| the Fixer reported the location no longer matches, and the run's own read of it in the tree finds it gone | `stale` |
+| the Fixer reported the location no longer matches, and the run's own read of it in the tree finds it there | `not fixed: reported stale, the location still matches` |
 | no commit, for either branch above, or a Fixer that did not return | `not fixed` with the reason |
 
 The two reviewers are not re-run on the Fixers' commits, and never on anything after them: the
@@ -198,8 +210,9 @@ tests the reviewers ran. A Review with nothing in `Act on` runs it too, at the s
 
 One general-purpose sub-agent, forked when the Diff tests or the Gate come back red after a Fixer
 committed, with two attempts in all, shared by both checks. Its brief is the red block as the check
-printed it, the capped lines and never the full log or the Review, the branch it commits on, a
-`Return file:` line in the Fixers' directory, `gate-fixer-<the attempt>.md`, and four rules:
+printed it, the capped lines and never the full log or the Review, the branch it commits on, its
+`Tree:` line, every path it reads or edits under it, a `Return file:` line in the Fixers' directory,
+`gate-fixer-<the attempt>.md`, and four rules:
 
 1. **Fix the code, never the check.** Never a skipped test, a weakened assertion or a sleep. A
    test whose assertion it would have to change to pass is reported, never changed: an assertion
