@@ -108,8 +108,10 @@ commits at once fight over the index. A Fixer holds its one Finding and nothing 
 window stays the size of that Finding. It has no definition of its own: its whole contract is the
 brief below, which is why this file exists. It gets the Review's location, the branch it commits
 on, its `Tree:` line, its one Finding with its number, location, `Claim:` and `Fix:` line, its
-`Return file:` line, and four rules. Every path it reads, checks or edits is under its `Tree:` path,
-never under another checkout.
+`Return file:` line, and four rules. Every path it checks or edits, and every code path it reads, is
+under its `Tree:` path, never under another checkout, with the one exception rule 3 carries: a
+quote-located Spec Finding's Spec source, read where the Review's `Spec source:` header names it,
+which on a `do` run sits outside the Tree by design.
 
 1. **Follow the Testing Policy when one is installed.** Dispatch the project's unit test author
    with the behaviour to prove and the target from the Finding's `Fix:` line, with
@@ -119,12 +121,14 @@ never under another checkout.
 2. **Touch nothing else.** Nothing outside its Finding: not another `Act on` Finding, which has a
    Fixer of its own, and nothing in `Consider`, `Noted` or `Cleared`, however tempting it looks on
    the way past. Those Buckets are the developer's judgment calls and this run does not make them.
-3. **Leave what no longer matches.** Check the Finding's location against the tree before touching
-   it: a `file:line` at that line under its `Tree:` path; a Spec Finding, whose location is the spec
-   line quoted, by that quote in the source the Review's `Spec source:` header names, and by the
-   target its `Fix:` line names under its `Tree:` path. A location that has moved or gone is
-   reported and left alone, with the command that showed it gone: no commit, and no guess at where
-   the code went.
+3. **Leave what no longer matches.** Check the Finding's location before touching it: a `file:line`
+   at that line under its `Tree:` path; a Spec Finding, whose location is the spec line quoted, by
+   that quote in the source the Review's `Spec source:` header names, at the absolute path that
+   header gives, even when it sits outside the `Tree:` path, and by the target its `Fix:` line names
+   under its `Tree:` path. Reading that named Spec source is the one path this rule allows outside
+   the Tree; the `Fix:` target it checks or edits stays under `Tree:` regardless. A location that has
+   moved or gone is reported and left alone, with the command that showed it gone: no commit, and no
+   guess at where the code went.
 4. **Report each commit.** One line for its Finding, by its number: the sha, or what stopped it.
    The same line goes to its return file, in one shell command, before it ends its turn.
 
@@ -165,8 +169,8 @@ per `Act on` Finding, run the check its `Fix:` line named.
 |---|---|
 | the Fixer committed it and the check passes | `fixed <sha>, verified` |
 | the Fixer committed it and there is no check named | `fixed <sha>, not verified` |
-| the Fixer reported the location no longer matches, and the run's own read of it in the tree finds it gone | `stale` |
-| the Fixer reported the location no longer matches, and the run's own read of it in the tree finds it there | `not fixed: reported stale, the location still matches` |
+| the Fixer reported the location no longer matches, and the run's own read finds it gone too, in the tree, or in the Spec source the Review's `Spec source:` header names for a quote-located Spec Finding | `stale` |
+| the Fixer reported the location no longer matches, and the run's own read finds it there, in the tree, or in the Spec source the header names for a quote-located Spec Finding | `not fixed: reported stale, the location still matches` |
 | no commit, for either branch above, or a Fixer that did not return | `not fixed` with the reason |
 
 The two reviewers are not re-run on the Fixers' commits, and never on anything after them: the
