@@ -2,11 +2,35 @@
 
 Every Playbook reads this file last and writes its reply by it: one message, in the language the
 session opened in, whose first line is `Playbook: <name>` as plain text, with no code formatting
-around it, so that a reader or a grader finds it at column one. The sections below follow in this
-order. A section with nothing to say reads `none` on one line, so that the shape holds from one
-run to the next and a missing section is a missing section, not a style choice. Everything quoted
-was produced in this run, after the last edit; nothing is a link, a sha or a transcript reference
-the run did not see.
+around it, so that a reader or a grader finds it at column one. The Run section comes right after that line,
+then the sections below follow in this order. A section with nothing to say reads `none` on one
+line, so that the shape holds from one run to the next and a missing section is a missing section,
+not a style choice. Everything quoted was produced in this run, after the last edit; nothing is a
+link, a sha or a transcript reference the run did not see.
+
+The Reply is where every line a step names reaches the developer, per
+[ADR 0039](../../../docs/adr/0039-a-do-runs-lines-reach-the-developer-through-the-reply-never-through-text-written-mid-run.md).
+A run lasts long enough that its reader comes back to it afterwards, so a line counts once the
+Reply carries it, and text the session wrote mid-run is never where a line has to be.
+
+## Run
+
+How the run was set up, one line each, in this order, each taken from the step that recorded it
+and written only when that Playbook's step 0 names it:
+
+1. **Read-back.** The request or the Ticket confirmed back: the Ticket's `<NN>: <title>`, or the
+   reshape or the bug in the developer's terms.
+2. **Surface.** Where the change shows, as the Playbook's step 0 names it.
+3. **Predicate.** Done as a predicate, each part checkable.
+4. **Loop line.** `Loop: policy`, `Loop: global` or `Loop: fallback`, with the one line saying the
+   Agent tool is withheld when it is.
+5. **Claim line.** `Claimed: <the Ticket's path or reference>`.
+6. **Protected-branch warning.** When it applies: the branch, the rule, and that the landing is
+   refused on it.
+
+The lines record what step 0 decided; they gate nothing. The order constraints on actions stay
+with the steps that carry them (the door script before any write, the worktree before the first
+edit), and a landing on a protected branch is refused by the review whatever the Run section says.
 
 Short declarative sentences. No long dash anywhere, the checklist's done lines included; a tick reads
 `done:` after the step. No colon as a mid-sentence connector. No `## Summary`
@@ -45,9 +69,10 @@ lists it; write it by this file alone otherwise.
 ## A refusal or a blocked run
 
 The first line, then the refusal or the blocker with its reason, then the Playbook or the door the
-request goes to with the command to type. A run that stopped after work exists adds the sections
-that apply: the commits made, the worktree and its branch named, the files restored. A run that
-refused before any edit adds nothing.
+request goes to with the command to type. A run that stopped after work exists adds the Run section
+and the sections that apply: the commits made, the worktree and its branch named, the files
+restored. A run that refused before any edit adds nothing, not even a Run section: its one message
+is the refusal.
 
 A run that stopped as blocked names the step it stopped at, and its Skipped section
 lists no step after it as skipped: the run never reached those steps.
