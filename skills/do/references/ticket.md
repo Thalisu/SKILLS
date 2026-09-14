@@ -4,8 +4,9 @@ The last step of the chain. It takes one Ticket, in the format of
 [ticket-format.md](../../../.agents/formats/ticket-format.md), and nothing else: never a Spec,
 never a session summary. The parts it shares with the other Playbooks that build in a worktree
 are in [mechanics.md](mechanics.md), linked from the steps that use them, and the reply is
-written by [reply.md](reply.md). The checklist below is copied verbatim into the run before any
-task-specific item, the research brief's twelve steps with the review and landing step reading as
+written by [reply.md](reply.md). The checklist below is copied verbatim into the run as its todo
+list before any task-specific item, and the Reply's Run section carries it ticked, the research
+brief's twelve steps with the review and landing step reading as
 the review's and the shape step as `sketch`'s; each step carries its done condition below.
 
 ## Door
@@ -94,7 +95,7 @@ and leaves the worktree as it is, since no branch can be read from it to build o
 
 - The first message says the run resumes, names the worktree and its branch, and lists the
   commits found, one line each with its `Behaviour:` line. The claim line is not written again.
-  The checklist follows, with steps 0 and 1 reading `done: resumed`.
+  The Reply's Run section carries the checklist with steps 0 and 1 reading `done: resumed`.
 - The worktree is entered, never created: a second worktree is never made.
 - The grounding, the shape and the behaviours list run again without a write. The list is
   re-derived from the Ticket and its Digest as step 4 says, never from the commits; then every line
@@ -194,7 +195,8 @@ them as it goes, and nothing depends on that:
   Ticket file in [mechanics.md](mechanics.md) says. On a remote tracker the run waits for a yes
   before it; a no stops the run with nothing written.
 - The checklist above, verbatim, copied as the run's todo list with no step marked skipped: every
-  step stays open until the run reaches it.
+  step stays open until the run reaches it. The Reply's Run section carries it after the lines
+  above, each step the run reached ticked `done:` or reading `skip: <reason>`.
 
 The door script still runs before any write and the worktree still comes before the first edit;
 recording the lines for the Reply moves none of those actions. A Ticket the door refuses ends in
