@@ -27,6 +27,10 @@ and written only when that Playbook's step 0 names it:
 5. **Claim line.** `Claimed: <the Ticket's path or reference>`.
 6. **Protected-branch warning.** When it applies: the branch, the rule, and that the landing is
    refused on it.
+7. **Checklist.** The matched Playbook's checklist, verbatim, every step the run reached ticked
+   `done:` or reading `skip: <reason>`, and a step it never reached left as it was copied. The run
+   copied it at its start as its own todo list; the copy in the Reply is the one the developer
+   reads, so it is never required as text before the first edit.
 
 The lines record what step 0 decided; they gate nothing. The order constraints on actions stay
 with the steps that carry them (the door script before any write, the worktree before the first
