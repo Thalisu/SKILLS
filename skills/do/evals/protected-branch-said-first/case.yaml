@@ -1,5 +1,5 @@
 name: protected-branch-said-first
-tags: [playbook, ticket, run]
+tags: [playbook, ticket, run, deprecated]
 runs: 1
 max_turns: 200
 timeout_seconds: 3600

@@ -1,5 +1,5 @@
 name: global-loop-withheld-agent-tool
-tags: [playbook, ticket, run, fallback, agents]
+tags: [playbook, ticket, run, fallback, agents, deprecated]
 runs: 1
 max_turns: 150
 timeout_seconds: 2400

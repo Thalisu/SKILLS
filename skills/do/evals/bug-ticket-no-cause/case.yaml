@@ -1,5 +1,5 @@
 name: bug-ticket-no-cause
-tags: [playbook, ticket, bug-fix, diagnosis]
+tags: [playbook, ticket, bug-fix, diagnosis, deprecated]
 runs: 1
 max_turns: 220
 timeout_seconds: 3600

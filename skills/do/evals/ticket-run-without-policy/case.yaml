@@ -1,5 +1,5 @@
 name: ticket-run-without-policy
-tags: [playbook, ticket, run, fallback]
+tags: [playbook, ticket, run, fallback, deprecated]
 runs: 1
 max_turns: 150
 timeout_seconds: 2400
