@@ -54,7 +54,7 @@ A matched Playbook whose reference is missing from Links is not installed in thi
 Each holds in every Playbook.
 
 - Every line a step names is carried by the Reply, per [reply.md](references/reply.md), and none is required as text written mid-run: a session that writes text as it goes is free to, and nothing depends on it.
-- The matched Playbook's steps are copied verbatim as the checklist before any task-specific item, and a skipped step stays visible as `skip: <reason>`.
+- The matched Playbook's steps are copied verbatim as the checklist, the run's own todo list, before any task-specific item, and the Reply's Run section carries it with every step the run reached ticked `done:` or visible as `skip: <reason>`.
 - A principle is named in the reply only with the decision it changed.
 - A question is classified before it is asked: a fact a script can observe goes to a probe, and only a product or preference call goes to the human.
 - The data shape and its organising structure are named before any logic.
