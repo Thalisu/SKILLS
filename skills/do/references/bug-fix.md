@@ -46,8 +46,8 @@ started from (`git log <base>..do/<slug>` with `<base>` their merge base), each 
   with a second slug.
 - The first message says the run resumes, names the worktree and its branch, and lists the commits
   found, one line each with its `Behaviour:` line. Step 0's read-back, surface, predicate and loop
-  line are written again from the request, since nothing on the branch carries them, and the
-  checklist follows with step 1 reading `done: resumed`.
+  line are recorded again from the request for the Reply's Run section, since nothing on the
+  branch carries them, and the checklist follows with step 1 reading `done: resumed`.
 - The run continues at the first step the branch does not evidence: no commit resumes at step 2,
   the reproduction commit alone resumes at step 6, the reproduction and its fix resume at step 7.
   The reproduction is never committed twice, and from the step it resumes at the run is a first
