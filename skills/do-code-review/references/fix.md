@@ -126,9 +126,13 @@ which on a `do` run sits outside the Tree by design.
    that quote in the source the Review's `Spec source:` header names, at the absolute path that
    header gives, even when it sits outside the `Tree:` path, and by the target its `Fix:` line names
    under its `Tree:` path. Reading that named Spec source is the one path this rule allows outside
-   the Tree; the `Fix:` target it checks or edits stays under `Tree:` regardless. A location that has
-   moved or gone is reported and left alone, with the command that showed it gone: no commit, and no
-   guess at where the code went.
+   the Tree; the `Fix:` target it checks or edits stays under `Tree:` regardless, and it holds only
+   when `Spec source:` names a file on disk. When `Spec source:` names an issue reference
+   (`Spec source: issue <n>`), the Fixer never fetches or reads that issue itself, that text was
+   only ever read by the reviewer and the orchestrator before this call, and it checks the Finding
+   only by the target its `Fix:` line names under `Tree:`. A location that has moved or gone is
+   reported and left alone, with the command that showed it gone: no commit, and no guess at where
+   the code went.
 4. **Report each commit.** One line for its Finding, by its number: the sha, or what stopped it.
    The same line goes to its return file, in one shell command, before it ends its turn.
 
