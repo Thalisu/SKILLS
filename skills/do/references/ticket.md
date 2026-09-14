@@ -164,8 +164,10 @@ Do:
 
 ## Steps
 
-**0. Resolve, claim, show.** The first message, before any edit, holds in this order, its facts
-taken off the lines the door script printed and never restated from a file the session read:
+**0. Resolve, claim, show.** Before any edit, step 0 records its lines for the Reply's Run section,
+in the order [reply.md](reply.md) fixes, its facts taken off the lines the door script printed and
+never restated from a file the session read. The Reply carries them; the session may also write
+them as it goes, and nothing depends on that:
 
 - `Playbook: ticket`.
 - The title confirmed back, `<NN>: <title>`.
@@ -176,8 +178,8 @@ taken off the lines the door script printed and never restated from a file the s
   `Loop: global` when it does not and `~/.claude/agents/global-unit-test-author.md` is linked,
   naming `global-unit-test-author` as the unit author it will dispatch, and
   `Loop: fallback` otherwise. With the Agent tool withheld from the session there is no author to
-  dispatch: a door that printed `loop=global` reads `Loop: fallback` instead, and the first
-  message says in one line that the Agent tool is withheld, so the run writes every unit test
+  dispatch: a door that printed `loop=global` reads `Loop: fallback` instead, and the loop line
+  carries one more line saying the Agent tool is withheld, so the run writes every unit test
   itself, red first, and authors the flow itself. Under `fallback` the build loop of
   [mechanics.md](mechanics.md) reads [tdd-fallback.md](tdd-fallback.md) and the run writes every
   test itself, with no test author dispatched; under `policy` and `global` that file is never read.
@@ -187,17 +189,21 @@ taken off the lines the door script printed and never restated from a file the s
   diagnosis first` when it does not.
 - The protected-branch warning when it applies (the protected branch in
   [mechanics.md](mechanics.md)): the line names the branch and the rule and says landing will be
-  refused on it.
+  refused on it, which the review does whatever the run wrote.
 - The claim line, `Claimed: <the Ticket's path or reference>`, once the claim is written as the
   Ticket file in [mechanics.md](mechanics.md) says. On a remote tracker the run waits for a yes
   before it; a no stops the run with nothing written.
-- The checklist above, verbatim, with no step marked skipped: every step stays open until the run
-  reaches it.
+- The checklist above, verbatim, copied as the run's todo list with no step marked skipped: every
+  step stays open until the run reaches it.
 
-On a local Ticket the run proceeds without a yes, per
+The door script still runs before any write and the worktree still comes before the first edit;
+recording the lines for the Reply moves none of those actions. A Ticket the door refuses ends in
+one message, the refusal, as [reply.md](reply.md) says for a refusal before any edit. On a local
+Ticket the run proceeds without a yes, per
 [never-block-on-the-human](../../../.agents/principles/never-block-on-the-human.md): the claim is
 a reversible file write, and an interrupt costs the developer one turn. Done when the title, the
-predicate, the loop line and the claim line are in the thread and the Ticket reads `claimed`.
+predicate, the loop line and the claim line are recorded for the Reply's Run section and the Ticket
+reads `claimed`.
 
 **1. Worktree.** The worktree in [mechanics.md](mechanics.md): created from the current HEAD on
 `do/<slug>`, where `<slug>` is the Ticket file's slug without its number, excluded locally,
@@ -354,7 +360,7 @@ the forks in [mechanics.md](mechanics.md). Show the list once; the loop starts o
 developer's silence. Done when the list is in the thread.
 
 **5. Build loop.** The build loop in [mechanics.md](mechanics.md), one behaviour per dispatch,
-under the loop the first message named. Each behaviour is one line in the thread as it lands: the
+under the loop the loop line named. Each behaviour is one line in the thread as it lands: the
 line, `RED_AS_EXPECTED`, green, the commit. A Design fork a behaviour meets goes to the forks in
 [mechanics.md](mechanics.md). Done when every line has a commit beside it.
 

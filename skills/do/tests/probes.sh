@@ -91,7 +91,7 @@ check_lines "a ready Ticket whose blocker is resolved starts" 0 "$rc" \
   "ticket=$issues/02-second.md" "title=02: Title of 02-second" "status=ready-for-agent" \
   "blocker=01 resolved $issues/01-first.md" "slug=second" "worktree=none" "loop=fallback" \
   "branch=main" "protected=no" "verdict=start"
-ordered_out "the facts come in the order the first message states them" \
+ordered_out "the facts come in the order the Reply's Run section states them" \
   ticket= title= status= blocker= slug= worktree= run_branch= loop= branch= protected= verdict=
 run "$door" "$issues/04-claimed.md"
 check_lines "a claimed Ticket whose worktree exists resumes" 0 "$rc" \

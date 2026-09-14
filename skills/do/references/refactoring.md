@@ -65,7 +65,9 @@ and the door the request goes to with the command to type, nothing written.
 4. **The branch.** The protected branch in [mechanics.md](mechanics.md). This is a warning and not a
    refusal: the run builds to the gate and the review refuses the landing, as step 12 says.
 
-Then the first message, before any edit, in this order:
+Then, before any edit, the lines recorded for the Reply's Run section, in the order
+[reply.md](reply.md) fixes. The Reply carries them; the session may also write them as it goes, and
+nothing depends on that:
 
 - `Playbook: refactoring`, as plain text on the first line.
 - The reshape confirmed back in one line, with the target files named.
@@ -76,14 +78,15 @@ Then the first message, before any edit, in this order:
   [mechanics.md](mechanics.md) read [tdd-fallback.md](tdd-fallback.md), and the run writes that test
   itself with no test author dispatched; under `policy` that file is never read.
 - The protected-branch warning when it applies: the branch, the rule, and the line saying landing
-  will be refused on it.
-- The checklist above, verbatim.
+  will be refused on it, which the review does whatever the run wrote.
+- The checklist above, verbatim, copied as the run's todo list.
 
 There is no claim line and no Ticket: outside the chain the branch and its commits are the whole
 state. The run proceeds without a yes, per
-[never-block-on-the-human](../../../.agents/principles/never-block-on-the-human.md). Done when the
-four checks ran, the target files and the audit line are in the thread, and the first message is
-sent.
+[never-block-on-the-human](../../../.agents/principles/never-block-on-the-human.md). A refusal
+still ends the run in its one message before any edit. Done when the four checks ran, the target
+files and the audit line are in the thread, and the read-back, the predicate, the loop line and the
+warning when it applies are recorded for the Reply's Run section.
 
 ### 2. Worktree
 
@@ -379,7 +382,7 @@ ones the `ticket` Playbook gets:
   the Review that counts and runs the integration with the developer present.
 - **`do-code-review` not listed.** The step reads `skip: do-code-review not listed`, nothing lands,
   and the reply names the worktree, its branch and the review as the developer's next step.
-- **A protected branch.** The review refuses the landing, as the first message warned it would, and
+- **A protected branch.** The review refuses the landing, whatever the run wrote, and
   the reply adds the two commands that land the reviewed branch by hand from a branch that takes
   commits:
 

@@ -5,7 +5,7 @@ Lauren Tan, MIT (see [PSTACK-LICENSE](../../../vendor/PSTACK-LICENSE)), upstream
 `7314f723a487ec406b6369fe5865ba034cfed166`, with the frontmatter stripped and the changes listed at
 the end.
 
-The build loop of [mechanics.md](mechanics.md) reads this file when the first message's loop
+The build loop of [mechanics.md](mechanics.md) reads this file when the loop
 line reads `Loop: fallback`, and it has a second way in that leaves the loop line reading
 `Loop: global`: mechanics.md's `BLOCKED` route, taken when the global unit test author comes back
 `BLOCKED` naming a run command the project map lacks (the map does not change during the run, so a

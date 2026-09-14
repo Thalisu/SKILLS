@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ticket-door.sh: the door facts of the ticket Playbook of do that a script can observe, so the
-# first message states what one run printed and the developer can rerun it for the same answer.
+# Reply's Run section states what one run printed and the developer can rerun it for the same answer.
 # Run from anywhere inside the project, the main checkout or a worktree of it.
 #
 #   ticket-door.sh <the Ticket's path>    the Ticket, its blockers, its worktree, the loop and the
@@ -31,7 +31,7 @@
 # not None, or a number it cannot split out) ·
 # blocked (a blocker not resolved) · resume (claimed, the worktree there) · start-over (claimed, the
 # worktree gone) · ambiguous (ready-for-agent with a worktree already there) · start. A protected
-# branch is a warning for the first message, never a stop.
+# branch is a warning for the Reply's Run section, never a stop.
 #
 # Exit codes: 0 the run may go on: start, resume or start-over · 1 the door stops the run:
 # resolved, blocked or ambiguous · 2 usage, no Ticket at the path, or not a git repository.

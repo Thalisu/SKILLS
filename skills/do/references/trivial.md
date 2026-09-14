@@ -11,8 +11,10 @@ commit, the second time by a script a reviewer can rerun.
 
 The run is one message. It opens with `Playbook: trivial` as plain text on its first line and the
 checklist below, copied verbatim;
-the work runs; the same message closes with the sections of [reply.md](reply.md). Nothing is
-pushed. A refusal is that message cut short: the first line, the refusal with its reason, and the
+the work runs; the same message closes with the Run section and the sections of
+[reply.md](reply.md). Its Run section carries the request read back in one line; there is no loop
+line, no claim line and no protected-branch warning, since a protected branch is a refusal here.
+Nothing is pushed. A refusal is that message cut short: the first line, the refusal with its reason, and the
 Playbook or the door the request goes to with the command to type, nothing edited.
 
 `<skill-dir>` below is the folder that holds this file's `references/`: `${CLAUDE_SKILL_DIR}` in

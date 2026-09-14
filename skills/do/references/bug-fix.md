@@ -98,7 +98,9 @@ bug-fix:
 
 ## Steps
 
-**0. Read back, name the surface, show.** The first message, before any edit, holds in this order:
+**0. Read back, name the surface, show.** Before any edit, step 0 records its lines for the Reply's
+Run section, in the order [reply.md](reply.md) fixes. The Reply carries them; the session may also
+write them as it goes, and nothing depends on that:
 
 - `Playbook: bug-fix`.
 - The bug read back in one line: what happened, where, and the error or the wrong output.
@@ -116,13 +118,14 @@ bug-fix:
   dispatched; under `policy` that file is never read.
 - The protected-branch warning when it applies (the protected branch in
   [mechanics.md](mechanics.md)): the line names the branch and the rule and says that
-  landing will be refused on it, so the developer switches before the work and not after.
-- The checklist above, verbatim.
+  landing will be refused on it, which the review does whatever the run wrote.
+- The checklist above, verbatim, copied as the run's todo list.
 
 There is no claim line and no Ticket to write, so the run proceeds without a yes, per
-[never-block-on-the-human](../../../.agents/principles/never-block-on-the-human.md). Done when the
-read-back, the surface, the predicate and the loop line are in the thread and the checklist is
-shown.
+[never-block-on-the-human](../../../.agents/principles/never-block-on-the-human.md). The surface is
+still named before the worktree exists, and the worktree still comes before the first edit. Done
+when the read-back, the surface, the predicate and the loop line are recorded for the Reply's Run
+section and the checklist is copied.
 
 **1. Worktree.** The worktree in [mechanics.md](mechanics.md): created from the current HEAD on
 `do/<slug>`, where `<slug>` is a short slug of the bug in the developer's words, excluded locally,

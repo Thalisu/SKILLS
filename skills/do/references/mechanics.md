@@ -242,7 +242,7 @@ the only source the loop brings into the session is source the run changed.
 
 Done when every behaviour line has a commit beside it.
 
-Under the fallback, when the first message's loop line reads `Loop: fallback` (no unit test author
+Under the fallback, when the loop line reads `Loop: fallback` (no unit test author
 in the project and no global one that can be dispatched), the same loop runs by
 [tdd-fallback.md](tdd-fallback.md), read only then: the run writes the failing test itself where
 a cheap path exists, and otherwise the closest executable check with the reason stated, and no
