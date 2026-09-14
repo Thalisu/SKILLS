@@ -9,10 +9,11 @@ review and lands as one commit, so a one-line change costs one message. Size is 
 door is judged by structure, twice, on the request before any edit and on the diff before the
 commit, the second time by a script a reviewer can rerun.
 
-The run is one message. It opens with `Playbook: trivial` as plain text on its first line and the
-checklist below, copied verbatim;
-the work runs; the same message closes with the Run section and the sections of
-[reply.md](reply.md). Its Run section carries the request read back in one line; there is no loop
+The run is one message. It opens with `Playbook: trivial` as plain text on its first line; the
+checklist below is copied verbatim as the run's todo list; the work runs; the same message closes
+with the Run section and the sections of [reply.md](reply.md). Its Run section carries the request
+read back in one line, then the checklist with each step the run reached ticked `done:` or reading
+`skip: <reason>`, never as text before the first edit; there is no loop
 line, no claim line and no protected-branch warning, since a protected branch is a refusal here.
 Nothing is pushed. A refusal is that message cut short: the first line, the refusal with its reason, and the
 Playbook or the door the request goes to with the command to type, nothing edited.
@@ -22,8 +23,9 @@ Claude Code, the `do` folder under the harness's skills directory elsewhere.
 
 ## Steps
 
-Copied verbatim into the run before any task-specific item; each step is ticked with its done
-line or stays visible as `skip: <reason>`:
+Copied verbatim into the run as its todo list before any task-specific item; each step is ticked
+with its done line or stays visible as `skip: <reason>`, and the Run section carries the checklist
+so ticked:
 
 ```
 trivial:
