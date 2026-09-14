@@ -66,10 +66,11 @@ carry no check in its `Fix:` line; that is allowed, and the re-check below repor
 
 An empty list, or one whose Findings an earlier fix already settled, forks no Fixer and creates no
 worktree. The re-check, the Gate and the append still run, and the section reads `nothing remained`,
-so a second `fix` on the same Review is harmless. Settled means the last `## Fix run` reads the
-Finding `fixed`. A Finding it reads `not fixed` or `stale` is not settled and goes to a Fixer again:
-a `stale` the Fixer reported from the wrong tree is otherwise never read again, and the Review never
-turns Green.
+so a second `fix` on the same Review is harmless. A Finding is settled when its latest line,
+read across every `## Fix run` section and not the last section alone, reads `fixed`: a section
+that reads `nothing remained` names no Finding and settles or unsettles none. A Finding whose latest
+line reads `not fixed` or `stale` is not settled and goes to a Fixer again, since a Finding no fix
+call reads again keeps the Review from ever turning Green.
 
 ## Where the Fixer works
 

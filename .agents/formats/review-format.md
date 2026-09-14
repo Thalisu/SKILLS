@@ -207,8 +207,9 @@ Then one line per `Act on` Finding, by its number, in the file's order, in one o
 
 A Review whose `Act on` is empty, or whose Findings an earlier fix already settled, forks no Fixer
 and creates no worktree: the section reads `nothing remained` on that line, then the Gate and the
-landing, with the Diff tests reading `skip: no Fixer commit`. Settled means the last `## Fix run`
-reads the Finding `fixed`: a Finding it reads `stale` or `not fixed` goes to a Fixer again.
+landing, with the Diff tests reading `skip: no Fixer commit`. A Finding is settled when its latest
+line across every `## Fix run` section reads `fixed`, a `nothing remained` section naming none: a
+Finding whose latest line reads `stale` or `not fixed` goes to a Fixer again.
 
 Then three lines, in this order. The Diff tests, `- diff tests: <the commands>: <their result>`, or
 `- diff tests: skip: <the reason>`. The Gate fixer, `- gate fixer: not needed` when the Diff tests
