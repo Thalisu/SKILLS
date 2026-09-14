@@ -1,6 +1,6 @@
-<!-- testing-policy version: 2.5 -->
+<!-- testing-policy version: 2.6 -->
 <!-- TEMPLATE: canonical Testing Policy, rendered into the project's CLAUDE.md by
-     scripts/render-policy.sh <native|consumer|mixed>. A block opened by an "@surface,surface"
+     scripts/render-policy.sh <native|consumer|mixed|unit>. A block opened by an "@surface,surface"
      comment and closed by an "@/" comment is emitted only for the listed surfaces; untagged
      text is common to all surfaces.
      Between core-start/core-end the text is normative and slot-free; it is regenerated on
@@ -10,7 +10,12 @@
 ## Testing Policy (Definition of Done)
 
 <!-- testing-policy:core-start -->
+<!-- @native,consumer,mixed -->
 A feature or fix is DONE only when its own tests pass, the unit tests and the E2E coverage of the change, and then the post-feature gate passes. "Tests didn't run" is never "tests passed". The rules below are fixed; the project's commands, paths, tool names and the post-feature gate it picked live in **Project facts** at the end of this section.
+<!-- @/ -->
+<!-- @unit -->
+A feature or fix is DONE only when its own unit tests pass and then the post-feature gate passes. "Tests didn't run" is never "tests passed". The rules below are fixed; the project's commands, paths, tool names and the post-feature gate it picked live in **Project facts** at the end of this section.
+<!-- @/ -->
 
 <!-- @native,mixed -->
 ### Success gate (tiered)
@@ -38,6 +43,13 @@ Besides its own surface, this repo is consumed by other repos (the consumer list
 - **Per feature**: once every change of a feature is green, the post-feature gate in Project facts runs on the integrated result before the feature, phase or delivery is declared complete. It is one of four: the full unit suite, the full E2E suite of each impacted consumer (each consumer's full-suite command in Project facts), both, or none; with none, the per-change tier is the whole gate.
 - **Infra failure blocks**: if a consumer's E2E cannot run (its known infra failures in Project facts are the usual suspects), the work is BLOCKED, not done. Report the infra error as blocked status; fixing the infra is part of the delivery. Only the user can explicitly waive the E2E gate, and a waiver is recorded as pending debt, never as green.
 <!-- @/ -->
+<!-- @unit -->
+### Success gate (tiered)
+
+- **Per change**: the change's own tests green, run against this change: the unit tests it added and the ones covering the code it touches (single-file command in Project facts).
+- **Per feature**: once every change of a feature is green, the post-feature gate in Project facts runs on the integrated result before the feature, phase or delivery is declared complete. It is one of two: the full unit suite (full-suite command in Project facts) or none; with none, the per-change tier is the whole gate.
+- **No other tier**: this repo has no end-to-end suite by choice. The unit tests are the whole proof, so a behavior no unit test reaches is not covered, never presumed covered elsewhere.
+<!-- @/ -->
 <!-- @consumer,mixed -->
 - **New consumers**: when a new repo starts consuming this one, ask the user and add it to the consumer list; the gate covers every consumer, not just the first.
 <!-- @/ -->
@@ -49,6 +61,7 @@ Besides its own surface, this repo is consumed by other repos (the consumer list
 - **Green is minimal**: only the code the current test needs; no branch, parameter or feature for a test not yet written.
 - **Refactor on green, never on red**: once green, extract duplication, move complexity behind the interface the test exercised, move logic to where its data lives, running the suite after every step. A test that goes red under a pure refactor was asserting implementation (see "Tests describe behavior") and is rewritten against the interface, not appeased.
 - **Behaviors, not branches**: the tests for a change are the behaviors its callers observe, prioritized with critical paths and the logic that can be wrong first; not one test per branch, not every edge case. The list is written before the first cycle, from the request, the plan or the user, never inferred from the implementation.
+- **Only what matters earns a test**: a test proves a behavior a caller relies on, where a wrong result costs something (a wrong output, a lost file, a guarantee broken). A rename, a moved file, a reordered section, a heading, a listing or a phrase in prose gets no test: such a test pins the shape, goes red on every edit that changes nothing and catches no bug. A change whose only effect is one of these ships with no new test, and a test found pinning one is deleted, not maintained.
 <!-- @native,mixed -->
 - **E2E is proven after**: the E2E flow is authored or extended together with the feature and MUST pass before the work is declared done. No red-first requirement at E2E level: a flow written against a UI that doesn't exist yet fails trivially and proves nothing.
 <!-- @/ -->
@@ -71,6 +84,9 @@ Every new test, a new test file or a new test case, is written under the test-au
 <!-- @native -->
 `.claude/agents/unit-test-author.md` for unit tests and `.claude/agents/e2e-test-author.md` for E2E flows.
 <!-- @/ -->
+<!-- @unit -->
+`.claude/agents/unit-test-author.md`.
+<!-- @/ -->
 <!-- @consumer -->
 `.claude/agents/unit-test-author.md`. E2E flows are authored in the consumer repos, under their own `e2e-test-author`.
 <!-- @/ -->
@@ -83,10 +99,20 @@ Every new test, a new test file or a new test case, is written under the test-au
 
   ```
   Behavior to prove: <one sentence, in observable terms; it becomes the test name>
+<!-- @native,consumer,mixed -->
   Target: <module / function>  (unit)   |   Journey / screen: <where in the product>  (E2E)
+<!-- @/ -->
+<!-- @unit -->
+  Target: <module / function>
+<!-- @/ -->
   Origin: bugfix | new feature
+<!-- @native,consumer,mixed -->
   Expected red: <failing assertion | unresolved import | error not thrown>  (unit)
   Fixture state: <what must exist before the flow starts>  (E2E)
+<!-- @/ -->
+<!-- @unit -->
+  Expected red: <failing assertion | unresolved import | error not thrown>
+<!-- @/ -->
   Placement (optional): <existing file to extend> | new file
   Out of scope (optional): <...>
   ```
@@ -112,6 +138,12 @@ Every new test, a new test file or a new test case, is written under the test-au
 - **What requires consumer E2E**: every change with a consumer-observable effect (response shape, status codes, new or changed routes, queue payloads, exported behavior, side effects a client sees). Purely internal changes (refactor, logging, build config) require unit coverage at the lowest level that captures the behavior; skipping the consumer E2E must be justified in that change, never presumed.
 - **Coverage requirement**: every consumer-observable change is covered by a flow in each impacted consumer repo, following that repo's flow naming (Project facts). If no consumer exercises the new surface yet (surface built ahead of the client feature), the E2E lands together with the first consuming feature, recorded as pending debt against that feature until then, never as green.
 - **A bug that escaped a consumer's suite is a coverage gap**: the existing flow was incomplete, not wrong. Add the missing assertion or scenario in that consumer so the bug would now be caught; never rewrite a green journey because of a fix that didn't change the journey.
+<!-- @/ -->
+<!-- @unit -->
+### Coverage mapping
+
+- **What requires a test**: every change to a behavior a caller observes (an output, an exit code, a file written, an error raised) gets unit coverage at the lowest level that captures it. A change with no observable effect (a rename, a move, a reword) needs none.
+- **A bug that escaped the suite is a coverage gap**: the existing tests were incomplete, not wrong. Add the missing case so the bug would now be caught.
 <!-- @/ -->
 
 ### Tests represent the real flow
@@ -142,7 +174,12 @@ Forbidden:
      when a fresh discovery disagrees). Every command here has been run once and returned output. -->
 
 - **Unit**: full suite `{{UNIT_FULL_COMMAND}}` · single file `{{UNIT_FILE_COMMAND}}` · mandatory flags / known phantom failures: {{UNIT_GOTCHAS}} · skip mechanisms: {{UNIT_SKIP_MECHANISMS}}
+<!-- @native,consumer,mixed -->
 - **Post-feature gate**: {{POST_FEATURE_GATE: full unit suite | full E2E suite | both | none, the project's answer at install}}
+<!-- @/ -->
+<!-- @unit -->
+- **Post-feature gate**: {{POST_FEATURE_GATE: full unit suite | none, the project's answer at install}}
+<!-- @/ -->
 <!-- @native,mixed -->
 - **E2E**: {{E2E_TOOL}} · single flow `{{E2E_FLOW_COMMAND}}` · full suite `{{E2E_FULL_COMMAND}}` · flow naming `{{E2E_FLOW_NAMING}}` (e.g. {{E2E_FLOW_EXAMPLES: 2-3 real file names}}) · skip mechanisms: {{E2E_SKIP_MECHANISMS}}
 - **Real test stack**: {{E2E_STACK: what the flows run against and how it is brought up}} · **known infra failures**: {{E2E_INFRA_FAILURES}}

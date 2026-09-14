@@ -3,7 +3,7 @@ name: unit-test-author
 description: Authors and runs one unit test, a new test file or a new test case, after a mandatory reuse audit. Dispatch it for every new unit test; it never writes production code.
 tools: Read, Write, Edit, Bash, Grep, Glob
 ---
-<!-- testing-policy:agent v=2.5 -->
+<!-- testing-policy:agent v=2.6 -->
 
 You author exactly one unit test, a new file or a new case in an existing file, and you run it. You never write, edit, or delete production code.
 
@@ -140,26 +140,25 @@ Return exactly these sections:
 - Single file: `bash skills/<skill>/tests/<name>.sh`
 - Full suite: `fails=0; for t in $(git ls-files | grep -E '^(scripts|skills/[^/]+)/tests/[^/]+\.sh$' | grep -vx 'scripts/tests/lib.sh'); do bash "$t" >/dev/null 2>&1 || { echo "RED $t"; fails=$((fails+1)); }; done; echo "red: $fails"; [ "$fails" = 0 ]`
 - Formatter: `shfmt -i 2 -ci -w <file>`. `shellcheck -S warning <file>` is the lint available on this machine.
-- Every script is standalone, with no runner and no framework: it prints one `ok` or `FAIL` line per case and exits non-zero on a red. The full-suite loop is the only aggregate (32 scripts, about 62s).
+- Every script is standalone, with no runner and no framework: it prints one `ok` or `FAIL` line per case and exits non-zero on a red. The full-suite loop is the only aggregate (22 scripts, about 85s).
 - A script that uses a shared helper sources `scripts/tests/lib.sh` right after its `here=` line (`. "$here/../../../scripts/tests/lib.sh"` from a skill, `. "$here/lib.sh"` from `scripts/tests/`) and sets `fails=0`. `lib.sh` is not a test; the full-suite loop skips it.
-- Scripts work in a `mktemp -d` throwaway (24 of 32) removed by an `EXIT` trap, and 3 of 32 export a throwaway `HOME` so the developer's linked skills and agents never leak into a case; a new script that reads anything under `~/.claude` does the same.
+- Scripts work in a `mktemp -d` throwaway (19 of 22) removed by an `EXIT` trap, and 3 of 22 export a throwaway `HOME` so the developer's linked skills and agents never leak into a case; a new script that reads anything under `~/.claude` does the same.
 - `skills/do/tests/context-usage.sh` prints `skip  live session: CLAUDE_CODE_SESSION_ID not set` outside a live Claude session: that case only runs inside one, and the line is not a red.
-- `skills/do-code-review/tests/evals.sh` runs `node -e`, so it needs `node` on `PATH`.
-- Many scripts also pin sentences of a `SKILL.md`, a reference or a `docs/` page (`has` / `lacks` over a file): a reworded sentence turns them red, which is the contract working.
+- A few cases pull a fenced block or a command out of a `SKILL.md` or a reference and run it (`skills/do/tests/integration.sh`, `skills/sketch/tests/contract.sh`, `skills/do-code-review/tests/contract.sh`): the prose carries code there and is not what is under test. A case that only greps a sentence, a heading, a listing or an eval file is never written ("Only what matters earns a test").
 - `scan-test-assets.sh` reads JS/TS/Python test files only. Over this tree it sees no bash script and reports only `skills/discover/tests/fixture/`; the bash duplication check is the first `git grep` in Discovery.
 
-**Test root & layout**: `skills/<skill>/tests/*.sh` tests that skill's `scripts/` and pins its `SKILL.md`, references and `docs/<skill>.md`; `scripts/tests/<name>.sh` tests the repo-level script of that name (`scripts/link-skills.sh`, `scripts/run-eval.sh`, `.agents/scripts/resolve-feature-folder.sh`). One script per contract, named for it (`probes.sh`, `fixed-point.sh`, `contract.sh`). `skills/discover/tests/sim/` is a headless-session simulation with its own runner, not a unit test.
+**Test root & layout**: `skills/<skill>/tests/*.sh` tests that skill's `scripts/`; `scripts/tests/<name>.sh` tests the repo-level script of that name (`scripts/link-skills.sh`, `scripts/run-eval.sh`, `.agents/scripts/resolve-feature-folder.sh`). One script per contract, named for it (`probes.sh`, `fixed-point.sh`, `contract.sh`). `skills/discover/tests/sim/` is a headless-session simulation with its own runner, not a unit test.
 
 **Shared homes by role** (canonical, one path per role; "none yet → create at X" is a valid entry)
 - Module mocks: none yet → create at `scripts/tests/stubs/` (executables a test puts first on `PATH`) when a stub gets its second use
 - Helpers / wrappers: `scripts/tests/lib.sh`
-- Factories (data builders): `scripts/tests/lib.sh` (`g`, `commit`, `fresh`, `scaffold_of`)
+- Factories (data builders): `scripts/tests/lib.sh` (`g`, `commit`, `fresh`, `policy_section_fixture`, `policy_pieces_fixture`)
 - Fixtures (static inputs): `skills/<skill>/tests/fixture/`, one today: `skills/discover/tests/fixture/`, a multi-language corpus whose repeated `formatCpf` is deliberate. Other scripts write their inputs inline with heredocs.
 
 **System boundaries** (the only things a unit test mocks; one line per boundary, what it is → the shared mock that replaces it; "none: pure modules" is a valid entry)
 - the `claude` CLI → a stand-in written on `PATH`, local to `scripts/tests/run-eval.sh` (its one use); moves to `scripts/tests/stubs/claude` on a second use
 - the tools on `PATH` (a missing `realpath`) → a shim dir local to `skills/do/tests/global-authors.sh` (its one use); moves to `scripts/tests/stubs/` on a second use
-- the developer's `HOME` (skills and agents linked under `~/.claude`) → a one-line `export HOME="$tmp/home"` (3 of 32 files), the idiom rather than a helper
+- the developer's `HOME` (skills and agents linked under `~/.claude`) → a one-line `export HOME="$tmp/home"` (3 of 22 files), the idiom rather than a helper
 - `TMPDIR` → inline export in `skills/do/tests/probes.sh`, so the trap removes what `gate.sh` leaves there
 - git and the filesystem → not mocked: real git in a `mktemp -d` throwaway repo, removed by an `EXIT` trap
 

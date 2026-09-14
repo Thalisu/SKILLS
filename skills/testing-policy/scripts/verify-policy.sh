@@ -11,7 +11,7 @@
 #   policy_missing=<headings of the rendered template absent from the section>
 #   policy_unfilled_slots=<first {{slots}} still in the section>
 #   policy_facts_missing=<Project-facts labels of the template absent from the section>
-#   agent_unit=missing|unmarked|stale|drifted|ok    agent_e2e=same values|n/a (consumer surface)
+#   agent_unit=missing|unmarked|stale|drifted|ok    agent_e2e=same values|n/a (consumer or unit surface)
 #   agent_<unit|e2e>_map_missing=<Project-map labels of the template absent from the installed agent>
 #   skill_test_author=missing|stale|ok   scan_script=missing|ok   skip_patterns=missing|ok
 #   hook=missing|script-only|wired|wired-missing   gitignored=none|<paths>
@@ -34,7 +34,7 @@ core_of() { awk '/^<!-- testing-policy:core-start -->$/{f=1} f{print} /^<!-- tes
 
 policy=none installed_version="" surface=""
 if [ -f "$claude_md" ]; then
-  start_line="$(grep -nE '^<!-- testing-policy:start v=[0-9.]+ surface=(native|consumer|mixed) -->$' "$claude_md" | head -1 | cut -d: -f1)"
+  start_line="$(grep -nE '^<!-- testing-policy:start v=[0-9.]+ surface=(native|consumer|mixed|unit) -->$' "$claude_md" | head -1 | cut -d: -f1)"
   if [ -n "$start_line" ]; then
     end_line="$(awk -v s="$start_line" 'NR>s && /^<!-- testing-policy:end -->$/ {print NR; exit}' "$claude_md")"
     hdr="$(sed -n "${start_line}p" "$claude_md")"
@@ -106,7 +106,7 @@ skill_state() {
 pieces_ok=1
 au="$(agent_state "$project/.claude/agents/unit-test-author.md" unit)"; echo "agent_unit=$au"; [ "$au" = ok ] || pieces_ok=0
 mm="$(map_missing "$project/.claude/agents/unit-test-author.md" unit)"; [ -z "$mm" ] || { echo "agent_unit_map_missing=$mm"; pieces_ok=0; }
-if [ "$surface" = consumer ]; then echo "agent_e2e=n/a"; else
+if [ "$surface" = consumer ] || [ "$surface" = unit ]; then echo "agent_e2e=n/a"; else
   ae="$(agent_state "$project/.claude/agents/e2e-test-author.md" e2e)"; echo "agent_e2e=$ae"; [ "$ae" = ok ] || pieces_ok=0
   mm="$(map_missing "$project/.claude/agents/e2e-test-author.md" e2e)"; [ -z "$mm" ] || { echo "agent_e2e_map_missing=$mm"; pieces_ok=0; }
 fi
@@ -123,7 +123,7 @@ echo "hook=$hook"
 ignored=()
 if git -C "$project" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   paths=( .claude/agents/unit-test-author.md .claude/skills/test-author/SKILL.md .claude/testing-policy/scan-test-assets.sh .claude/testing-policy/skip-patterns.sh .claude/settings.json )
-  [ "$surface" = consumer ] || paths+=( .claude/agents/e2e-test-author.md )
+  [ "$surface" = consumer ] || [ "$surface" = unit ] || paths+=( .claude/agents/e2e-test-author.md )
   [ "$hook" = missing ] || paths+=( .claude/testing-policy/forbid-test-skips.sh )
   [ -d "$project/.claude/testing-policy/capture" ] && paths+=( .claude/testing-policy/capture )
   for p in "${paths[@]}"; do git -C "$project" check-ignore -q "$p" 2>/dev/null && ignored+=("$p"); done

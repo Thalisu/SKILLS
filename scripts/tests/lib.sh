@@ -68,50 +68,6 @@ has() { # $1 label, $2 file, $3.. fixed strings the file must carry; a missing f
   }; done
   ok "$label"
 }
-lacks() { # $1 label, $2 file, $3.. fixed strings the file must not carry; a missing file fails
-  local label="$1" file="$2"
-  shift 2
-  local line
-  [ -f "$file" ] || {
-    fail "$label ($file missing)"
-    return
-  }
-  for line in "$@"; do grep -qF -- "$line" "$file" && {
-    fail "$label ($file, found: $line)"
-    return
-  }; done
-  ok "$label"
-}
-ordered() { # $1 label, $2 file, $3.. fixed strings that must appear in the file in this order
-  local label="$1" file="$2"
-  shift 2
-  local last=0 n line good=1
-  for line in "$@"; do
-    n="$(grep -nF -- "$line" "$file" 2>/dev/null | awk -F: -v l="$last" '$1 >= l { print $1; exit }')"
-    [ -n "$n" ] || good=0
-    last="${n:-$last}"
-  done
-  if [ "$good" = 1 ]; then ok "$label"; else fail "$label ($file)"; fi
-}
-flat() { tr '\n' ' ' <"$1" 2>/dev/null | tr -s ' '; } # $1 file: its text on one line, so a wrapped sentence matches
-
-para_has() { # $1 label, $2 file, $3 a fixed string opening the paragraph, $4.. strings in that same paragraph
-  local label="$1" file="$2" anchor="$3"
-  shift 3
-  local ok=1 para joined line
-  para="$(awk -v a="$anchor" 'BEGIN { RS = "" } index($0, a) { print; exit }' "$file" 2>/dev/null)"
-  [ -n "$para" ] || ok=0
-  # A paragraph's own line-wrapping must never hide a string that is whole in its prose: each line
-  # break and the indentation after it read as one space, so a string that wraps across two lines
-  # still matches, in a plain paragraph or in an indented bullet.
-  joined="$(awk 'NR > 1 { sub(/^[[:space:]]+/, ""); printf " " } { printf "%s", $0 }' <<<"$para")"
-  for line in "$@"; do [ "$ok" = 1 ] && grep -qF -- "$line" <<<"$joined" || ok=0; done
-  if [ "$ok" = 1 ]; then echo "ok    $label"; else
-    echo "FAIL  $label ($file)"
-    fails=$((fails + 1))
-  fi
-}
-
 g() { command git -c user.email=t@example.com -c user.name=t -c init.defaultBranch=main "$@"; }
 commit() {
   g add -A >/dev/null
@@ -134,10 +90,31 @@ union_of() { # $1 a conflicted path: the union of its three index stages, Target
   for s in 1 2 3; do git cat-file blob ":$s:$1" >"$dir/$s" || return; done
   git merge-file --union -p "$dir/2" "$dir/1" "$dir/3"
 }
-scaffold_of() { # $1 case folder: the scaffold_script block of its case file
-  awk '/^  scaffold_script: \|/ { f = 1; next } f && /^    / { sub(/^    /, ""); print; next } f && /^[[:space:]]*$/ { print ""; next } f { exit }' \
-    "$1/case.yaml" 2>/dev/null
+
+# The testing-policy scripts of the checkout this file sits in, so a fixture renders the templates under test.
+policy_scripts() { (cd "$(dirname "${BASH_SOURCE[0]}")/../../skills/testing-policy/scripts" && pwd -P); }
+# A project whose CLAUDE.md holds the surface's rendered policy section with every {{slot}} filled, minus
+# the lines the grep pattern drops: an unfilled slot fails an install by itself.
+policy_section_fixture() { # $1 project dir, $2 surface, $3 grep -v pattern (empty keeps every line)
+  local scripts
+  scripts="$(policy_scripts)"
+  mkdir -p "$1"
+  {
+    echo "# Project"
+    echo
+    bash "$scripts/render-policy.sh" "$2"
+  } |
+    { if [ -n "$3" ]; then grep -vE -- "$3"; else cat; fi; } |
+    sed -E 's/\{\{[^}]*\}\}/filled/g' >"$1/CLAUDE.md"
 }
-facts_cmd() { # $1 scaffolded fixture, $2 Unit|E2E: the full-suite command its Project facts name
-  sed -n "s/^- \*\*$2\*\*:.* full suite \`\([^\`]*\)\`.*/\1/p" "$1/CLAUDE.md" 2>/dev/null | head -1 || true
+# Every other piece the verifier folds into its exit code, so the exit code a case reads is the one the
+# policy section alone decides: a fixture missing a piece exits 1 whatever the section holds.
+policy_pieces_fixture() { # $1 project dir, $2.. the agents to install (unit, e2e); the test-author skill and both scripts always
+  local p="$1" scripts kind
+  shift
+  scripts="$(policy_scripts)"
+  mkdir -p "$p/.claude/agents" "$p/.claude/skills/test-author" "$p/.claude/testing-policy"
+  for kind in "$@"; do bash "$scripts/render-agent.sh" "$kind" >"$p/.claude/agents/$kind-test-author.md"; done
+  bash "$scripts/render-agent.sh" test-author >"$p/.claude/skills/test-author/SKILL.md"
+  cp "$scripts/scan-test-assets.sh" "$scripts/skip-patterns.sh" "$p/.claude/testing-policy/"
 }

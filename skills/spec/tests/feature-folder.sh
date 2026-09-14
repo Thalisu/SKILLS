@@ -11,13 +11,6 @@ tmp="$(mktemp -d)"
 trap 'cd /; rm -rf "$tmp"' EXIT
 
 git() { g "$@"; }
-absent_in() { # $1 label, $2 a pattern that must not appear in the file $3
-  local label="$1"
-  if grep -q "$2" "$3"; then
-    echo "FAIL  $label"
-    fails=$((fails + 1))
-  else echo "ok    $label"; fi
-}
 run() {
   rc=0
   out="$(bash "$allocate" "$@" 2>&1)" || rc=$?
@@ -193,28 +186,6 @@ check_lines "an allocator that cannot find the resolver refuses, naming it" 2 "$
   "resolve-feature-folder.sh not found at $lonely/../../../.agents/scripts/resolve-feature-folder.sh; nothing allocated"
 expect "the refusal allocated nothing" test ! -e "$tmp/lonely/.scratch"
 
-# The resolution rule lives in the resolver alone, so fixing it once fixes every door: the
-# allocator normalises no slug and looks up no folder of its own.
-absent_in "the allocator normalises no slug of its own" "tr -c" "$allocate"
-absent_in "the allocator looks up no folder of its own" "scratch/\[0-9\]" "$allocate"
-expect "the allocator reaches the resolver" grep -q resolve-feature-folder.sh "$allocate"
-
-# The allocator's one caller reads what exit 2 means off its own prose, so step 3 names every
-# refusal the allocator makes and not the two it made before the resolver. The prose is read as one
-# line, so a reason still counts where the paragraph wraps it.
-skill="$(tr '\n' ' ' <"$here/../SKILL.md")"
-expect "the caller's exit-2 list names a slug that normalises to nothing" \
-  grep -qF 'a slug that normalises to nothing' <<<"$skill"
-expect "the caller's exit-2 list names a .scratch that is a symlink or a file" \
-  grep -qF 'a `.scratch` that is a symlink or a file' <<<"$skill"
-expect "the caller's exit-2 list names a feature folder that is a symlink" \
-  grep -qF 'a feature folder that is a symlink' <<<"$skill"
-expect "the caller's exit-2 list names a spec.md that is a symlink" \
-  grep -qF 'a `spec.md` or an `issues` folder that is a symlink' <<<"$skill"
-expect "the caller's exit-2 list names an issues folder that is a symlink" \
-  grep -qF 'an `issues` folder that is a symlink' <<<"$skill"
-expect "the caller's exit-2 list names a resolver the allocator cannot find" \
-  grep -qF 'a resolver it cannot find' <<<"$skill"
 
 if [ "$fails" = 0 ]; then echo "PASS"; else
   echo "$fails failing"

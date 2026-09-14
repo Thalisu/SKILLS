@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 # probes.sh: the contract of the ticket Playbook's probes, scripts/ticket-door.sh,
 # scripts/resume-state.sh, scripts/gate.sh and scripts/flows.sh, exercised in a throwaway git
-# repository, and the sentences of the Playbook's reference and the shared mechanics that name
-# them. Run: bash skills/do/tests/probes.sh
+# repository. Run: bash skills/do/tests/probes.sh
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/../../../scripts/tests/lib.sh"
@@ -336,81 +335,6 @@ run "$resume" "$issues/04-claimed.md"
 check_lines "the resume finds the Ticket's worktree listed first among sixty more" 0 "$rc" \
   "worktree=$wt" "verdict=build"
 
-echo "# the reference names each probe with its command line"
-ticket_md="$skill/references/ticket.md"
-header_has() { # $1 label, $2 file, $3 fixed string that must appear in its first $4 lines
-  if sed -n "1,${4}p" "$2" | grep -qF -- "$3"; then echo "ok    $1"; else
-    echo "FAIL  $1 ($2)"
-    fails=$((fails + 1))
-  fi
-}
-header_has "the door script's header carries its own command line" "$door" "#   ticket-door.sh <the Ticket's path>" 12
-header_has "the resume script's header carries its own command line" "$resume" "#   resume-state.sh <the Ticket's path>" 12
-header_has "this test's header carries its own command line" "$here/probes.sh" "Run: bash skills/do/tests/probes.sh" 7
-has "the door runs its script, named with its command line" "$ticket_md" \
-  "\`bash <skill-dir>/scripts/ticket-door.sh <the Ticket's path>\`"
-has "the resume reads its script, named with its command line" "$ticket_md" \
-  "\`bash <skill-dir>/scripts/resume-state.sh <the Ticket's path>\`"
-has "every ambiguous verdict of the door is refused in one line naming its cause, nothing written" "$ticket_md" \
-  "A Ticket whose own status the script prints as \`ambiguous\`" \
-  "is refused in one line naming the cause from its \`ambiguous=\` line." \
-  "Nothing is written; the developer sets the status line by hand." \
-  "A \`ready-for-agent\` Ticket whose \`do/<slug>\` worktree already exists is refused in one line" \
-  "naming the worktree. Nothing is written"
-has "the first message states the door script's facts and marks no step skipped" "$ticket_md" \
-  "off the lines the door script printed" \
-  "The checklist above, verbatim, with no step marked skipped"
-
-has "a resume the review already read goes to the Gate and the fix call, never a second review" "$ticket_md" \
-  "On \`verdict=land\`" "never a second review"
-
-echo "# the review runs once per run (ADR 0033)"
-mech="$skill/references/mechanics.md"
-has "the review runs once per run, and what comes after it lands through the fix call" "$mech" \
-  "Run once per run" "never a second review" "\`fix\` with the Review's location" \
-  "the \`command=\` line the gate printed"
-has "a red flow lands through the fix call on the same Review" "$mech" \
-  "handed to the fix call on the same Review"
-has "a resume says why a Review beside the Ticket does not count" "$ticket_md" "review_skipped="
-has "a bug-fix resume counts only a Review of this branch whose every Axis ran" "$skill/references/bug-fix.md" \
-  "git log -g --format=%H refs/heads/do/<slug>" "\`not run\`"
-has "a Finding the first call left not fixed goes to a Fixer again on the fix call" "$mech" \
-  "left \`not fixed\` goes to a Fixer again"
-for f in "$mech" "$ticket_md" "$skill/references/bug-fix.md" "$skill/references/refactoring.md"; do
-  if grep -qF -- "second review call" "$f"; then
-    echo "FAIL  no Playbook hands a red flow to a second review call ($f)"
-    fails=$((fails + 1))
-  else echo "ok    no second review call in ${f##*/}"; fi
-done
-
-has "the resume says what the run does when the script exits 2 after the door's resume" "$ticket_md" \
-  "Exit 2 after the door's \`resume\`" \
-  "the run stops as blocked in one line naming the worktree and the script's reason"
-
-echo "# the resume asks before it discards"
-has "uncommitted work is asked about on the probe's ask, and nothing goes without the answer" "$ticket_md" \
-  "On \`verdict=ask\`" \
-  "the run asks before discarding them" \
-  "A yes discards them" "restarts red-first" \
-  "a no stops the run with the worktree as it is, the reply naming it and its branch" \
-  "Nothing is discarded without the answer"
-
-echo "# a resume after a landing that did not happen"
-has "a resume with every behaviour committed goes on at the gate, never waiting on an empty loop" "$ticket_md" \
-  "When every line of the list is ticked" \
-  "step 5 reads \`done: resumed\`" \
-  "the integration with the developer present"
-
-echo "# a skip is written when its step is reached"
-reply_md="$skill/references/reply.md"
-has "each step of the ticket checklist writes its own skip when it is reached" "$ticket_md" \
-  "Each step writes its own skip, with its reason, when the run reaches it"
-has "the reply's Skipped section holds only the steps the run reached" "$reply_md" \
-  "only the steps the run reached"
-has "a blocked reply names where it stopped and lists no step after it" "$reply_md" \
-  "names the step it stopped at" \
-  "lists no step after it as skipped"
-
 echo "# gate.sh: every check green"
 gate="$skill/scripts/gate.sh"
 cd "$top" || exit 1
@@ -440,7 +364,6 @@ run "$gate"
 check_lines "no check is a usage error" 2 "$rc"
 run "$gate" "true"
 check_lines "a check with no key is a usage error" 2 "$rc"
-header_has "the gate script's header carries its own command line" "$gate" "#   gate.sh " 12
 if script -qec true /dev/null </dev/null >/dev/null 2>&1; then
   run "$gate" "stdin=test ! -t 0" </dev/null
   bare_out="$out"
@@ -495,8 +418,6 @@ check_lines "a runner that cannot start and a service down are blocked, each cau
   "verdict=blocked"
 run "$gate" --infra
 check_lines "an --infra with no pattern is a usage error" 2 "$rc"
-header_has "the gate script's header carries its full command line" "$gate" \
-  "#   gate.sh [--infra <pattern>]... <key>=<command>..." 12
 
 echo "# flows.sh: the affected flows, from the main checkout"
 # A flow key holds a slash, so this reading takes `|` as its sed delimiter where logof takes `/`.
@@ -532,29 +453,7 @@ check_lines "a flow name holding = is a usage error" 2 "$rc"
     echo "FAIL  a flow name holding = runs nothing it carries ($marker exists)"
     fails=$((fails + 1))
   }
-header_has "the flows script's header carries its own command line" "$flows" \
-  "#   flows.sh [--infra <pattern>]... <single-flow command> <flow>..." 12
 cd "$top" || exit 1
-
-echo "# the shared mechanics run the gate and the flows from their scripts"
-mechanics_md="$skill/references/mechanics.md"
-has "the gate runs from its script, named with its command line" "$mechanics_md" \
-  "\`bash <skill-dir>/scripts/gate.sh [--infra <pattern>]... <key>=<command>...\`"
-has "the affected flows run from their script, named with its command line and printed first" "$mechanics_md" \
-  "\`bash <skill-dir>/scripts/flows.sh [--infra <pattern>]... <single-flow command> <flow>...\`" \
-  "its \`command=\` line printed first"
-has "a red gate goes back to the loop on the block already in the thread, never a rerun" "$mechanics_md" \
-  "the failing block is already in the thread, so the work goes back to the build loop as one more" \
-  "unit without rerunning the command, then the whole gate again"
-has "an environment failure the script reads as blocked stops the run, and a waiver is debt" "$mechanics_md" \
-  "\`verdict=blocked\`" "stops as blocked and names the cause from its \`cause=\` line" \
-  "a waiver is recorded as debt in the reply, never as green"
-has "the full suite or remote run stays the session's question, and a no is debt with the close still made" "$mechanics_md" \
-  "The script asks nothing" \
-  "A no records each flow that needed it as not run, leaves the criterion it would have proven" \
-  "records the waiver as debt in the reply; the close still happens"
-has "the ticket Playbook's gate and verification steps name the scripts" "$ticket_md" \
-  "\`scripts/gate.sh\`" "\`scripts/flows.sh\`"
 
 echo
 if [ "$fails" = 0 ]; then echo "probes: all checks passed"; else

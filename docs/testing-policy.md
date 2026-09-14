@@ -48,12 +48,15 @@ after it holds the project-specific values. In one breath, the core says:
 
 - **Done** is the change's own unit tests and E2E flows green, run against the change, then the
   post-feature gate the project picked: the full unit suite, the full E2E suite, both, or none. An
-  E2E stack that cannot run blocks, it never passes.
+  E2E stack that cannot run blocks, it never passes. On a unit surface there is no E2E tier: the
+  unit tests are the whole proof, and the gate is the full unit suite or none.
 - **Unit tests are written red-first, one at a time**: a tracer bullet, then red, minimal green,
   refactor on green, next test. Never a batch of tests ahead of the code.
 - **Tests describe behaviour through the public interface**, named for what they prove; mocks only
   at system boundaries, never the repo's own modules. A test that is hard to write that way is a
   design signal for a seam, not a reason to mock an internal.
+- **Only what matters earns a test**: a behavior a caller relies on, where a wrong result costs
+  something. A rename, a moved file, a reordered section or a phrase in prose gets no test.
 - **A failing test is a product bug until shown otherwise.** Skips, weakened assertions, sleeps
   and adjusted expectations are forbidden; the one legitimate rewrite is a test that broke on a
   pure refactor, because it was testing implementation.
@@ -75,6 +78,7 @@ renders accordingly:
 | native | owns a user-facing surface and its E2E flows | the standard tiered gate, with an `e2e-test-author` agent |
 | consumer | an API, a queue worker or a library with no surface of its own | impact-scoped over the repos that consume it; no E2E agent here, because a suite here would not represent the real flow |
 | mixed | both | each half gated by its own rule |
+| unit | has no E2E tier at all, by the owner's choice | none: the unit tests are the whole gate, and no `e2e-test-author` agent is installed |
 
 ## The Project map
 
@@ -134,7 +138,8 @@ agent drift detection, the shared skip patterns and the mixed gate; 2.2 moved th
 over implementation, boundary mocking and vertical TDD; 2.3 rewrote the templates' prose without
 changing a rule; 2.4 added the **Partial test data** line to the unit map; 2.5 made the gate after
 a feature a pick the install asks for, recorded as **Post-feature gate** in Project facts, and
-narrowed the per-change unit run to the tests the change adds or touches.
+narrowed the per-change unit run to the tests the change adds or touches; 2.6 added the unit surface
+and the rule that a test proves a behavior a caller relies on, never a name, a place or a phrase.
 
 **What is the difference between `stale` and `drifted`?**
 `stale` is an older version, the expected signal after the template moves. `drifted` is the

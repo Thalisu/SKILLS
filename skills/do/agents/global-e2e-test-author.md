@@ -5,7 +5,7 @@ tools: Read, Write, Edit, Bash, Grep, Glob
 ---
 <!-- The core below is skills/testing-policy/AGENT-E2E.md's, copied by `render-agent.sh --core-only e2e`; tests/global-authors.sh
      fails when it drifts from the template. Regenerate it, never edit it here. -->
-<!-- testing-policy:agent v=2.5 -->
+<!-- testing-policy:agent v=2.6 -->
 
 <!-- testing-policy:core-start -->
 

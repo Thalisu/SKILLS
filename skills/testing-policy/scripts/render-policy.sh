@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # render-policy.sh: render POLICY.md for one surface.
 #
-# Usage: render-policy.sh <native|consumer|mixed> [--core-only] [--policy FILE]
+# Usage: render-policy.sh <native|consumer|mixed|unit> [--core-only] [--policy FILE]
 #        render-policy.sh --version [--policy FILE]
 #   --core-only  print only the core-start..core-end block (what a refresh replaces)
 #   --version    print the template version number and exit
@@ -16,7 +16,7 @@ policy="$(dirname "$0")/../POLICY.md"
 surface="" core_only=0 want_version=0
 while [ $# -gt 0 ]; do
   case "$1" in
-    native|consumer|mixed) surface="$1"; shift ;;
+    native|consumer|mixed|unit) surface="$1"; shift ;;
     --core-only) core_only=1; shift ;;
     --version) want_version=1; shift ;;
     --policy) policy="${2:?--policy needs a file}"; shift 2 ;;
@@ -29,7 +29,7 @@ done
 version="$(sed -nE 's/^<!-- testing-policy version: ([0-9]+(\.[0-9]+)*) -->$/\1/p' "$policy" | head -1)"
 [ -n "$version" ] || { echo "no '<!-- testing-policy version: N -->' line in $policy" >&2; exit 2; }
 if [ "$want_version" = 1 ]; then echo "$version"; exit 0; fi
-[ -n "$surface" ] || { echo "usage: render-policy.sh <native|consumer|mixed> [--core-only]" >&2; exit 2; }
+[ -n "$surface" ] || { echo "usage: render-policy.sh <native|consumer|mixed|unit> [--core-only]" >&2; exit 2; }
 
 awk -v surface="$surface" -v version="$version" -v core_only="$core_only" '
   function out(l) {

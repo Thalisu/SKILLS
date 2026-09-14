@@ -214,27 +214,6 @@ expect "an existing ignore file is left untouched" \
   test "$(cat .gitignore)" = "node_modules/"
 expect "no scratch was made for a slug that named nothing" test ! -e .scratch
 
-# The repo has no runner, so a reviewer who has only this file reruns it from the line its own
-# header carries, and the line has to name the path the file actually sits at.
-root="$(cd "$here/../.." && pwd -P)"
-expect "the suite carries its own invocation line in its header" \
-  grep -qF "Run: bash scripts/tests/resolve-feature-folder.sh" <(head -4 "$here/resolve-feature-folder.sh")
-expect "the suite sits under the root scripts/tests, where its own line says" \
-  test "$here" = "$root/scripts/tests"
-expect "the script sits under .agents, outside every skill's folder" \
-  test "$resolve" -ef "$root/.agents/scripts/resolve-feature-folder.sh"
-
-# The shared Scratch contract is where a skill links for the rule, so it names this script as the
-# rule's one implementation and spells none of the rule out, or a link to it would restate the rule
-# by proxy. The prose is read as one line, so a phrase still counts where the paragraph wraps it.
-contract="$(tr '\n' ' ' <"$root/.agents/scratch.md" | tr -s ' ')"
-expect "the scratch contract names the resolver" \
-  grep -qF '[scripts/resolve-feature-folder.sh](scripts/resolve-feature-folder.sh)' <<<"$contract"
-expect "the scratch contract names it as the rule's one implementation" \
-  grep -qF 'the one executable form of the rule' <<<"$contract"
-out="$contract"
-absent "the scratch contract restates no tail match" "ending in"
-absent "the scratch contract restates no newest-wins rule" "the newest of them"
 
 if [ "$fails" = 0 ]; then echo "PASS"; else
   echo "$fails failing"
