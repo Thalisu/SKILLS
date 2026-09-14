@@ -47,7 +47,8 @@ started from (`git log <base>..do/<slug>` with `<base>` their merge base), each 
 - The first message says the run resumes, names the worktree and its branch, and lists the commits
   found, one line each with its `Behaviour:` line. Step 0's read-back, surface, predicate and loop
   line are recorded again from the request for the Reply's Run section, since nothing on the
-  branch carries them, and the checklist follows with step 1 reading `done: resumed`.
+  branch carries them, and the Reply's Run section carries the checklist with step 1 reading
+  `done: resumed`.
 - The run continues at the first step the branch does not evidence: no commit resumes at step 2,
   the reproduction commit alone resumes at step 6, the reproduction and its fix resume at step 7.
   The reproduction is never committed twice, and from the step it resumes at the run is a first
@@ -75,12 +76,13 @@ started from (`git log <base>..do/<slug>` with `<base>` their merge base), each 
 
 ## Checklist
 
-Copied verbatim into the run before any task-specific item; each step is ticked with its done
-condition below or stays visible as `skip: <reason>`:
+Copied verbatim into the run as its todo list before any task-specific item; each step is ticked
+with its done condition below or stays visible as `skip: <reason>`, and the Reply's Run section
+carries the checklist so ticked:
 
 ```
 bug-fix:
-- [ ] 0. Bug read back; the surface named; loop line; checklist shown
+- [ ] 0. Bug read back; the surface named; loop line; checklist copied
 - [ ] 1. Worktree created from HEAD and entered; tree clean
 - [ ] 2. Reproduced on the matching surface: the command line and the failing output
 - [ ] 3. Cause found: one line per hypothesis with its runtime evidence; instrumentation reverted
@@ -119,7 +121,8 @@ write them as it goes, and nothing depends on that:
 - The protected-branch warning when it applies (the protected branch in
   [mechanics.md](mechanics.md)): the line names the branch and the rule and says that
   landing will be refused on it, which the review does whatever the run wrote.
-- The checklist above, verbatim, copied as the run's todo list.
+- The checklist above, verbatim, copied as the run's todo list. The Reply's Run section carries it
+  after the lines above, each step the run reached ticked `done:` or reading `skip: <reason>`.
 
 There is no claim line and no Ticket to write, so the run proceeds without a yes, per
 [never-block-on-the-human](../../../.agents/principles/never-block-on-the-human.md). The surface is
