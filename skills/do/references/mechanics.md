@@ -57,8 +57,10 @@ The rule is the one `test-triage` uses: `main` or `master` is protected when `de
 `development`, `staging` or `release*` exists locally or on a remote; `production` or `prod` is
 protected when any of those or `main` or `master` exists; a default branch that is the only
 branch is the working branch. Nothing lands on a protected branch. A Playbook checks the
-developer's branch against it before the work starts and says in its first message that landing
-will be refused, so the developer switches before the work and not after.
+developer's branch against it before the work starts and records the warning for the Reply's Run
+section, per [reply.md](reply.md). The warning guards nothing: the review refuses the landing on a
+protected branch whatever the run wrote, so a warning the developer never read cannot let the work
+land where the rule forbids it.
 
 ## The Ticket file
 
