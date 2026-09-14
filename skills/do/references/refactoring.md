@@ -16,8 +16,9 @@ Claude Code, the `do` folder under the harness's skills directory elsewhere.
 
 ## Steps
 
-Copied verbatim into the run before any task-specific item; each step is ticked with its done line
-or stays visible as `skip: <reason>`:
+Copied verbatim into the run as its todo list before any task-specific item; each step is ticked
+with its done line or stays visible as `skip: <reason>`, and the Reply's Run section carries the
+checklist so ticked:
 
 ```
 refactoring:
@@ -79,7 +80,8 @@ nothing depends on that:
   itself with no test author dispatched; under `policy` that file is never read.
 - The protected-branch warning when it applies: the branch, the rule, and the line saying landing
   will be refused on it, which the review does whatever the run wrote.
-- The checklist above, verbatim, copied as the run's todo list.
+- The checklist above, verbatim, copied as the run's todo list. The Reply's Run section carries it
+  after the lines above, each step the run reached ticked `done:` or reading `skip: <reason>`.
 
 There is no claim line and no Ticket: outside the chain the branch and its commits are the whole
 state. The run proceeds without a yes, per
