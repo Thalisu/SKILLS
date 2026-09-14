@@ -13,8 +13,10 @@ The run is one message. It opens with `Playbook: trivial` as plain text on its f
 checklist below is copied verbatim as the run's todo list; the work runs; the same message closes
 with the Run section and the sections of [reply.md](reply.md). Its Run section carries the request
 read back in one line, then the checklist with each step the run reached ticked `done:` or reading
-`skip: <reason>`, never as text before the first edit; there is no loop
-line, no claim line and no protected-branch warning, since a protected branch is a refusal here.
+`skip: <reason>`. The copy in the Run section is the one the developer reads, so the checklist is
+never required as text before the first edit, and a session that writes it earlier is free to.
+There is no loop line, no claim line and no protected-branch warning, since a protected branch is a
+refusal here.
 Nothing is pushed. A refusal is that message cut short: the first line, the refusal with its reason, and the
 Playbook or the door the request goes to with the command to type, nothing edited.
 
