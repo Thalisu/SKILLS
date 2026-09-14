@@ -47,12 +47,14 @@ started from (`git log <base>..do/<slug>` with `<base>` their merge base), each 
 - The first message says the run resumes, names the worktree and its branch, and lists the commits
   found, one line each with its `Behaviour:` line. Step 0's read-back, surface, predicate and loop
   line are recorded again from the request for the Reply's Run section, since nothing on the
-  branch carries them, and the Reply's Run section carries the checklist with step 1 reading
-  `done: resumed`.
+  branch carries them, and the Reply's Run section carries the checklist with step 1 and every
+  step the commits show as already done before the step the run resumes at, each ticked
+  `done: resumed`: the worktree is never the only step ticked when the commits evidence more.
 - The run continues at the first step the branch does not evidence: no commit resumes at step 2,
-  the reproduction commit alone resumes at step 6, the reproduction and its fix resume at step 7.
-  The reproduction is never committed twice, and from the step it resumes at the run is a first
-  run.
+  with step 1 alone ticked `done: resumed`; the reproduction commit alone resumes at step 6, with
+  steps 1 through 5 ticked `done: resumed`; the reproduction and its fix resume at step 7, with
+  steps 1 through 6 ticked `done: resumed`. The reproduction is never committed twice, and from the
+  step it resumes at the run is a first run.
 - A Review of the branch, `.scratch/reviews/<the branch, each slash a dash>.md` in the main
   checkout, evidences the review step only when it read this branch and finished: the commit its
   `Commit:` header names is one the branch has been at,
