@@ -14,19 +14,24 @@
 # Behaviour: line, or none>; commits; one uncommitted=<the git status --short line> per entry,
 # paths quoted by git as core.quotePath does; one conflicted=<path> per file an open rebase left
 # unmerged; review_skipped=<stale | axis-not-run> <path> when a Review beside the Ticket does not
-# count; review, the Review beside the Ticket when it counts, else none; then verdict. A Review
-# counts when the commit its Commit: header names is one this branch has been at, read off the
-# branch's reflog, is not reachable from the commit the branch was created at, the reflog's oldest
-# entry, and none of its Axis lines reads not run. It only reads: the ask before a
-# discard is the run's, never this script's.
+# count; review, the Review beside the Ticket when it counts, else none; extreme, the
+# <Ticket>.extreme.md sidecar a first run's Extreme stop left beside the Ticket, when one is there,
+# followed by discuss, that file's first line, the /discuss command the stop printed; then verdict.
+# A Review counts when the commit its Commit: header names is one this branch has been at, read off
+# the branch's reflog, is not reachable from the commit the branch was created at, the reflog's
+# oldest entry, and none of its Axis lines reads not run. It only reads: the ask before a
+# discard is the run's, never this script's, and so is the sidecar's write: this script never
+# writes one.
 #
 # verdict, first match wins: integration (a rebase is open) · ask (uncommitted work in the
-# worktree) · land (the review already read the branch, so the run goes to the Gate and the fix
-# call, never to a second review) · build (the loop continues at the first behaviour without a
-# commit).
+# worktree) · extreme (exit 5, the sidecar of a first run's Extreme stop is still there, so the
+# resume prints its own discuss= line rather than meeting the fork again) · land (the review
+# already read the branch, so the run goes to the Gate and the fix call, never to a second review)
+# · build (the loop continues at the first behaviour without a commit).
 #
-# Exit codes: 0 build · 1 ask · 3 integration · 4 land · 2 usage, no Ticket at the path, no
-# worktree git lists at its path, a detached HEAD with no rebase open, or not a git repository.
+# Exit codes: 0 build · 1 ask · 3 integration · 4 land · 5 extreme · 2 usage, no Ticket at the
+# path, no worktree git lists at its path, a detached HEAD with no rebase open, or not a git
+# repository.
 set -uo pipefail
 
 usage() { echo "usage: resume-state.sh <the Ticket's path>" >&2; exit 2; }
@@ -116,8 +121,17 @@ fi
 [ -z "$skipped" ] || echo "review_skipped=$skipped"
 echo "review=$review"
 
+extreme="${path%.md}.extreme.md"
+if [ -f "$extreme" ]; then
+  echo "extreme=$extreme"
+  echo "discuss=$(head -1 "$extreme")"
+else
+  extreme=""
+fi
+
 if [ "$rebase" = open ]; then echo "verdict=integration"; exit 3; fi
 if [ "$dirty" = 1 ]; then echo "verdict=ask"; exit 1; fi
+if [ -n "$extreme" ]; then echo "verdict=extreme"; exit 5; fi
 if [ "$review" != none ]; then echo "verdict=land"; exit 4; fi
 echo "verdict=build"
 exit 0

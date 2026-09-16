@@ -290,6 +290,17 @@ git worktree remove --force .claude/worktrees/do-recreated
 g branch -D do/recreated >/dev/null
 rm "$issues/30-recreated.review.md" "$issues/30-recreated.md"
 
+# The extreme paragraph of mechanics.md: a rerun on an unchanged Spec must meet the same Extreme
+# fork and print the same /discuss command, never fork a choice-taker a second time. The sidecar
+# is the record a first run's stop left beside the Ticket, the way a Review or a Digest is.
+echo "# resume-state.sh: an Extreme stop's persisted record"
+discuss_line="/discuss Ticket $issues/04-claimed.md, Spec .scratch/20260101-feat/spec.md: the do run stopped at the build step on an Extreme fork, delete the note or keep it archived; delete the note would give up recoverability (data loss). Which side does the Spec take?"
+printf '%s\n' "$discuss_line" >"$issues/04-claimed.extreme.md"
+run "$resume" "$issues/04-claimed.md"
+check_lines "an Extreme stop's persisted record resumes on its own /discuss command, never the landing a Review would give" 5 "$rc" \
+  "extreme=$top/$issues/04-claimed.extreme.md" "discuss=$discuss_line" "commits=2" "verdict=extreme"
+rm "$issues/04-claimed.extreme.md"
+
 echo "# resume-state.sh: a rebase the integration left open"
 printf 'one\nmain side\n' >notes.txt
 g commit -q -am "main moves"
