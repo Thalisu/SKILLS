@@ -139,7 +139,9 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   way once `discuss` amended the Spec: the reader is forked again over the amended Spec and the
   journey both, never over the Spec alone, whose Digest would come back with no Journey Path for
   step 4 to read, and the list is re-derived from the Digest that comes back, then the loop
-  continues at the first behaviour without a commit.
+  continues at the first behaviour without a commit. With the Spec unchanged, both hashes match
+  and the resume meets the same fork at the same step, and stops with the same reply and the same
+  `/discuss` command.
 
 ## Checklist
 

@@ -365,6 +365,12 @@ A side that cannot be undone once landed reads `<the weaker side> cannot be undo
 every slot filled from the stop's own facts and none from the session's wording, so a rerun that
 meets the same fork prints the same command.
 
+A `/do` typed again on the Ticket with the Spec unchanged is a resume: both hashes match, the
+Digest is reused, the list is re-derived from it, and the run meets the same fork at the same step
+and stops with the same reply and the same `/discuss` command, since nothing the fork stands on
+moved. Once `discuss` amended the Spec, the resume re-forks the reader, as the Resume of
+[ticket.md](ticket.md) says.
+
 ### Delegates
 
 The session writes the production code and commits. A delegate is forked by exception, per
