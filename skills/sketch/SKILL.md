@@ -39,13 +39,15 @@ The destination goes through one check before the agent is forked, so a refused 
 exploration:
 
 ```sh
-dest="$(readlink -m <the destination>)"; scratch="$(readlink -m <root>/.scratch)"
-case "$dest" in "$scratch"/*) echo inside ;; *) echo refused ;; esac
+dest="$(readlink -m <the destination>)"
+case "$dest" in "<root>/.scratch/"*) echo inside ;; *) echo refused ;; esac
 ```
 
 `refused` ends the command: nothing is written, and one line names the path that was refused.
-`readlink -m` collapses the `..` and follows the symlinks, so a path that only looks contained is
-caught here.
+`readlink -m` collapses the `..` and follows the symlinks in the destination, so a path that only
+looks contained is caught here. The other side stays the unresolved `<root>/.scratch/`, so a
+`.scratch` that is itself a symlink sends the destination outside the prefix and is refused on
+every row of step 1, including the one without the resolver.
 
 ## 3. The shape
 

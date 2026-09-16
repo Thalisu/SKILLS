@@ -44,6 +44,30 @@ expect "from a subdirectory of the main checkout, the exit-0 destination is the 
   test "$sketch_dest_resolved" = "$sketch_want_dest"
 rm -rf "$sketch_tmp"
 
+# SKILL.md's own step 2 runs its containment check before the agent is forked. Run for real,
+# against a main checkout whose `.scratch` is itself a symlink: the resolved destination and the
+# unresolved root/.scratch prefix must still refuse it, never compare the two sides through the
+# same link.
+sketch_check_snippet="$(awk '
+  /^The destination goes through one check before the agent is forked/ { f = 1 }
+  f && /^```sh$/ { c++; if (c == 1) { p = 1; next } }
+  p && /^```$/ { exit }
+  p
+' "$skill_md")"
+expect "SKILL.md's own containment check is found under its heading" test -n "$sketch_check_snippet"
+
+sketch_check_tmp="$(mktemp -d)"
+mkdir -p "$sketch_check_tmp/outside" "$sketch_check_tmp/repo"
+ln -s "$sketch_check_tmp/outside" "$sketch_check_tmp/repo/.scratch"
+sketch_check_root="$(cd "$sketch_check_tmp/repo" && pwd -P)"
+sketch_check_dest="$sketch_check_root/.scratch/sketches/42.md"
+sketch_check_filled="${sketch_check_snippet//<the destination>/$sketch_check_dest}"
+sketch_check_filled="${sketch_check_filled//<root>/$sketch_check_root}"
+sketch_check_result="$(bash -c "$sketch_check_filled")"
+expect "a main checkout whose .scratch is a symlink is refused by SKILL.md's own check, never compared through the link" \
+  test "$sketch_check_result" = "refused"
+rm -rf "$sketch_check_tmp"
+
 # do's shape step runs its own containment check, in skills/do/references/ticket.md, before it
 # forks the agent. Run for real, against a main checkout whose `.scratch` is itself a symlink: the
 # resolved destination and the unresolved root/.scratch prefix must still refuse it, never compare
