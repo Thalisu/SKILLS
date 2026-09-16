@@ -233,7 +233,8 @@ reads no file whole; it says so in one line, names the map as thinner, and the r
 Then the discover batch:
 call the Skill tool with `discover` once, with every symbol the Ticket, its Digest and the map
 name in one batch, in the form the Discovery rule fixes, before the first of them is created, and
-log the audit line, `Discovery: n FOUND · n DUPLICATE · n NOT_FOUND`. When `discover` is not
+record the audit line, `Discovery: n FOUND · n DUPLICATE · n NOT_FOUND`, for the Reply's Run
+section, which carries it after the checklist per [reply.md](reply.md). When `discover` is not
 listed, one `rg -n -w` per candidate stands in and the audit line says so. A symbol the Sketch
 adds later is checked before it is created the way the Discovery rule allows: one direct
 `rg -n -w` for a single name, one more batch for two or more. Restate done as a predicate,
@@ -250,8 +251,9 @@ reads `none yet → /testing-policy`. The step names in one line the map's locat
 it filled, off the lines the script printed; the loop and the flows step read that file and never
 derive it again. Then read the session's context once, `bash
 <skill-dir>/scripts/context-usage.sh`, and keep its `current` figure: it is the `grounded` figure
-of the `Context:` line the close writes per [mechanics.md](mechanics.md). Done when the predicate,
-the audit line and the context reading are in the thread, and the map line with no Testing Policy.
+of the `Context:` line the close writes per [mechanics.md](mechanics.md). Done when the predicate
+and the context reading are in the thread, the audit line is recorded for the Reply, and the map
+line with no Testing Policy.
 
 **3. Shape.** Name the data shape and its organising structure before any logic, per
 [foundational-thinking](../../../.agents/principles/foundational-thinking.md) and

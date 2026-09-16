@@ -16,7 +16,7 @@ Reply carries it, and text the session wrote mid-run is never where a line has t
 ## Run
 
 How the run was set up, one line each, in this order, each taken from the step that recorded it
-and written only when that Playbook's step 0 names it:
+and written only when that Playbook's steps name it:
 
 1. **Read-back.** The request or the Ticket confirmed back: the Ticket's `<NN>: <title>`, or the
    reshape or the bug in the developer's terms.
@@ -31,8 +31,11 @@ and written only when that Playbook's step 0 names it:
    `done:` or reading `skip: <reason>`, and a step it never reached left as it was copied. The run
    copied it at its start as its own todo list; the copy in the Reply is the one the developer
    reads, so it is never required as text before the first edit.
+8. **Audit line.** The discover audit line the ground step recorded,
+   `Discovery: n FOUND · n DUPLICATE · n NOT_FOUND`, saying so when one `rg -n -w` per candidate
+   stood in for the batch.
 
-The lines record what step 0 decided; they gate nothing. The order constraints on actions stay
+The lines record what the steps decided; they gate nothing. The order constraints on actions stay
 with the steps that carry them (the door script before any write, the worktree before the first
 edit), and a landing on a protected branch is refused by the review whatever the Run section says.
 
