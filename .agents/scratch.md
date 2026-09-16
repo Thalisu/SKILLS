@@ -58,9 +58,16 @@ Whether the line is owed at all is the `-v` probe's answer, below. The append it
 idempotent, because two runs at once both probe before either writes:
 
 ```sh
-grep -qxF '.scratch/' .gitignore 2>/dev/null ||
-  { [ -z "$(tail -c1 .gitignore 2>/dev/null)" ] || echo; printf '.scratch/\n'; } >> .gitignore
+if [ -L .gitignore ]; then
+  echo '.scratch/ is not ignored: .gitignore is a symlink, so nothing was appended'
+else
+  grep -qxF '.scratch/' .gitignore 2>/dev/null ||
+    { [ -z "$(tail -c1 .gitignore 2>/dev/null)" ] || echo; printf '.scratch/\n'; } >> .gitignore
+fi
 ```
+
+A `.gitignore` that is a symlink gets no append: every write would follow the link out of the
+tree, so the run leaves the target alone and says in one line that the scratch is not ignored.
 
 A `.gitignore` whose last line has no newline gets one first: appended bare, the line would join
 that pattern, and neither would match. The guard covers the race, not the rule: a project whose

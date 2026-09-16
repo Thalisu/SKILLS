@@ -99,6 +99,20 @@ ignore_append_keeps_lines() { # $1 a file relative to the repo root, $2 the rege
   expect "$1: the ignore append to a .gitignore without a final newline keeps its last pattern intact" \
     grep -qxF node_modules "$root/.gitignore"
   rm -rf "$tmp"
+
+  tmp="$(mktemp -d)"
+  mkdir -p "$tmp/repo"
+  (cd "$tmp/repo" && g init -q -b main)
+  printf 'node_modules' >"$tmp/outside"
+  cp "$tmp/outside" "$tmp/outside.before"
+  ln -s "$tmp/outside" "$tmp/repo/.gitignore"
+  root="$(cd "$tmp/repo" && pwd -P)"
+  out="$(timeout 8 bash -c "${snippet//<root>/$root}" 2>&1)"
+  expect "$1: the ignore append leaves a symlinked .gitignore's target byte-for-byte unchanged" \
+    cmp -s "$tmp/outside" "$tmp/outside.before"
+  expect "$1: the ignore append says it wrote nothing because .gitignore is a symlink" \
+    grep -qF '.gitignore is a symlink' <<<"$out"
+  rm -rf "$tmp"
 }
 ignore_append_keeps_lines skills/do/references/ticket.md \
   '^A first field of `.gitignore` owes nothing; anything else owes the line'
