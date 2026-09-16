@@ -353,6 +353,18 @@ The stop is a blocked run, written by the blocked shape of [reply.md](reply.md),
 Nothing is written to the Spec, and the Ticket's criteria are left as they are: only a `settled`
 Ruling writes either, and an Extreme fork has none.
 
+The reply's last line is the `/discuss` command the developer copies, whole, with nothing after it,
+in this shape:
+
+```
+/discuss Ticket <the Ticket's path or reference>, Spec <the Spec's path or reference>: the do run stopped at the <step> step on an Extreme fork, <side A> or <side B>; <the weaker side> would give up <the guarantee> (<the risk class>). Which side does the Spec take?
+```
+
+A side that cannot be undone once landed reads `<the weaker side> cannot be undone once landed:
+<what could not be undone>` in place of the clause after the semicolon. The message is one line,
+every slot filled from the stop's own facts and none from the session's wording, so a rerun that
+meets the same fork prints the same command.
+
 ### Delegates
 
 The session writes the production code and commits. A delegate is forked by exception, per
