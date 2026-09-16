@@ -230,8 +230,13 @@ a stop named, and the next run on that Ticket forks the reader fresh.
   answer the last one.
 - A `ticket` run that met a Design fork says so in one line naming both sides, then goes on: the
   Spec's Implementation Decisions gain one line marked as the choice-taker's, and a Ticket criterion
-  changes only when it was the side that lost. Only an Extreme fork stops the run and names
-  `discuss`.
+  changes only when it was the side that lost. Only an Extreme fork stops the run.
+- A run that stopped on an Extreme fork names the step, both sides and the guarantee the weaker side
+  would lose with its risk class, or what could not be undone once landed. The Ticket stays
+  `claimed`, the worktree and its branch are named with the commits made so far, and nothing is
+  written to the Spec or the Ticket's criteria. The last line is a complete `/discuss` command you
+  copy. Typing `/do` on the Ticket again before `discuss` amended the Spec gives the same stop and
+  the same command.
 - A `trivial` request costs you one message, start to finish.
 
 ## Where it fits
