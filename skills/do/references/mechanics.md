@@ -332,9 +332,15 @@ the first behaviour without a commit.
 A fork that touches a risk class with both sides keeping the guarantee whole is ruled on like any
 other and never stops the run. An Extreme fork, one of whose sides weakens a guarantee in a risk
 class (security, privacy, data loss, auth, billing, migration, idempotency, race) or cannot be
-undone once landed, is the one the `choice-taker` does not rule: it returns `extreme`, and the run
-stops at its step with one message naming `discuss`, the Ticket left `claimed` and the worktree in
-place, so that the next `/do` on the Ticket resumes it once the Spec is amended.
+undone once landed, is one nothing in the run rules on. Two readings can find it, and either one
+alone stops the run at its step. The session reads the two sides first: a side it reads as Extreme
+stops the run there, and no `choice-taker` is forked for a fork already read as Extreme. Otherwise
+the `choice-taker` is forked as above, and an `extreme` return stops the run the same way, its
+`Fork:` and `Guarantee:` lines being what the stop names. The session never overrules either
+reading: a fork it read as ordinary and the `choice-taker` returned `extreme` on stops, and so
+does a fork it read as Extreme that a `choice-taker` might have settled. The stop is one message
+naming `discuss`, the Ticket left `claimed` and the worktree in place, so that the next `/do` on
+the Ticket resumes it once the Spec is amended.
 
 ### Delegates
 
