@@ -353,7 +353,10 @@ The stop is a blocked run, written by the blocked shape of [reply.md](reply.md),
 - the commits made so far, one line each as the resume lists them, or `none`.
 
 Nothing is written to the Spec, and the Ticket's criteria are left as they are: only a `settled`
-Ruling writes either, and an Extreme fork has none.
+Ruling writes either, and an Extreme fork has none. The stop does write one file beside the Ticket,
+its `<Ticket>.extreme.md` sidecar, one line, the `/discuss` command below, so `resume-state.sh`
+finds it on a later `/do` and reports it as its `extreme=` and `discuss=` lines instead of meeting
+the fork again.
 
 The reply's last line is the `/discuss` command the developer copies, whole, with nothing after it,
 in this shape:

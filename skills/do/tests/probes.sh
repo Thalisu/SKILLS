@@ -301,6 +301,29 @@ check_lines "an Extreme stop's persisted record resumes on its own /discuss comm
   "extreme=$top/$issues/04-claimed.extreme.md" "discuss=$discuss_line" "commits=2" "verdict=extreme"
 rm "$issues/04-claimed.extreme.md"
 
+# The write side of the same paragraph: the /discuss shape mechanics.md fixes, filled the way a
+# real stop fills it and written as the one-line sidecar the paragraph now instructs, must round
+# trip through resume-state.sh exactly, proving the write and the read agree on the same shape.
+echo "# resume-state.sh: the /discuss shape mechanics.md fixes, written as the sidecar a stop leaves"
+template="$(awk '
+  /^```$/ { fence = !fence; next }
+  fence && /^\/discuss Ticket/ { print; exit }
+' "$skill/references/mechanics.md")"
+[ -n "$template" ] || { echo "FAIL  mechanics.md carries no /discuss template to fill"; fails=$((fails + 1)); }
+filled="$(printf '%s\n' "$template" | sed \
+  -e "s#<the Ticket's path or reference>#$issues/04-claimed.md#" \
+  -e "s#<the Spec's path or reference>#.scratch/20260101-feat/spec.md#" \
+  -e 's#<the step>#build#' \
+  -e 's#<side A> or <side B>#delete the note or keep it archived#' \
+  -e 's#<the weaker side> would give up <the guarantee> (<the risk class>)#delete the note would give up recoverability (data loss)#')"
+printf '%s\n' "$filled" >"$issues/04-claimed.extreme.md"
+expect "the filled template writes as a single line, per the paragraph's one-line sidecar" \
+  test "$(wc -l <"$issues/04-claimed.extreme.md")" = 1
+run "$resume" "$issues/04-claimed.md"
+check_lines "the sidecar written from mechanics.md's own template reads back byte for byte" 5 "$rc" \
+  "extreme=$top/$issues/04-claimed.extreme.md" "discuss=$filled" "verdict=extreme"
+rm "$issues/04-claimed.extreme.md"
+
 echo "# resume-state.sh: a rebase the integration left open"
 printf 'one\nmain side\n' >notes.txt
 g commit -q -am "main moves"
