@@ -34,6 +34,8 @@ and written only when that Playbook's steps name it:
 8. **Audit line.** The discover audit line the ground step recorded,
    `Discovery: n FOUND · n DUPLICATE · n NOT_FOUND`, saying so when one `rg -n -w` per candidate
    stood in for the batch.
+9. **Hand-over.** When the shape step forked `sketch`, what it handed over, in one line: what to
+   shape, the map, the Digest's location and the destination.
 
 The lines record what the steps decided; they gate nothing. The order constraints on actions stay
 with the steps that carry them (the door script before any write, the worktree before the first
