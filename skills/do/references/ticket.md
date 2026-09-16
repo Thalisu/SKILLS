@@ -316,7 +316,7 @@ A first field of `.gitignore` owes nothing; anything else owes the line, appende
 write and said in one line:
 
 ```sh
-( cd <root> && { grep -qxF '.scratch/' .gitignore 2>/dev/null || printf '.scratch/\n' >> .gitignore; } )
+( cd <root> && { grep -qxF '.scratch/' .gitignore 2>/dev/null || { [ -z "$(tail -c1 .gitignore 2>/dev/null)" ] || echo; printf '.scratch/\n'; } >> .gitignore; } )
 ```
 
 Then the session writes the Sketch whole at the destination, the text the agent returned and

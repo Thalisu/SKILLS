@@ -58,11 +58,13 @@ Whether the line is owed at all is the `-v` probe's answer, below. The append it
 idempotent, because two runs at once both probe before either writes:
 
 ```sh
-grep -qxF '.scratch/' .gitignore 2>/dev/null || printf '.scratch/\n' >> .gitignore
+grep -qxF '.scratch/' .gitignore 2>/dev/null ||
+  { [ -z "$(tail -c1 .gitignore 2>/dev/null)" ] || echo; printf '.scratch/\n'; } >> .gitignore
 ```
 
-The guard covers the race, not the rule: a project whose own `.gitignore` already carries the
-rule, under this pattern or another, never reaches the append. This is the only write outside
+A `.gitignore` whose last line has no newline gets one first: appended bare, the line would join
+that pattern, and neither would match. The guard covers the race, not the rule: a project whose
+own `.gitignore` already carries the rule, under this pattern or another, never reaches the append. This is the only write outside
 the scratch a chain skill makes, and the only race whose loser leaves a duplicated line in the
 team's history.
 

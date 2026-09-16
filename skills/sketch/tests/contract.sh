@@ -79,6 +79,26 @@ expect "a plain .scratch directory still lets a destination inside it through" \
   test "$door_result2" = "inside"
 rm -rf "$door_tmp2"
 
+ignore_snippet="$(awk '
+  /^A first field of `.gitignore` owes nothing; anything else owes the line/ { f = 1 }
+  f && /^```sh$/ { p = 1; next }
+  p && /^```$/ { exit }
+  p
+' "$repo/skills/do/references/ticket.md")"
+expect "the shape step's scratch ignore append is found in ticket.md" test -n "$ignore_snippet"
+
+ignore_tmp="$(mktemp -d)"
+mkdir -p "$ignore_tmp/repo"
+(cd "$ignore_tmp/repo" && g init -q -b main)
+printf 'node_modules' >"$ignore_tmp/repo/.gitignore"
+ignore_root="$(cd "$ignore_tmp/repo" && pwd -P)"
+bash -c "${ignore_snippet//<root>/$ignore_root}"
+expect "the ignore append to a .gitignore without a final newline makes .scratch/ ignored" \
+  bash -c 'cd "$1" && git check-ignore -q .scratch/' _ "$ignore_root"
+expect "the ignore append to a .gitignore without a final newline keeps its last pattern intact" \
+  grep -qxF node_modules "$ignore_root/.gitignore"
+rm -rf "$ignore_tmp"
+
 if [ "$fails" = 0 ]; then echo "PASS"; else
   echo "$fails failing"
   exit 1
