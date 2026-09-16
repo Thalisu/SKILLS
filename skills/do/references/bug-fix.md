@@ -92,7 +92,7 @@ bug-fix:
 - [ ] 5. Failing test with origin bugfix: RED_AS_EXPECTED, committed before the fix
 - [ ] 6. Smallest fix on top: one commit through the shared loop, green, typecheck, format
 - [ ] 7. The original reproduction run again on the same surface: the passing output
-- [ ] 8. Gate in the worktree: full unit suite, typecheck, format
+- [ ] 8. Gate in the worktree: the run's own tests, typecheck, format, and the full suites the Post-feature gate names
 - [ ] 9. Integration: the branch rebased onto the developer's branch, the gate again when it replayed
 - [ ] 10. Review by do-code-review: Act on Findings fixed by its Fixer, landed when Green
 - [ ] 11. Affected E2E flows run from the main checkout
@@ -114,8 +114,9 @@ write them as it goes, and nothing depends on that:
   it, so it is named before the worktree exists.
 - Done as a predicate, each part checkable: the defect reproduced on that surface, its cause
   confirmed by runtime evidence, a failing test red before the fix and green after it, the original
-  reproduction passing on the same surface, and the gate (the full unit suite, the typecheck, the
-  lint and the format green in the worktree after the last edit).
+  reproduction passing on the same surface, and the gate (the unit tests the run added and the ones
+  covering the code it touched, the typecheck, the lint and the format green in the worktree after
+  the last edit, and the full suites the project's Post-feature gate names).
 - The loop line: `Loop: policy` when `.claude/agents/unit-test-author.md` exists in the project,
   `Loop: fallback` otherwise. Under `fallback` the build loop of [mechanics.md](mechanics.md) reads
   [tdd-fallback.md](tdd-fallback.md) and the run writes the failing test itself, with no test author

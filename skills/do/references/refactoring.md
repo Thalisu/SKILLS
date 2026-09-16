@@ -31,7 +31,7 @@ refactoring:
 7. prove: the harness's run on the new code quoted, the equivalence script for a large reshape
 8. exit test: reader load lower with the reason, or the one question before the revert
 9. cleanup: the speculative cleanup reverted, the harness deleted and its gap named, one commit
-10. gate: the full unit suite, the typecheck, the lint and the format in the worktree
+10. gate: the run's own tests, the typecheck, the lint and the format in the worktree, and the full suites the Post-feature gate names
 11. integration: the branch rebased onto the developer's branch, the gate again when it replayed
 12. review: do-code-review on the branch's diff, landed when Green
 13. verification: the affected flows from the main checkout
@@ -349,9 +349,10 @@ the thread with its command.
 
 ### 10. Gate
 
-The gate in [mechanics.md](mechanics.md), in the worktree, after the last edit: the full unit suite,
-the typecheck, the lint and the format check, each command line shown and its relevant output line
-quoted. A red gate is one more step of the reshape, taken as step 6 takes one, and then the whole
+The gate in [mechanics.md](mechanics.md), in the worktree, after the last edit: the unit tests the
+run added and the ones covering the code it touched, the typecheck, the lint and the format check,
+and the full suites the project's Post-feature gate names, since a run with no Spec behind it is
+its feature's last, each command line shown and its relevant output line quoted. A red gate is one more step of the reshape, taken as step 6 takes one, and then the whole
 gate again; never a skipped test, a weakened assertion or a pin edited to fit. Done when the suite
 and the typecheck are green in output produced after the last edit.
 

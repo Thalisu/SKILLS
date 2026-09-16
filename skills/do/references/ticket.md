@@ -155,7 +155,7 @@ Do:
 - [ ] 4. Behaviours listed from the plan, critical paths first
 - [ ] 5. Build loop: one behaviour, one dispatch, one green commit, repeat
 - [ ] 6. E2E flows authored or extended (native and mixed surfaces)
-- [ ] 7. Gate in the worktree: full unit suite, typecheck, format
+- [ ] 7. Gate in the worktree: the Ticket's own tests, typecheck, format; the full suites on the feature's last Ticket
 - [ ] 8. Integration: the branch rebased onto the developer's branch, the gate again when it replayed
 - [ ] 9. Review by do-code-review: Act on Findings fixed by its Fixer, landed when Green
 - [ ] 10. Affected E2E flows run from the main checkout
@@ -172,8 +172,10 @@ them as it goes, and nothing depends on that:
 
 - `Playbook: ticket`.
 - The title confirmed back, `<NN>: <title>`.
-- Done as a predicate: the acceptance criteria plus the gate (the full unit suite, the typecheck,
-  the lint and the format green in the worktree after the last edit), each part checkable.
+- Done as a predicate: the acceptance criteria plus the gate (the unit tests the run added and the
+  ones covering the code it touched, the typecheck, the lint and the format green in the worktree
+  after the last edit, and the full suites the project's Post-feature gate names when this is the
+  feature's last Ticket), each part checkable.
 - The loop line, off the door's `loop=` line:
   `Loop: policy` when `.claude/agents/unit-test-author.md` exists in the project,
   `Loop: global` when it does not and `~/.claude/agents/global-unit-test-author.md` is linked,
