@@ -72,7 +72,7 @@ A first field of `.gitignore` owes nothing. Anything else, the clone's exclude l
 excludes file or no output at all, owes the line, appended before the write:
 
 ```sh
-( cd <root> && { grep -qxF '.scratch/' .gitignore 2>/dev/null || printf '.scratch/\n' >> .gitignore; } )
+( cd <root> && { grep -qxF '.scratch/' .gitignore 2>/dev/null || { [ -z "$(tail -c1 .gitignore 2>/dev/null)" ] || echo; printf '.scratch/\n'; } >> .gitignore; } )
 ```
 
 Then write the Sketch whole at the destination, the text the agent returned and nothing added. A
