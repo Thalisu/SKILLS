@@ -320,8 +320,9 @@ write and said in one line:
 ```
 
 Then the session writes the Sketch whole at the destination, the text the agent returned and
-nothing added, and the run names the Sketch's location and the shape in one line in the thread:
-the types, the signatures and the module boundaries. It opens the Sketch when a behaviour needs
+nothing added, and the run records the Sketch's location and the shape in one line for the Reply's
+Run section, per [reply.md](reply.md): the types, the signatures and the module boundaries, in a
+few words. It opens the Sketch when a behaviour needs
 more than that line, and never restates the rivals, which stay in the file.
 
 A return that does not carry every section of
@@ -337,7 +338,8 @@ surfaced in the reply, and a second deviation of the same shape stops the run as
 the deviations listed, the worktree and its branch named, the message naming `discuss`. A
 Design fork the shape meets, two shapes the Ticket, its Spec and the code cannot settle, goes to
 the forks in [mechanics.md](mechanics.md). Done
-when the shape is in the thread, with the Sketch's location when a Sketch was filed, or the skip.
+when the shape is in the thread, or the skip, and, when a Sketch was filed, the hand-over and the
+Sketch's location with its shape are recorded for the Reply.
 
 **4. Behaviours.** The run names the Digest's location and restates it in one line, its Journey
 Path, the story numbers it carries, its Testing Decisions and the criteria it marks observable, so

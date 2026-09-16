@@ -94,7 +94,7 @@ Two things:
 
 1. the Sketch's text, whole, in the format, its header's own-path key the path the brief names;
 2. the shape in one line, the types, the signatures and the boundaries, so your caller restates it
-   in the thread without opening the file.
+   in its Reply without opening the file.
 
 One more line, only when it is owed: that the brief carried no map. Never the exploration and
 never a file you read outside the Sketch's own lines.

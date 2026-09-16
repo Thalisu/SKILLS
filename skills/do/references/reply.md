@@ -36,6 +36,8 @@ and written only when that Playbook's steps name it:
    stood in for the batch.
 9. **Hand-over.** When the shape step forked `sketch`, what it handed over, in one line: what to
    shape, the map, the Digest's location and the destination.
+10. **Sketch line.** When a Sketch was filed, its location and the shape it settled in a few
+    words, so the developer learns both without opening it.
 
 The lines record what the steps decided; they gate nothing. The order constraints on actions stay
 with the steps that carry them (the door script before any write, the worktree before the first
