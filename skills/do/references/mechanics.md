@@ -338,9 +338,20 @@ stops the run there, and no `choice-taker` is forked for a fork already read as 
 the `choice-taker` is forked as above, and an `extreme` return stops the run the same way, its
 `Fork:` and `Guarantee:` lines being what the stop names. The session never overrules either
 reading: a fork it read as ordinary and the `choice-taker` returned `extreme` on stops, and so
-does a fork it read as Extreme that a `choice-taker` might have settled. The stop is one message
-naming `discuss`, the Ticket left `claimed` and the worktree in place, so that the next `/do` on
-the Ticket resumes it once the Spec is amended.
+does a fork it read as Extreme that a `choice-taker` might have settled.
+
+The stop is a blocked run, written by the blocked shape of [reply.md](reply.md), and it names:
+
+- the step it stopped at, the shape step, the behaviours step or the build step, with the
+  behaviour in flight when it was the build step;
+- both sides, as the run's Design fork line named them;
+- the guarantee the weaker side would lose, with its risk class, or what could not be undone once
+  landed;
+- the Ticket, left `claimed`, and the worktree and its branch, both left in place;
+- the commits made so far, one line each as the resume lists them, or `none`.
+
+Nothing is written to the Spec, and the Ticket's criteria are left as they are: only a `settled`
+Ruling writes either, and an Extreme fork has none.
 
 ### Delegates
 
