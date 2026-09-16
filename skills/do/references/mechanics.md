@@ -336,7 +336,9 @@ undone once landed, is one nothing in the run rules on. Two readings can find it
 alone stops the run at its step. The session reads the two sides first: a side it reads as Extreme
 stops the run there, and no `choice-taker` is forked for a fork already read as Extreme. Otherwise
 the `choice-taker` is forked as above, and an `extreme` return stops the run the same way, its
-`Fork:` and `Guarantee:` lines being what the stop names. The session never overrules either
+`Fork:`, `Weaker side:`, `Guarantee:` and `Risk class:` lines being what the stop names, each
+`/discuss` slot filled from the line named for it and never from the session's own wording. The
+session never overrules either
 reading: a fork it read as ordinary and the `choice-taker` returned `extreme` on stops, and so
 does a fork it read as Extreme that a `choice-taker` might have settled.
 

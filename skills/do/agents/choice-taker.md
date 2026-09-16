@@ -43,5 +43,7 @@ Losing criterion: <the Ticket criterion's text when it is the side that lost, or
 ```
 extreme
 Fork: <side A> or <side B>
-Guarantee: <the risk class and the guarantee the weakening side gives up, or what cannot be undone>
+Weaker side: <the side that weakens the guarantee, or the side that cannot be undone>
+Guarantee: <the guarantee the weaker side gives up, or what cannot be undone>
+Risk class: <the risk class, or "cannot be undone">
 ```
