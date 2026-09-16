@@ -338,8 +338,9 @@ surfaced in the reply, and a second deviation of the same shape stops the run as
 the deviations listed, the worktree and its branch named, the message naming `discuss`. A
 Design fork the shape meets, two shapes the Ticket, its Spec and the code cannot settle, goes to
 the forks in [mechanics.md](mechanics.md). Done
-when the shape is in the thread, or the skip, and, when a Sketch was filed, the hand-over and the
-Sketch's location with its shape are recorded for the Reply.
+when the shape is in the thread, or the skip, and, on the fork path, the hand-over and the
+Sketch's location with its shape are recorded for the Reply, or, on the withheld path, the
+Sketch's location with its shape is recorded for the Reply.
 
 **4. Behaviours.** The run names the Digest's location and restates it in one line, its Journey
 Path, the story numbers it carries, its Testing Decisions and the criteria it marks observable, so
