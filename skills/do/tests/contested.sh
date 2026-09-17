@@ -578,6 +578,54 @@ expect "nothing at the mixed stop is left unmerged" test -z "$(git ls-files -u)"
 expect "the rebase continues from a stop that mixed the two classes" \
   g -c core.editor=true -c rerere.enabled=false rebase --continue
 
+# A contested stop that also carries an all-mechanical `.env` whose union defines one key twice: the
+# Target set DENY to a real deny list and the commit being replayed emptied it, each at the same
+# anchor. A `.env` reader takes the last definition it meets, so the union alone would land the
+# Incoming's. The stop resolves that duplicate the way an all-mechanical stop does: the Target's
+# definition stands and the Incoming's goes to the ledger as its own entry.
+fresh mixed-stop-last-wins
+printf 'APP=one\n' >.env
+printf 'x\ny\nz\n' >rewrite.txt
+commit base
+g switch -q -c do/run
+printf 'APP=one\nINCOMING_ONLY=i\nDENY=\n' >.env
+printf 'x\nINCOMING\nz\n' >rewrite.txt
+commit incoming
+g switch -q main
+printf 'APP=one\nTARGET_ONLY=t\nDENY=admin,root\n' >.env
+printf 'x\nTARGET\nz\n' >rewrite.txt
+commit target
+g switch -q do/run
+g rebase main >/dev/null 2>&1
+expect "the union rule alone leaves the .env defining DENY twice" \
+  test "$(union_of .env | grep -c '^DENY=')" = 2
+git cat-file blob :2:rewrite.txt >"$tmp/lastwins.rewrite.target"
+
+run
+check_lines "the key whose definition was dropped is named beside the stop's own lines" 0 "$rc" \
+  "kept .env DENY" "wrote .env" "wrote rewrite.txt"
+expect "the last line still counts the stop's hunks by class" \
+  test "$(tail -n 1 <<<"$out")" = "resolved mechanical=1 contested=1"
+expect "the landed .env keeps the Target's DENY definition and every other line of both sides" \
+  test "$(cat .env)" = "$(printf 'APP=one\nTARGET_ONLY=t\nDENY=admin,root\nINCOMING_ONLY=i')"
+expect "the Incoming's DENY definition is gone from the landed .env" \
+  test -z "$(grep -xF -- 'DENY=' .env)"
+expect "the .env is staged with the Incoming's definition dropped, so the rebase carries that on" \
+  test "$(git cat-file blob :0:.env 2>/dev/null)" = "$(printf 'APP=one\nTARGET_ONLY=t\nDENY=admin,root\nINCOMING_ONLY=i')"
+expect "the contested file beside it still takes the Target side" \
+  cmp -s rewrite.txt "$tmp/lastwins.rewrite.target"
+expect "the dropped definition leaves a second ledger entry beside the contested hunk's" \
+  test "$(grep -c '^## ' .scratch/run.ledger.md)" = 2
+expect "the entry for the dropped definition is shaped last-wins-duplicate" \
+  grep -qxF -- '- shape: last-wins-duplicate' <<<"$(ledger_part .scratch/run.ledger.md .env keys 2>/dev/null)"
+expect "that entry sets aside the Incoming's definition" \
+  test "$(ledger_part .scratch/run.ledger.md .env incoming 2>/dev/null)" = 'DENY='
+expect "the contested hunk's own entry still holds the Incoming side it set aside" \
+  test "$(ledger_part .scratch/run.ledger.md rewrite.txt incoming 2>/dev/null)" = INCOMING
+expect "nothing at a stop whose union defined a key twice is left unmerged" test -z "$(git ls-files -u)"
+expect "the rebase continues from a stop whose union defined a key twice" \
+  g -c core.editor=true -c rerere.enabled=false rebase --continue
+
 # A mixed stop whose two additions end on the same line. Git's union keeps that shared line once,
 # which the presentation the script splices from does not, so each written file is held to what
 # `git merge-file --union` makes of the same hunks.

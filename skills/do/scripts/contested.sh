@@ -18,7 +18,10 @@
 # prints `wrote <file>` for each, or `removed <file>` where the Target side deleted it, the file in
 # the form conflict-class.sh prints it. Each file conflict-class.sh printed `trusted`, one the
 # developer resolved by hand and never staged, is never written and never enters the ledger: it is
-# staged as it stands, `trusted <file>` for each. The last line is
+# staged as it stands, `trusted <file>` for each. Each file written by the union rule goes through
+# last-wins.sh before it is staged, so a union that defines one key twice keeps the Target's
+# definition and leaves the Incoming's in the same ledger, `kept <file> <key>` or
+# `deduped <file> <key>` among these lines. The last line is
 # `resolved mechanical=<n> contested=<n>`, the hunks of the stop by class.
 #
 # Exit codes: 0 the stop resolved and staged · 2 usage, no stopped rebase or merge, no contested hunk
@@ -239,6 +242,20 @@ set_aside() { # $1 the hunk's index in the report
 # A written file reaches the tree through the index, never through a redirect into its path: git
 # leaves the Target side's version there, and where that is a symlink a redirect writes into the file
 # it points at, inside the repository or not. The mode is the one the two sides' modes merge to.
+# The union a mechanical hunk leaves can define one key twice in a format whose reader takes the last
+# definition it meets, which last-wins.sh reads back before the file is staged. The union is put at
+# its own path first, since that script reads the file there and the index stages beside it, and the
+# path is removed rather than written through: a Target side that is a symlink would otherwise carry
+# the write out of the tree. Its summary line is dropped, so `resolved` stays this script's last line.
+read_back() { # $1 path, $2 file holding its content
+  local rc=0 out
+  rm -f -- "$1" && cat "$2" > "$1" || return 1
+  out="$(printf '%s\0' "$1" | bash "$here/last-wins.sh" "$ledger")" || rc=$?
+  [ "$rc" = 0 ] || return "$rc"
+  [ -n "$out" ] && { printf '%s\n' "$out" | grep -v '^read-back ' || true; }
+  cat "$1" > "$2"
+}
+
 stage_file() { # $1 path, $2 the file as the report prints it, $3 file holding its content
   local m1="${mode_at["$2#1"]:-}" m2="${mode_at["$2#2"]:-}" m3="${mode_at["$2#3"]:-}" mode sha
   mode="${m2:-$m3}"
@@ -285,6 +302,7 @@ resolve() { # $1 path, $2 the file as the report prints it
     head -c "$(( $(wc -c < "$tmp/out") - 1 ))" "$tmp/out" > "$tmp/trimmed"
     mv "$tmp/trimmed" "$tmp/out"
   fi
+  read_back "$path" "$tmp/out" || { echo "git refused to stage $field" >&2; return 1; }
   stage_file "$path" "$field" "$tmp/out" || { echo "git refused to stage $field" >&2; return 1; }
   echo "wrote $field"
 }
@@ -297,6 +315,7 @@ resolve_whole() { # $1 path, $2 the file as the report prints it, $3 target or b
     both)
       for s in 1 2 3; do git cat-file blob ":$s:$path" > "$tmp/w$s" 2>/dev/null; done
       git merge-file --union -p "$tmp/w2" "$tmp/w1" "$tmp/w3" > "$tmp/union"
+      read_back "$path" "$tmp/union" || { echo "git refused to stage $2" >&2; return 1; }
       stage_file "$path" "$2" "$tmp/union" || { echo "git refused to stage $2" >&2; return 1; }
       echo "wrote $2"
       return ;;
