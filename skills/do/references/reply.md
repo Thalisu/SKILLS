@@ -109,7 +109,9 @@ lists it; write it by this file alone otherwise.
    runs one. The integration's lines belong here too, where it did anything: what it rebased onto
    and how many commits replayed, every hunk it resolved with its file and location, every contested
    hunk the developer answered with its file, its location and the answer, and every replayed commit
-   it skipped. A check that did not run appears under Skipped, never here.
+   it skipped. On a Ticket that is an issue, the evidence the close's question offered, its held
+   Rulings among it, and the close's outcome: each tracker write made, the one refused, or none on
+   a no. A check that did not run appears under Skipped, never here.
 5. **Principles.** Every principle that changed a decision, with the decision it changed. A name
    without a decision is not allowed. `none` is common.
 6. **Rulings.** One line per line the Spec's Implementation Decisions carries that reads
@@ -117,11 +119,14 @@ lists it; write it by this file alone otherwise.
    this run's own Ruling included when it wrote one:
    `<side A> or <side B>: <the side taken>. Norm: <the norm, or "no norm: the side easiest to undo">.`
    Each slot is read back from that Spec line's own `Fork:`, side-taken and `Norm:` parts, never
-   from the session's wording. A Ruling this run kept because its Spec is an issue, the forks in
-   [mechanics.md](mechanics.md), carries its whole Spec line instead, for the developer to carry to
-   the issue, and a Ruling an earlier session kept the same way is lost: nothing outside the run
-   that made it ever carried it. `none` when the Spec carries no such line and this run kept none of
-   its own, and on every Playbook but `ticket`.
+   from the session's wording. On a Spec that is an issue the lines are read the same way from its
+   comments headed `## Implementation Decisions`, the Rulings earlier closes posted there. A Ruling
+   this run holds because its Spec is an issue, the forks in [mechanics.md](mechanics.md), follows
+   in the same shape, with the Spec issue it was posted on once the close's yes posted it, and
+   otherwise with its whole Spec line and its `Criterion:` and `Now reads:` lines, for the
+   developer to carry to the issues: on a no, a refused write or a stop, nothing else carries it. A
+   Ruling an earlier session held and never posted is lost. `none` when the Spec carries no such
+   line and this run holds none of its own, and on every Playbook but `ticket`.
 7. **Skipped.** Every skipped step as `<step>: skip: <reason>`, copied from the checklist, and
    only the steps the run reached: a step it never came to was never considered, so it is not a
    skip and is not listed.
