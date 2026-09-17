@@ -61,8 +61,9 @@ and the door the request goes to with the command to type, nothing written.
 3. **The discover batch.** The names the reshape will create (the extracted module, the new type,
    the registry) are checked before the first of them exists, the way the Discovery rule fixes: one
    `discover` batch for two or more names, one `rg -n -w` for a single one. A name that comes back
-   FOUND is reused rather than created, and the audit line goes in the thread,
-   `Discovery: n FOUND · n DUPLICATE · n NOT_FOUND`.
+   FOUND is reused rather than created, and the audit line,
+   `Discovery: n FOUND · n DUPLICATE · n NOT_FOUND`, is recorded for the Reply's Run section, which
+   carries it after the checklist per [reply.md](reply.md).
 4. **The branch.** The protected branch in [mechanics.md](mechanics.md). This is a warning and not a
    refusal: the run builds to the gate and the review refuses the landing, as step 12 says.
 
@@ -71,7 +72,8 @@ Then, before any edit, the lines recorded for the Reply's Run section, in the or
 nothing depends on that:
 
 - `Playbook: refactoring`, as plain text on the first line.
-- The reshape confirmed back in one line, with the target files named.
+- The reshape confirmed back in one line, with the target files named, the same files the Run
+  section carries again on their own line after the audit line.
 - Done as a predicate: the pin green before and after, the target shape reached, every caller
   migrated and the old API gone, and the gate green in the worktree after the last edit.
 - The loop line: `Loop: policy` when `.claude/agents/unit-test-author.md` exists in the project,
@@ -86,9 +88,9 @@ nothing depends on that:
 There is no claim line and no Ticket: outside the chain the branch and its commits are the whole
 state. The run proceeds without a yes, per
 [never-block-on-the-human](../../../.agents/principles/never-block-on-the-human.md). A refusal
-still ends the run in its one message before any edit. Done when the four checks ran, the target
-files and the audit line are in the thread, and the read-back, the predicate, the loop line and the
-warning when it applies are recorded for the Reply's Run section.
+still ends the run in its one message before any edit. Done when the four checks ran, and the
+read-back, the predicate, the loop line, the warning when it applies, the target files and the
+audit line are recorded for the Reply's Run section.
 
 ### 2. Worktree
 
@@ -101,7 +103,7 @@ the branch that counts lands through the fix call on it, never a second review. 
 at the first step its branch does not evidence, and a Review that counts decides the jump, not the
 cleanup commit: a branch carrying one, which a `not landed: target moved` return leaves, resumes at
 step 10 whether or not step 9 left a cleanup commit. Done when its status prints nothing and the
-branch name is in the thread.
+worktree line, its path and its branch, is recorded for the Reply's Run section.
 
 ### 3. Pin
 
@@ -113,7 +115,7 @@ red run first, while a characterisation test is the implementation's present beh
 and born green. So no test that asserts the present enters the tree.
 
 **The old behaviour** is pinned by the existing suite and the typecheck, run in the worktree before
-the first edit, the command line shown before it runs and the relevant output line quoted. The
+the first edit, the command line and the relevant output line quoted in the Reply's Evidence. The
 commands come from the project's facts, the way the gate in [mechanics.md](mechanics.md) reads them.
 Red here is not this Playbook's to fix: the suite was red before the reshape, so the run stops in one
 message naming `test-triage` with the command `/test-triage <test file>`, and nothing is written.
@@ -122,7 +124,7 @@ Where the reshaped behaviour has no coverage, the run writes an equivalence harn
 gap the suite does not cover is a gap the pin does not hold. It is a script outside the test tree, in
 the worktree, that drives the real artifact over the inputs the reshape touches and prints what comes
 back. It is not a test and never enters the test tree. It runs on the old code now and its output is
-quoted; step 7 runs it again on the new code, and step 9 deletes it and names the gap it covered as
+quoted in the Reply's Evidence; step 7 runs it again on the new code, and step 9 deletes it and names the gap it covered as
 debt in the reply. A reshape whose behaviour the suite already covers reads
 `skip: the suite covers the reshaped behaviour`.
 
@@ -179,11 +181,13 @@ call, or a changed signature, call the Skill tool with `architect`, stop at the 
 against it. The sketch is the contract, and it is also what settles step 3's target interface when
 the request did not. A deviation during the reshape is surfaced in the reply, and a second deviation
 of the same shape stops the run as a wrong sketch, the deviations listed, the worktree and its branch
-named. When `architect` is not listed, the shape is stated in the thread and the step says so. When
+named. When `architect` is not listed, the session states the shape itself, and the structure line
+says so. When
 no boundary is crossed the step reads `skip: no boundary crossed` and the missing structure is still
 named.
 
-Done when the structure and the target shape are in the thread, with the sketch or its skip.
+Done when the structure and the target shape, with the sketch or its skip, are recorded for the
+Reply's Run section as its structure line, per [reply.md](reply.md).
 
 ### 5. Subtract
 
@@ -314,8 +318,8 @@ A yes that [mechanics.md](mechanics.md) reserves to the developer is not one of 
 waived here: step 3 carries one when the harness cannot stay inside its bound, and step 13 carries
 the question before a full suite or a remote run. Both are asked whenever the run reaches them.
 
-Done when the answer and its reason are in the thread, with the developer's answer when the test
-failed.
+Done when the answer and its reason are recorded for the Reply's Run section, with the developer's
+answer when the test failed.
 
 ### 9. Cleanup
 
@@ -344,15 +348,16 @@ feature. The run does not fix it here, per
 [fix-root-causes](../../../.agents/principles/fix-root-causes.md): a defect gets its own reproduction
 and its own red-first fix, which this Playbook's pin is the wrong instrument for.
 
-Done when the cleanup is committed or reads its skip, and a behaviour change found here is named in
-the thread with its command.
+Done when the cleanup is committed or reads its skip, and a behaviour change found here is recorded
+for the Reply's Run section with its command.
 
 ### 10. Gate
 
 The gate in [mechanics.md](mechanics.md), in the worktree, after the last edit: the unit tests the
 run added and the ones covering the code it touched, the typecheck, the lint and the format check,
 and the full suites the project's Post-feature gate names, since a run with no Spec behind it is
-its feature's last, each command line shown and its relevant output line quoted. A red gate is one more step of the reshape, taken as step 6 takes one, and then the whole
+its feature's last, the `command=` line recorded for the Reply's Run section and each relevant
+output line quoted in its Evidence. A red gate is one more step of the reshape, taken as step 6 takes one, and then the whole
 gate again; never a skipped test, a weakened assertion or a pin edited to fit. Done when the suite
 and the typecheck are green in output produced after the last edit.
 
@@ -374,7 +379,8 @@ the branch the run started on as the landing target. The review writes the Revie
 its `Act on` Findings through its Fixers, one per Finding, and lands the branch by fast-forward
 when the Review is Green. The run fixes no Finding and lands nothing itself.
 
-The thread shows the return, one line per part, as the shared section says. The four returns are the
+The return is recorded for the Reply's Run section, one line per part, as the shared section says.
+The four returns are the
 ones the `ticket` Playbook gets:
 
 - **Landed.** The line reads `landed at <commit>` and the run goes to the verification.
@@ -394,8 +400,9 @@ git switch <a branch that takes commits>
 git merge --ff-only do/<slug>
 ```
 
-Done when the landing line reads `landed at <commit>`, or the run stopped as blocked with the
-review's reason quoted, or the step reads its skip with the worktree and its branch named.
+Done when the return is recorded for the Reply's Run section with its landing line reading
+`landed at <commit>`, or the run stopped as blocked with the review's reason quoted, or the step
+reads its skip with the worktree and its branch named.
 
 ### 13. Verification
 
@@ -418,20 +425,22 @@ shows the run's worktree, or the step reads `skip: nothing landed`.
 
 ### 15. Reply
 
-Written by [reply.md](reply.md), with these lines before its sections, in this order:
+Written by [reply.md](reply.md), its Run section then its sections, which carry, each where
+[reply.md](reply.md) puts it:
 
-- It names the structure the reshape gave the code, the one step 4 named, and the target shape it
-  reached.
-- The commits in order, subtraction, reshape, cleanup, each with its short sha, so a reader sees that
-  one revert undoes one slice.
-- The pin's before and after lines quoted, the suite, the typecheck and the harness's two runs. Those
-  quoted lines are the harness's only record, since step 9 deleted it, so a line missing here is a
-  proof nobody can reproduce.
-- The equivalence gap as debt: the behaviour the harness drove and that no test in the tree covers
-  now.
+- In the Run section, the structure line: the structure the reshape gave the code, the one step 4
+  named, and the target shape it reached, with the sketch or its skip.
+- In the Run section, the answer lines: the exit test's answer with its reason, and the developer's
+  answer when it failed.
+- Under Commits, the commits in order, subtraction, reshape, cleanup, each with its short sha, so a
+  reader sees that one revert undoes one slice.
+- Under Evidence, the pin's before and after lines quoted, the suite, the typecheck and the
+  harness's two runs. Those quoted lines are the harness's only record, since step 9 deleted it, so
+  a line missing here is a proof nobody can reproduce.
+- Under Pending debt, the equivalence gap: the behaviour the harness drove and that no test in the
+  tree covers now.
 
-Then the reply reference's sections in their order. Under pending debt: that gap, a caller in another
-repository the wave could not reach, a test that went red under a pure reshape and was named rather
+Pending debt also carries a caller in another repository the wave could not reach, a test that went red under a pure reshape and was named rather
 than edited, and a failed exit test the developer chose to keep. The reply ends with the push command
 naming the developer's branch when the review landed, and with the next command otherwise, which,
 on `not landed: target moved`, is the same run request typed again, since its resume runs the
