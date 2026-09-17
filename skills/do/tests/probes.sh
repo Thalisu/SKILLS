@@ -360,6 +360,14 @@ run "$resume" "$issues/04-claimed.md"
 check_lines "a worktree left mid-rebase goes to the integration, its branch read from the rebase state" 3 "$rc" \
   "branch=do/claimed" "rebase=open" "conflicted=notes.txt" "commits=2" \
   "review=$top/$issues/04-claimed.review.md" "verdict=integration"
+printf 'one\nresolved\n' >"$wt/notes.txt"
+git -C "$wt" add notes.txt
+tip="$(git rev-parse HEAD)"
+run "$resume" "$issues/04-claimed.md"
+check_lines "a rebase left open with its conflict resolved and staged, onto the current tip, resumes as resolved" 3 "$rc" \
+  "rebase=open" "stop=resolved" "stopped=$first feat: archive a note" "staged=notes.txt" \
+  "onto=$tip" "tip=$tip" "verdict=integration"
+absent_prefix "a rebase whose conflict is resolved and staged names no conflicted path" "conflicted="
 git -C "$wt" rebase --abort
 rm "$issues/04-claimed.review.md"
 

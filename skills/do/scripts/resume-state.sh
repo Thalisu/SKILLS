@@ -13,7 +13,10 @@
 # commit since the merge base, oldest first, each followed by behaviour=<short sha> <its
 # Behaviour: line, or none>; commits; one uncommitted=<the git status --short line> per entry,
 # paths quoted by git as core.quotePath does; one conflicted=<path> per file an open rebase left
-# unmerged; review_skipped=<stale | axis-not-run> <path> when a Review beside the Ticket does not
+# unmerged; then, while a rebase is open, stopped=<short sha> <title> of the commit it stopped at
+# (empty when it stopped at none), onto=<the commit it rebases onto>, tip=<the commit base names
+# now>, one staged=<path> per file staged at that stop and not unmerged, and stop=<class>, first
+# match: conflicted (a file is still unmerged) · resolved (none is); review_skipped=<stale | axis-not-run> <path> when a Review beside the Ticket does not
 # count; review, the Review beside the Ticket when it counts, else none; extreme, the
 # <Ticket>.extreme.md sidecar a first run's Extreme stop left beside the Ticket, when one is there,
 # followed by discuss, that file's first line, the /discuss command the stop printed; then verdict.
@@ -96,9 +99,24 @@ while IFS= read -r line; do
   [ -n "$line" ] || continue
   echo "uncommitted=$line"; dirty=1
 done < <(git -C "$wt" -c core.quotePath=true status --short)
-if [ "$rebase" = open ]; then
-  git -C "$wt" -c core.quotePath=true diff --name-only --diff-filter=U | sed 's/^/conflicted=/'
-fi
+rebase_stop() {
+  local conflicted stopped onto tip
+  conflicted="$(git -C "$wt" -c core.quotePath=true diff --name-only --diff-filter=U)"
+  [ -z "$conflicted" ] || sed 's/^/conflicted=/' <<<"$conflicted"
+  stopped="$(git -C "$wt" rev-parse -q --verify --short REBASE_HEAD 2>/dev/null)" &&
+    stopped="$stopped $(git -C "$wt" log -1 --format=%s REBASE_HEAD)"
+  echo "stopped=$stopped"
+  onto="$(cd "$wt" && for d in rebase-merge rebase-apply; do
+    f="$(git rev-parse --git-path "$d/onto")"
+    [ -f "$f" ] && { cat "$f"; break; }
+  done)"
+  tip="$(git -C "$main" rev-parse -q --verify "$base_ref^{commit}")"
+  echo "onto=$onto"
+  echo "tip=$tip"
+  git -C "$wt" -c core.quotePath=true diff --cached --name-only --diff-filter=u | sed 's/^/staged=/'
+  if [ -n "$conflicted" ]; then echo "stop=conflicted"; else echo "stop=resolved"; fi
+}
+[ "$rebase" != open ] || rebase_stop
 review="${path%.md}.review.md"
 skipped=""
 if [ -f "$review" ]; then
