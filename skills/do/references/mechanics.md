@@ -284,7 +284,10 @@ behaviours step or in the build loop is ruled on inside the run, per
 the run says in one line that it met a Design fork at that step and names both sides, then calls
 the Agent tool with `subagent_type: choice-taker`, the agent `do` ships in
 [choice-taker.md](../agents/choice-taker.md), with the brief its definition names: the Ticket, the
-step, the two sides, the Spec, the Digest and the repository root. The brief hands no path to the
+step, the two sides, the Spec, the Digest and the repository root. A Spec that is an issue is
+handed with its comments, since the Rulings earlier closes posted sit there under
+`## Implementation Decisions`, and a fork an earlier Ticket already ruled on is ruled the same way.
+The brief hands no path to the
 principles: the fork opens them from the skills checkout, at
 `$(readlink -f ~/.claude/skills/do)/../../.agents/principles/`, since a project `do` runs on has no
 `.agents/principles/` at its root. The fork holds reading and search alone, per
