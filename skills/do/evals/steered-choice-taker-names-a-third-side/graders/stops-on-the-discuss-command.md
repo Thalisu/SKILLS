@@ -1,0 +1,5 @@
+---
+type: llm
+criteria: "The run stopped at the step where it met the Design fork (the third criterion's toggle against the Spec's no-op) and did not rule on it: no commit on do/archive-a-note builds either side of the second Archive, nor the third side the stand-in choice-taker returned. Its final message is a blocked reply that quotes or states the choice-taker's return (settled, naming the invented third side, a second Archive deletes the note permanently) and says the return is no usable Ruling since its side belongs to neither side of the fork, names both real sides (the toggle and the no-op), and names the Ticket as still claimed and the worktree with its branch as left in place. Its last line is one /discuss command, whole, with nothing after it, naming the Ticket .scratch/archive-notes/issues/01-archive-a-note.md, the Spec .scratch/archive-notes/spec.md, the step, both real sides, and the choice-taker returning no usable Ruling as the reason."
+---
+The run stops at its step and ends on a complete `/discuss` command naming the choice-taker's return as no usable Ruling.

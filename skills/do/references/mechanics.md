@@ -302,8 +302,13 @@ linked, which one run of the skills repository's `scripts/link-skills.sh` links 
 `/do`.
 
 A return is a Ruling only when its first line reads `settled` or `extreme`, and a `settled` one only
-when its `Side:` line names a side. Any other return (a refusal, an error, a shape the definition
-does not fix, a `settled` with no side) is no Ruling. The check sits where the return crosses into
+when its `Side:` line names a side that is one of the two sides the session handed over, its `Fork:`
+line names those same two sides and no other, and its `Losing criterion:` line is either `none` or
+the text of the Ticket criterion that was one of those two sides. Any other return (a refusal, an
+error, a shape the definition does not fix, a `settled` with no side, or a `settled` whose `Side:`,
+`Fork:` or `Losing criterion:` names anything outside the two sides handed over) is no Ruling: a
+steered `choice-taker` that hands back a side neither side of the fork never gets its `Side:` read
+into the Spec or the Ticket. The check sits where the return crosses into
 the session, per [boundary-discipline](../../../.agents/principles/boundary-discipline.md): the
 session never reads a side into a return that fails it and never forks the `choice-taker` a second
 time. The run stops at its step, the unruled stop below, with the return quoted whole, and nothing
