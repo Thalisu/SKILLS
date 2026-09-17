@@ -192,13 +192,19 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   A `review=` line that names a Review means the rebase came after the review: once it finishes and
   the gate is green, the branch lands through the fix call on that Review, and is never reviewed a
   second time.
-- A run that stopped on an Extreme fork (the forks in [mechanics.md](mechanics.md)) resumes the same
-  way once `discuss` amended the Spec: the reader is forked again over the amended Spec and the
-  journey both, never over the Spec alone, whose Digest would come back with no Journey Path for
-  step 4 to read, and the list is re-derived from the Digest that comes back, then the loop
-  continues at the first behaviour without a commit. With the Spec unchanged, both hashes match
-  and the resume meets the same fork at the same step, and stops with the same reply and the same
-  `/discuss` command.
+- A Spec amended while the Ticket is `claimed` is resumed the same way whoever amended it: `discuss`
+  after a run stopped on an Extreme fork (the forks in [mechanics.md](mechanics.md)), or the
+  developer editing a Ruling line in the Spec's Implementation Decisions to reverse it. No
+  mechanism is added for either. The Spec's hash no longer matches the Digest's, so the run prints
+  the one line naming the Spec as changed, and the reader is forked again over the amended Spec and
+  the journey both, never over the Spec alone, whose Digest would come back with no Journey Path
+  for step 4 to read. The list is re-derived from the Digest that comes back, every commit whose
+  `Behaviour:` line still matches a line of it is kept, and the loop continues at the first
+  behaviour without a commit, building the side the Spec now takes. A criterion an earlier Ruling
+  rewrote to the side the developer's edit reversed is met at step 4 as a Design fork against the
+  edited line, as the forks in [mechanics.md](mechanics.md) say. After an Extreme stop with the Spec
+  unchanged, both hashes match and the resume meets the same fork at the same step, and stops with
+  the same reply and the same `/discuss` command.
 
 ## Checklist
 
