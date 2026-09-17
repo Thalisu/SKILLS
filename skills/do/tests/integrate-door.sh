@@ -142,6 +142,12 @@ check_lines "a rebase stopped on a conflict is reported in progress on the branc
   "op=rebase" "moves=feature/rebased" "onto=main" "writes=feature/rebased" "in_progress=rebase"
 absent "a rebase stopped on a conflict carries no refusal" "refused="
 
+run merge main
+check_lines "a merge requested while a rebase is stopped reports the stopped rebase's continue and abort, not the merge's" 0 "$rc" \
+  "op=merge" "moves=main" "onto=feature/rebased" "writes=feature/rebased" "in_progress=rebase" \
+  "continue=$norerere -c core.editor=true rebase --continue" \
+  "abort=git rebase --abort"
+
 fresh stopped-merge
 printf 'base\n' >c.txt && commit base
 g checkout -q -b feature/target
@@ -154,6 +160,12 @@ run merge feature/side
 check_lines "a merge stopped on a conflict is reported in progress on the target, not refused" 0 "$rc" \
   "op=merge" "moves=feature/side" "onto=feature/target" "writes=feature/target" "in_progress=merge"
 absent "a merge stopped on a conflict carries no refusal" "refused="
+
+run rebase main
+check_lines "a rebase requested while a merge is stopped reports the stopped merge's continue and abort, not the rebase's" 0 "$rc" \
+  "op=rebase" "moves=feature/target" "onto=main" "writes=feature/target" "in_progress=merge" \
+  "continue=$norerere -c core.editor=true merge --continue" \
+  "abort=git merge --abort"
 cd "$tmp/work" || exit 1
 
 echo

@@ -103,5 +103,8 @@ case "$op" in
   rebase) echo "start=$norerere rebase $(branch_ref "$onto")" ;;
   merge) echo "start=$norerere merge --no-edit $(branch_ref "$moves")" ;;
 esac
-echo "continue=$norerere -c core.editor=true $op --continue"
-echo "abort=git $op --abort"
+# An integration already in progress is resumed or dropped with its own commands, whatever the request named.
+held="$op"
+[ "$in_progress" = none ] || held="$in_progress"
+echo "continue=$norerere -c core.editor=true $held --continue"
+echo "abort=git $held --abort"
