@@ -350,7 +350,9 @@ the forks in [mechanics.md](mechanics.md). Done
 when the step reads the skip, or the shape in hand is named, or, on the fork path, the hand-over
 and the Sketch's location with its shape are recorded for the Reply, or, on the withheld path, the
 shaped-by line and the Sketch's location with its shape are recorded for the Reply, or, on the path
-where the Agent tool lists no `sketch`, the shaped-by line is recorded for the Reply.
+where the Agent tool lists no `sketch`, the shaped-by line is recorded for the Reply, or, on a fork
+whose return is not a usable Sketch, the hand-over and the shaped-by line are recorded for the
+Reply.
 
 **4. Behaviours.** The run names the Digest's location and restates it in one line, its Journey
 Path, the story numbers it carries, its Testing Decisions and the criteria it marks observable, so
