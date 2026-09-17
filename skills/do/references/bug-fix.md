@@ -142,10 +142,8 @@ the Reply's Run section and the checklist is copied.
 `do/<slug>`, where `<slug>` is a short slug of the bug in the developer's words, excluded locally,
 entered. It probes first, `git worktree list` and `git branch --list do/<slug>`: an entry in either
 is an earlier run on this bug, and the Resume section above takes the step over. Done when its
-status prints nothing and the branch name is in the thread, or the resume line is recorded for the
-Reply.
 status prints nothing and the worktree line, its path and its branch, is recorded for the Reply's
-Run section, or the resume's first message is.
+Run section, or the resume line is recorded for the Reply.
 
 **2. Reproduce.** The run drives the surface itself and records for the Reply's Run section the
 command line and the output that carries the defect, per

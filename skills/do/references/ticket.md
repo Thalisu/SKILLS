@@ -389,11 +389,9 @@ not reproduce even when forced stops this run as blocked, the Ticket left `claim
 worktree and its branch in place and named, never removed, since the close here is step 11's and
 a blocked run closes nothing. A Design fork found here goes to
 the forks in [mechanics.md](mechanics.md). Show the list once; the loop starts on the
-developer's silence. Done when the list is in the thread and, on a defect with no named cause, the
-reproduction, each hypothesis's evidence line and the mechanism are recorded for the Reply's Run
-section, all before the list.
 developer's silence. Done when the list is recorded for the Reply's Run section, which carries it
-with the commit beside each line.
+with the commit beside each line, and, on a defect with no named cause, the reproduction, each
+hypothesis's evidence line and the mechanism are recorded there too, all before the list.
 
 **5. Build loop.** The build loop in [mechanics.md](mechanics.md), one behaviour per dispatch,
 under the loop the loop line named. Each behaviour is one build line for the Reply's Run section
