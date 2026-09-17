@@ -934,6 +934,38 @@ expect "the last DENY definition a reader meets is the Target's non-empty one, n
 expect "the dropped definitions leave one entry in the ledger" \
   test "$(grep -c '^## ' "$ledger" 2>/dev/null)" = 1
 
+# A rebase stopped on a `.env` whose last line carries no trailing newline: the commit being replayed
+# wrote its own final line with no newline after it, and also set DENY to an empty value above that
+# line, while the developer's branch set DENY to a real deny list. The union the integration wrote
+# ends without a trailing newline, the way the Incoming's own file did, and the read-back that drops
+# the Incoming's duplicate DENY must leave that ending untouched, the same trim contested.sh's own
+# union write already does on purpose.
+fresh env-no-trailing-newline
+printf 'APP=one\n' >.env
+commit base
+g switch -q -c do/run
+printf 'APP=one\nINCOMING_ONLY=i\nDENY=\nLAST=z' >.env
+commit incoming
+g switch -q main
+printf 'APP=one\nTARGET_ONLY=t\nDENY=admin,root\n' >.env
+commit target
+g switch -q do/run
+g rebase main >/dev/null 2>&1
+
+write_unions
+expect "the union the integration wrote ends without a trailing newline, the way the Incoming's own file did" \
+  test "$(tail -c1 .env | wc -l)" = 0
+
+run
+ledger="$PWD/.scratch/run.ledger.md"
+
+check_lines "the read-back names the key it kept and counts the file it read" 0 "$rc" \
+  "kept .env DENY" "read-back files=1 kept=1 deduped=0"
+expect "the .env keeps the Target's DENY definition, drops the Incoming's, and keeps every other line of both sides" \
+  test "$(cat .env)" = "$(printf 'APP=one\nTARGET_ONLY=t\nDENY=admin,root\nINCOMING_ONLY=i\nLAST=z')"
+expect "the file's last line still carries no trailing newline after the read-back rewrote it" \
+  test "$(tail -c1 .env | wc -l)" = 0
+
 if [ "$fails" = 0 ]; then echo "all ok"; else
   echo "$fails failing"
   exit 1

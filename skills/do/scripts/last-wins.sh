@@ -391,6 +391,13 @@ while IFS= read -r -d '' file; do
     awk -v a="$1" -v b="$2" 'NR < a || NR > b' "$tmp/union" > "$tmp/rewritten"
     mv -f "$tmp/rewritten" "$tmp/union"
   done < <(printf '%s\n' "${drop[@]}" | merge_ranges | sort -rn)
+  # awk's ORS terminates every record it emits, including the last, so a file whose original last
+  # line carried no trailing newline gains one here. Trimmed back to match the ending contested.sh's
+  # own union write already preserves on purpose (contested.sh:301-304).
+  if [ -s "$tmp/union" ] && [ -n "$(tail -c1 "$file")" ]; then
+    head -c "$(( $(wc -c < "$tmp/union") - 1 ))" "$tmp/union" > "$tmp/trimmed"
+    mv -f "$tmp/trimmed" "$tmp/union"
+  fi
   cp "$tmp/union" "$file" || { echo "could not rewrite $file" >&2; exit 3; }
 done
 
