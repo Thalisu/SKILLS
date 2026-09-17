@@ -41,8 +41,39 @@ check_lines "a merge of a missing branch is refused" 1 "$rc" \
 expect "the merge refusal is one message naming the missing branch and ending nothing integrated" \
   one_message_naming ghost
 
+echo "# a request the door lets through"
+norerere="git -c rerere.enabled=false -c rerere.autoupdate=false"
+run rebase main
+check_lines "a rebase onto a local branch is let through with the commands the run uses" 0 "$rc" \
+  "op=rebase" "moves=feature/x" "onto=main" "writes=feature/x" "in_progress=none" \
+  "start=$norerere rebase refs/heads/main" \
+  "continue=$norerere -c core.editor=true rebase --continue" \
+  "abort=git rebase --abort"
+absent "a rebase let through carries no refusal" "refused="
+
 run rebase origin/main
-absent "a remote-tracking ref of that name is not a missing branch" "refused=missing-branch"
+check_lines "a rebase onto a remote-tracking branch is let through, started on its remote ref" 0 "$rc" \
+  "op=rebase" "moves=feature/x" "onto=origin/main" "writes=feature/x" "in_progress=none" \
+  "start=$norerere rebase refs/remotes/origin/main" \
+  "continue=$norerere -c core.editor=true rebase --continue" \
+  "abort=git rebase --abort"
+absent "a rebase onto a remote-tracking branch carries no refusal" "refused="
+
+run merge main
+check_lines "a merge of a local branch into the current branch is let through with the commands the run uses" 0 "$rc" \
+  "op=merge" "moves=main" "onto=feature/x" "writes=feature/x" "in_progress=none" \
+  "start=$norerere merge --no-edit refs/heads/main" \
+  "continue=$norerere -c core.editor=true merge --continue" \
+  "abort=git merge --abort"
+absent "a merge let through carries no refusal" "refused="
+
+run merge origin/main
+check_lines "a merge of a remote-tracking branch is let through, started on its remote ref" 0 "$rc" \
+  "op=merge" "moves=origin/main" "onto=feature/x" "writes=feature/x" "in_progress=none" \
+  "start=$norerere merge --no-edit refs/remotes/origin/main" \
+  "continue=$norerere -c core.editor=true merge --continue" \
+  "abort=git merge --abort"
+absent "a merge of a remote-tracking branch carries no refusal" "refused="
 
 echo
 if [ "$fails" = 0 ]; then echo "integrate-door: all checks passed"; else
