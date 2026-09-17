@@ -24,24 +24,33 @@ and written only when that Playbook's steps name it:
 3. **Predicate.** Done as a predicate, each part checkable.
 4. **Loop line.** `Loop: policy`, `Loop: global` or `Loop: fallback`, with the one line saying the
    Agent tool is withheld when it is.
-5. **Claim line.** `Claimed: <the Ticket's path or reference>`.
-6. **Protected-branch warning.** When it applies: the branch, the rule, and that the landing is
+5. **Defect line.** When a behaviour reproduces a bug: `Defect: origin bugfix, cause stated`, or
+   `Defect: cause unknown, diagnosis first` when nothing names the cause.
+6. **Claim line.** `Claimed: <the Ticket's path or reference>`.
+7. **Protected-branch warning.** When it applies: the branch, the rule, and that the landing is
    refused on it.
-7. **Checklist.** The matched Playbook's checklist, verbatim, every step the run reached ticked
+8. **Checklist.** The matched Playbook's checklist, verbatim, every step the run reached ticked
    `done:` or reading `skip: <reason>`, and a step it never reached left as it was copied. The run
    copied it at its start as its own todo list; the copy in the Reply is the one the developer
    reads, so it is never required as text before the first edit.
-8. **Audit line.** The discover audit line the ground step recorded,
+9. **Audit line.** The discover audit line the ground step recorded,
    `Discovery: n FOUND · n DUPLICATE · n NOT_FOUND`, saying so when one `rg -n -w` per candidate
    stood in for the batch.
-9. **Hand-over.** When the shape step forked `sketch`, what it handed over, in one line: what to
-   shape, the map, the Digest's location and the destination.
-10. **Shaped-by line.** When `sketch` wrote nothing (the Agent tool withheld, no `sketch` listed,
+10. **Hand-over.** When the shape step forked `sketch`, what it handed over, in one line: what to
+    shape, the map, the Digest's location and the destination.
+11. **Shaped-by line.** When `sketch` wrote nothing (the Agent tool withheld, no `sketch` listed,
     or a return that is not a usable Sketch), the line saying so, with that reason, and saying the
     session shaped the work itself, so the developer knows who shaped it. With no Sketch filed, it
     carries the shape the session stated in a few words.
-11. **Sketch line.** When a Sketch was filed, its location and the shape it settled in a few
+12. **Sketch line.** When a Sketch was filed, its location and the shape it settled in a few
     words, so the developer learns both without opening it.
+13. **Reproduction.** When the run reproduced a defect: the command line it ran and the output
+    that carries the defect, the forcing named when it was forced, and, once the fix is in, the
+    same command's passing output beside it, a developer's report marked as theirs. When the run
+    instrumented the main checkout, the `git status --short` it read there after the revert.
+14. **Diagnosis.** When the run hunted a cause: one line per hypothesis with the runtime evidence
+    that ruled it out, then the mechanism the run confirmed, in one line, so the developer checks
+    the cause instead of taking it on trust.
 
 The lines record what the steps decided; they gate nothing. The order constraints on actions stay
 with the steps that carry them (the door script before any write, the worktree before the first
