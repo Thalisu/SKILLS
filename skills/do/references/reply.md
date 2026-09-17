@@ -86,7 +86,8 @@ files and the audit line both come before the worktree line):
 25. **Door verdict.** In `trivial`, the `verdict=` line the door on the diff printed, or, on its exit 3,
     the line saying the second check was the run's own judgment and not the script's.
 26. **Integration line.** The state the integration reached: the no-op, or the target and the
-    count, or blocked with its reason, with the conflict class's counts at each stop.
+    count, or blocked with its reason, with the conflict class's counts at each stop and the Loss
+    ledger's location when a contested hunk took the **Target** side.
 27. **Review return.** The review's return, one line per part: the Review's location, the
     `Act on:` line, the landing line, every `Risk:` line and every `Axis not run:` line.
 

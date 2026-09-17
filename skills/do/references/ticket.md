@@ -121,8 +121,8 @@ and leaves the worktree as it is, since no branch can be read from it to build o
 - When every line of the list is ticked, as on the branch a `not landed: target moved` return left,
   step 5 reads `done: resumed` and the run never waits on an empty loop. It goes on at step 6 as a
   first run does, a flow already on the branch counting as authored, then the gate, then
-  the integration with the developer present to answer each contested hunk the review could not,
-  then the landing through the fix call on the Review that return names, never a second review,
+  the integration, which resolves each contested hunk the review's landing left to the **Target**
+  side and writes its **Incoming** side to the Loss ledger beside the Ticket, then the landing through the fix call on the Review that return names, never a second review,
   as the bullet above says.
 - On `verdict=ask`, the run asks before discarding the uncommitted changes in the worktree, since
   the discard is the one irreversible act on this path. The question is the turn's final message:
@@ -508,7 +508,8 @@ is recorded.
 **8. Integration.** The integration in [mechanics.md](mechanics.md), with the branch the run
 started on as the target: the branch it built on rebased onto that branch, every conflicted hunk
 classed by the door script before anything is resolved, and the gate's command lines run again when
-the rebase replayed commits. Done when the step reads the no-op, or the target and the count with
+the rebase replayed commits. Every contested hunk takes the **Target** side, and its **Incoming** side goes to
+the Loss ledger beside the Ticket in the main checkout, `.ledger` before the extension. Done when the step reads the no-op, or the target and the count with
 the gate green after it, or the run stopped as blocked with the worktree and its branch named, and
 the integration line is recorded for the Reply's Run section.
 

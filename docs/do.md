@@ -120,18 +120,21 @@ guesses:
 
 - A hunk where both sides only added lines, each opening on a line of its own: nothing. The run
   keeps both sides in order and says which hunks it resolved. Two additions that open on the same
-  line wrote one text and split, so keeping both would say it twice, and that hunk is a question.
-- Any other hunk, a _contested_ one: one question per hunk, with both sides quoted and a
-  recommendation, which you answer in one word, `target`, `incoming`, `both` or `stop`. The files
-  whose every hunk is mechanical are written and staged before the first question, and only the
-  answers wait for the last one, so walking away leaves the rebase open, and the question already
-  carries the command that undoes it.
+  line wrote one text and split, so keeping both would say it twice, and that hunk is contested.
+- Any other hunk, a _contested_ one: nothing is asked. A script keeps your branch's side, the
+  Target side, and writes the side it set aside, the Incoming side, whole, to the run's Loss ledger,
+  one entry per hunk with the file, the location, the shape and the replayed commit. A file one
+  side deleted or renamed while the other edited it, a binary file and a file too large to merge
+  take your branch's version whole, and a binary side is named in the ledger by its blob and the
+  commit your branch was on before the rebase. The ledger sits beside the Ticket, or under
+  `.scratch/ledgers/` keyed by the branch in a `bug-fix` or `refactoring` run, and running the step
+  again rewrites its entries rather than adding new ones.
 - A file you already resolved and never staged, which a second `/do` finds at the stop it resumes:
   when it holds exactly the union of its two sides it is classed hunk by hunk like any other, so a
-  contested hunk in it is still a question; when it holds anything else it is yours, kept as you
-  wrote it, staged, and named in the reply as taken on trust.
-- A run nobody can answer, `claude -p` for one: the run aborts the rebase, leaves your branch as it
-  was and names the conflicting files, rather than guess an answer.
+  contested hunk in it still takes your branch's side; when it holds anything else it is yours,
+  kept as you wrote it, staged, never put in the ledger, and named in the reply as taken on trust.
+- A run nobody watches, `claude -p` for one, resolves the conflict the same way, since nothing is
+  asked.
 
 A second `/do` that finds a rebase the first run left open asks at two more stops. One is a rebase
 stopped with nothing conflicted: whatever is staged there carries nobody's recorded answer, so the
@@ -241,14 +244,13 @@ a new Ticket you write
   `refactoring` run has no Ticket, so typing the same request again, in the same words, picks it up
   on its own branch the same way. A review that could
   not land because your branch moved while it ran is recovered the same way: the second run rebases
-  with you there to answer the conflicts the review had nobody to ask about, and the review then
-  lands it.
+  again, the contested hunks taking your branch's side and landing in the ledger, and the review
+  then lands it.
 - A run whose branch moved says so: the step names what it rebased onto and how many commits
   replayed, and the gate's output after it is quoted like any other.
-- A contested conflict reaches you as one question per hunk, the file, both sides and a
-  recommendation in front of you. The files whose every hunk is mechanical are written and staged
-  before the first question, and a file carrying a contested hunk stays as git left it until you
-  answer the last one.
+- A contested conflict reaches you in the reply rather than as a question: the file and the
+  location of each hunk that kept your branch's side, and the Loss ledger that holds what was set
+  aside.
 - A `ticket` run that met a Design fork says so in one line naming both sides, then goes on: the
   Spec's Implementation Decisions gain one line marked as the choice-taker's, and a Ticket criterion
   changes only when it was the side that lost. The reply's `Rulings` section, right after

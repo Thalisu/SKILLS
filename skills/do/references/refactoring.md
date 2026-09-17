@@ -366,7 +366,8 @@ and the typecheck are green in output produced after the last edit.
 The integration in [mechanics.md](mechanics.md), with the branch the run started on as the target:
 the branch it built on rebased onto that branch, every conflicted hunk classed by the door script
 before anything is resolved, and the gate's command lines run again when the rebase replayed
-commits. Done when the step reads the no-op, or the target and the count with the gate green after
+commits. Every contested hunk takes the **Target** side, and its **Incoming** side goes to the Loss
+ledger keyed by the run's branch, `.scratch/ledgers/<branch>.md` in the main checkout. Done when the step reads the no-op, or the target and the count with the gate green after
 it, or the run stopped as blocked with the worktree and its branch named.
 
 ### 12. Review
@@ -388,7 +389,7 @@ ones the `ticket` Playbook gets:
   the worktree and its branch left in place and named in the reply, nothing half fixed, and
   on `not landed: target moved` the reply names the same run request typed again as the one
   command that recovers it, never the review and the landing by hand: its resume, step 2's, finds
-  the Review that counts and runs the integration with the developer present.
+  the Review that counts and runs the integration again.
 - **`do-code-review` not listed.** The step reads `skip: do-code-review not listed`, nothing lands,
   and the reply names the worktree, its branch and the review as the developer's next step.
 - **A protected branch.** The review refuses the landing, whatever the run wrote, and
@@ -444,6 +445,5 @@ Pending debt also carries a caller in another repository the wave could not reac
 than edited, and a failed exit test the developer chose to keep. The reply ends with the push command
 naming the developer's branch when the review landed, and with the next command otherwise, which,
 on `not landed: target moved`, is the same run request typed again, since its resume runs the
-integration with the developer present to answer the hunks the review had nobody to ask about, then
-lands through the fix call on the Review. Done when the reply is sent with every section that
+integration again, then lands through the fix call on the Review. Done when the reply is sent with every section that
 applies.

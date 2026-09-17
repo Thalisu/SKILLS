@@ -273,7 +273,8 @@ when the suite and the typecheck are green in output produced after the last edi
 **9. Integration.** The integration in [mechanics.md](mechanics.md), with the branch the run
 started on as the target: the branch it built on rebased onto that branch, every conflicted hunk
 classed by the door script before anything is resolved, and the gate's command lines run again when
-the rebase replayed commits. Done when the step reads the no-op, or the target and the count with
+the rebase replayed commits. Every contested hunk takes the **Target** side, and its **Incoming** side goes to
+the Loss ledger keyed by the run's branch, `.scratch/ledgers/<branch>.md` in the main checkout. Done when the step reads the no-op, or the target and the count with
 the gate green after it, or the run stopped as blocked with the worktree and its branch named, and
 the integration line is recorded for the Reply's Run section.
 
@@ -315,6 +316,5 @@ left uncommitted; a waived flow and a check that stood in for a test under pendi
 next step, `git push` with the developer's branch named when the review landed, or, when nothing
 landed, the worktree, its branch, and the review and the landing as what the developer runs next,
 or, on `not landed: target moved`, the same run request typed again instead, in the developer's
-same words, since its resume finds the Review that counts and runs the integration with the
-developer present to answer the hunks the review had nobody to ask about, then lands through the
+same words, since its resume finds the Review that counts and runs the integration again, then lands through the
 fix call on that Review. Done when the reply is sent with every section that applies.

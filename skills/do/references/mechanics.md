@@ -556,9 +556,8 @@ conflicted hunks: `bash <skill-dir>/scripts/conflict-class.sh`, whose verdict is
 the session's own reading of the markers, per
 [ADR 0028](../../../docs/adr/0028-the-conflict-class-is-a-scripts-verdict-never-the-sessions-reading.md).
 The script runs before the run resolves, stages or writes anything at that stop. Its lines, one per
-conflicted hunk, are quoted in the Reply's Evidence, and the counts, how many hunks it resolved
-mechanically and how many it brought to the developer, go on the integration line of the Run
-section.
+conflicted hunk, are quoted in the Reply's Evidence, and the counts, how many hunks were resolved
+mechanically and how many took the **Target** side, go on the integration line of the Run section.
 
 A stop the script answers with `no conflicted state, nothing classed` is never continued unasked:
 the rebase stopped with nothing unmerged, so whatever is staged for that commit carries nobody's
@@ -625,52 +624,63 @@ with the file and the key named, the rebase left open at that commit, `git rebas
 undo, the worktree and its branch left in place and named and the Ticket left `claimed`. Which
 definition stands is theirs to say.
 
-**A stop carrying a contested hunk.** A hunk classed `contested` is the developer's to answer, and
-never the run's. The two blocks above are the all-mechanical stop's alone, since the union above
-takes every conflicted file and a path never enters a command line: here the script's first call
-writes and stages every file whose hunks are all `mechanical` itself, by the same rule, and names
-each on a `wrote` line, which the run reads for a key defined twice as the paragraph above says; the
-counts are stated before the first question, and the rebase stays open at that commit while the
-questions run. The questions come from the same script, which asks them and applies the answers,
-takes the order, the class and the locations from `conflict-class.sh` and quotes both sides from the
-index stages, so the session reads no marker here either:
+**A stop carrying a contested hunk.** A hunk classed `contested` is resolved by a script to the
+**Target** side, and nobody is asked anything, per
+[ADR 0034](../../../docs/adr/0034-a-contested-hunk-takes-the-target-side-and-what-it-sets-aside-is-reapplied-after-the-integration.md):
+neither the developer nor the session writes a hunk of their own, and a headless run resolves the
+stop the same way. The two blocks above are the all-mechanical stop's alone, since the union above
+takes every conflicted file, contested ones included. Here one call resolves the whole stop:
 
 ```
-bash <skill-dir>/scripts/contested.sh
+bash <skill-dir>/scripts/contested.sh "<the ledger>"
 ```
+
+The script takes the order, the class and the locations from `conflict-class.sh` and the sides from
+the index stages, so the session reads no marker here either. It writes every file whose hunks are
+all `mechanical` by the union rule, and every file carrying a `contested` hunk once from its three
+stages, its `mechanical` hunks by the same rule and its `contested` hunks from the **Target** stage.
+A file the script cannot splice is taken whole from the **Target** stage, or removed where the
+**Target** deleted it: a delete against an edit, a rename against an edit, a binary file, a file too
+large to merge, and a file git's merge cannot line up with the index. Each file is staged and named
+on a `wrote` or `removed` line, and each file the conflict class printed `trusted` is staged as it
+stands and named on a `trusted` line. The last line is `resolved mechanical=<n> contested=<n>`.
+
+The **Incoming** side of every `contested` hunk goes to the run's **Loss ledger**, one entry per
+hunk keyed by its hunk id, written before any file of the stop: the file, the location, the shape,
+the replayed commit, the commit the branch was on before the rebase, the **Target** side quoted and
+the **Incoming** side whole. A file taken whole leaves one entry holding both sides whole, and a
+binary or too-large side is named by its size, its blob and the commit recorded before the rebase,
+from which the blob stays reachable. A rerun at the same stop rewrites each entry where it stands,
+so the ledger never holds a hunk twice.
+
+The ledger is one file per run, in the main checkout, and its path is fixed before the rebase
+starts, since the branch the rebase replays is only on record while it runs:
+
+- in `ticket`, beside the Ticket, the Ticket's path in the main checkout with `.ledger` before the
+  extension, `01-x.ledger.md` beside `01-x.md`; for a Ticket that is not a local file, the issue's
+  reference under `.scratch/ledgers/` there, with `.md` after it;
+- in `bug-fix` and `refactoring`, `.scratch/ledgers/<branch>.md` in the main checkout, with every
+  `/` of the run's branch written as `-`, the key the Review beside the branch already uses.
+
+The worktree reaches the ledger by that absolute path and never copies it, and every stop of the
+same rebase passes the same path. The script refuses a path that does not resolve under the main
+checkout's `.scratch/`, with nothing written.
 
 What it prints and the code it exits with say what the run does next.
 
-- `no human` (exit 4): nobody can answer in this session, `claude -p` among them, and the script
-  says so before it forms a question. The run aborts the integration,
-  `git -c rerere.enabled=false -c rerere.autoupdate=false rebase --abort`, which leaves the branch
-  as it was, and stops as blocked with the conflicting files the script named, the worktree and its
-  branch in place and named and the Ticket left `claimed`. No answer is guessed.
-- A question (exit 1): which conflict of how many, the file and the hunk's location, the shape, the
-  **Target** and the **Incoming** side quoted each under its own heading, a recommendation with the
-  shape as its reason, the answers the shape offers and the undo. The run shows it as the script
-  printed it, never reworded, and waits for the developer's one word. Then it passes every answer so
-  far back in the order they were asked, each against the id its question carried,
-  `bash <skill-dir>/scripts/contested.sh <id>:<answer> ...`, typing the developer's word only when
-  it is one of the answers the question offered and `stop` in its place otherwise, since the word
-  reaches the shell. The next contested hunk's question follows, or the files are written.
-- `resolved` (exit 0): every file carrying a contested hunk was written once from its three index
-  stages, `target` taking the Target side, `incoming` the Incoming side and `both` the two in base
-  order by the mechanical rule, and staged. The run reads each file the script `wrote` for a key
-  defined twice, as the paragraph above says, then continues with the same prefix, and the next
-  stop is classed like any other.
-- `blocked` (exit 3): the developer answered `stop`, or an answer that is none of the four. The run
-  stops as blocked with the rebase left open at that commit, the conflicting files the script
-  named, the command that undoes it, `git rebase --abort`, the worktree and its branch left in place
-  and named, the Ticket left `claimed`, nothing landed and nothing pushed.
+- `resolved` (exit 0): the stop is resolved and staged. The run reads each file the script `wrote`
+  for a key defined twice, as the paragraph above says, then continues with the same prefix, and
+  the next stop is classed like any other.
+- Exit 2: a usage fault, no stopped rebase, no contested hunk at that stop, or the ledger refused,
+  with nothing written. The run stops as blocked with the script's reason quoted, the rebase left
+  open at that commit, the conflicting files named, the command that undoes it,
+  `git rebase --abort`, the worktree and its branch left in place and named, the Ticket left
+  `claimed`, nothing landed and nothing pushed.
 
-A developer who walks away without answering is left in that same state: the rebase open at the
-conflicting commit, the files whose hunks are all `mechanical` written and staged, none of their
-answers written, since the script writes no answer until the stop's last one, and the undo already
-in the question. Once the rebase finishes, the step is ticked with the
-totals across every stop, the mechanical and the contested hunks each verdict line counted and the
-answers by word from each `resolved` line, and then the gate's command lines run again and the review
-is called, as after any replay, or the fix call on a run the review already read.
+Once the rebase finishes, the step is ticked with the totals across every stop, the mechanical and
+the contested hunks counted from each verdict line, and the ledger's location. Then the gate's
+command lines run again and the review is called, as after any replay, or the fix call on a run the
+review already read.
 
 **A replayed commit that is empty after the resolution.** The developer's branch already carries
 that change, so the continue has nothing left to apply and git says so. The run skips it,
@@ -770,8 +780,8 @@ blocked: the review's reason quoted, the
 worktree and its branch left in place and named in the reply, the Ticket left `claimed`, so that
 nothing lands half fixed. On `not landed: target moved` the reply names the one command that
 recovers it, the same run request typed again on the Ticket in `ticket`: its resume finds every
-behaviour committed and runs the integration with the developer present to answer the hunks the
-review had nobody to ask about, and in `bug-fix` and `refactoring` it is the same run request typed
+behaviour committed and runs the integration again, which resolves the hunks the review's landing
+left to the **Target** side and writes their **Incoming** side to the ledger, and in `bug-fix` and `refactoring` it is the same run request typed
 again, in the developer's same words, whose resume, the Resume of [bug-fix.md](bug-fix.md), finds
 the Review the first run wrote and lands through the fix call on it. On a protected branch the reply adds the two commands that land the
 reviewed branch by hand from a branch that takes commits, since the diff was reviewed and Green
