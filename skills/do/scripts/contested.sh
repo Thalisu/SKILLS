@@ -27,6 +27,7 @@ export GIT_LITERAL_PATHSPECS=1
 
 usage() { echo "usage: contested.sh <ledger>" >&2; exit 2; }
 [ "$#" = 1 ] && [[ "$1" == /* ]] || usage
+ledger="$1"
 
 here="$(cd "$(dirname "$0")" && pwd -P)"
 top="$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "not a git repository" >&2; exit 2; }
@@ -92,6 +93,85 @@ regenerate() { # $1 path: the three stages into $tmp/s1..s3, their merge into $t
   stage_body 1 "$1" "$tmp/s1"; stage_body 2 "$1" "$tmp/s2"; stage_body 3 "$1" "$tmp/s3"
   git merge-file -p --diff3 -L target -L base -L incoming "$tmp/s2" "$tmp/s1" "$tmp/s3" \
     > "$tmp/merged" 2>/dev/null
+}
+
+# One side of a whole-file hunk: its stage whole, its deletion, or, where the file cannot be read
+# line by line, its size and blob.
+whole_side() { # $1 stage, $2 path, $3 shape
+  git cat-file -e ":$1:$2" 2>/dev/null || { echo "(deleted)"; return; }
+  case "$3" in
+    binary)    echo "(binary, $(git cat-file -s ":$1:$2") bytes, blob $(git rev-parse --short ":$1:$2"))" ;;
+    too-large) echo "(too large, $(git cat-file -s ":$1:$2") bytes, blob $(git rev-parse --short ":$1:$2"))" ;;
+    *)         git cat-file blob ":$1:$2" ;;
+  esac
+}
+
+# The Target and the Incoming section of one hunk, into $tmp/target and $tmp/incoming, the prefix
+# taken off again.
+sections() { # $1 path, $2 ordinal, $3 location, $4 shape
+  local want="$2" n=0 section=outside line
+  if [ "$3" = whole-file ]; then
+    whole_side 2 "$1" "$4" > "$tmp/target"
+    whole_side 3 "$1" "$4" > "$tmp/incoming"
+    return
+  fi
+  : > "$tmp/target"; : > "$tmp/incoming"
+  regenerate "$1"
+  while IFS= read -r line; do
+    case "$line" in
+      '<<<<<<< '*) n=$((n + 1)); section=target ;;
+      '||||||| '*) section=base ;;
+      '=======')   section=incoming ;;
+      '>>>>>>> '*) section=outside ;;
+      *) if [ "$n" -eq "$want" ]; then
+           case "$section" in
+             target)   printf '%s\n' "${line# }" >> "$tmp/target" ;;
+             incoming) printf '%s\n' "${line# }" >> "$tmp/incoming" ;;
+           esac
+         fi ;;
+    esac
+  done < "$tmp/merged"
+}
+
+# The ledger is read by whoever judges what was set aside, so the side that stands is quoted by its
+# head past a fixed size, its size and blob standing in for the rest; the Incoming side is kept whole.
+max_quote_lines=200
+max_quote_bytes=16384
+capped() { # $1 file holding one side, $2 the stage it came from, $3 path
+  local lines bytes unit=lines
+  lines=$(( $(wc -l < "$1") )); bytes=$(( $(wc -c < "$1") ))
+  [ ! -s "$1" ] || [ -z "$(tail -c1 "$1")" ] || lines=$((lines + 1))
+  if [ "$lines" -le "$max_quote_lines" ] && [ "$bytes" -le "$max_quote_bytes" ]; then
+    cat "$1"
+    return
+  fi
+  head -n "$max_quote_lines" "$1" | head -c "$max_quote_bytes" > "$tmp/head"
+  cat "$tmp/head"
+  [ -z "$(tail -c1 "$tmp/head")" ] || echo
+  [ "$lines" = 1 ] && unit=line
+  echo "(cut short: $lines $unit, $bytes bytes, from blob $(git rev-parse --short ":$2:$3"))"
+}
+
+hunk_id() { # $1 path, $2 location
+  { printf '%s\0%s\0' "$1" "$2"; cat "$tmp/target"; printf '\0'; cat "$tmp/incoming"; } |
+    git hash-object --stdin | cut -c1-12
+}
+
+# One contested hunk's entry in the Loss ledger, written before any file of the stop is: the index
+# still holds the stages it is read from.
+set_aside() { # $1 the hunk's index in the report
+  local i="$1" path entry="$tmp/entry"
+  path="${raw_path["${files[$i]}"]}"
+  sections "$path" "${ordinals[$i]}" "${locations[$i]}" "${shapes[$i]}"
+  mkdir -p "$entry"
+  hunk_id "$path" "${locations[$i]}" > "$entry/id"
+  printf '%s\n' "${files[$i]}" > "$entry/file"
+  printf '%s\n' "${locations[$i]}" > "$entry/location"
+  printf '%s\n' "${shapes[$i]}" > "$entry/shape"
+  git rev-parse REBASE_HEAD > "$entry/commit"
+  capped "$tmp/target" 2 "$path" > "$entry/target"
+  cp "$tmp/incoming" "$entry/incoming"
+  bash "$here/ledger.sh" put "$ledger" "$entry"
 }
 
 # A written file reaches the tree through the index, never through a redirect into its path: git
@@ -170,6 +250,8 @@ resolve_whole() { # $1 path, $2 the file as the report prints it, $3 target or b
 }
 
 [ "${#contested[@]}" -gt 0 ] || { echo "no contested hunk at this stop" >&2; exit 2; }
+
+for i in "${contested[@]}"; do set_aside "$i" || exit 2; done
 
 for file in "${reported[@]}"; do
   if [ -n "${whole["$file"]+set}" ]; then

@@ -66,8 +66,59 @@ takes_target() { # $1 CLAUDE_CODE_ENTRYPOINT
   done
   expect "with a ledger ($1), nothing is left unmerged" test -z "$(git ls-files -u)"
 }
+replayed="$(git rev-parse REBASE_HEAD)"
+hunks="$(bash "$classer" 2>/dev/null | grep '^contested ')"
 takes_target cli
+
+# One part of the ledger entry whose `- file:` key is $2, on stdout: its key lines (`keys`), or the
+# body of the fenced block under its Target (`target`) or Incoming (`incoming`) section. A fence may
+# be any length of backticks or tildes, so a side's own fence lines never close it.
+ledger_part() { # $1 ledger, $2 file as the classifier prints it, $3 keys|target|incoming
+  awk -v want="$2" -v part="$3" '
+    function flush() { if (inentry && file == want) printf "%s", buf[part] }
+    function run_of(s, c,   n) { n = 0; while (substr(s, n + 1, 1) == c) n++; return n }
+    fence {
+      n = run_of($0, fc)
+      if (n >= flen && substr($0, n + 1) ~ /^[ \t]*$/) { fence = 0; next }
+      if (sec != "") buf[sec] = buf[sec] $0 "\n"
+      next
+    }
+    /^## / { flush(); inentry = 1; file = ""; sec = "keys"; split("", buf); next }
+    !inentry { next }
+    /^### / {
+      sec = $0 == "### Target (kept)" ? "target" : $0 == "### Incoming (set aside)" ? "incoming" : "other"
+      next
+    }
+    /^```/ || /^~~~/ { fc = substr($0, 1, 1); flen = run_of($0, fc); fence = 1; next }
+    sec == "keys" && /^- [a-z]+: / {
+      buf["keys"] = buf["keys"] $0 "\n"
+      if (index($0, "- file: ") == 1) file = substr($0, 9)
+    }
+    END { flush() }
+  ' "$1"
+}
+expect "the classifier reports the stop's two contested hunks" test "$(grep -c . <<<"$hunks")" = 2
+expect "the ledger file opens with its title line" test "$(head -n 1 "$ledger" 2>/dev/null)" = "# Loss ledger"
+expect "the ledger holds one entry per contested hunk, each headed by a 12-hex id" \
+  test "$(grep -c '^## ' "$ledger" 2>/dev/null)" = "$(grep -c . <<<"$hunks")" \
+  -a "$(grep -cE '^## [0-9a-f]{12}$' "$ledger" 2>/dev/null)" = "$(grep -c . <<<"$hunks")"
+while read -r _ hfile hloc hshape; do
+  keys="$(ledger_part "$ledger" "$hfile" keys 2>/dev/null)"
+  for key in "- file: $hfile" "- location: $hloc" "- shape: $hshape" "- commit: $replayed"; do
+    expect "the ledger entry for $hfile carries the key line '$key'" grep -qxF -- "$key" <<<"$keys"
+  done
+done <<<"$hunks"
+expect "the rewrite.txt entry quotes the Target side it kept" \
+  test "$(ledger_part "$ledger" rewrite.txt target 2>/dev/null)" = "TARGET"
+expect "the rewrite.txt entry holds the Incoming side it set aside" \
+  test "$(ledger_part "$ledger" rewrite.txt incoming 2>/dev/null)" = "INCOMING"
+expect "the second.txt entry quotes the Target side it kept" \
+  test "$(ledger_part "$ledger" second.txt target 2>/dev/null)" = "TARGET TOO"
+expect "the second.txt entry holds the Incoming side it set aside" \
+  test "$(ledger_part "$ledger" second.txt incoming 2>/dev/null)" = "INCOMING TOO"
+
 g rebase --abort >/dev/null 2>&1
+rm -f "$ledger"
 g rebase main >/dev/null 2>&1
 takes_target sdk-cli
 expect "with a ledger, the rebase continues from the resolved stop" \
@@ -364,6 +415,9 @@ run
 check_lines "long sides are resolved like any other" 0 "$rc" "removed big.txt" "wrote long.txt"
 expect "the Target side's deletion of a long file removes it" test ! -e big.txt
 expect "the whole Target side is taken, however long" cmp -s long.txt "$tmp/long.target"
+expect "the ledger holds a one-line Incoming side of 100000 bytes whole" \
+  test "$(ledger_part "$PWD/.scratch/run.ledger.md" long.txt incoming 2>/dev/null)" = \
+  "$(head -c 100000 /dev/zero | tr '\0' x)"
 
 # A resumed stop: one file carrying a hunk both sides rewrote, and one the developer already resolved
 # by hand and never staged, marker-free and neither side nor the union of its stages. That file is the
