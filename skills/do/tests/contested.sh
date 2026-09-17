@@ -928,6 +928,32 @@ expect "a ledger write that cannot finish exits nonzero" test "$rc" != 0
 expect "a ledger write that cannot finish leaves the ledger byte-identical to before the call" \
   cmp -s "$faildl" "$tmp/fail.before"
 
+# Git refusing to write the index (an index.lock left behind by another process, still there when
+# the script runs) is never mistaken for a stop resolved: `git update-index`/`git checkout-index`
+# exit nonzero and the script must not print `wrote` or `resolved` for a file it never staged.
+fresh index-locked
+printf 'x\ny\nz\n' >locked.txt
+commit base
+g switch -q -c do/run
+printf 'x\nINCOMING\nz\n' >locked.txt
+commit incoming
+g switch -q main
+printf 'x\nTARGET\nz\n' >locked.txt
+commit target
+g switch -q do/run
+g rebase main >/dev/null 2>&1
+mkdir -p .scratch
+lockledger="$PWD/.scratch/lock.ledger.md"
+touch .git/index.lock
+rc=0
+out="$(bash "$door" "$lockledger" 2>&1)" || rc=$?
+rm -f .git/index.lock
+check "git refusing to write the index exits nonzero and names the file it refused" 2 "$rc" \
+  "git refused to stage locked.txt"
+check_absent "no wrote line is printed for the file git refused to stage" 2 "$rc" "wrote locked.txt"
+check_absent "no resolved line is printed when git refuses to stage a file" 2 "$rc" "resolved mechanical="
+expect "the file git refused to stage is still unmerged" test -n "$(git ls-files -u -- locked.txt)"
+
 if [ "$fails" = 0 ]; then echo "all ok"; else
   echo "$fails failing"
   exit 1

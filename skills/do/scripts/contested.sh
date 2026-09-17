@@ -22,7 +22,8 @@
 # `resolved mechanical=<n> contested=<n>`, the hunks of the stop by class.
 #
 # Exit codes: 0 the stop resolved and staged · 2 usage, no stopped rebase or merge, no contested hunk
-# at this stop, or the ledger refused, with nothing written.
+# at this stop, the ledger refused, or git refusing to write the index for a file, named on a
+# `git refused to stage <file>` line, with no `wrote`/`removed`/`trusted` or `resolved` line for it.
 #
 # The class, the order and the locations are conflict-class.sh's report, never read again here from
 # the working file's markers. The sides are taken from the index stages, never from a model's merge.
@@ -221,7 +222,7 @@ stage_file() { # $1 path, $2 the file as the report prints it, $3 file holding i
   mode="${m2:-$m3}"
   [ -n "$m3" ] && [ "$m2" = "$m1" ] && mode="$m3"
   sha="$(git hash-object -w --no-filters -- "$3")" || return 1
-  git update-index --add --cacheinfo "${mode:-100644},$sha,$1"
+  git update-index --add --cacheinfo "${mode:-100644},$sha,$1" || return 1
   git checkout-index -f -u -- "$1"
 }
 
@@ -262,7 +263,7 @@ resolve() { # $1 path, $2 the file as the report prints it
     head -c "$(( $(wc -c < "$tmp/out") - 1 ))" "$tmp/out" > "$tmp/trimmed"
     mv "$tmp/trimmed" "$tmp/out"
   fi
-  stage_file "$path" "$field" "$tmp/out"
+  stage_file "$path" "$field" "$tmp/out" || { echo "git refused to stage $field" >&2; return 1; }
   echo "wrote $field"
 }
 
@@ -274,20 +275,21 @@ resolve_whole() { # $1 path, $2 the file as the report prints it, $3 target or b
     both)
       for s in 1 2 3; do git cat-file blob ":$s:$path" > "$tmp/w$s" 2>/dev/null; done
       git merge-file --union -p "$tmp/w2" "$tmp/w1" "$tmp/w3" > "$tmp/union"
-      stage_file "$path" "$2" "$tmp/union"
+      stage_file "$path" "$2" "$tmp/union" || { echo "git refused to stage $2" >&2; return 1; }
       echo "wrote $2"
       return ;;
   esac
   mode="${mode_at["$2#2"]:-}"
   if [ -z "$mode" ]; then
-    git rm -q -- "$path" >/dev/null
+    git rm -q -- "$path" >/dev/null || { echo "git refused to stage $2" >&2; return 1; }
     echo "removed $2"
     return
   fi
   # A gitlink's stage names a commit, never a blob, so there is nothing for `checkout`/`add` to read
   # off the worktree: the Target's pointer is staged straight into the index at its own mode.
   if [ "$mode" = 160000 ]; then
-    git update-index --cacheinfo "160000,$(git rev-parse ":2:$path"),$path"
+    git update-index --cacheinfo "160000,$(git rev-parse ":2:$path"),$path" ||
+      { echo "git refused to stage $2" >&2; return 1; }
     echo "wrote $2"
     return
   fi
@@ -304,15 +306,15 @@ resolve_whole() { # $1 path, $2 the file as the report prints it, $3 target or b
     fi
     if [ -n "$renamed_from" ] && git cat-file -e "HEAD:$renamed_from" 2>/dev/null; then
       git cat-file blob ":2:$path" > "$tmp/renamed_target"
-      stage_file "$renamed_from" "$2" "$tmp/renamed_target"
-      git update-index --force-remove -- "$path"
+      stage_file "$renamed_from" "$2" "$tmp/renamed_target" || { echo "git refused to stage $2" >&2; return 1; }
+      git update-index --force-remove -- "$path" || { echo "git refused to stage $2" >&2; return 1; }
       rm -f -- "$path"
       echo "wrote $2"
       return
     fi
   fi
-  git checkout -q --ours -- "$path"
-  git add -- "$path"
+  git checkout -q --ours -- "$path" || { echo "git refused to stage $2" >&2; return 1; }
+  git add -- "$path" || { echo "git refused to stage $2" >&2; return 1; }
   echo "wrote $2"
 }
 
@@ -322,13 +324,13 @@ for i in "${contested[@]}"; do set_aside "$i" || exit 2; done
 
 for file in "${reported[@]}"; do
   if [ -n "${whole["$file"]+set}" ]; then
-    resolve_whole "${raw_path["$file"]}" "$file" "${answer_at["$file#1"]}"
+    resolve_whole "${raw_path["$file"]}" "$file" "${answer_at["$file#1"]}" || exit 2
   else
-    resolve "${raw_path["$file"]}" "$file"
+    resolve "${raw_path["$file"]}" "$file" || exit 2
   fi
 done
 for file in "${trusted[@]}"; do
-  git add -- "${raw_path["$file"]}"
+  git add -- "${raw_path["$file"]}" || { echo "git refused to stage $file" >&2; exit 2; }
   echo "trusted $file"
 done
 echo "resolved mechanical=$mechanical contested=${#contested[@]}"
