@@ -738,7 +738,8 @@ expect "the rewritten entry still sets aside the Incoming's definition" \
 # `auth.admin` are two duplicate key paths whose lines nest: the whole `auth.admin` range of each
 # occurrence sits inside that occurrence's own `auth` range. Both ranges start in the Incoming's own
 # block and reach no further than the Incoming's own `auth` object, so dropping them must never reach
-# into the following `session` object, which neither side touched.
+# into the following `session` object, which neither side touched. The `auth.admin` range the read-back
+# drops is wholly inside the `auth` range it already dropped: one lost block, so it opens one entry.
 fresh json-nested-duplicate
 cat >auth.json <<'JSON'
 {
@@ -782,8 +783,9 @@ expect "the union the integration wrote defines auth twice, each holding admin o
 run
 ledger="$PWD/.scratch/run.ledger.md"
 
-check_lines "the read-back names both the outer key path and the nested one it kept" 0 "$rc" \
-  "kept auth.json auth" "kept auth.json auth.admin" "read-back files=1 kept=2 deduped=0"
+check_lines "the read-back names the outer key path it kept and stays silent on the nested one it contains" 0 "$rc" \
+  "kept auth.json auth" "read-back files=1 kept=1 deduped=0"
+absent "the read-back never names the nested key path a line of its own" "kept auth.json auth.admin"
 expect "the JSON keeps the Target's auth object, drops the Incoming's, and keeps the untouched session object whole" \
   test "$(cat auth.json)" = "$(
     cat <<'JSON'
@@ -800,11 +802,12 @@ JSON
 expect "the session object neither side touched still opens" grep -qxF -- '  "session": {' auth.json
 expect "the session object neither side touched still closes" grep -qxF -- '    "secure": true' auth.json
 
-expect "each nested duplicate leaves its own entry in the ledger" \
-  test "$(grep -c '^## ' "$ledger" 2>/dev/null)" = 2
+expect "the nested duplicate leaves one entry in the ledger, not two, for the one block lost" \
+  test "$(grep -c '^## ' "$ledger" 2>/dev/null)" = 1
 keys="$(ledger_part "$ledger" auth.json keys 2>/dev/null)"
-expect "one entry locates the outer key path" grep -qxF -- '- location: auth' <<<"$keys"
-expect "the other entry locates the nested key path" grep -qxF -- '- location: auth.admin' <<<"$keys"
+expect "the one entry locates the outer key path" grep -qxF -- '- location: auth' <<<"$keys"
+expect "no entry locates the nested key path on its own" \
+  bash -c '! grep -qxF -- "- location: auth.admin" <<<"$1"' _ "$keys"
 
 # The report quotes a path a side chose, matching conflict-class.sh's own quoting so a path split
 # across two reports still reads back the same way.

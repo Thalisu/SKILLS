@@ -15,7 +15,9 @@
 #
 # Each dropped definition leaves one entry keyed by the file, the key path and the two sides' bytes,
 # written before the file is rewritten, so a refused ledger leaves the union as the block wrote it
-# and a rerun rewrites the same entry.
+# and a rerun rewrites the same entry. A key path nested inside another the same read-back already
+# dropped (`auth.admin` inside `auth`) is the same lost block, not a second one, and opens no entry
+# and no `kept` line of its own.
 #
 # Exit codes: 0 read back · 2 usage, not a git repository, no stopped rebase or merge, or the ledger
 # refused, with nothing written and no file rewritten · 3 a file the script could not rewrite, named
@@ -255,6 +257,18 @@ merge_ranges() { # ranges "<first> <last>" on stdin, one per line; disjoint rang
   '
 }
 
+# Whether the range $1-$2 sits wholly inside a range already carried in the array named $3: a key
+# path nested in one already dropped (`auth.admin` inside `auth`) is the same lost block seen twice,
+# not two losses, so it never opens an entry of its own.
+range_contained() { # $1 first, $2 last, $3 name of an array of "<first> <last>" strings
+  local f="$1" l="$2" name="$3[@]" range rf rl
+  for range in "${!name}"; do
+    read -r rf rl <<<"$range"
+    [ "$f" -ge "$rf" ] && [ "$l" -le "$rl" ] && return 0
+  done
+  return 1
+}
+
 block_in() { # $1 block file, $2 side file
   awk -v bf="$1" '
     BEGIN { n = 0; while ((getline l < bf) > 0) b[++n] = l }
@@ -318,7 +332,7 @@ while IFS= read -r -d '' file; do
   git show ":2:$file" > "$tmp/target" 2>/dev/null || : > "$tmp/target"
   git show ":3:$file" > "$tmp/incoming" 2>/dev/null || : > "$tmp/incoming"
 
-  drop=()
+  drop=() entered_ranges=()
   while IFS= read -r key; do
     target_at="" occ=() incoming_occs=() same=1 seen=0
     while IFS=$'\t' read -r path first lastline; do
@@ -342,8 +356,15 @@ while IFS= read -r -d '' file; do
     done < "$tmp/blocks"
 
     if [ -n "$target_at" ] && [ "${#incoming_occs[@]}" -gt 0 ]; then
-      put_entry "$file" "$key" "$tmp/side-target" "$tmp/side-incoming" || exit 2
       drop+=("${incoming_occs[@]}")
+      already_entered=1
+      for occ_range in "${incoming_occs[@]}"; do
+        set -- $occ_range
+        range_contained "$1" "$2" entered_ranges || { already_entered=0; break; }
+      done
+      if [ "$already_entered" = 1 ]; then continue; fi
+      put_entry "$file" "$key" "$tmp/side-target" "$tmp/side-incoming" || exit 2
+      entered_ranges+=("${incoming_occs[@]}")
       kept=$((kept + 1))
       echo "kept $(quote_path "$file") $key"
       continue
