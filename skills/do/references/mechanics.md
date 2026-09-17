@@ -345,7 +345,10 @@ yes, the claim and the close alike, and an issue is text anyone who can comment 
 so a Ruling drawn from it is never posted back there unasked. The held Ruling reaches the review as
 the review section below says, the close's one question as the close says, and the reply's
 `Rulings` section and its Evidence, per [reply.md](reply.md). The run continues on the Digest it
-already holds, with no reader forked again, since the Spec it was cut from did not change. A run
+already holds, with no reader forked again, since the Spec it was cut from did not change. When the
+held Ruling carries a `Now reads:` pair, the behaviours list is re-derived with that pair's
+`Now reads:` text in place of its `Criterion:` text, and the loop continues at the first behaviour
+without a commit, the way the local path below re-derives its list once the Ruling lands. A run
 that ends without the close's yes, a stop included, leaves the held Ruling in its reply alone, and a
 resume that no longer holds it meets the fork again.
 

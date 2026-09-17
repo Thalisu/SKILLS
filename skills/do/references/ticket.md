@@ -365,7 +365,10 @@ Reply.
 Path, the story numbers it carries, its Testing Decisions and the criteria it marks observable, so
 the developer checks the slice before the list is written. Then write the list from the Ticket's
 criteria and its `What to build` line and from the Digest's quotes, its Path's step table and
-failure branches among them; never from the implementation. It holds the behaviours callers
+failure branches among them; never from the implementation. When a held Ruling on this Ticket
+carries a `Now reads:` pair, the criterion it names is written from its `Now reads:` text, never
+from the `Criterion:` text the issue still carries, per the forks in [mechanics.md](mechanics.md).
+It holds the behaviours callers
 observe, critical paths and the logic that can be wrong first, not one line per branch. A line of
 the list traces to a quoted story, a quoted Testing Decision or a Journey step,
 never to a paraphrase: a line no quote in the Digest carries is one the run invented. Each line
