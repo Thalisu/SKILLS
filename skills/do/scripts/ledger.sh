@@ -32,11 +32,12 @@
 #
 # `put` writes entries and never a verdict; `verdict` writes verdicts and never an entry. A verdict
 # reads `- verdict: <verdict>, <reason>` and sits directly under the entry's `- before:` line, which
-# is where `put`'s own rewrite carries it over, so the two verbs never overwrite each other. A second
-# verdict on one entry replaces the first where it stands, so a resumed run that judges an entry
-# again leaves the same ledger. An id no entry carries is refused with nothing written, and so is a
-# <verdict> that is neither `reapply` nor `drop`, which would bury the entry under a word no reader
-# acts on, and a <reason> carrying a newline, which would forge an entry heading of its own.
+# is where `put`'s own rewrite carries it over, so the two verbs never overwrite each other. An entry
+# that already carries a verdict is refused with nothing written, so a second reading never replaces
+# the first where it stands and no run loses the reading it is resuming after. An id no entry carries
+# is refused the same way, and so is a <verdict> that is neither `reapply` nor `drop`, which would
+# bury the entry under a word no reader acts on, and a <reason> carrying a newline, which would forge
+# an entry heading of its own.
 #
 # `pending` and `verdict` read an entry's heading the way the rewrite does, outside fences only, so a
 # `## <id>` line a side quotes is that side's text and never an entry of its own. A ledger no stop
@@ -147,7 +148,8 @@ if [ "$verb" = verdict ]; then
   [ -f "$ledger" ] || refused "no ledger to judge"
   work="$(mktemp -d)"
   trap 'rm -rf "$work"' EXIT
-  if ! LEDGER_VERDICT="- verdict: $call, $reason" awk -v id="$id" '
+  rc=0
+  LEDGER_VERDICT="- verdict: $call, $reason" awk -v id="$id" '
     function fence_of(line) { if (match(line, /^(```+|~~~+)/)) return substr(line, 1, RLENGTH); return "" }
     {
       if (fence == "") {
@@ -157,9 +159,9 @@ if [ "$verb" = verdict ]; then
         } else if ($0 ~ /^### /) body = 1
         f = fence_of($0)
         if (f != "") fence = f
-        # A second reading of the same entry replaces the first where it stands, so a resumed run
-        # that judges it again leaves the ledger as the first run left it.
-        if (inside && !body && fence == "" && $0 ~ /^- verdict: /) next
+        # An entry that already carries a reading is refused whole below: a second verdict written
+        # over the first would leave no trace of the reading it replaced.
+        if (inside && !body && fence == "" && $0 ~ /^- verdict: /) already = 1
         print
         if (inside && !body && fence == "" && $0 ~ /^- before: /) print ENVIRON["LEDGER_VERDICT"]
         next
@@ -170,9 +172,13 @@ if [ "$verb" = verdict ]; then
       }
       print
     }
-    END { exit(found ? 0 : 1) }
-  ' "$ledger" >"$work/ledger"; then
-    echo "ledger carries no entry $id: $ledger" >&2
+    END { if (!found) exit 1; if (already) exit 3 }
+  ' "$ledger" >"$work/ledger" || rc=$?
+  if [ "$rc" != 0 ]; then
+    case "$rc" in
+      3) echo "ledger already carries a verdict for $id: $ledger" >&2 ;;
+      *) echo "ledger carries no entry $id: $ledger" >&2 ;;
+    esac
     exit 2
   fi
   next="$(mktemp "$(dirname "$ledger")/.ledger.XXXXXX")" || exit 2

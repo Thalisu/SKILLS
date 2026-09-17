@@ -717,8 +717,9 @@ session writes each reading where the ledger keeps it,
 one call per block. `contested.sh` writes entries and this verb writes verdicts, so neither
 overwrites the other and a rerun at the same stop carries a verdict over. A resumed run judges only
 what `pending` named, so running twice leaves the same ledger. An id the judge names that `pending`
-did not is refused by the script with nothing written, and the run records the refusal rather than
-retrying it: a reading of an entry nobody set aside is not one the run asked for.
+did not, and an id that already carries a verdict, are both refused by the script with nothing
+written, and the run records the refusal rather than retrying it: a reading of an entry nobody set
+aside is not one the run asked for, and a second reading never writes over the first.
 
 No judge can be forked on two branches: the Agent tool is withheld from the session, or the Agent
 tool lists no `ledger-judge`, as it does on a machine that never linked the agent `do` ships. On

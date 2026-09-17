@@ -92,7 +92,8 @@ files and the audit line both come before the worktree line):
     reason, every `drop` among them, so what a contested hunk set aside is read as kept or as let
     go and never merely as set aside; the line saying the session judged them itself, with the
     branch that held, when no `ledger-judge` could be forked; and every id the judge named that
-    `pending` did not, refused by the script with nothing written.
+    `pending` did not, or that already carried a verdict, refused by the script with nothing
+    written.
 27. **Review return.** The review's return, one line per part: the Review's location, the
     `Act on:` line, the landing line, every `Risk:` line and every `Axis not run:` line.
 

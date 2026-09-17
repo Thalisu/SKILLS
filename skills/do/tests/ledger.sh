@@ -285,11 +285,12 @@ out="$(bash "$ledgersh" pending "$vledger" 2>&1)" || rc=$?
 same "the rewritten entry is still no entry the run sends a judge after" \
   "$(printf 'aa00bb11cc22\n0123456789ab')"
 
-# A run cut short and resumed can fork a judge over an entry a first pass already read, and the second
-# reading is the run's reading: it replaces the first where it stands. An entry left carrying two
-# verdicts has no answer at all, since a reader picking either one is guessing, so a resumed run that
-# judges the same entry twice must leave the ledger a single pass would have left.
-fresh ledger-verdict-rejudged
+# A run cut short and resumed can fork a judge over an entry a first pass already read. A second
+# verdict call for that id has nothing left to add: the entry already carries a reading, and letting
+# a second call overwrite it would mean whichever judge runs last wins silently, with no trace of the
+# first reading left to audit. So a resumed run that reaches an entry it already judged is refused
+# whole, and the first verdict stands exactly as it was written.
+fresh ledger-verdict-already-judged
 mkdir -p .scratch
 rjledger="$PWD/.scratch/run.ledger.md"
 cat >"$rjledger" <<'EOF'
@@ -339,17 +340,21 @@ rj_before='- before: 2222222222222222222222222222222222222222'
 rc=0
 out="$(bash "$ledgersh" verdict "$rjledger" 5566778899bb reapply 'the incoming side is the fix' 2>&1)" || rc=$?
 check "a first judge's verdict on an entry succeeds" 0 "$rc"
+cp "$rjledger" "$tmp/rejudged.after-first.md"
 rc=0
-out="$(bash "$ledgersh" verdict "$rjledger" 5566778899bb drop 'on a second reading, already on main' 2>&1)" || rc=$?
-check "a resumed run judging that same entry again succeeds" 0 "$rc"
-expect "the second reading replaces the first where it stands, leaving one verdict line" \
-  test "$(grep -c '^- verdict: ' "$rjledger")" = 1
-expect "the verdict the re-judged entry carries is the second reading's, its reason whole" \
-  test "$(beneath_before "$rjledger" "$rj_before")" = '- verdict: drop, on a second reading, already on main'
+out="$(bash "$ledgersh" verdict "$rjledger" 5566778899bb drop 'on a second reading, already on main' 2>"$tmp/rejudged.err")" || rc=$?
+expect "a resumed run judging that same entry again is refused with a non-zero exit (got $rc)" test "$rc" != 0
+expect "the refused re-judgment gives a reason on stderr" test -s "$tmp/rejudged.err"
+expect "the refused re-judgment names the id the judge asked for" \
+  grep -qF -- 5566778899bb "$tmp/rejudged.err"
+expect "the refused re-judgment leaves the ledger byte-identical to right after the first verdict" \
+  cmp -s "$rjledger" "$tmp/rejudged.after-first.md"
+expect "the entry still carries only the first reading, its reason whole" \
+  test "$(beneath_before "$rjledger" "$rj_before")" = '- verdict: reapply, the incoming side is the fix'
 rc=0
 # shellcheck disable=SC2034  # lib.sh's same reads $out
 out="$(bash "$ledgersh" pending "$rjledger" 2>&1)" || rc=$?
-same "a re-judged entry is still no entry the run sends a judge after, and the one beside it waits" \
+same "the once-judged entry is still no entry the run sends a judge after, and the one beside it waits" \
   ccddeeff0011
 
 # A judge naming an id no entry in the ledger carries has read something that is not this ledger, and

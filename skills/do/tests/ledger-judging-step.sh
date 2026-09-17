@@ -67,6 +67,11 @@ carries "the brief hands the judge the worktree root" "the worktree root"
 carries "the brief hands the judge the run's intent, the Digest in a ticket run and the request otherwise" \
   "the Digest's location" "the request's line"
 
+# The two calls the script refuses with nothing written: an id nobody set aside, and an id a first
+# pass already judged, whose verdict a second call would otherwise write over.
+carries "an id already carrying a verdict is refused like one no entry carries, nothing written" \
+  "already carries a verdict" "refused by the script with nothing written"
+
 carries_any "a ledger with nothing to judge forks no agent" \
   "forks no" "forks nothing" "is not forked" "nothing is forked" "no fork"
 
