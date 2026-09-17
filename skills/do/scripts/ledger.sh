@@ -116,8 +116,9 @@ rewrite() { # $1 ledger, $2 id, $3 rendered entry
         }
         f = fence_of($0)
         if (f != "") fence = f
-      } else if (substr($0, 1, 1) == substr(fence, 1, 1) && $0 ~ /^(`+|~+)[ \t]*$/ && length($0) >= length(fence)) {
-        fence = ""
+      } else if (substr($0, 1, 1) == substr(fence, 1, 1) && $0 ~ /^(`+|~+)[ \t]*$/) {
+        match($0, /^(`+|~+)/)
+        if (RLENGTH >= length(fence)) fence = ""
       }
       if (inside) { chunk[++count] = $0; next }
       print

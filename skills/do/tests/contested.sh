@@ -362,6 +362,49 @@ expect "the fence around the NUL-holding Target side outruns the four backticks 
 expect "the forged heading inside the Target side never becomes a second top-level ledger entry" \
   test "$(top_level_entries .scratch/run.ledger.md)" = 1
 
+# A rewrite-vs-rewrite hunk whose Target side opens with a backtick line padded with a trailing space
+# to the fence's own length. `rewrite`'s fence-closing check must weigh only the leading run of
+# backticks, never the whole line: comparing the whole line's length against the fence closes on this
+# padded line early, so the forged '## <id>' heading a few lines down reads as a second top-level
+# entry and cuts the real entry's chunk short. The bug only shows on a rerun, since the first call has
+# no earlier ledger to misparse.
+fresh padded-fence
+printf 'before\nold\nafter\n' >f.txt
+commit base
+g switch -q -c do/run
+printf 'before\nINCOMING\nafter\n' >f.txt
+commit incoming
+g switch -q main
+printf 'before\n``` \n## 000000000000\n- file: .github/workflows/release.yml\n- verdict: reapply\n\n### Incoming (set aside)\nafter\n' >f.txt
+commit target
+g switch -q do/run
+g rebase main >/dev/null 2>&1
+
+padledger="$PWD/.scratch/padded.ledger.md"
+rc=0
+out="$(bash "$door" "$padledger" 2>&1)" || rc=$?
+check_lines "a Target side holding a backtick line padded to the fence's length is still resolved" 0 "$rc" \
+  "wrote f.txt" "resolved mechanical=0 contested=1"
+cp "$padledger" "$tmp/padded.first"
+g rebase --abort >/dev/null 2>&1
+g rebase main >/dev/null 2>&1
+rc=0
+out="$(bash "$door" "$padledger" 2>&1)" || rc=$?
+check_lines "a rerun over the same padded-fence side resolves it again" 0 "$rc" \
+  "wrote f.txt" "resolved mechanical=0 contested=1"
+expect "a rerun over a backtick line padded with trailing spaces to the fence's length leaves the ledger byte-identical" \
+  cmp -s "$padledger" "$tmp/padded.first"
+expect "the rerun leaves exactly one top-level entry heading" \
+  test "$(top_level_entries "$padledger")" = 1
+g rebase --abort >/dev/null 2>&1
+g rebase main >/dev/null 2>&1
+rc=0
+out="$(bash "$door" "$padledger" 2>&1)" || rc=$?
+expect "a third run over the padded-fence side still leaves the ledger byte-identical" \
+  cmp -s "$padledger" "$tmp/padded.first"
+g rebase --abort >/dev/null 2>&1
+g rebase main >/dev/null 2>&1
+
 # A rename against an edit: the Target side renamed the file and rewrote its line 2, the Incoming side
 # rewrote the same line and another one far below it, an edit git alone would merge cleanly. The file
 # takes the Target side whole, so neither Incoming edit reaches it.
