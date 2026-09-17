@@ -35,7 +35,8 @@ never starts a second, per
 no Ticket and no claim here, so the state a resume reads is the branch and its worktree alone,
 never a run-state file: an entry of `git worktree list` on `do/<slug>`, then
 `git branch --list do/<slug>` when no entry is there, the commits since the branch the first run
-started from (`git log <base>..do/<slug>` with `<base>` their merge base), each with the
+started from (`git log <base>..refs/heads/do/<slug>` with `<base>` the merge base of the developer's
+branch and `refs/heads/do/<slug>`, qualified so a same-named tag can never shadow the branch), each with the
 `Behaviour:` line its body carries per the build loop in [mechanics.md](mechanics.md), and
 `git status --short` in the worktree.
 
