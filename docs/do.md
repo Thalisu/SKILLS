@@ -230,7 +230,15 @@ a stop named, and the next run on that Ticket forks the reader fresh.
   answer the last one.
 - A `ticket` run that met a Design fork says so in one line naming both sides, then goes on: the
   Spec's Implementation Decisions gain one line marked as the choice-taker's, and a Ticket criterion
-  changes only when it was the side that lost. Only an Extreme fork stops the run.
+  changes only when it was the side that lost. The reply's `Rulings` section, right after
+  `Principles`, lists each Ruling in one line: the fork, the side taken, and the norm or "no norm".
+  It reads `none` when the run ruled nothing. Only an Extreme fork, or a fork no choice-taker could
+  rule, stops the run.
+- A fork no choice-taker could rule stops the run like an Extreme fork, on the same kind of
+  `/discuss` command. The reason is in the reply: the Agent tool withheld, `choice-taker` not
+  listed, or the choice-taker's return quoted whole when it came back with no usable Ruling. The
+  Spec and the Ticket's criteria are untouched, and typing `/do` again once the choice-taker can be
+  forked meets the fork again and rules on it.
 - A run that stopped on an Extreme fork names the step, both sides and the guarantee the weaker side
   would lose with its risk class, or what could not be undone once landed. The Ticket stays
   `claimed`, the worktree and its branch are named with the commits made so far, and nothing is
