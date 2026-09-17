@@ -270,8 +270,10 @@ a stop named, and the next run on that Ticket forks the reader fresh.
   new Ticket by hand, numbered after the feature's last one and marked `ready-for-agent`. Its
   criteria come from the edited line, and its `Blocked by` names every resolved Ticket that took
   the old side. On a tracker you open it as an issue with its Parent, its Blocked by and the label.
-  `/tickets` still stops on a feature that already has Tickets, so this is the one Ticket you write
-  yourself. `/do` on it builds it like any other, and the Ticket that ruled keeps its status, its
+  `/tickets` stops on a feature that already has Tickets only while one is still open: every local
+  Ticket file counts, but on a tracker only an open Ticket issue does, and a reversal's Tickets are
+  all `resolved`, so that stop will not fire here. You write this one Ticket yourself regardless.
+  `/do` on it builds it like any other, and the Ticket that ruled keeps its status, its
   ticks and its evidence
   ([ADR 0038](adr/0038-a-ruling-reversed-after-its-ticket-landed-is-built-by-a-new-ticket-the-developer-writes.md)).
 - A `trivial` request costs you one message, start to finish.

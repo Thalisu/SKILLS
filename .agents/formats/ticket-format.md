@@ -53,7 +53,8 @@ on the spec issue, and a rewritten criterion's new text in the ticket issue's bo
 The reversal ticket is the one ticket whose `ready-for-agent` is not written by `tickets`. A
 developer who reverses a Ruling after the ticket that ruled is `resolved` writes it by hand, per
 [ADR 0038](../../docs/adr/0038-a-ruling-reversed-after-its-ticket-landed-is-built-by-a-new-ticket-the-developer-writes.md),
-since `do` stops on a `resolved` ticket and `tickets` stops on a feature that already has tickets.
+since `do` stops on a `resolved` ticket, and `tickets` stops on a feature that already has tickets
+only while one is still open, which a reversal's tickets, all `resolved`, are not.
 It is a local ticket in this format, numbered after the feature's last ticket, its status
 `ready-for-agent`, its criteria taken from the edited Ruling line, and its `Blocked by` naming every
 `resolved` ticket that took the old side, starting from the ticket the Ruling line names. On a
