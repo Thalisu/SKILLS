@@ -89,10 +89,13 @@ In place, in the developer's checkout.
    [mechanics.md](mechanics.md), from "A rebase that stopped" through "Git refusing to continue",
    and never a copy of it here: the class read from `conflict-class.sh` before anything is
    resolved, the mechanical hunks resolved by the union rule, the union read for a key defined
-   twice, the contested hunks put to the developer through `contested.sh`, which reads a stopped
-   merge as it reads a stopped rebase. Three substitutions hold here. The door's `continue=` and
-   `abort=` lines stand in for the rebase's continue and abort, and a merge has no replayed commit
-   to skip. The Target side is the branch the operation lands on, `onto` for both operations. A
+   twice, the contested hunks resolved to the **Target** side by `contested.sh`, which reads a
+   stopped merge as it reads a stopped rebase. Four substitutions hold here. The door's `continue=`
+   and `abort=` lines stand in for the rebase's continue and abort, and a merge has no replayed
+   commit to skip. The Target side is the branch the operation lands on, `onto` for both operations.
+   The **Loss ledger** this run passes is `.scratch/ledgers/<branch>.md` in the repository, with
+   every `/` of the branch the operation moves written as `-`, the key `bug-fix` and `refactoring`
+   already use; at a merge its entries name `MERGE_HEAD` as the commit whose side was set aside. A
    blocked stop leaves the operation open where it stopped and names its abort; there is no
    worktree, no branch of the run's and no Ticket to name.
 
@@ -103,8 +106,9 @@ integration line is recorded for the Reply's Run section.
 ### 4. Reply
 
 Written by [reply.md](reply.md). What this Playbook puts in its sections: what the operation did,
-under Evidence the door's lines, the start, the conflict class's lines at every stop and each
-contested hunk with the developer's answer; `none` under Rulings; the undo under Pending debt,
+under Evidence the door's lines, the start, the conflict class's lines at every stop, each
+contested hunk that took the **Target** side and the Loss ledger holding what they set aside;
+`none` under Rulings; the undo under Pending debt,
 `git reset --hard <the recorded commit>` once the operation finished; and the next step, the push
 the developer runs themselves, `git push --force-with-lease` after a rebase of a branch that has an
 upstream and `git push` after a merge, or, on a blocked stop, the operation's `abort=` command.
