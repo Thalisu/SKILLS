@@ -684,9 +684,44 @@ What it prints and the code it exits with say what the run does next.
   landed and nothing pushed.
 
 Once the rebase finishes, the step is ticked with the totals across every stop, the mechanical and
-the contested hunks counted from each verdict line, and the ledger's location. Then the gate's
-command lines run again and the review is called, as after any replay, or the fix call on a run the
-review already read.
+the contested hunks counted from each verdict line, and the ledger's location.
+
+**The Loss ledger judged.** Every entry the rebase left is judged before the gate runs again, so
+that what a contested hunk set aside is on record as kept or as let go, and never merely set aside.
+Which entries are still waiting is the script's answer and never the session's own reading of the
+file, per
+[ADR 0028](../../../docs/adr/0028-the-conflict-class-is-a-scripts-verdict-never-the-sessions-reading.md):
+`bash <skill-dir>/scripts/ledger.sh pending "<the ledger>"` prints the id of each entry carrying no
+verdict, in file order, reading a heading outside a fence only, so a `## <id>` line one of the sides
+quotes is that side's own text and never an entry of its own. No id at all is an empty ledger, a
+rebase that set nothing aside, or one whose entries an earlier run already judged: nothing is
+forked, no verdict is written, the step goes straight on, and a rebase with no `contested` hunk
+costs what it costs today.
+
+With at least one id, the run calls the Agent tool with `subagent_type: ledger-judge`, the agent
+`do` ships in [ledger-judge.md](../agents/ledger-judge.md), once per integration and never once per
+entry: one fork reads the whole ledger and the tree around it, where a fork per entry would pay for
+that reading again for every hunk, per
+[guard-the-context-window](../../../.agents/principles/guard-the-context-window.md). The brief
+carries the ledger's location, the worktree root, the ids `pending` named, and the run's intent,
+which is the Digest's location in a `ticket` run and the request's line in `bug-fix` and
+`refactoring`. The fork holds reading and search alone, per
+[ADR 0032](../../../docs/adr/0032-a-fork-that-reads-a-strangers-text-holds-no-write-tool.md), since
+a ledger entry is a side of a diff a stranger's commit may have written, and the session writes what
+it returns.
+
+It returns one block per entry: the id, `reapply` or `drop`, a one-line reason, and, on a
+`reapply`, the edit against the tree as it now stands, which the next Ticket's step applies. The
+session writes each reading where the ledger keeps it,
+`bash <skill-dir>/scripts/ledger.sh verdict "<the ledger>" "<the id>" "<the verdict>" "<the reason>"`,
+one call per block. `contested.sh` writes entries and this verb writes verdicts, so neither
+overwrites the other and a rerun at the same stop carries a verdict over. A resumed run judges only
+what `pending` named, so running twice leaves the same ledger. An id the judge names that `pending`
+did not is refused by the script with nothing written, and the run records the refusal rather than
+retrying it: a reading of an entry nobody set aside is not one the run asked for.
+
+Then the gate's command lines run again and the review is called, as after any replay, or the fix
+call on a run the review already read.
 
 **A replayed commit that is empty after the resolution.** The developer's branch already carries
 that change, so the continue has nothing left to apply and git says so. The run skips it,
