@@ -145,6 +145,44 @@ expect "both of the base commit's DENY definitions stand in the landed .env" \
 entries="$(grep -c '^## ' "$ledger" 2>/dev/null)" || entries=0
 expect "a duplicate older than the union leaves no entry in the ledger" test "$entries" = 0
 
+# A rebase stopped on a `.env` whose base commit already defines DENY twice with the same bytes, and
+# whose conflict is driven by the line each side added at the same anchor. A reader of the landed file
+# would lose nothing to either occurrence, but neither side wrote them: the duplicate is older than
+# this union, so it is not the run's to collapse and both occurrences land as the union block wrote
+# them.
+fresh env-identical-duplicate-predating-the-union
+printf 'APP=one\nDENY=admin\nDENY=admin\n' >.env
+commit base
+g switch -q -c do/run
+printf 'APP=one\nINCOMING_ONLY=i\nDENY=admin\nDENY=admin\n' >.env
+commit incoming
+g switch -q main
+printf 'APP=one\nTARGET_ONLY=t\nDENY=admin\nDENY=admin\n' >.env
+commit target
+g switch -q do/run
+g rebase main >/dev/null 2>&1
+
+write_unions
+union="$(cat .env)"
+expect "the union the integration wrote carries both of the base commit's identical DENY definitions" \
+  test "$union" = "$(printf 'APP=one\nTARGET_ONLY=t\nINCOMING_ONLY=i\nDENY=admin\nDENY=admin')"
+
+run
+ledger="$PWD/.scratch/run.ledger.md"
+
+check_lines "the read-back counts the file it read and collapses neither occurrence of an identical duplicate neither side wrote" 0 "$rc" \
+  "read-back files=1 kept=0 deduped=0"
+absent "an identical duplicate older than the union is not named kept" "kept .env"
+absent "an identical duplicate older than the union is not named deduped" "deduped .env"
+expect "the .env lands exactly as the union block wrote it" test "$(cat .env)" = "$union"
+expect "both of the base commit's identical DENY definitions stand in the landed .env" \
+  test "$(grep -c '^DENY=admin$' .env)" = 2
+expect "the Target's own line stands in the landed .env" grep -qxF -- 'TARGET_ONLY=t' .env
+expect "the Incoming's own line stands in the landed .env" grep -qxF -- 'INCOMING_ONLY=i' .env
+
+entries="$(grep -c '^## ' "$ledger" 2>/dev/null)" || entries=0
+expect "an identical duplicate older than the union leaves no entry in the ledger" test "$entries" = 0
+
 # A rebase stopped on a `*.json` whose base commit carries one `services.web` object: the Target set
 # `deny` to a real deny list inside it, the commit being replayed emptied `deny` inside the same
 # object, and each side added one key of its own at the same anchor. One scope, one key, two
@@ -652,6 +690,47 @@ expect "the INI entry locates the definition by its key path from the section it
   grep -qxF -- '- location: web.deny' <<<"$keys"
 expect "the INI entry sets aside the Incoming's definition" \
   test "$(ledger_part "$ledger" config/settings.ini incoming 2>/dev/null)" = 'deny ='
+
+# The same stop read back a second time, the way a rerun reaches it: the script stages nothing, so the
+# index stages are still there and the run's union block writes the same union over the file the first
+# read-back left. The entry is keyed by the file, the key path and the two sides' bytes, none of which
+# move when the dropped line does, so the second read-back rewrites the entry it already wrote instead
+# of adding a second one.
+fresh env-rerun
+printf 'APP=one\n' >.env
+commit base
+g switch -q -c do/run
+printf 'APP=one\nINCOMING_ONLY=i\nDENY=\n' >.env
+commit incoming
+g switch -q main
+printf 'APP=one\nTARGET_ONLY=t\nDENY=admin,root\n' >.env
+commit target
+g switch -q do/run
+g rebase main >/dev/null 2>&1
+
+write_unions
+run
+ledger="$PWD/.scratch/run.ledger.md"
+check_lines "the first read-back at the stop names the key it kept" 0 "$rc" \
+  "kept .env DENY" "read-back files=1 kept=1 deduped=0"
+cp "$ledger" "$tmp/rerun.ledger"
+cp .env "$tmp/rerun.env"
+
+write_unions
+expect "the run's union block rebuilds the same union from the stages the read-back left unmerged" \
+  test "$(cat .env)" = "$(printf 'APP=one\nTARGET_ONLY=t\nDENY=admin,root\nINCOMING_ONLY=i\nDENY=')"
+
+run
+check_lines "a second read-back at the same stop reads the file back again and names the same key" 0 "$rc" \
+  "kept .env DENY" "read-back files=1 kept=1 deduped=0"
+expect "the second read-back lands the .env exactly as the first one did" \
+  test "$(cat .env)" = "$(cat "$tmp/rerun.env")"
+expect "a second read-back leaves one entry in the ledger and not a second one for the same key" \
+  test "$(grep -c '^## ' "$ledger" 2>/dev/null)" = 1
+expect "the second read-back rewrites the entry where it stands, leaving the ledger byte for byte" \
+  cmp -s "$ledger" "$tmp/rerun.ledger"
+expect "the rewritten entry still sets aside the Incoming's definition" \
+  test "$(ledger_part "$ledger" .env incoming 2>/dev/null)" = 'DENY='
 
 if [ "$fails" = 0 ]; then echo "all ok"; else
   echo "$fails failing"
