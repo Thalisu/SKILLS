@@ -36,7 +36,11 @@ and written only when that Playbook's steps name it:
    stood in for the batch.
 9. **Hand-over.** When the shape step forked `sketch`, what it handed over, in one line: what to
    shape, the map, the Digest's location and the destination.
-10. **Sketch line.** When a Sketch was filed, its location and the shape it settled in a few
+10. **Shaped-by line.** When `sketch` wrote nothing (the Agent tool withheld, no `sketch` listed,
+    or a return that is not a usable Sketch), the line saying so, with that reason, and saying the
+    session shaped the work itself, so the developer knows who shaped it. With no Sketch filed, it
+    carries the shape the session stated in a few words.
+11. **Sketch line.** When a Sketch was filed, its location and the shape it settled in a few
     words, so the developer learns both without opening it.
 
 The lines record what the steps decided; they gate nothing. The order constraints on actions stay
