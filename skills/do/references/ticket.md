@@ -480,6 +480,7 @@ a criterion the flows step skipped for no end-to-end command, with the command t
 branch named when the review landed, or, when nothing landed, the worktree, its branch, and the
 review and the landing as what the developer runs next, or, on `not landed: target moved` the
 same run request typed again on the Ticket instead, since its resume runs the integration with the
-developer present. A run that stopped on an Extreme fork ends instead on the `/discuss` command
-the forks in [mechanics.md](mechanics.md) fix, as its last line. Done when the reply is sent with
+developer present. A run that stopped on an Extreme fork, or on a Design fork no `choice-taker`
+ruled, ends instead on the `/discuss` command the forks in [mechanics.md](mechanics.md) fix, as its
+last line. Done when the reply is sent with
 every section that applies.

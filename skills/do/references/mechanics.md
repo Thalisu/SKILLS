@@ -295,11 +295,29 @@ withholds.
 No choice-taker can be forked on two branches: the Agent tool is withheld from the session, or
 the Agent tool lists no `choice-taker`, as it does on a machine that never linked the agent `do`
 ships. On either branch the run rules nothing itself and never forks another agent in the
-choice-taker's place: it stops at its step with one message naming `discuss`, as every Design fork
-did before ADR 0036, the Ticket left `claimed` and the worktree in place, so that the next `/do` on
-the Ticket resumes it. The message says which branch holds: the Agent tool withheld, or
-`choice-taker` not listed, the agent this machine has not linked, which one run of the skills
-repository's `scripts/link-skills.sh` links before the next `/do`.
+choice-taker's place: it stops at its step, the unruled stop below, the Ticket left `claimed` and
+the worktree in place, so that the next `/do` on the Ticket resumes it. The message says which
+branch holds: the Agent tool withheld, or `choice-taker` not listed, the agent this machine has not
+linked, which one run of the skills repository's `scripts/link-skills.sh` links before the next
+`/do`.
+
+A return is a Ruling only when its first line reads `settled` or `extreme`, and a `settled` one only
+when its `Side:` line names a side. Any other return (a refusal, an error, a shape the definition
+does not fix, a `settled` with no side) is no Ruling. The check sits where the return crosses into
+the session, per [boundary-discipline](../../../.agents/principles/boundary-discipline.md): the
+session never reads a side into a return that fails it and never forks the `choice-taker` a second
+time. The run stops at its step, the unruled stop below, with the return quoted whole, and nothing
+is written to the Spec or the Ticket.
+
+The unruled stop is a blocked run, written by the blocked shape of [reply.md](reply.md), like the
+Extreme stop below and naming the same things, the reason in place of the guarantee: the Agent tool
+withheld, `choice-taker` not listed, or the return quoted. Its last line is the `/discuss` command
+the Extreme stop fixes, whole, with `on a Design fork no choice-taker ruled` in place of
+`on an Extreme fork` and the reason in place of the clause after the semicolon:
+`the Agent tool is withheld`, `choice-taker is not listed`, or
+`the choice-taker returned no usable Ruling`. It writes no `<Ticket>.extreme.md` sidecar: nothing
+about the fork says a human must rule on it, so the next `/do` on the Ticket meets the fork again
+and forks the `choice-taker` once one can be forked, rather than stopping on a recorded command.
 
 A `settled` Ruling is written by the session only when the Spec is a local file, as one line
 appended to the Spec's Implementation Decisions, marked as the choice-taker's, per
