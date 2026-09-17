@@ -348,9 +348,9 @@ the deviations listed, the worktree and its branch named, the message naming `di
 Design fork the shape meets, two shapes the Ticket, its Spec and the code cannot settle, goes to
 the forks in [mechanics.md](mechanics.md). Done
 when the step reads the skip, or the shape in hand is named, or, on the fork path, the hand-over
-and the Sketch's location with its shape are recorded for the Reply, or, on every path where
-`sketch` wrote nothing, the shaped-by line is recorded for the Reply, followed on the withheld path
-by the Sketch's location with its shape.
+and the Sketch's location with its shape are recorded for the Reply, or, on the withheld path, the
+shaped-by line and the Sketch's location with its shape are recorded for the Reply, or, on the path
+where the Agent tool lists no `sketch`, the shaped-by line is recorded for the Reply.
 
 **4. Behaviours.** The run names the Digest's location and restates it in one line, its Journey
 Path, the story numbers it carries, its Testing Decisions and the criteria it marks observable, so
