@@ -450,7 +450,8 @@ the integration line is recorded for the Reply's Run section.
 location as the spec source, the merge base of the branch and the branch the run started on,
 `git merge-base refs/heads/<that branch> HEAD`, qualified so a same-named tag can never
 shadow the branch, read after the integration as the fixed point, and the branch
-the run started on as the landing target. The return is recorded for the Reply's Run section,
+the run started on as the landing target, with the held Rulings after the Gate when the run holds
+any, as the review in [mechanics.md](mechanics.md) says. The return is recorded for the Reply's Run section,
 one line per part. Done when the landing line recorded there reads `landed at <commit>`, or the run stopped as
 blocked with the review's reason quoted and the worktree and its branch named, or the step reads
 `skip: do-code-review not listed` with the worktree and its branch named.

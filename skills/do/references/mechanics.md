@@ -660,7 +660,21 @@ location in `ticket`, so the Review lands beside it; the branch alone in `bug-fi
 `refactoring`), the fixed point of the branch under review (the merge base the integration reads
 once it is done, which is the commit the integration rebased onto when it replayed), the
 developer's branch as the landing target, and the Gate, the `command=` line the gate printed, so
-the review holds its fixes to the checks the run held its own work to.
+the review holds its fixes to the checks the run held its own work to. A run that holds a Ruling,
+the forks above, sends a fifth argument after the Gate, the held Rulings as one block of text, so
+the review holds the build to the Ruling and to a rewritten criterion the Ticket issue does not
+carry yet:
+
+```
+Held Rulings, not on the tracker:
+- Ruled by the choice-taker on Ticket <the Ticket> at the <step> step: <the side taken>. Norm: <the norm>. Fork: <side A> or <side B>.
+  Criterion: <the text the Ticket issue still carries>
+  Now reads: <the side that won>
+```
+
+One item per held Ruling, its two indented lines only when it rewrote a criterion. A run that holds
+none sends four arguments, and the fix call below never carries the block: the Review it fixes was
+already held to the rewritten text.
 Never `--no-fix`, and `fix` only on the path below: the default run is the one every Playbook
 wants, per
 [ADR 0015](../../../docs/adr/0015-the-default-review-run-fixes-and-lands-and-the-fixer-corrects-for-every-caller.md).

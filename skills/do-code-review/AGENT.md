@@ -43,7 +43,8 @@ labels are in English; its prose is in the report language of the brief.
 | a Ticket's location: a path, an issue number or a URL | that Ticket is the run's Ticket, the spec source and, when it is a local file, the Review's home; `do` passes it at its review step with the fixed point |
 | a landing target: the branch a caller wants the reviewed branch landed on | `do` sends it third, after the Ticket and the fixed point; it is the branch the fix fast-forwards when the Review is Green |
 | a Gate: the `command=` line of `do`'s gate script, as it printed it before the review | `do` sends it fourth, after the landing target; it is the Gate the fixed branch is held to before it lands, run as it stands |
-| words in a language | the report language, read off the words |
+| held Rulings: a block of text whose first line reads `Held Rulings, not on the tracker:` | `do` sends it fifth, after the Gate, only when its Ticket's Spec is an issue and the run ruled on a Design fork; it amends the spec source, as section 2 says, and never reaches the door |
+| words in a language | the report language, read off the words; the held Rulings block is never read for it |
 
 The first ref a caller sends is the fixed point and the only one the door sees; a second ref is the
 landing target, and it never reaches the door, which takes one ref and answers a second with its
@@ -119,6 +120,13 @@ In this order, the first hit wins, and nothing is ever asked, because you cannot
 4. `spec=<path>`: that file.
 5. `no spec`, said once in the header and in the Spec Axis line; the other five Axes still run.
 
+Held Rulings amend whichever source the list found, and nothing else: each item's Ruling line
+counts as one more of the Spec's Implementation Decisions, and each `Now reads:` line replaces the
+criterion its `Criterion:` line quotes, since the Ticket issue keeps its old text until `do`'s close
+writes the new one. The Spec source line of the brief names the source, then `, amended by held
+Rulings:`, then the block whole, so the Spec Axis holds the diff to the amended text. A `Criterion:`
+line that quotes no criterion of the Ticket amends nothing, and the Spec Axis line says so.
+
 ## 3. The intent
 
 One paragraph, what the change sets out to do, never whether it should.
@@ -143,7 +151,7 @@ receives:
 ```
 Fixed point: <base or ref> (<short sha>), <given | inferred>
 Diff: git diff <fixed_point>; untracked files in <the door's status= line>; commits in git log <fixed_point>..HEAD
-Spec source: <the Ticket's path and its spec | issue <n> and where it was read | the spec file | no spec>
+Spec source: <the Ticket's path and its spec | issue <n> and where it was read | the spec file | no spec>[, amended by held Rulings: <the block>]
 Intent: <the paragraph>
 Report language: <the language>
 ```
