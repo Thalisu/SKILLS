@@ -13,8 +13,10 @@ The run is one message. It opens with `Playbook: trivial` as plain text on its f
 checklist below is copied verbatim as the run's todo list; the work runs; the same message closes
 with the Run section and the sections of [reply.md](reply.md). Its Run section carries the request
 read back in one line, then the checklist with each step the run reached ticked `done:` or reading
-`skip: <reason>`. The copy in the Run section is the one the developer reads, so the checklist is
-never required as text before the first edit, and a session that writes it earlier is free to.
+`skip: <reason>`, then the target files the door named, the gate's command lines and the door's
+verdict on the diff, in that order, per [reply.md](reply.md). The copy in the Run section is the
+one the developer reads, so neither the checklist nor any of those lines is required as text written
+mid-run, and a session that writes them as it goes is free to.
 There is no loop line, no claim line and no protected-branch warning, since a protected branch is a
 refusal here.
 Nothing is pushed. A refusal is that message cut short: the first line, the refusal with its reason, and the
@@ -72,7 +74,8 @@ nothing is written.
    developer's work in progress, and the restore in step 5 would destroy it. Other dirty files in
    the checkout are left alone and never staged.
 
-Done when the five checks ran, none held, and the target files are named in the thread.
+Done when the five checks ran, none held, and the target files are recorded for the Reply's Run
+section.
 
 ### 2. Discover
 
@@ -86,17 +89,17 @@ nothing else, per
 [laziness-protocol](../../../.agents/principles/laziness-protocol.md): no fix found on the way, no
 reformat of the surrounding lines, no second improvement. A second thing found on the way is named
 in the reply under pending debt and never done here. Everything written into the project is in
-English; a typo fix in a doc keeps that doc's language. Done when the touched files are listed in
-the thread.
+English; a typo fix in a doc keeps that doc's language. Done when the touched files are listed,
+recorded for the Reply's Commits section.
 
 ### 4. Gate
 
 After the edit, both commands from the project's facts: the Testing Policy's Project facts in the
 project's `CLAUDE.md` (the unit suite, its single-file form, and the typecheck command where the
 facts name one), else the repository's own scripts (`package.json` scripts, a `Makefile` target, a
-`pyproject` runner), else `skip: <reason>`. The command line is shown before it runs and the
-relevant output line is quoted in the reply, produced after the edit and never taken from an
-earlier run, per [prove-it-works](../../../.agents/principles/prove-it-works.md).
+`pyproject` runner), else `skip: <reason>`. The command line is recorded for the Reply's Run
+section and the relevant output line is quoted in its Evidence, produced after the edit and never
+taken from an earlier run, per [prove-it-works](../../../.agents/principles/prove-it-works.md).
 
 - **Typecheck.** No command in the facts or the scripts reads
   `skip: no typecheck command in the project`.
@@ -120,8 +123,8 @@ Done when both lines are quoted, or read `skip: <reason>`.
 
 ### 5. Door on the diff
 
-`bash <skill-dir>/scripts/trivial-door.sh diff <touched files>`, the command line shown and its
-lines quoted in the reply. The script is the lever a reviewer reruns, per
+`bash <skill-dir>/scripts/trivial-door.sh diff <touched files>`, its command line and its lines
+quoted in the reply's Evidence and its `verdict=` line recorded for the Run section. The script is the lever a reviewer reruns, per
 [build-the-lever](../../../.agents/principles/build-the-lever.md): its test-file classes come from
 the policy's `skip-patterns.sh` when the policy is installed and from a built-in list otherwise,
 and an exported symbol or a changed signature is matched by pattern for JavaScript, TypeScript and
@@ -135,7 +138,7 @@ exported constant passes the script and is the covering suite's to judge.
 | 3 | `verdict=judgment` | a touched file's language has no pattern: the run reads the diff itself against the same three questions (a test file, a new exported symbol, a changed signature), stops as for exit 1 when one holds, and says in the reply that the second check was its own judgment and not the script's |
 | 2 | usage, or not a git repository | blocked; the reply quotes the error |
 
-Done when the verdict is in the thread.
+Done when the verdict is recorded for the Reply's Run section.
 
 ### 6. Commit
 
@@ -144,8 +147,8 @@ files for this commit and leaves whatever else the developer had staged as it wa
 never `.`, never a file the run did not touch. The title is a conventional commit,
 `type(scope): subject`, with the type one of `docs`, `style`, `refactor` or `chore`, never `feat`
 or `fix`, which a Trivial change is not. The body carries the gate as it ran: each command with
-its result, or its skip reason. Nothing is pushed. Done when the commit's short sha is in the
-thread.
+its result, or its skip reason. Nothing is pushed. Done when the commit's short sha is recorded
+for the Reply's Commits section.
 
 ### 7. Reply
 

@@ -59,6 +59,25 @@ and written only when that Playbook's steps name it:
 15. **Diagnosis.** When the run hunted a cause: one line per hypothesis with the runtime evidence
     that ruled it out, then the mechanism the run confirmed, in one line, so the developer checks
     the cause instead of taking it on trust.
+12. **Target files.** The files the door's checks named, in `trivial` and `refactoring`.
+13. **Worktree line.** The worktree's path and its branch, once the worktree step entered it.
+14. **Structure line.** In `refactoring`, the structure and the target shape, with the sketch or
+    its skip, and a deviation from that shape the build met.
+15. **Behaviours list.** The list the behaviours step wrote, each line with the commit beside it.
+16. **Build lines.** One line per behaviour as it landed: the files the loop opened for it, the
+    author's verdict and what was done with it, the commit, and, when the behaviour went to
+    [tdd-fallback.md](tdd-fallback.md), the reason it did and the check that stood in.
+17. **Answer lines.** In `refactoring`, each answer with its reason: the exit test's, with the
+    developer's answer when the test failed, and a behaviour change the cleanup found, with its
+    command.
+18. **Gate line.** The `command=` line the gate printed after the last edit, or in `trivial` the
+    command lines of the typecheck and the covering suite, each with its skip when it has one.
+19. **Door verdict.** In `trivial`, the `verdict=` line the door on the diff printed, or, on its exit 3,
+    the line saying the second check was the run's own judgment and not the script's.
+20. **Integration line.** The state the integration reached: the no-op, or the target and the
+    count, or blocked with its reason, with the conflict class's counts at each stop.
+21. **Review return.** The review's return, one line per part: the Review's location, the
+    `Act on:` line, the landing line, every `Risk:` line and every `Axis not run:` line.
 
 The lines record what the steps decided; they gate nothing. The order constraints on actions stay
 with the steps that carry them (the door script before any write, the worktree before the first
