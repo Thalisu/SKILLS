@@ -699,8 +699,9 @@ expect "and it is staged with those bytes" cmp -s "$tmp/hand.staged" "$tmp/hand.
 expect "nothing at the resumed stop is left unmerged" test -z "$(git ls-files -u)"
 
 # A merge stopped on a line both sides rewrote: the branch merged into is the Target, the branch
-# being merged the Incoming side. The question, the answer and the stop are the rebase's, and the
-# undo is the merge's own.
+# being merged the Incoming side, the same pairing of stages a rebase leaves. The stop resolves to the
+# Target side and the merged branch's side goes to the ledger, named by the commit it was merged from
+# and by the tip the merge started from, which a merge records as ORIG_HEAD.
 fresh merge-stop
 printf 'x\ny\nz\n' >rewrite.txt
 commit base
@@ -712,31 +713,28 @@ printf 'x\nTARGET\nz\n' >rewrite.txt
 commit target
 g merge do/run >/dev/null 2>&1
 git cat-file blob :2:rewrite.txt >"$tmp/merge.target"
-before="$(state)"
+merged="$(git rev-parse MERGE_HEAD)"
+stopped_on="$(git rev-parse HEAD)"
+started_from="$(git rev-parse ORIG_HEAD)"
 
 run
-first="$(sed -n 's/^id //p' <<<"$out")"
-check "a stopped merge asks its contested hunk as a stopped rebase does" 1 "$rc" \
-  "Conflict 1 of 1 · rewrite.txt · L2-L6 · rewrite-vs-rewrite" \
-  "### Target" "### Incoming" "Answers: target · incoming · both · stop" "id "
-expect "the merge's target branch is quoted as the Target side" \
-  grep -qxF '    TARGET' <(sed -n '/^### Target$/,/^### Incoming$/p' <<<"$out")
-expect "the merged branch is quoted as the Incoming side" \
-  grep -qxF '    INCOMING' <(sed -n '/^### Incoming$/,/^Recommendation/p' <<<"$out")
-expect "asking at a stopped merge writes nothing" test "$(state)" = "$before"
-
-run "$first:stop"
-check "stop at a stopped merge blocks with the merge's undo" 3 "$rc" \
-  "blocked stop" "conflicted rewrite.txt" "undo git merge --abort"
-check_absent "stop at a stopped merge never offers the rebase's undo" 3 "$rc" "undo git rebase --abort"
-expect "stop leaves the merge open and writes nothing" \
-  test -n "$(git rev-parse -q --verify MERGE_HEAD)" -a "$(state)" = "$before"
-
-run "$first:target"
-check "target at a stopped merge writes the file and resolves" 0 "$rc" \
-  "wrote rewrite.txt" "resolved mechanical=0 target=1 incoming=0 both=0"
-expect "target at a stopped merge takes the target branch's side" cmp -s rewrite.txt "$tmp/merge.target"
-expect "the written file is staged, so the merge has nothing unmerged" test -z "$(git ls-files -u)"
+check_lines "a stopped merge resolves its contested hunk and counts it" 0 "$rc" \
+  "wrote rewrite.txt" "resolved mechanical=0 contested=1"
+expect "the file takes the merge target's side" cmp -s rewrite.txt "$tmp/merge.target"
+expect "nothing at the stopped merge is left unmerged" test -z "$(git ls-files -u)"
+expect "the stopped merge leaves exactly one ledger entry" \
+  test "$(grep -c '^## ' .scratch/run.ledger.md 2>/dev/null)" = 1
+expect "that entry holds the merged branch's side whole" \
+  test "$(ledger_part .scratch/run.ledger.md rewrite.txt incoming 2>/dev/null)" = INCOMING
+merge_keys="$(ledger_part .scratch/run.ledger.md rewrite.txt keys 2>/dev/null)"
+expect "the entry names the merged commit as the one it set the Incoming side aside from" \
+  grep -qxF -- "- commit: $merged" <<<"$merge_keys"
+expect "that commit is never the branch the merge stopped on" \
+  test "$(grep -c '^- commit: ' <<<"$merge_keys")" = 1 \
+  -a "$(grep '^- commit: ' <<<"$merge_keys")" != "- commit: $stopped_on"
+expect "the entry names the tip the merge started from" \
+  grep -qxF -- "- before: $started_from" <<<"$merge_keys"
+expect "the merge commits from there" g commit -qm merged
 
 # A stopped merge in a repository where an earlier rebase already finished: git 2.55 leaves a stale
 # REBASE_HEAD behind after `rebase --continue` completes, even though no rebase-merge or rebase-apply

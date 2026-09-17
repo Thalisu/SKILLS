@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# contested.sh: every contested hunk of a stopped rebase resolved to the Target side, with nothing
-# asked. Run from anywhere inside the project.
+# contested.sh: every contested hunk of a stopped rebase or merge resolved to the Target side, with
+# nothing asked. Run from anywhere inside the project.
 #
 #   contested.sh <ledger>    the stop resolved and staged, the Incoming side of each contested hunk
 #                            written to the Loss ledger at <ledger>, an absolute path under the main
@@ -11,7 +11,7 @@
 # whole leaves one entry for the file: a delete against an edit, a rename against an edit, a binary
 # file, a file too large to merge, and a file git's merge cannot line up with the index. Each takes
 # the Target side whole, or its removal, and a binary or too-large side is named by its size, its
-# blob and the branch tip recorded before the rebase.
+# blob and the branch tip recorded before the operation started.
 #
 # Each conflicted file is written once from its three index stages and staged: its mechanical hunks
 # by the union rule, both sides in base order, its contested hunks from the Target stage. The script
@@ -21,8 +21,8 @@
 # staged as it stands, `trusted <file>` for each. The last line is
 # `resolved mechanical=<n> contested=<n>`, the hunks of the stop by class.
 #
-# Exit codes: 0 the stop resolved and staged · 2 usage, no stopped rebase, no contested hunk at this
-# stop, or the ledger refused, with nothing written.
+# Exit codes: 0 the stop resolved and staged · 2 usage, no stopped rebase or merge, no contested hunk
+# at this stop, or the ledger refused, with nothing written.
 #
 # The class, the order and the locations are conflict-class.sh's report, never read again here from
 # the working file's markers. The sides are taken from the index stages, never from a model's merge.
@@ -40,7 +40,19 @@ ledger="$1"
 here="$(cd "$(dirname "$0")" && pwd -P)"
 top="$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "not a git repository" >&2; exit 2; }
 cd "$top" || exit 2
-git rev-parse -q --verify REBASE_HEAD >/dev/null 2>&1 || { echo "no stopped rebase" >&2; exit 2; }
+# REBASE_HEAD outlives a rebase that finished or quit, so only a rebase state directory says one is
+# still open. The Incoming side is the commit being replayed at a rebase and the merged commit at a
+# merge, and the tip the operation started from is the rebase's own record or ORIG_HEAD.
+if [ -d "$(git rev-parse --git-path rebase-merge)" ] || [ -d "$(git rev-parse --git-path rebase-apply)" ]; then
+  incoming_ref=REBASE_HEAD
+  started_from="$(cat "$(git rev-parse --git-path rebase-merge/orig-head)" 2>/dev/null)"
+elif git rev-parse -q --verify MERGE_HEAD >/dev/null 2>&1; then
+  incoming_ref=MERGE_HEAD
+  started_from="$(git rev-parse -q --verify ORIG_HEAD 2>/dev/null)"
+else
+  echo "no stopped rebase or merge" >&2
+  exit 2
+fi
 
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
@@ -106,9 +118,9 @@ regenerate() { # $1 path: the three stages into $tmp/s1..s3, their merge into $t
     > "$tmp/merged" 2>/dev/null
 }
 
-# The branch tip before the rebase started: a side named by its blob is reachable from it once the
+# The branch tip before the operation started: a side named by its blob is reachable from it once the
 # rebase has moved the branch, so the ledger names both.
-before="$(cat "$(git rev-parse --git-path rebase-merge/orig-head)" 2>/dev/null)"
+before="$started_from"
 
 # One side of a whole-file hunk: its stage whole, its deletion, or, where the file cannot be read
 # line by line, its size, its blob and the tip that reaches it. Whether a stage exists is read from
@@ -194,7 +206,7 @@ set_aside() { # $1 the hunk's index in the report
   printf '%s\n' "${files[$i]}" > "$entry/file"
   printf '%s\n' "$location" > "$entry/location"
   printf '%s\n' "${shapes[$i]}" > "$entry/shape"
-  git rev-parse REBASE_HEAD > "$entry/commit"
+  git rev-parse "$incoming_ref" > "$entry/commit"
   printf '%s\n' "$before" > "$entry/before"
   capped "$tmp/target" 2 "$path" > "$entry/target"
   cp "$tmp/incoming" "$entry/incoming"
@@ -285,9 +297,9 @@ resolve_whole() { # $1 path, $2 the file as the report prints it, $3 target or b
   # base-to-Incoming diff, never the working file's markers, same as conflict-class.sh's shape.
   if ! git cat-file -e "HEAD:$path" 2>/dev/null; then
     local merge_base renamed_from=""
-    merge_base="$(git merge-base HEAD REBASE_HEAD 2>/dev/null)"
+    merge_base="$(git merge-base HEAD "$incoming_ref" 2>/dev/null)"
     if [ -n "$merge_base" ]; then
-      renamed_from="$(git diff -M --name-status "$merge_base" REBASE_HEAD -- 2>/dev/null |
+      renamed_from="$(git diff -M --name-status "$merge_base" "$incoming_ref" -- 2>/dev/null |
         awk -F'\t' -v p="$path" '$1 ~ /^R/ && $3 == p { print $2; exit }')"
     fi
     if [ -n "$renamed_from" ] && git cat-file -e "HEAD:$renamed_from" 2>/dev/null; then
