@@ -676,6 +676,12 @@ What it prints and the code it exits with say what the run does next.
   open at that commit, the conflicting files named, the command that undoes it,
   `git rebase --abort`, the worktree and its branch left in place and named, the Ticket left
   `claimed`, nothing landed and nothing pushed.
+- Exit 3: git refused to write the index for a file, named on the script's `git refused to stage
+  <file>` line, with no `wrote`, `removed`, `trusted` or `resolved` line for it and every other file
+  of the stop left as it stood. The run stops as blocked the same way as exit 2, the script's reason
+  quoted, the rebase left open at that commit, the conflicting files named, `git rebase --abort` as
+  the undo, the worktree and its branch left in place and named, the Ticket left `claimed`, nothing
+  landed and nothing pushed.
 
 Once the rebase finishes, the step is ticked with the totals across every stop, the mechanical and
 the contested hunks counted from each verdict line, and the ledger's location. Then the gate's

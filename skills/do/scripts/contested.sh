@@ -22,8 +22,9 @@
 # `resolved mechanical=<n> contested=<n>`, the hunks of the stop by class.
 #
 # Exit codes: 0 the stop resolved and staged · 2 usage, no stopped rebase or merge, no contested hunk
-# at this stop, the ledger refused, or git refusing to write the index for a file, named on a
-# `git refused to stage <file>` line, with no `wrote`/`removed`/`trusted` or `resolved` line for it.
+# at this stop, or the ledger refused, with nothing written · 3 git refusing to write the index for a
+# file, named on a `git refused to stage <file>` line, with no `wrote`/`removed`/`trusted` or
+# `resolved` line for it.
 #
 # The class, the order and the locations are conflict-class.sh's report, never read again here from
 # the working file's markers. The sides are taken from the index stages, never from a model's merge.
@@ -329,13 +330,13 @@ for i in "${contested[@]}"; do set_aside "$i" || exit 2; done
 
 for file in "${reported[@]}"; do
   if [ -n "${whole["$file"]+set}" ]; then
-    resolve_whole "${raw_path["$file"]}" "$file" "${answer_at["$file#1"]}" || exit 2
+    resolve_whole "${raw_path["$file"]}" "$file" "${answer_at["$file#1"]}" || exit 3
   else
-    resolve "${raw_path["$file"]}" "$file" || exit 2
+    resolve "${raw_path["$file"]}" "$file" || exit 3
   fi
 done
 for file in "${trusted[@]}"; do
-  git add -- "${raw_path["$file"]}" || { echo "git refused to stage $file" >&2; exit 2; }
+  git add -- "${raw_path["$file"]}" || { echo "git refused to stage $file" >&2; exit 3; }
   echo "trusted $file"
 done
 echo "resolved mechanical=$mechanical contested=${#contested[@]}"

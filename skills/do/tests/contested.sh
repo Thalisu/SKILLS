@@ -948,10 +948,10 @@ touch .git/index.lock
 rc=0
 out="$(bash "$door" "$lockledger" 2>&1)" || rc=$?
 rm -f .git/index.lock
-check "git refusing to write the index exits nonzero and names the file it refused" 2 "$rc" \
-  "git refused to stage locked.txt"
-check_absent "no wrote line is printed for the file git refused to stage" 2 "$rc" "wrote locked.txt"
-check_absent "no resolved line is printed when git refuses to stage a file" 2 "$rc" "resolved mechanical="
+check "git refusing to write the index exits 3, distinct from the usage code 2, and names the file it refused" \
+  3 "$rc" "git refused to stage locked.txt"
+check_absent "no wrote line is printed for the file git refused to stage" 3 "$rc" "wrote locked.txt"
+check_absent "no resolved line is printed when git refuses to stage a file" 3 "$rc" "resolved mechanical="
 expect "the file git refused to stage is still unmerged" test -n "$(git ls-files -u -- locked.txt)"
 
 # A rebase stopped under git's apply backend keeps its own orig-head under rebase-apply/, not
