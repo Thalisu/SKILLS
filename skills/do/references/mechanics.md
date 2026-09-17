@@ -606,9 +606,8 @@ git diff --name-only --diff-filter=U -z | bash <skill-dir>/scripts/last-wins.sh 
   git diff --name-only --diff-filter=U -z | GIT_LITERAL_PATHSPECS=1 xargs -0 git add --
 ```
 
-Then the continue with the same prefix,
-`git -c rerere.enabled=false -c rerere.autoupdate=false rebase --continue`, carries the rebase to
-the next commit, and every further stop is classed and resolved the same way. The reply names every
+Then the continue block below, the one every stop of this step ends in, carries the rebase to the
+next commit, and every further stop is classed and resolved the same way. The reply names every
 hunk it resolved with its file and location, and every `trusted` file as taken on trust, kept as the
 developer wrote it: the run staged it and never read it for a key defined twice, since it is theirs.
 
@@ -679,9 +678,9 @@ checkout's `.scratch/`, with nothing written.
 
 What it prints and the code it exits with say what the run does next.
 
-- `resolved` (exit 0): the stop is resolved and staged. The run reads each file the script `wrote`
-  for a key defined twice, as the paragraph above says, then continues with the same prefix, and
-  the next stop is classed like any other.
+- `resolved` (exit 0): the stop is resolved and staged, each file the script wrote by the union rule
+  already read back for a key defined twice on its way through, as the state above says. The run
+  ends the stop in the continue block below, and the next stop is classed like any other.
 - Exit 2: a usage fault, no stopped rebase, no contested hunk at that stop, or the ledger refused,
   with nothing written. The run stops as blocked with the script's reason quoted, the rebase left
   open at that commit, the conflicting files named, the command that undoes it,
@@ -750,10 +749,25 @@ Then the gate's command lines run again and the review is called, as after any r
 call on a run the review already read.
 
 **A replayed commit that is empty after the resolution.** The developer's branch already carries
-that change, so the continue has nothing left to apply and git says so. The run skips it,
-`git -c rerere.enabled=false -c rerere.autoupdate=false rebase --skip`, and the commit is named in
-the reply. Nothing of the run's work is lost: the change is already on the branch it was going to
-land on.
+that change, or the resolution took the **Target** side of every hunk the commit brought, so the
+continue has nothing left to apply. Git refuses an empty commit and leaves the rebase where it is,
+so the run never reaches that refusal: the block below is the continue every stop of this step ends
+in, and it reads the staged tree against `HEAD` first.
+
+```
+if git diff --cached --quiet HEAD; then
+  git log -1 --format='skipped %h %s' REBASE_HEAD
+  git -c rerere.enabled=false -c rerere.autoupdate=false rebase --skip
+else
+  git -c rerere.enabled=false -c rerere.autoupdate=false rebase --continue
+fi
+```
+
+The commit it skips is named in the reply off the `skipped <sha> <subject>` line the block printed,
+and the rebase carries on to the next commit, where the stop is classed and resolved like any
+other. Nothing of the run's work is lost without a trace: the change is either already on the
+branch it was going to land on, or it is the **Incoming** side of a `contested` hunk and the
+**Loss ledger** holds it whole.
 
 **Git refusing to continue for any other reason.** The run stops as blocked with the rebase left
 open at that commit, the conflicting files named, and the command that undoes it,

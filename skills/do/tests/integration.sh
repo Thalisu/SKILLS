@@ -358,6 +358,68 @@ an_all_mechanical_stop_whose_union_defines_a_key_twice_lands_the_targets_definit
 }
 an_all_mechanical_stop_whose_union_defines_a_key_twice_lands_the_targets_definition
 
+# The resolution of a stop can leave the replayed commit with nothing left to apply: the developer's
+# branch already carries that change in its own wording, and taking the Target side stages a tree
+# identical to HEAD. Git refuses to commit that, so the continue the run runs at every stop must name
+# the commit, skip it, and carry the rebase to its end with the run's remaining work replayed on top.
+a_replayed_commit_the_resolution_left_empty_is_named_skipped_and_the_rebase_finishes() {
+  local cont ledger short rc
+  cont="$(blocks_of "$mech" "## The integration" "**A replayed commit that is empty after the resolution.**" 1)"
+  expect "the empty-after-resolution state carries the continue block the run runs at every stop" \
+    test -n "$cont"
+  printf '%s\n' "$cont" >"$tmp/continue-empty.sh"
+
+  fresh empty-after-resolution
+  # The block's own git commits what is left to replay, which needs an identity in the fixture.
+  g config user.email t@example.com
+  g config user.name t
+  printf 'const FLAG = false;\nconst OTHER = 1;\n' >flag.js
+  commit base
+  g switch -q -c do/run
+  printf 'const FLAG = true; // enabled\nconst OTHER = 1;\n' >flag.js
+  commit "turns the flag on"
+  printf 'note\n' >notes.txt
+  commit "adds a note"
+  g switch -q main
+  printf 'const FLAG = true;\nconst OTHER = 1;\n' >flag.js
+  commit "the developer turns the flag on too"
+  g switch -q do/run
+  g -c rerere.enabled=false -c rerere.autoupdate=false rebase refs/heads/main >/dev/null 2>&1
+  short="$(g rev-parse --short REBASE_HEAD)"
+
+  rc=0
+  # shellcheck disable=SC2034  # lib.sh's check reads $out
+  out="$(bash "$repo/skills/do/scripts/conflict-class.sh" 2>&1)" || rc=$?
+  check "the flag fixture stops on a contested hunk, so the stop is resolved by the script" \
+    1 "$rc" "verdict=contested mechanical=0 contested=1 trusted=0"
+
+  mkdir -p .scratch
+  ledger="$PWD/.scratch/run.ledger.md"
+  rc=0
+  out="$(bash "$repo/skills/do/scripts/contested.sh" "$ledger" 2>&1)" || rc=$?
+  check "the Target side resolves the stop, leaving the replayed commit nothing left to apply" \
+    0 "$rc" "wrote flag.js" "resolved mechanical=0 contested=1"
+
+  rc=0
+  # GIT_EDITOR so a continue that does reach git never waits on an editor and hangs the suite.
+  out="$(GIT_EDITOR=true bash "$tmp/continue-empty.sh" 2>&1)" || rc=$?
+  check_lines "the continue names the replayed commit the resolution left empty and skips it" \
+    0 "$rc" "skipped $short turns the flag on"
+
+  # shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+  out="$(g status 2>&1)"
+  check_absent "the rebase is no longer stopped once that commit is skipped" 0 0 \
+    "rebase in progress" "You are currently rebasing"
+  expect "and git is left no rebase state at all" \
+    test ! -d "$(g rev-parse --git-path rebase-merge)" -a ! -d "$(g rev-parse --git-path rebase-apply)"
+  expect "the rebase carried on to its end, the run's later commit replayed and the empty one gone" \
+    test "$(g log --format=%s refs/heads/main..HEAD)" = "adds a note"
+  expect "the developer's own version of the file the skipped commit touched stands on the branch" \
+    test "$(cat flag.js)" = "$(g cat-file blob main:flag.js)"
+  cd "$repo" || exit 1
+}
+a_replayed_commit_the_resolution_left_empty_is_named_skipped_and_the_rebase_finishes
+
 if [ "$fails" = 0 ]; then echo "PASS"; else
   echo "$fails failing"
   exit 1
