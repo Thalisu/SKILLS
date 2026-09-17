@@ -44,10 +44,11 @@ started from (`git log <base>..do/<slug>` with `<base>` their merge base), each 
   branch, `git worktree add .claude/worktrees/do-<slug> do/<slug>`, without `-b`: `-b` on a
   branch that exists fails, and that failure is the state to read, not an error to work around
   with a second slug.
-- The first message says the run resumes, names the worktree and its branch, and lists the commits
-  found, one line each with its `Behaviour:` line. Step 0's read-back, surface, predicate and loop
-  line are recorded again from the request for the Reply's Run section, since nothing on the
-  branch carries them, and the Reply's Run section carries the checklist with step 1 and every
+- The run records the resume line for the Reply's Run section, per [reply.md](reply.md): it says
+  the run resumed, names the worktree and its branch, and lists the commits found, one line each
+  with its `Behaviour:` line. Step 0's read-back, surface, predicate and loop line are recorded
+  again from the request for the Reply's Run section, since nothing on the branch carries them,
+  and the Reply's Run section carries the checklist with step 1 and every
   step the commits show as already done before the step the run resumes at, each ticked
   `done: resumed`: the worktree is never the only step ticked when the commits evidence more.
 - The run continues at the first step the branch does not evidence: no commit resumes at step 2,
@@ -67,9 +68,10 @@ started from (`git log <base>..do/<slug>` with `<base>` their merge base), each 
   [ADR 0033](../../../docs/adr/0033-the-review-runs-once-per-run-and-what-comes-after-it-lands-through-the-gate-alone.md),
   so the run gates, integrates and lands through the fix call on that Review, never a second
   review.
-- Uncommitted changes in the worktree are named in the first message, one line per file from
-  `git status --short`, and the run asks before discarding them, since the discard is the one
-  irreversible act on this path. A yes discards them, `git restore --staged --worktree .` then
+- Uncommitted changes in the worktree are asked about before they are discarded, since the discard
+  is the one irreversible act on this path. The question is the turn's final message: it says the
+  run resumes, names the worktree and its branch, and names the changes one line per file from
+  `git status --short`. A yes discards them, `git restore --staged --worktree .` then
   `git clean -fd` in the worktree; a no stops the run with the worktree as it is, the reply naming
   it and its branch.
 - A run that stopped as blocked resumes the same way once its reason is gone, since every stop on
@@ -139,7 +141,8 @@ the Reply's Run section and the checklist is copied.
 `do/<slug>`, where `<slug>` is a short slug of the bug in the developer's words, excluded locally,
 entered. It probes first, `git worktree list` and `git branch --list do/<slug>`: an entry in either
 is an earlier run on this bug, and the Resume section above takes the step over. Done when its
-status prints nothing and the branch name is in the thread, or the resume's first message is.
+status prints nothing and the branch name is in the thread, or the resume line is recorded for the
+Reply.
 
 **2. Reproduce.** The run drives the surface itself and records for the Reply's Run section the
 command line and the output that carries the defect, per
