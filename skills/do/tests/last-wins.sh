@@ -732,6 +732,80 @@ expect "the second read-back rewrites the entry where it stands, leaving the led
 expect "the rewritten entry still sets aside the Incoming's definition" \
   test "$(ledger_part "$ledger" .env incoming 2>/dev/null)" = 'DENY='
 
+# A rebase stopped on a `*.json` where both sides added a whole `auth` object at the same anchor: the
+# Target's carries `admin: target` and the commit being replayed's carries `admin: incoming`. The
+# union defines `auth` twice, and inside each `auth` it defines `admin` once, so `auth` and its nested
+# `auth.admin` are two duplicate key paths whose lines nest: the whole `auth.admin` range of each
+# occurrence sits inside that occurrence's own `auth` range. Both ranges start in the Incoming's own
+# block and reach no further than the Incoming's own `auth` object, so dropping them must never reach
+# into the following `session` object, which neither side touched.
+fresh json-nested-duplicate
+cat >auth.json <<'JSON'
+{
+  "session": {
+    "secure": true
+  }
+}
+JSON
+commit base
+g switch -q -c do/run
+cat >auth.json <<'JSON'
+{
+  "auth": {
+    "admin": "incoming"
+  },
+  "session": {
+    "secure": true
+  }
+}
+JSON
+commit incoming
+g switch -q main
+cat >auth.json <<'JSON'
+{
+  "auth": {
+    "admin": "target"
+  },
+  "session": {
+    "secure": true
+  }
+}
+JSON
+commit target
+g switch -q do/run
+g rebase main >/dev/null 2>&1
+
+write_unions
+expect "the union the integration wrote defines auth twice, each holding admin once" \
+  test "$(grep -c '"auth":' auth.json)" = 2
+
+run
+ledger="$PWD/.scratch/run.ledger.md"
+
+check_lines "the read-back names both the outer key path and the nested one it kept" 0 "$rc" \
+  "kept auth.json auth" "kept auth.json auth.admin" "read-back files=1 kept=2 deduped=0"
+expect "the JSON keeps the Target's auth object, drops the Incoming's, and keeps the untouched session object whole" \
+  test "$(cat auth.json)" = "$(
+    cat <<'JSON'
+{
+  "auth": {
+    "admin": "target"
+  },
+  "session": {
+    "secure": true
+  }
+}
+JSON
+  )"
+expect "the session object neither side touched still opens" grep -qxF -- '  "session": {' auth.json
+expect "the session object neither side touched still closes" grep -qxF -- '    "secure": true' auth.json
+
+expect "each nested duplicate leaves its own entry in the ledger" \
+  test "$(grep -c '^## ' "$ledger" 2>/dev/null)" = 2
+keys="$(ledger_part "$ledger" auth.json keys 2>/dev/null)"
+expect "one entry locates the outer key path" grep -qxF -- '- location: auth' <<<"$keys"
+expect "the other entry locates the nested key path" grep -qxF -- '- location: auth.admin' <<<"$keys"
+
 if [ "$fails" = 0 ]; then echo "all ok"; else
   echo "$fails failing"
   exit 1

@@ -226,6 +226,19 @@ block_text() { # $1 file, $2 first, $3 last
   awk -v a="$2" -v b="$3" 'NR >= a && NR <= b' "$1"
 }
 
+# A key path and one it nests (`auth` and `auth.admin`) can both fall to drop, and the range of the
+# inner one always sits inside the outer's: merged here into disjoint ranges so a line already
+# dropped by one pass of the rewrite loop below is never counted again by another, which would offset
+# that later pass against a file the earlier one has already shortened and eat lines neither side wrote.
+merge_ranges() { # ranges "<first> <last>" on stdin, one per line; disjoint ranges on stdout
+  sort -n | awk '
+    NR == 1 { cs = $1; ce = $2; next }
+    $1 <= ce { if ($2 > ce) ce = $2; next }
+    { print cs, ce; cs = $1; ce = $2 }
+    END { if (NR > 0) print cs, ce }
+  '
+}
+
 block_in() { # $1 block file, $2 side file
   awk -v bf="$1" '
     BEGIN { n = 0; while ((getline l < bf) > 0) b[++n] = l }
@@ -322,7 +335,7 @@ while IFS= read -r -d '' file; do
     set -- $range
     awk -v a="$1" -v b="$2" 'NR < a || NR > b' "$tmp/union" > "$tmp/rewritten"
     mv -f "$tmp/rewritten" "$tmp/union"
-  done < <(printf '%s\n' "${drop[@]}" | sort -rn)
+  done < <(printf '%s\n' "${drop[@]}" | merge_ranges | sort -rn)
   cp "$tmp/union" "$file" || { echo "could not rewrite $file" >&2; exit 3; }
 done
 
