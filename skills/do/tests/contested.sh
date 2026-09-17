@@ -562,6 +562,46 @@ git cat-file blob :0:hand.txt >"$tmp/hand.staged" 2>/dev/null
 expect "and it is staged with those bytes" cmp -s "$tmp/hand.staged" "$tmp/hand.before"
 expect "nothing at the resumed stop is left unmerged" test -z "$(git ls-files -u)"
 
+# A merge stopped on a line both sides rewrote: the branch merged into is the Target, the branch
+# being merged the Incoming side. The question, the answer and the stop are the rebase's, and the
+# undo is the merge's own.
+fresh merge-stop
+printf 'x\ny\nz\n' >rewrite.txt
+commit base
+g switch -q -c do/run
+printf 'x\nINCOMING\nz\n' >rewrite.txt
+commit incoming
+g switch -q main
+printf 'x\nTARGET\nz\n' >rewrite.txt
+commit target
+g merge do/run >/dev/null 2>&1
+git cat-file blob :2:rewrite.txt >"$tmp/merge.target"
+before="$(state)"
+
+run
+first="$(sed -n 's/^id //p' <<<"$out")"
+check "a stopped merge asks its contested hunk as a stopped rebase does" 1 "$rc" \
+  "Conflict 1 of 1 · rewrite.txt · L2-L6 · rewrite-vs-rewrite" \
+  "### Target" "### Incoming" "Answers: target · incoming · both · stop" "id "
+expect "the merge's target branch is quoted as the Target side" \
+  grep -qxF '    TARGET' <(sed -n '/^### Target$/,/^### Incoming$/p' <<<"$out")
+expect "the merged branch is quoted as the Incoming side" \
+  grep -qxF '    INCOMING' <(sed -n '/^### Incoming$/,/^Recommendation/p' <<<"$out")
+expect "asking at a stopped merge writes nothing" test "$(state)" = "$before"
+
+run "$first:stop"
+check "stop at a stopped merge blocks with the merge's undo" 3 "$rc" \
+  "blocked stop" "conflicted rewrite.txt" "undo git merge --abort"
+check_absent "stop at a stopped merge never offers the rebase's undo" 3 "$rc" "undo git rebase --abort"
+expect "stop leaves the merge open and writes nothing" \
+  test -n "$(git rev-parse -q --verify MERGE_HEAD)" -a "$(state)" = "$before"
+
+run "$first:target"
+check "target at a stopped merge writes the file and resolves" 0 "$rc" \
+  "wrote rewrite.txt" "resolved mechanical=0 target=1 incoming=0 both=0"
+expect "target at a stopped merge takes the target branch's side" cmp -s rewrite.txt "$tmp/merge.target"
+expect "the written file is staged, so the merge has nothing unmerged" test -z "$(git ls-files -u)"
+
 if [ "$fails" = 0 ]; then echo "all ok"; else
   echo "$fails failing"
   exit 1

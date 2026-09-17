@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# contested.sh: every contested hunk of a stopped rebase put to the developer as one question, and
-# their answers applied. Run from anywhere inside the project.
+# contested.sh: every contested hunk of a stopped rebase or merge put to the developer as one
+# question, and their answers applied. Run from anywhere inside the project.
 #
 #   contested.sh                     the stop's first contested hunk, as one question
 #   contested.sh <id>:<answer>...    the answers so far, in the order asked: the next question, or,
@@ -15,7 +15,7 @@
 # conflict-class.sh prints it, then `id <id>`, the Target and the Incoming side each quoted under its
 # own heading, a recommendation with the shape as its reason, the answers the shape offers, never
 # `both` where a stage of the file is a symlink or a submodule, and the command that undoes the
-# rebase. A whole-file hunk quotes each side whole, as `(deleted)` where that side deleted the file,
+# rebase or the merge. A whole-file hunk quotes each side whole, as `(deleted)` where that side deleted the file,
 # or by its size and blob where the file is binary or too large. A side past 200 lines or 16 KiB is
 # quoted by its head, then its line count, its size and the blob it came from.
 #
@@ -27,10 +27,11 @@
 # `resolved mechanical=<n> target=<n> incoming=<n> both=<n> trusted=<n>`.
 #
 # Exit codes: 0 every contested hunk answered and its file written · 1 a question printed · 2 usage,
-# or no stopped rebase · 3 blocked: `stop`, an answer the hunk does not offer, an id that names no
-# open hunk, or more answers than hunks, printed as `blocked <reason>`, one `conflicted <file>` line
-# per file git left unmerged and `undo git rebase --abort`, with nothing written · 4 no human: the
-# session's CLAUDE_CODE_ENTRYPOINT starts with `sdk-` (`claude -p` reads `sdk-cli`), printed as
+# or no stopped rebase or merge · 3 blocked: `stop`, an answer the hunk does not offer, an id that
+# names no open hunk, or more answers than hunks, printed as `blocked <reason>`, one
+# `conflicted <file>` line per file git left unmerged and `undo git rebase --abort`, or
+# `undo git merge --abort` at a stopped merge, with nothing written · 4 no human: the session's
+# CLAUDE_CODE_ENTRYPOINT starts with `sdk-` (`claude -p` reads `sdk-cli`), printed as
 # `no human CLAUDE_CODE_ENTRYPOINT=<value>` and the same `conflicted` lines, before any question is
 # formed and with nothing written.
 #
@@ -50,7 +51,14 @@ for arg in "$@"; do [[ "$arg" == ?*:?* ]] || usage; done
 here="$(cd "$(dirname "$0")" && pwd -P)"
 top="$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "not a git repository" >&2; exit 2; }
 cd "$top" || exit 2
-git rev-parse -q --verify REBASE_HEAD >/dev/null 2>&1 || { echo "no stopped rebase" >&2; exit 2; }
+if git rev-parse -q --verify REBASE_HEAD >/dev/null 2>&1; then
+  operation=rebase
+elif git rev-parse -q --verify MERGE_HEAD >/dev/null 2>&1; then
+  operation=merge
+else
+  echo "no stopped rebase or merge" >&2
+  exit 2
+fi
 
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
@@ -77,13 +85,13 @@ while IFS= read -r -d '' record; do
   mode_at["$(quote_path "$path")#${meta##* }"]="${meta%% *}"
 done < <(git ls-files -u -z)
 
-# The stop is left exactly as git left it: no answer of this call is written, the rebase stays open
-# at the commit it stopped on, and the undo is the developer's to run.
+# The stop is left exactly as git left it: no answer of this call is written, the rebase or the merge
+# stays open where it stopped, and the undo is the developer's to run.
 blocked() { # $1 reason
   local file
   echo "blocked $1"
   for file in "${unmerged[@]}"; do echo "conflicted $file"; done
-  echo "undo git rebase --abort"
+  echo "undo git $operation --abort"
   exit 3
 }
 
@@ -242,7 +250,7 @@ ask() { # $1 position of the hunk among the contested ones, from 0
   echo
   echo "Recommendation: $(recommend "${shapes[$i]}")."
   echo "Answers: $(offered "${shapes[$i]}" "${files[$i]}")"
-  echo "Undo: git rebase --abort"
+  echo "Undo: git $operation --abort"
 }
 
 # A written file reaches the tree through the index, never through a redirect into its path: git
