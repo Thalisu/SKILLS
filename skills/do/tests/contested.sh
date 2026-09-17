@@ -275,6 +275,13 @@ expect "where the Incoming side deleted the file the Target's version stays" \
   cmp -s kept.txt "$tmp/kept.target"
 expect "a binary file takes the Target side's bytes whole" \
   cmp -s picture.bin "$tmp/picture.target"
+expect "a file the Target side deleted leaves its Incoming side whole in the ledger" \
+  test "$(ledger_part .scratch/run.ledger.md gone.txt target)" = "(deleted)" \
+  -a "$(ledger_part .scratch/run.ledger.md gone.txt incoming)" = "$(printf 'kept\nedited by incoming')"
+expect "a file the Incoming side deleted leaves the deletion as its set-aside side" \
+  test "$(ledger_part .scratch/run.ledger.md kept.txt incoming)" = "(deleted)" \
+  -a "$(ledger_part .scratch/run.ledger.md kept.txt target)" = "$(cat "$tmp/kept.target")"
+expect "every whole-file hunk leaves one entry" test "$(grep -c '^## ' .scratch/run.ledger.md)" = 4
 expect "no whole-file hunk is left unmerged" test -z "$(git ls-files -u)"
 expect "the rebase continues from there too" \
   g -c core.editor=true -c rerere.enabled=false rebase --continue
@@ -303,6 +310,10 @@ check_lines "the all-mechanical file is written beside the contested one" 0 "$rc
   "wrote mech.txt" "wrote rewrite.txt" "resolved mechanical=1 contested=1"
 expect "the all-mechanical file carries both sides in base order" cmp -s mech.txt "$tmp/mech.union"
 expect "the contested file takes the Target side" cmp -s rewrite.txt "$tmp/rewrite.target"
+expect "only the contested hunk of a mixed stop leaves a ledger entry" \
+  test "$(grep -c '^## ' .scratch/run.ledger.md)" = 1 \
+  -a "$(ledger_part .scratch/run.ledger.md rewrite.txt incoming)" = INCOMING \
+  -a -z "$(ledger_part .scratch/run.ledger.md mech.txt keys)"
 expect "nothing at the mixed stop is left unmerged" test -z "$(git ls-files -u)"
 expect "the rebase continues from a stop that mixed the two classes" \
   g -c core.editor=true -c rerere.enabled=false rebase --continue
