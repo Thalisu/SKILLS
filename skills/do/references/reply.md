@@ -15,8 +15,14 @@ Reply carries it, and text the session wrote mid-run is never where a line has t
 
 ## Run
 
-How the run was set up, one line each, in this order, each taken from the step that recorded it
-and written only when that Playbook's steps name it:
+How the run was set up, one line each, each taken from the step that recorded it and written only
+when that Playbook's steps name it, in the matched Playbook's step order: a line lands where the
+step that produced it falls in that Playbook's own sequence, not at a position this list fixes
+alike for every Playbook. The numbered list below names and describes every line the Run section
+can carry; it is not one single order every Playbook follows, since two Playbooks can produce the
+same lines in a different relative order (in `ticket` and `bug-fix` the worktree line comes before
+the audit line and before the hand-over, shaped-by and Sketch lines; in `refactoring` the target
+files and the audit line both come before the worktree line):
 
 1. **Read-back.** The request or the Ticket confirmed back: the Ticket's `<NN>: <title>`, or the
    reshape or the bug in the developer's terms.

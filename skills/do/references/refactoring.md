@@ -73,7 +73,7 @@ nothing depends on that:
 
 - `Playbook: refactoring`, as plain text on the first line.
 - The reshape confirmed back in one line, with the target files named, the same files the Run
-  section carries again on their own line after the audit line.
+  section carries again on their own line before the audit line.
 - Done as a predicate: the pin green before and after, the target shape reached, every caller
   migrated and the old API gone, and the gate green in the worktree after the last edit.
 - The loop line: `Loop: policy` when `.claude/agents/unit-test-author.md` exists in the project,
