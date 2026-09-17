@@ -87,7 +87,12 @@ files and the audit line both come before the worktree line):
     the line saying the second check was the run's own judgment and not the script's.
 26. **Integration line.** The state the integration reached: the no-op, or the target and the
     count, or blocked with its reason, with the conflict class's counts at each stop and the Loss
-    ledger's location when a contested hunk took the **Target** side.
+    ledger's location when a contested hunk took the **Target** side. Where the ledger held an
+    entry to judge, the line each entry was judged on, its id, `reapply` or `drop` and the one-line
+    reason, every `drop` among them, so what a contested hunk set aside is read as kept or as let
+    go and never merely as set aside; the line saying the session judged them itself, with the
+    branch that held, when no `ledger-judge` could be forked; and every id the judge named that
+    `pending` did not, refused by the script with nothing written.
 27. **Review return.** The review's return, one line per part: the Review's location, the
     `Act on:` line, the landing line, every `Risk:` line and every `Axis not run:` line.
 
@@ -112,7 +117,8 @@ lists it; write it by this file alone otherwise.
    runs one. The integration's lines belong here too, where it did anything: what it rebased onto
    and how many commits replayed, every hunk it resolved with its file and location, every contested
    hunk that took the **Target** side with its file and its location, the Loss ledger that holds its
-   **Incoming** side, and every replayed commit it skipped. On a Ticket that is an issue, the evidence the close's question offered, its held
+   **Incoming** side, the `pending` and `verdict` command lines the judging ran with the verdict
+   each one wrote, and every replayed commit it skipped. On a Ticket that is an issue, the evidence the close's question offered, its held
    Rulings among it, and the close's outcome: each tracker write made, the one refused, or none on
    a no. A check that did not run appears under Skipped, never here.
 5. **Principles.** Every principle that changed a decision, with the decision it changed. A name
