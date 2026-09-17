@@ -358,7 +358,7 @@ g commit -q -am "main moves"
 g -C "$wt" -c rerere.enabled=false rebase main >/dev/null 2>&1
 run "$resume" "$issues/04-claimed.md"
 check_lines "a worktree left mid-rebase goes to the integration, its branch read from the rebase state" 3 "$rc" \
-  "branch=do/claimed" "rebase=open" "conflicted=notes.txt" "commits=2" \
+  "branch=do/claimed" "rebase=open" "conflicted=notes.txt" "stop=conflicted" "commits=2" \
   "review=$top/$issues/04-claimed.review.md" "verdict=integration"
 printf 'one\nresolved\n' >"$wt/notes.txt"
 git -C "$wt" add notes.txt
