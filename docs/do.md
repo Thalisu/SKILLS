@@ -211,6 +211,16 @@ you don't trust is served again while its hashes still match, whether it sits be
 that stopped or beside a sibling Ticket the stop's own line named. Delete every `*.digest.md` such
 a stop named, and the next run on that Ticket forks the reader fresh.
 
+**How do I overrule a Ruling I disagree with?**
+Edit its line in the Spec's Implementation Decisions and type `/do` on the Ticket again, while it
+still reads `claimed`. A Ruling is the Spec's, not the run's
+([ADR 0037](adr/0037-a-choice-takers-ruling-amends-the-spec-and-a-ticket-criterion-only-when-it-is-the-losing-side.md)),
+so nothing new is needed: the resume already picks up an amended Spec, the same way it does after
+`discuss` answers an Extreme fork. It rebuilds only what the edit changed, and every later Ticket of
+the feature reads your line. Once the Ticket is `resolved`, `/do` stops on it, and the reversal is
+a new Ticket you write
+([ADR 0038](adr/0038-a-ruling-reversed-after-its-ticket-landed-is-built-by-a-new-ticket-the-developer-writes.md)).
+
 ## It's working if
 
 - The first line of every reply names the Playbook it matched, and it is the one you expected.
@@ -242,9 +252,13 @@ a stop named, and the next run on that Ticket forks the reader fresh.
 - A `ticket` run that met a Design fork says so in one line naming both sides, then goes on: the
   Spec's Implementation Decisions gain one line marked as the choice-taker's, and a Ticket criterion
   changes only when it was the side that lost. The reply's `Rulings` section, right after
-  `Principles`, lists each Ruling in one line: the fork, the side taken, and the norm or "no norm".
-  It reads `none` when the run ruled nothing. Only an Extreme fork, or a fork no choice-taker could
-  rule, stops the run.
+  `Principles`, lists in one line each Ruling the Spec carries for the Ticket, whichever session
+  wrote it: the fork, the side taken, and the norm or "no norm". It reads `none` only when there is
+  no such Ruling. Only an Extreme fork, or a fork no choice-taker could rule, stops the run.
+- A Ruling line you edited while the Ticket is `claimed` is picked up by the next `/do` on it: the
+  run names the Spec as changed, reads it again, keeps every commit that still matches, and builds
+  the side your line takes. A criterion the old Ruling had rewritten is ruled back to your side, and
+  `Rulings` lists your line and that new Ruling.
 - When the Spec and the Ticket are issues on your tracker, a Design fork still goes on without a
   question, and nothing is written to the tracker mid-run. The run keeps the Ruling itself and
   hands it to the review, so the build is held to a rewritten criterion the Ticket issue does not
