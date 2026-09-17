@@ -43,4 +43,14 @@ expect "the judging agent's description names the do session as its only caller"
 expect "the judging agent's description refuses invocation on its own initiative" \
   grep -qF "Never on your own initiative." <<<"$desc"
 
+# A `replace:`/`with:` field is by construction a multi-line rewrite (a Loss ledger entry can carry
+# a function plus its appended sibling), so the return-block format needs a delimiter closing each
+# one: otherwise the reader cannot tell the field's last line from the next key or the next entry's
+# `<id>` line.
+block_section="$(sed -n '/^Return one block per entry/,/^On a `drop`/p' "$agent")"
+expect "the return-block section names a fence delimiter that closes replace and with" \
+  bash -c 'grep -qi "fence" <<<"$1"' _ "$block_section"
+expect "the return-block section reuses ledger.sh's fenced idiom to compute that delimiter" \
+  bash -c 'grep -qF "fenced" <<<"$1"' _ "$block_section"
+
 exit $((fails > 0))
