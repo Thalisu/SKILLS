@@ -271,15 +271,20 @@ while IFS= read -r -d '' file; do
   cut -f1 < "$tmp/blocks" | sort | uniq -d > "$tmp/dups"
   [ -s "$tmp/dups" ] || continue
 
+  git show ":1:$file" > "$tmp/base" 2>/dev/null || : > "$tmp/base"
   git show ":2:$file" > "$tmp/target" 2>/dev/null || : > "$tmp/target"
   git show ":3:$file" > "$tmp/incoming" 2>/dev/null || : > "$tmp/incoming"
 
   drop=()
   while IFS= read -r key; do
-    target_at="" incoming_at=""
+    target_at="" incoming_at="" occ=() same=1 seen=0
     while IFS=$'\t' read -r path first lastline; do
       [ "$path" = "$key" ] || continue
       block_text "$file" "$first" "$lastline" > "$tmp/block"
+      occ+=("$first $lastline")
+      seen=$((seen + 1))
+      if [ "$seen" = 1 ]; then cp "$tmp/block" "$tmp/first-block"
+      elif ! cmp -s "$tmp/block" "$tmp/first-block"; then same=0; fi
       if block_in "$tmp/block" "$tmp/target" && ! block_in "$tmp/block" "$tmp/incoming"; then
         target_at="$first $lastline"
         cp "$tmp/block" "$tmp/side-target"
@@ -288,14 +293,26 @@ while IFS= read -r -d '' file; do
         cp "$tmp/block" "$tmp/side-incoming"
       fi
     done < "$tmp/blocks"
-    # Neither side owns one of the two occurrences: the duplicate is older than this union and is
-    # not the run's to touch.
-    [ -n "$target_at" ] && [ -n "$incoming_at" ] || continue
 
-    put_entry "$file" "$key" "$tmp/side-target" "$tmp/side-incoming" || exit 2
-    drop+=("$incoming_at")
-    kept=$((kept + 1))
-    echo "kept $file $key"
+    if [ -n "$target_at" ] && [ -n "$incoming_at" ]; then
+      put_entry "$file" "$key" "$tmp/side-target" "$tmp/side-incoming" || exit 2
+      drop+=("$incoming_at")
+      kept=$((kept + 1))
+      echo "kept $file $key"
+      continue
+    fi
+
+    # Both sides wrote the same definition byte for byte: a reader of the landed file loses nothing,
+    # so the later occurrences go and no entry is written. The base is asked first, since a duplicate
+    # it already carried is one neither side wrote and not the run's to touch.
+    if [ "$same" = 1 ] && [ "$seen" -gt 1 ] &&
+      ! block_in "$tmp/first-block" "$tmp/base" &&
+      block_in "$tmp/first-block" "$tmp/target" &&
+      block_in "$tmp/first-block" "$tmp/incoming"; then
+      for ((i = 1; i < ${#occ[@]}; i++)); do drop+=("${occ[$i]}"); done
+      deduped=$((deduped + 1))
+      echo "deduped $file $key"
+    fi
   done < "$tmp/dups"
 
   [ "${#drop[@]}" = 0 ] && continue

@@ -73,6 +73,78 @@ expect "the entry is shaped last-wins-duplicate" grep -qxF -- '- shape: last-win
 expect "the entry sets aside the Incoming's definition" \
   test "$(ledger_part "$ledger" .env incoming 2>/dev/null)" = 'DENY='
 
+# A rebase stopped on a `.env` both sides appended the same DENY definition to, byte for byte: the
+# developer's branch and the commit being replayed each set DENY to the same deny list, and each also
+# appended a line of its own that no other side defines, so the file still conflicts. The union
+# defines DENY twice with identical bytes, and a reader that takes the last definition it meets loses
+# nothing, so the run has nothing to set aside.
+fresh env-identical-duplicate
+printf 'APP=one\n' >.env
+commit base
+g switch -q -c do/run
+printf 'APP=one\nINCOMING_ONLY=i\nDENY=admin,root\n' >.env
+commit incoming
+g switch -q main
+printf 'APP=one\nTARGET_ONLY=t\nDENY=admin,root\n' >.env
+commit target
+g switch -q do/run
+g rebase main >/dev/null 2>&1
+
+write_unions
+expect "the union the integration wrote defines DENY twice with the same bytes" \
+  test "$(cat .env)" = "$(printf 'APP=one\nTARGET_ONLY=t\nDENY=admin,root\nINCOMING_ONLY=i\nDENY=admin,root')"
+
+run
+ledger="$PWD/.scratch/run.ledger.md"
+
+check_lines "the read-back names the key whose two identical definitions it collapsed into one and counts it as deduped" 0 "$rc" \
+  "deduped .env DENY" "read-back files=1 kept=0 deduped=1"
+absent "a definition identical on both sides is not named kept, since nothing was set aside" "kept .env"
+expect "the .env defines DENY once and keeps every other line of both sides" \
+  test "$(cat .env)" = "$(printf 'APP=one\nTARGET_ONLY=t\nDENY=admin,root\nINCOMING_ONLY=i')"
+expect "the one DENY definition both sides wrote stands in the landed .env" \
+  test "$(grep -c '^DENY=' .env)" = 1
+expect "the Target's own line stands in the landed .env" grep -qxF -- 'TARGET_ONLY=t' .env
+expect "the Incoming's own line stands in the landed .env" grep -qxF -- 'INCOMING_ONLY=i' .env
+
+entries="$(grep -c '^## ' "$ledger" 2>/dev/null)" || entries=0
+expect "a definition a reader loses nothing to leaves no entry in the ledger" test "$entries" = 0
+
+# A rebase stopped on a `.env` whose base commit already defines DENY twice: neither side wrote either
+# occurrence, and the conflict is driven by the line each side added at the same anchor. The duplicate
+# is older than this union, so it is not the run's to touch and both occurrences land as the union
+# block wrote them.
+fresh env-duplicate-predating-the-union
+printf 'APP=one\nDENY=admin\nDENY=root\n' >.env
+commit base
+g switch -q -c do/run
+printf 'APP=one\nINCOMING_ONLY=i\nDENY=admin\nDENY=root\n' >.env
+commit incoming
+g switch -q main
+printf 'APP=one\nTARGET_ONLY=t\nDENY=admin\nDENY=root\n' >.env
+commit target
+g switch -q do/run
+g rebase main >/dev/null 2>&1
+
+write_unions
+union="$(cat .env)"
+expect "the union the integration wrote carries both of the base commit's DENY definitions" \
+  test "$union" = "$(printf 'APP=one\nTARGET_ONLY=t\nINCOMING_ONLY=i\nDENY=admin\nDENY=root')"
+
+run
+ledger="$PWD/.scratch/run.ledger.md"
+
+check_lines "the read-back counts the file it read and touches neither occurrence of a duplicate neither side wrote" 0 "$rc" \
+  "read-back files=1 kept=0 deduped=0"
+absent "a duplicate older than the union is not named kept" "kept .env"
+absent "a duplicate older than the union is not named deduped" "deduped .env"
+expect "the .env lands exactly as the union block wrote it" test "$(cat .env)" = "$union"
+expect "both of the base commit's DENY definitions stand in the landed .env" \
+  test "$(grep -c '^DENY=' .env)" = 2
+
+entries="$(grep -c '^## ' "$ledger" 2>/dev/null)" || entries=0
+expect "a duplicate older than the union leaves no entry in the ledger" test "$entries" = 0
+
 # A rebase stopped on a `*.json` whose base commit carries one `services.web` object: the Target set
 # `deny` to a real deny list inside it, the commit being replayed emptied `deny` inside the same
 # object, and each side added one key of its own at the same anchor. One scope, one key, two
