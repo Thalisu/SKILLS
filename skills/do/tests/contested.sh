@@ -602,6 +602,50 @@ check "target at a stopped merge writes the file and resolves" 0 "$rc" \
 expect "target at a stopped merge takes the target branch's side" cmp -s rewrite.txt "$tmp/merge.target"
 expect "the written file is staged, so the merge has nothing unmerged" test -z "$(git ls-files -u)"
 
+# A stopped merge in a repository where an earlier rebase already finished: git 2.55 leaves a stale
+# REBASE_HEAD behind after `rebase --continue` completes, even though no rebase-merge or rebase-apply
+# directory remains. The stop is still the merge's, and its undo is the merge's own.
+fresh stale-rebase-head
+printf 'x\ny\nz\n' >rewrite.txt
+commit base
+g switch -q -c feature
+printf 'x\nFEATURE\nz\n' >rewrite.txt
+commit feature
+g switch -q main
+printf 'x\nMAIN\nz\n' >rewrite.txt
+commit main-edit
+g switch -q feature
+g rebase main >/dev/null 2>&1
+printf 'x\nMAIN\nz\n' >rewrite.txt
+g add rewrite.txt
+g -c core.editor=true -c rerere.enabled=false rebase --continue >/dev/null 2>&1
+expect "the finished rebase leaves REBASE_HEAD behind, the git 2.55 quirk this scenario covers" \
+  git rev-parse -q --verify REBASE_HEAD
+expect "no rebase state directory survives the finished rebase" \
+  test ! -e .git/rebase-merge -a ! -e .git/rebase-apply
+
+g switch -q -c topic
+printf 'x\nTOPIC\nz\n' >rewrite.txt
+commit topic
+g switch -q feature
+printf 'x\nFEATURE AGAIN\nz\n' >rewrite.txt
+commit feature-again
+g merge topic >/dev/null 2>&1
+expect "the merge actually stops with a real conflict" test -n "$(git ls-files -u)"
+
+run
+first="$(sed -n 's/^id //p' <<<"$out")"
+check "a stopped merge after a finished rebase's stale REBASE_HEAD carries the merge's own undo" 1 "$rc" \
+  "Undo: git merge --abort"
+check_absent "the question never offers the finished rebase's undo, stale REBASE_HEAD or not" 1 "$rc" \
+  "Undo: git rebase --abort"
+
+run "$first:stop"
+check "stop after a finished rebase's stale REBASE_HEAD blocks with the merge's undo" 3 "$rc" \
+  "undo git merge --abort"
+check_absent "stop never reports the operation as a rebase because of a stale REBASE_HEAD" 3 "$rc" \
+  "undo git rebase --abort"
+
 if [ "$fails" = 0 ]; then echo "all ok"; else
   echo "$fails failing"
   exit 1

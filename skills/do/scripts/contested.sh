@@ -51,7 +51,9 @@ for arg in "$@"; do [[ "$arg" == ?*:?* ]] || usage; done
 here="$(cd "$(dirname "$0")" && pwd -P)"
 top="$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "not a git repository" >&2; exit 2; }
 cd "$top" || exit 2
-if git rev-parse -q --verify REBASE_HEAD >/dev/null 2>&1; then
+# REBASE_HEAD outlives a rebase that finished or quit, so only a rebase state directory says one is
+# still open.
+if [ -d "$(git rev-parse --git-path rebase-merge)" ] || [ -d "$(git rev-parse --git-path rebase-apply)" ]; then
   operation=rebase
 elif git rev-parse -q --verify MERGE_HEAD >/dev/null 2>&1; then
   operation=merge
