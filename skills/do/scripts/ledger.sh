@@ -114,14 +114,19 @@ if [ "$verb" = verdict ]; then
   [ -f "$ledger" ] || refused "no ledger to judge"
   work="$(mktemp -d)"
   trap 'rm -rf "$work"' EXIT
-  LEDGER_VERDICT="- verdict: $call, $reason" awk -v id="$id" '
+  if ! LEDGER_VERDICT="- verdict: $call, $reason" awk -v id="$id" '
     function fence_of(line) { if (match(line, /^(```+|~~~+)/)) return substr(line, 1, RLENGTH); return "" }
     {
       if (fence == "") {
-        if ($0 ~ /^## [0-9a-f]+$/ && length($0) == 15) { inside = ($0 == "## " id); body = 0 }
-        else if ($0 ~ /^### /) body = 1
+        if ($0 ~ /^## [0-9a-f]+$/ && length($0) == 15) {
+          inside = ($0 == "## " id); body = 0
+          if (inside) found = 1
+        } else if ($0 ~ /^### /) body = 1
         f = fence_of($0)
         if (f != "") fence = f
+        # A second reading of the same entry replaces the first where it stands, so a resumed run
+        # that judges it again leaves the ledger as the first run left it.
+        if (inside && !body && fence == "" && $0 ~ /^- verdict: /) next
         print
         if (inside && !body && fence == "" && $0 ~ /^- before: /) print ENVIRON["LEDGER_VERDICT"]
         next
@@ -132,7 +137,11 @@ if [ "$verb" = verdict ]; then
       }
       print
     }
-  ' "$ledger" >"$work/ledger" || exit 2
+    END { exit(found ? 0 : 1) }
+  ' "$ledger" >"$work/ledger"; then
+    echo "ledger carries no entry $id: $ledger" >&2
+    exit 2
+  fi
   next="$(mktemp "$(dirname "$ledger")/.ledger.XXXXXX")" || exit 2
   if cat "$work/ledger" >"$next"; then
     mv -f "$next" "$ledger"

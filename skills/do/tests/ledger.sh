@@ -212,7 +212,9 @@ last incoming
 EOF
 judged_before='- before: 4444444444444444444444444444444444444444'
 verdict_line='- verdict: drop, already on main, by hand'
-beneath_before() { grep -A1 -xF -- "$judged_before" "$vledger" | tail -n 1; }
+beneath_before() { # $1 ledger (default $vledger), $2 the - before: line (default $judged_before)
+  grep -A1 -xF -- "${2:-$judged_before}" "${1:-$vledger}" | tail -n 1
+}
 rc=0
 out="$(bash "$ledgersh" verdict "$vledger" 1122334455aa drop 'already on main, by hand' 2>&1)" || rc=$?
 check "a judge's verdict on an entry the ledger carries succeeds" 0 "$rc"
@@ -244,5 +246,137 @@ rc=0
 out="$(bash "$ledgersh" pending "$vledger" 2>&1)" || rc=$?
 same "the rewritten entry is still no entry the run sends a judge after" \
   "$(printf 'aa00bb11cc22\n0123456789ab')"
+
+# A run cut short and resumed can fork a judge over an entry a first pass already read, and the second
+# reading is the run's reading: it replaces the first where it stands. An entry left carrying two
+# verdicts has no answer at all, since a reader picking either one is guessing, so a resumed run that
+# judges the same entry twice must leave the ledger a single pass would have left.
+fresh ledger-verdict-rejudged
+mkdir -p .scratch
+rjledger="$PWD/.scratch/run.ledger.md"
+cat >"$rjledger" <<'EOF'
+# Loss ledger
+
+## 5566778899bb
+
+- file: resumed.txt
+- location: L1-L3
+- shape: rewrite-vs-rewrite
+- commit: 1111111111111111111111111111111111111111
+- before: 2222222222222222222222222222222222222222
+
+### Target (kept)
+
+```
+resumed target
+```
+
+### Incoming (set aside)
+
+```
+resumed incoming
+```
+
+## ccddeeff0011
+
+- file: beside.txt
+- location: L4-L6
+- shape: rewrite-vs-rewrite
+- commit: 3333333333333333333333333333333333333333
+- before: 4444444444444444444444444444444444444444
+
+### Target (kept)
+
+```
+beside target
+```
+
+### Incoming (set aside)
+
+```
+beside incoming
+```
+EOF
+rj_before='- before: 2222222222222222222222222222222222222222'
+rc=0
+out="$(bash "$ledgersh" verdict "$rjledger" 5566778899bb reapply 'the incoming side is the fix' 2>&1)" || rc=$?
+check "a first judge's verdict on an entry succeeds" 0 "$rc"
+rc=0
+out="$(bash "$ledgersh" verdict "$rjledger" 5566778899bb drop 'on a second reading, already on main' 2>&1)" || rc=$?
+check "a resumed run judging that same entry again succeeds" 0 "$rc"
+expect "the second reading replaces the first where it stands, leaving one verdict line" \
+  test "$(grep -c '^- verdict: ' "$rjledger")" = 1
+expect "the verdict the re-judged entry carries is the second reading's, its reason whole" \
+  test "$(beneath_before "$rjledger" "$rj_before")" = '- verdict: drop, on a second reading, already on main'
+rc=0
+# shellcheck disable=SC2034  # lib.sh's same reads $out
+out="$(bash "$ledgersh" pending "$rjledger" 2>&1)" || rc=$?
+same "a re-judged entry is still no entry the run sends a judge after, and the one beside it waits" \
+  ccddeeff0011
+
+# A judge naming an id no entry in the ledger carries has read something that is not this ledger, and
+# a verdict written for it either lands nowhere or lands against the wrong hunk. The call is refused
+# whole, so the entries a stop set aside are all still there, exactly as they were, for a judge that
+# reads the ledger it was handed.
+fresh ledger-verdict-unknown-id
+mkdir -p .scratch
+unledger="$PWD/.scratch/run.ledger.md"
+cat >"$unledger" <<'EOF'
+# Loss ledger
+
+## 5566778899bb
+
+- file: resumed.txt
+- location: L1-L3
+- shape: rewrite-vs-rewrite
+- commit: 1111111111111111111111111111111111111111
+- before: 2222222222222222222222222222222222222222
+
+### Target (kept)
+
+```
+resumed target
+```
+
+### Incoming (set aside)
+
+```
+resumed incoming
+```
+
+## ccddeeff0011
+
+- file: beside.txt
+- location: L4-L6
+- shape: rewrite-vs-rewrite
+- commit: 3333333333333333333333333333333333333333
+- before: 4444444444444444444444444444444444444444
+
+### Target (kept)
+
+```
+beside target
+```
+
+### Incoming (set aside)
+
+```
+beside incoming
+```
+EOF
+cp "$unledger" "$tmp/unknown.before"
+rc=0
+out="$(bash "$ledgersh" verdict "$unledger" 99887766aabb drop 'a hunk nobody set aside' 2>"$tmp/unknown.err")" || rc=$?
+expect "a verdict for an id no entry carries is refused with exit 2 (got $rc)" test "$rc" = 2
+expect "the refused verdict gives a reason on stderr" test -s "$tmp/unknown.err"
+expect "the refused verdict names the id the judge asked for" \
+  grep -qF -- 99887766aabb "$tmp/unknown.err"
+expect "the refused verdict leaves the ledger byte-identical to before the call" \
+  cmp -s "$unledger" "$tmp/unknown.before"
+rc=0
+# shellcheck disable=SC2034  # lib.sh's same reads $out
+out="$(bash "$ledgersh" pending "$unledger" 2>&1)" || rc=$?
+same "the refused verdict leaves every entry still waiting for a judge" \
+  "$(printf '5566778899bb\nccddeeff0011')"
 
 exit $((fails > 0))
