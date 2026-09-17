@@ -27,6 +27,14 @@ and written only when that Playbook's steps name it:
 5. **Defect line.** When a behaviour reproduces a bug: `Defect: origin bugfix, cause stated`, or
    `Defect: cause unknown, diagnosis first` when nothing names the cause.
 6. **Claim line.** `Claimed: <the Ticket's path or reference>`.
+5. **Claim line.** `Claimed: <the Ticket's path or reference>`.
+6. **Resume line.** On a run that found an earlier run's state, the state it continued from: that
+   it resumed, with the worktree, its branch and the commits it found, one line each with its
+   `Behaviour:` line and a commit whose line matches no line of the list named; or, on an open
+   rebase, that it resumed there, with the branch read from the rebase state, the files git left
+   conflicted and each file taken on trust as the developer resolved it by hand; or that it
+   started over, since the worktree was gone, with the branch the removal left behind when there is
+   one. A question the run waits on is the turn's final message and keeps its own wording.
 7. **Protected-branch warning.** When it applies: the branch, the rule, and that the landing is
    refused on it.
 8. **Checklist.** The matched Playbook's checklist, verbatim, every step the run reached ticked

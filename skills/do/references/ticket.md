@@ -43,10 +43,11 @@ the tracker file describes. Before anything is written:
   first, or sets its status by hand when it was done outside the chain.
 - A `claimed` Ticket whose `do/<slug>` worktree exists is resumed, as the Resume section says:
   never a second worktree, and the claim stands.
-- A `claimed` Ticket whose worktree is gone starts over: the first message says so in one line
-  and names the door's `run_branch=` fact, and the claim stands, since the claim is idempotent. A
-  `do/<slug>` branch the worktree's removal left behind is named there rather than left for step 1
-  to meet as a dead `git worktree add -b`.
+- A `claimed` Ticket whose worktree is gone starts over: the run records the start-over line for
+  the Reply's Run section, per [reply.md](reply.md), saying so in one line and naming the door's
+  `run_branch=` fact, and the claim stands, since the claim is idempotent. A `do/<slug>` branch the
+  worktree's removal left behind is named there, and step 1 enters it rather than meeting it as a
+  dead `git worktree add -b`.
 - A `ready-for-agent` Ticket whose `do/<slug>` worktree already exists is refused in one line
   naming the worktree. Nothing is written: the worktree is a run no claim records, and the
   developer removes it or sets the status by hand.
@@ -93,14 +94,15 @@ Exit 2 after the door's `resume` is a worktree on a detached HEAD with no rebase
 the run stops as blocked in one line naming the worktree and the script's reason, writes nothing,
 and leaves the worktree as it is, since no branch can be read from it to build on.
 
-- The first message says the run resumes, names the worktree and its branch, and lists the
-  commits found, one line each with its `Behaviour:` line. The claim line is not written again.
-  The Reply's Run section carries the checklist with steps 0 and 1 reading `done: resumed`.
+- The run records the resume line for the Reply's Run section, per [reply.md](reply.md): it says
+  the run resumed, names the worktree and its branch, and lists the commits found, one line each
+  with its `Behaviour:` line, off the script's lines. The claim line is not written again. The
+  Reply's Run section carries the checklist with steps 0 and 1 reading `done: resumed`.
 - The worktree is entered, never created: a second worktree is never made.
 - The grounding, the shape and the behaviours list run again without a write. The list is
   re-derived from the Ticket and its Digest as step 4 says, never from the commits; then every line
   whose behaviour a commit body carries is ticked with that commit's sha beside it, and a commit
-  whose `Behaviour:` line matches no line of the list is kept and named in the thread.
+  whose `Behaviour:` line matches no line of the list is kept and named on the resume line.
 - The loop continues at the first behaviour without a commit, and from there the run is a first
   run: the flows, the gate, the review, the close, the reply.
 - On `verdict=land`, the review already read this branch: its Review is the script's `review=`
@@ -115,9 +117,10 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   the integration with the developer present to answer each contested hunk the review could not,
   then the landing through the fix call on the Review that return names, never a second review,
   as the bullet above says.
-- On `verdict=ask`, the uncommitted changes in the worktree are named in the first message, one
-  line per file from the script's `uncommitted=` lines, which are `git status --short`'s, and
-  the run asks before discarding them, since the discard is the one irreversible act on this path.
+- On `verdict=ask`, the run asks before discarding the uncommitted changes in the worktree, since
+  the discard is the one irreversible act on this path. The question is the turn's final message:
+  it says the run resumes, names the worktree and its branch, and names the changes one line per
+  file from the script's `uncommitted=` lines, which are `git status --short`'s.
   Nothing is discarded without the answer: no stash, no commit and no restore comes before it, and
   the run does not answer its own question or go on building. A yes discards them,
   `git restore --staged --worktree .` then `git clean -fd` in the worktree, and the first
@@ -128,10 +131,12 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   `git branch --show-current` in it comes back empty, while the branch itself is still there and a
   second `git worktree add <path> -b do/<slug>` would die on it. The branch is read from the rebase
   state, `cat "$(git rev-parse --git-path rebase-merge/head-name)"`, which holds
-  `refs/heads/do/<slug>` while the rebase is open, never from `git branch --show-current`. The first
-  message names the worktree and that branch, says the rebase is open and names the files git left
-  conflicted, and the run picks up at the integration in [mechanics.md](mechanics.md), classing the
-  stop with the door script before it touches anything, rather than at the build loop. A
+  `refs/heads/do/<slug>` while the rebase is open, never from `git branch --show-current`. The
+  resume line the Reply's Run section carries names the worktree and that branch, lists the commits
+  found, says the rebase is open, names the files git left conflicted, and names each file the
+  conflict class printed `trusted` as the hand resolution the run kept, and the run picks up at the
+  integration in [mechanics.md](mechanics.md), classing the stop with the door script before it
+  touches anything, rather than at the build loop. A
   `review=` line that names a Review means the rebase came after the review: once it finishes and
   the gate is green, the branch lands through the fix call on that Review, and is never reviewed a
   second time.
