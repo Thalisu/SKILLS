@@ -367,7 +367,11 @@ the Ticket does not name, the one step 0 wrote a defect line for reading
 `cause unknown, diagnosis first`, is diagnosed before the list by the reproduce and cause steps of
 [bug-fix.md](bug-fix.md), steps 2 and 3 there: the defect reproduced on the matching surface, the
 hypotheses ruled out with runtime evidence, the instrumentation reverted, the mechanism confirmed,
-per [fix-root-causes](../../../.agents/principles/fix-root-causes.md). The list is written from the
+per [fix-root-causes](../../../.agents/principles/fix-root-causes.md). Those steps record their
+lines for the Reply's Run section, per [reply.md](reply.md): the reproduction's command with its
+failing output, one line per hypothesis with the evidence that ruled it out, and the mechanism.
+Once the `bugfix` line's fix is green in the loop, the same command runs again at step 5 and its
+passing output is recorded beside the failing one. The list is written from the
 confirmed mechanism, its `bugfix` line carries the reproduction as its expected red, and that red
 run reproduces the defect before any production change. When `bug-fix` is not installed under
 Links, those two steps stand on their own. They are the exception the Links rule of
@@ -378,7 +382,9 @@ not reproduce even when forced stops this run as blocked, the Ticket left `claim
 worktree and its branch in place and named, never removed, since the close here is step 11's and
 a blocked run closes nothing. A Design fork found here goes to
 the forks in [mechanics.md](mechanics.md). Show the list once; the loop starts on the
-developer's silence. Done when the list is in the thread.
+developer's silence. Done when the list is in the thread and, on a defect with no named cause, the
+reproduction, each hypothesis's evidence line and the mechanism are recorded for the Reply's Run
+section, all before the list.
 
 **5. Build loop.** The build loop in [mechanics.md](mechanics.md), one behaviour per dispatch,
 under the loop the loop line named. Each behaviour is one line in the thread as it lands: the
