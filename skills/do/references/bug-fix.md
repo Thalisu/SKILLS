@@ -218,16 +218,17 @@ mechanism, never a guard that silences the symptom.
 
 When the fix crosses a function boundary (a new module, an exported function or type other code
 will call, a changed signature), call the Skill tool with `architect`, stop at the sketch, and
-implement the sketch under the loop. When `architect` is not listed, state the shape (types,
-signatures, module boundaries) in the thread and say so. A fix that creates a new exported symbol
-runs the Discovery rule's check before it is created, one `discover` batch for two or more names
-and one `rg -n -w` for a single one, with the audit line logged, `Discovery: n FOUND · n DUPLICATE
-· n NOT_FOUND`; a fix that creates none reads `skip: no symbol created`.
+implement the sketch under the loop. When `architect` is not listed, the session states the shape
+(types, signatures, module boundaries) itself, and the fix line says so. A fix that creates a new
+exported symbol runs the Discovery rule's check before it is created, one `discover` batch for two
+or more names and one `rg -n -w` for a single one, with the audit line logged, `Discovery: n FOUND
+· n DUPLICATE · n NOT_FOUND`; a fix that creates none reads `skip: no symbol created`.
 
 A cause that needs a new shape or a new feature to remove is not a bug fix. The run stops there
 with one message naming `discuss`, the evidence listed and nothing landed, the worktree and its
 branch left in place and named, so the developer decides the design and `do` never reopens a plan.
-Done when the fix is in the thread in a few lines, or the run stopped naming `discuss`.
+Done when the fix and the shape, with the sketch or its skip, are recorded for the Reply's Run
+section as its fix line, per [reply.md](reply.md), or the run stopped naming `discuss`.
 
 **5. Red.** The build loop in [mechanics.md](mechanics.md), for one behaviour: the defect the run
 reproduced at step 2. The dispatch input carries origin `bugfix` and the failure scenario as the
