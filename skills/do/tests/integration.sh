@@ -358,6 +358,73 @@ an_all_mechanical_stop_whose_union_defines_a_key_twice_lands_the_targets_definit
 }
 an_all_mechanical_stop_whose_union_defines_a_key_twice_lands_the_targets_definition
 
+# A stop the developer already worked on can carry their own resolution of a file whose name the
+# read-back's registry knows, and that resolution may define one key twice on purpose. The first
+# block stages every `trusted` path before it writes any union, so git stops listing that file
+# unmerged and the read-back the second block runs never reaches it: the file lands byte for byte as
+# the developer wrote it, both definitions kept, and nothing of theirs is set aside in the ledger.
+a_trusted_hand_resolution_defining_one_key_twice_is_never_read_back() {
+  local write mark ledger rc
+  write="$(blocks_of "$mech" "## The integration" "**A rebase that stopped.**" 1)"
+  mark="$(blocks_of "$mech" "## The integration" "**A rebase that stopped.**" 2)"
+  expect "the all-mechanical stop's union block extracts for the trusted duplicate-key fixture" test -n "$write"
+  expect "the all-mechanical stop's staging block extracts for the trusted duplicate-key fixture" test -n "$mark"
+
+  fresh trusted-duplicate-key
+  printf 'APP=one\n' >.env
+  printf 'APP=one\n' >.env.local
+  commit base
+  g branch inc
+  printf 'APP=one\nDENY=admin,root\n' >.env
+  printf 'APP=one\nTARGET_ONLY=t\nDENY=admin,root\n' >.env.local
+  commit target
+  g switch -q inc
+  printf 'APP=one\nDENY=\n' >.env
+  printf 'APP=one\nINCOMING_ONLY=i\nDENY=\n' >.env.local
+  commit incoming
+  g -c rerere.enabled=false -c rerere.autoupdate=false rebase refs/heads/main >/dev/null 2>&1
+
+  # .env.local keeps the markers git left, so the union block writes it and its union defines DENY
+  # twice. .env is the developer's own answer, written before the run took over and never staged:
+  # they kept both sides' definitions of DENY and put the replayed commit's last, which is exactly
+  # the shape the read-back rewrites when it is the run's own union it is reading.
+  printf 'APP=one\nDENY=admin,root\nFEATURE=new\nDENY=\n' >.env
+  cp .env "$tmp/trusted-hand.before"
+
+  mkdir -p .scratch
+  ledger="$PWD/.scratch/run.ledger.md"
+  write="${write//"<skill-dir>"/"$repo/skills/do"}"
+  mark="${mark//"<skill-dir>"/"$repo/skills/do"}"
+  mark="${mark//"<the ledger>"/"$ledger"}"
+  printf '%s\n' "$write" >"$tmp/write-trusted-duplicate-key.sh"
+  printf '%s\n' "$mark" >"$tmp/mark-trusted-duplicate-key.sh"
+
+  rc=0
+  # shellcheck disable=SC2034  # lib.sh's check reads $out
+  out="$(bash "$repo/skills/do/scripts/conflict-class.sh" 2>&1)" || rc=$?
+  check "the trusted duplicate-key fixture is classed all-mechanical with the hand-resolved .env trusted" \
+    0 "$rc" "trusted .env whole-file hand-resolved" "verdict=mechanical mechanical=1 contested=0 trusted=1"
+
+  bash "$tmp/write-trusted-duplicate-key.sh" >/dev/null 2>&1
+  bash "$tmp/mark-trusted-duplicate-key.sh" >/dev/null 2>&1
+
+  g show ":0:.env" >"$tmp/trusted-hand.staged" 2>/dev/null
+  expect "a trusted file whose name the read-back knows is staged byte for byte as the developer wrote it" \
+    cmp -s "$tmp/trusted-hand.staged" "$tmp/trusted-hand.before"
+  # shellcheck disable=SC2034  # lib.sh's check_lines reads $out
+  out="$(cat "$tmp/trusted-hand.staged")"
+  check_lines "and both definitions the developer kept of one key stand in the staged file" \
+    0 0 "DENY=admin,root" "DENY="
+  expect "the read-back sets no definition of the developer's own resolution aside in the ledger" \
+    test -z "$(ledger_part "$ledger" .env incoming 2>/dev/null)"
+  expect "while the union the run wrote itself does leave its dropped definition there" \
+    test "$(ledger_part "$ledger" .env.local incoming 2>/dev/null)" = 'DENY='
+  expect "after the two blocks nothing at the trusted duplicate-key stop is left unmerged" \
+    test -z "$(g ls-files -u)"
+  cd "$repo" || exit 1
+}
+a_trusted_hand_resolution_defining_one_key_twice_is_never_read_back
+
 # The resolution of a stop can leave the replayed commit with nothing left to apply: the developer's
 # branch already carries that change in its own wording, and taking the Target side stages a tree
 # identical to HEAD. Git refuses to commit that, so the continue the run runs at every stop must name

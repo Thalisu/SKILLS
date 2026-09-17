@@ -609,7 +609,9 @@ git diff --name-only --diff-filter=U -z | bash <skill-dir>/scripts/last-wins.sh 
 Then the continue block below, the one every stop of this step ends in, carries the rebase to the
 next commit, and every further stop is classed and resolved the same way. The reply names every
 hunk it resolved with its file and location, and every `trusted` file as taken on trust, kept as the
-developer wrote it: the run staged it and never read it for a key defined twice, since it is theirs.
+developer wrote it and out of the ledger. The first block stages it before the second one runs, so
+git no longer lists it unmerged and it is never among the paths the read-back is handed: a key the
+developer's own resolution defines twice is theirs, and nothing of this step rewrites it.
 
 **A union that defines the same key twice.** A hunk classed `mechanical` says the two sides only
 added lines, never that the two additions mean the same thing. Where both sides added a definition
