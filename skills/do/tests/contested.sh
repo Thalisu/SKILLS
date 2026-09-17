@@ -560,6 +560,39 @@ expect "each link is staged as the Target side's link" \
   test "$(git ls-files -s -- ':(literal)l1' ':(literal)l2' | awk '{ print $1, $2 }')" = "$target_links"
 expect "each link is still a link in the tree" test -L l1 -a -L l2
 
+# A submodule pointer both sides moved, to a commit neither ever fetched: the ledger names each
+# side's commit id and the Target's pointer is staged, not deleted, since the gitlink's stage exists
+# in the index even where the commit it names is absent from this repository's own object store.
+git init -q -b main "$tmp/gitlink-sub" >/dev/null
+(cd "$tmp/gitlink-sub" && command git -c user.email=t@example.com -c user.name=t commit -q --allow-empty -m c0)
+base_sha="$(git -C "$tmp/gitlink-sub" rev-parse HEAD)"
+(cd "$tmp/gitlink-sub" && command git -c user.email=t@example.com -c user.name=t commit -q --allow-empty -m c1)
+incoming_sha="$(git -C "$tmp/gitlink-sub" rev-parse HEAD)"
+(cd "$tmp/gitlink-sub" && command git -c user.email=t@example.com -c user.name=t commit -q --allow-empty -m c2)
+target_sha="$(git -C "$tmp/gitlink-sub" rev-parse HEAD)"
+
+fresh gitlink-both-moved
+g update-index --add --cacheinfo "160000,$base_sha,mod"
+g commit -qm base
+g switch -q -c do/run
+g update-index --add --cacheinfo "160000,$incoming_sha,mod"
+g commit -qm incoming
+g switch -q main
+g update-index --add --cacheinfo "160000,$target_sha,mod"
+g commit -qm target
+g switch -q do/run
+g rebase main >/dev/null 2>&1
+run
+check "the Target side writes the submodule pointer" 0 "$rc" "wrote mod"
+expect "the Target's gitlink pointer stays staged at mode 160000, not deleted" \
+  test "$(git ls-files -s -- ':(literal)mod' | awk '{ print $1, $2 }')" = "160000 $target_sha"
+expect "the ledger names the Target's commit id, not (deleted)" \
+  test "$(ledger_part "$PWD/.scratch/run.ledger.md" mod target 2>/dev/null)" = \
+  "(submodule, commit $target_sha)"
+expect "the ledger names the Incoming's commit id, not (deleted)" \
+  test "$(ledger_part "$PWD/.scratch/run.ledger.md" mod incoming 2>/dev/null)" = \
+  "(submodule, commit $incoming_sha)"
+
 # Sides far longer than a question could carry: a whole-file side of thousands of lines, a hunk side
 # of thousands of lines, and a hunk side that is one enormous line. The Target side is still taken
 # whole.

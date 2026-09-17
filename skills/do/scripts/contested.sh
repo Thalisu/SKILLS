@@ -111,9 +111,16 @@ regenerate() { # $1 path: the three stages into $tmp/s1..s3, their merge into $t
 before="$(cat "$(git rev-parse --git-path rebase-merge/orig-head)" 2>/dev/null)"
 
 # One side of a whole-file hunk: its stage whole, its deletion, or, where the file cannot be read
-# line by line, its size, its blob and the tip that reaches it.
+# line by line, its size, its blob and the tip that reaches it. Whether a stage exists is read from
+# the index (`mode_at`, from `git ls-files -u`), never from `git cat-file -e`: a gitlink's stage
+# names a commit that lives in the submodule's own object store, never in this repository's, so it
+# always tests as absent there even where the stage plainly exists.
 whole_side() { # $1 stage, $2 path, $3 shape
-  git cat-file -e ":$1:$2" 2>/dev/null || { echo "(deleted)"; return; }
+  local mode="${mode_at["$(quote_path "$2")#$1"]:-}"
+  [ -n "$mode" ] || { echo "(deleted)"; return; }
+  case "$mode" in
+    160000) echo "(submodule, commit $(git rev-parse ":$1:$2"))"; return ;;
+  esac
   case "$3" in
     binary)    echo "(binary, $(git cat-file -s ":$1:$2") bytes, blob $(git rev-parse ":$1:$2"), before $before)" ;;
     too-large) echo "(too large, $(git cat-file -s ":$1:$2") bytes, blob $(git rev-parse ":$1:$2"), before $before)" ;;
@@ -250,7 +257,7 @@ resolve() { # $1 path, $2 the file as the report prints it
 # A whole-file hunk takes the Target side's version whole, or its deletion, and git writes it; a
 # mechanical one is the union of the whole file.
 resolve_whole() { # $1 path, $2 the file as the report prints it, $3 target or both
-  local path="$1" s
+  local path="$1" s mode
   case "$3" in
     both)
       for s in 1 2 3; do git cat-file blob ":$s:$path" > "$tmp/w$s" 2>/dev/null; done
@@ -259,9 +266,17 @@ resolve_whole() { # $1 path, $2 the file as the report prints it, $3 target or b
       echo "wrote $2"
       return ;;
   esac
-  if ! git cat-file -e ":2:$path" 2>/dev/null; then
+  mode="${mode_at["$2#2"]:-}"
+  if [ -z "$mode" ]; then
     git rm -q -- "$path" >/dev/null
     echo "removed $2"
+    return
+  fi
+  # A gitlink's stage names a commit, never a blob, so there is nothing for `checkout`/`add` to read
+  # off the worktree: the Target's pointer is staged straight into the index at its own mode.
+  if [ "$mode" = 160000 ]; then
+    git update-index --cacheinfo "160000,$(git rev-parse ":2:$path"),$path"
+    echo "wrote $2"
     return
   fi
   git checkout -q --ours -- "$path"
