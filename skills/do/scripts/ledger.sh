@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
-# ledger.sh: the Loss ledger's one writer. The ledger is one markdown file per run, titled
-# `# Loss ledger`, holding one entry per contested hunk an integration resolved to the Target side.
+# ledger.sh: the Loss ledger's one reader and one writer. The ledger is one markdown file per run,
+# titled `# Loss ledger`, holding one entry per contested hunk an integration resolved to the Target
+# side.
 #
 #   ledger.sh put <ledger> <entry-dir>    the entry <entry-dir> describes, written into <ledger>
+#   ledger.sh pending <ledger>            the id of each entry carrying no verdict, in file order
+#   ledger.sh verdict <ledger> <id> <verdict> <reason>
+#                                         a judge's reading of <id> written into the entry
 #
 # <entry-dir> holds one file per field: `id`, `file`, `location`, `shape`, `commit` and `before`,
 # the branch tip recorded before the rebase, each one line, and `target` and `incoming`, each a side's text. The entry reads:
@@ -26,6 +30,16 @@
 # An entry already headed by the same id is rewritten where it stands, keeping any key line this
 # script does not write; any other is appended.
 #
+# `put` writes entries and never a verdict; `verdict` writes verdicts and never an entry. A verdict
+# reads `- verdict: <verdict>, <reason>` and sits directly under the entry's `- before:` line, which
+# is where `put`'s own rewrite carries it over, so the two verbs never overwrite each other. A second
+# verdict on one entry replaces the first where it stands, so a resumed run that judges an entry
+# again leaves the same ledger. An id no entry carries is refused with nothing written.
+#
+# `pending` and `verdict` read an entry's heading the way the rewrite does, outside fences only, so a
+# `## <id>` line a side quotes is that side's text and never an entry of its own. A ledger no stop
+# ever wrote lists nothing and is not created by the asking.
+#
 # A fence is one backtick longer than the longest run of backticks in the side it holds, and never
 # shorter than three, so no line of a side can close it.
 #
@@ -33,7 +47,7 @@
 # regular file when it exists; anything else is refused, `ledger refused <reason>` on stderr, with
 # nothing written.
 #
-# Exit codes: 0 written · 2 usage, or the ledger refused.
+# Exit codes: 0 written, or listed · 2 usage, the ledger refused, or no entry for the id.
 set -uo pipefail
 
 usage() {
