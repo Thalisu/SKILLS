@@ -273,8 +273,8 @@ Who names the shape is decided by the first line of this table that holds, read 
 |---|---|
 | crosses no function boundary: no new module, no exported function or type other code will call, no changed signature | reads `skip: no boundary crossed`, and the run goes on to the behaviours list |
 | already carries a shape: the Ticket, its Digest, a `Settled by prototype:` snippet, or a Sketch already beside the Ticket, which is what a resume finds | calls nothing, since the step never names a shape twice; that shape is the one the build is held to |
-| runs in a session with the Agent tool withheld | `sketch` writes nothing and says so, and the session does that work itself, the Delegates rule of [mechanics.md](mechanics.md): it writes the Sketch itself at the path the brief below names, in the format of [sketch-format.md](../../../.agents/formats/sketch-format.md), says so in one line, and neither stops nor asks for the tool |
-| runs in a session whose Agent tool lists no `sketch` | the shape, the types, the signatures and the module boundaries are stated in the thread, the step says so in one line, and the run continues |
+| runs in a session with the Agent tool withheld | `sketch` writes nothing, and the session does that work itself, the Delegates rule of [mechanics.md](mechanics.md): it writes the Sketch itself at the path the brief below names, in the format of [sketch-format.md](../../../.agents/formats/sketch-format.md), records the shaped-by line below for the Reply, and neither stops nor asks for the tool |
+| runs in a session whose Agent tool lists no `sketch` | the session states the shape, the types, the signatures and the module boundaries itself, records the shaped-by line below for the Reply, and the run continues |
 | anything else | call the Agent tool with `subagent_type: sketch` and the brief below, and name in one line for the Reply what it handed over |
 
 The brief is the one the `sketch` agent fixes, and the run fills it from what it already holds,
@@ -329,9 +329,16 @@ more than that line, and never restates the rivals, which stay in the file.
 
 A return that does not carry every section of
 [sketch-format.md](../../../.agents/formats/sketch-format.md), whether a refusal, an error or a
-shape the format does not fix, is not a usable Sketch: the session writes no Sketch, the shape, the
-types, the signatures and the module boundaries are stated in the thread, the step says so in one
-line, and the run continues, as it does when the Agent tool lists no `sketch`.
+shape the format does not fix, is not a usable Sketch: the session writes no Sketch, states the
+shape, the types, the signatures and the module boundaries itself, records the shaped-by line
+below for the Reply, and the run continues, as it does when the Agent tool lists no `sketch`.
+
+The shaped-by line is the one line the Reply's Run section carries, per [reply.md](reply.md),
+whenever `sketch` wrote nothing: it says `sketch` wrote nothing, names why (the Agent tool
+withheld, no `sketch` listed, or a return that is not a usable Sketch), and says the session
+shaped the work itself. With no Sketch filed, the same line carries the shape the session stated,
+the types, the signatures and the module boundaries in a few words, since no Sketch line follows
+it.
 
 The build is held to the Sketch, or to the shape in hand when no Sketch was filed. The loop
 implements it one behaviour at a time, and every test still goes through a test author; a symbol
@@ -340,9 +347,10 @@ surfaced in the reply, and a second deviation of the same shape stops the run as
 the deviations listed, the worktree and its branch named, the message naming `discuss`. A
 Design fork the shape meets, two shapes the Ticket, its Spec and the code cannot settle, goes to
 the forks in [mechanics.md](mechanics.md). Done
-when the shape is in the thread, or the skip, and, on the fork path, the hand-over and the
-Sketch's location with its shape are recorded for the Reply, or, on the withheld path, the
-Sketch's location with its shape is recorded for the Reply.
+when the step reads the skip, or the shape in hand is named, or, on the fork path, the hand-over
+and the Sketch's location with its shape are recorded for the Reply, or, on every path where
+`sketch` wrote nothing, the shaped-by line is recorded for the Reply, followed on the withheld path
+by the Sketch's location with its shape.
 
 **4. Behaviours.** The run names the Digest's location and restates it in one line, its Journey
 Path, the story numbers it carries, its Testing Decisions and the criteria it marks observable, so
