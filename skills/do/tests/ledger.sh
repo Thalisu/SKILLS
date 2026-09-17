@@ -112,4 +112,30 @@ expect "asking a ledger for its pending entries succeeds (got $rc)" test "$rc" =
 same "the unjudged entries are listed in file order, the judged one and every forged heading left out" \
   "$(printf 'bbccddeeff00\naabbccddeeff\n0123456789ab')"
 
+# A rebase that set nothing aside leaves the run no entry to judge: a ledger holding only the title
+# `put` writes before its first entry, and a ledger no stop ever wrote, both answer with nothing at
+# all, so the run forks no judge over an entry that is not there. An absent file at a legal path is a
+# ledger with nothing in it, not a refused path, and asking it for its pending entries must leave it
+# absent: a ledger, or a scratch on the way to it, brought into being by a read would read to the next
+# run as a stop that never happened.
+fresh ledger-pending-empty
+mkdir -p .scratch
+emptyledger="$PWD/.scratch/run.ledger.md"
+printf '# Loss ledger\n' >"$emptyledger"
+rc=0
+# shellcheck disable=SC2034  # lib.sh's same reads $out
+out="$(bash "$ledgersh" pending "$emptyledger" 2>&1)" || rc=$?
+expect "a ledger holding only its title succeeds (got $rc)" test "$rc" = 0
+same "a ledger holding only its title lists no entry at all" ""
+
+fresh ledger-pending-absent
+goneledger="$PWD/.scratch/run.ledger.md"
+rc=0
+# shellcheck disable=SC2034  # lib.sh's same reads $out
+out="$(bash "$ledgersh" pending "$goneledger" 2>&1)" || rc=$?
+expect "a ledger no stop ever wrote succeeds (got $rc)" test "$rc" = 0
+same "a ledger no stop ever wrote lists no entry at all" ""
+expect "asking an absent ledger for its pending entries does not create it" test ! -e "$goneledger"
+expect "asking an absent ledger for its pending entries does not create the scratch on the way to it" test ! -e "$PWD/.scratch"
+
 exit $((fails > 0))

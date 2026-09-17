@@ -75,6 +75,9 @@ if [ -L "$ledger" ] || { [ -e "$ledger" ] && [ ! -f "$ledger" ]; }; then refused
 # a verdict counted only above the entry's first `###`, the two rules `rewrite` below already keeps,
 # so a `## <id>` line a side quotes is that side's text and never an entry the judge is sent after.
 if [ "$verb" = pending ]; then
+  # A ledger no stop ever wrote is a ledger with nothing set aside, never a path to refuse, and asking
+  # it for its entries neither creates it nor the scratch on the way to it.
+  [ -f "$ledger" ] || exit 0
   awk '
     function fence_of(line) { if (match(line, /^(```+|~~~+)/)) return substr(line, 1, RLENGTH); return "" }
     function flush() { if (id != "" && !judged) print id; id = "" }
