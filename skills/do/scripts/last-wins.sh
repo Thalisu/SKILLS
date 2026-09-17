@@ -52,6 +52,19 @@ fi
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
+# A path is a name a side chose, and its ledger entry and its report line are the classifier's own
+# quoting of it, so a path carrying a newline never adds a line to either.
+quote_path() { # $1 path
+  local raw="$1" quoted
+  quoted="${raw//\\/\\\\}"
+  quoted="${quoted//\"/\\\"}"
+  quoted="${quoted//$'\n'/\\n}"
+  quoted="${quoted//$'\r'/\\r}"
+  quoted="${quoted//$'\t'/\\t}"
+  quoted="${quoted// /\\040}"
+  if [ "$quoted" = "$raw" ]; then printf '%s' "$raw"; else printf '"%s"' "$quoted"; fi
+}
+
 # The registry is keyed by file name and never by sniffing content: a union written mid-resolution
 # need not be valid in its format, and a reader that parses it would fail on exactly the file it was
 # added for.
@@ -263,7 +276,8 @@ put_entry() { # $1 file, $2 key path, $3 target file, $4 incoming file
   rm -rf "$entry"
   mkdir -p "$entry"
   entry_id "$1" "$2" "$3" "$4" > "$entry/id"
-  printf '%s\n' "$1" > "$entry/file"
+  quote_path "$1" > "$entry/file"
+  printf '\n' >> "$entry/file"
   printf '%s\n' "$2" > "$entry/location"
   printf '%s\n' last-wins-duplicate > "$entry/shape"
   git rev-parse "$incoming_ref" > "$entry/commit"
@@ -311,7 +325,7 @@ while IFS= read -r -d '' file; do
       put_entry "$file" "$key" "$tmp/side-target" "$tmp/side-incoming" || exit 2
       drop+=("$incoming_at")
       kept=$((kept + 1))
-      echo "kept $file $key"
+      echo "kept $(quote_path "$file") $key"
       continue
     fi
 
@@ -324,7 +338,7 @@ while IFS= read -r -d '' file; do
       block_in "$tmp/first-block" "$tmp/incoming"; then
       for ((i = 1; i < ${#occ[@]}; i++)); do drop+=("${occ[$i]}"); done
       deduped=$((deduped + 1))
-      echo "deduped $file $key"
+      echo "deduped $(quote_path "$file") $key"
     fi
   done < "$tmp/dups"
 

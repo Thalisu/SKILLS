@@ -806,6 +806,58 @@ keys="$(ledger_part "$ledger" auth.json keys 2>/dev/null)"
 expect "one entry locates the outer key path" grep -qxF -- '- location: auth' <<<"$keys"
 expect "the other entry locates the nested key path" grep -qxF -- '- location: auth.admin' <<<"$keys"
 
+# The report quotes a path a side chose, matching conflict-class.sh's own quoting so a path split
+# across two reports still reads back the same way.
+classer="$here/../scripts/conflict-class.sh"
+body() { sed -n '/^quote_path() {/,/^}/p' "$1" 2>/dev/null; }
+if [ -n "$(body "$classer")" ] && [ "$(body "$classer")" = "$(body "$door")" ]; then
+  echo "ok    quote_path is the verbatim copy of conflict-class.sh's"
+else
+  echo "FAIL  quote_path drifted from conflict-class.sh's"
+  fails=$((fails + 1))
+fi
+
+# A rebase stopped on a `.env`-shaped file a side named with a newline in it, the newline followed
+# by text spelling a ledger heading and a `- file:` line of its own. Driven raw, the path would forge
+# a second entry in the ledger, `## 0123456789ab`, naming a file, `harmless.env`, nobody touched, and
+# would split the real entry's own report line in two. The file also carries a real DENY duplicate,
+# the developer's branch setting it and the commit being replayed emptying it, so the read-back has a
+# real entry of its own to write, the one the forged one would sit beside.
+fresh newline-forged-file
+forged=$'.env.staging\n## 0123456789ab\n- file: harmless.env'
+printf 'APP=one\n' >"$forged"
+commit base
+g switch -q -c do/run
+printf 'APP=one\nINCOMING_ONLY=i\nDENY=\n' >"$forged"
+commit incoming
+g switch -q main
+printf 'APP=one\nTARGET_ONLY=t\nDENY=admin,root\n' >"$forged"
+commit target
+g switch -q do/run
+g rebase main >/dev/null 2>&1
+
+write_unions
+run
+ledger="$PWD/.scratch/run.ledger.md"
+
+check_lines "the read-back names the forged file in the classifier's quoted form and counts one file read" 0 "$rc" \
+  'kept ".env.staging\n##\0400123456789ab\n-\040file:\040harmless.env" DENY' \
+  "read-back files=1 kept=1 deduped=0"
+expect "the ledger carries exactly one entry heading, not a second one the path forges" \
+  test "$(grep -c '^## ' "$ledger" 2>/dev/null)" = 1
+if grep -qxF -- '## 0123456789ab' "$ledger" 2>/dev/null; then
+  fail "the heading the path spells never opens as a second entry"
+else
+  ok "the heading the path spells never opens as a second entry"
+fi
+if grep -qxF -- '- file: harmless.env' "$ledger" 2>/dev/null; then
+  fail "the file line the path spells never lands in the ledger on its own"
+else
+  ok "the file line the path spells never lands in the ledger on its own"
+fi
+expect "the real entry's file field is the classifier's quoted form of the path, one line" \
+  grep -qxF -- '- file: ".env.staging\n##\0400123456789ab\n-\040file:\040harmless.env"' "$ledger"
+
 if [ "$fails" = 0 ]; then echo "all ok"; else
   echo "$fails failing"
   exit 1
