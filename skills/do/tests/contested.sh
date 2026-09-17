@@ -117,6 +117,65 @@ expect "the second.txt entry quotes the Target side it kept" \
 expect "the second.txt entry holds the Incoming side it set aside" \
   test "$(ledger_part "$ledger" second.txt incoming 2>/dev/null)" = "INCOMING TOO"
 
+# The same stop reached again, the rebase aborted and started over, over a ledger that already holds
+# an entry an earlier stop left for another hunk: each rerun rewrites its hunks' entries in place.
+reledger="$PWD/.scratch/rerun.ledger.md"
+cat >"$reledger" <<EOF
+# Loss ledger
+
+## 0123456789ab
+
+- file: other.txt
+- location: L1-L2
+- shape: rewrite-vs-rewrite
+- commit: $replayed
+- verdict: drop, already on main
+
+### Target (kept)
+
+\`\`\`
+other target
+\`\`\`
+
+### Incoming (set aside)
+
+\`\`\`
+other incoming
+\`\`\`
+EOF
+prior="$(cat "$reledger")"
+prior_entry() { awk '/^## / { on = $0 == "## 0123456789ab" } on' "$reledger"; }
+restop() {
+  g rebase --abort >/dev/null 2>&1
+  g rebase main >/dev/null 2>&1
+  rc=0
+  out="$(bash "$door" "$reledger" 2>&1)" || rc=$?
+}
+restop
+check_lines "a first run over a ledger with an earlier entry resolves the stop" 0 "$rc" \
+  "resolved mechanical=0 contested=2"
+cp "$reledger" "$tmp/rerun.first"
+restop
+check_lines "a rerun at the same stop resolves it again" 0 "$rc" "resolved mechanical=0 contested=2"
+expect "a rerun at the same stop leaves the ledger byte-identical to the first run's" \
+  cmp -s "$reledger" "$tmp/rerun.first"
+expect "a rerun leaves one entry heading per contested hunk beside the earlier entry" \
+  test "$(grep -c '^## ' "$reledger")" = 3 -a -z "$(grep '^## ' "$reledger" | sort | uniq -d)"
+awk '/^## / { f = "" } /^- file: / { f = substr($0, 9) } { print } f == "rewrite.txt" && /^- commit: / { print "- verdict: reapply" }' \
+  "$tmp/rerun.first" >"$reledger"
+cp "$reledger" "$tmp/rerun.edited"
+restop
+check_lines "a rerun over a hand-edited entry resolves the stop" 0 "$rc" "resolved mechanical=0 contested=2"
+expect "a rerun keeps a key line the script does not write, and the ledger otherwise unchanged" \
+  cmp -s "$reledger" "$tmp/rerun.edited"
+rekeys="$(ledger_part "$reledger" rewrite.txt keys 2>/dev/null)"
+expect "the rewritten rewrite.txt entry still carries the hand-added verdict" \
+  grep -qxF -- "- verdict: reapply" <<<"$rekeys"
+expect "the rewritten rewrite.txt entry carries one commit line" \
+  test "$(grep -c '^- commit: ' <<<"$rekeys")" = 1
+expect "the entry an earlier stop left for another hunk stays byte for byte" \
+  test "$(prior_entry)" = "$(sed -n '/^## 0123456789ab$/,$p' <<<"$prior")"
+
 g rebase --abort >/dev/null 2>&1
 rm -f "$ledger"
 g rebase main >/dev/null 2>&1

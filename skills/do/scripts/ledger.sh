@@ -22,6 +22,9 @@
 #
 #   <the incoming file, fenced>
 #
+# An entry already headed by the same id is rewritten where it stands, keeping any key line this
+# script does not write; any other is appended.
+#
 # A fence is one backtick longer than the longest run of backticks in the side it holds, and never
 # shorter than three, so no line of a side can close it.
 #
@@ -44,10 +47,7 @@ fenced() { # $1 file holding one side
   echo "$fence"
 }
 
-mkdir -p "$(dirname "$ledger")" || exit 2
-[ -s "$ledger" ] || echo '# Loss ledger' > "$ledger"
-{
-  echo
+render() {
   echo "## $(cat "$entry/id")"
   echo
   echo "- file: $(cat "$entry/file")"
@@ -62,4 +62,57 @@ mkdir -p "$(dirname "$ledger")" || exit 2
   echo '### Incoming (set aside)'
   echo
   fenced "$entry/incoming"
-} >> "$ledger"
+}
+
+# The entry headed by the same id is replaced where it stands, and a key line this script does not
+# write, the verdict a later judge adds, is carried over beneath the ones it does. Headings are read
+# outside fences only, so a side holding a line like `## <id>` never splits an entry.
+rewrite() { # $1 ledger, $2 id, $3 rendered entry
+  awk -v id="$2" -v rendered="$3" '
+    function fence_of(line) { if (match(line, /^(```+|~~~+)/)) return substr(line, 1, RLENGTH); return "" }
+    function flush(   i, line, carried, blanks) {
+      if (!inside) return
+      carried = ""
+      for (i = 1; i <= count; i++) {
+        if (chunk[i] ~ /^### /) break
+        if (chunk[i] ~ /^- [a-z_]+: / && chunk[i] !~ /^- (file|location|shape|commit): /) carried = carried chunk[i] "\n"
+      }
+      blanks = ""
+      for (i = count; i > 0 && chunk[i] == ""; i--) blanks = blanks "\n"
+      while ((getline line < rendered) > 0) {
+        print line
+        if (line ~ /^- commit: /) printf "%s", carried
+      }
+      close(rendered)
+      printf "%s", blanks
+      inside = 0
+      found = 1
+    }
+    {
+      if (fence == "") {
+        if ($0 ~ /^## [0-9a-f]+$/ && length($0) == 15) {
+          flush()
+          if ($0 == "## " id) { inside = 1; count = 0 }
+        }
+        f = fence_of($0)
+        if (f != "") fence = f
+      } else if (substr($0, 1, 1) == substr(fence, 1, 1) && $0 ~ /^(`+|~+)[ \t]*$/ && length($0) >= length(fence)) {
+        fence = ""
+      }
+      if (inside) { chunk[++count] = $0; next }
+      print
+    }
+    END {
+      flush()
+      if (!found) { print ""; while ((getline line < rendered) > 0) print line }
+    }
+  ' "$1"
+}
+
+mkdir -p "$(dirname "$ledger")" || exit 2
+[ -s "$ledger" ] || echo '# Loss ledger' > "$ledger"
+work="$(mktemp -d)"
+trap 'rm -rf "$work"' EXIT
+render > "$work/entry"
+rewrite "$ledger" "$(cat "$entry/id")" "$work/entry" > "$work/ledger" || exit 2
+cat "$work/ledger" > "$ledger"
