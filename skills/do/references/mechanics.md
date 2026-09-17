@@ -4,6 +4,8 @@ One file for the parts the Playbooks that build in a worktree share, read by `ti
 and `refactoring`, so a fix to a mechanic is made once. It carries the worktree, the protected
 branch, the Ticket file, the reader, the build loop with its test authors, the gate, the review,
 the verification and the close. A Playbook links the section it needs and never copies it.
+[integrate.md](integrate.md) builds in no worktree and reads the integration alone, for its
+conflict loop.
 
 ## The worktree
 

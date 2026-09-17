@@ -38,6 +38,7 @@ to type; nothing is written and no reference is read.
 | a Spec's path, in the format of [spec-format.md](../../.agents/formats/spec-format.md), or a pasted session summary | `Playbook: none`; one line saying a Spec fits no Playbook, since `do` takes one Ticket, with the command: `/tickets <spec>`, or `/journey <spec>` first when the Spec's `Journey:` line reads `required` and no journey sits beside it; `/spec` for a summary, since the discussion already happened |
 | a question: how something works, why it was built that way | `Playbook: none`; `/how` for the mechanism, `/why` for the rationale, `/teach` to understand it end to end |
 | a runnable throwaway: a layout, a variant to try | `Playbook: none`; `/prototype` |
+| an integration of branches in words: rebase one branch onto another, or merge one branch into another, a conflict to resolve along the way included, or an argument opening with `integrate` | `integrate` |
 | a bug in words: what happened, where, and the error or the wrong output. A defect a test can tell before from after, however small | `bug-fix` |
 | a change in words that no test could tell before from after: a typo, a doc line, a comment, a formatting fix, a log wording, a rename inside one file, dead code, a lint fix. Never a bug, a new exported symbol, a changed signature or a change the user sees, whatever its size | `trivial` |
 | a reshape of existing code in words, its behaviour unchanged: refactor, rename, extract, inline, dedupe, move this module. Never a request that moves behaviour a caller or a user observes | `refactoring` |
@@ -73,6 +74,7 @@ reproduce and cause steps of [bug-fix.md](references/bug-fix.md), those two and 
 that Playbook. The reply reference is read last by every Playbook.
 
 - [ticket.md](references/ticket.md): the `ticket` Playbook, which links the shared mechanics and the reply reference.
+- [integrate.md](references/integrate.md): the `integrate` Playbook: its door script, its steps, and the link to the conflict loop the shared mechanics carry.
 - [bug-fix.md](references/bug-fix.md): the `bug-fix` Playbook, which links the shared mechanics and the reply reference.
 - [mechanics.md](references/mechanics.md): the shared mechanics the Playbooks that build in a worktree read through their steps: the worktree, the protected branch, the Ticket file, the build loop, the gate, the integration, the review, the verification, the close.
 - [digest.md](references/digest.md): the Digest the session writes from the reader's text and the run derives

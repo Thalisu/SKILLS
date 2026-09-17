@@ -4,8 +4,8 @@
 
 `do` matches a request to one **Playbook** and runs its steps: a **Ticket**'s path or issue
 reference builds that Ticket as the last step of the chain, a request in words runs outside it, and
-a request that fits no Playbook is sent to the door that owns it in one message. Four Playbooks
-exist and one run reads one of them: `ticket`, `trivial`, `bug-fix`, `refactoring`. Every reply
+a request that fits no Playbook is sent to the door that owns it in one message. Five Playbooks
+exist and one run reads one of them: `ticket`, `trivial`, `bug-fix`, `refactoring`, `integrate`. Every reply
 opens with the Playbook it matched, so a wrong match costs you one retyped request and nothing
 else.
 
@@ -13,7 +13,8 @@ The three Playbooks that build never land their own work and never fix what a re
 builds in a git worktree of its own, one behaviour per green commit, runs the gate, and hands the
 branch to [do-code-review](do-code-review.md), which fixes the Findings it marked `Act on` and
 fast-forwards your branch when the **Review** is Green, so your branch takes reviewed commits or
-none. `trivial` commits in place on your branch, with no worktree and no review, because a change
+none. `integrate` rebases or merges your own branches in place, with the same conflict loop, and
+stops there: no review, no landing. `trivial` commits in place on your branch, with no worktree and no review, because a change
 no test could tell before from after has the existing suite as its whole gate. Nothing is pushed.
 The run ends on the `git push` for you to type when something landed on your branch, and on the
 next command to type when nothing did.
@@ -62,15 +63,16 @@ skill named here is the same procedure, and [the top-level README](../README.md)
 
 A **Playbook** is one execution model, one file in the skill's `references/` folder, read only when
 the router matches it. The skill file itself holds the router, the rules that apply to every run,
-and the links, so a run loads one Playbook and never the other three
+and the links, so a run loads one Playbook and never the other four
 ([ADR 0008](adr/0008-do-is-a-router-and-only-its-ticket-playbook-is-inside-the-chain.md)). Only
-`ticket` is inside the chain; the other three exist for work that never entered it.
+`ticket` is inside the chain; the other four exist for work that never entered it.
 
 | Playbook | Matched by | What the run does |
 |---|---|---|
 | `ticket` | a Ticket's path, or an issue reference the tracker file resolves | claims the Ticket in your checkout, builds it in a worktree behaviour by behaviour, gates, reviews, runs the affected flows, and closes the Ticket with the evidence quoted under it |
 | `bug-fix` | a defect in words: what happened, where, and the error or the wrong output | reproduces it on the surface it happens on, rules hypotheses out with runtime evidence, commits the failing reproduction before the smallest fix, and verifies on that same surface |
 | `refactoring` | a reshape in words whose behaviour stays where it is | pins the behaviour before any structure moves, then commits subtraction, reshape and cleanup in that order, so one revert undoes one slice |
+| `integrate` | a rebase of one branch onto another, or a merge of one branch into another, in words | checks the branches exist, that a merge target is not protected, that you stand on the branch written to and that your tree is clean, then runs the operation, resolves the mechanical hunks and asks you the contested ones. No worktree, no review, nothing landed or pushed |
 | `trivial` | a change no test could tell before from after | edits in place on your branch, runs the suite that covers the touched files, and lands one commit. No worktree, no review, one message |
 
 ## The door a request goes to

@@ -1,0 +1,46 @@
+name: integrate-rebase-run
+tags: [playbook, integrate, run, integration]
+runs: 2
+max_turns: 40
+timeout_seconds: 600
+allowed_tools: [Bash, Read, Edit, Write, Grep, Glob, Agent, Skill]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # The developer stands on feature/titles, one commit ahead of where main was, and main has moved
+    # since: both sides appended a different function at the end of src/notes.js, adding lines and
+    # modifying none, so the rebase stops on one conflicted hunk that classes mechanical. No Ticket
+    # exists, and no remote.
+    set -e
+    mkdir -p src
+    cat > src/notes.js <<'JS'
+    const notes = [];
+
+    export function create(title) {
+      const note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+    JS
+    git init -q -b main
+    git config user.email fixture@example.com
+    git config user.name fixture
+    git add -A
+    git commit -q -m "fixture"
+    git checkout -q -b feature/titles
+    cat >> src/notes.js <<'JS'
+
+    export function titles() {
+      return notes.map((n) => n.title);
+    }
+    JS
+    git commit -q -am "feat(notes): read the titles of the notes"
+    git checkout -q main
+    cat >> src/notes.js <<'JS'
+
+    export function count() {
+      return notes.length;
+    }
+    JS
+    git commit -q -am "feat(notes): count the notes"
+    git checkout -q feature/titles
