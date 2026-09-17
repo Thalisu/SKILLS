@@ -95,13 +95,17 @@ regenerate() { # $1 path: the three stages into $tmp/s1..s3, their merge into $t
     > "$tmp/merged" 2>/dev/null
 }
 
+# The branch tip before the rebase started: a side named by its blob is reachable from it once the
+# rebase has moved the branch, so the ledger names both.
+before="$(cat "$(git rev-parse --git-path rebase-merge/orig-head)" 2>/dev/null)"
+
 # One side of a whole-file hunk: its stage whole, its deletion, or, where the file cannot be read
-# line by line, its size and blob.
+# line by line, its size, its blob and the tip that reaches it.
 whole_side() { # $1 stage, $2 path, $3 shape
   git cat-file -e ":$1:$2" 2>/dev/null || { echo "(deleted)"; return; }
   case "$3" in
-    binary)    echo "(binary, $(git cat-file -s ":$1:$2") bytes, blob $(git rev-parse --short ":$1:$2"))" ;;
-    too-large) echo "(too large, $(git cat-file -s ":$1:$2") bytes, blob $(git rev-parse --short ":$1:$2"))" ;;
+    binary)    echo "(binary, $(git cat-file -s ":$1:$2") bytes, blob $(git rev-parse ":$1:$2"), before $before)" ;;
+    too-large) echo "(too large, $(git cat-file -s ":$1:$2") bytes, blob $(git rev-parse ":$1:$2"), before $before)" ;;
     *)         git cat-file blob ":$1:$2" ;;
   esac
 }
@@ -169,6 +173,7 @@ set_aside() { # $1 the hunk's index in the report
   printf '%s\n' "${locations[$i]}" > "$entry/location"
   printf '%s\n' "${shapes[$i]}" > "$entry/shape"
   git rev-parse REBASE_HEAD > "$entry/commit"
+  printf '%s\n' "$before" > "$entry/before"
   capped "$tmp/target" 2 "$path" > "$entry/target"
   cp "$tmp/incoming" "$entry/incoming"
   bash "$here/ledger.sh" put "$ledger" "$entry"

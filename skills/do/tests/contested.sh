@@ -129,6 +129,7 @@ cat >"$reledger" <<EOF
 - location: L1-L2
 - shape: rewrite-vs-rewrite
 - commit: $replayed
+- before: $(git rev-parse main)
 - verdict: drop, already on main
 
 ### Target (kept)
@@ -161,7 +162,7 @@ expect "a rerun at the same stop leaves the ledger byte-identical to the first r
   cmp -s "$reledger" "$tmp/rerun.first"
 expect "a rerun leaves one entry heading per contested hunk beside the earlier entry" \
   test "$(grep -c '^## ' "$reledger")" = 3 -a -z "$(grep '^## ' "$reledger" | sort | uniq -d)"
-awk '/^## / { f = "" } /^- file: / { f = substr($0, 9) } { print } f == "rewrite.txt" && /^- commit: / { print "- verdict: reapply" }' \
+awk '/^## / { f = "" } /^- file: / { f = substr($0, 9) } { print } f == "rewrite.txt" && /^- before: / { print "- verdict: reapply" }' \
   "$tmp/rerun.first" >"$reledger"
 cp "$reledger" "$tmp/rerun.edited"
 restop
@@ -262,6 +263,12 @@ g rebase main >/dev/null 2>&1
 git cat-file blob :2:collapsed.txt >"$tmp/collapsed.target"
 git cat-file blob :2:kept.txt >"$tmp/kept.target"
 git cat-file blob :2:picture.bin >"$tmp/picture.target"
+before="$(cat "$(git rev-parse --git-path rebase-merge/orig-head)")"
+named() { # $1 binary|too large, $2 stage, $3 file: how a side the ledger never pastes is named
+  echo "($1, $(git cat-file -s ":$2:$3") bytes, blob $(git rev-parse ":$2:$3"), before $before)"
+}
+picture_target="$(named binary 2 picture.bin)"
+picture_incoming="$(named binary 3 picture.bin)"
 
 run
 check_lines "whole-file hunks write or remove each file" 0 "$rc" \
@@ -275,6 +282,21 @@ expect "where the Incoming side deleted the file the Target's version stays" \
   cmp -s kept.txt "$tmp/kept.target"
 expect "a binary file takes the Target side's bytes whole" \
   cmp -s picture.bin "$tmp/picture.target"
+# The whole blob sha and the branch tip recorded before the rebase name the side, so it can be read
+# back from the object store after the rebase moved the branch.
+names_whole_side() { # $1 kind label, $2 file, $3 Target name, $4 Incoming name
+  local keys
+  keys="$(ledger_part .scratch/run.ledger.md "$2" keys 2>/dev/null)"
+  expect "a $1 file's ledger entry names its Incoming side by size, full blob and the tip before the rebase" \
+    test "$(ledger_part .scratch/run.ledger.md "$2" incoming 2>/dev/null)" = "$4"
+  expect "a $1 file's ledger entry names its Target side the same way, by its own blob" \
+    test "$(ledger_part .scratch/run.ledger.md "$2" target 2>/dev/null)" = "$3"
+  expect "a $1 file's ledger entry carries the tip before the rebase right after its commit line" \
+    test "$(grep -A1 '^- commit: ' <<<"$keys" | sed -n 2p)" = "- before: $before"
+}
+names_whole_side binary picture.bin "$picture_target" "$picture_incoming"
+expect "no byte of either side of a binary file reaches the ledger" \
+  test "$(grep -acF -e pixels -e $'\001\004incoming' -e $'\001\003target' .scratch/run.ledger.md)" = 0
 expect "a file the Target side deleted leaves its Incoming side whole in the ledger" \
   test "$(ledger_part .scratch/run.ledger.md gone.txt target)" = "(deleted)" \
   -a "$(ledger_part .scratch/run.ledger.md gone.txt incoming)" = "$(printf 'kept\nedited by incoming')"
@@ -285,6 +307,44 @@ expect "every whole-file hunk leaves one entry" test "$(grep -c '^## ' .scratch/
 expect "no whole-file hunk is left unmerged" test -z "$(git ls-files -u)"
 expect "the rebase continues from there too" \
   g -c core.editor=true -c rerere.enabled=false rebase --continue
+
+# A text file over the 4 MiB a merge reads, whose last line both sides rewrote.
+fresh too-large
+padding() { head -c 5000000 /dev/zero | tr '\0' a; }
+{
+  padding
+  printf '\nbase end\n'
+} >huge.txt
+commit base
+g switch -q -c do/run
+{
+  padding
+  printf '\nINCOMING END\n'
+} >huge.txt
+commit incoming
+printf 'later\n' >later.txt
+commit later
+g switch -q main
+{
+  padding
+  printf '\nTARGET END\n'
+} >huge.txt
+commit target
+g switch -q do/run
+g rebase main >/dev/null 2>&1
+git cat-file blob :2:huge.txt >"$tmp/huge.target"
+before="$(cat "$(git rev-parse --git-path rebase-merge/orig-head)")"
+huge_target="$(named 'too large' 2 huge.txt)"
+huge_incoming="$(named 'too large' 3 huge.txt)"
+expect "the stopped commit is not the branch tip recorded before the rebase" \
+  test "$(git rev-parse REBASE_HEAD)" != "$before"
+
+run
+check_lines "a file too large to merge is written" 0 "$rc" "wrote huge.txt" "resolved mechanical=0 contested=1"
+expect "a file too large to merge takes the Target side whole" cmp -s huge.txt "$tmp/huge.target"
+names_whole_side 'too large' huge.txt "$huge_target" "$huge_incoming"
+expect "no byte of either side of a file too large to merge reaches the ledger" \
+  test "$(grep -acE 'aaaaaaaaaaaaaaaa|(TARGET|INCOMING|base) END' .scratch/run.ledger.md)" = 0
 
 # A contested stop that also carries a file whose every hunk is mechanical. No path may be typed into
 # a command line, so the script resolves that file itself, by the union rule.

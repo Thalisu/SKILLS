@@ -4,8 +4,8 @@
 #
 #   ledger.sh put <ledger> <entry-dir>    the entry <entry-dir> describes, written into <ledger>
 #
-# <entry-dir> holds one file per field: `id`, `file`, `location`, `shape` and `commit`, each one
-# line, and `target` and `incoming`, each a side's text. The entry reads:
+# <entry-dir> holds one file per field: `id`, `file`, `location`, `shape`, `commit` and `before`,
+# the branch tip recorded before the rebase, each one line, and `target` and `incoming`, each a side's text. The entry reads:
 #
 #   ## <id>
 #
@@ -13,6 +13,7 @@
 #   - location: <location>
 #   - shape: <shape>
 #   - commit: <commit>
+#   - before: <before>
 #
 #   ### Target (kept)
 #
@@ -54,6 +55,7 @@ render() {
   echo "- location: $(cat "$entry/location")"
   echo "- shape: $(cat "$entry/shape")"
   echo "- commit: $(cat "$entry/commit")"
+  echo "- before: $(cat "$entry/before")"
   echo
   echo '### Target (kept)'
   echo
@@ -75,13 +77,13 @@ rewrite() { # $1 ledger, $2 id, $3 rendered entry
       carried = ""
       for (i = 1; i <= count; i++) {
         if (chunk[i] ~ /^### /) break
-        if (chunk[i] ~ /^- [a-z_]+: / && chunk[i] !~ /^- (file|location|shape|commit): /) carried = carried chunk[i] "\n"
+        if (chunk[i] ~ /^- [a-z_]+: / && chunk[i] !~ /^- (file|location|shape|commit|before): /) carried = carried chunk[i] "\n"
       }
       blanks = ""
       for (i = count; i > 0 && chunk[i] == ""; i--) blanks = blanks "\n"
       while ((getline line < rendered) > 0) {
         print line
-        if (line ~ /^- commit: /) printf "%s", carried
+        if (line ~ /^- before: /) printf "%s", carried
       }
       close(rendered)
       printf "%s", blanks
