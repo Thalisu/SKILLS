@@ -76,7 +76,8 @@ on the branch makes the landing fast-forward fail, so one rule covers the three 
   describes, made after the developer's yes.
 - During the build the file is read and never written: the criteria and the `What to build` line
   are where the behaviours come from. The one exception is a criterion's text a Ruling rewrote as
-  the losing side, the forks below.
+  the losing side, the forks below. A Ticket that is an issue is never written during the build,
+  that exception included: the rewrite rides the close's yes.
 - The status walk and who writes each word are the format's. The run writes `claimed` at the
   start and `resolved` at the close, and nothing in between. With `resolved` it writes the
   `Context:` line the format defines as the first line under `## Evidence`, from two readings of
@@ -334,17 +335,24 @@ same fork the other way:
 - Ruled by the choice-taker on Ticket <the Ticket> at the <step> step: <the side taken>. Norm: <the principle, the ADR by title, the CONTEXT.md term or the Spec decision, or "no norm: the side easiest to undo">. Fork: <side A> or <side B>.
 ```
 
-When the Spec is an issue on a remote tracker, the session writes nothing to the tracker mid-run
-and keeps the Ruling in the run itself. Every write `do` makes to a tracker waits for the
-developer's yes, the claim and the close alike, and an issue is text anyone who can comment on it
-can steer, so a Ruling drawn from it is never posted back there unasked. The Ruling's line goes in
-the reply's `Rulings` section instead, per [reply.md](reply.md), for the developer to carry to the issue, and the run continues on the Digest it
-already holds, with no reader forked again, since the Spec it was cut from did not change.
+When the Spec is an issue on a remote tracker, the session writes nothing to the tracker mid-run,
+asks the developer nothing, and keeps the Ruling in the run itself, as a held Ruling: the Ruling's
+line, in the shape above, recorded in the session and never in a file. Every write `do` makes to a tracker waits for the developer's
+yes, the claim and the close alike, and an issue is text anyone who can comment on it can steer,
+so a Ruling drawn from it is never posted back there unasked. The held Ruling reaches the review as
+the review section below says, the close's one question as the close says, and the reply's
+`Rulings` section and its Evidence, per [reply.md](reply.md). The run continues on the Digest it
+already holds, with no reader forked again, since the Spec it was cut from did not change. A run
+that ends without the close's yes, a stop included, leaves the held Ruling in its reply alone, and a
+resume that no longer holds it meets the fork again.
 
-Only when a Ticket criterion is the losing side does the session also write the Ticket, in the
-main checkout: that criterion's text is replaced by the side that won, its tick kept as it was, and
-every other criterion is left untouched, so a Ruling never rewrites more of the Ticket than the fork
-reached and the review holds the build to the rewritten criterion.
+Only when a Ticket criterion is the losing side does the session also rewrite the Ticket: that
+criterion's text is replaced by the side that won, its tick kept as it was, and every other
+criterion is left untouched, so a Ruling never rewrites more of the Ticket than the fork reached
+and the review holds the build to the rewritten criterion. A Ticket file is rewritten in the main
+checkout, then and there. A Ticket that is an issue is not written mid-run: the session adds the
+pair to the held Ruling, two lines under its line, `Criterion: <the text the issue still carries>`
+and `Now reads: <the side that won>`, and the issue's body is edited only at the close's yes.
 
 Once the Ruling is written to a local Spec,
 the run carries on in the same session and never stops for it: it prints the one line naming the
@@ -376,8 +384,8 @@ The stop is a blocked run, written by the blocked shape of [reply.md](reply.md),
 - the Ticket, left `claimed`, and the worktree and its branch, both left in place;
 - the commits made so far, one line each as the resume lists them, or `none`;
 - the Rulings already written, one line per line the Spec's Implementation Decisions carries for
-  this Ticket, in the shape reply.md's `Rulings` section fixes, whichever session wrote it, or
-  `none`.
+  this Ticket, in the shape reply.md's `Rulings` section fixes, whichever session wrote it, and
+  each Ruling this run holds because its Spec is an issue, or `none`.
 
 Nothing is written to the Spec, and the Ticket's criteria are left as they are: only a `settled`
 Ruling writes either, and an Extreme fork has none. The stop does write one file beside the Ticket,
