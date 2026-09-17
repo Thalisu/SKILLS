@@ -263,6 +263,7 @@ g rebase main >/dev/null 2>&1
 git cat-file blob :2:collapsed.txt >"$tmp/collapsed.target"
 git cat-file blob :2:kept.txt >"$tmp/kept.target"
 git cat-file blob :2:picture.bin >"$tmp/picture.target"
+git cat-file blob :3:collapsed.txt >"$tmp/collapsed.incoming"
 before="$(cat "$(git rev-parse --git-path rebase-merge/orig-head)")"
 named() { # $1 binary|too large, $2 stage, $3 file: how a side the ledger never pastes is named
   echo "($1, $(git cat-file -s ":$2:$3") bytes, blob $(git rev-parse ":$2:$3"), before $before)"
@@ -304,9 +305,50 @@ expect "a file the Incoming side deleted leaves the deletion as its set-aside si
   test "$(ledger_part .scratch/run.ledger.md kept.txt incoming)" = "(deleted)" \
   -a "$(ledger_part .scratch/run.ledger.md kept.txt target)" = "$(cat "$tmp/kept.target")"
 expect "every whole-file hunk leaves one entry" test "$(grep -c '^## ' .scratch/run.ledger.md)" = 4
+expect "a file git's merge cannot line up leaves an unmergeable entry with its Incoming side whole" \
+  grep -qxF -- "- shape: unmergeable" <<<"$(ledger_part .scratch/run.ledger.md collapsed.txt keys 2>/dev/null)"
+expect "the unmergeable entry's Incoming side is its stage 3 whole" \
+  test "$(ledger_part .scratch/run.ledger.md collapsed.txt incoming 2>/dev/null)" = "$(cat "$tmp/collapsed.incoming")"
 expect "no whole-file hunk is left unmerged" test -z "$(git ls-files -u)"
 expect "the rebase continues from there too" \
   g -c core.editor=true -c rerere.enabled=false rebase --continue
+
+# A rename against an edit: the Target side renamed the file and rewrote its line 2, the Incoming side
+# rewrote the same line and another one far below it, an edit git alone would merge cleanly. The file
+# takes the Target side whole, so neither Incoming edit reaches it.
+fresh rename-vs-edit
+seq 1 12 | sed 's/^/line /' >old.txt
+commit base
+g switch -q -c do/run
+sed -i -e 's/^line 2$/INCOMING TWO/' -e 's/^line 11$/INCOMING ELEVEN/' old.txt
+commit incoming
+g switch -q main
+g mv old.txt new.txt
+sed -i 's/^line 2$/TARGET TWO/' new.txt
+commit target
+g switch -q do/run
+g rebase main >/dev/null 2>&1
+renamed="$(bash "$classer" 2>/dev/null | awk '$1 == "contested" && $NF == "rename-vs-edit" { print $2 }')"
+expect "the classifier reports one contested rename-vs-edit file" test -n "$renamed" -a "$(grep -c . <<<"$renamed")" = 1
+git cat-file blob ":2:$renamed" >"$tmp/renamed.target"
+git cat-file blob ":3:$renamed" >"$tmp/renamed.incoming"
+run
+check_lines "a rename against an edit is written" 0 "$rc" "wrote $renamed" "resolved mechanical=0 contested=1"
+expect "a rename against an edit takes the Target side whole" cmp -s "$renamed" "$tmp/renamed.target"
+expect "no line the Incoming side changed reaches the renamed file, conflicting or not" \
+  test -z "$(grep INCOMING "$renamed")"
+expect "the renamed file is staged as the Target side whole" \
+  test "$(git cat-file blob ":0:$renamed" 2>/dev/null)" = "$(cat "$tmp/renamed.target")"
+expect "a rename against an edit leaves one ledger entry" test "$(grep -c '^## ' .scratch/run.ledger.md)" = 1
+renamed_keys="$(ledger_part .scratch/run.ledger.md "$renamed" keys 2>/dev/null)"
+for key in "- location: whole-file" "- shape: rename-vs-edit"; do
+  expect "the rename-vs-edit entry carries the key line '$key'" grep -qxF -- "$key" <<<"$renamed_keys"
+done
+expect "the rename-vs-edit entry keeps the Target side whole" \
+  test "$(ledger_part .scratch/run.ledger.md "$renamed" target 2>/dev/null)" = "$(cat "$tmp/renamed.target")"
+expect "the rename-vs-edit entry sets the Incoming side aside whole" \
+  test "$(ledger_part .scratch/run.ledger.md "$renamed" incoming 2>/dev/null)" = "$(cat "$tmp/renamed.incoming")"
+expect "nothing at the rename stop is left unmerged" test -z "$(git ls-files -u)"
 
 # A text file over the 4 MiB a merge reads, whose last line both sides rewrote.
 fresh too-large

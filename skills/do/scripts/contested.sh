@@ -74,6 +74,9 @@ while read -r class file location shape; do
   classes+=("$class"); files+=("$file"); locations+=("$location"); shapes+=("${shape:-}")
   ordinals+=("${seen["$file"]}")
   [ "$location" = whole-file ] && whole["$file"]=1
+  # A rename against an edit is taken whole even where git left line hunks: splicing it would carry
+  # the Incoming side's clean edits into the file with no entry to show for them.
+  [ "$class:$shape" = contested:rename-vs-edit ] && whole["$file"]=1
   if [ "$class" = contested ]; then
     contested+=("$(( ${#classes[@]} - 1 ))")
     answer_at["$file#${seen["$file"]}"]=target
@@ -162,15 +165,19 @@ hunk_id() { # $1 path, $2 location
 }
 
 # One contested hunk's entry in the Loss ledger, written before any file of the stop is: the index
-# still holds the stages it is read from.
+# still holds the stages it is read from. A file taken whole leaves one entry, both sides whole.
 set_aside() { # $1 the hunk's index in the report
-  local i="$1" path entry="$tmp/entry"
+  local i="$1" path entry="$tmp/entry" location="${locations[$1]}"
+  if [ -n "${whole["${files[$i]}"]+set}" ]; then
+    [ "${ordinals[$i]}" = 1 ] || return 0
+    location="whole-file"
+  fi
   path="${raw_path["${files[$i]}"]}"
-  sections "$path" "${ordinals[$i]}" "${locations[$i]}" "${shapes[$i]}"
+  sections "$path" "${ordinals[$i]}" "$location" "${shapes[$i]}"
   mkdir -p "$entry"
-  hunk_id "$path" "${locations[$i]}" > "$entry/id"
+  hunk_id "$path" "$location" > "$entry/id"
   printf '%s\n' "${files[$i]}" > "$entry/file"
-  printf '%s\n' "${locations[$i]}" > "$entry/location"
+  printf '%s\n' "$location" > "$entry/location"
   printf '%s\n' "${shapes[$i]}" > "$entry/shape"
   git rev-parse REBASE_HEAD > "$entry/commit"
   printf '%s\n' "$before" > "$entry/before"
