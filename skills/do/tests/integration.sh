@@ -238,6 +238,54 @@ JS
   cd "$repo" || exit 1
 }
 union_keeps_both_sides_closing_braces_when_each_appends_a_function
+
+# A run that opened the rebase itself can meet a stop with nothing conflicted for git's own reason:
+# an untracked gate artifact (out.txt, added by one of the run's own commits and removed by a later
+# one) sits in the worktree when the replay tries to add it back. conflict-class.sh answers with
+# "no conflicted state, nothing classed" and exit 0, since there is no hunk to class, but the
+# paragraph must still route this run-opened case to a defined outcome: blocked, git's own refusal
+# named, the rebase left open, `git rebase --abort` as the undo, never an unmet stop with no route.
+a_rebase_the_run_opened_itself_meets_a_stop_nothing_can_class() {
+  local rc paragraph
+  fresh case-g
+  printf 'base\n' >notes.txt
+  commit base
+  g branch feat
+  printf 'base\nmain moves\n' >notes.txt
+  commit "main moves"
+  g switch -q feat
+  printf 'gate output v1\n' >out.txt
+  g add out.txt
+  commit "adds out.txt"
+  g rm -q out.txt
+  commit "removes out.txt"
+  printf 'gate output v2, untracked\n' >out.txt
+
+  rc=0
+  out="$(g -c rerere.enabled=false -c rerere.autoupdate=false rebase refs/heads/main 2>&1)" || rc=$?
+  check "the run's own rebase stops on git's untracked-file refusal, never a merge conflict" \
+    1 "$rc" "untracked working tree files would be overwritten"
+
+  rc=0
+  out="$(bash "$repo/skills/do/scripts/conflict-class.sh" 2>&1)" || rc=$?
+  check "conflict-class.sh finds nothing to class at that stop" \
+    0 "$rc" "no conflicted state, nothing classed"
+
+  paragraph="$(awk '
+    /^Where every hunk/ { exit }
+    /^A stop the script answers with/ { on = 1 }
+    on { print }
+  ' "$mech")"
+  expect "mechanics.md carries the paragraph on a nothing-classed stop" test -n "$paragraph"
+  out="$paragraph"
+  check_absent "the paragraph never leaves a run that opened the rebase itself with no route" \
+    0 0 "never meets that stop"
+  check "the paragraph routes a run-opened stop nothing can class to blocked, naming git's own refusal, the rebase left open and its abort undo" \
+    0 0 "blocked" "git rebase --abort" "rebase left open"
+  cd "$repo" || exit 1
+}
+a_rebase_the_run_opened_itself_meets_a_stop_nothing_can_class
+
 if [ "$fails" = 0 ]; then echo "PASS"; else
   echo "$fails failing"
   exit 1

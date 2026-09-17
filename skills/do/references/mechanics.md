@@ -542,9 +542,14 @@ section.
 
 A stop the script answers with `no conflicted state, nothing classed` is never continued unasked:
 the rebase stopped with nothing unmerged, so whatever is staged for that commit carries nobody's
-recorded answer. A run that opened the rebase itself never meets that stop. A resumed run meets it
-only after the question the Resume of [ticket.md](ticket.md) asks on `resume-state.sh`'s
-`stop=resolved` or `stop=moved` line, and it continues only on the answer that says so.
+recorded answer. A run that opened the rebase itself meets that stop when git refuses a step no hunk
+carries, an untracked file the replay would overwrite for one, and a continue there meets the same
+refusal. The run stops as blocked with git's own message quoted as it printed it, the
+rebase left open at that commit, and `git rebase --abort` named as the command that undoes it. The
+worktree and its branch stay in place and are named, the Ticket stays `claimed`, nothing lands
+and nothing is pushed. A resumed run meets the same stop only after the question the Resume of
+[ticket.md](ticket.md) asks on `resume-state.sh`'s `stop=resolved` or `stop=moved` line, and it
+continues only on the answer that says so.
 
 Where every hunk of the stop is `mechanical`, the run resolves them itself and nothing is asked of
 the developer. The conflicted files are the list git left, read NUL-delimited so that a path
