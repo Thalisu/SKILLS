@@ -5,11 +5,12 @@
 #
 #   ledger.sh put <ledger> <entry-dir>    the entry <entry-dir> describes, written into <ledger>
 #   ledger.sh pending <ledger>            the id of each entry carrying no verdict, in file order
-#   ledger.sh verdict <ledger> <id> <verdict> <reason>
-#                                         a judge's reading of <id> written into the entry
+#   ledger.sh verdict <ledger> <verdict-dir>
+#                                         the reading <verdict-dir> describes, written into the entry
 #
-# <entry-dir> holds one file per field: `id`, `file`, `location`, `shape`, `commit` and `before`,
-# the branch tip recorded before the rebase, each one line, and `target` and `incoming`, each a side's text. The entry reads:
+# `put`'s <entry-dir> holds one file per field: `id`, `file`, `location`, `shape`, `commit` and
+# `before`, the branch tip recorded before the rebase, each one line, and `target` and `incoming`,
+# each a side's text. The entry reads:
 #
 #   ## <id>
 #
@@ -30,14 +31,17 @@
 # An entry already headed by the same id is rewritten where it stands, keeping any key line this
 # script does not write; any other is appended.
 #
-# `put` writes entries and never a verdict; `verdict` writes verdicts and never an entry. A verdict
-# reads `- verdict: <verdict>, <reason>` and sits directly under the entry's `- before:` line, which
-# is where `put`'s own rewrite carries it over, so the two verbs never overwrite each other. An entry
-# that already carries a verdict is refused with nothing written, so a second reading never replaces
-# the first where it stands and no run loses the reading it is resuming after. An id no entry carries
-# is refused the same way, and so is a <verdict> that is neither `reapply` nor `drop`, which would
-# bury the entry under a word no reader acts on, and a <reason> carrying a newline, which would forge
-# an entry heading of its own.
+# `put` writes entries and never a verdict; `verdict` writes verdicts and never an entry. `verdict`'s
+# <verdict-dir> holds one file per field, `id`, `verdict` and `reason`, each one line, the same shape
+# `put` takes an entry directory in rather than loose arguments, so a judge's free-text reason never
+# becomes a shell word a command could hide inside. A verdict reads `- verdict: <verdict>, <reason>`
+# and sits directly under the entry's `- before:` line, which is where `put`'s own rewrite carries it
+# over, so the two verbs never overwrite each other. An entry that already carries a verdict is
+# refused with nothing written, so a second reading never replaces the first where it stands and no
+# run loses the reading it is resuming after. An id no entry carries is refused the same way, and so
+# is a `verdict` file that is neither `reapply` nor `drop`, which would bury the entry under a word
+# no reader acts on, and a `reason` file carrying more than one line, which would forge an entry
+# heading of its own.
 #
 # `pending` and `verdict` read an entry's heading the way the rewrite does, outside fences only, so a
 # `## <id>` line a side quotes is that side's text and never an entry of its own. A ledger no stop
@@ -54,7 +58,7 @@
 set -uo pipefail
 
 usage() {
-  echo "usage: ledger.sh put <ledger> <entry-dir> | ledger.sh pending <ledger> | ledger.sh verdict <ledger> <id> <verdict> <reason>" >&2
+  echo "usage: ledger.sh put <ledger> <entry-dir> | ledger.sh pending <ledger> | ledger.sh verdict <ledger> <verdict-dir>" >&2
   exit 2
 }
 verb="${1:-}"
@@ -69,8 +73,12 @@ case "$verb" in
     ledger="$2" entry=""
     ;;
   verdict)
-    [ "$#" = 5 ] || usage
-    ledger="$2" entry="" id="$3" call="$4" reason="$5"
+    [ "$#" = 3 ] || usage
+    ledger="$2" entry="$3"
+    [ -d "$entry" ] || usage
+    id="$(cat "$entry/id" 2>/dev/null)" || usage
+    call="$(cat "$entry/verdict" 2>/dev/null)" || usage
+    reason="$(cat "$entry/reason" 2>/dev/null)" || usage
     case "$call" in
       reapply | drop) ;;
       *)

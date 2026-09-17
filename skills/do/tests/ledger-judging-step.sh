@@ -54,6 +54,16 @@ expect "mechanics.md carries the integration section the judging step belongs to
 
 carries "the run reads the entries left to judge with ledger.sh pending" "ledger.sh pending"
 carries "each verdict the judge returns is written back through ledger.sh verdict" "ledger.sh verdict"
+
+# Security: the judge's reason is free text a stranger's diff can shape, so the documented command
+# line must never carry it as a double-quoted shell word, where a `$(...)` in it would run in the
+# session's own shell. The step instead has the session write it into an entry directory first, the
+# shape `put` already takes, and hand ledger.sh verdict the directory alone.
+expect "the documented verdict command line never quotes the judge's reason as an interpolated shell word" \
+  bash -c '! grep -qF -- "\"<the reason>\"" <<<"$1"' _ "$flat"
+carries "the documented verdict command line hands the reason through an entry directory instead" \
+  "entry dir"
+
 carries "the judging fork is the ledger-judge agent, named as the Agent tool's subagent_type" \
   "subagent_type: ledger-judge"
 carries "the judge is forked once per integration, never once per entry" "once per integration"

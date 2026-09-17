@@ -712,9 +712,12 @@ it returns.
 
 It returns one block per entry: the id, `reapply` or `drop`, a one-line reason, and, on a
 `reapply`, the edit against the tree as it now stands, which the next Ticket's step applies. The
-session writes each reading where the ledger keeps it,
-`bash <skill-dir>/scripts/ledger.sh verdict "<the ledger>" "<the id>" "<the verdict>" "<the reason>"`,
-one call per block. `contested.sh` writes entries and this verb writes verdicts, so neither
+session writes each reading where the ledger keeps it: the id, the verdict word and the reason go
+into a fresh directory's `id`, `verdict` and `reason` files, one line each, and the run calls
+`bash <skill-dir>/scripts/ledger.sh verdict "<the ledger>" "<the entry dir>"`, one call per block,
+the same shape `put` already takes, an entry directory rather than loose arguments, so the judge's
+free-text reason never becomes a shell word a command could hide inside. `contested.sh` writes
+entries and this verb writes verdicts, so neither
 overwrites the other and a rerun at the same stop carries a verdict over. A resumed run judges only
 what `pending` named, so running twice leaves the same ledger. An id the judge names that `pending`
 did not, and an id that already carries a verdict, are both refused by the script with nothing

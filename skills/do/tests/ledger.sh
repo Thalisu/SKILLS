@@ -253,8 +253,10 @@ verdict_line='- verdict: drop, already on main, by hand'
 beneath_before() { # $1 ledger (default $vledger), $2 the - before: line (default $judged_before)
   grep -A1 -xF -- "${2:-$judged_before}" "${1:-$vledger}" | tail -n 1
 }
+vdentry="$tmp/verdict-dir.judged"
+ledger_verdict_entry_fixture "$vdentry" 1122334455aa drop 'already on main, by hand'
 rc=0
-out="$(bash "$ledgersh" verdict "$vledger" 1122334455aa drop 'already on main, by hand' 2>&1)" || rc=$?
+out="$(bash "$ledgersh" verdict "$vledger" "$vdentry" 2>&1)" || rc=$?
 check "a judge's verdict on an entry the ledger carries succeeds" 0 "$rc"
 expect "the verdict lands directly beneath that entry's - before: line, its reason whole" \
   test "$(beneath_before)" = "$verdict_line"
@@ -337,12 +339,16 @@ beside incoming
 ```
 EOF
 rj_before='- before: 2222222222222222222222222222222222222222'
+rjentry_first="$tmp/verdict-dir.rj-first"
+ledger_verdict_entry_fixture "$rjentry_first" 5566778899bb reapply 'the incoming side is the fix'
 rc=0
-out="$(bash "$ledgersh" verdict "$rjledger" 5566778899bb reapply 'the incoming side is the fix' 2>&1)" || rc=$?
+out="$(bash "$ledgersh" verdict "$rjledger" "$rjentry_first" 2>&1)" || rc=$?
 check "a first judge's verdict on an entry succeeds" 0 "$rc"
 cp "$rjledger" "$tmp/rejudged.after-first.md"
+rjentry_second="$tmp/verdict-dir.rj-second"
+ledger_verdict_entry_fixture "$rjentry_second" 5566778899bb drop 'on a second reading, already on main'
 rc=0
-out="$(bash "$ledgersh" verdict "$rjledger" 5566778899bb drop 'on a second reading, already on main' 2>"$tmp/rejudged.err")" || rc=$?
+out="$(bash "$ledgersh" verdict "$rjledger" "$rjentry_second" 2>"$tmp/rejudged.err")" || rc=$?
 expect "a resumed run judging that same entry again is refused with a non-zero exit (got $rc)" test "$rc" != 0
 expect "the refused re-judgment gives a reason on stderr" test -s "$tmp/rejudged.err"
 expect "the refused re-judgment names the id the judge asked for" \
@@ -408,8 +414,10 @@ beside incoming
 ```
 EOF
 cp "$unledger" "$tmp/unknown.before"
+unentry="$tmp/verdict-dir.unknown"
+ledger_verdict_entry_fixture "$unentry" 99887766aabb drop 'a hunk nobody set aside'
 rc=0
-out="$(bash "$ledgersh" verdict "$unledger" 99887766aabb drop 'a hunk nobody set aside' 2>"$tmp/unknown.err")" || rc=$?
+out="$(bash "$ledgersh" verdict "$unledger" "$unentry" 2>"$tmp/unknown.err")" || rc=$?
 expect "a verdict for an id no entry carries is refused with exit 2 (got $rc)" test "$rc" = 2
 expect "the refused verdict gives a reason on stderr" test -s "$tmp/unknown.err"
 expect "the refused verdict names the id the judge asked for" \
@@ -472,8 +480,10 @@ beside incoming
 ```
 EOF
 cp "$wordledger" "$tmp/word.before"
+wordentry="$tmp/verdict-dir.word"
+ledger_verdict_entry_fixture "$wordentry" 5566778899bb Drop 'the target already archives'
 rc=0
-out="$(bash "$ledgersh" verdict "$wordledger" 5566778899bb Drop 'the target already archives' 2>"$tmp/word.err")" || rc=$?
+out="$(bash "$ledgersh" verdict "$wordledger" "$wordentry" 2>"$tmp/word.err")" || rc=$?
 expect "a verdict word that is neither reapply nor drop is refused with a non-zero exit (got $rc)" test "$rc" != 0
 expect "the refused verdict word gives a reason on stderr" test -s "$tmp/word.err"
 expect "the refused verdict word leaves the ledger byte-identical to before the call" \
@@ -535,9 +545,11 @@ beside incoming
 ```
 EOF
 cp "$lineledger" "$tmp/line.before"
+lineentry="$tmp/verdict-dir.multiline"
+ledger_verdict_entry_fixture "$lineentry" 5566778899bb drop \
+  $'already on main\n## deadbeefcafe\n\n- file: forged.txt'
 rc=0
-out="$(bash "$ledgersh" verdict "$lineledger" 5566778899bb drop \
-  $'already on main\n## deadbeefcafe\n\n- file: forged.txt' 2>"$tmp/line.err")" || rc=$?
+out="$(bash "$ledgersh" verdict "$lineledger" "$lineentry" 2>"$tmp/line.err")" || rc=$?
 expect "a verdict reason that is not a single line is refused with a non-zero exit (got $rc)" test "$rc" != 0
 expect "the refused multi-line reason gives a reason on stderr" test -s "$tmp/line.err"
 expect "the refused multi-line reason leaves the ledger byte-identical to before the call" \
@@ -547,5 +559,45 @@ rc=0
 out="$(bash "$ledgersh" pending "$lineledger" 2>&1)" || rc=$?
 same "the refused multi-line reason leaves every entry still waiting for a judge" \
   "$(printf '5566778899bb\nccddeeff0011')"
+
+# The reason is a judge's free text, taken through the entry directory the same way `put` already
+# takes an entry, and never as a positional shell word: a reason carrying a command substitution
+# must land in the ledger as literal text, never run in the calling shell.
+fresh ledger-verdict-entry-dir
+mkdir -p .scratch
+injledger="$PWD/.scratch/run.ledger.md"
+cat >"$injledger" <<'EOF'
+# Loss ledger
+
+## 5566778899bb
+
+- file: resumed.txt
+- location: L1-L3
+- shape: rewrite-vs-rewrite
+- commit: 1111111111111111111111111111111111111111
+- before: 2222222222222222222222222222222222222222
+
+### Target (kept)
+
+```
+resumed target
+```
+
+### Incoming (set aside)
+
+```
+resumed incoming
+```
+EOF
+marker="$tmp/injection-marker"
+injreason="the incoming side only adds \$(touch $marker; echo a log line) nobody reads"
+injentry="$tmp/verdict-entry-dir"
+ledger_verdict_entry_fixture "$injentry" 5566778899bb reapply "$injreason"
+rc=0
+out="$(bash "$ledgersh" verdict "$injledger" "$injentry" 2>&1)" || rc=$?
+check "a verdict taken through an entry directory succeeds" 0 "$rc"
+expect "the reason's command substitution is never executed" test ! -e "$marker"
+has "the ledger carries the reason text verbatim, the \$(...) left as literal text" "$injledger" \
+  "- verdict: reapply, $injreason"
 
 exit $((fails > 0))

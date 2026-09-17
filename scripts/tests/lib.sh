@@ -111,6 +111,12 @@ ledger_entry_fixture() { # $1 dir, $2 id, $3 file, $4 location, $5 shape, $6 com
   printf '%s\n' "$8" >"$1/target"
   printf '%s\n' "${9}" >"$1/incoming"
 }
+ledger_verdict_entry_fixture() { # $1 dir, $2 id, $3 verdict, $4 reason: an entry directory for `ledger.sh verdict`
+  mkdir -p "$1" || return 1
+  printf '%s\n' "$2" >"$1/id"
+  printf '%s\n' "$3" >"$1/verdict"
+  printf '%s\n' "$4" >"$1/reason"
+}
 
 # The testing-policy scripts of the checkout this file sits in, so a fixture renders the templates under test.
 policy_scripts() { (cd "$(dirname "${BASH_SOURCE[0]}")/../../skills/testing-policy/scripts" && pwd -P); }
