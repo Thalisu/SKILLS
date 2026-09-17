@@ -59,6 +59,7 @@ format_of() { # $1 path
   case "${1##*/}" in
     .env | .env.*) echo env ;;
     *.json) echo json ;;
+    *.yaml | *.yml) echo yaml ;;
     *) echo "" ;;
   esac
 }
@@ -134,10 +135,59 @@ json_blocks() { # $1 file
   ' "$1"
 }
 
+# A `- ` item opens a scope of its own, so two items that each define one key are two keys and not a
+# duplicate: without that scope the scan would report one and a definition would be dropped.
+yaml_blocks() { # $1 file
+  awk '
+    function join(a, b) { return a == "" ? b : a "." b }
+    function pop(at,   i) { while (top > 0 && ind[top] >= at) top-- }
+    function scope(   i, s) { s = ""; for (i = 1; i <= top; i++) s = join(s, part[i]); return s }
+    {
+      line[NR] = $0
+      if ($0 ~ /^[ \t]*$/ || $0 ~ /^[ \t]*#/) next
+      sig[++nsig] = NR
+      body = $0
+      at = match(body, /[^ ]/) - 1
+      rest = substr(body, at + 1)
+      if (rest ~ /^- /) {
+        pop(at)
+        if (!(top > 0 && ind[top] == at && list[top])) { top++; ind[top] = at; list[top] = 1; count[top] = 0 }
+        else count[top]++
+        part[top] = "[" count[top] "]"
+        rest = substr(rest, 3)
+        at = at + 2
+      }
+      sigind[nsig] = at
+      if (rest !~ /^[A-Za-z_0-9.-]+:( |$)/) next
+      key = rest
+      sub(/:.*/, "", key)
+      pop(at)
+      n++
+      keypath[n] = join(scope(), key)
+      start[n] = NR
+      startsig[n] = nsig
+      effind[n] = at
+      top++
+      ind[top] = at
+      list[top] = 0
+      part[top] = key
+    }
+    END {
+      for (r = 1; r <= n; r++) {
+        end[r] = sig[nsig]
+        for (s = startsig[r] + 1; s <= nsig; s++)
+          if (sigind[s] <= effind[r]) { end[r] = sig[s] - 1; break }
+        print keypath[r] "\t" start[r] "\t" end[r]
+      }
+    }
+  ' "$1"
+}
+
 key_blocks() { # $1 format, $2 file
   case "$1" in
     env) env_blocks "$2" ;;
     json) json_blocks "$2" ;;
+    yaml) yaml_blocks "$2" ;;
   esac
 }
 

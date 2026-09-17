@@ -241,6 +241,144 @@ expect "the Incoming's deny definition stands in the other object" \
 entries="$(grep -c '^## ' "$ledger" 2>/dev/null)" || entries=0
 expect "a key each scope defines once leaves no entry in the ledger" test "$entries" = 0
 
+# A rebase stopped on a `*.yaml` whose base commit carries one `web:` mapping under `services:`: the
+# Target set `deny` to a real deny list inside it, the commit being replayed emptied `deny` under the
+# same mapping, and each side added one key of its own at the same anchor. One scope, one key, two
+# definitions, and a YAML reader takes the last one it meets.
+fresh yaml-same-scope
+mkdir -p config
+cat >config/settings.yaml <<'YAML'
+services:
+  web:
+    image: web:1
+    port: 80
+YAML
+commit base
+g switch -q -c do/run
+cat >config/settings.yaml <<'YAML'
+services:
+  web:
+    image: web:1
+    incoming_only: i
+    deny: []
+    port: 80
+YAML
+commit incoming
+g switch -q main
+cat >config/settings.yaml <<'YAML'
+services:
+  web:
+    image: web:1
+    target_only: t
+    deny: [admin, root]
+    port: 80
+YAML
+commit target
+g switch -q do/run
+g rebase main >/dev/null 2>&1
+
+write_unions
+expect "the union the integration wrote defines services.web.deny twice under one mapping" \
+  test "$(grep -c 'deny:' config/settings.yaml)" = 2
+
+run
+ledger="$PWD/.scratch/run.ledger.md"
+
+check_lines "the read-back names the YAML key path it kept from the document root and counts the file it read" 0 "$rc" \
+  "kept config/settings.yaml services.web.deny" "read-back files=1 kept=1 deduped=0"
+expect "the YAML keeps the Target's deny definition, drops the Incoming's, and keeps every other line of both sides" \
+  test "$(cat config/settings.yaml)" = "$(
+    cat <<'YAML'
+services:
+  web:
+    image: web:1
+    target_only: t
+    deny: [admin, root]
+    incoming_only: i
+    port: 80
+YAML
+  )"
+expect "the Target's deny definition stands in the landed YAML" \
+  grep -qxF -- '    deny: [admin, root]' config/settings.yaml
+expect "the Incoming's deny definition is gone from the landed YAML" \
+  test -z "$(grep -xF -- '    deny: []' config/settings.yaml)"
+
+expect "the dropped YAML definition leaves one entry in the ledger" \
+  test "$(grep -c '^## ' "$ledger" 2>/dev/null)" = 1
+keys="$(ledger_part "$ledger" config/settings.yaml keys 2>/dev/null)"
+expect "the entry names the YAML file the definition was dropped from" \
+  grep -qxF -- '- file: config/settings.yaml' <<<"$keys"
+expect "the YAML entry is shaped last-wins-duplicate" grep -qxF -- '- shape: last-wins-duplicate' <<<"$keys"
+expect "the YAML entry locates the definition by its key path from the document root" \
+  grep -qxF -- '- location: services.web.deny' <<<"$keys"
+expect "the YAML entry sets aside the Incoming's definition" \
+  test "$(ledger_part "$ledger" config/settings.yaml incoming 2>/dev/null)" = '    deny: []'
+
+# The same key name, once under each of two sibling mappings, in a `*.yml` the registry matches by the
+# same row: the Target defined `deny` under `services.web` and the replayed commit defined it under
+# `services.api`. The file conflicts over the keys the two sides added under `services.web` at the same
+# anchor, so the union reaches the script, but no scope defines `deny` twice and a YAML reader loses
+# nothing.
+fresh yaml-two-scopes
+cat >services.yml <<'YAML'
+services:
+  web:
+    image: web:1
+    port: 80
+  api:
+    image: api:1
+    port: 81
+YAML
+commit base
+g switch -q -c do/run
+cat >services.yml <<'YAML'
+services:
+  web:
+    image: web:1
+    incoming_only: i
+    port: 80
+  api:
+    image: api:1
+    deny: [root]
+    port: 81
+YAML
+commit incoming
+g switch -q main
+cat >services.yml <<'YAML'
+services:
+  web:
+    image: web:1
+    target_only: t
+    deny: [admin]
+    port: 80
+  api:
+    image: api:1
+    port: 81
+YAML
+commit target
+g switch -q do/run
+g rebase main >/dev/null 2>&1
+
+write_unions
+union="$(cat services.yml)"
+expect "the union the integration wrote defines deny once under each of the two mappings" \
+  test "$(grep -c 'deny:' services.yml)" = 2
+
+run
+ledger="$PWD/.scratch/run.ledger.md"
+
+check_lines "the read-back counts the .yml it read and keeps nothing" 0 "$rc" \
+  "read-back files=1 kept=0 deduped=0"
+absent "no key is named kept in a YAML that defines each of them once per scope" "kept services.yml"
+expect "the YAML lands exactly as the union block wrote it" test "$(cat services.yml)" = "$union"
+expect "the Target's deny definition stands under its own mapping" \
+  grep -qxF -- '    deny: [admin]' services.yml
+expect "the Incoming's deny definition stands under the other mapping" \
+  grep -qxF -- '    deny: [root]' services.yml
+
+entries="$(grep -c '^## ' "$ledger" 2>/dev/null)" || entries=0
+expect "a YAML key each scope defines once leaves no entry in the ledger" test "$entries" = 0
+
 if [ "$fails" = 0 ]; then echo "all ok"; else
   echo "$fails failing"
   exit 1
