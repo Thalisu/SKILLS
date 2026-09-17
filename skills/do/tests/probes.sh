@@ -80,6 +80,8 @@ ticket 14-comma.md '**Status:** ready-for-agent' '01 Title of 01-first, 02 Title
 ticket 15-and.md '**Status:** ready-for-agent' '01 and 02'
 ticket 16-lines.md '**Status:** ready-for-agent' $'01 Title of 01-first\n02 Title of 02-second'
 ticket 17-unsplit.md '**Status:** ready-for-agent' '01 Title of 01-first (after 02)'
+ticket 31-below.md '**Status:** ready-for-agent' $'\n01 Title of 01-first\n02 Title of 02-second'
+ticket 32-bullets.md '**Status:** ready-for-agent' $'\n- 01: Title of 01-first\n- 02: Title of 02-second'
 echo ".claude/worktrees/" >>.git/info/exclude
 git worktree add -q .claude/worktrees/do-claimed -b do/claimed
 git worktree add -q .claude/worktrees/do-stale -b do/stale
@@ -153,7 +155,7 @@ check_lines "a resolved Ticket stops" 1 "$rc" "status=resolved" "verdict=resolve
 run "$door" "$issues/03-third.md"
 check_lines "a blocker not resolved refuses the run, every blocker named" 1 "$rc" \
   "blocker=01 resolved $issues/01-first.md" "blocker=02 ready-for-agent $issues/02-second.md" "verdict=blocked"
-for t in 14-comma 15-and 16-lines; do
+for t in 14-comma 15-and 16-lines 31-below 32-bullets; do
   run "$door" "$issues/$t.md"
   check_lines "a Blocked by paragraph shaped as $t reads every blocker and refuses the run" 1 "$rc" \
     "blocker=01 resolved $issues/01-first.md" "blocker=02 ready-for-agent $issues/02-second.md" "verdict=blocked"
