@@ -256,8 +256,9 @@ Ticket that is not a local file, the issue's reference under `.scratch/project-m
 never travels back to the repository the authors came from, and the script refuses any other path.
 It fills only the slots a command read, the run commands and the test layout, and every other slot
 reads `none yet → /testing-policy`. The step names in one line the map's location and the slots
-it filled, off the lines the script printed; the loop and the flows step read that file and never
-derive it again. Then read the session's context once, `bash
+it filled, off the lines the script printed, for the Reply's Run section's map line per
+[reply.md](reply.md); the loop and the flows step read that file and never derive it again. Then
+read the session's context once, `bash
 <skill-dir>/scripts/context-usage.sh`, and keep its `current` figure: it is the `grounded` figure
 of the `Context:` line the close writes per [mechanics.md](mechanics.md). Done when the sharpened
 predicate and the audit line are recorded for the Reply, the context reading is kept for the close,
