@@ -802,9 +802,22 @@ above: the run never commits it and the worktree branch never touches it.
    and the flows with their quoted output lines, and each waiver.
 3. Set the `**Status:**` line to `resolved`. The file stays uncommitted, for the developer, and
    the reply lists it beside the Review under the files left uncommitted.
-4. On a remote tracker the run asks first, per the tracker file: on the developer's yes it
-   comments the evidence on the issue and closes it; a no leaves the issue open, with the
-   evidence in the reply only.
+4. On a remote tracker the run asks first, per the tracker file, in one question that lists every
+   write the yes makes, in the order it makes them, from the run's own record:
+   - for each held Ruling that rewrote a criterion, the Ticket issue's body edited, that
+     criterion's `Criterion:` text replaced by its `Now reads:` text, its tick kept, every other
+     criterion untouched;
+   - for each held Ruling, one comment on the Spec issue, a `## Implementation Decisions` heading
+     and the Ruling's line under it, verbatim, so the next Ticket's reader finds it where a local
+     Spec keeps it;
+   - one comment on the Ticket issue, the evidence, with its held Rulings;
+   - then the Ticket issue closed.
+
+   On the developer's yes the run makes the writes in that order. A write the tracker refuses
+   stops the rest: nothing after it is made, the Ticket issue stays open, and the reply names each
+   write made and the one refused. A no makes none of them: the Ticket issue stays open with its
+   old criterion text, and the evidence and the held Rulings are in the reply only. A run with no
+   held Ruling asks the same question with the evidence comment and the close alone.
 5. Remove the worktree and its branch: the run created them, so the run removes them. Leave the
    worktree first, with a bare `cd` to the main checkout, then, from there,
    `git worktree remove <path>` and `git branch -d do/<slug>`. The branch landed, so the delete is

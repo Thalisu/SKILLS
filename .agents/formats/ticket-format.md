@@ -45,7 +45,9 @@ The status walks three words, each written by one skill and never by the other:
 
 In a local ticket the word sits on the `**Status:**` line, and `do` writes it in the main
 checkout. In an issue the tracker carries the walk: `tickets` applies the `ready-for-agent` label,
-and `do` claims and closes the issue with tracker writes made after the developer's yes.
+and `do` claims and closes the issue with tracker writes made after the developer's yes. The
+close's yes also carries what a Ruling the run made needs on the tracker: the Ruling as a comment
+on the spec issue, and a rewritten criterion's new text in the ticket issue's body.
 
 ## Evidence
 

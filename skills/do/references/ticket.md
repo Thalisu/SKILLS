@@ -466,12 +466,14 @@ flow is green or recorded as not run on the developer's no, or the step reads
 
 **11. Close.** The close in [mechanics.md](mechanics.md): the Ticket file in the main checkout
 ticked where the evidence proves it, the evidence appended under `## Evidence` with the
-`Context:` line first, the status line set to `resolved`, the file left uncommitted; then the
-worktree and its branch removed. When the door appended the `.scratch/` line to the project's
+`Context:` line first, the status line set to `resolved`, the file left uncommitted, or, on a
+Ticket that is an issue, the one question listing every write the yes makes, the held Rulings'
+among them; then the worktree and its branch removed. When the door appended the `.scratch/` line to the project's
 `.gitignore`, the close says so in one line, per [scratch.md](../../../.agents/scratch.md): the run
 changed a file git tracks, and the developer reads that here rather than finding it in
-`git status`. Done when the Ticket reads `resolved` and `git worktree list` no longer shows the
-run's worktree, or the step reads `skip: nothing landed` and the Ticket still reads `claimed`.
+`git status`. Done when the Ticket reads `resolved`, or, on a Ticket that is an issue, the question
+was answered and the writes it listed were made on a yes, or none on a no, and `git worktree list`
+no longer shows the run's worktree, or the step reads `skip: nothing landed` and the Ticket still reads `claimed`.
 
 **12. Reply.** Written by [reply.md](reply.md). What this Playbook puts in its sections: the
 Ticket and the Review under the files left uncommitted; every Ruling the forks in
