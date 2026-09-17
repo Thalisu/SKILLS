@@ -3,7 +3,15 @@
 # asked. Run from anywhere inside the project.
 #
 #   contested.sh <ledger>    the stop resolved and staged, the Incoming side of each contested hunk
-#                            written to the Loss ledger at <ledger>, an absolute path
+#                            written to the Loss ledger at <ledger>, an absolute path under the main
+#                            checkout's .scratch/, which ledger.sh holds the format of
+#
+# Each contested hunk leaves one entry keyed by its hunk id, written before any file of the stop, so
+# a refused ledger leaves the stop as git left it and a rerun rewrites the same entries. A file taken
+# whole leaves one entry for the file: a delete against an edit, a rename against an edit, a binary
+# file, a file too large to merge, and a file git's merge cannot line up with the index. Each takes
+# the Target side whole, or its removal, and a binary or too-large side is named by its size, its
+# blob and the branch tip recorded before the rebase.
 #
 # Each conflicted file is written once from its three index stages and staged: its mechanical hunks
 # by the union rule, both sides in base order, its contested hunks from the Target stage. The script
@@ -13,8 +21,8 @@
 # staged as it stands, `trusted <file>` for each. The last line is
 # `resolved mechanical=<n> contested=<n>`, the hunks of the stop by class.
 #
-# Exit codes: 0 the stop resolved and staged · 2 usage, no stopped rebase, or no contested hunk at
-# this stop, with nothing written.
+# Exit codes: 0 the stop resolved and staged · 2 usage, no stopped rebase, no contested hunk at this
+# stop, or the ledger refused, with nothing written.
 #
 # The class, the order and the locations are conflict-class.sh's report, never read again here from
 # the working file's markers. The sides are taken from the index stages, never from a model's merge.

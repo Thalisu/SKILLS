@@ -84,6 +84,10 @@ fresh() { # $1 name: a new repository at $tmp/<name>, entered
   g config rerere.enabled false
   g config merge.conflictStyle merge
 }
+stop_state() { # the stop as git left it, on stdout: the index and status, and the hash of every working file
+  git status --porcelain=v2
+  find . -path ./.git -prune -o -type f -print0 | sort -z | xargs -0 sha256sum
+}
 union_of() { # $1 a conflicted path: the union of its three index stages, Target side first, on stdout
   local dir s
   dir="$(mktemp -d "$tmp/union.XXXXXX")" || return

@@ -73,9 +73,10 @@ takes_target cli
 # One part of the ledger entry whose `- file:` key is $2, on stdout: its key lines (`keys`), or the
 # body of the fenced block under its Target (`target`) or Incoming (`incoming`) section. A fence may
 # be any length of backticks or tildes, so a side's own fence lines never close it.
+# The file goes through the environment, since `awk -v` would unescape a quoted name's `\040`.
 ledger_part() { # $1 ledger, $2 file as the classifier prints it, $3 keys|target|incoming
-  awk -v want="$2" -v part="$3" '
-    function flush() { if (inentry && file == want) printf "%s", buf[part] }
+  want="$2" awk -v part="$3" '
+    function flush() { if (inentry && file == ENVIRON["want"]) printf "%s", buf[part] }
     function run_of(s, c,   n) { n = 0; while (substr(s, n + 1, 1) == c) n++; return n }
     fence {
       n = run_of($0, fc)
@@ -146,9 +147,12 @@ other incoming
 EOF
 prior="$(cat "$reledger")"
 prior_entry() { awk '/^## / { on = $0 == "## 0123456789ab" } on' "$reledger"; }
-restop() {
+restart_stop() {
   g rebase --abort >/dev/null 2>&1
   g rebase main >/dev/null 2>&1
+}
+restop() {
+  restart_stop
   rc=0
   out="$(bash "$door" "$reledger" 2>&1)" || rc=$?
 }
@@ -707,6 +711,94 @@ check "stop after a finished rebase's stale REBASE_HEAD blocks with the merge's 
   "undo git merge --abort"
 check_absent "stop never reports the operation as a rebase because of a stale REBASE_HEAD" 3 "$rc" \
   "undo git rebase --abort"
+
+# The Loss ledger lives in the main checkout's scratch and nowhere else: a path that resolves outside
+# it, by its own text, by `..` or through a link, is refused before the stop is touched.
+two_rewrites_stop() {
+  printf 'x\ny\nz\n' >rewrite.txt
+  commit base
+  g branch do/run
+  printf 'x\nTARGET\nz\n' >rewrite.txt
+  commit target
+  g switch -q do/run
+  printf 'x\nINCOMING\nz\n' >rewrite.txt
+  commit incoming
+}
+refused() { # $1 label, $2 ledger path, $3 the name the ledger would land under
+  local before after err
+  restart_stop
+  before="$(stop_state)"
+  rc=0
+  out="$(bash "$door" "$2" 2>"$tmp/refused.err")" || rc=$?
+  err="$(cat "$tmp/refused.err")"
+  after="$(stop_state)"
+  expect "a ledger $1 is refused with exit 2 (got $rc)" test "$rc" = 2
+  expect "a ledger $1 is named on a 'ledger refused' line on stderr" grep -q '^ledger refused' <<<"$err"
+  expect "a ledger $1 is written nowhere" test -z "$(find "$tmp" -name "$3" -print -quit)"
+  expect "a ledger $1 leaves the stop exactly as git left it" test "$before" = "$after"
+}
+fresh ledger-refused
+two_rewrites_stop
+g rebase main >/dev/null 2>&1
+mkdir -p .scratch "$tmp/outside-dir"
+ln -s "$tmp/outside-dir" .scratch/link
+expect "the refusal cases start from a stop with its file unmerged" test -n "$(git ls-files -u)"
+refused "outside the repository" "$tmp/elsewhere.md" elsewhere.md
+refused "that climbs out of the scratch with .." "$PWD/.scratch/../escape.md" escape.md
+refused "through a scratch link pointing outside" "$PWD/.scratch/link/linked.md" linked.md
+
+# From a linked worktree the ledger is reached by its absolute path in the main checkout; the
+# worktree's own scratch is no place for it, even with the worktree inside the main checkout.
+fresh ledger-worktree
+two_rewrites_stop
+g switch -q main
+main_checkout="$PWD"
+mkdir -p .scratch
+g worktree add -q "$main_checkout/.claude/worktrees/w" do/run
+cd "$main_checkout/.claude/worktrees/w" || exit 1
+g rebase main >/dev/null 2>&1
+mkdir -p .scratch
+refused "in the worktree's own scratch" "$PWD/.scratch/worktree.ledger.md" worktree.ledger.md
+restart_stop
+rc=0
+out="$(bash "$door" "$main_checkout/.scratch/main.ledger.md" 2>&1)" || rc=$?
+check_lines "from a worktree, a ledger in the main checkout's scratch is accepted" 0 "$rc" \
+  "wrote rewrite.txt" "resolved mechanical=0 contested=1"
+expect "from a worktree, the ledger is written in the main checkout's scratch" \
+  test "$(ledger_part "$main_checkout/.scratch/main.ledger.md" rewrite.txt incoming 2>/dev/null)" = INCOMING
+expect "from a worktree, the ledger is never copied into the worktree" \
+  test -z "$(find "$PWD" -name main.ledger.md -print -quit)"
+
+# A conflicted path is a name a side chose, and shell syntax in it is text, never a command.
+fresh hostile-names
+dollar='$(touch pwned).txt'
+quote="a';touch pwned;'.txt"
+printf 'x\ny\nz\n' >"$dollar"
+printf 'x\ny\nz\n' >"$quote"
+commit base
+g switch -q -c do/run
+printf 'x\nINCOMING\nz\n' >"$dollar"
+printf 'x\nINCOMING\nz\n' >"$quote"
+commit incoming
+g switch -q main
+printf 'x\nTARGET\nz\n' >"$dollar"
+printf 'x\nTARGET\nz\n' >"$quote"
+commit target
+g switch -q do/run
+g rebase main >/dev/null 2>&1
+git cat-file blob ":2:$dollar" >"$tmp/dollar.target"
+git cat-file blob ":2:$quote" >"$tmp/quote.target"
+printed="$(bash "$classer" 2>/dev/null | awk '$1 == "contested" { print $2 }')"
+expect "the classifier reports both hostile names as contested" test "$(grep -c . <<<"$printed")" = 2
+run
+check "a stop over hostile names resolves" 0 "$rc" "resolved mechanical=0 contested=2"
+expect "no name's shell syntax ever runs" test -z "$(find "$tmp" "$PWD" -name pwned -print -quit)"
+expect "a name carrying \$( ) is written from the Target side" cmp -s "$dollar" "$tmp/dollar.target"
+expect "a name carrying quotes and ; is written from the Target side" cmp -s "$quote" "$tmp/quote.target"
+while read -r hname; do
+  expect "the ledger entry for a hostile name carries it as the classifier prints it: $hname" \
+    grep -qxF -- "- file: $hname" <<<"$(ledger_part .scratch/run.ledger.md "$hname" keys 2>/dev/null)"
+done <<<"$printed"
 
 if [ "$fails" = 0 ]; then echo "all ok"; else
   echo "$fails failing"

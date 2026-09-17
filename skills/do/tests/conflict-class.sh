@@ -582,13 +582,9 @@ commit incoming
 g switch -q main
 g merge inc >/dev/null 2>&1
 
-state() {
-  git status --porcelain=v2
-  find . -path ./.git -prune -o -type f -print | sort | xargs sha256sum
-}
-before="$(state)"
+before="$(stop_state)"
 run
-after="$(state)"
+after="$(stop_state)"
 check "the run still classes, so the comparison below is over a real run" 1 "$rc" \
   "contested rewrite.txt L2-L6 rewrite-vs-rewrite"
 if [ "$before" = "$after" ]; then

@@ -29,13 +29,31 @@
 # A fence is one backtick longer than the longest run of backticks in the side it holds, and never
 # shorter than three, so no line of a side can close it.
 #
-# Exit codes: 0 written · 2 usage.
+# <ledger> must be an absolute `.md` path that resolves under the main checkout's `.scratch/`, and a
+# regular file when it exists; anything else is refused, `ledger refused <reason>` on stderr, with
+# nothing written.
+#
+# Exit codes: 0 written · 2 usage, or the ledger refused.
 set -uo pipefail
 
 usage() { echo "usage: ledger.sh put <ledger> <entry-dir>" >&2; exit 2; }
 [ "$#" = 3 ] && [ "$1" = put ] || usage
 ledger="$2" entry="$3"
 [ -d "$entry" ] || usage
+
+# The ledger belongs to the main checkout, so a run in a linked worktree reaches it by its absolute
+# path there and never keeps a copy of its own. The path is resolved before it is compared, so a
+# `..` or a symlink cannot carry a write out of the scratch.
+refused() { echo "ledger refused $1: $ledger" >&2; exit 2; }
+common="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)" || refused "outside a repository"
+root="$(cd "$common/.." && pwd -P)" || refused "no main checkout"
+case "$ledger" in /*.md) ;; *) refused "not an absolute .md path" ;; esac
+command -v realpath >/dev/null 2>&1 || refused "realpath is not on PATH"
+case "$(realpath -m -- "$ledger")" in
+  "$root/.scratch/"*) ;;
+  *) refused "not under $root/.scratch/" ;;
+esac
+if [ -L "$ledger" ] || { [ -e "$ledger" ] && [ ! -f "$ledger" ]; }; then refused "not a regular file"; fi
 
 fenced() { # $1 file holding one side
   local longest fence
