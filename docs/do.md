@@ -39,10 +39,10 @@ into the project is in English.
 
 ## Prerequisites
 
-Nothing has to be installed for `do` to run, but seven things in the project change what a run can
+Nothing has to be installed for `do` to run, but eight things in the project change what a run can
 do. The Reply's Run section reports one of them, the loop line, with the protected-branch warning
 beside it when it applies, so you find how the run was set up in the message it ends with. The
-other six surface at the step that reads them, and each row below names that step.
+other seven surface at the step that reads them, and each row below names that step.
 
 | In the project | What `do` does with it, and without it |
 |---|---|
@@ -52,6 +52,7 @@ other six surface at the step that reads them, and each row below names that ste
 | [do-code-review](do-code-review.md) linked in the session | the review fixes its `Act on` Findings and lands the branch. Without it the step reads `skip: do-code-review not listed`, nothing lands, and the reply hands you the worktree, its branch and the review to run yourself |
 | [sketch](sketch.md), with its agent linked | the `ticket` run's shape step forks it when the work crosses a boundary and nothing in hand carries a shape, so the rival shapes stay out of your context window and the Sketch is filed beside the Ticket. The Reply's Run section names what was handed over, and where the Sketch is with the shape it settled. When `sketch` writes nothing, with the Agent tool withheld or no `sketch` agent listed, the session shapes the work itself and the Run section says so |
 | [choice-taker](../README.md), the agent `do` ships to rule a Design fork, linked | a `ticket` run that meets a Design fork at its shape or build step forks it with the two sides, writes the Ruling it returns as one line in the Spec's Implementation Decisions, and carries on over the amended Spec instead of stopping for your confirmation. An Extreme fork, one side weakening a guarantee in a risk class or unable to be undone once landed, still stops the run, whether your session reads it that way or the choice-taker returns `extreme`, and the reply ends on a `/discuss` command you copy. With the Agent tool withheld, or no `choice-taker` agent listed, the run stops at its step and says which of the two held, `choice-taker` by name when it is not linked, with `scripts/link-skills.sh` as the run that links it before your next `/do`. It never forks another agent in its place, since a fork under another name could hold the write tools the choice-taker is denied, and the reply ends on the same `/discuss` command an Extreme fork gives, with that reason in it |
+| [ledger-judge](../README.md), the agent `do` ships to judge a **Loss ledger** entry, linked | the integration forks it once the rebase finishes and the ledger holds an entry no run has judged, once for the whole integration and never once per hunk, with the ledger's location, the worktree root and the run's intent. It reads and searches only, and the session writes each `reapply` or `drop` it returns, with its one-line reason, into the ledger, so what a contested hunk set aside is on record as kept or as let go. A rebase that set nothing aside forks nothing and costs what it costs today, and a resumed run judges only the entries still carrying no verdict, so running twice leaves the same ledger. With the Agent tool withheld, or no `ledger-judge` agent listed, the session judges the entries itself and says which of the two held, `ledger-judge` by name when it is not linked, with `scripts/link-skills.sh` as the run that links it before your next `/do`. It never forks another agent in its place, since a fork under another name could hold the write tools the judge is denied |
 | the vendored `architect`, `how`, `why` and `unslop` | `bug-fix` and `refactoring` sketch the shape with `architect` before they cross a boundary, and a run keeps the grounding out of its own context window, reads the rationale behind the shape a defect sits in, and cleans up the reply. Each is optional and each step says in one line what it does instead, so a `bug-fix` run with neither `how` nor `why` reads the code with search and targeted reads and says so, and a `ticket` run without `how` builds its map from search output alone, reads no file whole and names the map as thinner |
 
 The run writes into two places outside your branch: the worktree at `.claude/worktrees/do-<slug>`,
@@ -250,7 +251,8 @@ a new Ticket you write
   replayed, and the gate's output after it is quoted like any other.
 - A contested conflict reaches you in the reply rather than as a question: the file and the
   location of each hunk that kept your branch's side, and the Loss ledger that holds what was set
-  aside.
+  aside. Each entry of that ledger comes back judged, `reapply` or `drop` with a one-line reason
+  written beside it, so you read what was let go rather than finding it gone.
 - A `ticket` run that met a Design fork says so in one line naming both sides, then goes on: the
   Spec's Implementation Decisions gain one line marked as the choice-taker's, and a Ticket criterion
   changes only when it was the side that lost. The reply's `Rulings` section, right after
