@@ -37,7 +37,13 @@ the tracker file describes. Before anything is written:
 - A Ticket whose own status the script prints as `ambiguous` (no `**Status:**` line, two of them,
   or a word outside the walk) is refused in one line naming the cause from its `ambiguous=` line.
   Nothing is written; the developer sets the status line by hand.
-- A Ticket that is `resolved` stops the run in one line. Nothing is written.
+- A Ticket that is `resolved` stops the run in one line. Nothing is written. The line says the
+  Ticket is resolved and that changing what landed takes a new Ticket written by hand, its
+  criteria from the edited Ruling line and its `Blocked by` naming every resolved Ticket that took
+  the old side, per
+  [ADR 0038](../../../docs/adr/0038-a-ruling-reversed-after-its-ticket-landed-is-built-by-a-new-ticket-the-developer-writes.md).
+  A resolved Ticket is never reopened: its status, its ticks and its Evidence stay as the close
+  left them, and the new Ticket goes through this Playbook like any other.
 - A Ticket whose `Blocked by` names one not `resolved` is refused before the claim, in one
   message naming the blocker and its status. Nothing is written; the developer builds the blocker
   first, or sets its status by hand when it was done outside the chain.
