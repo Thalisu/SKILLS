@@ -59,6 +59,11 @@ for branch in "$moves" "$onto"; do
   branch_ref "$branch" >/dev/null || refuse missing-branch "no branch named $branch"
 done
 
+if [ "$op" = merge ]; then
+  guard="$(bash "$(dirname "$0")/trivial-door.sh" branch "$onto")" ||
+    refuse protected-target "$onto is protected: $(sed -n 's/^reason=//p' <<<"$guard"), and the rule is $(sed -n 's/^rule=//p' <<<"$guard")"
+fi
+
 echo "in_progress=none"
 norerere="git -c rerere.enabled=false -c rerere.autoupdate=false"
 case "$op" in

@@ -75,6 +75,31 @@ check_lines "a merge of a remote-tracking branch is let through, started on its 
   "abort=git merge --abort"
 absent "a merge of a remote-tracking branch carries no refusal" "refused="
 
+echo "# a target the protected-branch rule protects"
+g branch develop main
+g checkout -q main
+run merge feature/x
+check_lines "a merge into protected main, standing on it, is refused" 1 "$rc" \
+  "op=merge" "moves=feature/x" "onto=main" "writes=main" "refused=protected-target"
+expect "the protected-target refusal is one message naming the target and ending nothing integrated" \
+  one_message_naming main
+expect "the protected-target refusal message names the branch that makes the target protected" \
+  one_message_naming "develop exists"
+g checkout -q feature/x
+
+run merge feature/x main
+check_lines "a merge into protected main from another branch is refused as protected, not as the wrong branch" 1 "$rc" \
+  "op=merge" "moves=feature/x" "onto=main" "writes=main" "refused=protected-target"
+expect "the protected-target refusal from another branch is one message naming the target and ending nothing integrated" \
+  one_message_naming main
+expect "the protected-target refusal from another branch names the branch that makes the target protected" \
+  one_message_naming "develop exists"
+
+run rebase main
+check_absent "a rebase onto protected main is not refused for protection, since it writes the developer's own branch" 0 "$rc" \
+  "refused=protected-target"
+g branch -D develop >/dev/null
+
 echo
 if [ "$fails" = 0 ]; then echo "integrate-door: all checks passed"; else
   echo "integrate-door: $fails failed"

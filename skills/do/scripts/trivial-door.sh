@@ -2,10 +2,10 @@
 # trivial-door.sh: the door checks of the trivial Playbook of do that a script can observe, so a
 # reviewer can rerun them. Run from anywhere inside the project.
 #
-#   trivial-door.sh branch              the current branch against the protected-branch rule of
-#                                       test-triage; is_protected below is a verbatim copy of
-#                                       skills/test-triage/scripts/context.sh, and tests/trivial-door.sh
-#                                       fails when the two drift
+#   trivial-door.sh branch [<name>]     the named branch, or the current one, against the
+#                                       protected-branch rule of test-triage; is_protected below
+#                                       is a verbatim copy of skills/test-triage/scripts/context.sh,
+#                                       and tests/trivial-door.sh fails when the two drift
 #   trivial-door.sh covering <file>...  the tracked test files that name a touched file, by its stem
 #   trivial-door.sh diff <file>...      the touched files against HEAD: a test file, a new file, a new
 #                                       exported symbol or a changed exported signature is not Trivial
@@ -25,7 +25,7 @@
 # export lists, which name what the module exports.
 set -uo pipefail
 
-usage() { echo "usage: trivial-door.sh branch | trivial-door.sh covering <file>... | trivial-door.sh diff <file>..." >&2; exit 2; }
+usage() { echo "usage: trivial-door.sh branch [<name>] | trivial-door.sh covering <file>... | trivial-door.sh diff <file>..." >&2; exit 2; }
 
 top="$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "not a git repository" >&2; exit 2; }
 prefix="$(git rev-parse --show-prefix 2>/dev/null)"
@@ -45,7 +45,7 @@ is_protected() {
 
 cmd_branch() {
   local cur locals remotes others answer
-  cur="$(git symbolic-ref --short -q HEAD || echo HEAD)"
+  cur="${1:-$(git symbolic-ref --short -q HEAD || echo HEAD)}"
   locals="$(git for-each-ref --format='%(refname:short)' refs/heads)"
   remotes="$(git for-each-ref --format='%(refname:short)' refs/remotes | sed -E 's#^[^/]+/##')"
   others="$(printf '%s\n%s\n' "$locals" "$remotes" | grep -v '^$' | grep -vx HEAD | grep -vx "$cur" \
@@ -273,7 +273,7 @@ cmd_diff() {
 }
 
 case "${1:-}" in
-  branch) cmd_branch ;;
+  branch) shift; cmd_branch "$@" ;;
   covering) shift; cmd_covering "$@" ;;
   diff) shift; cmd_diff "$@" ;;
   *) usage ;;
