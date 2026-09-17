@@ -57,7 +57,7 @@ if [ -L "$ledger" ] || { [ -e "$ledger" ] && [ ! -f "$ledger" ]; }; then refused
 
 fenced() { # $1 file holding one side
   local longest fence
-  longest="$(LC_ALL=C grep -o '`*' "$1" | awk '{ if (length > n) n = length } END { print n + 0 }')"
+  longest="$(LC_ALL=C grep -a -o '`*' "$1" | awk '{ if (length > n) n = length } END { print n + 0 }')"
   fence='```'
   while [ "${#fence}" -le "$longest" ]; do fence="$fence\`"; done
   echo "$fence"
