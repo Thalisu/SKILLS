@@ -116,9 +116,9 @@ check_lines "a claimed Ticket whose worktree is gone but its branch remains name
 # The ticket Playbook's ground step writes <Ticket>.project-map.md and its shape step <Ticket>.sketch.md
 # beside the Ticket, so a blocker that ran through them carries its own number on a second file.
 ticket 20-grounded.md '**Status:** resolved' 'None (can start immediately)'
-printf '# Project map\n\nmap=a project map\n' > "$issues/20-grounded.project-map.md"
+printf '# Project map\n\nmap=a project map\n' >"$issues/20-grounded.project-map.md"
 ticket 21-shaped.md '**Status:** resolved' 'None (can start immediately)'
-printf '# Sketch\n\nthe shape of the change\n' > "$issues/21-shaped.sketch.md"
+printf '# Sketch\n\nthe shape of the change\n' >"$issues/21-shaped.sketch.md"
 ticket 22-after-grounded.md '**Status:** ready-for-agent' '20, Title of 20-grounded'
 ticket 23-after-shaped.md '**Status:** ready-for-agent' '21, Title of 21-shaped'
 for pair in 22-after-grounded:20-grounded:project-map 23-after-shaped:21-shaped:sketch; do
@@ -132,7 +132,7 @@ done
 # A blocker Ticket's own slug can itself carry a dot (a version number), so the door's exclusion
 # of a sidecar (<n>-<slug>.<kind>.md) must not also drop the Ticket's own dotted-slug file.
 ticket 24-upgrade-to-v1.2.md '**Status:** resolved' 'None (can start immediately)'
-printf '# Project map\n\nmap=a project map\n' > "$issues/24-upgrade-to-v1.2.project-map.md"
+printf '# Project map\n\nmap=a project map\n' >"$issues/24-upgrade-to-v1.2.project-map.md"
 ticket 25-after-dotted.md '**Status:** ready-for-agent' '24, Upgrade'
 run "$door" "$issues/25-after-dotted.md"
 check "a resolved blocker whose own slug carries a dot is read as resolved, and the run starts" 0 "$rc" \
@@ -141,8 +141,8 @@ absent "a .project-map.md beside a dotted-slug blocker never makes its number am
 
 # A sidecar left behind once its blocker Ticket is gone is not the blocker: its own status line
 # never stands in for the Ticket's, so the number reads as missing and the run never starts.
-printf '# Project map\n\n**Status:** resolved\n' > "$issues/26-gone.project-map.md"
-printf 'a review\n\n**Status:** resolved\n' > "$issues/27-gone.review.md"
+printf '# Project map\n\n**Status:** resolved\n' >"$issues/26-gone.project-map.md"
+printf 'a review\n\n**Status:** resolved\n' >"$issues/27-gone.review.md"
 ticket 28-after-lone-map.md '**Status:** ready-for-agent' '26, Gone'
 ticket 29-after-lone-review.md '**Status:** ready-for-agent' '27, Gone'
 for pair in 28-after-lone-map:26:project-map 29-after-lone-review:27:review; do
@@ -337,7 +337,10 @@ template="$(awk '
   /^```$/ { fence = !fence; next }
   fence && /^\/discuss Ticket/ { print; exit }
 ' "$skill/references/mechanics.md")"
-[ -n "$template" ] || { echo "FAIL  mechanics.md carries no /discuss template to fill"; fails=$((fails + 1)); }
+[ -n "$template" ] || {
+  echo "FAIL  mechanics.md carries no /discuss template to fill"
+  fails=$((fails + 1))
+}
 filled="$(printf '%s\n' "$template" | sed \
   -e "s#<the Ticket's path or reference>#$issues/04-claimed.md#" \
   -e "s#<the Spec's path or reference>#.scratch/20260101-feat/spec.md#" \
@@ -471,13 +474,6 @@ check_lines "a green gate prints one key and value line per check and exits 0" 0
 ordered_out "the gate prints its command line first, then each check in the order given" \
   command= suite= typecheck= verdict=
 absent_prefix "a green check prints none of its output" "ran"
-same() { # $1 label, $2 expected output; the whole of $out must equal it
-  if [ "$out" = "$2" ]; then echo "ok    $1"; else
-    echo "FAIL  $1"
-    echo "      ${out//$'\n'/$'\n'      }"
-    fails=$((fails + 1))
-  fi
-}
 rerun() { # reruns the command= line the last run printed first, the way a reviewer pastes it
   local line
   line="$(sed -n '1s/^command=//p' <<<"$out")"

@@ -54,6 +54,12 @@ check_absent() { # $1 label, $2 expected exit, $3 actual exit, $4.. fixed string
 absent() { # $1 label, $2 a fixed string that must not appear in $out
   if grep -qF -- "$2" <<<"$out"; then fail "$1 (found: $2)"; else ok "$1"; fi
 }
+same() { # $1 label, $2 the expected output; the whole of $out must equal it
+  if [ "$out" = "$2" ]; then ok "$1"; else
+    fail "$1"
+    dump_out
+  fi
+}
 has() { # $1 label, $2 file, $3.. fixed strings the file must carry; a missing file fails
   local label="$1" file="$2"
   shift 2

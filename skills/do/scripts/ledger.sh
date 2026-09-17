@@ -36,15 +36,31 @@
 # Exit codes: 0 written · 2 usage, or the ledger refused.
 set -uo pipefail
 
-usage() { echo "usage: ledger.sh put <ledger> <entry-dir>" >&2; exit 2; }
-[ "$#" = 3 ] && [ "$1" = put ] || usage
-ledger="$2" entry="$3"
-[ -d "$entry" ] || usage
+usage() {
+  echo "usage: ledger.sh put <ledger> <entry-dir> | ledger.sh pending <ledger>" >&2
+  exit 2
+}
+verb="${1:-}"
+case "$verb" in
+  put)
+    [ "$#" = 3 ] || usage
+    ledger="$2" entry="$3"
+    [ -d "$entry" ] || usage
+    ;;
+  pending)
+    [ "$#" = 2 ] || usage
+    ledger="$2" entry=""
+    ;;
+  *) usage ;;
+esac
 
 # The ledger belongs to the main checkout, so a run in a linked worktree reaches it by its absolute
 # path there and never keeps a copy of its own. The path is resolved before it is compared, so a
 # `..` or a symlink cannot carry a write out of the scratch.
-refused() { echo "ledger refused $1: $ledger" >&2; exit 2; }
+refused() {
+  echo "ledger refused $1: $ledger" >&2
+  exit 2
+}
 common="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)" || refused "outside a repository"
 root="$(cd "$common/.." && pwd -P)" || refused "no main checkout"
 case "$ledger" in /*.md) ;; *) refused "not an absolute .md path" ;; esac
@@ -54,6 +70,34 @@ case "$(realpath -m -- "$ledger")" in
   *) refused "not under $root/.scratch/" ;;
 esac
 if [ -L "$ledger" ] || { [ -e "$ledger" ] && [ ! -f "$ledger" ]; }; then refused "not a regular file"; fi
+
+# The id of every entry carrying no verdict, in file order. Headings are read outside fences only and
+# a verdict counted only above the entry's first `###`, the two rules `rewrite` below already keeps,
+# so a `## <id>` line a side quotes is that side's text and never an entry the judge is sent after.
+if [ "$verb" = pending ]; then
+  awk '
+    function fence_of(line) { if (match(line, /^(```+|~~~+)/)) return substr(line, 1, RLENGTH); return "" }
+    function flush() { if (id != "" && !judged) print id; id = "" }
+    {
+      if (fence == "") {
+        if ($0 ~ /^## [0-9a-f]+$/ && length($0) == 15) {
+          flush()
+          id = substr($0, 4); judged = 0; body = 0
+          next
+        }
+        if ($0 ~ /^### /) body = 1
+        if (id != "" && !body && $0 ~ /^- verdict: /) judged = 1
+        f = fence_of($0)
+        if (f != "") fence = f
+      } else if (substr($0, 1, 1) == substr(fence, 1, 1) && $0 ~ /^(`+|~+)[ \t]*$/) {
+        match($0, /^(`+|~+)/)
+        if (RLENGTH >= length(fence)) fence = ""
+      }
+    }
+    END { flush() }
+  ' "$ledger"
+  exit 0
+fi
 
 fenced() { # $1 file holding one side
   local longest fence
@@ -131,16 +175,16 @@ rewrite() { # $1 ledger, $2 id, $3 rendered entry
 }
 
 mkdir -p "$(dirname "$ledger")" || exit 2
-[ -s "$ledger" ] || echo '# Loss ledger' > "$ledger"
+[ -s "$ledger" ] || echo '# Loss ledger' >"$ledger"
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
-render > "$work/entry"
-rewrite "$ledger" "$(cat "$entry/id")" "$work/entry" > "$work/ledger" || exit 2
+render >"$work/entry"
+rewrite "$ledger" "$(cat "$entry/id")" "$work/entry" >"$work/ledger" || exit 2
 # A write that cannot finish must never reach $ledger itself: the rewritten copy is moved into place
 # only whole, by a rename, so a reader never sees the ledger truncated and an earlier stop's entry is
 # never lost to a later one's failed write.
 next="$(mktemp "$(dirname "$ledger")/.ledger.XXXXXX")" || exit 2
-if cat "$work/ledger" > "$next"; then
+if cat "$work/ledger" >"$next"; then
   mv -f "$next" "$ledger"
 else
   rm -f "$next"
