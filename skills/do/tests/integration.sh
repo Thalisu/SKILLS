@@ -49,7 +49,9 @@ resolves_safely() { # $1 label, $2 file, $3 heading
   expect "the path in $label's fixture is classed mechanical, so it reaches the block" test "$rc" = 0
   block="$(blocks_of "$2" "$3")"
   expect "$label carries a resolution block to run" test -n "$block"
+  mkdir -p "$dir/.scratch"
   block="${block//"<skill-dir>"/"$repo/skills/do"}"
+  block="${block//"<the ledger>"/"$dir/.scratch/run.ledger.md"}"
   block="${block//"<path>"/"$evil"}"
   block="${block//"<base>"/"$dir.base"}"
   block="${block//"<target>"/"$dir.target"}"
@@ -76,9 +78,11 @@ resumed_stop_keeps_the_hand_resolution() {
   expect "the all-mechanical stop carries its union block" test -n "$write"
   expect "the all-mechanical stop carries its staging block" test -n "$mark"
   printf '%s\n' "${write//"<skill-dir>"/"$repo/skills/do"}" >"$tmp/write.sh"
-  printf '%s\n' "$mark" >"$tmp/mark.sh"
 
   fresh resumed-stop
+  mkdir -p .scratch
+  mark="${mark//"<skill-dir>"/"$repo/skills/do"}"
+  printf '%s\n' "${mark//"<the ledger>"/"$PWD/.scratch/run.ledger.md"}" >"$tmp/mark.sh"
   printf 'a\nb\nc\nd\ne\nf\n' >union.txt
   printf 'a\nb\nc\nd\ne\nf\n' >hand.txt
   commit base
@@ -129,9 +133,11 @@ resumed_stop_stages_a_glob_named_trusted_path_literally() {
   expect "the all-mechanical stop's union block extracts for the glob fixture" test -n "$write"
   expect "the all-mechanical stop's staging block extracts for the glob fixture" test -n "$mark"
   printf '%s\n' "${write//"<skill-dir>"/"$repo/skills/do"}" >"$tmp/write-glob.sh"
-  printf '%s\n' "$mark" >"$tmp/mark-glob.sh"
 
   fresh resumed-stop-glob
+  mkdir -p .scratch
+  mark="${mark//"<skill-dir>"/"$repo/skills/do"}"
+  printf '%s\n' "${mark//"<the ledger>"/"$PWD/.scratch/run.ledger.md"}" >"$tmp/mark-glob.sh"
   printf 'a\nb\nc\nd\ne\nf\n' >b.txt
   printf 'a\nb\nc\nd\ne\nf\n' >'[ab].txt'
   commit base
@@ -285,6 +291,72 @@ a_rebase_the_run_opened_itself_meets_a_stop_nothing_can_class() {
   cd "$repo" || exit 1
 }
 a_rebase_the_run_opened_itself_meets_a_stop_nothing_can_class
+
+# Every hunk of the stop is mechanical, and the union the first block writes defines DENY twice in
+# one scope of a `.env`: the developer's branch set it to a real deny list and the replayed commit
+# emptied it. A reader of the landed file takes the last definition it meets, so the two blocks run
+# as mechanics.md prints them must land the Target's definition and set the Incoming's aside in the
+# ledger, and the state must route that shape to no question and no blocked stop.
+an_all_mechanical_stop_whose_union_defines_a_key_twice_lands_the_targets_definition() {
+  local write mark state ledger rc
+  write="$(blocks_of "$mech" "## The integration" "**A rebase that stopped.**" 1)"
+  mark="$(blocks_of "$mech" "## The integration" "**A rebase that stopped.**" 2)"
+  expect "the all-mechanical stop's union block extracts for the duplicate-key fixture" test -n "$write"
+  expect "the all-mechanical stop's staging block extracts for the duplicate-key fixture" test -n "$mark"
+
+  fresh union-duplicate-key
+  printf 'APP=one\n' >.env
+  commit base
+  g branch inc
+  printf 'APP=one\nTARGET_ONLY=t\nDENY=admin,root\n' >.env
+  commit target
+  g switch -q inc
+  printf 'APP=one\nINCOMING_ONLY=i\nDENY=\n' >.env
+  commit incoming
+  g -c rerere.enabled=false -c rerere.autoupdate=false rebase refs/heads/main >/dev/null 2>&1
+
+  # The stop's ledger sits in its own repository's scratch, the way a run's sits in the main checkout's.
+  mkdir -p .scratch
+  ledger="$PWD/.scratch/run.ledger.md"
+  write="${write//"<skill-dir>"/"$repo/skills/do"}"
+  mark="${mark//"<skill-dir>"/"$repo/skills/do"}"
+  mark="${mark//"<the ledger>"/"$ledger"}"
+  printf '%s\n' "$write" >"$tmp/write-duplicate-key.sh"
+  printf '%s\n' "$mark" >"$tmp/mark-duplicate-key.sh"
+
+  rc=0
+  # shellcheck disable=SC2034  # lib.sh's check reads $out
+  out="$(bash "$repo/skills/do/scripts/conflict-class.sh" 2>&1)" || rc=$?
+  check "the duplicate-key fixture is classed all-mechanical, so it reaches the two blocks" \
+    0 "$rc" "verdict=mechanical mechanical=1 contested=0 trusted=0"
+
+  bash "$tmp/write-duplicate-key.sh" >/dev/null 2>&1
+  expect "the union block writes a .env that defines DENY twice, the Target's above the Incoming's" \
+    test "$(cat .env)" = "$(printf 'APP=one\nTARGET_ONLY=t\nDENY=admin,root\nINCOMING_ONLY=i\nDENY=')"
+
+  bash "$tmp/mark-duplicate-key.sh" >/dev/null 2>&1
+  g show ":0:.env" >"$tmp/duplicate-key.staged" 2>/dev/null
+  expect "the staged .env keeps the Target's DENY definition, drops the Incoming's, and keeps every other line of both sides" \
+    test "$(cat "$tmp/duplicate-key.staged")" = "$(printf 'APP=one\nTARGET_ONLY=t\nDENY=admin,root\nINCOMING_ONLY=i')"
+  expect "after the two blocks nothing at the duplicate-key stop is left unmerged" \
+    test -z "$(g ls-files -u)"
+  expect "the definition the run dropped leaves one entry in the ledger" \
+    test "$(grep -c '^## ' "$ledger" 2>/dev/null)" = 1
+  expect "the ledger entry sets aside the Incoming's definition" \
+    test "$(ledger_part "$ledger" .env incoming 2>/dev/null)" = 'DENY='
+
+  state="$(awk '
+    /^\*\*A stop carrying a contested hunk\.\*\*/ { exit }
+    /^\*\*A union that defines the same key twice\.\*\*/ { on = 1 }
+    on { print }
+  ' "$mech")"
+  expect "mechanics.md carries the state on a union that defines one key twice" test -n "$state"
+  out="$state"
+  check_absent "the state routes a union's duplicate key to no blocked stop and no question for the developer" \
+    0 0 "stops as blocked" "git rebase --abort" "brought to the developer"
+  cd "$repo" || exit 1
+}
+an_all_mechanical_stop_whose_union_defines_a_key_twice_lands_the_targets_definition
 
 if [ "$fails" = 0 ]; then echo "PASS"; else
   echo "$fails failing"

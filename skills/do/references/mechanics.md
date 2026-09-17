@@ -598,12 +598,12 @@ Stage 2 is the developer's branch and stage 3 the commit being replayed, so the 
 keeps both sides with the developer's branch above the replayed commit's, which is the base order
 this step owes. The `--diff3` stays: without it git trims the lines both sides' additions share, so
 two functions appended at the same place keep one closing brace between them and the file no
-longer parses. Git writes the result and the session never edits a marker. Once every union is
-read back, as the next state says, with the file-reading tool and never through a command line, the
-second block marks the files resolved:
+longer parses. Git writes the result and the session never edits a marker. The second block reads
+every union back, as the next state says, and marks the files resolved once the read-back returned:
 
 ```
-git diff --name-only --diff-filter=U -z | GIT_LITERAL_PATHSPECS=1 xargs -0 git add --
+git diff --name-only --diff-filter=U -z | bash <skill-dir>/scripts/last-wins.sh "<the ledger>" &&
+  git diff --name-only --diff-filter=U -z | GIT_LITERAL_PATHSPECS=1 xargs -0 git add --
 ```
 
 Then the continue with the same prefix,
@@ -618,11 +618,22 @@ of one key at the same anchor of a file whose reader takes the last definition i
 TOML, an INI or a `.env` file), the union keeps both lines and the reader keeps one value: a `deny`
 list the developer's branch just added and an empty one from the replayed commit both land, and
 whatever reads the landed commit gets the empty one, a control of theirs undone with nothing asked.
-So before it marks a file resolved the run reads the union it wrote, and a key defined twice in one
-scope of that file is brought to the developer rather than resolved alone: the run stops as blocked
-with the file and the key named, the rebase left open at that commit, `git rebase --abort` as the
-undo, the worktree and its branch left in place and named and the Ticket left `claimed`. Which
-definition stands is theirs to say.
+So the second block above reads every union back before it marks a file resolved, and the read-back
+is `last-wins.sh`'s and never the session's, for the reason the class itself is a script's, per
+[ADR 0028](../../../docs/adr/0028-the-conflict-class-is-a-scripts-verdict-never-the-sessions-reading.md).
+A key defined twice in one scope of one of those files keeps the **Target**'s definition, the
+**Incoming**'s is dropped from the file, and it goes to the **Loss ledger** as an entry of its own,
+shaped `last-wins-duplicate` and keyed by the file and the key path, so a rerun at the same stop
+rewrites it where it stands. Two definitions written byte for byte alike come out as one with no
+entry, since the reader loses nothing, and a key the base itself already defined twice is older than
+the union and is left as it stands. Nobody is asked anything, and the step of a file whose format
+the script does not know is to leave it untouched.
+
+The script prints `kept <file> <key path>` and `deduped <file> <key path>`, then
+`read-back files=<n> kept=<n> deduped=<n>`, and those lines are quoted in the Reply's Evidence
+beside the hunks the union resolved. A read-back that exits non-zero, a refused ledger or a file it
+could not rewrite, leaves the staging beside it unrun, since the block runs that only on the
+read-back's success, and the continue then meets a stop git refuses, which the state below fixes.
 
 **A stop carrying a contested hunk.** A hunk classed `contested` is resolved by a script to the
 **Target** side, and nobody is asked anything, per
