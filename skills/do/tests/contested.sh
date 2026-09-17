@@ -71,34 +71,6 @@ replayed="$(git rev-parse REBASE_HEAD)"
 hunks="$(bash "$classer" 2>/dev/null | grep '^contested ')"
 takes_target cli
 
-# One part of the ledger entry whose `- file:` key is $2, on stdout: its key lines (`keys`), or the
-# body of the fenced block under its Target (`target`) or Incoming (`incoming`) section. A fence may
-# be any length of backticks or tildes, so a side's own fence lines never close it.
-# The file goes through the environment, since `awk -v` would unescape a quoted name's `\040`.
-ledger_part() { # $1 ledger, $2 file as the classifier prints it, $3 keys|target|incoming
-  want="$2" awk -v part="$3" '
-    function flush() { if (inentry && file == ENVIRON["want"]) printf "%s", buf[part] }
-    function run_of(s, c,   n) { n = 0; while (substr(s, n + 1, 1) == c) n++; return n }
-    fence {
-      n = run_of($0, fc)
-      if (n >= flen && substr($0, n + 1) ~ /^[ \t]*$/) { fence = 0; next }
-      if (sec != "") buf[sec] = buf[sec] $0 "\n"
-      next
-    }
-    /^## / { flush(); inentry = 1; file = ""; sec = "keys"; split("", buf); next }
-    !inentry { next }
-    /^### / {
-      sec = $0 == "### Target (kept)" ? "target" : $0 == "### Incoming (set aside)" ? "incoming" : "other"
-      next
-    }
-    /^```/ || /^~~~/ { fc = substr($0, 1, 1); flen = run_of($0, fc); fence = 1; next }
-    sec == "keys" && /^- [a-z]+: / {
-      buf["keys"] = buf["keys"] $0 "\n"
-      if (index($0, "- file: ") == 1) file = substr($0, 9)
-    }
-    END { flush() }
-  ' "$1"
-}
 expect "the classifier reports the stop's two contested hunks" test "$(grep -c . <<<"$hunks")" = 2
 expect "the ledger file opens with its title line" test "$(head -n 1 "$ledger" 2>/dev/null)" = "# Loss ledger"
 expect "the ledger holds one entry per contested hunk, each headed by a 12-hex id" \

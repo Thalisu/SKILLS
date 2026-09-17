@@ -117,6 +117,34 @@ ledger_verdict_entry_fixture() { # $1 dir, $2 id, $3 verdict, $4 reason: an entr
   printf '%s\n' "$3" >"$1/verdict"
   printf '%s\n' "$4" >"$1/reason"
 }
+# One part of the ledger entry whose `- file:` key is $2, on stdout: its key lines (`keys`), or the
+# body of the fenced block under its Target (`target`) or Incoming (`incoming`) section. A fence may
+# be any length of backticks or tildes, so a side's own fence lines never close it.
+# The file goes through the environment, since `awk -v` would unescape a quoted name's `\040`.
+ledger_part() { # $1 ledger, $2 file as the classifier prints it, $3 keys|target|incoming
+  want="$2" awk -v part="$3" '
+    function flush() { if (inentry && file == ENVIRON["want"]) printf "%s", buf[part] }
+    function run_of(s, c,   n) { n = 0; while (substr(s, n + 1, 1) == c) n++; return n }
+    fence {
+      n = run_of($0, fc)
+      if (n >= flen && substr($0, n + 1) ~ /^[ \t]*$/) { fence = 0; next }
+      if (sec != "") buf[sec] = buf[sec] $0 "\n"
+      next
+    }
+    /^## / { flush(); inentry = 1; file = ""; sec = "keys"; split("", buf); next }
+    !inentry { next }
+    /^### / {
+      sec = $0 == "### Target (kept)" ? "target" : $0 == "### Incoming (set aside)" ? "incoming" : "other"
+      next
+    }
+    /^```/ || /^~~~/ { fc = substr($0, 1, 1); flen = run_of($0, fc); fence = 1; next }
+    sec == "keys" && /^- [a-z]+: / {
+      buf["keys"] = buf["keys"] $0 "\n"
+      if (index($0, "- file: ") == 1) file = substr($0, 9)
+    }
+    END { flush() }
+  ' "$1"
+}
 
 # The testing-policy scripts of the checkout this file sits in, so a fixture renders the templates under test.
 policy_scripts() { (cd "$(dirname "${BASH_SOURCE[0]}")/../../skills/testing-policy/scripts" && pwd -P); }
