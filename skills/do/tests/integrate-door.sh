@@ -62,7 +62,7 @@ absent "a rebase onto a remote-tracking branch carries no refusal" "refused="
 run merge main
 check_lines "a merge of a local branch into the current branch is let through with the commands the run uses" 0 "$rc" \
   "op=merge" "moves=main" "onto=feature/x" "writes=feature/x" "in_progress=none" \
-  "start=$norerere merge --no-edit refs/heads/main" \
+  "start=$norerere merge --no-edit -m \"Merge branch 'main' into feature/x\" refs/heads/main" \
   "continue=$norerere -c core.editor=true merge --continue" \
   "abort=git merge --abort"
 absent "a merge let through carries no refusal" "refused="
@@ -70,10 +70,44 @@ absent "a merge let through carries no refusal" "refused="
 run merge origin/main
 check_lines "a merge of a remote-tracking branch is let through, started on its remote ref" 0 "$rc" \
   "op=merge" "moves=origin/main" "onto=feature/x" "writes=feature/x" "in_progress=none" \
-  "start=$norerere merge --no-edit refs/remotes/origin/main" \
+  "start=$norerere merge --no-edit -m \"Merge remote-tracking branch 'origin/main' into feature/x\" refs/remotes/origin/main" \
   "continue=$norerere -c core.editor=true merge --continue" \
   "abort=git merge --abort"
 absent "a merge of a remote-tracking branch carries no refusal" "refused="
+
+echo "# the merge's start= command writes the subject git merge <name> would, not the qualified ref"
+fresh merge-subject-local
+printf 'base\n' >f.txt && commit base
+g checkout -q -b feature/x
+printf 'x\n' >x.txt && commit "feature work"
+g checkout -q -b topic main
+printf 't\n' >t.txt && commit "topic work"
+g checkout -q feature/x
+run merge topic
+start_cmd="$(sed -n 's/^start=//p' <<<"$out")"
+eval "$start_cmd" >/dev/null 2>&1
+subject="$(g log -1 --format=%s)"
+expect "a merge's start= of a local branch writes the subject plain git merge topic would" \
+  test "$subject" = "Merge branch 'topic' into feature/x"
+
+fresh merge-subject-remote-origin
+printf 'base\n' >f.txt && commit base
+fresh merge-subject-remote-work
+g remote add origin "$tmp/merge-subject-remote-origin" && g fetch -q origin
+g reset -q --hard origin/main
+g checkout -q -b feature/x
+printf 'b\n' >b.txt && commit "feature work"
+cd "$tmp/merge-subject-remote-origin" || exit 1
+printf 'c\n' >c.txt && commit "origin work"
+cd "$tmp/merge-subject-remote-work" || exit 1
+g fetch -q origin
+run merge origin/main
+start_cmd="$(sed -n 's/^start=//p' <<<"$out")"
+eval "$start_cmd" >/dev/null 2>&1
+subject="$(g log -1 --format=%s)"
+expect "a merge's start= of a remote-tracking branch writes the subject plain git merge origin/main would" \
+  test "$subject" = "Merge remote-tracking branch 'origin/main' into feature/x"
+cd "$tmp/work" || exit 1
 
 echo "# a target the protected-branch rule protects"
 g branch develop main

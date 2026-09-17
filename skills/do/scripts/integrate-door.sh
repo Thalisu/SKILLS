@@ -101,7 +101,14 @@ echo "in_progress=$in_progress"
 norerere="git -c rerere.enabled=false -c rerere.autoupdate=false"
 case "$op" in
   rebase) echo "start=$norerere rebase $(branch_ref "$onto")" ;;
-  merge) echo "start=$norerere merge --no-edit $(branch_ref "$moves")" ;;
+  merge)
+    # Git names the merge after the ref text it is given, so the qualified ref needs the subject
+    # plain `git merge <moves>` writes; a -m message is also what MERGE_MSG keeps across a stop.
+    ref="$(branch_ref "$moves")"
+    kind="branch"
+    [ "${ref#refs/remotes/}" = "$ref" ] || kind="remote-tracking branch"
+    echo "start=$norerere merge --no-edit -m \"Merge $kind '$moves' into $writes\" $ref"
+    ;;
 esac
 # An integration already in progress is resumed or dropped with its own commands, whatever the request named.
 held="$op"
