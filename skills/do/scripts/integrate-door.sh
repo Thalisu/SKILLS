@@ -10,7 +10,8 @@
 # Prints op=, moves=, onto= and writes=, then refused= and one message= line ending
 # `nothing integrated` on a refusal, or in_progress= (none, rebase or merge) and the commands the
 # run integrates with, start=, continue= and abort=, when the door holds. The refusals, first match
-# wins: am-in-progress (a stopped `git am`), missing-branch, protected-target (a merge only), wrong-branch, dirty-tree (only with no
+# wins: am-in-progress (a stopped `git am`), missing-branch, unsafe-branch-name (a shell metacharacter
+# in the name), protected-target (a merge only), wrong-branch, dirty-tree (only with no
 # integration in progress, whose conflicted state is not uncommitted work). A branch exists when it is a local branch or a remote-tracking
 # ref of that name. Exit codes: 0 the door holds · 1 refused · 2 usage, or not a git repository.
 set -uo pipefail
@@ -85,6 +86,16 @@ branch_ref() {
 
 for branch in "$moves" "$onto"; do
   branch_ref "$branch" >/dev/null || refuse missing-branch "no branch named $branch"
+done
+
+# Git accepts $()`;|&<> and newlines in a ref name, and the start= line below interpolates the name
+# unquoted for a shell to run as-is: a branch fetched from an untrusted remote could otherwise carry
+# a command that runs on integration.
+for branch in "$moves" "$onto"; do
+  case "$branch" in
+  *'$'* | *'`'* | *';'* | *'|'* | *'&'* | *'('* | *')'* | *'<'* | *'>'* | *$'\n'*)
+    refuse unsafe-branch-name "the branch name $branch carries a shell metacharacter and would run as a command" ;;
+  esac
 done
 
 if [ "$op" = merge ]; then

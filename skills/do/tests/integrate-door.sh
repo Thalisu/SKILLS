@@ -41,6 +41,16 @@ check_lines "a merge of a missing branch is refused" 1 "$rc" \
 expect "the merge refusal is one message naming the missing branch and ending nothing integrated" \
   one_message_naming ghost
 
+echo "# a branch name carrying a shell metacharacter"
+g branch -- 'evil$(id)' main
+run merge 'evil$(id)'
+check_lines "a merge naming a branch with a shell metacharacter is refused, not interpolated into start=" 1 "$rc" \
+  "op=merge" 'moves=evil$(id)' "onto=feature/x" "writes=feature/x" "refused=unsafe-branch-name"
+expect "the unsafe-branch-name refusal is one message naming the branch and ending nothing integrated" \
+  one_message_naming 'evil$(id)'
+absent "a refused unsafe branch name prints no start= line" "start="
+g branch -D 'evil$(id)' >/dev/null
+
 echo "# a request the door lets through"
 norerere="git -c rerere.enabled=false -c rerere.autoupdate=false"
 run rebase main

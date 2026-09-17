@@ -48,6 +48,9 @@ asking for it, nothing integrated. The script prints the operation read back, `o
 `onto=` and `writes=`, the branch the operation writes to, and checks, first match wins:
 
 - a branch that does not exist, local or remote-tracking: `refused=missing-branch`;
+- a branch name carrying a shell metacharacter (`$`, backtick, `;`, `|`, `&`, `(`, `)`, `<`, `>`, a
+  newline), which git allows in a ref but which the `start=` line would otherwise hand a shell as
+  text: `refused=unsafe-branch-name`;
 - a merge whose target is protected, by the rule `trivial-door.sh branch <name>` prints, the one
   every other Playbook refuses a protected branch by: `refused=protected-target`. A rebase onto a
   protected branch is not refused, since the branch that moves is the developer's own and nothing
