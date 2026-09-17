@@ -16,7 +16,8 @@
 # unmerged; then, while a rebase is open, stopped=<short sha> <title> of the commit it stopped at
 # (empty when it stopped at none), onto=<the commit it rebases onto>, tip=<the commit base names
 # now>, one staged=<path> per file staged at that stop and not unmerged, one committed=<short sha>
-# <title> per commit made by hand at that stop and never recorded by the rebase, oldest first, and
+# <title> per commit made by hand at that stop and never recorded by the rebase, oldest first, one
+# dropped=<short sha> <title> per commit onto holds that tip lacks, oldest first, and
 # stop=<class>, first match: moved (onto is no longer tip, whatever else the stop holds) · conflicted (a file is still
 # unmerged) · resolved (none is); review_skipped=<stale | axis-not-run> <path> when a Review beside
 # the Ticket does not count; review, the Review beside the Ticket when it counts, else none; extreme, the
@@ -121,7 +122,11 @@ rebase_stop() {
   # apart: git logs a rebase's own commits as `rebase (...)`, and a hand commit as `commit...`.
   [ -z "$stopped" ] || git -C "$wt" log -g --format='%gs%x09%h %s' HEAD 2>/dev/null |
     awk -F '\t' '$1 !~ /^commit/ { exit } { l[n++] = $2 } END { while (n) print "committed=" l[--n] }'
-  if [ "$onto" != "$tip" ]; then echo "stop=moved"
+  # A developer's branch rewound past onto leaves commits a continue would land again.
+  if [ "$onto" != "$tip" ]; then
+    git -C "$wt" merge-base --is-ancestor "$onto" "$tip" 2>/dev/null ||
+      git -C "$wt" log --reverse --format='dropped=%h %s' "$tip..$onto" 2>/dev/null
+    echo "stop=moved"
   elif [ -n "$conflicted" ]; then echo "stop=conflicted"
   else echo "stop=resolved"; fi
 }

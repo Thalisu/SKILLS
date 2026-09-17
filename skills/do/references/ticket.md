@@ -165,9 +165,14 @@ and leaves the worktree as it is, since no branch can be read from it to build o
     The integration's rebase is open onto <onto>, but <base> has moved to <tip>.
     abort: drop this rebase and rebase once onto <tip>. The abort drops what the stop at <stopped> holds:
     <one line per staged= and conflicted= path, per uncommitted= entry and per committed= commit>
-    continue: finish this rebase onto <onto>, then integrate onto <tip>, which replays the branch again.
+    continue: finish this rebase onto <onto>, then integrate onto <tip>, which replays the branch again. The continue lands again what <base> no longer holds:
+    <one line per dropped= commit, or: nothing>
     (abort / continue)
     ```
+
+    A `dropped=` line is a commit `<onto>` holds and `<tip>` lacks, `git rev-list <tip>..<onto>`,
+    printed when the developer rewound their branch past `<onto>`. The continue replays each one onto
+    `<tip>` and the landing takes it with no second review, so the question names every one of them.
 
     `abort` runs `git -c rerere.enabled=false -c rerere.autoupdate=false rebase --abort`, which puts
     the branch back where it was before that rebase; the gate runs on the branch as it was, and a

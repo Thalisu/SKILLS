@@ -386,6 +386,20 @@ run "$resume" "$issues/04-claimed.md"
 check_lines "a rebase left open whose conflict was resolved and committed by hand, not via rebase --continue, names the hand-made commit" 3 "$rc" \
   "stop=moved" "onto=$tip" "tip=$moved_tip" "committed=$committed_sha $committed_subject" "verdict=integration"
 git -C "$wt" rebase --abort
+
+# A `continue` answer on `stop=moved` would replay every commit still open in the rebase, so a
+# branch rewound with `git reset --hard` past the commit the rebase targets, then moved forward
+# again onto a sibling, must name each commit `onto` holds that the new tip lacks: nothing is
+# silently re-landed, a leaked-secret commit among them included.
+g -C "$wt" -c rerere.enabled=false rebase main >/dev/null 2>&1
+g reset --hard "$tip" >/dev/null
+g commit -q --allow-empty -m "main takes a different path"
+rewound_tip="$(git rev-parse HEAD)"
+dropped_short="$(git rev-parse --short "$moved_tip")"
+run "$resume" "$issues/04-claimed.md"
+check_lines "a rebase left open onto a commit the branch has since been rewound past names every commit onto held that the new tip now lacks" 3 "$rc" \
+  "stop=moved" "onto=$moved_tip" "tip=$rewound_tip" "dropped=$dropped_short main moves again" "verdict=integration"
+git -C "$wt" rebase --abort
 rm "$issues/04-claimed.review.md"
 
 echo "# resume-state.sh: a branch left behind a target that moved"
