@@ -264,6 +264,16 @@ a stop named, and the next run on that Ticket forks the reader fresh.
   written to the Spec or the Ticket's criteria. The last line is a complete `/discuss` command you
   copy. Typing `/do` on the Ticket again before `discuss` amended the Spec gives the same stop and
   the same command.
+- To reverse a Ruling, edit its side in the Spec line, or in its comment on the Spec issue. A
+  Ticket not yet built reads the edited line when it runs. A Ticket already `resolved` is never
+  reopened: `/do` on it stops in one line, writes nothing, and names the way forward. You write a
+  new Ticket by hand, numbered after the feature's last one and marked `ready-for-agent`. Its
+  criteria come from the edited line, and its `Blocked by` names every resolved Ticket that took
+  the old side. On a tracker you open it as an issue with its Parent, its Blocked by and the label.
+  `/tickets` still stops on a feature that already has Tickets, so this is the one Ticket you write
+  yourself. `/do` on it builds it like any other, and the Ticket that ruled keeps its status, its
+  ticks and its evidence
+  ([ADR 0038](adr/0038-a-ruling-reversed-after-its-ticket-landed-is-built-by-a-new-ticket-the-developer-writes.md)).
 - A `trivial` request costs you one message, start to finish.
 
 ## Where it fits
