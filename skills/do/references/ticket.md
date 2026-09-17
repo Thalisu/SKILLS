@@ -222,7 +222,8 @@ entered. On a start-over whose `run_branch=` fact names `do/<slug>`, the branch 
 worktree's removal, so the worktree is entered on it instead: `git worktree add
 .claude/worktrees/do-<slug> do/<slug>`, without `-b`, the way bug-fix's Resume already reads the
 same state, since `-b` on a branch that exists fails and that failure is not one to work around
-with a second slug. Done when its status prints nothing and the branch name is in the thread.
+with a second slug. Done when its status prints nothing and the worktree line, its path and its
+branch, is recorded for the Reply's Run section.
 
 **2. Ground.** Read `CONTEXT.md` (the root one, or the one `CONTEXT-MAP.md` names), and
 state the glossary words it will use; then the ADR titles under `docs/adr/`, and read whole
@@ -258,9 +259,9 @@ reads `none yet → /testing-policy`. The step names in one line the map's locat
 it filled, off the lines the script printed; the loop and the flows step read that file and never
 derive it again. Then read the session's context once, `bash
 <skill-dir>/scripts/context-usage.sh`, and keep its `current` figure: it is the `grounded` figure
-of the `Context:` line the close writes per [mechanics.md](mechanics.md). Done when the predicate
-and the context reading are in the thread, the audit line is recorded for the Reply, and the map
-line with no Testing Policy.
+of the `Context:` line the close writes per [mechanics.md](mechanics.md). Done when the sharpened
+predicate and the audit line are recorded for the Reply, the context reading is kept for the close,
+and, with no Testing Policy, the map line is recorded for the Reply.
 
 **3. Shape.** Name the data shape and its organising structure before any logic, per
 [foundational-thinking](../../../.agents/principles/foundational-thinking.md) and
@@ -390,10 +391,13 @@ the forks in [mechanics.md](mechanics.md). Show the list once; the loop starts o
 developer's silence. Done when the list is in the thread and, on a defect with no named cause, the
 reproduction, each hypothesis's evidence line and the mechanism are recorded for the Reply's Run
 section, all before the list.
+developer's silence. Done when the list is recorded for the Reply's Run section, which carries it
+with the commit beside each line.
 
 **5. Build loop.** The build loop in [mechanics.md](mechanics.md), one behaviour per dispatch,
-under the loop the loop line named. Each behaviour is one line in the thread as it lands: the
-line, `RED_AS_EXPECTED`, green, the commit. A Design fork a behaviour meets goes to the forks in
+under the loop the loop line named. Each behaviour is one build line for the Reply's Run section
+as it lands, per [reply.md](reply.md): the line, the files opened, `RED_AS_EXPECTED`, green, the
+commit. A Design fork a behaviour meets goes to the forks in
 [mechanics.md](mechanics.md). Done when every line has a commit beside it.
 
 **6. E2E flows.** The surface is the one the project's Testing Policy names on its section
@@ -429,24 +433,26 @@ step. A section reading `none` closes the step as `skip: no criterion a user can
 the section it read that from; a `none` the reader marked as read from neither a Path nor a story
 has nothing behind it, and the step goes through the Ticket's criteria one by one instead, each
 with its flow or the reason it needs none. Done when each criterion the section names has a flow
-or a stated reason, or the skip is in the thread.
+or a stated reason, or the skip is recorded for the Reply's Run section.
 
 **7. Gate.** The gate in [mechanics.md](mechanics.md), in the worktree, after the last edit, run
-from `scripts/gate.sh` with its `command=` line in the thread. Done when the suite and the
-typecheck are green in output produced after the last edit.
+from `scripts/gate.sh` with its `command=` line recorded for the Reply's Run section. Done when
+the suite and the typecheck are green in output produced after the last edit and the `command=` line
+is recorded.
 
 **8. Integration.** The integration in [mechanics.md](mechanics.md), with the branch the run
 started on as the target: the branch it built on rebased onto that branch, every conflicted hunk
 classed by the door script before anything is resolved, and the gate's command lines run again when
 the rebase replayed commits. Done when the step reads the no-op, or the target and the count with
-the gate green after it, or the run stopped as blocked with the worktree and its branch named.
+the gate green after it, or the run stopped as blocked with the worktree and its branch named, and
+the integration line is recorded for the Reply's Run section.
 
 **9. Review and landing.** The review in [mechanics.md](mechanics.md), with the Ticket's
 location as the spec source, the merge base of the branch and the branch the run started on,
 `git merge-base refs/heads/<that branch> HEAD`, qualified so a same-named tag can never
 shadow the branch, read after the integration as the fixed point, and the branch
-the run started on as the landing target. The thread shows the return, one line per part.
-Done when the landing line in the thread reads `landed at <commit>`, or the run stopped as
+the run started on as the landing target. The return is recorded for the Reply's Run section,
+one line per part. Done when the landing line recorded there reads `landed at <commit>`, or the run stopped as
 blocked with the review's reason quoted and the worktree and its branch named, or the step reads
 `skip: do-code-review not listed` with the worktree and its branch named.
 

@@ -32,7 +32,8 @@ Make the behaviour executable before changing production code: a focused test th
 the change and passes after it. The feature case and the bug case follow the same rule. A new
 behaviour gets its failing test first where a cheap path exists, and a defect gets the test that
 reproduces it before the fix. Where no cheap path exists, the closest executable check stands in,
-with the reason stated in the thread and in the commit body.
+with the reason recorded on the behaviour's build line for the Reply's Run section, per
+[reply.md](reply.md), and stated in the commit body.
 
 A cheap path is a test target the codepath already uses, or one the project's own runner holds
 without new infrastructure: the unit, component or integration test the neighbouring code has, or
@@ -51,14 +52,14 @@ command is the one the commit body carries.
    smallest observable example, or the reproduction for a defect.
 2. Choose the narrowest executable check: the closest unit, component, integration or regression
    test already used for that codepath. When no practical test path exists, do not build one from
-   scratch to satisfy the loop. Say why in one line and pick the closest executable check: a
+   scratch to satisfy the loop. Record why on the behaviour's build line and pick the closest executable check: a
    targeted script, a reproduction command, a browser automation, a snapshot comparison, a log
    assertion, a focused integration check.
 3. Write the failing test first: the smallest focused test that would catch the missing behaviour
    or the bug. It encodes the intended behaviour in the caller's words. The expectation comes from
    the Ticket, its Spec and the behaviour line, never from reading the implementation.
 4. Run it before any production change and confirm it fails for the declared reason. This is the
-   loop's `RED_AS_EXPECTED`, said in one line. A pass, or a failure for an unrelated reason (an
+   loop's `RED_AS_EXPECTED`, recorded on the behaviour's build line. A pass, or a failure for an unrelated reason (an
    import path, a typo, a fixture), is corrected in the test before the implementation is touched.
 5. Write the smallest production change that satisfies the intended behaviour and preserves the
    neighbouring contracts.
@@ -74,7 +75,8 @@ not worth its cost, then choose the closest executable check and run it before a
 check allows it. Prefer no new test over a bad test: one that mostly tests mocks, encodes
 implementation details, depends on timing or unrelated global state, needs expensive
 infrastructure for a small change, or would be deleted right after proving the change. The reason
-goes in the thread and in the commit body, and the reply lists the behaviour under Pending debt as
+goes on the behaviour's build line for the Reply's Run section and in the commit body, and the reply
+lists the behaviour under Pending debt as
 a check that stood in for a test.
 
 ## Guardrails
@@ -84,7 +86,7 @@ a check that stood in for a test.
   stated.
 - Keep the test on the behaviour: no broad fixture churn, no unrelated coverage.
 - Do not add a test when the practical signal is weak. Use a scripted or manual verification and
-  say why.
+  record why on the behaviour's build line.
 - Make a flaky reproduction deterministic where possible, and name the signal being locked down.
 - When a bug exposes a broader class of failures, land the focused regression path first, then
   consider sibling coverage as its own behaviour.

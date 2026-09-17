@@ -204,8 +204,8 @@ first run does.
 One behaviour at a time, from the list the Playbook wrote, in its order. Each behaviour is one
 verifiable unit that ends in one green commit, per
 [sequence-verifiable-units](../../../.agents/principles/sequence-verifiable-units.md).
-Each file is read at the moment the loop edits it and named in the thread as the loop opens it,
-never ahead of the behaviour that edits it, so that
+Each file is read at the moment the loop edits it, never ahead of the behaviour that edits it, and
+named on that behaviour's build line for the Reply's Run section, per [reply.md](reply.md), so that
 the only source the loop brings into the session is source the run changed.
 
 1. Dispatch the unit test author (the test authors, below) with the complete dispatch input: the
@@ -213,7 +213,7 @@ the only source the loop brings into the session is source the run changed.
    reproduces a defect), the expected red, and placement when it matters. One dispatch in flight
    at a time, never a batch of tests ahead of the code. While the author runs it is the only
    writer in the tree, and it is never asked to commit.
-2. Read the verdict, and say in one line what was done with it:
+2. Read the verdict, and record on the behaviour's build line what was done with it:
    - `RED_AS_EXPECTED`: go on.
    - `REFUSED_INCOMPLETE_INPUT`: the behaviour line was too vague to become an assertion. Sharpen
      it and dispatch again.
@@ -242,7 +242,8 @@ the only source the loop brings into the session is source the run changed.
    the single-file command that passes.
 7. Next behaviour.
 
-Done when every behaviour line has a commit beside it.
+Done when every behaviour line has a commit beside it and its build line is recorded for the
+Reply's Run section.
 
 Under the fallback, when the loop line reads `Loop: fallback` (no unit test author
 in the project and no global one that can be dispatched), the same loop runs by
@@ -412,11 +413,13 @@ command line it stands for, with one `--infra` pattern per known infra failure t
 `bash <skill-dir>/scripts/gate.sh [--infra <pattern>]... <key>=<command>...`. It prints its
 `command=` line first, which the developer reruns for the same answer. A green check is one
 `<key>=green` line. A red one is `<key>=red exit=<n> log=<file>` with its failing block under it,
-capped at the last twenty lines, and the full output in the file that line names, so the thread
-holds the lines to act on and never the whole output. Every check runs whatever the one before it
+capped at the last twenty lines, and the full output in the file that line names, so the
+session's window holds the lines to act on and never the whole output. The `command=` line is
+recorded for the Reply's Run section as its gate line, and each check's line is quoted in its
+Evidence. Every check runs whatever the one before it
 returned, and the script exits 0 on `verdict=green`, 1 on `verdict=red` and 3 on `verdict=blocked`.
 
-- Red: the failing block is already in the thread, so the work goes back to the build loop as one more
+- Red: the failing block is already in the gate's output, so the work goes back to the build loop as one more
   unit without rerunning the command, then the whole gate again. The log is opened only when the
   block does not show the cause. Never a skipped test, a weakened assertion or a sleep.
 - `verdict=blocked`: a check exited 126 or 127, a runner that cannot start, or printed a line
@@ -427,7 +430,8 @@ returned, and the script exits 0 on `verdict=green`, 1 on `verdict=red` and 3 on
   run stops.
 
 Done when the unit tests the gate runs and the typecheck are green in output produced after the
-last edit, and every other check is green or reads `skip: <reason>`.
+last edit, every other check is green or reads `skip: <reason>`, and the `command=` line is recorded
+for the Reply's Run section.
 
 ## The integration
 
@@ -451,7 +455,8 @@ own and may be on: then a resolution recorded at one stop is replayed into the n
 shape, the class would be read from what the cache put back instead of from what git left, and the
 run's own resolutions would land in a cache that outlives it.
 
-The step walks the states below, and the thread says which one it reached.
+The step walks the states below, and the state it reached is recorded for the Reply's Run section
+as its integration line, per [reply.md](reply.md).
 
 **A rebase that replays no commit.** Before the rebase runs, the step checks whether the
 developer's branch is already merged into the run's own: `git merge-base --is-ancestor
@@ -466,8 +471,8 @@ point this ancestry already gives, the tip of the developer's branch.
 **A rebase that replayed commits.** The run ticks the step with the target and the count, the
 branch it rebased onto and how many of its own commits git replayed. The gate that was green before
 the replay is stale, since the run's commits now sit on code the branch had not seen: the gate's
-command lines run a second time, each shown before it runs and its output line quoted after, and a
-green gate calls the review on the rebased diff. The replay moves the branch's base, so the fixed
+command lines run a second time, each command line and its output line quoted in the Reply's
+Evidence, and a green gate calls the review on the rebased diff. The replay moves the branch's base, so the fixed
 point the review is called with is the commit it rebased onto, never the commit the worktree was
 created from: that one is behind the developer's own commits now, and a review given it would read
 their work as part of the diff under review.
@@ -483,8 +488,10 @@ before it started>`, the worktree and its branch left in place and named, the Ti
 conflicted hunks: `bash <skill-dir>/scripts/conflict-class.sh`, whose verdict is the class, never
 the session's own reading of the markers, per
 [ADR 0028](../../../docs/adr/0028-the-conflict-class-is-a-scripts-verdict-never-the-sessions-reading.md).
-The run shows the lines it printed, one per conflicted hunk, and states the counts before it does
-anything: how many hunks it resolved mechanically and how many it is bringing to the developer.
+The script runs before the run resolves, stages or writes anything at that stop. Its lines, one per
+conflicted hunk, are quoted in the Reply's Evidence, and the counts, how many hunks it resolved
+mechanically and how many it brought to the developer, go on the integration line of the Run
+section.
 
 Where every hunk of the stop is `mechanical`, the run resolves them itself and nothing is asked of
 the developer. The conflicted files are the list git left, read NUL-delimited so that a path
@@ -606,7 +613,8 @@ nothing moved, and the tip of the developer's branch when they rebased or merged
 `do/<slug>` by hand, which the ancestor check above already read before the no-op ticked.
 
 Done when the step is ticked as a no-op, or ticked with the target and the count and the gate green
-after it, or the run stopped as blocked with its reason, its undo command and its worktree named.
+after it, or the run stopped as blocked with its reason, its undo command and its worktree named,
+and in each case the integration line is recorded for the Reply's Run section.
 
 ## The review
 
@@ -649,7 +657,7 @@ judge comes back to this run in its return.
 
 The run reads the outcome off the return and never opens the Review file: the return carries no
 Review text, only the outcome, so the Review's Findings never reach the session's window. The
-thread shows the return, one line per part:
+return is recorded for the Reply's Run section, one line per part, per [reply.md](reply.md):
 
 - the Review's location, its `Review:` line;
 - the `Act on:` line, how many Findings the review found and how many its Fixers fixed;
@@ -729,7 +737,7 @@ worktree stays, since it is where a red flow is fixed.
    section says for what the run commits after it, which runs the Gate and lands it again with no
    second review. A fix call that returns not landed stops the run the way the first call does.
 Done when every affected flow is green in output produced after the last landing, or recorded as
-not run on the developer's no, with every command line in the thread.
+not run on the developer's no, with every command line quoted in the Reply's Evidence.
 
 ## The close
 

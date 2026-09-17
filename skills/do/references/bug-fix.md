@@ -241,7 +241,8 @@ commit rule. The reproduction commit is staged by path, its title a conventional
 `test(<scope>): <subject>`, and its body carries the behaviour line, labelled `Behaviour: <line>`
 on a line of its own, and the single-file command with the failure it prints, since a red commit
 has no passing command to name; step 6's fix commit carries that same behaviour line and that same
-command, passing. Done when `RED_AS_EXPECTED` is in the thread and the reproduction is committed
+command, passing. Done when `RED_AS_EXPECTED` is recorded on the behaviour's build line for the Reply's
+Run section and the reproduction is committed
 with its behaviour line and its failing command in the body.
 
 **6. Fix.** The smallest fix that removes the mechanism step 3 confirmed, written by the session on
@@ -272,18 +273,20 @@ when the suite and the typecheck are green in output produced after the last edi
 started on as the target: the branch it built on rebased onto that branch, every conflicted hunk
 classed by the door script before anything is resolved, and the gate's command lines run again when
 the rebase replayed commits. Done when the step reads the no-op, or the target and the count with
-the gate green after it, or the run stopped as blocked with the worktree and its branch named.
+the gate green after it, or the run stopped as blocked with the worktree and its branch named, and
+the integration line is recorded for the Reply's Run section.
 
 **10. Review and landing.** The review in [mechanics.md](mechanics.md), called with
 the branch alone as the spec source, since no Ticket exists to hand over and the Review names the
 branch and its fixed point instead, with the merge base of the branch and the branch the run
 started on, `git merge-base refs/heads/<that branch> HEAD`, qualified so a same-named tag can never
 shadow the branch, read after the integration as the fixed point, and
-the branch the run started on as the landing target. The thread shows the return, one line per part.
+the branch the run started on as the landing target. The return is recorded for the Reply's Run
+section, one line per part.
 A red gate, a return that reads not landed, a `do-code-review` the session does not list and a
 protected branch are handled the same way the `ticket` Playbook does, and the mechanics carry the
-two commands the reply adds after a refused protected-branch landing. Done when the landing line in
-the thread reads `landed at <commit>`, or the run stopped as blocked with the review's reason quoted
+two commands the reply adds after a refused protected-branch landing. Done when the landing line
+recorded there reads `landed at <commit>`, or the run stopped as blocked with the review's reason quoted
 and the worktree and its branch named, or the step reads `skip: do-code-review not listed` with
 the worktree and its branch named.
 
