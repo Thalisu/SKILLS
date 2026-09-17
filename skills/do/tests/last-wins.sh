@@ -858,6 +858,44 @@ fi
 expect "the real entry's file field is the classifier's quoted form of the path, one line" \
   grep -qxF -- '- file: ".env.staging\n##\0400123456789ab\n-\040file:\040harmless.env"' "$ledger"
 
+# A rebase stopped on a `.env` whose union defines more keys twice than the read-back will walk: a
+# small, valid file, but past the cap that keeps a growing ledger and a per-occurrence awk fork from
+# running unattended for hours. The read-back must stop before the per-key walk, name the file and
+# leave neither the file nor the ledger touched, rather than run to completion.
+fresh env-past-duplicate-cap
+printf 'APP=one\n' >.env
+commit base
+g switch -q -c do/run
+{
+  printf 'APP=one\n'
+  for i in $(seq 1 101); do printf 'KEY%d=\n' "$i"; done
+} >.env
+commit incoming
+g switch -q main
+{
+  printf 'APP=one\n'
+  for i in $(seq 1 101); do printf 'KEY%d=v%d\n' "$i" "$i"; done
+} >.env
+commit target
+g switch -q do/run
+g rebase main >/dev/null 2>&1
+
+write_unions
+union="$(cat .env)"
+expect "the union the integration wrote defines 101 keys twice" \
+  test "$(cut -d= -f1 .env | sort | uniq -d | wc -l | tr -d ' ')" = 101
+
+run
+ledger="$PWD/.scratch/run.ledger.md"
+
+expect "the read-back refuses a file past the duplicate-occurrence cap with a distinct exit code" \
+  test "$rc" = 4
+expect "the read-back names the blocked file" grep -qF -- '.env' <<<"$out"
+expect "the .env is left exactly as the union block wrote it, untouched by a partial rewrite" \
+  test "$(cat .env)" = "$union"
+entries="$(grep -c '^## ' "$ledger" 2>/dev/null)" || entries=0
+expect "a file blocked by the cap leaves no entry in the ledger" test "$entries" = 0
+
 if [ "$fails" = 0 ]; then echo "all ok"; else
   echo "$fails failing"
   exit 1

@@ -19,7 +19,10 @@
 #
 # Exit codes: 0 read back · 2 usage, not a git repository, no stopped rebase or merge, or the ledger
 # refused, with nothing written and no file rewritten · 3 a file the script could not rewrite, named
-# on a `could not rewrite <file>` line, after its entries are already in the ledger.
+# on a `could not rewrite <file>` line, after its entries are already in the ledger · 4 a file whose
+# duplicated keys occur more times than the cap below, named on a `blocked <file>` line, with neither
+# that file nor the ledger touched: an unattended integration would otherwise stall on a small, valid
+# file with many duplicated keys, walking the blocks list and the ledger once per occurrence.
 #
 # Which side an occurrence came from is read from the index stages, never from the union's order: the
 # union block writes the Target above the Incoming, but a side that wrote the same line twice would
@@ -287,6 +290,12 @@ put_entry() { # $1 file, $2 key path, $3 target file, $4 incoming file
   bash "$here/ledger.sh" put "$ledger" "$entry"
 }
 
+# The cost the walk below pays per duplicated key (a scan of the whole blocks list, an awk fork per
+# occurrence, a ledger rewrite) grows with how many times a duplicated key occurs in one file, not
+# with the file's size: this bounds that count, matching the 200-line quote cap contested.sh's own
+# siblings hold their input to.
+max_dup_occurrences=200
+
 files=0 kept=0 deduped=0
 while IFS= read -r -d '' file; do
   format="$(format_of "$file")"
@@ -297,6 +306,13 @@ while IFS= read -r -d '' file; do
   key_blocks "$format" "$file" > "$tmp/blocks"
   cut -f1 < "$tmp/blocks" | sort | uniq -d > "$tmp/dups"
   [ -s "$tmp/dups" ] || continue
+
+  occurrences="$(awk -F'\t' 'NR == FNR { dup[$1] = 1; next } dup[$1] { c++ } END { print c + 0 }' \
+    "$tmp/dups" "$tmp/blocks")"
+  if [ "$occurrences" -gt "$max_dup_occurrences" ]; then
+    echo "blocked $(quote_path "$file"): $occurrences duplicate-key occurrences exceeds the cap of $max_dup_occurrences" >&2
+    exit 4
+  fi
 
   git show ":1:$file" > "$tmp/base" 2>/dev/null || : > "$tmp/base"
   git show ":2:$file" > "$tmp/target" 2>/dev/null || : > "$tmp/target"
