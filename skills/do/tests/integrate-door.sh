@@ -200,6 +200,24 @@ check_lines "a rebase requested while a merge is stopped reports the stopped mer
   "op=rebase" "moves=feature/target" "onto=main" "writes=feature/target" "in_progress=merge" \
   "continue=$norerere -c core.editor=true merge --continue" \
   "abort=git merge --abort"
+
+fresh stopped-am
+printf 'base\n' >c.txt && commit base
+g checkout -q -b side
+printf 'side\n' >c.txt && commit "side work"
+g checkout -q main
+printf 'theirs\n' >c.txt && commit theirs
+mkdir -p patches
+g format-patch -1 side -o patches >/dev/null
+g am patches/*.patch >/dev/null 2>&1
+run rebase side
+check_lines "a stopped git am is refused as am-in-progress, not reported as an in-progress rebase" 1 "$rc" \
+  "op=rebase" "moves=main" "onto=side" "writes=main" "refused=am-in-progress"
+expect "the am-in-progress refusal names git am --continue" \
+  one_message_naming "git am --continue"
+expect "the am-in-progress refusal names git am --abort" \
+  one_message_naming "git am --abort"
+absent "a stopped git am is never reported as an in-progress rebase" "in_progress=rebase"
 cd "$tmp/work" || exit 1
 
 echo

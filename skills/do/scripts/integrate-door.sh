@@ -10,7 +10,7 @@
 # Prints op=, moves=, onto= and writes=, then refused= and one message= line ending
 # `nothing integrated` on a refusal, or in_progress= (none, rebase or merge) and the commands the
 # run integrates with, start=, continue= and abort=, when the door holds. The refusals, first match
-# wins: missing-branch, protected-target (a merge only), wrong-branch, dirty-tree (only with no
+# wins: am-in-progress (a stopped `git am`), missing-branch, protected-target (a merge only), wrong-branch, dirty-tree (only with no
 # integration in progress, whose conflicted state is not uncommitted work). A branch exists when it is a local branch or a remote-tracking
 # ref of that name. Exit codes: 0 the door holds · 1 refused · 2 usage, or not a git repository.
 set -uo pipefail
@@ -29,10 +29,10 @@ git rev-parse --show-toplevel >/dev/null 2>&1 || {
 integration_in_progress() {
   local dir
   for dir in rebase-merge rebase-apply; do
-    [ -d "$(git rev-parse --git-path "$dir")" ] && {
-      echo rebase
-      return
-    }
+    [ -d "$(git rev-parse --git-path "$dir")" ] || continue
+    # `git am` stops in rebase-apply too, marking it `applying` where a rebase marks it `rebasing`.
+    if [ -f "$(git rev-parse --git-path "$dir/applying")" ]; then echo am; else echo rebase; fi
+    return
   done
   git rev-parse -q --verify MERGE_HEAD >/dev/null && {
     echo merge
@@ -79,6 +79,9 @@ branch_ref() {
   done
   return 1
 }
+
+[ "$in_progress" = am ] &&
+  refuse am-in-progress "a git am is stopped on $current: run git am --continue or git am --abort first"
 
 for branch in "$moves" "$onto"; do
   branch_ref "$branch" >/dev/null || refuse missing-branch "no branch named $branch"
