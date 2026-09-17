@@ -138,4 +138,111 @@ same "a ledger no stop ever wrote lists no entry at all" ""
 expect "asking an absent ledger for its pending entries does not create it" test ! -e "$goneledger"
 expect "asking an absent ledger for its pending entries does not create the scratch on the way to it" test ! -e "$PWD/.scratch"
 
+# A judge's reading of an entry lands in the entry itself, as one `- verdict: <verdict>, <reason>`
+# line right beneath the keys the stop wrote, where `put`'s carry-over rule already preserves a key
+# line it does not write itself. The reason is the judge's own sentence, commas and all, and it must
+# reach the ledger whole: a reason cut at its first comma reads as a different judgement. Once an
+# entry is judged it drops out of `pending`, so a rerun forks no second judge over it, and a later
+# `put` rewriting that same entry's sides leaves the verdict standing.
+fresh ledger-verdict
+mkdir -p .scratch
+vledger="$PWD/.scratch/run.ledger.md"
+cat >"$vledger" <<'EOF'
+# Loss ledger
+
+## aa00bb11cc22
+
+- file: first.txt
+- location: L1-L3
+- shape: rewrite-vs-rewrite
+- commit: 1111111111111111111111111111111111111111
+- before: 2222222222222222222222222222222222222222
+
+### Target (kept)
+
+```
+first target
+```
+
+### Incoming (set aside)
+
+```
+first incoming
+```
+
+## 1122334455aa
+
+- file: judged.txt
+- location: L4-L6
+- shape: rewrite-vs-rewrite
+- commit: 3333333333333333333333333333333333333333
+- before: 4444444444444444444444444444444444444444
+
+### Target (kept)
+
+```
+judged target
+```
+
+### Incoming (set aside)
+
+```
+judged incoming
+```
+
+## 0123456789ab
+
+- file: last.txt
+- location: L7-L9
+- shape: rewrite-vs-rewrite
+- commit: 5555555555555555555555555555555555555555
+- before: 6666666666666666666666666666666666666666
+
+### Target (kept)
+
+```
+last target
+```
+
+### Incoming (set aside)
+
+```
+last incoming
+```
+EOF
+judged_before='- before: 4444444444444444444444444444444444444444'
+verdict_line='- verdict: drop, already on main, by hand'
+beneath_before() { grep -A1 -xF -- "$judged_before" "$vledger" | tail -n 1; }
+rc=0
+out="$(bash "$ledgersh" verdict "$vledger" 1122334455aa drop 'already on main, by hand' 2>&1)" || rc=$?
+check "a judge's verdict on an entry the ledger carries succeeds" 0 "$rc"
+expect "the verdict lands directly beneath that entry's - before: line, its reason whole" \
+  test "$(beneath_before)" = "$verdict_line"
+expect "judging one entry leaves one verdict line in the ledger" \
+  test "$(grep -c '^- verdict: ' "$vledger")" = 1
+rc=0
+# shellcheck disable=SC2034  # lib.sh's same reads $out
+out="$(bash "$ledgersh" pending "$vledger" 2>&1)" || rc=$?
+expect "asking a judged ledger for its pending entries succeeds (got $rc)" test "$rc" = 0
+same "the judged entry drops out of the pending list and the entries beside it stay" \
+  "$(printf 'aa00bb11cc22\n0123456789ab')"
+
+ventry="$tmp/verdict.entry"
+ledger_entry_fixture "$ventry" 1122334455aa judged.txt L4-L6 rewrite-vs-rewrite \
+  3333333333333333333333333333333333333333 4444444444444444444444444444444444444444 \
+  'rewritten target' 'rewritten incoming'
+rc=0
+out="$(bash "$ledgersh" put "$vledger" "$ventry" 2>&1)" || rc=$?
+check "a later put over a judged entry succeeds" 0 "$rc"
+has "the later put rewrote that entry's sides" "$vledger" 'rewritten target' 'rewritten incoming'
+expect "the verdict survives the rewrite, still directly beneath the entry's - before: line" \
+  test "$(beneath_before)" = "$verdict_line"
+expect "the rewrite leaves one verdict line in the ledger" \
+  test "$(grep -c '^- verdict: ' "$vledger")" = 1
+rc=0
+# shellcheck disable=SC2034  # lib.sh's same reads $out
+out="$(bash "$ledgersh" pending "$vledger" 2>&1)" || rc=$?
+same "the rewritten entry is still no entry the run sends a judge after" \
+  "$(printf 'aa00bb11cc22\n0123456789ab')"
+
 exit $((fails > 0))

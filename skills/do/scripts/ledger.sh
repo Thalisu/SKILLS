@@ -37,7 +37,7 @@
 set -uo pipefail
 
 usage() {
-  echo "usage: ledger.sh put <ledger> <entry-dir> | ledger.sh pending <ledger>" >&2
+  echo "usage: ledger.sh put <ledger> <entry-dir> | ledger.sh pending <ledger> | ledger.sh verdict <ledger> <id> <verdict> <reason>" >&2
   exit 2
 }
 verb="${1:-}"
@@ -50,6 +50,10 @@ case "$verb" in
   pending)
     [ "$#" = 2 ] || usage
     ledger="$2" entry=""
+    ;;
+  verdict)
+    [ "$#" = 5 ] || usage
+    ledger="$2" entry="" id="$3" call="$4" reason="$5"
     ;;
   *) usage ;;
 esac
@@ -99,6 +103,43 @@ if [ "$verb" = pending ]; then
     }
     END { flush() }
   ' "$ledger"
+  exit 0
+fi
+
+# A judge's reading of one entry, written where `rewrite` below carries a key line it does not write
+# itself: directly under the entry's `- before:` line, above the first `###`. The reason is free text
+# on one line and reaches awk through the environment, never through `-v`, which would read a
+# backslash in it as an escape.
+if [ "$verb" = verdict ]; then
+  [ -f "$ledger" ] || refused "no ledger to judge"
+  work="$(mktemp -d)"
+  trap 'rm -rf "$work"' EXIT
+  LEDGER_VERDICT="- verdict: $call, $reason" awk -v id="$id" '
+    function fence_of(line) { if (match(line, /^(```+|~~~+)/)) return substr(line, 1, RLENGTH); return "" }
+    {
+      if (fence == "") {
+        if ($0 ~ /^## [0-9a-f]+$/ && length($0) == 15) { inside = ($0 == "## " id); body = 0 }
+        else if ($0 ~ /^### /) body = 1
+        f = fence_of($0)
+        if (f != "") fence = f
+        print
+        if (inside && !body && fence == "" && $0 ~ /^- before: /) print ENVIRON["LEDGER_VERDICT"]
+        next
+      }
+      if (substr($0, 1, 1) == substr(fence, 1, 1) && $0 ~ /^(`+|~+)[ \t]*$/) {
+        match($0, /^(`+|~+)/)
+        if (RLENGTH >= length(fence)) fence = ""
+      }
+      print
+    }
+  ' "$ledger" >"$work/ledger" || exit 2
+  next="$(mktemp "$(dirname "$ledger")/.ledger.XXXXXX")" || exit 2
+  if cat "$work/ledger" >"$next"; then
+    mv -f "$next" "$ledger"
+  else
+    rm -f "$next"
+    exit 2
+  fi
   exit 0
 fi
 

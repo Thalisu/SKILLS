@@ -1058,15 +1058,9 @@ earlier incoming
 EOF
 cp "$faildl" "$tmp/fail.before"
 failentry="$tmp/fail.entry"
-mkdir -p "$failentry"
-printf 'bbbbbbbbbbbb\n' >"$failentry/id"
-printf 'later.txt\n' >"$failentry/file"
-printf 'L1-L2\n' >"$failentry/location"
-printf 'rewrite-vs-rewrite\n' >"$failentry/shape"
-printf '3333333333333333333333333333333333333333\n' >"$failentry/commit"
-printf '4444444444444444444444444444444444444444\n' >"$failentry/before"
-printf 'later target\n' >"$failentry/target"
-printf 'later incoming\n' >"$failentry/incoming"
+ledger_entry_fixture "$failentry" bbbbbbbbbbbb later.txt L1-L2 rewrite-vs-rewrite \
+  3333333333333333333333333333333333333333 4444444444444444444444444444444444444444 \
+  'later target' 'later incoming'
 rc=0
 out="$(PATH="$faildir:$PATH" bash "$ledgersh" put "$faildl" "$failentry" 2>&1)" || rc=$?
 expect "a ledger write that cannot finish exits nonzero" test "$rc" != 0

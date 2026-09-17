@@ -100,6 +100,17 @@ union_of() { # $1 a conflicted path: the union of its three index stages, Target
   for s in 1 2 3; do git cat-file blob ":$s:$1" >"$dir/$s" || return; done
   git merge-file --union -p "$dir/2" "$dir/1" "$dir/3"
 }
+ledger_entry_fixture() { # $1 dir, $2 id, $3 file, $4 location, $5 shape, $6 commit, $7 before, $8 target, $9 incoming: an entry directory for `ledger.sh put`
+  mkdir -p "$1" || return 1
+  printf '%s\n' "$2" >"$1/id"
+  printf '%s\n' "$3" >"$1/file"
+  printf '%s\n' "$4" >"$1/location"
+  printf '%s\n' "$5" >"$1/shape"
+  printf '%s\n' "$6" >"$1/commit"
+  printf '%s\n' "$7" >"$1/before"
+  printf '%s\n' "$8" >"$1/target"
+  printf '%s\n' "${9}" >"$1/incoming"
+}
 
 # The testing-policy scripts of the checkout this file sits in, so a fixture renders the templates under test.
 policy_scripts() { (cd "$(dirname "${BASH_SOURCE[0]}")/../../skills/testing-policy/scripts" && pwd -P); }
