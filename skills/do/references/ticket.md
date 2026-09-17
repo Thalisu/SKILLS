@@ -426,6 +426,11 @@ criteria and its `What to build` line and from the Digest's quotes, its Path's s
 failure branches among them; never from the implementation. When a held Ruling on this Ticket
 carries a `Now reads:` pair, the criterion it names is written from its `Now reads:` text, never
 from the `Criterion:` text the issue still carries, per the forks in [mechanics.md](mechanics.md).
+The door's own reading of this Ticket's `Ruled by the choice-taker on Ticket <this Ticket>` lines,
+recorded when it forked the reader per the reader section of [mechanics.md](mechanics.md), sits
+beside the Digest's quotes for this step: a criterion that still reads the side an edited line
+reversed is met here as a Design fork against that line, per the forks in
+[mechanics.md](mechanics.md).
 It holds the behaviours callers
 observe, critical paths and the logic that can be wrong first, not one line per branch. A line of
 the list traces to a quoted story, a quoted Testing Decision or a Journey step,

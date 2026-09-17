@@ -103,6 +103,12 @@ Digest's `## Sources` lines, so the record the reuse gate trusts is the run's ow
 the fork's. When it forks the reader, the door says in one line that both are being read in a
 window of their own.
 
+The door also reads this Ticket's own `Ruled by the choice-taker on Ticket <this Ticket>` lines the
+Spec's Implementation Decisions already carries, when it carries any, straight off the Spec text it
+just hashed, and records them, their `Fork:`, side-taken and `Norm:` text, for the session: the
+Digest carries no Implementation Decisions section, so this is the one place those lines reach the
+behaviours step and the reply's `Rulings` section.
+
 No reader can be forked on two branches: the Agent tool is withheld from the session, or
 the Agent tool lists no `do-reader`, as it does on a machine that never linked the reader `do`
 ships. On either branch the door has already run its stops, nothing is forked, and the session
@@ -428,7 +434,10 @@ A Ruling line is the Spec's, so the developer reverses one by editing it while t
 `claimed` and typing `/do` on the Ticket again, per
 [ADR 0037](../../../docs/adr/0037-a-choice-takers-ruling-amends-the-spec-and-a-ticket-criterion-only-when-it-is-the-losing-side.md),
 and the resume after an amended Spec, the Resume of [ticket.md](ticket.md), picks it up with nothing
-added. A Ticket criterion the Ruling had rewritten still reads the side the edit reversed, so the
+added. The edited line reaches the session off the door's own recording of this Ticket's
+`Ruled by the choice-taker` lines, the reader section above, so the behaviours step holds it beside
+the Digest's quotes without opening the Spec itself. A Ticket criterion the Ruling had rewritten
+still reads the side the edit reversed, so the
 behaviours step meets it as a Design fork between that criterion and the edited line, and forks the
 `choice-taker` as above. The edited line is a decision the Spec carries, which the choice-taker
 rules for, so the criterion is the losing side and is rewritten back to the edited side the way any

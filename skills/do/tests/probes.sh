@@ -352,6 +352,20 @@ check_lines "the sidecar written from mechanics.md's own template reads back byt
   "extreme=$top/$issues/04-claimed.extreme.md" "discuss=$filled" "verdict=extreme"
 rm "$issues/04-claimed.extreme.md"
 
+# Finding 1 (do-code-review): a criterion an edited Ruling line reversed is met as a Design fork at
+# step 4 only once the door's own recording of this Ticket's Ruling lines reaches the session, since
+# the Digest carries no Implementation Decisions section. Pinning the reference text that names it.
+echo "# mechanics.md / ticket.md: the door's recorded Ruling lines reach the behaviours step"
+expect "the reader section names the door recording this Ticket's own Ruling lines when it forks the reader" \
+  grep -qF "records them, their \`Fork:\`, side-taken and \`Norm:\` text, for the session" \
+  "$skill/references/mechanics.md"
+expect "the reversed-Ruling paragraph of the Forks section names where the edited line reaches the session" \
+  grep -qF "The edited line reaches the session off the door's own recording of this Ticket's" \
+  "$skill/references/mechanics.md"
+expect "ticket.md step 4 names the door's recorded Ruling lines beside the Digest's quotes" \
+  grep -qF "recorded when it forked the reader per the reader section of" \
+  "$skill/references/ticket.md"
+
 echo "# resume-state.sh: a rebase the integration left open"
 printf 'one\nmain side\n' >notes.txt
 g commit -q -am "main moves"
