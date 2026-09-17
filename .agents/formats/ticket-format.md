@@ -35,11 +35,12 @@ Decisions when a `do` run settles a Design fork, in the shape the spec format fi
 
 ## Status
 
-The status walks three words, each written by one skill and never by the other:
+The status walks three words, each written by one skill and never by the other, with one
+exception for `ready-for-agent`:
 
 | Word | Written by | When |
 |---|---|---|
-| `ready-for-agent` | `tickets` | at publish, on every ticket |
+| `ready-for-agent` | `tickets` | at publish, on every ticket but the reversal ticket below |
 | `claimed` | `do` | at the start of a run, before the worktree exists |
 | `resolved` | `do` | at the close, with every proven criterion ticked and the evidence appended |
 
@@ -48,6 +49,18 @@ checkout. In an issue the tracker carries the walk: `tickets` applies the `ready
 and `do` claims and closes the issue with tracker writes made after the developer's yes. The
 close's yes also carries what a Ruling the run made needs on the tracker: the Ruling as a comment
 on the spec issue, and a rewritten criterion's new text in the ticket issue's body.
+
+The reversal ticket is the one ticket whose `ready-for-agent` is not written by `tickets`. A
+developer who reverses a Ruling after the ticket that ruled is `resolved` writes it by hand, per
+[ADR 0038](../../docs/adr/0038-a-ruling-reversed-after-its-ticket-landed-is-built-by-a-new-ticket-the-developer-writes.md),
+since `do` stops on a `resolved` ticket and `tickets` stops on a feature that already has tickets.
+It is a local ticket in this format, numbered after the feature's last ticket, its status
+`ready-for-agent`, its criteria taken from the edited Ruling line, and its `Blocked by` naming every
+`resolved` ticket that took the old side, starting from the ticket the Ruling line names. On a
+tracker the developer edits the Ruling's comment on the spec issue instead of the spec line, and
+opens the issue by hand with its `## Parent`, its `## Blocked by` and the `ready-for-agent` label.
+`do` builds it like any other ticket, and the ticket that ruled keeps its status, its ticks and its
+evidence.
 
 ## Evidence
 
