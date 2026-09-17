@@ -135,4 +135,13 @@ work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
 render > "$work/entry"
 rewrite "$ledger" "$(cat "$entry/id")" "$work/entry" > "$work/ledger" || exit 2
-cat "$work/ledger" > "$ledger"
+# A write that cannot finish must never reach $ledger itself: the rewritten copy is moved into place
+# only whole, by a rename, so a reader never sees the ledger truncated and an earlier stop's entry is
+# never lost to a later one's failed write.
+next="$(mktemp "$(dirname "$ledger")/.ledger.XXXXXX")" || exit 2
+if cat "$work/ledger" > "$next"; then
+  mv -f "$next" "$ledger"
+else
+  rm -f "$next"
+  exit 2
+fi

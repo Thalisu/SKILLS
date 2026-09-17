@@ -7,6 +7,7 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/../../../scripts/tests/lib.sh"
 door="$here/../scripts/contested.sh"
 classer="$here/../scripts/conflict-class.sh"
+ledgersh="$here/../scripts/ledger.sh"
 fails=0
 tmp="$(mktemp -d)"
 trap 'cd /; rm -rf "$tmp"' EXIT
@@ -832,6 +833,62 @@ while read -r hname; do
   expect "the ledger entry for a hostile name carries it as the classifier prints it: $hname" \
     grep -qxF -- "- file: $hname" <<<"$(ledger_part .scratch/run.ledger.md "$hname" keys 2>/dev/null)"
 done <<<"$printed"
+
+# A write that cannot finish, the last step ledger.sh takes to move its rewritten copy into place,
+# must never reach the ledger itself: only a whole new file replaces it, so an earlier stop's entry
+# is never lost to a later one's failed write. `cat` never reads any file named `ledger` except the
+# rewritten copy ledger.sh moves into place, so a `cat` on PATH that fails on exactly that name fails
+# only that step, wherever the fix writes its result.
+fresh ledger-write-fails
+faildir="$tmp/fail-bin"
+mkdir -p "$faildir"
+cat >"$faildir/cat" <<'SH'
+#!/usr/bin/env bash
+if [ "$#" -eq 1 ] && [ "$(basename -- "$1")" = ledger ]; then exit 1; fi
+exec /usr/bin/cat "$@"
+SH
+chmod +x "$faildir/cat"
+mkdir -p .scratch
+faildl="$PWD/.scratch/fail.ledger.md"
+cat >"$faildl" <<'EOF'
+# Loss ledger
+
+## aaaaaaaaaaaa
+
+- file: earlier.txt
+- location: L1-L2
+- shape: rewrite-vs-rewrite
+- commit: 1111111111111111111111111111111111111111
+- before: 2222222222222222222222222222222222222222
+
+### Target (kept)
+
+```
+earlier target
+```
+
+### Incoming (set aside)
+
+```
+earlier incoming
+```
+EOF
+cp "$faildl" "$tmp/fail.before"
+failentry="$tmp/fail.entry"
+mkdir -p "$failentry"
+printf 'bbbbbbbbbbbb\n' >"$failentry/id"
+printf 'later.txt\n' >"$failentry/file"
+printf 'L1-L2\n' >"$failentry/location"
+printf 'rewrite-vs-rewrite\n' >"$failentry/shape"
+printf '3333333333333333333333333333333333333333\n' >"$failentry/commit"
+printf '4444444444444444444444444444444444444444\n' >"$failentry/before"
+printf 'later target\n' >"$failentry/target"
+printf 'later incoming\n' >"$failentry/incoming"
+rc=0
+out="$(PATH="$faildir:$PATH" bash "$ledgersh" put "$faildl" "$failentry" 2>&1)" || rc=$?
+expect "a ledger write that cannot finish exits nonzero" test "$rc" != 0
+expect "a ledger write that cannot finish leaves the ledger byte-identical to before the call" \
+  cmp -s "$faildl" "$tmp/fail.before"
 
 if [ "$fails" = 0 ]; then echo "all ok"; else
   echo "$fails failing"
