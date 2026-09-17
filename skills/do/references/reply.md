@@ -121,7 +121,9 @@ lists it; write it by this file alone otherwise.
    this run's own Ruling included when it wrote one:
    `<side A> or <side B>: <the side taken>. Norm: <the norm, or "no norm: the side easiest to undo">.`
    Each slot is read back from that Spec line's own `Fork:`, side-taken and `Norm:` parts, never
-   from the session's wording. On a Spec that is an issue the lines are read the same way from its
+   from the session's wording. A line the developer edited to reverse a Ruling is read as the Spec
+   carries it now, and the Ruling that rewrote a criterion back to it follows in Spec order, so a
+   resumed run lists both. On a Spec that is an issue the lines are read the same way from its
    comments headed `## Implementation Decisions`, the Rulings earlier closes posted there, and only
    from a comment whose author is the developer's own login or a repository collaborator, the same
    check the choice-taker weighs a Ruling line against, per
