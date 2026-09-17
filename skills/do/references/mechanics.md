@@ -424,6 +424,17 @@ and stops with the same reply and the same `/discuss` command, since nothing the
 moved. Once `discuss` amended the Spec, the resume re-forks the reader, as the Resume of
 [ticket.md](ticket.md) says.
 
+A Ruling line is the Spec's, so the developer reverses one by editing it while the Ticket is
+`claimed` and typing `/do` on the Ticket again, per
+[ADR 0037](../../../docs/adr/0037-a-choice-takers-ruling-amends-the-spec-and-a-ticket-criterion-only-when-it-is-the-losing-side.md),
+and the resume after an amended Spec, the Resume of [ticket.md](ticket.md), picks it up with nothing
+added. A Ticket criterion the Ruling had rewritten still reads the side the edit reversed, so the
+behaviours step meets it as a Design fork between that criterion and the edited line, and forks the
+`choice-taker` as above. The edited line is a decision the Spec carries, which the choice-taker
+rules for, so the criterion is the losing side and is rewritten back to the edited side the way any
+losing criterion is, its tick kept. That Ruling is appended like any other, and the Spec it moves is
+read again by the reader as above.
+
 ### Delegates
 
 The session writes the production code and commits. A delegate is forked by exception, per
