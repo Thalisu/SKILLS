@@ -84,6 +84,7 @@ ticket 31-below.md '**Status:** ready-for-agent' $'\n01 Title of 01-first\n02 Ti
 ticket 32-bullets.md '**Status:** ready-for-agent' $'\n- 01: Title of 01-first\n- 02: Title of 02-second'
 ticket 33-gap.md '**Status:** ready-for-agent' $'01: Title of 01-first\n\n02: Title of 02-second'
 ticket 34-gap-bullets.md '**Status:** ready-for-agent' $'\n\n- 01: Title of 01-first\n\n- 02: Title of 02-second'
+ticket 35-status-digit.md $'**Status:** ready-for-agent\n\n- [ ] Exporting 3 notes writes 3 rows' 'None (can start immediately)'
 echo ".claude/worktrees/" >>.git/info/exclude
 git worktree add -q .claude/worktrees/do-claimed -b do/claimed
 git worktree add -q .claude/worktrees/do-stale -b do/stale
@@ -162,6 +163,11 @@ for t in 14-comma 15-and 16-lines 31-below 32-bullets 33-gap 34-gap-bullets; do
   check_lines "a Blocked by paragraph shaped as $t reads every blocker and refuses the run" 1 "$rc" \
     "blocker=01 resolved $issues/01-first.md" "blocker=02 ready-for-agent $issues/02-second.md" "verdict=blocked"
 done
+run "$door" "$issues/35-status-digit.md"
+check_lines "a Blocked by paragraph ended by a blank line then the Status line starts cleanly, no digit read from it" 0 "$rc" \
+  "blockers=none" "verdict=start"
+absent_prefix "no blocker number is read out of the Status line or a checklist criterion after the paragraph ends" "blocker="
+absent_prefix "no ambiguity is raised by the digits after the paragraph ends" "ambiguous="
 run "$door" "$issues/17-unsplit.md"
 check_lines "a Blocked by number the door cannot split out is ambiguous, never a start" 1 "$rc" \
   "blocker=01 resolved $issues/01-first.md" "ambiguous=blocked-by numbers it cannot split 02" "verdict=ambiguous"
