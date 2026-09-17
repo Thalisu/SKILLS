@@ -473,7 +473,8 @@ changed a file git tracks, and the developer reads that here rather than finding
 run's worktree, or the step reads `skip: nothing landed` and the Ticket still reads `claimed`.
 
 **12. Reply.** Written by [reply.md](reply.md). What this Playbook puts in its sections: the
-Ticket and the Review under the files left uncommitted; the flows the developer waived and the
+Ticket and the Review under the files left uncommitted; every Ruling the forks in
+[mechanics.md](mechanics.md) wrote under `Rulings`, `none` when the run met no Design fork; the flows the developer waived and the
 consumer flows not run under pending debt, beside
 a criterion the flows step skipped for no end-to-end command, with the command that would fill it; and the next step, `git push` with the developer's
 branch named when the review landed, or, when nothing landed, the worktree, its branch, and the

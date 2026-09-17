@@ -112,18 +112,24 @@ lists it; write it by this file alone otherwise.
    it skipped. A check that did not run appears under Skipped, never here.
 5. **Principles.** Every principle that changed a decision, with the decision it changed. A name
    without a decision is not allowed. `none` is common.
-6. **Skipped.** Every skipped step as `<step>: skip: <reason>`, copied from the checklist, and
+6. **Rulings.** One line per Ruling the run wrote, in the order the run met the forks:
+   `<side A> or <side B>: <the side taken>. Norm: <the norm, or "no norm: the side easiest to undo">.`
+   Each slot comes from the `choice-taker`'s `Fork:`, `Side:` and `Norm:` lines, never from the
+   session's wording. A Ruling kept in the run because its Spec is an issue, the forks in
+   [mechanics.md](mechanics.md), carries its whole Spec line instead, for the developer to carry to
+   the issue. `none` when the run ruled nothing, and on every Playbook but `ticket`.
+7. **Skipped.** Every skipped step as `<step>: skip: <reason>`, copied from the checklist, and
    only the steps the run reached: a step it never came to was never considered, so it is not a
    skip and is not listed.
-7. **PR-ready description.** As the developer pastes it, with these headings and no other: `Why`,
+8. **PR-ready description.** As the developer pastes it, with these headings and no other: `Why`,
    `Scope`, `Tradeoffs`, `Blast Radius`, `Verification`. Blast Radius names the one fact the
    change is safe because of and how it was proven; Verification repeats the evidence lines.
-8. **Left uncommitted.** The files the run wrote and did not commit, for the developer: the
+9. **Left uncommitted.** The files the run wrote and did not commit, for the developer: the
    Ticket, the Review, and the `.gitignore` line when the run appended it. `none` when the run
    wrote only what it committed.
-9. **Pending debt.** Waivers, consumer coverage not run, an equivalence gap, a second thing found
+10. **Pending debt.** Waivers, consumer coverage not run, an equivalence gap, a second thing found
    on the way and not done.
-10. **Next step.** One line. It ends with the push command when something landed on the
+11. **Next step.** One line. It ends with the push command when something landed on the
     developer's branch, `git push` with the branch named; otherwise the command to type next.
 
 ## A refusal or a blocked run

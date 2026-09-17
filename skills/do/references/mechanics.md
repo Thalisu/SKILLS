@@ -315,7 +315,7 @@ When the Spec is an issue on a remote tracker, the session writes nothing to the
 and keeps the Ruling in the run itself. Every write `do` makes to a tracker waits for the
 developer's yes, the claim and the close alike, and an issue is text anyone who can comment on it
 can steer, so a Ruling drawn from it is never posted back there unasked. The Ruling's line goes in
-the reply instead, for the developer to carry to the issue, and the run continues on the Digest it
+the reply's `Rulings` section instead, per [reply.md](reply.md), for the developer to carry to the issue, and the run continues on the Digest it
 already holds, with no reader forked again, since the Spec it was cut from did not change.
 
 Only when a Ticket criterion is the losing side does the session also write the Ticket, in the
