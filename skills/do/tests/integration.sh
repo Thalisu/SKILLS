@@ -170,6 +170,74 @@ resumed_stop_stages_a_glob_named_trusted_path_literally() {
   cd "$repo" || exit 1
 }
 resumed_stop_stages_a_glob_named_trusted_path_literally
+
+# A hunk classed mechanical only says both sides added lines, never that their additions cannot
+# themselves collide: each side here appends its own new top-level function right after the same
+# shared closing brace, and each new function ends with a closing brace of its own, identical text
+# to the other's. The union block must keep both, one per function, never let the shared trailing
+# line swallow one side's.
+union_keeps_both_sides_closing_braces_when_each_appends_a_function() {
+  local write rc
+  write="$(blocks_of "$mech" "## The integration" "**A rebase that stopped.**" 1)"
+  expect "the all-mechanical stop's union block extracts for the two-functions fixture" test -n "$write"
+  printf '%s\n' "${write//"<skill-dir>"/"$repo/skills/do"}" >"$tmp/write-two-functions.sh"
+
+  fresh union-two-functions
+  cat >app.js <<'JS'
+function create() {
+  return 1;
+}
+JS
+  commit base
+  g branch inc
+  cat >app.js <<'JS'
+function create() {
+  return 1;
+}
+
+export function titles() {
+  return notes.map((n) => n.title);
+}
+JS
+  commit target
+  g switch -q inc
+  cat >app.js <<'JS'
+function create() {
+  return 1;
+}
+
+export function count() {
+  return notes.length;
+}
+JS
+  commit incoming
+  g -c rerere.enabled=false -c rerere.autoupdate=false rebase refs/heads/main >/dev/null 2>&1
+
+  rc=0
+  # shellcheck disable=SC2034  # lib.sh's check reads $out
+  out="$(bash "$repo/skills/do/scripts/conflict-class.sh" 2>&1)" || rc=$?
+  check "the two-functions fixture is classed mechanical, so it reaches the union block" \
+    0 "$rc" "verdict=mechanical mechanical=1 contested=0 trusted=0"
+
+  bash "$tmp/write-two-functions.sh" >/dev/null 2>&1
+  cat >"$tmp/app.expected" <<'JS'
+function create() {
+  return 1;
+}
+
+export function titles() {
+  return notes.map((n) => n.title);
+}
+
+export function count() {
+  return notes.length;
+}
+JS
+  expect "the union keeps both sides' new functions each closed with its own closing brace" \
+    cmp -s app.js "$tmp/app.expected"
+  cd "$repo" || exit 1
+}
+union_keeps_both_sides_closing_braces_when_each_appends_a_function
 if [ "$fails" = 0 ]; then echo "PASS"; else
   echo "$fails failing"
   exit 1

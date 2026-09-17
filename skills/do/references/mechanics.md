@@ -559,14 +559,16 @@ stages="$(mktemp -d)"
 git diff --name-only --diff-filter=U -z | while IFS= read -r -d '' file; do
   git show ":1:$file" > "$stages/base" && git show ":2:$file" > "$stages/target" &&
     git show ":3:$file" > "$stages/incoming" &&
-    git merge-file --union -p "$stages/target" "$stages/base" "$stages/incoming" > "$file"
+    git merge-file --union --diff3 -p "$stages/target" "$stages/base" "$stages/incoming" > "$file"
 done
 rm -rf "$stages"
 ```
 
 Stage 2 is the developer's branch and stage 3 the commit being replayed, so the union in that order
 keeps both sides with the developer's branch above the replayed commit's, which is the base order
-this step owes. Git writes the result and the session never edits a marker. Once every union is
+this step owes. The `--diff3` stays: without it git trims the lines both sides' additions share, so
+two functions appended at the same place keep one closing brace between them and the file no
+longer parses. Git writes the result and the session never edits a marker. Once every union is
 read back, as the next state says, with the file-reading tool and never through a command line, the
 second block marks the files resolved:
 
