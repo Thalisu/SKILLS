@@ -44,9 +44,14 @@ cd "$top" || exit 2
 # REBASE_HEAD outlives a rebase that finished or quit, so only a rebase state directory says one is
 # still open. The Incoming side is the commit being replayed at a rebase and the merged commit at a
 # merge, and the tip the operation started from is the rebase's own record or ORIG_HEAD.
-if [ -d "$(git rev-parse --git-path rebase-merge)" ] || [ -d "$(git rev-parse --git-path rebase-apply)" ]; then
+if [ -d "$(git rev-parse --git-path rebase-merge)" ]; then
   incoming_ref=REBASE_HEAD
   started_from="$(cat "$(git rev-parse --git-path rebase-merge/orig-head)" 2>/dev/null)"
+elif [ -d "$(git rev-parse --git-path rebase-apply)" ]; then
+  # git's apply backend (rebase.backend=apply) keeps its own orig-head under rebase-apply/,
+  # never under rebase-merge/.
+  incoming_ref=REBASE_HEAD
+  started_from="$(cat "$(git rev-parse --git-path rebase-apply/orig-head)" 2>/dev/null)"
 elif git rev-parse -q --verify MERGE_HEAD >/dev/null 2>&1; then
   incoming_ref=MERGE_HEAD
   started_from="$(git rev-parse -q --verify ORIG_HEAD 2>/dev/null)"

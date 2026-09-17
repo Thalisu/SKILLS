@@ -954,6 +954,32 @@ check_absent "no wrote line is printed for the file git refused to stage" 2 "$rc
 check_absent "no resolved line is printed when git refuses to stage a file" 2 "$rc" "resolved mechanical="
 expect "the file git refused to stage is still unmerged" test -n "$(git ls-files -u -- locked.txt)"
 
+# A rebase stopped under git's apply backend keeps its own orig-head under rebase-apply/, not
+# rebase-merge/: the tip before the operation started is still there and must not be read as empty.
+fresh backend-apply
+printf 'pixels\000\001\002\n' >picture.bin
+commit base
+g switch -q -c do/run
+printf 'pixels\000\001\004incoming\n' >picture.bin
+commit incoming
+before="$(git rev-parse do/run)"
+g switch -q main
+printf 'pixels\000\001\003target\n' >picture.bin
+commit target
+g switch -q do/run
+g -c rebase.backend=apply rebase main >/dev/null 2>&1
+expect "the stop left a rebase-apply state directory, not rebase-merge" \
+  test -d .git/rebase-apply -a ! -d .git/rebase-merge
+picture_target_apply="$(named binary 2 picture.bin)"
+picture_incoming_apply="$(named binary 3 picture.bin)"
+
+run
+check_lines "a stop under the apply backend still writes the binary file" 0 "$rc" \
+  "wrote picture.bin" "resolved mechanical=0 contested=1"
+expect "the ledger's before key is the tip before the rebase, not empty" \
+  grep -qxF -- "- before: $before" .scratch/run.ledger.md
+names_whole_side binary picture.bin "$picture_target_apply" "$picture_incoming_apply"
+
 if [ "$fails" = 0 ]; then echo "all ok"; else
   echo "$fails failing"
   exit 1
