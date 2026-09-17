@@ -115,6 +115,47 @@ expect "the merge wrong-branch refusal is one message naming the switch to the b
   one_message_naming "git switch other"
 g branch -D other >/dev/null
 
+echo "# a working tree carrying uncommitted work"
+printf 'changed\n' >a.txt
+printf 'new\n' >untracked.txt
+run rebase main
+check_lines "an otherwise valid rebase from a tree with uncommitted work is refused as a dirty tree" 1 "$rc" \
+  "op=rebase" "moves=feature/x" "onto=main" "writes=feature/x" "refused=dirty-tree"
+expect "the dirty-tree refusal is one message naming the modified file and ending nothing integrated" \
+  one_message_naming a.txt
+expect "the dirty-tree refusal is one message naming the untracked file and ending nothing integrated" \
+  one_message_naming untracked.txt
+g checkout -q -- a.txt
+rm -f untracked.txt
+
+echo "# a tree whose only uncommitted state is an integration in progress"
+fresh stopped-rebase
+printf 'base\n' >c.txt && commit base
+g checkout -q -b feature/rebased
+printf 'ours\n' >c.txt && commit ours
+g checkout -q main
+printf 'theirs\n' >c.txt && commit theirs
+g checkout -q feature/rebased
+g rebase main >/dev/null 2>&1
+run rebase main
+check_lines "a rebase stopped on a conflict is reported in progress on the branch being rebased, not refused" 0 "$rc" \
+  "op=rebase" "moves=feature/rebased" "onto=main" "writes=feature/rebased" "in_progress=rebase"
+absent "a rebase stopped on a conflict carries no refusal" "refused="
+
+fresh stopped-merge
+printf 'base\n' >c.txt && commit base
+g checkout -q -b feature/target
+g checkout -q -b feature/side
+printf 'side\n' >c.txt && commit side
+g checkout -q feature/target
+printf 'target\n' >c.txt && commit target
+g merge --no-edit feature/side >/dev/null 2>&1
+run merge feature/side
+check_lines "a merge stopped on a conflict is reported in progress on the target, not refused" 0 "$rc" \
+  "op=merge" "moves=feature/side" "onto=feature/target" "writes=feature/target" "in_progress=merge"
+absent "a merge stopped on a conflict carries no refusal" "refused="
+cd "$tmp/work" || exit 1
+
 echo
 if [ "$fails" = 0 ]; then echo "integrate-door: all checks passed"; else
   echo "integrate-door: $fails failed"

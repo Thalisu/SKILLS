@@ -8,8 +8,10 @@
 #                                               current branch, and is the branch written to
 #
 # Prints op=, moves=, onto= and writes=, then refused= and one message= line ending
-# `nothing integrated` on a refusal, or in_progress= and the commands the run integrates with,
-# start=, continue= and abort=, when the door holds. A branch exists when it is a local branch or a remote-tracking
+# `nothing integrated` on a refusal, or in_progress= (none, rebase or merge) and the commands the
+# run integrates with, start=, continue= and abort=, when the door holds. The refusals, first match
+# wins: missing-branch, protected-target (a merge only), wrong-branch, dirty-tree (only with no
+# integration in progress, whose conflicted state is not uncommitted work). A branch exists when it is a local branch or a remote-tracking
 # ref of that name. Exit codes: 0 the door holds · 1 refused · 2 usage, or not a git repository.
 set -uo pipefail
 
@@ -24,8 +26,31 @@ git rev-parse --show-toplevel >/dev/null 2>&1 || {
 }
 [ $# -ge 2 ] && [ $# -le 3 ] || usage
 
+integration_in_progress() {
+  local dir
+  for dir in rebase-merge rebase-apply; do
+    [ -d "$(git rev-parse --git-path "$dir")" ] && {
+      echo rebase
+      return
+    }
+  done
+  git rev-parse -q --verify MERGE_HEAD >/dev/null && {
+    echo merge
+    return
+  }
+  echo none
+}
+
 op="$1"
+in_progress="$(integration_in_progress)"
 current="$(git symbolic-ref --short -q HEAD || echo HEAD)"
+# A stopped rebase leaves HEAD detached; the branch it is rebasing is in its state directory.
+if [ "$in_progress" = rebase ]; then
+  for dir in rebase-merge rebase-apply; do
+    head_name="$(git rev-parse --git-path "$dir/head-name")"
+    [ -f "$head_name" ] && current="$(sed 's#^refs/heads/##' "$head_name")"
+  done
+fi
 case "$op" in
   rebase) onto="$2" moves="${3:-$current}" writes="$moves" ;;
   merge) moves="$2" onto="${3:-$current}" writes="$onto" ;;
@@ -67,7 +92,12 @@ fi
 [ "$writes" = "$current" ] ||
   refuse wrong-branch "the $op writes to $writes, and you are on $current: run git switch $writes first"
 
-echo "in_progress=none"
+if [ "$in_progress" = none ]; then
+  dirty="$(git status --porcelain --untracked-files=all | cut -c4- | paste -sd ' ' -)"
+  [ -z "$dirty" ] || refuse dirty-tree "uncommitted work in the way: $dirty"
+fi
+
+echo "in_progress=$in_progress"
 norerere="git -c rerere.enabled=false -c rerere.autoupdate=false"
 case "$op" in
   rebase) echo "start=$norerere rebase $(branch_ref "$onto")" ;;
