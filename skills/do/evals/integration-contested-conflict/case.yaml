@@ -1,4 +1,4 @@
-name: integration-no-human-aborts
+name: integration-contested-conflict
 tags: [playbook, ticket, run, integration]
 runs: 1
 max_turns: 240
@@ -12,11 +12,12 @@ context:
     # replay: a post-commit hook lands one commit on main the first time a commit lands on a
     # do/ branch, and that commit rewrites list(), the last function of src/notes.ts, through
     # its closing line, where the build appends its own function. The rebase before the review
-    # stops there on a hunk the door script classes contested. The case assumes the runner
-    # drives the session through the SDK, so CLAUDE_CODE_ENTRYPOINT starts with sdk- as it does
-    # under claude -p: contested.sh answers no human, and the run aborts the integration,
-    # names the conflicting file and asks nothing. A runner whose session reads cli would be
-    # asked the question instead, and every grader but the first would fail on that premise.
+    # stops there on a hunk the door script classes contested. contested.sh resolves it to the
+    # Target side, main's rewritten list(), and writes the Incoming side, the run's own list()
+    # and the archive function it appended, whole to the Loss ledger beside the Ticket. The
+    # replayed commit is then empty, since every line it touched was set aside, so git skips it
+    # on its own and do/archive-a-note ends the rebase pointing at the same commit as main.
+    # Nobody is asked anything, on any runner.
     set -e
     mkdir -p src bin e2e/helpers docs/agents .scratch/archive-notes/issues .claude/agents .claude/skills/test-author
     cat > package.json <<'JSON'
