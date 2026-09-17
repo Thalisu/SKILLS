@@ -368,12 +368,23 @@ check_lines "a rebase left open with its conflict resolved and staged, onto the 
   "rebase=open" "stop=resolved" "stopped=$first feat: archive a note" "staged=notes.txt" \
   "onto=$tip" "tip=$tip" "verdict=integration"
 absent_prefix "a rebase whose conflict is resolved and staged names no conflicted path" "conflicted="
+absent_prefix "a rebase whose conflict is only staged, not committed by hand, names no commit made outside rebase --continue" "committed="
 g commit -q --allow-empty -m "main moves again"
 moved_tip="$(git rev-parse HEAD)"
 run "$resume" "$issues/04-claimed.md"
 check_lines "a rebase left open onto a commit the branch has since moved past resumes as moved, naming the onto commit and the current tip" 3 "$rc" \
   "stop=moved" "onto=$tip" "tip=$moved_tip" "staged=notes.txt" "verdict=integration"
 absent_prefix "a rebase left open onto a commit the branch has moved past is not resumed as resolved" "stop=resolved"
+
+# The developer resolves the conflict and finishes with `git commit --no-edit` by hand instead of
+# `git rebase --continue`: REBASE_HEAD and the rebase-merge state stay behind, so the resume must
+# still name the hand-made commit or a later `stop=moved` abort silently drops it.
+git -C "$wt" commit -q --no-edit
+committed_sha="$(git -C "$wt" rev-parse --short HEAD)"
+committed_subject="$(git -C "$wt" log -1 --format=%s HEAD)"
+run "$resume" "$issues/04-claimed.md"
+check_lines "a rebase left open whose conflict was resolved and committed by hand, not via rebase --continue, names the hand-made commit" 3 "$rc" \
+  "stop=moved" "onto=$tip" "tip=$moved_tip" "committed=$committed_sha $committed_subject" "verdict=integration"
 git -C "$wt" rebase --abort
 rm "$issues/04-claimed.review.md"
 

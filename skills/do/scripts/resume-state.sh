@@ -15,8 +15,9 @@
 # paths quoted by git as core.quotePath does; one conflicted=<path> per file an open rebase left
 # unmerged; then, while a rebase is open, stopped=<short sha> <title> of the commit it stopped at
 # (empty when it stopped at none), onto=<the commit it rebases onto>, tip=<the commit base names
-# now>, one staged=<path> per file staged at that stop and not unmerged, and stop=<class>, first
-# match: moved (onto is no longer tip, whatever else the stop holds) · conflicted (a file is still
+# now>, one staged=<path> per file staged at that stop and not unmerged, one committed=<short sha>
+# <title> per commit made by hand at that stop and never recorded by the rebase, oldest first, and
+# stop=<class>, first match: moved (onto is no longer tip, whatever else the stop holds) · conflicted (a file is still
 # unmerged) · resolved (none is); review_skipped=<stale | axis-not-run> <path> when a Review beside
 # the Ticket does not count; review, the Review beside the Ticket when it counts, else none; extreme, the
 # <Ticket>.extreme.md sidecar a first run's Extreme stop left beside the Ticket, when one is there,
@@ -115,6 +116,11 @@ rebase_stop() {
   echo "onto=$onto"
   echo "tip=$tip"
   git -C "$wt" -c core.quotePath=true diff --cached --name-only --diff-filter=u | sed 's/^/staged=/'
+  # A stop finished with `git commit` instead of `rebase --continue` leaves the rebase open on a
+  # commit the rebase never recorded, which an abort leaves on no branch. HEAD's reflog tells those
+  # apart: git logs a rebase's own commits as `rebase (...)`, and a hand commit as `commit...`.
+  [ -z "$stopped" ] || git -C "$wt" log -g --format='%gs%x09%h %s' HEAD 2>/dev/null |
+    awk -F '\t' '$1 !~ /^commit/ { exit } { l[n++] = $2 } END { while (n) print "committed=" l[--n] }'
   if [ "$onto" != "$tip" ]; then echo "stop=moved"
   elif [ -n "$conflicted" ]; then echo "stop=conflicted"
   else echo "stop=resolved"; fi

@@ -163,8 +163,8 @@ and leaves the worktree as it is, since no branch can be read from it to build o
 
     ```
     The integration's rebase is open onto <onto>, but <base> has moved to <tip>.
-    abort: drop this rebase and rebase once onto <tip>. The abort drops the resolution staged at <stopped>:
-    <one staged= and one conflicted= path per line>
+    abort: drop this rebase and rebase once onto <tip>. The abort drops what the stop at <stopped> holds:
+    <one line per staged= and conflicted= path, per uncommitted= entry and per committed= commit>
     continue: finish this rebase onto <onto>, then integrate onto <tip>, which replays the branch again.
     (abort / continue)
     ```
