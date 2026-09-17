@@ -130,15 +130,17 @@ guesses:
   when it holds exactly the union of its two sides it is classed hunk by hunk like any other, so a
   contested hunk in it is still a question; when it holds anything else it is yours, kept as you
   wrote it, staged, and named in the reply as taken on trust.
-- A run nobody can answer, `claude -p` for one: the run leaves the rebase open, names the
-  conflicting files and the command that undoes it, rather than guess an answer.
+- A run nobody can answer, `claude -p` for one: the run aborts the rebase, leaves your branch as it
+  was and names the conflicting files, rather than guess an answer.
 
-A resumed run meets the same rule at two more stops a rebase can leave: one where it stopped with
-nothing conflicted (whatever is staged there carries nobody's recorded answer, so it asks before
-continuing) and one where the rebase is open onto a commit that is no longer the tip of the
-developer's branch (it asks whether to abort and rebase onto the moved tip or finish the open
-rebase first). Nobody there to answer either question stops the run as blocked with the rebase
-left open, never aborted, and the worktree and its branch named and left in place.
+A second `/do` that finds a rebase the first run left open asks at two more stops. One is a rebase
+stopped with nothing conflicted: whatever is staged there carries nobody's recorded answer, so the
+run names the commit and every staged file and asks before it continues. The other is a rebase
+open onto a commit that is no longer the tip of your branch: the run names both commits and asks
+whether to abort and rebase onto the tip, or finish the open rebase first. Nobody there to answer
+either question stops the run as blocked. Unlike a fresh run, it leaves that rebase open rather
+than aborting it, since the stop may hold a resolution you staged, and the worktree and its branch
+stay in place.
 
 Then the branch goes to the review, once per run: the run hands it the gate's command line too, so
 the review's fixes are held to the same checks, and only the outcome comes back, never the Review's
