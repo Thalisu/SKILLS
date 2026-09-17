@@ -96,7 +96,10 @@ if [ "$verb" = pending ]; then
   # A ledger no stop ever wrote is a ledger with nothing set aside, never a path to refuse, and asking
   # it for its entries neither creates it nor the scratch on the way to it.
   [ -f "$ledger" ] || exit 0
-  awk '
+  # A read that failed is not a ledger with nothing in it: awk's ids are held back until it exits
+  # clean, so a ledger this run could not read never reaches the run as an empty one, and no id is
+  # half-listed from the entries awk reached before it gave up.
+  ids="$(awk '
     function fence_of(line) { if (match(line, /^(```+|~~~+)/)) return substr(line, 1, RLENGTH); return "" }
     function flush() { if (id != "" && !judged) print id; id = "" }
     {
@@ -116,7 +119,8 @@ if [ "$verb" = pending ]; then
       }
     }
     END { flush() }
-  ' "$ledger"
+  ' "$ledger")" || { echo "ledger could not be read: $ledger" >&2; exit 2; }
+  [ -z "$ids" ] || printf '%s\n' "$ids"
   exit 0
 fi
 

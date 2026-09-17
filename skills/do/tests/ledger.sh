@@ -138,6 +138,44 @@ same "a ledger no stop ever wrote lists no entry at all" ""
 expect "asking an absent ledger for its pending entries does not create it" test ! -e "$goneledger"
 expect "asking an absent ledger for its pending entries does not create the scratch on the way to it" test ! -e "$PWD/.scratch"
 
+# A ledger that exists but that this run cannot read is not a ledger with nothing in it: the read
+# failed, it did not come back empty. Answering with the same rc 0 and empty stdout an empty or
+# absent ledger gets is indistinguishable data loss, since a run cannot tell "nothing to judge" from
+# "could not find out". A ledger present but refused must fail loud, not read as if it held nothing.
+fresh ledger-pending-unreadable
+mkdir -p .scratch
+unreadableledger="$PWD/.scratch/run.ledger.md"
+cat >"$unreadableledger" <<'EOF'
+# Loss ledger
+
+## bbccddeeff00
+
+- file: first.txt
+- location: L1-L3
+- shape: rewrite-vs-rewrite
+- commit: 1111111111111111111111111111111111111111
+- before: 2222222222222222222222222222222222222222
+
+### Target (kept)
+
+```
+first target
+```
+
+### Incoming (set aside)
+
+```
+first incoming
+```
+EOF
+chmod 000 "$unreadableledger"
+rc=0
+# shellcheck disable=SC2034  # lib.sh's same reads $out
+out="$(bash "$ledgersh" pending "$unreadableledger" 2>&1)" || rc=$?
+expect "asking an unreadable ledger for its pending entries fails (got $rc)" test "$rc" != 0
+expect "a ledger that could not be read says so on stderr" grep -qF "could not be read" <<<"$out"
+chmod 644 "$unreadableledger"
+
 # A judge's reading of an entry lands in the entry itself, as one `- verdict: <verdict>, <reason>`
 # line right beneath the keys the stop wrote, where `put`'s carry-over rule already preserves a key
 # line it does not write itself. The reason is the judge's own sentence, commas and all, and it must
