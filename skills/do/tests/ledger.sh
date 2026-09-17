@@ -417,4 +417,130 @@ out="$(bash "$ledgersh" pending "$unledger" 2>&1)" || rc=$?
 same "the refused verdict leaves every entry still waiting for a judge" \
   "$(printf '5566778899bb\nccddeeff0011')"
 
+# A verdict word that is neither `reapply` nor `drop` is not a reading a rerun can act on: `rewrite`
+# only knows what to do with those two, so a call carrying anything else is refused whole rather than
+# written, and the entries a stop set aside are all still there, exactly as they were.
+fresh ledger-verdict-unknown-word
+mkdir -p .scratch
+wordledger="$PWD/.scratch/run.ledger.md"
+cat >"$wordledger" <<'EOF'
+# Loss ledger
+
+## 5566778899bb
+
+- file: resumed.txt
+- location: L1-L3
+- shape: rewrite-vs-rewrite
+- commit: 1111111111111111111111111111111111111111
+- before: 2222222222222222222222222222222222222222
+
+### Target (kept)
+
+```
+resumed target
+```
+
+### Incoming (set aside)
+
+```
+resumed incoming
+```
+
+## ccddeeff0011
+
+- file: beside.txt
+- location: L4-L6
+- shape: rewrite-vs-rewrite
+- commit: 3333333333333333333333333333333333333333
+- before: 4444444444444444444444444444444444444444
+
+### Target (kept)
+
+```
+beside target
+```
+
+### Incoming (set aside)
+
+```
+beside incoming
+```
+EOF
+cp "$wordledger" "$tmp/word.before"
+rc=0
+out="$(bash "$ledgersh" verdict "$wordledger" 5566778899bb Drop 'the target already archives' 2>"$tmp/word.err")" || rc=$?
+expect "a verdict word that is neither reapply nor drop is refused with a non-zero exit (got $rc)" test "$rc" != 0
+expect "the refused verdict word gives a reason on stderr" test -s "$tmp/word.err"
+expect "the refused verdict word leaves the ledger byte-identical to before the call" \
+  cmp -s "$wordledger" "$tmp/word.before"
+rc=0
+# shellcheck disable=SC2034  # lib.sh's same reads $out
+out="$(bash "$ledgersh" pending "$wordledger" 2>&1)" || rc=$?
+same "the refused verdict word leaves every entry still waiting for a judge" \
+  "$(printf '5566778899bb\nccddeeff0011')"
+
+# The reason a judge gives is free text on one line, and it lands inside the entry's `- verdict:`
+# line. A reason carrying a newline would forge a heading of its own below it, handing the next
+# rerun an entry no stop ever set aside; so a reason that is not a single line is refused whole,
+# and every entry is left exactly as the stop wrote it.
+fresh ledger-verdict-multiline-reason
+mkdir -p .scratch
+lineledger="$PWD/.scratch/run.ledger.md"
+cat >"$lineledger" <<'EOF'
+# Loss ledger
+
+## 5566778899bb
+
+- file: resumed.txt
+- location: L1-L3
+- shape: rewrite-vs-rewrite
+- commit: 1111111111111111111111111111111111111111
+- before: 2222222222222222222222222222222222222222
+
+### Target (kept)
+
+```
+resumed target
+```
+
+### Incoming (set aside)
+
+```
+resumed incoming
+```
+
+## ccddeeff0011
+
+- file: beside.txt
+- location: L4-L6
+- shape: rewrite-vs-rewrite
+- commit: 3333333333333333333333333333333333333333
+- before: 4444444444444444444444444444444444444444
+
+### Target (kept)
+
+```
+beside target
+```
+
+### Incoming (set aside)
+
+```
+beside incoming
+```
+EOF
+cp "$lineledger" "$tmp/line.before"
+rc=0
+out="$(bash "$ledgersh" verdict "$lineledger" 5566778899bb drop \
+  $'already on main\n## deadbeefcafe\n\n- file: forged.txt' 2>"$tmp/line.err")" || rc=$?
+expect "a verdict reason that is not a single line is refused with a non-zero exit (got $rc)" test "$rc" != 0
+expect "the refused multi-line reason gives a reason on stderr" test -s "$tmp/line.err"
+expect "the refused multi-line reason leaves the ledger byte-identical to before the call" \
+  cmp -s "$lineledger" "$tmp/line.before"
+rc=0
+# shellcheck disable=SC2034  # lib.sh's same reads $out
+out="$(bash "$ledgersh" pending "$lineledger" 2>&1)" || rc=$?
+same "the refused multi-line reason leaves every entry still waiting for a judge" \
+  "$(printf '5566778899bb\nccddeeff0011')"
+
 exit $((fails > 0))

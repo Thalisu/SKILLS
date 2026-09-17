@@ -34,7 +34,9 @@
 # reads `- verdict: <verdict>, <reason>` and sits directly under the entry's `- before:` line, which
 # is where `put`'s own rewrite carries it over, so the two verbs never overwrite each other. A second
 # verdict on one entry replaces the first where it stands, so a resumed run that judges an entry
-# again leaves the same ledger. An id no entry carries is refused with nothing written.
+# again leaves the same ledger. An id no entry carries is refused with nothing written, and so is a
+# <verdict> that is neither `reapply` nor `drop`, which would bury the entry under a word no reader
+# acts on, and a <reason> carrying a newline, which would forge an entry heading of its own.
 #
 # `pending` and `verdict` read an entry's heading the way the rewrite does, outside fences only, so a
 # `## <id>` line a side quotes is that side's text and never an entry of its own. A ledger no stop
@@ -68,6 +70,19 @@ case "$verb" in
   verdict)
     [ "$#" = 5 ] || usage
     ledger="$2" entry="" id="$3" call="$4" reason="$5"
+    case "$call" in
+      reapply | drop) ;;
+      *)
+        echo "ledger refused verdict: $call is neither reapply nor drop" >&2
+        exit 2
+        ;;
+    esac
+    case "$reason" in
+      *$'\n'*)
+        echo "ledger refused verdict: the reason is not a single line" >&2
+        exit 2
+        ;;
+    esac
     ;;
   *) usage ;;
 esac
