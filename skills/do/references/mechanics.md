@@ -374,7 +374,10 @@ The stop is a blocked run, written by the blocked shape of [reply.md](reply.md),
 - the guarantee the weaker side would lose, with its risk class, or what could not be undone once
   landed;
 - the Ticket, left `claimed`, and the worktree and its branch, both left in place;
-- the commits made so far, one line each as the resume lists them, or `none`.
+- the commits made so far, one line each as the resume lists them, or `none`;
+- the Rulings already written, one line per line the Spec's Implementation Decisions carries for
+  this Ticket, in the shape reply.md's `Rulings` section fixes, whichever session wrote it, or
+  `none`.
 
 Nothing is written to the Spec, and the Ticket's criteria are left as they are: only a `settled`
 Ruling writes either, and an Extreme fork has none. The stop does write one file beside the Ticket,

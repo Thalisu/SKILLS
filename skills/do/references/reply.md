@@ -112,12 +112,16 @@ lists it; write it by this file alone otherwise.
    it skipped. A check that did not run appears under Skipped, never here.
 5. **Principles.** Every principle that changed a decision, with the decision it changed. A name
    without a decision is not allowed. `none` is common.
-6. **Rulings.** One line per Ruling the run wrote, in the order the run met the forks:
+6. **Rulings.** One line per line the Spec's Implementation Decisions carries that reads
+   `Ruled by the choice-taker on Ticket <this Ticket>`, in Spec order, whichever session wrote it,
+   this run's own Ruling included when it wrote one:
    `<side A> or <side B>: <the side taken>. Norm: <the norm, or "no norm: the side easiest to undo">.`
-   Each slot comes from the `choice-taker`'s `Fork:`, `Side:` and `Norm:` lines, never from the
-   session's wording. A Ruling kept in the run because its Spec is an issue, the forks in
+   Each slot is read back from that Spec line's own `Fork:`, side-taken and `Norm:` parts, never
+   from the session's wording. A Ruling this run kept because its Spec is an issue, the forks in
    [mechanics.md](mechanics.md), carries its whole Spec line instead, for the developer to carry to
-   the issue. `none` when the run ruled nothing, and on every Playbook but `ticket`.
+   the issue, and a Ruling an earlier session kept the same way is lost: nothing outside the run
+   that made it ever carried it. `none` when the Spec carries no such line and this run kept none of
+   its own, and on every Playbook but `ticket`.
 7. **Skipped.** Every skipped step as `<step>: skip: <reason>`, copied from the checklist, and
    only the steps the run reached: a step it never came to was never considered, so it is not a
    skip and is not listed.
