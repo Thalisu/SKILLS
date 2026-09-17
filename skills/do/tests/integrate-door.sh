@@ -100,6 +100,21 @@ check_absent "a rebase onto protected main is not refused for protection, since 
   "refused=protected-target"
 g branch -D develop >/dev/null
 
+echo "# a branch written to that is not the one the developer is standing on"
+g branch other main
+run rebase main other
+check_lines "a rebase of another branch than the current one is refused as the wrong branch" 1 "$rc" \
+  "op=rebase" "moves=other" "onto=main" "writes=other" "refused=wrong-branch"
+expect "the rebase wrong-branch refusal is one message naming the switch to the branch it writes, ending nothing integrated" \
+  one_message_naming "git switch other"
+
+run merge feature/x other
+check_lines "a merge into an unprotected branch the developer is not on is refused as the wrong branch" 1 "$rc" \
+  "op=merge" "moves=feature/x" "onto=other" "writes=other" "refused=wrong-branch"
+expect "the merge wrong-branch refusal is one message naming the switch to the branch it writes, ending nothing integrated" \
+  one_message_naming "git switch other"
+g branch -D other >/dev/null
+
 echo
 if [ "$fails" = 0 ]; then echo "integrate-door: all checks passed"; else
   echo "integrate-door: $fails failed"

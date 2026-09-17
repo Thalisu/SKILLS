@@ -64,6 +64,9 @@ if [ "$op" = merge ]; then
     refuse protected-target "$onto is protected: $(sed -n 's/^reason=//p' <<<"$guard"), and the rule is $(sed -n 's/^rule=//p' <<<"$guard")"
 fi
 
+[ "$writes" = "$current" ] ||
+  refuse wrong-branch "the $op writes to $writes, and you are on $current: run git switch $writes first"
+
 echo "in_progress=none"
 norerere="git -c rerere.enabled=false -c rerere.autoupdate=false"
 case "$op" in
