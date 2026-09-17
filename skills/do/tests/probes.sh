@@ -400,6 +400,18 @@ run "$resume" "$issues/04-claimed.md"
 check_lines "a rebase left open onto a commit the branch has since been rewound past names every commit onto held that the new tip now lacks" 3 "$rc" \
   "stop=moved" "onto=$moved_tip" "tip=$rewound_tip" "dropped=$dropped_short main moves again" "verdict=integration"
 git -C "$wt" rebase --abort
+
+# git's default rename detection folds a staged `git mv` into one name-only line naming only the
+# destination, so a rebase stop resolved with a rename must still name the source the developer
+# moved from, alongside the destination and any other file staged at the same stop.
+g -C "$wt" -c rerere.enabled=false rebase main >/dev/null 2>&1
+printf 'one\nresolved again\n' >"$wt/notes.txt"
+git -C "$wt" add notes.txt
+git -C "$wt" mv .gitignore .gitignore.bak
+run "$resume" "$issues/04-claimed.md"
+check_lines "a rebase stop's staged rename names both its source and its destination path" 3 "$rc" \
+  "staged=.gitignore" "staged=.gitignore.bak" "staged=notes.txt" "stop=resolved"
+git -C "$wt" rebase --abort
 rm "$issues/04-claimed.review.md"
 
 echo "# resume-state.sh: a branch left behind a target that moved"

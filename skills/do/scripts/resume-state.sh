@@ -116,7 +116,10 @@ rebase_stop() {
   tip="$(git -C "$main" rev-parse -q --verify "$base_ref^{commit}")"
   echo "onto=$onto"
   echo "tip=$tip"
-  git -C "$wt" -c core.quotePath=true diff --cached --name-only --diff-filter=u | sed 's/^/staged=/'
+  # Rename detection folds a staged `git mv` into one name-only line, the destination, and drops
+  # the source the developer moved from; --no-renames reads the stage as a delete plus an add so
+  # both paths print.
+  git -C "$wt" -c core.quotePath=true diff --cached --no-renames --name-only --diff-filter=u | sed 's/^/staged=/'
   # A stop finished with `git commit` instead of `rebase --continue` leaves the rebase open on a
   # commit the rebase never recorded, which an abort leaves on no branch. HEAD's reflog tells those
   # apart: git logs a rebase's own commits as `rebase (...)`, and a hand commit as `commit...`.
