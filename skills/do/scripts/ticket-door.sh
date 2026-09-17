@@ -17,7 +17,8 @@
 # `trivial-door.sh branch` prints them in the main checkout, then verdict. An ambiguous=<what>
 # <detail> line follows the line it concerns. A blocker is the leading number of each part of the
 # Blocked by paragraph split on `;`, `,`, the word `and` and each line break, the paragraph starting
-# on the header's line or the line below it and a `-`, `*` or `+` list marker dropped, read from the Ticket's
+# on the header's line or the line below it and a `-`, `*` or `+` list marker dropped, a blank line
+# ending it unless the next line, its marker dropped, starts with a number, read from the Ticket's
 # own issues/ folder as the one <NN>-<slug>.md. A review, digest, project map or sketch of a Ticket
 # is never counted, even with its Ticket gone, so a sidecar never supplies a blocker's status; any
 # other <stem>.<kind>.md is left out only beside a <stem>.md, and a slug that itself holds a dot
@@ -81,7 +82,8 @@ folder="$(dirname "$path")"
 by_lines="$(grep -n '^\*\*Blocked by:\*\*' "$path" | cut -d: -f1 | tr '\n' ' ')"
 by_lines="${by_lines% }"
 blocked_by="$(awk '/^\*\*Blocked by:\*\*/ { on = 1; sub(/^\*\*Blocked by:\*\*[[:space:]]*/, ""); if ($0 == "") next }
-  on && /^[[:space:]]*$/ { exit } on { sub(/^[[:space:]]*[-*+][[:space:]]+/, ""); print }' "$path")"
+  on && /^[[:space:]]*$/ { gap = 1; next }
+  on { sub(/^[[:space:]]*[-*+][[:space:]]+/, ""); if (gap && $0 !~ /^[[:space:]]*[0-9]/) exit; gap = 0; print }' "$path")"
 numbers="$(sed -E 's/(^|[[:space:]])and([[:space:]]|$)/\1,\2/g' <<<"$blocked_by" | tr ';,' '\n\n' |
   sed -nE 's/^[[:space:]]*([0-9]+)([^[:alnum:]].*)?$/\1/p' | awk '!seen[$0]++')"
 unsplit="$(grep -oE '[[:alnum:]]+' <<<"$blocked_by" | grep -xE '[0-9]+' |
