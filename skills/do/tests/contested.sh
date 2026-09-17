@@ -355,6 +355,42 @@ expect "the rename-vs-edit entry sets the Incoming side aside whole" \
   test "$(ledger_part .scratch/run.ledger.md "$renamed" incoming 2>/dev/null)" = "$(cat "$tmp/renamed.incoming")"
 expect "nothing at the rename stop is left unmerged" test -z "$(git ls-files -u)"
 
+# A rename against an edit the other way round: the Incoming side renamed the file and rewrote its
+# line 2, the Target side kept its own name and rewrote the same line. The merged path git leaves in
+# the index is Incoming's (new.txt), never Target's (old.txt), so the file has to be written back
+# under Target's own name, whole, with Incoming's path left absent.
+fresh rename-vs-edit-incoming-renames
+seq 1 12 | sed 's/^/line /' >old.txt
+commit base
+g switch -q -c do/run
+g mv old.txt new.txt
+sed -i 's/^line 2$/INCOMING TWO/' new.txt
+commit incoming
+g switch -q main
+sed -i 's/^line 2$/TARGET TWO/' old.txt
+commit target
+g switch -q do/run
+g rebase main >/dev/null 2>&1
+renamed="$(bash "$classer" 2>/dev/null | awk '$1 == "contested" && $NF == "rename-vs-edit" { print $2 }')"
+expect "the classifier reports one contested rename-vs-edit file" test -n "$renamed" -a "$(grep -c . <<<"$renamed")" = 1
+git cat-file blob ":2:$renamed" >"$tmp/irenamed.target"
+git cat-file blob ":3:$renamed" >"$tmp/irenamed.incoming"
+run
+check_lines "a rename against an edit is written" 0 "$rc" "wrote $renamed" "resolved mechanical=0 contested=1"
+expect "the Target's own name holds the Target side whole" cmp -s old.txt "$tmp/irenamed.target"
+expect "the Incoming side's renamed path is absent from the worktree" test ! -e "$renamed"
+expect "the Incoming side's renamed path is absent from the index" \
+  test -z "$(git ls-files -- "$renamed")"
+expect "the ledger entry is still keyed by the Incoming side's renamed path" \
+  test "$(grep -c "^- file: $renamed\$" .scratch/run.ledger.md)" = 1
+expect "the entry keeps the Target side whole" \
+  test "$(ledger_part .scratch/run.ledger.md "$renamed" target 2>/dev/null)" = "$(cat "$tmp/irenamed.target")"
+expect "the entry sets the Incoming side aside whole" \
+  test "$(ledger_part .scratch/run.ledger.md "$renamed" incoming 2>/dev/null)" = "$(cat "$tmp/irenamed.incoming")"
+expect "nothing at this rename stop is left unmerged" test -z "$(git ls-files -u)"
+expect "the rebase continues from there too" \
+  g -c core.editor=true -c rerere.enabled=false rebase --continue
+
 # A text file over the 4 MiB a merge reads, whose last line both sides rewrote.
 fresh too-large
 padding() { head -c 5000000 /dev/zero | tr '\0' a; }

@@ -209,7 +209,7 @@ stage_file() { # $1 path, $2 the file as the report prints it, $3 file holding i
   mode="${m2:-$m3}"
   [ -n "$m3" ] && [ "$m2" = "$m1" ] && mode="$m3"
   sha="$(git hash-object -w --no-filters -- "$3")" || return 1
-  git update-index --cacheinfo "${mode:-100644},$sha,$1"
+  git update-index --add --cacheinfo "${mode:-100644},$sha,$1"
   git checkout-index -f -u -- "$1"
 }
 
@@ -278,6 +278,26 @@ resolve_whole() { # $1 path, $2 the file as the report prints it, $3 target or b
     git update-index --cacheinfo "160000,$(git rev-parse ":2:$path"),$path"
     echo "wrote $2"
     return
+  fi
+  # Where the Incoming side renamed into this path and the Target side kept its own name, the
+  # merged path git left in the index is Incoming's, never Target's: `--ours` there would write the
+  # Target's bytes in at Incoming's path and lose the Target's own name. The rename is read from the
+  # base-to-Incoming diff, never the working file's markers, same as conflict-class.sh's shape.
+  if ! git cat-file -e "HEAD:$path" 2>/dev/null; then
+    local merge_base renamed_from=""
+    merge_base="$(git merge-base HEAD REBASE_HEAD 2>/dev/null)"
+    if [ -n "$merge_base" ]; then
+      renamed_from="$(git diff -M --name-status "$merge_base" REBASE_HEAD -- 2>/dev/null |
+        awk -F'\t' -v p="$path" '$1 ~ /^R/ && $3 == p { print $2; exit }')"
+    fi
+    if [ -n "$renamed_from" ] && git cat-file -e "HEAD:$renamed_from" 2>/dev/null; then
+      git cat-file blob ":2:$path" > "$tmp/renamed_target"
+      stage_file "$renamed_from" "$2" "$tmp/renamed_target"
+      git update-index --force-remove -- "$path"
+      rm -f -- "$path"
+      echo "wrote $2"
+      return
+    fi
   fi
   git checkout -q --ours -- "$path"
   git add -- "$path"
