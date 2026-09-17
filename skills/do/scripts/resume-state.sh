@@ -61,7 +61,11 @@ branch="$(cd "$wt" && for d in rebase-merge rebase-apply; do
   [ -f "$f" ] && { cat "$f"; exit 0; }
 done; exit 1)" && rebase=open
 branch="${branch#refs/heads/}"
-[ "$rebase" = open ] || branch="$(git -C "$wt" symbolic-ref --short -q HEAD)"
+# A tag named do/<slug>, the shape `git fetch` gives a tag auto-followed from another remote,
+# resolves ahead of the branch of the same name and turns the --short form's output ambiguous
+# (heads/do/<slug>), so the branch is read unabbreviated and stripped of its own refs/heads/ prefix.
+[ "$rebase" = open ] || branch="$(git -C "$wt" symbolic-ref -q HEAD)"
+branch="${branch#refs/heads/}"
 [ -n "$branch" ] || { echo "$wt is on a detached HEAD with no rebase open: nothing to resume" >&2; exit 2; }
 
 base="$(git -C "$main" symbolic-ref --short -q HEAD || git -C "$main" rev-parse HEAD)"

@@ -300,6 +300,24 @@ git worktree remove --force .claude/worktrees/do-recreated
 g branch -D do/recreated >/dev/null
 rm "$issues/30-recreated.review.md" "$issues/30-recreated.md"
 
+# A lightweight tag named do/<slug>, the shape `git fetch` gives a tag auto-followed from another
+# remote, resolves ahead of the branch of the same name and turns a short-name read ambiguous.
+echo "# resume-state.sh: a tag sharing the branch's own name"
+ticket 40-tagged.md '**Status:** claimed' 'None (can start immediately)'
+tg="$top/.claude/worktrees/do-tagged"
+g worktree add -q .claude/worktrees/do-tagged -b do/tagged "$fork"
+g -C "$tg" commit -q --allow-empty -m "feat: tag collision" -m "Behaviour: A tag named like the branch does not confuse the read"
+tagged_short="$(git rev-parse --short do/tagged)"
+g tag do/tagged "$fork"
+run "$resume" "$issues/40-tagged.md"
+check_lines "a tag sharing the branch's name still resumes on the branch, not heads/<name>" 0 "$rc" \
+  "branch=do/tagged" "commit=$tagged_short feat: tag collision" \
+  "behaviour=$tagged_short A tag named like the branch does not confuse the read" "commits=1" "verdict=build"
+g tag -d do/tagged >/dev/null
+git worktree remove --force .claude/worktrees/do-tagged
+g branch -D do/tagged >/dev/null
+rm "$issues/40-tagged.md"
+
 # The extreme paragraph of mechanics.md: a rerun on an unchanged Spec must meet the same Extreme
 # fork and print the same /discuss command, never fork a choice-taker a second time. The sidecar
 # is the record a first run's stop left beside the Ticket, the way a Review or a Digest is.
