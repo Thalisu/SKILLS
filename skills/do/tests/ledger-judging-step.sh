@@ -70,6 +70,20 @@ carries "the brief hands the judge the run's intent, the Digest in a ticket run 
 carries_any "a ledger with nothing to judge forks no agent" \
   "forks no" "forks nothing" "is not forked" "nothing is forked" "no fork"
 
+# The fallback: a session whose Agent tool lists no `ledger-judge` judges the pending entries itself
+# and says so, the same branch the door's reader and the choice-taker's step already carry.
+carries_any "a session whose Agent tool lists no ledger-judge judges the entries itself" \
+  "judges the entries itself" "judges them itself" "judges each entry itself" \
+  "judges the pending entries itself" "judges the ledger itself"
+carries_any "the fallback names ledger-judge as the agent this machine has not linked" \
+  "lists no \`ledger-judge\`" "\`ledger-judge\` not listed"
+carries "the fallback names the run that links the agent before the next /do" \
+  "scripts/link-skills.sh"
+carries "the run neither stops nor asks for the agent it cannot fork" "neither stops nor asks"
+carries_any "the fallback never forks another agent in the judge's place" \
+  "never forks another agent in its place" "never forks another agent in the judge's place" \
+  "never forks another agent in the ledger-judge's place"
+
 before "the ledger is read for judging only once the rebase has finished" \
   "Once the rebase finishes" "ledger.sh pending"
 before "the judge is forked before the gate's command lines run again and the review is called" \

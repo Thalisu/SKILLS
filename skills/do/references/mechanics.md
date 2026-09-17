@@ -720,6 +720,17 @@ what `pending` named, so running twice leaves the same ledger. An id the judge n
 did not is refused by the script with nothing written, and the run records the refusal rather than
 retrying it: a reading of an entry nobody set aside is not one the run asked for.
 
+No judge can be forked on two branches: the Agent tool is withheld from the session, or the Agent
+tool lists no `ledger-judge`, as it does on a machine that never linked the agent `do` ships. On
+either branch the session judges the pending entries itself, reading each entry and the file it
+names, and writes the same verdicts through the same verb. It says in one line which branch holds,
+the Agent tool withheld, or `ledger-judge` not listed, the agent this machine has not linked, which
+one run of the skills repository's `scripts/link-skills.sh` links before the next `/do`. The run
+neither stops nor asks for the agent, since the developer cannot hand one over mid-run and the
+ledger is what the run needs judged, not the window it was judged in. It never forks another agent
+in its place: a fork under any other name could still hold the write tools `ledger-judge`'s own
+definition denies it.
+
 Then the gate's command lines run again and the review is called, as after any replay, or the fix
 call on a run the review already read.
 

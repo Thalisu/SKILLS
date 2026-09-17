@@ -52,6 +52,7 @@ case_fail "an Agent call with no subagent_type at all fails the grader" ""
 case_fail "an Agent call to unit-test-author fails the grader" "unit-test-author"
 case_pass "an Agent call to do-reader, the door step's legitimate pre-fork fork, passes" "do-reader"
 case_pass "an Agent call to sketch, the shape step's legitimate pre-fork fork, passes" "sketch"
+case_pass "an Agent call to ledger-judge, the integration step's legitimate fork, passes" "ledger-judge"
 case_fail "an Agent call to general-purpose still fails the grader" "general-purpose"
 
 [ "$fails" -eq 0 ] && exit 0
