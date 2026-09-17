@@ -896,6 +896,41 @@ expect "the .env is left exactly as the union block wrote it, untouched by a par
 entries="$(grep -c '^## ' "$ledger" 2>/dev/null)" || entries=0
 expect "a file blocked by the cap leaves no entry in the ledger" test "$entries" = 0
 
+# A rebase stopped on a `.env` whose Incoming side itself defines DENY twice: the commit being
+# replayed emptied DENY and then wrote the same empty definition again, while the Target's branch set
+# DENY to a real deny list once. The union carries the Target's single definition above both of the
+# Incoming's, and a reader that takes the last DENY line it meets must still land on the Target's, not
+# on either of the Incoming's.
+fresh env-incoming-duplicate
+printf 'APP=one\n' >.env
+commit base
+g switch -q -c do/run
+printf 'APP=one\nINCOMING_ONLY=i\nDENY=\nDENY=\n' >.env
+commit incoming
+g switch -q main
+printf 'APP=one\nTARGET_ONLY=t\nDENY=admin,root\n' >.env
+commit target
+g switch -q do/run
+g rebase main >/dev/null 2>&1
+
+write_unions
+expect "the union the integration wrote carries the Target's DENY definition above both of the Incoming's" \
+  test "$(cat .env)" = "$(printf 'APP=one\nTARGET_ONLY=t\nDENY=admin,root\nINCOMING_ONLY=i\nDENY=\nDENY=')"
+
+run
+ledger="$PWD/.scratch/run.ledger.md"
+
+check_lines "the read-back names the key it kept and counts the file it read" 0 "$rc" \
+  "kept .env DENY" "read-back files=1 kept=1 deduped=0"
+expect "the .env keeps the Target's DENY definition, drops both of the Incoming's, and keeps every other line of both sides" \
+  test "$(cat .env)" = "$(printf 'APP=one\nTARGET_ONLY=t\nDENY=admin,root\nINCOMING_ONLY=i')"
+expect "the DENY key lands exactly once in the landed .env" test "$(grep -c '^DENY=' .env)" = 1
+expect "the last DENY definition a reader meets is the Target's non-empty one, not the Incoming's empty one" \
+  test "$(grep '^DENY=' .env | tail -n1)" = 'DENY=admin,root'
+
+expect "the dropped definitions leave one entry in the ledger" \
+  test "$(grep -c '^## ' "$ledger" 2>/dev/null)" = 1
+
 if [ "$fails" = 0 ]; then echo "all ok"; else
   echo "$fails failing"
   exit 1

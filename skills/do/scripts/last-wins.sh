@@ -320,7 +320,7 @@ while IFS= read -r -d '' file; do
 
   drop=()
   while IFS= read -r key; do
-    target_at="" incoming_at="" occ=() same=1 seen=0
+    target_at="" occ=() incoming_occs=() same=1 seen=0
     while IFS=$'\t' read -r path first lastline; do
       [ "$path" = "$key" ] || continue
       block_text "$file" "$first" "$lastline" > "$tmp/block"
@@ -332,14 +332,18 @@ while IFS= read -r -d '' file; do
         target_at="$first $lastline"
         cp "$tmp/block" "$tmp/side-target"
       elif block_in "$tmp/block" "$tmp/incoming" && ! block_in "$tmp/block" "$tmp/target"; then
-        incoming_at="$first $lastline"
+        # A side that repeats the key inside its own text still classifies every occurrence here, not
+        # just the last one: every one of them must reach `drop` below, or an earlier occurrence this
+        # side wrote survives past the one the entry keeps, and a reader taking the last definition it
+        # meets lands on the wrong side's value.
+        incoming_occs+=("$first $lastline")
         cp "$tmp/block" "$tmp/side-incoming"
       fi
     done < "$tmp/blocks"
 
-    if [ -n "$target_at" ] && [ -n "$incoming_at" ]; then
+    if [ -n "$target_at" ] && [ "${#incoming_occs[@]}" -gt 0 ]; then
       put_entry "$file" "$key" "$tmp/side-target" "$tmp/side-incoming" || exit 2
-      drop+=("$incoming_at")
+      drop+=("${incoming_occs[@]}")
       kept=$((kept + 1))
       echo "kept $(quote_path "$file") $key"
       continue
