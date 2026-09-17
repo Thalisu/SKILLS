@@ -16,8 +16,9 @@
 # unmerged; then, while a rebase is open, stopped=<short sha> <title> of the commit it stopped at
 # (empty when it stopped at none), onto=<the commit it rebases onto>, tip=<the commit base names
 # now>, one staged=<path> per file staged at that stop and not unmerged, and stop=<class>, first
-# match: conflicted (a file is still unmerged) · resolved (none is); review_skipped=<stale | axis-not-run> <path> when a Review beside the Ticket does not
-# count; review, the Review beside the Ticket when it counts, else none; extreme, the
+# match: moved (onto is no longer tip, whatever else the stop holds) · conflicted (a file is still
+# unmerged) · resolved (none is); review_skipped=<stale | axis-not-run> <path> when a Review beside
+# the Ticket does not count; review, the Review beside the Ticket when it counts, else none; extreme, the
 # <Ticket>.extreme.md sidecar a first run's Extreme stop left beside the Ticket, when one is there,
 # followed by discuss, that file's first line, the /discuss command the stop printed; then verdict.
 # A Review counts when the commit its Commit: header names is one this branch has been at, read off
@@ -114,7 +115,9 @@ rebase_stop() {
   echo "onto=$onto"
   echo "tip=$tip"
   git -C "$wt" -c core.quotePath=true diff --cached --name-only --diff-filter=u | sed 's/^/staged=/'
-  if [ -n "$conflicted" ]; then echo "stop=conflicted"; else echo "stop=resolved"; fi
+  if [ "$onto" != "$tip" ]; then echo "stop=moved"
+  elif [ -n "$conflicted" ]; then echo "stop=conflicted"
+  else echo "stop=resolved"; fi
 }
 [ "$rebase" != open ] || rebase_stop
 review="${path%.md}.review.md"

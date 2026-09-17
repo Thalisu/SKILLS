@@ -368,6 +368,12 @@ check_lines "a rebase left open with its conflict resolved and staged, onto the 
   "rebase=open" "stop=resolved" "stopped=$first feat: archive a note" "staged=notes.txt" \
   "onto=$tip" "tip=$tip" "verdict=integration"
 absent_prefix "a rebase whose conflict is resolved and staged names no conflicted path" "conflicted="
+g commit -q --allow-empty -m "main moves again"
+moved_tip="$(git rev-parse HEAD)"
+run "$resume" "$issues/04-claimed.md"
+check_lines "a rebase left open onto a commit the branch has since moved past resumes as moved, naming the onto commit and the current tip" 3 "$rc" \
+  "stop=moved" "onto=$tip" "tip=$moved_tip" "staged=notes.txt" "verdict=integration"
+absent_prefix "a rebase left open onto a commit the branch has moved past is not resumed as resolved" "stop=resolved"
 git -C "$wt" rebase --abort
 rm "$issues/04-claimed.review.md"
 
