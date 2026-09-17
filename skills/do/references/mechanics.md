@@ -689,7 +689,8 @@ A return that reads
 reviewed nothing and wrote nothing: the door of the review is a script, and the guard of an
 isolated session refuses to run one. It is not a Finding and not a refusal of the diff. The run
 leaves the isolation per [worktrees.md](../../../.agents/worktrees.md) and calls the review again,
-once, with the same four arguments.
+once, with the same arguments as the first call: the four above, and the fifth, the held Rulings
+block, when the run holds one.
 
 What the review does with the call, so that the run does not: it writes the Review, forks one
 Fixer per `Act on` Finding, one at a time, each turning its Finding into one commit on the
