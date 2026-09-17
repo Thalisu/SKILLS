@@ -234,6 +234,14 @@ a stop named, and the next run on that Ticket forks the reader fresh.
   `Principles`, lists each Ruling in one line: the fork, the side taken, and the norm or "no norm".
   It reads `none` when the run ruled nothing. Only an Extreme fork, or a fork no choice-taker could
   rule, stops the run.
+- When the Spec and the Ticket are issues on your tracker, a Design fork still goes on without a
+  question, and nothing is written to the tracker mid-run. The run keeps the Ruling itself and
+  hands it to the review, so the build is held to a rewritten criterion the Ticket issue does not
+  show yet. The close's one question lists every write your yes makes: the rewritten criterion in
+  the Ticket issue's body, the Ruling as a comment on the Spec issue under
+  `## Implementation Decisions`, where the next Ticket's run finds it, and the evidence on the
+  Ticket issue before it is closed. On a no nothing reaches the tracker, and the `Rulings` section
+  carries the Ruling whole, with the old and the new criterion, for you to carry over by hand.
 - A fork no choice-taker could rule stops the run like an Extreme fork, on the same kind of
   `/discuss` command. The reason is in the reply: the Agent tool withheld, `choice-taker` not
   listed, or the choice-taker's return quoted whole when it came back with no usable Ruling. The
