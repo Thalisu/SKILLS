@@ -379,6 +379,208 @@ expect "the Incoming's deny definition stands under the other mapping" \
 entries="$(grep -c '^## ' "$ledger" 2>/dev/null)" || entries=0
 expect "a YAML key each scope defines once leaves no entry in the ledger" test "$entries" = 0
 
+# A rebase stopped on a `*.toml` whose base commit carries one `[services.web]` table: the Target set
+# `deny` to a real deny list under it, the commit being replayed emptied `deny` under the same table,
+# and each side added one key of its own at the same anchor. One table, one key, two definitions, and
+# a TOML reader takes the last one it meets.
+fresh toml-same-scope
+mkdir -p config
+cat >config/settings.toml <<'TOML'
+[services.web]
+image = "web:1"
+port = 80
+TOML
+commit base
+g switch -q -c do/run
+cat >config/settings.toml <<'TOML'
+[services.web]
+image = "web:1"
+incoming_only = "i"
+deny = []
+port = 80
+TOML
+commit incoming
+g switch -q main
+cat >config/settings.toml <<'TOML'
+[services.web]
+image = "web:1"
+target_only = "t"
+deny = ["admin", "root"]
+port = 80
+TOML
+commit target
+g switch -q do/run
+g rebase main >/dev/null 2>&1
+
+write_unions
+expect "the union the integration wrote defines services.web.deny twice under one table" \
+  test "$(grep -c '^deny =' config/settings.toml)" = 2
+
+run
+ledger="$PWD/.scratch/run.ledger.md"
+
+check_lines "the read-back names the TOML key path it kept from the table it sits under and counts the file it read" 0 "$rc" \
+  "kept config/settings.toml services.web.deny" "read-back files=1 kept=1 deduped=0"
+expect "the TOML keeps the Target's deny definition, drops the Incoming's, and keeps every other line of both sides" \
+  test "$(cat config/settings.toml)" = "$(
+    cat <<'TOML'
+[services.web]
+image = "web:1"
+target_only = "t"
+deny = ["admin", "root"]
+incoming_only = "i"
+port = 80
+TOML
+  )"
+expect "the Target's deny definition stands in the landed TOML" \
+  grep -qxF -- 'deny = ["admin", "root"]' config/settings.toml
+expect "the Incoming's deny definition is gone from the landed TOML" \
+  test -z "$(grep -xF -- 'deny = []' config/settings.toml)"
+
+expect "the dropped TOML definition leaves one entry in the ledger" \
+  test "$(grep -c '^## ' "$ledger" 2>/dev/null)" = 1
+keys="$(ledger_part "$ledger" config/settings.toml keys 2>/dev/null)"
+expect "the entry names the TOML file the definition was dropped from" \
+  grep -qxF -- '- file: config/settings.toml' <<<"$keys"
+expect "the TOML entry is shaped last-wins-duplicate" grep -qxF -- '- shape: last-wins-duplicate' <<<"$keys"
+expect "the TOML entry locates the definition by its key path from the table it sits under" \
+  grep -qxF -- '- location: services.web.deny' <<<"$keys"
+expect "the TOML entry sets aside the Incoming's definition" \
+  test "$(ledger_part "$ledger" config/settings.toml incoming 2>/dev/null)" = 'deny = []'
+
+# The same key name, once under each of two tables: the Target defined `deny` under
+# `[services.web]` and the replayed commit defined it under `[services.api]`. The file conflicts over
+# the keys the two sides added under `[services.web]` at the same anchor, so the union reaches the
+# script, but no table defines `deny` twice and a TOML reader loses nothing.
+fresh toml-two-scopes
+cat >services.toml <<'TOML'
+[services.web]
+image = "web:1"
+port = 80
+
+[services.api]
+image = "api:1"
+port = 81
+TOML
+commit base
+g switch -q -c do/run
+cat >services.toml <<'TOML'
+[services.web]
+image = "web:1"
+incoming_only = "i"
+port = 80
+
+[services.api]
+image = "api:1"
+deny = ["root"]
+port = 81
+TOML
+commit incoming
+g switch -q main
+cat >services.toml <<'TOML'
+[services.web]
+image = "web:1"
+target_only = "t"
+deny = ["admin"]
+port = 80
+
+[services.api]
+image = "api:1"
+port = 81
+TOML
+commit target
+g switch -q do/run
+g rebase main >/dev/null 2>&1
+
+write_unions
+union="$(cat services.toml)"
+expect "the union the integration wrote defines deny once under each of the two tables" \
+  test "$(grep -c '^deny =' services.toml)" = 2
+
+run
+ledger="$PWD/.scratch/run.ledger.md"
+
+check_lines "the read-back counts the .toml it read and keeps nothing" 0 "$rc" \
+  "read-back files=1 kept=0 deduped=0"
+absent "no key is named kept in a TOML that defines each of them once per table" "kept services.toml"
+expect "the TOML lands exactly as the union block wrote it" test "$(cat services.toml)" = "$union"
+expect "the Target's deny definition stands under its own table" \
+  grep -qxF -- 'deny = ["admin"]' services.toml
+expect "the Incoming's deny definition stands under the other table" \
+  grep -qxF -- 'deny = ["root"]' services.toml
+
+entries="$(grep -c '^## ' "$ledger" 2>/dev/null)" || entries=0
+expect "a TOML key each table defines once leaves no entry in the ledger" test "$entries" = 0
+
+# A rebase stopped on a `*.ini` whose base commit carries one `[web]` section: the Target set `deny`
+# to a real deny list under it, the commit being replayed emptied `deny` under the same section, and
+# each side added one key of its own at the same anchor. One section, one key, two definitions, and an
+# INI reader takes the last one it meets.
+fresh ini-same-scope
+mkdir -p config
+cat >config/settings.ini <<'INI'
+[web]
+image = web:1
+port = 80
+INI
+commit base
+g switch -q -c do/run
+cat >config/settings.ini <<'INI'
+[web]
+image = web:1
+incoming_only = i
+deny =
+port = 80
+INI
+commit incoming
+g switch -q main
+cat >config/settings.ini <<'INI'
+[web]
+image = web:1
+target_only = t
+deny = admin,root
+port = 80
+INI
+commit target
+g switch -q do/run
+g rebase main >/dev/null 2>&1
+
+write_unions
+expect "the union the integration wrote defines web.deny twice under one section" \
+  test "$(grep -c '^deny' config/settings.ini)" = 2
+
+run
+ledger="$PWD/.scratch/run.ledger.md"
+
+check_lines "the read-back names the INI key path it kept from the section it sits under and counts the file it read" 0 "$rc" \
+  "kept config/settings.ini web.deny" "read-back files=1 kept=1 deduped=0"
+expect "the INI keeps the Target's deny definition, drops the Incoming's, and keeps every other line of both sides" \
+  test "$(cat config/settings.ini)" = "$(
+    cat <<'INI'
+[web]
+image = web:1
+target_only = t
+deny = admin,root
+incoming_only = i
+port = 80
+INI
+  )"
+expect "the Target's deny definition stands in the landed INI" \
+  grep -qxF -- 'deny = admin,root' config/settings.ini
+expect "the Incoming's deny definition is gone from the landed INI" \
+  test -z "$(grep -xF -- 'deny =' config/settings.ini)"
+
+expect "the dropped INI definition leaves one entry in the ledger" \
+  test "$(grep -c '^## ' "$ledger" 2>/dev/null)" = 1
+keys="$(ledger_part "$ledger" config/settings.ini keys 2>/dev/null)"
+expect "the entry names the INI file the definition was dropped from" \
+  grep -qxF -- '- file: config/settings.ini' <<<"$keys"
+expect "the INI entry is shaped last-wins-duplicate" grep -qxF -- '- shape: last-wins-duplicate' <<<"$keys"
+expect "the INI entry locates the definition by its key path from the section it sits under" \
+  grep -qxF -- '- location: web.deny' <<<"$keys"
+expect "the INI entry sets aside the Incoming's definition" \
+  test "$(ledger_part "$ledger" config/settings.ini incoming 2>/dev/null)" = 'deny ='
+
 if [ "$fails" = 0 ]; then echo "all ok"; else
   echo "$fails failing"
   exit 1

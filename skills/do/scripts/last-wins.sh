@@ -60,6 +60,8 @@ format_of() { # $1 path
     .env | .env.*) echo env ;;
     *.json) echo json ;;
     *.yaml | *.yml) echo yaml ;;
+    *.toml) echo toml ;;
+    *.ini) echo ini ;;
     *) echo "" ;;
   esac
 }
@@ -183,11 +185,38 @@ yaml_blocks() { # $1 file
   ' "$1"
 }
 
+# The scope is the last header line, and each entry of a `[[array]]` of tables is a scope of its own
+# for the same reason a `- ` item is in YAML.
+section_blocks() { # $1 file, $2 the separators a key line may use, $3 the characters that open a comment
+  awk -v sep="$2" -v cmt="$3" '
+    function join(a, b) { return a == "" ? b : a "." b }
+    {
+      body = $0
+      sub(/^[ \t]+/, "", body)
+      sub(/[ \t]+$/, "", body)
+      if (body == "" || index(cmt, substr(body, 1, 1))) next
+      if (body ~ /^\[\[.*\]\]$/) {
+        name = substr(body, 3, length(body) - 4)
+        seen[name]++
+        scope = name "[" (seen[name] - 1) "]"
+        next
+      }
+      if (body ~ /^\[.*\]$/) { scope = substr(body, 2, length(body) - 2); next }
+      if (body !~ "^[A-Za-z_0-9.-]+[ \t]*[" sep "]") next
+      key = body
+      sub("[ \t]*[" sep "].*", "", key)
+      print join(scope, key) "\t" NR "\t" NR
+    }
+  ' "$1"
+}
+
 key_blocks() { # $1 format, $2 file
   case "$1" in
     env) env_blocks "$2" ;;
     json) json_blocks "$2" ;;
     yaml) yaml_blocks "$2" ;;
+    toml) section_blocks "$2" '=' '#' ;;
+    ini) section_blocks "$2" '=:' '#;' ;;
   esac
 }
 
