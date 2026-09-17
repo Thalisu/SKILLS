@@ -129,22 +129,38 @@ regenerate() { # $1 path: the three stages into $tmp/s1..s3, their merge into $t
 # rebase has moved the branch, so the ledger names both.
 before="$started_from"
 
-# One side of a whole-file hunk: its stage whole, its deletion, or, where the file cannot be read
-# line by line, its size, its blob and the tip that reaches it. Whether a stage exists is read from
-# the index (`mode_at`, from `git ls-files -u`), never from `git cat-file -e`: a gitlink's stage
-# names a commit that lives in the submodule's own object store, never in this repository's, so it
-# always tests as absent there even where the stage plainly exists.
-whole_side() { # $1 stage, $2 path, $3 shape
+# The most one stage of a whole-file hunk may weigh before it is named by its size and blob instead
+# of copied: conflict-class.sh's own cap, so a side too large to classify is also too large to paste.
+max_stage_bytes=$((4 * 1024 * 1024))
+
+# One side of a whole-file hunk: its stage whole, its deletion, or, where the file cannot be read line
+# by line, its size, its blob and the tip that reaches it. The size and binary check run off the
+# stage itself, never off the shape ($3): a delete-vs-edit or an add/add conflict (`unmergeable`)
+# never runs classify_hunks, which is the only place that checks size or binary content elsewhere, so
+# a side of either shape past the cap or holding NUL bytes would otherwise reach the ledger raw and
+# uncapped. Whether a stage exists is read from the index (`mode_at`, from `git ls-files -u`), never
+# from `git cat-file -e`: a gitlink's stage names a commit that lives in the submodule's own object
+# store, never in this repository's, so it always tests as absent there even where the stage plainly
+# exists.
+whole_side() { # $1 stage, $2 path, $3 shape (unused: the check below never trusts it)
   local mode="${mode_at["$(quote_path "$2")#$1"]:-}"
   [ -n "$mode" ] || { echo "(deleted)"; return; }
   case "$mode" in
     160000) echo "(submodule, commit $(git rev-parse ":$1:$2"))"; return ;;
   esac
-  case "$3" in
-    binary)    echo "(binary, $(git cat-file -s ":$1:$2") bytes, blob $(git rev-parse ":$1:$2"), before $before)" ;;
-    too-large) echo "(too large, $(git cat-file -s ":$1:$2") bytes, blob $(git rev-parse ":$1:$2"), before $before)" ;;
-    *)         git cat-file blob ":$1:$2" ;;
-  esac
+  local size sha blob="$tmp/whole-side-probe"
+  size="$(git cat-file -s ":$1:$2" 2>/dev/null)"
+  sha="$(git rev-parse ":$1:$2")"
+  if [ "${size:-0}" -gt "$max_stage_bytes" ]; then
+    echo "(too large, $size bytes, blob $sha, before $before)"
+    return
+  fi
+  git cat-file blob ":$1:$2" > "$blob" 2>/dev/null
+  if [ "$(tr -d '\000' < "$blob" | wc -c)" -ne "$(wc -c < "$blob")" ]; then
+    echo "(binary, $size bytes, blob $sha, before $before)"
+    return
+  fi
+  cat "$blob"
 }
 
 # The Target and the Incoming section of one hunk, into $tmp/target and $tmp/incoming, the prefix

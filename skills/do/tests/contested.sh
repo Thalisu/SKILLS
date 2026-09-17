@@ -318,11 +318,12 @@ expect "no whole-file hunk is left unmerged" test -z "$(git ls-files -u)"
 expect "the rebase continues from there too" \
   g -c core.editor=true -c rerere.enabled=false rebase --continue
 
-# A whole-file delete-vs-edit never runs the binary check classify_hunks keeps to its both-modified
-# path, so a NUL-holding Target side is pasted into the ledger raw. Its own line of four backticks
-# must not close a shorter fence: a fence that does closes early and a forged '## <id>' heading past
-# it reads as a second top-level entry, letting whoever writes the Target side plant a fake ledger
-# entry naming any file.
+# A whole-file delete-vs-edit never runs classify_hunks, the only place that used to check a stage
+# for binary content, so a NUL-holding Target side used to be pasted into the ledger raw, opening a
+# fence a forged '## <id>' heading past it could close early and read as a second top-level entry,
+# letting whoever writes the Target side plant a fake ledger entry naming any file. `whole_side` now
+# runs that check itself off the stage, whatever the shape, so the NUL-holding side is named by its
+# blob and never reaches the ledger as bytes at all: there is no fence left to forge past.
 fresh forged-fence
 printf 'kept\n' >notes.txt
 commit base
@@ -334,6 +335,8 @@ printf 'notes\000\n````\n## 000000000000\n- file: .github/workflows/release.yml\
 commit target
 g switch -q do/run
 g rebase main >/dev/null 2>&1
+before="$(cat "$(git rev-parse --git-path rebase-merge/orig-head)")"
+notes_target="$(named binary 2 notes.txt)"
 
 # A CommonMark-style fence scan: a '## <id>' heading only counts as a real entry where it lies
 # outside every fence, the same reading the spec's judge and ledger.sh's own rewrite rely on.
@@ -357,8 +360,10 @@ top_level_entries() { # $1 ledger
 run
 check_lines "a NUL-holding Target side with an unresolved delete is still resolved to it" 0 "$rc" \
   "wrote notes.txt" "resolved mechanical=0 contested=1"
-expect "the fence around the NUL-holding Target side outruns the four backticks inside it" \
-  grep -qE '^`{5,}$' .scratch/run.ledger.md
+expect "the NUL-holding Target side is named by its size and blob, not pasted, leaving no fence to forge past" \
+  test "$(ledger_part .scratch/run.ledger.md notes.txt target 2>/dev/null)" = "$notes_target"
+expect "the forged heading and command inside the Target side never reach the ledger at all" \
+  test "$(grep -acF -e attacker.example -e '## 000000000000' .scratch/run.ledger.md)" = 0
 expect "the forged heading inside the Target side never becomes a second top-level ledger entry" \
   test "$(top_level_entries .scratch/run.ledger.md)" = 1
 
@@ -515,6 +520,59 @@ expect "a file too large to merge takes the Target side whole" cmp -s huge.txt "
 names_whole_side 'too large' huge.txt "$huge_target" "$huge_incoming"
 expect "no byte of either side of a file too large to merge reaches the ledger" \
   test "$(grep -acE 'aaaaaaaaaaaaaaaa|(TARGET|INCOMING|base) END' .scratch/run.ledger.md)" = 0
+
+# A delete-vs-edit shape never runs classify_hunks, so its stages never see the binary check that
+# path keeps: `whole_side` has to run that check itself, off the shape it is handed, not off a
+# `binary`/`too-large` verdict a delete-vs-edit conflict never carries.
+fresh delete-vs-edit-binary
+printf 'kept\n' >img.dat
+commit base
+g switch -q -c do/run
+printf 'kept\npixels\000\001secret-incoming\n' >img.dat
+commit incoming
+g switch -q main
+g rm -q img.dat
+commit target
+g switch -q do/run
+g rebase main >/dev/null 2>&1
+before="$(cat "$(git rev-parse --git-path rebase-merge/orig-head)")"
+img_incoming="$(named binary 3 img.dat)"
+
+run
+check_lines "a delete-vs-edit whose surviving side is binary is still resolved to the Target's deletion" \
+  0 "$rc" "removed img.dat" "resolved mechanical=0 contested=1"
+expect "the Target side deleted it, so it is gone from the tree" test ! -e img.dat
+expect "a delete-vs-edit's binary Incoming side is named by its size and blob, not pasted" \
+  test "$(ledger_part .scratch/run.ledger.md img.dat incoming 2>/dev/null)" = "$img_incoming"
+expect "no byte of a delete-vs-edit's binary Incoming side reaches the ledger" \
+  test "$(grep -acF -e pixels -e secret-incoming .scratch/run.ledger.md)" = 0
+
+# An add/add conflict, `unmergeable` per conflict-class.sh, over a file past the classifier's 4 MiB
+# per-stage cap: that cap is read only inside `classify_hunks`, which an add/add conflict never
+# reaches (its stages are `2 3`, with no base), so `whole_side` has to weigh the size itself.
+fresh add-add-too-large
+printf 'root\n' >root.txt
+commit base
+g switch -q -c do/run
+{ padding; printf '\nINCOMING END\n'; } >huge2.txt
+commit incoming
+g switch -q main
+{ padding; printf '\nTARGET END\n'; } >huge2.txt
+commit target
+g switch -q do/run
+g rebase main >/dev/null 2>&1
+git cat-file blob :2:huge2.txt >"$tmp/huge2.target"
+before="$(cat "$(git rev-parse --git-path rebase-merge/orig-head)")"
+huge2_target="$(named 'too large' 2 huge2.txt)"
+huge2_incoming="$(named 'too large' 3 huge2.txt)"
+
+run
+check_lines "an add/add conflict over an oversized file is still resolved to the Target side" \
+  0 "$rc" "wrote huge2.txt" "resolved mechanical=0 contested=1"
+expect "an add/add conflict's oversized Target side is written whole" cmp -s huge2.txt "$tmp/huge2.target"
+names_whole_side 'too large' huge2.txt "$huge2_target" "$huge2_incoming"
+expect "no byte of either side of an add/add conflict's oversized file reaches the ledger" \
+  test "$(grep -acE 'aaaaaaaaaaaaaaaa|(TARGET|INCOMING) END' .scratch/run.ledger.md)" = 0
 
 # A contested stop that also carries a file whose every hunk is mechanical. No path may be typed into
 # a command line, so the script resolves that file itself, by the union rule.
