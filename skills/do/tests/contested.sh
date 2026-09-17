@@ -738,7 +738,8 @@ expect "the merge commits from there" g commit -qm merged
 
 # A stopped merge in a repository where an earlier rebase already finished: git 2.55 leaves a stale
 # REBASE_HEAD behind after `rebase --continue` completes, even though no rebase-merge or rebase-apply
-# directory remains. The stop is still the merge's, and its undo is the merge's own.
+# directory remains. The stop is still the merge's, so its ledger entry names the merged commit and
+# the tip the merge started from, never the commit that stale REBASE_HEAD still points at.
 fresh stale-rebase-head
 printf 'x\ny\nz\n' >rewrite.txt
 commit base
@@ -766,19 +767,22 @@ printf 'x\nFEATURE AGAIN\nz\n' >rewrite.txt
 commit feature-again
 g merge topic >/dev/null 2>&1
 expect "the merge actually stops with a real conflict" test -n "$(git ls-files -u)"
+# The merge's own refs are gone once it commits, so every side is named before the run.
+stale_merged="$(git rev-parse MERGE_HEAD)"
+stale_rebase_head="$(git rev-parse REBASE_HEAD)"
+stale_started_from="$(git rev-parse ORIG_HEAD)"
 
 run
-first="$(sed -n 's/^id //p' <<<"$out")"
-check "a stopped merge after a finished rebase's stale REBASE_HEAD carries the merge's own undo" 1 "$rc" \
-  "Undo: git merge --abort"
-check_absent "the question never offers the finished rebase's undo, stale REBASE_HEAD or not" 1 "$rc" \
-  "Undo: git rebase --abort"
-
-run "$first:stop"
-check "stop after a finished rebase's stale REBASE_HEAD blocks with the merge's undo" 3 "$rc" \
-  "undo git merge --abort"
-check_absent "stop never reports the operation as a rebase because of a stale REBASE_HEAD" 3 "$rc" \
-  "undo git rebase --abort"
+check_lines "a stopped merge after a finished rebase's stale REBASE_HEAD resolves its contested hunk" 0 "$rc" \
+  "wrote rewrite.txt" "resolved mechanical=0 contested=1"
+stale_keys="$(ledger_part .scratch/run.ledger.md rewrite.txt keys 2>/dev/null)"
+expect "the entry names the merged commit as the one it set the Incoming side aside from" \
+  grep -qxF -- "- commit: $stale_merged" <<<"$stale_keys"
+expect "that commit is never the one the finished rebase's stale REBASE_HEAD still points at" \
+  test "$(grep -c '^- commit: ' <<<"$stale_keys")" = 1 \
+  -a "$(grep '^- commit: ' <<<"$stale_keys")" != "- commit: $stale_rebase_head"
+expect "the entry names the tip the merge started from" \
+  grep -qxF -- "- before: $stale_started_from" <<<"$stale_keys"
 
 # The Loss ledger lives in the main checkout's scratch and nowhere else: a path that resolves outside
 # it, by its own text, by `..` or through a link, is refused before the stop is touched.
