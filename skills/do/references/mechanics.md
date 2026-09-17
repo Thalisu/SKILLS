@@ -540,6 +540,12 @@ conflicted hunk, are quoted in the Reply's Evidence, and the counts, how many hu
 mechanically and how many it brought to the developer, go on the integration line of the Run
 section.
 
+A stop the script answers with `no conflicted state, nothing classed` is never continued unasked:
+the rebase stopped with nothing unmerged, so whatever is staged for that commit carries nobody's
+recorded answer. A run that opened the rebase itself never meets that stop. A resumed run meets it
+only after the question the Resume of [ticket.md](ticket.md) asks on `resume-state.sh`'s
+`stop=resolved` or `stop=moved` line, and it continues only on the answer that says so.
+
 Where every hunk of the stop is `mechanical`, the run resolves them itself and nothing is asked of
 the developer. The conflicted files are the list git left, read NUL-delimited so that a path
 carrying a space or a newline comes back as one entry and needs no unescaping:

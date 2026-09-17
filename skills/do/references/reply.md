@@ -38,7 +38,9 @@ files and the audit line both come before the worktree line):
    `Behaviour:` line and a commit whose line matches no line of the list named; or, on an open
    rebase, that it resumed there, with the worktree and the branch read from the rebase state, the
    commits it found, the files git left conflicted and each file taken on trust as the developer
-   resolved it by hand; or that it started over, since the worktree was gone, with the branch the
+   resolved it by hand, then one line off `resume-state.sh`'s own lines,
+   `rebase open: stopped at <stopped>, onto <onto>, <base> at <tip>: <stop>; answered <answer>`,
+   with every staged file named and `answered none` when the stop asked nothing; or that it started over, since the worktree was gone, with the branch the
    removal left behind when there is one. A question the run waits on is the turn's final message
    and keeps its own wording.
 8. **Protected-branch warning.** When it applies: the branch, the rule, and that the landing is

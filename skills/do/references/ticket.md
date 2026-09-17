@@ -88,7 +88,8 @@ line per file, `review=`, the Review beside the Ticket or `none`, with a `review
 before it when a Review there does not count (`stale`, a Review of a commit this branch was never
 at, left by a run that started over; `axis-not-run`, a review that never finished), since only a
 finished review of this branch spares a second one, and a `verdict=` line, `build`
-(exit 0), `ask` (exit 1, uncommitted work), `integration` (exit 3, a rebase left open) or `land`
+(exit 0), `ask` (exit 1, uncommitted work), `integration` (exit 3, a rebase left open, with the
+`stopped=`, `onto=`, `tip=`, `staged=` and `stop=` lines that say what it holds) or `land`
 (exit 4, the review already read the branch). The Ticket is not written: the claim stands.
 Exit 2 after the door's `resume` is a worktree on a detached HEAD with no rebase open:
 the run stops as blocked in one line naming the worktree and the script's reason, writes nothing,
@@ -135,9 +136,49 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   resume line the Reply's Run section carries names the worktree and that branch, lists the commits
   found, says the rebase is open, names the files git left conflicted, and names each file the
   conflict class printed `trusted` as the hand resolution the run kept, and the run picks up at the
-  integration in [mechanics.md](mechanics.md), classing the stop with the door script before it
-  touches anything, rather than at the build loop. A
-  `review=` line that names a Review means the rebase came after the review: once it finishes and
+  integration in [mechanics.md](mechanics.md) rather than at the build loop. What it does there is
+  the script's `stop=` line, read before it touches the rebase, and never the session's own reading
+  of the rebase state:
+  - `stop=conflicted`: the rebase is open onto the tip of the developer's branch with a file still
+    unmerged. The run classes the stop with the door script before it touches anything, and the
+    stop is resolved as at any stop of the integration.
+  - `stop=resolved`: the rebase is open onto that tip with no conflicted file. Whatever is staged
+    for the commit it stopped at was staged with nobody's answer recorded, so it is not the run's
+    to land. The question is the turn's final message and nothing is continued before the answer:
+
+    ```
+    The integration's rebase is stopped at <stopped> with no conflicted file, and this is staged for it:
+    <one staged= path per line, or: nothing staged>
+    Nobody's answer is recorded for it. Continue the rebase, committing it as staged, or stop here? (continue / stop)
+    ```
+
+    `continue` runs the continue with the integration's prefix, and every further stop is classed as
+    in any run. `stop`, or nobody there to answer, stops the run as blocked with the rebase left
+    open, `git rebase --abort` named as the undo, the worktree and its branch in place and named and
+    the Ticket left `claimed`.
+  - `stop=moved`: the rebase is open onto a commit that is no longer the tip of the developer's
+    branch, whatever else it holds. Finished as it stands, the branch would still sit behind that
+    tip and could not land by fast-forward. The question is the turn's final message and nothing is
+    continued or aborted before the answer:
+
+    ```
+    The integration's rebase is open onto <onto>, but <base> has moved to <tip>.
+    abort: drop this rebase and rebase once onto <tip>. The abort drops the resolution staged at <stopped>:
+    <one staged= and one conflicted= path per line>
+    continue: finish this rebase onto <onto>, then integrate onto <tip>, which replays the branch again.
+    (abort / continue)
+    ```
+
+    `abort` runs `git -c rerere.enabled=false -c rerere.autoupdate=false rebase --abort`, which puts
+    the branch back where it was before that rebase; the gate runs on the branch as it was, and a
+    green gate goes on to the integration onto the tip, a fresh rebase whose stops are classed and
+    whose contested hunks are handled as in any run. `continue` finishes the open rebase onto
+    `<onto>`, each of its stops classed and resolved as in any run, then runs the integration again,
+    which replays the branch onto the tip, and the gate runs after that replay. Nobody there to
+    answer stops the run as blocked, the rebase left open, the worktree and its branch in place and
+    named, the Ticket left `claimed`.
+
+  A `review=` line that names a Review means the rebase came after the review: once it finishes and
   the gate is green, the branch lands through the fix call on that Review, and is never reviewed a
   second time.
 - A run that stopped on an Extreme fork (the forks in [mechanics.md](mechanics.md)) resumes the same
