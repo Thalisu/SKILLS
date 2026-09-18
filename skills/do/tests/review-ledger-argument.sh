@@ -22,12 +22,21 @@ carries_any "the ledger reaches the review as a location, not as its text" \
   "the Loss ledger's path" "the location of the ledger" "the location of the Loss ledger"
 
 # The held Rulings stay the tail of the call, so an argument added before them keeps its own place
-# and a reader building the call puts the block last whatever else the run holds.
-carries_any "the held Rulings block is the last argument the call carries" \
-  "last of all" "the last argument" "last argument" "always last" "last, after" \
-  "after them all" "after all the others" "after every other argument" "sixth and last"
-before "the held Rulings block goes after the ledger argument, not before it" \
-  "Loss ledger" "Held Rulings, not on the tracker:"
+# and a reader building the call puts the block last whatever else the run holds. The ordering lives
+# in the paragraph that declares it, not anywhere "Loss ledger" happens to sit earlier in the
+# section, so these two checks read that paragraph alone, flattened the same way $flat is.
+order_paragraph="$(awk '
+  /^Never/ { exit }
+  /^One item per held Ruling/ { on = 1 }
+  on { print }
+' "$mech" | tr '\n' ' ' | tr -s ' ')"
+expect "mechanics.md carries the paragraph that orders the held Rulings block among the arguments" \
+  test -n "$order_paragraph"
+flat_all="$flat"
+flat="$order_paragraph"
+carries "the held Rulings block is the last argument the call carries" "it is the last argument"
+carries "the held Rulings block goes after the ledger argument, not before it" "after the ledger"
+flat="$flat_all"
 
 # A run whose integration set nothing aside has no ledger on disk, so it sends no ledger argument
 # at all: the reviewer's own default, `none`, is the orchestrator's to write, never this run's.
