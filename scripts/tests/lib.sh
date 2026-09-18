@@ -125,6 +125,16 @@ before() { # $1 label, $2 the fixed string that comes first in $flat, $3 the fix
     fail "$1 ($2 at $first, $3 at $second)"
   fi
 }
+# Where in $flat the earliest of the fixed strings sits, 0 when none does: an order check that keeps
+# the same phrasings carries_any accepts.
+first_at() { # $1.. fixed strings; the smallest positive index of any of them in $flat, on stdout
+  local key at best=0
+  for key in "$@"; do
+    at="$(awk -v s="$flat" -v k="$key" 'BEGIN { print index(s, k) }')"
+    if [ "$at" -gt 0 ] && { [ "$best" = 0 ] || [ "$at" -lt "$best" ]; }; then best="$at"; fi
+  done
+  echo "$best"
+}
 g() { command git -c user.email=t@example.com -c user.name=t -c init.defaultBranch=main "$@"; }
 commit() {
   g add -A >/dev/null
