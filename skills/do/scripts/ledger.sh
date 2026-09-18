@@ -113,8 +113,29 @@ case "$(realpath -m -- "$ledger")" in
 esac
 if [ -L "$ledger" ] || { [ -e "$ledger" ] && [ ! -f "$ledger" ]; }; then refused "not a regular file"; fi
 
+# The one reading of the ledger's structure every pass below shares, so a fix to it lands once: a
+# line is outside every fence or inside one, and a heading or a key line counts only outside. A fence
+# closes only on a line of its own character at least as long as the fence, trailing blanks aside.
+ledger_awk_lib='
+  function fence_of(line) { if (match(line, /^(```+|~~~+)/)) return substr(line, 1, RLENGTH); return "" }
+  function is_heading(line) { return line ~ /^## [0-9a-f]+$/ && length(line) == 15 }
+  # Whether the line sat outside every fence, the fence state moved on past it.
+  function track(line,   f) {
+    if (fence == "") {
+      f = fence_of(line)
+      if (f != "") fence = f
+      return 1
+    }
+    if (substr(line, 1, 1) == substr(fence, 1, 1) && line ~ /^(`+|~+)[ \t]*$/) {
+      match(line, /^(`+|~+)/)
+      if (RLENGTH >= length(fence)) fence = ""
+    }
+    return 0
+  }
+'
+
 # The id of every entry carrying no verdict, in file order. Headings are read outside fences only and
-# a verdict counted only above the entry's first `###`, the two rules `rewrite` below already keeps,
+# a verdict counted only above the entry's first `###`, by the reading `ledger_awk_lib` holds,
 # so a `## <id>` line a side quotes is that side's text and never an entry the judge is sent after.
 if [ "$verb" = pending ]; then
   # A ledger no stop ever wrote is a ledger with nothing set aside, never a path to refuse, and asking
@@ -123,24 +144,17 @@ if [ "$verb" = pending ]; then
   # A read that failed is not a ledger with nothing in it: awk's ids are held back until it exits
   # clean, so a ledger this run could not read never reaches the run as an empty one, and no id is
   # half-listed from the entries awk reached before it gave up.
-  ids="$(awk '
-    function fence_of(line) { if (match(line, /^(```+|~~~+)/)) return substr(line, 1, RLENGTH); return "" }
+  ids="$(awk "$ledger_awk_lib"'
     function flush() { if (id != "" && !judged) print id; id = "" }
     {
-      if (fence == "") {
-        if ($0 ~ /^## [0-9a-f]+$/ && length($0) == 15) {
-          flush()
-          id = substr($0, 4); judged = 0; body = 0
-          next
-        }
-        if ($0 ~ /^### /) body = 1
-        if (id != "" && !body && $0 ~ /^- verdict: /) judged = 1
-        f = fence_of($0)
-        if (f != "") fence = f
-      } else if (substr($0, 1, 1) == substr(fence, 1, 1) && $0 ~ /^(`+|~+)[ \t]*$/) {
-        match($0, /^(`+|~+)/)
-        if (RLENGTH >= length(fence)) fence = ""
+      if (!track($0)) next
+      if (is_heading($0)) {
+        flush()
+        id = substr($0, 4); judged = 0; body = 0
+        next
       }
+      if ($0 ~ /^### /) body = 1
+      if (id != "" && !body && $0 ~ /^- verdict: /) judged = 1
     }
     END { flush() }
   ' "$ledger")" || { echo "ledger could not be read: $ledger" >&2; exit 2; }
@@ -157,28 +171,20 @@ if [ "$verb" = verdict ]; then
   work="$(mktemp -d)"
   trap 'rm -rf "$work"' EXIT
   rc=0
-  LEDGER_VERDICT="- verdict: $call, $reason" awk -v id="$id" '
-    function fence_of(line) { if (match(line, /^(```+|~~~+)/)) return substr(line, 1, RLENGTH); return "" }
+  LEDGER_VERDICT="- verdict: $call, $reason" awk -v id="$id" "$ledger_awk_lib"'
     {
-      if (fence == "") {
-        if ($0 ~ /^## [0-9a-f]+$/ && length($0) == 15) {
+      outside = track($0)
+      if (outside) {
+        if (is_heading($0)) {
           inside = ($0 == "## " id); body = 0
           if (inside) found = 1
         } else if ($0 ~ /^### /) body = 1
-        f = fence_of($0)
-        if (f != "") fence = f
         # An entry that already carries a reading is refused whole below: a second verdict written
         # over the first would leave no trace of the reading it replaced.
-        if (inside && !body && fence == "" && $0 ~ /^- verdict: /) already = 1
-        print
-        if (inside && !body && fence == "" && $0 ~ /^- before: /) print ENVIRON["LEDGER_VERDICT"]
-        next
-      }
-      if (substr($0, 1, 1) == substr(fence, 1, 1) && $0 ~ /^(`+|~+)[ \t]*$/) {
-        match($0, /^(`+|~+)/)
-        if (RLENGTH >= length(fence)) fence = ""
+        if (inside && !body && $0 ~ /^- verdict: /) already = 1
       }
       print
+      if (outside && inside && !body && $0 ~ /^- before: /) print ENVIRON["LEDGER_VERDICT"]
     }
     END { if (!found) exit 1; if (already) exit 3 }
   ' "$ledger" >"$work/ledger" || rc=$?
@@ -232,8 +238,7 @@ render() {
 # write, the verdict a later judge adds, is carried over beneath the ones it does. Headings are read
 # outside fences only, so a side holding a line like `## <id>` never splits an entry.
 rewrite() { # $1 ledger, $2 id, $3 rendered entry
-  awk -v id="$2" -v rendered="$3" '
-    function fence_of(line) { if (match(line, /^(```+|~~~+)/)) return substr(line, 1, RLENGTH); return "" }
+  awk -v id="$2" -v rendered="$3" "$ledger_awk_lib"'
     function flush(   i, line, carried, blanks) {
       if (!inside) return
       carried = ""
@@ -253,16 +258,9 @@ rewrite() { # $1 ledger, $2 id, $3 rendered entry
       found = 1
     }
     {
-      if (fence == "") {
-        if ($0 ~ /^## [0-9a-f]+$/ && length($0) == 15) {
-          flush()
-          if ($0 == "## " id) { inside = 1; count = 0 }
-        }
-        f = fence_of($0)
-        if (f != "") fence = f
-      } else if (substr($0, 1, 1) == substr(fence, 1, 1) && $0 ~ /^(`+|~+)[ \t]*$/) {
-        match($0, /^(`+|~+)/)
-        if (RLENGTH >= length(fence)) fence = ""
+      if (track($0) && is_heading($0)) {
+        flush()
+        if ($0 == "## " id) { inside = 1; count = 0 }
       }
       if (inside) { chunk[++count] = $0; next }
       print
