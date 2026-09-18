@@ -155,4 +155,24 @@ expect "the template has a line for the Spec Axis" test -n "$flat"
 carries_any "that line says what the Axis read from the ledger" "ledger" "drop"
 carries "and it still reads \`no spec\` when the run has no spec source" "no spec"
 
+echo "# AGENT.md: a \`fix\` call forks no reviewer, so a ledger sent with it goes nowhere"
+fix="$here/../references/fix.md"
+# The paragraph that opens on the \`fix\` call, the only place the contract says what that call runs.
+flat="$(awk -v RS= 'index($0, "A `fix` call") == 1' "$agent" | tr '\n' ' ' | tr -s ' ')"
+expect "AGENT.md says what a \`fix\` call runs" test -n "$flat"
+carries "the whole run is fix.md" "fix.md"
+carries_any "it forks no reviewer" \
+  "forks no reviewer" "no reviewer is forked" "never forks a reviewer" "reviews nothing"
+flat="$(grep -E '^\| [^|]*Loss ledger' "$agent")"
+expect "the ledger has its own row among the arguments" test -n "$flat"
+carries_any "a \`fix\` call ignores the ledger sent with it" \
+  "a \`fix\` call ignores it" "the \`fix\` call ignores it" "a \`fix\` call never reads it"
+carries_any "and reads nothing at that path" \
+  "reading nothing at that path" "reads nothing at that path" "nothing is read at that path" \
+  "never opens that path"
+# One home for the rule: were fix.md to say what it does with a ledger too, the two could part ways.
+expect "fix.md is there to be read" test -s "$fix"
+out="$(cat "$fix")"
+absent "fix.md carries no ledger rule of its own" "Loss ledger"
+
 exit $((fails > 0))
