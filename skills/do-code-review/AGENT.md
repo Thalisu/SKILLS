@@ -43,14 +43,17 @@ labels are in English; its prose is in the report language of the brief.
 | a Ticket's location: a path, an issue number or a URL | that Ticket is the run's Ticket, the spec source and, when it is a local file, the Review's home; `do` passes it at its review step with the fixed point |
 | a landing target: the branch a caller wants the reviewed branch landed on | `do` sends it third, after the Ticket and the fixed point; it is the branch the fix fast-forwards when the Review is Green |
 | a Gate: the `command=` line of `do`'s gate script, as it printed it before the review | `do` sends it fourth, after the landing target; it is the Gate the fixed branch is held to before it lands, run as it stands |
-| held Rulings: a block of text whose first line reads `Held Rulings, not on the tracker:` | `do` sends it fifth, after the Gate, only when its Ticket's Spec is an issue and the run ruled on a Design fork; it amends the spec source, as section 2 says, and never reaches the door |
+| a Loss ledger: a line whose first words read `Loss ledger:`, followed by one path | `do` sends it after the Gate, only when its integration wrote one; it is relayed to the technical reviewer alone, as section 5 says, it never reaches the door, and a `fix` call ignores it, reading nothing at that path |
+| held Rulings: a block of text whose first line reads `Held Rulings, not on the tracker:` | `do` sends it last of all, after the Gate and after the ledger, only when its Ticket's Spec is an issue and the run ruled on a Design fork; it amends the spec source, as section 2 says, and never reaches the door |
 | words in a language | the report language, read off the words; the held Rulings block is never read for it |
 
 The first ref a caller sends is the fixed point and the only one the door sees; a second ref is the
 landing target, and it never reaches the door, which takes one ref and answers a second with its
 usage message. The Gate is a command line and never a ref, and it never reaches the door either.
 With no landing target the branch the checkout is on is the target, and a plain call on that
-branch has nothing to land.
+branch has nothing to land. The held Rulings block is the last argument always, since every line
+after its first is a Ruling and the block ends only where the call does: a single-line argument
+read out of it would be a Ruling's own text, so the ledger and every other one comes before it.
 
 A `fix` call reviews nothing. Read [fix.md](references/fix.md) before anything else and run it end
 to end: its three door checks, the `Act on` list off the Review, the Fixers, the re-check, the Diff
@@ -156,12 +159,19 @@ Intent: <the paragraph>
 Report language: <the language>
 ```
 
-One more line goes to the technical reviewer only, with the lenses behind it, since the standards
-it names are that reviewer's Axis and the security reviewer answers none of them:
+Two more lines go to the technical reviewer only, with the lenses behind them, since the standards
+they name are that reviewer's Axis and the security reviewer answers none of them, and the ledger
+is read against the spec, which is that reviewer's Axis too:
 
 ```
 Standards sources: <the paths, or none>
+Loss ledger: <the path, or none>
 ```
+
+The ledger line is the path the caller sent, relayed as it came and never opened here: the
+reviewer reads it, you list it, the way section 4 already has it for the standards. A caller that
+sent none writes `none`, so a run that set nothing aside still sends the line and no reviewer ever
+tests for a line that is absent.
 
 The door's `status=` line goes in whole, pathspec and all. It is the status command with the
 Review a previous run left taken out by name, so a second review of the same branch never reads
@@ -183,11 +193,11 @@ to besides returning it, so the two returns never land in one file:
 
 | Agent | Prompt | Return file |
 |---|---|---|
-| `subagent_type: do-code-review-technical-reviewer` | the brief, its `Standards sources:` line, and its `Return file:` line | `<that directory>/technical.md` |
+| `subagent_type: do-code-review-technical-reviewer` | the brief, its `Standards sources:` and `Loss ledger:` lines, and its `Return file:` line | `<that directory>/technical.md` |
 | `subagent_type: do-code-review-security-reviewer` | the brief and its `Return file:` line | `<that directory>/security.md` |
 
-The standards sources and the lenses go to the technical reviewer only; neither reviewer receives
-the mode. When the harness does not list one of them by name, fork `general-purpose` in its place
+The standards sources, the Loss ledger and the lenses go to the technical reviewer only; neither
+reviewer receives the mode. When the harness does not list one of them by name, fork `general-purpose` in its place
 on `model: opus`, the model its definition pins, with that reviewer's definition read through the shell from
 `$(readlink -f ~/.claude/skills/do-code-review)/agents/<its file name>.md` as the head of the
 prompt and the brief after it.

@@ -80,6 +80,18 @@ flat_section() { # $1 file, $2 the section's heading line; the flattened section
   awk -v h="$2" 'index($0, h) == 1 { on = 1; next } on && /^## / { exit } on' "$1" |
     tr '\n' ' ' | tr -s ' '
 }
+# The fenced blocks of a section, unindented: a contract that hands a session a command puts it in a
+# block, and a brief's own lines are a block too.
+blocks_of() { # $1 file, $2 the heading whose section holds them: its fenced blocks, unindented
+  # Optional: $3 the opening of the line from which blocks are read, $4 n: only the nth block from it
+  awk -v h="$2" -v a="${3:-}" -v n="${4:-0}" '
+    $0 == h { on = 1; from = (a == ""); next }
+    on && !fence && /^#+ / { exit }
+    on && !fence && !from && index($0, a) == 1 { from = 1 }
+    on && /^ *```/ { if (fence) fence = 0; else { fence = 1; if (from) k++; match($0, /^ */); ind = RLENGTH }; next }
+    on && fence && from && (n == 0 || k == n) { print substr($0, ind + 1) }
+  ' "$1"
+}
 carries() { # $1 label, $2.. fixed strings the flattened section in $flat must carry
   local label="$1" key
   shift

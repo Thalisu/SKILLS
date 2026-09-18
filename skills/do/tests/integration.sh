@@ -15,16 +15,6 @@ fails=0
 # and the path must come out resolved and staged.
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
-blocks_of() { # $1 file, $2 the heading whose section holds the resolution: its fenced blocks, unindented
-  # Optional: $3 the opening of the line from which blocks are read, $4 n: only the nth block from it
-  awk -v h="$2" -v a="${3:-}" -v n="${4:-0}" '
-    $0 == h { on = 1; from = (a == ""); next }
-    on && !fence && /^#+ / { exit }
-    on && !fence && !from && index($0, a) == 1 { from = 1 }
-    on && /^ *```/ { if (fence) fence = 0; else { fence = 1; if (from) k++; match($0, /^ */); ind = RLENGTH }; next }
-    on && fence && from && (n == 0 || k == n) { print substr($0, ind + 1) }
-  ' "$1"
-}
 resolves_safely() { # $1 label, $2 file, $3 heading
   local label="$1" dir evil="x'\$(id>PWNED)'.txt" block rc
   dir="$tmp/$(basename "$2" .md)"

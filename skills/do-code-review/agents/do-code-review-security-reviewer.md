@@ -29,8 +29,8 @@ evidence line is in the report language of the brief.
 ## The brief
 
 Five lines from the orchestrator, the same five the technical reviewer gets, and nothing else is
-asked, because neither of you can reach the user. The standards sources and the principle lenses
-are the technical reviewer's and never reach you.
+asked, because neither of you can reach the user. The standards sources, the Loss ledger and the
+principle lenses are the technical reviewer's and never reach you.
 
 | Line | You use it for |
 |---|---|

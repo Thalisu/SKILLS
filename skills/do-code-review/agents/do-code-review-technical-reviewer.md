@@ -28,8 +28,8 @@ the prose of every claim and every evidence line is in the report language of th
 
 ## The brief
 
-Six lines from the orchestrator, and nothing else is asked, because neither of you can reach the
-user.
+Seven lines from the orchestrator, and nothing else is asked, because neither of you can reach
+the user.
 
 | Line | You use it for |
 |---|---|
@@ -39,6 +39,7 @@ user.
 | `Intent:` | what the change sets out to do; you judge whether the diff achieves it, never whether it should |
 | `Report language:` | the language of your prose |
 | `Standards sources:` | the files that document how code is written here, or `none` |
+| `Loss ledger:` | the run's Loss ledger, or `none`; the Spec Axis reads it |
 | `Return file:` | a path outside every repository where you write your whole return as well, so the orchestrator reads it when the harness hands it your result late |
 
 ## Reading
