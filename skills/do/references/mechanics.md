@@ -777,8 +777,12 @@ judged `reapply`. The script refuses an entry that already carries an applied li
 verdict and one judged `drop`, with nothing written, and the run records the refusal rather than
 retrying it, the same way it records a refused verdict.
 
-Then the gate's command lines run again and the review is called, as after any replay, or the fix
-call on a run the review already read.
+Then the gate's command lines run again: the whole **Gate** runs after the last reapplied commit,
+all of its checks, once, never between two reapply commits, so what came back is held to the same checks as
+everything else and the most expensive command of the run is paid once whatever the entry count.
+A ledger with no entry judged `reapply` makes no commit, and the same run of the gate follows the
+judging as after any replay. The review is called only once that **Gate** is green, or the fix call
+on a run the review already read.
 
 **A replayed commit that is empty after the resolution.** The developer's branch already carries
 that change, or the resolution took the **Target** side of every hunk the commit brought, so the

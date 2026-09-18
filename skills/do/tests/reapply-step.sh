@@ -31,4 +31,15 @@ before "the reapply step comes after the Loss ledger is judged" \
 before "the reapply commits are made only once every verdict is written back" \
   "ledger.sh verdict" "on top of the finished integration"
 
+echo "# mechanics.md / ## The integration: the whole gate runs once, after the last reapply"
+carries_any "the whole gate runs after the last reapplied commit" \
+  "the whole gate runs after the last reapplied commit" "the whole **Gate** runs after the last reapplied commit"
+carries "the gate runs once, never between two reapply commits" "once, never between two reapply commits"
+carries_any "the review is called only once that gate is green" \
+  "only once that gate is green" "only once that **Gate** is green"
+carries "a run the review already read still goes to the fix call, not a second review" \
+  "the fix call on a run the review already read"
+before "the gate runs only after every reapply outcome is recorded in the ledger" \
+  "ledger.sh applied" "after the last reapplied commit"
+
 exit $((fails > 0))
