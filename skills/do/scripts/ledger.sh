@@ -206,7 +206,7 @@ if [ "$verb" = verdict ] || [ "$verb" = applied ]; then
   work="$(mktemp -d)"
   trap 'rm -rf "$work"' EXIT
   rc=0
-  LEDGER_VERDICT="- verdict: $call, $reason" awk -v id="$id" "$ledger_awk_lib"'
+  LEDGER_LINE="- $verb: $call, $reason" awk -v id="$id" -v key="- $verb: " -v anchor="$anchor" -v verb="$verb" "$ledger_awk_lib"'
     {
       outside = track($0)
       if (outside) {
@@ -219,7 +219,7 @@ if [ "$verb" = verdict ] || [ "$verb" = applied ]; then
         if (inside && !body && $0 ~ /^- verdict: /) already = 1
       }
       print
-      if (outside && inside && !body && $0 ~ /^- before: /) print ENVIRON["LEDGER_VERDICT"]
+      if (outside && inside && !body && index($0, anchor) == 1) print ENVIRON["LEDGER_LINE"]
     }
     # A commit answers a reading that asked for one: an entry nobody judged has no reading for it to
     # answer, and one judged `drop` was let go on purpose, so either would record a commit the entry
