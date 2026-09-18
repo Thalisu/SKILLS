@@ -80,6 +80,7 @@ flat_section() { # $1 file, $2 the section's heading line; the flattened section
   awk -v h="$2" 'index($0, h) == 1 { on = 1; next } on && /^## / { exit } on' "$1" |
     tr '\n' ' ' | tr -s ' '
 }
+section_flat() { flat_section "$@"; }
 # The fenced blocks of a section, unindented: a contract that hands a session a command puts it in a
 # block, and a brief's own lines are a block too.
 blocks_of() { # $1 file, $2 the heading whose section holds them: its fenced blocks, unindented
