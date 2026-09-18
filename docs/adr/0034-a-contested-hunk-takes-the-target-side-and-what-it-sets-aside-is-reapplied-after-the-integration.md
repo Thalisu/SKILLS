@@ -27,3 +27,6 @@ integration once more and lands through `fix`, per ADR 0033, instead of stopping
 `/do`. A second move of the target stops the run. `contested.sh` loses its question mode, its
 `no human` exit and the `both` and `stop` answers, so a `claude -p` run now finishes an integration
 it used to abort.
+
+ADR 0044 supersedes the rule above that a second move of the target stops the run: the
+integration retries for as long as each attempt meets a new tip.
