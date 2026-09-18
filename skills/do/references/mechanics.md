@@ -771,11 +771,17 @@ definition denies it.
 on top of the finished integration, in the order `pending` printed them, so each piece of work a
 contested hunk set aside is a diff the developer reads and reverts alone, and the session applies
 the edit itself, from the block the judge returned: the `replace` text swapped for the `with` text in the
-block's file, the file written back from its `blob:` line with `git cat-file blob` on a block
-carrying `take the Incoming blob whole`, or the file removed from the index and the worktree on a
-block carrying `remove the file`. No agent is forked and no test author is dispatched: the edit
-is work the branch already carried before the rebase, not a behaviour this run adds. Only that file
-is staged, by its path, so nothing else rides along, and the commit's title reads
+block's file, the file written back from its `blob:` line by
+`bash <skill-dir>/scripts/write-blob.sh <the file> <the sha>` on a block carrying `take the
+Incoming blob whole`, or the file removed from the index and the worktree on a block carrying
+`remove the file`. The whole-side write goes through the index rather than a redirect into the
+path, since the tree may hold that path as a symlink the Target side left there: a redirect would
+follow it and land the run's bytes outside the worktree while the symlink, and so the index, stayed
+unchanged, leaving nothing to commit. `write-blob.sh` guards against that the same way
+`contested.sh`'s `stage_file` guards a hunk taken whole. No agent is forked and no test author is
+dispatched: the edit is work the branch already carried before the rebase, not a behaviour this run
+adds. Only that file is staged, by its path (`write-blob.sh` above already stages and checks out
+the whole-side write), so nothing else rides along, and the commit's title reads
 `reapply: <the file>` while its body names the entry's id, `Loss ledger entry <id>: <the reason>`,
 so the ledger and the history point at each other. An edit whose `replace` text is no longer in the
 file, or that leaves the staged tree equal to `HEAD`, makes no commit: the entry did not come back,
