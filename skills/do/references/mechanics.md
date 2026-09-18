@@ -967,10 +967,23 @@ return is recorded for the Reply's Run section, one line per part, per [reply.md
 
 The run makes no commit for a Finding and fixes none by hand: a Finding a Fixer left standing
 is the review's reason for not landing, and the run stops on it. Landed, and the run goes on to
-the verification. Not landed, for any reason the review gives (a Finding `not fixed` or
-`not verified`, an Axis `not run`, a red gate after the fixes, `not landed: target moved`, a red
-gate after the retry's rebase, a failed fast-forward, a protected branch), and the run stops as
-blocked: the review's reason quoted, the
+the verification.
+
+On `not landed: target moved`, the developer's branch moved while the review ran and the landing's
+own rebase met a hunk it does not take. The run answers that return in the same run, per
+[ADR 0034](../../../docs/adr/0034-a-contested-hunk-takes-the-target-side-and-what-it-sets-aside-is-reapplied-after-the-integration.md),
+so the developer never types the request again only so that a human is present. It runs its
+integration once more, in the worktree, onto the moved branch, as the integration above says: every
+contested hunk takes the **Target** side and its **Incoming** side goes to the same Loss ledger,
+the Loss ledger judged, the reapplies brought back, and the whole **Gate** run after the last of
+them. A green **Gate** hands the branch to the fix call on the Review the run already has, as the
+paragraph below says for what the run commits after the review, never a second review. A blocked
+state of that integration stops the run as it stops it before the review, with its own undo
+command.
+
+Not landed, for any other reason the review gives (a Finding `not fixed` or `not verified`, an Axis
+`not run`, a red gate after the fixes, a red gate after the retry's rebase, a failed fast-forward, a
+protected branch), and the run stops as blocked: the review's reason quoted, the
 worktree and its branch left in place and named in the reply, the Ticket left `claimed`, so that
 nothing lands half fixed. On `not landed: target moved` the reply names the one command that
 recovers it, the same run request typed again on the Ticket in `ticket`: its resume finds every
