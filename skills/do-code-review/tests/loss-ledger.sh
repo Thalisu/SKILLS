@@ -92,6 +92,15 @@ table_first_cells() { # $1 file, $2 the opening of the line the table follows
     sed -e 's/^| *//' -e 's/ *|.*//' -e 's/`//g'
 }
 five_axes="$(printf 'Correctness\nSpec\nStandards\nPrinciples\nBlast radius')"
+# The `### Spec` subsection names `reapply` twice: once in the enumeration ("each entry judged
+# `reapply` or `drop`") and once in the sentence that says what becomes of a `reapply` entry. Only
+# the latter is what the two cases below prove, so a mutation that keeps the enumeration but rewrites
+# the fate sentence must not survive by matching the enumeration instead. Splitting the flattened
+# subsection on ". " and keeping the sentence that carries "reapply" but not the enumeration's own
+# "or `drop`" isolates it.
+reapply_sentence() { # $1 the flattened `### Spec` subsection; the one sentence about a reapply entry's fate
+  awk 'BEGIN { RS = "\\. " } /reapply/ && !/or `drop`/ { print; exit }' <<<"$1"
+}
 
 echo "# the technical reviewer / ## Reading: it opens the ledger the brief names"
 flat="$(flat_section "$tech" "## Reading")"
@@ -124,9 +133,18 @@ carries "the Spec Axis is the Axis that reads the ledger" "ledger"
 carries "it keeps the entries whose verdict is \`drop\`" "drop"
 carries "it reads each one against the spec source" "spec source"
 carries "and it reads past an entry judged \`reapply\`" "reapply"
+reapply_flat="$(reapply_sentence "$(subsection "$tech" "### Spec")")"
+flat="$reapply_flat"
+out="$reapply_flat"
+expect "the contract has a sentence naming a reapply entry's fate" test -n "$flat"
 carries_any "a \`reapply\` came back and is nothing for this Axis to answer" \
   "brought back" "came back" "is back" "already back" "no Finding" "not a Finding" "reads past" \
   "read past" "skip" "only the \`drop\`" "only entries" "only those"
+absent "and that sentence never turns a \`reapply\` entry into a Finding (\"is a Finding\")" \
+  "is a Finding"
+absent "and that sentence never turns a \`reapply\` entry into a Finding (\"as a Finding\")" \
+  "as a Finding"
+flat="$(spec_axis_text)"
 carries_any "a \`drop\` that set aside something the Ticket or its Spec asks for is a Finding on this Axis" \
   "is a Finding" "a Spec Finding" "a Finding on this Axis" "a Finding here" "becomes a Finding" \
   "an ordinary Spec Finding"
