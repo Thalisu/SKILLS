@@ -267,9 +267,11 @@ _Avoid_: sync assertion, heading check, wait (a sleep is never a settle point)
 - `do` calls `do-code-review` once per landing: on the diff of one **Ticket** after its gate in
   the `ticket` **Playbook**, on the branch's diff in `bug-fix` and `refactoring`, never in
   `trivial`; every **Axis** is put to that diff. A call that returns `not landed: target moved`
-  sends the run through its integration once more and lands it through `fix`, never a second
-  review; a second move of the target, or any other return without landing, stops the run as
-  blocked
+  sends the run through its integration again and lands it through `fix`, never a second
+  review, for as long as each attempt meets a new tip of the target; a failure against the tip the
+  last attempt already met, or any other return without landing, stops the run as blocked
+- Only the fast-forward of a landing is serialized across concurrent runs, by a lock one script
+  call holds; integrations, reviews and **Gates** of different runs overlap freely
 - `do-code-review` lands the branch it reviewed on the developer's branch by fast-forward when the
   **Review** is **Green**, whoever called it; a **Review** that is not **Green** lands nothing.
   `do` never lands
