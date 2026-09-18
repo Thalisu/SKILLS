@@ -56,4 +56,23 @@ carries "the run never returns to the build loop" "never back to the build loop"
 carries_any "the run never edits the branch's code to make the gate pass" \
   "never edits the branch's code to make the **Gate** pass" "never edits the branch's code to make the gate pass"
 
+echo "# mechanics.md / ## The integration: the step is ticked once the reapplies are done"
+flat="$(section_flat "$mech" "## The integration")"
+carries "the integration step is ticked with the totals, each reapplied commit and each dropped entry" \
+  "ticked with the totals, each reapplied commit and each dropped entry"
+before "the step is ticked only once every reapply outcome is recorded in the ledger" \
+  "ledger.sh applied" "ticked with the totals, each reapplied commit and each dropped entry"
+
+echo "# reply.md / item 26: the integration line names what came back and what did not"
+flat="$(passage_of "$here/../references/reply.md" "26. **Integration line.**" "27." | tr '\n' ' ' | tr -s ' ')"
+expect "reply.md carries the integration line" test -n "$flat"
+carries "the integration line carries the counts of mechanical and contested hunks" \
+  "the counts of \`mechanical\` and \`contested\` hunks"
+carries "each reapplied commit sits on a line of its own, with the entry's id and the commit's short sha" \
+  "each reapplied commit on a line of its own" "the entry's id and the commit's short sha"
+carries "each dropped entry sits on a line of its own, with its reason" \
+  "each dropped entry on a line of its own, with its reason"
+carries "a reapply whose applied line reads none is listed among the dropped entries, with the reason that line gives" \
+  "whose applied line reads \`none\`" "listed among the dropped entries" "the reason its applied line gives"
+
 exit $((fails > 0))

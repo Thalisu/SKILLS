@@ -86,14 +86,19 @@ files and the audit line both come before the worktree line):
 25. **Door verdict.** In `trivial`, the `verdict=` line the door on the diff printed, or, on its exit 3,
     the line saying the second check was the run's own judgment and not the script's.
 26. **Integration line.** The state the integration reached: the no-op, or the target and the
-    count, or blocked with its reason, with the conflict class's counts at each stop and the Loss
-    ledger's location when a contested hunk took the **Target** side. Where the ledger held an
+    count, or blocked with its reason, with the counts of `mechanical` and `contested` hunks at each
+    stop and the Loss ledger's location when a contested hunk took the **Target** side. Where the
+    ledger held an
     entry to judge, the line each entry was judged on, its id, `reapply` or `drop` and the one-line
     reason, every `drop` among them, so what a contested hunk set aside is read as kept or as let
     go and never merely as set aside; the line saying the session judged them itself, with the
     branch that held, when no `ledger-judge` could be forked; and every id the judge named that
     `pending` did not, or that already carried a verdict, refused by the script with nothing
-    written.
+    written. Then what came back and what did not: each reapplied commit on a line of its own, with
+    the entry's id and the commit's short sha, and each dropped entry on a line of its own, with its
+    reason. An entry judged `reapply` whose applied line reads `none` made no commit and is listed
+    among the dropped entries, with the reason its applied line gives, so a reapply that did not
+    come back is never read as one that did.
 27. **Review return.** The review's return, one line per part: the Review's location, the
     `Act on:` line, the landing line, every `Risk:` line and every `Axis not run:` line.
 

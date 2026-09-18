@@ -781,8 +781,10 @@ Then the gate's command lines run again: the whole **Gate** runs after the last 
 all of its checks, once, never between two reapply commits, so what came back is held to the same checks as
 everything else and the most expensive command of the run is paid once whatever the entry count.
 A ledger with no entry judged `reapply` makes no commit, and the same run of the gate follows the
-judging as after any replay. The review is called only once that **Gate** is green, or the fix call
-on a run the review already read.
+judging as after any replay. Once that **Gate** is green, the step is ticked with the totals, each
+reapplied commit and each dropped entry, a `reapply` whose applied line reads `none` among the
+dropped, and the ledger's location. The review is called only once that **Gate** is green, or the fix
+call on a run the review already read.
 
 A red **Gate** after the reapplied commits stops as blocked, never back to the build loop: the
 branch now holds the developer's code the replay brought in beside the work that came back, and a
