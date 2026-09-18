@@ -80,7 +80,6 @@ flat_section() { # $1 file, $2 the section's heading line; the flattened section
   awk -v h="$2" 'index($0, h) == 1 { on = 1; next } on && /^## / { exit } on' "$1" |
     tr '\n' ' ' | tr -s ' '
 }
-section_flat() { flat_section "$@"; }
 passage_of() { # $1 file, $2 the line the passage opens with, $3 the line past its end, both matched as a prefix; on stdout
   awk -v h="$2" -v e="$3" 'on && index($0, e) == 1 { exit } index($0, h) == 1 { on = 1 } on' "$1"
 }

@@ -8,7 +8,7 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 mech="$here/../references/mechanics.md"
 fails=0
 
-flat="$(section_flat "$mech" "## The integration")"
+flat="$(flat_section "$mech" "## The integration")"
 
 echo "# mechanics.md / ## The integration: each reapply comes back as its own commit"
 expect "mechanics.md carries the integration section the reapply step belongs to" test -n "$flat"
@@ -57,14 +57,14 @@ carries_any "the run never edits the branch's code to make the gate pass" \
   "never edits the branch's code to make the **Gate** pass" "never edits the branch's code to make the gate pass"
 
 echo "# mechanics.md / ## The integration: the step is ticked once the reapplies are done"
-flat="$(section_flat "$mech" "## The integration")"
+flat="$(flat_section "$mech" "## The integration")"
 carries "the integration step is ticked with the totals, each reapplied commit and each dropped entry" \
   "ticked with the totals, each reapplied commit and each dropped entry"
 before "the step is ticked only once every reapply outcome is recorded in the ledger" \
   "ledger.sh applied" "ticked with the totals, each reapplied commit and each dropped entry"
 
 echo "# mechanics.md / ## The integration: a deleted Incoming side reapplies as a removal"
-flat="$(section_flat "$mech" "## The integration")"
+flat="$(flat_section "$mech" "## The integration")"
 carries "a block carrying remove the file reapplies as the file removed, not written back from a blob or a replace/with pair" \
   "remove the file" "the file removed"
 
