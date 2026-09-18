@@ -112,7 +112,10 @@ and Bucket, or `0 findings`:
 - Security: 0 findings
 ```
 
-The Spec line reads `no spec` when no Ticket and no spec file was found. An Axis whose reviewer did
+The Spec line reads `no spec` when no Ticket and no spec file was found. When the review was handed
+a Loss ledger, the Spec line ends with `; Loss ledger: <n> drops read`, or `; Loss ledger: did not
+open` when the path the brief named could not be read, so a ledger the Spec Axis never read shows
+in the Review; with no ledger the line carries no such clause. An Axis whose reviewer did
 not return after its retry reads `not run` with the reason in a few words, never `0 findings`.
 
 After the Axes, when the scratch folder is not ignored by git, one line says the file shows up in

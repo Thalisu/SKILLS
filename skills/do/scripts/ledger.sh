@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ledger.sh: the Loss ledger's one reader and one writer. The ledger is one markdown file per run,
 # titled `# Loss ledger`, holding one entry per contested hunk an integration resolved to the Target
-# side.
+# side. Its format, shared with every skill that reads it, is .agents/formats/loss-ledger-format.md.
 #
 #   ledger.sh put <ledger> <entry-dir>    the entry <entry-dir> describes, written into <ledger>
 #   ledger.sh pending <ledger>            the id of each entry carrying no verdict, in file order

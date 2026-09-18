@@ -657,9 +657,10 @@ large to merge, and a file git's merge cannot line up with the index. Each file 
 on a `wrote` or `removed` line, and each file the conflict class printed `trusted` is staged as it
 stands and named on a `trusted` line. The last line is `resolved mechanical=<n> contested=<n>`.
 
-The **Incoming** side of every `contested` hunk goes to the run's **Loss ledger**, one entry per
-hunk keyed by its hunk id, written before any file of the stop: the file, the location, the shape,
-the replayed commit, the commit the branch was on before the rebase, the **Target** side quoted and
+The **Incoming** side of every `contested` hunk goes to the run's **Loss ledger**, whose shape
+[loss-ledger-format.md](../../../.agents/formats/loss-ledger-format.md) fixes, one entry per hunk
+keyed by its hunk id, written before any file of the stop: the file, the location, the shape, the
+replayed commit, the commit the branch was on before the rebase, the **Target** side quoted and
 the **Incoming** side whole. A file taken whole leaves one entry holding both sides whole, and a
 binary or too-large side is named by its size, its blob and the commit recorded before the rebase,
 from which the blob stays reachable. A rerun at the same stop rewrites each entry where it stands,

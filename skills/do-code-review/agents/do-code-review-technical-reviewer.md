@@ -73,7 +73,8 @@ another. Every Finding belongs to exactly one Axis.
 ### Spec
 
 The Loss ledger holds what the run's integration set aside: the **Incoming** side of every
-`contested` hunk the rebase resolved to the **Target**, each entry judged `reapply` or `drop`. Keep
+`contested` hunk the rebase resolved to the **Target**, each entry judged `reapply` or `drop`, in
+the shape [loss-ledger-format.md](../../../.agents/formats/loss-ledger-format.md) fixes. Keep
 the entries whose verdict is `drop` and read each one against the spec source. An entry judged
 `reapply` came back on top of the integration and sits in the diff, so read past it: it is nothing
 for this Axis to answer beyond the diff itself.

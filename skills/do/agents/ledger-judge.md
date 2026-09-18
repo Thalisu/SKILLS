@@ -13,8 +13,10 @@ runs a command, so the session that forked you writes every verdict into the led
 
 Open the ledger first. Each entry is headed by a hunk id and carries the file, the location, the
 shape, the replayed commit, the branch tip recorded before the rebase, the **Target** side that was
-kept and the **Incoming** side that was set aside. Judge only the entries the brief names. An entry
-already carrying a `- verdict:` line was judged by an earlier run and is not yours to judge again.
+kept and the **Incoming** side that was set aside, in the shape
+[loss-ledger-format.md](../../../.agents/formats/loss-ledger-format.md) fixes. Judge only the
+entries the brief names. An entry already carrying a `- verdict:` line was judged by an earlier
+run and is not yours to judge again.
 
 Your one judgment is about what matters, never about how to merge. The merge is already done: a
 script kept the Target side, and nothing you return re-resolves a conflict. What you decide is
