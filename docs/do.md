@@ -137,6 +137,17 @@ guesses:
 - A run nobody watches, `claude -p` for one, resolves the conflict the same way, since nothing is
   asked.
 
+Once the rebase finishes, each entry of the Loss ledger is judged `reapply` or `drop`, with a
+one-line reason written beside it. Each `reapply` comes back as its own commit on top of the
+finished integration, titled `reapply: <file>` with the entry's id in its body, so every piece of
+work brought back is a diff you can read and revert alone, and the entry records that commit. An
+entry whose text the file no longer holds makes no commit and is listed with the dropped ones. The
+whole gate then runs once, after the last reapplied commit, and the review is called only when it
+is green. A red gate there stops the run as blocked: the reply names the failing check, the
+ledger's location and the `git reset --hard` that puts the run's branch back on the commit it held
+before the rebase. The run never goes back to the build loop and never edits the branch's code to
+make that gate pass.
+
 A second `/do` that finds a rebase the first run left open asks at two more stops. One is a rebase
 stopped with nothing conflicted: whatever is staged there carries nobody's recorded answer, so the
 run names the commit and every staged file and asks before it continues. The other is a rebase
@@ -253,6 +264,10 @@ a new Ticket you write
   location of each hunk that kept your branch's side, and the Loss ledger that holds what was set
   aside. Each entry of that ledger comes back judged, `reapply` or `drop` with a one-line reason
   written beside it, so you read what was let go rather than finding it gone.
+- Each `reapply` is a commit of its own on the branch, `reapply: <file>`, naming the ledger entry in
+  its body. The reply gives the counts of mechanical and contested hunks, then one line per reapplied
+  commit and one per dropped entry with its reason, and the gate's output after the last reapplied
+  commit is quoted like any other.
 - A `ticket` run that met a Design fork says so in one line naming both sides, then goes on: the
   Spec's Implementation Decisions gain one line marked as the choice-taker's, and a Ticket criterion
   changes only when it was the side that lost. The reply's `Rulings` section, right after
