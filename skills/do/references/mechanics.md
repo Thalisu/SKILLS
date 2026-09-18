@@ -784,6 +784,16 @@ A ledger with no entry judged `reapply` makes no commit, and the same run of the
 judging as after any replay. The review is called only once that **Gate** is green, or the fix call
 on a run the review already read.
 
+A red **Gate** after the reapplied commits stops as blocked, never back to the build loop: the
+branch now holds the developer's code the replay brought in beside the work that came back, and a
+run that loops on it edits their work. The run never edits the branch's code to make the **Gate**
+pass, never reruns it and never reverts a reapply commit to chase green. The reply carries the
+failing check named off its red line, or the infrastructure cause on `verdict=blocked`, the ledger's
+location, since the ledger holds what came back and what did not, and the command that undoes the
+whole integration, `git reset --hard <the commit recorded before it started>`. The worktree and its
+branch stay in place and are named, the Ticket stays `claimed`, nothing lands and nothing is
+pushed.
+
 **A replayed commit that is empty after the resolution.** The developer's branch already carries
 that change, or the resolution took the **Target** side of every hunk the commit brought, so the
 continue has nothing left to apply. Git refuses an empty commit and leaves the rebase where it is,

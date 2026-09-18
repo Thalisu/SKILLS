@@ -42,4 +42,18 @@ carries "a run the review already read still goes to the fix call, not a second 
 before "the gate runs only after every reapply outcome is recorded in the ledger" \
   "ledger.sh applied" "after the last reapplied commit"
 
+echo "# mechanics.md / ## The integration: a red gate after the reapplies stops the run as blocked"
+flat="$(passage_of "$mech" "**The reapplies brought back.**" "**A replayed commit that is empty" | tr '\n' ' ' | tr -s ' ')"
+expect "mechanics.md carries the state on the reapplies brought back" test -n "$flat"
+carries_any "the reapply state says what a red gate after the reapplied commits does" \
+  "a red **Gate** after the reapplied commits" "A red **Gate** after the reapplied commits"
+carries "a red gate after the reapplied commits stops the run as blocked" "stops as blocked"
+carries "the blocked run names the failing check" "the failing check named"
+carries "the blocked run names the ledger's location" "the ledger's location"
+carries "the blocked run names the command that resets the branch to the commit recorded before the rebase" \
+  "git reset --hard <the commit recorded before it started>"
+carries "the run never returns to the build loop" "never back to the build loop"
+carries_any "the run never edits the branch's code to make the gate pass" \
+  "never edits the branch's code to make the **Gate** pass" "never edits the branch's code to make the gate pass"
+
 exit $((fails > 0))

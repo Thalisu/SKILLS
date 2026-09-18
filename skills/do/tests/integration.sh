@@ -267,11 +267,7 @@ a_rebase_the_run_opened_itself_meets_a_stop_nothing_can_class() {
   check "conflict-class.sh finds nothing to class at that stop" \
     0 "$rc" "no conflicted state, nothing classed"
 
-  paragraph="$(awk '
-    /^Where every hunk/ { exit }
-    /^A stop the script answers with/ { on = 1 }
-    on { print }
-  ' "$mech")"
+  paragraph="$(passage_of "$mech" "A stop the script answers with" "Where every hunk")"
   expect "mechanics.md carries the paragraph on a nothing-classed stop" test -n "$paragraph"
   out="$paragraph"
   check_absent "the paragraph never leaves a run that opened the rebase itself with no route" \
@@ -335,11 +331,7 @@ an_all_mechanical_stop_whose_union_defines_a_key_twice_lands_the_targets_definit
   expect "the ledger entry sets aside the Incoming's definition" \
     test "$(ledger_part "$ledger" .env incoming 2>/dev/null)" = 'DENY='
 
-  state="$(awk '
-    /^\*\*A stop carrying a contested hunk\.\*\*/ { exit }
-    /^\*\*A union that defines the same key twice\.\*\*/ { on = 1 }
-    on { print }
-  ' "$mech")"
+  state="$(passage_of "$mech" "**A union that defines the same key twice.**" "**A stop carrying a contested hunk.**")"
   expect "mechanics.md carries the state on a union that defines one key twice" test -n "$state"
   out="$state"
   check_absent "the state routes a union's duplicate key to no blocked stop and no question for the developer" \
