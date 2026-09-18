@@ -91,7 +91,7 @@ done < <(git ls-files -u -z)
 # hunks of its own file, which is how the regenerated merge below is matched to it. Every hunk is
 # keyed by its file and ordinal: the mechanical ones take both sides, the contested ones the Target.
 classes=() files=() locations=() shapes=() ordinals=() contested=() reported=() trusted=()
-declare -A seen whole answer_at
+declare -A seen whole keep_at
 mechanical=0
 while read -r class file location shape; do
   case "$class" in
@@ -109,10 +109,10 @@ while read -r class file location shape; do
   [ "$class:$shape" = contested:rename-vs-edit ] && whole["$file"]=1
   if [ "$class" = contested ]; then
     contested+=("$(( ${#classes[@]} - 1 ))")
-    answer_at["$file#${seen["$file"]}"]=target
+    keep_at["$file#${seen["$file"]}"]=target
   else
     mechanical=$((mechanical + 1))
-    answer_at["$file#${seen["$file"]}"]=both
+    keep_at["$file#${seen["$file"]}"]=both
   fi
 done < <(bash "$here/conflict-class.sh" 2>/dev/null)
 
@@ -265,7 +265,7 @@ stage_file() { # $1 path, $2 the file as the report prints it, $3 file holding i
   git checkout-index -f -u -- "$1"
 }
 
-# One file written from its three stages and the answer keyed to each of its hunks, the prefix taken
+# One file written from its three stages and the sides each of its hunks keeps, the prefix taken
 # off again, and staged. A side's last line reaches the merged file with a newline git added before
 # the marker, so the file ends the way the side its last line came from ends.
 #
@@ -273,21 +273,21 @@ stage_file() { # $1 path, $2 the file as the report prints it, $3 file holding i
 # by its Incoming one: the --diff3 presentation keeps a line both sides added inside the hunk, where
 # the union rule of an all-mechanical stop keeps it once.
 resolve() { # $1 path, $2 the file as the report prints it
-  local path="$1" field="$2" n=0 section=outside word="" line from=merged
+  local path="$1" field="$2" n=0 section=outside keep="" line from=merged
   regenerate "$path"
   : > "$tmp/out"
   while IFS= read -r line || [ -n "$line" ]; do
     case "$line" in
-      '<<<<<<< '*) n=$((n + 1)); section=target; word="${answer_at["$field#$n"]:-}"
+      '<<<<<<< '*) n=$((n + 1)); section=target; keep="${keep_at["$field#$n"]:-}"
                    : > "$tmp/h1"; : > "$tmp/h2"; : > "$tmp/h3" ;;
       '||||||| '*) section=base ;;
       '=======')   section=incoming ;;
       '>>>>>>> '*) section=outside
-                   if [ "$word" = both ]; then
+                   if [ "$keep" = both ]; then
                      git merge-file --union -p "$tmp/h2" "$tmp/h1" "$tmp/h3" >> "$tmp/out"
                      if [ -s "$tmp/h3" ]; then from=s3; elif [ -s "$tmp/h2" ]; then from=s2; fi
                    fi ;;
-      *) case "$section:$word" in
+      *) case "$section:$keep" in
            outside:*)          from=merged ;;
            target:target)      from=s2 ;;
            target:both)        printf '%s\n' "${line# }" >> "$tmp/h2"; continue ;;
@@ -307,19 +307,11 @@ resolve() { # $1 path, $2 the file as the report prints it
   echo "wrote $field"
 }
 
-# A whole-file hunk takes the Target side's version whole, or its deletion, and git writes it; a
-# mechanical one is the union of the whole file.
-resolve_whole() { # $1 path, $2 the file as the report prints it, $3 target or both
-  local path="$1" s mode
-  case "$3" in
-    both)
-      for s in 1 2 3; do git cat-file blob ":$s:$path" > "$tmp/w$s" 2>/dev/null; done
-      git merge-file --union -p "$tmp/w2" "$tmp/w1" "$tmp/w3" > "$tmp/union"
-      read_back "$path" "$tmp/union" || { echo "git refused to stage $2" >&2; return 1; }
-      stage_file "$path" "$2" "$tmp/union" || { echo "git refused to stage $2" >&2; return 1; }
-      echo "wrote $2"
-      return ;;
-  esac
+# A file taken whole takes the Target side's version, or its deletion, and git writes it. Only a
+# contested file is ever taken whole: the classifier prints a whole-file row only as contested, and
+# classes every hunk of a rename against an edit contested.
+resolve_whole() { # $1 path, $2 the file as the report prints it
+  local path="$1" mode
   mode="${mode_at["$2#2"]:-}"
   if [ -z "$mode" ]; then
     git rm -q -- "$path" >/dev/null || { echo "git refused to stage $2" >&2; return 1; }
@@ -365,7 +357,7 @@ for i in "${contested[@]}"; do set_aside "$i" || exit 2; done
 
 for file in "${reported[@]}"; do
   if [ -n "${whole["$file"]+set}" ]; then
-    resolve_whole "${raw_path["$file"]}" "$file" "${answer_at["$file#1"]}" || exit 3
+    resolve_whole "${raw_path["$file"]}" "$file" || exit 3
   else
     resolve "${raw_path["$file"]}" "$file" || exit 3
   fi
