@@ -82,9 +82,12 @@ flat="${whole:$((s > 0 ? s - 1 : ${#whole}))}"
 carries_any "a second target moved return stops the run as blocked, like every other not landed" \
   "stops the run as blocked" "the run stops as blocked" "stops as blocked" "stops the run, blocked" \
   "stops blocked"
-carries_any "the reply to a second target moved names the same run request typed again as its recovery" \
-  "the same run request typed again" "the same run request, typed again" "the run request typed again" \
+retyped=(
+  "the same run request typed again" "the same run request, typed again" "the run request typed again"
   "types the same run request again" "type the same run request again"
+)
+carries_any "the reply to a second target moved names the same run request typed again as its recovery" \
+  "${retyped[@]}"
 flat="$whole"
 
 # shellcheck disable=SC2034  # lib.sh's check_absent reads $out
@@ -123,5 +126,41 @@ carries_any "each drop of the integration after the review is marked as coming a
   "marked as set aside after the review" "marked as dropped after the review" \
   "flagged as coming after the review" "labelled as coming after the review"
 flat="$whole"
+
+# Story 22: the three worktree Playbooks integrate alike. A session follows its own Playbook's review
+# and reply steps, so a step that stops on any moved target, or hands the developer the request to
+# type again for a first one, undoes the retry mechanics.md carries. A step may point at that review
+# for the mechanics, as long as it names the retry or the second move that ends it.
+echo "# ticket.md, bug-fix.md, refactoring.md: each Playbook retries a first moved target in the same run"
+retry=("${integrated[@]}" "${second[@]}")
+playbooks=(
+  "ticket|**9. Review and landing.**|**10. Verification.**|**12. Reply.**"
+  "bug-fix|**10. Review and landing.**|**11. Verification.**|**13. Reply.**"
+  "refactoring|### 12. Review|### 13. Verification|### 15. Reply"
+)
+for row in "${playbooks[@]}"; do
+  IFS='|' read -r name review_at verify_at reply_at <<<"$row"
+  book="$here/../references/$name.md"
+
+  flat="$(passage_of "$book" "$review_at" "$verify_at" | tr '\n' ' ' | tr -s ' ')"
+  expect "$name.md carries its review step" test -n "$flat"
+  carries_any "the $name review step integrates a first target moved once more, or names the second one that stops the run" \
+    "${retry[@]}"
+  # shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+  out="$flat"
+  check_absent "the $name review step no longer stops the run as blocked on every not landed, a first target moved among them" \
+    0 0 "for any reason the review gives. The run stops as blocked"
+  s="$(first_at "${second[@]}")"
+  r="$(first_at "${retyped[@]}")"
+  expect "the $name review step names the run request typed again only for a second target moved, never a first" \
+    test "$r" = 0 -o \( "$s" -gt 0 -a "$r" -gt "$s" \)
+
+  flat="$(passage_of "$book" "$reply_at" "## " | tr '\n' ' ' | tr -s ' ')"
+  expect "$name.md carries its reply step" test -n "$flat"
+  s="$(first_at "${second[@]}")"
+  r="$(first_at "${retyped[@]}")"
+  expect "the $name reply names the run request typed again as the recovery for a second target moved, never a first" \
+    test "$s" -gt 0 -a "$r" -gt "$s"
+done
 
 exit $((fails > 0))

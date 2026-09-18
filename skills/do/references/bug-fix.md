@@ -286,8 +286,11 @@ started on, `git merge-base refs/heads/<that branch> HEAD`, qualified so a same-
 shadow the branch, read after the integration as the fixed point, and
 the branch the run started on as the landing target. The return is recorded for the Reply's Run
 section, one line per part.
-A red gate, a return that reads not landed, a `do-code-review` the session does not list and a
-protected branch are handled the same way the `ticket` Playbook does, and the mechanics carry the
+A first `not landed: target moved` runs the integration once more in the same run, its Loss ledger
+keyed by the branch, and lands through the fix call on the Review the run already has, as the
+review in [mechanics.md](mechanics.md) says; a second `not landed: target moved` stops the run as
+blocked. A red gate, any other return that reads not landed, a `do-code-review` the session does
+not list and a protected branch are handled the same way the `ticket` Playbook does, and the mechanics carry the
 two commands the reply adds after a refused protected-branch landing. Done when the landing line
 recorded there reads `landed at <commit>`, or the run stopped as blocked with the review's reason quoted
 and the worktree and its branch named, or the step reads `skip: do-code-review not listed` with
@@ -316,6 +319,6 @@ drove the surface. What this Playbook puts in the reference's sections: the Revi
 left uncommitted; a waived flow and a check that stood in for a test under pending debt; and the
 next step, `git push` with the developer's branch named when the review landed, or, when nothing
 landed, the worktree, its branch, and the review and the landing as what the developer runs next,
-or, on `not landed: target moved`, the same run request typed again instead, in the developer's
+or, on a second `not landed: target moved` in the run, the same run request typed again instead, in the developer's
 same words, since its resume finds the Review that counts and runs the integration again, then lands through the
 fix call on that Review. Done when the reply is sent with every section that applies.
