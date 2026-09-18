@@ -87,8 +87,10 @@ evidence quotes the spec line it answers to and cites the entry by its id with i
 it climbs the Rung and lands in the Bucket a requirement missing from the diff would earn, so the
 Fixer corrects one in `Act on` like any other. Its `Fix:` line names the entry's
 file as its target, so the Fixer checks it there instead of at the entry's line range. Point at the
-entry by its id and never copy the Incoming side into the Review: the ledger holds it whole, and
-the Fixer reads it there. A `drop` that set aside nothing the Ticket or its Spec asks for is no
+entry by its id and never copy the Incoming side into the Review: the Fixer never opens the
+ledger, its brief carries no path to it, so the requirement reaches it through the spec line the
+Finding quotes and the target its `Fix:` line names, and the id is there for the developer reading
+the Review. A `drop` that set aside nothing the Ticket or its Spec asks for is no
 Finding.
 
 ### Standards

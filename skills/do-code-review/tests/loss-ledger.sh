@@ -150,6 +150,15 @@ carries "the line range the entry names is never the location" \
 carries "the \`Fix:\` line names the entry's file as its target" \
   "names the entry's file as its target"
 
+echo "# the technical reviewer / the Spec Axis: the Fixer never reads the ledger, only the Finding's spec quote and its Fix: line target"
+flat="$(spec_axis_text)"
+out="$flat" # `absent` reads $out and `carries_any` reads $flat: both the same section here
+absent "the section carries no promise that the Fixer reads the ledger" \
+  "the Fixer reads it there"
+carries_any "it says instead the Fixer never opens the ledger" \
+  "the Fixer never" "never reads the ledger" "the Fixer never reads the ledger" \
+  "never opens the ledger" "the Fixer never opens" "without the Fixer reading the ledger"
+
 echo "# the technical reviewer: a dropped requirement opens no sixth Axis and no fifth Bucket"
 out="$(table_first_cells "$tech" "## The five Axes" | grep -vx 'Axis')"
 same "the Axes stay the five the return has a line for" "$five_axes"
