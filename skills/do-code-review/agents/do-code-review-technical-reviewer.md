@@ -45,8 +45,11 @@ the user.
 ## Reading
 
 Read the whole diff, the untracked files it names, the commits since the fixed point, the spec
-source and every standards source. Then read around the diff: the callers of what it changed, the
-tests that cover it, the module it sits in.
+source, every standards source and the Loss ledger, opened at the path the brief's `Loss ledger:`
+line gives and never at one you went looking for. A line that reads `none` leaves nothing to open,
+and a path that does not open is read past and said on the Spec Axis line: either costs no Finding,
+and the review goes on, never a refusal. Then read around the diff: the callers of what it
+changed, the tests that cover it, the module it sits in.
 
 When the session lists `how`, call the Skill tool with "how" over the subsystem the diff touches,
 so the walk stays out of your context; when it lists `why`, call the Skill tool with "why" for a
@@ -62,10 +65,27 @@ another. Every Finding belongs to exactly one Axis.
 | Axis | Cites | Evidence shape |
 |---|---|---|
 | Correctness | a bug in the diff | its failure scenario: the input and the state, then the wrong output. A declared performance bound the diff breaks (a limit in the spec, a budget in a test, a documented complexity) is a Correctness Finding at Rung 4, measured |
-| Spec | a requirement missing or partial, behaviour the spec did not ask for, or an implementation that looks wrong against it | quoting the spec line. With `no spec` this Axis reports nothing and its line reads `no spec` |
+| Spec | a requirement missing or partial, behaviour the spec did not ask for, or an implementation that looks wrong against it, a `drop` in the Loss ledger among them, as below | quoting the spec line. With `no spec` this Axis reports nothing and its line reads `no spec` |
 | Standards | a documented rule the diff breaks, else one of the twelve smells below | the file and the rule, or the smell named as a judgment call with the hunk. An inefficiency with no declared bound is a Standards judgment call in `Consider` |
 | Principles | a lens whose tell the diff shows | the lens and its tell, then the hunk. A principle is named only here, beside a Finding at a location, never on its own and never in a summary |
 | Blast radius | breakage outside the diff: a caller, a wire shape, timing, a feature flag, library source | what sits outside the diff and what the proof script did, or `unproven` with the check that could not run |
+
+### Spec
+
+The Loss ledger holds what the run's integration set aside: the **Incoming** side of every
+`contested` hunk the rebase resolved to the **Target**, each entry judged `reapply` or `drop`. Keep
+the entries whose verdict is `drop` and read each one against the spec source. An entry judged
+`reapply` came back on top of the integration and sits in the diff, so read past it: it is nothing
+for this Axis to answer beyond the diff itself.
+
+A `drop` that set aside something the Ticket or its Spec asks for is a Finding on this Axis, an
+ordinary Spec Finding with no Axis and no Bucket of its own: the requirement is missing from the
+branch, whichever step let it go. Its location is the file and the location the entry names, its
+evidence quotes the spec line it answers to and cites the entry by its id with its `reason`, and it
+climbs the Rung and lands in the Bucket a requirement missing from the diff would earn, so the Fixer
+corrects one in `Act on` like any other. Point at the entry by its id and never copy the Incoming
+side into the Review: the ledger holds it whole, and the Fixer reads it there. A `drop` that set
+aside nothing the Ticket or its Spec asks for is no Finding.
 
 ### Standards
 
@@ -203,7 +223,7 @@ Refuted by: <what refuted it>
 ## Axes
 
 - Correctness: <n> findings, worst #<n> (<Bucket>)
-- Spec: <n> findings, worst #<n> (<Bucket>) | no spec
+- Spec: <n> findings, worst #<n> (<Bucket>) | no spec; Loss ledger: <n> drops read | none | did not open
 - Standards: <as above>
 - Principles: <as above>
 - Blast radius: <as above>
