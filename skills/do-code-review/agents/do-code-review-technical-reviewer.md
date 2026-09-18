@@ -80,12 +80,16 @@ for this Axis to answer beyond the diff itself.
 
 A `drop` that set aside something the Ticket or its Spec asks for is a Finding on this Axis, an
 ordinary Spec Finding with no Axis and no Bucket of its own: the requirement is missing from the
-branch, whichever step let it go. Its location is the file and the location the entry names, its
-evidence quotes the spec line it answers to and cites the entry by its id with its `reason`, and it
-climbs the Rung and lands in the Bucket a requirement missing from the diff would earn, so the Fixer
-corrects one in `Act on` like any other. Point at the entry by its id and never copy the Incoming
-side into the Review: the ledger holds it whole, and the Fixer reads it there. A `drop` that set
-aside nothing the Ticket or its Spec asks for is no Finding.
+branch, whichever step let it go. Its location is the spec line quoted, the way every Spec Finding
+is located, never the line range the entry names: that range sits in the conflicted working file,
+markers included, and in the resolved file it names other lines or lines that do not exist. Its
+evidence quotes the spec line it answers to and cites the entry by its id with its `reason`, and
+it climbs the Rung and lands in the Bucket a requirement missing from the diff would earn, so the
+Fixer corrects one in `Act on` like any other. Its `Fix:` line names the entry's
+file as its target, so the Fixer checks it there instead of at the entry's line range. Point at the
+entry by its id and never copy the Incoming side into the Review: the ledger holds it whole, and
+the Fixer reads it there. A `drop` that set aside nothing the Ticket or its Spec asks for is no
+Finding.
 
 ### Standards
 

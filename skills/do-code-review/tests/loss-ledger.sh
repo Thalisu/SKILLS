@@ -139,6 +139,17 @@ carries_any "and never copies the set-aside Incoming side into the Review" \
   "never the Incoming" "not the Incoming" "rather than the Incoming" "never pastes" \
   "never paste" "never copies" "never copy" "never quotes" "without pasting" "without copying"
 
+echo "# the technical reviewer / the Spec Axis: a drop's location is the spec line quoted, never the entry's line range"
+carries "its location is the spec line quoted, the way every Spec Finding is located" \
+  "the spec line quoted"
+# The entry's line range is a hunk's span in the conflicted working file, markers included, so in
+# the resolved file it names other lines or lines that do not exist, and the Fixer's location check
+# reads it as stale.
+carries "the line range the entry names is never the location" \
+  "never the line range the entry names"
+carries "the \`Fix:\` line names the entry's file as its target" \
+  "names the entry's file as its target"
+
 echo "# the technical reviewer: a dropped requirement opens no sixth Axis and no fifth Bucket"
 out="$(table_first_cells "$tech" "## The five Axes" | grep -vx 'Axis')"
 same "the Axes stay the five the return has a line for" "$five_axes"
