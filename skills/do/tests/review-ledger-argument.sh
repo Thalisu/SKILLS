@@ -57,6 +57,7 @@ paragraph="$(awk '
   on { print }
 ' "$mech")"
 expect "mechanics.md carries the retry paragraph the isolated-session case resumes into" test -n "$paragraph"
+# shellcheck disable=SC2034  # lib.sh's check reads $out
 out="$paragraph"
 check "the retry sends the run's Loss ledger too, among the same arguments as the first call" \
   0 0 "Loss ledger"
