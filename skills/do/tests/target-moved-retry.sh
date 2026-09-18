@@ -94,4 +94,34 @@ check_absent "a first target moved return is no longer among the reasons that st
 check_absent "the recovery command is no longer given for any target moved return, a first one being retried" \
   0 0 "On \`not landed: target moved\` the reply names" "On \`not landed: target moved\`, the reply names"
 
+# The integration line of a run whose integration ran after the review, the retry above or a resumed
+# run's: the review read the first integration's ledger only, so the reply is the one place a drop
+# of the later integration is seen before it reaches the developer's branch.
+echo "# reply.md / item 26: the drops of an integration after the review reach the reply"
+flat="$(passage_of "$here/../references/reply.md" "26. **Integration line.**" "27." | tr '\n' ' ' | tr -s ' ')"
+expect "reply.md carries the integration line" test -n "$flat"
+
+after=(
+  "integration that ran after the review" "integration ran after the review"
+  "integration run after the review" "integration that came after the review"
+  "integration came after the review" "integration after the review" "integrated after the review"
+)
+carries_any "the integration line answers an integration that ran after the review" "${after[@]}"
+carries_any "a run that integrated twice carries both integrations' lines, never only the first one's" \
+  "both integrations" "each integration's lines" "every integration's lines" \
+  "the lines of both integrations" "the lines of each integration" "both of its integrations"
+
+# What the line gives the later integration is read from where the item first names it on, so a
+# drop the item lists for the first integration cannot answer for it.
+whole="$flat"
+a="$(first_at "${after[@]}")"
+flat="${whole:$((a > 0 ? a - 1 : ${#whole}))}"
+carries_any "every drop of the integration after the review is listed" \
+  "every \`drop\`" "each \`drop\`" "every dropped entry" "each dropped entry"
+carries_any "each drop of the integration after the review is marked as coming after the review" \
+  "marked as coming after the review" "marked as after the review" "marked after the review" \
+  "marked as set aside after the review" "marked as dropped after the review" \
+  "flagged as coming after the review" "labelled as coming after the review"
+flat="$whole"
+
 exit $((fails > 0))

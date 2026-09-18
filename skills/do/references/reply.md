@@ -98,7 +98,12 @@ files and the audit line both come before the worktree line):
     the entry's id and the commit's short sha, and each dropped entry on a line of its own, with its
     reason. An entry judged `reapply` whose applied line reads `none` made no commit and is listed
     among the dropped entries, with the reason its applied line gives, so a reapply that did not
-    come back is never read as one that did.
+    come back is never read as one that did. A run whose integration ran after the review, the
+    retry on `not landed: target moved` or a resumed run's, carries the lines of both
+    integrations, each under its own integration line, and the integration after the review lists
+    every `drop` of its own, each marked as coming after the review, since no reviewer reads what
+    that integration set aside and the reply is the one place the developer sees it before it
+    reaches their branch.
 27. **Review return.** The review's return, one line per part: the Review's location, the
     `Act on:` line, the landing line, every `Risk:` line and every `Axis not run:` line.
 
