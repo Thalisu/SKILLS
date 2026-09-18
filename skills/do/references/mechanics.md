@@ -694,6 +694,11 @@ What it prints and the code it exits with say what the run does next.
   quoted, the rebase left open at that commit, the conflicting files named, `git rebase --abort` as
   the undo, the worktree and its branch left in place and named, the Ticket left `claimed`, nothing
   landed and nothing pushed.
+- Exit 4: the read-back refused a file the union rule wrote, on its own reason line (`blocked
+  <file>` when the file defines its duplicated keys more times than the read-back's cap,
+  `could not rewrite <file>`, or the ledger refused) followed by `read-back refused <file>`, with no
+  `wrote` or `resolved` line for it. The run stops as blocked the same way as exit 3, both lines
+  quoted, and never reads the stop as git's refusal.
 
 Once the rebase finishes, the step is ticked with the totals across every stop, the mechanical and
 the contested hunks counted from each verdict line, and the ledger's location.

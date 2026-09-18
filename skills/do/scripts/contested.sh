@@ -27,7 +27,9 @@
 # Exit codes: 0 the stop resolved and staged · 2 usage, no stopped rebase or merge, no contested hunk
 # at this stop, or the ledger refused, with nothing written · 3 git refusing to write the index for a
 # file, named on a `git refused to stage <file>` line, with no `wrote`/`removed`/`trusted` or
-# `resolved` line for it.
+# `resolved` line for it · 4 last-wins.sh's read-back refusing a file it was handed, its own reason
+# line (`blocked <file>`, `could not rewrite <file>`, `ledger refused ...`) followed by
+# `read-back refused <file>`, with no `wrote` or `resolved` line for it.
 #
 # The class, the order and the locations are conflict-class.sh's report, never read again here from
 # the working file's markers. The sides are taken from the index stages, never from a model's merge.
@@ -302,7 +304,7 @@ resolve() { # $1 path, $2 the file as the report prints it
     head -c "$(( $(wc -c < "$tmp/out") - 1 ))" "$tmp/out" > "$tmp/trimmed"
     mv "$tmp/trimmed" "$tmp/out"
   fi
-  read_back "$path" "$tmp/out" || { echo "git refused to stage $field" >&2; return 1; }
+  read_back "$path" "$tmp/out" || { echo "read-back refused $field" >&2; return 4; }
   stage_file "$path" "$field" "$tmp/out" || { echo "git refused to stage $field" >&2; return 1; }
   echo "wrote $field"
 }
@@ -359,7 +361,7 @@ for file in "${reported[@]}"; do
   if [ -n "${whole["$file"]+set}" ]; then
     resolve_whole "${raw_path["$file"]}" "$file" || exit 3
   else
-    resolve "${raw_path["$file"]}" "$file" || exit 3
+    resolve "${raw_path["$file"]}" "$file" || { [ "$?" = 4 ] && exit 4; exit 3; }
   fi
 done
 for file in "${trusted[@]}"; do

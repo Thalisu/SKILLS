@@ -626,6 +626,34 @@ expect "nothing at a stop whose union defined a key twice is left unmerged" test
 expect "the rebase continues from a stop whose union defined a key twice" \
   g -c core.editor=true -c rerere.enabled=false rebase --continue
 
+# A contested stop on a `.env` whose read-back refuses it: one hunk both sides rewrote, and one where
+# both sides appended the same 101 keys, so the union's duplicated keys occur past the read-back's
+# cap. The refusal is the read-back's, not git's: the stop names it as such, with its own exit code,
+# and resolves nothing.
+fresh contested-read-back-refused
+printf 'APP=one\nA=1\nB=2\nC=3\nD=4\nE=5\nF=6\n' >.env
+commit base
+g switch -q -c do/run
+{
+  printf 'APP=incoming\nA=1\nB=2\nC=3\nD=4\nE=5\nF=6\n'
+  for i in $(seq 1 101); do printf 'KEY%d=\n' "$i"; done
+} >.env
+commit incoming
+g switch -q main
+{
+  printf 'APP=target\nA=1\nB=2\nC=3\nD=4\nE=5\nF=6\n'
+  for i in $(seq 1 101); do printf 'KEY%d=v%d\n' "$i" "$i"; done
+} >.env
+commit target
+g switch -q do/run
+g rebase main >/dev/null 2>&1
+
+run
+check_absent "a stop whose read-back refuses a file is never reported as git refusing to stage it" 4 "$rc" \
+  "git refused to stage" "resolved mechanical="
+expect "a stop whose read-back refuses a file names it on a read-back refused line" \
+  grep -qE '^read-back refused \.env( |:|$)' <<<"$out"
+
 # A mixed stop whose two additions end on the same line. Git's union keeps that shared line once,
 # which the presentation the script splices from does not, so each written file is held to what
 # `git merge-file --union` makes of the same hunks.
