@@ -819,4 +819,67 @@ expect "the refused recording for a dropped entry says the entry was judged drop
 expect "the refused recording for a dropped entry leaves the ledger byte-identical to before the call" \
   cmp -s "$uledger" "$tmp/unreapplied.before"
 
+# The commit an applied line records is what a later reader resolves the entry back to, so it is a
+# full commit sha, 40 lowercase hex, or the word `none`, meaning the reapply left nothing to commit.
+# A short sha can turn ambiguous, a symbolic name like HEAD moves, and any other word is one no reader
+# acts on. The reason is a judge's free text on one line, and a second line could forge an entry
+# heading of its own, the reason `verdict` refuses one too. Each is refused whole, with nothing
+# written. Every case starts from the same ledger, so one call's outcome never decides the next.
+fresh ledger-applied-malformed
+mkdir -p .scratch
+mledger="$PWD/.scratch/run.ledger.md"
+cat >"$mledger" <<'EOF'
+# Loss ledger
+
+## 1a2b3c4d5e6f
+
+- file: reapplied.txt
+- location: L1-L3
+- shape: rewrite-vs-rewrite
+- commit: 1111111111111111111111111111111111111111
+- before: 2222222222222222222222222222222222222222
+- verdict: reapply, the incoming side is the fix
+
+### Target (kept)
+
+```
+reapplied target
+```
+
+### Incoming (set aside)
+
+```
+reapplied incoming
+```
+EOF
+cp "$mledger" "$tmp/malformed.before"
+full_sha=5e4d3c2b1a0f9e8d7c6b5a4f3e2d1c0b9a8f7e6d
+n=0
+for word in HEAD 5e4d3c2 'none; rm -rf x' 5E4D3C2B1A0F9E8D7C6B5A4F3E2D1C0B9A8F7E6D "${full_sha}0"; do
+  n=$((n + 1))
+  cp "$tmp/malformed.before" "$mledger"
+  applied_fixture "$tmp/applied-dir.word$n" 1a2b3c4d5e6f "$word" 'reapplied onto the rebased tip'
+  rc=0
+  out="$(bash "$ledgersh" applied "$mledger" "$tmp/applied-dir.word$n" 2>"$tmp/applied-word$n.err")" || rc=$?
+  expect "a commit word '$word' that is neither a full sha nor none is refused with exit 2 (got $rc)" \
+    test "$rc" = 2
+  expect "the refused commit word '$word' is named on stderr as neither a full sha nor none" \
+    grep -qF -- neither "$tmp/applied-word$n.err"
+  expect "the refused commit word '$word' leaves the ledger byte-identical to before the call" \
+    cmp -s "$mledger" "$tmp/malformed.before"
+done
+
+cp "$tmp/malformed.before" "$mledger"
+applied_fixture "$tmp/applied-dir.multiline" 1a2b3c4d5e6f "$full_sha" \
+  $'reapplied onto the rebased tip\n## deadbeefcafe\n\n- file: forged.txt'
+rc=0
+out="$(bash "$ledgersh" applied "$mledger" "$tmp/applied-dir.multiline" 2>"$tmp/applied-multiline.err")" || rc=$?
+expect "an applied reason that is not a single line is refused with exit 2 (got $rc)" test "$rc" = 2
+expect "the refused multi-line applied reason says on stderr it is not a single line" \
+  grep -qF -- 'single line' "$tmp/applied-multiline.err"
+expect "the refused multi-line applied reason leaves the ledger byte-identical to before the call" \
+  cmp -s "$mledger" "$tmp/malformed.before"
+expect "the refused multi-line applied reason forges no entry heading" \
+  test "$(grep -c '^## ' "$mledger")" = 1
+
 exit $((fails > 0))

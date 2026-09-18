@@ -49,6 +49,7 @@
 # `drop`, which would bury the entry under a word no reader acts on, and a `reason` file carrying
 # more than one line, which would forge an entry heading of its own. `applied` is refused on an entry
 # that carries no verdict, or whose verdict is `drop`: a commit answers a reading that asked for one.
+# Its `commit` file is a full 40-hex sha or the word `none`, and its `reason` one line, like a verdict's.
 #
 # `pending`, `verdict` and `applied` read an entry's heading the way the rewrite does, outside fences
 # only, so a `## <id>` line a side quotes is that side's text and never an entry of its own. A ledger
@@ -107,6 +108,18 @@ case "$verb" in
     id="$(cat "$entry/id" 2>/dev/null)" || usage
     call="$(cat "$entry/commit" 2>/dev/null)" || usage
     reason="$(cat "$entry/reason" 2>/dev/null)" || usage
+    # A reader resolves the word back to a commit: a short sha can turn ambiguous and a name like
+    # `HEAD` moves, so only the full sha stands, or `none` for a reapply that left nothing to commit.
+    if [ "$call" != none ] && ! [[ "$call" =~ ^[0-9a-f]{40}$ ]]; then
+      echo "ledger refused applied: $call is neither a full commit sha nor none" >&2
+      exit 2
+    fi
+    case "$reason" in
+      *$'\n'*)
+        echo "ledger refused applied: the reason is not a single line" >&2
+        exit 2
+        ;;
+    esac
     ;;
   *) usage ;;
 esac
