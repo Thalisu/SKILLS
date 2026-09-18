@@ -202,6 +202,18 @@ reason and, for `reapply`, the commit that brought it back on top of the finishe
 _Avoid_: diff, backup, conflict log (it holds only what a resolution set aside, never the whole
 conflict)
 
+**Outcome**:
+What a test's caller observes and relies on, where a wrong or missing one costs something; a
+string is an outcome by what rides on it (a message read to act, a text that tells two states
+apart, an accessible name), never by its kind.
+_Avoid_: route (the internal path a result took: a collaborator called, a call count, an order),
+shape (a heading, a listing or a phrase present only as structure)
+
+**Settle point**:
+A wait in a flow for the state its next step needs, anchored on what that step acts on or reads
+(a URL, a landmark, the control itself), never the flow's proof.
+_Avoid_: sync assertion, heading check, wait (a sleep is never a settle point)
+
 ## Relationships
 
 - A **Spec** has one or more **Paths**, read off its user stories
@@ -290,6 +302,8 @@ conflict)
 - Every entry of a **Loss ledger** is judged `reapply` or `drop` by a read-only agent; the session
   applies each `reapply` as its own commit on top of the finished integration, and the **Gate**
   runs whole after the last one
+- A flow ends in an **Outcome**; a **Settle point** only gates the step after it, and an action
+  that waits for its own target is its own **Settle point**
 
 ## Example dialogue
 
@@ -344,3 +358,8 @@ conflict)
   Resolved: that is an **Extreme fork**, a side that weakens a guarantee in a risk class or cannot
   be undone once landed; touching a risk class is not enough, since both sides can keep the
   guarantee whole.
+- "a heading" and "a phrase in prose" were listed as things that never earn a test. Resolved:
+  whether a string earns an assertion is read from what rides on it, never from its kind; the same
+  page title is shape in one test and the **Outcome** of an access check in another.
+- "route" was read as a URL. Resolved: in "assert the outcome, not the route" the route is the
+  internal path a result took; the URL a user lands on can be an **Outcome**.
