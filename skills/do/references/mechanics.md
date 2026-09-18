@@ -731,7 +731,7 @@ a ledger entry is a side of a diff a stranger's commit may have written, and the
 it returns.
 
 It returns one block per entry: the id, `reapply` or `drop`, a one-line reason, and, on a
-`reapply`, the edit against the tree as it now stands, which the next Ticket's step applies. The
+`reapply`, the edit against the tree as it now stands, which the state below brings back. The
 session writes each reading where the ledger keeps it: the id, the verdict word and the reason go
 into a fresh directory's `id`, `verdict` and `reason` files, one line each, and the run calls
 `bash <skill-dir>/scripts/ledger.sh verdict "<the ledger>" "<the entry dir>"`, one call per block,
@@ -754,6 +754,28 @@ neither stops nor asks for the agent, since the developer cannot hand one over m
 ledger is what the run needs judged, not the window it was judged in. It never forks another agent
 in its place: a fork under any other name could still hold the write tools `ledger-judge`'s own
 definition denies it.
+
+**The reapplies brought back.** Every entry judged `reapply` comes back as one commit per `reapply`
+on top of the finished integration, in the order `pending` printed them, so each piece of work a
+contested hunk set aside is a diff the developer reads and reverts alone, and the session applies
+the edit itself, from the block the judge returned: the `replace` text swapped for the `with` text in the
+block's file, or, on a block carrying `take the Incoming blob whole`, the file written back from its
+`blob:` line with `git cat-file blob`. No agent is forked and no test author is dispatched: the edit
+is work the branch already carried before the rebase, not a behaviour this run adds. Only that file
+is staged, by its path, so nothing else rides along, and the commit's title reads
+`reapply: <the file>` while its body names the entry's id, `Loss ledger entry <id>: <the reason>`,
+so the ledger and the history point at each other. An edit whose `replace` text is no longer in the
+file, or that leaves the staged tree equal to `HEAD`, makes no commit: the entry did not come back,
+and the run goes on to the next one rather than stopping over it, since the reapplies before it are
+already commits of their own.
+
+Each outcome goes into the ledger, the commit's full sha, or `none` when nothing came back, and a
+one-line reason, the commit's title or what kept it out, written into a fresh directory's `id`,
+`commit` and `reason` files, one line each, and the run calls
+`bash <skill-dir>/scripts/ledger.sh applied "<the ledger>" "<the entry dir>"`, one call per entry
+judged `reapply`. The script refuses an entry that already carries an applied line, one with no
+verdict and one judged `drop`, with nothing written, and the run records the refusal rather than
+retrying it, the same way it records a refused verdict.
 
 Then the gate's command lines run again and the review is called, as after any replay, or the fix
 call on a run the review already read.
