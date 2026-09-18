@@ -771,8 +771,9 @@ definition denies it.
 on top of the finished integration, in the order `pending` printed them, so each piece of work a
 contested hunk set aside is a diff the developer reads and reverts alone. The block the judge
 returned is a reading of a stranger's diff text, per ADR 0032, so before the session writes
-anything from it, it writes the block's `id` and `file`, and, only on a block carrying `blob:`,
-that `blob`, into a fresh directory's own `id`, `file` and `blob` files, one line each, and calls
+anything from it, it writes the block's `id`, `file` and the entry's `reason`, and, only on a block
+carrying `blob:`, that `blob`, into a fresh directory's own `id`, `file`, `reason` and `blob` files,
+one line each, and calls
 `bash <skill-dir>/scripts/check-reapply.sh "<the ledger>" "<the worktree root>" "<the block dir>"`.
 The script refuses, exit 1, when the ledger carries no entry `id`, when `file` is not that entry's
 own `- file:` line, when `file` resolves outside the worktree root, or when `blob` is given and is
@@ -792,10 +793,29 @@ unchanged, leaving nothing to commit. `write-blob.sh` guards against that the sa
 the path it writes to back to the entry, so a block that passed the check but still names a path
 outside the tree cannot reach `write-blob.sh` at all. No agent is forked and no test author is
 dispatched: the edit is work the branch already carried before the rebase, not a behaviour this run
-adds. Only that file is staged, by its path (`write-blob.sh` above already stages and checks out
-the whole-side write), so nothing else rides along, and the commit's title reads
-`reapply: <the file>` while its body names the entry's id, `Loss ledger entry <id>: <the reason>`,
-so the ledger and the history point at each other. An edit whose `replace` text is no longer in the
+adds. Only that file is staged, and never by pasting its path into a command line the way the
+all-mechanical state above never does either (line 577): the block dir's `file` line is read into a
+shell variable, and `git add -- "$file"` stages it (`write-blob.sh` above already stages and checks
+out the whole-side write the same way), so nothing else rides along. The commit's message is never
+built as a command-line string: the run writes a fresh file whose title line reads `reapply: <the
+file>` while its body names the entry's id, `Loss ledger entry <id>: <the reason>`, with the file's
+path, the entry's id and the judge's reason read the same way, as shell variables, into that file
+rather than pasted into the command line a `-m` flag would carry, and commits with `git commit -F
+"<the message file>"`, so the ledger and the history point at each other without either value ever
+sitting inside a command line as text:
+
+```
+file="$(cat "$dir/file")"
+id="$(cat "$dir/id")"
+reason="$(cat "$dir/reason")"
+git add -- "$file"
+msg="$(mktemp)"
+printf 'reapply: %s\n\nLoss ledger entry %s: %s\n' "$file" "$id" "$reason" >"$msg"
+git commit -F "$msg"
+rm -f "$msg"
+```
+
+An edit whose `replace` text is no longer in the
 file, or that leaves the staged tree equal to `HEAD`, makes no commit: the entry did not come back,
 and the run goes on to the next one rather than stopping over it, since the reapplies before it are
 already commits of their own.

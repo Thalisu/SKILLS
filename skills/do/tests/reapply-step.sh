@@ -45,6 +45,16 @@ before "the reapply step comes after the Loss ledger is judged" \
 before "the reapply commits are made only once every verdict is written back" \
   "ledger.sh verdict" "on top of the finished integration"
 
+echo "# mechanics.md / ## The integration: the reapply commit pastes neither the file nor the reason into a command line"
+flat="$(passage_of "$mech" "**The reapplies brought back.**" "**A replayed commit that is empty" | tr '\n' ' ' | tr -s ' ')"
+expect "mechanics.md carries the state on the reapplies brought back" test -n "$flat"
+carries "the file the reapply stages is read from the block dir into a shell variable before it reaches git add" \
+  'file="$(cat "$dir/file")"' 'git add -- "$file"'
+carries "the commit message is written to a file first and the commit is made with git commit -F" \
+  'git commit -F "$msg"'
+expect "the reapply state never runs git commit -m, which would paste the file or the reason into a command line" \
+  bash -c '! grep -qF -- "git commit -m" <<<"$1"' _ "$flat"
+
 echo "# mechanics.md / ## The integration: the whole gate runs once, after the last reapply"
 carries_any "the whole gate runs after the last reapplied commit" \
   "the whole gate runs after the last reapplied commit" "the whole **Gate** runs after the last reapplied commit"
