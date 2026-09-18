@@ -18,13 +18,27 @@ carries_any "each entry judged reapply comes back as a commit of its own" \
 carries "the reapply commits sit on top of the finished integration" "on top of the finished integration"
 carries "each reapply commit's body names the entry's id, so the ledger and the history point at each other" \
   "body names the entry's id"
-carries "the session applies the edit itself" "the session applies"
+carries "the session applies the edit itself" "the session apply the edit itself"
 carries_any "no test author is dispatched for a reapply" \
   "no test author is dispatched" "dispatches no test author"
 carries "each outcome is recorded in the ledger through ledger.sh applied, handed an entry directory like verdict" \
   'bash <skill-dir>/scripts/ledger.sh applied "<the ledger>" "<the entry dir>"'
 expect "the edit is no longer left for the next Ticket's step to apply" \
   bash -c '! grep -qF -- "$2" <<<"$1"' _ "$flat" "the next Ticket's step"
+
+echo "# mechanics.md / ## The integration: the block is bound to its entry before anything is written"
+carries "the block's id, file and, on a whole-blob block, its blob are checked before any write" \
+  'bash <skill-dir>/scripts/check-reapply.sh "<the ledger>" "<the worktree root>" "<the block dir>"'
+carries "the check refuses a block naming a file other than the entry's own - file: line" \
+  "\`file\` is not that entry's own \`- file:\` line"
+carries "the check refuses a block whose file resolves outside the worktree root" \
+  "\`file\` resolves outside the worktree root"
+carries "the check refuses a block whose blob is not the sha the entry's Incoming side names" \
+  "not the sha the entry's Incoming side names"
+carries "a refused check writes nothing and the outcome is recorded none" \
+  "the run writes nothing from the block" "the outcome is recorded \`none\`"
+before "the block is checked against its entry before the session applies the edit" \
+  "check-reapply.sh" "Only once the script exits 0 does the session apply the edit"
 
 before "the reapply step comes after the Loss ledger is judged" \
   "**The Loss ledger judged.**" "ledger.sh applied"

@@ -769,8 +769,18 @@ definition denies it.
 
 **The reapplies brought back.** Every entry judged `reapply` comes back as one commit per `reapply`
 on top of the finished integration, in the order `pending` printed them, so each piece of work a
-contested hunk set aside is a diff the developer reads and reverts alone, and the session applies
-the edit itself, from the block the judge returned: the `replace` text swapped for the `with` text in the
+contested hunk set aside is a diff the developer reads and reverts alone. The block the judge
+returned is a reading of a stranger's diff text, per ADR 0032, so before the session writes
+anything from it, it writes the block's `id` and `file`, and, only on a block carrying `blob:`,
+that `blob`, into a fresh directory's own `id`, `file` and `blob` files, one line each, and calls
+`bash <skill-dir>/scripts/check-reapply.sh "<the ledger>" "<the worktree root>" "<the block dir>"`.
+The script refuses, exit 1, when the ledger carries no entry `id`, when `file` is not that entry's
+own `- file:` line, when `file` resolves outside the worktree root, or when `blob` is given and is
+not the sha the entry's Incoming side names, and on any of those the run writes nothing from the
+block: the outcome is recorded `none`, the reason the script's, off the same call `ledger.sh
+applied` below already makes, and the run goes on to the next entry rather than stopping over it.
+Only once the script exits 0 does the session apply the edit itself, from the block the judge
+returned: the `replace` text swapped for the `with` text in the
 block's file, the file written back from its `blob:` line by
 `bash <skill-dir>/scripts/write-blob.sh <the file> <the sha>` on a block carrying `take the
 Incoming blob whole`, or the file removed from the index and the worktree on a block carrying
@@ -778,7 +788,9 @@ Incoming blob whole`, or the file removed from the index and the worktree on a b
 path, since the tree may hold that path as a symlink the Target side left there: a redirect would
 follow it and land the run's bytes outside the worktree while the symlink, and so the index, stayed
 unchanged, leaving nothing to commit. `write-blob.sh` guards against that the same way
-`contested.sh`'s `stage_file` guards a hunk taken whole. No agent is forked and no test author is
+`contested.sh`'s `stage_file` guards a hunk taken whole, and `check-reapply.sh` above already binds
+the path it writes to back to the entry, so a block that passed the check but still names a path
+outside the tree cannot reach `write-blob.sh` at all. No agent is forked and no test author is
 dispatched: the edit is work the branch already carried before the rebase, not a behaviour this run
 adds. Only that file is staged, by its path (`write-blob.sh` above already stages and checks out
 the whole-side write), so nothing else rides along, and the commit's title reads
@@ -788,7 +800,8 @@ file, or that leaves the staged tree equal to `HEAD`, makes no commit: the entry
 and the run goes on to the next one rather than stopping over it, since the reapplies before it are
 already commits of their own.
 
-Each outcome goes into the ledger, the commit's full sha, or `none` when nothing came back, and a
+Each outcome goes into the ledger, the commit's full sha, or `none` when nothing came back (a
+refused check among the reasons `none` carries), and a
 one-line reason, the commit's title or what kept it out, written into a fresh directory's `id`,
 `commit` and `reason` files, one line each, and the run calls
 `bash <skill-dir>/scripts/ledger.sh applied "<the ledger>" "<the entry dir>"`, one call per entry
