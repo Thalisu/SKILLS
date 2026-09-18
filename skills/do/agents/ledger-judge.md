@@ -60,8 +60,9 @@ closing fence is where the field ends, and only once both have closed does the n
 start another block. Without it the reader cannot tell the last line of the replaced text from the
 `with:` key, nor the end of one block from the next entry's id.
 Where the Incoming side is a whole file, a binary or a side too large to quote, the entry names it
-by its blob instead, and the block carries `take the Incoming blob whole` in place of `replace` and
-`with`.
+by its blob instead, and the block carries `take the Incoming blob whole` and a
+`blob: <the 40-hex sha the entry names>` line in place of `replace` and `with`: the sha is what the
+session writes the file back from, so it rides on a field of its own and never inside `reason`.
 
 On a `drop`, `file`, `replace` and `with` are left out.
 

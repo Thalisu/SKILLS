@@ -53,4 +53,13 @@ expect "the return-block section names a fence delimiter that closes replace and
 expect "the return-block section reuses ledger.sh's fenced idiom to compute that delimiter" \
   bash -c 'grep -qF "fenced" <<<"$1"' _ "$block_section"
 
+# A whole-side reapply (a whole file, a binary, a side too large to quote) has no text to replace:
+# the session writes the file back with `git cat-file blob <sha>`, so the block hands it the sha on a
+# field it reads by name, never buried in the free-text `reason`.
+whole_side="$(awk -v RS= '/take the Incoming blob whole/ { gsub(/\n/, " "); print }' <<<"$block_section")"
+expect "on a whole-side reapply the block carries a blob: field beside take the Incoming blob whole, in place of replace and with" \
+  bash -c 'grep -qF "take the Incoming blob whole" <<<"$1" && grep -qF "blob:" <<<"$1" && grep -qF "in place of" <<<"$1"' _ "$whole_side"
+expect "the whole-side block's blob: field carries the sha the ledger entry names" \
+  bash -c 'grep -qiE "blob: *<[^>]*sha" <<<"$1"' _ "$block_section"
+
 exit $((fails > 0))
