@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # target-moved-retry.sh: what mechanics.md's `## The review` has the run do on a first review return
 # of `not landed: target moved`: the same run integrates once more and lands through the fix call on
-# the Review it already has, per ADR 0034, instead of stopping for the developer to type `/do` again.
+# the Review it already has, per ADR 0034, instead of stopping for the developer to type `/do` again,
+# and it does so once per run: a second `not landed: target moved` stops the run as blocked.
 # Run: bash skills/do/tests/target-moved-retry.sh
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
@@ -61,9 +62,36 @@ f="$(first_at "${fixcall[@]}")"
 expect "the fix call comes after the integration run once more, never before it" \
   test "$i" -gt 0 -a "$f" -gt "$i"
 
+second=(
+  "a second \`not landed: target moved\`" "A second \`not landed: target moved\`"
+  "the second \`not landed: target moved\`" "The second \`not landed: target moved\`"
+  "\`not landed: target moved\` again" "\`not landed: target moved\` a second time"
+  "\`not landed: target moved\` once more"
+)
+carries_any "the passage answers a second not landed: target moved, the fix call after the retry returning it again" \
+  "${second[@]}"
+carries_any "the retry happens once per run, so a branch that keeps moving never loops the run" \
+  "once per run" "once a run" "once in a run" "at most once" "only once" "a single retry" \
+  "one retry" "never a second retry" "no second retry" "never retries twice"
+
+# What the run does on that second return is read from where the passage first names it on, so a
+# stop or a recovery command the passage gives another return cannot answer for it.
+whole="$flat"
+s="$(first_at "${second[@]}")"
+flat="${whole:$((s > 0 ? s - 1 : ${#whole}))}"
+carries_any "a second target moved return stops the run as blocked, like every other not landed" \
+  "stops the run as blocked" "the run stops as blocked" "stops as blocked" "stops the run, blocked" \
+  "stops blocked"
+carries_any "the reply to a second target moved names the same run request typed again as its recovery" \
+  "the same run request typed again" "the same run request, typed again" "the run request typed again" \
+  "types the same run request again" "type the same run request again"
+flat="$whole"
+
 # shellcheck disable=SC2034  # lib.sh's check_absent reads $out
 out="$flat"
 check_absent "a first target moved return is no longer among the reasons that stop the run as blocked" \
   0 0 ", \`not landed: target moved\`, "
+check_absent "the recovery command is no longer given for any target moved return, a first one being retried" \
+  0 0 "On \`not landed: target moved\` the reply names" "On \`not landed: target moved\`, the reply names"
 
 exit $((fails > 0))

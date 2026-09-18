@@ -979,13 +979,15 @@ the Loss ledger judged, the reapplies brought back, and the whole **Gate** run a
 them. A green **Gate** hands the branch to the fix call on the Review the run already has, as the
 paragraph below says for what the run commits after the review, never a second review. A blocked
 state of that integration stops the run as it stops it before the review, with its own undo
-command.
+command. The retry runs once per run: a second `not landed: target moved` in the same run, the fix
+call after the retried integration returning it again, is a branch that keeps moving, and the run
+stops on it as on any other `not landed` below rather than integrating a third time.
 
 Not landed, for any other reason the review gives (a Finding `not fixed` or `not verified`, an Axis
-`not run`, a red gate after the fixes, a red gate after the retry's rebase, a failed fast-forward, a
-protected branch), and the run stops as blocked: the review's reason quoted, the
+`not run`, a red gate after the fixes, a second `not landed: target moved`, a red gate after the
+retry's rebase, a failed fast-forward, a protected branch), and the run stops as blocked: the review's reason quoted, the
 worktree and its branch left in place and named in the reply, the Ticket left `claimed`, so that
-nothing lands half fixed. On `not landed: target moved` the reply names the one command that
+nothing lands half fixed. On a second `not landed: target moved` the reply names the one command that
 recovers it, the same run request typed again on the Ticket in `ticket`: its resume finds every
 behaviour committed and runs the integration again, which resolves the hunks the review's landing
 left to the **Target** side and writes their **Incoming** side to the ledger, and in `bug-fix` and `refactoring` it is the same run request typed
