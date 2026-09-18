@@ -15,5 +15,6 @@ rule of ADR 0034 that a second move of the target stops the run.
 ## Consequences
 
 The loop's cost grows with the number of runs landing at once: each lost race repeats the run's
-integration and its **Gate**. Whether an attempt met a new tip is a script's verdict, never the
-session's reading.
+integration and its **Gate**. Whether an attempt met a new tip is git's verdict, never the
+session's reading: the integration's own ancestor check, whose no-op after a
+`not landed: target moved` is the failure against a tip already met.

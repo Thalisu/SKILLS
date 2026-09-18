@@ -25,7 +25,10 @@ landing rebases the reviewed branch onto yours first and runs the Gate again bef
 resolves a conflict alone only where both sides only added lines, each opening on a line of its
 own, a class a script decides and the review never judges. Any other conflict comes back to you as `not landed: target moved` with the
 files named, since the review is a fork with nobody to ask, and a Gate red after the rebase lands
-nothing either.
+nothing either. The fast-forward itself goes through a script that holds a lock in the git common
+directory, so two runs landing on your branch at the same moment never both fail: one lands and
+the other reads `moved` and rebases
+([ADR 0043](adr/0043-concurrent-landings-serialize-only-the-fast-forward.md)).
 
 Every Finding carries a **Rung**, how far the review climbed to back it, and nothing at Rung 1 or
 2 reaches `Act on`, whatever it looks like: a claim the review could not walk or run stays a

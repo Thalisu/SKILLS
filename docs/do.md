@@ -162,8 +162,11 @@ the review's fixes are held to the same checks, and only the outcome comes back,
 text. When your branch moved while the review ran and its landing met a hunk it does not take, the
 review comes back `not landed: target moved` and the same run integrates once more onto your moved
 branch: the contested hunks take your branch's side, the ledger is judged and reapplied, the gate
-runs whole, and the branch lands through a `fix` call on the same Review. A second move in the same
-run stops it. The affected flows run from your checkout through a script of their own whose command line
+runs whole, and the branch lands through a `fix` call on the same Review. It goes round again each
+time your branch moves before the landing, with no fixed count, so several runs landing at once all
+land: each lost race means another run landed first
+([ADR 0044](adr/0044-the-re-integration-retries-while-the-target-tip-changes.md)). It stops only
+when the integration finds nothing to replay, since then no other landing happened. The affected flows run from your checkout through a script of their own whose command line
 comes first, and a red one is fixed in the worktree, gated and landed through a `fix` call on the
 same Review, never a second review. The Ticket is closed with the command lines and their
 output quoted under `## Evidence`. A run that stops for any
@@ -259,10 +262,11 @@ a new Ticket you write
   typing `/do` on it again picks up where it stopped rather than starting over. A `bug-fix` or
   `refactoring` run has no Ticket, so typing the same request again, in the same words, picks it up
   on its own branch the same way. A review that could
-  not land because your branch moved while it ran needs no second `/do`: the same run rebases once
-  more, the contested hunks taking your branch's side and landing in the ledger, and lands through a
-  `fix` call on the Review it already has. Only a second move in the same run stops it, and typing
-  the request again then recovers it the same way. The reply lists every entry that later
+  not land because your branch moved while it ran needs no second `/do`: the same run rebases
+  again, the contested hunks taking your branch's side and landing in the ledger, and lands through
+  a `fix` call on the Review it already has, as many times as the branch keeps moving. Only an
+  integration that finds nothing to replay stops it, and typing the request again then recovers it
+  the same way. The reply lists every entry that later
   integration dropped, marked as coming after the review, since no reviewer reads it.
 - A run whose branch moved says so: the step names what it rebased onto and how many commits
   replayed, and the gate's output after it is quoted like any other.
