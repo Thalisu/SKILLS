@@ -694,4 +694,45 @@ expect "the entry recorded first still carries its own commit, beneath its own v
 expect "recording the second leaves every other line of the ledger as it stood" \
   test "$(grep -vxF -- "$none_applied" "$aledger")" = "$(cat "$tmp/applied.after-sha")"
 
+# A run cut short after a reapply committed and then resumed reaches that entry again, and the commit
+# it came back as is already written there. A second `- applied:` line has nothing to add: the entry
+# is the record of what a contested hunk set aside and what came back for it, and a second line
+# written over the first would leave no trace of the commit it replaced, which is the reason a second
+# verdict is refused too. An id no entry carries is a hunk this ledger never set aside, so its commit
+# would land nowhere or against the wrong entry. Both calls are refused whole, with nothing written,
+# so the commits already recorded are all still there exactly as the run wrote them.
+cp "$aledger" "$tmp/applied.after-none"
+againdir="$tmp/applied-dir.again"
+applied_fixture "$againdir" ab12cd34ef56 0c1d2e3f4a5b60718293a4b5c6d7e8f90c1d2e3f \
+  'reapplied a second time by a resumed run'
+rc=0
+out="$(bash "$ledgersh" applied "$aledger" "$againdir" 2>"$tmp/reapplied.err")" || rc=$?
+expect "a commit for an entry that already carries one is refused with exit 2 (got $rc)" test "$rc" = 2
+expect "the refused second recording gives a reason on stderr" test -s "$tmp/reapplied.err"
+expect "the refused second recording names the id it was called for" \
+  grep -qF -- ab12cd34ef56 "$tmp/reapplied.err"
+expect "the refused second recording says it is the applied line already there, not the verdict" \
+  grep -qF -- applied "$tmp/reapplied.err"
+expect "the refused second recording leaves the ledger byte-identical to before the call" \
+  cmp -s "$aledger" "$tmp/applied.after-none"
+expect "the entry still carries the commit the first recording wrote, beneath its own verdict" \
+  test "$(line_under "$aledger" "$sha_verdict")" = "$sha_applied"
+expect "the second run's commit left no trace in the ledger" \
+  test "$(grep -cF -- 0c1d2e3f4a5b60718293a4b5c6d7e8f90c1d2e3f "$aledger")" = 0
+
+unkdir="$tmp/applied-dir.unknown"
+applied_fixture "$unkdir" 99887766aabb 5a4b3c2d1e0f5a4b3c2d1e0f5a4b3c2d1e0f5a4b \
+  'a hunk nobody set aside'
+rc=0
+out="$(bash "$ledgersh" applied "$aledger" "$unkdir" 2>"$tmp/applied-unknown.err")" || rc=$?
+expect "a commit for an id no entry carries is refused with exit 2 (got $rc)" test "$rc" = 2
+expect "the refused recording for an unknown id gives a reason on stderr" \
+  test -s "$tmp/applied-unknown.err"
+expect "the refused recording names the id it was called for" \
+  grep -qF -- 99887766aabb "$tmp/applied-unknown.err"
+expect "the refused recording for an unknown id leaves the ledger byte-identical to before the call" \
+  cmp -s "$aledger" "$tmp/applied.after-none"
+expect "no commit for the unknown id reached the ledger" \
+  test "$(grep -c '^- applied: ' "$aledger")" = 2
+
 exit $((fails > 0))
