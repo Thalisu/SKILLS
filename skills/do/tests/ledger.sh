@@ -250,8 +250,8 @@ last incoming
 EOF
 judged_before='- before: 4444444444444444444444444444444444444444'
 verdict_line='- verdict: drop, already on main, by hand'
-beneath_before() { # $1 ledger (default $vledger), $2 the - before: line (default $judged_before)
-  grep -A1 -xF -- "${2:-$judged_before}" "${1:-$vledger}" | tail -n 1
+line_under() { # $1 ledger, $2 a whole line it carries: the line standing directly under it
+  grep -A1 -xF -- "$2" "$1" | tail -n 1
 }
 vdentry="$tmp/verdict-dir.judged"
 ledger_verdict_entry_fixture "$vdentry" 1122334455aa drop 'already on main, by hand'
@@ -259,7 +259,7 @@ rc=0
 out="$(bash "$ledgersh" verdict "$vledger" "$vdentry" 2>&1)" || rc=$?
 check "a judge's verdict on an entry the ledger carries succeeds" 0 "$rc"
 expect "the verdict lands directly beneath that entry's - before: line, its reason whole" \
-  test "$(beneath_before)" = "$verdict_line"
+  test "$(line_under "$vledger" "$judged_before")" = "$verdict_line"
 expect "judging one entry leaves one verdict line in the ledger" \
   test "$(grep -c '^- verdict: ' "$vledger")" = 1
 rc=0
@@ -278,7 +278,7 @@ out="$(bash "$ledgersh" put "$vledger" "$ventry" 2>&1)" || rc=$?
 check "a later put over a judged entry succeeds" 0 "$rc"
 has "the later put rewrote that entry's sides" "$vledger" 'rewritten target' 'rewritten incoming'
 expect "the verdict survives the rewrite, still directly beneath the entry's - before: line" \
-  test "$(beneath_before)" = "$verdict_line"
+  test "$(line_under "$vledger" "$judged_before")" = "$verdict_line"
 expect "the rewrite leaves one verdict line in the ledger" \
   test "$(grep -c '^- verdict: ' "$vledger")" = 1
 rc=0
@@ -356,7 +356,7 @@ expect "the refused re-judgment names the id the judge asked for" \
 expect "the refused re-judgment leaves the ledger byte-identical to right after the first verdict" \
   cmp -s "$rjledger" "$tmp/rejudged.after-first.md"
 expect "the entry still carries only the first reading, its reason whole" \
-  test "$(beneath_before "$rjledger" "$rj_before")" = '- verdict: reapply, the incoming side is the fix'
+  test "$(line_under "$rjledger" "$rj_before")" = '- verdict: reapply, the incoming side is the fix'
 rc=0
 # shellcheck disable=SC2034  # lib.sh's same reads $out
 out="$(bash "$ledgersh" pending "$rjledger" 2>&1)" || rc=$?
@@ -599,5 +599,99 @@ check "a verdict taken through an entry directory succeeds" 0 "$rc"
 expect "the reason's command substitution is never executed" test ! -e "$marker"
 has "the ledger carries the reason text verbatim, the \$(...) left as literal text" "$injledger" \
   "- verdict: reapply, $injreason"
+
+# An entry the judge sent back for a reapply comes back as its own commit, and the ledger is where a
+# rerun reads which commit that was: one `- applied: <commit>, <reason>` line directly under the
+# reading it answers, so the two lines are read as one pair however the entry moves. A reapply that
+# left nothing to commit, an incoming side the rebase had already landed, still has to say so: the
+# word `none` in the commit's place is a reapply accounted for, where a missing line is a reapply
+# nobody can tell from one never run. Recording it touches that one line and nothing else: the keys
+# the stop wrote, the reading the judge gave and both sides' text are the entry's audit trail, and a
+# rerun that rewrote any of them while noting a commit would lose what the run is answering for.
+fresh ledger-applied
+mkdir -p .scratch
+aledger="$PWD/.scratch/run.ledger.md"
+cat >"$aledger" <<'EOF'
+# Loss ledger
+
+## ab12cd34ef56
+
+- file: reapplied.txt
+- location: L1-L3
+- shape: rewrite-vs-rewrite
+- commit: 1111111111111111111111111111111111111111
+- before: 2222222222222222222222222222222222222222
+- verdict: reapply, the incoming side is the fix
+
+### Target (kept)
+
+```
+reapplied target
+```
+
+### Incoming (set aside)
+
+```
+reapplied incoming
+```
+
+## f0e1d2c3b4a5
+
+- file: empty.txt
+- location: L4-L6
+- shape: rewrite-vs-rewrite
+- commit: 3333333333333333333333333333333333333333
+- before: 4444444444444444444444444444444444444444
+- verdict: reapply, the incoming side renames the helper
+
+### Target (kept)
+
+```
+empty target
+```
+
+### Incoming (set aside)
+
+```
+empty incoming
+```
+EOF
+applied_fixture() { # $1 dir, $2 id, $3 commit, $4 reason: an applied directory for `ledger.sh applied`
+  mkdir -p "$1" || return 1
+  printf '%s\n' "$2" >"$1/id"
+  printf '%s\n' "$3" >"$1/commit"
+  printf '%s\n' "$4" >"$1/reason"
+}
+sha_verdict='- verdict: reapply, the incoming side is the fix'
+none_verdict='- verdict: reapply, the incoming side renames the helper'
+sha_applied='- applied: 9f8e7d6c5b4a39281706f5e4d3c2b1a09f8e7d6c, reapplied onto the rebased tip, its tests green'
+none_applied='- applied: none, the rebase had already landed that side, nothing left to commit'
+cp "$aledger" "$tmp/applied.before"
+shadir="$tmp/applied-dir.sha"
+applied_fixture "$shadir" ab12cd34ef56 9f8e7d6c5b4a39281706f5e4d3c2b1a09f8e7d6c \
+  'reapplied onto the rebased tip, its tests green'
+rc=0
+out="$(bash "$ledgersh" applied "$aledger" "$shadir" 2>&1)" || rc=$?
+check "recording the commit a reapplied entry came back as succeeds" 0 "$rc"
+expect "the commit lands directly beneath that entry's - verdict: line, its reason whole" \
+  test "$(line_under "$aledger" "$sha_verdict")" = "$sha_applied"
+expect "recording it opens one applied line in the ledger" \
+  test "$(grep -c '^- applied: ' "$aledger")" = 1
+expect "recording it leaves every other line of the ledger as it stood" \
+  test "$(grep -vxF -- "$sha_applied" "$aledger")" = "$(cat "$tmp/applied.before")"
+
+cp "$aledger" "$tmp/applied.after-sha"
+nonedir="$tmp/applied-dir.none"
+applied_fixture "$nonedir" f0e1d2c3b4a5 none \
+  'the rebase had already landed that side, nothing left to commit'
+rc=0
+out="$(bash "$ledgersh" applied "$aledger" "$nonedir" 2>&1)" || rc=$?
+check "recording a reapply that came back as no commit at all succeeds" 0 "$rc"
+expect "the word none lands beneath that entry's - verdict: line the same way a sha does" \
+  test "$(line_under "$aledger" "$none_verdict")" = "$none_applied"
+expect "the entry recorded first still carries its own commit, beneath its own verdict" \
+  test "$(line_under "$aledger" "$sha_verdict")" = "$sha_applied"
+expect "recording the second leaves every other line of the ledger as it stood" \
+  test "$(grep -vxF -- "$none_applied" "$aledger")" = "$(cat "$tmp/applied.after-sha")"
 
 exit $((fails > 0))

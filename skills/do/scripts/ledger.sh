@@ -7,6 +7,8 @@
 #   ledger.sh pending <ledger>            the id of each entry carrying no verdict, in file order
 #   ledger.sh verdict <ledger> <verdict-dir>
 #                                         the reading <verdict-dir> describes, written into the entry
+#   ledger.sh applied <ledger> <applied-dir>
+#                                         the commit <applied-dir> describes, written into the entry
 #
 # `put`'s <entry-dir> holds one file per field: `id`, `file`, `location`, `shape`, `commit` and
 # `before`, the branch tip recorded before the rebase, each one line, and `target` and `incoming`,
@@ -31,21 +33,25 @@
 # An entry already headed by the same id is rewritten where it stands, keeping any key line this
 # script does not write; any other is appended.
 #
-# `put` writes entries and never a verdict; `verdict` writes verdicts and never an entry. `verdict`'s
-# <verdict-dir> holds one file per field, `id`, `verdict` and `reason`, each one line, the same shape
-# `put` takes an entry directory in rather than loose arguments, so a judge's free-text reason never
-# becomes a shell word a command could hide inside. A verdict reads `- verdict: <verdict>, <reason>`
-# and sits directly under the entry's `- before:` line, which is where `put`'s own rewrite carries it
-# over, so the two verbs never overwrite each other. An entry that already carries a verdict is
-# refused with nothing written, so a second reading never replaces the first where it stands and no
-# run loses the reading it is resuming after. An id no entry carries is refused the same way, and so
-# is a `verdict` file that is neither `reapply` nor `drop`, which would bury the entry under a word
-# no reader acts on, and a `reason` file carrying more than one line, which would forge an entry
-# heading of its own.
+# Each verb writes one kind of line and never another's: `put` writes entries, `verdict` writes
+# readings, `applied` writes commits. Both `verdict`'s <verdict-dir> and `applied`'s <applied-dir>
+# hold one file per field, each one line, the same shape `put` takes an entry directory in rather
+# than loose arguments, so a judge's free-text reason never becomes a shell word a command could hide
+# inside: `id`, `verdict` and `reason` for the first, `id`, `commit` and `reason` for the second.
 #
-# `pending` and `verdict` read an entry's heading the way the rewrite does, outside fences only, so a
-# `## <id>` line a side quotes is that side's text and never an entry of its own. A ledger no stop
-# ever wrote lists nothing and is not created by the asking.
+# A verdict reads `- verdict: <verdict>, <reason>` and sits directly under the entry's `- before:`
+# line; an applied line reads `- applied: <commit>, <reason>` and sits directly under the verdict it
+# answers, so the reading and the commit it led to are read as one pair. Both slots are where `put`'s
+# own rewrite carries a key line it does not write itself, so no verb overwrites another. An entry
+# that already carries the line a verb writes is refused with nothing written, so a second reading
+# never replaces the first where it stands and no run loses the record it is resuming after. An id no
+# entry carries is refused the same way, and so is a `verdict` file that is neither `reapply` nor
+# `drop`, which would bury the entry under a word no reader acts on, and a `reason` file carrying
+# more than one line, which would forge an entry heading of its own.
+#
+# `pending`, `verdict` and `applied` read an entry's heading the way the rewrite does, outside fences
+# only, so a `## <id>` line a side quotes is that side's text and never an entry of its own. A ledger
+# no stop ever wrote lists nothing and is not created by the asking.
 #
 # A fence is one backtick longer than the longest run of backticks in the side it holds, and never
 # shorter than three, so no line of a side can close it.
@@ -58,7 +64,7 @@
 set -uo pipefail
 
 usage() {
-  echo "usage: ledger.sh put <ledger> <entry-dir> | ledger.sh pending <ledger> | ledger.sh verdict <ledger> <verdict-dir>" >&2
+  echo "usage: ledger.sh put <ledger> <entry-dir> | ledger.sh pending <ledger> | ledger.sh verdict <ledger> <verdict-dir> | ledger.sh applied <ledger> <applied-dir>" >&2
   exit 2
 }
 verb="${1:-}"
@@ -92,6 +98,14 @@ case "$verb" in
         exit 2
         ;;
     esac
+    ;;
+  applied)
+    [ "$#" = 3 ] || usage
+    ledger="$2" entry="$3"
+    [ -d "$entry" ] || usage
+    id="$(cat "$entry/id" 2>/dev/null)" || usage
+    call="$(cat "$entry/commit" 2>/dev/null)" || usage
+    reason="$(cat "$entry/reason" 2>/dev/null)" || usage
     ;;
   *) usage ;;
 esac
@@ -162,12 +176,19 @@ if [ "$verb" = pending ]; then
   exit 0
 fi
 
-# A judge's reading of one entry, written where `rewrite` below carries a key line it does not write
-# itself: directly under the entry's `- before:` line, above the first `###`. The reason is free text
-# on one line and reaches awk through the environment, never through `-v`, which would read a
-# backslash in it as an escape.
-if [ "$verb" = verdict ]; then
+# A judge's reading of one entry, and the commit the reapply that reading asked for came back as,
+# each written where `rewrite` below carries a key line it does not write itself: above the entry's
+# first `###`, directly under the line it answers. A verdict answers the entry, so it goes under
+# `- before:`, the last key `put` writes; an applied line answers the verdict, so it goes under that,
+# and the two read as one pair wherever a later `put` carries them. The free text is one line and
+# reaches awk through the environment, never through `-v`, which would read a backslash in it as an
+# escape.
+if [ "$verb" = verdict ] || [ "$verb" = applied ]; then
   [ -f "$ledger" ] || refused "no ledger to judge"
+  case "$verb" in
+    verdict) noun='verdict' anchor='- before: ' ;;
+    applied) noun='applied line' anchor='- verdict: ' ;;
+  esac
   work="$(mktemp -d)"
   trap 'rm -rf "$work"' EXIT
   rc=0
@@ -190,7 +211,7 @@ if [ "$verb" = verdict ]; then
   ' "$ledger" >"$work/ledger" || rc=$?
   if [ "$rc" != 0 ]; then
     case "$rc" in
-      3) echo "ledger already carries a verdict for $id: $ledger" >&2 ;;
+      3) echo "ledger already carries a $noun for $id: $ledger" >&2 ;;
       *) echo "ledger carries no entry $id: $ledger" >&2 ;;
     esac
     exit 2
