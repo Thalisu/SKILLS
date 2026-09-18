@@ -389,8 +389,8 @@ absent_prefix "a rebase whose conflict is only staged, not committed by hand, na
 g commit -q --allow-empty -m "main moves again"
 moved_tip="$(git rev-parse HEAD)"
 run "$resume" "$issues/04-claimed.md"
-check_lines "a rebase left open onto a commit the branch has since moved past resumes as moved, naming the onto commit and the current tip" 3 "$rc" \
-  "stop=moved" "onto=$tip" "tip=$moved_tip" "staged=notes.txt" "verdict=integration"
+check_lines "a rebase left open onto a commit the branch has since moved past resumes as moved and continues without asking, naming the onto commit and the current tip" 3 "$rc" \
+  "stop=moved" "moved=continue" "onto=$tip" "tip=$moved_tip" "staged=notes.txt" "verdict=integration"
 absent_prefix "a rebase left open onto a commit the branch has moved past is not resumed as resolved" "stop=resolved"
 
 # The developer resolves the conflict and finishes with `git commit --no-edit` by hand instead of
@@ -414,8 +414,8 @@ g commit -q --allow-empty -m "main takes a different path"
 rewound_tip="$(git rev-parse HEAD)"
 dropped_short="$(git rev-parse --short "$moved_tip")"
 run "$resume" "$issues/04-claimed.md"
-check_lines "a rebase left open onto a commit the branch has since been rewound past names every commit onto held that the new tip now lacks" 3 "$rc" \
-  "stop=moved" "onto=$moved_tip" "tip=$rewound_tip" "dropped=$dropped_short main moves again" "verdict=integration"
+check_lines "a rebase left open onto a commit the branch has since been rewound past names every commit onto held that the new tip now lacks and asks before continuing" 3 "$rc" \
+  "stop=moved" "onto=$moved_tip" "tip=$rewound_tip" "dropped=$dropped_short main moves again" "moved=ask" "verdict=integration"
 git -C "$wt" rebase --abort
 
 # git's default rename detection folds a staged `git mv` into one name-only line naming only the

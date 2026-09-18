@@ -580,9 +580,9 @@ carries, an untracked file the replay would overwrite for one, and a continue th
 refusal. The run stops as blocked with git's own message quoted as it printed it, the
 rebase left open at that commit, and `git rebase --abort` named as the command that undoes it. The
 worktree and its branch stay in place and are named, the Ticket stays `claimed`, nothing lands
-and nothing is pushed. A resumed run meets the same stop only after the question the Resume of
-[ticket.md](ticket.md) asks on `resume-state.sh`'s `stop=resolved` or `stop=moved` line, and it
-continues only on the answer that says so.
+and nothing is pushed. A resumed run meets the same stop only after the Resume of
+[ticket.md](ticket.md) continued on `resume-state.sh`'s `stop=resolved` or `stop=moved` line: on
+the answer to its question that says so, or on `moved=continue`, which puts no question.
 
 Where every hunk of the stop is `mechanical`, the run resolves them itself and nothing is asked of
 the developer. The conflicted files are the list git left, read NUL-delimited so that a path
@@ -949,10 +949,12 @@ and the Gate, with a Gate fixer on a red one, and, when
 the Review is Green, lands the reviewed branch on the developer's branch by fast-forward under the
 landing rules of [ADR 0013](../../../docs/adr/0013-do-code-review-lands-a-green-review-by-fast-forward.md)
 as [ADR 0027](../../../docs/adr/0027-the-rebase-runs-in-the-session-before-the-review-and-the-landing-retries-only-the-mechanical-class.md)
-amends them: a protected branch refused; a developer's branch that moved while the review ran
-retried once, by a rebase whose every hunk the review's copy of the conflict class calls
-`mechanical`, resolved by the union in base order, and the Gate run again before the
-fast-forward; any `contested` hunk aborted and returned as `not landed: target moved` with the
+amends them: the fast-forward serialized with every other run landing on the repository, per
+[ADR 0043](../../../docs/adr/0043-concurrent-landings-serialize-only-the-fast-forward.md); a
+protected branch refused; a developer's branch that moved while the review ran retried once, by a
+rebase whose every hunk the review's copy of the conflict class calls `mechanical`, resolved by the
+union in base order, and the Gate run again before the fast-forward; any `contested` hunk aborted,
+or the target moved again while that Gate ran, and returned as `not landed: target moved` with the
 target and the conflicting files; a failed fast-forward left in place; nothing pushed. The review
 asks nobody anything on those paths, since it is a fork with nobody to ask: a hunk a person must
 judge comes back to this run in its return.
@@ -972,8 +974,9 @@ The run makes no commit for a Finding and fixes none by hand: a Finding a Fixer 
 is the review's reason for not landing, and the run stops on it. Landed, and the run goes on to
 the verification.
 
-On `not landed: target moved`, the developer's branch moved while the review ran and the landing's
-own rebase met a hunk it does not take. The run answers that return in the same run, per
+On `not landed: target moved`, the developer's branch moved while the review ran, by the
+developer's hand or by another run's landing, and the landing's own rebase met a hunk it does not
+take or the branch moved again while its Gate ran. The run answers that return in the same run, per
 [ADR 0034](../../../docs/adr/0034-a-contested-hunk-takes-the-target-side-and-what-it-sets-aside-is-reapplied-after-the-integration.md),
 so the developer never types the request again only so that a human is present. It runs its
 integration once more, in the worktree, onto the moved branch, as the integration above says: every
@@ -986,15 +989,22 @@ reads a commit made after the review: a block the script refuses writes nothing,
 review. A green **Gate** hands the branch to the fix call on the Review the run already has, as the
 paragraph below says for what the run commits after the review, never a second review. A blocked
 state of that integration stops the run as it stops it before the review, with its own undo
-command. The retry runs once per run: a second `not landed: target moved` in the same run, the fix
-call after the retried integration returning it again, is a branch that keeps moving, and the run
-stops on it as on any other `not landed` below rather than integrating a third time.
+command. The retry has no fixed count, per
+[ADR 0044](../../../docs/adr/0044-the-re-integration-retries-while-the-target-tip-changes.md): it
+repeats for as long as each return reads `not landed: target moved` and the integration before it
+replayed commits, since every such return is another landing on the branch, and the runs landing
+at once are finite. A `not landed: target moved` right after an integration that ticked as a no-op
+is the one that ends the loop: the integration found the branch already holding the target, so no
+other landing happened, the landing and the integration disagree about the target, and integrating
+again would meet the same tip.
 
 Not landed, for any other reason the review gives (a Finding `not fixed` or `not verified`, an Axis
-`not run`, a red gate after the fixes, a second `not landed: target moved`, a red gate after the
+`not run`, a red gate after the fixes, a `not landed: target moved` right after an integration that
+ticked as a no-op, a red gate after the
 retry's rebase, a failed fast-forward, a protected branch), and the run stops as blocked: the review's reason quoted, the
 worktree and its branch left in place and named in the reply, the Ticket left `claimed`, so that
-nothing lands half fixed. On a second `not landed: target moved` the reply names the one command that
+nothing lands half fixed. On a `not landed: target moved` right after an integration that ticked as
+a no-op the reply names the one command that
 recovers it, the same run request typed again on the Ticket in `ticket`: its resume finds every
 behaviour committed and runs the integration again, which resolves the hunks the review's landing
 left to the **Target** side and writes their **Incoming** side to the ledger, and in `bug-fix` and `refactoring` it is the same run request typed

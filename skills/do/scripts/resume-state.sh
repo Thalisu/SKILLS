@@ -19,7 +19,9 @@
 # <title> per commit made by hand at that stop and never recorded by the rebase, oldest first, one
 # dropped=<short sha> <title> per commit onto holds that tip lacks, oldest first, and
 # stop=<class>, first match: moved (onto is no longer tip, whatever else the stop holds) · conflicted (a file is still
-# unmerged) · resolved (none is); review_skipped=<stale | axis-not-run> <path> when a Review beside
+# unmerged) · resolved (none is), and after stop=moved, moved=<continue | ask>: continue when no
+# dropped= line printed, since the branch only moved forward and a continue lands again nothing it
+# no longer holds, ask when one did; review_skipped=<stale | axis-not-run> <path> when a Review beside
 # the Ticket does not count; review, the Review beside the Ticket when it counts, else none; extreme, the
 # <Ticket>.extreme.md sidecar a first run's Extreme stop left beside the Ticket, when one is there,
 # followed by discuss, that file's first line, the /discuss command the stop printed; then verdict.
@@ -103,7 +105,7 @@ while IFS= read -r line; do
   echo "uncommitted=$line"; dirty=1
 done < <(git -C "$wt" -c core.quotePath=true status --short)
 rebase_stop() {
-  local conflicted stopped onto tip
+  local conflicted stopped onto tip moved
   conflicted="$(git -C "$wt" -c core.quotePath=true diff --name-only --diff-filter=U)"
   [ -z "$conflicted" ] || sed 's/^/conflicted=/' <<<"$conflicted"
   stopped="$(git -C "$wt" rev-parse -q --verify --short REBASE_HEAD 2>/dev/null)" &&
@@ -127,9 +129,12 @@ rebase_stop() {
     awk -F '\t' '$1 !~ /^commit/ { exit } { l[n++] = $2 } END { while (n) print "committed=" l[--n] }'
   # A developer's branch rewound past onto leaves commits a continue would land again.
   if [ "$onto" != "$tip" ]; then
-    git -C "$wt" merge-base --is-ancestor "$onto" "$tip" 2>/dev/null ||
+    if git -C "$wt" merge-base --is-ancestor "$onto" "$tip" 2>/dev/null; then moved=continue; else
       git -C "$wt" log --reverse --format='dropped=%h %s' "$tip..$onto" 2>/dev/null
+      moved=ask
+    fi
     echo "stop=moved"
+    echo "moved=$moved"
   elif [ -n "$conflicted" ]; then echo "stop=conflicted"
   else echo "stop=resolved"; fi
 }

@@ -118,7 +118,7 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   so the resume is never a second review. The loop is skipped, the gate and the integration run,
   and the branch lands through the fix call on that Review, as the review in
   [mechanics.md](mechanics.md) says for a branch the review already read.
-- When every line of the list is ticked, as on the branch a second `not landed: target moved` return left,
+- When every line of the list is ticked, as on the branch a `not landed: target moved` right after an integration that ticked as a no-op left,
   step 5 reads `done: resumed` and the run never waits on an empty loop. It goes on at step 6 as a
   first run does, a flow already on the branch counting as authored, then the gate, then
   the integration, which resolves each contested hunk the review's landing left to the **Target**
@@ -164,7 +164,14 @@ and leaves the worktree as it is, since no branch can be read from it to build o
     the Ticket left `claimed`.
   - `stop=moved`: the rebase is open onto a commit that is no longer the tip of the developer's
     branch, whatever else it holds. Finished as it stands, the branch would still sit behind that
-    tip and could not land by fast-forward. The question is the turn's final message and nothing is
+    tip and could not land by fast-forward. The `moved=` line after it is the script's verdict on
+    what the run does, never the run's own reading of the `dropped=` lines. On `moved=continue` the
+    developer's branch only moved forward, as it does when another run landed while this one was
+    cut short: the run takes `continue` below without asking, since it lands again nothing the
+    branch no longer holds and keeps the hand resolution the stop holds, which an abort would throw
+    away, and its resume line says it continued onto `<tip>`. On `moved=ask` at least one
+    `dropped=` line is printed and a continue would land again commits the developer removed, which
+    cannot be undone once landed, so the question is the turn's final message and nothing is
     continued or aborted before the answer:
 
     ```
@@ -172,7 +179,7 @@ and leaves the worktree as it is, since no branch can be read from it to build o
     abort: drop this rebase and rebase once onto <tip>. The abort drops what the stop at <stopped> holds:
     <one line per staged= and conflicted= path, per uncommitted= entry and per committed= commit>
     continue: finish this rebase onto <onto>, then integrate onto <tip>, which replays the branch again. The continue lands again what <base> no longer holds:
-    <one line per dropped= commit, or: nothing>
+    <one line per dropped= commit>
     (abort / continue)
     ```
 
@@ -519,10 +526,10 @@ location as the spec source, the merge base of the branch and the branch the run
 shadow the branch, read after the integration as the fixed point, and the branch
 the run started on as the landing target, with the held Rulings after the Gate when the run holds
 any, as the review in [mechanics.md](mechanics.md) says. The return is recorded for the Reply's Run section,
-one line per part. A first `not landed: target moved` runs the integration once more, in the same
-run, its Loss ledger judged and reapplied and the whole **Gate** run, then the fix call on the
-Review the run already has, as that review says; a second `not landed: target moved` stops the run
-as blocked like every other `not landed`. Done when the landing line recorded there reads `landed at <commit>`, or the run stopped as
+one line per part. A `not landed: target moved` runs the integration again, in the same run, its
+Loss ledger judged and reapplied and the whole **Gate** run, then the fix call on the Review the run
+already has, as that review says, and repeats with no fixed count while each integration replayed
+commits; a `not landed: target moved` right after an integration that ticked as a no-op stops the run as blocked like every other `not landed`. Done when the landing line recorded there reads `landed at <commit>`, or the run stopped as
 blocked with the review's reason quoted and the worktree and its branch named, or the step reads
 `skip: do-code-review not listed` with the worktree and its branch named.
 
@@ -551,8 +558,8 @@ Ticket and the Review under the files left uncommitted; every Ruling the forks i
 consumer flows not run under pending debt, beside
 a criterion the flows step skipped for no end-to-end command, with the command that would fill it; and the next step, `git push` with the developer's
 branch named when the review landed, or, when nothing landed, the worktree, its branch, and the
-review and the landing as what the developer runs next, or, on a second `not landed: target moved`
-in the run, the same run request typed again on the Ticket instead, since its resume runs the integration again. A
+review and the landing as what the developer runs next, or, on a `not landed: target moved` right after an integration that ticked as a no-op,
+the same run request typed again on the Ticket instead, since its resume runs the integration again. A
 run that stopped on an Extreme fork, or on a Design fork no `choice-taker` ruled, ends instead on
 the `/discuss` command the forks in [mechanics.md](mechanics.md) fix, as its last line. Done when
 the reply is sent with

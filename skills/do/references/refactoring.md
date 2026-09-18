@@ -101,7 +101,7 @@ and the Resume of [bug-fix.md](bug-fix.md) takes the step over, the way it reads
 so an existing worktree is entered, a gone one is recreated on the existing branch, and a Review of
 the branch that counts lands through the fix call on it, never a second review. The run continues
 at the first step its branch does not evidence, and a Review that counts decides the jump, not the
-cleanup commit: a branch carrying one, which a second `not landed: target moved` return leaves, resumes at
+cleanup commit: a branch carrying one, which a `not landed: target moved` right after an integration that ticked as a no-op leaves, resumes at
 step 10 whether or not step 9 left a cleanup commit. Done when its status prints nothing and the
 worktree line, its path and its branch, is recorded for the Reply's Run section.
 
@@ -386,14 +386,15 @@ The five returns are the
 ones the `ticket` Playbook gets:
 
 - **Landed.** The line reads `landed at <commit>` and the run goes to the verification.
-- **Not landed: target moved**, a first time in the run. The run integrates once more in the same
-  run, its Loss ledger keyed by the branch, judged and reapplied, the whole **Gate** run after the
-  last reapply, and lands through the fix call on the Review it already has, as the review in
-  [mechanics.md](mechanics.md) says, never a second review.
-- **Not landed**, for any other reason the review gives, a second `not landed: target moved` among
+- **Not landed: target moved.** The run integrates again in the same run, its Loss ledger keyed by
+  the branch, judged and reapplied, the whole **Gate** run after the last reapply, and lands
+  through the fix call on the Review it already has, as the review in [mechanics.md](mechanics.md)
+  says, never a second review, repeating with no fixed count while each integration replayed
+  commits.
+- **Not landed**, for any other reason the review gives, a `not landed: target moved` right after an integration that ticked as a no-op among
   them. The run stops as blocked with the reason quoted,
   the worktree and its branch left in place and named in the reply, nothing half fixed, and
-  on a second `not landed: target moved` the reply names the same run request typed again as the one
+  on a `not landed: target moved` right after an integration that ticked as a no-op the reply names the same run request typed again as the one
   command that recovers it, never the review and the landing by hand: its resume, step 2's, finds
   the Review that counts and runs the integration again.
 - **`do-code-review` not listed.** The step reads `skip: do-code-review not listed`, nothing lands,
@@ -450,6 +451,6 @@ Written by [reply.md](reply.md), its Run section then its sections, which carry,
 Pending debt also carries a caller in another repository the wave could not reach, a test that went red under a pure reshape and was named rather
 than edited, and a failed exit test the developer chose to keep. The reply ends with the push command
 naming the developer's branch when the review landed, and with the next command otherwise, which,
-on a second `not landed: target moved` in the run, is the same run request typed again, since its resume runs the
+on a `not landed: target moved` right after an integration that ticked as a no-op, is the same run request typed again, since its resume runs the
 integration again, then lands through the fix call on the Review. Done when the reply is sent with every section that
 applies.

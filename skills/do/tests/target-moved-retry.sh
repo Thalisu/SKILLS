@@ -1,25 +1,16 @@
 #!/usr/bin/env bash
-# target-moved-retry.sh: what mechanics.md's `## The review` has the run do on a first review return
-# of `not landed: target moved`: the same run integrates once more and lands through the fix call on
-# the Review it already has, per ADR 0034, instead of stopping for the developer to type `/do` again,
-# and it does so once per run: a second `not landed: target moved` stops the run as blocked.
+# target-moved-retry.sh: what mechanics.md's `## The review` has the run do on a review return of
+# `not landed: target moved`: the same run integrates again and lands through the fix call on the
+# Review it already has, instead of stopping for the developer to type `/do` again, and it keeps doing
+# so with no fixed count, per ADR 0044, which supersedes ADR 0034's stop on a second move. It stops as
+# blocked only on a `not landed: target moved` right after an integration that ticked as a no-op,
+# since that return means no other landing happened.
 # Run: bash skills/do/tests/target-moved-retry.sh
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/../../../scripts/tests/lib.sh"
 mech="$here/../references/mechanics.md"
 fails=0
-
-# Where in $flat the earliest of the fixed strings sits, 0 when none does: an order check that keeps
-# the same phrasings carries_any accepts.
-first_at() { # $1.. fixed strings; the smallest positive index of any of them in $flat, on stdout
-  local key at best=0
-  for key in "$@"; do
-    at="$(awk -v s="$flat" -v k="$key" 'BEGIN { print index(s, k) }')"
-    if [ "$at" -gt 0 ] && { [ "$best" = 0 ] || [ "$at" -lt "$best" ]; }; then best="$at"; fi
-  done
-  echo "$best"
-}
 
 # The section opens with ADR 0033's "never a second review" and the fix call for a run committed
 # after the review, so the checks read only the passage on what a not-landed return does, where a
@@ -35,9 +26,9 @@ carries "the passage answers the not landed: target moved return" "not landed: t
 integrated=(
   "runs its integration once more" "runs the integration once more"
   "through its integration once more" "through the integration once more"
-  "the integration runs once more" "integrates once more"
+  "the integration runs once more" "integrates once more" "integrates again"
 )
-carries_any "the run answers the moved target by running its integration once more" "${integrated[@]}"
+carries_any "the run answers the moved target by running its integration again" "${integrated[@]}"
 carries_any "it does so in the same run, not in a run the developer types again" \
   "in the same run" "within the same run" "in this same run" "without a second \`/do\`"
 carries_any "the retried integration judges the Loss ledger its rebase wrote" \
@@ -62,33 +53,47 @@ f="$(first_at "${fixcall[@]}")"
 expect "the fix call comes after the integration run once more, never before it" \
   test "$i" -gt 0 -a "$f" -gt "$i"
 
-second=(
-  "a second \`not landed: target moved\`" "A second \`not landed: target moved\`"
-  "the second \`not landed: target moved\`" "The second \`not landed: target moved\`"
-  "\`not landed: target moved\` again" "\`not landed: target moved\` a second time"
-  "\`not landed: target moved\` once more"
-)
-carries_any "the passage answers a second not landed: target moved, the fix call after the retry returning it again" \
-  "${second[@]}"
-carries_any "the retry happens once per run, so a branch that keeps moving never loops the run" \
-  "once per run" "once a run" "once in a run" "at most once" "only once" "a single retry" \
-  "one retry" "never a second retry" "no second retry" "never retries twice"
+carries_any "the retry has no fixed count: it repeats for as long as each return reads target moved" \
+  "no fixed count" "no count" "without a count" "no cap" "without a cap" "no set number" \
+  "for as long as each" "as long as each" "for as long as every" "as long as every"
 
-# What the run does on that second return is read from where the passage first names it on, so a
-# stop or a recovery command the passage gives another return cannot answer for it.
+# The one stop of the loop: a target moved right after an integration that replayed nothing, so no
+# other landing moved the target in between and a retry would only meet the same tip again.
+noop=(
+  "ticked as a no-op" "ticks as a no-op" "ticked a no-op" "a no-op integration" "integration was a no-op"
+  "replayed nothing" "replays nothing" "replayed no commit" "replays no commit"
+  "tip the previous attempt already met" "tip the last attempt already met"
+  "tip the attempt before it already met"
+)
+carries_any "the passage names the stop: a target moved right after an integration that ticked as a no-op" \
+  "${noop[@]}"
+
+# What the run does on that return is read from where the passage first names it on, so a stop or a
+# recovery command the passage gives another return cannot answer for it.
 whole="$flat"
-s="$(first_at "${second[@]}")"
-flat="${whole:$((s > 0 ? s - 1 : ${#whole}))}"
-carries_any "a second target moved return stops the run as blocked, like every other not landed" \
+n="$(first_at "${noop[@]}")"
+flat="${whole:$((n > 0 ? n - 1 : ${#whole}))}"
+carries_any "a target moved after a no-op integration stops the run as blocked, like every other not landed" \
   "stops the run as blocked" "the run stops as blocked" "stops as blocked" "stops the run, blocked" \
   "stops blocked"
 retyped=(
   "the same run request typed again" "the same run request, typed again" "the run request typed again"
   "types the same run request again" "type the same run request again"
 )
-carries_any "the reply to a second target moved names the same run request typed again as its recovery" \
+carries_any "the reply to a target moved after a no-op integration names the same run request typed again as its recovery" \
   "${retyped[@]}"
 flat="$whole"
+
+# The cap ADR 0044 supersedes: a count of retries beside the loop would still block the run one past it.
+cap=(
+  "once per run" "once a run" "once in a run" "a single retry"
+  "a second \`not landed: target moved\`" "A second \`not landed: target moved\`"
+  "the second \`not landed: target moved\`" "The second \`not landed: target moved\`"
+)
+# shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+out="$flat"
+check_absent "the passage no longer caps the retry at once per run nor stops on a second target moved" \
+  0 0 "${cap[@]}"
 
 # shellcheck disable=SC2034  # lib.sh's check_absent reads $out
 out="$flat"
@@ -128,11 +133,11 @@ carries_any "each drop of the integration after the review is marked as coming a
 flat="$whole"
 
 # Story 22: the three worktree Playbooks integrate alike. A session follows its own Playbook's review
-# and reply steps, so a step that stops on any moved target, or hands the developer the request to
-# type again for a first one, undoes the retry mechanics.md carries. A step may point at that review
-# for the mechanics, as long as it names the retry or the second move that ends it.
-echo "# ticket.md, bug-fix.md, refactoring.md: each Playbook retries a first moved target in the same run"
-retry=("${integrated[@]}" "${second[@]}")
+# and reply steps, so a step that stops on a moved target the loop answers, or hands the developer the
+# request to type again for one, undoes the retry mechanics.md carries. A step may point at that
+# review for the mechanics, as long as it names the retry or the no-op stop that ends it.
+echo "# ticket.md, bug-fix.md, refactoring.md: each Playbook retries a moved target in the same run"
+retry=("${integrated[@]}" "${noop[@]}")
 playbooks=(
   "ticket|**9. Review and landing.**|**10. Verification.**|**12. Reply.**"
   "bug-fix|**10. Review and landing.**|**11. Verification.**|**13. Reply.**"
@@ -144,23 +149,28 @@ for row in "${playbooks[@]}"; do
 
   flat="$(passage_of "$book" "$review_at" "$verify_at" | tr '\n' ' ' | tr -s ' ')"
   expect "$name.md carries its review step" test -n "$flat"
-  carries_any "the $name review step integrates a first target moved once more, or names the second one that stops the run" \
+  carries_any "the $name review step integrates a target moved again, or names the no-op stop that ends the loop" \
     "${retry[@]}"
   # shellcheck disable=SC2034  # lib.sh's check_absent reads $out
   out="$flat"
   check_absent "the $name review step no longer stops the run as blocked on every not landed, a first target moved among them" \
     0 0 "for any reason the review gives. The run stops as blocked"
-  s="$(first_at "${second[@]}")"
+  check_absent "the $name review step no longer caps the retry at once per run nor stops on a second target moved" \
+    0 0 "${cap[@]}"
+  n="$(first_at "${noop[@]}")"
   r="$(first_at "${retyped[@]}")"
-  expect "the $name review step names the run request typed again only for a second target moved, never a first" \
-    test "$r" = 0 -o \( "$s" -gt 0 -a "$r" -gt "$s" \)
+  expect "the $name review step names the run request typed again only for the no-op stop, never a target moved the loop answers" \
+    test "$r" = 0 -o \( "$n" -gt 0 -a "$r" -gt "$n" \)
 
   flat="$(passage_of "$book" "$reply_at" "## " | tr '\n' ' ' | tr -s ' ')"
   expect "$name.md carries its reply step" test -n "$flat"
-  s="$(first_at "${second[@]}")"
+  # shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+  out="$flat"
+  check_absent "the $name reply no longer gives a recovery for a second target moved" 0 0 "${cap[@]}"
+  n="$(first_at "${noop[@]}")"
   r="$(first_at "${retyped[@]}")"
-  expect "the $name reply names the run request typed again as the recovery for a second target moved, never a first" \
-    test "$s" -gt 0 -a "$r" -gt "$s"
+  expect "the $name reply names the run request typed again as the recovery for the no-op stop only" \
+    test "$n" -gt 0 -a "$r" -gt "$n"
 done
 
 exit $((fails > 0))
