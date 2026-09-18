@@ -37,4 +37,21 @@ carries_any "that run sends no ledger argument at all" \
   "sends no" "sends none" "sends nothing" "sends neither" "no such argument" "no such line" \
   "leaves the argument out"
 
+# The isolated-session retry calls the review again with the same arguments as the first call, so a
+# run whose integration wrote a Loss ledger must resend it on the retry too, and the retry's own
+# count of arguments must match what the main call's paragraph above says a ledgered run sends
+# (five, six with held Rulings), never the stale "four above, and the fifth" that both omits the
+# ledger from the retry and mislabels the Rulings block's position.
+paragraph="$(awk '
+  /^What the review does/ { exit }
+  /^A return that reads/ { on = 1 }
+  on { print }
+' "$mech")"
+expect "mechanics.md carries the retry paragraph the isolated-session case resumes into" test -n "$paragraph"
+out="$paragraph"
+check "the retry sends the run's Loss ledger too, among the same arguments as the first call" \
+  0 0 "Loss ledger"
+check_absent "the retry paragraph drops the stale four-plus-fifth count that omits the ledger argument" \
+  0 0 "the four above, and the fifth"
+
 exit $((fails > 0))

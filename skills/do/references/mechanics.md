@@ -824,8 +824,9 @@ Held Rulings, not on the tracker:
 One item per held Ruling, its two indented lines only when it rewrote a criterion. The block ends
 at the end of the call, since every line after its first is a Ruling, so it is the last argument
 always, after the ledger and after every other argument the call carries, and a single-line
-argument never sits behind it. A run that holds none sends four arguments, and the fix call below
-never carries the block: the Review it fixes was already held to the rewritten text.
+argument never sits behind it. A run sends four arguments, five when its integration wrote a
+ledger, and one more, the block, when it holds a Ruling: five without a ledger, six with one. The
+fix call below never carries the block: the Review it fixes was already held to the rewritten text.
 Never `--no-fix`, and `fix` only on the path below: the default run is the one every Playbook
 wants, per
 [ADR 0015](../../../docs/adr/0015-the-default-review-run-fixes-and-lands-and-the-fixer-corrects-for-every-caller.md).
@@ -837,8 +838,8 @@ A return that reads
 reviewed nothing and wrote nothing: the door of the review is a script, and the guard of an
 isolated session refuses to run one. It is not a Finding and not a refusal of the diff. The run
 leaves the isolation per [worktrees.md](../../../.agents/worktrees.md) and calls the review again,
-once, with the same arguments as the first call: the four above, and the fifth, the held Rulings
-block, when the run holds one.
+once, with the same arguments as the first call: the four above, the Loss ledger when the
+integration wrote one, and the held Rulings block, last of all, when the run holds one.
 
 What the review does with the call, so that the run does not: it writes the Review, forks one
 Fixer per `Act on` Finding, one at a time, each turning its Finding into one commit on the
