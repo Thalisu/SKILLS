@@ -169,9 +169,9 @@ Loss ledger: <the path, or none>
 ```
 
 The ledger line is the path the caller sent, relayed as it came and never opened here: the
-reviewer reads it, you list it, the way section 4 already has it for the standards. A caller that
-sent none writes `none`, so a run that set nothing aside still sends the line and no reviewer ever
-tests for a line that is absent.
+reviewer reads it, you list it, the way section 4 already has it for the standards. When the
+caller sent no ledger argument, you write `Loss ledger: none` into the brief, so the brief of a run
+that set nothing aside still carries the line and no reviewer ever tests for a line that is absent.
 
 The door's `status=` line goes in whole, pathspec and all. It is the status command with the
 Review a previous run left taken out by name, so a second review of the same branch never reads
