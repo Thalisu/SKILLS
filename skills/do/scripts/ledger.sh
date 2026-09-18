@@ -214,9 +214,10 @@ if [ "$verb" = verdict ] || [ "$verb" = applied ]; then
           inside = ($0 == "## " id); body = 0
           if (inside) found = 1
         } else if ($0 ~ /^### /) body = 1
-        # An entry that already carries a reading is refused whole below: a second verdict written
-        # over the first would leave no trace of the reading it replaced.
-        if (inside && !body && $0 ~ /^- verdict: /) already = 1
+        # An entry that already carries this line is refused whole below: a second one written over
+        # the first would leave no trace of the reading, or of the commit, it replaced.
+        if (inside && !body && index($0, key) == 1) already = 1
+        if (inside && !body && index($0, "- verdict: ") == 1) reading = substr($0, 12)
       }
       print
       if (outside && inside && !body && index($0, anchor) == 1) print ENVIRON["LEDGER_LINE"]
