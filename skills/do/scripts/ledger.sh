@@ -47,7 +47,8 @@
 # never replaces the first where it stands and no run loses the record it is resuming after. An id no
 # entry carries is refused the same way, and so is a `verdict` file that is neither `reapply` nor
 # `drop`, which would bury the entry under a word no reader acts on, and a `reason` file carrying
-# more than one line, which would forge an entry heading of its own.
+# more than one line, which would forge an entry heading of its own. `applied` is refused on an entry
+# that carries no verdict, or whose verdict is `drop`: a commit answers a reading that asked for one.
 #
 # `pending`, `verdict` and `applied` read an entry's heading the way the rewrite does, outside fences
 # only, so a `## <id>` line a side quotes is that side's text and never an entry of its own. A ledger
@@ -207,11 +208,21 @@ if [ "$verb" = verdict ] || [ "$verb" = applied ]; then
       print
       if (outside && inside && !body && $0 ~ /^- before: /) print ENVIRON["LEDGER_VERDICT"]
     }
-    END { if (!found) exit 1; if (already) exit 3 }
+    # A commit answers a reading that asked for one: an entry nobody judged has no reading for it to
+    # answer, and one judged `drop` was let go on purpose, so either would record a commit the entry
+    # itself says should not exist, or report one recorded when nothing was written.
+    END {
+      if (!found) exit 1
+      if (already) exit 3
+      if (verb == "applied" && reading == "") exit 4
+      if (verb == "applied" && reading !~ /^reapply,/) exit 5
+    }
   ' "$ledger" >"$work/ledger" || rc=$?
   if [ "$rc" != 0 ]; then
     case "$rc" in
       3) echo "ledger already carries a $noun for $id: $ledger" >&2 ;;
+      4) echo "ledger refused applied: $id carries no verdict: $ledger" >&2 ;;
+      5) echo "ledger refused applied: $id was judged drop: $ledger" >&2 ;;
       *) echo "ledger carries no entry $id: $ledger" >&2 ;;
     esac
     exit 2

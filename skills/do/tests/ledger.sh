@@ -735,4 +735,88 @@ expect "the refused recording for an unknown id leaves the ledger byte-identical
 expect "no commit for the unknown id reached the ledger" \
   test "$(grep -c '^- applied: ' "$aledger")" = 2
 
+# An applied line answers the reading a judge gave an entry, so only an entry judged `reapply` can
+# take one. An entry nobody has judged yet has no reading for a commit to answer, and a call that
+# wrote nothing there while reporting success would tell the run a commit was recorded when none
+# was. An entry judged `drop` was let go on purpose, so a commit for it contradicts its own reading.
+# Both are refused whole, with nothing written, and the reason names the entry the call was for.
+fresh ledger-applied-unreapplied
+mkdir -p .scratch
+uledger="$PWD/.scratch/run.ledger.md"
+cat >"$uledger" <<'EOF'
+# Loss ledger
+
+## 0a1b2c3d4e5f
+
+- file: unjudged.txt
+- location: L1-L3
+- shape: rewrite-vs-rewrite
+- commit: 1111111111111111111111111111111111111111
+- before: 2222222222222222222222222222222222222222
+
+### Target (kept)
+
+```
+unjudged target
+```
+
+### Incoming (set aside)
+
+```
+unjudged incoming
+```
+
+## 6a7b8c9d0e1f
+
+- file: dropped.txt
+- location: L4-L6
+- shape: rewrite-vs-rewrite
+- commit: 3333333333333333333333333333333333333333
+- before: 4444444444444444444444444444444444444444
+- verdict: drop, already on main, by hand
+
+### Target (kept)
+
+```
+dropped target
+```
+
+### Incoming (set aside)
+
+```
+dropped incoming
+```
+EOF
+cp "$uledger" "$tmp/unreapplied.before"
+
+unjudgeddir="$tmp/applied-dir.unjudged"
+applied_fixture "$unjudgeddir" 0a1b2c3d4e5f 7e6d5c4b3a2918070f6e5d4c3b2a19087e6d5c4b \
+  'reapplied an entry nobody judged'
+rc=0
+out="$(bash "$ledgersh" applied "$uledger" "$unjudgeddir" 2>"$tmp/applied-unjudged.err")" || rc=$?
+expect "a commit for an entry that carries no verdict is refused with exit 2 (got $rc)" test "$rc" = 2
+expect "the refused recording for an unjudged entry gives a reason on stderr" \
+  test -s "$tmp/applied-unjudged.err"
+expect "the refused recording for an unjudged entry names the id it was called for" \
+  grep -qF -- 0a1b2c3d4e5f "$tmp/applied-unjudged.err"
+expect "the refused recording for an unjudged entry says it is the verdict that is missing" \
+  grep -qF -- verdict "$tmp/applied-unjudged.err"
+expect "the refused recording for an unjudged entry leaves the ledger byte-identical to before the call" \
+  cmp -s "$uledger" "$tmp/unreapplied.before"
+
+dropdir="$tmp/applied-dir.drop"
+applied_fixture "$dropdir" 6a7b8c9d0e1f 8f7e6d5c4b3a29180706f5e4d3c2b1a08f7e6d5c \
+  'reapplied an entry the judge let go'
+rc=0
+out="$(bash "$ledgersh" applied "$uledger" "$dropdir" 2>"$tmp/applied-drop.err")" || rc=$?
+expect "a commit for an entry judged drop is refused with exit 2 (got $rc)" test "$rc" = 2
+expect "the refused recording for a dropped entry gives a reason on stderr" \
+  test -s "$tmp/applied-drop.err"
+expect "the refused recording for a dropped entry names the id it was called for" \
+  grep -qF -- 6a7b8c9d0e1f "$tmp/applied-drop.err"
+expect "the refused recording for a dropped entry says the entry was judged drop" \
+  grep -qF -- drop "$tmp/applied-drop.err"
+expect "the refused recording for a dropped entry leaves the ledger byte-identical to before the call" \
+  cmp -s "$uledger" "$tmp/unreapplied.before"
+
 exit $((fails > 0))
