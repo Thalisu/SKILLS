@@ -80,4 +80,18 @@ carries "each dropped entry sits on a line of its own, with its reason" \
 carries "a reapply whose applied line reads none is listed among the dropped entries, with the reason that line gives" \
   "whose applied line reads \`none\`" "listed among the dropped entries" "the reason its applied line gives"
 
+echo "# mechanics.md / ## The integration: a no-op resume still finishes an unapplied reapply"
+flat="$(passage_of "$mech" "**A rebase that replays no commit.**" "**A rebase that replayed commits.**" | tr '\n' ' ' | tr -s ' ')"
+expect "mechanics.md carries the no-op state the ancestor check reaches" test -n "$flat"
+carries "the no-op state reads the ledger's location before ticking anything" \
+  "reads the ledger's location"
+carries "the ancestor check alone does not excuse a ledger entry judged reapply with no applied line" \
+  "an entry judged \`reapply\` with no applied line"
+carries "that entry is brought back the same way the reapplies brought back state does" \
+  "the same way"
+carries "the whole gate runs once before the review is called on this resumed path" \
+  "runs the whole **Gate** once before the review is called"
+carries "the run never ticks the step as a no-op over an entry still owed a commit" \
+  "never ticking the step as a no-op"
+
 exit $((fails > 0))

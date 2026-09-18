@@ -533,9 +533,21 @@ refs/heads/<the developer's branch> HEAD`, the ref qualified so a same-named tag
 it. Where it exits 0, the developer's branch did not move under the run, or
 the developer rebased or merged it into `do/<slug>` by hand between two runs, resolving any
 conflict along the way, and running the rebase now would only replay a commit git may not drop as
-empty, or hand the developer the same hunk their own merge just settled. The run skips the rebase:
-it ticks the step as a no-op, reruns nothing, asks nothing, and the review is called with the fixed
-point this ancestry already gives, the tip of the developer's branch.
+empty, or hand the developer the same hunk their own merge just settled.
+
+Before it ticks anything, the run reads the ledger's location, fixed the same way it is fixed
+before a rebase starts and never a line a resumed run has to be handed back, and, where that file
+exists, reads it directly the way the review already does: the reviewer opens the file, and here
+the run does too. Where no such file exists, or every entry on it already carries an applied line
+or was judged `drop`, the ancestor check stands on its own and the run skips the rebase: it ticks
+the step as a no-op, reruns nothing, asks nothing, and the review is called with the fixed point
+this ancestry already gives, the tip of the developer's branch. Where the ledger carries an entry
+judged `reapply` with no applied line, a run cut short between two reapply commits and resumed
+once the rebase it left behind had already finished, the ancestor check alone does not excuse a
+ledger entry judged `reapply` with no applied line: the run brings that entry back the same way
+**The reapplies brought back** below does, one commit or `none` recorded into the ledger the same
+way that state records it, then runs the whole **Gate** once before the review is called, never
+ticking the step as a no-op over an entry still owed a commit.
 
 **A rebase that replayed commits.** The run ticks the step with the target and the count, the
 branch it rebased onto and how many of its own commits git replayed. The gate that was green before
