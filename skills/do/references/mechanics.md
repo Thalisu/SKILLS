@@ -799,10 +799,20 @@ location in `ticket`, so the Review lands beside it; the branch alone in `bug-fi
 `refactoring`), the fixed point of the branch under review (the merge base the integration reads
 once it is done, which is the commit the integration rebased onto when it replayed), the
 developer's branch as the landing target, and the Gate, the `command=` line the gate printed, so
-the review holds its fixes to the checks the run held its own work to. A run that holds a Ruling,
-the forks above, sends a fifth argument after the Gate, the held Rulings as one block of text, so
-the review holds the build to the Ruling and to a rewritten criterion the Ticket issue does not
-carry yet:
+the review holds its fixes to the checks the run held its own work to. A run whose integration
+wrote a **Loss ledger** sends one more argument after the Gate, the Loss ledger's location, the
+absolute path in the main checkout the integration above fixed before the rebase started, so the
+review reads what a `contested` hunk set aside:
+
+```
+Loss ledger: <the absolute path>
+```
+
+The path alone goes over, never the ledger's text: the orchestrator relays the line and the
+technical reviewer opens the file. A run whose integration wrote no ledger has no ledger to name
+and sends no such argument, and the reviewer's own `none` is the orchestrator's to write. A run
+that holds a Ruling, the forks above, sends the held Rulings as one block of text, so the review
+holds the build to the Ruling and to a rewritten criterion the Ticket issue does not carry yet:
 
 ```
 Held Rulings, not on the tracker:
@@ -811,9 +821,11 @@ Held Rulings, not on the tracker:
   Now reads: <the side that won>
 ```
 
-One item per held Ruling, its two indented lines only when it rewrote a criterion. A run that holds
-none sends four arguments, and the fix call below never carries the block: the Review it fixes was
-already held to the rewritten text.
+One item per held Ruling, its two indented lines only when it rewrote a criterion. The block ends
+at the end of the call, since every line after its first is a Ruling, so it is the last argument
+always, after the ledger and after every other argument the call carries, and a single-line
+argument never sits behind it. A run that holds none sends four arguments, and the fix call below
+never carries the block: the Review it fixes was already held to the rewritten text.
 Never `--no-fix`, and `fix` only on the path below: the default run is the one every Playbook
 wants, per
 [ADR 0015](../../../docs/adr/0015-the-default-review-run-fixes-and-lands-and-the-fixer-corrects-for-every-caller.md).

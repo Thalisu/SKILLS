@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # lib.sh: the assertions and fixture builders the test scripts share. A script sources it after its
 # `here=` line and sets fails=0; the assertions read the caller's $out and bump the caller's $fails.
-# shellcheck disable=SC2154 # $out and $tmp belong to the sourcing script, which assigns them first.
+# shellcheck disable=SC2154 # $out, $flat and $tmp belong to the sourcing script, which assigns them first.
 
 ok() { echo "ok    $1"; }
 fail() {
@@ -73,6 +73,42 @@ has() { # $1 label, $2 file, $3.. fixed strings the file must carry; a missing f
     return
   }; done
   ok "$label"
+}
+# A contract's section on one line: the references hard-wrap their prose, so a phrase a contract
+# carries sits across two lines as often as not and no fixed string would match it on either.
+flat_section() { # $1 file, $2 the section's heading line; the flattened section on stdout
+  awk -v h="$2" 'index($0, h) == 1 { on = 1; next } on && /^## / { exit } on' "$1" |
+    tr '\n' ' ' | tr -s ' '
+}
+carries() { # $1 label, $2.. fixed strings the flattened section in $flat must carry
+  local label="$1" key
+  shift
+  for key in "$@"; do
+    grep -qF -- "$key" <<<"$flat" || {
+      fail "$label (missing: $key)"
+      return
+    }
+  done
+  ok "$label"
+}
+carries_any() { # $1 label, $2.. fixed strings, one of which the flattened section in $flat must carry
+  local label="$1" key
+  shift
+  for key in "$@"; do
+    grep -qF -- "$key" <<<"$flat" && {
+      ok "$label"
+      return
+    }
+  done
+  fail "$label (none of: $*)"
+}
+before() { # $1 label, $2 the fixed string that comes first in $flat, $3 the fixed string that follows it
+  local first second
+  first="$(awk -v s="$flat" -v k="$2" 'BEGIN { print index(s, k) }')"
+  second="$(awk -v s="$flat" -v k="$3" 'BEGIN { print index(s, k) }')"
+  if [ "$first" -gt 0 ] && [ "$second" -gt "$first" ]; then ok "$1"; else
+    fail "$1 ($2 at $first, $3 at $second)"
+  fi
 }
 g() { command git -c user.email=t@example.com -c user.name=t -c init.defaultBranch=main "$@"; }
 commit() {
