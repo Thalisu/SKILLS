@@ -55,8 +55,15 @@ after it holds the project-specific values. In one breath, the core says:
 - **Tests describe behaviour through the public interface**, named for what they prove; mocks only
   at system boundaries, never the repo's own modules. A test that is hard to write that way is a
   design signal for a seam, not a reason to mock an internal.
-- **Only what matters earns a test**: a behavior a caller relies on, where a wrong result costs
-  something. A rename, a moved file, a reordered section or a phrase in prose gets no test.
+- **Only what matters earns a test**: a behavior a caller relies on, where a wrong or missing
+  result costs something. A string is judged by what rides on it, never by its kind: a message the
+  user reads to act is an outcome, and a title that only proves it is there is structure. A rename,
+  a moved file or a reordered section gets no test.
+- **A settle point is a wait, never the proof**: an E2E flow waits for the state its next step
+  needs, anchored on a URL, a landmark or the control itself rather than on copy, and it always
+  ends on an outcome.
+- **Every dispatch names who relies on the behavior** and what a wrong result costs them, and the
+  author refuses one that names no cost. Its report points at the assertion that proves it.
 - **A failing test is a product bug until shown otherwise.** Skips, weakened assertions, sleeps
   and adjusted expectations are forbidden; the one legitimate rewrite is a test that broke on a
   pure refactor, because it was testing implementation.
@@ -139,7 +146,9 @@ over implementation, boundary mocking and vertical TDD; 2.3 rewrote the template
 changing a rule; 2.4 added the **Partial test data** line to the unit map; 2.5 made the gate after
 a feature a pick the install asks for, recorded as **Post-feature gate** in Project facts, and
 narrowed the per-change unit run to the tests the change adds or touches; 2.6 added the unit surface
-and the rule that a test proves a behavior a caller relies on, never a name, a place or a phrase.
+and the rule that a test proves a behavior a caller relies on, never a name, a place or a phrase;
+2.7 judged a string by what rides on it instead of by its kind, named the settle point in the E2E
+core, and added the **Relied on by** dispatch field and the **Outcome** report line.
 
 **What is the difference between `stale` and `drifted`?**
 `stale` is an older version, the expected signal after the template moves. `drifted` is the

@@ -92,7 +92,7 @@ installer: the README's Install section is a clone and one run of it, so a skill
 definition it does not pick up is not installed at all. `scripts/tests/link-skills.sh` runs it
 against this repo and fails on anything on disk it leaves unlinked.
 
-<!-- testing-policy:start v=2.6 surface=unit -->
+<!-- testing-policy:start v=2.7 surface=unit -->
 ## Testing Policy (Definition of Done)
 
 <!-- testing-policy:core-start -->
@@ -111,7 +111,7 @@ A feature or fix is DONE only when its own unit tests pass and then the post-fea
 - **Green is minimal**: only the code the current test needs; no branch, parameter or feature for a test not yet written.
 - **Refactor on green, never on red**: once green, extract duplication, move complexity behind the interface the test exercised, move logic to where its data lives, running the suite after every step. A test that goes red under a pure refactor was asserting implementation (see "Tests describe behavior") and is rewritten against the interface, not appeased.
 - **Behaviors, not branches**: the tests for a change are the behaviors its callers observe, prioritized with critical paths and the logic that can be wrong first; not one test per branch, not every edge case. The list is written before the first cycle, from the request, the plan or the user, never inferred from the implementation.
-- **Only what matters earns a test**: a test proves a behavior a caller relies on, where a wrong result costs something (a wrong output, a lost file, a guarantee broken). A rename, a moved file, a reordered section, a heading, a listing or a phrase in prose gets no test: such a test pins the shape, goes red on every edit that changes nothing and catches no bug. A change whose only effect is one of these ships with no new test, and a test found pinning one is deleted, not maintained.
+- **Only what matters earns a test**: a test proves a behavior a caller relies on, where a wrong or missing result costs something (a wrong output, a lost file, a guarantee broken, a message the user needed to act). A string earns an assertion by what rides on it, never by its kind: the same title is structure in one test and the proof of an access check in another (the agent file's **What earns an assertion**). A test that pins structure (a rename, a moved file, a reordered section, a heading or a phrase nobody relies on) goes red on every edit that changes nothing and catches no bug. A change whose only effect is structural ships with no new test, and a test found pinning structure is deleted, not maintained.
 
 ### Tests describe behavior, not implementation
 
@@ -129,6 +129,7 @@ Every new test, a new test file or a new test case, is written under the test-au
 
   ```
   Behavior to prove: <one sentence, in observable terms; it becomes the test name>
+  Relied on by: <who relies on it, and what a wrong or missing result costs them>
   Target: <module / function>
   Origin: bugfix | new feature
   Expected red: <failing assertion | unresolved import | error not thrown>

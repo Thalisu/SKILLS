@@ -229,8 +229,9 @@ Done when the fix and the shape, with the sketch or its skip, are recorded for t
 section as its fix line, per [reply.md](reply.md), or the run stopped naming `discuss`.
 
 **5. Red.** The build loop in [mechanics.md](mechanics.md), for one behaviour: the defect the run
-reproduced at step 2. The dispatch input carries origin `bugfix` and the failure scenario as the
-expected red, in the words step 2's output produced, so the test fails the way the surface did.
+reproduced at step 2. The dispatch input carries origin `bugfix`, the actor who met the defect
+and what it cost them as who relies on the behaviour, and the failure scenario as the expected red,
+in the words step 2's output produced, so the test fails the way the surface did.
 The verdict is read and said in one line, `RED_AS_EXPECTED`, and the other verdicts are handled the
 way the loop handles them.
 

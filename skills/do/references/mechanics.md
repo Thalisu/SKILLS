@@ -218,14 +218,16 @@ named on that behaviour's build line for the Reply's Run section, per [reply.md]
 the only source the loop brings into the session is source the run changed.
 
 1. Dispatch the unit test author (the test authors, below) with the complete dispatch input: the
-   behaviour to prove, the target, the origin (`new feature`, or `bugfix` when the line
-   reproduces a defect), the expected red, and placement when it matters. One dispatch in flight
+   behaviour to prove, who relies on it and what a wrong or missing result costs them, the target,
+   the origin (`new feature`, or `bugfix` when the line reproduces a defect), the expected red, and
+   placement when it matters. One dispatch in flight
    at a time, never a batch of tests ahead of the code. While the author runs it is the only
    writer in the tree, and it is never asked to commit.
 2. Read the verdict, and record on the behaviour's build line what was done with it:
    - `RED_AS_EXPECTED`: go on.
    - `REFUSED_INCOMPLETE_INPUT`: the behaviour line was too vague to become an assertion. Sharpen
-     it and dispatch again.
+     it and dispatch again. A refusal because no one relies on the behaviour means it is
+     structural: it ships with no test, and its build line says so.
    - `BLOCKED` on a missing seam: build the seam in production code first (pass the dependency
      in, return the result instead of mutating), then dispatch again. Never a mock around it.
    - `BLOCKED` naming a run command the project map lacks, a slot reading

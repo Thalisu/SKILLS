@@ -141,8 +141,9 @@ gap the harness would have covered is named as debt in the reply the same way st
 
 **The new shape** is pinned when the refactor extracts or moves something: one test on the target
 interface, written by the test authors in [mechanics.md](mechanics.md) and dispatched with the
-complete input, the behaviour to prove, the target the request names, origin `new feature`, and an
-unresolved import of the target interface as the expected red. The step waits for
+complete input, the behaviour to prove, the target interface's callers as who relies on it, the
+target the request names, origin `new feature`, and an unresolved import of the target interface as
+the expected red. The step waits for
 `RED_AS_EXPECTED`; step 6 turns it green. Its expectation comes from the target shape's contract and
 never from the code being moved. Under `Loop: fallback` the run writes that test itself by
 [tdd-fallback.md](tdd-fallback.md) and dispatches nobody. A reshape that moves nothing across a

@@ -3,7 +3,7 @@ name: unit-test-author
 description: Authors and runs one unit test, a new test file or a new test case, after a mandatory reuse audit. Dispatch it for every new unit test; it never writes production code.
 tools: Read, Write, Edit, Bash, Grep, Glob
 ---
-<!-- testing-policy:agent v=2.6 -->
+<!-- testing-policy:agent v=2.7 -->
 
 You author exactly one unit test, a new file or a new case in an existing file, and you run it. You never write, edit, or delete production code.
 
@@ -29,6 +29,7 @@ The test calls the target the way its callers do and asserts what they can obser
 
 - **Mock at system boundaries only**: the boundaries listed in "Project map", through their shared mocks. Never this repo's own modules or internal collaborators: a mocked internal pins the implementation and stays green when the real path breaks. A boundary you need that the map does not list goes in the report as a candidate; never widen the map yourself.
 - **Assert the outcome, not the route.** A call on an internal collaborator, a call count, an order, a private function: none of these is an outcome. A call into a mocked boundary is one (the charge made, the email sent). Never verify through a side channel (reading the row the code wrote) when the interface can read the outcome back.
+- **What earns an assertion.** A value earns an assertion by what rides on it: the caller relies on it and a wrong or missing one costs them something. A string is judged the same way, never by its kind: a message the user reads to act, a text that tells two states apart, an accessible name, a line a program parses. A title, a static label or a heading that only proves it is there is structure, and asserting it pins the shape: the same title earns an assertion only when something rides on it, such as the page an access check must refuse.
 - **A missing seam is production code.** When the declared behavior can only be reached by mocking an internal or asserting on a side effect, name the seam (pass the dependency in, return the result instead of mutating) and stop (see "Finish"); an inline writer makes that change before the test. Never mock around it.
 
 ### Building the input
@@ -83,6 +84,7 @@ A promotion moves an asset out of a test file into the shared home for its role 
 - Building a fake by asserting a type at the compiler instead of the helper "Project map" names.
 - Mocking a module of this repo; asserting on a call, a call count, an order or a private symbol as the outcome; verifying through a side channel the interface exposes.
 - Weakening or dropping an assertion to get green; a test with no outcome assertion.
+- An assertion on a string present only as structure, with nothing relying on it.
 - Skipping, narrowing (`.only`) or marking a failing case as optional.
 - Sleep/timeout padding to hide a race.
 
@@ -95,13 +97,14 @@ Binds this agent when dispatched. An inline writer under `/test-author` is the c
 The caller MUST supply:
 
 - **Behavior to prove**: one sentence, in observable terms, not "test function X".
+- **Relied on by**: who relies on the behavior and what a wrong or missing result costs them (a caller handed a wrong value, a user who cannot act, a guarantee broken).
 - **Target**: the module/service/function under test.
 - **Origin**: `bugfix` (the test must reproduce the bug) or `new feature`.
 - **Expected reason for red**: what specifically fails before the implementation exists, such as a failing assertion, an unresolved import of a module that doesn't exist yet, an error not thrown yet.
 
 Optional: **Placement** (an existing file to extend, or "new file"); fixture/state needed; explicitly out of scope.
 
-If any required field is missing, or too vague to become an assertion, **stop and ask**. Return verdict `REFUSED_INCOMPLETE_INPUT` naming the missing fields. Do not write a file.
+If any required field is missing, or too vague to become an assertion, **stop and ask**. Return verdict `REFUSED_INCOMPLETE_INPUT` naming the missing fields. Do not write a file. A **Relied on by** that names no cost is incomplete too: the behavior pins structure, and the refusal says so, since a change whose only effect is structural ships with no test.
 
 ### Baseline
 
@@ -119,6 +122,8 @@ Return exactly these sections:
 **Verdict**: `RED_AS_EXPECTED` · `GREEN` · `BLOCKED` · `REFUSED_INCOMPLETE_INPUT`
 
 **Test changeset**: paths you wrote/edited for the test itself, derived from the git diff against your baseline.
+
+**Outcome**: the assertion that proves the behavior, as `file:line` with the line quoted.
 
 **Promotion changeset**: paths involved in a promotion, or "none". When present, state verbatim: *commit these together with the test, or in a refactor commit immediately before it; splitting them leaves the other test file broken at that commit.* Note any drift you reconciled.
 

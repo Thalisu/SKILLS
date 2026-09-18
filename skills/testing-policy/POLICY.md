@@ -1,4 +1,4 @@
-<!-- testing-policy version: 2.6 -->
+<!-- testing-policy version: 2.7 -->
 <!-- TEMPLATE: canonical Testing Policy, rendered into the project's CLAUDE.md by
      scripts/render-policy.sh <native|consumer|mixed|unit>. A block opened by an "@surface,surface"
      comment and closed by an "@/" comment is emitted only for the listed surfaces; untagged
@@ -61,7 +61,7 @@ Besides its own surface, this repo is consumed by other repos (the consumer list
 - **Green is minimal**: only the code the current test needs; no branch, parameter or feature for a test not yet written.
 - **Refactor on green, never on red**: once green, extract duplication, move complexity behind the interface the test exercised, move logic to where its data lives, running the suite after every step. A test that goes red under a pure refactor was asserting implementation (see "Tests describe behavior") and is rewritten against the interface, not appeased.
 - **Behaviors, not branches**: the tests for a change are the behaviors its callers observe, prioritized with critical paths and the logic that can be wrong first; not one test per branch, not every edge case. The list is written before the first cycle, from the request, the plan or the user, never inferred from the implementation.
-- **Only what matters earns a test**: a test proves a behavior a caller relies on, where a wrong result costs something (a wrong output, a lost file, a guarantee broken). A rename, a moved file, a reordered section, a heading, a listing or a phrase in prose gets no test: such a test pins the shape, goes red on every edit that changes nothing and catches no bug. A change whose only effect is one of these ships with no new test, and a test found pinning one is deleted, not maintained.
+- **Only what matters earns a test**: a test proves a behavior a caller relies on, where a wrong or missing result costs something (a wrong output, a lost file, a guarantee broken, a message the user needed to act). A string earns an assertion by what rides on it, never by its kind: the same title is structure in one test and the proof of an access check in another (the agent file's **What earns an assertion**). A test that pins structure (a rename, a moved file, a reordered section, a heading or a phrase nobody relies on) goes red on every edit that changes nothing and catches no bug. A change whose only effect is structural ships with no new test, and a test found pinning structure is deleted, not maintained.
 <!-- @native,mixed -->
 - **E2E is proven after**: the E2E flow is authored or extended together with the feature and MUST pass before the work is declared done. No red-first requirement at E2E level: a flow written against a UI that doesn't exist yet fails trivially and proves nothing.
 <!-- @/ -->
@@ -75,7 +75,7 @@ Besides its own surface, this repo is consumed by other repos (the consumer list
 - **Mock at system boundaries only**: external services, the clock, randomness, the network, sometimes the database or the filesystem, as named in the unit-test-author's Project map, through their shared mocks. Never this repo's own modules or internal collaborators: a mocked internal pins the implementation and stays green when the real path is broken.
 - **A test that is hard to write is a design signal**: when a behavior can only be reached by mocking an internal, or by asserting on a side effect the interface does not expose, the fix is a seam in the code (pass the dependency in, return the result instead of mutating) and it lands before the test. Never mock around a missing seam.
 <!-- @native,mixed -->
-- **E2E asserts what the user sees**: the screen, the message, the navigation, the state the product shows. A backend read through a helper is the fallback when no surface exposes the outcome, and the flow states why.
+- **E2E asserts what the user sees**: the screen, the message, the navigation, the state the product shows. A backend read through a helper is the fallback when no surface exposes the outcome, and the flow states why. A wait for the page to arrive is a **settle point**, never the proof: a flow never ends on one (the E2E agent file's **Outcome and settle points**).
 <!-- @/ -->
 
 ### Test authoring: delegation and reuse
@@ -99,6 +99,7 @@ Every new test, a new test file or a new test case, is written under the test-au
 
   ```
   Behavior to prove: <one sentence, in observable terms; it becomes the test name>
+  Relied on by: <who relies on it, and what a wrong or missing result costs them>
 <!-- @native,consumer,mixed -->
   Target: <module / function>  (unit)   |   Journey / screen: <where in the product>  (E2E)
 <!-- @/ -->
@@ -155,6 +156,9 @@ Forbidden:
 - Skipping, narrowing or marking optional a failing test or assertion (the skip mechanisms named in Project facts, or any equivalent).
 - Weakening or removing an assertion to get green.
 - Tests or flows without an outcome assertion (asserting only that nothing crashed).
+<!-- @native,mixed -->
+- A flow whose last assertion is a settle point (a wait for the page), or an absence asserted before a settle point proves the surface it checks has rendered.
+<!-- @/ -->
 - Asserting the route instead of the outcome: that an internal collaborator was called, how many times, in what order. (A call into a mocked boundary is an outcome: the charge made, the email sent.)
 - Verifying through a side channel (reading the row the code wrote) when the interface can read the outcome back.
 - Mocking a module of this repo in a unit test; boundaries only (see "Tests describe behavior").

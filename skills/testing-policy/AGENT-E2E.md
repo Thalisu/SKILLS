@@ -33,6 +33,16 @@ If the caller's stated behavior contradicts what the UI does, say so in the repo
 - A **fix within an existing journey** extends that journey's flow with the assertion that captures the regression, never a parallel flow that repeats the journey.
 - Every flow ends in an **outcome assertion**, what the user sees: the screen, the message, the navigation, the state the product shows. "The app didn't crash" is not an outcome. A backend read through a helper is the fallback when no surface exposes the outcome (a webhook that must leave the invoice unpaid), and the flow states why.
 
+### Outcome and settle points
+
+A flow asserts two different things, and it never lets one pass for the other.
+
+- **What earns an assertion.** A string on screen earns an assertion by what rides on it, never by its kind: a message the user reads to act, a text that tells two states apart, an accessible name that assistive technology reads. A title or a static label that only proves the page carries it is structure, not an outcome; the same title earns an assertion only when something rides on it, such as the page an access check must refuse.
+- **A settle point is a wait, never the proof.** It holds the flow until the state its next step needs has arrived, and a flow never ends on one: the last assertion is always an outcome.
+- **An action that waits for its own target is its own settle point.** When the tool waits for a control before acting on it, no assertion goes before the click. An explicit settle point is required only before a step that does not wait: an absence, a count, a value read, a gesture by coordinates.
+- **Anchor a settle point on what the next step acts on or reads**: the URL, a landmark, the current-tab state, the control itself. Never on copy the product may drop on purpose: a removed title then stops every flow that waited on it.
+- **An absence comes after a settle point.** Before the surface it checks has rendered, an absence holds on a blank page and passes whatever the product does, so every absence assertion follows a settle point that proves that surface is there.
+
 ### Reuse audit: mandatory, before writing anything
 
 Priority: **reuse > extend > create.** Never write a second copy of something that exists.
@@ -82,6 +92,8 @@ E2E runs against the real local stack, and a stack that is down looks exactly li
 - Mocking the backend; flows run against the real stack.
 - Asserting through the database when the product shows the outcome.
 - Sleep/timeout padding to hide a race.
+- An assertion on a string present only as structure, with nothing relying on it.
+- A flow that ends on a settle point; an absence asserted before a settle point; a settle point anchored on copy when the step it gates offers a structural anchor.
 
 ## Dispatch protocol
 
@@ -92,13 +104,14 @@ Binds this agent when dispatched. An inline writer under `/test-author` is the c
 The caller MUST supply:
 
 - **Behavior to prove**: one sentence, in terms the user would observe (screen, message, state, navigation).
+- **Relied on by**: who relies on the behavior and what a wrong or missing result costs them (a user who cannot act, a state shown wrong, an access that should have been refused).
 - **Journey / screen**: where in the product this happens.
 - **Origin**: `bugfix` (the flow must capture the regression) or `new feature`.
 - **Fixture state needed**: what must exist before the flow starts (a client with an open invoice, a company in onboarding, ...).
 
 Optional: **Placement** (an existing flow to extend, or "new flow"); explicitly out of scope.
 
-If any required field is missing, or too vague to become an outcome assertion, **stop and ask**. Return verdict `REFUSED_INCOMPLETE_INPUT` naming the missing fields. Do not write a file.
+If any required field is missing, or too vague to become an outcome assertion, **stop and ask**. Return verdict `REFUSED_INCOMPLETE_INPUT` naming the missing fields. Do not write a file. A **Relied on by** that names no cost is incomplete too: the behavior pins structure, and the refusal says so, since a change whose only effect is structural ships with no flow.
 
 ### Baseline
 
@@ -120,6 +133,8 @@ Return exactly these sections:
 **Verdict**: `GREEN` · `RED` · `BLOCKED` · `REFUSED_INCOMPLETE_INPUT`
 
 **Test changeset**: paths you wrote/edited for the flow itself, derived from the git diff against your baseline.
+
+**Outcome**: the assertion that proves the behavior, as `file:line` with the line quoted; then each settle point the flow holds, as `file:line` with the anchor it waits on.
 
 **Promotion changeset**: paths involved in a promotion, or "none". When present, state verbatim: *commit these together with the flow, or in a refactor commit immediately before it; splitting them leaves the other flow broken at that commit.* Note any drift you reconciled.
 
