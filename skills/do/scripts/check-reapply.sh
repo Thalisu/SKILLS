@@ -11,7 +11,8 @@
 #
 # <block-dir> holds one file per field, the same shape `ledger.sh verdict` and `applied` already
 # take: `id`, the entry the block answers, `file`, the path the block names, and, only on a block
-# carrying `blob:`, `blob`, the sha it names.
+# carrying `blob:`, `blob`, the sha it names, and, only on a block carrying `replace` and `with`, those
+# two texts in files of the same names.
 #
 # The block is refused, exit 1, nothing written, on any of:
 #   - the ledger carries no entry `id`
@@ -19,6 +20,9 @@
 #   - `file` resolves outside <root>
 #   - `blob` is given and is not the sha the entry's Incoming side names (a block with no `blob`
 #     file is never checked against one: `replace`/`with` and `remove the file` blocks name none)
+#   - `replace` and `with` are given and `with` holds a line that is neither in `replace` nor in the
+#     entry's Incoming side: the reapply claims to bring that side back, so a line it adds from
+#     anywhere else is the judge's own text, which no reviewer reads on an integration after the review
 #
 # Exit 0 and nothing printed once every check the block needs has passed. Exit 1, the reason on
 # stderr, on a refusal. Exit 2 on a usage fault.
@@ -35,10 +39,13 @@ blob=""
 
 command -v realpath >/dev/null 2>&1 || { echo "check-reapply refused: realpath is not on PATH" >&2; exit 2; }
 
+incfile="$(mktemp)" || { echo "check-reapply refused: no temporary file" >&2; exit 2; }
+trap 'rm -f "$incfile"' EXIT
+
 # The entry's `- file:` key and, when its Incoming side names one (a binary or too-large side, per
 # contested.sh's whole_side), the blob sha it names, read the same fence-aware way ledger.sh's own
 # verbs read a heading: a `## <id>` line or a `- file: ` line either side's own text quotes is inside
-# a fence and never mistaken for the entry's real one.
+# a fence and never mistaken for the entry's real one. The Incoming side's own text goes to $incfile.
 read_entry() {
   awk -v id="$id" '
     function fence_of(line) { if (match(line, /^(```+|~~~+)/)) return substr(line, 1, RLENGTH); return "" }
@@ -71,11 +78,12 @@ read_entry() {
       printf "file\t%s\n", entryfile
       match(incoming, /blob [0-9a-f]{40}/)
       printf "blob\t%s\n", (RLENGTH > 0 ? substr(incoming, RSTART + 5, 40) : "")
+      printf "%s", incoming > ENVIRON["incfile"]
     }
   ' "$ledger"
 }
 
-out="$(read_entry)"
+out="$(incfile="$incfile" read_entry)"
 found="$(awk -F'\t' '$1 == "found" { print $2 }' <<<"$out")"
 entryfile="$(awk -F'\t' '$1 == "file" { print $2 }' <<<"$out")"
 entryblob="$(awk -F'\t' '$1 == "blob" { print $2 }' <<<"$out")"
@@ -106,6 +114,19 @@ esac
 if [ -n "$blob" ]; then
   if [ -z "$entryblob" ] || [ "$blob" != "$entryblob" ]; then
     echo "check-reapply refused: block names blob $blob, entry $id's Incoming side names ${entryblob:-none}" >&2
+    exit 1
+  fi
+fi
+
+if [ -f "$dir/replace" ] && [ -f "$dir/with" ]; then
+  added="$(awk '
+    FILENAME == ARGV[1] { inc[$0] = 1; next }
+    FILENAME == ARGV[2] { rep[$0] = 1; next }
+    /^[ \t\r]*$/ { next }
+    !($0 in rep) && !($0 in inc) { print; exit }
+  ' "$incfile" "$dir/replace" "$dir/with")"
+  if [ -n "$added" ]; then
+    echo "check-reapply refused: with adds a line entry $id's Incoming side does not hold: $added" >&2
     exit 1
   fi
 fi

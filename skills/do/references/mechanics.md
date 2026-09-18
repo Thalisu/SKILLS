@@ -773,11 +773,14 @@ contested hunk set aside is a diff the developer reads and reverts alone. The bl
 returned is a reading of a stranger's diff text, per ADR 0032, so before the session writes
 anything from it, it writes the block's `id`, `file` and the entry's `reason`, and, only on a block
 carrying `blob:`, that `blob`, into a fresh directory's own `id`, `file`, `reason` and `blob` files,
-one line each, and calls
+one line each, and, only on a block carrying `replace` and `with`, those two texts whole into the
+same directory's `replace` and `with` files, and calls
 `bash <skill-dir>/scripts/check-reapply.sh "<the ledger>" "<the worktree root>" "<the block dir>"`.
 The script refuses, exit 1, when the ledger carries no entry `id`, when `file` is not that entry's
-own `- file:` line, when `file` resolves outside the worktree root, or when `blob` is given and is
-not the sha the entry's Incoming side names, and on any of those the run writes nothing from the
+own `- file:` line, when `file` resolves outside the worktree root, when `blob` is given and is
+not the sha the entry's Incoming side names, or when `with` holds a line that is in neither
+`replace` nor the entry's Incoming side, text the judge wrote rather than the side it brings back,
+and on any of those the run writes nothing from the
 block: the outcome is recorded `none`, the reason the script's, off the same call `ledger.sh
 applied` below already makes, and the run goes on to the next entry rather than stopping over it.
 Only once the script exits 0 does the session apply the edit itself, from the block the judge
@@ -976,7 +979,11 @@ so the developer never types the request again only so that a human is present. 
 integration once more, in the worktree, onto the moved branch, as the integration above says: every
 contested hunk takes the **Target** side and its **Incoming** side goes to the same Loss ledger,
 the Loss ledger judged, the reapplies brought back, and the whole **Gate** run after the last of
-them. A green **Gate** hands the branch to the fix call on the Review the run already has, as the
+them. Each reapply goes through `check-reapply.sh` with its `replace` and `with` exactly as above,
+and on this integration that check is the only reading its `with` text gets, since no reviewer
+reads a commit made after the review: a block the script refuses writes nothing, is recorded
+`none`, and is listed in the reply among this integration's drops, marked as coming after the
+review. A green **Gate** hands the branch to the fix call on the Review the run already has, as the
 paragraph below says for what the run commits after the review, never a second review. A blocked
 state of that integration stops the run as it stops it before the review, with its own undo
 command. The retry runs once per run: a second `not landed: target moved` in the same run, the fix

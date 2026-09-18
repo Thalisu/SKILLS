@@ -88,6 +88,29 @@ out="$(bash "$script" "$bledger" "$PWD" "$block" 2>&1)" || rc=$?
 check "a block whose blob is not the sha the entry's Incoming side names is refused" 1 "$rc" \
   "entry 1122334455aa's Incoming side names abababababababababababababababababababab"
 
+echo "# check-reapply.sh: with adds a line the entry's Incoming side does not hold"
+
+fresh with-mismatch
+mkdir -p sub .scratch
+echo hi > sub/f.txt
+commit "base"
+wledger="$PWD/.scratch/l.md"
+ledger_entry_fixture "$tmp/entry-with" 1122334455aa sub/f.txt whole-file delete-vs-edit \
+  3333333333333333333333333333333333333333 4444444444444444444444444444444444444444 \
+  'target text' \
+  "$(printf 'first line\nsecond line\n')"
+bash "$ledgersh" put "$wledger" "$tmp/entry-with" >/dev/null
+block="$tmp/block-with-mismatch"
+mkdir -p "$block"
+printf '1122334455aa\n' >"$block/id"
+printf 'sub/f.txt\n' >"$block/file"
+printf 'first line\n' >"$block/replace"
+printf 'first line\nEVIL INJECTED LINE\n' >"$block/with"
+rc=0
+out="$(bash "$script" "$wledger" "$PWD" "$block" 2>&1)" || rc=$?
+check "a block whose with adds a line the entry's Incoming side does not hold is refused" 1 "$rc" \
+  "with adds a line entry 1122334455aa's Incoming side does not hold"
+
 echo "# check-reapply.sh: nothing is written on a refusal"
 
 expect "the worktree's tracked file is untouched by any of the refused checks above" \
