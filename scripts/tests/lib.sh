@@ -81,6 +81,9 @@ flat_section() { # $1 file, $2 the section's heading line; the flattened section
     tr '\n' ' ' | tr -s ' '
 }
 section_flat() { flat_section "$@"; }
+passage_of() { # $1 file, $2 the line the passage opens with, $3 the line past its end, both matched as a prefix; on stdout
+  awk -v h="$2" -v e="$3" 'on && index($0, e) == 1 { exit } index($0, h) == 1 { on = 1 } on' "$1"
+}
 # The fenced blocks of a section, unindented: a contract that hands a session a command puts it in a
 # block, and a brief's own lines are a block too.
 blocks_of() { # $1 file, $2 the heading whose section holds them: its fenced blocks, unindented
