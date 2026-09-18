@@ -293,9 +293,9 @@ push command. The `Act on` gate holds the Fixer,
 never the landing, so a first clean build `do` sends here lands like any other. Either way the file
 is never read by a reviewer: the reviewers are gone by now.
 
-Either way the landing retries once over a target that moved while you ran, rebasing only over
-hunks the conflict class script calls `mechanical`, and asks nothing: you are a fork with nobody to
-answer.
+Either way the fast-forward is `land.sh`'s, never a `git merge` of your own, and the landing
+retries once over a target that moved while you ran, rebasing only over hunks the conflict class
+script calls `mechanical`, and asks nothing: you are a fork with nobody to answer.
 
 On the developer's own branch an uncommitted working tree skips the fix, as that file says: the
 Review stands, one line says to commit or stash and run `fix` with it, and no Fixer is forked.
@@ -333,7 +333,7 @@ Then the landing, whether a fix ran or not: `landed at <sha>`, or `not landed` w
 the branch and worktree left in place, or `nothing to land` when the landing target is the branch
 the Review judged. A landing that retried over a moved target reads
 `landed at <sha>, rebased onto <target> at <short sha>`, then one line per hunk it resolved; one
-that met a hunk nobody may judge alone reads `not landed: target moved`, with the target and
-the conflicting files. Your last line is the push command, `git push` with the landing target
+that met a hunk nobody may judge alone, or a target that moved again while its Gate ran, reads
+`not landed: target moved`, with the target and the conflicting files, none in the second case. Your last line is the push command, `git push` with the landing target
 named, because nothing leaves the machine here.
 Nothing else: no preamble, no summary of your own.

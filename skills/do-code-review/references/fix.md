@@ -261,18 +261,26 @@ The Review is Green when every `Act on` Finding reads `fixed` and `verified`, ev
 the Gate is green. `Consider`, `Noted` and `Cleared` never block.
 
 Green lands, under ADR 0013's rules as ADR 0027 amends them and no others: the landing target is
-fast-forwarded to the branch the Fixers committed on,
-`git -C <the main checkout> merge --ff-only <that branch>`; a protected target is refused and
-named; a target that moved while the review ran is retried once, as below; a fast-forward that
-fails for any other reason leaves everything in place and is named. On every one of those paths
+fast-forwarded to the branch the Fixers committed on by
+`bash ~/.claude/skills/do-code-review/scripts/land.sh <the main checkout> <the landing target> <that branch>`,
+never by a `git merge` of your own, since the script holds the one lock every run landing on this
+repository takes, per
+[ADR 0043](../../../docs/adr/0043-concurrent-landings-serialize-only-the-fast-forward.md), and a
+landing that lost the race to another run reads `moved` from it instead of failing. Its one line
+is the verdict: `landed <sha>`, the target fast-forwarded; `moved <sha>`, the target holds a
+commit the branch lacks and was left untouched; `failed <reason>`, the main checkout on another
+branch than the target, since git would fast-forward that branch instead, or a fast-forward git
+refused for any other reason, with git's error line. A protected target is refused and named
+before the script runs; `moved` is retried once, as below; `failed` leaves everything in place and
+is named with its line. On every one of those paths
 nothing is pushed. The reply's last line is the push command, `git push` with the landing target
 named, so the developer pushes when they choose and nothing leaves the machine before then.
 
 ### A target that moved while the review ran
 
-The developer may commit on the landing target while the review runs. The target is then no longer
-an ancestor of the branch, which is what tells this case from any other failed fast-forward:
-`git merge-base --is-ancestor <the landing target> <that branch>` fails. The landing retries once,
+The developer may commit on the landing target while the review runs, and another run may land on
+it. The target is then no longer an ancestor of the branch, which is what `land.sh`'s `moved` line
+tells from any other failed fast-forward. The landing retries once,
 by rebasing the branch onto the moved target, and only over hunks nobody has to judge. Every command
 below runs in the tree the reviewed branch is checked out in, with the Fixers' commits on it when
 there are any: `do`'s worktree when `do` called, the `fix/<slug>` worktree on a plain call. That
@@ -348,8 +356,10 @@ to answer, so a hunk a person must judge ends the landing instead of waiting on 
    landing with no Fixer and no re-check. Red, and the landing returns
    `not landed: gate red after the rebase onto <target>, <the failing check>`. Nothing is fixed,
    since the failure may sit in the developer's own commits, so no Gate fixer runs here, nothing is
-   pushed, and the rebased branch and its worktree stay in place. Green, and the target is
-   fast-forwarded as above, once: a second failure is a failed fast-forward and is named.
+   pushed, and the rebased branch and its worktree stay in place. Green, and `land.sh` runs once
+   more: `landed` lands; `moved`, another landing reached the target while this Gate ran, returns
+   `not landed: target moved` with the target and no conflicting file, for the caller to
+   integrate again; `failed` is a failed fast-forward and is named.
 
 The landing line then names the rebase onto the moved target with the hunks it resolved, one line
 each, in the shape [review-format.md](../../../.agents/formats/review-format.md) fixes.
