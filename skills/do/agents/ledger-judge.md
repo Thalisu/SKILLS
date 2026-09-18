@@ -59,10 +59,17 @@ longest run of backticks the text itself holds, so no line in it can close the f
 closing fence is where the field ends, and only once both have closed does the next `<id>` line
 start another block. Without it the reader cannot tell the last line of the replaced text from the
 `with:` key, nor the end of one block from the next entry's id.
-Where the Incoming side is a whole file, a binary or a side too large to quote, the entry names it
+Where the Incoming side is a binary or a side too large to quote, the entry names it
 by its blob instead, and the block carries `take the Incoming blob whole` and a
 `blob: <the 40-hex sha the entry names>` line in place of `replace` and `with`: the sha is what the
-session writes the file back from, so it rides on a field of its own and never inside `reason`.
+session writes the file back from, so it rides on a field of its own and never inside `reason`. A
+whole file small enough to quote names no blob at all: it is judged the same way as any other
+`reapply`, its `replace` and `with` quoting the file's current text and the Incoming side in full.
+
+Where the Incoming side reads `(deleted)`, the reapply is the deletion the rebase set aside: the
+entry names no Incoming text and no blob for it, so the block carries `remove the file` in place of
+`replace`, `with`, `take the Incoming blob whole` and `blob:`, and the session stages the file's
+removal instead of writing any text back.
 
 On a `drop`, `file`, `replace` and `with` are left out.
 

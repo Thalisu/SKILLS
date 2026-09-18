@@ -63,6 +63,11 @@ carries "the integration step is ticked with the totals, each reapplied commit a
 before "the step is ticked only once every reapply outcome is recorded in the ledger" \
   "ledger.sh applied" "ticked with the totals, each reapplied commit and each dropped entry"
 
+echo "# mechanics.md / ## The integration: a deleted Incoming side reapplies as a removal"
+flat="$(section_flat "$mech" "## The integration")"
+carries "a block carrying remove the file reapplies as the file removed, not written back from a blob or a replace/with pair" \
+  "remove the file" "the file removed"
+
 echo "# reply.md / item 26: the integration line names what came back and what did not"
 flat="$(passage_of "$here/../references/reply.md" "26. **Integration line.**" "27." | tr '\n' ' ' | tr -s ' ')"
 expect "reply.md carries the integration line" test -n "$flat"

@@ -62,4 +62,13 @@ expect "on a whole-side reapply the block carries a blob: field beside take the 
 expect "the whole-side block's blob: field carries the sha the ledger entry names" \
   bash -c 'grep -qiE "blob: *<[^>]*sha" <<<"$1"' _ "$block_section"
 
+# A deleted Incoming side names no blob and no text to replace: the entry's only 40-hex shas are
+# the replayed commit and the branch tip, neither of which is a blob the deletion could be read
+# back from. The block must ask for a removal instead of the whole-side blob path.
+deleted_side="$(awk -v RS= '/remove the file/ { gsub(/\n/, " "); print }' <<<"$block_section")"
+expect "an Incoming side that reads (deleted) is judged reapply with a remove the file instruction, in place of replace, with and the blob path" \
+  bash -c 'grep -qF "remove the file" <<<"$1" && grep -qiF "(deleted)" <<<"$1" && grep -qF "in place of" <<<"$1"' _ "$deleted_side"
+expect "take the Incoming blob whole is offered only where the entry names an Incoming blob, never a whole text side" \
+  bash -c '! grep -qF "a whole file, a binary" <<<"$1"' _ "$block_section"
+
 exit $((fails > 0))
