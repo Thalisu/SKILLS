@@ -202,7 +202,7 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   the branch lands through the fix call on that Review with no **Gate** of the run's own before it,
   and is never reviewed a second time.
 - A Spec amended while the Ticket is `claimed` is resumed the same way whoever amended it: `discuss`
-  after a run stopped on an Extreme fork (the forks in [mechanics.md](mechanics.md)), or the
+  after a run stopped on an Extreme fork (the forks in [forks.md](forks.md)), or the
   developer editing a Ruling line in the Spec's Implementation Decisions to reverse it. No
   mechanism is added for either. The Spec's hash no longer matches the Digest's, so the run prints
   the one line naming the Spec as changed, and the reader is forked again over the amended Spec and
@@ -211,7 +211,7 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   `Behaviour:` line still matches a line of it is kept, and the loop continues at the first
   behaviour without a commit, building the side the Spec now takes. A criterion an earlier Ruling
   rewrote to the side the developer's edit reversed is met at step 4 as a Design fork against the
-  edited line, as the forks in [mechanics.md](mechanics.md) say. After an Extreme stop with the Spec
+  edited line, as the forks in [forks.md](forks.md) say. After an Extreme stop with the Spec
   unchanged, both hashes match and the resume meets the same fork at the same step, and stops with
   the same reply and the same `/discuss` command.
 
@@ -420,7 +420,7 @@ it adds is checked the way step 2 says. A deviation from that contract during th
 surfaced in the reply, and a second deviation of the same shape stops the run as a wrong Sketch,
 the deviations listed, the worktree and its branch named, the message naming `discuss`. A
 Design fork the shape meets, two shapes the Ticket, its Spec and the code cannot settle, goes to
-the forks in [mechanics.md](mechanics.md). Done
+the forks in [forks.md](forks.md). Done
 when the step reads the skip, or the shape in hand is named, or, on the fork path, the hand-over
 and the Sketch's location with its shape are recorded for the Reply, or, on the withheld path, the
 shaped-by line and the Sketch's location with its shape are recorded for the Reply, or, on the path
@@ -434,12 +434,12 @@ the developer checks the slice before the list is written. Then write the list f
 criteria and its `What to build` line and from the Digest's quotes, its Path's step table and
 failure branches among them; never from the implementation. When a held Ruling on this Ticket
 carries a `Now reads:` pair, the criterion it names is written from its `Now reads:` text, never
-from the `Criterion:` text the issue still carries, per the forks in [mechanics.md](mechanics.md).
+from the `Criterion:` text the issue still carries, per the forks in [forks.md](forks.md).
 The door's own reading of this Ticket's `Ruled by the choice-taker on Ticket <this Ticket>` lines,
 recorded when it forked the reader per the reader section of [mechanics.md](mechanics.md), sits
 beside the Digest's quotes for this step: a criterion that still reads the side an edited line
 reversed is met here as a Design fork against that line, per the forks in
-[mechanics.md](mechanics.md).
+[forks.md](forks.md).
 It holds the behaviours callers
 observe, critical paths and the logic that can be wrong first, not one line per branch. A line of
 the list traces to a quoted story, a quoted Testing Decision or a Journey step,
@@ -463,7 +463,7 @@ is asked here at step 5, once the `bugfix` line's fix is green in the loop, and 
 not reproduce even when forced stops this run as blocked, the Ticket left `claimed` and the
 worktree and its branch in place and named, never removed, since the close here is step 11's and
 a blocked run closes nothing. A Design fork found here goes to
-the forks in [mechanics.md](mechanics.md). Show the list once; the loop starts on the
+the forks in [forks.md](forks.md). Show the list once; the loop starts on the
 developer's silence. Done when the list is recorded for the Reply's Run section, which carries it
 with the commit beside each line, and, on a defect with no named cause, the reproduction, each
 hypothesis's evidence line and the mechanism are recorded there too, all before the list.
@@ -472,7 +472,7 @@ hypothesis's evidence line and the mechanism are recorded there too, all before 
 under the loop the loop line named. Each behaviour is one build line for the Reply's Run section
 as it lands, per [reply.md](reply.md): the line, the files opened, `RED_AS_EXPECTED`, green, the
 commit. A Design fork a behaviour meets goes to the forks in
-[mechanics.md](mechanics.md). Done when every line has a commit beside it.
+[forks.md](forks.md). Done when every line has a commit beside it.
 
 **6. E2E flows.** The surface is the one the project's Testing Policy names on its section
 marker. On a native or mixed surface, every user-observable change (a screen, a flow, a
@@ -568,13 +568,13 @@ no longer shows the run's worktree, or the step reads `skip: nothing landed` and
 
 **12. Reply.** Written by [reply.md](reply.md). What this Playbook puts in its sections: the
 Ticket and the Review under the files left uncommitted; every Ruling the forks in
-[mechanics.md](mechanics.md) wrote under `Rulings`, `none` when the run met no Design fork; the flows the developer waived and the
+[forks.md](forks.md) wrote under `Rulings`, `none` when the run met no Design fork; the flows the developer waived and the
 consumer flows not run under pending debt, beside
 a criterion the flows step skipped for no end-to-end command, with the command that would fill it; and the next step, `git push` with the developer's
 branch named when the review landed, or, when nothing landed, the worktree, its branch, and the
 review and the landing as what the developer runs next, or, on a `not landed: target moved` right after an integration that ticked as a no-op,
 the same run request typed again on the Ticket instead, since its resume runs the integration again. A
 run that stopped on an Extreme fork, or on a Design fork no `choice-taker` ruled, ends instead on
-the `/discuss` command the forks in [mechanics.md](mechanics.md) fix, as its last line. Done when
+the `/discuss` command the forks in [forks.md](forks.md) fix, as its last line. Done when
 the reply is sent with
 every section that applies.

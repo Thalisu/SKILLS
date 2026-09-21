@@ -150,7 +150,7 @@ lists it; write it by this file alone otherwise.
    check the choice-taker weighs a Ruling line against, per
    [choice-taker.md](../agents/choice-taker.md); a `## Implementation Decisions` Ruling line from
    any other author is left out of this section, the same as any other stranger's line. A Ruling
-   this run holds because its Spec is an issue, the forks in [mechanics.md](mechanics.md), follows
+   this run holds because its Spec is an issue, the forks in [forks.md](forks.md), follows
    in the same shape, with the Spec issue it was posted on once the close's yes posted it, and
    otherwise with its whole Spec line and its `Criterion:` and `Now reads:` lines, for the
    developer to carry to the issues: on a no, a refused write or a stop, nothing else carries it. A

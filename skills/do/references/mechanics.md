@@ -5,7 +5,8 @@ and `refactoring`, so a fix to a mechanic is made once. It carries the worktree,
 branch, the Ticket file, the reader, the forks, the delegates, the gate, the integration, the
 review, the verification and the close. A Playbook links the section it needs and never copies it.
 A part a step reads on its own is a file beside this one, so a step that reaches for it carries
-none of the rest: [build-loop.md](build-loop.md) carries the loop and its test authors.
+none of the rest: [build-loop.md](build-loop.md) carries the loop and its test authors, and
+[forks.md](forks.md) the forks.
 [integrate.md](integrate.md) builds in no worktree and reads the integration alone, for its
 conflict loop.
 
@@ -80,7 +81,8 @@ on the branch makes the landing fast-forward fail, so one rule covers the three 
   describes, made after the developer's yes.
 - During the build the file is read and never written: the criteria and the `What to build` line
   are where the behaviours come from. The one exception is a criterion's text a Ruling rewrote as
-  the losing side, the forks below. A Ticket that is an issue is never written during the build,
+  the losing side, the forks of [forks.md](forks.md). A Ticket that is an issue is never written
+  during the build,
   that exception included: the rewrite rides the close's yes.
 - The status walk and who writes each word are the format's. The run writes `claimed` at the
   start and `resolved` at the close, and nothing in between. With `resolved` it writes the
@@ -175,7 +177,7 @@ second run below says.
 
 A Digest already sits beside the Ticket whenever a run reaches this point a second time, on a
 resume, on a `/do` typed again on the same Ticket, or inside the run once a Ruling amended the
-Spec, the forks below. Before it dispatches anything the door
+Spec, the forks of [forks.md](forks.md). Before it dispatches anything the door
 resolves both paths from the Ticket itself and never from the Digest: the Spec is the spec file in
 the folder above the Ticket's `issues/` folder, and the journey is the one that Spec's `Journey:`
 line names. Then it recomputes the hash of each document at the path it resolved, with the same
@@ -987,7 +989,8 @@ Loss ledger: <the absolute path>
 The path alone goes over, never the ledger's text: the orchestrator relays the line and the
 technical reviewer opens the file. A run whose integration wrote no ledger has no ledger to name
 and sends no such argument, and the reviewer's own `none` is the orchestrator's to write. A run
-that holds a Ruling, the forks above, sends the held Rulings as one block of text, so the review
+that holds a Ruling, the forks of [forks.md](forks.md), sends the held Rulings as one block of
+text, so the review
 holds the build to the Ruling and to a rewritten criterion the Ticket issue does not carry yet:
 
 ```
