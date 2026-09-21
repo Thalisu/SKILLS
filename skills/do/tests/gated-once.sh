@@ -87,7 +87,6 @@ flat="$(passage_of "$refs/reply.md" "24. **Gate line.**" "25. **Door verdict.**"
 carries_any "the Gate line item names the no-Gate-of-its-own path" "${skipped[@]}"
 carries "the Gate line item tells the writer to record that no gate ran" "no gate ran in this session"
 
-
 # A Gate red found downstream, at the fix call's own Gate, on the tree the re-integration reapplied
 # onto a moved target must stop as blocked with the same recovery the first integration's own Gate
 # red gets, never fall to the fix call's Gate fixer: that fixer corrects the reviewer's Findings, not
