@@ -13,6 +13,8 @@ context:
     # the Spec, rewrote the third criterion to the no-op and wrote the Digest. The developer then
     # edited the Ruling line to take the toggle. The resumed run must name the Spec as changed,
     # re-fork the reader, keep both commits, rule the third criterion back to the toggle and build it.
+    # Its own Ruling rewrites that criterion, so it is the branch that re-cuts the Digest: the case
+    # never takes the `## Sources`-only path a Ruling that rewrote no criterion takes.
     set -e
     mkdir -p src docs/agents .scratch/archive-notes/issues .claude/agents .claude/skills/test-author
     cat > package.json <<'JSON'

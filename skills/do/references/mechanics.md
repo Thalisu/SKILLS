@@ -146,7 +146,9 @@ Ticket in the main checkout's scratch: its `## Sources` lines from the door's ow
 then the text the reader returned. A `## Sources` section in the text the reader returned is
 dropped before the write, since a stranger's text can steer the reader into returning one of its
 own, and the run says so in one line, so the written Digest carries exactly one `## Sources`
-section, the door's own. A Digest already at that path is replaced whole and never edited.
+section, the door's own. A Digest already at that path is replaced whole and never edited, with one
+exception the forks below carry: the `## Sources` lines a `settled` Ruling that rewrote no Ticket
+criterion moves in place, the rest of the file left as it stands.
 The run shows the Digest's location and the one line in the thread, and the steps that build on
 the slice open that file and read its quotes there. The line is a restatement for the thread: a list
 written from it would be the paraphrase the Digest exists to keep out of the record.
@@ -400,12 +402,25 @@ checkout, then and there. A Ticket that is an issue is not written mid-run: the 
 pair to the held Ruling, two lines under its line, `Criterion: <the text the issue still carries>`
 and `Now reads: <the side that won>`, and the issue's body is edited only at the close's yes.
 
-Once the Ruling is written to a local Spec,
-the run carries on in the same session and never stops for it: it prints the one line naming the
-Spec as changed, forks the reader again over the Spec and the journey both, never over the Spec
-alone, whose Digest would come back with no Journey Path, and replaces the Digest the way a second
-run does; then it re-derives the behaviours list from the Digest that comes back and continues at
-the first behaviour without a commit.
+Once the Ruling is written to a local Spec, the run carries on in the same session and never stops
+for it: it prints the one line naming the Spec as changed, and what it does with the Digest turns on
+whether the Ruling rewrote a Ticket criterion, the paragraph above.
+
+A Ruling that rewrote no criterion moves the hashes and not the Digest. The Spec gained one line
+under its Implementation Decisions, a section the Digest does not carry, so the slice did not move
+and a reader forked again would return the same text under a new hash. The run keeps the Digest it
+already holds, rewrites only its `## Sources` lines and nothing else in the file, from the door's own
+reading of the Spec as the Ruling left it, `git hash-object` run again in the main checkout over the
+two paths the door resolved before it forked, and forks no reader. The behaviours list stands, since
+the criteria it was written from did not move, and the loop continues at the first behaviour without
+a commit. Left stale, those lines would send the reuse gate of the second run above into a reader on
+the next run of every sibling Ticket of the feature.
+
+A Ruling that rewrote a Ticket criterion re-cuts the Digest, since the criteria are what the
+reader's brief matches its slice against: the run forks the reader again over the Spec and the
+journey both, never over the Spec alone, whose Digest would come back with no Journey Path, and
+replaces the Digest the way a second run does; then it re-derives the behaviours list from the
+Digest that comes back and continues at the first behaviour without a commit.
 
 A fork that touches a risk class with both sides keeping the guarantee whole is ruled on like any
 other and never stops the run. An Extreme fork, one of whose sides weakens a guarantee in a risk
@@ -468,8 +483,8 @@ still reads the side the edit reversed, so the
 behaviours step meets it as a Design fork between that criterion and the edited line, and forks the
 `choice-taker` as above. The edited line is a decision the Spec carries, which the choice-taker
 rules for, so the criterion is the losing side and is rewritten back to the edited side the way any
-losing criterion is, its tick kept. That Ruling is appended like any other, and the Spec it moves is
-read again by the reader as above.
+losing criterion is, its tick kept. That Ruling is appended like any other, and, since it rewrote a
+criterion, the Spec it moves is read again by the reader as above.
 
 ### Delegates
 
