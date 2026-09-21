@@ -1,7 +1,7 @@
 # The Plan
 
 The grounding a `do` ticket run builds from, read out of the Ticket, its Digest and the tree by the
-Planner of [mechanics.md](mechanics.md) and written by that fork itself, per
+Planner the Plan step of [ticket.md](ticket.md) forks, and written by that fork itself, per
 [ADR 0047](../../../docs/adr/0047-the-ticket-run-forks-a-planner-then-a-builder-and-the-session-stops-writing-code.md).
 The session holds the Plan's path and never its text: the grounding is what a run pays for over and
 over, and a session that carries everything read to write it compacts before the build is done. The

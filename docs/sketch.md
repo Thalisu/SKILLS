@@ -17,8 +17,10 @@ the implementation.
 ## When to reach for it
 
 You invoke this by typing `/sketch`, and the agent will not reach for it on its own. The skill
-ships an agent, which your session forks, and [do](do.md) forks it too at its shape step, so the
-shape of a Ticket's work is settled the same way without you typing anything.
+ships an agent, which your session forks, and [do](do.md) forks it too, so the shape of a Ticket's
+work is settled the same way without you typing anything: from the Planner that grounds a `ticket`
+run, where the Sketch lands as one section of the Plan, and from the shape step of a `bug-fix` or
+`refactoring` run, where it is filed beside the Ticket.
 
 Reach for it when the work crosses a boundary somebody else will call, and you want the caller's
 usage, the types, the signatures and the module boundaries settled before the first line of it
@@ -28,7 +30,7 @@ exists.
 |---|---|
 | the shape of something other code will call, settled and written down | here |
 | something runnable you have to click through or drive | [prototype](prototype.md) |
-| the shape settled as part of building a Ticket | [do](do.md), whose shape step calls this one |
+| the shape settled as part of building a Ticket | [do](do.md), whose Planner calls this one |
 | to understand a subsystem that already exists | `how` for the mechanism, `why` for the rationale |
 
 ## Prerequisites
@@ -97,8 +99,8 @@ there either way.
 
 A standalone you type, and an agent a step can fire. You type it when the work crosses a boundary
 and nothing in hand already carries a shape, whether or not a run is open. The agent is the second
-door, and `do` forks it at its shape step, so a Ticket's shape comes from the same place as one you
-type for.
+door, and `do` forks it while it grounds a Ticket, so a Ticket's shape comes from the same place as
+one you type for.
 
 Its neighbours are [prototype](prototype.md), because the two split on whether the question is seen
 or named, and [do](do.md), because that is where a Sketch is usually spent. The grouped list of

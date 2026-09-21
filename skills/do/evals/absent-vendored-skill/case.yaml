@@ -7,8 +7,9 @@ allowed_tools: [Bash, Read, Edit, Write, Glob, Grep, Agent, Skill]
 context:
   scaffold_script: |
     #!/usr/bin/env bash
-    # A session that does not list the vendored how skill: the grounding step completes with the
-    # one-line fallback stated (a map from search output alone, named as thinner) and never stalls.
+    # A sandbox that links no vendored skill, so neither the session nor the Planner it forks lists
+    # how: the Plan step completes, the fork builds the Map from search output alone, and the reply's
+    # Plan line names that fallback. The run never stalls.
     set -e
     mkdir -p src docs/agents .scratch/archive-notes/issues .claude/agents .claude/skills/test-author
     cat > package.json <<'JSON'
