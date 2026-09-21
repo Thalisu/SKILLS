@@ -2,7 +2,7 @@
 name: test-author
 description: Write a new unit test or E2E flow under this project's Testing Policy when you cannot dispatch the unit-test-author / e2e-test-author agent (no Agent tool). Invoke before adding any new test file or test case. Args - unit | e2e.
 ---
-<!-- testing-policy:skill v=2.7 -->
+<!-- testing-policy:skill v=2.8 -->
 
 You are about to write a new test inline, without the test-author agent. The agent file is the single source of the rules; this skill only routes you to the parts that bind inline.
 

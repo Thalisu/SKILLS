@@ -103,6 +103,25 @@ project "$p"
 map "$p" "$p/.scratch/map.md"
 check_lines "the no-runner fixture leaves both unit run slots unfilled, the case the new route covers" 0 "$rc" \
   "unit_run_file=$none" "unit_run_all=$none"
+
+echo "# every verdict a core declares has a route in the references that consume it"
+# The routes only, never the passage that names the list: `RED_AS_EXPECTED` standing there would
+# answer for a bare `RED` a core declares later, which is the run's whole problem.
+flat="$(
+  passage_of "$skill/references/mechanics.md" "2. Read the verdict" "3. Write the smallest"
+  passage_of "$skill/references/ticket.md" "**6. E2E flows.**" "**7. Gate.**"
+)"
+flat="$(tr '\n' ' ' <<<"$flat" | tr -s ' ')"
+for kind in unit e2e; do
+  mapfile -t verdicts < <(bash "$policy/scripts/render-agent.sh" --core-only "$kind" |
+    sed -n 's/^\*\*Verdict\*\*: *//p' | grep -oE '`[A-Z_]+`')
+  if [ "${#verdicts[@]}" -gt 0 ]; then
+    ok "the $kind core declares its verdicts where the run reads them"
+  else fail "the $kind core declares its verdicts where the run reads them"; fi
+  for v in ${verdicts[@]+"${verdicts[@]}"}; do
+    carries "the build loop or the flows step routes the $kind core's $v" "$v"
+  done
+done
 echo
 if [ "$fails" = 0 ]; then echo "all passed"; else
   echo "$fails failed"

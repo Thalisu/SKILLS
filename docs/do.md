@@ -203,7 +203,12 @@ bulk mechanical work with a closed scope, after a script was considered, or expl
 would flood the context window. Even then the session reads the delegate's diff and writes its own
 summary. Tests run the other way round on purpose. Every new test goes to a test author, because a
 test written by whoever wrote the code tends to assert what the code does rather than what it
-should do.
+should do. An author that cannot land its test does not grind at it either: it runs the test at
+most twice, the first run and one fix attempt, then hands back its diagnosis, the hypothesis it
+ruled out and the failing run. The run reads the diagnosis, not the verdict: a production fault is
+its own change to make, since no test author may touch production code, and a test fault buys one
+more dispatch carrying that handback, never a third
+([ADR 0051](adr/0051-a-test-author-gets-one-fix-attempt-and-hands-back-what-it-ruled-out.md)).
 
 **Why does the reviewer fix and land, and not `do`?**
 Because a run that could fix its own Findings would be grading its own diff. `do` hands over four

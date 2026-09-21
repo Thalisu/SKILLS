@@ -1,4 +1,4 @@
-<!-- testing-policy version: 2.7 -->
+<!-- testing-policy version: 2.8 -->
 <!-- TEMPLATE: canonical Testing Policy, rendered into the project's CLAUDE.md by
      scripts/render-policy.sh <native|consumer|mixed|unit>. A block opened by an "@surface,surface"
      comment and closed by an "@/" comment is emitted only for the listed surfaces; untagged
@@ -123,6 +123,7 @@ Every new test, a new test file or a new test case, is written under the test-au
 - **Reuse over duplication**: reuse > extend > create. An asset that exists anywhere in the test tree, including local to another test file, is never rewritten; on its second use it is promoted to the shared home for its role (the agent's Project map names them) and every call site is updated. A separate near-duplicate asset requires a written semantic justification in the agent's report.
 - **Promotions are atomic**: the promoted asset and every updated call site are committed together with the test that motivated them, or in a refactor commit immediately before it, never split across commits, never left out of one. The agent reports the promotion as its own changeset for exactly this reason.
 - **A test still red after implementation**: the caller may fix mechanical breakage (import path, renamed symbol, typo). Any change to an assertion, an expectation, or expected data goes back to the agent, with the reason stated in terms of the contract ("the intended behavior was X"), never in terms of the result ("the test is catching it").
+- **A `HANDBACK` verdict**: the agent spent its one fix attempt (its test ran twice) and stopped, handing back its diagnosis, what it ruled out, the failing run and its reuse audit. Route on the handback's `Diagnosis`, never on the verdict: `production` is the caller's change to make (a bug, a missing seam, an unreachable state), since the agent may not touch production code, and only then is a fresh test dispatched; `test` gets one re-dispatch carrying the handback verbatim, so the next agent skips the Discovery block and the ruled-out hypothesis. One re-dispatch per behavior: a second `HANDBACK` on the same behavior is escalated, never bought a third time.
 - **Shared-asset creation is serialized**: two authors creating shared assets in parallel cannot see each other's work and will each create the "missing" one. Prefer one author of each type in flight; when authors did run in parallel (parallel executors in a phase), the phase is not done until the duplication scan (Project facts) is clean.
 - **The agents run in place**, never in a worktree (reason in Project facts).
 

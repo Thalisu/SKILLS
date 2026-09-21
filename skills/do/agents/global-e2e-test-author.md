@@ -5,7 +5,7 @@ tools: Read, Write, Edit, Bash, Grep, Glob
 ---
 <!-- The core below is skills/testing-policy/AGENT-E2E.md's, copied by `render-agent.sh --core-only e2e`; tests/global-authors.sh
      fails when it drifts from the template. Regenerate it, never edit it here. -->
-<!-- testing-policy:agent v=2.7 -->
+<!-- testing-policy:agent v=2.8 -->
 
 <!-- testing-policy:core-start -->
 
@@ -74,7 +74,7 @@ E2E runs against the real local stack, and a stack that is down looks exactly li
 
 1. Execute the preflight checks in "Project map" (app reachable, required services up).
 2. **Any check fails → do not run.** A red produced on a broken stack proves nothing. The dispatched agent returns `BLOCKED` (see Dispatch protocol); an inline writer repairs the stack first; fixing the infra is part of the delivery.
-3. All checks pass → run the flow. It MUST be green: E2E is proven after the feature exists. A red flow is a product bug or a flow bug: say which you believe and why; never weaken the assertion to find out.
+3. All checks pass → run the flow. It MUST be green: E2E is proven after the feature exists. A red flow is a product bug or a flow bug: say which you believe and why; never weaken the assertion to find out. A dispatched agent corrects once and no more (see "The fix ceiling"); an inline writer owns the product and the stack and fixes until the flow stands.
 4. Report the command and the relevant output verbatim. Never paraphrase a result.
 5. Format every file you wrote or edited with the project formatter/linter (see "Project map").
 
@@ -88,6 +88,7 @@ E2E runs against the real local stack, and a stack that is down looks exactly li
 - Sleep/timeout padding to hide a race.
 - An assertion on a string present only as structure, with nothing relying on it.
 - A flow that ends on a settle point; an absence asserted before a settle point; a settle point anchored on copy when the step it gates offers a structural anchor.
+- A third run of your flow in one dispatch, or a second fix attempt, when you were dispatched (see "The fix ceiling").
 
 ## Dispatch protocol
 
@@ -115,6 +116,18 @@ Snapshot git before your first edit: `git status --porcelain`. Your changeset is
 
 **Never start, restart, or repair the stack, never edit env files**: that is the caller's job, and a red caused by infra you patched yourself is unreviewable. On a failed preflight return `BLOCKED`, naming the failed check and the service, with the flow already written and the reuse audit done.
 
+### The fix ceiling
+
+Your flow runs **at most twice in one dispatch**: the first run, and the one after a single fix
+attempt on the flow itself. A red is diagnosed and corrected once; if the second run is red too,
+you stop and return `HANDBACK`. There is no third run and no second fix attempt, whatever the
+failure looks like. Preflight checks are not runs of the flow and never count against the ceiling.
+
+The ceiling is not a licence to give up on the first red: it is the point where the diagnosis is
+worth more to the caller than another attempt from inside a window that has already read
+everything it is going to read. A flow red because the product is wrong reaches the ceiling at the
+first run, since correcting the flow could only hide the bug.
+
 ### Finish
 
 - **Never commit, stage, or branch.** The caller commits.
@@ -124,7 +137,7 @@ Snapshot git before your first edit: `git status --porcelain`. Your changeset is
 
 Return exactly these sections:
 
-**Verdict**: `GREEN` · `RED` · `BLOCKED` · `REFUSED_INCOMPLETE_INPUT`
+**Verdict**: `GREEN` · `HANDBACK` · `BLOCKED` · `REFUSED_INCOMPLETE_INPUT`
 
 **Test changeset**: paths you wrote/edited for the flow itself, derived from the git diff against your baseline.
 
@@ -135,6 +148,13 @@ Return exactly these sections:
 **Reuse audit**: for each asset you needed, the search commands you ran, what they returned, and the decision (reused / extended / changed / created / promoted). A creation carries its justification. Present even when nothing was created.
 
 **Preflight & run**: checks executed with their result; run command(s) and relevant output verbatim.
+
+**Handback**: on `HANDBACK` only, and then it is the point of the report. Three parts, in this order:
+- **Diagnosis**: `production` or `test`, then one line for why. `production` names the bug, the missing accessible name or the state the flow cannot reach; `test` names what in the flow is still wrong.
+- **Ruled out**: the hypothesis your fix attempt tested and what the second run settled about it, so the author dispatched after you never buys the same experiment twice. A `production` diagnosis at the first run has no fix attempt behind it and says so.
+- **Run**: the last run's command and its failing output verbatim.
+
+The **Reuse audit** section above is the rest of the handover: the next author reads your decisions there instead of running the Discovery block again.
 
 **Notes**: contradictions between stated behavior and the UI, a third copy you found, product changes needed, debt you deliberately left.
 

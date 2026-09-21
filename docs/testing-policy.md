@@ -69,6 +69,12 @@ after it holds the project-specific values. In one breath, the core says:
   pure refactor, because it was testing implementation.
 - **Reuse, then extend, then create**, with the second copy of any asset promoted to its shared
   home in the same changeset.
+- **A dispatched author runs its test at most twice**: the first run, and the one after a single
+  fix attempt on the test itself. Past that it returns `HANDBACK` with its diagnosis, the
+  hypothesis it ruled out and the failing run, and the caller routes on the diagnosis: a
+  production fault is the caller's change to make, a test fault buys one re-dispatch carrying the
+  handback, and no behaviour is bought a third time. An inline writer has no ceiling: it owns the
+  production code, so it fixes until the test stands.
 
 The post-feature gate is the one rule a project picks instead of inheriting, because what a full
 suite costs differs from repo to repo. The install asks for it once, inside the single question it
@@ -148,7 +154,8 @@ a feature a pick the install asks for, recorded as **Post-feature gate** in Proj
 narrowed the per-change unit run to the tests the change adds or touches; 2.6 added the unit surface
 and the rule that a test proves a behavior a caller relies on, never a name, a place or a phrase;
 2.7 judged a string by what rides on it instead of by its kind, named the settle point in the E2E
-core, and added the **Relied on by** dispatch field and the **Outcome** report line.
+core, and added the **Relied on by** dispatch field and the **Outcome** report line; 2.8 capped a
+dispatched author at one fix attempt and added the `HANDBACK` verdict and its report section.
 
 **What is the difference between `stale` and `drifted`?**
 `stale` is an older version, the expected signal after the template moves. `drifted` is the

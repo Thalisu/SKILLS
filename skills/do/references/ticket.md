@@ -478,14 +478,17 @@ navigation, a message, a state the product shows) gets its flow authored or exte
 feature exists, by the E2E test author (the test authors in [mechanics.md](mechanics.md)) with
 the complete input: the behaviour to prove, who relies on it and what a wrong or missing result
 costs them, the journey or screen, the origin, the fixture state, placement when it matters. The flow must return `GREEN`; `BLOCKED` on a preflight stops the run
-as blocked. The flow is committed on its own or with the last behaviour. On a consumer surface
+as blocked; `HANDBACK` takes the route the build loop's `HANDBACK` takes in
+[mechanics.md](mechanics.md), read off the Handback's `Diagnosis` line: `production` is the run's
+own change and then a fresh dispatch, `test` is one re-dispatch carrying the Handback, and a second
+`HANDBACK` on the same criterion stops the run as blocked. The flow is committed on its own or with the last behaviour. On a consumer surface
 the flow lives in the consumer repository and is recorded as pending debt with the consumers
 named. Under `Loop: global` the project has no Testing Policy and so no section marker naming a
 surface, and the Project map the ground step derived stands in for it. When the map's single-flow
 command is filled, each criterion the Digest marks observable
 gets its flow from `global-e2e-test-author` (the test authors in [mechanics.md](mechanics.md))
 with the same complete input and the map's path, and the flow returns `GREEN`,
-or `BLOCKED` on a preflight, which stops the run as blocked. When that command reads
+`HANDBACK`, routed as above, or `BLOCKED` on a preflight, which stops the run as blocked. When that command reads
 `none yet → /testing-policy` and the map's full-suite end-to-end command is filled too (a
 Makefile's or a justfile's `e2e` target, or a `package.json` script the mapper could not read a
 path from), no author is dispatched: the step names the single-flow slot the map left unfilled and

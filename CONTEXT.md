@@ -244,6 +244,19 @@ A wait in a flow for the state its next step needs, anchored on what that step a
 (a URL, a landmark, the control itself), never the flow's proof.
 _Avoid_: sync assertion, heading check, wait (a sleep is never a settle point)
 
+**Fix attempt**:
+One correction a test author makes to its own test after a run whose result was not the target it
+was dispatched for, red for the declared reason for a unit test and green for a flow.
+_Avoid_: retry, iteration, debugging round
+
+**Handback**:
+What a test author returns in place of a finished test when its one **Fix attempt** did not reach
+the target: the last run's output, the hypothesis it tested and what that ruled out, its reuse
+audit's verdicts and the files it changed, so the author dispatched after it pays for none of them
+again.
+_Avoid_: handoff, retry context, failure report (it carries what was ruled out, never only what
+failed)
+
 ## Relationships
 
 - A **Spec** has one or more **Paths**, read off its user stories

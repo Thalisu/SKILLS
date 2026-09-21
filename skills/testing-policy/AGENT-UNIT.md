@@ -76,7 +76,7 @@ A promotion moves an asset out of a test file into the shared home for its role 
 
 ### Running
 
-- Run your new/edited file and confirm it is red **for the reason the caller declared**. Red from a typo, a wrong import path, or a mis-mocked module is *your* bug; fix and rerun. Only red matching the declared reason counts.
+- Run your new/edited file and confirm it is red **for the reason the caller declared**. Red from a typo, a wrong import path, or a mis-mocked module is *your* bug; fix and rerun. Only red matching the declared reason counts. A dispatched agent corrects once and no more (see "The fix ceiling"); an inline writer owns the production code and fixes until the test stands.
 - Run the **full** unit suite whenever you created, extended, changed, or promoted a shared asset.
 - Report the command and the relevant output verbatim. Never paraphrase a result.
 - Format every file you wrote or edited with the project formatter (see "Project map").
@@ -91,6 +91,7 @@ A promotion moves an asset out of a test file into the shared home for its role 
 - An assertion on a string present only as structure, with nothing relying on it.
 - Skipping, narrowing (`.only`) or marking a failing case as optional.
 - Sleep/timeout padding to hide a race.
+- A third run of your test in one dispatch, or a second fix attempt, when you were dispatched (see "The fix ceiling").
 
 ## Dispatch protocol
 
@@ -114,6 +115,18 @@ If any required field is missing, or too vague to become an assertion, **stop an
 
 Snapshot git before your first edit: `git status --porcelain`. The caller may have work in flight; your changeset is the *difference* between this baseline and the end state, never the whole dirty tree.
 
+### The fix ceiling
+
+Your test runs **at most twice in one dispatch**: the first run, and the one after a single fix
+attempt on your own test. A run that misses the target is diagnosed and corrected once; if the
+second run still misses it, you stop and return `HANDBACK`. There is no third run and no second
+fix attempt, whatever the result looks like. The target is the declared red, red for the reason
+the caller declared, so a second run red for a different reason has missed it too.
+
+The ceiling is not a licence to give up on the first run: it is the point where the diagnosis is
+worth more to the caller than another attempt from inside a window that has already read
+everything it is going to read.
+
 ### Finish
 
 - **Never commit, stage, or branch.** The caller commits.
@@ -123,7 +136,7 @@ Snapshot git before your first edit: `git status --porcelain`. The caller may ha
 
 Return exactly these sections:
 
-**Verdict**: `RED_AS_EXPECTED` · `GREEN` · `BLOCKED` · `REFUSED_INCOMPLETE_INPUT`
+**Verdict**: `RED_AS_EXPECTED` · `GREEN` · `HANDBACK` · `BLOCKED` · `REFUSED_INCOMPLETE_INPUT`
 
 **Test changeset**: paths you wrote/edited for the test itself, derived from the git diff against your baseline.
 
@@ -134,6 +147,13 @@ Return exactly these sections:
 **Reuse audit**: for each asset you needed, the search commands you ran, what they returned, and the decision (reused / extended / changed / created / promoted). A creation carries its justification. This section is present even when nothing was created; "I searched and found nothing" is only credible with the search shown.
 
 **Run**: command(s) and relevant output verbatim.
+
+**Handback**: on `HANDBACK` only, and then it is the point of the report. Three parts, in this order:
+- **Diagnosis**: `production` or `test`, then one line for why. `production` names the bug, the missing seam or the state the test cannot reach; `test` names what in the test is still wrong.
+- **Ruled out**: the hypothesis your fix attempt tested and what the second run settled about it, so the author dispatched after you never buys the same experiment twice.
+- **Run**: the second run's command and its failing output verbatim.
+
+The **Reuse audit** section above is the rest of the handover: the next author reads your decisions there instead of running the Discovery block again.
 
 **Notes**: contradictions between stated behavior and implementation, a boundary you mocked that the Project map does not list, a third copy you found, debt you deliberately left.
 
