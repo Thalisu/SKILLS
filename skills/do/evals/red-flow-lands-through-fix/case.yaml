@@ -10,8 +10,9 @@ context:
     #!/usr/bin/env bash
     # The affected flow fails after the first landing: the stand-in do-code-review's planted
     # Fixer commit makes the CLI exit non-zero on every run, the review lands it, and the flow
-    # run from the main checkout goes red. The fix is one unit in the worktree, gated, and handed
-    # to the fix call on the same Review, which lands it with no second review (ADR 0033).
+    # run from the main checkout goes red. The fix is one unit in the worktree, and the branch is
+    # handed to the fix call on the same Review with no **Gate** of the run's own, which lands it
+    # with no second review (ADR 0033).
     set -e
     mkdir -p src bin e2e/helpers docs/agents .scratch/archive-notes/issues .claude/agents .claude/skills/test-author
     cat > package.json <<'JSON'
