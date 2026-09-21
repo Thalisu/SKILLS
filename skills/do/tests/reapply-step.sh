@@ -118,4 +118,23 @@ carries "the whole gate runs once before the review is called on this resumed pa
 carries "the run never ticks the step as a no-op over an entry still owed a commit" \
   "never ticking the step as a no-op"
 
+echo "# mechanics.md / ## The integration: one tree is gated once, before the first review call"
+flat="$(passage_of "$mech" "**The reapplies brought back.**" "**A replayed commit that is empty" | tr '\n' ' ' | tr -s ' ')"
+expect "mechanics.md carries the state on the reapplies brought back" test -n "$flat"
+carries_any "the whole gate after the last reapply is run only before the first review call" \
+  "only before the first review call" "before the first review call" \
+  "only before the review is called" "only where the review is called next"
+carries_any "a run whose next step is the fix call does not run that gate over the same tree" \
+  "skips the **Gate**" "skips that **Gate**" "skips the gate" "skips that gate" \
+  "runs no **Gate**" "no **Gate** runs" "never runs the **Gate**" "does not run the **Gate**" \
+  "the **Gate** is skipped"
+carries_any "the gate is dropped there because the fix call gates that same tree itself" \
+  "gates the same tree" "the fix call gates" "the landing call gates" "gates that tree itself" \
+  "runs the same **Gate** itself"
+
+flat="$(passage_of "$mech" "**A rebase that replays no commit.**" "**A rebase that replayed commits.**" | tr '\n' ' ' | tr -s ' ')"
+expect "mechanics.md carries the no-op state the ancestor check reaches" test -n "$flat"
+carries_any "the resumed run's gate is tied the same way to which of the two calls comes next" \
+  "the fix call" "the review already read"
+
 exit $((fails > 0))
