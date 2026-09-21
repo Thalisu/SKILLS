@@ -212,7 +212,7 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   for step 2 to read. The list is re-derived from the Digest that comes back, every commit whose
   `Behaviour:` line still matches a line of it is kept, and the loop continues at the first
   behaviour without a commit, building the side the Spec now takes. A criterion an earlier Ruling
-  rewrote to the side the developer's edit reversed is met at step 4 as a Design fork against the
+  rewrote to the side the developer's edit reversed is met at step 2 as a Design fork against the
   edited line, as the forks in [forks.md](forks.md) say. After an Extreme stop with the Spec
   unchanged, both hashes match and the resume meets the same fork at the same step, and stops with
   the same reply and the same `/discuss` command.
