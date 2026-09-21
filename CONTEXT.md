@@ -354,6 +354,13 @@ failed)
   runs whole after the last one
 - A flow ends in an **Outcome**; a **Settle point** only gates the step after it, and an action
   that waits for its own target is its own **Settle point**
+- A dispatched test author gets exactly one **Fix attempt**, so its test runs at most twice in one
+  dispatch, and it returns one **Handback** in place of the finished test when the second run still
+  misses its target; an inline writer owns the production code, has no ceiling and writes no
+  **Handback**
+- A **Handback** buys exactly one re-dispatch of its behaviour, and only when its diagnosis reads
+  `test`; a diagnosis reading `production` is the caller's own change and then a fresh author, and
+  a second **Handback** on the same behaviour stops the run
 
 ## Example dialogue
 
