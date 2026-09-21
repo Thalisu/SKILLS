@@ -8,6 +8,16 @@ and by no other: the integration step of [mechanics.md](mechanics.md), which the
 run, and step 4 of [integrate.md](integrate.md), which builds in no worktree and substitutes its
 own continue, abort and ledger path for this file's.
 
+One reader reaches no stop at all and still reads one state of this file: the no-op state of that
+same integration step, **A rebase that replays no commit.** of [mechanics.md](mechanics.md), where
+the ancestor check excused the rebase and the ledger still carries an entry judged `reapply` with
+no applied line. It reads **The reapplies brought back** below and nothing else here, since the
+hunks that entry came from were classed, resolved and judged at a stop of the run that wrote the
+ledger. It brings the entry back the way that state does, through `check-reapply.sh` and never
+around it: the block it applies is a judge's reading of a stranger's diff text like every other
+here, so the same check binds that block's `file`, its `blob` and its `with` back to the entry
+before the session writes anything.
+
 ## The conflict loop
 
 **A rebase that stopped.** At every stop of the rebase, before anything else, the run classes the

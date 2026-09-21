@@ -137,4 +137,14 @@ expect "mechanics.md carries the no-op state the ancestor check reaches" test -n
 carries_any "the resumed run's gate is tied the same way to which of the two calls comes next" \
   "the fix call" "the review already read"
 
+echo "# conflict-loop.md / preamble: the no-op state is named a reader of the reapplies brought back"
+flat="$(passage_of "$conflict" "What a run does at every stop of a replay" "## The conflict loop" | tr '\n' ' ' | tr -s ' ')"
+expect "conflict-loop.md carries its own file preamble" test -n "$flat"
+carries "the preamble still names the step that reaches a stop as a reader of the whole file" \
+  "read by the step that reaches a stop"
+carries "the preamble names the reapplies brought back as the procedure the no-op state reads" \
+  "The reapplies brought back"
+carries_any "the preamble names the integration step's no-op state as a reader" \
+  "no-op state" "no-op's state"
+
 exit $((fails > 0))
