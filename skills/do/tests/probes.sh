@@ -371,9 +371,17 @@ expect "the reader section names the door recording this Ticket's own Ruling lin
 expect "the reversed-Ruling paragraph of the Forks section names where the edited line reaches the session" \
   grep -qF "The edited line reaches the session off the door's own recording of this Ticket's" \
   "$skill/references/forks.md"
-expect "ticket.md step 4 names the door's recorded Ruling lines beside the Digest's quotes" \
-  grep -qF "recorded when it forked the reader per the reader section of" \
-  "$skill/references/ticket.md"
+flat="$(item_holding "$skill/references/ticket.md" '\*\*[0-9]+\.' "do-planner" | tr '\n' ' ' | tr -s ' ')"
+expect "ticket.md gives the behaviours list a step of its own" test -n "$flat"
+carries "the step that builds the behaviours list is handed the door's recorded Ruling lines for this Ticket" \
+  "\`Ruled by the choice-taker on Ticket <this Ticket>\` lines" \
+  "recorded when it forked the reader per the reader section of"
+carries "that step still meets a criterion reading the side an edited Ruling line reversed" \
+  "a criterion that still reads the side an edited line reversed"
+carries_any "such a criterion is met as a Design fork against that line, never written as a behaviour" \
+  "reversed comes back as a Design fork" "reversed is met as a Design fork" \
+  "reversed is a Design fork" "reversed becomes a Design fork" "reversed goes back as a Design fork" \
+  "reversed comes back as a Design fork in the Plan"
 
 echo "# resume-state.sh: a rebase the integration left open"
 printf 'one\nmain side\n' >notes.txt
