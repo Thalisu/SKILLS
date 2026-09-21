@@ -337,14 +337,14 @@ through the Agent tool with `subagent_type: do-planner` and the brief [plan.md](
 that file's own list and never a second one here: a copy of the list in this file drifts from the
 brief the fork is actually handed. A held Ruling that carries a `Now reads:` pair reaches the fork
 through the brief's `Criteria:` key, whose text is the `Now reads:` text and never the text the
-Ticket issue still carries, per the forks in [mechanics.md](mechanics.md). The door's own reading
+Ticket issue still carries, per the forks in [forks.md](forks.md). The door's own reading
 of this Ticket's `Ruled by the choice-taker on Ticket <this Ticket>` lines, recorded when it forked
 the reader per the reader section of [mechanics.md](mechanics.md), reaches it through the brief's
 `Rulings:` key, since the Digest carries no Implementation Decisions section and the fork opens no
 Spec: a criterion that still reads the side an edited line reversed comes back as a Design fork in
 the Plan rather than as a behaviour, and the session rules on it. A Design fork the Plan names, two
 shapes the Ticket, its Spec and the code cannot settle, goes to the forks in
-[mechanics.md](mechanics.md), which the session and never the fork walks, since the Ruling is
+[forks.md](forks.md), which the session and never the fork walks, since the Ruling is
 written to the Spec and the fork holds no tool that writes one. A defect whose cause the
 Ticket does not name, the one step 0 wrote a defect line for reading `cause unknown, diagnosis
 first`, is diagnosed before the fork by the reproduce and cause steps of

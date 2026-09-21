@@ -109,5 +109,20 @@ else
   fail "SKILL.md's forks.md entry names the Resume step, the close step and the reply as readers (entry: $entry)"
 fi
 
+# ticket.md's Plan step, the step that meets a Design fork the Planner raises, points the forks
+# contract at forks.md, never at mechanics.md: mechanics.md carries no forks section, and a run
+# reading "the forks in [mechanics.md](mechanics.md)" there has nowhere to go. The item is found by
+# a phrase it carries, since the Playbook's step numbers move as steps are added or absorbed, and
+# flattened before the grep, since ticket.md hard-wraps and one of the pointers sits across a line
+# break, which no fixed string would match on either line.
+plan_step="$(item_holding "$ticket" '\*\*[0-9]+\.' "The grounding is one fork's work and one file")"
+expect "ticket.md carries its Plan step" test -n "$plan_step"
+plan_step="$(tr '\n' ' ' <<<"$plan_step" | tr -s ' ')"
+if grep -qF "the forks in [mechanics.md](mechanics.md)" <<<"$plan_step"; then
+  fail "ticket.md's Plan step points the forks contract at forks.md, not mechanics.md"
+else
+  ok "ticket.md's Plan step points the forks contract at forks.md, not mechanics.md"
+fi
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1
