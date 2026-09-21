@@ -121,9 +121,10 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   [mechanics.md](mechanics.md) says for a branch the review already read.
 - When every line of the list is ticked, as on the branch a `not landed: target moved` right after an integration that ticked as a no-op left,
   step 5 reads `done: resumed` and the run never waits on an empty loop. It goes on at step 6 as a
-  first run does, a flow already on the branch counting as authored, then the gate, then
-  the integration, which resolves each contested hunk the review's landing left to the **Target**
-  side and writes its **Incoming** side to the Loss ledger beside the Ticket, then the landing through the fix call on the Review that return names, never a second review,
+  first run does, a flow already on the branch counting as authored, then the integration with no
+  **Gate** of the run's own, which resolves each contested hunk the review's landing left to the
+  **Target** side and writes its **Incoming** side to the Loss ledger beside the Ticket, then the
+  landing through the fix call on the Review that return names, never a second review,
   as the bullet above says.
 - On `verdict=ask`, the run asks before discarding the uncommitted changes in the worktree, since
   the discard is the one irreversible act on this path. The question is the turn's final message:
