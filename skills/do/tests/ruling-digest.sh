@@ -68,6 +68,22 @@ carries_any "kept quote L<line> numbers below the insertion are named as no long
   "L<line>" "line numbers" "the lines it quotes" "no longer point" "may drift" "drifts" \
   "no longer at" "stale line" "the line a quote names" "not to be trusted" "no longer trusted"
 
+# The rewrite's own justification (the Spec's slice did not move, and no Ruling ever touches the
+# journey) is a claim about what changed since the door's pre-fork hash, never a check: a sibling
+# Ticket's Ruling on the same Spec, a /discuss amendment, or a manual edit can land in that same
+# window and move the slice or the journey without a rewritten criterion to show for it. The
+# paragraph has to compare the recomputed hash against the Digest's recorded one before it trusts
+# the assertion, the same way the second run's own reuse gate does, or it reuses a Digest whose
+# source moved for a reason other than the one line it assumes.
+carries_any "the rewrite compares the recomputed hash against the Digest's recorded hash before advancing \`## Sources\`" \
+  "compares" "compared against" "matches the hash" "equals the hash" "the hash it recomputes" \
+  "the recomputed hash" "checks the hash" "checked against" "against the hash the Digest" \
+  "against the Digest's own hash" "against the recorded hash"
+carries_any "a hash that does not match sends the run back to the reader, the way a second run's mismatch does" \
+  "does not match" "does not equal" "differs from" "a mismatch" "moved for another reason" \
+  "moved underneath" "changed underneath" "moved out from under" "either hash differs" \
+  "either does not match" "a hash that does not" "the recomputed hash differs"
+
 # The reader section states the Digest-write rule a run may read on its own, so the one edit the
 # Forks passage above allows is named there too; a run reading only this section otherwise takes
 # "replaced whole and never edited" as leaving no room for the `## Sources` rewrite and re-forks.
