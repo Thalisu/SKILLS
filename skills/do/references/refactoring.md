@@ -271,6 +271,9 @@ Three reds, each with one answer:
 - **The harness disagrees after a step.** Behaviour changed. The step is undone until it agrees, and
   what disagreed is stated in one line.
 
+A Design fork a step meets, two shapes step 4's target shape cannot settle, goes to the forks in
+[forks.md](forks.md).
+
 The steps land as one commit or several, each titled `refactor(<scope>): <the step>` and staged by
 path, the body carrying the pin's command lines. Done when the target shape is reached, the
 target-interface test is green, `rg -n -w` finds no caller of the old API and no old name, and the

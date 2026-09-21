@@ -254,7 +254,8 @@ command green, a refactor on green, then typecheck and format the touched files,
 project's facts, with `skip: <reason>` for a command the project does not have. One commit, staged
 by path, its body carrying the behaviour line and the single-file command. A change to the test's
 assertion goes back to its author with the intended behaviour stated, never to make the red go
-away. Done when the fix commit sits on top of the reproduction commit with the suite green.
+away. A Design fork the fix meets, two shapes step 3's evidence cannot settle, goes to the forks in
+[forks.md](forks.md). Done when the fix commit sits on top of the reproduction commit with the suite green.
 
 **7. Verify on the surface.** The original reproduction is run again, the same command line on the
 same surface step 2 used, and its passing output is recorded for the Reply's Run section beside
