@@ -87,4 +87,19 @@ flat="$(passage_of "$refs/reply.md" "24. **Gate line.**" "25. **Door verdict.**"
 carries_any "the Gate line item names the no-Gate-of-its-own path" "${skipped[@]}"
 carries "the Gate line item tells the writer to record that no gate ran" "no gate ran in this session"
 
+
+# A Gate red found downstream, at the fix call's own Gate, on the tree the re-integration reapplied
+# onto a moved target must stop as blocked with the same recovery the first integration's own Gate
+# red gets, never fall to the fix call's Gate fixer: that fixer corrects the reviewer's Findings, not
+# unreviewed replayed integration conflicts.
+echo "# mechanics.md: a Gate red on the re-integration's tree stops as blocked with the ledger and the reset, never the Gate fixer"
+flat="$(passage_of "$refs/mechanics.md" "On \`not landed: target moved\`, the developer's branch moved while the review ran," "Not landed, for any other reason the review gives" | tr '\n' ' ' | tr -s ' ')"
+expect "mechanics.md carries the not landed: target moved retry paragraph" test -n "$flat"
+carries "the paragraph names the ledger's location for a Gate red found on the reapplied tree" \
+  "the ledger's location"
+carries "the paragraph names the reset --hard undo command for a Gate red found on the reapplied tree" \
+  "git reset --hard"
+carries_any "the paragraph says that stop is instead of the Gate fixer, never reaching it" \
+  "never the Gate fixer" "never reaches the Gate fixer" "not the Gate fixer" "never the fixer"
+
 exit $((fails > 0))

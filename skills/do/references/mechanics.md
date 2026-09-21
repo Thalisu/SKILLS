@@ -1059,7 +1059,19 @@ review. The integration hands the branch straight to the fix call on the Review 
 has, as the paragraph below says for what the run commits after the review, never a second review:
 the fix call gates the same tree itself and refuses to land it red, and this retry has no fixed
 count, so a **Gate** here would pay for the suite twice on every lap, per
-[ADR 0049](../../../docs/adr/0049-one-tree-is-gated-once-and-do-skips-the-gate-the-landing-call-runs.md). A blocked
+[ADR 0049](../../../docs/adr/0049-one-tree-is-gated-once-and-do-skips-the-gate-the-landing-call-runs.md).
+That call is made only on a Review whose Findings its Fixers all fixed, since the reapplies it
+gates are commits no reviewer read: a Review still carrying a Finding left `not fixed` or `stale`
+stops the run as blocked before the call, with the reply the red below carries, because a call on
+it forks a Fixer again, and a Fixer's commit is what turns a red **Gate** over to the Gate fixer,
+whose brief is the red block alone and whose fix would edit the replayed code nobody read and land
+it. With nothing left for a Fixer, a red **Gate** on that tree comes back as
+`not landed: gate red` with its failing check, never the Gate fixer, and it stops the run as
+blocked the way a red **Gate** after the first integration's reapplied commits stops it: the
+failing check named, the ledger's location, since the ledger holds what came back and what did
+not, and `git reset --hard <the commit recorded before it started>`, which undoes the whole
+integration. The worktree and its branch stay in place and are named, the Ticket stays `claimed`,
+nothing lands and nothing is pushed. A blocked
 state of that integration stops the run as it stops it before the review, with its own undo
 command. The retry has no fixed count, per
 [ADR 0044](../../../docs/adr/0044-the-re-integration-retries-while-the-target-tip-changes.md): it
