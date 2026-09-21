@@ -73,8 +73,10 @@ after it holds the project-specific values. In one breath, the core says:
   fix attempt on the test itself. Past that it returns `HANDBACK` with its diagnosis, the
   hypothesis it ruled out and the failing run, and the caller routes on the diagnosis: a
   production fault is the caller's change to make, a test fault buys one re-dispatch carrying the
-  handback, and no behaviour is bought a third time. An inline writer has no ceiling: it owns the
-  production code, so it fixes until the test stands.
+  handback, and no behaviour is bought a third time. The handback saves the second author the
+  search behind every asset, never the check on it: it re-runs the Discovery block over the paths
+  the carried reuse audit names before it writes to one. An inline writer has no ceiling: it owns
+  the production code, so it fixes until the test stands.
 
 The post-feature gate is the one rule a project picks instead of inheriting, because what a full
 suite costs differs from repo to repo. The install asks for it once, inside the single question it

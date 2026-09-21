@@ -155,7 +155,7 @@ Return exactly these sections:
 - **Ruled out**: the hypothesis your fix attempt tested and what the second run settled about it, so the author dispatched after you never buys the same experiment twice.
 - **Run**: the second run's command and its failing output verbatim.
 
-The **Reuse audit** section above is the rest of the handover: the next author reads your decisions there instead of running the Discovery block again.
+The **Reuse audit** section above is the rest of the handover: the next author reads your decisions there instead of searching for every asset a second time, and re-runs the Discovery block over each path you named before it writes to one, since the tree may have moved between the two dispatches.
 
 **Notes**: contradictions between stated behavior and implementation, a boundary you mocked that the Project map does not list, a third copy you found, debt you deliberately left.
 
