@@ -65,7 +65,12 @@ Six sections, in this order.
   is not built either way: it is a Design fork between that criterion and the edited line, and the
   item says so with both sides, for the session to rule on.
 - `## Sketch`: the text the `sketch` fork returned, whole, its own header included and its
-  `Written:` key reading this Plan's path, since this is the file the Sketch landed in. Or `none`
+  `Written:` key reading this Plan's path, since this is the file the Sketch landed in, and every
+  heading in it demoted two levels: its title reads `### Sketch: <what it shapes>` and its own
+  sections read `#### The caller's usage` and the rest. No line of it opens a level-2 heading, which
+  is what keeps the whole Sketch inside this one section: the build is held to this section, and a
+  Sketch whose usage, types, signatures, boundaries and rejected rivals fell outside it would hold
+  the build to the Sketch's header keys alone. Or `none`
   on one line with the reason beside it: no boundary crossed, `sketch` not listed, the Agent tool
   withheld, or a return that is not a usable Sketch.
 

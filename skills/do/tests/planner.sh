@@ -196,4 +196,51 @@ carries_any "the Resume section names both branches step 2 leaves: the Plan reus
   "the hashes moved" "the hashes differ" "hashes still match" "the same hashes" \
   "reuses the Plan" "reuse the Plan" "as step 2 does"
 
+echo "# a Plan built per plan.md's \`## Sketch\` rule: the section stays whole past the Sketch's own headings"
+
+# A Plan shaped exactly as plan.md directs: the Sketch's whole text, its own header included,
+# embedded under the Plan's `## Sketch` heading with every heading in it demoted two levels, its
+# title at `###` and its own sections at `####`, so no line of it opens a level-2 heading. Its
+# rejected rivals are the last of those sections, past everything a reader would stop at first if
+# the Sketch's own headings still sat at the Plan's level. The signatures section carries a fenced
+# block, which a real Sketch does, so the section has to survive one. The Plan-level
+# `## Where it lives` below is a genuinely separate section and stays out.
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+plan="$tmp/plan.md"
+cat >"$plan" <<'EOF'
+## Sketch
+### Sketch: export notes
+Shapes: none
+Map: none
+Digest: none
+Written: .scratch/plans/export-notes.plan.md
+
+#### The caller's usage
+The caller imports `exportNotes` and awaits it.
+
+#### The types
+`ExportOptions` carries the format and the destination path.
+
+#### The signatures
+```ts
+export function exportNotes(options: ExportOptions): Promise<void> {
+  throw new Error("not implemented")
+}
+```
+
+#### The boundaries
+The filesystem write is the only boundary crossed.
+
+#### Rejected rivals
+Nested shape: lost to indirection.
+
+## Where it lives
+skills/export/src/notes.ts
+EOF
+
+flat="$(flat_section "$plan" "## Sketch")"
+expect "the Plan's \`## Sketch\` section holds the Sketch whole, rejected rivals included, past the Sketch's own headings" \
+  bash -c '[ -n "$1" ] && grep -qF "Nested shape" <<<"$1"' _ "$flat"
+
 exit $((fails > 0))
