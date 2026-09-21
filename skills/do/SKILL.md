@@ -82,6 +82,8 @@ that Playbook. The reply reference is read last by every Playbook.
 - [conflict-loop.md](references/conflict-loop.md): the conflict loop every stop of a replay runs, read by the step that reaches a stop and by the no-op state of the integration step, `A rebase that replays no commit.`, for an unapplied ledger entry's reapply, and by no other: the class the script reads, the mechanical and contested resolutions, the Loss ledger judged and reapplied, and the states git refuses.
 - [digest.md](references/digest.md): the Digest the session writes from the reader's text and the run derives
   its behaviours from: the reader's brief, what the Digest holds, and where it is written.
+- [plan.md](references/plan.md): the Plan the `do-planner` fork writes and the build loop builds from,
+  read by the Plan step that forks it: the fork's brief, what the Plan holds, and where it is written.
 - [tdd-fallback.md](references/tdd-fallback.md): the TDD fallback the build loop reads when the loop line reads `Loop: fallback`, with no unit test author in the project and no global one that can be dispatched, and a second way in under `Loop: global`, build-loop.md's `BLOCKED` route when the global unit test author comes back `BLOCKED` naming a run command the project map lacks: the run writes the failing test itself, and no test author is dispatched.
 - [trivial.md](references/trivial.md): the `trivial` Playbook: its door checks, its steps and the door script they run.
 - [refactoring.md](references/refactoring.md): the `refactoring` Playbook: its door checks, its steps and the pin it holds the reshape against.

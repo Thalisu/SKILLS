@@ -96,5 +96,23 @@ else
   fail "the reference reaches its text (no Forks section in mechanics.md and no link to forks.md in its paragraph)"
 fi
 
+# SKILL.md's own "## Links" rule reads "One per reference": every file under skills/do/references/
+# carries exactly one entry there, so a reader who works the list top to bottom finds every
+# reference. A file present on disk with no entry is reachable only by chance, through whatever
+# inline link another reference happens to carry to it.
+echo "# SKILL.md's Links list carries one entry per file under skills/do/references/"
+skill="$here/../SKILL.md"
+links_section="$(awk '/^## Links/{flag=1; next} /^## /{flag=0} flag' "$skill")"
+missing=""
+for ref in "$here"/../references/*.md; do
+  name="$(basename "$ref")"
+  grep -qF -- "references/$name" <<<"$links_section" || missing="$missing $name"
+done
+if [ -z "$missing" ]; then
+  ok "every file under references/ has a Links entry in SKILL.md"
+else
+  fail "every file under references/ has a Links entry in SKILL.md (missing:$missing)"
+fi
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1
