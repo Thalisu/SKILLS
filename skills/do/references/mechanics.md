@@ -413,8 +413,10 @@ already holds, rewrites only its `## Sources` lines and nothing else in the file
 reading of the Spec as the Ruling left it, `git hash-object` run again in the main checkout over the
 two paths the door resolved before it forked, and forks no reader. The behaviours list stands, since
 the criteria it was written from did not move, and the loop continues at the first behaviour without
-a commit. Left stale, those lines would send the reuse gate of the second run above into a reader on
-the next run of every sibling Ticket of the feature.
+a commit. The saving is scoped to this Ticket's own next run: a Digest is keyed by its own Ticket's
+slug, so a sibling Ticket's Digest is untouched and stays a reader on its own next run whether or not
+this rewrite runs. Left stale, those lines would send the reuse gate of the second run above into a
+reader on this Ticket's own next run.
 
 A Ruling that rewrote a Ticket criterion re-cuts the Digest, since the criteria are what the
 reader's brief matches its slice against: the run forks the reader again over the Spec and the
