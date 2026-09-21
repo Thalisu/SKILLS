@@ -113,7 +113,10 @@ echo "# every verdict a core declares has a route in the references that consume
 # should have routed then passes against the other. Emptiness is read off the passage before the
 # flattening: `tr` on an empty here-string still writes a space.
 loop_passage="$(passage_of "$skill/references/build-loop.md" "2. Read the verdict" "3. Write the smallest")"
-flows_passage="$(passage_of "$skill/references/ticket.md" "**6. E2E flows.**" "**7. Gate.**")"
+# The flows step from the `**<n>.` marker of the step that dispatches the global end-to-end author
+# to the next marker: the Playbook renumbers its steps whenever one is added or absorbed, so the
+# step is found by the author it forks and never by the number or the title it happens to carry.
+flows_passage="$(item_holding "$skill/references/ticket.md" '\*\*[0-9]+\.' "global-e2e-test-author")"
 expect "the build loop passage the unit verdicts are read against is there" test -n "$loop_passage"
 expect "the flows step passage the e2e verdicts are read against is there" test -n "$flows_passage"
 for kind in unit e2e; do
