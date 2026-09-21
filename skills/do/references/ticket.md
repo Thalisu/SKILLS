@@ -108,8 +108,11 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   with its `Behaviour:` line, off the script's lines. The claim line is not written again. The
   Reply's Run section carries the checklist with steps 0 and 1 reading `done: resumed`.
 - The worktree is entered, never created: a second worktree is never made.
-- The Plan step runs again without a write. The list is
-  re-derived from the Ticket and its Digest as step 2 says, never from the commits; then every line
+- The Plan step runs again as step 2 says: the run hashes the Ticket and the Digest afresh and
+  reuses the Plan beside the Ticket while those hashes still match, and a Plan whose hashes have
+  moved under it forks the Planner again, which writes the Plan anew. The list the loop works
+  through is the Plan's `## Behaviours` section either way, never a list read off the commits;
+  then every line
   whose behaviour a commit body carries is ticked with that commit's sha beside it, and a commit
   whose `Behaviour:` line matches no line of the list is kept and named on the resume line.
 - The loop continues at the first behaviour without a commit, and from there the run is a first

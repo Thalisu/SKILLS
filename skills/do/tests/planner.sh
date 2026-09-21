@@ -160,4 +160,40 @@ carries_each "the run neither stops nor asks for what it cannot get, and forks n
   "never forks another agent" "forks no other agent" "never forks a second agent" \
   "no other agent is forked"
 
+echo "# skills/do/references/ticket.md: the Resume section names the Plan step's real behaviour"
+
+# The Resume section's own Plan bullet, not step 2's: step 2 already says a moved hash re-forks the
+# Planner with a write, and the Resume bullet has to agree with it rather than restate the step from
+# scratch. Scoped to the heading so a phrase step 2 carries legitimately is never read as this bullet's.
+flat="$(flat_section "$playbook" "## Resume")"
+expect "the Playbook carries a Resume section" test -n "$flat"
+
+# shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+out="$flat"
+
+# A resume that reused the Plan wrote nothing, but the hashes moving under it is exactly the branch
+# step 2 sends to a fresh Planner fork, which does write. A bullet that claims the step never writes
+# is wrong every time that branch is the one that held on this resume.
+check_absent "the Resume section never claims the Plan step runs with no write" 0 0 \
+  "without a write"
+
+# The behaviours list is never rebuilt inline by the session from the Ticket and the Digest: that
+# grounding happens once, inside the Planner fork, per ADR 0047, and a resume that opened the Ticket
+# and the Digest itself to redo it would be the very inline grounding the fork exists to avoid.
+check_absent "the Resume section never claims the list is re-derived from the Ticket and its Digest, never the commits" 0 0 \
+  "re-derived from the Ticket and its Digest" "never from the commits"
+
+# What the loop ticks off is the list already sitting in the Plan's own \`## Behaviours\` section,
+# per plan.md, whichever run wrote it: the one reused because the hashes still matched, or the fresh
+# one a moved hash forked the Planner again to write.
+carries_any "the Resume section ties the behaviours list to the Plan's own \`## Behaviours\` section" \
+  "Plan's \`## Behaviours\`" "Plan's Behaviours section" "\`## Behaviours\` section" \
+  "the list in the Plan" "the Plan already holds" "list the Plan carries" \
+  "the Plan holds the list" "reads the Plan" "opens the Plan"
+
+carries_any "the Resume section names both branches step 2 leaves: the Plan reused when the hashes still match, or the Planner forked again when they moved" \
+  "forks the Planner again" "forks \`do-planner\` again" "forks that fork again" \
+  "the hashes moved" "the hashes differ" "hashes still match" "the same hashes" \
+  "reuses the Plan" "reuse the Plan" "as step 2 does"
+
 exit $((fails > 0))
