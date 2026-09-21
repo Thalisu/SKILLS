@@ -143,9 +143,11 @@ absent "a .project-map.md beside a dotted-slug blocker never makes its number am
 # never stands in for the Ticket's, so the number reads as missing and the run never starts.
 printf '# Project map\n\n**Status:** resolved\n' >"$issues/26-gone.project-map.md"
 printf 'a review\n\n**Status:** resolved\n' >"$issues/27-gone.review.md"
+printf '# Plan\n\n**Status:** resolved\n' >"$issues/36-gone.plan.md"
 ticket 28-after-lone-map.md '**Status:** ready-for-agent' '26, Gone'
 ticket 29-after-lone-review.md '**Status:** ready-for-agent' '27, Gone'
-for pair in 28-after-lone-map:26:project-map 29-after-lone-review:27:review; do
+ticket 37-after-lone-plan.md '**Status:** ready-for-agent' '36, Gone'
+for pair in 28-after-lone-map:26:project-map 29-after-lone-review:27:review 37-after-lone-plan:36:plan; do
   IFS=: read -r t b kind <<<"$pair"
   run "$door" "$issues/$t.md"
   check_lines "a blocker whose Ticket is gone and only a .$kind.md of it remains is missing, and the run is refused" 1 "$rc" \
