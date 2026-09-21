@@ -12,11 +12,6 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 mech="$here/../references/mechanics.md"
 fails=0
 
-# The paragraph a reference sits in, flattened: the references hard-wrap, and the reader meets the
-# link in the paragraph they are reading, so the paragraph is the scope a link has to be in.
-paragraph_with() { # $1 file, $2 a fixed string; the first blank-line-delimited paragraph carrying it, on one line
-  awk -v k="$2" 'BEGIN { RS = "" } index($0, k) { gsub(/\n/, " "); print; exit }' "$1"
-}
 # Whether the text a reference names is also in mechanics.md away from the reference itself: the
 # reference's own paragraph is dropped and the rest of the file is read for it.
 elsewhere_in() { # $1 file, $2 a fixed string, prints yes|no

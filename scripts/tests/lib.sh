@@ -74,6 +74,11 @@ has() { # $1 label, $2 file, $3.. fixed strings the file must carry; a missing f
   }; done
   ok "$label"
 }
+# The paragraph a reference sits in, flattened: the references hard-wrap, and the reader meets the
+# link in the paragraph they are reading, so the paragraph is the scope a link has to be in.
+paragraph_with() { # $1 file, $2 a fixed string; the first blank-line-delimited paragraph carrying it, on one line
+  awk -v k="$2" 'BEGIN { RS = "" } index($0, k) { gsub(/\n/, " "); print; exit }' "$1"
+}
 # A contract's section on one line: the references hard-wrap their prose, so a phrase a contract
 # carries sits across two lines as often as not and no fixed string would match it on either.
 flat_section() { # $1 file, $2 the section's heading line; the flattened section on stdout
