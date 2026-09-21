@@ -357,9 +357,13 @@ check_lines "the sidecar written from forks.md's own template reads back byte fo
   "extreme=$top/$issues/04-claimed.extreme.md" "discuss=$filled" "verdict=extreme"
 rm "$issues/04-claimed.extreme.md"
 
-# Finding 1 (do-code-review): a criterion an edited Ruling line reversed is met as a Design fork at
-# step 4 only once the door's own recording of this Ticket's Ruling lines reaches the session, since
-# the Digest carries no Implementation Decisions section. Pinning the reference text that names it.
+# Finding 1 (do-code-review): a criterion an edited Ruling line reversed is met as a Design fork,
+# and only the door's own recording of this Ticket's Ruling lines carries that line to the step that
+# builds the behaviours list, since the Digest carries no Implementation Decisions section. Pinning
+# the reference text that names it. The Playbook's side is read from the `**<n>.` marker of the step
+# that forks the Planner to the next marker, and the step is found by the fork it names: the
+# grounding steps were absorbed into it and every number below moved, so the number, the title and
+# the place in the list anchor nothing.
 echo "# mechanics.md / forks.md / ticket.md: the door's recorded Ruling lines reach the behaviours step"
 expect "the reader section names the door recording this Ticket's own Ruling lines when it forks the reader" \
   grep -qF "records them, their \`Fork:\`, side-taken and \`Norm:\` text, for the session" \
