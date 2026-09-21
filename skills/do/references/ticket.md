@@ -376,8 +376,13 @@ needs, not the window it was read in. It never forks another agent in the Planne
 under any other name could still write where `do-planner`'s own definition binds it not to.
 
 What comes back is the Plan's path and one line for each thing that fell back, and never the Plan's
-text. The session never reads the Plan back: it checks that the file is at the path it named, and
-the steps that build on the grounding open that file and read it there. The Plan's own `## Map` is
+text. The session never reads the Plan back: it checks that the file is at the path it named and
+that the file's `## Sources` lines are the two hashes it computed before the fork, those two lines
+and no other, and the steps that build on the grounding open that file and read it there. A Plan
+whose `## Sources` lines do not match the two hashes, whether the fork wrote lines of its own or cut
+the Plan from something other than what the door hashed, is refused and stops the run in one line
+naming the mismatch. Nothing is built from that Plan, the Ticket is left as the step found it, and
+the next run forks the Planner again. The Plan's own `## Map` is
 the subsystem as it stood before the diff and goes no further than the loop: the review is never
 handed it, since each reviewer builds its own map after the diff, as the review in
 [mechanics.md](mechanics.md) says.

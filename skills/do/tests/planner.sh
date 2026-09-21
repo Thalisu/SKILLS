@@ -122,6 +122,27 @@ carries_any "the session never reads the Plan back" \
   "never the Plan's text" "never its text" "never the text" "holds only the path" \
   "the path alone" "path and never"
 
+# Criterion 3: the path check alone proves the Plan is at the right place, never that it is the
+# right Plan. A fork could write at the named path a Plan cut from a stale or a tampered Ticket or
+# Digest, and only the header comparison against the hashes the door computed before the fork,
+# per ADR 0048 and plan.md's `## Sources` rule, catches that: a run that skips this comparison
+# silently builds behaviours from an unverified grounding artifact.
+carries_any "the step refuses a Plan whose \`## Sources\` lines do not match the hashes the door computed" \
+  "do not match the two hashes" "does not match the two hashes" "don't match the two hashes" \
+  "not the two hashes" "not the hashes it computed" "not the hashes the door computed" \
+  "not match the hashes" "do not match the hashes" "does not match the hashes" \
+  "the hashes do not match" "the hashes don't match" "the hashes it computed do not match" \
+  "the Sources lines do not match" "\`## Sources\` lines do not match" \
+  "\`## Sources\` lines it computed" "a mismatch" "the hashes moved"
+
+carries_any "the step stops the run in one line naming the Sources mismatch" \
+  "stops the run naming the Sources mismatch" "stops the door naming the Sources mismatch" \
+  "stops in one line naming the mismatch" "stops the run in one line naming the mismatch" \
+  "stops the door in one line naming the mismatch" "refuses the Plan and stops" \
+  "refuses that Plan and stops" "refuses the Plan, stopping" "the mismatch stops the run" \
+  "a mismatch stops the run" "naming the mismatch" "naming the Sources mismatch" \
+  "and stops the run in one line" "and stops the door in one line"
+
 # The session names the path itself and never learns it from the fork's return, so a path built by
 # any other rule is a Plan nothing downstream, and no next run on this Ticket, ever finds.
 carries "the Plan is keyed by the Ticket's file name, \`.plan\` before the extension" ".plan"
