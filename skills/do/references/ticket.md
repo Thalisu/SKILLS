@@ -115,7 +115,8 @@ and leaves the worktree as it is, since no branch can be read from it to build o
 - On `verdict=land`, the review already read this branch: its Review is the script's `review=`
   line, and the review runs once per run, per
   [ADR 0033](../../../docs/adr/0033-the-review-runs-once-per-run-and-what-comes-after-it-lands-through-the-gate-alone.md),
-  so the resume is never a second review. The loop is skipped, the gate and the integration run,
+  so the resume is never a second review. The loop is skipped, the integration runs with no
+  **Gate** of the run's own after it,
   and the branch lands through the fix call on that Review, as the review in
   [mechanics.md](mechanics.md) says for a branch the review already read.
 - When every line of the list is ticked, as on the branch a `not landed: target moved` right after an integration that ticked as a no-op left,
@@ -196,9 +197,9 @@ and leaves the worktree as it is, since no branch can be read from it to build o
     answer stops the run as blocked, the rebase left open, the worktree and its branch in place and
     named, the Ticket left `claimed`.
 
-  A `review=` line that names a Review means the rebase came after the review: once it finishes and
-  the gate is green, the branch lands through the fix call on that Review, and is never reviewed a
-  second time.
+  A `review=` line that names a Review means the rebase came after the review: once it finishes,
+  the branch lands through the fix call on that Review with no **Gate** of the run's own before it,
+  and is never reviewed a second time.
 - A Spec amended while the Ticket is `claimed` is resumed the same way whoever amended it: `discuss`
   after a run stopped on an Extreme fork (the forks in [mechanics.md](mechanics.md)), or the
   developer editing a Ruling line in the Spec's Implementation Decisions to reverse it. No
@@ -539,8 +540,8 @@ shadow the branch, read after the integration as the fixed point, and the branch
 the run started on as the landing target, with the held Rulings after the Gate when the run holds
 any, as the review in [mechanics.md](mechanics.md) says. The return is recorded for the Reply's Run section,
 one line per part. A `not landed: target moved` runs the integration again, in the same run, its
-Loss ledger judged and reapplied and the whole **Gate** run, then the fix call on the Review the run
-already has, as that review says, and repeats with no fixed count while each integration replayed
+Loss ledger judged and reapplied with no **Gate** of the run's own, then the fix call on the Review
+the run already has, as that review says, and repeats with no fixed count while each integration replayed
 commits; a `not landed: target moved` right after an integration that ticked as a no-op stops the run as blocked like every other `not landed`. Done when the landing line recorded there reads `landed at <commit>`, or the run stopped as
 blocked with the review's reason quoted and the worktree and its branch named, or the step reads
 `skip: do-code-review not listed` with the worktree and its branch named.
@@ -548,8 +549,8 @@ blocked with the review's reason quoted and the worktree and its branch named, o
 **10. Verification.** The verification in [mechanics.md](mechanics.md): the affected flows from
 the main checkout through `scripts/flows.sh`, its command line printed first, the one question
 before a full suite or
-a remote run, and a red flow as one more unit of the loop, gated and handed to a second review
-call with the landed commit as its fixed point, which lands it again. Done when every affected
+a remote run, and a red flow as one more unit of the loop, handed with no **Gate** of the run's own
+to the fix call on the same Review, which lands it again. Done when every affected
 flow is green or recorded as not run on the developer's no, or the step reads
 `skip: nothing landed`.
 

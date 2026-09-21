@@ -135,6 +135,49 @@ first_at() { # $1.. fixed strings; the smallest positive index of any of them in
   done
   echo "$best"
 }
+# One tree is gated once: the phrasings a contract may use for a branch the run hands over without
+# running the Gate itself, and the ones naming the call it is handed to as what gates that same tree.
+# A case reads them with `mapfile -t names < <(no_gate_phrasings)` and passes them to carries_any.
+no_gate_phrasings() { # one accepted phrasing per line: the run runs no Gate of its own
+  cat <<'EOF'
+no **Gate** of its own
+no Gate of its own
+no **Gate** of the run's own
+no Gate of the run's own
+runs no **Gate**
+runs no Gate
+no **Gate** runs
+no Gate runs
+without a **Gate** of its own
+without a Gate of its own
+skips the **Gate**
+skips that **Gate**
+skips the Gate
+skips that Gate
+skips the gate
+skips that gate
+the **Gate** is skipped
+the Gate is skipped
+never runs the **Gate**
+never runs the Gate
+does not run the **Gate**
+does not run the Gate
+EOF
+}
+fix_call_gates_phrasings() { # one accepted phrasing per line: the call the branch is handed to gates that tree
+  cat <<'EOF'
+gates the same tree
+the fix call gates
+that fix call gates
+the landing call gates
+gates that tree itself
+runs the same **Gate** itself
+the fix call runs the **Gate**
+the fix call runs the Gate
+the fix call's own **Gate**
+the fix call's own Gate
+EOF
+}
 g() { command git -c user.email=t@example.com -c user.name=t -c init.defaultBranch=main "$@"; }
 commit() {
   g add -A >/dev/null

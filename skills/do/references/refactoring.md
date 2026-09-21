@@ -387,7 +387,7 @@ ones the `ticket` Playbook gets:
 
 - **Landed.** The line reads `landed at <commit>` and the run goes to the verification.
 - **Not landed: target moved.** The run integrates again in the same run, its Loss ledger keyed by
-  the branch, judged and reapplied, the whole **Gate** run after the last reapply, and lands
+  the branch, judged and reapplied with no **Gate** of the run's own after the last reapply, and lands
   through the fix call on the Review it already has, as the review in [mechanics.md](mechanics.md)
   says, never a second review, repeating with no fixed count while each integration replayed
   commits.
@@ -416,7 +416,8 @@ reads its skip with the worktree and its branch named.
 
 The verification in [mechanics.md](mechanics.md), from the main checkout after the landing: the
 affected flows with the command line printed first, the one question before a full suite or a remote
-run, and a red flow taken as one more step of the reshape, gated and handed to the fix call on the
+run, and a red flow taken as one more step of the reshape, handed with no **Gate** of the run's own
+to the fix call on the
 same Review, which lands it again with no second review. A reshape whose diff changed no screen,
 route or message
 has no affected flow, and the step reads `skip: no affected flow` with that reason. Done when every

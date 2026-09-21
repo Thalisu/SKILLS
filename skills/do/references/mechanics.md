@@ -1091,9 +1091,13 @@ git merge --ff-only do/<slug>
 
 **What the run commits after the review.** The review read the branch once, and nothing the run
 commits after it is read by a reviewer again: the fix of a red flow, or a rebase a resumed run
-finished after the review. Such a branch is gated, then handed to `do-code-review` with
+finished after the review. Such a branch is handed to `do-code-review` with
 `fix` with the Review's location, then the developer's branch as the landing target and the
-`command=` line the gate printed. No reviewer is forked: a Finding the first call
+`command=` line the run's own gate printed before the review, and with no **Gate** of the run's own
+over it first: the fix call gates the same tree itself, from that very line, and refuses to land it
+red, so a second one here would pay for the suite twice, per
+[ADR 0049](../../../docs/adr/0049-one-tree-is-gated-once-and-do-skips-the-gate-the-landing-call-runs.md).
+No reviewer is forked: a Finding the first call
 left `not fixed` or `stale` goes to a Fixer again, and a list with nothing left forks no Fixer,
 and the call runs the Gate and the landing alone. Its return reads like the first one's, and a
 return that reads not landed stops the run the way the first one does.
@@ -1135,9 +1139,10 @@ worktree stays, since it is where a red flow is fixed.
 
 4. A red flow is a defect in the landed work, not in the flow: it is fixed in the worktree as one
    more unit of the build loop, with origin `bugfix` and the flow's failure as the expected red,
-   the gate run again, and the branch handed to the fix call on the same Review, as the review
-   section says for what the run commits after it, which runs the Gate and lands it again with no
-   second review. A fix call that returns not landed stops the run the way the first call does.
+   and the branch handed to the fix call on the same Review with no **Gate** of the run's own, as
+   the review section says for what the run commits after it: the fix call gates the same tree
+   itself and lands it again with no second review. A fix call that returns not landed stops the
+   run the way the first call does.
 Done when every affected flow is green in output produced after the last landing, or recorded as
 not run on the developer's no, with every command line quoted in the Reply's Evidence.
 

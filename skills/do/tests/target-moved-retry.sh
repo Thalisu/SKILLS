@@ -39,20 +39,11 @@ carries_any "the retried integration brings the reapplies back" \
 # One tree is gated once: the retry's Gate and the fix call's Gate ran over the same tree, and the
 # loop has no fixed count, so every lap paid for the suite twice. The run hands the branch over
 # without gating it and the fix call below gates it.
-skipped=(
-  "no **Gate** of its own" "no Gate of its own" "no **Gate** of the run's own" "no Gate of the run's own"
-  "runs no **Gate**" "runs no Gate" "no **Gate** runs" "no Gate runs"
-  "without a **Gate** of its own" "without a Gate of its own"
-  "skips the **Gate**" "skips that **Gate**" "skips the Gate" "skips that Gate"
-  "the **Gate** is skipped" "the Gate is skipped"
-  "never runs the **Gate**" "never runs the Gate"
-  "does not run the **Gate**" "does not run the Gate"
-)
+mapfile -t skipped < <(no_gate_phrasings)
+mapfile -t gated_by_the_call < <(fix_call_gates_phrasings)
 carries_any "the retried integration hands its branch over with no Gate of the run's own" "${skipped[@]}"
 carries_any "the Gate is dropped there because the fix call gates that same tree itself" \
-  "gates the same tree" "the fix call gates" "that fix call gates" "the landing call gates" \
-  "gates that tree itself" "runs the same **Gate** itself" "the fix call runs the **Gate**" \
-  "the fix call runs the Gate" "the fix call's own **Gate**" "the fix call's own Gate"
+  "${gated_by_the_call[@]}"
 # shellcheck disable=SC2034  # lib.sh's check_absent reads $out
 out="$flat"
 check_absent "the passage no longer has the retried integration run a Gate before the fix call" \

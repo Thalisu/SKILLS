@@ -67,8 +67,8 @@ branch and `refs/heads/do/<slug>`, qualified so a same-named tag can never shado
   a review that never finished, and the review runs as on a first run. A Review that counts means
   the review already read the branch, and it runs once per run, per
   [ADR 0033](../../../docs/adr/0033-the-review-runs-once-per-run-and-what-comes-after-it-lands-through-the-gate-alone.md),
-  so the run gates, integrates and lands through the fix call on that Review, never a second
-  review.
+  so the run integrates and lands through the fix call on that Review with no **Gate** of the
+  run's own before it, never a second review.
 - Uncommitted changes in the worktree are asked about before they are discarded, since the discard
   is the one irreversible act on this path. The question is the turn's final message: it says the
   run resumes, names the worktree and its branch, and names the changes one line per file from
@@ -298,7 +298,8 @@ the worktree and its branch named.
 
 **11. Verification.** The verification in [mechanics.md](mechanics.md): the affected flows from the
 main checkout with the command line printed first, the one question before a full suite or a remote
-run, and a red flow as one more unit of the loop, gated and handed to the fix call on the same
+run, and a red flow as one more unit of the loop, handed with no **Gate** of the run's own to the
+fix call on the same
 Review, which lands it again with no second review. A defect with no user-observable surface
 has no affected flow and the step reads `skip: no affected flow` with that reason. Done when every
 affected flow is green or recorded as not run on the developer's no, or the step reads
