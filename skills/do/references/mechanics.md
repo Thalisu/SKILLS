@@ -151,7 +151,7 @@ then the text the reader returned. A `## Sources` section in the text the reader
 dropped before the write, since a stranger's text can steer the reader into returning one of its
 own, and the run says so in one line, so the written Digest carries exactly one `## Sources`
 section, the door's own. A Digest already at that path is replaced whole and never edited, with one
-exception the forks below carry: the `## Sources` lines a `settled` Ruling that rewrote no Ticket
+exception the forks of [forks.md](forks.md) carry: the `## Sources` lines a `settled` Ruling that rewrote no Ticket
 criterion moves in place, the rest of the file left as it stands.
 The run shows the Digest's location and the one line in the thread, and the steps that build on
 the slice open that file and read its quotes there. The line is a restatement for the thread: a list

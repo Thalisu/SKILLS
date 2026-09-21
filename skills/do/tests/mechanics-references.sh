@@ -51,5 +51,21 @@ expect "mechanics.md carries the paragraph on a return of not landed: target mov
 reaches "check-reapply.sh's replace and with that paragraph names are reachable from mechanics.md" \
   "$(elsewhere_in "$mech" "check-reapply.sh")" "$para"
 
+# The Digest write rule's one exception names "the forks" for what a settled Ruling moves in
+# place. The forks live in forks.md, not in this file, so the paragraph reaches that text only if
+# mechanics.md still carries a Forks heading of its own or the paragraph links forks.md the way
+# the other three "the forks" sentences of this file do.
+para="$(paragraph_with "$mech" "moves in place, the rest of the file")"
+expect "mechanics.md carries the paragraph on the Digest write rule's one exception" test -n "$para"
+heading=no
+grep -qF -- "## Forks" "$mech" && heading=yes
+if [ "$heading" = yes ]; then
+  ok "the reference reaches its text (the Forks heading is still in mechanics.md)"
+elif grep -qF -- "forks.md" <<<"$para"; then
+  ok "the reference reaches its text (through the link to forks.md)"
+else
+  fail "the reference reaches its text (no Forks section in mechanics.md and no link to forks.md in its paragraph)"
+fi
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1
