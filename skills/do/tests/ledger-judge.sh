@@ -8,16 +8,12 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 agent="$here/../agents/ledger-judge.md"
 fails=0
 
-frontmatter() { # the YAML between the file's opening and closing `---`, on stdout
-  awk 'NR == 1 && $0 != "---" { exit 1 } NR > 1 && $0 == "---" { exit } NR > 1' "$agent"
-}
-field() { sed -n "s/^$1: *//p" <<<"$out"; }
-
 echo "# skills/do/agents/ledger-judge.md: a read-only judging agent the do session forks"
 expect "the do skill ships a judging agent at agents/ledger-judge.md" test -f "$agent"
 
 rc=0
-out="$(frontmatter 2>/dev/null)" || rc=$?
+# shellcheck disable=SC2034  # lib.sh's check_lines reads $out
+out="$(frontmatter "$agent" 2>/dev/null)" || rc=$?
 
 check_lines "the judging agent's frontmatter names it ledger-judge, the name the harness dispatches on" 0 "$rc" \
   "name: ledger-judge"
