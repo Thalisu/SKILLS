@@ -207,7 +207,9 @@ should do. An author that cannot land its test does not grind at it either: it r
 most twice, the first run and one fix attempt, then hands back its diagnosis, the hypothesis it
 ruled out and the failing run. The run reads the diagnosis, not the verdict: a production fault is
 its own change to make, since no test author may touch production code, and a test fault buys one
-more dispatch carrying that handback, never a third
+more dispatch carrying that handback, never a third. The ceiling is counted where the report is
+read: the run reads the report's `Run` section before its verdict, and one naming a third run is
+refused whole and the behaviour dispatched again, because a forked author's report reaches no hook
 ([ADR 0051](adr/0051-a-test-author-gets-one-fix-attempt-and-hands-back-what-it-ruled-out.md)).
 
 **Why does the reviewer fix and land, and not `do`?**

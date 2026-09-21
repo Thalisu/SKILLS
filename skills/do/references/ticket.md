@@ -477,7 +477,12 @@ marker. On a native or mixed surface, every user-observable change (a screen, a 
 navigation, a message, a state the product shows) gets its flow authored or extended after the
 feature exists, by the E2E test author (the test authors in [mechanics.md](mechanics.md)) with
 the complete input: the behaviour to prove, who relies on it and what a wrong or missing result
-costs them, the journey or screen, the origin, the fixture state, placement when it matters. The flow must return `GREEN`; `BLOCKED` on a preflight stops the run
+costs them, the journey or screen, the origin, the fixture state, placement when it matters. The
+report's `Run` section is read before its verdict: an author runs its flow at most twice in one
+dispatch, so a report naming a third run broke the fix ceiling, whatever verdict it carried, `GREEN`
+included; it is refused whole and the criterion is dispatched again naming the runs the step
+counted, since a forked author's report reaches no hook and the count is the caller's or nobody's.
+The flow must return `GREEN`; `BLOCKED` on a preflight stops the run
 as blocked; `HANDBACK` takes the route the build loop's `HANDBACK` takes in
 [mechanics.md](mechanics.md), read off the Handback's `Diagnosis` line: `production` is the run's
 own change and then a fresh dispatch, `test` is one re-dispatch carrying the Handback, and a second

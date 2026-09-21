@@ -132,6 +132,49 @@ for kind in unit e2e; do
     carries "$route routes the $kind core's $v" "$v"
   done
 done
+
+echo "# a report naming more runs than the fix ceiling allows is refused, whatever verdict it carried"
+# The ceiling is one Forbidden bullet in each agent core and nothing else. The report's Run section
+# carries the commands, so an author that ran its test a third time comes back as an ordinary
+# `RED_AS_EXPECTED` or `GREEN`, and a caller with no instruction to count those runs takes it: the
+# ceiling then buys the unbounded diagnostic loop ADR 0051 exists to stop, and the run pays for it.
+# Each passage on its own, for the reason the section above states: a union answers for a route only
+# one of them carries.
+# The wording of the fix is not under test, only what it must leave the caller: the count read off
+# the report's Run section, and the refusal and the re-dispatch when that count is over the ceiling.
+# Two notions are matched within 240 characters of each other, about two sentences of this prose,
+# because both passages already say `Run` and `dispatch again` for other reasons, so a bare mention
+# of either proves nothing about the ceiling.
+ceiling='third (run|time)|ran (it|its test|the test|the flow) a third|three (runs|times)|more than twice|more than two (runs|times)|(over|past|beyond|above) the (fix )?ceiling|fix ceiling|how many (times|runs)|the number of runs|counts? the runs|runs (it|the report) names'
+runsection='`Run`|Run section'
+refusal='refuses|refused|refuse (it|the|that)|rejects|rejected|never accepted|is not accepted|sends it back|back to the author'
+redispatch='dispatch[a-z]* (again|afresh)|re-?dispatch|fresh dispatch|dispatch(es|ed)? the (behaviour|criterion|test|flow) again'
+anyverdict='whatever (the |its )?verdict|whichever verdict|(no matter|regardless of) (the|its) verdict|whatever it returned|whatever the (report|author) (carried|returned)|verdict it carried|even on `?(GREEN|RED_AS_EXPECTED)|even a `?(GREEN|RED_AS_EXPECTED)|even when the verdict'
+
+near() { # $1 a regex, $2 another: a regex matching both within 240 characters of each other, in either order
+  printf '(%s).{0,240}(%s)|(%s).{0,240}(%s)' "$1" "$2" "$2" "$1"
+}
+passage_says() { # $1 label, $2 the flattened passage, $3 the regex it must match, $4 what a miss means
+  if grep -qE "$3" <<<"$2"; then ok "$1"; else fail "$1 ($4)"; fi
+}
+
+for kind in unit e2e; do
+  if [ "$kind" = unit ]; then
+    route="the build loop" text="$(tr '\n' ' ' <<<"$loop_passage" | tr -s ' ')"
+  else
+    route="the flows step" text="$(tr '\n' ' ' <<<"$flows_passage" | tr -s ' ')"
+  fi
+  passage_says "$route names the ceiling a report's runs are counted against" \
+    "$text" "$ceiling" "the passage names no bound on the runs a report may name"
+  passage_says "$route reads that count off the report's Run section" \
+    "$text" "$(near "$runsection" "$ceiling")" "nothing sends the caller to the report's Run section for the count"
+  passage_says "$route refuses a report naming more runs than the ceiling allows" \
+    "$text" "$(near "$ceiling" "$refusal")" "a report over the ceiling is not refused"
+  passage_says "$route dispatches the behaviour again when it refuses one" \
+    "$text" "$(near "$ceiling" "$redispatch")" "the refused behaviour is left with no re-dispatch"
+  passage_says "$route counts the runs whatever verdict the report carried" \
+    "$text" "$anyverdict" "the count is tied to no verdict, so a third run returned as RED_AS_EXPECTED or GREEN goes through"
+done
 echo
 if [ "$fails" = 0 ]; then echo "all passed"; else
   echo "$fails failed"

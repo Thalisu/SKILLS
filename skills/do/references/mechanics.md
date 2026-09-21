@@ -223,7 +223,12 @@ the only source the loop brings into the session is source the run changed.
    placement when it matters. One dispatch in flight
    at a time, never a batch of tests ahead of the code. While the author runs it is the only
    writer in the tree, and it is never asked to commit.
-2. Read the verdict, and record on the behaviour's build line what was done with it:
+2. Read the verdict, and record on the behaviour's build line what was done with it. The report's
+   `Run` section comes first, before any route below: an author's test runs at most twice in one
+   dispatch, so a report naming a third run broke the fix ceiling, whatever verdict it carried,
+   `RED_AS_EXPECTED` and `GREEN` included. It is refused whole, nothing in it is recorded as proof,
+   and the run dispatches the behaviour again naming the runs it counted, since a forked author's
+   report reaches no hook and the count is the caller's or nobody's. The routes:
    - `RED_AS_EXPECTED`: go on.
    - `REFUSED_INCOMPLETE_INPUT`: the behaviour line was too vague to become an assertion. Sharpen
      it and dispatch again. A refusal because no one relies on the behaviour means it is
