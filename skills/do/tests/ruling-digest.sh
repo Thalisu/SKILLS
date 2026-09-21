@@ -59,6 +59,15 @@ carries_any "only a Ruling that did rewrite a Ticket criterion re-forks the read
   "did rewrite" "a criterion was rewritten" "the criterion it rewrote" "moved a criterion" \
   "moved a Ticket criterion"
 
+# The Ruling line lands inside Implementation Decisions, above the Testing Decisions section a kept
+# quote block may be cut from; the Digest's own text, its quotes and their `L<line>` numbers, is
+# never one of the things this paragraph rewrites, so a line appended above them drifts every
+# `L<line>` a kept quote still carries. The paragraph has to say so, or a developer who opens that
+# line per digest.md finds the wrong slice and trusts it anyway.
+carries_any "kept quote L<line> numbers below the insertion are named as no longer trustworthy" \
+  "L<line>" "line numbers" "the lines it quotes" "no longer point" "may drift" "drifts" \
+  "no longer at" "stale line" "the line a quote names" "not to be trusted" "no longer trusted"
+
 # The reader section states the Digest-write rule a run may read on its own, so the one edit the
 # Forks passage above allows is named there too; a run reading only this section otherwise takes
 # "replaced whole and never edited" as leaving no room for the `## Sources` rewrite and re-forks.

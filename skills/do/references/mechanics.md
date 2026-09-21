@@ -411,9 +411,13 @@ under its Implementation Decisions, a section the Digest does not carry, so the 
 and a reader forked again would return the same text under a new hash. The run keeps the Digest it
 already holds, rewrites only its `## Sources` lines and nothing else in the file, from the door's own
 reading of the Spec as the Ruling left it, `git hash-object` run again in the main checkout over the
-two paths the door resolved before it forked, and forks no reader. The behaviours list stands, since
-the criteria it was written from did not move, and the loop continues at the first behaviour without
-a commit. The saving is scoped to this Ticket's own next run: a Digest is keyed by its own Ticket's
+two paths the door resolved before it forked, and forks no reader. The Digest's own quote blocks are
+part of what stays unrewritten: the `L<line>` a kept quote names is the line it sat on when the
+reader cut it, never recomputed, so a quote cut from a Spec section that sits below Implementation
+Decisions now names the wrong line, drifted by the one line the Ruling appended above it, and a
+developer who opens it per [digest.md](digest.md) to check the slice instead of trusting it finds
+the wrong text there. The behaviours list stands, since the criteria it was written from did not
+move, and the loop continues at the first behaviour without a commit. The saving is scoped to this Ticket's own next run: a Digest is keyed by its own Ticket's
 slug, so a sibling Ticket's Digest is untouched and stays a reader on its own next run whether or not
 this rewrite runs. Left stale, those lines would send the reuse gate of the second run above into a
 reader on this Ticket's own next run.
