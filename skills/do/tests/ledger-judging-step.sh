@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# ledger-judging-step.sh: the judging step of mechanics.md's `## The integration`, what a run does
+# ledger-judging-step.sh: the judging step of conflict-loop.md's `## The conflict loop`, what a run does
 # with the Loss ledger once the rebase finishes and before the gate reruns and the review is called.
 # Run: bash skills/do/tests/ledger-judging-step.sh
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/../../../scripts/tests/lib.sh"
-mech="$here/../references/mechanics.md"
+conflict="$here/../references/conflict-loop.md"
 fails=0
 
-flat="$(flat_section "$mech" "## The integration")"
+flat="$(flat_section "$conflict" "## The conflict loop")"
 
 carries_twice() { # $1 label, $2 a fixed string the flattened section must carry at least twice
   local n
@@ -16,8 +16,8 @@ carries_twice() { # $1 label, $2 a fixed string the flattened section must carry
   if [ "$n" -ge 2 ]; then ok "$1"; else fail "$1 ($2 appears $n time(s))"; fi
 }
 
-echo "# mechanics.md / ## The integration: the Loss ledger is judged once the rebase finishes"
-expect "mechanics.md carries the integration section the judging step belongs to" test -n "$flat"
+echo "# conflict-loop.md / ## The conflict loop: the Loss ledger is judged once the rebase finishes"
+expect "conflict-loop.md carries the conflict loop the judging step belongs to" test -n "$flat"
 
 carries "the run reads the entries left to judge with ledger.sh pending" "ledger.sh pending"
 carries "each verdict the judge returns is written back through ledger.sh verdict" "ledger.sh verdict"

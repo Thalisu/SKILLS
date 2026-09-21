@@ -7,7 +7,7 @@ spec. `skills/do/scripts/ledger.sh` is its one reader and one writer inside `do`
 an entry or a verdict by hand, and every rule below that a script enforces is enforced there.
 
 The file lives in the main checkout's `.scratch/`, never in a worktree, and its path is fixed before
-the rebase starts (`skills/do/references/mechanics.md`, `## The integration`). A ledger path that
+the rebase starts (`skills/do/references/conflict-loop.md`, `## The conflict loop`). A ledger path that
 does not resolve under the main checkout's `.scratch/` is refused with nothing written.
 
 ## Title

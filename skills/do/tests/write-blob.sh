@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # write-blob.sh: the contract of scripts/write-blob.sh, the whole-side reapply write the reapply
-# state of mechanics.md's `## The integration` calls on a block carrying `take the Incoming blob
+# state of conflict-loop.md's `## The conflict loop` calls on a block carrying `take the Incoming blob
 # whole`, exercised on a symlink stop a rebase can leave at the path.
 # Run: bash skills/do/tests/write-blob.sh
 set -uo pipefail
@@ -29,7 +29,7 @@ commit "target: data.bin turned into a symlink out of the repository"
 
 incoming_sha="$(git hash-object -w -- "$tmp/incoming.bin")"
 
-# The redirect mechanics.md wrote before this fix: it follows the symlink still at data.bin and
+# The redirect conflict-loop.md wrote before this fix: it follows the symlink still at data.bin and
 # lands the run's bytes outside the worktree, leaving the symlink, and so the index, untouched.
 git cat-file blob "$incoming_sha" > data.bin
 expect "the redirect wrote the run's bytes to the file outside the worktree, not to the tracked path" \

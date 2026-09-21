@@ -4,7 +4,7 @@
 # Target side of a rebase or merge left a symlink there, the redirect writes through it, landing
 # outside the worktree while the symlink itself, and so the index, stay unchanged. This is the same
 # trap `contested.sh`'s `stage_file` guards a hunk taken whole against, and the reapply step of
-# mechanics.md's `## The integration` uses this script for the same reason on a whole-side blob.
+# conflict-loop.md's `## The conflict loop` uses this script for the same reason on a whole-side blob.
 #
 #   write-blob.sh <path> <sha>
 #

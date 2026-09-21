@@ -20,7 +20,7 @@ run() {
   out="$(git diff --name-only --diff-filter=U -z | bash "$door" "$PWD/.scratch/run.ledger.md" 2>&1)" || rc=$?
 }
 
-# The union block of `references/mechanics.md`, `## The integration`, verbatim: what the session has
+# The union block of `references/conflict-loop.md`, `## The conflict loop`, verbatim: what the session has
 # already run at an all-mechanical stop by the time the script reads anything back. Every conflicted
 # file comes out holding the union of its three stages, the Target's added lines above the Incoming's.
 write_unions() {

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# check-reapply.sh: the one gate the reapply state of mechanics.md's `## The integration` puts
+# check-reapply.sh: the one gate the reapply state of conflict-loop.md's `## The conflict loop` puts
 # between a judge's block and any write the session makes from it. The judge that returns the block
 # holds reading and search alone (ADR 0032), because a ledger entry's Target and Incoming sides are
 # a stranger's diff text, and a line in either that reads as an instruction is still just text to

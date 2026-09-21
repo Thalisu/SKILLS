@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# integration.sh: the conflict resolution blocks that mechanics.md and fix.md hand a session, run
+# integration.sh: the conflict resolution blocks that conflict-loop.md and fix.md hand a session, run
 # over hostile, resumed and glob-named conflicted paths.
 # Run: bash skills/do/tests/integration.sh
 set -uo pipefail
@@ -7,7 +7,7 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/../../../scripts/tests/lib.sh"
 repo="$(cd "$here/../../.." && pwd -P)"
 refs="$repo/skills/do/references"
-mech="$refs/mechanics.md"
+conflict="$refs/conflict-loop.md"
 fails=0
 # Each file's resolution blocks
 # are run the way a session runs them, any placeholder filled in with the path, over a conflicted
@@ -53,18 +53,18 @@ resolves_safely() { # $1 label, $2 file, $3 heading
   expect "$label's resolution leaves that path resolved in both sides' base order and staged" \
     test "$(g -C "$dir" show ":$evil" 2>/dev/null)" = "$(printf 'a\nb\nTARGET\nINCOMING\nc')"
 }
-resolves_safely "do's integration" "$mech" "## The integration"
+resolves_safely "do's conflict loop" "$conflict" "## The conflict loop"
 resolves_safely "the review's landing" "$repo/skills/do-code-review/references/fix.md" \
   "### A target that moved while the review ran"
 
 # A resumed run can meet a stop the developer already worked on and never staged: one file written as
-# the union of its stages, one resolved by hand. The all-mechanical blocks run as mechanics.md prints
+# the union of its stages, one resolved by hand. The all-mechanical blocks run as conflict-loop.md prints
 # them: the hand resolution is the developer's answer and comes out as they wrote it, staged, and the
 # union file's rewrite reaches the bytes it already held.
 resumed_stop_keeps_the_hand_resolution() {
   local write mark rc
-  write="$(blocks_of "$mech" "## The integration" "**A rebase that stopped.**" 1)"
-  mark="$(blocks_of "$mech" "## The integration" "**A rebase that stopped.**" 2)"
+  write="$(blocks_of "$conflict" "## The conflict loop" "**A rebase that stopped.**" 1)"
+  mark="$(blocks_of "$conflict" "## The conflict loop" "**A rebase that stopped.**" 2)"
   expect "the all-mechanical stop carries its union block" test -n "$write"
   expect "the all-mechanical stop carries its staging block" test -n "$mark"
   printf '%s\n' "${write//"<skill-dir>"/"$repo/skills/do"}" >"$tmp/write.sh"
@@ -118,8 +118,8 @@ resumed_stop_keeps_the_hand_resolution
 # already uses to prove the same glob bug for its own `git add`.
 resumed_stop_stages_a_glob_named_trusted_path_literally() {
   local write mark rc
-  write="$(blocks_of "$mech" "## The integration" "**A rebase that stopped.**" 1)"
-  mark="$(blocks_of "$mech" "## The integration" "**A rebase that stopped.**" 2)"
+  write="$(blocks_of "$conflict" "## The conflict loop" "**A rebase that stopped.**" 1)"
+  mark="$(blocks_of "$conflict" "## The conflict loop" "**A rebase that stopped.**" 2)"
   expect "the all-mechanical stop's union block extracts for the glob fixture" test -n "$write"
   expect "the all-mechanical stop's staging block extracts for the glob fixture" test -n "$mark"
   printf '%s\n' "${write//"<skill-dir>"/"$repo/skills/do"}" >"$tmp/write-glob.sh"
@@ -174,7 +174,7 @@ resumed_stop_stages_a_glob_named_trusted_path_literally
 # line swallow one side's.
 union_keeps_both_sides_closing_braces_when_each_appends_a_function() {
   local write rc
-  write="$(blocks_of "$mech" "## The integration" "**A rebase that stopped.**" 1)"
+  write="$(blocks_of "$conflict" "## The conflict loop" "**A rebase that stopped.**" 1)"
   expect "the all-mechanical stop's union block extracts for the two-functions fixture" test -n "$write"
   printf '%s\n' "${write//"<skill-dir>"/"$repo/skills/do"}" >"$tmp/write-two-functions.sh"
 
@@ -267,8 +267,8 @@ a_rebase_the_run_opened_itself_meets_a_stop_nothing_can_class() {
   check "conflict-class.sh finds nothing to class at that stop" \
     0 "$rc" "no conflicted state, nothing classed"
 
-  paragraph="$(passage_of "$mech" "A stop the script answers with" "Where every hunk")"
-  expect "mechanics.md carries the paragraph on a nothing-classed stop" test -n "$paragraph"
+  paragraph="$(passage_of "$conflict" "A stop the script answers with" "Where every hunk")"
+  expect "conflict-loop.md carries the paragraph on a nothing-classed stop" test -n "$paragraph"
   out="$paragraph"
   check_absent "the paragraph never leaves a run that opened the rebase itself with no route" \
     0 0 "never meets that stop"
@@ -281,12 +281,12 @@ a_rebase_the_run_opened_itself_meets_a_stop_nothing_can_class
 # Every hunk of the stop is mechanical, and the union the first block writes defines DENY twice in
 # one scope of a `.env`: the developer's branch set it to a real deny list and the replayed commit
 # emptied it. A reader of the landed file takes the last definition it meets, so the two blocks run
-# as mechanics.md prints them must land the Target's definition and set the Incoming's aside in the
+# as conflict-loop.md prints them must land the Target's definition and set the Incoming's aside in the
 # ledger, and the state must route that shape to no question and no blocked stop.
 an_all_mechanical_stop_whose_union_defines_a_key_twice_lands_the_targets_definition() {
   local write mark state ledger rc
-  write="$(blocks_of "$mech" "## The integration" "**A rebase that stopped.**" 1)"
-  mark="$(blocks_of "$mech" "## The integration" "**A rebase that stopped.**" 2)"
+  write="$(blocks_of "$conflict" "## The conflict loop" "**A rebase that stopped.**" 1)"
+  mark="$(blocks_of "$conflict" "## The conflict loop" "**A rebase that stopped.**" 2)"
   expect "the all-mechanical stop's union block extracts for the duplicate-key fixture" test -n "$write"
   expect "the all-mechanical stop's staging block extracts for the duplicate-key fixture" test -n "$mark"
 
@@ -331,8 +331,8 @@ an_all_mechanical_stop_whose_union_defines_a_key_twice_lands_the_targets_definit
   expect "the ledger entry sets aside the Incoming's definition" \
     test "$(ledger_part "$ledger" .env incoming 2>/dev/null)" = 'DENY='
 
-  state="$(passage_of "$mech" "**A union that defines the same key twice.**" "**A stop carrying a contested hunk.**")"
-  expect "mechanics.md carries the state on a union that defines one key twice" test -n "$state"
+  state="$(passage_of "$conflict" "**A union that defines the same key twice.**" "**A stop carrying a contested hunk.**")"
+  expect "conflict-loop.md carries the state on a union that defines one key twice" test -n "$state"
   out="$state"
   check_absent "the state routes a union's duplicate key to no blocked stop and no question for the developer" \
     0 0 "stops as blocked" "git rebase --abort" "brought to the developer"
@@ -347,8 +347,8 @@ an_all_mechanical_stop_whose_union_defines_a_key_twice_lands_the_targets_definit
 # the developer wrote it, both definitions kept, and nothing of theirs is set aside in the ledger.
 a_trusted_hand_resolution_defining_one_key_twice_is_never_read_back() {
   local write mark ledger rc
-  write="$(blocks_of "$mech" "## The integration" "**A rebase that stopped.**" 1)"
-  mark="$(blocks_of "$mech" "## The integration" "**A rebase that stopped.**" 2)"
+  write="$(blocks_of "$conflict" "## The conflict loop" "**A rebase that stopped.**" 1)"
+  mark="$(blocks_of "$conflict" "## The conflict loop" "**A rebase that stopped.**" 2)"
   expect "the all-mechanical stop's union block extracts for the trusted duplicate-key fixture" test -n "$write"
   expect "the all-mechanical stop's staging block extracts for the trusted duplicate-key fixture" test -n "$mark"
 
@@ -413,7 +413,7 @@ a_trusted_hand_resolution_defining_one_key_twice_is_never_read_back
 # the commit, skip it, and carry the rebase to its end with the run's remaining work replayed on top.
 a_replayed_commit_the_resolution_left_empty_is_named_skipped_and_the_rebase_finishes() {
   local cont ledger short rc
-  cont="$(blocks_of "$mech" "## The integration" "**A replayed commit that is empty after the resolution.**" 1)"
+  cont="$(blocks_of "$conflict" "## The conflict loop" "**A replayed commit that is empty after the resolution.**" 1)"
   expect "the empty-after-resolution state carries the continue block the run runs at every stop" \
     test -n "$cont"
   printf '%s\n' "$cont" >"$tmp/continue-empty.sh"

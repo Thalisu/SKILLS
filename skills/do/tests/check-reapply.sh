@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # check-reapply.sh: the contract of scripts/check-reapply.sh, the gate the reapply state of
-# mechanics.md's `## The integration` puts between a judge's block and the write the block asks
+# conflict-loop.md's `## The conflict loop` puts between a judge's block and the write the block asks
 # for, since the block's `file:` and `blob:` are read off a ledger entry's Incoming side, a
 # stranger's diff text a judge only reads.
 # Run: bash skills/do/tests/check-reapply.sh

@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
-# reapply-step.sh: the reapply step of mechanics.md's `## The integration`, what a run does with each
+# reapply-step.sh: the reapply step of conflict-loop.md's `## The conflict loop`, what a run does with each
 # Loss ledger entry judged `reapply` once the judging step has written every verdict.
 # Run: bash skills/do/tests/reapply-step.sh
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/../../../scripts/tests/lib.sh"
 mech="$here/../references/mechanics.md"
+conflict="$here/../references/conflict-loop.md"
 fails=0
 
-flat="$(flat_section "$mech" "## The integration")"
+flat="$(flat_section "$conflict" "## The conflict loop")"
 
-echo "# mechanics.md / ## The integration: each reapply comes back as its own commit"
-expect "mechanics.md carries the integration section the reapply step belongs to" test -n "$flat"
+echo "# conflict-loop.md / ## The conflict loop: each reapply comes back as its own commit"
+expect "conflict-loop.md carries the conflict loop the reapply step belongs to" test -n "$flat"
 
 carries_any "each entry judged reapply comes back as a commit of its own" \
   "one commit per \`reapply\`" "one commit per entry"
@@ -26,7 +27,7 @@ carries "each outcome is recorded in the ledger through ledger.sh applied, hande
 expect "the edit is no longer left for the next Ticket's step to apply" \
   bash -c '! grep -qF -- "$2" <<<"$1"' _ "$flat" "the next Ticket's step"
 
-echo "# mechanics.md / ## The integration: the block is bound to its entry before anything is written"
+echo "# conflict-loop.md / ## The conflict loop: the block is bound to its entry before anything is written"
 carries "the block's id, file and, on a whole-blob block, its blob are checked before any write" \
   'bash <skill-dir>/scripts/check-reapply.sh "<the ledger>" "<the worktree root>" "<the block dir>"'
 carries "the check refuses a block naming a file other than the entry's own - file: line" \
@@ -45,9 +46,9 @@ before "the reapply step comes after the Loss ledger is judged" \
 before "the reapply commits are made only once every verdict is written back" \
   "ledger.sh verdict" "on top of the finished integration"
 
-echo "# mechanics.md / ## The integration: the reapply commit pastes neither the file nor the reason into a command line"
-flat="$(passage_of "$mech" "**The reapplies brought back.**" "**A replayed commit that is empty" | tr '\n' ' ' | tr -s ' ')"
-expect "mechanics.md carries the state on the reapplies brought back" test -n "$flat"
+echo "# conflict-loop.md / ## The conflict loop: the reapply commit pastes neither the file nor the reason into a command line"
+flat="$(passage_of "$conflict" "**The reapplies brought back.**" "**A replayed commit that is empty" | tr '\n' ' ' | tr -s ' ')"
+expect "conflict-loop.md carries the state on the reapplies brought back" test -n "$flat"
 carries "the file the reapply stages is read from the block dir into a shell variable before it reaches git add" \
   'file="$(cat "$dir/file")"' 'git add -- "$file"'
 carries "the commit message is written to a file first and the commit is made with git commit -F" \
@@ -55,7 +56,7 @@ carries "the commit message is written to a file first and the commit is made wi
 expect "the reapply state never runs git commit -m, which would paste the file or the reason into a command line" \
   bash -c '! grep -qF -- "git commit -m" <<<"$1"' _ "$flat"
 
-echo "# mechanics.md / ## The integration: the whole gate runs once, after the last reapply"
+echo "# conflict-loop.md / ## The conflict loop: the whole gate runs once, after the last reapply"
 carries_any "the whole gate runs after the last reapplied commit" \
   "the whole gate runs after the last reapplied commit" "the whole **Gate** runs after the last reapplied commit"
 carries "the gate runs once, never between two reapply commits" "once, never between two reapply commits"
@@ -66,9 +67,9 @@ carries "a run the review already read still goes to the fix call, not a second 
 before "the gate runs only after every reapply outcome is recorded in the ledger" \
   "ledger.sh applied" "after the last reapplied commit"
 
-echo "# mechanics.md / ## The integration: a red gate after the reapplies stops the run as blocked"
-flat="$(passage_of "$mech" "**The reapplies brought back.**" "**A replayed commit that is empty" | tr '\n' ' ' | tr -s ' ')"
-expect "mechanics.md carries the state on the reapplies brought back" test -n "$flat"
+echo "# conflict-loop.md / ## The conflict loop: a red gate after the reapplies stops the run as blocked"
+flat="$(passage_of "$conflict" "**The reapplies brought back.**" "**A replayed commit that is empty" | tr '\n' ' ' | tr -s ' ')"
+expect "conflict-loop.md carries the state on the reapplies brought back" test -n "$flat"
 carries_any "the reapply state says what a red gate after the reapplied commits does" \
   "a red **Gate** after the reapplied commits" "A red **Gate** after the reapplied commits"
 carries "a red gate after the reapplied commits stops the run as blocked" "stops as blocked"
@@ -80,15 +81,15 @@ carries "the run never returns to the build loop" "never back to the build loop"
 carries_any "the run never edits the branch's code to make the gate pass" \
   "never edits the branch's code to make the **Gate** pass" "never edits the branch's code to make the gate pass"
 
-echo "# mechanics.md / ## The integration: the step is ticked once the reapplies are done"
-flat="$(flat_section "$mech" "## The integration")"
+echo "# conflict-loop.md / ## The conflict loop: the step is ticked once the reapplies are done"
+flat="$(flat_section "$conflict" "## The conflict loop")"
 carries "the integration step is ticked with the totals, each reapplied commit and each dropped entry" \
   "ticked with the totals, each reapplied commit and each dropped entry"
 before "the step is ticked only once every reapply outcome is recorded in the ledger" \
   "ledger.sh applied" "ticked with the totals, each reapplied commit and each dropped entry"
 
-echo "# mechanics.md / ## The integration: a deleted Incoming side reapplies as a removal"
-flat="$(flat_section "$mech" "## The integration")"
+echo "# conflict-loop.md / ## The conflict loop: a deleted Incoming side reapplies as a removal"
+flat="$(flat_section "$conflict" "## The conflict loop")"
 carries "a block carrying remove the file reapplies as the file removed, not written back from a blob or a replace/with pair" \
   "remove the file" "the file removed"
 
