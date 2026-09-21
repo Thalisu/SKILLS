@@ -14,7 +14,7 @@ read by one skill only stays in that skill's `references/`.
 | [journey-format.md](journey-format.md) | `journey` | `tickets` |
 | [ticket-format.md](ticket-format.md) | `tickets`; `do` edits it in place | `do`, `do-code-review` |
 | [review-format.md](review-format.md) | `do-code-review` | `do`, the Fixer |
-| [sketch-format.md](sketch-format.md) | the `/sketch` session; `do` at its shape step | `do`, which holds the build to it |
+| [sketch-format.md](sketch-format.md) | the `/sketch` session; `do` at its shape step; `do-planner`, whose Plan the Sketch becomes one section of | `do`, which holds the build to it |
 | [loss-ledger-format.md](loss-ledger-format.md) | `do` at its integration, through `ledger.sh` | `do`'s ledger judge, `do-code-review`'s technical reviewer |
 
 Adding, renaming or removing a format updates this table in the same change.
