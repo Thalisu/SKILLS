@@ -1093,11 +1093,17 @@ git merge --ff-only do/<slug>
 **What the run commits after the review.** The review read the branch once, and nothing the run
 commits after it is read by a reviewer again: the fix of a red flow, or a rebase a resumed run
 finished after the review. Such a branch is handed to `do-code-review` with
-`fix` with the Review's location, then the developer's branch as the landing target and the
-`command=` line the run's own gate printed before the review, and with no **Gate** of the run's own
-over it first: the fix call gates the same tree itself, from that very line, and refuses to land it
-red, so a second one here would pay for the suite twice, per
+`fix` with the Review's location, then the developer's branch as the landing target, and with no
+**Gate** of the run's own over it first, so a second one here would pay for the suite twice, per
 [ADR 0049](../../../docs/adr/0049-one-tree-is-gated-once-and-do-skips-the-gate-the-landing-call-runs.md).
+A run whose own gate ran before the review hands the fix call the `command=` line that gate
+printed: the fix call gates the same tree itself, from that very line, and refuses to land it red.
+A run that reaches this point having run no gate of its own, the resume on `verdict=land` of
+[ticket.md](ticket.md) and the resume of [bug-fix.md](bug-fix.md), has no such line to hand, since
+the session that printed it was another run's: it hands the fix call no `command=` line, and the
+fix call runs the Gate itself from the Testing Policy's Project facts, as
+[fix.md](../../do-code-review/references/fix.md) has it do with no line handed. What that Gate ran
+is in the fix call's return, which the Reply's gate line carries instead, per [reply.md](reply.md).
 No reviewer is forked: a Finding the first call
 left `not fixed` or `stale` goes to a Fixer again, and a list with nothing left forks no Fixer,
 and the call runs the Gate and the landing alone. Its return reads like the first one's, and a

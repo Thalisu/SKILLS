@@ -82,7 +82,10 @@ files and the audit line both come before the worktree line):
     developer's answer when the test failed, and a behaviour change the cleanup found, with its
     command.
 24. **Gate line.** The `command=` line the gate printed after the last edit, or in `trivial` the
-    command lines of the typecheck and the covering suite, each with its skip when it has one.
+    command lines of the typecheck and the covering suite, each with its skip when it has one. On
+    a run that reaches the fix call with no **Gate** of its own, per
+    [mechanics.md](mechanics.md), the line saying so: no gate ran in this session, and the fix
+    call's own return carries the Gate it ran instead.
 25. **Door verdict.** In `trivial`, the `verdict=` line the door on the diff printed, or, on its exit 3,
     the line saying the second check was the run's own judgment and not the script's.
 26. **Integration line.** The state the integration reached: the no-op, or the target and the

@@ -65,4 +65,26 @@ for row in "${passages[@]}"; do
     0 0 "${gating[@]}" ${extra:+"$extra"}
 done
 
+# The command= line the fix call is handed only exists when the run's own gate actually ran first.
+# A resumed run reaching this point with no Gate of its own (ticket.md's verdict=land resume, and
+# bug-fix.md's resume) produced no such line, so the passage must distinguish the two cases rather
+# than handing an unconditional command= line that path never produced.
+echo "# mechanics.md: what the run commits after the review distinguishes a gate that ran from no gate of its own"
+flat="$(passage_of "$refs/mechanics.md" "**What the run commits after the review.**" "When the session does not list" | tr '\n' ' ' | tr -s ' ')"
+# shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+out="$flat"
+check_absent "the passage no longer hands the fix call an unconditional command= line from a gate that may not have run" \
+  0 0 "the \`command=\` line the run's own gate printed before the review"
+carries "the passage hands the fix call the command= line when the run's own gate did run before the review" \
+  "hands the fix call the \`command=\` line"
+carries "the passage hands the fix call no command= line when it reaches the fix call with no Gate of its own" \
+  "hands the fix call no \`command=\` line"
+
+# reply.md's Gate line item must give the writer something to record on the same no-gate-of-its-own
+# path, since there is no command= line to quote there.
+echo "# reply.md: the Gate line item covers a run with no Gate of its own too"
+flat="$(passage_of "$refs/reply.md" "24. **Gate line.**" "25. **Door verdict.**" | tr '\n' ' ' | tr -s ' ')"
+carries_any "the Gate line item names the no-Gate-of-its-own path" "${skipped[@]}"
+carries "the Gate line item tells the writer to record that no gate ran" "no gate ran in this session"
+
 exit $((fails > 0))
