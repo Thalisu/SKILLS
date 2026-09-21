@@ -4,6 +4,12 @@ description: "Grounds one Ticket and writes the Plan a do ticket run builds from
 model: opus
 effort: high
 tools: Read, Glob, Grep, Skill, Agent, Write
+hooks:
+  PreToolUse:
+    - matcher: Write
+      hooks:
+        - type: command
+          command: "command -v jq >/dev/null 2>&1 || exit 0; p=\"$(jq -r '.tool_input.file_path // empty')\"; [ -n \"$p\" ] || exit 0; case \"$p\" in *.plan.md) [ -e \"$p\" ] && printf '%s' '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"deny\", \"permissionDecisionReason\": \"A Plan already sits at that path, and the Planner writes its one Plan once. A resume whose hashes still match reuses the Plan it finds, and the session forks the Planner again only at a path it names itself, so an overwrite here is a write that went wrong.\"}}' ;; *) printf '%s' '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"deny\", \"permissionDecisionReason\": \"The Planner writes one file, the Plan, at the path the brief names under its Plan: key, which ends in .plan.md. Every other file belongs to the session and the Builder: the Ticket, the Digest, and every file the build changes.\"}}' ;; esac; exit 0"
 ---
 
 You ground one Ticket and leave one Plan behind. The brief names the Ticket, its criteria, the

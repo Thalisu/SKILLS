@@ -30,6 +30,15 @@ expect "the planning agent holds the tool it writes the Plan with" \
 expect "the planning agent holds no tool that could compute a hash of its own" \
   bash -c '[ -n "$1" ] && ! grep -qE "\bBash\b" <<<"$1"' _ "$tools"
 
+# Ticket 02 (a resolved probe) found a `PreToolUse` hook declared in an agent's own frontmatter
+# fires for that agent's own tool calls, when the definition file is on disk before the session
+# starts. This is the best-effort guard beside the door's header check: it limits the fork's
+# `Write` to the Plan's own pattern and refuses an overwrite, so a bug in the write path (a path
+# outside the Plan, or a clobbered existing Plan) has an independent hook-level check catching it.
+expect "the planning agent declares a PreToolUse hook scoped to its Write tool" \
+  bash -c '[ -n "$1" ] && grep -qE "^ *PreToolUse:" <<<"$1" && grep -qE "matcher: *Write" <<<"$1"' \
+  _ "$out"
+
 # The body, flattened: the definition hard-wraps its prose, so a phrase sits across two lines as
 # often as not. The frontmatter is dropped so its `description` never answers for the write step.
 flat="$(awk 'NR == 1 && $0 == "---" { fm = 1; next } fm && $0 == "---" { fm = 0; next } !fm' "$agent" |
