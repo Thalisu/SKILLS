@@ -70,8 +70,27 @@ project's run commands and test layout for a test author)
 **Sketch**:
 The shape a **Ticket**'s work takes before any logic: the caller's usage, the types, the
 signatures and the module boundaries, with unimplemented bodies. Written by the `sketch` skill.
-_Avoid_: design, design doc, blueprint, plan, architecture, prototype (a prototype is runnable and
-throwaway, a **Sketch** is the contract the build is held to)
+_Avoid_: design, design doc, blueprint, architecture, prototype (a prototype is runnable and
+throwaway, a **Sketch** is the contract the build is held to), **Plan** (a **Sketch** is one
+section of a **Plan**)
+
+**Plan**:
+The file a `do` ticket run's **Planner** writes before the build: the grounding it read, the
+behaviours list cut from the **Ticket** and its **Digest**, and the **Sketch** when the shape step
+fires. The **Builder** builds from it, and a resume reads it instead of grounding again.
+_Avoid_: todo, checklist, roadmap, **Spec** (the **Spec** is the feature's, and comes from
+`discuss`), brief (a brief is what a fork is dispatched with, not what it leaves behind)
+
+**Planner**:
+The sub-agent a `do` ticket run forks first: it grounds the run and writes the **Plan**, so that
+neither the grounding nor the behaviours list is derived in the session's own window.
+_Avoid_: architect, designer, orchestrator, delegate
+
+**Builder**:
+The sub-agent a `do` ticket run forks once per **Ticket**: it runs the whole build loop in the
+worktree from the **Plan**, dispatches its own test authors, and commits one behaviour at a time.
+_Avoid_: executor, implementer, coder, delegate (the delegate was the exception writer of the
+shape before this one), **Fixer** (a **Fixer** belongs to the review)
 
 **Design fork**:
 Two shapes a `do` run's work could take that neither the **Ticket**, its **Spec** nor the code
@@ -86,11 +105,22 @@ _Avoid_: dangerous, harmful, big decision, sensitive (each is a judgment a run m
 every time; the test is whether a side weakens a guarantee or cannot be undone)
 
 **Ruling**:
-What the `choice-taker` returns on a **Design fork** it settles: the side taken, and the norm that
-backs it or "no norm: the side easiest to undo". Written as one line in the **Spec**'s
-Implementation Decisions and listed under `Rulings` in the run's reply.
+What the `choice-taker` returns on a question it settles, a **Design fork** a `do` run met or a
+question a chain skill run with `--auto` would otherwise put to the developer: the side taken, and
+the norm that backs it or "no norm: the side easiest to undo". A **Design fork**'s Ruling is
+written as one line in the **Spec**'s Implementation Decisions and listed under `Rulings` in the
+run's reply, read back from that line. A Ruling on a question that is not a **Design fork** amends
+no file: it is listed under `Rulings` alone, in a group of its own, so the two are never read as
+one.
 _Avoid_: verdict (the **Verdict** is a spec's `Journey:` line), decision (the **Spec**'s decisions
 come from `discuss`; a **Ruling** is appended to them and marked as the `choice-taker`'s), answer
+
+**Ruled ADR**:
+An ADR a `discuss` run with `--auto` wrote from a **Ruling** rather than from the developer's
+choice, marked by a `Ruled by the choice-taker under --auto: <norm>` line under its title. It is a
+norm like any ADR, and it yields to every ADR the developer decided when the two disagree.
+_Avoid_: auto ADR, draft ADR (it is written and binding until a developer's ADR or a deletion
+overrides it), provisional decision
 
 **Scratch**:
 The unversioned folder a project keeps its local chain artifacts in, `.scratch/`: a **Spec**, its
@@ -238,6 +268,11 @@ _Avoid_: sync assertion, heading check, wait (a sleep is never a settle point)
 - A **Sketch** is written only when a **Ticket**'s work crosses a function boundary and neither
   the **Ticket**, its **Spec** nor a prototype already carries one; the build is held to it, and
   a second deviation of the same shape stops the run
+- A `do` ticket run forks one **Planner**, which writes one **Plan** for that **Ticket**, then one
+  **Builder**, which reads the **Plan** and writes the commits; the two are siblings, never a
+  chain, so a test author the **Builder** dispatches stays two layers below the session
+- A fork that owns an artifact writes it itself, and the session verifies the path it expected and
+  the `## Sources` hashes the door computed, never the artifact's text
 - A **Design fork** is settled inside the run by the `choice-taker` agent, on the norm the repo
   writes down when one backs a side and on the side easiest to undo when none does; only an
   **Extreme fork** stops the run and goes to `discuss`
@@ -342,6 +377,9 @@ _Avoid_: sync assertion, heading check, wait (a sleep is never a settle point)
 - "the `.scratch` on my branch" was used for the **Ticket**'s folder. Resolved: a folder git
   ignores is on no branch and in no commit; it belongs to the **Main checkout**'s working tree,
   survives every branch switch there, and is absent from a worktree created from HEAD.
+- "plan" was reaching for two things: the shape a **Ticket**'s work takes, and the file the
+  **Planner** writes for a run. Resolved: the **Plan** is that file; the shape is the **Sketch**,
+  which is one section of a **Plan** when the shape step fires.
 - "map" was reaching for two things: the subsystem reading the ground step takes, and the slot
   table a test author reads for a project's commands and layout. Resolved: the **Map** is the
   subsystem reading; the **Project map** keeps its name and stays the test author's.
