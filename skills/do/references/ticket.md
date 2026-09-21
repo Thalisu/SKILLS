@@ -325,80 +325,87 @@ writes and said in one line:
 ( cd <root> && if [ -L .gitignore ]; then echo '.scratch/ is not ignored: .gitignore is a symlink, so nothing was appended'; else grep -qxF '.scratch/' .gitignore 2>/dev/null || { [ -z "$(tail -c1 .gitignore 2>/dev/null)" ] || echo; printf '.scratch/\n'; } >> .gitignore; fi )
 ```
 
-Then the session writes the Sketch whole at the destination, the text the agent returned and
-nothing added, and the run records the Sketch's location and the shape in one line for the Reply's
-Run section, per [reply.md](reply.md): the types, the signatures and the module boundaries, in a
-few words. It opens the Sketch when a behaviour needs
-more than that line, and never restates the rivals, which stay in the file.
+Then the run hashes the two documents the Plan is cut from, `git hash-object` in the main checkout
+over the Ticket and over the Digest, recording `absent` for one not on disk. Those two values are
+the Plan's `## Sources` lines, so the record the run trusts is its own reading and never the fork's.
+A Plan already at the destination whose `## Sources` lines are those two values is carried: the run
+forks nobody, says in one line that it reused it, and builds from the Plan it already has. A Plan
+whose lines differ, and a destination with no Plan yet, are the two states the run forks for.
 
-A return that does not carry every section of
-[sketch-format.md](../../../.agents/formats/sketch-format.md), whether a refusal, an error or a
-shape the format does not fix, is not a usable Sketch: the session writes no Sketch, states the
-shape, the types, the signatures and the module boundaries itself, records the shaped-by line
-below for the Reply, and the run continues, as it does when the Agent tool lists no `sketch`.
+The fork is the `do-planner` agent `do` ships in [do-planner.md](../agents/do-planner.md), called
+through the Agent tool with `subagent_type: do-planner` and the brief [plan.md](plan.md) fixes,
+that file's own list and never a second one here: a copy of the list in this file drifts from the
+brief the fork is actually handed. A held Ruling that carries a `Now reads:` pair reaches the fork
+through the brief's `Criteria:` key, whose text is the `Now reads:` text and never the text the
+Ticket issue still carries, per the forks in [mechanics.md](mechanics.md). The door's own reading
+of this Ticket's `Ruled by the choice-taker on Ticket <this Ticket>` lines, recorded when it forked
+the reader per the reader section of [mechanics.md](mechanics.md), reaches it through the brief's
+`Rulings:` key, since the Digest carries no Implementation Decisions section and the fork opens no
+Spec: a criterion that still reads the side an edited line reversed comes back as a Design fork in
+the Plan rather than as a behaviour, and the session rules on it. A Design fork the Plan names, two
+shapes the Ticket, its Spec and the code cannot settle, goes to the forks in
+[mechanics.md](mechanics.md), which the session and never the fork walks, since the Ruling is
+written to the Spec and the fork holds no tool that writes one. A defect whose cause the
+Ticket does not name, the one step 0 wrote a defect line for reading `cause unknown, diagnosis
+first`, is diagnosed before the fork by the reproduce and cause steps of
+[bug-fix.md](bug-fix.md), steps 2 and 3 there, since the diagnosis needs a running program and the
+fork holds no tool that runs one: the defect reproduced on the matching surface, the hypotheses
+ruled out with runtime evidence, the instrumentation reverted, the mechanism confirmed, per
+[fix-root-causes](../../../.agents/principles/fix-root-causes.md), and the confirmed mechanism
+handed over with the brief. Those steps record their lines for the Reply's Run section, per
+[reply.md](reply.md). When `bug-fix` is not installed under Links, those two steps stand on their
+own. They are the exception the Links rule of [SKILL.md](../SKILL.md) names, and the step numbers
+there are `bug-fix`'s, not this checklist's: the second ask a surface the session cannot reach gets
+on the fixed build, `bug-fix`'s step 7, is asked at step 3 here, once the `bugfix` line's fix is
+green in the loop, and a defect that will not reproduce even when forced stops this run as blocked,
+the Ticket left `claimed` and the worktree and its branch in place and named.
 
-The shaped-by line is the one line the Reply's Run section carries, per [reply.md](reply.md),
-whenever `sketch` wrote nothing: it says `sketch` wrote nothing, names why (the Agent tool
-withheld, no `sketch` listed, or a return that is not a usable Sketch), and says the session
-shaped the work itself. With no Sketch filed, the same line carries the shape the session stated,
-the types, the signatures and the module boundaries in a few words, since no Sketch line follows
-it.
+No Planner can be forked on two branches: the Agent tool is withheld from the session, or the
+Agent tool lists no `do-planner`, as it does on a machine that never linked the agent `do` ships.
+On either branch the session grounds the Ticket and writes the Plan itself, at the same path and in
+the format [plan.md](plan.md) fixes, its `## Sources` lines from the door's own hashes, taking
+[do-planner.md](../agents/do-planner.md) as the recipe rather than a second copy of it here. It
+says in one line which of the two holds: the Agent tool withheld, or `do-planner` not listed, the
+agent this machine has not linked, which one run of the skills repository's
+`scripts/link-skills.sh` links before the next `/do`. The run neither stops nor asks for the tool
+or the agent, since the developer cannot hand one over mid-run and the grounding is what the run
+needs, not the window it was read in. It never forks another agent in the Planner's place: a fork
+under any other name could still write where `do-planner`'s own definition binds it not to.
 
-The build is held to the Sketch, or to the shape in hand when no Sketch was filed. The loop
-implements it one behaviour at a time, and every test still goes through a test author; a symbol
-it adds is checked the way step 2 says. A deviation from that contract during the build is
-surfaced in the reply, and a second deviation of the same shape stops the run as a wrong Sketch,
-the deviations listed, the worktree and its branch named, the message naming `discuss`. A
-Design fork the shape meets, two shapes the Ticket, its Spec and the code cannot settle, goes to
-the forks in [forks.md](forks.md). Done
-when the step reads the skip, or the shape in hand is named, or, on the fork path, the hand-over
-and the Sketch's location with its shape are recorded for the Reply, or, on the withheld path, the
-shaped-by line and the Sketch's location with its shape are recorded for the Reply, or, on the path
-where the Agent tool lists no `sketch`, the shaped-by line is recorded for the Reply, or, on a fork
-whose return is not a usable Sketch, the hand-over and the shaped-by line are recorded for the
-Reply.
+What comes back is the Plan's path and one line for each thing that fell back, and never the Plan's
+text. The session never reads the Plan back: it checks that the file is at the path it named, and
+the steps that build on the grounding open that file and read it there. The Plan's own `## Map` is
+the subsystem as it stood before the diff and goes no further than the loop: the review is never
+handed it, since each reviewer builds its own map after the diff, as the review in
+[mechanics.md](mechanics.md) says.
 
-**4. Behaviours.** The run names the Digest's location and restates it in one line, its Journey
-Path, the story numbers it carries, its Testing Decisions and the criteria it marks observable, so
-the developer checks the slice before the list is written. Then write the list from the Ticket's
-criteria and its `What to build` line and from the Digest's quotes, its Path's step table and
-failure branches among them; never from the implementation. When a held Ruling on this Ticket
-carries a `Now reads:` pair, the criterion it names is written from its `Now reads:` text, never
-from the `Criterion:` text the issue still carries, per the forks in [forks.md](forks.md).
-The door's own reading of this Ticket's `Ruled by the choice-taker on Ticket <this Ticket>` lines,
-recorded when it forked the reader per the reader section of [mechanics.md](mechanics.md), sits
-beside the Digest's quotes for this step: a criterion that still reads the side an edited line
-reversed is met here as a Design fork against that line, per the forks in
-[forks.md](forks.md).
-It holds the behaviours callers
-observe, critical paths and the logic that can be wrong first, not one line per branch. A line of
-the list traces to a quoted story, a quoted Testing Decision or a Journey step,
-never to a paraphrase: a line no quote in the Digest carries is one the run invented. Each line
-becomes one dispatch, and a line that reproduces a defect is marked `bugfix`. A defect whose cause
-the Ticket does not name, the one step 0 wrote a defect line for reading
-`cause unknown, diagnosis first`, is diagnosed before the list by the reproduce and cause steps of
-[bug-fix.md](bug-fix.md), steps 2 and 3 there: the defect reproduced on the matching surface, the
-hypotheses ruled out with runtime evidence, the instrumentation reverted, the mechanism confirmed,
-per [fix-root-causes](../../../.agents/principles/fix-root-causes.md). Those steps record their
-lines for the Reply's Run section, per [reply.md](reply.md): the reproduction's command with its
-failing output, one line per hypothesis with the evidence that ruled it out, and the mechanism.
-Once the `bugfix` line's fix is green in the loop, the same command runs again at step 5 and its
-passing output is recorded beside the failing one. The list is written from the
-confirmed mechanism, its `bugfix` line carries the reproduction as its expected red, and that red
-run reproduces the defect before any production change. When `bug-fix` is not installed under
-Links, those two steps stand on their own. They are the exception the Links rule of
-[SKILL.md](../SKILL.md) names, and the step numbers there are `bug-fix`'s, not this checklist's:
-the second ask a surface the session cannot reach gets on the fixed build, `bug-fix`'s step 7,
-is asked here at step 5, once the `bugfix` line's fix is green in the loop, and a defect that will
-not reproduce even when forced stops this run as blocked, the Ticket left `claimed` and the
-worktree and its branch in place and named, never removed, since the close here is step 11's and
-a blocked run closes nothing. A Design fork found here goes to
-the forks in [forks.md](forks.md). Show the list once; the loop starts on the
-developer's silence. Done when the list is recorded for the Reply's Run section, which carries it
-with the commit beside each line, and, on a defect with no named cause, the reproduction, each
-hypothesis's evidence line and the mechanism are recorded there too, all before the list.
+Two things stay with the session after the return. With no Testing Policy in the project, the loop
+line reading `Loop: global` or `Loop: fallback`, derive the Project map the authors read from the
+project, once for the whole run, never once per behaviour:
+`bash <skill-dir>/scripts/project-map.sh <the main checkout> <the map's path>`. The path is beside
+the Ticket in the main checkout's scratch, with `.project-map` before the extension, or, for a
+Ticket that is not a local file, the issue's reference under `.scratch/project-maps/` there, and
+the script refuses any other path. It fills only the slots a command read, the run commands and the
+test layout, and every other slot reads `none yet → /testing-policy`. The step names in one line
+the map's location and the slots it filled, off the lines the script printed, for the Reply's Run
+section's map line per [reply.md](reply.md); the loop and the flows step read that file and never
+derive it again. Then read the session's context once,
+`bash <skill-dir>/scripts/context-usage.sh`, and keep its `current` figure: it is the `grounded`
+figure of the `Context:` line the close writes per [mechanics.md](mechanics.md). Neither is the
+fork's: the first writes a second file the Plan never quotes, and the second measures this session,
+which no fork can read from inside its own window.
 
-**5. Build loop.** The build loop in [build-loop.md](build-loop.md), one behaviour per dispatch,
+The build is held to the Plan, its `## Sketch` section where the shape step fired and its shape in
+hand where it did not. The loop implements the `## Behaviours` list one item at a time, and every
+test still goes through a test author. A deviation from that contract during the build is surfaced
+in the reply, and a second deviation of the same shape stops the run as a wrong Plan, the
+deviations listed, the worktree and its branch named, the message naming `discuss`.
+
+Done when the Plan line is recorded for the Reply's Run section, per [reply.md](reply.md), with the
+Plan's location and every fallback the return named, the context reading is kept for the close,
+and, with no Testing Policy, the map line is recorded for the Reply.
+
+**3. Build loop.** The build loop in [mechanics.md](mechanics.md), one behaviour per dispatch,
 under the loop the loop line named. Each behaviour is one build line for the Reply's Run section
 as it lands, per [reply.md](reply.md): the line, the files opened, `RED_AS_EXPECTED`, green, the
 commit. A Design fork a behaviour meets goes to the forks in
