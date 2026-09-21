@@ -48,10 +48,11 @@ else
   fail "ticket.md's Resume section links forks.md"
 fi
 
-# ticket.md's Reply step (12) links forks.md for the Rulings it carries, and reply.md's own
-# Rulings section reads forks.md too.
-reply_step="$(sed -n '/\*\*12\. Reply\.\*\*/,$p' "$ticket")"
-expect "ticket.md carries step 12, Reply" test -n "$reply_step"
+# ticket.md's Reply step links forks.md for the Rulings it carries, and reply.md's own
+# Rulings section reads forks.md too. The step is found by its name: its number moves whenever the
+# checklist above it gains or loses a step, and the reader that has to link forks.md is the Reply.
+reply_step="$(sed -n '/\*\*[0-9]\+\. Reply\.\*\*/,$p' "$ticket")"
+expect "ticket.md carries its Reply step" test -n "$reply_step"
 if grep -qF "[forks.md](forks.md)" <<<"$reply_step"; then
   ok "ticket.md's Reply step links forks.md"
 else
@@ -61,7 +62,7 @@ expect "reply.md's Rulings section links forks.md" \
   grep -qF "the forks in [forks.md](forks.md)" "$reply"
 
 # bug-fix.md's step 6, Fix, is the step that builds the fix and can meet a Design fork between two
-# shapes: it has to link forks.md the way ticket.md's step 5 does.
+# shapes: it has to link forks.md the way ticket.md's build loop does.
 bugfix_fix_step="$(passage_of "$bugfix" "**6. Fix.**" "**7.")"
 expect "bug-fix.md carries step 6, Fix" test -n "$bugfix_fix_step"
 if grep -qF "[forks.md](forks.md)" <<<"$bugfix_fix_step"; then
