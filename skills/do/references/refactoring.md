@@ -8,8 +8,10 @@ can verify instead of a promise. The commits read subtraction, reshape, cleanup,
 one revert undoes one slice.
 
 The parts it shares with the `ticket` Playbook are in [mechanics.md](mechanics.md), linked from the
-steps that use them: the worktree, the protected branch, the gate, the integration, the
-gate, the review, the verification and the close. The reply is written by [reply.md](reply.md).
+steps that use them: the worktree, the protected branch, the gate, the integration, the review,
+the verification and the close, with the loop and its test authors in
+[build-loop.md](build-loop.md) and every stop of the integration in
+[conflict-loop.md](conflict-loop.md). The reply is written by [reply.md](reply.md).
 
 `<skill-dir>` below is the folder that holds this file's `references/`: `${CLAUDE_SKILL_DIR}` in
 Claude Code, the `do` folder under the harness's skills directory elsewhere.

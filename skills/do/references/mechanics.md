@@ -2,8 +2,8 @@
 
 One file for the parts the Playbooks that build in a worktree share, read by `ticket`, `bug-fix`
 and `refactoring`, so a fix to a mechanic is made once. It carries the worktree, the protected
-branch, the Ticket file, the reader, the forks, the delegates, the gate, the integration, the
-review, the verification and the close. A Playbook links the section it needs and never copies it.
+branch, the Ticket file, the reader, the delegates, the gate, the integration, the review, the
+verification and the close. A Playbook links the section it needs and never copies it.
 A part a step reads on its own is a file beside this one, so a step that reaches for it carries
 none of the rest: [build-loop.md](build-loop.md) carries the loop and its test authors,
 [forks.md](forks.md) the forks, and [conflict-loop.md](conflict-loop.md) the conflict loop every

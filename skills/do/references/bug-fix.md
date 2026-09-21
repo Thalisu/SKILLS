@@ -9,8 +9,9 @@ through, per
 to the same bar as a Ticket, and the diff tells the story: the reproduction commit, then the fix.
 
 The parts it shares with the other Playbooks that build in a worktree are in
-[mechanics.md](mechanics.md), linked from the steps that use them, and the reply is written by
-[reply.md](reply.md). There is no Ticket here: nothing is claimed, no criterion is ticked, and the
+[mechanics.md](mechanics.md), linked from the steps that use them, with the loop and its test
+authors in [build-loop.md](build-loop.md) and every stop of the integration in
+[conflict-loop.md](conflict-loop.md). The reply is written by [reply.md](reply.md). There is no Ticket here: nothing is claimed, no criterion is ticked, and the
 close is the worktree's removal alone.
 
 ## Door

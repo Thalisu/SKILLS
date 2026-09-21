@@ -3,8 +3,10 @@
 The last step of the chain. It takes one Ticket, in the format of
 [ticket-format.md](../../../.agents/formats/ticket-format.md), and nothing else: never a Spec,
 never a session summary. The parts it shares with the other Playbooks that build in a worktree
-are in [mechanics.md](mechanics.md), linked from the steps that use them, and the reply is
-written by [reply.md](reply.md). The checklist below is copied verbatim into the run as its todo
+are in [mechanics.md](mechanics.md), linked from the steps that use them, with the loop and its
+test authors in [build-loop.md](build-loop.md), the forks in [forks.md](forks.md) and every stop of
+the integration in [conflict-loop.md](conflict-loop.md), each read by the step that reaches it and
+by no other. The reply is written by [reply.md](reply.md). The checklist below is copied verbatim into the run as its todo
 list before any task-specific item, and the Reply's Run section carries it ticked, the research
 brief's twelve steps with the review and landing step reading as
 the review's and the shape step as `sketch`'s; each step carries its done condition below.
