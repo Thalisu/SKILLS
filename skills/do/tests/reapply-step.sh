@@ -119,9 +119,9 @@ carries "the whole gate runs once before the review is called on this resumed pa
 carries "the run never ticks the step as a no-op over an entry still owed a commit" \
   "never ticking the step as a no-op"
 
-echo "# mechanics.md / ## The integration: one tree is gated once, before the first review call"
-flat="$(passage_of "$mech" "**The reapplies brought back.**" "**A replayed commit that is empty" | tr '\n' ' ' | tr -s ' ')"
-expect "mechanics.md carries the state on the reapplies brought back" test -n "$flat"
+echo "# conflict-loop.md / ## The conflict loop: one tree is gated once, before the first review call"
+flat="$(passage_of "$conflict" "**The reapplies brought back.**" "**A replayed commit that is empty" | tr '\n' ' ' | tr -s ' ')"
+expect "conflict-loop.md carries the state on the reapplies brought back" test -n "$flat"
 carries_any "the whole gate after the last reapply is run only before the first review call" \
   "only before the first review call" "before the first review call" \
   "only before the review is called" "only where the review is called next"

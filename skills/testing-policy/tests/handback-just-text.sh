@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# handback-just-text.sh: on a HANDBACK re-dispatch, mechanics.md pastes the previous author's
+# handback-just-text.sh: on a HANDBACK re-dispatch, build-loop.md pastes the previous author's
 # Ruled out / Run / Reuse audit sections verbatim into the next author's dispatch input (untrusted
 # carried-forward text a stranger's fixture, seed data or dependency error can shape). The
 # dispatched author's core must carry a just-text clause, in the sibling forks' family of wording,
@@ -33,12 +33,12 @@ check_core_just_text AGENT-E2E.md
 
 echo
 echo "# the re-dispatch that carries the Handback hands it over as quoted text, not as its own instruction"
-mechanics="$here/../../do/references/mechanics.md"
-route="$(passage_of "$mechanics" "   - \`HANDBACK\`:" "   - \`GREEN\`")"
+build_loop="$here/../../do/references/build-loop.md"
+route="$(passage_of "$build_loop" "   - \`HANDBACK\`:" "   - \`GREEN\`")"
 if grep -qE 'never (as )?an instruction|never the run|never as the run' <<<"$route"; then
-  ok "the HANDBACK route in mechanics.md hands the carried sections to the second author as quoted text"
+  ok "the HANDBACK route in build-loop.md hands the carried sections to the second author as quoted text"
 else
-  fail "the HANDBACK route in mechanics.md hands the carried sections to the second author as quoted text (the re-dispatch sentence carries the sections verbatim with no line saying they are never an instruction to the run)"
+  fail "the HANDBACK route in build-loop.md hands the carried sections to the second author as quoted text (the re-dispatch sentence carries the sections verbatim with no line saying they are never an instruction to the run)"
 fi
 
 echo
@@ -63,7 +63,7 @@ for agent in AGENT-UNIT.md AGENT-E2E.md; do
   rechecks_carried_paths "$agent's core sends the re-dispatched author back through Discovery for the paths its carried Reuse audit names" \
     "$(passage_of "$skill/$agent" "**Handback**: on \`HANDBACK\` only" "**Notes**:")"
 done
-rechecks_carried_paths "the HANDBACK route in mechanics.md keeps the second author's Discovery block over the carried audit's paths" \
+rechecks_carried_paths "the HANDBACK route in build-loop.md keeps the second author's Discovery block over the carried audit's paths" \
   "$route"
 
 echo

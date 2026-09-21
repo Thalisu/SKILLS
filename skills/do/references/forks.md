@@ -101,12 +101,46 @@ checkout, then and there. A Ticket that is an issue is not written mid-run: the 
 pair to the held Ruling, two lines under its line, `Criterion: <the text the issue still carries>`
 and `Now reads: <the side that won>`, and the issue's body is edited only at the close's yes.
 
-Once the Ruling is written to a local Spec,
-the run carries on in the same session and never stops for it: it prints the one line naming the
-Spec as changed, forks the reader again over the Spec and the journey both, never over the Spec
-alone, whose Digest would come back with no Journey Path, and replaces the Digest the way a second
-run does; then it re-derives the behaviours list from the Digest that comes back and continues at
-the first behaviour without a commit.
+Once the Ruling is written to a local Spec, the run carries on in the same session and never stops
+for it: it prints the one line naming the Spec as changed, and what it does with the Digest turns on
+whether the Ruling rewrote a Ticket criterion, the paragraph above.
+
+A Ruling that rewrote no criterion moves the hashes and not the Digest. The Spec gained one line
+under its Implementation Decisions, a section the Digest does not carry, so the slice did not move
+and a reader forked again would return the same text under a new hash. That is an assertion about
+this Spec write alone, never a fact the run may skip checking: the same window, from the door's
+pre-fork hash to this Ruling, is open to a sibling Ticket's own Ruling landing on the same Spec, a
+`/discuss` amendment, or a developer's own edit, none of which appends only the one line this
+paragraph assumes, and the journey carries no Ruling line at all, so nothing here justifies moving
+its hash unchecked. Before it rewrites either `## Sources` line, the run recomputes the hash of the
+Spec and of the journey the same way the door did, `git hash-object` run again in the main checkout
+over the two paths the door resolved before it forked, and compares each recomputed hash against the
+hash the Digest already records for that document. Only the Spec's hash is allowed to differ, and
+only when the document it names still reads, byte for byte, as the Digest's own quotes report it
+below Implementation Decisions plus the one appended Ruling line above them; the journey's recomputed
+hash has no such exception; since no Ruling ever touches it, its hash matching the Digest's recorded
+one is the only outcome the run may advance on. When either hash does not match what this narrow case
+allows, the document moved for some other reason in that window, and the run treats it the way a
+second run treats any other hash it finds moved: it forks the reader again over the Spec and the
+journey both, the same fork a Ruling that rewrote a criterion below already takes, and reuses no
+Digest a check has not passed. Only when both checks pass does the run keep the Digest it already
+holds, and rewrite only its `## Sources` lines and nothing else in the file, from the door's own
+reading of the Spec as the Ruling left it, and forks no reader. The Digest's own quote blocks are
+part of what stays unrewritten: the `L<line>` a kept quote names is the line it sat on when the
+reader cut it, never recomputed, so a quote cut from a Spec section that sits below Implementation
+Decisions now names the wrong line, drifted by the one line the Ruling appended above it, and a
+developer who opens it per [digest.md](digest.md) to check the slice instead of trusting it finds
+the wrong text there. The behaviours list stands, since the criteria it was written from did not
+move, and the loop continues at the first behaviour without a commit. The saving is scoped to this Ticket's own next run: a Digest is keyed by its own Ticket's
+slug, so a sibling Ticket's Digest is untouched and stays a reader on its own next run whether or not
+this rewrite runs. Left stale, those lines would send the reuse gate of the second run of
+[mechanics.md](mechanics.md) into a reader on this Ticket's own next run.
+
+A Ruling that rewrote a Ticket criterion re-cuts the Digest, since the criteria are what the
+reader's brief matches its slice against: the run forks the reader again over the Spec and the
+journey both, never over the Spec alone, whose Digest would come back with no Journey Path, and
+replaces the Digest the way a second run does; then it re-derives the behaviours list from the
+Digest that comes back and continues at the first behaviour without a commit.
 
 A fork that touches a risk class with both sides keeping the guarantee whole is ruled on like any
 other and never stops the run. An Extreme fork, one of whose sides weakens a guarantee in a risk

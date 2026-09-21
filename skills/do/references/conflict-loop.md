@@ -287,14 +287,20 @@ judged `reapply`. The script refuses an entry that already carries an applied li
 verdict and one judged `drop`, with nothing written, and the run records the refusal rather than
 retrying it, the same way it records a refused verdict.
 
-Then the gate's command lines run again: the whole **Gate** runs after the last reapplied commit,
+Then the gate's command lines run again, only before the first review call: the whole **Gate** runs
+after the last reapplied commit,
 all of its checks, once, never between two reapply commits, so what came back is held to the same checks as
 everything else and the most expensive command of the run is paid once whatever the entry count.
-A ledger with no entry judged `reapply` makes no commit, and the same run of the gate follows the
-judging as after any replay. Once that **Gate** is green, the step is ticked with the totals, each
+A run whose next step is the fix call on a Review it already has skips that **Gate**, per
+[ADR 0049](../../../docs/adr/0049-one-tree-is-gated-once-and-do-skips-the-gate-the-landing-call-runs.md):
+the fix call gates the same tree itself and refuses to land it red, so a **Gate** here would pay
+twice for one tree.
+A ledger with no entry judged `reapply` makes no commit, and, where the **Gate** runs at all, the
+same run of it follows the
+judging as after any replay. The step is ticked with the totals, each
 reapplied commit and each dropped entry, a `reapply` whose applied line reads `none` among the
-dropped, and the ledger's location. The review is called only once that **Gate** is green, or the fix
-call on a run the review already read.
+dropped, and the ledger's location. The review is called only once that **Gate** is green, and the
+fix call on a run the review already read is made with no **Gate** of the run's own before it.
 
 A red **Gate** after the reapplied commits stops as blocked, never back to the build loop of
 [build-loop.md](build-loop.md): the

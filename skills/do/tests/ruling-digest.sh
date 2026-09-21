@@ -10,17 +10,18 @@ set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/../../../scripts/tests/lib.sh"
 mech="$here/../references/mechanics.md"
+forks="$here/../references/forks.md"
 fails=0
 
 # Scoped to the passage from the Ticket-rewrite rule to the Extreme fork, so no phrase is borrowed
 # from the remote-tracker paragraph above it, which already continues on the Digest it holds for a
 # reason of its own (nothing to post back to an issue mid-run), nor from the resume paragraph below,
 # which already compares both hashes.
-flat="$(passage_of "$mech" "Only when a Ticket criterion is the losing side" "A fork that touches a risk class" |
+flat="$(passage_of "$forks" "Only when a Ticket criterion is the losing side" "A fork that touches a risk class" |
   tr '\n' ' ' | tr -s ' ')"
 
-echo "# mechanics.md / ### Forks: a settled Ruling on a local Spec moves the hashes, not the Digest"
-expect "mechanics.md carries the passage on what the run does once a settled Ruling lands" \
+echo "# forks.md / ## Forks: a settled Ruling on a local Spec moves the hashes, not the Digest"
+expect "forks.md carries the passage on what the run does once a settled Ruling lands" \
   test -n "$flat"
 
 carries_any "the passage names the Ruling that rewrote no Ticket criterion as its own case" \

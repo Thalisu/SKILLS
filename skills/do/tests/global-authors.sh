@@ -112,7 +112,7 @@ echo "# every verdict a core declares has a route in the references that consume
 # passages are asserted non-empty first, since a renamed anchor empties one and every verdict it
 # should have routed then passes against the other. Emptiness is read off the passage before the
 # flattening: `tr` on an empty here-string still writes a space.
-loop_passage="$(passage_of "$skill/references/mechanics.md" "2. Read the verdict" "3. Write the smallest")"
+loop_passage="$(passage_of "$skill/references/build-loop.md" "2. Read the verdict" "3. Write the smallest")"
 flows_passage="$(passage_of "$skill/references/ticket.md" "**6. E2E flows.**" "**7. Gate.**")"
 expect "the build loop passage the unit verdicts are read against is there" test -n "$loop_passage"
 expect "the flows step passage the e2e verdicts are read against is there" test -n "$flows_passage"
