@@ -45,6 +45,19 @@ flat="$(awk 'NR == 1 && $0 == "---" { fm = 1; next } fm && $0 == "---" { fm = 0;
   tr '\n' ' ' | tr -s ' ')"
 expect "the planning agent carries a body below its frontmatter" test -n "$flat"
 
+# The Ticket and the Digest may carry a stranger's text (the body's own closing paragraph says so),
+# and the frontmatter grants `Agent` with no scope restriction: a body that names `sketch` for the
+# shape step but never states, absolutely, that it is the only agent the fork may dispatch leaves a
+# prompt-injected line free to make the fork dispatch do-code-review or prototype instead, either of
+# which holds `Bash`, one layer below a fork that itself holds none.
+carries_any "the planning agent's body forbids dispatching any agent but sketch" \
+  "no agent but sketch" "no agent but \`sketch\`" "dispatches no agent but sketch" \
+  "dispatch no agent but sketch" "dispatches no agent but \`sketch\`" \
+  "dispatch no agent but \`sketch\`" "no agent other than sketch" "no agent other than \`sketch\`" \
+  "the only agent you dispatch" "the only agent you fork" "the only agent this fork dispatches" \
+  "sketch is the only agent" "\`sketch\` is the only agent" "never dispatch any other agent" \
+  "never fork any other agent" "dispatch no other agent" "fork no other agent"
+
 # The session never reads the Plan, so the only way it finds one is at the path it named itself: a
 # fork that picks its own path writes a Plan nothing downstream opens.
 carries_any "the write step writes the Plan at the path the brief's \`Plan:\` key names" \
