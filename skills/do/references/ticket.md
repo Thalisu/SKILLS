@@ -481,7 +481,11 @@ costs them, the journey or screen, the origin, the fixture state, placement when
 as blocked; `HANDBACK` takes the route the build loop's `HANDBACK` takes in
 [mechanics.md](mechanics.md), read off the Handback's `Diagnosis` line: `production` is the run's
 own change and then a fresh dispatch, `test` is one re-dispatch carrying the Handback, and a second
-`HANDBACK` on the same criterion stops the run as blocked. The flow is committed on its own or with the last behaviour. On a consumer surface
+`HANDBACK` on the same criterion stops the run as blocked. `REFUSED_INCOMPLETE_INPUT` takes the
+route the build loop's `REFUSED_INCOMPLETE_INPUT` takes in [mechanics.md](mechanics.md): a
+criterion or a **Relied on by** too vague to become an outcome assertion is sharpened and
+dispatched again, and a refusal because no one relies on the criterion means it is structural, so
+it ships with no flow and the criterion's line says so. The flow is committed on its own or with the last behaviour. On a consumer surface
 the flow lives in the consumer repository and is recorded as pending debt with the consumers
 named. Under `Loop: global` the project has no Testing Policy and so no section marker naming a
 surface, and the Project map the ground step derived stands in for it. When the map's single-flow
