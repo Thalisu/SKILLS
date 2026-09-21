@@ -399,6 +399,12 @@ wants, per
 The run waits on the call. While the review runs, its Fixers, one at a time, are the only writer in
 the worktree, and the run touches nothing.
 
+The Plan's `## Map` is never among the arguments, whatever else the call carries. It is the
+subsystem as it stood before the diff, cut by the Planner of [plan.md](plan.md) while the branch
+was still empty, and each reviewer builds its own map of the tree the diff left behind. A reviewer
+handed the pre-diff one would read the work under review as code that was already there, and clear
+a change it never looked at.
+
 A return that reads
 `the session is isolated in a worktree, so the door cannot run; nothing reviewed`
 reviewed nothing and wrote nothing: the door of the review is a script, and the guard of an

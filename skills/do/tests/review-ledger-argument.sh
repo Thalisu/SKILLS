@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # review-ledger-argument.sh: the call mechanics.md's `## The review` makes, what the run hands
 # `do-code-review` besides the spec source, the fixed point, the landing target and the Gate: the
-# run's own Loss ledger, and where the held Rulings block sits among the arguments.
+# run's own Loss ledger, where the held Rulings block sits among the arguments, and the Plan's
+# `## Map`, which is never among them.
 # Run: bash skills/do/tests/review-ledger-argument.sh
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
@@ -45,6 +46,32 @@ carries_any "a run that wrote no ledger has no ledger to name" \
 carries_any "that run sends no ledger argument at all" \
   "sends no" "sends none" "sends nothing" "sends neither" "no such argument" "no such line" \
   "leaves the argument out"
+
+# The Plan's `## Map` is the subsystem as it stood before the diff, written by the Planner at
+# grounding time. Handed to the review, a reviewer would read it as the tree's current state, so the
+# code under review would read as code that was already there and the review would clear a change it
+# never looked at. The section that builds the call is where a reader would add it, so it is where
+# the Map must be named as never going over. Read the paragraphs that name a map alone: the guarantee
+# is what they say about it, not that the word appears somewhere in the section.
+map_text="$(awk '
+  index($0, "## The review") == 1 { on = 1; next }
+  on && /^## / { exit }
+  on && $0 == "" { if (keep) printf "%s", para; para = ""; keep = 0; next }
+  on {
+    para = para $0 " "
+    if ($0 ~ /(^|[^A-Za-z])[Mm]ap([^A-Za-z]|$)/) keep = 1
+  }
+  END { if (keep) printf "%s", para }
+' "$mech" | tr -s ' ')"
+expect "mechanics.md's review section names the Plan's Map where the call is built" \
+  test -n "$map_text"
+flat_all="$flat"
+flat="$map_text"
+carries_any "the Plan's Map is never among the arguments the review is called with" \
+  "never among the arguments" "not among the arguments" "never handed" "never hands" \
+  "never goes over" "never sent" "never sends" "never reaches the review" "never carries" \
+  "no argument" "leaves the Map out" "stays out of the call"
+flat="$flat_all"
 
 # The isolated-session retry calls the review again with the same arguments as the first call, so a
 # run whose integration wrote a Loss ledger must resend it on the retry too, and the retry's own
