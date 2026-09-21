@@ -2,9 +2,11 @@
 
 What a run does with a question it meets mid-build: the empirical fork a probe settles, the Design
 fork the `choice-taker` rules on, and the Extreme fork that stops the run. It is read by the step
-that reaches a fork, the shape step, the behaviours step or the build step, and by no other. The
-rest of what the Playbooks share is in [mechanics.md](mechanics.md), and the loop itself in
-[build-loop.md](build-loop.md).
+that reaches a fork, the shape step, the behaviours step or the build step; by the Resume step of
+[ticket.md](ticket.md), which meets the same fork again on a resume; and by the close step and the
+reply, which carry a held Ruling forward, per [mechanics.md](mechanics.md) and
+[reply.md](reply.md). The rest of what the Playbooks share is in [mechanics.md](mechanics.md), and
+the loop itself in [build-loop.md](build-loop.md).
 
 ## Forks
 
