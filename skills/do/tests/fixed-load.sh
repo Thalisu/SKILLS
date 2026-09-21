@@ -18,6 +18,7 @@ mkdir -p "$skill/scripts" "$skill/references" "$tmp/.agents/formats" "$tmp/docs/
 cp "$estimator" "$skill/scripts/" 2>/dev/null
 mk() { head -c "$2" /dev/zero | tr '\0' a >"$1"; }
 for f in "$skill/SKILL.md" "$skill/references/ticket.md" "$skill/references/mechanics.md" \
+  "$skill/references/build-loop.md" "$skill/references/forks.md" "$skill/references/conflict-loop.md" \
   "$skill/references/reply.md" "$skill/references/digest.md" "$tmp/.agents/formats/ticket-format.md"; do
   mk "$f" 4000
 done
@@ -35,7 +36,7 @@ err_has() { printf '%s\n' "$err" | grep -qF -- "$1"; }
 est
 expect "with no argument the estimator exits zero" is "$code" 0
 expect "with no argument it prints the fixed load by term, in order, then the total" is "$out" \
-  "$(printf '%s\n' baseline=32000 reference_chain=5000 door=5000 ground=7500 shape=1000 total=50500)"
+  "$(printf '%s\n' baseline=32000 reference_chain=8000 door=5000 ground=7500 shape=1000 total=53500)"
 
 ticket() { # $1 path, $2 criteria: a Ticket in the format, padded to 4000 bytes
   {
@@ -49,28 +50,28 @@ ticket() { # $1 path, $2 criteria: a Ticket in the format, padded to 4000 bytes
   head -c $((4000 - size - 1)) /dev/zero | tr '\0' a >>"$1"
   echo >>"$1"
 }
-fixed="$(printf '%s\n' baseline=32000 reference_chain=5000 door=5000 ground=7500 shape=1000 total=50500)"
+fixed="$(printf '%s\n' baseline=32000 reference_chain=8000 door=5000 ground=7500 shape=1000 total=53500)"
 ticket "$tmp/t/01-small.md" 2
 est t/01-small.md
 expect "given a Ticket the estimator exits zero" is "$code" 0
 expect "given a Ticket it adds the criteria, the per-criterion term, the peak and the band" is "$out" \
-  "$fixed"$'\n'"$(printf '%s\n' criteria=2 per_criterion=18000 peak=86500 band=small)"
+  "$fixed"$'\n'"$(printf '%s\n' criteria=2 per_criterion=18000 peak=89500 band=small)"
 ticket "$tmp/t/02-medium.md" 6
 est t/02-medium.md
 expect "a medium Ticket reads its band and exits zero" \
-  sh -c '[ "$1" = 0 ] && printf "%s\n" "$2" | grep -qx "peak=158500" && printf "%s\n" "$2" | grep -qx "band=medium"' \
+  sh -c '[ "$1" = 0 ] && printf "%s\n" "$2" | grep -qx "peak=161500" && printf "%s\n" "$2" | grep -qx "band=medium"' \
   _ "$code" "$out"
 ticket "$tmp/t/03-large.md" 10
 est t/03-large.md
 expect "a large Ticket reads its band and still exits zero, since the estimate gates nothing" \
-  sh -c '[ "$1" = 0 ] && printf "%s\n" "$2" | grep -qx "peak=230500" && printf "%s\n" "$2" | grep -qx "band=large"' \
+  sh -c '[ "$1" = 0 ] && printf "%s\n" "$2" | grep -qx "peak=233500" && printf "%s\n" "$2" | grep -qx "band=large"' \
   _ "$code" "$out"
 # The Digest beside the Ticket is the one the door reads, so its size replaces the allowance.
 ticket "$tmp/t/04-digested.md" 2
 mk "$tmp/t/04-digested.digest.md" 4000
 est t/04-digested.md
 expect "a Digest beside the Ticket is counted in place of the allowance" \
-  sh -c 'printf "%s\n" "$1" | grep -qx "door=3500" && printf "%s\n" "$1" | grep -qx "peak=85000"' _ "$out"
+  sh -c 'printf "%s\n" "$1" | grep -qx "door=3500" && printf "%s\n" "$1" | grep -qx "peak=88000"' _ "$out"
 
 # A reading it cannot take names the term it could not read, prints no figure and exits non-zero.
 refused() { # $1 the exit code, $2 the term the message must name
@@ -86,6 +87,14 @@ est
 expect "a missing file of the reference chain names reference_chain and exits 3" \
   refused 3 reference_chain
 mv "$tmp/t/mechanics.md" "$skill/references/mechanics.md"
+# A ticket run's build step, its fork steps and its integration step each read a reference of their
+# own beside the shared mechanics, so each of the three is a file of the chain too.
+for f in build-loop forks conflict-loop; do
+  mv "$skill/references/$f.md" "$tmp/t/$f.md"
+  est
+  expect "a missing references/$f.md names reference_chain and exits 3" refused 3 reference_chain
+  mv "$tmp/t/$f.md" "$skill/references/$f.md"
+done
 mv "$skill/references/digest.md" "$tmp/t/digest.md"
 est
 expect "a missing Digest brief names the door and exits 3" refused 3 door
@@ -119,7 +128,6 @@ est
 expect "a map that names no context names ground and exits 3" refused 3 ground
 rm -r "$tmp/CONTEXT-MAP.md" "$tmp/ctx"
 mv "$tmp/t/CONTEXT.md" "$tmp/CONTEXT.md"
-
 
 if [ "$fails" = 0 ]; then echo "PASS"; else
   echo "$fails failing"

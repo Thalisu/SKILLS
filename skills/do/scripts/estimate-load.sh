@@ -12,7 +12,11 @@
 # Prints key=value lines in tokens, in this order: baseline, reference_chain, door, ground, shape,
 # total; with a Ticket, criteria, per_criterion, peak and band after them. A file is counted at four
 # bytes a token. baseline is the harness's own prompt and listings; reference_chain the skill file,
-# the Playbook's reference, the shared mechanics, the reply reference and the Ticket format; door the
+# the Playbook's reference, the shared mechanics and the three files a step reads on its own beside
+# them (the build loop, the forks, the conflict loop), the reply reference and the Ticket format. A
+# reference a run reads that this array does not name is counted as nothing, and `need` cannot catch
+# it: the term under-reports in silence, so a file split out of the mechanics is added here too.
+# door the
 # door script's output, the Digest's brief, the Ticket and its Digest; ground the project's
 # CONTEXT.md, or its CONTEXT-MAP.md and the largest CONTEXT.md the map names, since which one the
 # step picks is not knowable here, and its ADR titles, then the map, the discover return and the ADR
@@ -50,6 +54,8 @@ need() { # $1 the term, $2.. the files it counts, each of which must be on disk
 }
 
 chain=("$skill/SKILL.md" "$skill/references/ticket.md" "$skill/references/mechanics.md"
+  "$skill/references/build-loop.md" "$skill/references/forks.md"
+  "$skill/references/conflict-loop.md"
   "$skill/references/reply.md" "$skill/../../.agents/formats/ticket-format.md")
 need reference_chain "${chain[@]}"
 reference_chain="$(tokens "$(bytes "${chain[@]}")")"
