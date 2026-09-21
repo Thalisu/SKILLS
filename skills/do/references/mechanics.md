@@ -2,8 +2,10 @@
 
 One file for the parts the Playbooks that build in a worktree share, read by `ticket`, `bug-fix`
 and `refactoring`, so a fix to a mechanic is made once. It carries the worktree, the protected
-branch, the Ticket file, the reader, the build loop with its test authors, the gate, the review,
-the verification and the close. A Playbook links the section it needs and never copies it.
+branch, the Ticket file, the reader, the forks, the delegates, the gate, the integration, the
+review, the verification and the close. A Playbook links the section it needs and never copies it.
+A part a step reads on its own is a file beside this one, so a step that reaches for it carries
+none of the rest: [build-loop.md](build-loop.md) carries the loop and its test authors.
 [integrate.md](integrate.md) builds in no worktree and reads the integration alone, for its
 conflict loop.
 
@@ -316,7 +318,8 @@ whether an API does the thing) is a fact a script can observe: it is settled by 
 script in the worktree, deleted before the commit, and never reaches the developer, per
 [never-block-on-the-human](../../../.agents/principles/never-block-on-the-human.md). A Design
 fork (two shapes the Ticket, its Spec and the code cannot settle) met at the shape step, the
-behaviours step or in the build loop is ruled on inside the run, per
+behaviours step or in the build loop of [build-loop.md](build-loop.md) is ruled on inside the
+run, per
 [ADR 0036](../../../docs/adr/0036-a-design-fork-is-settled-in-the-run-by-a-read-only-choice-taker-and-only-an-extreme-fork-stops-it.md):
 the run says in one line that it met a Design fork at that step and names both sides, then calls
 the Agent tool with `subagent_type: choice-taker`, the agent `do` ships in
@@ -507,7 +510,7 @@ rules for, so the criterion is the losing side and is rewritten back to the edit
 losing criterion is, its tick kept. That Ruling is appended like any other, and, since it rewrote a
 criterion, the Spec it moves is read again by the reader as above.
 
-### Delegates
+## Delegates
 
 The session writes the production code and commits. A delegate is forked by exception, per
 [the ADR](../../../docs/adr/0009-the-session-writes-a-delegate-is-the-exception-and-no-playbook-depends-on-nesting-depth.md):
@@ -549,7 +552,8 @@ recorded for the Reply's Run section as its gate line, and each check's line is 
 Evidence. Every check runs whatever the one before it
 returned, and the script exits 0 on `verdict=green`, 1 on `verdict=red` and 3 on `verdict=blocked`.
 
-- Red: the failing block is already in the gate's output, so the work goes back to the build loop as one more
+- Red: the failing block is already in the gate's output, so the work goes back to the build loop
+  of [build-loop.md](build-loop.md) as one more
   unit without rerunning the command, then the whole gate again. The log is opened only when the
   block does not show the cause. Never a skipped test, a weakened assertion or a sleep.
 - `verdict=blocked`: a check exited 126 or 127, a runner that cannot start, or printed a line
@@ -621,7 +625,8 @@ created from: that one is behind the developer's own commits now, and a review g
 their work as part of the diff under review.
 
 **A red gate after a rebase that replayed commits.** The run stops as blocked, the way a red gate
-after the review's fix run does and never back to the build loop: the replay brought in code the
+after the review's fix run does and never back to the build loop of
+[build-loop.md](build-loop.md): the replay brought in code the
 developer's branch carries, and a run that loops on it edits their work. The reply carries the
 failing check named, the command that undoes the rebase, `git reset --hard <the commit recorded
 before it started>`, the worktree and its branch left in place and named, the Ticket left
@@ -909,7 +914,8 @@ reapplied commit and each dropped entry, a `reapply` whose applied line reads `n
 dropped, and the ledger's location. The review is called only once that **Gate** is green, and the
 fix call on a run the review already read is made with no **Gate** of the run's own before it.
 
-A red **Gate** after the reapplied commits stops as blocked, never back to the build loop: the
+A red **Gate** after the reapplied commits stops as blocked, never back to the build loop of
+[build-loop.md](build-loop.md): the
 branch now holds the developer's code the replay brought in beside the work that came back, and a
 run that loops on it edits their work. The run never edits the branch's code to make the **Gate**
 pass, never reruns it and never reverts a reapply commit to chase green. The reply carries the

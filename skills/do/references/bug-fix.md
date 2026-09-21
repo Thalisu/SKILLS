@@ -37,7 +37,7 @@ never a run-state file: an entry of `git worktree list` on `do/<slug>`, then
 `git branch --list do/<slug>` when no entry is there, the commits since the branch the first run
 started from (`git log <base>..refs/heads/do/<slug>` with `<base>` the merge base of the developer's
 branch and `refs/heads/do/<slug>`, qualified so a same-named tag can never shadow the branch), each with the
-`Behaviour:` line its body carries per the build loop in [mechanics.md](mechanics.md), and
+`Behaviour:` line its body carries per the build loop in [build-loop.md](build-loop.md), and
 `git status --short` in the worktree.
 
 - Step 1 probes before it creates. An existing worktree is entered with a bare `cd`: it is
@@ -121,7 +121,7 @@ write them as it goes, and nothing depends on that:
   covering the code it touched, the typecheck, the lint and the format green in the worktree after
   the last edit, and the full suites the project's Post-feature gate names).
 - The loop line: `Loop: policy` when `.claude/agents/unit-test-author.md` exists in the project,
-  `Loop: fallback` otherwise. Under `fallback` the build loop of [mechanics.md](mechanics.md) reads
+  `Loop: fallback` otherwise. Under `fallback` the build loop of [build-loop.md](build-loop.md) reads
   [tdd-fallback.md](tdd-fallback.md) and the run writes the failing test itself, with no test author
   dispatched; under `policy` that file is never read.
 - The defect line, `Defect: cause unknown, diagnosis first`: a bug in words comes with no cause the
@@ -228,7 +228,7 @@ branch left in place and named, so the developer decides the design and `do` nev
 Done when the fix and the shape, with the sketch or its skip, are recorded for the Reply's Run
 section as its fix line, per [reply.md](reply.md), or the run stopped naming `discuss`.
 
-**5. Red.** The build loop in [mechanics.md](mechanics.md), for one behaviour: the defect the run
+**5. Red.** The build loop in [build-loop.md](build-loop.md), for one behaviour: the defect the run
 reproduced at step 2. The dispatch input carries origin `bugfix`, the actor who met the defect
 and what it cost them as who relies on the behaviour, and the failure scenario as the expected red,
 in the words step 2's output produced, so the test fails the way the surface did.
@@ -248,7 +248,7 @@ Run section and the reproduction is committed
 with its behaviour line and its failing command in the body.
 
 **6. Fix.** The smallest fix that removes the mechanism step 3 confirmed, written by the session on
-top of the red, then the rest of the build loop in [mechanics.md](mechanics.md): the single-file
+top of the red, then the rest of the build loop in [build-loop.md](build-loop.md): the single-file
 command green, a refactor on green, then typecheck and format the touched files, each from the
 project's facts, with `skip: <reason>` for a command the project does not have. One commit, staged
 by path, its body carrying the behaviour line and the single-file command. A change to the test's

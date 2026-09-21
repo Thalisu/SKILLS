@@ -86,7 +86,7 @@ A `claimed` Ticket whose `do/<slug>` worktree exists, an entry of `git worktree 
 is picked up where the last run stopped and never restarted. The state a resume reads is
 the branch and its worktree, never a run-state file: the commits since the developer's branch,
 `git log <base>..do/<slug>` with `<base>` their merge base, each with the `Behaviour:` line its
-body carries per the build loop in [mechanics.md](mechanics.md), and the working tree,
+body carries per the build loop in [build-loop.md](build-loop.md), and the working tree,
 `git status --short` in the worktree. The run reads all of it from one script,
 `bash <skill-dir>/scripts/resume-state.sh <the Ticket's path>`: `worktree=` and `branch=`, one
 `commit=` line per commit with the `behaviour=` line its body carries under it, one `uncommitted=`
@@ -258,7 +258,7 @@ them as it goes, and nothing depends on that:
   dispatch: a door that printed `loop=global` reads `Loop: fallback` instead, and the loop line
   carries one more line saying the Agent tool is withheld, so the run writes every unit test
   itself, red first, and authors the flow itself. Under `fallback` the build loop of
-  [mechanics.md](mechanics.md) reads [tdd-fallback.md](tdd-fallback.md) and the run writes every
+  [build-loop.md](build-loop.md) reads [tdd-fallback.md](tdd-fallback.md) and the run writes every
   test itself, with no test author dispatched; under `policy` and `global` that file is never read.
 - A defect line when a behaviour reproduces a bug, judged from the Ticket's words per criterion
   line (a line that says something fails, throws, is wrong or came back) and never from a field:
@@ -468,7 +468,7 @@ developer's silence. Done when the list is recorded for the Reply's Run section,
 with the commit beside each line, and, on a defect with no named cause, the reproduction, each
 hypothesis's evidence line and the mechanism are recorded there too, all before the list.
 
-**5. Build loop.** The build loop in [mechanics.md](mechanics.md), one behaviour per dispatch,
+**5. Build loop.** The build loop in [build-loop.md](build-loop.md), one behaviour per dispatch,
 under the loop the loop line named. Each behaviour is one build line for the Reply's Run section
 as it lands, per [reply.md](reply.md): the line, the files opened, `RED_AS_EXPECTED`, green, the
 commit. A Design fork a behaviour meets goes to the forks in
@@ -477,7 +477,7 @@ commit. A Design fork a behaviour meets goes to the forks in
 **6. E2E flows.** The surface is the one the project's Testing Policy names on its section
 marker. On a native or mixed surface, every user-observable change (a screen, a flow, a
 navigation, a message, a state the product shows) gets its flow authored or extended after the
-feature exists, by the E2E test author (the test authors in [mechanics.md](mechanics.md)) with
+feature exists, by the E2E test author (the test authors in [build-loop.md](build-loop.md)) with
 the complete input: the behaviour to prove, who relies on it and what a wrong or missing result
 costs them, the journey or screen, the origin, the fixture state, placement when it matters. The
 report's `Run` section is read before its verdict: an author runs its flow at most twice in one
@@ -497,7 +497,7 @@ the flow lives in the consumer repository and is recorded as pending debt with t
 named. Under `Loop: global` the project has no Testing Policy and so no section marker naming a
 surface, and the Project map the ground step derived stands in for it. When the map's single-flow
 command is filled, each criterion the Digest marks observable
-gets its flow from `global-e2e-test-author` (the test authors in [mechanics.md](mechanics.md))
+gets its flow from `global-e2e-test-author` (the test authors in [build-loop.md](build-loop.md))
 with the same complete input and the map's path, and the flow returns `GREEN`,
 `HANDBACK`, routed as above, or `BLOCKED` on a preflight, which stops the run as blocked. When that command reads
 `none yet → /testing-policy` and the map's full-suite end-to-end command is filled too (a

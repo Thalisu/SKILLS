@@ -8,7 +8,7 @@ can verify instead of a promise. The commits read subtraction, reshape, cleanup,
 one revert undoes one slice.
 
 The parts it shares with the `ticket` Playbook are in [mechanics.md](mechanics.md), linked from the
-steps that use them: the worktree, the protected branch, the build loop with its test authors, the
+steps that use them: the worktree, the protected branch, the gate, the integration, the
 gate, the review, the verification and the close. The reply is written by [reply.md](reply.md).
 
 `<skill-dir>` below is the folder that holds this file's `references/`: `${CLAUDE_SKILL_DIR}` in
@@ -78,7 +78,7 @@ nothing depends on that:
   migrated and the old API gone, and the gate green in the worktree after the last edit.
 - The loop line: `Loop: policy` when `.claude/agents/unit-test-author.md` exists in the project,
   `Loop: fallback` otherwise. Under `fallback` the pin's third half and the build loop of
-  [mechanics.md](mechanics.md) read [tdd-fallback.md](tdd-fallback.md), and the run writes that test
+  [build-loop.md](build-loop.md) read [tdd-fallback.md](tdd-fallback.md), and the run writes that test
   itself with no test author dispatched; under `policy` that file is never read.
 - The protected-branch warning when it applies: the branch, the rule, and the line saying landing
   will be refused on it, which the review does whatever the run wrote.
@@ -140,7 +140,7 @@ leaves the half reading `skip: the behaviour cannot be driven inside the harness
 gap the harness would have covered is named as debt in the reply the same way step 9 names one.
 
 **The new shape** is pinned when the refactor extracts or moves something: one test on the target
-interface, written by the test authors in [mechanics.md](mechanics.md) and dispatched with the
+interface, written by the test authors in [build-loop.md](build-loop.md) and dispatched with the
 complete input, the behaviour to prove, the target interface's callers as who relies on it, the
 target the request names, origin `new feature`, and an unresolved import of the target interface as
 the expected red. The step waits for

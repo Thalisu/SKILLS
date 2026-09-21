@@ -5,9 +5,9 @@ Lauren Tan, MIT (see [PSTACK-LICENSE](../../../vendor/PSTACK-LICENSE)), upstream
 `7314f723a487ec406b6369fe5865ba034cfed166`, with the frontmatter stripped and the changes listed at
 the end.
 
-The build loop of [mechanics.md](mechanics.md) reads this file when the loop
+The build loop of [build-loop.md](build-loop.md) reads this file when the loop
 line reads `Loop: fallback`, and it has a second way in that leaves the loop line reading
-`Loop: global`: mechanics.md's `BLOCKED` route, taken when the global unit test author comes back
+`Loop: global`: build-loop.md's `BLOCKED` route, taken when the global unit test author comes back
 `BLOCKED` naming a run command the project map lacks (the map does not change during the run, so a
 second dispatch would meet the same `BLOCKED`), which reads this file from there for that
 behaviour and every one remaining, and dispatches the unit test author no more this run.
@@ -108,7 +108,7 @@ closest check used instead. These are the lines the reply's Evidence section quo
   loop line reads `Loop: fallback`, never on request.
 - Upstream is written for a bug fix. The feature case follows the same rule here: the failing test
   first where a cheap path exists, else the closest executable check with the reason stated.
-- The workflow is folded into the build loop of `mechanics.md`: the same steps, the loop's
+- The workflow is folded into the build loop of `build-loop.md`: the same steps, the loop's
   verdicts, one commit per behaviour, and the reply's Evidence section in place of upstream's
   "Final Response".
 - The commands come from the repository's own scripts, as the gate reads them.

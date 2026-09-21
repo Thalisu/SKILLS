@@ -76,10 +76,11 @@ that Playbook. The reply reference is read last by every Playbook.
 - [ticket.md](references/ticket.md): the `ticket` Playbook, which links the shared mechanics and the reply reference.
 - [integrate.md](references/integrate.md): the `integrate` Playbook: its door script, its steps, and the link to the conflict loop the shared mechanics carry.
 - [bug-fix.md](references/bug-fix.md): the `bug-fix` Playbook, which links the shared mechanics and the reply reference.
-- [mechanics.md](references/mechanics.md): the shared mechanics the Playbooks that build in a worktree read through their steps: the worktree, the protected branch, the Ticket file, the build loop, the gate, the integration, the review, the verification, the close.
+- [mechanics.md](references/mechanics.md): the shared mechanics the Playbooks that build in a worktree read through their steps: the worktree, the protected branch, the Ticket file, the reader, the forks, the delegates, the gate, the integration, the review, the verification, the close.
+- [build-loop.md](references/build-loop.md): the build loop and its test authors, read by the step that is about to build and by no other, so that step carries none of the rest of the shared mechanics.
 - [digest.md](references/digest.md): the Digest the session writes from the reader's text and the run derives
   its behaviours from: the reader's brief, what the Digest holds, and where it is written.
-- [tdd-fallback.md](references/tdd-fallback.md): the TDD fallback the build loop reads when the loop line reads `Loop: fallback`, with no unit test author in the project and no global one that can be dispatched, and a second way in under `Loop: global`, mechanics.md's `BLOCKED` route when the global unit test author comes back `BLOCKED` naming a run command the project map lacks: the run writes the failing test itself, and no test author is dispatched.
+- [tdd-fallback.md](references/tdd-fallback.md): the TDD fallback the build loop reads when the loop line reads `Loop: fallback`, with no unit test author in the project and no global one that can be dispatched, and a second way in under `Loop: global`, build-loop.md's `BLOCKED` route when the global unit test author comes back `BLOCKED` naming a run command the project map lacks: the run writes the failing test itself, and no test author is dispatched.
 - [trivial.md](references/trivial.md): the `trivial` Playbook: its door checks, its steps and the door script they run.
 - [refactoring.md](references/refactoring.md): the `refactoring` Playbook: its door checks, its steps and the pin it holds the reshape against.
 - [reply.md](references/reply.md): the reply every Playbook writes last, its sections in order.
