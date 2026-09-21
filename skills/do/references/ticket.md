@@ -488,10 +488,10 @@ included; it is refused whole and the criterion is dispatched again naming the r
 counted, since a forked author's report reaches no hook and the count is the caller's or nobody's.
 The flow must return `GREEN`; `BLOCKED` on a preflight stops the run
 as blocked; `HANDBACK` takes the route the build loop's `HANDBACK` takes in
-[mechanics.md](mechanics.md), read off the Handback's `Diagnosis` line: `production` is the run's
+[build-loop.md](build-loop.md), read off the Handback's `Diagnosis` line: `production` is the run's
 own change and then a fresh dispatch, `test` is one re-dispatch carrying the Handback, and a second
 `HANDBACK` on the same criterion stops the run as blocked. `REFUSED_INCOMPLETE_INPUT` takes the
-route the build loop's `REFUSED_INCOMPLETE_INPUT` takes in [mechanics.md](mechanics.md): a
+route the build loop's `REFUSED_INCOMPLETE_INPUT` takes in [build-loop.md](build-loop.md): a
 criterion or a **Relied on by** too vague to become an outcome assertion is sharpened and
 dispatched again, and a refusal because no one relies on the criterion means it is structural, so
 it ships with no flow and the criterion's line says so. The flow is committed on its own or with the last behaviour. On a consumer surface

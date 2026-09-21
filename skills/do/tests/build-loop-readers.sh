@@ -22,6 +22,20 @@ echo "# build-loop.md's readers: named wherever the file claims who reads it"
 # bug-fix.md: the precondition the preamble's and SKILL.md's claims have to stay true against.
 expect "ticket.md's E2E flows step links build-loop.md" \
   grep -qF "the test authors in [build-loop.md](build-loop.md)" "$ticket"
+
+# The E2E flows step's HANDBACK and REFUSED_INCOMPLETE_INPUT routes resolve in build-loop.md: it is
+# the file that actually carries both tokens (mechanics.md carries neither), so the step's link has
+# to point there or a run reaching either route lands in a file with no route to take.
+handback_para="$(paragraph_with "$ticket" "\`HANDBACK\` takes the route the build loop's \`HANDBACK\` takes in")"
+expect "ticket.md's E2E flows step carries its HANDBACK-route sentence" test -n "$handback_para"
+expect "ticket.md's E2E flows step's HANDBACK route links build-loop.md" \
+  grep -qF "the build loop's \`HANDBACK\` takes in [build-loop.md](build-loop.md)" <<<"$handback_para"
+
+refused_para="$(paragraph_with "$ticket" "\`REFUSED_INCOMPLETE_INPUT\` takes the")"
+expect "ticket.md's E2E flows step carries its REFUSED_INCOMPLETE_INPUT-route sentence" test -n "$refused_para"
+expect "ticket.md's E2E flows step's REFUSED_INCOMPLETE_INPUT route links build-loop.md" \
+  grep -qF "the build loop's \`REFUSED_INCOMPLETE_INPUT\` takes in [build-loop.md](build-loop.md)" <<<"$refused_para"
+
 expect "ticket.md's resume step links build-loop.md for the Behaviour: line" \
   grep -qF "per the build loop in [build-loop.md](build-loop.md)" "$ticket"
 expect "bug-fix.md's resume step links build-loop.md for the Behaviour: line" \
