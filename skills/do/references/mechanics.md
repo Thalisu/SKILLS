@@ -572,7 +572,7 @@ above: the run never commits it and the worktree branch never touches it.
    waived stays unticked. The evidence is the run's own output, produced after the last edit.
 2. Append the evidence under `## Evidence`, the last heading of the format, added first when the
    Ticket was published without it. The first line is the `Context:` line, from the `current`
-   figure kept at the ground step and a second reading of `scripts/context-usage.sh` now, for
+   figure the run kept when it grounded and a second reading of `scripts/context-usage.sh` now, for
    the `peak` and the `band`; a reading that fails writes `Context: not measured` with the
    script's reason. Then the landed commit, the Review's location, the command lines of the gate
    and the flows with their quoted output lines, and each waiver.

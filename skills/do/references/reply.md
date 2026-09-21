@@ -49,46 +49,53 @@ files and the audit line both come before the worktree line):
    `done:` or reading `skip: <reason>`, and a step it never reached left as it was copied. The run
    copied it at its start as its own todo list; the copy in the Reply is the one the developer
    reads, so it is never required as text before the first edit.
-10. **Audit line.** The discover audit line the ground step recorded,
+10. **Plan line.** In `ticket`, the Plan's location and every fallback the Planner's return
+    named: a Map built from search output because `how` was not listed, one `rg -n -w` per
+    candidate in place of the discover batch, or a shape the fork stated itself. The grounding
+    itself is in the Plan and never here, since the session never read it.
+11. **Audit line.** In `bug-fix` and `refactoring`, the discover audit line the ground step
+    recorded,
     `Discovery: n FOUND · n DUPLICATE · n NOT_FOUND`, saying so when one `rg -n -w` per candidate
     stood in for the batch.
-11. **Map line.** With no Testing Policy in the project, the Project map's location and the slots
+12. **Map line.** With no Testing Policy in the project, the Project map's location and the slots
     it filled, off the lines `project-map.sh` printed.
-12. **Hand-over.** When the shape step forked `sketch`, what it handed over, in one line: what to
-    shape, the map, the Digest's location and the destination.
-13. **Shaped-by line.** When `sketch` wrote nothing (the Agent tool withheld, no `sketch` listed,
+13. **Hand-over.** In `bug-fix` and `refactoring`, when the shape step forked `sketch`, what it
+    handed over, in one line: what to shape, the map, the Digest's location and the destination.
+14. **Shaped-by line.** In `bug-fix` and `refactoring`, when `sketch` wrote nothing (the Agent
+    tool withheld, no `sketch` listed,
     or a return that is not a usable Sketch), the line saying so, with that reason, and saying the
     session shaped the work itself, so the developer knows who shaped it. With no Sketch filed, it
     carries the shape the session stated in a few words.
-14. **Sketch line.** When a Sketch was filed, its location and the shape it settled in a few
-    words, so the developer learns both without opening it.
-15. **Reproduction.** When the run reproduced a defect: the command line it ran and the output
+15. **Sketch line.** In `bug-fix` and `refactoring`, when a Sketch was filed, its location and the
+    shape it settled in a few words, so the developer learns both without opening it.
+16. **Reproduction.** When the run reproduced a defect: the command line it ran and the output
     that carries the defect, the forcing named when it was forced, and, once the fix is in, the
     same command's passing output beside it, a developer's report marked as theirs. When the run
     instrumented the main checkout, the `git status --short` it read there after the revert.
-16. **Diagnosis.** When the run hunted a cause: one line per hypothesis with the runtime evidence
+17. **Diagnosis.** When the run hunted a cause: one line per hypothesis with the runtime evidence
     that ruled it out, then the mechanism the run confirmed, in one line, so the developer checks
     the cause instead of taking it on trust.
-17. **Target files.** The files the door's checks named, in `trivial` and `refactoring`.
-18. **Worktree line.** The worktree's path and its branch, once the worktree step entered it.
-19. **Structure line.** In `refactoring`, the structure and the target shape, with the sketch or
+18. **Target files.** The files the door's checks named, in `trivial` and `refactoring`.
+19. **Worktree line.** The worktree's path and its branch, once the worktree step entered it.
+20. **Structure line.** In `refactoring`, the structure and the target shape, with the sketch or
     its skip, and a deviation from that shape the build met.
-20. **Fix line.** In `bug-fix`, the planned fix and the shape, with the sketch or its skip.
-21. **Behaviours list.** The list the behaviours step wrote, each line with the commit beside it.
-22. **Build lines.** One line per behaviour as it landed: the files the loop opened for it, the
+21. **Fix line.** In `bug-fix`, the planned fix and the shape, with the sketch or its skip.
+22. **Behaviours list.** The list the run built from, in `ticket` the Plan's `## Behaviours`
+    section, each line with the commit beside it.
+23. **Build lines.** One line per behaviour as it landed: the files the loop opened for it, the
     author's verdict and what was done with it, the commit, and, when the behaviour went to
     [tdd-fallback.md](tdd-fallback.md), the reason it did and the check that stood in.
-23. **Answer lines.** In `refactoring`, each answer with its reason: the exit test's, with the
+24. **Answer lines.** In `refactoring`, each answer with its reason: the exit test's, with the
     developer's answer when the test failed, and a behaviour change the cleanup found, with its
     command.
-24. **Gate line.** The `command=` line the gate printed after the last edit, or in `trivial` the
+25. **Gate line.** The `command=` line the gate printed after the last edit, or in `trivial` the
     command lines of the typecheck and the covering suite, each with its skip when it has one. On
     a run that reaches the fix call with no **Gate** of its own, per
     [mechanics.md](mechanics.md), the line saying so: no gate ran in this session, and the fix
     call's own return carries the Gate it ran instead.
-25. **Door verdict.** In `trivial`, the `verdict=` line the door on the diff printed, or, on its exit 3,
+26. **Door verdict.** In `trivial`, the `verdict=` line the door on the diff printed, or, on its exit 3,
     the line saying the second check was the run's own judgment and not the script's.
-26. **Integration line.** The state the integration reached: the no-op, or the target and the
+27. **Integration line.** The state the integration reached: the no-op, or the target and the
     count, or blocked with its reason, with the counts of `mechanical` and `contested` hunks at each
     stop and the Loss ledger's location when a contested hunk took the **Target** side. Where the
     ledger held an
@@ -107,7 +114,7 @@ files and the audit line both come before the worktree line):
     every `drop` of its own, each marked as coming after the review, since no reviewer reads what
     that integration set aside and the reply is the one place the developer sees it before it
     reaches their branch.
-27. **Review return.** The review's return, one line per part: the Review's location, the
+28. **Review return.** The review's return, one line per part: the Review's location, the
     `Act on:` line, the landing line, every `Risk:` line and every `Axis not run:` line.
 
 The lines record what the steps decided; they gate nothing. The order constraints on actions stay

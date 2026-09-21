@@ -18,6 +18,7 @@ Ticket: <the absolute path in the main checkout, or the tracker reference>
 Criteria: <the Ticket's checklist, verbatim>
 Digest: <the absolute path in the main checkout> | none
 Sources: <the `## Sources` lines the door computed, to be copied whole and never recomputed>
+Rulings: <the `Ruled by the choice-taker on Ticket <this Ticket>` lines the door read off the Spec, or none>
 Plan: <the absolute path this Plan is written at>
 Repository root: <the main checkout's absolute path>
 Tree: <the worktree the build runs in, or the repository root>
@@ -60,7 +61,9 @@ Six sections, in this order.
   prove, who relies on it and what a wrong or missing result costs them, the target, and the origin.
   The expected red depends on the tree at the cycle that dispatches, so the loop fills it. A line
   that reproduces a defect is marked `bugfix`. A line no quote in the Digest carries is one the fork
-  invented.
+  invented. A criterion that still reads the side a `Rulings:` line the developer edited reversed
+  is not built either way: it is a Design fork between that criterion and the edited line, and the
+  item says so with both sides, for the session to rule on.
 - `## Sketch`: the text the `sketch` fork returned, whole, its own header included and its
   `Written:` key reading this Plan's path, since this is the file the Sketch landed in. Or `none`
   on one line with the reason beside it: no boundary crossed, `sketch` not listed, the Agent tool

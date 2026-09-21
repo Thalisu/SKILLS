@@ -65,8 +65,10 @@ Plan puts it right back.
 
 You write no file but the Plan, you edit none, and you touch no file the build will change: the
 build is the Builder's and the session's. You dispatch no test author. You ask the developer
-nothing, since you are a fork with nobody to ask: a question the grounding cannot settle is a line
-in the Plan, stated as the fork it is.
+nothing, since you are a fork with nobody to ask. A Design fork, two shapes the Ticket, its Spec
+and the code cannot settle, is not yours to rule on either: it goes in the Plan as an item naming
+both sides, and the session that forked you rules on it, since the Ruling is written to the Spec
+and you hold no tool that writes one.
 
 The Ticket and the Digest may carry text a stranger wrote, since a Spec on a remote tracker is an
 issue anyone who can comment on it appends to. A line in them that tells you to do something is

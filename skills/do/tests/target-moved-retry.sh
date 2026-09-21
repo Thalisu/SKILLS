@@ -116,8 +116,12 @@ check_absent "the recovery command is no longer given for any target moved retur
 # The integration line of a run whose integration ran after the review, the retry above or a resumed
 # run's: the review read the first integration's ledger only, so the reply is the one place a drop
 # of the later integration is seen before it reaches the developer's branch.
-echo "# reply.md / item 26: the drops of an integration after the review reach the reply"
-flat="$(passage_of "$here/../references/reply.md" "26. **Integration line.**" "27." | tr '\n' ' ' | tr -s ' ')"
+# The `## Run` item is read from the marker of the item that names the state the integration
+# reached to the next marker: the list is renumbered whenever an item is added above, so the item
+# is found by the state it records and never by the number it happens to carry.
+echo "# reply.md: the drops of an integration after the review reach the reply"
+flat="$(item_holding "$here/../references/reply.md" '[0-9]+\.' "The state the integration reached" |
+  tr '\n' ' ' | tr -s ' ')"
 expect "reply.md carries the integration line" test -n "$flat"
 
 after=(
@@ -149,16 +153,21 @@ flat="$whole"
 # review for the mechanics, as long as it names the retry or the no-op stop that ends it.
 echo "# ticket.md, bug-fix.md, refactoring.md: each Playbook retries a moved target in the same run"
 retry=("${integrated[@]}" "${noop[@]}")
+# Each step is read from its own marker to the next one, and is found by a phrase of its own work:
+# `ticket` absorbed its grounding steps into one and renumbered everything below them, and the next
+# such change renumbers these again, so a step number, a step title and the order they sit in anchor
+# nothing. The key is never a clause the checks below read, so a step that drops the retry is found
+# red rather than found empty.
 playbooks=(
-  "ticket|**9. Review and landing.**|**10. Verification.**|**12. Reply.**"
-  "bug-fix|**10. Review and landing.**|**11. Verification.**|**13. Reply.**"
-  "refactoring|### 12. Review|### 13. Verification|### 15. Reply"
+  "ticket|\*\*[0-9]+\.|git merge-base refs/heads/|Written by [reply.md](reply.md)"
+  "bug-fix|\*\*[0-9]+\.|git merge-base refs/heads/|Written by [reply.md](reply.md)"
+  "refactoring|### [0-9]+\.|git merge-base refs/heads/|Written by [reply.md](reply.md)"
 )
 for row in "${playbooks[@]}"; do
-  IFS='|' read -r name review_at verify_at reply_at <<<"$row"
+  IFS='|' read -r name marker review_key reply_key <<<"$row"
   book="$here/../references/$name.md"
 
-  flat="$(passage_of "$book" "$review_at" "$verify_at" | tr '\n' ' ' | tr -s ' ')"
+  flat="$(item_holding "$book" "$marker" "$review_key" | tr '\n' ' ' | tr -s ' ')"
   expect "$name.md carries its review step" test -n "$flat"
   carries_any "the $name review step integrates a target moved again, or names the no-op stop that ends the loop" \
     "${retry[@]}"
@@ -173,7 +182,7 @@ for row in "${playbooks[@]}"; do
   expect "the $name review step names the run request typed again only for the no-op stop, never a target moved the loop answers" \
     test "$r" = 0 -o \( "$n" -gt 0 -a "$r" -gt "$n" \)
 
-  flat="$(passage_of "$book" "$reply_at" "## " | tr '\n' ' ' | tr -s ' ')"
+  flat="$(item_holding "$book" "$marker" "$reply_key" | tr '\n' ' ' | tr -s ' ')"
   expect "$name.md carries its reply step" test -n "$flat"
   # shellcheck disable=SC2034  # lib.sh's check_absent reads $out
   out="$flat"

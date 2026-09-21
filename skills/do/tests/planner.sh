@@ -9,6 +9,7 @@ set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/../../../scripts/tests/lib.sh"
 agent="$here/../agents/do-planner.md"
+playbook="$here/../references/ticket.md"
 fails=0
 
 echo "# skills/do/agents/do-planner.md: the fork writes the Plan and cannot hash it"
@@ -54,5 +55,54 @@ carries_any "the fork never returns the Plan's text" \
   "never the Plan's text" "never the Plan text" "never the text of the Plan" "never its text" \
   "never the text" "not the text" "never the Plan itself" "never the Plan's body" \
   "never paste the Plan" "never pastes the Plan" "never the Plan's contents"
+
+echo "# skills/do/references/ticket.md: the grounding step forks the Planner and holds the path"
+
+# The Playbook's side of the same handover. Scoped to the step that names the fork, taken from its
+# `**<n>.` marker to the next one: the step is renumbered by the change that writes it, since the
+# shape and behaviours steps are absorbed into the fork and everything below them shifts up, so the
+# number, the title and the order are all moving and none of them can anchor anything. The scope is
+# what keeps the shape step's own fork out: that one already explores in a window of its own and
+# fills a brief, so a file-wide search would read its sentences as this step's.
+whole="$(tr '\n' ' ' <"$playbook" | tr -s ' ')"
+flat="$whole"
+carries "the Playbook names the Planner fork \`do\` ships" "do-planner"
+
+flat="$(item_holding "$playbook" '\*\*[0-9]+\.' "do-planner" | tr '\n' ' ' | tr -s ' ')"
+expect "a step of the Playbook hands the grounding to that fork" test -n "$flat"
+
+# A fork dispatched with nothing knows no Ticket, no Sources and no path to write the Plan at.
+carries_any "the step forks it with a brief" \
+  "the brief" "a brief" "its brief" "brief in" "brief of" "brief below"
+
+# Criterion 1 of the Ticket: the grounding happens in the fork, not in the developer's window. A
+# Playbook that forks the Planner and still has the session read the ground pays for the reading
+# twice, and the window grows with the Ticket exactly as before. The three imperatives below are
+# what an inline grounding is made of, and no step may carry one, not only the step that forks: read
+# over the whole file so a grounding left behind in a neighbouring step is caught too. A step that
+# explains what the fork reads states it of the fork, never as an order to the session.
+# shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+out="$whole"
+check_absent "no step has the session ground in its own window" 0 0 \
+  "Read \`CONTEXT.md\`" "call the Skill tool with \`how\`" "call the Skill tool with \`discover\`"
+
+# Criterion 2: what crosses back is the path alone. A session that reads the Plan back has put the
+# whole grounding in its window, and nothing downstream would catch it: the run still builds and
+# still lands.
+carries_any "the fork hands back the Plan's path" \
+  "returns the Plan's path" "return the Plan's path" "returns the path" "return the path" \
+  "returns that path" "return that path" "the path it returns" "the path the fork returns" \
+  "the Plan's path" "hands back the path" "comes back is the path"
+
+carries_any "the session never reads the Plan back" \
+  "never reads the Plan" "never read the Plan" "does not read the Plan" "never opens the Plan" \
+  "opens no Plan" "never read back" "is never read back" "never reads it back" \
+  "never the Plan's text" "never its text" "never the text" "holds only the path" \
+  "the path alone" "path and never"
+
+# The session names the path itself and never learns it from the fork's return, so a path built by
+# any other rule is a Plan nothing downstream, and no next run on this Ticket, ever finds.
+carries "the Plan is keyed by the Ticket's file name, \`.plan\` before the extension" ".plan"
+carries "a Ticket that is an issue keys its Plan under \`.scratch/plans/\`" ".scratch/plans/"
 
 exit $((fails > 0))

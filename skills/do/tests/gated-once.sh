@@ -36,23 +36,20 @@ passages=(
   "ticket.md|- On \`verdict=land\`, the review already read this branch|- When every line of the list is ticked|the resume of a run whose review already landed nothing||"
   "ticket.md|- When every line of the list is ticked|- On \`verdict=ask\`,|the resume of a run whose list is every line ticked||"
   "ticket.md|  A \`review=\` line that names a Review|- A Spec amended while the Ticket is|the resume of a rebase that finished after the review|and the gate is green|"
-  "ticket.md|**9. Review and landing.**|**10. Verification.**|step 9, where a moved target is integrated again||"
-  "ticket.md|**10. Verification.**|**11. Close.**|step 10, the red flow fixed in the worktree||"
   "bug-fix.md|- A Review of the branch,|- Uncommitted changes in the worktree|the resume on a Review that counts||"
   "bug-fix.md|**11. Verification.**|**12. Close.**|step 11, the red flow fixed in the worktree||"
   "refactoring.md|- **Not landed: target moved.**|- **Not landed**,|the moved target integrated again||"
   "refactoring.md|### 13. Verification|### 14. Close|step 13, the red flow fixed in the worktree||"
   "mechanics.md|Done when the step is ticked as a no-op|and in each case the integration line is recorded|the integration step's own Done line||"
-  "ticket.md|the Loss ledger beside the Ticket in the main checkout|**9. Review and landing.**|step 8's Integration Done line||"
   "bug-fix.md|the Loss ledger keyed by the run's branch,|**10. Review and landing.**|step 9's Integration Done line||"
   "refactoring.md|ledger keyed by the run's branch,|### 12. Review|step 11's Integration Done line||"
 )
 
-for row in "${passages[@]}"; do
-  IFS='|' read -r file open end what extra who <<<"$row"
+# $1 file under references/, $2 what the passage is, $3 a clause only this one carries (empty for
+# none), $4 `names-who` when the passage is where the rule is stated; the passage is in $flat.
+gated_once() {
+  local file="$1" what="$2" extra="$3" who="$4"
   echo "# $file: $what hands its branch over with no Gate of the run's own"
-
-  flat="$(passage_of "$refs/$file" "$open" "$end" | tr '\n' ' ' | tr -s ' ')"
   expect "$file carries $what" test -n "$flat"
   carries_any "$what hands the branch to the fix call with no Gate of the run's own" "${skipped[@]}"
   [ "$who" = names-who ] &&
@@ -63,6 +60,29 @@ for row in "${passages[@]}"; do
   out="$flat"
   check_absent "$what no longer has the run gate the tree before the call that gates it again" \
     0 0 "${gating[@]}" ${extra:+"$extra"}
+}
+
+for row in "${passages[@]}"; do
+  IFS='|' read -r file open end what extra who <<<"$row"
+  flat="$(passage_of "$refs/$file" "$open" "$end" | tr '\n' ' ' | tr -s ' ')"
+  gated_once "$file" "$what" "$extra" "$who"
+done
+
+# The three steps of `ticket` that hand a branch over, each scoped from the `**<n>.` marker of the
+# step carrying a phrase of its own work to the next marker: the Plan step absorbed the grounding
+# steps above them and every number below it moved, so a step number, a step title and the order
+# they sit in anchor nothing here. The key is never a clause the checks below read, so a step that
+# drops its no-Gate handover is found red rather than found empty.
+steps=(
+  "ticket.md|git merge-base refs/heads/|the review step, where a moved target is integrated again||"
+  "ticket.md|scripts/flows.sh|the verification step, the red flow fixed in the worktree||"
+  "ticket.md|the Loss ledger beside the Ticket in the main checkout|the integration step's Done line||"
+)
+
+for row in "${steps[@]}"; do
+  IFS='|' read -r file key what extra who <<<"$row"
+  flat="$(item_holding "$refs/$file" '\*\*[0-9]+\.' "$key" | tr '\n' ' ' | tr -s ' ')"
+  gated_once "$file" "$what" "$extra" "$who"
 done
 
 # The command= line the fix call is handed only exists when the run's own gate actually ran first.
@@ -83,7 +103,8 @@ carries "the passage hands the fix call no command= line when it reaches the fix
 # reply.md's Gate line item must give the writer something to record on the same no-gate-of-its-own
 # path, since there is no command= line to quote there.
 echo "# reply.md: the Gate line item covers a run with no Gate of its own too"
-flat="$(passage_of "$refs/reply.md" "24. **Gate line.**" "25. **Door verdict.**" | tr '\n' ' ' | tr -s ' ')"
+flat="$(item_holding "$refs/reply.md" '[0-9]+\.' "The \`command=\` line the gate printed after the last edit" |
+  tr '\n' ' ' | tr -s ' ')"
 carries_any "the Gate line item names the no-Gate-of-its-own path" "${skipped[@]}"
 carries "the Gate line item tells the writer to record that no gate ran" "no gate ran in this session"
 

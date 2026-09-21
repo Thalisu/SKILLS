@@ -8,8 +8,8 @@ test authors in [build-loop.md](build-loop.md), the forks in [forks.md](forks.md
 the integration in [conflict-loop.md](conflict-loop.md), each read by the step that reaches it and
 by no other. The reply is written by [reply.md](reply.md). The checklist below is copied verbatim into the run as its todo
 list before any task-specific item, and the Reply's Run section carries it ticked, the research
-brief's twelve steps with the review and landing step reading as
-the review's and the shape step as `sketch`'s; each step carries its done condition below.
+brief's ten steps with the review and landing step reading as
+the review's and the grounding as the Planner's; each step carries its done condition below.
 
 ## Door
 
@@ -108,8 +108,8 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   with its `Behaviour:` line, off the script's lines. The claim line is not written again. The
   Reply's Run section carries the checklist with steps 0 and 1 reading `done: resumed`.
 - The worktree is entered, never created: a second worktree is never made.
-- The grounding, the shape and the behaviours list run again without a write. The list is
-  re-derived from the Ticket and its Digest as step 4 says, never from the commits; then every line
+- The Plan step runs again without a write. The list is
+  re-derived from the Ticket and its Digest as step 2 says, never from the commits; then every line
   whose behaviour a commit body carries is ticked with that commit's sha beside it, and a commit
   whose `Behaviour:` line matches no line of the list is kept and named on the resume line.
 - The loop continues at the first behaviour without a commit, and from there the run is a first
@@ -122,7 +122,7 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   and the branch lands through the fix call on that Review, as the review in
   [mechanics.md](mechanics.md) says for a branch the review already read.
 - When every line of the list is ticked, as on the branch a `not landed: target moved` right after an integration that ticked as a no-op left,
-  step 5 reads `done: resumed` and the run never waits on an empty loop. It goes on at step 6 as a
+  step 3 reads `done: resumed` and the run never waits on an empty loop. It goes on at step 4 as a
   first run does, a flow already on the branch counting as authored, then the integration with no
   **Gate** of the run's own, which resolves each contested hunk the review's landing left to the
   **Target** side and writes its **Incoming** side to the Loss ledger beside the Ticket, then the
@@ -209,7 +209,7 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   mechanism is added for either. The Spec's hash no longer matches the Digest's, so the run prints
   the one line naming the Spec as changed, and the reader is forked again over the amended Spec and
   the journey both, never over the Spec alone, whose Digest would come back with no Journey Path
-  for step 4 to read. The list is re-derived from the Digest that comes back, every commit whose
+  for step 2 to read. The list is re-derived from the Digest that comes back, every commit whose
   `Behaviour:` line still matches a line of it is kept, and the loop continues at the first
   behaviour without a commit, building the side the Spec now takes. A criterion an earlier Ruling
   rewrote to the side the developer's edit reversed is met at step 4 as a Design fork against the
@@ -226,17 +226,15 @@ step the run never reaches is neither ticked nor skipped.
 Do:
 - [ ] 0. Input resolved and confirmed; policy or fallback detected; ticket claimed
 - [ ] 1. Worktree created from HEAD and entered; tree clean
-- [ ] 2. Grounded: done stated as a predicate; discover batch run and audited
-- [ ] 3. Shape named; `sketch` forked when a boundary is crossed
-- [ ] 4. Behaviours listed from the plan, critical paths first
-- [ ] 5. Build loop: one behaviour, one dispatch, one green commit, repeat
-- [ ] 6. E2E flows authored or extended (native and mixed surfaces)
-- [ ] 7. Gate in the worktree: the Ticket's own tests, typecheck, format; the full suites on the feature's last Ticket
-- [ ] 8. Integration: the branch rebased onto the developer's branch, the gate again when it replayed
-- [ ] 9. Review by do-code-review: Act on Findings fixed by its Fixer, landed when Green
-- [ ] 10. Affected E2E flows run from the main checkout
-- [ ] 11. Ticket closed with evidence; worktree removed
-- [ ] 12. Reply
+- [ ] 2. Plan: the Planner forked, the Plan written at its path, the path held
+- [ ] 3. Build loop: one behaviour, one dispatch, one green commit, repeat
+- [ ] 4. E2E flows authored or extended (native and mixed surfaces)
+- [ ] 5. Gate in the worktree: the Ticket's own tests, typecheck, format; the full suites on the feature's last Ticket
+- [ ] 6. Integration: the branch rebased onto the developer's branch, the gate again when it replayed
+- [ ] 7. Review by do-code-review: Act on Findings fixed by its Fixer, landed when Green
+- [ ] 8. Affected E2E flows run from the main checkout
+- [ ] 9. Ticket closed with evidence; worktree removed
+- [ ] 10. Reply
 ```
 
 ## Steps
@@ -294,104 +292,34 @@ same state, since `-b` on a branch that exists fails and that failure is not one
 with a second slug. Done when its status prints nothing and the worktree line, its path and its
 branch, is recorded for the Reply's Run section.
 
-**2. Ground.** Read `CONTEXT.md` (the root one, or the one `CONTEXT-MAP.md` names), and
-state the glossary words it will use; then the ADR titles under `docs/adr/`, and read whole
-the bodies of the ones the Ticket touches. It opens no source file: which files the build edits
-is not knowable before the behaviours list exists, so a file read here is paid for whether the
-build edits it or not, per
-[ADR 0025](../../../docs/adr/0025-the-ground-step-reads-a-map-of-the-subsystem-never-its-code.md).
-When the session lists `how`, call the Skill tool with `how` over the subsystem the Ticket
-reshapes, and take what comes back as the map: where things live, what calls what,
-where the seams are. The step names in one line the skill it called and the subsystem, and
-the exploration stays in that skill's window, since `how` forks its own explorers, per
-[guard-the-context-window](../../../.agents/principles/guard-the-context-window.md). When it does
-not, the step builds the map from search output alone (names, paths and one-line matches) and
-reads no file whole; it says so in one line, names the map as thinner, and the run continues.
-Then the discover batch:
-call the Skill tool with `discover` once, with every symbol the Ticket, its Digest and the map
-name in one batch, in the form the Discovery rule fixes, before the first of them is created, and
-record the audit line, `Discovery: n FOUND · n DUPLICATE · n NOT_FOUND`, for the Reply's Run
-section, which carries it after the checklist per [reply.md](reply.md). When `discover` is not
-listed, one `rg -n -w` per candidate stands in and the audit line says so. A symbol the Sketch
-adds later is checked before it is created the way the Discovery rule allows: one direct
-`rg -n -w` for a single name, one more batch for two or more. Restate done as a predicate,
-sharpened by what the reading showed. With no Testing Policy in the project, the loop line reading
-`Loop: global` or `Loop: fallback`, derive the Project map the authors read from the project,
-once for the whole run, never once per behaviour:
-`bash <skill-dir>/scripts/project-map.sh <the main checkout> <the map's path>`. The path is beside
-the Ticket in the main checkout's scratch, with `.project-map` before the extension, or, for a
-Ticket that is not a local file, the issue's reference under `.scratch/project-maps/` there, per
-[scratch.md](../../../.agents/scratch.md): the map is cached in the project's own Scratch, so it
-never travels back to the repository the authors came from, and the script refuses any other path.
-It fills only the slots a command read, the run commands and the test layout, and every other slot
-reads `none yet → /testing-policy`. The step names in one line the map's location and the slots
-it filled, off the lines the script printed, for the Reply's Run section's map line per
-[reply.md](reply.md); the loop and the flows step read that file and never derive it again. Then
-read the session's context once, `bash
-<skill-dir>/scripts/context-usage.sh`, and keep its `current` figure: it is the `grounded` figure
-of the `Context:` line the close writes per [mechanics.md](mechanics.md). Done when the sharpened
-predicate and the audit line are recorded for the Reply, the context reading is kept for the close,
-and, with no Testing Policy, the map line is recorded for the Reply.
+**2. Plan.** The grounding is one fork's work and one file, per
+[ADR 0047](../../../docs/adr/0047-the-ticket-run-forks-a-planner-then-a-builder-and-the-session-stops-writing-code.md).
+The session names the Plan's path, hands it over, and holds that path afterwards: it opens no
+`CONTEXT.md`, no ADR and no source file of its own, and the reading that used to grow this window
+with the Ticket happens in the fork's, per
+[guard-the-context-window](../../../.agents/principles/guard-the-context-window.md).
 
-**3. Shape.** Name the data shape and its organising structure before any logic, per
-[foundational-thinking](../../../.agents/principles/foundational-thinking.md) and
-[model-the-domain](../../../.agents/principles/model-the-domain.md): the type or record each
-glossary word maps to, and the structure that holds the rule (a union, a state machine, a
-registry, a reducer) instead of scattered conditionals. Delete the dead weight the Ticket makes
-obsolete before adding, per
-[subtract-before-you-add](../../../.agents/principles/subtract-before-you-add.md) and
-[laziness-protocol](../../../.agents/principles/laziness-protocol.md), as its own commit with the
-suite green.
-
-Who names the shape is decided by the first line of this table that holds, read in order:
-
-| The work | The step |
-|---|---|
-| crosses no function boundary: no new module, no exported function or type other code will call, no changed signature | reads `skip: no boundary crossed`, and the run goes on to the behaviours list |
-| already carries a shape: the Ticket, its Digest, a `Settled by prototype:` snippet, or a Sketch already beside the Ticket, which is what a resume finds | calls nothing, since the step never names a shape twice; that shape is the one the build is held to |
-| runs in a session with the Agent tool withheld | `sketch` writes nothing, and the session does that work itself, the Delegates rule of [mechanics.md](mechanics.md): it writes the Sketch itself at the path the brief below names, in the format of [sketch-format.md](../../../.agents/formats/sketch-format.md), records the shaped-by line below for the Reply, and neither stops nor asks for the tool |
-| runs in a session whose Agent tool lists no `sketch` | the session states the shape, the types, the signatures and the module boundaries itself, records the shaped-by line below for the Reply, and the run continues |
-| anything else | call the Agent tool with `subagent_type: sketch` and the brief below, and name in one line for the Reply what it handed over |
-
-The brief is the one the `sketch` agent fixes, and the run fills it from what it already holds,
-so nothing is grounded a second time: what to shape, the Ticket's path, its `What to build` line
-and its criteria; the map, the subsystem as the ground step took it; the Digest's location;
-the repository root, the main checkout's absolute path; and where the Sketch goes, the absolute
-path beside the Ticket in the main checkout with `.sketch` before the extension, or, for a Ticket
-that is not a local file, the issue's reference under `.scratch/sketches/` there; and
-the chain's `.agents/` folder, the absolute path `readlink -f <skill-dir>/../../.agents` prints,
-since the agent holds no shell to follow the install link itself.
-Before it forks, the destination the brief names goes through one check, with `<root>` the
-repository root the brief names:
+The path is beside the Ticket in the main checkout, the Ticket's file name with `.plan` before the
+extension, or, for a Ticket that is not a local file, the issue's reference under `.scratch/plans/`
+there, per [scratch.md](../../../.agents/scratch.md). Before anything is handed over it goes
+through the same check the Sketch's destination took, with `<root>` the main checkout:
 
 ```sh
 dest="$(readlink -m <the destination>)"
 case "$dest" in "<root>/.scratch/"*) echo inside ;; *) echo refused ;; esac
 ```
 
-`refused` writes nothing and forks no `sketch`: the run stops in one line naming the refused path,
-the worktree and its branch, both left in place. `readlink -m` collapses the `..` and follows the
-symlinks in the destination, so a path that only looks contained is caught here rather than after
-the write; the other side of the case stays the unresolved `<root>/.scratch/`, the way
-`project-map.sh`'s own containment check reads it, so a `.scratch` that is itself a symlink, or
-anything else standing in for a plain directory there, resolves away from that prefix and is
-refused rather than compared against where the link points.
-
-What the run handed over is on record in the Agent call's own brief, and the Reply's Run section
-restates it in one line, per [reply.md](reply.md): what to shape, the map, the Digest's location
-and the destination. The fork explores
-the rival shapes in a window of its own, per
-[guard-the-context-window](../../../.agents/principles/guard-the-context-window.md), stops at the
-Sketch, implements nothing and writes nothing. What comes back is the Sketch's text and the shape
-in one line, and the session files it, per [scratch.md](../../../.agents/scratch.md). It reads
-whether the project's own committed file carries the scratch ignore:
+`refused` hands nothing over and forks nobody: the run stops in one line naming the refused path,
+the worktree and its branch, both left in place. Then the run reads whether the project's own
+committed file carries the scratch ignore, and appends the line when it does not, the way
+[scratch.md](../../../.agents/scratch.md) fixes:
 
 ```sh
 ( cd <root> && git check-ignore -v .scratch/ )
 ```
 
-A first field of `.gitignore` owes nothing; anything else owes the line, appended before the
-write and said in one line:
+A first field of `.gitignore` owes nothing; anything else owes the line, appended before the fork
+writes and said in one line:
 
 ```sh
 ( cd <root> && if [ -L .gitignore ]; then echo '.scratch/ is not ignored: .gitignore is a symlink, so nothing was appended'; else grep -qxF '.scratch/' .gitignore 2>/dev/null || { [ -z "$(tail -c1 .gitignore 2>/dev/null)" ] || echo; printf '.scratch/\n'; } >> .gitignore; fi )
@@ -476,7 +404,7 @@ as it lands, per [reply.md](reply.md): the line, the files opened, `RED_AS_EXPEC
 commit. A Design fork a behaviour meets goes to the forks in
 [forks.md](forks.md). Done when every line has a commit beside it.
 
-**6. E2E flows.** The surface is the one the project's Testing Policy names on its section
+**4. E2E flows.** The surface is the one the project's Testing Policy names on its section
 marker. On a native or mixed surface, every user-observable change (a screen, a flow, a
 navigation, a message, a state the product shows) gets its flow authored or extended after the
 feature exists, by the E2E test author (the test authors in [build-loop.md](build-loop.md)) with
@@ -497,7 +425,7 @@ dispatched again, and a refusal because no one relies on the criterion means it 
 it ships with no flow and the criterion's line says so. The flow is committed on its own or with the last behaviour. On a consumer surface
 the flow lives in the consumer repository and is recorded as pending debt with the consumers
 named. Under `Loop: global` the project has no Testing Policy and so no section marker naming a
-surface, and the Project map the ground step derived stands in for it. When the map's single-flow
+surface, and the Project map the Plan step derived stands in for it. When the map's single-flow
 command is filled, each criterion the Digest marks observable
 gets its flow from `global-e2e-test-author` (the test authors in [build-loop.md](build-loop.md))
 with the same complete input and the map's path, and the flow returns `GREEN`,
@@ -523,12 +451,12 @@ has nothing behind it, and the step goes through the Ticket's criteria one by on
 with its flow or the reason it needs none. Done when each criterion the section names has a flow
 or a stated reason, or the skip is recorded for the Reply's Run section.
 
-**7. Gate.** The gate in [mechanics.md](mechanics.md), in the worktree, after the last edit, run
+**5. Gate.** The gate in [mechanics.md](mechanics.md), in the worktree, after the last edit, run
 from `scripts/gate.sh` with its `command=` line recorded for the Reply's Run section. Done when
 the suite and the typecheck are green in output produced after the last edit and the `command=` line
 is recorded.
 
-**8. Integration.** The integration in [mechanics.md](mechanics.md), with the branch the run
+**6. Integration.** The integration in [mechanics.md](mechanics.md), with the branch the run
 started on as the target: the branch it built on rebased onto that branch, every conflicted hunk
 classed by the door script before anything is resolved, and the gate's command lines run again when
 the rebase replayed commits. Every contested hunk takes the **Target** side, and its **Incoming** side goes to
@@ -536,7 +464,7 @@ the Loss ledger beside the Ticket in the main checkout, `.ledger` before the ext
 the tree handed over with no **Gate** of the run's own, or the run stopped as blocked with the worktree and its branch named, and
 the integration line is recorded for the Reply's Run section.
 
-**9. Review and landing.** The review in [mechanics.md](mechanics.md), with the Ticket's
+**7. Review and landing.** The review in [mechanics.md](mechanics.md), with the Ticket's
 location as the spec source, the merge base of the branch and the branch the run started on,
 `git merge-base refs/heads/<that branch> HEAD`, qualified so a same-named tag can never
 shadow the branch, read after the integration as the fixed point, and the branch
@@ -549,7 +477,7 @@ commits; a `not landed: target moved` right after an integration that ticked as 
 blocked with the review's reason quoted and the worktree and its branch named, or the step reads
 `skip: do-code-review not listed` with the worktree and its branch named.
 
-**10. Verification.** The verification in [mechanics.md](mechanics.md): the affected flows from
+**8. Verification.** The verification in [mechanics.md](mechanics.md): the affected flows from
 the main checkout through `scripts/flows.sh`, its command line printed first, the one question
 before a full suite or
 a remote run, and a red flow as one more unit of the loop, handed with no **Gate** of the run's own
@@ -557,7 +485,7 @@ to the fix call on the same Review, which lands it again. Done when every affect
 flow is green or recorded as not run on the developer's no, or the step reads
 `skip: nothing landed`.
 
-**11. Close.** The close in [mechanics.md](mechanics.md): the Ticket file in the main checkout
+**9. Close.** The close in [mechanics.md](mechanics.md): the Ticket file in the main checkout
 ticked where the evidence proves it, the evidence appended under `## Evidence` with the
 `Context:` line first, the status line set to `resolved`, the file left uncommitted, or, on a
 Ticket that is an issue, the one question listing every write the yes makes, the held Rulings'
@@ -568,7 +496,7 @@ changed a file git tracks, and the developer reads that here rather than finding
 was answered and the writes it listed were made on a yes, or none on a no, and `git worktree list`
 no longer shows the run's worktree, or the step reads `skip: nothing landed` and the Ticket still reads `claimed`.
 
-**12. Reply.** Written by [reply.md](reply.md). What this Playbook puts in its sections: the
+**10. Reply.** Written by [reply.md](reply.md). What this Playbook puts in its sections: the
 Ticket and the Review under the files left uncommitted; every Ruling the forks in
 [forks.md](forks.md) wrote under `Rulings`, `none` when the run met no Design fork; the flows the developer waived and the
 consumer flows not run under pending debt, beside

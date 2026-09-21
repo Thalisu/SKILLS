@@ -93,8 +93,12 @@ flat="$(flat_section "$conflict" "## The conflict loop")"
 carries "a block carrying remove the file reapplies as the file removed, not written back from a blob or a replace/with pair" \
   "remove the file" "the file removed"
 
-echo "# reply.md / item 26: the integration line names what came back and what did not"
-flat="$(passage_of "$here/../references/reply.md" "26. **Integration line.**" "27." | tr '\n' ' ' | tr -s ' ')"
+# The `## Run` item is read from the marker of the item that names the state the integration
+# reached to the next marker: the list is renumbered whenever an item is added above, so the item
+# is found by the state it records and never by the number it happens to carry.
+echo "# reply.md: the integration line names what came back and what did not"
+flat="$(item_holding "$here/../references/reply.md" '[0-9]+\.' "The state the integration reached" |
+  tr '\n' ' ' | tr -s ' ')"
 expect "reply.md carries the integration line" test -n "$flat"
 carries "the integration line carries the counts of mechanical and contested hunks" \
   "the counts of \`mechanical\` and \`contested\` hunks"

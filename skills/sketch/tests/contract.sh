@@ -68,17 +68,20 @@ expect "a main checkout whose .scratch is a symlink is refused by SKILL.md's own
   test "$sketch_check_result" = "refused"
 rm -rf "$sketch_check_tmp"
 
-# do's shape step runs its own containment check, in skills/do/references/ticket.md, before it
-# forks the agent. Run for real, against a main checkout whose `.scratch` is itself a symlink: the
-# resolved destination and the unresolved root/.scratch prefix must still refuse it, never compare
-# the two sides through the same link.
+# do runs the same containment check, in skills/do/references/ticket.md, over the destination it
+# hands over before it forks the agent that writes there. The check is found by what it is made of,
+# the `readlink -m` and the `.scratch/` prefix it compares against, and never by the step that runs
+# it or by the prose above it: the step it belongs to is renumbered and reworded as the Playbook
+# absorbs steps into one another, and the check itself is what this pins. Run for real, against a
+# main checkout whose `.scratch` is itself a symlink: the resolved destination and the unresolved
+# root/.scratch prefix must still refuse it, never compare the two sides through the same link.
 door_snippet="$(awk '
-  /^Before it forks, the destination the brief names goes through one check/ { f = 1 }
-  f && /^```sh$/ { c++; if (c == 1) { p = 1; next } }
-  p && /^```$/ { exit }
-  p
+  /^```sh$/ { p = 1; block = ""; next }
+  p && /^```$/ { if (index(block, "readlink -m") && index(block, "/.scratch/")) { printf "%s", block; exit } p = 0 }
+  p { block = block $0 "\n" }
 ' "$repo/skills/do/references/ticket.md")"
-expect "the shape step's containment check is found in ticket.md" test -n "$door_snippet"
+expect "ticket.md checks a destination it hands over against the main checkout's .scratch/ before forking" \
+  test -n "$door_snippet"
 
 door_tmp="$(mktemp -d)"
 mkdir -p "$door_tmp/outside" "$door_tmp/repo"
