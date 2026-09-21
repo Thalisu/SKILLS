@@ -36,8 +36,28 @@ carries_any "the retried integration judges the Loss ledger its rebase wrote" \
 carries_any "the retried integration brings the reapplies back" \
   "**The reapplies brought back.**" "the reapplies brought back" "brings the reapplies back" \
   "brings its reapplies back" "its reapplies brought back"
-carries_any "the retried integration runs the whole Gate" \
-  "the whole **Gate**" "the whole gate" "the whole Gate"
+# One tree is gated once: the retry's Gate and the fix call's Gate ran over the same tree, and the
+# loop has no fixed count, so every lap paid for the suite twice. The run hands the branch over
+# without gating it and the fix call below gates it.
+skipped=(
+  "no **Gate** of its own" "no Gate of its own" "no **Gate** of the run's own" "no Gate of the run's own"
+  "runs no **Gate**" "runs no Gate" "no **Gate** runs" "no Gate runs"
+  "without a **Gate** of its own" "without a Gate of its own"
+  "skips the **Gate**" "skips that **Gate**" "skips the Gate" "skips that Gate"
+  "the **Gate** is skipped" "the Gate is skipped"
+  "never runs the **Gate**" "never runs the Gate"
+  "does not run the **Gate**" "does not run the Gate"
+)
+carries_any "the retried integration hands its branch over with no Gate of the run's own" "${skipped[@]}"
+carries_any "the Gate is dropped there because the fix call gates that same tree itself" \
+  "gates the same tree" "the fix call gates" "that fix call gates" "the landing call gates" \
+  "gates that tree itself" "runs the same **Gate** itself" "the fix call runs the **Gate**" \
+  "the fix call runs the Gate" "the fix call's own **Gate**" "the fix call's own Gate"
+# shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+out="$flat"
+check_absent "the passage no longer has the retried integration run a Gate before the fix call" \
+  0 0 "the whole **Gate**" "the whole Gate" "the whole gate" \
+  "green **Gate** hands" "green Gate hands" "green gate hands"
 
 fixcall=(
   "fix call on the Review" "\`fix\` call on the Review" "\`fix\` on the Review"

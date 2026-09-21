@@ -1049,13 +1049,16 @@ take or the branch moved again while its Gate ran. The run answers that return i
 so the developer never types the request again only so that a human is present. It runs its
 integration once more, in the worktree, onto the moved branch, as the integration above says: every
 contested hunk takes the **Target** side and its **Incoming** side goes to the same Loss ledger,
-the Loss ledger judged, the reapplies brought back, and the whole **Gate** run after the last of
-them. Each reapply goes through `check-reapply.sh` with its `replace` and `with` exactly as above,
+the Loss ledger judged and the reapplies brought back, with no **Gate** of the run's own after the
+last of them. Each reapply goes through `check-reapply.sh` with its `replace` and `with` exactly as above,
 and on this integration that check is the only reading its `with` text gets, since no reviewer
 reads a commit made after the review: a block the script refuses writes nothing, is recorded
 `none`, and is listed in the reply among this integration's drops, marked as coming after the
-review. A green **Gate** hands the branch to the fix call on the Review the run already has, as the
-paragraph below says for what the run commits after the review, never a second review. A blocked
+review. The integration hands the branch straight to the fix call on the Review the run already
+has, as the paragraph below says for what the run commits after the review, never a second review:
+the fix call gates the same tree itself and refuses to land it red, and this retry has no fixed
+count, so a **Gate** here would pay for the suite twice on every lap, per
+[ADR 0049](../../../docs/adr/0049-one-tree-is-gated-once-and-do-skips-the-gate-the-landing-call-runs.md). A blocked
 state of that integration stops the run as it stops it before the review, with its own undo
 command. The retry has no fixed count, per
 [ADR 0044](../../../docs/adr/0044-the-re-integration-retries-while-the-target-tip-changes.md): it
