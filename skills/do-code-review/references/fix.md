@@ -206,7 +206,10 @@ script printed, and the orchestrator runs the `command=` line the caller handed 
 the tree the Fixers committed in, and reads its `verdict=` line: it reruns `do`'s own gate, so the
 review holds its fixes to the checks `do` held the build to. With no line handed, on a plain call,
 the Gate is each command the Testing Policy's Project facts carry for those four checks, else the
-tests the reviewers ran. A Review with nothing in `Act on` runs it too, at the start of the landing.
+tests the reviewers ran. A `do` call hands no line when the run reached the fix call with no
+**Gate** of its own, the resumed run that skipped its own gate, and that call forks no reviewer, so
+the Project facts are the whole fallback there and nothing stands behind them. A Review with
+nothing in `Act on` runs it too, at the start of the landing.
 
 - Green, and the run goes to the append and the landing.
 - Red after a Fixer committed: the Gate fixer takes the red block.
@@ -214,6 +217,12 @@ tests the reviewers ran. A Review with nothing in `Act on` runs it too, at the s
   and the landing line reads `not landed: gate red, <the failing check>`.
 - `verdict=blocked`: a check failed on its environment and not on the code. Nothing lands, the
   landing line reads `not landed: gate blocked, <its cause= line>`, and nothing is worked around.
+- Nothing to run: no `command=` line handed and no Project facts for those four checks, with no
+  reviewer's tests behind them on a `do` call. An empty Gate is never a green one, so nothing
+  lands, the landing line reads `not landed: no gate to run, no command= line handed and the
+  project names no checks`, and the branch and its worktree stay in place. The reply's own line
+  says what the landing wants: the gate command the call was to be handed, or the checks the
+  project's Project facts have to name.
 
 ## The Gate fixer
 
