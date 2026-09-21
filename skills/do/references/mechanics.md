@@ -586,10 +586,10 @@ the fix call the review section names, never a second review, per
 Every command of this step that can meet a conflict runs with git's conflict-resolution reuse off,
 the rebase itself as `git -c rerere.enabled=false -c rerere.autoupdate=false rebase refs/heads/<the
 developer's branch>`, qualified so a tag sharing the branch's name can never shadow it, and the
-continue and the skip below with the same prefix. The setting is the developer's
-own and may be on: then a resolution recorded at one stop is replayed into the next stop of the same
-shape, the class would be read from what the cache put back instead of from what git left, and the
-run's own resolutions would land in a cache that outlives it.
+continue and the skip of [conflict-loop.md](conflict-loop.md) with the same prefix. The setting is
+the developer's own and may be on: then a resolution recorded at one stop is replayed into the next
+stop of the same shape, the class would be read from what the cache put back instead of from what
+git left, and the run's own resolutions would land in a cache that outlives it.
 
 The step walks the states below, and the state it reached is recorded for the Reply's Run section
 as its integration line, per [reply.md](reply.md).
