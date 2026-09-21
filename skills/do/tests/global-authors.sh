@@ -107,19 +107,29 @@ check_lines "the no-runner fixture leaves both unit run slots unfilled, the case
 echo "# every verdict a core declares has a route in the references that consume it"
 # The routes only, never the passage that names the list: `RED_AS_EXPECTED` standing there would
 # answer for a bare `RED` a core declares later, which is the run's whole problem.
-flat="$(
-  passage_of "$skill/references/mechanics.md" "2. Read the verdict" "3. Write the smallest"
-  passage_of "$skill/references/ticket.md" "**6. E2E flows.**" "**7. Gate.**"
-)"
-flat="$(tr '\n' ' ' <<<"$flat" | tr -s ' ')"
+# Each core against the one passage that consumes it, never the union of the two: a union answers
+# for a route only one of them carries, so deleting the other's leaves the check green. The
+# passages are asserted non-empty first, since a renamed anchor empties one and every verdict it
+# should have routed then passes against the other. Emptiness is read off the passage before the
+# flattening: `tr` on an empty here-string still writes a space.
+loop_passage="$(passage_of "$skill/references/mechanics.md" "2. Read the verdict" "3. Write the smallest")"
+flows_passage="$(passage_of "$skill/references/ticket.md" "**6. E2E flows.**" "**7. Gate.**")"
+expect "the build loop passage the unit verdicts are read against is there" test -n "$loop_passage"
+expect "the flows step passage the e2e verdicts are read against is there" test -n "$flows_passage"
 for kind in unit e2e; do
+  if [ "$kind" = unit ]; then
+    route="the build loop" passage="$loop_passage"
+  else
+    route="the flows step" passage="$flows_passage"
+  fi
+  flat="$(tr '\n' ' ' <<<"$passage" | tr -s ' ')"
   mapfile -t verdicts < <(bash "$policy/scripts/render-agent.sh" --core-only "$kind" |
     sed -n 's/^\*\*Verdict\*\*: *//p' | grep -oE '`[A-Z_]+`')
   if [ "${#verdicts[@]}" -gt 0 ]; then
     ok "the $kind core declares its verdicts where the run reads them"
   else fail "the $kind core declares its verdicts where the run reads them"; fi
   for v in ${verdicts[@]+"${verdicts[@]}"}; do
-    carries "the build loop or the flows step routes the $kind core's $v" "$v"
+    carries "$route routes the $kind core's $v" "$v"
   done
 done
 echo
