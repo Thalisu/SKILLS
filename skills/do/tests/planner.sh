@@ -105,4 +105,59 @@ carries_any "the session never reads the Plan back" \
 carries "the Plan is keyed by the Ticket's file name, \`.plan\` before the extension" ".plan"
 carries "a Ticket that is an issue keys its Plan under \`.scratch/plans/\`" ".scratch/plans/"
 
+# The run that cannot fork the Planner, per ADR 0047. Each guarantee below can be phrased several
+# ways and the cases pin more than one of them at a time, so the group of phrasings that found
+# nothing is what a failure names. Same accept-list idea as carries_any, one case over several
+# groups: carries_any takes a single group and carries takes strings that must all appear verbatim,
+# and neither says "each of these guarantees, however it is worded".
+carries_each() { # $1 label, $2.. groups of fixed strings separated by `--`: each group needs one match in $flat
+  local label="$1" key matched=0 group="" missing=""
+  shift
+  set -- "$@" "--"
+  for key in "$@"; do
+    if [ "$key" = "--" ]; then
+      if [ -n "$group" ] && [ "$matched" = 0 ]; then missing="$missing (none of:$group)"; fi
+      matched=0
+      group=""
+      continue
+    fi
+    group="$group $key"
+    grep -qF -- "$key" <<<"$flat" && matched=1
+  done
+  if [ -z "$missing" ]; then ok "$label"; else fail "$label$missing"; fi
+}
+
+# A harness that withholds the Agent tool and a machine that never linked the agent `do` ships are
+# the two runs with no fork to hand the grounding to. Named apart, because the developer's way out
+# differs: one is the harness, the other is one run of the installer.
+carries_each "the step names both branches on which no Planner can be forked" \
+  "Agent tool withheld" "Agent tool is withheld" "no Agent tool" \
+  -- \
+  "lists no \`do-planner\`" "\`do-planner\` not listed" "no \`do-planner\` listed" \
+  "lists no do-planner" "do-planner not listed" "no do-planner listed"
+
+# The Plan is what every step below the grounding opens, at the path this step named: a fallback
+# that grounds but writes nowhere, or writes somewhere else, leaves the build with no Plan to open.
+carries_each "on either branch the session grounds and writes the Plan itself, at the same path" \
+  "does that work itself" "grounds the Ticket itself" "grounds and writes the Plan itself" \
+  "writes the Plan itself" "does the grounding itself" "the session grounds" \
+  -- \
+  "the same path" "that same path" "the same destination" "the path above" "the destination above"
+
+# A degraded run and a normal one leave the same Plan at the same path, so this line is the only
+# thing that tells a developer their own window carried the grounding.
+carries_each "the run says in one line which of the two branches held" \
+  "which of the two holds" "which of the two held" "which branch holds" "which branch held" \
+  "which of the two branches held" "which of the two branches holds" "one line says which" \
+  "says in one line which"
+
+# Neither way out is available mid-run: the developer cannot hand over a tool the harness withheld,
+# and a fork under another name could still hold what `do-planner`'s own definition denies it.
+carries_each "the run neither stops nor asks for what it cannot get, and forks nobody else in the Planner's place" \
+  "neither stops nor asks" "never stops and never asks" "does not stop and does not ask" \
+  "neither stops the run nor asks" \
+  -- \
+  "never forks another agent" "forks no other agent" "never forks a second agent" \
+  "no other agent is forked"
+
 exit $((fails > 0))
