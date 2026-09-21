@@ -368,8 +368,8 @@ The integration in [mechanics.md](mechanics.md), with the branch the run started
 the branch it built on rebased onto that branch, every conflicted hunk classed by the door script
 before anything is resolved, and the gate's command lines run again when the rebase replayed
 commits. Every contested hunk takes the **Target** side, and its **Incoming** side goes to the Loss
-ledger keyed by the run's branch, `.scratch/ledgers/<branch>.md` in the main checkout. Done when the step reads the no-op, or the target and the count with the gate green after
-it, or the run stopped as blocked with the worktree and its branch named.
+ledger keyed by the run's branch, `.scratch/ledgers/<branch>.md` in the main checkout. Done when the step reads the no-op, or the target and the count with the tree handed
+over with no **Gate** of the run's own, or the run stopped as blocked with the worktree and its branch named.
 
 ### 12. Review
 

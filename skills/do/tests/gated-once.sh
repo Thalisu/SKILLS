@@ -24,6 +24,7 @@ gating=(
   "the whole **Gate** run" "the whole Gate run" "the whole gate run"
   "the run gates, integrates" "gates, integrates and lands"
   "the gate and the integration run"
+  "the gate green after it" "the gate green after"
 )
 
 # $1 file under references/, $2 the line the passage opens with, $3 the line past its end,
@@ -41,6 +42,10 @@ passages=(
   "bug-fix.md|**11. Verification.**|**12. Close.**|step 11, the red flow fixed in the worktree||"
   "refactoring.md|- **Not landed: target moved.**|- **Not landed**,|the moved target integrated again||"
   "refactoring.md|### 13. Verification|### 14. Close|step 13, the red flow fixed in the worktree||"
+  "mechanics.md|Done when the step is ticked as a no-op|and in each case the integration line is recorded|the integration step's own Done line||"
+  "ticket.md|the Loss ledger beside the Ticket in the main checkout|**9. Review and landing.**|step 8's Integration Done line||"
+  "bug-fix.md|the Loss ledger keyed by the run's branch,|**10. Review and landing.**|step 9's Integration Done line||"
+  "refactoring.md|ledger keyed by the run's branch,|### 12. Review|step 11's Integration Done line||"
 )
 
 for row in "${passages[@]}"; do

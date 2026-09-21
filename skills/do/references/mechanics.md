@@ -954,8 +954,9 @@ commit the rebase landed on. After a no-op it is the commit the worktree was cre
 nothing moved, and the tip of the developer's branch when they rebased or merged it into
 `do/<slug>` by hand, which the ancestor check above already read before the no-op ticked.
 
-Done when the step is ticked as a no-op, or ticked with the target and the count and the gate green
-after it, or the run stopped as blocked with its reason, its undo command and its worktree named,
+Done when the step is ticked as a no-op, or ticked with the target and the count and the tree
+handed over with no **Gate** of the run's own, or the run stopped as blocked with its reason, its
+undo command and its worktree named,
 and in each case the integration line is recorded for the Reply's Run section.
 
 ## The review

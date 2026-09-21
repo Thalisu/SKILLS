@@ -531,7 +531,7 @@ started on as the target: the branch it built on rebased onto that branch, every
 classed by the door script before anything is resolved, and the gate's command lines run again when
 the rebase replayed commits. Every contested hunk takes the **Target** side, and its **Incoming** side goes to
 the Loss ledger beside the Ticket in the main checkout, `.ledger` before the extension. Done when the step reads the no-op, or the target and the count with
-the gate green after it, or the run stopped as blocked with the worktree and its branch named, and
+the tree handed over with no **Gate** of the run's own, or the run stopped as blocked with the worktree and its branch named, and
 the integration line is recorded for the Reply's Run section.
 
 **9. Review and landing.** The review in [mechanics.md](mechanics.md), with the Ticket's
