@@ -87,6 +87,21 @@ frontmatter() { # $1 file: the YAML between the file's opening and closing `---`
 field() { # $1 key: its value from the frontmatter the caller left in $out, on stdout
   sed -n "s/^$1: *//p" <<<"$out"
 }
+# One `PreToolUse` hook's command, ready to run: the line sits three levels into the frontmatter's
+# `hooks:` block as a YAML double-quoted string with the JSON payload's own quotes escaped inside
+# it, so field() (which reads a top-level `key: value` line) cannot reach it. The scope runs from
+# the matcher's own `- matcher:` marker to the next one, so a block declaring several matchers never
+# hands back a neighbour's command, and the YAML escaping is undone the way the harness's parser
+# would before handing the string to a shell.
+hook_command() { # $1 file, $2 the matcher the hook is scoped to (Write, Agent); the command on stdout
+  local cmd
+  cmd="$(awk -v m="$2" '
+    $0 ~ ("^ *- matcher: *" m " *$") { on = 1; next }
+    on && /^ *- matcher:/ { exit }
+    on && /^ *command:/ { print; exit }
+  ' "$1" 2>/dev/null | sed -E 's/^ *command: *"//; s/"$//')"
+  printf '%s\n' "${cmd//\\\"/\"}"
+}
 # A contract's section on one line: the references hard-wrap their prose, so a phrase a contract
 # carries sits across two lines as often as not and no fixed string would match it on either.
 flat_section() { # $1 file, $2 the section's heading line; the flattened section on stdout

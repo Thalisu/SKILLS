@@ -242,15 +242,10 @@ expect "the planning agent declares a second PreToolUse hook scoped to its Agent
   bash -c '[ -n "$1" ] && grep -qE "^ *PreToolUse:" <<<"$1" && grep -qE "matcher: *Agent" <<<"$1"' \
   _ "$fm_out"
 
-# The Agent-matcher entry's own \`command:\` line, scoped the same way the Write-matcher one is scoped
-# above: from its \`- matcher: Agent\` marker to the next \`- matcher:\` line or the end of the file,
-# so a two-matcher \`hooks:\` block never hands this extraction the Write hook's command by mistake.
-agent_hook_cmd="$(awk '
-  /^ *- matcher: *Agent *$/ { on = 1; next }
-  on && /^ *- matcher:/ { exit }
-  on && /^ *command:/ { print; exit }
-' "$agent" | sed -E 's/^ *command: *"//; s/"$//')"
-agent_hook_cmd="${agent_hook_cmd//\\\"/\"}"
+# The Agent-matcher entry's own \`command:\` line, through lib.sh's hook_command: it scopes the
+# extraction from the \`- matcher: Agent\` marker to the next \`- matcher:\` line, so a two-matcher
+# \`hooks:\` block never hands this extraction the Write hook's command by mistake.
+agent_hook_cmd="$(hook_command "$agent" Agent)"
 expect "the planning agent's Agent-matcher PreToolUse hook carries a command to extract" \
   test -n "$agent_hook_cmd"
 
