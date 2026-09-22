@@ -203,6 +203,39 @@ expect "the hook denies a write at a path that never carries the \`.plan.md\` su
   bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$wrong_hook_out"
 rm -rf "$hook_tmp"
 
+echo "# the planning agent's own PreToolUse hook on its Agent tool: no fork but sketch"
+
+# The frontmatter grants \`Agent\` with no scope of its own (Finding 4 of the do-code-review pass):
+# a body sentence forbidding every dispatch but sketch is prose the fork itself could be tricked into
+# ignoring by a hostile line the Ticket or the Digest carries, since both may hold a stranger's text.
+# A second \`PreToolUse\` matcher, on \`Agent\`, is the hook-level guarantee that a Bash-capable fork
+# (do-code-review, prototype, general-purpose) is unreachable one hop past the Planner even when the
+# body's prose fails, mirroring the \`Write\` matcher already scoping the one tool the Planner keeps.
+fm_out="$(frontmatter "$agent" 2>/dev/null)" || fm_out=""
+expect "the planning agent declares a second PreToolUse hook scoped to its Agent tool" \
+  bash -c '[ -n "$1" ] && grep -qE "^ *PreToolUse:" <<<"$1" && grep -qE "matcher: *Agent" <<<"$1"' \
+  _ "$fm_out"
+
+# The Agent-matcher entry's own \`command:\` line, scoped the same way the Write-matcher one is scoped
+# above: from its \`- matcher: Agent\` marker to the next \`- matcher:\` line or the end of the file,
+# so a two-matcher \`hooks:\` block never hands this extraction the Write hook's command by mistake.
+agent_hook_cmd="$(awk '
+  /^ *- matcher: *Agent *$/ { on = 1; next }
+  on && /^ *- matcher:/ { exit }
+  on && /^ *command:/ { print; exit }
+' "$agent" | sed -E 's/^ *command: *"//; s/"$//')"
+agent_hook_cmd="${agent_hook_cmd//\\\"/\"}"
+expect "the planning agent's Agent-matcher PreToolUse hook carries a command to extract" \
+  test -n "$agent_hook_cmd"
+
+sketch_out="$(printf '{"tool_input": {"subagent_type": "sketch"}}' | sh -c "$agent_hook_cmd" 2>/dev/null)"
+expect "the hook lets the Planner fork sketch" \
+  bash -c '! grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$sketch_out"
+
+prototype_out="$(printf '{"tool_input": {"subagent_type": "prototype"}}' | sh -c "$agent_hook_cmd" 2>/dev/null)"
+expect "the hook denies the Planner forking any agent but sketch" \
+  bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$prototype_out"
+
 # The run that cannot fork the Planner, per ADR 0047. Each guarantee below can be phrased several
 # ways and the cases pin more than one of them at a time, so the group of phrasings that found
 # nothing is what a failure names. Same accept-list idea as carries_any, one case over several
