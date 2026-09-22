@@ -76,7 +76,7 @@ done
 
 sandbox="$(mktemp -d -t run-eval-home.XXXXXX)"
 trap 'rm -rf "$sandbox"' EXIT
-HOME="$sandbox" bash "$repo/scripts/link-skills.sh" >/dev/null 2>&1 ||
+HOME="$sandbox" bash "$repo/scripts/link-skills.sh" claude >/dev/null 2>&1 ||
   { echo "scripts/link-skills.sh could not link the skills into the sandbox" >&2; exit 2; }
 config="$sandbox/.claude"
 if [ -f "$HOME/.claude/.credentials.json" ]; then

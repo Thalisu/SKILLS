@@ -16,12 +16,12 @@ claude_agents="$HOME/.claude/agents"
 
 run() {
   rc=0
-  out="$(bash "$repo/scripts/link-skills.sh" 2>&1)" || rc=$?
+  out="$(bash "$repo/scripts/link-skills.sh" claude 2>&1)" || rc=$?
 }
 links_to() { # $1 link path, $2 target
   [ -L "$1" ] && [ "$(readlink "$1")" = "$2" ]
 }
-snapshot() { find "$HOME" -mindepth 1 -printf '%p %y %l\n' | sort; }
+snapshot() { find "${1:-$HOME}" -mindepth 1 -printf '%p %y %l\n' | sort; }
 skill() { # $1 skills|vendor, $2 name: a skill directory with its SKILL.md and Codex metadata
   mkdir -p "$repo/$1/$2/agents"
   printf -- '---\nname: %s\n---\n' "$2" >"$repo/$1/$2/SKILL.md"
@@ -33,8 +33,37 @@ skill skills alpha
 skill skills beta && printf -- '---\nname: beta-agent\ndescription: forked by beta\n---\n' >"$repo/skills/beta/AGENT.md"
 skill vendor gamma && printf -- '---\ndescription: no name line\n---\n' >"$repo/vendor/gamma/AGENT.md"
 
+rc=0
+out="$(bash "$repo/scripts/link-skills.sh" codex claude 2>&1)" || rc=$?
+expect "installer rejects ambiguous extra arguments without installing anything" test "$rc" -ne 0
+expect "ambiguous extra arguments leave the installation untouched" test ! -e "$HOME"
+rm -rf "$HOME"
+
+for input in '' $'\n' $'unknown\n'; do
+  rc=0
+  out="$(printf '%s' "$input" | bash "$repo/scripts/link-skills.sh" 2>&1)" || rc=$?
+  expect "missing or invalid selection exits nonzero before changing installation (${input@Q})" test "$rc" -ne 0
+  expect "rejected selection leaves the installation untouched (${input@Q})" test ! -e "$HOME"
+  rm -rf "$HOME"
+done
+rc=0
+out="$(bash "$repo/scripts/link-skills.sh" unknown 2>&1)" || rc=$?
+expect "an invalid CLI selection exits nonzero" test "$rc" -ne 0
+expect "an invalid CLI selection leaves the installation untouched" test ! -e "$HOME"
+rm -rf "$HOME"
+
+rc=0
+out="$(printf 'codex\n' | bash "$repo/scripts/link-skills.sh" 2>&1)" || rc=$?
+check "selecting codex installs all skills without changing Claude configuration" 0 "$rc"
+for name in alpha beta gamma; do
+  expect "skill $name resolves for Codex" test -f "$agents_skills/$name/SKILL.md"
+done
+expect "selecting codex leaves Claude configuration absent" test ! -e "$HOME/.claude"
+rm -rf "$HOME"
+
 # The first run links every skill into both harness folders and every AGENT.md under its name.
-run
+rc=0
+out="$(printf 'claude\n' | bash "$repo/scripts/link-skills.sh" 2>&1)" || rc=$?
 check "first run links every entry" 0 "$rc" \
   "linked  $agents_skills/alpha -> $repo/skills/alpha" \
   "linked  $claude_skills/alpha -> ../../.agents/skills/alpha" \
@@ -44,6 +73,22 @@ check "first run links every entry" 0 "$rc" \
 expect "the AGENT.md beside the skill file links under its frontmatter name" links_to "$claude_agents/beta-agent.md" "$repo/skills/beta/AGENT.md"
 expect "an AGENT.md with no name line links under the skill's name" links_to "$claude_agents/gamma.md" "$repo/vendor/gamma/AGENT.md"
 expect "a skill without an AGENT.md gets no agent link" test ! -e "$claude_agents/alpha.md"
+
+ln -s "$repo/skills/removed" "$agents_skills/removed"
+ln -s ../../.agents/skills/removed "$claude_skills/removed"
+ln -s "$repo/skills/removed/AGENT.md" "$claude_agents/removed.md"
+printf 'personal agent instructions\n' >"$claude_agents/personal.md"
+before="$(snapshot "$HOME/.claude")"
+rc=0
+out="$(bash "$repo/scripts/link-skills.sh" codex 2>&1)" || rc=$?
+check "codex CLI maintenance prunes removed shared skills while preserving Claude configuration" 0 "$rc"
+expect "removed shared skill link is pruned" test ! -L "$agents_skills/removed"
+expect "existing Claude link entries stay unchanged" test "$before" = "$(snapshot "$HOME/.claude")"
+expect "personal Claude file retains its content" test "$(cat "$claude_agents/personal.md")" = 'personal agent instructions'
+for name in alpha beta gamma; do
+  expect "skill $name still resolves for Codex after maintenance" test -f "$agents_skills/$name/SKILL.md"
+done
+rm "$claude_skills/removed" "$claude_agents/removed.md" "$claude_agents/personal.md"
 
 # A second run confirms every entry and changes nothing.
 before="$(snapshot)"
@@ -118,7 +163,7 @@ expect "the other skill keeps its links" links_to "$claude_skills/alpha" "../../
 real="$(cd "$here/../.." && pwd -P)"
 export HOME="$tmp/real-home"
 rc=0
-out="$(bash "$real/scripts/link-skills.sh" 2>&1)" || rc=$?
+out="$(bash "$real/scripts/link-skills.sh" claude 2>&1)" || rc=$?
 check "the real repo installs cleanly" 0 "$rc"
 while IFS= read -r skill_md; do
   dir="$(dirname "$skill_md")"
