@@ -289,9 +289,14 @@ with the Ticket happens in the fork's, per
 This step comes before the claim and before the worktree because it is the step that refuses. Every
 refusal below stops the run with the Ticket at the status the door found it at and no `do/<slug>`
 branch anywhere, so a grounding the run will not build on costs the developer a rerun and nothing
-to undo by hand. The brief's `Tree:` key is the main checkout for the same reason: the worktree the
-build runs in does not exist yet, and the fork grounds against HEAD, which is what step 2 cuts the
-worktree from.
+to undo by hand, except on the `cause unknown, diagnosis first` branch below, where step 2's
+worktree is cut and entered before the Planner is even forked, for the diagnosis to run in. A
+refusal met there, the Planner's own Sources mismatch included, names the worktree and its branch
+left in place rather than claiming none exists, since the door's own worktree-exists rule above
+would otherwise refuse the rerun the developer took that line to mean was free. The brief's `Tree:`
+key is the main checkout on every other branch for the same
+reason: the worktree the build runs in does not exist yet, and the fork grounds against HEAD, which
+is what step 2 cuts the worktree from.
 
 The path is beside the Ticket in the main checkout, the Ticket's file name with `.plan` before the
 extension, or, for a Ticket that is not a local file, the issue's reference under `.scratch/plans/`
