@@ -124,5 +124,70 @@ else
   ok "ticket.md's Plan step points the forks contract at forks.md, not mechanics.md"
 fi
 
+# forks.md's preamble names who reaches a fork: ticket.md collapsed the old shape step and
+# behaviours step into a single Plan step (ticket.md:298), and a reader who still meets "the shape
+# step, the behaviours step" here looks for two steps ticket.md no longer has.
+if grep -qF "the shape step" <<<"$pre" || grep -qF "the behaviours step" <<<"$pre"; then
+  fail "forks.md's preamble names the Plan step, not the retired shape/behaviours steps"
+else
+  ok "forks.md's preamble names the Plan step, not the retired shape/behaviours steps"
+fi
+if grep -qF "the Plan step" <<<"$pre"; then
+  ok "forks.md's preamble names the Plan step as a fork reader"
+else
+  fail "forks.md's preamble names the Plan step as a fork reader (paragraph: $pre)"
+fi
+
+# The paragraph naming where a Design fork is met: same retirement, plus the Plan step's own body
+# (ticket.md:298-350) says the Planner writes both sides into the Plan and the session, never the
+# Planner, forks the choice-taker. The anchor is the fixed opening of the paragraph, which a step
+# rename never touches.
+met_para="$(paragraph_with "$forks" "the code cannot settle) met at")"
+expect "forks.md carries the paragraph naming where a Design fork is met" test -n "$met_para"
+if grep -qF "the shape step" <<<"$met_para" || grep -qF "the behaviours step" <<<"$met_para"; then
+  fail "the Design-fork paragraph names the Plan step, not the retired shape/behaviours steps"
+else
+  ok "the Design-fork paragraph names the Plan step, not the retired shape/behaviours steps"
+fi
+if grep -qF "the Plan step" <<<"$met_para"; then
+  ok "the Design-fork paragraph names the Plan step as where it is met"
+else
+  fail "the Design-fork paragraph names the Plan step as where it is met (paragraph: $met_para)"
+fi
+flat="$met_para"
+carries "the Design-fork paragraph says the Planner writes both sides into the Plan on a ticket run" \
+  "Planner" "writes both sides" "Plan"
+carries "the Design-fork paragraph says the session, never the Planner, forks the choice-taker" \
+  "the session" "forks the" "choice-taker"
+
+# The blocked stop's bullet naming the step it stopped at: same two retired names.
+step_bullet="$(paragraph_with "$forks" "the step it stopped at")"
+expect "forks.md carries the blocked stop's bullet naming the step it stopped at" test -n "$step_bullet"
+if grep -qF "the shape step" <<<"$step_bullet" || grep -qF "the behaviours step" <<<"$step_bullet"; then
+  fail "the blocked stop's bullet names the Plan step, not the retired shape/behaviours steps"
+else
+  ok "the blocked stop's bullet names the Plan step, not the retired shape/behaviours steps"
+fi
+if grep -qF "the Plan step" <<<"$step_bullet"; then
+  ok "the blocked stop's bullet names the Plan step"
+else
+  fail "the blocked stop's bullet names the Plan step (bullet: $step_bullet)"
+fi
+
+# The amended-Spec / reversed-Ruling paragraph: it names "the behaviours step" twice, both retired
+# now that the Plan step is where a resume meets the Design fork the reversed edit raises.
+amended_para="$(paragraph_with "$forks" "The edited line reaches the session off the door's own recording")"
+expect "forks.md carries the amended-Spec paragraph" test -n "$amended_para"
+if grep -qF "the behaviours step" <<<"$amended_para"; then
+  fail "the amended-Spec paragraph names the Plan step, not the retired behaviours step"
+else
+  ok "the amended-Spec paragraph names the Plan step, not the retired behaviours step"
+fi
+if grep -qF "the Plan step" <<<"$amended_para"; then
+  ok "the amended-Spec paragraph names the Plan step"
+else
+  fail "the amended-Spec paragraph names the Plan step (paragraph: $amended_para)"
+fi
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1

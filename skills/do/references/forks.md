@@ -2,7 +2,7 @@
 
 What a run does with a question it meets mid-build: the empirical fork a probe settles, the Design
 fork the `choice-taker` rules on, and the Extreme fork that stops the run. It is read by the step
-that reaches a fork, the shape step, the behaviours step or the build step; by the Resume step of
+that reaches a fork, the Plan step or the build step; by the Resume step of
 [ticket.md](ticket.md), which meets the same fork again on a resume; and by the close step and the
 reply, which carry a held Ruling forward, per [mechanics.md](mechanics.md) and
 [reply.md](reply.md). The rest of what the Playbooks share is in [mechanics.md](mechanics.md), and
@@ -14,14 +14,16 @@ A question is classified before it is asked. An empirical fork (which timing, wh
 whether an API does the thing) is a fact a script can observe: it is settled by a throwaway probe
 script in the worktree, deleted before the commit, and never reaches the developer, per
 [never-block-on-the-human](../../../.agents/principles/never-block-on-the-human.md). A Design
-fork (two shapes the Ticket, its Spec and the code cannot settle) met at the shape step, the
-behaviours step or in the build loop of [build-loop.md](build-loop.md) is ruled on inside the
-run, per
+fork (two shapes the Ticket, its Spec and the code cannot settle) met at the Plan step or in the
+build loop of [build-loop.md](build-loop.md) is ruled on inside the run, per
 [ADR 0036](../../../docs/adr/0036-a-design-fork-is-settled-in-the-run-by-a-read-only-choice-taker-and-only-an-extreme-fork-stops-it.md):
 the run says in one line that it met a Design fork at that step and names both sides, then calls
 the Agent tool with `subagent_type: choice-taker`, the agent `do` ships in
 [choice-taker.md](../agents/choice-taker.md), with the brief its definition names: the Ticket, the
-step, the two sides, the Spec, the Digest and the repository root. A Spec that is an issue is
+step, the two sides, the Spec, the Digest and the repository root. In a `ticket` run the fork is
+met at the Plan step, where the Planner writes both sides into the Plan it returns, and the
+session, never the Planner, forks the `choice-taker` on them and writes the Ruling to the Spec, per
+[plan.md](plan.md): the Planner holds no tool that writes one. A Spec that is an issue is
 handed with its comments, since the Rulings earlier closes posted sit there under
 `## Implementation Decisions`, and a fork an earlier Ticket already ruled on is ruled the same way.
 Each comment is handed with its author, and the brief also carries the developer's own login, read
@@ -159,7 +161,7 @@ does a fork it read as Extreme that a `choice-taker` might have settled.
 
 The stop is a blocked run, written by the blocked shape of [reply.md](reply.md), and it names:
 
-- the step it stopped at, the shape step, the behaviours step or the build step, with the
+- the step it stopped at, the Plan step or the build step, with the
   behaviour in flight when it was the build step;
 - both sides, as the run's Design fork line named them;
 - the guarantee the weaker side would lose, with its risk class, or what could not be undone once
@@ -200,10 +202,10 @@ A Ruling line is the Spec's, so the developer reverses one by editing it while t
 and the resume after an amended Spec, the Resume of [ticket.md](ticket.md), picks it up with nothing
 added. The edited line reaches the session off the door's own recording of this Ticket's
 `Ruled by the choice-taker` lines, the reader section of [mechanics.md](mechanics.md), so the
-behaviours step holds it beside
+Plan step holds it beside
 the Digest's quotes without opening the Spec itself. A Ticket criterion the Ruling had rewritten
 still reads the side the edit reversed, so the
-behaviours step meets it as a Design fork between that criterion and the edited line, and forks the
+Plan step meets it as a Design fork between that criterion and the edited line, and forks the
 `choice-taker` as above. The edited line is a decision the Spec carries, which the choice-taker
 rules for, so the criterion is the losing side and is rewritten back to the edited side the way any
 losing criterion is, its tick kept. That Ruling is appended like any other, and the Spec it moves is
