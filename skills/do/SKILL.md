@@ -84,6 +84,9 @@ that Playbook. The reply reference is read last by every Playbook.
   its behaviours from: the reader's brief, what the Digest holds, and where it is written.
 - [plan.md](references/plan.md): the Plan the `do-planner` fork writes and the build loop builds from,
   read by the Plan step that forks it: the fork's brief, what the Plan holds, and where it is written.
+- [builder.md](references/builder.md): the Builder the `ticket` Playbook's build step forks and the
+  session fills the brief for, read by that step and by the fork itself: the brief's keys, the
+  return's line set, what the Builder builds from and where it picks up.
 - [tdd-fallback.md](references/tdd-fallback.md): the TDD fallback the build loop reads when the loop line reads `Loop: fallback`, with no unit test author in the project and no global one that can be dispatched, and a second way in under `Loop: global`, build-loop.md's `BLOCKED` route when the global unit test author comes back `BLOCKED` naming a run command the project map lacks: the run writes the failing test itself, and no test author is dispatched.
 - [trivial.md](references/trivial.md): the `trivial` Playbook: its door checks, its steps and the door script they run.
 - [refactoring.md](references/refactoring.md): the `refactoring` Playbook: its door checks, its steps and the pin it holds the reshape against.

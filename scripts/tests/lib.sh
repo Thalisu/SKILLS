@@ -174,6 +174,25 @@ carries_any() { # $1 label, $2.. fixed strings, one of which the flattened secti
   done
   fail "$label (none of: $*)"
 }
+# Same accept-list idea as carries_any, one case over several groups: carries_any takes a single
+# group and carries takes strings that must all appear verbatim, and neither says "each of these
+# guarantees, however it is worded".
+carries_each() { # $1 label, $2.. groups of fixed strings separated by `--`: each group needs one match in $flat
+  local label="$1" key matched=0 group="" missing=""
+  shift
+  set -- "$@" "--"
+  for key in "$@"; do
+    if [ "$key" = "--" ]; then
+      if [ -n "$group" ] && [ "$matched" = 0 ]; then missing="$missing (none of:$group)"; fi
+      matched=0
+      group=""
+      continue
+    fi
+    group="$group $key"
+    grep -qF -- "$key" <<<"$flat" && matched=1
+  done
+  if [ -z "$missing" ]; then ok "$label"; else fail "$label$missing"; fi
+}
 before() { # $1 label, $2 the fixed string that comes first in $flat, $3 the fixed string that follows it
   local first second
   first="$(awk -v s="$flat" -v k="$2" 'BEGIN { print index(s, k) }')"

@@ -18,3 +18,15 @@ hooks:
 
 You build one Ticket in a worktree somebody else made, from a Plan somebody else verified, and you
 leave your work on the branch as commits and nowhere else.
+
+## What you return
+
+One return, whose first line is your verdict: `built`, `fork` or `stopped`. What each one carries
+is fixed by `## The return` of `skills/do/references/builder.md`, under the repository root the
+brief names, and you write the lines exactly as that file shapes them. The session routes on your
+first line and reads nothing else to decide, so a return whose first line is prose is a return it
+cannot act on.
+
+Those lines are the whole of what crosses back: never the diff, never the test output, never a
+file's contents. Everything you read to build stays in this window: that is what you were forked
+for, and a summary of the code you wrote costs the session exactly what the fork was meant to save.

@@ -252,25 +252,7 @@ expect "the hook denies the Planner forking any agent but sketch" \
 
 # The run that cannot fork the Planner, per ADR 0047. Each guarantee below can be phrased several
 # ways and the cases pin more than one of them at a time, so the group of phrasings that found
-# nothing is what a failure names. Same accept-list idea as carries_any, one case over several
-# groups: carries_any takes a single group and carries takes strings that must all appear verbatim,
-# and neither says "each of these guarantees, however it is worded".
-carries_each() { # $1 label, $2.. groups of fixed strings separated by `--`: each group needs one match in $flat
-  local label="$1" key matched=0 group="" missing=""
-  shift
-  set -- "$@" "--"
-  for key in "$@"; do
-    if [ "$key" = "--" ]; then
-      if [ -n "$group" ] && [ "$matched" = 0 ]; then missing="$missing (none of:$group)"; fi
-      matched=0
-      group=""
-      continue
-    fi
-    group="$group $key"
-    grep -qF -- "$key" <<<"$flat" && matched=1
-  done
-  if [ -z "$missing" ]; then ok "$label"; else fail "$label$missing"; fi
-}
+# nothing is what a failure names: lib.sh's carries_each.
 
 # A harness that withholds the Agent tool and a machine that never linked the agent `do` ships are
 # the two runs with no fork to hand the grounding to. Named apart, because the developer's way out

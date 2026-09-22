@@ -15,6 +15,7 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/../../../scripts/tests/lib.sh"
 playbook="$here/../references/ticket.md"
 agent="$here/../agents/do-builder.md"
+contract="$here/../references/builder.md"
 planner="$here/../agents/do-planner.md"
 fails=0
 
@@ -217,5 +218,111 @@ expect "the hook on the Builder's Agent fails closed when jq is absent from PATH
   bash -c '{ [ "$1" -ne 0 ] && [ -n "$2" ]; } || grep -qF "\"permissionDecision\": \"deny\"" <<<"$3"' \
   _ "$blind_agent_rc" "$blind_agent_err" "$blind_agent_out"
 rm -rf "$no_jq_dir"
+
+echo "# skills/do/references/builder.md: the brief's keys live here once, and the return is lines only"
+
+# The Builder's side of the handover, the way plan.md is the Planner's. The Playbook's build step
+# already links this file for both halves, so a missing file leaves the step naming a contract
+# nothing can open and the fork filling in a brief and a return of its own invention.
+expect "the do skill ships the Builder's contract at references/builder.md" test -f "$contract"
+
+# The brief the session fills. Every key is one thing the fork cannot find for itself: where the
+# Ticket and its Digest are, what the criteria say, which Plan to build from, what the developer
+# already ruled, which checkout and which tree and which branch it works in, which test-author loop
+# the door resolved, where the project map lives and which flow this is. A key that is not here is a
+# fork guessing, or opening the session's own artifacts to guess from.
+flat="$(blocks_of "$contract" "## The brief")"
+carries "the brief fixes every key the fork cannot find for itself" \
+  "Ticket:" "Criteria:" "Digest:" "Plan:" "Rulings:" "Repository root:" "Tree:" "Branch:" \
+  "Loop:" "Project map:" "Flow:" "Agents folder:"
+
+# Written here and nowhere else. A key list copied into a second file drifts from the brief the fork
+# is actually handed: the session fills the copy, the fork reads the original, and a key that moved
+# in one of them is a Builder dispatched without it, which is the reason plan.md already owns the
+# Planner's keys alone. A key line is what the brief's own block writes, `<key>: <...>`, so a
+# sentence naming one key in prose is not a copy of the list.
+brief_keys='Ticket|Criteria|Digest|Plan|Rulings|Repository root|Tree|Branch|Loop|Project map|Flow|Agents folder'
+key_lines() { # $1 the text to read; the brief key lines in it, with their line numbers, on stdout
+  grep -nE "^[[:space:]]*[-*]?[[:space:]]*($brief_keys): " <<<"$1"
+}
+
+build_step="$(item_holding "$playbook" '\*\*[0-9]+\.' "do-builder")"
+expect "a step of the Playbook hands the build to the fork, to read its keys off" test -n "$build_step"
+step_copy="$(key_lines "$build_step")"
+if [ -z "$step_copy" ]; then
+  ok "the Playbook's build step keeps no second copy of the brief's keys"
+else
+  fail "the Playbook's build step keeps no second copy of the brief's keys (found: ${step_copy//$'\n'/; })"
+fi
+
+agent_copy="$(key_lines "$(cat "$agent")")"
+if [ -z "$agent_copy" ]; then
+  ok "the building agent's own definition keeps no second copy of the brief's keys"
+else
+  fail "the building agent's own definition keeps no second copy of the brief's keys (found: ${agent_copy//$'\n'/; })"
+fi
+
+# The return. The session routes on the first line alone and reads nothing else to decide, so the
+# three terminal verdicts are what the contract has to fix: anything else coming back first is a
+# return the step cannot route and the stretch is picked up from `resume-state.sh` instead.
+flat="$(flat_section "$contract" "## The return")"
+expect "the contract carries a section fixing what crosses back" test -n "$flat"
+carries "the return's verdicts are the three the Playbook routes on" \
+  "\`built\`" "\`fork\`" "\`stopped\`"
+carries_any "the verdict is the return's first line, where the step reads it" \
+  "first line" "opening line" "line one" "its first" "The first"
+
+# What the Reply owes. The Behaviours list and the Build lines are copied out of these lines
+# unchanged and never composed: a return that carries no `behaviour:` and `build:` pair per
+# behaviour leaves the developer's reply with nothing to copy, and a session that went and read the
+# diff to write it has put the build back in the window the fork exists to keep empty.
+carries "the return carries a \`behaviour:\` and \`build:\` pair per behaviour" "behaviour:" "build:"
+carries "the return carries the \`flow:\` line the Reply's Build lines need" "flow:"
+
+# A Design fork is ruled in the session, against a Spec this fork never read: the report is the
+# whole of what the session rules on, so it names both sides, which criterion loses and where the
+# build stopped. A `fork` verdict with sides missing is a session forking the choice-taker on half a
+# question.
+carries "the fork report names both sides, the losing criterion and where the build stopped" \
+  "fork:" "side A:" "side B:" "losing criterion:" "stopped at:"
+
+# A stop the session can clear (a seam to change, a map slot to fill, a spent window) is cleared and
+# the Builder forked again; one it cannot ends the run as blocked. Both routes read the reason off
+# this line, and a `stopped` with no reason is a run blocked with nothing to act on.
+carries "a stop comes back with its reason on a \`stopped:\` line" "stopped:"
+
+# Observable criterion 1's second half, and the whole reason the fork is worth its dispatch: the
+# build stays on the branch and the lines are all that cross. Nothing downstream catches a Builder
+# that pastes its diff, its test output or a file back: the run still builds, still gates and still
+# lands, and only the window the delegation exists to save is gone.
+carries_each "nothing but those lines crosses back: no diff, no test output, no file content" \
+  "never the diff" "not the diff" "no diff" "never a diff" "never the patch" "no patch" \
+  -- \
+  "never the test output" "not the test output" "no test output" "never test output" \
+  "never the output of a test" "no test run's output" \
+  -- \
+  "never a file's contents" "never the file's contents" "not a file's contents" \
+  "no file's contents" "never the contents of a file" "never file contents" "no file contents" \
+  "never a file's content" "never the contents of any file" "never a line of a file"
+
+echo "# skills/do/agents/do-builder.md: the fork's own definition binds it to that same return"
+
+# The fork reads its own definition and may never open the contract: a definition with nothing on
+# what it returns leaves the fork to invent a shape, and the session's route on the first line is
+# the first thing to go.
+flat="$(flat_section "$agent" "## What you return")"
+expect "the building agent's body says what it returns" test -n "$flat"
+
+# It binds to the one place the set is written rather than restating it, so the fork and the session
+# never read two lists that have drifted apart.
+carries_any "it binds the fork to the return the contract fixes" \
+  "builder.md" "references/builder.md" "the contract"
+
+# The restatement that would drift: the fork report's own keys written out a second time here. The
+# `## The return` case above is what fixes them, and this section points at it.
+# shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+out="$flat"
+check_absent "it restates none of the return's keys in a second place" 0 0 \
+  "side A:" "side B:" "losing criterion:" "stopped at:"
 
 exit $((fails > 0))
