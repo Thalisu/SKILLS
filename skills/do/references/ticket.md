@@ -231,7 +231,7 @@ Do:
 - [ ] 0. Input resolved and confirmed; policy or fallback detected
 - [ ] 1. Plan: the Planner forked, the Plan written at its path, the path held
 - [ ] 2. Ticket claimed; worktree created from HEAD and entered; tree clean
-- [ ] 3. Build loop: one behaviour, one dispatch, one green commit, repeat
+- [ ] 3. Build: the Builder forked from the Plan, its return checked against the branch
 - [ ] 4. E2E flows authored or extended (native and mixed surfaces)
 - [ ] 5. Gate in the worktree: the Ticket's own tests, typecheck, format; the full suites on the feature's last Ticket
 - [ ] 6. Integration: the branch rebased onto the developer's branch, the gate again when it replayed
@@ -490,11 +490,49 @@ diagnosis branch of step 1 the worktree is already there and is not made again.
 Done when the Ticket reads `claimed`, its status prints nothing, and the claim line and the
 worktree line, its path and its branch, are recorded for the Reply's Run section.
 
-**3. Build loop.** The build loop in [mechanics.md](mechanics.md), one behaviour per dispatch,
-under the loop the loop line named. Each behaviour is one build line for the Reply's Run section
-as it lands, per [reply.md](reply.md): the line, the files opened, `RED_AS_EXPECTED`, green, the
-commit. A Design fork a behaviour meets goes to the forks in
-[forks.md](forks.md). Done when every line has a commit beside it.
+**3. Build.** Fork the Builder, per [builder.md](builder.md): call the Agent tool with
+`subagent_type: do-builder`, the agent `do` ships in [do-builder.md](../agents/do-builder.md), and
+the brief that file fixes, filled from the Plan's path step 1 returned and the worktree and the
+branch step 2 created. The keys are in [builder.md](builder.md) and are never copied here, the way
+the Plan step's keys are never copied here.
+
+Check the return where it crosses, per [builder.md](builder.md)'s `## The return`: its first line
+reads `built`, `fork` or `stopped`, and every `behaviour:` line carries a commit. Then run
+`bash <skill-dir>/scripts/resume-state.sh <the Ticket's path>` once and match its `commit=` and
+`behaviour=` pairs against the returned `behaviour:` lines, one for one; on `built`, `uncommitted=`
+is empty. A return that fails either check is a fork that went wrong and not a build: the session
+drops the return, picks the stretch up from what `resume-state.sh` just printed, which is the
+Resume section's own path, and records the fallback line for the Reply's Run section.
+
+Route on the first line:
+
+- `built`: the stretch is done. The `behaviour:` lines are the Reply's Behaviours list and the
+  `build:` and `flow:` lines its Build lines, copied unchanged and never composed, per
+  [reply.md](reply.md). The step goes on to step 4.
+- `fork`: the Builder met a Design fork and ruled on nothing. The run says in one line that it met
+  one and names both sides, then follows the Design fork in [forks.md](forks.md): the
+  `choice-taker` forked in this session, the returned Ruling written to the Spec's Implementation
+  Decisions, the Ticket criterion rewritten only when that criterion was the losing side. Then the
+  Builder is forked again with the same brief, its `Rulings:` key now carrying that Ruling. A
+  `choice-taker` return reading `extreme` ends the run on the Extreme fork's own route in
+  [forks.md](forks.md) and the Builder is not forked again. A second `fork` return naming the same
+  two sides with no new commit on the branch ends the run as blocked, the Ruling having settled
+  nothing.
+- `stopped`: the reason is the `stopped:` line. A reason the session can clear (a seam that is
+  production code to change, a project map slot to fill, a spent window) is cleared and the Builder
+  is forked again with the same brief. A reason it cannot clear ends the run as blocked, with the
+  worktree and its branch named.
+
+No Builder can be forked on two branches: the Agent tool is withheld from the session, or the Agent
+tool lists no `do-builder`, as it does on a machine that never linked the agent `do` ships. On
+either branch the session runs the loop itself, in the worktree step 2 made, per
+[build-loop.md](build-loop.md), and says in one line which of the two holds, the way the run already
+does for the reader and for the Planner. It never forks another agent in the Builder's place: a
+fork under any other name could still write where `do-builder`'s own definition binds it not to.
+
+Done when the return's `behaviour:` lines each carry a commit and match what `resume-state.sh`
+prints, or the run took one of the two routes above that end it, and the build lines are recorded
+for the Reply's Run section.
 
 **4. E2E flows.** The surface is the one the project's Testing Policy names on its section
 marker. On a native or mixed surface, every user-observable change (a screen, a flow, a
