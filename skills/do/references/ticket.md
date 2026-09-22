@@ -304,7 +304,9 @@ with the Ticket happens in the fork's, per
 
 The path is beside the Ticket in the main checkout, the Ticket's file name with `.plan` before the
 extension, or, for a Ticket that is not a local file, the issue's reference under `.scratch/plans/`
-there, per [scratch.md](../../../.agents/scratch.md). Before anything is handed over it goes
+there with that same `.plan` before the extension, `.scratch/plans/42.plan.md` for issue 42, per
+[scratch.md](../../../.agents/scratch.md). Either path ends in `.plan.md`, which is what the
+Planner's own hook lets its one write through on. Before anything is handed over it goes
 through the same check the Sketch's destination took, with `<root>` the main checkout:
 
 ```sh

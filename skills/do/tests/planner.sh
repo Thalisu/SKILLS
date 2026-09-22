@@ -10,6 +10,7 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/../../../scripts/tests/lib.sh"
 agent="$here/../agents/do-planner.md"
 playbook="$here/../references/ticket.md"
+plan_format="$here/../references/plan.md"
 fails=0
 
 echo "# skills/do/agents/do-planner.md: the fork writes the Plan and cannot hash it"
@@ -147,6 +148,44 @@ carries_any "the step stops the run in one line naming the Sources mismatch" \
 # any other rule is a Plan nothing downstream, and no next run on this Ticket, ever finds.
 carries "the Plan is keyed by the Ticket's file name, \`.plan\` before the extension" ".plan"
 carries "a Ticket that is an issue keys its Plan under \`.scratch/plans/\`" ".scratch/plans/"
+
+echo "# the Plan path plan.md documents for an issue, against the planning agent's own PreToolUse hook"
+
+# The command sits three levels into the frontmatter's \`hooks:\` block, a YAML double-quoted string
+# with the JSON payload's own quotes escaped inside it, so field() (which reads a top-level
+# \`key: value\` line off $out) cannot reach it: pull the one \`command:\` line and undo the YAML
+# escaping by hand, the way the harness's own YAML parser would before handing it to a shell.
+hook_cmd="$(grep -m1 '^ *command:' "$agent" | sed -E 's/^ *command: *"//; s/"$//')"
+hook_cmd="${hook_cmd//\\\"/\"}"
+expect "the planning agent's PreToolUse hook carries a command to extract" test -n "$hook_cmd"
+
+# Without jq the command exits 0 before it ever reads the path, and every case below would pass on a
+# hook that never ran.
+expect "jq is on PATH so the extracted hook runs its own logic, not its early exit" \
+  bash -c 'command -v jq >/dev/null 2>&1'
+
+# The path the session names for a Ticket that is not a local file, read out of the section that
+# fixes it rather than written here: a case carrying its own copy of the path proves nothing about
+# what the documents tell the session to name. Its own \`## Where it lives\` neighbour, the Ticket's
+# own file name, is named concretely (\`02-export-notes.plan.md\`), so the issue-keyed case is read
+# the same way, as the file name the section spells out under \`.scratch/plans/\`. A separate
+# variable, since \$flat still holds the Playbook step the cases below read.
+where_lives="$(flat_section "$plan_format" "## Where it lives")"
+expect "plan.md carries the \`## Where it lives\` section that fixes the Plan's path" test -n "$where_lives"
+
+issue_name="$(grep -oE '\.scratch/plans/[A-Za-z0-9][A-Za-z0-9._-]*' <<<"$where_lives" |
+  head -1 | sed 's|^\.scratch/plans/||')"
+expect "plan.md names the issue-keyed Plan file it puts under \`.scratch/plans/\`" test -n "$issue_name"
+
+# That path, through the hook's own command, live, the way Write would take it before the Planner's
+# first write. The hook lets a write through its \`*.plan.md)\` arm alone, so a documented path that
+# never matches it falls to the deny-all \`*)\` arm and the fork's one write is refused on every
+# Ticket that is an issue, leaving the run with no Plan to build from. Silence is the hook allowing
+# the write: it prints a decision only when it refuses one.
+issue_path=".scratch/plans/$issue_name"
+hook_out="$(printf '{"tool_input": {"file_path": "%s"}}' "$issue_path" | sh -c "$hook_cmd" 2>/dev/null)"
+expect "the issue-keyed Plan path plan.md documents is one the Planner's own hook lets it write" \
+  bash -c '! grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$hook_out"
 
 # The run that cannot fork the Planner, per ADR 0047. Each guarantee below can be phrased several
 # ways and the cases pin more than one of them at a time, so the group of phrasings that found

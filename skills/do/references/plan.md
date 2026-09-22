@@ -80,7 +80,10 @@ In the main checkout's scratch, beside the Ticket file, taking the Ticket's file
 before the extension: `02-export-notes.plan.md` beside `02-export-notes.md`. The Ticket's slug is
 the key, the Digest's own rule, so two runs on two Tickets of the same feature never reach for the
 same file. A Ticket that is not a local file has no file to sit beside: it keys the Plan by the
-issue's reference under `.scratch/plans/` in the main checkout.
+issue's reference under `.scratch/plans/` in the main checkout, carrying that same `.plan` before
+the extension, `.scratch/plans/42.plan.md` for issue 42. The suffix is the whole of what the
+Planner's own `PreToolUse` hook matches a write against, so an issue-keyed path that stops at `.md`
+is a Plan the fork is refused and the run has nothing to build from.
 
 The path is the main checkout's absolute one, since a run inside a worktree has no scratch of its
 own, per [scratch.md](../../../.agents/scratch.md). The door's `find` counts a `.plan.md` out when
