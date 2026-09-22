@@ -208,17 +208,10 @@ rm -rf "$hook_tmp"
 # what the harness reads as allow. A stranger's text in the Ticket or the Digest could steer the
 # fork toward a path outside its one Plan (\`.git/config\` here), and this guard is the Planner's only
 # independent check against that once the fork is running: it has to fail closed, never open, when
-# jq happens to be missing. A bare PATH override is not enough: stripping every directory that holds
-# jq also strips \`/usr/bin\`, and \`sh\` itself, one \`command -v jq\` fails to find, turns \`sh -c
-# "$hook_cmd"\` red for a reason that has nothing to do with the hook. The stand-in directory below
-# symlinks every other \`/usr/bin\` entry, so \`sh\`, \`grep\` and \`printf\` still resolve and only \`jq\`
-# is gone.
-no_jq_dir="$(mktemp -d)"
-for bin in /usr/bin/*; do
-  name="$(basename "$bin")"
-  [ "$name" = jq ] && continue
-  ln -s "$bin" "$no_jq_dir/$name" 2>/dev/null
-done
+# jq happens to be missing. lib.sh's path_without builds the stand-in PATH this runs on: a bare
+# override is not enough, since stripping every directory that holds jq also strips \`/usr/bin\` and
+# \`sh\` with it.
+no_jq_dir="$(path_without jq)"
 denied_path=".git/config"
 no_jq_rc=0
 no_jq_out="$(printf '{"tool_input": {"file_path": "%s"}}' "$denied_path" |

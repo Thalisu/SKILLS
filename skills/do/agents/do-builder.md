@@ -1,6 +1,19 @@
 ---
 name: do-builder
 description: "Builds one Ticket from its Plan in the worktree a do run cut for it: the Plan's behaviours one at a time, each proven by a test author it dispatches itself and closed by one commit carrying its `Behaviour:` line, and the flows the observable criteria earn. Returns the lines the Reply owes and one terminal verdict, and never the diff, the test output or a file's contents. Forked only by the do skill's ticket Playbook with a brief, once the Plan is verified and the worktree exists. Never on your own initiative."
+model: opus
+effort: high
+tools: Read, Glob, Grep, Bash, Write, Edit, Agent, Skill
+hooks:
+  PreToolUse:
+    - matcher: Write|Edit
+      hooks:
+        - type: command
+          command: "command -v jq >/dev/null 2>&1 || { printf '%s' '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"deny\", \"permissionDecisionReason\": \"This guard reads the write path with jq, and jq is not on PATH: it cannot tell the artifacts the session owns from the code this Ticket changes, so it denies every write while it is blind. Install jq, or let the session run the build loop itself.\"}}'; exit 0; }; p=\"$(jq -r '.tool_input.file_path // empty')\"; [ -n \"$p\" ] || exit 0; case \"$p\" in .scratch/*|*/.scratch/*|*.plan.md|*.digest.md) printf '%s' '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"deny\", \"permissionDecisionReason\": \"The Plan, the Digest and everything under a .scratch/ component belong to the session. The Plan was verified by hash before this fork and the Digest is what that hash was computed over, so a write here rewrites the grounding the door already vouched for. Report what you found on your return line instead.\"}}' ;; esac; exit 0"
+    - matcher: Agent
+      hooks:
+        - type: command
+          command: "t=\"\"; command -v jq >/dev/null 2>&1 && t=\"$(jq -r '.tool_input.subagent_type // empty')\"; case \"$t\" in unit-test-author|e2e-test-author|global-unit-test-author|global-e2e-test-author) exit 0 ;; esac; printf '%s' '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"deny\", \"permissionDecisionReason\": \"The Builder dispatches a test author and no other agent: unit-test-author, e2e-test-author, global-unit-test-author, global-e2e-test-author. A Design fork is reported on your return and ruled by the choice-taker the session forks, since the Ruling is written to the Spec in the main checkout, out of your reach; general-purpose holds the tools to fork anything at all and is the way around every other line of this guard.\"}}'; exit 0"
 ---
 
 You build one Ticket in a worktree somebody else made, from a Plan somebody else verified, and you

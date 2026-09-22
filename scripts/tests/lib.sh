@@ -92,15 +92,32 @@ field() { # $1 key: its value from the frontmatter the caller left in $out, on s
 # it, so field() (which reads a top-level `key: value` line) cannot reach it. The scope runs from
 # the matcher's own `- matcher:` marker to the next one, so a block declaring several matchers never
 # hands back a neighbour's command, and the YAML escaping is undone the way the harness's parser
-# would before handing the string to a shell.
+# would before handing the string to a shell. A matcher is a regex to the harness, so one entry may
+# scope several tools at once (`Write|Edit`): asking for either tool by name finds that entry, and
+# a caller pins what the hook does with the tool's payload rather than how the block is spelled.
 hook_command() { # $1 file, $2 the matcher the hook is scoped to (Write, Agent); the command on stdout
   local cmd
   cmd="$(awk -v m="$2" '
-    $0 ~ ("^ *- matcher: *" m " *$") { on = 1; next }
+    $0 ~ ("^ *- matcher: *([A-Za-z]+\\|)*" m "(\\|[A-Za-z]+)* *$") { on = 1; next }
     on && /^ *- matcher:/ { exit }
     on && /^ *command:/ { print; exit }
   ' "$1" 2>/dev/null | sed -E 's/^ *command: *"//; s/"$//')"
   printf '%s\n' "${cmd//\\\"/\"}"
+}
+# A guard that reads its payload with a tool has to say what it does when that tool is missing, and
+# a bare PATH override cannot ask it: stripping every directory that holds jq also strips /usr/bin,
+# and `sh` itself, one `command -v` fails to find, turns the run red for a reason that has nothing
+# to do with the guard. This directory symlinks every other /usr/bin entry, so `sh`, `grep` and
+# `printf` still resolve and only the one command is gone. The caller removes the directory.
+path_without() { # $1 the command to leave out of it; the directory's path on stdout
+  local dir bin name
+  dir="$(mktemp -d)"
+  for bin in /usr/bin/*; do
+    name="$(basename "$bin")"
+    [ "$name" = "$1" ] && continue
+    ln -s "$bin" "$dir/$name" 2>/dev/null
+  done
+  printf '%s\n' "$dir"
 }
 # A contract's section on one line: the references hard-wrap their prose, so a phrase a contract
 # carries sits across two lines as often as not and no fixed string would match it on either.
