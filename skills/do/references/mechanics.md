@@ -76,9 +76,11 @@ branch never touches it and the run never commits it. A worktree created from HE
 of an untracked Ticket, and a claim written in the main checkout beside an edit of the same file
 on the branch makes the landing fast-forward fail, so one rule covers the three states.
 
-- The claim is the `**Status:**` line set to `claimed`, written before the worktree exists. On a
-  remote tracker the claim is the issue assigned to the developer, the way the tracker file
-  describes, made after the developer's yes.
+- The claim is the `**Status:**` line set to `claimed`, written after the grounding the run builds
+  from is in hand and before the worktree exists. The grounding is the part of a run that refuses,
+  so a claim written ahead of it leaves every refusal with a status the developer resets by hand
+  before the rerun. On a remote tracker the claim is the issue assigned to the developer, the way
+  the tracker file describes, made after the developer's yes.
 - During the build the file is read and never written: the criteria and the `What to build` line
   are where the behaviours come from. The one exception is a criterion's text a Ruling rewrote as
   the losing side, the forks of [forks.md](forks.md). A Ticket that is an issue is never written

@@ -54,7 +54,7 @@ the tracker file describes. Before anything is written:
 - A `claimed` Ticket whose worktree is gone starts over: the run records the start-over line for
   the Reply's Run section, per [reply.md](reply.md), saying so in one line and naming the door's
   `run_branch=` fact, and the claim stands, since the claim is idempotent. A `do/<slug>` branch the
-  worktree's removal left behind is named there, and step 1 enters it rather than meeting it as a
+  worktree's removal left behind is named there, and step 2 enters it rather than meeting it as a
   dead `git worktree add -b`.
 - A `ready-for-agent` Ticket whose `do/<slug>` worktree already exists is refused in one line
   naming the worktree. Nothing is written: the worktree is a run no claim records, and the
@@ -106,9 +106,9 @@ and leaves the worktree as it is, since no branch can be read from it to build o
 - The run records the resume line for the Reply's Run section, per [reply.md](reply.md): it says
   the run resumed, names the worktree and its branch, and lists the commits found, one line each
   with its `Behaviour:` line, off the script's lines. The claim line is not written again. The
-  Reply's Run section carries the checklist with steps 0 and 1 reading `done: resumed`.
+  Reply's Run section carries the checklist with steps 0 and 2 reading `done: resumed`.
 - The worktree is entered, never created: a second worktree is never made.
-- The Plan step runs again as step 2 says: the run hashes the Ticket and the Digest afresh and
+- The Plan step runs again as step 1 says: the run hashes the Ticket and the Digest afresh and
   reuses the Plan beside the Ticket while those hashes still match, and a Plan whose hashes have
   moved under it forks the Planner again, which writes the Plan anew. The list the loop works
   through is the Plan's `## Behaviours` section either way, never a list read off the commits;
@@ -212,10 +212,10 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   mechanism is added for either. The Spec's hash no longer matches the Digest's, so the run prints
   the one line naming the Spec as changed, and the reader is forked again over the amended Spec and
   the journey both, never over the Spec alone, whose Digest would come back with no Journey Path
-  for step 2 to read. The list is re-derived from the Digest that comes back, every commit whose
+  for step 1 to read. The list is re-derived from the Digest that comes back, every commit whose
   `Behaviour:` line still matches a line of it is kept, and the loop continues at the first
   behaviour without a commit, building the side the Spec now takes. A criterion an earlier Ruling
-  rewrote to the side the developer's edit reversed is met at step 2 as a Design fork against the
+  rewrote to the side the developer's edit reversed is met at step 1 as a Design fork against the
   edited line, as the forks in [forks.md](forks.md) say. After an Extreme stop with the Spec
   unchanged, both hashes match and the resume meets the same fork at the same step, and stops with
   the same reply and the same `/discuss` command.
@@ -227,9 +227,9 @@ step the run never reaches is neither ticked nor skipped.
 
 ```
 Do:
-- [ ] 0. Input resolved and confirmed; policy or fallback detected; ticket claimed
-- [ ] 1. Worktree created from HEAD and entered; tree clean
-- [ ] 2. Plan: the Planner forked, the Plan written at its path, the path held
+- [ ] 0. Input resolved and confirmed; policy or fallback detected
+- [ ] 1. Plan: the Planner forked, the Plan written at its path, the path held
+- [ ] 2. Ticket claimed; worktree created from HEAD and entered; tree clean
 - [ ] 3. Build loop: one behaviour, one dispatch, one green commit, repeat
 - [ ] 4. E2E flows authored or extended (native and mixed surfaces)
 - [ ] 5. Gate in the worktree: the Ticket's own tests, typecheck, format; the full suites on the feature's last Ticket
@@ -242,7 +242,7 @@ Do:
 
 ## Steps
 
-**0. Resolve, claim, show.** Before any edit, step 0 records its lines for the Reply's Run section,
+**0. Resolve and show.** Before any edit, step 0 records its lines for the Reply's Run section,
 in the order [reply.md](reply.md) fixes, its facts taken off the lines the door script printed and
 never restated from a file the session read. The Reply carries them; the session may also write
 them as it goes, and nothing depends on that:
@@ -270,37 +270,28 @@ them as it goes, and nothing depends on that:
 - The protected-branch warning when it applies (the protected branch in
   [mechanics.md](mechanics.md)): the line names the branch and the rule and says landing will be
   refused on it, which the review does whatever the run wrote.
-- The claim line, `Claimed: <the Ticket's path or reference>`, once the claim is written as the
-  Ticket file in [mechanics.md](mechanics.md) says. On a remote tracker the run waits for a yes
-  before it; a no stops the run with nothing written.
 - The checklist above, verbatim, copied as the run's todo list with no step marked skipped: every
   step stays open until the run reaches it. The Reply's Run section carries it after the lines
   above, each step the run reached ticked `done:` or reading `skip: <reason>`.
 
-The door script still runs before any write and the worktree still comes before the first edit;
-recording the lines for the Reply moves none of those actions. A Ticket the door refuses ends in
-one message, the refusal, as [reply.md](reply.md) says for a refusal before any edit. On a local
-Ticket the run proceeds without a yes, per
-[never-block-on-the-human](../../../.agents/principles/never-block-on-the-human.md): the claim is
-a reversible file write, and an interrupt costs the developer one turn. Done when the title, the
-predicate, the loop line and the claim line are recorded for the Reply's Run section and the Ticket
-reads `claimed`.
+The door script still runs before any write; recording the lines for the Reply moves none of those
+actions. A Ticket the door refuses ends in one message, the refusal, as [reply.md](reply.md) says
+for a refusal before any edit. Done when the title, the predicate and the loop line are recorded
+for the Reply's Run section.
 
-**1. Worktree.** The worktree in [mechanics.md](mechanics.md): created from the current HEAD on
-`do/<slug>`, where `<slug>` is the Ticket file's slug without its number, excluded locally,
-entered. On a start-over whose `run_branch=` fact names `do/<slug>`, the branch survived the
-worktree's removal, so the worktree is entered on it instead: `git worktree add
-.claude/worktrees/do-<slug> do/<slug>`, without `-b`, the way bug-fix's Resume already reads the
-same state, since `-b` on a branch that exists fails and that failure is not one to work around
-with a second slug. Done when its status prints nothing and the worktree line, its path and its
-branch, is recorded for the Reply's Run section.
-
-**2. Plan.** The grounding is one fork's work and one file, per
+**1. Plan.** The grounding is one fork's work and one file, per
 [ADR 0047](../../../docs/adr/0047-the-ticket-run-forks-a-planner-then-a-builder-and-the-session-stops-writing-code.md).
 The session names the Plan's path, hands it over, and holds that path afterwards: it opens no
 `CONTEXT.md`, no ADR and no source file of its own, and the reading that used to grow this window
 with the Ticket happens in the fork's, per
 [guard-the-context-window](../../../.agents/principles/guard-the-context-window.md).
+
+This step comes before the claim and before the worktree because it is the step that refuses. Every
+refusal below stops the run with the Ticket at the status the door found it at and no `do/<slug>`
+branch anywhere, so a grounding the run will not build on costs the developer a rerun and nothing
+to undo by hand. The brief's `Tree:` key is the main checkout for the same reason: the worktree the
+build runs in does not exist yet, and the fork grounds against HEAD, which is what step 2 cuts the
+worktree from.
 
 The path is beside the Ticket in the main checkout, the Ticket's file name with `.plan` before the
 extension, or, for a Ticket that is not a local file, the issue's reference under `.scratch/plans/`
@@ -315,7 +306,7 @@ case "$dest" in "<root>/.scratch/"*) echo inside ;; *) echo refused ;; esac
 ```
 
 `refused` hands nothing over and forks nobody: the run stops in one line naming the refused path,
-the worktree and its branch, both left in place. Then the run reads whether the project's own
+with nothing claimed and no worktree made. Then the run reads whether the project's own
 committed file carries the scratch ignore, and appends the line when it does not, the way
 [scratch.md](../../../.agents/scratch.md) fixes:
 
@@ -357,13 +348,17 @@ first`, is diagnosed before the fork by the reproduce and cause steps of
 fork holds no tool that runs one: the defect reproduced on the matching surface, the hypotheses
 ruled out with runtime evidence, the instrumentation reverted, the mechanism confirmed, per
 [fix-root-causes](../../../.agents/principles/fix-root-causes.md), and the confirmed mechanism
-handed over with the brief. Those steps record their lines for the Reply's Run section, per
+handed over with the brief. That diagnosis is the one thing in this step that needs a tree of its
+own: it instruments files to get its runtime evidence, and the developer's checkout is not the
+place for that, so step 2's worktree is created and entered first and the reproduction runs there,
+with the brief's `Tree:` naming it. The claim still waits for the verified Plan. Those steps record their lines for the Reply's Run section, per
 [reply.md](reply.md). When `bug-fix` is not installed under Links, those two steps stand on their
 own. They are the exception the Links rule of [SKILL.md](../SKILL.md) names, and the step numbers
 there are `bug-fix`'s, not this checklist's: the second ask a surface the session cannot reach gets
 on the fixed build, `bug-fix`'s step 7, is asked at step 3 here, once the `bugfix` line's fix is
 green in the loop, and a defect that will not reproduce even when forced stops this run as blocked,
-the Ticket left `claimed` and the worktree and its branch in place and named.
+the Ticket left at the status the door found it at and the worktree and its branch in place and
+named.
 
 No Planner can be forked on two branches: the Agent tool is withheld from the session, or the
 Agent tool lists no `do-planner`, as it does on a machine that never linked the agent `do` ships.
@@ -431,6 +426,27 @@ deviations listed, the worktree and its branch named, the message naming `discus
 Done when the Plan line is recorded for the Reply's Run section, per [reply.md](reply.md), with the
 Plan's location and every fallback the return named, the context reading is kept for the close,
 and, with no Testing Policy, the map line is recorded for the Reply.
+
+**2. Claim and worktree.** The Plan is verified, so the run has something to build and the two
+writes that cost the developer cleanup are made together. First the claim, written as the Ticket
+file in [mechanics.md](mechanics.md) says: the `**Status:**` line set to `claimed`. The claim line,
+`Claimed: <the Ticket's path or reference>`, is recorded for the Reply's Run section once it is
+written. On a remote
+tracker the run waits for a yes before it; a no stops the run with nothing written. On a local
+Ticket it proceeds without one, per
+[never-block-on-the-human](../../../.agents/principles/never-block-on-the-human.md): the claim is
+a reversible file write, and an interrupt costs the developer one turn.
+
+Then the worktree in [mechanics.md](mechanics.md): created from the current HEAD on `do/<slug>`,
+where `<slug>` is the Ticket file's slug without its number, excluded locally, entered. On a
+start-over whose `run_branch=` fact names `do/<slug>`, the branch survived the worktree's removal,
+so the worktree is entered on it instead: `git worktree add .claude/worktrees/do-<slug>
+do/<slug>`, without `-b`, the way bug-fix's Resume already reads the same state, since `-b` on a
+branch that exists fails and that failure is not one to work around with a second slug. On the
+diagnosis branch of step 1 the worktree is already there and is not made again.
+
+Done when the Ticket reads `claimed`, its status prints nothing, and the claim line and the
+worktree line, its path and its branch, are recorded for the Reply's Run section.
 
 **3. Build loop.** The build loop in [mechanics.md](mechanics.md), one behaviour per dispatch,
 under the loop the loop line named. Each behaviour is one build line for the Reply's Run section
