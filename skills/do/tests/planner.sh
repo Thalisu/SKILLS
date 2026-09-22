@@ -385,7 +385,7 @@ carries_each "the step refuses a \`## Sources\` section that is not exactly the 
   "the two records the door" "two complete records" "exactly the two" \
   -- \
   "a missing record" "a record missing" "a duplicated record" "a duplicate record" \
-  "the same name twice" "a name twice" "twice" "repeated" "a second line for the same" \
+  "the same name twice" "a name twice" "a second line for the same" \
   "one record missing" \
   -- "${refused[@]}"
 
