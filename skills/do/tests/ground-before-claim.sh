@@ -124,7 +124,7 @@ carries_any "the claim rule's before-the-worktree-exists invariant carries the d
 
 echo "# docs/do.md: the developer-facing no-branch-to-remove line carries the same exception"
 
-flat="$(tr '\n' ' ' < "$here/../../../docs/do.md" | tr -s ' ')"
+flat="$(tr '\n' ' ' <"$here/../../../docs/do.md" | tr -s ' ')"
 carries_any "docs/do.md's no-branch-to-remove line names the diagnosis-first exception" \
   "except on a Ticket whose defect" \
   "the worktree already cut for the diagnosis is named" \
