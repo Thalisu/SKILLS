@@ -203,6 +203,32 @@ expect "the hook denies a write at a path that never carries the \`.plan.md\` su
   bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$wrong_hook_out"
 rm -rf "$hook_tmp"
 
+# A machine with no \`jq\` on PATH: the hook's own early exit, \`command -v jq >/dev/null 2>&1 || exit
+# 0\`, fires before the command ever reads \`.tool_input.file_path\`, and \`exit 0\` with no stdout is
+# what the harness reads as allow. A stranger's text in the Ticket or the Digest could steer the
+# fork toward a path outside its one Plan (\`.git/config\` here), and this guard is the Planner's only
+# independent check against that once the fork is running: it has to fail closed, never open, when
+# jq happens to be missing. A bare PATH override is not enough: stripping every directory that holds
+# jq also strips \`/usr/bin\`, and \`sh\` itself, one \`command -v jq\` fails to find, turns \`sh -c
+# "$hook_cmd"\` red for a reason that has nothing to do with the hook. The stand-in directory below
+# symlinks every other \`/usr/bin\` entry, so \`sh\`, \`grep\` and \`printf\` still resolve and only \`jq\`
+# is gone.
+no_jq_dir="$(mktemp -d)"
+for bin in /usr/bin/*; do
+  name="$(basename "$bin")"
+  [ "$name" = jq ] && continue
+  ln -s "$bin" "$no_jq_dir/$name" 2>/dev/null
+done
+denied_path=".git/config"
+no_jq_rc=0
+no_jq_out="$(printf '{"tool_input": {"file_path": "%s"}}' "$denied_path" |
+  PATH="$no_jq_dir" sh -c "$hook_cmd" 2>"$no_jq_dir/.err")" || no_jq_rc=$?
+no_jq_err="$(cat "$no_jq_dir/.err" 2>/dev/null)"
+expect "the hook denies a write outside its one Plan when jq is absent from PATH, instead of exiting 0 silently" \
+  bash -c '{ [ "$1" -ne 0 ] && [ -n "$2" ]; } || grep -qF "\"permissionDecision\": \"deny\"" <<<"$3"' \
+  _ "$no_jq_rc" "$no_jq_err" "$no_jq_out"
+rm -rf "$no_jq_dir"
+
 echo "# the planning agent's own PreToolUse hook on its Agent tool: no fork but sketch"
 
 # The frontmatter grants \`Agent\` with no scope of its own (Finding 4 of the do-code-review pass):
