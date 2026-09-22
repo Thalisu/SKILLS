@@ -3,7 +3,7 @@
 ## What it does
 
 `discover` answers one batch of "does this already exist in the repo, and where?" questions with one
-terse line per item. A Haiku subagent runs a single deterministic script over the repository and
+terse line per item. A subagent runs a single deterministic script over the repository and
 maps its report onto five states, `FOUND`, `DUPLICATE`, `PARTIAL`, `NOT_FOUND` or `ERROR`, each with
 a path, a signature, a use count and a confidence. The caller asks once per feature, with every
 candidate name in the batch, and reads the answer as a rule: reuse, extend, or create in the

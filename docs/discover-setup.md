@@ -3,7 +3,7 @@
 ## What it does
 
 `discover-setup` installs or refreshes discover on this machine and in one `CLAUDE.md`. It links the
-Haiku discover agent into `~/.claude/agents`, links the `discover` and `discover-setup` skills into
+discover agent into `~/.claude/agents`, links the `discover` and `discover-setup` skills into
 `~/.claude/skills`, then installs the marked `## Discovery (mandatory)` section into the chosen
 `CLAUDE.md` or updates an older one in place. The section is the rule that makes the agent run
 [discover](discover.md) before creating any new symbol.
