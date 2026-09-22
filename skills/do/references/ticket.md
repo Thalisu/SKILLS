@@ -109,8 +109,9 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   Reply's Run section carries the checklist with steps 0 and 2 reading `done: resumed`.
 - The worktree is entered, never created: a second worktree is never made.
 - The Plan step runs again as step 1 says: the run hashes the Ticket and the Digest afresh and
-  reuses the Plan beside the Ticket while those hashes still match, and a Plan whose hashes have
-  moved under it forks the Planner again, which writes the Plan anew. The list the loop works
+  reuses the Plan beside the Ticket while its `## Sources` section is still exactly those two
+  records, matched on name, path and hash together, and a Plan whose section is not that exact
+  match forks the Planner again, which writes the Plan anew. The list the loop works
   through is the Plan's `## Behaviours` section either way, never a list read off the commits;
   then every line
   whose behaviour a commit body carries is ticked with that commit's sha beside it, and a commit
@@ -329,9 +330,11 @@ writes and said in one line:
 Then the run hashes the two documents the Plan is cut from, `git hash-object` in the main checkout
 over the Ticket and over the Digest, recording `absent` for one not on disk. Those two values are
 the Plan's `## Sources` lines, so the record the run trusts is its own reading and never the fork's.
-A Plan already at the destination whose `## Sources` lines are those two values is carried: the run
-forks nobody, says in one line that it reused it, and builds from the Plan it already has. A Plan
-whose lines differ, and a destination with no Plan yet, are the two states the run forks for.
+A Plan already at the destination whose `## Sources` section is exactly those two records, matched
+on name, path and hash together, the same match the returned-Plan check below runs, is carried: the
+run forks nobody, says in one line that it reused it, and builds from the Plan it already has. A
+Plan whose section is not that exact match, and a destination with no Plan yet, are the two states
+the run forks for.
 
 The fork is the `do-planner` agent `do` ships in [do-planner.md](../agents/do-planner.md), called
 through the Agent tool with `subagent_type: do-planner` and the brief [plan.md](plan.md) fixes,

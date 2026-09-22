@@ -92,10 +92,11 @@ a Plan left beside a Ticket that is gone never supplies a blocker's status.
 
 ## Its edges
 
-A Plan already at that path whose `## Sources` lines are the hashes the door just computed is
-carried: the run forks nobody and builds from the Plan it already has. A Plan whose hashes differ is
-a Plan cut from a Ticket or a Digest that has since moved, and the run forks the Planner again,
-replacing it whole.
+A Plan already at that path whose `## Sources` section is exactly the two records the door just
+computed, matched on name, path and hash together, is carried: the run forks nobody and builds from
+the Plan it already has. A Plan whose section is not that exact match is a Plan cut from a Ticket or
+a Digest that has since moved, or one whose records were tampered with, and the run forks the
+Planner again, replacing it whole.
 
 A Plan is replaced whole and never edited. The fork that writes it holds one path, so there is no
 second writer to merge with, and a run that needs a different Plan gets a new one rather than a

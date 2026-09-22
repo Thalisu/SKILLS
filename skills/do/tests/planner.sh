@@ -389,6 +389,36 @@ carries_each "the step refuses a \`## Sources\` section that is not exactly the 
   "one record missing" \
   -- "${refused[@]}"
 
+echo "# skills/do/references/ticket.md and plan.md: the reuse/carry rule binds the same strict match the returned-Plan check does"
+
+# The two cases above prove the check on the fork's *return* matches each record on its name, its
+# path and its hash. The carry sentence is a different branch, a few lines above that check: a Plan
+# already sitting at the destination before any fork runs. `item_holding`/`carries_each` above read
+# step 1 whole, so a strict phrase sitting anywhere in the step, the returned-Plan check included,
+# would make those cases pass even if the carry sentence itself still compared hashes alone. Scoped
+# here to the carry sentence's own paragraph, isolated from the rest of the step, so this proves the
+# carry sentence's own words and nothing borrowed from a neighbour.
+carry_para="$(paragraph_with "$playbook" "is carried")"
+expect "the Playbook carries a paragraph naming a Plan already at the destination as carried" \
+  test -n "$carry_para"
+
+flat="$carry_para"
+carries_any "the carry sentence itself states the exact-match rule the returned-Plan check enforces: name, path and hash together, exactly the two records" \
+  "name, path and hash" "the name, the path and the hash" "its name, its path and its hash" \
+  "exactly the two records" "exactly two records" "the two records the door computed"
+
+# plan.md's own edge for the same branch, `## Its edges`, worded independently of the Playbook's
+# carry sentence: a fix that tightens ticket.md alone leaves this file still vouching for a Plan on
+# a loose hash comparison.
+plan_carry_para="$(paragraph_with "$plan_format" "carried")"
+expect "plan.md carries a paragraph naming a Plan already at that path as carried" \
+  test -n "$plan_carry_para"
+
+flat="$plan_carry_para"
+carries_any "plan.md's carry paragraph states the same exact-match rule: name, path and hash together, exactly the two records" \
+  "name, path and hash" "the name, the path and the hash" "its name, its path and its hash" \
+  "exactly the two records" "exactly two records" "the two records the door computed"
+
 echo "# skills/do/references/ticket.md: the Resume section names the Plan step's real behaviour"
 
 # The Resume section's own Plan bullet, not step 2's: step 2 already says a moved hash re-forks the
