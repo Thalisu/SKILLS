@@ -113,17 +113,18 @@ echo "# every verdict a core declares has a route in the references that consume
 # should have routed then passes against the other. Emptiness is read off the passage before the
 # flattening: `tr` on an empty here-string still writes a space.
 loop_passage="$(passage_of "$skill/references/build-loop.md" "2. Read the verdict" "3. Write the smallest")"
-# The flows step from the `**<n>.` marker of the step that dispatches the global end-to-end author
-# to the next marker: the Playbook renumbers its steps whenever one is added or absorbed, so the
-# step is found by the author it forks and never by the number or the title it happens to carry.
-flows_passage="$(item_holding "$skill/references/ticket.md" '\*\*[0-9]+\.' "global-e2e-test-author")"
+# The flows rule lives in the Builder's contract, not in the Playbook: the `ticket` run forks the
+# Builder and the flows are authored inside its window. Its section is taken from the `##` heading
+# that dispatches the global end-to-end author to the next heading, so the rule is found by the
+# author it forks and never by the heading or the order it happens to carry.
+flows_passage="$(item_holding "$skill/references/builder.md" '## ' "global-e2e-test-author")"
 expect "the build loop passage the unit verdicts are read against is there" test -n "$loop_passage"
-expect "the flows step passage the e2e verdicts are read against is there" test -n "$flows_passage"
+expect "the Builder's flows passage the e2e verdicts are read against is there" test -n "$flows_passage"
 for kind in unit e2e; do
   if [ "$kind" = unit ]; then
     route="the build loop" passage="$loop_passage"
   else
-    route="the flows step" passage="$flows_passage"
+    route="the Builder's flows" passage="$flows_passage"
   fi
   flat="$(tr '\n' ' ' <<<"$passage" | tr -s ' ')"
   mapfile -t verdicts < <(bash "$policy/scripts/render-agent.sh" --core-only "$kind" |
@@ -165,7 +166,7 @@ for kind in unit e2e; do
   if [ "$kind" = unit ]; then
     route="the build loop" text="$(tr '\n' ' ' <<<"$loop_passage" | tr -s ' ')"
   else
-    route="the flows step" text="$(tr '\n' ' ' <<<"$flows_passage" | tr -s ' ')"
+    route="the Builder's flows" text="$(tr '\n' ' ' <<<"$flows_passage" | tr -s ' ')"
   fi
   passage_says "$route names the ceiling a report's runs are counted against" \
     "$text" "$ceiling" "the passage names no bound on the runs a report may name"

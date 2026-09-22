@@ -130,6 +130,50 @@ durable state and the only state: every commit the loop makes carries `Behaviour
 of its own, so a Builder forked again reads what is done off the commits rather than off a
 run-state file somebody has to keep in step with them.
 
+## The flows
+
+After the feature exists, every criterion a user can observe gets its flow authored or extended,
+inside this fork's window like the rest of the loop. Which changes a user can observe is the
+Digest's `## Observable criteria` section, the reading the reader returned from the Path's own
+steps, or from the stories it quoted when the Digest carries no Path, and never the fork's own
+reading of the diff. A criterion that section leaves out states why no flow is needed, and a
+criterion it names with no flow authored stops the fork with that reason on its `stopped:` line. A
+section reading `none` closes the flows with `no criterion a user can observe` on a `fallback:`
+line, naming the section it read that from; a `none` the reader marked as read from neither a Path
+nor a story has nothing behind it, and the fork goes through the Ticket's criteria one by one
+instead, each with its flow or the reason it needs none.
+
+The surface is the one the project's Testing Policy names on its section marker. On a native or
+mixed surface the flow is authored by the E2E test author of [build-loop.md](build-loop.md) with
+the complete input: the behaviour to prove, who relies on it and what a wrong or missing result
+costs them, the journey or screen, the origin, the fixture state, placement when it matters. The
+report's `Run` section is read before its verdict: an author runs its flow at most twice in one
+dispatch, so a report naming a third run broke the fix ceiling, whatever verdict it carried,
+`GREEN` included; it is refused whole and the criterion is dispatched again naming the runs the
+fork counted, since a forked author's report reaches no hook and the count is the caller's or
+nobody's. The flow must return `GREEN`; `BLOCKED` on a preflight stops the fork with that reason;
+`HANDBACK` takes the route the loop's `HANDBACK` takes in [build-loop.md](build-loop.md), read off
+the Handback's `Diagnosis` line, and a second `HANDBACK` on the same criterion stops the fork.
+`REFUSED_INCOMPLETE_INPUT` takes the loop's own route there: a criterion or a **Relied on by** too
+vague to become an outcome assertion is sharpened and dispatched again, and a refusal because no
+one relies on the criterion means it is structural, so it ships with no flow and its `flow:` line
+says so. The flow is committed on its own or with the last behaviour, and reported on a `flow:`
+line. On a consumer surface the flow lives in the consumer repository: no author is dispatched and
+the `fallback:` line names it as pending debt with the consumers named.
+
+Under `Loop: global` the project has no Testing Policy and so no section marker naming a surface,
+and the Project map the brief names stands in for it. When the map's single-flow command is filled,
+each criterion the Digest marks observable gets its flow from `global-e2e-test-author` with the same
+complete input and the map's path, and the same verdicts. When that command reads
+`none yet → /testing-policy` and the map's full-suite end-to-end command is filled too, no author is
+dispatched: the `fallback:` line names the single-flow slot the map left unfilled and quotes the
+full-suite command the map does carry, and the criterion it would have proven is left for the
+session to leave unticked at the close. When both commands read `none yet → /testing-policy`, no
+author is dispatched either: the `fallback:` line reads `no end-to-end command in the project` and
+names `/testing-policy` as the command that would fill the slot. Under `Loop: fallback` the same map
+decides, and where its command is filled the fork authors the flow itself and says so on a
+`fallback:` line.
+
 ## Its edges
 
 - The Gate is the session's, run in the worktree after the last edit and before the first review

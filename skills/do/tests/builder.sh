@@ -381,4 +381,87 @@ out="$flat"
 check_absent "it restates none of the return's keys in a second place" 0 0 \
   "side A:" "side B:" "losing criterion:" "stopped at:"
 
+echo "# skills/do/references/ticket.md: the Builder's diff is read and the tree gated before the review"
+
+# What the session owes once the fork comes back. The Builder built the whole Ticket in a window
+# nobody else saw, and the run that owns it still has to read the diff and write its own summary
+# (SKILL.md's `## Non-negotiables`): a fork whose diff nothing reads hands the reviewers, forked at
+# `xhigh`, work the run never looked at. And the tree they read has to have been gated first, in the
+# worktree, since the review's own `fix` call is where the Gate stops being the run's from then on.
+# Every anchor is a group of phrasings read with first_at, never a step's digit: the steps renumber
+# whenever one is absorbed into another, which is exactly the change this case is about, and
+# ground-before-claim.sh reads the same orders the same way.
+build_anchor=("do-builder" "Fork the Builder" "fork the Builder" "Build.**" "Build the Ticket.**")
+diff_read_anchor=(
+  "reads the Builder's diff" "read the Builder's diff" "the Builder's diff is read"
+  "reads the fork's diff" "read the fork's diff" "the fork's diff is read"
+  "reads the diff the Builder" "reads the diff the fork" "reads the diff the build"
+  "the session reads the diff" "the diff is read by the session" "the run reads the diff"
+  "reads the delegate's diff" "the delegate's diff" "reads the branch's diff"
+  "reads the diff on the branch" "reads the diff of the build" "git diff"
+)
+gate_anchor=("scripts/gate.sh" "Gate.**" "The gate in [mechanics.md](mechanics.md), in the worktree")
+integration_anchor=(
+  "Integration.**" "The integration in [mechanics.md](mechanics.md)"
+  "the Loss ledger beside the Ticket in the main checkout"
+)
+review_anchor=("Review and landing.**" "git merge-base refs/heads/" "do-code-review")
+
+steps="$(awk '/^## Steps/ { on = 1 } on' "$playbook" | tr '\n' ' ' | tr -s ' ')"
+flat="$steps"
+expect "the Playbook carries a \`## Steps\` section to read the order off" test -n "$flat"
+b="$(first_at "${build_anchor[@]}")"
+expect "a step of the Playbook forks the Builder, where the order below starts" test "$b" -gt 0
+
+# Read from the build step on. Step 1 names the review and the diff for reasons of its own (the
+# Plan's `## Map` is the subsystem before the diff, and the review is never handed it), and either
+# would answer here for a step that does none of this.
+flat="${steps:$((b - 1))}"
+carries_any "a step has the session read the diff the Builder left on the branch" \
+  "${diff_read_anchor[@]}"
+
+d="$(first_at "${diff_read_anchor[@]}")"
+g="$(first_at "${gate_anchor[@]}")"
+i="$(first_at "${integration_anchor[@]}")"
+r="$(first_at "${review_anchor[@]}")"
+
+# The diff is read on the way from the fork to the Gate: read after the Gate, it is read after the
+# run already spent the suite on a tree it had not looked at, and after the review it is read too
+# late to be the reading the reviewers' work rests on.
+expect "the diff is read after the Builder returns and before the Gate" \
+  test "$d" -gt 0 -a "$g" -gt "$d"
+
+# The Gate before the first review call is the one Gate that stays the run's own (gated-once.sh owns
+# the twelve passages where a tree handed to the review's `fix` call runs none): reviewers forked
+# over an ungated tree spend `xhigh` on work the suite would have refused.
+expect "the Gate runs in the worktree before the integration" test "$g" -gt 0 -a "$i" -gt "$g"
+expect "the integration runs before the review is called" test "$i" -gt 0 -a "$r" -gt "$i"
+
+# The flows are the Builder's work now, authored inside its own window beside the behaviours they
+# prove. A step of the session's own that still dispatches an E2E author, or still reads a report
+# back, is the second loop the fork exists to remove: the window grows with the Ticket again, and
+# the flows are authored twice over the same criteria.
+# shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+out="${flat:0:$((g - 1))}"
+check_absent "no step between the build and the Gate dispatches an E2E author or reads its report" \
+  0 0 "e2e-test-author" "E2E test author" "E2E author" "report's \`Run\` section" \
+  "authored or extended"
+
+echo "# skills/do/references/ticket.md: the todo list the run copies keeps no E2E authoring of its own"
+
+# The `## Checklist` block is copied verbatim into the run as its todo list, so an item left there
+# is an instruction the run works through whatever the steps say.
+flat="$(blocks_of "$playbook" "## Checklist" | tr '\n' ' ' | tr -s ' ')"
+expect "the Playbook's \`## Checklist\` carries the block the run copies" \
+  bash -c '[ -n "$1" ] && grep -qF "Reply" <<<"$1"' _ "$flat"
+
+cb="$(first_at "Build:" "the Builder forked" "Build from the Plan")"
+cg="$(first_at "Gate in the worktree" "Gate:" "the Ticket's own tests, typecheck")"
+expect "the todo list builds before it gates" test "$cb" -gt 0 -a "$cg" -gt "$cb"
+
+# shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+out="${flat:$((cb - 1)):$((cg - cb))}"
+check_absent "the todo list carries no E2E flow of the session's own to author between the two" \
+  0 0 "e2e-test-author" "E2E test author" "E2E flows authored" "authored or extended"
+
 exit $((fails > 0))

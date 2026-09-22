@@ -1,9 +1,10 @@
 # The build loop
 
 The loop a Playbook that builds in a worktree runs once its behaviours list exists: one behaviour,
-one dispatch, one green commit, repeat. It is read by the step that is about to build, in `ticket`,
-`bug-fix` and `refactoring`, by the E2E flows step for the test authors it names, and by the resume
-step for the `Behaviour:` line the loop's commits carry. The rest of what those Playbooks share is
+one dispatch, one green commit, repeat. It is read by the Builder of [builder.md](builder.md) in a
+`ticket` run, which runs the loop and its flows in a window of its own, by the step that is about to
+build in `bug-fix` and `refactoring`, and by the resume step for the `Behaviour:` line the loop's
+commits carry. The rest of what those Playbooks share is
 in [mechanics.md](mechanics.md).
 
 ## The build loop

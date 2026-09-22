@@ -232,7 +232,7 @@ Do:
 - [ ] 1. Plan: the Planner forked, the Plan written at its path, the path held
 - [ ] 2. Ticket claimed; worktree created from HEAD and entered; tree clean
 - [ ] 3. Build: the Builder forked from the Plan, its return checked against the branch
-- [ ] 4. E2E flows authored or extended (native and mixed surfaces)
+- [ ] 4. Diff: the Builder's diff read in the worktree, the run's own summary written
 - [ ] 5. Gate in the worktree: the Ticket's own tests, typecheck, format; the full suites on the feature's last Ticket
 - [ ] 6. Integration: the branch rebased onto the developer's branch, the gate again when it replayed
 - [ ] 7. Review by do-code-review: Act on Findings fixed by its Fixer, landed when Green
@@ -534,52 +534,15 @@ Done when the return's `behaviour:` lines each carry a commit and match what `re
 prints, or the run took one of the two routes above that end it, and the build lines are recorded
 for the Reply's Run section.
 
-**4. E2E flows.** The surface is the one the project's Testing Policy names on its section
-marker. On a native or mixed surface, every user-observable change (a screen, a flow, a
-navigation, a message, a state the product shows) gets its flow authored or extended after the
-feature exists, by the E2E test author (the test authors in [build-loop.md](build-loop.md)) with
-the complete input: the behaviour to prove, who relies on it and what a wrong or missing result
-costs them, the journey or screen, the origin, the fixture state, placement when it matters. The
-report's `Run` section is read before its verdict: an author runs its flow at most twice in one
-dispatch, so a report naming a third run broke the fix ceiling, whatever verdict it carried, `GREEN`
-included; it is refused whole and the criterion is dispatched again naming the runs the step
-counted, since a forked author's report reaches no hook and the count is the caller's or nobody's.
-The flow must return `GREEN`; `BLOCKED` on a preflight stops the run
-as blocked; `HANDBACK` takes the route the build loop's `HANDBACK` takes in
-[build-loop.md](build-loop.md), read off the Handback's `Diagnosis` line: `production` is the run's
-own change and then a fresh dispatch, `test` is one re-dispatch carrying the Handback, and a second
-`HANDBACK` on the same criterion stops the run as blocked. `REFUSED_INCOMPLETE_INPUT` takes the
-route the build loop's `REFUSED_INCOMPLETE_INPUT` takes in [build-loop.md](build-loop.md): a
-criterion or a **Relied on by** too vague to become an outcome assertion is sharpened and
-dispatched again, and a refusal because no one relies on the criterion means it is structural, so
-it ships with no flow and the criterion's line says so. The flow is committed on its own or with the last behaviour. On a consumer surface
-the flow lives in the consumer repository and is recorded as pending debt with the consumers
-named. Under `Loop: global` the project has no Testing Policy and so no section marker naming a
-surface, and the Project map the Plan step derived stands in for it. When the map's single-flow
-command is filled, each criterion the Digest marks observable
-gets its flow from `global-e2e-test-author` (the test authors in [build-loop.md](build-loop.md))
-with the same complete input and the map's path, and the flow returns `GREEN`,
-`HANDBACK`, routed as above, or `BLOCKED` on a preflight, which stops the run as blocked. When that command reads
-`none yet → /testing-policy` and the map's full-suite end-to-end command is filled too (a
-Makefile's or a justfile's `e2e` target, or a `package.json` script the mapper could not read a
-path from), no author is dispatched: the step names the single-flow slot the map left unfilled and
-quotes the full-suite command the map does carry, `skip: no single-flow end-to-end command, only
-<the full-suite command>`, leaves the criterion it would have proven unticked at the close, and
-records it as pending debt in the reply. When both commands read `none yet → /testing-policy`, no
-author is dispatched: the step reads `skip: no end-to-end command in the project`,
-names `/testing-policy` as the command that would fill the slot,
-leaves the criterion it would have proven unticked at the close, and records it as pending debt in
-the reply, the shape a consumer surface already takes. Under `Loop: fallback` the same map
-decides, and where its command is filled the session authors the flow itself and says so in one
-line. Which changes a user can observe is the Digest's `## Observable criteria` section, the
-reading the reader returned from the Path's own steps, or from the stories it quoted when the
-Digest carries no Path, and never the run's own reading of the diff. A criterion that section
-leaves out states why no flow is needed, and a criterion it names with no flow authored stops the
-step. A section reading `none` closes the step as `skip: no criterion a user can observe`, naming
-the section it read that from; a `none` the reader marked as read from neither a Path nor a story
-has nothing behind it, and the step goes through the Ticket's criteria one by one instead, each
-with its flow or the reason it needs none. Done when each criterion the section names has a flow
-or a stated reason, or the skip is recorded for the Reply's Run section.
+**4. Diff.** Read the diff the Builder left on the branch, `git diff <the merge base>..HEAD` in
+the worktree with the merge base of the branch the run started on, and write the run's own summary
+of it for the Reply's Run section. The Builder's return names what it built and never what the
+files now hold, so this is the one place the run sees the work it is about to gate, per the
+Non-negotiables of [SKILL.md](../SKILL.md): every delegate's diff is read by the session, which
+writes its own summary, and the delegate's summary is never passed through. The E2E flows are the
+Builder's, authored inside its own window and reported on its `flow:` lines, per
+[builder.md](builder.md): no author is dispatched here. Done when the diff has been read and the
+summary is recorded for the Reply's Run section.
 
 **5. Gate.** The gate in [mechanics.md](mechanics.md), in the worktree, after the last edit, run
 from `scripts/gate.sh` with its `command=` line recorded for the Reply's Run section. Done when
