@@ -317,6 +317,58 @@ carries_each "the run neither stops nor asks for what it cannot get, and forks n
   "never forks another agent" "forks no other agent" "never forks a second agent" \
   "no other agent is forked"
 
+# The check the door runs over what the fork hands back, per ADR 0048 and plan.md's `## Sources`
+# rule. The session never reads the Plan, so this check is the whole of what it knows about the
+# artifact a whole branch of behaviours is cut from, and three returns reach it that a comparison
+# of hashes alone lets through. Every case below shares the refusal as its last group: a branch the
+# step names but still builds from costs the developer exactly what a branch it never names does.
+refused=("is refused" "are refused" "refuses" "refused and stops" "stops the run"
+  "Nothing is built" "nothing is built" "builds nothing")
+
+# A fork that comes back with a line of prose and no path at all hands the session nothing to check.
+# A step whose only branch is a hash comparison has no word for that return, and the run walks on to
+# a destination nothing wrote, building from a file it never established exists.
+carries_each "the step refuses a return that names no Plan at all" \
+  "names no Plan" "a return that names no" "returns no path" "no path at all" \
+  "no path comes back" "carries no path" "hands back no path" "comes back with no path" \
+  "without a path" "returns nothing" "names no file" "no Plan path" \
+  -- "${refused[@]}"
+
+# The destination is the run's own, and every step below the grounding opens that path and no other.
+# A return naming a different one is a Plan sitting somewhere the run never looks: the Plan it does
+# open is whatever was already at the destination, an older cut of this Ticket or nothing at all, and
+# a check that reads `## Sources` at the returned path rather than at the destination it named would
+# hash a file the build never touches.
+carries_each "the step refuses a returned path that is not the destination the run named" \
+  "a path other than" "any path but the one" "differs from the destination" \
+  "differs from the path it named" "not the path it named" "is not the destination" \
+  "another path" "a different path" "a path the run did not name" "some other path" \
+  -- "${refused[@]}"
+
+# A hash says what a document held, never which document it was. plan.md fixes each `## Sources`
+# line as `<name>: <absolute path> <hash>`, so a comparison that reads the hashes alone passes a
+# Plan whose two names are swapped, cut with the Digest read as the Ticket, and one whose paths
+# point into another checkout: both carry the two values the door computed and neither is the
+# grounding the door hashed.
+carries_each "the step matches each \`## Sources\` record on its name and its path as well as its hash" \
+  "name, path and hash" "the name, the path and the hash" "its name, its path and its hash" \
+  "name and path" "the path and the hash" "names and paths" "record whole" "whole record" \
+  "each record whole" \
+  -- "${refused[@]}"
+
+# Two records is what the format fixes, one per document, and the count is its own check. A section
+# carrying the Ticket's record alone, or carrying it twice and no Digest line, satisfies a
+# comparison that only asks whether every line it reads is one the door computed, and the Plan is
+# then vouched for against half of the grounding it claims to be cut from.
+carries_each "the step refuses a \`## Sources\` section that is not exactly the two records, one missing or one repeated included" \
+  "exactly the two records" "exactly two records" "two records and nothing" \
+  "the two records the door" "two complete records" "exactly the two" \
+  -- \
+  "a missing record" "a record missing" "a duplicated record" "a duplicate record" \
+  "the same name twice" "a name twice" "twice" "repeated" "a second line for the same" \
+  "one record missing" \
+  -- "${refused[@]}"
+
 echo "# skills/do/references/ticket.md: the Resume section names the Plan step's real behaviour"
 
 # The Resume section's own Plan bullet, not step 2's: step 2 already says a moved hash re-forks the

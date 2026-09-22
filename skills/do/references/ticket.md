@@ -384,7 +384,24 @@ and no other, and the steps that build on the grounding open that file and read 
 whose `## Sources` lines do not match the two hashes, whether the fork wrote lines of its own or cut
 the Plan from something other than what the door hashed, is refused and stops the run in one line
 naming the mismatch. Nothing is built from that Plan, the Ticket is left as the step found it, and
-the next run forks the Planner again. The Plan's own `## Map` is
+the next run forks the Planner again.
+
+Three more returns reach that check which a comparison of hashes alone would let through, and each
+is refused the same way, in one line with nothing built from it. A return that names no Plan at all,
+a line of prose and no Plan path, hands the session nothing to check, and the destination is not
+opened on the chance something wrote there. A return naming a path other than the destination the
+run named is refused without either file being read: the run named that destination itself and every
+step below the grounding opens it, so a Plan the fork wrote elsewhere is one the build never sees,
+and reading `## Sources` at the returned path would vouch for a file nothing downstream touches.
+And the comparison is over records rather than over two loose values: [plan.md](plan.md) fixes each
+line as `<name>: <absolute path> <hash>`, so each record is matched on its name, its path and its
+hash together, and the section has to be exactly the two records, one for `ticket` and one for
+`digest`. A hash says what a document held and never which document it was, so a Plan whose two
+names are swapped carries both values the door computed while being cut from the Digest read as the
+Ticket, and a section with one record missing, or with one name repeated in place of the other, is
+refused on its count before any value is read.
+
+The Plan's own `## Map` is
 the subsystem as it stood before the diff and goes no further than the loop: the review is never
 handed it, since each reviewer builds its own map after the diff, as the review in
 [mechanics.md](mechanics.md) says.
