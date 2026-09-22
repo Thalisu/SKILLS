@@ -50,6 +50,62 @@ check_absent "no step has the session run the build loop in its own window" 0 0 
   "one behaviour per dispatch" \
   "\`RED_AS_EXPECTED\`"
 
+echo "# skills/do/references/ticket.md: the build step checks the return against the branch"
+
+# The session never reads the Plan and never reads the build: the fork's return lines are the whole
+# of what it knows about the stretch, and they go into the Reply unchanged. A `behaviour:` line the
+# fork invented, or one left over from a stretch it never finished, would tick a criterion nothing
+# built and hand the reviewers a diff the run never looked at. The check is what stands between the
+# two, and it is run against the branch, which is the one thing the fork cannot write a line about.
+resume="$here/../scripts/resume-state.sh"
+expect "the do skill ships the resume probe the check reads the branch through" test -f "$resume"
+
+# The key names come off the probe itself, not out of this file: the step names `commit=`,
+# `behaviour=` and `uncommitted=` to match on, so a rename in the probe has to go red here rather
+# than leave the step matching on a key nothing prints any more.
+resume_keys="$(grep -oE 'echo "[a-z_]+=' "$resume" | sed -E 's/^echo "//' | sort -u)"
+for key in commit behaviour uncommitted; do
+  expect "resume-state.sh prints a \`$key=\` line for the check to match on" \
+    bash -c 'grep -qxF -- "$1=" <<<"$2"' _ "$key" "$resume_keys"
+done
+
+flat="$(item_holding "$playbook" '\*\*[0-9]+\.' "do-builder" | tr '\n' ' ' | tr -s ' ')"
+expect "a step of the Playbook hands the build to the fork, to read its check off" test -n "$flat"
+
+# The verdict decides everything that follows, and it is read off the one line the contract fixes it
+# on. A step that went looking for it anywhere else routes on whatever prose the fork wrote last.
+carries "the step reads the verdict off the return's first line" "first line"
+carries "the step knows the three verdicts it may read there" \
+  "\`built\`" "\`fork\`" "\`stopped\`"
+
+# The check itself: the probe is run and its pairs are matched against the lines that came back, one
+# for one. Matching loosely (some line matched something) is what lets a truncated return through
+# with a criterion ticked and no commit behind it, so the pairing is the guarantee, not the lookup.
+carries "the step runs the resume probe to read the branch, rather than trusting the return" \
+  "resume-state.sh"
+carries "the step matches the probe's pairs against the lines the fork returned" \
+  "commit=" "behaviour=" "behaviour:"
+carries_any "the match is one returned line per commit on the branch, not a loose lookup" \
+  "one for one" "one-for-one" "one to one" "one-to-one" "line for line" "pair for pair"
+
+# A `built` with work still in the worktree is a stretch the fork left half committed: the lines
+# crossed back naming commits, and what the reviewers would read is not what the fork built.
+carries "the step knows a build leaves nothing uncommitted behind it" "uncommitted="
+carries_any "a \`built\` with uncommitted work left in the worktree does not pass the check" \
+  "is empty" "empty on" "nothing uncommitted" "no \`uncommitted=\`" "no uncommitted"
+
+# The whole point of checking. A return that fails is dropped, and the stretch is picked up from
+# what the probe printed, which is the Resume section's own path: a step that checked and then
+# carried on with the return anyway has bought nothing, and the fabricated line reaches the Reply.
+carries_any "a return that fails either check is dropped instead of carried on with" \
+  "drops the return" "drop the return" "the return is dropped" "discards the return" \
+  "discard the return" "the return is discarded"
+carries_any "the stretch is picked up from what the probe printed, the Resume section's own path" \
+  "picks the stretch up from" "pick the stretch up from" "picks up the stretch from" \
+  "picks the stretch back up from"
+carries_any "the fallback is the Resume section's path, not a route invented here" \
+  "the Resume section" "Resume section's own path" "the Resume section's path"
+
 echo "# skills/do/agents/do-builder.md: the session forks the Builder, and nobody else does"
 
 # Who forks the Builder decides how deep a test author it dispatches sits. Forked by the session,
