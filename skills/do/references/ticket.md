@@ -380,38 +380,63 @@ or the agent, since the developer cannot hand one over mid-run and the grounding
 needs, not the window it was read in. It never forks another agent in the Planner's place: a fork
 under any other name could still write where `do-planner`'s own definition binds it not to.
 
-What comes back is the Plan's path and one line for each thing that fell back, and never the Plan's
-text. The session never reads the Plan back: it checks that the file is at the path it named and
-that the file's `## Sources` lines are the two hashes it computed before the fork, those two lines
-and no other, and the steps that build on the grounding open that file and read it there. A Plan
-whose `## Sources` lines do not match the two hashes, whether the fork wrote lines of its own or cut
-the Plan from something other than what the door hashed, is refused and stops the run in one line
-naming the mismatch. Nothing is built from that Plan, the Ticket is left as the step found it, and
-the next run forks the Planner again.
+What comes back is the Plan's path and one line for each thing that fell back, and never
+the Plan's text. The session never reads the Plan back, and the `## Sources` check runs as a
+fixed command precisely for that reason, the way the destination check above it does, so the
+section it reads never crosses into the session's own window: it folds the two records the door
+computed, a document the door found absent among them, into the shape below, and prints one word,
+`match` or `refused`, and never a line of the file.
 
-Three more returns reach that check which a comparison of hashes alone would let through, and each
-is refused the same way, in one line with nothing built from it. A return that names no Plan at all,
-a line of prose and no Plan path, hands the session nothing to check, and the destination is not
-opened on the chance something wrote there. A return naming a path other than the destination the
-run named is refused without either file being read: the run named that destination itself and every
-step below the grounding opens it, so a Plan the fork wrote elsewhere is one the build never sees,
-and reading `## Sources` at the returned path would vouch for a file nothing downstream touches.
-And the comparison is over records rather than over two loose values: [plan.md](plan.md) fixes each
-line as `<name>: <absolute path> <hash>`, so each record is matched on its name, its path and its
-hash together, and the section has to be exactly the two records, one for `ticket` and one for
-`digest`. A hash says what a document held and never which document it was, so a Plan whose two
-names are swapped carries both values the door computed while being cut from the Digest read as the
-Ticket, and a section with one record missing, or with one name repeated in place of the other, is
-refused on its count before any value is read.
+**The `## Sources` check.**
+
+```sh
+ticket="ticket: absent"; [ "<the Ticket's hash>" != absent ] &&
+  ticket="ticket: <the Ticket's path> <the Ticket's hash>"
+digest="digest: absent"; [ "<the Digest's hash>" != absent ] &&
+  digest="digest: <the Digest's path> <the Digest's hash>"
+awk -v t="$ticket" -v d="$digest" '
+  /^## Sources$/ { s = 1; next }
+  s && /^## /    { s = 0 }
+  s && NF        { n++; if ($0 == t) ok_t = 1; if ($0 == d) ok_d = 1 }
+  END            { print (n == 2 && ok_t && ok_d) ? "match" : "refused" }
+' <the destination>
+```
+
+`match` is what the run needs before the steps that build on the grounding open the Plan
+and read it there. `refused` is what a Plan whose `## Sources` lines do not match the two
+hashes gets, whether the fork wrote lines of its own, cut the Plan from something other than
+what the door hashed, or the section carries lines past the two records, a stranger's text in
+the Ticket or the Digest steered the fork into copying included: it stops the run in one line
+naming the mismatch. Nothing is built from that Plan, the Ticket is left as the step found it,
+and the next run forks the Planner again.
+
+Two more returns reach that command before it ever runs, and each is refused the same way,
+in one line with nothing built from it. A return that names no Plan at all, a line of prose
+and no Plan path, hands the session nothing to check, and the destination is not opened on the
+chance something wrote there. A return naming a path other than the destination the run named
+is refused without either file being read: the run named that destination itself and every step
+below the grounding opens it, so a Plan the fork wrote elsewhere is one the build never sees,
+and running the command at the returned path would vouch for a file nothing downstream touches.
+
+The command's own comparison is over records rather than over two loose values: [plan.md](plan.md)
+fixes each line as `<name>: <absolute path> <hash>`, so `ticket` and `digest` are each built
+as the whole record, name, path and hash together, and `n == 2` refuses a section that is
+not exactly the two records, one record missing, one name repeated in place of the other,
+or a third line appended past them, before any value inside it is trusted. A hash says what a
+document held and never which document it was, so the literal-line match, never the hash alone,
+is what catches a Plan whose two names are swapped, carrying both values the door computed
+while being cut from the Digest read as the Ticket.
 
 A record of `<name>: absent` carries no path and no hash for that match to compare, the shape
-step 1's own hashing writes for a document not on disk, an issue-backed Ticket among them, so the
-match needs its own form for it rather than refusing the one Plan a `ticket: absent` run was ever
-going to get. [mechanics.md](mechanics.md)'s reader section already fixes that form for the Digest,
-and the run reuses it here rather than restating a subset of it: a record of `absent` is a match on
-its name alone against a document the door's own reading also found absent, since nothing about it
-moved, while a record that appeared where the door's own reading is `absent`, or one that vanished
-where the door's own reading carries a path and a hash, is not a match and is refused the same way.
+step 1's own hashing writes for a document not on disk, an issue-backed Ticket among them,
+so `ticket` and `digest` are each built with their own form for it rather than refusing the
+one Plan a `ticket: absent` run was ever going to get. [mechanics.md](mechanics.md)'s reader
+section already fixes that form for the Digest, and the command reuses it here rather than
+restating a subset of it: `ticket: absent` is a match on its name alone against a document
+the door's own reading also found absent, since nothing about it moved, while a record that
+appeared where the door's own reading is `absent`, or one that vanished where the door's own
+reading carries a path and a hash, builds a line the file's own `## Sources` section can never
+equal, so it is not a match and is refused the same way.
 
 The Plan's own `## Map` is
 the subsystem as it stood before the diff and goes no further than the loop: the review is never
