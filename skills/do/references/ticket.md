@@ -401,6 +401,15 @@ names are swapped carries both values the door computed while being cut from the
 Ticket, and a section with one record missing, or with one name repeated in place of the other, is
 refused on its count before any value is read.
 
+A record of `<name>: absent` carries no path and no hash for that match to compare, the shape
+step 1's own hashing writes for a document not on disk, an issue-backed Ticket among them, so the
+match needs its own form for it rather than refusing the one Plan a `ticket: absent` run was ever
+going to get. [mechanics.md](mechanics.md)'s reader section already fixes that form for the Digest,
+and the run reuses it here rather than restating a subset of it: a record of `absent` is a match on
+its name alone against a document the door's own reading also found absent, since nothing about it
+moved, while a record that appeared where the door's own reading is `absent`, or one that vanished
+where the door's own reading carries a path and a hash, is not a match and is refused the same way.
+
 The Plan's own `## Map` is
 the subsystem as it stood before the diff and goes no further than the loop: the review is never
 handed it, since each reviewer builds its own map after the diff, as the review in

@@ -356,6 +356,26 @@ carries_each "the step matches each \`## Sources\` record on its name and its pa
   "each record whole" \
   -- "${refused[@]}"
 
+# An issue-backed Ticket is not a local file, so step 1's own hashing a few lines up records
+# `absent` for it, and plan.md has the fork copy that record whole as `ticket: absent`. An `absent`
+# record carries no path and no hash for the name-path-hash match above to compare against, so
+# without its own form the match above refuses a Plan cut from exactly the Ticket it was asked to
+# cut from. mechanics.md's reader section already fixes that form for the Digest, and this step
+# reuses it rather than restating a subset of it.
+carries "the step reuses mechanics.md's rule for an \`absent\` record rather than restating it" \
+  "mechanics.md"
+
+carries_each "the step accepts a \`## Sources\` record of \`absent\` matched on its name alone" \
+  "absent" \
+  -- \
+  "on its name alone" "name alone" "nothing about it moved" "still not on disk" "is a match"
+
+carries_each "the step refuses a record that appeared or vanished against the door's own reading" \
+  "appeared" \
+  -- \
+  "vanished" "is gone" "no longer on disk" \
+  -- "${refused[@]}"
+
 # Two records is what the format fixes, one per document, and the count is its own check. A section
 # carrying the Ticket's record alone, or carrying it twice and no Digest line, satisfies a
 # comparison that only asks whether every line it reads is one the door computed, and the Plan is
