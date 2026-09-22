@@ -77,9 +77,26 @@ git clone https://github.com/Thalisu/SKILLS.git ~/SKILLS
 bash ~/SKILLS/scripts/link-skills.sh
 ```
 
-The script installs every skill in the tables above, vendored ones included, into `~/.claude/skills`
-for Claude Code and `~/.agents/skills` for Codex and other Agent Skills harnesses. It also links
-every agent the skills fork into `~/.claude/agents`:
+The script asks you to choose `claude` or `codex`. To select the destination without a prompt:
+
+```bash
+bash ~/SKILLS/scripts/link-skills.sh codex
+bash ~/SKILLS/scripts/link-skills.sh claude
+```
+
+Both choices install every skill in the tables above, vendored ones included.
+
+| Choice | Installation |
+| --- | --- |
+| `codex` | Links skills into `~/.agents/skills`, the [Codex user skills directory](https://learn.chatgpt.com/docs/build-skills). Leaves Claude configuration untouched. |
+| `claude` | Links skills into `~/.agents/skills` and exposes them through `~/.claude/skills`. Also links agent definitions into `~/.claude/agents`. |
+
+The shared skill directory means skills installed for Claude are also visible to Codex.
+The Codex option installs skills and their bundled resources; it does not register the Claude
+agent definitions as Codex custom agents. Run the script for each destination to maintain both.
+An invalid choice or missing input exits without installing anything.
+
+The Claude installation includes these agents:
 
 | Skill            | Agents                                                                                    |
 | ---------------- | ----------------------------------------------------------------------------------------- |

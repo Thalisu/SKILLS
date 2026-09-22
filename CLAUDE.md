@@ -81,12 +81,13 @@ skill, and says in one line what it does when the skill is absent, since a machi
 
 ## Installing skills locally
 
-`scripts/link-skills.sh` (re)links every skill under `skills/` and `vendor/` into the local harness
-skill directories, `~/.claude/skills` and `~/.agents/skills`, links every `AGENT.md` a skill ships
-into `~/.claude/agents` under the agent's own name and every markdown definition in the skill's
-`agents/` folder under its file name, and prunes the links into this repo whose skill or definition
-is gone. Each entry is a symlink
-into this repo, in the same layout `discover-setup` installs, so a `git pull` keeps installed skills
+`scripts/link-skills.sh` asks for `claude` or `codex`, or accepts that choice as its argument.
+Both choices (re)link every skill under `skills/` and `vendor/` into `~/.agents/skills`.
+The Claude choice also links skills into `~/.claude/skills`, every `AGENT.md` a skill ships into
+`~/.claude/agents` under the agent's own name and every markdown definition in the skill's
+`agents/` folder under its file name. Each choice prunes stale repo links in its destinations;
+the Codex choice leaves Claude configuration untouched and does not register custom agents.
+Each entry is a symlink into this repo, in the same layout `discover-setup` installs, so a `git pull` keeps installed skills
 current. Re-run the script after adding, removing or renaming a skill. It is the supported
 installer: the README's Install section is a clone and one run of it, so a skill or an agent
 definition it does not pick up is not installed at all. `scripts/tests/link-skills.sh` runs it
