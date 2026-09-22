@@ -187,6 +187,22 @@ hook_out="$(printf '{"tool_input": {"file_path": "%s"}}' "$issue_path" | sh -c "
 expect "the issue-keyed Plan path plan.md documents is one the Planner's own hook lets it write" \
   bash -c '! grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$hook_out"
 
+# The `*.plan.md)` arm only lets a write through when nothing sits there yet: the two other branches
+# of the same arm, an already-written Plan at that exact path and a path that never carries the
+# `.plan.md` suffix at all, both hit a `printf` and both come back with the deny key set.
+hook_tmp="$(mktemp -d)"
+existing_plan="$hook_tmp/existing.plan.md"
+: >"$existing_plan"
+existing_hook_out="$(printf '{"tool_input": {"file_path": "%s"}}' "$existing_plan" | sh -c "$hook_cmd" 2>/dev/null)"
+expect "the hook denies a write at a \`.plan.md\` path a Plan already sits at" \
+  bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$existing_hook_out"
+
+wrong_path=".scratch/plans/42.md"
+wrong_hook_out="$(printf '{"tool_input": {"file_path": "%s"}}' "$wrong_path" | sh -c "$hook_cmd" 2>/dev/null)"
+expect "the hook denies a write at a path that never carries the \`.plan.md\` suffix" \
+  bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$wrong_hook_out"
+rm -rf "$hook_tmp"
+
 # The run that cannot fork the Planner, per ADR 0047. Each guarantee below can be phrased several
 # ways and the cases pin more than one of them at a time, so the group of phrasings that found
 # nothing is what a failure names. Same accept-list idea as carries_any, one case over several
