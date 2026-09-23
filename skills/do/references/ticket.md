@@ -417,8 +417,8 @@ or the agent, since the developer cannot hand one over mid-run and the grounding
 needs, not the window it was read in. It never forks another agent in the Planner's place: a fork
 under any other name could still write where `do-planner`'s own definition binds it not to.
 When the same branch leaves no Builder to fork at step 3 either, the Agent tool withheld or neither
-agent listed, the one line is `Forks: none` and it stands for both forks: the session did the
-Planner's and the Builder's work itself, the Agent tool withheld, or neither agent listed, which
+agent listed, the one line is `Planner/Builder: none` and it stands for both forks: the session did
+the Planner's and the Builder's work itself, the Agent tool withheld, or neither agent listed, which
 one run of `scripts/link-skills.sh` links before the next `/do`. The run neither stops nor asks
 here either, and goes on to the build, the gate, the review and the close. A machine that lists
 only one of the two keeps the per-fork line of the one that fell back.
@@ -627,8 +627,8 @@ The session also authors the flows itself, in the same window, per [builder.md](
 `## The flows`: one for each criterion the Digest's `## Observable criteria` section names, a
 criterion the section leaves out states why no flow is needed, and a criterion it names with no
 flow authored stops the step with that reason, the way it would stop the Builder's own fork.
-On a run whose Plan step recorded `Forks: none`, this fallback adds no second line: that one line
-already said the session did the Builder's work too.
+On a run whose Plan step recorded `Planner/Builder: none`, this fallback adds no second line: that
+one line already said the session did the Builder's work too.
 
 Done when the return's `behaviour:` lines each carry a commit and match what `resume-state.sh`
 prints, or the run took one of the two routes above that end it, and the build lines are recorded
