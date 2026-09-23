@@ -222,7 +222,10 @@ first run does.
 
 ## Delegates
 
-The session writes the production code and commits. A delegate is forked by exception, per
+In a `bug-fix` or a `refactoring` run the session writes the production code and commits; in a
+`ticket` run the Builder does, per
+[ADR 0047](../../../docs/adr/0047-the-ticket-run-forks-a-planner-then-a-builder-and-the-session-stops-writing-code.md).
+A delegate is forked by exception, per
 [the ADR](../../../docs/adr/0009-the-session-writes-a-delegate-is-the-exception-and-no-playbook-depends-on-nesting-depth.md):
 for bulk mechanical work with a closed scope, after a script was considered per
 [build-the-lever](../../../.agents/principles/build-the-lever.md), or for exploration whose

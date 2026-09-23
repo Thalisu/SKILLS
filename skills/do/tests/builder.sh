@@ -12,6 +12,9 @@
 # The third is the Design fork the build step meets now that the step is a fork's window:
 # references/forks.md has to carry the Builder's half of it, the way it already carries the
 # Planner's.
+# The fourth is the shared mechanics all three Playbooks read: `## Delegates` carries ADR 0009's
+# one-writer rule, which ADR 0047 supersedes for `ticket` alone, so the rule has to name the runs
+# it is about rather than stand over every one of them.
 # Run: bash skills/do/tests/builder.sh
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
@@ -22,6 +25,7 @@ contract="$here/../references/builder.md"
 planner="$here/../agents/do-planner.md"
 reply="$here/../references/reply.md"
 forks="$here/../references/forks.md"
+mechanics="$here/../references/mechanics.md"
 fails=0
 
 echo "# skills/do/references/ticket.md: the build step forks the Builder and the session stops building"
@@ -624,5 +628,40 @@ carries_each "the stop keeps its blocked shape and its \`<Ticket>.extreme.md\` s
   "the Builder writes neither" "the Builder rules on none" "the Builder never writes" \
   "the Builder's own write guard" "the session, never the Builder" \
   -- "a blocked run, written by the blocked shape" "the blocked shape of" "blocked shape"
+
+echo "# skills/do/references/mechanics.md: the one-writer rule names the runs it still holds for"
+
+# mechanics.md is the file `ticket`, `bug-fix` and `refactoring` all read, and its `## Delegates`
+# section is where ADR 0009's rule that the session writes the production code is written down for
+# all three. ADR 0047 supersedes it for `ticket` alone, whose build step forks the Builder, so a
+# section that states the rule flat contradicts the Playbook that links it, and the next change
+# made from it puts the session back in the writer's seat for a `ticket` run: the loop paid for
+# twice and a window that grows with the Ticket again, the one cost the fork exists to remove.
+flat="$(flat_section "$mechanics" "## Delegates")"
+expect "mechanics.md carries the \`## Delegates\` section" test -n "$flat"
+
+# Read sentence by sentence, since the reader acts on the sentence that says who writes the code,
+# not on the section as a whole: one that names no run at all is read by a `ticket` run as its own.
+# The accepted names are the two Playbooks the rule still holds for and the `ticket` run it no
+# longer does, however that run is named (the Playbook, the fork, or the ADR that moved it).
+unscoped=""
+while IFS= read -r sentence; do
+  [ -n "$sentence" ] || continue
+  named=""
+  for key in "bug-fix" "refactoring" "ticket" "Builder" "builder" "0047"; do
+    grep -qF -- "$key" <<<"$sentence" && named=yes
+  done
+  [ -n "$named" ] || unscoped="$sentence"
+done < <(awk 'BEGIN { RS = "\\. " } /production code/ { print }' <<<"$flat")
+if [ -z "$unscoped" ]; then
+  ok "no sentence of \`## Delegates\` leaves the session writing the production code in a \`ticket\` run"
+else
+  fail "\`## Delegates\` states the one-writer rule over every Playbook (\"$unscoped\")"
+fi
+
+# And the rule is scoped, not deleted: `bug-fix` and `refactoring` still build in the session's own
+# window, and a reader of either finds the rule named for its own run.
+carries_each "the rule is kept for the two Playbooks whose session still writes the code" \
+  "bug-fix" -- "refactoring"
 
 exit $((fails > 0))
