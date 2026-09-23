@@ -59,4 +59,47 @@ carries_each "\`header-only\` names the \`## Sources\` check as the whole guard"
   "whole guard" "the only guard" "sole guard" "check alone" "guard alone" "only mechanism" \
   "nothing else guards"
 
+echo "# skills/do/references/reply.md: the Plan line tells the developer which mechanism held"
+
+# ADR 0039: the Reply is the only place a run's lines reach the developer, so the verdict the probe
+# took is lost unless the Run list's Plan line carries it. Found by what it says, inside `## Run`
+# only, the way builder.sh finds the `flow:` home.
+reply="$here/../references/reply.md"
+plan_item="$(item_holding <(passage_of "$reply" "## Run" "## Sections") '[0-9]+\.' "Plan line")"
+expect "the Run list carries a Plan line" test -n "$plan_item"
+# shellcheck disable=SC2034 # lib.sh's carries_each reads $flat
+flat="$(tr '\n' ' ' <<<"$plan_item" | tr -s ' ')"
+
+carries "the Plan line carries a \`Guard:\` line" "Guard:"
+
+# A paraphrase ("hooks were fine") hides which harness ran and whether hooks fired; the probe's own
+# values are what let the developer tell a Codex run from a Claude Code with hooks off.
+carries "the \`Guard:\` line quotes the probe's values, not a paraphrase" \
+  "guard=" "harness=" "hooks="
+
+# A run that forked nobody had nothing guarded; one that forked must say what held.
+carries_any "the \`Guard:\` line is written whenever a fork ran" \
+  "whenever a fork ran" "when a fork ran" "a fork ran" "any fork ran" "when the run forked" \
+  "whenever the run forked" "forked the Planner or the Builder" "forked either agent" \
+  "when either agent was forked" "on a run that forked"
+
+# On a hookless harness the header check is everything standing between the forks and a rewritten
+# grounding; a developer who reads anything else assumes a hook that never ran.
+carries_each "\`header-only\` reads as the header check being the whole guard" \
+  "header-only" \
+  -- \
+  "header check" "## Sources" \
+  -- \
+  "whole guard" "the only guard" "sole guard" "check alone" "guard alone" "only mechanism" \
+  "nothing else guards"
+
+carries_each "\`pattern-and-header\` reads as the pattern guard beside the header check" \
+  "pattern-and-header" \
+  -- \
+  "pattern guard" "pattern guards" \
+  -- \
+  "beside the header check" "alongside the header check" "with the header check" \
+  "and the header check" "on top of the header check" "plus the header check" \
+  "beside the \`## Sources\` check" "and the \`## Sources\` check"
+
 [ "$fails" = 0 ]
