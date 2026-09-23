@@ -345,13 +345,16 @@ policy_section_fixture() { # $1 project dir, $2 surface, $3 grep -v pattern (emp
     sed -E 's/\{\{[^}]*\}\}/filled/g' >"$1/CLAUDE.md"
 }
 # Every other piece the verifier folds into its exit code, so the exit code a case reads is the one the
-# policy section alone decides: a fixture missing a piece exits 1 whatever the section holds.
+# policy section alone decides: a fixture missing a piece exits 1 whatever the section holds. Each agent
+# carries an author's tier, since an install without one is incomplete.
 policy_pieces_fixture() { # $1 project dir, $2.. the agents to install (unit, e2e); the test-author skill and both scripts always
   local p="$1" scripts kind
   shift
   scripts="$(policy_scripts)"
   mkdir -p "$p/.claude/agents" "$p/.claude/skills/test-author" "$p/.claude/testing-policy"
-  for kind in "$@"; do bash "$scripts/render-agent.sh" "$kind" >"$p/.claude/agents/$kind-test-author.md"; done
+  for kind in "$@"; do
+    bash "$scripts/render-agent.sh" "$kind" --model opus --effort medium >"$p/.claude/agents/$kind-test-author.md"
+  done
   bash "$scripts/render-agent.sh" test-author >"$p/.claude/skills/test-author/SKILL.md"
   cp "$scripts/scan-test-assets.sh" "$scripts/skip-patterns.sh" "$p/.claude/testing-policy/"
 }

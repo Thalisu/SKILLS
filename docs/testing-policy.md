@@ -127,6 +127,22 @@ consolidates it first. The scan counts the type assertions in the test files the
 line per file with a count, and the install reports that debt beside the others and rewrites no
 test file: it is paid by the next author who touches the file.
 
+## The author tier
+
+Each author the install writes runs on a model and an effort the project picks, written into the
+agent's frontmatter as `model:` and `effort:`. The install asks once per author, with three
+options: a Recommended pair derived from the counts discovery measured (`opus · medium` for the
+unit author, `opus · high` for the E2E author, one effort step up where the shared homes carry
+debt or the flows depend on stateful services), `sonnet · high` as the cheaper pair, and
+`inherit`, which runs the author on the session's model and effort. A free-text answer is taken
+only when both values are ones Claude Code accepts. The Recommended model is the stronger one
+because the author also plans the test and diagnoses its own misses, and a wrong test is paid twice
+under red-first; the effort is where the dispatch volume is paid down
+([ADR 0052](adr/0052-the-test-authors-carry-the-model-and-effort-the-project-picked-at-install.md)).
+
+The frontmatter is preserved on refresh, so the pick sticks. An agent installed before the tier
+existed reads `agent_unit_tier=missing` in the verify output, and the next run asks it.
+
 ## Modes
 
 The verify script detects the project's state, and the state picks the mode:
@@ -196,6 +212,8 @@ captured ever enters this skill's own directory.
 - Every path and command in an agent's Project map exists in this repo and runs.
 - With the hook installed, an edit that adds `.skip` or `.only` to a test file is blocked, and an
   edit that removes one passes.
+- Each installed author's frontmatter carries the `model:` the project picked, and the verify
+  script prints `agent_unit_tier=ok` (and `agent_e2e_tier=ok` on native and mixed).
 - The unit map's **Partial test data** line and the verify script's `partial_data_helper=` agree. A
   disagreement is a project that dropped the package while its map still names the helper.
 

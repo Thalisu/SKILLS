@@ -13,6 +13,8 @@
 #   policy_facts_missing=<Project-facts labels of the template absent from the section>
 #   agent_unit=missing|unmarked|stale|drifted|ok    agent_e2e=same values|n/a (consumer or unit surface)
 #   agent_<unit|e2e>_map_missing=<Project-map labels of the template absent from the installed agent>
+#   agent_<unit|e2e>_tier=missing|invalid|ok  the model and effort in the agent's frontmatter; missing
+#     is an agent the tier question never reached
 #   skill_test_author=missing|stale|ok   scan_script=missing|ok   skip_patterns=missing|ok
 #   hook=missing|script-only|wired|wired-missing   gitignored=none|<paths>
 #   capture_legacy=<path>                    a gitignored capture folder left by an earlier install
@@ -97,6 +99,15 @@ map_missing() {
   [ ${#missing[@]} -gt 0 ] && printf '%s' "$(IFS=,; echo "${missing[*]}")"
   return 0
 }
+# The renderer owns the list of values the harness accepts, so the tier is checked by rendering it.
+tier_state() {
+  local f="$1" kind="$2" header model effort
+  header="$(awk 'NR == 1 && $0 != "---" { exit } NR > 1 && $0 == "---" { exit } NR > 1' "$f")"
+  grep -q '^model:' <<<"$header" || { echo missing; return; }
+  model="$(sed -n 's/^model: *//p' <<<"$header" | head -1)"
+  effort="$(sed -n 's/^effort: *//p' <<<"$header" | head -1)"
+  bash "$here/render-agent.sh" "$kind" --model "$model" --effort "$effort" >/dev/null 2>&1 && echo ok || echo invalid
+}
 skill_state() {
   local f="$1" v
   [ -f "$f" ] || { echo missing; return; }
@@ -106,9 +117,15 @@ skill_state() {
 pieces_ok=1
 au="$(agent_state "$project/.claude/agents/unit-test-author.md" unit)"; echo "agent_unit=$au"; [ "$au" = ok ] || pieces_ok=0
 mm="$(map_missing "$project/.claude/agents/unit-test-author.md" unit)"; [ -z "$mm" ] || { echo "agent_unit_map_missing=$mm"; pieces_ok=0; }
+if [ -f "$project/.claude/agents/unit-test-author.md" ]; then
+  tu="$(tier_state "$project/.claude/agents/unit-test-author.md" unit)"; echo "agent_unit_tier=$tu"; [ "$tu" = ok ] || pieces_ok=0
+fi
 if [ "$surface" = consumer ] || [ "$surface" = unit ]; then echo "agent_e2e=n/a"; else
   ae="$(agent_state "$project/.claude/agents/e2e-test-author.md" e2e)"; echo "agent_e2e=$ae"; [ "$ae" = ok ] || pieces_ok=0
   mm="$(map_missing "$project/.claude/agents/e2e-test-author.md" e2e)"; [ -z "$mm" ] || { echo "agent_e2e_map_missing=$mm"; pieces_ok=0; }
+  if [ -f "$project/.claude/agents/e2e-test-author.md" ]; then
+    te="$(tier_state "$project/.claude/agents/e2e-test-author.md" e2e)"; echo "agent_e2e_tier=$te"; [ "$te" = ok ] || pieces_ok=0
+  fi
 fi
 st="$(skill_state "$project/.claude/skills/test-author/SKILL.md")"; echo "skill_test_author=$st"; [ "$st" = ok ] || pieces_ok=0
 [ -f "$project/.claude/testing-policy/scan-test-assets.sh" ] && echo "scan_script=ok" || { echo "scan_script=missing"; pieces_ok=0; }
