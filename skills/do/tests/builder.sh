@@ -115,6 +115,37 @@ carries_any "the stretch is picked up from what the probe printed, the Resume se
 carries_any "the fallback is the Resume section's path, not a route invented here" \
   "the Resume section" "Resume section's own path" "the Resume section's path"
 
+# The other half of what the return has to be checked against: the Plan the fork was handed. The
+# door verified its `## Sources` section by hash before the fork, and the session never reads the
+# Plan back after that, so today nothing reads that grounding again once a fork that held a shell
+# in the worktree has run. The Builder's Bash guard denies the obvious route, and a guard is one
+# layer: a Plan rewritten while the fork held the tree is routed on as if the door still vouched
+# for it, its `behaviour:` lines are copied into the Reply, and the run builds, gates and lands on
+# grounding nobody checked. The check is the file's own, run once more here with the two records
+# the door computed, and it has to come before the route, since routing on `built` is what copies
+# those lines out.
+carries "the step reads the Plan's grounding once more, through the file's own \`## Sources\` check" \
+  "## Sources"
+
+sources_at="$(first_at "## Sources")"
+route_at="$(first_at "Route on the first line")"
+expect "the grounding is read again before the return is routed on, never after" \
+  test "$sources_at" -gt 0 -a "$route_at" -gt "$sources_at"
+
+# Read from the re-check to the route, so the return check above it and the routes below it cannot
+# answer for what this one does.
+step="$flat"
+flat="${step:$((sources_at > 0 ? sources_at - 1 : ${#step})):$((route_at > sources_at ? route_at - sources_at : 0))}"
+carries_any "the re-check is the door's own two records, not a reading the session composes here" \
+  "the same two hashes" "the same hashes" "the two hashes the door" "the hashes the door" \
+  "the door's own hashes" "the door's two hashes" "the same two records" "the two records the door" \
+  "the door's own two records" "the same records"
+carries "the step knows the word the check prints on a Plan that no longer matches" "refused"
+carries_any "a \`refused\` there is a return the step drops instead of routing on" \
+  "drops the return" "drop the return" "the return is dropped" "is dropped" "dropped" \
+  "discards the return" "discard the return" "the return is discarded" "discarded"
+flat="$step"
+
 # The resume path itself: a resumed run with behaviours left unbuilt has to fork the Builder at the
 # first one with no commit, the same fork step 3 already runs on a first pass, never run the build
 # loop and author the flows in the session's own window, which is exactly what the pre-fix wording
@@ -401,6 +432,44 @@ for blind in "Write $builder_write_hook" "Edit $builder_edit_hook"; do
     bash -c '{ [ "$1" -ne 0 ] && [ -n "$2" ]; } || grep -qF "\"permissionDecision\": \"deny\"" <<<"$3"' \
     _ "$blind_rc" "$blind_err" "$blind_out"
 done
+
+echo "# skills/do/agents/do-builder.md: a Bash-matcher PreToolUse hook scopes the building agent's shell the same way"
+
+# The Builder's Bash tool runs the build loop's tests and commits, and it is the same shell that
+# could rewrite the Plan, the Digest or anything under .scratch/ with a redirect ("printf x >
+# <ticket>.plan.md"), which the Write|Edit guard above denies for the Write and Edit tools alone.
+# The Plan was verified by hash before the fork started and the Digest is what that hash was
+# computed over, so a Bash write here rewrites the grounding the door already vouched for with the
+# session none the wiser: a stranger's text reaches this fork through the Ticket, the Digest and
+# the Plan's Criteria, and a shell command is the one route the Write|Edit guard never covers.
+builder_bash_hook="$(hook_command "$agent" Bash)"
+expect "a PreToolUse hook scopes the building agent's Bash" test -n "$builder_bash_hook"
+
+for artifact in ".scratch/features/02-export/02-export.md" \
+  "/home/dev/proj/.claude/worktrees/do-export/.scratch/probes/build.log" \
+  "docs/02-export.plan.md" "src/export/02-export.digest.md"; do
+  bash_artifact_out="$(printf '{"tool_input": {"command": "printf x > %s"}}' "$artifact" |
+    sh -c "$builder_bash_hook" 2>/dev/null)"
+  expect "the hook denies the Builder's Bash writing $artifact, an artifact the session owns" \
+    bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$bash_artifact_out"
+done
+
+# The other half: a Bash command that runs a test or a build step against the source the Ticket's
+# behaviours change is what the loop exists to run, and a guard that denied it would leave the
+# Builder unable to turn any test green, which is the same dead loop as a missing Bash tool.
+bash_source_out="$(printf '{"tool_input": {"command": "%s"}}' "npm test src/export/notes.ts" |
+  sh -c "$builder_bash_hook" 2>/dev/null)"
+expect "the hook lets the Builder's Bash through on a command that targets none of those paths" \
+  bash -c '! grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$bash_source_out"
+
+# A machine with no jq: the same fail-closed guarantee the Write|Edit guard above already holds.
+bash_blind_rc=0
+bash_blind_out="$(printf '{"tool_input": {"command": "%s"}}' "npm test src/export/notes.ts" |
+  PATH="$no_jq_dir" sh -c "$builder_bash_hook" 2>"$no_jq_dir/.err")" || bash_blind_rc=$?
+bash_blind_err="$(cat "$no_jq_dir/.err" 2>/dev/null)"
+expect "the hook on the Builder's Bash fails closed when jq is absent from PATH, instead of exiting 0 silently" \
+  bash -c '{ [ "$1" -ne 0 ] && [ -n "$2" ]; } || grep -qF "\"permissionDecision\": \"deny\"" <<<"$3"' \
+  _ "$bash_blind_rc" "$bash_blind_err" "$bash_blind_out"
 
 blind_agent_rc=0
 blind_agent_out="$(printf '{"tool_input": {"subagent_type": "unit-test-author"}}' |

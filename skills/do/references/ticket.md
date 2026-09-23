@@ -507,6 +507,17 @@ refused to read the branch would drop every `built` return an issue-backed run e
 drops the return, picks the stretch up from what `resume-state.sh` just printed, which is the
 Resume section's own path, and records the fallback line for the Reply's Run section.
 
+Before the route below is taken, the Plan is read once more: the `## Sources` check above runs a
+second time at the destination step 1 named, over the same two hashes the door computed there, and
+prints `match` or `refused` with no line of the file crossing into this window. The Plan was
+verified before the fork and never read back after it, so this is the run's one reading of the
+grounding a fork holding a shell in the worktree could have rewritten, and the `Bash` matcher on
+the Builder's own write guard is the layer above this reading, never a reason to skip it. On
+`refused` the return is dropped whatever wrote the mismatch, nothing it names is reported or
+landed, and the run stops as blocked in one line naming the mismatch, the worktree and its branch,
+the way step 1 stops on the same word: the next run grounds the Ticket again rather than building
+on a Plan the door no longer vouches for.
+
 Route on the first line:
 
 - `built`: the stretch is done. The `behaviour:` lines are the Reply's Behaviours list and the
