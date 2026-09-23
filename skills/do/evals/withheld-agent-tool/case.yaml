@@ -8,8 +8,10 @@ context:
   scaffold_script: |
     #!/usr/bin/env bash
     # The Agent tool is withheld from the whole session, the nearest a case can get to withholding it
-    # from a delegate: no test author can be dispatched, no delegate and no `sketch` forked, so the run
-    # applies the inline test-author skill, writes the Sketch itself, and its own commits carry the work.
+    # from a delegate: no reader, no Planner, no Builder, no test author and no `sketch` can be forked,
+    # so the session writes the Digest and the Plan with its Sketch itself, says so once on a
+    # `Forks: none` line, runs the build loop with the inline test-author skill, and its own commits
+    # carry the work.
     set -e
     mkdir -p src docs/agents .scratch/archive-notes/issues .claude/agents .claude/skills/test-author
     cat > package.json <<'JSON'
