@@ -115,6 +115,34 @@ carries_any "the stretch is picked up from what the probe printed, the Resume se
 carries_any "the fallback is the Resume section's path, not a route invented here" \
   "the Resume section" "Resume section's own path" "the Resume section's path"
 
+# The resume path itself: a resumed run with behaviours left unbuilt has to fork the Builder at the
+# first one with no commit, the same fork step 3 already runs on a first pass, never run the build
+# loop and author the flows in the session's own window, which is exactly what the pre-fix wording
+# had it do and what criterion 3 of the governing Ticket exists to prevent (the run reads the
+# Builder's diff and gates before the review, so nothing reaches the reviewers the run never checked).
+flat="$(flat_section "$playbook" "## Resume")"
+expect "the Playbook carries a \`## Resume\` section to scope this check against" test -n "$flat"
+
+carries_any "a resumed run with unbuilt behaviours forks the Builder rather than running the loop itself" \
+  "The Builder is forked" "the Builder is forked"
+
+# shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+out="$flat"
+check_absent "the Resume section no longer has the run build the flows itself before the gate" 0 0 \
+  "the flows, the gate, the review, the close, the reply"
+
+# The branch where every behaviour is already ticked still meets the fork's diff, never a flow it
+# treats as self-authored: it goes on at step 4 the way a first run does, reading the Builder's diff.
+flat="$(flat_section "$playbook" "## Resume")"
+carries_any "the branch where every behaviour is ticked reads the Builder's diff already on the branch" \
+  "reading the diff already on the branch" "reads the diff already on the branch" \
+  "the diff already on the branch"
+
+# shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+out="$flat"
+check_absent "that branch no longer treats a flow already on the branch as self-authored" 0 0 \
+  "a flow already on the branch counting as authored"
+
 echo "# skills/do/scripts/resume-state.sh: an issue-backed Ticket, resolved through the tracker"
 
 # The step above runs the probe on "the Ticket's path", but a Ticket resolved through the tracker

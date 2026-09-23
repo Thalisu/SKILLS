@@ -116,8 +116,8 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   then every line
   whose behaviour a commit body carries is ticked with that commit's sha beside it, and a commit
   whose `Behaviour:` line matches no line of the list is kept and named on the resume line.
-- The loop continues at the first behaviour without a commit, and from there the run is a first
-  run: the flows, the gate, the review, the close, the reply.
+- The Builder is forked at the first behaviour without a commit, per step 3, and from there the
+  run is a first run: the diff, the gate, the review, the close, the reply.
 - On `verdict=land`, the review already read this branch: its Review is the script's `review=`
   line, and the review runs once per run, per
   [ADR 0033](../../../docs/adr/0033-the-review-runs-once-per-run-and-what-comes-after-it-lands-through-the-gate-alone.md),
@@ -126,8 +126,9 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   and the branch lands through the fix call on that Review, as the review in
   [mechanics.md](mechanics.md) says for a branch the review already read.
 - When every line of the list is ticked, as on the branch a `not landed: target moved` right after an integration that ticked as a no-op left,
-  step 3 reads `done: resumed` and the run never waits on an empty loop. It goes on at step 4 as a
-  first run does, a flow already on the branch counting as authored, then the integration with no
+  step 3 reads `done: resumed` and the run never waits on a Builder with nothing left to build. It
+  goes on at step 4 as a first run does, reading the diff already on the branch, its flows counting
+  as authored, then the integration with no
   **Gate** of the run's own, which resolves each contested hunk the review's landing left to the
   **Target** side and writes its **Incoming** side to the Loss ledger beside the Ticket, then the
   landing through the fix call on the Review that return names, never a second review,
