@@ -651,7 +651,7 @@ flow is green or recorded as not run on the developer's no, or the step reads
 
 **9. Close.** The close in [mechanics.md](mechanics.md): the Ticket file in the main checkout
 ticked where the evidence proves it, the evidence appended under `## Evidence` with the
-`Context:` line first, the status line set to `resolved`, the file left uncommitted, or, on a
+`Context:` line first and the `Forks:` line after it, the status line set to `resolved`, the file left uncommitted, or, on a
 Ticket that is an issue, the one question listing every write the yes makes, the held Rulings'
 among them; then the worktree and its branch removed. When the door appended the `.scratch/` line to the project's
 `.gitignore`, the close says so in one line, per [scratch.md](../../../.agents/scratch.md): the run

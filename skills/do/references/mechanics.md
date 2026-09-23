@@ -95,7 +95,9 @@ on the branch makes the landing fast-forward fail, so one rule covers the three 
   `Context:` line the format defines as the first line under `## Evidence`, from two readings of
   `bash <skill-dir>/scripts/context-usage.sh`: the `current` figure read at the end of the ground
   step, written as `grounded`, and the `peak` and `band` read at the close, after the last edit. A
-  reading that exits non-zero writes `Context: not measured` with the script's reason.
+  reading that exits non-zero writes `Context: not measured` with the script's reason. The
+  `Forks:` line the format defines as the second line comes from that close reading too, so it
+  counts every fork the run made up to its close.
 
 ## The reader
 
@@ -606,7 +608,10 @@ above: the run never commits it and the worktree branch never touches it.
    Ticket was published without it. The first line is the `Context:` line, from the `current`
    figure the run kept when it grounded and a second reading of `scripts/context-usage.sh` now, for
    the `peak` and the `band`; a reading that fails writes `Context: not measured` with the
-   script's reason. Then the landed commit, the Review's location, the command lines of the gate
+   script's reason. The second line is the `Forks:` line, from the `forks` and `fork_kinds` keys
+   of that same reading: `Forks: <forks> (<fork_kinds>)`, `Forks: 0` when `forks` reads 0, and
+   `Forks: not measured` with the same reason when the reading fails, in the format of
+   [ticket-format.md](../../../.agents/formats/ticket-format.md). Then the landed commit, the Review's location, the command lines of the gate
    and the flows with their quoted output lines, and each waiver.
 3. Set the `**Status:**` line to `resolved`. The file stays uncommitted, for the developer, and
    the reply lists it beside the Review under the files left uncommitted.

@@ -79,6 +79,15 @@ hold their own windows and are not counted. A harness without a readable transcr
 calibrate its estimates: the fixed load from the grounded figures, the per-criterion cost from
 peak minus grounded over the ticket's criteria count.
 
+The second line is the forks the session made, `Forks: <n> (<kind> <n>, ...)`, from the same
+reading of `context-usage.sh` that gave the peak: every Agent call the session made, under its
+agent type, and every Skill call to a skill whose frontmatter reads `context: fork`, under the
+skill's name, the kinds in byte order. Only the session's own forks count, never the forks a fork
+made in its own window, the same line the context figures draw. A run that forked nothing writes
+`Forks: 0`, and a reading that fails writes `Forks: not measured, <reason>` with the reason its
+`Context:` line carries. Nothing calibrates from this line: it is the record the next round of the
+chain's design is argued from, with numbers rather than guesses.
+
 ## Template
 
 The local shape:
