@@ -49,7 +49,7 @@ fork_kinds="$(
            else empty end' "$file" 2>/dev/null \
   | awk -F'\t' '!seen[$1]++ { print $2 "\t" $3 }' \
   | while IFS=$'\t' read -r via kind; do
-      [ "$via" = agent ] || { [ -n "$kind" ] && forked_skill "$kind"; } && printf '%s\n' "$kind"
+      if [ "$via" = agent ] || { [ -n "$kind" ] && forked_skill "$kind"; }; then printf '%s\n' "$kind"; fi
     done | LC_ALL=C sort | uniq -c \
   | awk '{ printf "%s%s %s", (NR > 1 ? ", " : ""), $2, $1; n += $1 } END { printf "\t%d", n + 0 }'
 )"

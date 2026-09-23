@@ -105,6 +105,21 @@ out="$(HOME="$tmp/home" bash "$script" "$tmp/skill-forks.jsonl" 2>&1)" || rc=$?
 check_lines "a Skill call counts as a fork only when the installed skill's frontmatter says context: fork" 0 "$rc" \
   "forks=2" "fork_kinds=do-builder 1, do-code-review 1"
 
+{
+  usage 10 0 1000
+  echo '{"type":"assistant","message":{"role":"assistant","content":[{"type":"tool_use","id":"n1","name":"Bash","input":{"command":"ls"}},{"type":"tool_use","id":"n2","name":"Skill","input":{"skill":"grill"}}]}}'
+  usage 5 0 2000
+} >"$tmp/no-forks.jsonl"
+rc=0
+out="$(HOME="$tmp/home" bash "$script" "$tmp/no-forks.jsonl" 2>&1)" || rc=$?
+check_lines "a run whose only calls are an inline Skill and a non-fork tool reads zero forks" 0 "$rc" "forks=0" "fork_kinds="
+same "a run with no fork keeps its context lines and prints the fork lines empty" "current=2005
+peak=2005
+messages=2
+band=small
+forks=0
+fork_kinds="
+
 { echo '{"type":"user","message":{"role":"user","content":"hi"}}'; } >"$tmp/empty.jsonl"
 run "$tmp/empty.jsonl"
 check_lines "a transcript with no assistant usage exits 4" 4 "$rc"
