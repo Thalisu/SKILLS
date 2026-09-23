@@ -12,10 +12,13 @@ context:
     # under .claude/agents/choice-taker.md, which never reads the fork it is handed and always
     # returns a `settled` Ruling for a third side, neither the toggle nor the no-op the session
     # hands over. The run meets the same Design fork (the third criterion makes Archive a toggle,
-    # the Spec makes a second Archive a no-op), forks the stand-in, reads its return as no Ruling
-    # since the returned side belongs to neither side of the fork, and stops at its step on the
-    # /discuss command naming the reason, with nothing written to the Spec or the Ticket and
-    # nothing built past the fork.
+    # the Spec makes a second Archive a no-op), at its Plan step where the Planner names both
+    # sides in the Plan, or in the loop where the Builder hands them back on its return. The
+    # session, never either fork, forks the stand-in, reads its return as no Ruling since the
+    # returned side belongs to neither side of the fork, and stops at that step on the /discuss
+    # command naming the reason, with nothing written to the Spec or the Ticket and nothing built
+    # past the fork. Which step it stops at decides what is left behind: the Plan step runs before
+    # the claim and the worktree, so the Ticket is still ready-for-agent with no branch to remove.
     set -e
     mkdir -p src docs/agents .scratch/archive-notes/issues .claude/agents .claude/skills/test-author
     cat > package.json <<'JSON'

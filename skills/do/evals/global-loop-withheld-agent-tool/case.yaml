@@ -11,9 +11,11 @@ context:
     # tool withheld from the whole session. The case assumes the runner's HOME links the global
     # authors do ships, as scripts/link-skills.sh leaves a maintainer's machine, so the door may
     # print loop=global; with no Agent tool no author can be dispatched, so the first message reads
-    # Loop: fallback and says in one line that the tool is withheld. The run derives the Project map
-    # beside the Ticket, writes every test itself red first, and, its package.json carrying no
-    # end-to-end script, states the flows step's gap rather than dispatching an author.
+    # Loop: fallback and says in one line that the tool is withheld. No Planner and no Builder can
+    # be forked either, so the session grounds the Ticket and writes the Plan itself beside it,
+    # derives the Project map beside the Ticket, runs the build loop itself and writes every test
+    # red first, and, its package.json carrying no end-to-end script, states the gap the flows
+    # leave rather than dispatching an author. It forks nobody in any of those three places.
     set -e
     mkdir -p src docs/agents .scratch/archive-notes/issues
     cat > package.json <<'JSON'

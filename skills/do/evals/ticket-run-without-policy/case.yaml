@@ -8,11 +8,13 @@ context:
   scaffold_script: |
     #!/usr/bin/env bash
     # The same Ticket as ticket-run-with-policy in a project with no Testing Policy: no policy
-    # section in CLAUDE.md, no unit-test-author agent, no inline test-author skill. The first
-    # message reads Loop: fallback, the run reads references/tdd-fallback.md and writes every
-    # failing test itself, red before the implementation, one commit per behaviour, and never
-    # dispatches a test author. The fixture is the plain JavaScript notes module of the trivial
-    # cases, so node alone runs the suite and the typecheck.
+    # section in CLAUDE.md, no unit-test-author agent, no inline test-author skill. On the
+    # runner HOME scripts/link-skills.sh leaves, both global authors are linked, so the first
+    # message reads Loop: global, the session derives the Project map once beside the Ticket,
+    # and the Builder it forks dispatches global-unit-test-author against that map, one
+    # behaviour at a time, red before the implementation, one commit per behaviour. The session
+    # dispatches no author itself. The fixture is the plain JavaScript notes module of the
+    # trivial cases, so node alone runs the suite and the typecheck.
     set -e
     mkdir -p src docs/agents .scratch/archive-notes/issues
     cat > package.json <<'JSON'
