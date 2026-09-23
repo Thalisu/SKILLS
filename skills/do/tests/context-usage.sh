@@ -120,6 +120,16 @@ band=small
 forks=0
 fork_kinds="
 
+{
+  usage 10 0 1000
+  echo '{"type":"assistant","message":{"role":"assistant","content":[{"type":"tool_use","id":"t1","name":"Agent","input":{"subagent_type":"do-builder","prompt":"x"}}]}}'
+  usage 5 0 2000
+  printf '{"type":"assist'
+} >"$tmp/truncated.jsonl"
+run "$tmp/truncated.jsonl"
+check_lines "a live transcript whose last line is half-written is read from its whole lines, forks included" 0 "$rc" \
+  "current=2005" "peak=2005" "messages=2" "band=small" "forks=1" "fork_kinds=do-builder 1"
+
 { echo '{"type":"user","message":{"role":"user","content":"hi"}}'; } >"$tmp/empty.jsonl"
 run "$tmp/empty.jsonl"
 check_lines "a transcript with no assistant usage exits 4" 4 "$rc"

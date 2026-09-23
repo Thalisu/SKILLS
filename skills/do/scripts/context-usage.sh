@@ -40,13 +40,15 @@ forked_skill() { # $1 skill name: its installed SKILL.md frontmatter says contex
   awk 'NR == 1 && $0 != "---" { exit 1 } NR > 1 && $0 == "---" { exit 1 } $0 == "context: fork" { found = 1; exit } END { exit !found }' \
     "$HOME/.claude/skills/$1/SKILL.md" 2>/dev/null
 }
+# A live transcript can end on a line the harness is still appending: jq stops there with an error
+# after printing every whole line, and pipefail would turn that into no reading at all.
 fork_kinds="$(
-  jq -r 'select(.type == "assistant" and .isSidechain != true) | .message.content[]?
+  { jq -r 'select(.type == "assistant" and .isSidechain != true) | .message.content[]?
          | select(.type == "tool_use")
          | if .name == "Agent" or .name == "Task" then
              "\(.id)\tagent\t\(.input.subagent_type // "" | if . == "" then "general-purpose" else . end)"
            elif .name == "Skill" then "\(.id)\tskill\t\(.input.skill // "")"
-           else empty end' "$file" 2>/dev/null \
+           else empty end' "$file" 2>/dev/null || true; } \
   | awk -F'\t' '!seen[$1]++ { print $2 "\t" $3 }' \
   | while IFS=$'\t' read -r via kind; do
       if [ "$via" = agent ] || { [ -n "$kind" ] && forked_skill "$kind"; }; then printf '%s\n' "$kind"; fi
