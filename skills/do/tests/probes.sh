@@ -262,15 +262,22 @@ rm "$wt/a b.txt"
 # ADR 0033: the review runs once per run, so a branch whose Review already sits beside the Ticket
 # resumes at the landing through fix, never at a second review.
 echo "# resume-state.sh: a branch the review already read"
-review_file() { # $1 the Review's Commit: sha, $2 its Security Axis line, $3 the review file path (default 04-claimed's), $4 "nomarker" to skip writing the marker
-  local target="${3:-$issues/04-claimed.review.md}"
+review_file() { # $1 the Review's Commit: sha, $2 its Security Axis line, $3 the review file path (default 04-claimed's), $4 the side of the review step's write to leave out: "nomarker" or "notoken"
+  local target="${3:-$issues/04-claimed.review.md}" slug token
+  slug="$(basename "$target" .review.md)"
+  slug="$(sed -E 's/^[0-9]+-//' <<<"$slug")"
+  token="$top/.git/do/review-token/$slug"
   printf '# Review: 04\n\nCommit: %s\n\n## Axes\n\n- Correctness: 0 findings\n- Security: %s\n' "$1" "$2" \
     >"$target"
-  # An earlier case's marker outlives the review file it was written for, so the nomarker branch
-  # removes it: not writing one would leave "no marker beside the Review" false on disk.
+  # The review step writes two sides holding the same value: the marker beside the Review, and the
+  # token under the git common dir, which no Builder's worktree reaches. An earlier case's write
+  # outlives the review file it was written for, so each mode removes the side it is named for: not
+  # writing that side would leave its absence false on disk.
+  mkdir -p "$(dirname "$token")"
   if [ "${4:-}" = nomarker ]; then rm -f "${target%.md}.marker"; else
     printf '%s\n' "$1" >"${target%.md}.marker"
   fi
+  if [ "${4:-}" = notoken ]; then rm -f "$token"; else printf '%s\n' "$1" >"$token"; fi
 }
 review_file "$second" "0 findings"
 run "$resume" "$issues/04-claimed.md"
@@ -298,6 +305,16 @@ echo "# resume-state.sh: a Review with no marker tying it to the review step tha
 review_file "$second" "0 findings" "" nomarker
 run "$resume" "$issues/04-claimed.md"
 check_lines "a Review beside the Ticket with no marker beside it is not trusted, and the review runs" 0 "$rc" \
+  "review_skipped=unmarked $top/$issues/04-claimed.review.md" "review=none" "verdict=build"
+
+# A marker naming the commit the Review names is a value anything that just built the branch
+# already holds, so a fork can write the pair and the marker proves the file's age, never its
+# author. The review step's own write is the token under the git common dir: without it, the pair
+# is a forgery and the review runs.
+echo "# resume-state.sh: a Review and marker pair the review step never wrote"
+review_file "$second" "0 findings" "" notoken
+run "$resume" "$issues/04-claimed.md"
+check_lines "a Review and its marker with no token the review step stored are not trusted, and the review runs" 0 "$rc" \
   "review_skipped=unmarked $top/$issues/04-claimed.review.md" "review=none" "verdict=build"
 review_file "$second" "0 findings"
 

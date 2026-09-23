@@ -56,6 +56,9 @@ top="$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "not a git reposito
 main="$(git worktree list --porcelain 2>/dev/null |
   awk '/^$/ { exit } /^worktree /{ p = substr($0, 10) } /^bare$/ { p = "" } END { print p }')"
 [ -n "$main" ] && [ -d "$main" ] || main="$top"
+# Shared by the main checkout and every worktree of it, so the token the session wrote from either
+# is the one this script reads, and it is not a path the project commits.
+common="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)" || common="$main/.git"
 
 case "$1" in
   /*) path="$1" ;;
@@ -155,13 +158,18 @@ rebase_stop() {
   else echo "stop=resolved"; fi
 }
 [ "$rebase" != open ] || rebase_stop
-marked() { # $1 the sha the Review's Commit: header names; true when the marker beside it names that commit
-  local line
+# The token the review step stored for this run. It lives under the clone's git dir, never under
+# .scratch/, it is written only after the Builder has returned, and the build step revokes it before
+# a Builder is forked, so at the one moment a fork holds a shell in the worktree there is no token
+# on disk to copy into a marker of its own.
+token_file="$common/do/review-token/$slug"
+marked() { # true when the marker beside the Review holds the token the review step stored
+  local line stored
   line="$(head -1 "${review%.md}.marker" 2>/dev/null | tr -d '[:space:]')"
-  [ -n "$line" ] || return 1
-  # The header may be short and the marker full, or the other way round, so either being a prefix
-  # of the other is the same commit named twice.
-  [ "${line#"$1"}" != "$line" ] || [ "${1#"$line"}" != "$1" ]
+  stored="$(head -1 "$token_file" 2>/dev/null | tr -d '[:space:]')"
+  # A missing token is a miss, so a Review nothing vouched for costs a second review and never a
+  # landing: the check has to fail closed, since its yes skips the review entirely.
+  [ -n "$line" ] && [ -n "$stored" ] && [ "$line" = "$stored" ]
 }
 review="${path%.md}.review.md"
 skipped=""
@@ -181,7 +189,7 @@ if [ -f "$review" ]; then
     skipped="stale $review"
   elif grep -E '^- (Correctness|Spec|Standards|Principles|Blast radius|Security): not run' "$review" >/dev/null; then
     skipped="axis-not-run $review"
-  elif ! marked "$reviewed"; then
+  elif ! marked; then
     # Every other fact about a Review is one its own text carries, and a file's text proves nothing
     # about who wrote it: a fork that wrote `<Ticket>.review.md` with a sha off the branch it just
     # built would be read as a review that ran. The marker is the review step's own write, at a path
