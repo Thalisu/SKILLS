@@ -231,4 +231,23 @@ carries_any "the second reading compares the recomputed hash against the door's 
 carries_any "the second reading refuses on a Ticket or Digest hash that no longer matches" \
   "no longer matches" "refuses when either" "refused when either" "either no longer matches"
 
+echo "# skills/do/references/ticket.md: the claim step re-hashes the Ticket and rewrites the Plan's \`## Sources\` line"
+
+# Step 2 writes `claimed` to the Ticket's `**Status:**` line, which changes the file's content and
+# therefore the hash step 1 recorded pre-claim. Unless step 2 re-hashes the claimed Ticket and
+# rewrites the Plan's `## Sources` `ticket:` record to that new hash in place, the Resume section's
+# fresh re-hash of the claimed Ticket (line ~117) never matches the Plan's pre-claim record, and
+# every resume but `verdict=land` needlessly re-forks the Planner over a claim that changed nothing
+# the Plan depends on.
+flat="$(passage_of "$playbook" "**2. Claim and worktree.**" "**3. Build.**" | tr '\n' ' ' | tr -s ' ')"
+expect "step 2's passage is present to scope the check against" test -n "$flat"
+
+carries_any "step 2 re-hashes the Ticket once the claim is written" \
+  "hashes the Ticket again" "re-hashes the Ticket" "hashed again" "git hash-object" \
+  "the Ticket is hashed again"
+
+carries_any "step 2 rewrites the Plan's \`## Sources\` \`ticket:\` line to the post-claim hash in place" \
+  "rewrites the Plan's \`## Sources\`" "the Plan's \`## Sources\` \`ticket:\` line is rewritten" \
+  "the \`ticket:\` line is rewritten" "rewritten in place" "the \`## Sources\` section is rewritten"
+
 exit $((fails > 0))

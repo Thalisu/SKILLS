@@ -496,6 +496,15 @@ Ticket it proceeds without one, per
 [never-block-on-the-human](../../../.agents/principles/never-block-on-the-human.md): the claim is
 a reversible file write, and an interrupt costs the developer one turn.
 
+The claim moves the Ticket's hash, so on a local Ticket the run hashes the Ticket again, `git
+hash-object` in the main checkout over the claimed file, and the Plan's `## Sources` `ticket:` line
+is rewritten in place to that hash, the way
+[ADR 0050](../../../docs/adr/0050-a-ruling-that-rewrites-no-criterion-moves-the-hashes-and-not-the-digest.md)
+rewrites the Digest's lines: nothing the Plan was cut from moved, only the status line. The new hash
+is also the one the run holds as the door's recorded value from here on. Without it a resume, which
+hashes the claimed Ticket afresh, never matches the pre-claim record and forks the Planner again
+over a claim.
+
 Then the worktree in [mechanics.md](mechanics.md): created from the current HEAD on `do/<slug>`,
 where `<slug>` is the Ticket file's slug without its number, excluded locally, entered. On a
 start-over whose `run_branch=` fact names `do/<slug>`, the branch survived the worktree's removal,
