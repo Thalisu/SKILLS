@@ -171,6 +171,44 @@ carries_any "the amended-Spec rule does not fire on \`verdict=land\`" \
   "on every verdict but \`land\`" "On \`verdict=land\` it does not" "on \`verdict=land\` it does not" \
   "On \`verdict=land\`, no reader" "on \`verdict=land\`, no reader" "not fire on \`verdict=land\`"
 
+echo "# skills/do/references/ticket.md: the reader-skip and Plan-skip rules key on \`review=\` naming a Review, not on \`verdict=land\` alone"
+
+# resume-state.sh prints review= before it ever computes verdict=, and a rebase stopped mid-conflict
+# after the review can print verdict=integration with review= naming a Review too: the door paragraph
+# and the two Resume bullets below key their skip on the literal word `land`, so a resume stopped
+# there still forks a reader and re-runs the Plan step, burning a whole grounding window on a run
+# that builds nothing.
+flat="$(passage_of "$playbook" "The first write comes after those stops" "## Resume" |
+  tr '\n' ' ' | tr -s ' ')"
+
+carries_any "the door's reader-skip rule is keyed on \`review=\` naming a Review, not on \`verdict=land\` alone" \
+  "\`review=\` names a Review" "a Review its \`review=\` line names" \
+  "whatever the verdict printed" "whatever the accompanying verdict" \
+  "the review already read this branch, whatever the verdict" \
+  "review= naming a Review" "\`review=\` naming a Review"
+
+carries_any "the door's reader-skip rule explicitly covers a \`verdict=integration\` resume after the review already ran" \
+  "verdict=integration" "\`verdict=integration\`" "or \`integration\`" \
+  "\`land\` or \`integration\`" "land or integration" \
+  "a rebase stopped mid-conflict after the review"
+
+flat="$(passage_of "$playbook" "- On every verdict but \`land\`, the Plan step runs again" \
+  "- The Builder is forked at the first behaviour" | tr '\n' ' ' | tr -s ' ')"
+expect "the Resume section carries the Plan bullet" test -n "$flat"
+
+carries_any "the Resume section's Plan bullet does not scope the re-run to the verdict word \`land\` alone" \
+  "unless \`review=\` names a Review" "when \`review=\` names no Review" \
+  "\`review=\` names no Review" "no Review named by \`review=\`" \
+  "review= naming no Review" "review= names a Review"
+
+flat="$(passage_of "$playbook" "- On \`verdict=land\`, the review already read this branch" \
+  "- When every line of the list is ticked" | tr '\n' ' ' | tr -s ' ')"
+
+carries_any "the verdict=land bullet's Plan-skip rule fires whenever \`review=\` names a Review, whatever the verdict printed" \
+  "whatever the verdict printed" "whatever the accompanying verdict" \
+  "on \`verdict=integration\` too" "or \`verdict=integration\`" \
+  "\`land\` or \`integration\`" "land or integration"
+
 echo "# skills/do/references/ticket.md: the diagnosis-first branch already holds a worktree when a refusal names one"
 
 # `cause unknown, diagnosis first` (step 0's defect line) is the one branch where step 2's worktree

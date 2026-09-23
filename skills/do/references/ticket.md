@@ -63,10 +63,13 @@ the tracker file describes. Before anything is written:
   name.
 
 The first write comes after those stops and never before one of them. On a resume the run reads
-`resume-state.sh` before the Digest decision, as the Resume section says, and on `verdict=land` the
-run forks no reader, whatever the Digest's state, a hash that differs or no Digest at all: only the
-landing is left, and nothing it runs opens a Digest. Every other run, a resume on any other verdict
-included, goes on to the Digest decision. Then the door decides between
+`resume-state.sh` before the Digest decision, as the Resume section says. On `verdict=land` the run
+forks no reader, and neither does it on any resume whose `review=` line names a Review, whatever the
+verdict printed, `land` or `integration` on a rebase stopped after that review, and whatever the
+Digest's state, a hash that differs or no Digest at all: only the integration and the landing are
+left, and nothing they run opens a Digest.
+Every other run, a resume whose `review=` line reads `none` included, goes on to the Digest
+decision. Then the door decides between
 the Digest already beside the Ticket and a reader, as the second run section of
 [mechanics.md](mechanics.md) fixes. Two recorded hashes that both match are a reuse: the run says
 in one line that it reused the Digest and forked no reader, and derives its behaviours from the
@@ -114,7 +117,8 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   with its `Behaviour:` line, off the script's lines. The claim line is not written again. The
   Reply's Run section carries the checklist with steps 0 and 2 reading `done: resumed`.
 - The worktree is entered, never created: a second worktree is never made.
-- On every verdict but `land`, the Plan step runs again as step 1 says: the run hashes the Ticket and the Digest afresh and
+- On every verdict but `land`, the Plan step runs again as step 1 says, unless `review=` names a
+  Review, which skips it as the `verdict=land` bullet says: the run hashes the Ticket and the Digest afresh and
   reuses the Plan beside the Ticket while its `## Sources` section is still exactly those two
   records, matched on name, path and hash together, and a Plan whose section is not that exact
   match forks the Planner again, which writes the Plan anew. The list the loop works
@@ -124,8 +128,9 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   whose `Behaviour:` line matches no line of the list is kept and named on the resume line.
 - The Builder is forked at the first behaviour without a commit, per step 3, and from there the
   run is a first run: the diff, the gate, the review, the close, the reply.
-- On `verdict=land`, the review already read this branch: its Review is the script's `review=`
-  line, and the review runs once per run, per
+- On `verdict=land`, the review already read this branch, and so it did whenever `review=` names a
+  Review, whatever the verdict printed, `land` or `integration` on a rebase stopped after that
+  review: its Review is the script's `review=` line, and the review runs once per run, per
   [ADR 0033](../../../docs/adr/0033-the-review-runs-once-per-run-and-what-comes-after-it-lands-through-the-gate-alone.md),
   so the resume is never a second review. Only the landing is left, so the Plan step is skipped:
   the run forks no Planner, and no Plan is hashed, checked or opened, whatever state the one beside
