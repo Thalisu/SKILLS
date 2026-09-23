@@ -9,6 +9,9 @@
 # grows with the Ticket exactly as before, which is the one cost the fork exists to remove.
 # The second subject is who does the forking: the Builder is the session's own fork and never the
 # Planner's, so a test author it dispatches sits two layers below the session and never three.
+# The third is the Design fork the build step meets now that the step is a fork's window:
+# references/forks.md has to carry the Builder's half of it, the way it already carries the
+# Planner's.
 # Run: bash skills/do/tests/builder.sh
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
@@ -18,6 +21,7 @@ agent="$here/../agents/do-builder.md"
 contract="$here/../references/builder.md"
 planner="$here/../agents/do-planner.md"
 reply="$here/../references/reply.md"
+forks="$here/../references/forks.md"
 fails=0
 
 echo "# skills/do/references/ticket.md: the build step forks the Builder and the session stops building"
@@ -487,5 +491,49 @@ expect "the todo list builds before it gates" test "$cb" -gt 0 -a "$cg" -gt "$cb
 out="${flat:$((cb - 1)):$((cg - cb))}"
 check_absent "the todo list carries no E2E flow of the session's own to author between the two" \
   0 0 "e2e-test-author" "E2E test author" "E2E flows authored" "authored or extended"
+
+echo "# skills/do/references/forks.md: the Builder meets the build step's Design fork and rules on none"
+
+# Since ADR 0047 the build step is the Builder's window, not the session's, so a Design fork met in
+# the loop is met inside that fork. forks.md spells out the Planner's half alone, and a Builder that
+# meets one mid-loop has no written route: the likeliest outcome is a commit on a design question
+# nothing ruled on. The other half of the same gap is a Builder that forks the `choice-taker`
+# itself. It would rule one layer deeper than anything that can write the Ruling, with the Spec's
+# comments and the door's Rulings never in its hands, against criterion 4 of the Ticket and
+# ADR 0036, whose own words are that the session writes the ruling. Read over the whole `## Forks`
+# section, flattened: the reference hard-wraps, so its phrases sit across two lines as often as not
+# and no fixed string would match on either ("in the\nbuild loop" is one of them today).
+flat="$(flat_section "$forks" "## Forks")"
+expect "forks.md carries the \`## Forks\` section the route is written in" test -n "$flat"
+
+# The naming, on both axes the sentence has to settle: which fork meets it, and where. Either half
+# alone leaves the run nothing to act on, so they are one case.
+carries_each "the section names the Builder as a fork that meets a Design fork at the build step" \
+  "the Builder" "a Builder" "do-builder" "the building fork" \
+  -- "the build step" "the build loop" "at the build" "in the build"
+
+# What the Builder does with the fork: both sides cross back on its return, the way the Planner's
+# cross back in the Plan it returns. Every phrasing accepted here names the Builder, since the
+# Planner's own sentence already carries "writes both sides" and would otherwise answer for a half
+# nothing wrote.
+carries_any "the Builder hands both sides back on its return" \
+  "the Builder writes both sides" "the Builder writes the two sides" \
+  "the Builder returns both sides" "the Builder returns the two sides" \
+  "the Builder hands both sides" "the Builder hands the two sides" \
+  "the Builder names both sides" "the Builder names the two sides" \
+  "the Builder puts both sides" "the Builder's return names both sides" \
+  "the Builder's return carries both sides" "both sides into the Builder's return" \
+  "both sides in the Builder's return" "written into the Builder's return"
+
+# And what it does not do. The three groups are the three things that have to stay together for the
+# Ruling to land where ADR 0036 puts it: the fork is not the Builder's to make, the `choice-taker`
+# is forked on the two sides, and the Ruling is written to the Spec. The last two groups already
+# hold for the Planner's half, and the case keeps them so a rewrite that adds the Builder cannot
+# drop them on the way through.
+carries_each "the \`choice-taker\` fork and the Spec write stay the session's, never the Builder's" \
+  "never the Builder" "not the Builder" "the Builder rules nothing" "the Builder never rules" \
+  "no Builder forks" "never the fork that built" \
+  -- "forks the \`choice-taker\`" "forks the choice-taker" "the session forks" \
+  -- "writes the Ruling to the Spec" "writes the Ruling into the Spec" "the Ruling to the Spec"
 
 exit $((fails > 0))

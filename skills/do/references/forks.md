@@ -23,7 +23,12 @@ the Agent tool with `subagent_type: choice-taker`, the agent `do` ships in
 step, the two sides, the Spec, the Digest and the repository root. In a `ticket` run the fork is
 met at the Plan step, where the Planner writes both sides into the Plan it returns, and the
 session, never the Planner, forks the `choice-taker` on them and writes the Ruling to the Spec, per
-[plan.md](plan.md): the Planner holds no tool that writes one. A Spec that is an issue is
+[plan.md](plan.md): the Planner holds no tool that writes one. It is met in the build loop the same
+way, where the Builder hands both sides back on its return instead of ruling on them, and the
+session, never the Builder, forks the `choice-taker` on them and writes the Ruling to the Spec, per
+[builder.md](builder.md): the Builder's own write guard denies it the Spec, and a fork that ruled
+would be ruling a layer below everything that writes a Ruling down, with the Spec's comments and
+the door's Rulings never in its hands. A Spec that is an issue is
 handed with its comments, since the Rulings earlier closes posted sit there under
 `## Implementation Decisions`, and a fork an earlier Ticket already ruled on is ruled the same way.
 Each comment is handed with its author, and the brief also carries the developer's own login, read
