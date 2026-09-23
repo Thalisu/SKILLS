@@ -96,6 +96,40 @@ carries_any "a resumed run enters the worktree it already has and never makes a 
   "entered, never created" "a second worktree is never made" "never creates a second worktree" \
   "no second worktree" "never created again"
 
+echo "# skills/do/references/ticket.md: a resume the review already read lands without grounding again"
+
+# A `verdict=land` resume builds nothing, so the Plan buys it nothing: a Planner fork costs a whole
+# grounding (its Map, its discover batch), and a Plan whose `## Sources` moved since the review
+# would re-fork it, or a refused one stop the run as blocked, on a landing that never needed a Plan.
+# Scoped to the land bullet, since the bullet above it says every other resume runs the Plan step.
+land_open="- On \`verdict=land\`, the review already read this branch"
+flat="$(passage_of "$playbook" "$land_open" "- When every line of the list is ticked" |
+  tr '\n' ' ' | tr -s ' ')"
+expect "the Resume section carries the \`verdict=land\` bullet" test -n "$flat"
+
+carries_any "a landing-only resume skips the Plan step" \
+  "step 1 is not run" "step 1 is skipped" "step 1 does not run" "step 1 never runs" \
+  "the Plan step is skipped" "the Plan step is not run" "the Plan step does not run" \
+  "skips the Plan step" "skips step 1" "the Plan step never runs"
+
+carries_any "a landing-only resume forks no Planner" \
+  "forks no Planner" "no Planner is forked" "the Planner is never forked" "never forks the Planner" \
+  "the Planner is not forked" "no Planner fork"
+
+carries_any "a landing-only resume hashes, checks and opens no Plan" \
+  "hashes, checks and opens no Plan" "no Plan is hashed, checked or opened" \
+  "the Plan is never hashed, checked or opened" "never hashes, checks or opens the Plan" \
+  "the Plan is not hashed, checked or opened" "no Plan is hashed, checked nor opened" \
+  "the Plan is neither hashed, checked nor opened"
+
+# The checklist line is what the Reply's Run section shows the developer: a step 1 reading `done:`
+# or left blank claims a grounding that never ran, and a skip with no landing reason reads as a
+# step the run dropped.
+flat="$(flat_section "$playbook" "## Resume")"
+skip_reasons="$(grep -oE 'step 1[^`]{0,60}`skip: [^`]*`' <<<"$flat")"
+expect "the checklist's step 1 reads a skip whose reason names the landing-only resume" \
+  grep -qiE '`skip: [^`]*land' <<<"$skip_reasons"
+
 echo "# skills/do/references/ticket.md: the diagnosis-first branch already holds a worktree when a refusal names one"
 
 # `cause unknown, diagnosis first` (step 0's defect line) is the one branch where step 2's worktree

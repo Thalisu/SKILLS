@@ -110,7 +110,7 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   with its `Behaviour:` line, off the script's lines. The claim line is not written again. The
   Reply's Run section carries the checklist with steps 0 and 2 reading `done: resumed`.
 - The worktree is entered, never created: a second worktree is never made.
-- The Plan step runs again as step 1 says: the run hashes the Ticket and the Digest afresh and
+- On every verdict but `land`, the Plan step runs again as step 1 says: the run hashes the Ticket and the Digest afresh and
   reuses the Plan beside the Ticket while its `## Sources` section is still exactly those two
   records, matched on name, path and hash together, and a Plan whose section is not that exact
   match forks the Planner again, which writes the Plan anew. The list the loop works
@@ -123,7 +123,11 @@ and leaves the worktree as it is, since no branch can be read from it to build o
 - On `verdict=land`, the review already read this branch: its Review is the script's `review=`
   line, and the review runs once per run, per
   [ADR 0033](../../../docs/adr/0033-the-review-runs-once-per-run-and-what-comes-after-it-lands-through-the-gate-alone.md),
-  so the resume is never a second review. The loop is skipped, the integration runs with no
+  so the resume is never a second review. Only the landing is left, so the Plan step is skipped:
+  the run forks no Planner, and no Plan is hashed, checked or opened, whatever state the one beside
+  the Ticket is in, carried, stale or absent. The Reply's Run section carries the checklist with
+  step 1 reading `skip: resumed, only the landing left`, and step 3 is never reached, so its second
+  reading of the Plan never runs either. The loop is skipped, the integration runs with no
   **Gate** of the run's own after it,
   and the branch lands through the fix call on that Review, as the review in
   [mechanics.md](mechanics.md) says for a branch the review already read.
