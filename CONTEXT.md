@@ -179,9 +179,15 @@ _Avoid_: report (the message returned to the caller, not the file), task review,
 
 **Fixer**:
 The sub-agent `do-code-review` forks for one `Act on` **Finding** of a **Review**, writing that
-**Finding**'s one commit on the branch the review read; one **Fixer** per **Finding**, one at a
-time.
+**Finding**'s one commit in a worktree and on a branch of its own; one **Fixer** per **Finding**,
+and the **Fixers** of one **Wave** at once.
 _Avoid_: fix agent, implementer, delegate (a delegate is `do`'s exception writer, not the review's)
+
+**Wave**:
+The `Act on` **Finding**s whose **Fixers** run at once, read off the **Review** by a script and
+never judged by the review: two **Finding**s share a **Wave** only when the files they name are
+disjoint, and a **Finding** whose files cannot be read is a **Wave** of its own.
+_Avoid_: batch, group, round, phase (a phase is a `do` build step, a **Wave** is the review's)
 
 **Gate fixer**:
 The sub-agent `do-code-review` forks when the **Diff tests** or the **Gate** come back red after the
@@ -286,6 +292,9 @@ failed)
   chain, so a test author the **Builder** dispatches stays two layers below the session
 - A fork that owns an artifact writes it itself, and the session verifies the path it expected and
   the `## Sources` hashes the door computed, never the artifact's text
+- The **Fixers** of one **Wave** run at once, one per **Finding**, each in its own worktree, and
+  the review brings their commits onto the branch it read in **Finding** order once the **Wave**
+  returned
 - A **Design fork** is settled inside the run by the `choice-taker` agent, on the norm the repo
   writes down when one backs a side and on the side easiest to undo when none does; only an
   **Extreme fork** stops the run and goes to `discuss`
