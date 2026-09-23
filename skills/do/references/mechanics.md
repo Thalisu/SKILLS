@@ -374,10 +374,11 @@ location in `ticket`, so the Review lands beside it; the branch alone in `bug-fi
 once it is done, which is the commit the integration rebased onto when it replayed), the
 developer's branch as the landing target, and the Gate, the `command=` line the gate printed, so
 the review holds its fixes to the checks the run held its own work to. The call carries one argument of its own besides those, the review token, and it is what ties the
-Review the review writes to the review step that ran. Before the call the run mints a token nothing
-else can guess, random bytes rendered as hex, and stores it under the clone's git common dir,
-`--git-common-dir`, at `do/review-token/<slug>`, which is the path `resume-state.sh` reads it back
-from. It is minted here and nowhere earlier, after the Builder has returned, and it is never a key
+Review the review writes to the review step that ran. Before the call the run mints an unguessable token,
+`bash <skill-dir>/scripts/review-token.sh new <slug>`, which prints it and stores it under the
+clone's git common dir, `--git-common-dir`, at `do/review-token/<slug>`, the path
+`resume-state.sh` reads it back from. That script owns the store, so neither this file nor the
+build step that revokes the token spells its path into a shell line of its own. It is minted here and nowhere earlier, after the Builder has returned, and it is never a key
 of the Builder's brief, per [builder.md](builder.md): the one fork that holds a shell in this
 worktree finished before the token existed, and the build step revokes the token a previous run
 stored before it forks another, so there is no moment at which a fork can read the value a marker

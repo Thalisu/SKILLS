@@ -15,6 +15,7 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 mech="$here/../references/mechanics.md"
 builder="$here/../references/builder.md"
 agent="$here/../../do-code-review/AGENT.md"
+ticket="$here/../references/ticket.md"
 fails=0
 
 echo "# mechanics.md / ## The review: the run stores a token and sends it to the call"
@@ -119,5 +120,69 @@ carries_each "a call that names no token writes no marker" \
   "no token" "without a token" "no \`Review token\`" "named no token" \
   -- \
   "writes no marker" "no marker" "never writes the marker" "leaves the marker out" "writes none"
+
+echo "# ticket.md / the build step: the token is revoked before the fork that could copy it"
+
+# The build step is the one moment a fork holds a shell in the worktree, so the revoke belongs to
+# it. Found by the agent the step forks and never by the step's number: a Playbook renumbers its
+# steps whenever one is added or absorbed.
+build="$(item_holding "$ticket" '\*\*[0-9]+\.' "do-builder")"
+expect "ticket.md carries the step that forks the Builder" test -n "$build"
+
+# The token's own paragraphs of that step, not the whole step: the step already says "before the
+# fork" of the Plan it re-reads and "vouch" of the door's hashes, so a check about the token read
+# over the whole step would pass on a sentence about the grounding.
+revoke_text="$(paragraph_with <(printf '%s' "$build") "token" all | tr -s ' ')"
+expect "the build step names the token it revokes" test -n "$revoke_text"
+# Read in lower case: every phrasing below is a clause a writer may open a sentence with, and a
+# capital there says nothing about the rule the clause carries.
+# shellcheck disable=SC2034  # lib.sh's carries reads $flat
+flat="$(tr '[:upper:]' '[:lower:]' <<<"$revoke_text")"
+
+carries "the build step revokes the run's review token" "revoke"
+
+# Storing the token out of the worktree is not the guarantee on its own, since the Builder holds a
+# shell there: the guarantee is the window, and it closes only if the revoke lands before the fork.
+carries_any "the token is revoked before the Builder is forked" \
+  "before the fork" "before that fork" "before this fork" "before any fork" "before another fork" \
+  "before forking" "before it forks" "before the builder" "ahead of the fork" "ahead of that fork"
+
+# A revoke the step runs only when it believes a token is there is a revoke that asks a question
+# about the store, and a wrong answer hands a live value to the one fork the guard exists for.
+carries_each "the token is revoked on every run, a run that stored none included" \
+  "every run" "always" "whether or not" "never asks" "unconditional" "regardless" "each run" \
+  -- \
+  "no token" "nothing stored" "nothing to revoke" "first run" "none stored" "never stored" \
+  "has none" "stored none"
+
+# Why the step cannot skip it: the value is what a forged marker beside a Review must carry for the
+# next run's `marked()` to spare it a review, so a live token during the build buys an unreviewed
+# branch that lands.
+carries_each "the step says what a live token would buy the fork: a marker the next run honours" \
+  "marker" \
+  -- \
+  "skip" "spare" "second review" "another review" "unreviewed" "without a review" \
+  "never reviewed" "past its review" "trusts" "vouch" "honours" "honors"
+
+# The store's path is the script's own, and `resume-state.sh` reads the file back from it: a step
+# that resolved `--git-common-dir` itself would be a second spelling of that path to keep in step
+# with the reader, and the revoke is the half that must never quietly miss.
+carries "the revoke runs the script that owns the token store" "review-token.sh"
+carries_any "the revoke names the script's revoke mode" \
+  "review-token.sh revoke" '`revoke` mode' 'mode `revoke`' 'with `revoke`' 'its `revoke`'
+# shellcheck disable=SC2034  # lib.sh's absent reads $out
+out="$build"
+absent "the build step never resolves the token store's path itself" "--git-common-dir"
+
+echo "# mechanics.md / ## The review: the mint runs the same script the revoke does"
+
+# One script owns both ends of the window. A mint spelled into a shell line here and a revoke
+# spelled into another in ticket.md can drift apart, and the pair that drifts leaves the token on
+# disk exactly when a fork holds the worktree.
+# shellcheck disable=SC2034  # lib.sh's carries reads $flat
+flat="$token_text"
+carries "the mint runs the script that owns the token store" "review-token.sh"
+carries_any "the mint names the script's new mode" \
+  "review-token.sh new" '`new` mode' 'mode `new`' 'with `new`' 'its `new`'
 
 exit $((fails > 0))

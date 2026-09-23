@@ -77,7 +77,9 @@ has() { # $1 label, $2 file, $3.. fixed strings the file must carry; a missing f
 # The paragraph a reference sits in, flattened: the references hard-wrap, and the reader meets the
 # link in the paragraph they are reading, so the paragraph is the scope a link has to be in.
 paragraph_with() { # $1 file, $2 a fixed string; the first blank-line-delimited paragraph carrying it, on one line
-  awk -v k="$2" 'BEGIN { RS = "" } index($0, k) { gsub(/\n/, " "); print; exit }' "$1"
+  # Optional: $3 all: every paragraph carrying it, one per line, for a guarantee a writer may split
+  # over the paragraphs of one step rather than pack into the first.
+  awk -v k="$2" -v all="${3:-}" 'BEGIN { RS = "" } index($0, k) { gsub(/\n/, " "); print; if (all == "") exit }' "$1"
 }
 # An agent definition's YAML header, and one key read off it: a test that pins a tool list or a
 # description reads it here, so a `Bash` in the body's prose never answers for the `tools:` line.

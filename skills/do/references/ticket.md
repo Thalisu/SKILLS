@@ -493,7 +493,17 @@ diagnosis branch of step 1 the worktree is already there and is not made again.
 Done when the Ticket reads `claimed`, its status prints nothing, and the claim line and the
 worktree line, its path and its branch, are recorded for the Reply's Run section.
 
-**3. Build.** Fork the Builder, per [builder.md](builder.md): call the Agent tool with
+**3. Build.** Before the Builder is forked, revoke the run's review token:
+`bash <skill-dir>/scripts/review-token.sh revoke <the slug>`. It runs on every run, a first run
+that stored no token included, so the step never asks whether one is there. That token is what a
+marker beside the Ticket has to carry for a later run to honour the Review beside it and skip its
+own review, per the review in [mechanics.md](mechanics.md), and the Builder is the one agent this
+step forks that holds a shell in the worktree. A token still on disk while it builds is a value it
+could copy into a marker of its own, and the run after this one would land a branch no reviewer
+read. Storing the token out of the worktree is not the guarantee on its own: the window is, and
+this is the end of it.
+
+Then fork the Builder, per [builder.md](builder.md): call the Agent tool with
 `subagent_type: do-builder`, the agent `do` ships in [do-builder.md](../agents/do-builder.md), and
 the brief that file fixes, filled from the Plan's path step 1 returned and the worktree and the
 branch step 2 created. The keys are in [builder.md](builder.md) and are never copied here, the way
