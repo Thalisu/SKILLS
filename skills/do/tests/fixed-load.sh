@@ -27,6 +27,7 @@ mk "$tmp/docs/adr/0001-x.md" 10
 mk "$tmp/CONTEXT.md" 3990
 mkdir -p "$skill/agents"
 mk "$skill/agents/do-planner.md" 8000
+mk "$skill/agents/do-builder.md" 8000
 est() { # runs the scaffolded estimator from the fixture's root; sets out, err and code
   out="$(cd "$tmp" && bash "$skill/scripts/estimate-load.sh" "$@" 2>"$tmp/t/err")"
   code=$?
@@ -39,8 +40,8 @@ term() { printf '%s\n' "$out" | sed -n "s/^$1=//p"; }
 
 est
 expect "with no argument the estimator exits zero" is "$code" 0
-expect "with no argument it prints the session's load by term, in order, its total, then the Planner" is "$out" \
-  "$(printf '%s\n' baseline=32000 reference_chain=9000 door=5000 total=46000 planner=47000)"
+expect "with no argument it prints the session's load by term, in order, its total, then the Planner and the Builder" is "$out" \
+  "$(printf '%s\n' baseline=32000 reference_chain=9000 door=5000 total=46000 planner=47000 builder_base=42500 per_criterion=18000)"
 
 ticket() { # $1 path, $2 criteria: a Ticket in the format, padded to 4000 bytes
   {
@@ -54,12 +55,12 @@ ticket() { # $1 path, $2 criteria: a Ticket in the format, padded to 4000 bytes
   head -c $((4000 - size - 1)) /dev/zero | tr '\0' a >>"$1"
   echo >>"$1"
 }
-fixed="$(printf '%s\n' baseline=32000 reference_chain=9000 door=5000 total=46000 planner=47000)"
+fixed="$(printf '%s\n' baseline=32000 reference_chain=9000 door=5000 total=46000 planner=47000 builder_base=42500 per_criterion=18000)"
 ticket "$tmp/t/01-small.md" 2
 est t/01-small.md
 expect "given a Ticket the estimator exits zero" is "$code" 0
-expect "given a Ticket it adds the criteria, the per-criterion term, the peak and the band" is "$out" \
-  "$fixed"$'\n'"$(printf '%s\n' criteria=2 per_criterion=18000 peak=82000 band=small)"
+expect "given a Ticket it adds the criteria, the Builder's window and the band" is "$out" \
+  "$fixed"$'\n'"$(printf '%s\n' criteria=2 builder=78500 band=small)"
 # The session's total is what fills its window, so a Digest large enough to carry it past a threshold
 # moves the band where no count of criteria does.
 ticket "$tmp/t/02-medium.md" 2
@@ -88,7 +89,7 @@ ticket "$tmp/t/04-digested.md" 2
 mk "$tmp/t/04-digested.digest.md" 4000
 est t/04-digested.md
 expect "a Digest beside the Ticket is counted in place of the allowance" \
-  sh -c 'printf "%s\n" "$1" | grep -qx "door=3500" && printf "%s\n" "$1" | grep -qx "peak=80500"' _ "$out"
+  sh -c 'printf "%s\n" "$1" | grep -qx "door=3500" && printf "%s\n" "$1" | grep -qx "total=44500"' _ "$out"
 # The Planner runs in a window of its own, which the band is read against as well: its baseline, its
 # definition and brief, the Ticket and its Digest, the grounding and the shape, and none of it the
 # session's. 32000 + 2000 + 1000 + ticket + digest + (1000 + 6500) + 1000.
@@ -99,6 +100,20 @@ expect "with no argument the Planner is its own term after total, counting the t
 est t/04-digested.md
 expect "given a Ticket with a Digest beside it the Planner counts the Digest in place of the allowance" \
   sh -c '[ "$1" = 0 ] && [ "$2" = planner=45500 ] && [ "$3" = 44500 ]' _ "$code" "$(after_total)" "$(term total)"
+# The Builder runs in a fork of its own, whose window grows with the criteria: a fixed part (its
+# baseline, its definition, its brief, the build loop, and an allowance for the Plan, which is not on
+# disk yet) and a rate per criterion. None of it is the session's, and no single peak stands for it.
+# 32000 + 2000 + 1000 + 1000 + 6500.
+lines_after() { printf '%s\n' "$out" | sed -n "/^$1=/,\$p" | tail -n +2; }
+est
+no_arg_rate="$(term per_criterion)"
+expect "with no argument the Builder's fixed part and its per-criterion rate follow the Planner, outside total, with no peak" \
+  sh -c '[ "$1" = 0 ] && [ "${4:-0}" -gt 0 ] 2>/dev/null && [ "$2" = "$(printf "%s\n" builder_base=42500 "per_criterion=$4")" ] && [ "$3" = 46000 ] && ! printf "%s\n" "$5" | grep -q "^peak="' \
+  _ "$code" "$(lines_after planner)" "$(term total)" "$no_arg_rate" "$out"
+est t/01-small.md
+expect "given a Ticket the Builder's window is its fixed part plus the criteria at its rate, then the band, outside total, with no peak" \
+  sh -c '[ "$1" = 0 ] && [ "${4:-0}" -gt 0 ] 2>/dev/null && [ "$4" = "$6" ] && [ -n "$7" ] && [ "$2" = "$(printf "%s\n" builder_base=42500 "per_criterion=$4" criteria=2 "builder=$((42500 + 2 * $4))" "band=$7")" ] && [ "$3" = 46000 ] && ! printf "%s\n" "$5" | grep -q "^peak="' \
+  _ "$code" "$(lines_after planner)" "$(term total)" "$(term per_criterion)" "$out" "$no_arg_rate" "$(term band)"
 
 # A reading it cannot take names the term it could not read, prints no figure and exits non-zero.
 refused() { # $1 the exit code, $2 the term the message must name

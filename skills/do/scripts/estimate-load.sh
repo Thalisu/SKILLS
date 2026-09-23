@@ -38,6 +38,8 @@ digest_allowance=2500
 # The map 5000, the discover return 500 and the bodies of the ADRs the Ticket touches 1000.
 ground_allowance=6500
 shape_allowance=1000
+# The Plan the Builder opens: its map 5000, its Sketch 1000 and its behaviours 500.
+plan_allowance=6500
 
 bytes() { # the bytes of every file named
   local sum=0 f
@@ -97,13 +99,15 @@ ground=$(($(tokens "$ground_bytes") + ground_allowance))
 total=$((baseline + reference_chain + door))
 planner=$((baseline + $(tokens "$(bytes "$skill/agents/do-planner.md" "$skill/references/plan.md")") \
   + ticket_tokens + digest_tokens + ground + shape_allowance))
+builder_base=$((baseline + $(tokens "$(bytes "$skill/agents/do-builder.md" "$skill/references/builder.md" \
+  "$skill/references/build-loop.md")") + plan_allowance))
 
-printf 'baseline=%s\nreference_chain=%s\ndoor=%s\ntotal=%s\nplanner=%s\n' \
-  "$baseline" "$reference_chain" "$door" "$total" "$planner"
+printf 'baseline=%s\nreference_chain=%s\ndoor=%s\ntotal=%s\nplanner=%s\nbuilder_base=%s\nper_criterion=%s\n' \
+  "$baseline" "$reference_chain" "$door" "$total" "$planner" "$builder_base" "$per_criterion"
 [ -n "$ticket" ] || exit 0
 
-peak=$((total + criteria * per_criterion))
+builder=$((builder_base + criteria * per_criterion))
 # context-usage.sh's band line with its thresholds copied verbatim, read on the session's total, so
 # the estimate and the measured Context: line fall in the same bands. Nothing checks the copy.
 if [ "$total" -lt 150000 ]; then band=small; elif [ "$total" -le 200000 ]; then band=medium; else band=large; fi
-printf 'criteria=%s\nper_criterion=%s\npeak=%s\nband=%s\n' "$criteria" "$per_criterion" "$peak" "$band"
+printf 'criteria=%s\nbuilder=%s\nband=%s\n' "$criteria" "$builder" "$band"
