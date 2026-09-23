@@ -131,7 +131,9 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   the run forks no Planner, and no Plan is hashed, checked or opened, whatever state the one beside
   the Ticket is in, carried, stale or absent. The Reply's Run section carries the checklist with
   step 1 reading `skip: resumed, only the landing left`, and step 3 is never reached, so its second
-  reading of the Plan never runs either. The loop is skipped, the integration runs with no
+  reading of the Plan never runs either. The one part of step 1 that still runs is its context
+  reading, `bash <skill-dir>/scripts/context-usage.sh`, taken where the skipped step would have
+  ended, so the close still has a `grounded` figure for its `Context:` line. The loop is skipped, the integration runs with no
   **Gate** of the run's own after it,
   and the branch lands through the fix call on that Review, as the review in
   [mechanics.md](mechanics.md) says for a branch the review already read.
