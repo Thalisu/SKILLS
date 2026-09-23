@@ -54,8 +54,8 @@ need() { # $1 the term, $2.. the files it counts, each of which must be on disk
 }
 
 chain=("$skill/SKILL.md" "$skill/references/ticket.md" "$skill/references/mechanics.md"
-  "$skill/references/build-loop.md" "$skill/references/forks.md"
-  "$skill/references/conflict-loop.md"
+  "$skill/references/forks.md" "$skill/references/conflict-loop.md"
+  "$skill/references/plan.md" "$skill/references/builder.md"
   "$skill/references/reply.md" "$skill/../../.agents/formats/ticket-format.md")
 need reference_chain "${chain[@]}"
 reference_chain="$(tokens "$(bytes "${chain[@]}")")"
@@ -95,7 +95,7 @@ for adr in "$root"/docs/adr/*; do
 done
 ground=$(($(tokens "$ground_bytes") + ground_allowance))
 shape=$shape_allowance
-total=$((baseline + reference_chain + door + ground + shape))
+total=$((baseline + reference_chain + door))
 
 printf 'baseline=%s\nreference_chain=%s\ndoor=%s\nground=%s\nshape=%s\ntotal=%s\n' \
   "$baseline" "$reference_chain" "$door" "$ground" "$shape" "$total"
