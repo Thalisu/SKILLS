@@ -12,9 +12,10 @@
 # Prints key=value lines in tokens, in this order: baseline, reference_chain, door, total, planner,
 # builder_base, per_criterion; with a Ticket, criteria, builder and band after them. A file is counted
 # at four bytes a token. The lines before total are the session's and sum into it, and total is the
-# session's peak, which the band is read from: the Planner and the Builder are forks whose windows
-# never count toward a Ticket's band (ADR 0016, ADR 0047), so the lines after total are theirs and
-# enter neither. baseline is the harness's own prompt and listings; reference_chain the skill file,
+# session's peak, the one figure the band is read from (ADR 0016). The lines after total are the
+# Planner's and the Builder's windows, which enter neither: the maintainer reads the planner figure
+# against the same thresholds, as ADR 0047 has it, and the script prints no band of its own for it.
+# baseline is the harness's own prompt and listings; reference_chain the skill file,
 # the Playbook's reference, the shared mechanics, the forks and the conflict loop a step reads beside
 # them, the Planner's and the Builder's briefs, the reply reference and the Ticket format. A reference
 # a run reads that this array does not name is counted as nothing, and `need` cannot catch it: the
