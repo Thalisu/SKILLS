@@ -535,6 +535,31 @@ bash_quote_split_out="$(printf '{"tool_input": {"command": "%s"}}' "$bash_quote_
 expect "the hook denies the Builder's Bash reaching .scratch/ through a quote-split path segment" \
   bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$bash_quote_split_out"
 
+# The second thing this guard stands over is the review marker's token store, and it is not an
+# artifact the fork writes: it is a value the fork can mint. `scripts/review-token.sh new <slug>`
+# mints a token nothing can guess and stores it under the clone's git common dir, and
+# `resume-state.sh` honours a `<Ticket>.review.marker` holding that value by routing `verdict=land`
+# straight to the fix call and the landing, with no second review. Writing the marker itself is
+# denied by the `.scratch` gate above and by the Write|Edit guard, so a mint alone forges nothing
+# today, but both of those are text and path matchers doing a best effort: a fork that can still
+# mint turns any single miss of theirs into a landed, unreviewed branch. `revoke` is the same door
+# from the other side, stripping the token a legitimate review stored and forcing the next run back
+# through a review it had already paid for. The session mints at the review step and revokes at the
+# build step, so the Builder has a call on neither mode, however the command is spelled: a `cd`
+# into the script's folder leaves only the bare name behind, and a quote-split spelling leaves the
+# name itself in pieces, the two evasions this guard's normaliser already exists for.
+for token_cmd in \
+  "bash skills/do/scripts/review-token.sh new 20260921-feature-07-build-it" \
+  "bash skills/do/scripts/review-token.sh revoke 20260921-feature-07-build-it" \
+  "cd skills/do/scripts && ./review-token.sh new 20260921-feature-07-build-it" \
+  "bash skills/do/scripts/review-'token'.sh new 20260921-feature-07-build-it"; do
+  token_cmd_json="$(printf '%s' "$token_cmd" | sed 's/"/\\"/g')"
+  token_out="$(printf '{"tool_input": {"command": "%s"}}' "$token_cmd_json" |
+    sh -c "$builder_bash_hook" 2>/dev/null)"
+  expect "the hook denies the Builder's Bash minting or revoking a review token: $token_cmd" \
+    bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$token_out"
+done
+
 # The other half: a Bash command that runs a test or a build step against the source the Ticket's
 # behaviours change is what the loop exists to run, and a guard that denied it would leave the
 # Builder unable to turn any test green, which is the same dead loop as a missing Bash tool.
@@ -542,6 +567,20 @@ bash_source_out="$(printf '{"tool_input": {"command": "%s"}}' "npm test src/expo
   sh -c "$builder_bash_hook" 2>/dev/null)"
 expect "the hook lets the Builder's Bash through on a command that targets none of those paths" \
   bash -c '! grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$bash_source_out"
+
+# The two other commands every cycle of the loop runs, which a gate drawn wide enough to catch the
+# token store would take with it: this project's own unit scripts, and the commit that closes a
+# green cycle, whose message names the behaviour it proved. A guard that denied either leaves the
+# Builder unable to finish a single cycle, the same dead loop again.
+for loop_cmd in \
+  "bash skills/do/tests/builder.sh" \
+  "git commit -m 'feat(export): render a note body' -m 'Behaviour: the export renders a note body'"; do
+  loop_cmd_json="$(printf '%s' "$loop_cmd" | sed 's/"/\\"/g')"
+  loop_out="$(printf '{"tool_input": {"command": "%s"}}' "$loop_cmd_json" |
+    sh -c "$builder_bash_hook" 2>/dev/null)"
+  expect "the hook lets the Builder's Bash through on a command the build loop runs: $loop_cmd" \
+    bash -c '! grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$loop_out"
+done
 
 # A machine with no jq: the same fail-closed guarantee the Write|Edit guard above already holds.
 bash_blind_rc=0
