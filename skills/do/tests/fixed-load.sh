@@ -162,19 +162,28 @@ expect "the build loop is not in the session's reference chain" \
 mk "$skill/references/build-loop.md" 4000
 mv "$skill/references/build-loop.md" "$tmp/t/build-loop.md"
 est
-expect "a missing references/build-loop.md no longer refuses reference_chain" is "$code" 0
+# The build loop is the Builder's reading, so a missing one names the Builder's fixed part.
+expect "a missing references/build-loop.md names builder_base and exits 3" refused 3 builder_base
 mv "$tmp/t/build-loop.md" "$skill/references/build-loop.md"
 mv "$skill/references/digest.md" "$tmp/t/digest.md"
 est
 expect "a missing Digest brief names the door and exits 3" refused 3 door
 mv "$tmp/t/digest.md" "$skill/references/digest.md"
+# Each fork's definition is a file its term reads, so a missing one names that fork's printed key.
+for pair in do-planner:planner do-builder:builder_base; do
+  f="${pair%%:*}" key="${pair#*:}"
+  mv "$skill/agents/$f.md" "$tmp/t/$f.md"
+  est
+  expect "a missing agents/$f.md names $key and exits 3" refused 3 "$key"
+  mv "$tmp/t/$f.md" "$skill/agents/$f.md"
+done
 est t/01-small.md t/02-medium.md
 expect "two arguments are a usage error and exit 2" \
   sh -c '[ "$1" = 2 ] && [ -z "$2" ] && printf "%s\n" "$3" | grep -qF "usage: estimate-load.sh"' \
   _ "$code" "$out" "$err"
 
-# A project with several contexts keeps its glossary through CONTEXT-MAP.md, and the ground step reads
-# the map and the one context it names that the plan touches. Which one is not knowable without the
+# A project with several contexts keeps its glossary through CONTEXT-MAP.md, and the Planner reads the
+# map and the one context it names that the plan touches. Which one is not knowable without the
 # Ticket, so the largest named is counted, beside the map itself.
 mv "$tmp/CONTEXT.md" "$tmp/t/CONTEXT.md"
 mkdir -p "$tmp/ctx/a" "$tmp/ctx/b"
@@ -190,11 +199,13 @@ expect "with CONTEXT-MAP.md the Planner counts the map and the largest context i
   sh -c '[ "$1" = 0 ] && printf "%s\n" "$2" | grep -qx "planner=48500"' _ "$code" "$out"
 mv "$tmp/ctx/a/CONTEXT.md" "$tmp/t/ctx-a.md"
 est
-expect "a context the map names that is not on disk names ground and exits 3" refused 3 ground
+expect "a context the map names that is not on disk names planner, whose reading the grounding is, and exits 3" \
+  refused 3 planner
 mv "$tmp/t/ctx-a.md" "$tmp/ctx/a/CONTEXT.md"
 printf '# Context map\n' >"$tmp/CONTEXT-MAP.md"
 est
-expect "a map that names no context names ground and exits 3" refused 3 ground
+expect "a map that names no context names planner, whose reading the grounding is, and exits 3" \
+  refused 3 planner
 rm -r "$tmp/CONTEXT-MAP.md" "$tmp/ctx"
 mv "$tmp/t/CONTEXT.md" "$tmp/CONTEXT.md"
 

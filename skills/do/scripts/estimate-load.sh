@@ -6,22 +6,27 @@
 # truth that corrects it. Run from inside the project the run would build in.
 #
 #   estimate-load.sh                        the fixed load, broken down by term
-#   estimate-load.sh <the Ticket's path>    the same, then the Ticket's criteria, its projected peak
-#                                           and the band the peak falls in
+#   estimate-load.sh <the Ticket's path>    the same, then the Ticket's criteria, the Builder's window
+#                                           and the band the session's total falls in
 #
-# Prints key=value lines in tokens, in this order: baseline, reference_chain, door, ground, shape,
-# total; with a Ticket, criteria, per_criterion, peak and band after them. A file is counted at four
-# bytes a token. baseline is the harness's own prompt and listings; reference_chain the skill file,
-# the Playbook's reference, the shared mechanics and the three files a step reads on its own beside
-# them (the build loop, the forks, the conflict loop), the reply reference and the Ticket format. A
-# reference a run reads that this array does not name is counted as nothing, and `need` cannot catch
-# it: the term under-reports in silence, so a file split out of the mechanics is added here too.
-# door the
-# door script's output, the Digest's brief, the Ticket and its Digest; ground the project's
-# CONTEXT.md, or its CONTEXT-MAP.md and the largest CONTEXT.md the map names, since which one the
-# step picks is not knowable here, and its ADR titles, then the map, the discover return and the ADR
-# bodies the step reads;
-# shape the one line the shape step names. What is not a file is a stated allowance below.
+# Prints key=value lines in tokens, in this order: baseline, reference_chain, door, total, planner,
+# builder_base, per_criterion; with a Ticket, criteria, builder and band after them. A file is counted
+# at four bytes a token. The lines before total are the session's and sum into it, and total is the
+# session's peak, which the band is read from: the Planner and the Builder are forks whose windows
+# never count toward a Ticket's band (ADR 0016, ADR 0047), so the lines after total are theirs and
+# enter neither. baseline is the harness's own prompt and listings; reference_chain the skill file,
+# the Playbook's reference, the shared mechanics, the forks and the conflict loop a step reads beside
+# them, the Planner's and the Builder's briefs, the reply reference and the Ticket format. A reference
+# a run reads that this array does not name is counted as nothing, and `need` cannot catch it: the
+# term under-reports in silence, so a file split out of the mechanics is added here too. door the
+# door script's output, the Digest's brief, the Ticket and its Digest. planner a fork's own baseline,
+# its definition and brief, the Ticket, the Digest, and the grounding it reads: the project's
+# CONTEXT.md, or its CONTEXT-MAP.md and the largest CONTEXT.md the map names, since which one it
+# picks is not knowable here, and its ADR titles, then the map, the discover return and the ADR
+# bodies, and the Sketch its shape fork returns. builder_base a fork's own baseline, its definition,
+# its brief, the build loop and the Plan it builds from; per_criterion what each criterion adds to
+# the Builder's window, and builder the two together for the Ticket's criteria. What is not a file
+# is a stated allowance below.
 # Exit codes: 0 a reading, whatever the band · 2 usage · 3 a term could not be read, named on stderr
 set -uo pipefail
 [ "$#" -le 1 ] || { echo "usage: estimate-load.sh [<the Ticket's path>]" >&2; exit 2; }
@@ -80,10 +85,10 @@ ground_bytes=0
 map="$root/CONTEXT-MAP.md"
 if [ -f "$map" ]; then
   mapfile -t contexts < <(grep -oE '\]\([^)]*CONTEXT\.md\)' "$map" | sed -E 's/^\]\(//; s/\)$//')
-  [ "${#contexts[@]}" -gt 0 ] || refuse ground "$map names no CONTEXT.md"
+  [ "${#contexts[@]}" -gt 0 ] || refuse planner "$map names no CONTEXT.md"
   largest=0
   for context in "${contexts[@]}"; do
-    need ground "$root/$context"
+    need planner "$root/$context"
     size="$(bytes "$root/$context")"
     [ "$size" -gt "$largest" ] && largest=$size
   done
@@ -97,8 +102,11 @@ for adr in "$root"/docs/adr/*; do
 done
 ground=$(($(tokens "$ground_bytes") + ground_allowance))
 total=$((baseline + reference_chain + door))
+need planner "$skill/agents/do-planner.md" "$skill/references/plan.md"
 planner=$((baseline + $(tokens "$(bytes "$skill/agents/do-planner.md" "$skill/references/plan.md")") \
   + ticket_tokens + digest_tokens + ground + shape_allowance))
+need builder_base "$skill/agents/do-builder.md" "$skill/references/builder.md" \
+  "$skill/references/build-loop.md"
 builder_base=$((baseline + $(tokens "$(bytes "$skill/agents/do-builder.md" "$skill/references/builder.md" \
   "$skill/references/build-loop.md")") + plan_allowance))
 
