@@ -27,6 +27,12 @@ CLAUDECODE=1 run
 same "under Claude Code with no settings disabling hooks, the guard is the pattern guard beside the header check" \
   "$(printf '%s\n' harness=claude-code hooks=run disabled_by=none guard=pattern-and-header 'exit 0')"
 
+# The calling session may set either marker, and `run` is a function `env -u` cannot reach.
+unset CLAUDECODE CLAUDE_CODE_SESSION_ID
+run
+same "on a harness that runs no hook, the Plan's header check is the whole guard" \
+  "$(printf '%s\n' harness=other hooks=none disabled_by=none guard=header-only 'exit 0')"
+
 echo
 if [ "$fails" = 0 ]; then echo "harness-hooks: all checks passed"; else
   echo "harness-hooks: $fails failed"

@@ -9,7 +9,8 @@
 # disabled_by=none|<settings file>:<key>, guard=pattern-and-header|header-only.
 set -uo pipefail
 
-echo harness=claude-code
-echo hooks=run
-echo disabled_by=none
-echo guard=pattern-and-header
+if [ "${CLAUDECODE:-}" = 1 ] || [ -n "${CLAUDE_CODE_SESSION_ID:-}" ]; then
+  printf '%s\n' harness=claude-code hooks=run disabled_by=none guard=pattern-and-header
+else
+  printf '%s\n' harness=other hooks=none disabled_by=none guard=header-only
+fi
