@@ -501,10 +501,15 @@ the Plan step's keys are never copied here.
 
 Check the return where it crosses, per [builder.md](builder.md)'s `## The return`: its first line
 reads `built`, `fork` or `stopped`, and every `behaviour:` line carries a commit. Then run
-`bash <skill-dir>/scripts/resume-state.sh <the Ticket's path>` once and match its `commit=` and
-`behaviour=` pairs against the returned `behaviour:` lines, one for one; on `built`, `uncommitted=`
-is empty. On a Ticket that is not a local file the argument is its issue reference, the slug step 2
-already cut the worktree under, and never a path the probe would find no file at: a probe that
+`bash <skill-dir>/scripts/resume-state.sh <the Ticket's path>` once and match its trailing
+`commit=` and `behaviour=` pairs against the returned `behaviour:` lines, one for one, in the order
+both list: as many trailing pairs as there are `behaviour:` lines in the return, which is this
+fork's own stretch and never a pair an earlier stretch already committed and returned before. A
+further trailing pair reading `behaviour=<sha> none` is the flow this fork committed on its own,
+which carries no `Behaviour:` line of the commit's own, and needs no returned line to match. On
+`built`, `uncommitted=` is empty. On a Ticket that is not a local file the argument is its issue
+reference, the slug step 2 already cut the worktree under, and never a path the probe would find
+no file at: a probe that
 refused to read the branch would drop every `built` return an issue-backed run ever made. A return that fails either check is a fork that went wrong and not a build: the session
 drops the return, picks the stretch up from what `resume-state.sh` just printed, which is the
 Resume section's own path, and records the fallback line for the Reply's Run section.

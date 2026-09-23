@@ -97,6 +97,20 @@ carries "the step matches the probe's pairs against the lines the fork returned"
 carries_any "the match is one returned line per commit on the branch, not a loose lookup" \
   "one for one" "one-for-one" "one to one" "one-to-one" "line for line" "pair for pair"
 
+# A resumed run's branch carries pairs earlier stretches already committed and the fork never
+# repeats in its return: matching against the whole branch would demand a returned line for a pair
+# this fork never touched, and every resumed run would fail the check the same way.
+carries_any "the match is scoped to this fork's own stretch, not the whole branch" \
+  "as many trailing pairs as there are" "this fork's own stretch" \
+  "never a pair an earlier stretch already committed and returned before" \
+  "already committed and returned before"
+
+# A flow this fork commits on its own carries no `Behaviour:` line, so resume-state.sh prints a
+# `behaviour=<sha> none` pair with nothing in the return to match it against: a check that still
+# demanded a match would fail every run whose flow landed as its own commit.
+carries_any "a standalone flow commit's \`behaviour=<sha> none\` pair needs no returned line to match" \
+  "behaviour=<sha> none" "carries no \`Behaviour:\` line" "needs no returned line to match"
+
 # A `built` with work still in the worktree is a stretch the fork left half committed: the lines
 # crossed back naming commits, and what the reviewers would read is not what the fork built.
 carries "the step knows a build leaves nothing uncommitted behind it" "uncommitted="
