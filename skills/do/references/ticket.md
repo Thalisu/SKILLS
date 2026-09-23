@@ -62,7 +62,11 @@ the tracker file describes. Before anything is written:
 - On a remote tracker, an issue assigned to someone else stops the run in one line with their
   name.
 
-The first write comes after those stops and never before one of them. Then the door decides between
+The first write comes after those stops and never before one of them. On a resume the run reads
+`resume-state.sh` before the Digest decision, as the Resume section says, and on `verdict=land` the
+run forks no reader, whatever the Digest's state, a hash that differs or no Digest at all: only the
+landing is left, and nothing it runs opens a Digest. Every other run, a resume on any other verdict
+included, goes on to the Digest decision. Then the door decides between
 the Digest already beside the Ticket and a reader, as the second run section of
 [mechanics.md](mechanics.md) fixes. Two recorded hashes that both match are a reuse: the run says
 in one line that it reused the Digest and forked no reader, and derives its behaviours from the
@@ -217,7 +221,11 @@ and leaves the worktree as it is, since no branch can be read from it to build o
 - A Spec amended while the Ticket is `claimed` is resumed the same way whoever amended it: `discuss`
   after a run stopped on an Extreme fork (the forks in [forks.md](forks.md)), or the
   developer editing a Ruling line in the Spec's Implementation Decisions to reverse it. No
-  mechanism is added for either. The Spec's hash no longer matches the Digest's, so the run prints
+  mechanism is added for either, and the rule does not fire on `verdict=land`: the review already
+  read the branch and it lands as the `verdict=land` bullet says, and a Ruling reversed after that
+  is built by a new Ticket, per
+  [ADR 0038](../../../docs/adr/0038-a-ruling-reversed-after-its-ticket-landed-is-built-by-a-new-ticket-the-developer-writes.md).
+  On every other verdict the Spec's hash no longer matches the Digest's, so the run prints
   the one line naming the Spec as changed, and the reader is forked again over the amended Spec and
   the journey both, never over the Spec alone, whose Digest would come back with no Journey Path
   for step 1 to read. The list is re-derived from the Digest that comes back, every commit whose

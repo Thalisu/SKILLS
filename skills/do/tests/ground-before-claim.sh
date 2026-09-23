@@ -130,6 +130,47 @@ skip_reasons="$(grep -oE 'step 1[^`]{0,60}`skip: [^`]*`' <<<"$flat")"
 expect "the checklist's step 1 reads a skip whose reason names the landing-only resume" \
   grep -qiE '`skip: [^`]*land' <<<"$skip_reasons"
 
+echo "# skills/do/references/ticket.md: a resume the review already read forks no reader"
+
+# The Door decides reuse or re-fork of the Digest, and a `verdict=land` resume opens that Digest
+# nowhere: the Plan step and the loop are skipped and the review already ran. A reader forked there
+# pays a window over the Spec and the journey both for a Digest nothing reads, so the verdict has to
+# be in hand before the decision, and the decision has to let it through whatever the hashes say.
+flat="$(passage_of "$playbook" "The first write comes after those stops" "## Resume" |
+  tr '\n' ' ' | tr -s ' ')"
+expect "the Door carries the Digest decision paragraph" test -n "$flat"
+
+carries_any "a resume reads resume-state.sh before the Door's Digest decision" \
+  "read before the Digest decision" "reads \`resume-state.sh\` before the Digest decision" \
+  "before the Digest decision" "before the door decides" "before the Door decides" \
+  "before deciding between the Digest" "before that decision"
+
+carries_any "a \`verdict=land\` resume forks no reader" \
+  "no reader is forked on \`verdict=land\`" "forks no reader on \`verdict=land\`" \
+  "On \`verdict=land\`, no reader is forked" "on \`verdict=land\`, no reader is forked" \
+  "On \`verdict=land\` the run forks no reader" "on \`verdict=land\` the run forks no reader" \
+  "a \`verdict=land\` resume forks no reader" "\`verdict=land\` forks no reader" \
+  "On \`verdict=land\`, the run forks no reader" "on \`verdict=land\`, the run forks no reader"
+
+carries_any "the \`verdict=land\` exemption holds over a moved hash and a missing Digest alike" \
+  "moved or missing" "moved or absent" "changed or missing" "changed or absent" \
+  "differs or is missing" "differs or is absent" "whatever state the Digest" \
+  "whatever the Digest's state" "even with no Digest" "a hash that differs or no Digest" \
+  "stale or absent" "stale or missing"
+
+# The amended-Spec bullet re-forks the reader and continues the loop; on a landing-only resume the
+# loop is skipped, so a bullet read as firing there contradicts the land bullet and buys the fork
+# back.
+flat="$(passage_of "$playbook" "- A Spec amended while the Ticket is \`claimed\`" "## Checklist" |
+  tr '\n' ' ' | tr -s ' ')"
+expect "the Resume section carries the amended-Spec bullet" test -n "$flat"
+
+carries_any "the amended-Spec rule does not fire on \`verdict=land\`" \
+  "does not fire on \`verdict=land\`" "never fires on \`verdict=land\`" \
+  "not on \`verdict=land\`" "except on \`verdict=land\`" "On every verdict but \`land\`" \
+  "on every verdict but \`land\`" "On \`verdict=land\` it does not" "on \`verdict=land\` it does not" \
+  "On \`verdict=land\`, no reader" "on \`verdict=land\`, no reader" "not fire on \`verdict=land\`"
+
 echo "# skills/do/references/ticket.md: the diagnosis-first branch already holds a worktree when a refusal names one"
 
 # `cause unknown, diagnosis first` (step 0's defect line) is the one branch where step 2's worktree
