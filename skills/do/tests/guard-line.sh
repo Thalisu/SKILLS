@@ -59,6 +59,42 @@ carries_each "\`header-only\` names the \`## Sources\` check as the whole guard"
   "whole guard" "the only guard" "sole guard" "check alone" "guard alone" "only mechanism" \
   "nothing else guards"
 
+echo "# skills/do/references/ticket.md: a run that can fork neither agent says so once, in one line"
+
+# Story 11: with the Agent tool withheld, or neither agent linked, the session does both forks' work
+# and the developer reads it once. Scoped to the paragraphs of each step that carry the line, so the
+# per-fork fallback text planner.sh and builder.sh pin never answers for it.
+flat="$(paragraph_with <(item_holding "$playbook" '\*\*[0-9]+\.' "subagent_type: do-planner") \
+  "Forks: none" all | tr '\n' ' ' | tr -s ' ')"
+carries "the Plan step's fallback records a \`Forks: none\` line" "Forks: none"
+
+carries_each "the \`Forks: none\` line says the session did the Planner's and the Builder's work" \
+  "Planner" \
+  -- \
+  "Builder" \
+  -- \
+  "itself" "its own session" "the session did" "in its own window" "on its own"
+
+# The two branches ask different things of the developer: nothing to do on a harness without the
+# tool, one run of the installer on a machine that never linked the agents.
+carries_each "the \`Forks: none\` line names which branch holds, and the installer on the unlisted one" \
+  "withheld" \
+  -- \
+  "neither" "not listed" "lists no" "unlisted" \
+  -- \
+  "link-skills.sh"
+
+carries_each "a run that can fork neither agent goes on to the build and the close" \
+  "neither stops" "does not stop" "never stops" "not stop" "continues" "carries on" "goes on"
+
+flat="$(paragraph_with <(item_holding "$playbook" '\*\*[0-9]+\.' "subagent_type: do-builder") \
+  "Forks: none" all | tr '\n' ' ' | tr -s ' ')"
+carries_each "the Build step adds no second line when \`Forks: none\` was recorded" \
+  "Forks: none" \
+  -- \
+  "no second" "not a second" "adds no" "writes no" "records no" "no line of its own" \
+  "no further line" "no per-fork line" "not again" "nothing more"
+
 echo "# skills/do/references/reply.md: the Plan line tells the developer which mechanism held"
 
 # ADR 0039: the Reply is the only place a run's lines reach the developer, so the verdict the probe
@@ -101,5 +137,15 @@ carries_each "\`pattern-and-header\` reads as the pattern guard beside the heade
   "beside the header check" "alongside the header check" "with the header check" \
   "and the header check" "on top of the header check" "plus the header check" \
   "beside the \`## Sources\` check" "and the \`## Sources\` check"
+
+# One line for a run that forked neither agent, never the two per-fork lines beside it: two lines
+# read as two separate degradations, and the developer was promised one.
+carries "the Plan line carries the \`Forks: none\` line" "Forks: none"
+# The item already puts one \`rg -n -w\` "in place of" the discover batch, so the stand-in is read
+# only off the sentences that carry the line.
+# shellcheck disable=SC2034 # lib.sh's carries_any reads $flat
+flat="$(sed 's/\. /.\n/g' <<<"$flat" | grep -F "Forks: none" | tr '\n' ' ')"
+carries_any "the \`Forks: none\` line stands in place of the two per-fork lines" \
+  "in place of" "instead of" "replaces" "rather than the two" "not the two" "never the two"
 
 [ "$fails" = 0 ]
