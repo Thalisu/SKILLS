@@ -65,6 +65,17 @@ band=small
 forks=5
 fork_kinds=Explore 1, do-builder 2, do-reader 1, unit-test-author 1"
 
+{
+  usage 10 0 1000
+  echo '{"type":"assistant","message":{"role":"assistant","content":[{"type":"tool_use","id":"o1","name":"Agent","input":{"subagent_type":"do-builder","prompt":"x"}}]}}'
+  echo '{"type":"assistant","isSidechain":true,"message":{"role":"assistant","usage":{"input_tokens":1,"cache_creation_input_tokens":0,"cache_read_input_tokens":500,"output_tokens":1},"content":[{"type":"tool_use","id":"s1","name":"Agent","input":{"subagent_type":"unit-test-author","prompt":"x"}},{"type":"tool_use","id":"s2","name":"Agent","input":{"subagent_type":"do-builder","prompt":"x"}}]}}'
+  echo '{"type":"assistant","isSidechain":true,"message":{"role":"assistant","content":[{"type":"tool_use","id":"s3","name":"Agent","input":{"subagent_type":"unit-test-author","prompt":"x"}}]}}'
+  usage 5 0 2000
+} >"$tmp/sidechain-forks.jsonl"
+run "$tmp/sidechain-forks.jsonl"
+check_lines "a fork's own Agent calls, on sidechain lines, are not counted as the session's forks" 0 "$rc" \
+  "forks=1" "fork_kinds=do-builder 1"
+
 { echo '{"type":"user","message":{"role":"user","content":"hi"}}'; } >"$tmp/empty.jsonl"
 run "$tmp/empty.jsonl"
 check_lines "a transcript with no assistant usage exits 4" 4 "$rc"
