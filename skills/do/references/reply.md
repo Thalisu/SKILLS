@@ -55,7 +55,22 @@ files and the audit line both come before the worktree line):
     itself is in the Plan and never here, since the session never read it. A Plan the run carried
     instead of forking the Planner is named the same way, with the line saying it was reused. On a
     resume whose only work left was the landing, the line says the Plan step was skipped for that
-    reason and names no Plan, since the run opened none.
+    reason and names no Plan, since the run opened none. Whenever a fork ran, the Planner or the
+    Builder, one `Guard:` line rides it, quoting the `guard=` line the guard probe printed with its
+    `harness=` and `hooks=` values, so the developer knows which of the two mechanisms held: on
+    `pattern-and-header`, the pattern guard beside the header check; on `header-only`, the header
+    check alone, the whole guard over the fork itself, with the review marker's token, revoked
+    again as soon as the Builder returns, guarding the window after that the header check never
+    reaches, and the `disabled_by=` file when the probe named one. When neither fork could run,
+    the Agent tool withheld or neither agent listed, the one `Planner/Builder: none` line rides it
+    in place of the Planner's and the Builder's per-fork fallback lines, with no `Guard:` line,
+    since no fork ran for a guard to bind.
+
+    ```
+    Guard: guard=pattern-and-header (harness=claude-code, hooks=run): the pattern guard beside the header check.
+    Guard: guard=header-only (harness=other, hooks=none): the header check alone, the whole guard.
+    Planner/Builder: none; the session did the Planner's and the Builder's work itself, the Agent tool withheld.
+    ```
 11. **Audit line.** In `bug-fix` and `refactoring`, the discover audit line the ground step
     recorded,
     `Discovery: n FOUND · n DUPLICATE · n NOT_FOUND`, saying so when one `rg -n -w` per candidate
