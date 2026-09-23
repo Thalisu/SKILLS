@@ -76,6 +76,15 @@ run "$tmp/sidechain-forks.jsonl"
 check_lines "a fork's own Agent calls, on sidechain lines, are not counted as the session's forks" 0 "$rc" \
   "forks=1" "fork_kinds=do-builder 1"
 
+{
+  usage 10 0 1000
+  echo '{"type":"assistant","message":{"role":"assistant","content":[{"type":"tool_use","id":"g1","name":"Agent","input":{"prompt":"x"}},{"type":"tool_use","id":"g2","name":"Agent","input":{"subagent_type":"do-builder","prompt":"x"}}]}}'
+  usage 5 0 2000
+} >"$tmp/default-kind-forks.jsonl"
+run "$tmp/default-kind-forks.jsonl"
+check_lines "an Agent call with no subagent_type is counted under general-purpose" 0 "$rc" \
+  "forks=2" "fork_kinds=do-builder 1, general-purpose 1"
+
 mkdir -p "$tmp/home/.claude/skills/do-code-review" "$tmp/home/.claude/skills/grill"
 cat >"$tmp/home/.claude/skills/do-code-review/SKILL.md" <<'EOF'
 ---
