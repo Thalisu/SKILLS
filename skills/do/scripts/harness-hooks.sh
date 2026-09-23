@@ -7,6 +7,8 @@
 #
 # Prints four key=value lines, in this order: harness=claude-code|other, hooks=run|disabled|none,
 # disabled_by=none|<settings file>:<key>, guard=pattern-and-header|header-only.
+# Exit codes: 0 a verdict printed, either one · 1 not inside a git work tree, so the project's
+# settings cannot be found · 2 usage: any argument. Nothing is printed on 1 or 2.
 #
 # Hooks count as disabled by the first of these, in this order, that turns them off: the managed
 # settings file with `disableAllHooks` or `allowManagedHooksOnly` true, then the user's settings,
@@ -49,8 +51,17 @@ disabled_by() { # $1 the project's top level
   echo none
 }
 
+if [ "$#" -gt 0 ]; then
+  echo "usage: harness-hooks.sh" >&2
+  exit 2
+fi
+top="$(git rev-parse --show-toplevel 2>/dev/null)" || {
+  echo "harness-hooks.sh: not inside a git work tree" >&2
+  exit 1
+}
+
 if [ "${CLAUDECODE:-}" = 1 ] || [ -n "${CLAUDE_CODE_SESSION_ID:-}" ]; then
-  by="$(disabled_by "$(git rev-parse --show-toplevel)")"
+  by="$(disabled_by "$top")"
   if [ "$by" = none ]; then
     printf '%s\n' harness=claude-code hooks=run disabled_by=none guard=pattern-and-header
   else

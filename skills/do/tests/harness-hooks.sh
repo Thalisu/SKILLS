@@ -13,9 +13,9 @@ trap 'cd /; rm -rf "$tmp"' EXIT
 export HOME="$tmp/home" CLAUDE_CONFIG_DIR="$tmp/home/.claude" DO_MANAGED_SETTINGS="$tmp/managed/managed-settings.json"
 mkdir -p "$CLAUDE_CONFIG_DIR"
 
-run() { # the probe's stdout, then its exit, in $out
+run() { # $1.. the probe's arguments: its stdout, then its exit, in $out
   rc=0
-  out="$(bash "$probe" 2>"$tmp/err")" || rc=$?
+  out="$(bash "$probe" "$@" 2>"$tmp/err")" || rc=$?
   out="$out"$'\n'"exit $rc"
 }
 
@@ -74,6 +74,19 @@ unset CLAUDECODE CLAUDE_CODE_SESSION_ID
 run
 same "on a harness that runs no hook, the Plan's header check is the whole guard" \
   "$(printf '%s\n' harness=other hooks=none disabled_by=none guard=header-only 'exit 0')"
+
+# A failed probe must print no guard= line at all, or the ticket run would quote it as a verdict.
+mkdir -p "$tmp/outside"
+for signal in CLAUDECODE=1 CLAUDE_CODE_SESSION_ID=harness-hooks-test none; do
+  [ "$signal" = none ] || export "${signal?}"
+  cd "$top" || exit 1
+  run unexpected
+  same "given an argument, the probe exits 2 and prints no verdict (signal: $signal)" $'\nexit 2'
+  cd "$tmp/outside" || exit 1
+  GIT_CEILING_DIRECTORIES="$tmp" run
+  same "outside any git work tree, the probe exits 1 and prints no verdict (signal: $signal)" $'\nexit 1'
+  unset CLAUDECODE CLAUDE_CODE_SESSION_ID
+done
 
 echo
 if [ "$fails" = 0 ]; then echo "harness-hooks: all checks passed"; else
