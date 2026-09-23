@@ -536,4 +536,44 @@ carries_each "the \`choice-taker\` fork and the Spec write stay the session's, n
   -- "forks the \`choice-taker\`" "forks the choice-taker" "the session forks" \
   -- "writes the Ruling to the Spec" "writes the Ruling into the Spec" "the Ruling to the Spec"
 
+echo "# skills/do/references/forks.md: an Extreme fork the Builder meets stops the run the same way"
+
+# The Extreme stop is the one boundary never-block-on-the-human keeps for the human, and since
+# ADR 0047 the build loop runs inside the Builder's window. The fork's own write guard denies every
+# `.scratch/` path, so it can neither read a side as Extreme on the session's behalf nor write the
+# sidecar: both are the session's, off the two sides the Builder's return carried. Said nowhere, a
+# Builder that meets an Extreme fork mid-loop either commits on it or stops with no sidecar, and the
+# next `/do` meets the same fork and stops again with nothing recorded. Scoped to the Extreme
+# paragraphs alone, from the risk-class sentence to the `/discuss` shape: the Design fork's own
+# sentence above already names the Builder and would otherwise answer for a half nothing wrote.
+flat="$(passage_of "$forks" "A fork that touches a risk class" "The reply's last line is the \`/discuss\` command" |
+  tr '\n' ' ' | tr -s ' ')"
+expect "forks.md carries the Extreme paragraphs the stop is written in" test -n "$flat"
+
+# Where the two sides come from when the build step found the fork. Every phrasing accepted names
+# the Builder, since the sides at the Plan step come from the Plan and a sentence about those would
+# leave the build step's own reading standing on nothing.
+carries_any "the sides the session reads as Extreme at the build step are the ones the Builder handed back" \
+  "the two sides the Builder handed back" "the two sides the Builder hands back" \
+  "the sides the Builder handed back" "the sides the Builder hands back" \
+  "the two sides the Builder returned" "the two sides the Builder returns" \
+  "the two sides the Builder's return" "the sides the Builder's return" \
+  "both sides the Builder handed back" "both sides the Builder's return" \
+  "the Builder's return carries" "the Builder's return carried" \
+  "the Builder handed back" "the Builder hands back" \
+  "handed back by the Builder" "the Builder's return names" \
+  "in the Builder's return" "on the Builder's return"
+
+# What the stop still is once the build step's half is written in. The sidecar and the blocked shape
+# already hold for the Plan step's half, and the case keeps them so a rewrite that adds the
+# Builder's cannot drop either on the way through; the middle group is the new half's other side,
+# the stop and its sidecar staying the session's, which the Builder's write guard makes true whether
+# or not the reference says so.
+carries_each "the stop keeps its blocked shape and its \`<Ticket>.extreme.md\` sidecar, both the session's and never the Builder's" \
+  "<Ticket>.extreme.md" \
+  -- "never the Builder" "not the Builder" "never the fork that built" \
+  "the Builder writes neither" "the Builder rules on none" "the Builder never writes" \
+  "the Builder's own write guard" "the session, never the Builder" \
+  -- "a blocked run, written by the blocked shape" "the blocked shape of" "blocked shape"
+
 exit $((fails > 0))

@@ -155,8 +155,10 @@ A fork that touches a risk class with both sides keeping the guarantee whole is 
 other and never stops the run. An Extreme fork, one of whose sides weakens a guarantee in a risk
 class (security, privacy, data loss, auth, billing, migration, idempotency, race) or cannot be
 undone once landed, is one nothing in the run rules on. Two readings can find it, and either one
-alone stops the run at its step. The session reads the two sides first: a side it reads as Extreme
-stops the run there, and no `choice-taker` is forked for a fork already read as Extreme. Otherwise
+alone stops the run at its step. The session reads the two sides first, and at the build step those
+are the two sides the Builder handed back on its return, since the fork stops its loop on a fork it
+cannot rule and reads nothing as Extreme on the session's behalf: a side the session reads as
+Extreme stops the run there, and no `choice-taker` is forked for a fork already read as Extreme. Otherwise
 the `choice-taker` is forked as above, and an `extreme` return stops the run the same way, its
 `Fork:`, `Weaker side:`, `Guarantee:` and `Risk class:` lines being what the stop names, each
 `/discuss` slot filled from the line named for it and never from the session's own wording. The
@@ -181,7 +183,9 @@ Nothing is written to the Spec, and the Ticket's criteria are left as they are: 
 Ruling writes either, and an Extreme fork has none. The stop does write one file beside the Ticket,
 its `<Ticket>.extreme.md` sidecar, one line, the `/discuss` command below, so `resume-state.sh`
 finds it on a later `/do` and reports it as its `extreme=` and `discuss=` lines instead of meeting
-the fork again.
+the fork again. That write is the session's, never the Builder's, whichever step found the fork:
+the Builder's own write guard denies every `.scratch/` path, so a fork that met the fork mid-loop
+leaves the stop, the sidecar and the reply to the session that forked it.
 
 The reply's last line is the `/discuss` command the developer copies, whole, with nothing after it,
 in this shape:
