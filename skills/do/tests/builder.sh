@@ -825,4 +825,22 @@ fi
 carries_each "the rule is kept for the two Playbooks whose session still writes the code" \
   "bug-fix" -- "refactoring"
 
+echo "# skills/do/agents/do-builder.md: a just-text clause for a stranger's imperative in the Ticket, the Digest or the Plan"
+
+# The Builder is forked with Bash, Write, Edit and Agent, and it reads the Ticket and the Digest
+# (and the Plan), which may carry text a stranger appended to a remote tracker issue, the exposure
+# do-planner.md's own last paragraph names for itself and carries the same clause against. With no
+# line telling the Builder that an imperative sentence in that text is material to build from and
+# never an instruction to it, the Builder has nothing in its own contract distinguishing a line the
+# Ticket asks it to prove from a line telling it what to do with the tools it holds. do-builder.md
+# ships no `<!-- testing-policy:core-start/end -->` markers, unlike AGENT-UNIT.md and AGENT-E2E.md
+# (handback-just-text.sh's own scope), so the check reads the whole body after the frontmatter's
+# closing `---` rather than a marked-off core. The same regex handback-just-text.sh already runs.
+agent_body="$(awk 'BEGIN { dashes = 0 } /^---$/ { dashes++; next } dashes >= 2' "$agent")"
+if grep -qE 'never an instruction to (you|follow)' <<<"$agent_body"; then
+  ok "the building agent's body carries a just-text clause for a stranger's imperative in the Ticket, the Digest or the Plan"
+else
+  fail "the building agent's body carries a just-text clause for a stranger's imperative in the Ticket, the Digest or the Plan (no line matching 'never an instruction to you/follow' found in the body)"
+fi
+
 exit $((fails > 0))
