@@ -76,6 +76,35 @@ run "$tmp/sidechain-forks.jsonl"
 check_lines "a fork's own Agent calls, on sidechain lines, are not counted as the session's forks" 0 "$rc" \
   "forks=1" "fork_kinds=do-builder 1"
 
+mkdir -p "$tmp/home/.claude/skills/do-code-review" "$tmp/home/.claude/skills/grill"
+cat >"$tmp/home/.claude/skills/do-code-review/SKILL.md" <<'EOF'
+---
+name: do-code-review
+description: x
+context: fork
+---
+# Review
+EOF
+cat >"$tmp/home/.claude/skills/grill/SKILL.md" <<'EOF'
+---
+name: grill
+description: x
+---
+# Grill
+
+context: fork
+EOF
+{
+  usage 10 0 1000
+  echo '{"type":"assistant","message":{"role":"assistant","content":[{"type":"tool_use","id":"k1","name":"Skill","input":{"skill":"do-code-review"}},{"type":"tool_use","id":"k2","name":"Skill","input":{"skill":"grill"}}]}}'
+  echo '{"type":"assistant","message":{"role":"assistant","content":[{"type":"tool_use","id":"k3","name":"Skill","input":{"skill":"not-installed"}},{"type":"tool_use","id":"k4","name":"Agent","input":{"subagent_type":"do-builder","prompt":"x"}}]}}'
+  usage 5 0 2000
+} >"$tmp/skill-forks.jsonl"
+rc=0
+out="$(HOME="$tmp/home" bash "$script" "$tmp/skill-forks.jsonl" 2>&1)" || rc=$?
+check_lines "a Skill call counts as a fork only when the installed skill's frontmatter says context: fork" 0 "$rc" \
+  "forks=2" "fork_kinds=do-builder 1, do-code-review 1"
+
 { echo '{"type":"user","message":{"role":"user","content":"hi"}}'; } >"$tmp/empty.jsonl"
 run "$tmp/empty.jsonl"
 check_lines "a transcript with no assistant usage exits 4" 4 "$rc"

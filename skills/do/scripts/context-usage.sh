@@ -13,7 +13,9 @@
 # which older harness versions wrote into the same file for forked agents, are left out: only the
 # orchestrator's context counts. Then forks=<n>, the forks the orchestrator made, and
 # fork_kinds=<kind> <n>[, <kind> <n>]..., the kinds in C byte order and empty at zero: a fork is an
-# Agent or Task call, its kind the subagent_type, general-purpose when none is named.
+# Agent or Task call, its kind the subagent_type, general-purpose when none is named, or a Skill
+# call whose installed $HOME/.claude/skills/<skill>/SKILL.md frontmatter says context: fork, its
+# kind the skill's name. A Skill that runs inline is no fork.
 # Exit codes: 0 · 2 no transcript: usage, the file missing, or no session id (a harness other than
 # Claude Code) · 3 jq missing · 4 no assistant message with usage in the transcript.
 set -euo pipefail
@@ -34,11 +36,21 @@ read -r current peak messages < <(
 )
 [ "$messages" -gt 0 ] || { echo "no assistant message with usage in $file" >&2; exit 4; }
 if [ "$peak" -lt 150000 ]; then band=small; elif [ "$peak" -le 200000 ]; then band=medium; else band=large; fi
+forked_skill() { # $1 skill name: its installed SKILL.md frontmatter says context: fork
+  awk 'NR == 1 && $0 != "---" { exit 1 } NR > 1 && $0 == "---" { exit 1 } $0 == "context: fork" { found = 1; exit } END { exit !found }' \
+    "$HOME/.claude/skills/$1/SKILL.md" 2>/dev/null
+}
 fork_kinds="$(
   jq -r 'select(.type == "assistant" and .isSidechain != true) | .message.content[]?
-         | select(.type == "tool_use" and (.name == "Agent" or .name == "Task"))
-         | "\(.id)\t\(.input.subagent_type // "" | if . == "" then "general-purpose" else . end)"' "$file" 2>/dev/null \
-  | awk -F'\t' '!seen[$1]++ { print $2 }' | LC_ALL=C sort | uniq -c \
+         | select(.type == "tool_use")
+         | if .name == "Agent" or .name == "Task" then
+             "\(.id)\tagent\t\(.input.subagent_type // "" | if . == "" then "general-purpose" else . end)"
+           elif .name == "Skill" then "\(.id)\tskill\t\(.input.skill // "")"
+           else empty end' "$file" 2>/dev/null \
+  | awk -F'\t' '!seen[$1]++ { print $2 "\t" $3 }' \
+  | while IFS=$'\t' read -r via kind; do
+      [ "$via" = agent ] || { [ -n "$kind" ] && forked_skill "$kind"; } && printf '%s\n' "$kind"
+    done | LC_ALL=C sort | uniq -c \
   | awk '{ printf "%s%s %s", (NR > 1 ? ", " : ""), $2, $1; n += $1 } END { printf "\t%d", n + 0 }'
 )"
 forks="${fork_kinds##*$'\t'}"
