@@ -514,11 +514,19 @@ refused to read the branch would drop every `built` return an issue-backed run e
 drops the return, picks the stretch up from what `resume-state.sh` just printed, which is the
 Resume section's own path, and records the fallback line for the Reply's Run section.
 
-Before the route below is taken, the Plan is read once more: the `## Sources` check above runs a
-second time at the destination step 1 named, over the same two hashes the door computed there, and
-prints `match` or `refused` with no line of the file crossing into this window. The Plan was
-verified before the fork and never read back after it, so this is the run's one reading of the
-grounding a fork holding a shell in the worktree could have rewritten, and the `Bash` matcher on
+Before the route below is taken, the Plan is read once more: before it is, the run hashes the
+Ticket and the Digest again, `git hash-object` run again in the main checkout over the two paths
+the door resolved before it forked, and compares each recomputed hash against the hash the door
+recorded for it there. Only when both still match does the `## Sources` check above run a second
+time at the destination step 1 named, over the same two hashes the door computed there, and print
+`match` or `refused` with no line of the file crossing into this window. A recomputed hash that no
+longer matches the door's recorded value is refused the same way, in one line naming the document
+that moved, before the check above ever runs, since a Plan whose `## Sources` lines still read
+`match` proves nothing about a Ticket or a Digest a fork rewrote after the door hashed it: the
+Plan's own lines never move to catch that. The Plan was verified before the fork and never read
+back after it, so this, together with the Ticket and Digest hashes just checked, is the run's one
+reading of the grounding a fork holding a shell in the worktree could have rewritten, and the
+`Bash` matcher on
 the Builder's own write guard is the layer above this reading, never a reason to skip it. On
 `refused` the return is dropped whatever wrote the mismatch, nothing it names is reported or
 landed, and the run stops as blocked in one line naming the mismatch, the worktree and its branch,
