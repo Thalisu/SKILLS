@@ -223,6 +223,25 @@ carries_each "the run forks no other agent in the Builder's place" \
   -- \
   "in the Builder's place" "in its place" "in the place of the Builder"
 
+# The build still owes the Ticket its flows, degraded or not: a fallback that ran the loop and said
+# nothing about them is the old step-4 gap this text exists to close (a criterion nobody flowed and
+# nothing said about it). It binds to the same rule the forked Builder reads, builder.md's
+# `## The flows`, and to the Digest's own list of what needs one, so a rewrite of either is read the
+# same way here.
+carries_each "on either branch the session authors the flows itself, per builder.md's flows rule, for the criteria the Digest's Observable criteria section names" \
+  "authors the flows itself" "also authors the flows" \
+  -- \
+  "builder.md" \
+  -- \
+  "\`## The flows\`" "The flows" \
+  -- \
+  "Observable criteria"
+
+# The stop the forked Builder would take on the same gap, carried over so a degraded run cannot
+# reach the Gate with a named criterion left with no flow and nothing said about it.
+carries_any "a criterion the fallback names with no flow authored stops the step" \
+  "stops the step" "the step stops" "stops the build" "ends the step"
+
 echo "# skills/do/agents/do-builder.md: the session forks the Builder, and nobody else does"
 
 # Who forks the Builder decides how deep a test author it dispatches sits. Forked by the session,

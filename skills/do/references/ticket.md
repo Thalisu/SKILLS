@@ -532,6 +532,10 @@ either branch the session runs the loop itself, in the worktree step 2 made, per
 [build-loop.md](build-loop.md), and says in one line which of the two holds, the way the run already
 does for the reader and for the Planner. It never forks another agent in the Builder's place: a
 fork under any other name could still write where `do-builder`'s own definition binds it not to.
+The session also authors the flows itself, in the same window, per [builder.md](builder.md)'s
+`## The flows`: one for each criterion the Digest's `## Observable criteria` section names, a
+criterion the section leaves out states why no flow is needed, and a criterion it names with no
+flow authored stops the step with that reason, the way it would stop the Builder's own fork.
 
 Done when the return's `behaviour:` lines each carry a commit and match what `resume-state.sh`
 prints, or the run took one of the two routes above that end it, and the build lines are recorded
