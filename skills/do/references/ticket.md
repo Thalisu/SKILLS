@@ -94,7 +94,9 @@ body carries per the build loop in [build-loop.md](build-loop.md), and the worki
 `commit=` line per commit with the `behaviour=` line its body carries under it, one `uncommitted=`
 line per file, `review=`, the Review beside the Ticket or `none`, with a `review_skipped=` line
 before it when a Review there does not count (`stale`, a Review of a commit this branch was never
-at, left by a run that started over; `axis-not-run`, a review that never finished), since only a
+at, left by a run that started over; `axis-not-run`, a review that never finished; `unmarked`, a
+Review with no `.review.marker` beside it naming the same commit, so nothing ties the file to a
+review the run's own review step ran), since only a
 finished review of this branch spares a second one, and a `verdict=` line, `build`
 (exit 0), `ask` (exit 1, uncommitted work), `integration` (exit 3, a rebase left open, with the
 `stopped=`, `onto=`, `tip=`, `staged=` and `stop=` lines that say what it holds) or `land`

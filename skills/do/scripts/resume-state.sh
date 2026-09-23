@@ -24,13 +24,16 @@
 # stop=<class>, first match: moved (onto is no longer tip, whatever else the stop holds) · conflicted (a file is still
 # unmerged) · resolved (none is), and after stop=moved, moved=<continue | ask>: continue when no
 # dropped= line printed, since the branch only moved forward and a continue lands again nothing it
-# no longer holds, ask when one did; review_skipped=<stale | axis-not-run> <path> when a Review beside
+# no longer holds, ask when one did; review_skipped=<stale | axis-not-run | unmarked> <path> when a Review beside
 # the Ticket does not count; review, the Review beside the Ticket when it counts, else none; extreme, the
 # <Ticket>.extreme.md sidecar a first run's Extreme stop left beside the Ticket, when one is there,
 # followed by discuss, that file's first line, the /discuss command the stop printed; then verdict.
 # A Review counts when the commit its Commit: header names is one this branch has been at, read off
 # the branch's reflog, is not reachable from the commit the branch was created at, the reflog's
-# oldest entry, and none of its Axis lines reads not run. It only reads: the ask before a
+# oldest entry, none of its Axis lines reads not run, and the <Ticket>.review.marker beside it names
+# that same commit: the header is a fact anything holding the worktree can copy off the branch,
+# while the marker is the review step's own write, so a Review file that merely appeared while a
+# fork held the tree is unmarked and the review runs. It only reads: the ask before a
 # discard is the run's, never this script's, and so is the sidecar's write: this script never
 # writes one.
 #
@@ -152,6 +155,14 @@ rebase_stop() {
   else echo "stop=resolved"; fi
 }
 [ "$rebase" != open ] || rebase_stop
+marked() { # $1 the sha the Review's Commit: header names; true when the marker beside it names that commit
+  local line
+  line="$(head -1 "${review%.md}.marker" 2>/dev/null | tr -d '[:space:]')"
+  [ -n "$line" ] || return 1
+  # The header may be short and the marker full, or the other way round, so either being a prefix
+  # of the other is the same commit named twice.
+  [ "${line#"$1"}" != "$line" ] || [ "${1#"$line"}" != "$1" ]
+}
 review="${path%.md}.review.md"
 skipped=""
 if [ -f "$review" ]; then
@@ -170,6 +181,12 @@ if [ -f "$review" ]; then
     skipped="stale $review"
   elif grep -E '^- (Correctness|Spec|Standards|Principles|Blast radius|Security): not run' "$review" >/dev/null; then
     skipped="axis-not-run $review"
+  elif ! marked "$reviewed"; then
+    # Every other fact about a Review is one its own text carries, and a file's text proves nothing
+    # about who wrote it: a fork that wrote `<Ticket>.review.md` with a sha off the branch it just
+    # built would be read as a review that ran. The marker is the review step's own write, at a path
+    # under .scratch/ no Builder reaches, so a Review nothing else vouched for skips the landing.
+    skipped="unmarked $review"
   fi
   [ -z "$skipped" ] || review=none
 else

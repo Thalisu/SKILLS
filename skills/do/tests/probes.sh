@@ -262,9 +262,15 @@ rm "$wt/a b.txt"
 # ADR 0033: the review runs once per run, so a branch whose Review already sits beside the Ticket
 # resumes at the landing through fix, never at a second review.
 echo "# resume-state.sh: a branch the review already read"
-review_file() { # $1 the Review's Commit: sha, $2 its Security Axis line, $3 the review file path (default 04-claimed's)
+review_file() { # $1 the Review's Commit: sha, $2 its Security Axis line, $3 the review file path (default 04-claimed's), $4 "nomarker" to skip writing the marker
+  local target="${3:-$issues/04-claimed.review.md}"
   printf '# Review: 04\n\nCommit: %s\n\n## Axes\n\n- Correctness: 0 findings\n- Security: %s\n' "$1" "$2" \
-    >"${3:-$issues/04-claimed.review.md}"
+    >"$target"
+  # An earlier case's marker outlives the review file it was written for, so the nomarker branch
+  # removes it: not writing one would leave "no marker beside the Review" false on disk.
+  if [ "${4:-}" = nomarker ]; then rm -f "${target%.md}.marker"; else
+    printf '%s\n' "$1" >"${target%.md}.marker"
+  fi
 }
 review_file "$second" "0 findings"
 run "$resume" "$issues/04-claimed.md"
@@ -274,14 +280,25 @@ absent_prefix "a Review that counts is never reported skipped" "review_skipped="
 
 echo "# resume-state.sh: a Review that does not count"
 stale="$(g commit-tree -m "an earlier branch's commit" "HEAD^{tree}")"
-review_file "$(git rev-parse --short "$stale")" "0 findings"
+review_file "$(git rev-parse --short "$stale")" "0 findings" "" nomarker
 run "$resume" "$issues/04-claimed.md"
 check_lines "a Review of a commit this branch was never at is an earlier run's, and the review runs" 0 "$rc" \
   "review_skipped=stale $top/$issues/04-claimed.review.md" "review=none" "verdict=build"
-review_file "$second" "not run, the reviewer did not return"
+review_file "$second" "not run, the reviewer did not return" "" nomarker
 run "$resume" "$issues/04-claimed.md"
 check_lines "a Review with an Axis that did not run is an unfinished review, and the review runs" 0 "$rc" \
   "review_skipped=axis-not-run $top/$issues/04-claimed.review.md" "review=none" "verdict=build"
+
+# A Review beside the Ticket, every Axis run and a Commit: sha the branch has been at, proves
+# nothing unless a marker beside it, written with the sha it names, ties it to the review step
+# actually having run: this is the fix for the Finding that a forged Review file (written by
+# anything with write access to .scratch/, before the sha even needs to be right) would otherwise
+# be trusted purely for matching a reflog sha.
+echo "# resume-state.sh: a Review with no marker tying it to the review step that ran"
+review_file "$second" "0 findings" "" nomarker
+run "$resume" "$issues/04-claimed.md"
+check_lines "a Review beside the Ticket with no marker beside it is not trusted, and the review runs" 0 "$rc" \
+  "review_skipped=unmarked $top/$issues/04-claimed.review.md" "review=none" "verdict=build"
 review_file "$second" "0 findings"
 
 # A `do/<slug>` branch reviewed, landed and deleted, then made again from the same commit, starts

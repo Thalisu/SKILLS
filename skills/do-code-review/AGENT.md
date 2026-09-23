@@ -277,6 +277,14 @@ Then `mkdir -p` the folder of the `review=` path and write the file with the Wri
 whole. Never a second write, never an edit. A run on the same branch overwrites the previous
 Review.
 
+Then write one more file, the marker, at the `review=` path with `.md` replaced by `.marker`, whose
+one line is the commit the header's `Commit:` names. It is the only proof that a Review beside a
+Ticket came from a review and not from something else that held the worktree: `resume-state.sh`
+reads it before it lets a Review spare the next run a second review, and everything else in the
+file is a fact the branch itself carries, which anything with a shell can copy. Write it after the
+Review, never before: a marker beside a file that was never written would vouch for whatever lands
+at that path next.
+
 ## 8. The fix and the landing
 
 Only now, and only when the mode is not `--no-fix`, read [fix.md](references/fix.md). A Review that
