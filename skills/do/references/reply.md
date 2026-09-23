@@ -84,7 +84,12 @@ files and the audit line both come before the worktree line):
     section, each line with the commit beside it.
 23. **Build lines.** One line per behaviour as it landed: the files the loop opened for it, the
     author's verdict and what was done with it, the commit, and, when the behaviour went to
-    [tdd-fallback.md](tdd-fallback.md), the reason it did and the check that stood in.
+    [tdd-fallback.md](tdd-fallback.md), the reason it did and the check that stood in. Then one
+    flow line per criterion the flows reached, off the `flow:` lines the build returned: the
+    criterion, the author's verdict and the commit where a flow was authored, and, where none was,
+    the reason it needed none or the empty command slot that stopped it. A criterion whose flow was
+    skipped is read here or nowhere, since the close leaves it unticked and the diff carries no
+    trace of a flow nobody wrote.
 24. **Answer lines.** In `refactoring`, each answer with its reason: the exit test's, with the
     developer's answer when the test failed, and a behaviour change the cleanup found, with its
     command.

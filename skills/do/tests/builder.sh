@@ -17,6 +17,7 @@ playbook="$here/../references/ticket.md"
 agent="$here/../agents/do-builder.md"
 contract="$here/../references/builder.md"
 planner="$here/../agents/do-planner.md"
+reply="$here/../references/reply.md"
 fails=0
 
 echo "# skills/do/references/ticket.md: the build step forks the Builder and the session stops building"
@@ -360,6 +361,29 @@ carries_each "nothing but those lines crosses back: no diff, no test output, no 
   "never a file's contents" "never the file's contents" "not a file's contents" \
   "no file's contents" "never the contents of a file" "never file contents" "no file contents" \
   "never a file's content" "never the contents of any file" "never a line of a file"
+
+echo "# skills/do/references/reply.md: the \`flow:\` lines the fork returns have a home in the Run list"
+
+# Where a returned `flow:` line lands. The return above fixes it as one of the lines that cross
+# back, and ADR 0039 makes the Reply the one place a line reaches the developer: a line with no
+# numbered home in this list is a line the run reads off the return and drops on the floor. The
+# home is found by what it says, not by its number, so folding it into the Build lines and giving
+# it an entry of its own both count, the way gated-once.sh and reapply-step.sh find their items;
+# `passage_of` keeps the search inside `## Run`, since the `## Sections` list names the flows too,
+# under Evidence, and a Run line the developer never gets is not answered by an evidence line.
+flow_item="$(item_holding <(passage_of "$reply" "## Run" "## Sections") '[0-9]+\.' "flow")"
+expect "the Run list carries a home for the \`flow:\` lines the Builder returns" test -n "$flow_item"
+
+# The half that costs the developer something. A flow the fork authored comes back with its commit
+# and shows up in the diff either way; a criterion whose flow was skipped, for a map slot with no
+# end-to-end command or for a reason the Digest gave, leaves the close's criterion unticked with
+# nothing in the Reply saying why. The reason travels on the return and stops here, so the home has
+# to take it.
+flat="$(tr '\n' ' ' <<<"$flow_item" | tr -s ' ')"
+carries_any "the home takes a criterion whose flow was skipped, with the reason it was" \
+  "no flow" "not authored" "needs none" "needed none" "none is needed" "why none" \
+  "the reason none" "its skip" "skipped" "the reason it was not" "the reason it did not" \
+  "fallback:" "the \`fallback:\` line"
 
 echo "# skills/do/agents/do-builder.md: the fork's own definition binds it to that same return"
 
