@@ -27,6 +27,48 @@ CLAUDECODE=1 run
 same "under Claude Code with no settings disabling hooks, the guard is the pattern guard beside the header check" \
   "$(printf '%s\n' harness=claude-code hooks=run disabled_by=none guard=pattern-and-header 'exit 0')"
 
+top="$(git rev-parse --show-toplevel)"
+mkdir -p "$top/.claude" "$(dirname "$DO_MANAGED_SETTINGS")"
+user_settings="$CLAUDE_CONFIG_DIR/settings.json"
+project_settings="$top/.claude/settings.json"
+local_settings="$top/.claude/settings.local.json"
+clear_settings() { rm -f "$DO_MANAGED_SETTINGS" "$user_settings" "$project_settings" "$local_settings"; }
+disabled_by() { # $1 the settings file and key the verdict must name: the whole expected output
+  printf '%s\n' harness=claude-code hooks=disabled "disabled_by=$1" guard=header-only 'exit 0'
+}
+
+printf '{ "disableAllHooks": true }\n' >"$project_settings"
+CLAUDECODE=1 run
+same "a project settings file disabling every hook leaves the header check as the whole guard and names that file" \
+  "$(disabled_by "$project_settings:disableAllHooks")"
+clear_settings
+
+printf '{ "disableAllHooks": true }\n' >"$local_settings"
+CLAUDECODE=1 run
+same "a project local settings file disabling every hook leaves the header check as the whole guard and names that file" \
+  "$(disabled_by "$local_settings:disableAllHooks")"
+clear_settings
+
+printf '{ "allowManagedHooksOnly": true }\n' >"$user_settings"
+CLAUDECODE=1 run
+same "allowManagedHooksOnly in the user settings, where Claude Code does not honour it, leaves the pattern guard running" \
+  "$(printf '%s\n' harness=claude-code hooks=run disabled_by=none guard=pattern-and-header 'exit 0')"
+printf '{ "allowManagedHooksOnly": true }\n' >"$DO_MANAGED_SETTINGS"
+CLAUDECODE=1 run
+same "allowManagedHooksOnly in the managed settings blocks the agent's own hooks and names the managed file" \
+  "$(disabled_by "$DO_MANAGED_SETTINGS:allowManagedHooksOnly")"
+clear_settings
+
+for f in "$DO_MANAGED_SETTINGS" "$user_settings" "$project_settings"; do printf '{ "disableAllHooks": true }\n' >"$f"; done
+CLAUDECODE=1 run
+same "with managed, user and project settings all disabling hooks, the managed file is the one named" \
+  "$(disabled_by "$DO_MANAGED_SETTINGS:disableAllHooks")"
+rm -f "$DO_MANAGED_SETTINGS"
+CLAUDECODE=1 run
+same "with user and project settings both disabling hooks, the user file is the one named" \
+  "$(disabled_by "$user_settings:disableAllHooks")"
+clear_settings
+
 # The calling session may set either marker, and `run` is a function `env -u` cannot reach.
 unset CLAUDECODE CLAUDE_CODE_SESSION_ID
 run
