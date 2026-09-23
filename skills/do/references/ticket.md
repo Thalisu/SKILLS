@@ -555,14 +555,23 @@ this is the end of it.
 When step 1 forked no Planner, the Plan carried or grounded by the session itself, the guard probe
 of step 1, `harness-hooks.sh`, has not run yet, and the run takes it here, right before it forks
 the Builder, once, the way step 1 says: the verdict it keeps is the same one, never stopping the
-run, with `header-only` leaving the `## Sources` check as the whole guard over the Builder's
-return.
+run, with `header-only` leaving the `## Sources` check as the whole guard over the fork itself, the
+revoke below closing the one window over the Builder's return that check never reaches.
 
 Then fork the Builder, per [builder.md](builder.md): call the Agent tool with
 `subagent_type: do-builder`, the agent `do` ships in [do-builder.md](../agents/do-builder.md), and
 the brief that file fixes, filled from the Plan's path step 1 returned and the worktree and the
 branch step 2 created. The keys are in [builder.md](builder.md) and are never copied here, the way
 the Plan step's keys are never copied here.
+
+As soon as the Builder returns, before any of the checks below run and before any of their routes
+is taken, revoke the token again, the same call step 3 opened with:
+`bash <skill-dir>/scripts/review-token.sh revoke <the slug>`. The window a live token could reach a
+marker of its own closes with the return itself, on `built`, on `fork`, on `stopped`, and on a
+return the checks below refuse alike, since none of those routes is decided until this revoke has
+already run: a Builder that ends the run on a `stopped:` reason the session cannot clear, before the
+review step ever mints a fresh token, is the one case this closes that the original revoke, taken
+before the fork, could not.
 
 Check the return where it crosses, per [builder.md](builder.md)'s `## The return`: its first line
 reads `built`, `fork` or `stopped`, and every `behaviour:` line carries a commit. Then run

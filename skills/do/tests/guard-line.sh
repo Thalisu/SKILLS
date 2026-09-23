@@ -29,6 +29,23 @@ carries_each "the Build step runs the probe only when no Planner fork ran" \
   "step 1 forked nobody" "step 1 forks nobody" "the Plan was carried" "Plan is carried" \
   "has not run yet" "did not run it" "not already run"
 
+# A token minted while the Builder held the worktree never outlives its return: the build step
+# revokes it a second time, before any route out of the fork, since a `stopped:` reason the session
+# cannot clear ends the run before the review step ever mints a fresh one.
+carries_each "the Build step revokes the review token again as soon as the Builder returns" \
+  "revoke" \
+  -- \
+  "as soon as the Builder returns" "the Builder returns" "once the Builder returns" \
+  "right after the Builder returns"
+carries_each "the second revoke runs before every route out of the Builder's fork" \
+  "built" \
+  -- \
+  "fork" \
+  -- \
+  "stopped" \
+  -- \
+  "refused" "refuse"
+
 # Every paragraph that names the probe: the guarantees below may sit in either step's.
 # shellcheck disable=SC2034 # lib.sh's carries_each reads $flat
 flat="$(paragraph_with "$playbook" "harness-hooks.sh" all | tr '\n' ' ' | tr -s ' ')"
@@ -129,6 +146,17 @@ carries_each "\`header-only\` reads as the header check being the whole guard" \
   "whole guard" "the only guard" "sole guard" "check alone" "guard alone" "only mechanism" \
   "nothing else guards"
 
+# The header check guards the fork itself, never the window after the Builder returns: naming the
+# review marker's revoke as the guard over that window stops a developer reading "the whole guard"
+# as covering it too.
+carries_each "\`header-only\`'s reading names the review marker's token as the guard outside the header check" \
+  "header-only" \
+  -- \
+  "marker" \
+  -- \
+  "outside the header check" "the header check never reaches" "never reaches" \
+  "guarding the window after" "after that the header check"
+
 carries_each "\`pattern-and-header\` reads as the pattern guard beside the header check" \
   "pattern-and-header" \
   -- \
@@ -147,5 +175,55 @@ carries "the Plan line carries the \`Planner/Builder: none\` line" "Planner/Buil
 flat="$(sed 's/\. /.\n/g' <<<"$flat" | grep -F "Planner/Builder: none" | tr '\n' ' ')"
 carries_any "the \`Planner/Builder: none\` line stands in place of the two per-fork lines" \
   "in place of" "instead of" "replaces" "rather than the two" "not the two" "never the two"
+
+echo "# skills/do/scripts/review-token.sh + resume-state.sh: the second revoke closes the Builder's window"
+
+# The prose above says the build step revokes the token again as soon as the Builder returns; this
+# proves what that revoke buys, run against the real scripts rather than taken on the prose's word.
+# A Builder holding the worktree on `header-only` has a shell that could read the live token and
+# copy it into a marker of its own before it returns: minting a second token models exactly that
+# value, and a marker left holding it is the forged pair the Finding describes.
+tmp="$(mktemp -d)"
+trap 'cd /; rm -rf "$tmp"' EXIT
+resume="$here/../scripts/resume-state.sh"
+token_script="$here/../scripts/review-token.sh"
+run() { # $1.. the script's arguments; its stdout in $out, its exit in $rc
+  rc=0
+  # shellcheck disable=SC2034 # lib.sh's check_lines reads the caller's $out
+  out="$(bash "$@" 2>&1)" || rc=$?
+}
+
+fresh window-repo
+printf 'one\n' >notes.txt
+commit base
+issues=".scratch/20260101-window/issues"
+mkdir -p "$issues"
+printf '# 40: Title of 40-window\n\n**What to build:** something.\n\n**Blocked by:** None (can start immediately).\n\n**Status:** claimed\n\n- [ ] one\n\n## Evidence\n' \
+  >"$issues/40-window.md"
+echo ".claude/worktrees/" >>.git/info/exclude
+g worktree add -q .claude/worktrees/do-window -b do/window
+wt="$PWD/.claude/worktrees/do-window"
+g -C "$wt" commit -q --allow-empty -m "feat: build the behaviour" -m "Behaviour: something happens"
+sha="$(git rev-parse --short do/window)"
+printf '# Review: 40\n\nCommit: %s\n\n## Axes\n\n- Correctness: 0 findings\n- Security: 0 findings\n' "$sha" \
+  >"$issues/40-window.review.md"
+
+# The review step's own mint: the value the marker beside the Review has to hold for the Review to
+# count.
+own_token="$(bash "$token_script" new window)"
+printf '%s\n' "$own_token" >"$issues/40-window.review.marker"
+run "$resume" "$issues/40-window.md"
+check_lines "a marker holding the token the review step stored counts, and the run lands" 4 "$rc" \
+  "review=$PWD/$issues/40-window.review.md" "verdict=land"
+
+# The Builder's window: a second mint models the value a fork holding the worktree could read off
+# disk and copy into a marker of its own before it ever returns.
+forged_token="$(bash "$token_script" new window)"
+printf '%s\n' "$forged_token" >"$issues/40-window.review.marker"
+bash "$token_script" revoke window
+run "$resume" "$issues/40-window.md"
+check_lines "the revoke run as soon as the Builder returns leaves a marker minted in its window unmarked, and the run builds" \
+  0 "$rc" \
+  "review_skipped=unmarked $PWD/$issues/40-window.review.md" "review=none" "verdict=build"
 
 [ "$fails" = 0 ]
