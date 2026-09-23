@@ -25,6 +25,8 @@ for f in "$skill/SKILL.md" "$skill/references/ticket.md" "$skill/references/mech
 done
 mk "$tmp/docs/adr/0001-x.md" 10
 mk "$tmp/CONTEXT.md" 3990
+mkdir -p "$skill/agents"
+mk "$skill/agents/do-planner.md" 8000
 est() { # runs the scaffolded estimator from the fixture's root; sets out, err and code
   out="$(cd "$tmp" && bash "$skill/scripts/estimate-load.sh" "$@" 2>"$tmp/t/err")"
   code=$?
@@ -33,11 +35,12 @@ est() { # runs the scaffolded estimator from the fixture's root; sets out, err a
 is() { [ "$1" = "$2" ]; }
 out_has() { printf '%s\n' "$out" | grep -qxF -- "$1"; }
 err_has() { printf '%s\n' "$err" | grep -qF -- "$1"; }
+term() { printf '%s\n' "$out" | sed -n "s/^$1=//p"; }
 
 est
 expect "with no argument the estimator exits zero" is "$code" 0
-expect "with no argument it prints the fixed load by term, in order, then the total" is "$out" \
-  "$(printf '%s\n' baseline=32000 reference_chain=9000 door=5000 ground=7500 shape=1000 total=46000)"
+expect "with no argument it prints the session's load by term, in order, its total, then the Planner" is "$out" \
+  "$(printf '%s\n' baseline=32000 reference_chain=9000 door=5000 total=46000 planner=47000)"
 
 ticket() { # $1 path, $2 criteria: a Ticket in the format, padded to 4000 bytes
   {
@@ -51,7 +54,7 @@ ticket() { # $1 path, $2 criteria: a Ticket in the format, padded to 4000 bytes
   head -c $((4000 - size - 1)) /dev/zero | tr '\0' a >>"$1"
   echo >>"$1"
 }
-fixed="$(printf '%s\n' baseline=32000 reference_chain=9000 door=5000 ground=7500 shape=1000 total=46000)"
+fixed="$(printf '%s\n' baseline=32000 reference_chain=9000 door=5000 total=46000 planner=47000)"
 ticket "$tmp/t/01-small.md" 2
 est t/01-small.md
 expect "given a Ticket the estimator exits zero" is "$code" 0
@@ -86,6 +89,16 @@ mk "$tmp/t/04-digested.digest.md" 4000
 est t/04-digested.md
 expect "a Digest beside the Ticket is counted in place of the allowance" \
   sh -c 'printf "%s\n" "$1" | grep -qx "door=3500" && printf "%s\n" "$1" | grep -qx "peak=80500"' _ "$out"
+# The Planner runs in a window of its own, which the band is read against as well: its baseline, its
+# definition and brief, the Ticket and its Digest, the grounding and the shape, and none of it the
+# session's. 32000 + 2000 + 1000 + ticket + digest + (1000 + 6500) + 1000.
+after_total() { printf '%s\n' "$out" | sed -n '/^total=/{n;p;}'; }
+est
+expect "with no argument the Planner is its own term after total, counting the ticket and digest allowances, and stays out of total" \
+  sh -c '[ "$1" = 0 ] && [ "$2" = planner=47000 ] && [ "$3" = 46000 ]' _ "$code" "$(after_total)" "$(term total)"
+est t/04-digested.md
+expect "given a Ticket with a Digest beside it the Planner counts the Digest in place of the allowance" \
+  sh -c '[ "$1" = 0 ] && [ "$2" = planner=45500 ] && [ "$3" = 44500 ]' _ "$code" "$(after_total)" "$(term total)"
 
 # A reading it cannot take names the term it could not read, prints no figure and exits non-zero.
 refused() { # $1 the exit code, $2 the term the message must name
@@ -111,7 +124,6 @@ for f in forks conflict-loop; do
 done
 # The session plans and builds through forks, so it reads the Planner's and the Builder's briefs and
 # never the build loop, and the grounding and the shape are the Planner's to carry, not the session's.
-term() { printf '%s\n' "$out" | sed -n "s/^$1=//p"; }
 est
 expect "the session's total is its baseline, its reference chain and its door only" \
   sh -c '[ "$1" = 0 ] && [ -n "$3" ] && [ "$2" = $(($3 + $4 + $5)) ]' \
@@ -159,8 +171,8 @@ map_size="$(wc -c <"$tmp/CONTEXT-MAP.md")"
 head -c $((1990 - map_size - 1)) /dev/zero | tr '\0' a >>"$tmp/CONTEXT-MAP.md"
 echo >>"$tmp/CONTEXT-MAP.md"
 est
-expect "with CONTEXT-MAP.md the ground term counts the map and the largest context it names" \
-  sh -c '[ "$1" = 0 ] && printf "%s\n" "$2" | grep -qx "ground=9000"' _ "$code" "$out"
+expect "with CONTEXT-MAP.md the Planner counts the map and the largest context it names" \
+  sh -c '[ "$1" = 0 ] && printf "%s\n" "$2" | grep -qx "planner=48500"' _ "$code" "$out"
 mv "$tmp/ctx/a/CONTEXT.md" "$tmp/t/ctx-a.md"
 est
 expect "a context the map names that is not on disk names ground and exits 3" refused 3 ground

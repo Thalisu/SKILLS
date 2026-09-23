@@ -94,11 +94,12 @@ for adr in "$root"/docs/adr/*; do
   [ -e "$adr" ] && ground_bytes=$((ground_bytes + ${#name} + 1))
 done
 ground=$(($(tokens "$ground_bytes") + ground_allowance))
-shape=$shape_allowance
 total=$((baseline + reference_chain + door))
+planner=$((baseline + $(tokens "$(bytes "$skill/agents/do-planner.md" "$skill/references/plan.md")") \
+  + ticket_tokens + digest_tokens + ground + shape_allowance))
 
-printf 'baseline=%s\nreference_chain=%s\ndoor=%s\nground=%s\nshape=%s\ntotal=%s\n' \
-  "$baseline" "$reference_chain" "$door" "$ground" "$shape" "$total"
+printf 'baseline=%s\nreference_chain=%s\ndoor=%s\ntotal=%s\nplanner=%s\n' \
+  "$baseline" "$reference_chain" "$door" "$total" "$planner"
 [ -n "$ticket" ] || exit 0
 
 peak=$((total + criteria * per_criterion))
