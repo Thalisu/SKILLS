@@ -500,7 +500,9 @@ Check the return where it crosses, per [builder.md](builder.md)'s `## The return
 reads `built`, `fork` or `stopped`, and every `behaviour:` line carries a commit. Then run
 `bash <skill-dir>/scripts/resume-state.sh <the Ticket's path>` once and match its `commit=` and
 `behaviour=` pairs against the returned `behaviour:` lines, one for one; on `built`, `uncommitted=`
-is empty. A return that fails either check is a fork that went wrong and not a build: the session
+is empty. On a Ticket that is not a local file the argument is its issue reference, the slug step 2
+already cut the worktree under, and never a path the probe would find no file at: a probe that
+refused to read the branch would drop every `built` return an issue-backed run ever made. A return that fails either check is a fork that went wrong and not a build: the session
 drops the return, picks the stretch up from what `resume-state.sh` just printed, which is the
 Resume section's own path, and records the fallback line for the Reply's Run section.
 

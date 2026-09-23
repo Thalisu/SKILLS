@@ -115,6 +115,37 @@ carries_any "the stretch is picked up from what the probe printed, the Resume se
 carries_any "the fallback is the Resume section's path, not a route invented here" \
   "the Resume section" "Resume section's own path" "the Resume section's path"
 
+echo "# skills/do/scripts/resume-state.sh: an issue-backed Ticket, resolved through the tracker"
+
+# The step above runs the probe on "the Ticket's path", but a Ticket resolved through the tracker
+# (docs/agents/issue-tracker.md, e.g. "#42") is never a local file: the probe has to resolve the
+# bare issue reference straight to the do-<slug> worktree the door already created, the same slug
+# ticket.md already reads that reference as elsewhere (.scratch/plans/42.plan.md for issue 42), or
+# the check above can never pass on an issue-backed run and drops every good `built` return.
+btmp="$(mktemp -d)"
+trap 'cd /; rm -rf "$btmp"' EXIT
+mkdir -p "$btmp/repo" && cd "$btmp/repo" || exit 1
+git init -q -b main >/dev/null
+git config user.email t@example.com
+git config user.name t
+printf 'one\n' >notes.txt
+git add -A && git commit -qm fixture >/dev/null
+echo ".claude/worktrees/" >>.git/info/exclude
+git worktree add -q .claude/worktrees/do-42 -b do/42
+bwt="$(pwd -P)/.claude/worktrees/do-42"
+printf 'two\n' >>"$bwt/notes.txt"
+git -C "$bwt" commit -qam "feat: close the issue" -m "Behaviour: the issue's fix lands"
+bshort="$(git -C "$bwt" rev-parse --short HEAD)"
+brc=0
+bout="$(bash "$resume" "#42" 2>&1)" || brc=$?
+out="$bout"
+# The pairs are what the step matches the return against, so they are the outcome here: a probe that
+# resolved the reference and then printed no pair leaves the step dropping the build all the same.
+check_lines "an issue reference resolves to its do-<slug> worktree, printing the probe's pairs" 0 "$brc" \
+  "worktree=$bwt" "branch=do/42" "commit=$bshort feat: close the issue" \
+  "behaviour=$bshort the issue's fix lands" "verdict=build"
+cd "$here" || exit 1
+
 echo "# skills/do/references/ticket.md: the two runs with no Builder to fork, and what each is told"
 
 # The run that cannot fork the Builder at all, the way the Plan step already writes the Planner's

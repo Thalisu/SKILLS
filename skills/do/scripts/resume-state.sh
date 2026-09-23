@@ -6,6 +6,9 @@
 #   resume-state.sh <the Ticket's path>    the do-<slug> worktree of that Ticket; a relative path
 #                                          is read from the directory the script runs in, then from
 #                                          the main checkout
+#   resume-state.sh <its issue reference>  the same, for a Ticket resolved through the tracker and
+#                                          held in no local file: the bare reference, `42` or `#42`,
+#                                          is the slug the run cut that worktree under
 #
 # Prints key=value lines, in this order: worktree; branch, read from the rebase state when a rebase
 # is open, since the worktree is then on a detached HEAD; rebase (open or none); base, the branch
@@ -37,12 +40,12 @@
 # already read the branch, so the run goes to the Gate and the fix call, never to a second review)
 # · build (the loop continues at the first behaviour without a commit).
 #
-# Exit codes: 0 build · 1 ask · 3 integration · 4 land · 5 extreme · 2 usage, no Ticket at the
-# path, no worktree git lists at its path, a detached HEAD with no rebase open, or not a git
-# repository.
+# Exit codes: 0 build · 1 ask · 3 integration · 4 land · 5 extreme · 2 usage, an argument that is
+# neither a Ticket on disk nor an issue reference, no worktree git lists at the slug's path, a
+# detached HEAD with no rebase open, or not a git repository.
 set -uo pipefail
 
-usage() { echo "usage: resume-state.sh <the Ticket's path>" >&2; exit 2; }
+usage() { echo "usage: resume-state.sh <the Ticket's path, or its issue reference>" >&2; exit 2; }
 [ "$#" = 1 ] || usage
 
 top="$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "not a git repository" >&2; exit 2; }
@@ -55,9 +58,19 @@ case "$1" in
   /*) path="$1" ;;
   *) if [ -f "$1" ]; then path="$(pwd -P)/${1#./}"; else path="$main/${1#./}"; fi ;;
 esac
-[ -f "$path" ] || { echo "no Ticket at $1" >&2; exit 2; }
 
-slug="$(basename "$path" .md)"; slug="$(sed -E 's/^[0-9]+-//' <<<"$slug")"
+if [ -f "$path" ]; then
+  slug="$(basename "$path" .md)"; slug="$(sed -E 's/^[0-9]+-//' <<<"$slug")"
+else
+  # A Ticket resolved through the tracker is no file on disk and never will be, so refusing an
+  # argument that names no file would leave an issue-backed run with no way to read its own state.
+  # The run already cut that Ticket's worktree and its scratch artifacts under the bare reference
+  # as the slug, so the reference is read straight as one.
+  case "${1#\#}" in
+    '' | *[!0-9]*) echo "no Ticket at $1" >&2; exit 2 ;;
+    *) slug="${1#\#}" ;;
+  esac
+fi
 wt="$main/.claude/worktrees/do-$slug"
 # grep -q would stop reading at the match and git would die of SIGPIPE on a long list, which
 # pipefail turns into a missing worktree.
