@@ -496,4 +496,94 @@ context:
     git init -q -b main
     git -c user.email=fixture@example.com -c user.name=fixture add -A
     git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
+
+    # The first run's Digest and Plan beside Ticket 01: a claimed Ticket kept its scratch, and the
+    # `## Sources` hashes are computed here so they match what the door computes on this checkout.
+    root="$PWD"
+    issues="$root/.scratch/archive-notes/issues"
+    spec_hash="$(git hash-object .scratch/archive-notes/spec.md)"
+    journey_hash="$(git hash-object .scratch/archive-notes/journey.md)"
+    cat > "$issues/01-archive-a-note.digest.md" <<'MD'
+    # Digest
+
+    ## Sources
+
+    spec: @ROOT@/.scratch/archive-notes/spec.md @SPEC@
+    journey: @ROOT@/.scratch/archive-notes/journey.md @JOURNEY@
+
+    ## Journey Path
+
+    `journey.md` · `## Path 1: Archive a note` · L7
+    > ## Path 1: Archive a note
+    >
+    > Story: 1
+    > Outcome: the note is gone from the list and the writer knows where it went.
+    >
+    > | Step | Actor sees | Actor does | System answers |
+    > |---|---|---|---|
+    > | 1 | the list, each note with an Archive action | picks Archive on one note | the note leaves the list; a line says "Archived" with a link to Archived |
+    > | 2 | the list without the note | nothing | the Archived link shows a count of one |
+    >
+    > Failure branches:
+    > - Archive picked twice on the same note: the second pick is a no-op, the count stays one
+
+    ## Stories
+
+    `spec.md` · `## User Stories` · L16
+    > 1. As a writer, I want to archive a note, so that it leaves my list without being deleted
+
+    ## Testing Decisions
+
+    `spec.md` · `## Testing Decisions` · L28
+    > - Behaviour tests through the notes module's exported functions, with Node's own test runner
+
+    ## Observable criteria
+
+    none: the notes module has no screen, only exported functions
+    MD
+    sed -i "s|@ROOT@|$root|g; s|@SPEC@|$spec_hash|; s|@JOURNEY@|$journey_hash|" "$issues/01-archive-a-note.digest.md"
+    ticket_hash="$(git hash-object "$issues/01-archive-a-note.md")"
+    digest_hash="$(git hash-object "$issues/01-archive-a-note.digest.md")"
+    cat > "$issues/01-archive-a-note.plan.md" <<'MD'
+    # Plan: 01, Archive a note
+
+    ## Sources
+
+    ticket: @ROOT@/.scratch/archive-notes/issues/01-archive-a-note.md @TICKET@
+    digest: @ROOT@/.scratch/archive-notes/issues/01-archive-a-note.digest.md @DIGEST@
+
+    ## Grounding
+
+    - **Note**: `Note` in `src/notes.ts`, its `status` either `active` or `archived`.
+
+    Discovery: 2 FOUND · 0 DUPLICATE · 2 NOT_FOUND. FOUND: `create`, `list` (src/notes.ts). NOT_FOUND: `archive`, `archivedCount`.
+
+    ## Predicate
+
+    Done when `node --test` and `tsc --noEmit` are green and each criterion of Ticket 01 has a test through the module's exported functions.
+
+    ## Map
+
+    This is the subsystem as it stood before the diff, and it is never handed to the review. `src/notes.ts` holds the notes in a module-level array and exports `create` and `list`; `src/notes.test.ts` tests them with `node:test`.
+
+    ## Behaviours
+
+    1. Behavior to prove: Picking Archive on a note removes it from the list.
+       Relied on by: the writer, who would see an archived note still in the list.
+       Target: `src/notes.ts`, `archive` and `list`.
+       Origin: new feature.
+    2. Behavior to prove: After archiving one note, the Archived count reads one.
+       Relied on by: the writer, who finds the note through that count.
+       Target: `src/notes.ts`, `archivedCount`.
+       Origin: new feature.
+    3. Behavior to prove: Archive picked twice on the same note is a no-op: the note stays out of the list and the count stays one.
+       Relied on by: the writer, whose count would read two for one note.
+       Target: `src/notes.ts`, `archive`.
+       Origin: new feature.
+
+    ## Sketch
+
+    none: no boundary crossed beyond two functions added to one module
+    MD
+    sed -i "s|@ROOT@|$root|g; s|@TICKET@|$ticket_hash|; s|@DIGEST@|$digest_hash|" "$issues/01-archive-a-note.plan.md"
     printf "\nWork in progress on the README, uncommitted.\n" >> README.md
