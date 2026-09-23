@@ -111,6 +111,55 @@ carries_any "the stretch is picked up from what the probe printed, the Resume se
 carries_any "the fallback is the Resume section's path, not a route invented here" \
   "the Resume section" "Resume section's own path" "the Resume section's path"
 
+echo "# skills/do/references/ticket.md: the two runs with no Builder to fork, and what each is told"
+
+# The run that cannot fork the Builder at all, the way the Plan step already writes the Planner's
+# half (planner.sh owns that one). Scoped to the build step again, by what the step says rather than
+# by its number, so the Plan step's own fallback paragraph cannot answer here for a build step that
+# says nothing. Each guarantee below can be phrased several ways and the cases pin more than one at
+# a time, so the group of phrasings that found nothing is what a failure names: lib.sh's
+# carries_each.
+flat="$(item_holding "$playbook" '\*\*[0-9]+\.' "do-builder" | tr '\n' ' ' | tr -s ' ')"
+expect "a step of the Playbook hands the build to the fork, to read its fallback off" test -n "$flat"
+
+# The two branches, named apart. A harness that withheld the Agent tool and a machine that never ran
+# `scripts/link-skills.sh` both reach the same dead end, and the developer's way out differs: one is
+# the harness, the other is one run of the installer. A message naming a single branch, or naming
+# the dead end without saying which produced it, leaves them guessing which of the two to go fix.
+carries_each "the step names both branches on which no Builder can be forked" \
+  "Agent tool withheld" "Agent tool is withheld" "no Agent tool" \
+  -- \
+  "lists no \`do-builder\`" "\`do-builder\` not listed" "no \`do-builder\` listed" \
+  "lists no do-builder" "do-builder not listed" "no do-builder listed"
+
+# What the run does on either one. The Ticket still has to be built, and the only builder left is
+# the session: a branch that named the dead end and stopped there ends the run with a claimed Ticket
+# and an empty worktree on the two machines least able to diagnose it.
+carries_any "on either branch the session runs the build loop in its own window" \
+  "the session runs the loop itself" "the session runs the build loop itself" \
+  "runs the build loop itself" "runs the loop itself" "the session builds itself" \
+  "does the build itself" "builds the Ticket itself"
+
+# The degraded run and the forked one leave the same commits on the same branch, so this line is the
+# only thing that tells the developer their own window carried the build, and which of the two
+# branches to go fix. Every phrasing accepted names the choice: the `fork` verdict's own route above
+# already says the run "says in one line" about something else entirely.
+carries_each "the run says in one line which of the two branches held" \
+  "which of the two holds" "which of the two held" "which branch holds" "which branch held" \
+  "which of the two branches held" "which of the two branches holds" "one line says which" \
+  "says in one line which"
+
+# And nobody else is forked in its place. A general-purpose fork holds `Bash`, `Write` and `Edit`
+# with none of the two `PreToolUse` hooks `do-builder`'s own definition carries, so it could write
+# the Plan, the Digest or anything under `.scratch/` that those hooks deny, and the session would
+# still be holding the hashes it verified. The evals refuse exactly this substitution for the other
+# forks (evals/unlisted-choice-taker/graders/no-general-agent-in-its-place.md).
+carries_each "the run forks no other agent in the Builder's place" \
+  "never forks another agent" "forks no other agent" "never forks a second agent" \
+  "no other agent is forked" "another agent in the Builder's place" \
+  -- \
+  "in the Builder's place" "in its place" "in the place of the Builder"
+
 echo "# skills/do/agents/do-builder.md: the session forks the Builder, and nobody else does"
 
 # Who forks the Builder decides how deep a test author it dispatches sits. Forked by the session,
