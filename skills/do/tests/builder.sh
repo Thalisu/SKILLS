@@ -468,6 +468,26 @@ for artifact in ".scratch/features/02-export/02-export.md" \
     bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$bash_artifact_out"
 done
 
+# The literal-substring gate above matches "printf x > .scratch/..." directly, but a stranger's
+# text reaching the Builder's Bash tool through the Ticket, the Digest or the Plan's Criteria is
+# never obliged to spell the write that way: a `cd` into .scratch/ before the redirect, or a path
+# built from a shell variable that only assembles into ".scratch" at run time, reaches the same
+# artifact while a gate keyed on the literal substring ".scratch/" never sees it.
+worktree_path="/home/dev/proj/.claude/worktrees/do-export"
+bash_cd_cmd="cd \"$worktree_path/.scratch\" && printf 'pwned' > 20260921-feature/issues/07-build-it.md"
+bash_cd_cmd_json="$(printf '%s' "$bash_cd_cmd" | sed 's/"/\\"/g')"
+bash_cd_out="$(printf '{"tool_input": {"command": "%s"}}' "$bash_cd_cmd_json" |
+  sh -c "$builder_bash_hook" 2>/dev/null)"
+expect "the hook denies the Builder's Bash reaching .scratch/ through a cd prefix" \
+  bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$bash_cd_out"
+
+bash_quote_split_cmd="d=.scr''atch; printf 'pwned' > \"$worktree_path/\$d/20260921-feature/issues/07-build-it.md\""
+bash_quote_split_cmd_json="$(printf '%s' "$bash_quote_split_cmd" | sed 's/"/\\"/g')"
+bash_quote_split_out="$(printf '{"tool_input": {"command": "%s"}}' "$bash_quote_split_cmd_json" |
+  sh -c "$builder_bash_hook" 2>/dev/null)"
+expect "the hook denies the Builder's Bash reaching .scratch/ through a quote-split path segment" \
+  bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$bash_quote_split_out"
+
 # The other half: a Bash command that runs a test or a build step against the source the Ticket's
 # behaviours change is what the loop exists to run, and a guard that denied it would leave the
 # Builder unable to turn any test green, which is the same dead loop as a missing Bash tool.
@@ -484,6 +504,22 @@ bash_blind_err="$(cat "$no_jq_dir/.err" 2>/dev/null)"
 expect "the hook on the Builder's Bash fails closed when jq is absent from PATH, instead of exiting 0 silently" \
   bash -c '{ [ "$1" -ne 0 ] && [ -n "$2" ]; } || grep -qF "\"permissionDecision\": \"deny\"" <<<"$3"' \
   _ "$bash_blind_rc" "$bash_blind_err" "$bash_blind_out"
+
+# A machine with no `tr`: the guard normalises the command through `tr` before matching it, so on
+# that machine the substitution yields an empty string, the `case` matches nothing and the plainest
+# write of all, a redirect straight at an artifact, comes back allow. The obfuscated spellings above
+# are the reason the normaliser exists, but it is the unobfuscated write that this asks for: a guard
+# blinded by a missing tool has to fail closed the same way the jq-absent path does, or every write
+# to the session's artifacts is permitted there with nothing saying so.
+no_tr_dir="$(path_without tr)"
+bash_no_tr_rc=0
+bash_no_tr_out="$(printf '{"tool_input": {"command": "%s"}}' "printf x > .scratch/features/02-export/02-export.md" |
+  PATH="$no_tr_dir" sh -c "$builder_bash_hook" 2>"$no_tr_dir/.err")" || bash_no_tr_rc=$?
+bash_no_tr_err="$(cat "$no_tr_dir/.err" 2>/dev/null)"
+expect "the hook on the Builder's Bash still denies a write to a session artifact when tr is absent from PATH" \
+  bash -c '{ [ "$1" -ne 0 ] && [ -n "$2" ]; } || grep -qF "\"permissionDecision\": \"deny\"" <<<"$3"' \
+  _ "$bash_no_tr_rc" "$bash_no_tr_err" "$bash_no_tr_out"
+rm -rf "$no_tr_dir"
 
 blind_agent_rc=0
 blind_agent_out="$(printf '{"tool_input": {"subagent_type": "unit-test-author"}}' |
