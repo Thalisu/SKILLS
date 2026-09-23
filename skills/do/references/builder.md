@@ -45,11 +45,13 @@ commits; and the hashes were checked by the session before the fork, per
 [ADR 0048](../../../docs/adr/0048-a-fork-writes-its-own-artifact-and-the-session-verifies-the-header-it-computed.md),
 so a fork that recomputed one would be vouching for its own grounding.
 
-The brief is the same on the first fork and on every re-fork. Nothing in it says where to pick up,
-so a Builder forked again after a Ruling, or after a reason the session cleared, reads the branch
-and carries on from there. A key that differed between the first fork and a later one would be a
-second thing to keep in step with the branch, and the two would drift the first time one of them
-was forgotten.
+The brief is the same on the first fork and on every re-fork, with one exception: `Rulings:`, which
+the build step of [ticket.md](ticket.md) fills again on a re-fork that follows a Ruling, so the
+Builder that meets the same Design fork a second time reads the settled side instead of ruling on
+it again. Nothing else in the brief says where to pick up, so a Builder forked again after a
+Ruling, or after a reason the session cleared, reads the branch and carries on from there. A key
+that differed between the first fork and a later one for any other reason would be a second thing
+to keep in step with the branch, and the two would drift the first time one of them was forgotten.
 
 ## The return
 

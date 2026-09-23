@@ -454,6 +454,20 @@ else
   fail "the building agent's own definition keeps no second copy of the brief's keys (found: ${agent_copy//$'\n'/; })"
 fi
 
+# The brief's own prose, not the key block: a re-fork after a Ruling hands the Builder that meets
+# the same Design fork again the settled side, and it can only read that off `Rulings:` if the
+# session filled it again. A paragraph that says the brief is identical on every re-fork with no
+# named exception leaves a session filling it strictly from this file (the rule right above, "The
+# keys are written here and in no second place") free to leave a stale `Rulings:` on the re-fork,
+# so the re-forked Builder meets the same fork again and ticket.md's blocked-run rule fires on a
+# fork already settled.
+flat="$(flat_section "$contract" "## The brief")"
+carries_each "the brief's prose names \`Rulings:\` as the one key that changes on a re-fork after a Ruling" \
+  "\`Rulings:\`" \
+  -- \
+  "one exception" "with one exception" "the one exception" \
+  "changes on a re-fork" "differs on a re-fork" "fills again" "fills it again"
+
 # The return. The session routes on the first line alone and reads nothing else to decide, so the
 # three terminal verdicts are what the contract has to fix: anything else coming back first is a
 # return the step cannot route and the stretch is picked up from `resume-state.sh` instead.
