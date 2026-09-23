@@ -52,7 +52,10 @@ files and the audit line both come before the worktree line):
 10. **Plan line.** In `ticket`, the Plan's location and every fallback the Planner's return
     named: a Map built from search output because `how` was not listed, one `rg -n -w` per
     candidate in place of the discover batch, or a shape the fork stated itself. The grounding
-    itself is in the Plan and never here, since the session never read it.
+    itself is in the Plan and never here, since the session never read it. A Plan the run carried
+    instead of forking the Planner is named the same way, with the line saying it was reused. On a
+    resume whose only work left was the landing, the line says the Plan step was skipped for that
+    reason and names no Plan, since the run opened none.
 11. **Audit line.** In `bug-fix` and `refactoring`, the discover audit line the ground step
     recorded,
     `Discovery: n FOUND · n DUPLICATE · n NOT_FOUND`, saying so when one `rg -n -w` per candidate
