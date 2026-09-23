@@ -179,6 +179,42 @@ for kind in unit e2e; do
   passage_says "$route counts the runs whatever verdict the report carried" \
     "$text" "$anyverdict" "the count is tied to no verdict, so a third run returned as RED_AS_EXPECTED or GREEN goes through"
 done
+echo "# each global author's own Write|Edit guard denies a write into the session's artifacts"
+# The Builder's Agent tool dispatches only four test-author subagents, unit-test-author,
+# e2e-test-author, global-unit-test-author and global-e2e-test-author, on the reasoning that those
+# four are safe to fork. unit-test-author and e2e-test-author carry their own PreToolUse guard on
+# Write|Edit (see builder.sh), but the global pair holds Write, Edit and Bash with no guard of its
+# own: a dispatched global author could write over the Plan, the Digest or a `.scratch/` marker
+# file the Builder's own guard exists to protect, since the Builder's hooks only see the Builder's
+# own tool calls, never a forked agent's. Each global agent file needs the same guard shape
+# do-builder.md's frontmatter already carries on its Write|Edit matcher.
+for kind in unit e2e; do
+  agent_file="$skill/agents/global-$kind-test-author.md"
+  guard_write="$(hook_command "$agent_file" Write)"
+  guard_edit="$(hook_command "$agent_file" Edit)"
+  expect "a PreToolUse hook scopes global-$kind-test-author's Write" test -n "$guard_write"
+  expect "a PreToolUse hook scopes global-$kind-test-author's Edit too" test -n "$guard_edit"
+
+  for tool in Write Edit; do
+    case "$tool" in
+      Write) tool_hook="$guard_write" ;;
+      *) tool_hook="$guard_edit" ;;
+    esac
+    [ -n "$tool_hook" ] || continue
+    for artifact in ".scratch/features/02-export/02-export.md" \
+      "docs/02-export.plan.md" "src/export/02-export.digest.md"; do
+      artifact_out="$(printf '{"tool_input": {"file_path": "%s"}}' "$artifact" |
+        sh -c "$tool_hook" 2>/dev/null)"
+      expect "global-$kind-test-author's $tool guard denies a write at $artifact, an artifact the session owns" \
+        bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$artifact_out"
+    done
+    source_out="$(printf '{"tool_input": {"file_path": "%s"}}' "src/export/notes.test.ts" |
+      sh -c "$tool_hook" 2>/dev/null)"
+    expect "global-$kind-test-author's $tool guard lets an ordinary test path through" \
+      bash -c '! grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$source_out"
+  done
+done
+
 echo
 if [ "$fails" = 0 ]; then echo "all passed"; else
   echo "$fails failed"
