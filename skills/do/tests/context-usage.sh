@@ -48,6 +48,23 @@ check_lines "150k and 200k are both medium" 0 "$rc" "peak=200000" "band=medium"
 run "$tmp/large.jsonl"
 check_lines "a peak over 200k is large even when the run ends small" 0 "$rc" "current=12" "peak=200001" "band=large"
 
+{
+  usage 10 0 1000
+  echo '{"type":"assistant","message":{"role":"assistant","usage":{"input_tokens":20,"cache_creation_input_tokens":0,"cache_read_input_tokens":2000,"output_tokens":7},"content":[{"type":"tool_use","id":"a1","name":"Agent","input":{"subagent_type":"do-builder","prompt":"x"}},{"type":"tool_use","id":"a2","name":"Agent","input":{"subagent_type":"Explore","prompt":"x"}}]}}'
+  echo '{"type":"assistant","message":{"role":"assistant","content":[{"type":"tool_use","id":"a3","name":"Agent","input":{"subagent_type":"do-reader","prompt":"x"}}]}}'
+  echo '{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"forking again"},{"type":"tool_use","id":"a4","name":"Agent","input":{"subagent_type":"unit-test-author","prompt":"x"}},{"type":"tool_use","id":"a5","name":"Agent","input":{"subagent_type":"do-builder","prompt":"x"}}]}}'
+  usage 5 0 3000
+} >"$tmp/forks.jsonl"
+run "$tmp/forks.jsonl"
+check_lines "the orchestrator's Agent calls are counted in total and per kind, the kinds in C byte order" 0 "$rc" \
+  "forks=5" "fork_kinds=Explore 1, do-builder 2, do-reader 1, unit-test-author 1"
+same "the fork lines follow the four context lines" "current=3005
+peak=3005
+messages=3
+band=small
+forks=5
+fork_kinds=Explore 1, do-builder 2, do-reader 1, unit-test-author 1"
+
 { echo '{"type":"user","message":{"role":"user","content":"hi"}}'; } >"$tmp/empty.jsonl"
 run "$tmp/empty.jsonl"
 check_lines "a transcript with no assistant usage exits 4" 4 "$rc"

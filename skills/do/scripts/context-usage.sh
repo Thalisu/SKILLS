@@ -11,7 +11,9 @@
 # assistant messages counted; band=<small|medium|large>, where the peak falls (small under 150k,
 # medium up to 200k, large beyond), the bands CONTEXT.md gives a Ticket. Lines flagged isSidechain,
 # which older harness versions wrote into the same file for forked agents, are left out: only the
-# orchestrator's context counts.
+# orchestrator's context counts. Then forks=<n>, the forks the orchestrator made, and
+# fork_kinds=<kind> <n>[, <kind> <n>]..., the kinds in C byte order and empty at zero: a fork is an
+# Agent or Task call, its kind the subagent_type, general-purpose when none is named.
 # Exit codes: 0 · 2 no transcript: usage, the file missing, or no session id (a harness other than
 # Claude Code) · 3 jq missing · 4 no assistant message with usage in the transcript.
 set -euo pipefail
@@ -32,4 +34,13 @@ read -r current peak messages < <(
 )
 [ "$messages" -gt 0 ] || { echo "no assistant message with usage in $file" >&2; exit 4; }
 if [ "$peak" -lt 150000 ]; then band=small; elif [ "$peak" -le 200000 ]; then band=medium; else band=large; fi
-printf 'current=%s\npeak=%s\nmessages=%s\nband=%s\n' "$current" "$peak" "$messages" "$band"
+fork_kinds="$(
+  jq -r 'select(.type == "assistant" and .isSidechain != true) | .message.content[]?
+         | select(.type == "tool_use" and (.name == "Agent" or .name == "Task"))
+         | "\(.id)\t\(.input.subagent_type // "" | if . == "" then "general-purpose" else . end)"' "$file" 2>/dev/null \
+  | awk -F'\t' '!seen[$1]++ { print $2 }' | LC_ALL=C sort | uniq -c \
+  | awk '{ printf "%s%s %s", (NR > 1 ? ", " : ""), $2, $1; n += $1 } END { printf "\t%d", n + 0 }'
+)"
+forks="${fork_kinds##*$'\t'}"
+fork_kinds="${fork_kinds%$'\t'*}"
+printf 'current=%s\npeak=%s\nmessages=%s\nband=%s\nforks=%s\nfork_kinds=%s\n' "$current" "$peak" "$messages" "$band" "$forks" "$fork_kinds"
