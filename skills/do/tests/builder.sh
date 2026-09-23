@@ -430,6 +430,53 @@ for tool in Write Edit; do
     bash -c '! grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$source_out"
 done
 
+# The same guard read against a symlinked alias: the case match above runs on the raw file_path
+# string, and a Ticket, Digest or Plan may carry a stranger's text directing the Builder to create
+# an ordinary-looking alias under its own worktree (Write is allowed to create one, since its own
+# path names no protected pattern) that resolves to the session's .scratch/ or to a *.plan.md /
+# *.digest.md file. A guard that never resolves the path before matching lets that write land on
+# the real protected file.
+stmp="$(mktemp -d)"
+trap 'cd /; rm -rf "$btmp" "$stmp"' EXIT
+mkdir -p "$stmp/worktree/tests/fixtures" "$stmp/protected/.scratch/20260921-feature/issues"
+printf 'plan\n' >"$stmp/protected/plan.plan.md"
+printf 'digest\n' >"$stmp/protected/digest.digest.md"
+printf 'build it\n' >"$stmp/protected/.scratch/20260921-feature/issues/07-build-it.md"
+
+# A symlinked directory component: the alias resolves straight into the issues directory, so the
+# unresolved string fed to the hook carries no literal ".scratch" anywhere, only the resolved
+# target does.
+ln -s "$stmp/protected/.scratch/20260921-feature/issues" "$stmp/worktree/tests/fixtures/data"
+for tool in Write Edit; do
+  case "$tool" in
+    Write) tool_hook="$builder_write_hook" ;;
+    *) tool_hook="$builder_edit_hook" ;;
+  esac
+  alias_path="$stmp/worktree/tests/fixtures/data/07-build-it.md"
+  alias_out="$(cd "$stmp/worktree" &&
+    printf '{"tool_input": {"file_path": "%s"}}' "$alias_path" |
+    sh -c "$tool_hook" 2>/dev/null)"
+  expect "the hook denies the Builder's $tool through a symlinked directory resolving into .scratch/" \
+    bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$alias_out"
+done
+
+# A symlinked file directly naming the protected suffix through its target, not its own name.
+ln -s "$stmp/protected/plan.plan.md" "$stmp/worktree/plan-alias.md"
+ln -s "$stmp/protected/digest.digest.md" "$stmp/worktree/digest-alias.md"
+for tool in Write Edit; do
+  case "$tool" in
+    Write) tool_hook="$builder_write_hook" ;;
+    *) tool_hook="$builder_edit_hook" ;;
+  esac
+  for alias_file in plan-alias.md digest-alias.md; do
+    file_alias_out="$(cd "$stmp/worktree" &&
+      printf '{"tool_input": {"file_path": "%s/worktree/%s"}}' "$stmp" "$alias_file" |
+      sh -c "$tool_hook" 2>/dev/null)"
+    expect "the hook denies the Builder's $tool through $alias_file, a symlink resolving to a protected suffix" \
+      bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$file_alias_out"
+  done
+done
+
 # A machine with no `jq`: a guard that reads its payload with jq and exits 0 when jq is missing is a
 # guard the harness reads as allow, so on that machine every line above silently stops holding and
 # nothing says so. Both hooks are asked with the input they would otherwise let through, since a
