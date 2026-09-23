@@ -43,6 +43,7 @@ labels are in English; its prose is in the report language of the brief.
 | a Ticket's location: a path, an issue number or a URL | that Ticket is the run's Ticket, the spec source and, when it is a local file, the Review's home; `do` passes it at its review step with the fixed point |
 | a landing target: the branch a caller wants the reviewed branch landed on | `do` sends it third, after the Ticket and the fixed point; it is the branch the fix fast-forwards when the Review is Green |
 | a Gate: the `command=` line of `do`'s gate script, as it printed it before the review | `do` sends it fourth, after the landing target; it is the Gate the fixed branch is held to before it lands, run as it stands |
+| a review token: a line whose first words read `Review token:`, followed by one value | `do` sends it after the Gate and before the Loss ledger; it is the one line of the marker you write beside the Review, it never reaches the door, and a `fix` call ignores it |
 | a Loss ledger: a line whose first words read `Loss ledger:`, followed by one path | `do` sends it after the Gate, only when its integration wrote one; it is relayed to the technical reviewer alone, as section 5 says, it never reaches the door, and a `fix` call ignores it, reading nothing at that path |
 | held Rulings: a block of text whose first line reads `Held Rulings, not on the tracker:` | `do` sends it last of all, after the Gate and after the ledger, only when its Ticket's Spec is an issue and the run ruled on a Design fork; it amends the spec source, as section 2 says, and never reaches the door |
 | words in a language | the report language, read off the words; the held Rulings block is never read for it |
@@ -278,12 +279,17 @@ whole. Never a second write, never an edit. A run on the same branch overwrites 
 Review.
 
 Then write one more file, the marker, at the `review=` path with `.md` replaced by `.marker`, whose
-one line is the commit the header's `Commit:` names. It is the only proof that a Review beside a
-Ticket came from a review and not from something else that held the worktree: `resume-state.sh`
-reads it before it lets a Review spare the next run a second review, and everything else in the
-file is a fact the branch itself carries, which anything with a shell can copy. Write it after the
-Review, never before: a marker beside a file that was never written would vouch for whatever lands
-at that path next.
+one line is the token the call named on its `Review token:` line. It is the only proof that a Review
+beside a Ticket came from a review and not from something else that held the worktree:
+`resume-state.sh` reads it before it lets a Review spare the next run a second review, and
+everything else in the file, the commit its `Commit:` header names included, is a fact the branch
+itself carries, which anything with a shell can copy. Write it after the Review, never before: a
+marker beside a file that was never written would vouch for whatever lands at that path next.
+
+A call that named no token writes no marker at all. The token is the caller's own, minted for one
+review step and stored where that caller alone can check it back, so a review somebody ran by hand
+has none to carry and writes none: its Review is read afterwards as a Review nothing vouched for,
+and the next run reviews the branch again rather than landing it unread.
 
 ## 8. The fix and the landing
 

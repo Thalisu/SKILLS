@@ -373,7 +373,23 @@ location in `ticket`, so the Review lands beside it; the branch alone in `bug-fi
 `refactoring`), the fixed point of the branch under review (the merge base the integration reads
 once it is done, which is the commit the integration rebased onto when it replayed), the
 developer's branch as the landing target, and the Gate, the `command=` line the gate printed, so
-the review holds its fixes to the checks the run held its own work to. A run whose integration
+the review holds its fixes to the checks the run held its own work to. The call carries one argument of its own besides those, the review token, and it is what ties the
+Review the review writes to the review step that ran. Before the call the run mints a token nothing
+else can guess, random bytes rendered as hex, and stores it under the clone's git common dir,
+`--git-common-dir`, at `do/review-token/<slug>`, which is the path `resume-state.sh` reads it back
+from. It is minted here and nowhere earlier, after the Builder has returned, and it is never a key
+of the Builder's brief, per [builder.md](builder.md): the one fork that holds a shell in this
+worktree finished before the token existed, and the build step revokes the token a previous run
+stored before it forks another, so there is no moment at which a fork can read the value a marker
+would have to carry. A file under the git dir is also a file no worktree checks out and the project
+never commits. The token goes over after the Gate and before the Loss ledger, so the held Rulings
+block, the last argument always, never swallows it:
+
+```
+Review token: <the value>
+```
+
+A run whose integration
 wrote a **Loss ledger** sends one more argument after the Gate, the Loss ledger's location, the
 absolute path in the main checkout the integration above fixed before the rebase started, so the
 review reads what a `contested` hunk set aside:
@@ -399,8 +415,8 @@ Held Rulings, not on the tracker:
 One item per held Ruling, its two indented lines only when it rewrote a criterion. The block ends
 at the end of the call, since every line after its first is a Ruling, so it is the last argument
 always, after the ledger and after every other argument the call carries, and a single-line
-argument never sits behind it. A run sends four arguments, five when its integration wrote a
-ledger, and one more, the block, when it holds a Ruling: five without a ledger, six with one. The
+argument never sits behind it. A run sends five arguments, six when its integration wrote a
+ledger, and one more, the block, when it holds a Ruling: six without a ledger, seven with one. The
 fix call below never carries the block: the Review it fixes was already held to the rewritten text.
 Never `--no-fix`, and `fix` only on the path below: the default run is the one every Playbook
 wants, per
@@ -419,7 +435,7 @@ A return that reads
 reviewed nothing and wrote nothing: the door of the review is a script, and the guard of an
 isolated session refuses to run one. It is not a Finding and not a refusal of the diff. The run
 leaves the isolation per [worktrees.md](../../../.agents/worktrees.md) and calls the review again,
-once, with the same arguments as the first call: the four above, the Loss ledger when the
+once, with the same arguments as the first call: the five above, the Loss ledger when the
 integration wrote one, and the held Rulings block, last of all, when the run holds one.
 
 What the review does with the call, so that the run does not: it writes the Review, forks one

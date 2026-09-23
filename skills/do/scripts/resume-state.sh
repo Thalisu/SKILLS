@@ -30,10 +30,12 @@
 # followed by discuss, that file's first line, the /discuss command the stop printed; then verdict.
 # A Review counts when the commit its Commit: header names is one this branch has been at, read off
 # the branch's reflog, is not reachable from the commit the branch was created at, the reflog's
-# oldest entry, none of its Axis lines reads not run, and the <Ticket>.review.marker beside it names
-# that same commit: the header is a fact anything holding the worktree can copy off the branch,
-# while the marker is the review step's own write, so a Review file that merely appeared while a
-# fork held the tree is unmarked and the review runs. It only reads: the ask before a
+# oldest entry, none of its Axis lines reads not run, and the <Ticket>.review.marker beside it holds
+# the token the review step stored at <git common dir>/do/review-token/<slug>: everything the Review
+# file itself carries, the commit its header names included, is a fact anything holding the worktree
+# can copy off the branch, while the token is minted after the Builder returns and revoked before
+# another is forked, so a Review and a marker that merely appeared while a fork held the tree are
+# unmarked and the review runs. A missing token is a miss, so the check fails closed. It only reads: the ask before a
 # discard is the run's, never this script's, and so is the sidecar's write: this script never
 # writes one.
 #
