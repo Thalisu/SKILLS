@@ -358,6 +358,21 @@ run forks nobody, says in one line that it reused it, and builds from the Plan i
 Plan whose section is not that exact match, and a destination with no Plan yet, are the two states
 the run forks for.
 
+Right before it forks the Planner, the run takes the guard probe, `bash <skill-dir>/scripts/harness-hooks.sh`
+from the main checkout with no argument, and keeps its `guard=` line, with its `harness=` and
+`hooks=` lines, for the Reply's Plan line, per [reply.md](reply.md). It runs once per run, right
+before the run's first fork of either agent, the Planner here or the Builder at step 3, since a harness does not change within
+a session and a resume is a new session that takes it again before its own first fork. It is never
+taken on a run that forks neither agent: no pattern guard can hold where no agent runs. The verdict
+says which of the two mechanisms guards the fork's writes. `guard=pattern-and-header` is a harness
+that runs the `PreToolUse` hooks the agent's own definition declares, so the pattern guard binds
+the fork and the `## Sources` check below runs beside it. `guard=header-only` is a harness that runs
+no hook, Codex among them, or a Claude Code whose settings turn hooks off, the file the
+`disabled_by=` line names: the `## Sources` check is then the whole guard. The run never stops on
+either verdict and asks nothing: the check runs the same way under both, and the verdict only says
+which mechanism held. An exit other than 0 prints no verdict, and the Plan line says the probe
+failed rather than quoting a guard.
+
 The fork is the `do-planner` agent `do` ships in [do-planner.md](../agents/do-planner.md), called
 through the Agent tool with `subagent_type: do-planner` and the brief [plan.md](plan.md) fixes,
 that file's own list and never a second one here: a copy of the list in this file drifts from the
@@ -530,6 +545,12 @@ step forks that holds a shell in the worktree. A token still on disk while it bu
 could copy into a marker of its own, and the run after this one would land a branch no reviewer
 read. Storing the token out of the worktree is not the guarantee on its own: the window is, and
 this is the end of it.
+
+When step 1 forked no Planner, the Plan carried or grounded by the session itself, the guard probe
+of step 1, `harness-hooks.sh`, has not run yet, and the run takes it here, right before it forks
+the Builder, once, the way step 1 says: the verdict it keeps is the same one, never stopping the
+run, with `header-only` leaving the `## Sources` check as the whole guard over the Builder's
+return.
 
 Then fork the Builder, per [builder.md](builder.md): call the Agent tool with
 `subagent_type: do-builder`, the agent `do` ships in [do-builder.md](../agents/do-builder.md), and
