@@ -25,9 +25,9 @@
 # CONTEXT.md, or its CONTEXT-MAP.md and the largest CONTEXT.md the map names, since which one it
 # picks is not knowable here, and its ADR titles, then the map, the discover return and the ADR
 # bodies, and the Sketch its shape fork returns. builder_base a fork's own baseline, its definition,
-# its brief, the build loop and the Plan it builds from; per_criterion what each criterion adds to
-# the Builder's window, and builder the two together for the Ticket's criteria. What is not a file
-# is a stated allowance below.
+# its brief, the build loop, the Ticket and the Digest it reads for the criteria and their quotes,
+# and the Plan it builds from; per_criterion what each criterion adds to the Builder's window, and
+# builder the two together for the Ticket's criteria. What is not a file is a stated allowance below.
 # Exit codes: 0 a reading, whatever the band · 2 usage · 3 a term could not be read, named on stderr
 set -uo pipefail
 [ "$#" -le 1 ] || { echo "usage: estimate-load.sh [<the Ticket's path>]" >&2; exit 2; }
@@ -109,7 +109,7 @@ planner=$((baseline + $(tokens "$(bytes "$skill/agents/do-planner.md" "$skill/re
 need builder_base "$skill/agents/do-builder.md" "$skill/references/builder.md" \
   "$skill/references/build-loop.md"
 builder_base=$((baseline + $(tokens "$(bytes "$skill/agents/do-builder.md" "$skill/references/builder.md" \
-  "$skill/references/build-loop.md")") + plan_allowance))
+  "$skill/references/build-loop.md")") + ticket_tokens + digest_tokens + plan_allowance))
 
 printf 'baseline=%s\nreference_chain=%s\ndoor=%s\ntotal=%s\nplanner=%s\nbuilder_base=%s\nper_criterion=%s\n' \
   "$baseline" "$reference_chain" "$door" "$total" "$planner" "$builder_base" "$per_criterion"
