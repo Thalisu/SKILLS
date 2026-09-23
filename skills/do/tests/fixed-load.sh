@@ -56,16 +56,29 @@ est t/01-small.md
 expect "given a Ticket the estimator exits zero" is "$code" 0
 expect "given a Ticket it adds the criteria, the per-criterion term, the peak and the band" is "$out" \
   "$fixed"$'\n'"$(printf '%s\n' criteria=2 per_criterion=18000 peak=89500 band=small)"
-ticket "$tmp/t/02-medium.md" 6
+# The session's total is what fills its window, so a Digest large enough to carry it past a threshold
+# moves the band where no count of criteria does.
+ticket "$tmp/t/02-medium.md" 2
+mk "$tmp/t/02-medium.digest.md" 440000
 est t/02-medium.md
 expect "a medium Ticket reads its band and exits zero" \
-  sh -c '[ "$1" = 0 ] && printf "%s\n" "$2" | grep -qx "peak=161500" && printf "%s\n" "$2" | grep -qx "band=medium"' \
+  sh -c '[ "$1" = 0 ] && printf "%s\n" "$2" | grep -qx "total=161000" && printf "%s\n" "$2" | grep -qx "band=medium"' \
   _ "$code" "$out"
-ticket "$tmp/t/03-large.md" 10
+ticket "$tmp/t/03-large.md" 2
+mk "$tmp/t/03-large.digest.md" 720000
 est t/03-large.md
 expect "a large Ticket reads its band and still exits zero, since the estimate gates nothing" \
-  sh -c '[ "$1" = 0 ] && printf "%s\n" "$2" | grep -qx "peak=233500" && printf "%s\n" "$2" | grep -qx "band=large"' \
+  sh -c '[ "$1" = 0 ] && printf "%s\n" "$2" | grep -qx "total=231000" && printf "%s\n" "$2" | grep -qx "band=large"' \
   _ "$code" "$out"
+# Two Tickets of the same size load the session alike, so the criteria they carry move no band.
+ticket "$tmp/t/05-one-criterion.md" 1
+est t/05-one-criterion.md
+few_band="$(printf '%s\n' "$out" | grep '^band=')"
+ticket "$tmp/t/06-ten-criteria.md" 10
+est t/06-ten-criteria.md
+many_band="$(printf '%s\n' "$out" | grep '^band=')"
+expect "a Ticket's band is read from the session's total alone, so many criteria read the band of one" \
+  sh -c '[ -n "$1" ] && [ "$1" = "$2" ]' _ "$few_band" "$many_band"
 # The Digest beside the Ticket is the one the door reads, so its size replaces the allowance.
 ticket "$tmp/t/04-digested.md" 2
 mk "$tmp/t/04-digested.digest.md" 4000

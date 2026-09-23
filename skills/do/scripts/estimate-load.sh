@@ -102,7 +102,7 @@ printf 'baseline=%s\nreference_chain=%s\ndoor=%s\nground=%s\nshape=%s\ntotal=%s\
 [ -n "$ticket" ] || exit 0
 
 peak=$((total + criteria * per_criterion))
-# A verbatim copy of context-usage.sh's band line, so the estimate and the measured Context: line
-# fall in the same bands; tests/fixed-load.sh checks the two stay equal.
-if [ "$peak" -lt 150000 ]; then band=small; elif [ "$peak" -le 200000 ]; then band=medium; else band=large; fi
+# context-usage.sh's band line with its thresholds copied verbatim, read on the session's total, so
+# the estimate and the measured Context: line fall in the same bands. Nothing checks the copy.
+if [ "$total" -lt 150000 ]; then band=small; elif [ "$total" -le 200000 ]; then band=medium; else band=large; fi
 printf 'criteria=%s\nper_criterion=%s\npeak=%s\nband=%s\n' "$criteria" "$per_criterion" "$peak" "$band"
