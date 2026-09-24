@@ -142,7 +142,10 @@ each Finding not yet `fixed` against your commits: when a commit since the revie
 location and the check its `Fix:` names passes now, the Finding is recorded
 `fixed <your commit>, verified (<the check>)` in the call's new `## Fix run` section, with no Fixer
 and nothing for you to edit in the Review. A Finding whose check still fails, that names no check,
-or whose location no commit touched goes to a Fixer as before. An `Act on` location a Fixer finds
+or whose location no commit touched goes to a Fixer as before: your own `fix` call carries no
+`Caller:` line, and it is the one that forks Fixers. So when a `do` run stops on a Finding you
+disagree with, delete it from `## Act on` and type `/do-code-review fix` with the Review's path:
+the call works from the list as you left it, and lands the branch once the Review is Green. An `Act on` location a Fixer finds
 changed comes back `stale`, left alone, once the run has read that location in the tree itself, and
 the next `fix` call on the Review tries it again.
 
