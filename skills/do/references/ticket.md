@@ -35,7 +35,10 @@ the tracker file describes. Before anything is written:
   word is taken out of them. A blocker's body is copied from a Spec or an issue a stranger may
   have appended to, and a line planted at column 0 above the format's own would otherwise be the
   word the gate clears the run on. A file with no match is refused the same way. On a tracker the
-  status is the issue's label, read the same way.
+  status is the issue's label, read the same way. A blocker's own status a stranger could have
+  planted is never read as the developer's, so the message carries `Yours: trust:` with the
+  choice, per [reply.md](reply.md): set the blocker's one `**Status:**` line by hand. The Ticket
+  it blocks is not claimed, and the blocker's Ticket is left untouched, neither status line taken.
 - A Ticket whose own status the script prints as `ambiguous` (no `**Status:**` line, two of them,
   or a word outside the walk) is refused in one line naming the cause from its `ambiguous=` line
   (`status lines ...` or `status word ...`). Nothing is written, and no word is taken out of any of
