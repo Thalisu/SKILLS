@@ -46,6 +46,12 @@ landing is the orchestrator's.
 3. **Touch nothing the red block does not point at.**
 4. **One commit per attempt**, its body naming the check it turned green, and one line back: the
    sha, or what stopped it.
+5. **A duplicate is promoted, never deleted.** A scan's row is resolved by moving the asset it names
+   into the shared home the Testing Policy's Project facts in `CLAUDE.md` name for its role, and
+   pointing every file the row lists at that one copy, with no assertion changed. The shared home
+   is the one file rule 3 lets you touch beyond the row's own, and the promotion and every call
+   site go in the attempt's one commit, since a promotion split across commits leaves a tree where
+   a test imports an asset that is not there yet. Deleting one copy breaks every test that used it.
 
 ## The return file
 

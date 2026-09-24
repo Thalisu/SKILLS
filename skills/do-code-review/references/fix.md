@@ -462,7 +462,7 @@ dirty, or the Diff tests or the Gate come back red, after a Fixer committed, wit
 all, shared by the three checks. It is forked with
 the Agent tool as `subagent_type: do-code-review-gate-fixer` and no `model` key, so it runs on the
 model and the effort its definition picks. Its contract is its definition,
-[do-code-review-gate-fixer.md](../agents/do-code-review-gate-fixer.md): the four rules, one commit
+[do-code-review-gate-fixer.md](../agents/do-code-review-gate-fixer.md): the five rules, one commit
 per attempt and the return file, none of them restated here. Its brief carries what changes from one
 attempt to the next, and nothing else:
 
