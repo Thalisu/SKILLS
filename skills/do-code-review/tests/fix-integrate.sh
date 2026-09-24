@@ -85,6 +85,17 @@ expect "the conflicted Finding leaves nothing of its content behind" \
 expect "no cherry-pick is left in progress when the conflict sits between clean picks" no_pick_in_progress "$main"
 expect "the work tree is clean when the conflict sits between clean picks" clean_status "$main"
 
+fresh conflict-two-owners
+main="$tmp/conflict-two-owners"
+printf 'l1\nl2\nl3\nl4\nl5\nl6\nl7\nl8\nl9\n' >a.txt
+commit base
+fixer_branch f1 a.txt $'l1\none\nl3\nl4\nl5\nl6\nl7\nl8\nl9'
+fixer_branch f2 a.txt $'l1\nl2\nl3\nl4\nl5\nl6\nl7\ntwo\nl9'
+fixer_branch f3 a.txt $'l1\nt2\nt3\nt4\nt5\nt6\nt7\nt8\nl9'
+run "$main" 1=f1 2=f2 3=f3
+check_lines "a conflicted Finding names every earlier clean pick that touched its file, ascending and comma-joined" \
+  1 "$rc" "conflicted 3 with 1,2 files \"a.txt\""
+
 echo
 if [ "$fails" = 0 ]; then echo "fix-integrate: all checks passed"; else
   echo "fix-integrate: $fails failed"
