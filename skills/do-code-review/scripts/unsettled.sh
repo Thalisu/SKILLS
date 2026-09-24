@@ -12,7 +12,9 @@
 # of the Finding (fix-waves.sh's finding_files), and none when no commit did or the Finding names
 # no file.
 #
-# Exit codes: 0 lines printed · 1 no unsettled Act on Finding · 2 usage.
+# Exit codes: 0 lines printed · 1 no unsettled Act on Finding · 2 usage · 3 the Review's Commit: is
+# absent or not an ancestor of HEAD, every line printed reading touched=none, since a range from a
+# commit off the branch would name a sha that never carried the fix.
 set -uo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
@@ -40,9 +42,9 @@ fix_run_latest() {
 }
 
 # review_commit <review file>
-# Prints the sha of the `Commit:` header; nothing when absent.
+# Prints the sha of the `Commit:` header with any `, dirty` suffix stripped; nothing when absent.
 review_commit() {
-  awk '/^Commit: / { print $2; exit }' "$1"
+  awk '/^Commit: / { sub(/,.*/, "", $2); print $2; exit }' "$1"
 }
 
 # latest_touch <worktree> <since sha> <path>...
@@ -56,9 +58,12 @@ latest_touch() {
 main() {
   [ "$#" -eq 2 ] || usage
   [ -d "$1" ] && [ -f "$2" ] && [ -r "$2" ] || usage
-  local wt="$1" review="$2" since records latest n loc target sha listed=0
+  local wt="$1" review="$2" since records latest n loc target sha listed=0 off_branch=0
   local -a files
   since="$(review_commit "$review")"
+  if [ -z "$since" ] || ! git -C "$wt" merge-base --is-ancestor "$since" HEAD 2>/dev/null; then
+    off_branch=1
+  fi
   records="$(act_on_findings "$review")"
   latest="$(fix_run_latest "$review")"
 
@@ -67,11 +72,14 @@ main() {
     grep -q "^$n	fixed " <<<"$latest" && continue
     mapfile -t files < <(finding_files "$loc" "$target")
     sha=""
-    [ "${#files[@]}" -gt 0 ] && sha="$(latest_touch "$wt" "$since" "${files[@]}")"
+    if [ "$off_branch" = 0 ] && [ "${#files[@]}" -gt 0 ]; then
+      sha="$(latest_touch "$wt" "$since" "${files[@]}")"
+    fi
     echo "finding=$n touched=${sha:-none}"
     listed=1
   done <<<"$records"
-  [ "$listed" = 1 ]
+  [ "$listed" = 1 ] || return 1
+  [ "$off_branch" = 0 ] || return 3
 }
 
 main "$@"

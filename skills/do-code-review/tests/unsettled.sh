@@ -238,6 +238,42 @@ run "$wt" "$review"
 check_absent "a Review whose Act on reads none lists no Finding and exits 1" \
   1 "$rc" "finding="
 
+fresh unrelated
+wt="$tmp/unrelated"
+mkdir -p src
+printf '#!/usr/bin/env bash\nset -u\necho "$1"\n' >src/a.sh
+commit base
+reviewed="$(git rev-parse --short HEAD)"
+git checkout -q -b side
+printf '#!/usr/bin/env bash\nset -u\necho "side: $1"\n' >src/a.sh
+commit "feat: a.sh prefixes its line"
+side="$(git rev-parse --short HEAD)"
+git checkout -q main
+printf '#!/usr/bin/env bash\nset -u\necho "${1:-}"\n' >src/a.sh
+commit "fix: a.sh reads a missing argument as empty"
+fixed="$(git rev-parse HEAD)"
+
+review="$tmp/07-a.review.md"
+review_at "$side" "$review"
+run "$wt" "$review"
+check_lines "a Review whose Commit: is not an ancestor of HEAD lists every unsettled Finding with touched=none and exits 3" \
+  3 "$rc" "finding=1 touched=none"
+
+review_at "$reviewed" "$tmp/08-full.review.md"
+review="$tmp/08-a.review.md"
+grep -v '^Commit: ' "$tmp/08-full.review.md" >"$review"
+run "$wt" "$review"
+check_lines "a Review with no Commit: header lists every unsettled Finding with touched=none and exits 3" \
+  3 "$rc" "finding=1 touched=none"
+
+review_at "$reviewed" "$tmp/09-clean.review.md"
+review="$tmp/09-a.review.md"
+sed "s/^Commit: $reviewed\$/Commit: $reviewed, dirty/" "$tmp/09-clean.review.md" >"$review"
+has "the dirty fixture carries a Commit: header with the dirty suffix" "$review" "Commit: $reviewed, dirty"
+run "$wt" "$review"
+check_lines "a Review whose Commit: carries the dirty suffix is read as its sha, and a Finding a later commit touched is listed with that commit" \
+  0 "$rc" "finding=1 touched=$fixed"
+
 echo
 if [ "$fails" = 0 ]; then echo "unsettled: all checks passed"; else
   echo "unsettled: $fails failed"
