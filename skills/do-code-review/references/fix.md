@@ -109,35 +109,18 @@ They all write in the one tree, so they are never two at once, per
 [separate-before-serializing-shared-state](../../../.agents/principles/separate-before-serializing-shared-state.md):
 a test author running its red against another Fixer's half-made edit proves nothing, and two
 commits at once fight over the index. A Fixer holds its one Finding and nothing else, so its
-window stays the size of that Finding. It gets the Review's location, the branch it commits
-on, its `Tree:` line, its one Finding with its number, location, `Claim:` and `Fix:` line, its
-`Return file:` line, and four rules. Every path it checks or edits, and every code path it reads, is
-under its `Tree:` path, never under another checkout, with the one exception rule 3 carries: a
-quote-located Spec Finding's Spec source, read where the Review's `Spec source:` header names it,
-which on a `do` run sits outside the Tree by design.
+window stays the size of that Finding.
 
-1. **Follow the Testing Policy when one is installed.** Dispatch the project's unit test author
-   with the behaviour to prove and the target from the Finding's `Fix:` line, with
-   origin `bugfix`, and the Finding's failure scenario as the expected red. Then implement, and commit the
-   test and the fix as one commit whose body names the Finding by number. With no Testing Policy
-   installed, write the failing test first yourself and commit the same way.
-2. **Touch nothing else.** Nothing outside its Finding: not another `Act on` Finding, which has a
-   Fixer of its own, and nothing in `Consider`, `Noted` or `Cleared`, however tempting it looks on
-   the way past. Those Buckets are the developer's judgment calls and this run does not make them.
-3. **Leave what no longer matches.** Check the Finding's location before touching it: a `file:line`
-   at that line under its `Tree:` path; a Spec Finding, whose location is the spec line quoted, by
-   that quote in the source the Review's `Spec source:` header names, at the absolute path that
-   header gives, even when it sits outside the `Tree:` path, and by the target its `Fix:` line names
-   under its `Tree:` path. Reading that named Spec source is the one path this rule allows outside
-   the Tree; the `Fix:` target it checks or edits stays under `Tree:` regardless, and it holds only
-   when `Spec source:` names a file on disk. When `Spec source:` names an issue reference
-   (`Spec source: issue <n>`), the Fixer never fetches or reads that issue itself, that text was
-   only ever read by the reviewer and the orchestrator before this call, and it checks the Finding
-   only by the target its `Fix:` line names under `Tree:`. A location that has moved or gone is
-   reported and left alone, with the command that showed it gone: no commit, and no guess at where
-   the code went.
-4. **Report each commit.** One line for its Finding, by its number: the sha, or what stopped it.
-   The same line goes to its return file, in one shell command, before it ends its turn.
+Its contract is its definition,
+[do-code-review-fixer.md](../agents/do-code-review-fixer.md): the four rules, the tree it reads and
+writes in, the two ends with no commit and the return file, none of them restated here. Its brief
+carries what changes from one call to the next, and nothing else:
+
+- the Review's location;
+- the branch it commits on;
+- `Tree: <the absolute path of the tree it works in>`;
+- its one Finding: its number, its location, its `Claim:` and its `Fix:` line;
+- `Return file: <the path below>`.
 
 The run is not over until the landing line is written, whatever the Agent tool does. Make one
 directory outside every repository before the first Fixer,
@@ -156,15 +139,12 @@ there nothing else writes in that tree or removes it: no Gate fixer is forked fr
 whatever the Diff tests or the Gate read, the `fix/<slug>` worktree and its branch stay in place
 and are named, and the landing line reads `not landed: a Fixer did not return`.
 
-Two branches end in no commit and are reported, never worked around:
+Two of a Fixer's lines end in no commit, per its definition, and the run reads them this way:
 
-- The Agent tool is withheld, so no test author can be dispatched. The Fixer writes nothing at all
-  and says so, and its Finding comes back `not fixed: test author unreachable`. No further Fixer is
-  forked, since each would meet the same wall, and every Finding left reads the same. A fix that
-  nothing proved is worse than no fix.
-- A Finding whose test will not go green. The Fixer drops its own edits for that Finding,
-  `git restore` over the paths it touched for it, makes no commit, and reports `not fixed` with the
-  test's reason. Half a fix never reaches a commit, and the next Fixer starts on a clean tree.
+- `not fixed: test author unreachable`, the Agent tool withheld from it. No further Fixer is
+  forked, since each would meet the same wall, and every Finding left reads the same.
+- `not fixed` with a test's reason, a test that would not go green. The Fixer dropped its own edits
+  for that Finding, so the next Fixer is forked on a clean tree as usual.
 
 ## The re-check
 
