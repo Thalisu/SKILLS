@@ -32,7 +32,8 @@ mkdir -p "$top/.claude" "$(dirname "$DO_MANAGED_SETTINGS")"
 user_settings="$CLAUDE_CONFIG_DIR/settings.json"
 project_settings="$top/.claude/settings.json"
 local_settings="$top/.claude/settings.local.json"
-clear_settings() { rm -f "$DO_MANAGED_SETTINGS" "$user_settings" "$project_settings" "$local_settings"; }
+managed_dropins="$(dirname "$DO_MANAGED_SETTINGS")/managed-settings.d"
+clear_settings() { rm -rf "$DO_MANAGED_SETTINGS" "$managed_dropins" "$user_settings" "$project_settings" "$local_settings"; }
 disabled_by() { # $1 the settings file and key the verdict must name: the whole expected output
   printf '%s\n' harness=claude-code hooks=disabled "disabled_by=$1" guard=header-only 'exit 0'
 }
@@ -41,6 +42,24 @@ printf '{ "disableAllHooks": true }\n' >"$project_settings"
 CLAUDECODE=1 run
 same "a project settings file disabling every hook leaves the header check as the whole guard and names that file" \
   "$(disabled_by "$project_settings:disableAllHooks")"
+clear_settings
+
+printf '{\n  "disableAllHooks":\n    true\n}\n' >"$project_settings"
+CLAUDECODE=1 run
+same "a project settings file disabling every hook with the value on the line after the key still names that file" \
+  "$(disabled_by "$project_settings:disableAllHooks")"
+clear_settings
+
+printf '{ "disable\\u0041llHooks": true }\n' >"$project_settings"
+CLAUDECODE=1 run
+same "a project settings file disabling every hook under a JSON unicode escape in the key still names that file" \
+  "$(disabled_by "$project_settings:disableAllHooks")"
+clear_settings
+
+printf '{ "disableAllHooks": true,\n' >"$project_settings"
+CLAUDECODE=1 run
+same "a project settings file that does not parse as JSON counts as disabling every hook, since it may, and names that file" \
+  "$(disabled_by "$project_settings:unparsable")"
 clear_settings
 
 printf '{ "disableAllHooks": true }\n' >"$local_settings"
@@ -59,14 +78,30 @@ same "allowManagedHooksOnly in the managed settings blocks the agent's own hooks
   "$(disabled_by "$DO_MANAGED_SETTINGS:allowManagedHooksOnly")"
 clear_settings
 
+# Claude Code merges every *.json in managed-settings.d into the managed settings.
+mkdir -p "$managed_dropins"
+printf '{ "disableAllHooks": true }\n' >"$managed_dropins/10-hooks.json"
+CLAUDECODE=1 run
+same "a managed-settings.d drop-in disabling every hook, with no managed settings file, names that drop-in" \
+  "$(disabled_by "$managed_dropins/10-hooks.json:disableAllHooks")"
+clear_settings
+
 for f in "$DO_MANAGED_SETTINGS" "$user_settings" "$project_settings"; do printf '{ "disableAllHooks": true }\n' >"$f"; done
 CLAUDECODE=1 run
 same "with managed, user and project settings all disabling hooks, the managed file is the one named" \
   "$(disabled_by "$DO_MANAGED_SETTINGS:disableAllHooks")"
 rm -f "$DO_MANAGED_SETTINGS"
 CLAUDECODE=1 run
-same "with user and project settings both disabling hooks, the user file is the one named" \
-  "$(disabled_by "$user_settings:disableAllHooks")"
+same "with user and project settings both disabling hooks, the project file, which outranks the user file, is the one named" \
+  "$(disabled_by "$project_settings:disableAllHooks")"
+clear_settings
+
+# Claude Code applies the highest-precedence file's value, false as much as true: local beats user.
+printf '{ "disableAllHooks": true }\n' >"$user_settings"
+printf '{ "disableAllHooks": false }\n' >"$local_settings"
+CLAUDECODE=1 run
+same "a project local settings file setting disableAllHooks to false overrides the user file setting it true, so hooks run" \
+  "$(printf '%s\n' harness=claude-code hooks=run disabled_by=none guard=pattern-and-header 'exit 0')"
 clear_settings
 
 # The calling session may set either marker, and `run` is a function `env -u` cannot reach.

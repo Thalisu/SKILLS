@@ -370,8 +370,8 @@ rm -f -- <the destination>
 ```
 
 Right before it forks the Planner, the run takes the guard probe, `bash <skill-dir>/scripts/harness-hooks.sh`
-from the main checkout with no argument, and keeps its `guard=` line, with its `harness=` and
-`hooks=` lines, for the Reply's Plan line, per [reply.md](reply.md). It runs once per run, right
+from the main checkout with no argument, and keeps its `guard=` line, with its `harness=`,
+`hooks=` and `disabled_by=` lines, for the Reply's Plan line, per [reply.md](reply.md). It runs once per run, right
 before the run's first fork of either agent, the Planner here or the Builder at step 3, since a harness does not change within
 a session and a resume is a new session that takes it again before its own first fork. It is never
 taken on a run that forks neither agent: no pattern guard can hold where no agent runs. The verdict

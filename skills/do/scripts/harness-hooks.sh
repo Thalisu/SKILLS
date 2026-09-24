@@ -6,20 +6,48 @@
 #   harness-hooks.sh
 #
 # Prints four key=value lines, in this order: harness=claude-code|other, hooks=run|disabled|none,
-# disabled_by=none|<settings file>:<key>, guard=pattern-and-header|header-only.
+# disabled_by=none|<settings file>:<key|unparsable>, guard=pattern-and-header|header-only.
 # Exit codes: 0 a verdict printed, either one · 1 not inside a git work tree, so the project's
 # settings cannot be found · 2 usage: any argument. Nothing is printed on 1 or 2.
 #
-# Hooks count as disabled by the first of these, in this order, that turns them off: the managed
-# settings file with `disableAllHooks` or `allowManagedHooksOnly` true, then the user's settings,
-# the project's `.claude/settings.json` and its `.claude/settings.local.json`, with
-# `disableAllHooks` true. DO_MANAGED_SETTINGS names the managed file in place of the platform's.
+# Hooks count as disabled when the file whose value Claude Code applies turns them off. Highest
+# precedence first: the managed layer (its `managed-settings.d/*.json` drop-ins, the last in name
+# order first, then the managed settings file), the project's `.claude/settings.local.json`, its
+# `.claude/settings.json`, then the user's settings; the first that sets `disableAllHooks`, false
+# included, decides it. `allowManagedHooksOnly` true in the managed layer disables them too, and so
+# does a settings file that does not parse. DO_MANAGED_SETTINGS names the managed file in place of
+# the platform's, and its drop-ins sit beside it. The probe cannot see the `--settings` flag, the
+# server-managed settings or the MDM and registry policies, any of which may turn hooks off while
+# it prints `pattern-and-header`.
 set -uo pipefail
 
 # The docs leave open whether disableAllHooks reaches the hooks an agent's own frontmatter declares,
 # so it counts as disabling them: understating the guard costs a line, overstating it costs trust.
-sets_true() { # $1 settings file, $2 key
-  [ -f "$1" ] && grep -Eq "\"$2\"[[:space:]]*:[[:space:]]*true" "$1"
+# A file jq cannot read, or no jq at all, may set the key for all the probe can tell, so it counts too.
+setting() { # $1 settings file, $2 key: prints true, false, unset or unparsable
+  local value
+  value="$(jq -r --arg key "$2" 'if has($key) then .[$key] == true else "unset" end' "$1" 2>/dev/null)" ||
+    value=unparsable
+  case "$value" in
+    true | false | unset) echo "$value" ;;
+    *) echo unparsable ;;
+  esac
+}
+
+# Claude Code applies the value of the highest-precedence file that sets a key, false included, so
+# the walk stops at the first file that decides it.
+resolve() { # $1 key, $2.. settings files, highest precedence first: prints <file>:<key|unparsable>
+  local key="$1" file
+  shift
+  for file; do
+    [ -f "$file" ] || continue
+    case "$(setting "$file" "$key")" in
+      true) echo "$file:$key" && return ;;
+      false) return 1 ;;
+      unparsable) echo "$file:unparsable" && return ;;
+    esac
+  done
+  return 1
 }
 
 managed_settings() {
@@ -33,21 +61,15 @@ managed_settings() {
 }
 
 disabled_by() { # $1 the project's top level
-  local managed file key
+  local managed file layer=()
   managed="$(managed_settings)"
-  for key in disableAllHooks allowManagedHooksOnly; do
-    sets_true "$managed" "$key" && {
-      echo "$managed:$key"
-      return
-    }
+  for file in "$(dirname "$managed")"/managed-settings.d/*.json; do
+    layer=("$file" "${layer[@]}")
   done
-  for file in "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json" \
-    "$1/.claude/settings.json" "$1/.claude/settings.local.json"; do
-    sets_true "$file" disableAllHooks && {
-      echo "$file:disableAllHooks"
-      return
-    }
-  done
+  layer+=("$managed")
+  resolve disableAllHooks "${layer[@]}" "$1/.claude/settings.local.json" "$1/.claude/settings.json" \
+    "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json" && return
+  resolve allowManagedHooksOnly "${layer[@]}" && return
   echo none
 }
 
