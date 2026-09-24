@@ -234,7 +234,7 @@ Then, for each Wave `<k>` as run, in order, while no stop below has fired:
 
 1. **Cut the Wave's worktrees.**
    `bash ~/.claude/skills/do-code-review/scripts/fix-worktrees.sh add <the reviewed tree> <slug> <at> <k> <n>...`,
-   with the door's `slug=`, the Wave's number and its Findings. `<at>` is the short sha the `Date:`
+   with the door's `slug=`, the Wave's `<k>` as counted above and its Findings. `<at>` is the short sha the `Date:`
    line records with the run's own `mktemp` suffix appended, `<sha>-<suffix>`, unique to this run
    and never just the reviewed HEAD's sha: a second `fix` run at the same reviewed HEAD gets a fresh
    `mktemp` suffix of its own, so its `<at>` never repeats an earlier run's, and its Wave never
@@ -297,6 +297,15 @@ ahead of the reviewed branch as it stands, so a Wave cut before the one ahead of
 could never land. That is also what lets a re-routed Finding's second Fixer start from the fix it
 lost to instead of meeting it again: its conflicted branch stays behind as
 `kept <branch> <path> unlanded commit`, and its new worktree is cut beside it.
+
+The Findings re-routed out of a Wave run together as one Wave of their own, the re-route Wave,
+right after it and before the next Wave `fix-waves.sh` printed; re-routed out of the last Wave,
+they are the new last. It runs steps 1 to 6 like any Wave, under its own `<k>`, and each of its
+Fixers gets the brief every Fixer gets. It is never merged into a Wave the script printed: its
+Findings shared one Wave of the floor, so their files are disjoint and they are four at most, while
+joining the next Wave could put two Fixers on one file or five in one Wave, which the floor exists
+to prevent. Every branch it integrates is cut from the same HEAD, so its Findings can conflict only
+with each other, and those it re-routes form the next re-route Wave the same way.
 
 ## The re-check
 
