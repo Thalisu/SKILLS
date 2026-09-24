@@ -47,12 +47,27 @@ fixer_branch f2 two.txt "finding two"
 fixer_branch f3 a.txt "finding three"
 run "$main" 1=f1 2=f2 3=f3
 check "a Finding whose pick conflicts is abandoned and the run exits 1" 1 "$rc"
+same "a conflicted Finding names the earlier clean pick that touched its file, not the pick just before it, and the file" \
+  "picked 1 $(git -C "$main" rev-parse main~1 2>/dev/null)
+picked 2 $(git -C "$main" rev-parse main 2>/dev/null)
+conflicted 3 with 1 files \"a.txt\""
 expect "the reviewed branch holds the clean picks and nothing of the conflicted Finding" \
   test "$(git -C "$main" log --format=%s main | tr '\n' ' ')" = "f2 f1 base "
 expect "the file both Findings touched holds the clean Finding's content" \
   test "$(cat "$main/a.txt")" = "finding one"
 expect "no cherry-pick is left in progress after a conflicted pick" no_pick_in_progress "$main"
 expect "the work tree is clean after a conflicted pick" clean_status "$main"
+
+fresh conflict-spaced-path
+main="$tmp/conflict-spaced-path"
+mkdir docs
+printf 'base\n' >"docs/a b.md"
+commit base
+fixer_branch f1 "docs/a b.md" "finding one"
+fixer_branch f2 "docs/a b.md" "finding two"
+run "$main" 1=f1 2=f2
+check_lines "a conflicted file whose path holds a space is named as one quoted path" \
+  1 "$rc" "conflicted 2 with 1 files \"docs/a b.md\""
 
 fresh conflict-between
 main="$tmp/conflict-between"
