@@ -273,6 +273,132 @@ check_lines "a Finding whose location and Fix line name no file comes back on a 
   "wave=2 findings=2"
 absent "the Finding whose files cannot be read is joined by nothing" "wave=3"
 
+printf 'test("other", () => {});\n' >"$tmp/tests/other.test.js"
+
+punctuated="$tmp/05-punctuated-header-location.review.md"
+cat >"$punctuated" <<'MD'
+# Review: feat/export-notes
+
+Ticket: none
+Fixed point: main (3f2a9c1), inferred
+Commit: 8b1d0e4
+Spec source: no spec
+Mode: fix
+Language: English
+
+## Intent
+
+Export the active notes as CSV, with a header line and one row per note.
+
+## Safe because
+
+The only caller of `page` outside the diff runs green in a proof script. Rung 4.
+
+## Act on
+
+### 1. Correctness at src/notes.js:31, outside the diff
+Claim: a page of ten notes returns nine.
+Evidence: eleven notes created, `page(1, 10)` called; nine rows returned, `slice` ends one short.
+Rung: 4
+Fix: a page of size ten over eleven notes returns ten rows, in tests/notes.test.js
+
+### 2. Security at src/notes.js:45
+Claim: an expired token is accepted.
+Evidence: a token past its expiry reaches the sink with no gate on the claim.
+Rung: 4
+Risk: auth
+Fix: an expired token is rejected, in tests/other.test.js
+
+## Consider
+
+none
+
+## Noted
+
+none
+
+## Cleared
+
+none
+
+## Axes
+
+- Correctness: 1 finding, worst #1 (Act on)
+- Spec: no spec
+- Standards: 0 findings
+- Principles: 0 findings
+- Blast radius: 0 findings
+- Security: 1 finding, worst #2 (Act on)
+MD
+
+run "$punctuated"
+check_lines "a header location punctuated with a trailing comma still names its file, so two Findings sharing that file come back on two separate Waves" 0 "$rc" \
+  "wave=1 findings=1" \
+  "wave=2 findings=2"
+absent "the Findings sharing src/notes.js through a punctuated header location are never merged onto one Wave" "wave=1 findings=1,2"
+
+ranged="$tmp/06-range-header-location.review.md"
+cat >"$ranged" <<'MD'
+# Review: feat/export-notes
+
+Ticket: none
+Fixed point: main (3f2a9c1), inferred
+Commit: 8b1d0e4
+Spec source: no spec
+Mode: fix
+Language: English
+
+## Intent
+
+Export the active notes as CSV, with a header line and one row per note.
+
+## Safe because
+
+The only caller of `page` outside the diff runs green in a proof script. Rung 4.
+
+## Act on
+
+### 1. Correctness at src/notes.js:31-52
+Claim: a page of ten notes returns nine.
+Evidence: eleven notes created, `page(1, 10)` called; nine rows returned, `slice` ends one short.
+Rung: 4
+Fix: a page of size ten over eleven notes returns ten rows, in tests/notes.test.js
+
+### 2. Security at src/notes.js:60
+Claim: an expired token is accepted.
+Evidence: a token past its expiry reaches the sink with no gate on the claim.
+Rung: 4
+Risk: auth
+Fix: an expired token is rejected, in tests/other.test.js
+
+## Consider
+
+none
+
+## Noted
+
+none
+
+## Cleared
+
+none
+
+## Axes
+
+- Correctness: 1 finding, worst #1 (Act on)
+- Spec: no spec
+- Standards: 0 findings
+- Principles: 0 findings
+- Blast radius: 0 findings
+- Security: 1 finding, worst #2 (Act on)
+MD
+
+run "$ranged"
+check_lines "a header location written as a line range still names its file, so two Findings sharing that file come back on two separate Waves" 0 "$rc" \
+  "wave=1 findings=1" \
+  "wave=2 findings=2"
+absent "the Findings sharing src/notes.js through a range header location are never merged onto one Wave" "wave=1 findings=1,2"
+
 echo
 if [ "$fails" = 0 ]; then echo "fix-waves: all checks passed"; else
   echo "fix-waves: $fails failed"

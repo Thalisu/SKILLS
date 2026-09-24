@@ -8,8 +8,9 @@
 # Groups the Findings of the Review's `## Act on` section into Waves: two Findings share a Wave
 # only when both of their file sets are non-empty and disjoint, and a Finding whose files cannot be
 # read is a Wave of its own. A Finding's files are the file of its header location when that
-# location is a file and a line, and the file its `Fix:` line names after the target separator when
-# that is a path. Prints one line per Wave, in ascending order of each Wave's lowest Finding, as
+# location is a file and a line or a line range, whatever prose trails it, and the file its `Fix:`
+# line names after the target separator when that is a path. Prints one line per Wave, in
+# ascending order of each Wave's lowest Finding, as
 # wave=<n> followed by findings=<the Wave's Finding numbers, ascending, comma separated>.
 #
 # Exit codes: 0 waves printed · 1 the Review has no Act on Findings · 2 usage.
@@ -56,7 +57,8 @@ finding_files() {
   local head="$1" target="$2" token path seen=""
   token="${head%%[[:space:]]*}"
   token="${token//\`/}"
-  if [[ "$token" =~ ^(.+):[0-9]+$ ]]; then
+  token="${token%"${token##*[![:space:].,;:]}"}"
+  if [[ "$token" =~ ^(.+):[0-9]+(-[0-9]+)?$ ]]; then
     path="${BASH_REMATCH[1]#./}"
     seen="$path"
     printf '%s\n' "$path"
