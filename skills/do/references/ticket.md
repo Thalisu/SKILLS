@@ -723,7 +723,7 @@ any, as the review in [mechanics.md](mechanics.md) says. The return is recorded 
 one line per part. A `not landed: target moved` runs the integration again, in the same run, its
 Loss ledger judged and reapplied with no **Gate** of the run's own, then the fix call on the Review
 the run already has, as that review says, and repeats with no fixed count while each integration replayed
-commits; a `not landed: target moved` right after an integration that ticked as a no-op sends the run through the all-ticked bullet of the Resume above in the same run, as that review says, and the step ends on that path's own landing line. Done when the landing line recorded there reads `landed at <commit>`, or the run stopped as
+commits; a `not landed: target moved` right after an integration that ticked as a no-op sends the run through the all-ticked bullet of the Resume above in the same run, as that review says, and the step ends on that path's own landing line; the same return again, after that resume's integration ticked as a no-op too, stops the run as blocked like every other `not landed`. Done when the landing line recorded there reads `landed at <commit>`, or the run stopped as
 blocked with the review's reason quoted and the worktree and its branch named, or the step reads
 `skip: do-code-review not listed` with the worktree and its branch named.
 

@@ -529,9 +529,17 @@ the fix call on the Review the run already has, never a second review. The run l
 that path's own outcome, and the integration line of the Reply's Run section carries the lines of
 both integrations, per [reply.md](reply.md), never the resume as a next step.
 
+That resume is taken once per no-op state and is never a loop on it. When the integration inside it
+ticks as a no-op again and the fix call's landing again returns `not landed: target moved`, the
+branch still holds the target, no other landing happened in between, and integrating again would
+meet the tip already met, so the run stops as blocked like every other `not landed`, the end of the
+loop [ADR 0044](../../../docs/adr/0044-the-re-integration-retries-while-the-target-tip-changes.md)
+sets, applied to the resume. A resume whose integration replayed commits met another landing, and
+its `not landed: target moved` is back in the loop above.
+
 Not landed, for any other reason the review gives (a Finding `not fixed` or `not verified`, an Axis
-`not run`, a red gate after the fixes, a red gate after the
-retry's rebase, a failed fast-forward, a protected branch), and the run stops as blocked: the review's reason quoted, the
+`not run`, a red gate after the fixes, a `not landed: target moved` after the in-run resume's
+integration ticked as a no-op too, a red gate after the retry's rebase, a failed fast-forward, a protected branch), and the run stops as blocked: the review's reason quoted, the
 worktree and its branch left in place and named in the reply, the Ticket left `claimed`, so that
 nothing lands half fixed. On a protected branch the reply adds the two commands that land the
 reviewed branch by hand from a branch that takes commits, since the diff was reviewed and Green
