@@ -654,9 +654,9 @@ check_absent "a stop whose read-back refuses a file is never reported as git ref
 expect "a stop whose read-back refuses a file names it on a read-back refused line" \
   grep -qE '^read-back refused \.env( |:|$)' <<<"$out"
 
-# A mixed stop whose two additions end on the same line. Git's union keeps that shared line once,
-# which the presentation the script splices from does not, so each written file is held to what
-# `git merge-file --union` makes of the same hunks.
+# A mixed stop whose two additions end on the same line. The all-mechanical stop's union keeps that
+# shared line once per side, since trimming it is what drops a closing brace, so each written file is
+# held to what `git merge-file --union --diff3` makes of the same hunks.
 fresh shared-line
 printf 'a\nb\n' >mech.txt
 printf 'x\ny\nz\n' >both.txt
@@ -689,7 +689,7 @@ g rebase main >/dev/null 2>&1
 union_of mech.txt >"$tmp/mech.union"
 {
   seq 1 2
-  printf 'T\nI\nSHARED\n'
+  printf 'T\nSHARED\nI\nSHARED\n'
   seq 3 7
   echo T8
   seq 9 10
@@ -698,8 +698,44 @@ run
 check "the call writes the all-mechanical file whose additions share a line" 0 "$rc" \
   "wrote mech.txt" "wrote both.txt" "wrote mixed.txt"
 expect "that file is byte-equal to git's union of its three stages" cmp -s mech.txt "$tmp/mech.union"
-expect "a mechanical hunk beside a contested one keeps the shared line once" \
+expect "a mechanical hunk beside a contested one keeps the shared line once per side" \
   cmp -s mixed.txt "$tmp/mixed.expected"
+
+# A contested stop whose all-mechanical file has each side appending its own new function after the
+# same closing brace. Both new functions end in a closing brace of identical text, and the file only
+# parses if each keeps its own: the all-mechanical stop's union already keeps both, so this one must.
+fresh two-functions
+printf 'function create() {\n  return 1;\n}\n' >app.js
+printf 'x\ny\nz\n' >rewrite.txt
+commit base
+g switch -q -c do/run
+printf '\nexport function count() {\n  return notes.length;\n}\n' >>app.js
+printf 'x\nINCOMING\nz\n' >rewrite.txt
+commit incoming
+g switch -q main
+printf '\nexport function titles() {\n  return notes.map((n) => n.title);\n}\n' >>app.js
+printf 'x\nTARGET\nz\n' >rewrite.txt
+commit target
+g switch -q do/run
+g rebase main >/dev/null 2>&1
+cat >"$tmp/two-functions.expected" <<'JS'
+function create() {
+  return 1;
+}
+
+export function titles() {
+  return notes.map((n) => n.title);
+}
+
+export function count() {
+  return notes.length;
+}
+JS
+run
+check_lines "the contested stop writes the all-mechanical file where each side appended a function" \
+  0 "$rc" "wrote app.js" "wrote rewrite.txt" "resolved mechanical=1 contested=1"
+expect "each side's new function keeps its own closing brace in the written file" \
+  cmp -s app.js "$tmp/two-functions.expected"
 
 # A conflicted path is a name a side chose, and git reads a path argument as a glob unless told
 # otherwise: `[ab].txt` also names an untracked `a.txt`, which the run's continue would then commit.

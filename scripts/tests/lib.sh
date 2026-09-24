@@ -276,11 +276,13 @@ stop_state() { # the stop as git left it, on stdout: the index and status, and t
   git status --porcelain=v2
   find . -path ./.git -prune -o -type f -print0 | sort -z | xargs -0 sha256sum
 }
+# The conflict loop's own command (conflict-loop.md): without --diff3 git trims the lines both sides'
+# additions share, which drops one of two identical closing braces.
 union_of() { # $1 a conflicted path: the union of its three index stages, Target side first, on stdout
   local dir s
   dir="$(mktemp -d "$tmp/union.XXXXXX")" || return
   for s in 1 2 3; do git cat-file blob ":$s:$1" >"$dir/$s" || return; done
-  git merge-file --union -p "$dir/2" "$dir/1" "$dir/3"
+  git merge-file --union --diff3 -p "$dir/2" "$dir/1" "$dir/3"
 }
 ledger_entry_fixture() { # $1 dir, $2 id, $3 file, $4 location, $5 shape, $6 commit, $7 before, $8 target, $9 incoming: an entry directory for `ledger.sh put`
   mkdir -p "$1" || return 1

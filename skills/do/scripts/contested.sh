@@ -271,9 +271,10 @@ stage_file() { # $1 path, $2 the file as the report prints it, $3 file holding i
 # off again, and staged. A side's last line reaches the merged file with a newline git added before
 # the marker, so the file ends the way the side its last line came from ends.
 #
-# A hunk that takes both is git's union of its own three sections, never its Target section followed
-# by its Incoming one: the --diff3 presentation keeps a line both sides added inside the hunk, where
-# the union rule of an all-mechanical stop keeps it once.
+# A hunk that takes both is git's union of its own three sections, run with the all-mechanical stop's
+# own command (conflict-loop.md), so the two routes write the same bytes. The --diff3 stays: without
+# it git trims the lines both sides' additions share, so two functions appended at the same place
+# keep one closing brace between them and the file no longer parses.
 resolve() { # $1 path, $2 the file as the report prints it
   local path="$1" field="$2" n=0 section=outside keep="" line from=merged
   regenerate "$path"
@@ -286,7 +287,7 @@ resolve() { # $1 path, $2 the file as the report prints it
       '=======')   section=incoming ;;
       '>>>>>>> '*) section=outside
                    if [ "$keep" = both ]; then
-                     git merge-file --union -p "$tmp/h2" "$tmp/h1" "$tmp/h3" >> "$tmp/out"
+                     git merge-file --union --diff3 -p "$tmp/h2" "$tmp/h1" "$tmp/h3" >> "$tmp/out"
                      if [ -s "$tmp/h3" ]; then from=s3; elif [ -s "$tmp/h2" ]; then from=s2; fi
                    fi ;;
       *) case "$section:$keep" in

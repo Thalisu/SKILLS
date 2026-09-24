@@ -902,7 +902,7 @@ context:
     git -C "$wt" show :1:union.txt > "$stages/base"
     git -C "$wt" show :2:union.txt > "$stages/target"
     git -C "$wt" show :3:union.txt > "$stages/incoming"
-    git merge-file --union -p "$stages/target" "$stages/base" "$stages/incoming" > "$wt/union.txt"
+    git merge-file --union --diff3 -p "$stages/target" "$stages/base" "$stages/incoming" > "$wt/union.txt"
     rm -rf "$stages"
     # The hand resolution keeps both sides' lines as they were written, so it loses nothing, and puts
     # the replayed commit's line above main's, so it is not the union and classes trusted.

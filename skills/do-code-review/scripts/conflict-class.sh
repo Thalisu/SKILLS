@@ -174,7 +174,7 @@ union_locations() { # $1 path; $tmp/merged already holds this path's --diff3 reg
   git cat-file blob ":1:$path" > "$tmp/raw-base" 2>/dev/null &&
     git cat-file blob ":2:$path" > "$tmp/raw-target" 2>/dev/null &&
     git cat-file blob ":3:$path" > "$tmp/raw-incoming" 2>/dev/null || return 0
-  git merge-file --union -p "$tmp/raw-target" "$tmp/raw-base" "$tmp/raw-incoming" > "$tmp/union" 2>/dev/null
+  git merge-file --union --diff3 -p "$tmp/raw-target" "$tmp/raw-base" "$tmp/raw-incoming" > "$tmp/union" 2>/dev/null
   cmp -s -- "$tmp/union" "$path" || return 0
   while IFS= read -r line; do
     case "$line" in
