@@ -89,10 +89,18 @@ files. What each answer means:
 
 - **Exit 1**: nothing is unsettled, and the run goes on as the paragraph above says for a list with
   nothing left in it.
-- **A `touched=<sha>` line whose Finding's `Fix:` names a check**: run that check in the tree at
-  HEAD, the way The re-check runs it. It passes, and the Finding is settled here: hold
-  `- <n>: fixed <sha>, verified (<the check>)` for The append, and fork no Fixer for it. It fails,
-  and the Finding goes to The Fixer.
+- **A `touched=<sha>` line whose Finding's `Fix:` names a check**: the check has to have gone red
+  against the code the Review judged before it is trusted green now, per
+  [prove-it-works](../../../.agents/principles/prove-it-works.md). Add a throwaway worktree at the
+  Review's `Commit:`, detached (`git worktree add --detach <a temp path> <Commit:>`), copy the
+  `Fix:` target's file as it stands at HEAD over the same path there, and run the check in that
+  worktree: it fails. Remove that worktree (`git worktree remove --force <that path>`), then run the
+  same check in the tree at HEAD, the way The re-check runs it: it passes. Both hold, and the
+  Finding is settled here: hold `- <n>: fixed <sha>, verified (<the check>)` for The append, and
+  fork no Fixer for it. Either miss, the check already passing against the Review's own code or
+  still failing at HEAD, and the Finding goes to The Fixer: a check that was never red against the
+  code the Review judged proves nothing about the fix, whichever file the commit that touched it
+  landed in.
 - **A `touched=none` line, or a `Fix:` that names no check**: the Finding goes to The Fixer, as it
   did before this step existed. A check that already passed on code no commit has touched since the
   review proves nothing the review did not already see, and a Finding with no check has nothing to
