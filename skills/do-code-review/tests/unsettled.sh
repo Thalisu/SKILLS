@@ -28,8 +28,9 @@ printf '#!/usr/bin/env bash\nset -u\necho "${1:-}"\n' >src/a.sh
 commit "fix: a.sh reads a missing argument as empty"
 fixed="$(git rev-parse HEAD)"
 
-review="$tmp/01-a.review.md"
-cat >"$review" <<MD
+review_at() { # $1 the Review's Commit: sha, $2 the review file: one Act on Finding on src/a.sh, not fixed by the last Fix run
+  local reviewed="$1"
+  cat >"$2" <<MD
 # Review: main
 
 Ticket: none
@@ -86,10 +87,34 @@ Date: 2026-09-24 · at $reviewed
 - gate: \`bash tests/a.test.sh\`: green
 - not landed: a Fixer did not return
 MD
+}
 
+review="$tmp/01-a.review.md"
+review_at "$reviewed" "$review"
 run "$wt" "$review"
 check_lines "a not fixed Finding whose file a commit since the Review touched is listed with that commit" \
   0 "$rc" "finding=1 touched=$fixed"
+
+fresh twice
+wt="$tmp/twice"
+mkdir -p src
+printf '#!/usr/bin/env bash\nset -u\necho "$1"\n' >src/a.sh
+commit base
+reviewed="$(git rev-parse --short HEAD)"
+printf '#!/usr/bin/env bash\nset -u\necho "${1-}"\n' >src/a.sh
+commit "fix: a.sh reads a missing argument as empty"
+earlier="$(git rev-parse HEAD)"
+printf '#!/usr/bin/env bash\nset -u\necho "${1:-}"\n' >src/a.sh
+commit "refactor: a.sh reads an empty argument as empty too"
+later="$(git rev-parse HEAD)"
+
+review="$tmp/02-a.review.md"
+review_at "$reviewed" "$review"
+run "$wt" "$review"
+check_lines "a Finding whose files two commits since the Review touched is listed with the later one" \
+  0 "$rc" "finding=1 touched=$later"
+check_absent "a Finding whose files two commits since the Review touched is never listed with the earlier one" \
+  0 "$rc" "touched=$earlier"
 
 echo
 if [ "$fails" = 0 ]; then echo "unsettled: all checks passed"; else
