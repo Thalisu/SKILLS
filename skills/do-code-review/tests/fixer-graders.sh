@@ -150,5 +150,42 @@ grade_fails "fix-unlinked-fixers: a run forking do-code-review-fixer by name fai
 grade_fails "fix-unlinked-fixers: a run forking do-code-review-gate-fixer by name fails no-named-fixer-forked" \
   "$(run_of general-purpose s1 sonnet "$fixer_fallback" -- do-code-review-gate-fixer s1 "" "$brief")"
 
+# fix-parallel-waves: three Act on Findings, 1 and 2 in wave 1, Finding 2's pick conflicts and is
+# re-routed to wave 2, Finding 3 in wave 3. Every brief carries the same Review path; only Finding
+# 2's carries src/csv.js:2.
+waves_at="4f2c9e1-Xq9Z"
+waves_dir="/tmp/do-code-review-fix.Xq9Z"
+wave_brief() { # $1 wave, $2 Finding number, $3 its location, $4 its Claim, $5 its Fix line: a Fixer's brief
+  printf '%s\n' "Review: /work/fixture/.scratch/reviews/export-notes.md" \
+    "Branch: fixer/export-notes/$waves_at/w$1-$2" \
+    "Tree: /work/fixture/.claude/worktrees/fixer-export-notes-$waves_at-w$1-$2" \
+    "Finding: $2. $3" "Claim: $4" "Fix: $5" \
+    "Return file: $waves_dir/fixer-w$1-$2.md"
+}
+f1_claim="a page of ten over eleven items returns nine."
+f1_fix="a page of size ten over eleven items returns ten items, in tests/notes.test.js"
+f2_claim="a title holding a comma is exported as two fields."
+f2_fix="a title holding a comma is exported as one quoted field, in tests/csv.test.js"
+f3_claim="an archived note is still listed."
+f3_fix="an archived note is not listed, in tests/notes.test.js"
+w1_f1="$(wave_brief 1 1 src/notes.js:20 "$f1_claim" "$f1_fix")"
+w1_f2="$(wave_brief 1 2 src/csv.js:2 "$f2_claim" "$f2_fix")"
+w2_f2="$(wave_brief 2 2 src/csv.js:2 "$f2_claim" "$f2_fix")"
+w3_f2="$(wave_brief 3 2 src/csv.js:2 "$f2_claim" "$f2_fix")"
+w2_f1="$(wave_brief 2 1 src/notes.js:20 "$f1_claim" "$f1_fix")"
+w3_f3="$(wave_brief 3 3 src/notes.js:15 "$f3_claim" "$f3_fix")"
+w4_f3="$(wave_brief 4 3 src/notes.js:15 "$f3_claim" "$f3_fix")"
+
+# shellcheck disable=SC2034 # read by lib.sh's grade_passes and grade_fails
+grader="$here/../evals/fix-parallel-waves/graders/re-routed-fixer-forked-twice.md"
+grade_passes "fix-parallel-waves: Finding 2 forked twice, once in wave 1 and once re-routed, among Findings 1 and 3, passes re-routed-fixer-forked-twice" \
+  "$(run_of do-code-review-fixer s1 "" "$w1_f1" -- do-code-review-fixer s1 "" "$w1_f2" -- do-code-review-fixer s1 "" "$w2_f2" -- do-code-review-fixer s1 "" "$w3_f3")"
+grade_fails "fix-parallel-waves: Finding 2 forked once, its re-route lost, fails re-routed-fixer-forked-twice" \
+  "$(run_of do-code-review-fixer s1 "" "$w1_f1" -- do-code-review-fixer s1 "" "$w1_f2" -- do-code-review-fixer s1 "" "$w3_f3")"
+grade_fails "fix-parallel-waves: Finding 2 forked three times, a second re-route, fails re-routed-fixer-forked-twice" \
+  "$(run_of do-code-review-fixer s1 "" "$w1_f1" -- do-code-review-fixer s1 "" "$w1_f2" -- do-code-review-fixer s1 "" "$w2_f2" -- do-code-review-fixer s1 "" "$w3_f2" -- do-code-review-fixer s1 "" "$w4_f3")"
+grade_fails "fix-parallel-waves: Finding 2 forked once while Finding 1 is forked twice, the same four Fixer forks, fails re-routed-fixer-forked-twice" \
+  "$(run_of do-code-review-fixer s1 "" "$w1_f1" -- do-code-review-fixer s1 "" "$w1_f2" -- do-code-review-fixer s1 "" "$w2_f1" -- do-code-review-fixer s1 "" "$w3_f3")"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1
