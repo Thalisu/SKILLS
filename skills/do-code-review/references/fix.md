@@ -145,13 +145,30 @@ directory outside every repository before the first Wave,
 in. Its own random suffix is this run's, made fresh by `mktemp` and never read off anything the
 Review or the reviewed tree carries, and step 1 below folds it into `<at>`.
 
-Which Findings share a Wave is a script's output and never the run's reading of the Findings: run
-`bash ~/.claude/skills/do-code-review/scripts/fix-waves.sh <the Review's absolute path>` once, and
-read its `wave=<k> findings=<n>[,<n>]...` lines, one per Wave, in the order the Waves run. A
-Finding the `## The Act on list` rule reads as settled is left out of its Wave, and a Wave left with
-no Finding forks nothing and is skipped.
+Which Findings may share a Wave is a script's output and never the run's reading of the Findings:
+run `bash ~/.claude/skills/do-code-review/scripts/fix-waves.sh <the Review's absolute path>` once,
+and read its `wave=<k> findings=<n>[,<n>]...` lines, one per Wave, in the order the Waves run.
+Those lines are the floor, per
+[ADR 0055](../../../docs/adr/0055-the-review-orchestrator-runs-on-opus-at-high-effort-and-no-router-agent-is-created.md).
+A Finding the `## The Act on list` rule reads as settled is left out of its Wave, and a Wave left
+with no Finding forks nothing and is skipped.
 
-Then, for each Wave `<k>` in order, while no stop below has fired:
+The script compares files and sees nothing else, so read each floor Wave of two or more Findings
+once more for a coupling no file comparison can see: two Findings whose functions call each other,
+or two whose `Fix:` lines send their test authors to the same shared factory, mock or fixture. Where
+you find one, cut that Wave into pieces, the coupled Findings in different pieces, and give the cut
+one reason naming the coupling, which the record keeps. A Wave with no such coupling runs as the
+script printed it: a cut costs a Wave's worth of waiting, so one with no coupling to name is not
+made.
+
+The pieces of a cut Wave run one after another, in the place the floor Wave held and before the
+next floor Wave, each one integrated before the next piece's worktrees are cut, the same rule that
+holds between any two Waves below. The Waves as run are numbered from 1 in the order they run, each
+piece taking a number of its own, so the `<k>` of the steps below, in `fix-worktrees.sh add`, in a
+return file's name and on a `- wave <k>:` line, names one Wave that ran and never a floor Wave a cut
+split.
+
+Then, for each Wave `<k>` as run, in order, while no stop below has fired:
 
 1. **Cut the Wave's worktrees.**
    `bash ~/.claude/skills/do-code-review/scripts/fix-worktrees.sh add <the reviewed tree> <slug> <at> <k> <n>...`,

@@ -297,10 +297,13 @@ and the next run reviews the branch again rather than landing it unread.
 Only now, and only when the mode is not `--no-fix`, read [fix.md](references/fix.md). A Review that
 carries an `Act on` Finding runs it from `## Where the Fixer works` onward: the Fixers, one
 `do-code-review-fixer` per `Act on` Finding, briefed from that file and forked by Wave, the
-Findings of one Wave at once, each Fixer in a worktree of its own, the
-re-check you run yourself, the Diff tests, the `do-code-review-gate-fixer` when either check comes
-back red, the Gate, the `## Fix run` section appended to the same Review, and the landing. Its three
-door checks belong to a `fix` call and you have their answers already. When the harness does not
+Findings of one Wave at once, each Fixer in a worktree of its own, per
+[ADR 0053](../../docs/adr/0053-the-fixers-run-in-waves-each-in-its-own-worktree-on-a-floor-a-script-computes.md).
+The Waves are the floor `fix-waves.sh` prints, which you may cut finer, one reason per cut, per
+[ADR 0055](../../docs/adr/0055-the-review-orchestrator-runs-on-opus-at-high-effort-and-no-router-agent-is-created.md).
+After the Fixers come the re-check you run yourself, the Diff tests, the
+`do-code-review-gate-fixer` when either check comes back red, the Gate, the `## Fix run` section
+appended to the same Review, and the landing. The file's three door checks belong to a `fix` call and you have their answers already. When the harness does not
 list one of the two fixers by name, fork `general-purpose` in its place on `model: sonnet`, the
 model its definition pins, with that fixer's definition read through the shell from
 `$(readlink -f ~/.claude/skills/do-code-review)/agents/<its file name>.md` as the head of the prompt
