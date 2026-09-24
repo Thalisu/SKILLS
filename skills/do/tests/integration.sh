@@ -172,13 +172,14 @@ resumed_stop_stages_a_glob_named_trusted_path_literally
 # shared closing brace, and each new function ends with a closing brace of its own, identical text
 # to the other's. The union block must keep both, one per function, never let the shared trailing
 # line swallow one side's.
-union_keeps_both_sides_closing_braces_when_each_appends_a_function() {
-  local write rc
-  write="$(blocks_of "$conflict" "## The conflict loop" "**A rebase that stopped.**" 1)"
-  expect "the all-mechanical stop's union block extracts for the two-functions fixture" test -n "$write"
-  printf '%s\n' "${write//"<skill-dir>"/"$repo/skills/do"}" >"$tmp/write-two-functions.sh"
+union_keeps_both_sides_closing_braces_when_each_appends_a_function() { # $1 label, $2 file, $3 heading, $4 the line the union block follows ("" for the section's first)
+  local write rc name
+  name="union-two-functions-$(basename "$2" .md)"
+  write="$(blocks_of "$2" "$3" "$4" 1)"
+  expect "$1's all-mechanical union block extracts for the two-functions fixture" test -n "$write"
+  printf '%s\n' "${write//"<skill-dir>"/"$repo/skills/do"}" >"$tmp/$name.sh"
 
-  fresh union-two-functions
+  fresh "$name"
   cat >app.js <<'JS'
 function create() {
   return 1;
@@ -212,11 +213,11 @@ JS
   rc=0
   # shellcheck disable=SC2034  # lib.sh's check reads $out
   out="$(bash "$repo/skills/do/scripts/conflict-class.sh" 2>&1)" || rc=$?
-  check "the two-functions fixture is classed mechanical, so it reaches the union block" \
+  check "$1's two-functions fixture is classed mechanical, so it reaches the union block" \
     0 "$rc" "verdict=mechanical mechanical=1 contested=0 trusted=0"
 
-  bash "$tmp/write-two-functions.sh" >/dev/null 2>&1
-  cat >"$tmp/app.expected" <<'JS'
+  bash "$tmp/$name.sh" >/dev/null 2>&1
+  cat >"$tmp/$name.expected" <<'JS'
 function create() {
   return 1;
 }
@@ -229,11 +230,36 @@ export function count() {
   return notes.length;
 }
 JS
-  expect "the union keeps both sides' new functions each closed with its own closing brace" \
-    cmp -s app.js "$tmp/app.expected"
+  expect "$1's union keeps both sides' new functions each closed with its own closing brace" \
+    cmp -s app.js "$tmp/$name.expected"
   cd "$repo" || exit 1
 }
-union_keeps_both_sides_closing_braces_when_each_appends_a_function
+union_keeps_both_sides_closing_braces_when_each_appends_a_function "do's conflict loop" \
+  "$conflict" "## The conflict loop" "**A rebase that stopped.**"
+union_keeps_both_sides_closing_braces_when_each_appends_a_function "the review's landing" \
+  "$repo/skills/do-code-review/references/fix.md" "### A target that moved while the review ran" ""
+
+# The review's landing restates do's union rule so it works where do is not installed, and the two
+# copies drifted once already (fix.md lost --diff3). Any drift in the merge-file command, a flag,
+# its order or an argument, lands a union do would never write. Only that command is compared:
+# fix.md's block deliberately lacks do's trusted staging line.
+merge_file_command() { # $1 file, $2 heading, $3 the line the union block follows ("" for the section's first)
+  blocks_of "$1" "$2" "$3" 1 | grep -F 'git merge-file' | sed 's/^[[:space:]]*//'
+}
+the_reviews_union_runs_dos_merge_file_command() { # $1 the review's fix.md
+  local do_cmd review_cmd
+  do_cmd="$(merge_file_command "$conflict" "## The conflict loop" "**A rebase that stopped.**")"
+  review_cmd="$(merge_file_command "$1" "### A target that moved while the review ran" "")"
+  if [ -n "$do_cmd" ] && [ -n "$review_cmd" ] && [ "$do_cmd" = "$review_cmd" ]; then
+    echo "ok    the review's union runs do's git merge-file command byte for byte"
+  else
+    echo "FAIL  the review's git merge-file command drifted from do's, or either is missing"
+    echo "      do:     $do_cmd"
+    echo "      review: $review_cmd"
+    fails=$((fails + 1))
+  fi
+}
+the_reviews_union_runs_dos_merge_file_command "$repo/skills/do-code-review/references/fix.md"
 
 # A run that opened the rebase itself can meet a stop with nothing conflicted for git's own reason:
 # an untracked gate artifact (out.txt, added by one of the run's own commits and removed by a later

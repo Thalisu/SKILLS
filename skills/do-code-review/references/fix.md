@@ -322,13 +322,15 @@ to answer, so a hunk a person must judge ends the landing instead of waiting on 
    git diff --name-only --diff-filter=U -z | while IFS= read -r -d '' file; do
      git show ":1:$file" > "$stages/base" && git show ":2:$file" > "$stages/target" &&
        git show ":3:$file" > "$stages/incoming" &&
-       git merge-file --union -p "$stages/target" "$stages/base" "$stages/incoming" > "$file"
+       git merge-file --union --diff3 -p "$stages/target" "$stages/base" "$stages/incoming" > "$file"
    done
    rm -rf "$stages"
    ```
 
    Stage 2 is the landing target and stage 3 the commit being replayed, so the union keeps the
-   target's lines above the replayed commit's. Once every union is read back with the Read tool,
+   target's lines above the replayed commit's. The `--diff3` stays, as in `do`'s own union: without
+   it git trims the lines both sides' additions share, so two functions appended at the same place
+   keep one closing brace between them and the landed file no longer parses. Once every union is read back with the Read tool,
    never through a command line, as step 4 needs, the second block marks the files resolved:
 
    ```
