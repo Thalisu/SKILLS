@@ -294,8 +294,11 @@ Then, for each Wave `<k>` as run, in order, while no stop below has fired:
      edits in its own worktree, which stays clean.
 5. **Integrate the Wave.** Over the Fixers that returned a commit, and only those,
    `bash ~/.claude/skills/do-code-review/scripts/fix-integrate.sh <the reviewed tree> <n>=<branch>...`,
-   each branch the one its `worktree` line printed. It picks them onto the reviewed branch in
-   Finding order, whatever order they are given in, and prints one line per Finding:
+   each branch the one its `worktree` line printed. A Fixer that did not return is never among
+   them, even when its commit or its return file lands after the third window closed: nothing it
+   wrote reaches the reviewed branch, since nothing the run checked stands behind it. The script
+   picks the branches onto the reviewed branch in Finding order, whatever order they are given in,
+   and prints one line per Finding:
    - `picked <n> <sha>`: the sha is the one the commit has on the reviewed branch, and the only sha
      the record ever keeps for that Finding, never the Fixer branch's own, which is gone once
      step 6 removes it.

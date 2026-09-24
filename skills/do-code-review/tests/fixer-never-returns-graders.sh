@@ -74,5 +74,21 @@ grade_passes "fixer-never-returns: a run that still forks Finding 3's Fixer in W
 grade_fails "fixer-never-returns: a run that stopped after Wave 1, forking only the Fixers of Findings 1 and 2, fails later-wave-forked" \
   "$(wave_forked)"
 
+# shellcheck disable=SC2034 # read by lib.sh's grade_passes and grade_fails
+grader="$here/../evals/fixer-never-returns/graders/stalled-branch-never-picked.md"
+
+w="$(wave_forked)"
+bash_call_append "$w" "bash $scripts/fix-integrate.sh $tree 2=fixer/export-notes/$at/w1-2"
+grade_passes "fixer-never-returns: a run integrating Finding 2's branch and never handing the silent Fixer's branch for Finding 1 to fix-integrate.sh passes stalled-branch-never-picked" "$w"
+
+w="$(wave_forked)"
+bash_call_append "$w" "bash $scripts/fix-integrate.sh $tree 2=fixer/export-notes/$at/w1-2"
+bash_call_append "$w" "bash $scripts/fix-integrate.sh $tree 1=fixer/export-notes/$at/w1-1"
+grade_fails "fixer-never-returns: a run that hands the silent Fixer's branch for Finding 1 to fix-integrate.sh alone, once its late commit appeared, fails stalled-branch-never-picked" "$w"
+
+w="$(wave_forked)"
+bash_call_append "$w" "bash $scripts/fix-integrate.sh $tree 2=fixer/export-notes/$at/w1-2 1=fixer/export-notes/$at/w1-1"
+grade_fails "fixer-never-returns: a run that hands the silent Fixer's branch for Finding 1 to fix-integrate.sh beside Finding 2's fails stalled-branch-never-picked" "$w"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1
