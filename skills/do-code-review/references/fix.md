@@ -405,28 +405,34 @@ or whose output carries no `## duplicate-symbols` header, printed nothing to rea
 it reads `blocked`, never clean, the same as a `verdict=blocked` Gate reads under `## The Gate`, and
 nothing lands. A scan that never ran and prints no report, and a report with no dirty row, would
 otherwise both read clean the same way, which is exactly the gap `blocked` closes. Each row under the
-header a scan that did print one carries is a name, the count of files defining it and those files.
-A row is dirty when one of its files is among those
+header a scan that did print one carries is a name, the count of files defining it and those files,
+and so is each row under its `## local-factories` header whose count is 2 or more: a factory
+written as a `const` or nested in a `describe` lands there and never under `## duplicate-symbols`,
+and it is the shape two parallel test authors most often write. A name both sections print counts
+once, under `## duplicate-symbols`. A row is dirty when one of its files is among those
 `git diff --name-only --diff-filter=d <the fixed point>..HEAD` names, the list the Diff tests read
 below. Every other row is debt the branch did not write, left to the Testing Policy's second-use
-rule, and no other section of the report counts.
+rule, and no section of the report but those two counts.
 
 - No dirty row, and the scan exited 0 with the header present: clean, and the run goes to the Diff
   tests.
-- A dirty row: the Gate fixer takes the red block, which is the `## duplicate-symbols` header and
-  the dirty rows under it as the scan printed them, capped as any red block is. Never the whole
+- A dirty row: the Gate fixer takes the red block, which is each of the two headers that holds a
+  dirty row and the dirty rows under it as the scan printed them, capped as any red block is. Never the whole
   report, whose other sections are no red, and never a debt row, since a Gate fixer handed one
   edits files the branch never touched.
 - The scan exits non-zero, or its output carries no `## duplicate-symbols` header: `blocked`, never
-  clean. Nothing lands, no Gate fixer is forked for it, since there is no report to hand one a red
-  block from, and the branch and its worktree stay in place.
+  clean. The record reads `- duplication scan: <the command>: blocked: <the cause>`, the cause the
+  exit code and the scan's last stderr line, or `no report` when it printed none. Nothing lands, the
+  landing line reads `not landed: duplication scan blocked, <the cause>`, no Gate fixer is forked
+  for it, since there is no report to hand one a red block from, and the branch and its worktree
+  stay in place.
 - No **Duplication scan** in the Project facts, or no Testing Policy in `CLAUDE.md` at all: the step
   reads `skip:` with that reason, no Gate fixer is forked for it, and the run goes on to the Diff
   tests and the Gate and lands when it is otherwise Green. A scan the project never named is no
   red, the way a missing single-file command is none for the Diff tests.
 - No Fixer commit to check, a `nothing remained` section or a run whose every Fixer ended without
-  one: the step reads `skip: no Fixer commit` and no Gate fixer is forked for it. A duplicate the
-  scan finds there is the branch's own, and a Gate fixer handed it would edit what no fix wrote.
+  one: the step reads `skip: no Fixer commit` and no Gate fixer is forked for it. No Wave ran, so
+  no two test authors wrote at once, which is the whole of what this step is there to catch.
 
 ## The Diff tests
 
@@ -514,8 +520,9 @@ promoted included. Before that rerun is read, the orchestrator checks the Gate f
 against the file the Duplication scan's command in the Project facts names as the script it runs: a
 commit that touches it is not a clean attempt, since a Gate fixer that edits the check that judges
 it can turn a dirty report clean, or the scan itself `blocked`, without promoting anything. That
-attempt reads the same as still dirty whatever the rerun scan now prints, and spends one of the two
-attempts the same as any other.
+attempt ends the attempts whatever the rerun scan now prints, whichever check it was forked for:
+the scan reads `blocked` with the cause `gate fixer <sha> edited <the script>`, nothing lands, and
+the landing line reads `not landed: duplication scan blocked, gate fixer <sha> edited <the script>`.
 
 Clean and green, and the run goes on. Red or dirty after the second attempt, and
 the Review is not Green: nothing lands, the `## Fix run` section reads

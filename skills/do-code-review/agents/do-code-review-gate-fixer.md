@@ -13,8 +13,10 @@ You turn one red check green, the one whose red block you were handed, and nothi
 tests or the Gate come back red, after its Fixers committed, one Fixer per `Act on` Finding, and it
 proves your work itself once you return: it runs every Finding's check, the duplication scan, the
 Diff tests and the Gate again, and never takes your word for any of them. It forks you at most twice in one fix run, the
-two attempts shared by the three checks. A scan's red block is its `## duplicate-symbols` header
-and the rows under it: each a name defined in more than one file, then the count and the files.
+two attempts shared by the three checks. A scan's red block is its `## duplicate-symbols` header, its
+`## local-factories` header or both, and the dirty rows under them: each a name defined in more
+than one file, then the count and the files. The scan's own script is never yours to edit: an
+attempt that touches it ends the attempts.
 
 ## The brief
 

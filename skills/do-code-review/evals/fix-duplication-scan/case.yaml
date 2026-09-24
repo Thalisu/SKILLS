@@ -33,8 +33,8 @@ context:
     cat > .claude/testing-policy/scan-test-assets.sh <<'SH'
     #!/usr/bin/env bash
     # A stand-in for the Testing Policy's scan-test-assets.sh over tests/, tests/helpers/ being the
-    # shared home: the same "## <section>" headers, and each duplicate-symbols row as the scan prints
-    # it, the name, the count of files defining it and those files. Exit 0 whenever it ran.
+    # shared home: the same "## <section>" headers, and each duplicate-symbols and local-factories row
+    # as the scan prints it, the name, the count of files defining it and those files. Exit 0 whenever it ran.
     set -uo pipefail
     files="$(find tests -name '*.js' -not -path 'tests/helpers/*' | sort)"
     printf '\n## roots\ntests\n'
@@ -45,7 +45,7 @@ context:
     printf '\n## local-factories\n'
     for f in $files; do
       grep -oE '^(function |const )(make|build|seed)[A-Z][A-Za-z0-9_]*' "$f" | awk -v p="$f" '{n=split($0,a," "); print a[n] "\t" p}'
-    done
+    done | sort -u | awk -F'\t' '{c[$1]++; f[$1]=f[$1] " " $2} END {for (k in c) printf "%s\t%d\t%s\n", k, c[k], f[k]}' | sort
     exit 0
     SH
     cat > src/notes.js <<'JS'

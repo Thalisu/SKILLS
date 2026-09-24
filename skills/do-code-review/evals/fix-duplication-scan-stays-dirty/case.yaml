@@ -10,11 +10,12 @@ context:
     # A branch whose Review the case wrote, with one Act on Finding against a planted paging bug (a
     # page of ten over eleven items returns nine). The branch left a `makeNotes` factory in two test
     # files it wrote, as two test authors who could not see each other's work would, but the two
-    # copies drifted: tests/notes.test.js's returns the created note objects a caller reads `.id`
-    # off, and tests/export.test.js's returns plain titles a caller creates notes from separately.
-    # Unifying them into one shared copy changes one of the two assertions, which the Gate fixer's
-    # rule 5 ("no assertion changed") forbids, so its two attempts cannot clear the row and the
-    # duplication scan stays dirty after both. The project's Duplication scan is a stand-in for
+    # copies drifted: tests/notes.test.js's returns the created note objects, and
+    # tests/export.test.js's returns plain titles. Each file calls its own `makeNotes` inside an
+    # assertion, one reading `.status` off objects and one formatting titles, so one shared copy, or
+    # a rename of either, changes an assertion line, which the Gate fixer's rule 5 ("no assertion
+    # changed") forbids: its two attempts cannot clear the row and the duplication scan stays dirty
+    # after both. The project's Duplication scan is a stand-in for
     # scan-test-assets.sh that prints the same sections and exits 0 on a dirty report. The Review
     # sits under the ignored `.scratch/` and is never committed, so the tree reads clean and the fix
     # door holds.
@@ -34,8 +35,8 @@ context:
     cat > .claude/testing-policy/scan-test-assets.sh <<'SH'
     #!/usr/bin/env bash
     # A stand-in for the Testing Policy's scan-test-assets.sh over tests/, tests/helpers/ being the
-    # shared home: the same "## <section>" headers, and each duplicate-symbols row as the scan prints
-    # it, the name, the count of files defining it and those files. Exit 0 whenever it ran.
+    # shared home: the same "## <section>" headers, and each duplicate-symbols and local-factories row
+    # as the scan prints it, the name, the count of files defining it and those files. Exit 0 whenever it ran.
     set -uo pipefail
     files="$(find tests -name '*.js' -not -path 'tests/helpers/*' | sort)"
     printf '\n## roots\ntests\n'
@@ -46,7 +47,7 @@ context:
     printf '\n## local-factories\n'
     for f in $files; do
       grep -oE '^(function |const )(make|build|seed)[A-Z][A-Za-z0-9_]*' "$f" | awk -v p="$f" '{n=split($0,a," "); print a[n] "\t" p}'
-    done
+    done | sort -u | awk -F'\t' '{c[$1]++; f[$1]=f[$1] " " $2} END {for (k in c) printf "%s\t%d\t%s\n", k, c[k], f[k]}' | sort
     exit 0
     SH
     cat > src/notes.js <<'JS'
@@ -134,9 +135,9 @@ context:
       return Array.from({ length: count }, (_, i) => create(`note ${i + 1}`));
     }
 
-    test("a created note is listed", () => {
-      const [note] = makeNotes(1);
-      assert.ok(list().some((n) => n.id === note.id));
+    test("created notes are listed as active", () => {
+      assert.deepEqual(makeNotes(2).map((n) => n.status), ["active", "active"]);
+      assert.equal(list().length, 2);
     });
 
     test("a page holds the items of its slot", () => {
@@ -155,7 +156,7 @@ context:
 
     test("the export writes one row per active note", () => {
       for (const title of makeNotes(3)) create(title);
-      assert.deepEqual(toCsv().split("\n"), ["1,note 1", "2,note 2", "3,note 3"]);
+      assert.deepEqual(toCsv().split("\n"), makeNotes(3).map((title, i) => `${i + 1},${title}`));
     });
     JS
     git -c user.email=fixture@example.com -c user.name=fixture add -A

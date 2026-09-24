@@ -99,6 +99,11 @@ grade_fails "fix-duplication-scan: a Gate fixer fork also handed the seedArchive
   "$(run_of do-code-review-fixer s1 "" "Finding 1" -- do-code-review-gate-fixer s1 "" "$debt_brief")"
 grade_fails "fix-duplication-scan: a Gate fixer fork handed the whole report, its roots and local-factories sections around the dirty rows, fails scan-block-holds-diff-rows-alone" \
   "$(run_of do-code-review-fixer s1 "" "Finding 1" -- do-code-review-gate-fixer s1 "" "$whole_brief")"
+# Two parallel test authors each wrote the same `const` factory: the scan prints it under
+# `## local-factories` only, and that header with its dirty row is the red block.
+factory_rows="$(printf '## local-factories\nnotesFixture\t2\t tests/export.test.js tests/notes.test.js')"
+grade_passes "fix-duplication-scan: a Gate fixer fork handed the local-factories header and its one dirty const factory row passes scan-block-holds-diff-rows-alone" \
+  "$(run_of do-code-review-fixer s1 "" "Finding 1" -- do-code-review-gate-fixer s1 "" "$factory_rows${brief#"$red_block"}")"
 
 # fix-unlinked-fixers: neither named agent is linked, so the orchestrator forks a general-purpose agent
 # on sonnet whose prompt opens with the definition as the shell prints it, then the brief.
