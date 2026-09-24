@@ -273,8 +273,15 @@ Then, for each Wave `<k>` as run, in order, while no stop below has fired:
      the record ever keeps for that Finding, never the Fixer branch's own, which is gone once
      step 6 removes it.
    - `conflicted <n> with <m,...|none> files "<path>"...`: the pick was aborted, and the reviewed
-     branch holds every clean pick of the Wave and nothing of this one. The Finding reads
-     `not fixed: conflicted with <m,...|none>`.
+     branch holds every clean pick of the Wave and nothing of this one. The Finding is re-routed,
+     never resolved in place, per
+     [ADR 0054](../../../docs/adr/0054-a-conflict-between-two-fixers-is-aborted-and-re-routed-never-resolved.md):
+     a conflict between two Fixers of one Review means the floor missed a coupling or a Fixer
+     touched what its Finding did not name, and a resolution would hide that and let the record
+     report two fixes where the merge kept one, so no conflict is classed and no hunk is merged.
+     The Finding writes no line yet: its re-route count goes up by one, and it is forked again in
+     the Wave that runs next, from a fresh worktree cut over the reviewed branch as this Wave's
+     integration left it, which holds the Finding it lost to.
    - `failed <reason>`, exit 3: nothing of the Wave is picked after it. Every Finding of the Wave
      with no `picked` line reads `not fixed: <that reason>`, and no further Wave runs.
 6. **Take the Wave's worktrees back.**
@@ -287,7 +294,9 @@ Then, for each Wave `<k>` as run, in order, while no stop below has fired:
 The next Wave's worktrees are cut only now, from the reviewed tree's HEAD as this Wave's
 integration left it: `fix-integrate.sh` takes a Fixer branch only when it is exactly one commit
 ahead of the reviewed branch as it stands, so a Wave cut before the one ahead of it was integrated
-could never land.
+could never land. That is also what lets a re-routed Finding's second Fixer start from the fix it
+lost to instead of meeting it again: its conflicted branch stays behind as
+`kept <branch> <path> unlanded commit`, and its new worktree is cut beside it.
 
 ## The re-check
 
