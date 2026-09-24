@@ -163,6 +163,35 @@ check "a Finding whose latest line across every Fix run reads not fixed or stale
 check_absent "a Finding not fixed in an earlier Fix run and fixed in a later one is not listed" \
   0 "$rc" "finding=4 "
 
+fresh untouched
+wt="$tmp/untouched"
+mkdir -p src
+printf '#!/usr/bin/env bash\nset -u\necho "$1"\n' >src/a.sh
+printf '#!/usr/bin/env bash\necho b\n' >src/b.sh
+commit base
+reviewed="$(git rev-parse --short HEAD)"
+printf '#!/usr/bin/env bash\necho "b, changed"\n' >src/b.sh
+commit "feat: b.sh prints a longer line"
+
+act_on="### 1. Correctness at src/a.sh:3
+Claim: a call with no argument exits on an unbound variable.
+Evidence: \`bash src/a.sh\` exits 1 with \`\$1: unbound variable\`.
+Rung: 4
+Fix: a call with no argument prints an empty line and exits 0, in tests/a.test.sh
+
+### 2. Correctness at the argument handling
+Claim: a call with no argument exits on an unbound variable.
+Evidence: a call with no argument exits 1.
+Rung: 4
+Fix: a call with no argument prints an empty line and exits 0"
+review="$tmp/04-a.review.md"
+review_at "$reviewed" "$review" "$act_on"
+run "$wt" "$review"
+check_lines "a Finding whose files no commit since the Review touched, while another file was changed since, is listed with touched=none" \
+  0 "$rc" "finding=1 touched=none"
+check_lines "a Finding whose location and Fix target name no file is listed with touched=none" \
+  0 "$rc" "finding=2 touched=none"
+
 echo
 if [ "$fails" = 0 ]; then echo "unsettled: all checks passed"; else
   echo "unsettled: $fails failed"
