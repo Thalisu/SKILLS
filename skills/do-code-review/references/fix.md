@@ -403,7 +403,10 @@ tests read below. Every other row is debt the branch did not write, left to the 
 second-use rule, and no other section of the report counts.
 
 - No dirty row: clean, and the run goes to the Diff tests.
-- A dirty row: the Gate fixer takes the red block.
+- A dirty row: the Gate fixer takes the red block, which is the `## duplicate-symbols` header and
+  the dirty rows under it as the scan printed them, capped as any red block is. Never the whole
+  report, whose other sections are no red, and never a debt row, since a Gate fixer handed one
+  edits files the branch never touched.
 
 ## The Diff tests
 
@@ -451,15 +454,17 @@ nothing in `Act on` runs it too, at the start of the landing.
 
 ## The Gate fixer
 
-The `do-code-review-gate-fixer` agent this skill ships, forked when the Diff tests or the Gate come
-back red after a Fixer committed, with two attempts in all, shared by both checks. It is forked with
+The `do-code-review-gate-fixer` agent this skill ships, forked when the duplication scan comes back
+dirty, or the Diff tests or the Gate come back red, after a Fixer committed, with two attempts in
+all, shared by the three checks. It is forked with
 the Agent tool as `subagent_type: do-code-review-gate-fixer` and no `model` key, so it runs on the
 model and the effort its definition picks. Its contract is its definition,
 [do-code-review-gate-fixer.md](../agents/do-code-review-gate-fixer.md): the four rules, one commit
 per attempt and the return file, none of them restated here. Its brief carries what changes from one
 attempt to the next, and nothing else:
 
-- the red block as the check printed it, the capped lines, and never the full log or the Review;
+- the red block as the check printed it, the capped lines, and never the full log or the Review:
+  for the duplication scan, its `## duplicate-symbols` header and the dirty rows alone;
 - the branch it commits on;
 - `Tree: <the absolute path of the tree it works in>`;
 - `Return file: <the Fixers' directory>/gate-fixer-<the attempt>.md`.

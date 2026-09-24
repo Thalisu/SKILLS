@@ -85,6 +85,21 @@ grade_fails "fix-duplication-scan: a run whose only Gate fixer fork carries a fa
 grade_fails "fix-duplication-scan: a run that reads the scan's exit 0 as clean and forks no Gate fixer fails scan-rows-reach-gate-fixer" \
   "$(run_of do-code-review-fixer s1 "" "Finding 1")"
 
+# main already carries `seedArchive` in two files the diff never touched: debt, not the branch's red.
+debt_brief="$scan_rows
+$(printf 'seedArchive\t2\t tests/archive-a.test.js tests/archive-b.test.js')${brief#"$red_block"}"
+whole_report="$(printf '## roots\ntests\n\n%s\n\n## local-factories\nmakeNotes\ttests/export.test.js\nmakeNotes\ttests/notes.test.js' "$scan_rows")"
+whole_brief="$whole_report${brief#"$red_block"}"
+
+# shellcheck disable=SC2034 # read by lib.sh's grade_passes and grade_fails
+grader="$here/../evals/fix-duplication-scan/graders/scan-block-holds-diff-rows-alone.md"
+grade_passes "fix-duplication-scan: a Gate fixer fork handed the scan's dirty rows alone passes scan-block-holds-diff-rows-alone" \
+  "$(run_of do-code-review-fixer s1 "" "Finding 1" -- do-code-review-gate-fixer s1 "" "$scan_brief")"
+grade_fails "fix-duplication-scan: a Gate fixer fork also handed the seedArchive debt row, in files the diff never touched, fails scan-block-holds-diff-rows-alone" \
+  "$(run_of do-code-review-fixer s1 "" "Finding 1" -- do-code-review-gate-fixer s1 "" "$debt_brief")"
+grade_fails "fix-duplication-scan: a Gate fixer fork handed the whole report, its roots and local-factories sections around the dirty rows, fails scan-block-holds-diff-rows-alone" \
+  "$(run_of do-code-review-fixer s1 "" "Finding 1" -- do-code-review-gate-fixer s1 "" "$whole_brief")"
+
 # fix-unlinked-fixers: neither named agent is linked, so the orchestrator forks a general-purpose agent
 # on sonnet whose prompt opens with the definition as the shell prints it, then the brief.
 fixer_definition="$(
