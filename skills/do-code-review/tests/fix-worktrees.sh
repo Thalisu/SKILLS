@@ -75,22 +75,29 @@ main="$tmp/landed"
 printf 'base\n' >README.md
 commit base
 reviewed="$(branch_worktree "$main" x)"
-run add "$reviewed" x r1 1 1 2
-picked="$main/.claude/worktrees/fixer-x-r1-w1-1"
-idle="$main/.claude/worktrees/fixer-x-r1-w1-2"
-printf 'earlier\n' >"$reviewed/earlier.txt"
-git -C "$reviewed" add -A && git -C "$reviewed" commit -qm "an earlier Finding"
+# fix-integrate.sh now refuses a Fixer branch whose parent is not the reviewed branch's HEAD at
+# the start of the integration, so a picked commit only lands under a new sha, distinct from its
+# Fixer branch's own, when it is the second (or later) pick of a genuine same-Wave integrate call:
+# Finding 1 fast-forwards onto the untouched reviewed HEAD, moving it, and Finding 2, cut from that
+# same original HEAD, then replays for real. Finding 3 stays idle, with no commit of its own.
+run add "$reviewed" x r1 1 1 2 3
+earlier="$main/.claude/worktrees/fixer-x-r1-w1-1"
+picked="$main/.claude/worktrees/fixer-x-r1-w1-2"
+idle="$main/.claude/worktrees/fixer-x-r1-w1-3"
+printf 'earlier\n' >"$earlier/earlier.txt"
+git -C "$earlier" add -A && git -C "$earlier" commit -qm "Finding 1"
 printf 'fixed\n' >"$picked/fix.txt"
-git -C "$picked" add -A && git -C "$picked" commit -qm "Finding 1"
-integrated="$(bash "$here/../scripts/fix-integrate.sh" "$reviewed" 1=fixer/x/r1/w1-1 2>&1)"
-expect "fixture: fix-integrate picked Finding 1 onto the reviewed branch" \
-  test "$integrated" = "picked 1 $(git -C "$reviewed" rev-parse HEAD)"
+git -C "$picked" add -A && git -C "$picked" commit -qm "Finding 2"
+integrated="$(bash "$here/../scripts/fix-integrate.sh" "$reviewed" 1=fixer/x/r1/w1-1 2=fixer/x/r1/w1-2 2>&1)"
+expect "fixture: fix-integrate picked Finding 2 onto the reviewed branch" \
+  test "$integrated" = "picked 1 $(git -C "$reviewed" rev-parse HEAD~1)
+picked 2 $(git -C "$reviewed" rev-parse HEAD)"
 expect "fixture: the picked commit has a new sha, so git branch -d would refuse the Fixer branch" \
   test "$(git -C "$reviewed" rev-parse HEAD)" != "$(git -C "$picked" rev-parse HEAD)"
 unlisted() { ! git -C "$main" worktree list --porcelain | grep -qxF "worktree $1"; }
 no_branch() { ! git -C "$main" show-ref -q --verify "refs/heads/$1"; }
-for case in "fixer/x/r1/w1-1 $picked picked onto the reviewed branch under a new sha" \
-  "fixer/x/r1/w1-2 $idle that made no commit"; do
+for case in "fixer/x/r1/w1-2 $picked picked onto the reviewed branch under a new sha" \
+  "fixer/x/r1/w1-3 $idle that made no commit"; do
   read -r branch wt what <<<"$case"
   run remove "$reviewed" "$branch"
   check_lines "remove takes back a Fixer branch $what, naming it and its path: exit 0" \
