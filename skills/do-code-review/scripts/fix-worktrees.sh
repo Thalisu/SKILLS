@@ -13,8 +13,12 @@
 #
 # remove takes back only what add made: a branch outside the fixer/<slug>/<at>/w<k>-<n> namespace,
 # the caller's do/<slug> or fix/<slug> among them, refuses the whole list before anything is touched.
+# A Fixer worktree is removed with its branch when its tree is clean and its commit, if it made one,
+# is on the reviewed branch by patch, whatever sha the pick gave it: `removed <branch> <path>`. Any
+# other is left as it stands, for the developer to read: `kept <branch> <path> dirty tree` or
+# `kept <branch> <path> unlanded commit`.
 #
-# Exit codes: 0 every worktree created · 2 usage.
+# Exit codes: add 0 every worktree created · remove 0 every one removed, 1 some kept · 2 usage.
 set -uo pipefail
 
 usage() {
@@ -58,12 +62,30 @@ remove() {
     case "$path" in "$main/.claude/worktrees/"?*) ;; *) usage ;; esac
     path_of[$branch]="$path"
   done
+  local verdict=0
   for branch in "$@"; do
     path="${path_of[$branch]}"
+    if [ -n "$(git -C "$path" status --porcelain)" ]; then
+      echo "kept $branch $path dirty tree"
+      verdict=1
+      continue
+    fi
+    if ! landed "$tree" "$branch"; then
+      echo "kept $branch $path unlanded commit"
+      verdict=1
+      continue
+    fi
     git -C "$tree" worktree remove "$path" >/dev/null 2>&1
+    # The pick gave the commit a new sha, so `branch -d` would refuse a branch landed() just proved
+    # is on the reviewed branch; the force is safe only behind that check and the namespace above.
     git -C "$tree" branch -D "$branch" >/dev/null 2>&1
     echo "removed $branch $path"
   done
+  return "$verdict"
+}
+
+landed() { # $1 reviewed tree, $2 branch: true when every commit of the branch is on the reviewed branch, by patch
+  [ -z "$(git -C "$1" cherry HEAD "$2" | grep -v '^-')" ]
 }
 
 case "$verb" in

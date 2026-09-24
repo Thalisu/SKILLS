@@ -103,6 +103,42 @@ for case in "fixer/x/r1/w1-1 $picked picked onto the reviewed branch under a new
     test "$(branch_of_worktree "$main" "$reviewed")" = "refs/heads/do/x"
 done
 
+fresh kept
+main="$tmp/kept"
+printf 'base\n' >README.md
+commit base
+reviewed="$(branch_worktree "$main" x)"
+run add "$reviewed" x r1 1 1 2 3
+unpicked="$main/.claude/worktrees/fixer-x-r1-w1-1"
+idle="$main/.claude/worktrees/fixer-x-r1-w1-2"
+dirty="$main/.claude/worktrees/fixer-x-r1-w1-3"
+printf 'fixed\n' >"$unpicked/fix.txt"
+git -C "$unpicked" add -A && git -C "$unpicked" commit -qm "Finding 1"
+printf 'half-done\n' >"$dirty/README.md"
+unpicked_sha="$(git -C "$main" rev-parse fixer/x/r1/w1-1)"
+dirty_sha="$(git -C "$main" rev-parse fixer/x/r1/w1-3)"
+expect "fixture: Finding 1's commit is not on the reviewed branch" \
+  test "$(git -C "$main" merge-base --is-ancestor "$unpicked_sha" do/x && echo on)" = ""
+run remove "$reviewed" fixer/x/r1/w1-1 fixer/x/r1/w1-2 fixer/x/r1/w1-3
+check_lines "remove keeps a Fixer branch whose commit never landed and one whose tree is dirty, removes the clean one that made no commit, naming each: exit 1" \
+  1 "$rc" "kept fixer/x/r1/w1-1 $unpicked unlanded commit" \
+  "kept fixer/x/r1/w1-3 $dirty dirty tree" \
+  "removed fixer/x/r1/w1-2 $idle"
+for case in "fixer/x/r1/w1-1 $unpicked $unpicked_sha whose commit never landed" \
+  "fixer/x/r1/w1-3 $dirty $dirty_sha whose tree is dirty"; do
+  read -r branch wt sha what <<<"$case"
+  expect "git still lists the worktree of the kept Fixer branch $what on its branch" \
+    test "$(branch_of_worktree "$main" "$wt")" = "refs/heads/$branch"
+  expect "the kept Fixer branch $what still holds its commit" \
+    test "$(git -C "$main" rev-parse -q --verify "refs/heads/$branch")" = "$sha"
+done
+expect "the kept dirty tree still carries its uncommitted edit" \
+  test "$(cat "$dirty/README.md" 2>/dev/null)" = "half-done"
+expect "git no longer lists the worktree of the clean Fixer branch that made no commit" \
+  unlisted "$idle"
+expect "git no longer lists the clean Fixer branch that made no commit" \
+  no_branch fixer/x/r1/w1-2
+
 echo
 if [ "$fails" = 0 ]; then echo "fix-worktrees: all checks passed"; else
   echo "fix-worktrees: $fails failed"
