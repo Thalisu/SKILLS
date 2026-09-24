@@ -10,7 +10,9 @@
 #   finding=<n> touched=<sha>|none
 # <sha> is the full hash of the latest commit in <the Review's Commit:>..HEAD that touched any file
 # of the Finding (fix-waves.sh's finding_files), and none when no commit did or the Finding names
-# no file.
+# no file. After a `Commit: <sha>, dirty` Review the range starts one commit later: the door refuses
+# a fix call on a dirty tree, so the first commit on top of <sha> is the developer committing the
+# tree the Review already judged, and it is no touch made after the Review.
 #
 # Exit codes: 0 lines printed · 1 no unsettled Act on Finding · 2 usage · 3 the Review's Commit: is
 # absent or not an ancestor of HEAD, every line printed reading touched=none, since a range from a
@@ -47,6 +49,18 @@ review_commit() {
   awk '/^Commit: / { sub(/,.*/, "", $2); print $2; exit }' "$1"
 }
 
+# review_dirty <review file>
+# Exits 0 when the `Commit:` header carries the `, dirty` suffix.
+review_dirty() {
+  grep -m1 '^Commit: ' "$1" | grep -q ', dirty$'
+}
+
+# first_after <worktree> <sha>
+# Prints the first commit on the path from <sha> to HEAD; nothing when HEAD is <sha>.
+first_after() {
+  git -C "$1" rev-list --reverse --ancestry-path "$2..HEAD" 2>/dev/null | head -n 1
+}
+
 # latest_touch <worktree> <since sha> <path>...
 # Prints the latest commit in <since>..HEAD touching any path; nothing when none.
 latest_touch() {
@@ -63,6 +77,9 @@ main() {
   since="$(review_commit "$review")"
   if [ -z "$since" ] || ! git -C "$wt" merge-base --is-ancestor "$since" HEAD 2>/dev/null; then
     off_branch=1
+  elif review_dirty "$review"; then
+    since="$(first_after "$wt" "$since")"
+    [ -n "$since" ] || since="$(git -C "$wt" rev-parse HEAD)"
   fi
   records="$(act_on_findings "$review")"
   latest="$(fix_run_latest "$review")"

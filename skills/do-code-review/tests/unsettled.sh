@@ -266,13 +266,29 @@ run "$wt" "$review"
 check_lines "a Review with no Commit: header lists every unsettled Finding with touched=none and exits 3" \
   3 "$rc" "finding=1 touched=none"
 
+fresh dirty
+wt="$tmp/dirty"
+mkdir -p src
+printf '#!/usr/bin/env bash\nset -u\necho "$1"\n' >src/a.sh
+commit base
+reviewed="$(git rev-parse --short HEAD)"
+printf '#!/usr/bin/env bash\nset -u\necho "${1:-}"\n' >src/a.sh
+commit "fix: a.sh reads a missing argument as empty"
+
 review_at "$reviewed" "$tmp/09-clean.review.md"
 review="$tmp/09-a.review.md"
 sed "s/^Commit: $reviewed\$/Commit: $reviewed, dirty/" "$tmp/09-clean.review.md" >"$review"
 has "the dirty fixture carries a Commit: header with the dirty suffix" "$review" "Commit: $reviewed, dirty"
 run "$wt" "$review"
-check_lines "a Review whose Commit: carries the dirty suffix is read as its sha, and a Finding a later commit touched is listed with that commit" \
-  0 "$rc" "finding=1 touched=$fixed"
+check_lines "a Review whose Commit: carries the dirty suffix names the commit that materialized the reviewed dirty diff, which does not by itself count as a touch" \
+  0 "$rc" "finding=1 touched=none"
+
+printf '#!/usr/bin/env bash\nset -u\necho "${1:-}" #\n' >src/a.sh
+commit "style: a.sh trails a comment"
+later="$(git rev-parse HEAD)"
+run "$wt" "$review"
+check_lines "a further commit on top of the one that materialized the reviewed dirty diff still counts as a touch" \
+  0 "$rc" "finding=1 touched=$later"
 
 echo
 if [ "$fails" = 0 ]; then echo "unsettled: all checks passed"; else
