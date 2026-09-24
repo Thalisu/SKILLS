@@ -277,9 +277,11 @@ Then, for each Wave `<k>` as run, in order, while no stop below has fired:
    `bash ~/.claude/skills/do-code-review/scripts/returns.sh 240 <every return file of the Wave>`,
    given the Bash tool's own `timeout` at its maximum, `600000` ms, so the script's window closes
    first, and call it again over the files still `missing=`, three windows and no more. A Fixer
-   whose file has not landed after the third reads `not fixed: the Fixer did not return`, and no
-   further Wave runs, since it may still be writing in its worktree; every Finding of a later Wave
-   reads the same. No Gate fixer is forked from there on, whatever the Diff tests or the Gate read,
+   whose file has not landed after the third costs its own Finding and nothing else of its Wave:
+   that Finding reads `not fixed: the Fixer did not return`, and every Fixer of the Wave whose file
+   did land goes on to steps 4 to 6, read, integrated and recorded as if the silent one had failed
+   any other way. No further Wave runs, since it may still be writing in its worktree; every
+   Finding of a later Wave reads the same. No Gate fixer is forked from there on, whatever the Diff tests or the Gate read,
    the `fix/<slug>` worktree and its branch stay in place and are named, and the landing line reads
    `not landed: a Fixer did not return`.
 4. **Read each returned line**: a commit, a location reported stale, or `not fixed` with what
