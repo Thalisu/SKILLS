@@ -11,6 +11,8 @@
 # <sha> is the full hash of the latest commit in <the Review's Commit:>..HEAD that touched any file
 # of the Finding (fix-waves.sh's finding_files), and none when no commit did or the Finding names
 # no file.
+#
+# Exit codes: 0 lines printed · 1 no unsettled Act on Finding · 2 usage.
 set -uo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
@@ -54,7 +56,7 @@ latest_touch() {
 main() {
   [ "$#" -eq 2 ] || usage
   [ -d "$1" ] && [ -f "$2" ] && [ -r "$2" ] || usage
-  local wt="$1" review="$2" since records latest n loc target sha
+  local wt="$1" review="$2" since records latest n loc target sha listed=0
   local -a files
   since="$(review_commit "$review")"
   records="$(act_on_findings "$review")"
@@ -67,7 +69,9 @@ main() {
     sha=""
     [ "${#files[@]}" -gt 0 ] && sha="$(latest_touch "$wt" "$since" "${files[@]}")"
     echo "finding=$n touched=${sha:-none}"
+    listed=1
   done <<<"$records"
+  [ "$listed" = 1 ]
 }
 
 main "$@"

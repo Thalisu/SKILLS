@@ -192,6 +192,52 @@ check_lines "a Finding whose files no commit since the Review touched, while ano
 check_lines "a Finding whose location and Fix target name no file is listed with touched=none" \
   0 "$rc" "finding=2 touched=none"
 
+fresh all-settled
+wt="$tmp/all-settled"
+mkdir -p src
+printf '#!/usr/bin/env bash\nset -u\necho "$1"\n' >src/a.sh
+commit base
+reviewed="$(git rev-parse --short HEAD)"
+printf '#!/usr/bin/env bash\nset -u\necho "${1:-}"\n' >src/a.sh
+commit "fix: a.sh reads a missing argument as empty"
+fixed="$(git rev-parse --short HEAD)"
+
+act_on="$(for n in 1 2; do
+  printf '### %s. Correctness at src/a.sh:3\nClaim: a call with no argument exits on an unbound variable.\n' "$n"
+  printf 'Evidence: `bash src/a.sh` exits 1.\nRung: 4\nFix: a call with no argument exits 0, in tests/a.test.sh\n\n'
+done)"
+fix_runs="## Fix run
+
+Date: 2026-09-23 · at $reviewed
+
+- 1: fixed $fixed, verified (\`bash tests/a.test.sh\`)
+- 2: not fixed: the Fixer never returned
+- diff tests: \`bash tests/a.test.sh\`: 1 passing
+- gate fixer: not needed
+- gate: \`bash tests/a.test.sh\`: green
+- not landed: a Finding not fixed
+
+## Fix run
+
+Date: 2026-09-24 · at $reviewed
+
+- 2: fixed $fixed, verified (\`bash tests/a.test.sh\`)
+- diff tests: \`bash tests/a.test.sh\`: 1 passing
+- gate fixer: not needed
+- gate: \`bash tests/a.test.sh\`: green
+- landed: main"
+review="$tmp/05-a.review.md"
+review_at "$reviewed" "$review" "$act_on" "$fix_runs"
+run "$wt" "$review"
+check_absent "a Review whose every Act on Finding is settled by its latest Fix run line lists no Finding and exits 1" \
+  1 "$rc" "finding="
+
+review="$tmp/06-a.review.md"
+review_at "$reviewed" "$review" "none" ""
+run "$wt" "$review"
+check_absent "a Review whose Act on reads none lists no Finding and exits 1" \
+  1 "$rc" "finding="
+
 echo
 if [ "$fails" = 0 ]; then echo "unsettled: all checks passed"; else
   echo "unsettled: $fails failed"
