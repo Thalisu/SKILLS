@@ -142,7 +142,8 @@ no custom agent.
 The run is not over until the landing line is written, whatever the Agent tool does. Make one
 directory outside every repository before the first Wave,
 `mktemp -d "${TMPDIR:-/tmp}/do-code-review-fix.XXXX"`, the directory every return file below goes
-in.
+in. Its own random suffix is this run's, made fresh by `mktemp` and never read off anything the
+Review or the reviewed tree carries, and step 1 below folds it into `<at>`.
 
 Which Findings share a Wave is a script's output and never the run's reading of the Findings: run
 `bash ~/.claude/skills/do-code-review/scripts/fix-waves.sh <the Review's absolute path>` once, and
@@ -154,11 +155,14 @@ Then, for each Wave `<k>` in order, while no stop below has fired:
 
 1. **Cut the Wave's worktrees.**
    `bash ~/.claude/skills/do-code-review/scripts/fix-worktrees.sh add <the reviewed tree> <slug> <at> <k> <n>...`,
-   with the door's `slug=`, the short sha the `Date:` line records, the Wave's number and its
-   Findings. It prints one `worktree <n> <path> <branch>` line per Finding, each cut from the
-   reviewed tree's HEAD as it stands now. A `failed` line, exit 3, means no worktree of this Wave
-   exists: every Finding of the Wave reads `not fixed: worktree not created`, no further Wave runs,
-   and the run goes to the re-check.
+   with the door's `slug=`, the Wave's number and its Findings. `<at>` is the short sha the `Date:`
+   line records with the run's own `mktemp` suffix appended, `<sha>-<suffix>`, unique to this run
+   and never just the reviewed HEAD's sha: a second `fix` run at the same reviewed HEAD gets a fresh
+   `mktemp` suffix of its own, so its `<at>` never repeats an earlier run's, and its Wave never
+   collides with a Fixer worktree that earlier run kept. It prints one `worktree <n> <path> <branch>`
+   line per Finding, each cut from the reviewed tree's HEAD as it stands now. A `failed` line, exit
+   3, means no worktree of this Wave exists: every Finding of the Wave reads
+   `not fixed: worktree not created`, no further Wave runs, and the run goes to the re-check.
 2. **Fork the Wave at once.** One Fixer per Finding of the Wave, every one of them in one message,
    each with the brief above, its `Branch:` and `Tree:` taken from its own `worktree` line, and
    `Return file: <that directory>/fixer-w<k>-<n>.md`.

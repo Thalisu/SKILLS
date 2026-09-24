@@ -184,6 +184,34 @@ expect "the earlier run's Finding 2 worktree stays on its branch" \
 expect "the earlier run's Finding 2 branch still holds its commit" \
   test "$(git -C "$main" rev-parse -q --verify refs/heads/fixer/x/r1/w1-2)" = "$stale_sha"
 
+fresh rerun-after-keep
+main="$tmp/rerun-after-keep"
+printf 'base\n' >README.md
+commit base
+reviewed="$(branch_worktree "$main" x)"
+run add "$reviewed" x deadbee-1111 1 1 2 3
+wt1="$main/.claude/worktrees/fixer-x-deadbee-1111-w1-1"
+wt2="$main/.claude/worktrees/fixer-x-deadbee-1111-w1-2"
+wt3="$main/.claude/worktrees/fixer-x-deadbee-1111-w1-3"
+printf 'half-done\n' >"$wt2/README.md"
+run remove "$reviewed" fixer/x/deadbee-1111/w1-1 fixer/x/deadbee-1111/w1-2 fixer/x/deadbee-1111/w1-3
+check_lines "fixture: the first run's remove keeps Finding 2's dirty worktree and takes back the clean ones of Findings 1 and 3: exit 1" \
+  1 "$rc" "removed fixer/x/deadbee-1111/w1-1 $wt1" \
+  "kept fixer/x/deadbee-1111/w1-2 $wt2 dirty tree" \
+  "removed fixer/x/deadbee-1111/w1-3 $wt3"
+run add "$reviewed" x deadbee-2222 1 1 2 3
+rwt1="$main/.claude/worktrees/fixer-x-deadbee-2222-w1-1"
+rwt2="$main/.claude/worktrees/fixer-x-deadbee-2222-w1-2"
+rwt3="$main/.claude/worktrees/fixer-x-deadbee-2222-w1-3"
+check_lines "a second fix run at the same reviewed HEAD, with its own mktemp-suffixed <at>, cuts a fresh worktree for every Finding of its Wave, colliding with none of the first run's: exit 0" \
+  0 "$rc" "worktree 1 $rwt1 fixer/x/deadbee-2222/w1-1" \
+  "worktree 2 $rwt2 fixer/x/deadbee-2222/w1-2" \
+  "worktree 3 $rwt3 fixer/x/deadbee-2222/w1-3"
+expect "the second run's fresh worktrees leave the first run's kept Finding 2 worktree's uncommitted edit untouched" \
+  test "$(cat "$wt2/README.md" 2>/dev/null)" = "half-done"
+expect "the second run's fresh worktrees leave the first run's kept Finding 2 worktree on its own branch" \
+  test "$(branch_of_worktree "$main" "$wt2")" = "refs/heads/fixer/x/deadbee-1111/w1-2"
+
 fresh unexcluded
 main="$tmp/unexcluded"
 printf 'base\n' >README.md
