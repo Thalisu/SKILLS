@@ -2,7 +2,7 @@
 type: tool_used
 tool: Bash
 scope: all
-input_match: 'fix-worktrees\.sh\s+remove[^"]*/w1-1\b'
+input_match: 'fix-worktrees\.sh\s+remove.*/w1-1\b'
 min: 0
 max: 0
 ---

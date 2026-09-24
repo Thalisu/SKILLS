@@ -2,7 +2,7 @@
 type: tool_used
 tool: Bash
 scope: all
-input_match: 'fix-integrate\.sh[^"]*\s1='
+input_match: 'fix-integrate\.sh.*\s1='
 min: 0
 max: 0
 ---
