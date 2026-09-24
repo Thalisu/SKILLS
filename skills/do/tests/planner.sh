@@ -532,6 +532,54 @@ injected_plan="$sources_tmp/injected.plan.md"
 out="$(run_sources_check "$injected_plan" "$ticket_hash" "$ticket_path" "$digest_hash" "$digest_path")"
 same "the command prints \`refused\` for a \`## Sources\` section carrying injected lines past the two records" "refused"
 
+echo "# skills/do/references/ticket.md: a re-fork after the hashes moved removes the stale Plan, so the run gets past the Plan step"
+
+# A Ticket, Digest or Spec that moved after a Plan was written sends the run back to the Planner at
+# the same path. The Planner's own Write hook refuses any write at a \`.plan.md\` that already exists,
+# so unless the step removes the stale Plan first the re-forked Planner is denied its one write and
+# the Ticket is wedged at the Plan step until a human deletes the file. The removal is a fixed
+# command the step names, pulled out the way the \`## Sources\` check is, and run here for real.
+removal_cmd="$(blocks_of "$playbook" "## Steps" "**The stale Plan's removal.**" 1)"
+expect "the Plan step names a fixed command that removes the stale Plan at the destination" \
+  test -n "$removal_cmd"
+
+refork_dest="$sources_tmp/refork.plan.md"
+cat >"$refork_dest" <<EOF
+## Sources
+ticket: $ticket_path 0ld0ld00
+digest: $digest_path 0ld0ld11
+
+## Grounding
+none
+EOF
+expect "a stale Plan cut from the old hashes sits at the destination before the re-fork" \
+  test -f "$refork_dest"
+
+if [ -n "$removal_cmd" ]; then
+  sh -c "$(printf '%s' "$removal_cmd" | sed -e "s@<the destination>@$refork_dest@g")" >/dev/null 2>&1
+fi
+
+# The re-forked Planner's first write, through its own hook: silence is the hook allowing it. An
+# empty or missing command leaves the stale Plan in place, and the hook denies.
+refork_hook_out="$(printf '{"tool_input": {"file_path": "%s"}}' "$refork_dest" | sh -c "$hook_cmd" 2>/dev/null)"
+expect "the re-forked Planner's own hook lets it write its Plan at the same destination" \
+  bash -c '[ -n "$1" ] && ! grep -qF "\"permissionDecision\": \"deny\"" <<<"$2"' _ "$removal_cmd" "$refork_hook_out"
+
+# The write the hook allowed, then the step's own check over it against the new hashes: the run
+# gets past the Plan step only when that check prints \`match\`.
+if ! grep -qF '"permissionDecision": "deny"' <<<"$refork_hook_out"; then
+  cat >"$refork_dest" <<EOF
+## Sources
+ticket: $ticket_path $ticket_hash
+digest: $digest_path $digest_hash
+
+## Grounding
+none
+EOF
+fi
+out="$(run_sources_check "$refork_dest" "$ticket_hash" "$ticket_path" "$digest_hash" "$digest_path")"
+same "the re-forked Plan at the same destination passes the \`## Sources\` check against the new hashes" "match"
+
 rm -rf "$sources_tmp"
 
 exit $((fails > 0))

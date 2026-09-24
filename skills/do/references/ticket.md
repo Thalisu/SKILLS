@@ -121,7 +121,7 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   Review, which skips it as the `verdict=land` bullet says: the run hashes the Ticket and the Digest afresh and
   reuses the Plan beside the Ticket while its `## Sources` section is still exactly those two
   records, matched on name, path and hash together, and a Plan whose section is not that exact
-  match forks the Planner again, which writes the Plan anew. The list the loop works
+  match is removed and the Planner forked again, per step 1, which writes the Plan anew at the same path. The list the loop works
   through is the Plan's `## Behaviours` section either way, never a list read off the commits;
   then every line
   whose behaviour a commit body carries is ticked with that commit's sha beside it, and a commit
@@ -356,7 +356,18 @@ A Plan already at the destination whose `## Sources` section is exactly those tw
 on name, path and hash together, the same match the returned-Plan check below runs, is carried: the
 run forks nobody, says in one line that it reused it, and builds from the Plan it already has. A
 Plan whose section is not that exact match, and a destination with no Plan yet, are the two states
-the run forks for.
+the run forks for. On the first, the run removes the stale Plan before it forks, or before it writes
+the Plan itself on the fallback below: the Planner's own hook refuses a write at a `.plan.md` that
+already exists, so a Plan left there denies the re-forked Planner its one write and wedges the
+Ticket at this step until someone deletes the file by hand. The removal is a fixed command over the
+destination the check above already placed inside `.scratch/`, the path itself and never what it
+resolves to, and it says in one line that the stale Plan was removed:
+
+**The stale Plan's removal.**
+
+```sh
+rm -f -- <the destination>
+```
 
 Right before it forks the Planner, the run takes the guard probe, `bash <skill-dir>/scripts/harness-hooks.sh`
 from the main checkout with no argument, and keeps its `guard=` line, with its `harness=` and
