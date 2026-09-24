@@ -281,9 +281,11 @@ new Ticket you write
   on its own branch the same way. A review that could
   not land because your branch moved while it ran needs no second `/do`: the same run rebases
   again, the contested hunks taking your branch's side and landing in the ledger, and lands through
-  a `fix` call on the Review it already has, as many times as the branch keeps moving. Only an
-  integration that finds nothing to replay stops it, and typing the request again then recovers it
-  the same way. The reply lists every entry that later
+  a `fix` call on the Review it already has, as many times as the branch keeps moving. An
+  integration that finds nothing to replay does not stop the run: it takes its own resume path in
+  the same run, the integration once more and the landing through a `fix` call on the same Review,
+  and only stops as blocked if that resume also finds nothing to replay and the landing again
+  reports your branch moved. The reply lists every entry that later
   integration dropped, marked as coming after the review, since no reviewer reads it.
 - A run whose branch moved says so: the step names what it rebased onto and how many commits
   replayed, and the gate's output after it is quoted like any other.
