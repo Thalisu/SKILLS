@@ -9,11 +9,17 @@
 # `worktree <n> <abs path> <branch>` per Finding, in argument order. This script owns those names:
 # the orchestrator passes back the branches it printed and composes none.
 #
+#   fix-worktrees.sh remove <reviewed tree> <branch>...
+#
+# remove takes back only what add made: a branch outside the fixer/<slug>/<at>/w<k>-<n> namespace,
+# the caller's do/<slug> or fix/<slug> among them, refuses the whole list before anything is touched.
+#
 # Exit codes: 0 every worktree created · 2 usage.
 set -uo pipefail
 
 usage() {
   echo "usage: fix-worktrees.sh add <reviewed tree> <slug> <at> <wave> <n>..." >&2
+  echo "usage: fix-worktrees.sh remove <reviewed tree> <branch>..." >&2
   exit 2
 }
 [ "$#" -ge 1 ] || usage
@@ -33,7 +39,17 @@ add() {
   done
 }
 
+remove() {
+  [ "$#" -ge 2 ] || usage
+  local branch
+  shift
+  for branch in "$@"; do
+    [[ "$branch" =~ ^fixer/[^/]+/[^/]+/w[0-9]+-[0-9]+$ ]] || usage
+  done
+}
+
 case "$verb" in
   add) add "$@" ;;
+  remove) remove "$@" ;;
   *) usage ;;
 esac

@@ -44,6 +44,31 @@ for n in 3 1; do
     test "$(git -C "$wt" rev-parse HEAD 2>/dev/null)" = "$head"
 done
 
+fresh refuse
+main="$tmp/refuse"
+printf 'base\n' >README.md
+commit base
+reviewed="$(branch_worktree "$main" x)"
+fixwt="$main/.claude/worktrees/fix-x"
+git -C "$main" worktree add -q "$fixwt" -b fix/x
+for caller in "do/x $reviewed" "fix/x $fixwt"; do
+  read -r branch wt <<<"$caller"
+  run remove "$reviewed" "$branch"
+  check "remove refuses the caller's $branch, outside the Fixer namespace, with its own usage line: exit 2" \
+    2 "$rc" "usage: fix-worktrees.sh remove"
+  expect "the refused $branch keeps its worktree on its branch" \
+    test "$(branch_of_worktree "$main" "$wt")" = "refs/heads/$branch"
+done
+run add "$reviewed" x r1 1 1
+fixer="$main/.claude/worktrees/fixer-x-r1-w1-1"
+run remove "$reviewed" fixer/x/r1/w1-1 do/x
+check "a list naming the caller's do/x beside a Fixer branch is refused whole, with remove's usage line: exit 2" \
+  2 "$rc" "usage: fix-worktrees.sh remove"
+expect "the refused list leaves the caller's do/x worktree on its branch" \
+  test "$(branch_of_worktree "$main" "$reviewed")" = "refs/heads/do/x"
+expect "the refused list removes nothing, not even the landed Fixer branch listed beside do/x" \
+  test "$(branch_of_worktree "$main" "$fixer")" = "refs/heads/fixer/x/r1/w1-1"
+
 echo
 if [ "$fails" = 0 ]; then echo "fix-worktrees: all checks passed"; else
   echo "fix-worktrees: $fails failed"
