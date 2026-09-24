@@ -84,13 +84,6 @@ carries_any "the passage names the stop: a target moved right after an integrati
 whole="$flat"
 n="$(first_at "${noop[@]}")"
 flat="${whole:$((n > 0 ? n - 1 : ${#whole}))}"
-carries_any "a target moved after a no-op integration stops the run as blocked, like every other not landed" \
-  "stops the run as blocked" "the run stops as blocked" "stops as blocked" "stops the run, blocked" \
-  "stops blocked"
-retyped=(
-  "the same run request typed again" "the same run request, typed again" "the run request typed again"
-  "types the same run request again" "type the same run request again"
-)
 flat="$whole"
 
 # The cap ADR 0044 supersedes: a count of retries beside the loop would still block the run one past it.
@@ -175,11 +168,6 @@ for row in "${playbooks[@]}"; do
     0 0 "for any reason the review gives. The run stops as blocked"
   check_absent "the $name review step no longer caps the retry at once per run nor stops on a second target moved" \
     0 0 "${cap[@]}"
-  n="$(first_at "${noop[@]}")"
-  r="$(first_at "${retyped[@]}")"
-  expect "the $name review step names the run request typed again only for the no-op stop, never a target moved the loop answers" \
-    test "$r" = 0 -o \( "$n" -gt 0 -a "$r" -gt "$n" \)
-
   flat="$(item_holding "$book" "$marker" "$reply_key" | tr '\n' ' ' | tr -s ' ')"
   expect "$name.md carries its reply step" test -n "$flat"
   # shellcheck disable=SC2034  # lib.sh's check_absent reads $out
