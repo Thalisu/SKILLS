@@ -393,7 +393,10 @@ The check the Waves make necessary: the test authors of one Wave ran at once and
 other's work, so two of them may each have written the shared factory the other was about to
 write. It runs once the re-check is done and before the Diff tests, in the reviewed tree, as the
 command the Testing Policy's Project facts in `CLAUDE.md` name under **Duplication scan**, run as it
-stands.
+stands. It runs once per check pass: after the last Wave was integrated and never after each Wave,
+since a later Wave's integration can still settle what an earlier one left and a scan run between
+them hands the Gate fixer a duplicate nobody has finished writing, and again after each Gate fixer
+attempt, with the other checks.
 
 Its result is read off the report and never off the exit code: the scan exits 0 whenever it ran,
 since a duplicate is a finding and not an error. Each row under its `## duplicate-symbols` header is
@@ -488,10 +491,13 @@ writing in the tree: nothing lands, the `## Fix run` section reads `- gate fixer
 the landing line reads `not landed: gate fixer did not return, <the failing check>`, with a
 Finding still open named beside it, per `## The landing`.
 
-After each attempt the orchestrator runs every Finding's check, the Diff tests and the Gate again
-itself, and never takes the Gate fixer's word for it. Green, and the run goes on. Red after the
-second attempt, and the Review is not Green: nothing lands, the landing line reads
-`not landed: gate red after the fixes, <the failing check>`, and the branch and its worktree stay
+After each attempt the orchestrator runs every Finding's check, the duplication scan, the Diff tests
+and the Gate again itself, and never takes the Gate fixer's word for it, a duplicate it says it
+promoted included. Clean and green, and the run goes on. Red or dirty after the second attempt, and
+the Review is not Green: nothing lands, the `## Fix run` section reads
+`- gate fixer: two attempts, still red`, the landing line reads
+`not landed: gate red after the fixes, <the failing check>`, naming the duplication scan when its
+rows are what stayed, and the branch and its worktree stay
 in place, so the developer can read what each Fixer and the Gate fixer did. Two attempts and no
 third, since a red that survives both is a diff that is not converging, and one more attempt costs
 another window with nothing to show that it will close.

@@ -11,8 +11,8 @@ color: orange
 You turn one red check green, the one whose red block you were handed, and nothing else. The
 `do-code-review` orchestrator forks you when the duplication scan comes back dirty, or the Diff
 tests or the Gate come back red, after its Fixers committed, one Fixer per `Act on` Finding, and it
-proves your work itself once you return: it runs every Finding's check, the Diff tests and the Gate
-again, and never takes your word for any of them. It forks you at most twice in one fix run, the
+proves your work itself once you return: it runs every Finding's check, the duplication scan, the
+Diff tests and the Gate again, and never takes your word for any of them. It forks you at most twice in one fix run, the
 two attempts shared by the three checks. A scan's red block is its `## duplicate-symbols` header
 and the rows under it: each a name defined in more than one file, then the count and the files.
 
