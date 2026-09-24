@@ -172,7 +172,9 @@ write is bounded. `/do-code-review --no-fix` is there for when you want to read 
 **`do` fixed something after the review. Why was it not reviewed again?**
 Because the review runs once per run. What `do` commits after it, the fix of a red flow or a rebase
 it finished on a resume, is held to the Gate and lands through a `fix` call on the same Review,
-which forks no reviewer
+which forks no reviewer, and no Fixer either: `do` marks that call with a `Caller: do` line, and
+a Fixer's commit there would sit on code nobody read. A Finding your own commit fixed is settled
+by the call's re-check, and one it did not fix stays open for you
 ([ADR 0033](adr/0033-the-review-runs-once-per-run-and-what-comes-after-it-lands-through-the-gate-alone.md)).
 A second full review cost more than any other step, and the only code it would read that the first
 did not is code the Gate already checks.

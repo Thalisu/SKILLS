@@ -1,0 +1,163 @@
+name: fix-after-review-forks-no-fixer
+tags: [fix, re-check, do]
+runs: 1
+max_turns: 60
+timeout_seconds: 1800
+allowed_tools: [Bash, Read, Write, Glob, Grep, Agent, Skill]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # The fix call do makes after its one review, marked by its `Caller: do` line, on a Review whose
+    # one Act on Finding (a page of ten over eleven items returns nine) an earlier call left
+    # `not fixed`, with no commit since the review: the branch never fixed it. The call should hold
+    # the Finding to the branch, find it untouched, fork no Fixer and no Gate fixer, create no `fix/`
+    # worktree, make no commit, and come back not landed, naming the Finding. The Review sits under
+    # the ignored `.scratch/`, so the tree reads clean.
+    set -e
+    mkdir -p src tests .scratch/reviews
+    cat > package.json <<'JSON'
+    { "name": "notes", "private": true, "scripts": { "test": "node --test tests/*.test.js" } }
+    JSON
+    cat > CLAUDE.md <<'MD'
+    # notes
+
+    ## Testing Policy
+
+    ### Project facts
+
+    - **Unit**: full suite `npm test` · single file `node --test <file>`
+    MD
+    cat > src/notes.js <<'JS'
+    const notes = [];
+
+    function create(title) {
+      const note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+
+    function list() {
+      return notes.filter((n) => n.status === "active");
+    }
+
+    function page(items, number, size) {
+      const start = (number - 1) * size;
+      return items.slice(start, start + size);
+    }
+
+    module.exports = { create, list, page };
+    JS
+    cat > tests/notes.test.js <<'JS'
+    const test = require("node:test");
+    const assert = require("node:assert/strict");
+    const { create, list, page } = require("../src/notes");
+
+    test("a created note is listed", () => {
+      const note = create("first");
+      assert.ok(list().some((n) => n.id === note.id));
+    });
+
+    test("a page holds the items of its slot", () => {
+      assert.deepEqual(page([1, 2, 3], 1, 5), [1, 2, 3]);
+    });
+    JS
+    printf '.scratch/\n' > .gitignore
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
+    git checkout -q -b export-notes
+    cat > src/notes.js <<'JS'
+    const notes = [];
+
+    function create(title) {
+      const note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+
+    function list() {
+      return notes.filter((n) => n.status === "active");
+    }
+
+    function page(number, size, items) {
+      const start = (number - 1) * size;
+      return items.slice(start, start + size - 1);
+    }
+
+    module.exports = { create, list, page };
+    JS
+    cat > tests/notes.test.js <<'JS'
+    const test = require("node:test");
+    const assert = require("node:assert/strict");
+    const { create, list, page } = require("../src/notes");
+
+    test("a created note is listed", () => {
+      const note = create("first");
+      assert.ok(list().some((n) => n.id === note.id));
+    });
+
+    test("a page holds the items of its slot", () => {
+      assert.deepEqual(page(1, 5, [1, 2, 3]), [1, 2, 3]);
+    });
+    JS
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "feat(notes): page takes its number first"
+    reviewed="$(git rev-parse --short HEAD)"
+    cat > .scratch/reviews/export-notes.md <<REVIEW_EOF
+    # Review: export-notes
+
+    Ticket: none
+    Fixed point: main ($(git rev-parse --short main))
+    Commit: $reviewed
+    Base: main, inferred
+    Spec source: no spec
+    Mode: default, inferred
+    Language: English, inferred
+
+    ## Intent
+
+    Take a page's number before its items, so a caller walks the notes one page at a time.
+
+    ## Safe because
+
+    The unit suite covers every exported function the diff touches, run in the fixture. Rung 4.
+
+    ## Act on
+
+    ### 1. Correctness at src/notes.js:15
+    Claim: a page of ten over eleven items returns nine.
+    Evidence: eleven items passed to \`page(1, 10, items)\`; nine came back, the slice ends one short.
+    Rung: 4
+    Fix: a page of size ten over eleven items returns ten items, in tests/notes.test.js
+
+    ## Consider
+
+    none
+
+    ## Noted
+
+    none
+
+    ## Cleared
+
+    none
+
+    ## Axes
+
+    - Correctness: 1 finding, worst #1 (Act on)
+    - Spec: no spec
+    - Standards: 0 findings
+    - Principles: 0 findings
+    - Blast radius: 0 findings
+    - Security: 0 findings
+
+    ## Fix run
+
+    Date: 2026-09-20 · at $reviewed
+
+    - 1: not fixed: the test would not turn green
+    - diff tests: skip: no Fixer commit
+    - gate fixer: not needed
+    - gate: \`npm test\`: green
+    - not landed: Finding 1 not fixed or not verified; the branch export-notes and its worktree stay in place
+    REVIEW_EOF

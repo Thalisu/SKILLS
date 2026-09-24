@@ -44,6 +44,7 @@ labels are in English; its prose is in the report language of the brief.
 | a Ticket's location: a path, an issue number or a URL | that Ticket is the run's Ticket, the spec source and, when it is a local file, the Review's home; `do` passes it at its review step with the fixed point |
 | a landing target: the branch a caller wants the reviewed branch landed on | `do` sends it third, after the Ticket and the fixed point; it is the branch the fix fast-forwards when the Review is Green |
 | a Gate: the `command=` line of `do`'s gate script, as it printed it before the review | `do` sends it fourth, after the landing target; it is the Gate the fixed branch is held to before it lands, run as it stands |
+| a caller line: a line whose first words read `Caller:`, followed by one value, `do` | `do` sends it on every `fix` call it makes, after the landing target and the Gate; it marks the call as `do`'s after its one review, on which [fix.md](references/fix.md) forks no Fixer and no Gate fixer; it never reaches the door, a review call ignores it, and any other value is refused as fix.md's door says |
 | a review token: a line whose first words read `Review token:`, followed by one value | `do` sends it after the Gate and before the Loss ledger; it is the one line of the marker you write beside the Review, it never reaches the door, and a `fix` call ignores it |
 | a Loss ledger: a line whose first words read `Loss ledger:`, followed by one path | `do` sends it after the Gate, only when its integration wrote one; it is relayed to the technical reviewer alone, as section 5 says, it never reaches the door, and a `fix` call ignores it, reading nothing at that path |
 | held Rulings: a block of text whose first line reads `Held Rulings, not on the tracker:` | `do` sends it last of all, after the Gate and after the ledger, only when its Ticket's Spec is an issue and the run ruled on a Design fork; it amends the spec source, as section 2 says, and never reaches the door |
@@ -60,10 +61,13 @@ read out of it would be a Ruling's own text, so the ledger and every other one c
 A `fix` call reviews nothing. Read [fix.md](references/fix.md) before anything else and run it end
 to end: its three door checks, the `Act on` list off the Review, the Findings a commit since the
 review already fixed, the Fixers, the re-check, the Diff tests, the Gate, the append and the
-landing. `do` makes one after its one review, for what it committed since, with the landing target
-and the Gate after the Review's location. It forks no reviewer: a Finding the first call left
-`not fixed` or `stale` goes to a Fixer again unless the branch already fixed it, and a list with nothing
-left in it comes down to the Gate and the landing. Of the seven sections below it runs only the door script, for its
+landing. A developer's call sends a Finding the first call left `not fixed` or `stale` to a Fixer
+again unless the branch already fixed it. `do` makes one after its one review, for what it
+committed since, with the landing target, the Gate when its own gate ran, and its `Caller: do`
+line after the Review's location. It forks no reviewer, and on that line no Fixer and no Gate fixer
+either: a Finding the branch already fixed is settled by the re-check, one it did not stays open
+and keeps the branch from landing, and a list with nothing left in it comes down to the Gate and
+the landing. Of the seven sections below it runs only the door script, for its
 `main_checkout=` and `slug=` lines. The ref it hands the door is the short sha in the Review's
 `Fixed point:` header, in its parentheses, and never the whole header line, which resolves nowhere.
 Every door refusal is answered in fix.md's door wording, ending `nothing fixed`: the script's own
@@ -327,10 +331,11 @@ Review stands, one line says to commit or stash and run `fix` with it, and no Fi
 
 ## 9. The return
 
-A caller that handed the Gate, which only `do` sends, at its review step and at its fix call,
-reads the outcome off your return and never the Review's text, which stays in the file. A landing
-target alone does not make a caller `do`: a developer may pass one too. Your last message to
-it is these lines and nothing else:
+A caller that handed the Gate or a `Caller: do` line, which only `do` sends, at its review step and
+at its fix call, reads the outcome off your return and never the Review's text, which stays in the
+file. A resumed `do` run hands its fix call no Gate, so the `Caller: do` line is what still marks
+it. A landing target alone does not make a caller `do`: a developer may pass one too. Your last
+message to it is these lines and nothing else:
 
 ```
 Review: <the review= path>

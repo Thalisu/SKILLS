@@ -499,7 +499,8 @@ read, and the run opens the Review neither to decide it nor to settle a Finding:
 commit on the branch already fixed is settled by the fix call's own re-check, per
 [ADR 0056](../../../docs/adr/0056-the-fix-call-settles-a-finding-whose-fix-is-already-on-the-branch.md),
 and one it cannot settle comes back in the call's landing line, which the run routes like any other
-`not landed` below. With nothing left for a Fixer, a red **Gate** on that tree comes back as
+`not landed` below. The call carries `Caller: do` and forks no Fixer, as the paragraph on what the
+run commits after the review says, so a red **Gate** on that tree comes back as
 `not landed: gate red` with its failing check, never the Gate fixer, and it stops the run as
 blocked the way a red **Gate** after the first integration's reapplied commits stops it: the
 failing check named, the ledger's location, since the ledger holds what came back and what did
@@ -575,10 +576,20 @@ the session that printed it was another run's: it hands the fix call no `command
 fix call runs the Gate itself from the Testing Policy's Project facts, as
 [fix.md](../../do-code-review/references/fix.md) has it do with no line handed. What that Gate ran
 is in the fix call's return, which the Reply's gate line carries instead, per [reply.md](reply.md).
-No reviewer is forked: a Finding the first call
-left `not fixed` or `stale` goes to a Fixer again, and a list with nothing left forks no Fixer,
-and the call runs the Gate and the landing alone. Its return reads like the first one's, and a
-return that reads not landed stops the run the way the first one does.
+Last of all the call carries one line that marks it as the run's own, after its one review:
+
+```
+Caller: do
+```
+
+Every fix call the run makes carries it: the landing after a `not landed: target moved`, the
+landing of the in-run resume and of a resumed run, and the fix of a red flow, in `ticket`,
+`bug-fix` and `refactoring` alike, and whatever the `Act on:` line of the return before it read.
+No reviewer is forked, and on that line no Fixer and no Gate fixer either, since what the run
+committed after the review is code no reviewer read: a Finding a commit on the branch already fixed
+is settled by the call's own re-check, one it cannot settle comes back in its landing line, and a
+list with nothing left comes down to the Gate and the landing. Its return reads like the first
+one's, and a return that reads not landed stops the run the way the first one does.
 
 When the session does not list `do-code-review`, the step reads
 `skip: do-code-review not listed`: nothing lands, the worktree and its branch stay in place and

@@ -47,10 +47,24 @@ either way: the file is written, one line says to commit or stash and run `fix` 
 Fixer is forked.
 
 `do` makes a `fix` call of its own after its one review, for what it committed since: the fix of a
-red flow, or a rebase a resumed run finished. It sends the landing target and the Gate after the
-Review's location, and the call forks no reviewer: a Finding the first call left `not fixed` or
-`stale` goes to a Fixer again, and a list with nothing left in it comes down to the Gate and the
-landing.
+red flow, the landing after a `not landed: target moved`, or a rebase a resumed run finished. It
+sends the landing target and, when its own gate ran, the Gate after the Review's location, then one
+line of its own, `Caller: do`, and the call forks no reviewer. That line decides the mode, once,
+here, and nothing else does: not the Gate, which a resumed run has none of to hand, and not the
+Review's history, which records what ran and never who calls.
+
+| The call carries | The mode |
+|---|---|
+| no `Caller:` line | a developer's `fix`: a Finding the branch has not already fixed goes to The Fixer |
+| `Caller: do` | `do`'s, after its one review: nothing is forked, no Fixer, no Gate fixer and no `fix/` worktree, and a Finding the branch has not already fixed stays open |
+| `Caller:` with any other value | refused before anything is written: `caller <the value> unknown; nothing fixed` |
+
+`do`'s call forks nothing because what `do` committed after its review is code no reviewer read,
+per [ADR 0033](../../../docs/adr/0033-the-review-runs-once-per-run-and-what-comes-after-it-lands-through-the-gate-alone.md):
+a Fixer's commit on that tree is what turns a red Gate over to the Gate fixer, whose brief is the
+red block alone, and its fix would edit the replayed code nobody read and land it. A Finding that
+stays open there is the developer's to fix, or to overrule in the Review and call `fix` on, and a
+list with nothing left in it comes down to the Gate and the landing in both modes.
 
 ## The Act on list
 
@@ -125,6 +139,13 @@ This step writes nothing. Its held lines reach the Review through The append, in
 was. When it settles every Finding, Where the Fixer works and The Fixer are skipped: no worktree is
 created, no Fixer is forked, and the run carries on from The re-check to The landing.
 
+Every Finding this step sends to The Fixer goes there on a developer's call only. On `do`'s call,
+the `Caller: do` mode the door decided, Where the Fixer works and The Fixer are skipped whatever
+this step settled: a Finding it did not hold stays unsettled, with the reason this step found for
+it (its location untouched since the review, its check never red at `Commit:` or still red at HEAD,
+no check to re-run, or the Review's `Commit:` off the branch), and the run carries on from The
+re-check to The landing with no Fixer commit to check.
+
 ## Where the Fixer works
 
 One question decides it: is the branch the Review judged the branch the developer's checkout is on?
@@ -161,7 +182,8 @@ run hands back only the branches it printed.
 
 ## The Fixer
 
-One Fixer per `Act on` Finding, run in Waves, per
+A default run's step, and a developer's `fix` call's; `do`'s fix call never reaches it, as the door
+says. One Fixer per `Act on` Finding, run in Waves, per
 [ADR 0053](../../../docs/adr/0053-the-fixers-run-in-waves-each-in-its-own-worktree-on-a-floor-a-script-computes.md):
 the Fixers of one Wave run at once, and the Waves run one after another. Each Fixer works and
 commits in a worktree and on a branch of its own, per
@@ -425,6 +447,9 @@ attempt to the next, and nothing else:
 
 Nothing of the Review reaches it, not its location and not a Finding: the red block is the whole
 of what an attempt is for, and a Gate fixer that read the Findings would widen its edits past it.
+
+`do`'s fix call never forks it: that call forks no Fixer, so no Fixer commit exists for a red to
+follow, and the red is the branch's own, as `## The Gate` reads a red with no Fixer commit.
 
 When the harness does not list `do-code-review-gate-fixer` by name, fork `general-purpose` in its
 place on `model: sonnet`, the model its definition pins, with that definition read through the
