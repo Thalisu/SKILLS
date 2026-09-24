@@ -139,6 +139,34 @@ expect "git no longer lists the worktree of the clean Fixer branch that made no 
 expect "git no longer lists the clean Fixer branch that made no commit" \
   no_branch fixer/x/r1/w1-2
 
+fresh exists
+main="$tmp/exists"
+printf 'base\n' >README.md
+commit base
+reviewed="$(branch_worktree "$main" x)"
+run add "$reviewed" x r1 1 2
+stale="$main/.claude/worktrees/fixer-x-r1-w1-2"
+printf 'earlier run\n' >"$stale/earlier.txt"
+git -C "$stale" add -A && git -C "$stale" commit -qm "an earlier run's Finding 2"
+stale_sha="$(git -C "$main" rev-parse -q --verify refs/heads/fixer/x/r1/w1-2)"
+expect "fixture: an earlier run left Finding 2's worktree on its branch" \
+  test "$(branch_of_worktree "$main" "$stale")" = "refs/heads/fixer/x/r1/w1-2"
+run add "$reviewed" x r1 1 1 2 3
+check_lines "add over a Fixer branch an earlier run left names that branch as existing: exit 3" \
+  3 "$rc" "failed exists fixer/x/r1/w1-2"
+expect "add over an existing Fixer branch prints no worktree line for any Finding of the wave" \
+  test -z "$(grep '^worktree ' <<<"$out")"
+for n in 1 3; do
+  expect "add over an existing Fixer branch leaves no worktree of Finding $n behind" \
+    unlisted "$main/.claude/worktrees/fixer-x-r1-w1-$n"
+  expect "add over an existing Fixer branch leaves no branch of Finding $n behind" \
+    no_branch "fixer/x/r1/w1-$n"
+done
+expect "the earlier run's Finding 2 worktree stays on its branch" \
+  test "$(branch_of_worktree "$main" "$stale")" = "refs/heads/fixer/x/r1/w1-2"
+expect "the earlier run's Finding 2 branch still holds its commit" \
+  test "$(git -C "$main" rev-parse -q --verify refs/heads/fixer/x/r1/w1-2)" = "$stale_sha"
+
 echo
 if [ "$fails" = 0 ]; then echo "fix-worktrees: all checks passed"; else
   echo "fix-worktrees: $fails failed"

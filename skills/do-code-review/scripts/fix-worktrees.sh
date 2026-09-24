@@ -7,7 +7,10 @@
 # fixer/<slug>/<at>/w<wave>-<n>, at <main checkout>/.claude/worktrees/fixer-<slug>-<at>-w<wave>-<n>,
 # where the main checkout is the one the reviewed tree's git common directory belongs to. It prints
 # `worktree <n> <abs path> <branch>` per Finding, in argument order. This script owns those names:
-# the orchestrator passes back the branches it printed and composes none.
+# the orchestrator passes back the branches it printed and composes none. A branch or a path that
+# already exists, an earlier run's leftover, fails the whole call with `failed exists <branch>`
+# before anything is made; any other refusal from git prints `failed <git's line>` once the
+# worktrees this call made are taken back. Either way no `worktree` line is printed.
 #
 #   fix-worktrees.sh remove <reviewed tree> <branch>...
 #
@@ -18,7 +21,8 @@
 # other is left as it stands, for the developer to read: `kept <branch> <path> dirty tree` or
 # `kept <branch> <path> unlanded commit`.
 #
-# Exit codes: add 0 every worktree created · remove 0 every one removed, 1 some kept · 2 usage.
+# Exit codes: add 0 every worktree created · remove 0 every one removed, 1 some kept · 2 usage ·
+# 3 add failed.
 set -uo pipefail
 
 usage() {
@@ -35,12 +39,32 @@ add() {
   local tree="$1" slug="$2" at="$3" wave="$4" main n branch path
   shift 4
   main="$(dirname "$(git -C "$tree" rev-parse --path-format=absolute --git-common-dir)")"
+  # Every name is checked before the first is made, so a clash leaves nothing of this call behind
+  # and never touches what an earlier run left.
   for n in "$@"; do
     branch="fixer/$slug/$at/w$wave-$n"
     path="$main/.claude/worktrees/fixer-$slug-$at-w$wave-$n"
-    git -C "$tree" worktree add -q -b "$branch" "$path" HEAD >/dev/null 2>&1
-    echo "worktree $n $path $branch"
+    if git -C "$tree" show-ref -q --verify "refs/heads/$branch" || [ -e "$path" ]; then
+      echo "failed exists $branch"
+      exit 3
+    fi
   done
+  local made=() lines=() said pair
+  for n in "$@"; do
+    branch="fixer/$slug/$at/w$wave-$n"
+    path="$main/.claude/worktrees/fixer-$slug-$at-w$wave-$n"
+    if ! said="$(git -C "$tree" worktree add -q -b "$branch" "$path" HEAD 2>&1)"; then
+      for pair in "${made[@]}"; do
+        git -C "$tree" worktree remove --force "${pair#* }" >/dev/null 2>&1
+        git -C "$tree" branch -D "${pair%% *}" >/dev/null 2>&1
+      done
+      echo "failed $(grep -m1 -E '^(error|fatal):' <<<"$said" || head -n1 <<<"$said")"
+      exit 3
+    fi
+    made+=("$branch $path")
+    lines+=("worktree $n $path $branch")
+  done
+  printf '%s\n' "${lines[@]}"
 }
 
 worktree_of() { # $1 reviewed tree, $2 branch: the path of the worktree it is checked out in, on stdout
