@@ -282,6 +282,13 @@ Then, for each Wave `<k>` as run, in order, while no stop below has fired:
      The Finding writes no line yet: its re-route count goes up by one, and it is forked again in
      the Wave that runs next, from a fresh worktree cut over the reviewed branch as this Wave's
      integration left it, which holds the Finding it lost to.
+
+     Twice at most. A Finding already re-routed twice in this run, whose pick conflicts a third
+     time, is not re-routed: the run stops paying for a coupling it cannot resolve, and the Finding
+     reads `not fixed: conflicted with Finding <m>`, naming every Finding of the line's `with`
+     list, `Finding <m>` for one and `Findings <m>, <m>` for several, so the developer reads which
+     Findings disagree. A line reading `with none` names no Finding: it reads
+     `not fixed: conflicted with no Finding of its Wave` and the files the line quoted.
    - `failed <reason>`, exit 3: nothing of the Wave is picked after it. Every Finding of the Wave
      with no `picked` line reads `not fixed: <that reason>`, and no further Wave runs.
 6. **Take the Wave's worktrees back.**
@@ -322,6 +329,7 @@ there.
 | the Fixer's commit was picked and there is no check named | `fixed <sha>, not verified` |
 | the Fixer reported the location no longer matches, and the run's own read finds it gone too, in the tree, or in the Spec source the Review's `Spec source:` header names for a quote-located Spec Finding | `stale` |
 | the Fixer reported the location no longer matches, and the run's own read finds it there, in the tree, or in the Spec source the header names for a quote-located Spec Finding | `not fixed: reported stale, the location still matches` |
+| the Fixer's commit conflicted a third time in this run, after two re-routes | `not fixed: conflicted with Finding <m>`, or the other two forms step 5 gives |
 | no commit, for either branch above, or a Fixer that did not return | `not fixed` with the reason |
 
 The two reviewers are not re-run on the Fixers' commits, and never on anything after them: the
