@@ -167,8 +167,13 @@ branch: the contested hunks take your branch's side, the ledger is judged and re
 runs whole, and the branch lands through a `fix` call on the same Review. It goes round again each
 time your branch moves before the landing, with no fixed count, so several runs landing at once all
 land: each lost race means another run landed first
-([ADR 0044](adr/0044-the-re-integration-retries-while-the-target-tip-changes.md)). It stops only
-when the integration finds nothing to replay, since then no other landing happened. The affected flows run from your checkout through a script of their own whose command line
+([ADR 0044](adr/0044-the-re-integration-retries-while-the-target-tip-changes.md)). The loop ends
+when the integration finds nothing to replay, since then no other landing happened, and the run
+does not stop there to ask you for the request again: it takes its own resume path in the same run,
+the integration once more and the landing through a `fix` call on the same Review, exactly what a
+second `/do` would have done. That resume happens once: if its integration again finds nothing to
+replay and the landing again reports your branch moved, the run stops as blocked like any other
+landing that did not happen. The affected flows run from your checkout through a script of their own whose command line
 comes first, and a red one is fixed in the worktree, gated and landed through a `fix` call on the
 same Review, never a second review. The Ticket is closed with the command lines and their
 output quoted under `## Evidence`. A run that stops for any

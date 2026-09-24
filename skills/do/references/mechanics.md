@@ -525,7 +525,10 @@ wrote, so it reads neither again. In `ticket` the path is the all-ticked bullet 
 [ticket.md](ticket.md): the integration run again, which resolves each contested hunk the review's
 landing left to the **Target** side and writes its **Incoming** side to the ledger, the Loss ledger
 judged and the reapplies brought back, with no **Gate** of the run's own, then the landing through
-the fix call on the Review the run already has, never a second review. The run lands or stops on
+the fix call on the Review the run already has, never a second review. In `bug-fix` and
+`refactoring` the path is the Resume of [bug-fix.md](bug-fix.md), the one step 2 of
+[refactoring.md](refactoring.md) hands its resume to: the Review the run already has counts, so the run integrates again, its Loss ledger
+keyed by the branch, and lands through the fix call on that Review. The run lands or stops on
 that path's own outcome, and the integration line of the Reply's Run section carries the lines of
 both integrations, per [reply.md](reply.md), never the resume as a next step.
 

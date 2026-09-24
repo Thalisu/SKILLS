@@ -291,7 +291,10 @@ section, one line per part.
 A `not landed: target moved` runs the integration again in the same run, its Loss ledger keyed by
 the branch, and lands through the fix call on the Review the run already has, as the review in
 [mechanics.md](mechanics.md) says, repeating with no fixed count while each integration replayed
-commits; a `not landed: target moved` right after an integration that ticked as a no-op stops the run as blocked. A red gate, any other return that reads not landed, a `do-code-review` the session does
+commits; a `not landed: target moved` right after an integration that ticked as a no-op sends the run
+through the Resume above in the same run, as that review says: the Review the run already has
+counts, so it integrates again and lands through the fix call on it, and the same return again,
+after that resume's integration ticked as a no-op too, stops the run as blocked. A red gate, any other return that reads not landed, a `do-code-review` the session does
 not list and a protected branch are handled the same way the `ticket` Playbook does, and the mechanics carry the
 two commands the reply adds after a refused protected-branch landing. Done when the landing line
 recorded there reads `landed at <commit>`, or the run stopped as blocked with the review's reason quoted
@@ -321,7 +324,5 @@ failing-then-passing output pasted, the developer's reports among it marked as t
 drove the surface. What this Playbook puts in the reference's sections: the Review under the files
 left uncommitted; a waived flow and a check that stood in for a test under pending debt; and the
 next step, `git push` with the developer's branch named when the review landed, or, when nothing
-landed, the worktree, its branch, and the review and the landing as what the developer runs next,
-or, on a `not landed: target moved` right after an integration that ticked as a no-op, the same run request typed again instead, in the developer's
-same words, since its resume finds the Review that counts and runs the integration again, then lands through the
-fix call on that Review. Done when the reply is sent with every section that applies.
+landed, the worktree, its branch, and the review and the landing as what the developer runs next.
+Done when the reply is sent with every section that applies.
