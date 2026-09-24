@@ -161,6 +161,12 @@ one reason naming the coupling, which the record keeps. A Wave with no such coup
 script printed it: a cut costs a Wave's worth of waiting, so one with no coupling to name is not
 made.
 
+The cut runs one way. Never put into one Wave two Findings the script printed in different Waves,
+and never move a Finding out of its floor Wave except into a piece of that same Wave, whatever your
+reading of the Findings says: the floor is the parallelism the file comparison proved safe, and a
+Wave widened past it can run two Fixers at once over one file, where the integration keeps one fix
+while the record claims both. Held to the floor, a wrong cut costs time and never a fix.
+
 The pieces of a cut Wave run one after another, in the place the floor Wave held and before the
 next floor Wave, each one integrated before the next piece's worktrees are cut, the same rule that
 holds between any two Waves below. The Waves as run are numbered from 1 in the order they run, each

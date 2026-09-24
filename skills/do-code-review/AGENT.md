@@ -299,7 +299,8 @@ carries an `Act on` Finding runs it from `## Where the Fixer works` onward: the 
 `do-code-review-fixer` per `Act on` Finding, briefed from that file and forked by Wave, the
 Findings of one Wave at once, each Fixer in a worktree of its own, per
 [ADR 0053](../../docs/adr/0053-the-fixers-run-in-waves-each-in-its-own-worktree-on-a-floor-a-script-computes.md).
-The Waves are the floor `fix-waves.sh` prints, which you may cut finer, one reason per cut, per
+The Waves are the floor `fix-waves.sh` prints, which you may cut finer, one reason per cut, and
+never widen, per
 [ADR 0055](../../docs/adr/0055-the-review-orchestrator-runs-on-opus-at-high-effort-and-no-router-agent-is-created.md).
 After the Fixers come the re-check you run yourself, the Diff tests, the
 `do-code-review-gate-fixer` when either check comes back red, the Gate, the `## Fix run` section
