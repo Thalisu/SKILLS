@@ -399,6 +399,69 @@ check_lines "a header location written as a line range still names its file, so 
   "wave=2 findings=2"
 absent "the Findings sharing src/notes.js through a range header location are never merged onto one Wave" "wave=1 findings=1,2"
 
+wrapped="$tmp/07-wrapped-fix-line.review.md"
+cat >"$wrapped" <<'MD'
+# Review: feat/export-notes
+
+Ticket: none
+Fixed point: main (3f2a9c1), inferred
+Commit: 8b1d0e4
+Spec source: no spec
+Mode: fix
+Language: English
+
+## Intent
+
+Export the active notes as CSV, with a header line and one row per note.
+
+## Safe because
+
+The only caller of `page` outside the diff runs green in a proof script. Rung 4.
+
+## Act on
+
+### 1. Correctness at src/a.js:3
+Claim: a page of ten notes returns nine.
+Evidence: eleven notes created, `page(1, 10)` called; nine rows returned, `slice` ends one short.
+Rung: 4
+Fix: a page of size ten over eleven notes returns ten rows, in
+tests/shared.test.js
+
+### 2. Security at src/b.js:9
+Claim: an expired token is accepted.
+Evidence: a token past its expiry reaches the sink with no gate on the claim.
+Rung: 4
+Risk: auth
+Fix: an expired token is rejected, in tests/shared.test.js
+
+## Consider
+
+none
+
+## Noted
+
+none
+
+## Cleared
+
+none
+
+## Axes
+
+- Correctness: 1 finding, worst #1 (Act on)
+- Spec: no spec
+- Standards: 0 findings
+- Principles: 0 findings
+- Blast radius: 0 findings
+- Security: 1 finding, worst #2 (Act on)
+MD
+
+run "$wrapped"
+check_lines "a Fix line wrapped onto a continuation line still names its target file, so a Finding sharing that file with another comes back on two separate Waves" 0 "$rc" \
+  "wave=1 findings=1" \
+  "wave=2 findings=2"
+absent "the Findings sharing tests/shared.test.js through a wrapped Fix line are never merged onto one Wave" "wave=1 findings=1,2"
+
 echo
 if [ "$fails" = 0 ]; then echo "fix-waves: all checks passed"; else
   echo "fix-waves: $fails failed"

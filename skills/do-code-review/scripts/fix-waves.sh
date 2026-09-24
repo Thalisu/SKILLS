@@ -22,30 +22,36 @@ usage() { echo "usage: fix-waves.sh <review file>" >&2; exit 2; }
 # Prints one Finding record per Finding of the `## Act on` section, in the file's order:
 #   <n>\t<header location>\t<Fix target>
 # The location is the text after ` at ` in the `### <n>. <Axis> at <location>` header, the target
-# is the text after the last `, in ` of the block's `Fix:` line, and either is the empty string
-# when the block does not carry it. Prints nothing when the section reads `none` or is absent.
+# is the text after the last `, in ` of the block's `Fix:` line read whole, its continuation lines
+# below it up to the blank line or heading that ends the block included, and either is the empty
+# string when the block does not carry it. Prints nothing when the section reads `none` or is
+# absent.
 # The only reader of the Review format in this script.
 act_on_findings() {
   awk '
+    function target_of(s,   p, line) {
+      p = 0; line = s
+      while (match(line, /, in /)) { p += RSTART + RLENGTH - 1; line = substr(line, RSTART + RLENGTH) }
+      return p > 0 ? line : ""
+    }
     /^## / { act = ($0 == "## Act on"); next }
     !act { next }
     /^### / {
-      if (n != "") print n "\t" loc "\t" target
-      n = ""; loc = ""; target = ""
+      if (n != "") print n "\t" loc "\t" target_of(fix)
+      n = ""; loc = ""; fix = ""; infix = 0
       if (match($0, /^### [0-9]+\./)) {
         n = substr($0, 5, RLENGTH - 5)
         if (match($0, / at /)) loc = substr($0, RSTART + 4)
       }
       next
     }
-    /^Fix: / {
-      line = $0
-      p = 0
-      while (match(line, /, in /)) { p += RSTART + RLENGTH - 1; line = substr(line, RSTART + RLENGTH) }
-      if (p > 0) target = line
+    /^Fix: / { fix = $0; infix = 1; next }
+    infix {
+      if ($0 ~ /^[[:space:]]*$/) { infix = 0; next }
+      fix = fix " " $0
       next
     }
-    END { if (n != "") print n "\t" loc "\t" target }
+    END { if (n != "") print n "\t" loc "\t" target_of(fix) }
   ' "$1"
 }
 
