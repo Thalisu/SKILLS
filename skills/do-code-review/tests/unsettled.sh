@@ -192,6 +192,27 @@ check_lines "a Finding whose files no commit since the Review touched, while ano
 check_lines "a Finding whose location and Fix target name no file is listed with touched=none" \
   0 "$rc" "finding=2 touched=none"
 
+fresh fix-target-only
+wt="$tmp/fix-target-only"
+mkdir -p src tests
+printf '#!/usr/bin/env bash\nset -u\necho "$1"\n' >src/a.sh
+printf '#!/usr/bin/env bash\nset -u\ntest "$(bash src/a.sh x)" = x\n' >tests/a.test.sh
+commit base
+reviewed="$(git rev-parse --short HEAD)"
+printf '#!/usr/bin/env bash\nset -u\ntest "$(bash src/a.sh x)" = x\ntest "$(bash src/a.sh y)" = y\n' >tests/a.test.sh
+commit "test: a.test.sh gains an unrelated passing case"
+
+act_on="### 1. Correctness at src/a.sh:3
+Claim: a call with no argument exits on an unbound variable.
+Evidence: \`bash src/a.sh\` exits 1 with \`\$1: unbound variable\`.
+Rung: 4
+Fix: a call with no argument prints an empty line and exits 0, in tests/a.test.sh"
+review="$tmp/10-a.review.md"
+review_at "$reviewed" "$review" "$act_on"
+run "$wt" "$review"
+check_lines "a Finding whose location's file no commit since the Review touched is listed with touched=none, though a commit touched its Fix target file" \
+  0 "$rc" "finding=1 touched=none"
+
 fresh all-settled
 wt="$tmp/all-settled"
 mkdir -p src

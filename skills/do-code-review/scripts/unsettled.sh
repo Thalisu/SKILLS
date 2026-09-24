@@ -8,11 +8,13 @@
 #
 # Prints one line per unsettled Act on Finding, in the Review's order:
 #   finding=<n> touched=<sha>|none
-# <sha> is the full hash of the latest commit in <the Review's Commit:>..HEAD that touched any file
-# of the Finding (fix-waves.sh's finding_files), and none when no commit did or the Finding names
-# no file. After a `Commit: <sha>, dirty` Review the range starts one commit later: the door refuses
-# a fix call on a dirty tree, so the first commit on top of <sha> is the developer committing the
-# tree the Review already judged, and it is no touch made after the Review.
+# <sha> is the full hash of the latest commit in <the Review's Commit:>..HEAD that touched the file
+# of the Finding's header location (fix-waves.sh's finding_files, header only, never its Fix
+# target: the target is what the fix call re-checks, not what counts as touched), and none when no
+# commit did or the header names no file. After a `Commit: <sha>, dirty` Review the range starts
+# one commit later: the door refuses a fix call on a dirty tree, so the first commit on top of
+# <sha> is the developer committing the tree the Review already judged, and it is no touch made
+# after the Review.
 #
 # Exit codes: 0 lines printed · 1 no unsettled Act on Finding · 2 usage · 3 the Review's Commit: is
 # absent or not an ancestor of HEAD, every line printed reading touched=none, since a range from a
@@ -87,7 +89,7 @@ main() {
   while IFS=$'\t' read -r n loc target; do
     [ -n "$n" ] || continue
     grep -q "^$n	fixed " <<<"$latest" && continue
-    mapfile -t files < <(finding_files "$loc" "$target")
+    mapfile -t files < <(finding_files "$loc" "")
     sha=""
     if [ "$off_branch" = 0 ] && [ "${#files[@]}" -gt 0 ]; then
       sha="$(latest_touch "$wt" "$since" "${files[@]}")"
