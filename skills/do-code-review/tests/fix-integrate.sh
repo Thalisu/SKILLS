@@ -11,6 +11,15 @@ tmp="$(mktemp -d)"
 trap 'cd /; rm -rf "$tmp"' EXIT
 
 git() { g "$@"; }
+# lib.sh's fresh() is renamed here so this file can wrap it: the script under test's own git
+# cherry-pick commits what is left to replay, which needs an identity in the fixture, since it
+# runs plain `git` and never sees g's own -c user.email/-c user.name flags.
+eval "$(declare -f fresh | sed '1s/^fresh/lib_fresh/')"
+fresh() { # $1 name: lib.sh's fresh, plus a committer identity for the script under test's own commits
+  lib_fresh "$@"
+  g config user.email t@example.com
+  g config user.name t
+}
 run() {
   rc=0
   # shellcheck disable=SC2034  # lib.sh's check_lines reads $out
