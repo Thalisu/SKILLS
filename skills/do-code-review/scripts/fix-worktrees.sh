@@ -111,6 +111,13 @@ remove() {
     # The pick gave the commit a new sha, so `branch -d` would refuse a branch landed() just proved
     # is on the reviewed branch; the force is safe only behind that check and the namespace above.
     git -C "$tree" branch -D "$branch" >/dev/null 2>&1
+    # git's remove and -D each fail silently above (a locked worktree, most simply): this is what
+    # actually decides removed vs kept, so a refusal never gets reported as a success.
+    if [ -n "$(worktree_of "$tree" "$branch")" ] || git -C "$tree" show-ref -q --verify "refs/heads/$branch"; then
+      echo "kept $branch $path removal refused"
+      verdict=1
+      continue
+    fi
     echo "removed $branch $path"
   done
   return "$verdict"

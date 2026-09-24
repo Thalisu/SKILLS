@@ -139,6 +139,23 @@ expect "git no longer lists the worktree of the clean Fixer branch that made no 
 expect "git no longer lists the clean Fixer branch that made no commit" \
   no_branch fixer/x/r1/w1-2
 
+fresh locked
+main="$tmp/locked"
+printf 'base\n' >README.md
+commit base
+reviewed="$(branch_worktree "$main" x)"
+run add "$reviewed" x r1 1 1
+locked="$main/.claude/worktrees/fixer-x-r1-w1-1"
+git -C "$main" worktree lock "$locked" >/dev/null 2>&1
+run remove "$reviewed" fixer/x/r1/w1-1
+check_lines "remove reports a Fixer worktree git refuses to remove, locked, as kept rather than removed: exit 1" \
+  1 "$rc" "kept fixer/x/r1/w1-1 $locked removal refused"
+expect "the locked Fixer worktree still lists on its branch" \
+  test "$(branch_of_worktree "$main" "$locked")" = "refs/heads/fixer/x/r1/w1-1"
+expect "the locked Fixer worktree's branch still resolves" \
+  git -C "$main" show-ref -q --verify refs/heads/fixer/x/r1/w1-1
+git -C "$main" worktree unlock "$locked" >/dev/null 2>&1
+
 fresh exists
 main="$tmp/exists"
 printf 'base\n' >README.md
