@@ -185,6 +185,7 @@ Refuted by: a proof script that imports src/report.js and calls `summary()` retu
 Date: 2026-04-18 · at 8b1d0e4
 
 - 1: fixed 4c07ab2, verified (`node --test tests/notes.test.js`)
+- wave 1: 1
 - diff tests: `node --test tests/notes.test.js`: 3 passing
 - gate fixer: not needed
 - gate: `npm test && npx tsc --noEmit`: green
@@ -193,8 +194,8 @@ Date: 2026-04-18 · at 8b1d0e4
 
 ## Fix run
 
-The section a fix appends to the Review it read, one per fix, written after the last Fixer returned
-and the orchestrator re-ran the checks itself. A `--no-fix` Review has none.
+The section a fix appends to the Review it read, one per fix, written after the last Wave was
+integrated and the orchestrator re-ran the checks itself. A `--no-fix` Review has none.
 A second `fix` appends a second section and never rewrites the first; a plain run on the same
 branch overwrites the whole file, this section with it.
 
@@ -208,11 +209,18 @@ Then one line per `Act on` Finding, by its number, in the file's order, in one o
 | `- <n>: stale` | the location no longer matches the tree, the Fixer's report and the run's own read of it agreeing, so the code was left alone and no commit was made for it |
 | `- <n>: not fixed: <the reason>` | the Fixer could not turn it green and dropped its edits for it, never reached it, or never returned, so nothing is known to have been dropped |
 
+A `<sha>` is the one the Fixer's commit has on the branch the review read, once picked there, and
+never the sha on the Fixer's own branch, which is gone once the run takes that branch back.
+
 A Review whose `Act on` is empty, or whose Findings an earlier fix already settled, forks no Fixer
 and creates no worktree: the section reads `nothing remained` on that line, then the Gate and the
 landing, with the Diff tests reading `skip: no Fixer commit`. A Finding is settled when its latest
 line across every `## Fix run` section reads `fixed`, a `nothing remained` section naming none: a
 Finding whose latest line reads `stale` or `not fixed` goes to a Fixer again.
+
+Then the Wave lines, one per Wave that forked at least one Fixer, in the order the Waves ran, each
+naming the Findings forked in it: `- wave <k>: <n>[, <n>]...`. They tell a Finding fixed in the
+first Wave from one that took a later one, and a `nothing remained` section carries none.
 
 Then three lines, in this order. The Diff tests, `- diff tests: <the commands>: <their result>`, or
 `- diff tests: skip: <the reason>`. The Gate fixer, `- gate fixer: not needed` when the Diff tests

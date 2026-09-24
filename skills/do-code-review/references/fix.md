@@ -307,7 +307,9 @@ another window with nothing to show that it will close.
 ## The append
 
 Write the `## Fix run` section the format fixes, with the date, the commit the fix ran at, one line
-per Finding by number, the Diff tests, the Gate fixer, the Gate and the landing line.
+per Finding by number, one `- wave <k>: <n>[, <n>]...` line per Wave that forked a Fixer, in the
+order the Waves ran, naming the Findings forked in it, then the Diff tests, the Gate fixer, the Gate
+and the landing line. A `nothing remained` section ran no Wave and carries no Wave line.
 
 The orchestrator has no edit tool, on this call as on every other, so appending means writing the
 whole file again with the section added, once, with the Write tool and never an edit. Read the Review off disk first:
