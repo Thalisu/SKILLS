@@ -295,7 +295,7 @@ and the next run reviews the branch again rather than landing it unread.
 
 Only now, and only when the mode is not `--no-fix`, read [fix.md](references/fix.md). A Review that
 carries an `Act on` Finding runs it from `## Where the Fixer works` onward: the Fixers, one
-general-purpose sub-agent per `Act on` Finding briefed from that file and forked one at a time, the
+`do-code-review-fixer` per `Act on` Finding, briefed from that file and forked one at a time, the
 re-check you run yourself, the Diff tests, the Gate fixer when either check comes back red, the
 Gate, the `## Fix run` section appended to the same Review, and the landing. Its three door checks
 belong to a `fix` call and you have their answers already.

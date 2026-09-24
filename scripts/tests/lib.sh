@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # lib.sh: the assertions and fixture builders the test scripts share. A script sources it after its
 # `here=` line and sets fails=0; the assertions read the caller's $out and bump the caller's $fails.
-# shellcheck disable=SC2154 # $out, $flat and $tmp belong to the sourcing script, which assigns them first.
+# shellcheck disable=SC2154 # $out, $flat, $tmp and $grader belong to the sourcing script, which assigns them first.
 
 ok() { echo "ok    $1"; }
 fail() {
@@ -359,4 +359,48 @@ policy_pieces_fixture() { # $1 project dir, $2.. the agents to install (unit, e2
   done
   bash "$scripts/render-agent.sh" test-author >"$p/.claude/skills/test-author/SKILL.md"
   cp "$scripts/scan-test-assets.sh" "$scripts/skip-patterns.sh" "$p/.claude/testing-policy/"
+}
+
+# scripts/run-eval.sh's own grade() and the helpers it calls, the lines from front() to just before
+# restore_agents(), so a test exercises an eval's grader against a throwaway work folder and no claude
+# session ever starts.
+source_grade() {
+  local runner start end
+  runner="$(dirname "${BASH_SOURCE[0]}")/../run-eval.sh"
+  start="$(grep -n '^front()' "$runner" | head -1 | cut -d: -f1)"
+  end="$(($(grep -n '^restore_agents()' "$runner" | head -1 | cut -d: -f1) - 1))"
+  # shellcheck disable=SC1090 # the runner's own functions, read from the checkout this file sits in
+  source <(sed -n "${start},${end}p" "$runner")
+}
+# One Agent tool_use transcript line. A call a forked skill's orchestrator makes carries the id of the
+# Skill call that forked it as its parent; the session's own calls carry a null one.
+agent_call_transcript() { # $1 subagent_type or empty to omit the key, $2 work folder, $3 parent tool_use id or empty for null, $4 model or empty to omit the key
+  local sub="$1" w="$2" parent="${3:-}" model="${4:-}" input
+  input='{"description":"x","prompt":"y"'
+  [ -z "$sub" ] || input="$input,\"subagent_type\":\"$sub\""
+  [ -z "$model" ] || input="$input,\"model\":\"$model\""
+  input="$input}"
+  if [ -n "$parent" ]; then parent="\"$parent\""; else parent=null; fi
+  printf '{"type":"assistant","parent_tool_use_id":%s,"message":{"content":[{"type":"tool_use","id":"t1","name":"Agent","input":%s}]}}\n' \
+    "$parent" "$input" >"$w/transcript.jsonl"
+}
+# grade() against a run holding that one Agent call: the grader in the caller's $grader passes it (prints nothing)
+agent_call_passes() { # $1 label, then agent_call_transcript's $1, $3 and $4: subagent_type, parent id, model
+  local w out
+  w="$(mktemp -d "$tmp/w.XXXXXX")"
+  agent_call_transcript "$2" "$w" "${3:-}" "${4:-}"
+  out="$(grade "$grader" "$w")"
+  if [ -z "$out" ]; then ok "$1"; else
+    fail "$1 (wanted empty, got: $out)"
+  fi
+}
+# ... or fails it (prints a reason)
+agent_call_fails() { # $1 label, then agent_call_transcript's $1, $3 and $4: subagent_type, parent id, model
+  local w out
+  w="$(mktemp -d "$tmp/w.XXXXXX")"
+  agent_call_transcript "$2" "$w" "${3:-}" "${4:-}"
+  out="$(grade "$grader" "$w")"
+  if [ -n "$out" ]; then ok "$1"; else
+    fail "$1 (wanted a non-empty failure reason, grader passed instead)"
+  fi
 }

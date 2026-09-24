@@ -20,8 +20,10 @@
 #   llm          criteria, read against the run's transcript and what the run changed in the
 #                fixture by one judge session, which answers for every llm grader of the run
 #   regex        pattern (PCRE), match: contains, target: last_message
-#   tool_used    tool, input_match (PCRE over the input as compact JSON), min, max; it counts the
-#                calls the session makes itself, never a subagent's
+#   tool_used    tool, input_match (PCRE over the input as compact JSON), min, max, scope; it counts
+#                the calls the session makes itself, never a subagent's, unless scope reads all,
+#                which counts every call in the transcript, a subagent's included: the only way to
+#                see the Agent calls of a `context: fork` skill, whose orchestrator is a subagent
 #   file_exists  path, a glob from the fixture's root
 # A case is green only when every run passes every grader.
 #
@@ -95,6 +97,9 @@ own_tool_uses() { # $1 transcript: the tool calls the session made itself; a sub
   events "$1" | jq -c 'select(.type == "assistant" and (.parent_tool_use_id // null) == null)
     | .message.content[]? | select(.type == "tool_use")'
 }
+all_tool_uses() { # $1 transcript: every tool call in it, the session's own and every subagent's
+  events "$1" | jq -c 'select(.type == "assistant") | .message.content[]? | select(.type == "tool_use")'
+}
 readable() { # $1 transcript: the run as the judge reads it
   events "$1" | jq -r '
     def clip: if length > 2000 then .[0:2000] + " [clipped]" else . end;
@@ -153,7 +158,7 @@ EOF
 }
 
 grade() { # $1 grader, $2 work folder: prints why the run fails the grader, nothing when it passes
-  local g="$1" w="$2" name type answer verdict reason pattern match target tool input_match min max count path
+  local g="$1" w="$2" name type answer verdict reason pattern match target tool input_match min max count path uses
   name="$(basename "$g" .md)"
   type="$(key "$g" type)"
   case "$type" in
@@ -179,7 +184,8 @@ grade() { # $1 grader, $2 work folder: prints why the run fails the grader, noth
       esac ;;
     tool_used)
       tool="$(key "$g" tool)"; input_match="$(key "$g" input_match)"; min="$(key "$g" min)"; max="$(key "$g" max)"
-      count="$(own_tool_uses "$w/transcript.jsonl" | jq -c --arg t "$tool" 'select(.name == $t) | .input' |
+      uses=own_tool_uses; [ "$(key "$g" scope)" != all ] || uses=all_tool_uses
+      count="$("$uses" "$w/transcript.jsonl" | jq -c --arg t "$tool" 'select(.name == $t) | .input' |
         grep -cP -- "${input_match:-.}")"
       if [ "$count" -lt "${min:-1}" ] || { [ -n "$max" ] && [ "$count" -gt "$max" ]; }; then
         echo "$tool called $count times with a matching input, wanted ${min:-1} to ${max:-any}"

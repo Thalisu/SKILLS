@@ -100,14 +100,16 @@ per the two-trees contract.
 
 ## The Fixer
 
-One Fixer per `Act on` Finding, one at a time, in the file's order: each is a general-purpose
-sub-agent forked with the Agent tool, and the next is forked only once the one before it returned.
+One Fixer per `Act on` Finding, one at a time, in the file's order: each is the
+`do-code-review-fixer` agent this skill ships, forked with the Agent tool as
+`subagent_type: do-code-review-fixer` and no `model` key, so it runs on the model and the effort its
+definition picks and never on the session's, and the next is forked only once the one before it
+returned.
 They all write in the one tree, so they are never two at once, per
 [separate-before-serializing-shared-state](../../../.agents/principles/separate-before-serializing-shared-state.md):
 a test author running its red against another Fixer's half-made edit proves nothing, and two
 commits at once fight over the index. A Fixer holds its one Finding and nothing else, so its
-window stays the size of that Finding. It has no definition of its own: its whole contract is the
-brief below, which is why this file exists. It gets the Review's location, the branch it commits
+window stays the size of that Finding. It gets the Review's location, the branch it commits
 on, its `Tree:` line, its one Finding with its number, location, `Claim:` and `Fix:` line, its
 `Return file:` line, and four rules. Every path it checks or edits, and every code path it reads, is
 under its `Tree:` path, never under another checkout, with the one exception rule 3 carries: a
