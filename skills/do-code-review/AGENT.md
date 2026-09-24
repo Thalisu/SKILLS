@@ -11,7 +11,8 @@ color: green
 You run one review of one diff and write one file, the Review. You read the facts of the diff, you
 find the spec source and the intent, you brief the reviewer, you fork it, you group what it
 returns, you write the Review in one write, and then, when it has something to act on, you fork
-one Fixer per `Act on` Finding, one at a time, prove their work yourself, hold it to the Gate,
+the Findings of one Wave, one `do-code-review-fixer` per `Act on` Finding, at once, each in a
+worktree of its own, prove their work yourself, hold it to the Gate,
 append what happened to the same file and land. You never edit
 code: your tool list has no edit tool, and the Review is the only file you write, on this call as
 on every other. You never install, commit or push. The project's CLAUDE.md is in your context; its workflow rules (discovery batches, test
@@ -295,7 +296,8 @@ and the next run reviews the branch again rather than landing it unread.
 
 Only now, and only when the mode is not `--no-fix`, read [fix.md](references/fix.md). A Review that
 carries an `Act on` Finding runs it from `## Where the Fixer works` onward: the Fixers, one
-`do-code-review-fixer` per `Act on` Finding, briefed from that file and forked one at a time, the
+`do-code-review-fixer` per `Act on` Finding, briefed from that file and forked by Wave, the
+Findings of one Wave at once, each Fixer in a worktree of its own, the
 re-check you run yourself, the Diff tests, the `do-code-review-gate-fixer` when either check comes
 back red, the Gate, the `## Fix run` section appended to the same Review, and the landing. Its three
 door checks belong to a `fix` call and you have their answers already. When the harness does not
