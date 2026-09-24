@@ -284,10 +284,9 @@ Then, for each Wave `<k>` as run, in order, while no stop below has fired:
    shares, so the next Wave is cut and forked as usual and none of its Findings reads this reason.
    Its worktree and its branch stay where step 1 cut them, for the developer to read: the
    Finding's line in the `## Fix run` section names both, the path and the branch its `worktree`
-   line printed, and so does the reply.
-   No Gate fixer is forked from there on, whatever the Diff tests or the Gate read,
-   the `fix/<slug>` worktree and its branch stay in place and are named, and the landing line reads
-   `not landed: a Fixer did not return`.
+   line printed, and so does the reply. The run then goes on as any run does, through the
+   re-check, the Diff tests, the Gate, the Gate fixer on a red one, the append and the landing,
+   and lands nothing: that Finding `not fixed` keeps the Review from Green.
 4. **Read each returned line**: a commit, a location reported stale, or `not fixed` with what
    stopped it. Two of a Fixer's lines end in no commit, per its definition, and the run reads them
    this way:

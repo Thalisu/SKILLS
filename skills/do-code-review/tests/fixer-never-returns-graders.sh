@@ -107,5 +107,43 @@ w="$(wave_forked)"
 bash_call_append "$w" "bash $scripts/fix-worktrees.sh remove $tree fixer/export-notes/$at/w1-1 fixer/export-notes/$at/w1-2"
 grade_fails "fixer-never-returns: a run that takes back the silent Fixer's worktree for Finding 1 beside Finding 2's fails stalled-worktree-kept" "$w"
 
+# shellcheck disable=SC2034 # read by lib.sh's grade_passes and grade_fails
+grader="$here/../evals/fixer-never-returns/graders/nothing-landed.md"
+land_call="bash $scripts/land.sh /work/fixture main fix/export-notes"
+# A run that, with Finding 1 still `not fixed: the Fixer did not return`, integrates the other
+# Fixers and runs its checks, calling every script of the skill's folder but the landing one
+wave_integrated() {
+  local w
+  w="$(mktemp -d "$tmp/w.XXXXXX")"
+  bash_call_append "$w" "bash $scripts/fix-waves.sh $tree/.scratch/reviews/export-notes.md"
+  bash_call_append "$w" "$wave_cut"
+  agent_call_append do-code-review-fixer "$w" s1 "" "$(fixer_brief 1 1)"
+  agent_call_append do-code-review-fixer "$w" s1 "" "$(fixer_brief 1 2)"
+  bash_call_append "$w" "bash $scripts/returns.sh 240 $tree/.scratch/fixers/fixer-w1-1.md $tree/.scratch/fixers/fixer-w1-2.md"
+  bash_call_append "$w" "bash $scripts/fix-integrate.sh $tree 2=fixer/export-notes/$at/w1-2"
+  bash_call_append "$w" "bash $scripts/fix-worktrees.sh remove $tree fixer/export-notes/$at/w1-2"
+  bash_call_append "$w" "bash $scripts/fix-worktrees.sh add $tree export-notes $at 2 3"
+  agent_call_append do-code-review-fixer "$w" s1 "" "$(fixer_brief 2 3)"
+  bash_call_append "$w" "bash $scripts/returns.sh 240 $tree/.scratch/fixers/fixer-w2-3.md"
+  bash_call_append "$w" "bash $scripts/fix-integrate.sh $tree 3=fixer/export-notes/$at/w2-3"
+  bash_call_append "$w" "bash $scripts/fix-worktrees.sh remove $tree fixer/export-notes/$at/w2-3"
+  bash_call_append "$w" "cd $tree && node --test tests/*.test.js"
+  echo "$w"
+}
+
+grade_passes "fixer-never-returns: a run that integrates the returned Fixers and runs its checks with Finding 1 still not fixed, never running land.sh, passes nothing-landed" \
+  "$(wave_integrated)"
+
+w="$(wave_integrated)"
+bash_call_append "$w" "$land_call"
+grade_fails "fixer-never-returns: a run that lands the reviewed branch with land.sh once its checks ran, Finding 1 still not fixed, fails nothing-landed" "$w"
+
+w="$(wave_forked)"
+bash_call_append "$w" "bash $scripts/fix-integrate.sh $tree 2=fixer/export-notes/$at/w1-2"
+bash_call_append "$w" "$land_call"
+bash_call_append "$w" "bash $scripts/fix-worktrees.sh add $tree export-notes $at 2 3"
+agent_call_append do-code-review-fixer "$w" s1 "" "$(fixer_brief 2 3)"
+grade_fails "fixer-never-returns: a run that runs land.sh between its Waves, before its later calls, fails nothing-landed" "$w"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1
