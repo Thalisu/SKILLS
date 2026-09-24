@@ -219,8 +219,16 @@ line across every `## Fix run` section reads `fixed`, a `nothing remained` secti
 Finding whose latest line reads `stale` or `not fixed` goes to a Fixer again.
 
 Then the Wave lines, one per Wave that forked at least one Fixer, in the order the Waves ran, each
-naming the Findings forked in it: `- wave <k>: <n>[, <n>]...`. They tell a Finding fixed in the
-first Wave from one that took a later one, and a `nothing remained` section carries none.
+naming the Findings forked in it: `- wave <k>: <n>[, <n>]...`. `<k>` counts the Waves as they ran,
+from 1, a piece of a cut Wave counting as a Wave of its own. They tell a Finding fixed in the first
+Wave from one that took a later one, and a `nothing remained` section carries none.
+
+A floor Wave the run cut finer, because two of its Findings were coupled in a way `fix-waves.sh`
+cannot see, carries one cut line, placed right above the Wave lines of its pieces:
+`- cut: floor wave <k> into <n>[, <n>]... | <n>[, <n>]...: <the reason>`. Its `<k>` is the Wave's
+number as the script printed it, the pieces are separated by `|` in the order they ran, and the
+reason names the coupling. It tells a developer why two Findings the script allowed together ran
+apart. A run that cut nothing carries no cut line.
 
 Then three lines, in this order. The Diff tests, `- diff tests: <the commands>: <their result>`, or
 `- diff tests: skip: <the reason>`. The Gate fixer, `- gate fixer: not needed` when the Diff tests
