@@ -502,12 +502,13 @@ After each attempt the orchestrator runs every Finding's check, the duplication 
 and the Gate again itself, and never takes the Gate fixer's word for it, a duplicate it says it
 promoted included. Clean and green, and the run goes on. Red or dirty after the second attempt, and
 the Review is not Green: nothing lands, the `## Fix run` section reads
-`- gate fixer: two attempts, still red`, the landing line reads
-`not landed: gate red after the fixes, <the failing check>`, naming the duplication scan when its
-rows are what stayed, and the branch and its worktree stay
-in place, so the developer can read what each Fixer and the Gate fixer did. Two attempts and no
-third, since a red that survives both is a diff that is not converging, and one more attempt costs
-another window with nothing to show that it will close.
+`- gate fixer: two attempts, still red`, and the landing line names what stayed, never a green
+check as red: `not landed: gate red after the fixes, <the failing check>` when the Diff tests or
+the Gate is what stayed red, and `not landed: duplication scan still dirty after the fixes,
+<name>[, <name>]...` naming every row still dirty when the scan alone is what stayed, and the
+branch and its worktree stay in place, so the developer can read what each Fixer and the Gate fixer
+did. Two attempts and no third, since a red that survives both is a diff that is not converging,
+and one more attempt costs another window with nothing to show that it will close.
 
 ## The append
 
@@ -528,8 +529,9 @@ not.
 
 ## The landing
 
-The Review is Green when every `Act on` Finding reads `fixed` and `verified`, every Axis ran and
-the Gate is green. `Consider`, `Noted` and `Cleared` never block.
+The Review is Green when every `Act on` Finding reads `fixed` and `verified`, every Axis ran, the
+duplication scan is clean or skipped and the Gate is green. `Consider`, `Noted` and `Cleared` never
+block.
 
 A Finding that keeps the Review from Green is named on the landing line by its number, every `Act
 on` Finding whose latest line is not `fixed <sha>, verified`, in the file's order:
