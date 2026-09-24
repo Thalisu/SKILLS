@@ -175,6 +175,7 @@ main() {
     sets+="$n	$files"$'\n'
   done <<<"$records"
 
+  [ -n "$sets" ] || return 1
   printf '%s' "$sets" | group_waves
 }
 

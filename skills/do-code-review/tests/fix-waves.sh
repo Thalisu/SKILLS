@@ -824,6 +824,29 @@ run "$settled" --settled 1
 check_absent "a settled number whose latest Fix run line already reads fixed is refused with exit 2, and no Wave is printed" 2 "$rc" \
   "wave="
 
+all_fixed="$tmp/12-every-finding-fixed.review.md"
+review_at 8b1d0e4 "$all_fixed" "" "## Fix run
+
+Date: 2026-09-24 · at 8b1d0e4
+
+- 1: fixed 4c07ab2, verified (\`bash tests/a.test.sh\`)
+- diff tests: \`bash tests/a.test.sh\`: 1 passing
+- gate fixer: not needed
+- gate: \`bash tests/a.test.sh\`: green
+- landed: 4c07ab2"
+
+run "$all_fixed"
+check_absent "a Review whose every Act on Finding a Fix run reads as fixed leaves nothing to fork: exit 1 and no Wave" 1 "$rc" \
+  "wave="
+
+run "$held" --settled 1,2,3
+check_absent "a Review whose every Act on Finding the fix call names as settled leaves nothing to fork: exit 1 and no Wave" 1 "$rc" \
+  "wave="
+
+run "$settled" --settled 2
+check_absent "a Review whose Findings are settled part by a later Fix run and the rest by the fix call leaves nothing to fork: exit 1 and no Wave" 1 "$rc" \
+  "wave="
+
 echo
 if [ "$fails" = 0 ]; then echo "fix-waves: all checks passed"; else
   echo "fix-waves: $fails failed"
