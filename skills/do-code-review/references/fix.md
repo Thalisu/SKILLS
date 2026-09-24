@@ -1,8 +1,8 @@
 # The fix
 
 What the orchestrator does once there is something to fix: read the `Act on` list, put the Fixers
-where they belong, fork them one at a time, re-run their work, hold it to the Diff tests and the
-Gate, append the record and land.
+where they belong, fork them in Waves, each Fixer in a worktree of its own, re-run their work, hold
+it to the Diff tests and the Gate, append the record and land.
 It is read by the orchestrator alone: whole on a `fix` call, from `## Where the Fixer works` on a
 default run whose Review carries an `Act on` Finding, and at `## The landing` on a default run
 whose Review carries none and is Green, since a Green Review lands either way. Only a `--no-fix`
@@ -77,7 +77,7 @@ call reads again keeps the Review from ever turning Green.
 One question decides it: is the branch the Review judged the branch the developer's checkout is on?
 
 - **No.** That is `do` at its review step: the branch is the `do/<slug>` worktree branch, and its
-  worktree already exists. The Fixers work there, and the run removes nothing it did not create.
+  worktree already exists. It is the reviewed tree, and the run removes nothing it did not create.
   The worktree is `do`'s, it stays for `do`'s flows and its close, and taking it away would end the
   run that called us.
 - **Yes.** A plain call on the developer's own branch. The run creates the worktree itself, from
@@ -91,34 +91,42 @@ One question decides it: is the branch the Review judged the branch the develope
   the run and after it, which matters because the fix door measures that status. The run removes it
   and its branch on the rules `## The landing` carries.
 
-Either way every Fixer, and the Gate fixer, is forked from the tree it works in, and its brief
-still names that tree, `Tree: <its absolute path>`. A fork's shell starts in the tree it was forked
-from, but its file tools take absolute paths, and a Fixer has built them from the main checkout,
-where the diff under review is not: it read a line the branch changed as gone and reported a live
-Finding `stale`. The run never changes its own working directory and never uses a worktree tool,
-per the two-trees contract.
+Either way that is the reviewed tree, and the re-check, the Diff tests, the Gate, the Gate fixer and
+the landing all run there, on the reviewed branch as the Waves integrated it. A Fixer works in a
+tree of its own, cut beside it for its one Finding by the Wave's `fix-worktrees.sh add` line (see
+`## The Fixer`), so two Fixers of one Wave never share an index.
+
+Every Fixer, and the Gate fixer, is forked from the reviewed tree, the run's own working directory,
+and its brief names the tree it works in, `Tree: <its absolute path>`: the reviewed tree for the
+Gate fixer, its own worktree for a Fixer. A fork's shell starts in the tree it was forked from, but
+its file tools take absolute paths, and a Fixer has built them from the main checkout, where the
+diff under review is not: it read a line the branch changed as gone and reported a live Finding
+`stale`. The run never changes its own working directory and never uses a worktree tool, per the
+two-trees contract, and never writes a git command that makes or removes a Fixer's worktree or
+branch: `fix-worktrees.sh` composes those names and is the only thing that touches them, so the
+run hands back only the branches it printed.
 
 ## The Fixer
 
-One Fixer per `Act on` Finding, one at a time, in the file's order: each is the
-`do-code-review-fixer` agent this skill ships, forked with the Agent tool as
-`subagent_type: do-code-review-fixer` and no `model` key, so it runs on the model and the effort its
-definition picks and never on the session's, and the next is forked only once the one before it
-returned.
-They all write in the one tree, so they are never two at once, per
+One Fixer per `Act on` Finding, run in Waves, per
+[ADR 0053](../../../docs/adr/0053-the-fixers-run-in-waves-each-in-its-own-worktree-on-a-floor-a-script-computes.md):
+the Fixers of one Wave run at once, and the Waves run one after another. Each Fixer works and
+commits in a worktree and on a branch of its own, per
 [separate-before-serializing-shared-state](../../../.agents/principles/separate-before-serializing-shared-state.md):
 a test author running its red against another Fixer's half-made edit proves nothing, and two
-commits at once fight over the index. A Fixer holds its one Finding and nothing else, so its
-window stays the size of that Finding.
+commits at once in one tree fight over its index. A Fixer holds its one Finding and nothing else,
+so its window stays the size of that Finding.
 
-Its contract is its definition,
+Each is the `do-code-review-fixer` agent this skill ships, forked with the Agent tool as
+`subagent_type: do-code-review-fixer` and no `model` key, so it runs on the model and the effort its
+definition picks and never on the session's. Its contract is its definition,
 [do-code-review-fixer.md](../agents/do-code-review-fixer.md): the four rules, the tree it reads and
 writes in, the two ends with no commit and the return file, none of them restated here. Its brief
 carries what changes from one call to the next, and nothing else:
 
 - the Review's location;
-- the branch it commits on;
-- `Tree: <the absolute path of the tree it works in>`;
+- `Branch: <the branch its worktree line printed>`, the branch it commits on;
+- `Tree: <the path its worktree line printed>`, the tree it works in;
 - its one Finding: its number, its location, its `Claim:` and its `Fix:` line;
 - `Return file: <the path below>`.
 
@@ -129,29 +137,51 @@ prompt and the same brief after it. A missing link never blocks the fix: it is t
 Fixer takes on a machine that linked the skill and not its agents, and under Codex, which registers
 no custom agent.
 
+### The Waves
+
 The run is not over until the landing line is written, whatever the Agent tool does. Make one
-directory outside every repository before the first Fixer,
-`mktemp -d "${TMPDIR:-/tmp}/do-code-review-fix.XXXX"`, and give each Fixer
-`Return file: <that directory>/fixer-<its number>.md`. When the Agent tool returns the Fixer's
-line, go on. When it returns before the Fixer does, because the harness runs sub-agents in the
-background, do not end your turn: a turn ended there hands the Fixer's result to your caller
-instead of to you, and the re-check, the Gate and the landing never run. Wait for its return file
-with `bash ~/.claude/skills/do-code-review/scripts/returns.sh 240 <its return file>`, given the
-Bash tool's own `timeout` at its maximum, `600000` ms, so the script's window closes first, and
-call it again on a `missing=` line, three windows and no more. A Fixer whose file has not landed
-after the third reads `not fixed: the Fixer did not return`,
-and no further Fixer is forked, since it may still be writing in the tree; every Finding left reads
-the same, and the run goes on to the re-check, which only reads what is already committed. From
-there nothing else writes in that tree or removes it: no Gate fixer is forked from there on,
-whatever the Diff tests or the Gate read, the `fix/<slug>` worktree and its branch stay in place
-and are named, and the landing line reads `not landed: a Fixer did not return`.
+directory outside every repository before the first Wave,
+`mktemp -d "${TMPDIR:-/tmp}/do-code-review-fix.XXXX"`, the directory every return file below goes
+in.
 
-Two of a Fixer's lines end in no commit, per its definition, and the run reads them this way:
+Which Findings share a Wave is a script's output and never the run's reading of the Findings: run
+`bash ~/.claude/skills/do-code-review/scripts/fix-waves.sh <the Review's absolute path>` once, and
+read its `wave=<k> findings=<n>[,<n>]...` lines, one per Wave, in the order the Waves run. A
+Finding the `## The Act on list` rule reads as settled is left out of its Wave, and a Wave left with
+no Finding forks nothing and is skipped.
 
-- `not fixed: test author unreachable`, the Agent tool withheld from it. No further Fixer is
-  forked, since each would meet the same wall, and every Finding left reads the same.
-- `not fixed` with a test's reason, a test that would not go green. The Fixer dropped its own edits
-  for that Finding, so the next Fixer is forked on a clean tree as usual.
+Then, for each Wave `<k>` in order, while no stop below has fired:
+
+1. **Cut the Wave's worktrees.**
+   `bash ~/.claude/skills/do-code-review/scripts/fix-worktrees.sh add <the reviewed tree> <slug> <at> <k> <n>...`,
+   with the door's `slug=`, the short sha the `Date:` line records, the Wave's number and its
+   Findings. It prints one `worktree <n> <path> <branch>` line per Finding, each cut from the
+   reviewed tree's HEAD as it stands now. A `failed` line, exit 3, means no worktree of this Wave
+   exists: every Finding of the Wave reads `not fixed: worktree not created`, no further Wave runs,
+   and the run goes to the re-check.
+2. **Fork the Wave at once.** One Fixer per Finding of the Wave, every one of them in one message,
+   each with the brief above, its `Branch:` and `Tree:` taken from its own `worktree` line, and
+   `Return file: <that directory>/fixer-w<k>-<n>.md`.
+3. **Wait for the whole Wave.** When the Agent tool returns every Fixer's line, go on. When it
+   returns before them, because the harness runs sub-agents in the background, do not end your
+   turn: a turn ended there hands the Fixers' results to your caller instead of to you, and the
+   re-check, the Gate and the landing never run. Wait for the Wave in one call over every return
+   file it forked,
+   `bash ~/.claude/skills/do-code-review/scripts/returns.sh 240 <every return file of the Wave>`,
+   given the Bash tool's own `timeout` at its maximum, `600000` ms, so the script's window closes
+   first, and call it again over the files still `missing=`, three windows and no more. A Fixer
+   whose file has not landed after the third reads `not fixed: the Fixer did not return`, and no
+   further Wave runs, since it may still be writing in its worktree; every Finding of a later Wave
+   reads the same. No Gate fixer is forked from there on, whatever the Diff tests or the Gate read,
+   the `fix/<slug>` worktree and its branch stay in place and are named, and the landing line reads
+   `not landed: a Fixer did not return`.
+4. **Read each returned line**: a commit, a location reported stale, or `not fixed` with what
+   stopped it. Two of a Fixer's lines end in no commit, per its definition, and the run reads them
+   this way:
+   - `not fixed: test author unreachable`, the Agent tool withheld from it. No further Wave runs,
+     since each Fixer would meet the same wall, and every Finding of a later Wave reads the same.
+   - `not fixed` with a test's reason, a test that would not go green. The Fixer dropped its own
+     edits in its own worktree, which stays clean.
 
 ## The re-check
 
