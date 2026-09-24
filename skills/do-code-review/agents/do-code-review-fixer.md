@@ -87,4 +87,6 @@ Both are reported, never worked around:
 Write your line to the brief's `Return file:` in one shell command, before you end your turn, as
 well as returning it. The harness may hand the orchestrator its turn back before you finish, and
 the orchestrator then waits on that file: a file that never lands reads
-`not fixed: the Fixer did not return`, no Wave after yours is forked, and nothing lands.
+`not fixed: the Fixer did not return` for your Finding alone. The rest of your Wave and every Wave
+after it still run, nothing of your branch is brought onto the reviewed branch, and your worktree is
+left in place for the developer to read.

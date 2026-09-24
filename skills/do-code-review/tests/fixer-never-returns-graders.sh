@@ -26,18 +26,26 @@ bash_call_append() { # $1 work folder, $2 the command
 tree="/work/fixture/.claude/worktrees/fix-export-notes"
 # shellcheck disable=SC2088 # the literal tilde the orchestrator types, never expanded
 scripts="~/.claude/skills/do-code-review/scripts"
-wave_cut="bash $scripts/fix-worktrees.sh add $tree export-notes 1a2b3c4-Xq9 1 1 2"
-fixer_brief() { # $1 the Finding's number
-  printf 'Finding: %s. src/export.js:12 quotes a title twice.\nBranch: fixer/export-notes/1a2b3c4-Xq9/w1-%s\nTree: %s/.claude/worktrees/fixer-w1-%s\nReturn file: %s/.scratch/fixers/fixer-%s.md' \
-    "$1" "$1" "$tree" "$1" "$tree" "$1"
+at="1a2b3c4-Xq9"
+wave_cut="bash $scripts/fix-worktrees.sh add $tree export-notes $at 1 1 2"
+# The brief the orchestrator hands a Finding's Fixer, naming the Finding's own location in the fixture
+fixer_brief() { # $1 the Wave, $2 the Finding's number
+  local where claim
+  case "$2" in
+    1) where="src/notes.js:15" claim="the page of a list starts one slot late." ;;
+    2) where="src/export.js:13" claim="the export joins its rows with nothing between them." ;;
+    3) where="src/csv.js:2" claim="a field holding a comma is written bare, so its row splits into one column too many." ;;
+  esac
+  printf 'Finding: %s. Correctness at %s\nClaim: %s\nBranch: fixer/export-notes/%s/w%s-%s\nTree: %s/.claude/worktrees/fixer-export-notes-%s-w%s-%s\nReturn file: %s/.scratch/fixers/fixer-w%s-%s.md' \
+    "$2" "$where" "$claim" "$at" "$1" "$2" "$tree" "$at" "$1" "$2" "$tree" "$1" "$2"
 }
 # A run that cut Wave 1 for Findings 1 and 2 and forked both Fixers
 wave_forked() {
   local w
   w="$(mktemp -d "$tmp/w.XXXXXX")"
   bash_call_append "$w" "$wave_cut"
-  agent_call_append do-code-review-fixer "$w" s1 "" "$(fixer_brief 1)"
-  agent_call_append do-code-review-fixer "$w" s1 "" "$(fixer_brief 2)"
+  agent_call_append do-code-review-fixer "$w" s1 "" "$(fixer_brief 1 1)"
+  agent_call_append do-code-review-fixer "$w" s1 "" "$(fixer_brief 1 2)"
   echo "$w"
 }
 
@@ -54,6 +62,17 @@ grade_fails "fixer-never-returns: a run that cut the Wave, forked its Fixers and
 w="$(wave_forked)"
 bash_call_append "$w" "bash $scripts/fix-integrate.sh $tree 1=fixer/export-notes/1a2b3c4-Xq9/w1-1"
 grade_fails "fixer-never-returns: a run handing fix-integrate.sh only Finding 1's branch, never Finding 2's, fails returned-fixer-integrated" "$w"
+
+# shellcheck disable=SC2034 # read by lib.sh's grade_passes and grade_fails
+grader="$here/../evals/fixer-never-returns/graders/later-wave-forked.md"
+
+w="$(wave_forked)"
+bash_call_append "$w" "bash $scripts/fix-worktrees.sh add $tree export-notes $at 2 3"
+agent_call_append do-code-review-fixer "$w" s1 "" "$(fixer_brief 2 3)"
+grade_passes "fixer-never-returns: a run that still forks Finding 3's Fixer in Wave 2 after Finding 1's Fixer went silent passes later-wave-forked" "$w"
+
+grade_fails "fixer-never-returns: a run that stopped after Wave 1, forking only the Fixers of Findings 1 and 2, fails later-wave-forked" \
+  "$(wave_forked)"
 
 [ "$fails" -eq 0 ] && exit 0
 exit 1
