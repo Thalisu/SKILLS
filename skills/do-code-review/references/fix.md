@@ -462,7 +462,8 @@ the head of the prompt and the same brief after it, as for a Fixer.
 
 The Gate fixer's return file is waited for the way a Fixer's is, three windows and no more. One whose file never lands ends the attempts, since it may still be
 writing in the tree: nothing lands, the `## Fix run` section reads `- gate fixer: no return`, and
-the landing line reads `not landed: gate fixer did not return, <the failing check>`.
+the landing line reads `not landed: gate fixer did not return, <the failing check>`, with a
+Finding still open named beside it, per `## The landing`.
 
 After each attempt the orchestrator runs every Finding's check, the Diff tests and the Gate again
 itself, and never takes the Gate fixer's word for it. Green, and the run goes on. Red after the
@@ -507,6 +508,16 @@ overruling it, and a landing line that led with another reason would send `do` t
 cannot clear the Finding, and its next run would stop on it again. The Gate still runs and its
 line still reads red when it is, so the record shows whether the Finding was the only thing
 keeping the branch from landing.
+
+The one thing it never gets ahead of is a Fixer or the Gate fixer that did not return: that reason
+warns a fork may still be writing in the tree, a live hazard the developer has to read before
+anything else, so it stays on the landing line whatever Finding is open. A Fixer's non-return, per
+step 3 of `## The Waves`, already gives every open Finding of the run the same reason, so the line
+names it alone, `not landed: a Fixer did not return`, as it already reads there. The Gate fixer
+runs after every Wave, so a Finding may be open for a reason of its own when it does not return,
+per `## The Gate fixer`, and the line then names both, the non-return first: `not landed: gate
+fixer did not return, <the failing check>; Finding <n>[, <n>]... not fixed or not verified; the
+branch <name> and its worktree stay in place`.
 
 Green lands, under ADR 0013's rules as ADR 0027 amends them and no others: the landing target is
 fast-forwarded to the reviewed branch, the one the Fixers' commits were picked onto, by
@@ -624,9 +635,9 @@ Fixers did.
 
 A Fixer or the Gate fixer that never returned is not that case even with no commit of its own: it
 may still be writing in the tree, so the run removes nothing, forks no Gate fixer, and the landing
-line reads `not landed: a Fixer did not return` or `not landed: the Gate fixer did not return`,
-with the `fix/<slug>` worktree and its branch staying in place and named the same as a commit the
-run could not land.
+line reads `not landed: a Fixer did not return` or `not landed: gate fixer did not return, <the
+failing check>`, per `## The landing`, with the `fix/<slug>` worktree and its branch staying in
+place and named the same as a commit the run could not land.
 
 A Fixer or a Gate fixer that committed something the run could not land is the one case that keeps
 both: not Green, or a landing refused for any of the reasons above, and the worktree and the branch

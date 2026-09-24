@@ -264,18 +264,23 @@ after its review, when a Finding stays open and the Diff tests or the Gate read 
   every reason the landing rules of
   [ADR 0013](../../docs/adr/0013-do-code-review-lands-a-green-review-by-fast-forward.md) give, as
   [ADR 0027](../../docs/adr/0027-the-rebase-runs-in-the-session-before-the-review-and-the-landing-retries-only-the-mechanical-class.md)
-  amends them: a Finding `not fixed` or `not verified`, an Axis `not run`, a red Gate, a protected
-  target, a failed fast-forward, and a moved target with a `contested` hunk or a key the union
-  defines twice. A Finding's reason names it by its number, every `Act on` Finding whose latest
+  amends them: a Finding `not fixed` or `not verified`, a Fixer or the Gate fixer that did not
+  return, an Axis `not run`, a red Gate, a protected target, a failed fast-forward, and a moved
+  target with a `contested` hunk or a key the union defines twice. A Finding's reason names it by
+  its number, every `Act on` Finding whose latest
   line is not `fixed <sha>, verified` in the file's order under one label,
   `not landed: Finding <n>[, <n>]... not fixed or not verified`, so a caller that never opens the
-  Review knows which one is open, and it comes first, ahead of every other reason the landing has.
+  Review knows which one is open, and it comes first, ahead of every other reason the landing has,
+  except a Fixer or the Gate fixer that did not return: that reason warns a fork may still be
+  writing in the tree, so it stays on the line too. A Fixer's non-return leaves every open Finding
+  of the run with the same reason, so the line names it alone, `not landed: a Fixer did not
+  return`. A Gate fixer's non-return may leave a Finding open for a reason of its own, so the line
+  names both, the non-return first: `not landed: gate fixer did not return, <the failing check>;
+  Finding <n>[, <n>]... not fixed or not verified`.
   A moved target's reason reads
   `not landed: target moved, <target> at <short sha>, conflicting <file> <file>`, each file as the
   conflict class script printed it. A Gate still red after the Gate fixer's two attempts reads
-  `not landed: gate red after the fixes, <the failing check>`; a Gate fixer attempt whose return
-  file never landed, which may still be committing in the tree, reads
-  `not landed: gate fixer did not return, <the failing check>`; a Gate red with no Fixer commit
+  `not landed: gate red after the fixes, <the failing check>`; a Gate red with no Fixer commit
   reads `not landed: gate red, <the failing check>`; a Gate that failed on its environment reads
   `not landed: gate blocked, <its cause>`; a Gate red after the retry's rebase reads
   `not landed: gate red after the rebase onto <target>, <the failing check>`.
