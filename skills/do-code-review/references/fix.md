@@ -2,7 +2,7 @@
 
 What the orchestrator does once there is something to fix: read the `Act on` list, put the Fixers
 where they belong, fork them in Waves, each Fixer in a worktree of its own, re-run their work, hold
-it to the Diff tests and the Gate, append the record and land.
+it to the duplication scan, the Diff tests and the Gate, append the record and land.
 It is read by the orchestrator alone: whole on a `fix` call, from `## Where the Fixer works` on a
 default run whose Review carries an `Act on` Finding, and at `## The landing` on a default run
 whose Review carries none and is Green, since a Green Review lands either way. Only a `--no-fix`
@@ -165,8 +165,8 @@ One question decides it: is the branch the Review judged the branch the develope
   the run and after it, which matters because the fix door measures that status. The run removes it
   and its branch on the rules `## The landing` carries.
 
-Either way that is the reviewed tree, and the re-check, the Diff tests, the Gate, the Gate fixer and
-the landing all run there, on the reviewed branch as the Waves integrated it. A Fixer works in a
+Either way that is the reviewed tree, and the re-check, the duplication scan, the Diff tests, the
+Gate, the Gate fixer and the landing all run there, on the reviewed branch as the Waves integrated it. A Fixer works in a
 tree of its own, cut beside it for its one Finding by the Wave's `fix-worktrees.sh add` line (see
 `## The Fixer`), so two Fixers of one Wave never share an index.
 
@@ -384,8 +384,8 @@ A Finding the run re-routed ends whichever of those lines it reads with `, re-ro
 `## The append`, the state still first.
 
 The two reviewers are not re-run on the Fixers' commits, and never on anything after them: the
-review runs once per run. Each Finding's own check, the Diff tests and the Gate are what stand in
-for a second one.
+review runs once per run. Each Finding's own check, the duplication scan, the Diff tests and the
+Gate are what stand in for a second one.
 
 ## The duplication scan
 
@@ -420,7 +420,7 @@ second-use rule, and no other section of the report counts.
 
 ## The Diff tests
 
-The fast check, run once the re-check is done: the tests whose files the diff since the fixed
+The fast check, run once the duplication scan is done: the tests whose files the diff since the fixed
 point touched or added, the Fixers' own tests among them. They are the files
 `git diff --name-only --diff-filter=d <the fixed point>..HEAD` names, the `d` leaving out the files
 the diff deleted since nothing is left of them to run, whose names carry the test-file suffix the

@@ -446,8 +446,8 @@ integration wrote one, and the held Rulings block, last of all, when the run hol
 
 What the review does with the call, so that the run does not: it writes the Review, forks one
 Fixer per `Act on` Finding, one at a time, each turning its Finding into one commit on the
-reviewed branch under the project's Testing Policy, re-runs each Finding's check, the Diff tests
-and the Gate, with a Gate fixer on a red one, and, when
+reviewed branch under the project's Testing Policy, re-runs each Finding's check, the
+duplication scan, the Diff tests and the Gate, with a Gate fixer on a dirty or a red one, and, when
 the Review is Green, lands the reviewed branch on the developer's branch by fast-forward under the
 landing rules of [ADR 0013](../../../docs/adr/0013-do-code-review-lands-a-green-review-by-fast-forward.md)
 as [ADR 0027](../../../docs/adr/0027-the-rebase-runs-in-the-session-before-the-review-and-the-landing-retries-only-the-mechanical-class.md)

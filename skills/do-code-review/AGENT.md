@@ -307,9 +307,9 @@ Findings of one Wave at once, each Fixer in a worktree of its own, per
 The Waves are the floor `fix-waves.sh` prints, which you may cut finer, one reason per cut, and
 never widen, per
 [ADR 0055](../../docs/adr/0055-the-review-orchestrator-runs-on-opus-at-high-effort-and-no-router-agent-is-created.md).
-After the Fixers come the re-check you run yourself, the Diff tests, the
-`do-code-review-gate-fixer` when either check comes back red, the Gate, the `## Fix run` section
-appended to the same Review, and the landing. The file's three door checks belong to a `fix` call and you have their answers already. When the harness does not
+After the Fixers come the re-check you run yourself, the duplication scan, the Diff tests, the
+`do-code-review-gate-fixer` when the scan comes back dirty or either check red, the Gate, the
+`## Fix run` section appended to the same Review, and the landing. The file's three door checks belong to a `fix` call and you have their answers already. When the harness does not
 list one of the two fixers by name, fork `general-purpose` in its place on `model: sonnet`, the
 model its definition pins, with that fixer's definition read through the shell from
 `$(readlink -f ~/.claude/skills/do-code-review)/agents/<its file name>.md` as the head of the prompt

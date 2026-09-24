@@ -14,10 +14,12 @@ named after the branch when nobody does.
 
 Then it fixes what it found. When the Review carries an `Act on` Finding, the orchestrator forks
 one **Fixer** per Finding, one at a time, each turning its Finding into one commit under the
-project's Testing Policy. It re-runs each Finding's own check itself, then the **Diff tests** (the
-tests the diff touched) and the whole **Gate** (the suite, the typecheck, the lint and the format
-check), hands a red one to a **Gate fixer** that gets two attempts, appends a `## Fix run` section
-to the same Review, and fast-forwards your branch onto the fixed one when the Review is **Green**.
+project's Testing Policy. It re-runs each Finding's own check itself, then the project's
+duplication scan (two test authors working at once may each have written the same factory), the
+**Diff tests** (the tests the diff touched) and the whole **Gate** (the suite, the typecheck, the
+lint and the format check), hands a dirty scan or a red check to a **Gate fixer** that gets two
+attempts, appends a `## Fix run` section to the same Review, and fast-forwards your branch onto the
+fixed one when the Review is **Green**.
 Nothing is pushed: the run ends with the `git push` command for you to type.
 
 The Fixer and the Gate fixer are agents of their own, `do-code-review-fixer` and
@@ -219,7 +221,7 @@ refusal instead of as a rule to remember, per
 - `git status` after a run agrees with that last line:
   the Review and nothing else when git does not ignore the file, nothing new when it does.
 - A Review that fixed anything carries a `## Fix run` section naming each Finding by number, the
-  Diff tests, the Gate fixer and the Gate, and either `landed at <sha>` or `not landed` with its
+  duplication scan, the Diff tests, the Gate fixer and the Gate, and either `landed at <sha>` or `not landed` with its
   reason and the branch left behind.
 - A Finding a `fix` call found already fixed by your own commit reads
   `fixed <your commit>, verified (<the check>)` in that call's new `## Fix run` section, every
