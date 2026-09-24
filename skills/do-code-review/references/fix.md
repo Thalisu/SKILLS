@@ -208,23 +208,23 @@ nothing in `Act on` runs it too, at the start of the landing.
 
 ## The Gate fixer
 
-One general-purpose sub-agent, forked when the Diff tests or the Gate come back red after a Fixer
-committed, with two attempts in all, shared by both checks. Its brief is the red block as the check
-printed it, the capped lines and never the full log or the Review, the branch it commits on, its
-`Tree:` line, every path it reads or edits under it, a `Return file:` line in the Fixers' directory,
-`gate-fixer-<the attempt>.md`, and four rules:
+The `do-code-review-gate-fixer` agent this skill ships, forked when the Diff tests or the Gate come
+back red after a Fixer committed, with two attempts in all, shared by both checks. It is forked with
+the Agent tool as `subagent_type: do-code-review-gate-fixer` and no `model` key, so it runs on the
+model and the effort its definition picks. Its contract is its definition,
+[do-code-review-gate-fixer.md](../agents/do-code-review-gate-fixer.md): the four rules, one commit
+per attempt and the return file, none of them restated here. Its brief carries what changes from one
+attempt to the next, and nothing else:
 
-1. **Fix the code, never the check.** Never a skipped test, a weakened assertion or a sleep. A
-   test whose assertion it would have to change to pass is reported, never changed: an assertion
-   is the test author's under the Testing Policy.
-2. **Keep every Finding's test green.** The tests the Fixers committed prove the Findings, and an
-   attempt that turns one of them red has broken a fix.
-3. **Touch nothing the red block does not point at.**
-4. **One commit per attempt**, its body naming the check it turned green, and one line back: the
-   sha, or what stopped it.
+- the red block as the check printed it, the capped lines, and never the full log or the Review;
+- the branch it commits on;
+- `Tree: <the absolute path of the tree it works in>`;
+- `Return file: <the Fixers' directory>/gate-fixer-<the attempt>.md`.
 
-As a Fixer does, the Gate fixer writes its line to its return file, and it is waited for the same
-way, three windows and no more. One whose file never lands ends the attempts, since it may still be
+Nothing of the Review reaches it, not its location and not a Finding: the red block is the whole
+of what an attempt is for, and a Gate fixer that read the Findings would widen its edits past it.
+
+The Gate fixer's return file is waited for the way a Fixer's is, three windows and no more. One whose file never lands ends the attempts, since it may still be
 writing in the tree: nothing lands, the `## Fix run` section reads `- gate fixer: no return`, and
 the landing line reads `not landed: gate fixer did not return, <the failing check>`.
 

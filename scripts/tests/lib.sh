@@ -372,35 +372,51 @@ source_grade() {
   # shellcheck disable=SC1090 # the runner's own functions, read from the checkout this file sits in
   source <(sed -n "${start},${end}p" "$runner")
 }
-# One Agent tool_use transcript line. A call a forked skill's orchestrator makes carries the id of the
-# Skill call that forked it as its parent; the session's own calls carry a null one.
-agent_call_transcript() { # $1 subagent_type or empty to omit the key, $2 work folder, $3 parent tool_use id or empty for null, $4 model or empty to omit the key
-  local sub="$1" w="$2" parent="${3:-}" model="${4:-}" input
-  input='{"description":"x","prompt":"y"'
-  [ -z "$sub" ] || input="$input,\"subagent_type\":\"$sub\""
-  [ -z "$model" ] || input="$input,\"model\":\"$model\""
-  input="$input}"
-  if [ -n "$parent" ]; then parent="\"$parent\""; else parent=null; fi
-  printf '{"type":"assistant","parent_tool_use_id":%s,"message":{"content":[{"type":"tool_use","id":"t1","name":"Agent","input":%s}]}}\n' \
-    "$parent" "$input" >"$w/transcript.jsonl"
+# One Agent tool_use transcript line, appended to the run's transcript. A call a forked skill's
+# orchestrator makes carries the id of the Skill call that forked it as its parent; the session's own
+# calls carry a null one. The input is built by jq, so a prompt holding quotes or newlines lands
+# JSON-escaped, as a real transcript's does.
+agent_call_append() { # $1 subagent_type or empty to omit the key, $2 work folder, $3 parent tool_use id or empty for null, $4 model or empty to omit the key, $5 prompt (default y)
+  local n=1
+  [ ! -f "$2/transcript.jsonl" ] || n="$(($(wc -l <"$2/transcript.jsonl") + 1))"
+  jq -nc --arg sub "$1" --arg parent "${3:-}" --arg model "${4:-}" --arg prompt "${5:-y}" --arg id "t$n" '
+    {description: "x", prompt: $prompt}
+    + (if $sub == "" then {} else {subagent_type: $sub} end)
+    + (if $model == "" then {} else {model: $model} end)
+    | {type: "assistant", parent_tool_use_id: (if $parent == "" then null else $parent end),
+       message: {content: [{type: "tool_use", id: $id, name: "Agent", input: .}]}}' >>"$2/transcript.jsonl"
 }
-# grade() against a run holding that one Agent call: the grader in the caller's $grader passes it (prints nothing)
-agent_call_passes() { # $1 label, then agent_call_transcript's $1, $3 and $4: subagent_type, parent id, model
-  local w out
-  w="$(mktemp -d "$tmp/w.XXXXXX")"
-  agent_call_transcript "$2" "$w" "${3:-}" "${4:-}"
-  out="$(grade "$grader" "$w")"
+# A run holding that one Agent call and nothing else
+agent_call_transcript() { # agent_call_append's arguments
+  : >"$2/transcript.jsonl"
+  agent_call_append "$@"
+}
+# grade() against the run in a work folder: the grader in the caller's $grader passes it (prints nothing)
+grade_passes() { # $1 label, $2 work folder
+  local out
+  out="$(grade "$grader" "$2")"
   if [ -z "$out" ]; then ok "$1"; else
     fail "$1 (wanted empty, got: $out)"
   fi
 }
 # ... or fails it (prints a reason)
-agent_call_fails() { # $1 label, then agent_call_transcript's $1, $3 and $4: subagent_type, parent id, model
-  local w out
-  w="$(mktemp -d "$tmp/w.XXXXXX")"
-  agent_call_transcript "$2" "$w" "${3:-}" "${4:-}"
-  out="$(grade "$grader" "$w")"
+grade_fails() { # $1 label, $2 work folder
+  local out
+  out="$(grade "$grader" "$2")"
   if [ -n "$out" ]; then ok "$1"; else
     fail "$1 (wanted a non-empty failure reason, grader passed instead)"
   fi
+}
+# grade_passes and grade_fails against a run holding that one Agent call
+agent_call_passes() { # $1 label, then agent_call_transcript's $1, $3, $4 and $5: subagent_type, parent id, model, prompt
+  local w
+  w="$(mktemp -d "$tmp/w.XXXXXX")"
+  agent_call_transcript "$2" "$w" "${3:-}" "${4:-}" "${5:-}"
+  grade_passes "$1" "$w"
+}
+agent_call_fails() { # $1 label, then agent_call_transcript's $1, $3, $4 and $5: subagent_type, parent id, model, prompt
+  local w
+  w="$(mktemp -d "$tmp/w.XXXXXX")"
+  agent_call_transcript "$2" "$w" "${3:-}" "${4:-}" "${5:-}"
+  grade_fails "$1" "$w"
 }
