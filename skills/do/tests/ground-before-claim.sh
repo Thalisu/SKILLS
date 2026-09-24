@@ -288,4 +288,45 @@ carries_any "step 2 rewrites the Plan's \`## Sources\` \`ticket:\` line to the p
   "rewrites the Plan's \`## Sources\`" "the Plan's \`## Sources\` \`ticket:\` line is rewritten" \
   "the \`ticket:\` line is rewritten" "rewritten in place" "the \`## Sources\` section is rewritten"
 
+echo "# skills/do/references/ticket.md: step 1 re-hashes the Ticket and the Digest as soon as the Planner returns"
+
+# The claim re-hashes the Ticket and adopts that hash as the door's recorded value, so a Ticket
+# criterion the Planner rewrote (steered by stranger text reaching it through the Digest) before the
+# claim is absorbed there, and step 3's rehash then matches and hands the review the rewritten Ticket
+# as its spec. On `guard=header-only` nothing else catches it: step 1 is the last point where the
+# door's own value still stands. Scoped to step 1, since step 3 carries similar wording; a bare
+# `git hash-object` or `before the claim` is not accepted, since step 1 already carries both for
+# the door's first hashing and for the step's place in the order.
+flat="$(passage_of "$playbook" "**1. Plan.**" "**2. Claim and worktree.**" | tr '\n' ' ' | tr -s ' ')"
+expect "step 1's passage is present to scope the check against" test -n "$flat"
+
+carries_any "step 1 hashes the Ticket and the Digest again once the Planner returns" \
+  "hashes the Ticket and the Digest again" "re-hashes the Ticket and the Digest" \
+  "the Ticket and the Digest are hashed again" "hashes the Ticket and the Digest once more" \
+  "re-runs \`git hash-object\` over the Ticket and the Digest"
+
+carries_any "step 1's second hashing runs as soon as the Planner returns, before the claim is written" \
+  "as soon as the Planner returns" "once the Planner returns" "when the Planner returns" \
+  "before the claim is written" "before anything is claimed"
+
+carries_any "step 1 refuses the Plan naming the document that moved from the door's recorded value" \
+  "naming the document that moved" "names the document that moved" "the document that moved"
+
+echo "# skills/do/references/ticket.md: the claim's own re-hash absorbs only the claim's edit"
+
+# Step 2 adopts the post-claim hash as the door's recorded value, so any change the Ticket carried
+# before the claim is absorbed with the status line, step 3's re-hash then matches, and the review
+# gets a rewritten Ticket as its spec. Only a hash taken right before the claim, compared against
+# the value the run last recorded, keeps the adopted hash to the status line alone. "nothing
+# written" is not accepted: step 2 already says it about the remote tracker's no.
+flat="$(passage_of "$playbook" "**2. Claim and worktree.**" "**3. Build.**" | tr '\n' ' ' | tr -s ' ')"
+expect "step 2's passage is present to scope the check against" test -n "$flat"
+
+carries_any "step 2 hashes the Ticket before it writes the claim" \
+  "right before it writes the claim" "before it writes the claim" "before the claim is written" \
+  "hashes the Ticket before it writes" "before writing the claim" "hashes the Ticket before the claim"
+
+carries_any "a Ticket that no longer matches the last recorded value stops step 2 with nothing claimed" \
+  "nothing claimed" "no claim is written" "the claim is not written" "without writing the claim"
+
 exit $((fails > 0))

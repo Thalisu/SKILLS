@@ -472,6 +472,21 @@ is refused without either file being read: the run named that destination itself
 below the grounding opens it, so a Plan the fork wrote elsewhere is one the build never sees,
 and running the command at the returned path would vouch for a file nothing downstream touches.
 
+A return that names the destination still reaches that command only after the documents are read
+again. As soon as the Planner returns, and before the claim is written, the run hashes the Ticket
+and the Digest again, `git hash-object` run again in the main checkout over the two paths it hashed
+above, `absent` for one no longer on disk, and compares each value against the one it recorded
+before the fork. The same reading runs when the session grounded the Ticket itself in the
+Planner's place, once its Plan is written. A value that moved refuses the Plan the way the refusals
+above do: one line naming the document that moved, nothing built from the Plan, nothing claimed or
+written, and the Ticket's status left as the door found it. The `## Sources` check cannot catch
+this on its own, since the Plan's lines carry the hashes the door computed and never the files as
+they now stand, and the claim below adopts whatever the Ticket holds when it is written: a
+criterion the fork rewrote before the claim, steered by a stranger's line reaching it through the
+Digest, would otherwise become the Ticket the review is handed as its spec, on `guard=header-only`
+with nothing else to stop it. The rewrite is the fork's and not the run's, so the run never
+restores the document: the line names it for the developer to read before the next run.
+
 The command's own comparison is over records rather than over two loose values: [plan.md](plan.md)
 fixes each line as `<name>: <absolute path> <hash>`, so `ticket` and `digest` are each built
 as the whole record, name, path and hash together, and `n == 2` refuses a section that is
@@ -532,6 +547,14 @@ tracker the run waits for a yes before it; a no stops the run with nothing writt
 Ticket it proceeds without one, per
 [never-block-on-the-human](../../../.agents/principles/never-block-on-the-human.md): the claim is
 a reversible file write, and an interrupt costs the developer one turn.
+
+On a local Ticket the run first hashes the Ticket right before it writes the claim, `git
+hash-object` in the main checkout, and compares that value against the one it last recorded for
+the Ticket: the door's, or the one it recorded itself when a Ruling of this run rewrote a criterion
+and the reader was forked again. A value that moved stops the run the way step 1's refusals do, in
+one line naming the Ticket, with nothing claimed. That comparison is what keeps the adoption below
+honest: the hash taken after the claim covers whatever the file holds, so it absorbs only the
+claim's own edit when the file matched the recorded value the moment before the write.
 
 The claim moves the Ticket's hash, so on a local Ticket the run hashes the Ticket again, `git
 hash-object` in the main checkout over the claimed file, and the Plan's `## Sources` `ticket:` line
