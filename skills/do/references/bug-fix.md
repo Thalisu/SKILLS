@@ -296,7 +296,8 @@ through the Resume above in the same run, as that review says: the Review the ru
 counts, so it integrates again and lands through the fix call on it, and the same return again,
 after that resume's integration ticked as a no-op too, stops the run as blocked. A red gate, any other return that reads not landed, a `do-code-review` the session does
 not list and a protected branch are handled the same way the `ticket` Playbook does, and the mechanics carry the
-two commands the reply adds after a refused protected-branch landing. Done when the landing line
+`Yours: direction:` line and the two commands the reply adds after a refused protected-branch
+landing. Done when the landing line
 recorded there reads `landed at <commit>`, or the run stopped as blocked with the review's reason quoted
 and the worktree and its branch named, or the step reads `skip: do-code-review not listed` with
 the worktree and its branch named.

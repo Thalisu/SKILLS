@@ -404,11 +404,14 @@ ones the `ticket` Playbook gets:
   quoted, the worktree and its branch left in place and named in the reply, nothing half fixed.
 - **`do-code-review` not listed.** The step reads `skip: do-code-review not listed`, nothing lands,
   and the reply names the worktree, its branch and the review as the developer's next step.
-- **A protected branch.** The review refuses the landing, whatever the run wrote, and
-  the reply adds the two commands that land the reviewed branch by hand from a branch that takes
-  commits:
+- **A protected branch.** The review refuses the landing, whatever the run wrote, and the run
+  stops as blocked with the landing handed over under `direction`, as the review in
+  [mechanics.md](mechanics.md) says: the reply's `Yours: direction:` line carries the two commands
+  that land the reviewed branch by hand from a branch that takes commits, and the run types
+  neither:
 
 ```
+Yours: direction: land do/<slug> on a branch that takes commits, or leave it in its worktree
 git switch <a branch that takes commits>
 git merge --ff-only do/<slug>
 ```

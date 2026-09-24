@@ -544,11 +544,14 @@ Not landed, for any other reason the review gives (a Finding `not fixed` or `not
 `not run`, a red gate after the fixes, a `not landed: target moved` after the in-run resume's
 integration ticked as a no-op too, a red gate after the retry's rebase, a failed fast-forward, a protected branch), and the run stops as blocked: the review's reason quoted, the
 worktree and its branch left in place and named in the reply, the Ticket left `claimed`, so that
-nothing lands half fixed. On a protected branch the reply adds the two commands that land the
-reviewed branch by hand from a branch that takes commits, since the diff was reviewed and Green
-and only the target was wrong:
+nothing lands half fixed. On a protected branch the diff was reviewed and Green and only the
+target was wrong, so where it lands is the developer's choice: the reply's `Yours:` line, per
+[reply.md](reply.md), reads `direction`, and its choice is landing the reviewed branch elsewhere,
+with the two commands that land it by hand from a branch that takes commits. The run types
+neither:
 
 ```
+Yours: direction: land do/<slug> on a branch that takes commits, or leave it in its worktree
 git switch <a branch that takes commits>
 git merge --ff-only do/<slug>
 ```
