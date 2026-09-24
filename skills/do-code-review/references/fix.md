@@ -96,7 +96,9 @@ files. What each answer means:
 - **A `touched=none` line, or a `Fix:` that names no check**: the Finding goes to The Fixer, as it
   did before this step existed. A check that already passed on code no commit has touched since the
   review proves nothing the review did not already see, and a Finding with no check has nothing to
-  prove it by, so neither is ever recorded `verified` here.
+  prove it by, so neither is ever recorded `verified` here. A test file the `Fix:` names that holds
+  no test of the behaviour it names is no check yet: the file passing says nothing about the
+  Finding, and the Fixer is the one who writes that test.
 - **Exit 3**: the Review's `Commit:` is absent or not on the branch. Every line reads
   `touched=none` and every unsettled Finding goes to The Fixer, since a range from a commit off the
   branch would name a sha that never carried the fix.
