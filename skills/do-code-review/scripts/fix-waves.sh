@@ -61,12 +61,21 @@ finding_files() {
     seen="$path"
     printf '%s\n' "$path"
   fi
-  token="${target//\`/}"
-  token="${token%"${token##*[![:space:].,;:]}"}"
-  if [ -n "$token" ] && [[ "$token" != *[[:space:]]* ]] && [[ "$token" == */* ]]; then
-    path="${token#./}"
-    [ "$path" = "$seen" ] || printf '%s\n' "$path"
-  fi
+  local word
+  for word in $target; do
+    word="${word//\`/}"
+    word="${word%"${word##*[![:space:].,;:]}"}"
+    word="${word%\'s}"
+    if [[ "$word" =~ ^(.+):[0-9]+(-[0-9]+)?$ ]]; then
+      word="${BASH_REMATCH[1]}"
+    fi
+    [ -n "$word" ] && [[ "$word" == */* ]] || continue
+    path="${word#./}"
+    case " $seen " in
+      *" $path "*) ;;
+      *) seen="$seen $path"; printf '%s\n' "$path" ;;
+    esac
+  done
 }
 
 # group_waves  (file-set records on stdin)
