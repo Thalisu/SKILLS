@@ -532,6 +532,92 @@ check_lines "a Fix line wrapped onto a continuation line still names its target 
   "wave=2 findings=2"
 absent "the Findings sharing tests/shared.test.js through a wrapped Fix line are never merged onto one Wave" "wave=1 findings=1,2"
 
+capped="$tmp/08-six-disjoint-findings.review.md"
+cat >"$capped" <<'MD'
+# Review: feat/export-notes
+
+Ticket: none
+Fixed point: main (3f2a9c1), inferred
+Commit: 8b1d0e4
+Spec source: no spec
+Mode: fix
+Language: English
+
+## Intent
+
+Export the active notes as CSV, with a header line and one row per note.
+
+## Safe because
+
+The only caller of `page` outside the diff runs green in a proof script. Rung 4.
+
+## Act on
+
+### 1. Correctness at src/f1.js:3
+Claim: a page of ten notes returns nine.
+Evidence: eleven notes created, `page(1, 10)` called; nine rows returned, `slice` ends one short.
+Rung: 4
+Fix: a page of size ten over eleven notes returns ten rows, in tests/f1.test.js
+
+### 2. Correctness at src/f2.js:3
+Claim: a page of ten notes returns nine.
+Evidence: eleven notes created, `page(1, 10)` called; nine rows returned, `slice` ends one short.
+Rung: 4
+Fix: a page of size ten over eleven notes returns ten rows, in tests/f2.test.js
+
+### 3. Correctness at src/f3.js:3
+Claim: a page of ten notes returns nine.
+Evidence: eleven notes created, `page(1, 10)` called; nine rows returned, `slice` ends one short.
+Rung: 4
+Fix: a page of size ten over eleven notes returns ten rows, in tests/f3.test.js
+
+### 4. Correctness at src/f4.js:3
+Claim: a page of ten notes returns nine.
+Evidence: eleven notes created, `page(1, 10)` called; nine rows returned, `slice` ends one short.
+Rung: 4
+Fix: a page of size ten over eleven notes returns ten rows, in tests/f4.test.js
+
+### 5. Correctness at src/f5.js:3
+Claim: a page of ten notes returns nine.
+Evidence: eleven notes created, `page(1, 10)` called; nine rows returned, `slice` ends one short.
+Rung: 4
+Fix: a page of size ten over eleven notes returns ten rows, in tests/f5.test.js
+
+### 6. Correctness at src/f6.js:3
+Claim: a page of ten notes returns nine.
+Evidence: eleven notes created, `page(1, 10)` called; nine rows returned, `slice` ends one short.
+Rung: 4
+Fix: a page of size ten over eleven notes returns ten rows, in tests/f6.test.js
+
+## Consider
+
+none
+
+## Noted
+
+none
+
+## Cleared
+
+none
+
+## Axes
+
+- Correctness: 6 findings, worst #1 (Act on)
+- Spec: no spec
+- Standards: 0 findings
+- Principles: 0 findings
+- Blast radius: 0 findings
+- Security: 0 findings
+MD
+
+run "$capped"
+check_lines "six disjoint Findings on six disjoint files are cut into consecutive Waves of at most four Findings each" 0 "$rc" \
+  "wave=1 findings=1,2,3,4" \
+  "wave=2 findings=5,6"
+absent "a Wave never grows past four Findings even when every remaining Finding is disjoint from it" "wave=1 findings=1,2,3,4,5"
+absent "six disjoint Findings never land on one Wave" "wave=1 findings=1,2,3,4,5,6"
+
 echo
 if [ "$fails" = 0 ]; then echo "fix-waves: all checks passed"; else
   echo "fix-waves: $fails failed"

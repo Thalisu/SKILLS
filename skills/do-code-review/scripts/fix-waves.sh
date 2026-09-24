@@ -89,8 +89,10 @@ finding_files() {
 # group_waves  (file-set records on stdin)
 # Reads `<n>\t<path> <path> ...` records, one per Finding, and prints one Wave line per Wave:
 #   wave=<n> findings=<n>[,<n>]...
-# Greedy first-fit in the order the records arrive. Knows the disjointness rule and nothing else:
-# never opens the Review, never decides what a path is.
+# Greedy first-fit in the order the records arrive, capped at four Findings per Wave so a larger
+# Wave is cut into consecutive Waves instead of forking more than four Fixers at once. spec.md:153.
+# Knows the disjointness rule and the cap and nothing else: never opens the Review, never decides
+# what a path is.
 group_waves() {
   awk -F'\t' '
     function meets(a, b,   i, j, x, y, na, nb) {
@@ -106,6 +108,8 @@ group_waves() {
           if (closed[w] || meets(union[w], files)) continue
           members[w] = members[w] "," n
           union[w] = union[w] " " files
+          count[w]++
+          if (count[w] >= 4) closed[w] = 1
           placed = 1
           break
         }
@@ -114,6 +118,7 @@ group_waves() {
         waves++
         members[waves] = n
         union[waves] = files
+        count[waves] = (files == "") ? 0 : 1
         closed[waves] = (files == "")
       }
     }
