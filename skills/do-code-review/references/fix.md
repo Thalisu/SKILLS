@@ -269,17 +269,21 @@ Then, for each Wave `<k>` as run, in order, while no stop below has fired:
 2. **Fork the Wave at once.** One Fixer per Finding of the Wave, every one of them in one message,
    each with the brief above, its `Branch:` and `Tree:` taken from its own `worktree` line, and
    `Return file: <that directory>/fixer-w<k>-<n>.md`.
-3. **Wait for the whole Wave.** When the Agent tool returns every Fixer's line, go on. When it
-   returns before them, because the harness runs sub-agents in the background, do not end your
-   turn: a turn ended there hands the Fixers' results to your caller instead of to you, and the
-   re-check, the Gate and the landing never run. Wait for the Wave in one call over every return
-   file it forked,
+3. **Wait for the whole Wave.** Because the harness runs sub-agents in the background, the Agent
+   tool may hand every Fixer's call back to you before the Fixers themselves do; do not end your
+   turn there: a turn ended there hands the Fixers' results to your caller instead of to you, and
+   the re-check, the Gate and the landing never run. Whatever text the Agent tool hands back for a
+   Fixer's call is never itself a returned line, however soon it comes back and whatever it says: a
+   Fixer has returned only once its return file is on disk, so once the Agent tool has handed every
+   call of the Wave back, wait for the Wave in one call over every return file it forked that is not
+   already there,
    `bash ~/.claude/skills/do-code-review/scripts/returns.sh 240 <every return file of the Wave>`,
    given the Bash tool's own `timeout` at its maximum, `600000` ms, so the script's window closes
    first, and call it again over the files still `missing=`, three windows and no more. A Fixer
    whose file has not landed after the third costs its own Finding and nothing else of its Wave:
-   that Finding reads `not fixed: the Fixer did not return`, and every Fixer of the Wave whose file
-   did land goes on to steps 4 to 6, read, integrated and recorded as if the silent one had failed
+   that Finding reads `not fixed: the Fixer did not return`, whatever text the Agent tool handed
+   back for it, and every Fixer of the Wave whose file did land goes on to steps 4 to 6, read,
+   integrated and recorded as if the silent one had failed
    any other way. It may still be writing, but only in its own worktree, which no other Fixer
    shares, so the next Wave is cut and forked as usual and none of its Findings reads this reason.
    Its worktree and its branch stay where step 1 cut them, for the developer to read: the
