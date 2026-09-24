@@ -182,17 +182,42 @@ Then, for each Wave `<k>` in order, while no stop below has fired:
      since each Fixer would meet the same wall, and every Finding of a later Wave reads the same.
    - `not fixed` with a test's reason, a test that would not go green. The Fixer dropped its own
      edits in its own worktree, which stays clean.
+5. **Integrate the Wave.** Over the Fixers that returned a commit, and only those,
+   `bash ~/.claude/skills/do-code-review/scripts/fix-integrate.sh <the reviewed tree> <n>=<branch>...`,
+   each branch the one its `worktree` line printed. It picks them onto the reviewed branch in
+   Finding order, whatever order they are given in, and prints one line per Finding:
+   - `picked <n> <sha>`: the sha is the one the commit has on the reviewed branch, and the only sha
+     the record ever keeps for that Finding, never the Fixer branch's own, which is gone once
+     step 6 removes it.
+   - `conflicted <n> with <m,...|none> files "<path>"...`: the pick was aborted, and the reviewed
+     branch holds every clean pick of the Wave and nothing of this one. The Finding reads
+     `not fixed: conflicted with <m,...|none>`.
+   - `failed <reason>`, exit 3: nothing of the Wave is picked after it. Every Finding of the Wave
+     with no `picked` line reads `not fixed: <that reason>`, and no further Wave runs.
+6. **Take the Wave's worktrees back.**
+   `bash ~/.claude/skills/do-code-review/scripts/fix-worktrees.sh remove <the reviewed tree> <branch>...`,
+   over every branch step 1 printed except a Fixer's that did not return, which may still be
+   writing there. `removed <branch> <path>` is gone; `kept <branch> <path> unlanded commit` or
+   `kept <branch> <path> dirty tree` stays where it is, and is named in the `## Fix run` section and
+   in the reply as a commit the run could not land, per `## The landing`.
+
+The next Wave's worktrees are cut only now, from the reviewed tree's HEAD as this Wave's
+integration left it: `fix-integrate.sh` takes a Fixer branch only when it is exactly one commit
+ahead of the reviewed branch as it stands, so a Wave cut before the one ahead of it was integrated
+could never land.
 
 ## The re-check
 
-The orchestrator proves the work itself, in the worktree, and never the Fixer's word for it,
-per [prove-it-works](../../../.agents/principles/prove-it-works.md). Once the last Fixer returned,
-per `Act on` Finding, run the check its `Fix:` line named.
+The orchestrator proves the work itself, in the reviewed tree, on the reviewed branch as the Waves
+integrated it, and never the Fixer's word for it, per
+[prove-it-works](../../../.agents/principles/prove-it-works.md). Once the last Wave was integrated,
+per `Act on` Finding, run the check its `Fix:` line named. A Finding's `<sha>` below is the one its
+`picked` line printed.
 
 | What the run saw | The Finding reads |
 |---|---|
-| the Fixer committed it and the check passes | `fixed <sha>, verified` |
-| the Fixer committed it and there is no check named | `fixed <sha>, not verified` |
+| the Fixer's commit was picked and the check passes | `fixed <sha>, verified` |
+| the Fixer's commit was picked and there is no check named | `fixed <sha>, not verified` |
 | the Fixer reported the location no longer matches, and the run's own read finds it gone too, in the tree, or in the Spec source the Review's `Spec source:` header names for a quote-located Spec Finding | `stale` |
 | the Fixer reported the location no longer matches, and the run's own read finds it there, in the tree, or in the Spec source the header names for a quote-located Spec Finding | `not fixed: reported stale, the location still matches` |
 | no commit, for either branch above, or a Fixer that did not return | `not fixed` with the reason |
@@ -222,8 +247,9 @@ Gate fixer works against them first.
 The whole set of checks, run once after the Diff tests and before the landing: the unit suite, the
 typecheck, the lint and the format check. `do` hands it over as the `command=` line its gate
 script printed, and the orchestrator runs the `command=` line the caller handed as it stands, in
-the tree the Fixers committed in, and reads its `verdict=` line: it reruns `do`'s own gate, so the
-review holds its fixes to the checks `do` held the build to. With no line handed, on a plain call,
+the reviewed tree the Fixers' commits were picked onto, and reads its `verdict=` line: it reruns
+`do`'s own gate, so the review holds its fixes to the checks `do` held the build to. With no line
+handed, on a plain call,
 the Gate is each command the Testing Policy's Project facts carry for those four checks, else the
 tests the reviewers ran. A `do` call hands no line when the run reached the fix call with no
 **Gate** of its own, the resumed run that skipped its own gate, and that call forks no reviewer, so
@@ -294,7 +320,7 @@ The Review is Green when every `Act on` Finding reads `fixed` and `verified`, ev
 the Gate is green. `Consider`, `Noted` and `Cleared` never block.
 
 Green lands, under ADR 0013's rules as ADR 0027 amends them and no others: the landing target is
-fast-forwarded to the branch the Fixers committed on by
+fast-forwarded to the reviewed branch, the one the Fixers' commits were picked onto, by
 `bash ~/.claude/skills/do-code-review/scripts/land.sh <the main checkout> <the landing target> <that branch>`,
 never by a `git merge` of your own, since the script holds the one lock every run landing on this
 repository takes, per
