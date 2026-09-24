@@ -272,6 +272,10 @@ fresh() { # $1 name: a new repository at $tmp/<name>, entered
   g config rerere.enabled false
   g config merge.conflictStyle merge
 }
+branch_worktree() { # $1 main checkout, $2 name: a worktree at .claude/worktrees/do-<name> on a new branch do/<name> off the checkout's HEAD; its path on stdout
+  local wt="$1/.claude/worktrees/do-$2"
+  g -C "$1" worktree add -q "$wt" -b "do/$2" && echo "$wt"
+}
 stop_state() { # the stop as git left it, on stdout: the index and status, and the hash of every working file
   git status --porcelain=v2
   find . -path ./.git -prune -o -type f -print0 | sort -z | xargs -0 sha256sum

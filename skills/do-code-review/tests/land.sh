@@ -16,10 +16,6 @@ run() {
   # shellcheck disable=SC2034  # lib.sh's check_lines and same read $out
   out="$(cd "$tmp" && bash "$script" "$@" 2>&1)" || rc=$?
 }
-branch_worktree() { # $1 main checkout, $2 name: a worktree at .claude/worktrees/do-<name> on a new branch do/<name> off the checkout's HEAD; its path on stdout
-  local wt="$1/.claude/worktrees/do-$2"
-  git -C "$1" worktree add -q "$wt" -b "do/$2" && echo "$wt"
-}
 
 fresh ff
 main="$tmp/ff"
