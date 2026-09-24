@@ -104,7 +104,7 @@ The Claude installation includes these agents:
 | `prototype`      | `prototype`, forked by `/prototype`, `discuss` and `journey`                              |
 | `sketch`         | `sketch`, holding `Read, Glob, Grep`, forked by the `/sketch` session, by `do` at its shape step and by `do-planner` while it grounds a Ticket, which file the Sketch it returns |
 | `do`             | `do-reader`, `do-planner`, `do-builder`, `choice-taker`, `ledger-judge`, `global-unit-test-author`, `global-e2e-test-author` |
-| `do-code-review` | `do-code-review`, `do-code-review-technical-reviewer`, `do-code-review-security-reviewer` |
+| `do-code-review` | `do-code-review`, `do-code-review-technical-reviewer`, `do-code-review-security-reviewer`, `do-code-review-fixer`, `do-code-review-gate-fixer` |
 | `no-comments`    | `comment-sicko`                                                                           |
 
 Every entry is a symlink into the clone, so a `git pull` updates what is installed. Re-run the script

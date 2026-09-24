@@ -20,6 +20,11 @@ check), hands a red one to a **Gate fixer** that gets two attempts, appends a `#
 to the same Review, and fast-forwards your branch onto the fixed one when the Review is **Green**.
 Nothing is pushed: the run ends with the `git push` command for you to type.
 
+The Fixer and the Gate fixer are agents of their own, `do-code-review-fixer` and
+`do-code-review-gate-fixer`, each with its contract and its model in its definition: `sonnet` at
+`high` effort, whatever model your session runs on. The Fixer holds its one Finding and the Gate
+fixer the red block alone, never the Review.
+
 If you commit on your branch while the review runs, the fast-forward can no longer be made, so the
 landing rebases the reviewed branch onto yours first and runs the Gate again before it lands. It
 resolves a conflict alone only where both sides only added lines, each opening on a line of its
@@ -70,11 +75,14 @@ Review's text stays in the file and only the outcome comes back: the Review's lo
 ## Prerequisites
 
 - **The agent links.** The skill forks the `do-code-review` agent, which forks
-  `do-code-review-technical-reviewer` and `do-code-review-security-reviewer`, so all three
-  definitions have to be linked into `~/.claude/agents/` beside the skill link: the `AGENT.md`
-  beside the skill file under the orchestrator's name, and every markdown file in the skill's
-  `agents/` folder under its own name; see [the top-level README](../README.md). A reviewer whose
-  link is missing is forked twice and then reported `not run` on its Axis.
+  `do-code-review-technical-reviewer` and `do-code-review-security-reviewer`, then
+  `do-code-review-fixer` and `do-code-review-gate-fixer`, so all five definitions have to be linked
+  into `~/.claude/agents/` beside the skill link: the `AGENT.md` beside the skill file under the
+  orchestrator's name, and every markdown file in the skill's `agents/` folder under its own name;
+  see [the top-level README](../README.md). A reviewer whose link is missing is forked twice and
+  then reported `not run` on its Axis. A fixer whose link is missing never blocks the fix: the
+  orchestrator forks a general-purpose agent in its place, on `sonnet`, with that fixer's
+  definition at the head of the prompt and the same brief.
 - **Somewhere to write.** Hand a Ticket's location over and the Review goes beside the Ticket
   file, taking its name with `.review` before the extension: `02-export-notes.review.md` beside
   `02-export-notes.md`. Otherwise it goes to `.scratch/reviews/<branch>.md` in the repository's
