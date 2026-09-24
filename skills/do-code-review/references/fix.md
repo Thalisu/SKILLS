@@ -410,6 +410,10 @@ second-use rule, and no other section of the report counts.
   the dirty rows under it as the scan printed them, capped as any red block is. Never the whole
   report, whose other sections are no red, and never a debt row, since a Gate fixer handed one
   edits files the branch never touched.
+- No **Duplication scan** in the Project facts, or no Testing Policy in `CLAUDE.md` at all: the step
+  reads `skip:` with that reason, no Gate fixer is forked for it, and the run goes on to the Diff
+  tests and the Gate and lands when it is otherwise Green. A scan the project never named is no
+  red, the way a missing single-file command is none for the Diff tests.
 
 ## The Diff tests
 
