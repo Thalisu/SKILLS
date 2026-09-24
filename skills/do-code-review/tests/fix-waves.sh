@@ -742,6 +742,45 @@ absent "twelve disjoint Findings are never cut into only two Waves" "wave=1 find
 absent "no Wave among twelve disjoint Findings ever names more than four Findings" "wave=2 findings=5,6,7,8,9"
 absent "the third Wave among twelve disjoint Findings never grows past four Findings" "wave=3 findings=9,10,11,12,13"
 
+settled="$tmp/10-settled-finding.review.md"
+review_at 8b1d0e4 "$settled" "### 1. Correctness at src/notes.js:31
+Claim: a page of ten notes returns nine.
+Evidence: eleven notes created, \`page(1, 10)\` called; nine rows returned, \`slice\` ends one short.
+Rung: 4
+Fix: a page of size ten over eleven notes returns ten rows, in tests/notes.test.js
+
+### 2. Security at src/auth.js:12
+Claim: an expired token is accepted.
+Evidence: a token past its expiry reaches the sink with no gate on the claim.
+Rung: 4
+Risk: auth
+Fix: an expired token is rejected, in tests/notes.test.js" "## Fix run
+
+Date: 2026-09-23 · at 8b1d0e4
+
+- 1: not fixed: the Fixer never returned
+- 2: not fixed: the Fixer never returned
+- diff tests: skip: no Fixer commit
+- gate fixer: not needed
+- gate: \`node --test tests/notes.test.js\`: green
+- not landed: a Fixer did not return
+
+## Fix run
+
+Date: 2026-09-24 · at 8b1d0e4
+
+- 1: fixed 4c07ab2, verified (\`node --test tests/notes.test.js\`)
+- 2: not fixed: the Fixer could not turn it green
+- diff tests: \`node --test tests/notes.test.js\`: 1 passing
+- gate fixer: not needed
+- gate: \`node --test tests/notes.test.js\`: green
+- not landed: a Finding not fixed"
+
+run "$settled"
+check_lines "a Finding not fixed in an earlier Fix run and fixed in a later one is left out of every Wave, so the Finding that shared a file with it comes back alone on the first Wave" 0 "$rc" \
+  "wave=1 findings=2"
+same "a settled Finding forks no Fixer on any Wave, and its neighbour is never pushed onto a second Wave" "wave=1 findings=2"
+
 echo
 if [ "$fails" = 0 ]; then echo "fix-waves: all checks passed"; else
   echo "fix-waves: $fails failed"

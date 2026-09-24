@@ -37,21 +37,6 @@ usage() {
   exit 2
 }
 
-# fix_run_latest <review file>
-# Prints <n>\t<text> per Finding that has a `- <n>: <text>` line in any `## Fix run` section, the
-# last one in file order, so a later section overrides an earlier one and none is read alone.
-fix_run_latest() {
-  awk '
-    /^## / { inrun = ($0 == "## Fix run"); next }
-    inrun && match($0, /^- [0-9]+: /) {
-      n = substr($0, 3, RLENGTH - 4)
-      if (!(n in text)) order[++count] = n
-      text[n] = substr($0, RLENGTH + 1)
-    }
-    END { for (i = 1; i <= count; i++) print order[i] "\t" text[order[i]] }
-  ' "$1"
-}
-
 # review_commit <review file>
 # Prints the sha of the `Commit:` header with any `, dirty` suffix stripped; nothing when absent.
 review_commit() {
