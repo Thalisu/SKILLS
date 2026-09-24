@@ -253,6 +253,50 @@ expect "add leaves the project's .gitignore untouched" \
 expect "after a second Wave's add the main checkout's status still reads as before the first" \
   test "$(git -C "$main" status --porcelain)" = "$status_before"
 
+fresh rerouted
+committer_identity
+main="$tmp/rerouted"
+printf 'base\n' >README.md
+commit base
+reviewed="$(branch_worktree "$main" x)"
+integrate() {
+  rc=0
+  out="$(cd "$tmp" && bash "$here/../scripts/fix-integrate.sh" "$@" 2>&1)" || rc=$?
+}
+run add "$reviewed" x r1 1 1 2
+winner_wt="$main/.claude/worktrees/fixer-x-r1-w1-1"
+conflicted_wt="$main/.claude/worktrees/fixer-x-r1-w1-2"
+printf 'base one\n' >"$winner_wt/README.md"
+git -C "$winner_wt" commit -qam "Finding 1"
+printf 'base two\n' >"$conflicted_wt/README.md"
+git -C "$conflicted_wt" commit -qam "Finding 2"
+conflicted_sha="$(git -C "$main" rev-parse fixer/x/r1/w1-2)"
+integrate "$reviewed" 1=fixer/x/r1/w1-1 2=fixer/x/r1/w1-2
+check "fixture: Wave 1 picks Finding 1 and names Finding 2 conflicted with it: exit 1" \
+  1 "$rc" "picked 1 " "conflicted 2 with 1 "
+winner="$(git -C "$reviewed" rev-parse HEAD)"
+run remove "$reviewed" fixer/x/r1/w1-1 fixer/x/r1/w1-2
+check_lines "fixture: Wave 1's remove takes back the winner and keeps the conflicted Finding 2 as unlanded: exit 1" \
+  1 "$rc" "removed fixer/x/r1/w1-1 $winner_wt" \
+  "kept fixer/x/r1/w1-2 $conflicted_wt unlanded commit"
+retry_wt="$main/.claude/worktrees/fixer-x-r1-w2-2"
+run add "$reviewed" x r1 2 2
+check_lines "a later Wave's add cuts the conflicted Finding a fresh worktree beside its kept Wave 1 branch: exit 0" \
+  0 "$rc" "worktree 2 $retry_wt fixer/x/r1/w2-2"
+expect "the conflicted Finding's fresh worktree starts at the reviewed branch as Wave 1 left it, holding the winner's commit" \
+  test "$(git -C "$retry_wt" rev-parse HEAD 2>/dev/null)" = "$winner"
+expect "the later Wave's add leaves the kept Wave 1 branch of the conflicted Finding on its worktree with its commit" \
+  test "$(branch_of_worktree "$main" "$conflicted_wt"):$(git -C "$main" rev-parse -q --verify refs/heads/fixer/x/r1/w1-2)" = "refs/heads/fixer/x/r1/w1-2:$conflicted_sha"
+printf 'base one two\n' >"$retry_wt/README.md"
+git -C "$retry_wt" commit -qam "Finding 2, again"
+integrate "$reviewed" 2=fixer/x/r1/w2-2
+check_lines "fix-integrate picks the re-routed Finding's commit, made on top of the winner, cleanly: exit 0" \
+  0 "$rc" "picked 2 $(git -C "$reviewed" rev-parse HEAD)"
+expect "the reviewed branch ends up holding both Findings' changes" \
+  test "$(cat "$reviewed/README.md" 2>/dev/null)" = "base one two"
+expect "the reviewed branch still holds the winner's commit under the re-routed one" \
+  git -C "$reviewed" merge-base --is-ancestor "$winner" HEAD
+
 echo
 if [ "$fails" = 0 ]; then echo "fix-worktrees: all checks passed"; else
   echo "fix-worktrees: $fails failed"
