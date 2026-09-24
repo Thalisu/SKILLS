@@ -37,8 +37,11 @@ the tracker file describes. Before anything is written:
   word the gate clears the run on. A file with no match is refused the same way. On a tracker the
   status is the issue's label, read the same way.
 - A Ticket whose own status the script prints as `ambiguous` (no `**Status:**` line, two of them,
-  or a word outside the walk) is refused in one line naming the cause from its `ambiguous=` line.
-  Nothing is written; the developer sets the status line by hand.
+  or a word outside the walk) is refused in one line naming the cause from its `ambiguous=` line
+  (`status lines ...` or `status word ...`). Nothing is written, and no word is taken out of any of
+  those lines: a status line a stranger could have planted is never read as the developer's, so the
+  message carries `Yours: trust:` with the choice, per [reply.md](reply.md): set the one
+  `**Status:**` line by hand.
 - A Ticket that is `resolved` stops the run in one line. Nothing is written. The line says the
   Ticket is resolved and that changing what landed takes a new Ticket written by hand, its
   criteria from the edited Ruling line and its `Blocked by` naming every resolved Ticket that took
