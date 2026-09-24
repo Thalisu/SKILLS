@@ -210,3 +210,21 @@ is the refusal.
 
 A run that stopped as blocked names the step it stopped at, and its Skipped section
 lists no step after it as skipped: the run never reached those steps.
+
+Every blocked Reply, and every refusal at a door, carries one line that says what the run hands the
+developer and why only the developer can give it:
+
+```
+Yours: <class>: <the choice>
+```
+
+The class is one **Handover class** and nothing outside that closed set, per
+[ADR 0057](../../../docs/adr/0057-a-do-run-stops-only-on-a-handover-class-its-reply-names.md):
+`direction`, a choice between outcomes; `destroy`, removing work the run did not create; `trust`,
+taking a stranger's text as the developer's; `outward`, a write outside the repository. The choice
+is what the developer does next, every option named when there is more than one, in the words they
+act on. The line sits beside the refusal or the blocker and its reason, before the Playbook or the
+door the request goes to; in a refusal before any edit it is part of the one message. A stop that
+cannot name a class is not a stop: whatever it would hand over is a reversible action inside the
+run's own artifacts, and the run takes it. The Playbook's own step names the class of each stop it
+makes, keyed on what its scripts print and never on the session's reading.
