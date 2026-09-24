@@ -473,8 +473,11 @@ return is recorded for the Reply's Run section, one line per part, per [reply.md
 - every `Axis not run:` line, named to the developer with its reason.
 
 The run makes no commit for a Finding and fixes none by hand: a Finding a Fixer left standing
-is the review's reason for not landing, and the run stops on it. Landed, and the run goes on to
-the verification.
+is the review's reason for not landing, and the run stops on it. Nor does it settle one in the
+Review: it never reads, edits, deletes or writes the Review, on the first call's return and on
+every fix call's alike, since the Review is the review's to write and its record that a Finding
+existed is the developer's to read. A Finding is settled by a fix call's re-check or overruled by
+the developer, never by the session. Landed, and the run goes on to the verification.
 
 On `not landed: target moved`, the developer's branch moved while the review ran, by the
 developer's hand or by another run's landing, and the landing's own rebase met a hunk it does not
