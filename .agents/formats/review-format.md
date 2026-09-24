@@ -186,6 +186,7 @@ Date: 2026-04-18 · at 8b1d0e4
 
 - 1: fixed 4c07ab2, verified (`node --test tests/notes.test.js`)
 - wave 1: 1
+- duplication scan: `bash .claude/testing-policy/scan-test-assets.sh`: clean
 - diff tests: `node --test tests/notes.test.js`: 3 passing
 - gate fixer: not needed
 - gate: `npm test && npx tsc --noEmit`: green
@@ -229,9 +230,10 @@ never the sha on the Fixer's own branch, which is gone once the run takes that b
 
 A Review whose `Act on` is empty, or whose Findings an earlier fix already settled, forks no Fixer
 and creates no worktree: the section reads `nothing remained` on that line, then the Gate and the
-landing, with the duplication scan and the Diff tests each reading `skip: no Fixer commit`. A Finding is settled when its latest
-line across every `## Fix run` section reads `fixed`, a `nothing remained` section naming none: a
-Finding whose latest line reads `stale` or `not fixed` goes to a Fixer again.
+landing, with the duplication scan and the Diff tests each reading `skip: no Fixer commit`. A
+Finding is settled when its latest line across every `## Fix run` section reads `fixed`, a
+`nothing remained` section naming none: a Finding whose latest line reads `stale` or `not fixed`
+goes to a Fixer again.
 
 Then the Wave lines, one per Wave that forked at least one Fixer, in the order the Waves ran, each
 naming the Findings forked in it: `- wave <k>: <n>[, <n>]...`. `<k>` counts the Waves as they ran,
