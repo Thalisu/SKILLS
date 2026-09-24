@@ -414,6 +414,9 @@ second-use rule, and no other section of the report counts.
   reads `skip:` with that reason, no Gate fixer is forked for it, and the run goes on to the Diff
   tests and the Gate and lands when it is otherwise Green. A scan the project never named is no
   red, the way a missing single-file command is none for the Diff tests.
+- No Fixer commit to check, a `nothing remained` section or a run whose every Fixer ended without
+  one: the step reads `skip: no Fixer commit` and no Gate fixer is forked for it. A duplicate the
+  scan finds there is the branch's own, and a Gate fixer handed it would edit what no fix wrote.
 
 ## The Diff tests
 
