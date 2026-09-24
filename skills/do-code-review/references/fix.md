@@ -70,7 +70,9 @@ so a second `fix` on the same Review is harmless. A Finding is settled when its 
 read across every `## Fix run` section and not the last section alone, reads `fixed`: a section
 that reads `nothing remained` names no Finding and settles or unsettles none. A Finding whose latest
 line reads `not fixed` or `stale` is not settled and goes to a Fixer again, since a Finding no fix
-call reads again keeps the Review from ever turning Green.
+call reads again keeps the Review from ever turning Green. A Finding left
+`not fixed: conflicted with Finding <m>` is one of them, with nothing new to call: the new call's
+Waves take it like any other, and its re-routes count from zero in the section that call appends.
 
 ## Already fixed on the branch
 
