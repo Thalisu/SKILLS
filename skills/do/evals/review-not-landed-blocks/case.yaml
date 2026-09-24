@@ -620,7 +620,7 @@ context:
         landing="not landed: the fast-forward of $target to $branch failed; the branch and its worktree stay in place"
       fi
     else
-      landing="not landed: Finding 1 is not fixed or not verified; the branch $branch and its worktree stay in place"
+      landing="not landed: Finding 1 not fixed or not verified; the branch $branch and its worktree stay in place"
     fi
 
     cat > "$review" <<EOF
