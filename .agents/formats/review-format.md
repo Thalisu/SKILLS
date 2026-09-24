@@ -208,7 +208,8 @@ Then one line per `Act on` Finding, by its number, in the file's order, in one o
 | `- <n>: fixed <sha>, verified (<the check>)` | the Fixer committed it, or a commit since the Review touched its location before any Fixer ran, and either way the check its `Fix:` named passed when the run re-ran it |
 | `- <n>: fixed <sha>, not verified` | the Fixer committed it and the Finding named no check to re-run |
 | `- <n>: stale` | the location no longer matches the tree, the Fixer's report and the run's own read of it agreeing, so the code was left alone and no commit was made for it |
-| `- <n>: not fixed: <the reason>` | the Fixer could not turn it green and dropped its edits for it, never reached it, or never returned, so nothing is known to have been dropped |
+| `- <n>: not fixed: <the reason>` | the Fixer could not turn it green and dropped its edits for it, or never reached it |
+| `- <n>: not fixed: the Fixer did not return; its worktree <path> on <branch> stays in place` | the Fixer's return file never landed, so nothing of its branch was brought onto the branch the review read, and its worktree and branch, as the worktree script printed them, are left for the developer to read |
 | `- <n>: not fixed: conflicted with Finding <m>` | its Fixer's commit conflicted with Finding `<m>`'s on the third pick this run tried, after two re-routes, so neither the run nor a merge chose between them; `Findings <m>, <m>` names several, and `conflicted with no Finding of its Wave` plus the conflicted files names none |
 
 A Finding the run re-routed, its Fixer's commit having conflicted with another Finding's on the way
