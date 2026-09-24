@@ -332,6 +332,9 @@ there.
 | the Fixer's commit conflicted a third time in this run, after two re-routes | `not fixed: conflicted with Finding <m>`, or the other two forms step 5 gives |
 | no commit, for either branch above, or a Fixer that did not return | `not fixed` with the reason |
 
+A Finding the run re-routed ends whichever of those lines it reads with `, re-routed <r>`, per
+`## The append`, the state still first.
+
 The two reviewers are not re-run on the Fixers' commits, and never on anything after them: the
 review runs once per run. Each Finding's own check, the Diff tests and the Gate are what stand in
 for a second one.

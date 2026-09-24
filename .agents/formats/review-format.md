@@ -200,7 +200,7 @@ A second `fix` appends a second section and never rewrites the first; a plain ru
 branch overwrites the whole file, this section with it.
 
 The first line is the date and the commit the fix ran at, `Date: <YYYY-MM-DD> · at <short sha>`.
-Then one line per `Act on` Finding, by its number, in the file's order, in one of four states:
+Then one line per `Act on` Finding, by its number, in the file's order, in one of four states, the last with one reason the format fixes:
 
 | Line | Means |
 |---|---|
@@ -208,6 +208,14 @@ Then one line per `Act on` Finding, by its number, in the file's order, in one o
 | `- <n>: fixed <sha>, not verified` | the Fixer committed it and the Finding named no check to re-run |
 | `- <n>: stale` | the location no longer matches the tree, the Fixer's report and the run's own read of it agreeing, so the code was left alone and no commit was made for it |
 | `- <n>: not fixed: <the reason>` | the Fixer could not turn it green and dropped its edits for it, never reached it, or never returned, so nothing is known to have been dropped |
+| `- <n>: not fixed: conflicted with Finding <m>` | its Fixer's commit conflicted with Finding `<m>`'s on the third pick this run tried, after two re-routes, so neither the run nor a merge chose between them; `Findings <m>, <m>` names several, and `conflicted with no Finding of its Wave` plus the conflicted files names none |
+
+A Finding the run re-routed, its Fixer's commit having conflicted with another Finding's on the way
+onto the branch, ends its line with `, re-routed <r>`, the number of times this run re-routed it,
+1 or 2, whatever the line's state: `- 3: fixed 9e1a2b4, verified (npm test), re-routed 1`,
+`- 4: not fixed: conflicted with Finding 2, re-routed 2`. The state stays first, so the settle rule
+below reads the line the same way, and a Finding never re-routed carries nothing extra. The count
+is the run's own: a later `fix` starts every Finding at zero in its section.
 
 A `<sha>` is the one the Fixer's commit has on the branch the review read, once picked there, and
 never the sha on the Fixer's own branch, which is gone once the run takes that branch back.
