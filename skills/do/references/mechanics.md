@@ -667,8 +667,12 @@ above: the run never commits it and the worktree branch never touches it.
 5. Remove the worktree and its branch: the run created them, so the run removes them. Leave the
    worktree first, with a bare `cd` to the main checkout, then, from there,
    `git worktree remove <path>` and `git branch -d do/<slug>`. The branch landed, so the delete is
-   safe; a delete that refuses means something did not land, and the run stops there with the
-   worktree and its branch named.
+   safe; a remove or a delete that refuses means something did not land, or the worktree holds
+   work the run did not create, and the run stops there with the worktree and its branch left in
+   place and named with git's own reason, never retried with `--force` or `-D`. What git refused
+   on is not the run's to throw away, so the Reply's `Yours:` line, per [reply.md](reply.md),
+   reads `destroy`, its choice keeping or dropping that work and then removing the worktree and
+   its branch by hand, or leaving them.
 
 Outside the chain there is no Ticket: the close is the worktree's removal alone. A run that stops
 as blocked closes nothing: the Ticket stays `claimed`, the worktree and its branch stay in place,

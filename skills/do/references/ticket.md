@@ -763,7 +763,8 @@ among them, under its `Yours: outward:` line; then the worktree and its branch r
 changed a file git tracks, and the developer reads that here rather than finding it in
 `git status`. Done when the Ticket reads `resolved`, or, on a Ticket that is an issue, the question
 was answered and the writes it listed were made on a yes, or none on a no, and `git worktree list`
-no longer shows the run's worktree, or the step reads `skip: nothing landed` and the Ticket still reads `claimed`.
+no longer shows the run's worktree, or the run stopped on a removal git refused with the worktree
+and its branch named under its `Yours: destroy:` line, or the step reads `skip: nothing landed` and the Ticket still reads `claimed`.
 
 **10. Reply.** Written by [reply.md](reply.md). What this Playbook puts in its sections: the
 Ticket and the Review under the files left uncommitted; every Ruling the forks in
