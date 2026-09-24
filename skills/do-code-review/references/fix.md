@@ -420,7 +420,8 @@ nothing in `Act on` runs it too, at the start of the landing.
 - Green, and the run goes to the append and the landing.
 - Red after a Fixer committed: the Gate fixer takes the red block.
 - Red with no Fixer commit: the red is the branch's own and not the fixes', so no Gate fixer runs,
-  and the landing line reads `not landed: gate red, <the failing check>`.
+  and the landing line reads `not landed: gate red, <the failing check>`, unless a Finding is still
+  open, whose reason `## The landing` puts first.
 - `verdict=blocked`: a check failed on its environment and not on the code. Nothing lands, the
   landing line reads `not landed: gate blocked, <its cause= line>`, and nothing is worked around.
 - Nothing to run: no `command=` line handed and no Project facts for those four checks, with no
@@ -449,7 +450,10 @@ Nothing of the Review reaches it, not its location and not a Finding: the red bl
 of what an attempt is for, and a Gate fixer that read the Findings would widen its edits past it.
 
 `do`'s fix call never forks it: that call forks no Fixer, so no Fixer commit exists for a red to
-follow, and the red is the branch's own, as `## The Gate` reads a red with no Fixer commit.
+follow, and the red is the branch's own, as `## The Gate` reads a red with no Fixer commit. When
+that call leaves a Finding open and the Diff tests or the Gate read red, the `## Fix run` section
+says why nothing was forked for the red, `- gate fixer: not forked, Finding <n>[, <n>]... left to
+the developer`; with both green it reads `not needed`, as on any call.
 
 When the harness does not list `do-code-review-gate-fixer` by name, fork `general-purpose` in its
 place on `model: sonnet`, the model its definition pins, with that definition read through the
@@ -496,6 +500,13 @@ on` Finding whose latest line is not `fixed <sha>, verified`, in the file's orde
 stay in place`. The same form on every call: `do` reads the landing line and never the Review, so
 a line that named no Finding would leave it, and the developer it hands the stop to, guessing
 which one is open.
+
+It is the first reason on the landing line, ahead of an Axis `not run`, a red Gate and a target
+that moved: a Finding left open is the one blocker only the developer can clear, by a fix or by
+overruling it, and a landing line that led with another reason would send `do` to a choice that
+cannot clear the Finding, and its next run would stop on it again. The Gate still runs and its
+line still reads red when it is, so the record shows whether the Finding was the only thing
+keeping the branch from landing.
 
 Green lands, under ADR 0013's rules as ADR 0027 amends them and no others: the landing target is
 fast-forwarded to the reviewed branch, the one the Fixers' commits were picked onto, by

@@ -11,7 +11,9 @@ context:
     # one Act on Finding (a page of ten over eleven items returns nine) an earlier call left
     # `not fixed`, with no commit since the review: the branch never fixed it. The call should hold
     # the Finding to the branch, find it untouched, fork no Fixer and no Gate fixer, create no `fix/`
-    # worktree, make no commit, and come back not landed, naming the Finding. The Review sits under
+    # worktree, make no commit, and come back not landed, naming the Finding. A test of a short page
+    # committed after the review fails on the same bug without touching the Finding's line, so the
+    # Gate is red too, and the Finding still comes first on the landing line. The Review sits under
     # the ignored `.scratch/`, so the tree reads clean.
     set -e
     mkdir -p src tests .scratch/reviews
@@ -161,3 +163,11 @@ context:
     - gate: \`npm test\`: green
     - not landed: Finding 1 not fixed or not verified; the branch export-notes and its worktree stay in place
     REVIEW_EOF
+    cat >> tests/notes.test.js <<'JS'
+
+    test("a page of two over three items holds two", () => {
+      assert.equal(page(1, 2, [1, 2, 3]).length, 2);
+    });
+    JS
+    git -c user.email=fixture@example.com -c user.name=fixture add tests/notes.test.js
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "test(notes): a short page holds its size"

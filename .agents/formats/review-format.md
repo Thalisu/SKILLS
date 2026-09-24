@@ -249,8 +249,9 @@ Then three lines, in this order. The Diff tests, `- diff tests: <the commands>: 
 `- diff tests: skip: <the reason>`. The Gate fixer, `- gate fixer: not needed` when the Diff tests
 and the Gate were green the first time, `- gate fixer: <sha>` or `- gate fixer: <sha>, <sha>` for
 the attempts that turned them green, `- gate fixer: two attempts, still red` for two attempts that
-ran and stayed red, or `- gate fixer: no return` for an attempt whose return file never landed. The
-Gate,
+ran and stayed red, `- gate fixer: no return` for an attempt whose return file never landed, or
+`- gate fixer: not forked, Finding <n>[, <n>]... left to the developer` on the fix call `do` makes
+after its review, when a Finding stays open and the Diff tests or the Gate read red. The Gate,
 `- gate: <the command line>: <its verdict>`. Then the landing on the last line:
 
 - `- landed at <sha>`, the landing target fast-forwarded to the branch the fix committed on.
@@ -268,7 +269,8 @@ Gate,
   defines twice. A Finding's reason names it by its number, every `Act on` Finding whose latest
   line is not `fixed <sha>, verified` in the file's order under one label,
   `not landed: Finding <n>[, <n>]... not fixed or not verified`, so a caller that never opens the
-  Review knows which one is open. A moved target's reason reads
+  Review knows which one is open, and it comes first, ahead of every other reason the landing has.
+  A moved target's reason reads
   `not landed: target moved, <target> at <short sha>, conflicting <file> <file>`, each file as the
   conflict class script printed it. A Gate still red after the Gate fixer's two attempts reads
   `not landed: gate red after the fixes, <the failing check>`; a Gate fixer attempt whose return
