@@ -398,18 +398,28 @@ since a later Wave's integration can still settle what an earlier one left and a
 them hands the Gate fixer a duplicate nobody has finished writing, and again after each Gate fixer
 attempt, with the other checks.
 
-Its result is read off the report and never off the exit code: the scan exits 0 whenever it ran,
-since a duplicate is a finding and not an error. Each row under its `## duplicate-symbols` header is
-a name, the count of files defining it and those files. A row is dirty when one of its files is
-among those `git diff --name-only --diff-filter=d <the fixed point>..HEAD` names, the list the Diff
-tests read below. Every other row is debt the branch did not write, left to the Testing Policy's
-second-use rule, and no other section of the report counts.
+Its result is read off the report and never off a clean exit code alone: a scan that ran and printed
+a `## duplicate-symbols` header exits 0 whatever the header holds, since a duplicate is a finding
+and not an error, and that header is what clean or dirty is read from. A scan that exits non-zero,
+or whose output carries no `## duplicate-symbols` header, printed nothing to read a dirty row off:
+it reads `blocked`, never clean, the same as a `verdict=blocked` Gate reads under `## The Gate`, and
+nothing lands. A scan that never ran and prints no report, and a report with no dirty row, would
+otherwise both read clean the same way, which is exactly the gap `blocked` closes. Each row under the
+header a scan that did print one carries is a name, the count of files defining it and those files.
+A row is dirty when one of its files is among those
+`git diff --name-only --diff-filter=d <the fixed point>..HEAD` names, the list the Diff tests read
+below. Every other row is debt the branch did not write, left to the Testing Policy's second-use
+rule, and no other section of the report counts.
 
-- No dirty row: clean, and the run goes to the Diff tests.
+- No dirty row, and the scan exited 0 with the header present: clean, and the run goes to the Diff
+  tests.
 - A dirty row: the Gate fixer takes the red block, which is the `## duplicate-symbols` header and
   the dirty rows under it as the scan printed them, capped as any red block is. Never the whole
   report, whose other sections are no red, and never a debt row, since a Gate fixer handed one
   edits files the branch never touched.
+- The scan exits non-zero, or its output carries no `## duplicate-symbols` header: `blocked`, never
+  clean. Nothing lands, no Gate fixer is forked for it, since there is no report to hand one a red
+  block from, and the branch and its worktree stay in place.
 - No **Duplication scan** in the Project facts, or no Testing Policy in `CLAUDE.md` at all: the step
   reads `skip:` with that reason, no Gate fixer is forked for it, and the run goes on to the Diff
   tests and the Gate and lands when it is otherwise Green. A scan the project never named is no
@@ -500,7 +510,14 @@ Finding still open named beside it, per `## The landing`.
 
 After each attempt the orchestrator runs every Finding's check, the duplication scan, the Diff tests
 and the Gate again itself, and never takes the Gate fixer's word for it, a duplicate it says it
-promoted included. Clean and green, and the run goes on. Red or dirty after the second attempt, and
+promoted included. Before that rerun is read, the orchestrator checks the Gate fixer's own commit
+against the file the Duplication scan's command in the Project facts names as the script it runs: a
+commit that touches it is not a clean attempt, since a Gate fixer that edits the check that judges
+it can turn a dirty report clean, or the scan itself `blocked`, without promoting anything. That
+attempt reads the same as still dirty whatever the rerun scan now prints, and spends one of the two
+attempts the same as any other.
+
+Clean and green, and the run goes on. Red or dirty after the second attempt, and
 the Review is not Green: nothing lands, the `## Fix run` section reads
 `- gate fixer: two attempts, still red`, and the landing line names what stayed, never a green
 check as red: `not landed: gate red after the fixes, <the failing check>` when the Diff tests or
