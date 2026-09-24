@@ -282,6 +282,9 @@ Then, for each Wave `<k>` as run, in order, while no stop below has fired:
    did land goes on to steps 4 to 6, read, integrated and recorded as if the silent one had failed
    any other way. It may still be writing, but only in its own worktree, which no other Fixer
    shares, so the next Wave is cut and forked as usual and none of its Findings reads this reason.
+   Its worktree and its branch stay where step 1 cut them, for the developer to read: the
+   Finding's line in the `## Fix run` section names both, the path and the branch its `worktree`
+   line printed, and so does the reply.
    No Gate fixer is forked from there on, whatever the Diff tests or the Gate read,
    the `fix/<slug>` worktree and its branch stay in place and are named, and the landing line reads
    `not landed: a Fixer did not return`.
@@ -324,7 +327,8 @@ Then, for each Wave `<k>` as run, in order, while no stop below has fired:
 6. **Take the Wave's worktrees back.**
    `bash ~/.claude/skills/do-code-review/scripts/fix-worktrees.sh remove <the reviewed tree> <branch>...`,
    over every branch step 1 printed except a Fixer's that did not return, which may still be
-   writing there. `removed <branch> <path>` is gone; `kept <branch> <path> unlanded commit` or
+   writing there. That branch is never handed to the script, which would delete its worktree
+   while it holds no commit, and is named as step 3 says. `removed <branch> <path>` is gone; `kept <branch> <path> unlanded commit` or
    `kept <branch> <path> dirty tree` stays where it is, and is named in the `## Fix run` section and
    in the reply as a commit the run could not land, per `## The landing`.
 

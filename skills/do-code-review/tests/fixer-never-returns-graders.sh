@@ -90,5 +90,22 @@ w="$(wave_forked)"
 bash_call_append "$w" "bash $scripts/fix-integrate.sh $tree 2=fixer/export-notes/$at/w1-2 1=fixer/export-notes/$at/w1-1"
 grade_fails "fixer-never-returns: a run that hands the silent Fixer's branch for Finding 1 to fix-integrate.sh beside Finding 2's fails stalled-branch-never-picked" "$w"
 
+# shellcheck disable=SC2034 # read by lib.sh's grade_passes and grade_fails
+grader="$here/../evals/fixer-never-returns/graders/stalled-worktree-kept.md"
+
+w="$(wave_forked)"
+bash_call_append "$w" "bash $scripts/fix-integrate.sh $tree 2=fixer/export-notes/$at/w1-2"
+bash_call_append "$w" "bash $scripts/fix-worktrees.sh remove $tree fixer/export-notes/$at/w1-2"
+grade_passes "fixer-never-returns: a run that cut the Wave and takes back only Finding 2's worktree, keeping the silent Fixer's for Finding 1, passes stalled-worktree-kept" "$w"
+
+w="$(wave_forked)"
+bash_call_append "$w" "bash $scripts/fix-worktrees.sh remove $tree fixer/export-notes/$at/w1-2"
+bash_call_append "$w" "bash $scripts/fix-worktrees.sh remove $tree fixer/export-notes/$at/w1-1"
+grade_fails "fixer-never-returns: a run that takes back the silent Fixer's worktree for Finding 1 alone fails stalled-worktree-kept" "$w"
+
+w="$(wave_forked)"
+bash_call_append "$w" "bash $scripts/fix-worktrees.sh remove $tree fixer/export-notes/$at/w1-1 fixer/export-notes/$at/w1-2"
+grade_fails "fixer-never-returns: a run that takes back the silent Fixer's worktree for Finding 1 beside Finding 2's fails stalled-worktree-kept" "$w"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1
