@@ -1,5 +1,5 @@
-name: target-moved-lands-findings-the-branch-fixed
-tags: [playbook, ticket, run, review, resume]
+name: fix-call-leaves-a-finding-hands-over-direction
+tags: [playbook, ticket, run, review, resume, stop]
 runs: 1
 max_turns: 200
 timeout_seconds: 3600
@@ -10,12 +10,12 @@ context:
     #!/usr/bin/env bash
     # Ticket 01 is claimed and its do/archive-a-note worktree holds a commit for each of its three
     # behaviours. An earlier run's review left both Act on Findings of the Review beside the Ticket
-    # `not fixed` and stopped; the developer then fixed both in one commit on the branch, and their
-    # checks pass. The second /do resumes on that Review with only the landing left: its first fix
-    # call settles both Findings off the branch and returns `not landed: target moved`, since a
-    # teammate lands on main while it runs (planted in the fixture's stand-in do-code-review). The
-    # run integrates again and makes the fix call again, which lands, instead of stopping on a Review
-    # whose Findings once read `not fixed`.
+    # `not fixed` and stopped; the developer then fixed Finding 1 in a commit on the branch and left
+    # Finding 2 as it was. The second /do resumes on that Review with only the landing left: its fix
+    # call settles Finding 1 off the branch, forks nothing for Finding 2, and returns
+    # `not landed: Finding 2 not fixed or not verified` (the fixture's stand-in do-code-review). The
+    # run stops with one `Yours: direction:` line offering to fix Finding 2 in the worktree and run
+    # do again, or to overrule it in the Review and call `fix`, and never opens the Review itself.
     set -e
     mkdir -p src docs/agents .scratch/archive-notes/issues .claude/agents .claude/skills/test-author
     cat > package.json <<'JSON'
@@ -500,7 +500,7 @@ context:
     MD
 
     mkdir -p .claude/skills/do-code-review
-    echo "target-moved" > .claude/skills/do-code-review/plant
+    echo "none" > .claude/skills/do-code-review/plant
     cat > .claude/skills/do-code-review/SKILL.md <<'REVIEW_SKILL_EOF'
     ---
     name: do-code-review
@@ -902,8 +902,8 @@ context:
     mkdir -p .git/do/review-token
     printf '%s\n' "$token" > .git/do/review-token/archive-a-note
 
-    # After that stop the developer fixed both Findings by hand in the worktree, in one commit, with
-    # the tests their Fix lines name. Both checks fail at the reviewed commit and pass now.
+    # After that stop the developer fixed Finding 1 by hand in the worktree, with the test its Fix
+    # line names, and left Finding 2 as it was: create still takes a blank title.
     cat > "$wt/src/notes.ts" <<'TS'
     export type Status = "active" | "archived";
 
@@ -917,7 +917,6 @@ context:
     const archived: Note[] = [];
 
     export function create(title: string): Note {
-      if (title.trim() === "") throw new Error("a note needs a title");
       const note: Note = { id: notes.length + 1, title, status: "active" };
       notes.push(note);
       return note;
@@ -948,14 +947,5 @@ context:
       assert.throws(() => archive(999));
     });
     TS
-    cat > "$wt/src/create-empty.test.ts" <<'TS'
-    import { test } from "node:test";
-    import assert from "node:assert/strict";
-    import { create } from "./notes.ts";
-
-    test("creating a note with a blank title throws", () => {
-      assert.throws(() => create("  "));
-    });
-    TS
-    git -C "$wt" add src/notes.ts src/archive-unknown.test.ts src/create-empty.test.ts
-    git -C "$wt" -c user.email=developer@example.com -c user.name=developer commit -q -m "fix(notes): refuse an unknown id and a blank title"
+    git -C "$wt" add src/notes.ts src/archive-unknown.test.ts
+    git -C "$wt" -c user.email=developer@example.com -c user.name=developer commit -q -m "fix(notes): refuse an unknown id"

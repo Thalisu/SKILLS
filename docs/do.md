@@ -231,7 +231,11 @@ Review is Green
 ([ADR 0013](adr/0013-do-code-review-lands-a-green-review-by-fast-forward.md),
 [ADR 0015](adr/0015-the-default-review-run-fixes-and-lands-and-the-fixer-corrects-for-every-caller.md)).
 That is also why `do` never patches a Finding by hand: a Finding the Fixer left standing is the
-reason nothing landed, and the run stops on it with the worktree intact.
+reason nothing landed, and the run stops on it with the worktree intact. The stop names the
+Finding by its number and hands you two ways out on its `Yours: direction:` line: fix it in the
+worktree and run `/do` again, whose `fix` call finds your commit and records the Finding fixed, or
+overrule it by editing the Review and running `/do-code-review fix` on it. The run itself never
+opens the Review.
 
 **Why is the fix of a red flow not reviewed again?**
 Because the review runs once per run

@@ -551,7 +551,21 @@ run holds nothing to decide, so the reply's `Yours:` line, per [reply.md](reply.
 `direction`, keyed on the review's returned reason and never on the session's own reading of the
 Review. The choice names what that reason leaves open, with the worktree and its branch: fix what
 it names in the worktree and request the run again, which resumes on the Review it has, or leave
-the branch unlanded. The run takes neither. On a protected branch the diff was reviewed and Green
+the branch unlanded. The run takes neither.
+
+A reason that names Findings, `not landed: Finding <n>[, <n>]... not fixed or not verified`, from
+the review or from any fix call, leaves those Findings open, and only the developer can close them:
+by a fix the next run's fix call settles off the branch, or by overruling the review, which is
+theirs to do in the Review and never the run's, since the run neither opens nor edits it. So the
+choice is those two, built from the landing line and the paths the run already holds, never from
+the Review's text:
+
+```
+Yours: direction: Finding <n>[, <n>]... stays open in <the Review>: fix it in <the worktree> and run do on <the Ticket> again, or overrule it by editing <the Review> and running /do-code-review fix <the Review>
+```
+
+In `bug-fix` and `refactoring` the request typed again names the one that started the run, since no
+Ticket stands behind it. On a protected branch the diff was reviewed and Green
 and only the target was wrong, so the choice is where it lands: landing the reviewed branch
 elsewhere, with the two commands that land it by hand from a branch that takes commits. The run
 types neither:
