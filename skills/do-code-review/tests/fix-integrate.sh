@@ -133,6 +133,34 @@ absent "no conflicted line is printed for a pick git refused before it started" 
 expect "the reviewed branch is left unmoved when git refuses a pick before it starts" \
   test "$(git -C "$main" rev-parse main)" = "$before"
 
+fresh duplicate-finding
+main="$tmp/duplicate-finding"
+printf 'base\n' >README.md
+commit base
+fixer_branch f1 one.txt "finding one"
+fixer_branch f2 two.txt "finding two"
+before="$(git -C "$main" rev-parse main)"
+run "$main" 1=f1 1=f2
+check "a Finding number given twice exits 2 with the usage line and picks nothing" \
+  2 "$rc" "usage: fix-integrate.sh"
+absent "no Finding is picked when a Finding number repeats" "picked "
+expect "the reviewed branch is left unmoved when a Finding number repeats" \
+  test "$(git -C "$main" rev-parse main)" = "$before"
+
+fresh non-integer-key
+main="$tmp/non-integer-key"
+printf 'base\n' >README.md
+commit base
+fixer_branch f1 one.txt "finding one"
+fixer_branch f2 two.txt "finding two"
+before="$(git -C "$main" rev-parse main)"
+run "$main" f1 2=f2
+check "a pair that is not <positive integer>=<branch> exits 2 with the usage line and picks nothing" \
+  2 "$rc" "usage: fix-integrate.sh"
+absent "no Finding is picked when a pair's key is not a positive integer" "picked "
+expect "the reviewed branch is left unmoved when a pair's key is not a positive integer" \
+  test "$(git -C "$main" rev-parse main)" = "$before"
+
 fresh identical-change
 main="$tmp/identical-change"
 printf 'base\n' >a.txt

@@ -28,7 +28,11 @@ shift
 
 declare -A fixer=()
 for pair in "$@"; do
+  case "$pair" in *=*) ;; *) usage ;; esac
   n="${pair%%=*}"
+  case "$n" in '' | *[!0-9]*) usage ;; esac
+  [ "$n" -ge 1 ] || usage
+  [ -z "${fixer[$n]+x}" ] || usage
   fixer[$n]="${pair#*=}"
 done
 
