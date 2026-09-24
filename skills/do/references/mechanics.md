@@ -97,7 +97,9 @@ on the branch makes the landing fast-forward fail, so one rule covers the three 
   step, written as `grounded`, and the `peak` and `band` read at the close, after the last edit. A
   reading that exits non-zero writes `Context: not measured` with the script's reason. The
   `Forks:` line the format defines as the second line comes from that close reading too, so it
-  counts every fork the run made up to its close.
+  counts the forks this session made up to its close, never an earlier session's: a resumed run,
+  one that recorded the resume line of the Resume in [ticket.md](ticket.md), says so on the line,
+  `Forks: <n> (<kinds>), this session only (resumed run)`.
 
 ## The reader
 
@@ -610,7 +612,10 @@ above: the run never commits it and the worktree branch never touches it.
    the `peak` and the `band`; a reading that fails writes `Context: not measured` with the
    script's reason. The second line is the `Forks:` line, from the `forks` and `fork_kinds` keys
    of that same reading: `Forks: <forks> (<fork_kinds>)`, `Forks: 0` when `forks` reads 0, and
-   `Forks: not measured` with the same reason when the reading fails, in the format of
+   `Forks: not measured` with the same reason when the reading fails. The reading covers this
+   session's transcript alone, so a resumed run labels the line as partial:
+   `Forks: <forks> (<fork_kinds>), this session only (resumed run)`, and
+   `Forks: 0, this session only (resumed run)` when `forks` reads 0. All in the format of
    [ticket-format.md](../../../.agents/formats/ticket-format.md). Then the landed commit, the Review's location, the command lines of the gate
    and the flows with their quoted output lines, and each waiver.
 3. Set the `**Status:**` line to `resolved`. The file stays uncommitted, for the developer, and

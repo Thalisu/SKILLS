@@ -85,7 +85,10 @@ agent type, and every Skill call to a skill whose frontmatter reads `context: fo
 skill's name, the kinds in byte order. Only the session's own forks count, never the forks a fork
 made in its own window, the same line the context figures draw. A run that forked nothing writes
 `Forks: 0`, and a reading that fails writes `Forks: not measured, <reason>` with the reason its
-`Context:` line carries. Nothing calibrates from this line: it is the record the next round of the
+`Context:` line carries. The session is the unit counted, so a Ticket built across a stop and a
+resume in a new session counts the resuming session's forks alone, and its line says so:
+`Forks: <n> (<kind> <n>, ...), this session only (resumed run)`, or
+`Forks: 0, this session only (resumed run)`. A reader never takes that line for the Ticket's total. Nothing calibrates from this line: it is the record the next round of the
 chain's design is argued from, with numbers rather than guesses.
 
 ## Template
