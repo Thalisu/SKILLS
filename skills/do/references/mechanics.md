@@ -675,5 +675,8 @@ above: the run never commits it and the worktree branch never touches it.
    its branch by hand, or leaving them.
 
 Outside the chain there is no Ticket: the close is the worktree's removal alone. A run that stops
-as blocked closes nothing: the Ticket stays `claimed`, the worktree and its branch stay in place,
-and the reply names them.
+as blocked before it reaches the close closes nothing: the Ticket stays `claimed`, the worktree
+and its branch stay in place, and the reply names them. A run that stops at the close's own step 5
+already ran steps 1 through 4: the Ticket carries its ticked criteria, its evidence and its
+`resolved` status, and only the worktree and its branch remain, for the `Yours: destroy:` line to
+name.

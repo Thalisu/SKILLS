@@ -199,8 +199,10 @@ lists it; write it by this file alone otherwise.
    on the way and not done.
 11. **Next step.** One line. It ends with the push command when something landed on the
     developer's branch, `git push` with the branch named; otherwise the command to type next. A
-    landed run is not a stop: the push stays on this line, the run never pushes, and its Reply
-    carries no `Yours:` line.
+    landed run whose close finished is not a stop: the push stays on this line, the run never
+    pushes, and its Reply carries no `Yours:` line. A landed run that then stopped at the close's
+    `destroy` stop carries exactly one `Yours: destroy:` line, per the section below; the push
+    still stays on this Next step line and is never named under `outward`.
 
 ## A refusal or a blocked run
 
@@ -231,6 +233,9 @@ cannot name a class is not a stop: whatever it would hand over is a reversible a
 run's own artifacts, and the run takes it. The Playbook's own step names the class of each stop it
 makes, keyed on what its scripts print and never on the session's reading. A blocked Reply whose
 handed-over commands include a push names that push under `outward`, since a push is a write
-outside the repository the run never makes itself. The question a run puts before a write to a
+outside the repository the run never makes itself, except the close's `destroy` stop on a landed
+run: its push already sits on the Reply's Next step line, per item 11 above, so the
+`Yours: destroy:` line names only the worktree and branch choice, never the push. The question a
+run puts before a write to a
 remote tracker, the claim's and the close's, carries the same line under `outward`, its choice the
 yes that makes every write the question lists or the no that makes none of them.
