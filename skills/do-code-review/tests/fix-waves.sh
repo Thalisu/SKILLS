@@ -618,6 +618,130 @@ check_lines "six disjoint Findings on six disjoint files are cut into consecutiv
 absent "a Wave never grows past four Findings even when every remaining Finding is disjoint from it" "wave=1 findings=1,2,3,4,5"
 absent "six disjoint Findings never land on one Wave" "wave=1 findings=1,2,3,4,5,6"
 
+capped12="$tmp/09-twelve-disjoint-findings.review.md"
+cat >"$capped12" <<'MD'
+# Review: feat/export-notes
+
+Ticket: none
+Fixed point: main (3f2a9c1), inferred
+Commit: 8b1d0e4
+Spec source: no spec
+Mode: fix
+Language: English
+
+## Intent
+
+Export the active notes as CSV, with a header line and one row per note.
+
+## Safe because
+
+The only caller of `page` outside the diff runs green in a proof script. Rung 4.
+
+## Act on
+
+### 1. Correctness at src/f1.js:3
+Claim: a page of ten notes returns nine.
+Evidence: eleven notes created, `page(1, 10)` called; nine rows returned, `slice` ends one short.
+Rung: 4
+Fix: a page of size ten over eleven notes returns ten rows, in tests/f1.test.js
+
+### 2. Correctness at src/f2.js:3
+Claim: a page of ten notes returns nine.
+Evidence: eleven notes created, `page(1, 10)` called; nine rows returned, `slice` ends one short.
+Rung: 4
+Fix: a page of size ten over eleven notes returns ten rows, in tests/f2.test.js
+
+### 3. Correctness at src/f3.js:3
+Claim: a page of ten notes returns nine.
+Evidence: eleven notes created, `page(1, 10)` called; nine rows returned, `slice` ends one short.
+Rung: 4
+Fix: a page of size ten over eleven notes returns ten rows, in tests/f3.test.js
+
+### 4. Correctness at src/f4.js:3
+Claim: a page of ten notes returns nine.
+Evidence: eleven notes created, `page(1, 10)` called; nine rows returned, `slice` ends one short.
+Rung: 4
+Fix: a page of size ten over eleven notes returns ten rows, in tests/f4.test.js
+
+### 5. Correctness at src/f5.js:3
+Claim: a page of ten notes returns nine.
+Evidence: eleven notes created, `page(1, 10)` called; nine rows returned, `slice` ends one short.
+Rung: 4
+Fix: a page of size ten over eleven notes returns ten rows, in tests/f5.test.js
+
+### 6. Correctness at src/f6.js:3
+Claim: a page of ten notes returns nine.
+Evidence: eleven notes created, `page(1, 10)` called; nine rows returned, `slice` ends one short.
+Rung: 4
+Fix: a page of size ten over eleven notes returns ten rows, in tests/f6.test.js
+
+### 7. Correctness at src/f7.js:3
+Claim: a page of ten notes returns nine.
+Evidence: eleven notes created, `page(1, 10)` called; nine rows returned, `slice` ends one short.
+Rung: 4
+Fix: a page of size ten over eleven notes returns ten rows, in tests/f7.test.js
+
+### 8. Correctness at src/f8.js:3
+Claim: a page of ten notes returns nine.
+Evidence: eleven notes created, `page(1, 10)` called; nine rows returned, `slice` ends one short.
+Rung: 4
+Fix: a page of size ten over eleven notes returns ten rows, in tests/f8.test.js
+
+### 9. Correctness at src/f9.js:3
+Claim: a page of ten notes returns nine.
+Evidence: eleven notes created, `page(1, 10)` called; nine rows returned, `slice` ends one short.
+Rung: 4
+Fix: a page of size ten over eleven notes returns ten rows, in tests/f9.test.js
+
+### 10. Correctness at src/f10.js:3
+Claim: a page of ten notes returns nine.
+Evidence: eleven notes created, `page(1, 10)` called; nine rows returned, `slice` ends one short.
+Rung: 4
+Fix: a page of size ten over eleven notes returns ten rows, in tests/f10.test.js
+
+### 11. Correctness at src/f11.js:3
+Claim: a page of ten notes returns nine.
+Evidence: eleven notes created, `page(1, 10)` called; nine rows returned, `slice` ends one short.
+Rung: 4
+Fix: a page of size ten over eleven notes returns ten rows, in tests/f11.test.js
+
+### 12. Correctness at src/f12.js:3
+Claim: a page of ten notes returns nine.
+Evidence: eleven notes created, `page(1, 10)` called; nine rows returned, `slice` ends one short.
+Rung: 4
+Fix: a page of size ten over eleven notes returns ten rows, in tests/f12.test.js
+
+## Consider
+
+none
+
+## Noted
+
+none
+
+## Cleared
+
+none
+
+## Axes
+
+- Correctness: 12 findings, worst #1 (Act on)
+- Spec: no spec
+- Standards: 0 findings
+- Principles: 0 findings
+- Blast radius: 0 findings
+- Security: 0 findings
+MD
+
+run "$capped12"
+check_lines "twelve disjoint Findings on twelve disjoint files are cut into three consecutive Waves of at most four Findings each" 0 "$rc" \
+  "wave=1 findings=1,2,3,4" \
+  "wave=2 findings=5,6,7,8" \
+  "wave=3 findings=9,10,11,12"
+absent "twelve disjoint Findings are never cut into only two Waves" "wave=1 findings=1,2,3,4,5"
+absent "no Wave among twelve disjoint Findings ever names more than four Findings" "wave=2 findings=5,6,7,8,9"
+absent "the third Wave among twelve disjoint Findings never grows past four Findings" "wave=3 findings=9,10,11,12,13"
+
 echo
 if [ "$fails" = 0 ]; then echo "fix-waves: all checks passed"; else
   echo "fix-waves: $fails failed"
