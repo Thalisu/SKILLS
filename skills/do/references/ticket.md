@@ -331,18 +331,23 @@ worktree is cut and entered before the Planner is even forked, for the diagnosis
 keeps the same promise by undoing that cut itself. A refusal met there after the worktree exists,
 the Planner's own Sources mismatch, the destination check, a defect that will not reproduce even
 when forced or any other refusal of this step, reverts the run's instrumentation, leaves the
-worktree with a bare `cd` to the main checkout and, from there, runs `git worktree remove <path>`
-then `git branch -d do/<slug>`: the run cut both, and the door's own worktree-exists rule above
-would otherwise refuse the rerun. The Ticket stays at the status the door found it at, since the
-claim on that branch still waits for the verified Plan, and the refusal's Reply says the worktree
-and its branch were removed. The removal takes only what this run cut, since anything else is work
+worktree with a bare `cd` to the main checkout and, from there, checks first whether
+`git merge-base --is-ancestor do/<slug> HEAD` holds: only when it does, meaning the branch carries
+no commit HEAD lacks, does it go on to run `git worktree remove <path>` then
+`git branch -d do/<slug>`: the run cut both, and the door's own worktree-exists rule above would
+otherwise refuse the rerun. The Ticket stays at the status the door found it at, since the claim
+on that branch still waits for the verified Plan, and the refusal's Reply says the worktree and
+its branch were removed. The removal takes only what this run cut, since anything else is work
 the run did not create, the `destroy` class of
 [ADR 0057](../../../docs/adr/0057-a-do-run-stops-only-on-a-handover-class-its-reply-names.md): the
 remove runs without `--force` and the delete with `-d`, never `-D`. A worktree this run entered
 rather than cut, a resumed run's on a `claimed` Ticket whose worktree already existed, is left in
-place with its branch and both are named in the Reply. A remove or a delete git refuses, a tree
-still dirty or a branch carrying a commit the developer's branch does not hold, is left in place
-and named in the Reply with git's own reason, and is never retried with a stronger flag. The
+place with its branch and both are named in the Reply. The ancestry check failing, a branch
+carrying a commit HEAD does not hold, leaves both the worktree and the branch in place and named
+in the Reply, before either removal runs, so the diagnosis's own commit is never stranded behind a
+worktree already gone. A remove or a delete git refuses regardless, a tree still dirty for the
+one or a branch git still won't delete for the other, is left in place and named in the Reply
+with git's own reason, and is never retried with a stronger flag. The
 brief's `Tree:`
 key is the main checkout on every other branch for the same
 reason: the worktree the build runs in does not exist yet, and the fork grounds against HEAD, which
