@@ -3,17 +3,23 @@
 # obeys is a script's output rather than the orchestrator's opinion and is the same on every run.
 # The Review it reads is in the format of .agents/formats/review-format.md. ADR 0053.
 #
-#   fix-waves.sh <review file>
+#   fix-waves.sh <review file> [--settled <n>[,<n>]...]
 #
-# Groups the Findings of the Review's `## Act on` section into Waves: two Findings share a Wave
-# only when both of their file sets are non-empty and disjoint, and a Finding whose files cannot be
-# read is a Wave of its own. A Finding's files are the file of its header location when that
+# Leaves out a Finding whose latest line across every `## Fix run` section reads `fixed`, and every
+# Finding --settled names (the ones the fix call settled from a commit since the Review), before
+# any grouping, so a dropped Finding's files keep no other Finding off a Wave.
+#
+# Groups the remaining Findings of the Review's `## Act on` section into Waves: two Findings share
+# a Wave only when both of their file sets are non-empty and disjoint, and a Finding whose files
+# cannot be read is a Wave of its own. A Finding's files are the file of its header location when that
 # location is a file and a line or a line range, whatever prose trails it, and the file its `Fix:`
 # line names after the target separator when that is a path. Prints one line per Wave, in
 # ascending order of each Wave's lowest Finding, as
 # wave=<n> followed by findings=<the Wave's Finding numbers, ascending, comma separated>.
 #
-# Exit codes: 0 waves printed · 1 the Review has no Act on Findings · 2 usage.
+# Exit codes: 0 waves printed · 1 nothing left to fork (no Act on Finding, or every one settled or
+# named by --settled) · 2 usage, or a --settled number that is no Act on Finding or already reads
+# fixed.
 set -uo pipefail
 
 usage() { echo "usage: fix-waves.sh <review file> [--settled <n>[,<n>]...]" >&2; exit 2; }

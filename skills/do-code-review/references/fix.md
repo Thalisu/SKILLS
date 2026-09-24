@@ -191,11 +191,16 @@ Review or the reviewed tree carries, and step 1 below folds it into `<at>`.
 
 Which Findings may share a Wave is a script's output and never the run's reading of the Findings:
 run `bash ~/.claude/skills/do-code-review/scripts/fix-waves.sh <the Review's absolute path>` once,
-and read its `wave=<k> findings=<n>[,<n>]...` lines, one per Wave, in the order the Waves run.
-Those lines are the floor, per
+and read its `wave=<k> findings=<n>[,<n>]...` lines, one per Wave, in the order the Waves run. On a
+`fix` call where Already fixed on the branch held any Finding, add `--settled <n>[,<n>]...` with the
+numbers it held, and leave the flag off otherwise. The script leaves out of every Wave a Finding the
+`## The Act on list` rule reads as settled and every one `--settled` names, before it groups the
+rest, so no Wave it prints carries a Finding no Fixer should see. Those lines are the floor, per
 [ADR 0055](../../../docs/adr/0055-the-review-orchestrator-runs-on-opus-at-high-effort-and-no-router-agent-is-created.md).
-A Finding the `## The Act on list` rule reads as settled is left out of its Wave, and a Wave left
-with no Finding forks nothing and is skipped.
+Its exit 1 means nothing is left to fork: no worktree is cut, no Fixer is forked, and the run
+carries on from The re-check. Its exit 2 on a `--settled` number is a number that is no unsettled
+`Act on` Finding of the Review: the list was mistyped, and it is read off the held lines again
+before the call is made once more.
 
 The script compares files and sees nothing else, so read each floor Wave of two or more Findings
 once more for a coupling no file comparison can see: two Findings whose functions call each other,
