@@ -401,7 +401,9 @@ ones the `ticket` Playbook gets:
   through the fix call on that Review, and the same return again, after that resume's integration
   ticked as a no-op too, stops the run as blocked.
 - **Not landed**, for any other reason the review gives. The run stops as blocked with the reason
-  quoted, the worktree and its branch left in place and named in the reply, nothing half fixed.
+  quoted, the worktree and its branch left in place and named in the reply, nothing half fixed,
+  and the reply's `Yours: direction:` line carrying the choice, as the review in
+  [mechanics.md](mechanics.md) says.
 - **`do-code-review` not listed.** The step reads `skip: do-code-review not listed`, nothing lands,
   and the reply names the worktree, its branch and the review as the developer's next step.
 - **A protected branch.** The review refuses the landing, whatever the run wrote, and the run
