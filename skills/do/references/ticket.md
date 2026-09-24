@@ -61,12 +61,14 @@ the tracker file describes. Before anything is written:
   `run_branch=` fact, and the claim stands, since the claim is idempotent. A `do/<slug>` branch the
   worktree's removal left behind is named there, and step 2 enters it rather than meeting it as a
   dead `git worktree add -b`.
-- A `ready-for-agent` Ticket whose `do/<slug>` worktree already exists
-  (`ambiguous=worktree exists for a ready-for-agent Ticket`) is refused in one line naming the
+- A `ready-for-agent` Ticket whose `do/<slug>` worktree already exists (`verdict=ambiguous` with
+  `ambiguous=worktree exists for a ready-for-agent Ticket`) is refused in one line naming the
   worktree. Nothing is written, nothing is claimed and nothing is removed: the worktree is a run no
   claim records, and another run may still be writing in it, so the message carries
   `Yours: destroy:` with the choice, per [reply.md](reply.md): remove the worktree named, or set the
-  status to `claimed` by hand to resume it.
+  status to `claimed` by hand to resume it. A Ticket blocked by one not `resolved` prints
+  `verdict=blocked` instead, ahead of this check, so a Ticket with both a stray worktree and an
+  unresolved blocker gets the bullet above alone, `Yours: direction:`, and never this one too.
 - On a remote tracker, an issue assigned to someone else stops the run in one line with their
   name.
 
