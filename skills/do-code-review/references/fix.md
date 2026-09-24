@@ -307,14 +307,20 @@ could never land. That is also what lets a re-routed Finding's second Fixer star
 lost to instead of meeting it again: its conflicted branch stays behind as
 `kept <branch> <path> unlanded commit`, and its new worktree is cut beside it.
 
-The Findings re-routed out of a Wave run together as one Wave of their own, the re-route Wave,
-right after it and before the next Wave `fix-waves.sh` printed; re-routed out of the last Wave,
-they are the new last. It runs steps 1 to 6 like any Wave, under its own `<k>`, and each of its
-Fixers gets the brief every Fixer gets. It is never merged into a Wave the script printed: its
-Findings shared one Wave of the floor, so their files are disjoint and they are four at most, while
-joining the next Wave could put two Fixers on one file or five in one Wave, which the floor exists
-to prevent. Every branch it integrates is cut from the same HEAD, so its Findings can conflict only
-with each other, and those it re-routes form the next re-route Wave the same way.
+The Findings re-routed out of a Wave do not all run together: a `conflicted` line names the files
+that aborted its pick, and two re-routed Findings whose `conflicted` lines name a common file would
+only conflict with each other the same way if forked together, which is the coupling the floor
+missed in the first place. So they are grouped by that overlap, into as many re-route Waves as it
+takes to keep every pair that shares a file apart, one Wave per disjoint set of files its Findings'
+`conflicted` lines name; a Finding whose `conflicted` line shares no file with any other re-routed
+Finding may share its re-route Wave with them. The re-route Waves run right after the Wave they were
+routed out of and before the next Wave `fix-waves.sh` printed; routed out of the last Wave, they are
+the new last, in the order the grouping puts them in. Each runs steps 1 to 6 like any Wave, under
+its own `<k>`, and each of its Fixers gets the brief every Fixer gets. A re-route Wave is never
+merged into a Wave the script printed: joining the next Wave could put two Fixers on one file or
+five in one Wave, which the floor exists to prevent. Every branch a re-route Wave integrates is cut
+from the same HEAD, so its Findings can conflict only with each other in that Wave, and those it
+re-routes are grouped and run the same way as the next re-route Wave.
 
 A stop that ends the Waves early, at step 1, 3, 4 or 5, ends a pending re-route Wave with them. Every
 Finding still waiting for a Wave, whether a later Wave of the floor's or a re-route Wave not yet
