@@ -28,8 +28,22 @@ printf '#!/usr/bin/env bash\nset -u\necho "${1:-}"\n' >src/a.sh
 commit "fix: a.sh reads a missing argument as empty"
 fixed="$(git rev-parse HEAD)"
 
-review_at() { # $1 the Review's Commit: sha, $2 the review file: one Act on Finding on src/a.sh, not fixed by the last Fix run
+review_at() { # $1 the Review's Commit: sha, $2 the review file, $3 its Act on Findings, $4 its Fix run sections; by default one Act on Finding on src/a.sh, not fixed by the one Fix run
   local reviewed="$1"
+  local act_on="${3:-### 1. Correctness at src/a.sh:3
+Claim: a call with no argument exits on an unbound variable.
+Evidence: \`bash src/a.sh\` exits 1 with \`\$1: unbound variable\`.
+Rung: 4
+Fix: a call with no argument prints an empty line and exits 0, in tests/a.test.sh}"
+  local fix_runs="${4:-## Fix run
+
+Date: 2026-09-24 · at $reviewed
+
+- 1: not fixed: the Fixer never returned
+- diff tests: skip: no Fixer commit
+- gate fixer: not needed
+- gate: \`bash tests/a.test.sh\`: green
+- not landed: a Fixer did not return}"
   cat >"$2" <<MD
 # Review: main
 
@@ -50,11 +64,7 @@ The script has no caller outside the diff. Rung 4.
 
 ## Act on
 
-### 1. Correctness at src/a.sh:3
-Claim: a call with no argument exits on an unbound variable.
-Evidence: \`bash src/a.sh\` exits 1 with \`\$1: unbound variable\`.
-Rung: 4
-Fix: a call with no argument prints an empty line and exits 0, in tests/a.test.sh
+$act_on
 
 ## Consider
 
@@ -77,15 +87,7 @@ none
 - Blast radius: 0 findings
 - Security: 0 findings
 
-## Fix run
-
-Date: 2026-09-24 · at $reviewed
-
-- 1: not fixed: the Fixer never returned
-- diff tests: skip: no Fixer commit
-- gate fixer: not needed
-- gate: \`bash tests/a.test.sh\`: green
-- not landed: a Fixer did not return
+$fix_runs
 MD
 }
 
@@ -115,6 +117,51 @@ check_lines "a Finding whose files two commits since the Review touched is liste
   0 "$rc" "finding=1 touched=$later"
 check_absent "a Finding whose files two commits since the Review touched is never listed with the earlier one" \
   0 "$rc" "touched=$earlier"
+
+fresh settled
+wt="$tmp/settled"
+mkdir -p src
+printf '#!/usr/bin/env bash\nset -u\necho "$1"\n' >src/a.sh
+commit base
+reviewed="$(git rev-parse --short HEAD)"
+printf '#!/usr/bin/env bash\nset -u\necho "${1:-}"\n' >src/a.sh
+commit "fix: a.sh reads a missing argument as empty"
+fixed="$(git rev-parse --short HEAD)"
+
+act_on="$(for n in 1 2 3 4; do
+  printf '### %s. Correctness at src/a.sh:3\nClaim: a call with no argument exits on an unbound variable.\n' "$n"
+  printf 'Evidence: `bash src/a.sh` exits 1.\nRung: 4\nFix: a call with no argument exits 0, in tests/a.test.sh\n\n'
+done)"
+fix_runs="## Fix run
+
+Date: 2026-09-23 · at $reviewed
+
+- 1: not fixed: the Fixer never returned
+- 2: not fixed: the Fixer never returned
+- 4: not fixed: the Fixer never returned
+- diff tests: skip: no Fixer commit
+- gate fixer: not needed
+- gate: \`bash tests/a.test.sh\`: green
+- not landed: a Fixer did not return
+
+## Fix run
+
+Date: 2026-09-24 · at $reviewed
+
+- 1: not fixed: the Fixer never returned
+- 2: stale
+- 4: fixed $fixed, verified (\`bash tests/a.test.sh\`)
+- diff tests: \`bash tests/a.test.sh\`: 1 passing
+- gate fixer: not needed
+- gate: \`bash tests/a.test.sh\`: green
+- not landed: a Finding not fixed"
+review="$tmp/03-a.review.md"
+review_at "$reviewed" "$review" "$act_on" "$fix_runs"
+run "$wt" "$review"
+check "a Finding whose latest line across every Fix run reads not fixed or stale, or that has none, is listed" \
+  0 "$rc" "finding=1 touched=" "finding=2 touched=" "finding=3 touched="
+check_absent "a Finding not fixed in an earlier Fix run and fixed in a later one is not listed" \
+  0 "$rc" "finding=4 "
 
 echo
 if [ "$fails" = 0 ]; then echo "unsettled: all checks passed"; else
