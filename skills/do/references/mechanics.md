@@ -513,20 +513,27 @@ replayed commits, since every such return is another landing on the branch, and 
 at once are finite. A `not landed: target moved` right after an integration that ticked as a no-op
 is the one that ends the loop: the integration found the branch already holding the target, so no
 other landing happened, the landing and the integration disagree about the target, and integrating
-again would meet the same tip.
+again inside the loop would meet the same tip.
+
+The run does not stop on it. It takes its own Resume path in the same run, the path a second run
+request would have taken, since everything that path needs is a reversible action inside the run's
+own artifacts, per
+[ADR 0057](../../../docs/adr/0057-a-do-run-stops-only-on-a-handover-class-its-reply-names.md), and
+the developer never types the request again only so that a human is present. The run already holds
+what that path reads off `resume-state.sh`, every behaviour committed and the Review its own review
+wrote, so it reads neither again. In `ticket` the path is the all-ticked bullet of the Resume of
+[ticket.md](ticket.md): the integration run again, which resolves each contested hunk the review's
+landing left to the **Target** side and writes its **Incoming** side to the ledger, the Loss ledger
+judged and the reapplies brought back, with no **Gate** of the run's own, then the landing through
+the fix call on the Review the run already has, never a second review. The run lands or stops on
+that path's own outcome, and the integration line of the Reply's Run section carries the lines of
+both integrations, per [reply.md](reply.md), never the resume as a next step.
 
 Not landed, for any other reason the review gives (a Finding `not fixed` or `not verified`, an Axis
-`not run`, a red gate after the fixes, a `not landed: target moved` right after an integration that
-ticked as a no-op, a red gate after the
+`not run`, a red gate after the fixes, a red gate after the
 retry's rebase, a failed fast-forward, a protected branch), and the run stops as blocked: the review's reason quoted, the
 worktree and its branch left in place and named in the reply, the Ticket left `claimed`, so that
-nothing lands half fixed. On a `not landed: target moved` right after an integration that ticked as
-a no-op the reply names the one command that
-recovers it, the same run request typed again on the Ticket in `ticket`: its resume finds every
-behaviour committed and runs the integration again, which resolves the hunks the review's landing
-left to the **Target** side and writes their **Incoming** side to the ledger, and in `bug-fix` and `refactoring` it is the same run request typed
-again, in the developer's same words, whose resume, the Resume of [bug-fix.md](bug-fix.md), finds
-the Review the first run wrote and lands through the fix call on it. On a protected branch the reply adds the two commands that land the
+nothing lands half fixed. On a protected branch the reply adds the two commands that land the
 reviewed branch by hand from a branch that takes commits, since the diff was reviewed and Green
 and only the target was wrong:
 

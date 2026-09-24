@@ -155,7 +155,8 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   **Gate** of the run's own after it,
   and the branch lands through the fix call on that Review, as the review in
   [mechanics.md](mechanics.md) says for a branch the review already read.
-- When every line of the list is ticked, as on the branch a `not landed: target moved` right after an integration that ticked as a no-op left,
+- When every line of the list is ticked, as on the branch a `not landed: target moved` right after an integration that ticked as a no-op leaves,
+  whether a later run finds it or the same run takes this path at step 7 without a second request,
   step 3 reads `done: resumed` and the run never waits on a Builder with nothing left to build. It
   goes on at step 4 as a first run does, reading the diff already on the branch, its flows counting
   as authored, then the integration with no
@@ -722,7 +723,7 @@ any, as the review in [mechanics.md](mechanics.md) says. The return is recorded 
 one line per part. A `not landed: target moved` runs the integration again, in the same run, its
 Loss ledger judged and reapplied with no **Gate** of the run's own, then the fix call on the Review
 the run already has, as that review says, and repeats with no fixed count while each integration replayed
-commits; a `not landed: target moved` right after an integration that ticked as a no-op stops the run as blocked like every other `not landed`. Done when the landing line recorded there reads `landed at <commit>`, or the run stopped as
+commits; a `not landed: target moved` right after an integration that ticked as a no-op sends the run through the all-ticked bullet of the Resume above in the same run, as that review says, and the step ends on that path's own landing line. Done when the landing line recorded there reads `landed at <commit>`, or the run stopped as
 blocked with the review's reason quoted and the worktree and its branch named, or the step reads
 `skip: do-code-review not listed` with the worktree and its branch named.
 
@@ -751,8 +752,7 @@ Ticket and the Review under the files left uncommitted; every Ruling the forks i
 consumer flows not run under pending debt, beside
 a criterion the flows step skipped for no end-to-end command, with the command that would fill it; and the next step, `git push` with the developer's
 branch named when the review landed, or, when nothing landed, the worktree, its branch, and the
-review and the landing as what the developer runs next, or, on a `not landed: target moved` right after an integration that ticked as a no-op,
-the same run request typed again on the Ticket instead, since its resume runs the integration again. A
+review and the landing as what the developer runs next. A
 run that stopped on an Extreme fork, or on a Design fork no `choice-taker` ruled, ends instead on
 the `/discuss` command the forks in [forks.md](forks.md) fix, as its last line. Done when
 the reply is sent with
