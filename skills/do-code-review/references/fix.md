@@ -369,7 +369,7 @@ five in one Wave, which the floor exists to prevent. Every branch a re-route Wav
 from the same HEAD, so its Findings can conflict only with each other in that Wave, and those it
 re-routes are grouped and run the same way as the next re-route Wave.
 
-A stop that ends the Waves early, at step 1, 3, 4 or 5, ends a pending re-route Wave with them. Every
+A stop that ends the Waves early, at step 1, 4 or 5, ends a pending re-route Wave with them. Every
 Finding still waiting for a Wave, whether a later Wave of the floor's or a re-route Wave not yet
 cut, reads `not fixed` with the reason of the Wave that stopped, as the stop gives the Findings of
 that Wave, and a re-routed one keeps its `, re-routed <r>`: every `Act on` Finding carries a line,

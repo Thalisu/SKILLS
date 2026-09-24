@@ -33,7 +33,7 @@ fixer_brief() { # $1 the Wave, $2 the Finding's number
   local where claim
   case "$2" in
     1) where="src/notes.js:15" claim="the page of a list starts one slot late." ;;
-    2) where="src/export.js:13" claim="the export joins its rows with nothing between them." ;;
+    2) where="src/export.js:6" claim="the export joins its rows with nothing between them." ;;
     3) where="src/csv.js:2" claim="a field holding a comma is written bare, so its row splits into one column too many." ;;
   esac
   printf 'Finding: %s. Correctness at %s\nClaim: %s\nBranch: fixer/export-notes/%s/w%s-%s\nTree: %s/.claude/worktrees/fixer-export-notes-%s-w%s-%s\nReturn file: %s/.scratch/fixers/fixer-w%s-%s.md' \

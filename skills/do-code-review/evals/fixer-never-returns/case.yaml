@@ -8,8 +8,8 @@ context:
   scaffold_script: |
     #!/usr/bin/env bash
     # A branch whose Review the case wrote, with three Act on Findings the Wave script splits in two:
-    # Findings 1 and 2 touch disjoint files and share Wave 1, and Finding 3 names Finding 2's test
-    # file, so it runs in Wave 2. A project-level agent of the Fixer's name shadows the linked one:
+    # Findings 1 and 2 touch disjoint files, and neither file calls into the other, so no cut splits
+    # them and they share Wave 1; Finding 3 names Finding 2's test file, so it runs in Wave 2. A project-level agent of the Fixer's name shadows the linked one:
     # on Finding 1 it ends its turn without writing the return file the brief names, whatever the
     # brief says, and on every other Finding it follows the linked definition as the Fixer does. The
     # Review sits under the ignored `.scratch/` and is never committed, so the tree reads clean.
@@ -107,18 +107,11 @@ context:
     module.exports = { row };
     JS
     cat > src/export.js <<'JS'
-    const { list, page } = require("./notes");
     const { row } = require("./csv");
 
-    function toCsv() {
+    function toCsv(notes) {
       const rows = [row(["id", "title"])];
-      let number = 1;
-      for (;;) {
-        const chunk = page(list(), number, 10);
-        if (chunk.length === 0) break;
-        for (const note of chunk) rows.push(row([note.id, note.title]));
-        number += 1;
-      }
+      for (const note of notes) rows.push(row([note.id, note.title]));
       return rows.join(",");
     }
 
@@ -130,11 +123,11 @@ context:
     const { toCsv } = require("../src/export");
 
     test("an export opens with its header", () => {
-      assert.ok(toCsv().startsWith("id,title"));
+      assert.ok(toCsv([]).startsWith("id,title"));
     });
     JS
     git -c user.email=fixture@example.com -c user.name=fixture add -A
-    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "feat(export): export the active notes as CSV, a page at a time"
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "feat(export): export notes as CSV"
     cat > .scratch/reviews/export-notes.md <<REVIEW_EOF
     # Review: export-notes
 
@@ -148,7 +141,7 @@ context:
 
     ## Intent
 
-    Export the active notes as CSV, a header then one row per note, walking them a page at a time.
+    Export notes as CSV, a header then one row per note, and page a list of notes.
 
     ## Safe because
 
@@ -162,9 +155,9 @@ context:
     Rung: 4
     Fix: a page of size ten over eleven items returns ten items, in tests/notes.test.js
 
-    ### 2. Correctness at src/export.js:13
+    ### 2. Correctness at src/export.js:6
     Claim: the rows of an export are joined with a comma, so the whole CSV comes back as one line.
-    Evidence: two notes created, \`toCsv()\` returned \`id,title,1,first,2,second\` on a single line.
+    Evidence: two notes passed in, \`toCsv(notes)\` returned \`id,title,1,first,2,second\` on a single line.
     Rung: 4
     Fix: an export of two notes holds three lines, the header and one per note, in tests/export.test.js
 
