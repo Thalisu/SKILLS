@@ -494,12 +494,12 @@ has, as the paragraph below says for what the run commits after the review, neve
 the fix call gates the same tree itself and refuses to land it red, and this retry has no fixed
 count, so a **Gate** here would pay for the suite twice on every lap, per
 [ADR 0049](../../../docs/adr/0049-one-tree-is-gated-once-and-do-skips-the-gate-the-landing-call-runs.md).
-That call is made only on a Review whose Findings its Fixers all fixed, since the reapplies it
-gates are commits no reviewer read: a Review still carrying a Finding left `not fixed` or `stale`
-stops the run as blocked before the call, with the reply the red below carries, because a call on
-it forks a Fixer again, and a Fixer's commit is what turns a red **Gate** over to the Gate fixer,
-whose brief is the red block alone and whose fix would edit the replayed code nobody read and land
-it. With nothing left for a Fixer, a red **Gate** on that tree comes back as
+The call is made whatever the Review holds and whatever the `Act on:` line of the return before it
+read, and the run opens the Review neither to decide it nor to settle a Finding: a Finding a
+commit on the branch already fixed is settled by the fix call's own re-check, per
+[ADR 0056](../../../docs/adr/0056-the-fix-call-settles-a-finding-whose-fix-is-already-on-the-branch.md),
+and one it cannot settle comes back in the call's landing line, which the run routes like any other
+`not landed` below. With nothing left for a Fixer, a red **Gate** on that tree comes back as
 `not landed: gate red` with its failing check, never the Gate fixer, and it stops the run as
 blocked the way a red **Gate** after the first integration's reapplied commits stops it: the
 failing check named, the ledger's location, since the ledger holds what came back and what did
