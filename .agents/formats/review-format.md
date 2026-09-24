@@ -204,7 +204,7 @@ Then one line per `Act on` Finding, by its number, in the file's order, in one o
 
 | Line | Means |
 |---|---|
-| `- <n>: fixed <sha>, verified (<the check>)` | the Fixer committed it and the check its `Fix:` named passed when the run re-ran it |
+| `- <n>: fixed <sha>, verified (<the check>)` | the Fixer committed it, or a commit since the Review touched its location before any Fixer ran, and either way the check its `Fix:` named passed when the run re-ran it |
 | `- <n>: fixed <sha>, not verified` | the Fixer committed it and the Finding named no check to re-run |
 | `- <n>: stale` | the location no longer matches the tree, the Fixer's report and the run's own read of it agreeing, so the code was left alone and no commit was made for it |
 | `- <n>: not fixed: <the reason>` | the Fixer could not turn it green and dropped its edits for it, never reached it, or never returned, so nothing is known to have been dropped |

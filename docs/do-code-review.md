@@ -135,9 +135,16 @@ left it. It touches nothing in `Consider`, `Noted` or `Cleared`, so the judgment
 A `fix` call stops in one line, before anything is written, when the Review is not there, when its
 fixed point no longer resolves, or when your working tree has uncommitted changes. The tree has to
 be clean because the Review judged a diff, and a Fixer let loose on a tree nobody reviewed would
-commit work nobody read. An `Act on` location you changed since the review comes back `stale`, left
-alone, once the run has read that location in the tree itself, and the next `fix` call on the Review
-tries it again.
+commit work nobody read.
+
+You may have fixed a Finding yourself since the review. Before it forks any Fixer, the call checks
+each Finding not yet `fixed` against your commits: when a commit since the review touched its
+location and the check its `Fix:` names passes now, the Finding is recorded
+`fixed <your commit>, verified (<the check>)` in the call's new `## Fix run` section, with no Fixer
+and nothing for you to edit in the Review. A Finding whose check still fails, that names no check,
+or whose location no commit touched goes to a Fixer as before. An `Act on` location a Fixer finds
+changed comes back `stale`, left alone, once the run has read that location in the tree itself, and
+the next `fix` call on the Review tries it again.
 
 ## What the run leaves behind
 
@@ -209,6 +216,9 @@ refusal instead of as a rule to remember, per
 - A Review that fixed anything carries a `## Fix run` section naming each Finding by number, the
   Diff tests, the Gate fixer and the Gate, and either `landed at <sha>` or `not landed` with its
   reason and the branch left behind.
+- A Finding a `fix` call found already fixed by your own commit reads
+  `fixed <your commit>, verified (<the check>)` in that call's new `## Fix run` section, every
+  earlier section still in the file, and no Fixer commit stands for it in `git log`.
 - `git log` on your branch shows the Fixer's commits after a landing, and `git status` shows
   nothing to push that you did not push yourself.
 
