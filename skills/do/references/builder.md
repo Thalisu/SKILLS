@@ -186,7 +186,15 @@ decides, and where its command is filled the fork authors the flow itself and sa
   The fork commits each one and reports it on a `flow:` line.
 - The integration, the review, the verification, the close and the Reply are the session's, and the
   fork touches none of them: no rebase, no landing, no push, no Ticket write, no branch but the one
-  the brief names.
+  the brief names. The fork's own `Bash` hook holds the shell to that, since the Spec it reads is
+  text a stranger can append to. It takes the worktree from the `cwd` the harness reports, which is
+  the session's, and denies every command when that is not a `.claude/worktrees/<name>` folder. It
+  denies a git command that pushes, pulls, fetches, rebases, merges, checks out, switches, adds a
+  worktree or moves a ref, and any command naming a path in the main checkout outside the worktree,
+  absolute or climbed to with `..`, so a commit or a delete there is refused as well. It matches
+  text and cannot see what a command builds at run time: a path held in a variable, an alias, a
+  subshell's output, or a script the fork writes and then runs all pass it, so the hook is a best
+  effort that narrows what an injected line can do, and never a sandbox.
 - A Design fork is reported and never ruled on. The Ruling is written to the Spec in the main
   checkout, out of the fork's reach, and the fork's own `Agent` hook denies `choice-taker` so the
   layer cannot be crossed by accident.

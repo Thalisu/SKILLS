@@ -505,11 +505,12 @@ echo "# skills/do/agents/do-builder.md: a Bash-matcher PreToolUse hook scopes th
 # the Plan's Criteria, and a shell command is the one route the Write|Edit guard never covers.
 builder_bash_hook="$(hook_command "$agent" Bash)"
 expect "a PreToolUse hook scopes the building agent's Bash" test -n "$builder_bash_hook"
+worktree_path="/home/dev/proj/.claude/worktrees/do-export"
 
 for artifact in ".scratch/features/02-export/02-export.md" \
   "/home/dev/proj/.claude/worktrees/do-export/.scratch/probes/build.log" \
   "docs/02-export.plan.md" "src/export/02-export.digest.md"; do
-  bash_artifact_out="$(printf '{"tool_input": {"command": "printf x > %s"}}' "$artifact" |
+  bash_artifact_out="$(printf '{"cwd": "%s", "tool_input": {"command": "printf x > %s"}}' "$worktree_path" "$artifact" |
     sh -c "$builder_bash_hook" 2>/dev/null)"
   expect "the hook denies the Builder's Bash writing $artifact, an artifact the session owns" \
     bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$bash_artifact_out"
@@ -520,17 +521,16 @@ done
 # never obliged to spell the write that way: a `cd` into .scratch/ before the redirect, or a path
 # built from a shell variable that only assembles into ".scratch" at run time, reaches the same
 # artifact while a gate keyed on the literal substring ".scratch/" never sees it.
-worktree_path="/home/dev/proj/.claude/worktrees/do-export"
 bash_cd_cmd="cd \"$worktree_path/.scratch\" && printf 'pwned' > 20260921-feature/issues/07-build-it.md"
 bash_cd_cmd_json="$(printf '%s' "$bash_cd_cmd" | sed 's/"/\\"/g')"
-bash_cd_out="$(printf '{"tool_input": {"command": "%s"}}' "$bash_cd_cmd_json" |
+bash_cd_out="$(printf '{"cwd": "%s", "tool_input": {"command": "%s"}}' "$worktree_path" "$bash_cd_cmd_json" |
   sh -c "$builder_bash_hook" 2>/dev/null)"
 expect "the hook denies the Builder's Bash reaching .scratch/ through a cd prefix" \
   bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$bash_cd_out"
 
 bash_quote_split_cmd="d=.scr''atch; printf 'pwned' > \"$worktree_path/\$d/20260921-feature/issues/07-build-it.md\""
 bash_quote_split_cmd_json="$(printf '%s' "$bash_quote_split_cmd" | sed 's/"/\\"/g')"
-bash_quote_split_out="$(printf '{"tool_input": {"command": "%s"}}' "$bash_quote_split_cmd_json" |
+bash_quote_split_out="$(printf '{"cwd": "%s", "tool_input": {"command": "%s"}}' "$worktree_path" "$bash_quote_split_cmd_json" |
   sh -c "$builder_bash_hook" 2>/dev/null)"
 expect "the hook denies the Builder's Bash reaching .scratch/ through a quote-split path segment" \
   bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$bash_quote_split_out"
@@ -554,16 +554,76 @@ for token_cmd in \
   "cd skills/do/scripts && ./review-token.sh new 20260921-feature-07-build-it" \
   "bash skills/do/scripts/review-'token'.sh new 20260921-feature-07-build-it"; do
   token_cmd_json="$(printf '%s' "$token_cmd" | sed 's/"/\\"/g')"
-  token_out="$(printf '{"tool_input": {"command": "%s"}}' "$token_cmd_json" |
+  token_out="$(printf '{"cwd": "%s", "tool_input": {"command": "%s"}}' "$worktree_path" "$token_cmd_json" |
     sh -c "$builder_bash_hook" 2>/dev/null)"
   expect "the hook denies the Builder's Bash minting or revoking a review token: $token_cmd" \
     bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$token_out"
 done
 
+# Integration, landing, push and every branch but the Builder's own belong to the session. The
+# Builder reads Spec text a stranger can append to, so a shell in its run worktree that can push,
+# rebase, switch, merge, fetch into main, move a ref or open another worktree lands unreviewed code.
+# The payload carries the `cwd` the harness sends with every PreToolUse call.
+for landing_cmd in \
+  "git push --force origin main" \
+  "git rebase main" \
+  "git switch main" \
+  "git checkout main" \
+  "git merge do/export" \
+  "git pull" \
+  "git fetch . HEAD:main" \
+  "git -c core.x=y push origin HEAD:main" \
+  "git branch -f main HEAD" \
+  "git update-ref refs/heads/main HEAD" \
+  "git worktree add ../x"; do
+  landing_out="$(printf '{"cwd": "%s", "tool_input": {"command": "%s"}}' "$worktree_path" "$landing_cmd" |
+    sh -c "$builder_bash_hook" 2>/dev/null)"
+  expect "the hook denies the Builder's Bash a landing-shaped git command from its run worktree: $landing_cmd" \
+    bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$landing_out"
+done
+
+# The main checkout is the session's: the developer's uncommitted work, the Spec, the Ticket and
+# every other run's worktree. do cuts each run worktree at `<main checkout>/.claude/worktrees/do-<slug>`,
+# so the checkout is known from the `cwd`, and a Builder shell that names it or a path under it
+# outside its own worktree lets injected Spec text commit to, forge or delete work off its branch.
+for outside_cmd in \
+  "git -C /home/dev/proj commit -am wip" \
+  "rm -rf /home/dev/proj/docs" \
+  "git --git-dir=/home/dev/proj/.git commit -am wip" \
+  "printf x > /home/dev/proj/.claude/worktrees/do-other/notes.md"; do
+  outside_out="$(printf '{"cwd": "%s", "tool_input": {"command": "%s"}}' "$worktree_path" "$outside_cmd" |
+    sh -c "$builder_bash_hook" 2>/dev/null)"
+  expect "the hook denies the Builder's Bash a command that names the main checkout outside its run worktree: $outside_cmd" \
+    bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$outside_out"
+done
+
+# The same targets spelled relative to the worktree: a `..` that climbs out of it reaches the main
+# checkout or another run's worktree as surely as the absolute path the loop above denies.
+for climb_cmd in \
+  "cd ../../.. && git commit -am wip" \
+  "rm -rf ../../../docs" \
+  "git -C ../do-other commit -am wip"; do
+  climb_out="$(printf '{"cwd": "%s", "tool_input": {"command": "%s"}}' "$worktree_path" "$climb_cmd" |
+    sh -c "$builder_bash_hook" 2>/dev/null)"
+  expect "the hook denies the Builder's Bash a command that climbs out of its run worktree with a relative path: $climb_cmd" \
+    bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$climb_out"
+done
+
+# Both rules above read the main checkout off a `cwd` inside `.claude/worktrees/<name>`, and do
+# always forks the Builder there. A shell anywhere else, or a payload with no `cwd`, leaves them
+# nothing to apply, so the guard fails closed there as it does when jq is absent.
+for off_worktree_payload in \
+  '{"cwd": "/home/dev/proj", "tool_input": {"command": "npm test src/export/notes.ts"}}' \
+  '{"tool_input": {"command": "npm test src/export/notes.ts"}}'; do
+  off_worktree_out="$(printf '%s' "$off_worktree_payload" | sh -c "$builder_bash_hook" 2>/dev/null)"
+  expect "the hook denies the Builder's Bash a build-loop command when cwd is not a run worktree: $off_worktree_payload" \
+    bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$off_worktree_out"
+done
+
 # The other half: a Bash command that runs a test or a build step against the source the Ticket's
 # behaviours change is what the loop exists to run, and a guard that denied it would leave the
 # Builder unable to turn any test green, which is the same dead loop as a missing Bash tool.
-bash_source_out="$(printf '{"tool_input": {"command": "%s"}}' "npm test src/export/notes.ts" |
+bash_source_out="$(printf '{"cwd": "%s", "tool_input": {"command": "%s"}}' "$worktree_path" "npm test src/export/notes.ts" |
   sh -c "$builder_bash_hook" 2>/dev/null)"
 expect "the hook lets the Builder's Bash through on a command that targets none of those paths" \
   bash -c '! grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$bash_source_out"
@@ -576,15 +636,30 @@ for loop_cmd in \
   "bash skills/do/tests/builder.sh" \
   "git commit -m 'feat(export): render a note body' -m 'Behaviour: the export renders a note body'"; do
   loop_cmd_json="$(printf '%s' "$loop_cmd" | sed 's/"/\\"/g')"
-  loop_out="$(printf '{"tool_input": {"command": "%s"}}' "$loop_cmd_json" |
+  loop_out="$(printf '{"cwd": "%s", "tool_input": {"command": "%s"}}' "$worktree_path" "$loop_cmd_json" |
     sh -c "$builder_bash_hook" 2>/dev/null)"
   expect "the hook lets the Builder's Bash through on a command the build loop runs: $loop_cmd" \
     bash -c '! grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$loop_out"
 done
 
+# The run worktree sits under the main checkout, so a landing, main-checkout or `..` rule drawn one
+# component too wide takes the loop's own commands with it: an absolute path into the worktree, the
+# add and commit that close a cycle, a `main..HEAD` range, and a shell in a subdirectory.
+for own_case in \
+  "$worktree_path|bash $worktree_path/skills/do/tests/builder.sh" \
+  "$worktree_path|git add src/export/notes.ts && git commit -m wip" \
+  "$worktree_path|git log --oneline main..HEAD" \
+  "$worktree_path/src|git status --short"; do
+  own_cwd="${own_case%%|*}" own_cmd="${own_case#*|}"
+  own_out="$(printf '{"cwd": "%s", "tool_input": {"command": "%s"}}' "$own_cwd" "$own_cmd" |
+    sh -c "$builder_bash_hook" 2>/dev/null)"
+  expect "the hook lets the Builder's Bash through on a build-loop command inside its own run worktree (cwd $own_cwd): $own_cmd" \
+    bash -c '! grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$own_out"
+done
+
 # A machine with no jq: the same fail-closed guarantee the Write|Edit guard above already holds.
 bash_blind_rc=0
-bash_blind_out="$(printf '{"tool_input": {"command": "%s"}}' "npm test src/export/notes.ts" |
+bash_blind_out="$(printf '{"cwd": "%s", "tool_input": {"command": "%s"}}' "$worktree_path" "npm test src/export/notes.ts" |
   PATH="$no_jq_dir" sh -c "$builder_bash_hook" 2>"$no_jq_dir/.err")" || bash_blind_rc=$?
 bash_blind_err="$(cat "$no_jq_dir/.err" 2>/dev/null)"
 expect "the hook on the Builder's Bash fails closed when jq is absent from PATH, instead of exiting 0 silently" \
@@ -599,7 +674,7 @@ expect "the hook on the Builder's Bash fails closed when jq is absent from PATH,
 # to the session's artifacts is permitted there with nothing saying so.
 no_tr_dir="$(path_without tr)"
 bash_no_tr_rc=0
-bash_no_tr_out="$(printf '{"tool_input": {"command": "%s"}}' "printf x > .scratch/features/02-export/02-export.md" |
+bash_no_tr_out="$(printf '{"cwd": "%s", "tool_input": {"command": "%s"}}' "$worktree_path" "printf x > .scratch/features/02-export/02-export.md" |
   PATH="$no_tr_dir" sh -c "$builder_bash_hook" 2>"$no_tr_dir/.err")" || bash_no_tr_rc=$?
 bash_no_tr_err="$(cat "$no_tr_dir/.err" 2>/dev/null)"
 expect "the hook on the Builder's Bash still denies a write to a session artifact when tr is absent from PATH" \
