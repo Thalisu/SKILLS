@@ -564,7 +564,7 @@ choice is those two, built from the landing line and the paths the run already h
 the Review's text:
 
 ```
-Yours: direction: Finding <n>[, <n>]... stays open in <the Review>: fix it in <the worktree> and run do on <the Ticket> again, or overrule it by editing <the Review> and running /do-code-review fix <the Review>
+Yours: direction: Finding <n>[, <n>]... stays open in <the Review>: fix it in <the worktree> and run do on <the Ticket> again, or overrule it by editing <the Review> and running do on <the Ticket> again
 ```
 
 In `bug-fix` and `refactoring` the request typed again names the one that started the run, since no

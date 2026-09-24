@@ -144,8 +144,8 @@ location and the check its `Fix:` names passes now, the Finding is recorded
 and nothing for you to edit in the Review. A Finding whose check still fails, that names no check,
 or whose location no commit touched goes to a Fixer as before: your own `fix` call carries no
 `Caller:` line, and it is the one that forks Fixers. So when a `do` run stops on a Finding you
-disagree with, delete it from `## Act on` and type `/do-code-review fix` with the Review's path:
-the call works from the list as you left it, and lands the branch once the Review is Green. An `Act on` location a Fixer finds
+disagree with, delete it from `## Act on` and run `/do` again: it resumes on the Review as you left
+it and lands the branch once it is Green. An `Act on` location a Fixer finds
 changed comes back `stale`, left alone, once the run has read that location in the tree itself, and
 the next `fix` call on the Review tries it again.
 
