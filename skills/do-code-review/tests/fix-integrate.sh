@@ -35,6 +35,41 @@ check_lines "two clean picks passed out of order land in Finding order, each wit
 expect "the reviewed branch carries Finding 1's commit before Finding 2's" \
   test "$(git -C "$main" log --format=%s -3 main | tr '\n' ' ')" = "f2 f1 base "
 
+no_pick_in_progress() { ! git -C "$1" rev-parse -q --verify CHERRY_PICK_HEAD >/dev/null; }
+clean_status() { test -z "$(git -C "$1" status --porcelain)"; }
+
+fresh conflict-last
+main="$tmp/conflict-last"
+printf 'base\n' >a.txt
+commit base
+fixer_branch f1 a.txt "finding one"
+fixer_branch f2 two.txt "finding two"
+fixer_branch f3 a.txt "finding three"
+run "$main" 1=f1 2=f2 3=f3
+check "a Finding whose pick conflicts is abandoned and the run exits 1" 1 "$rc"
+expect "the reviewed branch holds the clean picks and nothing of the conflicted Finding" \
+  test "$(git -C "$main" log --format=%s main | tr '\n' ' ')" = "f2 f1 base "
+expect "the file both Findings touched holds the clean Finding's content" \
+  test "$(cat "$main/a.txt")" = "finding one"
+expect "no cherry-pick is left in progress after a conflicted pick" no_pick_in_progress "$main"
+expect "the work tree is clean after a conflicted pick" clean_status "$main"
+
+fresh conflict-between
+main="$tmp/conflict-between"
+printf 'base\n' >a.txt
+commit base
+fixer_branch f1 a.txt "finding one"
+fixer_branch f2 a.txt "finding two"
+fixer_branch f3 three.txt "finding three"
+run "$main" 1=f1 2=f2 3=f3
+check "a conflicted Finding between two clean ones exits 1" 1 "$rc"
+expect "a clean pick after the conflicted Finding still lands, and the conflicted one does not" \
+  test "$(git -C "$main" log --format=%s main | tr '\n' ' ')" = "f3 f1 base "
+expect "the conflicted Finding leaves nothing of its content behind" \
+  test "$(cat "$main/a.txt")" = "finding one"
+expect "no cherry-pick is left in progress when the conflict sits between clean picks" no_pick_in_progress "$main"
+expect "the work tree is clean when the conflict sits between clean picks" clean_status "$main"
+
 echo
 if [ "$fails" = 0 ]; then echo "fix-integrate: all checks passed"; else
   echo "fix-integrate: $fails failed"

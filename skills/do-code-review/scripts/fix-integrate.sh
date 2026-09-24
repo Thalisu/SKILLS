@@ -23,7 +23,14 @@ for pair in "$@"; do
   fixer[$n]="${pair#*=}"
 done
 
+verdict=0
 for n in $(printf '%s\n' "${!fixer[@]}" | sort -n); do
-  git -C "$tree" cherry-pick "${fixer[$n]}" >/dev/null 2>&1
-  echo "picked $n $(git -C "$tree" rev-parse HEAD)"
+  if git -C "$tree" cherry-pick "${fixer[$n]}" >/dev/null 2>&1; then
+    echo "picked $n $(git -C "$tree" rev-parse HEAD)"
+  else
+    git -C "$tree" cherry-pick --abort >/dev/null 2>&1
+    echo "conflicted $n"
+    verdict=1
+  fi
 done
+exit "$verdict"
