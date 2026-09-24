@@ -326,11 +326,16 @@ with the Ticket happens in the fork's, per
 This step comes before the claim and before the worktree because it is the step that refuses. Every
 refusal below stops the run with the Ticket at the status the door found it at and no `do/<slug>`
 branch anywhere, so a grounding the run will not build on costs the developer a rerun and nothing
-to undo by hand, except on the `cause unknown, diagnosis first` branch below, where step 2's
-worktree is cut and entered before the Planner is even forked, for the diagnosis to run in. A
-refusal met there, the Planner's own Sources mismatch included, names the worktree and its branch
-left in place rather than claiming none exists, since the door's own worktree-exists rule above
-would otherwise refuse the rerun the developer took that line to mean was free. The brief's `Tree:`
+to undo by hand. The `cause unknown, diagnosis first` branch below is the one where step 2's
+worktree is cut and entered before the Planner is even forked, for the diagnosis to run in, and it
+keeps the same promise by undoing that cut itself. A refusal met there after the worktree exists,
+the Planner's own Sources mismatch, the destination check, a defect that will not reproduce even
+when forced or any other refusal of this step, reverts the run's instrumentation, leaves the
+worktree with a bare `cd` to the main checkout and, from there, runs `git worktree remove <path>`
+then `git branch -d do/<slug>`: the run cut both, and the door's own worktree-exists rule above
+would otherwise refuse the rerun. The Ticket stays at the status the door found it at, since the
+claim on that branch still waits for the verified Plan, and the refusal's Reply says the worktree
+and its branch were removed. The brief's `Tree:`
 key is the main checkout on every other branch for the same
 reason: the worktree the build runs in does not exist yet, and the fork grounds against HEAD, which
 is what step 2 cuts the worktree from.
@@ -427,8 +432,8 @@ own. They are the exception the Links rule of [SKILL.md](../SKILL.md) names, and
 there are `bug-fix`'s, not this checklist's: the second ask a surface the session cannot reach gets
 on the fixed build, `bug-fix`'s step 7, is asked at step 3 here, once the `bugfix` line's fix is
 green in the loop, and a defect that will not reproduce even when forced stops this run as blocked,
-the Ticket left at the status the door found it at and the worktree and its branch in place and
-named.
+the Ticket left at the status the door found it at and the worktree and its branch removed, as the
+refusals of this step on that branch say above.
 
 No Planner can be forked on two branches: the Agent tool is withheld from the session, or the
 Agent tool lists no `do-planner`, as it does on a machine that never linked the agent `do` ships.

@@ -81,9 +81,9 @@ on the branch makes the landing fast-forward fail, so one rule covers the three 
   branch of the `ticket` Playbook's Plan step, where the worktree already exists, cut for the
   diagnosis before the Planner is even forked, so it exists before the claim too. The grounding is
   the part of a run that refuses, so a claim written ahead of it leaves every refusal with a status
-  the developer resets by hand before the rerun, and on that one branch a worktree and its branch
-  besides, which the refusal names rather than leaving for the door's worktree-exists rule to catch
-  unnamed. On a remote tracker the claim is the issue assigned to the developer, the way the
+  the developer resets by hand before the rerun. On that one branch the worktree and its branch
+  are the run's to undo instead: a refusal met there removes both before its Reply, as that Plan
+  step says, so the rerun meets no worktree-exists refusal at the door. On a remote tracker the claim is the issue assigned to the developer, the way the
   tracker file describes, made after the developer's yes.
 - During the build the file is read and never written: the criteria and the `What to build` line
   are where the behaviours come from. The one exception is a criterion's text a Ruling rewrote as
