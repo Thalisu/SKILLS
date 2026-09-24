@@ -16,7 +16,8 @@
 # Exit codes: 0 waves printed · 1 the Review has no Act on Findings · 2 usage.
 set -uo pipefail
 
-usage() { echo "usage: fix-waves.sh <review file>" >&2; exit 2; }
+usage() { echo "usage: fix-waves.sh <review file> [--settled <n>[,<n>]...]" >&2; exit 2; }
+refuse() { echo "fix-waves.sh: $1" >&2; exit 2; }
 
 # act_on_findings <review file>
 # Prints one Finding record per Finding of the `## Act on` section, in the file's order:
@@ -159,8 +160,12 @@ main() {
 
   local records latest n loc target files sets=""
   records="$(act_on_findings "$review")"
-  [ -n "$records" ] || return 1
   latest="$(fix_run_latest "$review")"
+  for n in ${held//,/ }; do
+    grep -q "^$n	" <<<"$records" || refuse "--settled $n is no Act on Finding of the Review"
+    ! grep -q "^$n	fixed " <<<"$latest" || refuse "--settled $n already reads fixed in the Review's Fix run"
+  done
+  [ -n "$records" ] || return 1
 
   while IFS=$'\t' read -r n loc target; do
     grep -q "^$n	fixed " <<<"$latest" && continue

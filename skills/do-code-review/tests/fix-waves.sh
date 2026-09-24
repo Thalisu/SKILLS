@@ -816,6 +816,14 @@ check_lines "a Finding the fix call names as settled is left out of every Wave, 
   "wave=1 findings=1,3"
 same "a Finding held as fixed on the branch forks no Fixer, and no Fixer is forked on a second Wave" "wave=1 findings=1,3"
 
+run "$held" --settled 7
+check_absent "a settled number that is no Act on Finding of the Review is refused with exit 2, and no Wave is printed" 2 "$rc" \
+  "wave="
+
+run "$settled" --settled 1
+check_absent "a settled number whose latest Fix run line already reads fixed is refused with exit 2, and no Wave is printed" 2 "$rc" \
+  "wave="
+
 echo
 if [ "$fails" = 0 ]; then echo "fix-waves: all checks passed"; else
   echo "fix-waves: $fails failed"
