@@ -129,6 +129,21 @@ check_lines "a Finding whose files no commit since the Review touched, while ano
 check_lines "a Finding whose location and Fix target name no file is listed with touched=none" \
   0 "$rc" "finding=2 touched=none"
 
+fresh other-line-touched
+wt="$tmp/other-line-touched"
+mkdir -p src
+printf '#!/usr/bin/env bash\nset -u\necho "$1"\nnoop() { :; }\n' >src/a.sh
+commit base
+reviewed="$(git rev-parse --short HEAD)"
+printf '#!/usr/bin/env bash\nset -u\necho "$1"\nnoop() { echo "noop"; }\n' >src/a.sh
+commit "feat: a.sh gains a debug helper"
+
+review="$tmp/13-a.review.md"
+review_at "$reviewed" "$review"
+run "$wt" "$review"
+check_lines "a Finding whose header line no commit since the Review changed, though a commit changed another line of the same file, is listed with touched=none" \
+  0 "$rc" "finding=1 touched=none"
+
 fresh fix-target-only
 wt="$tmp/fix-target-only"
 mkdir -p src tests

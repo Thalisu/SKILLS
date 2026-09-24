@@ -84,8 +84,9 @@ Run `bash ~/.claude/skills/do-code-review/scripts/unsettled.sh <the tree> <the R
 tree is the one the Review judged: `do`'s worktree on a `do` call, and on a plain call the
 developer's own checkout, which the door has just found clean. It prints one
 `finding=<n> touched=<sha>|none` line per `Act on` Finding whose latest line is not `fixed`, by the
-rule above, the sha being the latest commit since the Review's `Commit:` that touched the Finding's
-files. What each answer means:
+rule above, the sha being the latest commit since the Review's `Commit:` that changed the Finding's
+header line or line range, as `git log -L` tracks it: a commit that only touched some other line of
+the same file is no touch. What each answer means:
 
 - **Exit 1**: nothing is unsettled, and the run goes on as the paragraph above says for a list with
   nothing left in it.
@@ -94,11 +95,17 @@ files. What each answer means:
   [prove-it-works](../../../.agents/principles/prove-it-works.md). Add a throwaway worktree at the
   Review's `Commit:`, detached (`git worktree add --detach <a temp path> <Commit:>`), copy the
   `Fix:` target's file as it stands at HEAD over the same path there, and run the check in that
-  worktree: it fails. Remove that worktree (`git worktree remove --force <that path>`), then run the
-  same check in the tree at HEAD, the way The re-check runs it: it passes. Both hold, and the
-  Finding is settled here: hold `- <n>: fixed <sha>, verified (<the check>)` for The append, and
-  fork no Fixer for it. Either miss, the check already passing against the Review's own code or
-  still failing at HEAD, and the Finding goes to The Fixer: a check that was never red against the
+  worktree: it fails on an assertion the check makes about the code, never merely on the check
+  failing to load. An unresolved import, a missing export or a `TypeError` on a symbol the code at
+  `Commit:` never carried is no red here: the check never ran against the reviewed behaviour, it
+  only tripped over a symbol a later commit added, and that same failure would still fire the moment
+  anyone pasted that symbol back in with the Finding's own sink left exactly as broken. Treat that
+  miss the way a check that never failed at all is treated, below. Remove that worktree (`git
+  worktree remove --force <that path>`), then run the same check in the tree at HEAD, the way The
+  re-check runs it: it passes. Both hold, and the Finding is settled here: hold `- <n>: fixed <sha>,
+  verified (<the check>)` for The append, and fork no Fixer for it. Either miss, the check already
+  passing against the Review's own code, never loading at `Commit:` to begin with, or still failing
+  at HEAD, and the Finding goes to The Fixer: a check that was never red on an assertion against the
   code the Review judged proves nothing about the fix, whichever file the commit that touched it
   landed in.
 - **A `touched=none` line, or a `Fix:` that names no check**: the Finding goes to The Fixer, as it
