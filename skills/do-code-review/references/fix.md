@@ -72,6 +72,40 @@ that reads `nothing remained` names no Finding and settles or unsettles none. A 
 line reads `not fixed` or `stale` is not settled and goes to a Fixer again, since a Finding no fix
 call reads again keeps the Review from ever turning Green.
 
+## Already fixed on the branch
+
+On a `fix` call only, before any Fixer. A Finding the list still holds may already be fixed by a
+commit made after the review, by the developer or by `do`, and a Fixer forked for it finds its
+location changed, reports it `stale`, and the Review never turns Green. So each unsettled Finding is
+first held to the branch as it stands, per
+[ADR 0056](../../../docs/adr/0056-the-fix-call-settles-a-finding-whose-fix-is-already-on-the-branch.md).
+
+Run `bash ~/.claude/skills/do-code-review/scripts/unsettled.sh <the tree> <the Review>`, where the
+tree is the one the Review judged: `do`'s worktree on a `do` call, and on a plain call the
+developer's own checkout, which the door has just found clean. It prints one
+`finding=<n> touched=<sha>|none` line per `Act on` Finding whose latest line is not `fixed`, by the
+rule above, the sha being the latest commit since the Review's `Commit:` that touched the Finding's
+files. What each answer means:
+
+- **Exit 1**: nothing is unsettled, and the run goes on as the paragraph above says for a list with
+  nothing left in it.
+- **A `touched=<sha>` line whose Finding's `Fix:` names a check**: run that check in the tree at
+  HEAD, the way The re-check runs it. It passes, and the Finding is settled here: hold
+  `- <n>: fixed <sha>, verified (<the check>)` for The append, and fork no Fixer for it. It fails,
+  and the Finding goes to The Fixer.
+- **A `touched=none` line, or a `Fix:` that names no check**: the Finding goes to The Fixer, as it
+  did before this step existed. A check that already passed on code no commit has touched since the
+  review proves nothing the review did not already see, and a Finding with no check has nothing to
+  prove it by, so neither is ever recorded `verified` here.
+- **Exit 3**: the Review's `Commit:` is absent or not on the branch. Every line reads
+  `touched=none` and every unsettled Finding goes to The Fixer, since a range from a commit off the
+  branch would name a sha that never carried the fix.
+
+This step writes nothing. Its held lines reach the Review through The append, in the one new
+`## Fix run` section of this call, beside the Fixers' lines, and every earlier section stays as it
+was. When it settles every Finding, Where the Fixer works and The Fixer are skipped: no worktree is
+created, no Fixer is forked, and the run carries on from The re-check to The landing.
+
 ## Where the Fixer works
 
 One question decides it: is the branch the Review judged the branch the developer's checkout is on?
@@ -239,7 +273,8 @@ The orchestrator proves the work itself, in the reviewed tree, on the reviewed b
 integrated it, and never the Fixer's word for it, per
 [prove-it-works](../../../.agents/principles/prove-it-works.md). Once the last Wave was integrated,
 per `Act on` Finding, run the check its `Fix:` line named. A Finding's `<sha>` below is the one its
-`picked` line printed.
+`picked` line printed. A Finding that Already fixed on the branch settled keeps the line it held
+there.
 
 | What the run saw | The Finding reads |
 |---|---|
@@ -334,7 +369,8 @@ another window with nothing to show that it will close.
 ## The append
 
 Write the `## Fix run` section the format fixes, with the date, the commit the fix ran at, one line
-per Finding by number, one `- wave <k>: <n>[, <n>]...` line per Wave that forked a Fixer, in the
+per Finding by number, the lines Already fixed on the branch held among them, one
+`- wave <k>: <n>[, <n>]...` line per Wave that forked a Fixer, in the
 order the Waves ran, naming the Findings forked in it, with one
 `- cut: floor wave <k> into <n>[, <n>]... | <n>[, <n>]...: <the reason>` line right above the Wave
 lines of each floor Wave you cut, then the Diff tests, the Gate fixer, the Gate and the landing

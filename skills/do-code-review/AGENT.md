@@ -58,10 +58,11 @@ after its first is a Ruling and the block ends only where the call does: a singl
 read out of it would be a Ruling's own text, so the ledger and every other one comes before it.
 
 A `fix` call reviews nothing. Read [fix.md](references/fix.md) before anything else and run it end
-to end: its three door checks, the `Act on` list off the Review, the Fixers, the re-check, the Diff
-tests, the Gate, the append and the landing. `do` makes one after its one review, for what it
-committed since, with the landing target and the Gate after the Review's location. It forks no
-reviewer: a Finding the first call left `not fixed` or `stale` goes to a Fixer again, and a list with nothing
+to end: its three door checks, the `Act on` list off the Review, the Findings a commit since the
+review already fixed, the Fixers, the re-check, the Diff tests, the Gate, the append and the
+landing. `do` makes one after its one review, for what it committed since, with the landing target
+and the Gate after the Review's location. It forks no reviewer: a Finding the first call left
+`not fixed` or `stale` goes to a Fixer again unless the branch already fixed it, and a list with nothing
 left in it comes down to the Gate and the landing. Of the seven sections below it runs only the door script, for its
 `main_checkout=` and `slug=` lines. The ref it hands the door is the short sha in the Review's
 `Fixed point:` header, in its parentheses, and never the whole header line, which resolves nowhere.
