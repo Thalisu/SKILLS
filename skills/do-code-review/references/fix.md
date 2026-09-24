@@ -387,6 +387,24 @@ The two reviewers are not re-run on the Fixers' commits, and never on anything a
 review runs once per run. Each Finding's own check, the Diff tests and the Gate are what stand in
 for a second one.
 
+## The duplication scan
+
+The check the Waves make necessary: the test authors of one Wave ran at once and could not see each
+other's work, so two of them may each have written the shared factory the other was about to
+write. It runs once the re-check is done and before the Diff tests, in the reviewed tree, as the
+command the Testing Policy's Project facts in `CLAUDE.md` name under **Duplication scan**, run as it
+stands.
+
+Its result is read off the report and never off the exit code: the scan exits 0 whenever it ran,
+since a duplicate is a finding and not an error. Each row under its `## duplicate-symbols` header is
+a name, the count of files defining it and those files. A row is dirty when one of its files is
+among those `git diff --name-only --diff-filter=d <the fixed point>..HEAD` names, the list the Diff
+tests read below. Every other row is debt the branch did not write, left to the Testing Policy's
+second-use rule, and no other section of the report counts.
+
+- No dirty row: clean, and the run goes to the Diff tests.
+- A dirty row: the Gate fixer takes the red block.
+
 ## The Diff tests
 
 The fast check, run once the re-check is done: the tests whose files the diff since the fixed

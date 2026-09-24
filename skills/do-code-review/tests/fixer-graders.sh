@@ -71,6 +71,20 @@ agent_call_fails "fix-gate-red: a Gate fixer handed the Review's Act on section 
 
 1. src/export.js:12 quotes a title twice."
 
+# fix-duplication-scan: the scan exits 0 whenever it ran, so its dirty rows, as scan-test-assets.sh
+# prints them, are the red block the Gate fixer is handed.
+scan_rows="$(printf '## duplicate-symbols\nmakeNotes\t2\t tests/export.test.js tests/notes.test.js')"
+scan_brief="$scan_rows${brief#"$red_block"}"
+
+# shellcheck disable=SC2034 # read by lib.sh's grade_passes and grade_fails
+grader="$here/../evals/fix-duplication-scan/graders/scan-rows-reach-gate-fixer.md"
+grade_passes "fix-duplication-scan: a Gate fixer fork with no model key handed the scan's dirty rows as its red block passes scan-rows-reach-gate-fixer" \
+  "$(run_of do-code-review-fixer s1 "" "Finding 1" -- do-code-review-gate-fixer s1 "" "$scan_brief")"
+grade_fails "fix-duplication-scan: a run whose only Gate fixer fork carries a failing test's red block and no scan rows fails scan-rows-reach-gate-fixer" \
+  "$(run_of do-code-review-fixer s1 "" "Finding 1" -- do-code-review-gate-fixer s1 "" "$brief")"
+grade_fails "fix-duplication-scan: a run that reads the scan's exit 0 as clean and forks no Gate fixer fails scan-rows-reach-gate-fixer" \
+  "$(run_of do-code-review-fixer s1 "" "Finding 1")"
+
 # fix-unlinked-fixers: neither named agent is linked, so the orchestrator forks a general-purpose agent
 # on sonnet whose prompt opens with the definition as the shell prints it, then the brief.
 fixer_definition="$(
