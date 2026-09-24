@@ -84,7 +84,8 @@ on the branch makes the landing fast-forward fail, so one rule covers the three 
   the developer resets by hand before the rerun. On that one branch the worktree and its branch
   are the run's to undo instead: a refusal met there removes both before its Reply, as that Plan
   step says, so the rerun meets no worktree-exists refusal at the door. On a remote tracker the claim is the issue assigned to the developer, the way the
-  tracker file describes, made after the developer's yes.
+  tracker file describes, made after the developer's yes to a question carrying the
+  `Yours: outward:` line of [reply.md](reply.md), its choice that assignment.
 - During the build the file is read and never written: the criteria and the `What to build` line
   are where the behaviours come from. The one exception is a criterion's text a Ruling rewrote as
   the losing side, the forks of [forks.md](forks.md). A Ticket that is an issue is never written
@@ -646,7 +647,9 @@ above: the run never commits it and the worktree branch never touches it.
 3. Set the `**Status:**` line to `resolved`. The file stays uncommitted, for the developer, and
    the reply lists it beside the Review under the files left uncommitted.
 4. On a remote tracker the run asks first, per the tracker file, in one question that lists every
-   write the yes makes, in the order it makes them, from the run's own record:
+   write the yes makes, in the order it makes them, from the run's own record, and carries the
+   `Yours: outward:` line of [reply.md](reply.md), its choice the yes that makes those writes or
+   the no that makes none:
    - for each held Ruling that rewrote a criterion, the Ticket issue's body edited, that
      criterion's `Criterion:` text replaced by its `Now reads:` text, its tick kept, every other
      criterion untouched;

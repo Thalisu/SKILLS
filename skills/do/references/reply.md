@@ -231,4 +231,6 @@ cannot name a class is not a stop: whatever it would hand over is a reversible a
 run's own artifacts, and the run takes it. The Playbook's own step names the class of each stop it
 makes, keyed on what its scripts print and never on the session's reading. A blocked Reply whose
 handed-over commands include a push names that push under `outward`, since a push is a write
-outside the repository the run never makes itself.
+outside the repository the run never makes itself. The question a run puts before a write to a
+remote tracker, the claim's and the close's, carries the same line under `outward`, its choice the
+yes that makes every write the question lists or the no that makes none of them.

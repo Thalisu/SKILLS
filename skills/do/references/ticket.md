@@ -575,7 +575,8 @@ writes that cost the developer cleanup are made together. First the claim, writt
 file in [mechanics.md](mechanics.md) says: the `**Status:**` line set to `claimed`. The claim line,
 `Claimed: <the Ticket's path or reference>`, is recorded for the Reply's Run section once it is
 written. On a remote
-tracker the run waits for a yes before it; a no stops the run with nothing written. On a local
+tracker the run waits for a yes before it, asked with the `Yours: outward:` line the claim in
+[mechanics.md](mechanics.md) carries; a no stops the run with nothing written. On a local
 Ticket it proceeds without one, per
 [never-block-on-the-human](../../../.agents/principles/never-block-on-the-human.md): the claim is
 a reversible file write, and an interrupt costs the developer one turn.
@@ -757,7 +758,7 @@ flow is green or recorded as not run on the developer's no, or the step reads
 ticked where the evidence proves it, the evidence appended under `## Evidence` with the
 `Context:` line first and the `Forks:` line after it, the status line set to `resolved`, the file left uncommitted, or, on a
 Ticket that is an issue, the one question listing every write the yes makes, the held Rulings'
-among them; then the worktree and its branch removed. When the door appended the `.scratch/` line to the project's
+among them, under its `Yours: outward:` line; then the worktree and its branch removed. When the door appended the `.scratch/` line to the project's
 `.gitignore`, the close says so in one line, per [scratch.md](../../../.agents/scratch.md): the run
 changed a file git tracks, and the developer reads that here rather than finding it in
 `git status`. Done when the Ticket reads `resolved`, or, on a Ticket that is an issue, the question
