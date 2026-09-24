@@ -13,8 +13,10 @@
 # Prints one line per Finding: picked <n> <sha> with the sha the commit has on the reviewed branch ·
 # conflicted <n> with <m[,m...]|none> files "<path>"... naming every earlier clean pick of this run
 # that touched a conflicted path, none when no pick did, and each conflicted path double-quoted.
+# failed <reason> is printed alone, before any pick, when a Fixer branch is not exactly one commit
+# ahead of the reviewed branch, so nothing moved.
 #
-# Exit codes: 0 every Finding picked · 1 at least one conflicted · 2 usage.
+# Exit codes: 0 every Finding picked · 1 at least one conflicted · 2 usage · 3 failed.
 set -uo pipefail
 
 usage() { echo "usage: fix-integrate.sh <tree> <n>=<branch> [<n>=<branch> ...]" >&2; exit 2; }
@@ -30,6 +32,19 @@ done
 
 # git's quoted form never holds a space, so wrapping the unquoted form keeps every path one token.
 qpath() { case "$1" in \"*) printf '%s' "$1" ;; *) printf '"%s"' "$1" ;; esac; }
+
+# Only a branch's tip is picked, so a Fixer that left two commits would lose one while the record
+# reports its Finding fixed.
+for n in "${!fixer[@]}"; do
+  ahead="$(git -C "$tree" rev-list --count "HEAD..${fixer[$n]}" 2>/dev/null)" || {
+    echo "failed Finding $n: ${fixer[$n]} does not name a commit"
+    exit 3
+  }
+  if [ "$ahead" != 1 ]; then
+    echo "failed Finding $n: ${fixer[$n]} is $ahead commits ahead of the reviewed branch, not one"
+    exit 3
+  fi
+done
 
 declare -A touched_by=()
 verdict=0

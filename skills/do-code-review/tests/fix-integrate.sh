@@ -96,6 +96,27 @@ run "$main" 1=f1 2=f2 3=f3
 check_lines "a conflicted Finding names every earlier clean pick that touched its file, ascending and comma-joined" \
   1 "$rc" "conflicted 3 with 1,2 files \"a.txt\""
 
+fresh two-commit-fixer
+main="$tmp/two-commit-fixer"
+printf 'base\n' >README.md
+commit base
+fixer_branch f1 one.txt "finding one"
+fixer_branch f2 two.txt "finding two"
+git checkout -q f2
+printf 'finding two, second step\n' >two-more.txt
+commit "f2 second"
+git checkout -q main
+before="$(git -C "$main" rev-parse main)"
+run "$main" 1=f1 2=f2
+failed_lines="$(grep -c '^failed ' <<<"$out")"
+names_the_branch() { grep '^failed ' <<<"$out" | grep -qE '(^|[^[:alnum:]])f2([^[:alnum:]]|$)|^failed 2( |$)|[Ff]inding 2([^0-9]|$)'; }
+check "a Fixer branch more than one commit ahead is refused with exit 3" 3 "$rc"
+expect "the refusal is a single failed line" test "$failed_lines" = 1
+expect "the failed line names the offending Finding or its branch" names_the_branch
+absent "no Finding is picked, not even one that sorts before the refused branch and would pick cleanly" "picked "
+expect "the reviewed branch is left unmoved when a Fixer branch is more than one commit ahead" \
+  test "$(git -C "$main" rev-parse main)" = "$before"
+
 echo
 if [ "$fails" = 0 ]; then echo "fix-integrate: all checks passed"; else
   echo "fix-integrate: $fails failed"
