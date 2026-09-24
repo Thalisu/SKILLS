@@ -199,8 +199,7 @@ btmp="$(mktemp -d)"
 trap 'cd /; rm -rf "$btmp"' EXIT
 mkdir -p "$btmp/repo" && cd "$btmp/repo" || exit 1
 git init -q -b main >/dev/null
-git config user.email t@example.com
-git config user.name t
+committer_identity
 printf 'one\n' >notes.txt
 git add -A && git commit -qm fixture >/dev/null
 echo ".claude/worktrees/" >>.git/info/exclude

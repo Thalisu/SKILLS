@@ -17,8 +17,7 @@ git() { g "$@"; }
 eval "$(declare -f fresh | sed '1s/^fresh/lib_fresh/')"
 fresh() { # $1 name: lib.sh's fresh, plus a committer identity for the script under test's own commits
   lib_fresh "$@"
-  g config user.email t@example.com
-  g config user.name t
+  committer_identity
 }
 run() {
   rc=0

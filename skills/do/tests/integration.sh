@@ -446,8 +446,7 @@ a_replayed_commit_the_resolution_left_empty_is_named_skipped_and_the_rebase_fini
 
   fresh empty-after-resolution
   # The block's own git commits what is left to replay, which needs an identity in the fixture.
-  g config user.email t@example.com
-  g config user.name t
+  committer_identity
   printf 'const FLAG = false;\nconst OTHER = 1;\n' >flag.js
   commit base
   g switch -q -c do/run

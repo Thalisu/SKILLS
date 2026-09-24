@@ -69,6 +69,40 @@ expect "the refused list leaves the caller's do/x worktree on its branch" \
 expect "the refused list removes nothing, not even the landed Fixer branch listed beside do/x" \
   test "$(branch_of_worktree "$main" "$fixer")" = "refs/heads/fixer/x/r1/w1-1"
 
+fresh landed
+committer_identity
+main="$tmp/landed"
+printf 'base\n' >README.md
+commit base
+reviewed="$(branch_worktree "$main" x)"
+run add "$reviewed" x r1 1 1 2
+picked="$main/.claude/worktrees/fixer-x-r1-w1-1"
+idle="$main/.claude/worktrees/fixer-x-r1-w1-2"
+printf 'earlier\n' >"$reviewed/earlier.txt"
+git -C "$reviewed" add -A && git -C "$reviewed" commit -qm "an earlier Finding"
+printf 'fixed\n' >"$picked/fix.txt"
+git -C "$picked" add -A && git -C "$picked" commit -qm "Finding 1"
+integrated="$(bash "$here/../scripts/fix-integrate.sh" "$reviewed" 1=fixer/x/r1/w1-1 2>&1)"
+expect "fixture: fix-integrate picked Finding 1 onto the reviewed branch" \
+  test "$integrated" = "picked 1 $(git -C "$reviewed" rev-parse HEAD)"
+expect "fixture: the picked commit has a new sha, so git branch -d would refuse the Fixer branch" \
+  test "$(git -C "$reviewed" rev-parse HEAD)" != "$(git -C "$picked" rev-parse HEAD)"
+unlisted() { ! git -C "$main" worktree list --porcelain | grep -qxF "worktree $1"; }
+no_branch() { ! git -C "$main" show-ref -q --verify "refs/heads/$1"; }
+for case in "fixer/x/r1/w1-1 $picked picked onto the reviewed branch under a new sha" \
+  "fixer/x/r1/w1-2 $idle that made no commit"; do
+  read -r branch wt what <<<"$case"
+  run remove "$reviewed" "$branch"
+  check_lines "remove takes back a Fixer branch $what, naming it and its path: exit 0" \
+    0 "$rc" "removed $branch $wt"
+  expect "git no longer lists the worktree of the Fixer branch $what" \
+    unlisted "$wt"
+  expect "git no longer lists the Fixer branch $what" \
+    no_branch "$branch"
+  expect "removing the Fixer branch $what leaves the caller's do/x worktree on its branch" \
+    test "$(branch_of_worktree "$main" "$reviewed")" = "refs/heads/do/x"
+done
+
 echo
 if [ "$fails" = 0 ]; then echo "fix-worktrees: all checks passed"; else
   echo "fix-worktrees: $fails failed"

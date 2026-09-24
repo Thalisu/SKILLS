@@ -39,12 +39,30 @@ add() {
   done
 }
 
+worktree_of() { # $1 reviewed tree, $2 branch: the path of the worktree it is checked out in, on stdout
+  git -C "$1" worktree list --porcelain | awk -v b="branch refs/heads/$2" '
+    /^worktree / { path = substr($0, 10) }
+    $0 == b { print path; exit }
+  '
+}
+
 remove() {
   [ "$#" -ge 2 ] || usage
-  local branch
+  local tree="$1" main branch path
   shift
+  main="$(dirname "$(git -C "$tree" rev-parse --path-format=absolute --git-common-dir)")"
+  declare -A path_of=()
   for branch in "$@"; do
     [[ "$branch" =~ ^fixer/[^/]+/[^/]+/w[0-9]+-[0-9]+$ ]] || usage
+    path="$(worktree_of "$tree" "$branch")"
+    case "$path" in "$main/.claude/worktrees/"?*) ;; *) usage ;; esac
+    path_of[$branch]="$path"
+  done
+  for branch in "$@"; do
+    path="${path_of[$branch]}"
+    git -C "$tree" worktree remove "$path" >/dev/null 2>&1
+    git -C "$tree" branch -D "$branch" >/dev/null 2>&1
+    echo "removed $branch $path"
   done
 }
 
