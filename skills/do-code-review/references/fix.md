@@ -314,6 +314,12 @@ joining the next Wave could put two Fixers on one file or five in one Wave, whic
 to prevent. Every branch it integrates is cut from the same HEAD, so its Findings can conflict only
 with each other, and those it re-routes form the next re-route Wave the same way.
 
+A stop that ends the Waves early, at step 1, 3, 4 or 5, ends a pending re-route Wave with them. Every
+Finding still waiting for a Wave, whether a later Wave of the floor's or a re-route Wave not yet
+cut, reads `not fixed` with the reason of the Wave that stopped, as the stop gives the Findings of
+that Wave, and a re-routed one keeps its `, re-routed <r>`: every `Act on` Finding carries a line,
+and one with none would read neither settled nor unsettled to the next `fix` call.
+
 ## The re-check
 
 The orchestrator proves the work itself, in the reviewed tree, on the reviewed branch as the Waves
