@@ -217,6 +217,13 @@ onto the branch, ends its line with `, re-routed <r>`, the number of times this 
 below reads the line the same way, and a Finding never re-routed carries nothing extra. The count
 is the run's own: a later `fix` starts every Finding at zero in its section.
 
+On the `fix` call `do` makes after its review, which forks no Fixer, a Finding the re-check could
+not settle is written in that last state with the developer named and the re-check's reason after
+it, `- <n>: not fixed: left to the developer, <the reason>`, the reason one of
+`untouched since the review`, `<the check> passed at the review's commit`,
+`<the check> still red at <short sha>`, `no check to re-run` or
+`the review's commit is off the branch`.
+
 A `<sha>` is the one the Fixer's commit has on the branch the review read, once picked there, and
 never the sha on the Fixer's own branch, which is gone once the run takes that branch back.
 
@@ -258,7 +265,10 @@ Gate,
   [ADR 0027](../../docs/adr/0027-the-rebase-runs-in-the-session-before-the-review-and-the-landing-retries-only-the-mechanical-class.md)
   amends them: a Finding `not fixed` or `not verified`, an Axis `not run`, a red Gate, a protected
   target, a failed fast-forward, and a moved target with a `contested` hunk or a key the union
-  defines twice, whose reason reads
+  defines twice. A Finding's reason names it by its number, every `Act on` Finding whose latest
+  line is not `fixed <sha>, verified` in the file's order under one label,
+  `not landed: Finding <n>[, <n>]... not fixed or not verified`, so a caller that never opens the
+  Review knows which one is open. A moved target's reason reads
   `not landed: target moved, <target> at <short sha>, conflicting <file> <file>`, each file as the
   conflict class script printed it. A Gate still red after the Gate fixer's two attempts reads
   `not landed: gate red after the fixes, <the failing check>`; a Gate fixer attempt whose return

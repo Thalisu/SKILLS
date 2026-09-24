@@ -476,7 +476,9 @@ per Finding by number, the lines Already fixed on the branch held among them, on
 order the Waves ran, naming the Findings forked in it, with one
 `- cut: floor wave <k> into <n>[, <n>]... | <n>[, <n>]...: <the reason>` line right above the Wave
 lines of each floor Wave you cut, then the Diff tests, the Gate fixer, the Gate and the landing
-line. A `nothing remained` section ran no Wave and carries no Wave line.
+line. A `nothing remained` section ran no Wave and carries no Wave line. On `do`'s call a Finding
+Already fixed on the branch did not hold reads `- <n>: not fixed: left to the developer, <the
+reason that step found>`, in the reason's words the format lists, since no Fixer ever reached it.
 
 The orchestrator has no edit tool, on this call as on every other, so appending means writing the
 whole file again with the section added, once, with the Write tool and never an edit. Read the Review off disk first:
@@ -487,6 +489,13 @@ not.
 
 The Review is Green when every `Act on` Finding reads `fixed` and `verified`, every Axis ran and
 the Gate is green. `Consider`, `Noted` and `Cleared` never block.
+
+A Finding that keeps the Review from Green is named on the landing line by its number, every `Act
+on` Finding whose latest line is not `fixed <sha>, verified`, in the file's order:
+`not landed: Finding <n>[, <n>]... not fixed or not verified; the branch <name> and its worktree
+stay in place`. The same form on every call: `do` reads the landing line and never the Review, so
+a line that named no Finding would leave it, and the developer it hands the stop to, guessing
+which one is open.
 
 Green lands, under ADR 0013's rules as ADR 0027 amends them and no others: the landing target is
 fast-forwarded to the reviewed branch, the one the Fixers' commits were picked onto, by
