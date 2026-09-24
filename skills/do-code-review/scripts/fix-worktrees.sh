@@ -7,7 +7,8 @@
 # fixer/<slug>/<at>/w<wave>-<n>, at <main checkout>/.claude/worktrees/fixer-<slug>-<at>-w<wave>-<n>,
 # where the main checkout is the one the reviewed tree's git common directory belongs to. It prints
 # `worktree <n> <abs path> <branch>` per Finding, in argument order. This script owns those names:
-# the orchestrator passes back the branches it printed and composes none. A branch or a path that
+# the orchestrator passes back the branches it printed and composes none. It adds `.claude/worktrees/`
+# to the main checkout's .git/info/exclude when nothing ignores it yet, once. A branch or a path that
 # already exists, an earlier run's leftover, fails the whole call with `failed exists <branch>`
 # before anything is made; any other refusal from git prints `failed <git's line>` once the
 # worktrees this call made are taken back. Either way no `worktree` line is printed.
@@ -36,9 +37,10 @@ shift
 
 add() {
   [ "$#" -ge 5 ] || usage
-  local tree="$1" slug="$2" at="$3" wave="$4" main n branch path
+  local tree="$1" slug="$2" at="$3" wave="$4" common main n branch path
   shift 4
-  main="$(dirname "$(git -C "$tree" rev-parse --path-format=absolute --git-common-dir)")"
+  common="$(git -C "$tree" rev-parse --path-format=absolute --git-common-dir)"
+  main="$(dirname "$common")"
   # Every name is checked before the first is made, so a clash leaves nothing of this call behind
   # and never touches what an earlier run left.
   for n in "$@"; do
@@ -49,6 +51,12 @@ add() {
       exit 3
     fi
   done
+  # The exclude list and never the project's .gitignore: the list is this clone's, and the fix door
+  # measures the main checkout's status, which a worktree folder would otherwise read as untracked.
+  if ! git -C "$main" check-ignore -q .claude/worktrees/; then
+    mkdir -p "$common/info"
+    echo ".claude/worktrees/" >>"$common/info/exclude"
+  fi
   local made=() lines=() said pair
   for n in "$@"; do
     branch="fixer/$slug/$at/w$wave-$n"

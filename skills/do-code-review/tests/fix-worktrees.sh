@@ -167,6 +167,40 @@ expect "the earlier run's Finding 2 worktree stays on its branch" \
 expect "the earlier run's Finding 2 branch still holds its commit" \
   test "$(git -C "$main" rev-parse -q --verify refs/heads/fixer/x/r1/w1-2)" = "$stale_sha"
 
+fresh unexcluded
+main="$tmp/unexcluded"
+printf 'base\n' >README.md
+printf '*.log\n' >.gitignore
+commit base
+exclude_lines() { # the lines of the main checkout's exclude list that ignore .claude/worktrees/, counted, on stdout
+  local n
+  n="$(grep -cE '^/?\.claude/worktrees/?$' "$main/.git/info/exclude" 2>/dev/null)"
+  echo "${n:-0}"
+}
+expect "fixture: the main checkout's exclude list does not carry .claude/worktrees/" \
+  test "$(exclude_lines)" = 0
+status_before="$(git -C "$main" status --porcelain)"
+run add "$main" x r1 1 1
+check_lines "fixture: add cuts Finding 1's worktree under the main checkout: exit 0" \
+  0 "$rc" "worktree 1 $main/.claude/worktrees/fixer-x-r1-w1-1 fixer/x/r1/w1-1"
+status_after="$(git -C "$main" status --porcelain)"
+if [ "$status_after" = "$status_before" ]; then
+  ok "the Fixer worktree folder does not show as untracked in the main checkout's status"
+else
+  fail "the Fixer worktree folder does not show as untracked in the main checkout's status"
+  echo "      before: ${status_before:-<empty>}"
+  echo "      after:  ${status_after:-<empty>}"
+fi
+run add "$main" x r1 2 2
+check_lines "fixture: a second Wave's add cuts Finding 2's worktree: exit 0" \
+  0 "$rc" "worktree 2 $main/.claude/worktrees/fixer-x-r1-w2-2 fixer/x/r1/w2-2"
+expect "a second Wave's add leaves the .claude/worktrees/ exclude line in the main checkout's exclude list exactly once" \
+  test "$(exclude_lines)" = 1
+expect "add leaves the project's .gitignore untouched" \
+  test "$(cat "$main/.gitignore")" = '*.log'
+expect "after a second Wave's add the main checkout's status still reads as before the first" \
+  test "$(git -C "$main" status --porcelain)" = "$status_before"
+
 echo
 if [ "$fails" = 0 ]; then echo "fix-worktrees: all checks passed"; else
   echo "fix-worktrees: $fails failed"
