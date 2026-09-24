@@ -198,7 +198,9 @@ lists it; write it by this file alone otherwise.
 10. **Pending debt.** Waivers, consumer coverage not run, an equivalence gap, a second thing found
    on the way and not done.
 11. **Next step.** One line. It ends with the push command when something landed on the
-    developer's branch, `git push` with the branch named; otherwise the command to type next.
+    developer's branch, `git push` with the branch named; otherwise the command to type next. A
+    landed run is not a stop: the push stays on this line, the run never pushes, and its Reply
+    carries no `Yours:` line.
 
 ## A refusal or a blocked run
 
@@ -227,4 +229,6 @@ act on. The line sits beside the refusal or the blocker and its reason, before t
 door the request goes to; in a refusal before any edit it is part of the one message. A stop that
 cannot name a class is not a stop: whatever it would hand over is a reversible action inside the
 run's own artifacts, and the run takes it. The Playbook's own step names the class of each stop it
-makes, keyed on what its scripts print and never on the session's reading.
+makes, keyed on what its scripts print and never on the session's reading. A blocked Reply whose
+handed-over commands include a push names that push under `outward`, since a push is a write
+outside the repository the run never makes itself.
