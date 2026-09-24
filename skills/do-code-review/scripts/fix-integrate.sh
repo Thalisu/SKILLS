@@ -14,7 +14,9 @@
 # conflicted <n> with <m[,m...]|none> files "<path>"... naming every earlier clean pick of this run
 # that touched a conflicted path, none when no pick did, and each conflicted path double-quoted.
 # failed <reason> is printed alone, before any pick, when a Fixer branch is not exactly one commit
-# ahead of the reviewed branch, so nothing moved.
+# ahead of the reviewed branch, so nothing moved. It is also printed, in Finding order, in place of a
+# conflicted line when git refuses a pick before it starts (a staged or dirty file, an untracked file
+# the commit would overwrite, no committer identity): git's own reason, with no path and no conflict.
 #
 # Exit codes: 0 every Finding picked · 1 at least one conflicted · 2 usage · 3 failed.
 set -uo pipefail
@@ -49,21 +51,31 @@ done
 declare -A touched_by=()
 verdict=0
 for n in $(printf '%s\n' "${!fixer[@]}" | sort -n); do
-  if git -C "$tree" cherry-pick "${fixer[$n]}" >/dev/null 2>&1; then
+  pick_err="$(git -C "$tree" cherry-pick "${fixer[$n]}" 2>&1)"
+  pick_rc=$?
+  if [ "$pick_rc" -eq 0 ]; then
     while IFS= read -r path; do
       touched_by[$path]+="$n "
     done < <(git -C "$tree" -c core.quotePath=true diff-tree --no-commit-id --name-only -r HEAD)
     echo "picked $n $(git -C "$tree" rev-parse HEAD)"
-  else
-    files="" with=""
-    while IFS= read -r path; do
-      files+=" $(qpath "$path")"
-      with+="${touched_by[$path]:-}"
-    done < <(git -C "$tree" -c core.quotePath=true diff --name-only --diff-filter=U)
-    git -C "$tree" cherry-pick --abort >/dev/null 2>&1
-    with="$(tr ' ' '\n' <<<"$with" | sed '/^$/d' | sort -nu | paste -sd,)"
-    echo "conflicted $n with ${with:-none} files${files}"
-    verdict=1
+    continue
   fi
+  # Git refuses some picks (a staged/dirty file, an untracked file the commit would overwrite, no
+  # committer identity) before it ever starts the pick: no CHERRY_PICK_HEAD and no unmerged path
+  # exist, so there is nothing to abort and no conflict to report, only git's own reason.
+  if ! git -C "$tree" rev-parse -q --verify CHERRY_PICK_HEAD >/dev/null &&
+    [ -z "$(git -C "$tree" -c core.quotePath=true diff --name-only --diff-filter=U)" ]; then
+    echo "failed Finding $n: $pick_err"
+    exit 3
+  fi
+  files="" with=""
+  while IFS= read -r path; do
+    files+=" $(qpath "$path")"
+    with+="${touched_by[$path]:-}"
+  done < <(git -C "$tree" -c core.quotePath=true diff --name-only --diff-filter=U)
+  git -C "$tree" cherry-pick --abort >/dev/null 2>&1
+  with="$(tr ' ' '\n' <<<"$with" | sed '/^$/d' | sort -nu | paste -sd,)"
+  echo "conflicted $n with ${with:-none} files${files}"
+  verdict=1
 done
 exit "$verdict"

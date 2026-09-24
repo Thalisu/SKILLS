@@ -117,6 +117,22 @@ absent "no Finding is picked, not even one that sorts before the refused branch 
 expect "the reviewed branch is left unmoved when a Fixer branch is more than one commit ahead" \
   test "$(git -C "$main" rev-parse main)" = "$before"
 
+fresh refused-before-start
+main="$tmp/refused-before-start"
+printf 'base\n' >a.txt
+commit base
+fixer_branch f1 one.txt "finding one"
+fixer_branch f2 two.txt "finding two"
+printf 'dirty\n' >>a.txt
+git add -A
+before="$(git -C "$main" rev-parse main)"
+run "$main" 1=f1 2=f2
+check "a pick git refuses before it starts (a staged change in the reviewed tree) fails with git's reason and exits 3, not a conflicted line" \
+  3 "$rc" "failed"
+absent "no conflicted line is printed for a pick git refused before it started" "conflicted "
+expect "the reviewed branch is left unmoved when git refuses a pick before it starts" \
+  test "$(git -C "$main" rev-parse main)" = "$before"
+
 echo
 if [ "$fails" = 0 ]; then echo "fix-integrate: all checks passed"; else
   echo "fix-integrate: $fails failed"
