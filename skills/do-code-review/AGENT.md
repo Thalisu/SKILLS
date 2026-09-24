@@ -1,8 +1,8 @@
 ---
 name: do-code-review
 description: 'Reviews the diff of the branch since a fixed point on six Axes and writes one Review file, the Findings by Bucket, each at a Rung, then returns the Review text and its location. Forks the technical reviewer and the security reviewer in parallel, and never edits code. Invoke through /do-code-review on a branch, or from do at its review step with a Ticket; the developer and do are its only callers. Never on your own initiative.'
-model: sonnet
-effort: medium
+model: opus
+effort: high
 tools: Bash, Read, Glob, Grep, Write, Agent, Skill
 maxTurns: 60
 color: green
