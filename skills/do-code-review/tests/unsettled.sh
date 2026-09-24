@@ -28,7 +28,7 @@ printf '#!/usr/bin/env bash\nset -u\necho "${1:-}"\n' >src/a.sh
 commit "fix: a.sh reads a missing argument as empty"
 fixed="$(git rev-parse HEAD)"
 
-review_at() { # $1 the Review's Commit: sha, $2 the review file, $3 its Act on Findings, $4 its Fix run sections; by default one Act on Finding on src/a.sh, not fixed by the one Fix run
+review_at() { # $1 the Review's Commit: sha, $2 the review file, $3 its Act on Findings, $4 its Fix run sections, $5 its Fixed point sha (default: $1); by default one Act on Finding on src/a.sh, not fixed by the one Fix run
   local reviewed="$1"
   local act_on="${3:-### 1. Correctness at src/a.sh:3
 Claim: a call with no argument exits on an unbound variable.
@@ -44,11 +44,12 @@ Date: 2026-09-24 · at $reviewed
 - gate fixer: not needed
 - gate: \`bash tests/a.test.sh\`: green
 - not landed: a Fixer did not return}"
+  local fixed_point="${5:-$reviewed}"
   cat >"$2" <<MD
 # Review: main
 
 Ticket: none
-Fixed point: main ($reviewed), inferred
+Fixed point: main ($fixed_point), inferred
 Commit: $reviewed
 Spec source: no spec
 Mode: fix
@@ -286,6 +287,53 @@ grep -v '^Commit: ' "$tmp/08-full.review.md" >"$review"
 run "$wt" "$review"
 check_lines "a Review with no Commit: header lists every unsettled Finding with touched=none and exits 3" \
   3 "$rc" "finding=1 touched=none"
+
+fresh rebased-fixed
+wt="$tmp/rebased-fixed"
+mkdir -p src
+printf '#!/usr/bin/env bash\nset -u\necho "$1"\n' >src/a.sh
+commit base
+old_base="$(git rev-parse --short HEAD)"
+git checkout -q -b feat
+printf '#!/usr/bin/env bash\nset -u\necho "$1" # reviewed\n' >src/a.sh
+commit "refactor: a.sh notes it is reviewed"
+reviewed="$(git rev-parse --short HEAD)"
+printf '#!/usr/bin/env bash\nset -u\necho "${1:-}" # reviewed\n' >src/a.sh
+commit "fix: a.sh reads a missing argument as empty"
+git checkout -q main
+printf 'unrelated\n' >other.txt
+commit "chore: the landing target moves"
+git checkout -q feat
+git rebase -q main
+after_rebase_fix="$(git rev-parse HEAD)"
+
+review="$tmp/11-a.review.md"
+review_at "$reviewed" "$review" "" "" "$old_base"
+run "$wt" "$review"
+check_lines "after a rebase off the reviewed Commit:, a Finding whose location a replayed after-review commit touched is listed with that replayed commit" \
+  0 "$rc" "finding=1 touched=$after_rebase_fix"
+
+fresh rebased-unfixed
+wt="$tmp/rebased-unfixed"
+mkdir -p src
+printf '#!/usr/bin/env bash\nset -u\necho "$1"\n' >src/a.sh
+commit base
+old_base="$(git rev-parse --short HEAD)"
+git checkout -q -b feat
+printf '#!/usr/bin/env bash\nset -u\necho "$1" # reviewed\n' >src/a.sh
+commit "refactor: a.sh notes it is reviewed"
+reviewed="$(git rev-parse --short HEAD)"
+git checkout -q main
+printf 'unrelated\n' >other.txt
+commit "chore: the landing target moves"
+git checkout -q feat
+git rebase -q main
+
+review="$tmp/12-a.review.md"
+review_at "$reviewed" "$review" "" "" "$old_base"
+run "$wt" "$review"
+check_lines "after a rebase off the reviewed Commit:, a Finding whose location only a replay of a commit the Review read touched is listed with touched=none" \
+  0 "$rc" "finding=1 touched=none"
 
 fresh dirty
 wt="$tmp/dirty"
