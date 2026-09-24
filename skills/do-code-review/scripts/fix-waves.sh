@@ -147,4 +147,6 @@ main() {
   printf '%s' "$sets" | group_waves
 }
 
+[ "${BASH_SOURCE[0]}" = "$0" ] || return 0
+
 main "$@"
