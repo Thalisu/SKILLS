@@ -781,6 +781,41 @@ check_lines "a Finding not fixed in an earlier Fix run and fixed in a later one 
   "wave=1 findings=2"
 same "a settled Finding forks no Fixer on any Wave, and its neighbour is never pushed onto a second Wave" "wave=1 findings=2"
 
+held="$tmp/11-held-on-the-branch.review.md"
+review_at 8b1d0e4 "$held" "### 1. Correctness at src/notes.js:31
+Claim: a page of ten notes returns nine.
+Evidence: eleven notes created, \`page(1, 10)\` called; nine rows returned, \`slice\` ends one short.
+Rung: 4
+Fix: a page of size ten over eleven notes returns ten rows, in tests/notes.test.js
+
+### 2. Correctness at src/notes.js:60
+Claim: a page past the last note throws.
+Evidence: \`page(3, 10)\` over eleven notes throws on an undefined row.
+Rung: 4
+Fix: a page past the last note returns no rows, in tests/auth.test.js
+
+### 3. Security at src/auth.js:12
+Claim: an expired token is accepted.
+Evidence: a token past its expiry reaches the sink with no gate on the claim.
+Rung: 4
+Risk: auth
+Fix: an expired token is rejected, in tests/auth.test.js" "## Fix run
+
+Date: 2026-09-24 · at 8b1d0e4
+
+- 1: not fixed: the Fixer never returned
+- 2: not fixed: the Fixer never returned
+- 3: not fixed: the Fixer never returned
+- diff tests: skip: no Fixer commit
+- gate fixer: not needed
+- gate: \`node --test tests/notes.test.js\`: green
+- not landed: a Fixer did not return"
+
+run "$held" --settled 2
+check_lines "a Finding the fix call names as settled is left out of every Wave, and the Findings it shared a file with are grouped as if it were absent" 0 "$rc" \
+  "wave=1 findings=1,3"
+same "a Finding held as fixed on the branch forks no Fixer, and no Fixer is forked on a second Wave" "wave=1 findings=1,3"
+
 echo
 if [ "$fails" = 0 ]; then echo "fix-waves: all checks passed"; else
   echo "fix-waves: $fails failed"

@@ -146,16 +146,25 @@ group_waves() {
 # into a file-set record with finding_files, feeds group_waves and lets its lines through to
 # stdout. Owns the boundary: the argument check and the exit code.
 main() {
-  [ "$#" -eq 1 ] || usage
-  [ -f "$1" ] && [ -r "$1" ] || usage
+  local review="${1:-}" held=""
+  case "$#" in
+    1) ;;
+    3)
+      [ "$2" = "--settled" ] && [[ "$3" =~ ^[0-9]+(,[0-9]+)*$ ]] || usage
+      held=",$3,"
+      ;;
+    *) usage ;;
+  esac
+  [ -f "$review" ] && [ -r "$review" ] || usage
 
   local records latest n loc target files sets=""
-  records="$(act_on_findings "$1")"
+  records="$(act_on_findings "$review")"
   [ -n "$records" ] || return 1
-  latest="$(fix_run_latest "$1")"
+  latest="$(fix_run_latest "$review")"
 
   while IFS=$'\t' read -r n loc target; do
     grep -q "^$n	fixed " <<<"$latest" && continue
+    [[ "$held" == *",$n,"* ]] && continue
     files="$(finding_files "$loc" "$target" | tr '\n' ' ')"
     files="${files% }"
     sets+="$n	$files"$'\n'
