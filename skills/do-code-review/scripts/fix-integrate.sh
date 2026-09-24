@@ -68,6 +68,21 @@ for n in $(printf '%s\n' "${!fixer[@]}" | sort -n); do
     echo "failed Finding $n: $pick_err"
     exit 3
   fi
+  # A pick that stops with CHERRY_PICK_HEAD set and no unmerged path made no change at all: an
+  # earlier Finding's pick already produced the identical content. It is not a real conflict, but
+  # the line still names the Fixer commit's own files and every earlier clean pick that touched them.
+  if [ -z "$(git -C "$tree" -c core.quotePath=true diff --name-only --diff-filter=U)" ]; then
+    files="" with=""
+    while IFS= read -r path; do
+      files+=" $(qpath "$path")"
+      with+="${touched_by[$path]:-}"
+    done < <(git -C "$tree" -c core.quotePath=true diff-tree --no-commit-id --name-only -r "${fixer[$n]}")
+    git -C "$tree" cherry-pick --abort >/dev/null 2>&1
+    with="$(tr ' ' '\n' <<<"$with" | sed '/^$/d' | sort -nu | paste -sd,)"
+    echo "conflicted $n with ${with:-none} files${files}"
+    verdict=1
+    continue
+  fi
   files="" with=""
   while IFS= read -r path; do
     files+=" $(qpath "$path")"

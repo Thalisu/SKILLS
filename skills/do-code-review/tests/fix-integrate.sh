@@ -133,6 +133,18 @@ absent "no conflicted line is printed for a pick git refused before it started" 
 expect "the reviewed branch is left unmoved when git refuses a pick before it starts" \
   test "$(git -C "$main" rev-parse main)" = "$before"
 
+fresh identical-change
+main="$tmp/identical-change"
+printf 'base\n' >a.txt
+commit base
+fixer_branch f1 a.txt "same fix"
+fixer_branch f2 a.txt "same fix"
+run "$main" 1=f1 2=f2
+check_lines "a pick that lands empty, because an earlier Finding already made the identical change, names the earlier pick and the file, not none" \
+  1 "$rc" "picked 1 $(git -C "$main" rev-parse main 2>/dev/null)" "conflicted 2 with 1 files \"a.txt\""
+expect "no cherry-pick is left in progress after an empty pick" no_pick_in_progress "$main"
+expect "the work tree is clean after an empty pick" clean_status "$main"
+
 echo
 if [ "$fails" = 0 ]; then echo "fix-integrate: all checks passed"; else
   echo "fix-integrate: $fails failed"
