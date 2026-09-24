@@ -300,6 +300,18 @@ Then, for each Wave `<k>` as run, in order, while no stop below has fired:
    `kept <branch> <path> dirty tree` stays where it is, and is named in the `## Fix run` section and
    in the reply as a commit the run could not land, per `## The landing`.
 
+   A Finding this Wave's step 5 `picked` may be one an earlier Wave re-routed out of, conflicted:
+   that earlier Wave's own branch for the same Finding is still `kept ... unlanded commit`, since
+   its commit was aborted, never picked, and `git cherry` never matches an aborted commit against
+   the retry that superseded it. Take that branch back too, in the same call, appended to the list
+   above as `fix-worktrees.sh remove --superseded <the reviewed tree> <branch>...`, which skips the
+   landed check: the orchestrator already knows, by Finding number and not by patch, that the
+   Finding it names is on the reviewed branch under a different sha. `removed` there is gone the
+   same way a plain `removed` is; `kept ... dirty tree` is the only way it stays, for a worktree its
+   own Fixer left dirty, and is named in the `## Fix run` section and the reply like any other kept
+   branch. A superseded branch `remove` took back is never named as a commit the run could not
+   land: the Finding it names reads `fixed`, not `not fixed`.
+
 The next Wave's worktrees are cut only now, from the reviewed tree's HEAD as this Wave's
 integration left it: `fix-integrate.sh` takes a Fixer branch only when it is exactly one commit
 ahead of the reviewed branch as it stands, so a Wave cut before the one ahead of it was integrated

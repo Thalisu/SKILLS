@@ -296,6 +296,16 @@ expect "the reviewed branch ends up holding both Findings' changes" \
   test "$(cat "$reviewed/README.md" 2>/dev/null)" = "base one two"
 expect "the reviewed branch still holds the winner's commit under the re-routed one" \
   git -C "$reviewed" merge-base --is-ancestor "$winner" HEAD
+run remove "$reviewed" fixer/x/r1/w1-2
+check_lines "a plain remove still keeps the conflicted Finding's aborted branch as unlanded, once its retry has landed under a different sha: exit 1" \
+  1 "$rc" "kept fixer/x/r1/w1-2 $conflicted_wt unlanded commit"
+run remove --superseded "$reviewed" fixer/x/r1/w1-2
+check_lines "remove --superseded takes back the conflicted Finding's aborted worktree and branch once its retry has landed on the reviewed branch under a different sha: exit 0" \
+  0 "$rc" "removed fixer/x/r1/w1-2 $conflicted_wt"
+expect "git no longer lists the worktree of the superseded Finding's aborted branch" \
+  unlisted "$conflicted_wt"
+expect "git no longer lists the superseded Finding's aborted branch" \
+  no_branch fixer/x/r1/w1-2
 
 echo
 if [ "$fails" = 0 ]; then echo "fix-worktrees: all checks passed"; else

@@ -13,14 +13,17 @@
 # before anything is made; any other refusal from git prints `failed <git's line>` once the
 # worktrees this call made are taken back. Either way no `worktree` line is printed.
 #
-#   fix-worktrees.sh remove <reviewed tree> <branch>...
+#   fix-worktrees.sh remove [--superseded] <reviewed tree> <branch>...
 #
 # remove takes back only what add made: a branch outside the fixer/<slug>/<at>/w<k>-<n> namespace,
 # the caller's do/<slug> or fix/<slug> among them, refuses the whole list before anything is touched.
 # A Fixer worktree is removed with its branch when its tree is clean and its commit, if it made one,
 # is on the reviewed branch by patch, whatever sha the pick gave it: `removed <branch> <path>`. Any
 # other is left as it stands, for the developer to read: `kept <branch> <path> dirty tree` or
-# `kept <branch> <path> unlanded commit`.
+# `kept <branch> <path> unlanded commit`. With --superseded the caller already knows, by Finding
+# number rather than by patch, that every listed branch's Finding is on the reviewed branch under a
+# different sha, its own commit having been aborted and never picked: the landed check is skipped,
+# so a clean tree is always removed and only a dirty one or a removal git refuses is kept.
 #
 # Exit codes: add 0 every worktree created · remove 0 every one removed, 1 some kept · 2 usage ·
 # 3 add failed.
@@ -28,7 +31,7 @@ set -uo pipefail
 
 usage() {
   echo "usage: fix-worktrees.sh add <reviewed tree> <slug> <at> <wave> <n>..." >&2
-  echo "usage: fix-worktrees.sh remove <reviewed tree> <branch>..." >&2
+  echo "usage: fix-worktrees.sh remove [--superseded] <reviewed tree> <branch>..." >&2
   exit 2
 }
 [ "$#" -ge 1 ] || usage
@@ -83,6 +86,11 @@ worktree_of() { # $1 reviewed tree, $2 branch: the path of the worktree it is ch
 }
 
 remove() {
+  local superseded=0
+  if [ "${1:-}" = "--superseded" ]; then
+    superseded=1
+    shift
+  fi
   [ "$#" -ge 2 ] || usage
   local tree="$1" main branch path
   shift
@@ -102,7 +110,7 @@ remove() {
       verdict=1
       continue
     fi
-    if ! landed "$tree" "$branch"; then
+    if [ "$superseded" -eq 0 ] && ! landed "$tree" "$branch"; then
       echo "kept $branch $path unlanded commit"
       verdict=1
       continue
