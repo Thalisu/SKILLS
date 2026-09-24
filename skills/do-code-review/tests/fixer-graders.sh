@@ -71,5 +71,84 @@ agent_call_fails "fix-gate-red: a Gate fixer handed the Review's Act on section 
 
 1. src/export.js:12 quotes a title twice."
 
+# fix-unlinked-fixers: neither named agent is linked, so the orchestrator forks a general-purpose agent
+# on sonnet whose prompt opens with the definition as the shell prints it, then the brief.
+fixer_definition="$(
+  cat <<'EOF'
+---
+name: do-code-review-fixer
+description: 'Fixes one Act on Finding of a Review, in the tree it was forked in. Forked only by the do-code-review orchestrator with a brief.'
+model: sonnet
+effort: high
+tools: Bash, Read, Glob, Grep, Write, Edit, Agent, Skill
+---
+
+You fix one Act on Finding of a Review, in the tree you were forked in, and touch nothing outside it.
+EOF
+)"
+gate_fixer_definition="$(
+  cat <<'EOF'
+---
+name: do-code-review-gate-fixer
+description: 'Turns the red block of a check green after the Fixers of a review committed. Forked only by the do-code-review orchestrator with a brief.'
+model: sonnet
+effort: high
+tools: Bash, Read, Glob, Grep, Write, Edit
+---
+
+You turn the red block a check printed green, and nothing else: you never read the Review.
+EOF
+)"
+fixer_brief="Finding: 1. src/export.js:12 quotes a title twice.
+Branch: fix/export-notes
+Tree: $tree
+Return file: $tree/.scratch/fixers/fixer-1.md"
+fixer_fallback="$fixer_definition
+$fixer_brief"
+gate_fixer_fallback="$gate_fixer_definition
+$brief"
+
+grader="$here/../evals/fix-unlinked-fixers/graders/fixer-fallback-carries-definition.md"
+agent_call_passes "fix-unlinked-fixers: a general-purpose sonnet fork opening with the Fixer's definition, then its brief, passes fixer-fallback-carries-definition" \
+  "general-purpose" "s1" "sonnet" "$fixer_fallback"
+agent_call_passes "fix-unlinked-fixers: a sonnet fork with no subagent_type opening with the Fixer's definition passes fixer-fallback-carries-definition" \
+  "" "s1" "sonnet" "$fixer_fallback"
+grade_passes "fix-unlinked-fixers: a run holding the Fixer's and the Gate fixer's fallbacks passes fixer-fallback-carries-definition" \
+  "$(run_of general-purpose s1 sonnet "$fixer_fallback" -- general-purpose s1 sonnet "$gate_fixer_fallback")"
+agent_call_fails "fix-unlinked-fixers: a general-purpose fork carrying the Fixer's definition and no model fails fixer-fallback-carries-definition" \
+  "general-purpose" "s1" "" "$fixer_fallback"
+agent_call_fails "fix-unlinked-fixers: a general-purpose fork carrying the Fixer's definition on opus fails fixer-fallback-carries-definition" \
+  "general-purpose" "s1" "opus" "$fixer_fallback"
+agent_call_fails "fix-unlinked-fixers: a general-purpose sonnet fork handed the Fixer's brief alone fails fixer-fallback-carries-definition" \
+  "general-purpose" "s1" "sonnet" "$fixer_brief"
+agent_call_fails "fix-unlinked-fixers: a general-purpose sonnet fork carrying the Gate fixer's definition instead fails fixer-fallback-carries-definition" \
+  "general-purpose" "s1" "sonnet" "$gate_fixer_definition
+$fixer_brief"
+
+grader="$here/../evals/fix-unlinked-fixers/graders/gate-fixer-fallback-carries-definition.md"
+agent_call_passes "fix-unlinked-fixers: a general-purpose sonnet fork opening with the Gate fixer's definition, then its brief, passes gate-fixer-fallback-carries-definition" \
+  "general-purpose" "s1" "sonnet" "$gate_fixer_fallback"
+agent_call_passes "fix-unlinked-fixers: a sonnet fork with no subagent_type opening with the Gate fixer's definition passes gate-fixer-fallback-carries-definition" \
+  "" "s1" "sonnet" "$gate_fixer_fallback"
+grade_passes "fix-unlinked-fixers: a run holding the Fixer's and the Gate fixer's fallbacks passes gate-fixer-fallback-carries-definition" \
+  "$(run_of general-purpose s1 sonnet "$fixer_fallback" -- general-purpose s1 sonnet "$gate_fixer_fallback")"
+agent_call_fails "fix-unlinked-fixers: a general-purpose fork carrying the Gate fixer's definition and no model fails gate-fixer-fallback-carries-definition" \
+  "general-purpose" "s1" "" "$gate_fixer_fallback"
+agent_call_fails "fix-unlinked-fixers: a general-purpose fork carrying the Gate fixer's definition on opus fails gate-fixer-fallback-carries-definition" \
+  "general-purpose" "s1" "opus" "$gate_fixer_fallback"
+agent_call_fails "fix-unlinked-fixers: a general-purpose sonnet fork handed the red block and brief alone fails gate-fixer-fallback-carries-definition" \
+  "general-purpose" "s1" "sonnet" "$brief"
+agent_call_fails "fix-unlinked-fixers: a run whose only sonnet fork carries the Fixer's definition fails gate-fixer-fallback-carries-definition" \
+  "general-purpose" "s1" "sonnet" "$fixer_fallback"
+
+# shellcheck disable=SC2034 # read by lib.sh's grade_passes and grade_fails
+grader="$here/../evals/fix-unlinked-fixers/graders/no-named-fixer-forked.md"
+grade_passes "fix-unlinked-fixers: a run forking only general-purpose fallbacks passes no-named-fixer-forked" \
+  "$(run_of general-purpose s1 sonnet "$fixer_fallback" -- general-purpose s1 sonnet "$gate_fixer_fallback")"
+grade_fails "fix-unlinked-fixers: a run forking do-code-review-fixer by name fails no-named-fixer-forked" \
+  "$(run_of do-code-review-fixer s1 "" "$fixer_brief" -- general-purpose s1 sonnet "$gate_fixer_fallback")"
+grade_fails "fix-unlinked-fixers: a run forking do-code-review-gate-fixer by name fails no-named-fixer-forked" \
+  "$(run_of general-purpose s1 sonnet "$fixer_fallback" -- do-code-review-gate-fixer s1 "" "$brief")"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1

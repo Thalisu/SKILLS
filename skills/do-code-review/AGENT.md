@@ -297,9 +297,12 @@ Only now, and only when the mode is not `--no-fix`, read [fix.md](references/fix
 carries an `Act on` Finding runs it from `## Where the Fixer works` onward: the Fixers, one
 `do-code-review-fixer` per `Act on` Finding, briefed from that file and forked one at a time, the
 re-check you run yourself, the Diff tests, the `do-code-review-gate-fixer` when either check comes
-back red, the
-Gate, the `## Fix run` section appended to the same Review, and the landing. Its three door checks
-belong to a `fix` call and you have their answers already.
+back red, the Gate, the `## Fix run` section appended to the same Review, and the landing. Its three
+door checks belong to a `fix` call and you have their answers already. When the harness does not
+list one of the two fixers by name, fork `general-purpose` in its place on `model: sonnet`, the
+model its definition pins, with that fixer's definition read through the shell from
+`$(readlink -f ~/.claude/skills/do-code-review)/agents/<its file name>.md` as the head of the prompt
+and the same brief after it, so a missing link never blocks the fix.
 
 A Review with nothing in `Act on` forks no Fixer and appends no `## Fix run` section, and it
 still lands when it is Green: read the same file at `## The landing`, run the Gate as its

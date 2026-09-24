@@ -122,6 +122,13 @@ carries what changes from one call to the next, and nothing else:
 - its one Finding: its number, its location, its `Claim:` and its `Fix:` line;
 - `Return file: <the path below>`.
 
+When the harness does not list `do-code-review-fixer` by name, fork `general-purpose` in its place
+on `model: sonnet`, the model its definition pins, with that definition read through the shell from
+`$(readlink -f ~/.claude/skills/do-code-review)/agents/do-code-review-fixer.md` as the head of the
+prompt and the same brief after it. A missing link never blocks the fix: it is the path every
+Fixer takes on a machine that linked the skill and not its agents, and under Codex, which registers
+no custom agent.
+
 The run is not over until the landing line is written, whatever the Agent tool does. Make one
 directory outside every repository before the first Fixer,
 `mktemp -d "${TMPDIR:-/tmp}/do-code-review-fix.XXXX"`, and give each Fixer
@@ -223,6 +230,11 @@ attempt to the next, and nothing else:
 
 Nothing of the Review reaches it, not its location and not a Finding: the red block is the whole
 of what an attempt is for, and a Gate fixer that read the Findings would widen its edits past it.
+
+When the harness does not list `do-code-review-gate-fixer` by name, fork `general-purpose` in its
+place on `model: sonnet`, the model its definition pins, with that definition read through the
+shell from `$(readlink -f ~/.claude/skills/do-code-review)/agents/do-code-review-gate-fixer.md` as
+the head of the prompt and the same brief after it, as for a Fixer.
 
 The Gate fixer's return file is waited for the way a Fixer's is, three windows and no more. One whose file never lands ends the attempts, since it may still be
 writing in the tree: nothing lands, the `## Fix run` section reads `- gate fixer: no return`, and

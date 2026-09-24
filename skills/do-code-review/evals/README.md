@@ -27,6 +27,7 @@ its suite, so it runs offline with node alone. The planted diff keeps its Ticket
 | `fix-dirty-tree` | a `fix` call with one change left uncommitted: one line, `working tree has uncommitted changes; commit or stash before fix`, no worktree, no fork and no file touched |
 | `fix-stale` | a `fix` call after the case moved the code the one `Act on` Finding named: the section reports it `stale`, no commit is made and the tree is untouched |
 | `fix-gate-red` | a `fix` call whose one `Act on` fix is right and turns a preview test outside the Finding red: the Gate fixer forked as `do-code-review-gate-fixer` with no `model` key, once or twice and never a third time, its prompt naming neither the Review nor its `## Act on` section, the preview repaired in code with its test's assertion untouched, and the `## Fix run` section naming the Gate fixer's commit and ending `landed at` |
+| `fix-unlinked-fixers` | the `fix-gate-red` fixture on a machine that links neither fixer: no fork of either by name, a general-purpose Fixer and a general-purpose Gate fixer each on `model: sonnet` with its definition ahead of the brief, the Finding `fixed <sha>, verified`, the preview repaired in code, and the run ending `landed at` |
 | `no-fix` | `/do-code-review --no-fix`: the Review written and the run stopped, no Fixer, no worktree, nothing landed, and the fix reference never opened |
 
 Run from the skill directory, granting the tools the run needs and opting in to the scaffold
