@@ -184,9 +184,10 @@ and the **Fixers** of one **Wave** at once.
 _Avoid_: fix agent, implementer, delegate (a delegate is `do`'s exception writer, not the review's)
 
 **Wave**:
-The `Act on` **Finding**s whose **Fixers** run at once, read off the **Review** by a script and
-never judged by the review: two **Finding**s share a **Wave** only when the files they name are
-disjoint, and a **Finding** whose files cannot be read is a **Wave** of its own.
+The `Act on` **Finding**s whose **Fixers** run at once: a script's floor, where two **Finding**s
+share a **Wave** only when the files they name are disjoint and a **Finding** whose files cannot be
+read is a **Wave** of its own, which the review may cut finer, with one reason per cut, and which
+nothing may widen.
 _Avoid_: batch, group, round, phase (a phase is a `do` build step, a **Wave** is the review's)
 
 **Gate fixer**:
@@ -263,6 +264,13 @@ again.
 _Avoid_: handoff, retry context, failure report (it carries what was ruled out, never only what
 failed)
 
+**Handover class**:
+The one reason a `do` run may stop and hand the developer a choice, named in its blocked **Reply**:
+`direction` (a choice between outcomes), `destroy` (removing work the run did not create), `trust`
+(taking a stranger's text as the developer's) or `outward` (a write outside the repository).
+_Avoid_: blocker, manual step, next step for the developer (a reversible action inside the run's
+own artifacts is never handed over, the run takes it)
+
 ## Relationships
 
 - A **Spec** has one or more **Paths**, read off its user stories
@@ -295,6 +303,9 @@ failed)
 - The **Fixers** of one **Wave** run at once, one per **Finding**, each in its own worktree, and
   the review brings their commits onto the branch it read in **Finding** order once the **Wave**
   returned
+- A **Finding** whose commit conflicts on the way onto that branch moves to the next **Wave** and
+  its **Fixer** is dispatched again from the branch as it now stands, twice at most; a third
+  conflict leaves the **Finding** `not fixed`
 - A **Design fork** is settled inside the run by the `choice-taker` agent, on the norm the repo
   writes down when one backs a side and on the side easiest to undo when none does; only an
   **Extreme fork** stops the run and goes to `discuss`
