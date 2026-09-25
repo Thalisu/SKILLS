@@ -138,8 +138,8 @@ file, else a spec file matching the branch in the usual spec homes, else `no spe
 
 ## The fix, and the hand-off
 
-The Review on disk is the hand-off. Open it, and the `## Act on` section is the list the Fixer
-works from: delete a Finding you overrule, move a `Consider` you want fixed up into `Act on`, and
+The Review on disk is the hand-off. Open it, and the `## Act on` section is the list the Fixers
+work from: delete a Finding you overrule, move a `Consider` you want fixed up into `Act on`, and
 the file is what the run reads next. With a clean tree, type `/do-code-review fix` with its path
 and the run does the same fixing, proving and landing the default run does, from the list as you
 left it. It touches nothing in `Consider`, `Noted` or `Cleared`, so the judgment calls stay yours.
@@ -163,7 +163,7 @@ the next `fix` call on the Review tries it again.
 
 ## What the run leaves behind
 
-The Review, the Fixer's commits on the branch it reviewed, and your branch fast-forwarded onto
+The Review, the Fixers' commits on the branch it reviewed, and your branch fast-forwarded onto
 them. Nothing is pushed, on any path, and the last line of the run is the `git push` you type
 yourself. Proof scripts run in a temporary directory outside every repository, and nothing is
 installed. The report's section names and labels are fixed and in English, so a caller reads the
@@ -180,9 +180,9 @@ Rung; the bundled one for a pull request you want posted on GitHub.
 **Why does the review fix and land, and not `do`?**
 Because one fixer for every caller is cheaper than one per caller. A Review that stopped at the
 document cost a human read, or a second full review, before a branch with an `Act on` Finding
-could land. The Fixer touches only `Act on`, which is Rung 3 or above with its check named, works
-in a worktree, and lands by fast-forward with nothing pushed, so the blast radius of letting it
-write is bounded. `/do-code-review --no-fix` is there for when you want to read first.
+could land. The Fixers touch only `Act on`, which is Rung 3 or above with its check named, each
+works in a worktree of its own, and the run lands by fast-forward with nothing pushed, so the blast
+radius of letting them write is bounded. `/do-code-review --no-fix` is there for when you want to read first.
 
 **`do` fixed something after the review. Why was it not reviewed again?**
 Because the review runs once per run. What `do` commits after it, the fix of a red flow or a rebase
@@ -236,7 +236,7 @@ refusal instead of as a rule to remember, per
 - A Finding a `fix` call found already fixed by your own commit reads
   `fixed <your commit>, verified (<the check>)` in that call's new `## Fix run` section, every
   earlier section still in the file, and no Fixer commit stands for it in `git log`.
-- `git log` on your branch shows the Fixer's commits after a landing, and `git status` shows
+- `git log` on your branch shows the Fixers' commits after a landing, and `git status` shows
   nothing to push that you did not push yourself.
 
 ## Where it fits

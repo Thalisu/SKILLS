@@ -13,7 +13,7 @@ read by one skill only stays in that skill's `references/`.
 | [spec-format.md](spec-format.md) | `spec`; `journey` edits it in place | `journey`, `tickets` |
 | [journey-format.md](journey-format.md) | `journey` | `tickets` |
 | [ticket-format.md](ticket-format.md) | `tickets`; `do` edits it in place | `do`, `do-code-review` |
-| [review-format.md](review-format.md) | `do-code-review` | `do`, the Fixer |
+| [review-format.md](review-format.md) | `do-code-review` | `do`, the Fixers |
 | [sketch-format.md](sketch-format.md) | the `/sketch` session; `do` at its shape step; `do-planner`, whose Plan the Sketch becomes one section of | `do`, which holds the build to it |
 | [loss-ledger-format.md](loss-ledger-format.md) | `do` at its integration, through `ledger.sh` | `do`'s ledger judge, `do-code-review`'s technical reviewer |
 

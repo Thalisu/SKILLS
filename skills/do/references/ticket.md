@@ -271,7 +271,7 @@ Do:
 - [ ] 4. Diff: the Builder's diff read in the worktree, the run's own summary written
 - [ ] 5. Gate in the worktree: the Ticket's own tests, typecheck, format; the full suites on the feature's last Ticket
 - [ ] 6. Integration: the branch rebased onto the developer's branch, the gate again when it replayed
-- [ ] 7. Review by do-code-review: Act on Findings fixed by its Fixers, Wave by Wave, landed when Green
+- [ ] 7. Review by do-code-review: Act on Findings fixed Wave by Wave by its Fixers, landed when Green
 - [ ] 8. Affected E2E flows run from the main checkout
 - [ ] 9. Ticket closed with evidence; worktree removed
 - [ ] 10. Reply
