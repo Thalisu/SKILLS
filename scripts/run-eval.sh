@@ -22,8 +22,9 @@
 #   regex        pattern (PCRE), match: contains, target: last_message
 #   tool_used    tool, input_match (PCRE over the input as compact JSON), min, max, scope; it counts
 #                the calls the session makes itself, never a subagent's, unless scope reads all,
-#                which counts every call in the transcript, a subagent's included: the only way to
-#                see the Agent calls of a `context: fork` skill, whose orchestrator is a subagent
+#                which counts every call in the transcript and in the subagent transcripts beside it,
+#                a subagent's included: the only way to see the calls of a `context: fork` skill,
+#                whose orchestrator is a subagent the stream never shows
 #   file_exists  path, a glob from the fixture's root
 # A case is green only when every run passes every grader.
 #
@@ -97,8 +98,12 @@ own_tool_uses() { # $1 transcript: the tool calls the session made itself; a sub
   events "$1" | jq -c 'select(.type == "assistant" and (.parent_tool_use_id // null) == null)
     | .message.content[]? | select(.type == "tool_use")'
 }
-all_tool_uses() { # $1 transcript: every tool call in it, the session's own and every subagent's
-  events "$1" | jq -c 'select(.type == "assistant") | .message.content[]? | select(.type == "tool_use")'
+all_tool_uses() { # $1 transcript: every tool call in it and in the subagent transcripts beside it
+  local f
+  for f in "$1" "$(dirname "$1")"/subagents/agent-*.jsonl; do
+    [ -f "$f" ] || continue
+    events "$f" | jq -c 'select(.type == "assistant") | .message.content[]? | select(.type == "tool_use")'
+  done
 }
 readable() { # $1 transcript: the run as the judge reads it
   events "$1" | jq -r '

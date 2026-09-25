@@ -271,6 +271,31 @@ check "a case that unlinks a skill the sandbox never linked is red before any se
   "unlink-skill-unknown: 0 run, a skill it unlinks was never linked"
 expect "that case started no session" test "$(calls)" = 0
 
+# A `context: fork` skill's orchestrator never reaches the headless stream: its calls are held only in
+# a subagent transcript beside the run's own, which a `scope: all` grader counts too.
+source_grade
+w="$tmp/forked-run"
+mkdir -p "$w/subagents"
+cat >"$w/transcript.jsonl" <<'JSONL'
+{"type":"system","subtype":"init"}
+{"type":"assistant","parent_tool_use_id":null,"message":{"content":[{"type":"tool_use","id":"toolu_s1","name":"Skill","input":{"skill":"do-code-review"}}]}}
+{"type":"result","subtype":"success","result":"Fixed."}
+JSONL
+cat >"$w/subagents/agent-a1b2c3.jsonl" <<'JSONL'
+{"type":"attachment","isSidechain":true,"agentId":"a1b2c3"}
+{"type":"user","isSidechain":true,"agentId":"a1b2c3","message":{"content":"Review the branch."}}
+{"type":"assistant","isSidechain":true,"agentId":"a1b2c3","message":{"content":[{"type":"tool_use","id":"toolu_f1","name":"Bash","input":{"command":"bash ~/.claude/skills/do-code-review/scripts/fix-integrate.sh /work/tree 2=fixer/export-notes/w1-2","description":"Integrate the returned Fixer"}}]}}
+JSONL
+evals="$tmp/graded" grader forked integrated "type: tool_used
+tool: Bash
+scope: all
+input_match: 'fix-integrate\\.sh'
+min: 1
+max: 1"
+# shellcheck disable=SC2034 # read by lib.sh's grade_passes
+grader="$tmp/graded/forked/graders/integrated.md"
+grade_passes "a scope: all grader counts a forked orchestrator's call held only in a subagent transcript" "$w"
+
 if [ "$fails" = 0 ]; then echo "PASS"; else
   echo "$fails failing"
   exit 1
