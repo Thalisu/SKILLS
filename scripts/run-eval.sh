@@ -103,7 +103,7 @@ all_tool_uses() { # $1 transcript: every tool call in it and in the subagent tra
   for f in "$1" "$(dirname "$1")"/subagents/agent-*.jsonl; do
     [ -f "$f" ] || continue
     events "$f" | jq -c 'select(.type == "assistant") | .message.content[]? | select(.type == "tool_use")'
-  done
+  done | jq -sc 'unique_by(.id) | .[]'
 }
 readable() { # $1 transcript: the run as the judge reads it
   events "$1" | jq -r '

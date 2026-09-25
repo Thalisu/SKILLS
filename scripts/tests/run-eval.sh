@@ -327,6 +327,30 @@ check "a whole run is green on a scope: all grader whose only call the forked su
   0 "$rc" "ok    forked run 1/1 integrated" "forked: 1/1 green"
 rm -rf "$(sed -n 's/^ *kept: //p' <<<"$out")"
 
+# A backgrounded subagent's call is streamed with its parent's id and also written to its own
+# transcript file under the same tool_use id: it is one call, and a grader with a max counts it once.
+w="$tmp/streamed-and-held"
+mkdir -p "$w/subagents"
+cat >"$w/transcript.jsonl" <<'JSONL'
+{"type":"system","subtype":"init"}
+{"type":"assistant","parent_tool_use_id":null,"message":{"content":[{"type":"tool_use","id":"toolu_s1","name":"Agent","input":{"description":"Fix Finding 2","prompt":"Fix it.","run_in_background":true}}]}}
+{"type":"assistant","parent_tool_use_id":"toolu_s1","message":{"content":[{"type":"tool_use","id":"toolu_f1","name":"Bash","input":{"command":"bash ~/.claude/skills/do-code-review/scripts/fix-integrate.sh /work/tree 2=fixer/export-notes/w1-2","description":"Integrate the returned Fixer"}}]}}
+{"type":"result","subtype":"success","result":"Fixed."}
+JSONL
+cat >"$w/subagents/agent-d4e5f6.jsonl" <<'JSONL'
+{"type":"user","isSidechain":true,"agentId":"d4e5f6","message":{"content":"Fix it."}}
+{"type":"assistant","isSidechain":true,"agentId":"d4e5f6","message":{"content":[{"type":"tool_use","id":"toolu_f1","name":"Bash","input":{"command":"bash ~/.claude/skills/do-code-review/scripts/fix-integrate.sh /work/tree 2=fixer/export-notes/w1-2","description":"Integrate the returned Fixer"}}]}}
+JSONL
+evals="$tmp/graded" grader forked integrated "type: tool_used
+tool: Bash
+scope: all
+input_match: 'fix-integrate\\.sh'
+min: 1
+max: 1"
+# shellcheck disable=SC2034 # read by lib.sh's grade_passes
+grader="$tmp/graded/forked/graders/integrated.md"
+grade_passes "a scope: all grader counts once a subagent call both streamed and held in its own transcript file" "$w"
+
 if [ "$fails" = 0 ]; then echo "PASS"; else
   echo "$fails failing"
   exit 1
