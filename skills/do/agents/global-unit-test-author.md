@@ -48,7 +48,7 @@ The input a test passes in is built, never forced into place. A fake that stands
 
 Priority: **reuse > extend > create.** Never write a second copy of something that exists.
 
-Run the Discovery block from "Project map" first, then search for the specific thing you are about to build:
+Run the Discovery block from "Project map" first: its commands are independent of one another, so send them all in one response (one message, several tool calls), and only then search for the specific thing you are about to build, since that search depends on what they returned:
 
 - Search **all** test files, not only the shared homes. A factory living locally inside another test file counts as existing.
 - Search by shape as well as by name: the `makeX` you need may exist as `buildX` next door.

@@ -47,7 +47,7 @@ A flow asserts two different things, and it never lets one pass for the other.
 
 Priority: **reuse > extend > create.** Never write a second copy of something that exists.
 
-Run the Discovery block from "Project map" first, then search for the specific thing you are about to build:
+Run the Discovery block from "Project map" first: its commands are independent of one another, so send them all in one response (one message, several tool calls), and only then search for the specific thing you are about to build, since that search depends on what they returned:
 
 - A **page-object method** (or shared subflow) for the interaction, a **data factory** for the entity, a **backend helper** for the fixture state or assertion, a **fixture** for the session/context.
 - Search **all** flow files, not only the shared homes. A helper written inline inside another flow counts as existing.
