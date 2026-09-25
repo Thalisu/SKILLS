@@ -172,7 +172,7 @@ _Avoid_: confidence, score, certainty
 
 **Review**:
 The file `do-code-review` writes for one diff: the intent, the one safety fact, the **Findings** by
-**Bucket**, one line per **Axis**, and, after the **Fixer** ran, what was fixed and what was
+**Bucket**, one line per **Axis**, and, after the **Fixers** ran, what was fixed and what was
 verified. Always a local markdown file, whatever the tracker. It belongs to one **Ticket** and
 lives beside it, naming it; outside the chain it names the branch and the fixed point instead.
 _Avoid_: report (the message returned to the caller, not the file), task review, PR comments
@@ -357,12 +357,13 @@ own artifacts is never handed over, the run takes it)
 - An **Axis** whose reviewer did not return after one retry reads `not run` in the **Review**,
   never `0 findings`; the other reviewer's **Findings** are still written
 - A **Review** belongs to exactly one **Ticket** when one exists and is the only file
-  `do-code-review` writes; the default run writes it, forks the **Fixer** with its `Act on` list,
-  then appends what was fixed and what was verified to the same file. `--no-fix` stops at the
-  write; `fix` with a **Review** reads the file instead of writing it, for the developer who
-  edited it by hand
-- The **Fixer** corrects every `Act on` **Finding** for every caller, one commit per **Finding**
-  under the project's Testing Policy, and touches nothing in `Consider`, `Noted` or `Cleared`
+  `do-code-review` writes; the default run writes it, forks the **Fixers** by **Wave**, one per
+  `Act on` **Finding**, then appends what was fixed and what was verified to the same file.
+  `--no-fix` stops at the write; `fix` with a **Review** reads the file instead of writing it, for
+  the developer who edited it by hand
+- The **Fixers** correct every `Act on` **Finding** for every caller, one **Fixer** and one commit
+  per **Finding** under the project's Testing Policy, and touch nothing in `Consider`, `Noted` or
+  `Cleared`
 - `Act on` takes only a **Finding** at **Rung** 3 or above with its check named; **Rung** 1 and 2
   stop at `Consider`, whatever the severity
 - `do` reads the run's return and never fixes a **Finding** itself; it never dismisses a
@@ -398,7 +399,7 @@ own artifacts is never handed over, the run takes it)
 > **Domain expert:** "**Rung** 2. It stops at `Consider` until the review walks or runs the
 > failure. Climb the ladder, then move it."
 > **Dev:** "The review found two `Act on`. Do I fix them in my session?"
-> **Domain expert:** "No. The **Fixer** already did, one commit each, and the run landed once the
+> **Domain expert:** "No. The **Fixers** already did, one commit each, and the run landed once the
 > **Review** was **Green**. Read the `## Fix run` section and push. To read before anything is
 > fixed, pass `--no-fix`."
 
