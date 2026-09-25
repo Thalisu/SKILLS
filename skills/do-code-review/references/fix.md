@@ -541,8 +541,9 @@ per Finding by number, the lines Already fixed on the branch held among them, on
 `- wave <k>: <n>[, <n>]...` line per Wave that forked a Fixer, in the
 order the Waves ran, naming the Findings forked in it, with one
 `- cut: floor wave <k> into <n>[, <n>]... | <n>[, <n>]...: <the reason>` line right above the Wave
-lines of each floor Wave you cut, then the Diff tests, the Gate fixer, the Gate and the landing
-line. A `nothing remained` section ran no Wave and carries no Wave line. On `do`'s call a Finding
+lines of each floor Wave you cut, then the duplication scan as its run after the last Wave read,
+the Diff tests, the Gate fixer, the Gate and the landing line. A `nothing remained` section ran no
+Wave and carries no Wave line. On `do`'s call a Finding
 Already fixed on the branch did not hold reads `- <n>: not fixed: left to the developer, <the
 reason that step found>`, in the reason's words the format lists, since no Fixer ever reached it.
 
