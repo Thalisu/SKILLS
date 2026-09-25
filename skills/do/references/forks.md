@@ -19,8 +19,10 @@ build loop of [build-loop.md](build-loop.md) is ruled on inside the run, per
 [ADR 0036](../../../docs/adr/0036-a-design-fork-is-settled-in-the-run-by-a-read-only-choice-taker-and-only-an-extreme-fork-stops-it.md):
 the run says in one line that it met a Design fork at that step and names both sides, then calls
 the Agent tool with `subagent_type: choice-taker`, the agent `do` ships in
-[choice-taker.md](../agents/choice-taker.md), with the brief its definition names: the Ticket, the
-step, the two sides, the Spec, the Digest and the repository root. In a `ticket` run the fork is
+[choice-taker.md](../agents/choice-taker.md), with the one brief its definition names for every
+caller: `Caller: do` at the step, the fork as the question, the two sides as the options,
+`Recommendation: none`, the repository root, and the Ticket, the Spec and the Digest as the
+context. In a `ticket` run the fork is
 met at the Plan step, where the Planner writes both sides into the Plan it returns, and the
 session, never the Planner, forks the `choice-taker` on them and writes the Ruling to the Spec, per
 [plan.md](plan.md): the Planner holds no tool that writes one. It is met in the build loop the same
