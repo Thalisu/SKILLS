@@ -132,14 +132,18 @@ test file: it is paid by the next author who touches the file.
 Each author the install writes runs on a model and an effort the project picks, written into the
 agent's frontmatter as `model:` and `effort:`. The install asks once per author, with four
 options: a Recommended pair derived from the counts discovery measured (`opus · medium` for the
-unit author, `opus · high` for the E2E author, one effort step up where the shared homes carry
-debt or the flows depend on stateful services), `fable · medium`, often competitive with Opus and
-Sonnet on cost per task while scoring higher, and held at `medium` rather than `low` because at
+unit author, one effort step up to `opus · high` where the shared homes carry debt, and
+`opus · high` for the E2E author on every project), `fable · medium`, often competitive with Opus
+and Sonnet on cost per task while scoring higher, and held at `medium` rather than `low` because at
 `low` Fable 5.1 calls search tools less often and the author's core job, the reuse audit, is a
 search ([ADR 0058](adr/0058-the-author-tier-offers-fable-at-medium-and-never-at-low.md)),
 `sonnet · high` as the cheaper pair, weaker than the Fable option at the reuse audit and the
 handback diagnosis at a comparable cost per task, and `inherit`, which runs the author on the
-session's model and effort. A free-text answer is taken
+session's model and effort. Where the flows depend on stateful services, the E2E option says so
+and leaves `opus · xhigh` to a free-text answer: that step-up is unmeasured, and `xhigh` is
+reserved for a measured quality gain
+([ADR 0059](adr/0059-the-e2e-author-is-recommended-at-high-effort-and-xhigh-is-never-recommended-unmeasured.md)).
+A free-text answer is taken
 only when both values are ones Claude Code accepts. The Recommended model is the stronger one
 because the author also plans the test and diagnoses its own misses, and a wrong test is paid twice
 under red-first; the effort is where the dispatch volume is paid down
