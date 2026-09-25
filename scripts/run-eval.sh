@@ -255,7 +255,9 @@ for c in "${cases[@]}"; do
     else
       snapshot "$work/fixture" > "$work/before"
       head_before="$(git -C "$work/fixture" rev-parse -q --verify HEAD 2>/dev/null)"
-      args=(--output-format stream-json --verbose --max-turns "$max_turns" --no-session-persistence)
+      # The session persists, into the throwaway config, because a forked skill's subagent writes its
+      # calls only to its own transcript file there and never to the stream.
+      args=(--output-format stream-json --verbose --max-turns "$max_turns")
       [ -z "$allowed" ] || args+=(--allowedTools "$allowed")
       [ -z "$model" ] || args+=(--model "$model")
       rc=0
@@ -267,6 +269,13 @@ for c in "${cases[@]}"; do
         red=1
       else
         events "$work/transcript.jsonl" | jq -r 'select(.type == "result") | .result // ""' > "$work/last_message"
+        session="$(events "$work/transcript.jsonl" | jq -r 'select(.type == "system" and .subtype == "init") | .session_id // empty' | head -1)"
+        if [ -n "$session" ]; then
+          for f in "$config/projects"/*/"$session"/subagents/agent-*.jsonl; do
+            [ -f "$f" ] || continue
+            mkdir -p "$work/subagents" && cp "$f" "$work/subagents/"
+          done
+        fi
         snapshot "$work/fixture" > "$work/after"
         {
           echo "Files created, changed or deleted (each file's checksum and path, < before the run, > after it):"

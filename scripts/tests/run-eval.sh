@@ -54,6 +54,16 @@ reader=no; [ -e "${CLAUDE_CONFIG_DIR:-/nonexistent}/agents/do-reader.md" ] && re
     "${CLAUDECODE:-unset}" "$journey" "$reader" "$(readlink "${CLAUDE_CONFIG_DIR:-/nonexistent}/.credentials.json")" "$(pwd -P)"
 } >> "$STUB_DIR/calls"
 [ -z "${STUB_TOUCH:-}" ] || : > "$STUB_TOUCH"
+# STUB_SUBAGENT: a subagent transcript the session persists, as the real CLI does, under its config
+# dir, keyed by its cwd and the session_id of the stream's init line; never with persistence off.
+if [ -n "${STUB_SUBAGENT:-}" ] && ! printf '%s\n' "$@" | grep -qx -- --no-session-persistence; then
+  sid="$(head -1 "$STUB_TRANSCRIPT" | jq -r .session_id)"
+  id="$(head -1 "$STUB_SUBAGENT" | jq -r .agentId)"
+  dir="$CLAUDE_CONFIG_DIR/projects/$(pwd -P | tr '/.' '--')/$sid/subagents"
+  mkdir -p "$dir"
+  cp "$STUB_SUBAGENT" "$dir/agent-$id.jsonl"
+  printf '{"agentType":"general-purpose"}\n' >"$dir/agent-$id.meta.json"
+fi
 [ -z "${STUB_TRANSCRIPT:-}" ] || cat "$STUB_TRANSCRIPT"
 exit "${STUB_RC:-0}"
 SH
@@ -295,6 +305,27 @@ max: 1"
 # shellcheck disable=SC2034 # read by lib.sh's grade_passes
 grader="$tmp/graded/forked/graders/integrated.md"
 grade_passes "a scope: all grader counts a forked orchestrator's call held only in a subagent transcript" "$w"
+
+# End to end: the forked orchestrator's call reaches the stream nowhere, only the subagent transcript
+# the session's CLI wrote under its config dir, and the runner carries it to the grader.
+cat >"$tmp/forked-transcript.jsonl" <<'JSONL'
+{"type":"system","subtype":"init","session_id":"5e55a0b1-0000-4000-8000-00000000f0f0"}
+{"type":"assistant","parent_tool_use_id":null,"message":{"content":[{"type":"tool_use","id":"toolu_s1","name":"Skill","input":{"skill":"do-code-review"}}]}}
+{"type":"result","subtype":"success","result":"Fixed."}
+JSONL
+mkdir -p "$evals/forked"
+printf 'runs: 1\n' >"$evals/forked/case.yaml" && printf '/do-code-review fix\n' >"$evals/forked/prompt.md"
+grader forked integrated "type: tool_used
+tool: Bash
+scope: all
+input_match: 'fix-integrate\\.sh'
+min: 1
+max: 1"
+reset
+STUB_TRANSCRIPT="$tmp/forked-transcript.jsonl" STUB_SUBAGENT="$w/subagents/agent-a1b2c3.jsonl" run "$evals" forked
+check "a whole run is green on a scope: all grader whose only call the forked subagent wrote to its own transcript file" \
+  0 "$rc" "ok    forked run 1/1 integrated" "forked: 1/1 green"
+rm -rf "$(sed -n 's/^ *kept: //p' <<<"$out")"
 
 if [ "$fails" = 0 ]; then echo "PASS"; else
   echo "$fails failing"
