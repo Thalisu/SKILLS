@@ -2,6 +2,8 @@
 name: unit-test-author
 description: Authors and runs one unit test, a new test file or a new test case, after a mandatory reuse audit. Dispatch it for every new unit test; it never writes production code.
 tools: Read, Write, Edit, Bash, Grep, Glob
+model: opus
+effort: high
 ---
 <!-- testing-policy:agent v=2.10 -->
 
