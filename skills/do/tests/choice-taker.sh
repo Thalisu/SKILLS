@@ -40,6 +40,20 @@ norm_para="$(paragraph_with "$agent" "Otherwise take the option a norm the repos
 expect "the choice-taker's norm list names a branch already closed in the session as a norm" \
   grep -qF -- "a branch already closed in the session" <<<"$norm_para"
 
+# Step 2 opens the principles at the path the common brief hands it, never at a shell expression it
+# holds no tool to evaluate: its tool list is Read, Glob, Grep, none of which runs a shell command.
+out="$norm_para"
+absent "step 2's norm paragraph no longer opens the principles at the unevaluable shell expression" \
+  '$(readlink -f ~/.claude/skills/do)/../../.agents/principles/'
+
+# The common brief every caller sends: it hands the choice-taker a Principles field naming the
+# absolute path of the .agents/principles/ folder, the path step 2 opens instead of the literal
+# shell expression above, which the agent, holding no shell, can never evaluate.
+brief_block="$(paragraph_with "$agent" "Caller: <the calling skill> at <its step>")"
+expect "the common brief's fenced block is found" test -n "$brief_block"
+expect "the common brief carries a Principles: field naming the principles folder" \
+  grep -qF -- "Principles:" <<<"$brief_block"
+
 # link-skills.sh installs every definition under its name, so a second choice-taker shadows the
 # first on disk, and two copies are two rules free to rule one question two ways (ADR 0046).
 root="$(cd "$here/../../.." && pwd -P)"

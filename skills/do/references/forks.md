@@ -38,10 +38,10 @@ with the tracker file's own-login command, and which of the comments' authors th
 collaborator check marks as a repository collaborator: the choice-taker, never the session, weighs
 a `## Implementation Decisions` Ruling line against that check, per
 [choice-taker.md](../agents/choice-taker.md), so a line from a stranger's account never reads as a
-decision the Spec already carries. The brief hands no path to the
-principles: the fork opens them from the skills checkout, at
-`$(readlink -f ~/.claude/skills/do)/../../.agents/principles/`, since a project `do` runs on has no
-`.agents/principles/` at its root. The fork holds reading and search alone, per
+decision the Spec already carries. The brief also carries a `Principles:` line, the absolute path
+of the skills checkout's `.agents/principles/` folder, filled by `do` the way sketch's
+`<agents-dir>` is, since a project `do` runs on has no `.agents/principles/` at its root and the
+fork holds no shell to resolve one itself. The fork holds reading and search alone, per
 [ADR 0032](../../../docs/adr/0032-a-fork-that-reads-a-strangers-text-holds-no-write-tool.md),
 and the session writes what it returns. The `choice-taker` is forked by name and never replaced by
 another agent: a general-purpose fork would read the same Spec holding the write tools that ADR

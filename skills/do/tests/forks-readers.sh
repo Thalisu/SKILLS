@@ -38,6 +38,16 @@ expect "forks.md's own body sends the held Ruling to the close" \
 expect "forks.md's own body sends the held Ruling to the reply" \
   grep -qF "the reply's \`Rulings\` section and its Evidence, per [reply.md](reply.md)" <<<"$held_para"
 
+# The paragraph describing the brief the fork hands the choice-taker no longer claims the brief
+# hands over no path to the principles: the choice-taker holds no shell to evaluate a literal
+# expression, so the brief itself has to carry the path, filled by the caller.
+principles_para="$(paragraph_with "$forks" "decision the Spec already carries")"
+expect "forks.md carries the paragraph describing the brief the fork hands the choice-taker" \
+  test -n "$principles_para"
+out="$principles_para"
+absent "forks.md no longer claims the brief hands no path to the principles" \
+  "The brief hands no path to the principles"
+
 # ticket.md's Resume section actually links forks.md: the fork a resume meets again on an amended
 # Spec or a reversed Ruling.
 resume_section="$(flat_section "$ticket" "## Resume")"

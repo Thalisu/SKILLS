@@ -21,6 +21,7 @@ Question: <the question, in one line>
 Options: <two or more options, one per line>
 Recommendation: <the option the caller would take, or none>
 Repository root: <the repository's absolute path>
+Principles: <the absolute path of the `.agents/principles/` folder>
 Context: <where the context lives>
 ```
 
@@ -43,8 +44,8 @@ Rule in this order, and stop at the first step that decides.
    a branch already closed in the session by its one-line row, or a decision the Spec carries.
    The principles live in the skills checkout the caller runs from,
    never at the repository root the brief hands you, since a project a chain skill runs on has no
-   `.agents/principles/` of its own: open them at
-   `$(readlink -f ~/.claude/skills/do)/../../.agents/principles/`, whose `README.md` indexes them.
+   `.agents/principles/` of its own: open them at the brief's `Principles:` path, whose
+   `README.md` indexes them.
    A Ticket criterion is never a norm, since it is one of the two sides. The caller's
    recommendation is never a norm either: it is what the caller would have taken, so a norm that
    backs another option outranks it, and it never appears on the `Norm:` line.
