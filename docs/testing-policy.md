@@ -130,11 +130,16 @@ test file: it is paid by the next author who touches the file.
 ## The author tier
 
 Each author the install writes runs on a model and an effort the project picks, written into the
-agent's frontmatter as `model:` and `effort:`. The install asks once per author, with three
+agent's frontmatter as `model:` and `effort:`. The install asks once per author, with four
 options: a Recommended pair derived from the counts discovery measured (`opus · medium` for the
 unit author, `opus · high` for the E2E author, one effort step up where the shared homes carry
-debt or the flows depend on stateful services), `sonnet · high` as the cheaper pair, and
-`inherit`, which runs the author on the session's model and effort. A free-text answer is taken
+debt or the flows depend on stateful services), `fable · medium`, often competitive with Opus and
+Sonnet on cost per task while scoring higher, and held at `medium` rather than `low` because at
+`low` Fable 5.1 calls search tools less often and the author's core job, the reuse audit, is a
+search ([ADR 0058](adr/0058-the-author-tier-offers-fable-at-medium-and-never-at-low.md)),
+`sonnet · high` as the cheaper pair, weaker than the Fable option at the reuse audit and the
+handback diagnosis at a comparable cost per task, and `inherit`, which runs the author on the
+session's model and effort. A free-text answer is taken
 only when both values are ones Claude Code accepts. The Recommended model is the stronger one
 because the author also plans the test and diagnoses its own misses, and a wrong test is paid twice
 under red-first; the effort is where the dispatch volume is paid down
