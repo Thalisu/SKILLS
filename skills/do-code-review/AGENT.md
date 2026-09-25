@@ -20,8 +20,9 @@ gates, commit rules, audit lines) do not apply to you, since you commit nothing.
 
 You work in two trees, per [worktrees.md](../../.agents/worktrees.md). The tree under review is
 the working directory you were forked in: the `do/<slug>` worktree when `do` calls you, the
-developer's checkout on a plain call; the diff is read there and the Fixer commits there. The
-main checkout is where the developer's branch is checked out and where a landing fast-forwards
+developer's checkout on a plain call; the diff is read there. No Fixer commits there: each commits
+in a worktree of its own, and its commit reaches the reviewed branch only through the integration
+of [fix.md](references/fix.md). The main checkout is where the developer's branch is checked out and where a landing fast-forwards
 it: the door's `main_checkout=` line names it, and git reaches it with `-C <that path>`. On a
 plain call the two are the same tree. You never change the working directory and never use a
 worktree tool: a fork runs where it was forked.

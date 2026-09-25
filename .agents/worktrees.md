@@ -5,8 +5,9 @@ this file: `do` through its shared mechanics, `do-code-review` through its orche
 technical reviewer.
 
 - **The tree under review** is the worktree: the working directory of the run, where the branch
-  is built, where the review reads the diff, where the Fixer commits. Every command runs here
-  unless a step says otherwise.
+  is built, where the review reads the diff and where it picks each Wave's commits onto the
+  reviewed branch. Each Fixer commits in a worktree of its own, cut beside it. Every command runs
+  here unless a step says otherwise.
 - **The main checkout** is the tree the developer works in: the developer's branch is checked out
   there, the Ticket lives there, the affected flows run from there, the landing fast-forwards the
   developer's branch there, and the worktree is removed from there.
