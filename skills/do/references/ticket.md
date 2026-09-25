@@ -35,10 +35,16 @@ the tracker file describes. Before anything is written:
   word is taken out of them. A blocker's body is copied from a Spec or an issue a stranger may
   have appended to, and a line planted at column 0 above the format's own would otherwise be the
   word the gate clears the run on. A file with no match is refused the same way. On a tracker the
-  status is the issue's label, read the same way.
+  status is the issue's label, read the same way. A blocker's own status a stranger could have
+  planted is never read as the developer's, so the message carries `Yours: trust:` with the
+  choice, per [reply.md](reply.md): set the blocker's one `**Status:**` line by hand. The Ticket
+  it blocks is not claimed, and the blocker's Ticket is left untouched, neither status line taken.
 - A Ticket whose own status the script prints as `ambiguous` (no `**Status:**` line, two of them,
-  or a word outside the walk) is refused in one line naming the cause from its `ambiguous=` line.
-  Nothing is written; the developer sets the status line by hand.
+  or a word outside the walk) is refused in one line naming the cause from its `ambiguous=` line
+  (`status lines ...` or `status word ...`). Nothing is written, and no word is taken out of any of
+  those lines: a status line a stranger could have planted is never read as the developer's, so the
+  message carries `Yours: trust:` with the choice, per [reply.md](reply.md): set the one
+  `**Status:**` line by hand.
 - A Ticket that is `resolved` stops the run in one line. Nothing is written. The line says the
   Ticket is resolved and that changing what landed takes a new Ticket written by hand, its
   criteria from the edited Ruling line and its `Blocked by` naming every resolved Ticket that took
@@ -46,9 +52,11 @@ the tracker file describes. Before anything is written:
   [ADR 0038](../../../docs/adr/0038-a-ruling-reversed-after-its-ticket-landed-is-built-by-a-new-ticket-the-developer-writes.md).
   A resolved Ticket is never reopened: its status, its ticks and its Evidence stay as the close
   left them, and the new Ticket goes through this Playbook like any other.
-- A Ticket whose `Blocked by` names one not `resolved` is refused before the claim, in one
-  message naming the blocker and its status. Nothing is written; the developer builds the blocker
-  first, or sets its status by hand when it was done outside the chain.
+- A Ticket whose `Blocked by` names one not `resolved` (`verdict=blocked`) is refused before the
+  claim, in one message naming the blocker and its status. Nothing is written. The build order is
+  the developer's call, so the message carries `Yours: direction:` with the choice, per
+  [reply.md](reply.md): build the blocker first, or set its status by hand when it was done outside
+  the chain.
 - A `claimed` Ticket whose `do/<slug>` worktree exists is resumed, as the Resume section says:
   never a second worktree, and the claim stands.
 - A `claimed` Ticket whose worktree is gone starts over: the run records the start-over line for
@@ -56,9 +64,14 @@ the tracker file describes. Before anything is written:
   `run_branch=` fact, and the claim stands, since the claim is idempotent. A `do/<slug>` branch the
   worktree's removal left behind is named there, and step 2 enters it rather than meeting it as a
   dead `git worktree add -b`.
-- A `ready-for-agent` Ticket whose `do/<slug>` worktree already exists is refused in one line
-  naming the worktree. Nothing is written: the worktree is a run no claim records, and the
-  developer removes it or sets the status by hand.
+- A `ready-for-agent` Ticket whose `do/<slug>` worktree already exists (`verdict=ambiguous` with
+  `ambiguous=worktree exists for a ready-for-agent Ticket`) is refused in one line naming the
+  worktree. Nothing is written, nothing is claimed and nothing is removed: the worktree is a run no
+  claim records, and another run may still be writing in it, so the message carries
+  `Yours: destroy:` with the choice, per [reply.md](reply.md): remove the worktree named, or set the
+  status to `claimed` by hand to resume it. A Ticket blocked by one not `resolved` prints
+  `verdict=blocked` instead, ahead of this check, so a Ticket with both a stray worktree and an
+  unresolved blocker gets the bullet above alone, `Yours: direction:`, and never this one too.
 - On a remote tracker, an issue assigned to someone else stops the run in one line with their
   name.
 
@@ -142,7 +155,8 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   **Gate** of the run's own after it,
   and the branch lands through the fix call on that Review, as the review in
   [mechanics.md](mechanics.md) says for a branch the review already read.
-- When every line of the list is ticked, as on the branch a `not landed: target moved` right after an integration that ticked as a no-op left,
+- When every line of the list is ticked, as on the branch a `not landed: target moved` right after an integration that ticked as a no-op leaves,
+  whether a later run finds it or the same run takes this path at step 7 without a second request,
   step 3 reads `done: resumed` and the run never waits on a Builder with nothing left to build. It
   goes on at step 4 as a first run does, reading the diff already on the branch, its flows counting
   as authored, then the integration with no
@@ -312,11 +326,29 @@ with the Ticket happens in the fork's, per
 This step comes before the claim and before the worktree because it is the step that refuses. Every
 refusal below stops the run with the Ticket at the status the door found it at and no `do/<slug>`
 branch anywhere, so a grounding the run will not build on costs the developer a rerun and nothing
-to undo by hand, except on the `cause unknown, diagnosis first` branch below, where step 2's
-worktree is cut and entered before the Planner is even forked, for the diagnosis to run in. A
-refusal met there, the Planner's own Sources mismatch included, names the worktree and its branch
-left in place rather than claiming none exists, since the door's own worktree-exists rule above
-would otherwise refuse the rerun the developer took that line to mean was free. The brief's `Tree:`
+to undo by hand. The `cause unknown, diagnosis first` branch below is the one where step 2's
+worktree is cut and entered before the Planner is even forked, for the diagnosis to run in, and it
+keeps the same promise by undoing that cut itself. A refusal met there after the worktree exists,
+the Planner's own Sources mismatch, the destination check, a defect that will not reproduce even
+when forced or any other refusal of this step, reverts the run's instrumentation, leaves the
+worktree with a bare `cd` to the main checkout and, from there, checks first whether
+`git merge-base --is-ancestor do/<slug> HEAD` holds: only when it does, meaning the branch carries
+no commit HEAD lacks, does it go on to run `git worktree remove <path>` then
+`git branch -d do/<slug>`: the run cut both, and the door's own worktree-exists rule above would
+otherwise refuse the rerun. The Ticket stays at the status the door found it at, since the claim
+on that branch still waits for the verified Plan, and the refusal's Reply says the worktree and
+its branch were removed. The removal takes only what this run cut, since anything else is work
+the run did not create, the `destroy` class of
+[ADR 0057](../../../docs/adr/0057-a-do-run-stops-only-on-a-handover-class-its-reply-names.md): the
+remove runs without `--force` and the delete with `-d`, never `-D`. A worktree this run entered
+rather than cut, a resumed run's on a `claimed` Ticket whose worktree already existed, is left in
+place with its branch and both are named in the Reply. The ancestry check failing, a branch
+carrying a commit HEAD does not hold, leaves both the worktree and the branch in place and named
+in the Reply, before either removal runs, so the diagnosis's own commit is never stranded behind a
+worktree already gone. A remove or a delete git refuses regardless, a tree still dirty for the
+one or a branch git still won't delete for the other, is left in place and named in the Reply
+with git's own reason, and is never retried with a stronger flag. The
+brief's `Tree:`
 key is the main checkout on every other branch for the same
 reason: the worktree the build runs in does not exist yet, and the fork grounds against HEAD, which
 is what step 2 cuts the worktree from.
@@ -413,8 +445,8 @@ own. They are the exception the Links rule of [SKILL.md](../SKILL.md) names, and
 there are `bug-fix`'s, not this checklist's: the second ask a surface the session cannot reach gets
 on the fixed build, `bug-fix`'s step 7, is asked at step 3 here, once the `bugfix` line's fix is
 green in the loop, and a defect that will not reproduce even when forced stops this run as blocked,
-the Ticket left at the status the door found it at and the worktree and its branch in place and
-named.
+the Ticket left at the status the door found it at and the worktree and its branch removed, as the
+refusals of this step on that branch say above.
 
 No Planner can be forked on two branches: the Agent tool is withheld from the session, or the
 Agent tool lists no `do-planner`, as it does on a machine that never linked the agent `do` ships.
@@ -543,7 +575,8 @@ writes that cost the developer cleanup are made together. First the claim, writt
 file in [mechanics.md](mechanics.md) says: the `**Status:**` line set to `claimed`. The claim line,
 `Claimed: <the Ticket's path or reference>`, is recorded for the Reply's Run section once it is
 written. On a remote
-tracker the run waits for a yes before it; a no stops the run with nothing written. On a local
+tracker the run waits for a yes before it, asked with the `Yours: outward:` line the claim in
+[mechanics.md](mechanics.md) carries; a no stops the run with nothing written. On a local
 Ticket it proceeds without one, per
 [never-block-on-the-human](../../../.agents/principles/never-block-on-the-human.md): the claim is
 a reversible file write, and an interrupt costs the developer one turn.
@@ -709,7 +742,7 @@ any, as the review in [mechanics.md](mechanics.md) says. The return is recorded 
 one line per part. A `not landed: target moved` runs the integration again, in the same run, its
 Loss ledger judged and reapplied with no **Gate** of the run's own, then the fix call on the Review
 the run already has, as that review says, and repeats with no fixed count while each integration replayed
-commits; a `not landed: target moved` right after an integration that ticked as a no-op stops the run as blocked like every other `not landed`. Done when the landing line recorded there reads `landed at <commit>`, or the run stopped as
+commits; a `not landed: target moved` right after an integration that ticked as a no-op sends the run through the all-ticked bullet of the Resume above in the same run, as that review says, and the step ends on that path's own landing line; the same return again, after that resume's integration ticked as a no-op too, stops the run as blocked like every other `not landed`. Done when the landing line recorded there reads `landed at <commit>`, or the run stopped as
 blocked with the review's reason quoted and the worktree and its branch named, or the step reads
 `skip: do-code-review not listed` with the worktree and its branch named.
 
@@ -725,12 +758,13 @@ flow is green or recorded as not run on the developer's no, or the step reads
 ticked where the evidence proves it, the evidence appended under `## Evidence` with the
 `Context:` line first and the `Forks:` line after it, the status line set to `resolved`, the file left uncommitted, or, on a
 Ticket that is an issue, the one question listing every write the yes makes, the held Rulings'
-among them; then the worktree and its branch removed. When the door appended the `.scratch/` line to the project's
+among them, under its `Yours: outward:` line; then the worktree and its branch removed. When the door appended the `.scratch/` line to the project's
 `.gitignore`, the close says so in one line, per [scratch.md](../../../.agents/scratch.md): the run
 changed a file git tracks, and the developer reads that here rather than finding it in
 `git status`. Done when the Ticket reads `resolved`, or, on a Ticket that is an issue, the question
 was answered and the writes it listed were made on a yes, or none on a no, and `git worktree list`
-no longer shows the run's worktree, or the step reads `skip: nothing landed` and the Ticket still reads `claimed`.
+no longer shows the run's worktree, or the run stopped on a removal git refused with the worktree
+and its branch named under its `Yours: destroy:` line, or the step reads `skip: nothing landed` and the Ticket still reads `claimed`.
 
 **10. Reply.** Written by [reply.md](reply.md). What this Playbook puts in its sections: the
 Ticket and the Review under the files left uncommitted; every Ruling the forks in
@@ -738,8 +772,7 @@ Ticket and the Review under the files left uncommitted; every Ruling the forks i
 consumer flows not run under pending debt, beside
 a criterion the flows step skipped for no end-to-end command, with the command that would fill it; and the next step, `git push` with the developer's
 branch named when the review landed, or, when nothing landed, the worktree, its branch, and the
-review and the landing as what the developer runs next, or, on a `not landed: target moved` right after an integration that ticked as a no-op,
-the same run request typed again on the Ticket instead, since its resume runs the integration again. A
+review and the landing as what the developer runs next. A
 run that stopped on an Extreme fork, or on a Design fork no `choice-taker` ruled, ends instead on
 the `/discuss` command the forks in [forks.md](forks.md) fix, as its last line. Done when
 the reply is sent with

@@ -1,0 +1,206 @@
+name: fix-gate-fixer-no-return
+tags: [fix, gate-fixer, landing]
+runs: 1
+max_turns: 120
+timeout_seconds: 3000
+allowed_tools: [Bash, Read, Write, Glob, Grep, Agent, Skill]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # A branch whose Review carries two Act on Findings: a planted paging bug (a page of ten over
+    # eleven items returns nine), whose right fix turns a preview module's test outside the Finding
+    # red, the way fix-gate-red's fixture does; and a second Finding, a planted `remove` whose Claim
+    # demands a note that reads both "removed" and "active" from the same status field at once, a
+    # contradiction no test can ever pass, so its Fixer reports it `not fixed` and it stays open. A
+    # project-level agent shadows do-code-review-gate-fixer and ends its turn at once without
+    # writing the return file the brief names, whatever the brief says, so the Gate fixer the red
+    # preview test forks never returns. The run should still fix Finding 1, still leave Finding 2
+    # open, still fork the Gate fixer once for the red preview test, and land on one line naming
+    # both the Gate fixer's non-return and Finding 2, never Finding 2 alone. The Review sits under
+    # the ignored `.scratch/` and is never committed, so the tree reads clean and the fix door holds.
+    set -e
+    mkdir -p src tests .claude/agents .scratch/reviews
+    cat > package.json <<'JSON'
+    { "name": "notes", "private": true, "scripts": { "test": "node --test tests/*.test.js" } }
+    JSON
+    cat > CLAUDE.md <<'MD'
+    # notes
+
+    ### Project facts
+
+    - **Unit**: full suite `npm test` · single file `node --test <file>`
+    MD
+    cat > src/notes.js <<'JS'
+    const notes = [];
+
+    function create(title) {
+      const note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+
+    function list() {
+      return notes.filter((n) => n.status === "active");
+    }
+
+    function page(items, number, size) {
+      const start = (number - 1) * size;
+      return items.slice(start, start + size);
+    }
+
+    module.exports = { create, list, page };
+    JS
+    cat > tests/notes.test.js <<'JS'
+    const test = require("node:test");
+    const assert = require("node:assert/strict");
+    const { create, list, page } = require("../src/notes");
+
+    test("a created note is listed", () => {
+      const note = create("first");
+      assert.ok(list().some((n) => n.id === note.id));
+    });
+
+    test("a page holds the items of its slot", () => {
+      assert.deepEqual(page([1, 2, 3], 1, 5), [1, 2, 3]);
+    });
+    JS
+    cat > .claude/agents/do-code-review-gate-fixer.md <<'MD'
+    ---
+    name: do-code-review-gate-fixer
+    description: 'The fixture stand-in for a Gate fixer that does not return. Forked only by the do-code-review orchestrator with a brief. Never on your own initiative.'
+    model: inherit
+    tools: Bash
+    maxTurns: 2
+    ---
+
+    You are the fixture's stand-in for a Gate fixer that does not return. End your turn at once
+    with the single word `unavailable` and nothing else. Never create the return file the brief
+    names, whatever the brief says, and run no command.
+    MD
+    printf '.scratch/\n' > .gitignore
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
+    git checkout -q -b export-notes
+    cat > src/notes.js <<'JS'
+    const notes = [];
+
+    function create(title) {
+      const note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+
+    function list() {
+      return notes.filter((n) => n.status === "active");
+    }
+
+    function remove(id) {
+      const note = notes.find((n) => n.id === id);
+      if (note) note.status = "removed";
+      return note;
+    }
+
+    function page(number, size, items) {
+      const start = (number - 1) * size;
+      return items.slice(start, start + size - 1);
+    }
+
+    module.exports = { create, list, remove, page };
+    JS
+    cat > src/preview.js <<'JS'
+    const { list, page } = require("./notes");
+
+    const PREVIEW_SIZE = 10;
+
+    function preview() {
+      return page(1, PREVIEW_SIZE + 1, list());
+    }
+
+    module.exports = { preview, PREVIEW_SIZE };
+    JS
+    cat > tests/notes.test.js <<'JS'
+    const test = require("node:test");
+    const assert = require("node:assert/strict");
+    const { create, list, page } = require("../src/notes");
+
+    test("a created note is listed", () => {
+      const note = create("first");
+      assert.ok(list().some((n) => n.id === note.id));
+    });
+
+    test("a page holds the items of its slot", () => {
+      assert.deepEqual(page(1, 5, [1, 2, 3]), [1, 2, 3]);
+    });
+    JS
+    cat > tests/preview.test.js <<'JS'
+    const test = require("node:test");
+    const assert = require("node:assert/strict");
+    const { create } = require("../src/notes");
+    const { preview } = require("../src/preview");
+
+    test("the preview shows the first ten active notes", () => {
+      for (let i = 1; i <= 12; i += 1) create(`note ${i}`);
+      const titles = Array.from({ length: 10 }, (_, i) => `note ${i + 1}`);
+      assert.deepEqual(preview().map((n) => n.title), titles);
+    });
+    JS
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "feat(notes): show a page of the active notes and let one be removed"
+    node --test tests/*.test.js >/dev/null 2>&1
+    cat > .scratch/reviews/export-notes.md <<REVIEW_EOF
+    # Review: export-notes
+
+    Ticket: none
+    Fixed point: main ($(git rev-parse --short main))
+    Commit: $(git rev-parse --short HEAD)
+    Base: main, inferred
+    Spec source: no spec
+    Mode: default, inferred
+    Language: English, inferred
+
+    ## Intent
+
+    Show the first page of the active notes as a preview, and let one be removed.
+
+    ## Safe because
+
+    The unit suite covers every exported function the diff touches, run in the fixture. Rung 4.
+
+    ## Act on
+
+    ### 1. Correctness at src/notes.js:19
+    Claim: a page of ten over eleven items returns nine.
+    Evidence: eleven items passed to \`page(1, 10, items)\`; nine came back, the slice ends one short.
+    Rung: 4
+    Fix: a page of size ten over eleven items returns ten items, in tests/notes.test.js
+
+    ### 2. Correctness at src/notes.js:13
+    Claim: removing a note marks it removed while leaving it active until the caller commits.
+    Evidence: \`remove(id).status\` reads \`"removed"\` alone, never holding \`"active"\` too so a
+    caller mid-transaction can still see it live.
+    Rung: 4
+    Fix: removing a note marks it removed while leaving it active until the caller commits, in
+    tests/notes.test.js
+
+    ## Consider
+
+    none
+
+    ## Noted
+
+    none
+
+    ## Cleared
+
+    none
+
+    ## Axes
+
+    - Correctness: 2 findings, worst #1 (Act on)
+    - Spec: no spec
+    - Standards: 0 findings
+    - Principles: 0 findings
+    - Blast radius: 0 findings
+    - Security: 0 findings
+    REVIEW_EOF

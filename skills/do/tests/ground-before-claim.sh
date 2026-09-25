@@ -209,39 +209,13 @@ carries_any "the verdict=land bullet's Plan-skip rule fires whenever \`review=\`
   "on \`verdict=integration\` too" "or \`verdict=integration\`" \
   "\`land\` or \`integration\`" "land or integration"
 
-echo "# skills/do/references/ticket.md: the diagnosis-first branch already holds a worktree when a refusal names one"
-
-# `cause unknown, diagnosis first` (step 0's defect line) is the one branch where step 2's worktree
-# is cut and entered before the Planner is even forked, so it already exists when a refusal from
-# this step lands. The step's own "no `do/<slug>` branch anywhere" invariant is false there unless
-# it says so, and a refusal met on that branch has to name what it left behind instead of claiming
-# nothing is there to remove.
-flat="$(awk '/^## Steps/ { on = 1 } on' "$playbook" | tr '\n' ' ' | tr -s ' ')"
-carries_any "the step's no-branch-anywhere invariant carries the diagnosis-first exception" \
-  "except on the \`cause unknown, diagnosis first\` branch" \
-  "on the \`cause unknown, diagnosis first\` branch below" \
-  "the one exception is the \`cause unknown, diagnosis first\` branch"
-
-carries_any "a refusal met on that branch names the worktree and branch already cut for the diagnosis" \
-  "names the worktree and its branch left in place" \
-  "names that worktree and its branch left in place" \
-  "names the worktree and its branch it left behind"
-
-echo "# skills/do/references/mechanics.md: the claim rule states the same exception"
+echo "# skills/do/references/mechanics.md: the claim rule names the diagnosis-first branch, where the worktree exists before the claim"
 
 flat="$(flat_section "$mechanics" "## The Ticket file")"
 carries_any "the claim rule's before-the-worktree-exists invariant carries the diagnosis-first exception" \
   "except on the \`cause unknown, diagnosis first\` branch" \
   "the worktree already exists, cut for the diagnosis" \
   "on that one branch the worktree already exists"
-
-echo "# docs/do.md: the developer-facing no-branch-to-remove line carries the same exception"
-
-flat="$(tr '\n' ' ' <"$here/../../../docs/do.md" | tr -s ' ')"
-carries_any "docs/do.md's no-branch-to-remove line names the diagnosis-first exception" \
-  "except on a Ticket whose defect" \
-  "the worktree already cut for the diagnosis is named" \
-  "cause unknown, diagnosis first"
 
 echo "# skills/do/references/ticket.md: the second \`## Sources\` reading re-hashes the Ticket and the Digest"
 

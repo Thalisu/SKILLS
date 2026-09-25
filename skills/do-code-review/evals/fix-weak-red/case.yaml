@@ -1,0 +1,205 @@
+name: fix-weak-red
+tags: [fix, re-check]
+runs: 1
+max_turns: 90
+timeout_seconds: 2400
+allowed_tools: [Bash, Read, Write, Glob, Grep, Agent, Skill]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # A Security Review whose one Act on Finding (a page of ten over eleven items returns nine) names
+    # a check, and one commit made after the review that touches the Finding's header line itself (a
+    # trailing comment on src/notes.js:15, the buggy `page()` return left exactly as broken) and adds
+    # a second function, pageSafe, with a test of pageSafe alone. touched=<sha> is correct this time,
+    # the header line really did change, but the check named by Fix: (the whole of
+    # tests/notes.test.js) fails at the Review's Commit: only because pageSafe does not exist there:
+    # node throws `TypeError: pageSafe is not a function`, never an assertion about page()'s slice.
+    # That is no red the already-fixed-on-the-branch step may trust: the fix call still forks a
+    # Fixer for the Finding and never records that commit as the fix, since page() itself stays
+    # broken at HEAD and no test in the file exercises it over eleven items. The Review sits under
+    # the ignored `.scratch/`.
+    set -e
+    mkdir -p src tests .scratch/reviews
+    cat > package.json <<'JSON'
+    { "name": "notes", "private": true, "scripts": { "test": "node --test tests/*.test.js" } }
+    JSON
+    cat > CLAUDE.md <<'MD'
+    # notes
+
+    ## Testing Policy
+
+    ### Project facts
+
+    - **Unit**: full suite `npm test` · single file `node --test <file>`
+    MD
+    cat > src/notes.js <<'JS'
+    const notes = [];
+
+    function create(title) {
+      const note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+
+    function list() {
+      return notes.filter((n) => n.status === "active");
+    }
+
+    function page(items, number, size) {
+      const start = (number - 1) * size;
+      return items.slice(start, start + size);
+    }
+
+    module.exports = { create, list, page };
+    JS
+    cat > tests/notes.test.js <<'JS'
+    const test = require("node:test");
+    const assert = require("node:assert/strict");
+    const { create, list, page } = require("../src/notes");
+
+    test("a created note is listed", () => {
+      const note = create("first");
+      assert.ok(list().some((n) => n.id === note.id));
+    });
+
+    test("a page holds the items of its slot", () => {
+      assert.deepEqual(page([1, 2, 3], 1, 5), [1, 2, 3]);
+    });
+    JS
+    printf '.scratch/\n' > .gitignore
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
+    git checkout -q -b export-notes
+    cat > src/notes.js <<'JS'
+    const notes = [];
+
+    function create(title) {
+      const note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+
+    function list() {
+      return notes.filter((n) => n.status === "active");
+    }
+
+    function page(number, size, items) {
+      const start = (number - 1) * size;
+      return items.slice(start, start + size - 1);
+    }
+
+    module.exports = { create, list, page };
+    JS
+    cat > tests/notes.test.js <<'JS'
+    const test = require("node:test");
+    const assert = require("node:assert/strict");
+    const { create, list, page } = require("../src/notes");
+
+    test("a created note is listed", () => {
+      const note = create("first");
+      assert.ok(list().some((n) => n.id === note.id));
+    });
+
+    test("a page holds the items of its slot", () => {
+      assert.deepEqual(page(1, 5, [1, 2, 3]), [1, 2, 3]);
+    });
+    JS
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "feat(notes): page takes its number first"
+    cat > .scratch/reviews/export-notes.md <<REVIEW_EOF
+    # Review: export-notes
+
+    Ticket: none
+    Fixed point: main ($(git rev-parse --short main))
+    Commit: $(git rev-parse --short HEAD)
+    Base: main, inferred
+    Spec source: no spec
+    Mode: default, inferred
+    Language: English, inferred
+
+    ## Intent
+
+    Take a page's number before its items, so a caller walks the notes one page at a time.
+
+    ## Safe because
+
+    The unit suite covers every exported function the diff touches, run in the fixture. Rung 4.
+
+    ## Act on
+
+    ### 1. Security at src/notes.js:15
+    Claim: a page of ten over eleven items returns nine, silently dropping the last note off an
+    export a caller trusts to hold every one of them.
+    Evidence: eleven items passed to \`page(1, 10, items)\`; nine came back, the slice ends one short.
+    Rung: 4
+    Risk: data loss
+    Fix: a page of size ten over eleven items returns ten items, in tests/notes.test.js
+
+    ## Consider
+
+    none
+
+    ## Noted
+
+    none
+
+    ## Cleared
+
+    none
+
+    ## Axes
+
+    - Correctness: 0 findings
+    - Spec: no spec
+    - Standards: 0 findings
+    - Principles: 0 findings
+    - Blast radius: 0 findings
+    - Security: 1 finding, worst #1 (Act on)
+    REVIEW_EOF
+    cat > src/notes.js <<'JS'
+    const notes = [];
+
+    function create(title) {
+      const note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+
+    function list() {
+      return notes.filter((note) => note.status === "active");
+    }
+
+    function page(number, size, items) {
+      const start = (number - 1) * size;
+      return items.slice(start, start + size - 1); // paginate
+    }
+
+    function pageSafe(number, size, items) {
+      const start = (number - 1) * size;
+      return items.slice(start, start + size);
+    }
+
+    module.exports = { create, list, page, pageSafe };
+    JS
+    cat > tests/notes.test.js <<'JS'
+    const test = require("node:test");
+    const assert = require("node:assert/strict");
+    const { create, list, page, pageSafe } = require("../src/notes");
+
+    test("a created note is listed", () => {
+      const note = create("first");
+      assert.ok(list().some((n) => n.id === note.id));
+    });
+
+    test("a page holds the items of its slot", () => {
+      assert.deepEqual(page(1, 5, [1, 2, 3]), [1, 2, 3]);
+    });
+
+    test("pageSafe of size ten over eleven items holds ten", () => {
+      const items = Array.from({ length: 11 }, (_, i) => i + 1);
+      assert.equal(pageSafe(1, 10, items).length, 10);
+    });
+    JS
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "feat(notes): pageSafe holds a full page, and list names each note in full"

@@ -3,20 +3,27 @@
 # obeys is a script's output rather than the orchestrator's opinion and is the same on every run.
 # The Review it reads is in the format of .agents/formats/review-format.md. ADR 0053.
 #
-#   fix-waves.sh <review file>
+#   fix-waves.sh <review file> [--settled <n>[,<n>]...]
 #
-# Groups the Findings of the Review's `## Act on` section into Waves: two Findings share a Wave
-# only when both of their file sets are non-empty and disjoint, and a Finding whose files cannot be
-# read is a Wave of its own. A Finding's files are the file of its header location when that
+# Leaves out a Finding whose latest line across every `## Fix run` section reads `fixed`, and every
+# Finding --settled names (the ones the fix call settled from a commit since the Review), before
+# any grouping, so a dropped Finding's files keep no other Finding off a Wave.
+#
+# Groups the remaining Findings of the Review's `## Act on` section into Waves: two Findings share
+# a Wave only when both of their file sets are non-empty and disjoint, and a Finding whose files
+# cannot be read is a Wave of its own. A Finding's files are the file of its header location when that
 # location is a file and a line or a line range, whatever prose trails it, and the file its `Fix:`
 # line names after the target separator when that is a path. Prints one line per Wave, in
 # ascending order of each Wave's lowest Finding, as
 # wave=<n> followed by findings=<the Wave's Finding numbers, ascending, comma separated>.
 #
-# Exit codes: 0 waves printed · 1 the Review has no Act on Findings · 2 usage.
+# Exit codes: 0 waves printed · 1 nothing left to fork (no Act on Finding, or every one settled or
+# named by --settled) · 2 usage, or a --settled number that is no Act on Finding or already reads
+# fixed.
 set -uo pipefail
 
-usage() { echo "usage: fix-waves.sh <review file>" >&2; exit 2; }
+usage() { echo "usage: fix-waves.sh <review file> [--settled <n>[,<n>]...]" >&2; exit 2; }
+refuse() { echo "fix-waves.sh: $1" >&2; exit 2; }
 
 # act_on_findings <review file>
 # Prints one Finding record per Finding of the `## Act on` section, in the file's order:
@@ -55,6 +62,21 @@ act_on_findings() {
   ' "$1"
 }
 
+# fix_run_latest <review file>
+# Prints <n>\t<text> per Finding that has a `- <n>: <text>` line in any `## Fix run` section, the
+# last one in file order, so a later section overrides an earlier one and none is read alone.
+fix_run_latest() {
+  awk '
+    /^## / { inrun = ($0 == "## Fix run"); next }
+    inrun && match($0, /^- [0-9]+: /) {
+      n = substr($0, 3, RLENGTH - 4)
+      if (!(n in text)) order[++count] = n
+      text[n] = substr($0, RLENGTH + 1)
+    }
+    END { for (i = 1; i <= count; i++) print order[i] "\t" text[order[i]] }
+  ' "$1"
+}
+
 # finding_files <header location> <Fix target>
 # Prints the file paths of one Finding, one per line, deduped, in header-then-target order.
 # Prints nothing when neither argument yields a path. The only reader of the two location
@@ -89,8 +111,10 @@ finding_files() {
 # group_waves  (file-set records on stdin)
 # Reads `<n>\t<path> <path> ...` records, one per Finding, and prints one Wave line per Wave:
 #   wave=<n> findings=<n>[,<n>]...
-# Greedy first-fit in the order the records arrive. Knows the disjointness rule and nothing else:
-# never opens the Review, never decides what a path is.
+# Greedy first-fit in the order the records arrive, capped at four Findings per Wave so a larger
+# Wave is cut into consecutive Waves instead of forking more than four Fixers at once. spec.md:153.
+# Knows the disjointness rule and the cap and nothing else: never opens the Review, never decides
+# what a path is.
 group_waves() {
   awk -F'\t' '
     function meets(a, b,   i, j, x, y, na, nb) {
@@ -106,6 +130,8 @@ group_waves() {
           if (closed[w] || meets(union[w], files)) continue
           members[w] = members[w] "," n
           union[w] = union[w] " " files
+          count[w]++
+          if (count[w] >= 4) closed[w] = 1
           placed = 1
           break
         }
@@ -114,6 +140,7 @@ group_waves() {
         waves++
         members[waves] = n
         union[waves] = files
+        count[waves] = (files == "") ? 0 : 1
         closed[waves] = (files == "")
       }
     }
@@ -126,20 +153,38 @@ group_waves() {
 # into a file-set record with finding_files, feeds group_waves and lets its lines through to
 # stdout. Owns the boundary: the argument check and the exit code.
 main() {
-  [ "$#" -eq 1 ] || usage
-  [ -f "$1" ] && [ -r "$1" ] || usage
+  local review="${1:-}" held=""
+  case "$#" in
+    1) ;;
+    3)
+      [ "$2" = "--settled" ] && [[ "$3" =~ ^[0-9]+(,[0-9]+)*$ ]] || usage
+      held=",$3,"
+      ;;
+    *) usage ;;
+  esac
+  [ -f "$review" ] && [ -r "$review" ] || usage
 
-  local records n loc target files sets=""
-  records="$(act_on_findings "$1")"
+  local records latest n loc target files sets=""
+  records="$(act_on_findings "$review")"
+  latest="$(fix_run_latest "$review")"
+  for n in ${held//,/ }; do
+    grep -q "^$n	" <<<"$records" || refuse "--settled $n is no Act on Finding of the Review"
+    ! grep -q "^$n	fixed " <<<"$latest" || refuse "--settled $n already reads fixed in the Review's Fix run"
+  done
   [ -n "$records" ] || return 1
 
   while IFS=$'\t' read -r n loc target; do
+    grep -q "^$n	fixed " <<<"$latest" && continue
+    [[ "$held" == *",$n,"* ]] && continue
     files="$(finding_files "$loc" "$target" | tr '\n' ' ')"
     files="${files% }"
     sets+="$n	$files"$'\n'
   done <<<"$records"
 
+  [ -n "$sets" ] || return 1
   printf '%s' "$sets" | group_waves
 }
+
+[ "${BASH_SOURCE[0]}" = "$0" ] || return 0
 
 main "$@"

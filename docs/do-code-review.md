@@ -14,11 +14,18 @@ named after the branch when nobody does.
 
 Then it fixes what it found. When the Review carries an `Act on` Finding, the orchestrator forks
 one **Fixer** per Finding, one at a time, each turning its Finding into one commit under the
-project's Testing Policy. It re-runs each Finding's own check itself, then the **Diff tests** (the
-tests the diff touched) and the whole **Gate** (the suite, the typecheck, the lint and the format
-check), hands a red one to a **Gate fixer** that gets two attempts, appends a `## Fix run` section
-to the same Review, and fast-forwards your branch onto the fixed one when the Review is **Green**.
+project's Testing Policy. It re-runs each Finding's own check itself, then the project's
+duplication scan (two test authors working at once may each have written the same factory), the
+**Diff tests** (the tests the diff touched) and the whole **Gate** (the suite, the typecheck, the
+lint and the format check), hands a dirty scan or a red check to a **Gate fixer** that gets two
+attempts, appends a `## Fix run` section to the same Review, and fast-forwards your branch onto the
+fixed one when the Review is **Green**.
 Nothing is pushed: the run ends with the `git push` command for you to type.
+
+The Fixer and the Gate fixer are agents of their own, `do-code-review-fixer` and
+`do-code-review-gate-fixer`, each with its contract and its model in its definition: `sonnet` at
+`high` effort, whatever model your session runs on. The Fixer holds its one Finding and the Gate
+fixer the red block alone, never the Review.
 
 If you commit on your branch while the review runs, the fast-forward can no longer be made, so the
 landing rebases the reviewed branch onto yours first and runs the Gate again before it lands. It
@@ -70,11 +77,14 @@ Review's text stays in the file and only the outcome comes back: the Review's lo
 ## Prerequisites
 
 - **The agent links.** The skill forks the `do-code-review` agent, which forks
-  `do-code-review-technical-reviewer` and `do-code-review-security-reviewer`, so all three
-  definitions have to be linked into `~/.claude/agents/` beside the skill link: the `AGENT.md`
-  beside the skill file under the orchestrator's name, and every markdown file in the skill's
-  `agents/` folder under its own name; see [the top-level README](../README.md). A reviewer whose
-  link is missing is forked twice and then reported `not run` on its Axis.
+  `do-code-review-technical-reviewer` and `do-code-review-security-reviewer`, then
+  `do-code-review-fixer` and `do-code-review-gate-fixer`, so all five definitions have to be linked
+  into `~/.claude/agents/` beside the skill link: the `AGENT.md` beside the skill file under the
+  orchestrator's name, and every markdown file in the skill's `agents/` folder under its own name;
+  see [the top-level README](../README.md). A reviewer whose link is missing is forked twice and
+  then reported `not run` on its Axis. A fixer whose link is missing never blocks the fix: the
+  orchestrator forks a general-purpose agent in its place, on `sonnet`, with that fixer's
+  definition at the head of the prompt and the same brief.
 - **Somewhere to write.** Hand a Ticket's location over and the Review goes beside the Ticket
   file, taking its name with `.review` before the extension: `02-export-notes.review.md` beside
   `02-export-notes.md`. Otherwise it goes to `.scratch/reviews/<branch>.md` in the repository's
@@ -127,9 +137,19 @@ left it. It touches nothing in `Consider`, `Noted` or `Cleared`, so the judgment
 A `fix` call stops in one line, before anything is written, when the Review is not there, when its
 fixed point no longer resolves, or when your working tree has uncommitted changes. The tree has to
 be clean because the Review judged a diff, and a Fixer let loose on a tree nobody reviewed would
-commit work nobody read. An `Act on` location you changed since the review comes back `stale`, left
-alone, once the run has read that location in the tree itself, and the next `fix` call on the Review
-tries it again.
+commit work nobody read.
+
+You may have fixed a Finding yourself since the review. Before it forks any Fixer, the call checks
+each Finding not yet `fixed` against your commits: when a commit since the review touched its
+location and the check its `Fix:` names passes now, the Finding is recorded
+`fixed <your commit>, verified (<the check>)` in the call's new `## Fix run` section, with no Fixer
+and nothing for you to edit in the Review. A Finding whose check still fails, that names no check,
+or whose location no commit touched goes to a Fixer as before: your own `fix` call carries no
+`Caller:` line, and it is the one that forks Fixers. So when a `do` run stops on a Finding you
+disagree with, delete it from `## Act on` and run `/do` again: it resumes on the Review as you left
+it and lands the branch once it is Green. An `Act on` location a Fixer finds
+changed comes back `stale`, left alone, once the run has read that location in the tree itself, and
+the next `fix` call on the Review tries it again.
 
 ## What the run leaves behind
 
@@ -157,7 +177,9 @@ write is bounded. `/do-code-review --no-fix` is there for when you want to read 
 **`do` fixed something after the review. Why was it not reviewed again?**
 Because the review runs once per run. What `do` commits after it, the fix of a red flow or a rebase
 it finished on a resume, is held to the Gate and lands through a `fix` call on the same Review,
-which forks no reviewer
+which forks no reviewer, and no Fixer either: `do` marks that call with a `Caller: do` line, and
+a Fixer's commit there would sit on code nobody read. A Finding your own commit fixed is settled
+by the call's re-check, and one it did not fix stays open for you
 ([ADR 0033](adr/0033-the-review-runs-once-per-run-and-what-comes-after-it-lands-through-the-gate-alone.md)).
 A second full review cost more than any other step, and the only code it would read that the first
 did not is code the Gate already checks.
@@ -199,8 +221,11 @@ refusal instead of as a rule to remember, per
 - `git status` after a run agrees with that last line:
   the Review and nothing else when git does not ignore the file, nothing new when it does.
 - A Review that fixed anything carries a `## Fix run` section naming each Finding by number, the
-  Diff tests, the Gate fixer and the Gate, and either `landed at <sha>` or `not landed` with its
+  duplication scan, the Diff tests, the Gate fixer and the Gate, and either `landed at <sha>` or `not landed` with its
   reason and the branch left behind.
+- A Finding a `fix` call found already fixed by your own commit reads
+  `fixed <your commit>, verified (<the check>)` in that call's new `## Fix run` section, every
+  earlier section still in the file, and no Fixer commit stands for it in `git log`.
 - `git log` on your branch shows the Fixer's commits after a landing, and `git status` shows
   nothing to push that you did not push yourself.
 

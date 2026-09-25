@@ -48,7 +48,7 @@ other nine surface at the step that reads them, and each row below names that st
 |---|---|
 | the **Ticket** itself, a file under `.scratch/` or an issue on the tracker `docs/agents/issue-tracker.md` describes | the `ticket` Playbook's whole input. The door's lines, the protected-branch warning among them, reach you in the Reply's Run section, and a landing on a protected branch is refused whatever the run wrote. With no file and no tracker entry there is nothing to match, so the run refuses a bare issue number and asks you for the ticket's path |
 | [do-reader](../README.md), the reader `do` ships, linked | the door forks it over the Ticket's Spec and journey to cut the Digest, so neither document enters the session and the Digest is written from what it returns. With the Agent tool withheld, or no `do-reader` agent listed, the session reads both documents itself and says so in one line, `do-reader` by name when it is not linked, with `scripts/link-skills.sh` as the run that links it before your next `/do`, and never forks another agent in its place, since a fork under another name could hold the write tools the reader is denied |
-| [do-planner](../README.md), the planner `do` ships, linked | a `ticket` run's Plan step forks it over the Ticket and its Digest, and it writes the Plan itself: the glossary words, the ADR titles, the map of the subsystem, the discover audit line, the behaviours list and the Sketch when the shape step fires. Your session holds the Plan's path and never its text, so the grounding is paid for in the fork's window instead of yours. The Plan sits beside the Ticket as `<ticket>.plan.md`, and the Reply's Plan line names it with every fallback the fork reported. A Plan already there whose `## Sources` section is exactly the two records your door computed, matched on name, path and hash together, is carried, so a second `/do` on the same Ticket forks nobody. One whose section no longer matches, a Ticket, Digest or Spec edited since, is removed and the Planner forked again at the same path, so a moved hash never leaves you a Plan to delete by hand. A resume whose only work left is the landing, on a branch the review already read, skips the Plan step and forks no reader either, so a run that builds nothing reads nothing. The step runs before the run claims your Ticket and before it creates the worktree, so a return naming no Plan, a Plan at some other path, one whose section is not that exact match, or a Ticket or Digest that no longer hashes to what your door recorded once the Planner returns, is refused with the Ticket at the status it had and no `do/<slug>` branch to remove, except on a Ticket whose defect's cause is unknown, where the worktree already cut for the diagnosis is named in that refusal instead of left unnamed: a bad grounding costs you a rerun and, on every other Ticket, nothing to undo. With the Agent tool withheld, or no `do-planner` agent listed, the session grounds the Ticket and writes the Plan itself at the same path and says which of the two held, and never forks another agent in its place |
+| [do-planner](../README.md), the planner `do` ships, linked | a `ticket` run's Plan step forks it over the Ticket and its Digest, and it writes the Plan itself: the glossary words, the ADR titles, the map of the subsystem, the discover audit line, the behaviours list and the Sketch when the shape step fires. Your session holds the Plan's path and never its text, so the grounding is paid for in the fork's window instead of yours. The Plan sits beside the Ticket as `<ticket>.plan.md`, and the Reply's Plan line names it with every fallback the fork reported. A Plan already there whose `## Sources` section is exactly the two records your door computed, matched on name, path and hash together, is carried, so a second `/do` on the same Ticket forks nobody. One whose section no longer matches, a Ticket, Digest or Spec edited since, is removed and the Planner forked again at the same path, so a moved hash never leaves you a Plan to delete by hand. A resume whose only work left is the landing, on a branch the review already read, skips the Plan step and forks no reader either, so a run that builds nothing reads nothing. The step runs before the run claims your Ticket and before it creates the worktree, so a return naming no Plan, a Plan at some other path, one whose section is not that exact match, or a Ticket or Digest that no longer hashes to what your door recorded once the Planner returns, is refused with the Ticket at the status it had and no `do/<slug>` branch to remove. On a Ticket whose defect's cause is unknown the worktree is cut for the diagnosis before the Planner is forked, and a refusal there removes it and its branch before the refusal reaches you, so a bad grounding costs you a rerun and nothing to undo on every Ticket. With the Agent tool withheld, or no `do-planner` agent listed, the session grounds the Ticket and writes the Plan itself at the same path and says which of the two held, and never forks another agent in its place |
 | [do-builder](../README.md), the builder `do` ships, linked | a `ticket` run's build step forks it with the Plan's path and the worktree the run cut, and it runs the whole build loop there: the Plan's behaviours one at a time, each proven by a test author it dispatches itself and closed by one commit carrying its `Behaviour:` line, and the flows your observable criteria earn. What comes back is the lines your Reply owes and one verdict, `built`, `fork` or `stopped`, and never the diff, the test output or a file's contents, so the code it wrote and the red runs it read stay in its window instead of yours. Your session reads the diff it left on the branch, writes its own summary of it and runs the **Gate** before the review, so nothing reaches the reviewers the run itself did not check. A **Design fork** it meets comes back as both sides and is ruled by the `choice-taker` your session forks, since the Ruling is written to the Spec the Builder cannot reach, and an **Extreme fork** still stops the run. With the Agent tool withheld, or no `do-builder` agent listed, the session runs the loop itself in the worktree and says which of the two held, and never forks another agent in its place. When neither the Planner nor the Builder can be forked, the Reply carries one `Planner/Builder: none` line for both instead of two, and the run still finishes. Right before the run's first fork of either, it takes `scripts/harness-hooks.sh`, and the Plan line's `Guard:` line quotes its verdict: `pattern-and-header` when your harness runs the hooks the agents declare, `header-only` on Codex or on a Claude Code whose settings turn hooks off, where the `## Sources` check is the whole guard. Neither verdict stops the run |
 | a Testing Policy with its unit test author at `.claude/agents/unit-test-author.md`, or [the global authors](../README.md) `do` ships, linked | the Reply's Run section reads `Loop: policy` and that author writes every new test. With no policy and `global-unit-test-author` linked, it reads `Loop: global`: the run derives a Project map from what the project's own scripts and files say, keeps it in the project's `.scratch/`, and the global authors write the tests and the flows against it. With neither, or with the Agent tool withheld, the line reads `Loop: fallback` and the run writes each failing test itself, red before the fix either way |
 | [do-code-review](do-code-review.md) linked in the session | the review fixes its `Act on` Findings and lands the branch. Without it the step reads `skip: do-code-review not listed`, nothing lands, and the reply hands you the worktree, its branch and the review to run yourself |
@@ -167,13 +167,20 @@ branch: the contested hunks take your branch's side, the ledger is judged and re
 runs whole, and the branch lands through a `fix` call on the same Review. It goes round again each
 time your branch moves before the landing, with no fixed count, so several runs landing at once all
 land: each lost race means another run landed first
-([ADR 0044](adr/0044-the-re-integration-retries-while-the-target-tip-changes.md)). It stops only
-when the integration finds nothing to replay, since then no other landing happened. The affected flows run from your checkout through a script of their own whose command line
+([ADR 0044](adr/0044-the-re-integration-retries-while-the-target-tip-changes.md)). The loop ends
+when the integration finds nothing to replay, since then no other landing happened, and the run
+does not stop there to ask you for the request again: it takes its own resume path in the same run,
+the integration once more and the landing through a `fix` call on the same Review, exactly what a
+second `/do` would have done. That resume happens once: if its integration again finds nothing to
+replay and the landing again reports your branch moved, the run stops as blocked like any other
+landing that did not happen. The affected flows run from your checkout through a script of their own whose command line
 comes first, and a red one is fixed in the worktree, gated and landed through a `fix` call on the
 same Review, never a second review. The Ticket is closed with the command lines and their
-output quoted under `## Evidence`. A run that stops for any
-reason leaves the worktree and its branch in place and names both, so nothing is half landed and
-nothing is lost.
+output quoted under `## Evidence`. A run that stops once it has built
+leaves the worktree and its branch in place and names both, so nothing is half landed and nothing
+is lost. The one run that removes them on a stop is a Ticket whose defect's cause is unknown,
+refused during its diagnosis before anything was built: the worktree was cut for the diagnosis
+alone, so the run removes it and its branch, and you rerun `/do` with nothing to reset first.
 
 ## Common questions
 
@@ -224,7 +231,11 @@ Review is Green
 ([ADR 0013](adr/0013-do-code-review-lands-a-green-review-by-fast-forward.md),
 [ADR 0015](adr/0015-the-default-review-run-fixes-and-lands-and-the-fixer-corrects-for-every-caller.md)).
 That is also why `do` never patches a Finding by hand: a Finding the Fixer left standing is the
-reason nothing landed, and the run stops on it with the worktree intact.
+reason nothing landed, and the run stops on it with the worktree intact. The stop names the
+Finding by its number and hands you two ways out on its `Yours: direction:` line: fix it in the
+worktree and run `/do` again, whose `fix` call finds your commit and records the Finding fixed, or
+overrule it by editing the Review and running `/do` again, whose `fix` call lands the branch once
+the Review is Green. The run itself never opens the Review.
 
 **Why is the fix of a red flow not reviewed again?**
 Because the review runs once per run
@@ -274,9 +285,11 @@ new Ticket you write
   on its own branch the same way. A review that could
   not land because your branch moved while it ran needs no second `/do`: the same run rebases
   again, the contested hunks taking your branch's side and landing in the ledger, and lands through
-  a `fix` call on the Review it already has, as many times as the branch keeps moving. Only an
-  integration that finds nothing to replay stops it, and typing the request again then recovers it
-  the same way. The reply lists every entry that later
+  a `fix` call on the Review it already has, as many times as the branch keeps moving. An
+  integration that finds nothing to replay does not stop the run: it takes its own resume path in
+  the same run, the integration once more and the landing through a `fix` call on the same Review,
+  and only stops as blocked if that resume also finds nothing to replay and the landing again
+  reports your branch moved. The reply lists every entry that later
   integration dropped, marked as coming after the review, since no reviewer reads it.
 - A run whose branch moved says so: the step names what it rebased onto and how many commits
   replayed, and the gate's output after it is quoted like any other.

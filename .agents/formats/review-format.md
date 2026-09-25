@@ -185,6 +185,8 @@ Refuted by: a proof script that imports src/report.js and calls `summary()` retu
 Date: 2026-04-18 · at 8b1d0e4
 
 - 1: fixed 4c07ab2, verified (`node --test tests/notes.test.js`)
+- wave 1: 1
+- duplication scan: `bash .claude/testing-policy/scan-test-assets.sh`: clean
 - diff tests: `node --test tests/notes.test.js`: 3 passing
 - gate fixer: not needed
 - gate: `npm test && npx tsc --noEmit`: green
@@ -193,34 +195,75 @@ Date: 2026-04-18 · at 8b1d0e4
 
 ## Fix run
 
-The section a fix appends to the Review it read, one per fix, written after the last Fixer returned
-and the orchestrator re-ran the checks itself. A `--no-fix` Review has none.
+The section a fix appends to the Review it read, one per fix, written after the last Wave was
+integrated and the orchestrator re-ran the checks itself. A `--no-fix` Review has none.
 A second `fix` appends a second section and never rewrites the first; a plain run on the same
 branch overwrites the whole file, this section with it.
 
 The first line is the date and the commit the fix ran at, `Date: <YYYY-MM-DD> · at <short sha>`.
-Then one line per `Act on` Finding, by its number, in the file's order, in one of four states:
+Then one line per `Act on` Finding, by its number, in the file's order, in one of four states, the last with one reason the format fixes:
 
 | Line | Means |
 |---|---|
-| `- <n>: fixed <sha>, verified (<the check>)` | the Fixer committed it and the check its `Fix:` named passed when the run re-ran it |
+| `- <n>: fixed <sha>, verified (<the check>)` | the Fixer committed it, or a commit since the Review touched its location before any Fixer ran, and either way the check its `Fix:` named passed when the run re-ran it |
 | `- <n>: fixed <sha>, not verified` | the Fixer committed it and the Finding named no check to re-run |
 | `- <n>: stale` | the location no longer matches the tree, the Fixer's report and the run's own read of it agreeing, so the code was left alone and no commit was made for it |
-| `- <n>: not fixed: <the reason>` | the Fixer could not turn it green and dropped its edits for it, never reached it, or never returned, so nothing is known to have been dropped |
+| `- <n>: not fixed: <the reason>` | the Fixer could not turn it green and dropped its edits for it, or never reached it |
+| `- <n>: not fixed: the Fixer did not return; its worktree <path> on <branch> stays in place` | the Fixer's return file never landed, so nothing of its branch was brought onto the branch the review read, and its worktree and branch, as the worktree script printed them, are left for the developer to read |
+| `- <n>: not fixed: conflicted with Finding <m>` | its Fixer's commit conflicted with Finding `<m>`'s on the third pick this run tried, after two re-routes, so neither the run nor a merge chose between them; `Findings <m>, <m>` names several, and `conflicted with no Finding of its Wave` plus the conflicted files names none |
+
+A Finding the run re-routed, its Fixer's commit having conflicted with another Finding's on the way
+onto the branch, ends its line with `, re-routed <r>`, the number of times this run re-routed it,
+1 or 2, whatever the line's state: `- 3: fixed 9e1a2b4, verified (npm test), re-routed 1`,
+`- 4: not fixed: conflicted with Finding 2, re-routed 2`. The state stays first, so the settle rule
+below reads the line the same way, and a Finding never re-routed carries nothing extra. The count
+is the run's own: a later `fix` starts every Finding at zero in its section.
+
+On the `fix` call `do` makes after its review, which forks no Fixer, a Finding the re-check could
+not settle is written in that last state with the developer named and the re-check's reason after
+it, `- <n>: not fixed: left to the developer, <the reason>`, the reason one of
+`untouched since the review`, `<the check> passed at the review's commit`,
+`<the check> still red at <short sha>`, `no check to re-run` or
+`the review's commit is off the branch`.
+
+A `<sha>` is the one the Fixer's commit has on the branch the review read, once picked there, and
+never the sha on the Fixer's own branch, which is gone once the run takes that branch back.
 
 A Review whose `Act on` is empty, or whose Findings an earlier fix already settled, forks no Fixer
 and creates no worktree: the section reads `nothing remained` on that line, then the Gate and the
-landing, with the Diff tests reading `skip: no Fixer commit`. A Finding is settled when its latest
-line across every `## Fix run` section reads `fixed`, a `nothing remained` section naming none: a
-Finding whose latest line reads `stale` or `not fixed` goes to a Fixer again.
+landing, with the duplication scan and the Diff tests each reading `skip: no Fixer commit`. A
+Finding is settled when its latest line across every `## Fix run` section reads `fixed`, a
+`nothing remained` section naming none: a Finding whose latest line reads `stale` or `not fixed`
+goes to a Fixer again.
 
-Then three lines, in this order. The Diff tests, `- diff tests: <the commands>: <their result>`, or
-`- diff tests: skip: <the reason>`. The Gate fixer, `- gate fixer: not needed` when the Diff tests
-and the Gate were green the first time, `- gate fixer: <sha>` or `- gate fixer: <sha>, <sha>` for
-the attempts that turned them green, `- gate fixer: two attempts, still red` for two attempts that
-ran and stayed red, or `- gate fixer: no return` for an attempt whose return file never landed. The
-Gate,
-`- gate: <the command line>: <its verdict>`. Then the landing on the last line:
+Then the Wave lines, one per Wave that forked at least one Fixer, in the order the Waves ran, each
+naming the Findings forked in it: `- wave <k>: <n>[, <n>]...`. `<k>` counts the Waves as they ran,
+from 1, a piece of a cut Wave counting as a Wave of its own. They tell a Finding fixed in the first
+Wave from one that took a later one, and a `nothing remained` section carries none.
+
+A floor Wave the run cut finer, because two of its Findings were coupled in a way `fix-waves.sh`
+cannot see, carries one cut line, placed right above the Wave lines of its pieces:
+`- cut: floor wave <k> into <n>[, <n>]... | <n>[, <n>]...: <the reason>`. Its `<k>` is the Wave's
+number as the script printed it, the pieces are separated by `|` in the order they ran, and the
+reason names the coupling. It tells a developer why two Findings the script allowed together ran
+apart. A run that cut nothing carries no cut line.
+
+Then four lines, in this order, the order the checks ran. The duplication scan,
+`- duplication scan: <the command>: clean`, or
+`- duplication scan: <the command>: dirty: <name>[, <name>]...` naming each dirty row by its name,
+`- duplication scan: <the command>: blocked: <the cause>` when the scan exited non-zero, printed no
+`## duplicate-symbols` header or had its script edited by a Gate fixer, or
+`- duplication scan: skip: <the reason>`. It records the scan's run after the last Wave, so a
+dirty one stays on the record beside the Gate fixer's commit that cleared it. The Diff tests,
+`- diff tests: <the commands>: <their result>`, or `- diff tests: skip: <the reason>`. The Gate
+fixer, `- gate fixer: not needed` when the scan was clean or skipped and the Diff tests and the
+Gate were green or skipped the first time, `- gate fixer: <sha>` or `- gate fixer: <sha>, <sha>`
+for the attempts that turned them clean and green, `- gate fixer: two attempts, still red` for two
+attempts that ran and left a check red or the scan dirty, `- gate fixer: no return` for an attempt
+whose return file never landed, or `- gate fixer: not forked, Finding <n>[, <n>]... left to the
+developer` on the fix call `do` makes after its review, when a Finding stays open and the Diff
+tests or the Gate read red. The Gate, `- gate: <the command line>: <its verdict>`. Then the landing
+on the last line:
 
 - `- landed at <sha>`, the landing target fast-forwarded to the branch the fix committed on.
 - `- landed at <sha>, rebased onto <target> at <short sha>`, when the target moved while the review
@@ -232,14 +275,28 @@ Gate,
   every reason the landing rules of
   [ADR 0013](../../docs/adr/0013-do-code-review-lands-a-green-review-by-fast-forward.md) give, as
   [ADR 0027](../../docs/adr/0027-the-rebase-runs-in-the-session-before-the-review-and-the-landing-retries-only-the-mechanical-class.md)
-  amends them: a Finding `not fixed` or `not verified`, an Axis `not run`, a red Gate, a protected
+  amends them: a Finding `not fixed` or `not verified`, a Gate fixer that did not
+  return, an Axis `not run`, a duplication scan still dirty or blocked, a red Gate, a protected
   target, a failed fast-forward, and a moved target with a `contested` hunk or a key the union
-  defines twice, whose reason reads
+  defines twice. A Finding's reason names it by
+  its number, every `Act on` Finding whose latest
+  line is not `fixed <sha>, verified` in the file's order under one label,
+  `not landed: Finding <n>[, <n>]... not fixed or not verified`, so a caller that never opens the
+  Review knows which one is open, and it comes first, ahead of every other reason the landing has,
+  except the Gate fixer that did not return: that reason warns a fork may still be writing in the
+  tree, so it stays on the line too. A Fixer that did not return wrote only in its own worktree,
+  so its Finding is one more `not fixed` the label above names by its number. A Gate fixer's
+  non-return may leave a Finding open for a reason of its own, so the line names both, the
+  non-return first: `not landed: gate fixer did not return, <the failing check>;
+  Finding <n>[, <n>]... not fixed or not verified`.
+  A moved target's reason reads
   `not landed: target moved, <target> at <short sha>, conflicting <file> <file>`, each file as the
   conflict class script printed it. A Gate still red after the Gate fixer's two attempts reads
-  `not landed: gate red after the fixes, <the failing check>`; a Gate fixer attempt whose return
-  file never landed, which may still be committing in the tree, reads
-  `not landed: gate fixer did not return, <the failing check>`; a Gate red with no Fixer commit
+  `not landed: gate red after the fixes, <the failing check>`; a duplication scan still dirty after
+  the Gate fixer's two attempts, with the Diff tests and the Gate green, reads
+  `not landed: duplication scan still dirty after the fixes, <name>[, <name>]...`, naming every row
+  still dirty, and never the Gate red for it; a duplication scan that read `blocked` reads
+  `not landed: duplication scan blocked, <the cause>`; a Gate red with no Fixer commit
   reads `not landed: gate red, <the failing check>`; a Gate that failed on its environment reads
   `not landed: gate blocked, <its cause>`; a Gate red after the retry's rebase reads
   `not landed: gate red after the rebase onto <target>, <the failing check>`.

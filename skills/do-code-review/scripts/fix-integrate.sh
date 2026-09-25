@@ -14,9 +14,11 @@
 # conflicted <n> with <m[,m...]|none> files "<path>"... naming every earlier clean pick of this run
 # that touched a conflicted path, none when no pick did, and each conflicted path double-quoted.
 # failed <reason> is printed alone, before any pick, when a Fixer branch is not exactly one commit
-# ahead of the reviewed branch, so nothing moved. It is also printed, in Finding order, in place of a
-# conflicted line when git refuses a pick before it starts (a staged or dirty file, an untracked file
-# the commit would overwrite, no committer identity): git's own reason, with no path and no conflict.
+# ahead of the reviewed branch, or when it is but its one commit's parent is not the reviewed
+# branch's HEAD (a Wave cut before the Wave ahead of it was integrated), so nothing moved. It is
+# also printed, in Finding order, in place of a conflicted line when git refuses a pick before it
+# starts (a staged or dirty file, an untracked file the commit would overwrite, no committer
+# identity): git's own reason, with no path and no conflict.
 #
 # Exit codes: 0 every Finding picked · 1 at least one conflicted · 2 usage · 3 failed.
 set -uo pipefail
@@ -36,6 +38,11 @@ for pair in "$@"; do
   fixer[$n]="${pair#*=}"
 done
 
+head_sha="$(git -C "$tree" rev-parse HEAD 2>/dev/null)" || {
+  echo "failed HEAD: $tree does not name a git repository with a commit checked out"
+  exit 3
+}
+
 # git's quoted form never holds a space, so wrapping the unquoted form keeps every path one token.
 qpath() { case "$1" in \"*) printf '%s' "$1" ;; *) printf '"%s"' "$1" ;; esac; }
 
@@ -48,6 +55,17 @@ for n in "${!fixer[@]}"; do
   }
   if [ "$ahead" != 1 ]; then
     echo "failed Finding $n: ${fixer[$n]} is $ahead commits ahead of the reviewed branch, not one"
+    exit 3
+  fi
+  # A Fixer branch can be exactly one commit ahead of the current HEAD while its parent is a
+  # stale, earlier HEAD: a Wave cut before the Wave ahead of it was integrated. Without this check
+  # its pick would apply cleanly onto the unrelated advance and land silently.
+  parent="$(git -C "$tree" rev-parse "${fixer[$n]}^" 2>/dev/null)" || {
+    echo "failed Finding $n: ${fixer[$n]} has no parent commit"
+    exit 3
+  }
+  if [ "$parent" != "$head_sha" ]; then
+    echo "failed Finding $n: ${fixer[$n]}'s parent is not the reviewed branch's HEAD"
     exit 3
   fi
 done

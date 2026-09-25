@@ -51,6 +51,28 @@ its `README.md`. They are not skills: no frontmatter, no invocation, and no harn
 skill or a contract that leans on one links the file by path. Adding, renaming or removing a
 principle updates that index in the same change.
 
+## Prompting guidelines
+
+`.agents/prompting/` holds the guidelines for using each model the right way (prompting, effort,
+the behaviors that changed from the previous model), one file per model, indexed in its
+`README.md` with the upstream URL and the date it was fetched. Read the file for the model a skill,
+an agent definition or a prompt targets before writing or tuning it. Each file is a verbatim copy
+of the upstream page: refresh it by re-fetching, never by editing it by hand, which is also why the
+em-dash rule below does not reach the prompt text it quotes. Adding, refreshing or removing a
+reference updates that index in the same change.
+
+## Test and evaluate guidelines
+
+`.agents/test-and-evaluate/` holds the guidelines for testing what a model does under a skill, an
+agent definition or a prompt: defining success criteria, building evals and grading them, and
+reducing latency. One file per upstream page, indexed in its `README.md` with the upstream URL and
+the date it was fetched. Read `develop-tests.md` before writing or changing an eval (a skill's
+`evals/` folder, a grader, a test that runs a model), and `reduce-latency.md` before tuning a skill
+or an agent for speed (model choice, prompt and output length). They cover model behavior only: a
+unit test of this repo's scripts follows the Testing Policy below. The files are verbatim copies
+under the same rules as the prompting guidelines: refresh by re-fetching, never by hand, and a
+change to the set updates the index in the same change.
+
 ## Formats
 
 `.agents/formats/` holds the formats of the artifacts the skill chain shares (`CONTEXT.md`, an ADR,

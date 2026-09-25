@@ -17,8 +17,7 @@ git() { g "$@"; }
 eval "$(declare -f fresh | sed '1s/^fresh/lib_fresh/')"
 fresh() { # $1 name: lib.sh's fresh, plus a committer identity for the script under test's own commits
   lib_fresh "$@"
-  g config user.email t@example.com
-  g config user.name t
+  committer_identity
 }
 run() {
   rc=0
@@ -124,6 +123,24 @@ expect "the refusal is a single failed line" test "$failed_lines" = 1
 expect "the failed line names the offending Finding or its branch" names_the_branch
 absent "no Finding is picked, not even one that sorts before the refused branch and would pick cleanly" "picked "
 expect "the reviewed branch is left unmoved when a Fixer branch is more than one commit ahead" \
+  test "$(git -C "$main" rev-parse main)" = "$before"
+
+fresh stale-parent
+main="$tmp/stale-parent"
+printf 'base\n' >README.md
+commit base
+fixer_branch f1 one.txt "finding one"
+printf 'already landed\n' >already-landed.txt
+commit "already landed"
+before="$(git -C "$main" rev-parse main)"
+run "$main" 1=f1
+failed_lines="$(grep -c '^failed ' <<<"$out")"
+names_the_branch() { grep '^failed ' <<<"$out" | grep -qE '(^|[^[:alnum:]])f1([^[:alnum:]]|$)|^failed 1( |$)|[Ff]inding 1([^0-9]|$)'; }
+check "a Fixer branch exactly one commit ahead by count, whose parent is not the reviewed branch's current HEAD, is refused with exit 3" 3 "$rc"
+expect "the refusal is a single failed line" test "$failed_lines" = 1
+expect "the failed line names the offending Finding or its branch" names_the_branch
+absent "no Finding is picked when the sole Fixer branch's parent is stale" "picked "
+expect "the reviewed branch is left unmoved when the sole Fixer branch's parent is stale" \
   test "$(git -C "$main" rev-parse main)" = "$before"
 
 fresh refused-before-start

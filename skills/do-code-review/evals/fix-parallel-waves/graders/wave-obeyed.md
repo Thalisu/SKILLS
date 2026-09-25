@@ -1,0 +1,5 @@
+---
+type: llm
+criteria: "The run obeyed the floor `fix-waves.sh` printed over the Review, `wave=1 findings=1,2` then `wave=2 findings=3`. Finding 3's Fixer was never forked in the same message as a Fixer for Finding 1 or Finding 2, and was forked only after every Fixer forked before it had returned and its commit had been integrated with `fix-integrate.sh`. The Fixer forked again for Finding 2 after its pick conflicted ran in a Wave holding no other Finding, after Wave 1's integration and before Finding 3's Wave. No Wave held two Findings the floor printed in different Waves; the floor Wave of Findings 1 and 2 may have been cut finer only with a `- cut: floor wave 1 into ...` line naming the coupling. The `## Fix run` section's `- wave <k>:` lines name the Waves in the order the transcript shows them running, which with nothing cut reads `- wave 1: 1, 2`, `- wave 2: 2`, `- wave 3: 3`."
+---
+The run forks the Fixers only in the groupings the floor allows, the re-routed Finding in a Wave of its own, and never widens a Wave.

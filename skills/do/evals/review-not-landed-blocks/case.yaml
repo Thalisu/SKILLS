@@ -533,6 +533,8 @@ context:
     fixed="${2:?the fixed point}"
     target="${3:?the landing target}"
     main="$(git worktree list --porcelain | sed -n '1s/^worktree //p')"
+    # do passes the Ticket's location relative to the main checkout or absolute; both read the same file.
+    case "$ticket" in "$main"/*) ticket="${ticket#"$main"/}" ;; esac
     branch="$(git branch --show-current)"
     git rev-parse --verify -q "$fixed^{commit}" >/dev/null || { echo "fixed point $fixed does not resolve; nothing reviewed"; exit 1; }
     [ -n "$(git diff --stat "$fixed" HEAD)" ] || { echo "empty diff since $fixed; nothing reviewed"; exit 1; }
@@ -618,7 +620,7 @@ context:
         landing="not landed: the fast-forward of $target to $branch failed; the branch and its worktree stay in place"
       fi
     else
-      landing="not landed: Finding 1 is not fixed or not verified; the branch $branch and its worktree stay in place"
+      landing="not landed: Finding 1 not fixed or not verified; the branch $branch and its worktree stay in place"
     fi
 
     cat > "$review" <<EOF

@@ -1,0 +1,292 @@
+name: fix-parallel-waves
+tags: [fix, waves, re-route, landing]
+runs: 1
+max_turns: 150
+timeout_seconds: 3600
+allowed_tools: [Bash, Read, Write, Glob, Grep, Agent, Skill]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # A branch whose Review the case wrote, with three Act on Findings. Findings 1 (a page one short,
+    # src/notes.js) and 2 (a comma splitting a CSV field, src/csv.js) name disjoint files, so
+    # fix-waves.sh prints them in one Wave; Finding 3 (archived notes listed, src/notes.js) shares
+    # src/notes.js and tests/notes.test.js with Finding 1, so it gets a later Wave. Nothing in the
+    # Findings couples 1 and 2, so the floor Wave has no coupling to cut on.
+    #
+    # The coupling nobody can read is planted in a project-level stand-in that shadows the linked
+    # Fixer: it runs a script the fixture commits, which applies a fixed edit per Finding and also
+    # appends that Finding's line to the end of CHANGELOG.md, a file no Finding names. Finding 1's
+    # pick lands first and Finding 2's conflicts on CHANGELOG.md, so the run aborts it and re-routes
+    # Finding 2 once; its second Fixer, cut from the branch holding Finding 1's fix, picks clean.
+    # A stand-in and not a real Fixer, since whether two models' edits collide is chance.
+    #
+    # The Review sits under the ignored `.scratch/` and is never committed, so the tree reads clean,
+    # the fix door holds, and the run fixes, verifies, appends and lands on the branch the checkout is
+    # on.
+    set -e
+    mkdir -p src tests .claude/agents .claude/stand-in .scratch/reviews
+    cat > package.json <<'JSON'
+    { "name": "notes", "private": true, "scripts": { "test": "node --test tests/*.test.js" } }
+    JSON
+    cat > CLAUDE.md <<'MD'
+    # notes
+
+    ### Project facts
+
+    - **Unit**: full suite `npm test` · single file `node --test <file>`
+    MD
+    printf '# Changelog\n\n## Unreleased\n\n' > CHANGELOG.md
+    cat > src/notes.js <<'JS'
+    const notes = [];
+
+    function create(title) {
+      const note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+
+    function list() {
+      return notes.filter((n) => n.status === "active");
+    }
+
+    function page(items, number, size) {
+      const start = (number - 1) * size;
+      return items.slice(start, start + size);
+    }
+
+    module.exports = { create, list, page };
+    JS
+    cat > tests/notes.test.js <<'JS'
+    const test = require("node:test");
+    const assert = require("node:assert/strict");
+    const { create, list, page } = require("../src/notes");
+
+    test("a created note is listed", () => {
+      const note = create("first");
+      assert.ok(list().some((n) => n.id === note.id));
+    });
+
+    test("a page holds the items of its slot", () => {
+      assert.deepEqual(page([1, 2, 3], 1, 5), [1, 2, 3]);
+    });
+    JS
+    cat > .claude/agents/do-code-review-fixer.md <<'MD'
+    ---
+    name: do-code-review-fixer
+    description: 'The fixture stand-in for the Fixer: commits the edit the fixture fixed for its one Finding, in the worktree its brief names, and writes its line to the return file. Forked only by the do-code-review orchestrator with a brief. Never on your own initiative.'
+    model: inherit
+    tools: Bash
+    maxTurns: 4
+    ---
+
+    You are the fixture's stand-in for the Fixer. Read three values off your brief: the absolute path
+    on its `Tree:` line, your one Finding's number, and the absolute path on its `Return file:` line.
+    Then run exactly this one command, with those three values in that order, and nothing else:
+
+    bash <Tree>/.claude/stand-in/fixer.sh <Tree> <the Finding's number> <Return file>
+
+    End your turn with the one line it printed. Edit no file yourself, run no other command, and
+    open no other file, the Review included. This holds on every fork, the first and a re-route.
+    MD
+    cat > .claude/stand-in/fixer.sh <<'SH'
+    #!/usr/bin/env bash
+    # The stand-in Fixer's whole work: one fixed edit per Finding, its test, a CHANGELOG.md line and
+    # one commit on the worktree's branch, then the return line. The CHANGELOG.md line is appended at
+    # the end of the file, so two Fixers cut from one HEAD collide there and one cut after the other's
+    # pick does not.
+    set -uo pipefail
+    tree="$1" n="$2" ret="$3"
+    say() { printf '%s\n' "$1" >"$ret"; printf '%s\n' "$1"; exit 0; }
+    edit() { # $1 file, $2 the text to find, $3 its replacement
+      grep -qF -- "$2" "$tree/$1" || say "$n: not fixed: $1 no longer holds the line the stand-in edits"
+      FIND="$2" REPL="$3" perl -0pi -e 's/\Q$ENV{FIND}\E/$ENV{REPL}/' "$tree/$1"
+    }
+    case "$n" in
+      1)
+        edit src/notes.js 'start + size - 1' 'start + size'
+        cat >>"$tree/tests/notes.test.js" <<'JS'
+
+    test("a page of ten over eleven items holds ten", () => {
+      const items = Array.from({ length: 11 }, (_, i) => i + 1);
+      assert.equal(page(1, 10, items).length, 10);
+    });
+    JS
+        line="- A page holds as many notes as its size."
+        ;;
+      2)
+        edit src/csv.js 'return String(value);' 'const text = String(value);
+      return /[",\n]/.test(text) ? `"${text.replace(/"/g, "\"\"")}"` : text;'
+        cat >>"$tree/tests/csv.test.js" <<'JS'
+
+    test("a title holding a comma is one quoted field", () => {
+      assert.equal(row([1, "milk, eggs"]), '1,"milk, eggs"');
+    });
+    JS
+        line="- A title holding a comma is exported as one field."
+        ;;
+      3)
+        edit src/notes.js 'n.status !== "deleted"' 'n.status === "active"'
+        cat >>"$tree/tests/notes.test.js" <<'JS'
+
+    test("an archived note is not listed", () => {
+      const note = create("old");
+      archive(note.id);
+      assert.ok(!list().some((n) => n.id === note.id));
+    });
+    JS
+        line="- An archived note is left out of the list."
+        ;;
+      *) say "$n: not fixed: the stand-in carries no edit for Finding $n" ;;
+    esac
+    printf '%s\n' "$line" >>"$tree/CHANGELOG.md"
+    git -C "$tree" add -A >/dev/null
+    git -C "$tree" commit -q -m "fix: Finding $n of the export-notes review" -m "Finding $n." >/dev/null ||
+      say "$n: not fixed: the commit failed"
+    say "$n: $(git -C "$tree" rev-parse --short HEAD) on $(git -C "$tree" branch --show-current)"
+    SH
+    printf '.scratch/\n' > .gitignore
+    git init -q -b main
+    git config user.email fixture@example.com
+    git config user.name fixture
+    git add -A
+    git commit -q -m "fixture"
+    git checkout -q -b export-notes
+    cat > src/notes.js <<'JS'
+    const notes = [];
+
+    function create(title) {
+      const note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+
+    function archive(id) {
+      const note = notes.find((n) => n.id === id);
+      if (note) note.status = "archived";
+    }
+
+    function list() {
+      return notes.filter((n) => n.status !== "deleted");
+    }
+
+    function page(number, size, items) {
+      const start = (number - 1) * size;
+      return items.slice(start, start + size - 1);
+    }
+
+    module.exports = { create, archive, list, page };
+    JS
+    cat > src/csv.js <<'JS'
+    function field(value) {
+      return String(value);
+    }
+
+    function row(values) {
+      return values.map(field).join(",");
+    }
+
+    module.exports = { field, row };
+    JS
+    cat > src/export.js <<'JS'
+    const { list, page } = require("./notes");
+    const { row } = require("./csv");
+
+    function toCsv() {
+      const rows = [];
+      for (let number = 1; ; number += 1) {
+        const chunk = page(number, 10, list());
+        if (chunk.length === 0) break;
+        for (const note of chunk) rows.push(row([note.id, note.title]));
+      }
+      return rows.join("\n");
+    }
+
+    module.exports = { toCsv };
+    JS
+    cat > tests/notes.test.js <<'JS'
+    const test = require("node:test");
+    const assert = require("node:assert/strict");
+    const { create, archive, list, page } = require("../src/notes");
+
+    test("a created note is listed", () => {
+      const note = create("first");
+      assert.ok(list().some((n) => n.id === note.id));
+    });
+
+    test("a page holds the items of its slot", () => {
+      assert.deepEqual(page(1, 5, [1, 2, 3]), [1, 2, 3]);
+    });
+    JS
+    cat > tests/csv.test.js <<'JS'
+    const test = require("node:test");
+    const assert = require("node:assert/strict");
+    const { row } = require("../src/csv");
+
+    test("a row joins its fields with commas", () => {
+      assert.equal(row([1, "draft"]), "1,draft");
+    });
+    JS
+    printf '%s\n' "- Export the active notes as CSV, a page at a time." >> CHANGELOG.md
+    git add -A
+    git commit -q -m "feat(export): export the notes as CSV, a page at a time, and archive a note"
+    node --test tests/*.test.js >/dev/null 2>&1
+    cat > .scratch/reviews/export-notes.md <<REVIEW_EOF
+    # Review: export-notes
+
+    Ticket: none
+    Fixed point: main ($(git rev-parse --short main))
+    Commit: $(git rev-parse --short HEAD)
+    Base: main, inferred
+    Spec source: no spec
+    Mode: default, inferred
+    Language: English, inferred
+
+    ## Intent
+
+    Export the notes as CSV, walking them through page one page at a time, and let a note be archived.
+
+    ## Safe because
+
+    The unit suite covers every exported function the diff touches, run in the fixture. Rung 4.
+
+    ## Act on
+
+    ### 1. Correctness at src/notes.js:20
+    Claim: a page of ten over eleven items returns nine.
+    Evidence: eleven items passed to \`page(1, 10, items)\`; nine came back, the slice ends one short.
+    Rung: 4
+    Fix: a page of size ten over eleven items returns ten items, in tests/notes.test.js
+
+    ### 2. Correctness at src/csv.js:2
+    Claim: a title holding a comma is exported as two fields.
+    Evidence: \`row([1, "milk, eggs"])\` returned \`1,milk, eggs\`, three fields where the row has two.
+    Rung: 4
+    Fix: a title holding a comma is exported as one quoted field, in tests/csv.test.js
+
+    ### 3. Correctness at src/notes.js:15
+    Claim: an archived note is still listed.
+    Evidence: a note created then passed to \`archive(id)\` is in \`list()\`; the filter keeps every status but \`deleted\`.
+    Rung: 4
+    Fix: an archived note is not listed, in tests/notes.test.js
+
+    ## Consider
+
+    none
+
+    ## Noted
+
+    none
+
+    ## Cleared
+
+    none
+
+    ## Axes
+
+    - Correctness: 3 findings, worst #1 (Act on)
+    - Spec: no spec
+    - Standards: 0 findings
+    - Principles: 0 findings
+    - Blast radius: 0 findings
+    - Security: 0 findings
+    REVIEW_EOF

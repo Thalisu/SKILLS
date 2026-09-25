@@ -197,8 +197,9 @@ _Avoid_: fixer (a **Fixer** owns one **Finding**), retry agent
 
 **Green**:
 The state of a **Review** that lets `do-code-review` land: no `Act on` **Finding** left standing
-(none, or every one `fixed` and `verified` by its **Fixer**), every **Axis** run and the **Gate**
-green.
+(none, or every one `fixed` and `verified`, by its **Fixer** or by the fix call's re-check of a
+commit since the **Review**), every **Axis** run, the duplication scan clean or skipped, and the
+**Gate** green.
 _Avoid_: clean, passed, no findings (`Consider`, `Noted` and `Cleared` never block)
 
 **Gate**:

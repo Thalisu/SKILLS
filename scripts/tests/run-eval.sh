@@ -13,6 +13,9 @@ trap 'rm -rf "$tmp"' EXIT
 export HOME="$tmp/home" STUB_DIR="$tmp/stub" TMPDIR="$tmp/t" CLAUDECODE=1
 mkdir -p "$HOME/.claude" "$STUB_DIR" "$TMPDIR" "$tmp/bin"
 printf '{}\n' >"$HOME/.claude/.credentials.json"
+# The caller's own install of a skill, which a session must never resolve in place of this checkout's.
+mkdir -p "$HOME/.claude/skills" "$tmp/installed/do-code-review"
+ln -s "$tmp/installed/do-code-review" "$HOME/.claude/skills/do-code-review"
 export PATH="$tmp/bin:$PATH"
 
 run() {
@@ -50,10 +53,21 @@ done
 journey=no; [ -e "${CLAUDE_CONFIG_DIR:-/nonexistent}/skills/journey/SKILL.md" ] && journey=yes
 reader=no; [ -e "${CLAUDE_CONFIG_DIR:-/nonexistent}/agents/do-reader.md" ] && reader=yes
 { printf 'call'; printf ' [%s]' "$@"
-  printf ' config=%s claudecode=%s journey=%s reader=%s creds=%s cwd=%s\n' "${CLAUDE_CONFIG_DIR:-unset}" \
-    "${CLAUDECODE:-unset}" "$journey" "$reader" "$(readlink "${CLAUDE_CONFIG_DIR:-/nonexistent}/.credentials.json")" "$(pwd -P)"
+  printf ' config=%s claudecode=%s journey=%s reader=%s creds=%s home-skill=%s cwd=%s\n' "${CLAUDE_CONFIG_DIR:-unset}" \
+    "${CLAUDECODE:-unset}" "$journey" "$reader" "$(readlink "${CLAUDE_CONFIG_DIR:-/nonexistent}/.credentials.json")" \
+    "$(readlink -f ~/.claude/skills/do-code-review)" "$(pwd -P)"
 } >> "$STUB_DIR/calls"
 [ -z "${STUB_TOUCH:-}" ] || : > "$STUB_TOUCH"
+# STUB_SUBAGENT: a subagent transcript the session persists, as the real CLI does, under its config
+# dir, keyed by its cwd and the session_id of the stream's init line; never with persistence off.
+if [ -n "${STUB_SUBAGENT:-}" ] && ! printf '%s\n' "$@" | grep -qx -- --no-session-persistence; then
+  sid="$(head -1 "$STUB_TRANSCRIPT" | jq -r .session_id)"
+  id="$(head -1 "$STUB_SUBAGENT" | jq -r .agentId)"
+  dir="$CLAUDE_CONFIG_DIR/projects/$(pwd -P | tr '/.' '--')/$sid/subagents"
+  mkdir -p "$dir"
+  cp "$STUB_SUBAGENT" "$dir/agent-$id.jsonl"
+  printf '{"agentType":"general-purpose"}\n' >"$dir/agent-$id.meta.json"
+fi
 [ -z "${STUB_TRANSCRIPT:-}" ] || cat "$STUB_TRANSCRIPT"
 exit "${STUB_RC:-0}"
 SH
@@ -153,6 +167,8 @@ expect "the session's config is a sandbox, never the real one" \
   bash -c 'grep -q "config=$1/run-eval-home\.[^ ]*/\.claude " <<<"$2"' _ "$TMPDIR" "$session"
 expect "the sandbox holds the repo's skills" grep -qF "journey=yes" <<<"$session"
 expect "the sandbox links the credentials in" grep -qF "creds=$HOME/.claude/.credentials.json" <<<"$session"
+expect "the session's ~/.claude/skills resolves into the checkout under test, never the caller's own install" \
+  grep -qF " home-skill=$repo/skills/do-code-review " <<<"$session"
 expect "the session runs in the laid fixture" grep -qE "cwd=$TMPDIR/run-eval-walk\.[^ ]*/fixture$" <<<"$session"
 judged="$(cat "$STUB_DIR/judge-prompts")"
 expect "the judge reads the criteria" grep -qF "The run resolved the slug suppliers through the resolver." <<<"$judged"
@@ -270,6 +286,76 @@ check "a case that unlinks a skill the sandbox never linked is red before any se
   "FAIL  unlink-skill-unknown: the case unlinks no-such-skill, which the sandbox never linked" \
   "unlink-skill-unknown: 0 run, a skill it unlinks was never linked"
 expect "that case started no session" test "$(calls)" = 0
+
+# A `context: fork` skill's orchestrator never reaches the headless stream: its calls are held only in
+# a subagent transcript beside the run's own, which a `scope: all` grader counts too.
+source_grade
+w="$tmp/forked-run"
+mkdir -p "$w/subagents"
+cat >"$w/transcript.jsonl" <<'JSONL'
+{"type":"system","subtype":"init"}
+{"type":"assistant","parent_tool_use_id":null,"message":{"content":[{"type":"tool_use","id":"toolu_s1","name":"Skill","input":{"skill":"do-code-review"}}]}}
+{"type":"result","subtype":"success","result":"Fixed."}
+JSONL
+cat >"$w/subagents/agent-a1b2c3.jsonl" <<'JSONL'
+{"type":"attachment","isSidechain":true,"agentId":"a1b2c3"}
+{"type":"user","isSidechain":true,"agentId":"a1b2c3","message":{"content":"Review the branch."}}
+{"type":"assistant","isSidechain":true,"agentId":"a1b2c3","message":{"content":[{"type":"tool_use","id":"toolu_f1","name":"Bash","input":{"command":"bash ~/.claude/skills/do-code-review/scripts/fix-integrate.sh /work/tree 2=fixer/export-notes/w1-2","description":"Integrate the returned Fixer"}}]}}
+JSONL
+evals="$tmp/graded" grader forked integrated "type: tool_used
+tool: Bash
+scope: all
+input_match: 'fix-integrate\\.sh'
+min: 1
+max: 1"
+# shellcheck disable=SC2034 # read by lib.sh's grade_passes
+grader="$tmp/graded/forked/graders/integrated.md"
+grade_passes "a scope: all grader counts a forked orchestrator's call held only in a subagent transcript" "$w"
+
+# End to end: the forked orchestrator's call reaches the stream nowhere, only the subagent transcript
+# the session's CLI wrote under its config dir, and the runner carries it to the grader.
+cat >"$tmp/forked-transcript.jsonl" <<'JSONL'
+{"type":"system","subtype":"init","session_id":"5e55a0b1-0000-4000-8000-00000000f0f0"}
+{"type":"assistant","parent_tool_use_id":null,"message":{"content":[{"type":"tool_use","id":"toolu_s1","name":"Skill","input":{"skill":"do-code-review"}}]}}
+{"type":"result","subtype":"success","result":"Fixed."}
+JSONL
+mkdir -p "$evals/forked"
+printf 'runs: 1\n' >"$evals/forked/case.yaml" && printf '/do-code-review fix\n' >"$evals/forked/prompt.md"
+grader forked integrated "type: tool_used
+tool: Bash
+scope: all
+input_match: 'fix-integrate\\.sh'
+min: 1
+max: 1"
+reset
+STUB_TRANSCRIPT="$tmp/forked-transcript.jsonl" STUB_SUBAGENT="$w/subagents/agent-a1b2c3.jsonl" run "$evals" forked
+check "a whole run is green on a scope: all grader whose only call the forked subagent wrote to its own transcript file" \
+  0 "$rc" "ok    forked run 1/1 integrated" "forked: 1/1 green"
+rm -rf "$(sed -n 's/^ *kept: //p' <<<"$out")"
+
+# A backgrounded subagent's call is streamed with its parent's id and also written to its own
+# transcript file under the same tool_use id: it is one call, and a grader with a max counts it once.
+w="$tmp/streamed-and-held"
+mkdir -p "$w/subagents"
+cat >"$w/transcript.jsonl" <<'JSONL'
+{"type":"system","subtype":"init"}
+{"type":"assistant","parent_tool_use_id":null,"message":{"content":[{"type":"tool_use","id":"toolu_s1","name":"Agent","input":{"description":"Fix Finding 2","prompt":"Fix it.","run_in_background":true}}]}}
+{"type":"assistant","parent_tool_use_id":"toolu_s1","message":{"content":[{"type":"tool_use","id":"toolu_f1","name":"Bash","input":{"command":"bash ~/.claude/skills/do-code-review/scripts/fix-integrate.sh /work/tree 2=fixer/export-notes/w1-2","description":"Integrate the returned Fixer"}}]}}
+{"type":"result","subtype":"success","result":"Fixed."}
+JSONL
+cat >"$w/subagents/agent-d4e5f6.jsonl" <<'JSONL'
+{"type":"user","isSidechain":true,"agentId":"d4e5f6","message":{"content":"Fix it."}}
+{"type":"assistant","isSidechain":true,"agentId":"d4e5f6","message":{"content":[{"type":"tool_use","id":"toolu_f1","name":"Bash","input":{"command":"bash ~/.claude/skills/do-code-review/scripts/fix-integrate.sh /work/tree 2=fixer/export-notes/w1-2","description":"Integrate the returned Fixer"}}]}}
+JSONL
+evals="$tmp/graded" grader forked integrated "type: tool_used
+tool: Bash
+scope: all
+input_match: 'fix-integrate\\.sh'
+min: 1
+max: 1"
+# shellcheck disable=SC2034 # read by lib.sh's grade_passes
+grader="$tmp/graded/forked/graders/integrated.md"
+grade_passes "a scope: all grader counts once a subagent call both streamed and held in its own transcript file" "$w"
 
 if [ "$fails" = 0 ]; then echo "PASS"; else
   echo "$fails failing"

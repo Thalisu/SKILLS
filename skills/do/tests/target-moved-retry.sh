@@ -2,9 +2,9 @@
 # target-moved-retry.sh: what mechanics.md's `## The review` has the run do on a review return of
 # `not landed: target moved`: the same run integrates again and lands through the fix call on the
 # Review it already has, instead of stopping for the developer to type `/do` again, and it keeps doing
-# so with no fixed count, per ADR 0044, which supersedes ADR 0034's stop on a second move. It stops as
-# blocked only on a `not landed: target moved` right after an integration that ticked as a no-op,
-# since that return means no other landing happened.
+# so with no fixed count, per ADR 0044, which supersedes ADR 0034's stop on a second move. The loop
+# ends only on a `not landed: target moved` right after an integration that ticked as a no-op, since
+# that return means no other landing happened.
 # Run: bash skills/do/tests/target-moved-retry.sh
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
@@ -79,20 +79,11 @@ noop=(
 carries_any "the passage names the stop: a target moved right after an integration that ticked as a no-op" \
   "${noop[@]}"
 
-# What the run does on that return is read from where the passage first names it on, so a stop or a
-# recovery command the passage gives another return cannot answer for it.
+# What the run does on that return is read from where the passage first names it on, so a stop the
+# passage gives another return cannot answer for it.
 whole="$flat"
 n="$(first_at "${noop[@]}")"
 flat="${whole:$((n > 0 ? n - 1 : ${#whole}))}"
-carries_any "a target moved after a no-op integration stops the run as blocked, like every other not landed" \
-  "stops the run as blocked" "the run stops as blocked" "stops as blocked" "stops the run, blocked" \
-  "stops blocked"
-retyped=(
-  "the same run request typed again" "the same run request, typed again" "the run request typed again"
-  "types the same run request again" "type the same run request again"
-)
-carries_any "the reply to a target moved after a no-op integration names the same run request typed again as its recovery" \
-  "${retyped[@]}"
 flat="$whole"
 
 # The cap ADR 0044 supersedes: a count of retries beside the loop would still block the run one past it.
@@ -177,20 +168,11 @@ for row in "${playbooks[@]}"; do
     0 0 "for any reason the review gives. The run stops as blocked"
   check_absent "the $name review step no longer caps the retry at once per run nor stops on a second target moved" \
     0 0 "${cap[@]}"
-  n="$(first_at "${noop[@]}")"
-  r="$(first_at "${retyped[@]}")"
-  expect "the $name review step names the run request typed again only for the no-op stop, never a target moved the loop answers" \
-    test "$r" = 0 -o \( "$n" -gt 0 -a "$r" -gt "$n" \)
-
   flat="$(item_holding "$book" "$marker" "$reply_key" | tr '\n' ' ' | tr -s ' ')"
   expect "$name.md carries its reply step" test -n "$flat"
   # shellcheck disable=SC2034  # lib.sh's check_absent reads $out
   out="$flat"
   check_absent "the $name reply no longer gives a recovery for a second target moved" 0 0 "${cap[@]}"
-  n="$(first_at "${noop[@]}")"
-  r="$(first_at "${retyped[@]}")"
-  expect "the $name reply names the run request typed again as the recovery for the no-op stop only" \
-    test "$n" -gt 0 -a "$r" -gt "$n"
 done
 
 exit $((fails > 0))

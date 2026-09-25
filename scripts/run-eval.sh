@@ -20,8 +20,11 @@
 #   llm          criteria, read against the run's transcript and what the run changed in the
 #                fixture by one judge session, which answers for every llm grader of the run
 #   regex        pattern (PCRE), match: contains, target: last_message
-#   tool_used    tool, input_match (PCRE over the input as compact JSON), min, max; it counts the
-#                calls the session makes itself, never a subagent's
+#   tool_used    tool, input_match (PCRE over the input as compact JSON), min, max, scope; it counts
+#                the calls the session makes itself, never a subagent's, unless scope reads all,
+#                which counts every call in the transcript and in the subagent transcripts beside it,
+#                a subagent's included: the only way to see the calls of a `context: fork` skill,
+#                whose orchestrator is a subagent the stream never shows
 #   file_exists  path, a glob from the fixture's root
 # A case is green only when every run passes every grader.
 #
@@ -84,8 +87,10 @@ if [ -f "$HOME/.claude/.credentials.json" ]; then
 fi
 printf '{"hasCompletedOnboarding":true}\n' > "$config/.claude.json"
 printf '{}\n' > "$config/settings.json"
-# The caller's own session markers would make every run a nested session of it.
-claude_cmd=(env -u CLAUDECODE -u CLAUDE_CODE_ENTRYPOINT CLAUDE_CONFIG_DIR="$config" claude -p)
+# The caller's own session markers would make every run a nested session of it. HOME is the sandbox
+# too: a skill runs its scripts and reads its references through ~/.claude/skills, which under the
+# caller's HOME is the maintainer's own install and never the checkout under test.
+claude_cmd=(env -u CLAUDECODE -u CLAUDE_CODE_ENTRYPOINT HOME="$sandbox" CLAUDE_CONFIG_DIR="$config" claude -p)
 
 front() { awk 'NR == 1 && /^---$/ { f = 1; next } f && /^---$/ { exit } f' "$1"; }
 body() { awk 'NR == 1 && /^---$/ { f = 1; next } f == 1 && /^---$/ { f = 2; next } f == 2' "$1"; }
@@ -94,6 +99,13 @@ events() { jq -Rc 'fromjson? // empty' "$1"; }
 own_tool_uses() { # $1 transcript: the tool calls the session made itself; a subagent's carry a parent id
   events "$1" | jq -c 'select(.type == "assistant" and (.parent_tool_use_id // null) == null)
     | .message.content[]? | select(.type == "tool_use")'
+}
+all_tool_uses() { # $1 transcript: every tool call in it and in the subagent transcripts beside it
+  local f
+  for f in "$1" "$(dirname "$1")"/subagents/agent-*.jsonl; do
+    [ -f "$f" ] || continue
+    events "$f" | jq -c 'select(.type == "assistant") | .message.content[]? | select(.type == "tool_use")'
+  done | jq -sc 'unique_by(.id) | .[]'
 }
 readable() { # $1 transcript: the run as the judge reads it
   events "$1" | jq -r '
@@ -153,7 +165,7 @@ EOF
 }
 
 grade() { # $1 grader, $2 work folder: prints why the run fails the grader, nothing when it passes
-  local g="$1" w="$2" name type answer verdict reason pattern match target tool input_match min max count path
+  local g="$1" w="$2" name type answer verdict reason pattern match target tool input_match min max count path uses
   name="$(basename "$g" .md)"
   type="$(key "$g" type)"
   case "$type" in
@@ -179,7 +191,8 @@ grade() { # $1 grader, $2 work folder: prints why the run fails the grader, noth
       esac ;;
     tool_used)
       tool="$(key "$g" tool)"; input_match="$(key "$g" input_match)"; min="$(key "$g" min)"; max="$(key "$g" max)"
-      count="$(own_tool_uses "$w/transcript.jsonl" | jq -c --arg t "$tool" 'select(.name == $t) | .input' |
+      uses=own_tool_uses; [ "$(key "$g" scope)" != all ] || uses=all_tool_uses
+      count="$("$uses" "$w/transcript.jsonl" | jq -c --arg t "$tool" 'select(.name == $t) | .input' |
         grep -cP -- "${input_match:-.}")"
       if [ "$count" -lt "${min:-1}" ] || { [ -n "$max" ] && [ "$count" -gt "$max" ]; }; then
         echo "$tool called $count times with a matching input, wanted ${min:-1} to ${max:-any}"
@@ -244,7 +257,9 @@ for c in "${cases[@]}"; do
     else
       snapshot "$work/fixture" > "$work/before"
       head_before="$(git -C "$work/fixture" rev-parse -q --verify HEAD 2>/dev/null)"
-      args=(--output-format stream-json --verbose --max-turns "$max_turns" --no-session-persistence)
+      # The session persists, into the throwaway config, because a forked skill's subagent writes its
+      # calls only to its own transcript file there and never to the stream.
+      args=(--output-format stream-json --verbose --max-turns "$max_turns")
       [ -z "$allowed" ] || args+=(--allowedTools "$allowed")
       [ -z "$model" ] || args+=(--model "$model")
       rc=0
@@ -256,6 +271,13 @@ for c in "${cases[@]}"; do
         red=1
       else
         events "$work/transcript.jsonl" | jq -r 'select(.type == "result") | .result // ""' > "$work/last_message"
+        session="$(events "$work/transcript.jsonl" | jq -r 'select(.type == "system" and .subtype == "init") | .session_id // empty' | head -1)"
+        if [ -n "$session" ]; then
+          for f in "$config/projects"/*/"$session"/subagents/agent-*.jsonl; do
+            [ -f "$f" ] || continue
+            mkdir -p "$work/subagents" && cp "$f" "$work/subagents/"
+          done
+        fi
         snapshot "$work/fixture" > "$work/after"
         {
           echo "Files created, changed or deleted (each file's checksum and path, < before the run, > after it):"

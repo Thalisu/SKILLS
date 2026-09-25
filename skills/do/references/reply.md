@@ -198,7 +198,11 @@ lists it; write it by this file alone otherwise.
 10. **Pending debt.** Waivers, consumer coverage not run, an equivalence gap, a second thing found
    on the way and not done.
 11. **Next step.** One line. It ends with the push command when something landed on the
-    developer's branch, `git push` with the branch named; otherwise the command to type next.
+    developer's branch, `git push` with the branch named; otherwise the command to type next. A
+    landed run whose close finished is not a stop: the push stays on this line, the run never
+    pushes, and its Reply carries no `Yours:` line. A landed run that then stopped at the close's
+    `destroy` stop carries exactly one `Yours: destroy:` line, per the section below; the push
+    still stays on this Next step line and is never named under `outward`.
 
 ## A refusal or a blocked run
 
@@ -210,3 +214,28 @@ is the refusal.
 
 A run that stopped as blocked names the step it stopped at, and its Skipped section
 lists no step after it as skipped: the run never reached those steps.
+
+Every blocked Reply, and every refusal at a door, carries one line that says what the run hands the
+developer and why only the developer can give it:
+
+```
+Yours: <class>: <the choice>
+```
+
+The class is one **Handover class** and nothing outside that closed set, per
+[ADR 0057](../../../docs/adr/0057-a-do-run-stops-only-on-a-handover-class-its-reply-names.md):
+`direction`, a choice between outcomes; `destroy`, removing work the run did not create; `trust`,
+taking a stranger's text as the developer's; `outward`, a write outside the repository. The choice
+is what the developer does next, every option named when there is more than one, in the words they
+act on. The line sits beside the refusal or the blocker and its reason, before the Playbook or the
+door the request goes to; in a refusal before any edit it is part of the one message. A stop that
+cannot name a class is not a stop: whatever it would hand over is a reversible action inside the
+run's own artifacts, and the run takes it. The Playbook's own step names the class of each stop it
+makes, keyed on what its scripts print and never on the session's reading. A blocked Reply whose
+handed-over commands include a push names that push under `outward`, since a push is a write
+outside the repository the run never makes itself, except the close's `destroy` stop on a landed
+run: its push already sits on the Reply's Next step line, per item 11 above, so the
+`Yours: destroy:` line names only the worktree and branch choice, never the push. The question a
+run puts before a write to a
+remote tracker, the claim's and the close's, carries the same line under `outward`, its choice the
+yes that makes every write the question lists or the no that makes none of them.

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # lib.sh: the assertions and fixture builders the test scripts share. A script sources it after its
 # `here=` line and sets fails=0; the assertions read the caller's $out and bump the caller's $fails.
-# shellcheck disable=SC2154 # $out, $flat and $tmp belong to the sourcing script, which assigns them first.
+# shellcheck disable=SC2154 # $out, $flat, $tmp and $grader belong to the sourcing script, which assigns them first.
 
 ok() { echo "ok    $1"; }
 fail() {
@@ -272,6 +272,14 @@ fresh() { # $1 name: a new repository at $tmp/<name>, entered
   g config rerere.enabled false
   g config merge.conflictStyle merge
 }
+committer_identity() { # a committer identity in the current repository, for commits a script under test makes with plain git, which never sees g's own -c flags
+  g config user.email t@example.com
+  g config user.name t
+}
+branch_worktree() { # $1 main checkout, $2 name: a worktree at .claude/worktrees/do-<name> on a new branch do/<name> off the checkout's HEAD; its path on stdout
+  local wt="$1/.claude/worktrees/do-$2"
+  g -C "$1" worktree add -q "$wt" -b "do/$2" && echo "$wt"
+}
 stop_state() { # the stop as git left it, on stdout: the index and status, and the hash of every working file
   git status --porcelain=v2
   find . -path ./.git -prune -o -type f -print0 | sort -z | xargs -0 sha256sum
@@ -300,6 +308,69 @@ ledger_verdict_entry_fixture() { # $1 dir, $2 id, $3 verdict, $4 reason: an entr
   printf '%s\n' "$2" >"$1/id"
   printf '%s\n' "$3" >"$1/verdict"
   printf '%s\n' "$4" >"$1/reason"
+}
+review_at() { # $1 the Review's Commit: sha, $2 the review file, $3 its Act on Findings, $4 its Fix run sections, $5 its Fixed point sha (default: $1); by default one Act on Finding on src/a.sh, not fixed by the one Fix run
+  local reviewed="$1"
+  local act_on="${3:-### 1. Correctness at src/a.sh:3
+Claim: a call with no argument exits on an unbound variable.
+Evidence: \`bash src/a.sh\` exits 1 with \`\$1: unbound variable\`.
+Rung: 4
+Fix: a call with no argument prints an empty line and exits 0, in tests/a.test.sh}"
+  local fix_runs="${4:-## Fix run
+
+Date: 2026-09-24 · at $reviewed
+
+- 1: not fixed: the Fixer never returned
+- diff tests: skip: no Fixer commit
+- gate fixer: not needed
+- gate: \`bash tests/a.test.sh\`: green
+- not landed: a Fixer did not return}"
+  local fixed_point="${5:-$reviewed}"
+  cat >"$2" <<MD
+# Review: main
+
+Ticket: none
+Fixed point: main ($fixed_point), inferred
+Commit: $reviewed
+Spec source: no spec
+Mode: fix
+Language: English
+
+## Intent
+
+Print the first argument.
+
+## Safe because
+
+The script has no caller outside the diff. Rung 4.
+
+## Act on
+
+$act_on
+
+## Consider
+
+none
+
+## Noted
+
+none
+
+## Cleared
+
+none
+
+## Axes
+
+- Correctness: 1 finding, worst #1 (Act on)
+- Spec: no spec
+- Standards: 0 findings
+- Principles: 0 findings
+- Blast radius: 0 findings
+- Security: 0 findings
+
+$fix_runs
+MD
 }
 # One part of the ledger entry whose `- file:` key is $2, on stdout: its key lines (`keys`), or the
 # body of the fenced block under its Target (`target`) or Incoming (`incoming`) section. A fence may
@@ -359,4 +430,64 @@ policy_pieces_fixture() { # $1 project dir, $2.. the agents to install (unit, e2
   done
   bash "$scripts/render-agent.sh" test-author >"$p/.claude/skills/test-author/SKILL.md"
   cp "$scripts/scan-test-assets.sh" "$scripts/skip-patterns.sh" "$p/.claude/testing-policy/"
+}
+
+# scripts/run-eval.sh's own grade() and the helpers it calls, the lines from front() to just before
+# restore_agents(), so a test exercises an eval's grader against a throwaway work folder and no claude
+# session ever starts.
+source_grade() {
+  local runner start end
+  runner="$(dirname "${BASH_SOURCE[0]}")/../run-eval.sh"
+  start="$(grep -n '^front()' "$runner" | head -1 | cut -d: -f1)"
+  end="$(($(grep -n '^restore_agents()' "$runner" | head -1 | cut -d: -f1) - 1))"
+  # shellcheck disable=SC1090 # the runner's own functions, read from the checkout this file sits in
+  source <(sed -n "${start},${end}p" "$runner")
+}
+# One Agent tool_use transcript line, appended to the run's transcript. A call a forked skill's
+# orchestrator makes carries the id of the Skill call that forked it as its parent; the session's own
+# calls carry a null one. The input is built by jq, so a prompt holding quotes or newlines lands
+# JSON-escaped, as a real transcript's does.
+agent_call_append() { # $1 subagent_type or empty to omit the key, $2 work folder, $3 parent tool_use id or empty for null, $4 model or empty to omit the key, $5 prompt (default y)
+  local n=1
+  [ ! -f "$2/transcript.jsonl" ] || n="$(($(wc -l <"$2/transcript.jsonl") + 1))"
+  jq -nc --arg sub "$1" --arg parent "${3:-}" --arg model "${4:-}" --arg prompt "${5:-y}" --arg id "t$n" '
+    {description: "x", prompt: $prompt}
+    + (if $sub == "" then {} else {subagent_type: $sub} end)
+    + (if $model == "" then {} else {model: $model} end)
+    | {type: "assistant", parent_tool_use_id: (if $parent == "" then null else $parent end),
+       message: {content: [{type: "tool_use", id: $id, name: "Agent", input: .}]}}' >>"$2/transcript.jsonl"
+}
+# A run holding that one Agent call and nothing else
+agent_call_transcript() { # agent_call_append's arguments
+  : >"$2/transcript.jsonl"
+  agent_call_append "$@"
+}
+# grade() against the run in a work folder: the grader in the caller's $grader passes it (prints nothing)
+grade_passes() { # $1 label, $2 work folder
+  local out
+  out="$(grade "$grader" "$2")"
+  if [ -z "$out" ]; then ok "$1"; else
+    fail "$1 (wanted empty, got: $out)"
+  fi
+}
+# ... or fails it (prints a reason)
+grade_fails() { # $1 label, $2 work folder
+  local out
+  out="$(grade "$grader" "$2")"
+  if [ -n "$out" ]; then ok "$1"; else
+    fail "$1 (wanted a non-empty failure reason, grader passed instead)"
+  fi
+}
+# grade_passes and grade_fails against a run holding that one Agent call
+agent_call_passes() { # $1 label, then agent_call_transcript's $1, $3, $4 and $5: subagent_type, parent id, model, prompt
+  local w
+  w="$(mktemp -d "$tmp/w.XXXXXX")"
+  agent_call_transcript "$2" "$w" "${3:-}" "${4:-}" "${5:-}"
+  grade_passes "$1" "$w"
+}
+agent_call_fails() { # $1 label, then agent_call_transcript's $1, $3, $4 and $5: subagent_type, parent id, model, prompt
+  local w
+  w="$(mktemp -d "$tmp/w.XXXXXX")"
+  agent_call_transcript "$2" "$w" "${3:-}" "${4:-}" "${5:-}"
+  grade_fails "$1" "$w"
 }
