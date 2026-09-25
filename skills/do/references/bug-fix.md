@@ -98,7 +98,7 @@ bug-fix:
 - [ ] 7. The original reproduction run again on the same surface: the passing output
 - [ ] 8. Gate in the worktree: the run's own tests, typecheck, format, and the full suites the Post-feature gate names
 - [ ] 9. Integration: the branch rebased onto the developer's branch, the gate again when it replayed
-- [ ] 10. Review by do-code-review: Act on Findings fixed by its Fixer, landed when Green
+- [ ] 10. Review by do-code-review: Act on Findings fixed by its Fixers, Wave by Wave, landed when Green
 - [ ] 11. Affected E2E flows run from the main checkout
 - [ ] 12. Worktree removed
 - [ ] 13. Reply
