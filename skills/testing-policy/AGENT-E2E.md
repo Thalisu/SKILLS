@@ -35,17 +35,17 @@ If the caller's stated behavior contradicts what the UI does, say so in the repo
 
 ### Outcome and settle points
 
-A flow asserts two different things, and it never lets one pass for the other.
+A flow asserts two different things, and keeps them apart.
 
 - **What earns an assertion.** A string on screen earns an assertion by what rides on it, never by its kind: a message the user reads to act, a text that tells two states apart, an accessible name that assistive technology reads. A title or a static label that only proves the page carries it is structure, not an outcome; the same title earns an assertion only when something rides on it, such as the page an access check must refuse.
-- **A settle point is a wait, never the proof.** It holds the flow until the state its next step needs has arrived, and a flow never ends on one: the last assertion is always an outcome.
+- **A settle point is a wait, never the proof.** It holds the flow until the state its next step needs has arrived, and the flow's last assertion is an outcome.
 - **An action that waits for its own target is its own settle point.** When the tool waits for a control before acting on it, no assertion goes before the click. An explicit settle point is required only before a step that does not wait: an absence, a count, a value read, a gesture by coordinates.
-- **Anchor a settle point on what the next step acts on or reads**: the URL, a landmark, the current-tab state, the control itself. Never on copy the product may drop on purpose: a removed title then stops every flow that waited on it.
+- **Anchor a settle point on what the next step acts on or reads**: the URL, a landmark, the current-tab state, the control itself. An anchor on copy the product may drop on purpose breaks with it: a removed title then stops every flow that waited on it.
 - **An absence comes after a settle point.** Before the surface it checks has rendered, an absence holds on a blank page and passes whatever the product does, so every absence assertion follows a settle point that proves that surface is there.
 
 ### Reuse audit: mandatory, before writing anything
 
-Priority: **reuse > extend > create.** Never write a second copy of something that exists.
+Priority: **reuse > extend > create.** An asset that exists is used, whichever file holds it.
 
 Run the Discovery block from "Project map" first: its commands are independent of one another, so send them all in one response (one message, several tool calls), and only then search for the specific thing you are about to build, since that search depends on what they returned:
 
@@ -58,9 +58,9 @@ For every asset you need, classify it:
 | State | What you do |
 |---|---|
 | Exists in a shared home | Use it. |
-| Exists, inline in another flow | **Second-use rule**: promote it (below). Never write the second copy. |
+| Exists, inline in another flow | **Second-use rule**: promote it (below) and use it from the shared home. |
 | Exists but doesn't quite fit | Strict order: **(1)** extend backward-compatibly (new method on the same page object, optional param) → **(2)** change it and update every call site → **(3)** create a separate asset. |
-| Does not exist anywhere | Create it in the shared home for its role. A page-object method never lives inside a flow file. |
+| Does not exist anywhere | Create it in the shared home for its role: a page-object method goes in its page object. |
 
 **(3) is a fork and is forbidden without a written semantic justification** in the report: a second page class for the same screen, or a second factory for the same entity, is a fork. Choosing **(2)** obliges you to run every flow that referenced the changed asset.
 
@@ -74,7 +74,7 @@ A promotion moves an asset out of a flow into the shared home for its role and r
 4. Run **every flow that referenced the asset**; the grep in step 3 is the exact list. The full suite is not yours to run: it runs only when the project's post-feature gate names it.
 5. Report the promotion as its own changeset, separate from the flow. It lands in the same commit as the motivating flow or in a refactor commit immediately before it; splitting them leaves the other flow broken at that commit.
 
-Every file a promotion touches is edited in place with a targeted edit: the moved asset, each call site, the shared home it lands in. Never rewrite a file whole to make a small change in it: the result should read the same, and a rewrite spends the tokens of everything the file already carried and can drop some of it without a trace.
+Every file a promotion touches is edited in place with a targeted edit: the moved asset, each call site, the shared home it lands in. A small change lands as a small edit: the result should read the same, and a rewrite of the whole file spends the tokens of everything the file already carried and can drop some of it without a trace.
 
 ### Preflight, then run
 
@@ -82,21 +82,26 @@ E2E runs against the real local stack, and a stack that is down looks exactly li
 
 1. Execute the preflight checks in "Project map" (app reachable, required services up).
 2. **Any check fails → do not run.** A red produced on a broken stack proves nothing. The dispatched agent returns `BLOCKED` (see Dispatch protocol); an inline writer repairs the stack first; fixing the infra is part of the delivery.
-3. All checks pass → run the flow. It MUST be green: E2E is proven after the feature exists. A red flow is a product bug or a flow bug: say which you believe and why; never weaken the assertion to find out. A dispatched agent corrects once and no more (see "The fix ceiling"); an inline writer owns the product and the stack and fixes until the flow stands.
-4. Report the command and the relevant output verbatim. Never paraphrase a result.
+3. All checks pass → run the flow. The target is green: E2E is proven after the feature exists. A red flow is a product bug or a flow bug: say which you believe and why, with the assertion left as written. A dispatched agent corrects once and no more (see "The fix ceiling"); an inline writer owns the product and the stack and fixes until the flow stands.
+4. Report the command and the relevant output verbatim, as the runner printed them.
 5. Format every file you wrote or edited with the project formatter/linter (see "Project map").
 
 ### Forbidden
 
-- A second copy of an asset that exists anywhere under the E2E tree; a page-object method inside a flow file.
+- A second copy of an asset that exists anywhere under the E2E tree.
+- A page-object method inside a flow file.
 - Deriving the expected behavior from the UI.
-- Skip / xfail / optional (or any equivalent) on a failing step; weakening or dropping an assertion; a flow with no outcome assertion.
-- Mocking the backend; flows run against the real stack.
+- Skip / xfail / optional (or any equivalent) on a failing step.
+- Weakening or dropping an assertion.
+- A flow with no outcome assertion.
+- Mocking the backend.
 - Asserting through the database when the product shows the outcome.
 - Sleep/timeout padding to hide a race.
 - An assertion on a string present only as structure, with nothing relying on it.
-- A flow that ends on a settle point; an absence asserted before a settle point; a settle point anchored on copy when the step it gates offers a structural anchor.
-- A third run of your flow in one dispatch, or a second fix attempt, when you were dispatched (see "The fix ceiling").
+- A flow that ends on a settle point.
+- An absence asserted before a settle point.
+- A settle point anchored on copy when the step it gates offers a structural anchor.
+- A third run or a second fix attempt in one dispatch.
 
 ## Dispatch protocol
 
@@ -104,7 +109,7 @@ Binds this agent when dispatched. An inline writer under `/test-author` is the c
 
 ### Required input: refuse if incomplete
 
-The caller MUST supply:
+The caller supplies:
 
 - **Behavior to prove**: one sentence, in terms the user would observe (screen, message, state, navigation).
 - **Relied on by**: who relies on the behavior and what a wrong or missing result costs them (a user who cannot act, a state shown wrong, an access that should have been refused).
@@ -124,14 +129,14 @@ Snapshot git before your first edit: `git status --porcelain`. Your changeset is
 
 ### Stack
 
-**Never start, restart, or repair the stack, never edit env files**: that is the caller's job, and a red caused by infra you patched yourself is unreviewable. On a failed preflight return `BLOCKED`, naming the failed check and the service, with the flow already written and the reuse audit done.
+**The stack is the caller's to start, restart or repair, and the env files are the caller's to edit**: a red caused by infra you patched yourself is unreviewable. On a failed preflight return `BLOCKED`, naming the failed check and the service, with the flow already written and the reuse audit done.
 
 ### The fix ceiling
 
 Your flow runs **at most twice in one dispatch**: the first run, and the one after a single fix
 attempt on the flow itself. A red is diagnosed and corrected once; if the second run is red too,
 you stop and return `HANDBACK`. There is no third run and no second fix attempt, whatever the
-failure looks like. Preflight checks are not runs of the flow and never count against the ceiling.
+failure looks like. Preflight checks are not runs of the flow and stand outside the ceiling.
 
 The ceiling is not a licence to give up on the first red: it is the point where the diagnosis is
 worth more to the caller than another attempt from inside a window that has already read
@@ -166,7 +171,7 @@ Customer with an open cart: `rg -n "buildCustomer|withOpenCart" e2e/` returned `
 
 **Handback**: on `HANDBACK` only, and then it is the point of the report. Three parts, in this order:
 - **Diagnosis**: `production` or `test`, then one line for why. `production` names the bug, the missing accessible name or the state the flow cannot reach; `test` names what in the flow is still wrong.
-- **Ruled out**: the hypothesis your fix attempt tested and what the second run settled about it, so the author dispatched after you never buys the same experiment twice. A `production` diagnosis at the first run has no fix attempt behind it and says so.
+- **Ruled out**: the hypothesis your fix attempt tested and what the second run settled about it, so the author dispatched after you starts past that experiment. A `production` diagnosis at the first run has no fix attempt behind it and says so.
 - **Run**: the last run's command and its failing output verbatim.
 
 <example>

@@ -27,10 +27,10 @@ If the caller's stated behavior contradicts what the implementation does, say so
 
 The test calls the target the way its callers do and asserts what they can observe: the return value, the state read back through the same interface, the error raised. The **Behavior to prove** sentence is the test name; a name that says how ("calls validateCard") instead of what ("rejects an expired card") is a test of the implementation, and will break on refactors that change nothing.
 
-- **Mock at system boundaries only**: the boundaries listed in "Project map", through their shared mocks. Never this repo's own modules or internal collaborators: a mocked internal pins the implementation and stays green when the real path breaks. A boundary you need that the map does not list goes in the report as a candidate; never widen the map yourself.
-- **Assert the outcome, not the route.** A call on an internal collaborator, a call count, an order, a private function: none of these is an outcome. A call into a mocked boundary is one (the charge made, the email sent). Never verify through a side channel (reading the row the code wrote) when the interface can read the outcome back.
+- **Mock at system boundaries only**: the boundaries listed in "Project map", through their shared mocks. This repo's own modules and internal collaborators stay real: a mocked internal pins the implementation and stays green when the real path breaks. A boundary you need that the map does not list goes in the report as a candidate, and widening the map is the project's move.
+- **Assert the outcome, not the route.** A call on an internal collaborator, a call count, an order, a private function: none of these is an outcome. A call into a mocked boundary is one (the charge made, the email sent). An outcome the interface can read back is read there; a side channel (the row the code wrote) is for an outcome the interface has no way to read.
 - **What earns an assertion.** A value earns an assertion by what rides on it: the caller relies on it and a wrong or missing one costs them something. A string is judged the same way, never by its kind: a message the user reads to act, a text that tells two states apart, an accessible name, a line a program parses. A title, a static label or a heading that only proves it is there is structure, and asserting it pins the shape: the same title earns an assertion only when something rides on it, such as the page an access check must refuse.
-- **A missing seam is production code.** When the declared behavior can only be reached by mocking an internal or asserting on a side effect, name the seam (pass the dependency in, return the result instead of mutating) and stop (see "Finish"); an inline writer makes that change before the test. Never mock around it.
+- **A missing seam is production code.** When the declared behavior can only be reached by mocking an internal or asserting on a side effect, name the seam (pass the dependency in, return the result instead of mutating) and stop (see "Finish"); an inline writer makes that change before the test. The seam comes first in either case.
 
 ### Building the input
 
@@ -42,7 +42,7 @@ The input a test passes in is built, never forced into place. A fake that stands
 
 ### Reuse audit: mandatory, before writing anything
 
-Priority: **reuse > extend > create.** Never write a second copy of something that exists.
+Priority: **reuse > extend > create.** An asset that exists is used, whichever file holds it.
 
 Run the Discovery block from "Project map" first: its commands are independent of one another, so send them all in one response (one message, several tool calls), and only then search for the specific thing you are about to build, since that search depends on what they returned:
 
@@ -54,7 +54,7 @@ For every asset you need (factory, mock, helper, fixture, wrapper) classify it:
 | State | What you do |
 |---|---|
 | Exists in a shared home | Use it. |
-| Exists, local to another test file | **Second-use rule**: promote it (below). Never write the second copy. |
+| Exists, local to another test file | **Second-use rule**: promote it (below) and use it from the shared home. |
 | Exists but doesn't quite fit | Strict order: **(1)** extend backward-compatibly (optional param, sibling function) → **(2)** change it and update every call site → **(3)** create a separate asset. |
 | Does not exist anywhere | Create it. A first occurrence may live local to your test file. |
 
@@ -70,26 +70,29 @@ A promotion moves an asset out of a test file into the shared home for its role 
 4. Run the **full** unit suite. A promotion that turns anything red is not done.
 5. Report the promotion as its own changeset, separate from the test. It lands in the same commit as the motivating test or in a refactor commit immediately before it; splitting them leaves the other test file broken at that commit.
 
-Every file a promotion touches is edited in place with a targeted edit: the moved asset, each call site, the shared home it lands in. Never rewrite a file whole to make a small change in it: the result should read the same, and a rewrite spends the tokens of everything the file already carried and can drop some of it without a trace.
+Every file a promotion touches is edited in place with a targeted edit: the moved asset, each call site, the shared home it lands in. A small change lands as a small edit: the result should read the same, and a rewrite of the whole file spends the tokens of everything the file already carried and can drop some of it without a trace.
 
 ### Running
 
 - Run your new/edited file and confirm it is red **for the reason the caller declared**. Red from a typo, a wrong import path, or a mis-mocked module is *your* bug; fix and rerun. Only red matching the declared reason counts. A dispatched agent corrects once and no more (see "The fix ceiling"); an inline writer owns the production code and fixes until the test stands.
 - Run the **full** unit suite whenever you created, extended, changed, or promoted a shared asset.
-- Report the command and the relevant output verbatim. Never paraphrase a result.
+- Report the command and the relevant output verbatim, as the runner printed them.
 - Format every file you wrote or edited with the project formatter (see "Project map").
 
 ### Forbidden
 
 - A second copy of an asset that exists anywhere in the test tree.
 - Deriving the expected behavior from the implementation.
-- Building a fake by asserting a type at the compiler instead of the helper "Project map" names.
-- Mocking a module of this repo; asserting on a call, a call count, an order or a private symbol as the outcome; verifying through a side channel the interface exposes.
-- Weakening or dropping an assertion to get green; a test with no outcome assertion.
+- Building a fake by asserting a type at the compiler.
+- Mocking a module of this repo.
+- Asserting on a call, a call count, an order or a private symbol as the outcome.
+- Verifying through a side channel when the interface can read the outcome back.
+- Weakening or dropping an assertion to get green.
+- A test with no outcome assertion.
 - An assertion on a string present only as structure, with nothing relying on it.
 - Skipping, narrowing (`.only`) or marking a failing case as optional.
 - Sleep/timeout padding to hide a race.
-- A third run of your test in one dispatch, or a second fix attempt, when you were dispatched (see "The fix ceiling").
+- A third run or a second fix attempt in one dispatch.
 
 ## Dispatch protocol
 
@@ -97,7 +100,7 @@ Binds this agent when dispatched. An inline writer under `/test-author` is the c
 
 ### Required input: refuse if incomplete
 
-The caller MUST supply:
+The caller supplies:
 
 - **Behavior to prove**: one sentence, in observable terms, not "test function X".
 - **Relied on by**: who relies on the behavior and what a wrong or missing result costs them (a caller handed a wrong value, a user who cannot act, a guarantee broken).
@@ -155,7 +158,7 @@ Frozen clock: `rg -n "freezeTime" tests/helpers/` returned the export in `tests/
 
 **Handback**: on `HANDBACK` only, and then it is the point of the report. Three parts, in this order:
 - **Diagnosis**: `production` or `test`, then one line for why. `production` names the bug, the missing seam or the state the test cannot reach; `test` names what in the test is still wrong.
-- **Ruled out**: the hypothesis your fix attempt tested and what the second run settled about it, so the author dispatched after you never buys the same experiment twice.
+- **Ruled out**: the hypothesis your fix attempt tested and what the second run settled about it, so the author dispatched after you starts past that experiment.
 - **Run**: the second run's command and its failing output verbatim.
 
 <example>

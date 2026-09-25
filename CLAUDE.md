@@ -130,7 +130,7 @@ A feature or fix is DONE only when its own unit tests pass and then the post-fea
 ### TDD
 
 - **Unit is strict red-first**: write the failing test before the implementation. For a bugfix, the test must reproduce the bug (fail red) before the fix turns it green.
-- **One test at a time**: red → green → next. The first cycle is a tracer bullet, one test proving the path end to end, and each next test is chosen from what the previous cycle taught. Never the whole batch of tests first and the implementation after: tests written in bulk describe imagined behavior and the shape of things (signatures, data structures), not what the code does, and stay green when it breaks.
+- **One test at a time**: red → green → next. The first cycle is a tracer bullet, one test proving the path end to end, and each next test is chosen from what the previous cycle taught. Tests written in bulk, the whole batch first and the implementation after, describe imagined behavior and the shape of things (signatures, data structures), not what the code does, and stay green when it breaks.
 - **Green is minimal**: only the code the current test needs; no branch, parameter or feature for a test not yet written. Minimal is the least logic that solves the problem for every valid input, never the least code that satisfies the assertion: a constant or a branch that recognizes the test's inputs is the test rewritten as code, not green. The test verifies correctness and does not define the solution.
 - **Refactor on green, never on red**: once green, extract duplication, move complexity behind the interface the test exercised, move logic to where its data lives, running the suite after every step. A test that goes red under a pure refactor was asserting implementation (see "Tests describe behavior") and is rewritten against the interface, not appeased.
 - **Behaviors, not branches**: the tests for a change are the behaviors its callers observe, prioritized with critical paths and the logic that can be wrong first; not one test per branch, not every edge case. The list is written before the first cycle, from the request, the plan or the user, never inferred from the implementation.
@@ -139,15 +139,15 @@ A feature or fix is DONE only when its own unit tests pass and then the post-fea
 ### Tests describe behavior, not implementation
 
 - **Through the public interface**: a test exercises the target the way its callers do and asserts only what they can observe (the return value, the state read back through the same interface, the error raised). It is named for the behavior it proves, in the caller's words ("rejects an expired card", not "calls validateCard"), and it survives every refactor that keeps that behavior. A test that must reach into internals (a private function, a call on an internal collaborator, a row read straight from the table the code wrote) tests the implementation: it breaks on refactors that change nothing and passes on bugs that change everything.
-- **Mock at system boundaries only**: external services, the clock, randomness, the network, sometimes the database or the filesystem, as named in the unit-test-author's Project map, through their shared mocks. Never this repo's own modules or internal collaborators: a mocked internal pins the implementation and stays green when the real path is broken.
-- **A test that is hard to write is a design signal**: when a behavior can only be reached by mocking an internal, or by asserting on a side effect the interface does not expose, the fix is a seam in the code (pass the dependency in, return the result instead of mutating) and it lands before the test. Never mock around a missing seam.
+- **Mock at system boundaries only**: external services, the clock, randomness, the network, sometimes the database or the filesystem, as named in the unit-test-author's Project map, through their shared mocks. This repo's own modules and internal collaborators stay real: a mocked internal pins the implementation and stays green when the real path is broken.
+- **A test that is hard to write is a design signal**: when a behavior can only be reached by mocking an internal, or by asserting on a side effect the interface does not expose, the fix is a seam in the code (pass the dependency in, return the result instead of mutating) and it lands before the test, with the mock staying at the boundary.
 
 ### Test authoring: delegation and reuse
 
 Every new test, a new test file or a new test case, is written under the test-author checklist, whose single source is the agent file:
 `.claude/agents/unit-test-author.md`.
 
-- **Who is bound**: everyone who writes a test. With the `Agent` tool, dispatch the agent. Without it (executors, auditors, test generators), invoke `/test-author`, which applies the agent file's **Authoring rules** and **Project map** inline; the agent file's **Dispatch protocol** binds only the dispatched agent. Never copy the rules here.
+- **Who is bound**: everyone who writes a test. With the `Agent` tool, dispatch the agent. Without it (executors, auditors, test generators), invoke `/test-author`, which applies the agent file's **Authoring rules** and **Project map** inline; the agent file's **Dispatch protocol** binds only the dispatched agent. The rules stay in the agent file, their single source.
 - **Dispatch input** (the agent refuses incomplete input and never infers the expectation from the implementation):
 
   ```
@@ -162,7 +162,7 @@ Every new test, a new test file or a new test case, is written under the test-au
 
 - **One dispatch per cycle**: the next unit test is dispatched (or written inline) only after the previous one is green and its implementation exists, never a batch of tests ahead of the code (see "TDD").
 - **Editing an existing case** (one more assertion, adjusted data) stays with the caller, unless it needs a new shared asset (factory, mock, fixture, helper, page-object method), which escalates to the agent.
-- **Reuse over duplication**: reuse > extend > create. An asset that exists anywhere in the test tree, including local to another test file, is never rewritten; on its second use it is promoted to the shared home for its role (the agent's Project map names them) and every call site is updated. A separate near-duplicate asset requires a written semantic justification in the agent's report.
+- **Reuse over duplication**: reuse > extend > create. An asset that exists anywhere in the test tree, including local to another test file, is reused; on its second use it is promoted to the shared home for its role (the agent's Project map names them) and every call site is updated. A separate near-duplicate asset requires a written semantic justification in the agent's report.
 - **Promotions are atomic**: the promoted asset and every updated call site are committed together with the test that motivated them, or in a refactor commit immediately before it, never split across commits, never left out of one. The agent reports the promotion as its own changeset for exactly this reason.
 - **A test still red after implementation**: the caller may fix mechanical breakage (import path, renamed symbol, typo). Any change to an assertion, an expectation, or expected data goes back to the agent, with the reason stated in terms of the contract ("the intended behavior was X"), never in terms of the result ("the test is catching it").
 - **A `HANDBACK` verdict**: the agent spent its one fix attempt (its test ran twice) and stopped, handing back its diagnosis, what it ruled out, the failing run and its reuse audit. Route on the handback's `Diagnosis`, never on the verdict: `production` is the caller's change to make (a bug, a missing seam, an unreachable state), since the agent may not touch production code, and only then is a fresh test dispatched; `test` gets one re-dispatch carrying the handback verbatim, so the next agent buys neither the ruled-out hypothesis nor the search behind every asset again, and re-runs the Discovery block over the paths the carried audit names before it writes to one. One re-dispatch per behavior: a second `HANDBACK` on the same behavior is escalated, never bought a third time.
@@ -178,16 +178,10 @@ Every new test, a new test file or a new test case, is written under the test-au
 
 **Principle: a failing test is presumed to expose a product bug, not a test bug.** Changing a test to make it pass requires demonstrating that the flow itself changed, stated explicitly in the commit/report, never done silently. The one other legitimate change is a test that goes red under a pure refactor, with the behavior through the public interface unchanged: it was asserting implementation (a mocked internal, a call count, a private symbol) and is rewritten against the interface, with that stated: the demonstration, not an exception to it.
 
-Forbidden:
+Each agent file's **Forbidden** list binds every writer of a test, the caller editing an existing one included. Forbidden here as well:
 
 - Skipping, narrowing or marking optional a failing test or assertion (the skip mechanisms named in Project facts, or any equivalent).
-- Weakening or removing an assertion to get green.
-- Tests or flows without an outcome assertion (asserting only that nothing crashed).
-- Asserting the route instead of the outcome: that an internal collaborator was called, how many times, in what order. (A call into a mocked boundary is an outcome: the charge made, the email sent.)
-- Verifying through a side channel (reading the row the code wrote) when the interface can read the outcome back.
-- Mocking a module of this repo in a unit test; boundaries only (see "Tests describe behavior").
 - Adjusting a unit expectation to match buggy behavior.
-- Sleep/timeout padding to mask a race condition instead of fixing the race.
 <!-- testing-policy:core-end -->
 
 ### Project facts
