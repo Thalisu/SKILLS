@@ -224,8 +224,10 @@ refused whole and the behaviour dispatched again, because a forked author's repo
 **Why does the reviewer fix and land, and not `do`?**
 Because a run that could fix its own Findings would be grading its own diff. `do` hands over four
 things, the spec source, the fixed point, the landing target and the gate's command line, and then
-stops. The review writes the Review, forks one Fixer per `Act on` Finding, one at a time, each
-turning its Finding into its own commit, re-runs each Finding's check, the tests the diff touched
+stops. The review writes the Review, forks one Fixer per `Act on` Finding in Waves, the Fixers of
+one Wave at once, each in its own worktree and each turning its Finding into its own commit
+([ADR 0053](adr/0053-the-fixers-run-in-waves-each-in-its-own-worktree-on-a-floor-a-script-computes.md)),
+re-runs each Finding's check, the tests the diff touched
 and the whole gate, with a Gate fixer on a red one, and fast-forwards your branch only when the
 Review is Green
 ([ADR 0013](adr/0013-do-code-review-lands-a-green-review-by-fast-forward.md),
