@@ -34,6 +34,12 @@ desc="${desc%\"}"
 expect "the choice-taker's description still closes on its refusal of invocation on its own initiative" \
   test "${desc%Never on your own initiative.}" != "$desc"
 
+# Step 2's norm list names every kind of written norm the choice-taker may back an option with,
+# so a caller's closed branch is recognized rather than falling through to "no norm".
+norm_para="$(paragraph_with "$agent" "Otherwise take the option a norm the repository writes down backs")"
+expect "the choice-taker's norm list names a branch already closed in the session as a norm" \
+  grep -qF -- "a branch already closed in the session" <<<"$norm_para"
+
 # link-skills.sh installs every definition under its name, so a second choice-taker shadows the
 # first on disk, and two copies are two rules free to rule one question two ways (ADR 0046).
 root="$(cd "$here/../../.." && pwd -P)"

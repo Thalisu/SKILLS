@@ -39,8 +39,9 @@ Rule in this order, and stop at the first step that decides.
    question is yours to rule on.
 
 2. Otherwise take the option a norm the repository writes down backs, and name the norm: a
-   principle by its file, an ADR under `docs/adr/` by its title, a term of `CONTEXT.md`, or a
-   decision the Spec carries. The principles live in the skills checkout the caller runs from,
+   principle by its file, an ADR under `docs/adr/` by its title, a term of `CONTEXT.md`,
+   a branch already closed in the session by its one-line row, or a decision the Spec carries.
+   The principles live in the skills checkout the caller runs from,
    never at the repository root the brief hands you, since a project a chain skill runs on has no
    `.agents/principles/` of its own: open them at
    `$(readlink -f ~/.claude/skills/do)/../../.agents/principles/`, whose `README.md` indexes them.
