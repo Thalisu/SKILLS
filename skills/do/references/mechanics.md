@@ -427,8 +427,9 @@ fix call below never carries the block: the Review it fixes was already held to 
 Never `--no-fix`, and `fix` only on the path below: the default run is the one every Playbook
 wants, per
 [ADR 0015](../../../docs/adr/0015-the-default-review-run-fixes-and-lands-and-the-fixer-corrects-for-every-caller.md).
-The run waits on the call. While the review runs, its Fixers, one at a time, are the only writer in
-the worktree, and the run touches nothing.
+The run waits on the call. While the review runs, the review and its Gate fixer are the only
+writers in the worktree: its Fixers each write in a worktree of their own, and their commits reach
+this one only through the review's integration. The run touches nothing.
 
 The Plan's `## Map` is never among the arguments, whatever else the call carries. It is the
 subsystem as it stood before the diff, cut by the Planner of [plan.md](plan.md) while the branch
@@ -445,8 +446,9 @@ once, with the same arguments as the first call: the five above, the Loss ledger
 integration wrote one, and the held Rulings block, last of all, when the run holds one.
 
 What the review does with the call, so that the run does not: it writes the Review, forks one
-Fixer per `Act on` Finding, one at a time, each turning its Finding into one commit on the
-reviewed branch under the project's Testing Policy, re-runs each Finding's check, the
+Fixer per `Act on` Finding by Wave, the Fixers of one Wave at once, each in a worktree of its own
+turning its Finding into one commit under the project's Testing Policy, picks those commits onto
+the reviewed branch in Finding order, re-runs each Finding's check, the
 duplication scan, the Diff tests and the Gate, with a Gate fixer on a dirty or a red one, and, when
 the Review is Green, lands the reviewed branch on the developer's branch by fast-forward under the
 landing rules of [ADR 0013](../../../docs/adr/0013-do-code-review-lands-a-green-review-by-fast-forward.md)
