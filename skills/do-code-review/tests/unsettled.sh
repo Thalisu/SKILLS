@@ -100,6 +100,36 @@ check "a Finding whose latest line across every Fix run reads not fixed or stale
 check_absent "a Finding not fixed in an earlier Fix run and fixed in a later one is not listed" \
   0 "$rc" "finding=4 "
 
+fresh not-verified
+wt="$tmp/not-verified"
+mkdir -p src
+printf '#!/usr/bin/env bash\nset -u\necho "$1"\n' >src/a.sh
+commit base
+reviewed="$(git rev-parse --short HEAD)"
+printf '#!/usr/bin/env bash\nset -u\necho "${1:-}"\n' >src/a.sh
+commit "fix: a.sh reads a missing argument as empty"
+fixed="$(git rev-parse HEAD)"
+
+act_on="### 1. Correctness at src/a.sh:3
+Claim: a call with no argument exits on an unbound variable.
+Evidence: \`bash src/a.sh\` exits 1.
+Rung: 4
+Fix: a call with no argument exits 0"
+fix_runs="## Fix run
+
+Date: 2026-09-24 · at $reviewed
+
+- 1: fixed $(git rev-parse --short HEAD), not verified
+- diff tests: skip: no check named
+- gate fixer: not needed
+- gate: \`bash tests/a.test.sh\`: green
+- not landed: Finding 1 not fixed or not verified"
+review="$tmp/14-a.review.md"
+review_at "$reviewed" "$review" "$act_on" "$fix_runs"
+run "$wt" "$review"
+check_lines "a Finding whose latest Fix run line reads fixed but not verified is listed with the commit that touched its header line, so the fix call re-checks it" \
+  0 "$rc" "finding=1 touched=$fixed"
+
 fresh untouched
 wt="$tmp/untouched"
 mkdir -p src

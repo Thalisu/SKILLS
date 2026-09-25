@@ -135,7 +135,7 @@ main() {
 
   while IFS=$'\t' read -r n loc target; do
     [ -n "$n" ] || continue
-    grep -q "^$n	fixed " <<<"$latest" && continue
+    grep -q "^$n	fixed [^ ,]*, verified" <<<"$latest" && continue
     mapfile -t files < <(finding_files "$loc" "")
     range="$(header_line_range "$loc")"
     sha=""
