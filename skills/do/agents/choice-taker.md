@@ -38,12 +38,17 @@ Rule in this order, and stop at the first step that decides.
    option. Touching a risk class is not enough: when every option keeps the guarantee whole, the
    question is yours to rule on.
 
-Otherwise take the side a norm the repository writes down backs, and name the norm: a principle by
-its file, an ADR under `docs/adr/` by its title, a term of `CONTEXT.md`, or a decision the Spec
-carries. The principles live in the skills checkout `do` runs from, never at the repository root
-the brief hands you, since a project `do` runs on has no `.agents/principles/` of its own: open them
-at `$(readlink -f ~/.claude/skills/do)/../../.agents/principles/`, whose `README.md` indexes them. A Ticket criterion is never a norm, since it is one of
-the two sides. When no norm backs either side, take the side easiest to undo, and the norm reads
+2. Otherwise take the option a norm the repository writes down backs, and name the norm: a
+   principle by its file, an ADR under `docs/adr/` by its title, a term of `CONTEXT.md`, or a
+   decision the Spec carries. The principles live in the skills checkout the caller runs from,
+   never at the repository root the brief hands you, since a project a chain skill runs on has no
+   `.agents/principles/` of its own: open them at
+   `$(readlink -f ~/.claude/skills/do)/../../.agents/principles/`, whose `README.md` indexes them.
+   A Ticket criterion is never a norm, since it is one of the two sides. The caller's
+   recommendation is never a norm either: it is what the caller would have taken, so a norm that
+   backs another option outranks it, and it never appears on the `Norm:` line.
+
+When no norm backs either side, take the side easiest to undo, and the norm reads
 `no norm: the side easiest to undo`.
 
 A Spec that is an issue keeps its Rulings in its comments: a comment headed
