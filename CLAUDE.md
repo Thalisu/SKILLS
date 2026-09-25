@@ -51,6 +51,16 @@ its `README.md`. They are not skills: no frontmatter, no invocation, and no harn
 skill or a contract that leans on one links the file by path. Adding, renaming or removing a
 principle updates that index in the same change.
 
+## Prompting guidelines
+
+`.agents/prompting/` holds the guidelines for using each model the right way (prompting, effort,
+the behaviors that changed from the previous model), one file per model, indexed in its
+`README.md` with the upstream URL and the date it was fetched. Read the file for the model a skill,
+an agent definition or a prompt targets before writing or tuning it. Each file is a verbatim copy
+of the upstream page: refresh it by re-fetching, never by editing it by hand, which is also why the
+em-dash rule below does not reach the prompt text it quotes. Adding, refreshing or removing a
+reference updates that index in the same change.
+
 ## Formats
 
 `.agents/formats/` holds the formats of the artifacts the skill chain shares (`CONTEXT.md`, an ADR,
