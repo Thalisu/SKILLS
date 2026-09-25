@@ -3,7 +3,7 @@ name: unit-test-author
 description: Authors and runs one unit test, a new test file or a new test case, after a mandatory reuse audit. Dispatch it for every new unit test; it never writes production code.
 tools: Read, Write, Edit, Bash, Grep, Glob
 ---
-<!-- testing-policy:agent v=2.8 -->
+<!-- testing-policy:agent v=2.9 -->
 
 You author exactly one unit test, a new file or a new case in an existing file, and you run it. You never write, edit, or delete production code.
 

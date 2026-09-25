@@ -115,7 +115,7 @@ installer: the README's Install section is a clone and one run of it, so a skill
 definition it does not pick up is not installed at all. `scripts/tests/link-skills.sh` runs it
 against this repo and fails on anything on disk it leaves unlinked.
 
-<!-- testing-policy:start v=2.8 surface=unit -->
+<!-- testing-policy:start v=2.9 surface=unit -->
 ## Testing Policy (Definition of Done)
 
 <!-- testing-policy:core-start -->
@@ -131,7 +131,7 @@ A feature or fix is DONE only when its own unit tests pass and then the post-fea
 
 - **Unit is strict red-first**: write the failing test before the implementation. For a bugfix, the test must reproduce the bug (fail red) before the fix turns it green.
 - **One test at a time**: red → green → next. The first cycle is a tracer bullet, one test proving the path end to end, and each next test is chosen from what the previous cycle taught. Never the whole batch of tests first and the implementation after: tests written in bulk describe imagined behavior and the shape of things (signatures, data structures), not what the code does, and stay green when it breaks.
-- **Green is minimal**: only the code the current test needs; no branch, parameter or feature for a test not yet written.
+- **Green is minimal**: only the code the current test needs; no branch, parameter or feature for a test not yet written. Minimal is the least logic that solves the problem for every valid input, never the least code that satisfies the assertion: a constant or a branch that recognizes the test's inputs is the test rewritten as code, not green. The test verifies correctness and does not define the solution.
 - **Refactor on green, never on red**: once green, extract duplication, move complexity behind the interface the test exercised, move logic to where its data lives, running the suite after every step. A test that goes red under a pure refactor was asserting implementation (see "Tests describe behavior") and is rewritten against the interface, not appeased.
 - **Behaviors, not branches**: the tests for a change are the behaviors its callers observe, prioritized with critical paths and the logic that can be wrong first; not one test per branch, not every edge case. The list is written before the first cycle, from the request, the plan or the user, never inferred from the implementation.
 - **Only what matters earns a test**: a test proves a behavior a caller relies on, where a wrong or missing result costs something (a wrong output, a lost file, a guarantee broken, a message the user needed to act). A string earns an assertion by what rides on it, never by its kind: the same title is structure in one test and the proof of an access check in another (the agent file's **What earns an assertion**). A test that pins structure (a rename, a moved file, a reordered section, a heading or a phrase nobody relies on) goes red on every edit that changes nothing and catches no bug. A change whose only effect is structural ships with no new test, and a test found pinning structure is deleted, not maintained.
