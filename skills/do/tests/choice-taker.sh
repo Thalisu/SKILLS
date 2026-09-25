@@ -34,4 +34,21 @@ desc="${desc%\"}"
 expect "the choice-taker's description still closes on its refusal of invocation on its own initiative" \
   test "${desc%Never on your own initiative.}" != "$desc"
 
+# link-skills.sh installs every definition under its name, so a second choice-taker shadows the
+# first on disk, and two copies are two rules free to rule one question two ways (ADR 0046).
+root="$(cd "$here/../../.." && pwd -P)"
+definitions=""
+for def in "$root"/skills/*/agents/*.md "$root"/skills/*/AGENT.md \
+  "$root"/vendor/*/agents/*.md "$root"/vendor/*/AGENT.md; do
+  [ -f "$def" ] || continue
+  out="$(frontmatter "$def" 2>/dev/null)"
+  name="$(field name | head -1 | tr -d "\"'")"
+  [ "$name" = choice-taker ] && definitions+="${def#"$root"/}"$'\n'
+done
+expect "one choice-taker definition rules for every chain skill, the one do ships" \
+  test "$definitions" = $'skills/do/agents/choice-taker.md\n'
+# shellcheck disable=SC2034  # lib.sh's dump_out reads $out
+out="$definitions"
+[ "$definitions" = $'skills/do/agents/choice-taker.md\n' ] || dump_out
+
 exit $((fails > 0))
