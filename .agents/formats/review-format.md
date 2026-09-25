@@ -232,9 +232,10 @@ never the sha on the Fixer's own branch, which is gone once the run takes that b
 A Review whose `Act on` is empty, or whose Findings an earlier fix already settled, forks no Fixer
 and creates no worktree: the section reads `nothing remained` on that line, then the Gate and the
 landing, with the duplication scan and the Diff tests each reading `skip: no Fixer commit`. A
-Finding is settled when its latest line across every `## Fix run` section reads `fixed`, a
-`nothing remained` section naming none: a Finding whose latest line reads `stale` or `not fixed`
-goes to a Fixer again.
+Finding is settled when its latest line across every `## Fix run` section reads `fixed <sha>,
+verified`, a `nothing remained` section naming none: a Finding whose latest line reads `fixed <sha>,
+not verified`, `stale` or `not fixed` is held to the branch again and goes to a Fixer when that does
+not settle it.
 
 Then the Wave lines, one per Wave that forked at least one Fixer, in the order the Waves ran, each
 naming the Findings forked in it: `- wave <k>: <n>[, <n>]...`. `<k>` counts the Waves as they ran,

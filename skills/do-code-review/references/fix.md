@@ -81,10 +81,12 @@ carry no check in its `Fix:` line; that is allowed, and the re-check below repor
 An empty list, or one whose Findings an earlier fix already settled, forks no Fixer and creates no
 worktree. The re-check, the Gate and the append still run, and the section reads `nothing remained`,
 so a second `fix` on the same Review is harmless. A Finding is settled when its latest line,
-read across every `## Fix run` section and not the last section alone, reads `fixed`: a section
-that reads `nothing remained` names no Finding and settles or unsettles none. A Finding whose latest
-line reads `not fixed` or `stale` is not settled and goes to a Fixer again, since a Finding no fix
-call reads again keeps the Review from ever turning Green. A Finding left
+read across every `## Fix run` section and not the last section alone, reads `fixed <sha>,
+verified`, the one line The landing counts as Green: a section that reads `nothing remained` names
+no Finding and settles or unsettles none. A Finding whose latest line reads `fixed <sha>, not
+verified`, `not fixed` or `stale` is not settled: it is held to the branch again, and goes to a
+Fixer when that does not settle it, since a Finding no fix call reads again keeps the Review from
+ever turning Green. A Finding left
 `not fixed: conflicted with Finding <m>` is one of them, with nothing new to call: the new call's
 Waves take it like any other, and its re-routes count from zero in the section that call appends.
 
@@ -99,7 +101,8 @@ first held to the branch as it stands, per
 Run `bash ~/.claude/skills/do-code-review/scripts/unsettled.sh <the tree> <the Review>`, where the
 tree is the one the Review judged: `do`'s worktree on a `do` call, and on a plain call the
 developer's own checkout, which the door has just found clean. It prints one
-`finding=<n> touched=<sha>|none` line per `Act on` Finding whose latest line is not `fixed`, by the
+`finding=<n> touched=<sha>|none` line per `Act on` Finding whose latest line is not `fixed <sha>,
+verified`, by the
 rule above, the sha being the latest commit since the Review's `Commit:` that changed the Finding's
 header line or line range, as `git log -L` tracks it: a commit that only touched some other line of
 the same file is no touch. What each answer means:

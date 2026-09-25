@@ -5,7 +5,8 @@
 #
 #   fix-waves.sh <review file> [--settled <n>[,<n>]...]
 #
-# Leaves out a Finding whose latest line across every `## Fix run` section reads `fixed`, and every
+# Leaves out a Finding whose latest line across every `## Fix run` section reads `fixed <sha>,
+# verified`, and every
 # Finding --settled names (the ones the fix call settled from a commit since the Review), before
 # any grouping, so a dropped Finding's files keep no other Finding off a Wave.
 #
@@ -19,7 +20,7 @@
 #
 # Exit codes: 0 waves printed · 1 nothing left to fork (no Act on Finding, or every one settled or
 # named by --settled) · 2 usage, or a --settled number that is no Act on Finding or already reads
-# fixed.
+# fixed and verified.
 set -uo pipefail
 
 usage() { echo "usage: fix-waves.sh <review file> [--settled <n>[,<n>]...]" >&2; exit 2; }
@@ -169,12 +170,12 @@ main() {
   latest="$(fix_run_latest "$review")"
   for n in ${held//,/ }; do
     grep -q "^$n	" <<<"$records" || refuse "--settled $n is no Act on Finding of the Review"
-    ! grep -q "^$n	fixed " <<<"$latest" || refuse "--settled $n already reads fixed in the Review's Fix run"
+    ! grep -q "^$n	fixed [^ ,]*, verified" <<<"$latest" || refuse "--settled $n already reads fixed and verified in the Review's Fix run"
   done
   [ -n "$records" ] || return 1
 
   while IFS=$'\t' read -r n loc target; do
-    grep -q "^$n	fixed " <<<"$latest" && continue
+    grep -q "^$n	fixed [^ ,]*, verified" <<<"$latest" && continue
     [[ "$held" == *",$n,"* ]] && continue
     files="$(finding_files "$loc" "$target" | tr '\n' ' ')"
     files="${files% }"

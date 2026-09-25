@@ -824,6 +824,31 @@ run "$settled" --settled 1
 check_absent "a settled number whose latest Fix run line already reads fixed is refused with exit 2, and no Wave is printed" 2 "$rc" \
   "wave="
 
+unverified="$tmp/11-fixed-not-verified.review.md"
+cp "$held" "$unverified"
+cat >>"$unverified" <<'MD'
+
+## Fix run
+
+Date: 2026-09-25 · at 8b1d0e4
+
+- 1: fixed 4c07ab2, not verified
+- 2: fixed 4c07ab2, verified (`node --test tests/auth.test.js`)
+- 3: not fixed: the Fixer could not turn it green
+- diff tests: `node --test tests/auth.test.js`: 1 passing
+- gate fixer: not needed
+- gate: `node --test tests/notes.test.js`: green
+- not landed: Finding 1 not verified, Finding 3 not fixed
+MD
+
+run "$unverified"
+same "a Finding whose latest Fix run line reads fixed but not verified is not settled and gets a Fixer on a Wave, while a fixed and verified one stays out" "wave=1 findings=1,3"
+
+run "$unverified" --settled 1
+check_lines "a Finding whose latest Fix run line reads fixed but not verified is accepted as settled by the fix call and left out of every Wave" 0 "$rc" \
+  "wave=1 findings=3"
+same "a fixed but not verified Finding held as settled forks no Fixer, and no Fixer is forked on a second Wave" "wave=1 findings=3"
+
 all_fixed="$tmp/12-every-finding-fixed.review.md"
 review_at 8b1d0e4 "$all_fixed" "" "## Fix run
 
