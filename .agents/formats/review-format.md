@@ -275,7 +275,7 @@ on the last line:
   every reason the landing rules of
   [ADR 0013](../../docs/adr/0013-do-code-review-lands-a-green-review-by-fast-forward.md) give, as
   [ADR 0027](../../docs/adr/0027-the-rebase-runs-in-the-session-before-the-review-and-the-landing-retries-only-the-mechanical-class.md)
-  amends them: a Finding `not fixed` or `not verified`, a Fixer or the Gate fixer that did not
+  amends them: a Finding `not fixed` or `not verified`, a Gate fixer that did not
   return, an Axis `not run`, a duplication scan still dirty or blocked, a red Gate, a protected
   target, a failed fast-forward, and a moved target with a `contested` hunk or a key the union
   defines twice. A Finding's reason names it by
@@ -283,11 +283,11 @@ on the last line:
   line is not `fixed <sha>, verified` in the file's order under one label,
   `not landed: Finding <n>[, <n>]... not fixed or not verified`, so a caller that never opens the
   Review knows which one is open, and it comes first, ahead of every other reason the landing has,
-  except a Fixer or the Gate fixer that did not return: that reason warns a fork may still be
-  writing in the tree, so it stays on the line too. A Fixer's non-return leaves every open Finding
-  of the run with the same reason, so the line names it alone, `not landed: a Fixer did not
-  return`. A Gate fixer's non-return may leave a Finding open for a reason of its own, so the line
-  names both, the non-return first: `not landed: gate fixer did not return, <the failing check>;
+  except the Gate fixer that did not return: that reason warns a fork may still be writing in the
+  tree, so it stays on the line too. A Fixer that did not return wrote only in its own worktree,
+  so its Finding is one more `not fixed` the label above names by its number. A Gate fixer's
+  non-return may leave a Finding open for a reason of its own, so the line names both, the
+  non-return first: `not landed: gate fixer did not return, <the failing check>;
   Finding <n>[, <n>]... not fixed or not verified`.
   A moved target's reason reads
   `not landed: target moved, <target> at <short sha>, conflicting <file> <file>`, each file as the

@@ -585,15 +585,16 @@ cannot clear the Finding, and its next run would stop on it again. The Gate stil
 line still reads red when it is, so the record shows whether the Finding was the only thing
 keeping the branch from landing.
 
-The one thing it never gets ahead of is a Fixer or the Gate fixer that did not return: that reason
-warns a fork may still be writing in the tree, a live hazard the developer has to read before
-anything else, so it stays on the landing line whatever Finding is open. A Fixer's non-return, per
-step 3 of `## The Waves`, already gives every open Finding of the run the same reason, so the line
-names it alone, `not landed: a Fixer did not return`, as it already reads there. The Gate fixer
-runs after every Wave, so a Finding may be open for a reason of its own when it does not return,
-per `## The Gate fixer`, and the line then names both, the non-return first: `not landed: gate
-fixer did not return, <the failing check>; Finding <n>[, <n>]... not fixed or not verified; the
-branch <name> and its worktree stay in place`.
+A Fixer that did not return is one of those Findings and nothing more: per step 3 of `## The
+Waves`, it wrote only in its own worktree, which stays in place and is named on its Finding's line,
+so its Finding reads `not fixed: the Fixer did not return` and the landing line names it by its
+number like any other open Finding. The one thing that line never gets ahead of is the Gate fixer
+that did not return: it worked in the reviewed tree and may still be writing there, a live hazard
+the developer has to read before anything else, so it stays on the landing line whatever Finding
+is open. The Gate fixer runs after every Wave, so a Finding may be open for a reason of its own
+when it does not return, per `## The Gate fixer`, and the line then names both, the non-return
+first: `not landed: gate fixer did not return, <the failing check>; Finding <n>[, <n>]... not fixed
+or not verified; the branch <name> and its worktree stay in place`.
 
 Green lands, under ADR 0013's rules as ADR 0027 amends them and no others: the landing target is
 fast-forwarded to the reviewed branch, the one the Fixers' commits were picked onto, by
