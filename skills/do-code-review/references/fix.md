@@ -709,11 +709,16 @@ HEAD and holds nothing to read, and the `## Fix run` section says nothing was fi
 the run did not create it never removes: on `do`'s worktree it removes nothing, whatever the
 Fixers did.
 
-A Fixer or the Gate fixer that never returned is not that case even with no commit of its own: it
-may still be writing in the tree, so the run removes nothing, forks no Gate fixer, and the landing
-line reads `not landed: a Fixer did not return` or `not landed: gate fixer did not return, <the
-failing check>`, per `## The landing`, with the `fix/<slug>` worktree and its branch staying in
-place and named the same as a commit the run could not land.
+A Fixer that never returned leaves these rules as they are: it wrote only in a worktree of its
+own, which the Wave keeps and names, so its Finding is one more `not fixed`, the landing line gives that
+reason as the format fixes it, and the `fix/<slug>` worktree is kept or removed on what the other
+Fixers committed.
+
+The Gate fixer that never returned is not that case even with no commit of its own: it may still
+be writing in the tree, so the run removes nothing, and the landing line reads
+`not landed: gate fixer did not return, <the failing check>`, as `## The Gate fixer` gives it,
+with the `fix/<slug>` worktree and its branch staying in place and named the same as a commit the
+run could not land.
 
 A Fixer or a Gate fixer that committed something the run could not land is the one case that keeps
 both: not Green, or a landing refused for any of the reasons above, and the worktree and the branch
