@@ -87,8 +87,10 @@ if [ -f "$HOME/.claude/.credentials.json" ]; then
 fi
 printf '{"hasCompletedOnboarding":true}\n' > "$config/.claude.json"
 printf '{}\n' > "$config/settings.json"
-# The caller's own session markers would make every run a nested session of it.
-claude_cmd=(env -u CLAUDECODE -u CLAUDE_CODE_ENTRYPOINT CLAUDE_CONFIG_DIR="$config" claude -p)
+# The caller's own session markers would make every run a nested session of it. HOME is the sandbox
+# too: a skill runs its scripts and reads its references through ~/.claude/skills, which under the
+# caller's HOME is the maintainer's own install and never the checkout under test.
+claude_cmd=(env -u CLAUDECODE -u CLAUDE_CODE_ENTRYPOINT HOME="$sandbox" CLAUDE_CONFIG_DIR="$config" claude -p)
 
 front() { awk 'NR == 1 && /^---$/ { f = 1; next } f && /^---$/ { exit } f' "$1"; }
 body() { awk 'NR == 1 && /^---$/ { f = 1; next } f == 1 && /^---$/ { f = 2; next } f == 2' "$1"; }
