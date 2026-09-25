@@ -115,7 +115,7 @@ installer: the README's Install section is a clone and one run of it, so a skill
 definition it does not pick up is not installed at all. `scripts/tests/link-skills.sh` runs it
 against this repo and fails on anything on disk it leaves unlinked.
 
-<!-- testing-policy:start v=2.9 surface=unit -->
+<!-- testing-policy:start v=2.10 surface=unit -->
 ## Testing Policy (Definition of Done)
 
 <!-- testing-policy:core-start -->
