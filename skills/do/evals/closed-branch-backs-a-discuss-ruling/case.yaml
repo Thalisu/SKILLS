@@ -1,0 +1,44 @@
+name: closed-branch-backs-a-discuss-ruling
+tags: [fork, agents, auto]
+runs: 1
+max_turns: 20
+timeout_seconds: 900
+allowed_tools: [Bash, Read, Glob, Grep, Agent]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # A notes repository with nothing written down that bears on the export: no ADR, no
+    # CONTEXT.md, no Spec. The only norm the brief the prompt hands the choice-taker carries is a
+    # branch a discuss session already closed, which backs one option; the caller recommends the
+    # other. No discuss --auto run forks the choice-taker yet, so the prompt hands it the brief
+    # directly, the way that run will.
+    set -e
+    mkdir -p src
+    cat > README.md <<'MD'
+    # notes
+
+    A small notes module: create a note, archive it, list the active ones.
+    MD
+
+    cat > src/notes.js <<'JS'
+    const notes = [];
+
+    export function create(title) {
+      const note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+
+    export function archive(id) {
+      const note = notes.find((n) => n.id === id);
+      if (note) note.status = "archived";
+    }
+
+    export function list() {
+      return notes.filter((n) => n.status === "active");
+    }
+    JS
+
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
