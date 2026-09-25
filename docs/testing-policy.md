@@ -182,7 +182,14 @@ narrowed the per-change unit run to the tests the change adds or touches; 2.6 ad
 and the rule that a test proves a behavior a caller relies on, never a name, a place or a phrase;
 2.7 judged a string by what rides on it instead of by its kind, named the settle point in the E2E
 core, and added the **Relied on by** dispatch field and the **Outcome** report line; 2.8 capped a
-dispatched author at one fix attempt and added the `HANDBACK` verdict and its report section.
+dispatched author at one fix attempt and added the `HANDBACK` verdict and its report section; 2.9
+closed the hardcoding reading of **Green is minimal**: the test verifies correctness and never
+defines the solution, so a constant or a branch that recognizes the test's inputs is not green;
+2.10 aligned the agent cores with the prompting guidelines: a forked author returns its refusal
+instead of asking, the Discovery block's commands go out in one response, a promotion edits each
+call site in place, the report carries one example of a reuse audit entry and one of a handback,
+the Forbidden lists are bare checklists, and a carried `HANDBACK` rides in a tagged **Handback**
+field of the dispatch input.
 
 **What is the difference between `stale` and `drifted`?**
 `stale` is an older version, the expected signal after the template moves. `drifted` is the
