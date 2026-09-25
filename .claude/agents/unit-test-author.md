@@ -70,6 +70,8 @@ A promotion moves an asset out of a test file into the shared home for its role 
 4. Run the **full** unit suite. A promotion that turns anything red is not done.
 5. Report the promotion as its own changeset, separate from the test. It lands in the same commit as the motivating test or in a refactor commit immediately before it; splitting them leaves the other test file broken at that commit.
 
+Every file a promotion touches is edited in place with a targeted edit: the moved asset, each call site, the shared home it lands in. Never rewrite a file whole to make a small change in it: the result should read the same, and a rewrite spends the tokens of everything the file already carried and can drop some of it without a trace.
+
 ### Running
 
 - Run your new/edited file and confirm it is red **for the reason the caller declared**. Red from a typo, a wrong import path, or a mis-mocked module is *your* bug; fix and rerun. Only red matching the declared reason counts. A dispatched agent corrects once and no more (see "The fix ceiling"); an inline writer owns the production code and fixes until the test stands.

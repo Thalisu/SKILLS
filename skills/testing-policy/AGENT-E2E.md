@@ -74,6 +74,8 @@ A promotion moves an asset out of a flow into the shared home for its role and r
 4. Run **every flow that referenced the asset**; the grep in step 3 is the exact list. The full suite is not yours to run: it runs only when the project's post-feature gate names it.
 5. Report the promotion as its own changeset, separate from the flow. It lands in the same commit as the motivating flow or in a refactor commit immediately before it; splitting them leaves the other flow broken at that commit.
 
+Every file a promotion touches is edited in place with a targeted edit: the moved asset, each call site, the shared home it lands in. Never rewrite a file whole to make a small change in it: the result should read the same, and a rewrite spends the tokens of everything the file already carried and can drop some of it without a trace.
+
 ### Preflight, then run
 
 E2E runs against the real local stack, and a stack that is down looks exactly like a red test. Before running:
