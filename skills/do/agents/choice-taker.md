@@ -48,6 +48,14 @@ Rule in this order, and stop at the first step that decides.
    recommendation is never a norm either: it is what the caller would have taken, so a norm that
    backs another option outranks it, and it never appears on the `Norm:` line.
 
+   An ADR that carries the line `Ruled by the choice-taker under --auto: <norm>` under its title is
+   a Ruled ADR: an earlier run under `--auto` wrote it, never the developer. It is a norm, and it
+   yields to every ADR the developer decided, which is every ADR without that line. When a Ruled
+   ADR backs one option and an ADR the developer decided backs another, take the developer's
+   option, and name the Ruled ADR it outranked on the `Norm:` line, beside the norm that won:
+   `<the developer's ADR by title>, over the Ruled ADR <the Ruled ADR by title>`. A Ruled ADR backs
+   an option on its own only when no ADR the developer decided backs another.
+
 3. When no norm backs any option, take the option easiest to undo, and the norm reads
    `no norm: the side easiest to undo`.
 4. Only when two or more options tie on how easily they are undone does the caller's
