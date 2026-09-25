@@ -13,9 +13,19 @@ Ticket is, beside the Ticket file when a caller hands one over and in the scratc
 named after the branch when nobody does.
 
 Then it fixes what it found. When the Review carries an `Act on` Finding, the orchestrator forks
-one **Fixer** per Finding, one at a time, each turning its Finding into one commit under the
-project's Testing Policy. It re-runs each Finding's own check itself, then the project's
-duplication scan (two test authors working at once may each have written the same factory), the
+one **Fixer** per Finding, each turning its Finding into one commit under the project's Testing
+Policy. The Fixers run in **Waves**: the Fixers of one Wave at once, each in a worktree and on a
+branch of its own, and the Waves one after another. Which Findings share a Wave is a floor a script
+computes from the files the Findings name, which the orchestrator may cut finer for a coupling no
+file comparison sees, and never widens
+([ADR 0053](adr/0053-the-fixers-run-in-waves-each-in-its-own-worktree-on-a-floor-a-script-computes.md)).
+After each Wave it picks the Fixers' commits onto the reviewed branch in Finding order; a Finding
+whose commit conflicts with one picked before it is aborted and sent to the next Wave, twice at
+most, and never resolved by hand
+([ADR 0054](adr/0054-a-conflict-between-two-fixers-is-aborted-and-re-routed-never-resolved.md)).
+A Fixer that never returns costs only its own Finding, which reads `not fixed`. After the last Wave
+it re-runs each Finding's own check itself, then the project's duplication scan (two Fixers'
+test authors working at once may each have written the same factory), the
 **Diff tests** (the tests the diff touched) and the whole **Gate** (the suite, the typecheck, the
 lint and the format check), hands a dirty scan or a red check to a **Gate fixer** that gets two
 attempts, appends a `## Fix run` section to the same Review, and fast-forwards your branch onto the
