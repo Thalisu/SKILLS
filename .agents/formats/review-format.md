@@ -1,11 +1,11 @@
 # Review format
 
 A Review is one markdown file, written by `do-code-review` for one diff and read by `do` at its
-review step and by the Fixer when there is something to fix. The section names, the Bucket
-labels, the Axis names and the field labels are fixed and in English; the prose (the intent, the
-claims, the evidence) is in the language the caller's session opened in. A reader finds every
-Finding by its number, every Bucket by its heading and every Axis by its line at the end, so a
-pass on one Axis never hides a fail on another.
+review step and by the Fixers when there is something to fix, each briefed with its one Finding.
+The section names, the Bucket labels, the Axis names and the field labels are fixed and in English;
+the prose (the intent, the claims, the evidence) is in the language the caller's session opened in.
+A reader finds every Finding by its number, every Bucket by its heading and every Axis by its
+line at the end, so a pass on one Axis never hides a fail on another.
 
 ## Where it lives
 
