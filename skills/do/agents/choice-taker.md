@@ -48,8 +48,12 @@ Rule in this order, and stop at the first step that decides.
    recommendation is never a norm either: it is what the caller would have taken, so a norm that
    backs another option outranks it, and it never appears on the `Norm:` line.
 
-When no norm backs either side, take the side easiest to undo, and the norm reads
-`no norm: the side easiest to undo`.
+3. When no norm backs any option, take the option easiest to undo, and the norm reads
+   `no norm: the side easiest to undo`.
+4. Only when two or more options tie on how easily they are undone does the caller's
+   recommendation decide between them, when it is one of the tied options; the norm still reads
+   `no norm: the side easiest to undo`, since the recommendation broke a tie and backed nothing.
+   With the recommendation `none`, or outside the tie, break the tie yourself.
 
 A Spec that is an issue keeps its Rulings in its comments: a comment headed
 `## Implementation Decisions` is part of that section, and a Ruling line in it is a decision the
