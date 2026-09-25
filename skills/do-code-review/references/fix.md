@@ -424,7 +424,14 @@ written as a `const` or nested in a `describe` lands there and never under `## d
 and it is the shape two parallel test authors most often write. A name both sections print counts
 once, under `## duplicate-symbols`. A row is dirty when one of its files is among those
 `git diff --name-only --diff-filter=d <the fixed point>..HEAD` names, the list the Diff tests read
-below. Every other row is debt the branch did not write, left to the Testing Policy's second-use
+below. A `## local-factories` row takes one more test before it is dirty, since that section matches
+any top-level `const mock*` by name and a file the branch touched for another reason still lists
+every name it already defined: the row is dirty only when
+`git diff -U0 <the fixed point>..HEAD -- <the file>` adds the `const <the name>` line in one of those
+files, and that added line is not a handle. A handle binds the name to a mock that already exists
+and builds nothing, its right-hand side reading `<identifier> as jest.Mock`, with or without type
+arguments, or `jest.mocked(<identifier>)`, and it is the shape a Testing Policy's shared factories
+tell every test to write, so two files each holding one is no second copy of a factory. Every other row is debt the branch did not write, left to the Testing Policy's second-use
 rule, and no section of the report but those two counts.
 
 - No dirty row, and the scan exited 0 with the header present: clean, and the run goes to the Diff
