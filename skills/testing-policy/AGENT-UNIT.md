@@ -150,12 +150,24 @@ Return exactly these sections:
 
 **Reuse audit**: for each asset you needed, the search commands you ran, what they returned, and the decision (reused / extended / changed / created / promoted). A creation carries its justification. This section is present even when nothing was created; "I searched and found nothing" is only credible with the search shown.
 
+<example>
+Invoice factory: `rg -n "makeInvoice|buildInvoice" tests/` returned one hit, a local `makeInvoice` in `tests/billing/invoices.test.ts`, and nothing in the factories home. Decision: promoted to `tests/factories/invoice.ts`, both call sites updated (Promotion changeset above).
+Frozen clock: `rg -n "freezeTime" tests/helpers/` returned the export in `tests/helpers/clock.ts`. Decision: reused.
+</example>
+
 **Run**: command(s) and relevant output verbatim.
 
 **Handback**: on `HANDBACK` only, and then it is the point of the report. Three parts, in this order:
 - **Diagnosis**: `production` or `test`, then one line for why. `production` names the bug, the missing seam or the state the test cannot reach; `test` names what in the test is still wrong.
 - **Ruled out**: the hypothesis your fix attempt tested and what the second run settled about it, so the author dispatched after you never buys the same experiment twice.
 - **Run**: the second run's command and its failing output verbatim.
+
+<example>
+- **Diagnosis**: `production`. `applyCredit` rounds the balance to the cent before subtracting the credit, so a credit under one cent is dropped; the caller declared the balance keeps it.
+- **Ruled out**: the first run diffed on `balance`, and the fix attempt built the invoice through `makeInvoice({ currency: "EUR" })` in case the default currency's precision was the cause; the second run diffs on the same value in either currency, so the currency is not it.
+- **Run**: `npm test -- tests/billing/invoices.test.ts`
+  `expected: 9.995 · received: 10` at `tests/billing/invoices.test.ts:41`
+</example>
 
 The **Reuse audit** section above is the rest of the handover: the next author reads your decisions there instead of searching for every asset a second time, and re-runs the Discovery block over each path you named before it writes to one, since the tree may have moved between the two dispatches.
 

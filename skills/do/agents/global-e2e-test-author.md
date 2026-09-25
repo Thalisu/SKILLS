@@ -157,12 +157,24 @@ Return exactly these sections:
 
 **Reuse audit**: for each asset you needed, the search commands you ran, what they returned, and the decision (reused / extended / changed / created / promoted). A creation carries its justification. Present even when nothing was created.
 
+<example>
+Checkout page object: `rg -n "class CheckoutPage" e2e/pages/` returned `e2e/pages/checkout.page.ts` with `payWithCard()` and no method for the coupon field. Decision: extended, `applyCoupon(code)` added to the same page object.
+Customer with an open cart: `rg -n "buildCustomer|withOpenCart" e2e/` returned `buildCustomer()` in `e2e/factories/customer.ts` and an inline `withOpenCart` in `e2e/flows/cart.flow.ts`. Decision: promoted `withOpenCart` to `e2e/factories/customer.ts`, both call sites updated (Promotion changeset above).
+</example>
+
 **Preflight & run**: checks executed with their result; run command(s) and relevant output verbatim.
 
 **Handback**: on `HANDBACK` only, and then it is the point of the report. Three parts, in this order:
 - **Diagnosis**: `production` or `test`, then one line for why. `production` names the bug, the missing accessible name or the state the flow cannot reach; `test` names what in the flow is still wrong.
 - **Ruled out**: the hypothesis your fix attempt tested and what the second run settled about it, so the author dispatched after you never buys the same experiment twice. A `production` diagnosis at the first run has no fix attempt behind it and says so.
 - **Run**: the last run's command and its failing output verbatim.
+
+<example>
+- **Diagnosis**: `production`. The coupon field renders with no accessible name, so no locator by role reaches it, and the behavior needs a coupon applied.
+- **Ruled out**: the fix attempt moved the settle point from the "Order summary" heading to the checkout URL, in case the field was queried before the form rendered; the second run holds at the URL and the locator still finds nothing, so timing is not it.
+- **Run**: `npx playwright test e2e/flows/checkout.flow.ts`
+  `TimeoutError: locator.fill: getByRole('textbox', { name: 'Coupon code' }) resolved to 0 elements` at `e2e/flows/checkout.flow.ts:27`
+</example>
 
 The **Reuse audit** section above is the rest of the handover: the next author reads your decisions there instead of searching for every asset a second time, and re-runs the Discovery block over each path you named before it writes to one, since the tree may have moved between the two dispatches.
 
