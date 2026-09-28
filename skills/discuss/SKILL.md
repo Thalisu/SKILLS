@@ -50,7 +50,7 @@ A reversible execution detail is never a question. The question budget goes to d
 
 ### Under `--auto`
 
-No branch is put to the user, save the one exception below. For each open branch, in walk order, item 1 still runs first; a branch it cannot close is ruled in place of items 3 to 6: call the Agent tool with `subagent_type: choice-taker` and the brief its definition fixes, filled from the question item 3 would have asked:
+No branch is put to the user, save the two exceptions below. For each open branch, in walk order, item 1 still runs first; a branch it cannot close is ruled in place of items 3 to 6: call the Agent tool with `subagent_type: choice-taker` and the brief its definition fixes, filled from the question item 3 would have asked. When the Agent tool is withheld, or is present but lists no `choice-taker`, that branch and every branch after it, in walk order, are put to the developer exactly as they would be without the flag (items 3 to 7 of the interview), with one line before the first of them naming the reason: the `choice-taker` cannot be forked. No other agent is forked in its place, and no row reads `ruled` for a branch closed this way; each closes `decided`, `default` or `deferred` like any other.
 
 ```
 Caller: discuss at the interview step
@@ -66,7 +66,7 @@ The fork sees nothing of this thread, so its `Context:` carries the text itself,
 
 A `settled` return closes the branch as `ruled`, its row holding the side taken, the norm the return named and the options it beat, in one line. The row reads `ruled` in the tree, which is not shown again for it (step 2). Then item 7, and the next open branch.
 
-An `extreme` return closes no branch and writes no row: the `choice-taker` rules on nothing when an option weakens a guarantee in a risk class or cannot be undone, and `--auto` inherits that stop rather than silencing it. The branch is put to the developer as one message in the shape item 3 fixes: the question, the tell naming the return's `Weaker side:` and the `Guarantee:` it gives up, and the recommended answer, the option that is not the weaker side, with the reason that it keeps the guarantee whole. Wait for the answer and check it the way item 3 does (items 4 and 5), then close the branch (item 6) as `decided`, `default` or `deferred` like any other, and item 7 follows. Only that branch leaves `--auto` for a question; the walk resumes under `--auto` at the next open branch, still forking the `choice-taker` for the ones that are not `extreme`.
+An `extreme` return closes no branch and writes no row: the `choice-taker` rules on nothing when an option weakens a guarantee in a risk class or cannot be undone, and `--auto` inherits that stop rather than silencing it. The branch is put to the developer as one message in the shape item 3 fixes: the question, the tell naming the return's `Weaker side:` and the `Guarantee:` it gives up, and the recommended answer, the option that is not the weaker side, with the reason that it keeps the guarantee whole. Wait for the answer and check it the way item 3 does (items 4 and 5), then close the branch (item 6) as `decided`, `default` or `deferred` like any other, and item 7 follows. Only that branch leaves `--auto` for a question; the walk resumes under `--auto` at the next open branch, still forking the `choice-taker` for the ones that are not `extreme`, unless the Agent tool is withheld or lists no `choice-taker`, which the paragraph above covers instead.
 
 ## 4. Capture as it lands
 
@@ -162,7 +162,7 @@ Nothing is committed. `CONTEXT.md` and everything under `docs/adr/` stay in the 
 ## Hard rules
 
 - One question per message, carrying a recommendation and the tell. Never a list of questions.
-- Under `--auto` no branch is put to the user, save one: a branch whose `choice-taker` fork returns `extreme` is put to the developer as the "Under `--auto`" exception describes, carrying the return's weaker side and the guarantee it gives up. Every other branch the `choice-taker` rules, and the session writes its row.
+- Under `--auto` no branch is put to the user, save two exceptions: a branch whose `choice-taker` fork returns `extreme` is put to the developer as the "Under `--auto`" section describes, carrying the return's weaker side and the guarantee it gives up; and, when the Agent tool is withheld or lists no `choice-taker`, that branch and every branch after it are put to the developer as that section's second exception describes, with one line naming the reason and no agent forked in the `choice-taker`'s place. Every other branch the `choice-taker` rules, and the session writes its row.
 - Never ask what the repository answers. Never ask about a reversible detail: take the default and say so.
 - A claim about how the code works is read in the code before it is accepted.
 - A term is never batched. An ADR is never written before the close, and at the close every candidate the filter leaves standing is written without asking; a decision scoped to the feature never becomes one. The session writes only `CONTEXT.md` and files under `docs/adr/`, and edits no code. A prototype's files belong to the prototype agent: new files marked throwaway and kept out of version control, at most one mount in a host page, each listed in its report and in the closing summary.
