@@ -316,6 +316,37 @@ run "$wt" "$review"
 check_lines "after a rebase off the reviewed Commit:, a Finding whose location only a replay of a commit the Review read touched is listed with touched=none" \
   0 "$rc" "finding=1 touched=none"
 
+fresh rebased-dropped-fixed-point
+wt="$tmp/rebased-dropped-fixed-point"
+mkdir -p src
+printf '#!/usr/bin/env bash\nset -u\necho "$1"\n' >src/a.sh
+commit base
+git checkout -q -b feat
+printf 'notes\n' >notes.txt
+commit "docs: the branch gains its notes"
+fixed_point="$(git rev-parse --short HEAD)"
+printf '#!/usr/bin/env bash\nset -u\necho "$1" # reviewed\n' >src/a.sh
+commit "refactor: a.sh notes it is reviewed"
+reviewed="$(git rev-parse --short HEAD)"
+printf '#!/usr/bin/env bash\nset -u\necho "${1:-}" # reviewed\n' >src/a.sh
+commit "fix: a.sh reads a missing argument as empty"
+git checkout -q main
+printf 'unrelated\n' >other.txt
+commit "chore: the landing target moves"
+git cherry-pick "$fixed_point" >/dev/null
+git checkout -q feat
+git rebase -q main
+after_rebase_fix="$(git rev-parse HEAD)"
+fixed_point_on_head="$(git merge-base --is-ancestor "$fixed_point" HEAD && echo on || echo off)"
+expect "the rebase dropped the fixed point, whose patch the target already held, left it off the branch and replayed only the two commits after it" \
+  test "$(git rev-list --count main..HEAD) $fixed_point_on_head" = "2 off"
+
+review="$tmp/15-a.review.md"
+review_at "$reviewed" "$review" "" "" "$fixed_point"
+run "$wt" "$review"
+check_lines "after a rebase that dropped the fixed point the target already held, a Finding whose header line a replayed after-review commit changed is listed with that replayed commit" \
+  0 "$rc" "finding=1 touched=$after_rebase_fix"
+
 fresh dirty
 wt="$tmp/dirty"
 mkdir -p src

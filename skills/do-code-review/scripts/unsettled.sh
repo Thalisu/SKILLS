@@ -89,6 +89,13 @@ reviewed_signatures() {
   git -C "$1" log --format='%ad%x09%s' --date=iso-strict "$2..$3" 2>/dev/null
 }
 
+# held_as_patch <worktree> <sha>
+# Exits 0 when a commit reachable from HEAD carries the same patch as <sha>, as `git cherry` reads
+# patch-equivalence: a rebase drops a commit whose patch its target already holds.
+held_as_patch() {
+  git -C "$1" cherry HEAD "$2" "$2^" 2>/dev/null | grep -q '^- '
+}
+
 # latest_touch_since_rebase <worktree> <fixed point sha> <since sha> <path> <start> <end>
 # Prints the latest commit in "git merge-base <since> HEAD"..HEAD that changed lines <start>-<end>
 # of <path>, as `git log -L` tracks them, skipping a commit whose author date and subject match one
@@ -124,7 +131,8 @@ main() {
     fi
   else
     fixed_point="$(review_fixed_point "$review")"
-    if [ -n "$fixed_point" ] && git -C "$wt" merge-base --is-ancestor "$fixed_point" HEAD 2>/dev/null; then
+    if [ -n "$fixed_point" ] && { git -C "$wt" merge-base --is-ancestor "$fixed_point" HEAD 2>/dev/null ||
+      held_as_patch "$wt" "$fixed_point"; }; then
       rebased=1
     else
       off_branch=1
