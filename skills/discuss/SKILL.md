@@ -153,7 +153,7 @@ The session ends when every branch is `decided`, `default`, `deferred` or `ruled
 - files written: terms added to `CONTEXT.md`, ADR paths, and beside them each candidate the close dropped, with its reason, in one line;
 - prototypes built: the branch each settled and the files it left (a temp directory, or excluded files plus a mount), for the user to delete;
 - contradictions between the plan and the code, and which side the user picked;
-- next step: the user runs `spec` on this conversation, and this summary is its input; when the plan crosses a function boundary and the second shape was never built, an architect-style skill settles the shape first, and `spec` follows it.
+- next step: the user runs `spec` on this conversation, and this summary is its input; when the plan crosses a function boundary and the second shape was never built, an architect-style skill settles the shape first, and `spec` follows it. Under `--auto` the summary's last line reads `/spec --auto`, so the user keeps the mode down the chain by pasting it; without the flag this item is unchanged.
 
 Nothing is committed. `CONTEXT.md` and everything under `docs/adr/` stay in the working tree for the user.
 
