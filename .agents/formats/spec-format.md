@@ -51,6 +51,7 @@ a run with `--auto` ruled reads
 `- Ruled by the choice-taker under --auto: <the side taken>. Norm: <the norm>.`
 A Design fork a `do` run met reads
 `- Ruled by the choice-taker on Ticket <the Ticket> at the <step> step: <the side taken>. Norm: <the norm>. Fork: <side A> or <side B>.`
+and only `do` writes the `on Ticket` form, since `do` reads a Ticket's own Rulings back by it.
 
 ## Testing Decisions
 
