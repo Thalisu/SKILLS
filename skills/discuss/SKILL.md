@@ -146,7 +146,8 @@ The session ends when every branch is `decided`, `default`, `deferred` or `ruled
 
 **The summary**, in the thread:
 
-- decisions: branch, lens, choice, reason and the alternative it beat, one line each; this is what `spec` carries into Implementation Decisions;
+- decisions: branch, lens, choice, reason and the alternative it beat, one line each, for the `decided` branches only; this is what `spec` carries into Implementation Decisions;
+- `Rulings`, under `--auto`: a section apart from the decisions, one line per `ruled` branch with the option taken, its norm and the options it beat. A ruled branch never also appears among the decisions: those reach the spec as the user's, and the user chose none of these;
 - defaults taken;
 - deferrals, each with the condition that reopens it;
 - files written: terms added to `CONTEXT.md`, ADR paths, and beside them each candidate the close dropped, with its reason, in one line;
