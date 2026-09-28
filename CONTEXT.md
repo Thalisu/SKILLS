@@ -109,9 +109,14 @@ What the `choice-taker` returns on a question it settles, a **Design fork** a `d
 question a chain skill run with `--auto` would otherwise put to the developer: the side taken, and
 the norm that backs it or "no norm: the side easiest to undo". A **Design fork**'s Ruling is
 written as one line in the **Spec**'s Implementation Decisions and listed under `Rulings` in the
-run's reply, read back from that line. A Ruling on a question that is not a **Design fork** amends
-no file: it is listed under `Rulings` alone, in a group of its own, so the two are never read as
-one.
+run's reply, read back from that line. A Ruling on a question that is not a **Design fork** is
+written where the question already has a home: a branch or a seam a `discuss` or `spec` run ruled
+under `--auto` is the **Spec**'s marked line (Implementation Decisions or Testing Decisions), a
+fork of a **Journey** path is that path's `Ruled by the choice-taker:` line, and a branch that
+earns an ADR is a **Ruled ADR**'s line under its title, each also listed under `Rulings` in the
+run's reply and read back from that line. A Ruling that only steers a `do` or `tickets` run, with
+no such home, amends no file: it is listed under `Rulings` alone, in a group of its own, so the two
+are never read as one.
 _Avoid_: verdict (the **Verdict** is a spec's `Journey:` line), decision (the **Spec**'s decisions
 come from `discuss`; a **Ruling** is appended to them and marked as the `choice-taker`'s), answer
 
