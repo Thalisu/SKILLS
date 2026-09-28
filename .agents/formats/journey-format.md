@@ -40,6 +40,8 @@ Failure branches:
 
 Settled by prototype: {the decision, and the variant or scenario that settled it}
 
+Ruled by the choice-taker: {the fork, the side taken}. Norm: {the norm, or "no norm: the side easiest to undo"}
+
 ## Path 2: ...
 
 ## States
@@ -81,6 +83,9 @@ Settled by prototype: {the decision, and the variant or scenario that settled it
 - `Settled by prototype:` appears only when a fork of the path was runnable. It may carry a
   snippet the prototype produced when that encodes the decision more precisely than prose (a state
   machine, a reducer), trimmed to the decision and marked as the prototype's.
+- `Ruled by the choice-taker:` appears only when a fork of the path was ruled by the
+  `choice-taker` under `--auto`, one line per ruled fork, so the developer finds every fork of the
+  path nobody walked with them.
 - `## States`: the first row is the state the actor starts in; each action names the path that
   takes it and the state it lands in, so `tickets` draws the blocking edges from this table alone
   (a path that needs a state another path creates is blocked by it).
