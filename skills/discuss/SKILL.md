@@ -62,6 +62,8 @@ Principles: <the absolute path of the skills checkout's .agents/principles/ fold
 Context: <the plan, the grounding note and the row of every branch already closed>
 ```
 
+The fork sees nothing of this thread, so its `Context:` carries the text itself, never a pointer to it: the plan with the flag dropped, the grounding note of step 1, and the one-line row of every branch closed so far in this session, whatever closed it, so a branch is never ruled against a decision the session already took. `Principles:` is the folder the lenses of step 5 link, resolved to an absolute path from this file's own location: the project under discussion has no `.agents/principles/` of its own, and the fork holds no shell to find one. One fork at a time, in walk order, since each brief carries the rows the earlier ones closed.
+
 A `settled` return closes the branch as `ruled`, its row holding the side taken, the norm the return named and the options it beat, in one line. Then item 7, and the next open branch.
 
 ## 4. Capture as it lands
