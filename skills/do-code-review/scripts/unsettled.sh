@@ -89,22 +89,25 @@ reviewed_signatures() {
   git -C "$1" log --format='%ad%x09%s' --date=iso-strict "$2..$3" 2>/dev/null
 }
 
-# held_as_patch <worktree> <sha>
-# Exits 0 when a commit reachable from HEAD carries the same patch as <sha>, as `git cherry` reads
-# patch-equivalence: a rebase drops a commit whose patch its target already holds.
-held_as_patch() {
-  git -C "$1" cherry HEAD "$2" "$2^" 2>/dev/null | grep -q '^- '
+# patch_copy <worktree> <sha>
+# Prints the commit in "git merge-base <sha> HEAD"..HEAD whose patch id equals <sha>'s, the copy a
+# rebase kept when it dropped <sha> as a patch its target already held; nothing when none does.
+patch_copy() {
+  local wt="$1" sha="$2" id base
+  id="$(git -C "$wt" show --no-color "$sha" 2>/dev/null | git patch-id --stable | cut -d' ' -f1)"
+  [ -n "$id" ] || return 0
+  base="$(git -C "$wt" merge-base "$sha" HEAD 2>/dev/null)" || return 0
+  git -C "$wt" log -p --no-color "$base..HEAD" 2>/dev/null | git patch-id --stable |
+    awk -v id="$id" '$1 == id { print $2; exit }'
 }
 
-# latest_touch_since_rebase <worktree> <fixed point sha> <since sha> <path> <start> <end>
-# Prints the latest commit in "git merge-base <since> HEAD"..HEAD that changed lines <start>-<end>
-# of <path>, as `git log -L` tracks them, skipping a commit whose author date and subject match one
-# in <fixed point>..<since>: a rebase replays those commits unchanged, and the Review already read
-# them. Nothing when none remain or the merge base does not resolve.
+# latest_touch_since_rebase <worktree> <fixed point sha> <since sha> <base sha> <path> <start> <end>
+# Prints the latest commit in <base>..HEAD that changed lines <start>-<end> of <path>, as `git log
+# -L` tracks them, skipping a commit whose author date and subject match one in
+# <fixed point>..<since>: a rebase replays those commits unchanged, and the Review already read
+# them. Nothing when none remain.
 latest_touch_since_rebase() {
-  local wt="$1" fixed_point="$2" since="$3" path="$4" start="$5" end="$6" base seen sig sha
-  base="$(git -C "$wt" merge-base "$since" HEAD 2>/dev/null)" || return 0
-  [ -n "$base" ] || return 0
+  local wt="$1" fixed_point="$2" since="$3" base="$4" path="$5" start="$6" end="$7" seen sig sha
   seen="$(reviewed_signatures "$wt" "$fixed_point" "$since")"
   while IFS= read -r sha; do
     [ -n "$sha" ] || continue
@@ -118,7 +121,7 @@ latest_touch_since_rebase() {
 main() {
   [ "$#" -eq 2 ] || usage
   [ -d "$1" ] && [ -f "$2" ] && [ -r "$2" ] || usage
-  local wt="$1" review="$2" since fixed_point records latest n loc target sha
+  local wt="$1" review="$2" since fixed_point base="" records latest n loc target sha
   local listed=0 off_branch=0 rebased=0 range start end
   local -a files
   since="$(review_commit "$review")"
@@ -131,8 +134,12 @@ main() {
     fi
   else
     fixed_point="$(review_fixed_point "$review")"
-    if [ -n "$fixed_point" ] && { git -C "$wt" merge-base --is-ancestor "$fixed_point" HEAD 2>/dev/null ||
-      held_as_patch "$wt" "$fixed_point"; }; then
+    if [ -n "$fixed_point" ] && git -C "$wt" merge-base --is-ancestor "$fixed_point" HEAD 2>/dev/null; then
+      base="$(git -C "$wt" merge-base "$since" HEAD 2>/dev/null)"
+    elif [ -n "$fixed_point" ]; then
+      base="$(patch_copy "$wt" "$fixed_point")"
+    fi
+    if [ -n "$base" ]; then
       rebased=1
     else
       off_branch=1
@@ -150,7 +157,7 @@ main() {
     if [ "$off_branch" = 0 ] && [ "${#files[@]}" -gt 0 ] && [ -n "$range" ]; then
       read -r start end <<<"$range"
       if [ "$rebased" = 1 ]; then
-        sha="$(latest_touch_since_rebase "$wt" "$fixed_point" "$since" "${files[0]}" "$start" "$end")"
+        sha="$(latest_touch_since_rebase "$wt" "$fixed_point" "$since" "$base" "${files[0]}" "$start" "$end")"
       else
         sha="$(latest_touch "$wt" "$since" "${files[0]}" "$start" "$end")"
       fi

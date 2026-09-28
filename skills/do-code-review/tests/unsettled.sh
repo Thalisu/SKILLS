@@ -347,6 +347,34 @@ run "$wt" "$review"
 check_lines "after a rebase that dropped the fixed point the target already held, a Finding whose header line a replayed after-review commit changed is listed with that replayed commit" \
   0 "$rc" "finding=1 touched=$after_rebase_fix"
 
+fresh rebased-dropped-fixed-point-touching
+wt="$tmp/rebased-dropped-fixed-point-touching"
+mkdir -p src
+printf '#!/usr/bin/env bash\nset -u\necho "$1"\n' >src/a.sh
+commit base
+git checkout -q -b feat
+printf '#!/usr/bin/env bash\nset -u\necho "$1" # branch\n' >src/a.sh
+commit "refactor: a.sh notes it is on the branch"
+fixed_point="$(git rev-parse --short HEAD)"
+printf 'notes\n' >notes.txt
+commit "docs: the branch gains its notes"
+reviewed="$(git rev-parse --short HEAD)"
+git checkout -q main
+printf 'unrelated\n' >other.txt
+commit "chore: the landing target moves"
+git cherry-pick "$fixed_point" >/dev/null
+git checkout -q feat
+git rebase -q main
+fixed_point_on_head="$(git merge-base --is-ancestor "$fixed_point" HEAD && echo on || echo off)"
+expect "the rebase dropped the fixed point that changed the Finding's header line, whose patch the target already held, and replayed only the reviewed commit" \
+  test "$(git rev-list --count main..HEAD) $fixed_point_on_head" = "1 off"
+
+review="$tmp/16-a.review.md"
+review_at "$reviewed" "$review" "" "" "$fixed_point"
+run "$wt" "$review"
+check_lines "after a rebase that dropped the fixed point the target already held, the target's copy of the fixed point is never the touch of a Finding whose header line it changed" \
+  0 "$rc" "finding=1 touched=none"
+
 fresh dirty
 wt="$tmp/dirty"
 mkdir -p src
