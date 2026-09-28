@@ -48,6 +48,22 @@ For the first open branch, in walk order:
 
 A reversible execution detail is never a question. The question budget goes to direction, trade-offs and anything hard to undo.
 
+### Under `--auto`
+
+No branch is put to the user. For each open branch, in walk order, item 1 still runs first; a branch it cannot close is ruled in place of items 3 to 6: call the Agent tool with `subagent_type: choice-taker` and the brief its definition fixes, filled from the question item 3 would have asked:
+
+```
+Caller: discuss at the interview step
+Question: <the branch's question, in one line>
+Options: <two or more options, one per line>
+Recommendation: <the recommended answer item 3 would have carried>
+Repository root: <the repository's absolute path>
+Principles: <the absolute path of the skills checkout's .agents/principles/ folder>
+Context: <the plan, the grounding note and the row of every branch already closed>
+```
+
+A `settled` return closes the branch as `ruled`, its row holding the side taken, the norm the return named and the options it beat, in one line. Then item 7, and the next open branch.
+
 ## 4. Capture as it lands
 
 A term is never batched: it is written the moment its branch closes, before the next question. A decision is held on its branch until the close (step 6), where the whole tree is in view and the ones that earn an ADR are written.
@@ -122,7 +138,7 @@ Three principles shape how the session runs rather than what it asks. [never-blo
 
 ## 6. Close
 
-The session ends when every branch is `decided`, `default` or `deferred`. The close is two moves in this order: the ADRs, then the summary.
+The session ends when every branch is `decided`, `default`, `deferred` or `ruled`. The close is two moves in this order: the ADRs, then the summary.
 
 **The ADRs.** List the candidates: every `decided` branch that passes the three gates of [.agents/formats/adr-format.md](../../.agents/formats/adr-format.md) (hard to reverse, surprising without context, the result of a real trade-off), one line per candidate with each gate filled in one clause. A gate that cannot be filled in one clause drops the branch from the list without comment, and so does any of the format's three tells of a false candidate: a rule `CONTEXT.md` already carries, the artifact the spec is about to describe, an alternative that lost only to a rule of the repository. Those decisions are the spec's. Then one last tell over what is left: a candidate that reaches the list because its branch was argued at length, rather than because a future reader will look for it, is dropped with its reason in one line. Every candidate still standing is written, without asking: the user is never put a question about which ones, and the close reaches them as a statement of what was written and what was dropped. Each is written in the format of adr-format.md from its branch's line, never from memory of the interview; the directory is created on the first ADR. An empty list is one line in the summary. The dropped candidates stay in the summary and reach the spec from there.
 
@@ -141,6 +157,7 @@ Nothing is committed. `CONTEXT.md` and everything under `docs/adr/` stay in the 
 ## Hard rules
 
 - One question per message, carrying a recommendation and the tell. Never a list of questions.
+- Under `--auto` no branch is put to the user: the `choice-taker` rules it, and the session writes its row.
 - Never ask what the repository answers. Never ask about a reversible detail: take the default and say so.
 - A claim about how the code works is read in the code before it is accepted.
 - A term is never batched. An ADR is never written before the close, and at the close every candidate the filter leaves standing is written without asking; a decision scoped to the feature never becomes one. The session writes only `CONTEXT.md` and files under `docs/adr/`, and edits no code. A prototype's files belong to the prototype agent: new files marked throwaway and kept out of version control, at most one mount in a host page, each listed in its report and in the closing summary.

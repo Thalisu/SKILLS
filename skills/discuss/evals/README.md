@@ -6,8 +6,9 @@ have been authored, not executed; the `case.yaml` keys and grader types beyond `
 the runner's help text and may need adjusting once it runs.
 
 `discuss` is user-invoked, so every prompt types the skill; there is no trigger case. Each run
-ends when the skill asks its first question, since no user is there to answer it, which is exactly
-the moment the cases inspect.
+without `--auto` ends when the skill asks its first question, since no user is there to answer it,
+which is exactly the moment those cases inspect. A run under `--auto` asks nothing, so its case
+inspects the close.
 
 | case | checks |
 |---|---|
@@ -15,6 +16,7 @@ the moment the cases inspect.
 | `explores-first` | a branch the fixture's code settles is closed with `file:line`, never asked; the grounding note names the contradiction |
 | `no-writes-without-decision` | with no decision taken, nothing is created or edited in the project and nothing is committed |
 | `runnable-branch` | a branch about what a screen should look like is marked runnable and forks the `prototype` agent with a complete brief, instead of asking for a layout in words; every other branch stays a question |
+| `auto-rules-every-branch` | under `--auto`, typed after the plan, every branch the repository cannot close is forked to the `choice-taker` and the run reaches the close without a question to the user |
 
 A `PROTOTYPE ask` answered by resuming the agent has no case either: the ask reaches the user only
 after the brief was sent, so the run has already ended at that question.
