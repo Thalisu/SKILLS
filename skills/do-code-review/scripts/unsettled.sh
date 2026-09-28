@@ -21,12 +21,15 @@
 # rebase carried the branch onto a moved landing target: the range runs from
 # `git merge-base <Commit:> HEAD` instead, less every commit whose author date and subject match a
 # commit in <Fixed point:>..<Commit:>, the diff the Review read, which a rebase keeps unchanged
-# whatever it resolved. No landing target is read; the merge base stands in for it.
+# whatever it resolved. No landing target is read; the merge base stands in for it. When the
+# rebase dropped the `Fixed point:` because the target already held its patch, the range runs from
+# the commit reachable from HEAD that carries that patch instead, so the target's copy of the base
+# the Review diffed from is never a touch.
 #
 # Exit codes: 0 lines printed · 1 no unsettled Act on Finding · 2 usage · 3 the Review's Commit: is
-# absent, or neither it nor its Fixed point: is an ancestor of HEAD, every line printed reading
-# touched=none, since a range from a commit off the branch would name a sha that never carried the
-# fix.
+# absent, or off HEAD with its Fixed point: neither an ancestor of HEAD nor held by HEAD as an
+# equivalent patch, every line printed reading touched=none, since a range from a commit off the
+# branch would name a sha that never carried the fix.
 set -uo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"

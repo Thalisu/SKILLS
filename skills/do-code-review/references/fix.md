@@ -105,7 +105,11 @@ developer's own checkout, which the door has just found clean. It prints one
 verified`, by the
 rule above, the sha being the latest commit since the Review's `Commit:` that changed the Finding's
 header line or line range, as `git log -L` tracks it: a commit that only touched some other line of
-the same file is no touch. What each answer means:
+the same file is no touch. A rebase since the review moves the Review's `Commit:` off the branch,
+and the script still reads it as a rebase while the Review's `Fixed point:` is on the branch, or was
+dropped by the rebase because the target already held its patch: the range then starts at the
+target's copy of that patch, and replays of the commits the Review read are no touch. What each
+answer means:
 
 - **Exit 1**: nothing is unsettled, and the run goes on as the paragraph above says for a list with
   nothing left in it.
@@ -133,7 +137,8 @@ the same file is no touch. What each answer means:
   prove it by, so neither is ever recorded `verified` here. A test file the `Fix:` names that holds
   no test of the behaviour it names is no check yet: the file passing says nothing about the
   Finding, and the Fixer is the one who writes that test.
-- **Exit 3**: the Review's `Commit:` is absent or not on the branch. Every line reads
+- **Exit 3**: the Review's `Commit:` is absent, or off the branch with its `Fixed point:` neither on
+  the branch nor held there as an equivalent patch, so no rebase explains it. Every line reads
   `touched=none` and every unsettled Finding goes to The Fixer, since a range from a commit off the
   branch would name a sha that never carried the fix.
 
@@ -146,8 +151,8 @@ Every Finding this step sends to The Fixer goes there on a developer's call only
 the `Caller: do` mode the door decided, Where the Fixer works and The Fixer are skipped whatever
 this step settled: a Finding it did not hold stays unsettled, with the reason this step found for
 it (its location untouched since the review, its check never red at `Commit:` or still red at HEAD,
-no check to re-run, or the Review's `Commit:` off the branch), and the run carries on from The
-re-check to The landing with no Fixer commit to check.
+no check to re-run, or the Review's `Commit:` off the branch with no rebase to explain it), and the
+run carries on from The re-check to The landing with no Fixer commit to check.
 
 ## Where the Fixer works
 
