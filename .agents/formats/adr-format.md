@@ -15,6 +15,23 @@ when the first ADR is needed. Written in English.
 That is the whole ADR. A single paragraph is enough: the value is in recording that a decision was
 made and why, not in filling out sections.
 
+## A Ruled ADR
+
+An ADR a `discuss` run with `--auto` wrote from a Ruling, rather than from the developer's choice,
+carries one line directly under its title, before the paragraph:
+
+```md
+# {Short title of the decision}
+
+Ruled by the choice-taker under --auto: {the norm, or "no norm: the side easiest to undo"}
+
+{One to three sentences: the context, what was decided, and why.}
+```
+
+An ADR the developer decided never carries that line, and the line is how every reader tells the
+two apart: a Ruled ADR is a norm like any ADR, and it yields to every ADR the developer decided
+when the two disagree.
+
 ## Optional sections
 
 Only when they add something. Most ADRs need none of them.
