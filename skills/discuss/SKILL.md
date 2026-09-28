@@ -50,7 +50,7 @@ A reversible execution detail is never a question. The question budget goes to d
 
 ### Under `--auto`
 
-No branch is put to the user. For each open branch, in walk order, item 1 still runs first; a branch it cannot close is ruled in place of items 3 to 6: call the Agent tool with `subagent_type: choice-taker` and the brief its definition fixes, filled from the question item 3 would have asked:
+No branch is put to the user, save the one exception below. For each open branch, in walk order, item 1 still runs first; a branch it cannot close is ruled in place of items 3 to 6: call the Agent tool with `subagent_type: choice-taker` and the brief its definition fixes, filled from the question item 3 would have asked:
 
 ```
 Caller: discuss at the interview step
@@ -65,6 +65,8 @@ Context: <the plan, the grounding note and the row of every branch already close
 The fork sees nothing of this thread, so its `Context:` carries the text itself, never a pointer to it: the plan with the flag dropped, the grounding note of step 1, and the one-line row of every branch closed so far in this session, whatever closed it, so a branch is never ruled against a decision the session already took. `Principles:` is the folder the lenses of step 5 link, resolved to an absolute path from this file's own location: the project under discussion has no `.agents/principles/` of its own, and the fork holds no shell to find one. One fork at a time, in walk order, since each brief carries the rows the earlier ones closed.
 
 A `settled` return closes the branch as `ruled`, its row holding the side taken, the norm the return named and the options it beat, in one line. The row reads `ruled` in the tree, which is not shown again for it (step 2). Then item 7, and the next open branch.
+
+An `extreme` return closes no branch and writes no row: the `choice-taker` rules on nothing when an option weakens a guarantee in a risk class or cannot be undone, and `--auto` inherits that stop rather than silencing it. The branch is put to the developer as one message in the shape item 3 fixes: the question, the tell naming the return's `Weaker side:` and the `Guarantee:` it gives up, and the recommended answer, the option that is not the weaker side, with the reason that it keeps the guarantee whole. Wait for the answer and check it the way item 3 does (items 4 and 5), then close the branch (item 6) as `decided`, `default` or `deferred` like any other, and item 7 follows. Only that branch leaves `--auto` for a question; the walk resumes under `--auto` at the next open branch, still forking the `choice-taker` for the ones that are not `extreme`.
 
 ## 4. Capture as it lands
 
@@ -160,7 +162,7 @@ Nothing is committed. `CONTEXT.md` and everything under `docs/adr/` stay in the 
 ## Hard rules
 
 - One question per message, carrying a recommendation and the tell. Never a list of questions.
-- Under `--auto` no branch is put to the user: the `choice-taker` rules it, and the session writes its row.
+- Under `--auto` no branch is put to the user, save one: a branch whose `choice-taker` fork returns `extreme` is put to the developer as the "Under `--auto`" exception describes, carrying the return's weaker side and the guarantee it gives up. Every other branch the `choice-taker` rules, and the session writes its row.
 - Never ask what the repository answers. Never ask about a reversible detail: take the default and say so.
 - A claim about how the code works is read in the code before it is accepted.
 - A term is never batched. An ADR is never written before the close, and at the close every candidate the filter leaves standing is written without asking; a decision scoped to the feature never becomes one. The session writes only `CONTEXT.md` and files under `docs/adr/`, and edits no code. A prototype's files belong to the prototype agent: new files marked throwaway and kept out of version control, at most one mount in a host page, each listed in its report and in the closing summary.

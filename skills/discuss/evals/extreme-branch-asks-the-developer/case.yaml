@@ -1,0 +1,50 @@
+name: extreme-branch-asks-the-developer
+tags: [workflow, auto, choice-taker, extreme]
+runs: 2
+max_turns: 20
+timeout_seconds: 600
+allowed_tools: [Bash, Read, Edit, Write, Agent]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # A notes store with no sharing yet. The plan's one branch, whether a shared link carries a
+    # secret token or the bare note id, weakens an auth guarantee on one side, so the choice-taker
+    # returns extreme and the run must put it to the developer instead of ruling it.
+    set -e
+    mkdir -p src
+    cat > src/notes.js <<'JS'
+    const fs = require('fs');
+
+    const FILE = process.env.NOTES_FILE || 'notes.json';
+
+    function load() {
+      if (!fs.existsSync(FILE)) return [];
+      return JSON.parse(fs.readFileSync(FILE, 'utf8'));
+    }
+
+    function save(notes) {
+      fs.writeFileSync(FILE, JSON.stringify(notes, null, 2));
+    }
+
+    function add(title, body) {
+      const notes = load();
+      const note = { id: notes.length + 1, title, body };
+      notes.push(note);
+      save(notes);
+      return note;
+    }
+
+    module.exports = { add, load, save };
+    JS
+    cat > CONTEXT.md <<'MD'
+    # Notes
+
+    ## Language
+
+    **Note**:
+    A title and a body the user keeps, stored in one JSON file with every other note.
+    _Avoid_: memo, entry
+    MD
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
