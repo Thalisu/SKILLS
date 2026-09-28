@@ -54,9 +54,12 @@ A Design fork a `do` run met reads
 
 ## Testing Decisions
 
-The seams confirmed in step 2. What makes a good test here: external behaviour, never
-implementation detail. Which modules are tested, and the prior art for such tests in the codebase.
-The project's Testing Policy, when `CLAUDE.md` carries one, is the standard the tests meet.
+The seams of step 2, each marked with how it was settled: confirmed by the developer, taken from
+the conversation, or ruled by the `choice-taker` under `--auto`. A ruled seam is a line of its own,
+`- Ruled by the choice-taker under --auto: <the seam>. Norm: <the norm>.`, so a reader can find
+every seam nobody confirmed. What makes a good test here: external behaviour, never implementation
+detail. Which modules are tested, and the prior art for such tests in the codebase. The project's
+Testing Policy, when `CLAUDE.md` carries one, is the standard the tests meet.
 
 ## Out of Scope
 
