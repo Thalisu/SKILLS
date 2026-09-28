@@ -2,7 +2,7 @@
 name: discuss
 description: "Interview the user about a plan before code is written: one question at a time, each with a recommended answer and the failure it hunts, answered from the repository whenever the repository can answer it, with terms recorded in CONTEXT.md as they land and the hard-to-reverse decisions written as ADRs at the close, without asking."
 disable-model-invocation: true
-argument-hint: "[the plan, feature or change to discuss]"
+argument-hint: "[--auto] [the plan, feature or change to discuss]"
 ---
 
 # Discuss
@@ -15,7 +15,7 @@ Vocabulary, used consistently: _branch_ (one decision the plan needs), _tree_ (t
 
 ## 1. Ground
 
-The plan is `$ARGUMENTS`. Empty → ask for it, in one message that carries nothing else.
+The plan is `$ARGUMENTS`. An `--auto` token among them, before the plan, after it or inside it, is dropped wherever it sat and puts the run under `--auto` (step 3); the plan is the rest, with no flag in it, and it is that plan the run grounds and hands on. Without the token the plan is `$ARGUMENTS` as typed. Empty → ask for it, in one message that carries nothing else.
 
 Before any question, read what the repository already knows:
 
