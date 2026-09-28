@@ -74,7 +74,7 @@ A term is never batched: it is written the moment its branch closes, before the 
 
 - **A resolved term** goes to `CONTEXT.md` (the root one, or the context's own when the map names it) in the format of [.agents/formats/context-format.md](../../.agents/formats/context-format.md). The file is created on the first term. Only terms a domain expert would recognise; no implementation detail.
 - **A decision** stays on its branch, in one line: the choice, its reason, and the alternative it beat. Nothing is written under `docs/adr/` before the close. That line is what an ADR is written from when the branch becomes one, and what the summary carries otherwise; a decision scoped to this feature (a module, an interface, a contract) is the spec's to keep, in its Implementation Decisions, and reaches it through the summary.
-- **A contradiction** between the user's answer and the code is never resolved by editing code here: the user says which side is right, and the branch and the summary record it.
+- **A contradiction** between the user's answer and the code is never resolved by editing code here: the user says which side is right, and the branch and the summary record it. Under `--auto`, a contradiction the `choice-taker` rules instead (step 3) is captured the same way: the branch and the summary hold the side its return took and the norm, never the user's pick.
 - **A prototype** is never captured, only its answer: the decision, and the variant or scenario that settled it, in the branch's line, carried into the ADR or the summary at the close. Its files stay where the agent left them, outside version control, listed in the closing summary.
 
 ## 5. Lenses, in walk order
@@ -154,7 +154,7 @@ The session ends when every branch is `decided`, `default`, `deferred` or `ruled
 - deferrals, each with the condition that reopens it;
 - files written: terms added to `CONTEXT.md`, ADR paths, and beside them each candidate the close dropped, with its reason, in one line;
 - prototypes built: the branch each settled and the files it left (a temp directory, or excluded files plus a mount), for the user to delete;
-- contradictions between the plan and the code, and which side the user picked;
+- contradictions between the plan and the code: the side the user picked, or, for one the `choice-taker` ruled under `--auto`, the side its return took and the norm, listed as ruled and never as the user's pick;
 - next step: the user runs `spec` on this conversation, and this summary is its input; when the plan crosses a function boundary and the second shape was never built, an architect-style skill settles the shape first, and `spec` follows it. Under `--auto` the summary's last line reads `/spec --auto`, so the user keeps the mode down the chain by pasting it; without the flag this item is unchanged.
 
 Nothing is committed. `CONTEXT.md` and everything under `docs/adr/` stay in the working tree for the user.

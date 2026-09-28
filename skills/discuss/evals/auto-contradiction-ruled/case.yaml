@@ -1,0 +1,41 @@
+name: auto-contradiction-ruled
+tags: [workflow, auto, choice-taker, contradiction]
+runs: 2
+max_turns: 30
+timeout_seconds: 900
+allowed_tools: [Bash, Read, Edit, Write, Agent]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # The plan claims cancel already works per line; the code cancels whole orders only and the
+    # glossary already defines cancellation that way (the explores-first fixture). The contradiction
+    # closes from the repository and opens a branch neither the code nor the glossary settles:
+    # redefine Cancellation, or name line removal as its own term. Under --auto that branch goes to
+    # the choice-taker and closes ruled, so the close's contradictions item must mark it that way,
+    # never as a side the user picked.
+    set -e
+    mkdir -p src
+    cat > CONTEXT.md <<'MD'
+    # Ordering
+
+    Receives and tracks customer orders from placement to fulfilment.
+
+    ## Language
+
+    **Order**:
+    A customer's request for goods, tracked from placement to fulfilment.
+
+    **Cancellation**:
+    Withdrawing an entire Order before it is fulfilled. An Order is cancelled whole or not at all.
+    _Avoid_: partial cancel, line removal
+    MD
+    cat > src/order.js <<'JS'
+    function cancel(order) {
+      if (order.status === "fulfilled") throw new Error("cannot cancel a fulfilled order");
+      return { ...order, status: "cancelled", lines: order.lines };
+    }
+    module.exports = { cancel };
+    JS
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"

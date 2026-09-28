@@ -19,6 +19,7 @@ touches is a question like any other, and its case inspects that question instea
 | `runnable-branch` | a branch about what a screen should look like is marked runnable and forks the `prototype` agent with a complete brief, instead of asking for a layout in words; every other branch stays a question |
 | `auto-rules-every-branch` | under `--auto`, typed after the plan, every branch the repository cannot close is forked to the `choice-taker` and the run reaches the close without a question to the user |
 | `extreme-branch-asks-the-developer` | under `--auto`, a branch whose `choice-taker` fork returns `extreme` writes no row and is put to the developer as one question, carrying the weaker side and the guarantee it gives up |
+| `auto-contradiction-ruled` | under `--auto`, a contradiction between the plan and the code opens a branch the `choice-taker` rules, and the close lists it with the side ruled and its norm, never as the side the user picked |
 
 A `PROTOTYPE ask` answered by resuming the agent has no case either: the ask reaches the user only
 after the brief was sent, so the run has already ended at that question.
