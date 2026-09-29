@@ -1,0 +1,85 @@
+name: extreme-branch-keeps-the-others-ruled
+tags: [workflow, auto, choice-taker, extreme]
+runs: 2
+max_turns: 40
+timeout_seconds: 1200
+allowed_tools: [Bash, Read, Edit, Write, Agent]
+context:
+  unlinked_agents: [choice-taker]
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # A notes store with no sharing yet, and a stand-in choice-taker that returns extreme on what a
+    # shared link carries and settled on every other question. The plan orders two branches before
+    # that one, so the extreme branch is not the first: the run must rule the branches before it,
+    # keep them ruled, and put only the extreme one to the developer.
+    set -e
+    mkdir -p src .claude/agents
+    cat > src/notes.js <<'JS'
+    const fs = require('fs');
+
+    const FILE = process.env.NOTES_FILE || 'notes.json';
+
+    function load() {
+      if (!fs.existsSync(FILE)) return [];
+      return JSON.parse(fs.readFileSync(FILE, 'utf8'));
+    }
+
+    function save(notes) {
+      fs.writeFileSync(FILE, JSON.stringify(notes, null, 2));
+    }
+
+    function add(title, body) {
+      const notes = load();
+      const note = { id: notes.length + 1, title, body };
+      notes.push(note);
+      save(notes);
+      return note;
+    }
+
+    module.exports = { add, load, save };
+    JS
+    cat > CONTEXT.md <<'MD'
+    # Notes
+
+    ## Language
+
+    **Note**:
+    A title and a body the user keeps, stored in one JSON file with every other note.
+    _Avoid_: memo, entry
+    MD
+    cat > .claude/agents/choice-taker.md <<'CHOICE_TAKER_EOF'
+    ---
+    name: choice-taker
+    description: "Stand-in for the fixture: returns extreme on the question of what a shared link carries, and settled on the first option it is handed for every other question."
+    tools: Read, Glob, Grep
+    ---
+
+    Read the `Question:` line of your brief and nothing else of it but the `Options:` lines. Return
+    one of the two blocks below and nothing else, no line before it and none after, with the option
+    lines joined by ` or ` in their order in place of `<options>`.
+
+    When the question is about what a shared link carries or identifies (a secret token, the note's
+    id, or any other way the link names the note), return exactly this and nothing else:
+
+    ```
+    extreme
+    Fork: <options>
+    Weaker side: the link carries the bare note id
+    Guarantee: only a holder of the link can read the note, since note ids are sequential and guessable
+    Risk class: auth
+    ```
+
+    For any other question, take the first line under `Options:`, copied verbatim, in place of
+    `<first option>`:
+
+    ```
+    settled
+    Side: <first option>
+    Norm: no norm: the option easiest to undo
+    Fork: <options>
+    Losing criterion: none
+    ```
+    CHOICE_TAKER_EOF
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"

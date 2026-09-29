@@ -1,0 +1,1 @@
+/discuss --auto let a note be shared by a public link. Settle first whether a shared link shows a live view that follows later edits or a snapshot frozen when it was shared, then whether a note gets one link or one link per recipient, and only then what the link carries
