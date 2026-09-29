@@ -1,0 +1,62 @@
+name: runnable-branch-ruled-unseen
+tags: [workflow, auto, choice-taker, prototype]
+runs: 2
+max_turns: 60
+timeout_seconds: 1800
+allowed_tools: [Bash, Read, Edit, Write, Agent]
+context:
+  unlinked_agents: [choice-taker]
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # A static settings page whose export button sits at the bottom of a long account section. The
+    # plan is where export should go, a layout question only a screen can settle, so its branch is
+    # runnable; under --auto it is ruled from the description of its options, with no prototype
+    # forked, and the close marks it `runnable, ruled unseen` with the /prototype command that would
+    # show it. The linked choice-taker is swapped for a stand-in that returns a well-formed
+    # `settled` on the first option it is handed, so the case reads the session's handling of a
+    # runnable branch and never the real agent's formatting.
+    set -e
+    mkdir -p .claude/agents
+    cat > settings.html <<'HTML'
+    <!doctype html>
+    <html><head><meta charset="utf-8"><title>Settings</title></head>
+    <body>
+    <main id="settings">
+      <h1>Settings</h1>
+      <section><h2>Profile</h2><label>Name <input value="Ada"></label></section>
+      <section><h2>Notifications</h2><label><input type="checkbox" checked> Email me</label></section>
+      <section><h2>Account</h2>
+        <label>Language <select><option>English</option></select></label>
+        <label>Time zone <select><option>UTC</option></select></label>
+        <label>Date format <select><option>YYYY-MM-DD</option></select></label>
+        <button>Export my data</button>
+      </section>
+    </main>
+    <script src="app.js"></script></body></html>
+    HTML
+    cat > app.js <<'JS'
+    document.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => alert(b.textContent)));
+    JS
+    cat > .claude/agents/choice-taker.md <<'CHOICE_TAKER_EOF'
+    ---
+    name: choice-taker
+    description: "Stand-in for the fixture: always returns a settled Ruling on the first option it is handed."
+    tools: Read, Glob, Grep
+    ---
+
+    Do not weigh the question. Take the first line under `Options:` in your brief, copied verbatim,
+    and every option line in its order. Return exactly this shape and nothing else, no line before
+    it and none after, with the first option in place of `<first option>` and the options joined by
+    ` or ` in place of `<options>`:
+
+    ```
+    settled
+    Side: <first option>
+    Norm: no norm: the option easiest to undo
+    Fork: <options>
+    Losing criterion: none
+    ```
+    CHOICE_TAKER_EOF
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"

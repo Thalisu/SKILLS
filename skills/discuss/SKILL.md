@@ -279,7 +279,7 @@ An empty list is one line in the summary. The dropped candidates stay in the sum
 In the thread:
 
 - decisions: branch, lens, choice, reason and the alternative it beat, one line each, for the `decided` branches only; this is what `spec` carries into Implementation Decisions;
-- `Rulings`, under `--auto`: a section apart from the decisions, one line per `ruled` branch with the option taken, its norm and the options it beat. A ruled branch never also appears among the decisions: those reach the spec as the user's, and the user chose none of these;
+- `Rulings`, under `--auto`: a section apart from the decisions, one line per `ruled` branch with the option taken, its norm and the options it beat; a _runnable_ branch's line also reads `runnable, ruled unseen` and carries its `/prototype` command, so the developer can see it before `spec`. A ruled branch never also appears among the decisions: those reach the spec as the user's, and the user chose none of these;
 - defaults taken;
 - deferrals, each with the condition that reopens it;
 - files written: terms added to `CONTEXT.md`, ADR paths, and beside them each candidate the close dropped, with its reason, in one line;
