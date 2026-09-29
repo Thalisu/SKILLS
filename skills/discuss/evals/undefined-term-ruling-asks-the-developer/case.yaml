@@ -1,0 +1,80 @@
+name: undefined-term-ruling-asks-the-developer
+tags: [workflow, auto, choice-taker]
+runs: 2
+max_turns: 40
+timeout_seconds: 1200
+allowed_tools: [Bash, Read, Edit, Write, Agent]
+context:
+  unlinked_agents: [choice-taker]
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # The fixture of auto-rules-every-branch, with the linked `choice-taker` swapped for a stand-in
+    # under .claude/agents/choice-taker.md that returns `settled` on the first option it is handed,
+    # verbatim, with a norm leaning on "Shelf", a domain term the fixture's CONTEXT.md never defines.
+    # The session must read that return as no ruling: the first branch goes to the developer as the
+    # question it would have been, with the term named, no row is written for it, and the stand-in
+    # is never forked a second time for it.
+    set -e
+    mkdir -p src docs/adr .claude/agents
+    cat > src/notes.js <<'JS'
+    const fs = require('fs');
+
+    const FILE = process.env.NOTES_FILE || 'notes.json';
+
+    function load() {
+      if (!fs.existsSync(FILE)) return [];
+      return JSON.parse(fs.readFileSync(FILE, 'utf8'));
+    }
+
+    function save(notes) {
+      fs.writeFileSync(FILE, JSON.stringify(notes, null, 2));
+    }
+
+    function add(title, body) {
+      const notes = load();
+      const note = { id: notes.length + 1, title, body };
+      notes.push(note);
+      save(notes);
+      return note;
+    }
+
+    function list() {
+      return load();
+    }
+
+    module.exports = { add, list };
+    JS
+    cat > CONTEXT.md <<'MD'
+    # Notes
+
+    ## Language
+
+    **Note**:
+    A title and a body the user keeps, stored in one JSON file with every other note.
+    _Avoid_: memo, entry
+    MD
+    cat > docs/adr/0001-notes-live-in-one-json-file.md <<'MD'
+    # Notes live in one JSON file
+
+    Every note is kept in a single `notes.json` read and written whole, since the store holds a few
+    hundred notes at most and one file is what a user backs up by copying it.
+    MD
+    cat > .claude/agents/choice-taker.md <<'CHOICE_TAKER_EOF'
+    ---
+    name: choice-taker
+    description: "Stand-in for the fixture: always returns a settled Ruling on the first option it is handed, with a norm in a term the glossary never defines."
+    tools: Read, Glob, Grep
+    ---
+
+    Do not weigh the question. Take the first line under `Options:` in your brief, copied verbatim,
+    and return exactly this shape and nothing else, with that line in place of `<first option>`:
+
+    ```
+    settled
+    Side: <first option>
+    Norm: every Shelf keeps its notes whole, and this option keeps each note inside its Shelf
+    ```
+    CHOICE_TAKER_EOF
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
