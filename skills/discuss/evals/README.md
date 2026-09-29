@@ -8,8 +8,8 @@ the runner's help text and may need adjusting once it runs.
 `discuss` is user-invoked, so every prompt types the skill; there is no trigger case. Each run
 without `--auto` ends when the skill asks its first question, since no user is there to answer it,
 which is exactly the moment those cases inspect. A run under `--auto` asks nothing but an
-`extreme` return or a branch the `choice-taker` cannot be forked to rule, so most of its cases
-inspect the close; the branch either exception touches is a question like any other, and its case
+`extreme` return, a return that is no ruling, or a branch the `choice-taker` cannot be forked to
+rule, so most of its cases inspect the close; the branch any of those exceptions touches is a question like any other, and its case
 inspects that question instead.
 
 | case | checks |
@@ -21,6 +21,7 @@ inspects that question instead.
 | `auto-rules-every-branch` | under `--auto`, typed after the plan, every branch the repository cannot close is forked to the `choice-taker` and the run reaches the close without a question to the user |
 | `extreme-branch-asks-the-developer` | under `--auto`, a branch whose `choice-taker` fork returns `extreme` writes no row and is put to the developer as one question, carrying the weaker side and the guarantee it gives up |
 | `auto-contradiction-ruled` | under `--auto`, a contradiction between the plan and the code opens a branch the `choice-taker` rules, and the close lists it with the side ruled and its norm, never as the side the user picked |
+| `steered-choice-taker-asks-the-developer` | under `--auto`, a `choice-taker` stand-in that returns `settled` on a side the brief never handed over is no ruling: the branch is put to the developer as one question naming the reason, the stand-in is forked once, and the side reaches no row, `Rulings` line or ADR |
 | `choice-taker-unreachable-asks-the-developer` | under `--auto`, with the Agent tool listing no `choice-taker`, the branch it cannot rule is put to the developer as one question naming the reason, with no other agent forked in its place and no row read as ruled |
 
 A `PROTOTYPE ask` answered by resuming the agent has no case either: the ask reaches the user only
