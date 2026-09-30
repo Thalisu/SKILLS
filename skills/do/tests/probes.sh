@@ -229,6 +229,9 @@ ordered_out "the Spec branch facts follow the branch facts and precede the verdi
   branch= protected= reason= spec_branch= spec_exists= spec_upstream= verdict=
 expect "a refused first run on a protected branch leaves no Spec branch, run branch, worktree or claim" \
   untouched "$issues/02-second.md" second
+run "$door" "$issues/04-claimed.md"
+check_lines "a claimed Ticket whose worktree exists resumes on a protected branch with no Spec branch, warned" 0 "$rc" \
+  "protected=yes" "status=claimed" "worktree=$wt" "spec_exists=no" "verdict=resume"
 (issues=.scratch && ticket 40-loose.md '**Status:** ready-for-agent' 'None (can start immediately)')
 run "$door" .scratch/40-loose.md
 check_lines "a Ticket outside a feature folder on a protected branch is warned and still starts" 0 "$rc" \

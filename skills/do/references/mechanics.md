@@ -110,7 +110,8 @@ One case stops instead of warning: the first run of a Spec, whose Spec branch do
 while the main checkout is on a protected branch or on no branch at all. That run would cut
 `spec/<feature-slug>` off the protected branch and record it as the branch the whole Spec lands on,
 so the `ticket` door refuses it (`verdict=refused`) before anything is claimed or cut, and the
-Ticket still reads `ready-for-agent`. Once the Spec branch exists, the branch the Spec integrates
+Ticket keeps the `status=` the door printed. A `claimed` Ticket whose worktree exists resumes
+instead. Once the Spec branch exists, the branch the Spec integrates
 into is the one its upstream recorded, and a protected checkout is the warning above again.
 
 ## The Ticket file

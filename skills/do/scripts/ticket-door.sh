@@ -144,7 +144,8 @@ spec_facts="$(bash "$here/spec-branch.sh" probe "$path")"
 echo "$spec_facts"
 # A first run with no Spec branch yet would cut one off this branch and land the Spec there, so a
 # protected or detached checkout stops it before the claim; once the Spec branch exists the Spec
-# already integrates somewhere else, and a protected checkout is the warning it always was.
+# already integrates somewhere else, and a protected checkout is the warning it always was. A
+# resume enters a worktree cut before, so it is never refused on this ground.
 first_run_unsafe=0
 if grep -qx 'spec_exists=no' <<<"$spec_facts" && ! grep -qx 'spec_branch=none' <<<"$spec_facts" &&
   grep -qxE 'protected=yes|branch=HEAD' <<<"$branch_facts"; then first_run_unsafe=1; fi
@@ -158,6 +159,6 @@ elif [ "$status" = claimed ]; then verdict=start-over
 elif [ "$stale" = 1 ]; then verdict=ambiguous
 else verdict=start
 fi
-case "$verdict" in start|resume|start-over) [ "$first_run_unsafe" = 0 ] || verdict=refused ;; esac
+case "$verdict" in start|start-over) [ "$first_run_unsafe" = 0 ] || verdict=refused ;; esac
 echo "verdict=$verdict"
 case "$verdict" in start|resume|start-over) exit 0 ;; *) exit 1 ;; esac

@@ -77,7 +77,10 @@ the tracker file describes. Before anything is written:
 - A first run of a Spec whose main checkout is on a protected branch, or detached, with no Spec
   branch yet (`verdict=refused`, `spec_exists=no`) is refused before the claim, per the protected
   branch in [mechanics.md](mechanics.md). Nothing is written, nothing is claimed and nothing is
-  cut: the Ticket still reads `ready-for-agent`. The one message says the Spec would land on the
+  cut: the Ticket keeps the `status=` the door printed, `ready-for-agent` for a start and `claimed`
+  for a start-over, whose claim an earlier run wrote and this one leaves as it found it. A `claimed`
+  Ticket whose worktree exists (`verdict=resume`) is never refused on this ground: its run was
+  cut before, so the protected checkout is the warning it always was. The one message says the Spec would land on the
   protected branch it names (or, with `branch=HEAD`, on no branch at all) and to switch to a
   working branch and run `/do <ticket>` again; which branch the Spec integrates into is the
   developer's call, so it carries `Yours: direction:` per [reply.md](reply.md). A Ticket outside a
