@@ -71,6 +71,7 @@ files and the audit line both come before the worktree line):
     Guard: guard=header-only (harness=other, hooks=none): the header check alone, the whole guard.
     Planner/Builder: none; the session did the Planner's and the Builder's work itself, the Agent tool withheld.
     ```
+
 11. **Audit line.** In `bug-fix` and `refactoring`, the discover audit line the ground step
     recorded,
     `Discovery: n FOUND · n DUPLICATE · n NOT_FOUND`, saying so when one `rg -n -w` per candidate
@@ -189,15 +190,12 @@ lists it; write it by this file alone otherwise.
 7. **Skipped.** Every skipped step as `<step>: skip: <reason>`, copied from the checklist, and
    only the steps the run reached: a step it never came to was never considered, so it is not a
    skip and is not listed.
-8. **PR-ready description.** As the developer pastes it, with these headings and no other: `Why`,
-   `Scope`, `Tradeoffs`, `Blast Radius`, `Verification`. Blast Radius names the one fact the
-   change is safe because of and how it was proven; Verification repeats the evidence lines.
-9. **Left uncommitted.** The files the run wrote and did not commit, for the developer: the
+8. **Left uncommitted.** The files the run wrote and did not commit, for the developer: the
    Ticket, the Review, and the `.gitignore` line when the run appended it. `none` when the run
    wrote only what it committed.
-10. **Pending debt.** Waivers, consumer coverage not run, an equivalence gap, a second thing found
+9. **Pending debt.** Waivers, consumer coverage not run, an equivalence gap, a second thing found
    on the way and not done.
-11. **Next step.** One line. It ends with the push command when something landed on the
+10. **Next step.** One line. It ends with the push command when something landed on the
     developer's branch, `git push` with the branch named; otherwise the command to type next. A
     landed run whose close finished is not a stop: the push stays on this line, the run never
     pushes, and its Reply carries no `Yours:` line. A landed run that then stopped at the close's
