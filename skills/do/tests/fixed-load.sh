@@ -36,7 +36,6 @@ est() { # runs the scaffolded estimator from the fixture's root; sets out, err a
 is() { [ "$1" = "$2" ]; }
 out_has() { printf '%s\n' "$out" | grep -qxF -- "$1"; }
 err_has() { printf '%s\n' "$err" | grep -qF -- "$1"; }
-term() { printf '%s\n' "$out" | sed -n "s/^$1=//p"; }
 
 est
 expect "with no argument the estimator exits zero" is "$code" 0

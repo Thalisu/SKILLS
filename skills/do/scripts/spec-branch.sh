@@ -4,7 +4,9 @@
 # anywhere inside the project: the main checkout is the first `git worktree list` entry.
 #
 #   spec-branch.sh cut <Ticket path>    cut the Spec branch, or reuse the one already there with
-#                                       its ref and its upstream untouched
+#                                       its ref and its upstream untouched; of two first cuts at
+#                                       once, git's atomic ref creation lets one cut and the other
+#                                       reuses what it cut
 #
 # <Ticket path> is absolute, or relative to the main checkout (the door's ticket= value). The
 # feature slug is the name of the folder that holds the Ticket's issues/ folder, as
@@ -36,6 +38,22 @@ upstream_of() { # $1 main checkout, $2 branch: its upstream, or nothing
   git -C "$1" for-each-ref --format='%(upstream:short)' "refs/heads/$2"
 }
 
+# A run that finds the ref may have found it between the two git commands of the run that created
+# it, the only moment a Spec branch legitimately has no upstream, so it waits that gap out.
+wait_upstream() { # $1 main checkout, $2 branch: its upstream after at most 20 polls 0.1 s apart
+  local up _
+  for _ in $(seq 20); do
+    up="$(upstream_of "$1" "$2")"
+    [ -z "$up" ] || break
+    sleep 0.1
+  done
+  echo "$up"
+}
+
+reuse() { # $1 main checkout, $2 name
+  record "$2" reused "$(wait_upstream "$1" "$2")" "$(git -C "$1" rev-parse --verify -q "refs/heads/$2")"
+}
+
 record() { # $1 name, $2 action, $3 upstream, $4 tip, $5 reason
   echo "spec_branch=$1"
   echo "action=$2"
@@ -59,13 +77,19 @@ cmd_cut() {
   slug="$(feature_slug "$path")"
   [ -n "$slug" ] || { echo "no feature folder holds $1" >&2; exit 2; }
   name="spec/$slug"
-  if tip="$(git -C "$main" rev-parse --verify -q "refs/heads/$name")"; then
-    record "$name" reused "$(upstream_of "$main" "$name")" "$tip"
+  if git -C "$main" rev-parse --verify -q "refs/heads/$name" >/dev/null; then
+    reuse "$main" "$name"
     return 0
   fi
   dev="$(git -C "$main" symbolic-ref --short -q HEAD)"
   tip="$(git -C "$main" rev-parse --verify -q "refs/heads/$dev")"
-  git -C "$main" update-ref "refs/heads/$name" "$tip" "" 2>/dev/null || { echo "could not create $name" >&2; exit 2; }
+  # The empty old value makes the creation atomic: of two first runs of one Spec, git lets exactly
+  # one create the ref, and the other reuses the branch the winner made.
+  if ! git -C "$main" update-ref "refs/heads/$name" "$tip" "" 2>/dev/null; then
+    git -C "$main" rev-parse --verify -q "refs/heads/$name" >/dev/null || { echo "could not create $name" >&2; exit 2; }
+    reuse "$main" "$name"
+    return 0
+  fi
   git -C "$main" branch -q --set-upstream-to="$dev" "$name" >/dev/null
   record "$name" cut "$dev" "$tip"
 }

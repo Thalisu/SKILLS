@@ -89,6 +89,7 @@ frontmatter() { # $1 file: the YAML between the file's opening and closing `---`
 field() { # $1 key: its value from the frontmatter the caller left in $out, on stdout
   sed -n "s/^$1: *//p" <<<"$out"
 }
+term() { printf '%s\n' "$out" | sed -n "s/^$1=//p"; } # $1 key: its value from the key=value lines the caller left in $out, on stdout
 # One `PreToolUse` hook's command, ready to run: the line sits three levels into the frontmatter's
 # `hooks:` block as a YAML double-quoted string with the JSON payload's own quotes escaped inside
 # it, so field() (which reads a top-level `key: value` line) cannot reach it. The scope runs from

@@ -50,4 +50,46 @@ expect "a later cut leaves the Spec branch where the first cut put it" \
 expect "a later cut leaves the Spec branch's local upstream on the branch of its first cut" \
   test "$(g for-each-ref --format='%(upstream:short)' refs/heads/spec/my-feature)" = "feat/work"
 
+other_tip="$(g rev-parse other)"
+race_rounds=12
+race_misses=0
+race_first=""
+for i in $(seq 1 "$race_rounds"); do
+  ticket="$top/.scratch/20260930-race-$i/issues/01-first.md"
+  mkdir -p "$(dirname "$ticket")"
+  printf '# 01: First\n\n**What to build:** something.\n\n**Status:** ready-for-agent\n' >"$ticket"
+  bash "$script" cut "$ticket" >"$tmp/race-$i-a" 2>&1 &
+  pid_a=$!
+  bash "$script" cut "$ticket" >"$tmp/race-$i-b" 2>&1 &
+  pid_b=$!
+  wait "$pid_a"
+  rc_a=$?
+  wait "$pid_b"
+  rc_b=$?
+  one_branch=1
+  actions=""
+  for side in a b; do
+    out="$(cat "$tmp/race-$i-$side")"
+    actions+="$(term action) "
+    [ "$(term tip)" = "$other_tip" ] && [ "$(term upstream)" = other ] || one_branch=0
+  done
+  case "$actions" in "cut reused " | "reused cut ") ;; *) one_branch=0 ;; esac
+  if [ "$one_branch" = 1 ] && [ "$rc_a" = 0 ] && [ "$rc_b" = 0 ] &&
+    [ "$(g rev-parse -q --verify "refs/heads/spec/race-$i")" = "$other_tip" ] &&
+    [ "$(g for-each-ref --format='%(upstream:short)' "refs/heads/spec/race-$i")" = other ]; then
+    continue
+  fi
+  race_misses=$((race_misses + 1))
+  [ -n "$race_first" ] || race_first="$i $rc_a $rc_b"
+done
+if [ "$race_misses" = 0 ]; then
+  ok "two cuts of one Spec started at the same time leave one Spec branch: one cuts, one reuses, both exit 0 and name the same tip and upstream"
+else
+  fail "two cuts of one Spec started at the same time leave one Spec branch: one cuts, one reuses, both exit 0 and name the same tip and upstream ($race_misses of $race_rounds rounds missed)"
+  read -r i rc_a rc_b <<<"$race_first"
+  # shellcheck disable=SC2034  # lib.sh's dump_out reads $out
+  out="$(printf 'round %s, first cut (exit %s):\n%s\nsecond cut (exit %s):\n%s' "$i" "$rc_a" "$(cat "$tmp/race-$i-a")" "$rc_b" "$(cat "$tmp/race-$i-b")")"
+  dump_out
+fi
+
 [ "$fails" = 0 ]
