@@ -242,6 +242,15 @@ check_lines "a first run of a Spec on a detached checkout with no Spec branch is
 expect "a refused first run on a detached checkout leaves no Spec branch, run branch, worktree or claim" \
   untouched "$issues/02-second.md" second
 git checkout -q main
+# A later Ticket of a Spec whose branch was cut before the checkout turned protected lands on that
+# Spec branch, so the protected branch stays a warning and the refusal never reaches it.
+bash "$skill/scripts/spec-branch.sh" cut "$issues/02-second.md" >/dev/null 2>&1
+g branch develop
+run "$door" "$issues/02-second.md"
+check_lines "a Ticket of a Spec whose Spec branch exists proceeds on a protected branch, warned" 0 "$rc" \
+  "protected=yes" "spec_branch=spec/feat" "spec_exists=yes" "spec_upstream=main" "verdict=start"
+g branch -D develop >/dev/null
+g branch -D spec/feat >/dev/null
 cd "$wt" || exit 1
 run "$door" "$issues/02-second.md"
 check_lines "a relative path run from the worktree resolves in the main checkout" 0 "$rc" \
