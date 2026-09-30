@@ -471,7 +471,11 @@ ruled out with runtime evidence, the instrumentation reverted, the mechanism con
 handed over with the brief. That diagnosis is the one thing in this step that needs a tree of its
 own: it instruments files to get its runtime evidence, and the developer's checkout is not the
 place for that, so step 2's worktree is created and entered first and the reproduction runs there,
-with the brief's `Tree:` naming it. The claim still waits for the verified Plan. Those steps record their lines for the Reply's Run section, per
+with the brief's `Tree:` naming it. That worktree is cut before the claim, so on a first run, where
+the door printed `spec_exists=no`, `spec/<feature-slug>` does not exist yet and is no start point:
+it is cut from the main checkout's HEAD, the tip the Spec branch's cut takes later (HEAD too when
+the door printed `spec_branch=none`), and from the Spec branch's tip when the door printed
+`spec_exists=yes`. The claim still waits for the verified Plan. Those steps record their lines for the Reply's Run section, per
 [reply.md](reply.md). When `bug-fix` is not installed under Links, those two steps stand on their
 own. They are the exception the Links rule of [SKILL.md](../SKILL.md) names, and the step numbers
 there are `bug-fix`'s, not this checklist's: the second ask a surface the session cannot reach gets
@@ -653,7 +657,9 @@ start-over whose `run_branch=` fact names `do/<slug>`, the branch survived the w
 so the worktree is entered on it instead: `git worktree add .claude/worktrees/do-<slug>
 do/<slug>`, without `-b`, the way bug-fix's Resume already reads the same state, since `-b` on a
 branch that exists fails and that failure is not one to work around with a second slug. On the
-diagnosis branch of step 1 the worktree is already there and is not made again.
+diagnosis branch of step 1 the worktree is already there and is not made again: it was cut before
+this cut and, on a first run, from the checkout's HEAD, which is the tip this cut gave the Spec
+branch.
 
 Done when the Ticket reads `claimed`, the Spec branch the door named exists with its upstream, the worktree's status prints
 nothing, and the claim line, the cut line and the worktree line, its path and its branch, are
