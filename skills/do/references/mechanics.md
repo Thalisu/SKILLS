@@ -1,14 +1,46 @@
 # Shared mechanics
 
-One file for the parts the Playbooks that build in a worktree share, read by `ticket`, `bug-fix`
-and `refactoring`, so a fix to a mechanic is made once. It carries the worktree, the protected
-branch, the Ticket file, the reader, the delegates, the gate, the integration, the review, the
-verification and the close. A Playbook links the section it needs and never copies it.
-A part a step reads on its own is a file beside this one, so a step that reaches for it carries
-none of the rest: [build-loop.md](build-loop.md) carries the loop and its test authors,
-[forks.md](forks.md) the forks, and [conflict-loop.md](conflict-loop.md) the conflict loop every
-stop of the integration runs. [integrate.md](integrate.md) builds in no worktree and reads that
-last file alone.
+How a `do` run carries one piece of work from a worktree it cuts to the developer's branch: the
+worktree, the protected branch, the Ticket file, the reader, the delegates, the gate, the
+integration, the review, the verification and the close. The `ticket`, `bug-fix` and `refactoring`
+Playbooks link the section a step needs from that step and never copy it, so a fix to a mechanic is
+made once, here.
+
+The run is unattended: the developer reads it afterwards, through the Reply, and nobody watches a
+step while it runs. So the costly errors are the ones that land before anyone looks, and every rule
+below guards against one of three:
+
+- work reaching the developer's branch that no reviewer read, or that a check left red;
+- the run touching work that is not its own: the developer's uncommitted files, their branch, the
+  Review, a worktree git refuses to remove;
+- a step recorded as done that did not run, or ran before the last edit, which the developer then
+  trusts.
+
+A case no rule here names is judged by which of the three it risks.
+
+Read the section the step links whole, with the sections it points at. A part a step reads on its
+own is a file beside this one, so a step that reaches for it carries none of the rest:
+[build-loop.md](build-loop.md) carries the loop and its test authors, [forks.md](forks.md) the
+forks, and [conflict-loop.md](conflict-loop.md) the conflict loop every stop of the integration
+runs. [integrate.md](integrate.md) builds in no worktree and reads that last file alone.
+
+## What no step does
+
+Each of these costs one of the three errors, so none bends to a step's convenience. This list is
+an index: the section named in parentheses carries the rule in full, with its exceptions.
+
+- Edit, stage or revert the developer's uncommitted files, or commit the Ticket: both are the
+  developer's (the worktree, the Ticket file).
+- Enter the worktree through the harness's worktree tool: an isolated session refuses the git the
+  landing needs (the worktree).
+- Land, push, or fix a Finding by hand, or read, edit or write the Review: the review lands and
+  fixes, and the Review is its record for the developer (the review).
+- Turn a red check green with a skipped test, a weakened assertion or a sleep, or work around an
+  infrastructure failure: a red goes back to the build loop, and a blocked check stops the run,
+  waived only by the developer and recorded as debt (the gate, the verification).
+- Count a check that ran before the last edit, or a timeout, as green (the gate).
+- Remove a worktree or a branch git refused to remove with `--force` or `-D`: what git refused on
+  is not the run's to throw away (the close).
 
 ## The worktree
 
@@ -67,6 +99,9 @@ section, per [reply.md](reply.md). The warning guards nothing: the review refuse
 protected branch whatever the run wrote, so a warning the developer never read cannot let the work
 land where the rule forbids it.
 
+Done when the developer's branch was read against the rule before the work started, and the
+warning, when the branch is protected, is recorded for the Reply's Run section.
+
 ## The Ticket file
 
 The Ticket belongs to the main checkout, whether git tracks it, ignores it or has never seen it.
@@ -83,9 +118,10 @@ on the branch makes the landing fast-forward fail, so one rule covers the three 
   the part of a run that refuses, so a claim written ahead of it leaves every refusal with a status
   the developer resets by hand before the rerun. On that one branch the worktree and its branch
   are the run's to undo instead: a refusal met there removes both before its Reply, as that Plan
-  step says, so the rerun meets no worktree-exists refusal at the door. On a remote tracker the claim is the issue assigned to the developer, the way the
-  tracker file describes, made after the developer's yes to a question carrying the
-  `Yours: outward:` line of [reply.md](reply.md), its choice that assignment.
+  step says, so the rerun meets no worktree-exists refusal at the door. On a remote tracker the
+  claim is the issue assigned to the developer, the way the tracker file describes, made after the
+  developer's yes to a question carrying the `Yours: outward:` line of [reply.md](reply.md), its
+  choice that assignment.
 - During the build the file is read and never written: the criteria and the `What to build` line
   are where the behaviours come from. The one exception is a criterion's text a Ruling rewrote as
   the losing side, the forks of [forks.md](forks.md). A Ticket that is an issue is never written
@@ -225,6 +261,11 @@ stopped run was on or beside a sibling Ticket the stop's own line named. A devel
 trust one deletes it by hand before running that Ticket again, and that run forks the reader as a
 first run does.
 
+Done when a Digest sits at its path with exactly one `## Sources` section, the door's own, whether
+this run wrote it or reused it, and the thread shows its location and the one line; or when the
+door stopped in one line naming what the reader's return was missing, with no Digest written and
+the Ticket as the door found it.
+
 ## Delegates
 
 In a `bug-fix` or a `refactoring` run the session writes the production code and commits; in a
@@ -319,20 +360,20 @@ conflict along the way, and running the rebase now would only replay a commit gi
 empty, or hand the developer the same hunk their own merge just settled.
 
 Before it ticks anything, the run reads the ledger's location, fixed the same way it is fixed
-before a rebase starts and never a line a resumed run has to be handed back, and, where that file
-exists, reads it directly the way the review already does: the reviewer opens the file, and here
-the run does too. Where no such file exists, or every entry on it already carries an applied line
-or was judged `drop`, the ancestor check stands on its own and the run skips the rebase: it ticks
-the step as a no-op, reruns nothing, asks nothing, and the review is called with the fixed point
-this ancestry already gives, the tip of the developer's branch. Where the ledger carries an entry
-judged `reapply` with no applied line, a run cut short between two reapply commits and resumed
-once the rebase it left behind had already finished, the ancestor check alone does not excuse a
-ledger entry judged `reapply` with no applied line: the run brings that entry back the same way
-**The reapplies brought back** of [conflict-loop.md](conflict-loop.md) does, one commit or `none`
-recorded into the ledger the same
-way that state records it, then runs the whole **Gate** once before the review is called, or hands
-the tree to the fix call on a run the review already read with no **Gate** of its own, never
-ticking the step as a no-op over an entry still owed a commit.
+before a rebase starts, so a resumed run is never handed it back, and opens the ledger itself
+where that file exists, as the reviewer does. Then one of two:
+
+- No ledger, or every entry on it carries an applied line or was judged `drop`: the ancestor check
+  stands on its own and the run skips the rebase. It ticks the step as a no-op, reruns nothing,
+  asks nothing, and the review is called with the fixed point this ancestry already gives, the tip
+  of the developer's branch.
+- The ledger holds an entry judged `reapply` with no applied line, left by a run cut short between
+  two reapply commits and resumed once its rebase had already finished: the ancestor check alone
+  does not excuse it. The run brings that entry back the same way **The reapplies brought back** of
+  [conflict-loop.md](conflict-loop.md) does, one commit or `none` recorded into the ledger as that
+  state records it, then runs the whole **Gate** once before the review is called, or, on a run the
+  review already read, hands the tree to the fix call with no **Gate** of its own, never ticking
+  the step as a no-op over an entry still owed a commit.
 
 **A rebase that replayed commits.** The run ticks the step with the target and the count, the
 branch it rebased onto and how many of its own commits git replayed. The gate that was green before
@@ -373,17 +414,27 @@ and in each case the integration line is recorded for the Reply's Run section.
 Run once per run, after the gate, and never by hand: the review fixes and lands, the run reads,
 and whatever the run commits after it lands through the fix call below, never a second review, per
 [ADR 0033](../../../docs/adr/0033-the-review-runs-once-per-run-and-what-comes-after-it-lands-through-the-gate-alone.md).
+
+Done when the return's lines are recorded for the Reply's Run section and the work landed, so the
+run goes on to the verification; or when the run stopped as blocked with the reason the return
+gave quoted, the worktree and its branch named and the `Yours:` line that stop calls for; or when
+the step reads `skip: do-code-review not listed`.
+
+### What the call carries
+
 Call the Skill tool with `do-code-review` and four arguments: the spec source (the Ticket's
 location in `ticket`, so the Review lands beside it; the branch alone in `bug-fix` and
 `refactoring`), the fixed point of the branch under review (the merge base the integration reads
 once it is done, which is the commit the integration rebased onto when it replayed), the
 developer's branch as the landing target, and the Gate, the `command=` line the gate printed, so
-the review holds its fixes to the checks the run held its own work to. The call carries one argument of its own besides those, the review token, and it is what ties the
-Review the review writes to the review step that ran. Before the call the run mints an unguessable token,
+the review holds its fixes to the checks the run held its own work to. The call carries one
+argument of its own besides those, the review token, and it is what ties the Review the review
+writes to the review step that ran. Before the call the run mints an unguessable token,
 `bash <skill-dir>/scripts/review-token.sh new <slug>`, which prints it and stores it under the
 clone's git common dir, `--git-common-dir`, at `do/review-token/<slug>`, the path
 `resume-state.sh` reads it back from. That script owns the store, so neither this file nor the
-build step that revokes the token spells its path into a shell line of its own. It is minted here and nowhere earlier, after the Builder has returned, and it is never a key
+build step that revokes the token spells its path into a shell line of its own. It is minted here
+and nowhere earlier, after the Builder has returned, and it is never a key
 of the Builder's brief, per [builder.md](builder.md): the one fork that holds a shell in this
 worktree finished before the token existed, and the build step revokes the token a previous run
 stored before it forks another, so there is no moment at which a fork can read the value a marker
@@ -445,6 +496,8 @@ leaves the isolation per [worktrees.md](../../../.agents/worktrees.md) and calls
 once, with the same arguments as the first call: the five above, the Loss ledger when the
 integration wrote one, and the held Rulings block, last of all, when the run holds one.
 
+### What the review does
+
 What the review does with the call, so that the run does not: it writes the Review, forks one
 Fixer per `Act on` Finding by Wave, the Fixers of one Wave at once, each in a worktree of its own
 turning its Finding into one commit under the project's Testing Policy, picks those commits onto
@@ -463,6 +516,8 @@ target and the conflicting files; a failed fast-forward left in place; nothing p
 asks nobody anything on those paths, since it is a fork with nobody to ask: a hunk a person must
 judge comes back to this run in its return.
 
+### Reading the return
+
 The run reads the outcome off the return and never opens the Review file: the return carries no
 Review text, only the outcome, so the Review's Findings never reach the session's window. The
 return is recorded for the Reply's Run section, one line per part, per [reply.md](reply.md):
@@ -480,6 +535,8 @@ Review: it never reads, edits, deletes or writes the Review, on the first call's
 every fix call's alike, since the Review is the review's to write and its record that a Finding
 existed is the developer's to read. A Finding is settled by a fix call's re-check or overruled by
 the developer, never by the session. Landed, and the run goes on to the verification.
+
+### Not landed: target moved
 
 On `not landed: target moved`, the developer's branch moved while the review ran, by the
 developer's hand or by another run's landing, and the landing's own rebase met a hunk it does not
@@ -547,6 +604,8 @@ loop [ADR 0044](../../../docs/adr/0044-the-re-integration-retries-while-the-targ
 sets, applied to the resume. A resume whose integration replayed commits met another landing, and
 its `not landed: target moved` is back in the loop above.
 
+### Not landed for any other reason
+
 Not landed, for any other reason the review gives (a Finding `not fixed` or `not verified`, an Axis
 `not run`, a red gate after the fixes, a `not landed: target moved` after the in-run resume's
 integration ticked as a no-op too, a red gate after the retry's rebase, a failed fast-forward, a protected branch), and the run stops as blocked: the review's reason quoted, the
@@ -581,6 +640,8 @@ git switch <a branch that takes commits>
 git merge --ff-only do/<slug>
 ```
 
+### The fix call
+
 **What the run commits after the review.** The review read the branch once, and nothing the run
 commits after it is read by a reviewer again: the fix of a red flow, or a rebase a resumed run
 finished after the review. Such a branch is handed to `do-code-review` with
@@ -609,6 +670,8 @@ committed after the review is code no reviewer read: a Finding a commit on the b
 is settled by the call's own re-check, one it cannot settle comes back in its landing line, and a
 list with nothing left comes down to the Gate and the landing. Its return reads like the first
 one's, and a return that reads not landed stops the run the way the first one does.
+
+### When the review cannot be called
 
 When the session does not list `do-code-review`, the step reads
 `skip: do-code-review not listed`: nothing lands, the worktree and its branch stay in place and
@@ -710,3 +773,7 @@ and its branch stay in place, and the reply names them. A run that stops at the 
 already ran steps 1 through 4: the Ticket carries its ticked criteria, its evidence and its
 `resolved` status, and only the worktree and its branch remain, for the `Yours: destroy:` line to
 name.
+
+Done when the Ticket reads `resolved` with the criteria its evidence proves ticked and its
+`## Evidence` written, the tracker writes the developer said yes to are made, and the worktree and
+its branch are gone; or when git refused their removal and the reply names both with git's reason.
