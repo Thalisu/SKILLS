@@ -38,4 +38,16 @@ expect "the cut Spec branch starts at the tip of the branch the main checkout is
 expect "the cut Spec branch records the checkout's branch as its local upstream" \
   test "$(g for-each-ref --format='%(upstream:short)' refs/heads/spec/my-feature)" = "feat/work"
 
+spec_tip="$(g rev-parse refs/heads/spec/my-feature)"
+g switch -q -c other
+printf 'three\n' >>notes.txt
+commit "elsewhere"
+run cut "$issues/01-first.md"
+check_lines "a later cut of a Spec reuses its Spec branch and names the upstream of its first cut, whatever branch the main checkout is on now" 0 "$rc" \
+  "spec_branch=spec/my-feature" "action=reused" "upstream=feat/work" "tip=$spec_tip" "reason="
+expect "a later cut leaves the Spec branch where the first cut put it" \
+  test "$(g rev-parse -q --verify refs/heads/spec/my-feature)" = "$spec_tip"
+expect "a later cut leaves the Spec branch's local upstream on the branch of its first cut" \
+  test "$(g for-each-ref --format='%(upstream:short)' refs/heads/spec/my-feature)" = "feat/work"
+
 [ "$fails" = 0 ]
