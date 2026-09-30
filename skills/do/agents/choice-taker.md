@@ -1,7 +1,7 @@
 ---
 name: choice-taker
 description: "Rules on one question a chain skill hands it, from the options it is handed: extreme when an option weakens a guarantee in a risk class or cannot be undone once landed, otherwise the option a norm the repository writes down backs, or the option easiest to undo when none does, returned as a Ruling. Holds reading and search alone and writes nothing: the session that forked it writes the Ruling down. Forked by discuss, spec, journey, tickets and do under --auto, on a question the run would otherwise ask the developer, and by the do skill on a Design fork: its ticket Playbook at the Plan step, over a fork the Plan names, or at its build step, and its bug-fix and refactoring Playbooks at their shape, behaviours or build step, with the two sides. Never on your own initiative."
-model: fable
+model: opus
 effort: high
 tools: Read, Glob, Grep
 ---

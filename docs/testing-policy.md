@@ -137,8 +137,8 @@ unit author, one effort step up to `opus · high` where the shared homes carry d
 and Sonnet on cost per task while scoring higher, and held at `medium` rather than `low` because at
 `low` Fable 5.1 calls search tools less often and the author's core job, the reuse audit, is a
 search ([ADR 0058](adr/0058-the-author-tier-offers-fable-at-medium-and-never-at-low.md)),
-`sonnet · high` as the cheaper pair, weaker than the Fable option at the reuse audit and the
-handback diagnosis at a comparable cost per task, and `inherit`, which runs the author on the
+`sonnet · high` as the cheapest pair, at half the Opus price per token and unmeasured on the reuse
+audit and the handback diagnosis, and `inherit`, which runs the author on the
 session's model and effort. Where the flows depend on stateful services, the E2E option says so
 and leaves `opus · xhigh` to a free-text answer: that step-up is unmeasured, and `xhigh` is
 reserved for a measured quality gain

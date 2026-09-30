@@ -89,7 +89,7 @@ One `AskUserQuestion` call, holding the pending questions in this order:
 5. The author tier from step 2, one question per author whose tier step 2 item 8 marked for asking: install, migrate, and an agent reading `agent_*_tier=missing` or `invalid`. Four options, plus the free-text Other the tool adds:
    - the Recommended pair, its description quoting the counts that decided it; an agent reading `invalid` marks its installed pair's correction as Recommended and names the value refused;
    - `fable · medium`, described as often competitive with Opus and Sonnet on cost per task while scoring higher, and held at `medium` because at `low` it searches less and the reuse audit is a search;
-   - `sonnet · high`, described as cheaper per dispatch than the Recommended pair, weaker than the Fable option at the reuse audit and the handback diagnosis at a comparable cost per task;
+   - `sonnet · high`, described as the cheapest pair, at half the Opus price per token, and unmeasured on the reuse audit and the handback diagnosis, the two jobs a wrong test is paid twice for;
    - `inherit`, the session's model and effort.
 
    A free-text answer is read as `<model> <effort>` or `<model>` alone, and is taken only when `render-agent.sh` accepts it (the model one of `sonnet`, `opus`, `haiku`, `fable`, `inherit`; the effort one of `low`, `medium`, `high`, `xhigh`, `max`); the renderer's refusal is quoted and that one question asked again.

@@ -1,6 +1,8 @@
 ---
 name: global-e2e-test-author
 description: "Authors and runs one E2E flow, a new flow file or a new scenario, after a mandatory reuse audit, on a project with no Testing Policy installed, against the Project map the run derived. Dispatched only by the do skill's flows step when its loop line reads Loop: global and the map carries an end-to-end command, with the dispatch input its Dispatch protocol fixes and the map file's path; it never writes production code. Never on your own initiative."
+model: opus
+effort: high
 tools: Read, Write, Edit, Bash, Grep, Glob
 hooks:
   PreToolUse:

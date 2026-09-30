@@ -1,6 +1,8 @@
 ---
 name: global-unit-test-author
 description: "Authors and runs one unit test, a new test file or a new test case, after a mandatory reuse audit, on a project with no Testing Policy installed, against the Project map the run derived. Dispatched only by the do skill's build loop when its loop line reads Loop: global, with the dispatch input its Dispatch protocol fixes and the map file's path; it never writes production code. Never on your own initiative."
+model: opus
+effort: medium
 tools: Read, Write, Edit, Bash, Grep, Glob
 hooks:
   PreToolUse:
