@@ -18,7 +18,9 @@ The argument is a Ticket's path, or an issue reference resolved through the trac
 `bash <skill-dir>/scripts/ticket-door.sh <the Ticket's path>`, and never from files it opens to
 find out: the Ticket's `status=`, one `blocker=` line per Ticket its `Blocked by` line names with
 that Ticket's status, `worktree=` for the run's `do/<slug>` worktree, `loop=` for the Testing
-Policy, `protected=` for the developer's branch, and a `verdict=` line, the script exiting non-zero
+Policy, `protected=` for the developer's branch, the Spec branch facts `spec_branch=`,
+`spec_exists=` and `spec_upstream=` (the branch the Spec integrates into, read from the Spec
+branch's upstream and never from the main checkout's HEAD), and a `verdict=` line, the script exiting non-zero
 on every stop. The developer reruns that line and gets the same answer. The bullets below are what
 the script checks and what each verdict does; on a tracker the session reads the same facts the way
 the tracker file describes. Before anything is written:
@@ -72,6 +74,15 @@ the tracker file describes. Before anything is written:
   status to `claimed` by hand to resume it. A Ticket blocked by one not `resolved` prints
   `verdict=blocked` instead, ahead of this check, so a Ticket with both a stray worktree and an
   unresolved blocker gets the bullet above alone, `Yours: direction:`, and never this one too.
+- A first run of a Spec whose main checkout is on a protected branch, or detached, with no Spec
+  branch yet (`verdict=refused`, `spec_exists=no`) is refused before the claim, per the protected
+  branch in [mechanics.md](mechanics.md). Nothing is written, nothing is claimed and nothing is
+  cut: the Ticket still reads `ready-for-agent`. The one message says the Spec would land on the
+  protected branch it names (or, with `branch=HEAD`, on no branch at all) and to switch to a
+  working branch and run `/do <ticket>` again; which branch the Spec integrates into is the
+  developer's call, so it carries `Yours: direction:` per [reply.md](reply.md). A Ticket outside a
+  feature folder's `issues/` (`spec_branch=none`, a tracker Ticket among them) has no Spec branch
+  and is never refused on this ground: its worktree comes from HEAD as before.
 - On a remote tracker, an issue assigned to someone else stops the run in one line with their
   name.
 
@@ -282,7 +293,7 @@ step the run never reaches is neither ticked nor skipped.
 Do:
 - [ ] 0. Input resolved and confirmed; policy or fallback detected
 - [ ] 1. Plan: the Planner forked, the Plan written at its path, the path held
-- [ ] 2. Ticket claimed; worktree created from HEAD and entered; tree clean
+- [ ] 2. Ticket claimed; Spec branch cut or reused; worktree created from its tip and entered; tree clean
 - [ ] 3. Build: the Builder forked from the Plan, its return checked against the branch
 - [ ] 4. Diff: the Builder's diff read in the worktree, the run's own summary written
 - [ ] 5. Gate in the worktree: the Ticket's own tests, typecheck, format; the full suites on the feature's last Ticket
@@ -322,7 +333,9 @@ them as it goes, and nothing depends on that:
   diagnosis first` when it does not.
 - The protected-branch warning when it applies (the protected branch in
   [mechanics.md](mechanics.md)): the line names the branch and the rule and says landing will be
-  refused on it, which the review does whatever the run wrote.
+  refused on it, which the review does whatever the run wrote. On a Ticket of a Spec it applies
+  only once the Spec branch exists: a first run on a protected branch never gets this far, the door
+  refused it.
 - The checklist above, verbatim, copied as the run's todo list with no step marked skipped: every
   step stays open until the run reaches it. The Reply's Run section carries it after the lines
   above, each step the run reached ticked `done:` or reading `skip: <reason>`.
@@ -614,16 +627,34 @@ is also the one the run holds as the door's recorded value from here on. Without
 hashes the claimed Ticket afresh, never matches the pre-claim record and forks the Planner again
 over a claim.
 
-Then the worktree in [mechanics.md](mechanics.md): created from the current HEAD on `do/<slug>`,
-where `<slug>` is the Ticket file's slug without its number, excluded locally, entered. On a
+Then the Spec branch, on every start and start-over and after the re-hash, never before the claim:
+`bash <skill-dir>/scripts/spec-branch.sh cut <the Ticket's path>`. It prints `spec_branch=`,
+`action=`, `upstream=`, `tip=` and `reason=`. `action=cut` is a first run: it created
+`spec/<feature-slug>` at the tip of the branch the main checkout is on and recorded that branch as
+its local upstream, the branch the Spec integrates into from then on. `action=reused` is any later
+run, or the loser of two first runs at once, which git's atomic ref creation settles: the branch
+and its upstream are left as they were, and `upstream=` is the recorded one, never this run's
+checkout. `action=refused` (exit 1) stops the run as blocked with the Ticket `claimed`, naming the
+`reason=`: `protected` or `detached` when the checkout moved after the door, and `no-upstream` for
+a Spec branch that records none, whose Reply names
+`git branch --set-upstream-to=<branch> spec/<feature-slug>` as the developer's fix, since the run
+never guesses the branch a whole Spec lands on. The cut line, the branch, its action and its
+upstream, is recorded for the Reply's Run section. A Ticket whose door printed `spec_branch=none`
+runs no cut.
+
+Then the worktree in [mechanics.md](mechanics.md): created on `do/<slug>` from the tip of the Spec
+branch, `git worktree add .claude/worktrees/do-<slug> -b do/<slug> spec/<feature-slug>`, so the
+Ticket builds on every Ticket that landed before it, or from the current HEAD when the door printed
+`spec_branch=none`; `<slug>` is the Ticket file's slug without its number, excluded locally, entered. On a
 start-over whose `run_branch=` fact names `do/<slug>`, the branch survived the worktree's removal,
 so the worktree is entered on it instead: `git worktree add .claude/worktrees/do-<slug>
 do/<slug>`, without `-b`, the way bug-fix's Resume already reads the same state, since `-b` on a
 branch that exists fails and that failure is not one to work around with a second slug. On the
 diagnosis branch of step 1 the worktree is already there and is not made again.
 
-Done when the Ticket reads `claimed`, its status prints nothing, and the claim line and the
-worktree line, its path and its branch, are recorded for the Reply's Run section.
+Done when the Ticket reads `claimed`, the Spec branch the door named exists with its upstream, the worktree's status prints
+nothing, and the claim line, the cut line and the worktree line, its path and its branch, are
+recorded for the Reply's Run section.
 
 **3. Build.** Before the Builder is forked, revoke the run's review token:
 `bash <skill-dir>/scripts/review-token.sh revoke <the slug>`. It runs on every run, a first run

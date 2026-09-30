@@ -19,7 +19,7 @@ fails=0
 # renumber that moves nothing, and the digits here move by construction whenever a step is
 # reordered, which is exactly the change this file is about.
 claim_item=("ticket claimed" "Ticket claimed" "the ticket claimed" "claim written" "Ticket claimed")
-worktree_item=("Worktree created" "worktree created from HEAD" "Worktree created from HEAD")
+worktree_item=("Worktree created" "worktree created from HEAD" "Worktree created from HEAD" "worktree created from its tip")
 plan_item=("Plan:" "the Planner forked" "Plan written at its path" "Plan verified"
   "Plan grounded" "the Plan checked" "Grounding:")
 
@@ -53,7 +53,7 @@ expect "the Playbook carries a \`## Steps\` section" test -n "$flat"
 
 claim_step=("claim, show.**" "The claim line, \`Claimed:" "the claim is written as the Ticket file"
   "Claim.**" "Resolve, claim")
-worktree_step=("Worktree.**" "created from the current HEAD on" "Worktree and branch.**")
+worktree_step=("Worktree.**" "created from the current HEAD on" "Worktree and branch.**" "created on \`do/<slug>\` from the tip")
 plan_step=("Plan.**" "The grounding is one fork's work and one file" "Grounding.**"
   "Ground.**" "Plan and grounding.**")
 

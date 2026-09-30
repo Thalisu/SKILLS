@@ -1,5 +1,5 @@
 name: protected-branch-said-first
-tags: [playbook, ticket, run, deprecated]
+tags: [playbook, ticket, run]
 runs: 1
 max_turns: 200
 timeout_seconds: 3600
@@ -9,10 +9,10 @@ context:
   scaffold_script: |
     #!/usr/bin/env bash
     # The developer is on main and a develop branch exists, so main is protected by the rule
-    # test-triage uses: the first message says landing will be refused, the run still builds to
-    # the gate and calls the review, and the review (the fixture's stand-in, planted Green)
-    # lands nothing; the worktree and its branch are named with the two commands that land by
-    # hand.
+    # test-triage uses, and the Spec archive-notes has no Spec branch yet: its first run would
+    # cut spec/archive-notes off main and land the Spec there, so the door refuses it before the
+    # claim. The Reply says the Spec would land on a protected branch and to switch to a working
+    # branch and run /do again; the Ticket still reads ready-for-agent and nothing is cut.
     set -e
     mkdir -p src docs/agents .scratch/archive-notes/issues .claude/agents .claude/skills/test-author
     cat > package.json <<'JSON'

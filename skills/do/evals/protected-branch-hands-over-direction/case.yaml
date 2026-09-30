@@ -9,7 +9,9 @@ context:
   scaffold_script: |
     #!/usr/bin/env bash
     # The developer is on main and a develop branch exists, so main is protected by the rule
-    # test-triage uses: the run builds to the gate and calls the review, and the review (the
+    # test-triage uses. The Spec branch spec/archive-notes already exists with main as its
+    # upstream, as an earlier Ticket of the Spec left it, so the door proceeds with the protected
+    # warning instead of refusing a first run: the run builds to the gate and calls the review, and the review (the
     # fixture's stand-in, planted Green) lands nothing; the blocked Reply hands the landing over
     # under the direction class, with the two commands that land the branch elsewhere.
     set -e
@@ -688,4 +690,6 @@ context:
     git -c user.email=fixture@example.com -c user.name=fixture add -A
     git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
     git branch develop
+    git branch spec/archive-notes
+    git branch -q --set-upstream-to=main spec/archive-notes
     printf "\nWork in progress on the README, uncommitted.\n" >> README.md

@@ -44,8 +44,8 @@ an index: the section named in parentheses carries the rule in full, with its ex
 
 ## The worktree
 
-Every build runs in a git worktree the run creates itself from the current HEAD, never through a
-tool that branches from the remote default branch.
+Every build runs in a git worktree the run creates itself, from the current HEAD or from the start
+point its Playbook names, never through a tool that branches from the remote default branch.
 
 1. Prove the run starts in the main checkout before anything is created:
    `git rev-parse --show-toplevel` and the first entry of the worktree list, the derivation
@@ -56,8 +56,12 @@ tool that branches from the remote default branch.
    Then, there, read the branch and `git status --short`. The dirty files are the developer's work
    in progress: nothing in the run edits, stages or reverts them, and the worktree starts from
    HEAD without them.
-2. Create it from the main checkout: `git worktree add .claude/worktrees/do-<slug> -b do/<slug>`,
-   where `<slug>` is the Ticket's slug, or the request's outside the chain. `.claude/worktrees/`
+2. Create it from the main checkout:
+   `git worktree add .claude/worktrees/do-<slug> -b do/<slug> [<start>]`, where `<slug>` is the
+   Ticket's slug, or the request's outside the chain, and `<start>` is HEAD unless the Playbook
+   names one: the `ticket` Playbook names the Spec branch, `spec/<feature-slug>`, so a Ticket
+   builds on every Ticket that landed before it, and `bug-fix` and `refactoring` name none.
+   `.claude/worktrees/`
    is the harness's worktrees folder: the run's worktrees sit beside the harness's own, one
    exclude line covers them all, and a resume knows where to look.
 3. Keep the main checkout's status as the developer left it: when
@@ -101,6 +105,13 @@ land where the rule forbids it.
 
 Done when the developer's branch was read against the rule before the work started, and the
 warning, when the branch is protected, is recorded for the Reply's Run section.
+
+One case stops instead of warning: the first run of a Spec, whose Spec branch does not exist yet,
+while the main checkout is on a protected branch or on no branch at all. That run would cut
+`spec/<feature-slug>` off the protected branch and record it as the branch the whole Spec lands on,
+so the `ticket` door refuses it (`verdict=refused`) before anything is claimed or cut, and the
+Ticket still reads `ready-for-agent`. Once the Spec branch exists, the branch the Spec integrates
+into is the one its upstream recorded, and a protected checkout is the warning above again.
 
 ## The Ticket file
 
