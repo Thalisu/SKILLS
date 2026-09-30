@@ -22,7 +22,9 @@
 # cut prints key=value lines, in this order: spec_branch, action (cut, reused or refused), upstream
 # (the one recorded at the first cut, never the checkout's branch of a later run; empty when
 # refused), tip, reason (empty, or with refused: protected or detached, a first cut whose main
-# checkout is on a protected branch or on no branch at all, which creates nothing).
+# checkout is on a protected branch or on no branch at all, which creates nothing; no-upstream, a
+# Spec branch that still records no upstream after a wait of about two seconds, which the cut never
+# fills in: `git branch --set-upstream-to=<branch> spec/<feature-slug>` is the developer's fix).
 #
 # Exit codes: 0 probe printed, or cut or reused · 1 refused · 2 usage, not a git repository, a cut of a Ticket
 # outside a feature folder's issues/, or a ref creation that failed.
@@ -59,8 +61,17 @@ wait_upstream() { # $1 main checkout, $2 branch: its upstream after at most 20 p
   echo "$up"
 }
 
+# A branch still with no upstream after the wait is refused rather than given the upstream this
+# run's checkout happens to be on, which would silently retarget the whole Spec.
 reuse() { # $1 main checkout, $2 name
-  record "$2" reused "$(wait_upstream "$1" "$2")" "$(git -C "$1" rev-parse --verify -q "refs/heads/$2")"
+  local up tip
+  up="$(wait_upstream "$1" "$2")"
+  tip="$(git -C "$1" rev-parse --verify -q "refs/heads/$2")"
+  if [ -z "$up" ]; then
+    record "$2" refused "" "$tip" no-upstream
+    exit 1
+  fi
+  record "$2" reused "$up" "$tip"
 }
 
 record() { # $1 name, $2 action, $3 upstream, $4 tip, $5 reason
@@ -106,7 +117,7 @@ cmd_cut() {
     reuse "$main" "$name"
     return 0
   fi
-  git -C "$main" branch -q --set-upstream-to="$dev" "$name" >/dev/null
+  git -C "$main" branch -q --set-upstream-to="$dev" "$name" >/dev/null 2>&1 || { record "$name" refused "" "$tip" no-upstream; exit 1; }
   record "$name" cut "$dev" "$tip"
 }
 

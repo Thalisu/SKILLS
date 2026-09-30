@@ -131,4 +131,17 @@ expect "a cut refused on a detached checkout creates no Spec branch" \
   test -z "$(g for-each-ref refs/heads/spec/on-detached)"
 g switch -q other
 
+nou_ticket="$top/.scratch/20260930-no-upstream/issues/01-first.md"
+mkdir -p "$(dirname "$nou_ticket")"
+printf '# 01: First\n\n**What to build:** something.\n\n**Status:** ready-for-agent\n' >"$nou_ticket"
+g branch spec/no-upstream
+nou_tip="$(g rev-parse refs/heads/spec/no-upstream)"
+run cut "$nou_ticket"
+check_lines "a cut that finds the Spec branch with no upstream recorded, and still none after its wait, refuses naming the missing upstream instead of guessing one" 1 "$rc" \
+  "spec_branch=spec/no-upstream" "action=refused" "upstream=" "reason=no-upstream"
+expect "a cut refused for a missing upstream records no upstream of its own on the Spec branch, though the main checkout is on a branch it could have guessed" \
+  test -z "$(g for-each-ref --format='%(upstream)' refs/heads/spec/no-upstream)"
+expect "a cut refused for a missing upstream leaves the Spec branch where it was" \
+  test "$(g rev-parse -q --verify refs/heads/spec/no-upstream)" = "$nou_tip"
+
 [ "$fails" = 0 ]
