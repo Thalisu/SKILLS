@@ -3,6 +3,9 @@
 # branch the main checkout is on and remembering that branch as its local upstream. Run from
 # anywhere inside the project: the main checkout is the first `git worktree list` entry.
 #
+#   spec-branch.sh probe <Ticket path>  the Spec branch facts, read-only: its name, whether it
+#                                       exists, and the branch the Spec integrates into, read from
+#                                       the Spec branch's upstream and never from the checkout's HEAD
 #   spec-branch.sh cut <Ticket path>    cut the Spec branch, or reuse the one already there with
 #                                       its ref and its upstream untouched; of two first cuts at
 #                                       once, git's atomic ref creation lets one cut and the other
@@ -12,17 +15,21 @@
 # feature slug is the name of the folder that holds the Ticket's issues/ folder, as
 # .agents/scripts/resolve-feature-folder.sh normalises it.
 #
+# probe prints three key=value lines, in this order: spec_branch (spec/<feature-slug>, or none for a
+# Ticket outside a feature folder's issues/, such as one on a remote tracker), spec_exists (yes or
+# no), spec_upstream (empty when the branch is absent or records none).
+#
 # cut prints key=value lines, in this order: spec_branch, action (cut or reused), upstream (the
 # one recorded at the first cut, never the checkout's branch of a later run), tip, reason.
 #
-# Exit codes: 0 cut or reused · 2 usage, not a git repository, a Ticket outside a feature folder's issues/,
-# or a ref creation that failed.
+# Exit codes: 0 probe printed, or cut or reused · 2 usage, not a git repository, a cut of a Ticket
+# outside a feature folder's issues/, or a ref creation that failed.
 set -uo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd -P)"
 resolver="$here/../../../.agents/scripts/resolve-feature-folder.sh"
 
-usage() { echo "usage: spec-branch.sh cut <Ticket path>" >&2; exit 2; }
+usage() { echo "usage: spec-branch.sh probe|cut <Ticket path>" >&2; exit 2; }
 
 main_checkout() {
   local top main
@@ -94,8 +101,29 @@ cmd_cut() {
   record "$name" cut "$dev" "$tip"
 }
 
+cmd_probe() {
+  local main path slug name
+  main="$(main_checkout)" || { echo "not a git repository" >&2; exit 2; }
+  case "$1" in /*) path="$1" ;; *) path="$main/${1#./}" ;; esac
+  slug="$(feature_slug "$path")"
+  if [ -z "$slug" ]; then
+    printf 'spec_branch=none\nspec_exists=no\nspec_upstream=\n'
+    return 0
+  fi
+  name="spec/$slug"
+  echo "spec_branch=$name"
+  if git -C "$main" rev-parse --verify -q "refs/heads/$name" >/dev/null; then
+    echo "spec_exists=yes"
+    echo "spec_upstream=$(upstream_of "$main" "$name")"
+  else
+    echo "spec_exists=no"
+    echo "spec_upstream="
+  fi
+}
+
 [ "$#" = 2 ] || usage
 case "$1" in
+  probe) cmd_probe "$2" ;;
   cut) cmd_cut "$2" ;;
   *) usage ;;
 esac

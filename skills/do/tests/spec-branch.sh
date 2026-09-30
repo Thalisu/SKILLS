@@ -50,6 +50,24 @@ expect "a later cut leaves the Spec branch where the first cut put it" \
 expect "a later cut leaves the Spec branch's local upstream on the branch of its first cut" \
   test "$(g for-each-ref --format='%(upstream:short)' refs/heads/spec/my-feature)" = "feat/work"
 
+keys_in_order() { printf '%s\n' "$out" | cut -d= -f1 | tr '\n' ' '; }
+nospec_issues="$top/.scratch/20260930-no-spec/issues"
+mkdir -p "$nospec_issues"
+printf '# 01: First\n\n**What to build:** something.\n\n**Status:** ready-for-agent\n' >"$nospec_issues/01-first.md"
+refs_before="$(g for-each-ref --format='%(refname) %(objectname) %(upstream)')"
+run probe "$issues/01-first.md"
+check_lines "a probe of a Spec with a Spec branch names the branch it was cut from as its upstream, not the branch the main checkout is on now" 0 "$rc" \
+  "spec_branch=spec/my-feature" "spec_exists=yes" "spec_upstream=feat/work"
+expect "a probe of a Spec with a Spec branch prints spec_branch, spec_exists and spec_upstream, in that order and nothing else" \
+  test "$(keys_in_order)" = "spec_branch spec_exists spec_upstream "
+run probe "$nospec_issues/01-first.md"
+check_lines "a probe of a Spec with no Spec branch says it does not exist and names no upstream" 0 "$rc" \
+  "spec_branch=spec/no-spec" "spec_exists=no" "spec_upstream="
+expect "a probe of a Spec with no Spec branch prints spec_branch, spec_exists and spec_upstream, in that order and nothing else" \
+  test "$(keys_in_order)" = "spec_branch spec_exists spec_upstream "
+expect "a probe creates, moves and re-points no ref" \
+  test "$(g for-each-ref --format='%(refname) %(objectname) %(upstream)')" = "$refs_before"
+
 other_tip="$(g rev-parse other)"
 race_rounds=12
 race_misses=0
