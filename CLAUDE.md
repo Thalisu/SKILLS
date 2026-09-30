@@ -55,8 +55,10 @@ principle updates that index in the same change.
 
 `.agents/prompting/` holds the guidelines for using each model the right way (prompting, effort,
 the behaviors that changed from the previous model), one file per model, indexed in its
-`README.md` with the upstream URL and the date it was fetched. Read the file for the model a skill,
-an agent definition or a prompt targets before writing or tuning it. Each file is a verbatim copy
+`README.md` with the upstream URL and the date it was fetched. Before writing or tuning any prompt,
+whatever it is for (a `SKILL.md`, an agent definition, a brief handed to a subagent, an eval, a
+prompt inside a script), read `prompting-best-practices.md` first, whatever the target model, then
+the file for the model the prompt targets when the index has one. Each file is a verbatim copy
 of the upstream page: refresh it by re-fetching, never by editing it by hand, which is also why the
 em-dash rule below does not reach the prompt text it quotes. Adding, refreshing or removing a
 reference updates that index in the same change.

@@ -45,7 +45,7 @@ Each candidate carries three facts, so the choice is made on evidence:
 |---|---|
 | Source | the pipeline file, job and step it came from |
 | Scope | `staged`: it takes file arguments and runs through lint-staged; `whole-repo`: typecheck, the test suite, a codegen drift check |
-| Cost | the wall time of one local run, or `failed locally` with the first error |
+| Cost | the wall time of one local run, `failed locally` with the first error, or `not measured` when running it would change something |
 
 Only `staged` candidates and fast `whole-repo` ones are recommended. A slow hook blocks every
 commit and teaches the team to reach for `--no-verify`, so the choice shows the total cost of what
@@ -72,9 +72,9 @@ Not to the pre-commit hook: commitlint checks the message, which does not exist 
 pre-commit runs. When CI runs it, the skill offers it separately as a `commit-msg` hook.
 
 **Why did it run my tests during setup?**
-To measure each candidate's cost before you decide. The command is the one CI runs, with a
-five-minute timeout, and a command that needs credentials or writes outside the working tree is
-never run.
+To measure each candidate's cost before you decide. Only check-only commands run, the ones CI
+runs, with a five-minute timeout. A command that rewrites files, reaches a database or the network,
+or needs credentials is offered as `not measured` instead of being run.
 
 ## It's working if
 
