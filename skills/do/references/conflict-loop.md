@@ -5,8 +5,9 @@ resolved, the mechanical hunks resolved by the union rule, the contested hunks r
 **Target** side with their **Incoming** side written to the **Loss ledger**, that ledger judged and
 its reapplies brought back, and the states git refuses. It is read by the step that reaches a stop
 and by no other: the integration step of [mechanics.md](mechanics.md), which the worktree Playbooks
-run, and step 4 of [integrate.md](integrate.md), which builds in no worktree and substitutes its
-own continue, abort and ledger path for this file's.
+run, and the operation step of [integrate.md](integrate.md), which builds in no worktree and
+substitutes its own continue, abort, ledger path and judge's brief for this file's, and runs no
+**Gate** after the reapplies.
 
 One reader reaches no stop at all and still reads one state of this file: the no-op state of that
 same integration step, **A rebase that replays no commit.** of [mechanics.md](mechanics.md), where

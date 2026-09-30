@@ -30,3 +30,12 @@ it used to abort.
 
 ADR 0044 supersedes the rule above that a second move of the target stops the run: the
 integration retries for as long as each attempt meets a new tip.
+
+Amended: the `integrate` Playbook of ADR 0029 runs no **Gate** after its reapplied commits. A
+**Gate** guards a landing or a review, and `integrate` has neither. No **Gate** ran green before
+its operation, so a red one could not tell a break the operation caused from one the branch
+already carried, and the run may not edit the developer's code to chase green. Its Reply carries
+the unchecked tree as Pending debt instead, whenever any stop resolved a hunk, mechanical or
+contested, since the union's text reaches the branch as unchecked as a reapply commit does. No
+eval yet covers a contested hunk or a reapply in `integrate`; that gap is open debt, closed by a
+case under `skills/do/evals/` whose stop carries a contested hunk.
