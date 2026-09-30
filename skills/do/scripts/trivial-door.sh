@@ -45,7 +45,9 @@ is_protected() {
 
 cmd_branch() {
   local cur locals remotes others answer
-  cur="${1:-$(git symbolic-ref --short -q HEAD || echo HEAD)}"
+  # Not --short: a tag named like the branch makes it print heads/<name>.
+  cur="${1:-$(git symbolic-ref -q HEAD || echo HEAD)}"
+  cur="${cur#refs/heads/}"
   locals="$(git for-each-ref --format='%(refname:short)' refs/heads)"
   remotes="$(git for-each-ref --format='%(refname:short)' refs/remotes | sed -E 's#^[^/]+/##')"
   others="$(printf '%s\n%s\n' "$locals" "$remotes" | grep -v '^$' | grep -vx HEAD | grep -vx "$cur" \

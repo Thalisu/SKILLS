@@ -110,7 +110,7 @@ else
   dump_out
 fi
 
-for slug in on-protected on-detached; do
+for slug in on-protected on-protected-tag on-detached; do
   mkdir -p "$top/.scratch/20260930-$slug/issues"
   printf '# 01: First\n\n**What to build:** something.\n\n**Status:** ready-for-agent\n' >"$top/.scratch/20260930-$slug/issues/01-first.md"
 done
@@ -121,6 +121,13 @@ check_lines "a cut that finds no Spec branch while the main checkout is on a pro
   "action=refused" "upstream=" "reason=protected"
 expect "a cut refused on a protected branch creates no Spec branch" \
   test -z "$(g for-each-ref refs/heads/spec/on-protected)"
+g tag main
+run cut "$top/.scratch/20260930-on-protected-tag/issues/01-first.md"
+check_lines "a cut that finds no Spec branch while the main checkout is on a protected branch a tag shares the name of still refuses, naming the protected branch as the reason" 1 "$rc" \
+  "action=refused" "upstream=" "reason=protected"
+expect "a cut refused on a protected branch a tag shares the name of creates no Spec branch" \
+  test -z "$(g for-each-ref refs/heads/spec/on-protected-tag)"
+g tag -d main >/dev/null
 g branch -D -q develop
 g switch -q other
 g checkout -q --detach

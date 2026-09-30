@@ -101,7 +101,8 @@ cmd_cut() {
     reuse "$main" "$name"
     return 0
   fi
-  dev="$(git -C "$main" symbolic-ref --short -q HEAD)" || { record "$name" refused "" "" detached; exit 1; }
+  # Not --short: a tag named like the branch makes it print heads/<name>.
+  dev="$(git -C "$main" symbolic-ref -q HEAD)" && dev="${dev#refs/heads/}" || { record "$name" refused "" "" detached; exit 1; }
   # trivial-door.sh stays the one place in do that decides what is protected.
   (cd "$main" && bash "$here/trivial-door.sh" branch "$dev") >/dev/null
   case "$?" in
