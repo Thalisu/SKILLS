@@ -16,19 +16,30 @@ hooks:
 
 # Do
 
-`$ARGUMENTS` is the request. The router matches it to one Playbook, the Playbook's reference under
-Links is the run, and the non-negotiables hold in every run. Every reply opens with
-`Playbook: <name>`, so a wrong match costs one retyped request.
+`$ARGUMENTS` is the request, typed by a developer who wants one piece of work carried through to
+a reviewed branch. `do` is a router: it matches the request to one Playbook, and that Playbook's
+reference under Links is the run. The `ticket` Playbook is the last step of the chain and builds
+one Ticket; every other Playbook runs outside the chain and never builds a feature
+([ADR 0008](../../docs/adr/0008-do-is-a-router-and-only-its-ticket-playbook-is-inside-the-chain.md)).
+A run can last an hour and never waits on the developer, so they read it afterwards, through the
+Reply.
+
+Every reply opens with `Playbook: <name>` on its first line, so a wrong match shows at once and
+costs one retyped request.
 
 ## Router
 
-The argument's shape is read first, then its words. The lines are read in order and the first
-matching line wins, so each line sits above any broader condition it could shadow. An argument
-that opens with a Playbook's name is matched to that Playbook, subject to that Playbook's own door
-checks. A match reads that Playbook's reference, and the references it links, and never another
-Playbook's, with the one exception the Links section names. A line that matches no Playbook
-ends the run in one message: `Playbook: none` on the first line, then the door with the command
-to type; nothing is written and no reference is read.
+1. Read the argument's shape first (empty, a path, an issue reference), then its words.
+2. Read the table's rows in order; the first row that matches wins. Each row sits above any
+   broader row it could shadow.
+3. An argument that opens with a Playbook's name matches that Playbook, subject to that Playbook's
+   own door checks.
+4. On a match, read that Playbook's reference and the references it links, and never another
+   Playbook's, with the one exception Links names: a run carries one Playbook's context, not all of
+   them.
+5. On a row that matches no Playbook, end the run in one message: `Playbook: none` on the first
+   line, then the door with the command to type. Nothing is written and no reference is read, since
+   the skill that owns the request does that work better than a run that was never meant to.
 
 | The argument | Match |
 |---|---|
@@ -49,24 +60,64 @@ to type; nothing is written and no reference is read.
 A Ticket's path is matched on that file alone: a Ticket its `Blocked by` line names is never opened
 before the `ticket` door, whose script reads a blocker's `**Status:**` line and never its body.
 
+A request in words turns on one question: could a test tell before from after? A defect it could
+tell is `bug-fix` however small, and new behaviour is a feature. A change it could not tell is
+`trivial` when it is one of the kinds that row lists, and `refactoring` when it reshapes code past
+them: a rename that crosses files, an extract, a module moved.
+
+<examples>
+<example>
+`the total shows 9.99 instead of 10.00 after a discount`: `bug-fix`, not `trivial`. A one-line
+defect is still a defect a test can tell.
+</example>
+<example>
+`fix the typo "recieve" in the README`: `trivial`. No test could tell before from after.
+</example>
+<example>
+`rename getUser to fetchUser everywhere`: `refactoring`, not `trivial`. The rename reaches past one
+file, and the behaviour its callers observe stays the same.
+</example>
+<example>
+`add an archive button to the notes list`: `Playbook: none`, then `/discuss`. A feature with no
+Ticket; the chain builds it once it is one.
+</example>
+</examples>
+
 A matched Playbook whose reference is missing from Links is not installed in this session:
 `Playbook: none`, one line naming the Playbook and the missing reference, nothing written.
 
 ## Non-negotiables
 
-Each holds in every Playbook.
+Each holds in every Playbook. Each carries its reason, and a case none of them names is judged by
+those reasons.
 
-- Every line a step names is carried by the Reply, per [reply.md](references/reply.md), and none is required as text written mid-run: a session that writes text as it goes is free to, and nothing depends on it.
-- The matched Playbook's steps are copied verbatim as the checklist, the run's own todo list, before any task-specific item, and the Reply's Run section carries it with every step the run reached ticked `done:` or visible as `skip: <reason>`.
-- A principle is named in the reply only with the decision it changed.
-- A question is classified before it is asked: a fact a script can observe goes to a probe, and only a product or preference call goes to the human.
-- The data shape and its organising structure are named before any logic.
-- Every delegate's diff is read by the session, which writes its own summary.
-- A pause comes only before an irreversible write; reversible work is presented instead.
-- "no" is an acceptable answer.
+- Every line a step names is carried by the Reply, per [reply.md](references/reply.md), and none is required as text written mid-run: a session that writes text as it goes is free to, and nothing depends on it. A headless session writes a line meant for the moment as thinking, which nobody reads ([ADR 0039](../../docs/adr/0039-a-do-runs-lines-reach-the-developer-through-the-reply-never-through-text-written-mid-run.md)).
+- The matched Playbook's steps are copied verbatim as the checklist, the run's own todo list, before any task-specific item, and the Reply's Run section carries it with every step the run reached ticked `done:` or visible as `skip: <reason>`. A skipped step left visible is one the developer can question; a dropped one is not.
+- A principle is named in the reply only with the decision it changed. A name with no decision is a citation the reader cannot check.
+- A question is classified before it is asked: a fact a script can observe goes to a probe, and only a product or preference call goes to the human, since that call is the one answer the run cannot produce itself.
+- The data shape and its organising structure are named before any logic, since logic written first fixes a shape nobody chose.
+- Every delegate's diff is read by the session, which writes its own summary. A delegate's summary is its claim, and the diff is the evidence.
+- A pause comes only before an irreversible write; reversible work is presented instead, since it can be undone after the developer reads it.
+- "no" is an acceptable answer. A recommendation is a judgment, not a validation of the request.
 - The worktree is created with `git worktree add` and entered with a bare `cd`; the frontmatter above denies the harness's worktree tool for the session, per [worktrees.md](../../.agents/worktrees.md).
-- The run never lands and never fixes a Finding; the review does both.
+- The run never lands and never fixes a Finding; the review does both, so what reaches the target branch has one owner ([ADR 0005](../../docs/adr/0005-do-code-review-owns-the-whole-review.md)).
 - The reply is in the language the session opened in, and everything written into the project is in English.
+
+## Where a turn ends
+
+A message with no tool call ends the turn, and the run stands still until the developer comes
+back, which can be an hour later. The run ends a turn in three places only: its last message (the
+Reply, or the one message of `Playbook: none`), whether the checklist ran through or a step's own
+route ended the run early; a pause before an irreversible write; and a product or preference call
+with nothing left to do that does not depend on its answer. It never ends one on any of these, all
+met while work is still owed:
+
+- a summary of what was done that announces the next step instead of taking it;
+- an offer to carry on unless the developer would rather not;
+- a list of decisions for the developer when none of them blocks the rest of the work;
+- a milestone reached, or a long turn, taken as a good place to report.
+
+A status note is welcome in the same message as the next tool call.
 
 ## Links
 
