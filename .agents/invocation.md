@@ -16,13 +16,14 @@ reach it:
 
 The choice is made when the skill is created, recorded in both harnesses at once, and there is no
 third state. In this repo, `discover-setup`, `testing-policy`, `discuss`, `prototype`, `spec`,
-`tickets`, `journey`, `do` and `sketch` are user-invoked: the first edits a `CLAUDE.md` and
+`tickets`, `journey`, `do`, `sketch` and `setup-pre-commit` are user-invoked: the first edits a `CLAUDE.md` and
 creates links under `~/.claude`, the second writes agents, a skill and a marked section into a
 project, the third interviews the human, the fourth writes throwaway files into a project, the
 fifth publishes a spec into a project, the sixth publishes tickets to a project's tracker, the
 seventh interviews the human about a spec and writes the journey into a project, the eighth builds
 one Ticket or one change in a project and commits it there, and the ninth files a Sketch in a
-project's scratch, and each is the human's call. `discover`, `test-triage` and `do-code-review` are model-invoked. The skills `do` calls through the Skill tool are all model-invoked:
+project's scratch, and the tenth installs dependencies and a Git hook into a project, and each
+is the human's call. `discover`, `test-triage` and `do-code-review` are model-invoked. The skills `do` calls through the Skill tool are all model-invoked:
 `do-code-review`, the review it hands its branch to, and the vendored `architect`, `how`, `why`,
 `unslop` and `technical-writing`; a step that names one says in one line what it does when the
 session does not list it. Under `vendor/`, `no-comments` is user-invoked, and `architect`,

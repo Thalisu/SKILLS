@@ -1,0 +1,5 @@
+interface:
+  display_name: "Setup Pre-Commit"
+  short_description: "Set up a Husky pre-commit hook from the project's tools and CI"
+policy:
+  allow_implicit_invocation: false
