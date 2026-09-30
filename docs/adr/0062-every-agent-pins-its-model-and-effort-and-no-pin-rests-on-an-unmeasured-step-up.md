@@ -11,7 +11,10 @@ global test authors, which inherited the session's model and effort, carry the p
 `testing-policy` recommends for the authors it installs, `opus · medium` for the unit author and
 `opus · high` for the E2E one, for the reasons of ADR 0052: a wrong test is paid twice under
 red-first. `comment-sicko` keeps `sonnet` and gains `effort: medium`, since an agent with no
-`effort:` line runs at whatever level the session happens to hold.
+`effort:` line runs at whatever level the session happens to hold. The vendored `how` explainer
+and `why` synthesizer default to `opus` instead of `fable` on the same reading of the models
+overview, and the `architect` runners and `how` critics drop `fable` from their panels, leaving
+`opus` and `sonnet`.
 
 ## Considered options
 

@@ -43,8 +43,13 @@ Cursor-isms that do not exist in Claude Code or Codex, and this repo's conventio
 1. `subagent_type: generalPurpose` is `general-purpose` (`why`, `how`).
 2. Model defaults. Upstream names Cursor's roster (`grok-4.6-fast-xhigh`, `gpt-5.6-sol-max`,
    `claude-fable-5-1-thinking-max`, `claude-opus-5-thinking-xhigh`); the Agent tool takes
-   `sonnet | opus | haiku | fable`. Mapped fast to `sonnet`, prose and judgment to `fable`, deep to
-   `opus` (`why`, `how`, `architect`).
+   `sonnet | opus | haiku | fable`. Mapped fast to `sonnet`, and prose, judgment and deep to `opus`
+   (`why`, `how`, `architect`). The multi-model panels, the `architect` runners and the `how`
+   critics, keep one runner per model, `opus` and `sonnet`, so Fable leaving drops a runner rather
+   than doubling Opus. No default names `fable`, per
+   [ADR 0062](../docs/adr/0062-every-agent-pins-its-model-and-effort-and-no-pin-rests-on-an-unmeasured-step-up.md).
+   The Agent tool takes no effort, so every one of these forks runs at the session's effort, as it
+   did on `fable`.
 3. The `readonly` subagent flag has no equivalent, so it is prose now: read-only posture in `how`,
    "full tool access including MCPs" in `why`.
 4. `why` discovered MCPs by listing Cursor's `mcps/` directory; it now reads the session tool list.
