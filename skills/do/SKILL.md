@@ -3,6 +3,8 @@ name: do
 description: "Match a request to one Playbook and run its steps: a Ticket's path or issue reference builds that Ticket as the last step of the chain, a request in words runs outside it, and a request that fits no Playbook is sent to the door that owns it in one message."
 disable-model-invocation: true
 argument-hint: "[a Ticket's path, an issue reference, or the request in words]"
+model: opus
+effort: medium
 disallowed-tools: EnterWorktree
 hooks:
   PreToolUse:

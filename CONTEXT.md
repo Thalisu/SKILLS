@@ -141,6 +141,26 @@ dated with the day it was allocated. A bare slug names the folder called `<slug>
 folder from before the dated rule over every dated one.
 _Avoid_: spec folder, slug folder, feature directory
 
+**Spec branch**:
+The branch every **Ticket** of one **Spec** lands on, cut from the developer's branch by the first
+`do` run of that **Spec** and landed back into that branch once every **Ticket** reads `resolved`.
+A `do` run lands its **Ticket** here itself.
+_Avoid_: feature branch (a feature is the **Feature folder**'s word, not a branch), integration
+branch, epic branch
+
+**Completion check**:
+The script a `do` run calls after it lands its **Ticket** on the **Spec branch**, reading whether
+every **Ticket** of the **Spec** is `resolved`; the run that finds them all integrates the **Spec
+branch** into the developer's branch through the review.
+_Avoid_: gate (the **Gate** is the checks a branch passes before it lands), final check, done check
+
+**Final integration**:
+What the `do` run whose **Completion check** finds every **Ticket** `resolved` does next: it claims
+the **Spec**, rebases its **Spec branch** onto the branch it was cut from, and has `do-code-review`
+review it whole and land it there. A stopped one is resumed by a new `do` on any **Ticket** of the
+**Spec**.
+_Avoid_: merge, spec review, feature landing
+
 **Main checkout**:
 The working tree a `do` run is invoked from, the one every artifact outside version control lives
 in: the **Ticket**, its **Spec**, its **Journey** and the **Review** beside it. A build runs in a
@@ -178,8 +198,9 @@ _Avoid_: confidence, score, certainty
 **Review**:
 The file `do-code-review` writes for one diff: the intent, the one safety fact, the **Findings** by
 **Bucket**, one line per **Axis**, and, after the **Fixers** ran, what was fixed and what was
-verified. Always a local markdown file, whatever the tracker. It belongs to one **Ticket** and
-lives beside it, naming it; outside the chain it names the branch and the fixed point instead.
+verified. Always a local markdown file, whatever the tracker. Inside the chain it belongs to one
+**Spec**, reviewing its **Spec branch**, and lives beside it, naming it; outside the chain it names
+the branch and the fixed point instead.
 _Avoid_: report (the message returned to the caller, not the file), task review, PR comments
 
 **Fixer**:
