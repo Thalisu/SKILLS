@@ -19,10 +19,12 @@
 # Ticket outside a feature folder's issues/, such as one on a remote tracker), spec_exists (yes or
 # no), spec_upstream (empty when the branch is absent or records none).
 #
-# cut prints key=value lines, in this order: spec_branch, action (cut or reused), upstream (the
-# one recorded at the first cut, never the checkout's branch of a later run), tip, reason.
+# cut prints key=value lines, in this order: spec_branch, action (cut, reused or refused), upstream
+# (the one recorded at the first cut, never the checkout's branch of a later run; empty when
+# refused), tip, reason (empty, or with refused: protected or detached, a first cut whose main
+# checkout is on a protected branch or on no branch at all, which creates nothing).
 #
-# Exit codes: 0 probe printed, or cut or reused · 2 usage, not a git repository, a cut of a Ticket
+# Exit codes: 0 probe printed, or cut or reused · 1 refused · 2 usage, not a git repository, a cut of a Ticket
 # outside a feature folder's issues/, or a ref creation that failed.
 set -uo pipefail
 
@@ -88,7 +90,14 @@ cmd_cut() {
     reuse "$main" "$name"
     return 0
   fi
-  dev="$(git -C "$main" symbolic-ref --short -q HEAD)"
+  dev="$(git -C "$main" symbolic-ref --short -q HEAD)" || { record "$name" refused "" "" detached; exit 1; }
+  # trivial-door.sh stays the one place in do that decides what is protected.
+  (cd "$main" && bash "$here/trivial-door.sh" branch "$dev") >/dev/null
+  case "$?" in
+    0) ;;
+    1) record "$name" refused "" "" protected; exit 1 ;;
+    *) echo "trivial-door.sh could not read $dev" >&2; exit 2 ;;
+  esac
   tip="$(git -C "$main" rev-parse --verify -q "refs/heads/$dev")"
   # The empty old value makes the creation atomic: of two first runs of one Spec, git lets exactly
   # one create the ref, and the other reuses the branch the winner made.

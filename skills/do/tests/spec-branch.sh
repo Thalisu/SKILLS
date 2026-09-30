@@ -110,4 +110,25 @@ else
   dump_out
 fi
 
+for slug in on-protected on-detached; do
+  mkdir -p "$top/.scratch/20260930-$slug/issues"
+  printf '# 01: First\n\n**What to build:** something.\n\n**Status:** ready-for-agent\n' >"$top/.scratch/20260930-$slug/issues/01-first.md"
+done
+g switch -q main
+g branch develop
+run cut "$top/.scratch/20260930-on-protected/issues/01-first.md"
+check_lines "a cut that finds no Spec branch while the main checkout is on a protected branch refuses, naming the protected branch as the reason" 1 "$rc" \
+  "action=refused" "upstream=" "reason=protected"
+expect "a cut refused on a protected branch creates no Spec branch" \
+  test -z "$(g for-each-ref refs/heads/spec/on-protected)"
+g branch -D -q develop
+g switch -q other
+g checkout -q --detach
+run cut "$top/.scratch/20260930-on-detached/issues/01-first.md"
+check_lines "a cut that finds no Spec branch while the main checkout is detached refuses, naming the detached HEAD as the reason" 1 "$rc" \
+  "action=refused" "upstream=" "reason=detached"
+expect "a cut refused on a detached checkout creates no Spec branch" \
+  test -z "$(g for-each-ref refs/heads/spec/on-detached)"
+g switch -q other
+
 [ "$fails" = 0 ]
