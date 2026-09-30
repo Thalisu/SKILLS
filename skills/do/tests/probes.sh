@@ -53,6 +53,8 @@ cd "$tmp" || exit 1
 git init -q -b main main && cd main || exit 1
 git config gc.auto 0
 git config maintenance.auto false
+# The $HOME swapped above hides the developer's global identity from every plain git commit here.
+committer_identity
 printf '.scratch/\n' >.gitignore
 printf 'one\n' >notes.txt
 g add -A
