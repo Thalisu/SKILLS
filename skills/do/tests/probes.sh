@@ -211,11 +211,37 @@ rm -rf .claude/agents
 run "$door" "$issues/02-second.md"
 check_lines "no project author and the global unit author linked reads as the global loop" 0 "$rc" "loop=global"
 rm -rf "$HOME/.claude"
+# A first run of a Spec on a protected branch, or on a detached checkout, has nowhere to land, so the
+# door refuses it before anything is claimed or cut; a Ticket outside a feature folder has no Spec
+# branch and keeps the protected branch as a warning only.
+untouched() { # $1 the Ticket the refused run named, $2 its slug: no Spec ref, no run branch or worktree, the Ticket still ready
+  [ -z "$(git for-each-ref refs/heads/spec/)" ] &&
+    ! git show-ref --verify --quiet "refs/heads/do/$2" &&
+    ! git worktree list --porcelain | grep -xF "worktree $top/.claude/worktrees/do-$2" >/dev/null &&
+    grep -qxF '**Status:** ready-for-agent' "$1"
+}
 g branch develop
 run "$door" "$issues/02-second.md"
-check_lines "a protected branch is stated and never stops the door" 0 "$rc" \
-  "protected=yes" "reason=develop exists" "verdict=start"
+check_lines "a first run of a Spec on a protected branch with no Spec branch is refused" 1 "$rc" \
+  "protected=yes" "reason=develop exists" \
+  "spec_branch=spec/feat" "spec_exists=no" "spec_upstream=" "verdict=refused"
+ordered_out "the Spec branch facts follow the branch facts and precede the verdict" \
+  branch= protected= reason= spec_branch= spec_exists= spec_upstream= verdict=
+expect "a refused first run on a protected branch leaves no Spec branch, run branch, worktree or claim" \
+  untouched "$issues/02-second.md" second
+(issues=.scratch && ticket 40-loose.md '**Status:** ready-for-agent' 'None (can start immediately)')
+run "$door" .scratch/40-loose.md
+check_lines "a Ticket outside a feature folder on a protected branch is warned and still starts" 0 "$rc" \
+  "protected=yes" "spec_branch=none" "verdict=start"
+rm -f .scratch/40-loose.md
 g branch -D develop >/dev/null
+git checkout -q --detach
+run "$door" "$issues/02-second.md"
+check_lines "a first run of a Spec on a detached checkout with no Spec branch is refused" 1 "$rc" \
+  "branch=HEAD" "spec_branch=spec/feat" "spec_exists=no" "spec_upstream=" "verdict=refused"
+expect "a refused first run on a detached checkout leaves no Spec branch, run branch, worktree or claim" \
+  untouched "$issues/02-second.md" second
+git checkout -q main
 cd "$wt" || exit 1
 run "$door" "$issues/02-second.md"
 check_lines "a relative path run from the worktree resolves in the main checkout" 0 "$rc" \

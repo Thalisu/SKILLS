@@ -14,7 +14,8 @@
 # worktree's removal), loop (policy when the project has
 # .claude/agents/unit-test-author.md, else global when ~/.claude/agents/global-unit-test-author.md
 # is linked, else fallback), branch, protected and reason as
-# `trivial-door.sh branch` prints them in the main checkout, then verdict. An ambiguous=<what>
+# `trivial-door.sh branch` prints them in the main checkout, spec_branch, spec_exists and
+# spec_upstream as `spec-branch.sh probe` prints them, then verdict. An ambiguous=<what>
 # <detail> line follows the line it concerns. A blocker is the leading number of each part of the
 # Blocked by paragraph split on `;`, `,`, the word `and` and each line break, the paragraph starting
 # on the header's line or the line below it and a `-`, `*` or `+` list marker dropped, a blank line
@@ -32,11 +33,14 @@
 # no file, two files, or no single status line; two Blocked by lines, or one naming no number and
 # not None, or a number it cannot split out) ·
 # blocked (a blocker not resolved) · resume (claimed, the worktree there) · start-over (claimed, the
-# worktree gone) · ambiguous (ready-for-agent with a worktree already there) · start. A protected
-# branch is a warning for the Reply's Run section, never a stop.
+# worktree gone) · ambiguous (ready-for-agent with a worktree already there) · start. Then refused
+# replaces start, resume or start-over when the Ticket's Spec has no Spec branch yet and the main
+# checkout is protected or detached (branch=HEAD), since the first cut would land the Spec there;
+# otherwise a protected branch is a warning for the Reply's Run section, never a stop. A Ticket
+# outside a feature folder's issues/ (spec_branch=none) is never refused on that ground.
 #
 # Exit codes: 0 the run may go on: start, resume or start-over · 1 the door stops the run:
-# resolved, blocked or ambiguous · 2 usage, no Ticket at the path, or not a git repository.
+# resolved, blocked, ambiguous or refused · 2 usage, no Ticket at the path, or not a git repository.
 set -uo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd -P)"
@@ -134,7 +138,16 @@ if [ "$status" = ready-for-agent ] && [ "$worktree" != none ]; then echo "ambigu
 if [ -f "$main/.claude/agents/unit-test-author.md" ]; then echo "loop=policy"
 elif [ -f "$HOME/.claude/agents/global-unit-test-author.md" ]; then echo "loop=global"
 else echo "loop=fallback"; fi
-(cd "$main" && bash "$here/trivial-door.sh" branch) | grep -E '^(branch|protected|reason)='
+branch_facts="$( (cd "$main" && bash "$here/trivial-door.sh" branch) | grep -E '^(branch|protected|reason)=')"
+echo "$branch_facts"
+spec_facts="$(bash "$here/spec-branch.sh" probe "$path")"
+echo "$spec_facts"
+# A first run with no Spec branch yet would cut one off this branch and land the Spec there, so a
+# protected or detached checkout stops it before the claim; once the Spec branch exists the Spec
+# already integrates somewhere else, and a protected checkout is the warning it always was.
+first_run_unsafe=0
+if grep -qx 'spec_exists=no' <<<"$spec_facts" && ! grep -qx 'spec_branch=none' <<<"$spec_facts" &&
+  grep -qxE 'protected=yes|branch=HEAD' <<<"$branch_facts"; then first_run_unsafe=1; fi
 
 if [ "$status" = ambiguous ]; then verdict=ambiguous
 elif [ "$status" = resolved ]; then verdict=resolved
@@ -145,5 +158,6 @@ elif [ "$status" = claimed ]; then verdict=start-over
 elif [ "$stale" = 1 ]; then verdict=ambiguous
 else verdict=start
 fi
+case "$verdict" in start|resume|start-over) [ "$first_run_unsafe" = 0 ] || verdict=refused ;; esac
 echo "verdict=$verdict"
 case "$verdict" in start|resume|start-over) exit 0 ;; *) exit 1 ;; esac
