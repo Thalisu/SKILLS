@@ -38,6 +38,7 @@ passages=(
   "ticket.md|  A \`review=\` line that names a Review|- A Spec amended while the Ticket is|the resume of a rebase that finished after the review|and the gate is green|"
   "bug-fix.md|- A Review of the branch,|- Uncommitted changes in the worktree|the resume on a Review that counts||"
   "bug-fix.md|**11. Verification.**|**12. Close.**|step 11, the red flow fixed in the worktree||"
+  "refactoring.md|The run continues at the first step its branch does not evidence|Done when its status prints nothing|step 2's resume on a Review that counts||"
   "refactoring.md|- **Not landed: target moved.**|- **Not landed**,|the moved target integrated again||"
   "refactoring.md|### 13. Verification|### 14. Close|step 13, the red flow fixed in the worktree||"
   "mechanics.md|Done when the step is ticked as a no-op|and in each case the integration line is recorded|the integration step's own Done line||"
@@ -84,6 +85,22 @@ for row in "${steps[@]}"; do
   flat="$(item_holding "$refs/$file" '\*\*[0-9]+\.' "$key" | tr '\n' ' ' | tr -s ' ')"
   gated_once "$file" "$what" "$extra" "$who"
 done
+
+# A resumed session follows the step number the passage names, so a no-Gate phrasing beside a jump
+# to the Gate's own step still has it run the suite the fix call runs again. The Gate's number is
+# read off its heading: the Playbook's steps are renumbered whenever one is added or absorbed.
+echo "# refactoring.md: step 2's resume on a Review that counts never resumes at the Gate step"
+gate_step="$(sed -nE 's/^### ([0-9]+)\. Gate$/\1/p' "$refs/refactoring.md")"
+expect "refactoring.md numbers its Gate step" test -n "$gate_step"
+flat="$(passage_of "$refs/refactoring.md" "The run continues at the first step its branch does not evidence" \
+  "Done when its status prints nothing" | tr '\n' ' ' | tr -s ' ')"
+expect "refactoring.md carries step 2's resume on a Review that counts" test -n "$flat"
+# shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+out="$flat"
+check_absent "step 2's resume on a Review that counts never sends the branch to the Gate step" 0 0 \
+  "resumes at step $gate_step " "resume at step $gate_step " "resumes at step $gate_step," \
+  "resumes at step $gate_step." "continues at step $gate_step " "jumps to step $gate_step " \
+  "re-enters at step $gate_step "
 
 # The command= line the fix call is handed only exists when the run's own gate actually ran first.
 # A resumed run reaching this point with no Gate of its own (ticket.md's verdict=land resume, and

@@ -20,7 +20,8 @@ You invoke this by typing `/sketch`, and the agent will not reach for it on its 
 ships an agent, which your session forks, and [do](do.md) forks it too, so the shape of a Ticket's
 work is settled the same way without you typing anything: from the Planner that grounds a `ticket`
 run, where the Sketch lands as one section of the Plan, and from the shape step of a `bug-fix` or
-`refactoring` run, where it is filed beside the Ticket.
+`refactoring` run, where no Ticket exists and it is filed under `.scratch/sketches/`, keyed by the
+run's branch.
 
 Reach for it when the work crosses a boundary somebody else will call, and you want the caller's
 usage, the types, the signatures and the module boundaries settled before the first line of it
@@ -82,9 +83,9 @@ you pass, or one derived from your argument, and tells you the path.
 **Can another skill call it?**
 Not through the Skill tool: it is user-invoked, so only a person types it. The agent the skill
 ships is a separate door, and the agent's own description names who may knock: `do`, at its shape
-step, and nobody else. The run writes the Sketch the agent returns beside the Ticket, and when
-`do`'s session has no Agent tool, it writes the Sketch itself in the same format, so the file is
-there either way.
+step, and nobody else. The run files the Sketch the agent returns, in the Plan on a `ticket` run
+and under `.scratch/sketches/` on a `bug-fix` or `refactoring` run, and when `do`'s session has no
+Agent tool, it writes the Sketch itself in the same format, so the file is there either way.
 
 ## It's working if
 

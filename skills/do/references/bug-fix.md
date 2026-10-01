@@ -106,7 +106,7 @@ bug-fix:
 - [ ] 1. Worktree created from HEAD and entered; tree clean
 - [ ] 2. Reproduced on the matching surface: the command line and the failing output
 - [ ] 3. Cause found: one line per hypothesis with its runtime evidence; instrumentation reverted
-- [ ] 4. Fix planned in a few lines; architect when a boundary is crossed
+- [ ] 4. Fix planned in a few lines; sketch when a boundary is crossed
 - [ ] 5. Failing test with origin bugfix: RED_AS_EXPECTED, committed before the fix
 - [ ] 6. Smallest fix on top: one commit through the shared loop, green, typecheck, format
 - [ ] 7. The original reproduction run again on the same surface: the passing output
@@ -236,9 +236,34 @@ one-time use, since every extra line is one the reviewer has to trace to evidenc
 for it.
 
 When the fix crosses a function boundary (a new module, an exported function or type other code
-will call, a changed signature), call the Skill tool with `architect`, stop at the sketch, and
-implement the sketch under the loop. When `architect` is not listed, the session states the shape
-(types, signatures, module boundaries) itself, and the fix line says so. A fix that creates a new
+will call, a changed signature), the `sketch` agent draws the shape in a window of its own, so the
+rival shapes stay out of the session's. Call the Agent tool with `subagent_type: sketch` and the
+brief its definition names, filled from what the run already holds so nothing is grounded twice:
+
+- what to shape: the planned fix, with the mechanism step 3 confirmed;
+- the map: the runtime flow `how` returned at step 3, or `none` when it was not called;
+- the Digest: `none`, since no Spec stands behind a bug in words;
+- the repository root: the main checkout's absolute path;
+- where the Sketch goes: `.scratch/sketches/<the branch, each slash a dash>.md` under that root,
+  as an absolute path. No Ticket exists to file it beside, so it is keyed by the branch, the way
+  the Review is;
+- the chain's `.agents/` folder: the absolute path `readlink -f <skill-dir>/../../.agents` prints,
+  with `<skill-dir>` the folder that holds this file's `references/`, since the agent holds no
+  shell to follow the install link itself.
+
+The agent writes nothing. It returns the Sketch's text and the shape in one line, and the session
+files that text at the destination, whole and with nothing added, appending the `.scratch/` ignore
+line first when [scratch.md](../../../.agents/scratch.md) owes it. The run then implements the
+Sketch under the loop. It records for the Reply's Run section what it handed over, in one line,
+and the Sketch's location with the shape it settled, per [reply.md](reply.md).
+
+When `sketch` writes nothing (the Agent tool withheld, no `sketch` among the agents the session
+lists, or a return that is not a usable Sketch), the session shapes the work itself: it states the
+types, the signatures and the module boundaries, and records the shaped-by line with that reason,
+so the developer knows who shaped it. With the Agent tool withheld it also files that shape at the
+same destination, in the [Sketch format](../../../.agents/formats/sketch-format.md).
+
+A fix that creates a new
 exported symbol runs the Discovery rule's check before it is created, one `discover` batch for two
 or more names and one `rg -n -w` for a single one, with the audit line logged, `Discovery: n FOUND
 · n DUPLICATE · n NOT_FOUND`; a fix that creates none reads `skip: no symbol created`.
@@ -247,7 +272,8 @@ A cause that needs a new shape or a new feature to remove is not a bug fix. The 
 with one message naming `discuss`, the evidence listed and nothing landed, the worktree and its
 branch left in place and named, so the developer decides the design and `do` never reopens a plan.
 Done when the fix and the shape, with the sketch or its skip, are recorded for the Reply's Run
-section as its fix line, per [reply.md](reply.md), or the run stopped naming `discuss`.
+section as its fix line, per [reply.md](reply.md), beside the hand-over and Sketch lines or the
+shaped-by line where the fix crossed a boundary, or the run stopped naming `discuss`.
 
 **5. Red.** The build loop in [build-loop.md](build-loop.md), for one behaviour: the defect the run
 reproduced at step 2. The dispatch input carries origin `bugfix`, the actor who met the defect

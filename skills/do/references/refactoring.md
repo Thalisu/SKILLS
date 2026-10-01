@@ -190,8 +190,9 @@ way it reads that state there:
 
 The run continues at the first step its branch does not evidence, and a Review that counts decides
 the jump, not the cleanup commit: a branch carrying one, which a run stopped on the second no-op of
-its in-run resume at step 12 leaves, resumes at step 10 whether or not step 9 left a cleanup
-commit.
+its in-run resume at step 12 leaves, resumes at step 11 whether or not step 9 left a cleanup
+commit. It integrates again and lands through the fix call on that Review, with no **Gate** of the
+run's own and never a second review.
 
 Done when its status prints nothing and the worktree line, its path and its branch, is recorded for
 the Reply's Run section.
@@ -316,12 +317,34 @@ project knows now, not as the shortest edit from the code that is there, per
 names the types, the module boundaries and the interface the callers will use.
 
 The reshape crosses a boundary when it adds a new module, an exported function or type other code
-will call, or a changed signature. Then:
+will call, or a changed signature. Then the `sketch` agent draws the shape in a window of its own,
+so the rival shapes stay out of the session's:
 
-- Call the Skill tool with `architect`, stop at the sketch, and reshape against it. The sketch is
-  the contract, and it is also what settles step 3's target interface when the request did not.
-- When `architect` is not listed, the session states the shape itself, and the structure line says
-  so.
+- Call the Agent tool with `subagent_type: sketch` and the brief its definition names, filled from
+  what the run already holds so nothing is grounded twice:
+  - what to shape: the reshape as step 1 read it back, with the structure and the target shape
+    stated above;
+  - the map: the target files and the caller inventory step 1 took;
+  - the Digest: `none`, since no Spec stands behind a request in words;
+  - the repository root: the main checkout's absolute path;
+  - where the Sketch goes: `.scratch/sketches/<the branch, each slash a dash>.md` under that
+    root, as an absolute path. No Ticket exists to file it beside, so it is keyed by the branch,
+    the way the Review is;
+  - the chain's `.agents/` folder: the absolute path `readlink -f <skill-dir>/../../.agents`
+    prints, since the agent holds no shell to follow the install link itself.
+- The agent writes nothing. It returns the Sketch's text and the shape in one line, and the session
+  files that text at the destination, whole and with nothing added, appending the `.scratch/`
+  ignore line first when [scratch.md](../../../.agents/scratch.md) owes it. The run records for
+  the Reply's Run section what it handed over, in one line, and the Sketch's location with the
+  shape it settled, per [reply.md](reply.md).
+- Reshape against the Sketch. The sketch is the contract, and it is also what settles step 3's
+  target interface when the request did not.
+- When `sketch` writes nothing (the Agent tool withheld, no `sketch` among the agents the session
+  lists, or a return that is not a usable Sketch), the session shapes the work itself: it states
+  the types, the signatures and the module boundaries, and records the shaped-by line with that
+  reason, so the developer knows who shaped it. With the Agent tool withheld it also files that
+  shape at the same destination, in the
+  [Sketch format](../../../.agents/formats/sketch-format.md).
 - A deviation from the sketch during the reshape is surfaced in the reply. A second deviation of
   the same shape stops the run as a wrong sketch, the deviations listed, the worktree and its
   branch named.
@@ -330,7 +353,8 @@ When no boundary is crossed the step reads `skip: no boundary crossed`, and the 
 is still named.
 
 Done when the structure and the target shape, with the sketch or its skip, are recorded for the
-Reply's Run section as its structure line, per [reply.md](reply.md).
+Reply's Run section as its structure line, per [reply.md](reply.md), beside the hand-over and
+Sketch lines or the shaped-by line where the reshape crossed a boundary.
 
 ### 5. Subtract
 
