@@ -118,4 +118,23 @@ expect "answers once that the run's Ticket is not the last beside a ready one" \
 ticket 02-b.md '**Status:** resolved' 'None (can start immediately)'
 ticket 03-c.md '**Status:** resolved' 'None (can start immediately)'
 
+spec_issues="$issues"
+issues="notes"
+mkdir -p "$issues"
+ticket 05-other.md '**Status:** claimed' 'None (can start immediately)'
+ticket 06-ready.md '**Status:** ready-for-agent' 'None (can start immediately)'
+ticket 07-loose.md '**Status:** claimed' 'None (can start immediately)'
+run "$issues/07-loose.md"
+same "a Ticket with no Spec behind it reads as the last Ticket with nothing open" \
+  "ticket=notes/07-loose.md
+spec_branch=none
+spec_ticket=none
+open=none
+next=none
+last=yes
+verdict=no-spec"
+expect "a Ticket with no Spec behind it is read, with exit 0" test "$rc" = 0
+rm -rf "$issues"
+issues="$spec_issues"
+
 exit "$((fails > 0))"

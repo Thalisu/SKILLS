@@ -20,7 +20,10 @@
 # ambiguous one included. The argument's own status never enters it, so the Gate reads the same
 # answer before the close writes resolved as the close reads after.
 #
-# verdict, first match wins: ambiguous (a Ticket's status cannot be read) · complete (every Ticket
+# A Ticket outside a feature folder's issues/ has no Spec behind it (spec_branch=none): its folder
+# is not walked, and the record reads spec_ticket=none, open=none, next=none, last=yes.
+#
+# verdict, first match wins: no-spec (spec_branch=none) · ambiguous (a Ticket's status cannot be read) · complete (every Ticket
 # reads resolved) · incomplete.
 #
 # Exit codes: 0 the Spec's state was read · 1 ambiguous, with the lines above still printed ·
@@ -63,7 +66,12 @@ grep -qxF -- "$path" <<<"$tickets" || {
 }
 
 echo "ticket=${path#"$main"/}"
-bash "$here/spec-branch.sh" probe "$path" | grep '^spec_branch='
+spec_branch="$(bash "$here/spec-branch.sh" probe "$path" | sed -n 's/^spec_branch=//p')"
+echo "spec_branch=$spec_branch"
+if [ "$spec_branch" = none ]; then
+  printf '%s\n' spec_ticket=none open=none next=none last=yes verdict=no-spec
+  exit 0
+fi
 
 open="" unreadable=0 ready="" last=yes
 while IFS= read -r file; do
