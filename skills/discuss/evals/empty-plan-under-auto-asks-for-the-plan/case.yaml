@@ -1,0 +1,61 @@
+name: empty-plan-under-auto-asks-for-the-plan
+tags: [workflow, auto]
+runs: 2
+max_turns: 12
+timeout_seconds: 300
+allowed_tools: [Bash, Read, Edit, Write, Agent]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # The fixture of auto-rules-every-branch, a notes module with a glossary and one ADR, so a run
+    # that invented a plan would find plenty to discuss. The prompt carries the flag and nothing
+    # else: once the token is dropped the plan is empty, and the run must ask for it in one message
+    # carrying nothing else, ground nothing, show no tree and fork no `choice-taker`.
+    set -e
+    mkdir -p src docs/adr
+    cat > src/notes.js <<'JS'
+    const fs = require('fs');
+
+    const FILE = process.env.NOTES_FILE || 'notes.json';
+
+    function load() {
+      if (!fs.existsSync(FILE)) return [];
+      return JSON.parse(fs.readFileSync(FILE, 'utf8'));
+    }
+
+    function save(notes) {
+      fs.writeFileSync(FILE, JSON.stringify(notes, null, 2));
+    }
+
+    function add(title, body) {
+      const notes = load();
+      const note = { id: notes.length + 1, title, body };
+      notes.push(note);
+      save(notes);
+      return note;
+    }
+
+    function list() {
+      return load();
+    }
+
+    module.exports = { add, list };
+    JS
+    cat > CONTEXT.md <<'MD'
+    # Notes
+
+    ## Language
+
+    **Note**:
+    A title and a body the user keeps, stored in one JSON file with every other note.
+    _Avoid_: memo, entry
+    MD
+    cat > docs/adr/0001-notes-live-in-one-json-file.md <<'MD'
+    # Notes live in one JSON file
+
+    Every note is kept in a single `notes.json` read and written whole, since the store holds a few
+    hundred notes at most and one file is what a user backs up by copying it.
+    MD
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
