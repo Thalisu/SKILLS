@@ -20,7 +20,8 @@
 # ledger (the Loss ledger of the Spec's rebase, <feature folder>/spec.ledger.md); on taken, the
 # file was already there and stays as its claimant wrote it: holder_ticket and claimed_at, that
 # file's ticket and claimed_at, then yield_command, the shell-quoted command that yields that
-# claim by hand when its holder died without yielding; on failed: reason (no-feature-folder, no-spec-branch or
+# claim by hand when its holder died without yielding; on failed: reason (no-feature-folder,
+# no-spec-branch, no-upstream, a Spec branch whose upstream is empty or names no local branch, or
 # not-writable). claimed ends in takeover (yes or no): a claim file already there and yielded is
 # taken over, the file then naming this Ticket, and takeover=yes is followed by previous_ticket and
 # previous_claimed_at, the holder it replaced, and yielded_at.
@@ -99,6 +100,8 @@ cmd_claim() {
   local tree won previous="" takeover=no
   resolve "$1"
   [ "$spec_exists" = yes ] || failed no-spec-branch
+  # Nothing to integrate into: the claim is refused before it creates the file.
+  [ -n "$spec_upstream" ] && git -C "$root" show-ref --verify --quiet "refs/heads/$spec_upstream" || failed no-upstream
   tree="$root/.claude/worktrees/spec-${spec_branch#spec/}"
   # noclobber makes the creation exclusive: of two claims at once, one creates the file.
   if ! (

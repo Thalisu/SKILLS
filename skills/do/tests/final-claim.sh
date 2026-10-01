@@ -353,4 +353,28 @@ check_lines "a claim made after a yielded claim was released shows held, with no
 check_absent "a claim made after a yielded claim was released names no yield" 0 "$rc" \
   "yielded"
 
+# A Spec of its own whose Spec branch lost its upstream after the cut: the Final integration lands
+# the Spec branch on that upstream, so a claim taken here would hold a landing with no destination.
+orphaned="$top/.scratch/20260930-orphaned-feature"
+issues="$orphaned/issues"
+mkdir -p "$issues"
+printf '# Spec: orphaned feature\n\nSomething to build.\n' >"$orphaned/spec.md"
+ticket 01-first.md '**Status:** resolved' 'None (can start immediately)'
+{
+  bash "$here/../scripts/spec-branch.sh" cut "$issues/01-first.md" &&
+    g -C "$top" branch --unset-upstream spec/orphaned-feature &&
+    test -z "$(g -C "$top" for-each-ref --format='%(upstream)' refs/heads/spec/orphaned-feature)" &&
+    test ! -e "$orphaned/spec.integration.claim"
+} >/dev/null 2>&1 || {
+  echo "FAIL  fixture: the Spec branch with no upstream could not be built"
+  exit 1
+}
+run claim "$issues/01-first.md"
+check_lines "a claim on a Spec branch whose upstream is empty reads failed, naming the claim file it did not take and why" 3 "$rc" \
+  "claim=failed" \
+  "file=$orphaned/spec.integration.claim" \
+  "reason=no-upstream"
+expect "a claim on a Spec branch whose upstream is empty creates no claim file" \
+  test ! -e "$orphaned/spec.integration.claim"
+
 [ "$fails" = 0 ]
