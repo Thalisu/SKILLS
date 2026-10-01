@@ -9,8 +9,9 @@ in parallel with the same brief: a technical reviewer that puts five **Axes** to
 reviewer that puts the sixth to it from the attacker's seat, mapping the attack surface before it
 opens any checklist. Both prove what they can by running the code from a temporary directory and
 return **Findings**; the orchestrator groups them by **Bucket** and writes the Review where its
-Ticket is, beside the Ticket file when a caller hands one over and in the scratch reviews folder
-named after the branch when nobody does.
+Ticket is, beside the Ticket file when a caller hands one over, beside the Spec when a caller
+hands a whole Spec over in a Ticket's place, and in the scratch reviews folder named after the
+branch when nobody hands either.
 
 Then it fixes what it found. When the Review carries an `Act on` Finding, the orchestrator forks
 one **Fixer** per Finding, each turning its Finding into one commit under the project's Testing
@@ -75,6 +76,7 @@ push, in English or in Portuguese ("revisa esse diff").
 | review since a commit, a branch or a tag | `/do-code-review <ref>` |
 | a pull request you want reviewed and posted on GitHub | the bundled `/code-review`, which this skill leaves untouched |
 | the Ticket `do` just built | `/do-code-review <the Ticket's path>` on its worktree's branch, which puts the Review beside the Ticket |
+| every Ticket of a Spec, landed on its Spec branch | nothing to type: `do` makes this call at its Final integration, with the Spec in the Ticket's place and the branch the Spec branch was cut from as the fixed point, which puts one Review of the whole feature beside the Spec |
 | read the Review before any agent touches the branch | `/do-code-review --no-fix`, which writes the file and stops |
 | fix a Review you have edited by hand | `/do-code-review fix <the Review's path>` |
 
@@ -97,7 +99,8 @@ Review's text stays in the file and only the outcome comes back: the Review's lo
   definition at the head of the prompt and the same brief.
 - **Somewhere to write.** Hand a Ticket's location over and the Review goes beside the Ticket
   file, taking its name with `.review` before the extension: `02-export-notes.review.md` beside
-  `02-export-notes.md`. Otherwise it goes to `.scratch/reviews/<branch>.md` in the repository's
+  `02-export-notes.md`. A Spec handed over in a Ticket's place takes the Review beside it the same
+  way, `spec.review.md` beside `spec.md`. Otherwise it goes to `.scratch/reviews/<branch>.md` in the repository's
   main checkout, slashes in the branch name turned into dashes: a run inside a linked worktree
   still writes there, since the worktree has no scratch folder of its own and is removed with
   everything in it. The run's last line says whether that file shows up in `git status`: a Review
@@ -134,7 +137,9 @@ so you can overrule). The **Rung** decides which of the first two a Finding can 
 
 `Act on` takes only Rung 3 or above, with the fix named as a behaviour to prove and its target.
 The spec the run judges against is found, never asked for: an issue through the project's tracker
-file, else a spec file matching the branch in the usual spec homes, else `no spec`.
+file, else a spec file matching the branch in the usual spec homes, else `no spec`. A Spec a caller
+hands over comes before all of them and is read whole. A Spec the run found itself is never taken
+for one handed over: it stays a spec source, and the Review stays in the scratch reviews folder.
 
 ## The fix, and the hand-off
 
@@ -244,7 +249,10 @@ refusal instead of as a rule to remember, per
 `do-code-review` is a reach-for-it-anytime standalone: you type it on any branch, at any point in
 the work, as often as you like. [do](../skills/do/SKILL.md) is its second caller and the only
 other one: at its review step it hands over the Ticket it built together with the branch's fixed
-point, so the Review lands beside that Ticket and names it in its header. `do` reads the outcome
+point, so the Review lands beside that Ticket and names it in its header. At its Final
+integration it hands over the Spec instead, with the branch the Spec branch was cut from, and the
+one Review of the feature lands beside the Spec and names it where it would name a Ticket: the
+same local diff, the same Fixers, Gate and fast-forward, and no pull request. `do` reads the outcome
 off the return and never opens the file, and it never fixes a Finding itself. On a machine where
 the skill is not installed, `do` says so, lands nothing and names the review as your next step.
 

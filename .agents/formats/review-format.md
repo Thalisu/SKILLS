@@ -12,37 +12,43 @@ line at the end, so a pass on one Axis never hides a fail on another.
 - Beside the Ticket file when the caller handed one over, as `do` does at its review step, taking
   the Ticket's file name with `.review` before the extension: `02-export-notes.review.md` beside
   `02-export-notes.md`.
-- In the main checkout's scratch reviews folder, `.scratch/reviews/<branch>.md`, when no Ticket was
+- Beside the Spec file when the caller handed a Spec over in place of a Ticket, as `do` does at
+  its Final integration, taking the Spec's file name the same way: `spec.review.md` beside
+  `spec.md`, in the feature folder its Tickets sit under.
+- In the main checkout's scratch reviews folder, `.scratch/reviews/<branch>.md`, when neither was
   handed over or the Ticket is not a local file, `<branch>` being the branch name with every slash
   turned into a dash: `feat/export-notes` writes `.scratch/reviews/feat-export-notes.md`. From a
   linked worktree that is an absolute path into the main checkout, per
   [ADR 0021](../../docs/adr/0021-the-ticket-reaches-the-review-handed-over-and-the-review-defaults-to-the-main-checkouts-scratch.md):
-  the worktree has no scratch of its own and is removed with everything written in it. A Ticket the
-  run found by itself, matching the branch, is a spec source, never the file's home.
+  the worktree has no scratch of its own and is removed with everything written in it. A Ticket or
+  a Spec the run found by itself, matching the branch, is a spec source, never the file's home.
 
 A run on the same branch overwrites the file and a fix appends its `## Fix run` section to it;
 a second `fix` appends a second section. It is the only file the review writes.
 
 ## Header
 
-The title is `# Review: <the branch>`, or `# Review: <the Ticket's title>` when the run has one.
-Directly under it, one `Key: value` line per key, in this order. A value the run inferred, because
+The title is `# Review: <the branch>`, `# Review: <the Ticket's title>` when the run has a Ticket,
+or `# Review: <the Spec's title>` when a Spec was handed over.
+Directly under it, one `Key: value` line per key, in this order. The first line is `Ticket:` or
+`Spec:`, one of the two and never both. A value the run inferred, because
 the caller did not give it, ends with `, inferred`, so the report names every part of the brief it
 filled in.
 
 | Key | Value |
 |---|---|
 | `Ticket:` | `none`, the Ticket file's path, or the issue reference |
+| `Spec:` | the Spec file's path, in the `Ticket:` line's place, when a Spec was handed over |
 | `Fixed point:` | the ref the caller gave and the commit it resolved to, `main (3f2a9c1)`; the merge-base with the base branch when inferred |
 | `Commit:` | the HEAD the tree was at, plus `, dirty` when the working tree had uncommitted changes |
 | `Base:` | the base branch the fixed point was taken against; present only when the fixed point was inferred |
-| `Spec source:` | the Ticket, the issue reference, the spec file's path, or `no spec` |
+| `Spec source:` | the Spec handed over, the Ticket, the issue reference, the spec file's path, or `no spec` |
 | `Mode:` | `default`, `--no-fix` or `fix` |
 | `Language:` | the language the prose is written in |
 
 ## Intent
 
-One paragraph: what the change sets out to do, read off the Ticket, else off the commit messages
+One paragraph: what the change sets out to do, read off the Ticket or the Spec handed over, else off the commit messages
 since the fixed point. When there is neither, the paragraph is read off the diff and opens with
 `Inferred from the diff:`. The review judges whether the work achieves the intent, never whether
 the intent is right.

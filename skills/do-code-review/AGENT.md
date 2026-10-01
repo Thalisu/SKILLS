@@ -43,6 +43,7 @@ labels are in English; its prose is in the report language of the brief.
 | `--no-fix` | the Review is written and the run stops there: no Fixer is forked and nothing is landed |
 | `fix` with a Review's location | the fix of a Review a developer edited by hand: no review is run, and the whole run is [fix.md](references/fix.md), from its door checks to its landing |
 | a Ticket's location: a path, an issue number or a URL | that Ticket is the run's Ticket, the spec source and, when it is a local file, the Review's home; `do` passes it at its review step with the fixed point |
+| a Spec's location: a path its caller names as the Spec, in the Ticket's place | that Spec is the run's spec source, read whole, and the Review's home; `do` passes it at its Final integration with the fixed point, the branch the Spec branch was cut from, and the run has no Ticket |
 | a landing target: the branch a caller wants the reviewed branch landed on | `do` sends it third, after the Ticket and the fixed point; it is the branch the fix fast-forwards when the Review is Green |
 | a Gate: the `command=` line of `do`'s gate script, as it printed it before the review | `do` sends it fourth, after the landing target; it is the Gate the fixed branch is held to before it lands, run as it stands |
 | a caller line: a line whose first words read `Caller:`, followed by one value, `do` | `do` sends it on every `fix` call it makes, after the landing target and the Gate; it marks the call as `do`'s after its one review, on which [fix.md](references/fix.md) forks no Fixer and no Gate fixer; it never reaches the door, a review call ignores it, and any other value is refused as fix.md's door says |
@@ -80,7 +81,7 @@ under review and a path relative to this file resolves to nothing there:
 
 ## 1. The door
 
-Run `bash ~/.claude/skills/do-code-review/scripts/fixed-point.sh [<ref>] [--ticket <location>]`
+Run `bash ~/.claude/skills/do-code-review/scripts/fixed-point.sh [<ref>] [--ticket <location> | --spec <path>]`
 once, from the tree under review. Pass `--ticket` with the location a caller handed over, verbatim,
 and never with a Ticket you found yourself: the flag is what makes the Ticket the run's own, and
 the door answers with `ticket_handed=`, `ticket=` and `review=` together. A location that is all
@@ -88,6 +89,13 @@ digits or an http(s) URL is an issue reference and comes back as it went in; any
 a path, which the door looks for in the directory you ran it from and then at the repository top,
 and refuses when it names no file there. What comes back on `ticket=` is the location the run
 uses from then on, so you and the caller hold one string.
+
+Pass `--spec` the same way, with the Spec's location a caller handed over, verbatim, in place of
+`--ticket` and never beside it. Never pass it a Spec you found yourself, and never a path the
+caller did not name as the Spec: the flag is what tells a Spec handed over from one the door finds,
+and the door answers with `spec_handed=yes`, `spec=`, `review=` beside the Spec and `ticket=none`.
+A Spec is a file, so a number or a URL is refused like any path that names no file. The fixed point
+handed with it is a ref like any other: the diff is the local diff of the branch since that ref.
 
 | Exit | You do |
 |---|---|
@@ -98,7 +106,8 @@ uses from then on, so you and the caller hold one string.
 The refusals are the script's, verbatim: `<ref> does not resolve; nothing reviewed`, `no diff
 between <fixed point> and the working tree; nothing reviewed`, `no base branch found; pass a ref`,
 `no merge-base between <base> and HEAD; pass a ref`,
-`<the location> is not a Ticket file; nothing reviewed`.
+`<the location> is not a Ticket file; nothing reviewed`,
+`<the location> is not a Spec file; nothing reviewed`.
 
 A call that comes back `This session is isolated in the worktree <path>, but this command ...`, or
 the same line about an agent, ran none of that: the tree you were forked in is under the harness's
@@ -113,7 +122,12 @@ your tool list holds no worktree tool, and the isolation is the session's and no
 
 In this order, the first hit wins, and nothing is ever asked, because you cannot reach the user:
 
-1. `ticket_handed=yes`: the Ticket a caller handed over, which is the run's Ticket and not only its
+1. `spec_handed=yes`: the Spec a caller handed over in place of a Ticket. The file at `spec=` is
+   the run's spec source, read whole. No Ticket and no issue is opened, the header reads
+   `Spec: <the path>` where it would name a Ticket, and the Review goes where `review=` says,
+   beside the Spec. A `spec=` printed with `spec_handed=no` is a Spec the door found itself and
+   never this case: the cases below read it.
+2. `ticket_handed=yes`: the Ticket a caller handed over, which is the run's Ticket and not only its
    spec source. A `ticket=` that is a path is the file the door found there, in the format of
    [ticket-format.md](../../.agents/formats/ticket-format.md), with the spec `spec=` names beside
    it when there is one. A `ticket=` that is a number or a URL is an issue reference: open it
@@ -121,15 +135,15 @@ In this order, the first hit wins, and nothing is ever asked, because you cannot
    next line for the spec source when the CLI cannot open it. Either way the header reads
    `Ticket: <the location>`, and the Review goes where `review=` says, beside a local Ticket and in
    the main checkout's scratch reviews folder for a reference.
-2. `tracker=yes` and `issue=<n>`: read `docs/agents/issue-tracker.md` and open issue `<n>` the way
+3. `tracker=yes` and `issue=<n>`: read `docs/agents/issue-tracker.md` and open issue `<n>` the way
    it describes, with the CLI it names. The issue's body is the spec source, named `issue <n>`. A
    CLI that cannot open it falls through to the next line.
-3. `ticket=<path>` with `ticket_handed=no`: that Ticket file, in the same format, with the spec
+4. `ticket=<path>` with `ticket_handed=no`: that Ticket file, in the same format, with the spec
    `spec=` names beside it when there is one. A Ticket the door found by slug is a
    spec source and nothing more: the header still reads `Ticket: none` and the Review still goes
    to the scratch reviews folder. A Review beside a Ticket belongs to the one a caller hands over.
-4. `spec=<path>`: that file.
-5. `no spec`, said once in the header and in the Spec Axis line; the other five Axes still run.
+5. `spec=<path>`: that file.
+6. `no spec`, said once in the header and in the Spec Axis line; the other five Axes still run.
 
 Held Rulings amend whichever source the list found, and nothing else: each item's Ruling line
 counts as one more of the Spec's Implementation Decisions, and each `Now reads:` line replaces the
@@ -142,6 +156,7 @@ line that quotes no criterion of the Ticket amends nothing, and the Spec Axis li
 
 One paragraph, what the change sets out to do, never whether it should.
 
+- A Spec handed over: read off what the Spec says the feature sets out to do.
 - A Ticket, handed over or found: read off its `What to build` line.
 - Else `commits` above zero: read off `git log --format='%s%n%b' <fixed_point>..HEAD`.
 - Else: read off the diff itself, and the paragraph opens with `Inferred from the diff:`.
@@ -162,7 +177,7 @@ receives:
 ```
 Fixed point: <base or ref> (<short sha>), <given | inferred>
 Diff: git diff <fixed_point>; untracked files in <the door's status= line>; commits in git log <fixed_point>..HEAD
-Spec source: <the Ticket's path and its spec | issue <n> and where it was read | the spec file | no spec>[, amended by held Rulings: <the block>]
+Spec source: <the Spec handed over | the Ticket's path and its spec | issue <n> and where it was read | the spec file | no spec>[, amended by held Rulings: <the block>]
 Intent: <the paragraph>
 Report language: <the language>
 ```
@@ -260,10 +275,13 @@ goes to `Consider`, which is what its evidence takes, so nothing on that Axis is
 a reader seeing it. An empty Bucket keeps its heading with `none`.
 
 The title is `# Review: <the Ticket's title>`, its first heading with the leading `#` taken off,
-when the run has a Ticket, and `# Review: <the branch>` otherwise.
+when the run has a Ticket, `# Review: <the Spec's title>`, read the same way, when a Spec was
+handed over, and `# Review: <the branch>` otherwise.
 
 The header, from the door's facts: `Ticket: <the location>` when `ticket_handed=yes`, the door's
-`ticket=` line, the resolved path or the reference, and `Ticket: none` otherwise; `Fixed point:`
+`ticket=` line, the resolved path or the reference; `Spec: <the path>` when `spec_handed=yes`, the
+door's `spec=` line, in that first position with no `Ticket:` line beside it; and `Ticket: none`
+otherwise; `Fixed point:`
 as the brief names it; `Commit:` with `head`, plus `, dirty` when `dirty=yes`; `Base:` only when the fixed
 point was inferred; `Spec source:`; `Mode:` `default` or `--no-fix`, `, inferred` when no flag was
 given; `Language:`. Then the intent, the safety fact, the four Buckets, the six Axis lines.
