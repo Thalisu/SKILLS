@@ -304,8 +304,12 @@ the ones covering the code it touched, the typecheck, the lint and the format ch
 earlier" is stale; a check that ran before the last edit runs again.
 
 The full suites follow the project's **Post-feature gate** in Project facts and run once per
-feature, never on every Ticket. The feature's last Ticket is the run's Ticket when every other
-Ticket of its Spec already reads `resolved`, and any run with no Spec behind it. There, the gate
+feature, never on every Ticket. Whether the run's Ticket is the feature's last is read off the
+`last=` line of the Completion check,
+`bash <skill-dir>/scripts/completion-check.sh <the Ticket's path>`, and never off the session's own
+reading of the Tickets: `last=yes` is the feature's last Ticket, which the script also prints for a
+Ticket with no Spec behind it, and `last=no` is not. A run with no Ticket file to hand the script
+(a tracker reference, a run outside the chain) is taken as `last=yes`. There, the gate
 adds the full unit suite when the line reads `full unit suite` or `both`, and the full E2E suite
 of `full E2E suite` or `both` runs in the verification from the main checkout, where a full suite
 waits for the developer's yes; `none` adds nothing. Facts with no **Post-feature gate** line run
@@ -845,7 +849,14 @@ above: the run never commits it and the worktree branch never touches it.
    write made and the one refused. A no makes none of them: the Ticket issue stays open with its
    old criterion text, and the evidence and the held Rulings are in the reply only. A run with no
    held Ruling asks the same question with the evidence comment and the close alone.
-5. Remove the worktree and its branch: the run created them, so the run removes them. Leave the
+5. Run the Completion check on a Ticket that is a file, after item 3 and never before it:
+   `bash <skill-dir>/scripts/completion-check.sh <the Ticket's path>`. The order is the guarantee:
+   a run that wrote `resolved` first is counted by every check that runs after it, so the last of
+   two concurrent runs always sees every Ticket resolved. The script writes nothing. Its `open=`
+   and `next=` lines are recorded as printed for the Reply's `Open:` line and Next step, per
+   [reply.md](reply.md), and on exit 1 its `ambiguous=` line too. A Ticket that is a tracker
+   reference has no path, so the check is not run and nothing is taken as open.
+6. Remove the worktree and its branch: the run created them, so the run removes them. Leave the
    worktree first, with a bare `cd` to the main checkout, then, from there,
    `git worktree remove <path>` and `git branch -d do/<slug>`. The branch landed, so the delete is
    safe; a remove or a delete that refuses means something did not land, or the worktree holds

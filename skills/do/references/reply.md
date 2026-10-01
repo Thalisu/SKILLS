@@ -195,12 +195,17 @@ worktree line comes before the audit line and before the hand-over, shaped-by an
       their branch.
 28. **Review return.** The review's return, one line per part: the Review's location, the
     `Act on:` line, the landing line, every `Risk:` line and every `Axis not run:` line.
-29. **Spec landing lines.** On a `ticket` run of a Spec, which calls no review, two lines in the
+29. **Spec landing lines.** On a `ticket` run of a Spec, which calls no review, these lines in the
     Review return's place. The landing line, off the one line `land-spec.sh` printed:
     `landed at <sha> on spec/<feature-slug>`, or
     `not landed: spec/<feature-slug> is checked out in <worktree>`, or `not landed:` with the
     script's `moved` or `failed` line quoted. Then, on every such run,
-    `Review: none, the Spec is reviewed once its last Ticket lands`.
+    `Review: none, the Spec is reviewed once its last Ticket lands`. Then, on a run that landed
+    and whose close ran the Completion check, `Open:` naming each Ticket still open with its
+    status, one entry per `open=` line the check printed, its file stem and its status, as
+    `Open: 02-<slug> (claimed), 04-<slug> (ready-for-agent)`. The entries are copied from those
+    lines and never derived from the session's own reading of the Tickets, and the line is absent
+    when the check printed `open=none`.
 
 The lines record what the steps decided; they gate nothing. The order constraints on actions stay
 with the steps that carry them (the door script before any write, the worktree before the first
@@ -263,7 +268,11 @@ Ten sections, in this order, each one present in every Reply that carries sectio
 10. **Next step.** One line, the Reply's last. It ends with the push command when something landed
     on the developer's branch, `git push` with the branch named; otherwise the command to type
     next. A run that landed on a Spec branch names no push, since nothing reached the developer's
-    branch: its line is `/do` on the Spec's next Ticket. A landed run whose close finished is not a stop: the push stays on this line, the run
+    branch: its line is read off the Completion check's `next=` line. A path there reads
+    `/do <that path>`, the first open Ticket that reads `ready-for-agent`. `next=wait` means every
+    open Ticket reads `claimed` by another run: the line says the Spec integrates when those runs
+    land and there is nothing to type. `next=ambiguous` names the Ticket on the check's
+    `ambiguous=` line as the one whose `**Status:**` line to repair. A landed run whose close finished is not a stop: the push stays on this line, the run
     never pushes, and its Reply carries no `Yours:` line. A landed run that then stopped at the
     close's `destroy` stop carries exactly one `Yours: destroy:` line, per the section below; the
     push still stays on this Next step line and is never named under `outward`.

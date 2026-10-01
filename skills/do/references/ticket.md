@@ -321,11 +321,11 @@ Do:
 - [ ] 2. Ticket claimed; Spec branch cut or reused; worktree created from its tip and entered; tree clean
 - [ ] 3. Build: the Builder forked from the Plan, its return checked against the branch
 - [ ] 4. Diff: the Builder's diff read in the worktree, the run's own summary written
-- [ ] 5. Gate in the worktree: the Ticket's own tests, typecheck, format; the full suites on the feature's last Ticket
+- [ ] 5. Gate in the worktree: the Ticket's own tests, typecheck, format; the full suites when completion-check.sh prints last=yes
 - [ ] 6. Integration: the branch rebased onto its Spec branch, the gate again when it replayed (no Spec: onto the developer's branch)
 - [ ] 7. Landing on the Spec branch by land-spec.sh, no review (no Spec: review by do-code-review: Act on Findings fixed Wave by Wave by its Fixers, landed when Green)
 - [ ] 8. Affected E2E flows run from the main checkout
-- [ ] 9. Ticket closed with evidence; worktree removed
+- [ ] 9. Ticket closed with evidence and set to resolved; then completion-check.sh run; then the worktree removed
 - [ ] 10. Reply
 ```
 
@@ -341,7 +341,8 @@ them as it goes, and nothing depends on that:
 - Done as a predicate: the acceptance criteria plus the gate (the unit tests the run added and the
   ones covering the code it touched, the typecheck, the lint and the format green in the worktree
   after the last edit, and the full suites the project's Post-feature gate names when this is the
-  feature's last Ticket), each part checkable.
+  feature's last Ticket, which is the `last=yes` line of `scripts/completion-check.sh` and never
+  the session's own reading of the Tickets), each part checkable.
 - The loop line, off the door's `loop=` line:
   `Loop: policy` when `.claude/agents/unit-test-author.md` exists in the project,
   `Loop: global` when it does not and `~/.claude/agents/global-unit-test-author.md` is linked,
@@ -799,7 +800,12 @@ Builder's, authored inside its own window and reported on its `flow:` lines, per
 summary is recorded for the Reply's Run section.
 
 **5. Gate.** The gate in [mechanics.md](mechanics.md), in the worktree, after the last edit, run
-from `scripts/gate.sh` with its `command=` line recorded for the Reply's Run section. Done when
+from `scripts/gate.sh` with its `command=` line recorded for the Reply's Run section. Whether this
+is the feature's last Ticket, and so whether the full suites of the Post-feature gate are added, is
+the `last=` line of `bash <skill-dir>/scripts/completion-check.sh <the Ticket's path>`, run while
+the Ticket still reads `claimed`: `last=yes` adds them and `last=no` does not. A Ticket that is a
+tracker reference has no path, so the check is not run for it and the step takes it as `last=yes`.
+Done when
 the suite and the typecheck are green in output produced after the last edit and the `command=` line
 is recorded.
 
@@ -871,7 +877,11 @@ flow is green or recorded as not run on the developer's no, or the step reads
 ticked where the evidence proves it, the evidence appended under `## Evidence` with the
 `Context:` line first and the `Forks:` line after it, the status line set to `resolved`, the file left uncommitted, or, on a
 Ticket that is an issue, the one question listing every write the yes makes, the held Rulings'
-among them, under its `Yours: outward:` line; then the worktree and its branch removed. When the door appended the `.scratch/` line to the project's
+among them, under its `Yours: outward:` line; then the Completion check,
+`bash <skill-dir>/scripts/completion-check.sh <the Ticket's path>`, run only after the `resolved`
+write, so the last of two concurrent runs always sees every Ticket resolved, with its `open=` and
+`next=` lines recorded for the Reply; then the worktree and its branch removed. A Ticket that is a
+tracker reference has no path: the check is not run for it and the close takes nothing as open. When the door appended the `.scratch/` line to the project's
 `.gitignore`, the close says so in one line, per [scratch.md](../../../.agents/scratch.md): the run
 changed a file git tracks, and the developer reads that here rather than finding it in
 `git status`. Done when the Ticket reads `resolved`, or, on a Ticket that is an issue, the question
@@ -887,8 +897,9 @@ a criterion the flows step skipped for no end-to-end command, with the command t
 branch named when the review landed, or, when nothing landed, the worktree, its branch, and the
 review and the landing as what the developer runs next. On a Ticket of a Spec the Review is never
 among the files left uncommitted, and the next step names no push, since nothing reached the
-developer's branch: it is `/do` on the Spec's next Ticket when the run landed, and what the
-blocked stop of step 7 names when it did not. A
+developer's branch: when the run landed it is what the Completion check's `next=` line names, as
+the Next step of [reply.md](reply.md) reads it, with the `Open:` line under the landing lines, and
+what the blocked stop of step 7 names when it did not. A
 run that stopped on an Extreme fork, or on a Design fork no `choice-taker` ruled, ends instead on
 the `/discuss` command the forks in [forks.md](forks.md) fix, as its last line. Done when
 the reply is sent with

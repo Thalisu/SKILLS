@@ -174,6 +174,14 @@ resumes at the landing. A landed run's reply carries `landed at <sha> on spec/<s
 `Review: none, the Spec is reviewed once its last Ticket lands`
 ([ADR 0060](adr/0060-a-ticket-lands-on-its-spec-branch-and-do-lands-it-there-itself.md)).
 
+The run then marks its Ticket `resolved`, and only after that runs the Completion check, a script
+that reads the status of every Ticket of the Spec, so the last of two runs landing at once always
+sees every Ticket resolved. Then it removes its worktree. When Tickets are still open, the reply
+adds an `Open:` line naming each one with its status, and its Next step is `/do` on the first open
+Ticket that reads `ready-for-agent`. When every open Ticket is `claimed` by another run, the Next
+step says the Spec integrates when those runs land, and there is nothing to type. The same script
+tells the gate whether this is the feature's last Ticket, which is when the full suites run.
+
 In every other run that builds, the branch goes to the review, once per run: the run hands it the gate's command line too, so
 the review's fixes are held to the same checks, and only the outcome comes back, never the Review's
 text. When your branch moved while the review ran and its landing met a hunk it does not take, the
