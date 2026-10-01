@@ -16,13 +16,14 @@
 # when it counts, else none; then verdict. The Review counts by the rule resume-read.sh holds, read
 # against the Spec branch's reflog and the token stored under token_slug.
 #
-# verdict, first match wins: integration (a rebase is open in the tree) · land (the review already
-# read the Spec branch, so the run goes to the Gate and the fix call, never to a second review) ·
-# restart (add the tree when it is absent, then the rebase step).
+# verdict, first match wins: integration (a rebase is open in the tree) · ask (uncommitted work in
+# the tree) · land (the review already read the Spec branch, so the run goes to the Gate and the
+# fix call, never to a second review) · restart (add the tree when it is absent, then the rebase
+# step).
 #
-# Exit codes: 0 restart · 3 integration · 4 land · 2 usage, a Ticket outside a feature folder's issues/, no
-# Spec branch, a tree on a detached HEAD or another branch with no rebase open, or not a git
-# repository.
+# Exit codes: 0 restart · 1 ask · 3 integration · 4 land · 2 usage, a Ticket outside a feature
+# folder's issues/, no Spec branch, a tree on a detached HEAD or another branch with no rebase
+# open, or not a git repository.
 set -uo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd -P)"
@@ -80,13 +81,18 @@ rebase_open "$tree"
 }
 echo "worktree=present"
 echo "rebase=$rebase"
-git -C "$tree" -c core.quotePath=true status --short | sed 's/^/uncommitted=/'
+uncommitted="$(git -C "$tree" -c core.quotePath=true status --short)"
+[ -z "$uncommitted" ] || sed 's/^/uncommitted=/' <<<"$uncommitted"
 [ "$rebase" != open ] || rebase_stop "$tree" "refs/heads/$spec_upstream"
 review_lines "$folder/spec.review.md" "$tree" "$spec_branch" "$token_slug"
 
 if [ "$rebase" = open ]; then
   echo "verdict=integration"
   exit 3
+fi
+if [ -n "$uncommitted" ]; then
+  echo "verdict=ask"
+  exit 1
 fi
 if [ "$review" != none ]; then
   echo "verdict=land"

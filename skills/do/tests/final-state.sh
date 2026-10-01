@@ -173,4 +173,35 @@ check_lines "a Review beside the Spec whose marker stands with no token stored i
   "review_skipped=unmarked $feature/spec.review.md" "review=none" "verdict=restart"
 absent "a Review beside the Spec whose marker outlived its token never sends the resume to the landing" "verdict=land"
 
+# Work somebody left in the Spec's worktree with no rebase open: a resume that integrates over it
+# loses it, so the read stops to ask, as resume-state.sh does over a Ticket run's worktree.
+echo "# final-state.sh: uncommitted work left in the Spec's worktree"
+token="$(bash "$token_script" new "$slug" 2>/dev/null)"
+printf '%s\n' "$token" >"$feature/spec.review.marker"
+run "$issues/01-first.md"
+[ -n "$token" ] && [ "$rc" = 4 ] && [ "$(term verdict)" = land ] || {
+  echo "FAIL  fixture: the Review beside the Spec could not be made to count again, its worktree still clean"
+  exit 1
+}
+
+printf 'kept\n' >"$tree/left.txt"
+run "$issues/01-first.md"
+check_lines "an untracked file in the Spec's worktree with no rebase open stops the resume to ask, naming the file, even with a Review that counts" 1 "$rc" \
+  "worktree=present" "rebase=none" "uncommitted=?? left.txt" "verdict=ask"
+absent "an untracked file in the Spec's worktree never sends the resume to the landing" "verdict=land"
+
+rm "$tree/left.txt"
+printf 'one\ntwo\nresolved\nleft by hand\n' >"$tree/notes.txt"
+run "$issues/01-first.md"
+check_lines "a modified tracked file in the Spec's worktree with no rebase open stops the resume to ask, naming the file, even with a Review that counts" 1 "$rc" \
+  "worktree=present" "rebase=none" "uncommitted= M notes.txt" "verdict=ask"
+absent "a modified tracked file in the Spec's worktree never sends the resume to the landing" "verdict=land"
+
+printf 'kept\n' >"$tree/left.txt"
+rm "$feature/spec.review.marker"
+run "$issues/01-first.md"
+check_lines "uncommitted work in the Spec's worktree with no Review that counts stops the resume to ask, one line per entry, never to integrate over it" 1 "$rc" \
+  "worktree=present" "rebase=none" "uncommitted= M notes.txt" "uncommitted=?? left.txt" "verdict=ask"
+absent "uncommitted work in the Spec's worktree never sends the resume to start the integration again" "verdict=restart"
+
 [ "$fails" = 0 ]
