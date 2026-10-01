@@ -202,7 +202,8 @@ case "$ticket" in
   *.md) [ "${ticket%.md}.review.md" = "$review" ] || own+=(":!${ticket%.md}.review.md") ;;
 esac
 status="git status --short -- ."
-for p in "${own[@]}"; do status="$status '$p'"; done
+# The line is eval'd by the caller, and a handed path can hold a single quote.
+for p in "${own[@]}"; do status="$status '${p//\'/\'\\\'\'}'"; done
 if [ -n "$(git status --porcelain -- . "${own[@]}")" ]; then dirty=yes; else dirty=no; fi
 
 base=""

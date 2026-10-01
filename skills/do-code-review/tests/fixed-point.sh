@@ -775,6 +775,40 @@ printf 'notes\n' >.scratch/20260930-export/notes.md
 run --spec .scratch/20260930-export/spec.md
 check_lines "another untracked file beside the handed Spec is a change like any other" 0 "$rc" "dirty=yes"
 
+# The orchestrator and the fix call eval the status line, and the path in it is the name of a file
+# anyone can commit: a single quote in that name must stay text, or the rest of the name runs as
+# shell with the developer's rights. The Review beside the file is still the one path spared.
+mkdir "$tmp/quoted" && cd "$tmp/quoted" && git init -q -b main
+payload="';touch pwned;'"
+quoted_spec=".scratch/20260930-export/spec$payload.md"
+quoted_ticket=".scratch/20260930-export/issues/01-export$payload.md"
+mkdir -p .scratch/20260930-export/issues
+printf '# Export\n' >"$quoted_spec" && printf '# 01: Export\n' >"$quoted_ticket"
+git add -A && git commit -q -m "first"
+git checkout -q -b integration
+printf 'b\n' >b.txt && git add b.txt && git commit -q -m "build"
+printf '# Review: Export\n' >"${quoted_spec%.md}.review.md"
+run --spec "$quoted_spec"
+check "the door hands on a status command for a handed Spec whose path holds a single quote" 0 "$rc" \
+  "status=git status"
+rc=0
+out="$(eval "$(term status)" 2>&1)" || rc=$?
+expect "the status line of a handed Spec whose path holds a single quote runs nothing but git status" \
+  test ! -e pwned
+check "that status line runs clean" 0 "$rc"
+same "that status line still spares the Review beside the handed Spec" ""
+rm -f pwned "${quoted_spec%.md}.review.md"
+printf '# Review: 01\n' >"${quoted_ticket%.md}.review.md"
+run --ticket "$quoted_ticket"
+check "the door hands on a status command for a handed Ticket whose path holds a single quote" 0 "$rc" \
+  "status=git status"
+rc=0
+out="$(eval "$(term status)" 2>&1)" || rc=$?
+expect "the status line of a handed Ticket whose path holds a single quote runs nothing but git status" \
+  test ! -e pwned
+check "that status line runs clean" 0 "$rc"
+same "that status line still spares the Review beside the handed Ticket" ""
+
 if [ "$fails" = 0 ]; then echo "PASS"; else
   echo "$fails failing"
   exit 1
