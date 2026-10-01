@@ -24,7 +24,7 @@ seventh interviews the human about a spec and writes the journey into a project,
 one Ticket or one change in a project and commits it there, and the ninth files a Sketch in a
 project's scratch, and the tenth installs dependencies and a Git hook into a project, and each
 is the human's call. `discover`, `test-triage` and `do-code-review` are model-invoked. The skills `do` calls through the Skill tool are all model-invoked:
-`do-code-review`, the review it hands its branch to, and the vendored `architect`, `how`, `why`,
+`do-code-review`, the review it hands its branch to, and the vendored `how`, `why`,
 `unslop` and `technical-writing`; a step that names one says in one line what it does when the
 session does not list it. Under `vendor/`, `no-comments` is user-invoked, and `architect`,
 `how`, `why`, `teach`, `unslop`, `technical-writing` and `typescript-best-practices` are
