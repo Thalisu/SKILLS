@@ -84,4 +84,31 @@ done
 out="${bad%$'\n'}"
 same "of two claims of one Spec started at the same time, exactly one reads claimed and the other reads taken" ""
 
+# The landing as a run leaves it: the Spec branch holds a Ticket's commit, no worktree holds the
+# branch, and its upstream, the developer's branch, was fast-forwarded to its tip.
+rm -f "$feature/spec.integration.claim"
+{
+  bash "$script" claim "$issues/01-first.md" >/dev/null 2>&1 &&
+    g -C "$top" switch -q --detach spec/my-feature &&
+    printf 'three\n' >>"$top/notes.txt" &&
+    g -C "$top" commit -qam "a Ticket of the Spec" &&
+    g -C "$top" branch -f spec/my-feature HEAD &&
+    g -C "$top" switch -q feat/work &&
+    g -C "$top" merge -q --ff-only spec/my-feature &&
+    test -f "$feature/spec.integration.claim" &&
+    test "$(g -C "$top" rev-parse refs/heads/spec/my-feature)" = "$(g -C "$top" rev-parse refs/heads/feat/work)"
+} >/dev/null 2>&1 || {
+  echo "FAIL  fixture: the claimed Final integration of a landed Spec branch could not be built"
+  exit 1
+}
+run release "$issues/01-first.md"
+check_lines "a release after the Spec branch landed reads released, naming the Spec branch it removed" 0 "$rc" \
+  "claim=released" \
+  "spec_branch=spec/my-feature" \
+  "removed=yes"
+expect "a release after the Spec branch landed removes the claim file" \
+  test ! -e "$feature/spec.integration.claim"
+expect "a release after the Spec branch landed removes the Spec branch" \
+  test -z "$(g -C "$top" for-each-ref refs/heads/spec/my-feature)"
+
 [ "$fails" = 0 ]

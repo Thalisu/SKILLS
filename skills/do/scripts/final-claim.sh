@@ -4,6 +4,8 @@
 # lock a run waits on, per ../../../.agents/scratch.md. Run from anywhere inside the project.
 #
 #   final-claim.sh claim <Ticket path>    claim the Final integration of the Ticket's Spec
+#   final-claim.sh release <Ticket path>  remove the Spec branch through `spec-branch.sh remove`
+#                                         and delete the claim file
 #
 # <Ticket path> is absolute, or relative to the main checkout. The Spec is the spec.md of the
 # feature folder that holds the Ticket's issues/ folder.
@@ -19,14 +21,17 @@
 # The claim file holds key=value lines a reader takes the keys it knows from: ticket (the absolute
 # path of the Ticket whose run claimed), spec_branch, tree, claimed_at (UTC, ISO 8601).
 #
-# Exit codes: 0 claimed · 1 taken · 3 failed · 2 usage or not a git repository.
+# release prints key=value lines: claim (released), spec_branch, removed (yes, or absent when there
+# was no Spec branch left to remove). A claim file already gone is still released.
+#
+# Exit codes: 0 claimed or released · 1 taken · 3 failed · 2 usage or not a git repository.
 set -uo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd -P)"
 resolver="$here/../../../.agents/scripts/resolve-feature-folder.sh"
 
 usage() {
-  echo "usage: final-claim.sh claim <Ticket path>" >&2
+  echo "usage: final-claim.sh claim|release <Ticket path>" >&2
   exit 2
 }
 
@@ -37,11 +42,12 @@ failed() { # $1 reason
   exit 3
 }
 
-# Sets path, root, folder, file, spec_branch and spec_upstream from the Ticket's path.
+# Sets path, root, folder, file, spec_branch, spec_exists and spec_upstream from the Ticket's path.
 resolve() { # $1 Ticket path
   local probe resolved issues
   probe="$(bash "$here/spec-branch.sh" probe "$1")" || exit 2
   spec_branch="$(sed -n 's/^spec_branch=//p' <<<"$probe")"
+  spec_exists="$(sed -n 's/^spec_exists=//p' <<<"$probe")"
   spec_upstream="$(sed -n 's/^spec_upstream=//p' <<<"$probe")"
   [ "$spec_branch" != none ] || failed no-feature-folder
   resolved="$(bash "$resolver" "${spec_branch#spec/}" 2>/dev/null)" || failed no-feature-folder
@@ -53,12 +59,12 @@ resolve() { # $1 Ticket path
   issues="$(dirname "$path")"
   [ "$(dirname "$issues")" -ef "$folder" ] || failed no-feature-folder
   file="$folder/spec.integration.claim"
-  grep -qx 'spec_exists=yes' <<<"$probe" || failed no-spec-branch
 }
 
 cmd_claim() {
   local tree
   resolve "$1"
+  [ "$spec_exists" = yes ] || failed no-spec-branch
   tree="$root/.claude/worktrees/spec-${spec_branch#spec/}"
   # noclobber makes the creation exclusive: of two claims at once, one creates the file.
   if ! (
@@ -82,8 +88,20 @@ cmd_claim() {
   echo "ledger=$folder/spec.ledger.md"
 }
 
+cmd_release() {
+  local removal removed=yes
+  resolve "$1"
+  removal="$(bash "$here/spec-branch.sh" remove "$path")"
+  grep -qx 'action=removed' <<<"$removal" || removed=absent
+  rm -f "$file"
+  echo "claim=released"
+  echo "spec_branch=$spec_branch"
+  echo "removed=$removed"
+}
+
 [ "$#" = 2 ] || usage
 case "$1" in
   claim) cmd_claim "$2" ;;
+  release) cmd_release "$2" ;;
   *) usage ;;
 esac
