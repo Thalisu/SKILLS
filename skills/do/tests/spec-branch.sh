@@ -58,13 +58,13 @@ refs_before="$(g for-each-ref --format='%(refname) %(objectname) %(upstream)')"
 run probe "$issues/01-first.md"
 check_lines "a probe of a Spec with a Spec branch names the branch it was cut from as its upstream, not the branch the main checkout is on now" 0 "$rc" \
   "spec_branch=spec/my-feature" "spec_exists=yes" "spec_upstream=feat/work"
-expect "a probe of a Spec with a Spec branch prints spec_branch, spec_exists and spec_upstream, in that order and nothing else" \
-  test "$(keys_in_order)" = "spec_branch spec_exists spec_upstream "
+expect "a probe of a Spec with a Spec branch prints spec_branch, spec_exists, spec_upstream and spec_landed, in that order and nothing else" \
+  test "$(keys_in_order)" = "spec_branch spec_exists spec_upstream spec_landed "
 run probe "$nospec_issues/01-first.md"
 check_lines "a probe of a Spec with no Spec branch says it does not exist and names no upstream" 0 "$rc" \
   "spec_branch=spec/no-spec" "spec_exists=no" "spec_upstream="
-expect "a probe of a Spec with no Spec branch prints spec_branch, spec_exists and spec_upstream, in that order and nothing else" \
-  test "$(keys_in_order)" = "spec_branch spec_exists spec_upstream "
+expect "a probe of a Spec with no Spec branch prints spec_branch, spec_exists, spec_upstream and spec_landed, in that order and nothing else" \
+  test "$(keys_in_order)" = "spec_branch spec_exists spec_upstream spec_landed "
 expect "a probe creates, moves and re-points no ref" \
   test "$(g for-each-ref --format='%(refname) %(objectname) %(upstream)')" = "$refs_before"
 
@@ -187,5 +187,31 @@ expect "a Spec branch refused as unlanded stays on the tip it had" \
   test "$(g rev-parse -q --verify refs/heads/spec/unlanded)" = "$unlanded_tip"
 expect "a Spec branch refused as unlanded still records its upstream" \
   test "$(g for-each-ref --format='%(upstream:short)' refs/heads/spec/unlanded)" = "feat/unlanded"
+
+unlanded_ticket="$issues/01-first.md"
+issues="$top/.scratch/20260930-shipped/issues"
+mkdir -p "$issues"
+ticket 01-first.md "**Status:** ready-for-agent" none
+g switch -q -c feat/shipped
+run cut "$issues/01-first.md"
+g switch -q spec/shipped
+printf 'shipped\n' >>notes.txt
+commit "the Spec's work"
+g switch -q feat/shipped
+g merge -q --ff-only spec/shipped
+printf 'later\n' >>notes.txt
+commit "work the developer's branch received after the Spec landed"
+refs_before="$(g for-each-ref --format='%(refname) %(objectname) %(upstream)')"
+run probe "$issues/01-first.md"
+check_lines "a probe of a Spec branch whose tip is on its upstream says the Spec branch landed" 0 "$rc" \
+  "spec_branch=spec/shipped" "spec_landed=yes"
+run probe "$unlanded_ticket"
+check_lines "a probe of a Spec branch holding a commit its upstream lacks says the Spec branch did not land" 0 "$rc" \
+  "spec_branch=spec/unlanded" "spec_landed=no"
+run probe "$nospec_issues/01-first.md"
+check_lines "a probe of a Spec with no Spec branch says there is none to have landed" 0 "$rc" \
+  "spec_branch=spec/no-spec" "spec_landed=none"
+expect "a probe that says whether the Spec branch landed creates, moves and re-points no ref" \
+  test "$(g for-each-ref --format='%(refname) %(objectname) %(upstream)')" = "$refs_before"
 
 [ "$fails" = 0 ]

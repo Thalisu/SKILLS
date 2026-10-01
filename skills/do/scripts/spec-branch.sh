@@ -4,8 +4,9 @@
 # anywhere inside the project: the main checkout is the first `git worktree list` entry.
 #
 #   spec-branch.sh probe <Ticket path>  the Spec branch facts, read-only: its name, whether it
-#                                       exists, and the branch the Spec integrates into, read from
-#                                       the Spec branch's upstream and never from the checkout's HEAD
+#                                       exists, the branch the Spec integrates into, read from
+#                                       the Spec branch's upstream and never from the checkout's
+#                                       HEAD, and whether it landed
 #   spec-branch.sh cut <Ticket path>    cut the Spec branch, or reuse the one already there with
 #                                       its ref and its upstream untouched; of two first cuts at
 #                                       once, git's atomic ref creation lets one cut and the other
@@ -17,9 +18,11 @@
 # feature slug is the name of the folder that holds the Ticket's issues/ folder, as
 # .agents/scripts/resolve-feature-folder.sh normalises it.
 #
-# probe prints three key=value lines, in this order: spec_branch (spec/<feature-slug>, or none for a
+# probe prints four key=value lines, in this order: spec_branch (spec/<feature-slug>, or none for a
 # Ticket outside a feature folder's issues/, such as one on a remote tracker), spec_exists (yes or
-# no), spec_upstream (empty when the branch is absent or records none).
+# no), spec_upstream (empty when the branch is absent or records none), spec_landed (yes when the
+# tip is an ancestor of its upstream, the proof remove deletes on; no when the branch exists and
+# that proof fails, a branch with no upstream included; none when there is no branch).
 #
 # cut prints key=value lines, in this order: spec_branch, action (cut, reused or refused), upstream
 # (the one recorded at the first cut, never the checkout's branch of a later run; empty when
@@ -83,6 +86,11 @@ reuse() { # $1 main checkout, $2 name
   record "$2" reused "$up" "$tip"
 }
 
+# A tip on the upstream is the proof the Spec branch landed: nothing it holds is lost with it.
+landed() { # $1 main checkout, $2 tip, $3 upstream
+  [ -n "$3" ] && git -C "$1" merge-base --is-ancestor "$2" "refs/heads/$3" 2>/dev/null
+}
+
 record() { # $1 name, $2 action, $3 upstream, $4 tip, $5 reason
   echo "spec_branch=$1"
   echo "action=$2"
@@ -132,22 +140,23 @@ cmd_cut() {
 }
 
 cmd_probe() {
-  local main path slug name
+  local main path slug name tip up
   main="$(main_checkout)" || { echo "not a git repository" >&2; exit 2; }
   case "$1" in /*) path="$1" ;; *) path="$main/${1#./}" ;; esac
   slug="$(feature_slug "$path")"
   if [ -z "$slug" ]; then
-    printf 'spec_branch=none\nspec_exists=no\nspec_upstream=\n'
+    printf 'spec_branch=none\nspec_exists=no\nspec_upstream=\nspec_landed=none\n'
     return 0
   fi
   name="spec/$slug"
   echo "spec_branch=$name"
-  if git -C "$main" rev-parse --verify -q "refs/heads/$name" >/dev/null; then
+  if tip="$(git -C "$main" rev-parse --verify -q "refs/heads/$name")"; then
+    up="$(upstream_of "$main" "$name")"
     echo "spec_exists=yes"
-    echo "spec_upstream=$(upstream_of "$main" "$name")"
+    echo "spec_upstream=$up"
+    if landed "$main" "$tip" "$up"; then echo "spec_landed=yes"; else echo "spec_landed=no"; fi
   else
-    echo "spec_exists=no"
-    echo "spec_upstream="
+    printf 'spec_exists=no\nspec_upstream=\nspec_landed=none\n'
   fi
 }
 
@@ -167,8 +176,7 @@ cmd_remove() {
   tip="$(git -C "$main" rev-parse --verify -q "refs/heads/$name")" || { echo "action=absent"; return 0; }
   up="$(upstream_of "$main" "$name")"
   [ -n "$up" ] || refuse_removal no-upstream
-  # A tip on the upstream is the proof the Spec branch landed: nothing it holds is lost with it.
-  git -C "$main" merge-base --is-ancestor "$tip" "refs/heads/$up" 2>/dev/null || refuse_removal unlanded
+  landed "$main" "$tip" "$up" || refuse_removal unlanded
   # git itself refuses to delete a branch a worktree has checked out or is rebasing.
   git -C "$main" branch -q -D "$name" >/dev/null 2>&1 || refuse_removal checked-out
   echo "action=removed"
