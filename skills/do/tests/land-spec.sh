@@ -63,6 +63,28 @@ expect "a landing leaves the Main checkout's git status --short as it was, the m
 expect "a landing leaves the Main checkout's index and every working file as they were" \
   test "$(cd "$repo" && stop_state)" = "$state_before"
 
+# Another Ticket landed on the Spec branch after this one forked: its commit is on the Spec branch
+# and not on the branch, so moving the ref onto the branch would drop it.
+fresh moved
+repo="$tmp/moved"
+printf 'base\n' >README.md
+commit base
+echo ".claude/worktrees/" >>.git/info/exclude
+g -C "$repo" branch spec/feature
+wt="$(branch_worktree "$repo" ticket)"
+printf 'built\n' >"$wt/notes.txt"
+g -C "$wt" add -A && g -C "$wt" commit -qm ticket
+other="$(branch_worktree "$repo" other)"
+printf 'landed first\n' >"$other/other.txt"
+g -C "$other" add -A && g -C "$other" commit -qm other
+g -C "$repo" branch -f spec/feature do/other
+spec_tip="$(g -C "$repo" rev-parse refs/heads/spec/feature)"
+run "$repo" spec/feature do/ticket
+check_lines "a Spec branch holding a commit the branch lacks is not landed on: exit 1 and the moved line naming its tip" 1 "$rc" "moved $spec_tip"
+same "the moved line is the whole output" "moved $spec_tip"
+expect "a Spec branch holding a commit the branch lacks keeps its ref where it was" \
+  test "$(g -C "$repo" rev-parse refs/heads/spec/feature)" = "$spec_tip"
+
 echo
 if [ "$fails" = 0 ]; then echo "land-spec: all checks passed"; else
   echo "land-spec: $fails failed"
