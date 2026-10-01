@@ -151,4 +151,23 @@ expect "a cut refused for a missing upstream records no upstream of its own on t
 expect "a cut refused for a missing upstream leaves the Spec branch where it was" \
   test "$(g rev-parse -q --verify refs/heads/spec/no-upstream)" = "$nou_tip"
 
+issues="$top/.scratch/20260930-landed/issues"
+mkdir -p "$issues"
+ticket 01-first.md "**Status:** ready-for-agent" none
+g switch -q -c feat/landed
+run cut "$issues/01-first.md"
+g switch -q spec/landed
+printf 'landed\n' >>notes.txt
+commit "the Spec's work"
+landed_tip="$(g rev-parse refs/heads/spec/landed)"
+g switch -q feat/landed
+g merge -q --ff-only spec/landed
+run remove "$issues/01-first.md"
+check_lines "a Spec branch whose tip is on its upstream is removed, naming the tip it pointed at" 0 "$rc" \
+  "spec_branch=spec/landed" "action=removed" "tip=$landed_tip"
+expect "a removed Spec branch is no longer a branch of the repository" \
+  test -z "$(g for-each-ref refs/heads/spec/landed)"
+expect "removing a Spec branch leaves its upstream branch on the tip the landing gave it" \
+  test "$(g rev-parse -q --verify refs/heads/feat/landed)" = "$landed_tip"
+
 [ "$fails" = 0 ]

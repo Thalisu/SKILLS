@@ -10,6 +10,7 @@
 #                                       its ref and its upstream untouched; of two first cuts at
 #                                       once, git's atomic ref creation lets one cut and the other
 #                                       reuses what it cut
+#   spec-branch.sh remove <Ticket path> delete the Spec branch once it landed
 #
 # <Ticket path> is absolute, or relative to the main checkout (the door's ticket= value). The
 # feature slug is the name of the folder that holds the Ticket's issues/ folder, as
@@ -26,14 +27,20 @@
 # Spec branch that still records no upstream after a wait of about two seconds, which the cut never
 # fills in: `git branch --set-upstream-to=<branch> spec/<feature-slug>` is the developer's fix).
 #
-# Exit codes: 0 probe printed, or cut or reused · 1 refused · 2 usage, not a git repository, a cut of a Ticket
-# outside a feature folder's issues/, or a ref creation that failed.
+# remove prints key=value lines, in this order: spec_branch, action (removed, absent when there is
+# no such branch, or refused), then tip with removed, the commit the branch pointed at, and reason
+# with refused: no-upstream, a branch that records no upstream to prove its landing against;
+# checked-out, a branch a worktree holds or is rebasing. A refusal deletes nothing.
+#
+# Exit codes: 0 probe printed, or cut or reused, or removed or absent · 1 refused · 2 usage, not a
+# git repository, a cut or a remove of a Ticket outside a feature folder's issues/, or a ref
+# creation that failed.
 set -uo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd -P)"
 resolver="$here/../../../.agents/scripts/resolve-feature-folder.sh"
 
-usage() { echo "usage: spec-branch.sh probe|cut <Ticket path>" >&2; exit 2; }
+usage() { echo "usage: spec-branch.sh probe|cut|remove <Ticket path>" >&2; exit 2; }
 
 main_checkout() {
   local top main
@@ -142,9 +149,32 @@ cmd_probe() {
   fi
 }
 
+refuse_removal() { # $1 reason
+  printf 'action=refused\nreason=%s\n' "$1"
+  exit 1
+}
+
+cmd_remove() {
+  local main path slug name tip up
+  main="$(main_checkout)" || { echo "not a git repository" >&2; exit 2; }
+  case "$1" in /*) path="$1" ;; *) path="$main/${1#./}" ;; esac
+  slug="$(feature_slug "$path")"
+  [ -n "$slug" ] || { echo "no feature folder holds $1" >&2; exit 2; }
+  name="spec/$slug"
+  echo "spec_branch=$name"
+  tip="$(git -C "$main" rev-parse --verify -q "refs/heads/$name")" || { echo "action=absent"; return 0; }
+  up="$(upstream_of "$main" "$name")"
+  [ -n "$up" ] || refuse_removal no-upstream
+  # git itself refuses to delete a branch a worktree has checked out or is rebasing.
+  git -C "$main" branch -q -D "$name" >/dev/null 2>&1 || refuse_removal checked-out
+  echo "action=removed"
+  echo "tip=$tip"
+}
+
 [ "$#" = 2 ] || usage
 case "$1" in
   probe) cmd_probe "$2" ;;
   cut) cmd_cut "$2" ;;
+  remove) cmd_remove "$2" ;;
   *) usage ;;
 esac
