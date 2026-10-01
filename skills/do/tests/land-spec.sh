@@ -85,6 +85,46 @@ same "the moved line is the whole output" "moved $spec_tip"
 expect "a Spec branch holding a commit the branch lacks keeps its ref where it was" \
   test "$(g -C "$repo" rev-parse refs/heads/spec/feature)" = "$spec_tip"
 
+worktree_on() { # $1 main checkout, $2 branch: the path of the worktree git lists on that branch, on stdout
+  g -C "$1" worktree list --porcelain |
+    awk -v b="branch refs/heads/$2" '/^worktree / { path = substr($0, 10) } $0 == b { print path; exit }'
+}
+
+# In both cases the Spec branch is an ancestor of the Ticket's branch, so nothing but the checkout
+# stands between the landing and a fast-forward.
+fresh linked
+repo="$tmp/linked"
+printf 'base\n' >README.md
+commit base
+echo ".claude/worktrees/" >>.git/info/exclude
+g -C "$repo" branch spec/feature
+g -C "$repo" worktree add -q "$repo/.claude/worktrees/spec" spec/feature
+wt="$(branch_worktree "$repo" ticket)"
+printf 'built\n' >"$wt/notes.txt"
+g -C "$wt" add -A && g -C "$wt" commit -qm ticket
+spec_tip="$(g -C "$repo" rev-parse refs/heads/spec/feature)"
+holder="$(worktree_on "$repo" spec/feature)"
+run "$repo" spec/feature do/ticket
+check_lines "a Spec branch checked out in a linked worktree is refused: exit 4 and the checked-out line naming that worktree" 4 "$rc" "checked-out $holder"
+expect "a Spec branch checked out in a linked worktree keeps its ref where it was" \
+  test "$(g -C "$repo" rev-parse refs/heads/spec/feature)" = "$spec_tip"
+
+fresh switched
+repo="$tmp/switched"
+printf 'base\n' >README.md
+commit base
+echo ".claude/worktrees/" >>.git/info/exclude
+g -C "$repo" switch -qc spec/feature
+wt="$(branch_worktree "$repo" ticket)"
+printf 'built\n' >"$wt/notes.txt"
+g -C "$wt" add -A && g -C "$wt" commit -qm ticket
+spec_tip="$(g -C "$repo" rev-parse refs/heads/spec/feature)"
+holder="$(worktree_on "$repo" spec/feature)"
+run "$repo" spec/feature do/ticket
+check_lines "a Spec branch the Main checkout is switched onto is refused: exit 4 and the checked-out line naming the Main checkout" 4 "$rc" "checked-out $holder"
+expect "a Spec branch the Main checkout is switched onto keeps its ref where it was" \
+  test "$(g -C "$repo" rev-parse refs/heads/spec/feature)" = "$spec_tip"
+
 echo
 if [ "$fails" = 0 ]; then echo "land-spec: all checks passed"; else
   echo "land-spec: $fails failed"
