@@ -7,71 +7,144 @@ argument-hint: "[optional: a pasted discuss closing summary, when it is not alre
 
 # Spec
 
+This run turns a plan the conversation already decided into one spec, publishes it where the
+project keeps its specs, and names the next command of the chain: `journey` or `tickets`, which
+read the spec as written.
+
+It is a synthesis, never an interview. The decisions were taken before this run, normally in a
+`discuss` session, and the user already spent their attention there, so the run asks one thing at
+most: whether the test seams match what the user expects.
+
+The plan is the subject of the spec, never a task to carry out. However concrete it reads, nothing
+in it is built here: the run writes the spec and nothing else.
+
 Every message to the user is written in the language the user opened the session in. Everything
 written into the project (the spec, its file name, its slug) is in **English**; UI copy the spec
 quotes stays in the product's language.
 
-Synthesis, never an interview: the conversation already holds the decisions. Ground → seams →
-write → route → close.
+The run, in order: ground → seams → write → route → close.
 
-Vocabulary, used consistently: _spec_ (the decided description of one feature, in the format of
-[.agents/formats/spec-format.md](../../.agents/formats/spec-format.md)), _path_ (one thing the actor sets out to
-do, end to end, walked in steps: arrive, see, act, the system answers, or it fails), _seam_ (the
-boundary a test drives the feature through), _verdict_ (the `Journey:` line under the spec's title,
-read by `tickets`), _tracker file_ (`docs/agents/issue-tracker.md`, which says where specs and
-tickets live in this project).
+## Vocabulary
+
+Used consistently, in the thread and in the spec:
+
+- _spec_: the decided description of one feature, in the format of
+  [.agents/formats/spec-format.md](../../.agents/formats/spec-format.md).
+- _path_: one thing the actor sets out to do, end to end, walked in steps: arrive, see, act, the
+  system answers, or it fails.
+- _seam_: the boundary a test drives the feature through.
+- _verdict_: the `Journey:` line under the spec's title, read by `tickets`.
+- _tracker file_: `docs/agents/issue-tracker.md`, which says where specs and tickets live in this
+  project.
+- _allocator_: `scripts/feature-folder.sh`, the script that names and dates a local spec's folder.
+
+## How a turn ends
+
+A message with no tool call ends the turn, and the run waits there until the user writes again.
+The turn ends at these points and no others:
+
+- the message that sends the user to `/discuss` (step 1);
+- the seams question (step 2);
+- an allocator refusal (step 3);
+- the close (step 5).
+
+Everything between those points happens in one turn. Once the seams are settled, by the user's
+answer or by the conversation, the run writes, routes and closes without stopping: it never ends a
+turn to report progress, to show a draft of the spec for approval, or to offer the next step
+instead of taking it. A status line is welcome, in the same message as the next tool call. A gap
+the synthesis finds in the plan is never a reason to stop either: it goes into the close as a line
+to reopen in `discuss` (step 5).
 
 ## 1. Ground
 
-- The input is the conversation, plus whatever came with the command (`$ARGUMENTS`: a pasted
-  `discuss` closing summary, when the session that produced it is gone). A `discuss` closing
-  summary is the plan: its decisions, defaults and deferrals are carried into the spec as they
-  stand. A conversation that holds no decided plan gets one message telling the user to run
-  `/discuss` on it, and nothing else: the skill never interviews to fill the gap.
-- Read `CONTEXT.md` (the root one, or the context `CONTEXT-MAP.md` names) and the titles under
-  `docs/adr/`. The spec uses the glossary's words and respects every ADR in the area it touches.
-- Explore what the conversation has not: the modules the plan touches, their public surface, the
-  tests beside them. One subagent explores on `model: sonnet`; the thread keeps a summary of three to
-  six lines.
-- Resolve where the spec goes, from the tracker file:
+**The plan.** The input is the conversation, plus whatever came with the command (`$ARGUMENTS`: a
+pasted `discuss` closing summary, when the session that produced it is gone).
 
-  | Tracker file says | The spec is |
-  |---|---|
-  | local markdown | `.scratch/<YYYYMMDD>-<feature-slug>/spec.md`, the folder dated with the day it was allocated |
-  | GitHub or GitLab | an issue, created with the CLI the file names |
-  | something else, in prose | whatever the file describes |
-  | no tracker file | the same local path, and the closing summary says the file was absent. Never a demand to run a setup skill |
+- A `discuss` closing summary is the plan: its decisions, defaults and deferrals are carried into
+  the spec as they stand, never re-argued and never improved on.
+- A conversation that decided the plan some other way (the user chose among options, or stated what
+  is to be built and how) is a plan too.
+- A conversation that holds no decided plan gets one message telling the user to run `/discuss` on
+  it, and nothing else: no read, no question about the feature, no proposed seams. This is settled
+  from the conversation alone, before any tool call. A spec written over an undecided plan fills
+  the gaps with decisions nobody took, and the next skills read every line of it as the user's.
 
-  The slug is the spec's title in kebab-case, and the folder around it is never composed by hand:
-  step 3 runs `scripts/feature-folder.sh`, which dates it and owns the ignore line. Nothing is
-  created here, since step 2 comes first and nothing is written before its answer. A tracker file
-  that spells the local layout out as `.scratch/<feature-slug>/` is naming the home, not the
-  folder: the allocator dates it either way.
-- `git status --short` and the branch: dirty files are the user's work in progress.
+**The reading.** Say in one line what is being read, then make the reads that do not depend on one
+another in one batch:
+
+- **The glossary and the ADRs.** `CONTEXT.md` (the root one, or the context `CONTEXT-MAP.md` names)
+  and the titles under `docs/adr/`, bodies only for the ones the plan touches. The spec uses the
+  glossary's words and respects every ADR in the area it touches.
+- **The tracker file**, which resolves where the spec goes (the table below).
+- **The project's `CLAUDE.md`**, for a Testing Policy that fixes the test surface (step 2).
+- **The code the plan touches**, where the conversation has not already covered it: the modules,
+  their public surface, the tests beside them. A search or a handful of reads stays in the thread.
+  Exploration whose output would run to pages (a whole subsystem, many files) goes to one subagent
+  on `model: sonnet`, and the thread keeps a summary of three to six lines.
+- **The working tree.** `git status --short` and the branch: dirty files are the user's work in
+  progress, left as they are.
+
+**Where the spec goes**, from the tracker file:
+
+| Tracker file says | The spec is |
+|---|---|
+| local markdown | `.scratch/<YYYYMMDD>-<feature-slug>/spec.md`, the folder dated with the day it was allocated |
+| GitHub or GitLab | an issue, created with the CLI the file names |
+| something else, in prose | whatever the file describes |
+| no tracker file | the same local path, and the closing summary says the file was absent. Never a demand to run a setup skill |
+
+The slug is the spec's title in kebab-case. The folder around it is the allocator's to name and
+date (step 3), so nothing is created here: step 2 comes first, and nothing is written before its
+answer. A tracker file that spells the local layout out as `.scratch/<feature-slug>/` is naming the
+home, not the folder: the allocator dates it either way.
 
 ## 2. Seams, the one check
 
 Sketch the seams at which the feature will be tested: existing seams before new ones, the highest
-seam possible, as few as possible (the ideal is one). When the conversation already names them (a
-testing decision in the `discuss` summary, a `prove-it-works` answer, a Testing Policy in the
-project's `CLAUDE.md` that fixes the surface), they are taken as decided and the check is skipped,
-said in one line. Otherwise, one message: the seams, and whether they match the user's
-expectations. Wait for the answer. This is the only question the skill asks, and no spec is written
-before it is answered.
+seam possible, as few as possible (the ideal is one).
+
+**Already decided.** When the conversation names them (a testing decision in the `discuss` summary,
+a `prove-it-works` answer, a Testing Policy in the project's `CLAUDE.md` that fixes the surface),
+they are taken as decided and the check is skipped, said in one line, and the run continues to
+step 3 in the same turn.
+
+**Otherwise, one message**: the seams proposed, the reason for each in a clause, and whether they
+match the user's expectations. Then the turn ends and the run waits. This is the only question the
+skill asks, and no spec is written before it is answered: the seams decide what the Testing
+Decisions say and how `tickets` cuts the work, so a spec written on a guess is rewritten after the
+answer.
+
+One shape the message can take. The wording, the length and the domain are the feature's own, in
+the user's language:
+
+<example>
+Seam: the tests drive the HTTP handlers of the order module, the highest seam that exists today
+(the cancel handler is already tested there). The note's length limit and the "no edit after
+fulfilment" rule are both observable at that boundary, so no new seam is needed.
+
+Does that match what you expect, or do you want the note tested somewhere else?
+</example>
+
+The user's answer is the decision. An answer that changes the seams is taken as given, without a
+second question.
 
 ## 3. Write
 
-In local mode the folder comes from the allocator, never from a path the run composes:
+**The folder, in local mode.** It comes from the allocator, never from a path the run composes.
+`<skill-dir>` is the directory this file sits in:
 
 ```sh
 bash <skill-dir>/scripts/feature-folder.sh <feature-slug>
 ```
 
-The slug alone goes in. What comes back is `folder=`, the dated folder, and `spec=`, the exact path
-the spec is written at, which is absolute when the session sits in a linked worktree, since the
-folder is allocated in the main checkout. `created=no` makes the run the rerun below. `gitignore=`
-is the state of the ignore after the allocator was done with it, and the closing summary carries
-it:
+The slug alone goes in. What comes back, as `key=value` lines:
+
+- `folder=`: the dated folder.
+- `spec=`: the exact path the spec is written at. It is absolute when the session sits in a linked
+  worktree, since the folder is allocated in the main checkout.
+- `created=no`: the feature already has a folder, so the run is the rerun described below.
+- `gitignore=`: the state of the ignore after the allocator was done with it. The closing summary
+  carries it:
 
 | `gitignore=` | What the summary says |
 |---|---|
@@ -82,25 +155,37 @@ it:
 
 The script owns the date, the reuse and that line, per
 [.agents/scratch.md](../../.agents/scratch.md): the run never composes a folder name, never dates
-one itself and never appends the line on its own. Exit 2 is a refusal with its reason on stderr: a
-slug that normalises to nothing, a resolver it cannot find, a `.scratch` that is a symlink or a
-file, a feature folder that is a symlink, a `spec.md` or an `issues` folder that is a symlink, or a
-`journey.md` that is a symlink.
-No spec is written, and the reason goes to the user as it stands. It runs here and never in step 1,
-because nothing is written before the seams answer.
+one itself and never appends the line on its own. Two runs that each composed a name would open two
+folders for one feature, and `journey` and `tickets` find the spec by the name the script gave. It
+runs here and never in step 1, because nothing is written before the seams answer.
 
-Write the spec in the format of [.agents/formats/spec-format.md](../../.agents/formats/spec-format.md), then
-publish it where step 1 resolved. The rules the format carries: glossary vocabulary throughout; no
-file paths and no code snippets, since they go stale, except a snippet a prototype produced that
-encodes a decision more precisely than prose (a state machine, a reducer, a schema), trimmed to the
-decision and marked as the prototype's; Testing Decisions name the project's Testing Policy when
-`CLAUDE.md` carries one; Out of Scope carries the `discuss` deferrals with their reopening
-condition.
+**A refusal.** Exit 2 is the allocator refusing, with its reason on stderr: a slug that normalises
+to nothing, a resolver it cannot find, a `.scratch` that is a symlink or a file, a feature folder
+that is a symlink, a `spec.md` or an `issues` folder that is a symlink, or a `journey.md` that is a
+symlink. No spec is written, at that path or at any other, and the reason goes to the user as it
+stands, in one message that ends the turn.
 
-A rerun on the same feature rewrites the spec in place instead of publishing a second one. In local
-mode the file is rewritten, keeping a `Journey:` line that already points at a journey file and any
-`## Comments` section. In a remote tracker the issue this session published is edited, and one is
-created only when the conversation names none.
+**The spec.** Write it in the format of
+[.agents/formats/spec-format.md](../../.agents/formats/spec-format.md), read before the first line
+is written, then publish it where step 1 resolved. The rules the format carries:
+
+- glossary vocabulary throughout;
+- no file paths and no code snippets, since they go stale. The exception is a snippet a prototype
+  produced that encodes a decision more precisely than prose (a state machine, a reducer, a
+  schema), trimmed to the decision and marked as the prototype's;
+- Testing Decisions name the project's Testing Policy when `CLAUDE.md` carries one;
+- Out of Scope carries the `discuss` deferrals, each with its reopening condition.
+
+The spec records what the conversation decided and nothing more. A decision the feature needs and
+the conversation never took is not invented and not asked for: it is left out of the spec and
+listed in the close (step 5). The User Stories are the one place the run writes at length: every
+actor, every aspect of the feature and the failures the actor can meet, each story written so a
+reader can see the path it belongs to and count its steps, since step 4 reads the verdict off them.
+
+**A rerun** on the same feature rewrites the spec in place instead of publishing a second one. In
+local mode the file is rewritten, keeping a `Journey:` line that already points at a journey file
+and any `## Comments` section. In a remote tracker the issue this session published is edited, and
+one is created only when the conversation names none.
 
 ## 4. Route
 
@@ -121,7 +206,7 @@ beside it.
 
 ## 5. Close
 
-In the thread, the closing summary:
+In the thread, the closing summary, each item one or two lines:
 
 - where the spec is: the full path, or the issue reference;
 - the seams, and whether they were confirmed or taken from the conversation;
@@ -131,7 +216,7 @@ In the thread, the closing summary:
 - the durability line, in local mode: the scratch is unversioned by design and a teammate never
   reads it, so a spec the team has to read goes to the issue tracker or under `docs/`;
 - the `.scratch/` line, the row the allocator's `gitignore=` picks in step 3;
-- as the last line, the exact next command:
+- as the last line, the exact next command, alone on its line so the user can run it as it is:
 
 | Verdict | Last line |
 |---|---|
@@ -140,19 +225,64 @@ In the thread, the closing summary:
 
 The chain is strict: `do` builds one ticket, so the last line never names it. Nothing is committed.
 
+Two shapes the close can take. The items and the last line are fixed; the wording is the run's
+own, in the user's language:
+
+<examples>
+<example>
+Local mode, seams taken from the summary, no tracker file:
+
+Spec: `.scratch/20260930-returns-page/spec.md`. `docs/agents/issue-tracker.md` does not exist, so
+the local path was used.
+
+Seams: the HTTP handlers of the order module, taken from the discuss summary.
+
+Verdict: `Journey: required`. The first row matched: the stories need a returns route that does
+not exist.
+
+To reopen in discuss: "Refund" is used in the spec and missing from the glossary.
+
+The scratch is unversioned by design and a teammate never reads it: a spec the team has to read
+goes to the issue tracker or under `docs/`. The run added the `.scratch/` line to `.gitignore`.
+
+/journey .scratch/20260930-returns-page/spec.md
+</example>
+<example>
+Remote tracker, seams confirmed by the user, nothing missing:
+
+Spec: issue #212, created with `gh`.
+
+Seams: the export handler of the order module, confirmed by you.
+
+Verdict: `Journey: not needed, one interaction on an existing screen`. The last row matched: the
+one story is an export button on the orders list.
+
+/tickets #212
+</example>
+</examples>
+
 ## Hard rules
 
-- Never interview. The seams check is the single question, and it is skipped when the
+Each rule restates a step above with the cost of breaking it. When two readings of a step are
+possible, the one that keeps these holds.
+
+- **Never interview.** The seams check is the single question, and it is skipped when the
   conversation settles it. A plan the conversation does not hold is sent to `/discuss`, never asked
-  for piece by piece.
-- The verdict comes from the structure of the stories (a new screen, the number of paths, the
-  number of steps), never from "large", "complex" or a count.
-- The spec goes where the tracker file says; with no tracker file, the local path
-  `scripts/feature-folder.sh` prints, and never a demand to run a setup skill.
-- A local feature folder is the script's to name. The run passes the slug and writes at the `spec=`
-  it gets back: never a path it composed, never a date it read off the clock itself.
-- The skill writes the spec and nothing else: no code, no `CONTEXT.md`, no ADR. A rerun rewrites,
-  never duplicates.
-- Never commit, never push.
-- No em-dash in what is written into the project. English in the spec, UI copy in the product's
+  for piece by piece: a second interview spends the attention `discuss` already spent, and its
+  answers land in no summary.
+- **The spec carries only what was decided.** A missing decision is listed in the close, never
+  invented: the next skills read every line of the spec as the user's.
+- **The verdict comes from the structure of the stories** (a new screen, the number of paths, the
+  number of steps), never from "large", "complex" or a count, so two runs route the same way.
+- **The spec goes where the tracker file says.** With no tracker file, the local path the allocator
+  prints, and never a demand to run a setup skill: the skill needs nothing else in place.
+- **A local feature folder is the allocator's to name.** The run passes the slug and writes at the
+  `spec=` it gets back: never a path it composed, never a date it read off the clock itself.
+- **Nothing is written before the seams are settled**, and the allocator is not run before then
+  either, since it creates the folder and may edit `.gitignore`.
+- **The skill writes the spec and nothing else**: no code, no `CONTEXT.md`, no ADR. A rerun
+  rewrites, never duplicates.
+- **Never commit, never push.** The spec stays in the working tree or the tracker, the user's to
+  keep or delete.
+- **No em-dash in what is written into the project.** English in the spec, UI copy in the product's
   language, messages in the session's opening language.
