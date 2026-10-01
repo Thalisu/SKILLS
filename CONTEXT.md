@@ -157,8 +157,9 @@ _Avoid_: gate (the **Gate** is the checks a branch passes before it lands), fina
 **Final integration**:
 What the `do` run whose **Completion check** finds every **Ticket** `resolved` does next: it claims
 the **Spec**, rebases its **Spec branch** onto the branch it was cut from, and has `do-code-review`
-review it whole and land it there. A stopped one is resumed by a new `do` on any **Ticket** of the
-**Spec**.
+review it whole and land it there. A run that stops yields its claim, and a stopped one is resumed
+by a new `do` on any **Ticket** of the **Spec**, which takes over a yielded claim only: a claim
+nobody yielded reads as a run still integrating.
 _Avoid_: merge, spec review, feature landing
 
 **Main checkout**:
