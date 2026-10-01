@@ -725,6 +725,31 @@ run nope --spec .scratch/20260930-export/spec.md
 check_lines "a ref that does not resolve refuses the same with a Spec handed over" 1 "$rc" \
   "refusal=nope does not resolve; nothing reviewed"
 
+# A handed Spec that names no file is refused by name, on a branch whose slug finds a Spec of its
+# own: falling back to that one would review it as the Spec the caller handed over. A Spec is never
+# handed as a tracker reference, so an issue number and a URL name no file either.
+cd "$tmp/spec-handed" && git checkout -q export
+run
+check_lines "the branch's slug finds a Spec of its own when none is handed" 0 "$rc" \
+  "spec=.scratch/20260930-export/spec.md" "spec_handed=no"
+for handed in .scratch/20260930-export/gone.md 42 https://github.com/o/r/issues/42; do
+  run --spec "$handed"
+  check_lines "a handed Spec that names no file is refused in one line ($handed)" 1 "$rc" \
+    "refusal=$handed is not a Spec file; nothing reviewed"
+  same "that refusal is the whole output ($handed)" "refusal=$handed is not a Spec file; nothing reviewed"
+  check_absent "that refusal prints no fact ($handed)" 1 "$rc" "spec=" "spec_handed=" "review=" "fixed_point="
+done
+
+# --spec without a path, and a Spec handed together with a Ticket, are usage errors: one call hands
+# over one or the other.
+usage="usage: fixed-point.sh [<ref>] [--ticket <location> | --spec <path>]"
+run --spec
+check "--spec with no path is a usage error" 2 "$rc" "$usage"
+run --spec .scratch/20260930-export/spec.md --ticket .scratch/20260930-export/issues/01-export-step.md
+check "a Spec handed together with a Ticket is a usage error" 2 "$rc" "$usage"
+run --ticket .scratch/20260930-export/issues/01-export-step.md --spec .scratch/20260930-export/spec.md
+check "a Ticket handed together with a Spec is a usage error" 2 "$rc" "$usage"
+
 if [ "$fails" = 0 ]; then echo "PASS"; else
   echo "$fails failing"
   exit 1

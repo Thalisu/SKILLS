@@ -17,7 +17,9 @@
 #                             was invoked from first, then from the repository top; one that names
 #                             no file is a refusal, so a Ticket handed over is never lost quietly
 #   --spec <path>             the Spec a caller hands over in place of a Ticket, a path resolved the
-#                             way a Ticket's is; it is the spec source, read whole
+#                             way a Ticket's is; it is the spec source, read whole, and the Review's
+#                             home. One that names no file, an issue reference included, is a
+#                             refusal, and --spec beside --ticket is usage
 #
 # Which paths a slug can name under the scratch is not this door's rule to hold: before it answers
 # it asks ../../../.agents/scripts/resolve-feature-folder.sh, the one executable form of that rule,
@@ -78,8 +80,8 @@ usage() { echo "usage: fixed-point.sh [<ref>] [--ticket <location> | --spec <pat
 ref=""; handed=""; handed_given=no; handed_spec=""; spec_handed_given=no
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    --ticket) [ "$#" -ge 2 ] || usage; handed="$2"; handed_given=yes; shift 2 ;;
-    --spec) [ "$#" -ge 2 ] || usage; handed_spec="$2"; spec_handed_given=yes; shift 2 ;;
+    --ticket) [ "$#" -ge 2 ] && [ "$spec_handed_given" = no ] || usage; handed="$2"; handed_given=yes; shift 2 ;;
+    --spec) [ "$#" -ge 2 ] && [ "$handed_given" = no ] || usage; handed_spec="$2"; spec_handed_given=yes; shift 2 ;;
     *) [ -z "$ref" ] || usage; ref="$1"; shift ;;
   esac
 done
@@ -172,7 +174,11 @@ spec=none
 spec_handed=no
 if [ "$spec_handed_given" = yes ]; then
   spec_handed=yes
-  spec="$(resolve "$handed_spec")"
+  spec="$(resolve "$handed_spec")" || refuse "$handed_spec is not a Spec file; nothing reviewed"
+  # resolve follows a link on the way, and the Review is written beside the file it names.
+  handed_at="$(locate "$handed_spec")"
+  refuse_link "$(dirname "$handed_at")"
+  refuse_link "$handed_at"
   review="${spec%.md}.review.md"
   # A Ticket found by slug beside a handed Spec would be read as the spec source over it.
   ticket=none; located=none
