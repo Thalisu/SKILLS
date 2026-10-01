@@ -9,12 +9,16 @@
 # Prints key=value lines, in this order: ticket, spec_branch as `spec-branch.sh probe` prints it,
 # one spec_ticket=<NN> <status> <path> per Ticket of the folder in number order, the argument's own
 # included, one open=<NN> <status> <path> per Ticket not resolved (open=none when every one is),
-# next, then verdict. An ambiguous=<NN> <detail> line follows the spec_ticket line it concerns. What a
+# next, last, then verdict. An ambiguous=<NN> <detail> line follows the spec_ticket line it concerns. What a
 # Ticket file is and what its status reads are ticket-read.sh's rules.
 #
 # next, first match wins: the path of the first open Ticket reading ready-for-agent · none (nothing
 # is open) · wait (every open Ticket reads claimed, so other runs hold them) · ambiguous (nothing
 # is ready and an open Ticket cannot be read).
+#
+# last is yes when every Ticket other than the argument reads resolved, and no otherwise, an
+# ambiguous one included. The argument's own status never enters it, so the Gate reads the same
+# answer before the close writes resolved as the close reads after.
 #
 # verdict, first match wins: ambiguous (a Ticket's status cannot be read) · complete (every Ticket
 # reads resolved) · incomplete.
@@ -61,13 +65,14 @@ grep -qxF -- "$path" <<<"$tickets" || {
 echo "ticket=${path#"$main"/}"
 bash "$here/spec-branch.sh" probe "$path" | grep '^spec_branch='
 
-open="" unreadable=0 ready=""
+open="" unreadable=0 ready="" last=yes
 while IFS= read -r file; do
   status_of "$file"
   number="$(basename "$file")"
   row="${number%%-*} $word ${file#"$main"/}"
   echo "spec_ticket=$row"
   [ "$word" = resolved ] || open+="open=$row"$'\n'
+  [ "$word" = resolved ] || [ "$file" = "$path" ] || last=no
   [ "$word" != ready-for-agent ] || [ -n "$ready" ] || ready="${file#"$main"/}"
   if [ "$word" = ambiguous ]; then
     echo "ambiguous=${number%%-*} $detail"
@@ -85,6 +90,7 @@ elif [ "$unreadable" = 0 ]; then
 else
   echo "next=ambiguous"
 fi
+echo "last=$last"
 
 if [ "$unreadable" = 1 ]; then
   verdict=ambiguous

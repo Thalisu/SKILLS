@@ -95,4 +95,27 @@ expect "names no Ticket's path as next when every open Ticket reads claimed" \
 ticket 02-b.md '**Status:** resolved' 'None (can start immediately)'
 rm -f "$issues/04-d.md"
 
+ticket 03-c.md '**Status:** claimed' 'None (can start immediately)'
+run "$issues/03-c.md"
+check_lines "reads the run's Ticket as the feature's last when every other Ticket is resolved and its own is still claimed" 0 "$rc" \
+  "last=yes" "verdict=incomplete"
+expect "answers once whether the run's Ticket is the feature's last" \
+  test "$(term last)" = "yes"
+
+ticket 02-b.md '**Status:** claimed' 'None (can start immediately)'
+run "$issues/03-c.md"
+check_lines "reads the run's Ticket as not the last when another Ticket is still claimed" 0 "$rc" \
+  "last=no"
+expect "answers once that the run's Ticket is not the last beside a claimed one" \
+  test "$(term last)" = "no"
+
+ticket 02-b.md '**Status:** ready-for-agent' 'None (can start immediately)'
+run "$issues/03-c.md"
+check_lines "reads the run's Ticket as not the last when another Ticket is still ready-for-agent" 0 "$rc" \
+  "last=no"
+expect "answers once that the run's Ticket is not the last beside a ready one" \
+  test "$(term last)" = "no"
+ticket 02-b.md '**Status:** resolved' 'None (can start immediately)'
+ticket 03-c.md '**Status:** resolved' 'None (can start immediately)'
+
 exit "$((fails > 0))"
