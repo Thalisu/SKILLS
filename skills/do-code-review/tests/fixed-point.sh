@@ -344,9 +344,9 @@ absent "that refusal prints no review path" "review="
 
 # --ticket without a location is a usage error, not a refusal.
 run --ticket
-check "--ticket with no location is a usage error" 2 "$rc" "usage: fixed-point.sh [<ref>] [--ticket <location>]"
+check "--ticket with no location is a usage error" 2 "$rc" "usage: fixed-point.sh [<ref>] [--ticket <location> | --spec <path>]"
 run one two
-check "a second ref is a usage error" 2 "$rc" "usage: fixed-point.sh [<ref>] [--ticket <location>]"
+check "a second ref is a usage error" 2 "$rc" "usage: fixed-point.sh [<ref>] [--ticket <location> | --spec <path>]"
 
 # do builds in a worktree and the Ticket belongs to the main checkout, which the worktree has no
 # copy of, so the location it hands over is a path outside the worktree. The Review goes there.
@@ -648,6 +648,17 @@ run --ticket "$tmp/ticket-docs/issues/04-outside.md"
 check "a symlinked Review beside a Ticket handed outside the scratch is refused" 2 "$rc" \
   "$tmp/ticket-docs/issues/04-outside.review.md is a symlink; nothing reviewed"
 expect "that Review's symlink target is untouched" grep -qxF keep "$tmp/ticket-victim"
+
+# A Spec the caller hands over is the run's spec, and the door names the hand-over: the branch's
+# slug matches no feature folder here, so the door could not have found this Spec itself.
+mkdir "$tmp/spec-handed" && cd "$tmp/spec-handed" && git init -q -b main
+printf 'a\n' >a.txt && git add a.txt && git commit -q -m "first"
+git checkout -q -b integration
+printf 'b\n' >b.txt && git add b.txt && git commit -q -m "build"
+mkdir -p .scratch/20260930-export && printf '# Export\n' >.scratch/20260930-export/spec.md
+run --spec .scratch/20260930-export/spec.md
+check_lines "a Spec handed over is printed as the run's spec and marked as handed" 0 "$rc" \
+  "spec=.scratch/20260930-export/spec.md" "spec_handed=yes"
 
 if [ "$fails" = 0 ]; then echo "PASS"; else
   echo "$fails failing"

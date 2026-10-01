@@ -16,6 +16,8 @@
 #                             the Review's home. A path is resolved from the directory the script
 #                             was invoked from first, then from the repository top; one that names
 #                             no file is a refusal, so a Ticket handed over is never lost quietly
+#   --spec <path>             the Spec a caller hands over in place of a Ticket, a path resolved the
+#                             way a Ticket's is; it is the spec source, read whole
 #
 # Which paths a slug can name under the scratch is not this door's rule to hold: before it answers
 # it asks ../../../.agents/scripts/resolve-feature-folder.sh, the one executable form of that rule,
@@ -56,6 +58,7 @@
 # the usual spec homes, .scratch/<x>/spec.md in the scratch
 # the resolver read, docs/specs/<x>.md, specs/<x>.md, whose <x> contains the slug and never counts
 # the date a feature folder is prefixed with, else none when there is none or more than one),
+# spec_handed (yes when a caller handed the Spec over with --spec, no when the door found it itself),
 # tracker (yes when docs/agents/issue-tracker.md exists) and
 # review_in_status (yes when the file at review= would show up in git status, in this tree or in the
 # main checkout when it sits there, no when git ignores that path or it sits outside the
@@ -70,11 +73,12 @@
 # in when that entry is a bare repository: see .agents/worktrees.md.
 set -uo pipefail
 
-usage() { echo "usage: fixed-point.sh [<ref>] [--ticket <location>]" >&2; exit 2; }
-ref=""; handed=""; handed_given=no
+usage() { echo "usage: fixed-point.sh [<ref>] [--ticket <location> | --spec <path>]" >&2; exit 2; }
+ref=""; handed=""; handed_given=no; handed_spec=""; spec_handed_given=no
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --ticket) [ "$#" -ge 2 ] || usage; handed="$2"; handed_given=yes; shift 2 ;;
+    --spec) [ "$#" -ge 2 ] || usage; handed_spec="$2"; spec_handed_given=yes; shift 2 ;;
     *) [ -z "$ref" ] || usage; ref="$1"; shift ;;
   esac
 done
@@ -214,7 +218,11 @@ fi
 issue="$(grep -oE '(^|/)[0-9]+-' <<<"$branch" | head -1 | tr -dc '0-9')"
 [ -n "$issue" ] || issue="$(git log --format=%s "$fixed..HEAD" | grep -oE '#[0-9]+' | head -1 | tr -d '#')"
 spec=none
-if [ -f "$ticket" ] && [ -f "$(dirname "$(dirname "$ticket")")/spec.md" ]; then
+spec_handed=no
+if [ "$spec_handed_given" = yes ]; then
+  spec_handed=yes
+  spec="$(resolve "$handed_spec")"
+elif [ -f "$ticket" ] && [ -f "$(dirname "$(dirname "$ticket")")/spec.md" ]; then
   spec="$(dirname "$(dirname "$ticket")")/spec.md"
 else
   exact=""; containing=(); contain=yes
@@ -273,6 +281,7 @@ echo "issue=${issue:-none}"
 echo "ticket=$ticket"
 echo "ticket_handed=$ticket_handed"
 echo "spec=$spec"
+echo "spec_handed=$spec_handed"
 echo "tracker=$tracker"
 echo "review_in_status=$review_in_status"
 echo "main_checkout=$main_checkout"
