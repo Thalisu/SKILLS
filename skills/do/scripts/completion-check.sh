@@ -13,7 +13,8 @@
 # Ticket file is and what its status reads are ticket-read.sh's rules.
 #
 # next, first match wins: the path of the first open Ticket reading ready-for-agent · none (nothing
-# is open).
+# is open) · wait (every open Ticket reads claimed, so other runs hold them) · ambiguous (nothing
+# is ready and an open Ticket cannot be read).
 #
 # verdict, first match wins: ambiguous (a Ticket's status cannot be read) · complete (every Ticket
 # reads resolved) · incomplete.
@@ -79,6 +80,10 @@ if [ -n "$ready" ]; then
   echo "next=$ready"
 elif [ -z "$open" ]; then
   echo "next=none"
+elif [ "$unreadable" = 0 ]; then
+  echo "next=wait"
+else
+  echo "next=ambiguous"
 fi
 
 if [ "$unreadable" = 1 ]; then

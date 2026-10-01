@@ -85,4 +85,14 @@ expect "names one Ticket as next, never the claimed one nor a later ready one be
 ticket 02-b.md '**Status:** resolved' 'None (can start immediately)'
 rm -f "$issues/04-d.md" "$issues/05-e.md"
 
+ticket 02-b.md '**Status:** claimed' 'None (can start immediately)'
+ticket 04-d.md '**Status:** claimed' 'None (can start immediately)'
+run "$issues/03-c.md"
+check_lines "says to wait, with no Ticket to run, when every open Ticket reads claimed" 0 "$rc" \
+  "open=02 claimed $issues/02-b.md" "open=04 claimed $issues/04-d.md" "next=wait" "verdict=incomplete"
+expect "names no Ticket's path as next when every open Ticket reads claimed" \
+  test "$(term next)" = "wait"
+ticket 02-b.md '**Status:** resolved' 'None (can start immediately)'
+rm -f "$issues/04-d.md"
+
 exit "$((fails > 0))"
