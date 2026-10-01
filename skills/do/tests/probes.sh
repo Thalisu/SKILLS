@@ -194,13 +194,32 @@ for open in claimed ready-for-agent; do
   printf 'a digest\n' >"$open_issues/01-built.digest.md"
   printf '# Plan\n\nthe steps\n' >"$open_issues/01-built.plan.md"
   bash "$skill/scripts/spec-branch.sh" cut "$open_issues/01-built.md" >/dev/null 2>&1
-  g update-ref "refs/heads/spec/open-$open" \
-    "$(g commit-tree -p "spec/open-$open" -m "a Ticket's work, landed on the Spec branch" "spec/open-$open^{tree}")"
+  spec_commit "spec/open-$open"
   run "$door" "$open_issues/01-built.md"
   check_lines "a resolved Ticket of a Spec with a Ticket still $open stops as resolved, the door reading the Spec as not complete though its Spec branch has not landed" 1 "$rc" \
     "status=resolved" "spec_exists=yes" "spec_landed=no" "spec_complete=no" "verdict=resolved"
   g branch -D "spec/open-$open" >/dev/null
 done
+# A Final integration that stopped leaves every Ticket resolved and the Spec branch short of the
+# developer's branch: that is the one resolved Ticket the run goes on from, to finish the landing.
+stopped_issues=".scratch/20260105-stopped/issues"
+mkdir -p "$stopped_issues"
+(issues="$stopped_issues" && ticket 01-built.md '**Status:** resolved' 'None (can start immediately)' &&
+  ticket 02-shipped.md '**Status:** resolved' '01, Title of 01-built')
+printf 'a review\n\n**Status:** claimed\n' >"$stopped_issues/01-built.review.md"
+printf 'a digest\n' >"$stopped_issues/01-built.digest.md"
+printf '# Plan\n\n**Status:** ready-for-agent\n' >"$stopped_issues/01-built.plan.md"
+printf '# Sketch\n\nthe shape of the change\n' >"$stopped_issues/02-shipped.sketch.md"
+printf '# Project map\n\n**Status:** done\n' >"$stopped_issues/02-shipped.project-map.md"
+bash "$skill/scripts/spec-branch.sh" cut "$stopped_issues/02-shipped.md" >/dev/null 2>&1
+spec_commit spec/stopped
+before="$(door_state)"
+run "$door" "$stopped_issues/02-shipped.md"
+check_lines "a resolved Ticket whose Spec branch exists and has not landed, in a Spec whose every Ticket reads resolved, reads verdict=resume-final and lets the run go on" 0 "$rc" \
+  "status=resolved" "spec_branch=spec/stopped" "spec_exists=yes" "spec_landed=no" "spec_complete=yes" "verdict=resume-final"
+expect "the door that resumes a Final integration writes nothing: no ref created or moved, no file created or changed" \
+  test "$(door_state)" = "$before"
+g branch -D spec/stopped >/dev/null
 run "$door" "$issues/03-third.md"
 check_lines "a blocker not resolved refuses the run, every blocker named" 1 "$rc" \
   "blocker=01 resolved $issues/01-first.md" "blocker=02 ready-for-agent $issues/02-second.md" "verdict=blocked"

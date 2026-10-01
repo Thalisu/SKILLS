@@ -31,7 +31,9 @@
 # word is taken out of it. The Blocked by line is held to the same rule: two or more at column 0
 # print blockers=ambiguous with their line numbers, and no blocker is read out of any of them.
 #
-# verdict, first match wins: ambiguous (the Ticket's status) · resolved · ambiguous (a blocker with
+# verdict, first match wins: ambiguous (the Ticket's status) · resume-final (resolved, the Spec
+# branch there and not landed, the Spec complete: a stopped Final integration to resume) ·
+# resolved · ambiguous (a blocker with
 # no file, two files, or no single status line; two Blocked by lines, or one naming no number and
 # not None, or a number it cannot split out) ·
 # blocked (a blocker not resolved) · resume (claimed, the worktree there) · start-over (claimed, the
@@ -41,8 +43,9 @@
 # otherwise a protected branch is a warning for the Reply's Run section, never a stop. A Ticket
 # outside a feature folder's issues/ (spec_branch=none) is never refused on that ground.
 #
-# Exit codes: 0 the run may go on: start, resume or start-over · 1 the door stops the run:
-# resolved, blocked, ambiguous or refused · 2 usage, no Ticket at the path, or not a git repository.
+# Exit codes: 0 the run may go on: start, resume, start-over or resume-final · 1 the door stops
+# the run: resolved, blocked, ambiguous or refused · 2 usage, no Ticket at the path, or not a git
+# repository.
 set -uo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd -P)"
@@ -150,6 +153,7 @@ if grep -qx 'spec_exists=no' <<<"$spec_facts" && ! grep -qx 'spec_branch=none' <
   grep -qxE 'protected=yes|branch=HEAD' <<<"$branch_facts"; then first_run_unsafe=1; fi
 
 if [ "$status" = ambiguous ]; then verdict=ambiguous
+elif [ "$status" = resolved ] && [ "$spec_complete" = yes ] && grep -qx 'spec_landed=no' <<<"$spec_facts"; then verdict=resume-final
 elif [ "$status" = resolved ]; then verdict=resolved
 elif [ "$stop_ambiguous" = 1 ]; then verdict=ambiguous
 elif [ "$stop_blocked" = 1 ]; then verdict=blocked
@@ -160,4 +164,4 @@ else verdict=start
 fi
 case "$verdict" in start|start-over) [ "$first_run_unsafe" = 0 ] || verdict=refused ;; esac
 echo "verdict=$verdict"
-case "$verdict" in start|resume|start-over) exit 0 ;; *) exit 1 ;; esac
+case "$verdict" in start|resume|start-over|resume-final) exit 0 ;; *) exit 1 ;; esac

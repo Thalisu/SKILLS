@@ -285,6 +285,11 @@ ticket() { # $1 file name, $2 status line(s), $3 blocked-by value: a Ticket in t
   printf '# %s: %s\n\n**What to build:** something.\n\n**Blocked by:** %s\n\n%s\n\n- [ ] one\n\n## Evidence\n' \
     "${1%%-*}" "Title of ${1%.md}" "$3" "$2" >"$issues/$1"
 }
+# A Ticket's work as its landing leaves it: on the Spec branch only, so the branch reads as not landed.
+spec_commit() { # $1 Spec branch: one commit on it that its upstream lacks, no checkout or working file touched
+  g update-ref "refs/heads/$1" \
+    "$(g commit-tree -p "$1" -m "a Ticket's work, landed on the Spec branch" "$1^{tree}")"
+}
 stop_state() { # the stop as git left it, on stdout: the index and status, and the hash of every working file
   git status --porcelain=v2
   find . -path ./.git -prune -o -type f -print0 | sort -z | xargs -0 sha256sum
