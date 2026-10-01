@@ -41,8 +41,9 @@
 #
 # release prints key=value lines: claim (released or held), spec_branch, removed (yes, absent when
 # there was no Spec branch left to remove, or no), and on held: reason, the removal's own (unlanded,
-# checked-out or no-upstream). A claim file already gone is still released. held deletes nothing: a
-# Final integration that stopped keeps its Spec branch and its claim for the run that resumes it.
+# checked-out or no-upstream). A released claim's yielded mark is deleted with it. A claim file
+# already gone is still released. held deletes nothing: a Final integration that stopped keeps its
+# Spec branch and its claim for the run that resumes it.
 #
 # Exit codes: 0 claimed, released, yielded or shown · 1 taken, held or nothing to yield · 3 failed ·
 # 2 usage or not a git repository.
@@ -181,7 +182,7 @@ cmd_release() {
       exit 1
       ;;
   esac
-  rm -f "$file"
+  rm -f "$file" "$mark"
   echo "claim=released"
   echo "spec_branch=$spec_branch"
   echo "removed=$removed"

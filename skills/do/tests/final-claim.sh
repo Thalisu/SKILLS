@@ -309,4 +309,48 @@ check_lines "a claim yielded from a Ticket other than the claimant's is taken ov
   "takeover=yes" \
   "previous_ticket=$issues/01-first.md"
 
+# A Spec of its own whose holder yielded its claim and nobody took it over, then whose Spec branch
+# landed: the developer's branch was fast-forwarded to its tip and no worktree holds it.
+relanded="$top/.scratch/20260930-relanded-feature"
+issues="$relanded/issues"
+mkdir -p "$issues"
+printf '# Spec: relanded feature\n\nSomething to build.\n' >"$relanded/spec.md"
+ticket 01-first.md '**Status:** resolved' 'None (can start immediately)'
+{
+  bash "$here/../scripts/spec-branch.sh" cut "$issues/01-first.md" &&
+    bash "$script" claim "$issues/01-first.md" &&
+    bash "$script" yield "$issues/01-first.md" &&
+    g -C "$top" switch -q --detach spec/relanded-feature &&
+    printf 'five\n' >>"$top/notes.txt" &&
+    g -C "$top" commit -qam "a Ticket of the relanded Spec" &&
+    g -C "$top" branch -f spec/relanded-feature HEAD &&
+    g -C "$top" switch -q feat/work &&
+    g -C "$top" merge -q --ff-only spec/relanded-feature &&
+    test "$(g -C "$top" rev-parse refs/heads/spec/relanded-feature)" = "$(g -C "$top" rev-parse refs/heads/feat/work)" &&
+    test "$(bash "$script" show "$issues/01-first.md" | sed -n 's/^claim=//p')" = yielded
+} >/dev/null 2>&1 || {
+  echo "FAIL  fixture: the yielded claim of a landed Spec branch could not be built"
+  exit 1
+}
+run release "$issues/01-first.md"
+check_lines "a release of a yielded claim after the Spec branch landed reads released" 0 "$rc" \
+  "claim=released"
+run show "$issues/01-first.md"
+check_lines "a release of a yielded claim after the Spec branch landed leaves no claim to read" 0 "$rc" \
+  "claim=none"
+bash "$here/../scripts/spec-branch.sh" cut "$issues/01-first.md" >/dev/null 2>&1 || {
+  echo "FAIL  fixture: the Spec branch of the released feature could not be cut again"
+  exit 1
+}
+run claim "$issues/01-first.md"
+check_lines "a claim made after a yielded claim was released reads claimed and takes over nobody" 0 "$rc" \
+  "claim=claimed" \
+  "takeover=no"
+run show "$issues/01-first.md"
+check_lines "a claim made after a yielded claim was released shows held, with no mark of the earlier yield" 0 "$rc" \
+  "claim=held" \
+  "holder_ticket=$issues/01-first.md"
+check_absent "a claim made after a yielded claim was released names no yield" 0 "$rc" \
+  "yielded"
+
 [ "$fails" = 0 ]
