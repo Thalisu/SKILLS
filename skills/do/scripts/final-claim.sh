@@ -20,7 +20,9 @@
 # ledger (the Loss ledger of the Spec's rebase, <feature folder>/spec.ledger.md); on taken, the
 # file was already there and stays as its claimant wrote it: holder_ticket and claimed_at, that
 # file's ticket and claimed_at; on failed: reason (no-feature-folder, no-spec-branch or
-# not-writable).
+# not-writable). claimed ends in takeover (yes or no): a claim file already there and yielded is
+# taken over, the file then naming this Ticket, and takeover=yes is followed by previous_ticket and
+# previous_claimed_at, the holder it replaced, and yielded_at.
 #
 # The claim file holds key=value lines a reader takes the keys it knows from: ticket (the absolute
 # path of the Ticket whose run claimed), spec_branch, tree, claimed_at (UTC, ISO 8601).
@@ -87,22 +89,39 @@ holder() { # the claim file's holder lines
 
 now() { date -u +%Y-%m-%dT%H:%M:%SZ; }
 
+claim_lines() { # $1 tree: what a claim file holds
+  printf 'ticket=%s\nspec_branch=%s\ntree=%s\nclaimed_at=%s\n' "$path" "$spec_branch" "$1" "$(now)"
+}
+
 cmd_claim() {
-  local tree
+  local tree won previous="" takeover=no
   resolve "$1"
   [ "$spec_exists" = yes ] || failed no-spec-branch
   tree="$root/.claude/worktrees/spec-${spec_branch#spec/}"
   # noclobber makes the creation exclusive: of two claims at once, one creates the file.
   if ! (
     set -C
-    printf 'ticket=%s\nspec_branch=%s\ntree=%s\nclaimed_at=%s\n' \
-      "$path" "$spec_branch" "$tree" "$(now)" >"$file"
+    claim_lines "$tree" >"$file"
   ) 2>/dev/null; then
     [ -f "$file" ] || failed not-writable
-    echo "claim=taken"
-    echo "file=$file"
-    holder
-    exit 1
+    # A yielded claim is taken over by the one claim that renames its mark away. The claim file is
+    # then replaced in one rename, so it exists throughout and no first claim slips in.
+    won="$mark.$$"
+    if ! mv "$mark" "$won" 2>/dev/null; then
+      echo "claim=taken"
+      echo "file=$file"
+      holder
+      exit 1
+    fi
+    takeover=yes
+    previous="$(holder | sed 's/^holder_ticket=/previous_ticket=/; s/^claimed_at=/previous_claimed_at=/')
+$(grep '^yielded_at=' "$won")"
+    if ! { claim_lines "$tree" >"$file.$$" && mv -f "$file.$$" "$file"; } 2>/dev/null; then
+      rm -f "$file.$$"
+      mv "$won" "$mark"
+      failed not-writable
+    fi
+    rm -f "$won"
   fi
   echo "claim=claimed"
   echo "file=$file"
@@ -111,6 +130,8 @@ cmd_claim() {
   echo "spec_upstream=$spec_upstream"
   echo "tree=$tree"
   echo "ledger=$folder/spec.ledger.md"
+  echo "takeover=$takeover"
+  [ -z "$previous" ] || echo "$previous"
 }
 
 cmd_show() {

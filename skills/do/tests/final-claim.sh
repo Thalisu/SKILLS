@@ -44,6 +44,9 @@ check_lines "the first claim of a Spec's Final integration reads claimed, naming
   "spec_upstream=feat/work" \
   "tree=$top/.claude/worktrees/spec-my-feature" \
   "ledger=$feature/spec.ledger.md"
+check_lines "the first claim of a Spec's Final integration says it took over no claim" 0 "$rc" \
+  "claim=claimed" \
+  "takeover=no"
 expect "the first claim of a Spec's Final integration creates the claim file beside the Spec" \
   test -f "$feature/spec.integration.claim"
 
@@ -182,5 +185,25 @@ check_lines "a yield of a claim already yielded keeps the first yield's time" 0 
   "claimed_at=$stopped_claimed_at" \
   "yielded_at=$yielded_at" \
   "yielded_by=$issues/01-first.md"
+
+ticket 02-second.md '**Status:** resolved' 'None (can start immediately)'
+run claim "$issues/02-second.md"
+check_lines "a claim takes over a yielded claim, reading claimed with the paths of the Final integration and naming the holder it replaced" 0 "$rc" \
+  "claim=claimed" \
+  "file=$stopped/spec.integration.claim" \
+  "spec=$stopped/spec.md" \
+  "spec_branch=spec/stopped-feature" \
+  "spec_upstream=feat/work" \
+  "tree=$top/.claude/worktrees/spec-stopped-feature" \
+  "ledger=$stopped/spec.ledger.md" \
+  "takeover=yes" \
+  "previous_ticket=$issues/01-first.md" \
+  "previous_claimed_at=$stopped_claimed_at" \
+  "yielded_at=$yielded_at"
+run show "$issues/02-second.md"
+check_lines "a claim that took over a yielded claim shows held, naming the new Ticket as its holder" 0 "$rc" \
+  "claim=held" \
+  "file=$stopped/spec.integration.claim" \
+  "holder_ticket=$issues/02-second.md"
 
 [ "$fails" = 0 ]
