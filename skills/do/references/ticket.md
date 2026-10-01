@@ -820,9 +820,11 @@ on its exit code and never on its prose.
 - `moved <tip>` (exit 1): another Ticket of the Spec landed first. The run integrates again onto
   that tip in the same run, step 6 with its Loss ledger judged and reapplied, runs the **Gate**
   again on the replayed tree, and calls the script again. It repeats with no fixed count for as
-  long as each integration replayed commits, per
+  long as each `moved` names a tip the integration before it had not met, per
   [ADR 0044](../../../docs/adr/0044-the-re-integration-retries-while-the-target-tip-changes.md). A
-  `moved` right after an integration that ticked as a no-op stops the run as blocked, since
+  `moved` naming a new tip after a no-op step 6 is integrated again, gated and landed: the first
+  lost race is that case. A `moved <tip>` stops the run as blocked only when `<tip>` is the tip the
+  integration before it already met (the ancestor check against that tip still exits 0), since
   integrating again would meet the same tip.
 - `checked-out <worktree>` (exit 4): a worktree holds the Spec branch, so its ref is not moved. The
   run stops as blocked: the Reply reads `not landed: spec/<feature-slug> is checked out in

@@ -175,4 +175,56 @@ for row in "${playbooks[@]}"; do
   check_absent "the $name reply no longer gives a recovery for a second target moved" 0 0 "${cap[@]}"
 done
 
+# The landing on the Spec branch runs the same loop over `land-spec.sh`'s `moved <tip>` line, and its
+# stop is read off the tip, never off the integration alone: a Ticket whose integration ticked as a
+# no-op because no sibling had landed yet loses its first race to a tip it never met, and a passage
+# that stops there blocks a run ADR 0044 has integrate again. Each bullet is read from its own marker
+# to the next exit code's, so the review's loop above cannot answer for it.
+echo "# mechanics.md, ticket.md: a moved Spec branch stops the run only on the tip already met"
+met=(
+  "tip the integration before it already met" "tip the previous integration already met"
+  "tip the last integration already met" "tip that integration already met"
+  "tip the integration already met" "tip the previous attempt already met"
+  "tip the last attempt already met" "tip the attempt before it already met"
+  "tip it already met" "tip already met" "tip the run already met"
+  "tip the branch already holds" "tip the run's branch already holds"
+  "tip it already integrated" "tip already integrated" "tip the run already integrated"
+  "names the same tip" "naming the same tip" "names that same tip" "naming that same tip"
+  "still an ancestor" "ancestor check against that tip"
+)
+unmet=(
+  "a new tip" "a newer tip" "a different tip" "another tip" "any other tip" "new \`<tip>\`"
+  "tip it has not met" "tip it had not met" "tip not yet met" "tip not met"
+  "tip the integration before it had not met" "tip the integration before it never met"
+  "tip that integration had not met" "tip that integration never met"
+  "tip the branch lacks" "tip the run's branch lacks" "tip the run has not"
+)
+again=(
+  "integrated again" "integrates again" "the integration again" "integration runs again"
+  "integrates once more" "integrated once more" "the integration once more"
+  "stays in the loop" "back in the loop" "keeps the loop going" "the loop goes on" "is retried"
+)
+spec_landings=(
+  "mechanics.md landing on the Spec branch|mechanics|- **\`moved <tip>\`|- **\`checked-out"
+  "ticket.md landing step|ticket|- \`moved <tip>\`|- \`checked-out"
+)
+for row in "${spec_landings[@]}"; do
+  IFS='|' read -r where name opens ends <<<"$row"
+  whole="$(passage_of "$here/../references/$name.md" "$opens" "$ends" | tr '\n' ' ' | tr -s ' ')"
+  flat="$whole"
+  expect "the $where carries what the run does on a moved Spec branch" test -n "$flat"
+  carries_any "the $where ends the retry only when the moved line names the tip the integration before it already met" \
+    "${met[@]}"
+  n="$(first_at "${unmet[@]}")"
+  flat="${whole:$((n > 0 ? n - 1 : ${#whole}))}"
+  carries_any "the $where integrates again a moved naming a new tip, a no-op integration before it or not" \
+    "${again[@]}"
+  flat="$whole"
+  # shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+  out="$flat"
+  check_absent "the $where no longer stops on a moved merely because the integration before it was a no-op" \
+    0 0 "\`moved\` right after an integration that ticked as a no-op ends the loop" \
+    "\`moved\` right after an integration that ticked as a no-op stops the run"
+done
+
 exit $((fails > 0))

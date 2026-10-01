@@ -469,11 +469,14 @@ untouched. It prints one line, and the run routes on the exit code:
   call again. A red **Gate** there stops the run as the integration's own red gate does. The retry
   has no fixed count, per
   [ADR 0044](../../../docs/adr/0044-the-re-integration-retries-while-the-target-tip-changes.md): it
-  repeats for as long as each call reads `moved` and the integration before it replayed commits,
-  since every such line is another Ticket's landing and the runs landing at once are finite. A
-  `moved` right after an integration that ticked as a no-op ends the loop: the branch already held
-  the tip, integrating again would meet it again, and the run stops as blocked with the script's
-  line quoted.
+  repeats for as long as each call reads `moved` naming a tip the integration before it had not
+  met, since every such line is another Ticket's landing and the runs landing at once are finite.
+  The first lost race is one of them: step 6 ticks as a no-op whenever no sibling had landed yet,
+  and the `moved` that follows names a new tip, so the run integrates again, runs the **Gate** and
+  calls the script again. A `moved <tip>` ends the loop only when `<tip>` is the tip the
+  integration before it already met (the ancestor check against that tip still exits 0): the
+  branch already held it, integrating again would meet it again, and the run stops as blocked with
+  the script's line quoted.
 - **`checked-out <worktree>`, exit 4.** A worktree, the main checkout included, has the Spec branch
   checked out, and a ref moved under a checkout would leave that worktree's index showing the
   landing as a reversal. Nothing is written. The run stops as blocked with
