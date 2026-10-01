@@ -7,14 +7,68 @@ behaviour contract is made checkable before any structure moves, so "refactor" i
 can verify instead of a promise. The commits read subtraction, reshape, cleanup, in that order, so
 one revert undoes one slice.
 
-The parts it shares with the `ticket` Playbook are in [mechanics.md](mechanics.md), linked from the
-steps that use them: the worktree, the protected branch, the gate, the integration, the review,
-the verification and the close, with the loop and its test authors in
-[build-loop.md](build-loop.md) and every stop of the integration in
-[conflict-loop.md](conflict-loop.md). The reply is written by [reply.md](reply.md).
+The developer reads the run afterwards, through the Reply, and takes the word "refactor" to mean
+that nothing a caller observes moved. So the costly errors of a reshape are the ones that read as
+success, and the steps particular to this Playbook guard against three of them:
 
-`<skill-dir>` below is the folder that holds this file's `references/`: `${CLAUDE_SKILL_DIR}` in
-Claude Code, the `do` folder under the harness's skills directory elsewhere.
+- a behaviour change that lands as a refactor: every check stays green because none of them covered
+  what moved, or because something outside the repository still uses the old name;
+- a pin bent to fit the reshape: a test that writes the present down, an assertion edited, a red
+  made green by touching the check instead of the step that caused it;
+- movement passed off as improvement: code shifted sideways with the reader's load where it was, or
+  a shim, a speculative cleanup or the run's own scaffold left behind in the tree.
+
+A case no step names is judged by which of the three it risks. The steps this Playbook shares with
+the others guard the errors [mechanics.md](mechanics.md) names.
+
+Those shared parts are in [mechanics.md](mechanics.md), linked from the steps that use them: the
+worktree, the protected branch, the gate, the integration, the review, the verification and the
+close, with the loop and its test authors in [build-loop.md](build-loop.md) and every stop of the
+integration in [conflict-loop.md](conflict-loop.md). The reply is written by [reply.md](reply.md).
+
+`<skill-dir>`, in the commands those references give, is the folder that holds this file's
+`references/`: `${CLAUDE_SKILL_DIR}` in Claude Code, the `do` folder under the harness's skills
+directory elsewhere.
+
+## Questions and stops
+
+A run lasts long and nobody watches it, so it asks and stops only where a step says so. This
+section is an index: the step named carries the rule in full.
+
+The run asks the developer in these places and no other:
+
+| Step | The question | Why it is the developer's |
+|---|---|---|
+| 1 | which of two homes, when the request fits both equally | a preference call |
+| 2 | on a resume, whether the uncommitted changes in the worktree are discarded | the discard cannot be undone |
+| 3 | whether a harness that cannot stay inside its bound runs | the cost of touching the real system |
+| 8 | whether the branch is reverted, when the exit test failed | the revert deletes every commit on it |
+| 13 | whether a full suite or a remote run runs | its cost |
+
+The questions of steps 1 and 8 are the two this Playbook raises of its own. The other three are
+yeses the shared references reserve to the developer, and they are asked whenever the run reaches
+them, never waived.
+
+The run stops, in one message or as blocked, in these places:
+
+- step 1, on a request that asks for a behaviour change;
+- step 3, on a suite or a typecheck that was red before the first edit;
+- step 4, on a second deviation of the same shape from the sketch;
+- step 6, on an Extreme fork or on a Design fork no `choice-taker` ruled, per [forks.md](forks.md);
+- steps 10 to 14, on the stops [mechanics.md](mechanics.md) names for the gate, the integration,
+  the review, the verification and the close.
+
+Everything else the run settles itself and carries on, in the same turn:
+
+| What the run meets | What it does | Step |
+|---|---|---|
+| the pin red under a deletion or a reshape step | undoes it and takes it smaller | 5, 6 |
+| the harness's output differing from its run on the old code | undoes the last step until the two agree | 6, 7 |
+| an empirical fork or a Design fork | settles it by [forks.md](forks.md) | 6 |
+| a behaviour change found on the way | leaves it out and names it in the reply with its command | 1, 6, 9 |
+| a red gate | takes one more step of the reshape, then the whole gate again | 10 |
+| `not landed: target moved` | integrates again and lands through the fix call | 12 |
+| a red flow | fixes it in the worktree and hands the branch to the fix call | 13 |
 
 ## Steps
 
@@ -43,20 +97,46 @@ refactoring:
 
 ### 1. Door
 
-Before any edit, in this order. The refusal ends the run in one message: the first line, the reason,
-and the door the request goes to with the command to type, nothing written.
+Four checks, before any edit and in this order.
 
 1. **A behaviour change.** The request asks for something a caller or a user observes to change: a
    wrong value made right, a missing case added, a message reworded, a default or a threshold moved,
    a new capability. A reshape leaves behaviour where it was, so a request that moves it has nothing
-   for the pin to hold. It goes to `/do` with the bug in words for a defect, and to
-   `/discuss <the request>` for a feature, or `/spec` when the conversation already holds the
-   discussion. A reshape whose request also asks for a behaviour change is taken as the reshape
-   alone, and the behaviour change is named in the reply as step 9 names one found on the way.
-2. **The target files and every caller.** Named from the request's words and found by search; when
-   the words do not pin a file, the run searches by the likely names and reads the candidates. Every
-   caller of every name the reshape moves or deletes is inventoried now (`rg -n -w <name>` over the
-   project, strings and prose included), because step 6 migrates all of them in one wave, per
+   for the pin to hold, and the run refuses it. The refusal ends the run in one message: the first
+   line, the reason, and the door the request goes to with the command to type, nothing written.
+   The door is `/do` with the bug in words for a defect, and `/discuss <the request>` for a feature,
+   or `/spec` when the conversation already holds the discussion.
+
+   A reshape whose request also asks for a behaviour change is not refused. It is taken as the
+   reshape alone, and the behaviour change is named in the reply as step 9 names one found on the
+   way.
+
+   <examples>
+   <example>
+   `extract the price rounding out of checkout into its own module`: a reshape. Every caller gets
+   the totals it got before, and the pin holds the run to that.
+   </example>
+   <example>
+   `inline the wrapper around the HTTP client, it has one caller`: a reshape. Nothing crosses a
+   boundary, so the pin's target-interface test reads its skip.
+   </example>
+   <example>
+   `dedupe the two date parsers and make the merged one accept week dates`: taken as the dedupe
+   alone. Accepting a new format is a behaviour change, named in the reply with
+   `/discuss <the behaviour change>`.
+   </example>
+   <example>
+   `simplify the name validation so empty names stop being rejected`: refused. A caller observes a
+   different result, whatever the request calls it, so it goes to `/do` with the bug in words or to
+   `/discuss`.
+   </example>
+   </examples>
+
+2. **The target files and every caller.** The target files are named from the request's words and
+   found by search; when the words do not pin a file, the run searches by the likely names and reads
+   the candidates. Every caller of every name the reshape moves or deletes is inventoried now
+   (`rg -n -w <name>` over the project, strings and prose included), because step 6 migrates all of
+   them in one wave, per
    [migrate-callers-then-delete-legacy-apis](../../../.agents/principles/migrate-callers-then-delete-legacy-apis.md).
    A choice between two homes the request fits equally is a preference call and one of the two
    questions this Playbook raises of its own; everything else is a fact a search settles.
@@ -69,7 +149,7 @@ and the door the request goes to with the command to type, nothing written.
 4. **The branch.** The protected branch in [mechanics.md](mechanics.md). This is a warning and not a
    refusal: the run builds to the gate and the review refuses the landing, as step 12 says.
 
-Then, before any edit, the lines recorded for the Reply's Run section, in the order
+Then, still before any edit, the run records these lines for the Reply's Run section, in the order
 [reply.md](reply.md) fixes. The Reply carries them; the session may also write them as it goes, and
 nothing depends on that:
 
@@ -79,9 +159,9 @@ nothing depends on that:
 - Done as a predicate: the pin green before and after, the target shape reached, every caller
   migrated and the old API gone, and the gate green in the worktree after the last edit.
 - The loop line: `Loop: policy` when `.claude/agents/unit-test-author.md` exists in the project,
-  `Loop: fallback` otherwise. Under `fallback` the pin's third half and the build loop of
-  [build-loop.md](build-loop.md) read [tdd-fallback.md](tdd-fallback.md), and the run writes that test
-  itself with no test author dispatched; under `policy` that file is never read.
+  `Loop: fallback` otherwise. Under `fallback` the pin's target-interface test and the build loop of
+  [build-loop.md](build-loop.md) read [tdd-fallback.md](tdd-fallback.md), and the run writes that
+  test itself with no test author dispatched; under `policy` that file is never read.
 - The protected-branch warning when it applies: the branch, the rule, and the line saying landing
   will be refused on it, which the review does whatever the run wrote.
 - The checklist above, verbatim, copied as the run's todo list. The Reply's Run section carries it
@@ -90,80 +170,135 @@ nothing depends on that:
 There is no claim line and no Ticket: outside the chain the branch and its commits are the whole
 state. The run proceeds without a yes, per
 [never-block-on-the-human](../../../.agents/principles/never-block-on-the-human.md). A refusal
-still ends the run in its one message before any edit. Done when the four checks ran, and the
-read-back, the predicate, the loop line, the warning when it applies, the target files and the
-audit line are recorded for the Reply's Run section.
+still ends the run in its one message before any edit.
+
+Done when the four checks ran, and the read-back, the predicate, the loop line, the warning when it
+applies, the target files and the audit line are recorded for the Reply's Run section.
 
 ### 2. Worktree
 
 The worktree in [mechanics.md](mechanics.md), created from the current HEAD on `do/<slug>`, where
-`<slug>` is the request's slug, excluded locally, entered with a bare `cd`. The step probes before it
-creates: a `do/<slug>` worktree or branch that already exists is an earlier run of this request,
-and the Resume of [bug-fix.md](bug-fix.md) takes the step over, the way it reads that state there,
-so an existing worktree is entered, a gone one is recreated on the existing branch, and a Review of
-the branch that counts lands through the fix call on it, never a second review. The run continues
-at the first step its branch does not evidence, and a Review that counts decides the jump, not the
-cleanup commit: a branch carrying one, which a run stopped on the second no-op of its in-run resume
-at step 12 leaves, resumes at
-step 10 whether or not step 9 left a cleanup commit. Done when its status prints nothing and the
-worktree line, its path and its branch, is recorded for the Reply's Run section.
+`<slug>` is the request's slug, excluded locally, entered with a bare `cd`.
+
+The step probes before it creates. A `do/<slug>` worktree or branch that already exists is an
+earlier run of this request, and the Resume of [bug-fix.md](bug-fix.md) takes the step over, the
+way it reads that state there:
+
+- an existing worktree is entered;
+- a gone one is recreated on the existing branch;
+- a Review of the branch that counts lands through the fix call on it, never a second review.
+
+The run continues at the first step its branch does not evidence, and a Review that counts decides
+the jump, not the cleanup commit: a branch carrying one, which a run stopped on the second no-op of
+its in-run resume at step 12 leaves, resumes at step 10 whether or not step 9 left a cleanup
+commit.
+
+Done when its status prints nothing and the worktree line, its path and its branch, is recorded for
+the Reply's Run section.
 
 ### 3. Pin
 
-Before any structure moves, and in two halves, per
-[ADR 0014](../../../docs/adr/0014-the-refactoring-pin-never-goes-through-the-test-author.md).
-Neither half is a characterisation test: the Testing Policy's test author takes `bugfix` and
+The pin is what the reshape is held against, and it is in place before any structure moves. It has
+two halves, per
+[ADR 0014](../../../docs/adr/0014-the-refactoring-pin-never-goes-through-the-test-author.md):
+
+| Half | Part | Applies when | Its state until step 6 reaches the target shape |
+|---|---|---|---|
+| the old behaviour | the suite and the typecheck | always | green |
+| the old behaviour | the equivalence harness | the reshaped behaviour has no coverage | its output equal to its run on the old code |
+| the new shape | the target-interface test | the refactor extracts or moves something | red, for its declared reason |
+
+Neither half is a characterisation test. The Testing Policy's test author takes `bugfix` and
 `new feature` as its only origins, never derives an expectation from the implementation and needs a
 red run first, while a characterisation test is the implementation's present behaviour written down
 and born green. So no test that asserts the present enters the tree.
 
-**The old behaviour** is pinned by the existing suite and the typecheck, run in the worktree before
-the first edit, the command line and the relevant output line quoted in the Reply's Evidence. The
-commands come from the project's facts, the way the gate in [mechanics.md](mechanics.md) reads them.
-Red here is not this Playbook's to fix: the suite was red before the reshape, so the run stops in one
-message naming `test-triage` with the command `/test-triage <test file>`, and nothing is written.
+#### The suite and the typecheck
+
+Run in the worktree before the first edit, the command line and the relevant output line quoted in
+the Reply's Evidence. The commands come from the project's facts, the way the gate in
+[mechanics.md](mechanics.md) reads them.
+
+Red here is not this Playbook's to fix: the suite was red before the reshape, so the run stops in
+one message naming `test-triage` with the command `/test-triage <test file>`, and nothing is
+written.
+
+#### The harness
 
 Where the reshaped behaviour has no coverage, the run writes an equivalence harness itself, since a
-gap the suite does not cover is a gap the pin does not hold. It is a script outside the test tree, in
-the worktree, that drives the real artifact over the inputs the reshape touches and prints what comes
-back. It is not a test and never enters the test tree. It runs on the old code now and its output is
-quoted in the Reply's Evidence; step 7 runs it again on the new code, and step 9 deletes it and names the gap it covered as
-debt in the reply. A reshape whose behaviour the suite already covers reads
-`skip: the suite covers the reshaped behaviour`.
+gap the suite does not cover is a gap the pin does not hold. A reshape whose behaviour the suite
+already covers reads `skip: the suite covers the reshaped behaviour`.
+
+The harness is a script outside the test tree, in the worktree, that drives the real artifact over
+the inputs the reshape touches and prints what comes back. It is not a test and never enters the
+test tree. Its life runs through four steps:
+
+1. Here, it runs on the old code and its output is quoted in the Reply's Evidence.
+2. Steps 5 and 6 run it after every change, beside the suite and the typecheck.
+3. Step 7 runs it on the new code, its output quoted beside the first run.
+4. Step 9 deletes it and names the gap it covered as debt in the reply.
 
 The harness executes the project's real code in the developer's shell, and no test rule bounds it,
-so this step does: in-process code only, no network call, no database, no read or write on the
-filesystem outside the worktree, and no credential read from the environment, with every input the
-harness drives written into the script itself. Inside that bound it runs unasked, as often as steps
-3, 5, 6 and 7 call for it. A behaviour that cannot be driven inside it, a mailer, a payments client,
-a migration runner, one that reads a credential to do its work, is not driven anyway: the run shows
-the harness's command line first and waits for the same yes [mechanics.md](mechanics.md) requires
+so this step does. Inside the bound it runs unasked, as often as steps 3, 5, 6 and 7 call for it:
+
+- in-process code only;
+- no network call and no database;
+- no read or write on the filesystem outside the worktree;
+- no credential read from the environment;
+- every input the harness drives written into the script itself.
+
+A behaviour that cannot be driven inside that bound (a mailer, a payments client, a migration
+runner, anything that reads a credential to do its work) is not driven anyway. The run shows the
+harness's command line first and waits for the same yes [mechanics.md](mechanics.md) requires
 before a remote run, since the cost of touching the real system is the developer's to weigh. A no
-leaves the half reading `skip: the behaviour cannot be driven inside the harness's bound`, and the
+leaves this part reading `skip: the behaviour cannot be driven inside the harness's bound`, and the
 gap the harness would have covered is named as debt in the reply the same way step 9 names one.
 
-**The new shape** is pinned when the refactor extracts or moves something: one test on the target
+#### The target-interface test
+
+When the refactor extracts or moves something, the new shape is pinned by one test on the target
 interface, written by the test authors in [build-loop.md](build-loop.md) and dispatched with the
-complete input, the behaviour to prove, the target interface's callers as who relies on it, the
-target the request names, origin `new feature`, and an unresolved import of the target interface as
-the expected red. The step waits for
-`RED_AS_EXPECTED`; step 6 turns it green. Its expectation comes from the target shape's contract and
-never from the code being moved. Under `Loop: fallback` the run writes that test itself by
-[tdd-fallback.md](tdd-fallback.md) and dispatches nobody. A reshape that moves nothing across a
-boundary, an inline or a dedupe inside one module, has no target interface and the half reads
-`skip: nothing extracted or moved`.
+complete input:
 
-When the request does not settle the target interface, step 4's sketch settles it first and this half
-follows the sketch. The two halves above still come before any structure moves.
+- the behaviour to prove;
+- the target interface's callers as who relies on it;
+- the target the request names;
+- origin `new feature`;
+- an unresolved import of the target interface as the expected red.
 
-Neither the test file nor the harness is committed here. Both ride in the subtraction commit of step
-5, the test still red, so that the target interface is pinned in history before the reshape moves
-anything onto it and the harness is tracked before step 9 deletes it. Where step 5 reads its skip,
-both ride in the first reshape commit instead.
+The step waits for `RED_AS_EXPECTED`; step 6 turns the test green. Its expectation comes from the
+target shape's contract and never from the code being moved. Under `Loop: fallback` the run writes
+that test itself by [tdd-fallback.md](tdd-fallback.md) and dispatches nobody.
+
+When the request does not settle the target interface, step 4's sketch settles it first and the
+test follows the sketch. The suite, the typecheck and the harness still come before any structure
+moves.
+
+A reshape that moves nothing across a boundary, an inline or a dedupe inside one module, has no
+target interface, and this part reads `skip: nothing extracted or moved`.
+
+#### What "the pin green" means from here on
+
+Steps 5 and 6 run the pin after every change: the suite and the typecheck, with their output lines
+quoted, and the harness where this step wrote one. The pin is green when the suite and the
+typecheck are green and the harness prints what it printed on the old code.
+
+The target-interface test is the one red those steps tolerate, since it fails by design, for the
+reason this step declared, until step 6 reaches it. The single-file command from the project's
+facts, run on that test's file, is what separates it from a real red, and a suite whose only
+failing file is that one counts as green. A red anywhere else, or a second failing file, is a real
+red.
+
+#### What this step commits
+
+Nothing. Neither the test file nor the harness is committed here. Both ride in the subtraction
+commit of step 5, the test still red, so that the target interface is pinned in history before the
+reshape moves anything onto it and the harness is tracked before step 9 deletes it. Where step 5
+reads its skip, both ride in the first reshape commit instead.
 
 Done when the suite's and the typecheck's output lines are quoted, the harness's run on the old code
-is quoted or the half reads its skip, and the target-interface test is red for its declared reason or
-the half reads its skip.
+is quoted or that part reads its skip, and the target-interface test is red for its declared reason
+or that part reads its skip.
 
 ### 4. Structure
 
@@ -180,15 +315,19 @@ project knows now, not as the shortest edit from the code that is there, per
 [redesign-from-first-principles](../../../.agents/principles/redesign-from-first-principles.md). It
 names the types, the module boundaries and the interface the callers will use.
 
-When the reshape crosses a boundary, a new module, an exported function or type other code will
-call, or a changed signature, call the Skill tool with `architect`, stop at the sketch, and reshape
-against it. The sketch is the contract, and it is also what settles step 3's target interface when
-the request did not. A deviation during the reshape is surfaced in the reply, and a second deviation
-of the same shape stops the run as a wrong sketch, the deviations listed, the worktree and its branch
-named. When `architect` is not listed, the session states the shape itself, and the structure line
-says so. When
-no boundary is crossed the step reads `skip: no boundary crossed` and the missing structure is still
-named.
+The reshape crosses a boundary when it adds a new module, an exported function or type other code
+will call, or a changed signature. Then:
+
+- Call the Skill tool with `architect`, stop at the sketch, and reshape against it. The sketch is
+  the contract, and it is also what settles step 3's target interface when the request did not.
+- When `architect` is not listed, the session states the shape itself, and the structure line says
+  so.
+- A deviation from the sketch during the reshape is surfaced in the reply. A second deviation of
+  the same shape stops the run as a wrong sketch, the deviations listed, the worktree and its
+  branch named.
+
+When no boundary is crossed the step reads `skip: no boundary crossed`, and the missing structure
+is still named.
 
 Done when the structure and the target shape, with the sketch or its skip, are recorded for the
 Reply's Run section as its structure line, per [reply.md](reply.md).
@@ -203,24 +342,27 @@ what was actually removed. Dead weight is the code with no caller after the targ
 the branch the new structure absorbs, the option nobody passes, the layer with one caller, the
 comment that describes code that is gone.
 
-No production code is added here. The pin runs again after the deletion, the suite and the
-typecheck with their output lines quoted, and the harness where step 3 wrote one. The pin still
-green is the condition to commit; red means something was load-bearing, and the deletion is undone
-and taken smaller. Green here means the old behaviour half of the pin: step 3's target-interface
-test is red by design until step 6 reaches it.
+No production code is added here, and the subtraction is the smallest change that reaches the
+target and nothing more: a deletion the target shape does not need is a second improvement and
+belongs to the reply's pending debt, never to this commit.
 
-Step 3's target-interface test rides in the subtraction commit, still red there for the reason step 3
-declared. That is what puts it in history before the reshape, which is the first commit that moves
-structure, so a reader walking the branch sees the target interface asserted before anything was
-moved onto it. Its red run is quoted in the commit body beside the pin's green lines. The harness
-rides in the same commit, and that is what tracks it: an untracked harness is nothing for step 9 to
-delete, and the cleanup commit it promises would have nothing staged.
+The pin runs again after the deletion, as step 3 defines it, and the pin still green is the
+condition to commit. Red means something was load-bearing, and the deletion is undone and taken
+smaller.
 
-The subtraction is the smallest change that reaches the target and nothing more: a deletion the
-target shape does not need is a second improvement and belongs to the reply's pending debt, never to
-this commit. One commit, staged by path, titled `refactor(<scope>): subtract <what went>`, its body
-carrying the pin's command lines. Nothing to delete reads `skip: nothing the target shape makes
-obsolete` and the run goes to step 6 with two commits instead of three.
+One commit, staged by path, titled `refactor(<scope>): subtract <what went>`. It carries:
+
+- the deletion;
+- step 3's target-interface test, still red there for the reason step 3 declared. That is what
+  puts it in history before the reshape, which is the first commit that moves structure, so a
+  reader walking the branch sees the target interface asserted before anything was moved onto it;
+- the harness, which is what tracks it: an untracked harness is nothing for step 9 to delete, and
+  the cleanup commit it promises would have nothing staged;
+- in its body, the pin's command lines, with the test's red run quoted beside the pin's green
+  lines.
+
+Nothing to delete reads `skip: nothing the target shape makes obsolete` and the run goes to step 6
+with two commits instead of three.
 
 Done when the subtraction is committed with the pin green, or the step reads its skip.
 
@@ -229,9 +371,11 @@ Done when the subtraction is committed with the pin green, or the step reads its
 The second slice, in small steps with the pin green after each one, per
 [sequence-verifiable-units](../../../.agents/principles/sequence-verifiable-units.md). A step is as
 much of the target shape as can stand on its own: the structure introduced, one group of callers
-moved onto it, the old path narrowed. After each step the pin runs again, the suite and the typecheck
-with their output lines quoted, and the harness where step 3 wrote one. The target-interface test
-turns green in the step that reaches it, and that is the moment the new shape stops being a plan.
+moved onto it, the old path narrowed. After each step the pin runs again, as step 3 defines it. The
+target-interface test turns green in the step that reaches it, and that is the moment the new shape
+stops being a plan.
+
+#### Callers and the old API
 
 Every caller of the old API is migrated and the old API deleted in the same wave, per
 [migrate-callers-then-delete-legacy-apis](../../../.agents/principles/migrate-callers-then-delete-legacy-apis.md).
@@ -240,14 +384,21 @@ an alias, not a wrapper kept "until the callers move", because the callers moved
 cannot reach, in another repository, is not a shim's excuse; it is named in the reply as pending debt
 with the consumer named.
 
+#### Renames
+
 Every rename is spot-checked in strings and prose, not only in code: log lines, error messages,
 fixtures, documentation, comments and test names. A compiler and a typechecker do not read those, so
 `rg -n -w <the old name>` over the project is what proves the rename landed, and its empty output is
 quoted.
 
-The sweep stops at every name the project does not own at run time: an environment key or a
-configuration key a deployment sets, a deploy or a CI variable, a wire field a client sends or reads,
-a value already persisted in a database, a queue or a cache, an export another repository imports.
+The sweep stops at every name the project does not own at run time:
+
+- an environment key or a configuration key a deployment sets;
+- a deploy or a CI variable;
+- a wire field a client sends or reads;
+- a value already persisted in a database, a queue or a cache;
+- an export another repository imports.
+
 Something outside the repository writes or reads those, and no instrument of the pin can see it,
 since the suite, the typecheck and the harness all supply their own environment. All three stay
 green while the deployment goes on setting the old name and the code now reads the new one, which is
@@ -256,15 +407,11 @@ behaviour change, so it goes back through the door of step 1: the reshape keeps 
 the reply names the rename with the command that takes it, `/do` with the effect in words for a
 defect and `/discuss <the rename>` otherwise.
 
-Three reds, each with one answer:
+#### Three reds, each with one answer
 
 - **The pin goes red under a step.** The step did too much. It is undone and taken smaller, never
-  patched forward, and never made green by touching the pin. The one red this step tolerates is
-  step 3's target-interface test, still failing for the reason step 3 declared: until the step
-  that reaches it, the reshape tolerates exactly one red and that is it. The single-file command
-  from the project's facts, run on that test's file, is what separates it from a real red, and a
-  suite whose only failing file is that one counts as green here. A red anywhere else, or a second
-  failing file, is a real red and the step is undone.
+  patched forward, and never made green by touching the pin. The one red tolerated is the
+  target-interface test, told apart from a real red the way step 3 says.
 - **A test goes red under a pure reshape.** It was asserting the implementation and not the
   behaviour. It is named in the reply and never edited here, since a test that describes behaviour
   survives a reshape by construction; editing it would erase the one signal that the reshape changed
@@ -276,9 +423,10 @@ A Design fork a step meets, two shapes step 4's target shape cannot settle, goes
 [forks.md](forks.md).
 
 The steps land as one commit or several, each titled `refactor(<scope>): <the step>` and staged by
-path, the body carrying the pin's command lines. Done when the target shape is reached, the
-target-interface test is green, `rg -n -w` finds no caller of the old API and no old name, and the
-pin is green.
+path, the body carrying the pin's command lines.
+
+Done when the target shape is reached, the target-interface test is green, `rg -n -w` finds no
+caller of the old API and no old name, and the pin is green.
 
 ### 7. Prove
 
@@ -336,10 +484,11 @@ The third and last slice, once the exit test passed or the developer said no.
   for a second caller that does not exist, a comment explaining the reshape to a reviewer, a
   formatting sweep over untouched lines. The target shape earns its place; a guess does not, per
   [laziness-protocol](../../../.agents/principles/laziness-protocol.md).
-- The harness deleted, since it was a scaffold and never a test, and the gap it covered named as debt
-  in the reply: which behaviour it drove, and that no test in the tree covers it now. That is the
-  honest cost of the pin's second half, and it is stated rather than carried silently. It has been
-  tracked since the subtraction commit, so this is a staged deletion and the commit below carries it.
+- The harness is deleted, since it was a scaffold and never a test, and the gap it covered is named
+  as debt in the reply: which behaviour it drove, and that no test in the tree covers it now. That
+  is the honest cost of pinning with a harness, and it is stated rather than carried silently. The
+  harness has been tracked since the subtraction commit, so this is a staged deletion and the commit
+  below carries it.
 - The equivalence script from step 7 goes the same way.
 
 One commit, staged by path, titled `chore(<scope>): clean up after the reshape`, its body naming the
@@ -360,13 +509,20 @@ for the Reply's Run section with its command.
 
 ### 10. Gate
 
-The gate in [mechanics.md](mechanics.md), in the worktree, after the last edit: the unit tests the
-run added and the ones covering the code it touched, the typecheck, the lint and the format check,
-and the full suites the project's Post-feature gate names, since a run with no Spec behind it is
-its feature's last, the `command=` line recorded for the Reply's Run section and each relevant
-output line quoted in its Evidence. A red gate is one more step of the reshape, taken as step 6 takes one, and then the whole
-gate again; never a skipped test, a weakened assertion or a pin edited to fit. Done when the suite
-and the typecheck are green in output produced after the last edit.
+The gate in [mechanics.md](mechanics.md), in the worktree, after the last edit:
+
+- the unit tests the run added and the ones covering the code it touched;
+- the typecheck, the lint and the format check;
+- the full suites the project's Post-feature gate names, since a run with no Spec behind it is its
+  feature's last.
+
+The `command=` line is recorded for the Reply's Run section and each relevant output line quoted in
+its Evidence.
+
+A red gate is one more step of the reshape, taken as step 6 takes one, and then the whole gate
+again; never a skipped test, a weakened assertion or a pin edited to fit.
+
+Done when the suite and the typecheck are green in output produced after the last edit.
 
 ### 11. Integration
 
@@ -374,22 +530,27 @@ The integration in [mechanics.md](mechanics.md), with the branch the run started
 the branch it built on rebased onto that branch, every conflicted hunk classed by the door script
 before anything is resolved, and the gate's command lines run again when the rebase replayed
 commits. Every contested hunk takes the **Target** side, and its **Incoming** side goes to the Loss
-ledger keyed by the run's branch, `.scratch/ledgers/<branch>.md` in the main checkout. Done when the step reads the no-op, or the target and the count with the tree handed
-over with no **Gate** of the run's own, or the run stopped as blocked with the worktree and its branch named.
+ledger keyed by the run's branch, `.scratch/ledgers/<branch>.md` in the main checkout.
+
+Done when the step reads the no-op, or the target and the count with the tree handed over with no
+**Gate** of the run's own, or the run stopped as blocked with the worktree and its branch named.
 
 ### 12. Review
 
-The review in [mechanics.md](mechanics.md), called once, with the branch alone as its spec source
-since there is no Ticket outside the chain, the merge base of the branch and the branch the run
-started on, `git merge-base refs/heads/<that branch> HEAD`, qualified so a same-named tag can never
-shadow the branch, read after the integration as the fixed point, and
-the branch the run started on as the landing target. The review writes the Review, fixes
-its `Act on` Findings through its Fixers, one per Finding, the Fixers of one Wave at once and each
-in a worktree of its own, and lands the branch by fast-forward when the Review is Green. The run fixes no Finding and lands nothing itself.
+The review in [mechanics.md](mechanics.md), called once, with:
+
+- as its spec source, the branch alone, since there is no Ticket outside the chain;
+- as the fixed point, the merge base of the branch and the branch the run started on,
+  `git merge-base refs/heads/<that branch> HEAD`, qualified so a same-named tag can never shadow
+  the branch, read after the integration;
+- as the landing target, the branch the run started on.
+
+The review writes the Review, fixes its `Act on` Findings through its Fixers, one per Finding, the
+Fixers of one Wave at once and each in a worktree of its own, and lands the branch by fast-forward
+when the Review is Green. The run fixes no Finding and lands nothing itself.
 
 The return is recorded for the Reply's Run section, one line per part, as the shared section says.
-The five returns are the
-ones the `ticket` Playbook gets:
+The five returns are the ones the `ticket` Playbook gets:
 
 - **Landed.** The line reads `landed at <commit>` and the run goes to the verification.
 - **Not landed: target moved.** The run integrates again in the same run, its Loss ledger keyed by
@@ -424,23 +585,28 @@ reads its skip with the worktree and its branch named.
 
 ### 13. Verification
 
-The verification in [mechanics.md](mechanics.md), from the main checkout after the landing: the
-affected flows with the command line printed first, the one question before a full suite or a remote
-run, and a red flow taken as one more step of the reshape, handed with no **Gate** of the run's own
-to the fix call on the
-same Review, which lands it again with no second review. A reshape whose diff changed no screen,
-route or message
-has no affected flow, and the step reads `skip: no affected flow` with that reason. Done when every
-affected flow is green or recorded as not run on the developer's no, or the step reads
-`skip: nothing landed`.
+The verification in [mechanics.md](mechanics.md), from the main checkout after the landing:
+
+- the affected flows run with the command line printed first;
+- the one question is asked before a full suite or a remote run;
+- a red flow is taken as one more step of the reshape, handed with no **Gate** of the run's own to
+  the fix call on the same Review, which lands it again with no second review.
+
+A reshape whose diff changed no screen, route or message has no affected flow, and the step reads
+`skip: no affected flow` with that reason.
+
+Done when every affected flow is green or recorded as not run on the developer's no, or the step
+reads `skip: nothing landed`.
 
 ### 14. Close
 
 The close in [mechanics.md](mechanics.md). Outside the chain there is no Ticket, so the close is the
 worktree's removal alone: leave it with a bare `cd` to the main checkout, then `git worktree remove
 <path>` and `git branch -d do/<slug>` from there. A delete that refuses means something did not land,
-and the run stops with the worktree and its branch named. Done when `git worktree list` no longer
-shows the run's worktree, or the step reads `skip: nothing landed`.
+and the run stops with the worktree and its branch named.
+
+Done when `git worktree list` no longer shows the run's worktree, or the step reads
+`skip: nothing landed`.
 
 ### 15. Reply
 
@@ -456,11 +622,13 @@ Written by [reply.md](reply.md), its Run section then its sections, which carry,
 - Under Evidence, the pin's before and after lines quoted, the suite, the typecheck and the
   harness's two runs. Those quoted lines are the harness's only record, since step 9 deleted it, so
   a line missing here is a proof nobody can reproduce.
-- Under Pending debt, the equivalence gap: the behaviour the harness drove and that no test in the
-  tree covers now.
+- Under Pending debt, each of these that the run met:
+  - the equivalence gap: the behaviour the harness drove and that no test in the tree covers now;
+  - a caller in another repository the wave could not reach;
+  - a test that went red under a pure reshape and was named rather than edited;
+  - a failed exit test the developer chose to keep.
 
-Pending debt also carries a caller in another repository the wave could not reach, a test that went red under a pure reshape and was named rather
-than edited, and a failed exit test the developer chose to keep. The reply ends with the push command
-naming the developer's branch when the review landed, and with the next command otherwise. Done
-when the reply is sent with every section that
-applies.
+The reply ends with the push command naming the developer's branch when the review landed, and with
+the next command otherwise.
+
+Done when the reply is sent with every section that applies.
