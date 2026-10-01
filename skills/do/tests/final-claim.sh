@@ -144,4 +144,43 @@ expect "a release while the Spec branch has not landed leaves the claim file as 
 expect "a release while the Spec branch has not landed leaves the Spec branch on the tip it had" \
   test "$(g -C "$top" rev-parse -q --verify refs/heads/spec/stopped-feature)" = "$stopped_tip"
 
+stopped_claimed_at="$(sed -n 's/^claimed_at=//p' "$tmp/claim.stopped" 2>/dev/null)"
+run show "$issues/01-first.md"
+check_lines "a claim no run yielded shows held, naming the Ticket that holds it and when it claimed" 0 "$rc" \
+  "claim=held" \
+  "file=$stopped/spec.integration.claim" \
+  "holder_ticket=$issues/01-first.md" \
+  "claimed_at=$stopped_claimed_at"
+run yield "$issues/01-first.md"
+check_lines "a yield of a held claim reads yielded, naming its holder, when it claimed and the Ticket that yielded it" 0 "$rc" \
+  "claim=yielded" \
+  "file=$stopped/spec.integration.claim" \
+  "holder_ticket=$issues/01-first.md" \
+  "claimed_at=$stopped_claimed_at" \
+  "yielded_by=$issues/01-first.md"
+expect "a yield of a held claim dates the yield with a UTC timestamp" \
+  grep -qxE '[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(Z|\+00:00)' <<<"$(term yielded_at)"
+yielded_at="$(term yielded_at)"
+expect "a yield of a held claim leaves the claim file as its claimant wrote it" \
+  cmp -s "$tmp/claim.stopped" "$stopped/spec.integration.claim"
+run show "$issues/01-first.md"
+check_lines "a yielded claim shows yielded, with the holder it had, the yield's time and the Ticket that yielded it" 0 "$rc" \
+  "claim=yielded" \
+  "file=$stopped/spec.integration.claim" \
+  "holder_ticket=$issues/01-first.md" \
+  "claimed_at=$stopped_claimed_at" \
+  "yielded_at=$yielded_at" \
+  "yielded_by=$issues/01-first.md"
+# A timestamp may carry no more than whole seconds: without the clock moving on, a second yield
+# that overwrote the first mark would print the same time and pass.
+sleep 1
+run yield "$issues/01-first.md"
+check_lines "a yield of a claim already yielded keeps the first yield's time" 0 "$rc" \
+  "claim=yielded" \
+  "file=$stopped/spec.integration.claim" \
+  "holder_ticket=$issues/01-first.md" \
+  "claimed_at=$stopped_claimed_at" \
+  "yielded_at=$yielded_at" \
+  "yielded_by=$issues/01-first.md"
+
 [ "$fails" = 0 ]

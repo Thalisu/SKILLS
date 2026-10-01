@@ -4,6 +4,9 @@
 # lock a run waits on, per ../../../.agents/scratch.md. Run from anywhere inside the project.
 #
 #   final-claim.sh claim <Ticket path>    claim the Final integration of the Ticket's Spec
+#   final-claim.sh yield <Ticket path>    mark the Spec's one claim yielded, from any Ticket of
+#                                         the Spec: its holder stopped and a resume may take it over
+#   final-claim.sh show <Ticket path>     the claim's state, read-only
 #   final-claim.sh release <Ticket path>  remove the Spec branch through `spec-branch.sh remove`
 #                                         and, only when that removed it or found none, delete
 #                                         the claim file
@@ -22,19 +25,31 @@
 # The claim file holds key=value lines a reader takes the keys it knows from: ticket (the absolute
 # path of the Ticket whose run claimed), spec_branch, tree, claimed_at (UTC, ISO 8601).
 #
+# The yielded mark is a file beside the claim, <feature folder>/spec.integration.yielded, holding
+# yielded_at (UTC, ISO 8601) and yielded_by (the absolute path of the Ticket the yield was called
+# with). It is created exclusively, so a claim already yielded keeps its first mark, and the claim
+# file is never rewritten by a yield.
+#
+# yield prints key=value lines: claim (yielded, none when there is no claim file to yield, or
+# failed), file, then on yielded: holder_ticket, claimed_at, yielded_at and yielded_by.
+#
+# show prints key=value lines and writes nothing: claim (none, held or yielded), file, then on held
+# and yielded: holder_ticket and claimed_at, and on yielded: yielded_at and yielded_by.
+#
 # release prints key=value lines: claim (released or held), spec_branch, removed (yes, absent when
 # there was no Spec branch left to remove, or no), and on held: reason, the removal's own (unlanded,
 # checked-out or no-upstream). A claim file already gone is still released. held deletes nothing: a
 # Final integration that stopped keeps its Spec branch and its claim for the run that resumes it.
 #
-# Exit codes: 0 claimed or released · 1 taken or held · 3 failed · 2 usage or not a git repository.
+# Exit codes: 0 claimed, released, yielded or shown · 1 taken, held or nothing to yield · 3 failed ·
+# 2 usage or not a git repository.
 set -uo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd -P)"
 resolver="$here/../../../.agents/scripts/resolve-feature-folder.sh"
 
 usage() {
-  echo "usage: final-claim.sh claim|release <Ticket path>" >&2
+  echo "usage: final-claim.sh claim|yield|show|release <Ticket path>" >&2
   exit 2
 }
 
@@ -45,7 +60,7 @@ failed() { # $1 reason
   exit 3
 }
 
-# Sets path, root, folder, file, spec_branch, spec_exists and spec_upstream from the Ticket's path.
+# Sets path, root, folder, file, mark, spec_branch, spec_exists and spec_upstream from the Ticket's path.
 resolve() { # $1 Ticket path
   local probe resolved issues
   probe="$(bash "$here/spec-branch.sh" probe "$1")" || exit 2
@@ -62,7 +77,15 @@ resolve() { # $1 Ticket path
   issues="$(dirname "$path")"
   [ "$(dirname "$issues")" -ef "$folder" ] || failed no-feature-folder
   file="$folder/spec.integration.claim"
+  mark="$folder/spec.integration.yielded"
 }
+
+holder() { # the claim file's holder lines
+  echo "holder_ticket=$(sed -n 's/^ticket=//p' "$file")"
+  echo "claimed_at=$(sed -n 's/^claimed_at=//p' "$file")"
+}
+
+now() { date -u +%Y-%m-%dT%H:%M:%SZ; }
 
 cmd_claim() {
   local tree
@@ -73,13 +96,12 @@ cmd_claim() {
   if ! (
     set -C
     printf 'ticket=%s\nspec_branch=%s\ntree=%s\nclaimed_at=%s\n' \
-      "$path" "$spec_branch" "$tree" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" >"$file"
+      "$path" "$spec_branch" "$tree" "$(now)" >"$file"
   ) 2>/dev/null; then
     [ -f "$file" ] || failed not-writable
     echo "claim=taken"
     echo "file=$file"
-    echo "holder_ticket=$(sed -n 's/^ticket=//p' "$file")"
-    echo "claimed_at=$(sed -n 's/^claimed_at=//p' "$file")"
+    holder
     exit 1
   fi
   echo "claim=claimed"
@@ -89,6 +111,35 @@ cmd_claim() {
   echo "spec_upstream=$spec_upstream"
   echo "tree=$tree"
   echo "ledger=$folder/spec.ledger.md"
+}
+
+cmd_show() {
+  resolve "$1"
+  if [ ! -f "$file" ]; then
+    echo "claim=none"
+    echo "file=$file"
+    return 0
+  fi
+  if [ -f "$mark" ]; then echo "claim=yielded"; else echo "claim=held"; fi
+  echo "file=$file"
+  holder
+  [ ! -f "$mark" ] || grep -E '^(yielded_at|yielded_by)=' "$mark"
+}
+
+cmd_yield() {
+  resolve "$1"
+  if [ ! -f "$file" ]; then
+    echo "claim=none"
+    echo "file=$file"
+    exit 1
+  fi
+  # noclobber keeps the first mark: a second yield of the same claim changes nothing.
+  (
+    set -C
+    printf 'yielded_at=%s\nyielded_by=%s\n' "$(now)" "$path" >"$mark"
+  ) 2>/dev/null
+  [ -f "$mark" ] || failed not-writable
+  cmd_show "$1"
 }
 
 cmd_release() {
@@ -116,6 +167,8 @@ cmd_release() {
 [ "$#" = 2 ] || usage
 case "$1" in
   claim) cmd_claim "$2" ;;
+  yield) cmd_yield "$2" ;;
+  show) cmd_show "$2" ;;
   release) cmd_release "$2" ;;
   *) usage ;;
 esac
