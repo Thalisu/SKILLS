@@ -528,6 +528,59 @@ check_lines "a branch behind a moved target resumes with every commit and its be
   "rebase=none" "merge_base=$fork" "commit=$first feat: archive a note" \
   "behaviour=$first Picking Archive on a note removes it from the list" "commits=2" "verdict=build"
 
+# A Ticket of a Spec lands on its Spec branch, so the resume reads its base there. The Main checkout's
+# branch is the developer's: it moves, or the checkout changes branch, while the Spec branch stays put.
+echo "# resume-state.sh: a Ticket whose Spec branch exists"
+landing=".scratch/20260102-landing/issues"
+mkdir -p "$landing"
+(issues="$landing" && ticket 01-lands.md '**Status:** claimed' 'None (can start immediately)')
+bash "$skill/scripts/spec-branch.sh" cut "$landing/01-lands.md" >/dev/null 2>&1
+run "$skill/scripts/spec-branch.sh" probe "$landing/01-lands.md"
+spec="$(term spec_branch)"
+[ "$(term spec_exists)" = yes ] || fail "the fixture cut no Spec branch for $landing/01-lands.md"
+g checkout -q "$spec"
+printf 'one\n' >landing.txt
+g add landing.txt
+g commit -q -m "an earlier Ticket lands"
+spec_fork="$(git rev-parse HEAD)"
+g checkout -q main
+lw="$top/.claude/worktrees/do-lands"
+g worktree add -q .claude/worktrees/do-lands -b do/lands "$spec"
+printf 'ticket side\n' >>"$lw/landing.txt"
+g -C "$lw" commit -q -am "feat: land a note"
+g commit -q --allow-empty -m "the developer's branch moves on"
+run "$resume" "$landing/01-lands.md"
+check_lines "a Ticket whose Spec branch exists names it as base and reads the merge base against it, though the Main checkout's branch moved" 0 "$rc" \
+  "base=$spec" "merge_base=$spec_fork"
+g checkout -q "$spec"
+printf 'spec side\n' >>landing.txt
+g commit -q -am "a sibling Ticket lands"
+spec_tip="$(git rev-parse HEAD)"
+g checkout -q main
+g -C "$lw" -c rerere.enabled=false rebase "$spec" >/dev/null 2>&1
+run "$resume" "$landing/01-lands.md"
+check_lines "a rebase left open onto a Spec branch that has not moved reads tip off the Spec branch and stops as conflicted, though the Main checkout's branch moved" 3 "$rc" \
+  "base=$spec" "onto=$spec_tip" "tip=$spec_tip" "conflicted=landing.txt" "stop=conflicted"
+absent_prefix "a rebase onto a Spec branch that has not moved is never classed moved off the Main checkout's branch" "stop=moved"
+printf 'one\nspec side\nticket side\n' >"$lw/landing.txt"
+git -C "$lw" add landing.txt
+g checkout -q -b elsewhere
+run "$resume" "$landing/01-lands.md"
+check_lines "a rebase resolved and staged onto a Spec branch that has not moved resumes as resolved, though the Main checkout is on another branch" 3 "$rc" \
+  "base=$spec" "onto=$spec_tip" "tip=$spec_tip" "stop=resolved"
+g checkout -q "$spec"
+g commit -q --allow-empty -m "one more Ticket lands"
+spec_moved="$(git rev-parse HEAD)"
+g checkout -q elsewhere
+run "$resume" "$landing/01-lands.md"
+check_lines "a rebase left open onto a commit the Spec branch has since moved past resumes as moved, naming the Spec branch's new tip" 3 "$rc" \
+  "base=$spec" "onto=$spec_tip" "tip=$spec_moved" "stop=moved" "moved=continue"
+git -C "$lw" rebase --abort
+g checkout -q main
+git worktree remove --force .claude/worktrees/do-lands
+g branch -D do/lands elsewhere "$spec" >/dev/null
+rm -rf .scratch/20260102-landing
+
 echo "# resume-state.sh: nothing to resume"
 git -C "$wt" checkout -q --detach
 run "$door" "$issues/04-claimed.md"

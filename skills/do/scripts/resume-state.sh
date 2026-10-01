@@ -11,8 +11,9 @@
 #                                          is the slug the run cut that worktree under
 #
 # Prints key=value lines, in this order: worktree; branch, read from the rebase state when a rebase
-# is open, since the worktree is then on a detached HEAD; rebase (open or none); base, the branch
-# the main checkout is on, which is the developer's; merge_base; one commit=<short sha> <title> per
+# is open, since the worktree is then on a detached HEAD; rebase (open or none); base, the Ticket's
+# Spec branch when spec-branch.sh probe says it exists, else the branch the main checkout is on,
+# which is the developer's; merge_base; one commit=<short sha> <title> per
 # commit since the merge base, oldest first, each followed by behaviour=<short sha> <its
 # Behaviour: line, or none>; commits; one uncommitted=<the git status --short line> per entry,
 # paths quoted by git as core.quotePath does; one conflicted=<path> per file an open rebase left
@@ -97,9 +98,16 @@ branch="${branch#refs/heads/}"
 branch="${branch#refs/heads/}"
 [ -n "$branch" ] || { echo "$wt is on a detached HEAD with no rebase open: nothing to resume" >&2; exit 2; }
 
-base="$(git -C "$main" symbolic-ref --short -q HEAD || git -C "$main" rev-parse HEAD)"
+# A Ticket of a Spec is cut from its Spec branch and lands there, so the branch the main checkout
+# is on says nothing about it. spec-branch.sh stays the one place that names a Ticket's Spec branch.
+spec="$(bash "$(dirname "$0")/spec-branch.sh" probe "$path" 2>/dev/null)"
+if grep -qx 'spec_exists=yes' <<<"$spec"; then
+  base="$(sed -n 's/^spec_branch=//p' <<<"$spec")"
+else
+  base="$(git -C "$main" symbolic-ref --short -q HEAD || git -C "$main" rev-parse HEAD)"
+fi
 # A same-named tag resolves ahead of a branch and would shift the merge base onto it, so the
-# developer's branch is read qualified; a detached HEAD's own sha has no such ambiguity to qualify.
+# base branch is read qualified; a detached HEAD's own sha has no such ambiguity to qualify.
 base_ref="refs/heads/$base"
 git -C "$main" show-ref --verify --quiet "$base_ref" || base_ref="$base"
 merge_base="$(git -C "$wt" merge-base "$base_ref" "refs/heads/$branch" 2>/dev/null || echo none)"
