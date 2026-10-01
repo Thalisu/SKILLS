@@ -11,6 +11,16 @@ list before any task-specific item, and the Reply's Run section carries it ticke
 brief's ten steps with the review and landing step reading as
 the review's and the grounding as the Planner's; each step carries its done condition below.
 
+A Ticket of a Spec, one whose door printed a `spec_branch=` other than `none`, has no review step,
+per
+[ADR 0060](../../../docs/adr/0060-a-ticket-lands-on-its-spec-branch-and-do-lands-it-there-itself.md)
+and
+[ADR 0061](../../../docs/adr/0061-the-review-runs-once-per-spec-on-its-spec-branch-before-it-lands.md):
+its own **Gate** is its check, it rebases onto its **Spec branch** and lands there itself, and the
+Spec is reviewed once, after its last Ticket lands. Every passage below that names a review, a
+Review or a fix call is the path of a Ticket with no Spec (`spec_branch=none`), which keeps the
+review and the landing on the developer's branch.
+
 ## Door
 
 The argument is a Ticket's path, or an issue reference resolved through the tracker file,
@@ -185,7 +195,15 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   **Gate** of the run's own after it,
   and the branch lands through the fix call on that Review, as the review in
   [mechanics.md](mechanics.md) says for a branch the review already read.
-- When every line of the list is ticked, as on the branch a `not landed: target moved` right after an integration that ticked as a no-op leaves,
+- On a Ticket of a Spec the script prints `base=spec/<feature-slug>` and reads `merge_base`, `tip`
+  and `stop=` against that branch, so wherever a bullet of this section says the developer's
+  branch, the Spec branch is meant. No Review is ever written beside such a Ticket, so the verdict
+  is never `land`. When every line of the list is ticked, as after a landing refused with
+  `checked-out` or a run stopped at its Gate, step 3 reads `done: resumed`, no Builder is forked,
+  and the run goes on at step 4, then the **Gate** of step 5, the integration of step 6 onto the
+  Spec branch and the landing of step 7. That is how a run requested again after a refused landing
+  resumes at the landing.
+- When every line of the list is ticked on a Ticket with no Spec, as on the branch a `not landed: target moved` right after an integration that ticked as a no-op leaves,
   whether a later run finds it or the same run takes this path at step 7 without a second request,
   step 3 reads `done: resumed` and the run never waits on a Builder with nothing left to build. It
   goes on at step 4 as a first run does, reading the diff already on the branch, its flows counting
@@ -300,8 +318,8 @@ Do:
 - [ ] 3. Build: the Builder forked from the Plan, its return checked against the branch
 - [ ] 4. Diff: the Builder's diff read in the worktree, the run's own summary written
 - [ ] 5. Gate in the worktree: the Ticket's own tests, typecheck, format; the full suites on the feature's last Ticket
-- [ ] 6. Integration: the branch rebased onto the developer's branch, the gate again when it replayed
-- [ ] 7. Review by do-code-review: Act on Findings fixed Wave by Wave by its Fixers, landed when Green
+- [ ] 6. Integration: the branch rebased onto its Spec branch, the gate again when it replayed (no Spec: onto the developer's branch)
+- [ ] 7. Landing on the Spec branch by land-spec.sh, no review (no Spec: review by do-code-review: Act on Findings fixed Wave by Wave by its Fixers, landed when Green)
 - [ ] 8. Affected E2E flows run from the main checkout
 - [ ] 9. Ticket closed with evidence; worktree removed
 - [ ] 10. Reply
@@ -781,15 +799,45 @@ from `scripts/gate.sh` with its `command=` line recorded for the Reply's Run sec
 the suite and the typecheck are green in output produced after the last edit and the `command=` line
 is recorded.
 
-**6. Integration.** The integration in [mechanics.md](mechanics.md), with the branch the run
-started on as the target: the branch it built on rebased onto that branch, every conflicted hunk
+**6. Integration.** The integration in [mechanics.md](mechanics.md), with the Ticket's Spec branch
+as the target, `refs/heads/spec/<feature-slug>`, or, on a Ticket with no Spec, the branch the run
+started on: the branch it built on rebased onto that branch, every conflicted hunk
 classed by the door script before anything is resolved, and the gate's command lines run again when
 the rebase replayed commits. Every contested hunk takes the **Target** side, and its **Incoming** side goes to
 the Loss ledger beside the Ticket in the main checkout, `.ledger` before the extension. Done when the step reads the no-op, or the target and the count with
 the tree handed over with no **Gate** of the run's own, or the run stopped as blocked with the worktree and its branch named, and
 the integration line is recorded for the Reply's Run section.
 
-**7. Review and landing.** The review in [mechanics.md](mechanics.md), with the Ticket's
+**7. Landing, and on a Ticket with no Spec the review.** A Ticket of a Spec calls no review. After
+the green **Gate** and the integration onto the Spec branch, the run lands the branch itself, by
+the landing on the Spec branch in [mechanics.md](mechanics.md):
+`bash <skill-dir>/scripts/land-spec.sh <the main checkout> spec/<feature-slug> do/<slug>`, routed
+on its exit code and never on its prose.
+
+- `landed <sha>` (exit 0): the Spec branch's ref reads the branch's tip. The landing line recorded
+  for the Reply's Run section is `landed at <sha> on spec/<feature-slug>`, with
+  `Review: none, the Spec is reviewed once its last Ticket lands` under it.
+- `moved <tip>` (exit 1): another Ticket of the Spec landed first. The run integrates again onto
+  that tip in the same run, step 6 with its Loss ledger judged and reapplied, runs the **Gate**
+  again on the replayed tree, and calls the script again. It repeats with no fixed count for as
+  long as each integration replayed commits, per
+  [ADR 0044](../../../docs/adr/0044-the-re-integration-retries-while-the-target-tip-changes.md). A
+  `moved` right after an integration that ticked as a no-op stops the run as blocked, since
+  integrating again would meet the same tip.
+- `checked-out <worktree>` (exit 4): a worktree holds the Spec branch, so its ref is not moved. The
+  run stops as blocked: the Reply reads `not landed: spec/<feature-slug> is checked out in
+  <worktree>`, the Ticket stays `claimed`, the run's worktree and its branch stay in place and are
+  named, and the Next step says to switch that checkout off the branch and run `/do <ticket>`
+  again, which resumes at the landing as the Resume above says.
+- `failed <reason>` (exit 3): the run stops as blocked with the reason quoted, the Ticket `claimed`
+  and the worktree and its branch named.
+
+A red **Gate**, before the integration or after a replay, never reaches the script: the run stops
+as blocked as steps 5 and 6 say. Done when the landing line reads
+`landed at <sha> on spec/<feature-slug>`, or the run stopped as blocked with the script's line
+quoted and the worktree and its branch named.
+
+On a Ticket with no Spec the step is the review in [mechanics.md](mechanics.md), with the Ticket's
 location as the spec source, the merge base of the branch and the branch the run started on,
 `git merge-base refs/heads/<that branch> HEAD`, qualified so a same-named tag can never
 shadow the branch, read after the integration as the fixed point, and the branch
@@ -802,7 +850,10 @@ commits; a `not landed: target moved` right after an integration that ticked as 
 blocked with the review's reason quoted and the worktree and its branch named, or the step reads
 `skip: do-code-review not listed` with the worktree and its branch named.
 
-**8. Verification.** The verification in [mechanics.md](mechanics.md): the affected flows from
+**8. Verification.** On a Ticket of a Spec the step reads
+`skip: landed on the Spec branch, which the main checkout does not hold`: the flows run from the
+main checkout, and nothing of this Ticket is there until the Spec branch itself lands. On a Ticket
+with no Spec it is the verification in [mechanics.md](mechanics.md): the affected flows from
 the main checkout through `scripts/flows.sh`, its command line printed first, the one question
 before a full suite or
 a remote run, and a red flow as one more unit of the loop, handed with no **Gate** of the run's own
@@ -828,7 +879,10 @@ Ticket and the Review under the files left uncommitted; every Ruling the forks i
 consumer flows not run under pending debt, beside
 a criterion the flows step skipped for no end-to-end command, with the command that would fill it; and the next step, `git push` with the developer's
 branch named when the review landed, or, when nothing landed, the worktree, its branch, and the
-review and the landing as what the developer runs next. A
+review and the landing as what the developer runs next. On a Ticket of a Spec the Review is never
+among the files left uncommitted, and the next step names no push, since nothing reached the
+developer's branch: it is `/do` on the Spec's next Ticket when the run landed, and what the
+blocked stop of step 7 names when it did not. A
 run that stopped on an Extreme fork, or on a Design fork no `choice-taker` ruled, ends instead on
 the `/discuss` command the forks in [forks.md](forks.md) fix, as its last line. Done when
 the reply is sent with

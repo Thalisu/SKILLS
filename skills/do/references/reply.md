@@ -195,6 +195,12 @@ worktree line comes before the audit line and before the hand-over, shaped-by an
       their branch.
 28. **Review return.** The review's return, one line per part: the Review's location, the
     `Act on:` line, the landing line, every `Risk:` line and every `Axis not run:` line.
+29. **Spec landing lines.** On a `ticket` run of a Spec, which calls no review, two lines in the
+    Review return's place. The landing line, off the one line `land-spec.sh` printed:
+    `landed at <sha> on spec/<feature-slug>`, or
+    `not landed: spec/<feature-slug> is checked out in <worktree>`, or `not landed:` with the
+    script's `moved` or `failed` line quoted. Then, on every such run,
+    `Review: none, the Spec is reviewed once its last Ticket lands`.
 
 The lines record what the steps decided; they gate nothing. The order constraints on actions stay
 with the steps that carry them (the door script before any write, the worktree before the first
@@ -256,7 +262,8 @@ Ten sections, in this order, each one present in every Reply that carries sectio
    on the way and not done.
 10. **Next step.** One line, the Reply's last. It ends with the push command when something landed
     on the developer's branch, `git push` with the branch named; otherwise the command to type
-    next. A landed run whose close finished is not a stop: the push stays on this line, the run
+    next. A run that landed on a Spec branch names no push, since nothing reached the developer's
+    branch: its line is `/do` on the Spec's next Ticket. A landed run whose close finished is not a stop: the push stays on this line, the run
     never pushes, and its Reply carries no `Yours:` line. A landed run that then stopped at the
     close's `destroy` stop carries exactly one `Yours: destroy:` line, per the section below; the
     push still stays on this Next step line and is never named under `outward`.
@@ -274,6 +281,17 @@ those: its message says the Spec would land on the protected branch it names, or
 all when the checkout is detached, and to switch to a working branch and run `/do <ticket>` again,
 and it states the `status=` the door printed for the Ticket, `ready-for-agent` or, on a start-over,
 `claimed`, since nothing was claimed or cut by this run.
+
+A `ticket` run of a Spec whose landing found the Spec branch checked out in a worktree is another:
+its blocker reads `not landed: spec/<feature-slug> is checked out in <worktree>`, it names the
+run's worktree and its branch, both left in place, and says the Ticket still reads `claimed`. Its
+Next step says to switch that checkout off the branch and run `/do <ticket>` again, which resumes
+at the landing:
+
+```
+not landed: spec/<feature-slug> is checked out in <worktree>
+Yours: direction: switch <worktree> off spec/<feature-slug> and run /do <ticket> again, or leave do/<slug> unlanded in its worktree
+```
 
 How much more it carries depends on where the run stopped:
 

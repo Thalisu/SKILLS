@@ -34,7 +34,9 @@ an index: the section named in parentheses carries the rule in full, with its ex
 - Enter the worktree through the harness's worktree tool: an isolated session refuses the git the
   landing needs (the worktree).
 - Land, push, or fix a Finding by hand, or read, edit or write the Review: the review lands and
-  fixes, and the Review is its record for the developer (the review).
+  fixes, and the Review is its record for the developer (the review). The one landing a run makes
+  itself is a Ticket's branch on its Spec branch, through `land-spec.sh` and never by hand (the
+  landing on the Spec branch).
 - Turn a red check green with a skipped test, a weakened assertion or a sleep, or work around an
   infrastructure failure: a red goes back to the build loop, and a blocked check stops the run,
   waived only by the developer and recorded as debt (the gate, the verification).
@@ -352,6 +354,17 @@ resume whose `review=` line names a Review, walks this step the same way and the
 the fix call the review section names, never a second review, per
 [ADR 0033](../../../docs/adr/0033-the-review-runs-once-per-run-and-what-comes-after-it-lands-through-the-gate-alone.md).
 
+**The target on a Ticket of a Spec.** A `ticket` run whose Ticket has a Spec branch integrates onto
+that branch, `refs/heads/spec/<feature-slug>`, and never onto the developer's branch, per
+[ADR 0060](../../../docs/adr/0060-a-ticket-lands-on-its-spec-branch-and-do-lands-it-there-itself.md):
+wherever this section says the developer's branch, such a run reads its Spec branch, in the
+ancestor check, in the rebase and in the merge base alike. Nothing else changes. Every stop still
+runs the conflict loop, a contested hunk still takes the **Target** side, here the Spec branch's,
+and its **Incoming** side still goes to the Loss ledger beside the Ticket, judged and reapplied as
+on the developer's branch. No review follows, so where this section calls the review or hands the
+tree to a fix call, such a run goes to the landing on the Spec branch below instead, after a
+**Gate** of its own on every tree a replay or a reapplied commit changed.
+
 Every command of this step that can meet a conflict runs with git's conflict-resolution reuse off,
 the rebase itself as `git -c rerere.enabled=false -c rerere.autoupdate=false rebase refs/heads/<the
 developer's branch>`, qualified so a tag sharing the branch's name can never shadow it, and the
@@ -421,7 +434,67 @@ handed over with no **Gate** of the run's own, or the run stopped as blocked wit
 undo command and its worktree named,
 and in each case the integration line is recorded for the Reply's Run section.
 
+## The landing on the Spec branch
+
+Run by a `ticket` run whose Ticket has a Spec branch, after a green gate and the integration onto
+that branch, in place of the review, per
+[ADR 0060](../../../docs/adr/0060-a-ticket-lands-on-its-spec-branch-and-do-lands-it-there-itself.md).
+The run's own **Gate** is the Ticket's check, and the Spec is reviewed once, on its Spec branch,
+after its last Ticket lands, per
+[ADR 0061](../../../docs/adr/0061-the-review-runs-once-per-spec-on-its-spec-branch-before-it-lands.md).
+`do-code-review` stays the only lander of the developer's branch: this step moves the Spec branch
+and no other ref, and it touches no checkout.
+
+One script call makes the landing, and the run never moves the ref by hand:
+
+```
+bash <skill-dir>/scripts/land-spec.sh <the main checkout> spec/<feature-slug> do/<slug>
+```
+
+The Spec branch is checked out nowhere, so the landing is a fast-forward of its ref alone. The
+script holds the landing lock of
+[ADR 0043](../../../docs/adr/0043-concurrent-landings-serialize-only-the-fast-forward.md), the one
+the review's landing holds, from its first read to the end of the ref update, so of two Tickets of
+one Spec landing at once exactly one passes and the other reads `moved` with the Spec branch
+untouched. It prints one line, and the run routes on the exit code:
+
+- **`landed <sha>`, exit 0.** The Spec branch reads the tip of the run's branch. The run records
+  `landed at <sha> on spec/<feature-slug>` and
+  `Review: none, the Spec is reviewed once its last Ticket lands` for the Reply's Run section, per
+  [reply.md](reply.md), and goes on to the close.
+- **`moved <tip>`, exit 1.** The Spec branch holds a commit the run's branch lacks, another
+  Ticket's landing. The run answers it in the same run: the integration again onto that tip, as the
+  integration above says, contested hunks to the **Target** side and the Loss ledger, the ledger
+  judged and the reapplies brought back, then the **Gate** on the tree that came out, then this
+  call again. A red **Gate** there stops the run as the integration's own red gate does. The retry
+  has no fixed count, per
+  [ADR 0044](../../../docs/adr/0044-the-re-integration-retries-while-the-target-tip-changes.md): it
+  repeats for as long as each call reads `moved` and the integration before it replayed commits,
+  since every such line is another Ticket's landing and the runs landing at once are finite. A
+  `moved` right after an integration that ticked as a no-op ends the loop: the branch already held
+  the tip, integrating again would meet it again, and the run stops as blocked with the script's
+  line quoted.
+- **`checked-out <worktree>`, exit 4.** A worktree, the main checkout included, has the Spec branch
+  checked out, and a ref moved under a checkout would leave that worktree's index showing the
+  landing as a reversal. Nothing is written. The run stops as blocked with
+  `not landed: spec/<feature-slug> is checked out in <worktree>`, and the run does not switch that
+  checkout itself, since what it holds is the developer's. The Reply's `Yours:` line reads
+  `direction`, and its Next step says to switch that checkout off the branch and run `/do <ticket>`
+  again, which resumes at the landing.
+- **`failed <reason>`, exit 3.** A ref did not resolve or git refused the update. Nothing is
+  written, and the run stops as blocked with the reason quoted.
+
+Every blocked stop of this step leaves the worktree and its branch in place and named and the
+Ticket `claimed`, with nothing pushed.
+
+Done when the landing line reads `landed at <sha> on spec/<feature-slug>` and the run goes on to
+the close, or the run stopped as blocked with the script's line quoted and the worktree and its
+branch named.
+
 ## The review
+
+A `ticket` run whose Ticket has a Spec branch never reaches this section: it lands by the landing
+on the Spec branch above. Every other run that builds in a worktree does.
 
 Run once per run, after the gate, and never by hand: the review fixes and lands, the run reads,
 and whatever the run commits after it lands through the fix call below, never a second review, per

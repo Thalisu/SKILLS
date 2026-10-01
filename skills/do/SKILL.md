@@ -100,7 +100,7 @@ those reasons.
 - A pause comes only before an irreversible write; reversible work is presented instead, since it can be undone after the developer reads it.
 - "no" is an acceptable answer. A recommendation is a judgment, not a validation of the request.
 - The worktree is created with `git worktree add` and entered with a bare `cd`; the frontmatter above denies the harness's worktree tool for the session, per [worktrees.md](../../.agents/worktrees.md).
-- The run never lands and never fixes a Finding; the review does both, so what reaches the target branch has one owner ([ADR 0005](../../docs/adr/0005-do-code-review-owns-the-whole-review.md)).
+- The run never lands and never fixes a Finding; the review does both, so what reaches the target branch has one owner ([ADR 0005](../../docs/adr/0005-do-code-review-owns-the-whole-review.md)). The one landing the run makes is a Ticket's branch on its Spec branch, through `scripts/land-spec.sh`, and never on the developer's branch ([ADR 0060](../../docs/adr/0060-a-ticket-lands-on-its-spec-branch-and-do-lands-it-there-itself.md)).
 - The reply is in the language the session opened in, and everything written into the project is in English.
 
 ## Where a turn ends
