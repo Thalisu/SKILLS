@@ -1,28 +1,69 @@
 # The reply
 
-Every Playbook reads this file last and writes its reply by it: one message, in the language the
-session opened in, whose first line is `Playbook: <name>` as plain text, with no code formatting
-around it, so that a reader or a grader finds it at column one. The Run section comes right after that line,
-then the sections below follow in this order. A section with nothing to say reads `none` on one
-line, so that the shape holds from one run to the next and a missing section is a missing section,
-not a style choice. Everything quoted was produced in this run, after the last edit; nothing is a
-link, a sha or a transcript reference the run did not see.
+Every Playbook reads this file last and writes its reply by it. The Reply is the one place a run
+reaches the developer: a run lasts long enough that its reader comes back to it afterwards, with
+none of the run in mind, and reads only this message.
 
-The Reply is where every line a step names reaches the developer, per
+So every line a step names reaches the developer through the Reply, per
 [ADR 0039](../../../docs/adr/0039-a-do-runs-lines-reach-the-developer-through-the-reply-never-through-text-written-mid-run.md).
-A run lasts long enough that its reader comes back to it afterwards, so a line counts once the
-Reply carries it, and text the session wrote mid-run is never where a line has to be.
+A line counts once the Reply carries it. Text the session wrote mid-run is never where a line has
+to be, since a note written between two tool calls may reach nobody.
+
+## The message
+
+One message, in the language the session opened in, built in this order:
+
+1. **First line.** `Playbook: <name>` as plain text, with no code formatting around it, so that a
+   reader or a grader finds it at column one.
+2. **Run.** The [Run](#run) section, right after that line, under a `## Run` heading.
+3. **Sections.** The ten [Sections](#sections), in their order, each under a `##` heading of its
+   name.
+
+Three rules hold across all of it:
+
+- **`none`.** A section with nothing to say reads `none` on one line, so that the shape holds from
+  one run to the next and a missing section is a missing section, not a style choice.
+- **Quotes.** Everything quoted was produced in this run, after the last edit. Nothing is a link, a
+  sha or a transcript reference the run did not see.
+- **Nothing added.** The Run section and the ten sections are the whole shape: no `## Summary` and
+  no `## Test plan` joins them, and nothing comes after the last section, neither a recap nor an
+  offer to carry on.
+
+A run that ends early writes a shorter message, per
+[A refusal or a blocked run](#a-refusal-or-a-blocked-run). [Whole replies](#whole-replies) shows
+both shapes.
+
+## Voice
+
+The Reply reports and never narrates: each line states a fact a step recorded, for a reader who
+was not there.
+
+- Short declarative sentences. Where a long dash or a connecting colon would join two of them, end
+  the first with a period. The Reply carries no long dash anywhere, the checklist's done lines
+  included, and no colon as a mid-sentence connector.
+- A colon stays where it is a line's own label: `Playbook:`, `Loop:`, `Yours:`, and a tick, which
+  reads `done:` after the step.
+- Call the Skill tool with `unslop` on the drafted reply when the session lists it; write it by
+  this file alone otherwise.
 
 ## Run
 
-How the run was set up, one line each, each taken from the step that recorded it and written only
-when that Playbook's steps name it, in the matched Playbook's step order: a line lands where the
-step that produced it falls in that Playbook's own sequence, not at a position this list fixes
-alike for every Playbook. The numbered list below names and describes every line the Run section
-can carry; it is not one single order every Playbook follows, since two Playbooks can produce the
-same lines in a different relative order (in `ticket` and `bug-fix` the worktree line comes before
-the audit line and before the hand-over, shaped-by and Sketch lines; in `refactoring` the target
-files and the audit line both come before the worktree line):
+How the run was set up and what its steps decided, one line each. Three rules pick the lines and
+place them:
+
+- **Which lines.** A line is written only when the matched Playbook's steps name it. The numbered
+  list below names and describes every line the Run section can carry, and no Playbook carries all
+  of them.
+- **What a line says.** The fact its step recorded, taken from that step and never composed
+  afterwards.
+- **In what order.** The matched Playbook's step order: a line lands where the step that produced
+  it falls in that Playbook's own sequence, not at a position this list fixes alike for every
+  Playbook. Lines one step records together keep the order of the list below.
+
+The numbers identify the lines. They are not one single order every Playbook follows, since two
+Playbooks can produce the same lines in a different relative order: in `ticket` and `bug-fix` the
+worktree line comes before the audit line and before the hand-over, shaped-by and Sketch lines; in
+`refactoring` the target files and the audit line both come before the worktree line.
 
 1. **Read-back.** The request or the Ticket confirmed back: the Ticket's `<NN>: <title>`, or the
    reshape or the bug in the developer's terms.
@@ -33,16 +74,21 @@ files and the audit line both come before the worktree line):
 5. **Defect line.** When a behaviour reproduces a bug: `Defect: origin bugfix, cause stated`, or
    `Defect: cause unknown, diagnosis first` when nothing names the cause.
 6. **Claim line.** `Claimed: <the Ticket's path or reference>`.
-7. **Resume line.** On a run that found an earlier run's state, the state it continued from: that
-   it resumed, with the worktree, its branch and the commits it found, one line each with its
-   `Behaviour:` line and a commit whose line matches no line of the list named; or, on an open
-   rebase, that it resumed there, with the worktree and the branch read from the rebase state, the
-   commits it found, the files git left conflicted and each file taken on trust as the developer
-   resolved it by hand, then one line off `resume-state.sh`'s own lines,
-   `rebase open: stopped at <stopped>, onto <onto>, <base> at <tip>: <stop>; answered <answer>`,
-   with every staged file named and `answered none` when the stop asked nothing; or that it started over, since the worktree was gone, with the branch the
-   removal left behind when there is one. A question the run waits on is the turn's final message
-   and keeps its own wording.
+7. **Resume line.** On a run that found an earlier run's state, the state it continued from, one
+   of three:
+   - **Resumed.** That it resumed, with the worktree, its branch and the commits it found, one
+     line each with its `Behaviour:` line, and a commit whose line matches no line of the list
+     named.
+   - **Resumed on an open rebase.** That it resumed there, with the worktree and the branch read
+     from the rebase state, the commits it found, the files git left conflicted and each file
+     taken on trust as the developer resolved it by hand. Then one line off `resume-state.sh`'s
+     own lines,
+     `rebase open: stopped at <stopped>, onto <onto>, <base> at <tip>: <stop>; answered <answer>`,
+     with every staged file named and `answered none` when the stop asked nothing.
+   - **Started over.** That it started over, since the worktree was gone, with the branch the
+     removal left behind when there is one.
+
+   A question the run waits on is the turn's final message and keeps its own wording.
 8. **Protected-branch warning.** When it applies: the branch, the rule, and that the landing is
    refused on it.
 9. **Checklist.** The matched Playbook's checklist, verbatim, every step the run reached ticked
@@ -52,19 +98,25 @@ files and the audit line both come before the worktree line):
 10. **Plan line.** In `ticket`, the Plan's location and every fallback the Planner's return
     named: a Map built from search output because `how` was not listed, one `rg -n -w` per
     candidate in place of the discover batch, or a shape the fork stated itself. The grounding
-    itself is in the Plan and never here, since the session never read it. A Plan the run carried
-    instead of forking the Planner is named the same way, with the line saying it was reused. On a
-    resume whose only work left was the landing, the line says the Plan step was skipped for that
-    reason and names no Plan, since the run opened none. Whenever a fork ran, the Planner or the
-    Builder, one `Guard:` line rides it, quoting the `guard=` line the guard probe printed with its
-    `harness=` and `hooks=` values, so the developer knows which of the two mechanisms held: on
-    `pattern-and-header`, the pattern guard beside the header check; on `header-only`, the header
-    check alone, the whole guard over the fork itself, with the review marker's token, revoked
-    again as soon as the Builder returns, guarding the window after that the header check never
-    reaches, and the `disabled_by=` file when the probe named one. When neither fork could run,
-    the Agent tool withheld or neither agent listed, the one `Planner/Builder: none` line rides it
-    in place of the Planner's and the Builder's per-fork fallback lines, with no `Guard:` line,
-    since no fork ran for a guard to bind.
+    itself is in the Plan and never here, since the session never read it. Two runs name no fresh
+    Plan:
+    - A Plan the run carried instead of forking the Planner is named the same way, with the line
+      saying it was reused.
+    - On a resume whose only work left was the landing, the line says the Plan step was skipped
+      for that reason and names no Plan, since the run opened none.
+
+    Whenever a fork ran, the Planner or the Builder, one `Guard:` line rides it, quoting the
+    `guard=` line the guard probe printed with its `harness=` and `hooks=` values, so the
+    developer knows which of the two mechanisms held:
+    - On `pattern-and-header`, the pattern guard beside the header check.
+    - On `header-only`, the header check alone, the whole guard over the fork itself, with the
+      review marker's token, revoked again as soon as the Builder returns, guarding the window
+      after that the header check never reaches, and the `disabled_by=` file when the probe named
+      one.
+
+    When neither fork could run, the Agent tool withheld or neither agent listed, the one
+    `Planner/Builder: none` line rides it in place of the Planner's and the Builder's per-fork
+    fallback lines, with no `Guard:` line, since no fork ran for a guard to bind.
 
     ```
     Guard: guard=pattern-and-header (harness=claude-code, hooks=run): the pattern guard beside the header check.
@@ -101,14 +153,15 @@ files and the audit line both come before the worktree line):
 21. **Fix line.** In `bug-fix`, the planned fix and the shape, with the sketch or its skip.
 22. **Behaviours list.** The list the run built from, in `ticket` the Plan's `## Behaviours`
     section, each line with the commit beside it.
-23. **Build lines.** One line per behaviour as it landed: the files the loop opened for it, the
-    author's verdict and what was done with it, the commit, and, when the behaviour went to
-    [tdd-fallback.md](tdd-fallback.md), the reason it did and the check that stood in. Then one
-    flow line per criterion the flows reached, off the `flow:` lines the build returned: the
-    criterion, the author's verdict and the commit where a flow was authored, and, where none was,
-    the reason it needed none or the empty command slot that stopped it. A criterion whose flow was
-    skipped is read here or nowhere, since the close leaves it unticked and the diff carries no
-    trace of a flow nobody wrote.
+23. **Build lines.** Two kinds of line, the behaviours first:
+    - One line per behaviour as it landed: the files the loop opened for it, the author's verdict
+      and what was done with it, the commit, and, when the behaviour went to
+      [tdd-fallback.md](tdd-fallback.md), the reason it did and the check that stood in.
+    - Then one flow line per criterion the flows reached, off the `flow:` lines the build
+      returned: the criterion, the author's verdict and the commit where a flow was authored, and,
+      where none was, the reason it needed none or the empty command slot that stopped it. A
+      criterion whose flow was skipped is read here or nowhere, since the close leaves it unticked
+      and the diff carries no trace of a flow nobody wrote.
 24. **Answer lines.** In `refactoring`, each answer with its reason: the exit test's, with the
     developer's answer when the test failed, and a behaviour change the cleanup found, with its
     command.
@@ -122,22 +175,24 @@ files and the audit line both come before the worktree line):
 27. **Integration line.** The state the integration reached: the no-op, or the target and the
     count, or blocked with its reason, with the counts of `mechanical` and `contested` hunks at each
     stop and the Loss ledger's location when a contested hunk took the **Target** side. Where the
-    ledger held an
-    entry to judge, the line each entry was judged on, its id, `reapply` or `drop` and the one-line
-    reason, every `drop` among them, so what a contested hunk set aside is read as kept or as let
-    go and never merely as set aside; the line saying the session judged them itself, with the
-    branch that held, when no `ledger-judge` could be forked; and every id the judge named that
-    `pending` did not, or that already carried a verdict, refused by the script with nothing
-    written. Then what came back and what did not: each reapplied commit on a line of its own, with
-    the entry's id and the commit's short sha, and each dropped entry on a line of its own, with its
-    reason. An entry judged `reapply` whose applied line reads `none` made no commit and is listed
-    among the dropped entries, with the reason its applied line gives, so a reapply that did not
-    come back is never read as one that did. A run whose integration ran after the review, the
-    retry on `not landed: target moved` or a resumed run's, carries the lines of both
-    integrations, each under its own integration line, and the integration after the review lists
-    every `drop` of its own, each marked as coming after the review, since no reviewer reads what
-    that integration set aside and the reply is the one place the developer sees it before it
-    reaches their branch.
+    ledger held an entry to judge, three groups of lines sit under it:
+    - **The judging.** The line each entry was judged on, its id, `reapply` or `drop` and the
+      one-line reason, every `drop` among them, so what a contested hunk set aside is read as kept
+      or as let go and never merely as set aside; the line saying the session judged them itself,
+      with the branch that held, when no `ledger-judge` could be forked; and every id the judge
+      named that `pending` did not, or that already carried a verdict, refused by the script with
+      nothing written.
+    - **What came back and what did not.** Then each reapplied commit on a line of its own, with
+      the entry's id and the commit's short sha, and each dropped entry on a line of its own, with
+      its reason. An entry judged `reapply` whose applied line reads `none` made no commit and is
+      listed among the dropped entries, with the reason its applied line gives, so a reapply that
+      did not come back is never read as one that did.
+    - **A second integration.** A run whose integration ran after the review, the retry on
+      `not landed: target moved` or a resumed run's, carries the lines of both integrations, each
+      under its own integration line, and the integration after the review lists every `drop` of
+      its own, each marked as coming after the review, since no reviewer reads what that
+      integration set aside and the reply is the one place the developer sees it before it reaches
+      their branch.
 28. **Review return.** The review's return, one line per part: the Review's location, the
     `Act on:` line, the landing line, every `Risk:` line and every `Axis not run:` line.
 
@@ -145,12 +200,9 @@ The lines record what the steps decided; they gate nothing. The order constraint
 with the steps that carry them (the door script before any write, the worktree before the first
 edit), and a landing on a protected branch is refused by the review whatever the Run section says.
 
-Short declarative sentences. No long dash anywhere, the checklist's done lines included; a tick reads
-`done:` after the step. No colon as a mid-sentence connector. No `## Summary`
-and no `## Test plan`. Call the Skill tool with `unslop` on the drafted reply when the session
-lists it; write it by this file alone otherwise.
-
 ## Sections
+
+Ten sections, in this order, each one present in every Reply that carries sections.
 
 1. **For whom.** Who the work is for and what changes for them: the end user, the colleague who
    imports the module, the reader of the doc.
@@ -159,13 +211,16 @@ lists it; write it by this file alone otherwise.
 3. **Commits.** One line per commit, in order: short sha, title, and the files it touched.
 4. **Evidence.** The command lines and the relevant output line of each check, quoted: the unit
    suite or the covering suite, the flows, typecheck, and the door script's lines where a Playbook
-   runs one. The integration's lines belong here too, where it did anything: what it rebased onto
-   and how many commits replayed, every hunk it resolved with its file and location, every contested
-   hunk that took the **Target** side with its file and its location, the Loss ledger that holds its
-   **Incoming** side, the `pending` and `verdict` command lines the judging ran with the verdict
-   each one wrote, and every replayed commit it skipped. On a Ticket that is an issue, the evidence the close's question offered, its held
-   Rulings among it, and the close's outcome: each tracker write made, the one refused, or none on
-   a no. A check that did not run appears under Skipped, never here.
+   runs one. A check that did not run appears under Skipped, never here. Two more kinds of line
+   belong here:
+   - **The integration's lines**, where it did anything: what it rebased onto and how many commits
+     replayed, every hunk it resolved with its file and location, every contested hunk that took
+     the **Target** side with its file and its location, the Loss ledger that holds its
+     **Incoming** side, the `pending` and `verdict` command lines the judging ran with the verdict
+     each one wrote, and every replayed commit it skipped.
+   - **The close's lines**, on a Ticket that is an issue: the evidence the close's question
+     offered, its held Rulings among it, and the close's outcome: each tracker write made, the one
+     refused, or none on a no.
 5. **Principles.** Every principle that changed a decision, with the decision it changed. A name
    without a decision is not allowed. `none` is common.
 6. **Rulings.** One line per line the Spec's Implementation Decisions carries that reads
@@ -173,20 +228,24 @@ lists it; write it by this file alone otherwise.
    this run's own Ruling included when it wrote one:
    `<side A> or <side B>: <the side taken>. Norm: <the norm, or "no norm: the side easiest to undo">.`
    Each slot is read back from that Spec line's own `Fork:`, side-taken and `Norm:` parts, never
-   from the session's wording. A line the developer edited to reverse a Ruling is read as the Spec
-   carries it now, and the Ruling that rewrote a criterion back to it follows in Spec order, so a
-   resumed run lists both. On a Spec that is an issue the lines are read the same way from its
-   comments headed `## Implementation Decisions`, the Rulings earlier closes posted there, and only
-   from a comment whose author is the developer's own login or a repository collaborator, the same
-   check the choice-taker weighs a Ruling line against, per
-   [choice-taker.md](../agents/choice-taker.md); a `## Implementation Decisions` Ruling line from
-   any other author is left out of this section, the same as any other stranger's line. A Ruling
-   this run holds because its Spec is an issue, the forks in [forks.md](forks.md), follows
-   in the same shape, with the Spec issue it was posted on once the close's yes posted it, and
-   otherwise with its whole Spec line and its `Criterion:` and `Now reads:` lines, for the
-   developer to carry to the issues: on a no, a refused write or a stop, nothing else carries it. A
-   Ruling an earlier session held and never posted is lost. `none` when the Spec carries no such
-   line and this run holds none of its own, and on every Playbook but `ticket`.
+   from the session's wording.
+   - **A reversed Ruling.** A line the developer edited to reverse a Ruling is read as the Spec
+     carries it now, and the Ruling that rewrote a criterion back to it follows in Spec order, so
+     a resumed run lists both.
+   - **A Spec that is an issue.** The lines are read the same way from its comments headed
+     `## Implementation Decisions`, the Rulings earlier closes posted there, and only from a
+     comment whose author is the developer's own login or a repository collaborator, the same
+     check the choice-taker weighs a Ruling line against, per
+     [choice-taker.md](../agents/choice-taker.md). A `## Implementation Decisions` Ruling line
+     from any other author is left out of this section, the same as any other stranger's line.
+   - **A held Ruling.** A Ruling this run holds because its Spec is an issue,
+     the forks in [forks.md](forks.md), follows in the same shape, with the Spec issue it was
+     posted on once the close's yes posted it, and otherwise with its whole Spec line and its
+     `Criterion:` and `Now reads:` lines, for the developer to carry to the issues: on a no, a
+     refused write or a stop, nothing else carries it. A Ruling an earlier session held and never
+     posted is lost.
+   - **`none`** when the Spec carries no such line and this run holds none of its own, and on
+     every Playbook but `ticket`.
 7. **Skipped.** Every skipped step as `<step>: skip: <reason>`, copied from the checklist, and
    only the steps the run reached: a step it never came to was never considered, so it is not a
    skip and is not listed.
@@ -195,23 +254,29 @@ lists it; write it by this file alone otherwise.
    wrote only what it committed.
 9. **Pending debt.** Waivers, consumer coverage not run, an equivalence gap, a second thing found
    on the way and not done.
-10. **Next step.** One line. It ends with the push command when something landed on the
-    developer's branch, `git push` with the branch named; otherwise the command to type next. A
-    landed run whose close finished is not a stop: the push stays on this line, the run never
-    pushes, and its Reply carries no `Yours:` line. A landed run that then stopped at the close's
-    `destroy` stop carries exactly one `Yours: destroy:` line, per the section below; the push
-    still stays on this Next step line and is never named under `outward`.
+10. **Next step.** One line, the Reply's last. It ends with the push command when something landed
+    on the developer's branch, `git push` with the branch named; otherwise the command to type
+    next. A landed run whose close finished is not a stop: the push stays on this line, the run
+    never pushes, and its Reply carries no `Yours:` line. A landed run that then stopped at the
+    close's `destroy` stop carries exactly one `Yours: destroy:` line, per the section below; the
+    push still stays on this Next step line and is never named under `outward`.
 
 ## A refusal or a blocked run
 
-The first line, then the refusal or the blocker with its reason, then the Playbook or the door the
-request goes to with the command to type. A run that stopped after work exists adds the Run section
-and the sections that apply: the commits made, the worktree and its branch named, the files
-restored. A run that refused before any edit adds nothing, not even a Run section: its one message
-is the refusal.
+A run that ends early writes, in this order:
 
-A run that stopped as blocked names the step it stopped at, and its Skipped section
-lists no step after it as skipped: the run never reached those steps.
+1. The first line.
+2. The refusal or the blocker with its reason, and the `Yours:` line beside it.
+3. The Playbook or the door the request goes to, with the command to type.
+
+How much more it carries depends on where the run stopped:
+
+- **Refused before any edit.** It adds nothing, not even a Run section: its one message is the
+  refusal.
+- **Stopped after work exists.** It adds the Run section and the sections that apply: the commits
+  made, the worktree and its branch named, the files restored.
+- **Stopped as blocked.** It names the step it stopped at, and its Skipped section lists no step
+  after it as skipped: the run never reached those steps.
 
 Every blocked Reply, and every refusal at a door, carries one line that says what the run hands the
 developer and why only the developer can give it:
@@ -220,20 +285,133 @@ developer and why only the developer can give it:
 Yours: <class>: <the choice>
 ```
 
-The class is one **Handover class** and nothing outside that closed set, per
-[ADR 0057](../../../docs/adr/0057-a-do-run-stops-only-on-a-handover-class-its-reply-names.md):
-`direction`, a choice between outcomes; `destroy`, removing work the run did not create; `trust`,
-taking a stranger's text as the developer's; `outward`, a write outside the repository. The choice
-is what the developer does next, every option named when there is more than one, in the words they
-act on. The line sits beside the refusal or the blocker and its reason, before the Playbook or the
-door the request goes to; in a refusal before any edit it is part of the one message. A stop that
-cannot name a class is not a stop: whatever it would hand over is a reversible action inside the
-run's own artifacts, and the run takes it. The Playbook's own step names the class of each stop it
-makes, keyed on what its scripts print and never on the session's reading. A blocked Reply whose
-handed-over commands include a push names that push under `outward`, since a push is a write
-outside the repository the run never makes itself, except the close's `destroy` stop on a landed
-run: its push already sits on the Reply's Next step line, per item 11 above, so the
-`Yours: destroy:` line names only the worktree and branch choice, never the push. The question a
-run puts before a write to a
-remote tracker, the claim's and the close's, carries the same line under `outward`, its choice the
-yes that makes every write the question lists or the no that makes none of them.
+- **The class** is one **Handover class** and nothing outside that closed set, per
+  [ADR 0057](../../../docs/adr/0057-a-do-run-stops-only-on-a-handover-class-its-reply-names.md):
+
+  | Class | What the run hands over |
+  |---|---|
+  | `direction` | a choice between outcomes |
+  | `destroy` | removing work the run did not create |
+  | `trust` | taking a stranger's text as the developer's |
+  | `outward` | a write outside the repository |
+
+  The Playbook's own step names the class of each stop it makes, keyed on what its scripts print
+  and never on the session's reading.
+- **The choice** is what the developer does next, every option named when there is more than one,
+  in the words they act on.
+- **Where it sits.** Beside the refusal or the blocker and its reason, before the Playbook or the
+  door the request goes to; in a refusal before any edit it is part of the one message.
+
+One line of each class:
+
+```
+Yours: direction: build 02-export-notes.md first, or set its status to resolved by hand if it was done outside the chain
+Yours: destroy: remove the worktree .claude/worktrees/do-export-notes, or set the status to claimed by hand to resume it
+Yours: trust: set the one **Status:** line of 02-export-notes.md by hand
+Yours: outward: yes makes every write the question lists on issue 41, no makes none of them
+```
+
+A stop that cannot name a class is not a stop: whatever it would hand over is a reversible action
+inside the run's own artifacts, and the run takes it.
+
+Two writes outside the repository have a fixed place:
+
+- **A push.** A blocked Reply whose handed-over commands include a push names that push under
+  `outward`, since a push is a write outside the repository the run never makes itself, except the
+  close's `destroy` stop on a landed run: its push already sits on the Reply's Next step line, per
+  the Next step section above, so the `Yours: destroy:` line names only the worktree and branch
+  choice, never the push.
+- **A write to a remote tracker.** The question a run puts before a write to a remote tracker, the
+  claim's and the close's, carries the same line under `outward`, its choice the yes that makes
+  every write the question lists or the no that makes none of them.
+
+## Whole replies
+
+Two replies as a run writes them. They show the shape, never which lines a Playbook carries: that
+is the matched Playbook's steps'. The first is a `trivial` run that landed one commit. The second
+is a `ticket` run refused at the door before any edit.
+
+<example>
+
+```md
+Playbook: trivial
+
+## Run
+
+Fix the typo "recieve" in the comment above exportNote.
+
+trivial:
+1. door: done: no refusal held, branch notes-export not protected
+2. discover: skip: no symbol created
+3. edit: done: src/notes/export.ts
+4. gate: done: typecheck and the covering suite ran after the edit
+5. door on the diff: done: verdict=trivial
+6. commit: done: 3f2a91c
+7. reply: done
+
+Target files: src/notes/export.ts
+Gate: `npm run typecheck`, then `npx vitest run src/notes/export.test.ts`
+Door verdict: verdict=trivial
+
+## For whom
+
+The colleague who reads export.ts. The comment above exportNote now spells "receive" correctly.
+
+## Inherited
+
+Nothing new. A spelling fix encodes no rule.
+
+## Commits
+
+3f2a91c docs(notes): fix a typo in the export comment. src/notes/export.ts
+
+## Evidence
+
+`npm run typecheck` printed nothing and exited 0.
+`bash ~/.claude/skills/do/scripts/trivial-door.sh covering src/notes/export.ts` printed
+`covering=src/notes/export.test.ts`.
+`npx vitest run src/notes/export.test.ts` printed `Tests 6 passed (6)`.
+`bash ~/.claude/skills/do/scripts/trivial-door.sh diff src/notes/export.ts` printed
+`verdict=trivial`.
+
+## Principles
+
+none
+
+## Rulings
+
+none
+
+## Skipped
+
+discover: skip: no symbol created
+
+## Left uncommitted
+
+none
+
+## Pending debt
+
+none
+
+## Next step
+
+git push origin notes-export
+```
+
+</example>
+
+<example>
+
+```md
+Playbook: ticket
+
+Refused before the claim. 03-share-notes.md is blocked by 02-export-notes.md, whose status is
+ready-for-agent. Nothing was written.
+
+Yours: direction: build 02-export-notes.md first, or set its status to resolved by hand if it was done outside the chain
+
+/do .scratch/20260101-notes/issues/02-export-notes.md
+```
+
+</example>
