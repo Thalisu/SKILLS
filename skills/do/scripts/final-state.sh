@@ -8,15 +8,22 @@
 # Prints key=value lines, in this order: spec, spec_branch, spec_upstream, tree (the worktree the
 # Final integration runs in), ledger, token_slug (spec-<feature-slug>, the slug the review token of
 # the Final integration is stored and revoked under), the lines `final-claim.sh show` prints, and
-# worktree (present or absent, as git lists tree); then verdict.
+# worktree (present or absent, as git lists tree); with the tree present, rebase (open or none),
+# one uncommitted=<the git status --short line> per entry and, while a rebase is open, the stop
+# record resume-read.sh prints, its tip the commit spec_upstream names now, in the keys and the
+# classes resume-state.sh prints for a Ticket run; then verdict.
 #
-# verdict: restart (add the tree when it is absent, then the rebase step).
+# verdict, first match wins: integration (a rebase is open in the tree) · restart (add the tree
+# when it is absent, then the rebase step).
 #
-# Exit codes: 0 restart · 2 usage, a Ticket outside a feature folder's issues/, no Spec branch, or
-# not a git repository.
+# Exit codes: 0 restart · 3 integration · 2 usage, a Ticket outside a feature folder's issues/, no
+# Spec branch, a tree on a detached HEAD or another branch with no rebase open, or not a git
+# repository.
 set -uo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd -P)"
+# shellcheck source=skills/do/scripts/resume-read.sh
+. "$here/resume-read.sh"
 
 usage() {
   echo "usage: final-state.sh <Ticket path>" >&2
@@ -35,6 +42,7 @@ main="$(git worktree list --porcelain 2>/dev/null |
 
 probe="$(bash "$here/spec-branch.sh" probe "$1")" || exit 2
 spec_branch="$(sed -n 's/^spec_branch=//p' <<<"$probe")"
+spec_upstream="$(sed -n 's/^spec_upstream=//p' <<<"$probe")"
 grep -qx 'spec_exists=yes' <<<"$probe" || {
   echo "no Spec branch for $1: no Final integration to resume" >&2
   exit 2
@@ -49,16 +57,29 @@ tree="$main/.claude/worktrees/$token_slug"
 
 echo "spec=$folder/spec.md"
 echo "spec_branch=$spec_branch"
-echo "spec_upstream=$(sed -n 's/^spec_upstream=//p' <<<"$probe")"
+echo "spec_upstream=$spec_upstream"
 echo "tree=$tree"
 echo "ledger=$folder/spec.ledger.md"
 echo "token_slug=$token_slug"
 echo "$claim"
 # grep -q would stop reading at the match and git would die of SIGPIPE on a long list, which
 # pipefail turns into a missing worktree.
-if git worktree list --porcelain | grep -xF -- "worktree $tree" >/dev/null; then
-  echo "worktree=present"
-else
+if ! git worktree list --porcelain | grep -xF -- "worktree $tree" >/dev/null; then
   echo "worktree=absent"
+  echo "verdict=restart"
+  exit 0
+fi
+rebase_open "$tree"
+[ "$rebase" = open ] || [ "$branch" = "$spec_branch" ] || {
+  echo "$tree is not on $spec_branch and has no rebase open: nothing to resume" >&2
+  exit 2
+}
+echo "worktree=present"
+echo "rebase=$rebase"
+git -C "$tree" -c core.quotePath=true status --short | sed 's/^/uncommitted=/'
+if [ "$rebase" = open ]; then
+  rebase_stop "$tree" "refs/heads/$spec_upstream"
+  echo "verdict=integration"
+  exit 3
 fi
 echo "verdict=restart"

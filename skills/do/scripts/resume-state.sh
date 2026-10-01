@@ -36,7 +36,8 @@
 # file itself carries, the commit its header names included, is a fact anything holding the worktree
 # can copy off the branch, while the token is minted after the Builder returns and revoked before
 # another is forked, so a Review and a marker that merely appeared while a fork held the tree are
-# unmarked and the review runs. A missing token is a miss, so the check fails closed. It only reads: the ask before a
+# unmarked and the review runs. A missing token is a miss, so the check fails closed. The rebase reads
+# are resume-read.sh's, shared with final-state.sh. It only reads: the ask before a
 # discard is the run's, never this script's, and so is the sidecar's write: this script never
 # writes one.
 #
@@ -50,6 +51,9 @@
 # neither a Ticket on disk nor an issue reference, no worktree git lists at the slug's path, a
 # detached HEAD with no rebase open, or not a git repository.
 set -uo pipefail
+
+# shellcheck source=skills/do/scripts/resume-read.sh
+. "$(dirname "$0")/resume-read.sh"
 
 usage() { echo "usage: resume-state.sh <the Ticket's path, or its issue reference>" >&2; exit 2; }
 [ "$#" = 1 ] || usage
@@ -85,17 +89,7 @@ wt="$main/.claude/worktrees/do-$slug"
 # pipefail turns into a missing worktree.
 git worktree list --porcelain | grep -xF -- "worktree $wt" >/dev/null || { echo "no worktree at $wt: nothing to resume" >&2; exit 2; }
 
-rebase=none
-branch="$(cd "$wt" && for d in rebase-merge rebase-apply; do
-  f="$(git rev-parse --git-path "$d/head-name")"
-  [ -f "$f" ] && { cat "$f"; exit 0; }
-done; exit 1)" && rebase=open
-branch="${branch#refs/heads/}"
-# A tag named do/<slug>, the shape `git fetch` gives a tag auto-followed from another remote,
-# resolves ahead of the branch of the same name and turns the --short form's output ambiguous
-# (heads/do/<slug>), so the branch is read unabbreviated and stripped of its own refs/heads/ prefix.
-[ "$rebase" = open ] || branch="$(git -C "$wt" symbolic-ref -q HEAD)"
-branch="${branch#refs/heads/}"
+rebase_open "$wt"
 [ -n "$branch" ] || { echo "$wt is on a detached HEAD with no rebase open: nothing to resume" >&2; exit 2; }
 
 # A Ticket of a Spec is cut from its Spec branch and lands there, so the branch the main checkout
@@ -133,41 +127,7 @@ while IFS= read -r line; do
   [ -n "$line" ] || continue
   echo "uncommitted=$line"; dirty=1
 done < <(git -C "$wt" -c core.quotePath=true status --short)
-rebase_stop() {
-  local conflicted stopped onto tip moved
-  conflicted="$(git -C "$wt" -c core.quotePath=true diff --name-only --diff-filter=U)"
-  [ -z "$conflicted" ] || sed 's/^/conflicted=/' <<<"$conflicted"
-  stopped="$(git -C "$wt" rev-parse -q --verify --short REBASE_HEAD 2>/dev/null)" &&
-    stopped="$stopped $(git -C "$wt" log -1 --format=%s REBASE_HEAD)"
-  echo "stopped=$stopped"
-  onto="$(cd "$wt" && for d in rebase-merge rebase-apply; do
-    f="$(git rev-parse --git-path "$d/onto")"
-    [ -f "$f" ] && { cat "$f"; break; }
-  done)"
-  tip="$(git -C "$main" rev-parse -q --verify "$base_ref^{commit}")"
-  echo "onto=$onto"
-  echo "tip=$tip"
-  # Rename detection folds a staged `git mv` into one name-only line, the destination, and drops
-  # the source the developer moved from; --no-renames reads the stage as a delete plus an add so
-  # both paths print.
-  git -C "$wt" -c core.quotePath=true diff --cached --no-renames --name-only --diff-filter=u | sed 's/^/staged=/'
-  # A stop finished with `git commit` instead of `rebase --continue` leaves the rebase open on a
-  # commit the rebase never recorded, which an abort leaves on no branch. HEAD's reflog tells those
-  # apart: git logs a rebase's own commits as `rebase (...)`, and a hand commit as `commit...`.
-  [ -z "$stopped" ] || git -C "$wt" log -g --format='%gs%x09%h %s' HEAD 2>/dev/null |
-    awk -F '\t' '$1 !~ /^commit/ { exit } { l[n++] = $2 } END { while (n) print "committed=" l[--n] }'
-  # A developer's branch rewound past onto leaves commits a continue would land again.
-  if [ "$onto" != "$tip" ]; then
-    if git -C "$wt" merge-base --is-ancestor "$onto" "$tip" 2>/dev/null; then moved=continue; else
-      git -C "$wt" log --reverse --format='dropped=%h %s' "$tip..$onto" 2>/dev/null
-      moved=ask
-    fi
-    echo "stop=moved"
-    echo "moved=$moved"
-  elif [ -n "$conflicted" ]; then echo "stop=conflicted"
-  else echo "stop=resolved"; fi
-}
-[ "$rebase" != open ] || rebase_stop
+[ "$rebase" != open ] || rebase_stop "$wt" "$base_ref"
 # The token the review step stored for this run. It lives under the clone's git dir, never under
 # .scratch/, it is written only after the Builder has returned, and the build step revokes it before
 # a Builder is forked, so at the one moment a fork holds a shell in the worktree there is no token

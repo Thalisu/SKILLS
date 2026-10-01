@@ -76,4 +76,42 @@ expect "the Final integration's state, read before its worktree exists, comes in
 expect "a read of the Final integration's state creates or changes no ref and no file" \
   test "$after" = "$before"
 
+# A Final integration that stopped inside its rebase: the Spec's worktree is checked out on the Spec
+# branch, whose one commit and the developer's branch both rewrote the same line.
+echo "# final-state.sh: a rebase the Final integration left open in the Spec's worktree"
+tree="$top/.claude/worktrees/spec-my-feature"
+g worktree add -q "$tree" spec/my-feature
+printf 'one\ntwo\nspec side\n' >"$tree/notes.txt"
+g -C "$tree" commit -q -am "feat: a Ticket's note"
+stopped_short="$(git -C "$tree" rev-parse --short HEAD)"
+printf 'one\ntwo\nupstream side\n' >notes.txt
+g commit -q -am "the developer's branch moves"
+tip="$(git rev-parse feat/work)"
+g -C "$tree" -c rerere.enabled=false rebase feat/work >/dev/null 2>&1
+git -C "$tree" rev-parse -q --verify REBASE_HEAD >/dev/null || {
+  echo "FAIL  fixture: the rebase of the Spec branch onto its upstream did not stop on a conflict"
+  exit 1
+}
+
+run "$issues/01-first.md"
+check_lines "a rebase stopped on a conflict in the Spec's worktree reads as an open integration, conflicted, onto the tip its upstream still names" 3 "$rc" \
+  "worktree=present" "rebase=open" "conflicted=notes.txt" "stopped=$stopped_short feat: a Ticket's note" \
+  "onto=$tip" "tip=$tip" "stop=conflicted" "verdict=integration"
+
+printf 'one\ntwo\nresolved\n' >"$tree/notes.txt"
+git -C "$tree" add notes.txt
+run "$issues/01-first.md"
+check_lines "the same stop, its conflict resolved and staged, reads as resolved" 3 "$rc" \
+  "worktree=present" "rebase=open" "staged=notes.txt" "onto=$tip" "tip=$tip" "stop=resolved" "verdict=integration"
+expect "a stop whose conflict is resolved and staged names no conflicted path" \
+  test -z "$(term conflicted)"
+
+g commit -q --allow-empty -m "the developer's branch moves again"
+moved_tip="$(git rev-parse feat/work)"
+run "$issues/01-first.md"
+check_lines "the Spec branch's upstream gaining a commit while the rebase is open reads as moved and continues without asking, its tip the upstream's new commit" 3 "$rc" \
+  "worktree=present" "rebase=open" "onto=$tip" "tip=$moved_tip" "stop=moved" "moved=continue" "verdict=integration"
+expect "a rebase whose upstream moved is read as moved only, never as resolved" \
+  test "$(term stop)" = moved
+
 [ "$fails" = 0 ]
