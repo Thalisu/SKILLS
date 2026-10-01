@@ -34,4 +34,11 @@ run "$issues/03-c.md"
 check_lines "a Spec with one Ticket still claimed reads incomplete and names that Ticket with its status" 0 "$rc" \
   "verdict=incomplete" "open=02 claimed $issues/02-b.md"
 
+ticket 02-b.md '**Status:** resolved' 'None (can start immediately)'
+run "$issues/02-b.md"
+check_lines "a Spec whose every Ticket reads resolved reads complete, with nothing open" 0 "$rc" \
+  "verdict=complete" "open=none"
+check_absent "a complete Spec names no Ticket as open" 0 "$rc" \
+  "open=01" "open=02" "open=03"
+
 exit "$((fails > 0))"
