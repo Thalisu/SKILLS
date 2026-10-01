@@ -65,4 +65,13 @@ check_lines "a Spec whose real Tickets all read resolved reads complete beside s
   "spec_ticket=01 resolved $issues/01-a.md" "spec_ticket=02 resolved $issues/02-b.md" "spec_ticket=03 resolved $issues/03-c.md"
 check_absent "a complete Spec names no sidecar as a Ticket" 0 "$rc" "${sidecars[@]}"
 
+# ADR 0038: a Ruling reversed after its Ticket landed is built by a Ticket the developer types by
+# hand, so the file carries none of the generated fields beyond its Status line.
+reversal="$issues/04-reverse-the-ruling-on-x.md"
+printf '# Reverse the ruling on x\n\nThe ruling on x went the other way after 02 landed: build the new side.\n\n**Status:** ready-for-agent\n' >"$reversal"
+run "$issues/03-c.md"
+check_lines "a hand-written reversal Ticket still ready-for-agent among resolved Tickets reads incomplete and is named like any other" 0 "$rc" \
+  "spec_ticket=04 ready-for-agent $reversal" "open=04 ready-for-agent $reversal" "verdict=incomplete"
+rm -f "$reversal"
+
 exit "$((fails > 0))"
