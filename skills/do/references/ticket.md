@@ -11,15 +11,18 @@ list before any task-specific item, and the Reply's Run section carries it ticke
 brief's ten steps with the review and landing step reading as
 the review's and the grounding as the Planner's; each step carries its done condition below.
 
-A Ticket of a Spec, one whose door printed a `spec_branch=` other than `none`, has no review step,
-per
+A Ticket of a Spec, one whose door printed a `spec_branch=` other than `none` and, on a resume,
+`spec_exists=yes`, has no review step, per
 [ADR 0060](../../../docs/adr/0060-a-ticket-lands-on-its-spec-branch-and-do-lands-it-there-itself.md)
 and
 [ADR 0061](../../../docs/adr/0061-the-review-runs-once-per-spec-on-its-spec-branch-before-it-lands.md):
 its own **Gate** is its check, it rebases onto its **Spec branch** and lands there itself, and the
 Spec is reviewed once, after its last Ticket lands. Every passage below that names a review, a
 Review or a fix call is the path of a Ticket with no Spec (`spec_branch=none`), which keeps the
-review and the landing on the developer's branch.
+review and the landing on the developer's branch. So does a resumed `claimed` Ticket whose door
+printed `spec_exists=no`: its `do/<slug>` worktree was cut from the developer's branch before this
+change and no Spec branch was ever cut, so it finishes on the old flow, nothing migrates it, and
+`resume-state.sh` prints the developer's branch as its `base=`, the same key read in both places.
 
 ## Door
 
@@ -195,7 +198,8 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   **Gate** of the run's own after it,
   and the branch lands through the fix call on that Review, as the review in
   [mechanics.md](mechanics.md) says for a branch the review already read.
-- On a Ticket of a Spec the script prints `base=spec/<feature-slug>` and reads `merge_base`, `tip`
+- On a Ticket of a Spec, one whose door printed `spec_exists=yes`, the script prints
+  `base=spec/<feature-slug>` and reads `merge_base`, `tip`
   and `stop=` against that branch, so wherever a bullet of this section says the developer's
   branch, the Spec branch is meant. No Review is ever written beside such a Ticket, so the verdict
   is never `land`. When every line of the list is ticked, as after a landing refused with

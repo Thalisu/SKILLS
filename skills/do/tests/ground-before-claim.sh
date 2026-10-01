@@ -330,4 +330,24 @@ expect "step 2's worktree paragraph names the diagnosis branch's worktree" test 
 carries_each "step 2 reads the diagnosis worktree a first run made as cut from the checkout's HEAD" \
   "first run" "spec_exists=no" -- "${head_start[@]}"
 
+echo "# skills/do/references/ticket.md: a resumed Ticket whose Spec branch was never cut keeps the developer's branch"
+
+# A `do/<slug>` worktree cut before Spec branches existed resumes in a feature folder whose door
+# prints `spec_branch=spec/<slug>` beside `spec_exists=no`, and resume-state.sh reads its base off
+# the developer's branch. A Playbook that calls it a Ticket of a Spec on the branch's name alone
+# sends that resume to rebase onto and land on a branch that is not there, and the run stops
+# blocked. Both passages have to turn on whether the Spec branch exists.
+spec_branch_exists=("spec_exists=yes" "spec_exists=no")
+
+flat="$(paragraph_with "$playbook" "A Ticket of a Spec" | tr -s ' ')"
+expect "the Playbook carries the paragraph that says which Ticket is a Ticket of a Spec" test -n "$flat"
+carries_any "a Ticket is a Ticket of a Spec, with no review step, only when its Spec branch exists" \
+  "${spec_branch_exists[@]}"
+
+flat="$(item_holding <(passage_of "$playbook" "## Resume" "## Checklist") '- ' "\`base=" |
+  tr '\n' ' ' | tr -s ' ')"
+expect "the Resume section carries the bullet on the base the script prints for a Ticket of a Spec" test -n "$flat"
+carries_any "a resume reads the Spec branch as its base only when that branch exists, else the developer's branch" \
+  "${spec_branch_exists[@]}"
+
 exit $((fails > 0))
