@@ -9,8 +9,11 @@
 # Prints key=value lines, in this order: ticket, spec_branch as `spec-branch.sh probe` prints it,
 # one spec_ticket=<NN> <status> <path> per Ticket of the folder in number order, the argument's own
 # included, one open=<NN> <status> <path> per Ticket not resolved (open=none when every one is),
-# then verdict. An ambiguous=<NN> <detail> line follows the spec_ticket line it concerns. What a
+# next, then verdict. An ambiguous=<NN> <detail> line follows the spec_ticket line it concerns. What a
 # Ticket file is and what its status reads are ticket-read.sh's rules.
+#
+# next, first match wins: the path of the first open Ticket reading ready-for-agent · none (nothing
+# is open).
 #
 # verdict, first match wins: ambiguous (a Ticket's status cannot be read) · complete (every Ticket
 # reads resolved) · incomplete.
@@ -57,19 +60,26 @@ grep -qxF -- "$path" <<<"$tickets" || {
 echo "ticket=${path#"$main"/}"
 bash "$here/spec-branch.sh" probe "$path" | grep '^spec_branch='
 
-open="" unreadable=0
+open="" unreadable=0 ready=""
 while IFS= read -r file; do
   status_of "$file"
   number="$(basename "$file")"
   row="${number%%-*} $word ${file#"$main"/}"
   echo "spec_ticket=$row"
   [ "$word" = resolved ] || open+="open=$row"$'\n'
+  [ "$word" != ready-for-agent ] || [ -n "$ready" ] || ready="${file#"$main"/}"
   if [ "$word" = ambiguous ]; then
     echo "ambiguous=${number%%-*} $detail"
     unreadable=1
   fi
 done <<<"$tickets"
 printf '%s' "${open:-open=none$'\n'}"
+
+if [ -n "$ready" ]; then
+  echo "next=$ready"
+elif [ -z "$open" ]; then
+  echo "next=none"
+fi
 
 if [ "$unreadable" = 1 ]; then
   verdict=ambiguous

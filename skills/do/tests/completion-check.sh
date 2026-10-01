@@ -74,4 +74,15 @@ check_lines "a hand-written reversal Ticket still ready-for-agent among resolved
   "spec_ticket=04 ready-for-agent $reversal" "open=04 ready-for-agent $reversal" "verdict=incomplete"
 rm -f "$reversal"
 
+ticket 02-b.md '**Status:** claimed' 'None (can start immediately)'
+ticket 04-d.md '**Status:** ready-for-agent' 'None (can start immediately)'
+ticket 05-e.md '**Status:** ready-for-agent' 'None (can start immediately)'
+run "$issues/03-c.md"
+check_lines "names as next the first open Ticket that reads ready-for-agent, passing over a claimed one before it" 0 "$rc" \
+  "next=$issues/04-d.md"
+expect "names one Ticket as next, never the claimed one nor a later ready one beside it" \
+  test "$(term next)" = "$issues/04-d.md"
+ticket 02-b.md '**Status:** resolved' 'None (can start immediately)'
+rm -f "$issues/04-d.md" "$issues/05-e.md"
+
 exit "$((fails > 0))"
