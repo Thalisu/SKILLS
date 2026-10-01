@@ -111,4 +111,37 @@ expect "a release after the Spec branch landed removes the claim file" \
 expect "a release after the Spec branch landed removes the Spec branch" \
   test -z "$(g -C "$top" for-each-ref refs/heads/spec/my-feature)"
 
+# A stopped Final integration: a Spec of its own, claimed, whose Spec branch holds a Ticket's commit
+# the developer's branch never received, with no worktree on the branch.
+stopped="$top/.scratch/20260930-stopped-feature"
+issues="$stopped/issues"
+mkdir -p "$issues"
+printf '# Spec: stopped feature\n\nSomething to build.\n' >"$stopped/spec.md"
+ticket 01-first.md '**Status:** resolved' 'None (can start immediately)'
+{
+  bash "$here/../scripts/spec-branch.sh" cut "$issues/01-first.md" &&
+    bash "$script" claim "$issues/01-first.md" &&
+    g -C "$top" switch -q --detach spec/stopped-feature &&
+    printf 'four\n' >>"$top/notes.txt" &&
+    g -C "$top" commit -qam "a Ticket of the stopped Spec" &&
+    g -C "$top" branch -f spec/stopped-feature HEAD &&
+    g -C "$top" switch -q feat/work &&
+    cp "$stopped/spec.integration.claim" "$tmp/claim.stopped" &&
+    ! g -C "$top" merge-base --is-ancestor refs/heads/spec/stopped-feature refs/heads/feat/work
+} >/dev/null 2>&1 || {
+  echo "FAIL  fixture: the claimed Final integration of an unlanded Spec branch could not be built"
+  exit 1
+}
+stopped_tip="$(g -C "$top" rev-parse refs/heads/spec/stopped-feature)"
+run release "$issues/01-first.md"
+check_lines "a release while the Spec branch has not landed reads held, naming the Spec branch it left and why" 1 "$rc" \
+  "claim=held" \
+  "spec_branch=spec/stopped-feature" \
+  "removed=no" \
+  "reason=unlanded"
+expect "a release while the Spec branch has not landed leaves the claim file as its claimant wrote it" \
+  cmp -s "$tmp/claim.stopped" "$stopped/spec.integration.claim"
+expect "a release while the Spec branch has not landed leaves the Spec branch on the tip it had" \
+  test "$(g -C "$top" rev-parse -q --verify refs/heads/spec/stopped-feature)" = "$stopped_tip"
+
 [ "$fails" = 0 ]

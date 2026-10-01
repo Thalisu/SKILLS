@@ -5,7 +5,8 @@
 #
 #   final-claim.sh claim <Ticket path>    claim the Final integration of the Ticket's Spec
 #   final-claim.sh release <Ticket path>  remove the Spec branch through `spec-branch.sh remove`
-#                                         and delete the claim file
+#                                         and, only when that removed it or found none, delete
+#                                         the claim file
 #
 # <Ticket path> is absolute, or relative to the main checkout. The Spec is the spec.md of the
 # feature folder that holds the Ticket's issues/ folder.
@@ -21,10 +22,12 @@
 # The claim file holds key=value lines a reader takes the keys it knows from: ticket (the absolute
 # path of the Ticket whose run claimed), spec_branch, tree, claimed_at (UTC, ISO 8601).
 #
-# release prints key=value lines: claim (released), spec_branch, removed (yes, or absent when there
-# was no Spec branch left to remove). A claim file already gone is still released.
+# release prints key=value lines: claim (released or held), spec_branch, removed (yes, absent when
+# there was no Spec branch left to remove, or no), and on held: reason, the removal's own (unlanded,
+# checked-out or no-upstream). A claim file already gone is still released. held deletes nothing: a
+# Final integration that stopped keeps its Spec branch and its claim for the run that resumes it.
 #
-# Exit codes: 0 claimed or released · 1 taken · 3 failed · 2 usage or not a git repository.
+# Exit codes: 0 claimed or released · 1 taken or held · 3 failed · 2 usage or not a git repository.
 set -uo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd -P)"
@@ -89,10 +92,21 @@ cmd_claim() {
 }
 
 cmd_release() {
-  local removal removed=yes
+  local removal action removed=yes
   resolve "$1"
   removal="$(bash "$here/spec-branch.sh" remove "$path")"
-  grep -qx 'action=removed' <<<"$removal" || removed=absent
+  action="$(sed -n 's/^action=//p' <<<"$removal")"
+  case "$action" in
+    removed) ;;
+    absent) removed=absent ;;
+    *)
+      echo "claim=held"
+      echo "spec_branch=$spec_branch"
+      echo "removed=no"
+      echo "reason=$(sed -n 's/^reason=//p' <<<"$removal")"
+      exit 1
+      ;;
+  esac
   rm -f "$file"
   echo "claim=released"
   echo "spec_branch=$spec_branch"
