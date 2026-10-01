@@ -8,16 +8,18 @@
 # <Ticket path> is absolute, or relative to the main checkout. The Spec is the spec.md of the
 # feature folder that holds the Ticket's issues/ folder.
 #
-# claim prints key=value lines: claim (claimed or failed), file (the claim file,
+# claim prints key=value lines: claim (claimed, taken or failed), file (the claim file,
 # <feature folder>/spec.integration.claim), then on claimed: spec, spec_branch, spec_upstream, tree
 # (the worktree the Final integration runs in, <main checkout>/.claude/worktrees/spec-<slug>) and
-# ledger (the Loss ledger of the Spec's rebase, <feature folder>/spec.ledger.md); on failed: reason
-# (no-feature-folder, no-spec-branch or not-writable).
+# ledger (the Loss ledger of the Spec's rebase, <feature folder>/spec.ledger.md); on taken, the
+# file was already there and stays as its claimant wrote it: holder_ticket and claimed_at, that
+# file's ticket and claimed_at; on failed: reason (no-feature-folder, no-spec-branch or
+# not-writable).
 #
 # The claim file holds key=value lines a reader takes the keys it knows from: ticket (the absolute
 # path of the Ticket whose run claimed), spec_branch, tree, claimed_at (UTC, ISO 8601).
 #
-# Exit codes: 0 claimed · 3 failed · 2 usage or not a git repository.
+# Exit codes: 0 claimed · 1 taken · 3 failed · 2 usage or not a git repository.
 set -uo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd -P)"
@@ -64,7 +66,12 @@ cmd_claim() {
     printf 'ticket=%s\nspec_branch=%s\ntree=%s\nclaimed_at=%s\n' \
       "$path" "$spec_branch" "$tree" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" >"$file"
   ) 2>/dev/null; then
-    failed not-writable
+    [ -f "$file" ] || failed not-writable
+    echo "claim=taken"
+    echo "file=$file"
+    echo "holder_ticket=$(sed -n 's/^ticket=//p' "$file")"
+    echo "claimed_at=$(sed -n 's/^claimed_at=//p' "$file")"
+    exit 1
   fi
   echo "claim=claimed"
   echo "file=$file"

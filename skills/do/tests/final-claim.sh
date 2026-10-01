@@ -47,4 +47,18 @@ check_lines "the first claim of a Spec's Final integration reads claimed, naming
 expect "the first claim of a Spec's Final integration creates the claim file beside the Spec" \
   test -f "$feature/spec.integration.claim"
 
+cp "$feature/spec.integration.claim" "$tmp/claim.first" 2>/dev/null
+first_claimed_at="$(sed -n 's/^claimed_at=//p' "$tmp/claim.first" 2>/dev/null)"
+ticket 02-second.md '**Status:** resolved' 'None (can start immediately)'
+run claim "$issues/02-second.md"
+check_lines "a second claim of the same Spec reads taken, naming the Ticket that holds it" 1 "$rc" \
+  "claim=taken" \
+  "file=$feature/spec.integration.claim" \
+  "holder_ticket=$issues/01-first.md" \
+  "claimed_at=$first_claimed_at"
+expect "a second claim of the same Spec dates the claim it lost to with a UTC timestamp" \
+  grep -qxE '[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(Z|\+00:00)' <<<"$(term claimed_at)"
+expect "a second claim of the same Spec leaves the claim file as the first claimant wrote it" \
+  cmp -s "$tmp/claim.first" "$feature/spec.integration.claim"
+
 [ "$fails" = 0 ]
