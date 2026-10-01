@@ -125,6 +125,33 @@ check_lines "a Spec branch the Main checkout is switched onto is refused: exit 4
 expect "a Spec branch the Main checkout is switched onto keeps its ref where it was" \
   test "$(g -C "$repo" rev-parse refs/heads/spec/feature)" = "$spec_tip"
 
+# A rebase stopped on a conflict detaches its worktree's HEAD, so git lists that worktree on no
+# branch while the rebase still owns the Spec branch and writes its ref when it finishes.
+fresh rebasing
+repo="$tmp/rebasing"
+printf 'base\n' >README.md
+commit base
+echo ".claude/worktrees/" >>.git/info/exclude
+g -C "$repo" switch -qc spec/feature
+printf 'spec side\n' >README.md
+commit spec
+wt="$(branch_worktree "$repo" ticket)"
+printf 'built\n' >"$wt/notes.txt"
+g -C "$wt" add -A && g -C "$wt" commit -qm ticket
+g -C "$repo" switch -q main
+printf 'main side\n' >README.md
+commit main
+g -C "$repo" worktree add -q "$repo/.claude/worktrees/spec" spec/feature
+holder="$(cd "$repo/.claude/worktrees/spec" && pwd -P)"
+g -C "$holder" rebase main >/dev/null 2>&1
+expect "the fixture's worktree is stopped in a rebase of the Spec branch, its HEAD detached" \
+  test "$(cat "$(g -C "$holder" rev-parse --path-format=absolute --git-path rebase-merge/head-name 2>/dev/null)" 2>/dev/null) $(g -C "$holder" rev-parse --abbrev-ref HEAD)" = "refs/heads/spec/feature HEAD"
+spec_tip="$(g -C "$repo" rev-parse refs/heads/spec/feature)"
+run "$repo" spec/feature do/ticket
+check_lines "a Spec branch a worktree holds in an open rebase is refused: exit 4 and the checked-out line naming that worktree" 4 "$rc" "checked-out $holder"
+expect "a Spec branch a worktree holds in an open rebase keeps its ref where it was" \
+  test "$(g -C "$repo" rev-parse refs/heads/spec/feature)" = "$spec_tip"
+
 # The window between one landing's read of the Spec branch and its ref update is a few git calls
 # wide, so one round may miss it: each round races a fresh pair on a fresh Spec branch of one
 # repository, whose landing lock they all share.

@@ -11,7 +11,7 @@
 # Prints one line: landed <sha> when the Spec branch's ref was moved to the tip of the branch ·
 # moved <sha> when the Spec branch holds a commit the branch lacks, <sha> the tip it met ·
 # checked-out <worktree> when a worktree, the main checkout included, has the Spec branch checked
-# out, since a ref moved under a checkout leaves its index showing the landing as a reversal ·
+# out or is rebasing it, since a ref moved under a checkout leaves its index showing the landing as a reversal ·
 # failed <reason> when a ref does not resolve or git refused the update. Only landed writes.
 #
 # Exit codes: 0 landed · 1 moved · 2 usage · 3 failed · 4 checked-out.
@@ -33,8 +33,17 @@ lock="$(git -C "$main" rev-parse --path-format=absolute --git-common-dir)/do-lan
 exec 9>"$lock"
 flock 9
 
-holder="$(git -C "$main" worktree list --porcelain |
-  awk -v b="branch refs/heads/$spec" '/^worktree /{ p = substr($0, 10) } $0 == b { print p; exit }')"
+# A worktree mid-rebase has a detached HEAD, so only its rebase state's head-name still names the
+# branch it is rebasing.
+holder=""
+while IFS= read -r path; do
+  gitdir="$(git -C "$path" rev-parse --absolute-git-dir 2>/dev/null)" || continue
+  if [ "$(git -C "$path" symbolic-ref -q HEAD)" = "refs/heads/$spec" ] ||
+    [ "$(cat "$gitdir/rebase-merge/head-name" "$gitdir/rebase-apply/head-name" 2>/dev/null | head -n1)" = "refs/heads/$spec" ]; then
+    holder="$path"
+    break
+  fi
+done < <(git -C "$main" worktree list --porcelain | awk '/^worktree /{ print substr($0, 10) }')
 if [ -n "$holder" ]; then
   echo "checked-out $holder"
   exit 4
