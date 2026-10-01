@@ -19,7 +19,8 @@
 # (the worktree the Final integration runs in, <main checkout>/.claude/worktrees/spec-<slug>) and
 # ledger (the Loss ledger of the Spec's rebase, <feature folder>/spec.ledger.md); on taken, the
 # file was already there and stays as its claimant wrote it: holder_ticket and claimed_at, that
-# file's ticket and claimed_at; on failed: reason (no-feature-folder, no-spec-branch or
+# file's ticket and claimed_at, then yield_command, the shell-quoted command that yields that
+# claim by hand when its holder died without yielding; on failed: reason (no-feature-folder, no-spec-branch or
 # not-writable). claimed ends in takeover (yes or no): a claim file already there and yielded is
 # taken over, the file then naming this Ticket, and takeover=yes is followed by previous_ticket and
 # previous_claimed_at, the holder it replaced, and yielded_at.
@@ -111,6 +112,7 @@ cmd_claim() {
       echo "claim=taken"
       echo "file=$file"
       holder
+      printf 'yield_command=bash %q yield %q\n' "$here/final-claim.sh" "$(sed -n 's/^ticket=//p' "$file")"
       exit 1
     fi
     takeover=yes

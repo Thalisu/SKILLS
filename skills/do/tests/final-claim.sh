@@ -206,4 +206,43 @@ check_lines "a claim that took over a yielded claim shows held, naming the new T
   "file=$stopped/spec.integration.claim" \
   "holder_ticket=$issues/02-second.md"
 
+# A Spec of its own, held by a Ticket whose path carries a space: the yield command a refused
+# claimant prints is pasted into a shell, which splits an unquoted path there.
+unyielded="$top/.scratch/20260930-unyielded-feature"
+issues="$unyielded/issues"
+mkdir -p "$issues"
+printf '# Spec: unyielded feature\n\nSomething to build.\n' >"$unyielded/spec.md"
+ticket "01-first ticket.md" '**Status:** resolved' 'None (can start immediately)'
+ticket 02-second.md '**Status:** resolved' 'None (can start immediately)'
+{
+  bash "$here/../scripts/spec-branch.sh" cut "$issues/01-first ticket.md" &&
+    bash "$script" claim "$issues/01-first ticket.md" &&
+    cp "$unyielded/spec.integration.claim" "$tmp/claim.unyielded"
+} >/dev/null 2>&1 || {
+  echo "FAIL  fixture: the claimed Final integration of a Ticket whose path carries a space could not be built"
+  exit 1
+}
+unyielded_claimed_at="$(sed -n 's/^claimed_at=//p' "$tmp/claim.unyielded" 2>/dev/null)"
+run claim "$issues/02-second.md"
+check_lines "a claim nobody yielded still reads taken to a second claimant, naming the Ticket that holds it" 1 "$rc" \
+  "claim=taken" \
+  "file=$unyielded/spec.integration.claim" \
+  "holder_ticket=$issues/01-first ticket.md" \
+  "claimed_at=$unyielded_claimed_at"
+expect "a claim nobody yielded is left byte for byte as its claimant wrote it by a second claimant" \
+  cmp -s "$tmp/claim.unyielded" "$unyielded/spec.integration.claim"
+yield_command="$(term yield_command)"
+expect "a claim nobody yielded prints a yield command to the second claimant" \
+  test -n "$yield_command"
+pasted_rc=0
+bash -c "$yield_command" >/dev/null 2>&1 || pasted_rc=$?
+run show "$issues/02-second.md"
+check_lines "the yield command a second claimant is handed, pasted into a shell, yields the holder's claim" 0 "$rc" \
+  "claim=yielded" \
+  "file=$unyielded/spec.integration.claim" \
+  "holder_ticket=$issues/01-first ticket.md" \
+  "claimed_at=$unyielded_claimed_at"
+expect "the yield command a second claimant is handed exits 0 when pasted into a shell" \
+  test "$pasted_rc" = 0
+
 [ "$fails" = 0 ]
