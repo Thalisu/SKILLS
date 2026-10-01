@@ -700,6 +700,31 @@ expect "the status line spares the Review beside the handed Spec" \
   grep -qF -- ":!.scratch/20260930-export/spec.review.md" <<<"$out"
 absent "the status line names no Review beside the found Ticket" "01-export-step.review.md"
 
+# A handed Spec with a fixed point is measured the way a handed Ticket is: the Final integration
+# lands the Spec branch since the branch it was cut from, so a diff taken from anywhere else is code
+# no reviewer read. The ref here is not the base the door would infer, and it moved on after the cut.
+mkdir "$tmp/spec-ref" && cd "$tmp/spec-ref" && git init -q -b main
+printf 'a\n' >a.txt && git add a.txt && git commit -q -m "first"
+git checkout -q -b release
+printf 'r\n' >r.txt && git add r.txt && git commit -q -m "release"
+git checkout -q -b spec-export
+for n in 1 2 3; do printf '%s\n' "$n" >"s$n.txt" && git add "s$n.txt" && git commit -q -m "spec $n"; done
+git checkout -q release && printf 'l\n' >l.txt && git add l.txt && git commit -q -m "release moves on"
+git checkout -q spec-export
+mkdir -p .scratch/20260930-export/issues && printf '# Export\n' >.scratch/20260930-export/spec.md
+printf '# 01: Export\n' >.scratch/20260930-export/issues/01-export.md
+cut="$(git merge-base release HEAD)"
+since_ref=("ref=release" "fixed_point=$cut" "diff=git diff $cut" "commits=3")
+run release --ticket .scratch/20260930-export/issues/01-export.md
+check_lines "a handed Ticket with a fixed point names the diff since that fixed point" 0 "$rc" "${since_ref[@]}"
+run release --spec .scratch/20260930-export/spec.md
+check_lines "a handed Spec with a fixed point names the same diff since that fixed point as a handed Ticket does" 0 "$rc" \
+  "${since_ref[@]}"
+absent "a handed Spec with a fixed point infers no base" "base="
+run nope --spec .scratch/20260930-export/spec.md
+check_lines "a ref that does not resolve refuses the same with a Spec handed over" 1 "$rc" \
+  "refusal=nope does not resolve; nothing reviewed"
+
 if [ "$fails" = 0 ]; then echo "PASS"; else
   echo "$fails failing"
   exit 1
