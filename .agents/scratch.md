@@ -129,7 +129,11 @@ rebases anything, and a run that finds the file already there ends instead of in
 Spec a second time. It is a claim by creation and never a lock a run waits on: the loser has
 nothing to wait for, since its own Ticket already landed. The file stays while the Spec branch has
 not landed, so a stopped Final integration keeps it for the run that resumes it, and it is deleted
-only once the Spec branch landed and was removed.
+only once the Spec branch landed and was removed. A run that stops marks its claim yielded with a
+second file beside it, `spec.integration.yielded`, created under `set -C` too and never written
+into the claim file: a resume takes the claim over by renaming that mark away, which exactly one of
+two resumes can do, and a claim with no mark beside it still reads as taken. The mark is deleted
+with the claim.
 
 Never a lock file. An agent that crashes or is cancelled leaves its lock behind, and git ignores
 the whole folder, so the stale lock never appears in `git status` and the next run waits on a

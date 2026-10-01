@@ -526,10 +526,11 @@ code:
 - **`claim=claimed`, exit 0.** The run holds the Final integration. The call printed every path
   the steps below use, and the run composes none of them: `spec=`, `spec_branch=`,
   `spec_upstream=` (the developer's branch, the one the Spec branch was cut from), `tree=` and
-  `ledger=`.
+  `ledger=`. Its `takeover=` line reads `no` here, since no claim file was there.
 - **`claim=taken`, exit 1.** Another run holds it. This run ends here, with nothing blocked: its
   own Ticket landed and reads `resolved`, and its Reply reads that the Spec is being integrated by
-  another run, per [reply.md](reply.md). It waits on nothing and retries nothing.
+  another run, per [reply.md](reply.md). It waits on nothing and retries nothing. On a resume the
+  same line is a stop, as the resumed Final integration below says.
 - **`claim=failed`, exit 3.** The run stops as blocked with the `reason=` line quoted.
 
 **2. The tree.** The Spec branch itself, checked out in a worktree of its own, from the main
@@ -559,7 +560,9 @@ the claim: the spec source is the Spec, `spec=`, in the Ticket's place, so `do-c
 the whole Spec and writes one Review beside it, `spec.review.md`; the fixed point is
 `spec_upstream`, the merge base the rebase left; the landing target is `spec_upstream`. The Gate,
 the review token, the Loss ledger when the rebase wrote one and the held Rulings go over as the
-review says. The review fixes its `Act on` Findings and, when the Review is Green, lands the Spec
+review says. The token is minted under the slug of the tree, `spec-<feature-slug>`, the value
+`final-state.sh` prints as `token_slug=`, and never under a Ticket's slug: a resume may come
+through any Ticket of the Spec, and it must find the token the marker beside the Review holds. The review fixes its `Act on` Findings and, when the Review is Green, lands the Spec
 branch on the developer's branch by fast-forward. The return is read as the review says, and
 `not landed: target moved` is answered as it says, in the same run.
 
@@ -571,7 +574,8 @@ bash <skill-dir>/scripts/final-claim.sh release <the Ticket's path>
 ```
 
 The script removes the Spec branch only when its tip is on its upstream, the proof that it
-landed, and deletes the claim file only when the branch was removed or already absent.
+landed, and deletes the claim file, with the yielded mark of an earlier stop beside it, only when
+the branch was removed or already absent.
 `claim=released` with `removed=yes` is recorded for the Reply as `spec/<feature-slug> removed`.
 `claim=held` (exit 1) means the branch did not land after all or a worktree still holds it: the
 run stops as blocked with the `reason=` line quoted, and never deletes the branch or the claim
@@ -580,13 +584,50 @@ file by hand.
 **A Final integration that stops.** A rebase question nobody answered, a red gate, a Review that
 did not land, a `not landed: target moved` the review section stops on: the run stops as blocked
 and makes no `release` call. The tree, the Spec branch and the claim file all stay in place, since
-they are what a later run resumes from, and the run's own Ticket stays `resolved`. The Reply says
-the Final integration stopped and why, and that `/do <the run's Ticket>`, or a `do` on any Ticket
-of the Spec, resumes it, per [reply.md](reply.md).
+they are what a later run resumes from, and the run's own Ticket stays `resolved`. Before its
+Reply, at every stop the run controls, a first run's or a resume's, it yields the claim:
+
+```
+bash <skill-dir>/scripts/final-claim.sh yield <the Ticket's path>
+```
+
+The yield marks the claim as given up and leaves the claim file as it was written, so the claim
+still keeps a first run out while a resume can take it over, per ADR 0063. A run that died yields
+nothing, and its claim reads `taken` to every resume until the developer yields it by hand. The
+Reply says the Final integration stopped and why, and that `/do <the run's Ticket>`, or a `do` on
+any Ticket of the Spec, resumes it, per [reply.md](reply.md).
+
+**A resumed Final integration.** A `do` on any Ticket of the Spec whose door printed
+`verdict=resume-final` enters here and nowhere earlier, per the stopped Final integration of the
+Resume in [ticket.md](ticket.md). Nothing that landed on the Spec branch is built again: the run
+forks no reader, no Planner and no Builder and cuts no worktree for a Ticket. It differs from a
+first Final integration in three places:
+
+- **The claim is a takeover.** The same `claim` call takes over a claim that was yielded and
+  prints `takeover=yes` with the holder it replaced; of two resumes at once exactly one reads
+  `claimed`. A claim nobody yielded reads `claim=taken`: the run stops in one line, writes nothing,
+  and its Reply quotes the `holder_ticket=`, `claimed_at=` and `yield_command=` lines, the last
+  being the command that declares a dead holder's claim yielded. The run never composes that
+  command and never runs it for the developer.
+- **The state is read, not assumed.** One call,
+  `bash <skill-dir>/scripts/final-state.sh <the Ticket's path>`, prints where the Final integration
+  stands, in the keys and the classes `resume-state.sh` prints for a Ticket run: the tree present
+  or absent, a rebase left open with its stop record, uncommitted work, and whether the Review
+  beside the Spec counts. Its verdict names the step the run picks up at: `restart` at the tree or
+  the rebase, `integration` at the open rebase with the `(continue / stop)` or
+  `(abort / continue)` question its `stop=` class calls for, `ask` at the question before a
+  discard, `land` at the fix call on the Review already written, never a second review.
+- **`not landed: target moved` is unchanged.** A resume answers it by the loop of the review
+  below, integrating again while the target's tip keeps changing, per
+  [ADR 0044](../../../docs/adr/0044-the-re-integration-retries-while-the-target-tip-changes.md).
+
+A resume that stops again yields and replies as any stopped Final integration does. One that
+finishes ends at the release above.
 
 Done when the Spec branch landed on the developer's branch, its tree is removed and the release
 read `claim=released`; or the claim read `taken` and the run ended; or the run stopped as blocked
-with its reason, the tree, the Spec branch and the claim left in place and named.
+with its reason, the tree, the Spec branch and the claim left in place and named, the claim
+yielded.
 
 ## The review
 

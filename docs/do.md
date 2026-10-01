@@ -200,9 +200,30 @@ return with `landed at <sha>`, and `spec/<slug> removed`, and its Next step is
 ([ADR 0061](adr/0061-the-review-runs-once-per-spec-on-its-spec-branch-before-it-lands.md)).
 
 A Final integration that stops (a rebase question nobody answered, a Review that did not land,
-`not landed: target moved`) leaves the Spec branch, its worktree and the claim in place. The reply
-says it stopped and why, and `/do <the run's Ticket>`, or a `do` on any Ticket of the Spec, resumes
-it.
+`not landed: target moved`) leaves the Spec branch, its worktree and the claim in place, and marks
+the claim yielded. The reply says it stopped and why, and `/do <the run's Ticket>`, or a `do` on
+any Ticket of the Spec, resumes it.
+
+That second `/do` rebuilds nothing. Its Ticket reads `resolved`, and the door tells three cases
+apart:
+
+| The door finds | What the run does |
+|---|---|
+| the Spec branch there and not landed, every Ticket of the Spec `resolved` | resumes the Final integration, and only that |
+| the Spec branch landed, or never there | stops in one line, as on any `resolved` Ticket, and writes nothing |
+| a Ticket of the Spec still open | stops in one line the same way: there is no Final integration to resume yet |
+
+The resume takes over the yielded claim, then reads where the integration stopped: a rebase left
+open asks you the same `(continue / stop)` or `(abort / continue)` question a Ticket run's open
+rebase asks, a Review already written beside the Spec is landed and never written a second time,
+and a `not landed: target moved` integrates again for as long as your branch keeps moving. It ends
+as the run that ships a Spec ends, with `spec/<slug> removed` and `git push <your branch>`. If it
+stops again, the reply says so and why, and the Next step is the same `/do`.
+
+A claim nobody yielded is never taken over: the run that holds it may still be integrating, and two
+runs in one tree would both land on your branch. The resume stops in one line and names the holder,
+when it claimed, and the command that yields its claim. Run that command only when you know the
+holder is dead, then the same `/do` (ADR 0063).
 
 In every other run that builds, the branch goes to the review, once per run: the run hands it the gate's command line too, so
 the review's fixes are held to the same checks, and only the outcome comes back, never the Review's

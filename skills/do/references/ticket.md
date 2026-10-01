@@ -33,7 +33,9 @@ find out: the Ticket's `status=`, one `blocker=` line per Ticket its `Blocked by
 that Ticket's status, `worktree=` for the run's `do/<slug>` worktree, `loop=` for the Testing
 Policy, `protected=` for the developer's branch, the Spec branch facts `spec_branch=`,
 `spec_exists=` and `spec_upstream=` (the branch the Spec integrates into, read from the Spec
-branch's upstream and never from the main checkout's HEAD), and a `verdict=` line, the script exiting non-zero
+branch's upstream and never from the main checkout's HEAD), `spec_landed=` (whether the Spec
+branch's tip is on that upstream), `spec_complete=` (the door's own count of the Spec's Tickets,
+`yes` when every one reads `resolved`), and a `verdict=` line, the script exiting non-zero
 on every stop. The developer reruns that line and gets the same answer. The bullets below are what
 the script checks and what each verdict does; on a tracker the session reads the same facts the way
 the tracker file describes. Before anything is written:
@@ -60,7 +62,17 @@ the tracker file describes. Before anything is written:
   those lines: a status line a stranger could have planted is never read as the developer's, so the
   message carries `Yours: trust:` with the choice, per [reply.md](reply.md): set the one
   `**Status:**` line by hand.
-- A Ticket that is `resolved` stops the run in one line. Nothing is written. The line says the
+- A `resolved` Ticket whose Spec branch exists and has not landed, in a Spec the door counts
+  complete (`verdict=resume-final`, exit 0, with `spec_exists=yes`, `spec_landed=no` and
+  `spec_complete=yes`), is a stopped Final integration: every Ticket landed on the Spec branch and
+  the branch never reached the developer's. The run resumes the Final integration and does only
+  that, as the Resume section says under a stopped Final integration. It forks no reader, no
+  Planner and no Builder, cuts no `do/<slug>` worktree and writes no Ticket, so nothing that landed
+  on the Spec branch is built again. Any Ticket of the Spec opens this door, whichever run stopped.
+- Every other Ticket that is `resolved` (`verdict=resolved`) stops the run in one line. Nothing is
+  written. That is a Ticket whose Spec branch already landed (`spec_landed=yes`) or never existed
+  (`spec_exists=no`), and a Ticket of a Spec with a Ticket still open (`spec_complete=no`), whose
+  Spec has no Final integration to resume yet. The line says the
   Ticket is resolved and that changing what landed takes a new Ticket written by hand, its
   criteria from the edited Ruling line and its `Blocked by` naming every resolved Ticket that took
   the old side, per
@@ -102,7 +114,9 @@ the tracker file describes. Before anything is written:
 - On a remote tracker, an issue assigned to someone else stops the run in one line with their
   name.
 
-The first write comes after those stops and never before one of them. On a resume the run reads
+The first write comes after those stops and never before one of them. On `verdict=resume-final`
+the run makes no Digest decision and forks no reader: it goes straight to the stopped Final
+integration of the Resume section. On a resume the run reads
 `resume-state.sh` before the Digest decision, as the Resume section says. On `verdict=land` the run
 forks no reader, and neither does it on any resume whose `review=` line names a Review, whatever the
 verdict printed, `land` or `integration` on a rebase stopped after that review, and whatever the
@@ -309,6 +323,67 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   unchanged, both hashes match and the resume stops on the sidecar's `discuss=` line, as the
   `extreme=` bullet above says.
 
+### A stopped Final integration
+
+Entered on the door's `verdict=resume-final` and on nothing else. The Ticket handed over is
+`resolved` and stays as the close left it: it is only the way in, and any Ticket of the Spec leads
+to the same Spec branch, the same tree, the same ledger and the same claim. The run walks the final
+integration of [mechanics.md](mechanics.md) from where it stopped, and nothing before it: no Digest,
+no Plan, no Builder, no `do/<slug>` worktree. Steps 1 to 9 of the checklist are never reached, so
+they are neither ticked nor skipped, and the Reply's Run section carries steps 0, 9a and 10.
+
+1. **The claim.** `bash <skill-dir>/scripts/final-claim.sh claim <the Ticket's path>`, before
+   anything is read from the tree, so two resumes never both walk it.
+   - `claim=claimed` with `takeover=yes`: the run that stopped yielded its claim and this run holds
+     it now. The `previous_ticket=`, `previous_claimed_at=` and `yielded_at=` lines are recorded
+     for the Reply. `takeover=no` means no claim file was there, and the run holds a fresh one.
+   - `claim=taken`, exit 1: a claim nobody yielded. Its holder is either still integrating or died
+     without yielding, and the script cannot tell which, so the run stops in one line and writes
+     nothing, per ADR 0063. The Reply quotes `holder_ticket=`, `claimed_at=` and `yield_command=`
+     as the script printed them, and carries `Yours: direction:`, per [reply.md](reply.md): wait for that run, or, when
+     it is dead, run the yield command and then the same `/do` again. The run composes no command
+     of its own for it and never yields another holder's claim itself.
+   - `claim=failed`, exit 3: the run stops as blocked with the `reason=` line quoted.
+2. **Where it stopped.** `bash <skill-dir>/scripts/final-state.sh <the Ticket's path>`, read once,
+   the Final integration's counterpart of `resume-state.sh`: the paths the claim printed, the
+   `token_slug=` the review token is stored under, the claim as it now stands, `worktree=`, and for
+   a tree that is there `rebase=`, the `uncommitted=` lines, the stop record of an open rebase in
+   the keys a Ticket run's resume reads, and `review=` for the Review beside the Spec, with a
+   `review_skipped=` line before it when one is there and does not count. The run routes on its
+   verdict:
+   - `verdict=restart`, exit 0: nothing is open. With `worktree=absent` the run adds the tree, step
+     2 of the final integration, then rebases; with `worktree=present` it enters the tree and goes
+     to the rebase, step 3, whose ancestor check ticks as a no-op when the stop came after it. From
+     there the run is a first Final integration: the gate, the review, the release.
+   - `verdict=integration`, exit 3: a rebase is open in the tree. The run reads the `stop=` line
+     before it touches the rebase and does what the mid-rebase bullet above says for each class,
+     with the Spec branch as the branch that moves and `spec_upstream` as the developer's branch:
+     `stop=conflicted` is classed and resolved as at any stop, `stop=resolved` asks
+     `(continue / stop)`, `stop=moved` continues on `moved=continue` and asks
+     `(abort / continue)` on `moved=ask`, each question in the words of that bullet. A `review=`
+     line naming a Review means the rebase came after the review, so the branch lands through the
+     fix call once it finishes.
+   - `verdict=ask`, exit 1: uncommitted work in the tree with no rebase open. The run asks before
+     discarding it, as the `verdict=ask` bullet above says, naming the tree and the Spec branch. A
+     yes discards it and the run goes on as `verdict=restart` with the tree present; a no stops the
+     run.
+   - `verdict=land`, exit 4: the Review beside the Spec counts, so the review already read the
+     Spec branch. The run integrates with no **Gate** of its own and lands through the fix call on
+     that Review, as the review in [mechanics.md](mechanics.md) says for a branch the review
+     already read, never a second review of the Spec.
+   - Exit 2: the tree is on a detached HEAD or on another branch with no rebase open. The run stops
+     as blocked in one line naming the tree and the script's reason.
+3. **The rest of the final integration**, from the step the verdict named, ending in the release on
+   `landed at <commit>`. A `not landed: target moved` is answered as on a first Final integration,
+   by the loop of the review in [mechanics.md](mechanics.md), for as long as the target's tip keeps
+   changing.
+
+A resume that stops again yields the claim it holds before its Reply, as every stop of the Final
+integration does, so the next `/do` can take it over. Its Reply says the Final integration stopped
+again and why, and its Next step is the same `/do`. A resume that finishes ends as the run that
+ships a Spec ends: the Spec branch landed and removed, the claim released, the Reply and the Next
+step of the landed Final integration in [reply.md](reply.md).
+
 ## Checklist
 
 Each step writes its own skip, with its reason, when the run reaches it, and never earlier: a
@@ -326,7 +401,7 @@ Do:
 - [ ] 7. Landing on the Spec branch by land-spec.sh, no review (no Spec: review by do-code-review: Act on Findings fixed Wave by Wave by its Fixers, landed when Green)
 - [ ] 8. Affected E2E flows run from the main checkout
 - [ ] 9. Ticket closed with evidence and set to resolved; then completion-check.sh run; then the worktree removed
-- [ ] 9a. Final integration, on verdict=complete: claimed by final-claim.sh; spec/<feature-slug> rebased onto its upstream in its own worktree; Post-feature gate and affected flows; reviewed whole by do-code-review and landed when Green; Spec branch removed and claim released
+- [ ] 9a. Final integration, on verdict=complete: claimed by final-claim.sh; spec/<feature-slug> rebased onto its upstream in its own worktree; Post-feature gate and affected flows; reviewed whole by do-code-review and landed when Green; Spec branch removed and claim released; on a stop, the claim yielded (on verdict=resume-final: the claim taken over, final-state.sh read, picked up where it stopped)
 - [ ] 10. Reply
 ```
 
@@ -908,8 +983,12 @@ goes on to the Reply. It is the final integration in [mechanics.md](mechanics.md
 
 Any stop on the way makes no `release` call: the Spec branch, its worktree and the claim stay, the
 Ticket stays `resolved`, and the Reply says the Final integration stopped, why, and how it is
-resumed. Done when the release read `claim=released`, or the claim read `taken`, or the run
-stopped as blocked with the Spec branch and its worktree named, or the step reads its skip.
+resumed. Before that Reply the run yields its claim,
+`bash <skill-dir>/scripts/final-claim.sh yield <the Ticket's path>`, so the `/do` that resumes can
+take it over. A run that entered on the door's `verdict=resume-final` reaches this step through the
+stopped Final integration of the Resume section, with no step before it. Done when the release
+read `claim=released`, or the claim read `taken`, or the run stopped as blocked with the Spec
+branch and its worktree named and the claim yielded, or the step reads its skip.
 
 **10. Reply.** Written by [reply.md](reply.md). What this Playbook puts in its sections: the
 Ticket and the Review under the files left uncommitted; every Ruling the forks in

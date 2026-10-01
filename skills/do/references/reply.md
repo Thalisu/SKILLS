@@ -209,11 +209,21 @@ worktree line comes before the audit line and before the hand-over, shaped-by an
     below, where it reads `Open: none`.
 30. **Final integration lines.** On the run whose Completion check printed `verdict=complete`,
     after the Spec landing lines of its own Ticket, what the final integration of
-    [mechanics.md](mechanics.md) recorded, in one of three shapes:
+    [mechanics.md](mechanics.md) recorded, in one of three shapes. A run that entered on the
+    door's `verdict=resume-final` carries the same lines with no Spec landing lines before them,
+    since it built and landed no Ticket, and opens them with
+    `Final integration: resumed from <where>`, `<where>` being the `verdict=` and, on an open
+    rebase, the `stop=` line `final-state.sh` printed, then, when the claim's `takeover=` line
+    read `yes`, the holder it took over from and when that holder yielded, off the
+    `previous_ticket=` and `yielded_at=` lines:
     - **Claimed by another run** (`claim=taken`):
       `Final integration: the Spec is being integrated by another run`, with the holder's Ticket
       and the time it claimed, off the `holder_ticket=` and `claimed_at=` lines. The run's own
-      Ticket landed and reads `resolved`, and the line says so.
+      Ticket landed and reads `resolved`, and the line says so. On a resume the same claim line is
+      a stop and the whole Reply, by the blocked shape below:
+      `Final integration: not resumed, its claim is held` with those two lines and the
+      `yield_command=` line quoted whole, since a claim nobody yielded is a run still integrating
+      or one that died, and only the developer can say which.
     - **Landed.** `Open: none`; the Integration line of item 27, naming the developer's branch as
       the target the Spec branch was rebased onto, with the Loss ledger beside the Spec when a
       contested hunk took the **Target** side; the Review return of item 28 as on any reviewed
@@ -221,7 +231,9 @@ worktree line comes before the audit line and before the hand-over, shaped-by an
       release's `claim=released` and `removed=yes` lines.
     - **Stopped.** `Final integration: stopped` with the reason: the rebase question nobody
       answered, the red check, or the review's `not landed` line quoted. Then the Spec branch and
-      its worktree, both left in place and named, and that the claim is still held.
+      its worktree, both left in place and named, and that the claim stays beside the Spec,
+      yielded for the `do` that resumes it. A resume that stops again reads
+      `Final integration: stopped again` with its own reason, and the same lines after it.
 
 The lines record what the steps decided; they gate nothing. The order constraints on actions stay
 with the steps that carry them (the door script before any write, the worktree before the first
@@ -293,7 +305,10 @@ Ten sections, in this order, each one present in every Reply that carries sectio
     `git push <the developer's branch>`. A run whose claim read `taken` has nothing to type, and
     its line says the Spec is being integrated by another run. A run whose Final integration
     stopped names `/do <the run's Ticket>`, and says a `do` on any Ticket of the Spec resumes it
-    too. A landed run whose close finished is not a stop: the push stays on this line, the run
+    too. A resume of a Final integration ends the same two ways: one that stops again names the
+    same `/do` it was started with, and one that finishes is the run that shipped the Spec, its
+    line `git push <the developer's branch>`. A resume stopped on a claim nobody yielded names
+    the same `/do`, to type once the holder finished or its claim was yielded. A landed run whose close finished is not a stop: the push stays on this line, the run
     never pushes, and its Reply carries no `Yours:` line. A landed run that then stopped at the
     close's `destroy` stop carries exactly one `Yours: destroy:` line, per the section below; the
     push still stays on this Next step line and is never named under `outward`.
@@ -333,8 +348,20 @@ Final integration: stopped: not landed: target moved
 Yours: direction: run /do <ticket> again, or a do on any Ticket of the Spec, to resume the Final integration of spec/<feature-slug>, or leave it unlanded in <worktree>
 ```
 
+A resume of a Final integration that stops again writes the same two lines, its first reading
+`Final integration: stopped again:` with the reason, and its Next step is the `/do` it was started
+with.
+
 A run whose claim of the Final integration read `taken` is not a stop and carries no `Yours:`
-line: its Ticket landed, another run is integrating the Spec, and there is nothing to type.
+line: its Ticket landed, another run is integrating the Spec, and there is nothing to type. A
+resume that read `taken` is a stop, the one exception: it came to finish the Final integration and
+could not, and whether the holder is alive is the developer's call, so its message quotes the
+holder, the time it claimed and the yield command as `final-claim.sh` printed them:
+
+```
+Final integration: not resumed, its claim is held by <holder_ticket> since <claimed_at>
+Yours: direction: wait for that run and run /do <ticket> again, or, when that run is dead, run <yield_command> and then /do <ticket> again
+```
 
 How much more it carries depends on where the run stopped:
 
