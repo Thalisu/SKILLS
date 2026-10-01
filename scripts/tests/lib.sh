@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # lib.sh: the assertions and fixture builders the test scripts share. A script sources it after its
 # `here=` line and sets fails=0; the assertions read the caller's $out and bump the caller's $fails.
-# shellcheck disable=SC2154 # $out, $flat, $tmp and $grader belong to the sourcing script, which assigns them first.
+# shellcheck disable=SC2154 # $out, $flat, $tmp, $issues and $grader belong to the sourcing script, which assigns them first.
 
 ok() { echo "ok    $1"; }
 fail() {
@@ -280,6 +280,10 @@ committer_identity() { # a committer identity in the current repository, for com
 branch_worktree() { # $1 main checkout, $2 name: a worktree at .claude/worktrees/do-<name> on a new branch do/<name> off the checkout's HEAD; its path on stdout
   local wt="$1/.claude/worktrees/do-$2"
   g -C "$1" worktree add -q "$wt" -b "do/$2" && echo "$wt"
+}
+ticket() { # $1 file name, $2 status line(s), $3 blocked-by value: a Ticket in the caller's $issues folder
+  printf '# %s: %s\n\n**What to build:** something.\n\n**Blocked by:** %s\n\n%s\n\n- [ ] one\n\n## Evidence\n' \
+    "${1%%-*}" "Title of ${1%.md}" "$3" "$2" >"$issues/$1"
 }
 stop_state() { # the stop as git left it, on stdout: the index and status, and the hash of every working file
   git status --porcelain=v2

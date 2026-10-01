@@ -42,7 +42,7 @@ expect "with no argument the estimator exits zero" is "$code" 0
 expect "with no argument it prints the session's load by term, in order, its total, then the Planner and the Builder" is "$out" \
   "$(printf '%s\n' baseline=32000 reference_chain=9000 door=5000 total=46000 planner=47000 builder_base=46000 per_criterion=18000)"
 
-ticket() { # $1 path, $2 criteria: a Ticket in the format, padded to 4000 bytes
+padded_ticket() { # $1 path, $2 criteria: a Ticket in the format, padded to 4000 bytes
   {
     printf '# 01: A slice\n\n**What to build:** A slice.\n\n**Blocked by:** None\n\n'
     printf '**Status:** ready-for-agent\n\n'
@@ -55,36 +55,36 @@ ticket() { # $1 path, $2 criteria: a Ticket in the format, padded to 4000 bytes
   echo >>"$1"
 }
 fixed="$(printf '%s\n' baseline=32000 reference_chain=9000 door=5000 total=46000 planner=47000 builder_base=46000 per_criterion=18000)"
-ticket "$tmp/t/01-small.md" 2
+padded_ticket "$tmp/t/01-small.md" 2
 est t/01-small.md
 expect "given a Ticket the estimator exits zero" is "$code" 0
 expect "given a Ticket it adds the criteria, the Builder's window and the band" is "$out" \
   "$fixed"$'\n'"$(printf '%s\n' criteria=2 builder=82000 band=small)"
 # The session's total is what fills its window, so a Digest large enough to carry it past a threshold
 # moves the band where no count of criteria does.
-ticket "$tmp/t/02-medium.md" 2
+padded_ticket "$tmp/t/02-medium.md" 2
 mk "$tmp/t/02-medium.digest.md" 440000
 est t/02-medium.md
 expect "a medium Ticket reads its band and exits zero" \
   sh -c '[ "$1" = 0 ] && printf "%s\n" "$2" | grep -qx "total=153500" && printf "%s\n" "$2" | grep -qx "band=medium"' \
   _ "$code" "$out"
-ticket "$tmp/t/03-large.md" 2
+padded_ticket "$tmp/t/03-large.md" 2
 mk "$tmp/t/03-large.digest.md" 720000
 est t/03-large.md
 expect "a large Ticket reads its band and still exits zero, since the estimate gates nothing" \
   sh -c '[ "$1" = 0 ] && printf "%s\n" "$2" | grep -qx "total=223500" && printf "%s\n" "$2" | grep -qx "band=large"' \
   _ "$code" "$out"
 # Two Tickets of the same size load the session alike, so the criteria they carry move no band.
-ticket "$tmp/t/05-one-criterion.md" 1
+padded_ticket "$tmp/t/05-one-criterion.md" 1
 est t/05-one-criterion.md
 few_band="$(printf '%s\n' "$out" | grep '^band=')"
-ticket "$tmp/t/06-ten-criteria.md" 10
+padded_ticket "$tmp/t/06-ten-criteria.md" 10
 est t/06-ten-criteria.md
 many_band="$(printf '%s\n' "$out" | grep '^band=')"
 expect "a Ticket's band is read from the session's total alone, so many criteria read the band of one" \
   sh -c '[ -n "$1" ] && [ "$1" = "$2" ]' _ "$few_band" "$many_band"
 # The Digest beside the Ticket is the one the door reads, so its size replaces the allowance.
-ticket "$tmp/t/04-digested.md" 2
+padded_ticket "$tmp/t/04-digested.md" 2
 mk "$tmp/t/04-digested.digest.md" 4000
 est t/04-digested.md
 expect "a Digest beside the Ticket is counted in place of the allowance" \

@@ -44,10 +44,6 @@ run() {
   rc=0
   out="$(bash "$script" "$@" 2>&1)" || rc=$?
 }
-ticket() { # $1 file name, $2 status line(s), $3 blocked-by value
-  printf '# %s: %s\n\n**What to build:** something.\n\n**Blocked by:** %s\n\n%s\n\n- [ ] one\n\n## Evidence\n' \
-    "${1%%-*}" "Title of ${1%.md}" "$3" "$2" >"$issues/$1"
-}
 
 cd "$tmp" || exit 1
 git init -q -b main main && cd main || exit 1

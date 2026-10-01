@@ -44,6 +44,8 @@
 set -uo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd -P)"
+# shellcheck source=skills/do/scripts/ticket-read.sh
+. "$here/ticket-read.sh"
 
 usage() { echo "usage: ticket-door.sh <the Ticket's path>" >&2; exit 2; }
 [ "$#" = 1 ] || usage
@@ -59,19 +61,6 @@ case "$1" in
   *) if [ -f "$1" ]; then path="$(pwd -P)/${1#./}"; else path="$main/${1#./}"; fi ;;
 esac
 [ -f "$path" ] || { echo "no Ticket at $1" >&2; exit 2; }
-
-status_of() { # $1 file: sets word to the status, or to ambiguous with detail set
-  local lines
-  lines="$(grep -n '^\*\*Status:\*\*' "$1" | cut -d: -f1 | tr '\n' ' ')"
-  lines="${lines% }"
-  detail=""
-  if [ "$(wc -w <<<"$lines")" != 1 ]; then word=ambiguous; detail="status lines ${lines:-none}"; return; fi
-  word="$(grep '^\*\*Status:\*\*' "$1" | sed 's/^\*\*Status:\*\*//' | awk '{ print $1 }')"
-  case "$word" in
-    ready-for-agent|claimed|resolved) ;;
-    *) detail="status word ${word:-none}"; word=ambiguous ;;
-  esac
-}
 
 stop_ambiguous=0 stop_blocked=0
 
@@ -103,9 +92,7 @@ elif [ -z "$numbers" ]; then
   esac
 fi
 for n in $numbers; do
-  files="$(find "$folder" -maxdepth 1 -type f -name "$n-*.md" ! -name '*.review.md' ! -name '*.digest.md' \
-    ! -name '*.project-map.md' ! -name '*.sketch.md' ! -name '*.plan.md' | sort | awk '{ c[NR] = $0; has[$0] = 1 }
-    END { for (i = 1; i <= NR; i++) { if (match(c[i], /\.[^.\/]+\.md$/) && has[substr(c[i], 1, RSTART - 1) ".md"]) continue; print c[i] } }')"
+  files="$(ticket_files "$folder" "$n")"
   count="$(grep -c . <<<"$files")"
   if [ "$count" != 1 ]; then
     rel=""
