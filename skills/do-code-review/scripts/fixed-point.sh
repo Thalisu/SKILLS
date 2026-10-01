@@ -43,9 +43,9 @@
 # full sha), base (only when inferred), diff (the command that shows the working tree against the
 # fixed point), status (the command that shows the working tree's short status with those two
 # files left out, the one a caller passes on), commits (the commits between the fixed point and
-# HEAD), review (the Review's path: beside a handed-over local Ticket, taking its name with .review
-# before the extension, else in the scratch reviews folder of the main checkout, relative when this
-# tree is the main checkout and absolute from a linked worktree, which has no scratch of its own
+# HEAD), review (the Review's path: beside a handed-over local Ticket or a handed-over Spec, taking
+# its name with .review before the extension, else in the scratch reviews folder of the main
+# checkout, relative when this tree is the main checkout and absolute from a linked worktree, which has no scratch of its own
 # and is removed with everything in it), issue (a number in the branch name,
 # else one written as #<n> in a commit subject since the fixed point, else none), ticket (the
 # location handed over, a path resolved to where the run reads it, else a Ticket file under
@@ -167,6 +167,13 @@ if [ "$handed_given" = yes ]; then
     located="$(locate "$handed")"; located="${located#"$top"/}"
   fi
 fi
+spec=none
+spec_handed=no
+if [ "$spec_handed_given" = yes ]; then
+  spec_handed=yes
+  spec="$(resolve "$handed_spec")"
+  review="${spec%.md}.review.md"
+fi
 # do names its branch after the Ticket's slug and not after its feature's, so the gate above never
 # reached the folder the spec is read from and a handed Ticket's Review is written into.
 if [ "$located" != none ]; then
@@ -217,11 +224,8 @@ fi
 
 issue="$(grep -oE '(^|/)[0-9]+-' <<<"$branch" | head -1 | tr -dc '0-9')"
 [ -n "$issue" ] || issue="$(git log --format=%s "$fixed..HEAD" | grep -oE '#[0-9]+' | head -1 | tr -d '#')"
-spec=none
-spec_handed=no
-if [ "$spec_handed_given" = yes ]; then
-  spec_handed=yes
-  spec="$(resolve "$handed_spec")"
+if [ "$spec_handed" = yes ]; then
+  : # the Spec handed over stands, and the door derives none in its place
 elif [ -f "$ticket" ] && [ -f "$(dirname "$(dirname "$ticket")")/spec.md" ]; then
   spec="$(dirname "$(dirname "$ticket")")/spec.md"
 else

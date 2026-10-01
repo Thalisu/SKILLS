@@ -660,6 +660,16 @@ run --spec .scratch/20260930-export/spec.md
 check_lines "a Spec handed over is printed as the run's spec and marked as handed" 0 "$rc" \
   "spec=.scratch/20260930-export/spec.md" "spec_handed=yes"
 
+# The Review of a handed Spec sits beside it and takes its name, inside the scratch or outside the
+# repository, the way a handed Ticket's does: the developer looks for it where the feature lives.
+run --spec .scratch/20260930-export/spec.md
+check_lines "the Review of a handed Spec is placed beside the Spec, named after it" 0 "$rc" \
+  "review=.scratch/20260930-export/spec.review.md"
+mkdir -p "$tmp/spec-docs" && printf '# Outside\n' >"$tmp/spec-docs/spec.md"
+run --spec "$tmp/spec-docs/spec.md"
+check_lines "a Spec handed outside the repository is still the Review's home" 0 "$rc" \
+  "review=$tmp/spec-docs/spec.review.md"
+
 # A Spec the door finds itself was handed over by nobody, whichever way the door reached it: beside
 # a Ticket the caller handed, or through the branch's own slug. The Review keeps the home it had.
 mkdir .scratch/20260930-export/issues && printf '# 01: Export\n' >.scratch/20260930-export/issues/01-export.md
