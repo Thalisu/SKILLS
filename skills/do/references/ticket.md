@@ -326,6 +326,7 @@ Do:
 - [ ] 7. Landing on the Spec branch by land-spec.sh, no review (no Spec: review by do-code-review: Act on Findings fixed Wave by Wave by its Fixers, landed when Green)
 - [ ] 8. Affected E2E flows run from the main checkout
 - [ ] 9. Ticket closed with evidence and set to resolved; then completion-check.sh run; then the worktree removed
+- [ ] 9a. Final integration, on verdict=complete: claimed by final-claim.sh; spec/<feature-slug> rebased onto its upstream in its own worktree; Post-feature gate and affected flows; reviewed whole by do-code-review and landed when Green; Spec branch removed and claim released
 - [ ] 10. Reply
 ```
 
@@ -889,6 +890,27 @@ was answered and the writes it listed were made on a yes, or none on a no, and `
 no longer shows the run's worktree, or the run stopped on a removal git refused with the worktree
 and its branch named under its `Yours: destroy:` line, or the step reads `skip: nothing landed` and the Ticket still reads `claimed`.
 
+**9a. Final integration.** Entered only when the Completion check of step 9 printed
+`verdict=complete`, after the run's own Ticket landed and reads `resolved` and its worktree is
+removed; on every other verdict the step reads `skip: Tickets of the Spec still open` and the run
+goes on to the Reply. It is the final integration in [mechanics.md](mechanics.md), in its order:
+
+- `bash <skill-dir>/scripts/final-claim.sh claim <the Ticket's path>`, routed on its exit code.
+  `claim=taken` (exit 1) ends the run, not as blocked: the Reply reads that the Spec is being
+  integrated by another run. `claim=failed` (exit 3) stops the run as blocked with its reason.
+- On `claim=claimed`, a worktree at the `tree=` path holding the Spec branch itself, the rebase
+  onto `spec_upstream` with the conflict loop and the Loss ledger at the `ledger=` path, the gate
+  with the **Post-feature gate**'s full suites and the affected E2E flows, then the review with the
+  Spec as its spec source and `spec_upstream` as both its fixed point and its landing target.
+- On `landed at <commit>`, that worktree removed and
+  `bash <skill-dir>/scripts/final-claim.sh release <the Ticket's path>`, whose `claim=released`
+  line is recorded for the Reply as `spec/<feature-slug> removed`.
+
+Any stop on the way makes no `release` call: the Spec branch, its worktree and the claim stay, the
+Ticket stays `resolved`, and the Reply says the Final integration stopped, why, and how it is
+resumed. Done when the release read `claim=released`, or the claim read `taken`, or the run
+stopped as blocked with the Spec branch and its worktree named, or the step reads its skip.
+
 **10. Reply.** Written by [reply.md](reply.md). What this Playbook puts in its sections: the
 Ticket and the Review under the files left uncommitted; every Ruling the forks in
 [forks.md](forks.md) wrote under `Rulings`, `none` when the run met no Design fork; the flows the developer waived and the
@@ -899,7 +921,11 @@ review and the landing as what the developer runs next. On a Ticket of a Spec th
 among the files left uncommitted, and the next step names no push, since nothing reached the
 developer's branch: when the run landed it is what the Completion check's `next=` line names, as
 the Next step of [reply.md](reply.md) reads it, with the `Open:` line under the landing lines, and
-what the blocked stop of step 7 names when it did not. A
+what the blocked stop of step 7 names when it did not. A run whose Final integration landed is
+the exception: the Spec branch reached the developer's branch, so its Reply carries the Review
+beside the Spec among the files left uncommitted, `Open: none`, and `git push` with the
+developer's branch named as its next step. A run whose claim read `taken`, or whose Final
+integration stopped, ends on the lines [reply.md](reply.md) fixes for it. A
 run that stopped on an Extreme fork, or on a Design fork no `choice-taker` ruled, ends instead on
 the `/discuss` command the forks in [forks.md](forks.md) fix, as its last line. Done when
 the reply is sent with

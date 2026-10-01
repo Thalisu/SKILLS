@@ -123,6 +123,14 @@ its `mkdir` is the claim too, and a create that fails means a folder for this fe
 there, which is what a rerun looks like, so the allocator reuses it and the spec is rewritten in
 place instead of the run stopping.
 
+A Spec's Final integration is claimed the same way. The `do` run that finds every Ticket of the
+Spec `resolved` creates `spec.integration.claim` beside the `spec.md`, under `set -C`, before it
+rebases anything, and a run that finds the file already there ends instead of integrating the same
+Spec a second time. It is a claim by creation and never a lock a run waits on: the loser has
+nothing to wait for, since its own Ticket already landed. The file stays while the Spec branch has
+not landed, so a stopped Final integration keeps it for the run that resumes it, and it is deleted
+only once the Spec branch landed and was removed.
+
 Never a lock file. An agent that crashes or is cancelled leaves its lock behind, and git ignores
 the whole folder, so the stale lock never appears in `git status` and the next run waits on a
 process that died yesterday: see

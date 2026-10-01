@@ -205,7 +205,23 @@ worktree line comes before the audit line and before the hand-over, shaped-by an
     status, one entry per `open=` line the check printed, its file stem and its status, as
     `Open: 02-<slug> (claimed), 04-<slug> (ready-for-agent)`. The entries are copied from those
     lines and never derived from the session's own reading of the Tickets, and the line is absent
-    when the check printed `open=none`.
+    when the check printed `open=none`, except on a run that went on to the Final integration,
+    below, where it reads `Open: none`.
+30. **Final integration lines.** On the run whose Completion check printed `verdict=complete`,
+    after the Spec landing lines of its own Ticket, what the final integration of
+    [mechanics.md](mechanics.md) recorded, in one of three shapes:
+    - **Claimed by another run** (`claim=taken`):
+      `Final integration: the Spec is being integrated by another run`, with the holder's Ticket
+      and the time it claimed, off the `holder_ticket=` and `claimed_at=` lines. The run's own
+      Ticket landed and reads `resolved`, and the line says so.
+    - **Landed.** `Open: none`; the Integration line of item 27, naming the developer's branch as
+      the target the Spec branch was rebased onto, with the Loss ledger beside the Spec when a
+      contested hunk took the **Target** side; the Review return of item 28 as on any reviewed
+      run, its landing line `landed at <sha>`; then `spec/<feature-slug> removed`, off the
+      release's `claim=released` and `removed=yes` lines.
+    - **Stopped.** `Final integration: stopped` with the reason: the rebase question nobody
+      answered, the red check, or the review's `not landed` line quoted. Then the Spec branch and
+      its worktree, both left in place and named, and that the claim is still held.
 
 The lines record what the steps decided; they gate nothing. The order constraints on actions stay
 with the steps that carry them (the door script before any write, the worktree before the first
@@ -272,7 +288,12 @@ Ten sections, in this order, each one present in every Reply that carries sectio
     `/do <that path>`, the first open Ticket that reads `ready-for-agent`. `next=wait` means every
     open Ticket reads `claimed` by another run: the line says the Spec integrates when those runs
     land and there is nothing to type. `next=ambiguous` names the Ticket on the check's
-    `ambiguous=` line as the one whose `**Status:**` line to repair. A landed run whose close finished is not a stop: the push stays on this line, the run
+    `ambiguous=` line as the one whose `**Status:**` line to repair. A run whose Final
+    integration landed the Spec branch did reach the developer's branch: its line is
+    `git push <the developer's branch>`. A run whose claim read `taken` has nothing to type, and
+    its line says the Spec is being integrated by another run. A run whose Final integration
+    stopped names `/do <the run's Ticket>`, and says a `do` on any Ticket of the Spec resumes it
+    too. A landed run whose close finished is not a stop: the push stays on this line, the run
     never pushes, and its Reply carries no `Yours:` line. A landed run that then stopped at the
     close's `destroy` stop carries exactly one `Yours: destroy:` line, per the section below; the
     push still stays on this Next step line and is never named under `outward`.
@@ -301,6 +322,19 @@ at the landing:
 not landed: spec/<feature-slug> is checked out in <worktree>
 Yours: direction: switch <worktree> off spec/<feature-slug> and run /do <ticket> again, or leave do/<slug> unlanded in its worktree
 ```
+
+A run whose Final integration stopped is another. Its own Ticket landed and reads `resolved`, so
+the blocker is the Spec's: it says the Final integration stopped and why, names the Spec branch and
+its worktree, both left in place, and its Next step is `/do <the run's Ticket>`, with the note
+that a `do` on any Ticket of the Spec resumes it:
+
+```
+Final integration: stopped: not landed: target moved
+Yours: direction: run /do <ticket> again, or a do on any Ticket of the Spec, to resume the Final integration of spec/<feature-slug>, or leave it unlanded in <worktree>
+```
+
+A run whose claim of the Final integration read `taken` is not a stop and carries no `Yours:`
+line: its Ticket landed, another run is integrating the Spec, and there is nothing to type.
 
 How much more it carries depends on where the run stopped:
 

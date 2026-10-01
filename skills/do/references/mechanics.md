@@ -498,10 +498,101 @@ Done when the landing line reads `landed at <sha> on spec/<feature-slug>` and th
 the close, or the run stopped as blocked with the script's line quoted and the worktree and its
 branch named.
 
+## The final integration
+
+Run by the `ticket` run whose close read `verdict=complete` off the Completion check, once its own
+Ticket has landed on the Spec branch and reads `resolved` and its own worktree is gone, per
+[ADR 0061](../../../docs/adr/0061-the-review-runs-once-per-spec-on-its-spec-branch-before-it-lands.md).
+Every Ticket of the Spec is on the Spec branch, and this section is where that branch reaches the
+developer's branch: rebased onto the branch it was cut from, reviewed whole, landed by the review,
+then removed. It is the one place a run of a Spec changes the developer's branch.
+
+The section restates neither the integration nor the review. It walks both as they are written
+above and below, and states only what differs here: the claim, the tree, the target, the ledger,
+the spec source and the release.
+
+**1. The claim.** Before anything else, one script call:
+
+```
+bash <skill-dir>/scripts/final-claim.sh claim <the Ticket's path>
+```
+
+It creates `spec.integration.claim` beside the Spec in the main checkout's scratch, exclusively, a
+claim made by creating it, per [scratch.md](../../../.agents/scratch.md) and
+[ADR 0020](../../../docs/adr/0020-the-path-partitions-the-scratch-and-an-allocated-name-is-claimed-by-creating-it.md),
+so two runs that both read the Spec complete never both integrate it. The run routes on the exit
+code:
+
+- **`claim=claimed`, exit 0.** The run holds the Final integration. The call printed every path
+  the steps below use, and the run composes none of them: `spec=`, `spec_branch=`,
+  `spec_upstream=` (the developer's branch, the one the Spec branch was cut from), `tree=` and
+  `ledger=`.
+- **`claim=taken`, exit 1.** Another run holds it. This run ends here, with nothing blocked: its
+  own Ticket landed and reads `resolved`, and its Reply reads that the Spec is being integrated by
+  another run, per [reply.md](reply.md). It waits on nothing and retries nothing.
+- **`claim=failed`, exit 3.** The run stops as blocked with the `reason=` line quoted.
+
+**2. The tree.** The Spec branch itself, checked out in a worktree of its own, from the main
+checkout: `git worktree add <tree> <spec_branch>`, the two values the claim printed, so the tree
+is `.claude/worktrees/spec-<feature-slug>`. It is never the run's own `do/<slug>` worktree, which
+the close already removed, and never the main checkout switched to the Spec branch, which would
+take the developer's tree from under them and fail the review's fast-forward. While the tree
+exists a Ticket of the Spec that lands late reads `checked-out` from the landing on the Spec
+branch above, which is the refusal wanted while the Spec is being integrated.
+
+**3. The rebase.** The integration above, in that tree, with `spec_upstream` as the developer's
+branch and the Spec branch as the branch that moves: the ancestor check, the rebase with conflict
+reuse off, the conflict loop of [conflict-loop.md](conflict-loop.md) at every stop, a contested
+hunk taking the **Target** side, here the developer's branch's. The Loss ledger is the path the
+claim printed as `ledger=`, `spec.ledger.md` beside the Spec, and never a Ticket's own ledger: a
+resume may come through any Ticket of the Spec, and it must find the same file. The ledger is
+judged and its reapplies brought back as the integration says.
+
+**4. The Post-feature gate and the flows.** The gate above, in that tree, with the full suites of
+the **Post-feature gate** added, after a rebase that replayed commits or brought a reapply back,
+and the affected E2E flows of the verification below, here and not after a Ticket's landing, since
+the developer's branch changes only here. A red gate stops the run as the integration's own red
+gate does.
+
+**5. The review.** The review below, called from that tree, with three of its arguments read off
+the claim: the spec source is the Spec, `spec=`, in the Ticket's place, so `do-code-review` reads
+the whole Spec and writes one Review beside it, `spec.review.md`; the fixed point is
+`spec_upstream`, the merge base the rebase left; the landing target is `spec_upstream`. The Gate,
+the review token, the Loss ledger when the rebase wrote one and the held Rulings go over as the
+review says. The review fixes its `Act on` Findings and, when the Review is Green, lands the Spec
+branch on the developer's branch by fast-forward. The return is read as the review says, and
+`not landed: target moved` is answered as it says, in the same run.
+
+**6. The release.** On `landed at <commit>` and on nothing else, the run leaves the tree with a
+bare `cd` to the main checkout, removes it with `git worktree remove <tree>`, and makes one call:
+
+```
+bash <skill-dir>/scripts/final-claim.sh release <the Ticket's path>
+```
+
+The script removes the Spec branch only when its tip is on its upstream, the proof that it
+landed, and deletes the claim file only when the branch was removed or already absent.
+`claim=released` with `removed=yes` is recorded for the Reply as `spec/<feature-slug> removed`.
+`claim=held` (exit 1) means the branch did not land after all or a worktree still holds it: the
+run stops as blocked with the `reason=` line quoted, and never deletes the branch or the claim
+file by hand.
+
+**A Final integration that stops.** A rebase question nobody answered, a red gate, a Review that
+did not land, a `not landed: target moved` the review section stops on: the run stops as blocked
+and makes no `release` call. The tree, the Spec branch and the claim file all stay in place, since
+they are what a later run resumes from, and the run's own Ticket stays `resolved`. The Reply says
+the Final integration stopped and why, and that `/do <the run's Ticket>`, or a `do` on any Ticket
+of the Spec, resumes it, per [reply.md](reply.md).
+
+Done when the Spec branch landed on the developer's branch, its tree is removed and the release
+read `claim=released`; or the claim read `taken` and the run ended; or the run stopped as blocked
+with its reason, the tree, the Spec branch and the claim left in place and named.
+
 ## The review
 
-A `ticket` run whose Ticket has a Spec branch never reaches this section: it lands by the landing
-on the Spec branch above. Every other run that builds in a worktree does.
+A `ticket` run whose Ticket has a Spec branch never reaches this section for its own branch: it
+lands by the landing on the Spec branch above. The Final integration above reaches it once per
+Spec, for the Spec branch. Every other run that builds in a worktree does.
 
 Run once per run, after the gate, and never by hand: the review fixes and lands, the run reads,
 and whatever the run commits after it lands through the fix call below, never a second review, per
@@ -865,6 +956,8 @@ above: the run never commits it and the worktree branch never touches it.
    on is not the run's to throw away, so the Reply's `Yours:` line, per [reply.md](reply.md),
    reads `destroy`, its choice keeping or dropping that work and then removing the worktree and
    its branch by hand, or leaving them.
+7. Where the Completion check of item 5 printed `verdict=complete`, go on to the final integration
+   above. Every other verdict ends the close here.
 
 Outside the chain there is no Ticket: the close is the worktree's removal alone. A run that stops
 as blocked before it reaches the close closes nothing: the Ticket stays `claimed`, the worktree

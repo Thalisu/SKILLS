@@ -182,6 +182,28 @@ Ticket that reads `ready-for-agent`. When every open Ticket is `claimed` by anot
 step says the Spec integrates when those runs land, and there is nothing to type. The same script
 tells the gate whether this is the feature's last Ticket, which is when the full suites run.
 
+The run that finds every Ticket `resolved` ships the Spec, in the same run: the Final integration.
+It first claims it, by creating `spec.integration.claim` beside the Spec, so two runs that both see
+the Spec complete never both integrate it. A run that finds the claim taken ends there: its own
+Ticket landed, its reply says the Spec is being integrated by another run, and there is nothing to
+type. The run that holds the claim checks `spec/<slug>` out in a worktree of its own,
+`.claude/worktrees/spec-<slug>`, and rebases it onto the branch it was cut from, your branch, with
+the same conflict rules as any integration: a contested hunk takes your branch's side and what it
+sets aside goes into the Loss ledger, here `spec.ledger.md` beside the Spec. The full suites and
+the affected flows run on that tree, since this is the only moment your branch changes. Then
+`do-code-review` reviews the whole Spec branch against your branch, with the Spec as its spec
+source, fixes its `Act on` Findings and lands the Spec branch on your branch by fast-forward when
+the Review is Green. Once it landed, the run removes that worktree and `spec/<slug>`, and releases
+the claim. The reply reads `Open: none`, the Integration line onto your branch, the review's
+return with `landed at <sha>`, and `spec/<slug> removed`, and its Next step is
+`git push <your branch>`
+([ADR 0061](adr/0061-the-review-runs-once-per-spec-on-its-spec-branch-before-it-lands.md)).
+
+A Final integration that stops (a rebase question nobody answered, a Review that did not land,
+`not landed: target moved`) leaves the Spec branch, its worktree and the claim in place. The reply
+says it stopped and why, and `/do <the run's Ticket>`, or a `do` on any Ticket of the Spec, resumes
+it.
+
 In every other run that builds, the branch goes to the review, once per run: the run hands it the gate's command line too, so
 the review's fixes are held to the same checks, and only the outcome comes back, never the Review's
 text. When your branch moved while the review ran and its landing met a hunk it does not take, the
