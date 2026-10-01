@@ -9,8 +9,8 @@
 # Prints key=value lines, in this order: ticket, spec_branch as `spec-branch.sh probe` prints it,
 # one spec_ticket=<NN> <status> <path> per Ticket of the folder in number order, the argument's own
 # included, one open=<NN> <status> <path> per Ticket not resolved (open=none when every one is),
-# next, last, then verdict. An ambiguous=<NN> <detail> line follows the spec_ticket line it concerns. What a
-# Ticket file is and what its status reads are ticket-read.sh's rules.
+# next, last, then verdict. An ambiguous=<NN> <detail> line follows the spec_ticket line it
+# concerns. What a Ticket file is and what its status reads are ticket-read.sh's rules.
 #
 # next, first match wins: the path of the first open Ticket reading ready-for-agent · none (nothing
 # is open) · wait (every open Ticket reads claimed, so other runs hold them) · ambiguous (nothing
@@ -23,8 +23,8 @@
 # A Ticket outside a feature folder's issues/ has no Spec behind it (spec_branch=none): its folder
 # is not walked, and the record reads spec_ticket=none, open=none, next=none, last=yes.
 #
-# verdict, first match wins: no-spec (spec_branch=none) · ambiguous (a Ticket's status cannot be read) · complete (every Ticket
-# reads resolved) · incomplete.
+# verdict, first match wins: no-spec (spec_branch=none) · ambiguous (a Ticket's status cannot be
+# read) · complete (every Ticket reads resolved) · incomplete.
 #
 # Exit codes: 0 the Spec's state was read · 1 ambiguous, with the lines above still printed ·
 # 2 usage, no file at the path, a path that is not one of the Tickets of its folder, or not a git
