@@ -87,6 +87,18 @@ unit test of this repo's scripts follows the Testing Policy below. The files are
 under the same rules as the prompting guidelines: refresh by re-fetching, never by hand, and a
 change to the set updates the index in the same change.
 
+## Claude Code guidelines
+
+`.agents/claude-code/` holds the guidelines for the instruction files Claude Code loads into a
+session: what belongs in a `CLAUDE.md`, how long it stays, where the files live and load from, and
+when an instruction moves to a path-scoped rule, a skill or a hook. One file per upstream page,
+indexed in its `README.md` with the upstream URL and the date it was fetched. Read `memory.md`
+before writing or restructuring a `CLAUDE.md` or a `.claude/rules/` file, this one or the one a
+setup skill writes into a project, and the "Write an effective CLAUDE.md" section of
+`best-practices.md` alongside it. The files are verbatim copies under the same rules as the
+prompting guidelines: refresh by re-fetching, never by hand, and a change to the set updates the
+index in the same change.
+
 ## Formats
 
 `.agents/formats/` holds the formats of the artifacts the skill chain shares (`CONTEXT.md`, an ADR,
