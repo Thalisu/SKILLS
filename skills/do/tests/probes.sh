@@ -183,6 +183,24 @@ check_lines "a resolved Ticket of a complete Spec whose Spec branch never existe
 expect "the stop on a Spec with no Spec branch writes nothing: no ref created or moved, no file created or changed" \
   test "$(door_state)" = "$before"
 g branch -D spec/done >/dev/null
+# A Spec branch other runs are still landing on is not the leftover of a stopped final integration:
+# while a Ticket of the Spec is open the door reads the Spec as not complete, whatever its branch holds.
+for open in claimed ready-for-agent; do
+  open_issues=".scratch/20260104-open-$open/issues"
+  mkdir -p "$open_issues"
+  (issues="$open_issues" && ticket 01-built.md '**Status:** resolved' 'None (can start immediately)' &&
+    ticket 02-pending.md "**Status:** $open" '01, Title of 01-built')
+  printf 'a review\n\n**Status:** resolved\n' >"$open_issues/01-built.review.md"
+  printf 'a digest\n' >"$open_issues/01-built.digest.md"
+  printf '# Plan\n\nthe steps\n' >"$open_issues/01-built.plan.md"
+  bash "$skill/scripts/spec-branch.sh" cut "$open_issues/01-built.md" >/dev/null 2>&1
+  g update-ref "refs/heads/spec/open-$open" \
+    "$(g commit-tree -p "spec/open-$open" -m "a Ticket's work, landed on the Spec branch" "spec/open-$open^{tree}")"
+  run "$door" "$open_issues/01-built.md"
+  check_lines "a resolved Ticket of a Spec with a Ticket still $open stops as resolved, the door reading the Spec as not complete though its Spec branch has not landed" 1 "$rc" \
+    "status=resolved" "spec_exists=yes" "spec_landed=no" "spec_complete=no" "verdict=resolved"
+  g branch -D "spec/open-$open" >/dev/null
+done
 run "$door" "$issues/03-third.md"
 check_lines "a blocker not resolved refuses the run, every blocker named" 1 "$rc" \
   "blocker=01 resolved $issues/01-first.md" "blocker=02 ready-for-agent $issues/02-second.md" "verdict=blocked"
