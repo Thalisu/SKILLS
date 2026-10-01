@@ -134,6 +134,18 @@ next=none
 last=yes
 verdict=no-spec"
 expect "a Ticket with no Spec behind it is read, with exit 0" test "$rc" = 0
+
+ticket loose-note.md '**Status:** claimed' 'None (can start immediately)'
+run "$issues/loose-note.md"
+same "a Ticket with no Spec behind it reads as the last Ticket with nothing open whatever its file name, including a name that is not <NN>-<slug>.md" \
+  "ticket=notes/loose-note.md
+spec_branch=none
+spec_ticket=none
+open=none
+next=none
+last=yes
+verdict=no-spec"
+expect "a Ticket with no Spec behind it and no number in its name is read, with exit 0" test "$rc" = 0
 rm -rf "$issues"
 issues="$spec_issues"
 

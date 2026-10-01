@@ -27,8 +27,8 @@
 # read) · complete (every Ticket reads resolved) · incomplete.
 #
 # Exit codes: 0 the Spec's state was read · 1 ambiguous, with the lines above still printed ·
-# 2 usage, no file at the path, a path that is not one of the Tickets of its folder, or not a git
-# repository.
+# 2 usage, no file at the path, a path in a feature folder's issues/ that is not one of the Tickets
+# of its folder, or not a git repository.
 set -uo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd -P)"
@@ -58,6 +58,14 @@ esac
   echo "no Ticket at $1" >&2
   exit 2
 }
+spec_branch="$(bash "$here/spec-branch.sh" probe "$path" | sed -n 's/^spec_branch=//p')"
+if [ "$spec_branch" = none ]; then
+  echo "ticket=${path#"$main"/}"
+  echo "spec_branch=none"
+  printf '%s\n' spec_ticket=none open=none next=none last=yes verdict=no-spec
+  exit 0
+fi
+
 folder="$(dirname "$path")"
 tickets="$(ticket_files "$folder")"
 grep -qxF -- "$path" <<<"$tickets" || {
@@ -66,12 +74,7 @@ grep -qxF -- "$path" <<<"$tickets" || {
 }
 
 echo "ticket=${path#"$main"/}"
-spec_branch="$(bash "$here/spec-branch.sh" probe "$path" | sed -n 's/^spec_branch=//p')"
 echo "spec_branch=$spec_branch"
-if [ "$spec_branch" = none ]; then
-  printf '%s\n' spec_ticket=none open=none next=none last=yes verdict=no-spec
-  exit 0
-fi
 
 open="" unreadable=0 ready="" last=yes
 while IFS= read -r file; do
