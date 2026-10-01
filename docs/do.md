@@ -13,7 +13,9 @@ The three Playbooks that build never land their own work and never fix what a re
 builds in a git worktree of its own, one behaviour per green commit, runs the gate, and hands the
 branch to [do-code-review](do-code-review.md), which fixes the Findings it marked `Act on` and
 fast-forwards your branch when the **Review** is Green, so your branch takes reviewed commits or
-none. `integrate` rebases or merges your own branches in place, with the same conflict loop, and
+none. A `ticket` run of a **Spec** is the one exception: it calls no review, its own gate is its
+check, and it lands its branch on the **Spec branch** itself, which is reviewed once after the
+Spec's last Ticket lands, so your branch still takes nothing unreviewed. `integrate` rebases or merges your own branches in place, with the same conflict loop, and
 stops there: no review, no landing. `trivial` commits in place on your branch, with no worktree and no review, because a change
 no test could tell before from after has the existing suite as its whole gate. Nothing is pushed.
 The run ends on the `git push` for you to type when something landed on your branch, and on the
@@ -72,7 +74,7 @@ and the links, so a run loads one Playbook and never the other four
 
 | Playbook | Matched by | What the run does |
 |---|---|---|
-| `ticket` | a Ticket's path, or an issue reference the tracker file resolves | claims the Ticket in your checkout, builds it in a worktree behaviour by behaviour, gates, reviews, runs the affected flows, and closes the Ticket with the evidence quoted under it |
+| `ticket` | a Ticket's path, or an issue reference the tracker file resolves | claims the Ticket in your checkout, builds it in a worktree behaviour by behaviour, gates, rebases onto the Spec branch and lands there with no review (a Ticket with no Spec is reviewed and lands on your branch, then its affected flows run), and closes the Ticket with the evidence quoted under it |
 | `bug-fix` | a defect in words: what happened, where, and the error or the wrong output | reproduces it on the surface it happens on, rules hypotheses out with runtime evidence, commits the failing reproduction before the smallest fix, and verifies on that same surface |
 | `refactoring` | a reshape in words whose behaviour stays where it is | pins the behaviour before any structure moves, then commits subtraction, reshape and cleanup in that order, so one revert undoes one slice |
 | `integrate` | a rebase of one branch onto another, or a merge of one branch into another, in words | checks the branches exist, that a merge target is not protected, that you stand on the branch written to and that your tree is clean, then runs the operation, resolves the mechanical hunks and takes the target side of the contested ones, leaving what they set aside in a Loss ledger keyed by the branch. No worktree, no Gate, no review, nothing landed or pushed: the reply names the unchecked tree as debt for you to test before the push |
@@ -160,7 +162,19 @@ either question stops the run as blocked. Unlike a fresh run, it leaves that reb
 than aborting it, since the stop may hold a resolution you staged, and the worktree and its branch
 stay in place.
 
-Then the branch goes to the review, once per run: the run hands it the gate's command line too, so
+In a `ticket` run of a Spec the branch then lands on the Spec branch, with no review. The run
+rebases it onto `spec/<slug>`, a contested hunk taking the Spec branch's side and what it sets
+aside going into the Loss ledger, and one script call moves the Spec branch's ref forward under the
+landing lock, so two Tickets landing at once never both pass. The one that lost reads `moved`,
+integrates again onto the new tip, gates and lands, for as long as the tip keeps changing. A Spec
+branch checked out in any worktree is refused: the reply reads
+`not landed: spec/<slug> is checked out in <worktree>`, the Ticket stays `claimed` with its
+worktree in place, and switching that checkout off the branch and running `/do <ticket>` again
+resumes at the landing. A landed run's reply carries `landed at <sha> on spec/<slug>` and
+`Review: none, the Spec is reviewed once its last Ticket lands`
+([ADR 0060](adr/0060-a-ticket-lands-on-its-spec-branch-and-do-lands-it-there-itself.md)).
+
+In every other run that builds, the branch goes to the review, once per run: the run hands it the gate's command line too, so
 the review's fixes are held to the same checks, and only the outcome comes back, never the Review's
 text. When your branch moved while the review ran and its landing met a hunk it does not take, the
 review comes back `not landed: target moved` and the same run integrates once more onto your moved
