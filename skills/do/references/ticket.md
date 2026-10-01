@@ -119,8 +119,10 @@ Review with no `.review.marker` beside it naming the same commit, so nothing tie
 review the run's own review step ran), since only a
 finished review of this branch spares a second one, and a `verdict=` line, `build`
 (exit 0), `ask` (exit 1, uncommitted work), `integration` (exit 3, a rebase left open, with the
-`stopped=`, `onto=`, `tip=`, `staged=` and `stop=` lines that say what it holds) or `land`
-(exit 4, the review already read the branch). The Ticket is not written: the claim stands.
+`stopped=`, `onto=`, `tip=`, `staged=` and `stop=` lines that say what it holds), `land`
+(exit 4, the review already read the branch) or `extreme` (exit 5, the sidecar an Extreme stop
+left is beside the Ticket, with the `extreme=` and `discuss=` lines that carry it). The Ticket is
+not written: the claim stands.
 Exit 2 after the door's `resume` is a worktree on a detached HEAD with no rebase open:
 the run stops as blocked in one line naming the worktree and the script's reason, writes nothing,
 and leaves the worktree as it is, since no branch can be read from it to build on.
@@ -130,6 +132,20 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   with its `Behaviour:` line, off the script's lines. The claim line is not written again. The
   Reply's Run section carries the checklist with steps 0 and 2 reading `done: resumed`.
 - The worktree is entered, never created: a second worktree is never made.
+- An `extreme=` line means an earlier run stopped on an Extreme fork and left its sidecar, per the
+  forks in [forks.md](forks.md). It is read on `verdict=extreme` and on `verdict=ask` alike, since
+  the script prints `ask` first and a Builder stopped mid-behaviour can leave uncommitted work. The
+  door's Digest decision settles it before anything below runs:
+  - Both hashes match: nothing the fork stands on moved, so the run stops again as blocked, by the
+    blocked shape of [reply.md](reply.md). The reply names what the Extreme stop names, the fork's
+    own facts read off the `discuss=` line and the commits off the script's `commit=` lines, and
+    its last line is the `discuss=` line whole. The run forks no Planner, no Builder and no
+    `choice-taker`, since judging the fork a second time could read it the other way, and it asks
+    nothing about uncommitted work, since a stopped run discards none.
+  - A hash differs: the Spec was amended, by `discuss` or by hand, and the recorded command asks a
+    question that may no longer stand. The run removes the sidecar, a write of the session's in
+    the main checkout, and goes on as the amended-Spec bullet below says, with `verdict=extreme`
+    read as `build` and `verdict=ask` handled by its own bullet.
 - On every verdict but `land`, the Plan step runs again as step 1 says, unless `review=` names a
   Review, which skips it as the `verdict=land` bullet says: the run hashes the Ticket and the Digest afresh and
   reuses the Plan beside the Ticket while its `## Sources` section is still exactly those two
@@ -254,8 +270,8 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   behaviour without a commit, building the side the Spec now takes. A criterion an earlier Ruling
   rewrote to the side the developer's edit reversed is met at step 1 as a Design fork against the
   edited line, as the forks in [forks.md](forks.md) say. After an Extreme stop with the Spec
-  unchanged, both hashes match and the resume meets the same fork at the same step, and stops with
-  the same reply and the same `/discuss` command.
+  unchanged, both hashes match and the resume stops on the sidecar's `discuss=` line, as the
+  `extreme=` bullet above says.
 
 ## Checklist
 
