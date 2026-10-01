@@ -4,6 +4,10 @@
 #
 #   land-spec.sh <main checkout> <Spec branch> <branch>
 #
+# Holds the landing lock of ADR 0043 in the git common directory from the checked-out read to the
+# end of the ref update, so two runs landing at once never both pass the ancestry check: the loser
+# reads moved. The operating system frees the lock when the process ends.
+#
 # Prints one line: landed <sha> when the Spec branch's ref was moved to the tip of the branch ·
 # moved <sha> when the Spec branch holds a commit the branch lacks, <sha> the tip it met ·
 # checked-out <worktree> when a worktree, the main checkout included, has the Spec branch checked
@@ -23,6 +27,11 @@ failed() {
 }
 [ "$#" -eq 3 ] || usage
 main="$1" spec="$2" branch="$3"
+
+# The lock file land.sh opens, so a landing here and one on the developer's branch serialize too.
+lock="$(git -C "$main" rev-parse --path-format=absolute --git-common-dir)/do-landing.lock"
+exec 9>"$lock"
+flock 9
 
 holder="$(git -C "$main" worktree list --porcelain |
   awk -v b="branch refs/heads/$spec" '/^worktree /{ p = substr($0, 10) } $0 == b { print p; exit }')"

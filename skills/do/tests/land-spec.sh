@@ -125,6 +125,47 @@ check_lines "a Spec branch the Main checkout is switched onto is refused: exit 4
 expect "a Spec branch the Main checkout is switched onto keeps its ref where it was" \
   test "$(g -C "$repo" rev-parse refs/heads/spec/feature)" = "$spec_tip"
 
+# The window between one landing's read of the Spec branch and its ref update is a few git calls
+# wide, so one round may miss it: each round races a fresh pair on a fresh Spec branch of one
+# repository, whose landing lock they all share.
+fresh race
+repo="$tmp/race"
+printf 'base\n' >README.md
+commit base
+echo ".claude/worktrees/" >>.git/info/exclude
+rounds=30
+bad=""
+for r in $(seq "$rounds"); do
+  g -C "$repo" branch "spec/r$r"
+  for side in a b; do
+    wt="$(branch_worktree "$repo" "r$r$side")"
+    printf '%s\n' "$side$r" >"$wt/$side$r.txt"
+    g -C "$wt" add -A && g -C "$wt" commit -qm "$side$r"
+  done
+  tip_a="$(g -C "$repo" rev-parse "refs/heads/do/r${r}a")"
+  tip_b="$(g -C "$repo" rev-parse "refs/heads/do/r${r}b")"
+  for side in a b; do
+    (
+      cd "$tmp" && bash "$script" "$repo" "spec/r$r" "do/r$r$side" >"$tmp/r$r$side.out" 2>&1
+      echo "$?" >"$tmp/r$r$side.rc"
+    ) &
+  done
+  wait
+  ra="$(cat "$tmp/r${r}a.rc") $(cat "$tmp/r${r}a.out")"
+  rb="$(cat "$tmp/r${r}b.rc") $(cat "$tmp/r${r}b.out")"
+  spec_tip="$(g -C "$repo" rev-parse "refs/heads/spec/r$r")"
+  if [ "$ra" = "0 landed $tip_a" ] && [ "$rb" = "1 moved $tip_a" ] && [ "$spec_tip" = "$tip_a" ]; then
+    :
+  elif [ "$rb" = "0 landed $tip_b" ] && [ "$ra" = "1 moved $tip_b" ] && [ "$spec_tip" = "$tip_b" ]; then
+    :
+  else
+    bad="${bad}round $r: a $tip_a exit $ra | b $tip_b exit $rb | Spec branch $spec_tip"$'\n'
+  fi
+done
+# shellcheck disable=SC2034  # lib.sh's same reads $out
+out="${bad%$'\n'}"
+same "two landings at once on one Spec branch: one lands its tip, the other reports moved on that tip, the Spec branch ends there" ""
+
 echo
 if [ "$fails" = 0 ]; then echo "land-spec: all checks passed"; else
   echo "land-spec: $fails failed"
