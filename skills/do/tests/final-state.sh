@@ -148,4 +148,29 @@ run "$issues/01-first.md"
 check_lines "a Review beside the Spec of a commit the Spec branch has been at, every Axis run and its marker holding the stored token, sends the resume to the landing, never to a second review" 4 "$rc" \
   "worktree=present" "rebase=none" "review=$feature/spec.review.md" "verdict=land"
 
+# The same Review, with the review step's own write taken away one side at a time: the commit it
+# names is a fact anything holding the worktree can copy, so only the stored token says who wrote it.
+echo "# final-state.sh: a Review no review step's marker stands behind"
+rm "$feature/spec.review.marker"
+run "$issues/01-first.md"
+check_lines "a Review beside the Spec with no marker is not trusted, is named as skipped, and the resume integrates and reviews again" 0 "$rc" \
+  "review_skipped=unmarked $feature/spec.review.md" "review=none" "verdict=restart"
+absent "a Review beside the Spec with no marker never sends the resume to the landing" "verdict=land"
+
+printf '%s\n' "$reviewed" >"$feature/spec.review.marker"
+run "$issues/01-first.md"
+check_lines "a Review beside the Spec whose marker holds the commit it names, and not the stored token, is not trusted, is named as skipped, and the resume integrates and reviews again" 0 "$rc" \
+  "review_skipped=unmarked $feature/spec.review.md" "review=none" "verdict=restart"
+absent "a Review beside the Spec whose marker holds another value never sends the resume to the landing" "verdict=land"
+
+printf '%s\n' "$token" >"$feature/spec.review.marker"
+bash "$token_script" revoke "$slug" >/dev/null 2>&1 || {
+  echo "FAIL  fixture: the token stored under the slug the state prints as token_slug could not be revoked"
+  exit 1
+}
+run "$issues/01-first.md"
+check_lines "a Review beside the Spec whose marker stands with no token stored is not trusted, is named as skipped, and the resume integrates and reviews again" 0 "$rc" \
+  "review_skipped=unmarked $feature/spec.review.md" "review=none" "verdict=restart"
+absent "a Review beside the Spec whose marker outlived its token never sends the resume to the landing" "verdict=land"
+
 [ "$fails" = 0 ]
