@@ -36,8 +36,8 @@
 # file itself carries, the commit its header names included, is a fact anything holding the worktree
 # can copy off the branch, while the token is minted after the Builder returns and revoked before
 # another is forked, so a Review and a marker that merely appeared while a fork held the tree are
-# unmarked and the review runs. A missing token is a miss, so the check fails closed. The rebase reads
-# are resume-read.sh's, shared with final-state.sh. It only reads: the ask before a
+# unmarked and the review runs. A missing token is a miss, so the check fails closed. The rebase and
+# Review reads are resume-read.sh's, shared with final-state.sh. It only reads: the ask before a
 # discard is the run's, never this script's, and so is the sidecar's write: this script never
 # writes one.
 #
@@ -63,9 +63,6 @@ top="$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "not a git reposito
 main="$(git worktree list --porcelain 2>/dev/null |
   awk '/^$/ { exit } /^worktree /{ p = substr($0, 10) } /^bare$/ { p = "" } END { print p }')"
 [ -n "$main" ] && [ -d "$main" ] || main="$top"
-# Shared by the main checkout and every worktree of it, so the token the session wrote from either
-# is the one this script reads, and it is not a path the project commits.
-common="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)" || common="$main/.git"
 
 case "$1" in
   /*) path="$1" ;;
@@ -128,50 +125,8 @@ while IFS= read -r line; do
   echo "uncommitted=$line"; dirty=1
 done < <(git -C "$wt" -c core.quotePath=true status --short)
 [ "$rebase" != open ] || rebase_stop "$wt" "$base_ref"
-# The token the review step stored for this run. It lives under the clone's git dir, never under
-# .scratch/, it is written only after the Builder has returned, and the build step revokes it before
-# a Builder is forked, so at the one moment a fork holds a shell in the worktree there is no token
-# on disk to copy into a marker of its own.
-token_file="$common/do/review-token/$slug"
-marked() { # true when the marker beside the Review holds the token the review step stored
-  local line stored
-  line="$(head -1 "${review%.md}.marker" 2>/dev/null | tr -d '[:space:]')"
-  stored="$(head -1 "$token_file" 2>/dev/null | tr -d '[:space:]')"
-  # A missing token is a miss, so a Review nothing vouched for costs a second review and never a
-  # landing: the check has to fail closed, since its yes skips the review entirely.
-  [ -n "$line" ] && [ -n "$stored" ] && [ "$line" = "$stored" ]
-}
 review="${path%.md}.review.md"
-skipped=""
-if [ -f "$review" ]; then
-  reviewed="$(sed -n 's/^Commit: \([0-9a-f]\{4,\}\).*/\1/p' "$review" | head -1)"
-  # A rebase rewrites the commit the review read, so ancestry cannot tie a Review to this branch;
-  # the branch's reflog keeps every commit it has been at, rebased away or not, while a branch made
-  # again for a run that started over begins a fresh one. grep without -q reads to the end, so git
-  # never dies of SIGPIPE and pipefail never turns a match into a miss.
-  # The reflog's oldest entry is the commit the branch was created at: a branch made again from an
-  # unmoved HEAD has been at the commit an earlier branch's Review names, yet that Review read none
-  # of this branch's own commits.
-  created="$(git -C "$wt" log -g --format=%H "refs/heads/$branch" 2>/dev/null | tail -1)"
-  if [ -z "$reviewed" ] || ! git -C "$wt" log -g --format=%H "refs/heads/$branch" 2>/dev/null |
-    grep "^$reviewed" >/dev/null ||
-    { [ -n "$created" ] && git -C "$wt" merge-base --is-ancestor "$reviewed" "$created" 2>/dev/null; }; then
-    skipped="stale $review"
-  elif grep -E '^- (Correctness|Spec|Standards|Principles|Blast radius|Security): not run' "$review" >/dev/null; then
-    skipped="axis-not-run $review"
-  elif ! marked; then
-    # Every other fact about a Review is one its own text carries, and a file's text proves nothing
-    # about who wrote it: a fork that wrote `<Ticket>.review.md` with a sha off the branch it just
-    # built would be read as a review that ran. The marker is the review step's own write, at a path
-    # under .scratch/ no Builder reaches, so a Review nothing else vouched for skips the landing.
-    skipped="unmarked $review"
-  fi
-  [ -z "$skipped" ] || review=none
-else
-  review=none
-fi
-[ -z "$skipped" ] || echo "review_skipped=$skipped"
-echo "review=$review"
+review_lines "$review" "$wt" "$branch" "$slug"
 
 extreme="${path%.md}.extreme.md"
 if [ -f "$extreme" ]; then

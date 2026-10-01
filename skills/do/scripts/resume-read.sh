@@ -20,7 +20,20 @@
 # moved=<continue | ask>: continue when no dropped= line printed, since the target only moved
 # forward and a continue lands again nothing it no longer holds, ask when one did.
 
-# shellcheck disable=SC2034 # rebase and branch are read by the sourcing script.
+#
+#   review_skip <Review path> <worktree> <branch> <token slug>
+#                                        sets skipped to nothing when the Review counts, else to
+#                                        why it does not: stale, axis-not-run or unmarked
+#   review_lines <the same four>         prints review_skipped=<why> <path> when the Review is
+#                                        there and does not count, then review=<path | none>, and
+#                                        sets review to the path printed
+#
+# A Review counts when the commit its Commit: header names is one the branch has been at, read off
+# the branch's reflog, is not reachable from the commit the branch was created at, the reflog's
+# oldest entry, none of its Axis lines reads not run, and the .marker beside it holds the token the
+# review step stored at <git common dir>/do/review-token/<token slug>.
+
+# shellcheck disable=SC2034 # rebase, branch, skipped and review are read by the sourcing script.
 rebase_open() { # $1 worktree
   rebase=none
   branch="$(cd "$1" && for d in rebase-merge rebase-apply; do
@@ -75,4 +88,50 @@ rebase_stop() { # $1 worktree, $2 target ref
   elif [ -n "$conflicted" ]; then
     echo "stop=conflicted"
   else echo "stop=resolved"; fi
+}
+
+review_skip() { # $1 Review path, $2 worktree, $3 branch, $4 token slug
+  local reviewed created common line stored
+  skipped=""
+  reviewed="$(sed -n 's/^Commit: \([0-9a-f]\{4,\}\).*/\1/p' "$1" | head -1)"
+  # A rebase rewrites the commit the review read, so ancestry cannot tie a Review to this branch;
+  # the branch's reflog keeps every commit it has been at, rebased away or not, while a branch made
+  # again for a run that started over begins a fresh one. grep without -q reads to the end, so git
+  # never dies of SIGPIPE and pipefail never turns a match into a miss.
+  # The reflog's oldest entry is the commit the branch was created at: a branch made again from an
+  # unmoved HEAD has been at the commit an earlier branch's Review names, yet that Review read none
+  # of this branch's own commits.
+  created="$(git -C "$2" log -g --format=%H "refs/heads/$3" 2>/dev/null | tail -1)"
+  if [ -z "$reviewed" ] || ! git -C "$2" log -g --format=%H "refs/heads/$3" 2>/dev/null |
+    grep "^$reviewed" >/dev/null ||
+    { [ -n "$created" ] && git -C "$2" merge-base --is-ancestor "$reviewed" "$created" 2>/dev/null; }; then
+    skipped=stale
+    return
+  fi
+  if grep -E '^- (Correctness|Spec|Standards|Principles|Blast radius|Security): not run' "$1" >/dev/null; then
+    skipped=axis-not-run
+    return
+  fi
+  # Every other fact about a Review is one its own text carries, and a file's text proves nothing
+  # about who wrote it: a fork that wrote the Review with a sha off the branch it just built would
+  # be read as a review that ran. The marker is the review step's own write, at a path under
+  # .scratch/ no Builder reaches, and the token lives under the clone's git dir, shared by the main
+  # checkout and every worktree of it, is written only after the Builder has returned and is
+  # revoked before a Builder is forked, so at the one moment a fork holds a shell in the worktree
+  # there is no token on disk to copy into a marker of its own.
+  common="$(git -C "$2" rev-parse --path-format=absolute --git-common-dir 2>/dev/null)"
+  line="$(head -1 "${1%.md}.marker" 2>/dev/null | tr -d '[:space:]')"
+  stored="$(head -1 "$common/do/review-token/$4" 2>/dev/null | tr -d '[:space:]')"
+  # A missing token is a miss, so a Review nothing vouched for costs a second review and never a
+  # landing: the check has to fail closed, since its yes skips the review entirely.
+  [ -n "$line" ] && [ -n "$stored" ] && [ "$line" = "$stored" ] || skipped=unmarked
+}
+
+review_lines() { # $1 Review path, $2 worktree, $3 branch, $4 token slug
+  review=none
+  if [ -f "$1" ]; then
+    review_skip "$@"
+    if [ -n "$skipped" ]; then echo "review_skipped=$skipped $1"; else review="$1"; fi
+  fi
+  echo "review=$review"
 }

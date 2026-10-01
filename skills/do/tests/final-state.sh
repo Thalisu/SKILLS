@@ -114,4 +114,38 @@ check_lines "the Spec branch's upstream gaining a commit while the rebase is ope
 expect "a rebase whose upstream moved is read as moved only, never as resolved" \
   test "$(term stop)" = moved
 
+# A Final integration that stopped after its review: the rebase finished onto the upstream's tip, the
+# review step read the Spec branch there and left its Review, marker and token, and nothing landed.
+echo "# final-state.sh: a Spec branch the review already read"
+token_script="$here/../scripts/review-token.sh"
+g -C "$tree" rebase --abort >/dev/null 2>&1
+g -C "$tree" -c rerere.enabled=false rebase feat/work >/dev/null 2>&1
+printf 'one\ntwo\nresolved\n' >"$tree/notes.txt"
+git -C "$tree" add notes.txt
+GIT_EDITOR=true g -C "$tree" rebase --continue >/dev/null 2>&1
+# REBASE_HEAD outlives a rebase that finished, so the worktree back on its branch is what says none is open.
+{
+  test -z "$(git -C "$tree" status --short)" &&
+    test "$(git -C "$tree" symbolic-ref --short HEAD)" = spec/my-feature &&
+    git merge-base --is-ancestor feat/work spec/my-feature &&
+    test "$(git rev-parse spec/my-feature)" != "$(git rev-parse feat/work)"
+} || {
+  echo "FAIL  fixture: the Spec branch could not be left rebased onto its upstream, its worktree clean and no rebase open"
+  exit 1
+}
+run "$issues/01-first.md"
+slug="$(term token_slug)"
+reviewed="$(git rev-parse --short spec/my-feature)"
+review_at "$reviewed" "$feature/spec.review.md"
+token="$(bash "$token_script" new "$slug" 2>/dev/null)"
+[ -n "$slug" ] && [ -n "$token" ] || {
+  echo "FAIL  fixture: no token could be minted under the slug the state prints as token_slug"
+  exit 1
+}
+printf '%s\n' "$token" >"$feature/spec.review.marker"
+
+run "$issues/01-first.md"
+check_lines "a Review beside the Spec of a commit the Spec branch has been at, every Axis run and its marker holding the stored token, sends the resume to the landing, never to a second review" 4 "$rc" \
+  "worktree=present" "rebase=none" "review=$feature/spec.review.md" "verdict=land"
+
 [ "$fails" = 0 ]
