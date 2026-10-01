@@ -27,6 +27,7 @@ inspects that question instead.
 | `runnable-branch-ruled-unseen` | under `--auto`, a branch marked runnable is forked to the `choice-taker` with its candidates described in words, no `prototype` agent is forked, and its `Rulings` line reads `runnable, ruled unseen` with the `/prototype` command that would show it |
 | `undefined-term-ruling-asks-the-developer` | under `--auto`, a `choice-taker` stand-in that returns `settled` on a handed option with a norm in a term the fixture's `CONTEXT.md` never defines is no ruling: the branch is put to the developer as one question naming the term, the stand-in is forked once, and nothing is written, the term included |
 | `choice-taker-unreachable-asks-the-developer` | under `--auto`, with the Agent tool listing no `choice-taker`, the branch it cannot rule is put to the developer as one question naming the reason, with no other agent forked in its place and no row read as ruled |
+| `agent-tool-withheld-asks-the-developer` | under `--auto`, with the Agent tool denied by the fixture's own settings, the branch the session cannot fork a `choice-taker` for is put to the developer as one question naming the Agent tool as the reason, with no agent forked and no row read as ruled |
 
 A `PROTOTYPE ask` answered by resuming the agent has no case either: the ask reaches the user only
 after the brief was sent, so the run has already ended at that question.
