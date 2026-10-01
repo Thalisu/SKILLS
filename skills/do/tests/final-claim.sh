@@ -16,6 +16,19 @@ run() {
   # shellcheck disable=SC2034  # lib.sh's check_lines reads $out
   out="$(bash "$script" "$@" 2>&1)" || rc=$?
 }
+race_claims() { # $1 a tag naming the round's files: a claim from each of 01-first and 02-second of $issues, started together; each side's exit and claim= line, sorted, on stdout
+  local side
+  for side in 01-first 02-second; do
+    (
+      bash "$script" claim "$issues/$side.md" >"$tmp/$1-$side.out" 2>&1
+      echo "$?" >"$tmp/$1-$side.rc"
+    ) &
+  done
+  wait
+  for side in 01-first 02-second; do
+    echo "$(cat "$tmp/$1-$side.rc") $(grep '^claim=' "$tmp/$1-$side.out" | tr '\n' ' ')"
+  done | sort
+}
 
 fresh main
 printf '.scratch/\n' >.gitignore
@@ -70,16 +83,7 @@ rounds=30
 bad=""
 for r in $(seq "$rounds"); do
   rm -f "$feature/spec.integration.claim"
-  for side in 01-first 02-second; do
-    (
-      bash "$script" claim "$issues/$side.md" >"$tmp/r$r-$side.out" 2>&1
-      echo "$?" >"$tmp/r$r-$side.rc"
-    ) &
-  done
-  wait
-  answers="$(for side in 01-first 02-second; do
-    echo "$(cat "$tmp/r$r-$side.rc") $(grep '^claim=' "$tmp/r$r-$side.out" | tr '\n' ' ')"
-  done | sort)"
+  answers="$(race_claims "r$r")"
   [ "$answers" = $'0 claim=claimed \n1 claim=taken ' ] ||
     bad="${bad}round $r: ${answers//$'\n'/| }"$'\n'
 done
@@ -205,6 +209,34 @@ check_lines "a claim that took over a yielded claim shows held, naming the new T
   "claim=held" \
   "file=$stopped/spec.integration.claim" \
   "holder_ticket=$issues/02-second.md"
+
+# Each round yields the claim its last winner holds, then races a fresh pair of takeovers over it.
+bad=""
+bad_takeover=""
+bad_holder=""
+for r in $(seq "$rounds"); do
+  run show "$issues/01-first.md"
+  bash "$script" yield "$(term holder_ticket)" >/dev/null 2>&1
+  answers="$(race_claims "t$r")"
+  [ "$answers" = $'0 claim=claimed \n1 claim=taken ' ] ||
+    bad="${bad}round $r: ${answers//$'\n'/| }"$'\n'
+  winner=""
+  for side in 01-first 02-second; do
+    [ "$(cat "$tmp/t$r-$side.rc")" != 0 ] || winner="$winner$side"
+  done
+  grep -qx 'takeover=yes' "$tmp/t$r-$winner.out" 2>/dev/null ||
+    bad_takeover="${bad_takeover}round $r: winner ${winner:-none}"$'\n'
+  run show "$issues/01-first.md"
+  [ "$(term claim) $(term holder_ticket)" = "held $issues/$winner.md" ] ||
+    bad_holder="${bad_holder}round $r: winner ${winner:-none}, shown $(term claim) $(term holder_ticket)"$'\n'
+done
+out="${bad%$'\n'}"
+same "of two takeovers of one yielded claim at once, exactly one reads claimed and the other reads taken" ""
+out="${bad_takeover%$'\n'}"
+same "of two takeovers of one yielded claim at once, the one that reads claimed says it took the claim over" ""
+# shellcheck disable=SC2034  # lib.sh's same reads $out
+out="${bad_holder%$'\n'}"
+same "of two takeovers of one yielded claim at once, the claim then shows held by the Ticket that read claimed" ""
 
 # A Spec of its own, held by a Ticket whose path carries a space: the yield command a refused
 # claimant prints is pasted into a shell, which splits an unquoted path there.
