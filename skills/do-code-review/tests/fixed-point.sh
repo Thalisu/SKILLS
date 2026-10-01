@@ -660,6 +660,19 @@ run --spec .scratch/20260930-export/spec.md
 check_lines "a Spec handed over is printed as the run's spec and marked as handed" 0 "$rc" \
   "spec=.scratch/20260930-export/spec.md" "spec_handed=yes"
 
+# A Spec the door finds itself was handed over by nobody, whichever way the door reached it: beside
+# a Ticket the caller handed, or through the branch's own slug. The Review keeps the home it had.
+mkdir .scratch/20260930-export/issues && printf '# 01: Export\n' >.scratch/20260930-export/issues/01-export.md
+run --ticket .scratch/20260930-export/issues/01-export.md
+check_lines "a Spec found beside a handed Ticket is never marked as handed" 0 "$rc" \
+  "spec=.scratch/20260930-export/spec.md" "spec_handed=no" \
+  "review=.scratch/20260930-export/issues/01-export.review.md"
+rm -r .scratch/20260930-export/issues
+git checkout -q -b export
+run
+check_lines "a Spec the door finds itself is never marked as handed" 0 "$rc" \
+  "spec=.scratch/20260930-export/spec.md" "spec_handed=no" "review=.scratch/reviews/export.md"
+
 if [ "$fails" = 0 ]; then echo "PASS"; else
   echo "$fails failing"
   exit 1
