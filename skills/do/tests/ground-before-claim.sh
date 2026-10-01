@@ -303,4 +303,31 @@ carries_any "step 2 hashes the Ticket before it writes the claim" \
 carries_any "a Ticket that no longer matches the last recorded value stops step 2 with nothing claimed" \
   "nothing claimed" "no claim is written" "the claim is not written" "without writing the claim"
 
+echo "# skills/do/references/ticket.md: a first run's diagnosis worktree starts from a ref that exists"
+
+# The diagnosis-first branch cuts step 2's worktree in step 1, before the claim and so before step
+# 2 cuts the Spec branch. On a first run (`spec_exists=no`) `spec/<feature-slug>` is not there yet:
+# a Playbook naming it as the start point hands the run a `git worktree add` that dies on an
+# invalid reference, and the run gets no diagnosis tree or invents a base. HEAD is the tip the Spec
+# branch's cut takes later, so the worktree still sits at the tip of its Spec branch.
+head_start=("main checkout's HEAD" "the checkout's HEAD" "from HEAD" "from the current HEAD"
+  "at HEAD" "from \`HEAD\`" "checkout's \`HEAD\`")
+paragraphs_of() { awk 'BEGIN { RS = "" } { gsub(/\n/, " "); print }' | tr -s ' '; }
+
+flat="$(passage_of "$playbook" "**1. Plan.**" "**2. Claim and worktree.**" | paragraphs_of |
+  grep -F -e "a tree of its own" -e "created and entered first" -e "worktree is created first")"
+expect "step 1 carries the paragraph that cuts the diagnosis worktree before the claim" test -n "$flat"
+
+carries_each "on \`spec_exists=no\`, step 1 cuts the diagnosis worktree from the main checkout's HEAD" \
+  "spec_exists=no" -- "${head_start[@]}"
+
+flat="$(passage_of "$playbook" "**2. Claim and worktree.**" "**3. Build.**" | paragraphs_of |
+  grep -F "git worktree add")"
+at="$(first_at "diagnosis branch" "diagnosis-first branch" "diagnosis first")"
+flat="${flat:$((at > 0 ? at - 1 : ${#flat}))}"
+expect "step 2's worktree paragraph names the diagnosis branch's worktree" test -n "$flat"
+
+carries_each "step 2 reads the diagnosis worktree a first run made as cut from the checkout's HEAD" \
+  "first run" "spec_exists=no" -- "${head_start[@]}"
+
 exit $((fails > 0))
