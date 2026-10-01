@@ -36,6 +36,13 @@ the run calls for its `main_checkout=` and `slug=` lines takes that same short s
 refusals, which all end `nothing reviewed`, reach the caller ending `nothing fixed`: this call
 reviewed nothing.
 
+A Review whose header reads `Spec: <path>` was written beside a Spec a caller handed over, and the
+door script knows that Review as the run's own file only when it is told that Spec. So the call
+runs it with `--spec <that path>` beside the short sha
+(`bash skills/do-code-review/scripts/fixed-point.sh <short sha> --spec <path>`), and `dirty=no`
+holds with only that Review untracked. Without the flag the door reads the Review as the
+developer's uncommitted work and the call refuses.
+
 Each is one line and the run stops there: no worktree, no Fixer, nothing is written, and the reply
 is that line alone. The clean check is the door script's `dirty=` line and never a bare status,
 because the Review the run is about to append to is untracked in most projects and a bare status
