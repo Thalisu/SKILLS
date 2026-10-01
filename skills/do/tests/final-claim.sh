@@ -61,4 +61,27 @@ expect "a second claim of the same Spec dates the claim it lost to with a UTC ti
 expect "a second claim of the same Spec leaves the claim file as the first claimant wrote it" \
   cmp -s "$tmp/claim.first" "$feature/spec.integration.claim"
 
+# The window between a claim's look for the claim file and its creation is narrow, so one round
+# may miss it: each round races a fresh pair over the Spec with its claim file removed.
+rounds=30
+bad=""
+for r in $(seq "$rounds"); do
+  rm -f "$feature/spec.integration.claim"
+  for side in 01-first 02-second; do
+    (
+      bash "$script" claim "$issues/$side.md" >"$tmp/r$r-$side.out" 2>&1
+      echo "$?" >"$tmp/r$r-$side.rc"
+    ) &
+  done
+  wait
+  answers="$(for side in 01-first 02-second; do
+    echo "$(cat "$tmp/r$r-$side.rc") $(grep '^claim=' "$tmp/r$r-$side.out" | tr '\n' ' ')"
+  done | sort)"
+  [ "$answers" = $'0 claim=claimed \n1 claim=taken ' ] ||
+    bad="${bad}round $r: ${answers//$'\n'/| }"$'\n'
+done
+# shellcheck disable=SC2034  # lib.sh's same reads $out
+out="${bad%$'\n'}"
+same "of two claims of one Spec started at the same time, exactly one reads claimed and the other reads taken" ""
+
 [ "$fails" = 0 ]
