@@ -750,6 +750,31 @@ check "a Spec handed together with a Ticket is a usage error" 2 "$rc" "$usage"
 run --ticket .scratch/20260930-export/issues/01-export-step.md --spec .scratch/20260930-export/spec.md
 check "a Ticket handed together with a Spec is a usage error" 2 "$rc" "$usage"
 
+# The Review beside a handed Spec is the run's own output, as the one beside a handed Ticket is: the
+# fix call and the landing run the door again once it is written, and a Review counted as a change
+# would stop them on a dirty tree or review a diff that is not there. The Spec is committed and
+# nothing ignores the Review, so git status shows that one file; it is spared by name, and nothing
+# else beside it is.
+mkdir "$tmp/spec-review" && cd "$tmp/spec-review" && git init -q -b main
+mkdir -p .scratch/20260930-export && printf '# Export\n' >.scratch/20260930-export/spec.md
+git add -A && git commit -q -m "first"
+git checkout -q -b integration
+printf '# Review: Export\n' >.scratch/20260930-export/spec.review.md
+expect "the Review beside the handed Spec is a file git status shows" bash -c \
+  'command git status --short | grep -qxF "?? .scratch/20260930-export/spec.review.md"'
+run --spec .scratch/20260930-export/spec.md
+check_lines "the handed Spec's Review does not defeat the empty-diff refusal" 1 "$rc" \
+  "refusal=no diff between main ($(sha main)) and the working tree; nothing reviewed"
+printf 'b\n' >b.txt && git add b.txt && git commit -q -m "build"
+run --spec .scratch/20260930-export/spec.md
+check_lines "the handed Spec's Review does not mark the tree dirty" 0 "$rc" "dirty=no" "commits=1"
+check "the door hands on a status command with a Spec handed over" 0 "$rc" "status=git status"
+out="$(eval "$(term status)" 2>&1)"
+same "the status line hands the handed Spec's Review on to nobody" ""
+printf 'notes\n' >.scratch/20260930-export/notes.md
+run --spec .scratch/20260930-export/spec.md
+check_lines "another untracked file beside the handed Spec is a change like any other" 0 "$rc" "dirty=yes"
+
 if [ "$fails" = 0 ]; then echo "PASS"; else
   echo "$fails failing"
   exit 1
