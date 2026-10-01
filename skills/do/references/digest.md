@@ -84,6 +84,11 @@ When more than one Path matches at the same step, take the one that comes first 
 The Digest carries one Path, and the developer who reads the cited heading sees which one it was,
 so a draw is settled by the document's own order and never by a question nobody is there to answer.
 
+When no Path matches at either step, the section quotes none and says so with the `absent:` line
+of [What is absent](#what-is-absent). The nearest Path is not the Ticket's: quoted here, it would
+hand the run steps and failure branches the Ticket was never cut from. `## Stories` and
+`## Observable criteria` are then cut the way they are with no journey.
+
 ### `## Stories`
 
 The numbered stories of the Spec that the quoted Path's `Story:` line names, each quoted whole in
@@ -159,6 +164,8 @@ absent: <the heading or the document that is not there>
 - A document that does not carry the heading names the heading:
   ``absent: `spec.md` has no `## Testing Decisions` heading``.
 - A document that is not there names the document: ``absent: no journey``.
+- A journey none of whose Paths is the Ticket's says that:
+  ``absent: `journey.md` has no Path for this Ticket``.
 
 The reader quotes nothing under that line, never falls back to a range of its own choosing and
 reaches for no substitute. The other sections are cut as usual: an absence in one is no reason to
