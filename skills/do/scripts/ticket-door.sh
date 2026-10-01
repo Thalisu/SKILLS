@@ -14,8 +14,10 @@
 # worktree's removal), loop (policy when the project has
 # .claude/agents/unit-test-author.md, else global when ~/.claude/agents/global-unit-test-author.md
 # is linked, else fallback), branch, protected and reason as
-# `trivial-door.sh branch` prints them in the main checkout, spec_branch, spec_exists and
-# spec_upstream as `spec-branch.sh probe` prints them, then verdict. An ambiguous=<what>
+# `trivial-door.sh branch` prints them in the main checkout, spec_branch, spec_exists,
+# spec_upstream and spec_landed as `spec-branch.sh probe` prints them, spec_complete (the door's own
+# count: yes when every Ticket of the issues/ folder reads resolved, no on any other status, an
+# ambiguous one included, none when spec_branch=none), then verdict. An ambiguous=<what>
 # <detail> line follows the line it concerns. A blocker is the leading number of each part of the
 # Blocked by paragraph split on `;`, `,`, the word `and` and each line break, the paragraph starting
 # on the header's line or the line below it and a `-`, `*` or `+` list marker dropped, a blank line
@@ -133,6 +135,16 @@ echo "$spec_facts"
 # protected or detached checkout stops it before the claim; once the Spec branch exists the Spec
 # already integrates somewhere else, and a protected checkout is the warning it always was. A
 # resume enters a worktree cut before, so it is never refused on this ground.
+if grep -qx 'spec_branch=none' <<<"$spec_facts"; then
+  spec_complete=none
+else
+  spec_complete=yes
+  while IFS= read -r f; do
+    status_of "$f"
+    [ "$word" = resolved ] || spec_complete=no
+  done < <(ticket_files "$folder")
+fi
+echo "spec_complete=$spec_complete"
 first_run_unsafe=0
 if grep -qx 'spec_exists=no' <<<"$spec_facts" && ! grep -qx 'spec_branch=none' <<<"$spec_facts" &&
   grep -qxE 'protected=yes|branch=HEAD' <<<"$branch_facts"; then first_run_unsafe=1; fi

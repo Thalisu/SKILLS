@@ -155,6 +155,34 @@ done
 echo "# ticket-door.sh: the stops"
 run "$door" "$issues/01-first.md"
 check_lines "a resolved Ticket stops" 1 "$rc" "status=resolved" "verdict=resolved"
+# A finished Ticket of a finished Spec has nothing left to build or integrate: the door says which of
+# the two ends the Spec branch met, and a stop that wrote anything would be the rebuild it prevents.
+door_state() { # every ref with its tip and upstream, then the working tree as stop_state reads it, on stdout
+  g for-each-ref --format='%(refname) %(objectname) %(upstream)'
+  stop_state
+}
+landed_issues=".scratch/20260102-done/issues"
+never_issues=".scratch/20260103-never/issues"
+mkdir -p "$landed_issues" "$never_issues"
+for folder in "$landed_issues" "$never_issues"; do
+  (issues="$folder" && ticket 01-built.md '**Status:** resolved' 'None (can start immediately)' &&
+    ticket 02-shipped.md '**Status:** resolved' '01, Title of 01-built')
+done
+bash "$skill/scripts/spec-branch.sh" cut "$landed_issues/02-shipped.md" >/dev/null 2>&1
+before="$(door_state)"
+run "$door" "$landed_issues/02-shipped.md"
+check_lines "a resolved Ticket of a complete Spec whose Spec branch landed stops as resolved, the door naming it landed" 1 "$rc" \
+  "status=resolved" "spec_branch=spec/done" "spec_exists=yes" "spec_landed=yes" "spec_complete=yes" "verdict=resolved"
+ordered_out "the Spec's completeness follows the Spec branch facts and precedes the verdict" \
+  spec_branch= spec_exists= spec_upstream= spec_landed= spec_complete= verdict=
+expect "the stop on a landed Spec writes nothing: no ref created or moved, no file created or changed" \
+  test "$(door_state)" = "$before"
+run "$door" "$never_issues/02-shipped.md"
+check_lines "a resolved Ticket of a complete Spec whose Spec branch never existed stops as resolved, the door naming it absent" 1 "$rc" \
+  "status=resolved" "spec_branch=spec/never" "spec_exists=no" "spec_landed=none" "spec_complete=yes" "verdict=resolved"
+expect "the stop on a Spec with no Spec branch writes nothing: no ref created or moved, no file created or changed" \
+  test "$(door_state)" = "$before"
+g branch -D spec/done >/dev/null
 run "$door" "$issues/03-third.md"
 check_lines "a blocker not resolved refuses the run, every blocker named" 1 "$rc" \
   "blocker=01 resolved $issues/01-first.md" "blocker=02 ready-for-agent $issues/02-second.md" "verdict=blocked"
