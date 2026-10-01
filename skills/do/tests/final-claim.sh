@@ -277,4 +277,36 @@ check_lines "the yield command a second claimant is handed, pasted into a shell,
 expect "the yield command a second claimant is handed exits 0 when pasted into a shell" \
   test "$pasted_rc" = 0
 
+# A Spec of its own, held by its first Ticket and yielded through its second: a Spec has one claim,
+# whichever of its Tickets a call names.
+crossed="$top/.scratch/20260930-crossed-feature"
+issues="$crossed/issues"
+mkdir -p "$issues"
+printf '# Spec: crossed feature\n\nSomething to build.\n' >"$crossed/spec.md"
+ticket 01-first.md '**Status:** resolved' 'None (can start immediately)'
+ticket 02-second.md '**Status:** resolved' 'None (can start immediately)'
+ticket 03-third.md '**Status:** resolved' 'None (can start immediately)'
+{
+  bash "$here/../scripts/spec-branch.sh" cut "$issues/01-first.md" &&
+    bash "$script" claim "$issues/01-first.md"
+} >/dev/null 2>&1 || {
+  echo "FAIL  fixture: the claimed Final integration of a Spec with three Tickets could not be built"
+  exit 1
+}
+run yield "$issues/02-second.md"
+check_lines "a yield called from a Ticket other than the claimant's reads yielded, naming the claimant as holder and the Ticket that yielded" 0 "$rc" \
+  "claim=yielded" \
+  "holder_ticket=$issues/01-first.md" \
+  "yielded_by=$issues/02-second.md"
+run show "$issues/01-first.md"
+check_lines "a claim yielded from a Ticket other than the claimant's shows yielded to the claimant's Ticket" 0 "$rc" \
+  "claim=yielded" \
+  "holder_ticket=$issues/01-first.md" \
+  "yielded_by=$issues/02-second.md"
+run claim "$issues/03-third.md"
+check_lines "a claim yielded from a Ticket other than the claimant's is taken over by the next claim, naming the claimant it replaced" 0 "$rc" \
+  "claim=claimed" \
+  "takeover=yes" \
+  "previous_ticket=$issues/01-first.md"
+
 [ "$fails" = 0 ]
