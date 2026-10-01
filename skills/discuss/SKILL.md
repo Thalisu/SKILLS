@@ -155,7 +155,7 @@ Recommendation: the signed token, because it keeps that guarantee whole at the c
 
 The flag is the developer handing direction over for one run. No branch is put to the user, save the two exceptions below, and the run continues to the close without waiting on anyone.
 
-For each open branch, in walk order, item 1 still runs first. A branch it cannot close is ruled in place of items 3 to 6: call the Agent tool with `subagent_type: choice-taker` and the brief its definition fixes, filled from the question item 3 would have asked.
+No branch is put to the user, save the exceptions below. For each open branch, in walk order, item 1 still runs first; a branch it cannot close is ruled in place of items 2 to 6, so no `prototype` agent is forked under the flag: a branch marked _runnable_ is ruled like any other, unseen, its `Options:` lines describing each candidate in words, since nobody would open the prototype before the close. To rule a branch, call the Agent tool with `subagent_type: choice-taker` and the brief its definition fixes, filled from the question item 3 would have asked. When the Agent tool is withheld, or is present but lists no `choice-taker`, that branch and every branch after it, in walk order, are put to the developer exactly as they would be without the flag (items 3 to 7 of the interview), with one line before the first of them naming the reason, whichever of the two held: the Agent tool is withheld, or it lists no `choice-taker`. No other agent is forked in its place, and no row reads `ruled` for a branch closed this way; each closes `decided`, `default` or `deferred` like any other.
 
 ```
 Caller: discuss at the interview step
