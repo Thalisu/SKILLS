@@ -251,17 +251,26 @@ The stop is a blocked run, written by the blocked shape of [reply.md](reply.md),
 - both sides, as the run's Design fork line named them;
 - the guarantee the weaker side would lose, with its risk class, or what could not be undone once
   landed;
-- the Ticket, left `claimed`, and the worktree and its branch, both left in place;
+- the Ticket, at the status the stop found it at, and the worktree and its branch, left in place
+  when the run had cut them: a stop that comes before the claim leaves nothing claimed and no
+  worktree, as a first run's Plan step does in [ticket.md](ticket.md);
 - the commits made so far, one line each as the resume lists them, or `none`;
 - the Rulings already written, one line per line the Spec's Implementation Decisions carries for
   this Ticket, in the shape reply.md's `Rulings` section fixes, whichever session wrote it, and
   each Ruling this run holds because its Spec is an issue, or `none`.
 
 Nothing is written to the Spec, and the Ticket's criteria are left as they are: only a `settled`
-Ruling writes either, and an Extreme fork has none. The stop does write one file beside the Ticket,
-its `<Ticket>.extreme.md` sidecar, one line, the `/discuss` command below, so `resume-state.sh`
-finds it on a later `/do` and reports it as its `extreme=` and `discuss=` lines instead of meeting
-the fork again. That write is the session's, never the Builder's, whichever step found the fork:
+Ruling writes either, and an Extreme fork has none.
+
+A stop that leaves the Ticket `claimed` with its worktree in place does write one file beside the
+Ticket, its `<Ticket>.extreme.md` sidecar, one line, the `/discuss` command below. The next `/do`
+on that Ticket is a resume, and `resume-state.sh` reports the sidecar as its `extreme=` and
+`discuss=` lines, so the resume stops on the recorded command and never judges the fork a second
+time, which could read it the other way. A stop that left nothing claimed writes no sidecar: the
+next `/do` is a first run, which reads no `resume-state.sh`, and a sidecar left there would outlive
+the answer `discuss` gives and stop a later resume on a question already settled.
+
+That write is the session's, never the Builder's, whichever step found the fork:
 the Builder's own write guard denies every `.scratch/` path, so a Builder that met the fork
 mid-loop leaves the stop, the sidecar and the reply to the session that forked it.
 
@@ -279,11 +288,19 @@ meets the same fork prints the same command.
 
 ### Resume after a stop, and a Ruling the developer reverses
 
-A `/do` typed again on the Ticket with the Spec unchanged is a resume: both hashes match, the
-Digest is reused, the list is re-derived from it, and the run meets the same fork at the same step
-and stops with the same reply and the same `/discuss` command, since nothing the fork stands on
-moved. Once `discuss` amended the Spec, the resume re-forks the reader, as the Resume of
-[ticket.md](ticket.md) says.
+A `/do` typed again on the Ticket with the Spec unchanged gives the same stop and the same
+`/discuss` command, since nothing the fork stands on moved. Which route it takes depends on what
+the stop left:
+
+- The stop left the Ticket `claimed` with its worktree. The run is a resume: `resume-state.sh`
+  prints the sidecar's `extreme=` and `discuss=` lines, both hashes match, and the run stops there
+  on the recorded command, per the `extreme=` bullet of the Resume of [ticket.md](ticket.md). It
+  forks no Planner, no Builder and no `choice-taker`, and never meets the fork again.
+- The stop left nothing claimed. The run is a first run with no sidecar to read: it reuses the
+  Digest, meets the same fork at the same step and stops as the first one did.
+
+Once `discuss` amended the Spec, the resume re-forks the reader, as the Resume of
+[ticket.md](ticket.md) says, and removes the sidecar before it does.
 
 A Ruling line is the Spec's, so the developer reverses one by editing it while the Ticket is
 `claimed` and typing `/do` on the Ticket again, per
