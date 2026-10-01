@@ -50,7 +50,6 @@ expect "a later cut leaves the Spec branch where the first cut put it" \
 expect "a later cut leaves the Spec branch's local upstream on the branch of its first cut" \
   test "$(g for-each-ref --format='%(upstream:short)' refs/heads/spec/my-feature)" = "feat/work"
 
-keys_in_order() { printf '%s\n' "$out" | cut -d= -f1 | tr '\n' ' '; }
 nospec_issues="$top/.scratch/20260930-no-spec/issues"
 mkdir -p "$nospec_issues"
 printf '# 01: First\n\n**What to build:** something.\n\n**Status:** ready-for-agent\n' >"$nospec_issues/01-first.md"

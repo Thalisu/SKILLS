@@ -89,7 +89,8 @@ frontmatter() { # $1 file: the YAML between the file's opening and closing `---`
 field() { # $1 key: its value from the frontmatter the caller left in $out, on stdout
   sed -n "s/^$1: *//p" <<<"$out"
 }
-term() { printf '%s\n' "$out" | sed -n "s/^$1=//p"; } # $1 key: its value from the key=value lines the caller left in $out, on stdout
+term() { printf '%s\n' "$out" | sed -n "s/^$1=//p"; }                 # $1 key: its value from the key=value lines the caller left in $out, on stdout
+keys_in_order() { printf '%s\n' "$out" | cut -d= -f1 | tr '\n' ' '; } # the keys of the key=value lines the caller left in $out, in their order, each followed by a space, on stdout
 # One `PreToolUse` hook's command, ready to run: the line sits three levels into the frontmatter's
 # `hooks:` block as a YAML double-quoted string with the JSON payload's own quotes escaped inside
 # it, so field() (which reads a top-level `key: value` line) cannot reach it. The scope runs from
@@ -293,6 +294,10 @@ spec_commit() { # $1 Spec branch: one commit on it that its upstream lacks, no c
 stop_state() { # the stop as git left it, on stdout: the index and status, and the hash of every working file
   git status --porcelain=v2
   find . -path ./.git -prune -o -type f -print0 | sort -z | xargs -0 sha256sum
+}
+door_state() { # every ref with its tip and upstream, then the working tree as stop_state reads it, on stdout
+  g for-each-ref --format='%(refname) %(objectname) %(upstream)'
+  stop_state
 }
 # The conflict loop's own command (conflict-loop.md): without --diff3 git trims the lines both sides'
 # additions share, which drops one of two identical closing braces.

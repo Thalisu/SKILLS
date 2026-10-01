@@ -157,10 +157,6 @@ run "$door" "$issues/01-first.md"
 check_lines "a resolved Ticket stops" 1 "$rc" "status=resolved" "verdict=resolved"
 # A finished Ticket of a finished Spec has nothing left to build or integrate: the door says which of
 # the two ends the Spec branch met, and a stop that wrote anything would be the rebuild it prevents.
-door_state() { # every ref with its tip and upstream, then the working tree as stop_state reads it, on stdout
-  g for-each-ref --format='%(refname) %(objectname) %(upstream)'
-  stop_state
-}
 landed_issues=".scratch/20260102-done/issues"
 never_issues=".scratch/20260103-never/issues"
 mkdir -p "$landed_issues" "$never_issues"
