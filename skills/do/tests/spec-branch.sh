@@ -170,4 +170,22 @@ expect "a removed Spec branch is no longer a branch of the repository" \
 expect "removing a Spec branch leaves its upstream branch on the tip the landing gave it" \
   test "$(g rev-parse -q --verify refs/heads/feat/landed)" = "$landed_tip"
 
+issues="$top/.scratch/20260930-unlanded/issues"
+mkdir -p "$issues"
+ticket 01-first.md "**Status:** ready-for-agent" none
+g switch -q -c feat/unlanded
+run cut "$issues/01-first.md"
+g switch -q spec/unlanded
+printf 'unlanded\n' >>notes.txt
+commit "a Ticket's work the developer's branch never received"
+unlanded_tip="$(g rev-parse refs/heads/spec/unlanded)"
+g switch -q feat/unlanded
+run remove "$issues/01-first.md"
+check_lines "a Spec branch holding a commit its upstream lacks is refused as unlanded" 1 "$rc" \
+  "spec_branch=spec/unlanded" "action=refused" "reason=unlanded"
+expect "a Spec branch refused as unlanded stays on the tip it had" \
+  test "$(g rev-parse -q --verify refs/heads/spec/unlanded)" = "$unlanded_tip"
+expect "a Spec branch refused as unlanded still records its upstream" \
+  test "$(g for-each-ref --format='%(upstream:short)' refs/heads/spec/unlanded)" = "feat/unlanded"
+
 [ "$fails" = 0 ]

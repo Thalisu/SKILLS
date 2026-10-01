@@ -10,7 +10,8 @@
 #                                       its ref and its upstream untouched; of two first cuts at
 #                                       once, git's atomic ref creation lets one cut and the other
 #                                       reuses what it cut
-#   spec-branch.sh remove <Ticket path> delete the Spec branch once it landed
+#   spec-branch.sh remove <Ticket path> delete the Spec branch once it landed, which a tip that is
+#                                       an ancestor of its upstream proves
 #
 # <Ticket path> is absolute, or relative to the main checkout (the door's ticket= value). The
 # feature slug is the name of the folder that holds the Ticket's issues/ folder, as
@@ -30,6 +31,7 @@
 # remove prints key=value lines, in this order: spec_branch, action (removed, absent when there is
 # no such branch, or refused), then tip with removed, the commit the branch pointed at, and reason
 # with refused: no-upstream, a branch that records no upstream to prove its landing against;
+# unlanded, a branch holding a commit its upstream lacks;
 # checked-out, a branch a worktree holds or is rebasing. A refusal deletes nothing.
 #
 # Exit codes: 0 probe printed, or cut or reused, or removed or absent · 1 refused · 2 usage, not a
@@ -165,6 +167,8 @@ cmd_remove() {
   tip="$(git -C "$main" rev-parse --verify -q "refs/heads/$name")" || { echo "action=absent"; return 0; }
   up="$(upstream_of "$main" "$name")"
   [ -n "$up" ] || refuse_removal no-upstream
+  # A tip on the upstream is the proof the Spec branch landed: nothing it holds is lost with it.
+  git -C "$main" merge-base --is-ancestor "$tip" "refs/heads/$up" 2>/dev/null || refuse_removal unlanded
   # git itself refuses to delete a branch a worktree has checked out or is rebasing.
   git -C "$main" branch -q -D "$name" >/dev/null 2>&1 || refuse_removal checked-out
   echo "action=removed"
