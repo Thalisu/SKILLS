@@ -683,6 +683,23 @@ run
 check_lines "a Spec the door finds itself is never marked as handed" 0 "$rc" \
   "spec=.scratch/20260930-export/spec.md" "spec_handed=no" "review=.scratch/reviews/export.md"
 
+# A handed Spec is reviewed whole: on a branch whose slug finds a Ticket, naming that Ticket would
+# hand the orchestrator one Ticket as the spec source, so the door names none and spares no Review
+# beside it.
+git checkout -q -b do/export-step
+mkdir .scratch/20260930-export/issues
+printf '# 01: Export step\n' >.scratch/20260930-export/issues/01-export-step.md
+run
+check_lines "the branch's slug finds that Ticket when no Spec is handed" 0 "$rc" \
+  "ticket=.scratch/20260930-export/issues/01-export-step.md" "ticket_handed=no"
+run --spec .scratch/20260930-export/spec.md
+check_lines "a Ticket the door finds by slug is never named beside a handed Spec" 0 "$rc" \
+  "ticket=none" "ticket_handed=no"
+out="$(term status)"
+expect "the status line spares the Review beside the handed Spec" \
+  grep -qF -- ":!.scratch/20260930-export/spec.review.md" <<<"$out"
+absent "the status line names no Review beside the found Ticket" "01-export-step.review.md"
+
 if [ "$fails" = 0 ]; then echo "PASS"; else
   echo "$fails failing"
   exit 1

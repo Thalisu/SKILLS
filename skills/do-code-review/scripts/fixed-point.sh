@@ -49,7 +49,8 @@
 # and is removed with everything in it), issue (a number in the branch name,
 # else one written as #<n> in a commit subject since the fixed point, else none), ticket (the
 # location handed over, a path resolved to where the run reads it, else a Ticket file under
-# .scratch/*/issues/ named after the branch's slug, else none), ticket_handed (yes when a caller
+# .scratch/*/issues/ named after the branch's slug, else none, and always none beside a handed-over
+# Spec), ticket_handed (yes when a caller
 # handed the Ticket over, so it names the run's Ticket;
 # no when the door found it by slug, which makes it a spec source and nothing more), spec (the spec
 # beside that Ticket, else the spec of the feature folder the resolver names for the branch's slug,
@@ -173,6 +174,8 @@ if [ "$spec_handed_given" = yes ]; then
   spec_handed=yes
   spec="$(resolve "$handed_spec")"
   review="${spec%.md}.review.md"
+  # A Ticket found by slug beside a handed Spec would be read as the spec source over it.
+  ticket=none; located=none
 fi
 # do names its branch after the Ticket's slug and not after its feature's, so the gate above never
 # reached the folder the spec is read from and a handed Ticket's Review is written into.
