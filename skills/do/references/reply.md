@@ -269,6 +269,12 @@ A run that ends early writes, in this order:
 2. The refusal or the blocker with its reason, and the `Yours:` line beside it.
 3. The Playbook or the door the request goes to, with the command to type.
 
+A first run of a Spec the `ticket` door refused on a protected branch (`verdict=refused`) is one of
+those: its message says the Spec would land on the protected branch it names, or on no branch at
+all when the checkout is detached, and to switch to a working branch and run `/do <ticket>` again,
+and it states the `status=` the door printed for the Ticket, `ready-for-agent` or, on a start-over,
+`claimed`, since nothing was claimed or cut by this run.
+
 How much more it carries depends on where the run stopped:
 
 - **Refused before any edit.** It adds nothing, not even a Run section: its one message is the
