@@ -54,7 +54,7 @@ example below is synthetic, the batch first and the answer after it:
 2. retry a failed HTTP request with backoff — names: withRetry, retryRequest, fetchWithRetry
 3. create an invoice for a customer — names: createInvoice, newInvoice — callers?
 
-1 PARTIAL    src/hooks/useThrottle.ts:3  useThrottle<T …>(callback: T, delay: number): T — throttles instead of debouncing · LOW
+1 PARTIAL    src/hooks/useThrottle.ts:3  export function useThrottle<T>(callback: T, delay: number): T { — throttles instead of debouncing · LOW
 2 NOT_FOUND  tried: withRetry,retryRequest,fetchWithRetry · analog: src/lib/http/client.ts:1 (generic HTTP request wrapper) · home: src/lib/http · HIGH
 3 FOUND      src/billing/invoice.ts:3  createInvoice(customerId: string, total: number): Invoice · 2 uses · callers: src/billing/checkout.ts:4, src/billing/report.ts:4 · HIGH
 ```

@@ -5,6 +5,9 @@ context: fork
 agent: discover
 background: false
 ---
-Answer this batch under the discover contract; output only the result lines.
-
+<batch>
 $ARGUMENTS
+</batch>
+
+Answer the batch above under the discover contract. Your reply is the result lines and nothing else:
+one line per item, in the batch's order.
