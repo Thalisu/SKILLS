@@ -14,6 +14,10 @@ reach it:
   The test for whether a skill should stay model-invoked: _could the model usefully reach for this
   autonomously?_ (Reuse is the reason to extract a skill, not the test.)
 
+How to word a `description`, and how to structure the rest of a skill, is general advice kept in
+[`skill-authoring/best-practices.md`](skill-authoring/best-practices.md). This contract wins where
+the two differ: a user-invoked description here is human-facing, which that page does not cover.
+
 The choice is made when the skill is created, recorded in both harnesses at once, and there is no
 third state. In this repo, `discover-setup`, `testing-policy`, `discuss`, `prototype`, `spec`,
 `tickets`, `journey`, `do`, `sketch` and `setup-pre-commit` are user-invoked: the first edits a `CLAUDE.md` and

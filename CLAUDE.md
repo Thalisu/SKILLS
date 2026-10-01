@@ -51,6 +51,18 @@ its `README.md`. They are not skills: no frontmatter, no invocation, and no harn
 skill or a contract that leans on one links the file by path. Adding, renaming or removing a
 principle updates that index in the same change.
 
+## Skill authoring guidelines
+
+`.agents/skill-authoring/` holds the guidelines for authoring a skill: keeping a `SKILL.md`
+concise, writing its `name` and `description`, splitting it into reference files a model loads on
+demand, and shipping scripts with it. One file per upstream page, indexed in its `README.md` with
+the upstream URL and the date it was fetched. Read `best-practices.md` before adding a skill or
+restructuring one (its `SKILL.md`, its `references/`, its scripts), alongside
+`.agents/invocation.md`. Where the two differ, the contracts in this repo win: the upstream page
+is general advice and `invocation.md` is the rule here. The files are verbatim copies under the
+same rules as the prompting guidelines: refresh by re-fetching, never by hand, and a change to the
+set updates the index in the same change.
+
 ## Prompting guidelines
 
 `.agents/prompting/` holds the guidelines for using each model the right way (prompting, effort,
