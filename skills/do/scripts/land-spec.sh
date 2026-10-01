@@ -14,6 +14,11 @@
 # out or is rebasing it, since a ref moved under a checkout leaves its index showing the landing as a reversal ·
 # failed <reason> when a ref does not resolve or git refused the update. Only landed writes.
 #
+# A landing also revokes the review token the Spec's Final integration stored under
+# `spec-<feature-slug>`: the Review it vouched for read the Spec branch before this commit, so it
+# no longer counts for a resume, which would otherwise land the Ticket's commits on the developer's
+# branch with no reviewer having read them.
+#
 # Exit codes: 0 landed · 1 moved · 2 usage · 3 failed · 4 checked-out.
 set -uo pipefail
 
@@ -59,4 +64,5 @@ fi
 # The tip read above is the old value, so a ref moved since that read fails the update.
 said="$(git -C "$main" update-ref "refs/heads/$spec" "$new" "$tip" 2>&1)" ||
   failed "$(grep -m1 -E '^(error|fatal):' <<<"$said" || head -n1 <<<"$said")"
+rm -f -- "$(git -C "$main" rev-parse --path-format=absolute --git-common-dir)/do/review-token/spec-${spec#spec/}"
 echo "landed $new"

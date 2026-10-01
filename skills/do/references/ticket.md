@@ -774,6 +774,13 @@ could copy into a marker of its own, and the run after this one would land a bra
 read. Storing the token out of the worktree is not the guarantee on its own: the window is, and
 this is the end of it.
 
+When the door printed a Spec branch, the same step revokes the token of the Spec's Final
+integration too, before the Builder is forked, again on every run: `bash
+<skill-dir>/scripts/review-token.sh revoke spec-<feature-slug>`, the slug `final-state.sh` prints as
+`token_slug=`. A Ticket built and landed after the Spec's Review leaves that Review counting
+otherwise, and a resume would land the Ticket's commits on the developer's branch with no reviewer
+having read them. `land-spec.sh` revokes it again at the landing.
+
 When step 1 forked no Planner, the Plan carried or grounded by the session itself, the guard probe
 of step 1, `harness-hooks.sh`, has not run yet, and the run takes it here, right before it forks
 the Builder, once, the way step 1 says: the verdict it keeps is the same one, never stopping the

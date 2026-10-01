@@ -204,4 +204,40 @@ check_lines "uncommitted work in the Spec's worktree with no Review that counts 
   "worktree=present" "rebase=none" "uncommitted= M notes.txt" "uncommitted=?? left.txt" "verdict=ask"
 absent "uncommitted work in the Spec's worktree never sends the resume to start the integration again" "verdict=restart"
 
+# A Ticket landing on the Spec branch after its review: the Review's commit stays in the branch's
+# reflog and its marker stays beside the Spec, so nothing but the landing can say the Review no
+# longer covers the branch, and a resume that trusted it would land commits no reviewer read.
+echo "# final-state.sh: a Ticket landing on the Spec branch after its review"
+rm "$tree/left.txt"
+g -C "$tree" checkout -q -- notes.txt
+token="$(bash "$token_script" new "$slug" 2>/dev/null)"
+printf '%s\n' "$token" >"$feature/spec.review.marker"
+run "$issues/01-first.md"
+[ -n "$token" ] && [ "$rc" = 4 ] && [ "$(term verdict)" = land ] || {
+  echo "FAIL  fixture: the Review beside the Spec could not be made to count again before a Ticket lands"
+  exit 1
+}
+# The landing refuses a Spec branch a worktree has checked out, and the read stops before the Review
+# when the worktree is absent, so the tree leaves for the landing and comes back for the read.
+g worktree remove --force "$tree"
+g branch do/second spec/my-feature
+spec_commit do/second
+second_tip="$(git rev-parse do/second)"
+landing="$(bash "$here/../scripts/land-spec.sh" "$top" spec/my-feature do/second 2>&1)"
+g worktree add -q "$tree" spec/my-feature
+{
+  test "$landing" = "landed $second_tip" &&
+    test "$(git rev-parse spec/my-feature)" = "$second_tip" &&
+    test "$second_tip" != "$(git rev-parse "$reviewed")" &&
+    test -z "$(git -C "$tree" status --short)"
+} || {
+  echo "FAIL  fixture: a Ticket's branch could not be landed on the Spec branch past the commit its Review names, the Spec's worktree back and clean (landing: $landing)"
+  exit 1
+}
+
+run "$issues/01-first.md"
+check_lines "a Ticket's branch landing on the Spec branch past the commit its Review names leaves that Review not trusted, named as skipped, and the resume integrates and reviews again" 0 "$rc" \
+  "review_skipped=unmarked $feature/spec.review.md" "review=none" "verdict=restart"
+absent "a Review a Ticket landed past never sends the resume to the landing" "verdict=land"
+
 [ "$fails" = 0 ]
