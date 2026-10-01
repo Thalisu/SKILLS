@@ -7,8 +7,10 @@
 #                                              runs in, then from the main checkout
 #
 # Prints key=value lines, in this order: ticket, spec_branch as `spec-branch.sh probe` prints it,
-# one open=<NN> <status> <path> per Ticket not resolved (open=none when every one is), then verdict. What a Ticket file is and
-# what its status reads are ticket-read.sh's rules.
+# one spec_ticket=<NN> <status> <path> per Ticket of the folder in number order, the argument's own
+# included, one open=<NN> <status> <path> per Ticket not resolved (open=none when every one is),
+# then verdict. An ambiguous=<NN> <detail> line follows the spec_ticket line it concerns. What a
+# Ticket file is and what its status reads are ticket-read.sh's rules.
 #
 # verdict, first match wins: ambiguous (a Ticket's status cannot be read) · complete (every Ticket
 # reads resolved) · incomplete.
@@ -59,8 +61,13 @@ open="" unreadable=0
 while IFS= read -r file; do
   status_of "$file"
   number="$(basename "$file")"
-  [ "$word" = resolved ] || open+="open=${number%%-*} $word ${file#"$main"/}"$'\n'
-  [ "$word" != ambiguous ] || unreadable=1
+  row="${number%%-*} $word ${file#"$main"/}"
+  echo "spec_ticket=$row"
+  [ "$word" = resolved ] || open+="open=$row"$'\n'
+  if [ "$word" = ambiguous ]; then
+    echo "ambiguous=${number%%-*} $detail"
+    unreadable=1
+  fi
 done <<<"$tickets"
 printf '%s' "${open:-open=none$'\n'}"
 

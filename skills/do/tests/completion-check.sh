@@ -41,4 +41,28 @@ check_lines "a Spec whose every Ticket reads resolved reads complete, with nothi
 check_absent "a complete Spec names no Ticket as open" 0 "$rc" \
   "open=01" "open=02" "open=03"
 
+ticket 02-b.md '**Status:** claimed' 'None (can start immediately)'
+ticket 01-a.review.md '**Status:** claimed' 'None (can start immediately)'
+ticket 01-a.digest.md '**Status:** ready-for-agent' 'None (can start immediately)'
+ticket 03-c.sketch.md '**Status:** claimed' 'None (can start immediately)'
+ticket 03-c.plan.md '**Status:** ready-for-agent' 'None (can start immediately)'
+ticket 03-c.project-map.md '**Status:** claimed' 'None (can start immediately)'
+sidecars=(".review.md" ".digest.md" ".sketch.md" ".plan.md" ".project-map.md")
+
+run "$issues/03-c.md"
+expect "prints one line per Ticket of the Spec with its status, in number order, and none for a sidecar beside a Ticket" \
+  test "$(term spec_ticket)" = "01 resolved $issues/01-a.md
+02 claimed $issues/02-b.md
+03 resolved $issues/03-c.md"
+check_lines "a sidecar carrying a Status line leaves the open Tickets as they are" 0 "$rc" \
+  "verdict=incomplete" "open=02 claimed $issues/02-b.md"
+check_absent "a sidecar carrying a Status line is never named in the output" 0 "$rc" "${sidecars[@]}"
+
+ticket 02-b.md '**Status:** resolved' 'None (can start immediately)'
+run "$issues/02-b.md"
+check_lines "a Spec whose real Tickets all read resolved reads complete beside sidecars that read claimed" 0 "$rc" \
+  "verdict=complete" "open=none" \
+  "spec_ticket=01 resolved $issues/01-a.md" "spec_ticket=02 resolved $issues/02-b.md" "spec_ticket=03 resolved $issues/03-c.md"
+check_absent "a complete Spec names no sidecar as a Ticket" 0 "$rc" "${sidecars[@]}"
+
 exit "$((fails > 0))"
