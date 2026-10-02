@@ -129,6 +129,16 @@ carries "the returns of a sharded run are taken in Row order" "Row"
 carries_any "and their Findings are numbered once across the Shards" \
   "from 1" "numbered once" "one numbering" "a single numbering"
 
+echo "# AGENT.md / ## 7. The Review, in one write: a location both reviewers of a Shard reported appears once, as the security reviewer's"
+# Two Findings left at one location fork two Fixers on it. `location` is the format's own term for
+# what appears once, so the rule is found by it, apart for each kind of run.
+flat="$(paragraph_with /dev/stdin "location" all <<<"$review_section" | grep -vF "Shard" | tr '\n' ' ')"
+expect "the unsharded run's write still says what happens at a location reported twice" test -n "$flat"
+carries "and still decides it between the security reviewer and the technical one" "security" "technical"
+flat="$(paragraph_with /dev/stdin "Shard" all <<<"$review_section" | grep -F "location" | tr '\n' ' ')"
+expect "the sharded run's write says what happens at a location reported twice" test -n "$flat"
+carries "and decides it between a Shard's security reviewer and its technical one" "security" "technical"
+
 echo "# review-format.md: the one numbering holds across Shards, over the four Buckets in their order"
 flat="$(flat_section "$format" "## Rules")"
 expect "the format carries its rules" test -n "$flat"

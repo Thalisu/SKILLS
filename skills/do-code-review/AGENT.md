@@ -341,6 +341,12 @@ technical Row before the security Row within a Shard. Inside a Bucket the Findin
 order, each reviewer's own order kept, and the numbering below runs once from 1 across the whole
 file, so no two Findings of the Review share a number and the Fixers work from one `Act on` list.
 
+Two rules drop a Finding of a sharded run before the grouping, and they are the only judgment you
+make across its Rows. Within one Shard, a technical Finding at a location that Shard's own security
+reviewer also reported is dropped as a duplicate, and the security reviewer's is the one the Review
+carries. Across Shards the same location still appears once: the security reviewer's Finding is
+kept over a technical one, and between two of the same kind the lower Shard's is kept.
+
 Group the Findings by Bucket in the format's order, `Act on`, `Consider`, `Noted`, `Cleared`, and
 number them from 1 in that order. Keep each reviewer's wording: you group, you never rephrase and
 you never rerank. Four rules are the format's and hold whatever a reviewer said. A Finding at
