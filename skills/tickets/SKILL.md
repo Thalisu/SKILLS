@@ -260,7 +260,7 @@ A `settled` return whose `Side:` names one of the two options is the Ruling on t
 
 **On a local tracker**, local markdown or no tracker file, the Ruling is the answer and the user is asked nothing. A Ruling to publish stands in for the yes: every ticket is published (step 5) and the close follows (step 6), in the same turn.
 
-**On a remote tracker** the Ruling is shown and the write still waits for the user: an issue reaches the whole team the moment it exists, so publishing there is one of the stops `--auto` keeps. Whichever side the Ruling took, show it as the `choice-taker`'s, with its side and its norm, then ask the one question, does this go out as it stands, and end the turn there. Nothing is created, labelled or commented on the tracker before the answer.
+**On a remote tracker** the Ruling is shown and the write still waits for the user: an issue reaches the whole team the moment it exists, so publishing there is one of the stops `--auto` keeps. Whichever side the Ruling took, the message the turn ends on carries three things in this order: the breakdown in full, since it is all the user has to answer from and a breakdown that only reached the brief was never shown; the Ruling as the `choice-taker`'s, with its side and its norm; and the one question, does this go out as it stands. Nothing is created, labelled or commented on the tracker before the answer.
 
 - A yes publishes every ticket (step 5), one issue per ticket in dependency order, and the close follows (step 6), in the same turn.
 - A no publishes nothing and ends the run on that question: one line says nothing was published, and no next command follows, since a `/do` line would name an issue that does not exist.
