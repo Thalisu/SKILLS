@@ -252,7 +252,8 @@ beside it.
 In the thread, the closing summary, each item one or two lines:
 
 - where the spec is: the full path, or the issue reference;
-- the seams, and whether they were confirmed or taken from the conversation;
+- each seam, and which of the three it was: confirmed by the user, taken from the conversation, or
+  ruled by the `choice-taker` under `--auto`, a ruled one with its norm;
 - the verdict and the row that produced it;
 - the terms and decisions the synthesis found missing, each as one line to reopen in `discuss`
   (the skill writes no `CONTEXT.md` and no ADR);
@@ -261,14 +262,17 @@ In the thread, the closing summary, each item one or two lines:
 - the `.scratch/` line, the row the allocator's `gitignore=` picks in step 3;
 - as the last line, the exact next command, alone on its line so the user can run it as it is:
 
-| Verdict | Last line |
-|---|---|
-| `Journey: required` | `/journey <spec path or issue reference>` |
-| `Journey: not needed` | `/tickets <spec path or issue reference>` |
+| Verdict | Last line | Under `--auto` |
+|---|---|---|
+| `Journey: required` | `/journey <spec path or issue reference>` | `/journey --auto <spec path or issue reference>` |
+| `Journey: not needed` | `/tickets <spec path or issue reference>` | `/tickets --auto <spec path or issue reference>` |
+
+A run under `--auto` writes the flag into the last line whatever settled the seams, so the user
+keeps the mode down the chain by pasting it.
 
 The chain is strict: `do` builds one ticket, so the last line never names it. Nothing is committed.
 
-Two shapes the close can take. The items and the last line are fixed; the wording is the run's
+Three shapes the close can take. The items and the last line are fixed; the wording is the run's
 own, in the user's language:
 
 <examples>
@@ -301,6 +305,22 @@ Verdict: `Journey: not needed, one interaction on an existing screen`. The last 
 one story is an export button on the orders list.
 
 /tickets #212
+</example>
+<example>
+Local mode under `--auto`, seams ruled:
+
+Spec: `.scratch/20260930-order-notes/spec.md`.
+
+Seams: the HTTP handlers of the order module, ruled by the choice-taker under `--auto`. Norm: no
+norm: the side easiest to undo.
+
+Verdict: `Journey: required`. The third row matched: attaching a note is a path of more than one
+step.
+
+The scratch is unversioned by design and a teammate never reads it: a spec the team has to read
+goes to the issue tracker or under `docs/`.
+
+/journey --auto .scratch/20260930-order-notes/spec.md
 </example>
 </examples>
 
