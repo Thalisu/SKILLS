@@ -20,13 +20,14 @@ the two differ: a user-invoked description here is human-facing, which that page
 
 The choice is made when the skill is created, recorded in both harnesses at once, and there is no
 third state. In this repo, `discover-setup`, `testing-policy`, `discuss`, `prototype`, `spec`,
-`tickets`, `journey`, `do`, `sketch` and `setup-pre-commit` are user-invoked: the first edits a `CLAUDE.md` and
+`tickets`, `journey`, `do`, `sketch`, `setup-pre-commit` and `improve-prompt` are user-invoked: the first edits a `CLAUDE.md` and
 creates links under `~/.claude`, the second writes agents, a skill and a marked section into a
 project, the third interviews the human, the fourth writes throwaway files into a project, the
 fifth publishes a spec into a project, the sixth publishes tickets to a project's tracker, the
 seventh interviews the human about a spec and writes the journey into a project, the eighth builds
 one Ticket or one change in a project and commits it there, and the ninth files a Sketch in a
-project's scratch, and the tenth installs dependencies and a Git hook into a project, and each
+project's scratch, and the tenth installs dependencies and a Git hook into a project, and the
+eleventh rewrites a prompt that only its author can hand over and judge, and each
 is the human's call. `discover`, `test-triage` and `do-code-review` are model-invoked. The skills `do` calls through the Skill tool are all model-invoked:
 `do-code-review`, the review it hands its branch to, and the vendored `how`, `why`,
 `unslop` and `technical-writing`; a step that names one says in one line what it does when the
@@ -93,6 +94,7 @@ invariant is kept by the callers, not by the harness.
 | `discover`  | model-invoked | `/discover`; `Agent(subagent_type: discover)` in headless `-p` sessions only                                                                                     |
 | `prototype` | user-invoked  | `/prototype`; a `discuss` or `journey` interview, for a branch or a fork that cannot be settled by talking. Nothing else forks it, and whoever forked it answers its ask by resuming it |
 | `sketch` | user-invoked | `/sketch`; `do` at the shape step of a `bug-fix` or `refactoring` run, and `do-planner` while it grounds a `ticket` run, both through the Agent tool with a brief (what to shape, the map, the Digest, the repository root, where the Sketch goes, the chain's `.agents/` folder). The developer, `do` and `do-planner` are its only callers; it holds `Read, Glob, Grep`, writes nothing and returns the Sketch's text, and its caller, the `/sketch` session, `do`'s or the Planner, files the Sketch, never the work itself. From the Planner the destination is the Plan's own path, so the Sketch lands as one section of it |
+| `prompt-rewriter` | `improve-prompt`, user-invoked | `Agent(subagent_type: prompt-rewriter)` from the `/improve-prompt` session only, with a brief (the cached pages of the Guide chain with their heading indexes, the Base prompt between tags, the Target model, the context of use). The definition is `skills/improve-prompt/AGENT.md` and that session is its only caller; it holds `Read, Glob, Grep`, writes nothing and returns the whole output as text, which the session prints. Where the Agent tool is withheld or does not list it, the session rewrites under the same definition itself and never forks another agent in its place |
 | `comment-sicko` | `no-comments`, user-invoked, vendored | `/no-comments` only |
 | `do-code-review` | model-invoked | `/do-code-review`, typed or fired by the model on a review request; `do` at its review step, through the Skill tool with a Ticket. The developer and `do` are its only callers; it forks the reviewers below with the Agent tool, then the Fixer and the Gate fixer, and never edits code itself |
 | `do-code-review-technical-reviewer` | `do-code-review`, model-invoked | `Agent(subagent_type: do-code-review-technical-reviewer)` from the `do-code-review` orchestrator only, with a brief; it has no write and no edit tool |

@@ -1,0 +1,1 @@
+/improve-prompt claude-haiku-4-5, which has no prompting guide of its own, so go on with the common page only. This is the system prompt of a chatbot with no tools: You are a FAQ bot for a gym. NEVER make up opening hours.

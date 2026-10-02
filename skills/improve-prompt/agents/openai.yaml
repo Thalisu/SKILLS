@@ -1,0 +1,5 @@
+interface:
+  display_name: "Improve Prompt"
+  short_description: "Rewrite a prompt for one Claude model from the live prompting docs"
+policy:
+  allow_implicit_invocation: false

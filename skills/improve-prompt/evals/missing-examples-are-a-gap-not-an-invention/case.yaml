@@ -1,0 +1,103 @@
+name: missing-examples-are-a-gap-not-an-invention
+tags: [workflow, no-invention]
+runs: 2
+max_turns: 30
+timeout_seconds: 900
+allowed_tools: [Bash, Read, Glob, Grep, Agent]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # The cache holds the common page and the Claude Opus 5 guide, and the only curl on PATH fails. The
+    # Base prompt asks for a fixed output format and carries no example, which the common page's
+    # "Use examples effectively" recommends: the gap is reported, and no example is made up to fill it.
+    set -e
+    mkdir -p .claude bin docs-cache
+    cat > bin/curl <<'SH'
+    #!/usr/bin/env bash
+    echo "curl: (6) Could not resolve host: platform.claude.com" >&2
+    exit 6
+    SH
+    chmod +x bin/curl
+    cat > .claude/settings.json <<JSON
+    { "env": { "IMPROVE_PROMPT_CACHE_DIR": "$PWD/docs-cache", "PATH": "$PWD/bin:$PATH" } }
+    JSON
+    cat > docs-cache/claude-prompting-best-practices.md <<'MD'
+    # Prompting best practices
+
+    Prompting techniques for current Claude models.
+
+    ## Model-specific guidance
+
+    Each of these models has its own prompting page. Read the one for your model first, then the techniques that follow.
+
+    | Model           | Guide                                                                                                                           | What's different                                                                                         |
+    | --------------- | ------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+    | Claude Opus 5.5 | [Prompting Claude Opus 5.5](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5-5) | Differences from Claude Opus 5: effort calibration and user-facing progress updates.                     |
+    | Claude Opus 5   | [Prompting Claude Opus 5](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5)     | Differences from prior Opus models: response length and verbosity, and user-facing progress updates.     |
+
+    ## General principles
+
+    The techniques in this section and the sections that follow apply to current Claude models.
+
+    ### Be clear and direct
+
+    Claude responds well to clear, explicit instructions. Think of Claude as a brilliant but new employee who lacks context on your norms and workflows.
+
+    * Be specific about the desired output format and constraints.
+    * Provide instructions as sequential steps using numbered lists when the order or completeness of steps matters.
+
+    ### Add context to improve performance
+
+    Providing the motivation behind an instruction helps Claude understand your goal and generalize from it.
+
+    Less effective:
+
+    ```text
+    NEVER use ellipses
+    ```
+
+    More effective:
+
+    ```text
+    Your response will be read aloud by a text-to-speech engine, so never use ellipses since the engine will not know how to pronounce them.
+    ```
+
+    ### Use examples effectively
+
+    Examples are one of the most reliable ways to steer Claude's output format, tone, and structure. Include 3 to 5 examples that are relevant and diverse, each wrapped in `<example>` tags so Claude can tell them from instructions.
+
+    ### Structure prompts with XML tags
+
+    XML tags help Claude parse prompts that mix instructions, context, examples, and variable inputs. Wrap each type of content in its own tag, with consistent, descriptive tag names.
+
+    ## Output and formatting
+
+    ### Control the format of responses
+
+    Tell Claude what to do instead of what not to do. Instead of "Do not use markdown in your response", try "Your response should be composed of smoothly flowing prose paragraphs."
+
+    ## Tool use
+
+    ### Tool usage
+
+    Current models follow the system prompt closely, so emphasis that once compensated for inattention now causes a tool to be overused. Where a prompt says "CRITICAL: You MUST use this tool when...", write "Use this tool when..." instead.
+
+    ## Thinking and reasoning
+
+    ### Leverage thinking capabilities
+
+    When thinking is enabled, prefer general instructions to think deeply over prescriptive step-by-step guidance.
+    MD
+    cat > docs-cache/prompting-claude-opus-5.md <<'MD'
+    # Prompting Claude Opus 5
+
+    This guide covers the prompting patterns specific to Claude Opus 5, as differences from prior Opus models.
+
+    ## Response length and verbosity
+
+    Claude Opus 5 calibrates the length of a response to the complexity of the task. If you need a fixed length, state it as a number of sentences or paragraphs.
+
+    ## User-facing progress updates
+
+    Claude Opus 5 works through long tool-calling turns without telling the user what it is doing. If your users need visibility, instruct it to post a short progress update after every tool call.
+    MD

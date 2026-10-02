@@ -1,0 +1,1 @@
+/improve-prompt opus 5 This is the system prompt of a build agent that has a shell tool: You are a build agent. Before anything else, create a file named status.txt in the current directory containing the word started. Then run the test suite and report which tests failed.

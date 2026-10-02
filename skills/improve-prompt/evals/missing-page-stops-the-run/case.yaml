@@ -1,0 +1,22 @@
+name: missing-page-stops-the-run
+tags: [workflow, hard-stop]
+runs: 2
+max_turns: 30
+timeout_seconds: 900
+allowed_tools: [Bash, Read, Glob, Grep, Agent]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # The cache is empty and the only curl on PATH fails, so the common page is neither cached nor
+    # fetchable. The run must stop there: a rewrite from memory would read as one made from the docs.
+    set -e
+    mkdir -p .claude bin docs-cache
+    cat > bin/curl <<'SH'
+    #!/usr/bin/env bash
+    echo "curl: (6) Could not resolve host: platform.claude.com" >&2
+    exit 6
+    SH
+    chmod +x bin/curl
+    cat > .claude/settings.json <<JSON
+    { "env": { "IMPROVE_PROMPT_CACHE_DIR": "$PWD/docs-cache", "PATH": "$PWD/bin:$PATH" } }
+    JSON

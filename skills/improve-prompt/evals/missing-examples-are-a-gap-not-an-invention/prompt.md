@@ -1,0 +1,1 @@
+/improve-prompt opus 5 This is a user message sent through the API with no tools: Classify the support ticket below as billing, bug or other, and reply with the label only, in lowercase. Ticket: {{ticket}}
