@@ -87,6 +87,11 @@ Cursor-isms that do not exist in Claude Code or Codex, and this repo's conventio
    Upstream sets no model; it carries `model: sonnet` here, judgment on one comment at a time,
    with the deep reads left to the `how` and `why` it runs, and `effort: medium`, so a session
    running at `xhigh` does not lend its effort to a rule-driven pass.
+10. References to skills and tools the harnesses lack. `architect` Phase B spawns its runners
+    itself and synthesizes their candidates, where upstream ran the `arena` skill, and its pointer
+    to `interrogate` is gone, as is the one in `how`. `how` and `no-comments` spawn "a subagent"
+    where upstream named Cursor's `Task` tool. `teach` draws a spatial idea with an
+    image-generation tool only when the session has one, and as an ASCII sketch otherwise.
 
 Other upstream references left as-is: `architect/references/rationale-template.md` links to the
 `arena` skill, which is not vendored, and `typescript-best-practices` keeps its Cursor-only

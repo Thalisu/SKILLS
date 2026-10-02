@@ -1,6 +1,6 @@
 ---
 name: test-triage
-description: Runs a test target, clusters the failures, investigates them, auto-fixes and commits only the small ones, and files a dossier in docs/tests/ for the ones that need real work. Use when the user asks to triage tests, run tests and investigate what broke, find out why tests are failing or which tests broke, or mentions "test-triage",  "why tests are failing" or "the tests not work". Do NOT use for a bare request to just run a test command.
+description: Runs a test target, clusters the failures, investigates them, auto-fixes and commits only the small ones, and files a dossier in docs/tests/ for the ones that need real work. Use when the user asks to triage tests, run tests and investigate what broke, find out why tests are failing or which tests broke, or mentions test-triage. Do NOT use for a bare request to just run a test command.
 argument-hint: "[unit|e2e|all|<path>|<filter>] [local|remote]"
 allowed-tools: Bash(${CLAUDE_SKILL_DIR}/scripts/context.sh)
 ---

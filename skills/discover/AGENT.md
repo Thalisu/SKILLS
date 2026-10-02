@@ -238,6 +238,3 @@ same block would be HIGH. 4 asked for callers, which sit before the confidence. 
 that is itself the definition, with no use count, and MED by the NAME line; as a short item it would
 be MED even with a DEF line behind it.
 </example>
-
-After the report comes back, think each item through the mapping and confidence rules before you
-reply.

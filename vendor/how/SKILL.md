@@ -61,7 +61,7 @@ Then proceed to Step 3.
 
 ### Step 2b. Direct Explain (simple questions)
 
-Spawn a single Task subagent that explores and explains in one pass:
+Spawn a single subagent that explores and explains in one pass:
 
 - `subagent_type`: `general-purpose`
 - `model`: your configured how-explainer model (default `opus`)
@@ -73,7 +73,7 @@ Proceed to Step 4.
 
 ### Step 3. Synthesize (complex questions only)
 
-Once all explorers return, spawn a single Task subagent to synthesize their findings into one coherent explanation:
+Once all explorers return, spawn a single subagent to synthesize their findings into one coherent explanation:
 
 - `subagent_type`: `general-purpose`
 - `model`: your configured how-explainer model (default `opus`)
@@ -123,7 +123,7 @@ Read `references/critic-prompt.md` for the prompt template. Each critic gets:
 
 ### Step 3. Lead Judgment
 
-Same framework as the interrogate skill. You're a pragmatic lead, not an aggregator.
+You're a pragmatic lead, not an aggregator.
 
 Categorize findings:
 - **Act on.** Architectural problems worth fixing now
