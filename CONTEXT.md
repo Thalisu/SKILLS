@@ -299,6 +299,25 @@ The one reason a `do` run may stop and hand the developer a choice, named in its
 _Avoid_: blocker, manual step, next step for the developer (a reversible action inside the run's
 own artifacts is never handed over, the run takes it)
 
+**Launch set**:
+The instruction files of one project that load whole at the start of every session: the root
+`CLAUDE.md` (or `.claude/CLAUDE.md`), the files it imports with `@path` from inside the project,
+the rules under `.claude/rules/` with no `paths` field, and `AGENTS.md` when it is the file the
+harness loads.
+_Avoid_: the CLAUDE.md (it is one member), memory files, instruction files (a nested `CLAUDE.md`
+and a rule with `paths` are instruction files outside the set)
+
+**Managed section**:
+A block of an instruction file between `<!-- <name>:start ... -->` and `<!-- <name>:end -->`,
+rendered by the setup skill that owns it and compared with its template by that skill's own check.
+_Avoid_: generated block, marked section, the Discovery section (that is one instance)
+
+**Pointer**:
+The line "Read `<path>` before <task>" a **Launch set** file keeps in place of content that moved
+to a file read on demand.
+_Avoid_: import (an `@path` import loads at launch and saves no context), link, reference, trigger
+(a rule with `paths` that names the same file is a second door to it, never the pointer)
+
 ## Relationships
 
 - A **Spec** has one or more **Paths**, read off its user stories
