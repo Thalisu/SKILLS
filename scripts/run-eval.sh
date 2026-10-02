@@ -26,6 +26,9 @@
 #                a subagent's included: the only way to see the calls of a `context: fork` skill,
 #                whose orchestrator is a subagent the stream never shows
 #   file_exists  path, a glob from the fixture's root
+#   file_contains  path, a glob from the fixture's root, and pattern (PCRE), read against each line
+#                of every file the glob matches: the way to grade a file longer than the judge is
+#                shown of the call that wrote it
 # A case is green only when every run passes every grader.
 #
 # Every session runs under a throwaway CLAUDE_CONFIG_DIR, so the real ~/.claude (memory, hooks,
@@ -165,7 +168,7 @@ EOF
 }
 
 grade() { # $1 grader, $2 work folder: prints why the run fails the grader, nothing when it passes
-  local g="$1" w="$2" name type answer verdict reason pattern match target tool input_match min max count path uses
+  local g="$1" w="$2" name type answer verdict reason pattern match target tool input_match min max count path uses files
   name="$(basename "$g" .md)"
   type="$(key "$g" type)"
   case "$type" in
@@ -200,6 +203,11 @@ grade() { # $1 grader, $2 work folder: prints why the run fails the grader, noth
     file_exists)
       path="$(key "$g" path)"
       compgen -G "$w/fixture/$path" >/dev/null || echo "no file matches $path" ;;
+    file_contains)
+      path="$(key "$g" path)"; pattern="$(key "$g" pattern)"
+      mapfile -t files < <(compgen -G "$w/fixture/$path")
+      { [ "${#files[@]}" -gt 0 ] && grep -qP -- "$pattern" "${files[@]}" 2>/dev/null; } ||
+        echo "no file matching $path holds a line matching /$pattern/" ;;
     *) echo "unsupported grader type ${type:-none}" ;;
   esac
 }

@@ -8,7 +8,8 @@ the runner's help text and may need adjusting once it runs.
 `spec` is user-invoked, so every prompt types the skill; there is no trigger case. The conversation
 the skill synthesises is the prompt itself: a `discuss` closing summary pasted after `/spec`, in the
 shape that skill's step 6 produces. A run that has the seams in the summary ends at the closing
-summary; a run that has not ends at the seams check, the one question the skill asks.
+summary; a run that has not ends at the seams check, the one question the skill asks. Under `--auto`
+that check goes to the `choice-taker`, and the run ends at the closing summary too.
 
 | case | checks |
 |---|---|
@@ -20,6 +21,7 @@ summary; a run that has not ends at the seams check, the one question the skill 
 | `no-tracker-file` | with no `docs/agents/issue-tracker.md`, the spec still lands at `.scratch/<YYYYMMDD>-<slug>/spec.md`, the summary says the file was absent, and no setup skill is demanded; the project carries no `.gitignore`, so the run adds the `.scratch/` line to it before the write and says so |
 | `auto-flag-dropped` | an `--auto` token typed after a summary that names the seams is dropped: the spec of the summary is written, with no flag and no 'auto' feature in it, and the user is asked nothing about the token |
 | `auto-seams-already-named` | under `--auto`, a summary that names the seams still skips the check in one line: no `choice-taker` is forked, and the spec marks the seam as taken from the conversation, none ruled |
+| `auto-rules-the-seams` | under `--auto`, a summary that names no seams sends the sketched seam set and the set rejected while sketching to the `choice-taker`, once, as rival options; the user is asked nothing, and the spec carries the ruled seam on its own line with its norm |
 
 Run from the skill directory, granting the tools the cases need and opting in to their scaffold
 scripts:

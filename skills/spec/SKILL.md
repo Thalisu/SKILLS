@@ -44,12 +44,12 @@ A message with no tool call ends the turn, and the run waits there until the use
 The turn ends at these points and no others:
 
 - the message that sends the user to `/discuss` (step 1);
-- the seams question (step 2);
+- the seams question (step 2), which a run under `--auto` hands to the `choice-taker` instead;
 - an allocator refusal (step 3);
 - the close (step 5).
 
 Everything between those points happens in one turn. Once the seams are settled, by the user's
-answer or by the conversation, the run writes, routes and closes without stopping: it never ends a
+answer, by the conversation or by a Ruling, the run writes, routes and closes without stopping: it never ends a
 turn to report progress, to show a draft of the spec for approval, or to offer the next step
 instead of taking it. A status line is welcome, in the same message as the next tool call. A gap
 the synthesis finds in the plan is never a reason to stop either: it goes into the close as a line
@@ -62,7 +62,8 @@ pasted `discuss` closing summary, when the session that produced it is gone).
 
 - An `--auto` token among the arguments, before the summary, after it or inside it, is dropped
   wherever it sat and puts the run under `--auto`. The rest is read as it would be without the
-  flag, so the token never reaches the plan or the spec.
+  flag, so the token never reaches the plan or the spec. What the flag changes is in steps 2
+  and 5.
 - A `discuss` closing summary is the plan: its decisions, defaults and deferrals are carried into
   the spec as they stand, never re-argued and never improved on.
 - A conversation that decided the plan some other way (the user chose among options, or stated what
@@ -132,6 +133,40 @@ Does that match what you expect, or do you want the note tested somewhere else?
 The user's answer is the decision. An answer that changes the seams is taken as given, without a
 second question.
 
+### Under `--auto`
+
+The flag is the developer handing direction over for one run, so seams the conversation does not
+name are ruled instead of asked, and the run continues to the close without waiting on anyone.
+
+While sketching, keep the seam set the sketch rejected beside the one it chose: the next best set,
+at a different boundary or with a different number of seams. A ruling needs rivals. A yes or no on
+one set is a confirmation, and nobody is there to give it.
+
+Then call the Agent tool with `subagent_type: choice-taker` and the brief its definition fixes,
+once:
+
+```
+Caller: spec at the seams step
+Question: <which seam set the tests drive the feature through, in one line>
+Options: <the sketched seam set, then each set rejected while sketching, one per line>
+Recommendation: <the sketched set, as its option line reads>
+Repository root: <the project's absolute path>
+Principles: <the absolute path of the skills checkout's .agents/principles/ folder>
+Context: <the plan, the reason for each set, and what step 1 read of the code and its tests>
+```
+
+- **`Options:`** are whole seam sets, each one line a reader could test at as it stands, never
+  `yes` and `no` and never one set beside its own negation.
+- **`Context:`** carries the text itself, never a pointer to it, since the fork sees nothing of
+  this thread: the plan with the flag dropped, the reason for each set in a clause, and the seams
+  and tests step 1 found in the code.
+- **`Principles:`** is resolved to an absolute path from this file's own location: the project has
+  no `.agents/principles/` of its own, and the fork holds no shell to find one.
+
+A `settled` return settles the seams as the set its `Side:` names. Each seam of that set is a
+Ruling: it reads ruled, never confirmed and never taken, in the spec (step 3) and in the close
+(step 5), with the return's `Norm:`. The run goes on to step 3 in the same turn.
+
 ## 3. Write
 
 **The folder, in local mode.** It comes from the allocator, never from a path the run composes.
@@ -178,6 +213,10 @@ is written, then publish it where step 1 resolved. The rules the format carries:
   produced that encodes a decision more precisely than prose (a state machine, a reducer, a
   schema), trimmed to the decision and marked as the prototype's;
 - Testing Decisions name the project's Testing Policy when `CLAUDE.md` carries one;
+- Testing Decisions mark each seam with how step 2 settled it: confirmed by the developer, taken
+  from the conversation, or ruled. A ruled seam stands on the format's own line,
+  `- Ruled by the choice-taker under --auto: <the seam>. Norm: <the norm>.`, written whole on one
+  line and never wrapped, so a reader finds every seam nobody confirmed by its prefix;
 - Out of Scope carries the `discuss` deferrals, each with its reopening condition.
 
 The spec records what the conversation decided and nothing more. A decision the feature needs and

@@ -245,6 +245,43 @@ check "a scaffold that fails is red before any session" 1 "$rc" \
   "FAIL  broken run 1/1: the scaffold script failed: the fixture could not be laid"
 expect "a failed scaffold started no session" test "$(calls)" = 0
 
+# A file longer than the judge is shown of a Write call is graded on its own lines: the pattern is a
+# PCRE read against each line of every file the glob matches in the fixture.
+seam_pattern='^- Seam \d+: .*Ruled by the choice-taker under --auto$'
+seam_miss="no file matching .scratch/*/spec.md holds a line matching /$seam_pattern/"
+spec_case() { # $1 case, $2 the lines closing the fixture's spec, past 3000 characters of it; empty lays no spec
+  mkdir -p "$evals/$1" "$tmp/specs"
+  local lay="true"
+  if [ -n "${2:-}" ]; then
+    {
+      head -c 3000 /dev/zero | tr '\0' a
+      printf '\n## Testing Decisions\n\n%s\n' "$2"
+    } >"$tmp/specs/$1.md"
+    lay="cp '$tmp/specs/$1.md' .scratch/20260905-suppliers/spec.md"
+  fi
+  printf 'runs: 1\ncontext:\n  scaffold_script: |\n    mkdir -p .scratch/20260905-suppliers\n    %s\n' "$lay" >"$evals/$1/case.yaml"
+  printf 'hi\n' >"$evals/$1/prompt.md"
+  grader "$1" seam-marked "type: file_contains
+path: .scratch/*/spec.md
+pattern: '$seam_pattern'"
+}
+spec_case marked '- Seam 1: the export boundary.
+- Seam 2: the supplier lookup. Ruled by the choice-taker under --auto'
+spec_case unmarked '- Seam 2: the supplier lookup.
+Ruled by the choice-taker under --auto'
+spec_case no-spec
+run "$evals" marked
+check "a file the glob matches that holds a line matching the pattern passes file_contains" 0 "$rc" \
+  "ok    marked run 1/1 seam-marked" "marked: 1/1 green"
+run "$evals" unmarked
+check "a matched file with no single line matching the pattern fails file_contains" 1 "$rc" \
+  "FAIL  unmarked run 1/1 seam-marked: $seam_miss"
+rm -rf "$(sed -n 's/^ *kept: //p' <<<"$out")"
+run "$evals" no-spec
+check "a glob that matches no file fails file_contains" 1 "$rc" \
+  "FAIL  no-spec run 1/1 seam-marked: $seam_miss"
+rm -rf "$(sed -n 's/^ *kept: //p' <<<"$out")"
+
 # A case can keep one of this repo's agents out of its sessions, so a branch that needs an agent
 # missing can be graded; the next case in the same invocation lists it again.
 unlink_case() { # $1 case, $2 what it unlinks, $3 the context key (default unlinked_agents)
