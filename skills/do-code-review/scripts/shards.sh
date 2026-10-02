@@ -9,7 +9,9 @@
 # bytes a token, rounded up, and a Shard holds whole files only.
 #
 # Prints `fixed_point=<full sha>`, `budget=<tokens>` and `shards=<n>`, then one
-# `shard=<n> tokens=<sum> files=<count>` line per Shard.
+# `shard=<n> tokens=<sum> files=<count>` line per Shard, then the manifest: one
+# `file shard=<n> tokens=<t> path=<path>` line per file, by Shard, paths in byte order. `path=` is
+# the last key and runs to the end of the line, in the form git quotes it under core.quotePath.
 #
 # Exit codes: 0 the cut was printed · 1 the diff since the fixed point is empty · 2 usage, outside
 # a git repository, or a fixed point that is no commit.
@@ -75,17 +77,19 @@ pack() {
   awk -F'\t' -v OFS='\t' '{ print 1, $1, $2 }'
 }
 
-# print_cut <sha> <budget>: reads Packed rows, prints the header lines and the Shard list.
-# The only place the line format lives.
+# print_cut <sha> <budget>: reads Packed rows, prints the header lines, the Shard list and the
+# manifest. The only place the line format lives.
 print_cut() {
-  awk -F'\t' -v sha="$1" -v budget="$2" '
-    { if ($1 > shards) shards = $1; sum[$1] += $2; files[$1]++ }
-    END {
-      print "fixed_point=" sha
-      print "budget=" budget
-      print "shards=" shards
-      for (n = 1; n <= shards; n++) print "shard=" n " tokens=" sum[n] " files=" files[n]
-    }'
+  LC_ALL=C sort -t "$(printf '\t')" -k1,1n -k3 |
+    awk -F'\t' -v sha="$1" -v budget="$2" '
+      { if ($1 > shards) shards = $1; sum[$1] += $2; files[$1]++; row[NR] = "file shard=" $1 " tokens=" $2 " path=" $3 }
+      END {
+        print "fixed_point=" sha
+        print "budget=" budget
+        print "shards=" shards
+        for (n = 1; n <= shards; n++) print "shard=" n " tokens=" sum[n] " files=" files[n]
+        for (n = 1; n <= NR; n++) print row[n]
+      }'
 }
 
 main() {
