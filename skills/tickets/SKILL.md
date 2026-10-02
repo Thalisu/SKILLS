@@ -44,7 +44,7 @@ A message with no tool call ends the turn, and the session waits there until the
 - the approval question (step 4), asked again after each correction;
 - the close (step 6).
 
-Under `--auto` on a local tracker (step 4) the approval is ruled, never asked, so the turn that shows the breakdown runs on to the close. On a remote tracker the turn still ends on the one question, with the Ruling shown above it. Nobody is watching that run: a turn that ends on the approval question leaves the tickets unwritten.
+Under `--auto` on a local tracker (step 4) the approval is ruled, never asked, so the turn that shows the breakdown runs on to the close. On a remote tracker the turn still ends on the one question, with the Ruling shown above it. Nobody is watching that run: a turn that ends on the approval question leaves the tickets unwritten. The one exception is an approval that step puts back to the user because nothing ruled it: the turn ends on that question, on either tracker.
 
 Everything between those points happens in one turn. Grounding, exploring, calibrating and drafting run through to the breakdown without a check-in: the session never stops after the grounding to report what it read, or after the draft to ask whether to present it. After the yes, every ticket is published and the close follows in the same turn, never one ticket and then a pause. A status line is welcome, in the same message as the next tool call.
 
@@ -265,6 +265,8 @@ A `settled` return whose `Side:` names one of the two options is the Ruling on t
 - A yes publishes every ticket (step 5), one issue per ticket in dependency order, and the close follows (step 6), in the same turn.
 - A no publishes nothing and ends the run on that question: one line says nothing was published, and no next command follows, since a `/do` line would name an issue that does not exist.
 
+**When the `choice-taker` cannot be forked**, because the Agent tool lists no `choice-taker` or refuses the call as an agent it does not have, nothing ruled the approval and it goes back to the user, on a local tracker and on a remote one alike. The message that shows the breakdown ends the turn as it does without the flag, with one addition: after what was left out, one line names the reason, that the Agent tool has no `choice-taker`, and then comes the one question, does the breakdown go out as it stands, with nothing after it. The `choice-taker` is not tried a second time, no other agent is forked in its place, and the session never takes the approval on its own view: a breakdown nobody with the `choice-taker`'s norms read would go out as approved. Nothing is published before the yes. A correction and a yes are handled as they are without the flag, and the close (step 6) lists no Ruling, since none was made.
+
 ## 5. Publish
 
 Publish the approved tickets the way the tracker file describes, all of them in one turn. The tickets are the same either way; only the shape of the blocking edges changes.
@@ -310,7 +312,7 @@ Each rule restates a step above with the cost of breaking it. When two readings 
 - **The spec is the only input, and it is mandatory**: never the conversation, never a session summary. A `do` session reads the spec, so a ticket cut from anything else points at decisions it cannot find.
 - **The four stops write nothing and end the run with one message.** No override in the conversation: tickets cut past a stop are built on an input the chain has not settled.
 - **The cut is decided, never asked.** A ticket waits for the ticket that writes what it reads, a small ticket on a single edge folds into its neighbour, a large ticket splits along its steps, and the one question is whether the breakdown goes out. Each extra question stalls the chain on something the breakdown already shows.
-- **Nothing is published before the user approves the breakdown.** A published ticket is `ready-for-agent`: an agent can grab it the moment it exists. Under `--auto` the `choice-taker`'s Ruling to publish stands in for that approval on a local tracker only: on a remote one the Ruling is shown and the first write still waits for the user's own yes.
+- **Nothing is published before the user approves the breakdown.** A published ticket is `ready-for-agent`: an agent can grab it the moment it exists. Under `--auto` the `choice-taker`'s Ruling to publish stands in for that approval on a local tracker only: on a remote one the Ruling is shown and the first write still waits for the user's own yes. With no Ruling, the approval is the user's own again on either tracker, and no other agent's word stands in for it.
 - **One ticket per file or per issue**, never a combined file, since `do` takes one ticket per session. The parent is never closed or modified.
 - **Ticket text in the glossary's words, with no file paths and no code**, except a snippet that encodes a decision.
 - **Never commit, never push.** What the session wrote stays in the working tree, or on the tracker, for the user.
