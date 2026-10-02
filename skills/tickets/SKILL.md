@@ -44,7 +44,7 @@ A message with no tool call ends the turn, and the session waits there until the
 - the approval question (step 4), asked again after each correction;
 - the close (step 6).
 
-Under `--auto` on a local tracker (step 4) the approval is ruled, never asked, so the turn that shows the breakdown runs on to the close. Nobody is watching that run: a turn that ends on the approval question leaves the tickets unwritten.
+Under `--auto` on a local tracker (step 4) the approval is ruled, never asked, so the turn that shows the breakdown runs on to the close. On a remote tracker the turn still ends on the one question, with the Ruling shown above it. Nobody is watching that run: a turn that ends on the approval question leaves the tickets unwritten.
 
 Everything between those points happens in one turn. Grounding, exploring, calibrating and drafting run through to the breakdown without a check-in: the session never stops after the grounding to report what it read, or after the draft to ask whether to present it. After the yes, every ticket is published and the close follows in the same turn, never one ticket and then a pause. A status line is welcome, in the same message as the next tool call.
 
@@ -260,6 +260,8 @@ A `settled` return whose `Side:` names one of the two options is the Ruling on t
 
 **On a local tracker**, local markdown or no tracker file, the Ruling is the answer and the user is asked nothing. A Ruling to publish stands in for the yes: every ticket is published (step 5) and the close follows (step 6), in the same turn.
 
+**On a remote tracker** the Ruling is shown and the write still waits for the user: an issue reaches the whole team the moment it exists, so publishing there is one of the stops `--auto` keeps. Whichever side the Ruling took, show it as the `choice-taker`'s, with its side and its norm, then ask the one question, does this go out as it stands, and end the turn there. Nothing is created, labelled or commented on the tracker before the answer.
+
 ## 5. Publish
 
 Publish the approved tickets the way the tracker file describes, all of them in one turn. The tickets are the same either way; only the shape of the blocking edges changes.
@@ -304,7 +306,7 @@ Each rule restates a step above with the cost of breaking it. When two readings 
 - **The spec is the only input, and it is mandatory**: never the conversation, never a session summary. A `do` session reads the spec, so a ticket cut from anything else points at decisions it cannot find.
 - **The four stops write nothing and end the run with one message.** No override in the conversation: tickets cut past a stop are built on an input the chain has not settled.
 - **The cut is decided, never asked.** A ticket waits for the ticket that writes what it reads, a small ticket on a single edge folds into its neighbour, a large ticket splits along its steps, and the one question is whether the breakdown goes out. Each extra question stalls the chain on something the breakdown already shows.
-- **Nothing is published before the user approves the breakdown.** A published ticket is `ready-for-agent`: an agent can grab it the moment it exists.
+- **Nothing is published before the user approves the breakdown.** A published ticket is `ready-for-agent`: an agent can grab it the moment it exists. Under `--auto` the `choice-taker`'s Ruling to publish stands in for that approval on a local tracker only: on a remote one the Ruling is shown and the first write still waits for the user's own yes.
 - **One ticket per file or per issue**, never a combined file, since `do` takes one ticket per session. The parent is never closed or modified.
 - **Ticket text in the glossary's words, with no file paths and no code**, except a snippet that encodes a decision.
 - **Never commit, never push.** What the session wrote stays in the working tree, or on the tracker, for the user.
