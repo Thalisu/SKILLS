@@ -337,4 +337,30 @@ before "the Spec: label comes after the last Shard's facts" "Shard 2:" "Spec: <"
 expect "and the line ends with that fact and its Rung" \
   grep -qE 'Spec: <[^>]*>\. Rung [0-9]\.$' <<<"$flat"
 
+# The Spec Row is one fork in 2N+1 and the only one that holds the diff to its Spec. When it fails
+# twice it has no Shard to name, so none of the per-Shard forms can say so: without a form of its own
+# the Spec line either keeps a count nobody produced or the Review is not written at all. The forms
+# below are the ones a reader, fix.md's Green and `do` parse, and `not run` on the Spec line is what
+# keeps the Review short of Green.
+echo "# the Spec reviewer failed twice: the Spec Axis reads not run with the reason, and names no Shard"
+# shellcheck disable=SC2034 # lib.sh's check_lines reads $out
+out="$(blocks_of "$format" "## Axes")"
+check_lines "review-format.md / ## Axes: the Spec line has a not run form carrying the reason" 0 0 \
+  '- Spec: not run (<reason>)'
+flat="$(blocks_of "$format" "## Safe because" | grep -F 'Shard 1:')"
+expect "review-format.md / ## Safe because: a sharded safety line opens with the Spec Axis not run, before any Shard" \
+  grep -qE '^Not run: Spec\. ' <<<"$flat"
+flat="$(paragraph_with /dev/stdin "not run" all <<<"$section" | grep -F "Spec Row" | tr '\n' ' ')"
+expect "AGENT.md / ## 6. The fan-out: what a Row leaves not run is said of the Spec Row too" test -n "$flat"
+flat="$(paragraph_with /dev/stdin "Spec Row" all <<<"$review_section" | tr '\n' ' ')"
+carries "AGENT.md / ## 7. The Review, in one write: the Spec Row's Axis line takes that form" \
+  '`- Spec: not run (<reason>)`'
+flat="$(paragraph_with /dev/stdin "Shard" all <<<"$review_section" | tr '\n' ' ')"
+carries "AGENT.md / ## 7. The Review, in one write: the safety line opens with the Spec Axis not run" \
+  'Not run: Spec.'
+# shellcheck disable=SC2034
+out="$return_lines"
+check_lines "AGENT.md / ## 9. The return: the line do relays names the Spec Axis and its reason, with no Shard" 0 0 \
+  'Axis not run: Spec, <the reason>'
+
 exit $((fails > 0))

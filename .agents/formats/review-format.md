@@ -72,7 +72,12 @@ Not run on Shard <n>: <Axes>. Shard 1: <the technical fact>. Rung 4. <the securi
 
 The Spec reviewer's fact closes the line, since that reviewer answers over the whole diff and
 after every Shard. A reviewer that did not return gives no fact, and one `Not run on Shard <n>:` clause stands per
-Shard an Axis did not run on.
+Shard an Axis did not run on. When the Spec reviewer did not return, the line opens with
+`Not run: Spec.`, before any Shard's clause, and carries no `Spec:` fact:
+
+```md
+Not run: Spec. Shard 1: <the technical fact>. Rung 4. <the security fact>. Rung 3. Shard 2: <the technical fact>. Rung 3. <the security fact>. Rung 3.
+```
 
 ## Findings, by Bucket
 
@@ -156,7 +161,12 @@ The Spec line is the exception. On a diff reviewed in Shards one reviewer, the S
 the Spec whole and answers that Axis over the whole diff, so its line is that reviewer's own, in
 the forms a diff of one Shard has: its count and its worst Finding, `0 findings` or `no spec`, with
 the Loss ledger clause. It never takes the `<k> of <N> Shards returned` form, which belongs to the
-Axes the reviewers of each Shard answer.
+Axes the reviewers of each Shard answer. When the Spec reviewer did not return after its retry,
+the line carries the reason and names no Shard, and it is an Axis that did not run like any other:
+
+```md
+- Spec: not run (<reason>)
+```
 
 After the Axes, when the scratch folder is not ignored by git, one line says the file shows up in
 `git status`.

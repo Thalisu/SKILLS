@@ -347,6 +347,11 @@ A Row of a sharded run that fails again failed twice, with its reason in a few w
 Rows returned, and their Findings are kept. Each Axis the failed Row owns reads `not run` on that
 Shard, with the reason and the Shard named, never `0 findings`, as section 7 has it.
 
+The Spec Row is retried and fails twice like any other Row, in the same retry message as the
+Rows of the Shards. Its one Axis then reads `not run` with the reason and no Shard, since the Row
+has none, and the Review is still written, with every other Row's Findings and Axis lines as they
+came: one fork in 2N+1 failing never costs the developer the Review.
+
 After the fork, take `git status --porcelain` again. A difference is a reviewer having written into
 the tree: name every such path in the safety line, before the fact the reviewer gave, and still
 write the Findings.
@@ -414,14 +419,16 @@ A sharded run still writes six Axis lines and one safety line, in the sharded fo
   read over the merged Review.
 - The Spec line is the Spec Row's own line and never one you join from the Shards: copy it, the
   ledger clause included, with its count and its worst Finding read by number over the merged
-  Review.
+  Review. When the Spec Row failed twice, the line reads `- Spec: not run (<reason>)` and names no
+  Shard.
 - An Axis one of whose owning Rows failed twice reads `not run on Shard <n>` with that Row's
   reason, then how many Shards returned and the count over them. When no owning Row returned, the
   line names every Shard and carries no count.
 - The safety line takes every fact that came back, in Row order and word for word, each Shard's
   under its `Shard <n>:` label, after one `Not run on Shard <n>:` clause per Shard that names the
   Axes a failed Row left unanswered there. The Spec Row's fact closes the line, under a `Spec:`
-  label, after Shard N's. A Row that failed twice gives no fact.
+  label, after Shard N's. A Row that failed twice gives no fact, and when that Row is the Spec Row
+  the line opens with `Not run: Spec.`, before any Shard's clause.
 
 When the session lists `unslop`, call the Skill tool with `unslop` over the prose only: the intent,
 the safety fact, each claim and each evidence line. The section names, the Finding headings, the
@@ -504,6 +511,13 @@ and names each Shard the Axis did not run on with that Row's reason, still one l
 
 ```
 Axis not run: <Axis>, Shard <n> (<reason>)[, Shard <m> (<reason>)]
+```
+
+The Spec Axis of a sharded run has no Shard to name, so when the Spec reviewer failed twice its
+line takes the first form:
+
+```
+Axis not run: Spec, <the reason>
 ```
 
 Every other call, a plain one or a developer's with a landing target, ends the way it always did. Your last message is the Review's text, then one line `Written to <the review= path>`, then one
