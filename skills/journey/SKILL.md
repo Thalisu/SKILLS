@@ -327,8 +327,8 @@ The session ends when every path is `decided`, `default`, `deferred` or `ruled`.
 
   | The journey | Last line |
   |---|---|
-  | `## Reopen in discuss` says `none` | `/tickets <spec path or issue reference>` |
-  | it lists a branch | `/discuss <the branch>`, then `/journey` on the spec again; `tickets` stops on that list |
+  | `## Reopen in discuss` says `none` | `/tickets <spec path or issue reference>`; under `--auto`, `/tickets --auto <spec path or issue reference>`, so the user keeps the mode down the chain by pasting the line |
+  | it lists a branch | `/discuss <the branch>`, then `/journey` on the spec again, with the flag or without it; `tickets` stops on that list, so the line never names it |
 
 `tickets` cuts one ticket per path and orders them by `## States`, so every path is written to be cut that way: one thing the actor does end to end, never one layer of every path. After the tickets the chain continues one ticket at a time, `/do <ticket>`, the line `tickets` ends on. Nothing is committed.
 
