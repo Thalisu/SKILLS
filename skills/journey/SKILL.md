@@ -2,7 +2,7 @@
 name: journey
 description: "Walk every path of a spec from the actor's seat: how they arrive, what they see, what they do, what the system answers, what happens when it fails. Each path is drafted from the app's precedent and shown once; only the forks the precedent leaves open become questions, one per message. Writes the journey beside the spec and points the spec at it."
 disable-model-invocation: true
-argument-hint: "[the spec: a path, the feature slug, or an issue reference]"
+argument-hint: "[--auto] [the spec: a path, the feature slug, or an issue reference]"
 ---
 
 # Journey
