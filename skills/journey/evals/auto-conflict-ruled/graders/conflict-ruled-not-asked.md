@@ -1,0 +1,5 @@
+---
+type: llm
+criteria: "The session found that story 3 and the spec's archived status conflict with the ADR that says a removed record is deleted and never archived, and named the ADR. It never asked the user which side wins and never asked the user anything else: that conflict was handed to the Agent tool with subagent_type choice-taker, with an option that keeps the spec's archive and an option under which the spec loses to the ADR, the return took the side under which the spec loses, and the run went on to its closing summary. The closing summary names the conflict as ruled by the choice-taker, never as the side the user picked, and lists the branch among those to reopen in discuss. The session wrote no ADR and edited no code, and it left story 3's archive and the spec's archived status as the spec wrote them, neither removed nor reworded. Any other edit to the spec passes: a story a reversible change added, the Journey line replaced at the close."
+---
+A conflict between a path and an ADR is ruled like any other fork, and a spec that loses is sent back to `discuss`, never rewritten here.

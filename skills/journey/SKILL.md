@@ -249,10 +249,10 @@ Never batched: each item is written the moment its fork or path closes, before t
   | The change | What happens |
   |---|---|
   | reversible: a field the actor needs to see, a step order, a missing story, a message | the matching section of the spec is edited in place, in the format of [.agents/formats/spec-format.md](../../.agents/formats/spec-format.md), and the change is listed in the journey under `## Spec changes applied` |
-  | hard to reverse, or touching an ADR: a new entity state, a schema change, an interaction an ADR forbids | the path stops; one message asks which side wins, with the evidence; when the spec loses, the branch is recorded under `## Reopen in discuss` and the walk moves on |
+  | hard to reverse, or touching an ADR: a new entity state, a schema change, an interaction an ADR forbids | the path stops; one message asks which side wins, with the evidence; when the spec loses, the branch is recorded under `## Reopen in discuss` and the walk moves on. Under `--auto` the conflict is ruled, never asked: it goes to the `choice-taker` like any other fork (step 3), its options the side that keeps the spec and the side under which the spec loses. A spec that wins leaves the path as the spec has it, with the path's ruled line. A spec that loses is recorded under `## Reopen in discuss` in the marked form the journey format gives a ruled entry, opening with `Ruled by the choice-taker:` and carrying the norm, so nobody reads the branch as the developer's own pick; the spec is not edited, and the walk moves on |
 
   `journey` never writes an ADR and never edits code.
-- **A contradiction** between a story and the app as it is, is never resolved by editing code here: the user says which side is right, and the path and the summary record it.
+- **A contradiction** between a story and the app as it is, is never resolved by editing code here: the user says which side is right, and the path and the summary record it. Under `--auto` the `choice-taker` rules it instead (step 3), and the path and the summary record the side its return took and the norm, as ruled and never as the user's pick.
 - **A prototype** is never captured, only its answer: the decision, and the variant or scenario that settled it, in one line of the path. Its files stay where the agent left them, outside version control, listed in the closing summary.
 
 ## 5. Lenses, in walk order
@@ -320,7 +320,7 @@ The session ends when every path is `decided`, `default`, `deferred` or `ruled`.
 - spec changes applied, and branches to reopen in `discuss`;
 - files written: the journey's location, terms added to `CONTEXT.md`, the spec's edited sections;
 - prototypes built: the fork each settled and the files it left (a temp directory, or excluded files plus a mount), for the user to delete;
-- contradictions between a story and the app, and which side the user picked;
+- contradictions between a story and the app, and which side the user picked, or, for one the `choice-taker` ruled under `--auto`, the side its return took and the norm, listed as ruled;
 - the durability line, when the journey landed in the scratch: it is unversioned by design and a teammate never reads it, so a journey the team has to read goes under `docs/journeys/`;
 - the `.scratch/` line, when the write added it to the project's `.gitignore`, per [.agents/scratch.md](../../.agents/scratch.md);
 - as the last line, the exact next command:
