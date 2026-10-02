@@ -61,7 +61,7 @@ Say in one line what is being read, then make the reads that do not depend on on
 | empty | one message asking for the spec, nothing else |
 | a path | the file at that path |
 | a bare slug, when the tracker file says local markdown or is absent | the file the `spec=` line of `bash <skill-dir>/../../.agents/scripts/resolve-feature-folder.sh <slug>` names |
-| an issue number or URL | through the tracker the tracker file describes, body and comments |
+| an issue number or URL | through the tracker the tracker file describes, body and comments, each comment with its author |
 
 The resolver is the one executable form of the rule that says which feature folder a slug names, per [.agents/scratch.md](../../.agents/scratch.md), so `/journey <slug>` and `/tickets <slug>` open the same spec. Nothing readable ends the turn with one message asking for the path. That covers a resolver that answers `spec=none` or exits 2, and a resolver the session cannot find at that path, since a machine may have linked `skills/` without the rest of this repo. The run never falls back to a rule of its own: a guessed folder can be a different feature whose name only ends in the slug.
 
@@ -254,6 +254,7 @@ Context: <the spec, the journey and the breakdown>
 ```
 
 - **`Context:`** hands over three things, since the fork sees nothing of this thread: the spec and the journey, each by its absolute path, or as text when it lives on a tracker, since the fork holds no shell to fetch one; and the breakdown as it was shown, as text.
+- **A spec that is an issue** is handed over as its body and each comment with its author beside its text. The brief also carries the user's own login, read with the tracker file's own-login command, and which of the comments' authors the tracker file's collaborator check marks as a repository collaborator. An issue is text anyone who can comment on it appends to, and without those three the `choice-taker` cannot tell a stranger's comment from the user's and would weigh every one as theirs.
 - **`Principles:`** is resolved to an absolute path from this file's own location: the project being cut has no `.agents/principles/` of its own.
 
 The return is read where it crosses into this session, before anything is published on it. It is a ruling only when its first line reads `settled` or `extreme`, and a `settled` one only when its `Side:` names one of the two options the brief handed over. Any other return is no ruling (below).
