@@ -41,6 +41,7 @@ the local shape of the ticket format `tickets` links.
 | `auto-local-ruling-against-publishes-nothing` | the same local run with a `choice-taker` stand-in that rules to leave the breakdown unpublished: no ticket file is written, the ruling is not put back to the user as a question, and the run ends on a close that carries the ruling and names no next command |
 | `auto-remote-stops-before-publishing` | with the spec an issue on a stand-in tracker and `--auto` typed after its number, the breakdown is shown, the approval goes to a `choice-taker` stand-in that rules to publish, and the run still ends on the one question with that ruling above it: the tracker receives no write and no next command is named |
 | `auto-unlisted-choice-taker-asks-the-developer` | the local run under `--auto` with `choice-taker` unlinked and no stand-in: the breakdown ends on the approval question with one line naming the missing `choice-taker` as the reason, the agent is tried once at most, no other agent is forked in its place, and no ticket file is written |
+| `auto-agent-tool-withheld-asks-the-developer` | the remote run under `--auto` with the fixture's settings denying the Agent tool: the breakdown ends on the approval question with one line naming the Agent tool, not a missing `choice-taker`, as the reason; no agent runs, and the tracker receives no write |
 
 Run from the skill directory, granting the tools the cases need and opting in to their scaffold
 scripts:
