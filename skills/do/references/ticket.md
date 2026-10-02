@@ -463,8 +463,11 @@ keeps the same promise by undoing that cut itself. A refusal met there after the
 the Planner's own Sources mismatch, the destination check, a defect that will not reproduce even
 when forced or any other refusal of this step, reverts the run's instrumentation, leaves the
 worktree with a bare `cd` to the main checkout and, from there, checks first whether
-`git merge-base --is-ancestor do/<slug> HEAD` holds: only when it does, meaning the branch carries
-no commit HEAD lacks, does it go on to run `git worktree remove <path>` then
+`git merge-base --is-ancestor do/<slug> <start>` holds, `<start>` the start point the worktree was
+cut from, `spec/<feature-slug>` when the door printed `spec_exists=yes` and HEAD otherwise, since a
+branch cut from the Spec branch carries every Ticket landed there, which HEAD lacks: only when it
+does, meaning the branch carries no commit of its own, does it go on to run
+`git worktree remove <path>` then
 `git branch -d do/<slug>`: the run cut both, and the door's own worktree-exists rule above would
 otherwise refuse the rerun. The Ticket stays at the status the door found it at, since the claim
 on that branch still waits for the verified Plan, and the refusal's Reply says the worktree and
@@ -474,7 +477,7 @@ the run did not create, the `destroy` class of
 remove runs without `--force` and the delete with `-d`, never `-D`. A worktree this run entered
 rather than cut, a resumed run's on a `claimed` Ticket whose worktree already existed, is left in
 place with its branch and both are named in the Reply. The ancestry check failing, a branch
-carrying a commit HEAD does not hold, leaves both the worktree and the branch in place and named
+carrying a commit its start point does not hold, leaves both the worktree and the branch in place and named
 in the Reply, before either removal runs, so the diagnosis's own commit is never stranded behind a
 worktree already gone. A remove or a delete git refuses regardless, a tree still dirty for the
 one or a branch git still won't delete for the other, is left in place and named in the Reply
@@ -573,8 +576,8 @@ place for that, so step 2's worktree is created and entered first and the reprod
 with the brief's `Tree:` naming it. That worktree is cut before the claim, so on a first run, where
 the door printed `spec_exists=no`, `spec/<feature-slug>` does not exist yet and is no start point:
 it is cut from the main checkout's HEAD, the tip the Spec branch's cut takes later (HEAD too when
-the door printed `spec_branch=none`), and from the Spec branch's tip when the door printed
-`spec_exists=yes`. The claim still waits for the verified Plan. Those steps record their lines for the Reply's Run section, per
+the door printed `spec_branch=none`), and from the Spec branch's tip, with step 2's `--track`, when
+the door printed `spec_exists=yes`. The claim still waits for the verified Plan. Those steps record their lines for the Reply's Run section, per
 [reply.md](reply.md). When `bug-fix` is not installed under Links, those two steps stand on their
 own. They are the exception the Links rule of [SKILL.md](../SKILL.md) names, and the step numbers
 there are `bug-fix`'s, not this checklist's: the second ask a surface the session cannot reach gets
@@ -749,16 +752,23 @@ upstream, is recorded for the Reply's Run section. A Ticket whose door printed `
 runs no cut.
 
 Then the worktree in [mechanics.md](mechanics.md): created on `do/<slug>` from the tip of the Spec
-branch, `git worktree add .claude/worktrees/do-<slug> -b do/<slug> spec/<feature-slug>`, so the
-Ticket builds on every Ticket that landed before it, or from the current HEAD when the door printed
-`spec_branch=none`; `<slug>` is the Ticket file's slug without its number, excluded locally, entered. On a
+branch, `git worktree add --track .claude/worktrees/do-<slug> -b do/<slug> spec/<feature-slug>`, so the
+Ticket builds on every Ticket that landed before it, or from the current HEAD, with no `--track`,
+when the door printed `spec_branch=none`; `<slug>` is the Ticket file's slug without its number,
+excluded locally, entered. `--track` records the Spec branch as the upstream of `do/<slug>`, and it
+is spelled out because git records none by default for a local start point. The close's
+`git branch -d` measures a branch against its upstream, and against the main checkout's HEAD only
+when it has none: the Ticket lands on the Spec branch, which the main checkout is never on, so
+without the upstream the delete refuses a branch that landed. On a
 start-over whose `run_branch=` fact names `do/<slug>`, the branch survived the worktree's removal,
 so the worktree is entered on it instead: `git worktree add .claude/worktrees/do-<slug>
 do/<slug>`, without `-b`, the way bug-fix's Resume already reads the same state, since `-b` on a
 branch that exists fails and that failure is not one to work around with a second slug. On the
 diagnosis branch of step 1 the worktree is already there and is not made again: it was cut before
 this cut and, on a first run, from the checkout's HEAD, which is the tip this cut gave the Spec
-branch.
+branch. Neither of those two entries passes through `--track`, so each is followed, from the main
+checkout, by `git branch --set-upstream-to=spec/<feature-slug> do/<slug>`, which changes nothing on
+a branch that already records it.
 
 Done when the Ticket reads `claimed`, the Spec branch the door named exists with its upstream, the worktree's status prints
 nothing, and the claim line, the cut line and the worktree line, its path and its branch, are

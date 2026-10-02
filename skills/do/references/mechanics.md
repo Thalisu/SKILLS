@@ -62,7 +62,8 @@ point its Playbook names, never through a tool that branches from the remote def
    `git worktree add .claude/worktrees/do-<slug> -b do/<slug> [<start>]`, where `<slug>` is the
    Ticket's slug, or the request's outside the chain, and `<start>` is HEAD unless the Playbook
    names one: the `ticket` Playbook names the Spec branch, `spec/<feature-slug>`, so a Ticket
-   builds on every Ticket that landed before it, and `bug-fix` and `refactoring` name none.
+   builds on every Ticket that landed before it, and adds `--track`, so the close's delete
+   measures the branch against the Spec branch it landed on; `bug-fix` and `refactoring` name none.
    `.claude/worktrees/`
    is the harness's worktrees folder: the run's worktrees sit beside the harness's own, one
    exclude line covers them all, and a resume knows where to look.
@@ -991,7 +992,10 @@ above: the run never commits it and the worktree branch never touches it.
 6. Remove the worktree and its branch: the run created them, so the run removes them. Leave the
    worktree first, with a bare `cd` to the main checkout, then, from there,
    `git worktree remove <path>` and `git branch -d do/<slug>`. The branch landed, so the delete is
-   safe; a remove or a delete that refuses means something did not land, or the worktree holds
+   safe: git measures it against the branch's upstream, the Spec branch a Ticket's worktree step
+   recorded, or against HEAD for a branch that records none. Git's exit status is the answer: a
+   delete that exits 0 with the warning `not yet merged to HEAD` is a branch that landed on the
+   Spec branch, and is no refusal. A remove or a delete that refuses means something did not land, or the worktree holds
    work the run did not create, and the run stops there with the worktree and its branch left in
    place and named with git's own reason, never retried with `--force` or `-D`. What git refused
    on is not the run's to throw away, so the Reply's `Yours:` line, per [reply.md](reply.md),
