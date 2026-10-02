@@ -44,7 +44,8 @@ A message with no tool call ends the turn, and the run waits there until the use
 The turn ends at these points and no others:
 
 - the message that sends the user to `/discuss` (step 1);
-- the seams question (step 2), which a run under `--auto` hands to the `choice-taker` instead;
+- the seams question (step 2), which a run under `--auto` hands to the `choice-taker` instead and
+  asks only in the cases that step lists;
 - an allocator refusal (step 3);
 - the close (step 5).
 
@@ -166,6 +167,16 @@ Context: <the plan, the reason for each set, and what step 1 read of the code an
 A `settled` return settles the seams as the set its `Side:` names. Each seam of that set is a
 Ruling: it reads ruled, never confirmed and never taken, in the spec (step 3) and in the close
 (step 5), with the return's `Norm:`. The run goes on to step 3 in the same turn.
+
+**When the check comes back to the developer.** The seams question is asked after all, as the one
+message above and the skill's one question, with one line before it naming the reason. Then the
+turn ends, and no spec is written before the answer, which is the decision as it is without the
+flag: the seams then read confirmed, never ruled. The rest of the run stays under `--auto`, so the
+close's last line still carries the flag. It happens in these cases and no others:
+
+- **The Agent tool lists no `choice-taker`.** The reason line says so. No other agent is forked in
+  its place and the run never settles the seams on its own: a ruling nobody with the
+  `choice-taker`'s norms made would land in the spec unread.
 
 ## 3. Write
 

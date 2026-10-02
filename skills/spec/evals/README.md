@@ -23,6 +23,7 @@ that check goes to the `choice-taker`, and the run ends at the closing summary t
 | `auto-seams-already-named` | under `--auto`, a summary that names the seams still skips the check in one line: no `choice-taker` is forked, and the spec marks the seam as taken from the conversation, none ruled; the close's last line reads `/tickets --auto` with the spec path |
 | `auto-rules-the-seams` | under `--auto`, a summary that names no seams sends the sketched seam set and the set rejected while sketching to the `choice-taker`, once, as rival options; the user is asked nothing, and the spec carries the ruled seam on its own line with its norm |
 | `auto-close-carries-the-flag` | under `--auto`, with seams the `choice-taker` ruled and stories that route to journey, the close names each seam as ruled with its norm and its last line reads `/journey --auto` with the spec path |
+| `auto-choice-taker-unlinked-asks-the-seams` | under `--auto` with no `choice-taker` linked, the seams check comes back as the one question, with one line naming the reason; no agent is forked in its place and nothing is written before the answer |
 
 Run from the skill directory, granting the tools the cases need and opting in to their scaffold
 scripts:
