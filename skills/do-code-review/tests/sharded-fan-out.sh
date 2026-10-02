@@ -294,6 +294,15 @@ flat="$(passage_of "$tech" "## The return" "## " | paragraph_with /dev/stdin '`S
 expect "its return says what a Shard: line changes" test -n "$flat"
 carries "with a Shard: line the return carries no Spec Axis line" '`- Spec:`'
 
+# The Run kind row is what the orchestrator reads to know what a cut of one Shard forks. With a Spec
+# Row in the same section, a row that only says "the two forks below" leaves the third agent open,
+# and a developer running an ordinary review pays for it.
+echo "# AGENT.md / ## 6. The fan-out: a cut of one Shard forks no Spec reviewer"
+unsharded_runs="$(awk -F'|' '$2 == " unsharded " { print $4 }' <<<"$kind_rows")"
+expect "the run kinds carry an unsharded one" test -n "$unsharded_runs"
+expect "what the unsharded kind runs names the Spec reviewer as not forked" \
+  grep -qF -- "no Spec reviewer" <<<"$unsharded_runs"
+
 # One reviewer answered the Spec Axis over the whole diff, so the Review's Spec line is that
 # reviewer's own. A line joined from N Shards, or a seventh line, breaks every reader of `## Axes`:
 # a developer and fix.md read the Axis off that one line.

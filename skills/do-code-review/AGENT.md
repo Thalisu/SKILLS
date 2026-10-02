@@ -258,8 +258,8 @@ The `shards=` line decides the kind of run:
 
 | Kind | When | What runs |
 |---|---|---|
-| unsharded | `shards=1`, or the script exiting 1 or 2 | the two forks below with the brief of section 5 as it stands, and the manifest is named to nobody |
-| sharded | `shards=<N>`, N above 1 | one fork per Row of the Row set below |
+| unsharded | `shards=1`, or the script exiting 1 or 2 | the two forks below with the brief of section 5 as it stands, the Spec Axis and the Loss ledger with the technical reviewer, and no Spec reviewer; the manifest is named to nobody |
+| sharded | `shards=<N>`, N above 1 | one fork per Row of the Row set below, the Spec reviewer's among them |
 
 The cut alone decides, whoever called: no caller measures the diff or passes a Shard count, so a
 call by hand and a call from `do` fan out the same way over the same diff.
