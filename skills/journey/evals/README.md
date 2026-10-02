@@ -14,7 +14,8 @@ closes. A case that types `--auto` runs on to the close instead, or to the one q
 exception puts to the developer. Those cases swap the linked `choice-taker` for a stand-in under
 the fixture's `.claude/agents/`, so each reads how the session handles a return and never how the
 real agent weighs a fork; `choice-taker-unreachable-asks-the-developer` unlinks it and puts nothing
-in its place.
+in its place, and `agent-tool-withheld-asks-the-developer` keeps it linked and denies the Agent tool
+in the fixture's settings.
 
 Every fixture is synthetic: a two-page backoffice (a Customers page with a search box, a create
 form, a delete dialog and an empty state, under a top navigation), a glossary, and a spec in the
@@ -39,6 +40,7 @@ slug resolves in the scratch.
 | `undefined-term-ruling-asks-the-developer` | under `--auto`, a `choice-taker` stand-in that returns `settled` with a norm in a term the glossary does not define is no ruling: the fork is put to the developer as one question naming the term, the stand-in is forked once, and no ruled line is written and the term reaches no glossary |
 | `unshaped-choice-taker-return-asks-the-developer` | under `--auto`, a `choice-taker` stand-in that returns a refusal, a first line neither `settled` nor `extreme`, is no ruling: the fork is put to the developer as one question naming the reason, the stand-in is forked once, and no ruled line is written and no option is picked in its place |
 | `choice-taker-unreachable-asks-the-developer` | under `--auto`, with the Agent tool listing no `choice-taker`, the first open fork is put to the developer as one question naming the reason, with no other agent forked in its place, the `choice-taker` tried once at most, and nothing read as ruled |
+| `agent-tool-withheld-asks-the-developer` | under `--auto`, with every agent linked and the Agent tool denied by the fixture's settings, the first open fork is put to the developer as one question naming the Agent tool as the reason, no agent runs at all, a refused call is not repeated, and nothing reads as ruled |
 | `no-writes-without-decision` | with no fork closed, nothing is created or edited in the project (no journey, the spec and its verdict untouched) and nothing is committed |
 
 A `PROTOTYPE ask` answered by resuming the agent has no case either: the ask reaches the user only
