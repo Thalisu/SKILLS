@@ -43,8 +43,11 @@ skill or agent call another.
   indexed in its `README.md`, per `docs/adr/0004`. A skill that writes or reads one links the file
   by relative path: never a copy, and never a link into another skill's folder. A format read by
   one skill only stays in that skill's `references/`.
-- Adding, renaming or removing a principle or a format updates that folder's index in the same
-  change.
+- `.agents/reading/` holds the read map, one hand-written file per task, indexed in its
+  `README.md`: the sections of the verbatim copies below worth reading for that task, anchored
+  on heading text. `scripts/check-reading-map.sh` fails on an anchor a refresh renamed.
+- Adding, renaming or removing a principle, a format or a read case updates that folder's index in
+  the same change.
 - `.scratch/` is where a project keeps the chain's local artifacts, and it is always unversioned:
   one developer's own workspace, which a teammate never reads. A skill that reads or writes there
   links `.agents/scratch.md` by path, never a copy.
@@ -57,28 +60,28 @@ skill or agent call another.
 `.agents/claude-code/` hold verbatim copies of upstream pages, one file per page, each folder
 indexed in its `README.md` with the upstream URL and the date it was fetched.
 
-- Refresh a copy by re-fetching it, never by editing it by hand.
+- Refresh a copy by re-fetching it, never by hand, then run `bash scripts/check-reading-map.sh`.
 - Adding, refreshing or removing a copy updates that folder's index in the same change.
 - Where the skill-authoring page and a contract in this repo differ, the contract wins: the
   upstream page is general advice, and `.agents/invocation.md` is the rule here.
 
-When to read them:
+Never read a copy whole. `.agents/reading/` maps each task to the sections worth opening: read
+the task's case file there before the task, then only the sections it lists.
 
-- Read `.agents/prompting/prompting-best-practices.md` before writing or tuning any prompt,
-  whatever it is for (a `SKILL.md`, an agent definition, a brief handed to a subagent, an eval, a
-  prompt inside a script) and whatever the target model.
-- Read the file for the target model, when `.agents/prompting/README.md` lists one, before writing
-  or tuning a prompt for that model.
-- Read `.agents/skill-authoring/best-practices.md` and `.agents/invocation.md` before adding a
-  skill or restructuring one (its `SKILL.md`, its `references/`, its scripts).
-- Read `.agents/test-and-evaluate/develop-tests.md` before writing or changing an eval (a skill's
-  `evals/` folder, a grader, a test that runs a model). It covers model behavior only: a unit test
-  of this repo's scripts follows the Testing Policy below.
-- Read `.agents/test-and-evaluate/reduce-latency.md` before tuning a skill or an agent for speed
-  (model choice, prompt and output length).
-- Read `.agents/claude-code/memory.md` and the "Write an effective CLAUDE.md" section of
-  `.agents/claude-code/best-practices.md` before writing or restructuring a `CLAUDE.md` or a
-  `.claude/rules/` file, this one or the one a setup skill writes into a project.
+- A `SKILL.md` body: `skill-body.md`
+- A skill's frontmatter or description: `skill-frontmatter.md`
+- A skill's folder (`references/`, split files): `skill-folder.md`
+- A script a skill ships: `skill-script.md`
+- An agent definition, or a brief handed to a subagent: `agent-or-brief.md`
+- A prompt inside a script or a headless call: `script-prompt.md`
+- An eval (a skill's `evals/`, a grader, a test that runs a model): `eval.md`. A unit test of
+  this repo's scripts follows the Testing Policy below instead.
+- Speed or cost (model choice, effort, prompt and output length): `speed-and-cost.md`
+- What belongs in a `CLAUDE.md`, or in a rule, a skill or a hook instead: `claude-md-scope.md`
+- Wording or trimming a `CLAUDE.md`, this one or one a setup skill writes: `claude-md-wording.md`
+- Instruction file location, imports, `.claude/rules/`, `AGENTS.md`: `claude-md-location.md`
+- A long-running or multi-step workflow, or how a skill verifies its work: `workflow.md`
+- Output format, tone or verbosity: `output-format.md`
 
 ## Vendored dependencies
 
