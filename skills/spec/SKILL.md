@@ -362,6 +362,10 @@ possible, the one that keeps these holds.
   conversation settles it. A plan the conversation does not hold is sent to `/discuss`, never asked
   for piece by piece: a second interview spends the attention `discuss` already spent, and its
   answers land in no summary.
+- **Under `--auto`, only the `choice-taker` rules the seams.** No other agent and no pick of the
+  run's own stands in for it, and an `extreme` return, a return that is no ruling or a fork that
+  cannot be made brings the question back: a seam marked ruled is read later as a norm, by people
+  who never saw it chosen.
 - **The spec carries only what was decided.** A missing decision is listed in the close, never
   invented: the next skills read every line of the spec as the user's.
 - **The verdict comes from the structure of the stories** (a new screen, the number of paths, the
