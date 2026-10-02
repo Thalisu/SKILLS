@@ -294,4 +294,38 @@ flat="$(passage_of "$tech" "## The return" "## " | paragraph_with /dev/stdin '`S
 expect "its return says what a Shard: line changes" test -n "$flat"
 carries "with a Shard: line the return carries no Spec Axis line" '`- Spec:`'
 
+# One reviewer answered the Spec Axis over the whole diff, so the Review's Spec line is that
+# reviewer's own. A line joined from N Shards, or a seventh line, breaks every reader of `## Axes`:
+# a developer and fix.md read the Axis off that one line.
+echo "# AGENT.md / ## 7. The Review, in one write: the Spec Row's return is merged last, under the one numbering"
+flat="$(paragraph_with /dev/stdin "Shard" all <<<"$review_section" | tr '\n' ' ')"
+carries "the sharded write names the Spec Row" "Spec Row"
+flat="$(paragraph_with /dev/stdin "Row order" <<<"$review_section")"
+expect "the write says in which order a sharded run's returns are taken" test -n "$flat"
+before "the Spec Row comes after the Rows of every Shard" "security Row" "Spec Row"
+carries_any "and its Findings fall under the same one numbering" \
+  "from 1" "numbered once" "one numbering" "a single numbering"
+
+echo "# AGENT.md / ## 7. The Review, in one write: the Spec line of a sharded Review is the Spec Row's own"
+flat="$(paragraph_with /dev/stdin "Shard" all <<<"$review_section" | grep -E 'Axis|Spec line' | grep -F "Spec Row" | tr '\n' ' ')"
+expect "the sharded Axis lines say whose line the Spec line is" test -n "$flat"
+carries "its worst Finding is read by its number in the merged Review" "worst"
+
+echo "# review-format.md / ## Axes: the Spec line of a diff reviewed in Shards is the one Spec reviewer's"
+flat="$(passage_of "$format" "## Axes" "## Template" | paragraph_with /dev/stdin "Spec reviewer" all | tr '\n' ' ')"
+expect "the Axis lines name the Spec reviewer" test -n "$flat"
+carries "and say so of a diff reviewed in Shards" "Shard"
+# shellcheck disable=SC2034 # lib.sh's absent reads $out
+out="$(blocks_of "$format" "## Axes")"
+expect "the per-Shard forms keep <Axis> as their placeholder" \
+  grep -qE '^- <Axis>: not run on Shard <n> ' <<<"$out"
+absent "no fenced form gives the Spec Axis a per-Shard line" "- Spec: not run on Shard"
+
+echo "# review-format.md / ## Safe because: the sharded safety line ends with the Spec reviewer's fact"
+flat="$(blocks_of "$format" "## Safe because" | grep -F 'Shard 1:')"
+expect "the format carries the sharded safety line" test -n "$flat"
+before "the Spec: label comes after the last Shard's facts" "Shard 2:" "Spec: <"
+expect "and the line ends with that fact and its Rung" \
+  grep -qE 'Spec: <[^>]*>\. Rung [0-9]\.$' <<<"$flat"
+
 exit $((fails > 0))

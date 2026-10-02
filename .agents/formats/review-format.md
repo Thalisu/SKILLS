@@ -67,10 +67,11 @@ the technical fact before the security fact, each word for word with its own Run
 that did not run on a Shard:
 
 ```md
-Not run on Shard <n>: <Axes>. Shard 1: <the technical fact>. Rung 4. <the security fact>. Rung 3. Shard 2: <the technical fact>. Rung 3. <the security fact>. Rung 3.
+Not run on Shard <n>: <Axes>. Shard 1: <the technical fact>. Rung 4. <the security fact>. Rung 3. Shard 2: <the technical fact>. Rung 3. <the security fact>. Rung 3. Spec: <the Spec reviewer's fact>. Rung 3.
 ```
 
-A reviewer that did not return gives no fact, and one `Not run on Shard <n>:` clause stands per
+The Spec reviewer's fact closes the line, since that reviewer answers over the whole diff and
+after every Shard. A reviewer that did not return gives no fact, and one `Not run on Shard <n>:` clause stands per
 Shard an Axis did not run on.
 
 ## Findings, by Bucket
@@ -150,6 +151,12 @@ none did:
 The reason is `did not return` or `returned outside the shape`. A line that carries `not run`
 anywhere is an Axis that did not run, whatever count follows it: the Findings the other Shards
 returned are kept and counted, and the Shards named are the ones nobody judged on that Axis.
+
+The Spec line is the exception. On a diff reviewed in Shards one reviewer, the Spec reviewer, reads
+the Spec whole and answers that Axis over the whole diff, so its line is that reviewer's own, in
+the forms a diff of one Shard has: its count and its worst Finding, `0 findings` or `no spec`, with
+the Loss ledger clause. It never takes the `<k> of <N> Shards returned` form, which belongs to the
+Axes the reviewers of each Shard answer.
 
 After the Axes, when the scratch folder is not ignored by git, one line says the file shows up in
 `git status`.

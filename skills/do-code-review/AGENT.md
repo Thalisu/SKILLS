@@ -361,7 +361,8 @@ nothing is merged and nothing is reranked across reviewers.
 
 On a sharded run one return arrives per Row, each numbered from 1 within itself, and they still
 make one Review, never one per Shard. Take the returns in Row order, Shard 1 to N and the
-technical Row before the security Row within a Shard. Inside a Bucket the Findings stay in that
+technical Row before the security Row within a Shard, then the Spec Row, whose Findings so come
+last. Inside a Bucket the Findings stay in that
 order, each reviewer's own order kept, and the numbering below runs once from 1 across the whole
 file, so no two Findings of the Review share a number and the Fixers work from one `Act on` list.
 
@@ -369,7 +370,9 @@ Two rules drop a Finding of a sharded run before the grouping, and they are the 
 make across its Rows. Within one Shard, a technical Finding at a location that Shard's own security
 reviewer also reported is dropped as a duplicate, and the security reviewer's is the one the Review
 carries. Across Shards the same location still appears once: the security reviewer's Finding is
-kept over a technical one, and between two of the same kind the lower Shard's is kept.
+kept over a technical one, and between two of the same kind the lower Shard's is kept. Neither
+rule reaches a Finding of the Spec Row, which sits at a spec line quoted and never at a location in
+the code.
 
 Group the Findings by Bucket in the format's order, `Act on`, `Consider`, `Noted`, `Cleared`, and
 number them from 1 in that order. Keep each reviewer's wording: you group, you never rephrase and
@@ -409,12 +412,16 @@ A sharded run still writes six Axis lines and one safety line, in the sharded fo
 
 - An Axis whose every owning Row returned takes the unsharded form, its count and its worst Finding
   read over the merged Review.
+- The Spec line is the Spec Row's own line and never one you join from the Shards: copy it, the
+  ledger clause included, with its count and its worst Finding read by number over the merged
+  Review.
 - An Axis one of whose owning Rows failed twice reads `not run on Shard <n>` with that Row's
   reason, then how many Shards returned and the count over them. When no owning Row returned, the
   line names every Shard and carries no count.
 - The safety line takes every fact that came back, in Row order and word for word, each Shard's
   under its `Shard <n>:` label, after one `Not run on Shard <n>:` clause per Shard that names the
-  Axes a failed Row left unanswered there. A Row that failed twice gives no fact.
+  Axes a failed Row left unanswered there. The Spec Row's fact closes the line, under a `Spec:`
+  label, after Shard N's. A Row that failed twice gives no fact.
 
 When the session lists `unslop`, call the Skill tool with `unslop` over the prose only: the intent,
 the safety fact, each claim and each evidence line. The section names, the Finding headings, the
