@@ -144,6 +144,52 @@ expect "its brief carries no Shard: line, since the Row has no Shard of its own"
 expect "the one sharded wait ends in the Spec reviewer's return file, after the last Shard's" \
   grep -qE 'shard-<N>\.security\.md <that directory>/spec\.md *$' <<<"$sharded_wait"
 
+# The Row above forks a definition, and that definition is what keeps the one reviewer inside its
+# window: it has no Shard of its own, so it starts from the Spec and reaches the code a path at a
+# time, and it answers the one Axis the per-Shard reviewers cannot.
+spec="$here/../agents/do-code-review-spec-reviewer.md"
+lacks() { test -n "$flat" && ! grep -qF -- "$1" <<<"$flat"; } # $1 a fixed string the section in $flat, which must not be empty, does not carry
+
+echo "# the Spec reviewer / ## The brief: it is handed the Spec, the manifest and the ledger, and no Shard"
+flat="$(flat_section "$spec" "## The brief")"
+expect "the Spec reviewer's brief lists the lines it receives" test -n "$flat"
+carries "its brief carries a row for the Spec source line" "| \`Spec source:\` |"
+carries "its brief carries a row for the manifest line" "| \`Shard manifest:\` |"
+carries "its brief carries a row for the ledger line" "| \`Loss ledger:\` |"
+carries "its brief carries a row for its return file" "| \`Return file:\` |"
+expect "its brief carries no row for a Shard line, since it has no Shard of its own" \
+  lacks "| \`Shard:\` |"
+expect "its brief carries no row for the standards sources, an Axis it does not answer" \
+  lacks "| \`Standards sources:\` |"
+
+echo "# the Spec reviewer / ## Reading: the code is reached through the manifest, one path's diff at a time"
+flat="$(flat_section "$spec" "## Reading")"
+expect "the Spec reviewer lists what it opens" test -n "$flat"
+carries "it reads the manifest the brief names" "Shard manifest"
+carries_any "it finds the changed paths on the manifest's file lines" \
+  "\`file\` line" "'^file " "\`file shard="
+expect "it reads a path's changed lines one file's diff at a time" \
+  grep -qE -- "$one_file_diff" <<<"$flat"
+
+echo "# the Spec reviewer / ## The Axis: Spec is the one Axis it answers"
+flat="$(flat_section "$spec" "## The Axis")"
+expect "the Spec reviewer names the Axis it answers" grep -qF -- "Spec" <<<"$flat"
+
+echo "# the Spec reviewer / ## The return: one Axis line, Spec, in the forms the Review's own Spec line takes"
+spec_return="$(blocks_of "$spec" "## The return")"
+expect "the Spec reviewer's return has its fenced form" test -n "$spec_return"
+axis_lines="$(grep -E '^- (Correctness|Spec|Standards|Principles|Blast radius|Security): ' <<<"$spec_return")"
+expect "the return carries exactly one Axis line" test "$(grep -c . <<<"$axis_lines")" = 1
+expect "and that line is the Spec Axis's, under ## Axes" \
+  grep -qE '^- Spec: ' <<<"$(sed -n '/^## Axes$/,$p' <<<"$spec_return")"
+spec_line="$(grep -E '^- Spec: ' <<<"$axis_lines")"
+expect "the Spec line keeps the no spec form" grep -qF -- "no spec" <<<"$spec_line"
+expect "the Spec line keeps the Loss ledger: clause" grep -qF -- "Loss ledger:" <<<"$spec_line"
+expect "every Finding heading of the return is a Spec Finding's" \
+  test "$(grep '^### ' <<<"$spec_return" | sort -u)" = '### <n>. Spec at <location>'
+expect "the return ends in its Safe because: line" \
+  grep -qE '^Safe because: ' <<<"$(grep . <<<"$spec_return" | tail -n 1)"
+
 format="$here/../../../.agents/formats/review-format.md"
 
 echo "# AGENT.md / ## 7. The Review, in one write: every Shard's Findings go into the one Review, numbered once"

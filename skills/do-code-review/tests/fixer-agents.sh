@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # fixer-agents.sh: the frontmatter contract of the review's agents as the harness reads it: the model
 # and effort the orchestrator at AGENT.md runs at, and those of its two fixing agents, the Fixer and
-# the Gate fixer, with the name each is forked by.
+# the Gate fixer, with the name each is forked by, and those of the Spec reviewer with its tool list.
 # Run: bash skills/do-code-review/tests/fixer-agents.sh
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
@@ -26,6 +26,21 @@ for agent in "$here/../agents/do-code-review-fixer.md" "$here/../agents/do-code-
   expect "$file's frontmatter name equals its file name, the name the harness forks it by" \
     test "$(field name)" = "$file"
 done
+
+spec="$here/../agents/do-code-review-spec-reviewer.md"
+echo "# skills/do-code-review/agents/do-code-review-spec-reviewer.md"
+
+rc=0
+# shellcheck disable=SC2034  # lib.sh's check_lines reads $out
+out="$(frontmatter "$spec" 2>/dev/null)" || rc=$?
+
+check_lines "the Spec reviewer runs on opus at high effort by its own definition" 0 "$rc" \
+  "model: opus" "effort: high"
+expect "the Spec reviewer's frontmatter name equals its file name, the name the harness forks it by" \
+  test "$(field name)" = "do-code-review-spec-reviewer"
+# The whole line: a reviewer writes nothing into the tree, so its tool list has no Write and no Edit.
+check_lines "the Spec reviewer's tools are the read and run ones, with no write and no edit tool" 0 "$rc" \
+  "tools: Bash, Read, Glob, Grep, Skill"
 
 echo "# skills/do-code-review/AGENT.md"
 
