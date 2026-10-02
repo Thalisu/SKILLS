@@ -18,6 +18,7 @@ summary; a run that has not ends at the seams check, the one question the skill 
 | `routes-to-journey` | stories that add a route and walk more than one path get `Journey: required` and a last line naming `/journey` with the spec path |
 | `routes-to-tickets` | stories that are one interaction on an existing screen get `Journey: not needed` with the condition, and a last line naming `/tickets` with the spec path |
 | `no-tracker-file` | with no `docs/agents/issue-tracker.md`, the spec still lands at `.scratch/<YYYYMMDD>-<slug>/spec.md`, the summary says the file was absent, and no setup skill is demanded; the project carries no `.gitignore`, so the run adds the `.scratch/` line to it before the write and says so |
+| `auto-flag-dropped` | an `--auto` token typed after a summary that names the seams is dropped: the spec of the summary is written, with no flag and no 'auto' feature in it, and the user is asked nothing about the token |
 
 Run from the skill directory, granting the tools the cases need and opting in to their scaffold
 scripts:

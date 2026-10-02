@@ -2,7 +2,7 @@
 name: spec
 description: "Synthesise the current conversation into a spec, publish it where the project's issue tracker points, and name the next command: journey when the stories add a screen or walk more than one path or step, tickets otherwise. No interview, one check on the test seams."
 disable-model-invocation: true
-argument-hint: "[optional: a pasted discuss closing summary, when it is not already in this conversation]"
+argument-hint: "[--auto] [optional: a pasted discuss closing summary, when it is not already in this conversation]"
 ---
 
 # Spec
@@ -60,6 +60,9 @@ to reopen in `discuss` (step 5).
 **The plan.** The input is the conversation, plus whatever came with the command (`$ARGUMENTS`: a
 pasted `discuss` closing summary, when the session that produced it is gone).
 
+- An `--auto` token among the arguments, before the summary, after it or inside it, is dropped
+  wherever it sat and puts the run under `--auto`. The rest is read as it would be without the
+  flag, so the token never reaches the plan or the spec.
 - A `discuss` closing summary is the plan: its decisions, defaults and deferrals are carried into
   the spec as they stand, never re-argued and never improved on.
 - A conversation that decided the plan some other way (the user chose among options, or stated what
