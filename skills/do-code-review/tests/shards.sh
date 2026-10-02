@@ -33,6 +33,11 @@ patch_tokens() {                               # stdin one file's patch: its siz
 tracked_tokens() { g diff --no-renames "$fixed_point" -- "$1" | patch_tokens; } # $1 a path the fixed point or the index knows
 untracked_tokens() { g diff --no-index -- /dev/null "$1" | patch_tokens; }      # $1 a path git does not track
 after_header() { sed -n '/^shards=/,$p' <<<"$out" | tail -n +2; }               # the Shard lines and the manifest in $out, on stdout
+large_file() {                                                                  # $1 path: a new file of about 60k tokens, its directory made
+  mkdir -p "$(dirname "$1")"
+  seq 1 8000 | sed 's/.*/export const row_& = &;/' >"$1"
+}
+manifest_paths() { sed -n 's/^file shard=[0-9]* tokens=[0-9]* path=//p' <<<"$manifest"; } # the path of every file line of the run in $manifest, one per line and unsorted, on stdout
 
 # A few small files changed since the fixed point (one committed, one edited in the working tree,
 # one untracked) are far under the budget: one reviewer reads them all.
@@ -81,10 +86,7 @@ file shard=1 tokens=$old path=src/old.js"
 # per directory, are twice the budget together while any one of them, and any two, fit in it.
 repo_at_fixed_point over-budget
 large_files="api/routes.js db/schema.js docs/guide.js jobs/queue.js web/views.js"
-for f in $large_files; do
-  mkdir -p "$(dirname "$f")"
-  seq 1 8000 | sed 's/.*/export const row_& = &;/' >"$f"
-done
+for f in $large_files; do large_file "$f"; done
 commit "five large files"
 diff_tokens=0
 for f in $large_files; do diff_tokens=$((diff_tokens + $(tracked_tokens "$f"))); done
@@ -97,6 +99,63 @@ expect "every Shard of a diff over the budget is within the budget" \
   test "$(awk -v b="$budget" '/^shard=/ { sub(/^tokens=/, "", $2); if (b == "" || $2 + 0 > b + 0) n++ } END { print n + 0 }' <<<"$out")" = 0
 expect "the Shards of a diff over the budget hold the whole diff between them" \
   test "$(awk '/^shard=/ { sub(/^tokens=/, "", $2); sum += $2 } END { print sum + 0 }' <<<"$out")" = "$diff_tokens"
+
+# A file in no Shard lands unreviewed, and a file in two is reviewed twice. The same over-budget diff,
+# now holding every kind of path the diff can: a committed edit, a working-tree edit, a deletion, a
+# rename (two paths with rename detection off), untracked files at the root and in a new directory,
+# paths with a space, and ignored files, which are not part of the diff.
+repo_at_fixed_point every-path
+printf 'export function old() {}\n' >src/old.js
+printf 'export function legacy() {}\n' >src/legacy.js
+printf 'build/\n*.log\n' >.gitignore
+commit "the files the diff deletes and renames, and the ignore list"
+fixed_point="$(g rev-parse HEAD)"
+for f in $large_files; do large_file "$f"; done
+printf 'export function page(n) { return n; }\n' >src/notes.js
+printf '# Release notes\n' >"docs/release notes.md"
+commit "five large files, an edit and a path with a space"
+printf 'export function token(t) { return t; }\n' >src/auth.js
+rm src/old.js
+g mv src/legacy.js src/modern.js
+printf 'test("page", () => {});\n' >notes.test.js
+printf '# Draft\n' >"draft notes.md"
+mkdir -p fixtures build
+printf '{}\n' >fixtures/sample.json
+printf 'bundle();\n' >build/out.js
+printf 'trace\n' >debug.log
+diff_paths="$({
+  g diff --no-renames --name-only "$fixed_point"
+  g ls-files --others --exclude-standard
+} | LC_ALL=C sort)"
+out="$diff_paths"
+same "the every-path fixture's diff holds each kind of path and no ignored one" "$(
+  LC_ALL=C sort <<'EOF'
+api/routes.js
+db/schema.js
+docs/guide.js
+docs/release notes.md
+draft notes.md
+fixtures/sample.json
+jobs/queue.js
+notes.test.js
+src/auth.js
+src/legacy.js
+src/modern.js
+src/notes.js
+src/old.js
+web/views.js
+EOF
+)"
+run "$fixed_point"
+manifest="$out"
+expect "the every-path run exits 0" test "$rc" = 0
+expect "the every-path diff is cut into more than one Shard" test "$(shard_lines)" -gt 1
+out="$(comm -23 <(printf '%s\n' "$diff_paths") <(manifest_paths | LC_ALL=C sort -u))"
+same "places every file of the diff in a Shard, none missing (listed: the files in no Shard)" ""
+out="$(manifest_paths | LC_ALL=C sort | uniq -d)"
+same "places no file of the diff in two Shards (listed: the files placed twice)" ""
+out="$(comm -13 <(printf '%s\n' "$diff_paths") <(manifest_paths | LC_ALL=C sort -u))"
+same "places no file the diff does not have (listed: the paths the diff lacks)" ""
 
 echo
 if [ "$fails" = 0 ]; then echo "all green"; else echo "$fails failing"; fi
