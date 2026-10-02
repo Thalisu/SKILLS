@@ -235,6 +235,10 @@ Does the breakdown go out as it stands?
 
 Granularity, edges, folds and splits are never asked. The session decided them from the estimates and the edge graph, and the breakdown shows the reasoning so the user can overrule any of it. A correction is applied and the breakdown is shown again, with the same one question. Nothing is published before the yes.
 
+### Under `--auto`
+
+The flag is the developer handing the approval over for one run. The breakdown is still shown in full, on a local tracker and on a remote one: every field of every ticket, the splits, folds and placements, and what was left out, exactly as above. Showing it is not a question, so the flag replaces the answer and never the display.
+
 ## 5. Publish
 
 Publish the approved tickets the way the tracker file describes, all of them in one turn. The tickets are the same either way; only the shape of the blocking edges changes.
