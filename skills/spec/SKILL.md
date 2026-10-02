@@ -109,7 +109,8 @@ seam possible, as few as possible (the ideal is one).
 **Already decided.** When the conversation names them (a testing decision in the `discuss` summary,
 a `prove-it-works` answer, a Testing Policy in the project's `CLAUDE.md` that fixes the surface),
 they are taken as decided and the check is skipped, said in one line, and the run continues to
-step 3 in the same turn.
+step 3 in the same turn. `--auto` changes nothing on this branch: the developer already decided
+these seams, so no `choice-taker` is forked for them and none of them reads ruled.
 
 **Otherwise, one message**: the seams proposed, the reason for each in a clause, and whether they
 match the user's expectations. Then the turn ends and the run waits. This is the only question the
