@@ -1,0 +1,6 @@
+---
+type: llm
+criteria: "The run's final message ends waiting on the user's answer to exactly one question, about the seams the tests will drive the order note through: it proposes the seams (an existing seam in the order module, as few as possible) with a reason and asks whether they match the user's expectations. Before the question, one line names why the check is asked instead of ruled, and the reason it names is the Agent tool: withheld, denied, not permitted, unavailable, or equivalent wording saying the session cannot call the Agent tool. A line saying the choice-taker is not linked, not installed or not listed, with no word about the Agent tool being refused, does not pass. No seam reads as ruled anywhere in the message, the session did not settle the seams on its own, and the message is not a closing summary: no spec path, no verdict and no next command appear in it. Naming the seam set the sketch rejected beside the proposed one, or adding a line that nothing is written until the answer, passes: the one question is still whether the proposed seams match."
+---
+With the Agent tool withheld, the seams check comes back to the developer with one line naming the
+tool, and not a missing `choice-taker`, as the reason.

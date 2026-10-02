@@ -174,9 +174,10 @@ turn ends, and no spec is written before the answer, which is the decision as it
 flag: the seams then read confirmed, never ruled. The rest of the run stays under `--auto`, so the
 close's last line still carries the flag. It happens in these cases and no others:
 
-- **The Agent tool lists no `choice-taker`.** The reason line says so. No other agent is forked in
-  its place and the run never settles the seams on its own: a ruling nobody with the
-  `choice-taker`'s norms made would land in the spec unread.
+- **The `choice-taker` cannot be forked**, because the Agent tool is withheld, or is present but
+  lists no `choice-taker`. The reason line names whichever of the two held. No agent is forked in
+  its place, a refused call is not tried again, and the run never settles the seams on its own: a
+  ruling nobody with the `choice-taker`'s norms made would land in the spec unread.
 
 ## 3. Write
 
