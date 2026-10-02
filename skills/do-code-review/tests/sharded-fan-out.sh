@@ -182,4 +182,16 @@ expect "an unsharded run keeps its Axis not run: line" \
 expect "a sharded run's line keeps that prefix and names the Shard and the reason" \
   grep -qE '^Axis not run: <Axis>, Shard <n> \(<reason>\)' <<<"$return_lines"
 
+# A sharded Review's Axis line keeps a count beside its `not run on Shard <n>`, so a definition that
+# only says "every Axis ran" lets a reader take that line for an Axis that ran and land the branch
+# with a Shard unread. The two tokens are the ones the Review itself carries.
+echo "# fix.md / ## The landing: a Review with an Axis not run on a Shard is not Green"
+fix="$here/../references/fix.md"
+flat="$(passage_of "$fix" "## The landing" "## " | paragraph_with /dev/stdin "Green")"
+expect "fix.md defines Green" test -n "$flat"
+carries "Green keeps its conditions: every Act on Finding fixed and verified, the Gate green" \
+  '`fixed`' '`verified`' "Gate"
+carries "Green reads every Axis ran off the Review: no line of ## Axes carries not run" \
+  "## Axes" "not run"
+
 exit $((fails > 0))

@@ -590,8 +590,9 @@ not.
 ## The landing
 
 The Review is Green when every `Act on` Finding reads `fixed` and `verified`, every Axis ran, the
-duplication scan is clean or skipped and the Gate is green. `Consider`, `Noted` and `Cleared` never
-block.
+duplication scan is clean or skipped and the Gate is green. Every Axis ran when no line of the
+Review's `## Axes` carries `not run`, anywhere on the line and whatever count stands beside it.
+`Consider`, `Noted` and `Cleared` never block.
 
 A Finding that keeps the Review from Green is named on the landing line by its number, every `Act
 on` Finding whose latest line is not `fixed <sha>, verified`, in the file's order:
