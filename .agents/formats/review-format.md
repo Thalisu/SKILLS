@@ -66,7 +66,9 @@ or below. When an Axis did not run, the line names it.
 
 Four sections in this order, `## Act on`, `## Consider`, `## Noted`, `## Cleared`. An empty Bucket
 keeps its heading with `none` on the line under it. Every Finding is numbered within the file,
-from 1 in reading order, so a fix run and a reader name it by number.
+from 1 in reading order, so a fix run and a reader name it by number. A diff reviewed in Shards
+still gives one file: the Findings of every Shard sit in the same four sections, and inside a
+section in Shard order.
 
 A Finding is one block:
 
@@ -318,6 +320,8 @@ Nothing is pushed under any of them.
   the write; `fix` reads it instead of writing it.
 - Every Finding sits in exactly one Bucket and belongs to exactly one Axis. The same location
   appears once.
+- Findings are numbered once across Shards: a diff reviewed in Shards has one numbering from 1,
+  never one per Shard.
 - A principle is named only inside a Finding block, beside its location, never on its own.
 - Everything the file holds was produced by the run: no location it did not read, no Rung it did
   not climb.

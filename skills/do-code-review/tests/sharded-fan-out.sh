@@ -116,4 +116,28 @@ expect "a sharded run waits on every Shard's return files in one call, shard-1 t
 carries "the retry is decided by the wait's missing= lines" "missing="
 carries "the ceiling of the whole wait stays 1440 s, whatever the Shard count" "1440"
 
+format="$here/../../../.agents/formats/review-format.md"
+
+echo "# AGENT.md / ## 7. The Review, in one write: every Shard's Findings go into the one Review, numbered once"
+review_section="$(passage_of "$agent" "## 7. The Review, in one write" "## 8.")"
+expect "AGENT.md carries the Review's write" test -n "$review_section"
+# Numbering that restarts per Shard gives the Fixers two Findings under one number, so the merge is
+# read where it speaks of Shards: the paragraphs naming one, and nothing the unsharded run says.
+flat="$(paragraph_with /dev/stdin "Shard" all <<<"$review_section" | tr '\n' ' ')"
+expect "the write says what a sharded run puts together" test -n "$flat"
+carries "the returns of a sharded run are taken in Row order" "Row"
+carries_any "and their Findings are numbered once across the Shards" \
+  "from 1" "numbered once" "one numbering" "a single numbering"
+
+echo "# review-format.md: the one numbering holds across Shards, over the four Buckets in their order"
+flat="$(flat_section "$format" "## Rules")"
+expect "the format carries its rules" test -n "$flat"
+carries "a rule covers the Review of a sharded run" "Shard"
+flat="$(flat_section "$format" "## Findings, by Bucket")"
+expect "the format carries its Buckets" test -n "$flat"
+before "Act on comes before Consider" '`## Act on`' '`## Consider`'
+before "Consider comes before Noted" '`## Consider`' '`## Noted`'
+before "Noted comes before Cleared" '`## Noted`' '`## Cleared`'
+carries "every Finding is numbered within the file, from 1" "numbered within the file, from 1"
+
 exit $((fails > 0))

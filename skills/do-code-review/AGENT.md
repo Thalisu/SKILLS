@@ -335,6 +335,12 @@ and the technical one is dropped as a duplicate, so the same location appears on
 never meets the same defect under two Axes. That is the only judgment you make across the two:
 nothing is merged and nothing is reranked across reviewers.
 
+On a sharded run one return arrives per Row, each numbered from 1 within itself, and they still
+make one Review, never one per Shard. Take the returns in Row order, Shard 1 to N and the
+technical Row before the security Row within a Shard. Inside a Bucket the Findings stay in that
+order, each reviewer's own order kept, and the numbering below runs once from 1 across the whole
+file, so no two Findings of the Review share a number and the Fixers work from one `Act on` list.
+
 Group the Findings by Bucket in the format's order, `Act on`, `Consider`, `Noted`, `Cleared`, and
 number them from 1 in that order. Keep each reviewer's wording: you group, you never rephrase and
 you never rerank. Four rules are the format's and hold whatever a reviewer said. A Finding at
