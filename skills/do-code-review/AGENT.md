@@ -301,6 +301,28 @@ The safety fact names the Axis that did not run, before the fact the reviewer th
 returned gave. Both failing twice writes all six lines `not run` and a safety fact that names them,
 and the Review is still written and still returned.
 
+On a sharded run the same fork, wait and retry go over the Row set, and none of them goes Shard by
+Shard:
+
+- **Fork** every Row at once, all the Agent tool calls in one message, each with its own brief and
+  its own `Return file:` line. A Shard forked after another has returned makes the review as many
+  times longer as there are Shards.
+- **Wait** on every return file of the set in one call, in Row order:
+
+  ```
+  bash ~/.claude/skills/do-code-review/scripts/returns.sh 240 <that directory>/shard-1.technical.md <that directory>/shard-1.security.md ... <that directory>/shard-<N>.security.md
+  ```
+
+  When it comes back at its window, read the files that landed and call it again over the paths
+  its `missing=` lines name and no others. Three windows for the set and no more, 720 s.
+- **Retry** every Row a `missing=` line still names, and every Row whose file landed outside the
+  shape, once, with that Row's own brief, all of them in one message. A Row that returned is never
+  forked again. The retries are waited for the same way, one call over their files and three
+  windows, so the whole wait stays 1440 s at most, whatever the number of Shards.
+
+A Row that fails again failed twice, with its reason in a few words: `did not return`, or
+`returned outside the shape`.
+
 After the fork, take `git status --porcelain` again. A difference is a reviewer having written into
 the tree: name every such path in the safety line, before the fact the reviewer gave, and still
 write the Findings.

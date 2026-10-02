@@ -102,4 +102,18 @@ flat="$(tr '\n' ' ' <"$sec" | tr -s ' ')"
 expect "it reads every changed line of each, one file's diff at a time" \
   grep -qE -- "$one_file_diff" <<<"$flat"
 
+echo "# AGENT.md / ## 6. The fan-out: every Shard's reviewers are waited for together, and only the missing ones again"
+flat="$(flat_section "$agent" "## 6. The fan-out")"
+# A call ends at the backtick that closes it, inline or as the fence of its block.
+wait_calls() { grep -oE 'returns\.sh 240[^`]*' <<<"$flat"; } # the wait script's calls in $flat, one per line with their arguments, on stdout
+expect "the unsharded run still waits on its two return files" \
+  grep -qF 'returns.sh 240 <technical.md> <security.md>' <<<"$(wait_calls)"
+# One call over the whole Row set: a wait naming two files comes back while the other Shards'
+# reviewers are still out, and the run ends early or forks again a reviewer that already returned.
+sharded_wait="$(wait_calls | grep -F 'shard-1.technical.md' | grep -F 'shard-1.security.md' | grep -F 'shard-<N>.security.md')"
+expect "a sharded run waits on every Shard's return files in one call, shard-1 through shard-<N>" \
+  test -n "$sharded_wait"
+carries "the retry is decided by the wait's missing= lines" "missing="
+carries "the ceiling of the whole wait stays 1440 s, whatever the Shard count" "1440"
+
 exit $((fails > 0))
