@@ -165,7 +165,8 @@ One paragraph, what the change sets out to do, never whether it should.
 
 The files that document how code is written in this project, listed by path when they exist:
 `CLAUDE.md` and `AGENTS.md` (with their Testing Policy section and their comment policy when
-present), `CONTRIBUTING.md`, `docs/CONTRIBUTING.md`, `.github/CONTRIBUTING.md`,
+present), the policy reference `.claude/testing-policy/policy.md`, `CONTRIBUTING.md`,
+`docs/CONTRIBUTING.md`, `.github/CONTRIBUTING.md`,
 `CODING_STANDARDS.md`, and any file under `docs/` whose name says standards, conventions or style.
 The reviewer reads them; you list them.
 

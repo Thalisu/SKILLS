@@ -9,6 +9,17 @@ the install. They live outside `skills/` because they are dependencies, not this
 page under `docs/`, edits limited to the list below, refreshed by re-copying from upstream.
 Grouped by who can fire the skill; the contract is in [`.agents/invocation.md`](../.agents/invocation.md).
 
+## Rules
+
+- A vendored skill is edited only to adapt it to the harnesses or to refresh it from upstream. Any
+  other change goes upstream first, and every local change is listed below.
+- Vendored skills keep the invocation contract like every skill in this repo: frontmatter,
+  `agents/openai.yaml`, a row in this file and a row in the top-level `README.md` under
+  **Vendored**.
+- A step in `skills/` that needs a vendored skill calls the Skill tool with it like any
+  model-invoked skill, and says in one line what it does when the skill is absent, since a machine
+  may have linked `skills/` without `vendor/`.
+
 ## User-invoked
 
 Reachable only by the human typing the name.

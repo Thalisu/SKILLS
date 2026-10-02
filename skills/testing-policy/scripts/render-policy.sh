@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 # render-policy.sh: render POLICY.md for one surface.
 #
-# Usage: render-policy.sh <native|consumer|mixed|unit> [--core-only] [--policy FILE]
+# Usage: render-policy.sh <native|consumer|mixed|unit> [--core-only|--reference] [--policy FILE]
 #        render-policy.sh --version [--policy FILE]
+#   (no flag)    print the CLAUDE.md section, start..end
 #   --core-only  print only the core-start..core-end block (what a refresh replaces)
+#   --reference  print the reference file, reference-start..reference-end (what the project
+#                keeps at .claude/testing-policy/policy.md)
 #   --version    print the template version number and exit
 #
 # Blocks tagged "<!-- @a,b -->" ... "<!-- @/ -->" are emitted only when the chosen surface is in
@@ -13,14 +16,15 @@
 set -euo pipefail
 
 policy="$(dirname "$0")/../POLICY.md"
-surface="" core_only=0 want_version=0
+surface="" core_only=0 reference=0 want_version=0
 while [ $# -gt 0 ]; do
   case "$1" in
     native|consumer|mixed|unit) surface="$1"; shift ;;
     --core-only) core_only=1; shift ;;
+    --reference) reference=1; shift ;;
     --version) want_version=1; shift ;;
     --policy) policy="${2:?--policy needs a file}"; shift 2 ;;
-    -h|--help) sed -n '2,11p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,14p' "$0"; exit 0 ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
   esac
 done
@@ -29,14 +33,14 @@ done
 version="$(sed -nE 's/^<!-- testing-policy version: ([0-9]+(\.[0-9]+)*) -->$/\1/p' "$policy" | head -1)"
 [ -n "$version" ] || { echo "no '<!-- testing-policy version: N -->' line in $policy" >&2; exit 2; }
 if [ "$want_version" = 1 ]; then echo "$version"; exit 0; fi
-[ -n "$surface" ] || { echo "usage: render-policy.sh <native|consumer|mixed|unit> [--core-only]" >&2; exit 2; }
+[ -n "$surface" ] || { echo "usage: render-policy.sh <native|consumer|mixed|unit> [--core-only|--reference]" >&2; exit 2; }
 
-awk -v surface="$surface" -v version="$version" -v core_only="$core_only" '
+awk -v surface="$surface" -v version="$version" -v core_only="$core_only" -v reference="$reference" '
   function out(l) {
     if (l ~ /^#+ / && last != "" && last !~ /^<!--/) print ""
     print l; last = l
   }
-  BEGIN { emit = 1; intpl = 0; incore = 0; last = "" }
+  BEGIN { emit = 1; intpl = 0; incore = 0; inref = 0; last = "" }
   /^<!-- testing-policy version: / { next }
   /^<!-- TEMPLATE/ { intpl = 1 }
   intpl { if ($0 ~ /-->[[:space:]]*$/) intpl = 0; next }
@@ -59,6 +63,14 @@ awk -v surface="$surface" -v version="$version" -v core_only="$core_only" '
       if (line ~ /^<!-- testing-policy:core-end -->$/) exit
       next
     }
+    if (reference) {
+      if (line ~ /^<!-- testing-policy:reference-start /) inref = 1
+      if (!inref) next
+      out(line)
+      if (line ~ /^<!-- testing-policy:reference-end -->$/) exit
+      next
+    }
     out(line)
+    if (line ~ /^<!-- testing-policy:end -->$/) exit
   }
 ' "$policy" | cat -s

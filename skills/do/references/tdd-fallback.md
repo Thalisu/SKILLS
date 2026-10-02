@@ -33,7 +33,7 @@ What `Loop: fallback` means depends on the Playbook:
 - `bug-fix` and `refactoring`: the project has no unit test author, and nothing more. These two
   never check for a global author, so this file is read there whether or not one is linked.
 
-Under `Loop: policy` the project's own author is present, the Testing Policy's core is the loop
+Under `Loop: policy` the project's own author is present, the Testing Policy is the loop
 and this file is never read. Under `Loop: global` it is never read except through the `BLOCKED`
 route.
 

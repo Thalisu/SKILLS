@@ -4,12 +4,13 @@
 
 `testing-policy` installs, migrates or refreshes a canonical Testing Policy, the project's
 Definition of Done, in the current project. One run renders the marked
-`## Testing Policy (Definition of Done)` section into `CLAUDE.md`, writes the `unit-test-author` and
-`e2e-test-author` agents and the inline `test-author` skill under `.claude/`, copies the duplication
-scan, and offers a hook that blocks a new skip marker in a test file. The rules between the markers
-are the same in every repo; everything project-specific is a slot.
+`## Testing Policy (Definition of Done)` section into `CLAUDE.md`, a short core and the project's
+facts, and the full rules into a reference file at `.claude/testing-policy/policy.md`. It writes the
+`unit-test-author` and `e2e-test-author` agents and the inline `test-author` skill under `.claude/`,
+copies the duplication scan, and offers a hook that blocks a new skip marker in a test file. The
+core and the reference are the same in every repo; everything project-specific is a slot.
 
-Nothing in the rendered section is invented. Every slot is filled from something that exists in the
+Nothing in the rendered policy is invented. Every slot is filled from something that exists in the
 repo, and every command written into Project facts or an agent's Project map was run once during
 the install and returned output. A path, a command or an example the skill cannot find in the
 project is asked for or left out; it is never guessed.
@@ -23,7 +24,7 @@ and writes into the project.
 | Situation | Reach for |
 |---|---|
 | A repo with no testing rules, or a hand-written section in `CLAUDE.md` | `/testing-policy`, which installs or migrates |
-| The verify script reports `policy=stale` or `drifted`, or an agent behind the template | `/testing-policy`, which refreshes the core and keeps the rest |
+| The verify script reports `policy=stale` or `drifted`, `policy_reference=missing` or `drifted`, or an agent behind the template | `/testing-policy`, which regenerates the core and the reference and keeps the rest |
 | Writing a test under the policy | the installed `unit-test-author` or `e2e-test-author` agent, or `/test-author`, in that project |
 | A red suite you want explained and fixed | [test-triage](test-triage.md) |
 
@@ -31,20 +32,31 @@ and writes into the project.
 
 The skill writes into the project, and everything it writes is meant to be committed there:
 
-- a marked section of `CLAUDE.md`;
+- a marked section of `CLAUDE.md`: the short core and Project facts;
+- `.claude/testing-policy/policy.md`, the generated reference that carries the full rules;
 - `.claude/agents/unit-test-author.md`, and `.claude/agents/e2e-test-author.md` on a native or
   mixed surface;
 - `.claude/skills/test-author/SKILL.md`;
-- `.claude/testing-policy/`: the scan, the shared skip patterns, the optional hook, and a
+- the rest of `.claude/testing-policy/`: the scan, the shared skip patterns, the optional hook, and a
   `capture/` folder for anything captured from the project;
 - optionally a `PreToolUse` entry in `.claude/settings.json`, which needs `jq` on the machine.
 
 ## The rendered Definition of Done
 
 The policy is a rendered artifact, not prose someone typed into `CLAUDE.md`. The normative rules
-live in one template, and a render fills its slots from what the run discovered. Between the
-`core-start` and `core-end` markers the text is identical in every repo; the `Project facts` block
-after it holds the project-specific values. In one breath, the core says:
+live in one template, and a render fills its slots from what the run discovered. The template
+renders into two places, because `CLAUDE.md` is loaded into every session and the full rules are
+only needed at the moment one of them applies:
+
+| Where | What it holds | On refresh |
+|---|---|---|
+| `CLAUDE.md`, between the `core-start` and `core-end` markers | the short core: the rules that hold in every session, and the list of moments that send a reader to the reference | regenerated |
+| `CLAUDE.md`, the `Project facts` block after the core | the project's commands, paths, tool names and the gate it picked | preserved |
+| `.claude/testing-policy/policy.md` | the reference: the full rules, under the section titles the core names | regenerated |
+
+The core and the reference are identical in every repo on the same version and surface, and the
+reference has no slots, so it is never edited by hand and holds nothing about the project. In one
+breath, the policy and the agents that enforce it say:
 
 - **Done** is the change's own unit tests and E2E flows green, run against the change, then the
   post-feature gate the project picked: the full unit suite, the full E2E suite, both, or none. An
@@ -97,7 +109,7 @@ renders accordingly:
 
 ## The Project map
 
-The section states the gate; the two agents make it hold at authoring time. Each carries a
+The policy states the gate; the two agents make it hold at authoring time. Each carries a
 **Project map**: the real homes for mocks, helpers, factories, fixtures and page objects, and the
 **System boundaries** the tests are allowed to mock, each with its shared mock. The map is
 discovered from the repo and scoped to it; no example map ships with the skill, and a map from
@@ -160,8 +172,8 @@ The verify script detects the project's state, and the state picks the mode:
 |---|---|---|
 | `none` | install | the full set is written |
 | `legacy`, an unmarked section | migrate | the old section is replaced in place; each project-specific rule in it is kept in Project facts or dropped, by explicit choice |
-| `stale`, an older version, or `drifted`, a hand-edited core | refresh | only the core between the markers is regenerated; Project facts, the agents' frontmatter and Project map are preserved verbatim |
-| `current` | nothing | unless an agent or the hook is behind, which is repaired alone |
+| `stale`, an older version, or `drifted`, a hand-edited core | refresh | the core between the markers and the reference file are regenerated; Project facts, the agents' frontmatter and Project map are preserved verbatim |
+| `current` | nothing | unless the reference, an agent or the hook is behind, which is repaired alone: a `policy_reference` reading `missing` or `drifted` is rewritten from the render |
 
 Discovery runs on refresh too, but a disagreement with the written Project map is reported, not
 applied. The user decides.
@@ -172,7 +184,7 @@ applied. The user decides.
 The template version moved. The version is stamped into every installed section as
 `<!-- testing-policy:start v=N surface=... -->` and into each agent after its frontmatter, and
 `testing-policy-v<N>` tags mark it on this repo. Run `/testing-policy` in the project: refresh
-replaces only the core and keeps everything the project filled in. Every installed project reports
+regenerates the core and the reference file and keeps everything the project filled in. Every installed project reports
 `stale` at the same moment, and each is refreshed the same way. The history so far: 2.1 added
 agent drift detection, the shared skip patterns and the mixed gate; 2.2 moved the core to behaviour
 over implementation, boundary mocking and vertical TDD; 2.3 rewrote the templates' prose without
@@ -189,12 +201,23 @@ defines the solution, so a constant or a branch that recognizes the test's input
 instead of asking, the Discovery block's commands go out in one response, a promotion edits each
 call site in place, the report carries one example of a reuse audit entry and one of a handback,
 the Forbidden lists are bare checklists, and a carried `HANDBACK` rides in a tagged **Handback**
-field of the dispatch input.
+field of the dispatch input; 3.0 split the policy in two, a short core in `CLAUDE.md` and the full
+rules in the generated `.claude/testing-policy/policy.md`, under the same section titles and with
+no rule changed.
+
+**The verify script says `policy_reference=missing` after the move to 3.0. Did I lose a file?**
+No. An install from before 3.0 never had the reference: the full rules were inside the `CLAUDE.md`
+section. The refresh shortens that section to the core and writes the reference for the first time,
+with Project facts untouched. On a unit surface it also renames one Project facts label, from
+"Why the agents run in place" to "Why the agent runs in place", keeping the text the project wrote
+after it.
 
 **What is the difference between `stale` and `drifted`?**
 `stale` is an older version, the expected signal after the template moves. `drifted` is the
 current version with a hand-edited core, and a refresh puts the rendered core back, so the hand
-edit is lost. A project-specific rule belongs in Project facts, which every refresh preserves.
+edit is lost. `policy_reference=drifted` is the same signal for the reference file: any byte that
+differs from the render, and the file is rewritten whole. A project-specific rule belongs in Project
+facts, which every refresh preserves.
 
 **A refresh reports disagreements on every slot. Is the discovery broken?**
 Usually not. That pattern means the Project map was hand-edited, or the repo's test tree moved
@@ -221,10 +244,13 @@ captured ever enters this skill's own directory.
 
 ## It's working if
 
-- After the run, the verify script prints `policy=current` and exits 0, and every installed file
+- After the run, the verify script prints `policy=current` and `policy_reference=ok` and exits 0,
+  and every installed file
   shows as tracked in `git status`, none of it ignored.
 - The section in `CLAUDE.md` sits between start and end markers carrying `v=` and `surface=`, and
-  the text between the core markers is identical to the one in any other repo on the same version.
+  the text between the core markers is identical to the one in any other repo on the same version
+  and surface. So is `.claude/testing-policy/policy.md`, and every section title the core names is
+  a heading in it.
 - Every path and command in an agent's Project map exists in this repo and runs.
 - With the hook installed, an edit that adds `.skip` or `.only` to a test file is blocked, and an
   edit that removes one passes.

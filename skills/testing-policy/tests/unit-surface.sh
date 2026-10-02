@@ -32,6 +32,23 @@ else
   echo "      ${e2e_lines//$'\n'/$'\n'      }"
 fi
 
+second_agent_lines=""
+render_rcs=""
+for render in "unit" "unit --reference"; do
+  rc=0
+  # shellcheck disable=SC2086 # the render's arguments, split on purpose
+  out="$(bash "$skill/scripts/render-policy.sh" $render 2>&1)" || rc=$?
+  render_rcs="$render_rcs $rc"
+  found="$(grep -inE -- 'the agents|each agent file|page-object' <<<"$out" | sed "s/^/[$render] /")"
+  [ -z "$found" ] || second_agent_lines="$second_agent_lines${second_agent_lines:+$'\n'}$found"
+done
+if [ "$render_rcs" = " 0 0" ] && [ -z "$second_agent_lines" ]; then
+  ok "the unit render speaks of one test author and no page object: its CLAUDE.md section and its reference never say \"the agents\", \"each agent file\" or \"page-object\""
+else
+  fail "the unit render speaks of one test author and no page object: its CLAUDE.md section and its reference never say \"the agents\", \"each agent file\" or \"page-object\" (exits$render_rcs, wanted 0 0; offending lines below)"
+  echo "      ${second_agent_lines//$'\n'/$'\n'      }"
+fi
+
 echo
 if [ "$fails" = 0 ]; then echo "unit-surface: all checks passed"; else
   echo "unit-surface: $fails failed"

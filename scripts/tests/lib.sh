@@ -434,9 +434,11 @@ policy_section_fixture() { # $1 project dir, $2 surface, $3 grep -v pattern (emp
 }
 # Every other piece the verifier folds into its exit code, so the exit code a case reads is the one the
 # policy section alone decides: a fixture missing a piece exits 1 whatever the section holds. Each agent
-# carries an author's tier, since an install without one is incomplete.
-policy_pieces_fixture() { # $1 project dir, $2.. the agents to install (unit, e2e); the test-author skill and both scripts always
-  local p="$1" scripts kind
+# carries an author's tier, since an install without one is incomplete. The policy reference is rendered
+# for the surface the section's start marker names, so policy_section_fixture runs first: a project
+# with no section has no surface, and gets no reference.
+policy_pieces_fixture() { # $1 project dir, $2.. the agents to install (unit, e2e); the test-author skill, both scripts and the policy reference always
+  local p="$1" scripts kind surface
   shift
   scripts="$(policy_scripts)"
   mkdir -p "$p/.claude/agents" "$p/.claude/skills/test-author" "$p/.claude/testing-policy"
@@ -445,6 +447,8 @@ policy_pieces_fixture() { # $1 project dir, $2.. the agents to install (unit, e2
   done
   bash "$scripts/render-agent.sh" test-author >"$p/.claude/skills/test-author/SKILL.md"
   cp "$scripts/scan-test-assets.sh" "$scripts/skip-patterns.sh" "$p/.claude/testing-policy/"
+  surface="$(sed -n 's/^<!-- testing-policy:start .*surface=\([a-z]*\).*/\1/p' "$p/CLAUDE.md" 2>/dev/null | head -n 1)"
+  [ -z "$surface" ] || bash "$scripts/render-policy.sh" "$surface" --reference >"$p/.claude/testing-policy/policy.md"
 }
 
 # scripts/run-eval.sh's own grade() and the helpers it calls, the lines from front() to just before

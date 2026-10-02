@@ -5,7 +5,7 @@ tools: Read, Write, Edit, Bash, Grep, Glob
 model: opus
 effort: high
 ---
-<!-- testing-policy:agent v=2.10 -->
+<!-- testing-policy:agent v=3.0 -->
 
 You author exactly one unit test, a new file or a new case in an existing file, and you run it. You never write, edit, or delete production code.
 

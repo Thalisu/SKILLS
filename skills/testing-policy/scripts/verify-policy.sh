@@ -11,6 +11,9 @@
 #   policy_missing=<headings of the rendered template absent from the section>
 #   policy_unfilled_slots=<first {{slots}} still in the section>
 #   policy_facts_missing=<Project-facts labels of the template absent from the section>
+#   policy_reference=missing|drifted|ok     the reference file the core points at,
+#     .claude/testing-policy/policy.md; drifted is any difference
+#     from the reference the template renders for the surface
 #   agent_unit=missing|unmarked|stale|drifted|ok    agent_e2e=same values|n/a (consumer or unit surface)
 #   agent_<unit|e2e>_map_missing=<Project-map labels of the template absent from the installed agent>
 #   agent_<unit|e2e>_tier=missing|invalid|ok  the model and effort in the agent's frontmatter; missing
@@ -115,6 +118,14 @@ skill_state() {
   [ "$v" = "$template_version" ] && echo ok || echo stale
 }
 pieces_ok=1
+reference="$project/.claude/testing-policy/policy.md"
+reference_state() {
+  [ -f "$reference" ] || { echo missing; return; }
+  if [ "$(cat "$reference")" = "$(bash "$here/render-policy.sh" "$surface" --reference)" ]; then echo ok; else echo drifted; fi
+}
+if [ -n "$surface" ]; then
+  pr="$(reference_state)"; echo "policy_reference=$pr"; [ "$pr" = ok ] || pieces_ok=0
+fi
 au="$(agent_state "$project/.claude/agents/unit-test-author.md" unit)"; echo "agent_unit=$au"; [ "$au" = ok ] || pieces_ok=0
 mm="$(map_missing "$project/.claude/agents/unit-test-author.md" unit)"; [ -z "$mm" ] || { echo "agent_unit_map_missing=$mm"; pieces_ok=0; }
 if [ -f "$project/.claude/agents/unit-test-author.md" ]; then
@@ -139,7 +150,7 @@ echo "hook=$hook"
 
 ignored=()
 if git -C "$project" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-  paths=( .claude/agents/unit-test-author.md .claude/skills/test-author/SKILL.md .claude/testing-policy/scan-test-assets.sh .claude/testing-policy/skip-patterns.sh .claude/settings.json )
+  paths=( .claude/agents/unit-test-author.md .claude/skills/test-author/SKILL.md .claude/testing-policy/scan-test-assets.sh .claude/testing-policy/skip-patterns.sh .claude/testing-policy/policy.md .claude/settings.json )
   [ "$surface" = consumer ] || [ "$surface" = unit ] || paths+=( .claude/agents/e2e-test-author.md )
   [ "$hook" = missing ] || paths+=( .claude/testing-policy/forbid-test-skips.sh )
   [ -d "$project/.claude/testing-policy/capture" ] && paths+=( .claude/testing-policy/capture )
