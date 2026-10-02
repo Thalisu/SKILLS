@@ -150,4 +150,36 @@ before "Consider comes before Noted" '`## Consider`' '`## Noted`'
 before "Noted comes before Cleared" '`## Noted`' '`## Cleared`'
 carries "every Finding is numbered within the file, from 1" "numbered within the file, from 1"
 
+# A Shard whose reviewer failed twice holds files nobody judged on that reviewer's Axes. A line
+# reading `0 findings` there, or no Review at all, hides them, so the Axis line, the safety line and
+# the line `do` relays each name the Shard. The forms are the ones a reader and `do` parse.
+echo "# review-format.md / ## Axes: an Axis a Shard's reviewer never ran names that Shard, beside what the other Shards found"
+flat="$(flat_section "$format" "## Axes")"
+expect "the format carries its Axis lines" test -n "$flat"
+carries "the section still gives one line per Axis, all six" "One line per Axis, all six"
+carries "an Axis not run on a Shard names the Shard and the reason" 'not run on Shard <n> (<reason>)'
+carries "and the same line keeps the count over the Shards that returned" '<k> of <N> Shards returned'
+
+echo "# review-format.md / ## Safe because: the safety line names the Axes no reviewer ran on a Shard"
+flat="$(flat_section "$format" "## Safe because")"
+expect "the format carries its safety line" test -n "$flat"
+carries "the line names the Shard and the Axes not run on it" 'Not run on Shard <n>:'
+
+echo "# AGENT.md / ## 6 and ## 7: a Row that failed twice leaves its Axes not run, and the Review is still written"
+written="$(passage_of "$agent" "## 6. The fan-out" "## 8.")"
+flat="$({
+  paragraph_with /dev/stdin "Shard" all <<<"$written"
+  paragraph_with /dev/stdin "sharded" all <<<"$written"
+} | grep -F "failed twice" | tr '\n' ' ')"
+expect "the sharded run says what a Row that failed twice leaves in the Review" test -n "$flat"
+carries "its Axes read not run, never a count" "not run"
+
+echo "# AGENT.md / ## 9. The return: the line do relays names the Shard an Axis did not run on"
+return_lines="$(blocks_of "$agent" "## 9. The return")"
+expect "AGENT.md carries the return's lines" test -n "$return_lines"
+expect "an unsharded run keeps its Axis not run: line" \
+  grep -qxF 'Axis not run: <Axis>, <the reason>' <<<"$return_lines"
+expect "a sharded run's line keeps that prefix and names the Shard and the reason" \
+  grep -qE '^Axis not run: <Axis>, Shard <n> \(<reason>\)' <<<"$return_lines"
+
 exit $((fails > 0))

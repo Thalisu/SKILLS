@@ -320,8 +320,10 @@ Shard:
   forked again. The retries are waited for the same way, one call over their files and three
   windows, so the whole wait stays 1440 s at most, whatever the number of Shards.
 
-A Row that fails again failed twice, with its reason in a few words: `did not return`, or
-`returned outside the shape`.
+A Row of a sharded run that fails again failed twice, with its reason in a few words:
+`did not return`, or `returned outside the shape`. The Review is still written from what the other
+Rows returned, and their Findings are kept. Each Axis the failed Row owns reads `not run` on that
+Shard, with the reason and the Shard named, never `0 findings`, as section 7 has it.
 
 After the fork, take `git status --porcelain` again. A difference is a reviewer having written into
 the tree: name every such path in the safety line, before the fact the reviewer gave, and still
@@ -378,6 +380,19 @@ the technical reviewer's fact with its Rung first, the security reviewer's with 
 You never pick between them, never fold them into a sentence of your own and never restate a Rung.
 When a reviewer failed twice, the line carries the fact that did come back, after the Axis that did
 not run.
+
+A sharded run still writes six Axis lines and one safety line, in the sharded forms
+[review-format.md](../../.agents/formats/review-format.md) fixes under `## Axes` and
+`## Safe because`, and you decide only which form applies:
+
+- An Axis whose every owning Row returned takes the unsharded form, its count and its worst Finding
+  read over the merged Review.
+- An Axis one of whose owning Rows failed twice reads `not run on Shard <n>` with that Row's
+  reason, then how many Shards returned and the count over them. When no owning Row returned, the
+  line names every Shard and carries no count.
+- The safety line takes every fact that came back, in Row order and word for word, each Shard's
+  under its `Shard <n>:` label, after one `Not run on Shard <n>:` clause per Shard that names the
+  Axes a failed Row left unanswered there. A Row that failed twice gives no fact.
 
 When the session lists `unslop`, call the Skill tool with `unslop` over the prose only: the intent,
 the safety fact, each claim and each evidence line. The section names, the Finding headings, the
@@ -454,6 +469,13 @@ there is one, so a clean run is three lines. On a `fix` call whose list an earli
 `do`'s landing of what it committed after the review, the second line reads
 `Act on: nothing remained`. The landing line is the one below, whether a fix ran or not. Then the
 push command.
+
+On a sharded run the `Axis not run:` line keeps its prefix, so a caller relays it as it always did,
+and names each Shard the Axis did not run on with that Row's reason, still one line per Axis:
+
+```
+Axis not run: <Axis>, Shard <n> (<reason>)[, Shard <m> (<reason>)]
+```
 
 Every other call, a plain one or a developer's with a landing target, ends the way it always did. Your last message is the Review's text, then one line `Written to <the review= path>`, then one
 line for that file's own visibility, the door's `review_in_status=`, either way: on

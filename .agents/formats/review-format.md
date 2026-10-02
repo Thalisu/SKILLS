@@ -62,6 +62,17 @@ the security reviewer's after it, each with its own Rung, and neither is rewritt
 When the check that would prove it could not run, the line opens with `unproven:` and its Rung is 2
 or below. When an Axis did not run, the line names it.
 
+A diff reviewed in Shards keeps the one line. It carries every fact that came back, Shard by Shard,
+the technical fact before the security fact, each word for word with its own Rung, after the Axes
+that did not run on a Shard:
+
+```md
+Not run on Shard <n>: <Axes>. Shard 1: <the technical fact>. Rung 4. <the security fact>. Rung 3. Shard 2: <the technical fact>. Rung 3. <the security fact>. Rung 3.
+```
+
+A reviewer that did not return gives no fact, and one `Not run on Shard <n>:` clause stands per
+Shard an Axis did not run on.
+
 ## Findings, by Bucket
 
 Four sections in this order, `## Act on`, `## Consider`, `## Noted`, `## Cleared`. An empty Bucket
@@ -125,6 +136,20 @@ a Loss ledger, the Spec line ends with `; Loss ledger: <n> drops read`, or `; Lo
 open` when the path the brief named could not be read, so a ledger the Spec Axis never read shows
 in the Review; with no ledger the line carries no such clause. An Axis whose reviewer did
 not return after its retry reads `not run` with the reason in a few words, never `0 findings`.
+
+A diff reviewed in Shards still has six lines, one per Axis, and never one per Shard. The count and
+the worst Finding are taken over the whole file. A line takes one of three forms: the form above
+when every Shard's reviewer of that Axis returned, the second below when some did, the third when
+none did:
+
+```md
+- <Axis>: not run on Shard <n> (<reason>)[, Shard <m> (<reason>)]; <k> of <N> Shards returned, <count and worst, or 0 findings>
+- <Axis>: not run on Shard 1 (<reason>), ..., Shard <N> (<reason>)
+```
+
+The reason is `did not return` or `returned outside the shape`. A line that carries `not run`
+anywhere is an Axis that did not run, whatever count follows it: the Findings the other Shards
+returned are kept and counted, and the Shards named are the ones nobody judged on that Axis.
 
 After the Axes, when the scratch folder is not ignored by git, one line says the file shows up in
 `git status`.
