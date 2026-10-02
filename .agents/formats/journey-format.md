@@ -69,6 +69,7 @@ Ruled by the choice-taker: {the fork, the side taken}. Norm: {the norm, or "no n
 ## Reopen in discuss
 
 - {the branch}: {the evidence}
+- Ruled by the choice-taker: {the branch}: {the evidence}. Norm: {the norm, or "no norm: the side easiest to undo"}
 ```
 
 ## Rules
@@ -95,4 +96,8 @@ Ruled by the choice-taker: {the fork, the side taken}. Norm: {the norm, or "no n
   name, never its file.
 - `## Spec changes applied` and `## Reopen in discuss` carry `- none` when empty, never omitted.
   `tickets` stops on a `## Reopen in discuss` that lists anything.
+- A `## Reopen in discuss` entry opens with `Ruled by the choice-taker:` only when the
+  `choice-taker` ruled, under `--auto`, that the spec loses the conflict the branch names. An entry
+  without that opening is a side the developer picked, so the mark is how `discuss` and the
+  developer tell a branch nobody walked with them. `tickets` stops on either.
 - No em-dash.
