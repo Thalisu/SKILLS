@@ -13,6 +13,14 @@ Ticket is, beside the Ticket file when a caller hands one over, beside the Spec 
 hands a whole Spec over in a Ticket's place, and in the scratch reviews folder named after the
 branch when nobody hands either.
 
+A diff too large for one reviewer's window is cut into **Shards** first. A script measures the
+diff and packs its files by path, and the orchestrator never sizes the diff by reading it, so the
+cut is the same on a call you type and on a call from `do`. A diff of one Shard is the run above,
+with its two reviewers. A diff of more than one gets a technical reviewer and a security reviewer
+per Shard, all forked at once: each reads every changed line of its own Shard, with the whole tree
+open and a manifest that says which file sits in which Shard. You still read one Review, with the
+Findings of every Shard grouped by Bucket and numbered once.
+
 Then it fixes what it found. When the Review carries an `Act on` Finding, the orchestrator forks
 one **Fixer** per Finding, each turning its Finding into one commit under the project's Testing
 Policy. The Fixers run in **Waves**: the Fixers of one Wave at once, each in a worktree and on a
@@ -58,11 +66,12 @@ them, so a path one of them changed would be named in the Review. The orchestrat
 the Review.
 
 A reviewer that does not return, or returns in a shape the Review cannot take, is forked once more
-with the same brief, alone: the other reviewer's return is kept as it came, never waited on or
-forked again. When it fails a second time the Review is still written, from what the other
-reviewer returned: its Axis lines read `not run` with the reason, and the safety fact names the
-Axis nobody answered. A partial review reaches you instead of nothing, and a pass never hides a
-reviewer that never ran.
+with the same brief: every other reviewer's return is kept as it came, never waited on or forked
+again. When it fails a second time the Review is still written, from what the others returned: its
+Axis lines read `not run` with the reason, and the safety fact names the Axis nobody answered. On
+a diff cut into Shards the line names the Shard too, `not run on Shard 3 (did not return)`, beside
+the count from the Shards that did return, and that Review is never Green. A partial review reaches
+you instead of nothing, and a pass never hides a reviewer that never ran.
 
 ## When to reach for it
 
@@ -213,6 +222,12 @@ the second fork went the same way. The rest of the Review is real and was writte
 reviewer's return. The line says `not run` with the reason rather than `0 findings`, so a question
 nobody asked is never read as a pass, and the safety fact names the Axis too.
 
+**An Axis line says `not run on Shard 2`, and then a count. Which is it?**
+Both. The diff was cut into Shards, and the reviewer that owns that Axis on Shard 2 failed twice
+while the others returned. The count and the worst Finding are real and come from the Shards that
+were read; the files of Shard 2 were judged by nobody on that Axis. Any line carrying `not run` keeps the Review short of Green,
+so nothing lands until a second review reads that Shard.
+
 **The run says the session is isolated in a worktree. What happened?**
 The worktree was entered with the harness's worktree tool instead of a bare `cd`, which puts the
 session under an isolation guard, and this skill's door is a script the guard refuses to run. So
@@ -229,8 +244,10 @@ refusal instead of as a rule to remember, per
   shows up in `git status`, or with one refusal line and no file.
 - Nothing under `## Act on` reads `Rung: 1` or `Rung: 2`, and every `Act on` Finding names a
   behaviour to prove and where.
-- `## Axes` has six lines every time, and a `not run` or `no spec` line stands where a reviewer or
-  a spec was missing.
+- `## Axes` has six lines every time, however many Shards the diff was cut into, and a `not run`
+  or `no spec` line stands where a reviewer or a spec was missing.
+- A large diff still gives one Review, its Findings numbered once from 1, and a reviewer that
+  failed on one Shard shows as `not run on Shard <n>` on its Axis lines.
 - Nothing under `## Noted` carries the Security Axis, and every Security Finding names an exploit
   path and a risk class rather than a checklist item.
 - `git status` after a run agrees with that last line:
