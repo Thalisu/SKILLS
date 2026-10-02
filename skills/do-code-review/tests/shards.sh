@@ -227,6 +227,43 @@ pkg/z.js"
 out="$(split_directories)"
 same "keeps the files of one directory in the same Shard when together they fit the budget (listed: the directories split)" ""
 
+# A second review of one diff, and a resumed run, read the Shards of the first: a cut that moves makes
+# them useless. Nothing here changes the diff between two runs, only what a caller could vary around
+# it: the directory the script is called from and the locale. The names at the root sort one way in
+# byte order and another in dictionary order, the files are created out of either order, and the
+# untracked ones sit outside the subdirectory the second caller stands in.
+moved_lines() { diff <(printf '%s\n' "$first") <(printf '%s\n' "$out"); } # the lines of the run in $out that the run in $first does not print the same, as diff lists them, on stdout
+repo_at_fixed_point stable-cut
+printf '# Notes\n' >README.md
+for f in web/views.js beta_x.js Zeta.js api/routes.js; do large_file "$f" 5300; done
+commit "four large files and a readme, out of order"
+printf 'export function token(t) { return t; }\n' >src/auth.js
+for f in beta-x.js Docs/guide.js alpha.js; do large_file "$f" 5300; done
+root_names="$(printf '%s\n' Docs README.md Zeta.js alpha.js api beta-x.js beta_x.js src web)"
+dictionary_locale=""
+for l in $(locale -a 2>/dev/null); do
+  if [ "$(LC_ALL="$l" sort <<<"$root_names" 2>/dev/null)" != "$(LC_ALL=C sort <<<"$root_names")" ]; then
+    dictionary_locale="$l"
+    break
+  fi
+done
+expect "an installed locale orders the stable-cut fixture's names differently from byte order" test -n "$dictionary_locale"
+LC_ALL=C run "$fixed_point"
+first="$out"
+expect "the stable-cut run exits 0" test "$rc" = 0
+expect "the stable-cut diff is cut into more than one Shard" test "$(shard_lines)" -gt 1
+LC_ALL=C run "$fixed_point"
+out="$(moved_lines)"
+same "cuts the same diff the same way on a second run (listed: the lines that differ)" ""
+cd web || exit 1
+LC_ALL=C run "$fixed_point"
+cd .. || exit 1
+out="$(moved_lines)"
+same "cuts the same diff the same way when called from a subdirectory of the repository (listed: the lines that differ)" ""
+LC_ALL="$dictionary_locale" run "$fixed_point"
+out="$(moved_lines)"
+same "cuts the same diff the same way under a dictionary-order locale (listed: the lines that differ)" ""
+
 echo
 if [ "$fails" = 0 ]; then echo "all green"; else echo "$fails failing"; fi
 exit "$fails"
