@@ -239,7 +239,7 @@ Granularity, edges, folds and splits are never asked. The session decided them f
 
 ### Under `--auto`
 
-The flag is the developer handing the approval over for one run. The breakdown is still shown in full, on a local tracker and on a remote one: every field of every ticket, the splits, folds and placements, and what was left out, exactly as above. Showing it is not a question, so the flag replaces the answer and never the display.
+The flag is the developer handing the approval over for one run. The breakdown is still shown in full, on a local tracker and on a remote one: every field of every ticket, the splits, folds and placements, and what was left out, exactly as above. Showing it is not a question, so the flag replaces the answer and never the display. Only its closing question is left out of that message: it goes to the `choice-taker` below, and a question written to the user there would read as a run waiting on them.
 
 The closing question is ruled instead of asked. Once the breakdown is shown, call the Agent tool with `subagent_type: choice-taker` and the brief its definition fixes, once per run:
 
@@ -297,8 +297,9 @@ In the thread:
 - every ticket published, with its identifier and its blocking edges;
 - the frontier;
 - what was left out;
+- `Rulings`, under `--auto`: a group of its own, one line per Ruling with the question, the side the `choice-taker` took and its norm. It is the `choice-taker`'s answer and is never written as the user's approval;
 - the `.scratch/` line, when the publish added it to the project's `.gitignore`;
-- the next step: one ticket at a time from the frontier. The last line is the exact next command, `/do <ticket>`, with the first ticket of the frontier as its path, or as its issue reference on a tracker.
+- the next step: one ticket at a time from the frontier. The last line is the exact next command, `/do <ticket>`, with the first ticket of the frontier as its path, or as its issue reference on a tracker. Under `--auto` it reads `/do --auto <ticket>`, so the user keeps the mode down the chain by pasting the line.
 
 Nothing is committed.
 
