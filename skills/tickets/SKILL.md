@@ -2,7 +2,7 @@
 name: tickets
 description: "Cut a spec, and the journey its verdict points at, into tracer-bullet tickets: one demoable vertical slice per ticket, sized by a token estimate, each declaring the tickets that block it, with the edges, folds and splits decided by the skill and only the approval asked. Published one file per ticket locally or one issue per ticket on the project's tracker. Stops before writing anything when the journey is required but missing, contested, or already ticketed."
 disable-model-invocation: true
-argument-hint: "[the spec: a path, the feature slug, or an issue reference]"
+argument-hint: "[--auto] [the spec: a path, the feature slug, or an issue reference]"
 ---
 
 # Tickets
@@ -52,7 +52,7 @@ Say in one line what is being read, then make the reads that do not depend on on
 
 **The tracker file** says where specs and tickets live and which triage labels exist. Without it, the tickets are published as local markdown under `issues/` in the spec's directory, the thread says so in one line, and no setup skill is ever demanded.
 
-**The spec.** `$ARGUMENTS` is the spec and it is mandatory. The chain is strict: `tickets` takes a spec and never the conversation, since a ticket cut from the conversation rests on decisions nobody wrote down, which the `do` session cannot read.
+**The spec.** `$ARGUMENTS` is the spec and it is mandatory. An `--auto` token among the arguments, before the spec, after it or inside it, is dropped wherever it sat and puts the run under `--auto` (step 4); the spec is the rest, with no flag in it, resolved exactly as it is without the flag. The chain is strict: `tickets` takes a spec and never the conversation, since a ticket cut from the conversation rests on decisions nobody wrote down, which the `do` session cannot read.
 
 | `$ARGUMENTS` | How it is read |
 |---|---|

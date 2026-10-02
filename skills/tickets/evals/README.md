@@ -34,6 +34,7 @@ the local shape of the ticket format `tickets` links.
 | `spec-required` | no argument: one message asking for the spec, nothing cut from the conversation, nothing written |
 | `dated-slug` | a bare slug goes through the resolver to its dated feature folder, `20260901-archive-notes`, and the breakdown is cut from that spec, never from the newer `20260905-bulk-archive-notes` a tail match would have taken; the one question is approval |
 | `unknown-slug-stops` | a bare slug that names no feature folder, beside a feature whose folder only ends in it, goes through the resolver, and its `spec=none` ends the run in one message asking for the spec's path; nothing is cut or written |
+| `auto-publishes-locally` | `--auto` typed before the slug is dropped, and the slug resolves to the spec a run without the flag cuts |
 
 Run from the skill directory, granting the tools the cases need and opting in to their scaffold
 scripts:
