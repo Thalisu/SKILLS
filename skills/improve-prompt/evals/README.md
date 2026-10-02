@@ -26,6 +26,7 @@ disagree on one point (a progress update after every tool call), which the real 
 | `missing-page-stops-the-run` | with an empty cache and a failing fetch nothing is rewritten, nobody is forked, no other copy of the docs is read, and the message names the page and the error |
 | `nearest-guide-wins-the-chain` | with Claude Opus 5.5 as the Target model, the instruction the Opus 5 guide asks for and the Opus 5.5 guide says to remove is removed, the change cites the Opus 5.5 guide, and all three pages are read |
 | `missing-examples-are-a-gap-not-an-invention` | a Base prompt with no examples gets the missing examples under `Gaps`, with the section that asks for them, and no example or filler marker in the rewrite |
+| `gap-filled-from-the-repository` | a Base prompt that never says what done means gets it from the `AGENTS.md` at the fixture's root, the `Changes` line cites the section and the file, nothing the file does not state enters the rewrite, and no command it names is run |
 | `model-without-a-guide-reads-the-common-page` | a model the table has no row for is rewritten from the common page alone, with the warning, and no guide URL is composed for it |
 
 The unknown-model question and the surface question have no case: each needs a second turn, and

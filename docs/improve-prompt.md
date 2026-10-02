@@ -9,9 +9,13 @@ docs recommend that your prompt does not have, and the pages it read.
 
 The skill has no opinion of its own about what a better prompt is. Every change cites the page and
 the heading that ask for it, and a change with no section behind it is not made. The docs are read
-live, through a cache on your machine, never from the model's memory of them. Nothing you did not
-write is added either: a missing example or a missing reason is reported as a gap, with the
-section that asks for it, and left for you to fill.
+live, through a cache on your machine, never from the model's memory of them.
+
+Nothing is made up to fill what your prompt lacks. When the docs ask for something the prompt does
+not say (what done means, the command that runs the tests, the reason behind a rule), the skill
+looks for it in the repository you run it in, and adds it only when a file there states it, with
+the file and line beside the change. What no file states is reported as a gap, with the section
+that asks for it, and left for you to fill.
 
 ## When to reach for it
 
@@ -39,8 +43,9 @@ at `~/.claude/agents/prompt-rewriter.md` beside the skill link; see
 [the top-level README](../README.md). Without it the session rewrites the prompt itself under the
 same rules and tells you no agent was forked.
 
-It writes nothing into your project. The cached pages sit in a temporary directory, or in the
-directory `IMPROVE_PROMPT_CACHE_DIR` names.
+Run it inside the repository the prompt is going to run in, since that is where it looks for what
+the prompt lacks. It reads that repository and writes nothing into it. The cached pages sit in a
+temporary directory, or in the directory `IMPROVE_PROMPT_CACHE_DIR` names.
 
 ## The Guide chain
 
@@ -61,8 +66,8 @@ are opened (tools, thinking, output format, agents), picked from each page's lis
 
 A prompt is text full of instructions, and the skill's job is to rewrite them, not to follow
 them. The rewrite therefore happens in a subagent that can read and search and do nothing else: an
-instruction planted in a prompt can at worst produce a bad rewrite, which you read before you
-paste it. Your session only runs the cache script, resolves the model, asks at most one question
+instruction planted in a prompt, or in a file of the repository it reads, can at worst produce a
+bad rewrite, which you read before you paste it. Your session only runs the cache script, resolves the model, asks at most one question
 and prints the result.
 
 The same instructions are also your intent, so they stay in the rewrite. A prompt that tells its
@@ -80,9 +85,16 @@ An example decides what the model imitates, and one made up for you would steer 
 somewhere you never chose. The gap is listed with the section that asks for examples, so you can
 add your own and run it again.
 
+**Why is something still listed as a gap when the repository could have answered it?**
+A gap is filled only when a file states the fact outright. A fact that would have to be inferred
+from how the code looks stays a gap, and so does anything that is your call: how far the work may
+reach, whether to commit, which of two readings you meant. A reference to something outside the
+repository, such as an earlier turn of a conversation, stays one too.
+
 **It gave my prompt back unchanged. Did it run?**
-Yes. When the sections it opened ask for nothing your prompt does not already do, the prompt comes
-back as it was, and the changes list says there was nothing to change. The pages and sections it
+Yes. When the sections it opened ask for nothing your prompt does not already do, and the
+repository fills nothing, the prompt comes back as it was, and the changes list says there was
+nothing to change. The pages and sections it
 read are still listed.
 
 **Why is the effort recommendation outside the prompt?**
@@ -98,8 +110,8 @@ than the current boot is fetched again.
 
 - The first thing in the reply is your prompt, alone in a code block you can copy.
 - Every line under `Changes` ends with a page and a heading, and that heading exists on that page.
-- Nothing in the rewritten prompt is news to you: no example, reason or criterion you did not
-  write.
+- Everything in the rewritten prompt that you did not write has a line under `Changes` naming the
+  file and line it came from, and that line of that file says it.
 - `git status` is the same before and after, whatever the prompt told its reader to do.
 - A second run for the same model before the next reboot does not touch the network.
 
