@@ -49,7 +49,7 @@ Everything between those points happens in one turn. The precedent note, the tre
 
 ## 1. Ground
 
-**The spec.** `$ARGUMENTS` is the spec and it is mandatory. Empty → ask for it, in one message that carries nothing else. Otherwise resolve it as `spec` publishes it:
+**The spec.** `$ARGUMENTS` is the spec and it is mandatory. An `--auto` token among the arguments, before the spec, after it or inside it, is dropped wherever it sat and puts the run under `--auto`; the spec is the rest, with no flag in it, resolved exactly as it is without the flag. Empty → ask for it, in one message that carries nothing else. Otherwise resolve it as `spec` publishes it:
 
 | The argument | Read as |
 |---|---|
