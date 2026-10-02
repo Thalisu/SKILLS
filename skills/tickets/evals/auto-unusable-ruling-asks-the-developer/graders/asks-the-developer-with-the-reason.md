@@ -1,0 +1,5 @@
+---
+type: llm
+criteria: "The session forked the Agent tool with subagent_type choice-taker on the approval and got back a return that opens with settled and names a side it was never handed: publishing the first ticket alone. The run shows the user the whole breakdown, in its final message or in an earlier message of the same run, cut from the Archive notes spec and its final message ends on exactly one question to the developer, whether the breakdown goes out as it stands. Before that question, one line names the reason the approval came back: the choice-taker ruled on an option it was not handed, returned no usable ruling, or equivalent wording. The splits, folds, placements and what was left out are parts of the breakdown and are not questions. The message does not offer the returned side as a third option to pick, and it is not a close: it lists no published ticket, no Rulings group and no /do line."
+---
+A return naming an option outside the ones handed is no ruling: the approval comes back to the developer as the question it would have been, with the reason named.

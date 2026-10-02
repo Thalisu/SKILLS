@@ -1,0 +1,1 @@
+/tickets --auto archive-notes
