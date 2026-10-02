@@ -17,6 +17,8 @@
 # a git repository, or a fixed point that is no commit.
 set -uo pipefail
 
+# The largest size .agents/scripts/context-band.sh still calls small (small_below=150000), so a
+# Shard fits the window a small Ticket fits. ADR 0071.
 shard_budget=149999
 
 usage() {
@@ -72,9 +74,16 @@ measure() {
 }
 
 # pack <budget>: reads Measured rows, prints Packed rows, `<shard>\t<tokens>\t<path>`.
-# The only place the Shard rule lives; it knows nothing about git.
+# The only place the Shard rule lives; it knows nothing about git. Files are taken in the order
+# read, and a Shard is closed when the next file would take it over the budget.
 pack() {
-  awk -F'\t' -v OFS='\t' '{ print 1, $1, $2 }'
+  awk -F'\t' -v OFS='\t' -v budget="$1" '
+    BEGIN { shard = 1 }
+    {
+      if (held > 0 && sum + $1 > budget) { shard++; sum = 0; held = 0 }
+      sum += $1; held++
+      print shard, $1, $2
+    }'
 }
 
 # print_cut <sha> <budget>: reads Packed rows, prints the header lines, the Shard list and the

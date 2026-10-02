@@ -77,6 +77,27 @@ file shard=1 tokens=$auth path=src/auth.js
 file shard=1 tokens=$notes path=src/notes.js
 file shard=1 tokens=$old path=src/old.js"
 
+# A Shard is what one reviewer's window has to hold. Five new files of about 60k tokens each, one
+# per directory, are twice the budget together while any one of them, and any two, fit in it.
+repo_at_fixed_point over-budget
+large_files="api/routes.js db/schema.js docs/guide.js jobs/queue.js web/views.js"
+for f in $large_files; do
+  mkdir -p "$(dirname "$f")"
+  seq 1 8000 | sed 's/.*/export const row_& = &;/' >"$f"
+done
+commit "five large files"
+diff_tokens=0
+for f in $large_files; do diff_tokens=$((diff_tokens + $(tracked_tokens "$f"))); done
+run "$fixed_point"
+budget="$(term budget)"
+expect "the over-budget run exits 0" test "$rc" = 0
+expect "the fixture's diff is over the budget the script prints" test "$diff_tokens" -gt "${budget:-$diff_tokens}"
+expect "a diff over the budget is cut into more than one Shard" test "$(shard_lines)" -gt 1
+expect "every Shard of a diff over the budget is within the budget" \
+  test "$(awk -v b="$budget" '/^shard=/ { sub(/^tokens=/, "", $2); if (b == "" || $2 + 0 > b + 0) n++ } END { print n + 0 }' <<<"$out")" = 0
+expect "the Shards of a diff over the budget hold the whole diff between them" \
+  test "$(awk '/^shard=/ { sub(/^tokens=/, "", $2); sum += $2 } END { print sum + 0 }' <<<"$out")" = "$diff_tokens"
+
 echo
 if [ "$fails" = 0 ]; then echo "all green"; else echo "$fails failing"; fi
 exit "$fails"
