@@ -37,4 +37,29 @@ out="$tech_rows"$'\n'"$sec_rows"
 absent "neither of the two prompts carries a Shard line" "Shard"
 absent "and the manifest is named to neither of them" "manifest"
 
+echo "# AGENT.md / ## 6. The fan-out: a cut of more than one Shard forks both reviewers per Shard"
+kind_rows="$(sed -n '/^| Kind |/,/^$/p' <<<"$section")"
+expect "the run kinds carry a sharded one, decided by the shards= line" \
+  grep -qE '^\| sharded \|.*shards=' <<<"$kind_rows"
+# A per-Shard fork is a row whose return file carries the Shard's number, so two Shards never
+# return into one file and neither returns into the unsharded run's.
+shard_tech_rows="$(grep -F '| `subagent_type: do-code-review-technical-reviewer`' <<<"$section" | grep -F '<that directory>/shard-<n>.technical.md')"
+shard_sec_rows="$(grep -F '| `subagent_type: do-code-review-security-reviewer`' <<<"$section" | grep -F '<that directory>/shard-<n>.security.md')"
+expect "each Shard forks one technical reviewer, returning into its own shard-<n>.technical.md" \
+  test "$(grep -c . <<<"$shard_tech_rows")" = 1
+expect "each Shard forks one security reviewer, returning into its own shard-<n>.security.md" \
+  test "$(grep -c . <<<"$shard_sec_rows")" = 1
+before "within a Shard the technical reviewer comes before the security reviewer" \
+  "/shard-<n>.technical.md" "/shard-<n>.security.md"
+
+echo "# the per-Shard fan-out is the cut's answer, whoever called the review"
+# shellcheck disable=SC2034 # lib.sh's check_absent reads $out
+out="$(flat_section "$agent" "## The arguments")"
+expect "AGENT.md carries its arguments" test -n "$out"
+check_absent "no argument of the review carries a Shard count" 0 0 "Shard" "shard"
+# shellcheck disable=SC2034
+out="$(passage_of "$here/../../do/references/mechanics.md" "### What the call carries" "##")"
+expect "do's mechanics carry the review call" test -n "$out"
+check_absent "do passes no Shard count on its review call" 0 0 "Shard" "shard"
+
 exit $((fails > 0))

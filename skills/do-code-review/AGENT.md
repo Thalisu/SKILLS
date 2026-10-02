@@ -228,6 +228,23 @@ The `shards=` line decides the kind of run:
 | Kind | When | What runs |
 |---|---|---|
 | unsharded | `shards=1`, or the script exiting 1 or 2 | the two forks below with the brief of section 5 as it stands, and the manifest is named to nobody |
+| sharded | `shards=<N>`, N above 1 | one fork per Row of the Row set below |
+
+The cut alone decides, whoever called: no caller measures the diff or passes a Shard count, so a
+call by hand and a call from `do` fan out the same way over the same diff.
+
+A sharded run forks one Row per reviewer, and the Row set is what the fork, the wait, the retry and
+the Review all go through, so a rule about them names the Rows and never a count per Shard. It is
+ordered Shard 1 to N, the technical Row before the security Row within a Shard, `<n>` being the
+Shard's number:
+
+| Agent | Prompt | Return file |
+|---|---|---|
+| `subagent_type: do-code-review-technical-reviewer` | the brief, its `Standards sources:` and `Loss ledger:` lines, and its `Return file:` line | `<that directory>/shard-<n>.technical.md` |
+| `subagent_type: do-code-review-security-reviewer` | the brief and its `Return file:` line | `<that directory>/shard-<n>.security.md` |
+
+Each Row owns the Axes its reviewer answers, over its own Shard: Correctness, Spec, Standards,
+Principles and Blast radius for a technical Row, Security for a security Row.
 
 On an unsharded run, fork both reviewers in parallel, the two Agent tool calls in one message, with the same brief.
 Each gets one more line, `Return file: <that directory>/<its file>`, the path it writes its return
