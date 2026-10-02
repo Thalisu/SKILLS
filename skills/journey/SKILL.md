@@ -210,7 +210,7 @@ Recommendation: remove it, with the same confirmation and the line "Invite revok
 
 The flag is the developer handing direction over for one run. No fork is put to the user, and the run continues to the close without waiting on anyone.
 
-Each path is still drafted first (item 1): the precedent closes what it settles, and a reversible detail still takes a default. A fork the draft leaves open is ruled in place of items 3 to 6. To rule a fork, call the Agent tool with `subagent_type: choice-taker` and the brief its definition fixes, filled from the question item 3 would have asked:
+Each path is still drafted first (item 1): the precedent closes what it settles, and a reversible detail still takes a default. A fork the draft leaves open is ruled in place of items 2 to 6, so no `prototype` agent is forked under the flag: a fork marked _runnable_ is ruled like any other, unseen, its `Options:` lines describing each candidate screen in words, since nobody would open the prototype before the close. To rule a fork, call the Agent tool with `subagent_type: choice-taker` and the brief its definition fixes, filled from the question item 3 would have asked:
 
 ```
 Caller: journey at the interview step
@@ -342,7 +342,7 @@ Each rule restates a step above with the cost of breaking it. When two readings 
 - **Under `--auto` no fork is put to the user.** Every fork the precedent leaves open goes to the `choice-taker`, one brief at a time, and the session never picks a side in its place: a side nobody with the `choice-taker`'s norms took would land in the journey unread.
 - **Captures are never batched, and nothing is written before something closes.** A path only in the thread is lost when the session stops; a path written before its forks closed is a guess `tickets` would cut from.
 - **The session writes only the journey, `CONTEXT.md`, and the spec's own sections and `Journey:` line**; never an ADR, never code. The stories are built later, from the tickets.
-- **A prototype is built only for a runnable fork**, never for one a description can settle, and only by calling the Agent tool with `subagent_type: prototype`. Its files belong to that agent: new files marked throwaway and kept out of version control, at most one mount in a host page, each listed in its report and in the closing summary. An ask from that agent is answered by resuming it with the SendMessage tool, never by starting a second one.
+- **A prototype is built only for a runnable fork**, never for one a description can settle, never under `--auto`, where nobody is there to open it, and only by calling the Agent tool with `subagent_type: prototype`. Its files belong to that agent: new files marked throwaway and kept out of version control, at most one mount in a host page, each listed in its report and in the closing summary. An ask from that agent is answered by resuming it with the SendMessage tool, never by starting a second one.
 - **The skill runs inline, in the main thread**: a subagent cannot interview. Only a precedent search too large for the thread, the prototype builds and, under `--auto`, the `choice-taker`'s rulings leave it.
 - **Never commit, never push.** What the session wrote stays in the working tree, so a path the user did not want is an edit to undo.
 - **Prose written into the project carries no em-dash.**
