@@ -1,0 +1,5 @@
+---
+type: llm
+criteria: "The run's final message puts exactly one question to the developer, with a tell and a recommended answer with its reason, for the first fork of the Suppliers spec the precedent leaves open; the three parts may come in that order with the recommendation last. Before the question, the message names the reason the fork is put to the developer instead of ruled: the choice-taker cannot be forked, is unreachable, is not linked, is not listed, is not found, or equivalent wording naming the choice-taker as the cause. It may add that the forks after it will come to the developer too. The precedent note, the tree and the path's draft may stand before that in the same message, since a headless run speaks once. No fork or path reads as ruled anywhere in the message, and no Rulings group and no closing summary appear in it."
+---
+A fork the `choice-taker` cannot rule, because the Agent tool lists no `choice-taker`, is put to the developer with the reason named, exactly as it would be without `--auto`.

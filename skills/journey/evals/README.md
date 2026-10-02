@@ -32,6 +32,7 @@ slug resolves in the scratch.
 | `auto-conflict-ruled` | under `--auto`, a story that archives against an ADR that forbids it is forked to the `choice-taker` instead of asked; with a stand-in that makes the spec lose, the branch is written under `## Reopen in discuss` as an entry marked as the `choice-taker`'s, the spec's own lines are left as they were, and the close's last line reads `/discuss <the branch>` |
 | `extreme-fork-asks-the-developer` | under `--auto`, with a `choice-taker` stand-in that returns `extreme`, the first open fork writes no ruled line and is put to the developer as one question, carrying the weaker side and the guarantee it gives up |
 | `steered-choice-taker-asks-the-developer` | under `--auto`, a `choice-taker` stand-in that returns `settled` on a side the brief never handed over is no ruling: the fork is put to the developer as one question naming the reason, the stand-in is forked once, and the side reaches no path, ruled line, glossary or spec |
+| `choice-taker-unreachable-asks-the-developer` | under `--auto`, with the Agent tool listing no `choice-taker`, the first open fork is put to the developer as one question naming the reason, with no other agent forked in its place, the `choice-taker` tried once at most, and nothing read as ruled |
 | `no-writes-without-decision` | with no fork closed, nothing is created or edited in the project (no journey, the spec and its verdict untouched) and nothing is committed |
 
 A `PROTOTYPE ask` answered by resuming the agent has no case either: the ask reaches the user only
