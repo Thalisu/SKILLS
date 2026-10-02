@@ -211,7 +211,25 @@ with `, inferred` after it.
 Make one directory outside every repository, `mktemp -d "${TMPDIR:-/tmp}/do-code-review.XXXX"`,
 and take `git status --porcelain` in the tree under review once, before the fork.
 
-Then fork both reviewers in parallel, the two Agent tool calls in one message, with the same brief.
+Then cut the diff, before any reviewer is forked, and keep what the script prints in that
+directory:
+
+```
+bash ~/.claude/skills/do-code-review/scripts/shards.sh <fixed point> > <that directory>/manifest.txt
+grep -E '^(shards|shard)=' <that directory>/manifest.txt
+```
+
+The script measures the diff and packs its files into Shards, so the size of the diff is its
+answer and never yours: you do not size or cut the diff by reading it. Read the `shards=` line and
+the `shard=` lines and nothing else. The `file` lines stay on disk.
+
+The `shards=` line decides the kind of run:
+
+| Kind | When | What runs |
+|---|---|---|
+| unsharded | `shards=1`, or the script exiting 1 or 2 | the two forks below with the brief of section 5 as it stands, and the manifest is named to nobody |
+
+On an unsharded run, fork both reviewers in parallel, the two Agent tool calls in one message, with the same brief.
 Each gets one more line, `Return file: <that directory>/<its file>`, the path it writes its return
 to besides returning it, so the two returns never land in one file:
 
