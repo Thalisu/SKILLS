@@ -15,6 +15,11 @@ boundaries, seams and delivery order are decisions [discuss](discuss.md) and `sp
 given; a delete confirmation, an empty state or a form layout the sibling page already has is
 closed with a file and line and never put to you.
 
+With `--auto` you hand the walk over for one run: every fork the precedent leaves open goes to the
+`choice-taker` agent, which rules it from the norms the repository writes down, and the journey is
+written end to end without a question. Every fork ruled that way is marked in the path it belongs
+to, so you can find afterwards what nobody walked with you.
+
 ## When to reach for it
 
 You invoke this by typing `/journey <spec>`, and the agent won't reach for it on its own.
@@ -23,6 +28,7 @@ You invoke this by typing `/journey <spec>`, and the agent won't reach for it on
 |---|---|
 | the spec's verdict says `Journey: required` | `/journey <spec>`: a path, the feature slug, or an issue reference; `spec` prints this line when it closes |
 | the verdict says `not needed` but you want the paths walked anyway | `/journey <spec>`; the verdict line is replaced either way |
+| walk the paths without being asked, for one run | `/journey --auto <spec>`; the flag can sit before or after the spec, and `spec` prints this line when its own run had the flag |
 | decide the data shape, the seams or the plan itself | [discuss](discuss.md) first, then `spec` |
 | cut the tickets | [tickets](tickets.md), once the journey is written; it refuses a spec whose verdict is `required` with no journey |
 | see a screen before you can decide | the interview marks that fork _runnable_ and forks [prototype](prototype.md) for it |
@@ -48,7 +54,8 @@ reversible change, the spec's own sections, `CONTEXT.md` for a term a label or a
 and the `.scratch/` line in the project's `.gitignore` when a local journey needs it and the line
 is missing. Everything is left uncommitted. A runnable fork needs the `prototype` agent linked, as
 [prototype](prototype.md) describes, and adds that agent's throwaway files, listed in the closing
-summary.
+summary. `--auto` needs the `choice-taker` agent linked, which `scripts/link-skills.sh` does with
+the rest; without it the run asks you every fork, saying why.
 
 ## Path, fork, lens
 
@@ -82,6 +89,15 @@ A fork only a screen can settle, a step with no precedent anywhere in the app, i
 session forks the [prototype](prototype.md) agent with a brief and puts the question to you against
 the artifact, and the journey records the answer in one line, never the prototype.
 
+Under `--auto` a fork closes a fourth way, **ruled**:
+
+- Each open fork is sent to the `choice-taker` on its own, in walk order, with the spec and the
+  journey so far, so no fork is ruled against a side an earlier one took.
+- A ruled fork takes a `Ruled by the choice-taker:` line in its path, with the side taken and the
+  norm behind it, and a line under `Rulings` in the closing summary, apart from your decisions.
+- A runnable fork is ruled from the description of its candidates. No prototype is built, since
+  nobody is there to open it.
+
 ## What a path can change
 
 A path sometimes proves the spec wrong. What happens depends on how hard the change is to undo:
@@ -89,7 +105,7 @@ A path sometimes proves the spec wrong. What happens depends on how hard the cha
 | The change | What happens |
 |---|---|
 | reversible: a field the actor needs to see, a step order, a missing story, a message | the spec is edited in place and the change is listed in the journey under `## Spec changes applied` |
-| hard to reverse, or touching an ADR: a new entity state, a schema change, an interaction an ADR forbids | the path stops and asks which side wins; when the spec loses, the branch goes under `## Reopen in discuss`, and `tickets` stops on that list until [discuss](discuss.md) settles it |
+| hard to reverse, or touching an ADR: a new entity state, a schema change, an interaction an ADR forbids | the path stops and asks which side wins; when the spec loses, the branch goes under `## Reopen in discuss`, and `tickets` stops on that list until [discuss](discuss.md) settles it. Under `--auto` the `choice-taker` rules which side wins, and a branch it sends back is marked `Ruled by the choice-taker:` in that list |
 
 The skill writes no ADR and edits no code.
 
@@ -111,6 +127,16 @@ story that was missing. The edit is in the spec's own section and listed under
 `## Spec changes applied` in the journey. A change that is hard to undo is never applied: the path
 stops, asks which side wins, and records a losing spec under `## Reopen in discuss`.
 
+**I ran it with `--auto` and it still asked me something. Why?**
+Three things come back to you under the flag, each as the one question the fork would have been:
+
+- the `choice-taker` returned `extreme`: an option weakens a guarantee in a risk class or cannot be
+  undone, and the question names that weaker side and the guarantee it gives up;
+- its return was no ruling: a broken shape, a side it was never handed, or a term your glossary
+  does not define, named in one line before the question;
+- it could not be forked at all, because the agent is not linked or the Agent tool is withheld:
+  that fork and every one after it are asked, with the reason said once.
+
 **Why did it not ask me about the delete confirmation?**
 The sibling page already has one, and the draft cited it with a file and line. A question is spent
 only on a fork the app does not settle; the rest is a default you can overturn in the answer to the
@@ -129,6 +155,9 @@ question that does reach you.
   layout in words.
 - The closing summary lists every path, what was cut, what changed in the spec, and ends with the
   exact next command.
+- After an `--auto` run, every fork you were not asked about has a `Ruled by the choice-taker:` line
+  in its path, and the last line reads `/tickets --auto <spec>`, or `/discuss <the branch>` when a
+  branch was sent back.
 
 ## Where it fits
 
@@ -142,6 +171,8 @@ it, and before [tickets](tickets.md), which cuts one ticket per path it walked.
 - [discuss](discuss.md), because the skeleton is the same and the decisions it made are taken as
   given here; a branch the journey sends back goes to it.
 - [prototype](prototype.md), because a runnable fork forks its agent.
+- The [`choice-taker`](../skills/do/agents/choice-taker.md) agent, because under `--auto` it rules
+  every fork you would have been asked.
 - The principles under [`.agents/principles/`](../.agents/principles/README.md), because every
   lens is one of them read from the actor's seat.
 

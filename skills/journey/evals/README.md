@@ -10,7 +10,11 @@ when the skill asks its first question, since no user is there to answer it, whi
 moment the cases inspect: the precedent note, the tree and the first drafted path are in the thread
 by then, and only what closed before that question has been written. The skill saves a path it
 closes from precedent to `journey.md`, and a term it resolves to `CONTEXT.md`, the moment each one
-closes.
+closes. A case that types `--auto` runs on to the close instead, or to the one question an
+exception puts to the developer. Those cases swap the linked `choice-taker` for a stand-in under
+the fixture's `.claude/agents/`, so each reads how the session handles a return and never how the
+real agent weighs a fork; `choice-taker-unreachable-asks-the-developer` unlinks it and puts nothing
+in its place.
 
 Every fixture is synthetic: a two-page backoffice (a Customers page with a search box, a create
 form, a delete dialog and an empty state, under a top navigation), a glossary, and a spec in the
