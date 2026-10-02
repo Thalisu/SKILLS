@@ -6,7 +6,9 @@
 #
 # The diff is the one the door names: `git diff <fixed point>` against the working tree, plus the
 # untracked files, with rename detection off. A file's size is the bytes of its own patch at four
-# bytes a token, rounded up, and a Shard holds whole files only.
+# bytes a token, rounded up, and a Shard holds whole files only. A Shard's sum is within the budget
+# unless it holds one file that alone exceeds it, and the files of one directory share a Shard
+# when together they fit the budget.
 #
 # Prints `fixed_point=<full sha>`, `budget=<tokens>` and `shards=<n>`, then one
 # `shard=<n> tokens=<sum> files=<count>` line per Shard, then the manifest: one
@@ -74,15 +76,35 @@ measure() {
 }
 
 # pack <budget>: reads Measured rows, prints Packed rows, `<shard>\t<tokens>\t<path>`.
-# The only place the Shard rule lives; it knows nothing about git. Files are taken in the order
-# read, and a Shard is closed when the next file would take it over the budget.
+# The only place the Shard rule lives; it knows nothing about git.
+# A Directory group is the files sharing one parent directory. The groups are taken in the order
+# their first path is read. A group that fits the budget goes whole into one Shard, and a group
+# that does not is cut between its files in the order read. A Shard is closed when what comes next
+# would take it over the budget, so a file that alone exceeds the budget is a Shard of its own.
 pack() {
   awk -F'\t' -v OFS='\t' -v budget="$1" '
-    BEGIN { shard = 1 }
+    function place(size) {
+      if (held && sum + size > budget) { shard++; sum = 0 }
+      sum += size; held = 1
+    }
     {
-      if (held > 0 && sum + $1 > budget) { shard++; sum = 0; held = 0 }
-      sum += $1; held++
-      print shard, $1, $2
+      dir = $2
+      if (substr(dir, 1, 1) == "\"") dir = substr(dir, 2)
+      dir = match(dir, /.*\//) ? substr(dir, 1, RLENGTH - 1) : ""
+      if (!(dir in count)) order[++groups] = dir
+      n = ++count[dir]; size[dir, n] = $1; path[dir, n] = $2; total[dir] += $1
+    }
+    END {
+      shard = 1
+      for (g = 1; g <= groups; g++) {
+        dir = order[g]
+        whole = total[dir] <= budget
+        if (whole) place(total[dir])
+        for (n = 1; n <= count[dir]; n++) {
+          if (!whole) place(size[dir, n])
+          print shard, size[dir, n], path[dir, n]
+        }
+      }
     }'
 }
 

@@ -39,6 +39,19 @@ large_file() {                                                                  
   seq 1 "${2:-8000}" | sed 's/.*/export const row_& = &;/' >"$1"
 }
 manifest_paths() { sed -n 's/^file shard=[0-9]* tokens=[0-9]* path=//p' <<<"$manifest"; } # the path of every file line of the run in $manifest, one per line and unsorted, on stdout
+shards_over_budget() {                                                                    # how many Shard lines of the run in $out are over $budget, every one of them when $budget is empty, on stdout
+  awk -v b="$budget" '/^shard=/ { sub(/^tokens=/, "", $2); if (b == "" || $2 + 0 > b + 0) n++ } END { print n + 0 }' <<<"$out"
+}
+split_directories() { # the directories whose files the run in $manifest spreads over more than one Shard, one per line and sorted, on stdout; `.` is the repository root
+  awk '/^file shard=/ {
+    shard = $2
+    path = substr($0, index($0, " path=") + 6)
+    dir = path
+    if (!sub(/\/[^\/]*$/, "", dir)) dir = "."
+    if (!(dir in first)) first[dir] = shard
+    else if (first[dir] != shard) torn[dir] = 1
+  } END { for (dir in torn) print dir }' <<<"$manifest" | LC_ALL=C sort
+}
 
 # A few small files changed since the fixed point (one committed, one edited in the working tree,
 # one untracked) are far under the budget: one reviewer reads them all.
@@ -96,8 +109,7 @@ budget="$(term budget)"
 expect "the over-budget run exits 0" test "$rc" = 0
 expect "the fixture's diff is over the budget the script prints" test "$diff_tokens" -gt "${budget:-$diff_tokens}"
 expect "a diff over the budget is cut into more than one Shard" test "$(shard_lines)" -gt 1
-expect "every Shard of a diff over the budget is within the budget" \
-  test "$(awk -v b="$budget" '/^shard=/ { sub(/^tokens=/, "", $2); if (b == "" || $2 + 0 > b + 0) n++ } END { print n + 0 }' <<<"$out")" = 0
+expect "every Shard of a diff over the budget is within the budget" test "$(shards_over_budget)" = 0
 expect "the Shards of a diff over the budget hold the whole diff between them" \
   test "$(awk '/^shard=/ { sub(/^tokens=/, "", $2); sum += $2 } END { print sum + 0 }' <<<"$out")" = "$diff_tokens"
 
@@ -183,6 +195,37 @@ out="$(grep -E "^(file )?shard=$oversized_shard " <<<"$manifest")"
 same "gives a single file larger than the budget a Shard of its own, whole" \
   "shard=$oversized_shard tokens=$oversized_tokens files=1
 file shard=$oversized_shard tokens=$oversized_tokens path=$oversized"
+
+# A reviewer reads a test beside the code it proves, so the files of one directory go to one reviewer
+# whenever they fit a window together. Here the diff is twice the budget and every directory fits it:
+# lib/ holds two files next to each other in byte order of path, and pkg/ holds two with a
+# subdirectory sorting between them, which is a directory of its own.
+repo_at_fixed_point directory-groups
+large_file api/big.js 13000
+directory_files="lib/a.js lib/z.js pkg/a.js pkg/sub/x.js pkg/z.js"
+for f in $directory_files; do large_file "$f" 5300; done
+commit "one large file, then two directories of two files each and a subdirectory"
+lib_tokens=$(($(tracked_tokens lib/a.js) + $(tracked_tokens lib/z.js)))
+pkg_tokens=$(($(tracked_tokens pkg/a.js) + $(tracked_tokens pkg/z.js)))
+diff_tokens="$(tracked_tokens api/big.js)"
+for f in $directory_files; do diff_tokens=$((diff_tokens + $(tracked_tokens "$f"))); done
+run "$fixed_point"
+manifest="$out"
+budget="$(term budget)"
+expect "the directory-groups run exits 0" test "$rc" = 0
+expect "the directory-groups diff is over the budget the script prints" test "$diff_tokens" -gt "${budget:-$diff_tokens}"
+expect "the two files of lib/ fit the budget together" test "$lib_tokens" -le "${budget:-0}"
+expect "the two files of pkg/ fit the budget together" test "$pkg_tokens" -le "${budget:-0}"
+expect "every Shard of the directory-groups diff is within the budget" test "$(shards_over_budget)" = 0
+out="$(manifest_paths | LC_ALL=C sort)"
+same "places each file of the directory-groups diff in exactly one Shard" "api/big.js
+lib/a.js
+lib/z.js
+pkg/a.js
+pkg/sub/x.js
+pkg/z.js"
+out="$(split_directories)"
+same "keeps the files of one directory in the same Shard when together they fit the budget (listed: the directories split)" ""
 
 echo
 if [ "$fails" = 0 ]; then echo "all green"; else echo "$fails failing"; fi
