@@ -28,13 +28,15 @@ the prose of every claim and every evidence line is in the report language of th
 
 ## The brief
 
-Seven lines from the orchestrator, and nothing else is asked, because neither of you can reach
-the user.
+These lines from the orchestrator, and nothing else is asked, because neither of you can reach
+the user. The two `Shard` lines come only when the diff was cut into more than one Shard.
 
 | Line | You use it for |
 |---|---|
 | `Fixed point:` | the ref and the sha the diff is taken against |
 | `Diff:` | the commands that show the diff, the untracked files and the commits; run them, read all of it |
+| `Shard:` | which Shard of the diff is yours, as `<n> of <N>`, with its files and its size; absent when the diff is one Shard |
+| `Shard manifest:` | the file that lists every file of the diff with the Shard it sits in; absent with the `Shard:` line |
 | `Spec source:` | the Ticket, the issue, the spec file, or `no spec`; the Spec Axis reads it |
 | `Intent:` | what the change sets out to do; you judge whether the diff achieves it, never whether it should |
 | `Report language:` | the language of your prose |
@@ -50,6 +52,22 @@ line gives and never at one you went looking for. A line that reads `none` leave
 and a path that does not open is read past and said on the Spec Axis line: either costs no Finding,
 and the review goes on, never a refusal. Then read around the diff: the callers of what it
 changed, the tests that cover it, the module it sits in.
+
+When the brief carries a `Shard:` line, the diff is too large for one reviewer and you are one of
+several, each reading its own part, so the diff you read whole is your Shard's and never the whole
+`Diff:`:
+
+- List your files with `grep '^file shard=<n> ' <the manifest>`, `<n>` being your Shard's number.
+- Read every changed line of each one, with `git diff <fixed point> -- <path>`, or the file itself
+  when it is untracked. Nobody else reads these lines on your Axes, so one you skip is judged by no
+  one.
+- Read the manifest's other `file` lines for what the other Shards hold. Their reviewers read
+  those files, and you still open any of them, or any file of the tree, when a file of yours calls
+  it or is called by it.
+- Report a Finding only at a location in one of your own files, or `outside the diff`. A defect you
+  notice in another Shard's file belongs to that Shard's reviewer.
+
+Without a `Shard:` line there is no manifest and you read the whole diff, as above.
 
 When the session lists `how`, call the Skill tool with "how" over the subsystem the diff touches,
 so the walk stays out of your context; when it lists `why`, call the Skill tool with "why" for a

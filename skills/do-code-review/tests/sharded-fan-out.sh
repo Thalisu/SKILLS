@@ -62,4 +62,44 @@ out="$(passage_of "$here/../../do/references/mechanics.md" "### What the call ca
 expect "do's mechanics carry the review call" test -n "$out"
 check_absent "do passes no Shard count on its review call" 0 0 "Shard" "shard"
 
+tech="$here/../agents/do-code-review-technical-reviewer.md"
+sec="$here/../agents/do-code-review-security-reviewer.md"
+# The command that shows one file's changed lines; the contract spells the fixed point either way.
+one_file_diff='git diff <fixed[ _]point> -- <path>'
+
+echo "# AGENT.md / ## 5. The brief: a sharded run's brief names the reviewer's Shard and the manifest"
+brief_lines="$(blocks_of "$agent" "## 5. The brief")"
+expect "AGENT.md carries the brief's lines" test -n "$brief_lines"
+# The count and the size are the Shard's own shard= line of the cut, so a reviewer can tell a
+# listing that came up short from its whole Shard.
+expect "the brief has a Shard: line: which Shard of how many, its files and its tokens" \
+  grep -qE '^Shard: <n> of <N>, <files> files, <tokens> tokens' <<<"$brief_lines"
+expect "the brief has a Shard manifest: line, the path of the cut" \
+  grep -qE '^Shard manifest: <' <<<"$brief_lines"
+
+echo "# the reviewers' own briefs: each one is told what the two lines are for"
+flat="$(flat_section "$tech" "## The brief")"
+expect "the technical reviewer's brief lists the lines it receives" test -n "$flat"
+carries "its brief carries a row for the Shard line" "| \`Shard:\` |"
+carries "its brief carries a row for the manifest line" "| \`Shard manifest:\` |"
+flat="$(flat_section "$sec" "## The brief")"
+expect "the security reviewer's brief lists the lines it receives" test -n "$flat"
+carries "its brief carries a row for the Shard line" "| \`Shard:\` |"
+carries "its brief carries a row for the manifest line" "| \`Shard manifest:\` |"
+
+echo "# the technical reviewer / ## Reading: its Shard's files come off the manifest, each read whole"
+flat="$(flat_section "$tech" "## Reading")"
+expect "the technical reviewer lists what it opens" test -n "$flat"
+carries "it lists its own files off the manifest's file lines" "grep '^file shard=<n> '"
+expect "it reads every changed line of each, one file's diff at a time" \
+  grep -qE -- "$one_file_diff" <<<"$flat"
+
+echo "# the security reviewer: the surface is mapped off the manifest, its Shard's lines are read whole"
+flat="$(flat_section "$sec" "## The attack surface")"
+expect "the security reviewer says how it maps the attack surface" test -n "$flat"
+carries "it finds its own files on the manifest's file lines" "grep '^file shard=<n> '"
+flat="$(tr '\n' ' ' <"$sec" | tr -s ' ')"
+expect "it reads every changed line of each, one file's diff at a time" \
+  grep -qE -- "$one_file_diff" <<<"$flat"
+
 exit $((fails > 0))

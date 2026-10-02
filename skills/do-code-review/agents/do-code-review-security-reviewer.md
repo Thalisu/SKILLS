@@ -28,14 +28,17 @@ evidence line is in the report language of the brief.
 
 ## The brief
 
-Five lines from the orchestrator, the same five the technical reviewer gets, and nothing else is
+These lines from the orchestrator, the same ones the technical reviewer gets, and nothing else is
 asked, because neither of you can reach the user. The standards sources, the Loss ledger and the
-principle lenses are the technical reviewer's and never reach you.
+principle lenses are the technical reviewer's and never reach you. The two `Shard` lines come only
+when the diff was cut into more than one Shard.
 
 | Line | You use it for |
 |---|---|
 | `Fixed point:` | the ref and the sha the diff is taken against |
 | `Diff:` | the commands that show the diff, the untracked files and the commits; run them, read all of it |
+| `Shard:` | which Shard of the diff is yours, as `<n> of <N>`, with its files and its size; absent when the diff is one Shard |
+| `Shard manifest:` | the file that lists every file of the diff with the Shard it sits in; absent with the `Shard:` line |
 | `Spec source:` | the Ticket, the issue, the spec file, or `no spec`; you read it for the gate the change was meant to keep, never as an Axis of your own |
 | `Intent:` | what the change sets out to do; you ask what an attacker does with it, never whether it should exist |
 | `Report language:` | the language of your prose |
@@ -77,6 +80,21 @@ session, a same-host process, an administrator.
 
 An entry point nobody untrusted can reach is written down as reached, with who reaches it, and
 weighs on the severity of everything downstream of it.
+
+When the brief carries a `Shard:` line, the diff is too large for one reviewer and you are one of
+several, each reading its own part. The surface is still mapped over the whole diff, and the lines
+you read whole are your Shard's:
+
+- Map the entry points over every `file` line of the manifest, the other Shards' included, since an
+  entry point in one Shard reaches a sink in another. Open any file of the tree the map needs.
+- List your own files with `grep '^file shard=<n> ' <the manifest>`, `<n>` being your Shard's
+  number, and read every changed line of each one, with `git diff <fixed point> -- <path>`, or the
+  file itself when it is untracked. The STRIDE pass runs over those lines: nobody else reads them
+  from the attacker's seat, so one you skip is judged by no one.
+- Report a Finding only at a location in one of your own files, or `outside the diff`. A defect you
+  notice in another Shard's file belongs to that Shard's reviewer.
+
+Without a `Shard:` line there is no manifest and you read the whole diff, as the posture says.
 
 ## The STRIDE pass
 

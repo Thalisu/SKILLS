@@ -197,6 +197,20 @@ reviewer reads it, you list it, the way section 4 already has it for the standar
 caller sent no ledger argument, you write `Loss ledger: none` into the brief, so the brief of a run
 that set nothing aside still carries the line and no reviewer ever tests for a line that is absent.
 
+Two lines more go to every reviewer of a sharded run, between `Diff:` and `Spec source:`, and to
+none of an unsharded one, which section 6 tells apart:
+
+```
+Shard: <n> of <N>, <files> files, <tokens> tokens
+Shard manifest: <that run's directory>/manifest.txt
+```
+
+`<files>` and `<tokens>` are copied from that Shard's `shard=` line, and the manifest is the
+absolute path of the file section 6 keeps the cut in. The path is all you hand over: never copy a
+`file` line into a brief, since the script owns which file sits in which Shard and each reviewer
+reads it there. The `Diff:` line stays the whole diff on every brief, so the other Shards and the
+tree around them stay readable.
+
 The door's `status=` line goes in whole, pathspec and all. It is the status command with the
 Review a previous run left taken out by name, so a second review of the same branch never reads
 its own output as part of the diff; shortened back to the bare command, it hands that file to the
@@ -240,8 +254,8 @@ Shard's number:
 
 | Agent | Prompt | Return file |
 |---|---|---|
-| `subagent_type: do-code-review-technical-reviewer` | the brief, its `Standards sources:` and `Loss ledger:` lines, and its `Return file:` line | `<that directory>/shard-<n>.technical.md` |
-| `subagent_type: do-code-review-security-reviewer` | the brief and its `Return file:` line | `<that directory>/shard-<n>.security.md` |
+| `subagent_type: do-code-review-technical-reviewer` | the brief with the two `Shard` lines of Shard `<n>`, its `Standards sources:` and `Loss ledger:` lines, and its `Return file:` line | `<that directory>/shard-<n>.technical.md` |
+| `subagent_type: do-code-review-security-reviewer` | the brief with the two `Shard` lines of Shard `<n>`, and its `Return file:` line | `<that directory>/shard-<n>.security.md` |
 
 Each Row owns the Axes its reviewer answers, over its own Shard: Correctness, Spec, Standards,
 Principles and Blast radius for a technical Row, Security for a security Row.
