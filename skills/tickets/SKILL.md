@@ -258,7 +258,7 @@ Context: <the spec, the journey and the breakdown>
 
 A `settled` return whose `Side:` names one of the two options is the Ruling on the breakdown. The side it took and its `Norm:` are kept for the close (step 6), and the Ruling amends no file.
 
-**On a local tracker**, local markdown or no tracker file, the Ruling is the answer and the user is asked nothing. A Ruling to publish stands in for the yes: every ticket is published (step 5) and the close follows (step 6), in the same turn.
+**On a local tracker**, local markdown or no tracker file, the Ruling is the answer and the user is asked nothing. A Ruling to publish stands in for the yes: every ticket is published (step 5) and the close follows (step 6), in the same turn. A Ruling to leave the breakdown unpublished is the answer too, and is never put back to the user as the question it replaced: nothing is published, and the run ends in the same turn the way a remote no ends, on one line saying nothing was published, the `Rulings` of the close, and no next command, neither a `/do` line nor a `/tickets` line to run again.
 
 **On a remote tracker** the Ruling is shown and the write still waits for the user: an issue reaches the whole team the moment it exists, so publishing there is one of the stops `--auto` keeps. Whichever side the Ruling took, the message the turn ends on carries three things in this order: the breakdown in full, since it is all the user has to answer from and a breakdown that only reached the brief was never shown; the Ruling as the `choice-taker`'s, with its side and its norm; and the one question, does this go out as it stands. Nothing is created, labelled or commented on the tracker before the answer.
 
