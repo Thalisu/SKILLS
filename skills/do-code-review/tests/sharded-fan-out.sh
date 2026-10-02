@@ -268,4 +268,30 @@ carries "Green keeps its conditions: every Act on Finding fixed and verified, th
 carries "Green reads every Axis ran off the Review: no line of ## Axes carries not run" \
   "## Axes" "not run"
 
+# The Spec Row answers the Spec Axis once, over the whole diff. A technical Row that still judged it
+# would report as missing every criterion that lives in another Shard, so the developer would read N
+# partial Spec answers beside the one that counts. The ledger is read on that Axis and goes with it.
+echo "# AGENT.md / ## 6. The fan-out: a technical Row of a sharded run is handed no ledger and owns four Axes"
+flat="$(awk -F'|' '{ print $3 }' <<<"$shard_tech_rows")"
+carries "the sharded technical Row's brief keeps its Shard lines, its standards and its return file" \
+  '`Shard` lines' '`Standards sources:`' '`Return file:`'
+expect "and carries no Loss ledger line, which only the Spec Axis reads" lacks "Loss ledger"
+flat="$(awk -F'|' '{ print $3 }' <<<"$tech_rows")"
+carries "the unsharded technical reviewer is still handed the ledger" '`Loss ledger:`'
+flat="$(flat_section "$agent" "## 6. The fan-out")"
+carries "a technical Row owns Correctness, Standards, Principles and Blast radius, and not Spec" \
+  "Correctness, Standards, Principles and Blast radius for a technical Row"
+
+echo "# the technical reviewer: with a Shard: line it answers four Axes and returns no Spec line"
+flat="$(passage_of "$tech" "## The brief" "## " | grep -F '| `Loss ledger:` |')"
+carries "its brief says the ledger line is absent with a Shard: line" '`Shard:`'
+flat="$(passage_of "$tech" "## The five Axes" "## Evidence" | paragraph_with /dev/stdin '`Shard:`' all | tr '\n' ' ')"
+expect "its Axes say what a Shard: line changes" test -n "$flat"
+carries "with a Shard: line it answers Correctness, Standards, Principles and Blast radius" \
+  "Correctness" "Standards" "Principles" "Blast radius"
+carries "and it says where the Spec Axis stands then" "Spec"
+flat="$(passage_of "$tech" "## The return" "## " | paragraph_with /dev/stdin '`Shard:`' all | tr '\n' ' ')"
+expect "its return says what a Shard: line changes" test -n "$flat"
+carries "with a Shard: line the return carries no Spec Axis line" '`- Spec:`'
+
 exit $((fails > 0))

@@ -196,6 +196,8 @@ The ledger line is the path the caller sent, relayed as it came and never opened
 reviewer reads it, you list it, the way section 4 already has it for the standards. When the
 caller sent no ledger argument, you write `Loss ledger: none` into the brief, so the brief of a run
 that set nothing aside still carries the line and no reviewer ever tests for a line that is absent.
+The ledger line follows the Spec Axis: on a sharded run it goes to the Spec reviewer below and to
+no technical reviewer, whose brief keeps `Standards sources:` alone of the two.
 
 Two lines more go to every reviewer of a sharded run, between `Diff:` and `Spec source:`, and to
 none of an unsharded one, which section 6 tells apart:
@@ -270,13 +272,14 @@ whenever the run is sharded, a `no spec` source included:
 
 | Agent | Prompt | Return file |
 |---|---|---|
-| `subagent_type: do-code-review-technical-reviewer` | the brief with the two `Shard` lines of Shard `<n>`, its `Standards sources:` and `Loss ledger:` lines, and its `Return file:` line | `<that directory>/shard-<n>.technical.md` |
+| `subagent_type: do-code-review-technical-reviewer` | the brief with the two `Shard` lines of Shard `<n>`, its `Standards sources:` line and its `Return file:` line | `<that directory>/shard-<n>.technical.md` |
 | `subagent_type: do-code-review-security-reviewer` | the brief with the two `Shard` lines of Shard `<n>`, and its `Return file:` line | `<that directory>/shard-<n>.security.md` |
 | `subagent_type: do-code-review-spec-reviewer` | the brief with its `Shard manifest:` line, its `Loss ledger:` line and its `Return file:` line | `<that directory>/spec.md` |
 
-Each Row owns the Axes its reviewer answers, over its own Shard: Correctness, Spec, Standards,
-Principles and Blast radius for a technical Row, Security for a security Row. The Spec Row's scope
-is the whole diff, which it reaches through the manifest, so a diff of N Shards forks 2N+1
+Each Row owns the Axes its reviewer answers, over its own Shard: Correctness, Standards,
+Principles and Blast radius for a technical Row, Security for a security Row. Spec is the Spec
+Row's and no technical Row's, since a criterion met in another Shard reads as missing from inside
+one. The Spec Row's scope is the whole diff, which it reaches through the manifest, so a diff of N Shards forks 2N+1
 reviewers and never a Spec reviewer per Shard.
 
 On an unsharded run, fork both reviewers in parallel, the two Agent tool calls in one message, with the same brief.
