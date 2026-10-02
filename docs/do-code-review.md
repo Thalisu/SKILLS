@@ -17,9 +17,14 @@ A diff too large for one reviewer's window is cut into **Shards** first. A scrip
 diff and packs its files by path, and the orchestrator never sizes the diff by reading it, so the
 cut is the same on a call you type and on a call from `do`. A diff of one Shard is the run above,
 with its two reviewers. A diff of more than one gets a technical reviewer and a security reviewer
-per Shard, all forked at once: each reads every changed line of its own Shard, with the whole tree
-open and a manifest that says which file sits in which Shard. You still read one Review, with the
-Findings of every Shard grouped by Bucket and numbered once.
+per Shard and one Spec reviewer, all forked at once. Each reviewer of a Shard reads every changed
+line of its own Shard, with the whole tree open and a manifest that says which file sits in which
+Shard, and the technical one answers four Axes there: spec fidelity is not judged Shard by Shard,
+where a criterion met in another Shard would read as missing. The Spec reviewer answers that Axis
+once: it reads the Spec whole, walks it criterion by criterion and reaches the code for each one
+through the manifest, so "no code implements this criterion" is said by a reviewer in a position
+to say it. You still read one Review, with the Findings of every Shard grouped by Bucket and
+numbered once, and one Spec line.
 
 Then it fixes what it found. When the Review carries an `Act on` Finding, the orchestrator forks
 one **Fixer** per Finding, each turning its Finding into one commit under the project's Testing
@@ -60,7 +65,7 @@ Every Finding carries a **Rung**, how far the review climbed to back it, and not
 2 reaches `Act on`, whatever it looks like: a claim the review could not walk or run stays a
 judgment call in `Consider`, so nothing is fixed on a hunch. A Security Finding is the one that
 never lands in `Noted`: it is `Act on`, `Consider` or `Cleared`, so nothing on that Axis is set
-aside without you seeing it. Neither reviewer edits code: neither has a write or an edit tool,
+aside without you seeing it. No reviewer edits code: none has a write or an edit tool,
 their shell is for reading and running, and the orchestrator compares `git status` before and after
 them, so a path one of them changed would be named in the Review. The orchestrator's one write is
 the Review.
@@ -70,7 +75,9 @@ with the same brief: every other reviewer's return is kept as it came, never wai
 again. When it fails a second time the Review is still written, from what the others returned: its
 Axis lines read `not run` with the reason, and the safety fact names the Axis nobody answered. On
 a diff cut into Shards the line names the Shard too, `not run on Shard 3 (did not return)`, beside
-the count from the Shards that did return, and that Review is never Green. A partial review reaches
+the count from the Shards that did return, and that Review is never Green. The Spec reviewer of
+such a diff has no Shard, so when it is the one that failed twice the line reads
+`Spec: not run (did not return)`, and that Review is not Green either. A partial review reaches
 you instead of nothing, and a pass never hides a reviewer that never ran.
 
 ## When to reach for it
@@ -98,8 +105,9 @@ Review's text stays in the file and only the outcome comes back: the Review's lo
 ## Prerequisites
 
 - **The agent links.** The skill forks the `do-code-review` agent, which forks
-  `do-code-review-technical-reviewer` and `do-code-review-security-reviewer`, then
-  `do-code-review-fixer` and `do-code-review-gate-fixer`, so all five definitions have to be linked
+  `do-code-review-technical-reviewer` and `do-code-review-security-reviewer`, plus
+  `do-code-review-spec-reviewer` on a diff cut into Shards, then
+  `do-code-review-fixer` and `do-code-review-gate-fixer`, so all six definitions have to be linked
   into `~/.claude/agents/` beside the skill link: the `AGENT.md` beside the skill file under the
   orchestrator's name, and every markdown file in the skill's `agents/` folder under its own name;
   see [the top-level README](../README.md). A reviewer whose link is missing is forked twice and
@@ -248,6 +256,8 @@ refusal instead of as a rule to remember, per
   or `no spec` line stands where a reviewer or a spec was missing.
 - A large diff still gives one Review, its Findings numbered once from 1, and a reviewer that
   failed on one Shard shows as `not run on Shard <n>` on its Axis lines.
+- The Spec line of a large diff is one reviewer's answer over the whole diff: it never names a
+  Shard, and it reads `not run` with the reason when that reviewer failed twice.
 - Nothing under `## Noted` carries the Security Axis, and every Security Finding names an exploit
   path and a risk class rather than a checklist item.
 - `git status` after a run agrees with that last line:
