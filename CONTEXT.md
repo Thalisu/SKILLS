@@ -217,6 +217,12 @@ read is a **Wave** of its own, which the review may cut finer, with one reason p
 nothing may widen.
 _Avoid_: batch, group, round, phase (a phase is a `do` build step, a **Wave** is the review's)
 
+**Shard**:
+One part of a diff too large for one reviewer's window, cut by a script on the final diff: whole
+files packed by path up to a token budget, never a file split and never a range of commits.
+_Avoid_: slice (a **Ticket** is the slice of a **Spec**), chunk, batch, partition, **Wave** (a
+**Wave** groups **Fixers**, a **Shard** groups the files a reviewer reads)
+
 **Gate fixer**:
 The sub-agent `do-code-review` forks when the **Diff tests** or the **Gate** come back red after the
 **Fixers**, holding only the red block, with two attempts before the review stops without landing.
