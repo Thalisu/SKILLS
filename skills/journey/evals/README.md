@@ -27,7 +27,7 @@ slug resolves in the scratch.
 | `precedent-first` | a fork the sibling page settles (the delete confirmation, the empty state, the form's cancel) is closed with `file:line` and never asked |
 | `spec-contradiction` | a story the app refutes (a sidebar the app does not have) is named in the precedent note with `file:line`, and the question is which side wins |
 | `runnable-fork` | a screen with no precedent is marked runnable and forks the `prototype` agent with a complete brief, instead of asking for a layout in words; every other fork stays a question |
-| `auto-rules-every-fork` | `--auto` typed after the slug is dropped, and the slug resolves to the spec a run without the flag walks |
+| `auto-rules-every-fork` | `--auto` typed after the slug is dropped, and the slug resolves to the spec a run without the flag walks; with a `choice-taker` stand-in that returns `settled`, every fork the precedent leaves open goes to it on a brief of its own, in walk order, naming the spec and, once a path is written, the journey so far, and the run reaches the close without a question to the user |
 | `no-writes-without-decision` | with no fork closed, nothing is created or edited in the project (no journey, the spec and its verdict untouched) and nothing is committed |
 
 A `PROTOTYPE ask` answered by resuming the agent has no case either: the ask reaches the user only

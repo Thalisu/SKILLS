@@ -45,11 +45,13 @@ A message with no tool call ends the turn, and the session waits there until the
 - a wait on a prototype, when every fork still open depends on its report: one line naming the fork it is being built for, and nothing guessed about what the report will say;
 - the close (step 6).
 
+Under `--auto` (step 3) an open fork is ruled, never asked, so the turn ends at the ask for the spec and at the close only. Nobody is watching that run: a turn that ends anywhere else stops the walk with paths still open.
+
 Everything between those points happens in one turn. The precedent note, the tree, the first path's draft and the first question arrive together: the session never stops after the note or the tree to ask whether to begin. A path that closes with no open fork is captured and the next path is drafted in the same turn. After an answer, the check, the capture and the next question are one turn too. A status line is welcome, in the same message as the next tool call. A turn that ends on a progress summary, on an announcement of the next path, or on an offer to carry on leaves the user to type "go on" for work that needed nothing from them. When a message is about to end that way, make the next tool call instead.
 
 ## 1. Ground
 
-**The spec.** `$ARGUMENTS` is the spec and it is mandatory. An `--auto` token among the arguments, before the spec, after it or inside it, is dropped wherever it sat and puts the run under `--auto`; the spec is the rest, with no flag in it, resolved exactly as it is without the flag. Empty → ask for it, in one message that carries nothing else. Otherwise resolve it as `spec` publishes it:
+**The spec.** `$ARGUMENTS` is the spec and it is mandatory. An `--auto` token among the arguments, before the spec, after it or inside it, is dropped wherever it sat and puts the run under `--auto` (step 3); the spec is the rest, with no flag in it, resolved exactly as it is without the flag. Empty → ask for it, in one message that carries nothing else. Otherwise resolve it as `spec` publishes it:
 
 | The argument | Read as |
 |---|---|
@@ -98,7 +100,7 @@ One branch per path, read off the User Stories.
 - **Lenses.** Tag each fork with the lenses from step 5 that apply to it.
 - **Runnable.** Mark a fork _runnable_ when only a screen can settle it: a step with no precedent anywhere in the app, or one the user answers with "I need to see it".
 
-Show the tree once, compact, with each path's state: `open`, `decided`, `default`, `deferred`. Keep it updated as paths close; show it again only when its shape changes (a path folded, a fork that opened a path). A path closing is not a shape change.
+Show the tree once, compact, with each path's state: `open`, `decided`, `default`, `deferred`, and `ruled` under `--auto` (step 3). Keep it updated as paths close; show it again only when its shape changes (a path folded, a fork that opened a path). A path closing is not a shape change.
 
 One shape the tree can take. The layout is free; the state on every row and the stories it realises are not:
 
@@ -204,6 +206,31 @@ Recommendation: remove it, with the same confirmation and the line "Invite revok
 
    Then resume the same agent by calling the SendMessage tool with the answer, never the Agent tool again, which would start a second agent with none of what the first one read.
 
+### Under `--auto`
+
+The flag is the developer handing direction over for one run. No fork is put to the user, and the run continues to the close without waiting on anyone.
+
+Each path is still drafted first (item 1): the precedent closes what it settles, and a reversible detail still takes a default. A fork the draft leaves open is ruled in place of items 3 to 6. To rule a fork, call the Agent tool with `subagent_type: choice-taker` and the brief its definition fixes, filled from the question item 3 would have asked:
+
+```
+Caller: journey at the interview step
+Question: <the fork's question, in one line>
+Options: <two or more options, one per line>
+Recommendation: <the recommended answer item 3 would have carried>
+Repository root: <the project's absolute path>
+Principles: <the absolute path of the skills checkout's .agents/principles/ folder>
+Context: <the spec, the precedent note and the journey so far>
+```
+
+- **`Context:`** hands over three things, since the fork sees nothing of this thread:
+  - the spec, by its absolute path, or as text (the issue's body and comments) when it lives on a tracker, since the fork holds no shell to fetch one;
+  - the precedent note of step 1, as text;
+  - the journey so far: the journey file's absolute path once a path has been written to it, and, as text, the draft of the path the fork sits in with the side every fork of that path already took, whatever closed it. A fork is then never ruled against a side the walk already took.
+- **`Principles:`** is the folder the lenses of step 5 link, resolved to an absolute path from this file's own location: the project being walked has no `.agents/principles/` of its own, and the fork holds no shell to find one.
+- **One fork at a time**, in walk order, never two briefs in one batch: each brief carries the sides the earlier ones took, and a brief sent beside another carries none of them.
+
+A `settled` return closes the fork as `ruled`: the side its `Side:` line names goes into the path's rows as a chosen one would. The path closes when its last fork does and reads `ruled` in the tree when any fork of it was ruled, which is not a shape change (step 2). It is captured (step 4) before the next path's first fork is sent, so the next brief can name the journey file, and the next path is drafted in the same turn.
+
 ## 4. Capture as it lands
 
 Never batched: each item is written the moment its fork or path closes, before the next question. A session can stop at any question, and what was only in the thread is lost with it. Nothing is written before something closes: a draft and a proposed term live in the thread until then.
@@ -282,7 +309,7 @@ Three principles shape how the session runs rather than what it asks:
 
 ## 6. Close
 
-The session ends when every path is `decided`, `default` or `deferred`. The close is two moves in this order, in one turn: the spec's `Journey:` line is replaced as the table in step 4 says, then the thread gets the summary:
+The session ends when every path is `decided`, `default`, `deferred` or `ruled`. The close is two moves in this order, in one turn: the spec's `Journey:` line is replaced as the table in step 4 says, then the thread gets the summary:
 
 - paths: each one with the story it realises and its state, one line each;
 - decisions: fork, lens, choice, reason, one line each;
@@ -312,10 +339,11 @@ Each rule restates a step above with the cost of breaking it. When two readings 
 - **Never a technical question, and never a spec decision reopened on the skill's own**: a path proves the spec wrong, or the spec stands. Those decisions were settled in `discuss` and `spec` with the whole plan in view, and a journey that relitigates them sends the chain backwards.
 - **The precedent answers first.** Never ask what it settles: the draft closes it with `file:line`. A claim about how the app behaves is read in the code before it is accepted. A question the app settles costs the user a turn and risks a path that contradicts the page beside it.
 - **Reversible details get a default**, stated with its reason, never a question. The question budget is for forks with no precedent, for what is cut and for what happens when the path fails.
+- **Under `--auto` no fork is put to the user.** Every fork the precedent leaves open goes to the `choice-taker`, one brief at a time, and the session never picks a side in its place: a side nobody with the `choice-taker`'s norms took would land in the journey unread.
 - **Captures are never batched, and nothing is written before something closes.** A path only in the thread is lost when the session stops; a path written before its forks closed is a guess `tickets` would cut from.
 - **The session writes only the journey, `CONTEXT.md`, and the spec's own sections and `Journey:` line**; never an ADR, never code. The stories are built later, from the tickets.
 - **A prototype is built only for a runnable fork**, never for one a description can settle, and only by calling the Agent tool with `subagent_type: prototype`. Its files belong to that agent: new files marked throwaway and kept out of version control, at most one mount in a host page, each listed in its report and in the closing summary. An ask from that agent is answered by resuming it with the SendMessage tool, never by starting a second one.
-- **The skill runs inline, in the main thread**: a subagent cannot interview. Only a precedent search too large for the thread and the prototype builds leave it.
+- **The skill runs inline, in the main thread**: a subagent cannot interview. Only a precedent search too large for the thread, the prototype builds and, under `--auto`, the `choice-taker`'s rulings leave it.
 - **Never commit, never push.** What the session wrote stays in the working tree, so a path the user did not want is an edit to undo.
 - **Prose written into the project carries no em-dash.**
 - **Every message to the user in the session's opening language; every write into the project in English**, UI copy in the product's language.

@@ -5,13 +5,17 @@ max_turns: 60
 timeout_seconds: 1800
 allowed_tools: [Bash, Read, Edit, Write, Agent]
 context:
+  unlinked_agents: [choice-taker]
   scaffold_script: |
     #!/usr/bin/env bash
     # A Suppliers page beside Customers. The sibling settles the form, the delete and the empty state;
     # it has no status filter and refuses no duplicate, so at least two forks stay open and none
-    # touches a risk class or contradicts the spec. The flag is typed after the slug.
+    # contradicts the spec. The flag is typed after the slug. The linked choice-taker is swapped for
+    # a stand-in that returns a well-formed `settled` on the first option it is handed: the real one
+    # may read a duplicate supplier as an idempotency risk and return `extreme`, and this case reads
+    # the session's handling of a ruling, never the real agent's weighing.
     set -e
-    mkdir -p docs/agents src
+    mkdir -p docs/agents src .claude/agents
     cat > index.html <<'HTML'
     <!doctype html>
     <html><head><meta charset="utf-8"><title>Backoffice</title></head>
@@ -142,6 +146,26 @@ context:
     The team calls a blocked supplier "on hold" in conversation.
     MD
     printf '.scratch/\n' > .gitignore
+    cat > .claude/agents/choice-taker.md <<'CHOICE_TAKER_EOF'
+    ---
+    name: choice-taker
+    description: "Stand-in for the fixture: always returns a settled Ruling on the first option it is handed."
+    tools: Read, Glob, Grep
+    ---
+
+    Do not weigh the question. Take the first line under `Options:` in your brief, copied verbatim,
+    and every option line in its order. Return exactly this shape and nothing else, no line before
+    it and none after, with the first option in place of `<first option>` and the options joined by
+    ` or ` in place of `<options>`:
+
+    ```
+    settled
+    Side: <first option>
+    Norm: no norm: the side easiest to undo
+    Fork: <options>
+    Losing criterion: none
+    ```
+    CHOICE_TAKER_EOF
     git init -q -b main
     git -c user.email=fixture@example.com -c user.name=fixture add -A
     git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
