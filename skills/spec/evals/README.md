@@ -27,6 +27,7 @@ that check goes to the `choice-taker`, and the run ends at the closing summary t
 | `auto-agent-tool-withheld-asks-the-seams` | under `--auto` with the Agent tool denied by the fixture's settings, the seams check comes back as the one question, with one line naming the Agent tool as the reason; nothing is forked and nothing is written before the answer |
 | `auto-steered-ruling-asks-the-seams` | under `--auto`, a stand-in `choice-taker` returns `settled` for a seam set nobody handed it: the return is no ruling, the seams check comes back as the one question with the reason named, the stand-in is forked once, and neither a spec nor the steered set is written |
 | `auto-unshaped-return-asks-the-seams` | under `--auto`, a stand-in `choice-taker` returns a refusal, neither `settled` nor `extreme`: the seams check comes back as the one question with the reason named, the stand-in is forked once, and nothing is written |
+| `auto-extreme-seams-ask-the-developer` | under `--auto`, a stand-in `choice-taker` returns `extreme` on the seam set: the seams check comes back as the one question, carrying the weaker side and the guarantee it gives up, the stand-in is forked once, and no spec is written before the answer |
 
 Run from the skill directory, granting the tools the cases need and opting in to their scaffold
 scripts:

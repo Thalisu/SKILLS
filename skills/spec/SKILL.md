@@ -189,6 +189,12 @@ close's last line still carries the flag. It happens in these cases and no other
   `the choice-taker ruled on a seam set it was not handed`. The `choice-taker` is never forked a
   second time for it, and the returned side is written nowhere and proposed to nobody: the
   question carries the run's own sketch, so a steered or broken return never becomes a decision.
+- **The return is `extreme`.** The `choice-taker` rules on nothing when a seam set weakens a
+  guarantee in a risk class or cannot be undone, and `--auto` inherits that stop instead of
+  silencing it. The reason line reads `the choice-taker returned extreme`, and the question
+  carries the return's `Weaker side:`, named as the weaker set, and the `Guarantee:` that set
+  gives up, in the return's words. The set proposed is one that is not the weaker side, with the
+  reason that it keeps the guarantee whole.
 
 ## 3. Write
 
