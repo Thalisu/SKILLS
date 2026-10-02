@@ -45,7 +45,7 @@ A message with no tool call ends the turn, and the session waits there until the
 - a wait on a prototype, when every fork still open depends on its report: one line naming the fork it is being built for, and nothing guessed about what the report will say;
 - the close (step 6).
 
-Under `--auto` (step 3) an open fork is ruled, never asked, so the turn ends at the ask for the spec and at the close only. Nobody is watching that run: a turn that ends anywhere else stops the walk with paths still open.
+Under `--auto` (step 3) an open fork is ruled, never asked, so the turn ends at the ask for the spec, at a question one of that step's exceptions puts to the developer, and at the close. Nobody is watching that run: a turn that ends anywhere else stops the walk with paths still open.
 
 Everything between those points happens in one turn. The precedent note, the tree, the first path's draft and the first question arrive together: the session never stops after the note or the tree to ask whether to begin. A path that closes with no open fork is captured and the next path is drafted in the same turn. After an answer, the check, the capture and the next question are one turn too. A status line is welcome, in the same message as the next tool call. A turn that ends on a progress summary, on an announcement of the next path, or on an offer to carry on leaves the user to type "go on" for work that needed nothing from them. When a message is about to end that way, make the next tool call instead.
 
@@ -208,7 +208,7 @@ Recommendation: remove it, with the same confirmation and the line "Invite revok
 
 ### Under `--auto`
 
-The flag is the developer handing direction over for one run. No fork is put to the user, and the run continues to the close without waiting on anyone.
+The flag is the developer handing direction over for one run. No fork is put to the user, save the exceptions below, and the run continues to the close without waiting on anyone.
 
 Each path is still drafted first (item 1): the precedent closes what it settles, and a reversible detail still takes a default. A fork the draft leaves open is ruled in place of items 2 to 6, so no `prototype` agent is forked under the flag: a fork marked _runnable_ is ruled like any other, unseen, its `Options:` lines describing each candidate screen in words, since nobody would open the prototype before the close. To rule a fork, call the Agent tool with `subagent_type: choice-taker` and the brief its definition fixes, filled from the question item 3 would have asked:
 
@@ -230,6 +230,13 @@ Context: <the spec, the precedent note and the journey so far>
 - **One fork at a time**, in walk order, never two briefs in one batch: each brief carries the sides the earlier ones took, and a brief sent beside another carries none of them.
 
 A `settled` return closes the fork as `ruled`: the side its `Side:` line names goes into the path's rows as a chosen one would, and the fork, that side and the return's `Norm:` are kept for the path's ruled line (step 4). The path closes when its last fork does and reads `ruled` in the tree when any fork of it was ruled, which is not a shape change (step 2). It is captured (step 4) before the next path's first fork is sent, so the next brief can name the journey file, and the next path is drafted in the same turn.
+
+**An `extreme` return** closes no fork and writes no ruled line. The `choice-taker` rules on nothing when an option weakens a guarantee in a risk class or cannot be undone, and `--auto` inherits that stop rather than silencing it.
+
+1. Put the fork to the developer as one message in the shape item 3 fixes: the question it would have been, the tell naming the return's `Weaker side:` and the `Guarantee:` that side gives up, and the recommended answer, an option that is not the weaker side, with the reason that it keeps the guarantee whole.
+2. Wait for the answer and check it (items 4 and 5).
+3. Close the fork (item 6) as `decided`, `default` or `deferred` like any other, with no ruled line: the developer walked this one.
+4. Only that fork leaves `--auto` for a question. The walk resumes under `--auto` at the next open fork.
 
 ## 4. Capture as it lands
 
@@ -340,7 +347,7 @@ Each rule restates a step above with the cost of breaking it. When two readings 
 - **Never a technical question, and never a spec decision reopened on the skill's own**: a path proves the spec wrong, or the spec stands. Those decisions were settled in `discuss` and `spec` with the whole plan in view, and a journey that relitigates them sends the chain backwards.
 - **The precedent answers first.** Never ask what it settles: the draft closes it with `file:line`. A claim about how the app behaves is read in the code before it is accepted. A question the app settles costs the user a turn and risks a path that contradicts the page beside it.
 - **Reversible details get a default**, stated with its reason, never a question. The question budget is for forks with no precedent, for what is cut and for what happens when the path fails.
-- **Under `--auto` no fork is put to the user.** Every fork the precedent leaves open goes to the `choice-taker`, one brief at a time, and the session never picks a side in its place: a side nobody with the `choice-taker`'s norms took would land in the journey unread.
+- **Under `--auto` no fork is put to the user, save the exceptions of step 3**: a fork whose `choice-taker` return is `extreme` goes to the developer with the weaker side and the guarantee it gives up. Every other fork the precedent leaves open goes to the `choice-taker`, one brief at a time, and the session never picks a side in its place: a side nobody with the `choice-taker`'s norms took would land in the journey unread.
 - **Captures are never batched, and nothing is written before something closes.** A path only in the thread is lost when the session stops; a path written before its forks closed is a guess `tickets` would cut from.
 - **The session writes only the journey, `CONTEXT.md`, and the spec's own sections and `Journey:` line**; never an ADR, never code. The stories are built later, from the tickets.
 - **A prototype is built only for a runnable fork**, never for one a description can settle, never under `--auto`, where nobody is there to open it, and only by calling the Agent tool with `subagent_type: prototype`. Its files belong to that agent: new files marked throwaway and kept out of version control, at most one mount in a host page, each listed in its report and in the closing summary. An ask from that agent is answered by resuming it with the SendMessage tool, never by starting a second one.
