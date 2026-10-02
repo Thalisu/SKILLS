@@ -1,0 +1,5 @@
+---
+type: llm
+criteria: "The session forked the Agent tool with subagent_type choice-taker on the approval and got back an extreme return. The run shows the user the whole breakdown cut from the Archive notes spec, in its final message or in an earlier message of the same run, and its final message puts the approval to the developer as exactly one question, whether the breakdown goes out as it stands, instead of reaching the close. That message names the weaker side the return named, publishing the breakdown as it stands, and the guarantee that side gives up, that a ticket no person has read is never open for an agent to build, as the choice-taker's and not as the session's own view. The splits, folds, placements and what was left out are parts of the breakdown and are not questions. The session did not answer the approval itself and did not treat the return as a ruling: the message lists no published ticket, no Rulings group and no /do line."
+---
+An `extreme` return comes back to the developer as the approval question, carrying the weaker side and the guarantee that side gives up.

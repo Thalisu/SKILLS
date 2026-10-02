@@ -17,7 +17,7 @@ either. The `auto-` cases run under the flag, most with the linked `choice-taker
 stand-in whose return is fixed, so each reads what the session does with a ruling, never the real
 agent's weighing: on a local tracker the run publishes and closes, and on a remote one it stops on
 the one question. The ones named `asks-the-developer` end on the approval question instead, since
-nothing ruled it: no `choice-taker` to fork, or a return that is no ruling.
+nothing ruled it: an `extreme` return, no `choice-taker` to fork, or a return that is no ruling.
 
 Every fixture is synthetic: a small notes module, a local-markdown tracker file, a spec in the
 format `spec` writes with its `Journey:` verdict under the title and, where the case needs one, a
@@ -45,6 +45,7 @@ the local shape of the ticket format `tickets` links.
 | `auto-agent-tool-withheld-asks-the-developer` | the remote run under `--auto` with the fixture's settings denying the Agent tool: the breakdown ends on the approval question with one line naming the Agent tool, not a missing `choice-taker`, as the reason; no agent runs, and the tracker receives no write |
 | `auto-unusable-ruling-asks-the-developer` | the local run with a `choice-taker` stand-in whose `settled` return names a side the brief never handed over, the first ticket published alone: the approval comes back to the user as the one question with the reason named, the stand-in is forked once, and no ticket file is written, the first one included |
 | `auto-unshaped-return-asks-the-developer` | the same run with a stand-in that returns a refusal, neither `settled` nor `extreme`: the approval comes back as the one question with the reason named, the stand-in is forked once, and no ticket file is written |
+| `auto-extreme-approval-asks-the-developer` | the local run with a `choice-taker` stand-in that returns `extreme`, the publishing option as the weaker side: the approval comes back to the user as the one question, carrying that weaker side and the guarantee it gives up as the `choice-taker`'s, and no ticket file is written |
 
 Run from the skill directory, granting the tools the cases need and opting in to their scaffold
 scripts:
