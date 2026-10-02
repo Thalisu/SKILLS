@@ -229,13 +229,13 @@ Context: <the spec, the precedent note and the journey so far>
 - **`Principles:`** is the folder the lenses of step 5 link, resolved to an absolute path from this file's own location: the project being walked has no `.agents/principles/` of its own, and the fork holds no shell to find one.
 - **One fork at a time**, in walk order, never two briefs in one batch: each brief carries the sides the earlier ones took, and a brief sent beside another carries none of them.
 
-A `settled` return closes the fork as `ruled`: the side its `Side:` line names goes into the path's rows as a chosen one would. The path closes when its last fork does and reads `ruled` in the tree when any fork of it was ruled, which is not a shape change (step 2). It is captured (step 4) before the next path's first fork is sent, so the next brief can name the journey file, and the next path is drafted in the same turn.
+A `settled` return closes the fork as `ruled`: the side its `Side:` line names goes into the path's rows as a chosen one would, and the fork, that side and the return's `Norm:` are kept for the path's ruled line (step 4). The path closes when its last fork does and reads `ruled` in the tree when any fork of it was ruled, which is not a shape change (step 2). It is captured (step 4) before the next path's first fork is sent, so the next brief can name the journey file, and the next path is drafted in the same turn.
 
 ## 4. Capture as it lands
 
 Never batched: each item is written the moment its fork or path closes, before the next question. A session can stop at any question, and what was only in the thread is lost with it. Nothing is written before something closes: a draft and a proposed term live in the thread until then.
 
-- **A closed path** goes to the journey in the format of [.agents/formats/journey-format.md](../../.agents/formats/journey-format.md): its rows, its failure branches, and the one-line answer of a prototype when there was one. The file is created on the first closed path, where the tracker file puts it:
+- **A closed path** goes to the journey in the format of [.agents/formats/journey-format.md](../../.agents/formats/journey-format.md): its rows, its failure branches, and the one-line answer of a prototype when there was one. Under `--auto` it carries, in the slot a prototype's line takes, one `Ruled by the choice-taker:` line per fork of that path the `choice-taker` ruled: the fork, the side taken and the norm the return named. Each ruled fork has a line of its own, in the path the fork sits in, never merged with another fork's and never gathered under another path, since that line is how the developer finds every fork nobody walked with them. The file is created on the first closed path, where the tracker file puts it:
 
   | Tracker file says | The journey is | The spec's `Journey:` line becomes, at the close |
   |---|---|---|
@@ -312,7 +312,8 @@ Three principles shape how the session runs rather than what it asks:
 The session ends when every path is `decided`, `default`, `deferred` or `ruled`. The close is two moves in this order, in one turn: the spec's `Journey:` line is replaced as the table in step 4 says, then the thread gets the summary:
 
 - paths: each one with the story it realises and its state, one line each;
-- decisions: fork, lens, choice, reason, one line each;
+- decisions: fork, lens, choice, reason, one line each, for the forks the user chose;
+- `Rulings`, under `--auto`: a group apart from the decisions, one line per ruled fork with its path, the side taken and its norm. A ruled fork never also appears among the decisions: those are the user's, and the user chose none of these;
 - defaults taken;
 - deferrals, each with the condition that reopens it;
 - the cut list;
