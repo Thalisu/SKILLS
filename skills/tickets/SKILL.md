@@ -44,6 +44,8 @@ A message with no tool call ends the turn, and the session waits there until the
 - the approval question (step 4), asked again after each correction;
 - the close (step 6).
 
+Under `--auto` on a local tracker (step 4) the approval is ruled, never asked, so the turn that shows the breakdown runs on to the close. Nobody is watching that run: a turn that ends on the approval question leaves the tickets unwritten.
+
 Everything between those points happens in one turn. Grounding, exploring, calibrating and drafting run through to the breakdown without a check-in: the session never stops after the grounding to report what it read, or after the draft to ask whether to present it. After the yes, every ticket is published and the close follows in the same turn, never one ticket and then a pause. A status line is welcome, in the same message as the next tool call.
 
 ## 1. Ground
@@ -238,6 +240,25 @@ Granularity, edges, folds and splits are never asked. The session decided them f
 ### Under `--auto`
 
 The flag is the developer handing the approval over for one run. The breakdown is still shown in full, on a local tracker and on a remote one: every field of every ticket, the splits, folds and placements, and what was left out, exactly as above. Showing it is not a question, so the flag replaces the answer and never the display.
+
+The closing question is ruled instead of asked. Once the breakdown is shown, call the Agent tool with `subagent_type: choice-taker` and the brief its definition fixes, once per run:
+
+```
+Caller: tickets at the approval step
+Question: does the breakdown go out as it stands?
+Options: <publish the breakdown as it stands, and leave it unpublished, one per line>
+Recommendation: <the option the session would take, or none>
+Repository root: <the project's absolute path>
+Principles: <the absolute path of the skills checkout's .agents/principles/ folder>
+Context: <the spec, the journey and the breakdown>
+```
+
+- **`Context:`** hands over three things, since the fork sees nothing of this thread: the spec and the journey, each by its absolute path, or as text when it lives on a tracker, since the fork holds no shell to fetch one; and the breakdown as it was shown, as text.
+- **`Principles:`** is resolved to an absolute path from this file's own location: the project being cut has no `.agents/principles/` of its own.
+
+A `settled` return whose `Side:` names one of the two options is the Ruling on the breakdown. The side it took and its `Norm:` are kept for the close (step 6), and the Ruling amends no file.
+
+**On a local tracker**, local markdown or no tracker file, the Ruling is the answer and the user is asked nothing. A Ruling to publish stands in for the yes: every ticket is published (step 5) and the close follows (step 6), in the same turn.
 
 ## 5. Publish
 
