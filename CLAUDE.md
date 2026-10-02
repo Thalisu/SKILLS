@@ -39,6 +39,8 @@ skill or agent call another.
 - `.agents/principles/` holds design principles as plain reference documents, one per file,
   indexed in its `README.md`. They are not skills: no frontmatter, no invocation, and no harness
   lists them. A skill or a contract that leans on one links the file by path.
+  A vendored skill names it by file name instead (`vendor/README.md`, item 7), since it is
+  installed into projects where no path into this repo resolves.
 - `.agents/formats/` holds the formats of the artifacts the skill chain shares, one per file,
   indexed in its `README.md`, per `docs/adr/0004`. A skill that writes or reads one links the file
   by relative path: never a copy, and never a link into another skill's folder. A format read by
@@ -165,6 +167,9 @@ comments.
 
 - Where a sentence reaches for one, rewrite the sentence. Use a comma, a colon, a period,
   parentheses or a conjunction, whichever the sentence actually wants.
+- This list wins over `vendor/unslop/SKILL.md` items 13 and 14, which allow periods and commas
+  only and ban a colon as a connector, including when `technical-writing` applies `unslop` to a
+  doc here: parentheses and a connecting colon are how this repo's prose is already written.
 - Never do a blind character substitution: replacing every em-dash with a hyphen or a comma leaves
   prose that reads as if a machine ran over it.
 - The verbatim guideline copies keep their upstream punctuation, since they are never edited by

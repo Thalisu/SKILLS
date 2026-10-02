@@ -283,8 +283,9 @@ branch_worktree() { # $1 main checkout, $2 name: a worktree at .claude/worktrees
   g -C "$1" worktree add -q "$wt" -b "do/$2" && echo "$wt"
 }
 ticket() { # $1 file name, $2 status line(s), $3 blocked-by value: a Ticket in the caller's $issues folder
-  printf '# %s: %s\n\n**What to build:** something.\n\n**Blocked by:** %s\n\n%s\n\n- [ ] one\n\n## Evidence\n' \
-    "${1%%-*}" "Title of ${1%.md}" "$3" "$2" >"$issues/$1"
+  # Optional: $4 its criteria lines (default: one unticked criterion), $5 the lines `do` left under `## Evidence` (default: none)
+  printf '# %s: %s\n\n**What to build:** something.\n\n**Blocked by:** %s\n\n%s\n\n%s\n\n## Evidence\n%s' \
+    "${1%%-*}" "Title of ${1%.md}" "$3" "$2" "${4:-- [ ] one}" "${5:+$5$'\n'}" >"$issues/$1"
 }
 # A Ticket's work as its landing leaves it: on the Spec branch only, so the branch reads as not landed.
 spec_commit() { # $1 Spec branch: one commit on it that its upstream lacks, no checkout or working file touched

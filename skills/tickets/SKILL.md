@@ -134,13 +134,21 @@ The source is the `Context: grounded <tokens>, peak <tokens>, <band>` line under
 
 A line reading `not measured` is skipped. On the defaults, every estimate in the breakdown says uncalibrated. The measured figures and the defaults are the `do` session's own context, since the agents it forks hold their own windows.
 
+The script takes the medians, since a median worked out in the thread is where a figure goes wrong unseen. Run it over the resolved ticket files, or with no file when there is none:
+
+```
+bash <skill-dir>/scripts/estimate.sh calibrate <resolved ticket file>...
+```
+
+It prints `fixed_load=`, `per_criterion=`, `measured=` and `calibrated=yes` or `no`, in tokens. Take the two figures from those lines and never work them out yourself; `calibrated=no` means the defaults. On a tracker, write each closed issue's body followed by its close comment to one file per issue in a temporary directory, pass those files, and remove the directory afterwards.
+
 ## 3. Draft the slices
 
 Cut the work into tracer-bullet tickets.
 
 - **Vertical.** Each slice cuts a narrow but complete path through every layer (schema, API, UI, tests), never a horizontal slice of one layer. A layer on its own proves nothing until the others land.
 - **Demoable.** A completed slice is demoable or verifiable on its own.
-- **Estimated.** Each slice carries its estimate and the band it falls in, from the calibration in step 2. What the slice crosses adds to the load: a migration, a delegate's diff, or files far larger than the measured tickets touched. The drivers are stated with the number, so a reader can check it. On the defaults, a slice of 5 criteria that crosses nothing heavy is 40k + 5 × 15k = 115k, small.
+- **Estimated.** Each slice carries its estimate and the band it falls in, from the calibration in step 2. What the slice crosses adds to the load: a migration, a delegate's diff, or files far larger than the measured tickets touched. The drivers are stated with the number, so a reader can check it. On the defaults, a slice of 5 criteria that crosses nothing heavy is 40k + 5 × 15k = 115k, small. The estimate and the band are read off the script's `estimate=` and `band=` lines, for every slice and again for every merged fold: `bash <skill-dir>/scripts/estimate.sh size <fixed load> <per-criterion cost> <criteria> [<crossing tokens>]`, every figure a plain integer in tokens. What the slice crosses stays a judgement, passed in as the last figure.
 - **Prefactoring first.**
 
 | Band | Estimate | What happens to the slice |

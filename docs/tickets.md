@@ -69,6 +69,11 @@ lines from the resolved tickets in the repo to set the fixed load and the per-cr
 next cut. A repo with no measured ticket is cut on stated defaults, and every estimate in that
 breakdown says so.
 
+The arithmetic is a script's, not the session's: the skill ships `estimate.sh`, which takes the
+medians over those lines and turns a criteria count into an estimate and its band, and the session
+reads the figures off its output. What a slice crosses (a migration, a delegate's diff) stays a
+judgement the session adds and states.
+
 Where the slices come from is decided by the spec's **verdict**, the `Journey:` line under its
 title:
 

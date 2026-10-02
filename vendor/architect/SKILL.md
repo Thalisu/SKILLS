@@ -27,7 +27,7 @@ Skip Phase A only when the work is genuinely greenfield with no surrounding syst
 
 ## Phase B: Sketch
 
-Spawn one runner subagent per configured architect model, all in a single message, each with the design-sketch task, the Phase A grounding artifacts, an isolated working directory and the path to write its output. Pass `references/runner-prompt.md` as each runner's prompt. Each candidate produces a design package shaped per `references/rationale-template.md`: the caller's usage written first, then the type sketch, function signatures, module map, and prose rationale derived from it.
+Spawn one subagent per configured architect runner, all in a single message, each with the design-sketch task, the Phase A grounding artifacts, an isolated working directory and the path to write its output. Pass `references/runner-prompt.md` as each runner's prompt. Each candidate produces a design package shaped per `references/rationale-template.md`: the caller's usage written first, then the type sketch, function signatures, module map, and prose rationale derived from it.
 
 Use your configured architect runners (defaults `opus`, `sonnet`).
 
@@ -46,6 +46,7 @@ Default: proceed directly to implementation with the synthesized design. No huma
 Opt in to a checkpoint when the invoker explicitly asks: "/architect with checkpoint," "stop and show me before implementing," or similar. Then surface the synthesized design and pause for sign-off.
 
 The synthesis can ship as its own commit either way. That's the "scaffold first" mode of the **foundational-thinking** principle; subsequent commits read as filling in bodies against a stable contract. Planned and scoped breakage during fill-in is fine, per the **outcome-oriented-execution** principle.
+
 If the human pushes back on the shape (in a checkpoint or after the fact), treat that as Phase A evidence. Re-ground and re-run Phase B before writing more code.
 
 ## Phase D: Implement against the sketch

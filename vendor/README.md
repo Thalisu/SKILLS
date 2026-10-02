@@ -38,7 +38,7 @@ Reachable by the model on its own, or by the human typing the name.
 | [`how`](how/SKILL.md) | Explain how a subsystem works: a senior-engineer walkthrough of its architecture, runtime flow, key concepts, where things live and gotchas, with a critique mode on request |
 | [`why`](why/SKILL.md) | Explain why code was built a certain way: queries every evidence source the session exposes in parallel and returns a cited, confidence-calibrated read |
 | [`teach`](teach/SKILL.md) | Explain a change or subsystem until it clicks: runs `how` and `why` and weaves them into one plain account built up as small growing diagrams |
-| [`unslop`](unslop/SKILL.md) | Rewrite prose to strip AI tells and put human voice back; applied to every reply and every artifact a human reads |
+| [`unslop`](unslop/SKILL.md) | Rewrite prose to strip AI tells and put human voice back; applied to every prose artifact a human reads |
 | [`technical-writing`](technical-writing/SKILL.md) | Layered writing standard for docs, RFCs, readmes, PR descriptions and commit messages: Diátaxis mode, Google developer style, ASD-STE100, Global English |
 | [`typescript-best-practices`](typescript-best-practices/SKILL.md) | TypeScript typing and API-shape rules: discriminated unions, branded primitives, illegal states unrepresentable, `unknown` over `any`, no `as` casts |
 
@@ -71,9 +71,10 @@ Cursor-isms that do not exist in Claude Code or Codex, and this repo's conventio
    model-invoked here, with rewritten model-facing descriptions carrying disjoint triggers: `why`
    (rationale), `how` (mechanism), `architect` (shape before code that crosses a function
    boundary), `teach` (understanding, runs how and why), `typescript-best-practices` (coding work
-   in a TypeScript repo), `unslop` (any prose a human reads, always on), `technical-writing` (docs,
-   RFCs, readmes, PR descriptions, commit messages, paired with `unslop`). `no-comments` stays
-   user-invoked.
+   in a TypeScript repo), `unslop` (any prose artifact a human reads, and never "every reply": a
+   skill body loads only when the skill is invoked, so an always-on rule belongs in an
+   always-loaded file), `technical-writing` (docs, RFCs, readmes, PR descriptions, commit
+   messages, paired with `unslop`). `no-comments` stays user-invoked.
 7. The 21 `principle-*` skills became `.agents/principles/<name>.md` (frontmatter stripped with
    the description kept as the opening line, `principle-` prefix dropped, cross-links rewritten to
    sibling files, license copied alongside). Prose in `architect`, `typescript-best-practices` and
@@ -92,6 +93,9 @@ Cursor-isms that do not exist in Claude Code or Codex, and this repo's conventio
     to `interrogate` is gone, as is the one in `how`. `how` and `no-comments` spawn "a subagent"
     where upstream named Cursor's `Task` tool. `teach` draws a spatial idea with an
     image-generation tool only when the session has one, and as an ASCII sketch otherwise.
+11. `comment-sicko` says its keep list overrides any comment policy the session loaded. A
+    subagent in Claude Code loads the user's and the project's `CLAUDE.md`, whose own keep list
+    (gotchas, business constraints, TODOs with context) would otherwise contradict the agent's.
 
 Other upstream references left as-is: `architect/references/rationale-template.md` links to the
 `arena` skill, which is not vendored, and `typescript-best-practices` keeps its Cursor-only
