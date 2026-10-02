@@ -225,4 +225,5 @@ English identifiers. A script opens with `set -uo pipefail` (or `-euo`), `here="
 - `check <label> <want-rc> <rc> <string>...`: fixed strings that must appear in `$out`; `check_lines` is the same with whole lines, and `check_absent` with strings that must not appear
 - `absent <label> <string>` over `$out`, and `expect <label> <command>...`
 - `has <label> <file> <string>...`: fixed strings a document must carry, a missing file failing it
+- `refuses <label> <opens|names> <string> <argument>...`: runs the caller's `$script` with stdout and stderr apart, and passes on exit 2 (or `refuses_exit=<n>` set on the call's own line), no `key=value` line on stdout and a stderr line that opens with or names the string
 Variants with their own semantics stay local to their one file, under names that do not hide the lib's: `absent_prefix` and `ordered_out` in `skills/do/tests/probes.sh`. Each file's `run` closes over the script it tests and is not shared.

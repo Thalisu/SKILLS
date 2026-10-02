@@ -74,6 +74,15 @@ medians over those lines and turns a criteria count into an estimate and its ban
 reads the figures off its output. What a slice crosses (a migration, a delegate's diff) stays a
 judgement the session adds and states.
 
+The thresholds of the bands are written once, in a script this repo's skills share, and `do` reads
+a measured peak against the same one, so an estimate and a measurement of the same figure never
+land in different bands. That script sits outside `skills/`: on a machine that linked `skills/`
+without the rest of the repo, the run stops with one message naming the missing script instead of
+sizing a slice on thresholds of its own.
+
+On a tracker, the criteria of a closed issue are the checkboxes under its `## Acceptance criteria`
+heading. A task list among its blockers or in its close comment is not counted.
+
 Where the slices come from is decided by the spec's **verdict**, the `Journey:` line under its
 title:
 

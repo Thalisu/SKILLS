@@ -40,6 +40,7 @@ A message with no tool call ends the turn, and the session waits there until the
 
 - the ask for a missing or unreadable spec (step 1);
 - a stop (step 1), or the publish stopping on a ticket number already taken (step 5);
+- the estimate script refusing (step 2);
 - the approval question (step 4), asked again after each correction;
 - the close (step 6).
 
@@ -140,7 +141,7 @@ The script takes the medians, since a median worked out in the thread is where a
 bash <skill-dir>/scripts/estimate.sh calibrate <resolved ticket file>...
 ```
 
-It prints `fixed_load=`, `per_criterion=`, `measured=` and `calibrated=yes` or `no`, in tokens. Take the two figures from those lines and never work them out yourself; `calibrated=no` means the defaults. On a tracker, write each closed issue's body followed by its close comment to one file per issue in a temporary directory, pass those files, and remove the directory afterwards.
+It prints `fixed_load=`, `per_criterion=`, `measured=` and `calibrated=yes` or `no`, in tokens. Take the two figures from those lines and never work them out yourself; `calibrated=no` means the defaults. Either call, `calibrate` or `size`, that exits non-zero prints no figure: the run ends there with one message carrying the script's stderr line, which names what it could not read, and nothing is cut. The thresholds live in a script the repo shares with `do`, so a machine that linked `skills/` without the rest of this repo cannot size a slice, and a band worked out in the thread could differ from the one `do` measures against. On a tracker, write each closed issue's body followed by its close comment to one file per issue in a temporary directory, pass those files, and remove the directory afterwards. Keep the body's `## Acceptance criteria` heading in the file: under it the script counts the criteria, and a checkbox anywhere else in the issue is left out.
 
 ## 3. Draft the slices
 
