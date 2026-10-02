@@ -34,8 +34,9 @@ tracked_tokens() { g diff --no-renames "$fixed_point" -- "$1" | patch_tokens; } 
 untracked_tokens() { g diff --no-index -- /dev/null "$1" | patch_tokens; }      # $1 a path git does not track
 after_header() { sed -n '/^shards=/,$p' <<<"$out" | tail -n +2; }               # the Shard lines and the manifest in $out, on stdout
 large_file() {                                                                  # $1 path: a new file of about 60k tokens, its directory made
+  # Optional: $2 its rows, about 7.5 tokens each (default: 8000)
   mkdir -p "$(dirname "$1")"
-  seq 1 8000 | sed 's/.*/export const row_& = &;/' >"$1"
+  seq 1 "${2:-8000}" | sed 's/.*/export const row_& = &;/' >"$1"
 }
 manifest_paths() { sed -n 's/^file shard=[0-9]* tokens=[0-9]* path=//p' <<<"$manifest"; } # the path of every file line of the run in $manifest, one per line and unsorted, on stdout
 
@@ -156,6 +157,32 @@ out="$(manifest_paths | LC_ALL=C sort | uniq -d)"
 same "places no file of the diff in two Shards (listed: the files placed twice)" ""
 out="$(comm -13 <(printf '%s\n' "$diff_paths") <(manifest_paths | LC_ALL=C sort -u))"
 same "places no file the diff does not have (listed: the paths the diff lacks)" ""
+
+# One file can be larger than a reviewer's window on its own. Splitting it leaves a reviewer half a
+# file, and adding it to its neighbours overflows a window twice over, so it is the one Shard allowed
+# over the budget. Its neighbours in byte order of path sit on both sides of it, in its own directory
+# and in others.
+repo_at_fixed_point oversized-file
+oversized=lib/generated.js
+large_file "$oversized" 24000
+for f in api/routes.js lib/a.js lib/z.js web/views.js; do
+  mkdir -p "$(dirname "$f")"
+  printf 'export function handler() {}\n' >"$f"
+done
+commit "a file larger than the budget, between small ones"
+oversized_tokens="$(tracked_tokens "$oversized")"
+run "$fixed_point"
+manifest="$out"
+budget="$(term budget)"
+expect "the oversized-file run exits 0" test "$rc" = 0
+expect "the fixture's file alone is over the budget the script prints" test "$oversized_tokens" -gt "${budget:-$oversized_tokens}"
+out="$(sed -n "s|^file shard=[0-9]* tokens=\([0-9]*\) path=$oversized\$|\1|p" <<<"$manifest")"
+same "lists a file larger than the budget once, at the size of its whole patch" "$oversized_tokens"
+oversized_shard="$(sed -n "s|^file shard=\([0-9]*\) tokens=[0-9]* path=$oversized\$|\1|p" <<<"$manifest" | head -n 1)"
+out="$(grep -E "^(file )?shard=$oversized_shard " <<<"$manifest")"
+same "gives a single file larger than the budget a Shard of its own, whole" \
+  "shard=$oversized_shard tokens=$oversized_tokens files=1
+file shard=$oversized_shard tokens=$oversized_tokens path=$oversized"
 
 echo
 if [ "$fails" = 0 ]; then echo "all green"; else echo "$fails failing"; fi
