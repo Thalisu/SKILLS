@@ -153,6 +153,19 @@ rc=0
 out="$(env -u CLAUDE_CODE_SESSION_ID bash "$script" 2>&1)" || rc=$?
 check_lines "no session id and no file exits 2" 2 "$rc"
 
+# The thresholds have one owner (.agents/scripts/context-band.sh, ADR 0068), so a copy of this
+# script linked without the rest of the repo names the script it cannot reach and gives no
+# reading, rather than writing a band from thresholds of its own into a Ticket's evidence.
+lonely="$tmp/lonely/skills/do/scripts"
+mkdir -p "$lonely"
+cp "$script" "$lonely/context-usage.sh"
+repo_script="$script"
+script="$lonely/context-usage.sh"
+refuses_exit=5 refuses "a copy that cannot reach the shared band script gives no reading and exits 5, naming the missing path" names \
+  "$lonely/../../../.agents/scripts/context-band.sh" \
+  "$tmp/small.jsonl"
+script="$repo_script"
+
 if [ -n "${CLAUDE_CODE_SESSION_ID:-}" ]; then
   run
   check_lines "the live session reads its own transcript" 0 "$rc" "messages=$(sed -n 's/^messages=//p' <<<"$out")"

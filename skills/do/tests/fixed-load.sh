@@ -14,8 +14,9 @@ estimator="$repo/skills/do/scripts/estimate-load.sh"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 skill="$tmp/skills/do"
-mkdir -p "$skill/scripts" "$skill/references" "$tmp/.agents/formats" "$tmp/docs/adr" "$tmp/t"
+mkdir -p "$skill/scripts" "$skill/references" "$tmp/.agents/formats" "$tmp/.agents/scripts" "$tmp/docs/adr" "$tmp/t"
 cp "$estimator" "$skill/scripts/" 2>/dev/null
+cp "$repo/.agents/scripts/context-band.sh" "$tmp/.agents/scripts/"
 mk() { head -c "$2" /dev/zero | tr '\0' a >"$1"; }
 for f in "$skill/SKILL.md" "$skill/references/ticket.md" "$skill/references/mechanics.md" \
   "$skill/references/build-loop.md" "$skill/references/forks.md" "$skill/references/conflict-loop.md" \
@@ -179,6 +180,12 @@ for pair in do-planner:planner do-builder:builder_base; do
   expect "a missing agents/$f.md names $key and exits 3" refused 3 "$key"
   mv "$tmp/t/$f.md" "$skill/agents/$f.md"
 done
+mv "$tmp/.agents/scripts/context-band.sh" "$tmp/t/context-band.sh"
+est t/01-small.md
+expect "given a Ticket, an estimator that cannot reach the shared band script names band and the path it found no file at, and exits 3" \
+  sh -c 'refused_rc="$1"; [ "$refused_rc" = 0 ] && printf "%s\n" "$2" | grep -qE "^cannot read band: no file at .*/\.agents/scripts/context-band\.sh$"' \
+  _ "$(refused 3 band && echo 0 || echo 1)" "$err"
+mv "$tmp/t/context-band.sh" "$tmp/.agents/scripts/context-band.sh"
 est t/01-small.md t/02-medium.md
 expect "two arguments are a usage error and exit 2" \
   sh -c '[ "$1" = 2 ] && [ -z "$2" ] && printf "%s\n" "$3" | grep -qF "usage: estimate-load.sh"' \

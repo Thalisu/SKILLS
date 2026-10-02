@@ -68,6 +68,7 @@ chain=("$skill/SKILL.md" "$skill/references/ticket.md" "$skill/references/mechan
 need reference_chain "${chain[@]}"
 reference_chain="$(tokens "$(bytes "${chain[@]}")")"
 need door "$skill/references/digest.md"
+band_script="$skill/../../.agents/scripts/context-band.sh"
 ticket="${1:-}"
 ticket_tokens=$ticket_allowance
 digest_tokens=$digest_allowance
@@ -76,6 +77,7 @@ if [ -n "$ticket" ]; then
   grep -q '^\*\*Status:\*\*' "$ticket" || refuse criteria "$ticket is not a Ticket: no **Status:** line"
   criteria="$(grep -cE '^- \[[ xX]\] ' "$ticket")"
   [ "$criteria" -gt 0 ] || refuse criteria "$ticket carries no criterion line"
+  need band "$band_script"
   ticket_tokens="$(tokens "$(bytes "$ticket")")"
   digest="${ticket%.md}.digest.md"
   [ -f "$digest" ] && digest_tokens="$(tokens "$(bytes "$digest")")"
@@ -116,7 +118,7 @@ printf 'baseline=%s\nreference_chain=%s\ndoor=%s\ntotal=%s\nplanner=%s\nbuilder_
 [ -n "$ticket" ] || exit 0
 
 builder=$((builder_base + criteria * per_criterion))
-# context-usage.sh's band line with its thresholds copied verbatim, read on the session's total, so
-# the estimate and the measured Context: line fall in the same bands. Nothing checks the copy.
-if [ "$total" -lt 150000 ]; then band=small; elif [ "$total" -le 200000 ]; then band=medium; else band=large; fi
-printf 'criteria=%s\nbuilder=%s\nband=%s\n' "$criteria" "$builder" "$band"
+# Read on the session's total off the script context-usage.sh reads a measured peak with (ADR
+# 0068), so the estimate and the measured Context: line fall in the same bands.
+band="$(bash "$band_script" "$total")"
+printf 'criteria=%s\nbuilder=%s\n%s\n' "$criteria" "$builder" "$band"

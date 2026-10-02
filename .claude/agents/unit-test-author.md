@@ -184,8 +184,8 @@ The **Reuse audit** section above is the rest of the handover: the next author r
 
 **Framework & run commands**
 - Single file: `bash skills/<skill>/tests/<name>.sh`
-- Full suite: `fails=0; for t in $(git ls-files | grep -E '^(scripts|skills/[^/]+)/tests/[^/]+\.sh$' | grep -vx 'scripts/tests/lib.sh'); do bash "$t" >/dev/null 2>&1 || { echo "RED $t"; fails=$((fails+1)); }; done; echo "red: $fails"; [ "$fails" = 0 ]`
-- Formatter: `shfmt -i 2 -ci -w <file>`. `shellcheck -S warning <file>` is the lint available on this machine.
+- Full suite: `fails=0; for t in $(git ls-files --cached --others --exclude-standard | grep -E '^(scripts|skills/[^/]+)/tests/[^/]+\.sh$' | grep -vx 'scripts/tests/lib.sh'); do bash "$t" >/dev/null 2>&1 || { echo "RED $t"; fails=$((fails+1)); }; done; echo "red: $fails"; [ "$fails" = 0 ]`
+- Formatter: `shfmt -i 2 -ci -w <file>`. `shellcheck -S warning <file>` is the lint, on a machine where `command -v shellcheck` finds one: nothing in the suite depends on it, so a shell without it on `PATH` skips the lint and the report says it was skipped.
 - Every script is standalone, with no runner and no framework: it prints one `ok` or `FAIL` line per case and exits non-zero on a red. The full-suite loop is the only aggregate.
 - A script that uses a shared helper sources `scripts/tests/lib.sh` right after its `here=` line (`. "$here/../../../scripts/tests/lib.sh"` from a skill, `. "$here/lib.sh"` from `scripts/tests/`) and sets `fails=0`. `lib.sh` is not a test; the full-suite loop skips it.
 - Most scripts work in a `mktemp -d` throwaway removed by an `EXIT` trap, and those that read anything under `~/.claude` export a throwaway `HOME` so the developer's linked skills and agents never leak into a case; a new script that reads anything under `~/.claude` does the same.
@@ -194,7 +194,7 @@ The **Reuse audit** section above is the rest of the handover: the next author r
 - A decision the model takes (a branch, a stop, an order of steps) is proven through a script whenever one can carry it: the script prints the verdict, the reference tells the run to act on that line and never to derive it itself, and the test runs the script (`resume-state.sh`'s `moved=` line, ADR 0028's conflict class). A case over a reference's prose is the fallback, only for a decision no script can carry, such as one whose input is the run's own state: it scopes the passage with `passage_of`, accepts the phrasings in `carries_any`, orders with `first_at`, and asserts the decision and nothing about its wording (`skills/do/tests/target-moved-retry.sh`). A case that greps a heading, a listing, a description or an eval file, or a sentence that carries no decision, is never written ("Only what matters earns a test").
 - `scan-test-assets.sh` reads JS/TS/Python test files only. Over this tree it sees no bash script and reports only `skills/discover/tests/fixture/`; the bash duplication check is the first `git grep` in Discovery.
 
-**Test root & layout**: `skills/<skill>/tests/*.sh` tests that skill's `scripts/`; `scripts/tests/<name>.sh` tests the repo-level script of that name (`scripts/link-skills.sh`, `scripts/run-eval.sh`, `.agents/scripts/resolve-feature-folder.sh`). One script per contract, named for it (`probes.sh`, `fixed-point.sh`, `contract.sh`). `skills/discover/tests/sim/` is a headless-session simulation with its own runner, not a unit test.
+**Test root & layout**: `skills/<skill>/tests/*.sh` tests that skill's `scripts/`; `scripts/tests/<name>.sh` tests the repo-level script of that name (`scripts/link-skills.sh`, `scripts/run-eval.sh`, `.agents/scripts/resolve-feature-folder.sh`, `.agents/scripts/context-band.sh`). One script per contract, named for it (`probes.sh`, `fixed-point.sh`, `contract.sh`). `skills/discover/tests/sim/` is a headless-session simulation with its own runner, not a unit test.
 
 **Shared homes by role** (canonical, one path per role; "none yet → create at X" is a valid entry)
 - Module mocks: none yet → create at `scripts/tests/stubs/` (executables a test puts first on `PATH`) when a stub gets its second use
@@ -216,8 +216,8 @@ n/a (bash; no type assertion to reach for)
 ```
 bash .claude/testing-policy/scan-test-assets.sh --root scripts/tests --root skills --section duplicate-symbols
 bash .claude/testing-policy/scan-test-assets.sh --root scripts/tests --root skills --section local-factories
-git grep -nE '^[a-z_]+\(\) *\{' -- 'scripts/tests/*.sh' 'skills/*/tests/*.sh'
-git grep -nE 'PATH="?\$|export (HOME|TMPDIR)=' -- 'scripts/tests/*.sh' 'skills/*/tests/*.sh'
+git grep --untracked -nE '^[a-z_]+\(\) *\{' -- 'scripts/tests/*.sh' 'skills/*/tests/*.sh'
+git grep --untracked -nE 'PATH="?\$|export (HOME|TMPDIR)=' -- 'scripts/tests/*.sh' 'skills/*/tests/*.sh'
 ```
 
 **Idiom** (calibration only, never a catalog)

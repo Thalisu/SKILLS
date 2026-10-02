@@ -16,8 +16,11 @@
 # Agent or Task call, its kind the subagent_type, general-purpose when none is named, or a Skill
 # call whose installed $HOME/.claude/skills/<skill>/SKILL.md frontmatter says context: fork, its
 # kind the skill's name. A Skill that runs inline is no fork.
+# The band is read off ../../../.agents/scripts/context-band.sh, the one executable form of the
+# thresholds (ADR 0068), and never restated here.
 # Exit codes: 0 · 2 no transcript: usage, the file missing, or no session id (a harness other than
-# Claude Code) · 3 jq missing · 4 no assistant message with usage in the transcript.
+# Claude Code) · 3 jq missing · 4 no assistant message with usage in the transcript · 5 the band
+# script missing, named on stderr, with no reading printed.
 set -euo pipefail
 command -v jq >/dev/null || { echo "jq is required" >&2; exit 3; }
 [ $# -le 1 ] || { echo "usage: context-usage.sh [<transcript.jsonl>]" >&2; exit 2; }
@@ -35,7 +38,9 @@ read -r current peak messages < <(
   | awk '{ current = $1; if ($1 > peak) peak = $1; n++ } END { print current + 0, peak + 0, n + 0 }'
 )
 [ "$messages" -gt 0 ] || { echo "no assistant message with usage in $file" >&2; exit 4; }
-if [ "$peak" -lt 150000 ]; then band=small; elif [ "$peak" -le 200000 ]; then band=medium; else band=large; fi
+band_script="$(cd "$(dirname "$0")" && pwd -P)/../../../.agents/scripts/context-band.sh"
+[ -f "$band_script" ] || { echo "context-band.sh not found at $band_script; nothing read" >&2; exit 5; }
+band="$(bash "$band_script" "$peak")"
 forked_skill() { # $1 skill name: its installed SKILL.md frontmatter says context: fork
   awk 'NR == 1 && $0 != "---" { exit 1 } NR > 1 && $0 == "---" { exit 1 } $0 == "context: fork" { found = 1; exit } END { exit !found }' \
     "$HOME/.claude/skills/$1/SKILL.md" 2>/dev/null
@@ -57,4 +62,4 @@ fork_kinds="$(
 )"
 forks="${fork_kinds##*$'\t'}"
 fork_kinds="${fork_kinds%$'\t'*}"
-printf 'current=%s\npeak=%s\nmessages=%s\nband=%s\nforks=%s\nfork_kinds=%s\n' "$current" "$peak" "$messages" "$band" "$forks" "$fork_kinds"
+printf 'current=%s\npeak=%s\nmessages=%s\n%s\nforks=%s\nfork_kinds=%s\n' "$current" "$peak" "$messages" "$band" "$forks" "$fork_kinds"

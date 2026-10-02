@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # lib.sh: the assertions and fixture builders the test scripts share. A script sources it after its
 # `here=` line and sets fails=0; the assertions read the caller's $out and bump the caller's $fails.
-# shellcheck disable=SC2154 # $out, $flat, $tmp, $issues and $grader belong to the sourcing script, which assigns them first.
+# shellcheck disable=SC2154 # $out, $flat, $tmp, $issues, $script and $grader belong to the sourcing script, which assigns them first.
 
 ok() { echo "ok    $1"; }
 fail() {
@@ -73,6 +73,29 @@ has() { # $1 label, $2 file, $3.. fixed strings the file must carry; a missing f
     return
   }; done
   ok "$label"
+}
+# A caller acts on the lines it reads off stdout, so a call the script cannot compute prints none of
+# them: the refusal is the exit code and a stderr line, read apart from stdout, which is left in $out.
+refuses() { # $1 label, $2 opens|names, $3 the fixed string a stderr line must open with or name, $4.. the arguments of the caller's $script
+  # Optional: $refuses_exit, set on the call's own line, the exit a script keeps for this refusal (default: 2)
+  local label="$1" how="$2" key="$3" why="" err errfile want="${refuses_exit:-2}"
+  shift 3
+  errfile="$(mktemp)"
+  rc=0
+  out="$(bash "$script" "$@" 2>"$errfile")" || rc=$?
+  err="$(cat "$errfile")"
+  rm -f "$errfile"
+  [ "$rc" = "$want" ] || why="exit $rc, wanted $want"
+  if grep -qE '^[a-z_]+=' <<<"$out"; then why="$why; stdout carries a key=value line"; fi
+  awk -v k="$key" -v how="$how" '
+    { at = index($0, k); if (how == "opens" ? at == 1 : at > 0) found = 1 }
+    END { exit !found }
+  ' <<<"$err" || why="$why; no stderr line $how $key"
+  if [ -z "$why" ]; then ok "$label"; else
+    fail "$label (${why#; })"
+    dump_out
+    echo "      stderr: ${err//$'\n'/$'\n'      }"
+  fi
 }
 # The paragraph a reference sits in, flattened: the references hard-wrap, and the reader meets the
 # link in the paragraph they are reading, so the paragraph is the scope a link has to be in.

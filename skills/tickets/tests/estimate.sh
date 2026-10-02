@@ -10,6 +10,7 @@ fails=0
 
 run() { # $1.. the script's arguments: its output in $out, its exit in $rc
   rc=0
+  # shellcheck disable=SC2034  # lib.sh's check_lines and refuses read $out
   out="$(bash "$script" "$@" 2>&1)" || rc=$?
 }
 
@@ -36,6 +37,10 @@ check_lines "200000 is the last medium estimate" 0 "$rc" \
 run size 50000 25000 6 1
 check_lines "200001 is the first large estimate" 0 "$rc" \
   "estimate=200001" "band=large"
+
+run size 08 15000 5
+check_lines "a figure written with a leading zero is read as a decimal number" 0 "$rc" \
+  "estimate=75008" "band=small"
 
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
@@ -64,6 +69,34 @@ run calibrate "$issues/01-two.md" "$issues/02-four.md"
 check_lines "an even number of measured tickets takes the mean of the two middle values, rounded down" 0 "$rc" \
   "fixed_load=38000" "per_criterion=21500" "measured=2" "calibrated=yes"
 
+cat >"$issues/12-issue.md" <<'MD'
+## Parent
+
+#3
+
+## What to build
+
+Something.
+
+## Acceptance criteria
+
+- [x] one
+- [x] two
+
+## Blocked by
+
+- [x] #11
+
+Context: grounded 41000, peak 97000, small
+Forks: 0
+
+- [x] the suite ran green
+MD
+
+run calibrate "$issues/12-issue.md"
+check_lines "a tracker issue saved with its close comment counts as criteria only the checkboxes under its Acceptance criteria heading" 0 "$rc" \
+  "fixed_load=41000" "per_criterion=28000" "measured=1" "calibrated=yes"
+
 run calibrate
 check_lines "with no ticket to read, the cut runs on the stated defaults and says it is not calibrated" 0 "$rc" \
   "fixed_load=40000" "per_criterion=15000" "measured=0" "calibrated=no"
@@ -73,25 +106,6 @@ check_lines "with only tickets whose context was not measured, the cut runs on t
   "fixed_load=40000" "per_criterion=15000" "measured=0" "calibrated=no"
 
 # The session acts on the lines it reads, so a call the script cannot compute prints none of them.
-refuses() { # $1 label, $2 opens|names, $3 the fixed string a stderr line must open with or name, $4.. the script's arguments
-  local label="$1" how="$2" key="$3" why="" err
-  shift 3
-  rc=0
-  out="$(bash "$script" "$@" 2>"$tmp/err")" || rc=$?
-  err="$(cat "$tmp/err")"
-  [ "$rc" = 2 ] || why="exit $rc, wanted 2"
-  if grep -qE '^[a-z_]+=' <<<"$out"; then why="$why; stdout carries a key=value line"; fi
-  awk -v k="$key" -v how="$how" '
-    { at = index($0, k); if (how == "opens" ? at == 1 : at > 0) found = 1 }
-    END { exit !found }
-  ' <<<"$err" || why="$why; no stderr line $how $key"
-  if [ -z "$why" ]; then ok "$label"; else
-    fail "$label (${why#; })"
-    dump_out
-    echo "      stderr: ${err//$'\n'/$'\n'      }"
-  fi
-}
-
 missing="$issues/09-missing.md"
 
 refuses "a call with no subcommand is refused with the usage and no figure" opens "usage:"
@@ -109,5 +123,18 @@ refuses "calibrate on a ticket file that does not exist is refused naming the pa
   calibrate "$missing"
 refuses "calibrate on a measured ticket and a file that does not exist is refused naming the path, with no figure" names "$missing" \
   calibrate "$issues/01-two.md" "$missing"
+
+# The thresholds have one owner (.agents/scripts/context-band.sh, ADR 0068), so a copy of this
+# script linked without the rest of the repo names the script it cannot reach and hands out no
+# band, rather than sizing on thresholds of its own.
+lonely="$tmp/lonely/skills/tickets/scripts"
+mkdir -p "$lonely"
+cp "$script" "$lonely/estimate.sh"
+repo_script="$script"
+script="$lonely/estimate.sh"
+refuses "size from a copy that cannot reach the shared band script is refused naming the missing path, with no estimate and no band" names \
+  "$lonely/../../../.agents/scripts/context-band.sh" \
+  size 40000 15000 5
+script="$repo_script"
 
 exit "$((fails > 0))"
