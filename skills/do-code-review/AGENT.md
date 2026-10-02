@@ -211,6 +211,21 @@ absolute path of the file section 6 keeps the cut in. The path is all you hand o
 reads it there. The `Diff:` line stays the whole diff on every brief, so the other Shards and the
 tree around them stay readable.
 
+One reviewer of a sharded run has no Shard: the Spec reviewer, the last Row of section 6's Row set,
+which answers the Spec Axis over the whole diff. Its brief is the five lines with `Shard manifest:`
+between `Diff:` and `Spec source:`, then `Loss ledger:`, and neither a `Shard:` line nor a
+`Standards sources:` line:
+
+```
+Fixed point: <as above>
+Diff: <as above>
+Shard manifest: <that run's directory>/manifest.txt
+Spec source: <as above>
+Intent: <as above>
+Report language: <as above>
+Loss ledger: <the path, or none>
+```
+
 The door's `status=` line goes in whole, pathspec and all. It is the status command with the
 Review a previous run left taken out by name, so a second review of the same branch never reads
 its own output as part of the diff; shortened back to the bare command, it hands that file to the
@@ -250,15 +265,19 @@ call by hand and a call from `do` fan out the same way over the same diff.
 A sharded run forks one Row per reviewer, and the Row set is what the fork, the wait, the retry and
 the Review all go through, so a rule about them names the Rows and never a count per Shard. It is
 ordered Shard 1 to N, the technical Row before the security Row within a Shard, `<n>` being the
-Shard's number:
+Shard's number, and it ends in one Row more, the Spec reviewer's, which has no Shard and is there
+whenever the run is sharded, a `no spec` source included:
 
 | Agent | Prompt | Return file |
 |---|---|---|
 | `subagent_type: do-code-review-technical-reviewer` | the brief with the two `Shard` lines of Shard `<n>`, its `Standards sources:` and `Loss ledger:` lines, and its `Return file:` line | `<that directory>/shard-<n>.technical.md` |
 | `subagent_type: do-code-review-security-reviewer` | the brief with the two `Shard` lines of Shard `<n>`, and its `Return file:` line | `<that directory>/shard-<n>.security.md` |
+| `subagent_type: do-code-review-spec-reviewer` | the brief with its `Shard manifest:` line, its `Loss ledger:` line and its `Return file:` line | `<that directory>/spec.md` |
 
 Each Row owns the Axes its reviewer answers, over its own Shard: Correctness, Spec, Standards,
-Principles and Blast radius for a technical Row, Security for a security Row.
+Principles and Blast radius for a technical Row, Security for a security Row. The Spec Row's scope
+is the whole diff, which it reaches through the manifest, so a diff of N Shards forks 2N+1
+reviewers and never a Spec reviewer per Shard.
 
 On an unsharded run, fork both reviewers in parallel, the two Agent tool calls in one message, with the same brief.
 Each gets one more line, `Return file: <that directory>/<its file>`, the path it writes its return
@@ -310,7 +329,7 @@ Shard:
 - **Wait** on every return file of the set in one call, in Row order:
 
   ```
-  bash ~/.claude/skills/do-code-review/scripts/returns.sh 240 <that directory>/shard-1.technical.md <that directory>/shard-1.security.md ... <that directory>/shard-<N>.security.md
+  bash ~/.claude/skills/do-code-review/scripts/returns.sh 240 <that directory>/shard-1.technical.md <that directory>/shard-1.security.md ... <that directory>/shard-<N>.security.md <that directory>/spec.md
   ```
 
   When it comes back at its window, read the files that landed and call it again over the paths

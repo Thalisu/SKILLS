@@ -116,6 +116,34 @@ expect "a sharded run waits on every Shard's return files in one call, shard-1 t
 carries "the retry is decided by the wait's missing= lines" "missing="
 carries "the ceiling of the whole wait stays 1440 s, whatever the Shard count" "1440"
 
+# The Spec Axis is answered over the whole diff or not at all: a Row per Shard answers it N times
+# from N partial views, and no Row leaves it unanswered. Being a Row of the sharded set is what
+# puts the fork in the one message every Row is forked in, and its file in the one wait.
+echo "# AGENT.md / ## 6. The fan-out: a sharded run forks one Spec reviewer over the whole diff, as the last Row of the set"
+spec_rows="$(grep -F '| `subagent_type: do-code-review-spec-reviewer`' <<<"$section")"
+expect "exactly one Spec reviewer is forked, whatever the Shard count" \
+  test "$(grep -c . <<<"$spec_rows")" = 1
+sharded_table="$(awk '
+  /^\| / { block = block $0 "\n"; next }
+  { if (index(block, "/shard-<n>.technical.md")) printf "%s", block; block = "" }
+  END { if (index(block, "/shard-<n>.technical.md")) printf "%s", block }' <<<"$section")"
+expect "it is the last Row of the sharded Row set" \
+  test "$(tail -n 1 <<<"$sharded_table")" = "$spec_rows"
+expect "and it comes right after the security Row" \
+  test "$(tail -n 2 <<<"$sharded_table" | head -n 1)" = "$shard_sec_rows"
+spec_return="$(awk -F'|' '{ print $4 }' <<<"$spec_rows")"
+expect "it returns into spec.md, a file of no Shard" \
+  test "$(tr -d ' ' <<<"$spec_return")" = '`<thatdirectory>/spec.md`'
+# shellcheck disable=SC2034 # lib.sh's check reads $out
+out="$(awk -F'|' '{ print $3 }' <<<"$spec_rows")"
+check "its brief carries the manifest's path, the Loss ledger and its return file" 0 0 \
+  '`Shard manifest:`' '`Loss ledger:`' '`Return file:`'
+spec_brief_has_no_shard_line() { test -n "$out" && ! grep -qE '`Shard:`|`Shard` lines' <<<"$out"; } # the Spec Row's prompt cell in $out names no Shard: line
+expect "its brief carries no Shard: line, since the Row has no Shard of its own" \
+  spec_brief_has_no_shard_line
+expect "the one sharded wait ends in the Spec reviewer's return file, after the last Shard's" \
+  grep -qE 'shard-<N>\.security\.md <that directory>/spec\.md *$' <<<"$sharded_wait"
+
 format="$here/../../../.agents/formats/review-format.md"
 
 echo "# AGENT.md / ## 7. The Review, in one write: every Shard's Findings go into the one Review, numbered once"
