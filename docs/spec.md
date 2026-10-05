@@ -70,12 +70,19 @@ it is dropped, and the rest is read as it would be without it.
 - The last line of the summary carries the flag, `/journey --auto <spec>` or
   `/tickets --auto <spec>`, so pasting it keeps the mode at the next skill.
 
-The seams check still comes back to you, as the one question, with a line saying why, in two
-situations. One is when no ruling can be had: the `choice-taker` is not linked, the Agent tool is
-withheld, or what the agent returned is not a ruling on one of the sets it was handed. The other is
-when the agent answers `extreme`, because a seam set would weaken a guarantee in a risk class
-(security, data loss, billing and the like) or cannot be undone. The question then names the weaker
-set and the guarantee it gives up. Either way no spec is written before you answer.
+Of the four classes the flag keeps for you
+([ADR 0045](adr/0045-auto-hands-direction-to-the-choice-taker-and-four-classes-still-stop.md)), a
+`spec` run has one question and so stops on one, the Extreme fork. The seams check still comes back
+to you, as that one question, with a line before it saying why, in these cases:
+
+| What happened | What the question carries |
+|---|---|
+| the `choice-taker` answered `extreme`: a seam set would weaken a guarantee in a risk class (security, data loss, billing and the like) or cannot be undone | what the agent returned: the weaker set and the guarantee it gives up, with a set that keeps the guarantee proposed |
+| its return was no ruling: a broken shape, or a set it was never handed | the set `spec` sketched; the returned side is written nowhere |
+| it could not be forked: the agent is not linked, or the Agent tool is withheld | the set `spec` sketched, as without the flag |
+
+In every row no spec is written before you answer, and the seams you answer read confirmed, never
+ruled.
 
 ## Slots
 
@@ -129,5 +136,7 @@ about the forks the precedent does not settle, so a small page closes fast.
 - [tickets](tickets.md), because the verdict names it when no journey is needed, and it refuses a
   spec whose verdict is `required` with no journey beside it.
 - [journey](journey.md), because the verdict names it first when a screen or a multi-step path is involved.
+- The [`choice-taker`](../skills/do/agents/choice-taker.md) agent, because under `--auto` it rules
+  the seams you would have been asked to confirm.
 
 The grouped list of every skill is in [the top-level README](../README.md).
