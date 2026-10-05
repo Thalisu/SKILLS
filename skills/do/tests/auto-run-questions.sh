@@ -334,5 +334,43 @@ while IFS= read -r flat; do
     "$moved_question" "$moved_moment"
 done <<<"$mech_bullets"
 
+echo "# a refactoring whose exit test failed: the revert is still asked under --auto, with the choice-taker's answer shown"
+
+revert_question="the revert question"
+revert_moment="before the revert that deletes the branch"
+
+# The step, found as the first numbered one that says the revert takes the branch and its commits
+# for good. It is read in the paragraphs that speak of the revert, and in any other naming the flag:
+# the one on the harness and the full-suite yeses hands those two to the choice-taker, and its
+# `--auto` never answers for the revert.
+revert_heading="$(awk '
+  BEGIN { RS = "" }
+  /^### [0-9]+\./ { heading = $0; next }
+  heading != "" && /[Rr]evert/ && /branch/ && /every commit|irreversibl|cannot be undone/ { print heading; exit }
+' "$refactoring")"
+expect "refactoring.md has a step whose failed exit test asks before the revert that deletes the branch" \
+  test -n "$revert_heading"
+flat=""
+if [ -n "$revert_heading" ]; then
+  revert_step="$(item_holding "$refactoring" '### [0-9]+\.' "$revert_heading")"
+  flat="$({
+    paragraph_with <(printf '%s\n' "$revert_step") "evert" all
+    paragraph_with <(printf '%s\n' "$revert_step") "--auto" all | grep -vE 'harness|full suite|remote run'
+  } | awk '!seen[$0]++' | tr '\n' ' ' | tr -s ' ')"
+fi
+still_asked_with_the_answer_shown "refactoring.md's exit test step, on a failure," "$revert_question" "$revert_moment"
+
+# The index, in what it says of the revert: its row when the table speaks for the flag, and its
+# prose from the first sentence naming the revert on, so the sentences on the questions the
+# choice-taker rules, which come before it, never answer for this one.
+flat="$({
+  grep -i "revert" <<<"$index_under_auto" | grep '^ *|'
+  paragraph_with <(printf '%s\n' "$index") "--auto" all | grep -v '^|' | tr -s ' ' |
+    while IFS= read -r paragraph; do
+      awk 'BEGIN { RS = "\\.[ \n]" } /[Rr]evert/ { on = 1 } on { print }' <<<"$paragraph"
+    done
+} | tr '\n' ' ' | tr -s ' ')"
+still_asked_with_the_answer_shown "refactoring.md's index of questions" "$revert_question" "$revert_moment"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1

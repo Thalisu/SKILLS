@@ -52,7 +52,7 @@ questions of steps 1, 3 and 13 (the two homes, the harness outside its bound, th
 remote run) are ruled by the `choice-taker` in their place, per [forks.md](forks.md): the run
 reaches each all the same, and it is handed over, never waived. The questions of steps 2 and 8 are
 still asked of the developer under `--auto`, since a discard and a revert that deletes the branch
-cannot be undone.
+cannot be undone, each with the `choice-taker`'s return shown above it, per [forks.md](forks.md).
 
 The run stops, in one message or as blocked, in these places:
 
@@ -512,6 +512,10 @@ asks one question, the second and last this Playbook raises of its own:
   landed, and the reply says what was tried and what it cost the reader.
 - **No, keep it.** A no continues to the cleanup, the gate, the review and the landing, and the reply
   carries the failed exit test as pending debt so the next reader knows the claim was not met.
+
+Under `--auto` the revert question is still asked of the developer, in the same place and the same
+words, with the `choice-taker`'s return shown above it as it came back, per the questions still
+asked under the flag in [forks.md](forks.md): the branch is never reverted on that return.
 
 A yes that [mechanics.md](mechanics.md) reserves to the developer is not one of the two and is never
 waived here: step 3 carries one when the harness cannot stay inside its bound, and step 13 carries
