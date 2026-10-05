@@ -12,8 +12,9 @@ project keeps its specs, and names the next command of the chain: `journey` or `
 read the spec as written.
 
 It is a synthesis, never an interview. The decisions were taken before this run, normally in a
-`discuss` session, and the user already spent their attention there, so the run asks one thing at
-most: whether the test seams match what the user expects.
+`discuss` session, and the user already spent their attention there, so the run asks two things at
+most: whether the test seams match what the user expects, and, only when a story has a screen, who
+builds the front-end.
 
 The plan is the subject of the spec, never a task to carry out. However concrete it reads, nothing
 in it is built here: the run writes the spec and nothing else.
@@ -46,11 +47,13 @@ The turn ends at these points and no others:
 - the message that sends the user to `/discuss` (step 1);
 - the seams question (step 2), which a run under `--auto` hands to the `choice-taker` instead and
   asks only in the cases that step lists;
+- the builder question (step 4), asked only when a story has a screen;
 - an allocator refusal (step 3);
 - the close (step 5).
 
 Everything between those points happens in one turn. Once the seams are settled, by the user's
-answer, by the conversation or by a Ruling, the run writes, routes and closes without stopping: it never ends a
+answer, by the conversation or by a Ruling, and the builder question is answered where a story has
+a screen, the run writes, routes and closes without stopping: it never ends a
 turn to report progress, to show a draft of the spec for approval, or to offer the next step
 instead of taking it. A status line is welcome, in the same message as the next tool call. A gap
 the synthesis finds in the plan is never a reason to stop either: it goes into the close as a line
@@ -116,7 +119,7 @@ these seams, so no `choice-taker` is forked for them and none of them reads rule
 
 **Otherwise, one message**: the seams proposed, the reason for each in a clause, and whether they
 match the user's expectations. Then the turn ends and the run waits. This is the only question the
-skill asks, and no spec is written before it is answered: the seams decide what the Testing
+skill asks about the plan, and no spec is written before it is answered: the seams decide what the Testing
 Decisions say and how `tickets` cuts the work, so a spec written on a guess is rewritten after the
 answer.
 
@@ -197,6 +200,10 @@ close's last line still carries the flag. It happens in these cases and no other
   reason that it keeps the guarantee whole.
 
 ## 3. Write
+
+**Before anything is written**, read the plan for a story with a screen, as step 4 defines one.
+With one, the builder question of step 4 is asked first, and this step starts on its answer: the
+allocator has not run and no spec exists while the question is open.
 
 **The folder, in local mode.** It comes from the allocator, never from a path the run composes.
 `<skill-dir>` is the directory this file sits in:
@@ -285,6 +292,28 @@ exists.
   `Front-end: none`, and the developer is asked nothing about builders. Whether a feature has a
   front-end is read off the stories and never asked, so a back-end feature goes down the chain as
   it did before the line existed.
+- **A story has a screen**: one message asks who builds the front-end, the chain's Builder or
+  impeccable. Then the turn ends and the run waits, with no tool call after the question and
+  nothing written yet: the spec is published once, with its header whole. The message carries
+  this one question and no other, and says three things with it:
+  - `builder` is the chain's own Builder, and impeccable is the other choice;
+  - impeccable needs a one-time setup that the developer runs by hand, which `tickets` publishes
+    as a Setup ticket. A developer who picks impeccable without reading that meets the manual
+    step only after the Tickets are cut;
+  - `builder` is the recommended side.
+
+One shape the question can take, in the user's language:
+
+<example>
+One story has a screen (the export button on the orders list), so one choice is yours before the
+spec is written: who builds the front-end?
+
+- `builder`: the chain's own Builder. Nothing to set up. Recommended.
+- `impeccable`: needs a one-time setup that you run by hand; `tickets` publishes it as a Setup
+  ticket, ahead of the others.
+
+Answer `builder` or `impeccable`.
+</example>
 
 ## 5. Close
 
@@ -368,8 +397,9 @@ goes to the issue tracker or under `docs/`.
 Each rule restates a step above with the cost of breaking it. When two readings of a step are
 possible, the one that keeps these holds.
 
-- **Never interview.** The seams check is the single question, and it is skipped when the
-  conversation settles it. A plan the conversation does not hold is sent to `/discuss`, never asked
+- **Never interview.** The seams check is the single question about the plan, and it is skipped
+  when the conversation settles it. The builder question is the only other one, asked when a story
+  has a screen and never otherwise. A plan the conversation does not hold is sent to `/discuss`, never asked
   for piece by piece: a second interview spends the attention `discuss` already spent, and its
   answers land in no summary.
 - **Under `--auto`, only the `choice-taker` rules the seams.** No other agent and no pick of the
@@ -384,8 +414,9 @@ possible, the one that keeps these holds.
   prints, and never a demand to run a setup skill: the skill needs nothing else in place.
 - **A local feature folder is the allocator's to name.** The run passes the slug and writes at the
   `spec=` it gets back: never a path it composed, never a date it read off the clock itself.
-- **Nothing is written before the seams are settled**, and the allocator is not run before then
-  either, since it creates the folder and may edit `.gitignore`.
+- **Nothing is written before the seams are settled**, nor before the builder question is answered
+  where a story has a screen, and the allocator is not run before then either, since it creates
+  the folder and may edit `.gitignore`.
 - **The skill writes the spec and nothing else**: no code, no `CONTEXT.md`, no ADR. A rerun
   rewrites, never duplicates.
 - **Never commit, never push.** The spec stays in the working tree or the tracker, the user's to
