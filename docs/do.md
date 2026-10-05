@@ -31,6 +31,7 @@ You invoke this by typing `/do <request>`, and the agent won't reach for it on i
 | fix a bug nobody wrote a ticket for | `/do <the bug in words>`: what happened, where, and the error or the wrong output |
 | a typo, a doc line, a log wording, a rename inside one file | `/do <the change in words>` |
 | reshape code whose behaviour stays where it is | `/do <the reshape in words>`: refactor, rename, extract, inline, dedupe, move a module |
+| any of the four above, with the run's own questions answered without you | add `--auto`, before or after the request: `/do --auto <ticket>`, the line `tickets` prints when its own run had the flag. The request routes to the same Playbook with the flag as without it |
 | build a whole spec | not this skill: [tickets](tickets.md) cuts the spec first, and `do` takes one ticket of the cut |
 | decide the plan, or a feature with no ticket | [discuss](discuss.md), or [spec](spec.md) when the conversation already holds the discussion |
 | understand code rather than change it | `/how` for the mechanism, `/why` for the rationale, `/teach` to follow it end to end |
@@ -335,19 +336,44 @@ new Ticket you write
 **What does `/do --auto` still ask me?**
 Whatever cannot be undone or leaves your machine
 ([ADR 0045](adr/0045-auto-hands-direction-to-the-choice-taker-and-four-classes-still-stop.md)).
-The flag hands the run's direction to the choice-taker, so a question like whether a full suite
-runs is ruled and the run carries on. Four stops stay yours, each in the same place and the same
-words as without the flag: uncommitted work in the worktree before it is discarded on a resume,
-abort or continue when the target moved under an open rebase, the revert that deletes a
-refactoring's branch when its exit test failed, and a claim or a close on a remote tracker. Each
-of those questions shows, above it, what the choice-taker answered: the side it took with its
-norm, or its `extreme` return with the reason, so you confirm or overrule an answer instead of
-deciding from scratch. Nothing is discarded, aborted, reverted or written to the tracker until you
-answer. An Extreme fork stops the run on its `/discuss` command and is recorded beside the Ticket,
-with the flag as without it, so typing `/do` again stops on the same command and never rules the
-fork. Where no choice-taker could answer (the Agent tool withheld, the agent not linked, or a
-return that is no usable Ruling), the question comes to you with one line saying why and no answer
-shown, and a Design fork stops the run as it does without the flag.
+The flag hands the run's direction to the `choice-taker`: a question about how the run goes, which
+changes nothing the Ticket builds, is ruled and the run follows the Ruling in the same turn, with
+no message asking you to confirm it. A Design fork is ruled as it is without the flag. These are
+the questions handed over:
+
+| The question | Where it comes up |
+|---|---|
+| continue or stop, when a resumed integration finds its rebase open with no conflicted file | a `ticket` run you resumed |
+| whether a full suite or a remote run runs | the verification, in every Playbook that reaches it |
+| whether a harness that cannot stay inside its bound runs | `refactoring` |
+| which of two homes a reshape goes to, when it fits both equally | `refactoring` |
+| which of two files, when the request fits both equally | `trivial` |
+
+Four classes stay yours, each asked in the same place and the same words as without the flag:
+
+| Class | Where a `do` run meets it |
+|---|---|
+| an Extreme fork | the run stops on its `/discuss` command and records the fork beside the Ticket, so typing `/do` again stops on the same command and never rules it |
+| discarding uncommitted work | a resume that finds uncommitted work in the worktree, each change named one line per file |
+| an abort that drops commits | abort or continue when the target moved under an open rebase, and the revert that deletes a `refactoring` branch whose exit test failed |
+| a write to a remote tracker | a claim or a close on a Ticket that is an issue, every write your yes makes listed |
+
+Each of the last three shows, above the question, what the `choice-taker` answered: the side it
+took with its norm, or its `extreme` return with the reason, so you confirm or overrule an answer
+instead of deciding from scratch. Nothing is discarded, aborted, reverted or written to the tracker
+until you answer. Three more things reach you unchanged, since the flag has no question there to
+hand over:
+
+- a request to drive a surface the session cannot reach, in a `bug-fix` run: it asks for an
+  observation only you can make;
+- `/do --auto` on a Ticket that reads `resolved`: the same one-line stop, with nothing written;
+- a question no `choice-taker` could answer (the Agent tool withheld, the agent not linked, or a
+  return that is no usable Ruling): it comes to you with one line saying why and no answer shown,
+  and a Design fork then stops the run as it does without the flag.
+
+Afterwards the reply's `Rulings` section lists what was ruled, on a run that finished and on one
+that stopped alike: a question about the run under `On the run:`, which changed no file, and a
+Design fork under `On the Spec:`.
 
 ## It's working if
 
