@@ -107,7 +107,8 @@ is edited and nothing is written.
      [forks.md](forks.md), the one reference this Playbook reads beyond its own and only then,
      with one option per file, each naming the file and what of the request fits there, and
      `Recommendation:` `none`. The run edits the file the Ruling names and lists the Ruling in
-     the reply's `Rulings` section.
+     the reply's `Rulings` section, in its `On the run:` group, with `On the Spec: none` above
+     it.
    - A rename inside one file holds only when the name has no reference outside that file
      (`rg -w <name>` over the project).
    - Dead code holds only when the name has no caller.

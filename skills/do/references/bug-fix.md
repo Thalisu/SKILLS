@@ -387,7 +387,8 @@ Done when `git worktree list` no longer shows the run's worktree, or the step re
 file's sections: what was broken, the root cause, the fix, and the verification with the
 failing-then-passing output pasted, the developer's reports among it marked as theirs when they
 drove the surface. What this Playbook puts in the reference's sections: the Review under the files
-left uncommitted; a waived flow and a check that stood in for a test under pending debt; and the
+left uncommitted; under `Rulings`, `On the Spec: none`, and in the `On the run:` group each Ruling
+made under `--auto` on a run question, or `none`; a waived flow and a check that stood in for a test under pending debt; and the
 next step, `git push` with the developer's branch named when the review landed, or, when nothing
 landed, the worktree, its branch, and the review and the landing as what the developer runs next.
 Done when the reply is sent with every section that applies.

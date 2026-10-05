@@ -262,7 +262,10 @@ Ten sections, in this order, each one present in every Reply that carries sectio
      refused, or none on a no.
 5. **Principles.** Every principle that changed a decision, with the decision it changed. A name
    without a decision is not allowed. `none` is common.
-6. **Rulings.** One line per line the Spec's Implementation Decisions carries that reads
+6. **Rulings.** Two groups, each opened by its label on a line of its own, `On the Spec:` and
+   then `On the run:`, so a Ruling that changed the Spec is never read as one that only steered
+   the run, and the developer reverses the one they mean to. `On the Spec:` holds the Design
+   forks: one line per line the Spec's Implementation Decisions carries that reads
    `Ruled by the choice-taker on Ticket <this Ticket>`, in Spec order, whichever session wrote it,
    this run's own Ruling included when it wrote one:
    `<side A> or <side B>: <the side taken>. Norm: <the norm, or "no norm: the side easiest to undo">.`
@@ -278,21 +281,24 @@ Ten sections, in this order, each one present in every Reply that carries sectio
      [choice-taker.md](../agents/choice-taker.md). A `## Implementation Decisions` Ruling line
      from any other author is left out of this section, the same as any other stranger's line.
    - **A held Ruling.** A Ruling this run holds because its Spec is an issue,
-     the forks in [forks.md](forks.md), follows in the same shape, with the Spec issue it was
+     the forks in [forks.md](forks.md), follows under `On the Spec:` in the same shape, with the Spec issue it was
      posted on once the close's yes posted it, and otherwise with its whole Spec line and its
      `Criterion:` and `Now reads:` lines, for the developer to carry to the issues: on a no, a
      refused write or a stop, nothing else carries it. A Ruling an earlier session held and never
      posted is lost.
    - **A Ruling on a run question.** A Ruling the `choice-taker` made under `--auto` on a
-     question about the run itself, the run questions in [forks.md](forks.md), follows the Spec's
-     lines, one line per Ruling in the order the run met them, in the same shape:
+     question about the run itself, the run questions in [forks.md](forks.md), goes under
+     `On the run:` and never among the Spec's lines, one line per Ruling in the order the run met
+     them, naming both options, the option taken and the norm:
      `<option A> or <option B>: <the option taken>. Norm: <the norm>.` Each slot is read back from
      the return's own `Fork:`, `Side:` and `Norm:` lines. That Ruling sits in no file, so this
-     section is the one place the developer reads what was decided for them: it is listed on
-     every Playbook, and on a blocked reply as well as a finished one.
-   - **`none`** when the Spec carries no such line, this run holds none of its own and it ruled
-     no run question. A Playbook other than `ticket` has no Spec line to list, so its section
-     reads `none` unless a run question was ruled.
+     group is the one place the developer reads what was decided for them: it is listed on
+     every Playbook, and on a blocked reply as well as a finished one. A return shown above a
+     question the developer still answered steered nothing and is not listed.
+   - **An empty group.** Both labels are written on every Reply, and a group with no Ruling
+     reads `none` on its label's line: `On the Spec: none` when the Spec carries no such line and
+     this run holds none of its own, `On the run: none` when it ruled no run question. A Playbook
+     other than `ticket` has no Spec line to list, so its `On the Spec:` group reads `none`.
 7. **Skipped.** Every skipped step as `<step>: skip: <reason>`, copied from the checklist, and
    only the steps the run reached: a step it never came to was never considered, so it is not a
    skip and is not listed.
@@ -484,7 +490,8 @@ none
 
 ## Rulings
 
-none
+On the Spec: none
+On the run: none
 
 ## Skipped
 

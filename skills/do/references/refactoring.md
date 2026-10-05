@@ -669,6 +669,8 @@ Written by [reply.md](reply.md), its Run section then its sections, which carry,
   answer when it failed.
 - Under Commits, the commits in order, subtraction, reshape, cleanup, each with its short sha, so a
   reader sees that one revert undoes one slice.
+- Under `Rulings`, `On the Spec: none`, and in the `On the run:` group each Ruling made under
+  `--auto` on the questions of steps 1, 3 and 13, or `none`.
 - Under Evidence, the pin's before and after lines quoted, the suite, the typecheck and the
   harness's two runs. Those quoted lines are the harness's only record, since step 9 deleted it, so
   a line missing here is a proof nobody can reproduce.

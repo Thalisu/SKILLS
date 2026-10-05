@@ -185,7 +185,7 @@ Written by [reply.md](reply.md). What this Playbook puts in its sections:
   commit;
 - under Evidence, the door's lines, the start, the conflict class's lines at every stop, each
   contested hunk that took the **Target** side and the Loss ledger holding what they set aside;
-- `none` under Rulings;
+- under `Rulings`, `On the Spec: none` and `On the run: none`;
 - under Pending debt, the undo, `git reset --hard <the recorded commit>` once the operation
   finished, and, when any stop resolved a hunk, mechanical or contested, the line saying no check
   ran over the integrated tree: the text the union wrote and every reapply commit reach the branch

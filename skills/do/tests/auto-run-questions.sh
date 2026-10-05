@@ -186,24 +186,6 @@ carries_any "forks.md has the run do nothing on that return before the developer
 
 echo "# the discard of uncommitted work on a resume: still asked under --auto, with the choice-taker's answer shown and nothing discarded first"
 
-# A bullet is read from its marker to the first line that is not indented under it, so the bullets
-# nested in it come along and a blank line inside it does not cut it short.
-bullets_opening_on() { # $1 file, $2 a fixed string a bullet's marker line carries within its first 30 characters: each such bullet flattened, one per line, on stdout
-  bullet_key="$2" awk '
-    function flush() { if (on) print item; on = 0; item = "" }
-    {
-      match($0, /^ */)
-      lead = RLENGTH
-    }
-    on && $0 !~ /^ *$/ && lead <= indent { flush() }
-    !on && match($0, /^ *- /) {
-      at = index($0, ENVIRON["bullet_key"])
-      if (at > 0 && at - RLENGTH <= 30) { on = 1; indent = lead }
-    }
-    on { item = item " " $0 }
-    END { flush() }
-  ' "$1" | tr -s ' '
-}
 still_asked_with_the_answer_shown() { # $1 the place, its statement of the discard question flattened in $flat
   # Optional: $2 the question, as the labels name it (default: the discard question), $3 what it comes before (default: before the discard)
   local question="${2:-the discard question}" moment="${3:-before the discard}"

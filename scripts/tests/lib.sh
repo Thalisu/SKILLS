@@ -167,6 +167,24 @@ item_holding() { # $1 file, $2 the ERE a marker line opens with (`\*\*[0-9]+\.`,
     END { if (keep) printf "%s", item }
   ' "$1"
 }
+# A bullet is read from its marker to the first line that is not indented under it, so the bullets
+# nested in it come along and a blank line inside it does not cut it short.
+bullets_opening_on() { # $1 file, $2 a fixed string a bullet's marker line carries within its first 30 characters: each such bullet flattened, one per line, on stdout
+  bullet_key="$2" awk '
+    function flush() { if (on) print item; on = 0; item = "" }
+    {
+      match($0, /^ */)
+      lead = RLENGTH
+    }
+    on && $0 !~ /^ *$/ && lead <= indent { flush() }
+    !on && match($0, /^ *- /) {
+      at = index($0, ENVIRON["bullet_key"])
+      if (at > 0 && at - RLENGTH <= 30) { on = 1; indent = lead }
+    }
+    on { item = item " " $0 }
+    END { flush() }
+  ' "$1" | tr -s ' '
+}
 # The fenced blocks of a section, unindented: a contract that hands a session a command puts it in a
 # block, and a brief's own lines are a block too.
 blocks_of() { # $1 file, $2 the heading whose section holds them: its fenced blocks, unindented

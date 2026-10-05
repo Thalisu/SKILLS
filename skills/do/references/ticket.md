@@ -1047,8 +1047,9 @@ read `claim=released`, or the claim read `taken`, or the run stopped as blocked 
 branch and its worktree named and the claim yielded, or the step reads its skip.
 
 **10. Reply.** Written by [reply.md](reply.md). What this Playbook puts in its sections: the
-Ticket and the Review under the files left uncommitted; every Ruling the forks in
-[forks.md](forks.md) wrote under `Rulings`, `none` when the run met no Design fork; the flows the developer waived and the
+Ticket and the Review under the files left uncommitted; under `Rulings`, every Ruling the forks in
+[forks.md](forks.md) made, a Design fork's in the `On the Spec:` group and a run question's in the
+`On the run:` group, each group `none` when it holds no Ruling; the flows the developer waived and the
 consumer flows not run under pending debt, beside
 a criterion the flows step skipped for no end-to-end command, with the command that would fill it; and the next step, `git push` with the developer's
 branch named when the review landed, or, when nothing landed, the worktree, its branch, and the
