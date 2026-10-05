@@ -72,8 +72,10 @@ patch_bytes() {
     path="${path:1:${#path}-2}"
     printf -v path '%b' "${path//\\\"/\\042}"
   fi
-  bytes="$(git diff --no-color --no-ext-diff --no-renames "$1" -- ":(literal)$path" | wc -c)"
-  [ "$bytes" -gt 0 ] || bytes="$(git diff --no-color --no-ext-diff --no-index -- /dev/null "$path" | wc -c)"
+  bytes="$(git diff --no-color --no-ext-diff --no-renames "$1" -- ":(literal)$path" </dev/null | wc -c)"
+  # --no-index reads stdin for a path named `-`, which here is the path list of measure's loop.
+  [ "$path" = "-" ] && path="./-"
+  [ "$bytes" -gt 0 ] || bytes="$(git diff --no-color --no-ext-diff --no-index -- /dev/null "$path" </dev/null | wc -c)"
   echo "$bytes"
 }
 

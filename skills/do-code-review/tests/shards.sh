@@ -315,6 +315,40 @@ check_lines "Reviews excluded from a subdirectory, by absolute path and by a pat
 out="$(after_header)"
 same "leaves a Review out of every file line when its path is relative to the subdirectory the caller stands in" "$without_reviews"
 
+# A file missing from the manifest is read by no reviewer, and the run still exits 0. Git reads a
+# path named `-` as standard input wherever it takes a file, and `-` sorts before every other name
+# of this diff in byte order: a committed edit, a working-tree edit and two untracked files.
+repo_at_fixed_point dash-file
+printf 'export function page(n) { return n; }\n' >src/notes.js
+commit "page takes a number"
+printf 'export function token(t) { return t; }\n' >src/auth.js
+printf 'test("page", () => {});\n' >notes.test.js
+printf '# Notes\n' >README.md
+printf 'a file named with a single dash\n' >./-
+dash="$(untracked_tokens ./-)"
+readme="$(untracked_tokens README.md)"
+notes_test="$(untracked_tokens notes.test.js)"
+auth="$(tracked_tokens src/auth.js)"
+notes="$(tracked_tokens src/notes.js)"
+diff_paths="$({
+  g diff --no-renames --name-only "$fixed_point"
+  g ls-files --others --exclude-standard
+} | LC_ALL=C sort)"
+run "$fixed_point"
+manifest="$out"
+expect "the dash-file run exits 0" test "$rc" = 0
+out="$(manifest_paths | LC_ALL=C sort)"
+same "lists every file of a diff holding an untracked file named - exactly once, those sorting after it included" "$diff_paths"
+out="$manifest"
+out="$(after_header)"
+same "sizes a diff holding an untracked file named - as the same diff without it plus that file's own patch" \
+  "shard=1 tokens=$((dash + readme + notes_test + auth + notes)) files=5
+file shard=1 tokens=$dash path=-
+file shard=1 tokens=$readme path=README.md
+file shard=1 tokens=$notes_test path=notes.test.js
+file shard=1 tokens=$auth path=src/auth.js
+file shard=1 tokens=$notes path=src/notes.js"
+
 echo
 if [ "$fails" = 0 ]; then echo "all green"; else echo "$fails failing"; fi
 exit "$fails"
