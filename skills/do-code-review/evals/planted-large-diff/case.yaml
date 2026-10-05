@@ -11,7 +11,12 @@ context:
     # does at its review step, and its spec in the folder above the issues folder. The bulk is
     # generated: twenty label catalogs under src/locales/ and twenty shortcode tables under
     # src/shortcodes/, each directory about 100000 tokens of patch, so neither is cut and the two
-    # cannot share a Shard.
+    # cannot share a Shard. Each directory holds one hand-written file with one planted defect:
+    # translate in src/locales/index.js answers a label the language's catalog lacks with
+    # catalogs.en[locale], which is undefined, where the spec wants the English label, and expand
+    # in src/shortcodes/expand.js replaces with a pattern that has no g flag, so only the first
+    # shortcode of a title becomes its emoji. The suite is green on the branch: neither defect is
+    # covered.
     set -e
     mkdir -p src/locales src/shortcodes tests .scratch/localised-notes/issues
     cat > package.json <<'JSON'
@@ -118,5 +123,74 @@ context:
       } > "src/shortcodes/$table.js"
       group=$((group + 1))
     done
+    cat > src/locales/index.js <<'JS'
+    const codes = [
+      "cs", "da", "de", "el", "en", "es", "fi", "fr", "hu", "it",
+      "ja", "ko", "nl", "pl", "pt", "ro", "ru", "sv", "tr", "uk",
+    ];
+    const catalogs = {};
+    for (const code of codes) catalogs[code] = require("./" + code);
+
+    function translate(locale, key) {
+      const catalog = catalogs[locale] || catalogs.en;
+      return key in catalog ? catalog[key] : catalogs.en[locale];
+    }
+
+    module.exports = { translate };
+    JS
+    cat > src/shortcodes/common.js <<'JS'
+    module.exports = {
+      smile: "\u{1f604}",
+      tada: "\u{1f389}",
+      heart: "\u{2764}",
+    };
+    JS
+    cat > src/shortcodes/expand.js <<'JS'
+    const names = [
+      "common", "activities", "animals", "arrows", "buildings", "clothing", "drinks",
+      "faces", "flags", "food", "gestures", "hearts", "music", "nature",
+      "objects", "people", "plants", "sports", "symbols", "travel", "weather",
+    ];
+    const tables = names.map((name) => require("./" + name));
+
+    function emoji(name) {
+      for (const table of tables) {
+        if (Object.hasOwn(table, name)) return table[name];
+      }
+      return null;
+    }
+
+    function expand(title) {
+      return title.replace(/:([a-z0-9_]+):/, (typed, name) => emoji(name) || typed);
+    }
+
+    module.exports = { expand };
+    JS
+    cat > tests/locales.test.js <<'JS'
+    const test = require("node:test");
+    const assert = require("node:assert/strict");
+    const { translate } = require("../src/locales");
+
+    test("a label is read from the catalog of the language", () => {
+      assert.equal(translate("pt", "notes.title"), "pt Notes");
+    });
+
+    test("an unknown language reads the English catalog", () => {
+      assert.equal(translate("xx", "notes.empty"), "en No notes yet");
+    });
+    JS
+    cat > tests/shortcodes.test.js <<'JS'
+    const test = require("node:test");
+    const assert = require("node:assert/strict");
+    const { expand } = require("../src/shortcodes/expand");
+
+    test("a shortcode is shown as its emoji", () => {
+      assert.equal(expand("done :tada:"), "done \u{1f389}");
+    });
+
+    test("a shortcode no table knows is left as typed", () => {
+      assert.equal(expand("a :nope: here"), "a :nope: here");
+    });
+    JS
     git -c user.email=fixture@example.com -c user.name=fixture add -A
-    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "feat(notes): localise the labels and expand the shortcodes" -m "Twenty label catalogs and twenty shortcode tables, generated."
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "feat(notes): localise the labels and expand the shortcodes" -m "translate reads the generated catalogs and expand the generated tables."
