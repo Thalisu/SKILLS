@@ -201,6 +201,11 @@ test output, so a reader tells one from the other. No report, or a no,
 stops the run as blocked with nothing landed and the hypotheses listed, the main checkout restored
 first, since a defect nobody has observed is never called fixed.
 
+Under `--auto` both asks still go to the developer, in the same words. The request is for an
+observation only they can make, never a choice between options, so there is nothing for the
+`choice-taker` to rule and none is forked for it. No report, or a no, stops the run as blocked
+with nothing landed, as above.
+
 A bug that does not reproduce even when forced stops the run: the message says what it tried, and
 the run leaves nothing committed, the worktree removed by step 12 and the main checkout restored
 before the message. Done when the command line and the output showing the defect are

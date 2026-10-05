@@ -315,6 +315,10 @@ step asks it under the flag as without it: uncommitted work thrown away, an abor
 commits or a branch deleted with every commit on it, and any write to a remote tracker. That ADR
 keeps those the developer's.
 
+A request to drive a surface the session cannot reach is not one either, per
+[bug-fix.md](bug-fix.md). It asks the developer for an observation, and no option exists for a
+`choice-taker` to take: the request is put to them under the flag as without it.
+
 Where the step would have written the question, the session takes these steps instead:
 
 1. Call the Agent tool with `subagent_type: choice-taker` and the brief of the Design fork above,

@@ -594,7 +594,8 @@ the door printed `spec_exists=yes`. The claim still waits for the verified Plan.
 own. They are the exception the Links rule of [SKILL.md](../SKILL.md) names, and the step numbers
 there are `bug-fix`'s, not this checklist's: the second ask a surface the session cannot reach gets
 on the fixed build, `bug-fix`'s step 7, is asked at step 3 here, once the `bugfix` line's fix is
-green in the loop, and a defect that will not reproduce even when forced stops this run as blocked,
+green in the loop (under `--auto` both asks still go to the developer, as that step says, since an
+observation is no choice for the `choice-taker` to rule), and a defect that will not reproduce even when forced stops this run as blocked,
 the Ticket left at the status the door found it at and the worktree and its branch removed, as the
 refusals of this step on that branch say above.
 
