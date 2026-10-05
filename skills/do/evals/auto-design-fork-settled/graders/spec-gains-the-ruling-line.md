@@ -1,0 +1,5 @@
+---
+type: llm
+criteria: "The Spec .scratch/archive-notes/spec.md in the main checkout was changed (the changes summary lists it) by one line appended to its `## Implementation Decisions`, after the three decisions the fixture wrote, which stay as they were, with no other section of the Spec changed. That line, as the tool call that wrote it or a read-back of the file in the transcript shows, is marked as the choice-taker's and reads in the shape `- Ruled by the choice-taker on Ticket <the Ticket> at the <step> step: <side>. Norm: <norm>. Fork: <side A> or <side B>.`: the Ticket is 01 Archive a note, the step is the one the run met the fork at, the side taken is the no-op (a second Archive on the same note changes nothing), the norm cites the Spec's decision that archiving is one way and a second Archive is a no-op, and the fork names both the toggle and the no-op."
+---
+The Spec's Implementation Decisions gain one line marked as the choice-taker's, ruling for the no-op on the Spec's decision.

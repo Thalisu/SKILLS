@@ -77,6 +77,12 @@ The `choice-taker` holds reading and search alone, per
 and the session writes what it returns. It is forked by name and never replaced by another agent:
 a general-purpose fork would read the same Spec holding the write tools that ADR withholds.
 
+Under `--auto` a Design fork is ruled exactly this way, the flag adding no route and taking none
+away: the same steps, the same brief, the same check, and a `settled` Ruling written as the
+sections below say, so the Spec gains its one line, is read again and the run carries on with no
+commit for the Ruling. A Design fork is never taken as a run question, the last section of this
+file, whose Ruling amends no file: every later Ticket of the feature reads this one from the Spec.
+
 ### When no `choice-taker` can be forked
 
 No choice-taker can be forked on two branches:
