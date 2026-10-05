@@ -149,5 +149,40 @@ else
   fail "refactoring.md never hands the discard of uncommitted changes or the revert of the branch to the choice-taker (found: $handed)"
 fi
 
+echo "# a question still asked under --auto: the choice-taker's return rides on it, and nothing is done on that return before the developer answers"
+
+# Every paragraph of the section that speaks of a question the flag leaves with the developer, read
+# together: the guarantee may be split over more than one of them. The numbered steps of the route
+# a ruled question takes carry none of these phrases, so their `choice-taker` never answers here.
+section="$(passage_of "$forks" "### A run question under" "### ")"
+flat="$(for anchor in "cannot be undone" "leaves the machine" "irreversible" "remote tracker" \
+  "still asked" "still asks" "still put"; do
+  paragraph_with <(printf '%s\n' "$section") "$anchor" all
+done | awk '!seen[$0]++' | tr '\n' ' ' | tr -s ' ')"
+expect "forks.md's section on run questions covers the ones still asked under --auto" test -n "$flat"
+
+carries_each "forks.md forks the choice-taker on a question still asked under --auto" \
+  "choice-taker" -- "fork" "Agent tool" "handed" "brief"
+carries_each "forks.md hands that choice-taker the step's own question and options" \
+  "choice-taker" -- \
+  "as the step words it" "as its step words it" "the step's own question" "its step's own question" \
+  "its own question" "the step's own words" "same question" "never reword" "not reword" \
+  "without rewording" "not rewritten" "never rewritten" "same brief" "brief above" "brief of" \
+  "that brief" "keys above" "step 1"
+carries_each "forks.md puts a settled return's side and norm on the question" \
+  "settled" -- "\`Side:\`" "Side" "side" -- "\`Norm:\`" "Norm" "norm"
+carries_each "forks.md puts an extreme return on the question quoted with its reason" \
+  "extreme" -- "quote" "verbatim" "word for word" "as it came back" "as they came back" -- \
+  "reason" "Reason"
+carries_any "forks.md keeps the return on the question as it came back" \
+  "as it came back" "as they came back" "verbatim" "word for word" "unchanged" "quoted" "quotes"
+carries_any "forks.md has the run do nothing on that return before the developer answers" \
+  "before the developer answers" "until the developer answers" "before the developer's answer" \
+  "until the developer's answer" "before their answer" "until their answer" "before they answer" \
+  "until they answer" "before the developer's yes" "without the developer's yes" "before their yes" \
+  "without their yes" "waits for the developer" "wait for the developer" "waits for their" \
+  "never acts on" "does not act on" "not acted on" "acts on neither" "acts on nothing" \
+  "never follows" "does not follow" "follows neither" "not followed"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1

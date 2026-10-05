@@ -312,9 +312,30 @@ Only a question whose own step names it as ruled under `--auto` takes this route
 | which of two files, when a `trivial` request fits both equally | step 1 of [trivial.md](trivial.md) |
 
 A question before something that cannot be undone or that leaves the machine is never one, and its
-step asks it under the flag as without it: uncommitted work thrown away, an abort that drops
-commits or a branch deleted with every commit on it, and any write to a remote tracker. That ADR
-keeps those the developer's.
+step asks it under the flag as without it, in the same place and the same words: uncommitted work
+thrown away, an abort that drops commits or a branch deleted with every commit on it, and any write
+to a remote tracker. That ADR keeps those the developer's, and the yes is theirs alone.
+
+What the flag adds to a question still asked is the answer the `choice-taker` would have given, so
+that the developer confirms an answer instead of deciding from scratch. Before the question is
+written, the session forks the `choice-taker` on it with the brief of step 1 below: its
+`Question:` is the question as the step words it and its `Options:` are the answers the step
+offers, never reworded to draw a side out of the agent. The return is checked as a run question's
+is, below, and then rides in the message that asks, on lines of its own directly above the
+question, as it came back:
+
+- A `settled` return shows its `Side:` and `Norm:` lines.
+- An `extreme` return is quoted whole, its reason included: the `Weaker side:`, `Guarantee:` and
+  `Risk class:` lines. A question before something that cannot be undone is one the agent's own
+  test often reads as extreme, and the session asks it nothing a second time to get a side: the
+  agent keeps its two returns and its one test for an Extreme fork, per
+  [ADR 0046](../../../docs/adr/0046-one-choice-taker-rules-for-every-chain-skill.md).
+
+Whichever came back, the question is still put to the developer and the run acts on nothing in the
+return before the developer answers: nothing is discarded, aborted, continued, reverted or written
+to a tracker on it, and what the step does on each answer, or with nobody there to answer, is what
+it does without the flag. Step 2 below, which follows a `settled` Ruling with no message asking
+the developer to confirm it, is the route of a ruled question and never of one of these.
 
 A request to drive a surface the session cannot reach is not one either, per
 [bug-fix.md](bug-fix.md). It asks the developer for an observation, and no option exists for a
