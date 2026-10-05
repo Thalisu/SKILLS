@@ -276,6 +276,16 @@ format defines, before the spec is published. `journey` replaces it with `Journe
 once the journey is written; `tickets` refuses a spec that says `required` and has no journey
 beside it.
 
+**The front-end line.** The same reading of the stories settles one more header line, `Front-end:`,
+written directly after the `Journey:` line before the spec is published. A story has a screen when
+its actor sees or acts on one: a page, a route, a form, or one control on a screen that already
+exists.
+
+- **No story has a screen** (an API, a job, a migration, a refactor, a library): the line reads
+  `Front-end: none`, and the developer is asked nothing about builders. Whether a feature has a
+  front-end is read off the stories and never asked, so a back-end feature goes down the chain as
+  it did before the line existed.
+
 ## 5. Close
 
 In the thread, the closing summary, each item one or two lines:
