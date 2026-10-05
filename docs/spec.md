@@ -118,6 +118,10 @@ shape from the slug alone.
 
 ## Common questions
 
+**It wrote `Front-end: none`, and my feature has a screen. What now?**
+The closing summary says the value was deduced: no story `spec` wrote has a screen. The story that
+has one was missing from the conversation, so rerun `/spec` with it, as with a verdict you dispute.
+
 **It sent me to `/discuss` instead of writing anything. Why?**
 The conversation held no decided plan. `spec` synthesises; it never asks you the questions a
 `discuss` session would. Run `/discuss` on the plan and type `/spec` when the summary lands.
@@ -145,6 +149,8 @@ about the forks the precedent does not settle, so a small page closes fast.
   and a `Front-end:` line directly after it.
 - A local spec's folder carries the day it was written, and a rerun lands in that same folder
   instead of opening a second one.
+- The closing summary names the `Front-end:` value and says whether it was deduced from the
+  stories or chosen by you.
 - The last line of the summary is a command you can run as it is.
 - Nothing else in the tree changed, and nothing was committed.
 

@@ -334,6 +334,11 @@ In the thread, the closing summary, each item one or two lines:
 - each seam, and which of the three it was: confirmed by the user, taken from the conversation, or
   ruled by the `choice-taker` under `--auto`, a ruled one with its norm;
 - the verdict and the row that produced it;
+- the front-end line, as an item of its own: the `Front-end:` value and which of the two it was.
+  Deduced, for a `none` read off the stories, with the reason that no story has a screen. Chosen,
+  for a `builder` or an `impeccable` the developer answered. A developer who disagrees with a
+  deduced `none` reads it here and nowhere else, and reruns `spec` with the story that has the
+  screen;
 - the terms and decisions the synthesis found missing, each as one line to reopen in `discuss`
   (the skill writes no `CONTEXT.md` and no ADR);
 - the durability line, in local mode: the scratch is unversioned by design and a teammate never
@@ -366,6 +371,8 @@ Seams: the HTTP handlers of the order module, taken from the discuss summary.
 Verdict: `Journey: required`. The first row matched: the stories need a returns route that does
 not exist.
 
+Front-end: `Front-end: builder`, chosen by you.
+
 To reopen in discuss: "Refund" is used in the spec and missing from the glossary.
 
 The scratch is unversioned by design and a teammate never reads it: a spec the team has to read
@@ -383,6 +390,8 @@ Seams: the export handler of the order module, confirmed by you.
 Verdict: `Journey: not needed, one interaction on an existing screen`. The last row matched: the
 one story is an export button on the orders list.
 
+Front-end: `Front-end: impeccable`, chosen by you.
+
 /tickets #212
 </example>
 <example>
@@ -395,6 +404,9 @@ norm: the side easiest to undo.
 
 Verdict: `Journey: required`. The third row matched: attaching a note is a path of more than one
 step.
+
+Front-end: `Front-end: none`, deduced: no story has a screen, the note is attached through the
+API. If one does, rerun `/spec` with that story.
 
 The scratch is unversioned by design and a teammate never reads it: a spec the team has to read
 goes to the issue tracker or under `docs/`.
