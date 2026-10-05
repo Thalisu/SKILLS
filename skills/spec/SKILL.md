@@ -315,6 +315,11 @@ spec is written: who builds the front-end?
 Answer `builder` or `impeccable`.
 </example>
 
+The developer's answer is the decision, and it is the line's value: `Front-end: builder` or
+`Front-end: impeccable`, written directly after the `Journey:` line when step 3 publishes the
+spec. The question is asked once, so a conversation that already carries its answer is not asked
+again, and the recommendation never stands in for an answer nobody gave.
+
 ## 5. Close
 
 In the thread, the closing summary, each item one or two lines:

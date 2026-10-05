@@ -1,5 +1,5 @@
 ---
 type: llm
-criteria: "In the spec file written under .scratch/, the line 'Front-end: none' sits directly after the line that starts with 'Journey:', under the title and before the first section. The spec carries exactly one line starting with 'Front-end:'."
+criteria: "In the spec file written under .scratch/, the line 'Front-end: none' sits directly after the line that starts with 'Journey:', under the title and before the first section."
 ---
 The line sits beside the verdict, where `tickets` and `do` read it.

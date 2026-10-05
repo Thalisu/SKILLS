@@ -11,6 +11,11 @@ shape that skill's step 6 produces. A run that has the seams in the summary ends
 summary; a run that has not ends at the seams check, the one question the skill asks. Under `--auto`
 that check goes to the `choice-taker`, and the run ends at the closing summary too.
 
+A summary whose stories have a screen earns the builder question, and a session under test has one
+turn. So a case that has to reach the closing summary carries the answer as the prompt's last
+line, the developer saying which builder they picked, and a case that carries none ends at the
+question.
+
 | case | checks |
 |---|---|
 | `no-plan` | a bare `/spec` with nothing decided in the conversation gets one message sending the user to `/discuss`; nothing is written and nothing is asked |
@@ -20,6 +25,7 @@ that check goes to the `choice-taker`, and the run ends at the closing summary t
 | `routes-to-tickets` | stories that are one interaction on an existing screen get `Journey: not needed` with the condition, and a last line naming `/tickets` with the spec path |
 | `front-end-none-asks-nothing` | stories with no screen (a nightly job) get `Front-end: none` directly after the `Journey:` line, and the user is asked nothing about builders or about whether the feature has a front-end |
 | `screen-asks-the-builder` | stories with a screen (an export button on an existing list) end at exactly one question, who builds the front-end, the chain's Builder or impeccable; the message names impeccable's one-time setup by hand and the Setup ticket `tickets` publishes for it, and recommends `builder`; nothing is written before the answer |
+| `builder-answer-written` | stories with a screen and the answer `impeccable` in the conversation get `Front-end: impeccable` directly after the `Journey:` line, never the recommended `builder`; the question is not asked a second time and the run reaches the closing summary |
 | `no-tracker-file` | with no `docs/agents/issue-tracker.md`, the spec still lands at `.scratch/<YYYYMMDD>-<slug>/spec.md`, the summary says the file was absent, and no setup skill is demanded; the project carries no `.gitignore`, so the run adds the `.scratch/` line to it before the write and says so |
 | `auto-flag-dropped` | an `--auto` token typed after a summary that names the seams is dropped: the spec of the summary is written, with no flag and no 'auto' feature in it, and the user is asked nothing about the token |
 | `auto-seams-already-named` | under `--auto`, a summary that names the seams still skips the check in one line: no `choice-taker` is forked, and the spec marks the seam as taken from the conversation, none ruled; the close's last line reads `/tickets --auto` with the spec path |
