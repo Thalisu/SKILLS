@@ -271,6 +271,15 @@ and leaves the worktree as it is, since no branch can be read from it to build o
     in any run. `stop`, or nobody there to answer, stops the run as blocked with the rebase left
     open, `git rebase --abort` named as the undo, the worktree and its branch in place and named and
     the Ticket left `claimed`.
+
+    Under `--auto` the question is not the turn's final message and the developer is not asked: it
+    is a run question the `choice-taker` rules, per [forks.md](forks.md), and still nothing is
+    continued before its return. The brief's `Question:` is the question above in one line, its
+    `Options:` are `continue: continue the rebase, committing what is staged for <stopped>` and
+    `stop: leave the rebase open and stop the run as blocked`, its `Recommendation:` is `none`,
+    and its `Context:` carries the `staged=` lines. A Ruling for `continue` runs the continue as
+    above and the run carries on to its close, and one for `stop` stops the run as blocked, as
+    above.
   - `stop=moved`: the rebase is open onto a commit that is no longer the tip of the developer's
     branch, whatever else it holds. Finished as it stands, the branch would still sit behind that
     tip and could not land by fast-forward. The `moved=` line after it is the script's verdict on

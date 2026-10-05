@@ -286,6 +286,37 @@ A side that cannot be undone once landed reads `<the weaker side> cannot be undo
 every slot filled from the stop's own facts and none from the session's wording, so a rerun that
 meets the same fork prints the same command.
 
+### A run question under `--auto`
+
+A run question is one a step would put to the developer about the run itself: whether it carries
+on, and which way. It is no Design fork, since neither answer changes what the Ticket builds.
+Under `--auto` the developer handed that direction over for the run, per
+[ADR 0045](../../../docs/adr/0045-auto-hands-direction-to-the-choice-taker-and-four-classes-still-stop.md),
+so the question is not put to them: the `choice-taker` rules it and the run follows the Ruling in
+the same turn. Without the flag every one of these questions is asked as its step says.
+
+Only a question whose own step names it as ruled under `--auto` takes this route:
+
+| The question | Its step |
+|---|---|
+| continue or stop, on a resumed integration whose rebase is open with no conflicted file | the Resume of [ticket.md](ticket.md) |
+
+Where the step would have written the question, the session takes these steps instead:
+
+1. Call the Agent tool with `subagent_type: choice-taker` and the brief of the Design fork above,
+   with these keys filled for a question:
+   - `Caller:` is `do` at the step, under `--auto`.
+   - `Question:` is the question in one line, as the step words it.
+   - `Options:` are the answers the step offers, one per line. Each opens with the answer's own
+     word and says what the run does on it (`continue: ...`, never a bare `continue`), since the
+     Ruling is read back by a developer who never saw the question.
+   - `Recommendation:` is the answer the step recommends, or `none` when it recommends neither.
+   - `Context:` is the Ticket, the Spec and the Digest where the run holds them, then the lines
+     the question would have shown the developer, inline: the `choice-taker` sees nothing of the
+     run, so a fact left out of the brief is a fact it rules without.
+2. On a `settled` Ruling, do what the step says for the answer its `Side:` line names, as if the
+   developer had typed that answer, and carry on. No message asks the developer to confirm it.
+
 ### Resume after a stop, and a Ruling the developer reverses
 
 A `/do` typed again on the Ticket with the Spec unchanged gives the same stop and the same
