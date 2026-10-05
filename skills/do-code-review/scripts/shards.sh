@@ -18,7 +18,8 @@
 # the last key and runs to the end of the line, in the form git quotes it under core.quotePath.
 #
 # Exit codes: 0 the cut was printed · 1 the diff since the fixed point is empty · 2 usage, outside
-# a git repository, or a fixed point that is no commit.
+# a git repository, a fixed point that is no commit, or a listed path whose patch measures 0 bytes,
+# which would be sized at 0 tokens whatever it holds.
 set -uo pipefail
 
 # The largest size .agents/scripts/context-band.sh still calls small (small_below=150000), so a
@@ -63,14 +64,41 @@ changed_paths() {
   } | LC_ALL=C sort -u
 }
 
+# unquote_path <quoted path>: the bytes of a path in the form git quotes it, quotes dropped. A
+# three-digit octal escape is read as `\0` and those three digits, since printf %b would read a
+# digit after a `\001` as a fourth one.
+unquote_path() {
+  local s="${1:1:${#1}-2}" out="" c
+  while [ -n "$s" ]; do
+    out+="${s%%\\*}"
+    [ "${s#*\\}" = "$s" ] && break
+    s="\\${s#*\\}"
+    case "${s:1:1}" in
+      [0-7])
+        printf -v c '%b' "\\0${s:1:3}"
+        s="${s:4}"
+        ;;
+      '"')
+        c='"'
+        s="${s:2}"
+        ;;
+      *)
+        printf -v c '%b' "${s:0:2}"
+        s="${s:2}"
+        ;;
+    esac
+    out+="$c"
+  done
+  printf '%s' "$out"
+}
+
 # patch_bytes <sha> <path>: the byte count of that path's patch against <sha>. The path is one
 # changed_paths printed, so a quoted one is unquoted first. An untracked path has no patch against
 # <sha> and is sized as the patch that adds it.
 patch_bytes() {
   local path="$2" bytes
   if [ "${path:0:1}" = '"' ]; then
-    path="${path:1:${#path}-2}"
-    printf -v path '%b' "${path//\\\"/\\042}"
+    path="$(unquote_path "$path")"
   fi
   bytes="$(git diff --no-color --no-ext-diff --no-renames "$1" -- ":(literal)$path" </dev/null | wc -c)"
   # --no-index reads stdin for a path named `-`, which here is the path list of measure's loop.
@@ -84,9 +112,14 @@ tokens() { echo $((($1 + 3) / 4)); }
 
 # measure <sha>: one Measured row per File, `<tokens>\t<path>`, in byte order of path.
 measure() {
-  local path
+  local path bytes
   while IFS= read -r path; do
-    printf '%s\t%s\n' "$(tokens "$(patch_bytes "$1" "$path")")" "$path"
+    bytes="$(patch_bytes "$1" "$path")"
+    if [ "$bytes" -eq 0 ]; then
+      echo "shards.sh: the patch of $path measures 0 bytes; refusing to size it as 0 tokens" >&2
+      return 2
+    fi
+    printf '%s\t%s\n' "$(tokens "$bytes")" "$path"
   done < <(changed_paths "$1")
 }
 
@@ -142,7 +175,7 @@ main() {
   local measured
   [ "$#" -ge 1 ] || usage
   resolve_fixed_point "$@"
-  measured="$(measure "$fixed_point")"
+  measured="$(measure "$fixed_point")" || exit 2
   if [ -z "$measured" ]; then
     echo "shards.sh: no diff since $fixed_point; nothing to cut" >&2
     exit 1

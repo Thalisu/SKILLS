@@ -349,6 +349,38 @@ file shard=1 tokens=$notes_test path=notes.test.js
 file shard=1 tokens=$auth path=src/auth.js
 file shard=1 tokens=$notes path=src/notes.js"
 
+# A file sized at nothing weighs nothing in its Shard, so its author can grow it past the window the
+# reviewer fits and it is never read. Git prints a name holding a control byte quoted, with the byte
+# as a three-digit octal escape: here byte 0x01 is followed by the digit 1, so the quoted name reads
+# `\0011`, and the file is about 60k tokens, untracked and alone in the diff.
+repo_at_fixed_point control-byte-name
+control_name="n"$'\001'"1.txt"
+large_file "$control_name"
+control="$(untracked_tokens "$control_name")"
+expect "the control-byte fixture's file is tens of thousands of tokens" test "$control" -gt 50000
+run "$fixed_point"
+expect "the control-byte-name run exits 0" test "$rc" = 0
+out="$(after_header)"
+same "sizes an untracked file whose name holds a control byte before a digit at its own patch, in its file line and in its Shard's sum" \
+  "shard=1 tokens=$control files=1
+file shard=1 tokens=$control path=\"n\\0011.txt\""
+
+# A path the diff lists and git prints no patch for cannot be sized: counted at nothing, it rides in a
+# Shard whatever it holds. An untracked repository nested in the working tree is one: git lists the
+# directory itself, `nested/`, and prints an empty patch for it, beside one real change here.
+repo_at_fixed_point empty-patch
+printf 'export function token(t) { return t; }\n' >src/auth.js
+g init -q nested
+printf 'export function inner() {}\n' >nested/inner.js
+g -C nested add -A
+g -C nested commit -qm "a commit inside the nested repository"
+expect "the empty-patch fixture's diff lists the nested repository as nested/" \
+  test "$(g ls-files --others --exclude-standard)" = "nested/"
+expect "the empty-patch fixture's nested repository has a patch of 0 bytes" \
+  test "$(g diff --no-index -- /dev/null nested/ 2>/dev/null | wc -c)" = 0
+refuses "refuses a diff holding a path whose patch is empty, naming that path" names "nested/" "$fixed_point"
+same "prints nothing on stdout when a path of the diff has an empty patch" ""
+
 echo
 if [ "$fails" = 0 ]; then echo "all green"; else echo "$fails failing"; fi
 exit "$fails"
