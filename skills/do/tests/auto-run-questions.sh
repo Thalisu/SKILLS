@@ -429,5 +429,95 @@ carries_any "forks.md counts a write to a remote tracker among the questions sti
 flat="$(grep '^|' <<<"$section" | grep -iE 'tracker|issue')"
 expect "forks.md's table of run questions has no row for a write to a remote tracker" test -z "$flat"
 
+echo "# nothing ruled under --auto: a Design fork takes the unruled stop as without the flag, a question still asked carries no answer and one line for the reason, and no other agent is forked"
+
+unruled_stop_under_auto() { # $1 the place, $2 its section: in the paragraphs of it naming `--auto`, a Design fork nothing ruled stops the run as without the flag
+  flat="$(paragraph_with <(printf '%s\n' "$2") "--auto" all | tr '\n' ' ' | tr -s ' ')"
+  if [ -z "$flat" ]; then
+    fail "$1 says what --auto does to a Design fork no choice-taker ruled (no paragraph of it names --auto)"
+    return
+  fi
+  carries_each "$1 has a Design fork no choice-taker ruled stop the run under --auto as without the flag" \
+    "stop" -- \
+    "as without it" "as without the flag" "the flag as without" "exactly as without" "with or without" \
+    "changes nothing" "adds nothing" "adds no route" "no route" "all the same" "the same way" \
+    "the same stop" "still stops" "still takes" "unchanged" "hands nothing over" "never hands" \
+    "rules nothing" "whatever the flag" "flag or no flag"
+}
+
+# The three places a session reads when no Ruling came back on a Design fork, each found by what it
+# carries: the script that links the agent, the check's own `Losing criterion:` line, and the clause
+# the unruled stop puts in its /discuss command. The run-question section's closing sentence on a
+# Design fork sits in another section and never answers for the one the session is reading.
+no_fork_section="$(item_holding "$forks" '### ' "link-skills.sh")"
+expect "forks.md carries the section on a choice-taker that cannot be forked, naming what links it" \
+  test -n "$no_fork_section"
+unruled_stop_under_auto "forks.md's section on a choice-taker that cannot be forked" "$no_fork_section"
+flat="$(tr '\n' ' ' <<<"$no_fork_section" | tr -s ' ')"
+carries_each "forks.md forks no other agent in the choice-taker's place when the Agent tool is withheld or the agent is not listed" \
+  "withheld" -- "not listed" "lists no" "no \`choice-taker\` listed" -- \
+  "another agent" "other agent" "general-purpose" "general agent"
+
+check_section="$(item_holding "$forks" '### ' "\`Losing criterion:\`")"
+expect "forks.md carries the section checking a choice-taker's return before a side is read from it" \
+  test -n "$check_section"
+unruled_stop_under_auto "forks.md's section checking the choice-taker's return" "$check_section"
+
+unruled_section="$(item_holding "$forks" '### ' "Design fork no choice-taker ruled")"
+expect "forks.md carries the section on the stop of a Design fork no choice-taker ruled" \
+  test -n "$unruled_section"
+unruled_stop_under_auto "forks.md's section on the unruled stop" "$unruled_section"
+
+# A question still asked under the flag whose choice-taker gave no usable return: read in the
+# paragraphs that speak of both, and in a bullet list directly under one. The section's closing
+# bullets say this of a question the choice-taker would have ruled, which goes back to the developer
+# either way, and they never answer for a question whose message was to carry the return.
+section="$(passage_of "$forks" "### A run question under" "### ")"
+flat="$(asked_keys="$(printf '%s\n' "cannot be undone" "leaves the machine" "irreversible" \
+  "remote tracker" "still asked" "still asks" "still put" "asked all the same" "reserved")" \
+failed_keys="$(printf '%s\n' "withheld" "not listed" "lists no" "no \`choice-taker\` listed" \
+  "cannot be forked" "can be forked" "not linked" "no Ruling" "not a Ruling" "fails" "failed" \
+  "neither \`settled\`" "unusable" "no usable")" \
+  awk '
+    function any(text, keys, n,   i) { for (i = 1; i <= n; i++) if (index(text, keys[i])) return 1; return 0 }
+    BEGIN {
+      RS = ""
+      na = split(ENVIRON["asked_keys"], asked, "\n")
+      nf = split(ENVIRON["failed_keys"], failed, "\n")
+    }
+    {
+      gsub(/\n[ \t]*/, " ")
+      hit = any($0, asked, na) && any($0, failed, nf)
+      if (hit || (prev && $0 ~ /^ *- /)) print
+      prev = hit
+    }
+  ' <<<"$section" | tr '\n' ' ' | tr -s ' ')"
+if [ -z "$flat" ]; then
+  fail "forks.md says what a question still asked under --auto carries when its choice-taker cannot be forked or its return is no Ruling (no paragraph of the section speaks of both)"
+else
+  carries_each "forks.md covers, for a question still asked under --auto, a choice-taker that cannot be forked and a return that is no Ruling" \
+    "withheld" "not listed" "lists no" "listed" "cannot be forked" "can be forked" "not linked" -- \
+    "no Ruling" "not a Ruling" "fails" "failed" "neither" "unusable" "no usable"
+  carries_any "forks.md has that question asked with no answer carried on it" \
+    "no answer" "without an answer" "without the answer" "carries none" "carries nothing" \
+    "nothing rides" "rides nothing" "no return rides" "no Ruling rides" "nothing above the question" \
+    "with nothing above" "no lines above" "shows no" "shows nothing" "nothing is shown" \
+    "nothing shown" "no \`Side:\`" "no side" "no Ruling to confirm" "nothing to confirm" \
+    "decides from scratch" "decide from scratch"
+  carries_each "forks.md has that question name the reason in one line" \
+    "one line" "a line" "single line" -- "reason" "why" "which of" "which branch" "says which"
+  carries_any "forks.md has no side read out of a return that is no Ruling on that question" \
+    "takes no answer" "takes no side" "reads no side" "reads no answer" "no side is read" \
+    "no side read" "no answer is read" "no answer read" "no side out of" "no answer out of" \
+    "no side is taken" "no answer is taken" "nothing out of the return" "nothing is read" \
+    "reads nothing" "never reads a side" "no side into" "not read as an answer"
+  carries_any "forks.md forks no other agent in the choice-taker's place on that question" \
+    "no other agent" "another agent" "other agent" "general-purpose" "general agent" \
+    "in its place" "in the \`choice-taker\`'s place" "in the choice-taker's place"
+  carries_any "forks.md never forks the choice-taker a second time on that question" \
+    "second time" "second fork" "a second" "forked again" "forks again" "fork it again" \
+    "re-fork" "retry" "retries" "only once" "once only" "twice"
+fi
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1

@@ -99,6 +99,9 @@ place, so that the next `/do` on the Ticket resumes it. The message says which b
 Agent tool withheld, or `choice-taker` not listed, the agent this machine has not linked, which one
 run of the skills repository's `scripts/link-skills.sh` links before the next `/do`.
 
+Under `--auto` both branches stop the run as without the flag: the flag hands direction to the
+`choice-taker` and to nothing that could stand in for it.
+
 ### Check the return before reading it
 
 The check sits where the return crosses into the session, per
@@ -121,6 +124,9 @@ On a return that is no Ruling, the session reads no side into it and never forks
 `choice-taker` a second time. The run stops at its step, the unruled stop below, with the return
 quoted whole, and nothing is written to the Spec or the Ticket.
 
+Under `--auto` the check is the same one, and a return that fails it stops the run as without the
+flag.
+
 ### The unruled stop
 
 The unruled stop is a blocked run, written by the blocked shape of [reply.md](reply.md), like the
@@ -136,6 +142,9 @@ Its last line is the `/discuss` command the Extreme stop fixes, whole, with two 
 It writes no `<Ticket>.extreme.md` sidecar: nothing about the fork says a human must rule on it, so
 the next `/do` on the Ticket meets the fork again and forks the `choice-taker` once one can be
 forked, rather than stopping on a recorded command.
+
+Under `--auto` a Design fork that came back with no Ruling takes this stop as without the flag,
+on each of its three reasons: with nothing ruled, the flag has handed nothing over.
 
 ### Write a `settled` Ruling
 
@@ -345,6 +354,14 @@ return before the developer answers: nothing is discarded, aborted, continued, r
 to a tracker on it, and what the step does on each answer, or with nobody there to answer, is what
 it does without the flag. Step 2 below, which follows a `settled` Ruling with no message asking
 the developer to confirm it, is the route of a ruled question and never of one of these.
+
+A question still asked whose `choice-taker` cannot be forked, the Agent tool withheld or no
+`choice-taker` listed, or whose return fails that check and so is no Ruling, is asked with no
+answer carried on it. In the answer's place, one line above the question names the reason: the
+Agent tool withheld, `choice-taker` not listed, with `scripts/link-skills.sh` as what links it,
+or a return that was no usable Ruling. The session reads no side out of the failed return and
+shows none of it as an answer, forks no other agent in the `choice-taker`'s place and never forks
+the `choice-taker` a second time.
 
 A request to drive a surface the session cannot reach is not one either, per
 [bug-fix.md](bug-fix.md). It asks the developer for an observation, and no option exists for a
