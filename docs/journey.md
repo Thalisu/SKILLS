@@ -128,7 +128,10 @@ story that was missing. The edit is in the spec's own section and listed under
 stops, asks which side wins, and records a losing spec under `## Reopen in discuss`.
 
 **I ran it with `--auto` and it still asked me something. Why?**
-Three things come back to you under the flag, each as the one question the fork would have been:
+The flag hands over direction and keeps four classes of stop for you
+([ADR 0045](adr/0045-auto-hands-direction-to-the-choice-taker-and-four-classes-still-stop.md)). A
+`journey` run meets one of them, the Extreme fork, and it also asks whenever no ruling could be
+had. So three things come back to you, each as the one question the fork would have been:
 
 - the `choice-taker` returned `extreme`: an option weakens a guarantee in a risk class or cannot be
   undone, and the question names that weaker side and the guarantee it gives up;
