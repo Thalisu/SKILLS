@@ -1,0 +1,96 @@
+name: auto-trivial-two-files-ruled
+tags: [trivial, run, auto]
+runs: 2
+max_turns: 40
+timeout_seconds: 900
+allowed_tools: [Bash, Read, Edit, Write, Grep, Glob, Agent, Skill]
+context:
+  unlinked_agents: [choice-taker]
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # A doc line asked for in words that fits two files equally: README.md and docs/notes.md
+    # carry the same sentence about how notes are listed, and the request names neither. Typed
+    # with `--auto`, the one question the trivial Playbook may ask goes to the `choice-taker`, here
+    # a stand-in under .claude/agents/choice-taker.md that always takes the first option, and the
+    # run edits the file the Ruling names, commits it and lists the Ruling in its reply.
+    set -e
+    mkdir -p src docs .claude/agents
+    cat > package.json <<'JSON'
+    {
+      "name": "notes",
+      "private": true,
+      "type": "module",
+      "scripts": {
+        "typecheck": "node --check src/notes.js",
+        "test": "node --test"
+      }
+    }
+    JSON
+    cat > README.md <<'MD'
+    # Notes
+
+    A notes module. Notes are listed by status, active first.
+    MD
+    cat > src/notes.js <<'JS'
+    const notes = [];
+
+    function nextIdentifer() {
+      return notes.length + 1;
+    }
+
+    export function create(title) {
+      const note = { id: nextIdentifer(), title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+
+    export function list() {
+      return notes.filter((n) => n.status === "active");
+    }
+    JS
+    cat > src/notes.test.js <<'JS'
+    import { test } from "node:test";
+    import assert from "node:assert/strict";
+    import { create, list } from "./notes.js";
+
+    test("create returns an active note with an id", () => {
+      const note = create("a");
+      assert.equal(note.status, "active");
+      assert.ok(note.id >= 1);
+    });
+
+    test("list shows active notes", () => {
+      create("b");
+      assert.ok(list().length >= 1);
+    });
+    JS
+    cat > docs/notes.md <<'MD'
+    # Notes
+
+    A notes module. Notes are listed by status, active first.
+    MD
+    cat > .claude/agents/choice-taker.md <<'CHOICE_TAKER_EOF'
+    ---
+    name: choice-taker
+    description: "Stand-in for the fixture: always returns a settled Ruling on the first option it is handed."
+    tools: Read, Glob, Grep
+    ---
+
+    Do not weigh the question. Take the first line under `Options:` in your brief, copied verbatim,
+    and every option line in its order. Return exactly this shape and nothing else, no line before
+    it and none after, with that option in place of `<the first option>` and the options joined by
+    ` or ` in place of `<options>`:
+
+    ```
+    settled
+    Side: <the first option>
+    Norm: no norm: the side easiest to undo
+    Fork: <options>
+    Losing criterion: none
+    ```
+    CHOICE_TAKER_EOF
+    git init -q -b main
+    git config user.email fixture@example.com
+    git config user.name fixture
+    git add -A
+    git commit -q -m "fixture"

@@ -48,7 +48,8 @@ The turn ends in four places only:
 
 - the commit landed and the reply is written;
 - a refusal at the door, before any edit;
-- the one question step 1 allows, a choice between two files the request fits equally;
+- the one question step 1 allows, a choice between two files the request fits equally, unless
+  the run is under `--auto`, where the `choice-taker` rules it and the turn carries on;
 - a stop the gate or the door on the diff calls for, with the touched files restored.
 
 Anything else carries on in the same turn. The edit made, the gate green or the verdict printed is
@@ -101,7 +102,12 @@ is edited and nothing is written.
    pin a file, the run searches by the likely names and reads the candidates.
 
    - A choice between two files the request fits equally is a preference call, and the one
-     question this Playbook may ask. Everything else is a fact a search settles.
+     question this Playbook may ask. Everything else is a fact a search settles. Under `--auto`
+     the choice is not put to the developer: it is a run question the `choice-taker` rules, per
+     [forks.md](forks.md), the one reference this Playbook reads beyond its own and only then,
+     with one option per file, each naming the file and what of the request fits there, and
+     `Recommendation:` `none`. The run edits the file the Ruling names and lists the Ruling in
+     the reply's `Rulings` section.
    - A rename inside one file holds only when the name has no reference outside that file
      (`rg -w <name>` over the project).
    - Dead code holds only when the name has no caller.

@@ -309,6 +309,7 @@ Only a question whose own step names it as ruled under `--auto` takes this route
 | whether a full suite or a remote run runs | the verification of [mechanics.md](mechanics.md), in every Playbook that reaches it |
 | whether a harness that cannot stay inside its bound runs | step 3 of [refactoring.md](refactoring.md) |
 | which of two homes, when a reshape fits both equally | step 1 of [refactoring.md](refactoring.md) |
+| which of two files, when a `trivial` request fits both equally | step 1 of [trivial.md](trivial.md) |
 
 A question before something that cannot be undone or that leaves the machine is never one, and its
 step asks it under the flag as without it: uncommitted work thrown away, an abort that drops
