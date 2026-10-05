@@ -90,6 +90,9 @@ branch and `refs/heads/do/<slug>`, qualified so a same-named tag can never shado
   `git status --short`. A yes discards them, `git restore --staged --worktree .` then
   `git clean -fd` in the worktree; a no stops the run with the worktree as it is, the reply naming
   it and its branch.
+  Under `--auto` the question is still asked of the developer, in the same place and the same
+  words, with the `choice-taker`'s return shown above it as it came back, per the questions still
+  asked under the flag in [forks.md](forks.md), and nothing is discarded on that return.
 - A run that stopped as blocked resumes the same way once its reason is gone, since every stop on
   this path leaves the worktree and its branch in place and named: the developer's no at step 2 or
   step 7, an inconclusive verification, a `discuss` stop at step 4 once the design is settled.

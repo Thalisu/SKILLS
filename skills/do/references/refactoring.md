@@ -197,6 +197,12 @@ way it reads that state there:
 - a gone one is recreated on the existing branch;
 - a Review of the branch that counts lands through the fix call on it, never a second review.
 
+Uncommitted changes that resume finds in the worktree are asked about before they are discarded,
+as that Resume says: the question is the turn's final message, and nothing is discarded without
+the answer. Under `--auto` that question is still asked of the developer, in the same words, with
+the `choice-taker`'s return shown above it and nothing discarded on that return, per
+[forks.md](forks.md).
+
 The run continues at the first step its branch does not evidence, and a Review that counts decides
 the jump, not the cleanup commit: a branch carrying one, which a run stopped on the second no-op of
 its in-run resume at step 12 leaves, resumes at step 11 whether or not step 9 left a cleanup

@@ -242,6 +242,14 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   `git restore --staged --worktree .` then `git clean -fd` in the worktree, and the first
   behaviour without a commit restarts red-first;
   a no stops the run with the worktree as it is, the reply naming it and its branch.
+  Under `--auto` the question is still asked of the developer, in the same place and the same
+  words, and still nothing is stashed, committed or restored before their answer. It carries what
+  the `choice-taker` would have answered: the agent is forked on the question first and its return
+  rides above the question as it came back, per the questions still asked under the flag in
+  [forks.md](forks.md). The brief's `Options:` are `yes: discard the uncommitted changes and
+  restart the first behaviour without a commit` and `no: stop the run with the worktree as it
+  is`, and its `Context:` carries the `uncommitted=` lines. The run discards nothing on that
+  return.
 - A worktree the integration left mid-rebase is resumed like any other, and never started over: the
   stop leaves a detached HEAD, so `git worktree list` names the path without the branch and
   `git branch --show-current` in it comes back empty, while the branch itself is still there and a
@@ -379,6 +387,9 @@ they are neither ticked nor skipped, and the Reply's Run section carries steps 0
      discarding it, as the `verdict=ask` bullet above says, naming the tree and the Spec branch. A
      yes discards it and the run goes on as `verdict=restart` with the tree present; a no stops the
      run.
+     Under `--auto` the question is still asked of the developer, with the `choice-taker`'s
+     return above it as that bullet says, per [forks.md](forks.md), and nothing is discarded on
+     that return.
    - `verdict=land`, exit 4: the Review beside the Spec counts, so the review already read the
      Spec branch. The run integrates with no **Gate** of its own and lands through the fix call on
      that Review, as the review in [mechanics.md](mechanics.md) says for a branch the review

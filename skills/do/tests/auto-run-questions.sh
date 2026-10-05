@@ -184,5 +184,94 @@ carries_any "forks.md has the run do nothing on that return before the developer
   "never acts on" "does not act on" "not acted on" "acts on neither" "acts on nothing" \
   "never follows" "does not follow" "follows neither" "not followed"
 
+echo "# the discard of uncommitted work on a resume: still asked under --auto, with the choice-taker's answer shown and nothing discarded first"
+
+# A bullet is read from its marker to the first line that is not indented under it, so the bullets
+# nested in it come along and a blank line inside it does not cut it short.
+bullets_opening_on() { # $1 file, $2 a fixed string a bullet's marker line carries within its first 30 characters: each such bullet flattened, one per line, on stdout
+  bullet_key="$2" awk '
+    function flush() { if (on) print item; on = 0; item = "" }
+    {
+      match($0, /^ */)
+      lead = RLENGTH
+    }
+    on && $0 !~ /^ *$/ && lead <= indent { flush() }
+    !on && match($0, /^ *- /) {
+      at = index($0, ENVIRON["bullet_key"])
+      if (at > 0 && at - RLENGTH <= 30) { on = 1; indent = lead }
+    }
+    on { item = item " " $0 }
+    END { flush() }
+  ' "$1" | tr -s ' '
+}
+still_asked_with_the_answer_shown() { # $1 the place, its statement of the discard question flattened in $flat
+  if [ -z "$flat" ]; then
+    fail "$1 states the question before uncommitted changes are discarded (passage not found)"
+    return
+  fi
+  carries "$1 says what the discard question becomes under --auto" "--auto"
+  carries_any "$1 still asks the developer before the discard under --auto" \
+    "still asked" "still asks" "still put" "still the developer's" "asked of the developer" \
+    "asks the developer" "stay the developer's" "stays the developer's" "remain the developer's" \
+    "remains the developer's" "as without it" "as without the flag" "the flag as without" \
+    "asked all the same" "asks all the same" "asks it all the same" "never ruled" "not ruled" \
+    "never handed" "not handed" "rules nothing"
+  carries_any "$1 shows the choice-taker's answer on that question, itself or through forks.md" \
+    "choice-taker" "(forks.md)"
+}
+
+# ticket.md routes a resume on the script's verdict, one bullet per verdict: every bullet that opens
+# on `verdict=ask` and speaks of the discard states the question, in a Ticket run's resume and in a
+# stopped Final integration's alike.
+ask_bullets="$(bullets_opening_on "$ticket" "\`verdict=ask\`" | grep -i "discard")"
+expect "ticket.md states the discard question on verdict=ask for a Ticket run's resume and for a stopped Final integration" \
+  test "$(grep -c . <<<"$ask_bullets")" -ge 2
+n=0
+while IFS= read -r flat; do
+  n=$((n + 1))
+  still_asked_with_the_answer_shown "ticket.md's verdict=ask bullet $n"
+done <<<"$ask_bullets"
+
+# The bullet that words the question in full is the one the session writes it from.
+flat="$(grep -E "per file|uncommitted=" <<<"$ask_bullets" | head -n 1)"
+expect "ticket.md has a verdict=ask bullet that words the discard question in full" test -n "$flat"
+carries_any "ticket.md's discard question names the changes one line per file" \
+  "one line per file" "a line per file" "line per file" "one line each" "per file"
+# Read without the word `uncommitted`, which would answer for the commit.
+flat="${flat//uncommitted/}"
+carries_each "ticket.md has nothing stashed, committed or restored before the developer's answer" \
+  "stash" -- "commit" -- "restore" -- \
+  "without the answer" "before the answer" "before it" "until the answer" "without their answer" \
+  "before their answer" "before the developer answers" "until the developer answers" \
+  "without the developer's yes" "before the developer's yes" "without a yes" "before a yes"
+
+# refactoring.md's resume step, found as the first numbered step that speaks of the discard, read in
+# the paragraphs that do.
+resume_heading="$(awk '
+  /^### [0-9]+\./ { heading = $0 }
+  heading != "" && tolower($0) ~ /discard/ { print heading; exit }
+' "$refactoring")"
+flat=""
+if [ -n "$resume_heading" ]; then
+  flat="$(paragraph_with <(item_holding "$refactoring" '### [0-9]+\.' "$resume_heading") "iscard" all |
+    tr '\n' ' ' | tr -s ' ')"
+fi
+still_asked_with_the_answer_shown "refactoring.md's resume step"
+carries_any "refactoring.md's resume step puts its question before uncommitted changes" \
+  "uncommitted" "Uncommitted"
+
+# The home those steps send the reader to counts the discard among the questions still asked, and
+# has nothing discarded on the choice-taker's return.
+section="$(passage_of "$forks" "### A run question under" "### ")"
+flat="$(for anchor in "cannot be undone" "leaves the machine" "irreversible" "still asked" \
+  "still asks" "still put"; do
+  paragraph_with <(printf '%s\n' "$section") "$anchor" all
+done | awk '!seen[$0]++' | tr '\n' ' ' | tr -s ' ')"
+carries_each "forks.md counts uncommitted work discarded among the questions still asked under --auto" \
+  "uncommitted" "Uncommitted" -- "thrown away" "discard"
+carries_any "forks.md has nothing discarded on the choice-taker's return before the developer answers" \
+  "nothing is discarded" "nothing discarded" "discards nothing" "no discard" "never discards" \
+  "not discarded"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1
