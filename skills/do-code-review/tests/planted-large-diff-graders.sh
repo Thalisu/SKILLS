@@ -45,5 +45,21 @@ grade_fails "planted-large-diff: a run whose forks all name Shard 1 of 1 fails r
 grade_fails "planted-large-diff: a run holding only a Spec reviewer fork with its Shard manifest: line fails reviewers-forked-for-more-than-one-shard" \
   "$(run_of do-code-review-spec-reviewer s1 "" "$spec_fork")"
 
+two_shard_forks=(do-code-review-technical-reviewer s1 "" "$(reviewer_brief technical "1 of 2, 14 files, 61200 tokens" shard-1.technical.md manifest)"
+-- do-code-review-security-reviewer s1 "" "$(reviewer_brief security "1 of 2, 14 files, 61200 tokens" shard-1.security.md manifest)"
+-- do-code-review-technical-reviewer s1 "" "$(reviewer_brief technical "2 of 2, 9 files, 58400 tokens" shard-2.technical.md manifest)"
+-- do-code-review-security-reviewer s1 "" "$(reviewer_brief security "2 of 2, 9 files, 58400 tokens" shard-2.security.md manifest)")
+
+# shellcheck disable=SC2034 # read by lib.sh's grade_passes and grade_fails
+grader="$here/../evals/planted-large-diff/graders/spec-reviewer-forked-once.md"
+grade_passes "planted-large-diff: a two-Shard run that forks the Spec reviewer exactly once passes spec-reviewer-forked-once" \
+  "$(run_of "${two_shard_forks[@]}" -- do-code-review-spec-reviewer s1 "" "$spec_fork")"
+grade_fails "planted-large-diff: a two-Shard run that forks no Spec reviewer fails spec-reviewer-forked-once" \
+  "$(run_of "${two_shard_forks[@]}")"
+grade_fails "planted-large-diff: a two-Shard run that forks one Spec reviewer per Shard fails spec-reviewer-forked-once" \
+  "$(run_of "${two_shard_forks[@]}" \
+    -- do-code-review-spec-reviewer s1 "" "$(reviewer_brief spec "1 of 2, 14 files, 61200 tokens" shard-1.spec.md manifest)" \
+    -- do-code-review-spec-reviewer s1 "" "$(reviewer_brief spec "2 of 2, 9 files, 58400 tokens" shard-2.spec.md manifest)")"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1
