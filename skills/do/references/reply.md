@@ -283,8 +283,16 @@ Ten sections, in this order, each one present in every Reply that carries sectio
      `Criterion:` and `Now reads:` lines, for the developer to carry to the issues: on a no, a
      refused write or a stop, nothing else carries it. A Ruling an earlier session held and never
      posted is lost.
-   - **`none`** when the Spec carries no such line and this run holds none of its own, and on
-     every Playbook but `ticket`.
+   - **A Ruling on a run question.** A Ruling the `choice-taker` made under `--auto` on a
+     question about the run itself, the run questions in [forks.md](forks.md), follows the Spec's
+     lines, one line per Ruling in the order the run met them, in the same shape:
+     `<option A> or <option B>: <the option taken>. Norm: <the norm>.` Each slot is read back from
+     the return's own `Fork:`, `Side:` and `Norm:` lines. That Ruling sits in no file, so this
+     section is the one place the developer reads what was decided for them: it is listed on
+     every Playbook, and on a blocked reply as well as a finished one.
+   - **`none`** when the Spec carries no such line, this run holds none of its own and it ruled
+     no run question. A Playbook other than `ticket` has no Spec line to list, so its section
+     reads `none` unless a run question was ruled.
 7. **Skipped.** Every skipped step as `<step>: skip: <reason>`, copied from the checklist, and
    only the steps the run reached: a step it never came to was never considered, so it is not a
    skip and is not listed.

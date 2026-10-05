@@ -324,6 +324,13 @@ Where the step would have written the question, the session takes these steps in
      run, so a fact left out of the brief is a fact it rules without.
 2. On a `settled` Ruling, do what the step says for the answer its `Side:` line names, as if the
    developer had typed that answer, and carry on. No message asks the developer to confirm it.
+3. Write the Ruling to no file. It decides how this run goes and nothing about what the feature
+   is, so none of the writes of a Design fork's Ruling apply: no line is appended to the Spec's
+   Implementation Decisions, no Ticket criterion is rewritten, no Digest is re-cut and no commit
+   is made for it. A later Ticket reads its Rulings from the Spec, and a choice that only steered
+   one run must not be found there as a decision. The session keeps the return's `Fork:`, `Side:`
+   and `Norm:` lines as they came back, and the Reply lists the Ruling under `Rulings`, per
+   [reply.md](reply.md), on a run that finished and on one that stopped alike.
 
 ### Resume after a stop, and a Ruling the developer reverses
 
