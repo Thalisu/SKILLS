@@ -22,6 +22,7 @@ You invoke this by typing `/discuss`, and the agent won't reach for it on its ow
 | Ask | Use |
 |---|---|
 | stress-test a plan, a feature, a refactor or a fix before building it | `/discuss <the plan>` |
+| have the plan's branches settled without you, for one run | `/discuss --auto <the plan>`; the flag can sit before, after or inside the plan |
 | understand how a subsystem works, with no plan on the table | a walkthrough, or read the code |
 | settle the shape (types, signatures, module boundaries) once the decisions are made | an architect-style skill; the closing summary names the moment for it |
 | turn the decisions into a spec once the session closes | [spec](spec.md), typed by you; the closing summary is its input and ends by naming it |
@@ -38,7 +39,9 @@ The skill writes into the project: `CONTEXT.md` (at the root, or the context's o
 first term and the first ADR the close writes, and left uncommitted for you. Nothing else in the
 project is written, and no code is edited. A runnable branch adds the prototype's own files, marked
 throwaway, kept out of version control (a temp directory, or the repository's local exclude plus a
-two-line mount) and listed in the closing summary.
+two-line mount) and listed in the closing summary. `--auto` needs the `choice-taker` agent linked,
+which `scripts/link-skills.sh` does with the rest; without it the run asks you every branch, saying
+why.
 
 ## Branch, lens, tell
 
@@ -98,7 +101,51 @@ instead, on a part of the brief it could neither read off the code nor infer saf
 answers it from the repository when it can and otherwise puts it to you as an ordinary question,
 then resumes the same agent with the answer. A second prototype is never started for it.
 
+## Under `--auto`
+
+`/discuss --auto <the plan>` hands the interview over for one run
+([ADR 0045](adr/0045-auto-hands-direction-to-the-choice-taker-and-four-classes-still-stop.md)).
+The token is dropped wherever it sat and the rest is the plan. The repository still answers first.
+Every branch it cannot close, the one question that branch would have been, goes to the
+`choice-taker` agent, which rules it from the norms the repository writes down, and the run reaches
+its close without waiting on you.
+
+- Each branch is sent on its own, in walk order, with the plan, the grounding note and every branch
+  closed so far, so no branch is ruled against a decision the session already took.
+- A branch ruled that way closes in a fourth state, **ruled**, holding the option taken, the norm
+  behind it and the options it beat.
+- A runnable branch is ruled unseen, from a description of its candidates. No prototype is built,
+  since nobody is there to open it, and its line carries the `/prototype` command that would show
+  it.
+- A contradiction between the plan and the code is ruled like any other branch and listed as
+  ruled, never as your pick.
+
+What you find afterwards:
+
+| Where | The mark |
+|---|---|
+| the closing summary | a `Rulings` section apart from the decisions, one line per ruled branch; a ruled branch never appears among the decisions, which reach the spec as yours |
+| an ADR written from a ruled branch | the line `Ruled by the choice-taker under --auto: <norm>` directly under its title; an ADR from a branch you decided never carries it |
+| the last line of the summary | `/spec --auto`, so pasting it keeps the mode at the next skill |
+
+Of the four classes ADR 0045 keeps for you, a `discuss` run can meet one, the Extreme fork: it
+discards no work, drops no commit and writes to no tracker. These still reach you under the flag:
+
+| What happened | What reaches you |
+|---|---|
+| the plan was left out | the ask for it, as without the flag |
+| the `choice-taker` returned `extreme`: an option weakens a guarantee in a risk class or cannot be undone | that branch as one question, carrying what the agent returned: the tell names the weaker side and the guarantee it gives up, and the recommendation is the side that keeps it. The walk resumes under the flag at the next branch |
+| its return was no ruling: a broken shape, an option it was never handed, or a term your glossary does not define | that branch as one question, with the reason in one line before it. It is never sent to the agent a second time |
+| it could not be forked: the agent is not linked, or the Agent tool is withheld | that branch and every one after it, asked as without the flag, with the reason said once |
+
+No other agent, and never the session itself, rules in the `choice-taker`'s place.
+
 ## Common questions
+
+**I ran it with `--auto` and it still asked me something. Why?**
+The line before the question, or its tell, says which row of the table above it was: an `extreme`
+return, a return that was no ruling, or an agent that could not be forked. Answer it and the branch
+closes as yours, decided, default or deferred, with no `ruled` row.
 
 **Why did it not ask me about something the plan clearly depends on?**
 Either the repository answered it, in which case the grounding note or the tree names the evidence
@@ -140,6 +187,9 @@ reverse.
 - A prototype that had to ask reaches you as one ordinary question, and the same prototype carries
   on after your answer.
 - The closing summary lists every branch as decided, default or deferred, and names the next step.
+- After an `--auto` run, every branch you were not asked about has a line under `Rulings` in the
+  summary, each ADR written from one opens with `Ruled by the choice-taker under --auto:` under its
+  title, and the last line reads `/spec --auto`.
 
 ## Where it fits
 
@@ -151,6 +201,8 @@ shape is settled and before any code is written.
 - [prototype](prototype.md), because a runnable branch forks its agent; [journey](journey.md) does
   the same for a runnable fork.
 - [spec](spec.md), because the closing summary is its input: the session ends by naming it.
+- The [`choice-taker`](../skills/do/agents/choice-taker.md) agent, because under `--auto` it rules
+  every branch you would have been asked.
 - The principles under [`.agents/principles/`](../.agents/principles/README.md), because every
   lens is one of them turned into a question.
 
