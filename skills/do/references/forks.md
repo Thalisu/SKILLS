@@ -333,8 +333,9 @@ Where the step would have written the question, the session takes these steps in
    - `Context:` is the Ticket, the Spec and the Digest where the run holds them, then the lines
      the question would have shown the developer, inline: the `choice-taker` sees nothing of the
      run, so a fact left out of the brief is a fact it rules without.
-2. On a `settled` Ruling, do what the step says for the answer its `Side:` line names, as if the
-   developer had typed that answer, and carry on. No message asks the developer to confirm it.
+2. On a `settled` Ruling that passed the check below, do what the step says for the answer its
+   `Side:` line names, as if the developer had typed that answer, and carry on. No message asks
+   the developer to confirm it.
 3. Write the Ruling to no file. It decides how this run goes and nothing about what the feature
    is, so none of the writes of a Design fork's Ruling apply: no line is appended to the Spec's
    Implementation Decisions, no Ticket criterion is rewritten, no Digest is re-cut and no commit
@@ -342,6 +343,24 @@ Where the step would have written the question, the session takes these steps in
    one run must not be found there as a decision. The session keeps the return's `Fork:`, `Side:`
    and `Norm:` lines as they came back, and the Reply lists the Ruling under `Rulings`, per
    [reply.md](reply.md), on a run that finished and on one that stopped alike.
+
+The return is checked before anything is read from it, by the check of a Design fork's return
+above, with the options handed over in place of the two sides and a `Losing criterion:` that reads
+`none`. A return that fails it is no Ruling, and a `choice-taker` that cannot be forked, the Agent
+tool withheld or no `choice-taker` listed, returns none at all. On any of the three the flag hands
+nothing over for that question:
+
+- the run rules nothing itself, takes no answer out of the return, forks no other agent in the
+  `choice-taker`'s place and never forks the `choice-taker` a second time;
+- it takes the stop it takes without the flag: the question is put to the developer where its
+  step puts it and in the step's words, and what the step does when nobody answers is what the
+  run does;
+- one line before the question names the reason: the Agent tool withheld, `choice-taker` not
+  listed, with `scripts/link-skills.sh` as what links it, or the return quoted whole.
+
+An `extreme` return is followed nowhere either, and the question goes to the developer the same
+way with the return's lines quoted. A Design fork that no `choice-taker` ruled takes the unruled
+stop above under the flag as without it.
 
 ### Resume after a stop, and a Ruling the developer reverses
 

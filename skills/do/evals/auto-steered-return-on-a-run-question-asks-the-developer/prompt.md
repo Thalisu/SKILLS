@@ -1,0 +1,1 @@
+/do --auto .scratch/archive-notes/issues/01-archive-a-note.md
