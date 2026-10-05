@@ -372,5 +372,62 @@ flat="$({
 } | tr '\n' ' ' | tr -s ' ')"
 still_asked_with_the_answer_shown "refactoring.md's index of questions" "$revert_question" "$revert_moment"
 
+echo "# a claim or a close on a remote tracker: the yes is still asked under --auto, every write listed in order, with the choice-taker's answer shown, and a no writes nothing"
+
+reply="$here/../references/reply.md"
+tracker_question="the tracker question"
+tracker_moment="before a write to the remote tracker"
+
+# The claim, in the bullet that says what it is on a remote tracker. The bullet opens on the local
+# claim, so it is read from its first sentence naming the tracker on: a flag named for the local
+# write never answers for the issue's.
+claim_bullet="$(bullets_opening_on "$mech" "- " | grep -F "remote tracker" | grep -F "Yours: outward:" |
+  grep -i "claim" | head -n 1)"
+expect "mechanics.md has a bullet whose claim on a remote tracker waits for a yes under Yours: outward:" \
+  test -n "$claim_bullet"
+flat="$(awk 'BEGIN { RS = "\\.[ \n]" } /remote tracker/ { on = 1 } on { print }' <<<"$claim_bullet" |
+  tr '\n' ' ' | tr -s ' ')"
+still_asked_with_the_answer_shown "mechanics.md's claim on a remote tracker" "$tracker_question" "$tracker_moment"
+
+# The close's one question, in the numbered item that carries the line: its list of writes and what
+# a yes and a no do come along with it.
+flat="$(item_holding <(passage_of "$mech" "## The close" "## ") '[0-9]+\.' "Yours: outward:" |
+  tr '\n' ' ' | tr -s ' ')"
+expect "mechanics.md's close has an item whose one question carries Yours: outward:" test -n "$flat"
+carries_any "mechanics.md's close question lists every write the yes makes" \
+  "every write" "each write" "all the writes" "all of the writes"
+carries_any "mechanics.md's close question lists those writes in the order the yes makes them" \
+  "in the order" "in that order" "in order" "in this order"
+carries_any "mechanics.md's close makes no write to the tracker on a no" \
+  "no makes none" "no that makes none" "no writes nothing" "nothing is written" "writes nothing" \
+  "no write is made" "makes no write"
+still_asked_with_the_answer_shown "mechanics.md's close on a remote tracker" "$tracker_question" "$tracker_moment"
+
+# The Playbook restates both at its own steps, which are what the session is reading there: each is
+# read in the paragraph that names the line.
+outward_paragraphs="$(paragraph_with "$ticket" "Yours: outward:" all | tr -s ' ')"
+flat="$(grep -i "claim" <<<"$outward_paragraphs" | grep -F "remote tracker" | head -n 1)"
+still_asked_with_the_answer_shown "ticket.md's claim step, on a remote tracker," "$tracker_question" "$tracker_moment"
+flat="$(grep -E "every write|each write|all the writes|all of the writes" <<<"$outward_paragraphs" | head -n 1)"
+still_asked_with_the_answer_shown "ticket.md's close step, on a Ticket that is an issue," \
+  "$tracker_question" "$tracker_moment"
+
+# The reply contract, in the bullet that gives a write to a remote tracker its `outward` line.
+flat="$(bullets_opening_on "$reply" "- " | grep -F "remote tracker" | grep -F "outward" | head -n 1)"
+still_asked_with_the_answer_shown "reply.md's bullet on a write to a remote tracker" \
+  "$tracker_question" "$tracker_moment"
+
+# The home those steps send the reader to counts a tracker write among the questions still asked,
+# and its table of the questions the choice-taker rules has no row for one.
+section="$(passage_of "$forks" "### A run question under" "### ")"
+flat="$(for anchor in "cannot be undone" "leaves the machine" "irreversible" "still asked" \
+  "still asks" "still put"; do
+  paragraph_with <(printf '%s\n' "$section") "$anchor" all
+done | awk '!seen[$0]++' | tr '\n' ' ' | tr -s ' ')"
+carries_any "forks.md counts a write to a remote tracker among the questions still asked under --auto" \
+  "remote tracker"
+flat="$(grep '^|' <<<"$section" | grep -iE 'tracker|issue')"
+expect "forks.md's table of run questions has no row for a write to a remote tracker" test -z "$flat"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1

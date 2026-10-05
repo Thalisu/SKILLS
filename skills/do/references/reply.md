@@ -425,7 +425,9 @@ Two writes outside the repository have a fixed place:
   choice, never the push.
 - **A write to a remote tracker.** The question a run puts before a write to a remote tracker, the
   claim's and the close's, carries the same line under `outward`, its choice the yes that makes
-  every write the question lists or the no that makes none of them.
+  every write the question lists or the no that makes none of them. Under `--auto` the question
+  is still asked of the developer and carries that line all the same, with the `choice-taker`'s
+  return on lines of its own above the question, per [forks.md](forks.md).
 
 ## Whole replies
 

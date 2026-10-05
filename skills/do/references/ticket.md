@@ -750,7 +750,9 @@ file in [mechanics.md](mechanics.md) says: the `**Status:**` line set to `claime
 `Claimed: <the Ticket's path or reference>`, is recorded for the Reply's Run section once it is
 written. On a remote
 tracker the run waits for a yes before it, asked with the `Yours: outward:` line the claim in
-[mechanics.md](mechanics.md) carries; a no stops the run with nothing written. On a local
+[mechanics.md](mechanics.md) carries; a no stops the run with nothing written. Under `--auto`
+that question is still asked of the developer, with the `choice-taker`'s return shown above it,
+per [forks.md](forks.md). On a local
 Ticket it proceeds without one, per
 [never-block-on-the-human](../../../.agents/principles/never-block-on-the-human.md): the claim is
 a reversible file write, and an interrupt costs the developer one turn.
@@ -1006,7 +1008,8 @@ flow is green or recorded as not run on the developer's no, or the step reads
 ticked where the evidence proves it, the evidence appended under `## Evidence` with the
 `Context:` line first and the `Forks:` line after it, the status line set to `resolved`, the file left uncommitted, or, on a
 Ticket that is an issue, the one question listing every write the yes makes, the held Rulings'
-among them, under its `Yours: outward:` line; then the Completion check,
+among them, under its `Yours: outward:` line, a question still asked of the developer under
+`--auto`, with the `choice-taker`'s return shown above it, per [forks.md](forks.md); then the Completion check,
 `bash <skill-dir>/scripts/completion-check.sh <the Ticket's path>`, run only after the `resolved`
 write, so the last of two concurrent runs always sees every Ticket resolved, with its `open=` and
 `next=` lines recorded for the Reply; then the worktree and its branch removed. A Ticket that is a
