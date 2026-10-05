@@ -18,6 +18,7 @@ its suite, so it runs offline with node alone. The planted diff keeps its Ticket
 | case | checks |
 |---|---|
 | `planted-diff` | five defects and a clean hunk on a branch whose Ticket the prompt hands over as `do` does: each defect in its expected Bucket at or above its minimum Rung, the clean hunk with no `Act on`, no Rung 1 or 2 in `Act on`, each location once, six Axis lines, no principle without a location, the reviewer with no write or edit tool, the Review beside the Ticket, named after it, with `Ticket:` naming it |
+| `planted-large-diff` | a generated diff of about 830 kB on a branch whose Ticket the prompt hands over, cut by path into two Shards, one defect planted in a hand-written file of each: a reviewer forked for a Shard after the first, the Spec reviewer forked exactly once, one Review beside the Ticket with the Findings of both Shards grouped by Bucket and numbered once, six Axis lines with one Spec line that is the Spec reviewer's own, and each planted defect found once at its file and line |
 | `ref-does-not-resolve` | `/do-code-review nope` ends in one line, `nope does not resolve; nothing reviewed`, and writes nothing |
 | `empty-diff` | a clean tree on the base branch ends in one line, `no diff between main (<sha>) and the working tree; nothing reviewed`, and writes nothing |
 | `no-spec` | a branch with no spec and no tracker file: five Axes reported, the Spec line reading `no spec`, nothing asked, the Review named after the branch |
