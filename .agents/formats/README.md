@@ -10,7 +10,7 @@ read by one skill only stays in that skill's `references/`.
 |---|---|---|
 | [context-format.md](context-format.md) | `discuss`, `journey` | every skill that grounds on `CONTEXT.md` |
 | [adr-format.md](adr-format.md) | `discuss` | every skill that reads `docs/adr/` |
-| [spec-format.md](spec-format.md) | `spec`; `journey` edits it in place | `journey`, `tickets` |
+| [spec-format.md](spec-format.md) | `spec`; `journey` edits it in place | `journey`, `tickets`; its `Front-end:` header line is for `tickets` and `do` |
 | [journey-format.md](journey-format.md) | `journey` | `tickets` |
 | [ticket-format.md](ticket-format.md) | `tickets`; `do` edits it in place | `do`, `do-code-review` |
 | [review-format.md](review-format.md) | `do-code-review` | `do`, the Fixers |

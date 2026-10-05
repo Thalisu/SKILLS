@@ -6,11 +6,17 @@ and `tickets` cuts from them.
 
 ## Header
 
-Two lines directly under the title, before the first section:
+Three lines directly under the title, before the first section:
 
 - `Journey: required`, or `Journey: not needed, <the condition in a few words>`: the verdict of
   step 4 of the skill. `journey` replaces it with `Journey: ./journey.md` in local mode, or with a
   link to the journey in a remote tracker, once the journey exists.
+- `Front-end: none`, `Front-end: builder` or `Front-end: impeccable`, directly after the `Journey:`
+  line: who builds the feature's front-end. `none` when no User Story has a screen, read off the
+  stories by `spec`; `builder`, the chain's own Builder, or `impeccable`, the developer's answer
+  when a story has one. The line has these three values and no other. A Spec with no `Front-end:`
+  line reads as `none`: it was written before the line existed, and it goes down the chain as it
+  did then.
 - `Status: ready-for-agent`, in local mode, where the tracker file records triage state as a
   `Status:` line. In a remote tracker the label is applied instead, when the project's triage
   vocabulary exists; otherwise the line is omitted.
@@ -21,6 +27,7 @@ Two lines directly under the title, before the first section:
 # {Feature title}
 
 Journey: {required | not needed, <condition>}
+Front-end: {none | builder | impeccable}
 Status: ready-for-agent
 
 ## Problem Statement

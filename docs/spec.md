@@ -8,11 +8,12 @@ the spec where the project's issue tracker file points (a markdown file under `.
 issue) and closes by naming the exact next command. It never interviews you: the decisions come from
 the conversation, normally the closing summary of a [discuss](discuss.md) session, and the one thing
 it checks with you is the seams the tests will drive the feature through, skipped when the summary
-already names them.
+already names them. A feature with a screen earns one more question, who builds its front-end.
 
 The spec it writes carries a verdict. By reading the structure of its own user stories, `spec`
 decides whether the feature needs a journey before tickets are cut, and writes that decision under
-the title as a `Journey:` line, where the next skills read it.
+the title as a `Journey:` line, where the next skills read it. The same reading gives the spec a
+`Front-end:` line directly after it.
 
 ## When to reach for it
 
@@ -53,6 +54,22 @@ wrote, and the first matching row is the verdict:
 The rule reads structure and never size, so two runs on the same spec route the same way. The
 chain is strict from here: `tickets` refuses a spec that says `required` and has no journey beside
 it, and `do` builds one ticket, so `spec` never names it.
+
+## The front-end line
+
+`spec` reads the user stories for a screen (a page, a route, a form, one control on a screen that
+already exists) and never asks you whether the feature has a front-end. What it finds decides the
+`Front-end:` line, written directly after the `Journey:` line:
+
+| The stories | What happens | The line |
+|---|---|---|
+| have no screen: an API, a job, a migration, a refactor, a library | nothing is asked | `Front-end: none` |
+| have a screen | one question, before anything is written: who builds the front-end, the chain's Builder or impeccable | `Front-end: builder` or `Front-end: impeccable`, your answer |
+
+The question recommends `builder`, which needs nothing in place. impeccable needs a one-time setup
+that you run by hand, and [tickets](tickets.md) publishes that setup as a Setup ticket, so the
+message says it before you choose. A spec written before the line existed has none, and it reads
+as `none`.
 
 ## Under `--auto`
 
@@ -117,11 +134,14 @@ about the forks the precedent does not settle, so a small page closes fast.
 
 ## It's working if
 
-- The only thing it asks is whether the seams match, and it does not ask even that when the
-  summary already names them.
+- The only thing it asks about the plan is whether the seams match, and it does not ask even that
+  when the summary already names them.
+- A feature with no screen is asked nothing about builders and its spec reads `Front-end: none`. A
+  feature with a screen is asked once who builds the front-end, and the spec carries the answer.
 - Under `--auto` it asks nothing when a ruling can be had, and every seam in the spec's Testing
   Decisions reads confirmed, taken or ruled.
-- The spec appears at the path the closing summary prints, with a `Journey:` line under its title.
+- The spec appears at the path the closing summary prints, with a `Journey:` line under its title
+  and a `Front-end:` line directly after it.
 - A local spec's folder carries the day it was written, and a rerun lands in that same folder
   instead of opening a second one.
 - The last line of the summary is a command you can run as it is.
