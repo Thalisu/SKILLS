@@ -301,6 +301,13 @@ Only a question whose own step names it as ruled under `--auto` takes this route
 |---|---|
 | continue or stop, on a resumed integration whose rebase is open with no conflicted file | the Resume of [ticket.md](ticket.md) |
 | whether a full suite or a remote run runs | the verification of [mechanics.md](mechanics.md), in every Playbook that reaches it |
+| whether a harness that cannot stay inside its bound runs | step 3 of [refactoring.md](refactoring.md) |
+| which of two homes, when a reshape fits both equally | step 1 of [refactoring.md](refactoring.md) |
+
+A question before something that cannot be undone or that leaves the machine is never one, and its
+step asks it under the flag as without it: uncommitted work thrown away, an abort that drops
+commits or a branch deleted with every commit on it, and any write to a remote tracker. That ADR
+keeps those the developer's.
 
 Where the step would have written the question, the session takes these steps instead:
 

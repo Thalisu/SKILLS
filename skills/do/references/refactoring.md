@@ -47,10 +47,12 @@ The run asks the developer in these places and no other:
 
 The questions of steps 1 and 8 are the two this Playbook raises of its own. The other three are
 yeses the shared references reserve to the developer, and they are asked whenever the run reaches
-them, never waived. Under `--auto` the developer handed the run's direction over, and the question
-of step 13, whether a full suite or a remote run runs, is ruled by the `choice-taker` in their
-place, per [forks.md](forks.md): the run reaches it all the same, and it is handed over, never
-waived.
+them, never waived. Under `--auto` the developer handed the run's direction over, and the
+questions of steps 1, 3 and 13 (the two homes, the harness outside its bound, the full suite or
+remote run) are ruled by the `choice-taker` in their place, per [forks.md](forks.md): the run
+reaches each all the same, and it is handed over, never waived. The questions of steps 2 and 8 are
+still asked of the developer under `--auto`, since a discard and a revert that deletes the branch
+cannot be undone.
 
 The run stops, in one message or as blocked, in these places:
 
@@ -142,7 +144,11 @@ Four checks, before any edit and in this order.
    them in one wave, per
    [migrate-callers-then-delete-legacy-apis](../../../.agents/principles/migrate-callers-then-delete-legacy-apis.md).
    A choice between two homes the request fits equally is a preference call and one of the two
-   questions this Playbook raises of its own; everything else is a fact a search settles.
+   questions this Playbook raises of its own; everything else is a fact a search settles. Under
+   `--auto` that choice is not put to the developer: it is a run question the `choice-taker`
+   rules, per [forks.md](forks.md), with one option per home, each naming the home and what of
+   the request fits there, and the home the run would take as its `Recommendation:`, or `none`.
+   The run takes the home the Ruling names and carries on.
 3. **The discover batch.** The names the reshape will create (the extracted module, the new type,
    the registry) are checked before the first of them exists, the way the Discovery rule fixes: one
    `discover` batch for two or more names, one `rg -n -w` for a single one. A name that comes back
@@ -257,6 +263,11 @@ harness's command line first and waits for the same yes [mechanics.md](mechanics
 before a remote run, since the cost of touching the real system is the developer's to weigh. A no
 leaves this part reading `skip: the behaviour cannot be driven inside the harness's bound`, and the
 gap the harness would have covered is named as debt in the reply the same way step 9 names one.
+Under `--auto` that yes is not the developer's to give: it is a run question the `choice-taker`
+rules, per [forks.md](forks.md), with the options `yes: run <the harness's command line>` and
+`no: leave the behaviour undriven`, `Recommendation:` `none`, and the command line with what it
+would touch in `Context:`. A Ruling for `yes` runs the harness, one for `no` takes the no above,
+and the run carries on either way.
 
 #### The target-interface test
 
@@ -499,7 +510,7 @@ asks one question, the second and last this Playbook raises of its own:
 A yes that [mechanics.md](mechanics.md) reserves to the developer is not one of the two and is never
 waived here: step 3 carries one when the harness cannot stay inside its bound, and step 13 carries
 the question before a full suite or a remote run. Both are asked whenever the run reaches them,
-and under `--auto` the question of step 13 goes to the `choice-taker`, per [forks.md](forks.md).
+and under `--auto` both go to the `choice-taker`, per [forks.md](forks.md).
 
 Done when the answer and its reason are recorded for the Reply's Run section, with the developer's
 answer when the test failed.
