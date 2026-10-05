@@ -199,5 +199,43 @@ else
   fail "the amended-Spec paragraph names the Plan step (paragraph: $amended_para)"
 fi
 
+echo "# an Extreme fork under --auto: the run still stops on its /discuss line, and the sidecar keeps the next /do from ruling the fork a second time"
+
+# Both sections are found by what they carry, never by their heading: the Extreme one by the
+# `/discuss` command it fixes, the Design one as the first to fork the choice-taker by name. Each is
+# read in its own paragraphs naming the flag, so the run-question section's sentence on an `extreme`
+# return, which is about a run question, never answers for a Design fork here.
+extreme_section="$(item_holding "$forks" '### ' "/discuss Ticket <")"
+expect "forks.md carries the section fixing the Extreme stop's /discuss command" test -n "$extreme_section"
+flat="$(paragraph_with <(printf '%s\n' "$extreme_section") "--auto" all | tr '\n' ' ' | tr -s ' ')"
+if [ -z "$flat" ]; then
+  fail "forks.md's Extreme fork section says what --auto does to the stop (no paragraph of it names --auto)"
+else
+  carries_each "forks.md's Extreme fork section has the run stop under --auto, the flag handing the fork to nothing" \
+    "stop" -- \
+    "as without it" "as without the flag" "the flag as without" "with or without" "hands nothing over" \
+    "never hands" "does not hand" "not handed" "never handed" "hands no" "never ruled" "not ruled" \
+    "rules nothing" "nothing in the run rules" "changes nothing" "adds nothing" "no route" \
+    "all the same" "the same way" "the same stop" "still stops" "leaves the stop" "unchanged" \
+    "stays the developer's" "remains the developer's" "the developer's alone"
+  carries_any "forks.md's Extreme fork section follows the choice-taker's extreme return or the session's own reading under --auto" \
+    "choice-taker" "reading" "read as Extreme" "reads as Extreme"
+  carries_any "forks.md's Extreme fork section stops the run under --auto on its /discuss line" \
+    "/discuss" "\`discuss\`" "recorded command"
+  carries_any "forks.md's Extreme fork section still writes the sidecar under --auto" \
+    "sidecar" ".extreme.md"
+  carries_any "forks.md's Extreme fork section writes that sidecar beside a claimed Ticket under --auto" \
+    "claimed"
+  carries_any "forks.md's Extreme fork section has the next /do read the recorded fork, never rule it a second time" \
+    "resume" "next \`/do\`" "rerun" "second time" "recorded" "typed again"
+fi
+
+design_section="$(item_holding "$forks" '### ' "subagent_type: choice-taker")"
+expect "forks.md carries the section whose steps fork the choice-taker on a Design fork" test -n "$design_section"
+flat="$(paragraph_with <(printf '%s\n' "$design_section") "--auto" all | tr '\n' ' ' | tr -s ' ')"
+expect "forks.md's Design fork section says what --auto does to a Design fork" test -n "$flat"
+carries_each "forks.md's Design fork section has an extreme return or a side read as Extreme stop the run under --auto" \
+  "extreme" "Extreme" -- "stop"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1

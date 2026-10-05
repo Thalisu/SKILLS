@@ -82,6 +82,8 @@ away: the same steps, the same brief, the same check, and a `settled` Ruling wri
 sections below say, so the Spec gains its one line, is read again and the run carries on with no
 commit for the Ruling. A Design fork is never taken as a run question, the last section of this
 file, whose Ruling amends no file: every later Ticket of the feature reads this one from the Spec.
+An Extreme fork is not handed over by the flag either: a side the session reads as Extreme, or an
+`extreme` return, stops the run under the flag as without it, per the Extreme fork section below.
 
 ### When no `choice-taker` can be forked
 
@@ -291,6 +293,13 @@ A side that cannot be undone once landed reads `<the weaker side> cannot be undo
 <what could not be undone>` in place of the clause after the semicolon. The message is one line,
 every slot filled from the stop's own facts and none from the session's wording, so a rerun that
 meets the same fork prints the same command.
+
+Under `--auto` an Extreme fork stops the run exactly as without it. The flag hands the run's
+direction to the `choice-taker`, and an Extreme fork is the one the `choice-taker` takes no side
+of, so nothing in the run rules it with the flag any more than without. Either reading still stops
+the run at its step, the blocked reply still ends on the `/discuss` command above, and a stop that
+leaves the Ticket `claimed` still writes the `<Ticket>.extreme.md` sidecar, so the next `/do` is a
+resume that stops on the recorded command and never rules the fork a second time.
 
 ### A run question under `--auto`
 
