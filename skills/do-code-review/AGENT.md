@@ -246,9 +246,14 @@ Then cut the diff, before any reviewer is forked, and keep what the script print
 directory:
 
 ```
-bash ~/.claude/skills/do-code-review/scripts/shards.sh <fixed point> > <that directory>/manifest.txt
+bash ~/.claude/skills/do-code-review/scripts/shards.sh <fixed point> <the Review paths> > <that directory>/manifest.txt
 grep -E '^(shards|shard)=' <that directory>/manifest.txt
 ```
+
+`<the Review paths>` are the files the door's `status=` line takes out by name: the path at the
+door's `review=`, and the `.review.md` beside the Ticket when that is another path, each as the
+door printed it. Without them a Review a previous run left in the tree is cut and listed as part
+of the diff.
 
 The script measures the diff and packs its files into Shards, so the size of the diff is its
 answer and never yours: you do not size or cut the diff by reading it. Read the `shards=` line and

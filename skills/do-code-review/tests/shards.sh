@@ -264,6 +264,57 @@ LC_ALL="$dictionary_locale" run "$fixed_point"
 out="$(moved_lines)"
 same "cuts the same diff the same way under a dictionary-order locale (listed: the lines that differ)" ""
 
+# The door leaves the Review a previous run wrote out of the diff by name, and no reviewer is meant to
+# read it: a cut that counts it shards a second review of the same branch on that file. Here the
+# untracked Review is larger than the budget on its own, beside two small real changes.
+repo_at_fixed_point excluded-review
+printf 'export function token(t) { return t; }\n' >src/auth.js
+printf 'test("page", () => {});\n' >notes.test.js
+large_file .scratch/reviews/x.md 24000
+auth="$(tracked_tokens src/auth.js)"
+notes_test="$(untracked_tokens notes.test.js)"
+run "$fixed_point"
+expect "the excluded-review run with no exclusion exits 0" test "$rc" = 0
+expect "the excluded-review fixture, its Review counted, is cut into more than one Shard" test "$(shard_lines)" -gt 1
+run "$fixed_point" .scratch/reviews/x.md
+check_lines "a diff under the budget beside an excluded Review is one Shard" 0 "$rc" "shards=1"
+out="$(after_header)"
+same "leaves an excluded untracked Review out of every file line and out of the Shard's tokens" \
+  "shard=1 tokens=$((auth + notes_test)) files=2
+file shard=1 tokens=$notes_test path=notes.test.js
+file shard=1 tokens=$auth path=src/auth.js"
+
+# The door prints each Review it leaves out as it found it: relative to the directory it was called
+# from, or absolute, and it may name one that is outside this repository or no longer there. Here two
+# untracked Reviews, each larger than the budget on its own, sit beside a Ticket and one real change.
+repo_at_fixed_point excluded-path-forms
+printf 'export function token(t) { return t; }\n' >src/auth.js
+issues=docs/specs
+mkdir -p "$issues" "$tmp/elsewhere"
+ticket a.md "**Status:** open" "None"
+large_file .scratch/reviews/x.md 24000
+large_file docs/specs/a.review.md 24000
+large_file "$tmp/elsewhere/x.review.md" 10
+auth="$(tracked_tokens src/auth.js)"
+a_ticket="$(untracked_tokens docs/specs/a.md)"
+without_reviews="shard=1 tokens=$((a_ticket + auth)) files=2
+file shard=1 tokens=$a_ticket path=docs/specs/a.md
+file shard=1 tokens=$auth path=src/auth.js"
+run "$fixed_point"
+expect "the excluded-path-forms run with no exclusion exits 0" test "$rc" = 0
+expect "the excluded-path-forms fixture, its Reviews counted, is cut into more than one Shard" test "$(shard_lines)" -gt 1
+run "$fixed_point" "$PWD/.scratch/reviews/x.md" docs/specs/a.review.md gone/b.review.md "$tmp/elsewhere/x.review.md"
+check_lines "Reviews excluded by absolute and relative path, beside a missing one and one outside the repository, leave one Shard" 0 "$rc" "shards=1"
+out="$(after_header)"
+same "leaves a Review out of every file line whether its path is absolute or relative to the repository root" "$without_reviews"
+absolute_review="$PWD/.scratch/reviews/x.md"
+cd src || exit 1
+run "$fixed_point" "$absolute_review" ../docs/specs/a.review.md ../gone/b.review.md "$tmp/elsewhere/x.review.md"
+cd .. || exit 1
+check_lines "Reviews excluded from a subdirectory, by absolute path and by a path relative to it, leave one Shard" 0 "$rc" "shards=1"
+out="$(after_header)"
+same "leaves a Review out of every file line when its path is relative to the subdirectory the caller stands in" "$without_reviews"
+
 echo
 if [ "$fails" = 0 ]; then echo "all green"; else echo "$fails failing"; fi
 exit "$fails"

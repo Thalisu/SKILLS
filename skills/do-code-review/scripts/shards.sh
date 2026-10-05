@@ -2,10 +2,12 @@
 # shards.sh: the Shards a review's diff is cut into, so the cut is a script's output rather than
 # the orchestrator's opinion and is the same on every run. ADR 0071, ADR 0072.
 #
-#   shards.sh <fixed point>
+#   shards.sh <fixed point> [<excluded path>...]
 #
 # The diff is the one the door names: `git diff <fixed point>` against the working tree, plus the
-# untracked files, with rename detection off. A file's size is the bytes of its own patch at four
+# untracked files, with rename detection off, less the excluded paths: the ones the door's
+# `status=` line takes out by name (the path at `review=`, and the `.review.md` beside the Ticket),
+# so the Review a previous run left is in no file line and no sum. A file's size is the bytes of its own patch at four
 # bytes a token, rounded up, and a Shard holds whole files only. A Shard's sum is within the budget
 # unless it holds one file that alone exceeds it, and the files of one directory share a Shard
 # when together they fit the budget.
@@ -24,7 +26,7 @@ set -uo pipefail
 shard_budget=149999
 
 usage() {
-  echo "usage: shards.sh <fixed point>" >&2
+  echo "usage: shards.sh <fixed point> [<excluded path>...]" >&2
   exit 2
 }
 refuse() {
@@ -32,21 +34,32 @@ refuse() {
   exit 2
 }
 
-# resolve_fixed_point <commit-ish>: cds to the repository root and prints the full sha.
-# Called without a subshell, since the cd has to outlive it: the sha is left in $fixed_point.
+# resolve_fixed_point <commit-ish> [<excluded path>...]: cds to the repository root and prints the
+# full sha. Called without a subshell, since the cd has to outlive it: the sha is left in
+# $fixed_point, and the excluded paths that name something inside the repository are left in
+# $excluded as pathspecs from the root. A path is taken from the directory the caller stands in, as
+# the door prints it; one outside the repository names nothing in the diff and is dropped.
 resolve_fixed_point() {
-  local top
+  local top p
+  local ref="$1"
+  shift
   top="$(git rev-parse --show-toplevel 2>/dev/null)" || refuse "not inside a git repository"
+  excluded=()
+  for p in "$@"; do
+    case "$p" in /*) ;; *) p="$(pwd -P)/$p" ;; esac
+    case "$p" in "$top"/*) excluded+=(":(exclude,literal)${p#"$top"/}") ;; esac
+  done
   cd "$top" || refuse "cannot enter $top"
-  fixed_point="$(git rev-parse --verify --quiet "$1^{commit}")" || refuse "$1 is not a commit"
+  fixed_point="$(git rev-parse --verify --quiet "$ref^{commit}")" || refuse "$ref is not a commit"
 }
 
-# changed_paths <sha>: every path of the final diff since <sha>, tracked and untracked, renames
-# off, one per line, in byte order, in the form git quotes a path under core.quotePath=true.
+# changed_paths <sha>: every path of the final diff since <sha>, tracked and untracked, less the
+# paths in $excluded, renames off, one per line, in byte order, in the form git quotes a path under
+# core.quotePath=true.
 changed_paths() {
   {
-    git -c core.quotePath=true diff --no-renames --name-only "$1"
-    git -c core.quotePath=true ls-files --others --exclude-standard
+    git -c core.quotePath=true diff --no-renames --name-only "$1" -- . ${excluded[@]+"${excluded[@]}"}
+    git -c core.quotePath=true ls-files --others --exclude-standard -- . ${excluded[@]+"${excluded[@]}"}
   } | LC_ALL=C sort -u
 }
 
@@ -125,8 +138,8 @@ print_cut() {
 
 main() {
   local measured
-  [ "$#" -eq 1 ] || usage
-  resolve_fixed_point "$1"
+  [ "$#" -ge 1 ] || usage
+  resolve_fixed_point "$@"
   measured="$(measure "$fixed_point")"
   if [ -z "$measured" ]; then
     echo "shards.sh: no diff since $fixed_point; nothing to cut" >&2
