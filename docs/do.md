@@ -332,6 +332,23 @@ reads no Spec, and once the Ticket is `resolved`, `/do` stops on it: either way 
 new Ticket you write
 ([ADR 0038](adr/0038-a-ruling-reversed-after-its-ticket-landed-is-built-by-a-new-ticket-the-developer-writes.md)).
 
+**What does `/do --auto` still ask me?**
+Whatever cannot be undone or leaves your machine
+([ADR 0045](adr/0045-auto-hands-direction-to-the-choice-taker-and-four-classes-still-stop.md)).
+The flag hands the run's direction to the choice-taker, so a question like whether a full suite
+runs is ruled and the run carries on. Four stops stay yours, each in the same place and the same
+words as without the flag: uncommitted work in the worktree before it is discarded on a resume,
+abort or continue when the target moved under an open rebase, the revert that deletes a
+refactoring's branch when its exit test failed, and a claim or a close on a remote tracker. Each
+of those questions shows, above it, what the choice-taker answered: the side it took with its
+norm, or its `extreme` return with the reason, so you confirm or overrule an answer instead of
+deciding from scratch. Nothing is discarded, aborted, reverted or written to the tracker until you
+answer. An Extreme fork stops the run on its `/discuss` command and is recorded beside the Ticket,
+with the flag as without it, so typing `/do` again stops on the same command and never rules the
+fork. Where no choice-taker could answer (the Agent tool withheld, the agent not linked, or a
+return that is no usable Ruling), the question comes to you with one line saying why and no answer
+shown, and a Design fork stops the run as it does without the flag.
+
 ## It's working if
 
 - The first line of every reply names the Playbook it matched, and it is the one you expected.
@@ -372,9 +389,11 @@ new Ticket you write
 - A `ticket` run that met a Design fork says so in one line naming both sides, then goes on: the
   Spec's Implementation Decisions gain one line marked as the choice-taker's, and a Ticket criterion
   changes only when it was the side that lost. The reply's `Rulings` section, right after
-  `Principles`, lists in one line each Ruling the Spec carries for the Ticket, whichever session
-  wrote it: the fork, the side taken, and the norm or "no norm". It reads `none` only when there is
-  no such Ruling. Only an Extreme fork, or a fork no choice-taker could rule, stops the run.
+  `Principles`, has two groups. `On the Spec:` lists in one line each Ruling the Spec carries for
+  the Ticket, whichever session wrote it: the fork, the side taken, and the norm or "no norm".
+  `On the run:` lists each Ruling that only steered a run under `--auto` and changed no file: both
+  options, the one taken and the norm. A group reads `none` when it has no Ruling. Only an Extreme
+  fork, or a fork no choice-taker could rule, stops the run.
 - A Ruling line you edited while the Ticket is `claimed` is picked up by the next `/do` on it: the
   run names the Spec as changed, reads it again, keeps every commit that still matches, and builds
   the side your line takes. A criterion the old Ruling had rewritten is ruled back to your side, and
