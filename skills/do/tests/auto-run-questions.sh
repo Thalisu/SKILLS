@@ -205,12 +205,15 @@ bullets_opening_on() { # $1 file, $2 a fixed string a bullet's marker line carri
   ' "$1" | tr -s ' '
 }
 still_asked_with_the_answer_shown() { # $1 the place, its statement of the discard question flattened in $flat
+  # Optional: $2 the question, as the labels name it (default: the discard question), $3 what it comes before (default: before the discard)
+  local question="${2:-the discard question}" moment="${3:-before the discard}"
+  local stated="${2:-the question before uncommitted changes are discarded}"
   if [ -z "$flat" ]; then
-    fail "$1 states the question before uncommitted changes are discarded (passage not found)"
+    fail "$1 states $stated (passage not found)"
     return
   fi
-  carries "$1 says what the discard question becomes under --auto" "--auto"
-  carries_any "$1 still asks the developer before the discard under --auto" \
+  carries "$1 says what $question becomes under --auto" "--auto"
+  carries_any "$1 still asks the developer $moment under --auto" \
     "still asked" "still asks" "still put" "still the developer's" "asked of the developer" \
     "asks the developer" "stay the developer's" "stays the developer's" "remain the developer's" \
     "remains the developer's" "as without it" "as without the flag" "the flag as without" \
@@ -272,6 +275,64 @@ carries_each "forks.md counts uncommitted work discarded among the questions sti
 carries_any "forks.md has nothing discarded on the choice-taker's return before the developer answers" \
   "nothing is discarded" "nothing discarded" "discards nothing" "no discard" "never discards" \
   "not discarded"
+
+echo "# a moved target on a resume: (abort / continue) is still asked under --auto, each side's drops named line by line, with the choice-taker's answer shown"
+
+moved_question="the (abort / continue) question"
+moved_moment="before an abort or a continue"
+
+# The bullet the session writes the question from, read from `moved=ask` on: what comes before it is
+# `moved=continue`, taken without asking. The `--auto` paragraph of the bullet above it belongs to
+# the `(continue / stop)` question, which the choice-taker rules, and is never read here.
+moved_bullet="$(bullets_opening_on "$ticket" "\`stop=moved\`" | grep -F "moved=ask" | grep -F "(abort / continue)" | head -n 1)"
+expect "ticket.md's stop=moved bullet words the (abort / continue) question on moved=ask" test -n "$moved_bullet"
+flat=""
+[ -z "$moved_bullet" ] || flat="${moved_bullet#*moved=ask}"
+still_asked_with_the_answer_shown "ticket.md's stop=moved bullet, at moved=ask," "$moved_question" "$moved_moment"
+
+# The question as the developer reads it: the bullet's fenced block, one side at a time.
+asked=""
+case "$flat" in *'```'*'(abort / continue)'*)
+  asked="${flat#*\`\`\`}"
+  asked="${asked%%\`\`\`*}"
+  ;;
+esac
+expect "ticket.md's moved=ask question is a block closing on (abort / continue)" test -n "$asked"
+abort_side=""
+continue_side=""
+case "$asked" in *"abort:"*" continue:"*)
+  abort_side="${asked#*abort:}"
+  abort_side="${abort_side%% continue:*}"
+  continue_side="${asked#* continue:}"
+  ;;
+esac
+# Read without `uncommitted=`, which would answer for `committed=`.
+flat="${abort_side//uncommitted=/}"
+carries_each "ticket.md's moved=ask question names what an abort drops line by line: the staged paths and the commits made by hand" \
+  "one line per" "a line per" "line per" "per line" "one line each" "each on its own line" "each on a line" -- \
+  "staged=" -- "committed="
+flat="$abort_side"
+carries "ticket.md's moved=ask question names the uncommitted work an abort drops" "uncommitted="
+flat="$continue_side"
+carries_each "ticket.md's moved=ask question names what a continue lands again line by line: the commits the developer removed" \
+  "one line per" "a line per" "line per" "per line" "one line each" "each on its own line" "each on a line" -- \
+  "dropped="
+
+# A stopped Final integration asks the same question from its own bullet, which is the one the
+# session is reading there.
+flat="$(bullets_opening_on "$ticket" "\`verdict=integration\`" | grep -F "(abort / continue)" | head -n 1)"
+still_asked_with_the_answer_shown "ticket.md's verdict=integration bullet of a stopped Final integration" \
+  "$moved_question" "$moved_moment"
+
+# mechanics.md: every bullet that names the question, wherever it sits.
+mech_bullets="$(bullets_opening_on "$mech" "- " | grep -F "(abort / continue)")"
+expect "mechanics.md has a bullet naming the (abort / continue) question" test -n "$mech_bullets"
+n=0
+while IFS= read -r flat; do
+  n=$((n + 1))
+  still_asked_with_the_answer_shown "mechanics.md's bullet $n naming (abort / continue)" \
+    "$moved_question" "$moved_moment"
+done <<<"$mech_bullets"
 
 [ "$fails" -eq 0 ] && exit 0
 exit 1

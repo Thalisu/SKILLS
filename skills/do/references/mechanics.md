@@ -617,7 +617,9 @@ first Final integration in three places:
   beside the Spec counts. Its verdict names the step the run picks up at: `restart` at the tree or
   the rebase, `integration` at the open rebase with the `(continue / stop)` or
   `(abort / continue)` question its `stop=` class calls for, `ask` at the question before a
-  discard, `land` at the fix call on the Review already written, never a second review.
+  discard, `land` at the fix call on the Review already written, never a second review. Under
+  `--auto` the `(abort / continue)` question and the one before a discard are still asked of the
+  developer, each with the `choice-taker`'s return shown above it, per [forks.md](forks.md).
 - **`not landed: target moved` is unchanged.** A resume answers it by the loop of the review
   below, integrating again while the target's tip keeps changing, per
   [ADR 0044](../../../docs/adr/0044-the-re-integration-retries-while-the-target-tip-changes.md).

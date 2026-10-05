@@ -322,6 +322,16 @@ and leaves the worktree as it is, since no branch can be read from it to build o
     answer stops the run as blocked, the rebase left open, the worktree and its branch in place and
     named, the Ticket left `claimed`.
 
+    Under `--auto` this question is still asked of the developer, in the same place and the same
+    words, each side's drops named line by line as above: unlike the `(continue / stop)` question
+    of `stop=resolved`, an abort drops work and a continue lands again what cannot be undone, so
+    neither is taken on a Ruling. It carries what the `choice-taker` would have answered: the
+    agent is forked on the question first and its return rides above the question as it came
+    back, per the questions still asked under the flag in [forks.md](forks.md). The brief's
+    `Options:` are `abort: drop this rebase and rebase once onto <tip>` and `continue: finish this
+    rebase onto <onto>, then integrate onto <tip>`, and its `Context:` carries the lines the
+    question shows. Nothing is aborted or continued on that return.
+
   A `review=` line that names a Review means the rebase came after the review: once it finishes,
   the branch lands through the fix call on that Review with no **Gate** of the run's own before it,
   and is never reviewed a second time.
@@ -380,7 +390,9 @@ they are neither ticked nor skipped, and the Reply's Run section carries steps 0
      with the Spec branch as the branch that moves and `spec_upstream` as the developer's branch:
      `stop=conflicted` is classed and resolved as at any stop, `stop=resolved` asks
      `(continue / stop)`, `stop=moved` continues on `moved=continue` and asks
-     `(abort / continue)` on `moved=ask`, each question in the words of that bullet. A `review=`
+     `(abort / continue)` on `moved=ask`, each question in the words of that bullet. Under
+     `--auto` the `(abort / continue)` question is still asked of the developer, with the
+     `choice-taker`'s return above it as that bullet says, per [forks.md](forks.md). A `review=`
      line naming a Review means the rebase came after the review, so the branch lands through the
      fix call once it finishes.
    - `verdict=ask`, exit 1: uncommitted work in the tree with no rebase open. The run asks before
