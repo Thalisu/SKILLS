@@ -68,8 +68,9 @@ already exists) and never asks you whether the feature has a front-end. What it 
 
 The question recommends `builder`, which needs nothing in place. impeccable needs a one-time setup
 that you run by hand, and [tickets](tickets.md) publishes that setup as a Setup ticket, so the
-message says it before you choose. A spec written before the line existed has none, and it reads
-as `none`.
+message says it before you choose. An answer that names any other tool gets one line saying only
+the two exist, then the question again. A spec written before the line existed has none, and it
+reads as `none`.
 
 ## Under `--auto`
 

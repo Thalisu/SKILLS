@@ -320,6 +320,12 @@ The developer's answer is the decision, and it is the line's value: `Front-end: 
 spec. The question is asked once, so a conversation that already carries its answer is not asked
 again, and the recommendation never stands in for an answer nobody gave.
 
+**An answer that names a third builder** (another tool, another agent, anything but `builder` or
+`impeccable`) is no answer. The reply is one line saying that only the two exist, then the same
+question again, whole, and the turn ends there. Nothing is written and no value is picked for the
+developer: `tickets` and `do` route on these two values alone, so a third one in the header is a
+spec neither can read.
+
 ## 5. Close
 
 In the thread, the closing summary, each item one or two lines:
