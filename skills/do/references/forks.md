@@ -300,6 +300,7 @@ Only a question whose own step names it as ruled under `--auto` takes this route
 | The question | Its step |
 |---|---|
 | continue or stop, on a resumed integration whose rebase is open with no conflicted file | the Resume of [ticket.md](ticket.md) |
+| whether a full suite or a remote run runs | the verification of [mechanics.md](mechanics.md), in every Playbook that reaches it |
 
 Where the step would have written the question, the session takes these steps instead:
 

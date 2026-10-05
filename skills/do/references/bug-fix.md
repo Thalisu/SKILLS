@@ -361,7 +361,7 @@ with the review's reason quoted and the worktree and its branch named, or the st
 
 **11. Verification.** The verification in [mechanics.md](mechanics.md): the affected flows from the
 main checkout with the command line printed first, the one question before a full suite or a remote
-run, and a red flow as one more unit of the loop, handed with no **Gate** of the run's own to the
+run, which the `choice-taker` rules under `--auto`, per [forks.md](forks.md), and a red flow as one more unit of the loop, handed with no **Gate** of the run's own to the
 fix call on the same Review, which lands it again with no second review. A defect with no user-observable surface
 has no affected flow and the step reads `skip: no affected flow` with that reason. Done when every
 affected flow is green or recorded as not run on the developer's no, or the step reads

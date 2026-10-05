@@ -928,6 +928,12 @@ worktree stays, since it is where a red flow is fixed.
    its cost is the one thing only the developer can weigh.
    A no records each flow that needed it as not run, leaves the criterion it would have proven
    unticked, and records the waiver as debt in the reply; the close still happens.
+   Under `--auto` the developer handed that weighing over, so the question is not put to them: it
+   is a run question the `choice-taker` rules, per [forks.md](forks.md). Its `Options:` are
+   `yes: run <the command line>` and `no: record each flow that needed it as not run`, its
+   `Recommendation:` is `none`, and its `Context:` carries the command line and the flows that
+   need it. A Ruling for `yes` runs the command and one for `no` takes the no above, and the run
+   carries on to the close either way.
 3. An infrastructure failure, the script's `verdict=blocked` (a service down, a runner that cannot
    start, a device missing), stops the run as blocked with the cause named from its `cause=` line
    and is never worked around; only the developer can waive it, and the waiver is debt in the

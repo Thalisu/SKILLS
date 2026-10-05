@@ -973,7 +973,7 @@ main checkout, and nothing of this Ticket is there until the Spec branch itself 
 with no Spec it is the verification in [mechanics.md](mechanics.md): the affected flows from
 the main checkout through `scripts/flows.sh`, its command line printed first, the one question
 before a full suite or
-a remote run, and a red flow as one more unit of the loop, handed with no **Gate** of the run's own
+a remote run, which the `choice-taker` rules under `--auto`, per [forks.md](forks.md), and a red flow as one more unit of the loop, handed with no **Gate** of the run's own
 to the fix call on the same Review, which lands it again. Done when every affected
 flow is green or recorded as not run on the developer's no, or the step reads
 `skip: nothing landed`.

@@ -47,7 +47,10 @@ The run asks the developer in these places and no other:
 
 The questions of steps 1 and 8 are the two this Playbook raises of its own. The other three are
 yeses the shared references reserve to the developer, and they are asked whenever the run reaches
-them, never waived.
+them, never waived. Under `--auto` the developer handed the run's direction over, and the question
+of step 13, whether a full suite or a remote run runs, is ruled by the `choice-taker` in their
+place, per [forks.md](forks.md): the run reaches it all the same, and it is handed over, never
+waived.
 
 The run stops, in one message or as blocked, in these places:
 
@@ -495,7 +498,8 @@ asks one question, the second and last this Playbook raises of its own:
 
 A yes that [mechanics.md](mechanics.md) reserves to the developer is not one of the two and is never
 waived here: step 3 carries one when the harness cannot stay inside its bound, and step 13 carries
-the question before a full suite or a remote run. Both are asked whenever the run reaches them.
+the question before a full suite or a remote run. Both are asked whenever the run reaches them,
+and under `--auto` the question of step 13 goes to the `choice-taker`, per [forks.md](forks.md).
 
 Done when the answer and its reason are recorded for the Reply's Run section, with the developer's
 answer when the test failed.
@@ -612,7 +616,8 @@ reads its skip with the worktree and its branch named.
 The verification in [mechanics.md](mechanics.md), from the main checkout after the landing:
 
 - the affected flows run with the command line printed first;
-- the one question is asked before a full suite or a remote run;
+- the one question is asked before a full suite or a remote run, or ruled by the `choice-taker`
+  under `--auto`, per [forks.md](forks.md);
 - a red flow is taken as one more step of the reshape, handed with no **Gate** of the run's own to
   the fix call on the same Review, which lands it again with no second review.
 
