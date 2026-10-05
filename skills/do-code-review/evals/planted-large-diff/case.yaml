@@ -1,0 +1,122 @@
+name: planted-large-diff
+tags: [review, shards]
+runs: 1
+max_turns: 80
+timeout_seconds: 3600
+allowed_tools: [Bash, Read, Write, Glob, Grep, Agent, Skill]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # A branch whose diff is too large for one reviewer, with a Ticket the prompt hands over as do
+    # does at its review step, and its spec in the folder above the issues folder. The bulk is
+    # generated: twenty label catalogs under src/locales/ and twenty shortcode tables under
+    # src/shortcodes/, each directory about 100000 tokens of patch, so neither is cut and the two
+    # cannot share a Shard.
+    set -e
+    mkdir -p src/locales src/shortcodes tests .scratch/localised-notes/issues
+    cat > package.json <<'JSON'
+    { "name": "notes", "private": true, "scripts": { "test": "node --test tests/*.test.js" } }
+    JSON
+    cat > src/notes.js <<'JS'
+    const notes = [];
+
+    function create(title) {
+      const note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+
+    function list() {
+      return notes.filter((n) => n.status === "active");
+    }
+
+    module.exports = { create, list };
+    JS
+    cat > tests/notes.test.js <<'JS'
+    const test = require("node:test");
+    const assert = require("node:assert/strict");
+    const { create, list } = require("../src/notes");
+
+    test("a created note is listed", () => {
+      const note = create("first");
+      assert.ok(list().some((n) => n.id === note.id));
+    });
+    JS
+    cat > .scratch/localised-notes/spec.md <<'MD'
+    # Localised notes
+
+    Journey: not needed, one path of one step on a screen that exists
+    Status: ready-for-agent
+
+    ## Problem Statement
+
+    The notes list reads in English only, and a `:shortcode:` typed in a title stays as typed.
+
+    ## Solution
+
+    The labels of the notes list in twenty languages, and every shortcode of a title shown as its
+    emoji.
+
+    ## User Stories
+
+    1. As a writer, I want the labels of the notes list in my language, so that I read the app in it.
+    2. As a writer, I want a label my language's catalog lacks shown in English, so that no label is ever blank.
+    3. As a writer, I want every `:shortcode:` of a title shown as its emoji, so that a title reads as I meant it.
+    4. As a writer, I want a shortcode no table knows left as typed, so that I see what I mistyped.
+
+    ## Implementation Decisions
+
+    - The labels are `translate(locale, key)` in `src/locales/index.js`, over one generated catalog per language beside it.
+    - The shortcodes are `expand(title)` in `src/shortcodes/expand.js`, over the generated tables beside it and the hand-kept `common.js`.
+    - The catalogs and the tables are generated and committed as they are.
+
+    ## Testing Decisions
+
+    - Behaviour tests through the modules' exported functions with `node --test`.
+
+    ## Out of Scope
+
+    - Choosing the language from the browser.
+    MD
+    cat > .scratch/localised-notes/issues/03-localised-notes.md <<'MD'
+    # 03: Localise the labels and expand the shortcodes
+
+    **What to build:** The labels of the notes list in the writer's language, falling back to
+    English, and every `:shortcode:` of a note's title shown as its emoji.
+
+    **Blocked by:** None (can start immediately)
+
+    **Status:** claimed
+
+    - [ ] A label is read from the catalog of the writer's language.
+    - [ ] A label that catalog lacks is shown in English.
+    - [ ] Every `:shortcode:` of a title is shown as its emoji.
+    - [ ] A shortcode no table knows is left as typed.
+
+    ## Evidence
+    MD
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
+    git checkout -q -b localised-notes
+    for locale in cs da de el en es fi fr hu it ja ko nl pl pt ro ru sv tr uk; do
+      {
+        echo "module.exports = {"
+        echo "  \"notes.title\": \"$locale Notes\","
+        echo "  \"notes.empty\": \"$locale No notes yet\","
+        [ "$locale" != en ] || echo "  \"notes.archived\": \"en Archived\","
+        seq 1 600 | awk -v l="$locale" '{ printf "  \"label.%04d\": \"%s label %04d\",\n", $1, l, $1 }'
+        echo "};"
+      } > "src/locales/$locale.js"
+    done
+    group=0
+    for table in activities animals arrows buildings clothing drinks faces flags food gestures hearts music nature objects people plants sports symbols travel weather; do
+      {
+        echo "module.exports = {"
+        seq 1 700 | awk -v t="$table" -v g="$group" '{ printf "  %s_%04d: \"\\u{%x}\",\n", t, $1, 127744 + (g * 97 + $1) % 1792 }'
+        echo "};"
+      } > "src/shortcodes/$table.js"
+      group=$((group + 1))
+    done
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "feat(notes): localise the labels and expand the shortcodes" -m "Twenty label catalogs and twenty shortcode tables, generated."
