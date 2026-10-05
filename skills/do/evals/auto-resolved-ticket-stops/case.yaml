@@ -1,7 +1,7 @@
 name: auto-resolved-ticket-stops
 tags: [playbook, ticket, stop, auto]
 runs: 2
-max_turns: 8
+max_turns: 12
 timeout_seconds: 300
 allowed_tools: [Bash, Read, Edit, Write, Glob, Grep, Agent, Skill]
 context:

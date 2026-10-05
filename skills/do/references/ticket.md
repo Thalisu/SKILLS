@@ -79,6 +79,9 @@ the tracker file describes. Before anything is written:
   [ADR 0038](../../../docs/adr/0038-a-ruling-reversed-after-its-ticket-landed-is-built-by-a-new-ticket-the-developer-writes.md).
   A resolved Ticket is never reopened: its status, its ticks and its Evidence stay as the close
   left them, and the new Ticket goes through this Playbook like any other.
+  Under `--auto` the stop is the same one line, with nothing written and no `choice-taker` forked:
+  a Ticket's status is read, never asked, so the flag has no question here to hand over, and a
+  flag that rebuilt what landed would route around that ADR.
 - A Ticket whose `Blocked by` names one not `resolved` (`verdict=blocked`) is refused before the
   claim, in one message naming the blocker and its status. Nothing is written. The build order is
   the developer's call, so the message carries `Yours: direction:` with the choice, per
