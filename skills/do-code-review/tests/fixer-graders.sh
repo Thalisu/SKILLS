@@ -22,18 +22,6 @@ agent_call_fails "fix-run: a do-code-review-fixer fork carrying a model key fail
 agent_call_fails "fix-run: a general-purpose Fixer fork fails fixer-forked-by-name" \
   "general-purpose" "s1" ""
 
-# A run holding the Agent calls whose arguments follow, one call per group: subagent_type, parent id,
-# model, prompt, separated by `--`
-run_of() {
-  local w
-  w="$(mktemp -d "$tmp/w.XXXXXX")"
-  while [ "$#" -gt 0 ]; do
-    agent_call_append "$1" "$w" "$2" "$3" "$4"
-    shift 4
-    [ "$#" -eq 0 ] || shift
-  done
-  echo "$w"
-}
 tree="/work/fixture/.claude/worktrees/fix-export-notes"
 red_block='FAIL test/export.test.js > exports a note with a "quoted" title
   expected "\"Draft\"" to equal "Draft"

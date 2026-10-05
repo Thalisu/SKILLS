@@ -505,6 +505,17 @@ agent_call_transcript() { # agent_call_append's arguments
   : >"$2/transcript.jsonl"
   agent_call_append "$@"
 }
+# A run holding several Agent calls, in a new work folder under the caller's $tmp; its path on stdout
+run_of() { # one group per call: subagent_type, parent id, model, prompt; the groups separated by `--`
+  local w
+  w="$(mktemp -d "$tmp/w.XXXXXX")"
+  while [ "$#" -gt 0 ]; do
+    agent_call_append "$1" "$w" "$2" "$3" "$4"
+    shift 4
+    [ "$#" -eq 0 ] || shift
+  done
+  echo "$w"
+}
 # grade() against the run in a work folder: the grader in the caller's $grader passes it (prints nothing)
 grade_passes() { # $1 label, $2 work folder
   local out
