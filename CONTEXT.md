@@ -513,3 +513,7 @@ _Avoid_: model page (one link of the chain), doc set, lineage
   page title is shape in one test and the **Outcome** of an access check in another.
 - "route" was read as a URL. Resolved: in "assert the outcome, not the route" the route is the
   internal path a result took; the URL a user lands on can be an **Outcome**.
+- "resolved" was reaching for two things: a **Ticket**'s last status, and a resumed integration
+  whose rebase is open with no conflicted file. Resolved: a resolved **Ticket** is the status, and
+  `do` stops on it without asking; the rebase is a resolved stop, the only place a run asks
+  `(continue / stop)`, and "continue or stop" never names a **Ticket**.
