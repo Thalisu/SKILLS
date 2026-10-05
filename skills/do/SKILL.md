@@ -2,7 +2,7 @@
 name: do
 description: "Match a request to one Playbook and run its steps: a Ticket's path or issue reference builds that Ticket as the last step of the chain, a request in words runs outside it, and a request that fits no Playbook is sent to the door that owns it in one message."
 disable-model-invocation: true
-argument-hint: "[a Ticket's path, an issue reference, or the request in words]"
+argument-hint: "[--auto] [a Ticket's path, an issue reference, or the request in words]"
 model: opus
 effort: medium
 disallowed-tools: EnterWorktree
@@ -29,7 +29,11 @@ costs one retyped request.
 
 ## Router
 
-1. Read the argument's shape first (empty, a path, an issue reference), then its words.
+1. Drop an `--auto` token from `$ARGUMENTS` wherever it sits, before or after the request, and
+   read what is left as the argument: the token puts the run under `--auto` and takes no part in
+   the match, so the same path, issue reference or words route to the same Playbook with the flag
+   as without it. Then read the argument's shape first (empty, a path, an issue reference), then
+   its words.
 2. Read the table's rows in order; the first row that matches wins. Each row sits above any
    broader row it could shadow.
 3. An argument that opens with a Playbook's name matches that Playbook, subject to that Playbook's
