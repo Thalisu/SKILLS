@@ -281,6 +281,27 @@ run "$evals" no-spec
 check "a glob that matches no file fails file_contains" 1 "$rc" \
   "FAIL  no-spec run 1/1 seam-marked: $seam_miss"
 rm -rf "$(sed -n 's/^ *kept: //p' <<<"$out")"
+# An empty PCRE matches every line, so a grader that names nothing to look for would pass on any
+# non-empty file: it is red instead, whatever the matched file holds.
+spec_case keyless '- Seam 1: the export boundary.'
+grader keyless seam-marked 'type: file_contains
+path: .scratch/*/spec.md'
+spec_case blank '- Seam 1: the export boundary.'
+grader blank seam-marked "type: file_contains
+path: .scratch/*/spec.md
+pattern: ''"
+run "$evals" keyless
+check "a file_contains grader with no pattern key fails the run, even on a matched non-empty file" 1 "$rc" \
+  "FAIL  keyless run 1/1 seam-marked: " "keyless: 0/1 green"
+expect "the reason of a file_contains grader with no pattern key names the missing pattern" \
+  grep -qE 'FAIL  keyless run 1/1 seam-marked: .*pattern' <<<"$out"
+rm -rf "$(sed -n 's/^ *kept: //p' <<<"$out")"
+run "$evals" blank
+check "a file_contains grader with an empty pattern fails the run, even on a matched non-empty file" 1 "$rc" \
+  "FAIL  blank run 1/1 seam-marked: " "blank: 0/1 green"
+expect "the reason of a file_contains grader with an empty pattern names the missing pattern" \
+  grep -qE 'FAIL  blank run 1/1 seam-marked: .*pattern' <<<"$out"
+rm -rf "$(sed -n 's/^ *kept: //p' <<<"$out")"
 
 # A case can keep one of this repo's agents out of its sessions, so a branch that needs an agent
 # missing can be graded; the next case in the same invocation lists it again.

@@ -205,6 +205,7 @@ grade() { # $1 grader, $2 work folder: prints why the run fails the grader, noth
       compgen -G "$w/fixture/$path" >/dev/null || echo "no file matches $path" ;;
     file_contains)
       path="$(key "$g" path)"; pattern="$(key "$g" pattern)"
+      [ -n "$pattern" ] || { echo "file_contains has no pattern to look for"; return; }
       mapfile -t files < <(compgen -G "$w/fixture/$path")
       { [ "${#files[@]}" -gt 0 ] && grep -qP -- "$pattern" "${files[@]}" 2>/dev/null; } ||
         echo "no file matching $path holds a line matching /$pattern/" ;;
