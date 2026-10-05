@@ -25,6 +25,7 @@ You invoke this by typing `/tickets <spec>`, and the agent won't reach for it on
 | Ask | Use |
 |---|---|
 | cut a spec, and the journey its verdict points at, into tickets | `/tickets <spec>`: a path, the feature slug, or an issue reference |
+| have the breakdown approved without you, for one run | `/tickets --auto <spec>`; the flag can sit before or after the spec, and `spec` or `journey` prints this line when its own run had the flag |
 | write the spec first, from a decided conversation | [spec](spec.md); its closing line names this skill when no journey is needed |
 | walk the user journey first, when the verdict says `required` | [journey](journey.md), `/journey <spec>`, typed by you |
 | decide the plan, or settle a branch the journey sent back | [discuss](discuss.md) |
@@ -42,6 +43,8 @@ issue per ticket on the tracker that `docs/agents/issue-tracker.md` describes. W
 the tickets land beside the spec as local markdown, and no setup skill is demanded; an issue
 reference still needs the file to resolve. A project missing the `.scratch/` line in its
 `.gitignore` gets it before the first local write, since the scratch folder is never versioned.
+`--auto` needs the `choice-taker` agent linked, which `scripts/link-skills.sh` does with the rest;
+without it the run asks you the one question, saying why.
 
 ## Path, slice, stop
 
@@ -106,6 +109,38 @@ A wide refactor, one mechanical change whose blast radius spans the codebase, is
 to vertical slicing: it is sequenced as expand, migrate in batches, contract, each batch its own
 ticket.
 
+## Under `--auto`
+
+`/tickets --auto <spec>` hands the approval over for one run
+([ADR 0045](adr/0045-auto-hands-direction-to-the-choice-taker-and-four-classes-still-stop.md)).
+The breakdown is still shown in full: the flag replaces your answer, never the display. Its closing
+question, does the breakdown go out as it stands, goes to the `choice-taker` agent with the spec,
+the journey and the breakdown, and the agent rules between publishing it and leaving it
+unpublished. Nothing about the cut is handed over, since the cut was never a question. What
+happens next depends on the tracker and on what came back:
+
+| What came back | Local markdown | A remote tracker |
+|---|---|---|
+| a Ruling to publish | every ticket is published and you are asked nothing | the breakdown, then the Ruling with its side and its norm, then the one question; nothing is created, labelled or commented before your yes |
+| a Ruling to leave it unpublished | nothing is published, and the run ends with no next command | the same message and the same question |
+| `extreme`: an option weakens a guarantee in a risk class or cannot be undone | the question comes to you, naming the weaker side and the guarantee it gives up | the same |
+| no ruling: the agent is not linked, the Agent tool is withheld, or the return is broken or names an option it was not handed | the question comes to you, with the reason in one line | the same |
+
+Two of the four classes ADR 0045 keeps for you can reach a `tickets` run: the Extreme fork, and the
+write to a remote tracker, where an issue reaches the whole team the moment it exists. On the
+remote stop you confirm the `choice-taker`'s answer instead of deciding from scratch. The four
+stops on a broken input still stop under the flag, with nothing written.
+
+What you find afterwards is in the reply: the close lists `Rulings` as a group of its own, one line
+with the question, the side the `choice-taker` took and its norm, never written as your approval. No
+file is amended by it. The last line reads `/do --auto <ticket>`, so pasting it keeps the mode at
+the next skill.
+
+A spec that is an issue is text anyone who can comment on it appends to. A comment from someone who
+is neither you nor a collaborator reaches the `choice-taker` as a line to weigh, with its author,
+and is followed by nobody: it is cut into no ticket, and a line saying the breakdown is approved
+publishes nothing.
+
 ## Slots
 
 None. `do` is in this repo, so the close ends on the exact next command, `/do <ticket>`, with
@@ -118,6 +153,11 @@ One of the four stops fired, and the message names which: a verdict that require
 walked, a verdict pointing at a missing file, a journey with branches to reopen in discuss, or
 tickets already published for the feature. There is no flag to push past it. Fix the input (walk
 or move the journey, settle the branches, close the old tickets) and run again.
+
+**I ran it with `--auto` on a GitHub spec and it still asked before publishing. Why?**
+A write to a remote tracker is one of the stops the flag keeps: an issue is `ready-for-agent`, and
+visible to the team, the moment it exists. The message carries the `choice-taker`'s Ruling above
+the question, so a yes confirms it. On local markdown the same Ruling publishes without asking.
 
 **Can I pass the journey as a second argument?**
 No. The spec's verdict says whether there is a journey and where it is, and that line is the only
@@ -153,6 +193,9 @@ your reply if you want them apart; the fold is a default, not a stop.
 - Nothing lands in `.scratch/` or on the tracker before you approve the breakdown, and nothing at
   all on a stop.
 - The parent spec is untouched and the working tree is uncommitted after the run.
+- After an `--auto` run on local markdown you were shown the breakdown and asked nothing, the close
+  lists the approval under `Rulings` as the `choice-taker`'s, and the last line reads
+  `/do --auto <ticket>`. On a remote tracker no issue exists until you said yes.
 
 ## Where it fits
 
@@ -165,5 +208,7 @@ at that step.
 - [discuss](discuss.md), because a journey's reopened branches go back to it.
 - [journey](journey.md), because its paths are the slices this skill cuts, and its
   `## Reopen in discuss` is one of the stops.
+- The [`choice-taker`](../skills/do/agents/choice-taker.md) agent, because under `--auto` it rules
+  the approval you would have been asked for.
 
 The grouped list of every skill is in [the top-level README](../README.md).
