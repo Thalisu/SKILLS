@@ -29,11 +29,12 @@ echo "a project" >README.md
 commit "first commit"
 out="$(bash "$script" 2>"$tmp/readable.err")" || true
 err="$(cat "$tmp/readable.err")"
-label="in a readable project the check prints the four step lines in their fixed order, each done or missing"
+label="in a readable project the check prints the five step lines in their fixed order, each done or missing"
 if [ "$(sed -E 's/=(done|missing)$/=<done|missing>/' <<<"$out")" = "impeccable-skill=<done|missing>
 product-context=<done|missing>
 design-system=<done|missing>
-build-path=<done|missing>" ] && [ -z "$err" ]; then ok "$label"; else
+build-path=<done|missing>
+setup-committed=<done|missing>" ] && [ -z "$err" ]; then ok "$label"; else
   fail "$label"
   dump_out
   echo "      stderr: ${err//$'\n'/$'\n'      }"
@@ -153,8 +154,10 @@ commit "the design system"
 step_reads "with a tokens file committed and the design system file committed the design system reads done" design-system "done"
 
 # An unattended impeccable run of a Front-end ticket waits on a prompt nobody answers when the build
-# path was never set to code-led, so only the code-led value counts, and only where a Ticket's
-# worktree sees it: the committed tree. impeccable merges the key with its other settings.
+# path was never set to code-led, so only the code-led value counts. Like the other manual steps it is
+# done once present in the working tree: the commit step comes after it, and reading the committed
+# tree here would hold the developer on this step until that one. impeccable merges the key with its
+# other settings.
 impeccable_config() { # $1 the config as a JSON object: the project's .impeccable/config.json in the working tree, uncommitted
   mkdir -p .impeccable
   jq . <<<"$1" >.impeccable/config.json
@@ -165,7 +168,7 @@ commit "first commit"
 step_reads "with no impeccable config the build path reads missing" build-path "missing"
 
 impeccable_config '{"hook": {"enabled": true}, "buildPath": "code"}'
-step_reads "with the code-led build path written in the working tree only the build path reads missing" build-path "missing"
+step_reads "with the code-led build path written in the working tree only the build path reads done" build-path "done"
 
 fresh path-unset
 impeccable_config '{"hook": {"enabled": true}}'
@@ -209,22 +212,46 @@ check_lines "in a project that carries the whole setup the check exits 0" 0 "$rc
 same "in a project that carries the whole setup every step line reads done" "impeccable-skill=done
 product-context=done
 design-system=done
-build-path=done"
+build-path=done
+setup-committed=done"
 
 whole_setup whole-no-product
 g rm -q PRODUCT.md
 g commit -qm "no product context"
 rc=0
 out="$(bash "$script" 2>/dev/null)" || rc=$?
-check_lines "with the product context alone lacking the check exits 1 and still prints the four lines, that one missing" 1 "$rc" \
-  "impeccable-skill=done" "product-context=missing" "design-system=done" "build-path=done"
+check_lines "with the product context alone lacking the check exits 1 and still prints the five lines, that one and the commit missing" 1 "$rc" \
+  "impeccable-skill=done" "product-context=missing" "design-system=done" "build-path=done" "setup-committed=missing"
 
 whole_setup whole-no-skill
 plugin_registry ""
 rc=0
 out="$(bash "$script" 2>/dev/null)" || rc=$?
-check_lines "with the impeccable skill alone not installed the check exits 1 and still prints the four lines, that one missing" 1 "$rc" \
-  "impeccable-skill=missing" "product-context=done" "design-system=done" "build-path=done"
+check_lines "with the impeccable skill alone not installed the check exits 1 and still prints the five lines, that one missing" 1 "$rc" \
+  "impeccable-skill=missing" "product-context=done" "design-system=done" "build-path=done" "setup-committed=done"
+
+# A Ticket's worktree is cut from a commit and never sees a setup file left uncommitted in the Main
+# checkout, so the commit step holds until every file is committed at HEAD: `tickets` publishes a
+# Setup ticket on the exit 1 while one is not, though the steps that made the files read done.
+fresh setup-uncommitted
+mkdir -p src/styles
+echo "a project" >README.md
+echo "{}" >src/styles/tokens.json
+commit "first commit"
+plugin_registry '[{"scope": "user", "installPath": "/x", "version": "4.3.1"}]'
+echo "# Product" >PRODUCT.md
+echo "# Design" >DESIGN.md
+impeccable_config '{"hook": {"enabled": true}, "buildPath": "code"}'
+rc=0
+out="$(bash "$script" 2>/dev/null)" || rc=$?
+check_lines "with every setup file present and none committed the check exits 1 and the commit step alone reads missing" 1 "$rc" \
+  "impeccable-skill=done" "product-context=done" "design-system=done" "build-path=done" "setup-committed=missing"
+
+commit "the setup"
+rc=0
+out="$(bash "$script" 2>/dev/null)" || rc=$?
+check_lines "once every setup file is committed the check exits 0 and the commit step reads done" 0 "$rc" \
+  "impeccable-skill=done" "product-context=done" "design-system=done" "build-path=done" "setup-committed=done"
 
 fresh nothing
 echo "a project" >README.md
@@ -233,8 +260,8 @@ rm -rf "$HOME/.claude/plugins"
 rc=0
 out="$(bash "$script" 2>/dev/null)" || rc=$?
 check_lines "in a project with nothing set up the check exits 1" 1 "$rc"
-expect "in a project with nothing set up the check still prints the four step lines" \
-  [ "$(keys_in_order)" = "impeccable-skill product-context design-system build-path " ]
+expect "in a project with nothing set up the check still prints the five step lines" \
+  [ "$(keys_in_order)" = "impeccable-skill product-context design-system build-path setup-committed " ]
 
 if [ "$fails" = 0 ]; then echo "PASS"; else
   echo "$fails failing"
