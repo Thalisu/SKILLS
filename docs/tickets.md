@@ -140,6 +140,8 @@ before that branch exists.
 A project that already carries the whole setup gets no Setup ticket: one line under the list says
 the setup was found, and the first ticket starts at once. On `builder` the setup is never read and no
 Setup ticket is cut, whatever the project carries: the chain's own Builder needs nothing installed.
+When the check itself cannot run, the run ends with one message carrying the check's own error
+line: no breakdown, no question, nothing published.
 
 ## Under `--auto`
 

@@ -5,7 +5,9 @@
 # in their order, every one listed whether the check reads it done or not. With every step done no
 # Setup ticket is cut, and one line under the breakdown list says the setup was found. On a spec
 # that reads `Front-end: builder` the check is never run and no Setup ticket is cut, whatever the
-# project carries.
+# project carries. A check that cannot run (exit 2, or no script at its path) ends the run on one
+# message carrying the check's own error line: no breakdown shown, no approval asked, nothing
+# published, and the turn-end list names that point.
 # The ticket is drafted by the session from the check's verdict, which no script and no eval
 # carries, so the decision is proven over the passages that carry it.
 # Run: bash skills/tickets/tests/setup-ticket.sh
@@ -194,5 +196,53 @@ carries_each "the setup is read or checked on impeccable and on no other value" 
   "only when the line reads \`impeccable\`" "only on a spec that reads \`Front-end: impeccable\`" \
   "only when the spec reads \`Front-end: impeccable\`" "no other value" "on no other" \
   "never on \`none\` or \`builder\`" "never on \`builder\` or \`none\`"
+
+echo "# SKILL.md / ## 3: a setup check that cannot run ends the run on its own error line, nothing asked or published"
+cannot_run=(
+  "Exit 2" "exit 2" "exits 2" "Exit \`2\`" "exit \`2\`" "exits \`2\`" "exit code 2" "exit code \`2\`"
+  "exit status 2" "exit status \`2\`" "any other exit" "Any other exit" "cannot run" "could not run"
+  "cannot be run" "could not be run" "could not be read" "cannot be read" "cannot read"
+  "could not read" "not found" "is not there" "does not exist"
+)
+# The passage already speaks of a line under the breakdown and of no Setup ticket being cut, said
+# of the check exiting 0 and of builder, so the scope is the paragraphs that name the check failing
+# to run: a sentence about another verdict cannot answer for this one.
+flat=""
+for key in "${cannot_run[@]}"; do
+  flat="$flat $(paragraph_with <(passage_of "$skill" "**The Setup ticket.**" "**Blocking edges.**") "$key" all | tr '\n' ' ')"
+done
+flat="$(tr -s ' ' <<<"$flat")"
+expect "the Setup ticket rule names a check that cannot run" test -n "${flat// /}"
+carries_any "the run ends there" \
+  "ends there" "end there" "run ends" "turn ends" "ends the run" "ends the turn" "end the run" \
+  "end the turn" "stops there" "stop there" "run stops" "stops the run" "stop the run" "ends on" \
+  "end on" "stops on" "stop on"
+carries_any "on one message" \
+  "one message" "single message" "a message" "one short message"
+carries_any "the message carries the check's own error line" \
+  "stderr" "error line" "error message" "own error" "own line" "line it printed" \
+  "line the check printed" "line the check prints" "line it prints" "what the check printed" \
+  "what the check prints" "the check's message" "the check's line"
+carries_any "no breakdown is shown and no approval is asked" \
+  "no approval" "No approval" "approval question is not" "approval question is never" \
+  "approval is not asked" "approval is never asked" "no question" "No question" "not shown" \
+  "never shown" "no breakdown" "No breakdown" "without a breakdown" "without the breakdown" \
+  "nothing is asked" "Nothing is asked" "asks nothing" "without asking" "never asked" "not asked" \
+  "before any breakdown" "nothing is shown" "Nothing is shown"
+carries_any "nothing is published" \
+  "nothing is published" "Nothing is published" "nothing published" "publishes nothing" \
+  "no ticket is published" "No ticket is published" "no ticket published" "never published" \
+  "not published" "or published" "nor published" "without publishing" "nothing is written" \
+  "Nothing is written" "nothing written" "writes nothing" "no ticket is written" \
+  "No ticket is written" "nothing is cut" "Nothing is cut" "cuts nothing" "no ticket is cut" \
+  "No ticket is cut"
+
+echo "# SKILL.md / How a turn ends: the setup check that cannot run is one of the points a turn ends at"
+# Every bullet of the list, one per line: the two-character key sits in each bullet's own marker.
+flat="$(bullets_opening_on <(passage_of "$skill" "## How a turn ends" "## 1. Ground") "- " | grep -F "etup" | tr '\n' ' ')"
+expect "a bullet of the list names the setup" test -n "$flat"
+carries_each "the bullet is the setup check that cannot run" \
+  "check" -- \
+  "${cannot_run[@]}" "refus" "fail" "error" "cannot be reached" "unreadable"
 
 exit $((fails > 0))

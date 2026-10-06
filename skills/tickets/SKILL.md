@@ -41,6 +41,7 @@ A message with no tool call ends the turn, and the session waits there until the
 - the ask for a missing or unreadable spec (step 1);
 - a stop (step 1), or the publish stopping on a ticket number already taken (step 5);
 - the estimate script refusing (step 2);
+- the setup check that cannot run (step 3);
 - the approval question (step 4), asked again after each correction;
 - the close (step 6).
 
@@ -201,6 +202,8 @@ It prints one `key=value` line per step it reads, each `done` or `missing`, and 
 All six are listed, every one whether the check reads it done or not: the check has no line for the reload, and the developer reads in the breakdown the whole of what they will be asked to run.
 
 Exit 0 means every step reads done: no Setup ticket is cut, and one line under the breakdown says the setup was found (step 4).
+
+Any other result means the check could not run: it exits 2, with one line on stderr and nothing on stdout, when the project could not be read, and a machine that linked `skills/` without the rest of this repo finds no script at that path. The run ends there on one message carrying the check's own error line, or the path the script was not found at: no breakdown is shown, no approval question is asked and nothing is published. A Setup ticket cut or left out on a guess would block every ticket behind nothing to do, or let the spec's branch be cut before the setup is committed.
 
 Every other ticket is blocked by the Setup ticket, beside the edges it already has, and the edge says the setup is committed before the ticket is built. That holds for every kind, also on a spec where no path has a screen and every other ticket is a Logic ticket: `do` cuts the spec's branch on the first ticket it runs, and a ticket left unblocked would cut it before the setup is committed, so the branch would be born without it.
 
