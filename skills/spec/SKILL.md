@@ -292,6 +292,15 @@ settles alone. In a remote tracker the earlier spec is the issue the rerun edits
   earlier spec read, and nothing is asked. A `builder` or an `impeccable` left behind has
   `tickets` cut a Front-end ticket, and maybe publish a Setup ticket, for a screen that is gone.
   When the earlier value was not `none`, the close says the line was rewritten (step 5).
+- **A story has a screen, and the earlier spec reads `Front-end: none` or carries no `Front-end:`
+  line**: the stories gained a screen, so nothing earlier answers the question. The builder
+  question of step 4 is asked, or ruled under `--auto`, exactly as on a first run, and its answer
+  is the line's value.
+
+Whichever case holds, the line is rewritten in place with the rest of the header: the rewritten
+spec holds exactly one line that starts with `Front-end:`, directly after the `Journey:` line, and
+the earlier one never survives beside it. `tickets` and `do` read one fact from one place, and a
+spec with two such lines has them cut and build from whichever they meet first.
 
 ## 4. Route
 

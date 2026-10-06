@@ -8,6 +8,10 @@
 # In rerun-lost-screen-rewrites-none the earlier Spec reads Front-end: builder and the rerun replaces
 # its export button with a nightly job, so no story has a screen: the rerun rewrites the Spec around
 # the job and rewrites the line to Front-end: none.
+# In rerun-gained-screen-rewrites-in-place the earlier Spec reads Front-end: none over a nightly export
+# job and the rerun adds an export button on the orders list, with the developer answering impeccable
+# to the builder question: the rerun rewrites the Spec with the button and rewrites the line to
+# Front-end: impeccable, never the recommended builder.
 # Run: bash skills/spec/tests/rerun-front-end-graders.sh
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
@@ -75,6 +79,35 @@ grade_passes "a Spec naming the Nightly job with a capital passes the lost-scree
   "$(run_with_spec "Front-end: none" '- Nightly, a job writes the CSV to storage.')"
 grade_fails "the earlier Spec left as it was fails the lost-screen rerun-decision-written" \
   "$(run_with_spec "Front-end: builder" "")"
+
+gained="$here/../evals/rerun-gained-screen-rewrites-in-place/graders"
+impeccable_written="$gained/front-end-impeccable-written.md"
+gained_decision_written="$gained/rerun-decision-written.md"
+
+button_decision='- The orders list carries an export button that downloads the CSV.'
+
+expect "the gained-screen case holds a front-end-impeccable-written grader" test -f "$impeccable_written"
+expect "the gained-screen case holds a rerun-decision-written grader" test -f "$gained_decision_written"
+
+# shellcheck disable=SC2034 # read by lib.sh's grade_passes and grade_fails
+grader="$impeccable_written"
+grade_passes "a rewritten Spec whose line now reads Front-end: impeccable passes front-end-impeccable-written" \
+  "$(run_with_spec "Front-end: impeccable" "$button_decision")"
+grade_fails "a rewritten Spec whose only line still reads Front-end: none fails front-end-impeccable-written" \
+  "$(run_with_spec "Front-end: none" "$button_decision")"
+grade_fails "a rewritten Spec whose only line reads the unanswered Front-end: builder fails front-end-impeccable-written" \
+  "$(run_with_spec "Front-end: builder" "$button_decision")"
+grade_fails "a rewritten Spec that dropped its Front-end: line fails front-end-impeccable-written" \
+  "$(run_with_spec "" "$button_decision")"
+
+# shellcheck disable=SC2034 # read by lib.sh's grade_passes and grade_fails
+grader="$gained_decision_written"
+grade_passes "a Spec naming the export button passes the gained-screen rerun-decision-written" \
+  "$(run_with_spec "Front-end: impeccable" "$button_decision")"
+grade_passes "a Spec naming the Button with a capital passes the gained-screen rerun-decision-written" \
+  "$(run_with_spec "Front-end: impeccable" '- Button on the orders list: Export orders.')"
+grade_fails "the earlier Spec left as it was fails the gained-screen rerun-decision-written" \
+  "$(run_with_spec "Front-end: none" "")"
 
 [ "$fails" -eq 0 ] && exit 0
 exit 1
