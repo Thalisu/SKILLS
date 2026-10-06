@@ -11,7 +11,9 @@
 # and nothing else: impeccable-skill, the impeccable skill installed; product-context, the product
 # context file present in the working tree; design-system, the design system file present in the
 # working tree; build-path, the code-led build path set in the working tree; setup-committed, the
-# three facts before it holding at HEAD as well.
+# three facts before it holding at HEAD as well. Then one line that is not a step, uncommitted: the
+# setup files present in the working tree and absent from or different from HEAD, space-separated,
+# or none.
 #
 # Exit codes: 0 every step reads done · 1 at least one step reads missing, the five lines still
 # printed · 2 the project could not be read: one line on stderr naming what could not be read, and
@@ -68,6 +70,20 @@ probe_setup_committed() {
   else echo missing; fi
 }
 
+# The setup files the init, document and build-path steps produce, one per line, from the root.
+setup_files() { printf '%s\n' PRODUCT.md DESIGN.md .impeccable/config.json; }
+
+# The setup files present in the working tree and absent from, or different from, HEAD, as one
+# space-separated line, or none: the paths the commit step's one command names.
+uncommitted_files() {
+  local file list=""
+  while IFS= read -r file; do
+    holds worktree "$file" || continue
+    cmp -s <(contents worktree "$file") <(contents head "$file") && holds head "$file" || list="$list $file"
+  done < <(setup_files)
+  echo "${list# }" | sed 's/^$/none/'
+}
+
 top="$(git rev-parse --show-toplevel 2>/dev/null)" || die "not a git repository: $(pwd -P)"
 # A bare main worktree has no working tree to anchor on, and git lists it first all the same.
 root="$(git worktree list --porcelain 2>/dev/null |
@@ -80,4 +96,5 @@ design-system=$(probe_design_system worktree)
 build-path=$(probe_build_path worktree)
 setup-committed=$(probe_setup_committed)"
 echo "$lines"
+echo "uncommitted=$(uncommitted_files)"
 ! grep -q '=missing$' <<<"$lines"

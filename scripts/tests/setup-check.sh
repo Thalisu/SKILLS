@@ -29,12 +29,13 @@ echo "a project" >README.md
 commit "first commit"
 out="$(bash "$script" 2>"$tmp/readable.err")" || true
 err="$(cat "$tmp/readable.err")"
-label="in a readable project the check prints the five step lines in their fixed order, each done or missing"
+label="in a readable project the check prints the five step lines in their fixed order, each done or missing, then the uncommitted setup files"
 if [ "$(sed -E 's/=(done|missing)$/=<done|missing>/' <<<"$out")" = "impeccable-skill=<done|missing>
 product-context=<done|missing>
 design-system=<done|missing>
 build-path=<done|missing>
-setup-committed=<done|missing>" ] && [ -z "$err" ]; then ok "$label"; else
+setup-committed=<done|missing>
+uncommitted=none" ] && [ -z "$err" ]; then ok "$label"; else
   fail "$label"
   dump_out
   echo "      stderr: ${err//$'\n'/$'\n'      }"
@@ -209,11 +210,12 @@ whole_setup whole
 rc=0
 out="$(bash "$script" 2>/dev/null)" || rc=$?
 check_lines "in a project that carries the whole setup the check exits 0" 0 "$rc"
-same "in a project that carries the whole setup every step line reads done" "impeccable-skill=done
+same "in a project that carries the whole setup every step line reads done and no setup file is uncommitted" "impeccable-skill=done
 product-context=done
 design-system=done
 build-path=done
-setup-committed=done"
+setup-committed=done
+uncommitted=none"
 
 whole_setup whole-no-product
 g rm -q PRODUCT.md
@@ -253,6 +255,36 @@ out="$(bash "$script" 2>/dev/null)" || rc=$?
 check_lines "once every setup file is committed the check exits 0 and the commit step reads done" 0 "$rc" \
   "impeccable-skill=done" "product-context=done" "design-system=done" "build-path=done" "setup-committed=done"
 
+# The commit step is one command, `git add -- <files> && git commit`, built from the uncommitted line:
+# a stray file named there lands on the branch with the setup, and a setup file left out of it never
+# reaches the Ticket worktrees cut from that commit. The line names no order, so it is read as a set.
+uncommitted_reads() { # $1 label, $2 the setup files the uncommitted line must name, space-separated in any order, or none; read off the check's output run in the current directory
+  out="$(bash "$script" 2>/dev/null)" || true
+  if [ "$(grep -c '^uncommitted=' <<<"$out")" = 1 ] &&
+    [ "$(term uncommitted | tr ' ' '\n' | sort | xargs)" = "$(tr ' ' '\n' <<<"$2" | sort | xargs)" ]; then ok "$1"; else
+    fail "$1"
+    dump_out
+  fi
+}
+fresh setup-stray
+mkdir -p src/styles
+echo "a project" >README.md
+echo "{}" >src/styles/tokens.json
+commit "first commit"
+echo "# Product" >PRODUCT.md
+impeccable_config '{"hook": {"enabled": true}, "buildPath": "code"}'
+echo "a stray note" >notes.md
+echo "an edit to the readme" >>README.md
+uncommitted_reads "with two setup files and a stray file uncommitted the uncommitted line names the two setup files only" \
+  "PRODUCT.md .impeccable/config.json"
+
+echo "# Design" >DESIGN.md
+commit "the setup"
+uncommitted_reads "once every setup file is committed the uncommitted line reads none" "none"
+
+echo "an edit to the design system" >>DESIGN.md
+uncommitted_reads "with a committed setup file modified in the working tree the uncommitted line names it" "DESIGN.md"
+
 fresh nothing
 echo "a project" >README.md
 commit "first commit"
@@ -260,8 +292,8 @@ rm -rf "$HOME/.claude/plugins"
 rc=0
 out="$(bash "$script" 2>/dev/null)" || rc=$?
 check_lines "in a project with nothing set up the check exits 1" 1 "$rc"
-expect "in a project with nothing set up the check still prints the five step lines" \
-  [ "$(keys_in_order)" = "impeccable-skill product-context design-system build-path setup-committed " ]
+expect "in a project with nothing set up the check still prints the five step lines and the uncommitted line" \
+  [ "$(keys_in_order)" = "impeccable-skill product-context design-system build-path setup-committed uncommitted " ]
 
 if [ "$fails" = 0 ]; then echo "PASS"; else
   echo "$fails failing"
