@@ -13,6 +13,10 @@ reasoning behind each. The one question you get is whether the breakdown goes ou
 the tickets are published one file per ticket locally, or one issue per ticket on the project's
 tracker with native blocking links.
 
+Every ticket carries its **kind**. When the spec names who builds its front-end, a path with a
+screen is cut in two, a Logic ticket and then a Front-end ticket blocked by it, so the screen is
+built on behaviour that already works and by the builder you chose for it.
+
 It publishes nothing when its input is broken. A verdict that requires a journey nobody walked, a
 verdict pointing at a file that is not there, a journey that lists branches to reopen in discuss,
 or tickets that already exist for the feature each stop the run with one message and nothing
@@ -109,6 +113,20 @@ A wide refactor, one mechanical change whose blast radius spans the codebase, is
 to vertical slicing: it is sequenced as expand, migrate in batches, contract, each batch its own
 ticket.
 
+The **kind** of each ticket is decided by the spec's `Front-end:` line, under the verdict:
+
+| The line | The cut |
+|---|---|
+| `none`, or no line at all | as above, one slice per path; every published ticket is of kind `logic`, and the breakdown shows nothing new |
+| `builder` or `impeccable` | a path with a screen (a page, a view, a dialog the actor sees or acts on) becomes a **Logic ticket**, the behaviour under the screen, and then a **Front-end ticket**, the screen itself, blocked by the Logic ticket because it is built on the code that one lands; a path with no screen (a command line, a job, an API) becomes a Logic ticket alone |
+
+On `builder` or `impeccable` every ticket of the breakdown shows its kind, and one line under the
+list names the paths cut in two and the paths left as a Logic ticket alone, each with the reason no
+screen was read in it. When no path has a screen, that line says so and no Front-end ticket is cut.
+A Logic ticket and a Front-end ticket are never folded into each other, however small: the fold
+would undo the cut. Each published ticket carries its kind as a `**Kind:**` line after its status,
+or a `## Kind` section in an issue, which is what `do` routes on.
+
 ## Under `--auto`
 
 `/tickets --auto <spec>` hands the approval over for one run
@@ -170,6 +188,12 @@ the chain on you. An edge now comes with what the ticket reads and who writes it
 split comes with the rule that fired. Overrule any of it in your reply; the breakdown is redrawn and
 put to you again with the same one question.
 
+**A path came back as two tickets, or a path with a screen came back as one. Why?**
+The spec's `Front-end:` line names a builder, so each path was read for a screen: two tickets where
+one was found, a Logic ticket alone where none was. The line under the list says how every path was
+read and why. If a path was read wrongly, say which in your reply: it is recut the other way and the
+breakdown is put to you again with the same one question.
+
 **Every estimate says uncalibrated. What do I do?**
 Nothing in the cut. Build one ticket with `do`; its close writes the measured context into the
 ticket's evidence, and the next `/tickets` run in the repo calibrates from it. Until then the
@@ -189,6 +213,10 @@ your reply if you want them apart; the fold is a default, not a stop.
   never by an earlier ticket and never with a stub.
 - Every ticket in the breakdown carries an estimate and its band, a fold or a split names the rule
   that fired, and the only question you get is whether the breakdown goes out.
+- On a spec whose `Front-end:` line names a builder, a path with a screen shows up twice, its
+  Logic ticket and then its Front-end ticket blocked by it, every ticket shows its kind, and a line
+  under the list says which paths were cut in two. On `none`, or on a spec with no such line, the
+  breakdown looks as it always did.
 - What the journey cut or deferred shows up under what was left out, never as a ticket.
 - Nothing lands in `.scratch/` or on the tracker before you approve the breakdown, and nothing at
   all on a stop.

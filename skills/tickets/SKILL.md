@@ -1,6 +1,6 @@
 ---
 name: tickets
-description: "Cut a spec, and the journey its verdict points at, into tracer-bullet tickets: one demoable vertical slice per ticket, sized by a token estimate, each declaring the tickets that block it, with the edges, folds and splits decided by the skill and only the approval asked. Published one file per ticket locally or one issue per ticket on the project's tracker. Stops before writing anything when the journey is required but missing, contested, or already ticketed."
+description: "Cut a spec, and the journey its verdict points at, into tracer-bullet tickets: one demoable vertical slice per ticket, or a Logic ticket and a Front-end ticket for a path with a screen when the spec names a front-end builder, sized by a token estimate, each declaring the tickets that block it, with the edges, folds and splits decided by the skill and only the approval asked. Published one file per ticket locally or one issue per ticket on the project's tracker. Stops before writing anything when the journey is required but missing, contested, or already ticketed."
 disable-model-invocation: true
 argument-hint: "[--auto] [the spec: a path, the feature slug, or an issue reference]"
 ---
