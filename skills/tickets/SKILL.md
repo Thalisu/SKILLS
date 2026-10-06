@@ -179,7 +179,7 @@ Without a journey, the User Stories are the paths, cut by the same rules.
 - **A path with a screen** is cut into two tickets, in this order:
   1. its **Logic ticket**, the path's behaviour under the screen (the state, the rules, the interface the screen calls), demoable through that interface. Its criteria are what the system answers, failure branches included;
   2. its **Front-end ticket**, the screen itself, built on that code. Its criteria are what the actor sees and does. It is blocked by the Logic ticket, and the edge names that ticket and says the screen is built on the code it lands. A mock that would let the screen start sooner is never cut, for the reason a stub never is.
-- **A path with no screen** is cut into a Logic ticket alone.
+- **A path with no screen** is cut into a Logic ticket alone. When no path has a screen, every path is cut that way and no Front-end ticket exists: an empty one would send its builder after a screen that is not there.
 
 The two tickets of one path are the one exception to **Vertical**: together they are the vertical slice, each built by its own builder. A ticket that reads state another path writes is blocked by that path's Logic ticket, which is the one that writes it.
 
@@ -222,7 +222,7 @@ Present the breakdown as a numbered list. For each ticket:
 After the list:
 
 1. the splits, folds and placements taken, each with the rule that fired, or none. A small ticket left unfolded because its only edge ties it to a ticket of the other kind is named on the folds line, with the rule that the two kinds are never joined;
-2. on a spec that reads `Front-end: builder` or `Front-end: impeccable`, one more line beside those: the paths cut in two, and the paths left as a Logic ticket alone, each of these with the reason no screen was read in it. For example: `Cut in two: "Archive a note". Logic ticket alone: "Export the notes" (run from the command line, no screen).` The reading of each path is the one thing here the user can know better than the session, so it is shown where they can overrule it. On `none` the line is left out;
+2. on a spec that reads `Front-end: builder` or `Front-end: impeccable`, one more line beside those: the paths cut in two, and the paths left as a Logic ticket alone, each of these with the reason no screen was read in it. For example: `Cut in two: "Archive a note". Logic ticket alone: "Export the notes" (run from the command line, no screen).` When no path has a screen the line says so: every path was cut as a Logic ticket alone, with the reason. The reading of each path is the one thing here the user can know better than the session, so it is shown where they can overrule it. On `none` the line is left out;
 3. what was left out: the journey's cut and deferred items, and the spec's Out of Scope;
 4. one question: does the breakdown go out as it stands?
 

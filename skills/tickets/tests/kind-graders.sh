@@ -23,11 +23,12 @@ kind_logic="$status"$'\n\n''**Kind:** logic'
 # A run that published the Archive notes Tickets as local files, in a new work folder under $tmp; its path on stdout
 run_with_ticket_as() { # $1 the Ticket's number (01, 02, 03), $2 the lines between its Blocked by and its criteria, or empty when it was never written; the other two carry Kind: logic
   # Optional: $3 the lines the other two carry there instead of Kind: logic
+  # Optional, set on the call's own line: feature_folder=<name> the feature folder the Tickets land under (default archive-notes), ticket_names=<file names, space separated> the Tickets the run published (default the three Archive notes ones)
   local w issues name
   w="$(mktemp -d "$tmp/w.XXXXXX")"
-  issues="$w/fixture/.scratch/archive-notes/issues"
+  issues="$w/fixture/.scratch/${feature_folder:-archive-notes}/issues"
   mkdir -p "$issues"
-  for name in 01-archive-a-note.md 02-search-skips-archived.md 03-restore-a-note.md; do
+  for name in ${ticket_names:-01-archive-a-note.md 02-search-skips-archived.md 03-restore-a-note.md}; do
     if [ "${name%%-*}" != "$1" ]; then
       ticket "$name" "${3:-$kind_logic}" 'None (can start immediately)'
     elif [ -n "$2" ]; then
@@ -128,6 +129,38 @@ grade_fails "$case: a run whose only front-end kind shares the Status line fails
 grade_fails "$case: a run whose Tickets carry no **Kind:** line fails $name" \
   "$(run_with_ticket_as 02 "$status" "$status")"
 grade_fails "$case: a run that published nothing fails $name" "$nothing_published"
+
+# In no-screen-cuts-logic-alone the Spec reads Front-end: builder and its journey holds two Paths,
+# both run from the command line, so neither has a screen: the run publishes two local Tickets under
+# the notes-cli feature folder, one Logic ticket per Path and no Front-end ticket.
+case=no-screen-cuts-logic-alone
+notes_cli_run() { # run_with_ticket_as's arguments: the same run, of the two Notes CLI Tickets
+  feature_folder=notes-cli ticket_names='01-export-the-notes.md 02-import-notes.md' run_with_ticket_as "$@"
+}
+for n in 01 02; do
+  name="ticket-$n-kind-logic"
+  # shellcheck disable=SC2034 # read by lib.sh's grade_passes and grade_fails
+  grader="$here/../evals/$case/graders/$name.md"
+
+  expect "$case holds a $name grader" test -f "$grader"
+
+  grade_passes "$case: a Ticket $n carrying **Kind:** logic on a line of its own passes $name" \
+    "$(notes_cli_run "$n" "$kind_logic")"
+  grade_passes "$case: a Ticket $n carrying **Kind:** logic passes $name, whichever kind the other carries" \
+    "$(notes_cli_run "$n" "$kind_logic" "$kind_front_end")"
+  grade_fails "$case: a Ticket $n carrying **Kind:** front-end, cut for a Path with no screen, fails $name, though the other carries **Kind:** logic" \
+    "$(notes_cli_run "$n" "$kind_front_end")"
+  grade_fails "$case: a Ticket $n with no **Kind:** line fails $name, though the other carries it" \
+    "$(notes_cli_run "$n" "$status")"
+  grade_fails "$case: a Ticket $n carrying the kind unbolded fails $name" \
+    "$(notes_cli_run "$n" "$status"$'\n\n''Kind: logic')"
+  grade_fails "$case: a Ticket $n carrying the kind on its Status line fails $name" \
+    "$(notes_cli_run "$n" "$status · **Kind:** logic")"
+  grade_fails "$case: a Ticket $n never written fails $name, though the other carries **Kind:** logic" \
+    "$(notes_cli_run "$n" "")"
+  grade_fails "$case: Tickets published under another feature folder fail $name" \
+    "$(run_with_ticket_as "$n" "$kind_logic")"
+done
 
 [ "$fails" -eq 0 ] && exit 0
 exit 1
