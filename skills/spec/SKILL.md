@@ -47,7 +47,8 @@ The turn ends at these points and no others:
 - the message that sends the user to `/discuss` (step 1);
 - the seams question (step 2), which a run under `--auto` hands to the `choice-taker` instead and
   asks only in the cases that step lists;
-- the builder question (step 4), asked only when a story has a screen;
+- the builder question (step 4), asked only when a story has a screen, which a run under `--auto`
+  hands to the `choice-taker` instead;
 - an allocator refusal (step 3);
 - the close (step 5).
 
@@ -202,8 +203,8 @@ close's last line still carries the flag. It happens in these cases and no other
 ## 3. Write
 
 **Before anything is written**, read the plan for a story with a screen, as step 4 defines one.
-With one, the builder question of step 4 is asked first, and this step starts on its answer: the
-allocator has not run and no spec exists while the question is open.
+With one, the builder question of step 4 is asked first, or ruled first under `--auto`, and this
+step starts on its answer: the allocator has not run and no spec exists while the question is open.
 
 **The folder, in local mode.** It comes from the allocator, never from a path the run composes.
 `<skill-dir>` is the directory this file sits in:
@@ -253,6 +254,9 @@ is written, then publish it where step 1 resolved. The rules the format carries:
   from the conversation, or ruled. A ruled seam stands on the format's own line,
   `- Ruled by the choice-taker under --auto: <the seam>. Norm: <the norm>.`, written whole on one
   line and never wrapped, so a reader finds every seam nobody confirmed by its prefix;
+- Implementation Decisions carry the builder of the front-end when step 4 had it ruled, on the
+  same Ruling line and under the same rule:
+  `- Ruled by the choice-taker under --auto: the front-end is built by <builder | impeccable>. Norm: <the norm>.`;
 - Out of Scope carries the `discuss` deferrals, each with its reopening condition.
 
 The spec records what the conversation decided and nothing more. A decision the feature needs and
@@ -326,6 +330,39 @@ question again, whole, and the turn ends there. Nothing is written and no value 
 developer: `tickets` and `do` route on these two values alone, so a third one in the header is a
 spec neither can read.
 
+### The builder question under `--auto`
+
+The flag hands this question over as it hands the seams over: when a story has a screen, the
+builder is ruled instead of asked, and the run goes on to step 3 in the same turn. Call the Agent
+tool with `subagent_type: choice-taker`, once, with a brief of its own:
+
+```
+Caller: spec at the builder question
+Question: who builds the front-end of this feature, the chain's Builder or impeccable
+Options:
+builder: the chain's own Builder, with nothing to set up
+impeccable: needs a one-time setup the developer runs by hand, which tickets publishes as a Setup ticket
+Recommendation: builder: the chain's own Builder, with nothing to set up
+Repository root: <the project's absolute path>
+Principles: <the absolute path of the skills checkout's .agents/principles/ folder>
+Context: <the plan with the flag dropped, and each story that has a screen>
+```
+
+The `choice-taker` rules on one question per fork, so the two builders never ride in the seams
+brief as a second option set: a run whose seams were ruled in step 2 forks it a second time here,
+once per question.
+
+The return is read as step 2 reads one. It is a ruling only when its first line reads `settled` or
+`extreme`, and a `settled` one only when its `Side:` names `builder` or `impeccable`. A `settled`
+return is the decision, as the developer's answer is without the flag:
+
+- its side is the line's value, `Front-end: builder` or `Front-end: impeccable`, written directly
+  after the `Journey:` line;
+- it is a Ruling, so the spec records it as it records any other, on the line step 3 gives, with
+  the return's `Norm:`;
+- it reads ruled, never chosen and never deduced, in the close (step 5): a ruled builder read later
+  as the developer's own choice is a decision nobody made.
+
 ## 5. Close
 
 In the thread, the closing summary, each item one or two lines:
@@ -334,9 +371,10 @@ In the thread, the closing summary, each item one or two lines:
 - each seam, and which of the three it was: confirmed by the user, taken from the conversation, or
   ruled by the `choice-taker` under `--auto`, a ruled one with its norm;
 - the verdict and the row that produced it;
-- the front-end line, as an item of its own: the `Front-end:` value and which of the two it was.
+- the front-end line, as an item of its own: the `Front-end:` value and which of these it was.
   Deduced, for a `none` read off the stories, with the reason that no story has a screen. Chosen,
-  for a `builder` or an `impeccable` the developer answered. A developer who disagrees with a
+  for a `builder` or an `impeccable` the developer answered. Ruled, for one the `choice-taker`
+  returned under `--auto`, with its norm. A developer who disagrees with a
   deduced `none` reads it here and nowhere else, and reruns `spec` with the story that has the
   screen;
 - the terms and decisions the synthesis found missing, each as one line to reopen in `discuss`
@@ -425,8 +463,8 @@ possible, the one that keeps these holds.
   has a screen and never otherwise. A plan the conversation does not hold is sent to `/discuss`, never asked
   for piece by piece: a second interview spends the attention `discuss` already spent, and its
   answers land in no summary.
-- **Under `--auto`, only the `choice-taker` rules the seams.** No other agent and no pick of the
-  run's own stands in for it, and an `extreme` return, a return that is no ruling or a fork that
+- **Under `--auto`, only the `choice-taker` rules the seams and the builder.** No other agent and
+  no pick of the run's own stands in for it, the recommended `builder` included, and an `extreme` return, a return that is no ruling or a fork that
   cannot be made brings the question back: a seam marked ruled is read later as a norm, by people
   who never saw it chosen.
 - **The spec carries only what was decided.** A missing decision is listed in the close, never
