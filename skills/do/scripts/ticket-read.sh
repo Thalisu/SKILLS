@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # ticket-read.sh: what a Ticket file is and what its status reads, the one rule ticket-door.sh and
-# completion-check.sh share. Sourced, never run: it defines four functions and does nothing else.
+# completion-check.sh share. Sourced, never run: it defines these functions and a helper
+# they share, and does nothing else.
 #
 #   status_of <file>              sets word to the status and detail to nothing, or word to
 #                                 ambiguous with detail saying why
@@ -8,6 +9,8 @@
 #   front_end_of <file>           sets word to the front-end builder the Front-end: line of the
 #                                 Ticket's Spec reads, the spec.md beside its issues/ folder; none
 #                                 with no such line, no Spec, or no issues/ folder
+#                                 (both: two lines or a word outside the set is ambiguous, as a
+#                                 status is)
 #   ticket_files <folder> [<NN>]  prints the Ticket files directly in the issues folder, in number
 #                                 order, or only the ones numbered <NN>
 #
@@ -39,18 +42,39 @@ status_of() { # $1 file: sets word to the status, or to ambiguous with detail se
 }
 
 kind_of() { # $1 file: sets word to the kind its **Kind:** line reads, logic when it has none
-  detail=""
-  word="$(grep -m1 '^\*\*Kind:\*\*' "$1" | sed 's/^\*\*Kind:\*\*//' | awk '{ print $1 }')"
-  word="${word:-logic}"
+  line_word "$1" '^\*\*Kind:\*\*' kind logic 'logic front-end setup'
 }
 
 front_end_of() { # $1 file: sets word to the front-end builder its Spec reads, or none
-  local folder spec=""
+  local folder spec=/dev/null
   folder="$(dirname "$1")"
-  [ "$(basename "$folder")" != issues ] || spec="$(dirname "$folder")/spec.md"
+  [ "$(basename "$folder")" != issues ] || [ ! -f "$(dirname "$folder")/spec.md" ] || spec="$(dirname "$folder")/spec.md"
+  line_word "$spec" '^Front-end:' front-end none 'none builder impeccable'
+}
+
+line_word() { # $1 file, $2 line pattern, $3 name, $4 default, $5 allowed words: sets word and detail
+  local lines
+  lines="$(grep -n "$2" "$1" | cut -d: -f1 | tr '\n' ' ')"
+  lines="${lines% }"
   detail=""
-  word="$(grep -s -m1 '^Front-end:' "$spec" | sed 's/^Front-end://' | awk '{ print $1 }')"
-  word="${word:-none}"
+  word="$4"
+  case "$(wc -w <<<"$lines")" in
+    0) return ;;
+    1) ;;
+    *)
+      word=ambiguous
+      detail="$3 lines $lines"
+      return
+      ;;
+  esac
+  word="$(grep "$2" "$1" | sed "s/$2//" | awk '{ print $1 }')"
+  case " $5 " in
+    *" $word "*) ;;
+    *)
+      detail="$3 word ${word:-none}"
+      word=ambiguous
+      ;;
+  esac
 }
 
 ticket_files() { # $1 issues folder, $2 optional Ticket number: the Ticket files, sorted, sidecars left out

@@ -78,6 +78,7 @@ echo "status=$status"
 [ -z "$detail" ] || echo "ambiguous=$detail"
 kind_of "$path"
 echo "kind=$word"
+[ -z "$detail" ] || { echo "ambiguous=$detail"; stop_ambiguous=1; }
 
 folder="$(dirname "$path")"
 by_lines="$(grep -n '^\*\*Blocked by:\*\*' "$path" | cut -d: -f1 | tr '\n' ' ')"
@@ -153,6 +154,7 @@ fi
 echo "spec_complete=$spec_complete"
 front_end_of "$path"
 echo "front_end=$word"
+[ -z "$detail" ] || { echo "ambiguous=$detail"; stop_ambiguous=1; }
 first_run_unsafe=0
 if grep -qx 'spec_exists=no' <<<"$spec_facts" && ! grep -qx 'spec_branch=none' <<<"$spec_facts" &&
   grep -qxE 'protected=yes|branch=HEAD' <<<"$branch_facts"; then first_run_unsafe=1; fi

@@ -340,6 +340,38 @@ for st in ready-for-agent claimed; do
     untouched "$issues/49-screen.md" screen
 done
 rm -f "$issues"/4[89]-*.md
+# A Ticket or a Spec on a remote tracker carries text a stranger can append: a planted second line or
+# an unknown word routes the screen to a builder the developer never chose, so the door stops on it.
+ticket 52-twice-kind.md $'**Status:** ready-for-agent\n\n**Kind:** logic\n\n**Kind:** front-end' \
+  'None (can start immediately)'
+ticket 53-odd-kind.md $'**Status:** ready-for-agent\n\n**Kind:** screen' 'None (can start immediately)'
+for pair in "52-twice-kind:two Kind lines" "53-odd-kind:a Kind word outside logic, front-end and setup"; do
+  IFS=: read -r t what <<<"$pair"
+  run "$door" "$issues/$t.md"
+  check_lines "a Ticket with $what reads its kind as ambiguous and stops" 1 "$rc" \
+    "kind=ambiguous" "verdict=ambiguous"
+  expect "a Ticket with $what names the ambiguity right after its kind line" \
+    test "$(sed -n '/^kind=/{n;p;q;}' <<<"$out" | cut -d= -f1)" = "ambiguous"
+  expect "a Ticket with $what leaves no Spec branch, run branch, worktree or claim" \
+    untouched "$issues/$t.md" "${t#*-}"
+done
+rm -f "$issues"/5[23]-*.md
+odd_issues=".scratch/20260106-odd-front/issues"
+mkdir -p "$odd_issues"
+(issues="$odd_issues" && ticket 01-path.md '**Status:** ready-for-agent' 'None (can start immediately)')
+for pair in $'two Front-end lines:Front-end: builder\nFront-end: impeccable' \
+  "a Front-end word outside none, builder and impeccable:Front-end: figma"; do
+  what="${pair%%:*}" lines="${pair#*:}"
+  printf '# A feature\n\nJourney: required\n%s\nStatus: ready-for-agent\n' "$lines" >"${odd_issues%/issues}/spec.md"
+  run "$door" "$odd_issues/01-path.md"
+  check_lines "a Spec with $what reads its front-end as ambiguous and stops" 1 "$rc" \
+    "front_end=ambiguous" "verdict=ambiguous"
+  expect "a Spec with $what names the ambiguity right after its front_end line" \
+    test "$(sed -n '/^front_end=/{n;p;q;}' <<<"$out" | cut -d= -f1)" = "ambiguous"
+  expect "a Spec with $what leaves no Spec branch, run branch, worktree or claim" \
+    untouched "$odd_issues/01-path.md" path
+done
+rm -rf "${odd_issues%/issues}"
 # The Spec branch is cut from a branch that already carries the setup, so every Ticket `tickets` wrote
 # behind the Setup ticket waits on 00, the number read with its leading zero.
 ticket 50-path.md $'**Status:** ready-for-agent\n\n**Kind:** logic' '00: Title of 00-setup'
