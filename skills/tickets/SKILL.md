@@ -200,6 +200,8 @@ It prints one `key=value` line per step it reads, each `done` or `missing`, and 
 
 All six are listed, every one whether the check reads it done or not: the check has no line for the reload, and the developer reads in the breakdown the whole of what they will be asked to run.
 
+Every other ticket is blocked by the Setup ticket, beside the edges it already has, and the edge says the setup is committed before the ticket is built. That holds for every kind, also on a spec where no path has a screen and every other ticket is a Logic ticket: `do` cuts the spec's branch on the first ticket it runs, and a ticket left unblocked would cut it before the setup is committed, so the branch would be born without it.
+
 **Blocking edges.** A ticket that reads what another ticket writes (a state, a section, a symbol) is blocked by the ticket that writes it, never by an earlier one. A stub that would let it start sooner is never cut: the stub is work thrown away, and the ticket built on it is verified against something that is not the real writer. Each edge names what is read and which ticket writes it. A ticket with no blockers can start immediately.
 
 **Splits, folds and placements**, in this order:

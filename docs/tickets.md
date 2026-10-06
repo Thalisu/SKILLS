@@ -133,7 +133,9 @@ breakdown, of kind `setup` and blocked by nothing. Its acceptance criteria are t
 will be asked to run, in order and all six whatever the check found done: install impeccable from a
 terminal, reload the coding tool, initialise the project context in an agent session, document the
 design system when one exists, set the code-led build path, and commit the setup files on your
-branch.
+branch. Every other ticket is blocked by it, Logic tickets included and also when no path has a
+screen: `do` cuts the spec's branch on the first ticket it runs, and the setup has to be committed
+before that branch exists.
 
 ## Under `--auto`
 

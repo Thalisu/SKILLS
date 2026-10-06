@@ -82,6 +82,30 @@ carries_each "every one of the six is listed, whether the check reads it done or
   "whether it reads" "regardless of" "whatever the check reads" "even one the check reads done" \
   "even when the check reads" "reads done or" "already done"
 
+echo "# SKILL.md / ## 3: with a Setup ticket cut, every other ticket is blocked by it"
+flat="$whole"
+# The passage already says the Setup ticket itself is blocked by nothing, so every phrasing here
+# names the other tickets as the blocked side: a bare "blocked by" would answer for the wrong edge.
+carries_any "every other ticket is blocked by the Setup ticket" \
+  "very other ticket is blocked by" "very other ticket of the breakdown is blocked by" \
+  "ach other ticket is blocked by" "ll other tickets are blocked by" \
+  "ll the other tickets are blocked by" "very ticket after it is blocked by" \
+  "very ticket but it is blocked by" "very ticket other than it is blocked by" \
+  "very other ticket names it" "very other ticket names the Setup ticket" \
+  "very other ticket lists it" "very other ticket lists the Setup ticket" \
+  "very other ticket carries it in" "very other ticket carries the Setup ticket in" \
+  "very other ticket's \`Blocked by\` names" "very other ticket's **Blocked by** names" \
+  "very other ticket's Blocked by names" "Blocked by\` of every other ticket names" \
+  "Blocked by** of every other ticket names" "Blocked by of every other ticket names" \
+  "blocks every other ticket" "blocks each other ticket" "blocks all other tickets" \
+  "blocks all the other tickets" "blocks every ticket after it" "blocks every ticket but itself"
+carries_each "and that holds on a spec where no path has a screen and every other ticket is a Logic ticket" \
+  "no path has a screen" "no Path has a screen" "not one path has a screen" \
+  "none of the paths has a screen" "none of its paths has a screen" \
+  "no path of the spec has a screen" "no path with a screen" "no path carries a screen" \
+  "no path touches a screen" "no screen" "without a screen" "without any screen" -- \
+  "Logic ticket" "logic ticket" "\`logic\` ticket" "of kind \`logic\`" "Kind: logic"
+
 echo "# SKILL.md / ## 4: the Kind field of the breakdown list admits setup"
 flat="$(bullets_opening_on <(passage_of "$skill" "## 4. Put the breakdown to the user" "After the list:") "**Kind**")"
 expect "SKILL.md carries the Kind field of the breakdown list" test -n "$flat"
