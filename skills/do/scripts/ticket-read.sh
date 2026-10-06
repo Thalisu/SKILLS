@@ -4,7 +4,7 @@
 #
 #   status_of <file>              sets word to the status and detail to nothing, or word to
 #                                 ambiguous with detail saying why
-#   kind_of <file>                sets word to the kind the **Kind:** line reads
+#   kind_of <file>                sets word to the kind the **Kind:** line reads, logic with none
 #   ticket_files <folder> [<NN>]  prints the Ticket files directly in the issues folder, in number
 #                                 order, or only the ones numbered <NN>
 #
@@ -35,9 +35,10 @@ status_of() { # $1 file: sets word to the status, or to ambiguous with detail se
   esac
 }
 
-kind_of() { # $1 file: sets word to the kind its **Kind:** line reads
+kind_of() { # $1 file: sets word to the kind its **Kind:** line reads, logic when it has none
   detail=""
   word="$(grep -m1 '^\*\*Kind:\*\*' "$1" | sed 's/^\*\*Kind:\*\*//' | awk '{ print $1 }')"
+  word="${word:-logic}"
 }
 
 ticket_files() { # $1 issues folder, $2 optional Ticket number: the Ticket files, sorted, sidecars left out

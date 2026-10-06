@@ -283,7 +283,11 @@ done
 run "$door" "$issues/43-twice-screen.md"
 expect "the kind line comes right after the status line's ambiguous line" \
   test "$(sed -n '/^ambiguous=status /{n;p;q;}' <<<"$out")" = "kind=front-end"
-rm -f "$issues"/4[123]-*.md
+# A Ticket published before the Kind line existed carries none, and logic was the only kind there was.
+ticket 44-unkinded.md '**Status:** ready-for-agent' 'None (can start immediately)'
+run "$door" "$issues/44-unkinded.md"
+check_lines "a Ticket with no Kind line is routed as logic" 0 "$rc" "kind=logic"
+rm -f "$issues"/4[1234]-*.md
 # A first run of a Spec on a protected branch, or on a detached checkout, has nowhere to land, so the
 # door refuses it before anything is claimed or cut; a Ticket outside a feature folder has no Spec
 # branch and keeps the protected branch as a warning only.
