@@ -4,8 +4,8 @@
 
 `do` matches a request to one **Playbook** and runs its steps: a **Ticket**'s path or issue
 reference builds that Ticket as the last step of the chain, a request in words runs outside it, and
-a request that fits no Playbook is sent to the door that owns it in one message. Five Playbooks
-exist and one run reads one of them: `ticket`, `trivial`, `bug-fix`, `refactoring`, `integrate`. Every reply
+a request that fits no Playbook is sent to the door that owns it in one message. Six Playbooks
+exist and one run reads one of them: `ticket`, `setup`, `trivial`, `bug-fix`, `refactoring`, `integrate`. Every reply
 opens with the Playbook it matched, so a wrong match costs you one retyped request and nothing
 else.
 
@@ -32,6 +32,7 @@ You invoke this by typing `/do <request>`, and the agent won't reach for it on i
 | a typo, a doc line, a log wording, a rename inside one file | `/do <the change in words>` |
 | reshape code whose behaviour stays where it is | `/do <the reshape in words>`: refactor, rename, extract, inline, dedupe, move a module |
 | any of the four above, with the run's own questions answered without you | add `--auto`, before or after the request: `/do --auto <ticket>`, the line `tickets` prints when its own run had the flag. The request routes to the same Playbook with the flag as without it |
+| run the Setup ticket `tickets` cut for impeccable | `/do <the Setup ticket's path>`, never with `--auto`: its steps are yours, and the flag is refused in one line |
 | build a whole spec | not this skill: [tickets](tickets.md) cuts the spec first, and `do` takes one ticket of the cut |
 | decide the plan, or a feature with no ticket | [discuss](discuss.md), or [spec](spec.md) when the conversation already holds the discussion |
 | understand code rather than change it | `/how` for the mechanism, `/why` for the rationale, `/teach` to follow it end to end |
@@ -69,13 +70,16 @@ skill named here is the same procedure, and [the top-level README](../README.md)
 
 A **Playbook** is one execution model, one file in the skill's `references/` folder, read only when
 the router matches it. The skill file itself holds the router, the rules that apply to every run,
-and the links, so a run loads one Playbook and never the other four
-([ADR 0008](adr/0008-do-is-a-router-and-only-its-ticket-playbook-is-inside-the-chain.md)). Only
-`ticket` is inside the chain; the other four exist for work that never entered it.
+and the links, so a run loads one Playbook and never the other five
+([ADR 0008](adr/0008-do-is-a-router-and-only-its-ticket-playbook-is-inside-the-chain.md)). `ticket`
+builds the chain's Tickets and `setup` runs its Setup ticket, the one Ticket whose steps are yours
+([ADR 0076](adr/0076-the-front-end-builders-setup-is-a-ticket-run-by-a-playbook-of-its-own.md));
+the other four exist for work that never entered the chain.
 
 | Playbook | Matched by | What the run does |
 |---|---|---|
 | `ticket` | a Ticket's path, or an issue reference the tracker file resolves | claims the Ticket in your checkout, builds it in a worktree behaviour by behaviour, gates, rebases onto the Spec branch and lands there with no review (a Ticket with no Spec is reviewed and lands on your branch, then its affected flows run), and closes the Ticket with the evidence quoted under it |
+| `setup` | a Setup ticket's path, the Ticket numbered `00` whose `**Kind:**` reads `setup`, which `tickets` cuts when a Spec reads `Front-end: impeccable` and impeccable's setup is missing | claims the Ticket in your checkout and runs the setup check, then shows the six steps marked done or missing and the first missing one: what it is, its exact command, where to run it (a terminal, this session or a new agent session), and "Say when it is done." The turn ends there. With every step done on the first check it resolves the Ticket and ends on `/do` for the next one. No worktree, no Planner, no Builder, no review, and `--auto` is refused in one line naming the plain `/do` |
 | `bug-fix` | a defect in words: what happened, where, and the error or the wrong output | reproduces it on the surface it happens on, rules hypotheses out with runtime evidence, commits the failing reproduction before the smallest fix, and verifies on that same surface |
 | `refactoring` | a reshape in words whose behaviour stays where it is | pins the behaviour before any structure moves, then commits subtraction, reshape and cleanup in that order, so one revert undoes one slice |
 | `integrate` | a rebase of one branch onto another, or a merge of one branch into another, in words | checks the branches exist, that a merge target is not protected, that you stand on the branch written to and that your tree is clean, then runs the operation, resolves the mechanical hunks and takes the target side of the contested ones, leaving what they set aside in a Loss ledger keyed by the branch. No worktree, no Gate, no review, nothing landed or pushed: the reply names the unchecked tree as debt for you to test before the push |
@@ -366,6 +370,9 @@ the questions handed over:
 | whether a harness that cannot stay inside its bound runs | `refactoring` |
 | which of two homes a reshape goes to, when it fits both equally | `refactoring` |
 | which of two files, when the request fits both equally | `trivial` |
+
+A Setup ticket takes no flag at all: its steps are yours to run, so `/do --auto` on it is refused
+in one line naming the plain `/do` command, and nothing is claimed.
 
 Four classes stay yours, each asked in the same place and the same words as without the flag:
 
