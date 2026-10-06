@@ -323,15 +323,26 @@ for pair in "a Spec with no Front-end line:$issues/02-second.md" \
     test "$(tail -n 1 <<<"$out" | cut -d= -f1)" = "verdict"
 done
 rm -f .scratch/20260101-feat/spec.md .scratch/45-loose.md
-# A first run of a Spec on a protected branch, or on a detached checkout, has nowhere to land, so the
-# door refuses it before anything is claimed or cut; a Ticket outside a feature folder has no Spec
-# branch and keeps the protected branch as a warning only.
 untouched() { # $1 the Ticket the refused run named, $2 its slug: no Spec ref, no run branch or worktree, the Ticket still ready
   [ -z "$(git for-each-ref refs/heads/spec/)" ] &&
     ! git show-ref --verify --quiet "refs/heads/do/$2" &&
     ! git worktree list --porcelain | grep -xF "worktree $top/.claude/worktrees/do-$2" >/dev/null &&
     grep -qxF '**Status:** ready-for-agent' "$1"
 }
+# A Front-end ticket is cut to build on its Logic ticket, so the screen waits until that logic lands.
+ticket 49-screen.md $'**Status:** ready-for-agent\n\n**Kind:** front-end' '48, Title of 48-logic'
+for st in ready-for-agent claimed; do
+  ticket 48-logic.md "**Status:** $st"$'\n\n**Kind:** logic' 'None (can start immediately)'
+  run "$door" "$issues/49-screen.md"
+  check_lines "a Front-end ticket whose Logic ticket reads $st is refused, the Logic ticket named" 1 "$rc" \
+    "kind=front-end" "blocker=48 $st $issues/48-logic.md" "verdict=blocked"
+  expect "a Front-end ticket refused on its $st Logic ticket leaves no Spec branch, run branch, worktree or claim" \
+    untouched "$issues/49-screen.md" screen
+done
+rm -f "$issues"/4[89]-*.md
+# A first run of a Spec on a protected branch, or on a detached checkout, has nowhere to land, so the
+# door refuses it before anything is claimed or cut; a Ticket outside a feature folder has no Spec
+# branch and keeps the protected branch as a warning only.
 g branch develop
 run "$door" "$issues/02-second.md"
 check_lines "a first run of a Spec on a protected branch with no Spec branch is refused" 1 "$rc" \
