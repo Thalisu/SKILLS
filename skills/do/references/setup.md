@@ -63,6 +63,58 @@ It prints five step lines, `impeccable-skill=`, `product-context=`, `design-syst
 and `setup-committed=`, each `done` or `missing`, then `uncommitted=`, the setup files the commit
 step names. It writes nothing.
 
+## The steps
+
+The six steps of the Setup ticket, in the order the developer runs them. This table is the only
+place that holds them: the check has no line for the reload, and a command read off the Ticket's
+own criteria could be text a stranger appended to it. `<main>` is the door's `main=` line, and
+`<path>` the Ticket's path as the developer typed it.
+
+| # | Step | Proved by | Where to run it | Command |
+|---|---|---|---|---|
+| 1 | Install impeccable | `impeccable-skill=done` | a terminal | `claude plugin marketplace add pbakaus/impeccable && claude plugin install impeccable@impeccable` |
+| 2 | Reload the coding tool | the session's own skill listing names `impeccable`, or a skill under `impeccable:` | this session: reload it, then type the `/do` line | quit the coding tool and start it again in `<main>`, then `/do <path>` |
+| 3 | Initialise the project context | `product-context=done` | a new agent session | `/impeccable init` |
+| 4 | Document the design system | `design-system=done` | a new agent session | `/impeccable document` |
+| 5 | Set the code-led build path | `build-path=done` | a terminal | `cd <main> && mkdir -p .impeccable && touch .impeccable/config.json && jq -s '(.[0] // {}) + {buildPath: "code"}' .impeccable/config.json > .impeccable/config.tmp && mv .impeccable/config.tmp .impeccable/config.json` |
+| 6 | Commit the setup files | `setup-committed=done` | a terminal | `git -C <main> add -- <the uncommitted= files> && git -C <main> commit -m "chore: set up impeccable"`, the files copied from the check's `uncommitted=` line |
+
+Step 2 is the one no script reads. A session lists the skills it loaded when it started, so the
+impeccable skill a terminal installed is listed only after a reload, and the resumed run reads its
+own listing to prove the step. Step 4 reads done in a project with no design system to document.
+Step 5 writes the setting impeccable's init records as `buildPath`, merged with the keys already in
+the file: impeccable asks for it only where image generation is available, and the screens of this
+Spec are built unattended, code-led.
+
+## The message
+
+When a step reads missing, the run writes one message and ends its turn on it:
+
+```
+Playbook: setup
+Setup ticket <path> is claimed.
+
+1. Install impeccable: done
+2. Reload the coding tool: done
+3. Initialise the project context: done
+4. Document the design system: done
+5. Set the code-led build path: missing
+6. Commit the setup files: missing
+
+Next, step 5: set the code-led build path.
+What: <what the step does, in one line>
+Run: <the exact command, with <main>, <path> and the uncommitted= files filled in>
+Where: <a terminal, this session, or a new agent session>
+Say when it is done.
+```
+
+- The six steps are listed in the table's order, each marked `done` or `missing`. A step that reads
+  done gets no other word.
+- Then the first missing step, the lowest row whose proof does not read done, with what it is, its
+  command on the `Run:` line and its place on the `Where:` line, from the table.
+- The message ends the turn: the developer runs the step where it belongs and comes back. The run
+  never moves on to the next step before the check proves this one.
+
 ## What this run never does
 
 - It creates no worktree and cuts no branch: the setup is committed on the branch the developer has

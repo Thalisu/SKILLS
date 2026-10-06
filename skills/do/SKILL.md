@@ -114,11 +114,13 @@ those reasons.
 ## Where a turn ends
 
 A message with no tool call ends the turn, and the run stands still until the developer comes
-back, which can be an hour later. The run ends a turn in three places only: its last message (the
+back, which can be an hour later. The run ends a turn in four places only: its last message (the
 Reply, or the one message of `Playbook: none`), whether the checklist ran through or a step's own
-route ended the run early; a pause before an irreversible write; and a product or preference call
-with nothing left to do that does not depend on its answer. It never ends one on any of these, all
-met while work is still owed:
+route ended the run early; a pause before an irreversible write; a product or preference call
+with nothing left to do that does not depend on its answer; and the `setup` Playbook's step
+message, which shows the developer the first missing setup step to run by hand
+([ADR 0076](../../docs/adr/0076-the-front-end-builders-setup-is-a-ticket-run-by-a-playbook-of-its-own.md)).
+It never ends one on any of these, all met while work is still owed:
 
 - a summary of what was done that announces the next step instead of taking it;
 - an offer to carry on unless the developer would rather not;

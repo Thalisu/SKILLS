@@ -1,0 +1,5 @@
+---
+type: llm
+criteria: "The run's last message lists the six setup steps in this order, each marked done or missing: install impeccable, reload the coding tool, initialise the project context, document the design system, set the code-led build path, commit the setup files. Install impeccable reads missing (the setup check printed impeccable-skill=missing), and so do the reload, the project context and the build path. A step marked done carries no other word. After the list, the message shows the first missing step, install impeccable: what it is, its exact command on a line of its own (a command that installs the impeccable plugin, for example through `claude plugin install`), where to run it (a terminal), and the words 'Say when it is done.' The message is the last of the run: the run did not go on to a later step, did not run the install itself, and asks nothing else."
+---
+With a step missing, the developer sees the six steps marked, then the first missing one with its command, its place and "Say when it is done.", and the turn ends there.

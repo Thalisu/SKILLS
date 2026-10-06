@@ -6,6 +6,11 @@
 # claims the Ticket in the main checkout on `start` (never committed, and never again on `resume`)
 # and runs the setup check, with no worktree created, no Planner or Builder forked and no review
 # called. Its reference links no other Playbook's, since a matched Playbook's links are all read.
+# Its steps are a table of six rows in the order the developer runs them, each naming the line that
+# proves it, where it runs and its command; with a step missing, the message marks every step done
+# or missing, shows the first missing one with a `Run:` and a `Where:` line and "Say when it is
+# done.", and the turn ends there, which SKILL.md's `## Where a turn ends` names as a place a turn
+# ends.
 # The route and the steps are prose a session follows, so they are proven over the passages that
 # carry them.
 # Run: bash skills/do/tests/setup-playbook.sh
@@ -120,6 +125,73 @@ if [ -f "$setup" ]; then
 else
   fail "setup.md links no other Playbook's reference ($setup missing)"
 fi
+
+# The six steps, each as a fixed string its row and its line in the message carry, in the order the
+# developer runs them, then the line that proves each row done.
+step_names=("nstall" "eload" "context" "design system" "build path" "ommit")
+step_proofs=("impeccable-skill=done" "impeccable" "product-context=done" "design-system=done" "build-path=done" "setup-committed=done")
+
+echo "# setup.md / ## The steps: six rows in order, each with its proof, its place and its command"
+steps="$(passage_of "$setup" "## The steps" "## " 2>/dev/null)"
+# The header is the first `| ` row; the separator row has no space after its first pipe.
+mapfile -t step_rows < <(grep -E '^\| ' <<<"$steps" | tail -n +2)
+expect "the table has six step rows" test "${#step_rows[@]}" -eq 6
+for i in 0 1 2 3 4 5; do
+  flat="${step_rows[$i]:-}"
+  carries "row $((i + 1)) is the step named for '${step_names[$i]}', proven by ${step_proofs[$i]}" \
+    "${step_names[$i]}" "${step_proofs[$i]}"
+  carries_any "row $((i + 1)) says where the step runs" "terminal" "this session" "new agent session"
+done
+flat="${step_rows[1]:-}"
+carries_any "the reload is proven by the session's own skill listing naming impeccable" \
+  "skill listing" "skills listing" "listing of skills" "skill list" "skills list" "available skills" \
+  "lists the skills" "lists \`impeccable\`" "lists impeccable" "listed skills" "skills it lists"
+flat="${step_rows[5]:-}"
+carries "the commit row's command adds and commits the files the check's uncommitted= line names" \
+  "uncommitted=" "git -C <main> add --" "git -C <main> commit"
+
+echo "# setup.md / ## The message: every step done or missing, then the first missing one, and the turn ends"
+message="$(passage_of "$setup" "## The message" "## " 2>/dev/null)"
+flat="$(tr '\n' ' ' <<<"$message" | tr -s ' ')"
+carries "each step is marked done or missing" "done" "missing"
+# The six steps in order: either the message's own lines name them in that order, or its prose says
+# they follow the table's order.
+listed=1
+at=0
+for name in "${step_names[@]}"; do
+  rest="${flat:$at}"
+  pos="$(awk -v s="$rest" -v k="$name" 'BEGIN { print index(s, k) }')"
+  if [ "$pos" -eq 0 ]; then
+    listed=0
+    break
+  fi
+  at=$((at + pos))
+done
+said="$(first_at "in order" "in the table's order" "in the order of the table" "table's order" \
+  "in their order" "in row order" "in the order they" "in the order of the rows" "the rows' order")"
+expect "the six steps are listed in order" test "$listed" = 1 -o "$said" -gt 0
+carries_any "a step that reads done gets no other word" \
+  "no other word" "nothing else" "nothing more" "only \`done\`" "just \`done\`" "no more than" \
+  "no further word" "no detail" "no command"
+carries_any "then the first step still missing, the lowest row whose proof does not read done" \
+  "first missing" "first step still missing" "first one still missing" "first \`missing\`" \
+  "lowest row" "first row whose" "first step whose" "first step that"
+carries_any "the missing step is shown with what it is" \
+  "what it is" "what the step is" "what it does" "what the step does" "what it sets up" "says what"
+carries "with its exact command on a Run: line and where to run it on a Where: line" "Run:" "Where:"
+carries "the message closes on the words that hand the step over" "Say when it is done."
+before "the command comes before the closing words" "Run:" "Say when it is done."
+before "the place comes before the closing words" "Where:" "Say when it is done."
+carries_any "the turn ends on that message" \
+  "ends the turn" "turn ends" "ends its turn" "end the turn" "ending the turn" "the turn stops"
+
+echo "# SKILL.md / ## Where a turn ends: the setup Playbook's step message is a place a turn ends"
+whole="$(passage_of "$skill" "## Where a turn ends" "## " | tr '\n' ' ' | tr -s ' ')"
+flat="$(sed 's/\. /.\n/g' <<<"$whole" | grep -iF "setup" | tr '\n' ' ')"
+expect "the section names the setup Playbook" test -n "${flat// /}"
+carries_any "as the step message that ends a turn" \
+  "step message" "missing step" "setup step" "first missing" "a step to run" "the step it shows" \
+  "shows the developer" "step the developer"
 
 [ "$fails" -eq 0 ] && exit 0
 exit 1
