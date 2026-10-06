@@ -12,7 +12,9 @@
 # proves it, where it runs and its command; with a step missing, the message marks every step done
 # or missing, shows the first missing one with a `Run:` and a `Where:` line and "Say when it is
 # done.", and the turn ends there, which SKILL.md's `## Where a turn ends` names as a place a turn
-# ends.
+# ends. With the check exiting 0 and the reload done, no step is shown: the close ticks the criteria,
+# appends the Context, Forks and check lines with reload=done under the Ticket's Evidence, sets it
+# resolved uncommitted, and the Reply's last line is read off completion-check.sh's next= line.
 # The route and the steps are prose a session follows, so they are proven over the passages that
 # carry them.
 # Run: bash skills/do/tests/setup-playbook.sh
@@ -212,6 +214,74 @@ expect "the section names the setup Playbook" test -n "${flat// /}"
 carries_any "as the step message that ends a turn" \
   "step message" "missing step" "setup step" "first missing" "a step to run" "the step it shows" \
   "shows the developer" "step the developer"
+
+echo "# setup.md / ## The close: every step done on the first check resolves the Ticket and hands over the next /do"
+# The close may show the Ticket's evidence in a fenced block, whose own `## Evidence` line is no
+# heading of setup.md, so the section is read up to the next heading outside a fence.
+close="$(awk '
+  $0 == "## The close" { on = 1; print; next }
+  on && /^ *```/ { fence = !fence }
+  on && !fence && /^## / { exit }
+  on
+' "$setup" 2>/dev/null)"
+flat="$(tr '\n' ' ' <<<"$close" | tr -s ' ')"
+expect "setup.md carries a close section" test -n "${flat// /}"
+carries_any "the close runs when the check exits 0, every step line reading done" \
+  "exits 0" "exit 0" "exits zero" "exit code 0" "exit status 0" "exits with 0"
+carries_each "and the reload step reads done, the session's own skill listing naming impeccable" \
+  "reload" "Reload" "step 2" "Step 2" -- \
+  "skill listing" "skills listing" "listing of skills" "skill list" "skills list" "available skills" \
+  "lists the skills" "lists \`impeccable\`" "lists impeccable" "listed skills" "skills it lists"
+carries_any "then no step is shown" \
+  "no step is shown" "No step is shown" "shows no step" "no step shown" "without showing a step" \
+  "never shows a step" "no step message" "no message" "skips the message" "not shown"
+carries_any "the Ticket is written in the main checkout" "main checkout" "\`main=\`" "main=" "<main>"
+carries_any "its criteria are ticked" "tick" "Tick" "[x]"
+carries "the check's lines and reload=done go under the Ticket's Evidence" "## Evidence" "reload=done"
+carries_any "the evidence is the check's own lines" \
+  "the check's lines" "check's five lines" "check's step lines" "check's five step lines" \
+  "lines the check printed" "the check printed" "check's output" "setup-check.sh's lines" \
+  "impeccable-skill=done"
+carries "the Status line is set to resolved" "**Status:**" "resolved"
+carries_any "nothing is committed" \
+  "never committed" "not committed" "never commits" "commits nothing" "no commit" "uncommitted" \
+  "without a commit" "without committing" "is not staged" "never staged" "Nothing is committed" \
+  "nothing is committed"
+carries "the Evidence opens on a Context line that reads not measured, and a Forks line reading 0" \
+  "Context: not measured," "Forks: 0"
+flat="$(paragraph_with <(printf '%s\n' "$close") "Forks: 0" | tr -s ' ')"
+before "the Context line comes first" "Context:" "Forks: 0"
+before "the Forks line comes ahead of the check's lines" "Forks: 0" "reload=done"
+flat="$(tr '\n' ' ' <<<"$close" | tr -s ' ')"
+carries "after the close the run reads the frontier with completion-check.sh and takes its next= line" \
+  "bash <skill-dir>/scripts/completion-check.sh" "next="
+before "the frontier is read after the Ticket reads resolved" \
+  "resolved" "bash <skill-dir>/scripts/completion-check.sh"
+carries "the Reply names the setup Playbook" "Playbook: setup"
+carries_any "it says every step read done on the first check" "first check" "first run of the check"
+carries_any "its last line is the plain /do on the path next= names" \
+  "/do <path>" "/do <that path>" "/do <the path" "/do <next"
+carries_any "as the Reply's last line" \
+  "last line" "Last line" "final line" "closes on" "ends on" "closing line"
+# shellcheck disable=SC2034 # absent() reads $out.
+out="$flat"
+absent "the /do it names carries no flag before the path" "/do --"
+expect "the /do it names carries no flag after the path" \
+  bash -c '! grep -qE "/do <[^>]*> --" <<<"$1"' _ "$flat"
+whole="$flat"
+for value in wait none ambiguous; do
+  flat="$(sed 's/\. /.\n/g' <<<"$whole" | grep -F -e "next=$value" -e "\`$value\`" | tr '\n' ' ')"
+  expect "the close names next=$value" test -n "${flat// /}"
+  case "$value" in
+    wait) carries_any "next=wait: every open Ticket is held by another run" \
+      "another run" "other runs" "held" "claimed" ;;
+    none) carries_any "next=none: nothing else in the Spec is open" \
+      "nothing else" "Nothing else" "no other" "No other" "nothing is open" "nothing open" \
+      "none open" "nothing left" ;;
+    ambiguous) carries_any "next=ambiguous: an open Ticket's status cannot be read" \
+      "cannot be read" "can't be read" "unreadable" "could not be read" "not be read" ;;
+  esac
+done
 
 [ "$fails" -eq 0 ] && exit 0
 exit 1

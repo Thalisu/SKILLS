@@ -125,6 +125,63 @@ Say when it is done.
 - The message ends the turn: the developer runs the step where it belongs and comes back. The run
   never moves on to the next step before the check proves this one.
 
+## The close
+
+The close runs only when the check exits 0, every step line reading done, and the reload step reads
+done, the session's own skill listing naming impeccable. Then no step is shown: a project already
+set up is not walked through six steps it has.
+
+1. In the Ticket file in the main checkout (`main=`), tick every criterion, and append under
+   `## Evidence` the ticket format's two first lines, then the check's lines and `reload=done`:
+
+   ```
+   ## Evidence
+
+   Context: not measured, a setup run has no ground step and builds nothing
+   Forks: 0
+   impeccable-skill=done
+   product-context=done
+   design-system=done
+   build-path=done
+   setup-committed=done
+   uncommitted=none
+   reload=done
+   ```
+
+2. Set the `**Status:**` line to `resolved`. Nothing is committed: the Ticket file is the
+   developer's, as at the claim.
+3. Read the frontier, the first Ticket of the Spec now free to start:
+
+   ```
+   bash <skill-dir>/scripts/completion-check.sh <path>
+   ```
+
+   and take its `next=` line.
+
+The Reply is one message: `Playbook: setup` on the first line, one line saying the Ticket is
+resolved with every step done on the first check, the check's lines and `reload=done` as its
+evidence, and a last line read off `next=`:
+
+| `next=` | Last line of the Reply |
+|---|---|
+| a path | `/do <the path next= names>`, plain with no flag |
+| `wait` | one line saying every open Ticket is held by another run |
+| `none` | one line saying nothing else in the Spec is open |
+| `ambiguous` | one line saying an open Ticket's status cannot be read |
+
+```
+Playbook: setup
+Resolved: <path>, every step done on the first check.
+impeccable-skill=done
+product-context=done
+design-system=done
+build-path=done
+setup-committed=done
+uncommitted=none
+reload=done
+/do <the path next= names>
+```
+
 ## What this run never does
 
 - It creates no worktree and cuts no branch: the setup is committed on the branch the developer has
