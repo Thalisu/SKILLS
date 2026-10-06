@@ -14,7 +14,9 @@ that check goes to the `choice-taker`, and the run ends at the closing summary t
 A summary whose stories have a screen earns the builder question, and a session under test has one
 turn. So a case that has to reach the closing summary carries the answer as the prompt's last
 line, the developer saying which builder they picked, and a case that carries none ends at the
-question.
+question. Two kinds of case reach the summary with no answer: under `--auto` the `choice-taker`
+rules the builder, and a rerun keeps the builder its fixture's earlier spec already names. A rerun
+case scaffolds that earlier spec in a dated feature folder and names it in the prompt.
 
 | case | checks |
 |---|---|
@@ -27,10 +29,16 @@ question.
 | `screen-asks-the-builder` | stories with a screen (an export button on an existing list) end at exactly one question, who builds the front-end, the chain's Builder or impeccable; the message names impeccable's one-time setup by hand and the Setup ticket `tickets` publishes for it, and recommends `builder`; nothing is written before the answer |
 | `builder-answer-written` | stories with a screen and the answer `impeccable` in the conversation get `Front-end: impeccable` directly after the `Journey:` line, never the recommended `builder`; the question is not asked a second time, and the closing summary names the value as chosen and still ends on the next command |
 | `third-builder-asked-again` | an answer to the builder question that names a third tool gets one line saying only `builder` and `impeccable` exist, then the same question again; no value is picked for the user and nothing is written |
+| `rerun-keeps-the-front-end-line` | a rerun on a spec that reads `Front-end: impeccable`, the stories still having a screen, rewrites the spec in place and keeps the line: nothing is asked, and the closing summary names the value as kept and says that editing the line before `/tickets` changes it |
+| `rerun-lost-screen-rewrites-none` | a rerun on a spec that reads `Front-end: builder`, whose stories lost their screen to a nightly job, rewrites the line to `Front-end: none` and leaves no `builder` line behind; nothing is asked, and the closing summary says the line was rewritten |
+| `rerun-gained-screen-asks-the-builder` | a rerun on a spec that reads `Front-end: none`, whose stories gained an export button, ends at the builder question; the earlier spec is not rewritten before the answer |
+| `rerun-gained-screen-rewrites-in-place` | the same rerun with the answer `impeccable` in the conversation rewrites the line in place: the spec holds exactly one `Front-end:` line, `Front-end: impeccable`, and the closing summary names it as chosen |
 | `no-tracker-file` | with no `docs/agents/issue-tracker.md`, the spec still lands at `.scratch/<YYYYMMDD>-<slug>/spec.md`, the summary says the file was absent, and no setup skill is demanded; the project carries no `.gitignore`, so the run adds the `.scratch/` line to it before the write and says so |
 | `auto-flag-dropped` | an `--auto` token typed after a summary that names the seams is dropped: the spec of the summary is written, with no flag and no 'auto' feature in it, and the user is asked nothing about the token |
 | `auto-seams-already-named` | under `--auto`, a summary that names the seams still skips the check in one line: no `choice-taker` is forked, and the spec marks the seam as taken from the conversation, none ruled; the close's last line reads `/tickets --auto` with the spec path |
 | `auto-rules-the-seams` | under `--auto`, a summary that names no seams sends the sketched seam set and the set rejected while sketching to the `choice-taker`, once, as rival options; the user is asked nothing, and the spec carries the ruled seam on its own line with its norm |
+| `auto-rules-the-builder` | under `--auto`, a summary that names the seams and has a story with a screen sends the builder question to the `choice-taker`, once, with `builder` and `impeccable` as its options; the user is asked nothing, the spec carries the ruled side as its `Front-end:` line and the Ruling on its own line with its norm, and the close lists the value as ruled |
+| `auto-choice-taker-unlinked-asks-the-builder` | under `--auto` with no `choice-taker` linked, the builder question comes back to the user, with one line naming the reason; no agent is forked in its place and nothing is written before the answer |
 | `auto-close-carries-the-flag` | under `--auto`, with seams the `choice-taker` ruled and stories that route to journey, the close names each seam as ruled with its norm and its last line reads `/journey --auto` with the spec path |
 | `auto-choice-taker-unlinked-asks-the-seams` | under `--auto` with no `choice-taker` linked, the seams check comes back as the one question, with one line naming the reason; no agent is forked in its place and nothing is written before the answer |
 | `auto-agent-tool-withheld-asks-the-seams` | under `--auto` with the Agent tool denied by the fixture's settings, the seams check comes back as the one question, with one line naming the Agent tool as the reason; nothing is forked and nothing is written before the answer |

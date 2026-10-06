@@ -72,10 +72,19 @@ message says it before you choose. An answer that names any other tool gets one 
 the two exist, then the question again. A spec written before the line existed has none, and it
 reads as `none`.
 
+A rerun on the same feature reads the earlier spec's line beside the stories as they now stand, and
+leaves exactly one `Front-end:` line behind:
+
+| The earlier line | The stories now | What happens |
+|---|---|---|
+| `builder` or `impeccable` | still have a screen | the line is kept and nothing is asked; the closing summary says kept, and that editing the line before `/tickets` changes it |
+| any value | have no screen any more | the line is rewritten to `Front-end: none`, and the closing summary says so |
+| `none`, or no line | gained a screen | the builder question is asked, and the line is rewritten in place with your answer |
+
 ## Under `--auto`
 
-`/spec --auto` hands the seams check over for one run. The token can sit anywhere in the arguments:
-it is dropped, and the rest is read as it would be without it.
+`/spec --auto` hands the seams check and the builder question over for one run. The token can sit
+anywhere in the arguments: it is dropped, and the rest is read as it would be without it.
 
 - Seams the conversation already names are taken as decided, exactly as without the flag. Nothing
   is ruled.
@@ -85,13 +94,19 @@ it is dropped, and the rest is read as it would be without it.
   or it was ruled. A ruled seam stands on a line of its own,
   `Ruled by the choice-taker under --auto: <the seam>. Norm: <the norm>.`, so you can find every
   seam nobody confirmed.
+- The builder question goes to the `choice-taker` too, as a question of its own, when a story has
+  a screen. The side it returns is the `Front-end:` line, the spec's Implementation Decisions
+  record it as
+  `Ruled by the choice-taker under --auto: the front-end is built by <builder | impeccable>. Norm: <the norm>.`,
+  and the closing summary lists the value as ruled, never as chosen. A rerun that keeps a builder
+  the earlier spec names has nothing to rule.
 - The last line of the summary carries the flag, `/journey --auto <spec>` or
   `/tickets --auto <spec>`, so pasting it keeps the mode at the next skill.
 
 Of the four classes the flag keeps for you
 ([ADR 0045](adr/0045-auto-hands-direction-to-the-choice-taker-and-four-classes-still-stop.md)), a
-`spec` run has one question and so stops on one, the Extreme fork. The seams check still comes back
-to you, as that one question, with a line before it saying why, in these cases:
+`spec` run has two questions at most and so stops on one class, the Extreme fork. The seams check
+still comes back to you, as a question, with a line before it saying why, in these cases:
 
 | What happened | What the question carries |
 |---|---|
@@ -101,6 +116,9 @@ to you, as that one question, with a line before it saying why, in these cases:
 
 In every row no spec is written before you answer, and the seams you answer read confirmed, never
 ruled.
+
+The builder question comes back the same way, in the same three cases: it is asked of you whole,
+with the reason line before it, and the value you answer reads chosen, never ruled.
 
 ## Slots
 
@@ -122,11 +140,16 @@ shape from the slug alone.
 The closing summary says the value was deduced: no story `spec` wrote has a screen. The story that
 has one was missing from the conversation, so rerun `/spec` with it, as with a verdict you dispute.
 
+**I reran `/spec` and it never asked who builds the front-end. How do I change the builder?**
+The earlier spec already named one and the stories still have a screen, so the line was kept: the
+closing summary says so. Edit the `Front-end:` line in the spec to `builder` or `impeccable` before
+you run `/tickets`, which reads it when it cuts the Front-end tickets.
+
 **It sent me to `/discuss` instead of writing anything. Why?**
 The conversation held no decided plan. `spec` synthesises; it never asks you the questions a
 `discuss` session would. Run `/discuss` on the plan and type `/spec` when the summary lands.
 
-**I ran `/spec --auto` and it asked me about the seams anyway. Why?**
+**I ran `/spec --auto` and it asked me about the seams, or the builder, anyway. Why?**
 The line above the question says which case it was: the `choice-taker` could not be forked, its
 return was not a ruling, or it returned `extreme`. A missing agent never turns into another agent,
 or the session itself, ruling in its place. Answer the question and the run carries on, and its
@@ -144,13 +167,17 @@ about the forks the precedent does not settle, so a small page closes fast.
 - A feature with no screen is asked nothing about builders and its spec reads `Front-end: none`. A
   feature with a screen is asked once who builds the front-end, and the spec carries the answer.
 - Under `--auto` it asks nothing when a ruling can be had, and every seam in the spec's Testing
-  Decisions reads confirmed, taken or ruled.
+  Decisions reads confirmed, taken or ruled. A builder it ruled stands on its own Ruling line in
+  the Implementation Decisions.
+- A rerun leaves one `Front-end:` line in the spec: kept when the earlier spec names a builder and
+  a story still has a screen, rewritten to `none` when no story has one, and asked for when the
+  stories gained one.
 - The spec appears at the path the closing summary prints, with a `Journey:` line under its title
   and a `Front-end:` line directly after it.
 - A local spec's folder carries the day it was written, and a rerun lands in that same folder
   instead of opening a second one.
 - The closing summary names the `Front-end:` value and says whether it was deduced from the
-  stories or chosen by you.
+  stories, chosen by you, ruled under `--auto` or kept from the earlier spec.
 - The last line of the summary is a command you can run as it is.
 - Nothing else in the tree changed, and nothing was committed.
 
