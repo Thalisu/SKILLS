@@ -250,7 +250,7 @@ Left out: snoozing a whole series (the journey's Cut); a custom snooze time (Def
 Does the breakdown go out as it stands?
 </example>
 
-Granularity, edges, folds and splits are never asked. The session decided them from the estimates and the edge graph, and the breakdown shows the reasoning so the user can overrule any of it. A correction is applied and the breakdown is shown again, with the same one question. Nothing is published before the yes.
+Granularity, edges, folds and splits are never asked. The session decided them from the estimates and the edge graph, and the breakdown shows the reasoning so the user can overrule any of it. A correction is applied and the breakdown is shown again, with the same one question. A path the user names as read wrongly, as having a screen or as having none, is such a correction: the path is recut the other way, so its two tickets become one Logic ticket, or its one ticket becomes a Logic ticket and a Front-end ticket blocked by it. The estimates and the blocking edges are redone for every ticket the recut touches, and the breakdown is shown again, with the same one question. Nothing is published before the yes.
 
 ### Under `--auto`
 
