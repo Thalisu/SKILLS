@@ -216,6 +216,7 @@ Present the breakdown as a numbered list. For each ticket:
 - **Estimate**: the peak context the `do` session is expected to reach, the band, what drives the number, and whether it is calibrated or on the defaults
 - **Blocked by**: each blocking ticket with what this one reads and that the blocker writes it, or none
 - **What it delivers**: the end-to-end behaviour this ticket makes work
+- **Kind**: `logic` or `front-end`, on a spec that reads `Front-end: builder` or `Front-end: impeccable` only. On `none` the list carries no such field
 
 After the list:
 
@@ -293,7 +294,7 @@ Publish the approved tickets the way the tracker file describes, all of them in 
 
 Every ticket is written in the format of [.agents/formats/ticket-format.md](../../.agents/formats/ticket-format.md), which carries both shapes. `ready-for-agent` is the first word of its status walk and the only one `tickets` writes; `do` writes the next two. The `## Evidence` heading is published empty, for `do` to fill at the close.
 
-**The kind.** Every ticket carries its kind, which `do` routes on: the `**Kind:**` line directly after `**Status:**` in a local file, the `## Kind` section in an issue. On a spec that reads `Front-end: none`, or has no such line, every ticket is of kind `logic`.
+**The kind.** Every ticket carries its kind, which `do` routes on: the `**Kind:**` line directly after `**Status:**` in a local file, the `## Kind` section in an issue. On a spec that reads `Front-end: none`, or has no such line, every ticket is of kind `logic`. On `builder` or `impeccable` each ticket is published with the kind the breakdown showed for it, `logic` or `front-end`.
 
 **Local markdown.** One file per ticket, never a single combined file, in the format's local shape.
 

@@ -2,7 +2,7 @@
 
 A ticket is one document, written in English, in one of the two shapes below: a local markdown
 file, or an issue on the project's tracker. The field names are fixed: `do` reads Blocked by, the
-Status line and the criteria by name, and writes the Status line, the ticks, `## Evidence`, and
+Status line, the Kind line and the criteria by name, and writes the Status line, the ticks, `## Evidence`, and
 a criterion's text when a `choice-taker` Ruling rewrote it as the losing side;
 `do-code-review` reads What to build and the criteria by name as its spec source, and reaches the
 spec through the pointer this format defines.
@@ -10,16 +10,22 @@ spec through the pointer this format defines.
 ## Header
 
 A local ticket opens with its title, `# <NN>: <Ticket title>`, where `<NN>` counts from `01` in
-dependency order, blockers first, and three bold lines directly under it, in this order:
+dependency order, blockers first, and four bold lines directly under it, in this order:
 
 - `**What to build:**` the end-to-end behaviour this ticket makes work, from the actor's
   perspective, never a layer-by-layer list. With a journey, it opens with the path's name.
 - `**Blocked by:**` the numbers and titles of the tickets that gate this one, or
   `None (can start immediately)`.
 - `**Status:**` one word of the status walk below.
+- `**Kind:**` one word, which `do` routes the ticket on: `logic`, the behaviour of a path, the whole
+  vertical slice when the spec has no front-end to cut apart; `front-end`, the screen of a path,
+  built on the code its Logic ticket lands; or `setup`, what the developer installs before any
+  other ticket of the spec is built. `tickets` writes it at publish and nobody rewrites it. A
+  ticket published before the line existed carries none and stays valid: it reads as `logic`, the
+  only kind there was.
 
 An issue carries the same fields as sections: `## Parent`, `## What to build`,
-`## Acceptance criteria`, `## Blocked by`. Its title is the ticket title without the number, since
+`## Acceptance criteria`, `## Blocked by`, `## Kind`. Its title is the ticket title without the number, since
 the tracker numbers it, and its status is the tracker's label.
 
 ## Spec
@@ -106,6 +112,8 @@ immediately)".
 
 **Status:** ready-for-agent
 
+**Kind:** logic | front-end | setup
+
 - [ ] Acceptance criterion 1
 - [ ] Acceptance criterion 2
 
@@ -131,6 +139,10 @@ The end-to-end behaviour this ticket makes work, from the actor's perspective, n
 ## Blocked by
 
 - A reference to each blocking ticket, or "None (can start immediately)".
+
+## Kind
+
+logic | front-end | setup
 ```
 
 ## Rules

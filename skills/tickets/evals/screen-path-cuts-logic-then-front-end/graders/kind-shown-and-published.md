@@ -1,0 +1,5 @@
+---
+type: llm
+criteria: "In the breakdown the session showed the user, every one of the three tickets shows a Kind field beside its other fields: logic on the archive path's Logic ticket and on the export path's ticket, front-end on the archive path's Front-end ticket. Each of the three ticket files the run wrote under the issues/ folder beside the Archive notes spec carries exactly one `**Kind:**` line, in bold, directly after its `**Status:** ready-for-agent` line and before its acceptance criteria, reading `logic` in the two Logic tickets and `front-end` in the Front-end ticket, whose `**Blocked by:**` line opens with the number of the archive path's Logic ticket. A breakdown with a ticket that shows no Kind, a ticket file with no Kind line, with the line above its Status or below its criteria, or with a kind that is not the one the breakdown showed for that ticket, fails."
+---
+Each ticket shows its Kind in the breakdown, and each published ticket carries its `**Kind:**` line after its Status.
