@@ -6,7 +6,8 @@
 #                                 ambiguous with detail saying why
 #   kind_of <file>                sets word to the kind the **Kind:** line reads, logic with none
 #   front_end_of <file>           sets word to the front-end builder the Front-end: line of the
-#                                 Ticket's Spec reads, the spec.md beside its issues/ folder
+#                                 Ticket's Spec reads, the spec.md beside its issues/ folder; none
+#                                 with no such line, no Spec, or no issues/ folder
 #   ticket_files <folder> [<NN>]  prints the Ticket files directly in the issues folder, in number
 #                                 order, or only the ones numbered <NN>
 #
@@ -43,12 +44,13 @@ kind_of() { # $1 file: sets word to the kind its **Kind:** line reads, logic whe
   word="${word:-logic}"
 }
 
-front_end_of() { # $1 file: sets word to the front-end builder its Spec's Front-end: line reads
+front_end_of() { # $1 file: sets word to the front-end builder its Spec reads, or none
   local folder spec=""
   folder="$(dirname "$1")"
   [ "$(basename "$folder")" != issues ] || spec="$(dirname "$folder")/spec.md"
   detail=""
   word="$(grep -s -m1 '^Front-end:' "$spec" | sed 's/^Front-end://' | awk '{ print $1 }')"
+  word="${word:-none}"
 }
 
 ticket_files() { # $1 issues folder, $2 optional Ticket number: the Ticket files, sorted, sidecars left out

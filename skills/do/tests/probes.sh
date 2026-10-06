@@ -298,6 +298,21 @@ expect "the front_end line comes right after the spec_complete line" \
 expect "the verdict line stays the last line beside a front_end line" \
   test "$(tail -n 1 <<<"$out" | cut -d= -f1)" = "verdict"
 rm -f .scratch/20260101-feat/spec.md
+# A Spec written before the Front-end: line existed, a feature folder with no Spec and a Ticket
+# outside any feature folder all read as no front-end, and the read never stops the door.
+printf '# A feature\n\nJourney: required\nStatus: ready-for-agent\n' >.scratch/20260101-feat/spec.md
+(issues=.scratch && ticket 45-loose.md '**Status:** ready-for-agent' 'None (can start immediately)')
+for pair in "a Spec with no Front-end line:$issues/02-second.md" \
+  "a feature folder with no Spec:$issues/02-second.md" \
+  "a Ticket outside a feature folder:.scratch/45-loose.md"; do
+  IFS=: read -r what t <<<"$pair"
+  [ "$what" = "a feature folder with no Spec" ] && rm -f .scratch/20260101-feat/spec.md
+  run "$door" "$t"
+  check_lines "$what reads as no front-end" 0 "$rc" "front_end=none"
+  expect "the door still reaches its verdict line for $what" \
+    test "$(tail -n 1 <<<"$out" | cut -d= -f1)" = "verdict"
+done
+rm -f .scratch/20260101-feat/spec.md .scratch/45-loose.md
 # A first run of a Spec on a protected branch, or on a detached checkout, has nowhere to land, so the
 # door refuses it before anything is claimed or cut; a Ticket outside a feature folder has no Spec
 # branch and keeps the protected branch as a warning only.
