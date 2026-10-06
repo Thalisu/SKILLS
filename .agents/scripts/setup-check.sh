@@ -4,14 +4,13 @@
 # setup is there calls it instead of working the answer out. Run from anywhere inside the project,
 # with no argument. It writes nothing. It needs jq: a step it cannot prove reads missing.
 #
-# "This project" is the Main checkout, the first worktree git lists, and "committed" is present in
-# its HEAD, never merely in a working tree, so a run from a linked worktree reports the same state
-# as a run from the checkout the setup was committed in.
+# "This project" is the Main checkout, the first worktree git lists, so a run from a linked worktree
+# reports the same state as a run from the checkout the setup is made in.
 #
 # Prints four key=value lines, always these and always in this order, each reading done or missing
 # and nothing else: impeccable-skill, the impeccable skill installed; product-context, the product
-# context file committed; design-system, the design system file committed; build-path, the code-led
-# build path configured.
+# context file present in the working tree; design-system, the design system file present in the
+# working tree; build-path, the code-led build path configured.
 #
 # Exit codes: 0 every step reads done · 1 at least one step reads missing, the four lines still
 # printed · 2 the project could not be read: one line on stderr naming what could not be read, and
@@ -22,7 +21,7 @@ die() { echo "$1" >&2; exit 2; }
 
 state() { if "$@"; then echo done; else echo missing; fi; }
 
-committed() { git -C "$root" cat-file -e "HEAD:$1" 2>/dev/null; }
+present() { [ -f "$root/$1" ]; }
 
 # Claude Code records a plugin install per scope: a record with no projectPath is a user-scope
 # install, and one with a projectPath is installed for that project alone.
@@ -47,10 +46,10 @@ code_led_build_path() {
 }
 
 probe_impeccable_skill() { state impeccable_installed; }
-probe_product_context() { state committed PRODUCT.md; }
+probe_product_context() { state present PRODUCT.md; }
 # A project with no design system has nothing to document, so the step reads done there.
 probe_design_system() {
-  if has_design_system; then state committed DESIGN.md; else echo done; fi
+  if has_design_system; then state present DESIGN.md; else echo done; fi
 }
 probe_build_path() { state code_led_build_path; }
 

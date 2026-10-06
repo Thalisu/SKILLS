@@ -79,19 +79,20 @@ step_reads "with impeccable installed for this project the impeccable skill read
 plugin_registry "$(project_install "$elsewhere")"
 step_reads "with impeccable installed for another project only the impeccable skill reads missing" impeccable-skill "missing"
 
-# Every later Ticket of the Spec is built in a worktree cut from a commit: a product context that is
-# only in the working tree, or only staged, is one the build cannot see, so it is not done yet. The
-# commit is read in the Main checkout, where the setup is made, whichever worktree runs the check.
+# The initialise step is done once its developer has run it: a product context present in the
+# working tree, untracked or staged, reads done, since holding them on that step until the commit
+# step sends them to run it again. Presence is read in the Main checkout, where the setup is made,
+# whichever worktree runs the check.
 fresh product
 echo "a project" >README.md
 commit "first commit"
 step_reads "with no product context file the product context reads missing" product-context "missing"
 
 echo "# Product" >PRODUCT.md
-step_reads "with the product context file written and untracked the product context reads missing" product-context "missing"
+step_reads "with the product context file written and untracked the product context reads done" product-context "done"
 
 g add PRODUCT.md
-step_reads "with the product context file staged and not committed the product context reads missing" product-context "missing"
+step_reads "with the product context file staged and not committed the product context reads done" product-context "done"
 
 g commit -qm "the product context"
 step_reads "with the product context file committed the product context reads done" product-context "done"
@@ -107,8 +108,9 @@ cd "$linked" || exit 1
 step_reads "from a linked worktree cut before the Main checkout committed the product context it reads done" product-context "done"
 
 # A project with no design system has nothing to document, so the step must not hold its developer;
-# one that has a design system gets its screens built without it until DESIGN.md is committed. Both
-# facts are read in the committed tree, the only one a Ticket's worktree is cut from.
+# one that has a design system is done documenting once DESIGN.md is present in the working tree,
+# committed or not. The design system itself is read in the committed tree, the only one a Ticket's
+# worktree is cut from.
 fresh design-none
 echo "a project" >README.md
 commit "first commit"
@@ -145,7 +147,7 @@ commit "first commit"
 step_reads "with a tokens file committed and no design system file the design system reads missing" design-system "missing"
 
 echo "# Design" >DESIGN.md
-step_reads "with a tokens file committed and the design system file written and uncommitted the design system reads missing" design-system "missing"
+step_reads "with a tokens file committed and the design system file written and uncommitted the design system reads done" design-system "done"
 
 commit "the design system"
 step_reads "with a tokens file committed and the design system file committed the design system reads done" design-system "done"
