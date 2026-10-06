@@ -150,6 +150,41 @@ step_reads "with a tokens file committed and the design system file written and 
 commit "the design system"
 step_reads "with a tokens file committed and the design system file committed the design system reads done" design-system "done"
 
+# An unattended impeccable run of a Front-end ticket waits on a prompt nobody answers when the build
+# path was never set to code-led, so only the code-led value counts, and only where a Ticket's
+# worktree sees it: the committed tree. impeccable merges the key with its other settings.
+impeccable_config() { # $1 the config as a JSON object: the project's .impeccable/config.json in the working tree, uncommitted
+  mkdir -p .impeccable
+  jq . <<<"$1" >.impeccable/config.json
+}
+fresh path-none
+echo "a project" >README.md
+commit "first commit"
+step_reads "with no impeccable config the build path reads missing" build-path "missing"
+
+impeccable_config '{"hook": {"enabled": true}, "buildPath": "code"}'
+step_reads "with the code-led build path written in the working tree only the build path reads missing" build-path "missing"
+
+fresh path-unset
+impeccable_config '{"hook": {"enabled": true}}'
+commit "the impeccable config"
+step_reads "with an impeccable config committed that sets no build path the build path reads missing" build-path "missing"
+
+fresh path-comp
+impeccable_config '{"hook": {"enabled": true}, "buildPath": "comp"}'
+commit "the impeccable config"
+step_reads "with the comp-first build path committed the build path reads missing" build-path "missing"
+
+fresh path-nested
+impeccable_config '{"hook": {"enabled": true, "buildPath": "code"}}'
+commit "the impeccable config"
+step_reads "with the code-led value committed only under another key the build path reads missing" build-path "missing"
+
+fresh path-code
+impeccable_config '{"hook": {"enabled": true}, "buildPath": "code"}'
+commit "the impeccable config"
+step_reads "with the code-led build path committed beside other keys the build path reads done" build-path "done"
+
 if [ "$fails" = 0 ]; then echo "PASS"; else
   echo "$fails failing"
   exit 1

@@ -39,13 +39,19 @@ has_design_system() {
     grep -Eq '(^|/)((design-tokens|tokens|theme|tailwind\.config)\.[^/]+$|components/)'
 }
 
+# impeccable records the build path its init was answered with as buildPath, "code" or "comp".
+code_led_build_path() {
+  git -C "$root" cat-file -p HEAD:.impeccable/config.json 2>/dev/null |
+    jq -e '.buildPath == "code"' >/dev/null 2>&1
+}
+
 probe_impeccable_skill() { state impeccable_installed; }
 probe_product_context() { state committed PRODUCT.md; }
 # A project with no design system has nothing to document, so the step reads done there.
 probe_design_system() {
   if has_design_system; then state committed DESIGN.md; else echo done; fi
 }
-probe_build_path() { echo missing; }
+probe_build_path() { state code_led_build_path; }
 
 top="$(git rev-parse --show-toplevel 2>/dev/null)" || die "not a git repository: $(pwd -P)"
 # A bare main worktree has no working tree to anchor on, and git lists it first all the same.
