@@ -8,7 +8,9 @@
 # project carries. A check that cannot run (exit 2, or no script at its path) ends the run on one
 # message carrying the check's own error line: no breakdown shown, no approval asked, nothing
 # published, and the turn-end list names that point. At the publish step the Setup ticket goes out
-# as the ticket numbered 00, of kind setup, and the other tickets still count from 01.
+# as the ticket numbered 00, of kind setup, and the other tickets still count from 01. The closing
+# summary shows each published ticket with its kind beside its blocking edges, and its last line is
+# `/do` on the Setup ticket when one was cut.
 # The ticket is drafted by the session from the check's verdict, which no script and no eval
 # carries, so the decision is proven over the passages that carry it.
 # Run: bash skills/tickets/tests/setup-ticket.sh
@@ -262,5 +264,23 @@ carries_each "the Setup ticket takes the number 00 and the other tickets still c
   "Setup ticket" "setup ticket" -- \
   "00" -- \
   "01"
+
+echo "# SKILL.md / ## 6: the closing summary shows each ticket's kind, and its last line is /do on the Setup ticket"
+close_bullets="$(bullets_opening_on <(passage_of "$skill" "## 6. Close" "## Hard rules") "- ")"
+# The next-step bullet may speak of a published Setup ticket and of its blocker too, so the bullet
+# that lists the tickets is the one that does not fix the last line.
+flat="$(grep -E 'published|every ticket|each ticket' <<<"$close_bullets" | grep -vF "last line")"
+expect "the close step carries the bullet that lists every published ticket" test -n "$flat"
+carries_each "each published ticket is shown with its kind beside its blocking edges" \
+  "kind" "Kind" -- \
+  "blocking edge" "Blocked by" "blocker" "what blocks it"
+
+# Scoped to the sentences that name the Setup ticket: the bullet already says the last line is
+# `/do` on the first ticket of the frontier, and that sentence cannot answer for the Setup ticket.
+flat="$(grep -F "last line" <<<"$close_bullets" | sed 's/\. /.\n/g' | grep -F "etup ticket" | tr '\n' ' ')"
+expect "the next-step bullet of the close step names the Setup ticket" test -n "${flat// /}"
+carries_any "with a Setup ticket cut, the last line is /do on the Setup ticket" \
+  "/do" "last line" "next command" "the command" "frontier" "no blocker" "blocked by nothing" \
+  "nothing blocks it" "comes first" "goes first" "is the first" "the first ticket"
 
 exit $((fails > 0))

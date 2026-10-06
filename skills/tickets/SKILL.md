@@ -348,12 +348,12 @@ The last two per [.agents/scratch.md](../../.agents/scratch.md).
 
 In the thread:
 
-- every ticket published, with its identifier and its blocking edges;
+- every ticket published, with its identifier, and its kind beside its blocking edges;
 - the frontier;
 - what was left out;
 - `Rulings`, under `--auto`: a group of its own, one line per Ruling with the question, the side the `choice-taker` took and its norm. It is the `choice-taker`'s answer and is never written as the user's approval;
 - the `.scratch/` line, when the publish added it to the project's `.gitignore`;
-- the next step: one ticket at a time from the frontier. The last line is the exact next command, `/do <ticket>`, with the first ticket of the frontier as its path, or as its issue reference on a tracker. Under `--auto` it reads `/do --auto <ticket>`, so the user keeps the mode down the chain by pasting the line.
+- the next step: one ticket at a time from the frontier. The last line is the exact next command, `/do <ticket>`, with the first ticket of the frontier as its path, or as its issue reference on a tracker. When a Setup ticket was cut it is the whole frontier, since every other ticket is blocked by it, so the last line is `/do` on the Setup ticket. Under `--auto` it reads `/do --auto <ticket>`, so the user keeps the mode down the chain by pasting the line.
 
 Nothing is committed.
 

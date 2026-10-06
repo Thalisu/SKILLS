@@ -179,7 +179,9 @@ publishes nothing.
 ## Slots
 
 None. `do` is in this repo, so the close ends on the exact next command, `/do <ticket>`, with
-the first ticket of the frontier.
+the first ticket of the frontier. The close lists each published ticket with its kind beside its
+blocking edges, and when a Setup ticket was cut the last line is `/do` on that ticket, the only one
+with no blocker.
 
 ## Common questions
 
