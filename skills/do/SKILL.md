@@ -33,7 +33,10 @@ costs one retyped request.
    read what is left as the argument: the token puts the run under `--auto` and takes no part in
    the match, so the same path, issue reference or words route to the same Playbook with the flag
    as without it. Then read the argument's shape first (empty, a path, an issue reference), then
-   its words.
+   its words. For a path that exists, read the Ticket's kind before the table, with
+   `bash <skill-dir>/scripts/ticket-kind.sh <path>`, where `<skill-dir>` is this skill's folder
+   (`${CLAUDE_SKILL_DIR}` in Claude Code): the kind is a fact a script reads, and a duplicated or
+   unknown `**Kind:**` line has to read as ambiguous rather than be taken by eye.
 2. Read the table's rows in order; the first row that matches wins. Each row sits above any
    broader row it could shadow.
 3. An argument that opens with a Playbook's name matches that Playbook, subject to that Playbook's
@@ -49,6 +52,7 @@ costs one retyped request.
 |---|---|
 | empty | `Playbook: none`; one message asking for the task: a Ticket's path, an issue reference, or the request in words |
 | a path that does not exist | `Playbook: none`; one line saying so |
+| a Ticket's path whose `ticket-kind.sh` output is `kind=setup` alone, with no `ambiguous=` line, or an issue reference whose `Kind` reads `setup`, read the way the tracker file describes. Any other kind, an ambiguous one included, goes on to the next row | `setup` |
 | a path to a Ticket, in the format of [ticket-format.md](../../.agents/formats/ticket-format.md), or an issue reference (a number or a URL) resolved through the tracker file, `docs/agents/issue-tracker.md` | `ticket` |
 | an issue reference the tracker's CLI cannot open | `Playbook: none`; one line saying so |
 | an issue number or URL with no tracker file | `Playbook: none`; one message asking for the Ticket's path. The number is never matched against a list in the conversation |
@@ -128,9 +132,10 @@ A status note is welcome in the same message as the next tool call.
 One per reference. A Playbook's reference is read only when a router line names it, with one
 exception: a `ticket` run whose Ticket carries a defect with no named cause reads the
 reproduce and cause steps of [bug-fix.md](references/bug-fix.md), those two and nothing else of
-that Playbook. The reply reference is read last by every Playbook.
+that Playbook. The reply reference is read last by every Playbook but `setup`, which writes its own messages.
 
 - [ticket.md](references/ticket.md): the `ticket` Playbook, which links the shared mechanics and the reply reference.
+- [setup.md](references/setup.md): the `setup` Playbook, which runs a Setup ticket in the main checkout one step at a time. It links no other reference and writes its own messages.
 - [integrate.md](references/integrate.md): the `integrate` Playbook: its door script, its steps, and the link to the conflict loop it runs at every stop.
 - [bug-fix.md](references/bug-fix.md): the `bug-fix` Playbook, which links the shared mechanics and the reply reference.
 - [mechanics.md](references/mechanics.md): the shared mechanics the Playbooks that build in a worktree read through their steps: the worktree, the protected branch, the Ticket file, the reader, the delegates, the gate, the integration, the review, the verification, the close.
