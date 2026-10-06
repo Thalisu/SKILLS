@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # ticket-read.sh: what a Ticket file is and what its status reads, the one rule ticket-door.sh and
-# completion-check.sh share. Sourced, never run: it defines two functions and does nothing else.
+# completion-check.sh share. Sourced, never run: it defines three functions and does nothing else.
 #
 #   status_of <file>              sets word to the status and detail to nothing, or word to
 #                                 ambiguous with detail saying why
+#   kind_of <file>                sets word to the kind the **Kind:** line reads
 #   ticket_files <folder> [<NN>]  prints the Ticket files directly in the issues folder, in number
 #                                 order, or only the ones numbered <NN>
 #
@@ -32,6 +33,11 @@ status_of() { # $1 file: sets word to the status, or to ambiguous with detail se
       word=ambiguous
       ;;
   esac
+}
+
+kind_of() { # $1 file: sets word to the kind its **Kind:** line reads
+  detail=""
+  word="$(grep -m1 '^\*\*Kind:\*\*' "$1" | sed 's/^\*\*Kind:\*\*//' | awk '{ print $1 }')"
 }
 
 ticket_files() { # $1 issues folder, $2 optional Ticket number: the Ticket files, sorted, sidecars left out

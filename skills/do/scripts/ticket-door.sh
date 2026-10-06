@@ -7,7 +7,7 @@
 #                                         developer's branch; a relative path is read from the
 #                                         directory the script runs in, then from the main checkout
 #
-# Prints key=value lines, in this order: ticket, title, status, one blocker=<NN> <status> <path> per
+# Prints key=value lines, in this order: ticket, title, status, kind, one blocker=<NN> <status> <path> per
 # Ticket the Blocked by line names (blockers=none for None), slug, worktree (the do-<slug> worktree
 # when git lists one at that path, else none), run_branch (do/<slug> when git lists that branch
 # locally, else none, read beside worktree so a start-over knows whether the branch survived the
@@ -75,6 +75,8 @@ echo "title=${title:-none}"
 status_of "$path"; status="$word"
 echo "status=$status"
 [ -z "$detail" ] || echo "ambiguous=$detail"
+kind_of "$path"
+echo "kind=$word"
 
 folder="$(dirname "$path")"
 by_lines="$(grep -n '^\*\*Blocked by:\*\*' "$path" | cut -d: -f1 | tr '\n' ' ')"

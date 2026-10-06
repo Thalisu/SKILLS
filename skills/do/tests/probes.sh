@@ -268,6 +268,22 @@ rm -rf .claude/agents
 run "$door" "$issues/02-second.md"
 check_lines "no project author and the global unit author linked reads as the global loop" 0 "$rc" "loop=global"
 rm -rf "$HOME/.claude"
+# The ticket Playbook routes a Ticket to its builder on the kind line, read right after the status.
+ticket 41-screen.md $'**Status:** ready-for-agent\n\n**Kind:** front-end' 'None (can start immediately)'
+ticket 42-path.md $'**Status:** ready-for-agent\n\n**Kind:** logic' 'None (can start immediately)'
+ticket 43-twice-screen.md $'**Status:** ready-for-agent\n\n**Status:** resolved\n\n**Kind:** front-end' \
+  'None (can start immediately)'
+for pair in 41-screen:front-end 42-path:logic; do
+  IFS=: read -r t k <<<"$pair"
+  run "$door" "$issues/$t.md"
+  check_lines "a Ticket whose Kind line reads $k is routed as $k" 0 "$rc" "kind=$k"
+  expect "the $k kind line comes right after the status line" \
+    test "$(sed -n '/^status=/{n;p;q;}' <<<"$out")" = "kind=$k"
+done
+run "$door" "$issues/43-twice-screen.md"
+expect "the kind line comes right after the status line's ambiguous line" \
+  test "$(sed -n '/^ambiguous=status /{n;p;q;}' <<<"$out")" = "kind=front-end"
+rm -f "$issues"/4[123]-*.md
 # A first run of a Spec on a protected branch, or on a detached checkout, has nowhere to land, so the
 # door refuses it before anything is claimed or cut; a Ticket outside a feature folder has no Spec
 # branch and keeps the protected branch as a warning only.
