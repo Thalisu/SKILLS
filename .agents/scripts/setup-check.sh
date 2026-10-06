@@ -32,9 +32,19 @@ impeccable_installed() {
   ' "$HOME/.claude/plugins/installed_plugins.json" >/dev/null 2>&1
 }
 
+# A design system is read off the committed tree, at any depth: a tokens file, a theme file, or a
+# component library.
+has_design_system() {
+  git -C "$root" ls-tree -r --name-only HEAD 2>/dev/null |
+    grep -Eq '(^|/)((design-tokens|tokens|theme|tailwind\.config)\.[^/]+$|components/)'
+}
+
 probe_impeccable_skill() { state impeccable_installed; }
 probe_product_context() { state committed PRODUCT.md; }
-probe_design_system() { echo missing; }
+# A project with no design system has nothing to document, so the step reads done there.
+probe_design_system() {
+  if has_design_system; then state committed DESIGN.md; else echo done; fi
+}
 probe_build_path() { echo missing; }
 
 top="$(git rev-parse --show-toplevel 2>/dev/null)" || die "not a git repository: $(pwd -P)"

@@ -106,6 +106,50 @@ g commit -qm "the product context"
 cd "$linked" || exit 1
 step_reads "from a linked worktree cut before the Main checkout committed the product context it reads done" product-context "done"
 
+# A project with no design system has nothing to document, so the step must not hold its developer;
+# one that has a design system gets its screens built without it until DESIGN.md is committed. Both
+# facts are read in the committed tree, the only one a Ticket's worktree is cut from.
+fresh design-none
+echo "a project" >README.md
+commit "first commit"
+step_reads "with no design system marker in the committed tree the design system reads done" design-system "done"
+
+mkdir -p src/styles
+echo "{}" >src/styles/tokens.json
+step_reads "with a tokens file in the working tree only and no design system file the design system reads done" design-system "done"
+
+fresh design-lookalike
+mkdir -p src docs
+echo "a project" >README.md
+echo "export {}" >src/tokenspace.js
+echo "# Components" >docs/components.md
+commit "first commit"
+step_reads "with committed files whose names only contain a marker word the design system reads done" design-system "done"
+
+fresh design-theme
+mkdir -p src
+echo "export {}" >src/theme.ts
+commit "first commit"
+step_reads "with a theme file committed and no design system file the design system reads missing" design-system "missing"
+
+fresh design-components
+mkdir -p src/components
+echo "export {}" >src/components/Button.tsx
+commit "first commit"
+step_reads "with a component library committed and no design system file the design system reads missing" design-system "missing"
+
+fresh design-tokens
+mkdir -p src/styles
+echo "{}" >src/styles/tokens.json
+commit "first commit"
+step_reads "with a tokens file committed and no design system file the design system reads missing" design-system "missing"
+
+echo "# Design" >DESIGN.md
+step_reads "with a tokens file committed and the design system file written and uncommitted the design system reads missing" design-system "missing"
+
+commit "the design system"
+step_reads "with a tokens file committed and the design system file committed the design system reads done" design-system "done"
+
 if [ "$fails" = 0 ]; then echo "PASS"; else
   echo "$fails failing"
   exit 1
