@@ -7,7 +7,10 @@
 # or written; otherwise its door runs setup-door.sh, it
 # claims the Ticket in the main checkout on `start` (never committed, and never again on `resume`)
 # and runs the setup check, with no worktree created, no Planner or Builder forked and no review
-# called. Its reference links no other Playbook's, since a matched Playbook's links are all read.
+# called. A check that cannot run (exit 2, or no script at its path) ends the run on one message,
+# `Playbook: setup` then the check's own error line, with no step shown and the Ticket left claimed
+# for a later `/do` to resume.
+# Its reference links no other Playbook's, since a matched Playbook's links are all read.
 # Its steps are a table of six rows in the order the developer runs them, each naming the line that
 # proves it, where it runs and its command; with a step missing, the message marks every step done
 # or missing, shows the first missing one with a `Run:` and a `Where:` line and "Say when it is
@@ -122,6 +125,33 @@ carries_any "on resume nothing is claimed again" \
 echo "# setup.md / ## The check: the run runs the setup check"
 flat="$(passage_of "$setup" "## The check" "## " 2>/dev/null | tr '\n' ' ' | tr -s ' ')"
 carries "the step runs setup-check.sh" "bash <skill-dir>/../../.agents/scripts/setup-check.sh"
+
+echo "# setup.md / ## The check: a check that cannot run ends the run on one message with its own error line, the Ticket still claimed"
+carries_each "exit 2, and no script at its path, mean the check could not run" \
+  "exit 2" "exits 2" "exit code 2" "exit status 2" "exits with 2" "\`2\`" -- \
+  "not found" "no script at" "no file at" "does not exist" "missing script" \
+  "script is absent" "cannot be found" "can't be found" "is not there"
+carries_any "the run ends there" \
+  "ends the run" "the run ends" "run stops" "the run stops" "ends the turn" "turn ends" "stop there" \
+  "stops there" "Stop there" "Stop:"
+carries_any "on one message" \
+  "one message" "a single message" "one reply" "a single reply" "the only message" "only that message"
+at="$(awk -v s="$flat" -v k="Playbook: setup" 'BEGIN { print index(s, k) }')"
+expect "the message opens on Playbook: setup" test "$at" -gt 0
+whole="$flat"
+flat="${whole:$at}"
+carries_each "then carries the check's own error line: its stderr line, or the path the script was not found at" \
+  "stderr" "standard error" "error line" "error output" -- \
+  "the path" "its path" "<path" "script's path" "path it was not found" "path the script"
+flat="$whole"
+carries_any "no step is shown" \
+  "no step is shown" "No step is shown" "shows no step" "no step shown" "without showing a step" \
+  "never shows a step" "no step message" "not shown" "is shown no step" "no step line"
+carries_any "the Ticket stays claimed" \
+  "stays \`claimed\`" "stays claimed" "remains \`claimed\`" "remains claimed" "left \`claimed\`" \
+  "left claimed" "still reads \`claimed\`" "still reads claimed" "still \`claimed\`" "still claimed" \
+  "keeps its claim" "keeps \`claimed\`" "keeps the claim" "claim stays" "claim is kept"
+carries_any "so a later /do resumes it" "resume" "Resume"
 
 echo "# setup.md: no worktree, no Planner, no Builder, no review"
 whole="$(tr '\n' ' ' 2>/dev/null <"$setup" | tr -s ' ')"

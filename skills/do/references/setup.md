@@ -73,6 +73,22 @@ It prints five step lines, `impeccable-skill=`, `product-context=`, `design-syst
 and `setup-committed=`, each `done` or `missing`, then `uncommitted=`, the setup files the commit
 step names. It writes nothing.
 
+Its exit code decides what comes next:
+
+- `0`: every step line reads done. With the reload step done as well, the run goes to the close;
+  otherwise the reload is the first missing step, shown by the message.
+- `1`: a step reads missing, the lines still printed. The run writes the message.
+- `2`, or no script at that path: the check could not run. It printed one line on stderr and
+  nothing on stdout, and a machine that linked `skills/` without the rest of this repo finds no
+  script there. The run stops there, on one message carrying the check's own error line, its stderr line or
+  the path the script was not found at. No step is shown, since none was proven. The Ticket stays
+  `claimed`, so a later `/do` on it resumes and runs the check again:
+
+  ```
+  Playbook: setup
+  The setup check could not run: <the check's own stderr line, or the path the script was not found at>
+  ```
+
 ## The steps
 
 The six steps of the Setup ticket, in the order the developer runs them. This table is the only
