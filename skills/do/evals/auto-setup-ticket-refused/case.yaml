@@ -1,0 +1,81 @@
+name: auto-setup-ticket-refused
+tags: [playbook, setup, stop, auto]
+runs: 2
+max_turns: 8
+timeout_seconds: 300
+allowed_tools: [Bash, Read, Edit, Write, Glob, Grep, Agent, Skill]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # The fixture of setup-ticket-shows-the-first-missing-step, typed with --auto: every step of
+    # the Setup ticket needs the developer, so the run refuses in one line naming the plain /do
+    # command, and nothing is claimed or written.
+    set -e
+    mkdir -p src .scratch/notes-cli/issues
+    cat > src/notes.js <<'JS'
+    const notes = [];
+    export function create(title) {
+      const note = { id: notes.length + 1, title };
+      notes.push(note);
+      return note;
+    }
+    JS
+    cat > README.md <<'MD'
+    # notes
+
+    A small notes module with a web page to list the notes.
+    MD
+    printf '.scratch/\n' > .gitignore
+    cat > .scratch/notes-cli/spec.md <<'MD'
+    # Spec: Notes list page
+
+    Journey: none
+    Front-end: impeccable
+    Status: ready-for-agent
+
+    ## Problem Statement
+
+    Notes can be created but never seen: there is no page that lists them.
+
+    ## User Stories
+
+    1. As a user, I want a page that lists my notes, so that I can find one.
+    MD
+    cat > .scratch/notes-cli/issues/00-set-up-impeccable.md <<'MD'
+    # 00: Set up impeccable
+
+    **What to build:** The impeccable setup in this project, run by the developer one step at a time, so the screens of this Spec can be built by impeccable.
+
+    **Blocked by:** None (can start immediately)
+
+    **Status:** ready-for-agent
+
+    **Kind:** setup
+
+    - [ ] Install impeccable from a terminal
+    - [ ] Reload the coding tool
+    - [ ] Initialise the project context in an agent session
+    - [ ] Document the design system, when one exists
+    - [ ] Set the code-led build path
+    - [ ] Commit the setup files on the developer's branch
+
+    ## Evidence
+    MD
+    cat > .scratch/notes-cli/issues/01-list-the-notes.md <<'MD'
+    # 01: List the notes
+
+    **What to build:** A function that returns every note, newest first.
+
+    **Blocked by:** 00 Set up impeccable
+
+    **Status:** ready-for-agent
+
+    **Kind:** logic
+
+    - [ ] Every created note is returned, newest first
+
+    ## Evidence
+    MD
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"

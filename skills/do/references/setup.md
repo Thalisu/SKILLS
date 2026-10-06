@@ -23,7 +23,17 @@ Claude Code, the `do` folder under the harness's skills directory elsewhere.
 
 Every message of the run opens with `Playbook: setup` on its first line.
 
-Run the door on the Ticket's path:
+Under `--auto` the run refuses first, before the door script runs: every step needs the developer,
+and a run under the flag that claimed the Ticket could not finish it. The refusal is one line under
+the first line, naming the plain command `/do <path>` with no flag, and the run stops on it. Nothing
+is claimed and nothing is written, so the Ticket keeps the status it had:
+
+```
+Playbook: setup
+--auto does not run a Setup ticket, its steps need you: type /do <path>
+```
+
+Without the flag, run the door on the Ticket's path:
 
 ```
 bash <skill-dir>/scripts/setup-door.sh <the Ticket's path>

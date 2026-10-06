@@ -2,7 +2,9 @@
 # setup-playbook.sh: what `/do` has the session do on a Setup ticket. The router reads the Ticket's
 # kind through ticket-kind.sh before its table, and a row above the `ticket` row sends a Ticket that
 # reads kind=setup, with no ambiguous= line, to the `setup` Playbook; any other kind still routes to
-# `ticket`. The `setup` Playbook's reply opens on `Playbook: setup`, its door runs setup-door.sh, it
+# `ticket`. The `setup` Playbook's reply opens on `Playbook: setup`; under `--auto` it refuses in
+# one line naming the plain `/do` on the Ticket, before the door and the claim, so nothing is claimed
+# or written; otherwise its door runs setup-door.sh, it
 # claims the Ticket in the main checkout on `start` (never committed, and never again on `resume`)
 # and runs the setup check, with no worktree created, no Planner or Builder forked and no review
 # called. Its reference links no other Playbook's, since a matched Playbook's links are all read.
@@ -79,6 +81,24 @@ carries "the reply names the setup Playbook" "Playbook: setup"
 carries_any "on its first line" \
   "first line" "First line" "opens with" "opens on" "opening line" "line one" "the reply opens"
 carries "the door runs setup-door.sh on the Ticket" "bash <skill-dir>/scripts/setup-door.sh"
+
+echo "# setup.md / ## Door: under --auto the run refuses in one line naming the plain /do, before the door and the claim"
+before "the --auto refusal comes before the door script runs" "--auto" "bash <skill-dir>/scripts/setup-door.sh"
+flat="$(paragraph_with <(passage_of "$setup" "## Door" "## " 2>/dev/null) "--auto" all | tr '\n' ' ' | tr -s ' ')"
+expect "the Door states what --auto does on a Setup ticket" test -n "${flat// /}"
+carries_any "the refusal is one line" "one line" "One line" "a single line" "one-line" "a line of its own"
+carries_any "and the run stops on it" "stops" "Stop" "stop" "ends the run" "ends the turn"
+carries_any "the line names the plain /do command on the Ticket's path" "/do <the Ticket's path>" "/do <path>"
+# shellcheck disable=SC2034 # absent() reads $out.
+out="$flat"
+absent "the command it names carries no --auto after the path" "path> --auto"
+absent "the command it names carries no --auto before the path" "/do --auto"
+carries_each "nothing is claimed and nothing is written" \
+  "claims nothing" "nothing is claimed" "Nothing is claimed" "no claim" "No claim" "without claiming" \
+  "before any claim" "before the claim" "never claims" "not claimed" "status unchanged" \
+  "status is unchanged" "status stays" "**Status:** unchanged" -- \
+  "writes nothing" "nothing is written" "Nothing is written" "without writing" "never writes" \
+  "no write" "No write" "nothing written"
 
 echo "# setup.md / ## The claim: start claims the Ticket in the main checkout, uncommitted; resume claims nothing"
 flat="$(passage_of "$setup" "## The claim" "## " 2>/dev/null | tr '\n' ' ' | tr -s ' ')"
