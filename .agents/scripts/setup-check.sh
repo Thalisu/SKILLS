@@ -4,8 +4,9 @@
 # setup is there calls it instead of working the answer out. Run from anywhere inside the project,
 # with no argument. It writes nothing. It needs jq: a step it cannot prove reads missing.
 #
-# "This project" is the Main checkout, the first worktree git lists, so a run from a linked
-# worktree reports the same state as a run from the checkout the setup was made in.
+# "This project" is the Main checkout, the first worktree git lists, and "committed" is present in
+# its HEAD, never merely in a working tree, so a run from a linked worktree reports the same state
+# as a run from the checkout the setup was committed in.
 #
 # Prints four key=value lines, always these and always in this order, each reading done or missing
 # and nothing else: impeccable-skill, the impeccable skill installed; product-context, the product
@@ -20,6 +21,8 @@ die() { echo "$1" >&2; exit 2; }
 
 state() { if "$@"; then echo done; else echo missing; fi; }
 
+committed() { git -C "$root" cat-file -e "HEAD:$1" 2>/dev/null; }
+
 # Claude Code records a plugin install per scope: a record with no projectPath is a user-scope
 # install, and one with a projectPath is installed for that project alone.
 impeccable_installed() {
@@ -30,7 +33,7 @@ impeccable_installed() {
 }
 
 probe_impeccable_skill() { state impeccable_installed; }
-probe_product_context() { echo missing; }
+probe_product_context() { state committed PRODUCT.md; }
 probe_design_system() { echo missing; }
 probe_build_path() { echo missing; }
 
