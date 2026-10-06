@@ -83,7 +83,7 @@ Read the spec fully, in the format of [.agents/formats/spec-format.md](../../.ag
 
 A `journey.md` beside the spec that the verdict does not name is an orphan: named in that same line, never read.
 
-**The front-end.** The `Front-end:` line under the spec's title says who builds the feature's screens: `none`, `builder` or `impeccable`. A spec with no such line reads as `none`, since it was written before the line existed. On `none` the breakdown is cut and shown exactly as the steps below describe, and the only trace of the line is the kind every published ticket carries (step 5).
+**The front-end.** The `Front-end:` line under the spec's title says who builds the feature's screens: `none`, `builder` or `impeccable`. A spec with no such line reads as `none`, since it was written before the line existed. On `none` the breakdown is cut and shown exactly as the steps below describe, and the only trace of the line is the kind every published ticket carries (step 5). Whether the project carries the setup is read on `impeccable` alone (step 3).
 
 **The journey** is read in the format of [.agents/formats/journey-format.md](../../.agents/formats/journey-format.md). `tickets` reads these parts of it and nothing else:
 
@@ -203,6 +203,8 @@ All six are listed, every one whether the check reads it done or not: the check 
 Exit 0 means every step reads done: no Setup ticket is cut, and one line under the breakdown says the setup was found (step 4).
 
 Every other ticket is blocked by the Setup ticket, beside the edges it already has, and the edge says the setup is committed before the ticket is built. That holds for every kind, also on a spec where no path has a screen and every other ticket is a Logic ticket: `do` cuts the spec's branch on the first ticket it runs, and a ticket left unblocked would cut it before the setup is committed, so the branch would be born without it.
+
+On a spec that reads `Front-end: builder` the setup check is never run and no Setup ticket is cut, whatever the project carries: the chain's own Builder needs nothing installed, and a Setup ticket there would block every ticket behind a plugin nobody uses. The same holds on `none`.
 
 **Blocking edges.** A ticket that reads what another ticket writes (a state, a section, a symbol) is blocked by the ticket that writes it, never by an earlier one. A stub that would let it start sooner is never cut: the stub is work thrown away, and the ticket built on it is verified against something that is not the real writer. Each edge names what is read and which ticket writes it. A ticket with no blockers can start immediately.
 

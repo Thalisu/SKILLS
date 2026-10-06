@@ -3,7 +3,9 @@
 # it runs the setup check, and when a step reads missing the breakdown opens with a Setup ticket
 # numbered 00, of kind setup, blocked by nothing, whose acceptance criteria are the six setup steps
 # in their order, every one listed whether the check reads it done or not. With every step done no
-# Setup ticket is cut, and one line under the breakdown list says the setup was found.
+# Setup ticket is cut, and one line under the breakdown list says the setup was found. On a spec
+# that reads `Front-end: builder` the check is never run and no Setup ticket is cut, whatever the
+# project carries.
 # The ticket is drafted by the session from the check's verdict, which no script and no eval
 # carries, so the decision is proven over the passages that carry it.
 # Run: bash skills/tickets/tests/setup-ticket.sh
@@ -146,5 +148,51 @@ carries_any "the line says the setup was found" \
   "was found" "is found" "were found" "setup found" "found whole" "found complete" \
   "found in place" "found in the project" "already there" "already in place" "is in place" \
   "already set up" "set up already" "already done"
+
+echo "# SKILL.md / ## 3: on a spec that reads Front-end: builder the check is never run and no Setup ticket is cut"
+# The passage says "no Setup ticket is cut" of the check exiting 0, so the scope is the paragraph
+# that names builder, read from the sentence that names it: the exit-0 sentence cannot answer here.
+para="$(paragraph_with <(passage_of "$skill" "**The Setup ticket.**" "**Blocking edges.**") "builder")"
+lead="${para%%builder*}"
+flat=""
+if [ "$lead" != "$para" ]; then
+  tail="${lead##*. }"
+  flat="${para:$((${#lead} - ${#tail}))}"
+fi
+expect "the Setup ticket rule names builder" test -n "$flat"
+carries_any "the rule is for a spec that reads Front-end: builder" \
+  "Front-end: builder" "\`builder\`"
+carries_any "the setup check is never run there" \
+  "never run" "not run" "never runs" "does not run" "runs no" "never read" "not read" \
+  "never called" "not called" "is skipped" "skips the check" "skip the check" \
+  "without running" "no setup check" "no check is run" "no check runs"
+carries_any "no Setup ticket is cut there" \
+  "no Setup ticket" "no **Setup ticket**" "No Setup ticket" "No **Setup ticket**" \
+  "without a Setup ticket" "without the Setup ticket" "Setup ticket is not cut" \
+  "Setup ticket is never cut" "Setup ticket is left out" "Setup ticket is not listed" \
+  "Setup ticket is not drafted" "cuts no ticket for the setup" "no ticket is cut for the setup" \
+  "no ticket for the setup" "the ticket is not cut" "the ticket is left out" "none is cut" \
+  "never a Setup ticket" "nor is a Setup ticket"
+carries_any "and that holds whatever the project carries" \
+  "whatever the project" "Whatever the project" "whatever is in the project" \
+  "whether or not the project" "whether the project carries" "whether the project has" \
+  "even in a project without" "even in a project that" "even when the project" \
+  "even if the project" "regardless of what the project" "regardless of the project" \
+  "with or without the setup" "setup or not" "whatever the check would read"
+
+echo "# SKILL.md / ## 1: the setup is read on Front-end: impeccable alone"
+# Scoped to the sentences that name the setup: the paragraph already says "the only trace of the
+# line" of none, and an "only" there says nothing about who has the setup read.
+flat="$(paragraph_with "$skill" "**The front-end.**" | sed 's/\. /.\n/g' | grep -F "etup" | tr '\n' ' ')"
+expect "the front-end paragraph of the ground step names the setup" test -n "$flat"
+carries_each "the setup is read or checked on impeccable and on no other value" \
+  "impeccable" -- \
+  "read" "check" "run" -- \
+  "\`impeccable\` alone" "impeccable alone" "impeccable\` alone" "\`impeccable\` only" \
+  "impeccable\` only" "only on \`impeccable\`" "only on impeccable" "only \`impeccable\`" \
+  "only for \`impeccable\`" "only under \`impeccable\`" "only when it reads \`impeccable\`" \
+  "only when the line reads \`impeccable\`" "only on a spec that reads \`Front-end: impeccable\`" \
+  "only when the spec reads \`Front-end: impeccable\`" "no other value" "on no other" \
+  "never on \`none\` or \`builder\`" "never on \`builder\` or \`none\`"
 
 exit $((fails > 0))
