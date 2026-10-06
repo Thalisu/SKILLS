@@ -340,6 +340,22 @@ for st in ready-for-agent claimed; do
     untouched "$issues/49-screen.md" screen
 done
 rm -f "$issues"/4[89]-*.md
+# The Spec branch is cut from a branch that already carries the setup, so every Ticket `tickets` wrote
+# behind the Setup ticket waits on 00, the number read with its leading zero.
+ticket 50-path.md $'**Status:** ready-for-agent\n\n**Kind:** logic' '00: Title of 00-setup'
+ticket 51-screen.md $'**Status:** ready-for-agent\n\n**Kind:** front-end' '00: Title of 00-setup'
+for st in ready-for-agent claimed; do
+  ticket 00-setup.md "**Status:** $st"$'\n\n**Kind:** setup' 'None (can start immediately)'
+  for pair in 50-path:logic 51-screen:front-end; do
+    IFS=: read -r t k <<<"$pair"
+    run "$door" "$issues/$t.md"
+    check_lines "a $k Ticket blocked by a $st Setup ticket is refused, the Setup ticket named as 00" 1 "$rc" \
+      "kind=$k" "blocker=00 $st $issues/00-setup.md" "verdict=blocked"
+    expect "a $k Ticket refused on its $st Setup ticket leaves no Spec branch, run branch, worktree or claim" \
+      untouched "$issues/$t.md" "${t#*-}"
+  done
+done
+rm -f "$issues"/00-setup.md "$issues"/5[01]-*.md
 # A first run of a Spec on a protected branch, or on a detached checkout, has nowhere to land, so the
 # door refuses it before anything is claimed or cut; a Ticket outside a feature folder has no Spec
 # branch and keeps the protected branch as a warning only.
