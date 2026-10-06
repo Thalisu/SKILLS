@@ -127,6 +127,14 @@ A Logic ticket and a Front-end ticket are never folded into each other, however 
 would undo the cut. Each published ticket carries its kind as a `**Kind:**` line after its status,
 or a `## Kind` section in an issue, which is what `do` routes on.
 
+On `impeccable` the run also reads whether the project carries impeccable's setup, with the setup
+check the chain shares. When a step is missing, a **Setup ticket** numbered `00` heads the
+breakdown, of kind `setup` and blocked by nothing. Its acceptance criteria are the six steps you
+will be asked to run, in order and all six whatever the check found done: install impeccable from a
+terminal, reload the coding tool, initialise the project context in an agent session, document the
+design system when one exists, set the code-led build path, and commit the setup files on your
+branch.
+
 ## Under `--auto`
 
 `/tickets --auto <spec>` hands the approval over for one run

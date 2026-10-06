@@ -183,6 +183,23 @@ Without a journey, the User Stories are the paths, cut by the same rules.
 
 The two tickets of one path are the one exception to **Vertical**: together they are the vertical slice, each built by its own builder. A ticket that reads state another path writes is blocked by that path's Logic ticket, which is the one that writes it.
 
+**The Setup ticket.** On a spec that reads `Front-end: impeccable` the screens are built by impeccable, which needs its setup in the project before any ticket is built. Run the setup check before the slices are drafted:
+
+```
+bash <skill-dir>/../../.agents/scripts/setup-check.sh
+```
+
+It prints one `key=value` line per step it reads, each `done` or `missing`, and its exit code decides what the breakdown carries. Exit 1 means a step reads missing: the breakdown opens with the **Setup ticket**, numbered `00`, of kind `setup`, blocked by nothing. Its acceptance criteria are the six steps of the setup, in this order:
+
+1. install impeccable from a terminal;
+2. reload the coding tool;
+3. initialise the project context in an agent session;
+4. document the design system, when one exists;
+5. set the code-led build path;
+6. commit the setup files on the developer's branch.
+
+All six are listed, every one whether the check reads it done or not: the check has no line for the reload, and the developer reads in the breakdown the whole of what they will be asked to run.
+
 **Blocking edges.** A ticket that reads what another ticket writes (a state, a section, a symbol) is blocked by the ticket that writes it, never by an earlier one. A stub that would let it start sooner is never cut: the stub is work thrown away, and the ticket built on it is verified against something that is not the real writer. Each edge names what is read and which ticket writes it. A ticket with no blockers can start immediately.
 
 **Splits, folds and placements**, in this order:
@@ -217,7 +234,7 @@ Present the breakdown as a numbered list. For each ticket:
 - **Estimate**: the peak context the `do` session is expected to reach, the band, what drives the number, and whether it is calibrated or on the defaults
 - **Blocked by**: each blocking ticket with what this one reads and that the blocker writes it, or none
 - **What it delivers**: the end-to-end behaviour this ticket makes work
-- **Kind**: `logic` or `front-end`, on a spec that reads `Front-end: builder` or `Front-end: impeccable` only. On `none` the list carries no such field
+- **Kind**: `logic`, `front-end` or `setup`, on a spec that reads `Front-end: builder` or `Front-end: impeccable` only. On `none` the list carries no such field
 
 After the list:
 
