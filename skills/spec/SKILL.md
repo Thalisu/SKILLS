@@ -205,6 +205,8 @@ close's last line still carries the flag. It happens in these cases and no other
 **Before anything is written**, read the plan for a story with a screen, as step 4 defines one.
 With one, the builder question of step 4 is asked first, or ruled first under `--auto`, and this
 step starts on its answer: the allocator has not run and no spec exists while the question is open.
+A rerun reads the earlier spec before that question, since its `Front-end:` line may already
+answer it (**The front-end line on a rerun**, below).
 
 **The folder, in local mode.** It comes from the allocator, never from a path the run composes.
 `<skill-dir>` is the directory this file sits in:
@@ -269,6 +271,23 @@ reader can see the path it belongs to and count its steps, since step 4 reads th
 local mode the file is rewritten, keeping a `Journey:` line that already points at a journey file
 and any `## Comments` section. In a remote tracker the issue this session published is edited, and
 one is created only when the conversation names none.
+
+**The front-end line on a rerun.** A rerun settles the line from the earlier spec and from the
+stories as they now stand, before the builder question of step 4, so the earlier spec is found
+before anything is asked. In local mode the resolver finds it and writes nothing, which the
+allocator cannot promise:
+
+```sh
+bash <skill-dir>/../../.agents/scripts/resolve-feature-folder.sh <feature-slug>
+```
+
+A `spec=` line naming a file is the earlier spec, and `spec=none` is a first run, which step 4
+settles alone. In a remote tracker the earlier spec is the issue the rerun edits.
+
+- **The earlier spec reads `Front-end: builder` or `Front-end: impeccable`, and a story still has
+  a screen**: the line is kept as it stands. Nothing is asked and, under `--auto`, nothing is
+  ruled: the developer settled this once, and a rerun for another reason is no second question.
+  The close names the value as kept (step 5).
 
 ## 4. Route
 
@@ -387,7 +406,10 @@ In the thread, the closing summary, each item one or two lines:
 - the front-end line, as an item of its own: the `Front-end:` value and which of these it was.
   Deduced, for a `none` read off the stories, with the reason that no story has a screen. Chosen,
   for a `builder` or an `impeccable` the developer answered. Ruled, for one the `choice-taker`
-  returned under `--auto`, with its norm. A developer who disagrees with a
+  returned under `--auto`, with its norm. Kept, for a `builder` or an `impeccable` a rerun carried
+  over from the earlier spec, with one sentence saying that editing the line in the spec before
+  `/tickets` changes it: nothing was asked, so the developer learns here where the builder is
+  changed. A developer who disagrees with a
   deduced `none` reads it here and nowhere else, and reruns `spec` with the story that has the
   screen;
 - the terms and decisions the synthesis found missing, each as one line to reopen in `discuss`

@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# rerun-front-end-graders.sh: the contract of the code-read graders of the spec eval cases that rerun
+# the skill on a feature whose Spec already carries a Front-end: line, exercised by calling
+# scripts/run-eval.sh's own grade() against a throwaway work folder, so no claude session ever starts.
+# In rerun-keeps-the-front-end-line the earlier Spec reads Front-end: impeccable, the answer the
+# developer gave and never the recommended builder, and the rerun adds one decision, an Order total
+# column in the exported CSV: the rerun rewrites the Spec with that decision and keeps the line.
+# Run: bash skills/spec/tests/rerun-front-end-graders.sh
+set -uo pipefail
+here="$(cd "$(dirname "$0")" && pwd -P)"
+. "$here/../../../scripts/tests/lib.sh"
+fails=0
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+
+source_grade
+
+keeps="$here/../evals/rerun-keeps-the-front-end-line/graders"
+impeccable_kept="$keeps/front-end-impeccable-kept.md"
+decision_written="$keeps/rerun-decision-written.md"
+
+rerun_decision='- The exported CSV carries an Order total column.'
+
+expect "the case holds a front-end-impeccable-kept grader" test -f "$impeccable_kept"
+expect "the case holds a rerun-decision-written grader" test -f "$decision_written"
+
+# shellcheck disable=SC2034 # read by lib.sh's grade_passes and grade_fails
+grader="$impeccable_kept"
+grade_passes "a rewritten Spec whose line still reads Front-end: impeccable passes front-end-impeccable-kept" \
+  "$(run_with_spec "Front-end: impeccable" "$rerun_decision")"
+grade_fails "a rewritten Spec whose line was reset to Front-end: builder fails front-end-impeccable-kept" \
+  "$(run_with_spec "Front-end: builder" "$rerun_decision")"
+grade_fails "a rewritten Spec whose line was reset to Front-end: none fails front-end-impeccable-kept" \
+  "$(run_with_spec "Front-end: none" "$rerun_decision")"
+grade_fails "a rewritten Spec that dropped its Front-end: line fails front-end-impeccable-kept" \
+  "$(run_with_spec "" "$rerun_decision")"
+
+# shellcheck disable=SC2034 # read by lib.sh's grade_passes and grade_fails
+grader="$decision_written"
+grade_passes "a Spec naming the Order total column passes rerun-decision-written" \
+  "$(run_with_spec "Front-end: impeccable" "$rerun_decision")"
+grade_passes "a Spec naming the order total column in lower case passes rerun-decision-written" \
+  "$(run_with_spec "Front-end: impeccable" '- The exported CSV gains a column with the order total.')"
+grade_fails "the earlier Spec left as it was fails rerun-decision-written" \
+  "$(run_with_spec "Front-end: impeccable" "")"
+
+[ "$fails" -eq 0 ] && exit 0
+exit 1

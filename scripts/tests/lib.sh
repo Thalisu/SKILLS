@@ -534,6 +534,23 @@ run_of() { # one group per call: subagent_type, parent id, model, prompt; the gr
   done
   echo "$w"
 }
+# A run whose fixture holds one Spec, in a new work folder under the caller's $tmp; its path on stdout
+run_with_spec() { # $1 the Spec's Front-end: line or empty for none, $2 the lines closing its Implementation Decisions or empty for none
+  local w
+  w="$(mktemp -d "$tmp/w.XXXXXX")"
+  mkdir -p "$w/fixture/.scratch/20260905-suppliers"
+  {
+    printf '# Supplier export\n\nJourney: required\n'
+    [ -z "$1" ] || printf '%s\n' "$1"
+    printf 'Status: ready-for-agent\n\n## Problem Statement\n\nA buyer cannot export the suppliers of an order.\n\n'
+    printf '## Solution\n\nAn export screen on the order page.\n\n'
+    printf '## User Stories\n\n1. As a buyer, I want to export the suppliers from the order screen, so that I can share them.\n\n'
+    printf '## Implementation Decisions\n\n- The export is a CSV file.\n'
+    [ -z "$2" ] || printf '%s\n' "$2"
+    printf '\n## Testing Decisions\n\n- The export handler of the order module, taken from the conversation.\n'
+  } >"$w/fixture/.scratch/20260905-suppliers/spec.md"
+  echo "$w"
+}
 # grade() against the run in a work folder: the grader in the caller's $grader passes it (prints nothing)
 grade_passes() { # $1 label, $2 work folder
   local out

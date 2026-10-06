@@ -1,0 +1,104 @@
+name: rerun-keeps-the-front-end-line
+tags: [workflow, front-end, rerun]
+runs: 2
+max_turns: 16
+timeout_seconds: 600
+allowed_tools: [Bash, Read, Edit, Write, Agent]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # A rerun: the feature already has a spec in a dated folder, reading Front-end: impeccable, and
+    # the new summary keeps the export button and adds one decision. A story still has a screen,
+    # so the line is kept and nothing is asked.
+    set -e
+    mkdir -p docs/agents
+    cat > docs/agents/issue-tracker.md <<'MD'
+    # Issue tracker: Local Markdown
+
+    Issues and specs for this repo live as markdown files in `.scratch/`.
+
+    ## Conventions
+
+    - One feature per directory: `.scratch/<feature-slug>/`
+    - The spec is `.scratch/<feature-slug>/spec.md`
+    - Implementation issues are one file per ticket at `.scratch/<feature-slug>/issues/<NN>-<slug>.md`
+    - Triage state is recorded as a `Status:` line near the top of each file
+
+    ## When a skill says "publish to the issue tracker"
+
+    Create a new file under `.scratch/<feature-slug>/` (creating the directory if needed).
+    MD
+    mkdir -p src
+    cat > CONTEXT.md <<'MD'
+    # Ordering
+
+    Receives and tracks customer orders from placement to fulfilment.
+
+    ## Language
+
+    **Order**:
+    A customer's request for goods, tracked from placement to fulfilment.
+    _Avoid_: purchase
+
+    **Customer**:
+    A person or organisation that places orders.
+    _Avoid_: client, account
+    MD
+    cat > src/order.js <<'JS'
+    const STATUSES = ["placed", "fulfilled", "cancelled"];
+    function cancel(order) {
+      if (order.status === "fulfilled") throw new Error("cannot cancel a fulfilled order");
+      return { ...order, status: "cancelled" };
+    }
+    function list(orders, customerId) {
+      return orders.filter((o) => o.customerId === customerId);
+    }
+    module.exports = { STATUSES, cancel, list };
+    JS
+    cat > src/order.test.js <<'JS'
+    const { cancel } = require("./order");
+    test("a placed order can be cancelled", () => {
+      expect(cancel({ status: "placed" }).status).toBe("cancelled");
+    });
+    JS
+    mkdir -p .scratch/20260901-orders-export
+    cat > .scratch/20260901-orders-export/spec.md <<'MD'
+    # Orders export
+
+    Journey: not needed, one interaction on an existing screen
+    Front-end: impeccable
+    Status: ready-for-agent
+
+    ## Problem Statement
+
+    A Customer cannot take the orders they see on the orders list out of the product.
+
+    ## Solution
+
+    An export button on the orders list downloads the visible rows as a CSV file.
+
+    ## User Stories
+
+    1. As a Customer, I want an export button on the orders list, so that I can download the rows I see as a CSV file.
+
+    ## Implementation Decisions
+
+    - The export is a handler of the order module that renders the filtered list of orders as CSV.
+    - The CSV carries the glossary's column names, and dates in the Customer's locale.
+
+    ## Testing Decisions
+
+    - The export handler of the order module, driven with an in-memory list of orders: taken from the conversation.
+
+    ## Out of Scope
+
+    - Scheduled exports by email: reopens when a Customer asks for them.
+
+    ## Further Notes
+
+    None.
+    MD
+    printf '.scratch/\n' > .gitignore
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
