@@ -323,12 +323,12 @@ Publish the approved tickets the way the tracker file describes, all of them in 
 
 Every ticket is written in the format of [.agents/formats/ticket-format.md](../../.agents/formats/ticket-format.md), which carries both shapes. `ready-for-agent` is the first word of its status walk and the only one `tickets` writes; `do` writes the next two. The `## Evidence` heading is published empty, for `do` to fill at the close.
 
-**The kind.** Every ticket carries its kind, which `do` routes on: the `**Kind:**` line directly after `**Status:**` in a local file, the `## Kind` section in an issue. On a spec that reads `Front-end: none`, or has no such line, every ticket is of kind `logic`. On `builder` or `impeccable` each ticket is published with the kind the breakdown showed for it, `logic` or `front-end`.
+**The kind.** Every ticket carries its kind, which `do` routes on: the `**Kind:**` line directly after `**Status:**` in a local file, the `## Kind` section in an issue. On a spec that reads `Front-end: none`, or has no such line, every ticket is of kind `logic`. On `builder` or `impeccable` each ticket is published with the kind the breakdown showed for it, `logic` or `front-end`, and the Setup ticket, when one was cut, with `setup`: published under any other kind it is routed to a builder with nothing to build.
 
 **Local markdown.** One file per ticket, never a single combined file, in the format's local shape.
 
 - **Where**: under `issues/` in the spec's own folder, `.scratch/<YYYYMMDD>-<feature-slug>/issues/<NN>-<slug>.md`, or `issues/` beside a spec that lives elsewhere.
-- **Numbering**: from `01` in dependency order, blockers first. Each file's "Blocked by" lists the numbers and titles it depends on.
+- **Numbering**: from `01` in dependency order, blockers first. Each file's "Blocked by" lists the numbers and titles it depends on. The Setup ticket, when one was cut, takes `00`, so the other tickets count from `01` whether or not it is there.
 - **Claiming a number**: by creating the file under `set -C`, never by scanning the folder and then writing. A create that fails means a second run is publishing this feature, so the run stops there as it would have on tickets that already exist, naming the file it hit, and never renumbers around it.
 - **The ignore line**: the project's `.gitignore` carries the `.scratch/` line before the first write.
 

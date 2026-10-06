@@ -135,7 +135,8 @@ terminal, reload the coding tool, initialise the project context in an agent ses
 design system when one exists, set the code-led build path, and commit the setup files on your
 branch. Every other ticket is blocked by it, Logic tickets included and also when no path has a
 screen: `do` cuts the spec's branch on the first ticket it runs, and the setup has to be committed
-before that branch exists.
+before that branch exists. It is published as ticket `00`, with `setup` on its kind line, so the
+other tickets still count from `01`.
 
 A project that already carries the whole setup gets no Setup ticket: one line under the list says
 the setup was found, and the first ticket starts at once. On `builder` the setup is never read and no

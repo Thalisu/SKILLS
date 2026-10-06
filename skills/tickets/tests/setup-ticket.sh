@@ -7,7 +7,8 @@
 # that reads `Front-end: builder` the check is never run and no Setup ticket is cut, whatever the
 # project carries. A check that cannot run (exit 2, or no script at its path) ends the run on one
 # message carrying the check's own error line: no breakdown shown, no approval asked, nothing
-# published, and the turn-end list names that point.
+# published, and the turn-end list names that point. At the publish step the Setup ticket goes out
+# as the ticket numbered 00, of kind setup, and the other tickets still count from 01.
 # The ticket is drafted by the session from the check's verdict, which no script and no eval
 # carries, so the decision is proven over the passages that carry it.
 # Run: bash skills/tickets/tests/setup-ticket.sh
@@ -244,5 +245,22 @@ expect "a bullet of the list names the setup" test -n "$flat"
 carries_each "the bullet is the setup check that cannot run" \
   "check" -- \
   "${cannot_run[@]}" "refus" "fail" "error" "cannot be reached" "unreadable"
+
+echo "# SKILL.md / ## 5: the Setup ticket is published as the ticket numbered 00, of kind setup"
+publish="$(passage_of "$skill" "## 5. Publish" "## 6. Close")"
+flat="$(paragraph_with <(printf '%s\n' "$publish") "**The kind.**" | tr -s ' ')"
+expect "the publish step carries the kind paragraph" test -n "$flat"
+carries_each "the Setup ticket is published with the kind setup" \
+  "Setup ticket" "setup ticket" -- \
+  "\`setup\`" "Kind: setup" "**Kind:** setup" "kind setup" "Kind setup" "a setup kind"
+
+# `do` resolves a blocker by its number, so the bullet has to keep both halves: the Setup ticket
+# takes 00, and the count of the other tickets still opens on 01.
+flat="$(bullets_opening_on <(printf '%s\n' "$publish") "**Numbering**")"
+expect "the publish step carries the numbering bullet of the local shape" test -n "$flat"
+carries_each "the Setup ticket takes the number 00 and the other tickets still count from 01" \
+  "Setup ticket" "setup ticket" -- \
+  "00" -- \
+  "01"
 
 exit $((fails > 0))
