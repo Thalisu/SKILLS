@@ -288,6 +288,10 @@ settles alone. In a remote tracker the earlier spec is the issue the rerun edits
   a screen**: the line is kept as it stands. Nothing is asked and, under `--auto`, nothing is
   ruled: the developer settled this once, and a rerun for another reason is no second question.
   The close names the value as kept (step 5).
+- **No story has a screen any more**: the line is rewritten to `Front-end: none`, whatever the
+  earlier spec read, and nothing is asked. A `builder` or an `impeccable` left behind has
+  `tickets` cut a Front-end ticket, and maybe publish a Setup ticket, for a screen that is gone.
+  When the earlier value was not `none`, the close says the line was rewritten (step 5).
 
 ## 4. Route
 
@@ -409,7 +413,9 @@ In the thread, the closing summary, each item one or two lines:
   returned under `--auto`, with its norm. Kept, for a `builder` or an `impeccable` a rerun carried
   over from the earlier spec, with one sentence saying that editing the line in the spec before
   `/tickets` changes it: nothing was asked, so the developer learns here where the builder is
-  changed. A developer who disagrees with a
+  changed. A `none` that a rerun wrote over a `builder` or an `impeccable` is deduced like any
+  other, and the item also says the line was rewritten and from which value, since the stories
+  lost their screen. A developer who disagrees with a
   deduced `none` reads it here and nowhere else, and reruns `spec` with the story that has the
   screen;
 - the terms and decisions the synthesis found missing, each as one line to reopen in `discuss`
