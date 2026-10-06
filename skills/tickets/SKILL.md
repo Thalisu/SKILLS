@@ -190,6 +190,7 @@ The two tickets of one path are the one exception to **Vertical**: together they
 1. **Split** every large ticket along its steps, every piece still demoable and none of them large. The pieces of one split never fold back into each other.
 2. **Fold** a small ticket into a neighbour when all of these hold:
    - a single edge ties it to exactly one neighbour;
+   - the two tickets are of the same kind: a Logic ticket and a Front-end ticket are never joined, whatever the estimates say. The edge between a path's two tickets is exactly the single edge a fold looks for, and folding across it would undo the cut and hand the logic to the screen's builder;
    - that neighbour is its only blocker, or its only dependent when that dependent has no other blocker. Folding into a neighbour that waits on something else would hold the small ticket's work behind it;
    - the fold delays no ticket's start;
    - the merged estimate (the fixed load plus the per-criterion cost times the combined criteria) stays medium at most.
@@ -220,7 +221,7 @@ Present the breakdown as a numbered list. For each ticket:
 
 After the list:
 
-1. the splits, folds and placements taken, each with the rule that fired, or none;
+1. the splits, folds and placements taken, each with the rule that fired, or none. A small ticket left unfolded because its only edge ties it to a ticket of the other kind is named on the folds line, with the rule that the two kinds are never joined;
 2. on a spec that reads `Front-end: builder` or `Front-end: impeccable`, one more line beside those: the paths cut in two, and the paths left as a Logic ticket alone, each of these with the reason no screen was read in it. For example: `Cut in two: "Archive a note". Logic ticket alone: "Export the notes" (run from the command line, no screen).` The reading of each path is the one thing here the user can know better than the session, so it is shown where they can overrule it. On `none` the line is left out;
 3. what was left out: the journey's cut and deferred items, and the spec's Out of Scope;
 4. one question: does the breakdown go out as it stands?
@@ -335,7 +336,7 @@ Each rule restates a step above with the cost of breaking it. When two readings 
 
 - **The spec is the only input, and it is mandatory**: never the conversation, never a session summary. A `do` session reads the spec, so a ticket cut from anything else points at decisions it cannot find.
 - **The four stops write nothing and end the run with one message.** No override in the conversation: tickets cut past a stop are built on an input the chain has not settled.
-- **The cut is decided, never asked.** A ticket waits for the ticket that writes what it reads, a small ticket on a single edge folds into its neighbour, a large ticket splits along its steps, and the one question is whether the breakdown goes out. Each extra question stalls the chain on something the breakdown already shows.
+- **The cut is decided, never asked.** A ticket waits for the ticket that writes what it reads, a small ticket on a single edge folds into its neighbour of the same kind, a large ticket splits along its steps, and the one question is whether the breakdown goes out. Each extra question stalls the chain on something the breakdown already shows.
 - **Nothing is published before the user approves the breakdown.** A published ticket is `ready-for-agent`: an agent can grab it the moment it exists. Under `--auto` the `choice-taker`'s Ruling to publish stands in for that approval on a local tracker only: on a remote one the Ruling is shown and the first write still waits for the user's own yes. With no Ruling, because the `choice-taker` returned `extreme`, could not be forked or returned no ruling, the approval is the user's own again on either tracker, and no other agent's word stands in for it.
 - **One ticket per file or per issue**, never a combined file, since `do` takes one ticket per session. The parent is never closed or modified.
 - **Ticket text in the glossary's words, with no file paths and no code**, except a snippet that encodes a decision.

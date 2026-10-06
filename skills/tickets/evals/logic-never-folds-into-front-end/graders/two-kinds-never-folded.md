@@ -1,0 +1,5 @@
+---
+type: llm
+criteria: "The proposed breakdown has exactly two tickets, both realising the path 'Pin a note': a Logic ticket of kind logic, and a Front-end ticket of kind front-end that is blocked by the Logic ticket. Both state an estimate in the small band. The two were not merged into one ticket, although the Logic ticket is small and its single edge ties it to the Front-end ticket. Under the folds, the assistant does not leave a bare 'none': it names the small ticket left unfolded (or the pair) and gives the rule, that a Logic ticket and a Front-end ticket, the two kinds, are never joined (never folded into each other). The run ended at the approval message, whose only question was whether the breakdown goes out; it did not ask whether the two tickets should be merged. No file was created under .scratch/pin-notes/issues/ and no git commit was made. A breakdown of one ticket covering both the logic and the screen fails."
+---
+A small Logic ticket whose only edge ties it to its Front-end ticket is not folded, and the folds line says the two kinds are never joined.

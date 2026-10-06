@@ -1,0 +1,118 @@
+name: logic-never-folds-into-front-end
+tags: [workflow, cut, fold, kind]
+runs: 2
+max_turns: 16
+timeout_seconds: 300
+allowed_tools: [Bash, Read, Edit, Write, Agent]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # The pin path of small-folds-into-neighbour alone, under a Spec that reads Front-end: builder.
+    # The one-step path has a screen, so it is cut into a Logic ticket and a Front-end ticket, both
+    # small, on the single edge a fold looks for: the two are never joined, the breakdown holds two
+    # tickets, and the folds line says why.
+    set -e
+    mkdir -p src docs/agents .scratch/pin-notes
+    cat > src/notes.js <<'JS'
+    const notes = [];
+    function create(title) {
+      const note = { id: notes.length + 1, title };
+      notes.push(note);
+      return note;
+    }
+    function list() {
+      return notes.slice();
+    }
+    module.exports = { create, list };
+    JS
+    cat > docs/agents/issue-tracker.md <<'MD'
+    # Issue tracker: Local Markdown
+
+    Issues and specs for this repo live as markdown files in `.scratch/`.
+
+    - One feature per directory: `.scratch/<feature-slug>/`
+    - The spec is `.scratch/<feature-slug>/spec.md`
+    - Implementation issues are one file per ticket at `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01`
+    - Triage state is a `Status:` line near the top of each issue file
+    MD
+    cat > .scratch/pin-notes/spec.md <<'MD'
+    # Pin notes
+
+    Journey: ./journey.md
+    Front-end: builder
+    Status: ready-for-agent
+
+    ## Problem Statement
+
+    The note a writer needs most sinks in the list as newer notes arrive.
+
+    ## Solution
+
+    A note can be pinned to the top of the list.
+
+    ## User Stories
+
+    1. As a writer, I want to pin a note, so that it stays at the top of my list
+
+    ## Implementation Decisions
+
+    - A note carries a pinned flag; pinned notes sort first, then the rest in their usual order
+
+    ## Testing Decisions
+
+    - Behaviour tests through the notes module's public functions
+
+    ## Out of Scope
+
+    - Pinning more than one note
+    MD
+    cat > .scratch/pin-notes/journey.md <<'MD'
+    # Journey: Pin notes
+
+    Spec: ./spec.md
+    Actor: writer
+    Entry: the notes list
+
+    ## Path 1: Pin a note
+
+    Story: 1
+    Outcome: the note sits at the top of the list with a pin mark.
+
+    | Step | Actor sees | Actor does | System answers |
+    |---|---|---|---|
+    | 1 | the notes list page, each note with a Pin button | clicks Pin on one note | the note moves to the top of the list with a pin mark |
+
+    Failure branches:
+    - Pin clicked when another note is pinned: the earlier note is unpinned, a banner says "Pinned, replaced <title>"
+
+    ## States
+
+    | State | The actor sees | Actions |
+    |---|---|---|
+    | unpinned | the note in its usual place | Pin (Path 1, to pinned) |
+    | pinned | the note at the top with a pin mark | none |
+
+    ## Cut
+
+    - none
+
+    ## Defaults taken
+
+    - The pin mark is the app's existing icon set
+
+    ## Deferred
+
+    - none
+
+    ## Spec changes applied
+
+    - none
+
+    ## Reopen in discuss
+
+    - none
+    MD
+    printf '.scratch/\n' > .gitignore
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
