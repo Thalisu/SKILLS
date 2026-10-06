@@ -297,7 +297,17 @@ expect "the front_end line comes right after the spec_complete line" \
   test "$(sed -n '/^spec_complete=/{n;p;q;}' <<<"$out")" = "front_end=builder"
 expect "the verdict line stays the last line beside a front_end line" \
   test "$(tail -n 1 <<<"$out" | cut -d= -f1)" = "verdict"
-rm -f .scratch/20260101-feat/spec.md
+# A builder Spec's Logic and Front-end tickets land through the Planner and the Builder as any
+# Ticket did before the split, so the kind and front_end lines never change their start verdict.
+ticket 46-builder-path.md $'**Status:** ready-for-agent\n\n**Kind:** logic' 'None (can start immediately)'
+ticket 47-builder-screen.md $'**Status:** ready-for-agent\n\n**Kind:** front-end' 'None (can start immediately)'
+for pair in 46-builder-path:logic 47-builder-screen:front-end; do
+  IFS=: read -r t k <<<"$pair"
+  run "$door" "$issues/$t.md"
+  check_lines "a ready $k Ticket of a builder Spec still starts" 0 "$rc" \
+    "kind=$k" "front_end=builder" "verdict=start"
+done
+rm -f "$issues"/4[67]-*.md .scratch/20260101-feat/spec.md
 # A Spec written before the Front-end: line existed, a feature folder with no Spec and a Ticket
 # outside any feature folder all read as no front-end, and the read never stops the door.
 printf '# A feature\n\nJourney: required\nStatus: ready-for-agent\n' >.scratch/20260101-feat/spec.md
