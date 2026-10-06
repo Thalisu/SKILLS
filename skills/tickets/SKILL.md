@@ -317,6 +317,8 @@ A `settled` return whose `Side:` names one of the two options is the Ruling on t
 
 **When the return is no ruling** (a refusal, an error, a first line that is neither `settled` nor `extreme`, a `settled` with no `Side:` or with a side the brief never handed over), nothing is published or written on it: a broken return never becomes an approval, and a steered one never lands a side nobody offered, such as a part of the breakdown published alone. The `choice-taker` is not forked a second time. The approval goes back to the user exactly as it does when the `choice-taker` cannot be forked, on either tracker, and the reason line reads `the choice-taker returned neither settled nor extreme`, or `the choice-taker ruled on an option it was not handed` with the side it returned. That side is named as the reason and never offered as a choice.
 
+**With a Setup ticket at the head of the frontier**, the close (step 6) ends on the plain `/do` line for the Setup ticket, with no flag, and on one line saying this one ticket needs the developer and that the flag returns from the next ticket on. The flag hands over an approval, and the steps of the setup are the developer's to run.
+
 ## 5. Publish
 
 Publish the approved tickets the way the tracker file describes, all of them in one turn. The tickets are the same either way; only the shape of the blocking edges changes.
@@ -353,7 +355,7 @@ In the thread:
 - what was left out;
 - `Rulings`, under `--auto`: a group of its own, one line per Ruling with the question, the side the `choice-taker` took and its norm. It is the `choice-taker`'s answer and is never written as the user's approval;
 - the `.scratch/` line, when the publish added it to the project's `.gitignore`;
-- the next step: one ticket at a time from the frontier. The last line is the exact next command, `/do <ticket>`, with the first ticket of the frontier as its path, or as its issue reference on a tracker. When a Setup ticket was cut it is the whole frontier, since every other ticket is blocked by it, so the last line is `/do` on the Setup ticket. Under `--auto` it reads `/do --auto <ticket>`, so the user keeps the mode down the chain by pasting the line.
+- the next step: one ticket at a time from the frontier. The last line is the exact next command, `/do <ticket>`, with the first ticket of the frontier as its path, or as its issue reference on a tracker. When a Setup ticket was cut it is the whole frontier, since every other ticket is blocked by it, so the last line is `/do` on the Setup ticket. Under `--auto` it reads `/do --auto <ticket>`, so the user keeps the mode down the chain by pasting the line. The one exception is a Setup ticket at the head of the frontier: under `--auto` the last line is still the plain `/do <ticket>` for it, with no flag, since `do` refuses `--auto` on a Setup ticket, whose steps are the developer's to run. One line above it says this one ticket needs the developer and that the flag returns from the next ticket on.
 
 Nothing is committed.
 

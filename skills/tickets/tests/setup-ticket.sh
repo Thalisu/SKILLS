@@ -10,7 +10,9 @@
 # published, and the turn-end list names that point. At the publish step the Setup ticket goes out
 # as the ticket numbered 00, of kind setup, and the other tickets still count from 01. The closing
 # summary shows each published ticket with its kind beside its blocking edges, and its last line is
-# `/do` on the Setup ticket when one was cut.
+# `/do` on the Setup ticket when one was cut. Under `--auto` that last line is the plain `/do`
+# command with no flag, one line says this one ticket needs the developer and that the flag returns
+# from the next ticket on, and the `--auto` section says the same exception.
 # The ticket is drafted by the session from the check's verdict, which no script and no eval
 # carries, so the decision is proven over the passages that carry it.
 # Run: bash skills/tickets/tests/setup-ticket.sh
@@ -282,5 +284,50 @@ expect "the next-step bullet of the close step names the Setup ticket" test -n "
 carries_any "with a Setup ticket cut, the last line is /do on the Setup ticket" \
   "/do" "last line" "next command" "the command" "frontier" "no blocker" "blocked by nothing" \
   "nothing blocks it" "comes first" "goes first" "is the first" "the first ticket"
+
+echo "# SKILL.md / ## 6: under --auto the Setup ticket's last line is the plain /do command, and one line says why"
+# `do` refuses `--auto` on a Setup ticket at its door, so a pasted `/do --auto` line would stop the
+# chain on its first step. Every phrasing is matched in lower case, since the prose may write Ticket.
+no_flag=(
+  "plain" "no flag" "without the flag" "without that flag" "without \`--auto\`" "without --auto"
+  "no \`--auto\`" "drops the flag" "drops \`--auto\`" "flag is dropped" "leaves the flag"
+  "leaves \`--auto\`" "flag is left" "flag off" "never \`/do --auto"
+)
+# Scoped to the sentences of the next-step bullet that name both the flag and the Setup ticket: the
+# bullet already says the Setup ticket's last line is `/do` and that under `--auto` the line reads
+# `/do --auto <ticket>`, in two sentences that never meet, and neither can answer for the exception.
+flat="$(grep -F "last line" <<<"$close_bullets" | sed 's/\. /.\n/g' | grep -iF "etup ticket" | grep -F -- "--auto" | tr '\n' ' ')"
+flat="${flat,,}"
+expect "a sentence of the next-step bullet names both --auto and the Setup ticket" test -n "${flat// /}"
+carries_each "under --auto the Setup ticket's last line is the plain /do command, with no flag" \
+  "/do" -- \
+  "${no_flag[@]}"
+
+# The line may sit in a bullet of its own, so the scope is every bullet of the close that names the
+# Setup ticket: none of them speaks of the developer or of a next ticket today.
+flat="$(grep -iF "etup ticket" <<<"$close_bullets" | tr '\n' ' ')"
+flat="${flat,,}"
+carries_each "one line says this one ticket needs the developer" \
+  "one line" "a line" "one more line" "single line" "line says" "line saying" "line tells" \
+  "line telling" -- \
+  "needs the developer" "need the developer" "developer's to run" "developer's own to run" \
+  "the developer runs" "run by the developer" "takes the developer" "developer has to run" \
+  "developer must run"
+carries_each "and that the flag returns from the next ticket on" \
+  "flag" "\`--auto\`" -- \
+  "returns from the next ticket" "from the next ticket on" "comes back on the next ticket" \
+  "returns on the next ticket" "comes back from the next ticket" "back from the next ticket" \
+  "returns with the next ticket" "back with the next ticket" "from the ticket after it on" \
+  "again from the next ticket" "again on the next ticket"
+
+echo "# SKILL.md / ## 4: the --auto section says the same exception for the Setup ticket"
+# Scoped to the sentences that name the Setup ticket: the section already speaks of a `/do` line,
+# said of a run that publishes nothing.
+flat="$(passage_of "$skill" "### Under \`--auto\`" "## 5. Publish" | tr '\n' ' ' | tr -s ' ' | sed 's/\. /.\n/g' | grep -iF "etup ticket" | tr '\n' ' ')"
+flat="${flat,,}"
+expect "the --auto section names the Setup ticket" test -n "${flat// /}"
+carries_each "its /do line is the plain command there too, with no flag" \
+  "/do" -- \
+  "${no_flag[@]}"
 
 exit $((fails > 0))

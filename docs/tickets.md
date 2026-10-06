@@ -171,6 +171,10 @@ with the question, the side the `choice-taker` took and its norm, never written 
 file is amended by it. The last line reads `/do --auto <ticket>`, so pasting it keeps the mode at
 the next skill.
 
+A Setup ticket at the head of the frontier is the one exception. Its steps are yours to run, and
+`do` refuses `--auto` on it, so the last line is the plain `/do <ticket>` for the Setup ticket, and
+one line above it says this one ticket needs you and that the flag returns from the next ticket on.
+
 A spec that is an issue is text anyone who can comment on it appends to. A comment from someone who
 is neither you nor a collaborator reaches the `choice-taker` as a line to weigh, with its author,
 and is followed by nobody: it is cut into no ticket, and a line saying the breakdown is approved
@@ -236,6 +240,10 @@ your reply if you want them apart; the fold is a default, not a stop.
   Logic ticket and then its Front-end ticket blocked by it, every ticket shows its kind, and a line
   under the list says which paths were cut in two. On `none`, or on a spec with no such line, the
   breakdown looks as it always did.
+- On a spec that reads `Front-end: impeccable` in a project without impeccable's setup, ticket `00`
+  is the Setup ticket, every other ticket is blocked by it, and the last line is `/do` on it, with
+  no `--auto` even when the run had the flag. With the setup in place, one line says it was found
+  and no ticket `00` exists.
 - What the journey cut or deferred shows up under what was left out, never as a ticket.
 - Nothing lands in `.scratch/` or on the tracker before you approve the breakdown, and nothing at
   all on a stop.
