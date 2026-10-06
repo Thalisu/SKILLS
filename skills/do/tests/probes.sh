@@ -288,6 +288,16 @@ ticket 44-unkinded.md '**Status:** ready-for-agent' 'None (can start immediately
 run "$door" "$issues/44-unkinded.md"
 check_lines "a Ticket with no Kind line is routed as logic" 0 "$rc" "kind=logic"
 rm -f "$issues"/4[1234]-*.md
+# The Spec's Front-end: line names the builder a Front-end ticket goes to; the later cases see no Spec.
+printf '# A feature\n\nJourney: required\nFront-end: builder\nStatus: ready-for-agent\n' >.scratch/20260101-feat/spec.md
+run "$door" "$issues/02-second.md"
+check_lines "a Spec whose Front-end line reads builder sends its Tickets to the chain's own builder" 0 "$rc" \
+  "front_end=builder"
+expect "the front_end line comes right after the spec_complete line" \
+  test "$(sed -n '/^spec_complete=/{n;p;q;}' <<<"$out")" = "front_end=builder"
+expect "the verdict line stays the last line beside a front_end line" \
+  test "$(tail -n 1 <<<"$out" | cut -d= -f1)" = "verdict"
+rm -f .scratch/20260101-feat/spec.md
 # A first run of a Spec on a protected branch, or on a detached checkout, has nowhere to land, so the
 # door refuses it before anything is claimed or cut; a Ticket outside a feature folder has no Spec
 # branch and keeps the protected branch as a warning only.

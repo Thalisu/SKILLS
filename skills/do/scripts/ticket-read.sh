@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 # ticket-read.sh: what a Ticket file is and what its status reads, the one rule ticket-door.sh and
-# completion-check.sh share. Sourced, never run: it defines three functions and does nothing else.
+# completion-check.sh share. Sourced, never run: it defines four functions and does nothing else.
 #
 #   status_of <file>              sets word to the status and detail to nothing, or word to
 #                                 ambiguous with detail saying why
 #   kind_of <file>                sets word to the kind the **Kind:** line reads, logic with none
+#   front_end_of <file>           sets word to the front-end builder the Front-end: line of the
+#                                 Ticket's Spec reads, the spec.md beside its issues/ folder
 #   ticket_files <folder> [<NN>]  prints the Ticket files directly in the issues folder, in number
 #                                 order, or only the ones numbered <NN>
 #
@@ -39,6 +41,14 @@ kind_of() { # $1 file: sets word to the kind its **Kind:** line reads, logic whe
   detail=""
   word="$(grep -m1 '^\*\*Kind:\*\*' "$1" | sed 's/^\*\*Kind:\*\*//' | awk '{ print $1 }')"
   word="${word:-logic}"
+}
+
+front_end_of() { # $1 file: sets word to the front-end builder its Spec's Front-end: line reads
+  local folder spec=""
+  folder="$(dirname "$1")"
+  [ "$(basename "$folder")" != issues ] || spec="$(dirname "$folder")/spec.md"
+  detail=""
+  word="$(grep -s -m1 '^Front-end:' "$spec" | sed 's/^Front-end://' | awk '{ print $1 }')"
 }
 
 ticket_files() { # $1 issues folder, $2 optional Ticket number: the Ticket files, sorted, sidecars left out
