@@ -221,10 +221,11 @@ Present the breakdown as a numbered list. For each ticket:
 After the list:
 
 1. the splits, folds and placements taken, each with the rule that fired, or none;
-2. what was left out: the journey's cut and deferred items, and the spec's Out of Scope;
-3. one question: does the breakdown go out as it stands?
+2. on a spec that reads `Front-end: builder` or `Front-end: impeccable`, one more line beside those: the paths cut in two, and the paths left as a Logic ticket alone, each of these with the reason no screen was read in it. For example: `Cut in two: "Archive a note". Logic ticket alone: "Export the notes" (run from the command line, no screen).` The reading of each path is the one thing here the user can know better than the session, so it is shown where they can overrule it. On `none` the line is left out;
+3. what was left out: the journey's cut and deferred items, and the spec's Out of Scope;
+4. one question: does the breakdown go out as it stands?
 
-One shape the message can take, in the user's language (the labels are translated with the rest). The layout is free; the fields on every ticket, the three closing parts and the single question are not. The domain and the figures are this example's own:
+One shape the message can take, in the user's language (the labels are translated with the rest). The layout is free; the fields on every ticket, the closing parts and the single question are not. The domain and the figures are this example's own:
 
 <example>
 Estimates are uncalibrated: no resolved ticket in the repo carries a measured `Context:` line, so they stand on the defaults, a fixed load of 40k and 15k per criterion.
