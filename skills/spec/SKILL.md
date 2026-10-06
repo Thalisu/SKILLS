@@ -48,7 +48,7 @@ The turn ends at these points and no others:
 - the seams question (step 2), which a run under `--auto` hands to the `choice-taker` instead and
   asks only in the cases that step lists;
 - the builder question (step 4), asked only when a story has a screen, which a run under `--auto`
-  hands to the `choice-taker` instead;
+  hands to the `choice-taker` instead and asks only in the cases that step lists;
 - an allocator refusal (step 3);
 - the close (step 5).
 
@@ -362,6 +362,19 @@ return is the decision, as the developer's answer is without the flag:
   the return's `Norm:`;
 - it reads ruled, never chosen and never deduced, in the close (step 5): a ruled builder read later
   as the developer's own choice is a decision nobody made.
+
+**When the builder question comes back to the developer.** It is asked after all, as the one
+message above, whole, with one line before it naming the reason. Then the turn ends and nothing is
+written before the answer, which is the decision as it is without the flag: the value then reads
+chosen, never ruled. The rest of the run stays under `--auto`. It happens in the cases step 2
+lists for the seams and no others, each with the reason line that case gives there:
+
+- **The `choice-taker` cannot be forked**, because the Agent tool is withheld, or is present but
+  lists no `choice-taker`. No agent is forked in its place, a refused call is not tried again, and
+  the run never picks a builder on its own, the recommended one included: a `Front-end:` value
+  nobody with the `choice-taker`'s norms ruled would route every Front-end ticket unread.
+- **The return is no ruling**, or it is `extreme`: as in step 2, the `choice-taker` is not forked
+  a second time for it, and a side it named is written nowhere.
 
 ## 5. Close
 
