@@ -200,6 +200,8 @@ It prints one `key=value` line per step it reads, each `done` or `missing`, and 
 
 All six are listed, every one whether the check reads it done or not: the check has no line for the reload, and the developer reads in the breakdown the whole of what they will be asked to run.
 
+Exit 0 means every step reads done: no Setup ticket is cut, and one line under the breakdown says the setup was found (step 4).
+
 Every other ticket is blocked by the Setup ticket, beside the edges it already has, and the edge says the setup is committed before the ticket is built. That holds for every kind, also on a spec where no path has a screen and every other ticket is a Logic ticket: `do` cuts the spec's branch on the first ticket it runs, and a ticket left unblocked would cut it before the setup is committed, so the branch would be born without it.
 
 **Blocking edges.** A ticket that reads what another ticket writes (a state, a section, a symbol) is blocked by the ticket that writes it, never by an earlier one. A stub that would let it start sooner is never cut: the stub is work thrown away, and the ticket built on it is verified against something that is not the real writer. Each edge names what is read and which ticket writes it. A ticket with no blockers can start immediately.
@@ -242,8 +244,9 @@ After the list:
 
 1. the splits, folds and placements taken, each with the rule that fired, or none. A small ticket left unfolded because its only edge ties it to a ticket of the other kind is named on the folds line, with the rule that the two kinds are never joined;
 2. on a spec that reads `Front-end: builder` or `Front-end: impeccable`, one more line beside those: the paths cut in two, and the paths left as a Logic ticket alone, each of these with the reason no screen was read in it. For example: `Cut in two: "Archive a note". Logic ticket alone: "Export the notes" (run from the command line, no screen).` When no path has a screen the line says so: every path was cut as a Logic ticket alone, with the reason. The reading of each path is the one thing here the user can know better than the session, so it is shown where they can overrule it. On `none` the line is left out;
-3. what was left out: the journey's cut and deferred items, and the spec's Out of Scope;
-4. one question: does the breakdown go out as it stands?
+3. on a spec that reads `Front-end: impeccable` whose setup check exited 0, one line saying the setup was found in the project, so the reader knows why no Setup ticket heads the list. With a Setup ticket in the list the line is left out;
+4. what was left out: the journey's cut and deferred items, and the spec's Out of Scope;
+5. one question: does the breakdown go out as it stands?
 
 One shape the message can take, in the user's language (the labels are translated with the rest). The layout is free; the fields on every ticket, the closing parts and the single question are not. The domain and the figures are this example's own:
 

@@ -137,6 +137,9 @@ branch. Every other ticket is blocked by it, Logic tickets included and also whe
 screen: `do` cuts the spec's branch on the first ticket it runs, and the setup has to be committed
 before that branch exists.
 
+A project that already carries the whole setup gets no Setup ticket: one line under the list says
+the setup was found, and the first ticket starts at once.
+
 ## Under `--auto`
 
 `/tickets --auto <spec>` hands the approval over for one run

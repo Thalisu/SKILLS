@@ -2,7 +2,8 @@
 # setup-ticket.sh: what SKILL.md has the session do on a spec that reads `Front-end: impeccable`:
 # it runs the setup check, and when a step reads missing the breakdown opens with a Setup ticket
 # numbered 00, of kind setup, blocked by nothing, whose acceptance criteria are the six setup steps
-# in their order, every one listed whether the check reads it done or not.
+# in their order, every one listed whether the check reads it done or not. With every step done no
+# Setup ticket is cut, and one line under the breakdown list says the setup was found.
 # The ticket is drafted by the session from the check's verdict, which no script and no eval
 # carries, so the decision is proven over the passages that carry it.
 # Run: bash skills/tickets/tests/setup-ticket.sh
@@ -110,5 +111,40 @@ echo "# SKILL.md / ## 4: the Kind field of the breakdown list admits setup"
 flat="$(bullets_opening_on <(passage_of "$skill" "## 4. Put the breakdown to the user" "After the list:") "**Kind**")"
 expect "SKILL.md carries the Kind field of the breakdown list" test -n "$flat"
 carries "the field admits setup beside logic and front-end" "\`setup\`" "\`logic\`" "\`front-end\`"
+
+echo "# SKILL.md / ## 3: with every step of the setup done, no Setup ticket is cut"
+flat="$whole"
+carries_each "the check exiting 0, every step done, cuts no Setup ticket" \
+  "Exit 0" "exit 0" "exits 0" "Exit \`0\`" "exit \`0\`" "exits \`0\`" "exit code 0" "exit code \`0\`" \
+  "exit status 0" "exit status \`0\`" "every step done" "every step is done" "every step reads done" \
+  "every step reads \`done\`" "each step reads done" "each step reads \`done\`" "all six done" \
+  "all six are done" "all six read done" "all six read \`done\`" "no step missing" \
+  "no step reads missing" "no step is missing" "nothing missing" "nothing is missing" -- \
+  "no Setup ticket" "no **Setup ticket**" "No Setup ticket" "No **Setup ticket**" \
+  "without a Setup ticket" "without the Setup ticket" "Setup ticket is not cut" \
+  "Setup ticket is never cut" "Setup ticket is left out" "Setup ticket is not listed" \
+  "Setup ticket is not drafted" "cuts no ticket for the setup" "no ticket is cut for the setup" \
+  "no ticket for the setup" "the ticket is not cut" "the ticket is left out" "none is cut"
+
+echo "# SKILL.md / ## 4: with the setup whole, one line under the list says it was found"
+# The key leaves the first letter out: the item may open its sentence on "Setup" or name "the setup".
+flat="$(item_holding <(passage_of "$skill" "After the list:" "One shape the message can take") \
+  '[0-9]+\.' "etup" | tr '\n' ' ' | tr -s ' ')"
+expect "SKILL.md carries a setup item in the breakdown's closing parts" test -n "$flat"
+carries "the item is for a spec that reads Front-end: impeccable" "Front-end: impeccable"
+carries_any "the item is for the setup being whole, no step missing" \
+  "Exit 0" "exit 0" "exits 0" "Exit \`0\`" "exit \`0\`" "exits \`0\`" "exit code 0" "exit status 0" \
+  "every step done" "every step is done" "every step reads done" "every step reads \`done\`" \
+  "each step reads done" "all six done" "all six are done" "all six read done" "no step missing" \
+  "no step reads missing" "no step is missing" "nothing missing" "nothing is missing" \
+  "setup whole" "setup is whole" "setup complete" "setup is complete" "whole setup" \
+  "complete setup" "no Setup ticket" "no **Setup ticket**" "Setup ticket is not cut" \
+  "Setup ticket is left out" "already set up" "set up already"
+carries_any "it is one line of the message" \
+  "one line" "One line" "a line" "A line" "one more line" "a single line" "the line"
+carries_any "the line says the setup was found" \
+  "was found" "is found" "were found" "setup found" "found whole" "found complete" \
+  "found in place" "found in the project" "already there" "already in place" "is in place" \
+  "already set up" "set up already" "already done"
 
 exit $((fails > 0))
