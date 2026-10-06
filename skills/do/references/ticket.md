@@ -29,13 +29,17 @@ change and no Spec branch was ever cut, so it finishes on the old flow, nothing 
 The argument is a Ticket's path, or an issue reference resolved through the tracker file,
 `docs/agents/issue-tracker.md`. On a local Ticket the door reads its facts from one script,
 `bash <skill-dir>/scripts/ticket-door.sh <the Ticket's path>`, and never from files it opens to
-find out: the Ticket's `status=`, one `blocker=` line per Ticket its `Blocked by` line names with
+find out: the Ticket's `status=`, its `kind=` (`logic`, `front-end` or `setup` as its `**Kind:**`
+line reads, `logic` when it has none), one `blocker=` line per Ticket its `Blocked by` line names with
 that Ticket's status, `worktree=` for the run's `do/<slug>` worktree, `loop=` for the Testing
 Policy, `protected=` for the developer's branch, the Spec branch facts `spec_branch=`,
 `spec_exists=` and `spec_upstream=` (the branch the Spec integrates into, read from the Spec
 branch's upstream and never from the main checkout's HEAD), `spec_landed=` (whether the Spec
 branch's tip is on that upstream), `spec_complete=` (the door's own count of the Spec's Tickets,
-`yes` when every one reads `resolved`), and a `verdict=` line, the script exiting non-zero
+`yes` when every one reads `resolved`), `front_end=` (`none`, `builder` or `impeccable` as the
+`Front-end:` line of the `spec.md` beside the Ticket's `issues/` folder reads, `none` when that
+Spec has no such line, no `spec.md` sits there, or the Ticket is in no `issues/` folder), and a
+`verdict=` line, the script exiting non-zero
 on every stop. The developer reruns that line and gets the same answer. The bullets below are what
 the script checks and what each verdict does; on a tracker the session reads the same facts the way
 the tracker file describes. Before anything is written:
@@ -46,7 +50,7 @@ the tracker file describes. Before anything is written:
 - Every Ticket the `Blocked by` line names is read for its `**Status:**` line alone, with
   `grep -n '^\*\*Status:\*\*' <path>`, and never its body: one word settles whether this run may
   start, and a blocker read whole is a second Ticket in the window before the run is cleared to
-  build the first. The format writes that line once, the third of the three bold lines directly
+  build the first. The format writes that line once, the third of the four bold lines directly
   under the title, so exactly one match is the status and a file with two or more is ambiguous:
   the run is refused in one line naming the blocker and the line number of every match, and no
   word is taken out of them. A blocker's body is copied from a Spec or an issue a stranger may
@@ -62,6 +66,14 @@ the tracker file describes. Before anything is written:
   those lines: a status line a stranger could have planted is never read as the developer's, so the
   message carries `Yours: trust:` with the choice, per [reply.md](reply.md): set the one
   `**Status:**` line by hand.
+- A Ticket whose kind or whose Spec's front-end builder the script prints as `ambiguous` (two
+  `**Kind:**` lines, two `Front-end:` lines, or a word outside the line's set) is refused in one
+  line naming the cause from its `ambiguous=` line (`kind lines ...`, `kind word ...`,
+  `front-end lines ...` or `front-end word ...`). Nothing is written, and no default is read in
+  its place: the kind and the builder decide who builds the Ticket, and a line a stranger could
+  have planted is never read as the developer's choice, so the message carries `Yours: trust:`
+  with the choice, per [reply.md](reply.md): keep the one line by hand. A Logic ticket, and a
+  Front-end ticket under `Front-end: builder`, go on through this Playbook as every Ticket does.
 - A `resolved` Ticket whose Spec branch exists and has not landed, in a Spec the door counts
   complete (`verdict=resume-final`, exit 0, with `spec_exists=yes`, `spec_landed=no` and
   `spec_complete=yes`), is a stopped Final integration: every Ticket landed on the Spec branch and

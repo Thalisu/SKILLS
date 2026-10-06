@@ -104,6 +104,24 @@ A one-character "typo" inside a string the code reads at runtime is a defect, so
 leaves for `refactoring`. A fifty-line comment sweep stays Trivial. When the check on the diff fires
 after the edit, the run restores the touched files and commits nothing.
 
+The `ticket` Playbook's door is one script, `skills/do/scripts/ticket-door.sh <ticket>`, so you
+rerun it and get the same answer the run acted on. Before anything is claimed it reads:
+
+- the Ticket's status, and the status of every Ticket its `Blocked by` line names, the Setup ticket
+  `00` included. One not `resolved` refuses the run, naming that Ticket and its status, and nothing
+  is written.
+- the Ticket's kind, from its `Kind:` line: `logic`, `front-end` or `setup`, and `logic` when the
+  line is missing, as on every Ticket cut before the line existed.
+- the Spec's front-end builder, from the `Front-end:` line of the `spec.md` beside the Ticket's
+  `issues/` folder: `none`, `builder` or `impeccable`, and `none` when there is no such line or no
+  such Spec.
+- the run's worktree, the Testing Policy, your branch and the Spec branch.
+
+A Logic ticket, and a Front-end ticket of a Spec that reads `Front-end: builder`, go through the
+Planner and the Builder like any other Ticket. Two `Kind:` or two `Front-end:` lines, or a word
+outside the set, stop the run instead of falling back to a default, since either line decides who
+builds the Ticket and a line appended on a tracker is not your choice.
+
 ## One behaviour, one green commit
 
 The three Playbooks that build share one loop, so the discipline is the same whether the work came
