@@ -174,6 +174,15 @@ Cut the work into tracer-bullet tickets.
 
 Without a journey, the User Stories are the paths, cut by the same rules.
 
+**Logic and front-end.** On a spec that reads `Front-end: builder` or `Front-end: impeccable` the developer chose who builds the screens, so a screen is cut apart from the behaviour under it. Read every path for a screen: a page, a view, a dialog or a component the feature draws in the product's interface, which a step of the path has the actor see or act on. A command line, a scheduled job and an API another system calls are not screens.
+
+- **A path with a screen** is cut into two tickets, in this order:
+  1. its **Logic ticket**, the path's behaviour under the screen (the state, the rules, the interface the screen calls), demoable through that interface. Its criteria are what the system answers, failure branches included;
+  2. its **Front-end ticket**, the screen itself, built on that code. Its criteria are what the actor sees and does. It is blocked by the Logic ticket, and the edge names that ticket and says the screen is built on the code it lands. A mock that would let the screen start sooner is never cut, for the reason a stub never is.
+- **A path with no screen** is cut into a Logic ticket alone.
+
+The two tickets of one path are the one exception to **Vertical**: together they are the vertical slice, each built by its own builder. A ticket that reads state another path writes is blocked by that path's Logic ticket, which is the one that writes it.
+
 **Blocking edges.** A ticket that reads what another ticket writes (a state, a section, a symbol) is blocked by the ticket that writes it, never by an earlier one. A stub that would let it start sooner is never cut: the stub is work thrown away, and the ticket built on it is verified against something that is not the real writer. Each edge names what is read and which ticket writes it. A ticket with no blockers can start immediately.
 
 **Splits, folds and placements**, in this order:
@@ -203,7 +212,7 @@ When even the batches cannot stay green alone, keep the sequence but let them sh
 Present the breakdown as a numbered list. For each ticket:
 
 - **Title**: short, in the glossary's words
-- **Path**: the journey path it realises, when there is a journey; every path when it is a fold
+- **Path**: the journey path it realises, when there is a journey; every path when it is a fold. A path cut into a Logic ticket and a Front-end ticket is named by both, the Logic ticket listed first
 - **Estimate**: the peak context the `do` session is expected to reach, the band, what drives the number, and whether it is calibrated or on the defaults
 - **Blocked by**: each blocking ticket with what this one reads and that the blocker writes it, or none
 - **What it delivers**: the end-to-end behaviour this ticket makes work

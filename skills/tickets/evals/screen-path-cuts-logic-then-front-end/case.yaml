@@ -1,0 +1,160 @@
+name: screen-path-cuts-logic-then-front-end
+tags: [workflow, cut, kind, auto]
+runs: 2
+max_turns: 50
+timeout_seconds: 1200
+allowed_tools: [Bash, Read, Edit, Write, Agent]
+context:
+  unlinked_agents: [choice-taker]
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # A Spec that reads Front-end: builder over a journey of two paths with no edge between them:
+    # archiving a note, walked on the notes list, and exporting the notes from the command line,
+    # which has no screen. The archive path is cut into a Logic ticket and a Front-end ticket blocked
+    # by it, the export path into a Logic ticket alone. The run is under --auto with a choice-taker
+    # stand-in that rules to publish, so the three tickets reach the disk with their Kind lines.
+    set -e
+    mkdir -p src docs/agents .scratch/archive-notes .claude/agents
+    cat > src/notes.js <<'JS'
+    const notes = [];
+    function create(title) {
+      const note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+    function list() {
+      return notes.filter((n) => n.status === "active");
+    }
+    module.exports = { create, list };
+    JS
+    cat > docs/agents/issue-tracker.md <<'MD'
+    # Issue tracker: Local Markdown
+
+    Issues and specs for this repo live as markdown files in `.scratch/`.
+
+    - One feature per directory: `.scratch/<feature-slug>/`
+    - The spec is `.scratch/<feature-slug>/spec.md`
+    - Implementation issues are one file per ticket at `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01`
+    - Triage state is a `Status:` line near the top of each issue file
+    MD
+    cat > .scratch/archive-notes/spec.md <<'MD'
+    # Archive notes
+
+    Journey: ./journey.md
+    Front-end: builder
+    Status: ready-for-agent
+
+    ## Problem Statement
+
+    Notes pile up in the list, there is no way to put one aside without deleting it, and there is
+    no way to take the notes out of the app.
+
+    ## Solution
+
+    A note can be archived from the list, and the notes can be exported to a file from the command
+    line.
+
+    ## User Stories
+
+    1. As a writer, I want to archive a note from my list, so that it leaves the list without being deleted
+    2. As a writer, I want to export my notes to a file from the command line, so that I can keep a copy outside the app
+
+    ## Implementation Decisions
+
+    - A note carries a status, active or archived; archiving never deletes
+    - The list shows active notes only
+    - The export is a command of the notes command line, with no page, view or dialog in the app; it writes one line per note, whatever its status
+
+    ## Testing Decisions
+
+    - Behaviour tests through the notes module's public functions
+
+    ## Out of Scope
+
+    - Deleting archived notes permanently
+    MD
+    cat > .scratch/archive-notes/journey.md <<'MD'
+    # Journey: Archive notes
+
+    Spec: ./spec.md
+    Actor: writer
+    Entry: the notes list, or a terminal for the export
+
+    ## Path 1: Archive a note
+
+    Story: 1
+    Outcome: the note is gone from the list and the writer knows where it went.
+
+    | Step | Actor sees | Actor does | System answers |
+    |---|---|---|---|
+    | 1 | the notes list page, each note with an Archive button | clicks Archive on one note | the note leaves the list; a banner says "Archived" |
+    | 2 | the list without the note | nothing | a counter above the list reads "1 archived" |
+
+    Failure branches:
+    - Archive clicked twice on the same note: the second click is a no-op, the banner still says "Archived"
+
+    ## Path 2: Export the notes from the command line
+
+    Story: 2
+    Outcome: a file holds one line per note.
+
+    | Step | Actor sees | Actor does | System answers |
+    |---|---|---|---|
+    | 1 | a terminal prompt | runs `notes export notes.txt` | the command writes one line per note to the file and prints "Exported 3 notes" |
+    | 2 | the prompt again | nothing | the command exited with status 0 |
+
+    Failure branches:
+    - The file cannot be written: the command prints "Cannot write notes.txt" and exits with status 1
+
+    ## States
+
+    | State | The actor sees | Actions |
+    |---|---|---|
+    | active | the note in the list | Archive (Path 1, to archived) |
+    | archived | the counter above the list | none |
+
+    ## Cut
+
+    - none
+
+    ## Defaults taken
+
+    - The "Archived" banner is the app's existing banner
+
+    ## Deferred
+
+    - An undo on the "Archived" banner: reopens when a writer archives the wrong note twice in a week
+
+    ## Spec changes applied
+
+    - none
+
+    ## Reopen in discuss
+
+    - none
+    MD
+    printf '.scratch/\n' > .gitignore
+    cat > .claude/agents/choice-taker.md <<'CHOICE_TAKER_EOF'
+    ---
+    name: choice-taker
+    description: "Stand-in for the fixture: always returns a settled Ruling on the option that publishes the breakdown."
+    tools: Read, Glob, Grep
+    ---
+
+    Do not weigh the question. Among the lines under `Options:` in your brief, take the one under
+    which the breakdown is published as it stands, copied verbatim, and every option line in its
+    order. Return exactly this shape and nothing else, no line before it and none after, with that
+    option in place of `<the publishing option>` and the options joined by ` or ` in place of
+    `<options>`:
+
+    ```
+    settled
+    Side: <the publishing option>
+    Norm: no norm: the side easiest to undo
+    Fork: <options>
+    Losing criterion: none
+    ```
+    CHOICE_TAKER_EOF
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"

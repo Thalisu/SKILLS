@@ -59,5 +59,30 @@ for case in front-end-none-cuts-as-today auto-publishes-locally; do
   done
 done
 
+# In screen-path-cuts-logic-then-front-end the Spec reads Front-end: builder and its journey holds a
+# Path walked on a screen and a Path with none, so the run publishes three local Tickets: the screen
+# Path's Logic ticket, its Front-end ticket, and the other Path's Logic ticket. A run that kept the
+# screen Path as one vertical Ticket publishes two.
+case=screen-path-cuts-logic-then-front-end
+nothing_published="$(mktemp -d "$tmp/w.XXXXXX")"
+for n in 01 02 03; do
+  name="ticket-$n-written"
+  grader="$here/../evals/$case/graders/$name.md"
+
+  expect "$case holds a $name grader" test -f "$grader"
+
+  grade_passes "$case: a run that published Tickets 01, 02 and 03 passes $name" \
+    "$(run_with_ticket_as "$n" "$kind_logic")"
+  grade_fails "$case: a run that never wrote Ticket $n fails $name, though it published the other two" \
+    "$(run_with_ticket_as "$n" "")"
+  grade_fails "$case: a run that published nothing fails $name" "$nothing_published"
+done
+for n in 01 02; do
+  # shellcheck disable=SC2034 # read by lib.sh's grade_passes
+  grader="$here/../evals/$case/graders/ticket-$n-written.md"
+  grade_passes "$case: a run that cut the screen Path as one vertical Ticket, publishing 01 and 02 only, passes ticket-$n-written" \
+    "$(run_with_ticket_as 03 "")"
+done
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1
