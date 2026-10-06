@@ -13,8 +13,9 @@
 # context file committed; design-system, the design system file committed; build-path, the code-led
 # build path configured.
 #
-# Exit codes: 2 the project could not be read: one line on stderr naming what could not be read,
-# and nothing on stdout.
+# Exit codes: 0 every step reads done · 1 at least one step reads missing, the four lines still
+# printed · 2 the project could not be read: one line on stderr naming what could not be read, and
+# nothing on stdout.
 set -uo pipefail
 
 die() { echo "$1" >&2; exit 2; }
@@ -59,7 +60,9 @@ root="$(git worktree list --porcelain 2>/dev/null |
   awk '/^$/ { exit } /^worktree /{ p = substr($0, 10) } /^bare$/ { p = "" } END { print p }')"
 [ -n "$root" ] && [ -d "$root" ] || root="$top"
 
-echo "impeccable-skill=$(probe_impeccable_skill)"
-echo "product-context=$(probe_product_context)"
-echo "design-system=$(probe_design_system)"
-echo "build-path=$(probe_build_path)"
+lines="impeccable-skill=$(probe_impeccable_skill)
+product-context=$(probe_product_context)
+design-system=$(probe_design_system)
+build-path=$(probe_build_path)"
+echo "$lines"
+! grep -q '=missing$' <<<"$lines"

@@ -185,6 +185,55 @@ impeccable_config '{"hook": {"enabled": true}, "buildPath": "code"}'
 commit "the impeccable config"
 step_reads "with the code-led build path committed beside other keys the build path reads done" build-path "done"
 
+# `tickets` publishes no Setup ticket on a project already set up, and reads that off the exit code:
+# a non-zero exit there blocks every Ticket of a second Spec behind a setup that exists, and a zero
+# with a step lacking publishes none for a project that needs one. The lines are printed either way,
+# since the Setup ticket's steps are the ones reading `missing`.
+whole_setup() { # $1 name: a new repository at $tmp/<name>, entered, with every committed setup step in its one commit and impeccable installed at user scope under $HOME
+  fresh "$1"
+  mkdir -p src/styles
+  echo "a project" >README.md
+  echo "{}" >src/styles/tokens.json
+  echo "# Product" >PRODUCT.md
+  echo "# Design" >DESIGN.md
+  impeccable_config '{"hook": {"enabled": true}, "buildPath": "code"}'
+  commit "the whole setup"
+  plugin_registry '[{"scope": "user", "installPath": "/x", "version": "4.3.1"}]'
+}
+whole_setup whole
+rc=0
+out="$(bash "$script" 2>/dev/null)" || rc=$?
+check_lines "in a project that carries the whole setup the check exits 0" 0 "$rc"
+same "in a project that carries the whole setup every step line reads done" "impeccable-skill=done
+product-context=done
+design-system=done
+build-path=done"
+
+whole_setup whole-no-product
+g rm -q PRODUCT.md
+g commit -qm "no product context"
+rc=0
+out="$(bash "$script" 2>/dev/null)" || rc=$?
+check_lines "with the product context alone lacking the check exits 1 and still prints the four lines, that one missing" 1 "$rc" \
+  "impeccable-skill=done" "product-context=missing" "design-system=done" "build-path=done"
+
+whole_setup whole-no-skill
+plugin_registry ""
+rc=0
+out="$(bash "$script" 2>/dev/null)" || rc=$?
+check_lines "with the impeccable skill alone not installed the check exits 1 and still prints the four lines, that one missing" 1 "$rc" \
+  "impeccable-skill=missing" "product-context=done" "design-system=done" "build-path=done"
+
+fresh nothing
+echo "a project" >README.md
+commit "first commit"
+rm -rf "$HOME/.claude/plugins"
+rc=0
+out="$(bash "$script" 2>/dev/null)" || rc=$?
+check_lines "in a project with nothing set up the check exits 1" 1 "$rc"
+expect "in a project with nothing set up the check still prints the four step lines" \
+  [ "$(keys_in_order)" = "impeccable-skill product-context design-system build-path " ]
+
 if [ "$fails" = 0 ]; then echo "PASS"; else
   echo "$fails failing"
   exit 1
