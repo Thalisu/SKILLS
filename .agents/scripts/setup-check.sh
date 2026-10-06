@@ -2,7 +2,10 @@
 # setup-check.sh: the state of the impeccable setup in the project it is run in, one line per step.
 # It is the one executable form of that reading, so every caller that needs to know whether the
 # setup is there calls it instead of working the answer out. Run from anywhere inside the project,
-# with no argument. It writes nothing.
+# with no argument. It writes nothing. It needs jq: a step it cannot prove reads missing.
+#
+# "This project" is the Main checkout, the first worktree git lists, so a run from a linked
+# worktree reports the same state as a run from the checkout the setup was made in.
 #
 # Prints four key=value lines, always these and always in this order, each reading done or missing
 # and nothing else: impeccable-skill, the impeccable skill installed; product-context, the product
@@ -15,12 +18,27 @@ set -uo pipefail
 
 die() { echo "$1" >&2; exit 2; }
 
-probe_impeccable_skill() { echo missing; }
+state() { if "$@"; then echo done; else echo missing; fi; }
+
+# Claude Code records a plugin install per scope: a record with no projectPath is a user-scope
+# install, and one with a projectPath is installed for that project alone.
+impeccable_installed() {
+  jq -e --arg root "$root" '
+    [(.plugins // {}) | to_entries[] | select(.key | startswith("impeccable@")) | .value[]
+      | select((.projectPath // $root) == $root)] | length > 0
+  ' "$HOME/.claude/plugins/installed_plugins.json" >/dev/null 2>&1
+}
+
+probe_impeccable_skill() { state impeccable_installed; }
 probe_product_context() { echo missing; }
 probe_design_system() { echo missing; }
 probe_build_path() { echo missing; }
 
-git rev-parse --show-toplevel >/dev/null 2>&1 || die "not a git repository: $(pwd -P)"
+top="$(git rev-parse --show-toplevel 2>/dev/null)" || die "not a git repository: $(pwd -P)"
+# A bare main worktree has no working tree to anchor on, and git lists it first all the same.
+root="$(git worktree list --porcelain 2>/dev/null |
+  awk '/^$/ { exit } /^worktree /{ p = substr($0, 10) } /^bare$/ { p = "" } END { print p }')"
+[ -n "$root" ] && [ -d "$root" ] || root="$top"
 
 echo "impeccable-skill=$(probe_impeccable_skill)"
 echo "product-context=$(probe_product_context)"
