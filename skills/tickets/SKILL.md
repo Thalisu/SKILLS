@@ -83,6 +83,8 @@ Read the spec fully, in the format of [.agents/formats/spec-format.md](../../.ag
 
 A `journey.md` beside the spec that the verdict does not name is an orphan: named in that same line, never read.
 
+**The front-end.** The `Front-end:` line under the spec's title says who builds the feature's screens: `none`, `builder` or `impeccable`. A spec with no such line reads as `none`, since it was written before the line existed. On `none` the breakdown is cut and shown exactly as the steps below describe, and the only trace of the line is the kind every published ticket carries (step 5).
+
 **The journey** is read in the format of [.agents/formats/journey-format.md](../../.agents/formats/journey-format.md). `tickets` reads these parts of it and nothing else:
 
 | Section | What it gives the cut |
@@ -281,6 +283,8 @@ A `settled` return whose `Side:` names one of the two options is the Ruling on t
 Publish the approved tickets the way the tracker file describes, all of them in one turn. The tickets are the same either way; only the shape of the blocking edges changes.
 
 Every ticket is written in the format of [.agents/formats/ticket-format.md](../../.agents/formats/ticket-format.md), which carries both shapes. `ready-for-agent` is the first word of its status walk and the only one `tickets` writes; `do` writes the next two. The `## Evidence` heading is published empty, for `do` to fill at the close.
+
+**The kind.** Every ticket carries its kind, which `do` routes on: the `**Kind:**` line directly after `**Status:**` in a local file, the `## Kind` section in an issue. On a spec that reads `Front-end: none`, or has no such line, every ticket is of kind `logic`.
 
 **Local markdown.** One file per ticket, never a single combined file, in the format's local shape.
 
