@@ -30,6 +30,8 @@ Used consistently, in the thread and in what the session writes:
 - _split_: a large ticket cut along its steps into pieces, none of them large.
 - _placement_: a stray piece of work put in the ticket that builds what it describes.
 - _frontier_: every ticket whose blockers are all done.
+- _Build repository_: the one repository a ticket is built in, an entry of the spec's Repositories section. A spec with no such section is a feature of one repository, and none of its tickets names one.
+- _Home repository_: the repository whose `.scratch/` holds the feature folder, the one this session runs in, marked on its entry of the Repositories section.
 - _tracker file_: `docs/agents/issue-tracker.md`, which says where specs and tickets live in this project.
 - _parent_: the spec the tickets hang from.
 - _stop_: the run ending on a broken input, with one message and nothing written.
@@ -71,7 +73,8 @@ A comment's author is read from the structured form of the comment, the record t
 Read the spec fully, in the format of [.agents/formats/spec-format.md](../../.agents/formats/spec-format.md):
 
 - its User Stories are the candidate paths when there is no journey;
-- its Implementation Decisions, Testing Decisions and Out of Scope are constraints every ticket respects.
+- its Implementation Decisions, Testing Decisions and Out of Scope are constraints every ticket respects;
+- its Repositories section, when it has one, lists every repository the feature is built in, one entry per line with the repository's name and its absolute location, the Home repository marked. Every ticket is cut for one of those entries (step 3).
 
 **The verdict.** The `Journey:` line under the spec's title says whether there is a journey:
 
@@ -120,6 +123,8 @@ Explore the codebase the spec touches, unless the conversation already did. Enou
 - writing every title and description in the glossary's words;
 - respecting the ADRs in that area.
 
+When the spec has a Repositories section, the codebase is every repository it lists, each read at the location its entry gives and never written to.
+
 A search or a handful of reads stays in the thread. Exploration whose output would run to pages goes to a subagent on `model: sonnet`, and the thread keeps the summary.
 
 Look for prefactoring that makes the slices easier to land: make the change easy, then make the easy change. Prefactoring is its own ticket, and comes first.
@@ -158,6 +163,7 @@ Cut the work into tracer-bullet tickets.
 - **Demoable.** A completed slice is demoable or verifiable on its own.
 - **Estimated.** Each slice carries its estimate and the band it falls in, from the calibration in step 2. What the slice crosses adds to the load: a migration, a delegate's diff, or files far larger than the measured tickets touched. The drivers are stated with the number, so a reader can check it. On the defaults, a slice of 5 criteria that crosses nothing heavy is 40k + 5 × 15k = 115k, small. The estimate and the band are read off the script's `estimate=` and `band=` lines, for every slice and again for every merged fold: `bash <skill-dir>/scripts/estimate.sh size <fixed load> <per-criterion cost> <criteria> [<crossing tokens>]`, every figure a plain integer in tokens. What the slice crosses stays a judgement, passed in as the last figure.
 - **Prefactoring first.**
+- **One Build repository**, when the spec has a Repositories section. Each slice is built in exactly one repository, an entry of that section and never one it does not list: the repository whose code the slice changes, read from the Implementation Decisions and from what step 2 found. A `do` session builds in one repository, with one worktree, one gate and one landing, so a slice naming two has no run that can build it. With no Repositories section no slice names a repository, and nothing in the cut, the breakdown, the tickets or the close mentions one.
 
 | Band | Estimate | What happens to the slice |
 |---|---|---|
@@ -242,6 +248,7 @@ Present the breakdown as a numbered list. For each ticket:
 - **Path**: the journey path it realises, when there is a journey; every path when it is a fold. A path cut into a Logic ticket and a Front-end ticket is named by both, the Logic ticket listed first
 - **Estimate**: the peak context the `do` session is expected to reach, the band, what drives the number, and whether it is calibrated or on the defaults
 - **Blocked by**: each blocking ticket with what this one reads and that the blocker writes it, or none
+- **Build repository**: only when the spec has a Repositories section, a line of its own under that label on every ticket, naming exactly one entry of the section by the name the section gives it, with `(Home repository)` after the name when it is that entry. With no such section the field is left out of every ticket
 - **What it delivers**: the end-to-end behaviour this ticket makes work
 - **Kind**: `logic`, `front-end` or `setup`, on a spec that reads `Front-end: builder` or `Front-end: impeccable` only. On `none` the list carries no such field
 

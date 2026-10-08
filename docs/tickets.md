@@ -144,6 +144,17 @@ Setup ticket is cut, whatever the project carries: the chain's own Builder needs
 When the check itself cannot run, the run ends with one message carrying the check's own error
 line: no breakdown, no question, nothing published.
 
+## A feature across repositories
+
+A spec that lists its repositories, in the Repositories section [spec](spec.md) writes, is cut in
+a session of the **Home repository**, the one whose scratch folder holds the feature. Every ticket
+is then cut for exactly one **Build repository**, an entry of that list, since a `do` run builds in
+one repository with one worktree and one gate. The breakdown shows it as one more field of every
+ticket, decided by the skill from where the code the ticket changes lives, and never asked.
+
+A spec with no such list is a feature of one repository: the breakdown shows no Build repository
+and the run reads as it always did.
+
 ## Under `--auto`
 
 `/tickets --auto <spec>` hands the approval over for one run
