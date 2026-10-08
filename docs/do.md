@@ -79,7 +79,7 @@ the other four exist for work that never entered the chain.
 | Playbook | Matched by | What the run does |
 |---|---|---|
 | `ticket` | a Ticket's path, or an issue reference the tracker file resolves | claims the Ticket in your checkout, builds it in a worktree behaviour by behaviour, gates, rebases onto the Spec branch and lands there with no review (a Ticket with no Spec is reviewed and lands on your branch, then its affected flows run), and closes the Ticket with the evidence quoted under it |
-| `setup` | a Setup ticket's path, the Ticket numbered `00` whose `**Kind:**` reads `setup`, which `tickets` cuts when a Spec reads `Front-end: impeccable` and impeccable's setup is missing | claims the Ticket in your checkout and runs the setup check, then shows the six steps marked done or missing and the first missing one: what it is, its exact command, where to run it (a terminal, this session or a new agent session), and "Say when it is done." The turn ends there. With every step done on the first check it resolves the Ticket and ends on `/do` for the next one. No worktree, no Planner, no Builder, no review, and `--auto` is refused in one line naming the plain `/do` |
+| `setup` | a Setup ticket's path, the Ticket numbered `00` whose `**Kind:**` reads `setup`, which `tickets` cuts when a Spec reads `Front-end: impeccable` and impeccable's setup is missing | claims the Ticket in your checkout and runs the setup check, then shows the six steps marked done or missing and the first missing one: what it is, its exact command, where to run it (a terminal, this session or a new agent session), and "Say when it is done." The turn ends there. Whatever you write next, it runs the check again and shows the next missing step, or the same one with what the check found missing, down to the commit of the setup files on your branch. With every step done on the committed tree it resolves the Ticket and ends on `/do` for the next one. No worktree, no Planner, no Builder, no review, and `--auto` is refused in one line naming the plain `/do` |
 | `bug-fix` | a defect in words: what happened, where, and the error or the wrong output | reproduces it on the surface it happens on, rules hypotheses out with runtime evidence, commits the failing reproduction before the smallest fix, and verifies on that same surface |
 | `refactoring` | a reshape in words whose behaviour stays where it is | pins the behaviour before any structure moves, then commits subtraction, reshape and cleanup in that order, so one revert undoes one slice |
 | `integrate` | a rebase of one branch onto another, or a merge of one branch into another, in words | checks the branches exist, that a merge target is not protected, that you stand on the branch written to and that your tree is clean, then runs the operation, resolves the mechanical hunks and takes the target side of the contested ones, leaving what they set aside in a Loss ledger keyed by the branch. No worktree, no Gate, no review, nothing landed or pushed: the reply names the unchecked tree as debt for you to test before the push |
@@ -354,6 +354,28 @@ the feature reads your line. Once the review has read the branch, the resume onl
 reads no Spec, and once the Ticket is `resolved`, `/do` stops on it: either way the reversal is a
 new Ticket you write
 ([ADR 0038](adr/0038-a-ruling-reversed-after-its-ticket-landed-is-built-by-a-new-ticket-the-developer-writes.md)).
+
+**What happens when I come back after a setup step?**
+
+Anything you write sends the run back to the setup check: it proves the step by script and never
+takes your word for it. With the step done, you see the next missing one in the same shape, and a
+step the project already carries is skipped with its `done` mark. When the step did not take, you
+read the check's own line for it, `build-path=missing` for example, and the same command again. A
+question is answered first, then the check runs anyway and the step you were on is shown again in
+full.
+
+The reload is the one step no script reads. There the message tells you to reload the coding tool
+and type `/do` on the Setup ticket again, and the new session proves the step by listing the
+impeccable skill: listed, it shows the next missing step, and not listed, it shows the reload again
+and says the skill is still not listed.
+
+You can leave at any step. The Setup ticket stays `claimed`, and a later `/do` on it, in the same
+session or a new one, runs the check and shows the step the project stands on. The last step is
+the commit of the setup files, one command that names those files only, on the branch you have
+checked out: you run it, `do` never commits there. Only when the check passes on the committed
+tree does the Ticket read `resolved`, with the six steps done, the check's lines as the evidence,
+and `/do` on the next Ticket as the last line
+([ADR 0077](adr/0077-the-setup-is-committed-on-the-developers-branch-before-the-spec-branch-is-cut.md)).
 
 **What does `/do --auto` still ask me?**
 Whatever cannot be undone or leaves your machine
