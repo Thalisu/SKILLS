@@ -92,6 +92,14 @@ runs at most twice, the first run and the one after a single fix. Commit each gr
 path, in a commit of its own that carries no `Behaviour:` line. A flow still red after its one fix
 ends your stretch as `stopped`, naming the criterion and what the run printed.
 
+Before the first flow, find out whether the project can run one. Its Testing Policy says so in its
+Project facts, in the project's `CLAUDE.md`, and a project with no Testing Policy can run one only
+when its own scripts carry an end-to-end command. In a project with no end-to-end command, write no
+flow and call no author: your return says so on one `fallback:` line, in place of the `flow:`
+lines. Where the session lists no `test-author` skill and the project still carries an end-to-end
+command of its own, write the flow yourself, under the same rules, and say so on a `fallback:` line
+beside its `flow:` line.
+
 ## How your turn ends
 
 A message of yours with no tool call in it ends your turn, and your turn ending is your return:
@@ -139,6 +147,12 @@ in the reason no flow was written.
 ```
 flow: <the observable criterion> | <commit>
 flow: <the observable criterion> | no flow: <reason>
+```
+
+In a project with no end-to-end command, this one line stands in place of the `flow:` lines:
+
+```
+fallback: no end-to-end command in the project
 ```
 
 A criterion you could not build never comes back under `built`. It ends your stretch as `stopped`:

@@ -323,4 +323,17 @@ carries_each "the worktree and its branch are left in place" \
   "worktree" -- "branch" "commits" -- "${left_in_place[@]}"
 carries "the Ticket still reads claimed" "\`claimed\`"
 
+# A project with no end-to-end command gets a screen no flow ran over, and the fork says so on a
+# `fallback:` line of its return. Evidence is where the developer reads what proved the screen: with
+# no line there, the unit suite and the Gate quoted above it read as the same proof a flow gives.
+echo "# reply.md / ## Sections, Evidence: a do-impeccable return carrying fallback: gets one line on a screen no flow covered"
+flat="$(item_holding <(passage_of "$reply" "## Sections" "$blocked_section") '[0-9]+\.' "**Evidence.**" |
+  tr '\n' ' ' | tr -s ' ')"
+expect "the Sections have an Evidence item" test -n "$flat"
+carries_any "the item names the run that forks do-impeccable" "${this_flow[@]}"
+carries "the item names the return's fallback: line" "\`fallback:\`"
+mapfile -t no_flow_proof < <(no_flow_proof_groups)
+carries_each "that run's Evidence says in one line that no flow covered the screen and that the detector scan and the Gate are its proof" \
+  "${no_flow_proof[@]}"
+
 exit $((fails > 0))

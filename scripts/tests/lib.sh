@@ -305,6 +305,35 @@ the fix call's own **Gate**
 the fix call's own Gate
 EOF
 }
+# A screen no flow ran over is proven by less than one a flow covered, and the Reply is where the
+# developer learns which one they got: the groups a passage has to carry to say so, in any wording.
+# A case reads them with `mapfile -t names < <(no_flow_proof_groups)` and passes them to carries_each.
+no_flow_proof_groups() { # one accepted phrasing per line, the groups separated by a `--` line: one line, no flow covered the screen, the detector scan, the Gate, its proof
+  cat <<'EOF'
+one line
+One line
+a single line
+A single line
+--
+no flow covered
+No flow covered
+no flow covers
+No flow covers
+no flow ran over
+No flow ran over
+not covered by a flow
+without a flow
+--
+detector scan
+detector
+--
+Gate
+--
+proof
+proven by
+proves
+EOF
+}
 g() { command git -c user.email=t@example.com -c user.name=t -c init.defaultBranch=main "$@"; }
 commit() {
   g add -A >/dev/null

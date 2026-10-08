@@ -258,8 +258,12 @@ Ten sections, in this order, each one present in every Reply that carries sectio
 3. **Commits.** One line per commit, in order: short sha, title, and the files it touched.
 4. **Evidence.** The command lines and the relevant output line of each check, quoted: the unit
    suite or the covering suite, the flows, typecheck, and the door script's lines where a Playbook
-   runs one. A check that did not run appears under Skipped, never here. Two more kinds of line
+   runs one. A check that did not run appears under Skipped, never here. Three more kinds of line
    belong here:
+   - **The proof of an impeccable screen**, on a run that forked `do-impeccable`: the `flow:` lines
+     the fork returned, copied unchanged. When its return carried the `fallback:` line reading
+     `no end-to-end command in the project` in their place, one line stands here instead, saying
+     that no flow covered the screen and that the detector scan and the Gate are its proof.
    - **The integration's lines**, where it did anything: what it rebased onto and how many commits
      replayed, every hunk it resolved with its file and location, every contested hunk that took
      the **Target** side with its file and its location, the Loss ledger that holds its

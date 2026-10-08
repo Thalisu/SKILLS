@@ -54,6 +54,11 @@ Digest's `## Observable criteria` section names. The fork holds no Agent tool, s
 author through the Testing Policy's inline entry point. The session copies the `flow:` lines into
 the Reply's Evidence unchanged, per [reply.md](reply.md).
 
+In a project with no end-to-end command the fork writes no flow, and one line comes back in place
+of the `flow:` lines: `fallback: no end-to-end command in the project`. The session then writes one
+line in the Reply's Evidence, saying that no flow covered the screen and that the detector scan and
+the Gate are its proof.
+
 The definition carries this shape itself, since the fork cannot open this file or
 [builder.md](builder.md): a change to the lines the Builder returns is made in
 [do-impeccable.md](../agents/do-impeccable.md) in the same change.

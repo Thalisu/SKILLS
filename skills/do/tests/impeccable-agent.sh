@@ -420,4 +420,77 @@ carries_each "the session copies the flow: lines into the Reply's Evidence uncha
   "unchanged" "verbatim" "unedited" "as returned" "as they came back" "as they are" \
   "word for word" "never composed" "never reworded"
 
+echo "# skills/do/agents/do-impeccable.md: its body returns one fallback: line in a project with no end-to-end command"
+
+# A project with no end-to-end suite has nothing to run a flow with. A return that said nothing
+# about it would reach the Reply reading like a screen whose flows were simply not needed, and the
+# developer would take the evidence as covering what it does not. The sentence that places the line
+# may sit beside the fenced block rather than in the paragraph that names the condition, so both
+# are read.
+# shellcheck disable=SC2034  # lib.sh's carries_each reads $flat
+flat="$({
+  paragraph_with <(body_of "$agent") "end-to-end command" all
+  paragraph_with <(body_of "$agent") "fallback:" all
+} | tr '\n' ' ' | tr -s ' ')"
+expect "the body names a project with no end-to-end command" \
+  bash -c 'grep -qF "no end-to-end command" <<<"$1"' _ "$flat"
+
+carries_each "the project's Testing Policy, by its Project facts, says whether there is an end-to-end command" \
+  "Testing Policy" \
+  -- \
+  "Project facts"
+
+carries_each "with no end-to-end command no flow is written and no author is called" \
+  "no end-to-end command" \
+  -- \
+  "no flow is written" "o flow is written" "rite no flow" "rites no flow" "no flow written" \
+  "gets no flow" "get no flow" "no flow at all" "without writing a flow" "rite none" \
+  "none is written" "no flow gets written" \
+  -- \
+  "no author is called" "o author is called" "all no author" "alls no author" \
+  "no author called" "never call the author" "not call the author" "author is not called" \
+  "author is never called" "without calling the author" "nor is the author called" \
+  "nor call the author" "no end-to-end author" "no end-to-end test author" "no test author" \
+  "not call \`test-author\`" "never call \`test-author\`" "no \`test-author\`" \
+  "nvoke no author" "oad no author" "no call to the author" "and no author" \
+  "not load \`test-author\`" "never load \`test-author\`"
+
+# shellcheck disable=SC2034  # lib.sh's check_lines reads $out
+out="$(body_of "$agent" | awk '/^ *```/ { fence = !fence; next } fence { sub(/^ */, ""); print }')"
+check_lines "the return's fallback: line is a whole line of a fenced block, in its one fixed wording" 0 0 \
+  "fallback: no end-to-end command in the project"
+
+carries_each "the fallback: line stands in place of the flow: lines" \
+  "fallback:" \
+  -- \
+  "in place of the \`flow:\` line" "in their place" "in place of" "nstead of the \`flow:\` line" \
+  "nstead of" "eplaces the \`flow:\` line" "eplaces them" "eplace the \`flow:\` line" \
+  "no \`flow:\` line" "o \`flow:\` line" "stands in for" "stand in for" \
+  "takes the place of" "takes their place" "rather than the \`flow:\` line" \
+  -- \
+  "\`flow:\`"
+
+echo "# skills/do/references/impeccable.md: the session's copy of the return has a fallback: line put one line in the Reply"
+
+# The session writes the Reply by this file: a `fallback:` line it has no rule for is dropped, and
+# the Reply's evidence then reads as if flows had covered the screen.
+# shellcheck disable=SC2034  # lib.sh's carries_each reads $flat
+flat="$(paragraph_with <(passage_of "$reference" "## The return" "## The return ends") "fallback:" all |
+  tr '\n' ' ' | tr -s ' ')"
+expect "the reference's return names the fallback: line" test -n "$flat"
+
+carries_each "the fallback: line comes back in a project with no end-to-end command, in place of the flow: lines" \
+  "no end-to-end command in the project" \
+  -- \
+  "in place of the \`flow:\` line" "in their place" "in place of" "nstead of the \`flow:\` line" \
+  "nstead of" "eplaces the \`flow:\` line" "eplaces them" "eplace the \`flow:\` line" \
+  "no \`flow:\` line" "o \`flow:\` line" "stands in for" "stand in for" \
+  "takes the place of" "takes their place" "rather than the \`flow:\` line" \
+  -- \
+  "\`flow:\`"
+
+mapfile -t no_flow_proof < <(no_flow_proof_groups)
+carries_each "the session then writes one line in the Reply: no flow covered the screen, the detector scan and the Gate are its proof" \
+  "Reply" -- "${no_flow_proof[@]}"
+
 exit "$((fails > 0))"
