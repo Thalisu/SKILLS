@@ -13,8 +13,9 @@
 #
 # check prints verdict=untouched and changed=0 when the checkout reads as the state file recorded
 # it, else verdict=changed, changed=<n> and one file=<path> line per changed file, sorted: a path
-# not clean now that the state file does not hold. It writes nothing and removes nothing, the
-# state file included.
+# whose working content differs from what the state file holds for it, or a path not clean now
+# that the state file does not hold. A path it holds with the same content is never one, whatever
+# git now says about it. It writes nothing and removes nothing, the state file included.
 #
 # Exit codes: 0 a snapshot written or a verdict printed · 2 usage, a checkout that is not a git
 # working tree, or a state file inside the checkout that git does not ignore.
@@ -79,6 +80,9 @@ while IFS= read -r -d '' record; do
 done <"$state"
 
 changed=()
+for path in "${!before[@]}"; do
+  [ "$(content "$path")" = "${before["$path"]}" ] || changed+=("$path")
+done
 while IFS= read -r -d '' record; do
   [ -n "${before["${record#* }"]+held}" ] || changed+=("${record#* }")
 done < <(records)

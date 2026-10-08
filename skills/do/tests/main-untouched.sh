@@ -44,4 +44,28 @@ same "a check lists each file created or modified after the snapshot and none of
   $'verdict=changed\nchanged=2\nfile=created.txt\nfile=other.txt'
 expect "a changed check exits 0" test "$rc" = 0
 
+fresh redirtied
+redirtied="$tmp/redirtied"
+printf '.scratch/\n' >.gitignore
+echo one >tracked.txt
+echo one >kept-tracked.txt
+commit "base"
+echo wip >>tracked.txt
+echo wip >>kept-tracked.txt
+echo staged >staged.txt
+echo staged >kept-staged.txt
+g add staged.txt kept-staged.txt
+echo untracked >untracked.txt
+echo untracked >kept-untracked.txt
+redirtied_state="$redirtied/.scratch/main-state/ticket.state"
+mkdir -p "$(dirname "$redirtied_state")"
+
+run snapshot "$redirtied" "$redirtied_state"
+echo again >>tracked.txt
+echo again >>staged.txt
+echo again >>untracked.txt
+run check "$redirtied" "$redirtied_state"
+same "a file already uncommitted before the snapshot and edited again after it is listed as changed, and one left alone is not" \
+  $'verdict=changed\nchanged=3\nfile=staged.txt\nfile=tracked.txt\nfile=untracked.txt'
+
 [ "$fails" = 0 ]
