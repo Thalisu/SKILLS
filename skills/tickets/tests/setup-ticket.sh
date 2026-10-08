@@ -29,8 +29,13 @@ expect "SKILL.md carries the Setup ticket rule of the draft step" test -n "$flat
 
 carries "the setup check is run on a spec that reads Front-end: impeccable" \
   "Front-end: impeccable" "setup-check.sh"
-carries_any "a step the check reads missing is what calls for the ticket" \
-  "missing" "exits 1" "exits \`1\`" "exit 1" "exit \`1\`" "exit code 1" "exit status 1"
+# Scoped to the sentence that opens the breakdown with the ticket: the passage already says
+# "missing" of the lines the check prints, and that sentence cannot answer for what calls for it.
+flat="$(grep -oE '[^.]*the breakdown opens with[^.]*' <<<"$whole")"
+carries_each "a step the check reads missing is what calls for the ticket" \
+  "Exit 1" "Exit \`1\`" "exits 1" "exits \`1\`" "exit 1" "exit \`1\`" "exit code 1" "exit status 1" -- \
+  "reads missing" "reads \`missing\`" "read missing" "read \`missing\`" "is missing"
+flat="$whole"
 carries_any "the ticket opens the breakdown" \
   "opens with" "opens the breakdown" "open the breakdown" "opens on" "first ticket" "comes first" \
   "is the first" "goes first" "leads the breakdown" "heads the breakdown" "at the head of" \
