@@ -135,6 +135,16 @@ Step 5 writes the setting impeccable's init records as `buildPath`, merged with 
 the file: impeccable asks for it only where image generation is available, and the screens of this
 Spec are built unattended, code-led.
 
+Step 6, the commit, is the last step, shown only once every step before it reads done. It is one
+command, run in the main checkout on the branch the developer already has checked out, with no
+checkout and no new branch: the Spec branch is cut from that branch later, and carries the setup
+because the commit is on it. The command names exactly the files of the check's `uncommitted=`
+line and no other path. It is never `git add -A`, `git add .` or `git commit -a`: staging
+everything would commit the developer's stray work along with the setup, and a file left out would
+be missing from every worktree cut afterwards. After a commit that took some of the files, the
+`uncommitted=` line names the ones still out, and the command shown again names those. The
+developer runs it, and the run never commits on their branch itself.
+
 ## The message
 
 When a step reads missing, the run writes one message and ends its turn on it:

@@ -38,6 +38,10 @@
 # skill listing for it: a listing that names impeccable reads the reload done and the next missing
 # step is shown, and one that does not reads it missing, a resumed run showing the reload step again
 # with a line saying the skill is still not listed in this session.
+# The commit is the last step, shown only once every step before it reads done: one command the
+# developer runs in the main checkout on the branch already checked out, with no checkout and no new
+# branch, naming exactly the files of the check's uncommitted= line and never staging everything,
+# and the run never commits on that branch itself.
 # The route and the steps are prose a session follows, so they are proven over the passages that
 # carry them.
 # Run: bash skills/do/tests/setup-playbook.sh
@@ -577,6 +581,51 @@ carries_each "with a line saying the skill is still not listed in this session" 
   "still does not name" "still names no" "still missing from" "still not in the listing" \
   "still absent" "is still not" -- \
   "this session" "the session" "its session" "that session"
+
+echo "# setup.md / ## The steps: the commit is the last step, one command naming exactly the uncommitted= files, on the branch already checked out"
+# Row 6 carries the command itself, so the table's lines are dropped: only the prose that names the
+# commit rules when it is shown, where it lands and what it may stage.
+flat="$(paragraph_with <(grep -v '^|' <<<"$steps") "ommit" all | tr '\n' ' ' | tr -s ' ')"
+expect "the steps section rules the commit in prose outside its table" test -n "${flat// /}"
+carries_each "the commit is the last step, shown only once every step before it reads done" \
+  "last step" "last of the" "final step" "last one" "comes last" "shown last" "is the last" -- \
+  "every step before it" "every other step" "every earlier step" "each step before it" \
+  "all the steps before it" "all five" "the five before it" "the five steps before it" \
+  "steps 1 to 5" "steps 1 through 5" "every step above it" "every row above it" "the rows above it" \
+  "all the others" "every one before it"
+carries_any "it is one command" \
+  "one command" "a single command" "single command" "one line of shell" "one command line"
+carries_any "it runs in the main checkout" "main checkout" "\`main=\`" "main=" "<main>"
+carries_any "on the branch the developer already has checked out" \
+  "already checked out" "already has checked out" "has checked out" "is checked out" \
+  "current branch" "branch the developer is on" "branch they are on" "checked-out branch" \
+  "branch it finds" "branch already there"
+carries_each "with no checkout and no new branch" \
+  "no checkout" "No checkout" "no \`git checkout\`" "no \`checkout\`" "never checks out" \
+  "does not check out" "checks out nothing" "without a checkout" "without checking out" \
+  "no switch" "never switches" "switches no branch" "no \`git switch\`" -- \
+  "no new branch" "No new branch" "no branch is created" "no branch is cut" "creates no branch" \
+  "cuts no branch" "never creates a branch" "never cuts a branch" "nor a new branch" \
+  "without a new branch" "opens no branch" "no branch of its own"
+carries "it names the files of the check's uncommitted= line" "uncommitted="
+carries_any "exactly those files and no other path" \
+  "exactly" "no other path" "no other file" "and nothing else" "only the files" "only those files" \
+  "those files alone" "those files only" "nothing but the files" "not one path more"
+carries "it never takes a form that stages everything: git add -A, git commit -a" \
+  "git add -A" "commit -a"
+carries_any "nor git add ." "git add .\`" "git add . " "git add .,"
+carries_any "those forms are ruled out, not offered" \
+  "never" "Never" "not " "no \`git add" "forbidden" "ruled out" "refuse"
+carries_any "since staging everything would commit the developer's stray work" \
+  "stray" "unrelated" "other work" "work in progress" "work in flight" "unfinished work" \
+  "whatever else" "anything else the developer" "everything else in the tree"
+carries_each "the developer runs it, and the run never commits on their branch itself" \
+  "developer runs" "developer's to run" "run by the developer" "developer types" \
+  "developer who runs" "developer, who runs" "the developer commits" "left to the developer" \
+  "for the developer to run" -- \
+  "never commits" "does not commit" "commits nothing" "never runs it" "does not run it" \
+  "never runs the commit" "does not run the commit" "no commit of its own" "makes no commit" \
+  "never stages" "runs neither"
 
 [ "$fails" -eq 0 ] && exit 0
 exit 1
