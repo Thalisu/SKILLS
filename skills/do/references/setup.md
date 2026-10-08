@@ -54,6 +54,13 @@ file describes, and take the verdict from the same table.
 
 A stop writes nothing and claims nothing.
 
+A `resume` is any later `/do` on a Setup ticket left `claimed`, in the session that showed the
+step or in a new one, and it is where a developer who left halfway comes back in. The run carries
+nothing over from the earlier turn, not the step it showed last and not the earlier check's
+output. It writes no second claim and runs the check, and the step it shows is the first one this
+check reads missing: every step done since is skipped with its `done` mark, and the project is
+picked up where it stands.
+
 ## The claim
 
 On `verdict=start`, set the Ticket's `**Status:**` line to `claimed` in the main checkout the door's

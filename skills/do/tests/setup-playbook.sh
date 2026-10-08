@@ -24,6 +24,9 @@
 # With that step still missing, the message quotes the check's own missing line for it (and the
 # uncommitted= line with its files at the commit step), shows the same command again, and the Ticket
 # stays claimed with nothing else written to it.
+# A later `/do` on a Setup ticket left claimed, in the session that showed the step or in a new one,
+# carries nothing over from the earlier turn: it writes no second claim, runs the check, and shows
+# the first step that check reads missing, every step done since skipped.
 # The route and the steps are prose a session follows, so they are proven over the passages that
 # carry them.
 # Run: bash skills/do/tests/setup-playbook.sh
@@ -389,6 +392,49 @@ carries_any "and nothing else is written to the Ticket file" \
   "nothing else" "Nothing else" "nothing more" "writes nothing" "nothing is written" "Nothing is written" \
   "nothing written" "no other edit" "no other change" "no other write" "not written" "never written" \
   "is not touched" "untouched" "otherwise unchanged" "without writing" "never writes" "no write"
+
+echo "# setup.md / ## Door: a /do on a Setup ticket left claimed runs the check, writes no second claim and shows the first step that check reads missing"
+# The verdict table is one paragraph whose lines open on a pipe, and its `resume` cell says only
+# that the run goes on to the check: the prose outside it is what rules a resume.
+flat="$(paragraph_with <(passage_of "$setup" "## Door" "## " 2>/dev/null) "resume" all | grep -v '^|' | tr '\n' ' ' | tr -s ' ')"
+expect "the Door rules the resume verdict in prose outside its table" test -n "${flat// /}"
+carries_each "a resume is any later /do on a Setup ticket left claimed" \
+  "later \`/do\`" "later /do" "next \`/do\`" "next /do" "another \`/do\`" "another /do" "any \`/do\`" \
+  "any /do" "every \`/do\`" "every /do" "\`/do\` again" "/do again" "second \`/do\`" "second /do" \
+  "comes back" "returns to" -- \
+  "left \`claimed\`" "left claimed" "reads \`claimed\`" "reads claimed" "still \`claimed\`" \
+  "still claimed" "stays \`claimed\`" "stays claimed" "already \`claimed\`" "already claimed" \
+  "status=claimed"
+carries_each "in the session that showed the step or in a new one" \
+  "same session" "this session" "session that showed" "session that claimed" "session it left" \
+  "the earlier session" "one session" -- \
+  "new session" "a new one" "another session" "fresh session" "later session" "different session" \
+  "new agent session" "another one"
+carries_any "the run carries nothing over from the earlier turn" \
+  "carries nothing" "Nothing is carried" "nothing is carried" "nothing carried" "carried over" \
+  "carries over nothing" "remembers nothing" "nothing is remembered" "no memory of" \
+  "nothing from the earlier turn" "nothing from an earlier turn" "nothing of the earlier turn" \
+  "not the step it showed" "neither the step it showed" "no step it showed" "starts from nothing" \
+  "reads nothing back" "keeps nothing"
+carries_any "it writes no second claim" \
+  "no second claim" "No second claim" "claims nothing" "nothing is claimed" "Nothing is claimed" \
+  "not claimed again" "never claimed again" "no claim" "No claim" "is not claimed" "skips the claim" \
+  "without claiming" "not claim it again" "never claims it again" "claim is not made" \
+  "claim is never made" "not set again" "never set again" "claim is not written again" \
+  "claim is never written again"
+carries_any "it runs the check" \
+  "runs the check" "run the check" "the check runs" "the check is run" "goes on to the check" \
+  "goes straight to the check" "straight to the check" "setup-check.sh" "## The check"
+carries_any "the step it shows is the first one this check reads missing" \
+  "first missing" "first step still missing" "first one still missing" "first \`missing\`" \
+  "first one this check reads missing" "first step this check reads missing" \
+  "first one that check reads missing" "first step that check reads missing" \
+  "first one the check reads missing" "first step the check reads missing" \
+  "first one it reads missing" "first step it reads missing" "lowest row" "first row whose" \
+  "first step whose" "first step that" "first one that"
+carries_any "so every step done since is skipped" \
+  "skip" "Skip" "passed over" "passes over" "not shown again" "never shown again" "never the first step again" \
+  "not the first step again" "is not repeated" "never repeated" "not asked again" "never asked again"
 
 [ "$fails" -eq 0 ] && exit 0
 exit 1
