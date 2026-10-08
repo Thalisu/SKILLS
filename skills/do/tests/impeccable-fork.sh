@@ -336,4 +336,84 @@ mapfile -t no_flow_proof < <(no_flow_proof_groups)
 carries_each "that run's Evidence says in one line that no flow covered the screen and that the detector scan and the Gate are its proof" \
   "${no_flow_proof[@]}"
 
+# The detector scan runs inside the fork and the session never runs it again, so the fork's `scan:`
+# line is the only place the developer reads which command judged the screen and how many findings
+# it left. A count with nothing naming the findings is debt the developer cannot act on, so each
+# `finding:` line is listed under Pending debt; and a finding is debt, never a stop, so the screen
+# lands with it listed instead of being held back by it.
+beside_the_flows=(
+  "beside the flows" "next to the flows" "with the flows" "under the flows" "below the flows"
+  "after the flows" "beside the \`flow:\` line" "next to the \`flow:\` line"
+  "with the \`flow:\` line" "under the \`flow:\` line" "below the \`flow:\` line"
+  "after the \`flow:\` line" "\`flow:\` lines and the \`scan:\` line"
+  "\`flow:\` lines, and the \`scan:\` line" "\`flow:\` lines and its \`scan:\` line"
+  "\`flow:\` lines, then the \`scan:\` line" "\`flow:\` lines, the \`scan:\` line"
+  "beside them" "next to them" "under them" "below them" "after them"
+)
+each_finding_listed=(
+  "each \`finding:\` line" "Each \`finding:\` line" "every \`finding:\` line"
+  "Every \`finding:\` line" "one line per finding" "One line per finding" "a line per finding"
+  "one per finding" "one \`finding:\` line per finding" "each finding" "Each finding"
+  "every finding" "Every finding" "each one" "every one"
+)
+findings_stop_nothing=(
+  "still lands" "still landed" "lands all the same" "landed all the same" "lands anyway"
+  "landed anyway" "lands regardless" "landed regardless" "do not block" "does not block"
+  "never block" "block nothing" "blocks nothing" "blocked nothing" "without blocking"
+  "stop nothing" "stops nothing" "stopped nothing" "never stop" "do not stop" "does not stop"
+  "not stop the landing" "never hold" "do not hold" "hold nothing back" "holds nothing back"
+)
+
+echo "# reply.md / ## Sections, Evidence: a do-impeccable return's scan: line stands beside the flows"
+flat="$(item_holding <(passage_of "$reply" "## Sections" "$blocked_section") '[0-9]+\.' "**Evidence.**" |
+  tr '\n' ' ' | tr -s ' ')"
+expect "the Sections have an Evidence item" test -n "$flat"
+# The item already says "unchanged" of the `flow:` lines and "command lines" of the integration's,
+# so the facts are read off the lead or the bullet that names `scan:` and never off a neighbour.
+flat="$(item_holding <(passage_of "$reply" "## Sections" "$blocked_section") '[0-9]+\.' "**Evidence.**" | awk '
+  function flush() { if (index(part, "`scan:`")) print part; part = "" }
+  /^ +- / { flush() }
+  { part = part " " $0 }
+  END { flush() }
+' | tr '\n' ' ' | tr -s ' ')"
+carries_each "the item carries the scan: line the do-impeccable fork returned" \
+  "${this_flow[@]}" -- "\`scan:\`"
+carries_each "that line is the detector scan's command line and the count of findings that remain" \
+  "\`scan:\`" -- \
+  "command line" "command" -- \
+  "count of findings" "count of the findings" "findings that remain" "findings remain" \
+  "findings left" "findings it left" "how many findings" "number of findings"
+carries_each "that line sits beside the flows" "\`scan:\`" -- "${beside_the_flows[@]}"
+carries_each "that line is copied as the fork returned it, never composed by the session" \
+  "\`scan:\`" -- \
+  "unchanged" "verbatim" "unedited" "as returned" "as it came back" "as they came back" \
+  "as the fork returned" "word for word" "never composed" "never reworded"
+
+echo "# reply.md / ## Sections, Pending debt: each finding the do-impeccable fork returned is listed, and the Ticket still lands"
+flat="$(item_holding <(passage_of "$reply" "## Sections" "$blocked_section") '[0-9]+\.' "**Pending debt.**" |
+  tr '\n' ' ' | tr -s ' ')"
+expect "the Sections have a Pending debt item" test -n "$flat"
+carries_each "the item lists each finding: line the do-impeccable fork returned, one line per finding" \
+  "${this_flow[@]}" -- "\`finding:\`" -- "${each_finding_listed[@]}"
+carries_each "findings that remain never stop the landing" \
+  "\`finding:\`" -- "${findings_stop_nothing[@]}"
+
+# Step 10 is one paragraph on every kind of run, so the sentences read are the ones from the first
+# naming of the fork on: Evidence, pending debt and a landing said of another run never answer.
+echo "# ticket.md / step 10: a do-impeccable run's Reply carries the scan: line under Evidence and each finding: line under Pending debt"
+flat="$(passage_of "$ticket" "**10. Reply.**" "## " | tr '\n' ' ' | tr -s ' ')"
+case "$flat" in
+  *do-impeccable*) flat="${flat#*do-impeccable}" ;;
+  *) flat="" ;;
+esac
+expect "step 10 has sentences on the run that forked do-impeccable" test -n "$flat"
+carries_each "step 10 puts the scan: line under Evidence beside the flow: lines" \
+  "\`scan:\`" -- "Evidence" -- "${beside_the_flows[@]}"
+carries_each "step 10 puts each finding: line under Pending debt" \
+  "\`finding:\`" -- "Pending debt" "pending debt" -- "${each_finding_listed[@]}"
+carries_each "step 10 says findings that remain stop nothing: the Ticket landed and reads resolved all the same" \
+  "\`finding:\`" "findings" -- \
+  "\`resolved\`" -- \
+  "all the same" "still" "anyway" "regardless" "nonetheless" "even so" "${findings_stop_nothing[@]}"
+
 exit $((fails > 0))

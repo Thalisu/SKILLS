@@ -261,9 +261,11 @@ Ten sections, in this order, each one present in every Reply that carries sectio
    runs one. A check that did not run appears under Skipped, never here. Three more kinds of line
    belong here:
    - **The proof of an impeccable screen**, on a run that forked `do-impeccable`: the `flow:` lines
-     the fork returned, copied unchanged. When its return carried the `fallback:` line reading
-     `no end-to-end command in the project` in their place, one line stands here instead, saying
-     that no flow covered the screen and that the detector scan and the Gate are its proof.
+     the fork returned and, beside the flows, its `scan:` line, which is the detector scan's
+     command line and the count of findings that remain, all copied unchanged. When its return
+     carried the `fallback:` line reading `no end-to-end command in the project` in place of the
+     `flow:` lines, one line stands here instead of them, saying that no flow covered the screen
+     and that the detector scan and the Gate are its proof.
    - **The integration's lines**, where it did anything: what it rebased onto and how many commits
      replayed, every hunk it resolved with its file and location, every contested hunk that took
      the **Target** side with its file and its location, the Loss ledger that holds its
@@ -318,7 +320,9 @@ Ten sections, in this order, each one present in every Reply that carries sectio
    Ticket, the Review, and the `.gitignore` line when the run appended it. `none` when the run
    wrote only what it committed.
 9. **Pending debt.** Waivers, consumer coverage not run, an equivalence gap, a second thing found
-   on the way and not done.
+   on the way and not done. On a run that forked `do-impeccable`, each `finding:` line the fork
+   returned is listed here, one line per finding, so a finding counted under Evidence is always
+   named. Findings that remain are debt and never a stop: the Ticket still lands.
 10. **Next step.** One line, the Reply's last. It ends with the push command when something landed
     on the developer's branch, `git push` with the branch named; otherwise the command to type
     next. A run that landed on a Spec branch names no push, since nothing reached the developer's

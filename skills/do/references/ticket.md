@@ -1164,6 +1164,10 @@ run that stopped on an Extreme fork, or on a Design fork no `choice-taker` ruled
 the `/discuss` command the forks in [forks.md](forks.md) fix, as its last line. A run that forked
 `do-impeccable`, on a Front-end ticket of a Spec reading `Front-end: impeccable`, writes no Plan
 line in its Run section, since no Planner ran, and its behaviours list is the Ticket's acceptance
-criteria, each with the commit beside it, as [reply.md](reply.md) says for both. Done when
+criteria, each with the commit beside it, as [reply.md](reply.md) says for both. Its Reply puts the
+`flow:` lines the fork returned under Evidence, with the `scan:` line beside the flows, or the one
+line [reply.md](reply.md) fixes when no flow covered the screen, and each `finding:` line under
+Pending debt. Findings that remain stop nothing: the Ticket landed and reads `resolved` all the
+same. Done when
 the reply is sent with
 every section that applies.
