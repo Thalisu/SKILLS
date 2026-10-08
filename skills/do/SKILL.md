@@ -151,6 +151,9 @@ that Playbook. The reply reference is read last by every Playbook but `setup`, w
 - [builder.md](references/builder.md): the Builder the `ticket` Playbook's build step forks and the
   session fills the brief for, read by that step and by the fork itself: the brief's keys, the
   return's line set, what the Builder builds from and where it picks up.
+- [impeccable.md](references/impeccable.md): the `do-impeccable` fork the same build step makes in
+  the Builder's place for a Front-end ticket of a Spec reading `Front-end: impeccable`, read by that
+  step alone: the brief's two keys.
 - [tdd-fallback.md](references/tdd-fallback.md): the TDD fallback the build loop reads when the loop line reads `Loop: fallback`, with no unit test author in the project and no global one that can be dispatched, and a second way in under `Loop: global`, build-loop.md's `BLOCKED` route when the global unit test author comes back `BLOCKED` naming a run command the project map lacks: the run writes the failing test itself, and no test author is dispatched.
 - [trivial.md](references/trivial.md): the `trivial` Playbook: its door checks, its steps and the door script they run.
 - [refactoring.md](references/refactoring.md): the `refactoring` Playbook: its door checks, its steps and the pin it holds the reshape against.

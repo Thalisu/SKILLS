@@ -102,4 +102,38 @@ carries_each "a Logic ticket and a Front-end: builder ticket still fork the Plan
   "get the Planner" "goes to the Planner" "go to the Planner" "is forked as below" \
   "forks as below" "fork as below"
 
+# The session reads the fork's final message as the return. A brief that named a place for the
+# return would have the fork write a file the session never opens, and one named outside the
+# worktree would touch the developer's Main checkout, so the brief has to be said to carry no such
+# key, next to the two things it does carry.
+echo "# ticket.md / step 3: a Front-end: impeccable ticket is built by a do-impeccable fork"
+flat="$(paragraph_with <(passage_of "$ticket" "**3. Build.**" "**4. Diff.**") "impeccable" all |
+  tr '\n' ' ' | tr -s ' ')"
+expect "step 3 has a passage on impeccable" test -n "$flat"
+carries_each "the passage is for a Front-end ticket of a Spec reading Front-end: impeccable" \
+  "\`kind=front-end\`" "Front-end ticket" -- \
+  "\`front_end=impeccable\`" "\`Front-end: impeccable\`" "Front-end: impeccable"
+carries "that Ticket is built by a fork of subagent_type: do-impeccable" \
+  "subagent_type: do-impeccable"
+carries_any "the fork works in the worktree step 2 cut, as for any Ticket" \
+  "worktree step 2" "worktree that step 2" "worktree and the branch step 2" \
+  "worktree and branch step 2" "step 2's worktree" "worktree of step 2" "worktree from step 2" \
+  "worktree cut in step 2" "worktree cut at step 2" "worktree made in step 2" \
+  "worktree created in step 2" "worktree cut by step 2" "worktree made by step 2" \
+  "worktree created by step 2"
+carries_each "the brief carries the Ticket and the worktree root" \
+  "brief" -- \
+  "the Ticket" "the **Ticket**" "Ticket's path" "\`Ticket:\`" -- \
+  "worktree root" "worktree's root" "root of the worktree" "root of that worktree" \
+  "\`Worktree:\`"
+carries_any "the brief has no key for where the return goes" \
+  "no key for where the return" "no key for the return" "no key naming where the return" \
+  "no key that names where the return" "no key saying where the return" \
+  "no key for a return" "no return key" "no \`Return:\` key" "no \`Return\` key" \
+  "no key for its return" "no key for where its return" "names no place for the return" \
+  "names no destination for the return" "no return path" "no return file" \
+  "no return destination" "never names where the return"
+carries_any "the return is the fork's final message" \
+  "final message" "last message"
+
 exit $((fails > 0))
