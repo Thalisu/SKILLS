@@ -141,6 +141,25 @@ Say when it is done.
 - The message ends the turn: the developer runs the step where it belongs and comes back. The run
   never moves on to the next step before the check proves this one.
 
+## The re-check
+
+After a step message the developer comes back, and their next message, whatever it says, sends the
+run back to the check. Nothing is taken on the developer's word: "done" proves no step, and only
+the check does. So the run runs it again, from the main checkout:
+
+```
+bash <skill-dir>/../../.agents/scripts/setup-check.sh
+```
+
+and reads its own skill listing again for the reload step, then takes the route `## The check`
+gives for the exit code.
+
+With the step it showed now reading done, the run writes the message again, in the same shape: the
+six steps marked, then the next missing step, the first one that still reads missing, with its
+`What:`, `Run:` and `Where:` lines and "Say when it is done." A step that reads done, the one the
+developer just ran included, gets its `done` mark and no other line: the run never recaps or
+confirms a step the check already proves.
+
 ## The close
 
 The close runs only when the check exits 0, every step line reading done, and the reload step reads

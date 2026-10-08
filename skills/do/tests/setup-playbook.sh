@@ -18,6 +18,9 @@
 # ends. With the check exiting 0 and the reload done, no step is shown: the close ticks the criteria,
 # appends the Context, Forks and check lines with reload=done under the Ticket's Evidence, sets it
 # resolved uncommitted, and the Reply's last line is read off completion-check.sh's next= line.
+# After a step message, anything the developer writes makes the run run the check and read the skill
+# listing again, taking nothing on their word, and with that step done the next missing one is
+# written in the message's shape, the steps already done getting their done mark and no line more.
 # The route and the steps are prose a session follows, so they are proven over the passages that
 # carry them.
 # Run: bash skills/do/tests/setup-playbook.sh
@@ -312,6 +315,43 @@ for value in wait none ambiguous; do
       "cannot be read" "can't be read" "unreadable" "could not be read" "not be read" ;;
   esac
 done
+
+echo "# setup.md / ## The re-check: any developer message re-runs the check, and the next missing step is shown in the same shape"
+flat="$(passage_of "$setup" "## The re-check" "## " 2>/dev/null | tr '\n' ' ' | tr -s ' ')"
+expect "setup.md says what the run does when the developer answers a step message" test -n "${flat// /}"
+carries_any "anything the developer writes after a step message starts it, whatever the words" \
+  "anything" "Anything" "any message" "Any message" "any reply" "Any reply" "any answer" "Any answer" \
+  "whatever the developer" "Whatever the developer" "whatever they write" "whatever it says" \
+  "every message" "Every message" "any word" "any developer message" "no matter what"
+carries "the run runs setup-check.sh" "bash <skill-dir>/../../.agents/scripts/setup-check.sh"
+carries_any "and it is a run of the check made again, not the earlier output read back" \
+  "again" "Again" "re-run" "Re-run" "rerun" "re-runs" "reruns" "a second time" "once more" "anew" \
+  "afresh" "a fresh run"
+carries_each "the session's own skill listing is read again" \
+  "skill listing" "skills listing" "listing of skills" "skill list" "skills list" "available skills" \
+  "lists the skills" "lists \`impeccable\`" "lists impeccable" "listed skills" "skills it lists" -- \
+  "again" "Again" "re-read" "Re-read" "reread" "re-reads" "rereads" "a second time" "once more" \
+  "anew" "afresh"
+carries_any "nothing is taken on the developer's word" \
+  "on the developer's word" "on their word" "the developer's word" "their word" "word for it" \
+  "on the developer's say" "on their say-so" "say-so" "never trusts" "does not trust" "not trusted" \
+  "never trusted" "is no proof" "is not proof" "proves nothing" "never believes" "not believed" \
+  "whatever the developer claims" "the claim that it is done"
+carries_any "with the shown step now done, the next missing step is the one written" \
+  "next missing" "next step still missing" "next one still missing" "next \`missing\`" \
+  "first missing" "first step still missing" "first one still missing" "first \`missing\`" \
+  "lowest row" "next row whose" "next step whose" "next step that" "first row whose" \
+  "first step whose" "first step that"
+carries_any "in the shape of the step message" \
+  "## The message" "The message" "same shape" "same message" "same form" "same format" \
+  "shape of the message" "shape of the step message" "the message's shape" "the step message's shape"
+carries_any "a step already done gets its done mark and no line more" \
+  "no other word" "nothing else" "nothing more" "only \`done\`" "just \`done\`" "no more than" \
+  "no further word" "no further line" "no other line" "no line about" "no line more" "no line on" \
+  "no detail" "no recap" "no summary" "never recaps" "never confirms" "no confirmation" \
+  "not confirmed" "without a line about" "beyond its \`done\`" "beyond their \`done\`" \
+  "beyond the \`done\`" "beyond its done mark" "beyond their done mark" "past its \`done\`" \
+  "past their \`done\`"
 
 [ "$fails" -eq 0 ] && exit 0
 exit 1
