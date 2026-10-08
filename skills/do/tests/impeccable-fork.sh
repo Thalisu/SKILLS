@@ -416,4 +416,39 @@ carries_each "step 10 says findings that remain stop nothing: the Ticket landed 
   "\`resolved\`" -- \
   "all the same" "still" "anyway" "regardless" "nonetheless" "even so" "${findings_stop_nothing[@]}"
 
+# The next Ticket of the Spec is refused as blocked until this one reads `resolved`, so a `built`
+# return that the Playbook carried no further than step 3 would leave the developer with a screen
+# built in a worktree and a Spec that cannot move. The paragraphs read are the ones that name the
+# fork and hold both ends of the path, the `built` return and the `resolved` Ticket, each from its
+# first naming of the fork on: the Gate, a landing or a last line said of another run never answer.
+echo "# ticket.md / steps 4 to 10: a built do-impeccable return after an untouched check runs the Builder's path to resolved"
+flat="$(paragraph_with <(passage_of "$ticket" "**3. Build.**" "## ") "do-impeccable" all |
+  awk '{ print substr($0, index($0, "do-impeccable")) }' |
+  grep -F -- "\`built\`" | grep -F -- "\`resolved\`" | tr '\n' ' ' | tr -s ' ')"
+expect "a passage on do-impeccable takes its built return to a resolved Ticket" test -n "$flat"
+carries_each "the passage is for a built return after an untouched main checkout" \
+  "\`built\`" -- \
+  "verdict=untouched" "untouched main checkout" "untouched Main checkout" \
+  "untouched **Main checkout**" "main checkout untouched" "Main checkout untouched" \
+  "main checkout is untouched" "Main checkout is untouched" "checkout was untouched" \
+  "checkout read untouched" "untouched check"
+carries_each "from there the run goes through the Gate, the integration, the landing and the close" \
+  "the Gate" "the **Gate**" "step 5" -- \
+  "the integration" "the Integration" "the **Integration**" "step 6" -- \
+  "the landing" "the Landing" "the **Landing**" "lands on the Spec branch" "step 7" -- \
+  "the close" "the Close" "the **Close**" "step 9"
+carries_any "those steps run as after a Builder, with none added, skipped or changed" \
+  "as after a Builder" "as after the Builder" "as they do after a Builder" \
+  "as they do after the Builder" "as it does after a Builder" "as it does after the Builder" \
+  "as they run after a Builder" "as they run after the Builder" "as for a Builder" \
+  "as for the Builder" "as a Builder's" "as the Builder's" "the way a Builder" \
+  "the way the Builder" "exactly as" "the same as" "the same steps" "same steps as" "unchanged" \
+  "no step of its own" "no step added" "no step is added" "nothing is added, skipped or changed" \
+  "nothing added, skipped or changed" "none added, skipped or changed"
+carries_each "the run ends with the Ticket reading resolved" \
+  "Ticket" -- "\`resolved\`"
+carries_each "the Reply's last line is the next /do the Completion check names" \
+  "last line" "final line" "closing line" -- \
+  "next \`/do\`" "next /do" "\`next=\`" "\`/do\` the Completion check" "/do the Completion check"
+
 exit $((fails > 0))

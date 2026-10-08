@@ -996,6 +996,13 @@ Route on the first line:
   is forked again with the same brief. A reason it cannot clear ends the run as blocked, with the
   worktree and its branch named.
 
+When `do-impeccable` returned `built` and the check of the main checkout read `verdict=untouched`,
+the run takes the same path from here as after a Builder: the diff of step 4, the Gate of step 5,
+the integration of step 6, the landing of step 7 and the close of step 9 run exactly as they do
+after a Builder, with no step added, skipped or changed for this fork. The run ends as a Builder's
+does: the Ticket reads `resolved`, and the Reply's last line is the next `/do`, the one the
+Completion check's `next=` line names.
+
 No Builder can be forked on two branches: the Agent tool is withheld from the session, or the Agent
 tool lists no `do-builder`, as it does on a machine that never linked the agent `do` ships. On
 either branch the session runs the loop itself, in the worktree step 2 made, per
