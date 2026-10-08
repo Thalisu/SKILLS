@@ -52,10 +52,14 @@ for a in "$@"; do
 done
 journey=no; [ -e "${CLAUDE_CONFIG_DIR:-/nonexistent}/skills/journey/SKILL.md" ] && journey=yes
 reader=no; [ -e "${CLAUDE_CONFIG_DIR:-/nonexistent}/agents/do-reader.md" ] && reader=yes
+# What a session reaches by following a linked skill two folders up, the way a skill's own prose does.
+root="$(readlink -f ~/.claude/skills/do-code-review)/../.."
+reach=""
+for entry in skills .agents CONTEXT.md docs; do [ ! -e "$root/$entry" ] || reach="$reach$entry,"; done
 { printf 'call'; printf ' [%s]' "$@"
-  printf ' config=%s claudecode=%s journey=%s reader=%s creds=%s home-skill=%s cwd=%s\n' "${CLAUDE_CONFIG_DIR:-unset}" \
+  printf ' config=%s claudecode=%s journey=%s reader=%s creds=%s home-skill=%s reach=%s cwd=%s\n' "${CLAUDE_CONFIG_DIR:-unset}" \
     "${CLAUDECODE:-unset}" "$journey" "$reader" "$(readlink "${CLAUDE_CONFIG_DIR:-/nonexistent}/.credentials.json")" \
-    "$(readlink -f ~/.claude/skills/do-code-review)" "$(pwd -P)"
+    "$(readlink -f ~/.claude/skills/do-code-review)" "$reach" "$(pwd -P)"
 } >> "$STUB_DIR/calls"
 [ -z "${STUB_TOUCH:-}" ] || : > "$STUB_TOUCH"
 # STUB_SUBAGENT: a subagent transcript the session persists, as the real CLI does, under its config
@@ -167,8 +171,14 @@ expect "the session's config is a sandbox, never the real one" \
   bash -c 'grep -q "config=$1/run-eval-home\.[^ ]*/\.claude " <<<"$2"' _ "$TMPDIR" "$session"
 expect "the sandbox holds the repo's skills" grep -qF "journey=yes" <<<"$session"
 expect "the sandbox links the credentials in" grep -qF "creds=$HOME/.claude/.credentials.json" <<<"$session"
-expect "the session's ~/.claude/skills resolves into the checkout under test, never the caller's own install" \
-  grep -qF " home-skill=$repo/skills/do-code-review " <<<"$session"
+expect "the session's ~/.claude/skills resolves into the sandbox's copy of the checkout under test, never the caller's own install" \
+  grep -qE " home-skill=$TMPDIR/run-eval-home\.[^ /]*/repo/skills/do-code-review " <<<"$session"
+expect "the tree a linked skill resolves to holds the repo's skills and its .agents folder" \
+  grep -qE " reach=skills,\.agents,[^ ]* " <<<"$session"
+expect "a session cannot reach the repo's CONTEXT.md through a linked skill" \
+  bash -c '! grep -qE " reach=[^ ]*CONTEXT\.md," <<<"$1"' _ "$session"
+expect "a session cannot reach the repo's docs folder through a linked skill" \
+  bash -c '! grep -qE " reach=[^ ]*docs," <<<"$1"' _ "$session"
 expect "the session runs in the laid fixture" grep -qE "cwd=$TMPDIR/run-eval-walk\.[^ ]*/fixture$" <<<"$session"
 judged="$(cat "$STUB_DIR/judge-prompts")"
 expect "the judge reads the criteria" grep -qF "The run resolved the slug suppliers through the resolver." <<<"$judged"
