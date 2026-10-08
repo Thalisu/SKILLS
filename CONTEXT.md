@@ -186,6 +186,16 @@ path.
 _Avoid_: main branch, current branch (an ignored file is on no branch and survives every switch),
 root, primary repo
 
+**Home repository**:
+The repository whose **Scratch** holds a **Spec**'s **Feature folder**, with the **Spec**, its
+**Journey** and every **Ticket** of the feature, whichever repository each **Ticket** is built in.
+_Avoid_: primary repo, parent repo, spec repo
+
+**Build repository**:
+The one repository a **Ticket** is built, reviewed and landed in, named by the **Ticket** and equal
+to the **Home repository** unless the **Spec** lists others.
+_Avoid_: target repo (a **Target** is a side of an integration), service, destination
+
 **Axis**:
 One independent question `do-code-review` puts to a diff, reported apart from the others so that a
 pass on one never hides a fail on another: correctness, spec fidelity, repo standards, principles,
@@ -536,3 +546,6 @@ _Avoid_: model page (one link of the chain), doc set, lineage
   whose rebase is open with no conflicted file. Resolved: a resolved **Ticket** is the status, and
   `do` stops on it without asking; the rebase is a resolved stop, the only place a run asks
   `(continue / stop)`, and "continue or stop" never names a **Ticket**.
+- "main checkout" was defined as both the tree a `do` run is invoked from and the tree the
+  artifacts live in. Resolved: once a **Spec** spans repositories the two differ. The artifacts live
+  in the **Home repository**, and a run builds in its **Ticket**'s **Build repository**.
