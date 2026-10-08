@@ -1136,6 +1136,9 @@ beside the Spec among the files left uncommitted, `Open: none`, and `git push` w
 developer's branch named as its next step. A run whose claim read `taken`, or whose Final
 integration stopped, ends on the lines [reply.md](reply.md) fixes for it. A
 run that stopped on an Extreme fork, or on a Design fork no `choice-taker` ruled, ends instead on
-the `/discuss` command the forks in [forks.md](forks.md) fix, as its last line. Done when
+the `/discuss` command the forks in [forks.md](forks.md) fix, as its last line. A run that forked
+`do-impeccable`, on a Front-end ticket of a Spec reading `Front-end: impeccable`, writes no Plan
+line in its Run section, since no Planner ran, and its behaviours list is the Ticket's acceptance
+criteria, each with the commit beside it, as [reply.md](reply.md) says for both. Done when
 the reply is sent with
 every section that applies.

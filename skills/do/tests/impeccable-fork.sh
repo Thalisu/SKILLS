@@ -162,4 +162,61 @@ carries_each "the three routes, built, fork and stopped, apply to the do-impecca
   -- \
   "\`stopped\`" "three routes" "three verdicts"
 
+# No Planner ran and no Plan was written, so a Reply that kept a Plan line would send the developer
+# looking for a file that does not exist, and a behaviours list read off a Plan's section would have
+# nothing to read. The list is the Ticket's acceptance criteria instead, each with its commit, which
+# is what lets the developer check the screen against the Ticket. reply.md fixes the Reply's lines
+# and step 10 says what this Playbook puts in them, so a reader of either has to meet the exception.
+# The `## Run` items are renumbered whenever one is added, so each is found by its own title.
+this_flow=("\`Front-end: impeccable\`" "\`front_end=impeccable\`" "do-impeccable")
+no_plan_line=(
+  "no Plan line" "no **Plan line**" "no Planner line" "no **Planner** line" "no line for the Plan"
+  "no line for a Plan" "omits the Plan line" "omit the Plan line" "Plan line is omitted"
+  "Plan line is left out" "leaves the Plan line out" "leave the Plan line out"
+  "Plan line is not written" "Plan line is never written" "without a Plan line"
+  "without the Plan line" "skips the Plan line" "drops the Plan line" "the line is omitted"
+  "the line is left out" "the line is not written" "no line is written" "writes no line"
+  "this line is omitted" "this line is left out" "this line is not written" "has no such line"
+  "carries no such line" "no line at all"
+)
+criteria_list=("acceptance criteria" "acceptance criterion")
+commit_beside=(
+  "commit beside" "commit next to" "with its commit" "with the commit" "with a commit"
+  "the commit that built" "commit that built it"
+)
+reply="$here/../references/reply.md"
+
+echo "# reply.md / ## Run, Plan line: a Front-end: impeccable ticket's Reply carries no Planner line"
+flat="$(paragraph_with <(item_holding <(passage_of "$reply" "## Run" "## Sections") '[0-9]+\.' "**Plan line.**") \
+  "impeccable" all | tr '\n' ' ' | tr -s ' ')"
+expect "the Plan line item has a passage on impeccable" test -n "$flat"
+carries_any "the passage is for the run that forks do-impeccable on a Front-end: impeccable ticket" \
+  "${this_flow[@]}"
+carries_any "that run's Reply carries no Plan line" "${no_plan_line[@]}"
+
+echo "# reply.md / ## Run, Behaviours list: a Front-end: impeccable ticket lists the Ticket's acceptance criteria"
+flat="$(item_holding <(passage_of "$reply" "## Run" "## Sections") '[0-9]+\.' "**Behaviours list.**" |
+  tr '\n' ' ' | tr -s ' ')"
+expect "the Run section has a Behaviours list item" test -n "$flat"
+carries_any "the item names the run that forks do-impeccable on a Front-end: impeccable ticket" \
+  "${this_flow[@]}"
+carries_any "that run's list is the Ticket's acceptance criteria" "${criteria_list[@]}"
+carries_any "each criterion has its commit beside it" "${commit_beside[@]}"
+carries_any "that run's list is never a Plan's Behaviours section" \
+  "never the Plan" "not the Plan" "never a Plan" "not a Plan" "in place of the Plan" \
+  "instead of the Plan" "rather than the Plan" "in place of a Plan" "instead of a Plan" \
+  "rather than a Plan" "no Plan" "no \`## Behaviours\`" "every other \`ticket\` run" \
+  "any other \`ticket\` run" "every other Ticket" "any other Ticket" "every other run" \
+  "any other run"
+
+echo "# ticket.md / step 10: a Front-end: impeccable ticket's Reply has no Planner line and lists the criteria"
+flat="$(passage_of "$ticket" "**10. Reply.**" "## " | tr '\n' ' ' | tr -s ' ')"
+expect "the Playbook has a Reply step" test -n "$flat"
+carries_any "step 10 names the run that forks do-impeccable on a Front-end: impeccable ticket" \
+  "${this_flow[@]}"
+carries_any "step 10 says that run's Reply carries no Plan line" "${no_plan_line[@]}"
+carries_any "step 10 says that run's behaviours list is the Ticket's acceptance criteria" \
+  "${criteria_list[@]}"
+carries_any "step 10 says each criterion has its commit beside it" "${commit_beside[@]}"
+
 exit $((fails > 0))

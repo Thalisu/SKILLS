@@ -105,6 +105,11 @@ worktree line comes before the audit line and before the hand-over, shaped-by an
     - On a resume whose only work left was the landing, the line says the Plan step was skipped
       for that reason and names no Plan, since the run opened none.
 
+    A run that forked `do-impeccable`, on a Front-end ticket of a Spec reading
+    `Front-end: impeccable`, carries no Plan line at all: no Planner ran and no Plan was written,
+    so there is neither a location nor a Planner's fallback to name. Its `Guard:` line below still
+    rides, on the fork of `do-impeccable`.
+
     Whenever a fork ran, the Planner or the Builder, one `Guard:` line rides it, quoting the
     `guard=` line the guard probe printed with its `harness=` and `hooks=` values, so the
     developer knows which of the two mechanisms held:
@@ -152,7 +157,10 @@ worktree line comes before the audit line and before the hand-over, shaped-by an
     its skip, and a deviation from that shape the build met.
 21. **Fix line.** In `bug-fix`, the planned fix and the shape, with the sketch or its skip.
 22. **Behaviours list.** The list the run built from, in `ticket` the Plan's `## Behaviours`
-    section, each line with the commit beside it.
+    section, each line with the commit beside it. A run that forked `do-impeccable` built from
+    no Plan: its list is the Ticket's acceptance criteria, never a Plan's `## Behaviours` section,
+    each criterion verbatim with the commit beside it, off the `behaviour:` lines the fork
+    returned.
 23. **Build lines.** Two kinds of line, the behaviours first:
     - One line per behaviour as it landed: the files the loop opened for it, the author's verdict
       and what was done with it, the commit, and, when the behaviour went to
