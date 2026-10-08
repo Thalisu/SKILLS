@@ -644,4 +644,104 @@ carries_each "the session copies the scan: line into the Reply's Evidence and ea
   -- \
   "Pending debt"
 
+echo "# skills/do/agents/do-impeccable.md: its body returns one no scan: line when the skill has no detector for the platform or the detector crashes"
+
+# The impeccable skill's detector is web-only and a detector can crash: a fork bound to a `scan:`
+# line it has no command and no count for invents one, which reaches the Reply as a scan that ran,
+# or stops on a screen it built. The sentence that places the line may sit beside the fenced block
+# rather than in the paragraph that names the condition, so both are read.
+in_place_of_scan=(
+  "in place of the \`scan:\` line" "in its place" "nstead of the \`scan:\` line"
+  "eplaces the \`scan:\` line" "eplace the \`scan:\` line" "stands in for the \`scan:\` line"
+  "takes the place of the \`scan:\` line" "takes its place" "rather than the \`scan:\` line"
+)
+no_detector_for_platform=(
+  "no detector for" "names no detector" "name no detector" "has no detector" "names none for"
+  "no detector that" "without a detector"
+)
+detector_crashed=("crash")
+
+# shellcheck disable=SC2034  # lib.sh's carries_each reads $flat
+flat="$({
+  paragraph_with <(body_of "$agent") "no scan:" all
+  paragraph_with <(body_of "$agent") "no detector" all
+} | tr '\n' ' ' | tr -s ' ')"
+expect "the body names the return's no scan: line" \
+  bash -c 'grep -qF "no scan:" <<<"$1"' _ "$flat"
+
+# shellcheck disable=SC2034  # lib.sh's check_lines reads $out
+out="$(body_of "$agent" | awk '/^ *```/ { fence = !fence; next } fence { sub(/^ */, ""); print }')"
+check_lines "the return's no scan: line is a whole line of a fenced block, in its one fixed wording" 0 0 \
+  "no scan: <the reason, in one line>"
+
+carries_each "with no detector for the project's platform, or a detector that crashes, the no scan: line stands in place of the scan: line" \
+  "no scan:" \
+  -- \
+  "${no_detector_for_platform[@]}" \
+  -- \
+  "platform" \
+  -- \
+  "${detector_crashed[@]}" \
+  -- \
+  "${in_place_of_scan[@]}"
+
+carries_each "no finding: line comes with the no scan: line" \
+  "no scan:" \
+  -- \
+  "no \`finding:\` line" "o \`finding:\` line" "without a \`finding:\` line" \
+  "without any \`finding:\` line" "nor any \`finding:\` line" "never a \`finding:\` line"
+
+carries_each "a scan that could not run is returned under \`built\` and never as \`stopped\`" \
+  "no scan:" \
+  -- \
+  "\`built\`" \
+  -- \
+  "never \`stopped\`" "not \`stopped\`" "never as \`stopped\`" "not as \`stopped\`" \
+  "still \`built\`" "stays \`built\`" "remains \`built\`" "never stop" "does not stop" \
+  "do not stop" "no reason to stop" "not a reason to stop" "never a reason to stop" \
+  "never turn"
+
+echo "# skills/do/references/impeccable.md: the session's copy of the return carries the no scan: line into the Reply"
+
+# The session routes the return by this file: a `no scan:` line it has no rule for is dropped, and
+# the Reply's evidence then says nothing of a screen the detector never read.
+# shellcheck disable=SC2034  # lib.sh's carries_each reads $flat
+flat="$(paragraph_with <(passage_of "$reference" "## The return" "## The return ends") "no scan:" all |
+  tr '\n' ' ' | tr -s ' ')"
+expect "the reference's return names the no scan: line" test -n "$flat"
+
+carries_each "the no scan: line comes back in place of the scan: line, with no detector for the platform or a detector that crashed" \
+  "${no_detector_for_platform[@]}" \
+  -- \
+  "platform" \
+  -- \
+  "${detector_crashed[@]}" \
+  -- \
+  "${in_place_of_scan[@]}"
+
+carries_each "the session copies the no scan: line into the Reply's Evidence" \
+  "copies" "copy" "copied" \
+  -- \
+  "Reply" \
+  -- \
+  "Evidence"
+
+echo "# skills/do/references/reply.md: the proof of an impeccable screen carries the no scan: line"
+
+# The developer reads Evidence to tell a scanned screen from an unscanned one: a Reply with no rule
+# for the line shows neither a count nor the reason there is none.
+reply="$here/../references/reply.md"
+# shellcheck disable=SC2034  # lib.sh's carries_each reads $flat
+flat="$(bullets_opening_on "$reply" "The proof of an impeccable screen")"
+expect "the Evidence item carries the proof of an impeccable screen" test -n "$flat"
+
+carries_each "the no scan: line is copied unchanged into Evidence in place of the scan: line, with its reason" \
+  "\`no scan:\`" \
+  -- \
+  "${in_place_of_scan[@]}" \
+  -- \
+  "unchanged" "verbatim" "unedited" "as returned" "as it came back" "word for word" \
+  -- \
+  "reason" "why"
+
 exit "$((fails > 0))"

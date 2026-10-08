@@ -265,7 +265,9 @@ Ten sections, in this order, each one present in every Reply that carries sectio
      command line and the count of findings that remain, all copied unchanged. When its return
      carried the `fallback:` line reading `no end-to-end command in the project` in place of the
      `flow:` lines, one line stands here instead of them, saying that no flow covered the screen
-     and that the detector scan and the Gate are its proof.
+     and that the detector scan and the Gate are its proof. When its return carried the `no scan:`
+     line in place of the `scan:` line, because the impeccable skill has no detector for the
+     project's platform or the detector crashed, that line is copied unchanged, with its reason.
    - **The integration's lines**, where it did anything: what it rebased onto and how many commits
      replayed, every hunk it resolved with its file and location, every contested hunk that took
      the **Target** side with its file and its location, the Loss ledger that holds its

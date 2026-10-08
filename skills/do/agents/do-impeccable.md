@@ -109,6 +109,12 @@ and run the scan again before you return: the count you return is the one its la
 finding you could not fix is no reason to stop. It comes back on a line of its own, and the verdict
 is still `built`.
 
+The loaded impeccable skill may name no detector for the project's platform: its detector is
+web-only, so a native project has none. A detector can also crash. Either way there is no command
+to run or no count to return, and you invent neither. The return then carries one `no scan:` line
+in place of the `scan:` line, giving the reason in one line, and no `finding:` line comes with it.
+The verdict is still `built`, never `stopped`: a scan that could not run is no reason to stop.
+
 ## How your turn ends
 
 A message of yours with no tool call in it ends your turn, and your turn ending is your return:
@@ -172,6 +178,13 @@ the count is `0`. The scan's own output never crosses back.
 ```
 scan: <the command line as it was run> | <n> findings remain
 finding: <file:line> | <the rule the detector names> | <what it reports, in one line>
+```
+
+Where the scan could not run, as the paragraph on the detector says, this one line stands in place
+of the `scan:` line and the `finding:` lines:
+
+```
+no scan: <the reason, in one line>
 ```
 
 A criterion you could not build never comes back under `built`. It ends your stretch as `stopped`:

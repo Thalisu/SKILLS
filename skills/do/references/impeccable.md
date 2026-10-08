@@ -67,6 +67,11 @@ not stop the run, so the Ticket still lands. The session copies the `scan:` line
 Evidence, beside the flows, and each `finding:` line into its Pending debt, per
 [reply.md](reply.md).
 
+Where the loaded impeccable skill names no detector for the project's platform, as with a native
+project, or the detector crashed, the fork returns one `no scan:` line in place of the `scan:` line,
+with its reason and no `finding:` line, still under `built`. The session copies the `no scan:` line
+into the Reply's Evidence, per [reply.md](reply.md).
+
 The definition carries this shape itself, since the fork cannot open this file or
 [builder.md](builder.md): a change to the lines the Builder returns is made in
 [do-impeccable.md](../agents/do-impeccable.md) in the same change.
