@@ -370,6 +370,10 @@ In the thread:
 - the `.scratch/` line, when the publish added it to the project's `.gitignore`;
 - the next step: one ticket at a time from the frontier. The last line is the exact next command, `/do <ticket>`, with the first ticket of the frontier as its path, or as its issue reference on a tracker. When a Setup ticket was cut it is the whole frontier, since every other ticket is blocked by it, so the last line is `/do` on the Setup ticket. Under `--auto` it reads `/do --auto <ticket>`, so the user keeps the mode down the chain by pasting the line. The one exception is a Setup ticket at the head of the frontier: under `--auto` the last line is still the plain `/do <ticket>` for it, with no flag, since `do` refuses `--auto` on a Setup ticket, whose steps are the developer's to run. One line above it says this one ticket needs the developer and that the flag returns from the next ticket on.
 
+When the spec has a Repositories section, where that command runs depends on the Build repository of the first ticket of the frontier. Compare the location of its entry with the root of the repository this session is in:
+
+- **The same repository**: the close ends exactly as above. The session the user is in can build the ticket, so no line tells them to open a session anywhere.
+
 Nothing is committed.
 
 ## Hard rules
