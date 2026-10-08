@@ -36,6 +36,21 @@ _Avoid_: issue (only when quoting a tracker that calls them issues), slice, task
 session" (a session is not a number; the peak context is), total tokens (the agents `do` forks
 hold their own windows; only the session's context counts)
 
+**Logic ticket**:
+The **Ticket** that makes a **Path**'s behaviour work with no screen, proven by its own tests, in a
+**Spec** that has a front-end.
+_Avoid_: backend ticket (the behaviour may live in the client), API ticket, data ticket
+
+**Front-end ticket**:
+The **Ticket** that builds a **Path**'s screen on the code its **Logic ticket** landed, never on
+mocked data.
+_Avoid_: UI ticket, mock ticket, design ticket, view ticket
+
+**Setup ticket**:
+The **Ticket** numbered `00` whose steps the developer runs by hand to install and initialise the
+front-end builder a **Spec** chose, cut only when the project lacks that setup.
+_Avoid_: ticket zero (in prose), bootstrap ticket, install ticket, prerequisite
+
 **Playbook**:
 One execution model `do` routes a request to, kept under the skill's `references/` and read only
 on match.
@@ -349,6 +364,10 @@ _Avoid_: model page (one link of the chain), doc set, lineage
 - A **Journey** walks every **Path** of exactly one **Spec**
 - **Tickets** are cut only from a **Spec** whose **Verdict** is met: `not needed`, or `required`
   with the **Journey** written beside it
+- A **Path** with a screen is cut into one **Logic ticket** and one **Front-end ticket**, and the
+  **Front-end ticket** is blocked by the **Logic ticket**
+- A **Setup ticket** blocks every other **Ticket** of its **Spec**, so the **Spec branch** is cut
+  from a developer's branch that already carries the setup
 - A **Ticket** that reads what another **Ticket** writes (a state, a section, a symbol) is blocked
   by the one that writes it, never by an earlier one, and a stub to start it sooner is never cut.
   `tickets` reads the edges off the **Journey**'s `## States` or the stories and never asks
