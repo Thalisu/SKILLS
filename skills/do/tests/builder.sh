@@ -508,6 +508,24 @@ for tool in Write Edit; do
     bash -c '! grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$own_tree_out"
 done
 
+# The reason is all the Builder reads of that deny, and one that says only where the path resolves
+# reads as an obstacle to route around: the same file reached through the shell, or through a path
+# spelled another way. The Bash guard's reason for a path outside the worktree already says the two
+# things that make a deny final, whose place it is and where the finding goes instead, and the write
+# guard's reason is held to the same two. The rest of the Bash reason is about shell commands, so the
+# two strings are never compared whole.
+for tool in Write Edit; do
+  case "$tool" in
+    Write) tool_hook="$builder_write_hook" ;;
+    *) tool_hook="$builder_edit_hook" ;;
+  esac
+  sibling_reason="$(cd "$run_worktree" &&
+    printf '{"tool_input": {"file_path": "%s"}, "cwd": "%s"}' "$repos/sibling/src/export/notes.ts" "$run_worktree" |
+    sh -c "$tool_hook" 2>/dev/null | jq -r '.. | .permissionDecisionReason? // empty' 2>/dev/null)"
+  expect "the hook's reason for the Builder's denied $tool in a sibling repository says the place belongs to the session and the developer, and to report it on the return line" \
+    bash -c 'grep -qE "belongs? to the session and the developer" <<<"$1" && grep -qiE "report.*return line" <<<"$1"' _ "$sibling_reason"
+done
+
 # A machine with no `jq`: a guard that reads its payload with jq and exits 0 when jq is missing is a
 # guard the harness reads as allow, so on that machine every line above silently stops holding and
 # nothing says so. Both hooks are asked with the input they would otherwise let through, since a

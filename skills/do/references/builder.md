@@ -372,6 +372,11 @@ Then the verdict routes:
     an alias, a subshell's output, or a script the fork writes and then runs all pass it. So the
     hook is a best effort that narrows what an injected line can do, and never a sandbox: the
     edge above is the rule, and a denial is reported on the return, never routed around.
+- The fork's own `Write|Edit` hook holds the write tools to the worktree the same way. It takes the
+  worktree from the same `cwd`, resolves the write path, symlinks included, and denies a write
+  that lands outside the worktree, in the main checkout or in a sibling repository named by an
+  absolute path, with the reason the `Bash` hook gives: the place belongs to the session and the
+  developer, and what the fork found goes on its return.
 - A Design fork is reported and never ruled on. The Ruling is written to the Spec in the main
   checkout, out of the fork's reach, and the fork's own `Agent` hook denies `choice-taker` so the
   layer cannot be crossed by accident.
