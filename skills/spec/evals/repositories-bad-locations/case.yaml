@@ -1,0 +1,78 @@
+name: repositories-bad-locations
+tags: [workflow, synthesis, multi-repository]
+runs: 2
+max_turns: 20
+timeout_seconds: 600
+allowed_tools: [Bash, Read, Edit, Write, Agent]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # The fixture is the Home repository, the orders service, and the only good location of the
+    # three the summary names. Nothing is laid at ../billing-service, so that location does not
+    # exist. ../notification-service is laid as a plain directory with a file in it and no
+    # `git init`, so it exists and is not a git repository. The summary names the seams, so the
+    # run has nothing to ask and ends at the closing summary.
+    set -e
+    mkdir -p docs/agents
+    cat > docs/agents/issue-tracker.md <<'MD'
+    # Issue tracker: Local Markdown
+
+    Issues and specs for this repo live as markdown files in `.scratch/`.
+
+    ## Conventions
+
+    - One feature per directory: `.scratch/<feature-slug>/`
+    - The spec is `.scratch/<feature-slug>/spec.md`
+    - Implementation issues are one file per ticket at `.scratch/<feature-slug>/issues/<NN>-<slug>.md`
+    - Triage state is recorded as a `Status:` line near the top of each file
+
+    ## When a skill says "publish to the issue tracker"
+
+    Create a new file under `.scratch/<feature-slug>/` (creating the directory if needed).
+    MD
+    mkdir -p src
+    cat > CONTEXT.md <<'MD'
+    # Ordering
+
+    Receives and tracks customer orders from placement to fulfilment.
+
+    ## Language
+
+    **Order**:
+    A customer's request for goods, tracked from placement to fulfilment.
+    _Avoid_: purchase
+
+    **Customer**:
+    A person or organisation that places orders.
+    _Avoid_: client, account
+
+    **Invoice**:
+    The billing service's charge for one Order, open until it is paid or voided.
+    _Avoid_: bill, receipt
+    MD
+    cat > src/order.js <<'JS'
+    const STATUSES = ["placed", "fulfilled", "cancelled"];
+    function cancel(order) {
+      if (order.status === "fulfilled") throw new Error("cannot cancel a fulfilled order");
+      return { ...order, status: "cancelled" };
+    }
+    module.exports = { STATUSES, cancel };
+    JS
+    cat > src/order.test.js <<'JS'
+    const { cancel } = require("./order");
+    test("a placed order can be cancelled", () => {
+      expect(cancel({ status: "placed" }).status).toBe("cancelled");
+    });
+    JS
+    printf '.scratch/\n' > .gitignore
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
+
+    mkdir -p ../notification-service/src
+    cat > ../notification-service/src/notify.js <<'JS'
+    function notify(customerId, message) {
+      return { customerId, message, status: "queued" };
+    }
+    module.exports = { notify };
+    JS

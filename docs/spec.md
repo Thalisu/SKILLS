@@ -47,6 +47,16 @@ them. `spec` writes it from what the `discuss` session decided, so you never add
 the closing summary names the section and what it lists. The later skills read it to know where
 each ticket is built.
 
+A location that is not there does not stop the run. The spec is written as decided, and the
+closing summary names each such location in a line of its own, saying which of the two it is:
+
+| The location | The summary says |
+|---|---|
+| holds no directory | it is missing |
+| holds a directory that is not a git repository | it is not a git repository |
+
+Fix it before running `do`, which checks the location again at its own door.
+
 A feature of one repository costs nothing new: when the decisions name no repository besides the
 one you are in, the spec has no such section and the summary no such line, and every later skill
 reads a spec without the section as a feature of that one repository.

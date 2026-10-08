@@ -59,7 +59,9 @@ a screen, the run writes, routes and closes without stopping: it never ends a
 turn to report progress, to show a draft of the spec for approval, or to offer the next step
 instead of taking it. A status line is welcome, in the same message as the next tool call. A gap
 the synthesis finds in the plan is never a reason to stop either: it goes into the close as a line
-to reopen in `discuss` (step 5).
+to reopen in `discuss` (step 5). Nor is a listed repository whose location is missing or is not a
+git repository: the spec is written as decided, nothing is asked, and the close names the location
+(step 5).
 
 ## 1. Ground
 
@@ -287,6 +289,14 @@ between Solution and User Stories:
 `tickets` and `do` read the section to know where each ticket is built, so an entry left out is a
 ticket with no repository to name.
 
+**A listed location that is not there.** Once the section is written, check each location it lists
+besides the Home repository's: whether a directory exists there, and if one does, whether
+`git -C <location> rev-parse --is-inside-work-tree` succeeds. A location that fails either check is
+bad, and it changes nothing in the spec: the entry stays as decided, with the location it was
+given, and the state of this machine is written into no section, Further Notes included. Nothing is
+created, cloned or initialised there, and the run goes on to the close, where step 5 names it. `do`
+validates the location again at its own door, so the spec is worth more written than withheld.
+
 A plan that names no repository besides the Home repository, or names none at all, gets no
 Repositories section, never one with a single entry. Nothing else marks the case: the spec says
 nothing about the section it lacks and the close has no line about repositories, since the later
@@ -442,6 +452,10 @@ In the thread, the closing summary, each item one or two lines:
 - the Repositories section, only when step 3 wrote one: the section by name and each repository it
   lists, the Home repository said to be so. The item reports the section as written, so over a
   spec that carries none it is left out whole: no line says the section is absent, or why;
+- each bad location step 3 found, in a line of its own: the location as the section carries it,
+  and which of the two it is, missing or not a git repository. Two bad locations are two lines.
+  It is the state of this machine, the developer's to fix before `do`, and never a line to reopen
+  in `discuss`, which decides nothing about it;
 - each seam, and which of the three it was: confirmed by the user, taken from the conversation, or
   ruled by the `choice-taker` under `--auto`, a ruled one with its norm;
 - the verdict and the row that produced it;
