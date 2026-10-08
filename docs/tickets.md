@@ -285,6 +285,10 @@ your reply if you want them apart; the fold is a default, not a stop.
 - After an `--auto` run on local markdown you were shown the breakdown and asked nothing, the close
   lists the approval under `Rulings` as the `choice-taker`'s, and the last line reads
   `/do --auto <ticket>`. On a remote tracker no issue exists until you said yes.
+- On a spec that lists its repositories, every ticket of the breakdown and every published file
+  names exactly one Build repository, all the files sit in the Home repository's feature folder,
+  and the close names another repository only when the first ticket of the frontier is built
+  there. On a spec with no list, none of that appears.
 
 ## Where it fits
 

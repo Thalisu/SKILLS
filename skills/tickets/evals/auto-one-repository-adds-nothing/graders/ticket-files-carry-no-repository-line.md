@@ -1,0 +1,6 @@
+---
+type: llm
+criteria: "Judge this on the Write tool calls of the transcript whose file_path is under .scratch/pin-notes/issues/, and on any Edit or Bash call that wrote a file there. Each of those calls shows the head of the ticket file it wrote: its title, then the bold header lines under it (such as the parent spec, what blocks it, its status), then the start of its body. The feature's spec has no Repositories section. Pass only when the run wrote at least one ticket file there and no shown part of any of those files holds a line containing the words 'Build repository', in any letter case, with or without bold marks around them, whatever value follows (a name, none, n/a, this repository). A call whose content is marked [clipped] is judged on the part shown and never fails for the part not shown. A ticket file that names a source file or a module it touches does not fail. In the reason, quote the header lines of one ticket file as the call shows them, from its title down to the first heading of its body."
+---
+`do` reads the header of a Ticket at its door. On a feature of one repository a line about where the
+Ticket is built is one more thing that door would have to check, for nothing.
