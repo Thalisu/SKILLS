@@ -33,12 +33,13 @@ contents() {
 holds() { contents "$1" "$2" >/dev/null; }
 
 # Claude Code records a plugin install per scope: a record with no projectPath is a user-scope
-# install, and one with a projectPath is installed for that project alone.
+# install, and one with a projectPath is installed for that project alone. The registry sits under
+# CLAUDE_CONFIG_DIR when Claude Code runs under one, and under $HOME/.claude otherwise.
 impeccable_installed() {
   jq -e --arg root "$root" '
     [(.plugins // {}) | to_entries[] | select(.key | startswith("impeccable@")) | .value[]
       | select((.projectPath // $root) == $root)] | length > 0
-  ' "$HOME/.claude/plugins/installed_plugins.json" >/dev/null 2>&1
+  ' "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/installed_plugins.json" >/dev/null 2>&1
 }
 
 # A design system is read off the committed tree, at any depth: a tokens file, a theme file, or a

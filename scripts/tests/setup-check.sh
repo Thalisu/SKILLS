@@ -11,6 +11,9 @@ tmp="$(mktemp -d)"
 trap 'cd /; rm -rf "$tmp"' EXIT
 mkdir -p "$tmp/home"
 export HOME="$tmp/home"
+# The machine running this may itself run Claude Code under a config dir: inherited, it would point
+# every HOME-only case below at the developer's real plugin registry.
+unset CLAUDE_CONFIG_DIR
 
 # Outside a repository there is no project to read: `tickets` ends its run on the error line, and a
 # step line beside it would cut or skip a Setup ticket for a project nobody read.
@@ -44,13 +47,14 @@ fi
 # The first step of the Setup ticket installs the impeccable skill: a `missing` on a machine that has
 # it sends the developer to install again, and a `done` on one that lacks it never sends them at all.
 # Claude Code records an install per scope, so one made for another project is not this project's.
-plugin_registry() { # $1 the impeccable install records as a JSON array, empty for a registry with no impeccable key: Claude Code's installed_plugins.json under $HOME
-  mkdir -p "$HOME/.claude/plugins"
+plugin_registry() { # $1 the impeccable install records as a JSON array, empty for a registry with no impeccable key, $2 the Claude Code config dir, $HOME/.claude when left out: Claude Code's installed_plugins.json under that dir
+  local config="${2:-$HOME/.claude}"
+  mkdir -p "$config/plugins"
   jq -n --argjson records "${1:-null}" '
     {version: 2,
      plugins: ({"other@some-marketplace": [{scope: "user", installPath: "/x", version: "1.0.0"}]}
        + (if $records == null then {} else {"impeccable@impeccable": $records} end))}' \
-    >"$HOME/.claude/plugins/installed_plugins.json"
+    >"$config/plugins/installed_plugins.json"
 }
 project_install() { # $1 the project path the install was made for: one project-scope install record, as a JSON array
   jq -nc --arg path "$1" '[{scope: "project", projectPath: $path, installPath: "/x", version: "4.3.1"}]'
@@ -80,6 +84,19 @@ step_reads "with impeccable installed for this project the impeccable skill read
 
 plugin_registry "$(project_install "$elsewhere")"
 step_reads "with impeccable installed for another project only the impeccable skill reads missing" impeccable-skill "missing"
+
+# Claude Code run under CLAUDE_CONFIG_DIR keeps its plugin registry there and never reads the one
+# under HOME: the install the developer made is the one in the config dir, and a registry left under
+# HOME by another setup is not theirs.
+rm -rf "$HOME/.claude/plugins"
+plugin_registry '[{"scope": "user", "installPath": "/x", "version": "4.3.1"}]' "$tmp/config"
+export CLAUDE_CONFIG_DIR="$tmp/config"
+step_reads "under a Claude config dir with impeccable installed in its registry the impeccable skill reads done" impeccable-skill "done"
+
+rm -rf "$tmp/config/plugins"
+plugin_registry '[{"scope": "user", "installPath": "/x", "version": "4.3.1"}]'
+step_reads "under a Claude config dir with impeccable installed in the registry under HOME only the impeccable skill reads missing" impeccable-skill "missing"
+unset CLAUDE_CONFIG_DIR
 
 # The initialise step is done once its developer has run it: a product context present in the
 # working tree, untracked or staged, reads done, since holding them on that step until the commit
