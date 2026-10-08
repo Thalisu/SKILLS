@@ -337,4 +337,37 @@ carries_each "its /do line is the plain command there too, with no flag" \
   "/do" -- \
   "${no_flag[@]}"
 
+echo "# ticket-format.md / ## Header: the Setup ticket takes 00, and every other ticket counts from 01 with or without it"
+# `tickets` numbers from this section and `do` resolves a ticket by its `<NN>` file name, so the
+# section has to carry both halves. Every phrasing is matched in lower case, since the prose may
+# write Ticket.
+format="$here/../../../.agents/formats/ticket-format.md"
+header="$(passage_of "$format" "## Header" "## Spec" | tr '\n' ' ' | tr -s ' ')"
+header="${header,,}"
+expect "ticket-format.md carries the Header section" test -n "${header// /}"
+# Scoped to the sentences that name the Setup ticket: the section already says `<NN>` counts from
+# `01`, and that sentence cannot answer for the number the Setup ticket takes.
+flat="$(sed 's/\. /.\n/g' <<<"$header" | grep -F "etup ticket" | tr '\n' ' ')"
+carries "the Setup ticket takes 00" "\`00\`"
+carries_any "00 is the one number below 01" \
+  "the one number below \`01\`" "the only number below \`01\`" "the single number below \`01\`" \
+  "the one number under \`01\`" "the only number under \`01\`" "the one number before \`01\`" \
+  "the only number before \`01\`"
+# The other half may sit in a sentence of its own that says "it" of the Setup ticket, so the scope
+# is the section from the Setup ticket's first naming on.
+lead="${header%%etup ticket*}"
+flat=""
+[ "$lead" != "$header" ] && flat="${header:${#lead}}"
+carries_each "every other ticket counts from 01 whether or not the Setup ticket is there" \
+  "every other ticket" "each other ticket" "all other tickets" "all the other tickets" \
+  "the other tickets" "every ticket but it" "every ticket after it" -- \
+  "from \`01\`" "at \`01\`" "on \`01\`" -- \
+  "whether or not it is there" "whether or not the setup ticket is there" \
+  "whether or not one is there" "whether or not one is cut" "whether or not it is cut" \
+  "whether or not the setup ticket is cut" "whether or not there is one" \
+  "whether or not there is a setup ticket" "whether it is there or not" \
+  "whether the setup ticket is there or not" "whether one is cut or not" \
+  "with or without it" "with or without one" "with or without a setup ticket" \
+  "with or without the setup ticket" "setup ticket or not"
+
 exit $((fails > 0))

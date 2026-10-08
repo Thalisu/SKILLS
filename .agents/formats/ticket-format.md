@@ -9,8 +9,10 @@ spec through the pointer this format defines.
 
 ## Header
 
-A local ticket opens with its title, `# <NN>: <Ticket title>`, where `<NN>` counts from `01` in
-dependency order, blockers first, and four bold lines directly under it, in this order:
+A local ticket opens with its title, `# <NN>: <Ticket title>`, where `<NN>` counts in dependency
+order, blockers first. The Setup ticket takes `00`, the one number below `01`. Every other Ticket
+counts from `01`, whether or not it is there. Four bold lines sit directly under the title, in this
+order:
 
 - `**What to build:**` the end-to-end behaviour this ticket makes work, from the actor's
   perspective, never a layer-by-layer list. With a journey, it opens with the path's name.
