@@ -160,6 +160,22 @@ six steps marked, then the next missing step, the first one that still reads mis
 developer just ran included, gets its `done` mark and no other line: the run never recaps or
 confirms a step the check already proves.
 
+When the step it showed still reads missing after the re-check, the step did not take, and the
+developer stays on it. The message says what the check found missing by quoting the check's own
+line for that step, its `<name>=missing` line, on a line of its own between the list and the step:
+
+```
+Step 5 did not take: the check still reads build-path=missing.
+```
+
+At the commit step that line quotes `setup-committed=missing` and the `uncommitted=` line with the
+files it names, the ones still out of the commit. Then the same step is shown again in full, with
+the same command, the same place and "Say when it is done."
+
+The Ticket's `**Status:**` line still reads `claimed`, and nothing else is written to the Ticket
+file: no criterion is ticked and no evidence is appended before the close. A developer who leaves
+on a step that keeps failing leaves a Ticket any later `/do` picks up at the check.
+
 ## The close
 
 The close runs only when the check exits 0, every step line reading done, and the reload step reads

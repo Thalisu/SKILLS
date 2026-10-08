@@ -21,6 +21,9 @@
 # After a step message, anything the developer writes makes the run run the check and read the skill
 # listing again, taking nothing on their word, and with that step done the next missing one is
 # written in the message's shape, the steps already done getting their done mark and no line more.
+# With that step still missing, the message quotes the check's own missing line for it (and the
+# uncommitted= line with its files at the commit step), shows the same command again, and the Ticket
+# stays claimed with nothing else written to it.
 # The route and the steps are prose a session follows, so they are proven over the passages that
 # carry them.
 # Run: bash skills/do/tests/setup-playbook.sh
@@ -352,6 +355,40 @@ carries_any "a step already done gets its done mark and no line more" \
   "not confirmed" "without a line about" "beyond its \`done\`" "beyond their \`done\`" \
   "beyond the \`done\`" "beyond its done mark" "beyond their done mark" "past its \`done\`" \
   "past their \`done\`"
+
+echo "# setup.md / ## The re-check: a shown step still missing gets the check's own missing line and the same command again, the Ticket still claimed"
+recheck="$(passage_of "$setup" "## The re-check" "## " 2>/dev/null)"
+# The message quotes a `<name>=missing` line, so the paragraphs carrying one are where the section
+# rules the step that did not take; the paragraph on a step now done names no such line.
+flat="$(paragraph_with <(printf '%s\n' "$recheck") "=missing" all | tr '\n' ' ' | tr -s ' ')"
+expect "the re-check rules the shown step that still reads missing, naming its <name>=missing line" \
+  test -n "${flat// /}"
+carries_any "the case is the step the run showed still reading missing after the re-check" \
+  "still reads missing" "still reads \`missing\`" "still missing" "still \`missing\`" "reads missing again" \
+  "reads \`missing\` again" "did not take" "has not taken" "does not read done" "does not read \`done\`" \
+  "not reading done" "not reading \`done\`" "still does not read" "missing as before"
+carries_any "the message says what is missing in the check's own line, quoted" \
+  "quot" "verbatim" "word for word" "check's own line" "check's own \`" "check's line" "own line for" \
+  "line the check printed" "as the check printed" "as the check prints" "the check printed" \
+  "copies the" "copied from the check" "line of the check"
+whole="$(tr '\n' ' ' <<<"$recheck" | tr -s ' ')"
+flat="$(sed 's/\. /.\n/g' <<<"$whole" | grep -F "uncommitted=" | tr '\n' ' ')"
+expect "the re-check names the check's uncommitted= line" test -n "${flat// /}"
+carries_any "at the commit step" "ommit step" "ommit row" "step 6" "Step 6" "sixth step" "last step" "setup-committed"
+carries_any "the uncommitted= line is quoted with the files it names" "file"
+flat="$whole"
+carries_any "then the same step is shown with the same command again" \
+  "same command" "same \`Run:\`" "same Run:" "the command again" "its command again" "that command again" \
+  "command once more" "command unchanged" "identical command" "command it showed" "command it already showed"
+carries_any "the Ticket's Status line still reads claimed" \
+  "stays \`claimed\`" "stays claimed" "remains \`claimed\`" "remains claimed" "left \`claimed\`" \
+  "left claimed" "still reads \`claimed\`" "still reads claimed" "still \`claimed\`" "still claimed" \
+  "keeps its claim" "keeps \`claimed\`" "keeps the claim" "claim stays" "claim is kept"
+flat="$(sed 's/\. /.\n/g' <<<"$whole" | grep -F "Ticket" | tr '\n' ' ')"
+carries_any "and nothing else is written to the Ticket file" \
+  "nothing else" "Nothing else" "nothing more" "writes nothing" "nothing is written" "Nothing is written" \
+  "nothing written" "no other edit" "no other change" "no other write" "not written" "never written" \
+  "is not touched" "untouched" "otherwise unchanged" "without writing" "never writes" "no write"
 
 [ "$fails" -eq 0 ] && exit 0
 exit 1
