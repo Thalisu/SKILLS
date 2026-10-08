@@ -27,7 +27,7 @@ Used consistently, in the thread and in what the session writes:
 - _band_: where an estimate falls. Small under 150k tokens, medium up to 200k, large beyond.
 - _blocking edge_: a ticket that must complete before another can start, because the other reads what it writes.
 - _fold_: a small ticket merged into the one neighbour its single edge ties it to.
-- _split_: a large ticket cut along its steps into pieces, none of them large.
+- _split_: a large ticket cut along its steps into pieces, none of them large, or a slice that needs two repositories cut where one repository's work ends and the other's begins.
 - _placement_: a stray piece of work put in the ticket that builds what it describes.
 - _frontier_: every ticket whose blockers are all done.
 - _Build repository_: the one repository a ticket is built in, an entry of the spec's Repositories section. A spec with no such section is a feature of one repository, and none of its tickets names one.
@@ -220,12 +220,15 @@ On a spec that reads `Front-end: builder` the setup check is never run and no Se
 **Splits, folds and placements**, in this order:
 
 1. **Split** every large ticket along its steps, every piece still demoable and none of them large. The pieces of one split never fold back into each other.
+
+   When the spec has a Repositories section, split as well every slice that would need a change in two of its repositories, whatever its band: one ticket per repository, each with that one Build repository, joined by a blocking edge. The ticket that reads what the other repository's change provides is blocked by the ticket that provides it. The rule that fired is that a ticket is built in exactly one Build repository, and the breakdown lists the cut under the splits with that rule, never as a note beside the tickets.
 2. **Fold** a small ticket into a neighbour when all of these hold:
    - a single edge ties it to exactly one neighbour;
    - the two tickets are of the same kind: a Logic ticket and a Front-end ticket are never joined, whatever the estimates say. The edge between a path's two tickets is exactly the single edge a fold looks for, and folding across it would undo the cut and hand the logic to the screen's builder;
    - that neighbour is its only blocker, or its only dependent when that dependent has no other blocker. Folding into a neighbour that waits on something else would hold the small ticket's work behind it;
    - the fold delays no ticket's start;
-   - the merged estimate (the fixed load plus the per-criterion cost times the combined criteria) stays medium at most.
+   - the merged estimate (the fixed load plus the per-criterion cost times the combined criteria) stays medium at most;
+   - both tickets have the same Build repository, when the spec has a Repositories section.
 
    The merged ticket keeps the earlier ticket's title and place and names every path it realises. A medium ticket is left as cut.
 3. **Place** a stray piece of work (a README line, a page re-synced after a change) in the ticket that builds what it describes.

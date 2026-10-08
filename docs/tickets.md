@@ -152,6 +152,11 @@ is then cut for exactly one **Build repository**, an entry of that list, since a
 one repository with one worktree and one gate. The breakdown shows it as one more field of every
 ticket, decided by the skill from where the code the ticket changes lives, and never asked.
 
+A slice that would need a change in two repositories is split into two tickets, one per
+repository, joined by a blocking edge: the ticket that reads what the other repository provides
+waits for the ticket that provides it. The breakdown lists the cut among the splits, with the rule
+that fired, and two tickets built in different repositories never fold into one.
+
 A spec with no such list is a feature of one repository: the breakdown shows no Build repository
 and the run reads as it always did.
 
