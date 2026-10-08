@@ -416,6 +416,29 @@ carries_each "step 10 says findings that remain stop nothing: the Ticket landed 
   "\`resolved\`" -- \
   "all the same" "still" "anyway" "regardless" "nonetheless" "even so" "${findings_stop_nothing[@]}"
 
+# The Reply is read once and the Ticket file is what stays: a resolved Front-end ticket whose
+# `## Evidence` held the flows alone would leave no trace of which scan judged the screen or how
+# many findings it left. The close is the step that writes that section, so only step 9 is read and
+# step 10's wording on the Reply never answers for it.
+echo "# ticket.md / step 9: a do-impeccable run's close appends the scan: line under the Ticket's ## Evidence beside the flows"
+flat="$(passage_of "$ticket" "**9. Close.**" "**9a. Final integration.**" | tr '\n' ' ' | tr -s ' ')"
+expect "the Playbook has a Close step" test -n "$flat"
+carries_any "step 9 names the run that forked do-impeccable" "do-impeccable"
+carries_each "step 9 appends the fork's scan: line under the Ticket's ## Evidence" \
+  "do-impeccable" -- "\`scan:\`" -- "\`## Evidence\`" -- \
+  "append" "added under" "adds" "written under" "writes" "goes under" "go under"
+carries_each "that line sits beside the flows' command lines" \
+  "\`scan:\`" -- "${beside_the_flows[@]}"
+carries_each "that line is the detector scan's command line and the count of findings that remain" \
+  "\`scan:\`" -- \
+  "command line" -- \
+  "count of findings" "count of the findings" "findings that remain" "findings remain" \
+  "findings left" "findings it left" "how many findings" "number of findings"
+carries_each "that line is copied as the fork returned it" \
+  "\`scan:\`" -- \
+  "unchanged" "verbatim" "unedited" "as returned" "as it came back" "as they came back" \
+  "as the fork returned" "word for word" "never composed" "never reworded"
+
 # The next Ticket of the Spec is refused as blocked until this one reads `resolved`, so a `built`
 # return that the Playbook carried no further than step 3 would leave the developer with a screen
 # built in a worktree and a Spec that cannot move. The paragraphs read are the ones that name the
