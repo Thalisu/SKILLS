@@ -56,6 +56,9 @@ reader=no; [ -e "${CLAUDE_CONFIG_DIR:-/nonexistent}/agents/do-reader.md" ] && re
 root="$(readlink -f ~/.claude/skills/do-code-review)/../.."
 reach=""
 for entry in skills .agents CONTEXT.md docs; do [ ! -e "$root/$entry" ] || reach="$reach$entry,"; done
+for folder in "$root"/skills/*/evals; do
+  [ ! -e "$folder" ] || { reach="${reach}evals,"; break; }
+done
 { printf 'call'; printf ' [%s]' "$@"
   printf ' config=%s claudecode=%s journey=%s reader=%s creds=%s home-skill=%s reach=%s cwd=%s\n' "${CLAUDE_CONFIG_DIR:-unset}" \
     "${CLAUDECODE:-unset}" "$journey" "$reader" "$(readlink "${CLAUDE_CONFIG_DIR:-/nonexistent}/.credentials.json")" \
@@ -179,6 +182,8 @@ expect "a session cannot reach the repo's CONTEXT.md through a linked skill" \
   bash -c '! grep -qE " reach=[^ ]*CONTEXT\.md," <<<"$1"' _ "$session"
 expect "a session cannot reach the repo's docs folder through a linked skill" \
   bash -c '! grep -qE " reach=[^ ]*docs," <<<"$1"' _ "$session"
+expect "a session cannot reach any skill's evals folder through a linked skill" \
+  bash -c '! grep -qE " reach=[^ ]*evals," <<<"$1"' _ "$session"
 expect "the session runs in the laid fixture" grep -qE "cwd=$TMPDIR/run-eval-walk\.[^ ]*/fixture$" <<<"$session"
 judged="$(cat "$STUB_DIR/judge-prompts")"
 expect "the judge reads the criteria" grep -qF "The run resolved the slug suppliers through the resolver." <<<"$judged"

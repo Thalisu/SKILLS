@@ -34,8 +34,9 @@
 # Every session runs under a throwaway CLAUDE_CONFIG_DIR, so the real ~/.claude (memory, hooks,
 # settings, plugins, CLAUDE.md) never loads: the credentials are linked in, and every skill and
 # agent of this repo is linked by scripts/link-skills.sh under a throwaway HOME, the layout a
-# maintainer's machine has, from a copy of the repo that leaves out docs/ and CONTEXT.md, which no
-# session reaches through a linked skill. allowed_tools is a permission allowlist, as --allow-tools is to the
+# maintainer's machine has, from a copy of the repo that leaves out docs/, CONTEXT.md and every
+# skill's evals/, which no session reaches through a linked skill. allowed_tools is a permission
+# allowlist, as --allow-tools is to the
 # plugin, and nobody is there to approve anything else, so any other tool that asks is denied.
 #
 # Prints a line per grader and run, ok or FAIL with its reason, the path of every red run's work
@@ -83,15 +84,17 @@ done
 
 sandbox="$(mktemp -d -t run-eval-home.XXXXXX)"
 trap 'rm -rf "$sandbox"' EXIT
-# The skills are linked from a copy that leaves out docs/ and CONTEXT.md: a session follows a
-# skill's link back to the tree it sits in, and with the glossary and the ADRs beside it there it
-# improvises behaviour the skill does not state yet, so a case goes green before the skill is written.
+# The skills are linked from a copy that leaves out docs/, CONTEXT.md and every skill's evals/: a
+# session follows a skill's link back to the tree it sits in, and with the glossary and the ADRs
+# beside it there it improvises behaviour the skill does not state yet, and with the case's own
+# graders there it copies the wording they ask for, so a case goes green before the skill is written.
 linked="$sandbox/repo"
 mkdir "$linked"
 for part in skills vendor .agents scripts; do
   [ ! -e "$repo/$part" ] || cp -R "$repo/$part" "$linked/$part" ||
     { echo "could not copy $part into the sandbox" >&2; exit 2; }
 done
+rm -rf "$linked"/skills/*/evals "$linked"/vendor/*/evals
 HOME="$sandbox" bash "$linked/scripts/link-skills.sh" claude >/dev/null 2>&1 ||
   { echo "scripts/link-skills.sh could not link the skills into the sandbox" >&2; exit 2; }
 config="$sandbox/.claude"
