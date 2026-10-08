@@ -148,6 +148,20 @@ Say when it is done.
 - The message ends the turn: the developer runs the step where it belongs and comes back. The run
   never moves on to the next step before the check proves this one.
 
+At the reload step, the message tells the developer to reload the coding tool and then to type
+`/do <path>` on the Setup ticket again, plain, with no flag. A session lists the skills it loaded
+when it started, so this session cannot list impeccable until it is reloaded, and waiting in it
+proves nothing. The reload message therefore closes on the line to type after the reload, in place
+of "Say when it is done.":
+
+```
+Next, step 2: reload the coding tool.
+What: this session listed its skills when it started, so it cannot see impeccable until it is reloaded
+Run: quit the coding tool and start it again in <main>
+Where: this session
+After the reload, type: /do <path>
+```
+
 ## The re-check
 
 After a step message the developer comes back, and their next message, whatever it says, sends the

@@ -30,6 +30,10 @@
 # A later `/do` on a Setup ticket left claimed, in the session that showed the step or in a new one,
 # carries nothing over from the earlier turn: it writes no second claim, runs the check, and shows
 # the first step that check reads missing, every step done since skipped.
+# At the reload step the message tells the developer to reload the coding tool and then to type the
+# plain `/do` line on the Ticket again, says why (a session lists the skills it loaded when it
+# started, so waiting in this one proves nothing), and closes on that `/do` line in place of "Say
+# when it is done.".
 # The route and the steps are prose a session follows, so they are proven over the passages that
 # carry them.
 # Run: bash skills/do/tests/setup-playbook.sh
@@ -472,6 +476,53 @@ said="$(first_at "after the answer" "below the answer" "under the answer" "follo
   "answers it first" "first answers" "answer comes first" "answer goes first" "answer opens" \
   "opens on the answer" "opens with the answer" "ahead of the step" "before the step" "above the step")"
 expect "the step comes after the answer" test "$said" -gt 0 -o \( "$answer_at" -gt 0 -a "$full_at" -gt "$answer_at" \)
+
+echo "# setup.md / ## The message: at the reload step the message says to reload the coding tool and type the plain /do line again"
+# The sample message carries its own `2. Reload the coding tool: done` line inside a fence, so the
+# fenced blocks are dropped, and each bullet is read as a paragraph of its own: only the prose that
+# names the reload rules this step, and the bullets ruling every step alike must not answer for it.
+flat="$(paragraph_with <(passage_of "$setup" "## The message" "## " 2>/dev/null | awk '
+  /^ *```/ { fence = !fence; next }
+  fence { next }
+  /^ *- / { print "" }
+  { print }
+') "eload" all | tr '\n' ' ' | tr -s ' ')"
+expect "the message section rules the reload step in prose outside its sample" test -n "${flat// /}"
+carries_any "the message tells the developer to reload the coding tool" \
+  "reload the coding tool" "reloads the coding tool" "reload it" "reload the tool" "reload the session" \
+  "reload this session" "quit the coding tool" "restart the coding tool" "to reload"
+carries_each "and to type the /do line on the Setup ticket again" \
+  "/do <path>" "/do <the Ticket's path>" -- \
+  "again" "Again" "once more" "a second time" "anew"
+carries_any "the /do line is typed after the reload" \
+  "then" "after the reload" "after reloading" "after it is reloaded" "once reloaded" \
+  "once it is reloaded" "once the coding tool is reloaded" "after a reload" "following the reload"
+carries_any "the /do line is plain" \
+  "plain" "no flag" "without a flag" "without any flag" "with no flag" "flagless" "no \`--auto\`"
+# shellcheck disable=SC2034 # absent() reads $out.
+out="$flat"
+absent "the /do it names carries no flag before the path" "/do --"
+expect "the /do it names carries no flag after the path" \
+  bash -c '! grep -qE "/do <[^>]*> --" <<<"$1"' _ "$flat"
+carries_any "why: a session lists the skills it loaded when it started" \
+  "when it started" "when it starts" "when the session started" "when it was started" "at its start" \
+  "at startup" "at start-up" "on startup" "as it started" "the moment it started" "loaded at start"
+carries_each "so this session cannot list impeccable until it is reloaded" \
+  "impeccable" -- \
+  "until it is reloaded" "until the reload" "until a reload" "until reloaded" "before the reload" \
+  "before it is reloaded" "only after a reload" "only after the reload" "without a reload" \
+  "unless it is reloaded" "until the coding tool is reloaded" "only once it is reloaded" \
+  "only once reloaded"
+carries_any "and waiting in it proves nothing" \
+  "proves nothing" "prove nothing" "proves no step" "can prove nothing" "would prove nothing" \
+  "never proves" "cannot prove" "can never prove" "no use waiting" "nothing to wait for" \
+  "waiting changes nothing" "waiting is no use"
+carries_each "the reload message closes on the /do line in place of the words that hand a step over" \
+  "closes on" "closes with" "last line" "final line" "closing line" "ends on" "ends with" \
+  "ends its message on" -- \
+  "Say when it is done." -- \
+  "in place of" "instead of" "rather than" "replaces" "replacing" "and not on" "and never on" \
+  "not on \"Say" "never on \"Say" "takes the place of" "where the other steps"
 
 [ "$fails" -eq 0 ] && exit 0
 exit 1
