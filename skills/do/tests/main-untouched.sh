@@ -68,4 +68,24 @@ run check "$redirtied" "$redirtied_state"
 same "a file already uncommitted before the snapshot and edited again after it is listed as changed, and one left alone is not" \
   $'verdict=changed\nchanged=3\nfile=staged.txt\nfile=tracked.txt\nfile=untracked.txt'
 
+fresh own-work
+own_work="$tmp/own-work"
+printf '.scratch/\n' >.gitignore
+echo one >tracked.txt
+commit "base"
+own_work_state="$own_work/.scratch/main-state/ticket.state"
+mkdir -p "$(dirname "$own_work_state")"
+standing="$(branch_worktree "$own_work" standing)"
+
+run snapshot "$own_work" "$own_work_state"
+echo screen >"$standing/screen.html"
+echo two >>"$standing/tracked.txt"
+recut="$(branch_worktree "$own_work" recut)"
+echo screen >"$recut/screen.html"
+echo two >>"$recut/tracked.txt"
+echo ticket >"$own_work/.scratch/ticket.md"
+run check "$own_work" "$own_work_state"
+same "files written in a worktree under .claude/worktrees/, standing at the snapshot or cut after it, and files git ignores are never listed" \
+  $'verdict=untouched\nchanged=0'
+
 [ "$fails" = 0 ]

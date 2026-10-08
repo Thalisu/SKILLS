@@ -9,7 +9,8 @@
 # snapshot writes the state file, one record per path git reports as not clean (modified, staged,
 # deleted, or untracked and not ignored) with the hash of its working content, and prints
 # state=<state file> and recorded=<n paths>. The state file sits outside the checkout or at a path
-# git ignores in it, since a record git reported would be a change of its own.
+# git ignores in it, since a record git reported would be a change of its own. Nothing under
+# .claude/worktrees/ is read, at the snapshot or at the check: the worktrees there are the runs' own.
 #
 # check prints verdict=untouched and changed=0 when the checkout reads as the state file recorded
 # it, else verdict=changed, changed=<n> and one file=<path> line per changed file, sorted: a path
@@ -49,7 +50,10 @@ content() { # $1 a path relative to the checkout: what stands there now, as one 
 records() { # one NUL-terminated `<content> <path>` record per path git reports as not clean
   local path
   # --no-renames keeps every entry to one path: a rename would print its source as a second field.
-  git -C "$main" status --porcelain -z --no-renames --untracked-files=all |
+  # The run's own worktree and every other run's sit under .claude/worktrees/, which a project is
+  # not obliged to ignore.
+  git -C "$main" status --porcelain -z --no-renames --untracked-files=all \
+    -- . ':(exclude,top).claude/worktrees' |
     while IFS= read -r -d '' path; do
       path="${path:3}"
       printf '%s %s\0' "$(content "$path")" "$path"
