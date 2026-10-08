@@ -30,7 +30,7 @@ reset() { rm -f "$STUB_DIR/calls" "$STUB_DIR/judge-calls" "$STUB_DIR/judge-promp
 # call is the session under test, which logs its arguments and environment, prints the canned
 # transcript and touches a file.
 # The judge answers one line per "### <grader>" heading of its prompt: STUB_VERDICT for every
-# grader (PASS by default), FAIL for the graders STUB_FAIL names.
+# grader (PASS by default), FAIL for the graders STUB_FAIL names. STUB_REPLY replaces the whole reply.
 cat >"$tmp/bin/claude" <<'SH'
 #!/usr/bin/env bash
 for a in "$@"; do
@@ -46,6 +46,7 @@ for a in "$@"; do
       case " ${STUB_FAIL:-} " in *" $name "*) verdict=FAIL ;; esac
       reply="$reply$name: $verdict the stand-in judge says so"$'\n'
     done < <(sed -n 's/^### //p' <<<"$prompt")
+    [ -z "${STUB_REPLY:-}" ] || reply="$STUB_REPLY"
     jq -cn --arg r "${reply%$'\n'}" '{type: "result", result: $r}'
     exit 0
   fi
@@ -242,6 +243,18 @@ expect "the judge reads the first grader's criteria under its name" \
 expect "the judge reads the second grader's criteria under its name" \
   bash -c 'sed -n "/^### breaks\$/,/^### /p" "$1" | grep -qF "The run exported the notes to a file."' _ "$STUB_DIR/judge-prompts"
 rm -rf "$(sed -n 's/^ *kept: //p' <<<"$out")"
+# A judge that works through the criteria before it answers may change its mind on the way: what it
+# writes before the VERDICTS line is its working, and never a verdict.
+mkdir -p "$evals/aloud"
+printf 'runs: 1\n' >"$evals/aloud/case.yaml" && printf 'hi\n' >"$evals/aloud/prompt.md"
+grader aloud settled 'type: llm
+criteria: "The run kept the notes it was given."'
+STUB_REPLY='settled: FAIL at first glance the notes look dropped
+On a second read the run kept every note.
+VERDICTS
+settled: PASS the run kept every note' run "$evals" aloud
+check "an llm grader is decided by its line after the VERDICTS marker, whatever the judge's working said before it" 0 "$rc" \
+  "ok    aloud run 1/1 settled" "aloud: 1/1 green" "PASS"
 reset
 run "$evals" walk --runs 1
 check "a file the run never made fails file_exists" 1 "$rc" "FAIL  walk run 1/1 made-file: no file matches made-*.txt"

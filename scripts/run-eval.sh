@@ -159,8 +159,13 @@ run meets every part of that grader's criteria, judging each grader on its own c
 only on what the transcript and the changes to the fixture show: a claim the run makes about its
 own work is not proof of it.
 
-Answer with exactly one line per grader, in the order they are listed: the grader's name, a colon,
-PASS or FAIL, and one sentence giving the reason, as in "some-grader: FAIL the reason".
+Work first, verdicts last. For each grader, go through its criteria part by part and note, for each
+part, what in the transcript or the changes meets it or fails it. A grader fails only on a part of
+its own criteria the run does not meet, never on something its criteria do not ask for.
+
+Then write a line reading exactly VERDICTS, and after it exactly one line per grader, in the order
+they are listed: the grader's name, a colon, PASS or FAIL, and one sentence giving the reason, as
+in "some-grader: FAIL the reason".
 
 ## Criteria
 EOF
@@ -181,7 +186,11 @@ $(cat "$w/changes")
 EOF
   } | (cd "$w" && timeout 300 "${claude_cmd[@]}" --output-format json --max-turns 1 --tools "" \
     --strict-mcp-config --no-session-persistence --model "$judge_model") >"$w/judge.json" 2>"$w/judge.err"
-  jq -r '.result // ""' "$w/judge.json" 2>/dev/null
+  # The judge works through the criteria before it answers, and a verdict it tried out on the way is
+  # not its answer: only the lines after its last VERDICTS line are read, the whole reply when it
+  # wrote none.
+  jq -r '.result // ""' "$w/judge.json" 2>/dev/null |
+    awk '{ line[NR] = $0 } /^[^A-Za-z]*VERDICTS[^A-Za-z]*$/ { from = NR } END { for (i = from + 1; i <= NR; i++) print line[i] }'
 }
 
 grade() { # $1 grader, $2 work folder: prints why the run fails the grader, nothing when it passes
