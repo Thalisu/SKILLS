@@ -47,4 +47,63 @@ effort=$(field effort)"
 check_lines "the definition pins the Builder's own model and effort" 0 0 \
   "model=$builder_model" "effort=$builder_effort"
 
+echo "# skills/do/agents/do-impeccable.md: its own Write|Edit hook keeps every write inside the run's worktree"
+
+# ADR 0078: whether the impeccable skill honours a root other than the session's working directory
+# is unproven, so the hook is what keeps the Main checkout as the developer left it while the fork
+# builds. Run live, the way the harness runs it: the payload on stdin, carrying the `cwd` it reports.
+# Without jq a guard that fails closed would deny every path, and the denials below would pass on a
+# hook that never compared a path with the worktree at all.
+expect "jq is on PATH so the extracted hook runs its own logic, not its fail-closed exit" \
+  bash -c 'command -v jq >/dev/null 2>&1'
+
+tmp="$(cd "$(mktemp -d)" && pwd -P)"
+trap 'rm -rf "$tmp"' EXIT
+main="$tmp/main"
+worktree="$main/.claude/worktrees/do-screen"
+sibling="$main/.claude/worktrees/do-other"
+mkdir -p "$worktree/src" "$sibling/src" "$main/.scratch/20260921-screen/issues"
+printf 'readme\n' >"$main/README.md"
+printf 'build it\n' >"$main/.scratch/20260921-screen/issues/03-screen.md"
+printf 'theirs\n' >"$sibling/src/screen.tsx"
+printf 'screen\n' >"$worktree/src/screen.tsx"
+ln -s "$main/.scratch/20260921-screen/issues" "$worktree/src/data"
+ln -s "$main/README.md" "$worktree/readme-alias.md"
+
+hook_out_at() { # $1 the hook's command, $2 the file_path the tool was handed: the hook's stdout, run from the worktree with the payload on stdin
+  (cd "$worktree" &&
+    printf '{"cwd": "%s", "tool_input": {"file_path": "%s"}}' "$worktree" "$2" |
+    sh -c "$1" 2>/dev/null)
+}
+
+for tool in Write Edit; do
+  tool_hook="$(hook_command "$agent" "$tool")"
+  # An empty command prints no deny either, so the paths let through below would pass on a
+  # definition carrying no hook at all.
+  expect "a PreToolUse hook scopes the fork's $tool" test -n "$tool_hook"
+
+  for outside in "$main/README.md" \
+    "$main/.scratch/20260921-screen/issues/03-screen.md" \
+    "$sibling/src/screen.tsx" \
+    "$worktree/src/../../../../README.md" \
+    "../../../README.md" \
+    "$worktree/src/data/03-screen.md" \
+    "$worktree/readme-alias.md"; do
+    outside_out="$(hook_out_at "$tool_hook" "$outside")"
+    expect "the hook denies the fork's $tool at ${outside#"$tmp/"}, a path outside its worktree" \
+      bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$outside_out"
+  done
+
+  # The other half of the same hook: the screen is what this fork exists to write, new files and
+  # new folders included, and a guard that denied them would leave it unable to build anything.
+  for inside in "src/screen.tsx" \
+    "$worktree/src/screen.tsx" \
+    "$worktree/src/new-screen.tsx" \
+    "src/components/card/card.tsx"; do
+    inside_out="$(hook_out_at "$tool_hook" "$inside")"
+    expect "the hook lets the fork's $tool through at ${inside#"$tmp/"}, a path inside its worktree" \
+      bash -c '! grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$inside_out"
+  done
+done
+
 exit "$((fails > 0))"
