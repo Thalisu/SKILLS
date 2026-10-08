@@ -282,9 +282,11 @@ carries_each "each published ticket is shown with its kind beside its blocking e
   "kind" "Kind" -- \
   "blocking edge" "Blocked by" "blocker" "what blocks it"
 
-# Scoped to the sentences that name the Setup ticket: the bullet already says the last line is
-# `/do` on the first ticket of the frontier, and that sentence cannot answer for the Setup ticket.
-flat="$(grep -F "last line" <<<"$close_bullets" | sed 's/\. /.\n/g' | grep -F "etup ticket" | tr '\n' ' ')"
+# Scoped to the sentences that name the Setup ticket and leave out those that name `--auto`: the
+# bullet already says the last line is `/do` on the first ticket of the frontier, and the
+# `--auto` exception also says `/do` and "the first ticket", so neither can answer for the rule
+# outside `--auto`.
+flat="$(grep -F "last line" <<<"$close_bullets" | sed 's/\. /.\n/g' | grep -F "etup ticket" | grep -vF -- "--auto" | tr '\n' ' ')"
 expect "the next-step bullet of the close step names the Setup ticket" test -n "${flat// /}"
 carries_any "with a Setup ticket cut, the last line is /do on the Setup ticket" \
   "/do" "last line" "next command" "the command" "frontier" "no blocker" "blocked by nothing" \
