@@ -38,6 +38,15 @@ scratch folder is never versioned, so a project missing the `.scratch/` line in 
 gets it before the write, and the closing summary says so along with where a spec the team has to
 read belongs instead.
 
+## A feature across repositories
+
+When the decisions name more than one repository the feature is built in, the spec gains a
+Repositories section: one line per repository, each with its location on your machine, and the
+**Home repository** (the one you ran `/spec` in, whose `.scratch/` holds the spec) marked among
+them. `spec` writes it from what the `discuss` session decided, so you never add it by hand, and
+the closing summary names the section and what it lists. The later skills read it to know where
+each ticket is built.
+
 ## The verdict
 
 A **path** is one thing the actor sets out to do, end to end, walked in steps: arrive, see, act,
@@ -178,6 +187,8 @@ about the forks the precedent does not settle, so a small page closes fast.
   instead of opening a second one.
 - The closing summary names the `Front-end:` value and says whether it was deduced from the
   stories, chosen by you, ruled under `--auto` or kept from the earlier spec.
+- A feature the decisions spread over several repositories has a Repositories section in its spec,
+  with the repository you are in among the entries, and the closing summary names it.
 - The last line of the summary is a command you can run as it is.
 - Nothing else in the tree changed, and nothing was committed.
 

@@ -38,6 +38,7 @@ Used consistently, in the thread and in the spec:
 - _tracker file_: `docs/agents/issue-tracker.md`, which says where specs and tickets live in this
   project.
 - _allocator_: `scripts/feature-folder.sh`, the script that names and dates a local spec's folder.
+- _Home repository_: the repository this session sits in, whose `.scratch/` holds the spec.
 
 ## How a turn ends
 
@@ -248,9 +249,10 @@ stands, in one message that ends the turn.
 is written, then publish it where step 1 resolved. The rules the format carries:
 
 - glossary vocabulary throughout;
-- no file paths and no code snippets, since they go stale. The exception is a snippet a prototype
-  produced that encodes a decision more precisely than prose (a state machine, a reducer, a
-  schema), trimmed to the decision and marked as the prototype's;
+- no file paths and no code snippets, since they go stale. The exceptions are the locations of the
+  Repositories section, below, and a snippet a prototype produced that encodes a decision more
+  precisely than prose (a state machine, a reducer, a schema), trimmed to the decision and marked
+  as the prototype's;
 - Testing Decisions name the project's Testing Policy when `CLAUDE.md` carries one;
 - Testing Decisions mark each seam with how step 2 settled it: confirmed by the developer, taken
   from the conversation, or ruled. A ruled seam stands on the format's own line,
@@ -266,6 +268,24 @@ the conversation never took is not invented and not asked for: it is left out of
 listed in the close (step 5). The User Stories are the one place the run writes at length: every
 actor, every aspect of the feature and the failures the actor can meet, each story written so a
 reader can see the path it belongs to and count its steps, since step 4 reads the verdict off them.
+
+**The Repositories section.** When the plan's decisions name more than one repository the feature
+is built in, the Home repository counted, the spec carries the format's `## Repositories` section,
+between Solution and User Stories:
+
+- One line per repository the decisions name, and no repository they do not name.
+- The Home repository is always one of the lines, marked `(Home repository)` after its name, whether
+  or not the plan spells it out. Its location is the root of the repository whose `.scratch/` holds
+  the spec: in local mode the parent of the `.scratch` in the allocator's `folder=`, otherwise what
+  `git rev-parse --show-toplevel` prints.
+- The name is the one the plan gives the repository.
+- The location is the repository's root on this machine, as a bare absolute path. A location the
+  plan gives relative to the Home repository (a sibling cloned beside it, `../<name>`) is resolved
+  against the Home repository's root, so no `..` is left in it: `tickets` and `do` read it from
+  another working directory.
+
+`tickets` and `do` read the section to know where each ticket is built, so an entry left out is a
+ticket with no repository to name.
 
 **A rerun** on the same feature rewrites the spec in place instead of publishing a second one. In
 local mode the file is rewritten, keeping a `Journey:` line that already points at a journey file
@@ -414,6 +434,9 @@ lists for the seams and no others, each with the reason line that case gives the
 In the thread, the closing summary, each item one or two lines:
 
 - where the spec is: the full path, or the issue reference;
+- the Repositories section, only when step 3 wrote one: the section by name and each repository it
+  lists, the Home repository said to be so. The item reports the section as written, so it never
+  appears over a spec that carries none;
 - each seam, and which of the three it was: confirmed by the user, taken from the conversation, or
   ruled by the `choice-taker` under `--auto`, a ruled one with its norm;
 - the verdict and the row that produced it;

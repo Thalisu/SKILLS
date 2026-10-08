@@ -38,6 +38,14 @@ The problem the user is facing, from the user's perspective.
 
 The solution to the problem, from the user's perspective.
 
+## Repositories
+
+Written when the feature is built in more than one repository. One line per repository of the
+feature, the **Home repository** among them and marked on its own line:
+
+- {name} (Home repository): {absolute location on this machine}
+- {name}: {absolute location on this machine}
+
 ## User Stories
 
 A long, numbered list. Each story reads `As a <actor>, I want <feature>, so that <benefit>`. The
@@ -86,4 +94,7 @@ Anything else the implementer needs.
 - The stories are the source of the verdict: write each one so a reader can see the path it
   belongs to and count its steps.
 - UI copy the spec quotes stays in the product's language; everything else is English.
+- Repositories is the one section that carries a path. Each entry is one line, never wrapped: the
+  name the plan gives the repository, a colon, and the repository's root as a bare absolute path,
+  with no backticks and no `..` left in it. `tickets` and `do` read the entries by that shape.
 - No em-dash.
