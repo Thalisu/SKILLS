@@ -50,8 +50,16 @@ has_design_system() {
     grep -Eq '(^|/)((design-tokens|tokens|theme|tailwind\.config)\.[^/]+$|components/)'
 }
 
-# impeccable records the build path its init was answered with as buildPath, "code" or "comp".
+# impeccable records the build path its init was answered with as buildPath, "code" or "comp". The
+# gitignored .impeccable/config.local.json wins over config.json for the machine it sits on, so a
+# buildPath there that is not "code" runs impeccable comp-led whatever config.json says. It is never
+# committed, so only the working tree reads it.
 code_led_build_path() {
+  if [ "$1" = worktree ] &&
+    contents worktree .impeccable/config.local.json |
+    jq -e 'has("buildPath") and .buildPath != "code"' >/dev/null 2>&1; then
+    return 1
+  fi
   contents "$1" .impeccable/config.json |
     jq -e '.buildPath == "code"' >/dev/null 2>&1
 }

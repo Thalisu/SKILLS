@@ -208,6 +208,21 @@ impeccable_config '{"hook": {"enabled": true}, "buildPath": "code"}'
 commit "the impeccable config"
 step_reads "with the code-led build path committed beside other keys the build path reads done" build-path "done"
 
+# impeccable lets a gitignored, machine-local .impeccable/config.local.json win over the committed
+# config: on the machine that carries one, the build path impeccable runs is the local file's.
+impeccable_local_config() { # $1 the config as a JSON object: the project's machine-local .impeccable/config.local.json in the working tree, uncommitted
+  mkdir -p .impeccable
+  jq . <<<"$1" >.impeccable/config.local.json
+}
+impeccable_local_config '{"buildPath": "comp"}'
+step_reads "with the code-led build path committed and a machine-local config setting the comp-first one the build path reads missing" build-path "missing"
+
+impeccable_local_config '{"buildPath": "code"}'
+step_reads "with the code-led build path committed and a machine-local config setting the code-led one too the build path reads done" build-path "done"
+
+impeccable_local_config '{"hook": {"enabled": false}}'
+step_reads "with the code-led build path committed and a machine-local config setting no build path the build path reads done" build-path "done"
+
 # `tickets` publishes no Setup ticket on a project already set up, and reads that off the exit code:
 # a non-zero exit there blocks every Ticket of a second Spec behind a setup that exists, and a zero
 # with a step lacking publishes none for a project that needs one. The lines are printed either way,
