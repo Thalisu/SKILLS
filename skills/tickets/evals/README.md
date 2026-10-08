@@ -26,7 +26,7 @@ the local shape of the ticket format `tickets` links.
 
 | case | checks |
 |---|---|
-| `journey-paths-become-slices` | with a journey, the breakdown has one ticket per path, names the path, draws the blocking edges from `## States` with what each ticket reads and who writes it, states every estimate and band, folds nothing, and lists the cut story as left out; the one question is approval and nothing is published before it |
+| `journey-paths-become-slices` | with a journey, the breakdown has one ticket per path, names the path, draws the blocking edges from `## States` with what each ticket reads and who writes it, states every estimate and band, shows every ticket's acceptance criteria one per line, folds nothing, and lists the cut story as left out; the one question is approval and nothing is published before it |
 | `small-folds-into-neighbour` | two one-step paths on a single edge fold into one ticket that names both paths, with the fold rule stated; nothing is asked but approval |
 | `logic-never-folds-into-front-end` | on a spec that reads `Front-end: builder`, a one-step path with a screen is cut into a Logic ticket and a Front-end ticket, both small and on a single edge: the two are not folded, and the folds line names the rule that the two kinds are never joined; nothing is asked but approval |
 | `calibrates-from-resolved-tickets` | a resolved ticket of an earlier feature carries a `Context:` line, so the breakdown states the fixed load and the per-criterion cost read from it and every estimate is calibrated, not on the defaults |

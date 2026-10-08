@@ -257,6 +257,7 @@ Present the breakdown as a numbered list. For each ticket:
 - **Blocked by**: each blocking ticket with what this one reads and that the blocker writes it, or none
 - **Build repository**: only when the spec has a Repositories section, a line of its own under that label on every ticket, naming exactly one entry of the section by the name the section gives it, with `(Home repository)` after the name when it is that entry. With no such section the field is left out of every ticket
 - **Cross-service criteria**: only on a ticket that consumes another repository's change, the acceptance criteria that prove the two work together, one per line, each naming the provider's change it is checked against
+- **Acceptance criteria**: every criterion the ticket is published with, written out in full, one per line, and under the path each comes from when the ticket is a fold. Never a count, a summary or a sentence in another field standing in for them: the yes approves these lines, and the estimate counts them, so the number of lines is the criteria count the estimate states
 - **What it delivers**: the end-to-end behaviour this ticket makes work
 - **Kind**: `logic`, `front-end` or `setup`, on a spec that reads `Front-end: builder` or `Front-end: impeccable` only. On `none` the list carries no such field
 
@@ -275,13 +276,31 @@ Estimates are uncalibrated: no resolved ticket in the repo carries a measured `C
 
 1. **Set the snooze presets**
    - Path: Set the snooze presets
-   - Estimate: 160k, medium. 40k + 6 criteria × 15k = 130k, plus 30k for the settings migration. Uncalibrated.
+   - Estimate: 160k, medium. 40k + 6 criteria × 15k = 130k, plus 30k for the settings migration. Driven by the path's four steps and two failure branches, and by the migration that adds the presets to stored settings. Uncalibrated.
    - Blocked by: none
+   - Acceptance criteria:
+     - Settings shows the snooze presets, three by default
+     - Adding a preset puts it in the list at once
+     - Removing a preset takes it out of the list
+     - The list is kept after a reload
+     - A duration of zero is refused with "Pick a time above zero"
+     - The last preset cannot be removed: its Remove is disabled
    - What it delivers: the actor edits the list of snooze presets in settings and finds it kept after a reload.
 2. **Snooze a reminder**
    - Paths: Snooze a reminder; Undo a snooze
-   - Estimate: 175k, medium. 40k + 9 criteria × 15k (6 from snoozing, 3 from undoing). Uncalibrated.
+   - Estimate: 175k, medium. 40k + 9 criteria × 15k. Driven by the criteria alone, 6 from snoozing and 3 from undoing; it crosses nothing heavy. Uncalibrated.
    - Blocked by: 1, since the snooze picker reads the presets, which 1 writes.
+   - Acceptance criteria, from "Snooze a reminder":
+     - A due reminder offers Snooze
+     - Snooze opens a picker listing the presets
+     - Picking a preset takes the reminder out of the due list
+     - The reminder shows "Snoozed until" with the time it returns
+     - At that time the reminder is due again
+     - A reminder deleted while snoozed never comes back
+   - Acceptance criteria, from "Undo a snooze":
+     - A snoozed reminder offers Undo snooze
+     - Undo puts the reminder back in the due list at once
+     - Undo after the snooze has ended is not offered
    - What it delivers: the actor snoozes a due reminder to a preset, sees it come back at that time, and can undo the snooze before then.
 
 Splits: none.
