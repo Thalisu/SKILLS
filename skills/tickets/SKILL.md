@@ -81,7 +81,7 @@ Read the spec fully, in the format of [.agents/formats/spec-format.md](../../.ag
 | The line | What happens |
 |---|---|
 | a location: `./journey.md`, `docs/journeys/<slug>.md`, or a link | the journey is read, fully; a relative location resolves from the spec file in local mode and from the repository root in a remote tracker |
-| `not needed, <condition>` | the User Stories are the paths, said in one line |
+| `not needed, <condition>` | the User Stories are the paths, said in one line of its own before the breakdown, which names the verdict: "The spec's verdict is `not needed`, so the cut comes from its User Stories." |
 | `required` | a stop: the journey was never walked |
 | no line | the spec did not come from `spec`; the User Stories are the paths, said in one line |
 
