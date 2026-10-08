@@ -9,7 +9,8 @@
 # snapshot writes the state file, one record per path git reports as not clean (modified, staged,
 # deleted, or untracked and not ignored) with the hash of its working content, and prints
 # state=<state file> and recorded=<n paths>. The state file sits outside the checkout or at a path
-# git ignores in it, since a record git reported would be a change of its own. Nothing under
+# git ignores in it, since a record git reported would be a change of its own. The state path is
+# resolved before that match: a relative path, or one through a symlink, counts where it lands. Nothing under
 # .claude/worktrees/ is read, at the snapshot or at the check: the worktrees there are the runs' own.
 #
 # check prints verdict=untouched and changed=0 when the checkout reads as the state file recorded
@@ -64,9 +65,12 @@ records() { # one NUL-terminated `<content> <path>` record per path git reports 
 }
 
 if [ "$mode" = snapshot ]; then
-  case "$state" in
+  # The match runs on the path as it lands: a relative path, or one through a symlink, would
+  # otherwise skip the ignore check and sit in the checkout as a change of its own.
+  landing="$(realpath -m -- "$state")"
+  case "$landing" in
     "$main"/*)
-      git -C "$main" check-ignore -q -- "$state" || {
+      git -C "$main" check-ignore -q -- "$landing" || {
         echo "$state is inside $main at a path git does not ignore" >&2
         exit 2
       }

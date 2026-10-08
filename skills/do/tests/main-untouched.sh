@@ -137,4 +137,22 @@ echo created >created.txt
 refuses "a check with no snapshot recorded refuses in a checkout holding uncommitted work, naming the state file, and prints no verdict" names \
   "$no_snapshot_state" check "$no_snapshot" "$no_snapshot_state"
 
+fresh relative-state
+printf '.scratch/\n' >.gitignore
+echo one >tracked.txt
+commit "base"
+relative_state="notes/ticket.state"
+mkdir -p "$(dirname "$relative_state")"
+refuses "a snapshot whose state file is a relative path inside the checkout that git does not ignore refuses, naming the state file" names \
+  "$relative_state" snapshot . "$relative_state"
+expect "a snapshot refused over a relative state file git does not ignore writes no state file" \
+  test ! -e "$relative_state"
+
+ln -s "$tmp/relative-state/notes" "$tmp/state-link"
+linked_state="$tmp/state-link/ticket.state"
+refuses "a snapshot whose state file is reached through a symlink landing inside the checkout at a path git does not ignore refuses, naming the state file" names \
+  "$linked_state" snapshot "$tmp/relative-state" "$linked_state"
+expect "a snapshot refused over a symlinked state file landing at a path git does not ignore writes nothing at the landing path" \
+  test ! -e "$tmp/relative-state/notes/ticket.state"
+
 [ "$fails" = 0 ]
