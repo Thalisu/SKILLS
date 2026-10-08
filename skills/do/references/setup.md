@@ -236,6 +236,10 @@ The close runs only when the check exits 0, every step line reading done, and th
 done, the session's own skill listing naming impeccable. Then no step is shown: a project already
 set up is not walked through six steps it has.
 
+The close is reached the same way from a Ticket's first check, from a resumed `/do` and from the
+re-check after the last step, the commit: the same writes to the Ticket, criteria ticked, evidence
+appended and status set to `resolved`, and the same Reply.
+
 The line the close waits for is `setup-committed=done`, the one the check reads off the committed
 tree, the setup facts at `HEAD`, with the reload step done as well. The lines above it read the
 working tree, and their reading done is not enough: while the setup files are present but
@@ -271,8 +275,8 @@ and a worktree cut before the setup is committed would not carry it.
    and take its `next=` line.
 
 The Reply is one message: `Playbook: setup` on the first line, one line saying the Ticket is
-resolved with every step done on the first check, the check's lines and `reload=done` as its
-evidence, and a last line read off `next=`:
+resolved, the six steps in the table's order, each marked `done`, then the check's lines and
+`reload=done` as its evidence, and a last line read off `next=`:
 
 | `next=` | Last line of the Reply |
 |---|---|
@@ -283,7 +287,15 @@ evidence, and a last line read off `next=`:
 
 ```
 Playbook: setup
-Resolved: <path>, every step done on the first check.
+Resolved: <path>, every step done.
+
+1. Install impeccable: done
+2. Reload the coding tool: done
+3. Initialise the project context: done
+4. Document the design system: done
+5. Set the code-led build path: done
+6. Commit the setup files: done
+
 impeccable-skill=done
 product-context=done
 design-system=done
@@ -293,6 +305,10 @@ uncommitted=none
 reload=done
 /do <the path next= names>
 ```
+
+The Reply's resolved line ends "every step done on the first check." only when the close ran on
+the Ticket's first check, the door's verdict reading `start`, and never at the end of a walk,
+after a re-check or a resume, where it reads "every step done." and nothing more.
 
 ## What this run never does
 

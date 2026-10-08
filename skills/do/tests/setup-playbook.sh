@@ -21,6 +21,9 @@
 # The close needs the check's setup-committed=done line, the one read off the committed tree, as well
 # as the reload done: with the setup files present but uncommitted the commit step is shown and the
 # Ticket stays claimed, since the Tickets it blocks are built in worktrees cut from a commit.
+# The close is reached the same way, with the same writes, from the re-check after the last step and
+# from a resumed `/do`: there the Reply lists the six steps each marked done in the table's order
+# ahead of the check's lines, and says "on the first check" only when the close ran on the first one.
 # After a step message, anything the developer writes makes the run run the check and read the skill
 # listing again, taking nothing on their word, and with that step done the next missing one is
 # written in the message's shape, the steps already done getting their done mark and no line more.
@@ -670,6 +673,74 @@ carries_any "which would not carry an uncommitted setup" \
   "carry no" "would lack" "would miss" "would not hold" "does not hold" "would not have" \
   "does not have" "would start without" "start without" "without the setup" "half-finished" \
   "is not in" "are not in" "never reaches" "never reach" "would not reach" "does not reach"
+
+echo "# setup.md / ## The close: at the end of a walk the Reply shows the six steps done ahead of the check's lines, and says first check only on a first check"
+# The samples carry check lines and a Reply of their own inside fences, so the prose is read with the
+# fenced blocks dropped, and the samples are read apart, for the step lines a Reply may list.
+close_prose="$(awk '
+  /^ *```/ { fence = !fence; next }
+  fence { next }
+  { print }
+' <<<"$close")"
+flat="$({
+  paragraph_with <(printf '%s\n' "$close_prose") "resum" all
+  paragraph_with <(printf '%s\n' "$close_prose") "re-check" all
+  paragraph_with <(printf '%s\n' "$close_prose") "run again" all
+} | tr '\n' ' ' | tr -s ' ')"
+expect "the close says where it is reached from besides a Ticket's first check" test -n "${flat// /}"
+carries_each "it is reached from the re-check after the last step and from a resumed /do" \
+  "re-check" "## The re-check" "check run again" "check is run again" "runs the check again" \
+  "re-run of the check" "check after the last step" "check after the commit" -- \
+  "resum" "Resum" "later \`/do\`" "later /do"
+carries_any "the same way as from the first check" \
+  "same way" "the same close" "same close" "likewise" "alike" "no differently" "no different" \
+  "as from the first check" "as on the first check" "as from a first check" "as on a first check" \
+  "exactly as" "identical"
+same_writes="$(first_at "same writes" "same three writes" "same edits" "same three edits" \
+  "writes are the same" "edits are the same" "same numbered steps" "same three steps" \
+  "writes the Ticket the same" "written the same")"
+if [ "$same_writes" -gt 0 ]; then
+  ok "with the same writes to the Ticket: criteria ticked, evidence appended, Status resolved"
+else
+  carries_each "with the same writes to the Ticket: criteria ticked, evidence appended, Status resolved" \
+    "tick" "Tick" "[x]" -- \
+    "Evidence" "evidence" -- \
+    "resolved"
+fi
+
+reply="$(paragraph_with <(printf '%s\n' "$close_prose") "Reply" all | tr '\n' ' ' | tr -s ' ')"
+flat="$reply"
+six=("six steps" "six step" "all six" "each of the six" "every one of the six" "the six ")
+carries_each "the Reply lists the six steps, each marked done" \
+  "${six[@]}" -- \
+  "marked \`done\`" "marked done" "each \`done\`" "each done" "each reading \`done\`" "each reading done" \
+  "reads \`done\`" "its \`done\` mark" "their \`done\` mark" "done mark" ": done" "as \`done\`" "as done"
+# A sample Reply that lists them: six lines of one fenced block, each naming a step and its done mark
+# (a check line carries a `=` and is no step line), in the table's order, the check's lines after.
+listed="$(names="$(printf '%s\n' "${step_names[@]}")" awk '
+  BEGIN { n = split(ENVIRON["names"], name, "\n"); want = 1 }
+  /^ *```/ { fence = !fence; want = 1; next }
+  !fence { next }
+  want <= n && index($0, name[want]) && index($0, "done") && !index($0, "=") { want++; next }
+  want > n && index($0, "impeccable-skill=done") { found = 1 }
+  END { print found + 0 }
+' <<<"$close")"
+said="$(first_at "in order" "in the table's order" "in the order of the table" "table's order" \
+  "in their order" "in row order" "in the order they" "in the order of the rows" "the rows' order")"
+expect "the six steps stand in the table's order" test "$listed" = 1 -o "$said" -gt 0
+steps_at="$(first_at "${six[@]}")"
+lines_at="$(first_at "the check's lines" "check's five lines" "check's step lines" \
+  "lines the check printed" "the check printed" "check's output" "reload=done")"
+expect "the check's lines and reload=done come after the steps, as the evidence" \
+  test "$listed" = 1 -o \( "$steps_at" -gt 0 -a "$lines_at" -gt "$steps_at" \)
+
+# Only the sentences that carry the words rule when they stand on the resolved line.
+flat="$(tr '\n' ' ' <<<"$close_prose" | tr -s ' ' | sed 's/\. /.\n/g' | grep -F "on the first check" | tr '\n' ' ')"
+expect "the close rules the words \"on the first check\" in its prose" test -n "${flat// /}"
+carries_each "they stand on the resolved line only when the close ran on the first check, never at the end of a walk" \
+  "only when" "only if" "only where" "only on" "only for" "only after" "and only then" "alone" -- \
+  "walk" "re-check" "resum" "Resum" "step was shown" "step message" -- \
+  "never" "Never" "not " "no " "without" "drops" "omits" "leaves out" "left out"
 
 [ "$fails" -eq 0 ] && exit 0
 exit 1
