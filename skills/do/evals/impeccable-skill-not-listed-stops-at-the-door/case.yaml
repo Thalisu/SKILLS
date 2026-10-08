@@ -1,0 +1,106 @@
+name: impeccable-skill-not-listed-stops-at-the-door
+tags: [playbook, ticket, stop, impeccable]
+runs: 2
+max_turns: 15
+timeout_seconds: 300
+allowed_tools: [Bash, Read, Edit, Write, Glob, Grep, Agent, Skill]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # The fixture of impeccable-front-end-ticket-forks-do-impeccable without the stand-in skill: the
+    # Spec reads Front-end: impeccable, the Front-end ticket's Logic ticket is resolved, and the
+    # session lists no impeccable skill, since the project ships none and the runner's sandbox
+    # home carries no impeccable install. The run stops at the door with Yours: direction: and
+    # the two choices, and writes nothing: no claim, no Spec branch, no worktree, no fork.
+    set -e
+    mkdir -p src .scratch/notes-page/issues .impeccable
+    cat > src/notes.js <<'JS'
+    const notes = [];
+    export function create(title) {
+      const note = { id: notes.length + 1, title };
+      notes.push(note);
+      return note;
+    }
+    export function list() {
+      return [...notes].reverse();
+    }
+    JS
+    cat > README.md <<'MD'
+    # notes
+
+    A small notes module with a web page to list the notes.
+    MD
+    printf '.scratch/\n' > .gitignore
+    echo "# Product" > PRODUCT.md
+    printf '{ "buildPath": "code" }\n' > .impeccable/config.json
+    cat > .scratch/notes-page/spec.md <<'MD'
+    # Spec: Notes list page
+
+    Journey: none
+    Front-end: impeccable
+    Status: ready-for-agent
+
+    ## Problem Statement
+
+    Notes can be created but never seen: there is no page that lists them.
+
+    ## User Stories
+
+    1. As a user, I want a page that lists my notes, so that I can find one.
+    2. As a user with no notes, I want the page to say so, so that I do not take it for broken.
+    MD
+    cat > .scratch/notes-page/issues/00-set-up-impeccable.md <<'MD'
+    # 00: Set up impeccable
+
+    **What to build:** The impeccable setup in this project, run by the developer one step at a time, so the screens of this Spec can be built by impeccable.
+
+    **Blocked by:** None (can start immediately)
+
+    **Status:** resolved
+
+    **Kind:** setup
+
+    - [x] Install impeccable from a terminal
+    - [x] Reload the coding tool
+    - [x] Initialise the project context in an agent session
+    - [x] Document the design system, when one exists
+    - [x] Set the code-led build path
+    - [x] Commit the setup files on the developer's branch
+
+    ## Evidence
+    MD
+    cat > .scratch/notes-page/issues/01-list-the-notes.md <<'MD'
+    # 01: List the notes
+
+    **What to build:** A function that returns every note, newest first.
+
+    **Blocked by:** 00 Set up impeccable
+
+    **Status:** resolved
+
+    **Kind:** logic
+
+    - [x] Every created note is returned, newest first
+
+    ## Evidence
+    MD
+    cat > .scratch/notes-page/issues/02-notes-list-page.md <<'MD'
+    # 02: Notes list page
+
+    **What to build:** A page at `src/notes.html` that lists the notes `list()` returns, newest first.
+
+    **Blocked by:** 01 List the notes
+
+    **Status:** ready-for-agent
+
+    **Kind:** front-end
+
+    - [ ] The page shows one row per note with its title, newest first
+    - [ ] With no notes, the page says there are none yet
+
+    ## Evidence
+    MD
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
+    git checkout -q -b notes-page

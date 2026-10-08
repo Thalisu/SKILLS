@@ -1,0 +1,5 @@
+---
+type: llm
+criteria: "Before the Agent call whose subagent_type is do-impeccable, the run created a worktree with `git worktree add` under .claude/worktrees/ on a branch named do/notes-list-page. The prompt of that Agent call carries a `Ticket:` line naming the Ticket file .scratch/notes-page/issues/02-notes-list-page.md by its absolute path in the main checkout, and a `Worktree:` line naming the absolute path of that worktree's root. It carries no other key: no Plan, no Digest, no line naming a file or a place the return should be written to, and no standing rule (nothing telling the fork to load a skill, where it may write, how to commit or what to return). No file named like a Plan (ending in .plan.md) exists beside the Ticket."
+---
+The brief to `do-impeccable` is the Ticket and the worktree root, handed over once the worktree is cut as for any Ticket: no key for where the return goes, and no rule the agent's own definition already holds.

@@ -1,0 +1,119 @@
+name: impeccable-front-end-ticket-forks-do-impeccable
+tags: [playbook, ticket, run, impeccable]
+runs: 1
+max_turns: 150
+timeout_seconds: 2400
+allowed_tools: [Bash, Read, Edit, Write, Glob, Grep, Agent, Skill]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # A Front-end ticket of a Spec that reads Front-end: impeccable, its Setup ticket and its Logic
+    # ticket both resolved, on a working branch. The session lists an impeccable skill, a stand-in
+    # in the project's .claude/skills, so the door lets the Ticket through: the run answers
+    # Playbook: ticket, forks no Planner, cuts the worktree and forks do-impeccable with the Ticket
+    # and the worktree root.
+    #
+    # impeccable itself is never run: the stand-in tells whoever loads it to write the page as
+    # plain HTML and JavaScript. The graders read the fork made and the brief handed over, never
+    # the screen built.
+    set -e
+    mkdir -p src .scratch/notes-page/issues .claude/skills/impeccable .impeccable
+    cat > src/notes.js <<'JS'
+    const notes = [];
+    export function create(title) {
+      const note = { id: notes.length + 1, title };
+      notes.push(note);
+      return note;
+    }
+    export function list() {
+      return [...notes].reverse();
+    }
+    JS
+    cat > README.md <<'MD'
+    # notes
+
+    A small notes module with a web page to list the notes.
+    MD
+    printf '.scratch/\n' > .gitignore
+    echo "# Product" > PRODUCT.md
+    printf '{ "buildPath": "code" }\n' > .impeccable/config.json
+    cat > .claude/skills/impeccable/SKILL.md <<'MD'
+    ---
+    name: impeccable
+    description: "Stand-in for the impeccable design skill in this fixture. Load it only when an agent definition tells you to."
+    ---
+
+    A stand-in for the impeccable design skill. Build the screen as plain HTML and JavaScript
+    files under `src/`, code-led: open no browser, generate no image and ask nothing.
+    MD
+    cat > .scratch/notes-page/spec.md <<'MD'
+    # Spec: Notes list page
+
+    Journey: none
+    Front-end: impeccable
+    Status: ready-for-agent
+
+    ## Problem Statement
+
+    Notes can be created but never seen: there is no page that lists them.
+
+    ## User Stories
+
+    1. As a user, I want a page that lists my notes, so that I can find one.
+    2. As a user with no notes, I want the page to say so, so that I do not take it for broken.
+    MD
+    cat > .scratch/notes-page/issues/00-set-up-impeccable.md <<'MD'
+    # 00: Set up impeccable
+
+    **What to build:** The impeccable setup in this project, run by the developer one step at a time, so the screens of this Spec can be built by impeccable.
+
+    **Blocked by:** None (can start immediately)
+
+    **Status:** resolved
+
+    **Kind:** setup
+
+    - [x] Install impeccable from a terminal
+    - [x] Reload the coding tool
+    - [x] Initialise the project context in an agent session
+    - [x] Document the design system, when one exists
+    - [x] Set the code-led build path
+    - [x] Commit the setup files on the developer's branch
+
+    ## Evidence
+    MD
+    cat > .scratch/notes-page/issues/01-list-the-notes.md <<'MD'
+    # 01: List the notes
+
+    **What to build:** A function that returns every note, newest first.
+
+    **Blocked by:** 00 Set up impeccable
+
+    **Status:** resolved
+
+    **Kind:** logic
+
+    - [x] Every created note is returned, newest first
+
+    ## Evidence
+    MD
+    cat > .scratch/notes-page/issues/02-notes-list-page.md <<'MD'
+    # 02: Notes list page
+
+    **What to build:** A page at `src/notes.html` that lists the notes `list()` returns, newest first.
+
+    **Blocked by:** 01 List the notes
+
+    **Status:** ready-for-agent
+
+    **Kind:** front-end
+
+    - [ ] The page shows one row per note with its title, newest first
+    - [ ] With no notes, the page says there are none yet
+
+    ## Evidence
+    MD
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
+    git checkout -q -b notes-page
