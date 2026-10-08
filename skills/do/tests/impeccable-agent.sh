@@ -152,4 +152,59 @@ carries_any "the body tells the fork never to wait on an answer or ask a questio
   "never wait for an answer" "never waits for an answer" "nor on an answer" \
   "nor for an answer" "no question" "not ask"
 
+echo "# skills/do/agents/do-impeccable.md: its body closes each acceptance criterion with one commit quoting it"
+
+# The Reply and a resumed run match commits to the Ticket by the `Behaviour:` line
+# (resume-state.sh prints one `behaviour=` line per commit from it): a commit covering two
+# criteria, or quoting none, has a resumed fork rebuild a criterion already built or skip one never
+# built. The frontmatter's description already names the commit, so only the body is read here.
+carries_any "the body has the fork make one commit per acceptance criterion" \
+  "ne commit per criterion" "ne commit per acceptance criterion" "ne commit for each criterion" \
+  "ne commit for each acceptance criterion" "ne commit for every criterion" "ne commit each" \
+  "a commit per criterion" "ne criterion, one commit" "ne commit, one criterion" \
+  "ne criterion per commit" "riterion is closed by one commit" "riterion closes with one commit" \
+  "riterion closes in one commit" "riterion ends in one commit" "riterion gets one commit" \
+  "riterion gets its own commit" "riterion in its own commit" "riterion with one commit" \
+  "riterion with a single commit" "riterion by one commit" "ne commit closes each criterion" \
+  "ne commit closes a criterion" "ommit once per criterion" "exactly one commit" \
+  "a single commit per criterion" "its own commit"
+
+carries_any "the body never lets one commit cover two criteria" \
+  "ommit covering two" "ommit covers two" "ommit cover two" "ommit for two criteria" \
+  "ommit that covers two" "ommit spanning two" "ommit spans two" "ommit span two" \
+  "ommit closes two" "ommit closing two" "ommit close two" "ommit carries two" \
+  "ommit carrying two" "ommit holds two" "ommit holding two" "two criteria in one commit" \
+  "two criteria into one commit" "two criteria in a single commit" "two criteria in the same commit" \
+  "two criteria share a commit" "two criteria never share" "more than one criterion" \
+  "ever fold two criteria" "ever batch two criteria" "ever squash two criteria" \
+  "ever combine two criteria" "ever merge two criteria" "ever group two criteria"
+
+carries_any "the body never lets the next criterion start with the one before it half-built" \
+  "half-built" "half built" "half-done" "half done" "half-finished" "half finished" \
+  "partly built" "partially built" "left unfinished" "leave one unfinished" \
+  "leave a criterion unfinished" "inish one criterion before" "inish a criterion before" \
+  "inish each criterion before" "inish it before" "before you start the next" \
+  "before starting the next" "before the next one starts" "before the next starts" \
+  "before the next criterion" "before the next one" "before moving to the next" \
+  "before you move to the next" "before moving on" "before you move on" \
+  "committed before the next" "closed before the next" "built whole before"
+
+# Scoped to the paragraphs naming the line: "verbatim" or "own line" said of anything else in the
+# body never answers for the commit's `Behaviour:` line.
+# shellcheck disable=SC2034  # lib.sh's carries_each reads $flat
+flat="$(paragraph_with <(body_of "$agent") "Behaviour:" all | tr '\n' ' ' | tr -s ' ')"
+expect "the body names the commit's Behaviour: line" test -n "$flat"
+
+carries_each "the body puts the Behaviour: line on a line of its own in the commit body, quoting its criterion verbatim" \
+  "on a line of its own" "on its own line" "a line of its own" "its own line" "own line" \
+  "a line by itself" "alone on a line" "alone on its line" "a separate line" "a line to itself" \
+  -- \
+  "commit body" "commit's body" "body of the commit" "body of each commit" "body of its commit" \
+  "body of that commit" "message body" "message's body" "body of the message" \
+  "body of the commit message" "in its body" "in the body" "second \`-m\`" "a second -m" \
+  -- \
+  "verbatim" "word for word" "character for character" "letter for letter" \
+  "exactly as the Ticket" "exactly as written" "exactly as it is written" "exactly as it reads" \
+  "as the Ticket writes it" "as the Ticket words it" "unchanged" "unedited"
+
 exit "$((fails > 0))"

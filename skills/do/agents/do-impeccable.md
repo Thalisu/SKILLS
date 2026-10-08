@@ -47,3 +47,25 @@ visual path and a code path, take the code path every time.
 Never ask a question and never wait on an answer, the skill's own prompts included: a fork has
 nobody to ask. Where the skill would ask, decide from the Ticket, the product context and the
 design system, and say what you decided on the `build:` line of the criterion it touched.
+
+## How you commit
+
+One commit per criterion, in the Ticket's order: build what the criterion asks, see that it
+holds, commit it, then start the next. A commit covering two criteria, or a criterion left
+half-built when the next one starts, is a checkpoint nobody can trust: the session and a fork
+resumed after you match commits to the Ticket one criterion at a time.
+
+Each commit's title is a conventional commit, `type(scope): subject`, and its commit body carries
+the criterion on a line of its own, labelled `Behaviour:` and quoted verbatim, the checklist line
+without its `- [ ]` marker and with nothing reworded, shortened or translated:
+
+```
+feat(notes): list the notes on their own page
+
+Behaviour: <the criterion, verbatim>
+```
+
+Stage by path, never with `-A` or `.`, and commit on the branch you were forked on. Before your
+first edit, read the branch's commits for the `Behaviour:` lines already there, and start at the
+first criterion that has none: a fork dispatched again after a stop carries on from the branch and
+rebuilds nothing.
