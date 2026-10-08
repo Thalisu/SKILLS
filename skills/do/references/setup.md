@@ -96,6 +96,22 @@ Its exit code decides what comes next:
   The setup check could not run: <the check's own stderr line, or the path the script was not found at>
   ```
 
+The reload is the one step the check has no line for, so every run, a first one and a resumed one
+alike, reads the skill listing of its own session for it, beside the check's lines:
+
+- When the listing names `impeccable`, or a skill under `impeccable:`, the reload step reads done,
+  and the step shown is the next missing one the check's lines give.
+- When the listing does not name it, the reload step reads missing, and with the install done it is
+  the step shown. On a resumed run the developer has already been told to reload, so the reload
+  step is shown again with one line above it saying the skill is still not listed in this session:
+
+  ```
+  impeccable is still not listed in this session.
+  ```
+
+The listing is read off the session itself, never off a file: a skill installed on disk that this
+session did not load is not listed, and impeccable could not run in it.
+
 ## The steps
 
 The six steps of the Setup ticket, in the order the developer runs them. This table is the only

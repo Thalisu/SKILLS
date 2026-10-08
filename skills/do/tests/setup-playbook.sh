@@ -34,6 +34,10 @@
 # plain `/do` line on the Ticket again, says why (a session lists the skills it loaded when it
 # started, so waiting in this one proves nothing), and closes on that `/do` line in place of "Say
 # when it is done.".
+# The reload has no line in the check, so every run, a resumed one included, reads its own session's
+# skill listing for it: a listing that names impeccable reads the reload done and the next missing
+# step is shown, and one that does not reads it missing, a resumed run showing the reload step again
+# with a line saying the skill is still not listed in this session.
 # The route and the steps are prose a session follows, so they are proven over the passages that
 # carry them.
 # Run: bash skills/do/tests/setup-playbook.sh
@@ -523,6 +527,56 @@ carries_each "the reload message closes on the /do line in place of the words th
   "Say when it is done." -- \
   "in place of" "instead of" "rather than" "replaces" "replacing" "and not on" "and never on" \
   "not on \"Say" "never on \"Say" "takes the place of" "where the other steps"
+
+echo "# setup.md / ## The check: a resumed run reads its own skill listing for the reload, done when it names impeccable and shown again when it does not"
+# Only the paragraphs naming the listing rule the reload proof: the fenced blocks are dropped and
+# each bullet is read as a paragraph of its own, so the exit-code bullet for 0, which names the
+# reload and no listing, must not answer for it.
+flat="$(paragraph_with <(passage_of "$setup" "## The check" "## " 2>/dev/null | awk '
+  /^ *```/ { fence = !fence; next }
+  fence { next }
+  /^ *- / { print "" }
+  { print }
+') "list" all | tr '\n' ' ' | tr -s ' ')"
+expect "the check section rules the reload proof in prose naming the skill listing" test -n "${flat// /}"
+carries_any "the proof is the session's skill listing" \
+  "skill listing" "skills listing" "listing of skills" "skill list" "skills list" "available skills" \
+  "lists the skills" "lists \`impeccable\`" "lists impeccable" "listed skills" "skills it lists"
+carries_each "the reload is the step the check has no line for" \
+  "reload" "Reload" "step 2" "Step 2" -- \
+  "no line" "No line" "none of its lines" "none of the lines" "no script reads" "no step line" \
+  "not one of its lines" "not among its lines" "not a line of" "never prints" "does not print" \
+  "nothing for the reload"
+carries_each "every run, a resumed one included, reads the listing of its own session" \
+  "every run" "Every run" "each run" "Each run" "any run" "every \`/do\`" "every /do" "each \`/do\`" \
+  "whichever run" "a first run and a resumed" "a first run or a resumed" "the first run and a resumed" \
+  "first or resumed" "start or resume" "\`start\` or \`resume\`" "\`start\` and \`resume\`" -- \
+  "resum" "Resum" -- \
+  "its own" "own session" "session's own" "this session" "the session it runs in" "the session it is in"
+carries_each "a listing that names impeccable, or a skill under impeccable:, reads the reload step done" \
+  "\`impeccable\`" -- \
+  "\`impeccable:\`" "impeccable:" -- \
+  "reads done" "reads \`done\`" "read done" "read \`done\`" "is done" "is \`done\`" "as done" \
+  "as \`done\`" "step done" "marked done" "marked \`done\`" "counts done" "is proven" "is proved" \
+  "proves the reload" "proves the step" "proves it"
+carries_any "and the step shown is then the next missing one" \
+  "next missing" "next step still missing" "next one still missing" "next \`missing\`" \
+  "next step that" "next step whose" "next row whose" "next one that"
+carries_each "a listing that does not name it reads the reload step missing" \
+  "does not name" "does not list" "names neither" "lists neither" "names no" "lists no" "not listed" \
+  "not named" "is not in the listing" "is absent" "no such skill" "without it" "unlisted" -- \
+  "reads missing" "reads \`missing\`" "read missing" "read \`missing\`" "is missing" "is \`missing\`" \
+  "as missing" "as \`missing\`" "step missing" "marked missing" "marked \`missing\`" "counts missing"
+carries_each "and on a resumed run the reload step is shown again" \
+  "resum" "Resum" -- \
+  "shown again" "shows it again" "shows the reload step again" "shows the step again" \
+  "shows the reload again" "shows that step again" "again in full" "is written again" \
+  "writes it again" "shown once more" "shown a second time" "repeats the reload" "repeats the step"
+carries_each "with a line saying the skill is still not listed in this session" \
+  "still not listed" "still does not list" "still lists no" "still unlisted" "still not named" \
+  "still does not name" "still names no" "still missing from" "still not in the listing" \
+  "still absent" "is still not" -- \
+  "this session" "the session" "its session" "that session"
 
 [ "$fails" -eq 0 ] && exit 0
 exit 1
