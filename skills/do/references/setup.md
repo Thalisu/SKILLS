@@ -183,6 +183,13 @@ The Ticket's `**Status:**` line still reads `claimed`, and nothing else is writt
 file: no criterion is ticked and no evidence is appended before the close. A developer who leaves
 on a step that keeps failing leaves a Ticket any later `/do` picks up at the check.
 
+When the developer comes back with a question instead of word that the step is done, the run
+answers the question first, under the first line. A question is never read as "done", and never as
+a reason to skip the check: the check runs anyway, in the same turn, and after the answer the
+message shows the six steps and the current step again in full, with its command, its place and
+"Say when it is done.", so the developer never has to scroll back for the command they were on.
+Where the step was done in the meantime, the step shown is the next missing one, as above.
+
 ## The close
 
 The close runs only when the check exits 0, every step line reading done, and the reload step reads

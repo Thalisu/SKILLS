@@ -24,6 +24,9 @@
 # With that step still missing, the message quotes the check's own missing line for it (and the
 # uncommitted= line with its files at the commit step), shows the same command again, and the Ticket
 # stays claimed with nothing else written to it.
+# A message that is a question and not word that the step is done is answered first, the check runs
+# anyway in that same turn, the question never reads as "done", and the current step is shown again
+# in full, with its command, after the answer.
 # A later `/do` on a Setup ticket left claimed, in the session that showed the step or in a new one,
 # carries nothing over from the earlier turn: it writes no second claim, runs the check, and shows
 # the first step that check reads missing, every step done since skipped.
@@ -435,6 +438,40 @@ carries_any "the step it shows is the first one this check reads missing" \
 carries_any "so every step done since is skipped" \
   "skip" "Skip" "passed over" "passes over" "not shown again" "never shown again" "never the first step again" \
   "not the first step again" "is not repeated" "never repeated" "not asked again" "never asked again"
+
+echo "# setup.md / ## The re-check: a question is answered, the check runs in the same turn, and the current step is shown again in full"
+# Only the paragraphs naming a question rule this case: the section's other paragraphs say "again",
+# "in full" and "command" for a step that did not take, and must not answer for it.
+flat="$(paragraph_with <(passage_of "$setup" "## The re-check" "## " 2>/dev/null) "uestion" all | tr '\n' ' ' | tr -s ' ')"
+expect "the re-check rules a developer message that is a question" test -n "${flat// /}"
+carries_any "the case is a question in place of word that the step is done" \
+  "not word that" "rather than word that" "instead of word that" "instead of saying" "rather than saying" \
+  "not a claim" "not saying" "not that the step is done" "not that it is done" "and not \"done\"" \
+  "instead of \"done\"" "rather than \"done\"" "without saying" "asks instead" "asks rather than" \
+  "does not say it is done" "does not say the step is done" "says nothing of the step being done"
+carries_any "the run answers the question" "answer" "Answer"
+carries_each "the check runs anyway, in that same turn" \
+  "anyway" "still runs" "runs all the same" "all the same" "regardless" "either way" "even so" \
+  "runs as well" "runs too" "runs the check too" "still run" "nonetheless" "no less" \
+  "like any other message" "as for any other message" "as with any other message" -- \
+  "same turn" "that turn" "this turn" "the turn" "one turn" "single turn" "same reply" "same message" \
+  "one message" "one reply"
+carries_any "a question is never read as done" \
+  "never read as" "not read as" "never reads as" "does not read as" "never taken as" "not taken as" \
+  "never counts as" "does not count as" "never treated as" "not treated as" "never means" \
+  "does not mean" "is not \"done\"" "is no \"done\"" "is never \"done\"" "is not word that" \
+  "is no word that" "never stands for" "never passes for" "never mistaken for" "not mistaken for"
+carries_each "the current step is shown again in full, with its command" \
+  "again" "Again" "once more" "a second time" "anew" -- \
+  "in full" "whole" "complete" "entire" "every line" "all its lines" "all of its lines" -- \
+  "command" "Run:"
+answer_at="$(first_at "answer" "Answer")"
+full_at="$(first_at "in full" "whole" "complete" "entire" "every line" "all its lines" "all of its lines")"
+said="$(first_at "after the answer" "below the answer" "under the answer" "following the answer" \
+  "follows the answer" "after answering" "answer first" "answers first" "answers the question first" \
+  "answers it first" "first answers" "answer comes first" "answer goes first" "answer opens" \
+  "opens on the answer" "opens with the answer" "ahead of the step" "before the step" "above the step")"
+expect "the step comes after the answer" test "$said" -gt 0 -o \( "$answer_at" -gt 0 -a "$full_at" -gt "$answer_at" \)
 
 [ "$fails" -eq 0 ] && exit 0
 exit 1
