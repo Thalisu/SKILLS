@@ -52,7 +52,9 @@ records() { # one NUL-terminated `<content> <path>` record per path git reports 
   # --no-renames keeps every entry to one path: a rename would print its source as a second field.
   # The run's own worktree and every other run's sit under .claude/worktrees/, which a project is
   # not obliged to ignore.
-  git -C "$main" status --porcelain -z --no-renames --untracked-files=all \
+  # --no-optional-locks: a plain status refreshes the index and rewrites it, which is a write in
+  # the checkout this script only reads, and a lock the developer's own git would wait on.
+  git -C "$main" --no-optional-locks status --porcelain -z --no-renames --untracked-files=all \
     -- . ':(exclude,top).claude/worktrees' |
     while IFS= read -r -d '' path; do
       path="${path:3}"

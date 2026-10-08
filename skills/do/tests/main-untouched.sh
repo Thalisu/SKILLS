@@ -88,4 +88,39 @@ run check "$own_work" "$own_work_state"
 same "files written in a worktree under .claude/worktrees/, standing at the snapshot or cut after it, and files git ignores are never listed" \
   $'verdict=untouched\nchanged=0'
 
+fresh left-alone
+left_alone="$tmp/left-alone"
+printf '.scratch/\n' >.gitignore
+echo one >tracked.txt
+echo one >modified.txt
+echo one >deleted.txt
+echo one >stale.txt
+commit "base"
+echo wip >>tracked.txt
+echo staged >staged.txt
+g add staged.txt
+echo untracked >untracked.txt
+left_alone_state="$left_alone/.scratch/main-state/ticket.state"
+mkdir -p "$(dirname "$left_alone_state")"
+
+run snapshot "$left_alone" "$left_alone_state"
+echo created >created.txt
+echo two >>modified.txt
+rm deleted.txt
+echo staged >staged-after.txt
+g add staged-after.txt
+# stop_state runs git status, which refreshes the index itself: the stat data goes stale only after
+# it, so the check is the first read to meet it.
+before="$(stop_state)"
+touch -d '2001-01-01 00:00:00' stale.txt
+index_before="$(sha256sum .git/index)"
+run check "$left_alone" "$left_alone_state"
+index_after="$(sha256sum .git/index)"
+check_lines "a check over a created, a modified, a deleted and a staged file reads changed" 0 "$rc" \
+  'verdict=changed'
+expect "a check that finds changes leaves the index file byte for byte as it found it" \
+  test "$index_after" = "$index_before"
+expect "a check that finds changes leaves every working file, the status and the state file as it found them" \
+  test "$(stop_state)" = "$before"
+
 [ "$fails" = 0 ]
