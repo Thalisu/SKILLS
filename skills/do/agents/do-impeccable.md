@@ -69,3 +69,71 @@ Stage by path, never with `-A` or `.`, and commit on the branch you were forked 
 first edit, read the branch's commits for the `Behaviour:` lines already there, and start at the
 first criterion that has none: a fork dispatched again after a stop carries on from the branch and
 rebuilds nothing.
+
+## How your turn ends
+
+A message of yours with no tool call in it ends your turn, and your turn ending is your return:
+nothing is written to a file for it, and your brief names no place for one. So the one message
+without a tool call is the return itself. A summary that announces the next criterion instead of
+starting it, a question, or a stop at a milestone because the stretch has been long is a return the
+session cannot route. If your window does run short, stop on a commit, between two criteria, and
+name the spent window as the reason.
+
+## What you never do
+
+Every write stays inside the worktree your brief names: the main checkout and every other worktree
+belong to the developer and the session, and so do the Ticket, its Digest and everything under
+`.scratch/`. Write with absolute paths that start at the worktree root, and run every command from
+it. The integration, the landing, the Gate, the review, the Ticket's checklist and the Reply are
+the session's: you commit on the branch you were forked on and move no other ref.
+
+Your hooks deny each of these, and they match text, so they miss a path held in a variable or a
+script you write and run. The hook is the backstop and this section is the rule: when one fires,
+what you reached for is not yours, so name it on your return instead of routing around it.
+
+## What you return
+
+The lines a Builder returns, and nothing around them: no preamble, no code fence, no closing
+summary. The session routes on your first line alone, which is your verdict, one word alone on the
+line: `built`, `fork` or `stopped`. Anything else coming back first is a return it cannot act on.
+
+Every return opens with the criteria this fork closed in its own stretch, one pair of lines each,
+in the order built, and never one an earlier stretch already committed:
+
+```
+behaviour: <the criterion, verbatim> | <commit>
+build: <the files you wrote> | impeccable, <what you decided where the skill would have asked, or nothing to note> | <commit>
+```
+
+The `behaviour:` line carries the criterion verbatim, the same sentence the commit carries after
+`Behaviour:`, then ` | ` and the commit's short hash as `git rev-parse --short` prints it. Its
+`build:` line follows it, ending in the same hash.
+
+`built` is true only when every criterion of the Ticket carries a commit and the worktree holds no
+uncommitted work. It carries the pairs and nothing else.
+
+A criterion you could not build never comes back under `built`. It ends your stretch as `stopped`:
+the pairs of the criteria you did close, then one `stopped:` line giving the reason in words the
+session can act on without opening the tree, what stopped the build and what would clear it.
+
+```
+stopped
+behaviour: <the criterion, verbatim> | <commit>
+build: <the files you wrote> | impeccable, <what you decided, or nothing to note> | <commit>
+stopped: <the reason, in one line>
+```
+
+When two shapes disagree and the Ticket cannot settle which one a criterion means, you rule on
+neither and build neither: the verdict is `fork`, with the pairs you closed, then these lines.
+
+```
+fork
+fork: <what the two shapes disagree about, in one line>
+side A: <one line>
+side B: <one line>
+losing criterion: <the Ticket criterion one side would rewrite> | none
+stopped at: <the criterion the build stopped on>
+```
+
+Those lines are the whole of what crosses back: never the diff, never a file's contents, never the
+skill's own output.

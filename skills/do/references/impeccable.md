@@ -30,3 +30,22 @@ run, so they live in the definition, where a brief composed on one run cannot dr
 The brief is the same on the first fork and on every re-fork. Nothing in it says where to pick up:
 a fork dispatched again reads the `Behaviour:` lines off the branch and carries on from the first
 criterion that has none.
+
+## The return
+
+The fork's final message, in the lines and the one terminal verdict [builder.md](builder.md) fixes
+under `## The return`: `built`, `fork` or `stopped` alone on the first line, then one `behaviour:`
+and one `build:` line per criterion the stretch closed. The session checks it and routes it as it
+does a Builder's, per the build step of [ticket.md](ticket.md). Three things read differently:
+
+- A `behaviour:` line carries a criterion of the Ticket, verbatim, where a Builder's carries a
+  behaviour of the Plan. It is the sentence the commit carries after `Behaviour:`, so the pairs
+  `resume-state.sh` prints match it the same way.
+- A `build:` line names `impeccable` where a Builder's names a test author's verdict, since no test
+  is written ahead of the screen.
+- A criterion the fork could not build comes back as `stopped`, or as `fork` when two shapes
+  disagree, and never under `built`.
+
+The definition carries this shape itself, since the fork cannot open this file or
+[builder.md](builder.md): a change to the lines the Builder returns is made in
+[do-impeccable.md](../agents/do-impeccable.md) in the same change.

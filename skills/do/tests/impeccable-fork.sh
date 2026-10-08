@@ -136,4 +136,30 @@ carries_any "the brief has no key for where the return goes" \
 carries_any "the return is the fork's final message" \
   "final message" "last message"
 
+# The session routes on the return's first line alone. A `do-impeccable` return the step checked
+# less than a Builder's would let a `behaviour:` line with no commit behind it reach the Reply and
+# the Gate run over a half-built screen, and a return it had no route for would leave the run with
+# nowhere to go on `fork` or `stopped`. The paragraphs read are still the ones carrying
+# `impeccable`: the checks and the routes written for the Builder answer for this fork only where
+# the step says they do.
+echo "# ticket.md / step 3: the do-impeccable fork's verdict is checked and routed as a Builder's"
+carries_each "the checks of the return against the branch apply to the do-impeccable fork" \
+  "same checks" "same check" "checks below" "check below" "checks above" "check above" \
+  "checked the same way" "checked as the Builder's" "checked as a Builder's" \
+  "checked against the branch" "checks of the return" "check of the return" \
+  "checks its return" "checks the return" "Check the return" "\`resume-state.sh\`" \
+  "resume-state.sh"
+carries_each "the three routes, built, fork and stopped, apply to the do-impeccable fork" \
+  "same three routes" "same routes" "same route" "three routes" "routes below" "route below" \
+  "routes above" "routed as" "routed the same" "routed the way" "routes it as" \
+  "routes its verdict" "routes the verdict" "routes that verdict" "routes its return" \
+  "Route on the first line" "routes on the first line" "route on the first line" \
+  "routes on its first line" "route on its first line" \
+  -- \
+  "\`built\`" "three routes" "three verdicts" \
+  -- \
+  "\`fork\`" "three routes" "three verdicts" \
+  -- \
+  "\`stopped\`" "three routes" "three verdicts"
+
 exit $((fails > 0))

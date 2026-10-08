@@ -900,6 +900,15 @@ withheld or lists no `do-impeccable`, the run stops as blocked in one line sayin
 holds, with the worktree and its branch named and `scripts/link-skills.sh` as the run that links
 the agent before the next `/do`.
 
+The return of `do-impeccable` is the lines and the one terminal verdict a Builder returns, so
+everything below is read with `do-impeccable` in the Builder's place and nothing is added for it:
+the same checks of the return against the branch, the first line and the `resume-state.sh` pairs,
+and the same three routes, `built`, `fork` and `stopped`. Its `behaviour:` lines carry the Ticket's
+acceptance criteria where a Builder's carry the Plan's behaviours, and a criterion it could not
+build comes back as `stopped` or `fork`, never under `built`, and takes that route. With no Plan,
+the reading of the grounding before the route compares the Ticket's and the Digest's hashes and
+stops there. A re-fork after a `fork` or a cleared `stopped` hands it the same two-key brief.
+
 As soon as the Builder returns, before any of the checks below run and before any of their routes
 is taken, revoke the token again, the same call step 3 opened with:
 `bash <skill-dir>/scripts/review-token.sh revoke <the slug>`. The window a live token could reach a

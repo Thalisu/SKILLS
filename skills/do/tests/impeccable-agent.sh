@@ -207,4 +207,75 @@ carries_each "the body puts the Behaviour: line on a line of its own in the comm
   "exactly as the Ticket" "exactly as written" "exactly as it is written" "exactly as it reads" \
   "as the Ticket writes it" "as the Ticket words it" "unchanged" "unedited"
 
+echo "# skills/do/agents/do-impeccable.md: its body binds the fork to the lines and the one verdict a Builder returns"
+
+# The session routes on the return's first line alone, the way it does for a Builder, and copies
+# the lines under it into the Reply unread. A criterion the fork could not build that came back
+# under `built` has the Gate run over a half-built screen and the run land it, and a verdict word of
+# the fork's own is one the build step has no route for. The description already says "as the
+# Builder does", so only the body is read, by the paragraphs naming each piece of the return.
+# shellcheck disable=SC2034  # lib.sh's carries and carries_each read $flat
+flat="$(paragraph_with <(body_of "$agent") "\`built\`" all | tr '\n' ' ' | tr -s ' ')"
+expect "the body names the \`built\` verdict" test -n "$flat"
+
+carries "the body's verdicts are the three the build step routes on" \
+  "\`built\`" "\`fork\`" "\`stopped\`"
+
+carries_each "the verdict is the return's first line, alone on it" \
+  "first line" "opening line" "line one" "opens with" "opens on" "open with" "open on" \
+  -- \
+  "alone" "nothing else" "and nothing more" "only the verdict" "by itself" "on its own" \
+  "one word" "a single word" "that word only" "the bare verdict"
+
+carries_each "\`built\` is returned only when every criterion carries a commit and nothing is left uncommitted" \
+  "only when" "only if" "only once" "unless" "never when" "never while" "never with" \
+  -- \
+  "every criterion" "each criterion" "all the criteria" "all of the criteria" "all criteria" \
+  "every acceptance criterion" "each acceptance criterion" "every one of the criteria" \
+  "every line of the checklist" "every checklist line" \
+  -- \
+  "a commit" "its commit" "one commit" "own commit" "is committed" "are committed" \
+  -- \
+  "uncommitted" "nothing left to commit" "nothing to commit" "worktree is clean" \
+  "clean worktree" "working tree is clean" "clean working tree" "nothing unstaged" \
+  "no unstaged" "\`git status\` prints nothing" "\`git status --porcelain\` prints nothing"
+
+# Scoped to the paragraphs naming the returned line, lower case: the commit's own `Behaviour:` line
+# is another line, and "verbatim" said of it never answers for what crosses back.
+# shellcheck disable=SC2034  # lib.sh's carries_each reads $flat
+flat="$(paragraph_with <(body_of "$agent") "behaviour:" all | tr '\n' ' ' | tr -s ' ')"
+expect "the body names the return's behaviour: line" test -n "$flat"
+
+carries_each "each criterion closed comes back as a behaviour: line, verbatim, with its commit after \` | \`, paired with a build: line" \
+  "verbatim" "word for word" "character for character" "letter for letter" \
+  "exactly as the Ticket" "exactly as written" "exactly as it is written" "exactly as it reads" \
+  "as the Ticket writes it" "as the Ticket words it" "unchanged" "unedited" \
+  -- \
+  " | " \
+  -- \
+  "commit" "sha" "hash" \
+  -- \
+  "build:"
+
+# shellcheck disable=SC2034  # lib.sh's carries_each reads $flat
+flat="$(paragraph_with <(body_of "$agent") "stopped:" all | tr '\n' ' ' | tr -s ' ')"
+expect "the body names the return's stopped: line" test -n "$flat"
+
+carries_each "a criterion the fork could not build comes back as \`stopped\`, its reason on the stopped: line" \
+  "\`stopped\`" \
+  -- \
+  "reason" "why" \
+  -- \
+  "could not build" "cannot build" "can not build" "could not close" "cannot close" \
+  "could not be built" "cannot be built" "could not be closed" "cannot be closed" \
+  "not built" "unbuilt" "did not build" "never built" "failed to build" "unable to build" \
+  "unable to close" "does not hold" "will not hold" "left open" "still open" "no commit" \
+  "without a commit" "without its commit"
+
+# shellcheck disable=SC2034  # lib.sh's carries_any reads $flat
+flat="$(paragraph_with <(body_of "$agent") "\`fork\`" all | tr '\n' ' ' | tr -s ' ')"
+carries_any "two shapes that disagree come back as \`fork\`, never as a build of one of them" \
+  "disagree" "two shapes" "Design fork" "design fork" "both sides" "two sides" "contradict" \
+  "conflict" "cannot both hold" "can not both hold" "side A"
+
 exit "$((fails > 0))"
