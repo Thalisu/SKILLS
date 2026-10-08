@@ -157,6 +157,11 @@ repository, joined by a blocking edge: the ticket that reads what the other repo
 waits for the ticket that provides it. The breakdown lists the cut among the splits, with the rule
 that fired, and two tickets built in different repositories never fold into one.
 
+The proof that two services work together is never a note. The ticket that consumes another
+service's change carries the criteria that prove it, checked against the provider's real change,
+and is blocked by the provider's ticket. The breakdown shows those criteria on the consuming
+ticket, and its `do` run builds them in the consumer's repository like any other criterion.
+
 A spec with no such list is a feature of one repository: the breakdown shows no Build repository
 and the run reads as it always did.
 

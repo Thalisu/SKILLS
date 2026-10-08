@@ -222,6 +222,8 @@ On a spec that reads `Front-end: builder` the setup check is never run and no Se
 1. **Split** every large ticket along its steps, every piece still demoable and none of them large. The pieces of one split never fold back into each other.
 
    When the spec has a Repositories section, split as well every slice that would need a change in two of its repositories, whatever its band: one ticket per repository, each with that one Build repository, joined by a blocking edge. The ticket that reads what the other repository's change provides is blocked by the ticket that provides it. The rule that fired is that a ticket is built in exactly one Build repository, and the breakdown lists the cut under the splits with that rule, never as a note beside the tickets.
+
+   The proof that the two repositories work together is the consuming ticket's own: the ticket that consumes another repository's change, whether a split made it or the paths were cut that way, carries among its acceptance criteria the ones that prove the two work together, each checked against the provider's change as the provider's ticket leaves it and never against a stand-in for it. The provider's ticket carries none of them: it is built first, in a repository where the consumer's side does not exist yet. A proof left as a note is built by nobody, and the consumer's test author writes its tests from the criteria.
 2. **Fold** a small ticket into a neighbour when all of these hold:
    - a single edge ties it to exactly one neighbour;
    - the two tickets are of the same kind: a Logic ticket and a Front-end ticket are never joined, whatever the estimates say. The edge between a path's two tickets is exactly the single edge a fold looks for, and folding across it would undo the cut and hand the logic to the screen's builder;
@@ -252,6 +254,7 @@ Present the breakdown as a numbered list. For each ticket:
 - **Estimate**: the peak context the `do` session is expected to reach, the band, what drives the number, and whether it is calibrated or on the defaults
 - **Blocked by**: each blocking ticket with what this one reads and that the blocker writes it, or none
 - **Build repository**: only when the spec has a Repositories section, a line of its own under that label on every ticket, naming exactly one entry of the section by the name the section gives it, with `(Home repository)` after the name when it is that entry. With no such section the field is left out of every ticket
+- **Cross-service criteria**: only on a ticket that consumes another repository's change, the acceptance criteria that prove the two work together, one per line, each naming the provider's change it is checked against
 - **What it delivers**: the end-to-end behaviour this ticket makes work
 - **Kind**: `logic`, `front-end` or `setup`, on a spec that reads `Front-end: builder` or `Front-end: impeccable` only. On `none` the list carries no such field
 
