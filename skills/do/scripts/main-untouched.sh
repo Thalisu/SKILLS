@@ -19,7 +19,8 @@
 # git now says about it. It writes nothing and removes nothing, the state file included.
 #
 # Exit codes: 0 a snapshot written or a verdict printed · 2 usage, a checkout that is not a git
-# working tree, or a state file inside the checkout that git does not ignore.
+# working tree, a state file inside the checkout that git does not ignore, or a check with no
+# readable state file, which prints no verdict: a missing record is never an untouched checkout.
 set -uo pipefail
 
 usage() {
@@ -80,6 +81,10 @@ if [ "$mode" = snapshot ]; then
   exit 0
 fi
 
+[ -r "$state" ] || {
+  echo "no snapshot at $state: nothing to check the checkout against" >&2
+  exit 2
+}
 declare -A before=()
 while IFS= read -r -d '' record; do
   before["${record#* }"]="${record%% *}"

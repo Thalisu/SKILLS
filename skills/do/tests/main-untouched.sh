@@ -123,4 +123,18 @@ expect "a check that finds changes leaves the index file byte for byte as it fou
 expect "a check that finds changes leaves every working file, the status and the state file as it found them" \
   test "$(stop_state)" = "$before"
 
+fresh no-snapshot
+no_snapshot="$tmp/no-snapshot"
+printf '.scratch/\n' >.gitignore
+echo one >tracked.txt
+commit "base"
+no_snapshot_state="$no_snapshot/.scratch/main-state/ticket.state"
+mkdir -p "$(dirname "$no_snapshot_state")"
+refuses "a check with no snapshot recorded refuses in a clean checkout, naming the state file, and prints no verdict" names \
+  "$no_snapshot_state" check "$no_snapshot" "$no_snapshot_state"
+echo wip >>tracked.txt
+echo created >created.txt
+refuses "a check with no snapshot recorded refuses in a checkout holding uncommitted work, naming the state file, and prints no verdict" names \
+  "$no_snapshot_state" check "$no_snapshot" "$no_snapshot_state"
+
 [ "$fails" = 0 ]
