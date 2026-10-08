@@ -302,6 +302,21 @@ uncommitted_reads "once every setup file is committed the uncommitted line reads
 echo "an edit to the design system" >>DESIGN.md
 uncommitted_reads "with a committed setup file modified in the working tree the uncommitted line names it" "DESIGN.md"
 
+# `/impeccable document` writes .impeccable/design.json beside DESIGN.md, and a Front-end ticket's
+# impeccable run reads it in a worktree cut from HEAD: left out of the commit step it never gets there.
+whole_setup setup-sidecar
+echo '{"tokens": {}}' >.impeccable/design.json
+uncommitted_reads "with the design sidecar written beside a committed setup the uncommitted line names it" ".impeccable/design.json"
+step_reads "with the design sidecar written beside a committed setup the commit step reads missing" setup-committed "missing"
+
+commit "the design sidecar"
+uncommitted_reads "once the design sidecar is committed the uncommitted line reads none" "none"
+step_reads "once the design sidecar is committed the commit step reads done" setup-committed "done"
+
+echo '{"tokens": {"color": {}}}' >.impeccable/design.json
+uncommitted_reads "with the committed design sidecar modified in the working tree the uncommitted line names it" ".impeccable/design.json"
+step_reads "with the committed design sidecar modified in the working tree the commit step reads missing" setup-committed "missing"
+
 fresh nothing
 echo "a project" >README.md
 commit "first commit"

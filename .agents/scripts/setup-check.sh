@@ -11,7 +11,8 @@
 # and nothing else: impeccable-skill, the impeccable skill installed; product-context, the product
 # context file present in the working tree; design-system, the design system file present in the
 # working tree; build-path, the code-led build path set in the working tree; setup-committed, the
-# three facts before it holding at HEAD as well. Then one line that is not a step, uncommitted: the
+# three facts before it holding at HEAD as well, and the design sidecar, when there is one, matching
+# HEAD. Then one line that is not a step, uncommitted: the
 # setup files present in the working tree and absent from or different from HEAD, space-separated,
 # or none.
 #
@@ -65,14 +66,19 @@ probe_design_system() {
 probe_build_path() { state code_led_build_path "$1"; }
 # Every later Ticket is built in a worktree cut from a commit, so the setup is done only once the
 # facts the three steps above read in the working tree also hold at HEAD.
+# The design sidecar `/impeccable document` writes beside DESIGN.md is no step of its own, so it
+# holds the commit step only when it exists in the working tree.
 probe_setup_committed() {
-  if [ "$(probe_product_context head)$(probe_design_system head)$(probe_build_path head)" = donedonedone ]; then
+  if [ "$(probe_product_context head)$(probe_design_system head)$(probe_build_path head)" = donedonedone ] &&
+    ! uncommitted_files | tr ' ' '\n' | grep -Fxq -- "$design_sidecar"; then
     echo done
   else echo missing; fi
 }
 
+design_sidecar=.impeccable/design.json
+
 # The setup files the init, document and build-path steps produce, one per line, from the root.
-setup_files() { printf '%s\n' PRODUCT.md DESIGN.md .impeccable/config.json; }
+setup_files() { printf '%s\n' PRODUCT.md DESIGN.md .impeccable/config.json "$design_sidecar"; }
 
 # The setup files present in the working tree and absent from, or different from, HEAD, as one
 # space-separated line, or none: the paths the commit step's one command names.
