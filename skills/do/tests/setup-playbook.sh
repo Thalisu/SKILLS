@@ -18,6 +18,9 @@
 # ends. With the check exiting 0 and the reload done, no step is shown: the close ticks the criteria,
 # appends the Context, Forks and check lines with reload=done under the Ticket's Evidence, sets it
 # resolved uncommitted, and the Reply's last line is read off completion-check.sh's next= line.
+# The close needs the check's setup-committed=done line, the one read off the committed tree, as well
+# as the reload done: with the setup files present but uncommitted the commit step is shown and the
+# Ticket stays claimed, since the Tickets it blocks are built in worktrees cut from a commit.
 # After a step message, anything the developer writes makes the run run the check and read the skill
 # listing again, taking nothing on their word, and with that step done the next missing one is
 # written in the message's shape, the steps already done getting their done mark and no line more.
@@ -626,6 +629,47 @@ carries_each "the developer runs it, and the run never commits on their branch i
   "never commits" "does not commit" "commits nothing" "never runs it" "does not run it" \
   "never runs the commit" "does not run the commit" "no commit of its own" "makes no commit" \
   "never stages" "runs neither"
+
+echo "# setup.md / ## The close: the Ticket resolves only on setup-committed=done read off the committed tree, and stays claimed while the setup is uncommitted"
+# Both samples of the section carry a `setup-committed=done` line inside a fence, so the fenced
+# blocks are dropped and only the prose paragraphs naming that line rule when the close runs.
+flat="$(paragraph_with <(awk '
+  /^ *```/ { fence = !fence; next }
+  fence { next }
+  { print }
+' <<<"$close") "setup-committed" all | tr '\n' ' ' | tr -s ' ')"
+expect "the close rules the setup-committed line in prose outside its samples" test -n "${flat// /}"
+carries "the close needs the check's setup-committed=done line" "setup-committed=done"
+carries_any "that line is the one read off the committed tree, the setup facts at HEAD" \
+  "committed tree" "\`HEAD\`" "HEAD" "committed state" "the commit itself" "what is committed" \
+  "what the commit holds" "what the commit carries" "tree of the commit" "the tree at the commit"
+carries_any "the reload step done is needed as well" "reload" "Reload" "step 2" "Step 2"
+carries_each "the lines above it reading done, the files present in the working tree, are not enough" \
+  "working tree" "on disk" "in the checkout" "present" -- \
+  "not enough" "do not suffice" "does not suffice" "never suffice" "no close" "not close" \
+  "never close" "cannot close" "is not sufficient" "are not sufficient" "does not resolve" \
+  "do not resolve" "never resolve" "not yet" "alone prove" "alone does not" "alone do not"
+carries_each "with the setup files present but uncommitted the check reads setup-committed=missing" \
+  "uncommitted" "not committed" "not yet committed" "before the commit" "without the commit" -- \
+  "setup-committed=missing"
+carries_each "then the commit step is shown" \
+  "ommit step" "ommit row" "step 6" "Step 6" "sixth step" "last step" -- \
+  "shown" "shows" "show "
+carries_any "and the Ticket stays claimed" \
+  "stays \`claimed\`" "stays claimed" "remains \`claimed\`" "remains claimed" "left \`claimed\`" \
+  "left claimed" "still reads \`claimed\`" "still reads claimed" "still \`claimed\`" "still claimed" \
+  "keeps its claim" "keeps \`claimed\`" "keeps the claim" "claim stays" "claim is kept"
+carries_each "why: the Tickets this one blocks are built in worktrees cut from a commit" \
+  "block" -- \
+  "worktree" -- \
+  "cut from a commit" "cut from the commit" "cut from \`HEAD\`" "cut from HEAD" "cut off a commit" \
+  "from a commit" "from the commit" "off a commit" "off the commit" "from \`HEAD\`" "from HEAD" \
+  "at a commit" "at \`HEAD\`"
+carries_any "which would not carry an uncommitted setup" \
+  "would not carry" "does not carry" "do not carry" "never carry" "never carries" "carries no" \
+  "carry no" "would lack" "would miss" "would not hold" "does not hold" "would not have" \
+  "does not have" "would start without" "start without" "without the setup" "half-finished" \
+  "is not in" "are not in" "never reaches" "never reach" "would not reach" "does not reach"
 
 [ "$fails" -eq 0 ] && exit 0
 exit 1

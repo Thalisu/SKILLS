@@ -236,6 +236,13 @@ The close runs only when the check exits 0, every step line reading done, and th
 done, the session's own skill listing naming impeccable. Then no step is shown: a project already
 set up is not walked through six steps it has.
 
+The line the close waits for is `setup-committed=done`, the one the check reads off the committed
+tree, the setup facts at `HEAD`, with the reload step done as well. The lines above it read the
+working tree, and their reading done is not enough: while the setup files are present but
+uncommitted the check reads `setup-committed=missing` and exits 1, the commit step is shown, and
+the Ticket stays `claimed`. Every Ticket this one blocks is built in a worktree cut from a commit,
+and a worktree cut before the setup is committed would not carry it.
+
 1. In the Ticket file in the main checkout (`main=`), tick every criterion, and append under
    `## Evidence` the ticket format's two first lines, then the check's lines and `reload=done`:
 
