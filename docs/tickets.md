@@ -162,6 +162,12 @@ service's change carries the criteria that prove it, checked against the provide
 and is blocked by the provider's ticket. The breakdown shows those criteria on the consuming
 ticket, and its `do` run builds them in the consumer's repository like any other criterion.
 
+On a yes, every ticket of the feature is published in the one `issues/` folder of the feature
+folder, in the Home repository, whichever repository it is built in: one folder shows the whole
+feature, and nothing is written in the other repositories. The tickets are numbered in dependency
+order across repositories, `Blocked by` names those numbers as it always did, and each file
+carries a `**Build repository:**` line with the name of its repository.
+
 A spec with no such list is a feature of one repository: the breakdown shows no Build repository
 and the run reads as it always did.
 

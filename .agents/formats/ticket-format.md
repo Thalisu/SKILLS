@@ -26,6 +26,16 @@ order:
   ticket published before the line existed carries none and stays valid: it reads as `logic`, the
   only kind there was.
 
+A ticket of a spec that has a Repositories section carries a fourth bold line, after the status:
+
+- `**Build repository:**` the name of the one repository the ticket is built in: the name of
+  exactly one entry of the spec's Repositories section, written as the section writes it and
+  alone on the line, with no location and no `(Home repository)` mark. The location stays in the
+  spec, the one place that carries it, and `do` finds the entry by that name.
+
+A ticket of a spec with no Repositories section carries no such line: it is built in the
+repository its feature folder is in.
+
 An issue carries the same fields as sections: `## Parent`, `## What to build`,
 `## Acceptance criteria`, `## Blocked by`, `## Kind`. Its title is the ticket title without the number, since
 the tracker numbers it, and its status is the tracker's label.
@@ -116,6 +126,9 @@ immediately)".
 
 **Kind:** logic | front-end | setup
 
+**Build repository:** the name of one entry of the spec's Repositories section (the line is left
+out when the spec has no such section)
+
 - [ ] Acceptance criterion 1
 - [ ] Acceptance criterion 2
 
@@ -154,7 +167,9 @@ logic | front-end | setup
   is no journey, one behaviour per checkbox in the actor's words. Every box is unticked at
   publish; only `do` ticks one.
 - Blocked by names tickets, never states: numbers and titles locally, references on a tracker,
-  the platform's native blocking or sub-issue link where it has one.
+  the platform's native blocking or sub-issue link where it has one. Every ticket of a feature
+  sits in the one `issues/` folder of its feature folder, so a number names a ticket of that
+  folder whatever repository each of the two is built in.
 - Glossary words throughout. Labels and messages the actor sees are quoted as the screen shows
   them, in the product's language; everything else is English.
 - What `tickets` publishes carries no file paths and no code, except a snippet a prototype
