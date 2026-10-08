@@ -373,6 +373,13 @@ In the thread:
 When the spec has a Repositories section, where that command runs depends on the Build repository of the first ticket of the frontier. Compare the location of its entry with the root of the repository this session is in:
 
 - **The same repository**: the close ends exactly as above. The session the user is in can build the ticket, so no line tells them to open a session anywhere.
+- **Another repository**: a `do` session builds only in the repository it is opened in, so the command has to be pasted into a session of that one. One line before the command names the Build repository and the location its entry gives, as the place to open a session in. The last line is still the command, with the ticket's absolute location in the Home repository in place of the relative one, since a relative location resolves to nothing from the other repository. No shell line is handed over, neither a `cd`, a `git -C` nor a command that launches a session: how the user opens a session there is theirs, and a shell line assumes a shell they may not be in.
+
+<example>
+Ticket 01 is built in billing-service: open a session in /home/dev/billing-service and run this there.
+
+/do /home/dev/orders-service/.scratch/20260914-refund-on-order/issues/01-refund-a-paid-invoice.md
+</example>
 
 Nothing is committed.
 

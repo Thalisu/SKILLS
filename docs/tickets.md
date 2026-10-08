@@ -168,6 +168,13 @@ feature, and nothing is written in the other repositories. The tickets are numbe
 order across repositories, `Blocked by` names those numbers as it always did, and each file
 carries a `**Build repository:**` line with the name of its repository.
 
+The close still ends on `/do <ticket>`. When the first ticket of the frontier is built in the
+repository you are in, nothing else changes. When it is built in another, one line names that
+Build repository and its location as the place to open a session in, and the last line is `/do`
+with the ticket's absolute location in the Home repository, so the paste resolves from the other
+repository. No `cd` and no command that launches a session is handed over: how you open a session
+there is yours.
+
 A spec with no such list is a feature of one repository: the breakdown shows no Build repository
 and the run reads as it always did.
 
