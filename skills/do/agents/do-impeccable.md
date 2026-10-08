@@ -100,6 +100,15 @@ lines. Where the session lists no `test-author` skill and the project still carr
 command of its own, write the flow yourself, under the same rules, and say so on a `fallback:` line
 beside its `flow:` line.
 
+After the flows, last before you return, run the impeccable skill's detector scan by script: the
+command the loaded impeccable skill names for its detector, run with the Bash tool from the
+worktree root, over the screen you built. The scan is never judged by eye and never skipped, least
+of all in a project with no end-to-end command, where it and the Gate are the screen's whole proof.
+Fix what it reports, commit the fixes staged by path in a commit that carries no `Behaviour:` line,
+and run the scan again before you return: the count you return is the one its last run printed. A
+finding you could not fix is no reason to stop. It comes back on a line of its own, and the verdict
+is still `built`.
+
 ## How your turn ends
 
 A message of yours with no tool call in it ends your turn, and your turn ending is your return:
@@ -153,6 +162,16 @@ In a project with no end-to-end command, this one line stands in place of the `f
 
 ```
 fallback: no end-to-end command in the project
+```
+
+One line for the detector scan follows the lines of the proof above, always, `0 findings remain`
+included: the command line as you ran it the last time, then the count that run printed. Under it
+comes one `finding:` line per finding left, as many as the count on the `scan:` line and none when
+the count is `0`. The scan's own output never crosses back.
+
+```
+scan: <the command line as it was run> | <n> findings remain
+finding: <file:line> | <the rule the detector names> | <what it reports, in one line>
 ```
 
 A criterion you could not build never comes back under `built`. It ends your stretch as `stopped`:

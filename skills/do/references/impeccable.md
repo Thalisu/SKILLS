@@ -59,6 +59,14 @@ of the `flow:` lines: `fallback: no end-to-end command in the project`. The sess
 line in the Reply's Evidence, saying that no flow covered the screen and that the detector scan and
 the Gate are its proof.
 
+After those lines comes one `scan:` line, the command line of impeccable's detector scan as it was
+run and the count of findings that remain, then one `finding:` line per finding left. The scan is
+the fork's to run, by script, after the flows, and the fork fixes what it reports before it
+returns: the session never runs the detector. Findings that remain come back under `built` and do
+not stop the run, so the Ticket still lands. The session copies the `scan:` line into the Reply's
+Evidence, beside the flows, and each `finding:` line into its Pending debt, per
+[reply.md](reply.md).
+
 The definition carries this shape itself, since the fork cannot open this file or
 [builder.md](builder.md): a change to the lines the Builder returns is made in
 [do-impeccable.md](../agents/do-impeccable.md) in the same change.

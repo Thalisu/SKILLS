@@ -493,4 +493,155 @@ mapfile -t no_flow_proof < <(no_flow_proof_groups)
 carries_each "the session then writes one line in the Reply: no flow covered the screen, the detector scan and the Gate are its proof" \
   "Reply" -- "${no_flow_proof[@]}"
 
+echo "# skills/do/agents/do-impeccable.md: its body runs the detector scan by script, fixes what it reports and returns a scan: line with one finding: line per finding left"
+
+# The session writes the Reply's evidence from the return and has no other source for the scan: a
+# scan judged by eye, or one whose findings stay in the fork's window, reaches the Reply as a screen
+# the detector cleared. Scoped to the paragraphs naming the detector or its two returned lines, so
+# "by path", "before you return" or `built` said of the build or the flows never answers.
+# shellcheck disable=SC2034  # lib.sh's carries_each reads $flat
+flat="$({
+  paragraph_with <(body_of "$agent") "detector" all
+  paragraph_with <(body_of "$agent") "scan:" all
+  paragraph_with <(body_of "$agent") "finding:" all
+} | tr '\n' ' ' | tr -s ' ')"
+expect "the body names the detector scan" test -n "$flat"
+
+one_finding_line_each=(
+  "ne \`finding:\` line per finding" "ne \`finding:\` line for each finding"
+  "ne \`finding:\` line for every finding" "a \`finding:\` line per finding"
+  "a \`finding:\` line for each finding" "a \`finding:\` line for every finding"
+  "ne \`finding:\` line each" "ne line per finding" "ne per finding"
+  "ach finding left gets one \`finding:\` line" "ach finding left gets its \`finding:\` line"
+  "ach finding that remains gets one \`finding:\` line"
+  "ach finding that remains gets its \`finding:\` line" "its own \`finding:\` line"
+)
+
+carries_each "after the flows, the fork runs the impeccable skill's detector scan by script, with the Bash tool from the worktree" \
+  "detector" \
+  -- \
+  "fter the flows" "nce the flows" "fter the screen and its flows" "fter the last flow" \
+  "nce the last flow" "fter every flow" "nce every flow" "ast before the return" \
+  "ast before you return" "ast thing before" "ast step before" \
+  -- \
+  "impeccable skill" \
+  -- \
+  "command" \
+  -- \
+  "Bash tool" "with Bash" "through Bash" \
+  -- \
+  "worktree"
+
+carries_each "the scan is never judged by eye and never skipped" \
+  "by eye" "eyeball" "by reading the code" "by looking at" "from memory" \
+  -- \
+  "never skip" "ever skipped" "skip it" "no run skips" "skips it" "not skipped" \
+  "never left out" "never leave it out" "every run" "on every stretch"
+
+carries_each "the fork fixes what the scan reports and runs it again before it returns, the fixes committed staged by path" \
+  "ix what" "ixes what" "ix every finding" "ix each finding" "ix the findings" \
+  "ix all" "ix whatever" "ix everything" "ix them" \
+  -- \
+  "can again" "un it again" "un again" "erun" "e-run" "a second scan" "can once more" \
+  "un it once more" \
+  -- \
+  "before you return" "before returning" "before it returns" "before the return" \
+  "before your return" \
+  -- \
+  "by path"
+
+carries_each "a finding the fork could not fix is returned under \`built\` and never stops the build" \
+  "\`built\`" \
+  -- \
+  "could not fix" "cannot fix" "can't fix" "did not fix" "left unfixed" "not fixed" \
+  "that remain" "still remain" "left over" \
+  -- \
+  "never turn" "no reason to stop" "not a reason to stop" "never a reason to stop" \
+  "does not stop" "do not stop" "never stop" "is no stop" "still \`built\`" "stays \`built\`" \
+  "remains \`built\`" "never \`stopped\`" "not \`stopped\`" "never end your stretch" \
+  "does not end your stretch" "do not end your stretch"
+
+# shellcheck disable=SC2034  # lib.sh's check_lines reads $out
+out="$(body_of "$agent" | awk '/^ *```/ { fence = !fence; next } fence { sub(/^ */, ""); print }')"
+check_lines "the return's scan: and finding: lines are whole lines of a fenced block, in their two fixed shapes" 0 0 \
+  "scan: <the command line as it was run> | <n> findings remain" \
+  "finding: <file:line> | <the rule the detector names> | <what it reports, in one line>"
+
+carries_each "the return always carries one scan: line, \`0 findings remain\` included, after the flow: lines" \
+  "ne \`scan:\` line" "a \`scan:\` line" "the \`scan:\` line" \
+  -- \
+  "always" "very return" "very \`built\` return" "whatever the count" "even when" "even at" \
+  "even with" \
+  -- \
+  "0 findings remain" \
+  -- \
+  "fter the \`flow:\` line" "ollows the \`flow:\` line" "ollow the \`flow:\` line" \
+  "elow the \`flow:\` line" "nder the \`flow:\` line" "fter the \`fallback:\` line" \
+  "ollows the \`fallback:\` line" "fter the lines of the proof" "ollows the lines of the proof" \
+  "ollow the lines of the proof"
+
+carries_each "the return carries exactly as many finding: lines as the count on the scan: line, one per finding left, none at \`0\`" \
+  "${one_finding_line_each[@]}" \
+  -- \
+  "as many" "same number" "the count on the \`scan:\` line" "the count the \`scan:\` line" \
+  "matches the count" "match the count" "equals the count" "equal the count" \
+  "equal to the count" \
+  -- \
+  "none when" "none at" "none on" "none under" "none with" "and none" \
+  "no \`finding:\` line" "o \`finding:\` line"
+
+carries_each "the scan's own output never crosses back, only those lines" \
+  "scan's own output" "scan's output" "detector's own output" "detector's output" \
+  "output of the scan" "output of the detector" "what the scan printed" \
+  "what the scan prints" "what the detector printed" "what the detector prints" \
+  -- \
+  "never" "nothing else" "only those lines" "only these lines"
+
+echo "# skills/do/references/impeccable.md: the session's copy of the return carries the scan: and finding: lines into the Reply"
+
+# The session routes the return by this file: a `scan:` or a `finding:` line it has no rule for is
+# dropped, and the Reply then says nothing of a finding the developer still has to clear.
+# shellcheck disable=SC2034  # lib.sh's carries_each reads $flat
+flat="$(paragraph_with <(passage_of "$reference" "## The return" "## The return ends") "scan:" all |
+  tr '\n' ' ' | tr -s ' ')"
+expect "the reference's return names the scan: line" test -n "$flat"
+
+carries_each "the return carries one scan: line, the command line as it was run and the count of findings that remain, and one finding: line per finding left" \
+  "ne \`scan:\` line" "a \`scan:\` line" \
+  -- \
+  "command line" "command as it was run" "command as it ran" "command it ran" \
+  "command the fork ran" \
+  -- \
+  "findings that remain" "findings remain" "findings left" "findings still" \
+  -- \
+  "${one_finding_line_each[@]}"
+
+carries_each "the scan is the fork's to run and the session never runs the detector" \
+  "the fork's" "fork runs" "run by the fork" "fork ran" \
+  -- \
+  "session never runs" "never the session" "session runs no" "session does not run" \
+  "not the session's" "session never ran" "session runs none" \
+  -- \
+  "detector"
+
+carries_each "findings that remain come back under \`built\` and do not stop the run" \
+  "\`built\`" \
+  -- \
+  "that remain" "still remain" "left over" "findings left" "could not fix" "not fixed" \
+  -- \
+  "do not stop" "does not stop" "never stop" "no reason to stop" "not a reason to stop" \
+  "never a reason to stop" "is no stop" "never turn" "still lands" "lands all the same" \
+  "lands anyway" "lands regardless"
+
+carries_each "the session copies the scan: line into the Reply's Evidence and each finding: line into its Pending debt" \
+  "copies" "copy" "copied" \
+  -- \
+  "\`scan:\`" \
+  -- \
+  "Evidence" \
+  -- \
+  "\`finding:\`" \
+  -- \
+  "Pending debt"
+
 exit "$((fails > 0))"
