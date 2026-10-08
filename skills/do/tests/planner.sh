@@ -42,8 +42,7 @@ expect "the planning agent declares a PreToolUse hook scoped to its Write tool" 
 
 # The body, flattened: the definition hard-wraps its prose, so a phrase sits across two lines as
 # often as not. The frontmatter is dropped so its `description` never answers for the write step.
-flat="$(awk 'NR == 1 && $0 == "---" { fm = 1; next } fm && $0 == "---" { fm = 0; next } !fm' "$agent" |
-  tr '\n' ' ' | tr -s ' ')"
+flat="$(body_of "$agent" | tr '\n' ' ' | tr -s ' ')"
 expect "the planning agent carries a body below its frontmatter" test -n "$flat"
 
 # The Ticket and the Digest may carry a stranger's text (the body's own closing paragraph says so),

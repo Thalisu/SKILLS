@@ -109,6 +109,12 @@ paragraph_with() { # $1 file, $2 a fixed string; the first blank-line-delimited 
 frontmatter() { # $1 file: the YAML between the file's opening and closing `---`, on stdout
   awk 'NR == 1 && $0 != "---" { exit 1 } NR > 1 && $0 == "---" { exit } NR > 1' "$1"
 }
+# The prompt below that header, as written: a test of what the definition tells the fork reads it
+# here, so the `description` never answers for the body. The definitions hard-wrap, so a caller
+# matching a phrase flattens it (`| tr '\n' ' ' | tr -s ' '`).
+body_of() { # $1 file: every line past the frontmatter's closing `---`, on stdout
+  awk 'NR == 1 && $0 == "---" { fm = 1; next } fm && $0 == "---" { fm = 0; next } !fm' "$1"
+}
 field() { # $1 key: its value from the frontmatter the caller left in $out, on stdout
   sed -n "s/^$1: *//p" <<<"$out"
 }

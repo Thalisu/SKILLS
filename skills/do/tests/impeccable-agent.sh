@@ -106,4 +106,50 @@ for tool in Write Edit; do
   done
 done
 
+echo "# skills/do/agents/do-impeccable.md: its body runs the impeccable skill unattended and code-led"
+
+# The developer left the run alone: a fork that opens a browser nobody is watching, or asks a
+# question nobody is there to answer, hangs with the Ticket claimed and nothing built.
+# shellcheck disable=SC2034  # lib.sh's field reads $out
+out="$(frontmatter "$agent" 2>/dev/null)" || out=""
+expect "the frontmatter grants the Skill tool the body loads the skill through" \
+  bash -c 'grep -qE "(^|, *)Skill( *,|$)" <<<"$1"' _ "$(field tools)"
+
+# shellcheck disable=SC2034  # lib.sh's carries_any and carries_each read $flat
+flat="$(body_of "$agent" | tr '\n' ' ' | tr -s ' ')"
+expect "the definition carries a body below its frontmatter" test -n "$flat"
+
+carries_each "the body tells the fork to load the impeccable skill through the Skill tool" \
+  "Skill tool" "\`Skill\` tool" "tool \`Skill\`" \
+  -- \
+  "oad the impeccable skill" "oad the \`impeccable\` skill" "oad \`impeccable\`" \
+  "oads the impeccable skill" "nvoke the impeccable skill" "nvoke the \`impeccable\` skill" \
+  "nvoke \`impeccable\`" "all the impeccable skill" "all the \`impeccable\` skill" \
+  "with the skill \`impeccable\`" "with \`impeccable\`" "with \`skill: impeccable\`" \
+  "with \`skill: \"impeccable\"\`" "the impeccable skill through the" \
+  "the \`impeccable\` skill through the" "the impeccable skill with the" \
+  "the \`impeccable\` skill with the"
+
+carries_any "the body tells the fork to run the skill unattended" \
+  "unattended" "nobody is watching" "no one is watching" "nobody watching" "no human is watching" \
+  "nobody is there" "no one is there" "with no one at the keyboard" "with nobody at the keyboard"
+
+carries_any "the body tells the fork to run the skill code-led" \
+  "code-led" "code led" "led by the code" "from the code alone" "from the code, never"
+
+carries_any "the body tells the fork never to wait on a browser" \
+  "never wait on a browser" "never waits on a browser" "never wait for a browser" \
+  "never waits for a browser" "ever wait on a browser" "ever wait on the browser" \
+  "never wait on the browser" "never wait for the browser" "not wait on a browser" \
+  "not wait for a browser" "never open a browser" "never opens a browser" \
+  "never on a browser" "no browser" "without a browser" "nor on a browser" "or on a browser" \
+  "neither on a browser" "on a browser nor"
+
+carries_any "the body tells the fork never to wait on an answer or ask a question" \
+  "never ask a question" "never asks a question" "ever ask a question" "never ask the developer" \
+  "never ask anyone" "never ask anything" "ask no question" "asks no question" \
+  "ask nothing" "never ask" "Never ask" "never wait on an answer" "never waits on an answer" \
+  "never wait for an answer" "never waits for an answer" "nor on an answer" \
+  "nor for an answer" "no question" "not ask"
+
 exit "$((fails > 0))"

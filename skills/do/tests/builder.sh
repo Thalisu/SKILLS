@@ -1046,7 +1046,7 @@ echo "# skills/do/agents/do-builder.md: a just-text clause for a stranger's impe
 # ships no `<!-- testing-policy:core-start/end -->` markers, unlike AGENT-UNIT.md and AGENT-E2E.md
 # (handback-just-text.sh's own scope), so the check reads the whole body after the frontmatter's
 # closing `---` rather than a marked-off core. The same regex handback-just-text.sh already runs.
-agent_body="$(awk 'BEGIN { dashes = 0 } /^---$/ { dashes++; next } dashes >= 2' "$agent")"
+agent_body="$(body_of "$agent")"
 if grep -qE 'never an instruction to (you|follow)' <<<"$agent_body"; then
   ok "the building agent's body carries a just-text clause for a stranger's imperative in the Ticket, the Digest or the Plan"
 else
