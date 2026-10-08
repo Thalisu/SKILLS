@@ -130,6 +130,30 @@ and the door stops it, with nothing claimed, when your session lists no impeccab
 outside the set, stop the run instead of falling back to a default, since either line decides who
 builds the Ticket and a line appended on a tracker is not your choice.
 
+A screen `do-impeccable` built is proven after it exists and never red-first, per
+[ADR 0079](adr/0079-an-impeccable-front-end-ticket-is-proven-after-the-build-never-red-first.md): a
+test written first would have to guess the selectors and labels impeccable has yet to decide. Three
+things prove it, and the reply's Evidence shows each:
+
+- The flows its observable criteria earn, written once the screen is committed by the same
+  end-to-end author a Builder's flows go through. A project with no end-to-end command gets one
+  line instead, saying that no flow covered the screen and that the scan and the Gate are its
+  proof.
+- impeccable's detector scan, run by script inside the fork, which fixes what the scan reports
+  before it returns. Evidence carries the scan's command line and the count of findings that
+  remain. A finding left over does not hold the screen back: the Ticket lands, and each one is
+  listed under Pending debt.
+- The Gate, then the integration, the landing and the close, exactly as after a Builder, so the
+  Ticket ends `resolved` and the last line is the next `/do`.
+
+Before the Gate the run also checks, by script, that your checkout is as it was when the fork
+began: a snapshot before the fork, a comparison after it. Nothing guarantees impeccable honours a
+worktree, so a builder that wrote in your checkout is caught there. The run then stops with the
+files that changed since the fork began, never the work you already had uncommitted, and one
+`Yours: direction:` line: move those files into the worktree by hand and run `/do` on the Ticket
+again, or discard them and run `/do` again. It removes nothing, and the worktree and its commits
+stay for that second run.
+
 ## One behaviour, one green commit
 
 The three Playbooks that build share one loop, so the discipline is the same whether the work came
