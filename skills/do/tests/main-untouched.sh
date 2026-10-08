@@ -155,4 +155,57 @@ refuses "a snapshot whose state file is reached through a symlink landing inside
 expect "a snapshot refused over a symlinked state file landing at a path git does not ignore writes nothing at the landing path" \
   test ! -e "$tmp/relative-state/notes/ticket.state"
 
+fresh hooked
+hooked="$(pwd -P)"
+printf '.scratch/\n' >.gitignore
+echo one >tracked.txt
+commit "base"
+printf '#!/bin/sh\n' >.git/hooks/post-merge
+printf '#!/bin/sh\n' >.git/hooks/commit-msg.sample
+hooked_state="$hooked/.scratch/main-state/ticket.state"
+mkdir -p "$(dirname "$hooked_state")"
+
+run snapshot "$hooked" "$hooked_state"
+printf '#!/bin/sh\n' >.git/hooks/pre-commit
+chmod +x .git/hooks/pre-commit
+run check "$hooked" "$hooked_state"
+same "a hook written under the checkout's git hooks directory after the snapshot is listed as changed, and the hooks already there are not" \
+  "verdict=changed"$'\n'"changed=1"$'\n'"file=$hooked/.git/hooks/pre-commit"
+
+fork_tree="$(branch_worktree "$hooked" screen)"
+printf '#!/bin/sh\n' >"$(g -C "$fork_tree" rev-parse --git-common-dir)/hooks/pre-push"
+rm .git/hooks/post-merge
+run check "$hooked" "$hooked_state"
+same "a hook written from a linked worktree through the git directory it shares with the checkout, and a hook removed, are listed as changed" \
+  "verdict=changed"$'\n'"changed=3"$'\n'"file=$hooked/.git/hooks/post-merge"$'\n'"file=$hooked/.git/hooks/pre-commit"$'\n'"file=$hooked/.git/hooks/pre-push"
+
+fresh configured
+configured="$(pwd -P)"
+printf '.scratch/\n' >.gitignore
+echo one >tracked.txt
+commit "base"
+configured_state="$configured/.scratch/main-state/ticket.state"
+mkdir -p "$(dirname "$configured_state")"
+
+run snapshot "$configured" "$configured_state"
+g config core.hooksPath "$tmp/elsewhere"
+run check "$configured" "$configured_state"
+same "a setting written to the checkout's git config after the snapshot is listed as changed" \
+  "verdict=changed"$'\n'"changed=1"$'\n'"file=$configured/.git/config"
+
+fresh sibling-run
+sibling_run="$(pwd -P)"
+printf '.scratch/\n' >.gitignore
+echo one >tracked.txt
+commit "base"
+g branch spec/feature
+sibling_run_state="$sibling_run/.scratch/main-state/ticket.state"
+mkdir -p "$(dirname "$sibling_run_state")"
+
+run snapshot "$sibling_run" "$sibling_run_state"
+g worktree add -q --track .claude/worktrees/do-sibling -b do/sibling spec/feature
+run check "$sibling_run" "$sibling_run_state"
+same "a worktree another run cut on a branch tracking the Spec branch after the snapshot leaves the checkout untouched" \
+  $'verdict=untouched\nchanged=0'
+
 [ "$fails" = 0 ]

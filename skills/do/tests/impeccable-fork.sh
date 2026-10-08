@@ -136,6 +136,21 @@ carries_any "the brief has no key for where the return goes" \
 carries_any "the return is the fork's final message" \
   "final message" "last message"
 
+# The fork picks the author of each flow off its brief's `Loop:` key and hands the global author
+# the map the session derived: a brief filled without them leaves it with no author to dispatch.
+# The two key lines are read off the Builder's own brief, so the session fills one shape for both.
+echo "# impeccable.md / ## The brief: the fork is handed the Loop key and the Project map, as the Builder is"
+builder_keys="$(blocks_of "$here/../references/builder.md" "## The brief" | grep -E '^(Loop|Project map): ')"
+expect "the Builder's brief carries a Loop key and a Project map key to read" \
+  test "$(grep -c . <<<"$builder_keys")" = 2
+# shellcheck disable=SC2034  # lib.sh's check_lines reads $out
+out="$(blocks_of "$here/../references/impeccable.md" "## The brief")"
+mapfile -t builder_key_lines <<<"$builder_keys"
+check_lines "the brief's block carries the Ticket, the worktree and the Builder's Loop and Project map lines" 0 0 \
+  "Ticket: <the absolute path in the main checkout, or the tracker reference>" \
+  "Worktree: <the absolute path of the worktree root the build runs in>" \
+  "${builder_key_lines[@]}"
+
 # The session routes on the return's first line alone. A `do-impeccable` return the step checked
 # less than a Builder's would let a `behaviour:` line with no commit behind it reach the Reply and
 # the Gate run over a half-built screen, and a return it had no route for would leave the run with

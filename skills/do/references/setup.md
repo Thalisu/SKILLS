@@ -50,7 +50,6 @@ file describes, and take the verdict from the same table.
 | `resolved` | stops in one line: the Setup ticket is already resolved, with `/do` on the first Ticket it was blocking |
 | `not-setup` | stops in one line: the Ticket is not a Setup ticket, with `/do <the Ticket's path>` to run it as a Ticket |
 | `ambiguous` | stops in one line naming the `ambiguous=` detail the door printed, the Ticket's line to fix by hand |
-| `refused` | stops in one line naming the status the door read |
 
 A stop writes nothing and claims nothing.
 

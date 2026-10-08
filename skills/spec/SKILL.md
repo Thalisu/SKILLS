@@ -300,7 +300,8 @@ settles alone. In a remote tracker the earlier spec is the issue the rerun edits
 Whichever case holds, the line is rewritten in place with the rest of the header: the rewritten
 spec holds exactly one line that starts with `Front-end:`, directly after the `Journey:` line, and
 the earlier one never survives beside it. `tickets` and `do` read one fact from one place, and a
-spec with two such lines has them cut and build from whichever they meet first.
+spec with two such lines builds nothing: the door of `do` reads the line as ambiguous and refuses
+every Ticket of that spec until one line is kept by hand.
 
 ## 4. Route
 

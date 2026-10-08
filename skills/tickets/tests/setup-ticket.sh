@@ -13,8 +13,10 @@
 # `/do` on the Setup ticket when one was cut. Under `--auto` that last line is the plain `/do`
 # command with no flag, one line says this one ticket needs the developer and that the flag returns
 # from the next ticket on, and the `--auto` section says the same exception.
-# The ticket is drafted by the session from the check's verdict, which no script and no eval
-# carries, so the decision is proven over the passages that carry it.
+# The ticket is drafted by the session from the check's verdict, which no script carries. The eval
+# cases impeccable-setup-missing-cuts-setup-ticket and impeccable-setup-found-cuts-no-setup-ticket
+# grade the cut itself on a live run, a Setup ticket published as 00 or none. Every rule around the
+# cut is proven here, over the passages that carry it.
 # Run: bash skills/tickets/tests/setup-ticket.sh
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"

@@ -107,6 +107,45 @@ for tool in Write Edit; do
   done
 done
 
+echo "# skills/do/agents/do-impeccable.md: its Agent tool reaches the end-to-end authors and impeccable's own helpers, and no other agent"
+
+# The Spec has this fork dispatch the end-to-end author for the flows under the Builder's own rule,
+# and ADR 0078 has impeccable's helpers forked by it, two layers below the session. The Ticket and
+# the skill it loads may carry a stranger's text, so which agents the tool reaches is a hook-level
+# guarantee, run live the way the harness runs it before the fork's Agent call.
+# shellcheck disable=SC2034  # lib.sh's field reads $out
+out="$(frontmatter "$agent" 2>/dev/null)" || out=""
+# shellcheck disable=SC2034  # lib.sh's carries reads $flat
+flat=" $(field tools | tr ',' ' ' | tr -s ' ') "
+carries "the fork holds the Agent tool the dispatch of an author takes" " Agent "
+
+agent_hook="$(hook_command "$agent" Agent)"
+# An empty command prints no deny either, so the agents let through below would pass on a
+# definition carrying no hook at all.
+expect "a PreToolUse hook scopes the fork's Agent tool" test -n "$agent_hook"
+
+# The project's author under a Testing Policy and the one `do` ships for a project with none, then
+# the two helpers the impeccable skill forks during new work, under the plain name and under the
+# plugin's namespace.
+for allowed in e2e-test-author global-e2e-test-author \
+  impeccable-finish-reviewer impeccable:impeccable-documenter; do
+  allowed_out="$(printf '{"tool_input": {"subagent_type": "%s"}}' "$allowed" |
+    sh -c "$agent_hook" 2>/dev/null)"
+  expect "the hook lets the fork dispatch $allowed" \
+    bash -c '! grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$allowed_out"
+done
+
+# No test is written ahead of the screen (ADR 0079), so a unit author has nothing to prove here.
+# `general-purpose` holds the tools to fork anything, the way around every other line of the hook,
+# and a `do-builder` forked from here would build the screen the Spec handed to impeccable. A call
+# naming no agent resolves to `general-purpose`.
+for forbidden in unit-test-author global-unit-test-author general-purpose do-builder choice-taker ""; do
+  forbidden_out="$(printf '{"tool_input": {"subagent_type": "%s"}}' "$forbidden" |
+    sh -c "$agent_hook" 2>/dev/null)"
+  expect "the hook denies the fork forking ${forbidden:-an agent it does not name}" \
+    bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$forbidden_out"
+done
+
 echo "# skills/do/agents/do-impeccable.md: its body runs the impeccable skill unattended and code-led"
 
 # The developer left the run alone: a fork that opens a browser nobody is watching, or asks a
@@ -317,20 +356,34 @@ carries_each "a criterion the section leaves out gets no flow and says why on it
   -- \
   "why" "reason"
 
-carries_each "the project's end-to-end author writes each flow, through the Skill tool with test-author and e2e, one criterion at a time" \
-  "end-to-end test author" "end-to-end author" "E2E test author" "E2E author" \
-  "e2e test author" "e2e author" \
+# Who authors a flow is the Builder's own rule, read off the brief's `Loop:` key: a fork that wrote
+# the flow in its own window where an author can be dispatched would ship it with no reuse audit and
+# no fix ceiling, and the Reply's evidence would read the same either way.
+carries_each "under Loop: policy the project's end-to-end author is dispatched through the Agent tool, one criterion at a time" \
+  "\`Loop: policy\`" \
   -- \
-  "Skill tool" "\`Skill\` tool" "tool \`Skill\`" \
+  "Agent tool" "\`Agent\` tool" "tool \`Agent\`" \
   -- \
-  "\`test-author\`" "\`/test-author\`" "\`test-author e2e\`" "\`/test-author e2e\`" \
-  "\`skill: test-author\`" "\`skill: \"test-author\"\`" \
-  -- \
-  "\`e2e\`" "\`test-author e2e\`" "\`/test-author e2e\`" "\`args: e2e\`" "\`args: \"e2e\"\`" \
+  "\`subagent_type: e2e-test-author\`" "\`e2e-test-author\`" \
   -- \
   "ne criterion at a time" "ne criterion per" "a criterion at a time" "ne at a time" \
   "ne flow at a time" "ach criterion in turn" "nce per criterion" "ne call per criterion" \
-  "ne criterion each"
+  "ne criterion each" "ne dispatch per criterion"
+
+carries_each "under Loop: global the author do ships is dispatched with the Project map the brief names" \
+  "\`Loop: global\`" \
+  -- \
+  "\`subagent_type: global-e2e-test-author\`" "\`global-e2e-test-author\`" \
+  -- \
+  "\`Project map:\`" "Project map"
+
+carries_each "under Loop: fallback the fork writes the flow itself and says so on a fallback: line" \
+  "\`Loop: fallback\`" \
+  -- \
+  "rite the flow yourself" "rite each flow yourself" "author the flow yourself" \
+  "author each flow yourself" "rite it yourself" "author it yourself" \
+  -- \
+  "\`fallback:\`"
 
 carries_each "a flow has to run green and is committed, staged by path" \
   "\`GREEN\`" \

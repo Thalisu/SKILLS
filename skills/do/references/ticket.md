@@ -886,8 +886,9 @@ A Front-end ticket of a Spec reading `Front-end: impeccable`, the door's `kind=f
 [ADR 0078](../../../docs/adr/0078-an-impeccable-front-end-ticket-forks-no-planner-and-do-impeccable-stands-in-for-the-builder.md):
 call the Agent tool with `subagent_type: do-impeccable`, the agent `do` ships in
 [do-impeccable.md](../agents/do-impeccable.md), from inside the worktree and the branch step 2
-created, cut as for any Ticket. Its brief carries the Ticket and the worktree root and nothing
-else, the two keys [impeccable.md](impeccable.md) fixes, which are never copied here.
+created, cut as for any Ticket. Its brief carries the Ticket, the worktree root, the loop line
+and the Project map and nothing else, the four keys [impeccable.md](impeccable.md) fixes, which are
+never copied here.
 
 The brief of `do-impeccable` has no key for where the return goes: the return is the fork's final
 message, as the Builder's is, so no return file is written anywhere, the main checkout least of
@@ -904,7 +905,8 @@ Around the fork of `do-impeccable`, and around that fork alone, the run reads th
 twice by script: the fork's write guard matches text, and a builder that ignored its worktree
 leaves files in the developer's checkout that no commit carries. Before the fork,
 `bash <skill-dir>/scripts/main-untouched.sh snapshot <the main checkout> <the state file>` records
-the checkout's uncommitted state. The state file is
+the checkout's uncommitted state, with its git hooks and its git config, which every worktree
+shares and no `git status` reports. A file git ignores is outside what it reads. The state file is
 `<the main checkout>/.scratch/main-state/<the slug>.state`, in the scratch git ignores and out of
 the Ticket's `issues/` folder, under the slug step 2 cut the worktree with. After the fork returns,
 right after the revoke below and before any check or route of the return,
@@ -918,7 +920,8 @@ On `verdict=untouched` from `main-untouched.sh check` the run goes on to the che
 below with nothing added to the Reply. On `verdict=changed` the run stops as blocked before the
 Gate, whatever verdict the fork returned. The stop's class is `direction`: the Reply lists the
 `file=` lines the check printed, which are the files that changed since the fork began and never
-the work that was already uncommitted, and carries one `Yours: direction:` line with the two
+the work that was already uncommitted, a git hook or the git config among them as an absolute
+path, and carries one `Yours: direction:` line with the two
 choices, to move the files into the worktree by hand and run `/do` on the Ticket again, or to
 discard them and run `/do` again, in the blocked shape [reply.md](reply.md) fixes. The run removes
 nothing, in the main checkout or anywhere else: which of those files belong to the screen is the

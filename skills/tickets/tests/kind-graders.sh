@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
-# kind-graders.sh: the contract of the code-read graders ticket-01-kind-logic, ticket-02-kind-logic
-# and ticket-03-kind-logic of the two tickets eval cases whose Spec has no screen, exercised by
-# calling scripts/run-eval.sh's own grade() against a throwaway work folder, so no claude session
-# ever starts.
+# kind-graders.sh: the contract of the code-read graders of the four tickets eval cases about a
+# Ticket's kind, exercised by calling scripts/run-eval.sh's own grade() against a throwaway work
+# folder, so no claude session ever starts. `do` routes each Ticket by the `**Kind:**` line it reads
+# by name, so the graders hold every Ticket to its kind on a line of its own.
 # In front-end-none-cuts-as-today the Spec reads Front-end: none, and in auto-publishes-locally it
-# carries no Front-end: line: either way the run publishes three local Tickets, and `do` routes each
-# by the `**Kind:**` line it reads by name, so every one of them carries `**Kind:** logic` on a line
-# of its own.
+# carries no Front-end: line: either way the run publishes three local Tickets, each of kind logic
+# (ticket-01-kind-logic, ticket-02-kind-logic, ticket-03-kind-logic).
+# In screen-path-cuts-logic-then-front-end a Path with a screen is cut in two: three Tickets written
+# (ticket-01-written, ticket-02-written, ticket-03-written), the first of kind logic
+# (ticket-01-kind-logic) and one of the other two of kind front-end (front-end-ticket-published).
+# In no-screen-cuts-logic-alone no Path has a screen: two Tickets, each of kind logic
+# (ticket-01-kind-logic, ticket-02-kind-logic).
 # Run: bash skills/tickets/tests/kind-graders.sh
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"

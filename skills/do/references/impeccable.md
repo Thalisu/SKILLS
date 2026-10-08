@@ -14,12 +14,18 @@ in its own definition.
 
 ## The brief
 
-The fork is dispatched with these two keys and nothing else:
+The fork is dispatched with these four keys and nothing else:
 
 ```
 Ticket: <the absolute path in the main checkout, or the tracker reference>
 Worktree: <the absolute path of the worktree root the build runs in>
+Loop: policy | global | fallback
+Project map: <the absolute path `project-map.sh` printed> | none
 ```
+
+`Loop:` and `Project map:` are the Builder's own two keys, filled the same way: the loop line step 0
+of [ticket.md](ticket.md) recorded, and the map its Plan step derived, which that step still takes
+for this Ticket. The fork reads them to pick the author of each flow.
 
 The keys are written here and in no second place, the rule [builder.md](builder.md) holds for the
 Builder's own. The brief has no key for where the return goes: the return is the fork's final
@@ -50,9 +56,10 @@ On `built`, one `flow:` line per criterion follows the pairs, in the shape [buil
 fixes: the commit that carries the flow, or the reason no flow was written. The flows are the
 fork's and never the session's. They are written after the screen exists, by the end-to-end author
 under the Builder's own rule, `## The flows` of [builder.md](builder.md), over the criteria the
-Digest's `## Observable criteria` section names. The fork holds no Agent tool, so it reaches that
-author through the Testing Policy's inline entry point. The session copies the `flow:` lines into
-the Reply's Evidence unchanged, per [reply.md](reply.md).
+Digest's `## Observable criteria` section names. The fork holds the Agent tool and dispatches that
+author itself, the one its brief's `Loop:` key names, and a hook of its own keeps the tool to the
+two end-to-end authors and the helper agents impeccable ships. The session copies the `flow:` lines
+into the Reply's Evidence unchanged, per [reply.md](reply.md).
 
 In a project with no end-to-end command the fork writes no flow, and one line comes back in place
 of the `flow:` lines: `fallback: no end-to-end command in the project`. The session then writes one

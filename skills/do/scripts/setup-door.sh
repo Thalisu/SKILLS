@@ -11,8 +11,8 @@
 # status or kind line it concerns. What a status and a kind read are ticket-read.sh's rules.
 #
 # verdict, first match wins: ambiguous (the status or the kind cannot be read) · not-setup (the
-# kind is not setup) · resolved · refused (a status other than ready-for-agent or claimed) · resume
-# (claimed) · start (ready-for-agent).
+# kind is not setup) · resolved · resume (claimed) · start (ready-for-agent). A status outside those
+# three is never read: ticket-read.sh already reads it ambiguous.
 #
 # Exit codes: 0 start or resume · 1 every other verdict · 2 usage, no Ticket at the path, or not a
 # git repository.
@@ -67,10 +67,8 @@ elif [ "$status" = resolved ]; then
   verdict=resolved
 elif [ "$status" = claimed ]; then
   verdict=resume
-elif [ "$status" = ready-for-agent ]; then
-  verdict=start
 else
-  verdict=refused
+  verdict=start
 fi
 echo "verdict=$verdict"
 case "$verdict" in
