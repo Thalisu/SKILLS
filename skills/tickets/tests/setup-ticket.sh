@@ -147,13 +147,13 @@ flat="$(item_holding <(passage_of "$skill" "After the list:" "One shape the mess
 expect "SKILL.md carries a setup item in the breakdown's closing parts" test -n "$flat"
 carries "the item is for a spec that reads Front-end: impeccable" "Front-end: impeccable"
 carries_any "the item is for the setup being whole, no step missing" \
-  "Exit 0" "exit 0" "exits 0" "Exit \`0\`" "exit \`0\`" "exits \`0\`" "exit code 0" "exit status 0" \
+  "Exit 0" "exit 0" "exits 0" "exited 0" "Exit \`0\`" "exit \`0\`" "exits \`0\`" "exited \`0\`" \
+  "exit code 0" "exit status 0" \
   "every step done" "every step is done" "every step reads done" "every step reads \`done\`" \
   "each step reads done" "all six done" "all six are done" "all six read done" "no step missing" \
   "no step reads missing" "no step is missing" "nothing missing" "nothing is missing" \
   "setup whole" "setup is whole" "setup complete" "setup is complete" "whole setup" \
-  "complete setup" "no Setup ticket" "no **Setup ticket**" "Setup ticket is not cut" \
-  "Setup ticket is left out" "already set up" "set up already"
+  "complete setup" "already set up" "set up already"
 carries_any "it is one line of the message" \
   "one line" "One line" "a line" "A line" "one more line" "a single line" "the line"
 carries_any "the line says the setup was found" \
