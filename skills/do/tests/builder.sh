@@ -475,6 +475,39 @@ for tool in Write Edit; do
   done
 done
 
+# A feature that spans repositories puts a second checkout beside the Home one, and the run's branch,
+# diff, Review and landing all belong to the run worktree alone: a write the Builder lands in the
+# sibling repository sits on no branch and in no diff, so nothing downstream ever reads it. The
+# sibling path names none of the artifact patterns above, so a deny here can only come from where
+# the file sits. The payload carries the `cwd` the harness sends with every PreToolUse call, and the
+# same `cwd` with a source file under the run worktree stays allowed, so the deny is never a blanket
+# one over every absolute path.
+mkdir -p "$stmp/repos/home" "$stmp/repos/sibling/src/export"
+repos="$(cd "$stmp/repos" && pwd -P)"
+g -C "$repos/home" init -q
+g -C "$repos/home" commit -q --allow-empty -m fixture
+g -C "$repos/sibling" init -q
+run_worktree="$(branch_worktree "$repos/home" export)"
+mkdir -p "$run_worktree/src/export"
+printf 'export const notes = 1\n' >"$repos/sibling/src/export/notes.ts"
+printf 'export const notes = 1\n' >"$run_worktree/src/export/notes.ts"
+for tool in Write Edit; do
+  case "$tool" in
+    Write) tool_hook="$builder_write_hook" ;;
+    *) tool_hook="$builder_edit_hook" ;;
+  esac
+  sibling_out="$(cd "$run_worktree" &&
+    printf '{"tool_input": {"file_path": "%s"}, "cwd": "%s"}' "$repos/sibling/src/export/notes.ts" "$run_worktree" |
+    sh -c "$tool_hook" 2>/dev/null)"
+  expect "the hook denies the Builder's $tool to an absolute path inside a sibling repository, outside its worktree" \
+    bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$sibling_out"
+  own_tree_out="$(cd "$run_worktree" &&
+    printf '{"tool_input": {"file_path": "%s"}, "cwd": "%s"}' "$run_worktree/src/export/notes.ts" "$run_worktree" |
+    sh -c "$tool_hook" 2>/dev/null)"
+  expect "the hook lets the Builder's $tool through at an absolute source path inside its own run worktree" \
+    bash -c '! grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$own_tree_out"
+done
+
 # A machine with no `jq`: a guard that reads its payload with jq and exits 0 when jq is missing is a
 # guard the harness reads as allow, so on that machine every line above silently stops holding and
 # nothing says so. Both hooks are asked with the input they would otherwise let through, since a
