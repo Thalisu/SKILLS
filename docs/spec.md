@@ -47,6 +47,10 @@ them. `spec` writes it from what the `discuss` session decided, so you never add
 the closing summary names the section and what it lists. The later skills read it to know where
 each ticket is built.
 
+A feature of one repository costs nothing new: when the decisions name no repository besides the
+one you are in, the spec has no such section and the summary no such line, and every later skill
+reads a spec without the section as a feature of that one repository.
+
 ## The verdict
 
 A **path** is one thing the actor sets out to do, end to end, walked in steps: arrive, see, act,

@@ -287,6 +287,11 @@ between Solution and User Stories:
 `tickets` and `do` read the section to know where each ticket is built, so an entry left out is a
 ticket with no repository to name.
 
+A plan that names no repository besides the Home repository, or names none at all, gets no
+Repositories section, never one with a single entry. Nothing else marks the case: the spec says
+nothing about the section it lacks and the close has no line about repositories, since the later
+skills take a spec without the section as a feature of one repository.
+
 **A rerun** on the same feature rewrites the spec in place instead of publishing a second one. In
 local mode the file is rewritten, keeping a `Journey:` line that already points at a journey file
 and any `## Comments` section. In a remote tracker the issue this session published is edited, and
@@ -435,8 +440,8 @@ In the thread, the closing summary, each item one or two lines:
 
 - where the spec is: the full path, or the issue reference;
 - the Repositories section, only when step 3 wrote one: the section by name and each repository it
-  lists, the Home repository said to be so. The item reports the section as written, so it never
-  appears over a spec that carries none;
+  lists, the Home repository said to be so. The item reports the section as written, so over a
+  spec that carries none it is left out whole: no line says the section is absent, or why;
 - each seam, and which of the three it was: confirmed by the user, taken from the conversation, or
   ruled by the `choice-taker` under `--auto`, a ruled one with its norm;
 - the verdict and the row that produced it;

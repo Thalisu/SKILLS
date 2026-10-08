@@ -97,4 +97,6 @@ Anything else the implementer needs.
 - Repositories is the one section that carries a path. Each entry is one line, never wrapped: the
   name the plan gives the repository, a colon, and the repository's root as a bare absolute path,
   with no backticks and no `..` left in it. `tickets` and `do` read the entries by that shape.
+- A spec without a Repositories section is a feature of one repository, the **Home repository**,
+  and every skill that reads it treats it so. The section is never written with a single entry.
 - No em-dash.
