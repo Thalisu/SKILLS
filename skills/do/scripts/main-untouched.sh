@@ -12,7 +12,9 @@
 # git ignores in it, since a record git reported would be a change of its own.
 #
 # check prints verdict=untouched and changed=0 when the checkout reads as the state file recorded
-# it. It writes nothing and removes nothing, the state file included.
+# it, else verdict=changed, changed=<n> and one file=<path> line per changed file, sorted: a path
+# not clean now that the state file does not hold. It writes nothing and removes nothing, the
+# state file included.
 #
 # Exit codes: 0 a snapshot written or a verdict printed · 2 usage, a checkout that is not a git
 # working tree, or a state file inside the checkout that git does not ignore.
@@ -71,7 +73,21 @@ if [ "$mode" = snapshot ]; then
   exit 0
 fi
 
-if records | cmp -s - "$state"; then
+declare -A before=()
+while IFS= read -r -d '' record; do
+  before["${record#* }"]="${record%% *}"
+done <"$state"
+
+changed=()
+while IFS= read -r -d '' record; do
+  [ -n "${before["${record#* }"]+held}" ] || changed+=("${record#* }")
+done < <(records)
+
+if [ "${#changed[@]}" = 0 ]; then
   echo "verdict=untouched"
   echo "changed=0"
+  exit 0
 fi
+echo "verdict=changed"
+echo "changed=${#changed[@]}"
+printf 'file=%s\n' "${changed[@]}" | LC_ALL=C sort

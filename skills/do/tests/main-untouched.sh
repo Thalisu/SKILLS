@@ -37,4 +37,11 @@ same "a check right after a snapshot reads untouched in a checkout that already 
   $'verdict=untouched\nchanged=0'
 expect "an untouched check exits 0" test "$rc" = 0
 
+echo two >>other.txt
+echo created >created.txt
+run check "$main" "$state"
+same "a check lists each file created or modified after the snapshot and none of the work uncommitted before it" \
+  $'verdict=changed\nchanged=2\nfile=created.txt\nfile=other.txt'
+expect "a changed check exits 0" test "$rc" = 0
+
 [ "$fails" = 0 ]
