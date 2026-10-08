@@ -515,6 +515,20 @@ The session names the Plan's path, hands it over, and holds that path afterwards
 with the Ticket happens in the fork's, per
 [guard-the-context-window](../../../.agents/principles/guard-the-context-window.md).
 
+One Ticket skips this step whole: a Front-end ticket of a Spec reading `Front-end: impeccable`, the
+door's `kind=front-end` with `front_end=impeccable`, per
+[ADR 0078](../../../docs/adr/0078-an-impeccable-front-end-ticket-forks-no-planner-and-do-impeccable-stands-in-for-the-builder.md).
+It forks no Planner and writes no Plan, on a first run and on a resume alike, and the session does
+not ground it in the Planner's place either: impeccable builds from the Ticket's acceptance
+criteria and reads no Plan, so a Plan here is a fork paid for and never opened. The step reads
+`skip: an impeccable Front-end ticket forks no Planner` on the checklist, names no destination and
+runs none of the checks below, and the run goes on to step 2 with the Ticket's and the Digest's
+hashes the door recorded. Every later passage that rewrites or checks the Plan's `## Sources` lines
+has no file to act on for this Ticket and compares those two hashes alone. The Project map and the
+context reading at the end of this step are still the session's to take. Every other Ticket keeps
+this step as written: a Logic ticket, and a Front-end ticket under `Front-end: builder`, still fork
+the Planner and build from its Plan.
+
 This step comes before the claim and before the worktree because it is the step that refuses. Every
 refusal below stops the run with the Ticket at the status the door found it at and no `do/<slug>`
 branch anywhere, so a grounding the run will not build on costs the developer a rerun and nothing

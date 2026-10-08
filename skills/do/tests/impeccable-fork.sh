@@ -63,4 +63,43 @@ expect "step 3 has a paragraph on impeccable that rules a fallback out" test -n 
 carries_each "step 3 says the run does not fall back to the Builder for that Ticket" \
   "${no_fallback[@]}" -- "${the_builder[@]}"
 
+# impeccable builds from the Ticket and never opens a Plan, so a Planner forked for that Ticket is
+# a window the developer pays for and nobody reads. The skip is that Ticket's alone: a Builder run
+# builds from the Plan, so step 1 also has to say which Tickets keep the Planner, or the skip reads
+# as covering every Front-end ticket.
+echo "# ticket.md / step 1: a Front-end: impeccable ticket forks no Planner and gets no Plan"
+flat="$(paragraph_with <(passage_of "$ticket" "**1. Plan.**" "**2. Claim and worktree.**") "impeccable" all |
+  tr '\n' ' ' | tr -s ' ')"
+expect "step 1 has a passage on impeccable" test -n "$flat"
+carries_each "the passage is for a Front-end ticket of a Spec reading Front-end: impeccable" \
+  "\`kind=front-end\`" "Front-end ticket" -- \
+  "\`front_end=impeccable\`" "\`Front-end: impeccable\`" "Front-end: impeccable"
+carries_any "that Ticket forks no Planner" \
+  "forks no Planner" "forks no **Planner**" "forks no \`do-planner\`" "fork no Planner" \
+  "fork no \`do-planner\`" "no Planner is forked" "no **Planner** is forked" \
+  "no \`do-planner\` is forked" "Planner is not forked" "Planner is never forked" \
+  "\`do-planner\` is not forked" "\`do-planner\` is never forked" "does not fork the Planner" \
+  "does not fork \`do-planner\`" "never forks the Planner" "never forks \`do-planner\`" \
+  "skips the Planner" "skips the **Planner**" "skips \`do-planner\`" "without a Planner" \
+  "forks nobody" "no Planner fork"
+carries_any "that Ticket gets no Plan written" \
+  "writes no Plan" "write no Plan" "no Plan is written" "no **Plan** is written" \
+  "Plan is not written" "Plan is never written" "no Plan written" "gets no Plan" "has no Plan" \
+  "carries no Plan" "without a Plan" "no Plan at all" "nobody writes a Plan" \
+  "nothing writes a Plan" "does not write a Plan" "does not write the Plan" \
+  "never writes a Plan" "never writes the Plan" "and no Plan"
+every_other=(
+  "every other Ticket" "Every other Ticket" "any other Ticket" "Any other Ticket"
+  "all other Tickets" "All other Tickets" "every other kind" "Every other kind"
+)
+carries_each "a Logic ticket and a Front-end: builder ticket still fork the Planner" \
+  "Logic ticket" "\`kind=logic\`" "${every_other[@]}" -- \
+  "\`Front-end: builder\`" "Front-end: builder" "\`front_end=builder\`" "${every_other[@]}" -- \
+  "still fork" "keeps the Planner" "keep the Planner" "keeps the **Planner**" \
+  "keep the **Planner**" "keeps its Planner" "keep their Planner" "forks the Planner" \
+  "fork the Planner" "forks the **Planner**" "fork the **Planner**" "forks \`do-planner\`" \
+  "fork \`do-planner\`" "Planner is forked" "\`do-planner\` is forked" "gets the Planner" \
+  "get the Planner" "goes to the Planner" "go to the Planner" "is forked as below" \
+  "forks as below" "fork as below"
+
 exit $((fails > 0))
