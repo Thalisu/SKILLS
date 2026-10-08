@@ -9,8 +9,8 @@
 #   front_end_of <file>           sets word to the front-end builder the Front-end: line of the
 #                                 Ticket's Spec reads, the spec.md beside its issues/ folder; none
 #                                 with no such line, no Spec, or no issues/ folder
-#                                 (both: two lines or a word outside the set is ambiguous, as a
-#                                 status is)
+#                                 (both: read from the lines above the first ## heading only; two
+#                                 lines or a word outside the set is ambiguous, as a status is)
 #   ticket_files <folder> [<NN>]  prints the Ticket files directly in the issues folder, in number
 #                                 order, or only the ones numbered <NN>
 #
@@ -52,9 +52,13 @@ front_end_of() { # $1 file: sets word to the front-end builder its Spec reads, o
   line_word "$spec" '^Front-end:' front-end none 'none builder impeccable'
 }
 
+# Only the header counts: the lines above the first column-0 `## ` heading. A file written before the
+# line existed has none of its own, so a line planted lower down (a quoted body, a copied comment)
+# would otherwise be the only match and be read as the developer's.
 line_word() { # $1 file, $2 line pattern, $3 name, $4 default, $5 allowed words: sets word and detail
-  local lines
-  lines="$(grep -n "$2" "$1" | cut -d: -f1 | tr '\n' ' ')"
+  local lines head
+  head="$(awk '/^## / { exit } { print }' "$1")"
+  lines="$(grep -n "$2" <<<"$head" | cut -d: -f1 | tr '\n' ' ')"
   lines="${lines% }"
   detail=""
   word="$4"
@@ -67,7 +71,7 @@ line_word() { # $1 file, $2 line pattern, $3 name, $4 default, $5 allowed words:
       return
       ;;
   esac
-  word="$(grep "$2" "$1" | sed "s/$2//" | awk '{ print $1 }')"
+  word="$(grep "$2" <<<"$head" | sed "s/$2//" | awk '{ print $1 }')"
   case " $5 " in
     *" $word "*) ;;
     *)
