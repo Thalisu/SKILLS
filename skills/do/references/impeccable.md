@@ -46,6 +46,14 @@ does a Builder's, per the build step of [ticket.md](ticket.md). Three things rea
 - A criterion the fork could not build comes back as `stopped`, or as `fork` when two shapes
   disagree, and never under `built`.
 
+On `built`, one `flow:` line per criterion follows the pairs, in the shape [builder.md](builder.md)
+fixes: the commit that carries the flow, or the reason no flow was written. The flows are the
+fork's and never the session's. They are written after the screen exists, by the end-to-end author
+under the Builder's own rule, `## The flows` of [builder.md](builder.md), over the criteria the
+Digest's `## Observable criteria` section names. The fork holds no Agent tool, so it reaches that
+author through the Testing Policy's inline entry point. The session copies the `flow:` lines into
+the Reply's Evidence unchanged, per [reply.md](reply.md).
+
 The definition carries this shape itself, since the fork cannot open this file or
 [builder.md](builder.md): a change to the lines the Builder returns is made in
 [do-impeccable.md](../agents/do-impeccable.md) in the same change.

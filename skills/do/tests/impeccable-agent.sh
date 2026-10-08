@@ -8,6 +8,7 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 agent="$here/../agents/do-impeccable.md"
 builder="$here/../agents/do-builder.md"
 ticket="$here/../references/ticket.md"
+reference="$here/../references/impeccable.md"
 fails=0
 
 echo "# skills/do/agents/do-impeccable.md: the name the build step dispatches, pinned to the Builder's pair"
@@ -277,5 +278,146 @@ flat="$(paragraph_with <(body_of "$agent") "\`fork\`" all | tr '\n' ' ' | tr -s 
 carries_any "two shapes that disagree come back as \`fork\`, never as a build of one of them" \
   "disagree" "two shapes" "Design fork" "design fork" "both sides" "two sides" "contradict" \
   "conflict" "cannot both hold" "can not both hold" "side A"
+
+echo "# skills/do/agents/do-impeccable.md: its body has the flows of the Digest's observable criteria written after the screen, one flow: line each"
+
+# The developer reads the Reply's evidence to tell a proven screen from an unproven one, and the
+# only thing that reaches it is the `flow:` lines this fork returns: a screen committed with no
+# flow, and no line saying why, reads there exactly like one whose flows ran green. Scoped to the
+# paragraphs naming a flow, so "after", "commit" or "by path" said of the build never answers.
+# shellcheck disable=SC2034  # lib.sh's carries_each and carries_any read $flat
+flat="$(paragraph_with <(body_of "$agent") "flow" all | tr '\n' ' ' | tr -s ' ')"
+expect "the body names the flows" test -n "$flat"
+
+carries_each "the flows are written after the screen exists, and no test is written before it" \
+  "after the screen exists" "once the screen exists" "when the screen exists" \
+  "after the screen is built" "once the screen is built" "after the screen is whole" \
+  "after the last criterion is committed" "once the last criterion is committed" \
+  "after the last criterion" "once the last criterion" "after every criterion is committed" \
+  "once every criterion is committed" "after every criterion carries" \
+  "once every criterion carries" "after the screen" \
+  -- \
+  "red-first" "ahead of the screen" "before the screen" "o test is written before" \
+  "o test before" "o test ahead" "ever a test before" "ever a test ahead" \
+  "ever write a test before" "ever write a test ahead"
+
+carries_each "the Digest beside the Ticket, read with the Read tool, decides by its Observable criteria section" \
+  "Digest" \
+  -- \
+  "Read tool" "\`Read\` tool" "tool \`Read\`" \
+  -- \
+  "\`## Observable criteria\`"
+
+carries_each "a criterion the section leaves out gets no flow and says why on its flow: line" \
+  "leaves out" "left out" "leaves off" "does not name" "doesn't name" "never names" \
+  "not named" "omits" "is absent from" "missing from the section" "outside the section" \
+  -- \
+  "no flow" "gets none" "get none" "needs none" "none is written" "none is authored" \
+  "without a flow" \
+  -- \
+  "why" "reason"
+
+carries_each "the project's end-to-end author writes each flow, through the Skill tool with test-author and e2e, one criterion at a time" \
+  "end-to-end test author" "end-to-end author" "E2E test author" "E2E author" \
+  "e2e test author" "e2e author" \
+  -- \
+  "Skill tool" "\`Skill\` tool" "tool \`Skill\`" \
+  -- \
+  "\`test-author\`" "\`/test-author\`" "\`test-author e2e\`" "\`/test-author e2e\`" \
+  "\`skill: test-author\`" "\`skill: \"test-author\"\`" \
+  -- \
+  "\`e2e\`" "\`test-author e2e\`" "\`/test-author e2e\`" "\`args: e2e\`" "\`args: \"e2e\"\`" \
+  -- \
+  "ne criterion at a time" "ne criterion per" "a criterion at a time" "ne at a time" \
+  "ne flow at a time" "ach criterion in turn" "nce per criterion" "ne call per criterion" \
+  "ne criterion each"
+
+carries_each "a flow has to run green and is committed, staged by path" \
+  "\`GREEN\`" \
+  -- \
+  "ommit" \
+  -- \
+  "by path"
+
+# The two shapes are read as whole lines of the body's fenced blocks: the session copies the lines
+# into the Reply unread, so a shape the prose only describes is one each run words its own way.
+# shellcheck disable=SC2034  # lib.sh's check_lines reads $out
+out="$(body_of "$agent" | awk '/^ *```/ { fence = !fence; next } fence { sub(/^ */, ""); print }')"
+check_lines "the return's flow: line has its two shapes, a commit or the reason no flow was written" 0 0 \
+  "flow: <the observable criterion> | <commit>" \
+  "flow: <the observable criterion> | no flow: <reason>"
+
+# shellcheck disable=SC2034  # lib.sh's carries_each reads $flat
+flat="$(paragraph_with <(body_of "$agent") "flow:" all | tr '\n' ' ' | tr -s ' ')"
+expect "the body names the return's flow: line" test -n "$flat"
+
+carries_each "the return carries one flow: line per criterion, after the behaviour: and build: pairs" \
+  "ne \`flow:\` line per criterion" "ne \`flow:\` line for each criterion" \
+  "ne \`flow:\` line for every criterion" "a \`flow:\` line per criterion" \
+  "ne \`flow:\` line each" "ne line per criterion" "ne per criterion" \
+  "ach criterion gets one \`flow:\` line" "ach criterion gets its \`flow:\` line" \
+  "ach criterion has one \`flow:\` line" "very criterion gets one \`flow:\` line" \
+  "very criterion gets its \`flow:\` line" "very criterion has one \`flow:\` line" \
+  "its own \`flow:\` line" \
+  -- \
+  "after the pairs" "after every pair" "after the last pair" "after its pairs" \
+  "after your pairs" "below the pairs" "under the pairs" "ollow the pairs" "ollows the pairs" \
+  "ollow every pair" "ollow the last pair" "pairs first" "pairs, then" "pairs and then" \
+  "after the \`behaviour:\` and \`build:\`" "below the \`behaviour:\` and \`build:\`" \
+  "ollow the \`behaviour:\` and \`build:\`" "after the last \`build:\`" "after the \`build:\`" \
+  "after every \`build:\`"
+
+echo "# skills/do/references/impeccable.md: the session's copy of the return carries the flow: lines into the Reply"
+
+# The session routes the return by this file and never by the definition: a `flow:` line the
+# session's copy does not name is a line it has no rule to copy, and the Reply's evidence loses it.
+# shellcheck disable=SC2034  # lib.sh's carries_each reads $flat
+flat="$(paragraph_with <(passage_of "$reference" "## The return" "## The return ends") "flow:" all |
+  tr '\n' ' ' | tr -s ' ')"
+expect "the reference's return names the flow: line" test -n "$flat"
+
+carries_each "the return carries one flow: line per criterion the Digest's Observable criteria names, after the behaviour: and build: lines" \
+  "Digest" \
+  -- \
+  "\`## Observable criteria\`" \
+  -- \
+  "ne \`flow:\` line per criterion" "ne \`flow:\` line for each criterion" \
+  "ne \`flow:\` line for every criterion" "a \`flow:\` line per criterion" \
+  "ne \`flow:\` line each" "ne line per criterion" "ne per criterion" \
+  "ach criterion gets one \`flow:\` line" "ach criterion gets its \`flow:\` line" \
+  "very criterion gets one \`flow:\` line" "very criterion gets its \`flow:\` line" \
+  "its own \`flow:\` line" \
+  -- \
+  "after the \`behaviour:\` and \`build:\`" "below the \`behaviour:\` and \`build:\`" \
+  "ollow the \`behaviour:\` and \`build:\`" "ollows the \`behaviour:\` and \`build:\`" \
+  "after the pairs" "after every pair" "after the last pair" "below the pairs" \
+  "ollow the pairs" "ollows the pairs" "after the last \`build:\`" "after the \`build:\`" \
+  "after them" "pairs, then"
+
+carries_each "the flow: line is in the shape builder.md fixes, a commit or the reason no flow was written" \
+  "builder.md" \
+  -- \
+  "commit" \
+  -- \
+  "reason" "why"
+
+carries_each "the flows are written after the screen exists, by the end-to-end author under the Builder's rule" \
+  "after the screen exists" "once the screen exists" "when the screen exists" \
+  "after the screen is built" "once the screen is built" "after the screen is whole" \
+  "after the last criterion" "once the last criterion" "after every criterion is committed" \
+  "once every criterion is committed" "after the screen" \
+  -- \
+  "end-to-end test author" "end-to-end author" "E2E test author" "E2E author" \
+  "e2e test author" "e2e author" \
+  -- \
+  "\`## The flows\`"
+
+carries_each "the session copies the flow: lines into the Reply's Evidence unchanged" \
+  "Reply" \
+  -- \
+  "Evidence" \
+  -- \
+  "unchanged" "verbatim" "unedited" "as returned" "as they came back" "as they are" \
+  "word for word" "never composed" "never reworded"
 
 exit "$((fails > 0))"

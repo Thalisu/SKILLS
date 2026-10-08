@@ -70,6 +70,28 @@ first edit, read the branch's commits for the `Behaviour:` lines already there, 
 first criterion that has none: a fork dispatched again after a stop carries on from the branch and
 rebuilds nothing.
 
+## How you prove the screen
+
+The screen is proven after it is built, never red-first. No test is written before the screen
+exists, since one would have to guess the selectors, the labels and the structure the build has yet
+to decide. So the flows come after the last criterion is committed.
+
+Which criteria get a flow is the Digest's to say, never your reading of the diff. The Digest sits
+beside the Ticket, at the Ticket's path with `.digest.md` in place of `.md`: open it with the Read
+tool and read its `## Observable criteria` section. A criterion the section names gets a flow. One
+it leaves out gets no flow, and its `flow:` line says why none is needed. With no Digest to read,
+go through the Ticket's criteria one by one instead, each with its flow or the reason it needs
+none.
+
+Each flow is written by the project's end-to-end test author, under the project's Testing Policy,
+which is the rule a Builder follows. You hold no Agent tool, so call the Skill tool with
+`test-author` and the argument `e2e`, the policy's inline entry point, one criterion at a time, and
+fill its input yourself before you write: the behaviour to prove, who relies on it and what a wrong
+or missing result costs them, the screen, and the fixture state. A flow has to run `GREEN`, and it
+runs at most twice, the first run and the one after a single fix. Commit each green flow staged by
+path, in a commit of its own that carries no `Behaviour:` line. A flow still red after its one fix
+ends your stretch as `stopped`, naming the criterion and what the run printed.
+
 ## How your turn ends
 
 A message of yours with no tool call in it ends your turn, and your turn ending is your return:
@@ -110,7 +132,14 @@ The `behaviour:` line carries the criterion verbatim, the same sentence the comm
 `build:` line follows it, ending in the same hash.
 
 `built` is true only when every criterion of the Ticket carries a commit and the worktree holds no
-uncommitted work. It carries the pairs and nothing else.
+uncommitted work. The lines of the proof follow the pairs, under `built` alone: one `flow:` line
+per criterion of the Ticket, in the Ticket's order, ending in the commit that carries its flow or
+in the reason no flow was written.
+
+```
+flow: <the observable criterion> | <commit>
+flow: <the observable criterion> | no flow: <reason>
+```
 
 A criterion you could not build never comes back under `built`. It ends your stretch as `stopped`:
 the pairs of the criteria you did close, then one `stopped:` line giving the reason in words the
