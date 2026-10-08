@@ -219,4 +219,108 @@ carries_any "step 10 says that run's behaviours list is the Ticket's acceptance 
   "${criteria_list[@]}"
 carries_any "step 10 says each criterion has its commit beside it" "${commit_beside[@]}"
 
+# The do-impeccable fork is briefed with its worktree and nothing holds it there: one that wrote in
+# the developer's Main checkout instead would leave stray files behind a screen the Reply calls
+# landed. Only a snapshot taken before the fork tells its writes from the work the developer already
+# had uncommitted, and the run cannot know which of the changed files are the fork's to keep, so it
+# removes nothing and hands the choice over before the Gate runs on a branch missing them.
+removes_nothing=(
+  "removes nothing" "remove nothing" "removed nothing" "deletes nothing" "delete nothing"
+  "deleted nothing" "restores nothing" "restore nothing" "restored nothing" "never removes"
+  "never deletes" "never restores" "nothing is removed" "nothing was removed"
+  "nothing is deleted" "nothing was deleted" "does not remove" "did not remove"
+)
+left_in_place=(
+  "left in place" "stay in place" "stays in place" "stay for" "stays for" "stay as" "stays as"
+  "are kept" "is kept" "keeps the worktree" "keeps its worktree" "keep the worktree" "remain"
+  "are left" "is left" "stay where" "stays where" "both stay" "still there" "left standing"
+)
+
+echo "# ticket.md / step 3: the Main checkout is snapshotted before the do-impeccable fork and checked after it"
+flat="$(paragraph_with <(passage_of "$ticket" "**3. Build.**" "**4. Diff.**") "main-untouched.sh" all |
+  tr '\n' ' ' | tr -s ' ')"
+expect "step 3 has a passage on main-untouched.sh" test -n "$flat"
+carries_any "the passage is for the run that forks do-impeccable" "${this_flow[@]}"
+before "the snapshot comes before the check" "main-untouched.sh snapshot" "main-untouched.sh check"
+carries_each "the snapshot is taken before the fork and the check runs after the fork returns" \
+  "before the fork" "Before the fork" "before forking" "Before forking" "before it forks" \
+  "before the run forks" "before that fork" "Before that fork" -- \
+  "after the fork returns" "After the fork returns" "after it returns" "After it returns" \
+  "once the fork returns" "Once the fork returns" "when the fork returns" "When the fork returns" \
+  "once it returns" "Once it returns" "after the fork's return" "after its return" \
+  "fork has returned" "after the return" "after the fork" "After the fork" "its return read" \
+  "return is read"
+carries "the state file lives under .scratch/main-state/ in the main checkout" ".scratch/main-state/"
+carries_any "the check runs before the Gate" \
+  "before the Gate" "before the **Gate**" "before step 5" "before step 4" "before the diff" \
+  "before the Diff" "ahead of the Gate" "ahead of the **Gate**" "ahead of step 5" \
+  "ahead of step 4" "never reaches the Gate" "never reaches the **Gate**"
+
+echo "# ticket.md / step 3: a Main checkout the fork changed stops the run before the Gate"
+carries "the stop is keyed on verdict=changed" "verdict=changed"
+carries_any "the run stops as blocked" "blocked"
+carries_any "the stop's class is direction" "Yours: direction:" "\`direction\`"
+carries "the Reply lists the check's file= lines" "file="
+carries_each "one choice is moving the files into the worktree by hand and running /do on the Ticket again" \
+  "move the files" "moving the files" "moves the files" "move them" "moving them" \
+  "move those files" "moving those files" -- \
+  "into the worktree" "into <worktree>" "into that worktree" "into its worktree" \
+  "into the run's worktree" "to the worktree" -- \
+  "by hand" -- \
+  "/do" -- \
+  "again"
+carries_each "the other choice is discarding them and running /do again" \
+  "discard" "Discard" -- "/do" -- "again"
+carries_any "the run removes nothing" "${removes_nothing[@]}"
+carries_each "the worktree and its commits stay for the resume" \
+  "worktree" -- "commits" "commit" "branch" -- "${left_in_place[@]}"
+
+echo "# ticket.md / step 3: an untouched Main checkout lets the run go on, and a resume that forks again snapshots again"
+carries_each "on verdict=untouched the run goes on with nothing added" \
+  "verdict=untouched" -- \
+  "goes on" "go on" "continues" "continue" "proceeds" "proceed" "carries on" "moves on" \
+  "move on" -- \
+  "nothing added" "nothing is added" "adds nothing" "add nothing" "nothing more" \
+  "nothing to the Reply" "nothing in the Reply" "no line" "says nothing" "nothing else"
+carries_each "a run resumed that forks again snapshots again first" \
+  "resume" "Resume" -- \
+  "snapshots again" "snapshot again" "snapshotted again" "new snapshot" "fresh snapshot" \
+  "takes the snapshot again" "snapshot is taken again" "\`snapshot\` again" "snapshot anew" \
+  "snapshots anew" "snapshots first" "snapshot first" "again first" "snapshots it again" \
+  "snapshot it again" "own snapshot"
+
+# The blocked shape runs from the paragraph that names the fork to the fenced example that closes
+# it, so the facts may sit in any paragraph between the two and the shapes written for other stops,
+# which also say "left in place" and `claimed`, never answer for this one.
+blocked_section="## A refusal or a blocked run"
+yours_line="Yours: direction: move the files above into <worktree> by hand and run /do <ticket> again, or discard them and run /do <ticket> again"
+
+echo "# reply.md / $blocked_section: a Main checkout that changed during the do-impeccable fork"
+flat="$(passage_of "$reply" "$blocked_section" "## Whole replies" | awk '
+  BEGIN { RS = "" }
+  !on && index($0, "impeccable") { on = 1 }
+  on { gsub(/\n/, " "); print }
+  on && index($0, "move the files above") { exit }
+' | tr '\n' ' ' | tr -s ' ')"
+expect "the section has a blocked shape that names the do-impeccable fork" test -n "$flat"
+carries_each "the shape is for a Main checkout that changed during the do-impeccable fork" \
+  "Main checkout" "main checkout" "**Main checkout**" -- \
+  "changed" "changes" "wrote" "written" "touched" -- \
+  "do-impeccable"
+carries_each "it carries the files that changed since the fork began, one per line, off the check's file= lines" \
+  "one per line" "one a line" "one to a line" "each on its own line" "each on a line of its own" \
+  "a line each" "a line per file" "one line per file" "one file per line" -- \
+  "file="
+carries_each "it never carries the work that was already uncommitted before the fork" \
+  "already uncommitted" "uncommitted before" "was uncommitted" "already there" "already dirty" \
+  "dirty before" "there before the fork" "before the fork began" "before the snapshot" \
+  "predates the fork" "predated the fork" "developer already had" "developer had already" -- \
+  "never" "not " "leaves out" "left out" "omits" "excludes" "excluding" "without"
+out="$(blocks_of "$reply" "$blocked_section")"
+expect "a fenced example's Yours: direction: line carries both choices" grep -qxF -- "$yours_line" <<<"$out"
+carries_any "the shape says the run removed nothing" "${removes_nothing[@]}"
+carries_each "the worktree and its branch are left in place" \
+  "worktree" -- "branch" "commits" -- "${left_in_place[@]}"
+carries "the Ticket still reads claimed" "\`claimed\`"
+
 exit $((fails > 0))

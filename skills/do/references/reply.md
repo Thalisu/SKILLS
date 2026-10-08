@@ -385,6 +385,20 @@ Final integration: not resumed, its claim is held by <holder_ticket> since <clai
 Yours: direction: wait for that run and run /do <ticket> again, or, when that run is dead, run <yield_command> and then /do <ticket> again
 ```
 
+A `ticket` run that forked `do-impeccable` and found the main checkout changed during the fork is
+another, stopped before the Gate by the build step of [ticket.md](ticket.md). Its blocker is
+followed by the files that changed since the fork began, one per line, each the value of a `file=`
+line `main-untouched.sh check` printed, and never the work that was already uncommitted before the
+fork, which the check leaves out. It says the run removed nothing, names the run's worktree and its
+branch, both left in place with their commits, and says the Ticket still reads `claimed`:
+
+```
+The main checkout changed during the do-impeccable fork:
+<file>
+<file>
+Yours: direction: move the files above into <worktree> by hand and run /do <ticket> again, or discard them and run /do <ticket> again
+```
+
 How much more it carries depends on where the run stopped:
 
 - **Refused before any edit.** It adds nothing, not even a Run section: its one message is the

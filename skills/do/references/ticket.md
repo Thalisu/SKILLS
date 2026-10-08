@@ -900,6 +900,31 @@ withheld or lists no `do-impeccable`, the run stops as blocked in one line sayin
 holds, with the worktree and its branch named and `scripts/link-skills.sh` as the run that links
 the agent before the next `/do`.
 
+Around the fork of `do-impeccable`, and around that fork alone, the run reads the main checkout
+twice by script: the fork's write guard matches text, and a builder that ignored its worktree
+leaves files in the developer's checkout that no commit carries. Before the fork,
+`bash <skill-dir>/scripts/main-untouched.sh snapshot <the main checkout> <the state file>` records
+the checkout's uncommitted state. The state file is
+`<the main checkout>/.scratch/main-state/<the slug>.state`, in the scratch git ignores and out of
+the Ticket's `issues/` folder, under the slug step 2 cut the worktree with. After the fork returns,
+right after the revoke below and before any check or route of the return,
+`bash <skill-dir>/scripts/main-untouched.sh check <the main checkout> <the state file>` compares
+the checkout with that record, so the check always runs before step 4 and before the Gate. Every
+fork gets a snapshot of its own: a re-fork after a `fork` or a cleared `stopped`, and a resumed run
+that forks again, snapshots again first, since the developer may have worked in the checkout
+between the two forks.
+
+On `verdict=untouched` from `main-untouched.sh check` the run goes on to the checks and the routes
+below with nothing added to the Reply. On `verdict=changed` the run stops as blocked before the
+Gate, whatever verdict the fork returned. The stop's class is `direction`: the Reply lists the
+`file=` lines the check printed, which are the files that changed since the fork began and never
+the work that was already uncommitted, and carries one `Yours: direction:` line with the two
+choices, to move the files into the worktree by hand and run `/do` on the Ticket again, or to
+discard them and run `/do` again, in the blocked shape [reply.md](reply.md) fixes. The run removes
+nothing, in the main checkout or anywhere else: which of those files belong to the screen is the
+developer's to say. The worktree and its commits stay in place for the resume, and the Ticket
+still reads `claimed`.
+
 The return of `do-impeccable` is the lines and the one terminal verdict a Builder returns, so
 everything below is read with `do-impeccable` in the Builder's place and nothing is added for it:
 the same checks of the return against the branch, the first line and the `resume-state.sh` pairs,
