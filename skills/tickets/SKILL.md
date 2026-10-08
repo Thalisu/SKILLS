@@ -372,7 +372,7 @@ In the thread:
 
 When the spec has a Repositories section, where that command runs depends on the Build repository of the first ticket of the frontier. Compare the location of its entry with the root of the repository this session is in:
 
-- **The same repository**: the close ends exactly as above. The session the user is in can build the ticket, so no line tells them to open a session anywhere.
+- **The same repository**: the close ends exactly as above. The session the user is in can build the ticket, so the close says nothing about repositories or sessions after its list: the command follows the list directly. A ticket further down that is built in another repository gets no sentence either. The list already shows where each ticket is built, and its hand-over is written when it is the first ticket of the frontier, since a line about a session the user cannot use yet reads as something to do now.
 - **Another repository**: a `do` session builds only in the repository it is opened in, so the command has to be pasted into a session of that one. One line before the command names the Build repository and the location its entry gives, as the place to open a session in. The last line is still the command, with the ticket's absolute location in the Home repository in place of the relative one, since a relative location resolves to nothing from the other repository. No shell line is handed over, neither a `cd`, a `git -C` nor a command that launches a session: how the user opens a session there is theirs, and a shell line assumes a shell they may not be in.
 
 <example>
