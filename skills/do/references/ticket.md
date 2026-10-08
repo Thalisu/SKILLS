@@ -137,6 +137,9 @@ the tracker file describes. Before anything is written:
   builds the screen is the developer's call, so the message carries `Yours: direction:` with the
   two choices, per [reply.md](reply.md): install impeccable, reload the coding tool and run
   `/do <ticket>` again, or change the Spec's line to `Front-end: builder` and run it again.
+  The run never falls back to the Builder on its own: the Spec's line is the developer's choice of
+  who builds the screen, and a screen built by `do-builder` under `Front-end: impeccable` is one
+  nobody chose.
 - On a remote tracker, an issue assigned to someone else stops the run in one line with their
   name.
 
@@ -938,6 +941,11 @@ criterion the section leaves out states why no flow is needed, and a criterion i
 flow authored stops the step with that reason, the way it would stop the Builder's own fork.
 On a run whose Plan step recorded `Planner/Builder: none`, this fallback adds no second line: that
 one line already said the session did the Builder's work too.
+
+None of that reaches a Front-end ticket of a Spec reading `Front-end: impeccable`. The Door stopped
+it when the session lists no impeccable skill, and this step never falls back to the Builder for
+it on its own, neither by forking `do-builder` nor by the session running the loop in its place: the
+Spec's line names who builds the screen, and only the developer changes it.
 
 Done when the return's `behaviour:` lines each carry a commit and match what `resume-state.sh`
 prints, or the run took one of the two routes above that end it, and the build lines are recorded

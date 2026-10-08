@@ -41,4 +41,26 @@ carries_each "one choice is installing impeccable and reloading the session" \
 carries_any "the other choice is changing the Spec's line to Front-end: builder" \
   "\`Front-end: builder\`" "Front-end: builder"
 
+# A developer who wrote `Front-end: impeccable` chose who builds the screen. A run that built it with
+# the Builder because the skill was missing would override that choice with nothing in the Reply
+# saying so, so both places a reader could take the fallback from have to rule it out: the Door's
+# stop, and the build step, where the Builder is the fork every other Ticket gets.
+no_fallback=(
+  "never falls back" "does not fall back" "never fall back" "not fall back" "no fallback"
+  "no fall back" "without falling back" "never falling back" "not falling back"
+  "is never a fallback" "is not a fallback" "never the fallback" "not the fallback"
+)
+the_builder=("the Builder" "the **Builder**" "\`do-builder\`" "do-builder")
+
+echo "# ticket.md / ## Door: the stop never falls back to the Builder on its own"
+carries_each "the Door's stop says the run does not fall back to the Builder" \
+  "${no_fallback[@]}" -- "${the_builder[@]}"
+
+echo "# ticket.md / step 3: a Front-end: impeccable ticket never falls back to the Builder on its own"
+flat="$(paragraph_with <(passage_of "$ticket" "**3. Build.**" "**4. Diff.**") "impeccable" all |
+  tr -s ' ' | grep -F "$(printf '%s\n' "${no_fallback[@]}")" | head -n 1)"
+expect "step 3 has a paragraph on impeccable that rules a fallback out" test -n "$flat"
+carries_each "step 3 says the run does not fall back to the Builder for that Ticket" \
+  "${no_fallback[@]}" -- "${the_builder[@]}"
+
 exit $((fails > 0))
