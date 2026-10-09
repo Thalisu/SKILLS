@@ -255,7 +255,7 @@ Present the breakdown as a numbered list. For each ticket:
 
 - **Title**: short, in the glossary's words
 - **Path**: the journey path it realises, when there is a journey; every path when it is a fold. A path cut into a Logic ticket and a Front-end ticket is named by both, the Logic ticket listed first
-- **Estimate**: the peak context the `do` session is expected to reach, the band, what drives the number, and whether it is calibrated or on the defaults
+- **Estimate**: the peak context the `do` session is expected to reach, the band, what drives the number, and whether it is calibrated or on the defaults. The drivers are said in words beside the arithmetic: how many criteria and where they come from, and each thing the slice crosses with its tokens, or that it crosses nothing heavy
 - **Blocked by**: each blocking ticket with what this one reads and that the blocker writes it, or none
 - **Build repository**: only when the spec has a Repositories section, a line of its own under that label on every ticket, naming exactly one entry of the section by the name the section gives it, with `(Home repository)` after the name when it is that entry. With no such section the field is left out of every ticket
 - **Cross-service criteria**: only on a ticket that consumes another repository's change, the acceptance criteria that prove the two work together, one per line, each naming the provider's change it is checked against
