@@ -165,5 +165,10 @@ expect "from a Build repository, on a Ticket's absolute location in a sibling Ho
 03 ready-for-agent $issues/03-ready-there.md
 04 claimed $issues/04-claimed-there.md"
 expect "the Spec of a sibling Home repository is read from the Build repository, with exit 0" test "$rc" = 0
+expect "names the repository the next Ticket is built in, that repository's location from the Spec's list and the Ticket's absolute path, right after next= and before last=" \
+  test "$(printf '%s\n' "$out" | awk '/^last=/ { on = 0 } /^next=/ { on = 1 } on')" = "next=$issues/03-ready-there.md
+next_build=check-home
+next_build_location=$home
+next_location=$issues/03-ready-there.md"
 
 exit "$((fails > 0))"

@@ -70,29 +70,6 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 # shellcheck source=skills/do/scripts/ticket-read.sh
 . "$here/ticket-read.sh"
 
-build_check_of() { # $1 name (or none/ambiguous), $2 location (or none/ambiguous): prints one build_check word, comparing main_of "$2" with the session's $main
-  case "$1" in none | ambiguous) echo "$1" && return ;; esac
-  case "$2" in none) echo unlisted && return ;; ambiguous) echo ambiguous && return ;; esac
-  # A relative location is never resolved against the session's directory, which is not the Spec's.
-  case "$2" in /*) [ -d "$2" ] || { echo missing && return; } ;; *) echo missing && return ;; esac
-  # Asked from a plain folder nested in a working tree, git answers for the enclosing repository,
-  # which the Spec never named.
-  local top
-  top="$(git -C "$2" rev-parse --show-toplevel 2>/dev/null)"
-  [ -n "$top" ] && [ "$(cd "$top" && pwd -P)" = "$(cd "$2" && pwd -P)" ] || { echo not-git && return; }
-  if [ "$(main_of "$2")" = "$main" ]; then echo here; else echo elsewhere; fi
-}
-
-# The Ticket and its next blocker are both read through here, against the one Spec they share.
-build_of() { # $1 Ticket file: sets build_name, build_place and build_check as build_repository, build_location and build_check read, with name_detail and place_detail
-  build_repository_of "$1"
-  build_name="$word" name_detail="$detail"
-  word=none detail=""
-  case "$build_name" in none | ambiguous) ;; *) repository_location_of "$1" "$build_name" ;; esac
-  build_place="$word" place_detail="$detail"
-  build_check="$(build_check_of "$build_name" "$build_place")"
-}
-
 # A Home repository nested under the main checkout keeps its paths absolute, since a relative one
 # reads as the session's own scratch.
 shown_path() { # $1 an absolute path: prints it relative to the main checkout when root is the main checkout, else as given

@@ -26,6 +26,13 @@
 #   home_root <file> <main checkout>
 #                                 prints the root whose .scratch/ holds the Ticket's feature folder,
 #                                 <file> absolute and <main checkout> as main_of prints it
+#   build_check_of <name> <location>
+#                                 prints the build_check word of ticket-door.sh for a Build
+#                                 repository name and its location, here when the location's main
+#                                 worktree is the sourcing script's $main
+#   build_of <file>               sets build_name, build_place and build_check to what
+#                                 build_repository_of, repository_location_of and build_check_of
+#                                 read for the Ticket, with name_detail and place_detail
 #
 # A status is the one **Status:** line at column 0: none, two or a word outside the walk
 # (ready-for-agent, claimed, resolved) is ambiguous, and no word is taken out of it. A Ticket file
@@ -177,4 +184,27 @@ main_of() { # $1 directory: prints the main worktree of the repository holding i
 home_root() { # $1 the Ticket's absolute path, $2 the main checkout: prints the root whose .scratch/ holds the Ticket's feature folder
   if [ "$(main_of "$(dirname "$1")")" = "$2" ]; then echo "$2" && return; fi
   case "$1" in */.scratch/*) echo "${1%/.scratch/*}" ;; *) echo "$2" ;; esac
+}
+
+build_check_of() { # $1 name (or none/ambiguous), $2 location (or none/ambiguous): prints one build_check word, comparing main_of "$2" with the session's $main
+  case "$1" in none | ambiguous) echo "$1" && return ;; esac
+  case "$2" in none) echo unlisted && return ;; ambiguous) echo ambiguous && return ;; esac
+  # A relative location is never resolved against the session's directory, which is not the Spec's.
+  case "$2" in /*) [ -d "$2" ] || { echo missing && return; } ;; *) echo missing && return ;; esac
+  # Asked from a plain folder nested in a working tree, git answers for the enclosing repository,
+  # which the Spec never named.
+  local top
+  top="$(git -C "$2" rev-parse --show-toplevel 2>/dev/null)"
+  [ -n "$top" ] && [ "$(cd "$top" && pwd -P)" = "$(cd "$2" && pwd -P)" ] || { echo not-git && return; }
+  if [ "$(main_of "$2")" = "$main" ]; then echo here; else echo elsewhere; fi
+}
+
+# The Ticket and its next blocker are both read through here, against the one Spec they share.
+build_of() { # $1 Ticket file: sets build_name, build_place and build_check as build_repository, build_location and build_check read, with name_detail and place_detail
+  build_repository_of "$1"
+  build_name="$word" name_detail="$detail"
+  word=none detail=""
+  case "$build_name" in none | ambiguous) ;; *) repository_location_of "$1" "$build_name" ;; esac
+  build_place="$word" place_detail="$detail"
+  build_check="$(build_check_of "$build_name" "$build_place")"
 }

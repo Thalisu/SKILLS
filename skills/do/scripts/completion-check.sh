@@ -9,12 +9,18 @@
 # Prints key=value lines, in this order: ticket, spec_branch as `spec-branch.sh probe` prints it,
 # one spec_ticket=<NN> <status> <path> per Ticket of the folder in number order, the argument's own
 # included, one open=<NN> <status> <path> per Ticket not resolved (open=none when every one is),
-# next, last, then verdict. An ambiguous=<NN> <detail> line follows the spec_ticket line it
-# concerns. What a Ticket file is and what its status reads are ticket-read.sh's rules.
+# next, next_build, next_build_location, next_location, last, then verdict. An ambiguous=<NN>
+# <detail> line follows the spec_ticket line it concerns. What a Ticket file is and what its status reads are ticket-read.sh's rules.
 #
 # next, first match wins: the path of the first open Ticket reading ready-for-agent · none (nothing
 # is open) · wait (every open Ticket reads claimed, so other runs hold them) · ambiguous (nothing
 # is ready and an open Ticket cannot be read).
+#
+# next_build, next_build_location and next_location follow next only when it is a path and that
+# Ticket is built in another repository, as ticket-read.sh's build_of reads it: the name on its
+# **Build repository:** line, that entry's location in the Spec's ## Repositories section as
+# written (unlisted with no entry), and the Ticket's absolute path. Absent means built here: a
+# Ticket built in this session's repository, or one with no Build repository line.
 #
 # last is yes when every Ticket other than the argument reads resolved, and no otherwise, an
 # ambiguous one included. The argument's own status never enters it, so the Gate reads the same
@@ -45,10 +51,7 @@ top="$(git rev-parse --show-toplevel 2>/dev/null)" || {
   echo "not a git repository" >&2
   exit 2
 }
-# A bare main worktree has no working tree to anchor on, and git lists it first all the same.
-main="$(git worktree list --porcelain 2>/dev/null |
-  awk '/^$/ { exit } /^worktree /{ p = substr($0, 10) } /^bare$/ { p = "" } END { print p }')"
-[ -n "$main" ] && [ -d "$main" ] || main="$top"
+main="$(main_of .)"
 
 case "$1" in
   /*) path="$1" ;;
@@ -76,7 +79,7 @@ grep -qxF -- "$path" <<<"$tickets" || {
 echo "ticket=${path#"$main"/}"
 echo "spec_branch=$spec_branch"
 
-open="" unreadable=0 ready="" last=yes
+open="" unreadable=0 ready="" ready_file="" last=yes
 while IFS= read -r file; do
   status_of "$file"
   number="$(basename "$file")"
@@ -84,7 +87,7 @@ while IFS= read -r file; do
   echo "spec_ticket=$row"
   [ "$word" = resolved ] || open+="open=$row"$'\n'
   [ "$word" = resolved ] || [ "$file" = "$path" ] || last=no
-  [ "$word" != ready-for-agent ] || [ -n "$ready" ] || ready="${file#"$main"/}"
+  [ "$word" != ready-for-agent ] || [ -n "$ready" ] || ready="${file#"$main"/}" ready_file="$file"
   if [ "$word" = ambiguous ]; then
     echo "ambiguous=${number%%-*} $detail"
     unreadable=1
@@ -94,6 +97,15 @@ printf '%s' "${open:-open=none$'\n'}"
 
 if [ -n "$ready" ]; then
   echo "next=$ready"
+  build_of "$ready_file"
+  case "$build_check" in
+    here | none | ambiguous) ;;
+    *)
+      echo "next_build=$build_name"
+      echo "next_build_location=${build_place/#none/unlisted}"
+      echo "next_location=$ready_file"
+      ;;
+  esac
 elif [ -z "$open" ]; then
   echo "next=none"
 elif [ "$unreadable" = 0 ]; then
