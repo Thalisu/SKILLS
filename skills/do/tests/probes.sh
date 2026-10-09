@@ -96,6 +96,17 @@ check_lines "a ready Ticket whose blocker is resolved starts" 0 "$rc" \
   "branch=main" "protected=no" "verdict=start"
 ordered_out "the facts come in the order the Reply's Run section states them" \
   ticket= title= status= blocker= slug= worktree= run_branch= loop= branch= protected= verdict=
+check_lines "a Ticket with no Build repository line, of a Spec with no Repositories section, reads none for every build fact and still starts" 0 "$rc" \
+  "build_repository=none" "build_location=none" "build_check=none" "verdict=start"
+ordered_out "the build facts of a one-repository Ticket follow the Spec's completeness and precede the verdict" \
+  spec_complete= build_repository= build_location= build_check= ticket_location= verdict=
+# A Ticket's own Build repository line sits in its header: one under a column-0 `## ` heading is
+# body text (a line quoted from another Ticket under Evidence), and never routes the run.
+ticket 38-quoted.md '**Status:** ready-for-agent' 'None (can start immediately)' '- [ ] one' \
+  '**Build repository:** sibling'
+run "$door" "$issues/38-quoted.md"
+check_lines "a Build repository line only below the first column-0 heading is not the Ticket's own, and the run starts" 0 "$rc" \
+  "build_repository=none" "build_location=none" "build_check=none" "verdict=start"
 run "$door" "$issues/04-claimed.md"
 check_lines "a claimed Ticket whose worktree exists resumes" 0 "$rc" \
   "status=claimed" "blockers=none" "worktree=$wt" "verdict=resume"
