@@ -91,6 +91,12 @@ home_root() { # $1 the Ticket's absolute path, $2 the main checkout: prints the 
   case "$1" in */.scratch/*) echo "${1%/.scratch/*}" ;; *) echo "$2" ;; esac
 }
 
+# A Home repository nested under the main checkout keeps its paths absolute, since a relative one
+# reads as the session's own scratch.
+shown_path() { # $1 an absolute path: prints it relative to the main checkout when root is the main checkout, else as given
+  if [ "$root" = "$main" ]; then echo "${1#"$main"/}"; else echo "$1"; fi
+}
+
 usage() { echo "usage: ticket-door.sh <the Ticket's path>" >&2; exit 2; }
 [ "$#" = 1 ] || usage
 
@@ -105,8 +111,9 @@ esac
 
 stop_ambiguous=0 stop_blocked=0
 
-echo "ticket=${path#"$main"/}"
-echo "root=$(home_root "$path" "$main")"
+root="$(home_root "$path" "$main")"
+echo "ticket=$(shown_path "$path")"
+echo "root=$root"
 title="$(grep -m1 '^# ' "$path" | sed 's/^# //')"
 echo "title=${title:-none}"
 status_of "$path"; status="$word"
@@ -141,14 +148,14 @@ for n in $numbers; do
   count="$(grep -c . <<<"$files")"
   if [ "$count" != 1 ]; then
     rel=""
-    while IFS= read -r f; do [ -z "$f" ] || rel="$rel ${f#"$main"/}"; done <<<"$files"
+    while IFS= read -r f; do [ -z "$f" ] || rel="$rel $(shown_path "$f")"; done <<<"$files"
     rel="${rel# }"
     if [ "$count" = 0 ]; then echo "blocker=$n missing none"; else echo "blocker=$n ambiguous $rel"; fi
     echo "ambiguous=$n files ${rel:-none}"
     stop_ambiguous=1; continue
   fi
   status_of "$files"
-  echo "blocker=$n $word ${files#"$main"/}"
+  echo "blocker=$n $word $(shown_path "$files")"
   case "$word" in
     ambiguous) echo "ambiguous=$n $detail"; stop_ambiguous=1 ;;
     resolved) ;;

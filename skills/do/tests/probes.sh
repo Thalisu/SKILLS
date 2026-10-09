@@ -417,6 +417,27 @@ for entry in "plain|$plain|a plain directory outside any repository" \
   expect "the Ticket naming a not-git Build repository at $what still reads ready-for-agent" \
     grep -qxF '**Status:** ready-for-agent' "$notgit/issues/01-$name.md"
 done
+# Every run reads the door's paths against the main checkout, so a Ticket of this repository keeps
+# them relative to it, while a Ticket of a separate Home repository nested in the main checkout's
+# tree names its own root and absolute paths: one relative to the main checkout would be read as
+# the session's own scratch.
+fresh main/nested-home
+printf 'one\n' >notes.txt
+commit fixture
+nested="$(pwd -P)"
+nested_issues="$nested/.scratch/20260111-nested/issues"
+mkdir -p "$nested_issues"
+(issues="$nested_issues" && ticket 01-first.md '**Status:** resolved' 'None (can start immediately)')
+(issues="$nested_issues" && ticket 02-second.md '**Status:** ready-for-agent' '01, Title of 01-first')
+cd "$top" || exit 1
+run "$door" "$issues/02-second.md"
+check_lines "a Ticket of the session's own repository names the main checkout as its root and keeps its paths relative to it" 0 "$rc" \
+  "ticket=$issues/02-second.md" "root=$top" "blocker=01 resolved $issues/01-first.md"
+run "$door" "$nested_issues/02-second.md"
+check_lines "a Ticket of a separate Home repository nested in the main checkout names that repository as its root and its paths absolute" 0 "$rc" \
+  "ticket=$nested_issues/02-second.md" "root=$nested" "blocker=01 resolved $nested_issues/01-first.md"
+# The cases below read the main checkout's status, which an untracked nested repository would change.
+rm -rf "$nested"
 
 echo "# ticket-door.sh: the facts beside the verdict"
 mkdir -p .claude/agents && : >.claude/agents/unit-test-author.md
