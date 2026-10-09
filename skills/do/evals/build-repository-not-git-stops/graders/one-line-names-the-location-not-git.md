@@ -1,0 +1,6 @@
+---
+type: llm
+criteria: "Judge this on the run's final message only, the text after FINAL MESSAGE. Ticket 02 is built in billing-service, which the Spec lists at an absolute location ending in /billing-service, a folder that exists and is not a git repository. Pass only when all of these hold. First, after the first line (the Playbook line), the stop is one line, a single paragraph with no line break inside it, which may hold more than one sentence and may say that nothing was written or claimed: it names that location (a path that starts with `/` and ends in /billing-service) and says it is not a git repository. Second, the final message hands over no command: no `/do` line, no other slash command and no shell line (no `git init`, no `cd`). Third, it carries no line starting with `Yours:`. Any of these fails: a stop that leaves out the location or gives it relative, a stop that says the location is missing from this machine, a hand-over to billing-service as the place to open a session in, a second line or paragraph of explanation or options after the stop, a raw git error quoted in place of the stop, a command of any kind, a `Yours:` line."
+---
+The developer whose Spec points at the wrong folder learns which of the three inputs is wrong, and
+fixes it before running `do` again.
