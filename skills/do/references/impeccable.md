@@ -52,6 +52,16 @@ does a Builder's, per the build step of [ticket.md](ticket.md). Three things rea
 - A criterion the fork could not build comes back as `stopped`, or as `fork` when two shapes
   disagree, and never under `built`.
 
+The fork's Stretch runs on the Builder's time budget, per `## The time budget` of
+[builder.md](builder.md). It takes its start when its Stretch begins and asks
+[stretch-budget.sh](../scripts/stretch-budget.sh) after each criterion's commit and at no other
+moment: never inside a criterion, after a flow's commit or after the scan. On `stretch=stop` it
+returns `stopped` in the Builder's shape, its `stopped:` line naming the spent time budget in the
+Builder's own words and saying that nothing is uncommitted. Where a Builder's `stop` after its last
+behaviour can already be `built`, this fork's never is, since the flows and the scan are still
+ahead: it returns `stopped`, and the next Stretch finds a commit beside every criterion and goes on
+to them.
+
 On `built`, one `flow:` line per criterion follows the pairs, in the shape [builder.md](builder.md)
 fixes: the commit that carries the flow, or the reason no flow was written. The flows are the
 fork's and never the session's. They are written after the screen exists, by the end-to-end author

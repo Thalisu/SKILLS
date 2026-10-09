@@ -1,0 +1,164 @@
+name: impeccable-spent-time-budget-forks-the-next-stretch
+tags: [playbook, ticket, stretch, impeccable, slow]
+runs: 1
+max_turns: 220
+timeout_seconds: 10800
+allowed_tools: [Bash, Read, Edit, Write, Glob, Grep, Agent, Skill]
+context:
+  unlinked_skills: [do-code-review]
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # A Front-end ticket of twenty-four criteria under a Spec that reads Front-end: impeccable, long
+    # enough that the first do-impeccable is still building when its time budget runs out. Nothing
+    # in the fixture moves the budget or stands in for the fork: the first Stretch earns its
+    # `stopped` return by the clock, which is why the case's timeout is three hours and why it is
+    # slow and costly to run.
+    #
+    # impeccable itself is never run, and its stand-in writes plain HTML and JavaScript in seconds
+    # where the real skill takes minutes over a screen. So the stand-in gives that time back: it
+    # has each criterion pass `scripts/design-pass.sh` before its commit, a script of the fixture
+    # that waits and prints one line. The time is real elapsed time on the fork's own clock, and
+    # `stretch-budget.sh` is the one the skill ships, untouched. The stand-in names no detector, the
+    # project has no end-to-end command, and no review is linked, so the run ends at its review
+    # step with the branch handed over.
+    set -e
+    mkdir -p src scripts .scratch/notes-page/issues .claude/skills/impeccable .impeccable
+    cat > src/notes.js <<'JS'
+    const notes = [];
+    export function create(title) {
+      const note = { id: notes.length + 1, title };
+      notes.push(note);
+      return note;
+    }
+    export function list() {
+      return [...notes].reverse();
+    }
+    JS
+    cat > README.md <<'MD'
+    # notes
+
+    A small notes module with a web page to list the notes.
+    MD
+    printf '.scratch/\n' > .gitignore
+    echo "# Product" > PRODUCT.md
+    printf '{ "buildPath": "code" }\n' > .impeccable/config.json
+    cat > .claude/skills/impeccable/SKILL.md <<'MD'
+    ---
+    name: impeccable
+    description: "Stand-in for the impeccable design skill in this fixture. Load it only when an agent definition tells you to."
+    ---
+
+    A stand-in for the impeccable design skill. Build the screen as plain HTML and JavaScript
+    files under `src/`, code-led: open no browser, generate no image and ask nothing.
+
+    Every criterion passes the design pass before its commit: once the criterion holds, run
+    `bash scripts/design-pass.sh` from the project root, wait for its `design-pass=ok` line, and
+    only then commit. One pass per criterion, never one for several, and never in the background.
+    The pass takes a little under two minutes.
+
+    This skill has no detector scan for any platform.
+    MD
+    cat > scripts/design-pass.sh <<'SH'
+    #!/usr/bin/env bash
+    # Stands in for the minutes the real design skill spends on a screen. Holds no budget and
+    # reads no clock but its own wait.
+    sleep 110
+    echo "design-pass=ok"
+    SH
+    cat > .scratch/notes-page/spec.md <<'MD'
+    # Spec: Notes list page
+
+    Journey: none
+    Front-end: impeccable
+    Status: ready-for-agent
+
+    ## Problem Statement
+
+    Notes can be created but never seen: there is no page that lists them, adds one, finds one or
+    removes one.
+
+    ## User Stories
+
+    1. As a user, I want a page that lists my notes, so that I can find one.
+    2. As a user with no notes, I want the page to say so, so that I do not take it for broken.
+    3. As a user, I want to add, search and remove notes on that page, so that I never leave it.
+    4. As a user on a keyboard or a screen reader, I want every control reachable and announced, so
+       that the page works for me too.
+    MD
+    cat > .scratch/notes-page/issues/00-set-up-impeccable.md <<'MD'
+    # 00: Set up impeccable
+
+    **What to build:** The impeccable setup in this project, run by the developer one step at a time, so the screens of this Spec can be built by impeccable.
+
+    **Blocked by:** None (can start immediately)
+
+    **Status:** resolved
+
+    **Kind:** setup
+
+    - [x] Install impeccable from a terminal
+    - [x] Reload the coding tool
+    - [x] Initialise the project context in an agent session
+    - [x] Document the design system, when one exists
+    - [x] Set the code-led build path
+    - [x] Commit the setup files on the developer's branch
+
+    ## Evidence
+    MD
+    cat > .scratch/notes-page/issues/01-list-the-notes.md <<'MD'
+    # 01: List the notes
+
+    **What to build:** A function that returns every note, newest first.
+
+    **Blocked by:** 00 Set up impeccable
+
+    **Status:** resolved
+
+    **Kind:** logic
+
+    - [x] Every created note is returned, newest first
+
+    ## Evidence
+    MD
+    cat > .scratch/notes-page/issues/02-notes-list-page.md <<'MD'
+    # 02: Notes list page
+
+    **What to build:** A page at `src/notes.html` that lists the notes `list()` returns, newest first, where a user adds, searches and removes notes.
+
+    **Blocked by:** 01 List the notes
+
+    **Status:** ready-for-agent
+
+    **Kind:** front-end
+
+    - [ ] The page shows one row per note with its title, newest first
+    - [ ] With no notes, the page says there are none yet
+    - [ ] The page has a heading that reads Notes
+    - [ ] The heading shows the count of notes beside it
+    - [ ] Each row shows the note's id before its title
+    - [ ] A title longer than sixty characters is cut with an ellipsis and kept whole in the row's tooltip
+    - [ ] The page has a field to type a new note's title and a button to add it
+    - [ ] Adding a note puts its row at the top of the list without a reload
+    - [ ] The add button is disabled while the title field is empty or blank
+    - [ ] After a note is added the title field is emptied and keeps the focus
+    - [ ] Pressing Enter in the title field adds the note
+    - [ ] The page has a search field that keeps the rows whose title contains the typed text, whatever the letter case
+    - [ ] When the search matches no note, the page says no note matches and names the typed text
+    - [ ] A button beside the search field clears it and shows every row again
+    - [ ] Each row has a button to remove its note from the page
+    - [ ] Removing a note asks for confirmation first, and cancelling leaves the row in place
+    - [ ] The count in the heading follows every add and every remove
+    - [ ] The page has a control to switch the order between newest first and oldest first
+    - [ ] The page is one column, at most forty rem wide, centred on a wide screen
+    - [ ] Every row has a line under it, the last row excepted
+    - [ ] A row is highlighted while the pointer is over it
+    - [ ] Every button and field shows a visible focus ring when reached by keyboard
+    - [ ] Every field has a label a screen reader announces
+    - [ ] The page follows the system's dark colour scheme with light text on a dark background
+
+    ## Evidence
+    MD
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
+    git checkout -q -b notes-page
