@@ -363,6 +363,28 @@ for entry in "gone|$tmp/gone|an absolute location that does not exist" \
   expect "the Ticket naming a missing Build repository at $what still reads ready-for-agent" \
     grep -qxF '**Status:** ready-for-agent' "$missing/issues/01-$name.md"
 done
+# A listed entry whose location is a directory but not the top of a git repository is not-git: a
+# check that asked git from inside it would find an enclosing repository and build in, or hand over
+# to, a repository the Spec never named.
+notgit=".scratch/20260110-not-git"
+plain="$(cd "$tmp" && pwd -P)/plain-dir"
+mkdir -p "$plain" "$sibling/nested" "$top/nested"
+repositories_spec "$notgit" "- main (Home repository): $top" "- plain: $plain" \
+  "- insibling: $sibling/nested" "- inhome: $top/nested"
+for entry in "plain|$plain|a plain directory outside any repository" \
+  "insibling|$sibling/nested|a plain directory inside the sibling's working tree" \
+  "inhome|$top/nested|a plain directory inside the Home repository's working tree"; do
+  IFS='|' read -r name location what <<<"$entry"
+  (issues="$notgit/issues" && ticket "01-$name.md" "**Status:** ready-for-agent"$'\n\n'"**Build repository:** $name" 'None (can start immediately)')
+  before="$(both_states "$sibling")"
+  run "$door" "$notgit/issues/01-$name.md"
+  check_lines "a listed Build repository at $what is not-git and unbuildable" 1 "$rc" \
+    "build_repository=$name" "build_location=$location" "build_check=not-git" "verdict=unbuildable"
+  expect "a not-git Build repository at $what writes nothing in either repository" \
+    test "$(both_states "$sibling")" = "$before"
+  expect "the Ticket naming a not-git Build repository at $what still reads ready-for-agent" \
+    grep -qxF '**Status:** ready-for-agent' "$notgit/issues/01-$name.md"
+done
 
 echo "# ticket-door.sh: the facts beside the verdict"
 mkdir -p .claude/agents && : >.claude/agents/unit-test-author.md
