@@ -326,6 +326,30 @@ expect "the root comes right after the ticket" grep -qE '(^| )ticket root ' <<<"
 run "$door" "$top/$across/issues/06-aside.md"
 check_lines "a claimed Ticket of the Home repository, run from the Build repository, names the Home repository as its root and the Build repository's worktree for its slug" 0 "$rc" \
   "ticket=$top/$across/issues/06-aside.md" "root=$top" "worktree=$sibling/.claude/worktrees/do-aside"
+# A blocked Ticket names the blocker to run next as an absolute path into the Home repository's
+# issues folder, so the command the session builds from it resolves from the Build repository too.
+(issues="$top/$across/issues" && ticket 07-open.md $'**Status:** ready-for-agent\n\n**Build repository:** sibling' 'None (can start immediately)')
+(issues="$top/$across/issues" && ticket 08-done.md $'**Status:** resolved\n\n**Build repository:** sibling' 'None (can start immediately)')
+(issues="$top/$across/issues" && ticket 09-after-claimed.md $'**Status:** ready-for-agent\n\n**Build repository:** sibling' '06, Title of 06-aside')
+(issues="$top/$across/issues" && ticket 10-after-several.md $'**Status:** ready-for-agent\n\n**Build repository:** sibling' '08 Title of 08-done; 07 Title of 07-open; 06 Title of 06-aside')
+before="$(cd "$top" && both_states "$sibling")"
+run "$door" "$top/$across/issues/09-after-claimed.md"
+check_lines "a Ticket of the Home repository whose blocker is claimed, run from the Build repository, is blocked and names that blocker's absolute path" 1 "$rc" \
+  "verdict=blocked" "next_blocker=$top/$across/issues/06-aside.md"
+run "$door" "$top/$across/issues/10-after-several.md"
+check_lines "with several blockers, the next blocker is the first in Blocked by order not resolved, a resolved one before it skipped" 1 "$rc" \
+  "verdict=blocked" "next_blocker=$top/$across/issues/07-open.md"
+expect "a blocked Ticket run from the Build repository writes nothing in either repository: no ref, worktree or file created or changed" \
+  test "$(cd "$top" && both_states "$sibling")" = "$before"
+for blocked in 09-after-claimed 10-after-several; do
+  expect "the blocked Ticket $blocked still reads ready-for-agent" \
+    grep -qxF '**Status:** ready-for-agent' "$top/$across/issues/$blocked.md"
+done
+cd "$top" || exit 1
+run "$door" "$issues/02-second.md"
+check_lines "a Ticket whose every blocker is resolved starts" 0 "$rc" "verdict=start"
+absent_prefix "a Ticket whose every blocker is resolved names no next blocker" "next_blocker="
+cd "$sibling" || exit 1
 run "$door" "$top/$linked/issues/01-linked.md"
 check_lines "a sibling the Spec lists through a symlink, run from the sibling, reads as here and starts" 0 "$rc" \
   "build_repository=sibling" "build_check=here" "verdict=start"

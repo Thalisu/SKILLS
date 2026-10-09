@@ -26,7 +26,8 @@
 # no entry of that name, no list or no Spec included, or when the Ticket has no such line and the
 # Spec has a list, missing when the entry's location is not an absolute path to a directory on this
 # machine, not-git when it is one and not the top of a git working tree, here when the location's main worktree is this session's main checkout, physical
-# paths compared, else elsewhere), ticket_location (the Ticket's absolute path), then verdict. An ambiguous=<what>
+# paths compared, else elsewhere), ticket_location (the Ticket's absolute path), next_blocker (on verdict=blocked
+# only: the absolute path of the first blocker in Blocked by order not resolved), then verdict. An ambiguous=<what>
 # <detail> line follows the line it concerns. A blocker is the leading number of each part of the
 # Blocked by paragraph split on `;`, `,`, the word `and` and each line break, the paragraph starting
 # on the header's line or the line below it and a `-`, `*` or `+` list marker dropped, a blank line
@@ -109,7 +110,7 @@ case "$1" in
 esac
 [ -f "$path" ] || { echo "no Ticket at $1" >&2; exit 2; }
 
-stop_ambiguous=0 stop_blocked=0
+stop_ambiguous=0 stop_blocked=0 next_blocker=""
 
 root="$(home_root "$path" "$main")"
 echo "ticket=$(shown_path "$path")"
@@ -159,7 +160,7 @@ for n in $numbers; do
   case "$word" in
     ambiguous) echo "ambiguous=$n $detail"; stop_ambiguous=1 ;;
     resolved) ;;
-    *) stop_blocked=1 ;;
+    *) stop_blocked=1 && next_blocker="${next_blocker:-$files}" ;;
   esac
 done
 [ -z "$unsplit" ] || { echo "ambiguous=blocked-by numbers it cannot split $unsplit"; stop_ambiguous=1; }
@@ -229,5 +230,6 @@ elif [ "$stale" = 1 ]; then verdict=ambiguous
 else verdict=start
 fi
 case "$verdict" in start|start-over) [ "$first_run_unsafe" = 0 ] || verdict=refused ;; esac
+[ "$verdict" != blocked ] || echo "next_blocker=$next_blocker"
 echo "verdict=$verdict"
 case "$verdict" in start|resume|start-over|resume-final) exit 0 ;; *) exit 1 ;; esac
