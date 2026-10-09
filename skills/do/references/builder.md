@@ -14,7 +14,7 @@ over, and a session that carries the build as well compacts before the Ticket is
 
 Three readers use this file, each for its own part. The session fills the brief and routes the
 return. The Builder reads the rest as its contract: what it builds from, where it picks up, the
-flows, its edges, and the lines it returns. When no Builder can be forked, the session runs the
+time budget, the flows, its edges, and the lines it returns. When no Builder can be forked, the session runs the
 loop itself, per the build step of [ticket.md](ticket.md), and `## The flows` binds the session in
 the fork's place.
 
@@ -200,6 +200,22 @@ stopped: second HANDBACK on "exports every note of a notebook as one markdown fi
 
 </example>
 
+<example>
+
+A stop on a spent time budget, read after the second behaviour's commit with more of the Plan still
+ahead:
+
+```
+stopped
+behaviour: exports every note of a notebook as one markdown file each | 3f2a91c
+build: src/export/markdown.ts, src/export/job.ts | RED_AS_EXPECTED, implemented to green | 3f2a91c
+behaviour: keeps a title longer than 80 characters whole in the exported heading | 8b07d4e
+build: src/export/markdown.ts | RED_AS_EXPECTED, implemented to green | 8b07d4e
+stopped: time budget spent after the second behaviour's commit, nothing uncommitted: fork the next Stretch with the same brief
+```
+
+</example>
+
 </examples>
 
 ## What it builds from
@@ -226,6 +242,31 @@ At the first behaviour of the Plan's list that carries no commit on the branch. 
 durable state and the only state: every commit the loop makes carries `Behaviour: <line>` on a line
 of its own, so a Builder forked again reads what is done off the commits rather than off a
 run-state file somebody has to keep in step with them.
+
+## The time budget
+
+A Stretch is one fork of the Builder, from its dispatch to its return, and it runs on a time budget:
+a long build comes back as several Stretches instead of one long wait, so the session takes a turn
+before its prompt cache expires.
+
+- The Builder takes its start once, when its Stretch begins: `date +%s` in its first shell call,
+  the number kept in its window and written to no file.
+- After each behaviour's commit, and at no other moment, it asks the time budget command,
+  [stretch-budget.sh](../scripts/stretch-budget.sh) in the `scripts/` folder beside this file's
+  `references/` folder, with that start as its one argument. The command holds the budget and reads
+  the clock, so the Builder never reckons the elapsed time itself. Where the skill is part of the
+  repository being built, the copy it runs is the worktree's, since its `Bash` hook closes the main
+  checkout to the shell.
+- `stretch=continue`: the loop goes on to the next behaviour.
+- `stretch=stop`: the Stretch returns `stopped`, in the shape `## The return` fixes, its `stopped:`
+  line naming the spent time budget and saying that nothing is uncommitted. A `stop` read after the
+  Plan's last behaviour, with no flow left to author, returns `built` instead, since that verdict
+  is already true.
+
+Because the command is asked only on a commit, a behaviour in progress when the budget runs out is
+finished and committed first: the Stretch never returns with uncommitted work, and never commits
+half a behaviour to meet a clock. It is asked at no point inside a cycle and at no point of the
+flows. The next Stretch needs nothing from this one but the branch, per `## Where it picks up`.
 
 ## The flows
 

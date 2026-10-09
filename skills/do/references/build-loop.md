@@ -99,7 +99,9 @@ to the behaviours still ahead.
    Behaviour: a credit under one cent stays in the invoice balance after it is applied
    npm test -- tests/billing/invoices.test.ts
    ```
-7. Next behaviour.
+7. Next behaviour. A Builder asks its time budget first, per `## The time budget` of
+   [builder.md](builder.md), and returns on a stop answer. This is the only moment of the loop at
+   which it asks, and a loop the session runs itself asks nothing.
 
 Done when every behaviour line has a commit beside it and its build line is recorded for the
 Reply's Run section.
