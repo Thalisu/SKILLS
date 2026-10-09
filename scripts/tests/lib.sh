@@ -395,6 +395,16 @@ sibling_repos() { # $1 home name, $2 build name, $3 feature folder name: two rep
   # shellcheck disable=SC2034
   build="$(pwd -P)"
 }
+repositories_spec() { # $1 feature folder, $2.. its Repositories entries, one line each: a Spec at <folder>/spec.md and an empty issues/ beside it
+  local folder="$1"
+  shift
+  mkdir -p "$folder/issues"
+  {
+    printf '# Spec: across repositories\n\n## Repositories\n\n'
+    printf '%s\n' "$@"
+    printf '\n## User Stories\n\n1. As a developer, I want a note exported, so that I can share it.\n'
+  } >"$folder/spec.md"
+}
 # The conflict loop's own command (conflict-loop.md): without --diff3 git trims the lines both sides'
 # additions share, which drops one of two identical closing braces.
 union_of() { # $1 a conflicted path: the union of its three index stages, Target side first, on stdout

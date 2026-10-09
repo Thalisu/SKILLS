@@ -270,16 +270,6 @@ check_lines "a ready Ticket whose worktree already exists is ambiguous" 1 "$rc" 
 # A Ticket of a Spec built across repositories is built in the one its Build repository line names:
 # run from any other checkout, the door hands the run over before anything is claimed or cut, since
 # a claim written there would leave the Ticket claimed when the handed-over command runs.
-repositories_spec() { # $1 feature folder, $2.. its Repositories entries, one line each: a Spec at <folder>/spec.md and an empty issues/ beside it
-  local folder="$1"
-  shift
-  mkdir -p "$folder/issues"
-  {
-    printf '# Spec: across repositories\n\n## Repositories\n\n'
-    printf '%s\n' "$@"
-    printf '\n## User Stories\n\n1. As a developer, I want a note exported, so that I can share it.\n'
-  } >"$folder/spec.md"
-}
 fresh sibling
 printf 'one\n' >notes.txt
 commit fixture

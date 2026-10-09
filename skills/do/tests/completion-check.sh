@@ -149,4 +149,21 @@ expect "a Ticket with no Spec behind it and no number in its name is read, with 
 rm -rf "$issues"
 issues="$spec_issues"
 
+# A feature built across repositories keeps every Ticket in the Home repository, so what it still
+# has open is the whole folder, whichever repository each Ticket is built in.
+sibling_repos check-home check-build 20260930-across
+# shellcheck disable=SC2154 # lib.sh's sibling_repos assigns $home and $build
+repositories_spec "$home/.scratch/20260930-across" "- check-home (Home repository): $home" "- check-build: $build"
+ticket 01-done-here.md $'**Status:** resolved\n\n**Build repository:** check-build' 'None (can start immediately)'
+ticket 02-open-here.md $'**Status:** claimed\n\n**Build repository:** check-build' 'None (can start immediately)'
+ticket 03-ready-there.md $'**Status:** ready-for-agent\n\n**Build repository:** check-home' 'None (can start immediately)'
+ticket 04-claimed-there.md $'**Status:** claimed\n\n**Build repository:** check-home' 'None (can start immediately)'
+ticket 05-done-there.md $'**Status:** resolved\n\n**Build repository:** check-home' 'None (can start immediately)'
+run "$issues/02-open-here.md"
+expect "from a Build repository, on a Ticket's absolute location in a sibling Home repository, prints one open line for every unresolved Ticket of the folder, those built in another repository beside those built in the session's" \
+  test "$(term open)" = "02 claimed $issues/02-open-here.md
+03 ready-for-agent $issues/03-ready-there.md
+04 claimed $issues/04-claimed-there.md"
+expect "the Spec of a sibling Home repository is read from the Build repository, with exit 0" test "$rc" = 0
+
 exit "$((fails > 0))"
