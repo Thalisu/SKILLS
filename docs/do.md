@@ -234,6 +234,14 @@ worktree in place, and switching that checkout off the branch and running `/do <
 resumes at the landing. A landed run's reply carries `landed at <sha> on spec/<slug>` and
 `Review: none, the Spec is reviewed once its last Ticket lands`
 ([ADR 0060](adr/0060-a-ticket-lands-on-its-spec-branch-and-do-lands-it-there-itself.md)).
+When the run built outside the Home repository, one line before those two names both places, so
+you know where the commits are and where the Ticket, its Plan and its Evidence are:
+
+```
+Repositories: built in billing-service (/home/dev/billing-service), artifacts in /home/dev/orders-service
+landed at 4c1d2e7 on spec/hold-disputed-invoice
+Review: none, the Spec is reviewed once its last Ticket lands
+```
 
 The run then marks its Ticket `resolved`, with its Evidence filled, in the Home repository, and only
 after that runs the Completion check, a script

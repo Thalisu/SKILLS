@@ -1,0 +1,303 @@
+name: ticket-run-in-build-repository-replies-across-repositories
+tags: [playbook, ticket, repositories, run, reply]
+runs: 1
+max_turns: 200
+timeout_seconds: 3600
+allowed_tools: [Bash, Read, Edit, Write, Glob, Grep, Agent, Skill]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # The feature spans two repositories. The session runs in billing-service, the Build repository
+    # of Ticket 02 (this fixture folder, which the Spec lists by its location), and the Ticket, its
+    # Spec and its Journey live in orders-service, the Home repository, a sibling folder. The run
+    # builds Ticket 02 end to end and lands it on the Spec branch of billing-service, so its Reply
+    # is the one a run in a Build repository other than the Home repository ends with. Two Tickets
+    # stay open after it, both built in orders-service: Ticket 03, ready and blocked by nothing
+    # still open, which is the next one, and Ticket 04, blocked by Ticket 02, which carries the
+    # criterion that crosses the two services. billing-service has no surface of its own and names
+    # orders-service as its consumer, so the flows of what it builds are not run here.
+    set -e
+    mkdir -p src .claude/agents ../orders-service/src ../orders-service/.scratch/hold-disputed-invoice/issues
+    cat > package.json <<'JSON'
+    {
+      "name": "billing-service",
+      "private": true,
+      "scripts": {
+        "test": "node --test"
+      }
+    }
+    JSON
+    cat > README.md <<'MD'
+    # billing-service
+
+    Opens Invoices for Orders. `node --test` runs the suite.
+    MD
+    # A Testing Policy is installed, with a short unit author, so the loop reads `policy` and the
+    # run derives no Project map: the map describes the project it is derived from and is not a
+    # part of what this case grades.
+    cat > CLAUDE.md <<'POLICY_EOF'
+    # billing-service
+
+    Opens Invoices for Orders. Tests run with Node's own runner.
+
+    <!-- testing-policy:start v=2.3 surface=consumer -->
+    ## Testing Policy (Definition of Done)
+
+    <!-- testing-policy:core-start -->
+    A feature or fix is DONE only when the full unit suite passes. "Tests didn't run" is never "tests passed". The rules below are fixed; the project's commands, paths and tool names live in **Project facts** at the end of this section.
+
+    - **Red-first, one test at a time**: write the failing unit test before the implementation, one test per cycle.
+    - **Every new test goes through the test author**: dispatch the `unit-test-author` agent, one dispatch per cycle.
+    - **Consumer-side E2E**: this repo has no user-facing surface of its own, so its flows live in the repos that consume it (the consumer list in Project facts).
+    <!-- testing-policy:core-end -->
+
+    ### Project facts
+
+    - **Unit**: full suite `node --test` · single file `node --test <file>` · mandatory flags / known phantom failures: none; test files are `src/**/*.test.js` · skip mechanisms: `test.skip`, `test.todo`, `{ skip: true }`
+    - **Consumers**, one line each: repo · E2E tool · run against this repo's local build · single flow · full suite · flow naming · known infra failures
+      - orders-service · Node's test runner · its flows require this module from the sibling checkout · single flow `node --test e2e/<flow>.test.js` · full suite `node --test e2e` · flow naming `e2e/<journey>.test.js` · known infra failures: none
+    - **Why the agents run in place**: the runner resolves `src/` from the checkout it runs in, so an author in another worktree would test other files
+    <!-- testing-policy:end -->
+    POLICY_EOF
+    cat > .claude/agents/unit-test-author.md <<'AGENT_EOF'
+    ---
+    name: unit-test-author
+    description: Authors and runs one unit test, a new test file or a new test case, after a mandatory reuse audit. Dispatch it for every new unit test; it never writes production code.
+    tools: Read, Write, Edit, Bash, Grep, Glob
+    ---
+    <!-- testing-policy:agent v=2.3 -->
+
+    Write one failing unit test for the behaviour in the dispatch input, as `src/<module>.test.js`
+    with `node:test` and `node:assert`, run it once with `node --test <file>`, and return
+    `RED_AS_EXPECTED` with the run's output, or `GREEN` when it passes before any implementation.
+    Never write production code.
+    AGENT_EOF
+    cat > src/invoice.js <<'JS'
+    const invoices = new Map();
+    function open(orderId) { invoices.set(orderId, { orderId, status: "open" }); return invoices.get(orderId); }
+    function lookup(orderId) { return invoices.get(orderId); }
+    module.exports = { open, lookup };
+    JS
+    cat > src/invoice.test.js <<'JS'
+    const test = require("node:test");
+    const assert = require("node:assert");
+    const { open, lookup } = require("./invoice.js");
+
+    test("an opened Invoice reads open", () => {
+      open("order-1");
+      assert.equal(lookup("order-1").status, "open");
+    });
+    JS
+
+    cat > ../orders-service/README.md <<'MD'
+    # orders-service
+
+    Records Orders and their status.
+    MD
+    cat > ../orders-service/src/order.js <<'JS'
+    const orders = new Map();
+    function record(id) { orders.set(id, { id, status: "open" }); return orders.get(id); }
+    function dispute(id) { orders.get(id).status = "disputed"; return orders.get(id); }
+    function lookup(id) { return orders.get(id); }
+    module.exports = { record, dispute, lookup };
+    JS
+
+    build="$(pwd -P)"
+    home="$(cd ../orders-service && pwd -P)"
+    cat > ../orders-service/.scratch/hold-disputed-invoice/spec.md <<MD
+    # Hold the Invoice of a disputed Order
+
+    Journey: ./journey.md
+    Status: ready-for-agent
+
+    ## Problem Statement
+
+    A customer disputes an Order and the billing service keeps chasing its open Invoice.
+
+    ## Solution
+
+    A support agent marks an Order as disputed, and the billing service puts its Invoice on hold.
+
+    ## Repositories
+
+    - orders-service (Home repository): $home
+    - billing-service: $build
+
+    ## User Stories
+
+    1. As a support agent, I want to mark an Order as disputed, so that the dispute is on record where the Order lives
+    2. As a support agent, I want to put the Invoice of a disputed Order on hold, so that the customer is not chased while the dispute is open
+    3. As a support agent, I want the Order's page to show its dispute, so that I see it before I answer the customer
+    4. As a support agent, I want the Order's page to show that its Invoice is held, so that I can tell the customer nothing is due
+
+    ## Implementation Decisions
+
+    - An Invoice carries a status, open or held; a hold never deletes the Invoice
+    - The hold is a function of the invoice module, beside open and lookup
+
+    ## Testing Decisions
+
+    - Behaviour tests through the invoice module's exported functions, with Node's own test runner
+
+    ## Out of Scope
+
+    - Releasing a held Invoice
+    MD
+
+    cat > ../orders-service/.scratch/hold-disputed-invoice/journey.md <<'MD'
+    # Journey: Hold the Invoice of a disputed Order
+
+    Spec: ./spec.md
+    Actor: support agent
+    Entry: the Order's page
+
+    ## Path 1: Mark an Order disputed
+
+    Story: 1
+    Outcome: the Order reads disputed.
+
+    | Step | Actor sees | Actor does | System answers |
+    |---|---|---|---|
+    | 1 | the Order, with a Dispute action | picks Dispute | the Order's status reads disputed |
+
+    Failure branches:
+    - none
+
+    ## Path 2: Hold the Invoice
+
+    Story: 2
+    Outcome: the Invoice of the disputed Order reads held.
+
+    | Step | Actor sees | Actor does | System answers |
+    |---|---|---|---|
+    | 1 | the Invoice of a disputed Order, with a Hold action | picks Hold | the Invoice's status reads held |
+
+    Failure branches:
+    - Hold on an Order with no Invoice: nothing is held and the answer says no Invoice is open
+
+    ## Path 3: See the dispute on the Order's page
+
+    Story: 3
+    Outcome: the Order's page reads disputed.
+
+    | Step | Actor sees | Actor does | System answers |
+    |---|---|---|---|
+    | 1 | the page of a disputed Order | nothing | the page shows the Order as disputed |
+
+    Failure branches:
+    - none
+
+    ## Path 4: See the hold on the Order's page
+
+    Story: 4
+    Outcome: the Order's page reads that its Invoice is held.
+
+    | Step | Actor sees | Actor does | System answers |
+    |---|---|---|---|
+    | 1 | the page of a disputed Order whose Invoice was put on hold | nothing | the page shows the Invoice as held, read from the billing service |
+
+    Failure branches:
+    - none
+
+    ## States
+
+    | State | The actor sees | Actions |
+    |---|---|---|
+    | open | the Invoice as open | Hold |
+    | held | the Invoice as held | none |
+
+    ## Cut
+
+    - none
+
+    ## Defaults taken
+
+    - none
+
+    ## Deferred
+
+    - none
+
+    ## Spec changes applied
+
+    - none
+
+    ## Reopen in discuss
+
+    - none
+    MD
+
+    cat > ../orders-service/.scratch/hold-disputed-invoice/issues/01-mark-an-order-disputed.md <<'MD'
+    # 01: Mark an Order disputed
+
+    **What to build:** A support agent marks an Order as disputed, and the Order's lookup returns that status.
+
+    **Blocked by:** None (can start immediately)
+
+    **Status:** resolved
+
+    **Build repository:** orders-service
+
+    - [x] Marking an Order disputed makes its lookup return the status disputed
+
+    ## Evidence
+
+    - Landed on `main`.
+    MD
+
+    cat > ../orders-service/.scratch/hold-disputed-invoice/issues/02-hold-the-invoice-of-a-disputed-order.md <<'MD'
+    # 02: Hold the Invoice of a disputed Order
+
+    **What to build:** A support agent puts the Invoice of a disputed Order on hold.
+
+    **Blocked by:** 01 Mark an Order disputed
+
+    **Status:** ready-for-agent
+
+    **Build repository:** billing-service
+
+    - [ ] Hold on an Order's open Invoice sets the Invoice's status to held
+    - [ ] Hold on an Order with no Invoice holds nothing and says no Invoice is open
+
+    ## Evidence
+    MD
+
+    cat > ../orders-service/.scratch/hold-disputed-invoice/issues/03-show-the-dispute-on-the-order-page.md <<'MD'
+    # 03: Show the dispute on the Order's page
+
+    **What to build:** The Order's page shows that the Order is disputed.
+
+    **Blocked by:** 01 Mark an Order disputed
+
+    **Status:** ready-for-agent
+
+    **Build repository:** orders-service
+
+    - [ ] The page of a disputed Order shows the Order as disputed
+
+    ## Evidence
+    MD
+
+    cat > ../orders-service/.scratch/hold-disputed-invoice/issues/04-show-the-hold-on-the-order-page.md <<'MD'
+    # 04: Show the hold on the Order's page
+
+    **What to build:** The Order's page shows that the Invoice of a disputed Order is held, read from the billing service.
+
+    **Blocked by:** 02 Hold the Invoice of a disputed Order
+
+    **Status:** ready-for-agent
+
+    **Build repository:** orders-service
+
+    - [ ] The page of a disputed Order whose Invoice was put on hold in the billing service shows the Invoice as held
+
+    ## Evidence
+    MD
+
+    printf '.scratch/\n' > ../orders-service/.gitignore
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
+    git -C ../orders-service init -q -b main
+    git -C ../orders-service -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -C ../orders-service -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"

@@ -204,7 +204,16 @@ worktree line comes before the audit line and before the hand-over, shaped-by an
 28. **Review return.** The review's return, one line per part: the Review's location, the
     `Act on:` line, the landing line, every `Risk:` line and every `Axis not run:` line.
 29. **Spec landing lines.** On a `ticket` run of a Spec, which calls no review, these lines in the
-    Review return's place. The landing line, off the one line `land-spec.sh` printed:
+    Review return's place. First, on a run whose door printed a `root=` that is not the main
+    checkout, the line naming the run's two repositories, the Build repository it built in and
+    the Home repository its artifacts are in (the Ticket, the Digest, the Plan and the Evidence):
+    `Repositories: built in <build_repository=> (<the main checkout>), artifacts in <root=>`, as
+    `Repositories: built in billing-service (/home/dev/billing-service), artifacts in /home/dev/orders-service`.
+    When `build_repository=` reads `none` the name and the parentheses are left out:
+    `Repositories: built in <the main checkout>, artifacts in <root=>`. Both locations are
+    absolute and copied from the door's lines, and the line is written whether or not the run
+    landed. A run whose `root=` is the main checkout builds where its artifacts are and carries
+    no such line. Then the landing line, off the one line `land-spec.sh` printed:
     `landed at <sha> on spec/<feature-slug>`, or
     `not landed: spec/<feature-slug> is checked out in <worktree>`, or `not landed:` with the
     script's `moved` or `failed` line quoted. Then, on every such run,

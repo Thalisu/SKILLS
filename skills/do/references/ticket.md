@@ -1249,7 +1249,10 @@ review and the landing as what the developer runs next. On a Ticket of a Spec th
 among the files left uncommitted, and the next step names no push, since nothing reached the
 developer's branch: when the run landed it is what the Completion check's `next=` line names, as
 the Next step of [reply.md](reply.md) reads it, with the `Open:` line under the landing lines, and
-what the blocked stop of step 7 names when it did not. A run whose Final integration landed is
+what the blocked stop of step 7 names when it did not. On a Ticket run from its Build repository,
+the door's `root=` naming another repository than the main checkout, the `Repositories:` line
+opens those landing lines, as the Spec landing lines of [reply.md](reply.md) word it off the door's
+`root=` and `build_repository=` lines. A run whose Final integration landed is
 the exception: the Spec branch reached the developer's branch, so its Reply carries the Review
 beside the Spec among the files left uncommitted, `Open: none`, and `git push` with the
 developer's branch named as its next step. A run whose claim read `taken`, or whose Final

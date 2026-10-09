@@ -1,0 +1,6 @@
+---
+type: llm
+criteria: "Judge this on the run's final message only, the text after FINAL MESSAGE. The session runs in billing-service and builds Ticket 02, whose file lives in the sibling folder orders-service. Pass only when all of these hold. First, the message is the Reply of a finished ticket run and not a refusal or a blocked stop: it opens with `Playbook: ticket`, carries a `## Run` section, and carries no line starting `Yours:`. Second, its Run section carries a landing line reading `landed at <sha> on spec/hold-disputed-invoice`, with a commit hash in the place of <sha>. Third, it carries the line `Review: none, the Spec is reviewed once its last Ticket lands`, or that sentence with only formatting around it. Fourth, the line starting `Repositories:` stands in the Run section, before the landing line. Any of these fails: no Run section, a `not landed` line in the place of the landing line, a `Yours:` line, no line starting `Repositories:`, that line placed outside the Run section or after the landing line."
+---
+A run in a Build repository other than the Home repository ends on the Reply a ticket run of a
+Spec ends on today, with the line naming the two repositories opening its landing lines.
