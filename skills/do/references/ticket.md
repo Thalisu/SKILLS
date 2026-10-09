@@ -1130,7 +1130,7 @@ as the target, `refs/heads/spec/<feature-slug>`, or, on a Ticket with no Spec, t
 started on: the branch it built on rebased onto that branch, every conflicted hunk
 classed by the door script before anything is resolved, and the gate's command lines run again when
 the rebase replayed commits. Every contested hunk takes the **Target** side, and its **Incoming** side goes to
-the Loss ledger beside the Ticket, the door's `ticket=` path with `.ledger` before the extension, which on a Ticket run from its Build repository is in the Home repository while the rebase runs in the Build repository's worktree. Done when the step reads the no-op, or the target and the count with
+the Loss ledger beside the Ticket in the main checkout, `.ledger` before the extension, or, on a Ticket run from its Build repository, beside the Ticket in the Home repository, by the door's `ticket=` path, while the rebase runs in the Build repository's worktree. Done when the step reads the no-op, or the target and the count with
 the tree handed over with no **Gate** of the run's own, or the run stopped as blocked with the worktree and its branch named, and
 the integration line is recorded for the Reply's Run section.
 
