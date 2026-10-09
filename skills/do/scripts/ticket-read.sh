@@ -33,6 +33,12 @@
 #   build_of <file>               sets build_name, build_place and build_check to what
 #                                 build_repository_of, repository_location_of and build_check_of
 #                                 read for the Ticket, with name_detail and place_detail
+#   blockers_of <file>            sets word to the numbers its one **Blocked by:** paragraph names,
+#                                 space separated in the order written, none for None, none with
+#                                 detail set when it names no Ticket number, or ambiguous with
+#                                 detail set on two such lines; unsplit to the numbers of the
+#                                 paragraph that no part starts with (the split rule is worded in
+#                                 ticket-door.sh's header)
 #
 # A status is the one **Status:** line at column 0: none, two or a word outside the walk
 # (ready-for-agent, claimed, resolved) is ambiguous, and no word is taken out of it. A Ticket file
@@ -207,4 +213,30 @@ build_of() { # $1 Ticket file: sets build_name, build_place and build_check as b
   case "$build_name" in none | ambiguous) ;; *) repository_location_of "$1" "$build_name" ;; esac
   build_place="$word" place_detail="$detail"
   build_check="$(build_check_of "$build_name" "$build_place")"
+}
+
+# shellcheck disable=SC2034 # unsplit is read by the sourcing script.
+blockers_of() { # $1 Ticket file: sets word to the numbers its Blocked by paragraph names, none, or ambiguous, with detail and unsplit
+  local by_lines blocked_by numbers
+  by_lines="$(grep -n '^\*\*Blocked by:\*\*' "$1" | cut -d: -f1 | tr '\n' ' ')"
+  by_lines="${by_lines% }"
+  detail="" unsplit=""
+  if [ "$(wc -w <<<"$by_lines")" -gt 1 ]; then
+    word=ambiguous
+    detail="blocked-by lines $by_lines"
+    return
+  fi
+  blocked_by="$(awk '/^\*\*Blocked by:\*\*/ { on = 1; sub(/^\*\*Blocked by:\*\*[[:space:]]*/, ""); if ($0 == "") next }
+    on && /^[[:space:]]*$/ { gap = 1; next }
+    on { sub(/^[[:space:]]*[-*+][[:space:]]+/, ""); if (gap && $0 !~ /^[[:space:]]*[0-9]/) exit; gap = 0; print }' "$1")"
+  numbers="$(sed -E 's/(^|[[:space:]])and([[:space:]]|$)/\1,\2/g' <<<"$blocked_by" | tr ';,' '\n\n' |
+    sed -nE 's/^[[:space:]]*([0-9]+)([^[:alnum:]].*)?$/\1/p' | awk '!seen[$0]++' | tr '\n' ' ')"
+  numbers="${numbers% }"
+  unsplit="$(grep -oE '[[:alnum:]]+' <<<"$blocked_by" | grep -xE '[0-9]+' |
+    awk -v read="$numbers" 'BEGIN { split(read, r, " "); for (i in r) ok[r[i]] = 1 } !ok[$0] && !seen[$0]++' | tr '\n' ' ')"
+  unsplit="${unsplit% }"
+  word="${numbers:-none}"
+  if [ -z "$numbers" ]; then
+    case "$blocked_by" in None* | none*) ;; *) detail="blocked-by names no Ticket number" ;; esac
+  fi
 }

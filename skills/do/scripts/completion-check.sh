@@ -9,12 +9,19 @@
 # Prints key=value lines, in this order: ticket, spec_branch as `spec-branch.sh probe` prints it,
 # one spec_ticket=<NN> <status> <path> per Ticket of the folder in number order, the argument's own
 # included, one open=<NN> <status> <path> per Ticket not resolved (open=none when every one is),
+# one consumer=<NN> <its Build repository name> per consuming Ticket (consumer=none with none),
 # next, next_build, next_build_location, next_location, last, then verdict. An ambiguous=<NN>
 # <detail> line follows the spec_ticket line it concerns. What a Ticket file is and what its status reads are ticket-read.sh's rules.
 #
 # next, first match wins: the path of the first open Ticket reading ready-for-agent · none (nothing
 # is open) · wait (every open Ticket reads claimed, so other runs hold them) · ambiguous (nothing
 # is ready and an open Ticket cannot be read).
+#
+# A consuming Ticket is a Ticket of the folder, other than the argument, whose Blocked by names the
+# argument's number directly, as ticket-read.sh's blockers_of reads it, and whose **Build
+# repository:** line names another repository than the argument's own line, the names compared as
+# written. Its status never enters. A Ticket whose line is missing or cannot be read on either
+# side, or whose Blocked by cannot be read, is never one.
 #
 # next_build, next_build_location and next_location follow next only when it is a path and that
 # Ticket is built in another repository, as ticket-read.sh's build_of reads it: the name on its
@@ -27,7 +34,8 @@
 # answer before the close writes resolved as the close reads after.
 #
 # A Ticket outside a feature folder's issues/ has no Spec behind it (spec_branch=none): its folder
-# is not walked, and the record reads spec_ticket=none, open=none, next=none, last=yes.
+# is not walked, and the record reads spec_ticket=none, open=none, consumer=none, next=none,
+# last=yes.
 #
 # verdict, first match wins: no-spec (spec_branch=none) · ambiguous (a Ticket's status cannot be
 # read) · complete (every Ticket reads resolved) · incomplete.
@@ -65,7 +73,7 @@ spec_branch="$(bash "$here/spec-branch.sh" probe "$path" | sed -n 's/^spec_branc
 if [ "$spec_branch" = none ]; then
   echo "ticket=${path#"$main"/}"
   echo "spec_branch=none"
-  printf '%s\n' spec_ticket=none open=none next=none last=yes verdict=no-spec
+  printf '%s\n' spec_ticket=none open=none consumer=none next=none last=yes verdict=no-spec
   exit 0
 fi
 
@@ -79,8 +87,27 @@ grep -qxF -- "$path" <<<"$tickets" || {
 echo "ticket=${path#"$main"/}"
 echo "spec_branch=$spec_branch"
 
-open="" unreadable=0 ready="" ready_file="" last=yes
+build_repository_of "$path"
+own_build="$word"
+own_number="$(basename "$path")"
+own_number="${own_number%%-*}"
+# With no name of its own to differ from, the argument has no consuming Ticket.
+case "$own_build" in none | ambiguous) own_number="" ;; esac
+open="" consumers="" unreadable=0 ready="" ready_file="" last=yes
 while IFS= read -r file; do
+  if [ "$file" != "$path" ]; then
+    blockers_of "$file"
+    blockers="$word"
+    build_repository_of "$file"
+    case " $blockers " in
+      *" $own_number "*)
+        case "$word" in
+          none | ambiguous | "$own_build") ;;
+          *) [ -n "$unsplit" ] || consumers+="consumer=$(basename "$file" | sed 's/-.*//') $word"$'\n' ;;
+        esac
+        ;;
+    esac
+  fi
   status_of "$file"
   number="$(basename "$file")"
   row="${number%%-*} $word ${file#"$main"/}"
@@ -94,6 +121,7 @@ while IFS= read -r file; do
   fi
 done <<<"$tickets"
 printf '%s' "${open:-open=none$'\n'}"
+printf '%s' "${consumers:-consumer=none$'\n'}"
 
 if [ -n "$ready" ]; then
   echo "next=$ready"

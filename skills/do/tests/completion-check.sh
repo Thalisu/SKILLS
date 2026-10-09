@@ -130,6 +130,7 @@ same "a Ticket with no Spec behind it reads as the last Ticket with nothing open
 spec_branch=none
 spec_ticket=none
 open=none
+consumer=none
 next=none
 last=yes
 verdict=no-spec"
@@ -142,6 +143,7 @@ same "a Ticket with no Spec behind it reads as the last Ticket with nothing open
 spec_branch=none
 spec_ticket=none
 open=none
+consumer=none
 next=none
 last=yes
 verdict=no-spec"
@@ -208,5 +210,23 @@ expect "says to wait, once, when every open Ticket reads claimed, whatever repos
   test "$(term next)" = "wait"
 check_absent "names no repository to open and no Ticket to hand over when every open Ticket reads claimed, one of them built in another repository" 0 "$rc" \
   "next_build=" "next_build_location=" "next_location="
+
+# The cross-service flows of a Ticket are owed by the Tickets it blocks that are built elsewhere.
+between_open_and_next() { # the lines $out carries after its last open= line and before next=, on stdout
+  printf '%s\n' "$out" | awk '/^next=/ { printf "%s", kept; exit } /^open=/ { kept = ""; next } { kept = kept $0 "\n" }'
+}
+ticket 03-same-here.md $'**Status:** claimed\n\n**Build repository:** check-build' '01: done here'
+ticket 04-claimed-there.md $'**Status:** claimed\n\n**Build repository:** check-home' '02: open here'
+ticket 05-done-there.md $'**Status:** resolved\n\n**Build repository:** check-home' '02: open here'
+run "$issues/02-open-here.md"
+expect "names each Ticket blocked by the argument and built in another repository, with its number and that repository, in number order, after the open lines and before next=" \
+  test "$(between_open_and_next)" = "consumer=04 check-home
+consumer=05 check-home"
+expect "the Tickets that consume the argument from another repository are read with exit 0" test "$rc" = 0
+
+run "$issues/01-done-here.md"
+expect "names no consuming Ticket when the only Ticket blocked by the argument is built in the argument's own repository" \
+  test "$(between_open_and_next)" = "consumer=none"
+expect "a dependent built in the argument's own repository is read with exit 0" test "$rc" = 0
 
 exit "$((fails > 0))"

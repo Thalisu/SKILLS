@@ -103,25 +103,15 @@ echo "kind=$word"
 [ -z "$detail" ] || { echo "ambiguous=$detail"; stop_ambiguous=1; }
 
 folder="$(dirname "$path")"
-by_lines="$(grep -n '^\*\*Blocked by:\*\*' "$path" | cut -d: -f1 | tr '\n' ' ')"
-by_lines="${by_lines% }"
-blocked_by="$(awk '/^\*\*Blocked by:\*\*/ { on = 1; sub(/^\*\*Blocked by:\*\*[[:space:]]*/, ""); if ($0 == "") next }
-  on && /^[[:space:]]*$/ { gap = 1; next }
-  on { sub(/^[[:space:]]*[-*+][[:space:]]+/, ""); if (gap && $0 !~ /^[[:space:]]*[0-9]/) exit; gap = 0; print }' "$path")"
-numbers="$(sed -E 's/(^|[[:space:]])and([[:space:]]|$)/\1,\2/g' <<<"$blocked_by" | tr ';,' '\n\n' |
-  sed -nE 's/^[[:space:]]*([0-9]+)([^[:alnum:]].*)?$/\1/p' | awk '!seen[$0]++')"
-unsplit="$(grep -oE '[[:alnum:]]+' <<<"$blocked_by" | grep -xE '[0-9]+' |
-  awk -v read="$(tr '\n' ' ' <<<"$numbers")" 'BEGIN { split(read, r, " "); for (i in r) ok[r[i]] = 1 } !ok[$0] && !seen[$0]++' | tr '\n' ' ')"
-unsplit="${unsplit% }"
-if [ "$(wc -w <<<"$by_lines")" -gt 1 ]; then
-  echo "blockers=ambiguous"; echo "ambiguous=blocked-by lines $by_lines"; stop_ambiguous=1
-  numbers="" unsplit=""
-elif [ -z "$numbers" ]; then
-  case "$blocked_by" in
-    None*|none*) echo "blockers=none" ;;
-    *) echo "blockers=none"; echo "ambiguous=blocked-by names no Ticket number"; stop_ambiguous=1 ;;
-  esac
-fi
+blockers_of "$path"
+numbers="$word"
+case "$word" in
+  ambiguous) echo "blockers=ambiguous"; echo "ambiguous=$detail"; stop_ambiguous=1; numbers="" ;;
+  none)
+    echo "blockers=none"; numbers=""
+    [ -z "$detail" ] || { echo "ambiguous=$detail"; stop_ambiguous=1; }
+    ;;
+esac
 for n in $numbers; do
   files="$(ticket_files "$folder" "$n")"
   count="$(grep -c . <<<"$files")"
