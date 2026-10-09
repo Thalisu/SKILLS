@@ -828,7 +828,9 @@ and, with no Testing Policy, the map line is recorded for the Reply.
 
 **2. Claim and worktree.** The Plan is verified, so the run has something to build and the two
 writes that cost the developer cleanup are made together. First the claim, written as the Ticket
-file in [mechanics.md](mechanics.md) says: the `**Status:**` line set to `claimed`. The claim line,
+file in [mechanics.md](mechanics.md) says: the `**Status:**` line set to `claimed`, in the file the
+door printed as `ticket=`, which on a Ticket run from its Build repository is the Ticket in the
+Home repository and never a copy in the repository the session is in. The claim line,
 `Claimed: <the Ticket's path or reference>`, is recorded for the Reply's Run section once it is
 written. On a remote
 tracker the run waits for a yes before it, asked with the `Yours: outward:` line the claim in

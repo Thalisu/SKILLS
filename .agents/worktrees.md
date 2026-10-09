@@ -104,7 +104,8 @@ created; nothing else does.
 
 Before the remove, look inside the worktree's `.scratch/`. Git ignores the folder, so the remove
 deletes whatever is in it without a word and without needing `--force`, and nothing warns after
-the fact. Nothing of the run belongs there: the Ticket lives in the main checkout and the Review
+the fact. Nothing of the run belongs there: the Ticket lives in its Home repository (the main
+checkout, unless the run was opened in the Ticket's Build repository) and the Review
 goes beside it or to the main checkout's scratch, per
 [ADR 0021](../docs/adr/0021-the-ticket-reaches-the-review-handed-over-and-the-review-defaults-to-the-main-checkouts-scratch.md).
 A file found there was written by hand or by an older run, and it is moved to the main checkout's

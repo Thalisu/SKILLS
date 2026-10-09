@@ -62,8 +62,9 @@ exception for `ready-for-agent`:
 | `claimed` | `do` | at the start of a run, before the worktree exists |
 | `resolved` | `do` | at the close, with every proven criterion ticked and the evidence appended |
 
-In a local ticket the word sits on the `**Status:**` line, and `do` writes it in the main
-checkout. In an issue the tracker carries the walk: `tickets` applies the `ready-for-agent` label,
+In a local ticket the word sits on the `**Status:**` line, and `do` writes it in the Home
+repository, which is the main checkout unless the run was opened in the ticket's Build repository.
+In an issue the tracker carries the walk: `tickets` applies the `ready-for-agent` label,
 and `do` claims and closes the issue with tracker writes made after the developer's yes. The
 close's yes also carries what a Ruling the run made needs on the tracker: the Ruling as a comment
 on the spec issue, and a rewritten criterion's new text in the ticket issue's body.

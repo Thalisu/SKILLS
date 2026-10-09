@@ -64,7 +64,11 @@ other ten surface at the step that reads them, and each row below names that ste
 
 The run writes into two places outside your branch: the worktree at `.claude/worktrees/do-<slug>`,
 excluded through this clone's `.git/info/exclude` and never through the project's `.gitignore`, and
-the Ticket file in the **Main checkout**, which the run edits and never commits. Installing every
+the Ticket file in the **Home repository**, which the run edits and never commits. The Home
+repository is the **Main checkout** unless you opened the session in the Ticket's **Build
+repository** and typed the Ticket's absolute location: the run then claims the Ticket and writes
+its Digest and its Plan in the Home repository, and builds in a worktree of the repository you are
+in. Installing every
 skill named here is the same procedure, and [the top-level README](../README.md) carries it once.
 
 ## The Playbook

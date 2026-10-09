@@ -119,12 +119,18 @@ into is the one its upstream recorded, and a protected checkout is the warning a
 
 ## The Ticket file
 
-The Ticket belongs to the main checkout, whether git tracks it, ignores it or has never seen it.
-It is read and edited there, by its path in the main checkout, in the format of
+The Ticket belongs to its Home repository, whether git tracks it, ignores it or has never seen it.
+That is the root the ticket door prints as `root=`: the main checkout whenever the Ticket is built
+in its Home repository, and another repository when the run was opened in the Ticket's Build
+repository on the Ticket's location there. It is read and edited there, by its path in the Home
+repository, in the format of
 [ticket-format.md](../../../.agents/formats/ticket-format.md), and only there: the worktree
 branch never touches it and the run never commits it. A worktree created from HEAD has no copy
 of an untracked Ticket, and a claim written in the main checkout beside an edit of the same file
-on the branch makes the landing fast-forward fail, so one rule covers the three states.
+on the branch makes the landing fast-forward fail, so one rule covers the three states. It covers
+the Ticket of another repository as well: every run of the feature reads the status in the Home
+repository, so a claim written into the Build repository would leave the Ticket open to a second
+run.
 
 - The claim is the `**Status:**` line set to `claimed`, written after the grounding the run builds
   from is in hand and before the worktree exists, except on the `cause unknown, diagnosis first`
