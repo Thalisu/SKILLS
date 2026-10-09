@@ -28,4 +28,14 @@ run "$began" "$((began + 40 * 60 + 1))"
 check_lines "a Stretch that began more than 40 minutes ago stops" 0 "$rc" \
   "stretch=stop"
 
+now="$(date +%s)"
+
+run "$now"
+check_lines "handed only the moment it began, a Stretch that began at the current moment continues" 0 "$rc" \
+  "stretch=continue"
+
+run "$((now - 2 * 60 * 60))"
+check_lines "handed only the moment it began, a Stretch that began more than 40 minutes before the clock stops" 0 "$rc" \
+  "stretch=stop"
+
 exit "$((fails > 0))"
