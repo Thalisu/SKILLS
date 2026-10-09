@@ -120,7 +120,15 @@ the tracker file describes. Before anything is written:
   claim, in one message naming the blocker and its status. Nothing is written. The build order is
   the developer's call, so the message carries `Yours: direction:` with the choice, per
   [reply.md](reply.md): build the blocker first, or set its status by hand when it was done outside
-  the chain.
+  the chain. The message ends on the command that builds the blocker, built from the door's lines
+  alone. Its last line is `/do <next_blocker=>`, the absolute location of the first blocker not
+  `resolved`, since a location relative to one repository resolves to nothing from another. When
+  the door printed `next_blocker_build=`, that blocker is built in another repository than the
+  one this session was opened in, and one line stands between the `Yours:` line and the command:
+  it names that repository, with `next_blocker_build_location=`, as the place to open a session
+  in, the way the hand-over below names it, or says the Spec's `## Repositories` list does not
+  hold it when the location reads `unlisted`. With no `next_blocker_build=` line the blocker is
+  built here and no such line is written. Either way the message carries no shell line.
 - A Ticket whose Build repository is another repository than the one this session was opened in
   (`verdict=elsewhere`, `build_check=elsewhere`) is handed over before the claim, since a run
   builds only in the repository it is opened in. Nothing is written, nothing is claimed and

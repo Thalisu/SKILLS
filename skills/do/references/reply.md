@@ -409,6 +409,13 @@ The main checkout changed during the do-impeccable fork:
 Yours: direction: move the files above into <worktree> by hand and run /do <ticket> again, or discard them and run /do <ticket> again
 ```
 
+A `ticket` run refused on a blocker that is not `resolved` (`verdict=blocked`) ends on the command
+that builds the blocker: `/do` with the value of the door's `next_blocker=` line, the blocker's
+absolute location, as the last line. When the door also printed `next_blocker_build=`, the line
+before it names that repository, with its `next_blocker_build_location=`, as the place to open a
+session in, and it comes after the `Yours:` line. A blocker built in the repository the session is
+in gets no such line.
+
 How much more it carries depends on where the run stopped:
 
 - **Refused before any edit.** It adds nothing, not even a Run section: its one message is the
@@ -556,7 +563,28 @@ ready-for-agent. Nothing was written.
 
 Yours: direction: build 02-export-notes.md first, or set its status to resolved by hand if it was done outside the chain
 
-/do .scratch/20260101-notes/issues/02-export-notes.md
+/do /home/dev/notes/.scratch/20260101-notes/issues/02-export-notes.md
+```
+
+</example>
+
+<example>
+
+The same refusal when the blocker is built in another repository than the one the session was
+opened in: one line names it before the command, which carries the blocker's absolute location in
+the Home repository.
+
+```md
+Playbook: ticket
+
+Refused before the claim. 03-share-notes.md is blocked by 02-export-notes.md, whose status is
+ready-for-agent. Nothing was written.
+
+Yours: direction: build 02-export-notes.md first, or set its status to resolved by hand if it was done outside the chain
+
+Open a session in notes-api, at /home/dev/notes-api, and run it there:
+
+/do /home/dev/notes/.scratch/20260101-notes/issues/02-export-notes.md
 ```
 
 </example>
