@@ -1,0 +1,6 @@
+---
+type: llm
+criteria: "Judge this on the run's final message only, the text after FINAL MESSAGE. The session ran in the repository billing-service, and the next Ticket, 03-record-when-the-invoice-was-held, is built in billing-service too, so the developer types the next command in the session they already have. Pass only when both of these hold. First, the last line of the message that is not blank is the command `/do` followed by the path of 03-record-when-the-invoice-was-held.md, with at most formatting such as backticks around it and no other words on that line. Second, nothing in the message's closing part (its Next step section, or its last lines when it has no such heading) tells the developer to open a session in a repository, or names a repository as the place to type the command in. A line elsewhere in the message that starts `Repositories:` and says where the run built and where its artifacts are is not such a line and does not fail this. Any of these fails: a line telling the developer to open a session in billing-service or in orders-service before the command, text after the `/do` line, the `/do` naming another Ticket, no `/do` line at all."
+---
+When the next Ticket is built in the repository the session runs in, the Reply ends on
+`/do <ticket>` and names no repository to open a session in.
