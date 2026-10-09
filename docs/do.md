@@ -247,7 +247,7 @@ The run then marks its Ticket `resolved`, with its Evidence filled, in the Home 
 after that runs the Completion check, a script
 that reads the status of every Ticket of the Spec, so the last of two runs landing at once always
 sees every Ticket resolved. Then it removes its worktree. When Tickets are still open, the reply
-adds an `Open:` line naming each one with its status, and its Next step is `/do` on the first open
+adds an `Open:` line naming each one with its status, whatever repository it is built in, and its Next step is `/do` on the first open
 Ticket that reads `ready-for-agent`. When every open Ticket is `claimed` by another run, the Next
 step says the Spec integrates when those runs land, and there is nothing to type. The same script
 tells the gate whether this is the feature's last Ticket, which is when the full suites run.

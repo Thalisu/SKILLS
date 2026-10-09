@@ -220,7 +220,9 @@ worktree line comes before the audit line and before the hand-over, shaped-by an
     `Review: none, the Spec is reviewed once its last Ticket lands`. Then, on a run that landed
     and whose close ran the Completion check, `Open:` naming each Ticket still open with its
     status, one entry per `open=` line the check printed, its file stem and its status, as
-    `Open: 02-<slug> (claimed), 04-<slug> (ready-for-agent)`. The entries are copied from those
+    `Open: 02-<slug> (claimed), 04-<slug> (ready-for-agent)`. The entries span every repository
+    of the feature: a Ticket built in another repository than the session's is listed like one
+    built here. The entries are copied from those
     lines and never derived from the session's own reading of the Tickets, and the line is absent
     when the check printed `open=none`, except on a run that went on to the Final integration,
     below, where it reads `Open: none`.

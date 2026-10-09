@@ -11,10 +11,11 @@ context:
     # of Ticket 02 (this fixture folder, which the Spec lists by its location), and the Ticket, its
     # Spec and its Journey live in orders-service, the Home repository, a sibling folder. The run
     # builds Ticket 02 end to end and lands it on the Spec branch of billing-service, so its Reply
-    # is the one a run in a Build repository other than the Home repository ends with. Two Tickets
-    # stay open after it, both built in orders-service: Ticket 03, ready and blocked by nothing
+    # is the one a run in a Build repository other than the Home repository ends with. Three Tickets
+    # stay open after it. Two are built in orders-service: Ticket 03, ready and blocked by nothing
     # still open, which is the next one, and Ticket 04, blocked by Ticket 02, which carries the
-    # criterion that crosses the two services. billing-service has no surface of its own and names
+    # criterion that crosses the two services. The third, Ticket 05, is built in billing-service,
+    # so what stays open spans both repositories. billing-service has no surface of its own and names
     # orders-service as its consumer, so the flows of what it builds are not run here.
     set -e
     mkdir -p src .claude/agents ../orders-service/src ../orders-service/.scratch/hold-disputed-invoice/issues
@@ -129,6 +130,7 @@ context:
     2. As a support agent, I want to put the Invoice of a disputed Order on hold, so that the customer is not chased while the dispute is open
     3. As a support agent, I want the Order's page to show its dispute, so that I see it before I answer the customer
     4. As a support agent, I want the Order's page to show that its Invoice is held, so that I can tell the customer nothing is due
+    5. As a support agent, I want a held Invoice to carry when it was held, so that I can tell the customer how long the dispute has been open
 
     ## Implementation Decisions
 
@@ -290,6 +292,22 @@ context:
     **Build repository:** orders-service
 
     - [ ] The page of a disputed Order whose Invoice was put on hold in the billing service shows the Invoice as held
+
+    ## Evidence
+    MD
+
+    cat > ../orders-service/.scratch/hold-disputed-invoice/issues/05-record-when-the-invoice-was-held.md <<'MD'
+    # 05: Record when the Invoice was held
+
+    **What to build:** A held Invoice carries the time it was put on hold.
+
+    **Blocked by:** 02 Hold the Invoice of a disputed Order
+
+    **Status:** ready-for-agent
+
+    **Build repository:** billing-service
+
+    - [ ] The lookup of a held Invoice returns the time it was put on hold
 
     ## Evidence
     MD
