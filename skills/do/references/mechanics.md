@@ -1018,7 +1018,8 @@ repository.
    a run that wrote `resolved` first is counted by every check that runs after it, so the last of
    two concurrent runs always sees every Ticket resolved. The script writes nothing. Its `open=`
    and `next=` lines are recorded as printed for the Reply's `Open:` line and Next step, per
-   [reply.md](reply.md), and on exit 1 its `ambiguous=` line too. A Ticket that is a tracker
+   [reply.md](reply.md), with the `next_build=`, `next_build_location=` and `next_location=` lines
+   when it printed them, and on exit 1 its `ambiguous=` line too. A Ticket that is a tracker
    reference has no path, so the check is not run and nothing is taken as open.
 6. Remove the worktree and its branch: the run created them, so the run removes them. Leave the
    worktree first, with a bare `cd` to the main checkout, then, from there,

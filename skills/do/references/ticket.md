@@ -1203,7 +1203,8 @@ among them, under its `Yours: outward:` line, a question still asked of the deve
 `--auto`, with the `choice-taker`'s return shown above it, per [forks.md](forks.md); then the Completion check,
 `bash <skill-dir>/scripts/completion-check.sh <the Ticket's path>`, run only after the `resolved`
 write, so the last of two concurrent runs always sees every Ticket resolved, with its `open=` and
-`next=` lines recorded for the Reply; then the worktree and its branch removed, from the main
+`next=` lines recorded for the Reply, and with them the `next_build=`, `next_build_location=` and
+`next_location=` lines as printed, when the next Ticket is built in another repository; then the worktree and its branch removed, from the main
 checkout that holds them, the Build repository's. A Ticket that is a
 tracker reference has no path: the check is not run for it and the close takes nothing as open. When the door appended the `.scratch/` line to the project's
 `.gitignore`, the close says so in one line, per [scratch.md](../../../.agents/scratch.md): the run
@@ -1248,7 +1249,8 @@ branch named when the review landed, or, when nothing landed, the worktree, its 
 review and the landing as what the developer runs next. On a Ticket of a Spec the Review is never
 among the files left uncommitted, and the next step names no push, since nothing reached the
 developer's branch: when the run landed it is what the Completion check's `next=` line names, as
-the Next step of [reply.md](reply.md) reads it, with the `Open:` line under the landing lines, and
+the Next step of [reply.md](reply.md) reads it, the check's `next_build=` lines included when the
+next Ticket is built in another repository, with the `Open:` line under the landing lines, and
 what the blocked stop of step 7 names when it did not. On a Ticket run from its Build repository,
 the door's `root=` naming another repository than the main checkout, the `Repositories:` line
 opens those landing lines, as the Spec landing lines of [reply.md](reply.md) word it off the door's

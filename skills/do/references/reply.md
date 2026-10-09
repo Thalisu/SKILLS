@@ -340,7 +340,17 @@ Ten sections, in this order, each one present in every Reply that carries sectio
     on the developer's branch, `git push` with the branch named; otherwise the command to type
     next. A run that landed on a Spec branch names no push, since nothing reached the developer's
     branch: its line is read off the Completion check's `next=` line. A path there reads
-    `/do <that path>`, the first open Ticket that reads `ready-for-agent`. `next=wait` means every
+    `/do <that path>`, the first open Ticket that reads `ready-for-agent`. When the check printed
+    `next_build=` under it, that Ticket is built in another repository than the one this session
+    was opened in, and the Reply ends on two lines in that one's place. The first names
+    `next_build=`, with `next_build_location=`, as the place to open a session in, worded as the
+    hand-over of the `ticket` door in [ticket.md](ticket.md) words it for a Ticket built in
+    another repository. The second, the Reply's last, is `/do <next_location=>` and nothing else
+    on the line: the Ticket's absolute location, whatever form `next=` took, since a relative one
+    resolves to nothing from the other repository. When `next_build_location=` reads `unlisted`,
+    the first line names the repository and says the Spec's `## Repositories` list holds no
+    location for it, and `/do <next_location=>` stays last. Neither is a shell line. With no
+    `next_build=` line the Ticket is built here and no repository is named. `next=wait` means every
     open Ticket reads `claimed` by another run: the line says the Spec integrates when those runs
     land and there is nothing to type. `next=ambiguous` names the Ticket on the check's
     `ambiguous=` line as the one whose `**Status:**` line to repair. A run whose Final

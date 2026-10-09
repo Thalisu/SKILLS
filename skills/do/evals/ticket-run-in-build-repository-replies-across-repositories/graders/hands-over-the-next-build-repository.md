@@ -1,0 +1,6 @@
+---
+type: llm
+criteria: "Judge this on the run's final message only, the text after FINAL MESSAGE. The session ran in the repository billing-service. The next Ticket, 03-show-the-dispute-on-the-order-page, is built in another repository, orders-service. Pass only when all of these hold. First, the last line of the message that is not blank is the command `/do` followed by the absolute path of 03-show-the-dispute-on-the-order-page.md, with at most formatting such as backticks around it and no other words on that line. Second, the line right before it, blank lines aside, tells the developer to open a session in orders-service, naming orders-service and its absolute location (a path ending in /orders-service). Third, the message hands over no shell command for getting there: no `cd`, no command that starts a session. Any of these fails: the message ends on a `/do` line with no line before it naming orders-service as the repository to open a session in, the `/do` path is relative, text follows the `/do` line, the repository is named without its location, the message gives a `cd` command."
+---
+When the next Ticket is built in another repository, the Reply ends on the line naming that Build
+repository as the place to open a session in, then `/do` with the Ticket's absolute location.
