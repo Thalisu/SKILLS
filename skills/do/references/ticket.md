@@ -99,6 +99,9 @@ the tracker file describes. Before anything is written:
   developer fixes the one input that is wrong instead of reading a git error:
   - `unlisted`: the line names `build_repository=` and says the Spec's `## Repositories` list does
     not hold it.
+  - `missing`: the line names `build_repository=` with `build_location=` and says that location is
+    not on this machine.
+  - `not-git`: the line names `build_location=` and says it is not a git repository.
 
   Nothing is written and nothing is claimed: the run corrects neither the Ticket nor the Spec, and
   guesses no entry in their place. The line hands over no command, since the fix comes before any
