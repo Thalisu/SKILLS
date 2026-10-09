@@ -269,7 +269,7 @@ After the list:
 2. on a spec that reads `Front-end: builder` or `Front-end: impeccable`, one more line beside those: the paths cut in two, and the paths left as a Logic ticket alone, each of these with the reason no screen was read in it. For example: `Cut in two: "Archive a note". Logic ticket alone: "Export the notes" (run from the command line, no screen).` When no path has a screen the line says so: every path was cut as a Logic ticket alone, with the reason. The reading of each path is the one thing here the user can know better than the session, so it is shown where they can overrule it. On `none` the line is left out;
 3. on a spec that reads `Front-end: impeccable` whose setup check exited 0, one line saying the setup was found in the project, so the reader knows why no Setup ticket heads the list. With a Setup ticket in the list the line is left out;
 4. what was left out: the journey's cut and deferred items, and the spec's Out of Scope;
-5. one question: does the breakdown go out as it stands?
+3. one question: does the breakdown go out as it stands? It is the last line of the message, on a line of its own. No second question, no offer and no remark sits beside it or after it: anything the user should know before answering belongs in the parts above, and a remark next to the question reads as something else to answer.
 
 One shape the message can take, in the user's language (the labels are translated with the rest). The layout is free; the fields on every ticket, the closing parts and the single question are not. The domain and the figures are this example's own:
 
