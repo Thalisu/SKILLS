@@ -351,6 +351,18 @@ expect "a Build repository line with no Repositories section writes nothing in e
   test "$(both_states "$sibling")" = "$before"
 expect "the Ticket of a Spec with no Repositories section still reads ready-for-agent" \
   grep -qxF '**Status:** ready-for-agent' "$unlisted/issues/01-nolist.md"
+# On a Spec with a Repositories list, a Ticket's Build repository is an entry of it: a Ticket with
+# no Build repository line names none, so it stops like an unlisted value instead of building in
+# whichever repository the session sits in.
+(issues="$across/issues" && ticket 05-noline.md '**Status:** ready-for-agent' 'None (can start immediately)')
+before="$(both_states "$sibling")"
+run "$door" "$across/issues/05-noline.md"
+check_lines "a Ticket with no Build repository line, of a Spec with a Repositories list, is unbuildable" 1 "$rc" \
+  "build_repository=none" "build_location=none" "build_check=unlisted" "verdict=unbuildable"
+expect "a Ticket with no Build repository line of a listed Spec writes nothing in either repository" \
+  test "$(both_states "$sibling")" = "$before"
+expect "the Ticket with no Build repository line of a listed Spec still reads ready-for-agent" \
+  grep -qxF '**Status:** ready-for-agent' "$across/issues/05-noline.md"
 # A listed entry whose location is not a directory on this machine is missing: the developer whose
 # clone sits at another path fixes the Spec's location, instead of opening a repository that is not
 # there. A relative location is never resolved against the session, even where one would land on

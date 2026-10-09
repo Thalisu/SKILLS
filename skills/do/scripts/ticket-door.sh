@@ -187,6 +187,8 @@ build_location="$word"
 echo "build_location=$build_location"
 [ -z "$detail" ] || { echo "ambiguous=$detail"; stop_ambiguous=1; }
 build_check="$(build_check_of "$build_repository" "$build_location")"
+# On a Spec with a list the Build repository is one of its entries, so no line names none of them.
+if [ "$build_check" = none ] && grep -q '^## Repositories[[:space:]]*$' "$(spec_beside "$path")"; then build_check=unlisted; fi
 echo "build_check=$build_check"
 echo "ticket_location=$path"
 first_run_unsafe=0

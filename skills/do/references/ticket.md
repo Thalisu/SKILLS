@@ -98,7 +98,9 @@ the tracker file describes. Before anything is written:
   stops the run before the claim in one line after the first line, chosen by `build_check=`, so the
   developer fixes the one input that is wrong instead of reading a git error:
   - `unlisted`: the line names `build_repository=` and says the Spec's `## Repositories` list does
-    not hold it.
+    not hold it. With `build_repository=none` the Spec has a list and the Ticket names no entry of
+    it, so the line says the Ticket has no `**Build repository:**` line and its Spec lists
+    repositories.
   - `missing`: the line names `build_repository=` with `build_location=` and says that location is
     not on this machine.
   - `not-git`: the line names `build_location=` and says it is not a git repository.
