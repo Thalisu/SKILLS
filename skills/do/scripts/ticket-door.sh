@@ -215,8 +215,8 @@ echo "spec_complete=$spec_complete"
 front_end_of "$path"
 echo "front_end=$word"
 [ -z "$detail" ] || { echo "ambiguous=$detail"; stop_ambiguous=1; }
-build_repository_of "$path"
-build_repository="$word"
+build_of "$path"
+build_repository="$build_name" build_location="$build_place"
 echo "build_repository=$build_repository"
 [ -z "$name_detail" ] || { echo "ambiguous=$name_detail"; stop_ambiguous=1; }
 echo "build_location=$build_location"
