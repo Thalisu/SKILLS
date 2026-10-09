@@ -995,9 +995,14 @@ Route on the first line:
   two sides with no new commit on the branch ends the run as blocked, the Ruling having settled
   nothing.
 - `stopped`: the reason is the `stopped:` line. A reason the session can clear (a seam that is
-  production code to change, a project map slot to fill, a spent window) is cleared and the Builder
-  is forked again with the same brief. A reason it cannot clear ends the run as blocked, with the
-  worktree and its branch named.
+  production code to change, a project map slot to fill, a spent window, a spent time budget) is
+  cleared and the Builder is forked again with the same brief. A spent time budget has nothing to
+  clear but the fork itself: the session forks the next Stretch at once, with the brief of the
+  first, no key added and no file written, and that Stretch finds its position off the
+  `Behaviour:` lines on the branch, per [builder.md](builder.md)'s `## The time budget`. It is never
+  a reason to end the run as blocked, and each such return carries at least one new commit, since
+  the budget is asked only after one. A reason the session cannot clear ends the run as blocked,
+  with the worktree and its branch named.
 
 When `do-impeccable` returned `built` and the check of the main checkout read `verdict=untouched`,
 the run takes the same path from here as after a Builder: the diff of step 4, the Gate of step 5,

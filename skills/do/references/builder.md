@@ -141,8 +141,9 @@ stopped: <the reason, in one line>
 ```
 
 The `stopped:` line is what both of the session's routes read: a reason it can clear (a seam that
-is production code to change, a project map slot to fill, a spent window) is cleared and the
-Builder forked again, and one it cannot ends the run as blocked with something to act on. So the
+is production code to change, a project map slot to fill, a spent window, a spent time budget) is
+cleared and the Builder forked again, and one it cannot ends the run as blocked with something to
+act on. A spent time budget is cleared by the next fork alone, with the same brief. So the
 line names what stopped the build and what would clear it, in words the session can act on without
 opening the tree.
 
