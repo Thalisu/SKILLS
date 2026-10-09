@@ -20,12 +20,12 @@ The fork is the `do-planner` agent `do` ships, and it is dispatched with these a
 since it opens what it needs itself:
 
 ```
-Ticket: <the absolute path in the main checkout, or the tracker reference>
+Ticket: <the absolute path in the Home repository, or the tracker reference>
 Criteria:
 <criteria id="<id>">
 <the Ticket's checklist, verbatim>
 </criteria id="<id>">
-Digest: <the absolute path in the main checkout> | none
+Digest: <the absolute path in the Home repository> | none
 Sources: <the `## Sources` lines the door computed, to be copied whole and never recomputed>
 Rulings:
 <rulings id="<id>">
@@ -62,7 +62,7 @@ the shape.
 
 - `## Sources`: what the Plan was cut from, one line per document,
   `<name>: <absolute path> <hash>`, with `ticket` and `digest` as the two names and the hash from
-  the `git hash-object` the door runs in the main checkout before it forks. The fork copies these
+  the `git hash-object` the door runs in the Home repository before it forks. The fork copies these
   lines from its brief whole and writes no line of its own there. A document that is not on disk is
   recorded `<name>: absent` instead. The session compares the two values it computed against the two
   the file carries, so it learns the Plan is the one it asked for without reading a word of it.
@@ -171,8 +171,11 @@ The pre-diff subsystem, never handed to the review. ...
 
 ## Where it lives
 
-In the main checkout's scratch, beside the Ticket file, taking the Ticket's file name with `.plan`
-before the extension: `02-export-notes.plan.md` beside `02-export-notes.md`. The Ticket's slug is
+In the Home repository's scratch, beside the Ticket file, taking the Ticket's file name with `.plan`
+before the extension: `02-export-notes.plan.md` beside `02-export-notes.md`. The Home repository is
+the root the door of [ticket.md](ticket.md) prints as `root=`: the main checkout whenever the
+Ticket is built in its Home repository, and the repository the Ticket was named in when the run
+was opened in the Ticket's Build repository, which then holds no Plan at all. The Ticket's slug is
 the key, the Digest's own rule, so two runs on two Tickets of the same feature never reach for the
 same file. A Ticket that is not a local file has no file to sit beside: it keys the Plan by the
 issue's reference under `.scratch/plans/` in the main checkout, carrying that same `.plan` before
@@ -180,7 +183,7 @@ the extension, `.scratch/plans/42.plan.md` for issue 42. The suffix is the whole
 Planner's own `PreToolUse` hook matches a write against, so an issue-keyed path that stops at `.md`
 is a Plan the fork is refused and the run has nothing to build from.
 
-The path is the main checkout's absolute one, since a run inside a worktree has no scratch of its
+The path is the Home repository's absolute one, since a run inside a worktree has no scratch of its
 own, per [scratch.md](../../../.agents/scratch.md). The door's `find` counts a `.plan.md` out when
 it resolves a blocker's number, the way it already counts a `.digest.md` and a `.sketch.md` out, so
 a Plan left beside a Ticket that is gone never supplies a blocker's status.

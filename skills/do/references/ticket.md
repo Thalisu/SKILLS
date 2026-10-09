@@ -29,7 +29,10 @@ change and no Spec branch was ever cut, so it finishes on the old flow, nothing 
 The argument is a Ticket's path, or an issue reference resolved through the tracker file,
 `docs/agents/issue-tracker.md`. On a local Ticket the door reads its facts from one script,
 `bash <skill-dir>/scripts/ticket-door.sh <the Ticket's path>`, and never from files it opens to
-find out: the Ticket's `status=`, its `kind=` (`logic`, `front-end` or `setup` as its `**Kind:**`
+find out: the Ticket's own path as `ticket=`, `root=` for the Home repository (the root whose
+`.scratch/` holds the Ticket's Feature folder: the main checkout, unless the Ticket was named by
+its location in another repository, which is how a session opened in the Ticket's Build repository
+reaches it), the Ticket's `status=`, its `kind=` (`logic`, `front-end` or `setup` as its `**Kind:**`
 line reads, `logic` when it has none), one `blocker=` line per Ticket its `Blocked by` line names with
 that Ticket's status, `worktree=` for the run's `do/<slug>` worktree, `loop=` for the Testing
 Policy, `protected=` for the developer's branch, the Spec branch facts `spec_branch=`,
@@ -40,7 +43,11 @@ branch's tip is on that upstream), `spec_complete=` (the door's own count of the
 `Front-end:` line of the `spec.md` beside the Ticket's `issues/` folder reads, `none` when that
 Spec has no such line, no `spec.md` sits there, or the Ticket is in no `issues/` folder), and a
 `verdict=` line, the script exiting non-zero
-on every stop. The developer reruns that line and gets the same answer. The bullets below are what
+on every stop. Every path the door prints is relative to the main checkout when `root=` is the main
+checkout and absolute otherwise, so each one resolves under `( cd <root> && ... )` either way.
+`<root>` in the steps below is that `root=` line and nothing else: the run never derives a root
+from a path, and never composes an absolute path the door did not print. The developer reruns that
+line and gets the same answer. The bullets below are what
 the script checks and what each verdict does; on a tracker the session reads the same facts the way
 the tracker file describes. Before anything is written:
 
@@ -196,7 +203,11 @@ the session reads both itself and writes the Digest, and one line says which of 
 the way the reader section of [mechanics.md](mechanics.md) says. The run never forks another agent
 in the reader's place. The Digest and the `.scratch/` line its write needs are the run's first
 marks on the developer's checkout, so a Ticket refused above leaves `git status` in the main
-checkout exactly as it found it.
+checkout exactly as it found it. Both go under `<root>`, the door's `root=` line: the Digest beside
+the Ticket, the `.scratch/` line in that repository's `.gitignore`, and both hashes taken there.
+On a Ticket run from its Build repository `<root>` is the Home repository, so the Spec and the
+journey the reader is handed are the ones above the Ticket's `issues/` folder there, and no Digest
+and no `.scratch/` line is written into the repository the session is in.
 
 ## Resume
 
@@ -588,12 +599,13 @@ key is the main checkout on every other branch for the same
 reason: the worktree the build runs in does not exist yet, and the fork grounds against HEAD, which
 is what step 2 cuts the worktree from.
 
-The path is beside the Ticket in the main checkout, the Ticket's file name with `.plan` before the
-extension, or, for a Ticket that is not a local file, the issue's reference under `.scratch/plans/`
-there with that same `.plan` before the extension, `.scratch/plans/42.plan.md` for issue 42, per
+The path is beside the Ticket, under the door's `root=`, the Ticket's file name with `.plan` before
+the extension, or, for a Ticket that is not a local file, the issue's reference under
+`.scratch/plans/` in the main checkout with that same `.plan` before the extension, `.scratch/plans/42.plan.md` for issue 42, per
 [scratch.md](../../../.agents/scratch.md). Either path ends in `.plan.md`, which is what the
 Planner's own hook lets its one write through on. Before anything is handed over it goes
-through the same check the Sketch's destination took, with `<root>` the main checkout:
+through the same check the Sketch's destination took, with `<root>` the door's `root=` line, the
+Home repository, which is the main checkout whenever the Ticket is built in its Home repository:
 
 ```sh
 dest="$(readlink -m <the destination>)"
@@ -616,8 +628,12 @@ writes and said in one line:
 ( cd <root> && if [ -L .gitignore ]; then echo '.scratch/ is not ignored: .gitignore is a symlink, so nothing was appended'; else grep -qxF '.scratch/' .gitignore 2>/dev/null || { [ -z "$(tail -c1 .gitignore 2>/dev/null)" ] || echo; printf '.scratch/\n'; } >> .gitignore; fi )
 ```
 
-Then the run hashes the two documents the Plan is cut from, `git hash-object` in the main checkout
-over the Ticket and over the Digest, recording `absent` for one not on disk. Those two values are
+Both run in `<root>`, so on a Ticket run from its Build repository the line is read, and appended
+when owed, in the Home repository, and never in the repository the session is in.
+
+Then the run hashes the two documents the Plan is cut from, `git hash-object` under `<root>`
+(`( cd <root> && git hash-object <ticket=> <the Digest's path> )`) over the Ticket and over the
+Digest, recording `absent` for one not on disk. Those two values are
 the Plan's `## Sources` lines, so the record the run trusts is its own reading and never the fork's.
 A Plan already at the destination whose `## Sources` section is exactly those two records, matched
 on name, path and hash together, the same match the returned-Plan check below runs, is carried: the
@@ -746,7 +762,7 @@ and running the command at the returned path would vouch for a file nothing down
 
 A return that names the destination still reaches that command only after the documents are read
 again. As soon as the Planner returns, and before the claim is written, the run hashes the Ticket
-and the Digest again, `git hash-object` run again in the main checkout over the two paths it hashed
+and the Digest again, `git hash-object` run again under `<root>` over the two paths it hashed
 above, `absent` for one no longer on disk, and compares each value against the one it recorded
 before the fork. The same reading runs when the session grounded the Ticket itself in the
 Planner's place, once its Plan is written. A value that moved refuses the Plan the way the refusals
@@ -824,7 +840,7 @@ Ticket it proceeds without one, per
 a reversible file write, and an interrupt costs the developer one turn.
 
 On a local Ticket the run first hashes the Ticket right before it writes the claim, `git
-hash-object` in the main checkout, and compares that value against the one it last recorded for
+hash-object` under `<root>`, and compares that value against the one it last recorded for
 the Ticket: the door's, or the one it recorded itself when a Ruling of this run rewrote a criterion
 and the reader was forked again. A value that moved stops the run the way step 1's refusals do, in
 one line naming the Ticket, with nothing claimed. That comparison is what keeps the adoption below
@@ -832,7 +848,7 @@ honest: the hash taken after the claim covers whatever the file holds, so it abs
 claim's own edit when the file matched the recorded value the moment before the write.
 
 The claim moves the Ticket's hash, so on a local Ticket the run hashes the Ticket again, `git
-hash-object` in the main checkout over the claimed file, and the Plan's `## Sources` `ticket:` line
+hash-object` under `<root>` over the claimed file, and the Plan's `## Sources` `ticket:` line
 is rewritten in place to that hash, the way
 [ADR 0050](../../../docs/adr/0050-a-ruling-that-rewrites-no-criterion-moves-the-hashes-and-not-the-digest.md)
 rewrites the Digest's lines: nothing the Plan was cut from moved, only the status line. The new hash

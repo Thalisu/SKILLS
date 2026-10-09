@@ -24,12 +24,12 @@ The fork is the `do-builder` agent `do` ships in [do-builder.md](../agents/do-bu
 is dispatched with these and nothing else, since it opens what it needs itself:
 
 ```
-Ticket: <the absolute path in the main checkout, or the tracker reference>
+Ticket: <the absolute path in the Home repository, or the tracker reference>
 Criteria:
 <criteria id="<id>">
 <the Ticket's checklist, verbatim>
 </criteria id="<id>">
-Digest: <the absolute path in the main checkout> | none
+Digest: <the absolute path in the Home repository> | none
 Plan: <the absolute path of the Plan the session verified>
 Rulings:
 <rulings id="<id>">

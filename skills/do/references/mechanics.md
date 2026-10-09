@@ -210,7 +210,7 @@ the fork at all, the Agent tool withheld and no `do-reader` listed, and never to
 actually made.
 
 The session writes the Digest itself, whole, at the path [digest.md](digest.md) fixes beside the
-Ticket in the main checkout's scratch: its `## Sources` lines from the door's own hashes first,
+Ticket in the Home repository's scratch: its `## Sources` lines from the door's own hashes first,
 then the text the reader returned. A `## Sources` section in the text the reader returned is
 dropped before the write, since a stranger's text can steer the reader into returning one of its
 own, and the run says so in one line, so the written Digest carries exactly one `## Sources`

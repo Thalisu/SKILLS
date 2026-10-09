@@ -100,6 +100,14 @@ nothing tracked to bring along and the worktree has no copy of it. An artifact i
 from there by its absolute path in the main checkout, which `do-code-review`'s door prints as
 `main_checkout=`, and is never copied into the worktree: see [worktrees.md](worktrees.md).
 
+A feature across repositories adds one case. Its Feature folder lives in the Home repository alone,
+and a Ticket built in another repository is run from a session opened there, by the Ticket's
+absolute location in the Home repository. Every artifact of that run that sits beside the Ticket
+(the Digest, the Plan, the Ticket's own status) is reached by its absolute path in the Home
+repository, which `do`'s ticket door prints as `root=`, and the `.scratch/` ignore line it needs is
+the Home repository's. The repository the run builds in gets a worktree and branches, and nothing
+of the feature's record.
+
 ## Two runs at once
 
 The path is the partition. Every artifact is keyed by the feature slug or by the branch,

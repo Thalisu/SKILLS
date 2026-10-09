@@ -16,8 +16,8 @@ it with these four things and nothing else:
 
 - the Ticket's path, its title, its `What to build` line and its criteria, which are what the
   reader matches its slice against;
-- the absolute path of the Spec in the main checkout;
-- the absolute path of the journey in the main checkout, or `none` when the Spec's `Journey:` line
+- the absolute path of the Spec in the Home repository;
+- the absolute path of the journey in the Home repository, or `none` when the Spec's `Journey:` line
   names none;
 - the absolute path of this file, the format the Digest is written in.
 
@@ -57,7 +57,7 @@ spec: <absolute path> <hash>
 journey: <absolute path> <hash>
 ```
 
-- The hash is the one `git hash-object <path>` prints, run by the door in the main checkout before
+- The hash is the one `git hash-object <path>` prints, run by the door in the Home repository before
   it forks the reader. The session writes both lines from the door's own hashes, never from the
   reader's text.
 - A document that is not on disk, and a journey the Spec's `Journey:` line names none for, is
@@ -259,13 +259,16 @@ none: the exporter has no screen, only an exported function
 
 ## Where it lives
 
-In the main checkout's scratch, beside the Ticket file, taking the Ticket's file name with
-`.digest` before the extension: `02-export-notes.digest.md` beside `02-export-notes.md`. The
+In the Home repository's scratch, beside the Ticket file, taking the Ticket's file name with
+`.digest` before the extension: `02-export-notes.digest.md` beside `02-export-notes.md`. The Home
+repository is the root the door of [ticket.md](ticket.md) prints as `root=`: the main checkout
+whenever the Ticket is built in its Home repository, and the repository the Ticket was named in
+when the run was opened in the Ticket's Build repository. The
 Ticket's slug is the key, the Review's own rule, so two runs on two Tickets of the same feature
 never reach for the same file. A Ticket that is not a local file has no file to sit beside: it
 keys the Digest by the issue's reference under `.scratch/digests/` in the main checkout.
 
-The path is the main checkout's absolute one, since a run inside a worktree has no scratch of its
+The path is the Home repository's absolute one, since a run inside a worktree has no scratch of its
 own, per [scratch.md](../../../.agents/scratch.md). That file also carries the ignore: the run
-appends the `.scratch/` line before the write, whenever the rule is not already coming from the
+appends the `.scratch/` line, in the Home repository's `.gitignore`, before the write, whenever the rule is not already coming from the
 project's own `.gitignore`, so the Digest never turns up in a teammate's `git status`.
