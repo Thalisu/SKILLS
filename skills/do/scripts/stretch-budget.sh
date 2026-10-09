@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # usage: stretch-budget.sh <began-epoch-seconds> <now-epoch-seconds>
-# Prints stretch=continue while the time elapsed since the Stretch began is under the budget.
-# Writes nothing.
+# Prints stretch=<continue|stop>: continue while the time elapsed since the Stretch began is
+# under the budget, stop from the budget on. Writes nothing.
 # Exit 0 when the verdict was read, 2 on usage.
 set -uo pipefail
 
@@ -25,4 +25,6 @@ now="$((10#$2))"
 
 if [ "$((now - began))" -lt "$((budget_minutes * 60))" ]; then
   echo "stretch=continue"
+else
+  echo "stretch=stop"
 fi

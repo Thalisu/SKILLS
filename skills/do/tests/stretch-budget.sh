@@ -20,4 +20,12 @@ run "$began" "$((began + 40 * 60 - 1))"
 check_lines "a Stretch that began one second less than 40 minutes ago continues" 0 "$rc" \
   "stretch=continue"
 
+run "$began" "$((began + 40 * 60))"
+check_lines "a Stretch that began exactly 40 minutes ago stops" 0 "$rc" \
+  "stretch=stop"
+
+run "$began" "$((began + 40 * 60 + 1))"
+check_lines "a Stretch that began more than 40 minutes ago stops" 0 "$rc" \
+  "stretch=stop"
+
 exit "$((fails > 0))"
