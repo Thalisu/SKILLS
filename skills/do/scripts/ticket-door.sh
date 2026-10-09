@@ -86,6 +86,11 @@ build_check_of() { # $1 name (or none/ambiguous), $2 location (or none/ambiguous
   if [ "$(main_of "$2")" = "$main" ]; then echo here; else echo elsewhere; fi
 }
 
+home_root() { # $1 the Ticket's absolute path, $2 the main checkout: prints the root whose .scratch/ holds the Ticket's feature folder
+  if [ "$(main_of "$(dirname "$1")")" = "$2" ]; then echo "$2" && return; fi
+  case "$1" in */.scratch/*) echo "${1%/.scratch/*}" ;; *) echo "$2" ;; esac
+}
+
 usage() { echo "usage: ticket-door.sh <the Ticket's path>" >&2; exit 2; }
 [ "$#" = 1 ] || usage
 
@@ -101,6 +106,7 @@ esac
 stop_ambiguous=0 stop_blocked=0
 
 echo "ticket=${path#"$main"/}"
+echo "root=$(home_root "$path" "$main")"
 title="$(grep -m1 '^# ' "$path" | sed 's/^# //')"
 echo "title=${title:-none}"
 status_of "$path"; status="$word"

@@ -317,6 +317,15 @@ cd "$sibling" || exit 1
 run "$door" "$top/$across/issues/02-in-sibling.md"
 check_lines "a ready Ticket built in a listed sibling repository, run from the sibling, starts there" 0 "$rc" \
   "build_repository=sibling" "build_check=here" "verdict=start"
+# The claim, the Digest and the Plan are written beside the Ticket, in the Home repository, while
+# the worktree is cut in the Build repository the session sits in.
+check_lines "a Ticket of the Home repository, run from the Build repository, names the Home repository as its root and no worktree" 0 "$rc" \
+  "ticket=$top/$across/issues/02-in-sibling.md" "root=$top" "worktree=none"
+expect "the root comes right after the ticket" grep -qE '(^| )ticket root ' <<<"$(keys_in_order)"
+(issues="$top/$across/issues" && ticket 06-aside.md $'**Status:** claimed\n\n**Build repository:** sibling' 'None (can start immediately)')
+run "$door" "$top/$across/issues/06-aside.md"
+check_lines "a claimed Ticket of the Home repository, run from the Build repository, names the Home repository as its root and the Build repository's worktree for its slug" 0 "$rc" \
+  "ticket=$top/$across/issues/06-aside.md" "root=$top" "worktree=$sibling/.claude/worktrees/do-aside"
 run "$door" "$top/$linked/issues/01-linked.md"
 check_lines "a sibling the Spec lists through a symlink, run from the sibling, reads as here and starts" 0 "$rc" \
   "build_repository=sibling" "build_check=here" "verdict=start"
