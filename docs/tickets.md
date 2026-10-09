@@ -268,8 +268,9 @@ your reply if you want them apart; the fold is a default, not a stop.
 - The first ticket has no blockers, and every other ticket's blockers are the tickets that write
   what it reads: a restore path is blocked by the archive path that creates the state it needs,
   never by an earlier ticket and never with a stub.
-- Every ticket in the breakdown carries an estimate and its band, a fold or a split names the rule
-  that fired, and the only question you get is whether the breakdown goes out.
+- Every ticket in the breakdown carries an estimate and its band, and its acceptance criteria
+  written out one per line, a fold or a split names the rule that fired, and the only question you
+  get is whether the breakdown goes out.
 - On a spec whose `Front-end:` line names a builder, a path with a screen shows up twice, its
   Logic ticket and then its Front-end ticket blocked by it, every ticket shows its kind, and a line
   under the list says which paths were cut in two. On `none`, or on a spec with no such line, the
