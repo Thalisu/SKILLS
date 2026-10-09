@@ -36,7 +36,8 @@
 # branch there and not landed, the Spec complete: a stopped Final integration to resume) ·
 # resolved · ambiguous (a blocker with
 # no file, two files, or no single status line; two Blocked by lines, or one naming no number and
-# not None, or a number it cannot split out) ·
+# not None, or a number it cannot split out) · unbuildable (build_check=unlisted: the Build
+# repository cannot be built anywhere until the Ticket or the Spec is fixed) ·
 # blocked (a blocker not resolved) · elsewhere (build_check=elsewhere: the Ticket is built in another
 # repository, handed over before anything is claimed) · resume (claimed, the worktree there) · start-over (claimed, the
 # worktree gone) · ambiguous (ready-for-agent with a worktree already there) · start. Then refused
@@ -46,7 +47,7 @@
 # outside a feature folder's issues/ (spec_branch=none) is never refused on that ground.
 #
 # Exit codes: 0 the run may go on: start, resume, start-over or resume-final · 1 the door stops
-# the run: resolved, blocked, ambiguous, refused or elsewhere · 2 usage, no Ticket at the path, or not a git
+# the run: resolved, blocked, ambiguous, refused, unbuildable or elsewhere · 2 usage, no Ticket at the path, or not a git
 # repository.
 set -uo pipefail
 
@@ -66,7 +67,7 @@ main_of() { # $1 directory: prints the main worktree of the repository holding i
 
 build_check_of() { # $1 name (or none/ambiguous), $2 location (or none/ambiguous): prints one build_check word, comparing main_of "$2" with the session's $main
   case "$1" in none | ambiguous) echo "$1" && return ;; esac
-  [ "$2" != ambiguous ] || { echo ambiguous && return; }
+  case "$2" in none) echo unlisted && return ;; ambiguous) echo ambiguous && return ;; esac
   if [ "$(main_of "$2")" = "$main" ]; then echo here; else echo elsewhere; fi
 }
 
@@ -189,6 +190,7 @@ if [ "$status" = ambiguous ]; then verdict=ambiguous
 elif [ "$status" = resolved ] && [ "$spec_complete" = yes ] && grep -qx 'spec_landed=no' <<<"$spec_facts"; then verdict=resume-final
 elif [ "$status" = resolved ]; then verdict=resolved
 elif [ "$stop_ambiguous" = 1 ]; then verdict=ambiguous
+elif [ "$build_check" = unlisted ]; then verdict=unbuildable
 elif [ "$stop_blocked" = 1 ]; then verdict=blocked
 elif [ "$build_check" = elsewhere ]; then verdict=elsewhere
 elif [ "$status" = claimed ] && [ "$worktree" != none ]; then verdict=resume

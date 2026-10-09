@@ -317,6 +317,29 @@ cd "$top" || exit 1
 run "$door" "$across/issues/03-home.md"
 check_lines "a ready Ticket built in the Home repository's own entry, run from the Home repository, starts" 0 "$rc" \
   "build_repository=main" "build_location=$top" "build_check=here" "verdict=start"
+# A Build repository the Spec does not list has no location to compare, so the door names it as
+# unlisted and stops before anything is written, instead of handing the run to an empty path.
+(issues="$across/issues" && ticket 04-typo.md $'**Status:** ready-for-agent\n\n**Build repository:** sibblng' 'None (can start immediately)')
+before="$(both_states "$sibling")"
+run "$door" "$across/issues/04-typo.md"
+check_lines "a Build repository the Spec's Repositories list does not hold, run from the Home repository, is unbuildable" 1 "$rc" \
+  "build_repository=sibblng" "build_location=none" "build_check=unlisted" "verdict=unbuildable"
+expect "an unlisted Build repository writes nothing in either repository: no ref, worktree or file created or changed" \
+  test "$(both_states "$sibling")" = "$before"
+expect "the Ticket naming an unlisted Build repository still reads ready-for-agent" \
+  grep -qxF '**Status:** ready-for-agent' "$across/issues/04-typo.md"
+unlisted=".scratch/20260108-unlisted"
+mkdir -p "$unlisted/issues"
+printf '# Spec: one repository\n\n## User Stories\n\n1. As a developer, I want a note exported, so that I can share it.\n' >"$unlisted/spec.md"
+(issues="$unlisted/issues" && ticket 01-nolist.md $'**Status:** ready-for-agent\n\n**Build repository:** sibling' 'None (can start immediately)')
+before="$(both_states "$sibling")"
+run "$door" "$unlisted/issues/01-nolist.md"
+check_lines "a Build repository line in a Spec with no Repositories section is unbuildable" 1 "$rc" \
+  "build_repository=sibling" "build_location=none" "build_check=unlisted" "verdict=unbuildable"
+expect "a Build repository line with no Repositories section writes nothing in either repository" \
+  test "$(both_states "$sibling")" = "$before"
+expect "the Ticket of a Spec with no Repositories section still reads ready-for-agent" \
+  grep -qxF '**Status:** ready-for-agent' "$unlisted/issues/01-nolist.md"
 
 echo "# ticket-door.sh: the facts beside the verdict"
 mkdir -p .claude/agents && : >.claude/agents/unit-test-author.md
