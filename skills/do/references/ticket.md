@@ -1204,7 +1204,8 @@ among them, under its `Yours: outward:` line, a question still asked of the deve
 `bash <skill-dir>/scripts/completion-check.sh <the Ticket's path>`, run only after the `resolved`
 write, so the last of two concurrent runs always sees every Ticket resolved, with its `open=` and
 `next=` lines recorded for the Reply, and with them the `next_build=`, `next_build_location=` and
-`next_location=` lines as printed, when the next Ticket is built in another repository; then the worktree and its branch removed, from the main
+`next_location=` lines as printed, when the next Ticket is built in another repository, and its
+`consumer=` lines as printed; then the worktree and its branch removed, from the main
 checkout that holds them, the Build repository's. A Ticket that is a
 tracker reference has no path: the check is not run for it and the close takes nothing as open. When the door appended the `.scratch/` line to the project's
 `.gitignore`, the close says so in one line, per [scratch.md](../../../.agents/scratch.md): the run
@@ -1243,7 +1244,8 @@ branch and its worktree named and the claim yielded, or the step reads its skip.
 Ticket and the Review under the files left uncommitted; under `Rulings`, every Ruling the forks in
 [forks.md](forks.md) made, a Design fork's in the `On the Spec:` group and a run question's in the
 `On the run:` group, each group `none` when it holds no Ruling; the flows the developer waived and the
-consumer flows not run under pending debt, beside
+consumer flows not run under pending debt, naming the consuming Ticket off the check's `consumer=`
+lines as the Pending debt of [reply.md](reply.md) words it, beside
 a criterion the flows step skipped for no end-to-end command, with the command that would fill it; and the next step, `git push` with the developer's
 branch named when the review landed, or, when nothing landed, the worktree, its branch, and the
 review and the landing as what the developer runs next. On a Ticket of a Spec the Review is never

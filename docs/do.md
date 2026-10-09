@@ -257,6 +257,10 @@ Open a session in orders-service at /home/dev/orders-service.
 /do /home/dev/orders-service/.scratch/hold-disputed-invoice/issues/03-show-the-dispute-on-the-order-page.md
 ```
 
+When a service's flows live in the repository that consumes it and were not run, the reply's
+pending debt names the Ticket that owes them, the one of that repository blocked by the Ticket just
+built: `consumer flows not run: the hold on the Order's page, carried by Ticket 04 (built in orders-service)`.
+
 When every open Ticket is `claimed` by another run, the Next
 step says the Spec integrates when those runs land, and there is nothing to type. The same script
 tells the gate whether this is the feature's last Ticket, which is when the full suites run.

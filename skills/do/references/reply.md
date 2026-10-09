@@ -335,7 +335,14 @@ Ten sections, in this order, each one present in every Reply that carries sectio
 9. **Pending debt.** Waivers, consumer coverage not run, an equivalence gap, a second thing found
    on the way and not done. On a run that forked `do-impeccable`, each `finding:` line the fork
    returned is listed here, one line per finding, so a finding counted under Evidence is always
-   named. Findings that remain are debt and never a stop: the Ticket still lands.
+   named. Findings that remain are debt and never a stop: the Ticket still lands. The line for
+   consumer flows not run opens `consumer flows not run:` and names the Ticket that carries them,
+   off the Completion check's `consumer=` lines: each `consumer=<NN> <name>` line is a Ticket of
+   another repository blocked by the one this run built, the one whose criteria cross the two
+   services, and is named as `Ticket <NN> (built in <name>)`, as
+   `consumer flows not run: the hold on the Order's page, carried by Ticket 04 (built in orders-service)`.
+   The number is copied from those lines and never read off a Ticket or the Spec. With
+   `consumer=none`, or on a run whose close ran no check, the line names the consumers alone.
 10. **Next step.** One line, the Reply's last. It ends with the push command when something landed
     on the developer's branch, `git push` with the branch named; otherwise the command to type
     next. A run that landed on a Spec branch names no push, since nothing reached the developer's
