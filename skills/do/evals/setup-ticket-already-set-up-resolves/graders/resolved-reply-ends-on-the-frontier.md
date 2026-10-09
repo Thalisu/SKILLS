@@ -1,5 +1,0 @@
----
-type: llm
-criteria: "The run's last message opens with `Playbook: setup`, says the Setup ticket is resolved with every step done on the first check, and carries the setup check's lines (impeccable-skill, product-context, design-system, build-path and setup-committed, each reading done) with a reload=done line as its evidence. It shows no setup step to run: no install command, no 'Say when it is done.' Its last non-blank line is `/do .scratch/notes-cli/issues/01-list-the-notes.md`, with no --auto flag. The Setup ticket file reads `**Status:** resolved` with its six criteria ticked and, under `## Evidence`, a `Context:` line, then a `Forks: 0` line, then the check's lines and reload=done. Ticket 01 still reads `ready-for-agent`. Nothing was committed: git log in the fixture shows the scaffold's one commit alone. No worktree was created, and no Planner, Builder or review was called."
----
-With every step already done on the first check, the Setup ticket is resolved with no step shown, and the Reply ends on `/do` for the first Ticket of the frontier.

@@ -13,15 +13,6 @@ trap 'rm -rf "$tmp"' EXIT
 
 source_grade
 
-# shellcheck disable=SC2034 # read by lib.sh's grade_passes and grade_fails
-grader="$here/../evals/fix-run/graders/fixer-forked-by-name.md"
-agent_call_passes "fix-run: the orchestrator forking do-code-review-fixer with no model key passes fixer-forked-by-name" \
-  "do-code-review-fixer" "s1" ""
-agent_call_fails "fix-run: a do-code-review-fixer fork carrying a model key fails fixer-forked-by-name" \
-  "do-code-review-fixer" "s1" "opus"
-agent_call_fails "fix-run: a general-purpose Fixer fork fails fixer-forked-by-name" \
-  "general-purpose" "s1" ""
-
 tree="/work/fixture/.claude/worktrees/fix-export-notes"
 red_block='FAIL test/export.test.js > exports a note with a "quoted" title
   expected "\"Draft\"" to equal "Draft"
@@ -33,6 +24,7 @@ Paths: $tree/src/export.js, $tree/test/export.test.js
 Return file: $tree/.scratch/fixers/gate-fixer-1.md
 1. Fix the code, never the check. 2. Keep every Finding's test green. 3. Touch nothing the red block does not point at. 4. One commit per attempt."
 
+# shellcheck disable=SC2034 # read by lib.sh's grade_passes and grade_fails
 grader="$here/../evals/fix-gate-red/graders/gate-fixer-forked-by-name.md"
 agent_call_passes "fix-gate-red: one do-code-review-gate-fixer fork with no model key passes gate-fixer-forked-by-name" \
   "do-code-review-gate-fixer" "s1" "" "$brief"

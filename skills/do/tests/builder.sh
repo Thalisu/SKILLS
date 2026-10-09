@@ -259,8 +259,7 @@ carries_each "the run says in one line which of the two branches held" \
 # And nobody else is forked in its place. A general-purpose fork holds `Bash`, `Write` and `Edit`
 # with none of the two `PreToolUse` hooks `do-builder`'s own definition carries, so it could write
 # the Plan, the Digest or anything under `.scratch/` that those hooks deny, and the session would
-# still be holding the hashes it verified. The evals refuse exactly this substitution for the other
-# forks (evals/unlisted-choice-taker/graders/no-general-agent-in-its-place.md).
+# still be holding the hashes it verified.
 carries_each "the run forks no other agent in the Builder's place" \
   "never forks another agent" "forks no other agent" "never forks a second agent" \
   "no other agent is forked" "another agent in the Builder's place" \

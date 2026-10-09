@@ -1,1 +1,0 @@
-/tickets --auto notes-cli

@@ -1,5 +1,0 @@
----
-type: llm
-criteria: "The run's last message lists the six setup steps in order, each marked done or missing: install impeccable, reload the coding tool, initialise the project context and document the design system read done, and set the code-led build path and commit the setup files read missing. Each step marked done carries its done mark and nothing else: the message does not congratulate, recap or confirm the init step the developer said they ran. After the list, the message shows one step, set the code-led build path: what it is, its exact command on a line of its own (a command that writes buildPath code into .impeccable/config.json), where to run it (a terminal), and the words 'Say when it is done.' It shows no command for any other step, and the run did not set the build path itself: .impeccable/config.json does not exist in the fixture."
----
-With the step the developer ran now done, the next missing step is shown in the same shape, and the steps already done get their mark and no other word.

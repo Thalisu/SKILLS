@@ -6,8 +6,6 @@
 # run from the command line, and the project lacks the setup: the run publishes three local Tickets
 # under the notes-cli feature folder, the Setup ticket as 00, blocked by nothing, and one Logic
 # ticket per Path, each blocked by the Setup ticket.
-# In impeccable-setup-found-cuts-no-setup-ticket the project carries the setup: no 00 Ticket, the two
-# Logic tickets blocked by nothing, and a close on /do --auto for Ticket 01.
 # Run: bash skills/tickets/tests/setup-ticket-graders.sh
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
@@ -127,84 +125,6 @@ grade_fails "$case: a Ticket 02 carrying **Kind:** setup fails $name" \
   "$(lines_02="$kind_setup" setup_missing_run)"
 grade_fails "$case: a Ticket 02 carrying **Kind:** front-end fails $name" \
   "$(lines_02="$kind_front_end" setup_missing_run)"
-
-# In impeccable-setup-found-cuts-no-setup-ticket the same Spec meets a project that carries the whole
-# setup: the run publishes the two Logic tickets alone, as 01 and 02, each blocked by nothing, and its
-# final message ends on the /do --auto command of Ticket 01.
-case=impeccable-setup-found-cuts-no-setup-ticket
-graders="$here/../evals/$case/graders"
-
-issues_path='.scratch/notes-cli/issues'
-close_head='Published the Tickets of the Notes command line Spec.'
-close_auto_01="$close_head"$'\n\n'"/do --auto $issues_path/01-export-the-notes.md"
-close_auto_02="$close_head"$'\n\n'"/do --auto $issues_path/02-import-notes.md"
-close_plain_01="$close_head"$'\n\n'"/do $issues_path/01-export-the-notes.md"
-close_plain_00="$close_head"$'\n\n'"/do $issues_path/00-set-up-impeccable.md"
-
-# The final message a run closed on, as the runner leaves it in the work folder; the folder's path on stdout
-closing_on() { # $1 work folder, $2 the final message
-  printf '%s\n' "$2" >"$1/last_message"
-  echo "$1"
-}
-
-# The run of a project that carries the setup: the two Notes CLI Logic tickets alone, closed on /do --auto for Ticket 01
-setup_found_run() { # no argument: the faithful run
-  # Optional, set on the call's own line: close=<text> the final message in place of the faithful one, feature_folder=<name> as run_publishing reads it
-  closing_on "$(run_publishing \
-    01-export-the-notes.md "$kind_logic" "$unblocked" \
-    02-import-notes.md "$kind_logic" "$unblocked")" "${close:-$close_auto_01}"
-}
-
-setup_ticket_published="$(closing_on "$(setup_missing_run)" "$close_plain_00")"
-nothing_published="$(closing_on "$(run_publishing)" "$close_head")"
-
-for name in ticket-01-written ticket-02-written ticket-01-blocked-by-nothing ticket-02-blocked-by-nothing \
-  ticket-01-kind-logic ticket-02-kind-logic close-names-do-auto-on-ticket-01; do
-  # shellcheck disable=SC2034 # read by lib.sh's grade_passes
-  grader="$graders/$name.md"
-
-  expect "$case holds a $name grader" test -f "$grader"
-
-  grade_passes "$case: a run that published the two Logic tickets alone, blocked by nothing, and closed on /do --auto for Ticket 01 passes $name" \
-    "$(setup_found_run)"
-done
-
-for name in ticket-01-written ticket-02-written ticket-01-blocked-by-nothing ticket-02-blocked-by-nothing \
-  ticket-01-kind-logic ticket-02-kind-logic; do
-  # shellcheck disable=SC2034 # read by lib.sh's grade_fails
-  grader="$graders/$name.md"
-  grade_fails "$case: Tickets published under another feature folder fail $name" \
-    "$(feature_folder=archive-notes setup_found_run)"
-done
-
-for name in ticket-01-written ticket-02-written; do
-  # shellcheck disable=SC2034 # read by lib.sh's grade_fails
-  grader="$graders/$name.md"
-  grade_fails "$case: a run that published nothing fails $name" \
-    "$nothing_published"
-done
-
-for name in ticket-01-blocked-by-nothing ticket-02-blocked-by-nothing close-names-do-auto-on-ticket-01; do
-  # shellcheck disable=SC2034 # read by lib.sh's grade_fails
-  grader="$graders/$name.md"
-  grade_fails "$case: a run that published a Setup ticket as 00, both Logic tickets blocked by it, and closed on the plain /do for it fails $name" \
-    "$setup_ticket_published"
-done
-
-name=ticket-01-kind-logic
-grader="$graders/$name.md"
-grade_fails "$case: a run whose Setup ticket took the number 01 fails $name" \
-  "$setup_ticket_as_01"
-
-name=close-names-do-auto-on-ticket-01
-# shellcheck disable=SC2034 # read by lib.sh's grade_fails
-grader="$graders/$name.md"
-grade_fails "$case: a final message ending on /do --auto for Ticket 02 fails $name" \
-  "$(close="$close_auto_02" setup_found_run)"
-grade_fails "$case: a final message ending on the plain /do for Ticket 01, with no --auto, fails $name" \
-  "$(close="$close_plain_01" setup_found_run)"
-grade_fails "$case: a final message naming no /do command fails $name" \
-  "$(close="$close_head" setup_found_run)"
 
 [ "$fails" -eq 0 ] && exit 0
 exit 1

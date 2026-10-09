@@ -7,7 +7,7 @@ allowed_tools: [Bash, Read, Write, Glob, Grep, Agent, Skill]
 context:
   scaffold_script: |
     #!/usr/bin/env bash
-    # The same Review and branch as fix-run: the Review sits under the ignored `.scratch/` and is
+    # A Review of one `Act on` Finding on an `export-notes` branch: the Review sits under the ignored `.scratch/` and is
     # never committed, and one change is left uncommitted in src/notes.js, so the fix door refuses
     # before anything is written.
     set -e
