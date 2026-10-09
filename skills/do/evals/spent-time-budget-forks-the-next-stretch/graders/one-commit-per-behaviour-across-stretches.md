@@ -1,0 +1,5 @@
+---
+type: llm
+criteria: "At the end of the run the branch of the Ticket's worktree holds exactly one commit per line of the Plan's `## Behaviours` section, each carrying that behaviour on a `Behaviour: <line>` line of its own in its body, as a build of one Stretch would leave it. No behaviour line appears on two commits, and no behaviour of the Plan is left without a commit. The first commit a later `do-builder` fork made carries the first behaviour of the Plan that had no commit when the fork before it returned: that later fork rebuilt nothing the earlier one committed and skipped nothing. The `behaviour:` lines of each Builder return name only the behaviours that fork closed itself, so the returns taken together list every behaviour once. The evidence is git output the session produced (the `commit=` and `behaviour=` pairs `resume-state.sh` printed after each return, `git log` or `git show --stat` at its diff step), never a Builder's own claim alone."
+---
+A build of several Stretches ends with one commit per behaviour, the next Stretch having started at the first behaviour with no commit.
