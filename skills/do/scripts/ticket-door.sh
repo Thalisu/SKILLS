@@ -19,6 +19,14 @@
 # count: yes when every Ticket of the issues/ folder reads resolved, no on any other status, an
 # ambiguous one included, none when spec_branch=none), front_end (the Front-end: line of the
 # spec.md beside the Ticket's issues/ folder), then verdict. An ambiguous=<what>
+# ambiguous one included, none when spec_branch=none), build_repository (the name the Ticket's one
+# **Build repository:** header line reads, none with no line), build_location (that entry's location
+# in the Spec's ## Repositories section, none with no entry), build_check (none with no Build
+# repository line and no ## Repositories section in the Spec, unlisted when the Spec's list holds
+# no entry of that name, no list or no Spec included, or when the Ticket has no such line and the
+# Spec has a list, missing when the entry's location is not an absolute path to a directory on this
+# machine, not-git when it is one and not the top of a git working tree, here when the location's main worktree is this session's main checkout, physical
+# paths compared, else elsewhere), ticket_location (the Ticket's absolute path), then verdict. An ambiguous=<what>
 # <detail> line follows the line it concerns. A blocker is the leading number of each part of the
 # Blocked by paragraph split on `;`, `,`, the word `and` and each line break, the paragraph starting
 # on the header's line or the line below it and a `-`, `*` or `+` list marker dropped, a blank line
