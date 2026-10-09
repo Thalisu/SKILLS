@@ -35,7 +35,9 @@ run, so they live in the definition, where a brief composed on one run cannot dr
 
 The brief is the same on the first fork and on every re-fork. Nothing in it says where to pick up:
 a fork dispatched again reads the `Behaviour:` lines off the branch and carries on from the first
-criterion that has none.
+criterion that has none. The Stretch forked after a spent time budget is no exception: the session
+clears that `stopped` return by forking `do-impeccable` again at once, per the `stopped` route of
+the build step of [ticket.md](ticket.md), with no key added and no file written between the two.
 
 ## The return
 

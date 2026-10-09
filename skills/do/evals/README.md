@@ -18,7 +18,7 @@ that grader. The runner still runs these cases, and a red one is not a regressio
 graders read the Reply.
 
 A case tagged `slow` earns what it grades by the clock. `spent-time-budget-forks-the-next-stretch`
-is the one such case: its first Builder returns `stopped` only once its Stretch has really outlasted
+is the first of two: its first Builder returns `stopped` only once its Stretch has really outlasted
 the time budget `scripts/stretch-budget.sh` holds, on a Ticket long enough to still be building by
 then, so the case's `timeout_seconds` sits well above that budget and one run costs hours of
 Builder time. Its fixture sets no override and no stand-in Builder, since the budget is written in
@@ -26,6 +26,12 @@ that script and nowhere else: a second place that could move it would be a budge
 and the product does not run on. A run whose first Builder finishes inside the budget fails the
 case's graders on a `built` first return, which says the Ticket has grown too short for the budget
 and never that the route broke. Name the case when running it, and leave it out of a routine pass.
+
+`impeccable-spent-time-budget-forks-the-next-stretch` is the same case for `do-impeccable`, tagged
+`slow` for the same reason and held to the same rule: no override, and the fork is the one the
+skill ships. Its stand-in of impeccable writes a screen in seconds where the real skill takes
+minutes, so the stand-in has every criterion wait on a design pass of the fixture's own before its
+commit. That wait is elapsed time on the fork's own clock, and the budget script never hears of it.
 
 `do` is user-invoked, so every prompt types the skill; there is no trigger case. The one exception is `closed-branch-backs-a-discuss-ruling`, which proves the `choice-taker` this skill ships for a caller that does not run yet: no `discuss --auto` run forks it, so its prompt hands the agent the brief that run will send, and the case grades the agent's return. The door cases
 end at a door: the request fits no Playbook, so the run is one message, and the cases inspect
@@ -126,6 +132,7 @@ typecheck and `node --test` as the suite, so both run offline with node alone.
 | `setup-walk-ends-resolved-on-the-committed-tree` | the fixture of `setup-ticket-already-set-up-resolves` with the Setup ticket already `claimed`, the developer saying the commit is done: the check runs and passes on the committed tree, the Ticket reads `resolved` with `reload=done` under its evidence, and the Reply lists the six steps done ahead of the check's lines and ends on `/do` for Ticket 01 |
 | `impeccable-front-end-ticket-forks-do-impeccable` | a Front-end ticket of a Spec reading `Front-end: impeccable`, its Setup ticket and its Logic ticket `resolved`, on a working branch, in a session that lists a stand-in `impeccable` skill: the first line reads `Playbook: ticket`, no `do-planner` and no `do-builder` is forked and no Plan is written, the worktree is cut on `do/notes-list-page` and `do-impeccable` is forked with a brief of the Ticket, the worktree root, the loop line and the Project map and nothing else, and the Reply has no Plan line and lists the Ticket's acceptance criteria with a commit beside each. impeccable itself never runs, and no grader reads the screen |
 | `impeccable-skill-not-listed-stops-at-the-door` | the fixture of `impeccable-front-end-ticket-forks-do-impeccable` without the stand-in skill, so the session lists no impeccable skill: the first line reads `Playbook: ticket`, the last message carries `Yours: direction:` with the two choices, installing impeccable and reloading or changing the Spec's line to `Front-end: builder`, and nothing is written: no claim, no Digest, no Spec branch, no worktree and no fork, the Builder included |
+| `impeccable-spent-time-budget-forks-the-next-stretch` | the fixture of `impeccable-front-end-ticket-forks-do-impeccable` with a Front-end ticket of twenty-four criteria, a stand-in `impeccable` skill whose design pass takes about two minutes per criterion, and no review linked, long enough that the first `do-impeccable` is still building when its time budget runs out: the first `do-impeccable` fork returns `stopped` on a criterion's commit, in the shape it already has, its `stopped:` line naming the spent time budget and `resume-state.sh` printing nothing uncommitted; the session forks `do-impeccable` again with the four-key brief of the first, no key added and no hand-over file written, no `do-planner` and no `do-builder` forked in its place, and the run does not end as blocked over it |
 
 The `ticket` cases scaffold the same fixture with a Testing Policy installed (the marked section
 in `CLAUDE.md` with its Project facts, the `unit-test-author` agent with its Project map, the
