@@ -881,7 +881,12 @@ Then the Spec branch, on every start and start-over and after the re-hash, never
 `bash <skill-dir>/scripts/spec-branch.sh cut <the Ticket's path>`. It prints `spec_branch=`,
 `action=`, `upstream=`, `tip=` and `reason=`. `action=cut` is a first run: it created
 `spec/<feature-slug>` at the tip of the branch the main checkout is on and recorded that branch as
-its local upstream, the branch the Spec integrates into from then on. `action=reused` is any later
+its local upstream, the branch the Spec integrates into from then on. The branch is the main
+checkout's own whatever repository holds the Ticket: on a Ticket run from its Build repository the
+script is handed the Ticket's absolute location in the Home repository, takes the feature's slug
+from it, and cuts in the Build repository, from the branch that repository's session stands on. So
+a feature across repositories has one Spec branch per Build repository, each holding the Tickets
+built there, and a repository none of whose Tickets has run has none. `action=reused` is any later
 run, or the loser of two first runs at once, which git's atomic ref creation settles: the branch
 and its upstream are left as they were, and `upstream=` is the recorded one, never this run's
 checkout. `action=refused` (exit 1) stops the run as blocked with the Ticket `claimed`, naming the
@@ -1125,7 +1130,7 @@ as the target, `refs/heads/spec/<feature-slug>`, or, on a Ticket with no Spec, t
 started on: the branch it built on rebased onto that branch, every conflicted hunk
 classed by the door script before anything is resolved, and the gate's command lines run again when
 the rebase replayed commits. Every contested hunk takes the **Target** side, and its **Incoming** side goes to
-the Loss ledger beside the Ticket in the main checkout, `.ledger` before the extension. Done when the step reads the no-op, or the target and the count with
+the Loss ledger beside the Ticket, the door's `ticket=` path with `.ledger` before the extension, which on a Ticket run from its Build repository is in the Home repository while the rebase runs in the Build repository's worktree. Done when the step reads the no-op, or the target and the count with
 the tree handed over with no **Gate** of the run's own, or the run stopped as blocked with the worktree and its branch named, and
 the integration line is recorded for the Reply's Run section.
 
@@ -1133,7 +1138,9 @@ the integration line is recorded for the Reply's Run section.
 the green **Gate** and the integration onto the Spec branch, the run lands the branch itself, by
 the landing on the Spec branch in [mechanics.md](mechanics.md):
 `bash <skill-dir>/scripts/land-spec.sh <the main checkout> spec/<feature-slug> do/<slug>`, routed
-on its exit code and never on its prose.
+on its exit code and never on its prose. The main checkout is the one the worktree was cut from, so
+a Ticket run from its Build repository lands on that repository's Spec branch, and no ref of the
+Home repository moves.
 
 - `landed <sha>` (exit 0): the Spec branch's ref reads the branch's tip. The landing line recorded
   for the Reply's Run section is `landed at <sha> on spec/<feature-slug>`, with
@@ -1184,7 +1191,8 @@ to the fix call on the same Review, which lands it again. Done when every affect
 flow is green or recorded as not run on the developer's no, or the step reads
 `skip: nothing landed`.
 
-**9. Close.** The close in [mechanics.md](mechanics.md): the Ticket file in the main checkout
+**9. Close.** The close in [mechanics.md](mechanics.md): the Ticket file, at the door's `ticket=`
+path under `root=`, which on a Ticket run from its Build repository is in the Home repository,
 ticked where the evidence proves it, the evidence appended under `## Evidence` with the
 `Context:` line first and the `Forks:` line after it, and, on a run that forked `do-impeccable`, the
 fork's `scan:` line (the detector scan's command line and the count of findings that remain)
@@ -1195,7 +1203,8 @@ among them, under its `Yours: outward:` line, a question still asked of the deve
 `--auto`, with the `choice-taker`'s return shown above it, per [forks.md](forks.md); then the Completion check,
 `bash <skill-dir>/scripts/completion-check.sh <the Ticket's path>`, run only after the `resolved`
 write, so the last of two concurrent runs always sees every Ticket resolved, with its `open=` and
-`next=` lines recorded for the Reply; then the worktree and its branch removed. A Ticket that is a
+`next=` lines recorded for the Reply; then the worktree and its branch removed, from the main
+checkout that holds them, the Build repository's. A Ticket that is a
 tracker reference has no path: the check is not run for it and the close takes nothing as open. When the door appended the `.scratch/` line to the project's
 `.gitignore`, the close says so in one line, per [scratch.md](../../../.agents/scratch.md): the run
 changed a file git tracks, and the developer reads that here rather than finding it in

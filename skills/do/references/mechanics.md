@@ -460,7 +460,9 @@ The run's own **Gate** is the Ticket's check, and the Spec is reviewed once, on 
 after its last Ticket lands, per
 [ADR 0061](../../../docs/adr/0061-the-review-runs-once-per-spec-on-its-spec-branch-before-it-lands.md).
 `do-code-review` stays the only lander of the developer's branch: this step moves the Spec branch
-and no other ref, and it touches no checkout.
+and no other ref, and it touches no checkout. The Spec branch is the one of the repository the run
+built in: on a Ticket run from its Build repository, the main checkout handed to the script is the
+Build repository's, and the Home repository, which holds the Ticket, has no ref moved.
 
 One script call makes the landing, and the run never moves the ref by hand:
 
@@ -965,8 +967,12 @@ not run on the developer's no, with every command line quoted in the Reply's Evi
 
 ## The close
 
-After the verification, in the main checkout's Ticket file and nowhere else, per the Ticket file
-above: the run never commits it and the worktree branch never touches it.
+After the verification, in the Ticket file of the Home repository and nowhere else, per the Ticket
+file above: the run never commits it and the worktree branch never touches it. That file is the
+main checkout's unless the run was opened in the Ticket's Build repository, where the ticks, the
+evidence and the `resolved` write below go to the Ticket by its absolute path in the Home
+repository, and the worktree, its branch, the Spec branch and the Review stay in the Build
+repository.
 
 1. Tick each criterion the evidence proves, and only those: a criterion whose flow the developer
    waived stays unticked. The evidence is the run's own output, produced after the last edit.

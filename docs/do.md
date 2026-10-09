@@ -68,7 +68,10 @@ the Ticket file in the **Home repository**, which the run edits and never commit
 repository is the **Main checkout** unless you opened the session in the Ticket's **Build
 repository** and typed the Ticket's absolute location: the run then claims the Ticket and writes
 its Digest and its Plan in the Home repository, and builds in a worktree of the repository you are
-in. Installing every
+in, with that project's own test authors, **Gate**, glossary and ADRs. The **Spec branch** is cut
+there too, from the branch you stand on, the Ticket lands on it, and the worktree, the branches and
+the Review stay there, while the Ticket's status and its Evidence are written in the Home
+repository. Installing every
 skill named here is the same procedure, and [the top-level README](../README.md) carries it once.
 
 ## The Playbook
@@ -217,7 +220,10 @@ either question stops the run as blocked. Unlike a fresh run, it leaves that reb
 than aborting it, since the stop may hold a resolution you staged, and the worktree and its branch
 stay in place.
 
-In a `ticket` run of a Spec the branch then lands on the Spec branch, with no review. The run
+In a `ticket` run of a Spec the branch then lands on the Spec branch, with no review. A Ticket built
+outside its Home repository is built, cut and landed in its **Build repository**: each Build
+repository of a feature gets its own `spec/<slug>`, cut from the branch its session stood on when
+the first of its Tickets ran, and a repository none of whose Tickets has run gets none. The run
 rebases it onto `spec/<slug>`, a contested hunk taking the Spec branch's side and what it sets
 aside going into the Loss ledger, and one script call moves the Spec branch's ref forward under the
 landing lock, so two Tickets landing at once never both pass. The one that lost reads `moved`,
@@ -229,7 +235,8 @@ resumes at the landing. A landed run's reply carries `landed at <sha> on spec/<s
 `Review: none, the Spec is reviewed once its last Ticket lands`
 ([ADR 0060](adr/0060-a-ticket-lands-on-its-spec-branch-and-do-lands-it-there-itself.md)).
 
-The run then marks its Ticket `resolved`, and only after that runs the Completion check, a script
+The run then marks its Ticket `resolved`, with its Evidence filled, in the Home repository, and only
+after that runs the Completion check, a script
 that reads the status of every Ticket of the Spec, so the last of two runs landing at once always
 sees every Ticket resolved. Then it removes its worktree. When Tickets are still open, the reply
 adds an `Open:` line naming each one with its status, and its Next step is `/do` on the first open

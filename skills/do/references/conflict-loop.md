@@ -171,11 +171,13 @@ binary or too-large side is named by its size, its blob and the commit recorded 
 from which the blob stays reachable. A rerun at the same stop rewrites each entry where it stands,
 so the ledger never holds a hunk twice.
 
-The ledger is one file per run, in the main checkout, and its path is fixed before the rebase
-starts, since the branch the rebase replays is only on record while it runs:
+The ledger is one file per run, in the main checkout unless the Ticket lives in another repository,
+and its path is fixed before the rebase starts, since the branch the rebase replays is only on
+record while it runs:
 
-- in `ticket`, beside the Ticket, the Ticket's path in the main checkout with `.ledger` before the
-  extension, `01-x.ledger.md` beside `01-x.md`; for a Ticket that is not a local file, the issue's
+- in `ticket`, beside the Ticket, the path the door printed as `ticket=` with `.ledger` before the
+  extension, `01-x.ledger.md` beside `01-x.md`, which on a Ticket run from its Build repository is
+  in the Home repository and reached by its absolute path; for a Ticket that is not a local file, the issue's
   reference under `.scratch/ledgers/` there, with `.md` after it;
 - in `bug-fix` and `refactoring`, `.scratch/ledgers/<branch>.md` in the main checkout, with every
   `/` of the run's branch written as `-`, the key the Review beside the branch already uses.
