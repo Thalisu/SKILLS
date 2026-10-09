@@ -95,6 +95,9 @@ The command holds the budget and reads the clock, so you never reckon the elapse
 - `stretch=stop`: your stretch ends on that commit. Return `stopped` with the spent time budget as
   the reason and nothing uncommitted, after the last criterion's commit as well, since the flows
   and the scan are still ahead and the fork dispatched after you runs them.
+- No `stretch=` line, because the command failed or you no longer hold your start: go on as on
+  `stretch=continue`, and never return `stopped` over it. The session cannot clear that reason, so
+  it would end the run as blocked over a clock.
 
 The session forks you again at once and its prompt cache stays alive: that is what the budget is
 for, so a long screen comes back as several stretches instead of one long wait. Because you ask

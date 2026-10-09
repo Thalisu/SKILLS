@@ -8,11 +8,16 @@ context:
   unlinked_skills: [do-code-review]
   scaffold_script: |
     #!/usr/bin/env bash
-    # One Ticket of eighteen criteria, each a behaviour of its own with its own unit test, so that
-    # the first Builder is still building when its time budget runs out. Nothing in the fixture
-    # moves the budget or stands in for the Builder: the first Stretch earns its `stopped` return
-    # by the clock, which is why the case's timeout is three hours and why it is slow and costly
-    # to run. The Spec and the Ticket agree, so no Design fork is met; the module has no consumer,
+    # One Ticket of twenty-four criteria, each a behaviour of its own with its own unit test, so
+    # that the first Builder is still building when its time budget runs out. A Builder closes a
+    # behaviour of this module in under a minute, where one of a real project takes several, so
+    # the fixture gives that time back: its pre-commit hook waits a little under two minutes, as
+    # the checks of a real project do, and a build makes one commit per behaviour. Twenty-four
+    # such waits outlast the budget on their own, whatever the Builder's pace. The time is real
+    # elapsed time on the fork's own clock. Nothing in the fixture moves the budget or stands in
+    # for the Builder: the first Stretch earns its `stopped` return by the clock, which is why the
+    # case's timeout is three hours and why it is slow and costly to run. The Spec and the Ticket
+    # agree, so no Design fork is met; the module has no consumer,
     # so no flow is authored; and no review is linked, so the run ends at its review step with the
     # branch handed over.
     set -e
@@ -98,6 +103,10 @@ context:
     # notes
 
     A small notes module. Tests run with Node's own runner and the code is typechecked with `tsc`.
+
+    Every commit runs the pre-commit check in `.git/hooks/pre-commit`, in a worktree as in the main
+    checkout. It takes a little under two minutes: wait for its `pre-commit=ok` line, and never
+    pass `--no-verify`.
 
     <!-- testing-policy:start v=2.3 surface=consumer -->
     ## Testing Policy (Definition of Done)
@@ -378,12 +387,14 @@ context:
     ## Problem Statement
 
     Notes pile up in the list. A writer cannot put one aside, rename it, keep one on top, group
-    notes or find one by a word of its title.
+    notes or find one by a word of its title, write under a title, copy a note, read the list by
+    title or empty the archive.
 
     ## Solution
 
     The notes module learns to archive and restore, rename, pin, tag, search, delete and count,
-    each through a function it exports.
+    to carry a body, to duplicate a note, to list by title and to clear the archive, each through
+    a function it exports.
 
     ## User Stories
 
@@ -394,6 +405,10 @@ context:
     5. As a writer, I want to search my notes by a word, so that I find one without scrolling
     6. As a writer, I want to delete a note I archived, so that it is gone for good
     7. As a writer, I want to know how many notes are active and how many are archived
+    8. As a writer, I want to write a body under a note's title, so that the note holds more than its name
+    9. As a writer, I want to duplicate a note, so that I start a new one from it
+    10. As a writer, I want to list my notes by title, so that I find one by its name
+    11. As a writer, I want to clear the archive, so that every note I put aside is gone at once
 
     ## Implementation Decisions
 
@@ -404,6 +419,10 @@ context:
     - A note carries each tag once
     - Search matches a word anywhere in the title, whatever the letter case, over active notes only
     - Only an archived note can be deleted
+    - A note carries a body, empty until it is set, and only an active note's body can be set
+    - A duplicate is a new active note with the title and the tags of its source and an id of its own; only an active note can be duplicated
+    - The list by title is alphabetical whatever the letter case, over active notes only, and takes no account of pins
+    - Clearing the archive deletes every archived note at once and touches no active note
 
     ## Testing Decisions
 
@@ -417,7 +436,7 @@ context:
     cat > .scratch/organise-notes/issues/01-organise-notes.md <<'MD'
     # 01: Organise notes
 
-    **What to build:** The notes module's functions to archive and restore, rename, pin, tag, search, delete and count notes.
+    **What to build:** The notes module's functions to archive and restore, rename, pin, tag, search, delete and count notes, to set a note's body, to duplicate a note, to list by title and to clear the archive.
 
     **Blocked by:** None (can start immediately)
 
@@ -441,6 +460,12 @@ context:
     - [ ] Searching for an empty word returns no note
     - [ ] Deleting an archived note removes it for good, and deleting an active note is refused with an error
     - [ ] The count of active notes and the count of archived notes each follow archive, restore and delete
+    - [ ] A body set on a note is read back on that note
+    - [ ] Setting a body on an archived note is refused with an error and the body stays
+    - [ ] Duplicating a note adds a new active note with the same title and tags and an id of its own
+    - [ ] Duplicating an archived note is refused with an error
+    - [ ] Listing by title returns the active notes in alphabetical order, whatever the letter case and whatever is pinned
+    - [ ] Clearing the archive deletes every archived note and leaves the active notes in the list
 
     ## Evidence
     MD
@@ -449,3 +474,12 @@ context:
     git init -q -b main
     git -c user.email=fixture@example.com -c user.name=fixture add -A
     git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
+
+    cat > .git/hooks/pre-commit <<'HOOK'
+    #!/usr/bin/env bash
+    # Stands in for the minutes the pre-commit checks of a real project take. Holds no budget and
+    # reads no clock but its own wait.
+    sleep 110
+    echo "pre-commit=ok"
+    HOOK
+    chmod +x .git/hooks/pre-commit

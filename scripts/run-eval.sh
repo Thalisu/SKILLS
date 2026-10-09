@@ -110,18 +110,22 @@ all_tool_uses() { # $1 transcript: every tool call in it and in the subagent tra
     events "$f" | jq -c 'select(.type == "assistant") | .message.content[]? | select(.type == "tool_use")'
   done | jq -sc 'unique_by(.id) | .[]'
 }
+# The session's own calls are few and are what a grader compares (a brief against the next one, the
+# commits a script printed), so they are shown up to 8000 characters; a subagent's are many, and
+# stay at 2000 to bound what the judge reads.
 readable() { # $1 transcript: the run as the judge reads it
   events "$1" | jq -r '
-    def clip: if length > 2000 then .[0:2000] + " [clipped]" else . end;
-    if .type == "assistant" then
+    def clip($n): if length > $n then .[0:$n] + " [clipped]" else . end;
+    (if (.parent_tool_use_id // null) == null then 8000 else 2000 end) as $limit
+    | if .type == "assistant" then
       (if (.parent_tool_use_id // null) == null then "" else "[subagent] " end) as $who
       | .message.content[]?
       | if .type == "text" then "\($who)ASSISTANT: \(.text)"
-        elif .type == "tool_use" then "\($who)TOOL CALL \(.name): \(.input | tojson | clip)"
+        elif .type == "tool_use" then "\($who)TOOL CALL \(.name): \(.input | tojson | clip($limit))"
         else empty end
     elif .type == "user" then
       .message.content? | arrays | .[] | select(.type == "tool_result")
-      | "TOOL RESULT: \(.content | if type == "array" then map(.text // "") | join("\n") else tostring end | clip)"
+      | "TOOL RESULT: \(.content | if type == "array" then map(.text // "") | join("\n") else tostring end | clip($limit))"
     elif .type == "result" then "FINAL MESSAGE: \(.result // "")"
     else empty end'
 }

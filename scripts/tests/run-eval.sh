@@ -345,6 +345,34 @@ check "a case that unlinks a skill the sandbox never linked is red before any se
   "unlink-skill-unknown: 0 run, a skill it unlinks was never linked"
 expect "that case started no session" test "$(calls)" = 0
 
+# The session's own calls are few and are the ones a grader compares key by key, so the judge reads
+# them past the clip that bounds a subagent's many: a brief's last keys and a script's last lines.
+filler="$(head -c 2900 /dev/zero | tr '\0' a)"
+jq -cn --arg pad "$filler" '
+  {type: "system", subtype: "init"},
+  {type: "assistant", parent_tool_use_id: null, message: {content: [{type: "tool_use", id: "t1", name: "Agent",
+    input: {description: "Build Stretch 1", prompt: ($pad + " OWN-BRIEF-LAST-KEY")}}]}},
+  {type: "user", parent_tool_use_id: null, message: {content: [{type: "tool_result", tool_use_id: "t1",
+    content: ($pad + " OWN-RESULT-LAST-COMMIT")}]}},
+  {type: "assistant", parent_tool_use_id: "t1", message: {content: [{type: "tool_use", id: "t2", name: "Bash",
+    input: {command: ("SUBAGENT-CALL-OPENS " + $pad + " SUBAGENT-CALL-LAST-WORD")}}]}},
+  {type: "result", subtype: "success", result: "Built."}' >"$tmp/long-transcript.jsonl"
+mkdir -p "$evals/long"
+printf 'runs: 1\n' >"$evals/long/case.yaml" && printf 'hi\n' >"$evals/long/prompt.md"
+grader long judged 'type: llm
+criteria: "The two briefs carry the same keys."'
+reset
+STUB_TRANSCRIPT="$tmp/long-transcript.jsonl" run "$evals" long
+check "a run whose calls pass 2000 characters is still judged" 0 "$rc" "ok    long run 1/1 judged"
+expect "the judge reads the end of a session's own call input longer than 2000 characters" \
+  grep -qF "OWN-BRIEF-LAST-KEY" "$STUB_DIR/judge-prompts"
+expect "the judge reads the end of the result of a session's own call longer than 2000 characters" \
+  grep -qF "OWN-RESULT-LAST-COMMIT" "$STUB_DIR/judge-prompts"
+expect "the judge reads a subagent's call of that length from its start" \
+  grep -qF "SUBAGENT-CALL-OPENS" "$STUB_DIR/judge-prompts"
+expect "the judge is not shown a subagent's call input past 2000 characters" \
+  bash -c '! grep -qF "SUBAGENT-CALL-LAST-WORD" "$1"' _ "$STUB_DIR/judge-prompts"
+
 # A `context: fork` skill's orchestrator never reaches the headless stream: its calls are held only in
 # a subagent transcript beside the run's own, which a `scope: all` grader counts too.
 source_grade

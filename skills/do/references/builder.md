@@ -269,6 +269,10 @@ before its prompt cache expires.
   line naming the spent time budget and saying that nothing is uncommitted. A `stop` read after the
   Plan's last behaviour, with no flow left to author, returns `built` instead, since that verdict
   is already true.
+- No `stretch=` line (the command failed, or the start was lost): the loop goes on to the next
+  behaviour, as on `continue`, and the Stretch never returns `stopped` over it. A budget that
+  cannot be read costs one long wait, while a `stopped` naming it is a reason the session cannot
+  clear, which would end the run as blocked over a clock.
 
 Because the command is asked only on a commit, a behaviour in progress when the budget runs out is
 finished and committed first: the Stretch never returns with uncommitted work, and never commits
