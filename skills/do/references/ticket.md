@@ -99,6 +99,17 @@ the tracker file describes. Before anything is written:
   the developer's call, so the message carries `Yours: direction:` with the choice, per
   [reply.md](reply.md): build the blocker first, or set its status by hand when it was done outside
   the chain.
+- A Ticket whose Build repository is another repository than the one this session was opened in
+  (`verdict=elsewhere`, `build_check=elsewhere`) is handed over before the claim, since a run
+  builds only in the repository it is opened in. Nothing is written, nothing is claimed and
+  nothing is cut, so the Ticket still reads `ready-for-agent` when the handed-over command runs.
+  The message is three lines after the first line. One line says the Ticket is built in
+  `build_repository=` at `build_location=`, not here, and that nothing was written. The next names
+  that repository, with its location, as the place to open a session in. The last line is
+  `/do <ticket_location=>`, the Ticket's absolute location, since a relative one resolves to
+  nothing from the other repository. It carries no `Yours:` line, since there is nothing to choose,
+  and no shell line (no `cd`, no command that opens a session): how the developer gets there is
+  theirs. Under `--auto` the stop is the same lines, with no `choice-taker` forked.
 - A `claimed` Ticket whose `do/<slug>` worktree exists is resumed, as the Resume section says:
   never a second worktree, and the claim stands.
 - A `claimed` Ticket whose worktree is gone starts over: the run records the start-over line for

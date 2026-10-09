@@ -1,0 +1,6 @@
+---
+type: llm
+criteria: "Judge this on the run's final message only, the text after FINAL MESSAGE. Pass only when all of these hold. First, a line before the last non-blank line names billing-service (by name or by its absolute location ending in /billing-service) as the place to open, start or use a session in. Second, the last non-blank line is the command `/do` followed by the absolute path of Ticket 02, on its own or with only formatting around it (a code span, a bullet, or the closing fence of a code block whose only content is that line): a path that starts with `/`, reaches the file through the folder the session runs in (never through billing-service) and ends in /.scratch/hold-disputed-invoice/issues/02-hold-the-invoice-of-a-disputed-order.md. Third, the final message carries no line starting with `Yours:`. Fourth, it hands over no shell line: no `cd`, no `git` command and no command that launches a session (claude, codex, an editor). Any of these fails: a relative path (.scratch/..., ./, ../, ~) on the /do line, a /do line that is not last, a `Yours:` line anywhere, a shell line anywhere."
+---
+The developer changes terminal once and pastes the last line: a relative location resolves to
+nothing in the other repository, and a `Yours:` line asks for a choice there is none of.

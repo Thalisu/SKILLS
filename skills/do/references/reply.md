@@ -419,7 +419,9 @@ How much more it carries depends on where the run stopped:
   after it as skipped: the run never reached those steps.
 
 Every blocked Reply, and every refusal at a door, carries one line that says what the run hands the
-developer and why only the developer can give it:
+developer and why only the developer can give it, except the `ticket` door's hand-over to the
+Build repository (`verdict=elsewhere`), which hands over no choice: it names the one repository to
+run in. The line reads:
 
 ```
 Yours: <class>: <the choice>
