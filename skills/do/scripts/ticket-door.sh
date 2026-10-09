@@ -37,7 +37,8 @@
 # resolved · ambiguous (a blocker with
 # no file, two files, or no single status line; two Blocked by lines, or one naming no number and
 # not None, or a number it cannot split out) ·
-# blocked (a blocker not resolved) · resume (claimed, the worktree there) · start-over (claimed, the
+# blocked (a blocker not resolved) · elsewhere (build_check=elsewhere: the Ticket is built in another
+# repository, handed over before anything is claimed) · resume (claimed, the worktree there) · start-over (claimed, the
 # worktree gone) · ambiguous (ready-for-agent with a worktree already there) · start. Then refused
 # replaces start, resume or start-over when the Ticket's Spec has no Spec branch yet and the main
 # checkout is protected or detached (branch=HEAD), since the first cut would land the Spec there;
@@ -45,13 +46,19 @@
 # outside a feature folder's issues/ (spec_branch=none) is never refused on that ground.
 #
 # Exit codes: 0 the run may go on: start, resume, start-over or resume-final · 1 the door stops
-# the run: resolved, blocked, ambiguous or refused · 2 usage, no Ticket at the path, or not a git
+# the run: resolved, blocked, ambiguous, refused or elsewhere · 2 usage, no Ticket at the path, or not a git
 # repository.
 set -uo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd -P)"
 # shellcheck source=skills/do/scripts/ticket-read.sh
 . "$here/ticket-read.sh"
+
+build_check_of() { # $1 name (or none/ambiguous), $2 location (or none/ambiguous): prints one build_check word
+  case "$1" in none | ambiguous) echo "$1" && return ;; esac
+  [ "$2" != ambiguous ] || { echo ambiguous && return; }
+  echo elsewhere
+}
 
 usage() { echo "usage: ticket-door.sh <the Ticket's path>" >&2; exit 2; }
 [ "$#" = 1 ] || usage
@@ -155,6 +162,18 @@ echo "spec_complete=$spec_complete"
 front_end_of "$path"
 echo "front_end=$word"
 [ -z "$detail" ] || { echo "ambiguous=$detail"; stop_ambiguous=1; }
+build_repository_of "$path"
+build_repository="$word"
+echo "build_repository=$build_repository"
+[ -z "$detail" ] || { echo "ambiguous=$detail"; stop_ambiguous=1; }
+word=none detail=""
+case "$build_repository" in none | ambiguous) ;; *) repository_location_of "$path" "$build_repository" ;; esac
+build_location="$word"
+echo "build_location=$build_location"
+[ -z "$detail" ] || { echo "ambiguous=$detail"; stop_ambiguous=1; }
+build_check="$(build_check_of "$build_repository" "$build_location")"
+echo "build_check=$build_check"
+echo "ticket_location=$path"
 first_run_unsafe=0
 if grep -qx 'spec_exists=no' <<<"$spec_facts" && ! grep -qx 'spec_branch=none' <<<"$spec_facts" &&
   grep -qxE 'protected=yes|branch=HEAD' <<<"$branch_facts"; then first_run_unsafe=1; fi
@@ -164,6 +183,7 @@ elif [ "$status" = resolved ] && [ "$spec_complete" = yes ] && grep -qx 'spec_la
 elif [ "$status" = resolved ]; then verdict=resolved
 elif [ "$stop_ambiguous" = 1 ]; then verdict=ambiguous
 elif [ "$stop_blocked" = 1 ]; then verdict=blocked
+elif [ "$build_check" = elsewhere ]; then verdict=elsewhere
 elif [ "$status" = claimed ] && [ "$worktree" != none ]; then verdict=resume
 elif [ "$status" = claimed ]; then verdict=start-over
 elif [ "$stale" = 1 ]; then verdict=ambiguous

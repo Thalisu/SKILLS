@@ -256,6 +256,41 @@ check_lines "a word outside the status walk is ambiguous" 1 "$rc" "status=ambigu
 run "$door" "$issues/09-stale.md"
 check_lines "a ready Ticket whose worktree already exists is ambiguous" 1 "$rc" \
   "worktree=$top/.claude/worktrees/do-stale" "verdict=ambiguous"
+# A Ticket of a Spec built across repositories is built in the one its Build repository line names:
+# run from any other checkout, the door hands the run over before anything is claimed or cut, since
+# a claim written there would leave the Ticket claimed when the handed-over command runs.
+repositories_spec() { # $1 feature folder, $2.. its Repositories entries, one line each: a Spec at <folder>/spec.md and an empty issues/ beside it
+  local folder="$1"
+  shift
+  mkdir -p "$folder/issues"
+  {
+    printf '# Spec: across repositories\n\n## Repositories\n\n'
+    printf '%s\n' "$@"
+    printf '\n## User Stories\n\n1. As a developer, I want a note exported, so that I can share it.\n'
+  } >"$folder/spec.md"
+}
+both_states() { # $1 the sibling repository: door_state and the worktree list of the Home repository, then of the sibling, on stdout
+  door_state && git worktree list --porcelain && (cd "$1" && door_state && git worktree list --porcelain)
+}
+fresh sibling
+printf 'one\n' >notes.txt
+commit fixture
+sibling="$(pwd -P)"
+cd "$top" || exit 1
+across=".scratch/20260106-across"
+repositories_spec "$across" "- main (Home repository): $top" "- sibling: $sibling"
+(issues="$across/issues" && ticket 01-sibling.md $'**Status:** ready-for-agent\n\n**Build repository:** sibling' 'None (can start immediately)')
+before="$(both_states "$sibling")"
+run "$door" "$across/issues/01-sibling.md"
+check_lines "a ready Ticket built in a listed sibling repository, run from the Home repository, is handed over to the sibling" 1 "$rc" \
+  "build_repository=sibling" "build_location=$sibling" "build_check=elsewhere" \
+  "ticket_location=$top/$across/issues/01-sibling.md" "verdict=elsewhere"
+ordered_out "the build repository facts follow the Spec's completeness and precede the verdict" \
+  spec_complete= build_repository= build_location= build_check= ticket_location= verdict=
+expect "the hand-over writes nothing in either repository: no ref, worktree or file created or changed" \
+  test "$(both_states "$sibling")" = "$before"
+expect "the Ticket handed over still reads ready-for-agent" \
+  grep -qxF '**Status:** ready-for-agent' "$across/issues/01-sibling.md"
 
 echo "# ticket-door.sh: the facts beside the verdict"
 mkdir -p .claude/agents && : >.claude/agents/unit-test-author.md

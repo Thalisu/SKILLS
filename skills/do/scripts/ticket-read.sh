@@ -13,6 +13,14 @@
 #                                 lines or a word outside the set is ambiguous, as a status is)
 #   ticket_files <folder> [<NN>]  prints the Ticket files directly in the issues folder, in number
 #                                 order, or only the ones numbered <NN>
+#   build_repository_of <file>    sets word to the name its one **Build repository:** header line
+#                                 reads, none with no line, or ambiguous with detail saying why
+#   repository_location_of <file> <name>
+#                                 sets word to the location of the entry of that name in the
+#                                 ## Repositories section of the Spec beside its issues/ folder, none
+#                                 with no entry, section or Spec, or ambiguous with detail saying why
+#   spec_beside <file>            prints the spec.md beside its issues/ folder, /dev/null with no
+#                                 Spec or no issues/ folder
 #
 # A status is the one **Status:** line at column 0: none, two or a word outside the walk
 # (ready-for-agent, claimed, resolved) is ambiguous, and no word is taken out of it. A Ticket file
@@ -86,4 +94,67 @@ ticket_files() { # $1 issues folder, $2 optional Ticket number: the Ticket files
     ! -name '*.project-map.md' ! -name '*.sketch.md' ! -name '*.plan.md' -printf '%f\n' | grep -E '^[0-9]+-' |
     sort -n | awk -v dir="$1" '{ c[NR] = $0; has[$0] = 1 }
     END { for (i = 1; i <= NR; i++) { if (match(c[i], /\.[^.\/]+\.md$/) && has[substr(c[i], 1, RSTART - 1) ".md"]) continue; print dir "/" c[i] } }'
+}
+
+# Only the header counts: the lines above the first column-0 `## ` heading, so a line quoted lower
+# down in the body is never read as the Ticket's own.
+build_repository_of() { # $1 file: sets word to the name its one **Build repository:** header line reads, none, or ambiguous with detail set
+  local head lines
+  head="$(awk '/^## / { exit } { print }' "$1")"
+  lines="$(grep -n '^\*\*Build repository:\*\*' <<<"$head" | cut -d: -f1 | tr '\n' ' ')"
+  lines="${lines% }"
+  detail=""
+  word=none
+  case "$(wc -w <<<"$lines")" in
+    0) return ;;
+    1) ;;
+    *)
+      word=ambiguous
+      detail="build-repository lines $lines"
+      return
+      ;;
+  esac
+  word="$(grep '^\*\*Build repository:\*\*' <<<"$head" | sed -E 's/^\*\*Build repository:\*\*[[:space:]]*//; s/[[:space:]]+$//')"
+}
+
+spec_beside() { # $1 Ticket file: prints the spec.md beside its issues/ folder, or /dev/null
+  local folder
+  folder="$(dirname "$1")"
+  if [ "$(basename "$folder")" = issues ] && [ -f "$(dirname "$folder")/spec.md" ]; then
+    echo "$(dirname "$folder")/spec.md"
+  else echo /dev/null; fi
+}
+
+# An entry is `- {name}[ (Home repository)]: {location}`, one line, the name matched whole with the
+# Home mark left out, the location the rest of the line after the first `: `.
+repository_location_of() { # $1 Ticket file, $2 name: sets word to the entry's location, none, or ambiguous with detail set
+  local spec sections entries count
+  spec="$(spec_beside "$1")"
+  sections="$(grep -n '^## Repositories[[:space:]]*$' "$spec" | cut -d: -f1 | tr '\n' ' ')"
+  sections="${sections% }"
+  detail=""
+  word=none
+  case "$(wc -w <<<"$sections")" in
+    0) return ;;
+    1) ;;
+    *)
+      word=ambiguous
+      detail="repositories sections $sections"
+      return
+      ;;
+  esac
+  entries="$(awk -v name="$2" '/^## Repositories[[:space:]]*$/ { on = 1; next } on && /^## / { exit }
+    on && /^- / { e = substr($0, 3); i = index(e, ": "); if (!i) next; n = substr(e, 1, i - 1)
+      sub(/[[:space:]]+\(Home repository\)$/, "", n); if (n != name) next
+      loc = substr(e, i + 2); gsub(/^[[:space:]]+|[[:space:]]+$/, "", loc); print NR "\t" loc }' "$spec")"
+  count="$(grep -c . <<<"$entries")"
+  case "$count" in
+    0) return ;;
+    1) word="$(cut -f2- <<<"$entries")" ;;
+    *)
+      word=ambiguous
+      detail="repositories entries $2 $(cut -f1 <<<"$entries" | tr '\n' ' ')"
+      detail="${detail% }"
+      ;;
+  esac
 }
