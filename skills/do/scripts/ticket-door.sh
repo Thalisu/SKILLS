@@ -54,20 +54,27 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 # shellcheck source=skills/do/scripts/ticket-read.sh
 . "$here/ticket-read.sh"
 
-build_check_of() { # $1 name (or none/ambiguous), $2 location (or none/ambiguous): prints one build_check word
+# A bare main worktree has no working tree to anchor on, and git lists it first all the same.
+main_of() { # $1 directory: prints the main worktree of the repository holding it, empty when it is not in one
+  local top main
+  top="$(git -C "$1" rev-parse --show-toplevel 2>/dev/null)" || return 0
+  main="$(git -C "$1" worktree list --porcelain 2>/dev/null |
+    awk '/^$/ { exit } /^worktree /{ p = substr($0, 10) } /^bare$/ { p = "" } END { print p }')"
+  [ -n "$main" ] && [ -d "$main" ] || main="$top"
+  (cd "$main" && pwd -P)
+}
+
+build_check_of() { # $1 name (or none/ambiguous), $2 location (or none/ambiguous): prints one build_check word, comparing main_of "$2" with the session's $main
   case "$1" in none | ambiguous) echo "$1" && return ;; esac
   [ "$2" != ambiguous ] || { echo ambiguous && return; }
-  echo elsewhere
+  if [ "$(main_of "$2")" = "$main" ]; then echo here; else echo elsewhere; fi
 }
 
 usage() { echo "usage: ticket-door.sh <the Ticket's path>" >&2; exit 2; }
 [ "$#" = 1 ] || usage
 
 top="$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "not a git repository" >&2; exit 2; }
-# A bare main worktree has no working tree to anchor on, and git lists it first all the same.
-main="$(git worktree list --porcelain 2>/dev/null |
-  awk '/^$/ { exit } /^worktree /{ p = substr($0, 10) } /^bare$/ { p = "" } END { print p }')"
-[ -n "$main" ] && [ -d "$main" ] || main="$top"
+main="$(main_of .)"
 
 case "$1" in
   /*) path="$1" ;;

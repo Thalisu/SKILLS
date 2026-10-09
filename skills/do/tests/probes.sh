@@ -291,6 +291,32 @@ expect "the hand-over writes nothing in either repository: no ref, worktree or f
   test "$(both_states "$sibling")" = "$before"
 expect "the Ticket handed over still reads ready-for-agent" \
   grep -qxF '**Status:** ready-for-agent' "$across/issues/01-sibling.md"
+# The session the hand-over named is the Build repository's own: its check compares physical
+# paths, so a session in a linked worktree of it, or a Spec entry reaching it through a symlink,
+# still reads as here and lets the Ticket start.
+(issues="$across/issues" && ticket 02-in-sibling.md $'**Status:** ready-for-agent\n\n**Build repository:** sibling' 'None (can start immediately)')
+(issues="$across/issues" && ticket 03-home.md $'**Status:** ready-for-agent\n\n**Build repository:** main' 'None (can start immediately)')
+linked=".scratch/20260107-linked"
+ln -s "$sibling" "$tmp/sibling-link"
+repositories_spec "$linked" "- main (Home repository): $top" "- sibling: $tmp/sibling-link"
+(issues="$linked/issues" && ticket 01-linked.md $'**Status:** ready-for-agent\n\n**Build repository:** sibling' 'None (can start immediately)')
+echo ".claude/worktrees/" >>"$sibling/.git/info/exclude"
+aside="$(branch_worktree "$sibling" aside)"
+cd "$sibling" || exit 1
+run "$door" "$top/$across/issues/02-in-sibling.md"
+check_lines "a ready Ticket built in a listed sibling repository, run from the sibling, starts there" 0 "$rc" \
+  "build_repository=sibling" "build_check=here" "verdict=start"
+run "$door" "$top/$linked/issues/01-linked.md"
+check_lines "a sibling the Spec lists through a symlink, run from the sibling, reads as here and starts" 0 "$rc" \
+  "build_repository=sibling" "build_check=here" "verdict=start"
+cd "$aside" || exit 1
+run "$door" "$top/$across/issues/02-in-sibling.md"
+check_lines "a ready Ticket built in a sibling, run from a linked worktree of the sibling, reads as here and starts" 0 "$rc" \
+  "build_repository=sibling" "build_check=here" "verdict=start"
+cd "$top" || exit 1
+run "$door" "$across/issues/03-home.md"
+check_lines "a ready Ticket built in the Home repository's own entry, run from the Home repository, starts" 0 "$rc" \
+  "build_repository=main" "build_location=$top" "build_check=here" "verdict=start"
 
 echo "# ticket-door.sh: the facts beside the verdict"
 mkdir -p .claude/agents && : >.claude/agents/unit-test-author.md
