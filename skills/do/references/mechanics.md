@@ -48,6 +48,10 @@ an index: the section named in parentheses carries the rule in full, with its ex
 
 Every build runs in a git worktree the run creates itself, from the current HEAD or from the start
 point its Playbook names, never through a tool that branches from the remote default branch.
+The main checkout below is the one of the repository the session is in. On a Ticket run from its
+Build repository that is the Build repository's, never the Home repository's: the worktree, its
+branch, the test authors, the Gate's commands, the glossary and the ADRs are the ones of the project
+being built, and the Home repository holds the Ticket and its record alone.
 
 1. Prove the run starts in the main checkout before anything is created:
    `git rev-parse --show-toplevel` and the first entry of the worktree list, the derivation

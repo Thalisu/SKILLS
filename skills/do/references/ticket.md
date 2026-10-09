@@ -814,7 +814,18 @@ project, once for the whole run, never once per behaviour:
 `bash <skill-dir>/scripts/project-map.sh <the main checkout> <the map's path>`. The path is beside
 the Ticket in the main checkout's scratch, with `.project-map` before the extension, or, for a
 Ticket that is not a local file, the issue's reference under `.scratch/project-maps/` there, and
-the script refuses any other path. It fills only the slots a command read, the run commands and the
+the script refuses any other path.
+
+On a Ticket run from its Build repository, the door's `root=` naming another repository than the
+main checkout, the map is still derived from the main checkout, the project the run builds in and
+whose commands the authors and the Gate run, and never from the Home repository. Beside the Ticket
+is then outside that project, a path the script refuses, so the path is
+`<the main checkout>/.scratch/project-maps/<the Feature folder's name>/<the Ticket's file name>`,
+taken on the first call and never after a refusal. It is the one file of the run in the Build
+repository's own scratch, so the ignore check and the append the fork's destination got under
+`<root>` above run once more before the script, this time in the main checkout.
+
+The script fills only the slots a command read, the run commands and the
 test layout, and every other slot reads `none yet → /testing-policy`. The step names in one line
 the map's location and the slots it filled, off the lines the script printed, for the Reply's Run
 section's map line per [reply.md](reply.md); the loop and the flows step read that file and never

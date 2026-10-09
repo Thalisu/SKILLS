@@ -106,7 +106,10 @@ absolute location in the Home repository. Every artifact of that run that sits b
 (the Digest, the Plan, the Ticket's own status) is reached by its absolute path in the Home
 repository, which `do`'s ticket door prints as `root=`, and the `.scratch/` ignore line it needs is
 the Home repository's. The repository the run builds in gets a worktree and branches, and nothing
-of the feature's record.
+of the feature's record. With no Testing Policy there, it also gets the run's Project map, under
+its own `.scratch/project-maps/`, since the map describes the project it is derived from and
+`do`'s script refuses to write one outside it, and that file brings the `.scratch/` ignore line to
+that repository too.
 
 ## Two runs at once
 
