@@ -94,6 +94,16 @@ the tracker file describes. Before anything is written:
   Under `--auto` the stop is the same one line, with nothing written and no `choice-taker` forked:
   a Ticket's status is read, never asked, so the flag has no question here to hand over, and a
   flag that rebuilt what landed would route around that ADR.
+- A Ticket whose Build repository cannot be built anywhere as it stands (`verdict=unbuildable`)
+  stops the run before the claim in one line after the first line, chosen by `build_check=`, so the
+  developer fixes the one input that is wrong instead of reading a git error:
+  - `unlisted`: the line names `build_repository=` and says the Spec's `## Repositories` list does
+    not hold it.
+
+  Nothing is written and nothing is claimed: the run corrects neither the Ticket nor the Spec, and
+  guesses no entry in their place. The line hands over no command, since the fix comes before any
+  run, and no `Yours:` line, since there is nothing to choose. Under `--auto` the stop is the same
+  line, with no `choice-taker` forked.
 - A Ticket whose `Blocked by` names one not `resolved` (`verdict=blocked`) is refused before the
   claim, in one message naming the blocker and its status. Nothing is written. The build order is
   the developer's call, so the message carries `Yours: direction:` with the choice, per

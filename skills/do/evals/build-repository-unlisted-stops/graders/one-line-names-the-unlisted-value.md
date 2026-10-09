@@ -1,0 +1,6 @@
+---
+type: llm
+criteria: "Judge this on the run's final message only, the text after FINAL MESSAGE. Ticket 02 names `billing-svc` as its Build repository, and the Spec's Repositories list holds only orders-service and billing-service. Pass only when all of these hold. First, after the first line (the Playbook line), the stop is one line, a single paragraph with no line break inside it, which may hold more than one sentence and may say that nothing was written or claimed: it names the value `billing-svc` and says the Spec's Repositories list does not hold it (or equivalent wording: not listed, not an entry of the Spec's list). Second, the final message hands over no command: no `/do` line, no other slash command and no shell line. Third, it carries no line starting with `Yours:`. Any of these fails: a second line or paragraph of explanation or options after the stop, a guess that the Ticket meant billing-service presented as what the run did or will do, the run correcting the Ticket or the Spec, a git error quoted in place of the stop, a command of any kind, a `Yours:` line."
+---
+The developer with a typo in the Ticket or the Spec learns which value the list lacks, and fixes it
+themselves before running `do` again.
