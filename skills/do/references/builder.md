@@ -254,10 +254,16 @@ before its prompt cache expires.
   the number kept in its window and written to no file.
 - After each behaviour's commit, and at no other moment, it asks the time budget command,
   [stretch-budget.sh](../scripts/stretch-budget.sh) in the `scripts/` folder beside this file's
-  `references/` folder, with that start as its one argument. The command holds the budget and reads
-  the clock, so the Builder never reckons the elapsed time itself. Where the skill is part of the
-  repository being built, the copy it runs is the worktree's, since its `Bash` hook closes the main
-  checkout to the shell.
+  `references/` folder, with that start as its one argument:
+
+  ```
+  bash "$(readlink -f ~/.claude/skills/do)/scripts/stretch-budget.sh" <your start>
+  ```
+
+  The command holds the budget and reads the clock, so the Builder never reckons the elapsed time
+  itself. It names the installed skill and not a path in the repository being built, since that
+  repository holds the skill only when it is this one, and its `Bash` hook lets the command through
+  because the path is built by the shell and never typed.
 - `stretch=continue`: the loop goes on to the next behaviour.
 - `stretch=stop`: the Stretch returns `stopped`, in the shape `## The return` fixes, its `stopped:`
   line naming the spent time budget and saying that nothing is uncommitted. A `stop` read after the

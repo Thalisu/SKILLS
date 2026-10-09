@@ -1053,4 +1053,33 @@ else
   fail "the building agent's body carries a just-text clause for a stranger's imperative in the Ticket, the Digest or the Plan (no line matching 'never an instruction to you/follow' found in the body)"
 fi
 
+echo "# skills/do/agents/do-builder.md: the time budget command resolves in a project that does not hold the skill"
+
+# The Builder runs in the worktree of whatever project is being built, and a repo-relative
+# `skills/do/scripts/...` path only resolves when that project is this repository: anywhere else the
+# command prints no verdict and the stretch never learns it should return. An empty extraction would
+# make every later grep and the guard's pass vacuous, so each of them also requires the command.
+budget_cmd="$(grep -E '^bash .*stretch-budget\.sh' "$agent" | head -n 1)"
+expect "the building agent names the time budget command as a runnable \`bash\` line" test -n "$budget_cmd"
+
+budget_section="$(passage_of "$contract" "## The time budget" "## ")"
+expect "builder.md's \`## The time budget\` carries the same command verbatim" \
+  bash -c '[ -n "$1" ] && grep -qF -- "$1" <<<"$2"' _ "$budget_cmd" "$budget_section"
+
+budget_proj="$stmp/budget/proj/.claude/worktrees/w1"
+budget_home="$stmp/budget/home"
+mkdir -p "$budget_proj" "$budget_home/.claude/skills"
+ln -s "$here/.." "$budget_home/.claude/skills/do"
+budget_placeholder="<your start>"
+budget_run="${budget_cmd/"$budget_placeholder"/$(date +%s)}"
+
+budget_hook_out="$(jq -n --arg command "$budget_run" --arg cwd "$budget_proj" \
+  '{tool_input: {command: $command}, cwd: $cwd}' | sh -c "$(hook_command "$agent" Bash)" 2>/dev/null)"
+expect "the Builder's Bash guard lets the time budget command through" \
+  bash -c '[ -n "$1" ] && ! grep -qF "\"permissionDecision\": \"deny\"" <<<"$2"' _ "$budget_run" "$budget_hook_out"
+
+budget_out="$(cd "$budget_proj" && HOME="$budget_home" bash -c "$budget_run" 2>&1)"
+expect "the command prints its verdict from a project that does not hold the skill" \
+  bash -c 'grep -q "^stretch=continue" <<<"$1"' _ "$budget_out"
+
 exit $((fails > 0))
