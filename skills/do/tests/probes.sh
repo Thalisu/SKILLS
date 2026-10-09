@@ -280,9 +280,6 @@ repositories_spec() { # $1 feature folder, $2.. its Repositories entries, one li
     printf '\n## User Stories\n\n1. As a developer, I want a note exported, so that I can share it.\n'
   } >"$folder/spec.md"
 }
-both_states() { # $1 the sibling repository: door_state and the worktree list of the Home repository, then of the sibling, on stdout
-  door_state && git worktree list --porcelain && (cd "$1" && door_state && git worktree list --porcelain)
-}
 fresh sibling
 printf 'one\n' >notes.txt
 commit fixture

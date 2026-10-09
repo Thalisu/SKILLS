@@ -376,6 +376,9 @@ door_state() { # every ref with its tip and upstream, then the working tree as s
   g for-each-ref --format='%(refname) %(objectname) %(upstream)'
   stop_state
 }
+both_states() { # $1 the sibling repository: door_state and the worktree list of the Home repository, then of the sibling, on stdout
+  door_state && git worktree list --porcelain && (cd "$1" && door_state && git worktree list --porcelain)
+}
 # The conflict loop's own command (conflict-loop.md): without --diff3 git trims the lines both sides'
 # additions share, which drops one of two identical closing braces.
 union_of() { # $1 a conflicted path: the union of its three index stages, Target side first, on stdout
