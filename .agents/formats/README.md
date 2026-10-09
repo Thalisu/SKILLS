@@ -11,6 +11,7 @@ read by one skill only stays in that skill's `references/`.
 | [context-format.md](context-format.md) | `discuss`, `journey` | every skill that grounds on `CONTEXT.md` |
 | [adr-format.md](adr-format.md) | `discuss` | every skill that reads `docs/adr/` |
 | [spec-format.md](spec-format.md) | `spec`; `journey` edits it in place | `journey`, `tickets`; its `Front-end:` header line is for `tickets` and `do` |
+| [spec-format.md](spec-format.md) | `spec`, with a Repositories section when the feature is built in more than one repository and none when it is built in one; `journey` edits it in place | `journey`, `tickets` |
 | [journey-format.md](journey-format.md) | `journey` | `tickets` |
 | [ticket-format.md](ticket-format.md) | `tickets`; `do` edits it in place | `do`, `do-code-review`; its `**Kind:**` header line (`logic`, `front-end` or `setup`) is for `do`: a path with a screen is cut into a Logic ticket and a Front-end ticket |
 | [review-format.md](review-format.md) | `do-code-review` | `do`, the Fixers |
