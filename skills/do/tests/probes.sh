@@ -674,6 +674,30 @@ run "$door"
 check_lines "no argument is a usage error" 2 "$rc"
 run "$door" "$issues/99-nothing.md"
 check_lines "a Ticket that is not there is an error" 2 "$rc"
+# A Ticket named by an absolute location in a sibling Home repository that holds none there: the
+# mistyped name shares its number with a real neighbour, which a lookup by number would pick, and
+# the moved Home repository leaves a location whose folders a write would bring back.
+fresh away
+printf 'one\n' >notes.txt
+commit fixture
+away="$(pwd -P)"
+away_issues="$away/.scratch/20260112-away/issues"
+mkdir -p "$away_issues"
+(issues="$away_issues" && ticket 01-export.md '**Status:** ready-for-agent' 'None (can start immediately)')
+cd "$top" || exit 1
+moved_home="$(cd "$tmp" && pwd -P)/moved-home"
+for entry in "$away_issues/01-exprot.md|a mistyped name beside a real Ticket of an existing sibling repository" \
+  "$moved_home/.scratch/20260112-away/issues/01-export.md|a sibling repository that is not there"; do
+  IFS='|' read -r location what <<<"$entry"
+  before="$(both_states "$away")"
+  script="$door" refuses "an absolute location at $what is refused on stderr, apart from stdout" opens "no Ticket at $location" "$location"
+  same "an absolute location at $what prints nothing on stdout" ""
+  run "$door" "$location"
+  same "an absolute location at $what gets the one line naming it and nothing else" "no Ticket at $location"
+  expect "an absolute location at $what writes nothing in either repository" \
+    test "$(both_states "$away")" = "$before"
+  expect "an absolute location at $what leaves the moved repository's folder uncreated" test ! -e "$moved_home"
+done
 cd /
 run "$door" x
 check_lines "outside a repository is an error" 2 "$rc"
