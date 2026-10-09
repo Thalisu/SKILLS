@@ -171,4 +171,32 @@ next_build=check-home
 next_build_location=$home
 next_location=$issues/03-ready-there.md"
 
+rm -f "$issues/03-ready-there.md"
+ticket 03-ready-here.md $'**Status:** ready-for-agent\n\n**Build repository:** check-build' 'None (can start immediately)'
+run "$issues/02-open-here.md"
+check_absent "names no other repository to open when the next Ticket is built in the session's own repository" 0 "$rc" \
+  "next_build=" "next_build_location=" "next_location="
+expect "a next Ticket built in the session's own repository is named by next= alone, with last= and verdict= right after it" \
+  test "$(printf '%s\n' "$out" | awk '/^next=/ { on = 1 } on')" = "next=$issues/03-ready-here.md
+last=no
+verdict=incomplete"
+expect "a next Ticket built in the session's own repository leaves the open lines as they read for any Ticket of the folder" \
+  test "$(term open)" = "02 claimed $issues/02-open-here.md
+03 ready-for-agent $issues/03-ready-here.md
+04 claimed $issues/04-claimed-there.md"
+
+rm -f "$issues/03-ready-here.md"
+ticket 03-ready-unplaced.md '**Status:** ready-for-agent' 'None (can start immediately)'
+run "$issues/02-open-here.md"
+check_absent "names no other repository to open when the next Ticket carries no Build repository line" 0 "$rc" \
+  "next_build=" "next_build_location=" "next_location="
+expect "a next Ticket with no Build repository line is named by next= alone, with last= and verdict= right after it" \
+  test "$(printf '%s\n' "$out" | awk '/^next=/ { on = 1 } on')" = "next=$issues/03-ready-unplaced.md
+last=no
+verdict=incomplete"
+expect "a next Ticket with no Build repository line leaves the open lines as they read for any Ticket of the folder" \
+  test "$(term open)" = "02 claimed $issues/02-open-here.md
+03 ready-for-agent $issues/03-ready-unplaced.md
+04 claimed $issues/04-claimed-there.md"
+
 exit "$((fails > 0))"
