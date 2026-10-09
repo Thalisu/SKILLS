@@ -102,10 +102,16 @@ neither the grounding nor the behaviours list is derived in the session's own wi
 _Avoid_: architect, designer, orchestrator, delegate
 
 **Builder**:
-The sub-agent a `do` ticket run forks once per **Ticket**: it runs the whole build loop in the
-worktree from the **Plan**, dispatches its own test authors, and commits one behaviour at a time.
+The sub-agent a `do` ticket run forks for each **Stretch** of a **Ticket**'s build: it runs the
+build loop in the worktree from the **Plan**, dispatches its own test authors, and commits one
+behaviour at a time.
 _Avoid_: executor, implementer, coder, delegate (the delegate was the exception writer of the
 shape before this one), **Fixer** (a **Fixer** belongs to the review)
+
+**Stretch**:
+One fork of the **Builder**, from its dispatch to its return: the behaviours it committed in
+between, picked up from the branch's commits and left there for the next one.
+_Avoid_: session, round, attempt, handoff (nothing is handed over but the branch)
 
 **Design fork**:
 Two shapes a `do` run's work could take that neither the **Ticket**, its **Spec** nor the code
@@ -396,6 +402,8 @@ _Avoid_: model page (one link of the chain), doc set, lineage
 - A `do` ticket run forks one **Planner**, which writes one **Plan** for that **Ticket**, then one
   **Builder**, which reads the **Plan** and writes the commits; the two are siblings, never a
   chain, so a test author the **Builder** dispatches stays two layers below the session
+- A **Ticket**'s build is one or more **Stretches**; a **Stretch** ends on a commit, between two
+  behaviours, and the next one starts from the branch alone
 - A fork that owns an artifact writes it itself, and the session verifies the path it expected and
   the `## Sources` hashes the door computed, never the artifact's text
 - The **Fixers** of one **Wave** run at once, one per **Finding**, each in its own worktree, and
