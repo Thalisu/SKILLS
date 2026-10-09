@@ -21,8 +21,9 @@ a reviewed branch. `do` is a router: it matches the request to one Playbook, and
 reference under Links is the run. The `ticket` Playbook is the last step of the chain and builds
 one Ticket; every other Playbook runs outside the chain and never builds a feature
 ([ADR 0008](../../docs/adr/0008-do-is-a-router-and-only-its-ticket-playbook-is-inside-the-chain.md)).
-A run can last an hour and never waits on the developer, so they read it afterwards, through the
-Reply.
+A run never waits on the developer, and a long build spans several Stretches of the Builder, each
+returning to the session on a time budget, so a run can outlast an hour and they read it
+afterwards, through the Reply.
 
 Every reply opens with `Playbook: <name>` on its first line, so a wrong match shows at once and
 costs one retyped request.
