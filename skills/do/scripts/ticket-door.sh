@@ -70,16 +70,6 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 # shellcheck source=skills/do/scripts/ticket-read.sh
 . "$here/ticket-read.sh"
 
-# A bare main worktree has no working tree to anchor on, and git lists it first all the same.
-main_of() { # $1 directory: prints the main worktree of the repository holding it, empty when it is not in one
-  local top main
-  top="$(git -C "$1" rev-parse --show-toplevel 2>/dev/null)" || return 0
-  main="$(git -C "$1" worktree list --porcelain 2>/dev/null |
-    awk '/^$/ { exit } /^worktree /{ p = substr($0, 10) } /^bare$/ { p = "" } END { print p }')"
-  [ -n "$main" ] && [ -d "$main" ] || main="$top"
-  (cd "$main" && pwd -P)
-}
-
 build_check_of() { # $1 name (or none/ambiguous), $2 location (or none/ambiguous): prints one build_check word, comparing main_of "$2" with the session's $main
   case "$1" in none | ambiguous) echo "$1" && return ;; esac
   case "$2" in none) echo unlisted && return ;; ambiguous) echo ambiguous && return ;; esac
@@ -101,11 +91,6 @@ build_of() { # $1 Ticket file: sets build_name, build_place and build_check as b
   case "$build_name" in none | ambiguous) ;; *) repository_location_of "$1" "$build_name" ;; esac
   build_place="$word" place_detail="$detail"
   build_check="$(build_check_of "$build_name" "$build_place")"
-}
-
-home_root() { # $1 the Ticket's absolute path, $2 the main checkout: prints the root whose .scratch/ holds the Ticket's feature folder
-  if [ "$(main_of "$(dirname "$1")")" = "$2" ]; then echo "$2" && return; fi
-  case "$1" in */.scratch/*) echo "${1%/.scratch/*}" ;; *) echo "$2" ;; esac
 }
 
 # A Home repository nested under the main checkout keeps its paths absolute, since a relative one

@@ -21,6 +21,11 @@
 #                                 with no entry, section or Spec, or ambiguous with detail saying why
 #   spec_beside <file>            prints the spec.md beside its issues/ folder, /dev/null with no
 #                                 Spec or no issues/ folder
+#   main_of <directory>           prints the main worktree of the repository holding it, nothing
+#                                 when it is in none
+#   home_root <file> <main checkout>
+#                                 prints the root whose .scratch/ holds the Ticket's feature folder,
+#                                 <file> absolute and <main checkout> as main_of prints it
 #
 # A status is the one **Status:** line at column 0: none, two or a word outside the walk
 # (ready-for-agent, claimed, resolved) is ambiguous, and no word is taken out of it. A Ticket file
@@ -157,4 +162,19 @@ repository_location_of() { # $1 Ticket file, $2 name: sets word to the entry's l
       detail="${detail% }"
       ;;
   esac
+}
+
+# A bare main worktree has no working tree to anchor on, and git lists it first all the same.
+main_of() { # $1 directory: prints the main worktree of the repository holding it, empty when it is not in one
+  local top main
+  top="$(git -C "$1" rev-parse --show-toplevel 2>/dev/null)" || return 0
+  main="$(git -C "$1" worktree list --porcelain 2>/dev/null |
+    awk '/^$/ { exit } /^worktree /{ p = substr($0, 10) } /^bare$/ { p = "" } END { print p }')"
+  [ -n "$main" ] && [ -d "$main" ] || main="$top"
+  (cd "$main" && pwd -P)
+}
+
+home_root() { # $1 the Ticket's absolute path, $2 the main checkout: prints the root whose .scratch/ holds the Ticket's feature folder
+  if [ "$(main_of "$(dirname "$1")")" = "$2" ]; then echo "$2" && return; fi
+  case "$1" in */.scratch/*) echo "${1%/.scratch/*}" ;; *) echo "$2" ;; esac
 }

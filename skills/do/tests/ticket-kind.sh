@@ -87,17 +87,11 @@ expect "a call with no argument exits 2 with nothing on stdout" test "$rc:$out" 
 # from a session in the Build repository: the mistyped name shares its number with a real neighbour,
 # which a lookup by number would pick, and the moved Home repository leaves a location whose folders
 # a write would bring back.
-fresh build
-printf 'one\n' >notes.txt
-commit fixture
-fresh home
-printf 'one\n' >notes.txt
-commit fixture
-home_repo="$(pwd -P)"
-home_issues="$home_repo/.scratch/20260112-away/issues"
-mkdir -p "$home_issues"
-(issues="$home_issues" && ticket 01-export.md $'**Status:** ready-for-agent\n**Kind:** setup' 'None (can start immediately)')
-cd "$tmp/build" || exit 1
+sibling_repos home build 20260112-away
+# shellcheck disable=SC2154 # lib.sh's sibling_repos assigns $home
+home_repo="$home"
+home_issues="$issues"
+ticket 01-export.md $'**Status:** ready-for-agent\n**Kind:** setup' 'None (can start immediately)'
 moved_home="$(cd "$tmp" && pwd -P)/moved-home"
 for entry in "$home_issues/01-exprot.md|a mistyped name beside a real Ticket of an existing sibling repository" \
   "$moved_home/.scratch/20260112-away/issues/01-export.md|a sibling repository that is not there"; do

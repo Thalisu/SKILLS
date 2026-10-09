@@ -379,6 +379,22 @@ door_state() { # every ref with its tip and upstream, then the working tree as s
 both_states() { # $1 the sibling repository: door_state and the worktree list of the Home repository, then of the sibling, on stdout
   door_state && git worktree list --porcelain && (cd "$1" && door_state && git worktree list --porcelain)
 }
+# A Ticket lives in its Home repository and is built from a session in another one.
+sibling_repos() { # $1 home name, $2 build name, $3 feature folder name: two repositories side by side under $tmp, each with one commit, the Home one holding .scratch/<feature folder name>/issues/
+  # sets: home and build (their absolute roots) and issues (absolute, in Home, so `ticket` writes there); leaves the cwd in the Build repository
+  fresh "$1"
+  printf 'one\n' >notes.txt
+  commit fixture
+  # shellcheck disable=SC2034 # home, build and issues are read by the sourcing script
+  home="$(pwd -P)"
+  issues="$home/.scratch/$3/issues"
+  mkdir -p "$issues"
+  fresh "$2"
+  printf 'one\n' >notes.txt
+  commit fixture
+  # shellcheck disable=SC2034
+  build="$(pwd -P)"
+}
 # The conflict loop's own command (conflict-loop.md): without --diff3 git trims the lines both sides'
 # additions share, which drops one of two identical closing braces.
 union_of() { # $1 a conflicted path: the union of its three index stages, Target side first, on stdout
