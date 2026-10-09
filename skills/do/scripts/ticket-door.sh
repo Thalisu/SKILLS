@@ -27,7 +27,10 @@
 # Spec has a list, missing when the entry's location is not an absolute path to a directory on this
 # machine, not-git when it is one and not the top of a git working tree, here when the location's main worktree is this session's main checkout, physical
 # paths compared, else elsewhere), ticket_location (the Ticket's absolute path), next_blocker (on verdict=blocked
-# only: the absolute path of the first blocker in Blocked by order not resolved), then verdict. An ambiguous=<what>
+# only: the absolute path of the first blocker in Blocked by order not resolved), next_blocker_build
+# and next_blocker_build_location (only when that blocker is built in another repository: the name
+# its own **Build repository:** line reads and that entry's location in the Spec's list, unlisted
+# with no entry), then verdict. An ambiguous=<what>
 # <detail> line follows the line it concerns. A blocker is the leading number of each part of the
 # Blocked by paragraph split on `;`, `,`, the word `and` and each line break, the paragraph starting
 # on the header's line or the line below it and a `-`, `*` or `+` list marker dropped, a blank line
@@ -85,6 +88,16 @@ build_check_of() { # $1 name (or none/ambiguous), $2 location (or none/ambiguous
   top="$(git -C "$2" rev-parse --show-toplevel 2>/dev/null)"
   [ -n "$top" ] && [ "$(cd "$top" && pwd -P)" = "$(cd "$2" && pwd -P)" ] || { echo not-git && return; }
   if [ "$(main_of "$2")" = "$main" ]; then echo here; else echo elsewhere; fi
+}
+
+# The Ticket and its next blocker are both read through here, against the one Spec they share.
+build_of() { # $1 Ticket file: sets build_name, build_place and build_check as build_repository, build_location and build_check read, with name_detail and place_detail
+  build_repository_of "$1"
+  build_name="$word" name_detail="$detail"
+  word=none detail=""
+  case "$build_name" in none | ambiguous) ;; *) repository_location_of "$1" "$build_name" ;; esac
+  build_place="$word" place_detail="$detail"
+  build_check="$(build_check_of "$build_name" "$build_place")"
 }
 
 home_root() { # $1 the Ticket's absolute path, $2 the main checkout: prints the root whose .scratch/ holds the Ticket's feature folder
@@ -202,13 +215,9 @@ echo "front_end=$word"
 build_repository_of "$path"
 build_repository="$word"
 echo "build_repository=$build_repository"
-[ -z "$detail" ] || { echo "ambiguous=$detail"; stop_ambiguous=1; }
-word=none detail=""
-case "$build_repository" in none | ambiguous) ;; *) repository_location_of "$path" "$build_repository" ;; esac
-build_location="$word"
+[ -z "$name_detail" ] || { echo "ambiguous=$name_detail"; stop_ambiguous=1; }
 echo "build_location=$build_location"
-[ -z "$detail" ] || { echo "ambiguous=$detail"; stop_ambiguous=1; }
-build_check="$(build_check_of "$build_repository" "$build_location")"
+[ -z "$place_detail" ] || { echo "ambiguous=$place_detail"; stop_ambiguous=1; }
 # On a Spec with a list the Build repository is one of its entries, so no line names none of them.
 if [ "$build_check" = none ] && grep -q '^## Repositories[[:space:]]*$' "$(spec_beside "$path")"; then build_check=unlisted; fi
 echo "build_check=$build_check"
@@ -230,6 +239,16 @@ elif [ "$stale" = 1 ]; then verdict=ambiguous
 else verdict=start
 fi
 case "$verdict" in start|start-over) [ "$first_run_unsafe" = 0 ] || verdict=refused ;; esac
-[ "$verdict" != blocked ] || echo "next_blocker=$next_blocker"
+if [ "$verdict" = blocked ]; then
+  echo "next_blocker=$next_blocker"
+  build_of "$next_blocker"
+  case "$build_check" in
+    here | none | ambiguous) ;;
+    *)
+      echo "next_blocker_build=$build_name"
+      echo "next_blocker_build_location=${build_place/#none/unlisted}"
+      ;;
+  esac
+fi
 echo "verdict=$verdict"
 case "$verdict" in start|resume|start-over|resume-final) exit 0 ;; *) exit 1 ;; esac

@@ -345,6 +345,38 @@ for blocked in 09-after-claimed 10-after-several; do
   expect "the blocked Ticket $blocked still reads ready-for-agent" \
     grep -qxF '**Status:** ready-for-agent' "$top/$across/issues/$blocked.md"
 done
+# A blocker is built in the repository its own Build repository line names, which may be neither
+# the Home repository nor the session's: the door names it, so the session that builds the blocker
+# is opened under that project's rules.
+fresh third
+printf 'one\n' >notes.txt
+commit fixture
+third="$(pwd -P)"
+cd "$sibling" || exit 1
+chain=".scratch/20260108-chain"
+(cd "$top" && repositories_spec "$chain" "- main (Home repository): $top" "- sibling: $sibling" "- third: $third")
+(issues="$top/$chain/issues" && ticket 01-third.md $'**Status:** ready-for-agent\n\n**Build repository:** third' 'None (can start immediately)')
+(issues="$top/$chain/issues" && ticket 02-third-done.md $'**Status:** resolved\n\n**Build repository:** third' 'None (can start immediately)')
+(issues="$top/$chain/issues" && ticket 03-unlisted.md $'**Status:** ready-for-agent\n\n**Build repository:** fourth' 'None (can start immediately)')
+(issues="$top/$chain/issues" && ticket 04-here.md $'**Status:** ready-for-agent\n\n**Build repository:** sibling' 'None (can start immediately)')
+(issues="$top/$chain/issues" && ticket 05-after-third.md $'**Status:** ready-for-agent\n\n**Build repository:** sibling' '01, Title of 01-third')
+(issues="$top/$chain/issues" && ticket 06-after-unlisted.md $'**Status:** ready-for-agent\n\n**Build repository:** sibling' '02 Title of 02-third-done; 03 Title of 03-unlisted; 04 Title of 04-here')
+(issues="$top/$chain/issues" && ticket 07-after-here.md $'**Status:** ready-for-agent\n\n**Build repository:** sibling' '02 Title of 02-third-done; 04 Title of 04-here; 01 Title of 01-third')
+run "$door" "$top/$chain/issues/05-after-third.md"
+check_lines "a blocker built in another listed repository is named with that repository and its location from the Spec" 1 "$rc" \
+  "next_blocker=$top/$chain/issues/01-third.md" "next_blocker_build=third" "next_blocker_build_location=$third" "verdict=blocked"
+expect "the blocker's repository and location sit right after the next blocker" \
+  grep -qE '(^| )next_blocker next_blocker_build next_blocker_build_location ' <<<"$(keys_in_order)"
+ordered_out "the blocker's repository and location precede the verdict" \
+  next_blocker= next_blocker_build= next_blocker_build_location= verdict=
+run "$door" "$top/$chain/issues/06-after-unlisted.md"
+check_lines "a blocker built in a repository the Spec does not list is named with it and the location unlisted, a resolved blocker built elsewhere before it skipped" 1 "$rc" \
+  "next_blocker=$top/$chain/issues/03-unlisted.md" "next_blocker_build=fourth" "next_blocker_build_location=unlisted" "verdict=blocked"
+run "$door" "$top/$chain/issues/07-after-here.md"
+check_lines "a Ticket whose next blocker is built in the session's repository is blocked on it" 1 "$rc" \
+  "next_blocker=$top/$chain/issues/04-here.md" "verdict=blocked"
+absent_prefix "a blocker built in the session's repository names no repository to build it in" "next_blocker_build="
+absent_prefix "a blocker built in the session's repository names no location to build it in" "next_blocker_build_location="
 cd "$top" || exit 1
 run "$door" "$issues/02-second.md"
 check_lines "a Ticket whose every blocker is resolved starts" 0 "$rc" "verdict=start"
