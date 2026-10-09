@@ -17,6 +17,16 @@ those lines are carried by the Reply's Run section, so a run that follows the co
 that grader. The runner still runs these cases, and a red one is not a regression until its
 graders read the Reply.
 
+A case tagged `slow` earns what it grades by the clock. `spent-time-budget-forks-the-next-stretch`
+is the one such case: its first Builder returns `stopped` only once its Stretch has really outlasted
+the time budget `scripts/stretch-budget.sh` holds, on a Ticket long enough to still be building by
+then, so the case's `timeout_seconds` sits well above that budget and one run costs hours of
+Builder time. Its fixture sets no override and no stand-in Builder, since the budget is written in
+that script and nowhere else: a second place that could move it would be a budget the eval proves
+and the product does not run on. A run whose first Builder finishes inside the budget fails the
+case's graders on a `built` first return, which says the Ticket has grown too short for the budget
+and never that the route broke. Name the case when running it, and leave it out of a routine pass.
+
 `do` is user-invoked, so every prompt types the skill; there is no trigger case. The one exception is `closed-branch-backs-a-discuss-ruling`, which proves the `choice-taker` this skill ships for a caller that does not run yet: no `discuss --auto` run forks it, so its prompt hands the agent the brief that run will send, and the case grades the agent's return. The door cases
 end at a door: the request fits no Playbook, so the run is one message, and the cases inspect
 that message and the tree. Every door case carries the same two graders, the first line reading
