@@ -340,6 +340,29 @@ expect "a Build repository line with no Repositories section writes nothing in e
   test "$(both_states "$sibling")" = "$before"
 expect "the Ticket of a Spec with no Repositories section still reads ready-for-agent" \
   grep -qxF '**Status:** ready-for-agent' "$unlisted/issues/01-nolist.md"
+# A listed entry whose location is not a directory on this machine is missing: the developer whose
+# clone sits at another path fixes the Spec's location, instead of opening a repository that is not
+# there. A relative location is never resolved against the session, even where one would land on
+# the real sibling.
+missing=".scratch/20260109-missing"
+printf 'not a repository\n' >"$tmp/plain-note"
+repositories_spec "$missing" "- main (Home repository): $top" "- gone: $tmp/gone" \
+  "- up: ../sibling" "- bare: sibling" "- note: $tmp/plain-note"
+for entry in "gone|$tmp/gone|an absolute location that does not exist" \
+  "up|../sibling|a relative location that would reach the sibling from the session" \
+  "bare|sibling|a relative location that would reach the sibling from beside the session" \
+  "note|$tmp/plain-note|a location that is a regular file"; do
+  IFS='|' read -r name location what <<<"$entry"
+  (issues="$missing/issues" && ticket "01-$name.md" "**Status:** ready-for-agent"$'\n\n'"**Build repository:** $name" 'None (can start immediately)')
+  before="$(both_states "$sibling")"
+  run "$door" "$missing/issues/01-$name.md"
+  check_lines "a listed Build repository at $what is missing and unbuildable" 1 "$rc" \
+    "build_repository=$name" "build_location=$location" "build_check=missing" "verdict=unbuildable"
+  expect "a missing Build repository at $what writes nothing in either repository" \
+    test "$(both_states "$sibling")" = "$before"
+  expect "the Ticket naming a missing Build repository at $what still reads ready-for-agent" \
+    grep -qxF '**Status:** ready-for-agent' "$missing/issues/01-$name.md"
+done
 
 echo "# ticket-door.sh: the facts beside the verdict"
 mkdir -p .claude/agents && : >.claude/agents/unit-test-author.md
