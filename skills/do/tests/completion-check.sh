@@ -199,4 +199,14 @@ expect "a next Ticket with no Build repository line leaves the open lines as the
 03 ready-for-agent $issues/03-ready-unplaced.md
 04 claimed $issues/04-claimed-there.md"
 
+rm -f "$issues/03-ready-unplaced.md"
+run "$issues/02-open-here.md"
+expect "every open Ticket of the folder reads claimed, one built in the session's repository and one in another" \
+  test "$(term open)" = "02 claimed $issues/02-open-here.md
+04 claimed $issues/04-claimed-there.md"
+expect "says to wait, once, when every open Ticket reads claimed, whatever repository each is built in" \
+  test "$(term next)" = "wait"
+check_absent "names no repository to open and no Ticket to hand over when every open Ticket reads claimed, one of them built in another repository" 0 "$rc" \
+  "next_build=" "next_build_location=" "next_location="
+
 exit "$((fails > 0))"
