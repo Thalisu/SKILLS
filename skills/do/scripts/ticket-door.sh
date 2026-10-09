@@ -7,11 +7,14 @@
 #                                         developer's branch; a relative path is read from the
 #                                         directory the script runs in, then from the main checkout
 #
-# Prints key=value lines, in this order: ticket, title, status, kind, one blocker=<NN> <status>
-# <path> per Ticket the Blocked by line names (blockers=none for None), slug, worktree (the
-# do-<slug> worktree when git lists one at that path, else none), run_branch (do/<slug> when git
-# lists that branch locally, else none, read beside worktree so a start-over knows whether the
-# branch survived the worktree's removal), loop (policy when the project has
+# Prints key=value lines, in this order: ticket (relative to the main checkout when root is the
+# main checkout, else absolute, the rule every path below follows), root (the Home repository: the main checkout when
+# the Ticket sits in a working tree of this session's repository, else the Ticket path's prefix
+# before its last /.scratch/ segment, else the main checkout), title, status, one blocker=<NN> <status> <path> per
+# Ticket the Blocked by line names (blockers=none for None), slug, worktree (the do-<slug> worktree
+# when git lists one at that path, else none), run_branch (do/<slug> when git lists that branch
+# locally, else none, read beside worktree so a start-over knows whether the branch survived the
+# worktree's removal), loop (policy when the project has
 # .claude/agents/unit-test-author.md, else global when ~/.claude/agents/global-unit-test-author.md
 # is linked, else fallback), branch, protected and reason as
 # `trivial-door.sh branch` prints them in the main checkout, spec_branch, spec_exists,
