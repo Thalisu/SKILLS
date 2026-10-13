@@ -72,7 +72,7 @@ check_lines "the Final integration's state, read before its worktree exists, sen
   "worktree=absent" \
   "verdict=restart"
 expect "the Final integration's state, read before its worktree exists, comes in its key order, the verdict last, with no rebase, uncommitted or stop line" \
-  test "$(keys_in_order)" = "spec spec_branch spec_upstream tree ledger token_slug claim file holder_ticket claimed_at worktree verdict "
+  test "$(keys_in_order)" = "spec spec_branch spec_upstream tree token_slug claim file ledger review_file holder_ticket claimed_at worktree verdict "
 expect "a read of the Final integration's state creates or changes no ref and no file" \
   test "$after" = "$before"
 
@@ -239,5 +239,79 @@ run "$issues/01-first.md"
 check_lines "a Ticket's branch landing on the Spec branch past the commit its Review names leaves that Review not trusted, named as skipped, and the resume integrates and reviews again" 0 "$rc" \
   "review_skipped=unmarked $feature/spec.review.md" "review=none" "verdict=restart"
 absent "a Review a Ticket landed past never sends the resume to the landing" "verdict=land"
+
+# The names a resume reads the claim, the ledger and the Review under: one set per repository of a
+# feature, so a Ticket with no Build repository line keeps the unkeyed ones.
+echo "# final-state.sh: the claim, the ledger and the Review of the repository a Ticket is built in"
+run "$issues/01-first.md"
+check_lines "the Final integration's state of a Ticket with no Build repository line names the unkeyed claim, ledger and Review beside the Spec" 0 "$rc" \
+  "file=$feature/spec.integration.claim" \
+  "ledger=$feature/spec.ledger.md" \
+  "review_file=$feature/spec.review.md"
+expect "the Final integration's state of a Ticket with no Build repository line names one ledger only" \
+  test "$(grep -c '^ledger=' <<<"$out")" = 1
+expect "the Final integration's state names the ledger and the Review inside the claim's lines, after the claim file and before its holder" \
+  grep -q '^spec spec_branch spec_upstream tree token_slug claim file ledger review_file holder_ticket claimed_at worktree ' <<<"$(keys_in_order)"
+
+# A feature across two sibling repositories, resumed from the Build one: the Ticket and the Spec sit
+# in the Home repository, and the Spec branch and its worktree are the session's. The Build
+# repository's name is not its own key, so a file named after the name as written is not the keyed one.
+sibling_repos state-web state_api.v2 20261003-keyed-state
+# shellcheck disable=SC2154 # lib.sh's sibling_repos assigns $home, $build and $issues
+keyed="$home/.scratch/20261003-keyed-state"
+# shellcheck disable=SC2154
+repositories_spec "$keyed" "- state-web (Home repository): $home" "- state_api.v2: $build"
+ticket 01-api-state.md $'**Status:** resolved\n\n**Build repository:** state_api.v2' 'None (can start immediately)'
+(cd "$build" && g branch -q --track spec/keyed-state main && spec_commit spec/keyed-state) || {
+  echo "FAIL  fixture: the unlanded Spec branch of the Build repository could not be built"
+  exit 1
+}
+cd "$build" || exit 1
+keyed_tree="$build/.claude/worktrees/spec-keyed-state"
+keyed_review="$keyed/spec.state-api-v2.review.md"
+
+run "$issues/01-api-state.md"
+check_lines "the Final integration's state of a Ticket that names a Build repository names the claim, the ledger and the Review in the Home Feature folder under that repository's key, and the tree and token slug of the session's repository" 0 "$rc" \
+  "spec=$keyed/spec.md" \
+  "spec_branch=spec/keyed-state" \
+  "tree=$keyed_tree" \
+  "token_slug=spec-keyed-state" \
+  "file=$keyed/spec.state-api-v2.integration.claim" \
+  "ledger=$keyed/spec.state-api-v2.ledger.md" \
+  "review_file=$keyed_review"
+expect "the Final integration's state of a Ticket that names a Build repository names one ledger only" \
+  test "$(grep -c '^ledger=' <<<"$out")" = 1
+expect "the Final integration's state of a Ticket that names a Build repository comes in its key order, the ledger and the Review after the claim file" \
+  test "$(keys_in_order)" = "spec spec_branch spec_upstream tree token_slug claim file ledger review_file worktree verdict "
+
+# One Review that counts for the Build repository's Spec branch, moved between the three names a
+# Review of this feature can sit under: only the one under the Build repository's own key is its own.
+g worktree add -q "$keyed_tree" spec/keyed-state
+keyed_reviewed="$(git rev-parse --short spec/keyed-state)"
+review_at "$keyed_reviewed" "$keyed/spec.review.md"
+keyed_token="$(bash "$token_script" new spec-keyed-state 2>/dev/null)"
+[ -n "$keyed_token" ] && [ -z "$(git -C "$keyed_tree" status --short)" ] || {
+  echo "FAIL  fixture: the Spec's worktree of the Build repository and a token for its review could not be built"
+  exit 1
+}
+printf '%s\n' "$keyed_token" >"$keyed/spec.review.marker"
+
+run "$issues/01-api-state.md"
+check_lines "a Review that counts, sitting under the unkeyed name, is not the Review of a Ticket's Build repository, and the resume integrates and reviews again" 0 "$rc" \
+  "worktree=present" "rebase=none" "verdict=restart"
+absent "a Review under the unkeyed name never sends the resume of a Build repository to the landing" "verdict=land"
+
+mv "$keyed/spec.review.md" "$keyed/spec.state-web.review.md"
+mv "$keyed/spec.review.marker" "$keyed/spec.state-web.review.marker"
+run "$issues/01-api-state.md"
+check_lines "a Review that counts, sitting under another repository's key, is not the Review of a Ticket's Build repository, and the resume integrates and reviews again" 0 "$rc" \
+  "worktree=present" "rebase=none" "verdict=restart"
+absent "a Review under another repository's key never sends the resume of a Build repository to the landing" "verdict=land"
+
+mv "$keyed/spec.state-web.review.md" "$keyed_review"
+mv "$keyed/spec.state-web.review.marker" "${keyed_review%.md}.marker"
+run "$issues/01-api-state.md"
+check_lines "the same Review under the Build repository's own key is the one the state reads, and sends the resume to the landing" 4 "$rc" \
+  "worktree=present" "rebase=none" "review=$keyed_review" "verdict=land"
 
 [ "$fails" = 0 ]

@@ -3,17 +3,20 @@
 # branch, its worktree and the files beside the Spec, and never from a run-state file. It only
 # reads. Run from anywhere inside the project, the main checkout or a worktree of it.
 #
-#   final-state.sh <Ticket path>    any Ticket of the Spec, absolute or relative to the main checkout
+#   final-state.sh <Ticket path>    any Ticket of the Spec built in the session's repository,
+#                                   absolute or relative to the main checkout
 #
 # Prints key=value lines, in this order: spec, spec_branch, spec_upstream, tree (the worktree the
-# Final integration runs in), ledger, token_slug (spec-<feature-slug>, the slug the review token of
-# the Final integration is stored and revoked under), the lines `final-claim.sh show` prints, and
-# worktree (present or absent, as git lists tree); with the tree present, rebase (open or none),
-# one uncommitted=<the git status --short line> per entry and, while a rebase is open, the stop
-# record resume-read.sh prints, its tip the commit spec_upstream names now, in the keys and the
-# classes resume-state.sh prints for a Ticket run, review_skipped=<stale | axis-not-run | unmarked>
-# <path> when the Review beside the Spec, spec.review.md, does not count, and review, that Review
-# when it counts, else none; then verdict. The Review counts by the rule resume-read.sh holds, read
+# Final integration runs in), token_slug (spec-<feature-slug>, the slug the review token of the
+# Final integration is stored and revoked under), the lines `final-claim.sh show` prints, its
+# ledger and review_file among them, and worktree (present or absent, as git lists tree); with the
+# tree present, rebase (open or none), one uncommitted=<the git status --short line> per entry and,
+# while a rebase is open, the stop record resume-read.sh prints, its tip the commit spec_upstream
+# names now, in the keys and the classes resume-state.sh prints for a Ticket run,
+# review_skipped=<stale | axis-not-run | unmarked> <path> when the Review beside the Spec, the file
+# at review_file, does not count, and review, that Review when it counts, else none; then verdict.
+# Every path beside the Spec is the one final-claim.sh names for the Ticket's repository, and none
+# is composed here. The Review counts by the rule resume-read.sh holds, read
 # against the Spec branch's reflog and the token stored under token_slug.
 #
 # verdict, first match wins: integration (a rebase is open in the tree) · ask (uncommitted work in
@@ -64,7 +67,6 @@ echo "spec=$folder/spec.md"
 echo "spec_branch=$spec_branch"
 echo "spec_upstream=$spec_upstream"
 echo "tree=$tree"
-echo "ledger=$folder/spec.ledger.md"
 echo "token_slug=$token_slug"
 echo "$claim"
 # grep -q would stop reading at the match and git would die of SIGPIPE on a long list, which
@@ -84,7 +86,7 @@ echo "rebase=$rebase"
 uncommitted="$(git -C "$tree" -c core.quotePath=true status --short)"
 [ -z "$uncommitted" ] || sed 's/^/uncommitted=/' <<<"$uncommitted"
 [ "$rebase" != open ] || rebase_stop "$tree" "refs/heads/$spec_upstream"
-review_lines "$folder/spec.review.md" "$tree" "$spec_branch" "$token_slug"
+review_lines "$(sed -n 's/^review_file=//p' <<<"$claim")" "$tree" "$spec_branch" "$token_slug"
 
 if [ "$rebase" = open ]; then
   echo "verdict=integration"

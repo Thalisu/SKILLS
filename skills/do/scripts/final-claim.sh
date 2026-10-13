@@ -44,10 +44,11 @@
 # file is never rewritten by a yield.
 #
 # yield prints key=value lines: claim (yielded, none when there is no claim file to yield, or
-# failed), file, then on yielded: holder_ticket, claimed_at, yielded_at and yielded_by.
+# failed), file, then on yielded: the lines show prints after them.
 #
-# show prints key=value lines and writes nothing: claim (none, held or yielded), file, then on held
-# and yielded: holder_ticket and claimed_at, and on yielded: yielded_at and yielded_by.
+# show prints key=value lines and writes nothing: claim (none, held or yielded), file, ledger and
+# review_file, then on held and yielded: holder_ticket and claimed_at, and on yielded: yielded_at
+# and yielded_by.
 #
 # release prints key=value lines: claim (released or held), spec_branch, removed (yes, absent when
 # there was no Spec branch left to remove, or no), and on held: reason, the removal's own (unlanded,
@@ -169,13 +170,11 @@ $(grep '^yielded_at=' "$won")"
 
 cmd_show() {
   resolve "$1"
-  if [ ! -f "$file" ]; then
-    echo "claim=none"
-    echo "file=$file"
-    return 0
-  fi
-  if [ -f "$mark" ]; then echo "claim=yielded"; else echo "claim=held"; fi
+  if [ ! -f "$file" ]; then echo "claim=none"; elif [ -f "$mark" ]; then echo "claim=yielded"; else echo "claim=held"; fi
   echo "file=$file"
+  echo "ledger=$ledger"
+  echo "review_file=$review_file"
+  [ -f "$file" ] || return 0
   holder
   [ ! -f "$mark" ] || grep -E '^(yielded_at|yielded_by)=' "$mark"
 }
