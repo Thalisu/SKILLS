@@ -115,7 +115,15 @@ A `journey.md` beside the spec that the verdict does not name is an orphan: name
 | the verdict is `required` and names no journey | the verdict, and that `/journey` walks the spec before tickets are cut; a `journey.md` beside the spec that the verdict does not name is mentioned |
 | the verdict names a file that does not exist | the line, and the location it named |
 | the journey's `## Reopen in discuss` lists a branch | each branch, and that `/discuss` settles them before the journey is walked again |
-| tickets for this feature already exist: files under `issues/` beside the spec in local mode, or open issues naming the spec as their parent in remote mode | each existing ticket; whoever wants a recut closes or deletes them first |
+| the feature's open tickets cover the whole spec: nothing the spec holds is left uncovered (below) | nothing was cut because the open tickets cover the whole spec; each existing ticket with its status; whoever wants a recut closes or deletes them first; no next command |
+
+**Open tickets and what they cover.** The feature's open tickets are the files under `issues/` beside the spec in local mode, whatever status each one carries, or the open issues naming the spec as their parent in remote mode. Read every one of them in the same batch as the spec. With none, the cut is the whole spec and nothing below applies. With some, read what they cover against what the spec holds:
+
+- a path of the journey, or a User Story when there is no journey, is covered when an open ticket names it;
+- a finding line under the spec's Implementation Decisions, `- Moved by the run on Ticket <title> at the Plan step: <behaviour>. Belongs to: <name>.`, is covered when an open ticket built in the repository it names carries that behaviour among its criteria. A stopped `do` run wrote the line because the behaviour has no place in the repository of the ticket it names, so that ticket never covers it;
+- the journey's `## Cut` and `## Deferred` and the spec's Out of Scope are never ticketed, so they are never uncovered.
+
+The same reading answers a command that was repeated and one typed by accident: when nothing is left uncovered, the last stop of the table is the whole run. That message carries no `/do` line and no `/tickets` line, and no ticket is written, edited or renumbered. Open tickets that leave something uncovered are not that stop.
 
 ## 2. Explore the code
 
@@ -370,7 +378,7 @@ Every ticket is written in the format of [.agents/formats/ticket-format.md](../.
 - **Numbering**: from `01` in dependency order, blockers first. Each file's "Blocked by" lists the numbers and titles of every ticket it depends on, each blocker the breakdown named for it, whatever repository the blocker is built in.
 - **Header lines**: each bold header line (`**Blocked by:**`, `**Status:**`, `**Build repository:**`) is one line, never wrapped, however long it runs: `do` reads each one line by line, so a blocker wrapped onto the next line is a blocker it never sees.
 - **A spec with a Repositories section**: every ticket is still written in that one `issues/` folder, in the Home repository, whichever repository it is built in, and nothing is written in any other repository. One sequence numbers them all, in dependency order across repositories, and "Blocked by" names numbers of that folder whatever repository the blocker is built in. Each file carries the format's `**Build repository:**` line, whose value is the entry's name alone: the breakdown's `(Home repository)` mark and the location stay out of the file, since `do` matches the line against the section's names. With no Repositories section no file carries the line.
-- **Claiming a number**: by creating the file under `set -C`, never by scanning the folder and then writing. A create that fails means a second run is publishing this feature, so the run stops there as it would have on tickets that already exist, naming the file it hit, and never renumbers around it.
+- **Claiming a number**: by creating the file under `set -C`, never by scanning the folder and then writing. A create that fails means a second run is publishing this feature, so the run stops there on one message naming the file it hit, writes nothing more, and never renumbers around it.
 - **The ignore line**: the project's `.gitignore` carries the `.scratch/` line before the first write.
 
 The last two per [.agents/scratch.md](../../.agents/scratch.md).
