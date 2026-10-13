@@ -658,6 +658,14 @@ nothing, and its claim reads `taken` to every resume until the developer yields 
 Reply says the Final integration stopped and why, and that `/do <the run's Ticket>`, or a `do` on
 any Ticket of the Spec, resumes it, per [reply.md](reply.md).
 
+A stop touches this repository's landing and no other's. A repository of the feature that landed
+before it stays landed: the run moves no ref there, reverts nothing and removes nothing, since
+what landed was reviewed and is already the developer's to push, per ADR 0084. So that a partial
+landing is never silent, the run reads the landing record once more after the yield, the same
+`landing-order.sh` call, on a first run and on a resume alike, and on a record printing
+`repositories=` above 1 its Reply names the repositories landed and the ones still to land off
+that read, this repository among the second.
+
 **A resumed Final integration.** A `do` on any Ticket of the Spec whose door printed
 `verdict=resume-final` enters here and nowhere earlier, per the stopped Final integration of the
 Resume in [ticket.md](ticket.md). Nothing that landed on the Spec branch is built again: the run

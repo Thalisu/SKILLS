@@ -497,7 +497,10 @@ they are neither ticked nor skipped, and the Reply's Run section carries steps 0
 
 A resume that stops again yields the claim it holds before its Reply, as every stop of the Final
 integration does, so the next `/do` can take it over. Its Reply says the Final integration stopped
-again and why, and its Next step is the same `/do`. A resume that finishes ends as the run that
+again and why, and its Next step is the same `/do`. Only a run whose claim printed `takeover=yes`
+stops again: one whose claim printed `takeover=no` entered through this door on a Final integration
+no run had claimed, so its stop is a first stop and its Reply says stopped, per
+[reply.md](reply.md). A resume that finishes ends as the run that
 ships a Spec ends: the Spec branch landed and removed, the claim released, the Reply and the Next
 step of the landed Final integration in [reply.md](reply.md).
 
@@ -1356,7 +1359,10 @@ Any stop on the way makes no `release` call: the Spec branch, its worktree and t
 Ticket stays `resolved`, and the Reply says the Final integration stopped, why, and how it is
 resumed. Before that Reply the run yields its claim,
 `bash <skill-dir>/scripts/final-claim.sh yield <the Ticket's path>`, so the `/do` that resumes can
-take it over. A run that entered on the door's `verdict=resume-final` reaches this step through the
+take it over. After the yield it reads the landing record, the same `landing-order.sh` call, and
+on a feature of more than one repository the Reply names which repositories landed and which did
+not off that read: a repository that landed before the stop stays landed, and the run touches
+nothing there. A run that entered on the door's `verdict=resume-final` reaches this step through the
 stopped Final integration of the Resume section, with no step before it. Done when the release
 read `claim=released` and, on a feature of more than one repository, the record was read a second
 time, or the claim read `taken`, or the run stopped as blocked with the Spec

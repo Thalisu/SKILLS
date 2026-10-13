@@ -303,8 +303,28 @@ worktree line comes before the audit line and before the hand-over, shaped-by an
     - **Stopped.** `Final integration: stopped` with the reason: the rebase question nobody
       answered, the red check, or the review's `not landed` line quoted. Then the Spec branch and
       its worktree, both left in place and named, and that the claim stays beside the Spec,
-      yielded for the `do` that resumes it. A resume that stops again reads
-      `Final integration: stopped again` with its own reason, and the same lines after it.
+      yielded for the `do` that resumes it. Then, on a landing record that printed
+      `repositories=` above 1, the `Landed:` and `Still to land:` lines above, those two and no
+      landing command under them, off the read of the record the run makes after the yield: a
+      stop undoes nothing, so a repository that landed before it reads `Landed:` still, and the
+      session's own, whose Spec branch never reached the developer's branch, reads
+      `Still to land:` with every repository after it. The two lines are copied off that read
+      and never off what the run remembers landing, a first run's or a resume's. A resume that
+      stops again reads `Final integration: stopped again` with its own reason, and the same
+      lines after it. Again is read off the claim and never off the door: only a run whose
+      claim printed `takeover=yes` stops again, since an earlier run stopped and yielded the
+      claim it took over. A run that entered on `verdict=resume-final` and whose claim printed
+      `takeover=no` found no claim to take over, as the landing command of a repository the
+      completing run left to its own session does, and its stop is a first one, reading
+      `Final integration: stopped:`.
+
+    As on a run in `orders-service` whose Review did not land, after `billing-service` landed:
+
+    ```
+    Final integration: stopped: not landed: Finding 1 not fixed or not verified
+    Landed: billing-service
+    Still to land: orders-service
+    ```
 
 The lines record what the steps decided; they gate nothing. The order constraints on actions stay
 with the steps that carry them (the door script before any write, the worktree before the first
@@ -422,8 +442,10 @@ Ten sections, in this order, each one present in every Reply that carries sectio
     again. A run whose landing record read `verdict=wait` landed nothing and ends on the same
     `/do <next_landing_ticket=>`, which is the first of the landing commands it listed. A run whose claim read `taken` has nothing to type, and
     its line says the Spec is being integrated by another run. A run whose Final integration
-    stopped names `/do <the run's Ticket>`, and says a `do` on any Ticket of the Spec resumes it
-    too. A resume of a Final integration ends the same two ways: one that stops again names the
+    stopped ends on `/do <the run's Ticket>`, the command it was started with and nothing else
+    on the line: that a `do` on any Ticket of the Spec resumes it too is said on its
+    `Yours: direction:` line, and what to fix first is said there or above it, never after the
+    command. A resume of a Final integration ends the same two ways: one that stops again names the
     same `/do` it was started with, and one that finishes is the run that shipped the Spec, its
     line `git push <the developer's branch>`. A resume stopped on a claim nobody yielded names
     the same `/do`, to type once the holder finished or its claim was yielded. A landed run whose close finished is not a stop: the push stays on this line, the run
@@ -466,9 +488,26 @@ Final integration: stopped: not landed: target moved
 Yours: direction: run /do <ticket> again, or a do on any Ticket of the Spec, to resume the Final integration of spec/<feature-slug>, or leave it unlanded in <worktree>
 ```
 
-A resume of a Final integration that stops again writes the same two lines, its first reading
-`Final integration: stopped again:` with the reason, and its Next step is the `/do` it was started
-with.
+On a feature of more than one repository the `Landed:` and `Still to land:` lines of the Final
+integration lines stand between those two, so the developer reads a partial landing as one: which
+repositories hold the feature on their developer's branch already, and which do not, this one
+among them. The `Yours: direction:` line keeps its two ways out, to resume or to leave unlanded,
+whatever the reason: on a reason that names Findings it may name them and the Review as what to
+settle before the resume, and it still offers both. The Reply's last line is the `/do` the run was
+started with, as typed:
+
+```
+Final integration: stopped: not landed: Finding 1 not fixed or not verified
+Landed: billing-service
+Still to land: orders-service
+Yours: direction: run /do <ticket> again, or a do on any Ticket of the Spec, to resume the Final integration of spec/<feature-slug>, or leave it unlanded in <worktree>
+
+/do <ticket>
+```
+
+A resume of a Final integration that stops again, a run whose claim printed `takeover=yes`, writes
+the same lines, its first reading `Final integration: stopped again:` with the reason, and its Next
+step is the `/do` it was started with.
 
 A run whose claim of the Final integration read `taken` is not a stop and carries no `Yours:`
 line: its Ticket landed, another run is integrating the Spec, and there is nothing to type. A
