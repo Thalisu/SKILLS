@@ -883,6 +883,74 @@ out="$flat"
 check_absent "it restates none of the return's keys in a second place" 0 0 \
   "side A:" "side B:" "losing criterion:" "stopped at:"
 
+echo "# skills/do/references/builder.md, skills/do/agents/do-builder.md: work for another repository ends the Stretch on \`stopped\`"
+
+# A feature that spans repositories can hand the Builder a behaviour whose change belongs in a
+# repository its worktree is not part of, and nothing it builds there sits on the run's branch or in
+# its diff. The session routes on the `stopped:` line alone and writes the finding into the Spec
+# from it, so the line has to name the behaviour and the repository, with where that repository
+# sits on this machine or that nobody knows. Without the rule a guard-denied write in a sibling
+# repository reads as an obstacle to route around, or the Builder builds the rest and returns
+# `built`, and the Ticket reads `resolved` with a criterion that cannot pass in this repository.
+# Both readers are asked, since the fork may never open the contract and the session never opens
+# the agent. Each is read by paragraph, unwrapped first (the files hard-wrap), and only the
+# paragraphs that name another repository are kept: the `stopped` shape and the guard's own bullets
+# say plenty about stops and denials already, and none of it may answer for this decision.
+for reader in contract agent; do
+  case "$reader" in
+    contract)
+      reader_name="the contract"
+      reader_text="$(passage_of "$contract" "## The return" "## " &&
+        echo && passage_of "$contract" "## Its edges" "## ")"
+      ;;
+    *)
+      reader_name="the building agent's own definition"
+      reader_text="$(passage_of "$agent" "## How your turn ends" "## What you return" &&
+        echo && passage_of "$agent" "## What you return" "## ")"
+      ;;
+  esac
+  awk 'BEGIN { RS = ""; ORS = "\n\n" } { gsub(/\n/, " "); print }' <<<"$reader_text" >"$stmp/unwrapped.md"
+  flat="$(for naming in "other repository" "different repository" "sibling repository" \
+    "second repository" "repository other than" "repository that is not" "repository it does not" \
+    "repository you do not" "not the one its worktree" "not the one your worktree" \
+    "outside its repository" "outside your repository"; do
+    paragraph_with "$stmp/unwrapped.md" "$naming" all
+  done | tr '\n' ' ' | tr -s ' ')"
+  carries_each "$reader_name: a behaviour that needs a change in another repository ends the Stretch on \`stopped\`, its reason naming the behaviour, the repository and its location or that it is not known, a guard-denied write being one way of finding out, with nothing built there and nothing written into the Spec" \
+    "\`stopped\`" "stopped:" \
+    -- \
+    "names the behaviour" "naming the behaviour" "name the behaviour" "the behaviour and the repository" \
+    "which behaviour" "the behaviour that needs" "the behaviour that needed" "the behaviour needing" \
+    "the behaviour it" "the behaviour you" "the behaviour whose" \
+    -- \
+    "repository it belongs" "repository that owns" "repository the change belongs" \
+    "repository the behaviour belongs" "repository the work belongs" "and the repository" \
+    "which repository" "names the repository" "naming the repository" "name the repository" \
+    "the owning repository" "belongs to another repository" "belongs in another repository" \
+    -- \
+    "location" "where it sits" "where that repository" "where the repository" "its path" \
+    "path on this machine" \
+    -- \
+    "not known" "unknown" "nobody knows" "no one knows" "is not listed" "does not know" \
+    "do not know" "none is known" \
+    -- \
+    "a write its guard denied" "a write your guard denied" "a write the guard denied" \
+    "a write its hook denied" "a write your hook denied" "a write the hook denied" \
+    "a denied write" "denied write" "a write denied" "write that was denied" "write it denied" \
+    "guard denied" "hook denied" "guard denies" "hook denies" "denial of a write" \
+    -- \
+    "builds nothing there" "build nothing there" "nothing there" "nothing is built" \
+    "nothing in that repository" "nothing in the other repository" "nothing in the sibling" \
+    "never builds it" "does not build it" "do not build it" "leaves it unbuilt" "leave it unbuilt" \
+    "builds none of it" "build none of it" "never builds there" "never build there" \
+    -- \
+    "nothing into the Spec" "nothing to the Spec" "nothing in the Spec" "never writes the Spec" \
+    "never write the Spec" "does not write the Spec" "do not write the Spec" "no write to the Spec" \
+    "no Spec write" "never into the Spec" "not into the Spec" "the Spec is the session's" \
+    "the session writes the finding" "the session writes it into the Spec" \
+    "the Spec write is the session's" "the Spec is not the fork's" "the Spec is not yours"
+done
+
 echo "# skills/do/references/ticket.md: the Builder's diff is read and the tree gated before the review"
 
 # What the session owes once the fork comes back. The Builder built the whole Ticket in a window

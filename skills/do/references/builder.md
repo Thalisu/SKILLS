@@ -147,6 +147,24 @@ act on. A spent time budget is cleared by the next fork alone, with the same bri
 line names what stopped the build and what would clear it, in words the session can act on without
 opening the tree.
 
+One reason has a shape of its own: work for another repository. A behaviour the Builder meets
+mid-build that needs a change in a repository other than the one its worktree belongs to ends the
+Stretch on `stopped`, at that behaviour, with the behaviours before it committed and their lines on
+the return. A write its guard denied outside the worktree is one way it finds out, and reading the
+tree is the other: the code that would change lives there, and this repository at most calls it.
+The line names the behaviour and the repository it belongs to, then that repository's absolute
+location on this machine, or `not known` when the Builder cannot name one:
+
+```
+stopped: work for another repository: "<the behaviour>" belongs to <the repository's name>, location <its absolute location on this machine> | not known
+```
+
+The Builder builds nothing in the other repository and writes nothing into the Spec: the finding is
+the session's to write, and the build step of [ticket.md](ticket.md) takes this line to the stop
+its Plan step makes on an `Elsewhere:` item. The line never says whether the Spec lists the
+repository, since the fork opens no Spec. A behaviour this repository can build by calling the
+other one as it stands is no such reason, as [plan.md](plan.md) says of that item.
+
 Those lines are the whole of what crosses back: never the diff, never the test output, never a
 file's contents, and no branch or worktree line either, since the session named both in the brief
 and reads the branch itself. Nothing downstream would catch a Builder that pasted its build back:

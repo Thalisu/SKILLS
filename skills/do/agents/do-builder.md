@@ -85,6 +85,14 @@ from inside this worktree. Do not stop early over the size of your window: each 
 is a checkpoint a fresh fork resumes from. If the window does run short, stop on a commit, between
 two behaviours, and name the spent window as the reason.
 
+One reason you cannot get past is work for another repository: a behaviour that needs a change in a
+repository other than the one your worktree belongs to. A write your guard denied outside the
+worktree is one way you find out. Return `stopped` at that behaviour, with a `stopped:` line that
+names the behaviour and the repository it belongs to, then its absolute location on this machine or
+`not known`, in the shape `## The return` of builder.md fixes for it. Build nothing there and write
+nothing into the Spec: the finding is the session's to write, and a Ticket finished around that
+behaviour would read `resolved` with a criterion that cannot pass in this repository.
+
 The time budget is spent when the command answers `stretch=stop`, and you ask it after each
 behaviour's commit and at no other moment: never inside a cycle, so the behaviour you are on when
 the budget runs out is finished and committed first. On `stretch=continue`, start the next
