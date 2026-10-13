@@ -241,4 +241,21 @@ if [ "$rc" = 0 ] && [ "$out" = "$want_out" ]; then ok "$label"; else
   echo "      stderr: $(cat "$tmp/solo.err")"
 fi
 
+# The free repository holds the lowest-numbered Ticket, so it heads the script's repository list:
+# only the Blocked by edges tell it apart from the two repositories that block each other.
+fresh land-cycle
+printf '.scratch/\n' >.gitignore
+printf 'one\n' >notes.txt
+commit fixture
+cycle="$(pwd -P)"
+issues="$cycle/.scratch/20261003-cycle/issues"
+repositories_spec "$cycle/.scratch/20261003-cycle" "- web (Home repository): $cycle" "- b: $tmp/land-cycle-b" "- c: $tmp/land-cycle-c"
+ticket 01-web-screen.md $'**Status:** resolved\n\n**Build repository:** web' 'None (can start immediately)'
+ticket 02-b-model.md $'**Status:** resolved\n\n**Build repository:** b' '03, Title of 03-c-export'
+ticket 03-c-export.md $'**Status:** resolved\n\n**Build repository:** c' '02, Title of 02-b-model'
+run "$issues/01-web-screen.md"
+check_lines "on a feature whose Blocked by edges hold a cycle between two repositories beside a free one, the cycle line names the two in cycle and not the free one, with the verdict unordered and exit 1" 1 "$rc" \
+  "cycle=b c" \
+  "verdict=unordered"
+
 exit "$((fails > 0))"

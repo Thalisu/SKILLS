@@ -137,10 +137,27 @@ read_tickets() { # fills names in order of lowest Ticket number, last_ticket, re
   done < <(ticket_files "$(dirname "$path")")
 }
 
+cycle_of() { # prints the names of the repositories left unplaced that a cycle holds, in their order: the ones nothing left waits on are peeled off, being a cycle's dependents
+  local -a left=("$@") rest
+  local name other waited peeled=1
+  while [ "$peeled" = 1 ]; do
+    peeled=0 rest=()
+    for name in "${left[@]}"; do
+      waited=0
+      for other in "${left[@]}"; do
+        if [ "$other" != "$name" ] && grep -qxF -- "$name" <<<"${providers[$other]:-}"; then waited=1; fi
+      done
+      if [ "$waited" = 1 ]; then rest+=("$name"); else peeled=1; fi
+    done
+    left=("${rest[@]}")
+  done
+  printf '%s\n' "${left[@]}"
+}
+
 landing_order() { # prints one repository name per line in landing order; returns 1 with the cycle's names when the edges hold one
   local -A placed=()
   local -a left=("${names[@]}") rest
-  local name provider free picked
+  local name provider free picked order=""
   while [ "${#left[@]}" -gt 0 ]; do
     picked="" rest=()
     for name in "${left[@]}"; do
@@ -151,13 +168,14 @@ landing_order() { # prints one repository name per line in landing order; return
       if [ -z "$picked" ] && [ "$free" = 1 ]; then picked="$name"; else rest+=("$name"); fi
     done
     if [ -z "$picked" ]; then
-      printf '%s\n' "${left[@]}"
+      cycle_of "${left[@]}"
       return 1
     fi
-    echo "$picked"
+    order+="$picked"$'\n'
     placed[$picked]=1
     left=("${rest[@]}")
   done
+  printf '%s' "$order"
 }
 
 [ "$(bash "$here/spec-branch.sh" probe "$path" | sed -n 's/^spec_branch=//p')" != none ] || refuse no-spec
