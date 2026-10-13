@@ -811,6 +811,11 @@ run_with_spec() { # $1 the Spec's Front-end: line or empty for none, $2 the line
   } >"$w/fixture/.scratch/20260905-suppliers/spec.md"
   echo "$w"
 }
+# The final message a run closed on, as the runner leaves it in the work folder; the folder's path on stdout
+closing_on() { # $1 work folder, $2 the final message
+  printf '%s\n' "$2" >"$1/last_message"
+  echo "$1"
+}
 # grade() against the run in a work folder: the grader in the caller's $grader passes it (prints nothing)
 grade_passes() { # $1 label, $2 work folder
   local out

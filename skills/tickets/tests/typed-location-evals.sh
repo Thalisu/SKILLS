@@ -8,6 +8,10 @@
 # The same holds for the stop on a location that is owed and was not typed: a case whose prompt types
 # it, or whose graders accept a run that wrote a ticket or edited the Spec, stays green while
 # `tickets` cuts a ticket naming a Build repository no `do` door can resolve.
+# And for a typed location that is not a git repository, which is written and warned about rather than
+# refused: a case whose fixture lays a real repository there, whose graders never read the Spec, or
+# whose graders accept a close with no line on the location stays green while `tickets` refuses the
+# location, drops it, or leaves the developer to learn of it when `do` refuses the ticket at its door.
 # No model session runs here: each case is read the way a run of it would meet it, the fixture laid
 # as scripts/run-eval.sh lays it, the prompt with the runner's {{fixture}} token replaced by the
 # folder the fixture was laid in, and each grader run against a work folder.
@@ -26,6 +30,10 @@ mapfile -t none_typed < <(none_typed_phrasings)
 mapfile -t location_missing < <(location_missing_phrasings)
 mapfile -t nothing_written < <(nothing_written_phrasings)
 mapfile -t kept < <(kept_phrasings)
+mapfile -t not_git < <(not_git_phrasings)
+mapfile -t written_all_the_same < <(written_all_the_same_phrasings)
+mapfile -t own_line < <(own_line_phrasings)
+mapfile -t does_not_stop < <(does_not_stop_phrasings)
 tr '[:upper:]' '[:lower:]' <"$evals/README.md" >"$tmp/evals.md" 2>/dev/null
 
 # A case as a run of it starts: the fixture laid under a work folder, the feature it holds, the
@@ -81,6 +89,24 @@ with_entry() { # $1 name of the copy under $tmp, $2 the line
 found_grader() { # $1 grade_passes|grade_fails, $2 label, $3 work folder: red when the caller's $grader is empty
   if [ -n "$grader" ]; then "$1" "$2" "$3"; else fail "$2 (no such grader in the case)"; fi
 }
+# The grader of the case that reads the Spec for the entry: a file_contains grader on the spec that
+# passes a work folder whose Repositories list holds it and fails the fixture as laid.
+spec_entry_grader() { # $1 a work folder whose spec holds the entry: sets grader, empty when the case has none
+  local g
+  grader=""
+  for g in "$case_dir"/graders/*.md; do
+    [ -f "$g" ] || continue
+    [ "$(key "$g" type)" = file_contains ] || continue
+    case "$(key "$g" path)" in
+      *.scratch/*spec.md*) ;;
+      *) continue ;;
+    esac
+    if [ -z "$(grade "$g" "$1")" ] && [ -n "$(grade "$g" "$as_laid")" ]; then
+      grader="$g"
+      return
+    fi
+  done
+}
 # The fixture a run of the case starts from leaves the finding's repository without a location, and
 # nothing already cut for it.
 owes_the_location() { # reads what lay_case set
@@ -121,19 +147,7 @@ location="${typed:-$as_laid/${repo:-none}}"
 with_entry entry-written "- ${repo:-none}: $location"
 with_entry entry-for-another "- some-other-service: $location"
 with_entry entry-elsewhere "- ${repo:-none}: /srv/checkouts/elsewhere"
-grader=""
-for g in "$case_dir"/graders/*.md; do
-  [ -f "$g" ] || continue
-  [ "$(key "$g" type)" = file_contains ] || continue
-  case "$(key "$g" path)" in
-    *.scratch/*spec.md*) ;;
-    *) continue ;;
-  esac
-  if [ -z "$(grade "$g" "$tmp/entry-written")" ] && [ -n "$(grade "$g" "$as_laid")" ]; then
-    grader="$g"
-    break
-  fi
-done
+spec_entry_grader "$tmp/entry-written"
 found_grader grade_passes "a file_contains grader on the spec passes once the list holds the entry at the typed location" "$tmp/entry-written"
 found_grader grade_fails "and fails the spec as laid, the finding line with no entry" "$as_laid"
 found_grader grade_fails "an entry at that location under another repository's name fails it" "$tmp/entry-for-another"
@@ -264,5 +278,113 @@ carries_each "that the run ends on one message naming the repository" \
   "one message" "single message" "one short message" "a message" -- \
   "repositor" "$named"
 carries_any "and that nothing is written" "${nothing_written[@]}"
+
+echo "# evals/location-typed-is-not-a-git-repository: the fixture owes the location, and no repository is there"
+case_name="location-typed-is-not-a-git-repository"
+lay_case "$case_name"
+owes_the_location
+expect "a directory is laid beside the fixture root under that name" test -n "$sibling" -a -d "${sibling:-/nonexistent}"
+label="and it is not a git repository"
+if [ -n "$sibling" ] && [ -d "$sibling" ] &&
+  ! git -C "$sibling" rev-parse --is-inside-work-tree >/dev/null 2>&1; then ok "$label"; else fail "$label"; fi
+
+echo "# evals/location-typed-is-not-a-git-repository: the prompt types that location, and the run reaches the close"
+command_line="$(grep -E '^/tickets ' <<<"$prompt" | head -n 1)"
+expect "the prompt types /tickets" test -n "$command_line"
+expect "on the fixture's spec" grep -qF -- "$slug" <<<"$command_line"
+typed="$(typed_location "${repo:-none}")"
+expect "followed by the repository's name, a colon and a location written with the {{fixture}} token" \
+  test -n "$typed"
+label="once the token is the fixture root, the location is the plain directory laid beside it"
+if [ -n "$sibling" ] && [ "$(cd "${typed:-/nonexistent}" 2>/dev/null && pwd -P)" = "$sibling" ]; then ok "$label"; else fail "$label"; fi
+expect "under --auto, so the breakdown is published and the close is reached" \
+  grep -qE '(^| )--auto( |$)' <<<"$command_line"
+expect "the case unlinks the real choice-taker" \
+  grep -qx "choice-taker" <(yq -r '.context.unlinked_agents // [] | .[]' "$case_dir/case.yaml" 2>/dev/null)
+stand_in="$fixture/.claude/agents/choice-taker.md"
+expect "the fixture holds the choice-taker stand-in" test -f "$stand_in"
+flat="$(cat "$stand_in" 2>/dev/null | tr '\n' ' ' | tr -s ' ')"
+flat="${flat,,}"
+carries_any "which rules to publish the breakdown" "publish"
+
+echo "# evals/location-typed-is-not-a-git-repository: a grader reads the Spec for the entry as typed"
+location="${typed:-$as_laid/fixture/../${repo:-none}}"
+with_entry not-git-entry-written "- ${repo:-none}: $location"
+with_entry not-git-entry-for-another "- some-other-service: $location"
+with_entry not-git-entry-elsewhere "- ${repo:-none}: /srv/checkouts/elsewhere"
+spec_entry_grader "$tmp/not-git-entry-written"
+found_grader grade_passes "a file_contains grader on the spec passes once the list holds the entry at the typed location" "$tmp/not-git-entry-written"
+found_grader grade_fails "and fails the spec as laid, the finding line with no entry" "$as_laid"
+found_grader grade_fails "an entry at that location under another repository's name fails it" "$tmp/not-git-entry-for-another"
+found_grader grade_fails "an entry for the repository at another location fails it" "$tmp/not-git-entry-elsewhere"
+
+echo "# evals/location-typed-is-not-a-git-repository: a grader reads the close for the location's own line"
+named="${repo:-no-repository-named}"
+close_head="Published the ticket the breakdown adds to ${slug:-the feature}."
+close_next="/do --auto .scratch/${slug:-none}/issues"
+close_on() { # $1 name, $2 the lines between the close's head and its next command: a work folder closed on that message, its path on stdout
+  mkdir -p "$tmp/$1"
+  local gap=$'\n\n'
+  closing_on "$tmp/$1" "$close_head$gap${2:+$2$gap}$close_next"
+}
+warned="$(close_on close-warned "- $named: $location is not a git repository.")"
+silent="$(close_on close-silent "")"
+only_missing="$(close_on close-only-missing "- $named: $location is missing, nothing exists there.")"
+on_two_lines="$(close_on close-on-two-lines "The entry of $named was written at $location."$'\n'"One thing to fix: what sits there is not a git repository.")"
+grader=""
+for g in "$case_dir"/graders/*.md; do
+  [ -f "$g" ] || continue
+  [ "$(key "$g" type)" = regex ] && [ "$(key "$g" target)" = last_message ] || continue
+  if [ -z "$(grade "$g" "$warned")" ] && [ -n "$(grade "$g" "$silent")" ]; then
+    grader="$g"
+    break
+  fi
+done
+found_grader grade_passes "a regex grader on the last message passes a close with a line naming the location as not a git repository" "$warned"
+found_grader grade_fails "and fails a close with no line on the location" "$silent"
+found_grader grade_fails "a close that only says the location is missing fails it" "$only_missing"
+found_grader grade_fails "a close naming the location on one line and the reason on another fails it" "$on_two_lines"
+
+echo "# evals/location-typed-is-not-a-git-repository: the judges hold the run to the warning and nothing more"
+criteria=""
+for g in "$case_dir"/graders/*.md; do
+  [ -f "$g" ] || continue
+  [ "$(key "$g" type)" = llm ] || continue
+  criteria="$criteria $(key "$g" criteria)"
+done
+flat="$(tr '\n' ' ' <<<"$criteria" | tr -s ' ')"
+flat="${flat,,}"
+expect "an llm grader judges the run" test -n "${flat// /}"
+carries_each "the location is reported as not a git repository" \
+  "location" "${named,,}" -- \
+  "${not_git[@]}"
+carries_each "and not as missing" \
+  "missing" "does not exist" "nothing exists" "nothing is there" "nothing there" "not there" "absent" -- \
+  "not as" "never as" "nor as" "rather than" "instead of" "and not " "not that"
+carries_any "the run does not stop on it" \
+  "${does_not_stop[@]}" "goes on" "went on" "carries on" "carried on" "continues" "continued"
+carries_any "or ask about it" \
+  "not ask" "never ask" "nor ask" "or ask" "asks no" "asked no" "asks nothing" "asked nothing" \
+  "no question" "without asking"
+carries_each "nothing is created, cloned or initialised at the location" \
+  "nothing" "no " "not " "never" "nor " "neither" -- \
+  "creat" "mkdir" "made" -- \
+  "clon" -- \
+  "initiali" "git init"
+
+echo "# skills/tickets/evals/README.md: the row of location-typed-is-not-a-git-repository"
+flat="$(checks_of "$case_name")"
+expect "$case_name has a row" test -n "${flat// /}"
+carries_each "which says the location typed with the command is not a git repository" \
+  "location" -- \
+  "typed" "with the command" "on the command" "command carries" "command line" -- \
+  "${not_git[@]}"
+carries_each "that the entry is written all the same" \
+  "entry" "entries" -- \
+  "writ" "gain" "added" "adds" "holds" "lands" -- \
+  "${written_all_the_same[@]}" "still" "anyway" "although" "though" "despite" "even so" "and yet"
+carries_each "and that the close names it in a line of its own" \
+  "close" "closing" "last message" "final message" -- \
+  "${own_line[@]}"
 
 exit $((fails > 0))
