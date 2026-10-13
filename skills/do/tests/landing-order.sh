@@ -106,6 +106,34 @@ reads() { # $1 label, $2 the repository the record is read from, $3 the state wa
   fi
   [ "$(cd "$home" && both_states "$build")" = "$before" ] || touched="$touched; $1"
 }
+# The landed state has to come from land-web's refs alone, so the case fails on a Feature folder
+# holding anything an earlier landing attempt would have left beside the Spec and its Tickets.
+feature_files="./issues/01-web-screen.md
+./issues/02-api-model.md
+./issues/03-api-export.md
+./issues/04-web-download.md
+./spec.md"
+landed_here() { # $1 label: the record read from land-web on one of its own Tickets, with land-web landed and land-api unlanded
+  local found
+  found="$(cd "$home/.scratch/20261001-export" && find . -type f | sort)"
+  cd "$home" || exit 1
+  run "$issues/04-web-download.md"
+  if [ "$found" != "$feature_files" ]; then
+    fail "$1 (fixture: the Feature folder holds more than the Spec and its Tickets: ${found//$'\n'/ · })"
+    return
+  fi
+  if [ "$(state_of land-web)" != landed ] || [ "$(state_of land-api)" != unlanded ]; then
+    fail "$1 (exit $rc, wanted land-web landed and land-api unlanded)"
+    dump_out
+    return
+  fi
+  check_lines "$1" 0 "$rc" \
+    "own=land-web" \
+    "next_landing=land-api" \
+    "next_landing_location=$build" \
+    "next_landing_ticket=$issues/03-api-export.md" \
+    "verdict=landed"
+}
 
 # Each state is moved with plain git between two identical calls, and the two repositories never
 # share one, so a record kept from an earlier call or read off the session's repository alone
@@ -116,12 +144,14 @@ reads "from the unlanded repository, a sibling whose Spec branch tip reached its
   "$build" unlanded landed
 reads "from the repository whose Spec branch tip reached its upstream, a sibling whose Spec branch holds a commit its upstream lacks reads unlanded" \
   "$home" unlanded landed
+landed_here "from the repository whose Spec branch tip reached its upstream, with its sibling unlanded, the record reads its own group landed, the sibling as the next landing with its location and highest-numbered Ticket, and the verdict landed"
 g -C "$home" branch -q -D spec/export ||
   echo "FAIL  fixture: land-web's Spec branch could not be removed"
 reads "from the unlanded repository, a sibling whose Spec branch was already removed reads landed" \
   "$build" unlanded landed
 reads "from the repository whose Spec branch was already removed, it reads landed and its unlanded sibling unlanded" \
   "$home" unlanded landed
+landed_here "from the repository whose Spec branch was already removed, with its sibling unlanded, the record reads the same: its own group landed, the sibling as the next landing, and the verdict landed"
 g -C "$build" merge -q --ff-only spec/export ||
   echo "FAIL  fixture: the upstream of land-api's Spec branch could not be fast-forwarded to its tip"
 reads "the same call, once the sibling's upstream reached its Spec branch tip, reads that sibling landed" \
