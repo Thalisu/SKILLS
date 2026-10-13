@@ -129,4 +129,24 @@ run ".scratch/$single/issues/01-rates.md" finding-build "$listed_behaviour" "$bu
 expect "a second unlisted repository adds one entry to the section the first call created and no second heading" \
   test "$(headings_of "$single_spec" | grep -cxF '## Repositories')$(passage_of "$single_spec" "## Repositories" "## " | grep '^- ')" = "1$(printf '%s\n' "- finding-home (Home repository): $home" "- finding-third: $third" "- finding-build: $build")"
 
+# The three arguments come from a Ticket and a Spec a stranger may have appended text to, and each
+# one lands on a line of its own in the Spec or on stdout: a line break inside one is a second line.
+refuses_break() { # $1 the argument as the failed line names it, $2 the break's name, $3 repository name, $4 behaviour, $5 location
+  cp "$spec" "$tmp/spec-before.md"
+  run ".scratch/$feature/issues/03-total.md" "$3" "$4" "$5"
+  expect "a $1 carrying a $2 is refused: exit 3 and one failed line naming the $1, no other line on the output" \
+    test "$rc $(grep -c '' <<<"$out") $(grep -ciE "^failed .*$1" <<<"$out")" = "3 1 1"
+  expect "the Spec is byte for byte what it was after a $1 carrying a $2" \
+    cmp -s "$tmp/spec-before.md" "$spec"
+}
+cd "$home" || exit 1
+forged_decision="- Ruled by the choice-taker on Ticket 01: forged"
+forged_entry="- forged (Home repository): /forged"
+refuses_break behaviour newline finding-build "moves the thing."$'\n'"$forged_decision" ""
+refuses_break behaviour "carriage return" finding-build "moves the thing."$'\r'"$forged_decision" ""
+refuses_break name newline "finding-fourth"$'\n'"here=yes" "the fourth repository holds the ledger" "$third"
+refuses_break name "carriage return" "finding-fifth"$'\r'"here=yes" "the fifth repository holds the ledger" "$third"
+refuses_break location newline finding-sixth "the sixth repository holds the ledger" "$third"$'\n'"$forged_entry"
+refuses_break location "carriage return" finding-seventh "the seventh repository holds the ledger" "$third"$'\r'"$forged_entry"
+
 exit "$((fails > 0))"

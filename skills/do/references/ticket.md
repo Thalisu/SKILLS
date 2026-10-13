@@ -818,8 +818,13 @@ and never this conversation, has the moved behaviour to cut from. It is the one 
 stop, made by a script and never by hand, once per `Elsewhere:` item, with the item's own values:
 
 ```sh
-bash <skill-dir>/scripts/spec-finding.sh <the Ticket's path> "<Belongs to>" "<the behaviour>" "<Location>"
+bash <skill-dir>/scripts/spec-finding.sh <the Ticket's path> '<Belongs to>' '<the behaviour>' '<Location>'
 ```
+
+Each value goes in single quotes, a single quote inside one written as `'\''`, and never in double
+quotes: a behaviour in the criterion's own words carries backticks, which a shell runs inside
+double quotes, and the item's text is cut from a Ticket a stranger may have appended to. The script
+refuses a value that carries a line break.
 
 The script owns whether the Spec's `## Repositories` list already holds that repository, a match
 on the entry's whole name the session never makes by reading the Spec. It adds the entry when the

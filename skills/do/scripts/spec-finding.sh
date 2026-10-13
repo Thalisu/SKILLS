@@ -24,8 +24,9 @@
 #
 # Exit codes: 0 the lines above, the Spec written · 2 usage or no Ticket at the path · 3 `failed
 # <reason>` on one line and nothing written: no Spec beside the Ticket's issues/ folder, a Spec
-# with no Implementation Decisions section, two entries or two sections for the name, or a name the
-# list does not hold with no location given.
+# with no Implementation Decisions section, two entries or two sections for the name, a name the
+# list does not hold with no location given, or a name, a behaviour or a location carrying a line
+# break.
 set -uo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd -P)"
@@ -66,6 +67,13 @@ create_repositories_section() { # $1 file, $2 the Home repository's root: writes
 
 [ "$#" = 3 ] || [ "$#" = 4 ] || usage
 name="$2" behaviour="$3" location="${4:-}"
+# The three values come from a Plan cut from a Ticket a stranger may have appended to, and each is
+# written as one line of the Spec: a line break in one would plant a second line there, a forged
+# Ruling or a forged Home repository entry among them.
+has_break() { case "$1" in *$'\n'* | *$'\r'*) return 0 ;; *) return 1 ;; esac }
+! has_break "$name" || failed "the repository name carries a line break"
+! has_break "$behaviour" || failed "the behaviour carries a line break"
+! has_break "$location" || failed "the location carries a line break"
 
 main="$(main_of .)"
 case "$1" in
