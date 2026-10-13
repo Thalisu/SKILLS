@@ -244,6 +244,41 @@ carries_each() { # $1 label, $2.. groups of fixed strings separated by `--`: eac
   done
   if [ -z "$missing" ]; then ok "$label"; else fail "$label$missing"; fi
 }
+# carries_each says a set of words is on the page; this says the page affirms them: the clause
+# that carries a match of every group must hold no negator word once those matches are set aside,
+# so "the run never goes on" no longer answers for "the run goes on".
+affirms() { # $1 label, $2.. groups of fixed strings separated by `--`: one clause of $flat (cut at . : ; ,) carries a match of every group and no negator word
+  local label="$1" groups
+  shift
+  groups="$(printf '%s\n' "$@")"
+  if groups="$groups" awk '
+    BEGIN {
+      n = split(ENVIRON["groups"], line, "\n"); g = 1
+      for (i = 1; i <= n; i++) {
+        if (line[i] == "--") { g++; continue }
+        c[g]++; phrase[g, c[g]] = line[i]
+      }
+      ng = g
+    }
+    {
+      m = split($0, clause, /[.:;,]/)
+      for (j = 1; j <= m; j++) {
+        text = clause[j]; good = 1
+        for (g = 1; g <= ng && good; g++) {
+          hit = 0
+          for (k = 1; k <= c[g]; k++) {
+            p = phrase[g, k]; masked = ""; rest = text
+            while ((at = index(rest, p)) > 0) { hit = 1; masked = masked substr(rest, 1, at - 1) " "; rest = substr(rest, at + length(p)) }
+            if (hit) text = masked rest
+          }
+          if (!hit) good = 0
+        }
+        if (good && (" " text " ") !~ /[^a-z](never|not|no|nothing|none|neither|nor|cannot|without)[^a-z]|n'"'"'t[^a-z]/) found = 1
+      }
+    }
+    END { exit !found }
+  ' <<<"$flat"; then ok "$label"; else fail "$label (no clause affirms: $*)"; fi
+}
 before() { # $1 label, $2 the fixed string that comes first in $flat, $3 the fixed string that follows it
   local first second
   first="$(awk -v s="$flat" -v k="$2" 'BEGIN { print index(s, k) }')"

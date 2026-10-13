@@ -21,7 +21,7 @@ goes_on=(
   "goes on" "go on" "carries on" "continues" "proceeds" "keeps going" "does not stop"
   "is not stopped" "run moves on" "moves on to"
 )
-mapfile -t only_uncovered < <(only_uncovered_phrasings)
+mapfile -t only_uncovered < <(only_uncovered_phrasings | grep -vx additive)
 only_new=(
   "only the new ticket" "only new ticket" "only the ticket it adds" "only the tickets it adds"
   "only the added ticket" "only the tickets the run adds" "only the tickets this run adds"
@@ -56,10 +56,10 @@ flat="$(passage_of "$skill" "**Open tickets and what they cover.**" "## 2. Explo
   tr '\n' ' ' | tr -s ' ')"
 flat="${flat,,}"
 expect "the ground step reads what the open tickets cover" test -n "${flat// /}"
-carries_each "the run goes on when the open tickets leave something uncovered" \
+affirms "the run goes on when the open tickets leave something uncovered" \
   "uncovered" "not covered" "no open ticket covers" -- \
   "${goes_on[@]}"
-carries_any "it cuts only what is uncovered" "${only_uncovered[@]}"
+affirms "it cuts only what is uncovered" "${only_uncovered[@]}"
 
 echo "# SKILL.md / ## 4: the breakdown on a feature with open Tickets"
 passage_of "$skill" "## 4. Put the breakdown to the user" "## 5. Publish" >"$tmp/step4.md"

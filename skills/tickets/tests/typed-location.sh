@@ -117,9 +117,10 @@ expect "the ground step checks the typed location for a git repository" test -n 
 carries_each "the typed location is checked for a directory there and for a git repository" \
   "${not_there[@]}" -- \
   "git repositor"
-carries_any "a location failing either check is written all the same" \
+affirms "a location failing either check is written all the same" \
+  "entry" "location" -- \
   "${written_all_the_same[@]}"
-carries_each "the run does not stop on it and asks nothing about it" \
+affirms "the run does not stop on it and asks nothing about it" \
   "${does_not_stop[@]}" -- \
   "asks nothing" "ask nothing" "no question" "without asking" "not ask" "never ask" "nor asks" \
   "nothing is asked" "is not asked"
