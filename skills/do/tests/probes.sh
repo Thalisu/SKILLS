@@ -391,6 +391,15 @@ expect "an unlisted Build repository writes nothing in either repository: no ref
   test "$(both_states "$sibling")" = "$before"
 expect "the Ticket naming an unlisted Build repository still reads ready-for-agent" \
   grep -qxF '**Status:** ready-for-agent' "$across/issues/04-typo.md"
+# A name spelled with an awk escape is not the entry it would decode to: it must not resolve to the
+# listed repository's location under a second identity.
+(issues="$across/issues" && ticket 06-escape.md $'**Status:** ready-for-agent\n\n**Build repository:** sibl\\x69ng' 'None (can start immediately)')
+before="$(both_states "$sibling")"
+run "$door" "$across/issues/06-escape.md"
+check_lines "a Build repository spelled with an awk escape of a listed name is unlisted, not that entry" 1 "$rc" \
+  "build_location=none" "build_check=unlisted" "verdict=unbuildable"
+expect "an escape-spelled Build repository writes nothing in either repository" \
+  test "$(both_states "$sibling")" = "$before"
 unlisted=".scratch/20260108-unlisted"
 mkdir -p "$unlisted/issues"
 printf '# Spec: one repository\n\n## User Stories\n\n1. As a developer, I want a note exported, so that I can share it.\n' >"$unlisted/spec.md"

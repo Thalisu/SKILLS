@@ -297,4 +297,24 @@ check_lines "the landing record of the completed feature counts both repositorie
 expect "the landing record of the completed feature is not ambiguous" \
   test -z "$(grep -E '^(ambiguous=|verdict=ambiguous)' <<<"$out")"
 
+# A name carrying a backslash is a name of its own: handed to awk as an escape it would read as the
+# listed repository it decodes to, and a second call would then take it for listed.
+sibling_repos escape-home escape-build 20261013-escape
+# shellcheck disable=SC2154 # lib.sh's sibling_repos assigns $home, $build and $issues
+escape_spec="$home/.scratch/20261013-escape/spec.md"
+repositories_spec "$home/.scratch/20261013-escape" "- escape-home (Home repository): $home" "- escape-build: $build"
+printf '\n## Implementation Decisions\n\n- The total is a sum of the invoice lines.\n' >>"$escape_spec"
+ticket 01-total.md '**Status:** claimed' 'None (can start immediately)'
+cd "$home" || exit 1
+escaped_name='escape-b\x75ild'
+escaped_behaviour="the invoice total is rounded by the escaped repository's money module"
+run ".scratch/20261013-escape/issues/01-total.md" "$escaped_name" "$escaped_behaviour" "$third"
+check_lines "a name carrying a backslash is not the listed repository it decodes to, and is added to the list" 0 "$rc" \
+  "repository=$escaped_name" "listed=no" "list=added" "line=written"
+run ".scratch/20261013-escape/issues/01-total.md" "$escaped_name" "the invoice date is read by the escaped repository's calendar module" "$third"
+check_lines "a second call for the name carrying a backslash reads it as listed" 0 "$rc" \
+  "repository=$escaped_name" "listed=yes" "list=unchanged" "line=written"
+expect "the Spec's Repositories section holds the name carrying a backslash once, beside the two entries it had" \
+  test "$(entries_of "$escape_spec")" = "$(printf '%s\n' "- escape-home (Home repository): $home" "- escape-build: $build" "- $escaped_name: $third" | sort)"
+
 exit "$((fails > 0))"

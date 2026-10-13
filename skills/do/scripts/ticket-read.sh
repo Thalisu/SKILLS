@@ -156,7 +156,8 @@ spec_beside() { # $1 Ticket file: prints the spec.md beside its issues/ folder, 
 }
 
 # An entry is `- {name}[ (Home repository)]: {location}`, one line, the name matched whole with the
-# Home mark left out, the location the rest of the line after the first `: `.
+# Home mark left out, the location the rest of the line after the first `: `. The name goes through
+# the environment: awk -v would read a backslash in it as an escape and match another entry.
 repository_location_of() { # $1 Ticket file, $2 name: sets word to the entry's location, none, or ambiguous with detail set
   local spec sections entries count
   spec="$(spec_beside "$1")"
@@ -173,9 +174,9 @@ repository_location_of() { # $1 Ticket file, $2 name: sets word to the entry's l
       return
       ;;
   esac
-  entries="$(awk -v name="$2" '/^## Repositories[[:space:]]*$/ { on = 1; next } on && /^## / { exit }
+  entries="$(NAME="$2" awk '/^## Repositories[[:space:]]*$/ { on = 1; next } on && /^## / { exit }
     on && /^- / { e = substr($0, 3); i = index(e, ": "); if (!i) next; n = substr(e, 1, i - 1)
-      sub(/[[:space:]]+\(Home repository\)$/, "", n); if (n != name) next
+      sub(/[[:space:]]+\(Home repository\)$/, "", n); if (n != ENVIRON["NAME"]) next
       loc = substr(e, i + 2); gsub(/^[[:space:]]+|[[:space:]]+$/, "", loc); print NR "\t" loc }' "$spec")"
   count="$(grep -c . <<<"$entries")"
   case "$count" in
