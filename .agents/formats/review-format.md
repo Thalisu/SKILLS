@@ -14,7 +14,9 @@ line at the end, so a pass on one Axis never hides a fail on another.
   `02-export-notes.md`.
 - Beside the Spec file when the caller handed a Spec over in place of a Ticket, as `do` does at
   its Final integration, taking the Spec's file name the same way: `spec.review.md` beside
-  `spec.md`, in the feature folder its Tickets sit under.
+  `spec.md`, in the feature folder its Tickets sit under. A Spec handed over with a `Review file:`
+  line takes its Review at that path beside the Spec instead (`spec.<key>.review.md`, one per
+  repository of a feature across repositories) and `spec.review.md` only without one.
 - In the main checkout's scratch reviews folder, `.scratch/reviews/<branch>.md`, when neither was
   handed over or the Ticket is not a local file, `<branch>` being the branch name with every slash
   turned into a dash: `feat/export-notes` writes `.scratch/reviews/feat-export-notes.md`. From a
