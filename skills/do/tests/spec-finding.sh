@@ -98,4 +98,35 @@ run ".scratch/$feature/issues/03-total.md" finding-build "the invoice due date i
 check_lines "a run from the Home repository reads it as this checkout, by its root and its name" 0 "$rc" \
   "line=written" "home=$home" "home_name=finding-home" "here=yes"
 
+headings_of() { # $1 Spec: its section headings, in their order, on stdout
+  grep '^## ' "$1"
+}
+lost_lines() { # $1 a Spec as it was, $2 the Spec now: the non-blank lines the first holds and the second lacks, on stdout
+  comm -23 <(grep -v '^$' "$1" | sort) <(grep -v '^$' "$2" | sort)
+}
+single="20261013-finding-single"
+single_spec="$home/.scratch/$single/spec.md"
+issues="$home/.scratch/$single/issues"
+mkdir -p "$issues"
+cp "$(run_with_spec "" "")/fixture/.scratch/20260905-suppliers/spec.md" "$single_spec"
+cp "$single_spec" "$tmp/single-before.md"
+ticket 01-rates.md '**Status:** claimed' 'None (can start immediately)'
+single_finding="- Moved by the run on Ticket 01: Title of 01-rates at the Plan step: $behaviour. Belongs to: finding-third."
+
+run ".scratch/$single/issues/01-rates.md" finding-third "$behaviour" "$third"
+check_lines "a Spec of one repository reads the missing repository as not listed and added, and the Home repository by its root and its name" 0 "$rc" \
+  "spec=$single_spec" "listed=no" "list=added" "line=written" "home=$home" "home_name=finding-home" "here=yes"
+expect "the Spec gains one Repositories section between its Solution and its User Stories, every section it had kept in place" \
+  test "$(headings_of "$single_spec")" = "$(printf '%s\n' "## Problem Statement" "## Solution" "## Repositories" "## User Stories" "## Implementation Decisions" "## Testing Decisions")"
+expect "the created section lists the Home repository's own entry first and the missing repository after it" \
+  test "$(passage_of "$single_spec" "## Repositories" "## " | grep '^- ')" = "$(printf '%s\n' "- finding-home (Home repository): $home" "- finding-third: $third")"
+expect "the Spec of one repository still holds every line it had" \
+  test -z "$(lost_lines "$tmp/single-before.md" "$single_spec")"
+expect "the Spec of one repository holds the finding line once in its Implementation Decisions" \
+  test "$(decisions_of "$single_spec" | grep -cxF -- "$single_finding")" = 1
+
+run ".scratch/$single/issues/01-rates.md" finding-build "$listed_behaviour" "$build"
+expect "a second unlisted repository adds one entry to the section the first call created and no second heading" \
+  test "$(headings_of "$single_spec" | grep -cxF '## Repositories')$(passage_of "$single_spec" "## Repositories" "## " | grep '^- ')" = "1$(printf '%s\n' "- finding-home (Home repository): $home" "- finding-third: $third" "- finding-build: $build")"
+
 exit "$((fails > 0))"

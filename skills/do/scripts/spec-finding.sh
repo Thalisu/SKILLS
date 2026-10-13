@@ -8,7 +8,9 @@
 #                                         script runs in, then from the main checkout
 #
 # Writes to the spec.md beside the Ticket's issues/ folder: one entry `- <name>: <location>` at the
-# end of its ## Repositories section, and the finding line
+# end of its ## Repositories section, the section created first where the spec format places it, with
+# the entry `- <the Home root's base name> (Home repository): <the Home root>`, when the Spec has
+# none, and the finding line
 # `- Moved by the run on Ticket <title> at the Plan step: <behaviour>. Belongs to: <name>.`
 # at the end of its ## Implementation Decisions section, <title> being the Ticket's `# ` heading.
 #
@@ -50,6 +52,18 @@ append_to_section() { # $1 file, $2 section heading, $3 line: writes the line af
   rm -f "$tmp"
 }
 
+# A Spec of one repository carries no list, and the format never writes one with a single entry, so
+# the section is born with the Home repository's own entry and the caller appends the second.
+create_repositories_section() { # $1 file, $2 the Home repository's root: writes the section before ## User Stories, else before ## Implementation Decisions
+  local anchor="## Implementation Decisions" tmp
+  ! grep -qx '## User Stories' "$1" || anchor="## User Stories"
+  tmp="$(mktemp)"
+  ENTRY="- $(basename "$2") (Home repository): $2" awk -v anchor="$anchor" '$0 == anchor && !done {
+    print "## Repositories"; print ""; print ENVIRON["ENTRY"]; print ""; done = 1 } { print }' "$1" >"$tmp"
+  cat "$tmp" >"$1"
+  rm -f "$tmp"
+}
+
 [ "$#" = 3 ] || [ "$#" = 4 ] || usage
 name="$2" behaviour="$3" location="${4:-}"
 
@@ -81,7 +95,9 @@ esac
 echo "spec=$spec"
 echo "repository=$name"
 echo "listed=$listed"
+home="$(home_root "$path" "$main")"
 if [ "$listed" = no ]; then
+  grep -q '^## Repositories[[:space:]]*$' "$spec" || create_repositories_section "$spec" "$home"
   append_to_section "$spec" "## Repositories" "- $name: $location"
   echo "list=added"
 else
@@ -95,7 +111,6 @@ else
   echo "line=written"
 fi
 
-home="$(home_root "$path" "$main")"
 home_name="$(awk '/^## Repositories[[:space:]]*$/ { on = 1; next } on && /^## / { exit }
   on && /^- / { e = substr($0, 3); i = index(e, ": "); if (!i) next; n = substr(e, 1, i - 1)
     if (sub(/[[:space:]]+\(Home repository\)$/, "", n)) { print n; exit } }' "$spec")"
