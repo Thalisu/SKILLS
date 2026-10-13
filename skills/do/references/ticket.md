@@ -835,6 +835,13 @@ stops on that reason in the finding's place. The fourth argument is left out whe
 `Location:` reads `not known`: the script then writes for a repository the list already holds and
 fails for one it does not, since an entry with no location is one no skill can read.
 
+The stop is the `outward` Handover class, keyed on the `Elsewhere:` item and never on the session's
+own reading of the tree: the behaviour is a write to a repository this run was not opened in, and
+cutting it into a Ticket there is the developer's command to type. The Reply is the blocked one
+[reply.md](reply.md) fixes for this stop, filled from the item and from the script's lines, with
+its `Yours: outward:` line and `/tickets <spec>` as its last line. The run asks nothing before it:
+under `--auto` the stop is the same lines, with no `choice-taker` forked.
+
 The Plan's own `## Map` is
 the subsystem as it stood before the diff and goes no further than the loop: the review is never
 handed it, since each reviewer builds its own map after the diff, as the review in
@@ -1294,7 +1301,9 @@ beside the Spec among the files left uncommitted, `Open: none`, and `git push` w
 developer's branch named as its next step. A run whose claim read `taken`, or whose Final
 integration stopped, ends on the lines [reply.md](reply.md) fixes for it. A
 run that stopped on an Extreme fork, or on a Design fork no `choice-taker` ruled, ends instead on
-the `/discuss` command the forks in [forks.md](forks.md) fix, as its last line. A run that forked
+the `/discuss` command the forks in [forks.md](forks.md) fix, as its last line. A run that stopped
+at the Plan on work for another repository ends on `/tickets <spec>`, in the message
+[reply.md](reply.md) fixes for that stop. A run that forked
 `do-impeccable`, on a Front-end ticket of a Spec reading `Front-end: impeccable`, writes no Plan
 line in its Run section, since no Planner ran, and its behaviours list is the Ticket's acceptance
 criteria, each with the commit beside it, as [reply.md](reply.md) says for both. Its Reply puts the

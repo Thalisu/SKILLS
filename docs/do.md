@@ -172,6 +172,20 @@ refactor on green, then one commit holding the test and the code. Each commit bo
 `Behaviour:` line, which is how a second `/do` on the same Ticket reads the run off the branch and
 picks up at the first behaviour with no commit beside it instead of starting over.
 
+A `ticket` run stops before any of that when its Plan shows one of the Ticket's behaviours has no
+place in the repository the run builds in: the code that would change lives in another
+repository, one the Spec may not even list. Nothing is built, cut or claimed, and the Ticket keeps
+the status it had, so no Ticket reads `resolved` while one of its criteria cannot pass. The run
+writes what it found into the Spec, the missing repository added to the Spec's repositories list
+when the list did not hold it, and one line naming the behaviour that moved, marked as written by
+the run on that Ticket. Its reply names the behaviour and the repository, says what the Spec now
+holds, carries a `Yours: outward:` line, and ends on the one command that fixes the cut
+([ADR 0083](adr/0083-work-found-in-another-repository-stops-the-run-and-tickets-adds-to-the-open-feature.md)):
+
+```
+/tickets .scratch/hold-disputed-invoice/spec.md
+```
+
 The gate runs after the last edit and never before it, because "it passed earlier" is stale. It runs
 from one script that prints the line to rerun it first, one line per green check and the capped
 failing block of a red one with the file holding its full output, so you rerun the gate yourself and

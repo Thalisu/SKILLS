@@ -444,6 +444,32 @@ before it names that repository, with its `next_blocker_build_location=`, as the
 session in, and it comes after the `Yours:` line. A blocker built in the repository the session is
 in gets no such line.
 
+A `ticket` run stopped at the Plan on work for another repository, the `Elsewhere:` stop of the
+Plan step of [ticket.md](ticket.md), is another. Its whole message is these lines after the first
+line, in this order, each value taken from the Plan's item and from the lines `spec-finding.sh`
+printed, never from the session's own reading of the Spec:
+
+```
+Stopped at the Plan, before anything was built: "<the behaviour>" has no place in this repository. It belongs to <repository=>.
+Written into the Spec (<spec>): <repository=> added to its repositories list, and one line naming the behaviour as moved by the run on Ticket <NN>.
+Ticket <NN> still reads <status=>.
+Yours: outward: cut the moved behaviour for <repository=> with the command below, then run /do on this Ticket again
+/tickets <spec>
+```
+
+- The behaviour is the item's `Elsewhere:` line and the repository its `Belongs to:` line. With
+  more than one item, the first two lines are written once per item, and the status line, the
+  `Yours:` line and the command once.
+- The second line reads off `list=` and `line=`. On `list=added` it names the entry added to the
+  list and the one line. On `list=unchanged` it names the one line alone and says the repository
+  was already in the list. On `line=present` it says the line was already there, written by an
+  earlier run on this Ticket.
+- `<spec>` is the `spec=` path relative to `home=`, in both places it stands, since the command is
+  typed in a session of the Home repository.
+- `/tickets <spec>` is the Reply's last line, with nothing else on it and nothing after it. The
+  message carries no Run section and no other command, neither `/do` nor `/discuss` nor a shell
+  line: the stop is a refusal of the Plan step, and these lines say everything the run did.
+
 How much more it carries depends on where the run stopped:
 
 - **Refused before any edit.** It adds nothing, not even a Run section: its one message is the
@@ -491,8 +517,13 @@ Yours: outward: yes makes every write the question lists on issue 41, no makes n
 A stop that cannot name a class is not a stop: whatever it would hand over is a reversible action
 inside the run's own artifacts, and the run takes it.
 
-Two writes outside the repository have a fixed place:
+Three writes outside the repository have a fixed place:
 
+- **Work for another repository.** The stop at the Plan on a behaviour with no place in the
+  repository the run builds in is named under `outward`, since building it is a write to a
+  repository this run was not opened in, which the run never makes itself. Its choice is the
+  `tickets` command the Reply ends on, which cuts the moved behaviour for that repository, then
+  `/do` on the same Ticket again.
 - **A push.** A blocked Reply whose handed-over commands include a push names that push under
   `outward`, since a push is a write outside the repository the run never makes itself, except the
   close's `destroy` stop on a landed run: its push already sits on the Reply's Next step line, per

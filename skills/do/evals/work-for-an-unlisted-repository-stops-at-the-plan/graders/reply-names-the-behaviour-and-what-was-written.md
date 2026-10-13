@@ -1,0 +1,5 @@
+---
+type: llm
+criteria: "Judge this on the run's final message only, the text after FINAL MESSAGE. It is a blocked Reply, and it passes only when all of these hold. First, it says the run stopped at the Plan, before anything was built. Second, it names the behaviour that has no place in this repository, the dispute-received email template (the Ticket's third criterion, in its words or close to them), and names notifications-service as the repository it belongs to. Third, it says what was written into the Spec, naming the Spec .scratch/hold-disputed-invoice/spec.md: notifications-service added to its repositories list, and one line naming the behaviour as moved by the run on Ticket 02. Fourth, it says Ticket 02 still reads ready-for-agent (or that nothing was claimed). Any of these fails: a Reply that reads as a finished or landed run, a claim that something was built or committed, a question asking the developer whether to go on, a list of options to pick from in place of the stop, an offer to build the first two criteria anyway."
+---
+The developer learns from the Reply alone what moved, where it belongs and what the Spec now holds.
