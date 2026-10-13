@@ -399,6 +399,25 @@ A Final integration that stops (a rebase question nobody answered, a Review that
 the claim yielded. The reply says it stopped and why, and `/do <the run's Ticket>`, or a `do` on
 any Ticket of the Spec built in that repository, resumes it.
 
+In a feature across repositories a stop is a partial landing, never one to undo. The repositories
+that landed before it stay landed: the run moves nothing there, since what landed was reviewed and
+is yours to push. Its reply reads the repositories again and names which landed and which did not,
+the one that stopped among the second, then hands you the choice to resume or to leave it unlanded,
+and ends on the command you typed:
+
+```
+Final integration: stopped: not landed: Finding 1 not fixed or not verified
+Landed: billing-service
+Still to land: orders-service
+Yours: direction: run /do .scratch/hold-disputed-invoice/issues/04-show-the-hold.md again, or a do on any Ticket of the Spec, to resume the Final integration of spec/hold-disputed-invoice, or leave it unlanded in .claude/worktrees/spec-hold-disputed-invoice
+
+/do .scratch/hold-disputed-invoice/issues/04-show-the-hold.md
+```
+
+Fix what stopped it, in the worktree the reply names, and type that same command again. It finishes
+the repository that stopped and touches no other, and its reply names what landed and what is left
+with the command of each repository left, as the reply of a first landing does.
+
 That second `/do` rebuilds nothing. Its Ticket reads `resolved`, and the door tells three cases
 apart:
 
@@ -412,8 +431,12 @@ The resume takes over the yielded claim, then reads where the integration stoppe
 open asks you the same `(continue / stop)` or `(abort / continue)` question a Ticket run's open
 rebase asks, a Review already written beside the Spec is landed and never written a second time,
 and a `not landed: target moved` integrates again for as long as your branch keeps moving. It ends
-as the run that ships a Spec ends, with `spec/<slug> removed` and `git push <your branch>`. If it
-stops again, the reply says so and why, and the Next step is the same `/do`.
+as the run that ships a Spec ends, with `spec/<slug> removed` and `git push <your branch>`, or, in
+a feature across repositories with one still to land, with the push on a line of its own and the
+command of the next repository last. If it stops again, the reply opens on
+`Final integration: stopped again` with the reason and carries the same lines as the first stop:
+which repositories landed and which did not, the choice to resume or leave it unlanded, and the
+same `/do` as its last line.
 
 A claim nobody yielded is never taken over: the run that holds it may still be integrating, and two
 runs in one tree would both land on your branch. The resume stops in one line and names the holder,
