@@ -839,7 +839,10 @@ The stop is the `outward` Handover class, keyed on the `Elsewhere:` item and nev
 own reading of the tree: the behaviour is a write to a repository this run was not opened in, and
 cutting it into a Ticket there is the developer's command to type. The Reply is the blocked one
 [reply.md](reply.md) fixes for this stop, filled from the item and from the script's lines, with
-its `Yours: outward:` line and `/tickets <spec>` as its last line. The run asks nothing before it:
+its `Yours: outward:` line and `/tickets <spec>` as its last line. On a Ticket run from its Build
+repository the script printed `here=no`, and that Reply names the Home repository, off `home_name=`
+and `home=`, as the place to open a session in on the line before the command, since `tickets`
+runs where the Feature folder is. The run asks nothing before it:
 under `--auto` the stop is the same lines, with no `choice-taker` forked.
 
 The Plan's own `## Map` is

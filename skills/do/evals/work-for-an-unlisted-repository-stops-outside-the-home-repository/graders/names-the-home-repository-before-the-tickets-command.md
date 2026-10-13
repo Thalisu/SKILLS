@@ -1,0 +1,6 @@
+---
+type: llm
+criteria: "Judge this on the run's final message only, the text after FINAL MESSAGE. The run stopped in billing-service, and the Feature folder is in orders-service, the Home repository. Pass only when all of these hold. First, the last line is `/tickets .scratch/hold-disputed-invoice/spec.md` and nothing else on the line: the Spec's path relative to the root of orders-service, never an absolute path and never a path starting with `../`. Second, the line right before that last line (blank lines aside) names orders-service together with its absolute location, a path ending in `/orders-service`, as the place to open a session in, and it comes after the `Yours: outward:` line. Third, the message carries exactly one line starting with `Yours:`, of the class `outward`. Fourth, the message holds no shell line: no `cd`, and no command that opens a session. Any of these fails: the tickets command with no line naming orders-service before it, the repository named with no location, billing-service or notifications-service named as the place to open a session in, a `/do` or `/discuss` line as the next step."
+---
+The developer standing in billing-service learns which repository to open a session in before they
+type the tickets command.

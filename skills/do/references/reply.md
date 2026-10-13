@@ -466,6 +466,12 @@ Yours: outward: cut the moved behaviour for <repository=> with the command below
   earlier run on this Ticket.
 - `<spec>` is the `spec=` path relative to `home=`, in both places it stands, since the command is
   typed in a session of the Home repository.
+- On `here=no` the run stopped in a repository other than the Home repository, where no Feature
+  folder is, and one line stands right before the command, after the `Yours:` line: it names
+  `home_name=`, with `home=` as its location, as the place to open a session in, worded as the
+  hand-over of the `ticket` door in [ticket.md](ticket.md) words it for a Ticket built in another
+  repository. When `home_name=` reads `none`, the line names the location alone. On `here=yes` no
+  such line is written. Neither form carries a shell line.
 - `/tickets <spec>` is the Reply's last line, with nothing else on it and nothing after it. The
   message carries no Run section and no other command, neither `/do` nor `/discuss` nor a shell
   line: the stop is a refusal of the Plan step, and these lines say everything the run did.

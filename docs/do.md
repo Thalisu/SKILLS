@@ -186,6 +186,15 @@ holds, carries a `Yours: outward:` line, and ends on the one command that fixes 
 /tickets .scratch/hold-disputed-invoice/spec.md
 ```
 
+`tickets` runs where the Feature folder is. When the run stopped in another repository than the
+Home repository, the line before the command names the Home repository and its location as the
+place to open a session in:
+
+```
+Open a session in orders-service at /home/dev/orders-service.
+/tickets .scratch/hold-disputed-invoice/spec.md
+```
+
 The gate runs after the last edit and never before it, because "it passed earlier" is stale. It runs
 from one script that prints the line to rerun it first, one line per green check and the capped
 failing block of a red one with the file holding its full output, so you rerun the gate yourself and
