@@ -407,6 +407,16 @@ Every ticket is written in the format of [.agents/formats/ticket-format.md](../.
 
 The last two per [.agents/scratch.md](../../.agents/scratch.md).
 
+**On a feature with open tickets.** After an additive cut (step 1) the publish writes what the breakdown showed and nothing more:
+
+- each new ticket is a new file in that same `issues/` folder, numbered on after the feature's last one, in dependency order among the new tickets, each number claimed under `set -C` as above;
+- the criterion the breakdown showed as moved is taken out of the ticket it leaves and written, unticked, in the new ticket that takes it. A criterion never sits in both;
+- that ticket's `**Blocked by:**` line gains the new ticket, by its number and title, beside the blockers it already had, still on one line. A line reading `None (can start immediately)` becomes the new blocker alone;
+- nothing else of an existing ticket is edited: its title, its status, its other criteria, its ticks and its evidence stay as they were, so a ticket a run has claimed keeps that word;
+- no existing ticket is renumbered, renamed or deleted, so every `Blocked by` already written still names the same ticket.
+
+On a real tracker the same holds issue by issue: the new tickets are new issues, the criterion is edited out of the body of the issue it leaves, that issue gains the blocking edge to the new one, and no existing issue is closed.
+
 **A real tracker (GitHub, GitLab, Linear).** One issue per ticket, in the format's issue shape.
 
 - **Order**: dependency order, blockers first, so each ticket's blocking edges reference real identifiers.

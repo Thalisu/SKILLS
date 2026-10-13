@@ -305,6 +305,58 @@ the fix call's own **Gate**
 the fix call's own Gate
 EOF
 }
+# An additive cut edits a Ticket that is already published: a criterion leaves it, a Blocked by edge
+# is added to it, and every other Ticket stays as it was. The breakdown shows those three and the
+# publish writes them, so both read the same phrasings, lowercase, against a lowercased passage.
+# A case reads each with `mapfile -t names < <(moved_out_phrasings)`.
+moved_out_phrasings() { # one accepted phrasing per line: a criterion leaves the Ticket it was in
+  cat <<'EOF'
+moved out
+moves out
+moving out
+taken out
+takes out
+lifted out
+removed from
+leaves it
+leaves the ticket
+moved to
+moves to
+moved from
+moves from
+handed to
+handed over to
+goes to
+EOF
+}
+edge_added_phrasings() { # one accepted phrasing per line: a Ticket gets a blocker it did not have
+  cat <<'EOF'
+added
+adds
+gains
+gained
+new edge
+new blocker
+now waits
+now blocked
+now also blocked
+now also waits
+EOF
+}
+untouched_phrasings() { # one accepted phrasing per line: an existing Ticket, or the rest of one, is left as it was
+  cat <<'EOF'
+untouched
+unchanged
+not touched
+not changed
+left as it is
+left as they are
+stays as it is
+stay as they are
+left alone
+no change
+EOF
+}
 # A screen no flow ran over is proven by less than one a flow covered, and the Reply is where the
 # developer learns which one they got: the groups a passage has to carry to say so, in any wording.
 # A case reads them with `mapfile -t names < <(no_flow_proof_groups)` and passes them to carries_each.

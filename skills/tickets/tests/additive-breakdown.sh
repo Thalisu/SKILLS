@@ -52,19 +52,9 @@ one_question=(
   "the question"
 )
 changes_it=("chang" "edit" "amend" "alter" "modif" "rewrit")
-moved_out=(
-  "moved out" "moves out" "moving out" "taken out" "takes out" "lifted out" "removed from"
-  "leaves it" "leaves the ticket" "moved to" "moves to" "moved from" "moves from" "handed to"
-  "handed over to" "goes to"
-)
-edge_added=(
-  "added" "adds" "gains" "gained" "new edge" "new blocker" "now waits" "now blocked"
-  "now also blocked" "now also waits"
-)
-untouched=(
-  "untouched" "unchanged" "not touched" "not changed" "left as it is" "left as they are"
-  "stays as it is" "stay as they are" "left alone" "no change"
-)
+mapfile -t moved_out < <(moved_out_phrasings)
+mapfile -t edge_added < <(edge_added_phrasings)
+mapfile -t untouched < <(untouched_phrasings)
 
 echo "# SKILL.md / ## 1: open Tickets that leave something uncovered are no stop"
 # shellcheck disable=SC2034 # the carries_* assertions read $flat
