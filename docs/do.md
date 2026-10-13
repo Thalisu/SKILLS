@@ -195,6 +195,28 @@ Open a session in orders-service at /home/dev/orders-service.
 /tickets .scratch/hold-disputed-invoice/spec.md
 ```
 
+The Builder that meets the same thing mid-build returns the same stop, a write its guard denied in
+another repository being one way it finds out. The reply is the same one, the Ticket stays
+`claimed`, and the worktree, its branch and the commits already made are kept and named, so the
+next `/do` on the Ticket pays for none of them again.
+
+Which command the reply ends on depends on what the run found:
+
+| What the run found | What it writes into the Spec | The reply's last line |
+|---|---|---|
+| a behaviour that moves: its criterion still reads true as written, built in the other repository | the finding line, and the repository's entry when the list lacked it | `/tickets <spec>` |
+| a behaviour that moves to a repository the run can name and cannot locate on this machine | the finding line with the location marked as not known, and no entry | `/tickets <spec>`, then the repository and a place for its location |
+| a finding that changes the feature: a story or a criterion would have to be rewritten, not moved | nothing | a whole `/discuss` command naming the Ticket, the Spec and what the run found |
+
+A change of direction is never patched in as one more Ticket under a Spec that no longer describes
+the feature, which is why the third row goes back to `discuss` and carries a `Yours: direction:`
+line instead of `outward`. In the second row the location is the one thing you supply. You type it
+in the command, in place of the angle brackets, and edit no file by hand:
+
+```
+/tickets .scratch/hold-disputed-invoice/spec.md notifications-service: <its absolute location on this machine>
+```
+
 The gate runs after the last edit and never before it, because "it passed earlier" is stale. It runs
 from one script that prints the line to rerun it first, one line per green check and the capped
 failing block of a red one with the file holding its full output, so you rerun the gate yourself and
