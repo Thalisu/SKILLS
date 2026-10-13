@@ -33,6 +33,9 @@
 #   build_of <file>               sets build_name, build_place and build_check to what
 #                                 build_repository_of, repository_location_of and build_check_of
 #                                 read for the Ticket, with name_detail and place_detail
+#   repository_key_of <file>      sets word to the file-safe key of its **Build repository:** name
+#                                 (lowercased, each run of characters outside a-z0-9 one -, no - at
+#                                 either end), empty with no line, or ambiguous with detail set
 #   blockers_of <file>            sets word to the numbers its one **Blocked by:** paragraph names,
 #                                 space separated in the order written, none for None, none with
 #                                 detail set when it names no Ticket number, or ambiguous with
@@ -133,6 +136,15 @@ build_repository_of() { # $1 file: sets word to the name its one **Build reposit
       ;;
   esac
   word="$(grep '^\*\*Build repository:\*\*' <<<"$head" | sed -E 's/^\*\*Build repository:\*\*[[:space:]]*//; s/[[:space:]]+$//')"
+}
+
+repository_key_of() { # $1 file: sets word to the file-safe key of its Build repository name, empty with no line, or ambiguous with detail set
+  build_repository_of "$1"
+  case "$word" in
+    none) word="" ;;
+    ambiguous) ;;
+    *) word="$(tr '[:upper:]' '[:lower:]' <<<"$word" | sed -E 's/[^a-z0-9]+/-/g; s/^-//; s/-$//')" ;;
+  esac
 }
 
 spec_beside() { # $1 Ticket file: prints the spec.md beside its issues/ folder, or /dev/null

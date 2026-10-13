@@ -377,4 +377,40 @@ check_lines "a claim on a Spec branch whose upstream is empty reads failed, nami
 expect "a claim on a Spec branch whose upstream is empty creates no claim file" \
   test ! -e "$orphaned/spec.integration.claim"
 
+# A feature across two sibling repositories, claimed from the Build one: the Ticket and the Spec
+# sit in the Home repository, and the Spec branch to land is the session's. The Build repository's
+# name is not its own key, so a file named after the name as written is not the keyed one.
+sibling_repos claim-web land_api.v2 20261003-keyed-export
+# shellcheck disable=SC2154 # lib.sh's sibling_repos assigns $home, $build and $issues
+keyed="$home/.scratch/20261003-keyed-export"
+# shellcheck disable=SC2154
+repositories_spec "$keyed" "- claim-web (Home repository): $home" "- land_api.v2: $build"
+ticket 01-api-export.md $'**Status:** resolved\n\n**Build repository:** land_api.v2' 'None (can start immediately)'
+(cd "$build" && g branch -q --track spec/keyed-export main && spec_commit spec/keyed-export) || {
+  echo "FAIL  fixture: the unlanded Spec branch of the Build repository could not be built"
+  exit 1
+}
+cd "$build" || exit 1
+run claim "$issues/01-api-export.md"
+check_lines "a claim taken from a Build repository on a Ticket of a sibling Home repository reads claimed, naming the claim file, the ledger and the Review in the Home Feature folder under the Build repository's key, and the Spec branch, its upstream and the tree of the session's repository" 0 "$rc" \
+  "claim=claimed" \
+  "file=$keyed/spec.land-api-v2.integration.claim" \
+  "spec=$keyed/spec.md" \
+  "spec_branch=spec/keyed-export" \
+  "spec_upstream=main" \
+  "tree=$build/.claude/worktrees/spec-keyed-export" \
+  "ledger=$keyed/spec.land-api-v2.ledger.md" \
+  "review_file=$keyed/spec.land-api-v2.review.md" \
+  "takeover=no"
+expect "a claim taken from a Build repository creates the claim file in the Home Feature folder under the Build repository's key" \
+  test -f "$keyed/spec.land-api-v2.integration.claim"
+expect "a claim taken from a Build repository creates no claim file under the unkeyed name" \
+  test ! -e "$keyed/spec.integration.claim"
+expect "a claim taken from a Build repository creates no claim file in the Build repository" \
+  test -z "$(find "$build" -path "$build/.git" -prune -o -name '*.claim' -print 2>/dev/null)"
+expect "the claim file of a claim taken from a Build repository records the tree of the session's repository, as printed" \
+  grep -qsxF -- "tree=$build/.claude/worktrees/spec-keyed-export" "$keyed/spec.land-api-v2.integration.claim"
+expect "the claim file of a claim taken from a Build repository records the Spec branch of the session's repository, as printed" \
+  grep -qsxF -- "spec_branch=spec/keyed-export" "$keyed/spec.land-api-v2.integration.claim"
+
 [ "$fails" = 0 ]

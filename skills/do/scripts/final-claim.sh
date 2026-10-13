@@ -12,24 +12,33 @@
 #                                         the claim file
 #
 # <Ticket path> is absolute, or relative to the main checkout. The Spec is the spec.md of the
-# feature folder that holds the Ticket's issues/ folder.
+# feature folder that holds the Ticket's issues/ folder, in the Home repository when the session
+# runs in another repository of the feature.
 #
-# claim prints key=value lines: claim (claimed, taken or failed), file (the claim file,
-# <feature folder>/spec.integration.claim), then on claimed: spec, spec_branch, spec_upstream, tree
-# (the worktree the Final integration runs in, <main checkout>/.claude/worktrees/spec-<slug>) and
-# ledger (the Loss ledger of the Spec's rebase, <feature folder>/spec.ledger.md); on taken, the
-# file was already there and stays as its claimant wrote it: holder_ticket and claimed_at, that
-# file's ticket and claimed_at, then yield_command, the shell-quoted command that yields that
-# claim by hand when its holder died without yielding; on failed: reason (no-feature-folder,
-# no-spec-branch, no-upstream, a Spec branch whose upstream is empty or names no local branch, or
-# not-writable). claimed ends in takeover (yes or no): a claim file already there and yielded is
+# The four names beside the Spec are spec.integration.claim, spec.integration.yielded,
+# spec.ledger.md and spec.review.md for a Ticket with no **Build repository:** line. A Ticket that
+# carries one gets spec.<key>.integration.claim, spec.<key>.integration.yielded,
+# spec.<key>.ledger.md and spec.<key>.review.md, <key> being ticket-read.sh's repository_key_of,
+# so each repository of a feature holds a claim of its own. The Spec branch and the worktree are
+# always the session's repository's.
+#
+# claim prints key=value lines: claim (claimed, taken or failed), file (the claim file), then on
+# claimed: spec, spec_branch, spec_upstream, tree (the worktree the Final integration runs in,
+# <main checkout>/.claude/worktrees/spec-<slug>), ledger (the Loss ledger of the Spec's rebase) and
+# review_file (the Review beside the Spec); on taken, the file was already there and stays as its
+# claimant wrote it: holder_ticket and claimed_at, that file's ticket and claimed_at, then
+# yield_command, the shell-quoted command that yields that claim by hand when its holder died
+# without yielding; on failed: reason (no-feature-folder,
+# no-spec-branch, no-upstream, a Spec branch whose upstream is empty or names no local branch,
+# ambiguous-repository, a Ticket with two **Build repository:** lines, or not-writable). claimed
+# ends in takeover (yes or no): a claim file already there and yielded is
 # taken over, the file then naming this Ticket, and takeover=yes is followed by previous_ticket and
 # previous_claimed_at, the holder it replaced, and yielded_at.
 #
 # The claim file holds key=value lines a reader takes the keys it knows from: ticket (the absolute
 # path of the Ticket whose run claimed), spec_branch, tree, claimed_at (UTC, ISO 8601).
 #
-# The yielded mark is a file beside the claim, <feature folder>/spec.integration.yielded, holding
+# The yielded mark is a file beside the claim, holding
 # yielded_at (UTC, ISO 8601) and yielded_by (the absolute path of the Ticket the yield was called
 # with). It is created exclusively, so a claim already yielded keeps its first mark, and the claim
 # file is never rewritten by a yield.
@@ -52,6 +61,8 @@ set -uo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd -P)"
 resolver="$here/../../../.agents/scripts/resolve-feature-folder.sh"
+# shellcheck source=skills/do/scripts/ticket-read.sh
+. "$here/ticket-read.sh"
 
 usage() {
   echo "usage: final-claim.sh claim|yield|show|release <Ticket path>" >&2
@@ -65,7 +76,23 @@ failed() { # $1 reason
   exit 3
 }
 
-# Sets path, root, folder, file, mark, spec_branch, spec_exists and spec_upstream from the Ticket's path.
+# The one place the names beside the Spec are composed: a feature of one repository keeps the
+# unkeyed names, and each Build repository of a feature gets its own under its key, so one
+# repository's claim, ledger and Review are never read as another's.
+# shellcheck disable=SC2154 # repository_key_of sets word.
+final_names() { # $1 the feature folder, $2 the Ticket's absolute path: sets file, mark, ledger and review_file
+  repository_key_of "$2"
+  [ "$word" != ambiguous ] || failed ambiguous-repository
+  local stem="$1/spec${word:+.$word}"
+  file="$stem.integration.claim"
+  mark="$stem.integration.yielded"
+  ledger="$stem.ledger.md"
+  review_file="$stem.review.md"
+}
+
+# Sets path, main, folder, file, mark, ledger, review_file, spec_branch, spec_exists and
+# spec_upstream from the Ticket's path. The folder is the Home repository's, where the Ticket sits;
+# the Spec branch and main are the session's repository's.
 resolve() { # $1 Ticket path
   local probe resolved issues
   probe="$(bash "$here/spec-branch.sh" probe "$1")" || exit 2
@@ -73,16 +100,15 @@ resolve() { # $1 Ticket path
   spec_exists="$(sed -n 's/^spec_exists=//p' <<<"$probe")"
   spec_upstream="$(sed -n 's/^spec_upstream=//p' <<<"$probe")"
   [ "$spec_branch" != none ] || failed no-feature-folder
-  resolved="$(bash "$resolver" "${spec_branch#spec/}" 2>/dev/null)" || failed no-feature-folder
-  root="$(sed -n 's/^root=//p' <<<"$resolved")"
+  main="$(main_of .)"
+  case "$1" in /*) path="$1" ;; *) path="$main/${1#./}" ;; esac
+  resolved="$(cd "$(home_root "$path" "$main")" 2>/dev/null && bash "$resolver" "${spec_branch#spec/}" 2>/dev/null)" || failed no-feature-folder
   folder="$(sed -n 's/^folder=//p' <<<"$resolved")"
   [ "$folder" != none ] || failed no-feature-folder
-  case "$folder" in /*) ;; *) folder="$root/$folder" ;; esac
-  case "$1" in /*) path="$1" ;; *) path="$root/${1#./}" ;; esac
+  case "$folder" in /*) ;; *) folder="$(sed -n 's/^root=//p' <<<"$resolved")/$folder" ;; esac
   issues="$(dirname "$path")"
   [ "$(dirname "$issues")" -ef "$folder" ] || failed no-feature-folder
-  file="$folder/spec.integration.claim"
-  mark="$folder/spec.integration.yielded"
+  final_names "$folder" "$path"
 }
 
 holder() { # the claim file's holder lines
@@ -101,8 +127,8 @@ cmd_claim() {
   resolve "$1"
   [ "$spec_exists" = yes ] || failed no-spec-branch
   # Nothing to integrate into: the claim is refused before it creates the file.
-  [ -n "$spec_upstream" ] && git -C "$root" show-ref --verify --quiet "refs/heads/$spec_upstream" || failed no-upstream
-  tree="$root/.claude/worktrees/spec-${spec_branch#spec/}"
+  [ -n "$spec_upstream" ] && git -C "$main" show-ref --verify --quiet "refs/heads/$spec_upstream" || failed no-upstream
+  tree="$main/.claude/worktrees/spec-${spec_branch#spec/}"
   # noclobber makes the creation exclusive: of two claims at once, one creates the file.
   if ! (
     set -C
@@ -135,7 +161,8 @@ $(grep '^yielded_at=' "$won")"
   echo "spec_branch=$spec_branch"
   echo "spec_upstream=$spec_upstream"
   echo "tree=$tree"
-  echo "ledger=$folder/spec.ledger.md"
+  echo "ledger=$ledger"
+  echo "review_file=$review_file"
   echo "takeover=$takeover"
   [ -z "$previous" ] || echo "$previous"
 }
