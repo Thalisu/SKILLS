@@ -334,6 +334,13 @@ proven by
 proves
 EOF
 }
+# An eval case's fixture, laid the way scripts/run-eval.sh lays it, so a test reads the tree a live
+# run of the case would start from. A case with no scaffold lays nothing and returns 0.
+lay_scaffold() { # $1 the case's case.yaml, $2 an existing empty folder to lay it in: returns the scaffold's exit
+  # leaves under the caller's $tmp: scaffold.sh, extract.log (yq's stderr) and scaffold.log (the scaffold's output)
+  yq -r '.context.scaffold_script // ""' "$1" >"$tmp/scaffold.sh" 2>"$tmp/extract.log"
+  (cd "$2" && bash "$tmp/scaffold.sh") >"$tmp/scaffold.log" 2>&1
+}
 g() { command git -c user.email=t@example.com -c user.name=t -c init.defaultBranch=main "$@"; }
 commit() {
   g add -A >/dev/null

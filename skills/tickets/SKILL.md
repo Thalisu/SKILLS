@@ -117,13 +117,17 @@ A `journey.md` beside the spec that the verdict does not name is an orphan: name
 | the journey's `## Reopen in discuss` lists a branch | each branch, and that `/discuss` settles them before the journey is walked again |
 | the feature's open tickets cover the whole spec: nothing the spec holds is left uncovered (below) | nothing was cut because the open tickets cover the whole spec; each existing ticket with its status; whoever wants a recut closes or deletes them first; no next command |
 
-**Open tickets and what they cover.** The feature's open tickets are the files under `issues/` beside the spec in local mode, whatever status each one carries, or the open issues naming the spec as their parent in remote mode. Read every one of them in the same batch as the spec. With none, the cut is the whole spec and nothing below applies. With some, read what they cover against what the spec holds:
+**Open tickets and what they cover.** The feature's open tickets are the files under `issues/` beside the spec in local mode, or the open issues naming the spec as their parent in remote mode. A local ticket that reads `resolved` stays in the folder and is read with the rest: it covers what it built and is listed with its status. Read every one of them in the same batch as the spec. With none, the cut is the whole spec and nothing below applies. With some, read what they cover against what the spec holds:
 
 - a path of the journey, or a User Story when there is no journey, is covered when an open ticket names it;
 - a finding line under the spec's Implementation Decisions, `- Moved by the run on Ticket <title> at the Plan step: <behaviour>. Belongs to: <name>.`, is covered when an open ticket built in the repository it names carries that behaviour among its criteria. A stopped `do` run wrote the line because the behaviour has no place in the repository of the ticket it names, so that ticket never covers it;
 - the journey's `## Cut` and `## Deferred` and the spec's Out of Scope are never ticketed, so they are never uncovered.
 
-The same reading answers a command that was repeated and one typed by accident: when nothing is left uncovered, the last stop of the table is the whole run. That message carries no `/do` line and no `/tickets` line, and no ticket is written, edited or renumbered. Open tickets that leave something uncovered are not that stop.
+The same reading answers a command that was repeated and one typed by accident: when nothing is left uncovered, the last stop of the table is the whole run. That message carries no `/do` line and no `/tickets` line, and no ticket is written, edited or renumbered. Open tickets that leave something uncovered are not that stop: the run goes on and cuts only what is uncovered. That is the additive cut, the one a stopped `do` run hands over when it ends on `/tickets <spec>`. Steps 2 and 3 run as they do on a whole spec, over the uncovered part alone:
+
+- an uncovered path is cut as any path is;
+- an uncovered finding line becomes a slice built in the repository the line names, with the line's behaviour as its acceptance criteria;
+- what the open tickets cover is left out of the cut. No open ticket is recut, renumbered or deleted, and a new slice that reads what an open ticket writes is blocked by that ticket, named by its number.
 
 ## 2. Explore the code
 
@@ -323,6 +327,15 @@ Does the breakdown go out as it stands?
 </example>
 
 Granularity, edges, folds and splits are never asked. The session decided them from the estimates and the edge graph, and the breakdown shows the reasoning so the user can overrule any of it. A correction is applied and the breakdown is shown again, with the same one question. A path the user names as read wrongly, as having a screen or as having none, is such a correction: the path is recut the other way, so its two tickets become one Logic ticket, or its one ticket becomes a Logic ticket and a Front-end ticket blocked by it. The estimates and the blocking edges are redone for every ticket the recut touches, and the breakdown is shown again, with the same one question. Nothing is published before the yes.
+
+### On a feature with open tickets
+
+After an additive cut (step 1) the breakdown is the addition and nothing else. The message opens on one line saying the feature already has open tickets and that only what they leave uncovered was cut, then lists only the new tickets. The open tickets are never recut, so none of them is listed as a ticket of this run.
+
+- **Number**: each new ticket is shown under the number it will be published with, counted on after the feature's last one, in dependency order among the new tickets. With tickets up to `03` in the folder, the first new ticket is `04`.
+- **Fields**: each new ticket carries the same fields as a ticket of any breakdown, written out the same way, its Build repository among them when the spec has a Repositories section. A blocker that is an open ticket is named in `Blocked by` by its number and title.
+
+The closing parts follow as above (the splits, folds and placements among the new tickets, what was left out) and the message ends on the same one question.
 
 ### Under `--auto`
 

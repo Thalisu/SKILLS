@@ -1,0 +1,307 @@
+name: adds-only-the-missing-tickets
+tags: [workflow, additive, multi-repository, approval]
+runs: 2
+max_turns: 40
+timeout_seconds: 900
+allowed_tools: [Bash, Read, Edit, Write]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # The fixture is the Home repository, the orders service, with the billing service and the
+    # notifications service laid beside it, on a feature an earlier run already cut into three
+    # tickets. Ticket 01 is resolved. The `do` run on ticket 02, built in the billing service,
+    # stopped at its Plan: the email to the customer has no place in that repository. It left the
+    # spec as the fixture holds it, the notifications service added to the Repositories section and
+    # one finding line under Implementation Decisions. No ticket covers that line, so this run
+    # cuts it and nothing else.
+    set -e
+    mkdir -p src docs/agents .scratch/hold-disputed-invoice/issues
+    cat > src/order.js <<'JS'
+    const STATUSES = ["placed", "fulfilled", "cancelled", "disputed"];
+    const orders = [];
+    function place(id) {
+      const order = { id, status: "placed" };
+      orders.push(order);
+      return order;
+    }
+    function find(id) {
+      return orders.find((o) => o.id === id) || null;
+    }
+    function dispute(order) {
+      if (order.status === "cancelled") throw new Error("A cancelled Order cannot be disputed");
+      order.status = "disputed";
+      return order;
+    }
+    function view(order) {
+      return [`Order ${order.id}`, `Status: ${order.status}`];
+    }
+    module.exports = { STATUSES, place, find, dispute, view };
+    JS
+    cat > src/billing-client.js <<'JS'
+    const BILLING_URL = process.env.BILLING_URL || "http://localhost:4100";
+    async function invoiceOf(orderId) {
+      const res = await fetch(`${BILLING_URL}/invoices?order=${orderId}`);
+      return res.ok ? res.json() : null;
+    }
+    module.exports = { invoiceOf };
+    JS
+    cat > docs/agents/issue-tracker.md <<'MD'
+    # Issue tracker: Local Markdown
+
+    Issues and specs for this repo live as markdown files in `.scratch/`.
+
+    - One feature per directory: `.scratch/<feature-slug>/`
+    - The spec is `.scratch/<feature-slug>/spec.md`
+    - Implementation issues are one file per ticket at `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01`
+    - Triage state is a `Status:` line near the top of each issue file
+    MD
+
+    mkdir -p ../billing-service/src
+    cat > ../billing-service/src/invoice.js <<'JS'
+    const invoices = [];
+    function open(orderId, amount) {
+      const invoice = { orderId, amount, status: "open" };
+      invoices.push(invoice);
+      return invoice;
+    }
+    function findByOrder(orderId) {
+      return invoices.find((i) => i.orderId === orderId) || null;
+    }
+    module.exports = { open, findByOrder };
+    JS
+    cat > ../billing-service/src/orders-client.js <<'JS'
+    const ORDERS_URL = process.env.ORDERS_URL || "http://localhost:4000";
+    async function orderOf(orderId) {
+      const res = await fetch(`${ORDERS_URL}/orders/${orderId}`);
+      return res.ok ? res.json() : null;
+    }
+    module.exports = { orderOf };
+    JS
+    cat > ../billing-service/src/console.js <<'JS'
+    const { findByOrder } = require("./invoice");
+    function show(orderId) {
+      const invoice = findByOrder(orderId);
+      if (!invoice) return ["No invoice for this order"];
+      return [`Invoice for ${invoice.orderId}`, `Amount: ${invoice.amount}`, `Status: ${invoice.status}`];
+    }
+    module.exports = { show };
+    JS
+
+    mkdir -p ../notifications-service/src
+    cat > ../notifications-service/src/mailer.js <<'JS'
+    const TEMPLATES = { "order-placed": "Your Order is placed" };
+    const sent = [];
+    function send(template, to) {
+      if (!TEMPLATES[template]) throw new Error(`Unknown template ${template}`);
+      const mail = { to, subject: TEMPLATES[template] };
+      sent.push(mail);
+      return mail;
+    }
+    module.exports = { TEMPLATES, send, sent };
+    JS
+    cat > ../notifications-service/src/mailer.test.js <<'JS'
+    const { send } = require("./mailer");
+    test("a known template is sent with its subject", () => {
+      expect(send("order-placed", "a@example.com").subject).toBe("Your Order is placed");
+    });
+    JS
+
+    home="$(pwd -P)"
+    billing="$(cd ../billing-service && pwd -P)"
+    notifications="$(cd ../notifications-service && pwd -P)"
+    cat > .scratch/hold-disputed-invoice/spec.md <<MD
+    # Hold the Invoice of a disputed Order
+
+    Journey: ./journey.md
+    Status: ready-for-agent
+
+    ## Problem Statement
+
+    A customer disputes an Order and the billing service keeps chasing its open Invoice. A support
+    agent has no way to record the dispute on the Order, nobody can put the Invoice on hold, the
+    customer is never told, and the Order's own page says nothing about the Invoice.
+
+    ## Solution
+
+    A support agent marks an Order as disputed in the orders service, puts the Invoice of a disputed
+    Order on hold from the billing console, which tells the customer by email, and reads on the
+    Order's page that the Invoice is on hold.
+
+    ## Repositories
+
+    - orders-service (Home repository): $home
+    - billing-service: $billing
+    - notifications-service: $notifications
+
+    ## User Stories
+
+    1. As a support agent, I want to mark an Order as disputed, so that the dispute is on record where the Order lives
+    2. As a support agent, I want to put the Invoice of a disputed Order on hold and have the customer told, so that the customer is not chased while the dispute is open
+    3. As a support agent, I want to see on the Order's page that its Invoice is on hold, so that I can tell the customer nothing is due for now
+
+    ## Implementation Decisions
+
+    - An Order gains the status disputed, written by the orders service only, and the orders service's Order lookup returns it. This is built in the orders service, in its order module
+    - An Invoice gains the status held. The Hold action of the billing console and the hold operation are built in the billing service, in its invoice module, its console and its orders client module. The console offers Hold only on the Invoice of an Order the orders service's lookup returns as disputed
+    - The Invoice line of the Order's page is built in the orders service, in its order module and its billing client module. It shows on a disputed Order and reads the held status from the billing service's Invoice lookup
+    - Every email a customer receives is sent by the notifications service's mailer, from a template it owns. No other service holds a template or sends mail
+    - Each service reaches another through its one client module, the only place that knows the other's address
+    - Moved by the run on Ticket 02: Put the Invoice of a disputed Order on hold at the Plan step: the mailer gains an "invoice-on-hold" template and sends it to the customer once when asked for a held Invoice. Belongs to: notifications-service.
+
+    ## Testing Decisions
+
+    - In the orders service, behaviour tests through the order module's public functions, with an in-memory stand-in for the billing client
+    - In the billing service, behaviour tests through the invoice module's public functions, with an in-memory stand-in for the orders client
+    - In the notifications service, behaviour tests through the mailer's public functions
+
+    ## Out of Scope
+
+    - Resolving a dispute and releasing the hold
+    MD
+    cat > .scratch/hold-disputed-invoice/journey.md <<'MD'
+    # Journey: Hold the Invoice of a disputed Order
+
+    Spec: ./spec.md
+    Actor: support agent
+    Entry: the Order's page in the orders service
+
+    ## Path 1: Mark an Order as disputed
+
+    Story: 1
+    Outcome: the Order is on record as disputed in the orders service.
+
+    | Step | Actor sees | Actor does | System answers |
+    |---|---|---|---|
+    | 1 | the Order's page in the orders service, status placed, with a Dispute action | picks Dispute | a confirmation asks "Mark this Order as disputed?" |
+    | 2 | the confirmation | confirms | the Order shows status disputed and a line says "Order disputed" |
+
+    Failure branches:
+    - Dispute picked on a cancelled Order: the dispute is refused and a line says "A cancelled Order cannot be disputed"
+
+    ## Path 2: Put the Invoice of a disputed Order on hold
+
+    Story: 2
+    Outcome: the Invoice is held, the billing console no longer shows it as due, and the customer was told.
+
+    | Step | Actor sees | Actor does | System answers |
+    |---|---|---|---|
+    | 1 | the Invoice in the billing console, status open, its Order shown as disputed, with a Hold action | picks Hold | a confirmation asks "Hold this Invoice?" with the amount |
+    | 2 | the confirmation | confirms | the Invoice shows status held, a line says "Invoice on hold", and the customer receives the email "Your Invoice is on hold" |
+    | 3 | the held Invoice | reloads the console | the Invoice still shows status held and the Hold action is gone |
+
+    Failure branches:
+    - The Invoice's Order is not disputed: the console shows no Hold action and a line says "Only the Invoice of a disputed Order can be held"
+
+    ## Path 3: See the hold on the disputed Order's page
+
+    Story: 3
+    Outcome: the Order's page in the orders service tells the support agent that the Order's Invoice is on hold.
+
+    | Step | Actor sees | Actor does | System answers |
+    |---|---|---|---|
+    | 1 | the disputed Order's page in the orders service | opens it | an Invoice line under the status shows the Invoice's amount and its status |
+    | 2 | the Invoice line reading held | nothing | the line says "On hold, nothing due for now" |
+
+    Failure branches:
+    - The billing service does not answer: the line says "Invoice state unavailable" and the rest of the page still shows
+
+    ## States
+
+    | State | The actor sees | Actions |
+    |---|---|---|
+    | Order placed | the Order's page with a Dispute action, no Invoice line | Dispute (Path 1, to Order disputed) |
+    | Order disputed | the Order's page with no Dispute action; written by Path 1 in the orders service, read by Path 2 in the billing service and by Path 3 | none on the Order |
+    | Invoice open | the Invoice in the billing console, a Hold action when its Order is disputed | Hold (Path 2, to Invoice held) |
+    | Invoice held | the Invoice in the billing console with no Hold action; written by Path 2 in the billing service, read by Path 3 in the orders service | none |
+
+    ## Cut
+
+    - none
+
+    ## Defaults taken
+
+    - "Order disputed" and "Invoice on hold" use each service's existing status line
+
+    ## Deferred
+
+    - Holding the Invoice automatically when the Order is disputed: reopens when support agents hold more than ten a week by hand
+
+    ## Spec changes applied
+
+    - none
+
+    ## Reopen in discuss
+
+    - none
+    MD
+    cat > .scratch/hold-disputed-invoice/issues/01-mark-an-order-as-disputed.md <<'MD'
+    # 01: Mark an Order as disputed
+
+    **What to build:** Mark an Order as disputed: the Order is on record as disputed in the orders service.
+
+    **Blocked by:** None (can start immediately)
+
+    **Status:** resolved
+
+    **Kind:** logic
+
+    **Build repository:** orders-service
+
+    - [x] Picking Dispute on a placed Order asks "Mark this Order as disputed?"
+    - [x] Confirming shows the Order as disputed with the line "Order disputed"
+    - [x] Dispute on a cancelled Order is refused with "A cancelled Order cannot be disputed"
+
+    ## Evidence
+
+    Context: not measured, the harness kept no transcript
+    Forks: not measured, the harness kept no transcript
+    MD
+    cat > .scratch/hold-disputed-invoice/issues/02-put-the-invoice-of-a-disputed-order-on-hold.md <<'MD'
+    # 02: Put the Invoice of a disputed Order on hold
+
+    **What to build:** Put the Invoice of a disputed Order on hold: the Invoice is held, the billing console no longer shows it as due, and the customer was told.
+
+    **Blocked by:** 01: Mark an Order as disputed
+
+    **Status:** ready-for-agent
+
+    **Kind:** logic
+
+    **Build repository:** billing-service
+
+    - [ ] Picking Hold on the open Invoice of a disputed Order asks "Hold this Invoice?" with the amount
+    - [ ] Confirming shows the Invoice as held with the line "Invoice on hold"
+    - [ ] Once the Invoice is held, the customer receives the email "Your Invoice is on hold"
+    - [ ] After a reload the Invoice still shows held and the Hold action is gone
+    - [ ] On an Invoice whose Order is not disputed the console shows no Hold action and says "Only the Invoice of a disputed Order can be held"
+
+    ## Evidence
+    MD
+    cat > .scratch/hold-disputed-invoice/issues/03-see-the-hold-on-the-disputed-orders-page.md <<'MD'
+    # 03: See the hold on the disputed Order's page
+
+    **What to build:** See the hold on the disputed Order's page: the Order's page in the orders service tells the support agent that the Order's Invoice is on hold.
+
+    **Blocked by:** 02: Put the Invoice of a disputed Order on hold
+
+    **Status:** ready-for-agent
+
+    **Kind:** logic
+
+    **Build repository:** orders-service
+
+    - [ ] A disputed Order's page shows an Invoice line with the Invoice's amount and its status
+    - [ ] A held Invoice reads "On hold, nothing due for now"
+    - [ ] When the billing service does not answer the line says "Invoice state unavailable" and the rest of the page still shows
+
+    ## Evidence
+    MD
+    printf '.scratch/\n' > .gitignore
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
+    for sibling in ../billing-service ../notifications-service; do
+      git -C "$sibling" init -q -b main
+      git -C "$sibling" -c user.email=fixture@example.com -c user.name=fixture add -A
+      git -C "$sibling" -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
+    done

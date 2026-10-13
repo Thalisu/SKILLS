@@ -114,9 +114,8 @@ echo "# evals/existing-tickets-stop: the fixture's Tickets cover every Path of i
 # names is a path left uncovered.
 fixture="$tmp/fixture"
 mkdir "$fixture"
-yq -r '.context.scaffold_script // ""' "$case_dir/case.yaml" >"$tmp/scaffold.sh" 2>"$tmp/extract.log"
 scaffold_rc=0
-(cd "$fixture" && bash "$tmp/scaffold.sh") >"$tmp/scaffold.log" 2>&1 || scaffold_rc=$?
+lay_scaffold "$case_dir/case.yaml" "$fixture" || scaffold_rc=$?
 expect "the scaffold lays the fixture" test "$scaffold_rc" = 0
 
 journey="$(find "$fixture/.scratch" -name journey.md 2>/dev/null | head -n 1)"

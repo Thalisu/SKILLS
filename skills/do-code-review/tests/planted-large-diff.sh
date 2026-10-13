@@ -13,9 +13,8 @@ trap 'cd /; rm -rf "$tmp"' EXIT
 
 fixture="$tmp/fixture"
 mkdir "$fixture"
-yq -r '.context.scaffold_script // ""' "$case_file" >"$tmp/scaffold.sh" 2>"$tmp/extract.log"
 scaffold_rc=0
-(cd "$fixture" && bash "$tmp/scaffold.sh") >"$tmp/scaffold.log" 2>&1 || scaffold_rc=$?
+lay_scaffold "$case_file" "$fixture" || scaffold_rc=$?
 
 run_shards() { # $1.. the Shard script's arguments, from the scaffolded repository: its stdout in $out, its stderr in $err, its exit in $rc
   rc=0
