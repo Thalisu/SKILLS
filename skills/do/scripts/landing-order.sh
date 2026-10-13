@@ -14,8 +14,14 @@
 # A repository group, in this order: repository (the Build repository name as the Tickets write
 # it), repository_location (its location in the Spec's ## Repositories section, unlisted with no
 # entry), repository_here (yes when that location's main worktree is the session's main checkout),
-# repository_state (landed or unlanded), repository_ticket (the absolute path of the
-# highest-numbered Ticket built in it, the argument of its landing command).
+# repository_state (landed, unlanded or unreadable), repository_reason only on unreadable
+# (unlisted, missing or not-git), repository_ticket (the absolute path of the highest-numbered
+# Ticket built in it, the argument of its landing command).
+#
+# The state is read from that repository's own refs, by spec-branch.sh probe run inside it: landed
+# when its Spec branch is gone or its tip is on its upstream, unlanded while the branch holds a
+# commit its upstream lacks, unreadable when the location cannot be entered. Nothing an earlier
+# attempt wrote is read.
 #
 # Landing order: repository A is blocked by repository B when a Ticket built in A names, in Blocked
 # by, a Ticket built in B. A provider comes before what consumes it, and among the repositories no
@@ -51,13 +57,20 @@ esac
   exit 2
 }
 
-# The state is that repository's own refs, so the probe runs with its cwd inside it.
-repository_state_of() { # $1 location, $2 the Ticket's absolute path: prints landed or unlanded
-  local probe
-  probe="$(cd "$1" && bash "$here/spec-branch.sh" probe "$2")"
+# The state is that repository's own refs, so the probe runs with its cwd inside it. With every
+# Ticket of it resolved its Spec branch was cut, and spec-branch.sh removes one only once it landed,
+# so a branch that is gone landed too.
+repository_state_of() { # $1 name, $2 location or unlisted, $3 the Ticket's absolute path: prints landed, unlanded, or unreadable and its reason
+  local check probe
+  check="$(build_check_of "$1" "${2/#unlisted/none}")"
+  case "$check" in
+    here | elsewhere) ;;
+    *) echo "unreadable $check" && return ;;
+  esac
+  probe="$(cd "$2" && bash "$here/spec-branch.sh" probe "$3")"
   case "$(sed -n 's/^spec_landed=//p' <<<"$probe")" in
-    yes) echo landed ;;
-    *) echo unlanded ;;
+    no) echo unlanded ;;
+    *) echo landed ;;
   esac
 }
 
@@ -126,6 +139,8 @@ while IFS= read -r name; do
   echo "repository=$name"
   echo "repository_location=$location"
   if [ "$(build_check_of "$name" "$location")" = here ]; then echo "repository_here=yes"; else echo "repository_here=no"; fi
-  echo "repository_state=$(repository_state_of "$location" "$file")"
+  state="$(repository_state_of "$name" "$location" "$file")"
+  echo "repository_state=${state%% *}"
+  case "$state" in unreadable*) echo "repository_reason=${state#* }" ;; esac
   echo "repository_ticket=$file"
 done <<<"$ordered"

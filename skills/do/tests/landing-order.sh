@@ -54,4 +54,49 @@ else
   dump_out
 fi
 
+state_of() { # $1 repository name: the repository_state of its group in the caller's $out, on stdout
+  awk -v r="repository=$1" '$0 == r { on = 1; next } /^repository=/ { on = 0 } on && sub(/^repository_state=/, "")' <<<"$out"
+}
+touched=""
+reads() { # $1 label, $2 the repository the record is read from, $3 the state wanted of land-api, $4 the state wanted of land-web
+  # appends the label to $touched when the call changed a ref or a working file of either repository
+  local before
+  before="$(cd "$home" && both_states "$build")"
+  cd "$2" || exit 1
+  run "$issues/03-api-export.md"
+  if [ "$rc" = 0 ] && [ "$(state_of land-api)" = "$3" ] && [ "$(state_of land-web)" = "$4" ]; then ok "$1"; else
+    fail "$1 (exit $rc, wanted land-api $3 and land-web $4)"
+    dump_out
+  fi
+  [ "$(cd "$home" && both_states "$build")" = "$before" ] || touched="$touched; $1"
+}
+
+# Each state is moved with plain git between two identical calls, and the two repositories never
+# share one, so a record kept from an earlier call or read off the session's repository alone
+# answers wrong for one of them.
+g -C "$home" merge -q --ff-only spec/export ||
+  echo "FAIL  fixture: the upstream of land-web's Spec branch could not be fast-forwarded to its tip"
+reads "from the unlanded repository, a sibling whose Spec branch tip reached its upstream reads landed" \
+  "$build" unlanded landed
+reads "from the repository whose Spec branch tip reached its upstream, a sibling whose Spec branch holds a commit its upstream lacks reads unlanded" \
+  "$home" unlanded landed
+g -C "$home" branch -q -D spec/export ||
+  echo "FAIL  fixture: land-web's Spec branch could not be removed"
+reads "from the unlanded repository, a sibling whose Spec branch was already removed reads landed" \
+  "$build" unlanded landed
+reads "from the repository whose Spec branch was already removed, it reads landed and its unlanded sibling unlanded" \
+  "$home" unlanded landed
+g -C "$build" merge -q --ff-only spec/export ||
+  echo "FAIL  fixture: the upstream of land-api's Spec branch could not be fast-forwarded to its tip"
+reads "the same call, once the sibling's upstream reached its Spec branch tip, reads that sibling landed" \
+  "$home" landed landed
+g -C "$build" branch -q -D spec/export ||
+  echo "FAIL  fixture: land-api's Spec branch could not be removed"
+reads "the same call, once the sibling's Spec branch is removed too, still reads both repositories landed" \
+  "$home" landed landed
+reads "from the sibling, with both Spec branches removed, both repositories read landed" \
+  "$build" landed landed
+expect "no reading of the record changes a ref or a file of either repository or of the Home feature folder${touched:+ (changed by:${touched#;})}" \
+  test -z "$touched"
+
 exit "$((fails > 0))"
