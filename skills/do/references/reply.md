@@ -257,7 +257,11 @@ worktree line comes before the audit line and before the hand-over, shaped-by an
       line of its own before them, `Push: git push <the developer's branch>`, since the Reply's
       last line is then another repository's command. A landing command typed in the next
       repository, the run that entered on `verdict=resume-final`, carries the same lines off the
-      same second read, so every Reply of the sequence has one shape.
+      same second read, so every Reply of the sequence has one shape. When that read prints
+      `next_landing=done`, the landing was the last one: after `Landed:`, naming every repository
+      of the feature, and `Still to land: none`, one line more,
+      `Every repository of the feature landed`, with no repository to open a session in, no
+      `/do` line and no `Push:` line, since the push is then the Reply's last line.
     - **Waiting** (the landing record read `verdict=wait`):
       `Final integration: not started, the feature is complete and <own=> waits for <waits_for=> to land`,
       naming `waits_for_location=` as where that repository is. Nothing was claimed and nothing
@@ -291,6 +295,16 @@ worktree line comes before the audit line and before the hand-over, shaped-by an
     Still to land: orders-service
     orders-service: open a session in /home/dev/orders-service
     /do /home/dev/orders-service/.scratch/hold-disputed-invoice/issues/04-show-the-hold.md
+    ```
+
+    On the landing command typed in `orders-service` after it, the last repository left, a
+    Reply that ends on `git push main`:
+
+    ```
+    spec/hold-disputed-invoice removed
+    Landed: billing-service, orders-service
+    Still to land: none
+    Every repository of the feature landed
     ```
 
     And on a run in `orders-service` that completed the feature before `billing-service` landed:
@@ -443,8 +457,9 @@ Ten sections, in this order, each one present in every Reply that carries sectio
     read off the landing record instead, its second read on a run that landed: while
     `next_landing=` reads anything but `done`, the line is `/do <next_landing_ticket=>` and
     nothing else, the command of the next repository to land, and the push stands on its own
-    line among the Final integration lines. Once it reads `done`, the push is the last line
-    again. A run whose landing record read `verdict=wait` landed nothing and ends on the same
+    line among the Final integration lines. Once it reads `done`, every repository of the
+    feature landed and no landing command is left to hand over: the push is the last line
+    again, `git push <the developer's branch>` and nothing else, as a landing ends today. A run whose landing record read `verdict=wait` landed nothing and ends on the same
     `/do <next_landing_ticket=>`, which is the first of the landing commands it listed. A run whose claim read `taken` has nothing to type, and
     its line says the Spec is being integrated by another run. A run whose Final integration
     stopped ends on `/do <the run's Ticket>`, the command it was started with and nothing else
