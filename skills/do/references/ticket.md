@@ -191,7 +191,7 @@ the tracker file describes. Before anything is written:
 
 The first write comes after those stops and never before one of them. On `verdict=resume-final`
 the run makes no Digest decision and forks no reader: it goes straight to the stopped Final
-integration of the Resume section. On a resume the run reads
+integration of the Resume section, whose first step reads the landing record. On a resume the run reads
 `resume-state.sh` before the Digest decision, as the Resume section says. On `verdict=land` the run
 forks no reader, and neither does it on any resume whose `review=` line names a Review, whatever the
 verdict printed, `land` or `integration` on a rebase stopped after that review, and whatever the
@@ -444,7 +444,21 @@ integration of [mechanics.md](mechanics.md) from where it stopped, and nothing b
 no Plan, no Builder, no `do/<slug>` worktree. Steps 1 to 9 of the checklist are never reached, so
 they are neither ticked nor skipped, and the Reply's Run section carries steps 0, 9a and 10.
 
-1. **The claim.** `bash <skill-dir>/scripts/final-claim.sh claim <the Ticket's path>`, before
+The same entry is the landing command of a feature across repositories: a `do` on a `resolved`
+Ticket built in the session's repository, typed there once every repository it consumes from has
+landed, per
+[ADR 0084](../../../docs/adr/0084-a-feature-across-repositories-lands-in-sequence-and-what-landed-stays.md).
+Nothing stopped in that repository, since its Final integration never started, and the steps are
+the same: the claim is fresh, the state reads `verdict=restart` with `worktree=absent`, and from
+there the run is a first Final integration of this repository and of no other, with the **Gate**
+of this project's facts and the Review at the `review_file=` path the claim prints.
+
+1. **The landing record.** `bash <skill-dir>/scripts/landing-order.sh <the Ticket's path>`, before
+   the claim and in a call of its own, as step 9a reads it on the run that completes the feature:
+   a repository is claimed only once the record says it is its turn. On `verdict=land` no
+   repository this one's Tickets are blocked by is still unlanded, and the run goes on to the
+   claim. The record's lines are kept as printed, `repositories=` among them.
+2. **The claim.** `bash <skill-dir>/scripts/final-claim.sh claim <the Ticket's path>`, before
    anything is read from the tree, so two resumes never both walk it.
    - `claim=claimed` with `takeover=yes`: the run that stopped yielded its claim and this run holds
      it now. The `previous_ticket=`, `previous_claimed_at=` and `yielded_at=` lines are recorded
@@ -456,7 +470,7 @@ they are neither ticked nor skipped, and the Reply's Run section carries steps 0
      it is dead, run the yield command and then the same `/do` again. The run composes no command
      of its own for it and never yields another holder's claim itself.
    - `claim=failed`, exit 3: the run stops as blocked with the `reason=` line quoted.
-2. **Where it stopped.** `bash <skill-dir>/scripts/final-state.sh <the Ticket's path>`, read once,
+3. **Where it stopped.** `bash <skill-dir>/scripts/final-state.sh <the Ticket's path>`, read once,
    the Final integration's counterpart of `resume-state.sh`: the paths the claim printed, the
    `token_slug=` the review token is stored under, the claim as it now stands, `worktree=`, and for
    a tree that is there `rebase=`, the `uncommitted=` lines, the stop record of an open rebase in
@@ -490,7 +504,7 @@ they are neither ticked nor skipped, and the Reply's Run section carries steps 0
      already read, never a second review of the Spec.
    - Exit 2: the tree is on a detached HEAD or on another branch with no rebase open. The run stops
      as blocked in one line naming the tree and the script's reason.
-3. **The rest of the final integration**, from the step the verdict named, ending in the release on
+4. **The rest of the final integration**, from the step the verdict named, ending in the release on
    `landed at <commit>`. A `not landed: target moved` is answered as on a first Final integration,
    by the loop of the review in [mechanics.md](mechanics.md), for as long as the target's tip keeps
    changing.

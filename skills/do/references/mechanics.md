@@ -670,8 +670,13 @@ that read, this repository among the second.
 `verdict=resume-final` enters here and nowhere earlier, per the stopped Final integration of the
 Resume in [ticket.md](ticket.md). Nothing that landed on the Spec branch is built again: the run
 forks no reader, no Planner and no Builder and cuts no worktree for a Ticket. It differs from a
-first Final integration in three places:
+first Final integration in four places:
 
+- **The landing record is read at the entry.** The same `landing-order.sh` call, before the claim,
+  and only `verdict=land` goes on to it. This is how the landing command of a feature across
+  repositories runs: typed in a session of the next repository to land, it finds no claim, no
+  tree and no Review there, so every step below is that repository's first, run on its own
+  project's facts, and no ref of another repository moves.
 - **The claim is a takeover.** The same `claim` call takes over a claim that was yielded and
   prints `takeover=yes` with the holder it replaced; of two resumes at once exactly one reads
   `claimed`. A claim nobody yielded reads `claim=taken`: the run stops in one line, writes nothing,
