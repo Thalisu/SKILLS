@@ -410,6 +410,33 @@ Every repository of the feature landed
 git push main
 ```
 
+A landing command typed in the wrong repository lands nothing, so the sequence is safe to repeat
+and safe to start from the wrong end:
+
+| Where you typed it | What the run does |
+|---|---|
+| a repository that already landed, while another is still to land | nothing: one line says this repository already landed, then the reply names what is still to land and ends on its command |
+| a repository whose provider has not landed | stops before it claims or integrates anything: one line names the repository that has to land first, the next says where to open a session for it, and the last is its command |
+
+The first is read from the repository's own branches, with no record of the earlier landing:
+
+```
+Final integration: not started, billing-service already landed
+Landed: billing-service
+Still to land: orders-service
+orders-service: open a session in /home/dev/orders-service
+/do /home/dev/orders-service/.scratch/hold-disputed-invoice/issues/04-show-the-hold.md
+```
+
+The second names the first repository in order that has not landed, the only one whose command
+lands anything yet. In a chain of three that is not always the one yours consumes from directly:
+
+```
+Final integration: not started, billing-service has to land first
+billing-service: open a session in /home/dev/billing-service
+/do /home/dev/orders-service/.scratch/hold-disputed-invoice/issues/02-hold-the-invoice.md
+```
+
 Each repository claims its own Final integration, so the claim, the Loss ledger and the Review
 beside the Spec carry the repository's name in such a feature: `spec.billing-service.integration.claim`,
 `spec.billing-service.ledger.md`, `spec.billing-service.review.md`. A feature of one repository
@@ -444,8 +471,8 @@ apart:
 
 | The door finds | What the run does |
 |---|---|
-| the Spec branch there and not landed, every Ticket of the Spec `resolved` | resumes the Final integration, and only that, or starts it when this is the landing command of a repository whose providers all landed |
-| the Spec branch landed, or never there | stops in one line, as on any `resolved` Ticket, and writes nothing |
+| the Spec branch there and not landed, every Ticket of the Spec `resolved` | resumes the Final integration, and only that, or starts it when this is the landing command of a repository whose providers all landed; with a provider still unlanded it stops and names the repository to land first |
+| the Spec branch landed, or never there | stops in one line, as on any `resolved` Ticket, and writes nothing; in a feature across repositories with one still to land, the stop says this repository already landed and ends on the command of the next |
 | a Ticket of the Spec still open | stops in one line the same way: there is no Final integration to resume yet |
 
 The resume takes over the yielded claim, then reads where the integration stopped: a rebase left
