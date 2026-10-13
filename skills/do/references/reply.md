@@ -255,7 +255,9 @@ worktree line comes before the audit line and before the hand-over, shaped-by an
       repository left, in the record's order. While that read
       names a next landing, its `next_landing=` line reading anything but `done`, the push is a
       line of its own before them, `Push: git push <the developer's branch>`, since the Reply's
-      last line is then another repository's command.
+      last line is then another repository's command. A landing command typed in the next
+      repository, the run that entered on `verdict=resume-final`, carries the same lines off the
+      same second read, so every Reply of the sequence has one shape.
     - **Waiting** (the landing record read `verdict=wait`):
       `Final integration: not started, the feature is complete and <own=> waits for <waits_for=> to land`,
       naming `waits_for_location=` as where that repository is. Nothing was claimed and nothing

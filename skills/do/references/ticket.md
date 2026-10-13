@@ -507,7 +507,10 @@ of this project's facts and the Review at the `review_file=` path the claim prin
 4. **The rest of the final integration**, from the step the verdict named, ending in the release on
    `landed at <commit>`. A `not landed: target moved` is answered as on a first Final integration,
    by the loop of the review in [mechanics.md](mechanics.md), for as long as the target's tip keeps
-   changing.
+   changing. After `claim=released`, when the record of step 1 printed `repositories=` above 1,
+   the same `landing-order.sh` call a second time, as step 9a makes it: the Reply's `Landed:` and
+   `Still to land:` lines, the lines of each repository still to land and its last line are copied
+   from this second read, which counts this repository as landed, and never from the first.
 
 A resume that stops again yields the claim it holds before its Reply, as every stop of the Final
 integration does, so the next `/do` can take it over. Its Reply says the Final integration stopped
