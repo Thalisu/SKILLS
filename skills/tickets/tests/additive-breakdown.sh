@@ -51,6 +51,20 @@ one_question=(
   "one question" "single question" "same question" "closing question" "approval question"
   "the question"
 )
+changes_it=("chang" "edit" "amend" "alter" "modif" "rewrit")
+moved_out=(
+  "moved out" "moves out" "moving out" "taken out" "takes out" "lifted out" "removed from"
+  "leaves it" "leaves the ticket" "moved to" "moves to" "moved from" "moves from" "handed to"
+  "handed over to" "goes to"
+)
+edge_added=(
+  "added" "adds" "gains" "gained" "new edge" "new blocker" "now waits" "now blocked"
+  "now also blocked" "now also waits"
+)
+untouched=(
+  "untouched" "unchanged" "not touched" "not changed" "left as it is" "left as they are"
+  "stays as it is" "stay as they are" "left alone" "no change"
+)
 
 echo "# SKILL.md / ## 1: open Tickets that leave something uncovered are no stop"
 # shellcheck disable=SC2034 # the carries_* assertions read $flat
@@ -77,6 +91,33 @@ carries_each "each new ticket is numbered after the feature's last one" \
 carries "each new ticket carries its build repository" "build repository"
 carries_any "each new ticket carries the fields of any breakdown" "${any_fields[@]}"
 carries_any "the message still ends on the one question" "${one_question[@]}"
+
+echo "# SKILL.md / ## 4: the existing Tickets the cut changes, and the ones it leaves alone"
+# The yes approves an edit of a Ticket another run may have claimed, so the edit is on the page the
+# developer answers from: what leaves the Ticket, where it goes, and what the Ticket now waits on.
+carries_each "the breakdown shows each existing ticket the cut changes" \
+  "existing ticket" "open ticket" "published ticket" "ticket already" "tickets already" -- \
+  "${changes_it[@]}"
+carries_each "with the criterion moved out of it" \
+  "criteri" -- \
+  "${moved_out[@]}"
+carries_each "quoted, and with the new ticket it moves to" \
+  "quot" "verbatim" "word for word" "written out" "in full" "as written" -- \
+  "moved to" "moves to" "goes to" "handed to" "handed over to" "now sits in" "now lives in" \
+  "ticket it moves" "ticket it moved" "ticket that takes it" "ticket taking it" "its new ticket"
+carries_each "and with the blocked by edge added to it" \
+  "blocked by" -- \
+  "${edge_added[@]}"
+carries_any "every other existing ticket is named as untouched" "${untouched[@]}"
+at_moved="$(first_at "${moved_out[@]}")"
+at_untouched="$(first_at "${untouched[@]}")"
+label="the changed and the untouched tickets are shown before the one question"
+if [ "$at_moved" -gt 0 ] && [ "$at_untouched" -gt 0 ]; then
+  passage="$flat"
+  flat="${flat:$((at_moved > at_untouched ? at_moved : at_untouched))}"
+  carries_any "$label" "${one_question[@]}"
+  flat="$passage"
+else fail "$label (moved criterion at $at_moved, untouched at $at_untouched)"; fi
 
 echo "# evals/adds-only-the-missing-tickets: the prompt"
 prompt="$(cat "$case_dir/prompt.md" 2>/dev/null)"
@@ -107,6 +148,31 @@ carries_each "the message ends on the one approval question" \
   "${one_question[@]}" -- \
   "ends" "end " "last line" "final line" "closes" "closing"
 
+echo "# evals/adds-only-the-missing-tickets: a grader asks for the changed and the untouched tickets"
+grader="$case_dir/graders/existing-tickets-shown-as-changed-or-untouched.md"
+expect "the case holds the existing-tickets-shown-as-changed-or-untouched grader" test -f "$grader"
+# shellcheck disable=SC2034 # field reads the frontmatter the caller left in $out
+out="$(frontmatter "$grader" 2>/dev/null)"
+expect "that grader is judged by a model" test "$(field type)" = "llm"
+flat="$(field criteria | tr '\n' ' ' | tr -s ' ')"
+flat="${flat,,}"
+expect "that grader carries its criteria" test -n "${flat// /}"
+carries_each "ticket 02 is shown as changed" \
+  "02" -- \
+  "${changes_it[@]}"
+carries_each "with the email criterion moved out of it to the new ticket" \
+  "email" -- \
+  "criteri" -- \
+  "${moved_out[@]}" -- \
+  "new ticket" "04"
+carries_each "and a blocked by edge to the new ticket added to it" \
+  "blocked by" -- \
+  "${edge_added[@]}"
+carries_each "tickets 01 and 03 are named as untouched" \
+  "01" -- \
+  "03" -- \
+  "${untouched[@]}"
+
 echo "# evals/adds-only-the-missing-tickets: the fixture is an open feature with something uncovered"
 fixture="$tmp/fixture"
 mkdir "$fixture"
@@ -135,5 +201,14 @@ label="no published ticket carries the finding's behaviour, so it is uncovered"
 if [ -n "$finding" ] && [ "${#tickets[@]}" -gt 0 ] && ! grep -qiF -- "$behaviour" "${tickets[@]}"; then
   ok "$label"
 else fail "$label"; fi
+
+# The grader above asks for a changed Ticket and for untouched ones, so the fixture has to hold both:
+# the Ticket the finding names, still carrying the criterion that leaves it, and another beside it.
+named="$(sed -nE 's/^- Moved by the run on Ticket ([0-9]+).*/\1/p' <<<"$finding")"
+changed="$(find "$feature/issues" -maxdepth 1 -name "${named:-none}-*.md" 2>/dev/null | head -n 1)"
+expect "the ticket the finding names is published in the feature" test -n "$changed"
+expect "that ticket still holds the email criterion the cut moves out" \
+  grep -qiE '^- \[ \] .*email' "${changed:-/dev/null}"
+expect "another published ticket is there to be named untouched" test "${#tickets[@]}" -gt 1
 
 exit $((fails > 0))

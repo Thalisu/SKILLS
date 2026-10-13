@@ -127,6 +127,7 @@ The same reading answers a command that was repeated and one typed by accident: 
 
 - an uncovered path is cut as any path is;
 - an uncovered finding line becomes a slice built in the repository the line names, with the line's behaviour as its acceptance criteria;
+- the ticket a finding line names is the one open ticket the cut changes. Its criterion stating the line's behaviour moves to the new slice, since its own repository cannot prove it, and it gains a blocking edge to the new slice, whose work it reads. Nothing else of it changes: its number, its status, its other criteria and its other blockers stay;
 - what the open tickets cover is left out of the cut. No open ticket is recut, renumbered or deleted, and a new slice that reads what an open ticket writes is blocked by that ticket, named by its number.
 
 ## 2. Explore the code
@@ -334,6 +335,16 @@ After an additive cut (step 1) the breakdown is the addition and nothing else. T
 
 - **Number**: each new ticket is shown under the number it will be published with, counted on after the feature's last one, in dependency order among the new tickets. With tickets up to `03` in the folder, the first new ticket is `04`.
 - **Fields**: each new ticket carries the same fields as a ticket of any breakdown, written out the same way, its Build repository among them when the spec has a Repositories section. A blocker that is an open ticket is named in `Blocked by` by its number and title.
+
+After the new tickets, the open tickets, every one of them accounted for, since the yes also approves an edit to a ticket another run may have claimed:
+
+- **Changed**: each open ticket the cut changes, by its number and title, with the criterion moved out of it, quoted as the ticket writes it, the new ticket it moves to, and the `Blocked by` edge added to it, naming the new ticket it now waits on.
+- **Untouched**: every other open ticket, by its number and title, on one line.
+
+<example>
+Changed: 02 "Put the Invoice on hold". The criterion "Once the Invoice is held, the customer receives the email" moves out of it to 04, and 02 gains `Blocked by` 04, which sends the email it reads.
+Untouched: 01 "Mark an Order as disputed", 03 "See the hold on the Order's page".
+</example>
 
 The closing parts follow as above (the splits, folds and placements among the new tickets, what was left out) and the message ends on the same one question.
 
