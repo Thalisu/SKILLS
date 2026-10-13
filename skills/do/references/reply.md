@@ -472,6 +472,15 @@ Yours: outward: cut the moved behaviour for <repository=> with the command below
   hand-over of the `ticket` door in [ticket.md](ticket.md) words it for a Ticket built in another
   repository. When `home_name=` reads `none`, the line names the location alone. On `here=yes` no
   such line is written. Neither form carries a shell line.
+- When the stop came on a Builder's return, the `stopped:` line of work for another repository
+  that the Build step of [ticket.md](ticket.md) routes here, the same lines stand, filled from that
+  line where an item's values would be. Three things change, all of them what the build already
+  left. The first line opens `Stopped at the build step:` in place of
+  `Stopped at the Plan, before anything was built:`. The status line reads `claimed`. And one line
+  right after it names the worktree, its branch and the commits already made as kept, for the
+  next `/do` on the Ticket to resume from. These lines then close a message that carries the Run
+  section of a run stopped after work exists, and the bullet below on no Run section holds for the
+  stop at the Plan alone.
 - `/tickets <spec>` is the Reply's last line, with nothing else on it and nothing after it. The
   message carries no Run section and no other command, neither `/do` nor `/discuss` nor a shell
   line: the stop is a refusal of the Plan step, and these lines say everything the run did.

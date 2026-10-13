@@ -1124,6 +1124,17 @@ Route on the first line:
   a reason to end the run as blocked, and each such return carries at least one new commit, since
   the budget is asked only after one. A reason the session cannot clear ends the run as blocked,
   with the worktree and its branch named.
+  One reason is neither kind: work for another repository, the `stopped:` line opening
+  `work for another repository:` in the shape [builder.md](builder.md) fixes, a behaviour that
+  needs a change in a repository this run does not build in. The Builder is not forked again and
+  nobody builds around the behaviour. The run takes the stop step 1 makes on an `Elsewhere:` item,
+  under **Work for another repository**, and words none of it a second time: the line's behaviour,
+  repository and location stand where the item's `Elsewhere:`, `Belongs to:` and `Location:`
+  stand, `spec-finding.sh` is run once with them, the stop is the `outward` Handover class, and
+  the Reply is the one [reply.md](reply.md) fixes for that stop, ending on `/tickets <spec>`. What
+  differs is what the build already left, since this stop comes after the claim: the Ticket stays
+  `claimed`, and the worktree, its branch and the commits already on it are kept and named in the
+  Reply, as any blocked build leaves them, for the next `/do` on the Ticket to resume from.
 
 When `do-impeccable` returned `built` and the check of the main checkout read `verdict=untouched`,
 the run takes the same path from here as after a Builder: the diff of step 4, the Gate of step 5,
@@ -1312,8 +1323,8 @@ developer's branch named as its next step. A run whose claim read `taken`, or wh
 integration stopped, ends on the lines [reply.md](reply.md) fixes for it. A
 run that stopped on an Extreme fork, or on a Design fork no `choice-taker` ruled, ends instead on
 the `/discuss` command the forks in [forks.md](forks.md) fix, as its last line. A run that stopped
-at the Plan on work for another repository ends on `/tickets <spec>`, in the message
-[reply.md](reply.md) fixes for that stop. A run that forked
+on work for another repository, at the Plan or on a Builder's return, ends on `/tickets <spec>`, in
+the message [reply.md](reply.md) fixes for that stop. A run that forked
 `do-impeccable`, on a Front-end ticket of a Spec reading `Front-end: impeccable`, writes no Plan
 line in its Run section, since no Planner ran, and its behaviours list is the Ticket's acceptance
 criteria, each with the commit beside it, as [reply.md](reply.md) says for both. Its Reply puts the
