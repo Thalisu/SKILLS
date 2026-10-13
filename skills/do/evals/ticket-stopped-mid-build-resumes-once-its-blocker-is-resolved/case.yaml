@@ -1,0 +1,291 @@
+name: ticket-stopped-mid-build-resumes-once-its-blocker-is-resolved
+tags: [playbook, ticket, run, resume, repositories, plan]
+runs: 1
+max_turns: 150
+timeout_seconds: 2400
+allowed_tools: [Bash, Read, Edit, Write, Glob, Grep, Agent, Skill]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # The session runs in orders-service, the Home repository, on Ticket 02, built there. An earlier
+    # run stopped Ticket 02 mid-build on the email template, which lives in notifications-service:
+    # the Ticket reads claimed and its worktree holds one commit, whose Behaviour: line is worded
+    # as the first Plan worded it and not as the criterion reads. `tickets` has since cut the
+    # template as Ticket 03, built in notifications-service and already resolved, and left Ticket 02
+    # two criteria. The Plan of the stopped run sits beside the Ticket, cut from three criteria, so
+    # it is stale. The run resumes in the worktree, cuts the Plan again with the built behaviour's
+    # line handed to the Planner, ticks that behaviour off its commit and builds the second alone.
+    set -e
+    mkdir -p src .scratch/hold-disputed-invoice/issues ../billing-service/src \
+      ../notifications-service/src ../notifications-service/templates
+    home="$(pwd -P)"
+    billing="$(cd ../billing-service && pwd -P)"
+    notifications="$(cd ../notifications-service && pwd -P)"
+
+    cat > package.json <<'JSON'
+    {
+      "name": "orders-service",
+      "version": "1.0.0",
+      "private": true,
+      "scripts": {
+        "test": "node --test"
+      }
+    }
+    JSON
+    cat > README.md <<MD
+    # orders-service
+
+    Records Orders and their status. \`node --test\` runs the suite.
+
+    ## What is not here
+
+    This repository sends no email and holds no email template. Every customer email is rendered and
+    sent by notifications-service, a repository of its own, checked out on this machine at
+    $notifications. Its templates are the files under \`templates/\` there, one per event, and its
+    \`src/render.js\` fills them. orders-service only posts an event name and a payload to it,
+    through \`src/notify.js\`, and a template that does not exist there makes the post fail with
+    \`unknown event\`.
+    MD
+    cat > src/order.js <<'JS'
+    const orders = new Map();
+    function record(id) { orders.set(id, { id, status: "open" }); return orders.get(id); }
+    function lookup(id) { return orders.get(id); }
+    module.exports = { record, lookup };
+    JS
+    cat > src/order.test.js <<'JS'
+    const test = require("node:test");
+    const assert = require("node:assert");
+    const { record, lookup } = require("./order");
+
+    test("a recorded Order reads open", () => {
+      record("o-1");
+      assert.equal(lookup("o-1").status, "open");
+    });
+    JS
+    cat > src/notify.js <<'JS'
+    // Posts an event to notifications-service, which owns the template of every event.
+    async function notify(post, event, payload) { return post("/events", { event, payload }); }
+    module.exports = { notify };
+    JS
+
+    cat > ../billing-service/README.md <<'MD'
+    # billing-service
+
+    Opens Invoices for Orders.
+    MD
+    cat > ../billing-service/src/invoice.js <<'JS'
+    const invoices = new Map();
+    function open(orderId) { invoices.set(orderId, { orderId, status: "open" }); return invoices.get(orderId); }
+    module.exports = { open };
+    JS
+
+    cat > ../notifications-service/README.md <<'MD'
+    # notifications-service
+
+    Renders and sends every customer email. One template per event under `templates/`, filled by
+    `src/render.js`.
+    MD
+    cat > ../notifications-service/templates/order-recorded.txt <<'TXT'
+    Subject: Order {{id}} recorded
+
+    We recorded your Order {{id}}.
+    TXT
+    cat > ../notifications-service/templates/dispute-received.txt <<'TXT'
+    Subject: Dispute on Order {{id}} received
+
+    We received your dispute on Order {{id}}.
+    TXT
+    cat > ../notifications-service/src/render.js <<'JS'
+    const fs = require("node:fs");
+    const path = require("node:path");
+    function render(event, payload) {
+      const file = path.join(__dirname, "..", "templates", `${event}.txt`);
+      if (!fs.existsSync(file)) throw new Error("unknown event");
+      return fs.readFileSync(file, "utf8").replace(/{{(\w+)}}/g, (_, key) => payload[key]);
+    }
+    module.exports = { render };
+    JS
+
+    cat > .scratch/hold-disputed-invoice/spec.md <<MD
+    # Hold the Invoice of a disputed Order
+
+    Journey: not needed, two short paths with no branching
+    Status: ready-for-agent
+
+    ## Problem Statement
+
+    A customer disputes an Order, nobody tells them the dispute was received, and the billing
+    service keeps chasing its open Invoice.
+
+    ## Solution
+
+    A support agent marks an Order as disputed, the customer gets an email saying the dispute was
+    received, and the billing console puts the Order's Invoice on hold.
+
+    ## Repositories
+
+    - orders-service (Home repository): $home
+    - billing-service: $billing
+    - notifications-service: $notifications
+
+    ## User Stories
+
+    1. As a support agent, I want to mark an Order as disputed, so that the dispute is on record where the Order lives
+    2. As a customer, I want an email saying my dispute was received, so that I know somebody is looking at it
+    3. As a support agent, I want to put the Invoice of a disputed Order on hold, so that the customer is not chased while the dispute is open
+
+    ## Implementation Decisions
+
+    - A disputed Order keeps its id and reads the status disputed.
+    - The email is the event dispute-received, posted by the service that records the dispute.
+    - Moved by the run on Ticket 02: Mark an Order disputed and tell the customer at the Plan step: the dispute-received email template renders the Order's id in its subject and in its body. Belongs to: notifications-service.
+
+    ## Testing Decisions
+
+    - Taken from the conversation: each module is tested through its exported functions with Node's own test runner.
+
+    ## Out of Scope
+
+    - Lifting a hold once the dispute is closed.
+    MD
+
+    cat > .scratch/hold-disputed-invoice/issues/01-hold-the-invoice-of-a-disputed-order.md <<'MD'
+    # 01: Hold the Invoice of a disputed Order
+
+    **What to build:** A support agent puts the Invoice of a disputed Order on hold from the billing console.
+
+    **Blocked by:** 02 Mark an Order disputed and tell the customer
+
+    **Status:** ready-for-agent
+
+    **Build repository:** billing-service
+
+    - [ ] Hold on the Invoice of a disputed Order sets the Invoice's status to held
+
+    ## Evidence
+    MD
+
+    cat > .scratch/hold-disputed-invoice/issues/02-mark-an-order-disputed-and-tell-the-customer.md <<'MD'
+    # 02: Mark an Order disputed and tell the customer
+
+    **What to build:** A support agent marks an Order as disputed, the Order's lookup returns that status, and the event that sends the customer's email is posted.
+
+    **Blocked by:** 03 The dispute-received email template
+
+    **Status:** claimed
+
+    **Build repository:** orders-service
+
+    - [ ] Marking an Order disputed makes its lookup return the status disputed
+    - [ ] Marking an Order disputed posts the event dispute-received with the Order's id through the notify client
+
+    ## Evidence
+    MD
+
+    # The Plan the stopped run left beside Ticket 02, cut from the three criteria it held then: its
+    # two hashes are of files that have changed since, so it is stale.
+    cat > .scratch/hold-disputed-invoice/issues/02-mark-an-order-disputed-and-tell-the-customer.plan.md <<'MD'
+    ## Sources
+
+    ticket: .scratch/hold-disputed-invoice/issues/02-mark-an-order-disputed-and-tell-the-customer.md 1f0e5c2a9b7d4e6f8a1b3c5d7e9f0a2b4c6d8e0f
+    digest: .scratch/hold-disputed-invoice/issues/02-mark-an-order-disputed-and-tell-the-customer.digest.md 9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b
+
+    ## Grounding
+
+    Ticket: one file under the Feature folder's issues, its Status line walking ready-for-agent, claimed, resolved
+    Discovery: 2 FOUND · 0 DUPLICATE · 1 NOT_FOUND
+
+    ## Predicate
+
+    - A disputed Order reads the status disputed through lookup.
+    - Marking an Order disputed posts dispute-received with the Order's id through the notify client.
+    - The dispute-received email template renders the Order's id in its subject and in its body.
+
+    ## Map
+
+    `src/order.js` records and looks up Orders. `src/notify.js` posts an event to
+    notifications-service, which owns every template.
+
+    ## Behaviours
+
+    1. Behavior to prove: a disputed Order reads the status disputed through lookup
+       Relied on by: the support agent who records the dispute where the Order lives
+       Target: `src/order.js`
+       Origin: new feature
+    2. Behavior to prove: marking an Order disputed posts the event dispute-received with the Order's id through the notify client
+       Relied on by: the customer, who gets no email when the event is not posted
+       Target: `src/order.js`, through `src/notify.js`
+       Origin: new feature
+    3. Behavior to prove: the dispute-received email template renders the Order's id in its subject and in its body
+       Relied on by: the customer, who reads the email
+       Target: the template of the event dispute-received
+       Origin: new feature
+
+    ## Sketch
+
+    none: no boundary crossed
+    MD
+
+    cat > .scratch/hold-disputed-invoice/issues/03-the-dispute-received-email-template.md <<'MD'
+    # 03: The dispute-received email template
+
+    **What to build:** The customer's email saying the dispute was received: the template of the event dispute-received.
+
+    **Blocked by:** None (can start immediately)
+
+    **Status:** resolved
+
+    **Build repository:** notifications-service
+
+    - [x] The dispute-received email template renders the Order's id in its subject and in its body
+
+    ## Evidence
+
+    - Landed in notifications-service: templates/dispute-received.txt, with its render test green.
+    MD
+
+    printf '.scratch/\n' > .gitignore
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
+    for sibling in ../billing-service ../notifications-service; do
+      git -C "$sibling" init -q -b main
+      git -C "$sibling" -c user.email=fixture@example.com -c user.name=fixture add -A
+      git -C "$sibling" -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
+    done
+
+    # What the stopped run left in orders-service: the worktree, its branch and the first
+    # behaviour's commit, the test and the implementation together.
+    wt=.claude/worktrees/do-mark-an-order-disputed-and-tell-the-customer
+    git worktree add -q "$wt" -b do/mark-an-order-disputed-and-tell-the-customer
+    echo ".claude/worktrees/" >> .git/info/exclude
+    cat > "$wt/src/order.js" <<'JS'
+    const orders = new Map();
+    function record(id) { orders.set(id, { id, status: "open" }); return orders.get(id); }
+    function lookup(id) { return orders.get(id); }
+    function dispute(id) { const order = orders.get(id); if (order) order.status = "disputed"; return order; }
+    module.exports = { record, lookup, dispute };
+    JS
+    cat > "$wt/src/order.test.js" <<'JS'
+    const test = require("node:test");
+    const assert = require("node:assert");
+    const { record, lookup, dispute } = require("./order");
+
+    test("a recorded Order reads open", () => {
+      record("o-1");
+      assert.equal(lookup("o-1").status, "open");
+    });
+
+    test("a disputed Order reads the status disputed through lookup", () => {
+      record("o-2");
+      dispute("o-2");
+      assert.equal(lookup("o-2").status, "disputed");
+    });
+    JS
+    git -C "$wt" -c user.email=fixture@example.com -c user.name=fixture add src/order.js src/order.test.js
+    git -C "$wt" -c user.email=fixture@example.com -c user.name=fixture commit -q -F - <<'MSG'
+    feat(order): a disputed Order reads disputed
+
+    Behaviour: a disputed Order reads the status disputed through lookup
+    node --test src/order.test.js
+    MSG

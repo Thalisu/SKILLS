@@ -270,7 +270,13 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   Review, which skips it as the `verdict=land` bullet says: the run hashes the Ticket and the Digest afresh and
   reuses the Plan beside the Ticket while its `## Sources` section is still exactly those two
   records, matched on name, path and hash together, and a Plan whose section is not that exact
-  match is removed and the Planner forked again, per step 1, which writes the Plan anew at the same path. The list the loop works
+  match is removed and the Planner forked again, per step 1, which writes the Plan anew at the same path. That is the state of a
+  Ticket an earlier run stopped on mid-build for work in another repository, once its new blocker
+  is `resolved`: `tickets` moved a criterion out of it, so its hash changed. The brief of that fork
+  carries, under its `Built:` key, every `behaviour=` line the script printed, copied whole, per
+  [plan.md](plan.md), so the list cut again words each behaviour a commit carries as the commit
+  does and the tick below stays a match of text, never the session's reading of what a commit
+  proves. The list the loop works
   through is the Plan's `## Behaviours` section either way, never a list read off the commits;
   then every line
   whose behaviour a commit body carries is ticked with that commit's sha beside it, and a commit
