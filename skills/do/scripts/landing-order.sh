@@ -34,11 +34,17 @@
 # and its repository_ticket), or the single line next_landing=done when every group reads landed,
 # then verdict. An unreadable repository counts as not landed.
 #
-# verdict, first match wins: elsewhere (own is not the session's repository) · landed (own reads
+# On the first four verdicts below the record is ticket, repositories=0, the verdict's own detail
+# line (ambiguous=<NN> <detail>, or cycle=<name> <name> ...) and verdict, and no repository is
+# probed.
+#
+# verdict, first match wins: no-spec (the Ticket sits in no feature folder's issues/) · ambiguous
+# (a Ticket's status or Build repository line cannot be read) · incomplete (a Ticket of the folder
+# does not read resolved) · unordered (the repository edges hold a cycle) · elsewhere (own is not the session's repository) · landed (own reads
 # landed) · wait (waits_for is a name) · land (the session's repository may run its Final
 # integration now).
 #
-# Exit codes: 0 the record was read · 1 the edges hold a cycle · 2 usage, no file at the path, or
+# Exit codes: 0 the record was read · 1 ambiguous or unordered · 2 usage, no file at the path, or
 # not a git repository.
 # shellcheck disable=SC2154 # the readers of ticket-read.sh set word and detail.
 set -uo pipefail
@@ -85,20 +91,34 @@ repository_state_of() { # $1 name, $2 location or unlisted, $3 the Ticket's abso
   esac
 }
 
+refuse() { # $1 verdict, $2 optional detail line, $3 exit code: the record of a feature with no landing order to print
+  echo "ticket=${path#"$main"/}"
+  echo "repositories=0"
+  [ -z "${2:-}" ] || echo "$2"
+  echo "verdict=$1"
+  exit "${3:-0}"
+}
+
 declare -a names=()
 declare -A last_ticket=() repository_of=() providers=()
 
 read_tickets() { # fills names in order of lowest Ticket number, last_ticket, repository_of and providers
-  local file number name blocker
+  local file number name blocker open=0
   while IFS= read -r file; do
     number="$(basename "$file")"
-    number="$((10#${number%%-*}))"
+    number="${number%%-*}"
+    status_of "$file"
+    [ "$word" != ambiguous ] || refuse ambiguous "ambiguous=$number $detail" 1
+    [ "$word" = resolved ] || open=1
     build_repository_of "$file"
+    [ "$word" != ambiguous ] || refuse ambiguous "ambiguous=$number $detail" 1
     name="$word"
     [ -n "${last_ticket[$name]:-}" ] || names+=("$name")
     last_ticket[$name]="$file"
-    repository_of[$number]="$name"
+    repository_of[$((10#$number))]="$name"
   done < <(ticket_files "$(dirname "$path")")
+  # Nothing lands while a Ticket is open anywhere, so no repository is entered to read its state.
+  [ "$open" = 0 ] || refuse incomplete
   while IFS= read -r file; do
     build_repository_of "$file"
     name="$word"
@@ -135,11 +155,9 @@ landing_order() { # prints one repository name per line in landing order; return
   done
 }
 
+[ "$(bash "$here/spec-branch.sh" probe "$path" | sed -n 's/^spec_branch=//p')" != none ] || refuse no-spec
 read_tickets
-ordered="$(landing_order)" || {
-  echo "the repositories block each other in a cycle: ${ordered//$'\n'/, }" >&2
-  exit 1
-}
+ordered="$(landing_order)" || refuse unordered "cycle=${ordered//$'\n'/ }" 1
 
 echo "ticket=${path#"$main"/}"
 echo "repositories=${#names[@]}"

@@ -142,4 +142,37 @@ expect "no reading of the record changes a ref or a file of either repository or
 lands "from the consumer, once its provider has landed, the record closes on its own repository waiting for none, named as the next landing with its location and highest-numbered Ticket, and the verdict land" \
   "$home" land-web 01-web-screen.md 04-web-download.md
 
+incomplete() { # $1 label, $2 the repository the record is read from, $3 the argument Ticket's file name, $4 the ticket= value wanted
+  # the whole of stdout must be the three lines of an incomplete feature, with exit 0; stderr is read apart and only shown on a red
+  local want_out="ticket=$4
+repositories=0
+verdict=incomplete"
+  cd "$2" || exit 1
+  rc=0
+  out="$(bash "$script" "$issues/$3" 2>"$tmp/incomplete.err")" || rc=$?
+  if [ "$rc" = 0 ] && [ "$out" = "$want_out" ]; then ok "$1"; else
+    fail "$1 (exit $rc, wanted 0 and the whole of stdout: ${want_out//$'\n'/ · })"
+    dump_out
+    echo "      stderr: $(cat "$tmp/incomplete.err")"
+  fi
+}
+
+# These cases come last: they reopen Tickets and, in the end, repoint the Spec's Repositories list.
+ticket 04-web-download.md $'**Status:** claimed\n\n**Build repository:** land-web' '03, Title of 03-api-export'
+incomplete "from a repository whose own Tickets are resolved, while a Ticket built in the other repository reads claimed, the record is the Ticket, no repository and the verdict incomplete, with no group, own, waits_for or next_landing line" \
+  "$build" 03-api-export.md "$issues/03-api-export.md"
+ticket 04-web-download.md $'**Status:** ready-for-agent\n\n**Build repository:** land-web' '03, Title of 03-api-export'
+incomplete "the record is the same three lines while that Ticket reads ready-for-agent" \
+  "$build" 03-api-export.md "$issues/03-api-export.md"
+ticket 04-web-download.md $'**Status:** resolved\n\n**Build repository:** land-web' '03, Title of 03-api-export'
+ticket 03-api-export.md $'**Status:** claimed\n\n**Build repository:** land-api' '02, Title of 02-api-model'
+incomplete "from the Home repository, with the open Ticket built in the provider instead, the record is the same three lines and names the Ticket relative to the main checkout" \
+  "$home" 01-web-screen.md ".scratch/20261001-export/issues/01-web-screen.md"
+ticket 03-api-export.md $'**Status:** resolved\n\n**Build repository:** land-api' '02, Title of 02-api-model'
+ticket 04-web-download.md $'**Status:** claimed\n\n**Build repository:** land-web' '03, Title of 03-api-export'
+# A record that probed the other repository would have to enter this folder, which does not exist.
+repositories_spec "$home/.scratch/20261001-export" "- land-web (Home repository): $tmp/land-gone" "- land-api: $build"
+incomplete "the record is the same three lines when the other repository's listed location cannot be entered, so no repository was probed" \
+  "$build" 03-api-export.md "$issues/03-api-export.md"
+
 exit "$((fails > 0))"
