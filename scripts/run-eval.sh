@@ -15,8 +15,10 @@
 # context.scaffold_script that lays the fixture in an empty folder, context.unlinked_agents,
 # the agents of this repo its sessions must not list, and context.unlinked_skills, the skills they
 # must not list, which is how a fixture's own stand-in under .claude/skills/<name> wins over the
-# linked one), prompt.md and graders/*.md, each grader a
-# frontmatter of one type:
+# linked one), prompt.md and graders/*.md. Every {{fixture}} in prompt.md is replaced, once the
+# scaffold is laid, by the absolute path of that run's fixture root, so a prompt can name a location
+# the scaffold laid in or beside the fixture, which exists under no path known before the run. Each
+# grader is a frontmatter of one type:
 #   llm          criteria, read against the run's transcript and what the run changed in the
 #                fixture by one judge session, which answers for every llm grader of the run
 #   regex        pattern (PCRE), match: contains, target: last_message
@@ -290,6 +292,9 @@ for c in "${cases[@]}"; do
     elif [ "${#graders[@]}" = 0 ]; then
       echo "FAIL  $label: the case has no grader"; red=1
     else
+      prompt="$(cat "$work/prompt.md")"
+      # The replacement is quoted so that bash never reads an & in the path as the matched token.
+      printf '%s\n' "${prompt//'{{fixture}}'/"$(cd "$work/fixture" && pwd -P)"}" > "$work/prompt.md"
       snapshot "$work/fixture" > "$work/before"
       head_before="$(git -C "$work/fixture" rev-parse -q --verify HEAD 2>/dev/null)"
       # The session persists, into the throwaway config, because a forked skill's subagent writes its

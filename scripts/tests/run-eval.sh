@@ -401,6 +401,25 @@ expect "the judge reads a subagent's call of that length from its start" \
 expect "the judge is not shown a subagent's call input past 2000 characters" \
   bash -c '! grep -qF "SUBAGENT-CALL-LAST-WORD" "$1"' _ "$STUB_DIR/judge-prompts"
 
+# A prompt can name a location that exists only once the run's throwaway folder is made: the token
+# stands for that run's fixture root, wherever the prompt carries it.
+mkdir -p "$evals/located"
+printf 'runs: 1\n' >"$evals/located/case.yaml"
+printf '/tickets suppliers notes: {{fixture}}/../notes then {{fixture}}/a.txt\n' >"$evals/located/prompt.md"
+grader located judged 'type: llm
+criteria: "The run wrote the location it was given."'
+reset
+run "$evals" located
+session="$(head -1 "$STUB_DIR/calls" 2>/dev/null)"
+fixture_root="$(sed -n 's/.* cwd=//p' <<<"$session")"
+located_prompt="/tickets suppliers notes: $fixture_root/../notes then $fixture_root/a.txt"
+expect "the session's prompt carries its fixture root wherever the prompt held the {{fixture}} token" \
+  bash -c 'test -n "$1" && grep -qF -e "[$2]" <<<"$3"' _ "$fixture_root" "$located_prompt" "$session"
+expect "the judge is shown the prompt with the fixture root in place of the {{fixture}} token" \
+  bash -c 'sed -n "/^## The prompt the run was given\$/,/^## The transcript\$/p" "$1" | grep -qxF -e "$2"' \
+  _ "$STUB_DIR/judge-prompts" "$located_prompt"
+rm -rf "$(sed -n 's/^ *kept: //p' <<<"$out")"
+
 # A `context: fork` skill's orchestrator never reaches the headless stream: its calls are held only in
 # a subagent transcript beside the run's own, which a `scope: all` grader counts too.
 source_grade
