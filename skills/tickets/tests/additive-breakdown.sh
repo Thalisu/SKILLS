@@ -51,7 +51,7 @@ one_question=(
   "one question" "single question" "same question" "closing question" "approval question"
   "the question"
 )
-changes_it=("chang" "edit" "amend" "alter" "modif" "rewrit")
+mapfile -t changes_it < <(changed_phrasings)
 mapfile -t moved_out < <(moved_out_phrasings)
 mapfile -t edge_added < <(edge_added_phrasings)
 mapfile -t untouched < <(untouched_phrasings)

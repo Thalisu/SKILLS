@@ -449,6 +449,13 @@ Ticket 01 is built in billing-service: open a session in /home/dev/billing-servi
 /do /home/dev/orders-service/.scratch/20260914-refund-on-order/issues/01-refund-a-paid-invoice.md
 </example>
 
+**On a feature with open tickets.** After an additive publish the close lists what the run wrote, in two groups, in place of the list of every ticket published:
+
+- **Added**: each new ticket, with its identifier, its kind beside its blocking edges, and its Build repository when the spec has a Repositories section;
+- **Changed**: each existing ticket the publish edited, with the criterion moved out of it, the new ticket that took it, and the `Blocked by` edge it gained.
+
+The open tickets the run left untouched are not listed again. The last line is the `/do` command for the first new ticket, the first in dependency order among the ones this run added, and never an older ticket of the frontier: the developer came from a run that stopped on work nobody had ticketed, and that ticket is the one it now waits on. Where the command runs follows the rule above. When the first new ticket's Build repository is the repository this session is in, the command follows the list directly. When it is another repository, the line before the command names that Build repository and its location as the place to open a session in, and the command carries the ticket's absolute location in the Home repository.
+
 Nothing is committed.
 
 ## Hard rules

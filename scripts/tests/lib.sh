@@ -357,6 +357,16 @@ left alone
 no change
 EOF
 }
+changed_phrasings() { # one accepted stem per line: an existing Ticket is one the cut changes
+  cat <<'EOF'
+chang
+edit
+amend
+alter
+modif
+rewrit
+EOF
+}
 # A screen no flow ran over is proven by less than one a flow covered, and the Reply is where the
 # developer learns which one they got: the groups a passage has to carry to say so, in any wording.
 # A case reads them with `mapfile -t names < <(no_flow_proof_groups)` and passes them to carries_each.
