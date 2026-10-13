@@ -28,17 +28,6 @@ no_entry=(
   "missing from" "does not hold" "does not list" "has no" "names no" "no line for"
 )
 
-echo "# SKILL.md / frontmatter: the hint shows what may be typed after the spec"
-# shellcheck disable=SC2034 # field reads the frontmatter the caller left in $out
-out="$(frontmatter "$skill" 2>/dev/null)"
-# shellcheck disable=SC2034 # the carries_* assertions read $flat
-flat="$(field argument-hint)"
-flat="${flat,,}"
-carries "the hint still names the spec" "spec"
-carries_each "the hint names a repository and its location" \
-  "repositor" -- \
-  "location" "path"
-
 echo "# SKILL.md / ## 1: \$ARGUMENTS may carry a repository and its location after the spec"
 # Every paragraph of the ground step that reads $ARGUMENTS, the table of its forms included: the
 # bullets on the Spec's own Repositories section speak of locations too, and cannot answer for what

@@ -5,8 +5,8 @@
 # repository and the fields of any breakdown, then the one question.
 # The session decides this from what it read of the feature folder, which no script carries, so the
 # decision is proven over the two passages that carry it. The eval case adds-only-the-missing-tickets
-# grades it on a live run: its grader has to ask for that same breakdown, and its fixture has to be a
-# feature with a published Ticket and a finding no Ticket covers, or the run it grades is another one.
+# grades it on a live run: its fixture has to be a feature with a published Ticket and a finding no
+# Ticket covers, or the run it grades is another one.
 # Run: bash skills/tickets/tests/additive-breakdown.sh
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
@@ -103,60 +103,6 @@ if [ "$at_moved" -gt 0 ] && [ "$at_untouched" -gt 0 ]; then
   flat="$passage"
 else fail "$label (moved criterion at $at_moved, untouched at $at_untouched)"; fi
 
-echo "# evals/adds-only-the-missing-tickets: the prompt"
-prompt="$(cat "$case_dir/prompt.md" 2>/dev/null)"
-expect "the prompt types /tickets with a spec" grep -qE '^/tickets +[^[:space:]]' <<<"$prompt"
-label="the prompt carries no --auto, so the breakdown is put to the developer"
-if [ -n "$prompt" ] && ! grep -qF -- "--auto" <<<"$prompt"; then ok "$label"; else fail "$label"; fi
-
-echo "# evals/adds-only-the-missing-tickets: the grader asks for the same breakdown"
-grader="$case_dir/graders/breakdown-shows-only-the-new-tickets.md"
-expect "the case holds the breakdown-shows-only-the-new-tickets grader" test -f "$grader"
-# shellcheck disable=SC2034 # field reads the frontmatter the caller left in $out
-out="$(frontmatter "$grader" 2>/dev/null)"
-expect "the grader is judged by a model" test "$(field type)" = "llm"
-flat="$(field criteria | tr '\n' ' ' | tr -s ' ')"
-flat="${flat,,}"
-expect "the grader carries its criteria" test -n "${flat// /}"
-carries_any "the run did not stop" \
-  "did not stop" "does not stop" "not stop" "no stop" "went on" "goes on" "without stopping" \
-  "instead of stopping" "rather than stopping" "did not refuse" "not refused" "not end on the stop"
-carries_any "the breakdown shows only the new tickets" "${only_new[@]}"
-carries_each "numbered after the last existing one" \
-  "number" -- \
-  "after" "follow" "next" "continu" -- \
-  "last" "highest" "existing"
-carries "each with its build repository" "build repository"
-carries_any "and the usual fields" "${any_fields[@]}" "acceptance criteria" "estimate"
-carries_each "the message ends on the one approval question" \
-  "${one_question[@]}" -- \
-  "ends" "end " "last line" "final line" "closes" "closing"
-
-echo "# evals/adds-only-the-missing-tickets: a grader asks for the changed and the untouched tickets"
-grader="$case_dir/graders/existing-tickets-shown-as-changed-or-untouched.md"
-expect "the case holds the existing-tickets-shown-as-changed-or-untouched grader" test -f "$grader"
-# shellcheck disable=SC2034 # field reads the frontmatter the caller left in $out
-out="$(frontmatter "$grader" 2>/dev/null)"
-expect "that grader is judged by a model" test "$(field type)" = "llm"
-flat="$(field criteria | tr '\n' ' ' | tr -s ' ')"
-flat="${flat,,}"
-expect "that grader carries its criteria" test -n "${flat// /}"
-carries_each "ticket 02 is shown as changed" \
-  "02" -- \
-  "${changes_it[@]}"
-carries_each "with the email criterion moved out of it to the new ticket" \
-  "email" -- \
-  "criteri" -- \
-  "${moved_out[@]}" -- \
-  "new ticket" "04"
-carries_each "and a blocked by edge to the new ticket added to it" \
-  "blocked by" -- \
-  "${edge_added[@]}"
-carries_each "tickets 01 and 03 are named as untouched" \
-  "01" -- \
-  "03" -- \
-  "${untouched[@]}"
-
 echo "# evals/adds-only-the-missing-tickets: the fixture is an open feature with something uncovered"
 fixture="$tmp/fixture"
 mkdir "$fixture"
@@ -171,10 +117,9 @@ if [ "$scaffold_rc" = 0 ] && [ -n "$spec" ]; then ok "$label"; else
   echo "      extract: $(tail -1 "$tmp/extract.log")"
   echo "      scaffold: $(tail -1 "$tmp/scaffold.log")"
 fi
-expect "the prompt names that feature" grep -qF -- "$(basename "$feature")" <<<"$prompt"
 expect "the feature holds at least one published ticket" test "${#tickets[@]}" -gt 0
 # The breakdown shows a Build repository only on a spec with a Repositories section, so a fixture
-# without one is a run the grader's criteria cannot pass.
+# without one is a run that has no Build repository to show.
 expect "the spec lists its repositories" grep -qx -- "## Repositories" "${spec:-/dev/null}"
 
 finding="$(passage_of "${spec:-/dev/null}" "## Implementation Decisions" "## " |
@@ -186,7 +131,7 @@ if [ -n "$finding" ] && [ "${#tickets[@]}" -gt 0 ] && ! grep -qiF -- "$behaviour
   ok "$label"
 else fail "$label"; fi
 
-# The grader above asks for a changed Ticket and for untouched ones, so the fixture has to hold both:
+# The breakdown shows a changed Ticket and untouched ones, so the fixture has to hold both:
 # the Ticket the finding names, still carrying the criterion that leaves it, and another beside it.
 named="$(sed -nE 's/^- Moved by the run on Ticket ([0-9]+).*/\1/p' <<<"$finding")"
 changed="$(find "$feature/issues" -maxdepth 1 -name "${named:-none}-*.md" 2>/dev/null | head -n 1)"

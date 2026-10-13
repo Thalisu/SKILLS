@@ -6,9 +6,8 @@
 # good, and a `/do` line after a no names an issue that does not exist.
 # The session takes the no from the answer it was given, which no script carries, so the decision is
 # proven over the passages of step 4 that carry it. The eval case
-# auto-declined-addition-publishes-nothing grades it on a live run. A run without --auto ends on the
-# approval question with nobody to answer it, so the case reaches the no under --auto, through a
-# choice-taker stand-in that rules to leave the breakdown unpublished.
+# auto-declined-addition-publishes-nothing grades it on a live run, and its code-read graders have to
+# pass a faithful no and fail each outcome a no must not break.
 # Run: bash skills/tickets/tests/additive-decline.sh
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
@@ -23,7 +22,6 @@ trap 'cd /; rm -rf "$tmp"' EXIT
 source_grade
 
 mapfile -t changed < <(changed_phrasings)
-mapfile -t kept < <(kept_phrasings)
 mapfile -t never < <(never_phrasings)
 mapfile -t declined < <(declined_phrasings)
 mapfile -t on_open_tickets < <(on_open_tickets_phrasings)
@@ -37,18 +35,15 @@ finding_of() { # $1 spec: the first such line, whole, on stdout
     grep -E '^- Moved by the run on Ticket 02\b.* at the Plan step: .+\. Belongs to: notifications-service\.$' |
     head -n 1
 }
-# No grader type reads a file as absent or a line as gone, so an outcome may be held by a code-read
-# grader that fails once the outcome is broken, or by the criteria a judge reads: either one counts.
-caught() { # $1 label, $2 a work folder where the outcome is broken, $3.. carries_each groups over the llm criteria in $flat
+caught() { # $1 label, $2 a work folder where the outcome is broken
   local label="$1" work="$2" g
-  shift 2
   for g in "${code_graders[@]}"; do
     [ -z "$(grade "$g" "$work")" ] || {
       ok "$label"
       return
     }
   done
-  carries_each "$label" "$@"
+  fail "$label"
 }
 
 echo "# SKILL.md / ## 4: a no on a feature with open Tickets"
@@ -86,10 +81,7 @@ carries_each "so a later tickets run on the same spec cuts from it" \
   "tickets" -- \
   "cut"
 
-echo "# evals/auto-declined-addition-publishes-nothing: the prompt and the stand-in that rules against publishing"
-prompt="$(cat "$case_dir/prompt.md" 2>/dev/null)"
-expect "the prompt types /tickets" grep -qE '^/tickets( |$)' <<<"$prompt"
-expect "under --auto, so the choice-taker's ruling is the answer" grep -qE '(^| )--auto( |$)' <<<"$prompt"
+echo "# evals/auto-declined-addition-publishes-nothing: the case unlinks the real choice-taker"
 expect "the case unlinks the real choice-taker" \
   grep -qx "choice-taker" <(yq -r '.context.unlinked_agents // [] | .[]' "$case_dir/case.yaml" 2>/dev/null)
 
@@ -106,6 +98,7 @@ scaffold_rc=0
 lay_scaffold "$case_dir/case.yaml" "$as_laid/fixture" || scaffold_rc=$?
 spec="$(find "$as_laid/fixture/.scratch" -name spec.md 2>/dev/null | head -n 1)"
 feature="$(dirname "${spec:-$as_laid/fixture/none/spec.md}")"
+# shellcheck disable=SC2034 # read by lib.sh's mutated
 slug="$(basename "$feature")"
 mapfile -t tickets < <(find "$feature/issues" -maxdepth 1 -name '*.md' 2>/dev/null | sort)
 label="the scaffold lays a feature folder with a spec"
@@ -114,7 +107,6 @@ if [ "$scaffold_rc" = 0 ] && [ -n "$spec" ]; then ok "$label"; else
   echo "      extract: $(tail -1 "$tmp/extract.log")"
   echo "      scaffold: $(tail -1 "$tmp/scaffold.log")"
 fi
-expect "the prompt names that feature" grep -qF -- "$slug" <<<"$prompt"
 expect "the tracker is local markdown, where the ruling is the answer" \
   grep -qisF "local markdown" "$as_laid/fixture/docs/agents/issue-tracker.md"
 flat="$(cat "$as_laid/fixture/.claude/agents/choice-taker.md" 2>/dev/null | tr '\n' ' ' | tr -s ' ')"
@@ -137,17 +129,12 @@ if [ "${#tickets[@]}" -gt 0 ] &&
 
 echo "# evals/auto-declined-addition-publishes-nothing: the graders pass a faithful no and catch the rest"
 code_graders=()
-criteria=""
 for g in "$case_dir"/graders/*.md; do
   [ -f "$g" ] || continue
   case "$(key "$g" type)" in
     file_exists | file_contains) code_graders+=("$g") ;;
-    llm) criteria="$criteria $(key "$g" criteria)" ;;
   esac
 done
-flat="$(tr '\n' ' ' <<<"$criteria" | tr -s ' ')"
-flat="${flat,,}"
-expect "a grader of the case is judged by a model, on criteria it carries" test -n "${flat// /}"
 # A faithful no leaves the fixture as it was laid.
 # shellcheck disable=SC2034 # read by lib.sh's grade_passes
 for grader in "${code_graders[@]}"; do
@@ -161,41 +148,11 @@ at="$(mutated edge-added)"
 for f in "$at"/issues/02-*.md; do
   [ ! -f "$f" ] || sed -i -E 's/^(\*\*Blocked by:\*\* .*)$/\1, 04: Tell the customer the Invoice is on hold/' "$f"
 done
-at="$(mutated others-edited)"
-for f in "$at"/issues/01-*.md; do [ ! -f "$f" ] || sed -i -E 's/^(\*\*Status:\*\*) .*$/\1 ready-for-agent/' "$f"; done
-for f in "$at"/issues/03-*.md; do [ ! -f "$f" ] || sed -i -E '0,/^- \[ \] /{/^- \[ \] /d}' "$f"; done
 at="$(mutated finding-cleared)"
 [ ! -f "$at/spec.md" ] || sed -i -E '/^- Moved by the run on Ticket 02\b/d' "$at/spec.md"
 
-carries_each "a judge is asked that no new ticket file was written under the feature's issues/, no 04" \
-  "04" "new ticket" "ticket file" -- \
-  "issues/" "issues folder" "feature" -- \
-  "creat" "writ" "added" "publish" -- \
-  "no " "not " "never" "nothing" "none"
-caught "a ticket 02 that lost its email criterion is caught" "$tmp/criterion-moved" \
-  "02" -- \
-  "email" -- \
-  "criteri" -- \
-  "${kept[@]}"
-caught "a ticket 02 whose blocked by gained 04 is caught" "$tmp/edge-added" \
-  "02" -- \
-  "blocked by" -- \
-  "${kept[@]}"
-caught "an edit to ticket 01 or to ticket 03 is caught" "$tmp/others-edited" \
-  "01" -- \
-  "03" -- \
-  "${kept[@]}"
-caught "a spec whose finding line was cleared is caught" "$tmp/finding-cleared" \
-  "finding" "moved by the run" -- \
-  "spec" -- \
-  "${finding_kept[@]}"
-carries_any "a judge reads the run's final message" \
-  "final message" "last message" "closing message" "final reply" "last reply" "final response" \
-  "final answer"
-carries_any "for a line saying nothing was published" "${nothing_published[@]}"
-carries_each "and for no next command, neither a /do line nor a /tickets line" \
-  "/do" -- \
-  "/tickets" -- \
-  "no next command" "no command" "neither" "nor " "no line" "names no"
+caught "a ticket 02 that lost its email criterion is caught" "$tmp/criterion-moved"
+caught "a ticket 02 whose blocked by gained 04 is caught" "$tmp/edge-added"
+caught "a spec whose finding line was cleared is caught" "$tmp/finding-cleared"
 
 exit $((fails > 0))

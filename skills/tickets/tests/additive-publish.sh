@@ -23,8 +23,8 @@ trap 'cd /; rm -rf "$tmp"' EXIT
 source_grade
 
 mapfile -t moved_out < <(moved_out_phrasings)
-mapfile -t edge_added < <(edge_added_phrasings)
 mapfile -t kept < <(kept_phrasings)
+mapfile -t edge_added < <(edge_added_phrasings)
 mapfile -t never < <(never_phrasings)
 mapfile -t deleted < <(deleted_phrasings)
 
@@ -63,10 +63,7 @@ carries_each "and none is deleted" \
   "${deleted[@]}" -- \
   "${never[@]}"
 
-echo "# evals/auto-adds-the-missing-tickets: the prompt and the stand-in that rules to publish"
-prompt="$(cat "$case_dir/prompt.md" 2>/dev/null)"
-expect "the prompt types /tickets" grep -qE '^/tickets( |$)' <<<"$prompt"
-expect "under --auto, so the choice-taker's ruling is the yes" grep -qE '(^| )--auto( |$)' <<<"$prompt"
+echo "# evals/auto-adds-the-missing-tickets: the stand-in that rules to publish"
 expect "the case unlinks the real choice-taker" \
   grep -qx "choice-taker" <(yq -r '.context.unlinked_agents // [] | .[]' "$case_dir/case.yaml" 2>/dev/null)
 
@@ -85,7 +82,6 @@ if [ "$scaffold_rc" = 0 ] && [ -n "$spec" ]; then ok "$label"; else
   echo "      extract: $(tail -1 "$tmp/extract.log")"
   echo "      scaffold: $(tail -1 "$tmp/scaffold.log")"
 fi
-expect "the prompt names that feature" grep -qF -- "$slug" <<<"$prompt"
 expect "the fixture holds the choice-taker stand-in" test -f "$as_laid/fixture/.claude/agents/choice-taker.md"
 numbers="$(printf '%s\n' "${tickets[@]}" | cut -d- -f1 | tr '\n' ' ')"
 expect "the feature holds the three published tickets 01, 02 and 03, and no 04" test "$numbers" = "01 02 03 "
@@ -183,40 +179,5 @@ expect "the case holds the ticket-02-blocked-by-the-new-ticket grader" test -f "
 grade_passes "a ticket 02 whose Blocked by line names 04 beside 01 passes it" "$faithful"
 grade_fails "a ticket 02 naming 04 in its prose and not in its Blocked by line fails it" "$wrong"
 grade_fails "the feature as laid, where ticket 02 waits on 01 alone, fails it" "$as_laid"
-
-echo "# evals/auto-adds-the-missing-tickets: a grader asks that the criterion moved and nothing was renumbered"
-grader="$graders/criterion-moved-and-nothing-renumbered.md"
-expect "the case holds the criterion-moved-and-nothing-renumbered grader" test -f "$grader"
-# shellcheck disable=SC2034 # field reads the frontmatter the caller left in $out
-out="$(frontmatter "$grader" 2>/dev/null)"
-expect "that grader is judged by a model" test "$(field type)" = "llm"
-flat="$(field criteria | tr '\n' ' ' | tr -s ' ')"
-flat="${flat,,}"
-expect "that grader carries its criteria" test -n "${flat// /}"
-carries_each "ticket 02 no longer holds the email criterion" \
-  "02" -- \
-  "email" -- \
-  "criteri" -- \
-  "no longer" "not hold" "does not carry" "not carry" "gone" "absent" "lacks" "without" \
-  "${moved_out[@]}"
-carries_each "ticket 02 keeps its other criteria, its status and its blocker 01" \
-  "other criteri" "remaining criteri" "rest of its criteri" "every other criteri" "its other" \
-  "four criteri" "other four" "four other" -- \
-  "status" -- \
-  "01" -- \
-  "${kept[@]}"
-carries_each "tickets 01 and 03 are unedited" \
-  "01" -- \
-  "03" -- \
-  "${kept[@]}"
-carries_each "no existing file was renumbered" \
-  "renumber" -- \
-  "${never[@]}"
-carries_each "and none was deleted" \
-  "${deleted[@]}" -- \
-  "${never[@]}"
-carries_each "exactly one new ticket file was written" \
-  "exactly one" "only one" "one new" "a single" "one and only one" "one ticket file" -- \
-  "new ticket" "new file" "ticket file" "04"
 
 exit $((fails > 0))

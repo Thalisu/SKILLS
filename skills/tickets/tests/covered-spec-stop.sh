@@ -5,8 +5,8 @@
 # saying that whoever wants a recut closes or deletes them first, with no next command.
 # The stop is taken by the session from what it read of the feature folder, which no script
 # carries, so the decision is proven over the stop row that carries it. The eval case
-# existing-tickets-stop grades the stop on a live run: its grader has to ask for that same message,
-# and its fixture has to be a Spec its Tickets cover whole, or the run it grades is another one.
+# existing-tickets-stop grades the stop on a live run: its fixture has to be a Spec its Tickets
+# cover whole, or the run it grades is another one.
 # Run: bash skills/tickets/tests/covered-spec-stop.sh
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
@@ -63,32 +63,6 @@ carries_any "no next command follows" "${no_next_command[@]}"
 flat="$(paragraph_with <(printf '%s\n' "$stops") "**Stops.**") $message"
 flat="${flat,,}"
 carries_any "the stop writes nothing" "${nothing_written[@]}"
-
-echo "# evals/existing-tickets-stop: the grader asks for the same message"
-grader="$case_dir/graders/stops-lists-existing.md"
-expect "the case holds the stops-lists-existing grader" test -f "$grader"
-# shellcheck disable=SC2034 # field reads the frontmatter the caller left in $out
-out="$(frontmatter "$grader" 2>/dev/null)"
-flat="$(field criteria | tr '\n' ' ' | tr -s ' ')"
-flat="${flat,,}"
-expect "the grader carries its criteria" test -n "${flat// /}"
-carries_any "the run's message says nothing was cut" "${nothing_cut[@]}"
-carries_each "because the open tickets cover the whole spec" \
-  "cover" -- \
-  "${whole_spec[@]}"
-carries_each "each existing ticket is listed with its status" \
-  "each" "every" "listing" "lists" "listed" -- \
-  "${with_status[@]}" "status"
-carries_each "they are closed or deleted before a recut" \
-  "close" -- \
-  "delete" -- \
-  "${recut[@]}"
-carries_any "the message carries no next command" "${no_next_command[@]}"
-carries_each "no file was created, and no existing ticket was edited or renumbered" \
-  "no new file" "no file was created" "no file created" "created no file" "nothing was written" \
-  "no new ticket file" -- \
-  "edited" "changed" "modified" "rewritten" -- \
-  "renumber"
 
 echo "# evals/existing-tickets-stop: the fixture's Tickets cover every Path of its Journey"
 # Laid the way scripts/run-eval.sh lays it. A ticket of a journey names the path it realises

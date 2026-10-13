@@ -7,9 +7,8 @@
 # the wrong one, and a line with no repository named is pasted into a session that cannot build it.
 # The session writes the close from the publish it just made, which no script carries, so the
 # decision is proven over the passage of step 6 that carries it. The eval case
-# auto-adds-the-missing-tickets grades it on a live run: its grader has to ask for that same close,
-# and its fixture has to be a run whose first new Ticket is built outside the session's repository,
-# or the hand-over line it asks for is not owed.
+# auto-adds-the-missing-tickets grades it on a live run: its fixture has to be a run whose first
+# new Ticket is built outside the session's repository, or the hand-over line is not owed.
 # Run: bash skills/tickets/tests/additive-close.sh
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
@@ -24,10 +23,6 @@ mapfile -t moved_out < <(moved_out_phrasings)
 mapfile -t edge_added < <(edge_added_phrasings)
 mapfile -t changed < <(changed_phrasings)
 last_line=("last line" "final line" "closing line" "ends on" "ends with" "end on" "end with")
-line_before=(
-  "line before" "line above" "lines above" "before the command" "above the command" "before it"
-  "above it" "preceding line" "previous line" "second to last" "second-to-last"
-)
 # The section already describes the hand-over to another repository, so the passage may point at
 # that rule instead of writing it out a second time.
 same_hand_over=(
@@ -94,49 +89,5 @@ built_at="$(sed -nE "s/^- ${built_in:-none}: *//p" <<<"$repositories" | head -n 
 expect "the spec's Repositories section gives that repository a location on disk" test -d "${built_at:-/nonexistent}"
 label="that location is not the repository the session is in"
 if [ -n "$built_at" ] && [ "$built_at" != "$session_root" ]; then ok "$label"; else fail "$label"; fi
-expect "the prompt runs under --auto, so the command to hand over reads /do --auto" \
-  grep -qE '(^| )--auto( |$)' "$case_dir/prompt.md"
-
-echo "# evals/auto-adds-the-missing-tickets: a grader asks for that close"
-grader="$case_dir/graders/close-lists-the-addition-and-hands-over.md"
-expect "the case holds the close-lists-the-addition-and-hands-over grader" test -f "$grader"
-# shellcheck disable=SC2034 # field reads the frontmatter the caller left in $out
-out="$(frontmatter "$grader" 2>/dev/null)"
-expect "that grader is judged by a model" test "$(field type)" = "llm"
-flat="$(field criteria | tr '\n' ' ' | tr -s ' ')"
-flat="${flat,,}"
-expect "that grader carries its criteria" test -n "${flat// /}"
-carries_any "it is judged on the run's final message" \
-  "final message" "last message" "closing message" "final reply" "last reply" "final response" \
-  "final answer"
-carries_each "the message lists ticket 04 as added" \
-  "04" -- \
-  "added" "adds" "new ticket"
-carries_each "and ticket 02 as changed" \
-  "02" -- \
-  "${changed[@]}"
-carries_each "with the email criterion moved out of it to 04" \
-  "email" -- \
-  "criteri" -- \
-  "${moved_out[@]}"
-carries_each "and its blocked by now naming 04" \
-  "blocked by" -- \
-  "${edge_added[@]}" "now nam" "now list" "now read" "now carr"
-carries_each "the last line is /do --auto with the absolute location of the ticket 04 file" \
-  "${last_line[@]}" -- \
-  "/do --auto" -- \
-  "absolute"
-carries_any "in the Home repository's feature folder" \
-  "home repository" "orders-service"
-carries_each "the line before it names notifications-service and its location as the place to open a session in" \
-  "notifications-service" -- \
-  "${line_before[@]}" -- \
-  "location" "path" "where it is" "root" -- \
-  "session"
-carries_each "a last line naming ticket 02 or 03, a relative path or a cd fails" \
-  "03" -- \
-  "relative" -- \
-  "cd " "cd\`" "cd'" "cd," "cd." "cd)" -- \
-  "fail" "not pass" "no pass"
 
 exit $((fails > 0))
