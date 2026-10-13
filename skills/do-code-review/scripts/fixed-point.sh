@@ -22,9 +22,11 @@
 #                             refusal, and --spec beside --ticket is usage
 #   --review <path>           the Review's path a caller hands over beside --spec, for a Spec that
 #                             holds more than one Review, one per repository of its feature. It
-#                             names a file in the Spec's own folder, there yet or not, and
-#                             review= takes its name in place of the Spec's; a path in any other
-#                             folder is a refusal, and --review without --spec is usage
+#                             names a file in the Spec's own folder, there yet or not, as
+#                             <Spec stem>.<key>.review.md with a key of a-z0-9-, and review= takes
+#                             its name in place of the Spec's; any other name, the Spec's own or a
+#                             folder's included, and a path in any other folder are refusals, and
+#                             --review without --spec is usage
 #
 # Which paths a slug can name under the scratch is not this door's rule to hold: before it answers
 # it asks ../../../.agents/scripts/resolve-feature-folder.sh, the one executable form of that rule,
@@ -188,6 +190,17 @@ if [ "$spec_handed_given" = yes ]; then
   refuse_link "$handed_at"
   review="${spec%.md}.review.md"
   if [ "$review_given" = yes ]; then
+    # The Review is written whole at this name, so a name that is the Spec, the Journey, a claim or
+    # a folder, or one that forges a line of the answer, is refused before any path is built.
+    spec_stem="$(basename "$spec" .md)"
+    review_name="${handed_review##*/}"
+    key=""
+    case "$review_name" in
+      "$spec_stem".*.review.md) key="${review_name#"$spec_stem".}"; key="${key%.review.md}" ;;
+    esac
+    case "$key" in
+      ''|*[!a-z0-9-]*) refuse "${handed_review//$'\n'/ } is not named $spec_stem.<key>.review.md; nothing reviewed" ;;
+    esac
     case "$handed_review" in
       /*) review_at="$handed_review" ;;
       *)
@@ -197,7 +210,7 @@ if [ "$spec_handed_given" = yes ]; then
     esac
     review_dir="$(cd "$(dirname "$review_at")" 2>/dev/null && pwd -P)" &&
       [ "$review_dir" = "$(cd "$(dirname "$handed_at")" && pwd -P)" ] ||
-      refuse "$handed_review is not beside the Spec; nothing reviewed"
+      refuse "${handed_review//$'\n'/ } is not beside the Spec; nothing reviewed"
     review="$(dirname "$spec")/$(basename "$handed_review")"
   fi
   # A Ticket found by slug beside a handed Spec would be read as the spec source over it.

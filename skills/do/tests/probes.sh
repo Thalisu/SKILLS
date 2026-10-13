@@ -17,12 +17,6 @@ export TMPDIR="$tmp"
 export HOME="$tmp/home"
 mkdir -p "$HOME"
 
-absent_prefix() { # $1 label, $2 a line prefix that must not appear
-  if grep -q "^$2" <<<"$out"; then
-    echo "FAIL  $1 (found: $2)"
-    fails=$((fails + 1))
-  else echo "ok    $1"; fi
-}
 ordered_out() { # $1 label, $2.. key prefixes that must appear in this order in $out
   local label="$1"
   shift

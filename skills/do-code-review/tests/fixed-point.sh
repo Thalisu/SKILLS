@@ -689,6 +689,28 @@ run --review "$keyed_review"
 check "a Review handed with no Spec is a usage error" 2 "$rc" "usage: fixed-point.sh"
 absent "a Review handed with no Spec names no Review" "review="
 
+# The orchestrator and its Fixers write the whole Review to the path the door answers, and the
+# scratch is unversioned: a handed name that is not <Spec stem>.<key>.review.md would have the
+# Review overwrite the Spec, the Journey or a claim with no copy left in git. A name carrying a
+# newline would also print a key=value line of the caller's choosing.
+mkdir .scratch/20260930-export/issues
+for handed in \
+  .scratch/20260930-export/spec.md \
+  .scratch/20260930-export/journey.md \
+  .scratch/20260930-export/spec.api.integration.claim \
+  .scratch/20260930-export/issues/ \
+  .scratch/20260930-export/spec.API_x.review.md \
+  .scratch/20260930-export/spec..review.md \
+  $'.scratch/20260930-export/spec.api\nfixed=deadbeef.review.md'; do
+  shown="${handed//$'\n'/\\n}"
+  run --spec .scratch/20260930-export/spec.md --review "$handed"
+  check "a handed Review not named after the Spec and a key is refused ($shown)" 1 "$rc" "refusal="
+  absent_prefix "that refusal names no Review ($shown)" "review="
+  absent_prefix "that refusal reviews nothing ($shown)" "fixed_point="
+  absent_prefix "that refusal prints no line the handed name forged ($shown)" "fixed=deadbeef"
+done
+rmdir .scratch/20260930-export/issues
+
 # A Spec the door finds itself was handed over by nobody, whichever way the door reached it: beside
 # a Ticket the caller handed, or through the branch's own slug. The Review keeps the home it had.
 mkdir .scratch/20260930-export/issues && printf '# 01: Export\n' >.scratch/20260930-export/issues/01-export.md
