@@ -23,6 +23,9 @@
 # commit its upstream lacks, unreadable when the location cannot be entered. Nothing an earlier
 # attempt wrote is read.
 #
+# A feature whose Tickets carry no Build repository line is a feature of one repository: its one
+# group is named none, at the session's main checkout, and own and next_landing read that name.
+#
 # Landing order: repository A is blocked by repository B when a Ticket built in A names, in Blocked
 # by, a Ticket built in B. A provider comes before what consumes it, and among the repositories no
 # remaining edge orders, the one whose lowest-numbered Ticket has the smallest number goes first.
@@ -39,10 +42,11 @@
 # probed.
 #
 # verdict, first match wins: no-spec (the Ticket sits in no feature folder's issues/) · ambiguous
-# (a Ticket's status or Build repository line cannot be read) · incomplete (a Ticket of the folder
-# does not read resolved) · unordered (the repository edges hold a cycle) · elsewhere (own is not the session's repository) · landed (own reads
-# landed) · wait (waits_for is a name) · land (the session's repository may run its Final
-# integration now).
+# (a Ticket's status or Build repository line cannot be read, or one Ticket has no such line beside
+# Tickets that carry one) · incomplete (a Ticket of the folder does not read resolved) · unordered
+# (the repository edges hold a cycle) · elsewhere (own is not the session's repository) · landed
+# (own reads landed) · wait (waits_for is a name) · land (the session's repository may run its
+# Final integration now).
 #
 # Exit codes: 0 the record was read · 1 ambiguous or unordered · 2 usage, no file at the path, or
 # not a git repository.
@@ -77,12 +81,11 @@ esac
 # The state is that repository's own refs, so the probe runs with its cwd inside it. With every
 # Ticket of it resolved its Spec branch was cut, and spec-branch.sh removes one only once it landed,
 # so a branch that is gone landed too.
-repository_state_of() { # $1 name, $2 location or unlisted, $3 the Ticket's absolute path: prints landed, unlanded, or unreadable and its reason
-  local check probe
-  check="$(build_check_of "$1" "${2/#unlisted/none}")"
-  case "$check" in
+repository_state_of() { # $1 its build_check word, $2 location, $3 the Ticket's absolute path: prints landed, unlanded, or unreadable and its reason
+  local probe
+  case "$1" in
     here | elsewhere) ;;
-    *) echo "unreadable $check" && return ;;
+    *) echo "unreadable $1" && return ;;
   esac
   probe="$(cd "$2" && bash "$here/spec-branch.sh" probe "$3")"
   case "$(sed -n 's/^spec_landed=//p' <<<"$probe")" in
@@ -103,7 +106,7 @@ declare -a names=()
 declare -A last_ticket=() repository_of=() providers=()
 
 read_tickets() { # fills names in order of lowest Ticket number, last_ticket, repository_of and providers
-  local file number name blocker open=0
+  local file number name blocker open=0 lineless=""
   while IFS= read -r file; do
     number="$(basename "$file")"
     number="${number%%-*}"
@@ -113,10 +116,12 @@ read_tickets() { # fills names in order of lowest Ticket number, last_ticket, re
     build_repository_of "$file"
     [ "$word" != ambiguous ] || refuse ambiguous "ambiguous=$number $detail" 1
     name="$word"
+    [ "$name" != none ] || [ -n "$lineless" ] || lineless="$number"
     [ -n "${last_ticket[$name]:-}" ] || names+=("$name")
     last_ticket[$name]="$file"
     repository_of[$((10#$number))]="$name"
   done < <(ticket_files "$(dirname "$path")")
+  [ -z "$lineless" ] || [ "${#names[@]}" = 1 ] || refuse ambiguous "ambiguous=$lineless no Build repository line beside Tickets that carry one" 1
   # Nothing lands while a Ticket is open anywhere, so no repository is entered to read its state.
   [ "$open" = 0 ] || refuse incomplete
   while IFS= read -r file; do
@@ -167,11 +172,16 @@ declare -A location_of=() state_of=()
 own_here=no waits_for=none next_landing=""
 while IFS= read -r name; do
   file="${last_ticket[$name]}"
-  repository_location_of "$file" "$name"
-  location="${word/#none/unlisted}"
+  if [ "$name" = none ]; then
+    location="$main" check=here
+  else
+    repository_location_of "$file" "$name"
+    location="${word/#none/unlisted}"
+    check="$(build_check_of "$name" "$word")"
+  fi
   here_word=no
-  [ "$(build_check_of "$name" "$location")" != here ] || here_word=yes
-  state="$(repository_state_of "$name" "$location" "$file")"
+  [ "$check" != here ] || here_word=yes
+  state="$(repository_state_of "$check" "$location" "$file")"
   location_of[$name]="$location" state_of[$name]="${state%% *}"
   echo "repository=$name"
   echo "repository_location=$location"

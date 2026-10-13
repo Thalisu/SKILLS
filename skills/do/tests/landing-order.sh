@@ -175,4 +175,40 @@ repositories_spec "$home/.scratch/20261001-export" "- land-web (Home repository)
 incomplete "the record is the same three lines when the other repository's listed location cannot be entered, so no repository was probed" \
   "$build" 03-api-export.md "$issues/03-api-export.md"
 
+# A feature of one repository, in a repository of its own: its Spec lists no repository and its
+# Tickets name none, so the session's repository is the only one there is to land.
+fresh land-solo
+printf '.scratch/\n' >.gitignore
+printf 'one\n' >notes.txt
+commit fixture
+solo="$(pwd -P)"
+issues="$solo/.scratch/20261002-solo/issues"
+mkdir -p "$issues"
+printf '# Spec: one repository\n\n## User Stories\n\n1. As a developer, I want a note exported, so that I can share it.\n' >"$solo/.scratch/20261002-solo/spec.md"
+ticket 01-solo-model.md '**Status:** resolved' 'None (can start immediately)'
+ticket 02-solo-export.md '**Status:** resolved' '01, Title of 01-solo-model'
+(g branch -q --track spec/solo main && spec_commit spec/solo) ||
+  echo "FAIL  fixture: the unlanded Spec branch of land-solo could not be built"
+want_out="ticket=.scratch/20261002-solo/issues/01-solo-model.md
+repositories=1
+repository=none
+repository_location=$solo
+repository_here=yes
+repository_state=unlanded
+repository_ticket=$issues/02-solo-export.md
+own=none
+waits_for=none
+next_landing=none
+next_landing_location=$solo
+next_landing_ticket=$issues/02-solo-export.md
+verdict=land"
+rc=0
+out="$(bash "$script" "$issues/01-solo-model.md" 2>"$tmp/solo.err")" || rc=$?
+label="on a feature whose Tickets carry no Build repository line, the record is one group named none at the session's main checkout, here and unlanded, with the folder's highest-numbered Ticket, waiting for none, and the verdict land"
+if [ "$rc" = 0 ] && [ "$out" = "$want_out" ]; then ok "$label"; else
+  fail "$label (exit $rc, wanted 0 and the whole of stdout: ${want_out//$'\n'/ · })"
+  dump_out
+  echo "      stderr: $(cat "$tmp/solo.err")"
+fi
+
 exit "$((fails > 0))"
