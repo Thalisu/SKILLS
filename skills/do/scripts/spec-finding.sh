@@ -16,7 +16,9 @@
 # repository (the name given), listed (yes or no: whether the Spec's list held the name before the
 # call, matched as ticket-read.sh's repository_location_of matches it), list (added, or unchanged for
 # a listed name, whose entry is never rewritten), line (written, or present when the section already
-# holds that very line, which is never written twice).
+# holds that very line, which is never written twice), home (the Home repository, the root
+# ticket-door.sh prints as root), home_name (the name of the list's entry marked `(Home repository)`,
+# none with no such entry), here (yes when home is this session's main checkout, else no).
 #
 # Exit codes: 0 the lines above, the Spec written · 2 usage or no Ticket at the path · 3 `failed
 # <reason>` on one line and nothing written: no Spec beside the Ticket's issues/ folder, a Spec
@@ -92,3 +94,11 @@ else
   append_to_section "$spec" "## Implementation Decisions" "$finding"
   echo "line=written"
 fi
+
+home="$(home_root "$path" "$main")"
+home_name="$(awk '/^## Repositories[[:space:]]*$/ { on = 1; next } on && /^## / { exit }
+  on && /^- / { e = substr($0, 3); i = index(e, ": "); if (!i) next; n = substr(e, 1, i - 1)
+    if (sub(/[[:space:]]+\(Home repository\)$/, "", n)) { print n; exit } }' "$spec")"
+echo "home=$home"
+echo "home_name=${home_name:-none}"
+if [ "$home" = "$main" ]; then echo "here=yes"; else echo "here=no"; fi

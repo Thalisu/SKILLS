@@ -77,4 +77,25 @@ run ".scratch/$feature/issues/03-total.md" finding-build "the rounding mode is r
 expect "the Spec's Repositories section is what it was when a listed repository is named with another location" \
   test "$(section_of "$spec")" = "$section_before"
 
+sibling_behaviour="the invoice currency is formatted by the build repository's locale module"
+sibling_finding="- Moved by the run on Ticket 03: Title of 03-total at the Plan step: $sibling_behaviour. Belongs to: finding-build."
+
+cd "$build" || exit 1
+run "$home/.scratch/$feature/issues/03-total.md" finding-build "$sibling_behaviour"
+check_lines "a run from the sibling Build repository reads the Home repository as another checkout, by its root and its name" 0 "$rc" \
+  "spec=$spec" "line=written" "home=$home" "home_name=finding-home" "here=no"
+expect "the Home repository's root, its name and whether the run is in it close the output, in that order after the finding line's state" \
+  test "$(keys_in_order | grep -c 'line home home_name here $')" = 1
+expect "the Home repository's Spec holds the finding line written from the sibling Build repository once" \
+  test "$(decisions_of "$spec" | grep -cxF -- "$sibling_finding")" = 1
+expect "the sibling Build repository holds no Feature folder of its own after the run" \
+  test ! -e "$build/.scratch"
+expect "the sibling Build repository is left with no change after the run" \
+  test -z "$(g -C "$build" status --porcelain)"
+
+cd "$home" || exit 1
+run ".scratch/$feature/issues/03-total.md" finding-build "the invoice due date is computed by the build repository's calendar module"
+check_lines "a run from the Home repository reads it as this checkout, by its root and its name" 0 "$rc" \
+  "line=written" "home=$home" "home_name=finding-home" "here=yes"
+
 exit "$((fails > 0))"
