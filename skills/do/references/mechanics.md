@@ -548,7 +548,8 @@ repository landed and no run remembers it. The run reads the record twice:
 - **Before the claim.** Only `verdict=land` enters the steps below. On `verdict=wait` a repository
   this one consumes from has not landed: the run claims nothing, cuts no tree and integrates
   nothing, here or there, and its Reply hands over the landing commands in order, per
-  [reply.md](reply.md). The other verdicts are routed by step 9a of [ticket.md](ticket.md).
+  [reply.md](reply.md). A run that entered on `verdict=resume-final` stops there instead, as the
+  resumed Final integration below says. The other verdicts are routed by step 9a of [ticket.md](ticket.md).
 - **After the release**, on a record that printed `repositories=` above 1. The Reply's landed and
   still-to-land lines and its last line are copied from this second read, never predicted from the
   first: a Final integration that stopped after the first read would otherwise be reported as
@@ -676,7 +677,13 @@ first Final integration in four places:
   and only `verdict=land` goes on to it. This is how the landing command of a feature across
   repositories runs: typed in a session of the next repository to land, it finds no claim, no
   tree and no Review there, so every step below is that repository's first, run on its own
-  project's facts, and no ref of another repository moves.
+  project's facts, and no ref of another repository moves. On `verdict=wait` the command was
+  typed before a repository this one consumes from landed, and the run stops before the `claim`
+  call: no claim file under this repository's key, no tree for its Spec branch, no ref moved
+  here or there. Its message names the repository that has to land first, off the record's
+  `next_landing=` line, then that repository as the place to open a session in, and ends on its
+  `/do` command, in the three lines the stopped Final integration of [ticket.md](ticket.md)
+  words.
 - **The claim is a takeover.** The same `claim` call takes over a claim that was yielded and
   prints `takeover=yes` with the holder it replaced; of two resumes at once exactly one reads
   `claimed`. A claim nobody yielded reads `claim=taken`: the run stops in one line, writes nothing,
