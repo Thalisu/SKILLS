@@ -137,7 +137,9 @@ The same reading answers a command that was repeated and one typed by accident: 
 - it goes after the section's last entry. A spec with no Repositories section gains one where the format places it, between Solution and User Stories, with the Home repository's entry first, marked `(Home repository)` and located at this session's repository root, and the new entry after it;
 - the spec is edited where it lives: the file in local mode, the issue's body in remote mode. Nothing else in it changes, the finding line included, and the developer edits no file by hand.
 
-The run then goes on as the additive cut above, with that repository read at the location its new entry gives. A pair typed for a repository the section already holds, or for one no finding line names, writes nothing and is said in one line before the breakdown.
+Once the entry is written, check the typed location: whether a directory exists there, and if one does, whether `git -C <location> rev-parse --is-inside-work-tree` succeeds. A location that is missing or is not a git repository changes nothing in the spec: the entry stays as written, with the location as it was typed. The run does not stop on it and asks nothing about it, and nothing is created, cloned or initialised there. The close names it (step 6), and `do` validates the location again at its own door.
+
+The run then goes on as the additive cut above, with that repository read at the location its new entry gives. A repository whose location failed the check has no code to read, so its slice is cut from the finding line alone. A pair typed for a repository the section already holds, or for one no finding line names, writes nothing and is said in one line before the breakdown.
 
 ## 2. Explore the code
 
@@ -464,6 +466,8 @@ Ticket 01 is built in billing-service: open a session in /home/dev/billing-servi
 
 - **Added**: each new ticket, with its identifier, its kind beside its blocking edges, and its Build repository when the spec has a Repositories section;
 - **Changed**: each existing ticket the publish edited, with the criterion moved out of it, the new ticket that took it, and the `Blocked by` edge it gained.
+
+A location typed with the command that step 1 found missing or not a git repository gets a line of its own after the two groups: the location as it was written into the Repositories section, and which of the two it is, missing or not a git repository. It is the state of this machine, the developer's to fix before `do`, and it is said once, as a warning and never as a question.
 
 The open tickets the run left untouched are not listed again. The last line is the `/do` command for the first new ticket, the first in dependency order among the ones this run added, and never an older ticket of the frontier: the developer came from a run that stopped on work nobody had ticketed, and that ticket is the one it now waits on. Where the command runs follows the rule above. When the first new ticket's Build repository is the repository this session is in, the command follows the list directly. When it is another repository, the line before the command names that Build repository and its location as the place to open a session in, and the command carries the ticket's absolute location in the Home repository.
 

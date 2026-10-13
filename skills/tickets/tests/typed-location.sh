@@ -105,4 +105,48 @@ else
   fail "the stop writes nothing (no stop row is conditioned on a location)"
 fi
 
+echo "# SKILL.md / ## 1: a typed location that is missing or not a git repository is written all the same"
+# The paragraphs of the passage that speak of a git repository, matched in lower case: the rest of it
+# says where the entry goes and what else in the Spec stays, and cannot answer for a bad location.
+not_there=(
+  "missing" "not there" "nothing there" "does not exist" "no directory" "no such" "exists" "director"
+)
+passage="$(passage_of "$skill" "**A finding that owes a location.**" "## 2. Explore the code")"
+flat="$(paragraph_with <(printf '%s\n' "${passage,,}") "git repositor" all | tr '\n' ' ' | tr -s ' ')"
+expect "the ground step checks the typed location for a git repository" test -n "${flat// /}"
+carries_each "the typed location is checked for a directory there and for a git repository" \
+  "${not_there[@]}" -- \
+  "git repositor"
+carries_any "a location failing either check is written all the same" \
+  "all the same" "written anyway" "still writ" "written regardless" "regardless" "either way" \
+  "nonetheless" "nevertheless" "changes nothing" "change nothing" "stays" "remains" "is kept" \
+  "kept as" "whatever the check" "whatever either check" "whichever"
+carries_each "the run does not stop on it and asks nothing about it" \
+  "not stop" "never stop" "no stop" "not a stop" "without stopping" "nor stops" "neither stops" \
+  "stops on neither" -- \
+  "asks nothing" "ask nothing" "no question" "without asking" "not ask" "never ask" "nor asks" \
+  "nothing is asked" "is not asked"
+
+echo "# SKILL.md / ## 6: the close names a bad typed location in a line of its own"
+# Each bullet of the close, and each paragraph outside its lists, is one thing the close carries:
+# the ones that speak of a git repository, matched in lower case.
+close_step="$(passage_of "$skill" "## 6. Close" "## Hard rules")"
+close_step="${close_step,,}"
+flat="$({
+  bullets_opening_on <(printf '%s\n' "$close_step") "- "
+  paragraph_with <(printf '%s\n' "$close_step") "git repositor" all | grep -v '^ *- '
+} | grep -F "git repositor" | tr '\n' ' ' | tr -s ' ')"
+expect "the close speaks of a location that is not a git repository" test -n "${flat// /}"
+carries_any "the bad location gets a line of its own" \
+  "line of its own" "its own line" "own line" "one line" "a line" "separate line" "line each" \
+  "line per"
+carries_each "the line names the location as it was written" \
+  "location" -- \
+  "as written" "as it was written" "as typed" "as it was typed" "as the entry" "entry carries" \
+  "entry gives" "entry holds" "section carries" "spec carries" "as it stands" "verbatim" \
+  "written" "typed"
+carries_each "the line says which of the two it is, missing or not a git repository" \
+  "${not_there[@]}" -- \
+  "not a git repositor" "is not a git" "no git repositor" "isn't a git"
+
 exit $((fails > 0))
