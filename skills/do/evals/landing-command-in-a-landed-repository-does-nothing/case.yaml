@@ -1,0 +1,256 @@
+name: landing-command-in-a-landed-repository-does-nothing
+tags: [playbook, ticket, repositories, reply, final-integration, stop]
+runs: 1
+max_turns: 40
+timeout_seconds: 900
+allowed_tools: [Bash, Read, Edit, Write, Glob, Grep, Agent, Skill]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # The feature spans two sibling repositories and every Ticket of it reads resolved.
+    # billing-service (this fixture folder), the Home repository and the provider (Ticket 01),
+    # already landed: its work is on its main and its Spec branch is gone. orders-service, a
+    # sibling folder (Ticket 02, blocked by 01), consumes from it and is still to land, its Spec
+    # branch one commit ahead of its main. The landing command is typed in billing-service a second
+    # time. Nothing beside the Spec records the first landing: no claim file, no yielded mark, no
+    # Review, so the run can tell that this repository landed from its refs alone. The case grades
+    # the line saying so, the repository still to land with its command, and that nothing was
+    # claimed, cut or moved in either repository.
+    set -e
+    mkdir -p src .scratch/hold-disputed-invoice/issues ../orders-service/src
+    cat > package.json <<'JSON'
+    {
+      "name": "billing-service",
+      "private": true,
+      "scripts": {
+        "test": "node --test"
+      }
+    }
+    JSON
+    cat > README.md <<'MD'
+    # billing-service
+
+    Opens Invoices for Orders. `node --test` runs the suite.
+    MD
+    cat > src/invoice.js <<'JS'
+    const invoices = new Map();
+    function open(orderId) { invoices.set(orderId, { orderId, status: "open" }); return invoices.get(orderId); }
+    function lookup(orderId) { return invoices.get(orderId); }
+    module.exports = { open, lookup };
+    JS
+
+    cat > ../orders-service/package.json <<'JSON'
+    {
+      "name": "orders-service",
+      "private": true,
+      "scripts": {
+        "test": "node --test"
+      }
+    }
+    JSON
+    cat > ../orders-service/README.md <<'MD'
+    # orders-service
+
+    Records Orders and their status, and shows each Order's page. `node --test` runs the suite.
+    MD
+    cat > ../orders-service/src/order.js <<'JS'
+    const orders = new Map();
+    function record(id) { orders.set(id, { id, status: "open" }); return orders.get(id); }
+    function dispute(id) { orders.get(id).status = "disputed"; return orders.get(id); }
+    function lookup(id) { return orders.get(id); }
+    module.exports = { record, dispute, lookup };
+    JS
+    cat > ../orders-service/src/page.js <<'JS'
+    const { lookup } = require("./order.js");
+    function page(id) {
+      const order = lookup(id);
+      return `Order ${order.id}: ${order.status}`;
+    }
+    module.exports = { page };
+    JS
+
+    home="$(pwd -P)"
+    orders="$(cd ../orders-service && pwd -P)"
+    cat > .scratch/hold-disputed-invoice/spec.md <<MD
+    # Hold the Invoice of a disputed Order
+
+    Journey: ./journey.md
+    Status: ready-for-agent
+
+    ## Problem Statement
+
+    A customer disputes an Order and the billing service keeps chasing its open Invoice.
+
+    ## Solution
+
+    A support agent puts the Invoice of a disputed Order on hold, and the Order's page shows the hold.
+
+    ## Repositories
+
+    - billing-service (Home repository): $home
+    - orders-service: $orders
+
+    ## User Stories
+
+    1. As a support agent, I want to put the Invoice of a disputed Order on hold, so that the customer is not chased while the dispute is open
+    2. As a support agent, I want the Order's page to show that its Invoice is held, so that I can tell the customer nothing is due
+
+    ## Implementation Decisions
+
+    - An Invoice carries a status, open or held; a hold never deletes the Invoice
+    - The Order's page shows the hold only for an Invoice whose status is held
+
+    ## Testing Decisions
+
+    - Behaviour tests through each module's exported functions, with Node's own test runner
+
+    ## Out of Scope
+
+    - Releasing a held Invoice
+    MD
+
+    cat > .scratch/hold-disputed-invoice/journey.md <<'MD'
+    # Journey: Hold the Invoice of a disputed Order
+
+    Spec: ./spec.md
+    Actor: support agent
+    Entry: the Order's page
+
+    ## Path 1: Hold the Invoice
+
+    Story: 1
+    Outcome: the Invoice of the disputed Order reads held.
+
+    | Step | Actor sees | Actor does | System answers |
+    |---|---|---|---|
+    | 1 | the Invoice of a disputed Order, with a Hold action | picks Hold | the Invoice's status reads held |
+
+    Failure branches:
+    - none
+
+    ## Path 2: See the hold on the Order's page
+
+    Story: 2
+    Outcome: the Order's page reads that its Invoice is held.
+
+    | Step | Actor sees | Actor does | System answers |
+    |---|---|---|---|
+    | 1 | the page of a disputed Order whose Invoice was put on hold | nothing | the page shows the Invoice as held, read from the billing service |
+
+    Failure branches:
+    - none
+
+    ## States
+
+    | State | The actor sees | Actions |
+    |---|---|---|
+    | open | the Invoice as open | Hold |
+    | held | the Invoice as held | none |
+
+    ## Cut
+
+    - none
+
+    ## Defaults taken
+
+    - none
+
+    ## Deferred
+
+    - none
+
+    ## Spec changes applied
+
+    - none
+
+    ## Reopen in discuss
+
+    - none
+    MD
+
+    cat > .scratch/hold-disputed-invoice/issues/01-hold-the-invoice-of-a-disputed-order.md <<'MD'
+    # 01: Hold the Invoice of a disputed Order
+
+    **What to build:** A support agent puts the Invoice of a disputed Order on hold.
+
+    **Blocked by:** None (can start immediately)
+
+    **Status:** resolved
+
+    **Build repository:** billing-service
+
+    - [x] Hold on an Order's open Invoice sets the Invoice's status to held
+
+    ## Evidence
+
+    - Landed on `spec/hold-disputed-invoice` in billing-service.
+    MD
+
+    cat > .scratch/hold-disputed-invoice/issues/02-show-the-hold-on-the-order-page.md <<'MD'
+    # 02: Show the hold on the Order's page
+
+    **What to build:** The Order's page shows that the Invoice of a disputed Order is held, read from the billing service.
+
+    **Blocked by:** 01 Hold the Invoice of a disputed Order
+
+    **Status:** resolved
+
+    **Build repository:** orders-service
+
+    - [x] The page of a disputed Order whose Invoice was put on hold in the billing service shows the Invoice as held
+
+    ## Evidence
+
+    - Landed on `spec/hold-disputed-invoice` in orders-service.
+    MD
+
+    printf '.scratch/\n' > .gitignore
+    # Fixed dates, a fixed identity and no signature: the commits of a repository whose files this
+    # script writes whole hash the same on every run, which is what lets a grader hold each branch
+    # of orders-service to the commit it was left at.
+    commit() {
+      GIT_AUTHOR_DATE='2026-01-05T09:00:00Z' GIT_COMMITTER_DATE='2026-01-05T09:00:00Z' \
+        git -C "$1" -c user.email=fixture@example.com -c user.name=fixture -c commit.gpgsign=false commit -q -m "$2"
+    }
+    # billing-service already landed: Ticket 01's work went from its Spec branch to its main by
+    # fast-forward, and the Spec branch was removed.
+    git init -q -b main
+    git add -A
+    commit . "fixture"
+    git checkout -q -b spec/hold-disputed-invoice
+    cat > src/invoice.js <<'JS'
+    const invoices = new Map();
+    function open(orderId) { invoices.set(orderId, { orderId, status: "open" }); return invoices.get(orderId); }
+    function lookup(orderId) { return invoices.get(orderId); }
+    function hold(orderId) {
+      const invoice = invoices.get(orderId);
+      if (!invoice) return { held: false, reason: "no Invoice is open" };
+      invoice.status = "held";
+      return { held: true };
+    }
+    module.exports = { open, lookup, hold };
+    JS
+    git add -A
+    commit . "feat(invoice): hold the Invoice of a disputed Order"
+    git checkout -q main
+    git merge -q --ff-only spec/hold-disputed-invoice
+    git branch -q -d spec/hold-disputed-invoice
+
+    git -C ../orders-service init -q -b main
+    git -C ../orders-service add -A
+    commit ../orders-service "fixture"
+    # Ticket 02's work, on the Spec branch of orders-service and not on main yet.
+    git -C ../orders-service checkout -q -b spec/hold-disputed-invoice
+    cat > ../orders-service/src/page.js <<'JS'
+    const { lookup } = require("./order.js");
+    function page(id, invoice) {
+      const order = lookup(id);
+      const held = invoice && invoice.status === "held" ? ", Invoice held" : "";
+      return `Order ${order.id}: ${order.status}${held}`;
+    }
+    module.exports = { page };
+    JS
+    git -C ../orders-service add -A
+    commit ../orders-service "feat(page): show the hold on the Order's page"
+    git -C ../orders-service branch -q --set-upstream-to=main spec/hold-disputed-invoice
+    git -C ../orders-service checkout -q main

@@ -228,7 +228,7 @@ worktree line comes before the audit line and before the hand-over, shaped-by an
     below, where it reads `Open: none`.
 30. **Final integration lines.** On the run whose Completion check printed `verdict=complete`,
     after the Spec landing lines of its own Ticket, what the final integration of
-    [mechanics.md](mechanics.md) recorded, in one of four shapes. A run that entered on the
+    [mechanics.md](mechanics.md) recorded, in one of five shapes. A run that entered on the
     door's `verdict=resume-final` carries the same lines with no Spec landing lines before them,
     since it built and landed no Ticket, and opens them with
     `Final integration: resumed from <where>`, `<where>` being the `verdict=` and, on an open
@@ -267,6 +267,13 @@ worktree line comes before the audit line and before the hand-over, shaped-by an
       naming `waits_for_location=` as where that repository is. Nothing was claimed and nothing
       landed, in this repository or in any other. Then `Open: none` and the repository lines
       below, off the one read the run made.
+    - **Already landed** (a `resolved` Ticket at the door whose landing record read
+      `verdict=landed` with a repository still to land, per the `ticket` door in
+      [ticket.md](ticket.md)): `Final integration: not started, <own=> already landed`, one line
+      and the first after the first line. The run built no Ticket and reached no step, so no
+      Spec landing line and no `Open:` line stands with it: the repository lines below follow
+      it, off the one read the run made, and they are the rest of the message. The session's own
+      repository reads `Landed:` there and is handed no command.
 
     The repository lines, on a record that printed `repositories=` above 1, each copied off the
     record and never derived from the Tickets or from a probe of the session's own:
@@ -460,7 +467,10 @@ Ten sections, in this order, each one present in every Reply that carries sectio
     line among the Final integration lines. Once it reads `done`, every repository of the
     feature landed and no landing command is left to hand over: the push is the last line
     again, `git push <the developer's branch>` and nothing else, as a landing ends today. A run whose landing record read `verdict=wait` landed nothing and ends on the same
-    `/do <next_landing_ticket=>`, which is the first of the landing commands it listed. A run whose claim read `taken` has nothing to type, and
+    `/do <next_landing_ticket=>`, which is the first of the landing commands it listed. A landing
+    command typed in a repository that already landed, the door's Already landed stop, ends on
+    that same line off its one read of the record, the command of the next repository to land.
+    A run whose claim read `taken` has nothing to type, and
     its line says the Spec is being integrated by another run. A run whose Final integration
     stopped ends on `/do <the run's Ticket>`, the command it was started with and nothing else
     on the line: that a `do` on any Ticket of the Spec resumes it too is said on its

@@ -101,6 +101,28 @@ the tracker file describes. Before anything is written:
   Under `--auto` the stop is the same one line, with nothing written and no `choice-taker` forked:
   a Ticket's status is read, never asked, so the flag has no question here to hand over, and a
   flag that rebuilt what landed would route around that ADR.
+- A `verdict=resolved` Ticket whose door printed a `build_repository=` name is a Ticket of a
+  feature across repositories, where the same command is the landing command of its repository,
+  per
+  [ADR 0084](../../../docs/adr/0084-a-feature-across-repositories-lands-in-sequence-and-what-landed-stays.md).
+  Before the stop the run reads the landing record, in a call of its own:
+  `bash <skill-dir>/scripts/landing-order.sh <the Ticket's path>`, which writes nothing. A record
+  printing `repositories=` above 1, `verdict=landed` and a `next_landing=` line that reads
+  anything but `done` says the command was typed in a repository that already landed while
+  another is still to land, and the stop below takes the place of the resolved line. The record
+  reads each repository's state off that repository's own refs at the moment of the call, so the
+  run knows this one landed with no claim file, no Review and no memory of an earlier attempt.
+  The run does nothing: no claim, no worktree, no rebase, no review, no ref moved in any
+  repository, and nothing written. After the first line its message says in one line that this
+  repository already landed, `Final integration: not started, <own=> already landed`, then names
+  what is still to land with its command: the `Landed:` and `Still to land:` lines and the two
+  lines of each repository still to land, as the Already landed shape of the Final integration
+  lines in [reply.md](reply.md) words them, each copied off the record and never derived. Its
+  last line is `/do <next_landing_ticket=>` and nothing else on the line. It carries no `Yours:`
+  line, since there is nothing to choose, and no shell line. Any other record (`repositories=`
+  reading 0 or 1, another verdict, or `next_landing=done`) stops in the resolved line above, as a
+  Ticket whose door printed `build_repository=none` does without the call. Under `--auto` the
+  stop is the same lines, with no `choice-taker` forked.
 - A Ticket whose Build repository cannot be built anywhere as it stands (`verdict=unbuildable`)
   stops the run before the claim in one line after the first line, chosen by `build_check=`, so the
   developer fixes the one input that is wrong instead of reading a git error:
