@@ -1,0 +1,6 @@
+---
+type: llm
+criteria: "Judge this on the run's final message only, the text after FINAL MESSAGE. Ticket 01 reads ready-for-agent and has no worktree, no do/ branch and no commit. Pass only when all of these hold. First, the message says Ticket 01 is refused because it is blocked by Ticket 02, Count the archived notes (by number, title or file name), and gives that blocker's status, ready-for-agent. Second, there is exactly one line starting `Yours:`, its class is `direction`, and it hands over the choice to build the blocker first or to set its status by hand when it was done outside the chain. Third, the last non-blank line is the command `/do` followed by an absolute path ending in /.scratch/archive-notes/issues/02-count-the-archived-notes.md, on its own or with only formatting around it. Fourth, the message claims nothing that Ticket 01 does not have: it does not say a claim stands or that the Ticket is claimed, and it does not say a worktree, a branch or commits stand, are kept or will be resumed from. Saying that the Ticket was refused before the claim, that nothing was written, or that no worktree exists is fine."
+---
+A Ticket stopped at the Plan was never claimed and never cut a worktree, so a refusal that said
+those stand would send the developer looking for a worktree that is not there.
