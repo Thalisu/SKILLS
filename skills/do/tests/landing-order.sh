@@ -54,6 +54,26 @@ else
   dump_out
 fi
 
+after_groups() { # the lines the caller's $out carries past its last repository group, in their order, on stdout
+  awk '/^repository(_[a-z]+)?=/ { tail = ""; next } { tail = tail $0 "\n" } END { printf "%s", tail }' <<<"$out"
+}
+lands() { # $1 label, $2 the repository the record is read from, $3 its name, $4 the argument Ticket's file name, $5 the file name of its highest-numbered Ticket
+  local want_tail="own=$3
+waits_for=none
+next_landing=$3
+next_landing_location=$2
+next_landing_ticket=$issues/$5
+verdict=land"
+  cd "$2" || exit 1
+  run "$issues/$4"
+  if [ "$rc" = 0 ] && [ "$(after_groups)" = "$want_tail" ]; then ok "$1"; else
+    fail "$1 (exit $rc, wanted 0 and, past the groups: ${want_tail//$'\n'/ · })"
+    dump_out
+  fi
+}
+lands "from the provider, with both repositories unlanded, the record closes on its own repository waiting for none, named as the next landing with its location and highest-numbered Ticket, and the verdict land" \
+  "$build" land-api 02-api-model.md 03-api-export.md
+
 state_of() { # $1 repository name: the repository_state of its group in the caller's $out, on stdout
   awk -v r="repository=$1" '$0 == r { on = 1; next } /^repository=/ { on = 0 } on && sub(/^repository_state=/, "")' <<<"$out"
 }
@@ -98,5 +118,12 @@ reads "from the sibling, with both Spec branches removed, both repositories read
   "$build" landed landed
 expect "no reading of the record changes a ref or a file of either repository or of the Home feature folder${touched:+ (changed by:${touched#;})}" \
   test -z "$touched"
+
+# The cases above end with both Spec branches removed, so the consumer's is rebuilt here: the
+# provider stays landed and the consumer is the one repository left to land.
+(cd "$home" && g branch -q --track spec/export main && spec_commit spec/export) ||
+  echo "FAIL  fixture: the unlanded Spec branch of land-web could not be rebuilt"
+lands "from the consumer, once its provider has landed, the record closes on its own repository waiting for none, named as the next landing with its location and highest-numbered Ticket, and the verdict land" \
+  "$home" land-web 01-web-screen.md 04-web-download.md
 
 exit "$((fails > 0))"

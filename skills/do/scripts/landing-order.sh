@@ -7,9 +7,9 @@
 #                                           to the directory the script runs in, then to the main
 #                                           checkout
 #
-# Prints key=value lines, in this order: ticket, repositories=<n>, then <n> repository groups in
-# landing order. Each value is the whole rest of its line, so a name or a location with a space
-# stays whole.
+# Prints key=value lines, in this order: ticket, repositories=<n>, <n> repository groups in landing
+# order, then own, waits_for, the next_landing lines and verdict. Each value is the whole rest of
+# its line, so a name or a location with a space stays whole.
 #
 # A repository group, in this order: repository (the Build repository name as the Tickets write
 # it), repository_location (its location in the Spec's ## Repositories section, unlisted with no
@@ -26,6 +26,16 @@
 # Landing order: repository A is blocked by repository B when a Ticket built in A names, in Blocked
 # by, a Ticket built in B. A provider comes before what consumes it, and among the repositories no
 # remaining edge orders, the one whose lowest-numbered Ticket has the smallest number goes first.
+#
+# After the groups: own (the group the argument Ticket belongs to), waits_for (the first group in
+# landing order that own is directly blocked by and that does not read landed, none with none),
+# then next_landing, next_landing_location and next_landing_ticket (the first group in landing
+# order that does not read landed, its location and its repository_ticket), or the single line
+# next_landing=done when every group reads landed, then verdict. An unreadable repository counts as
+# not landed.
+#
+# verdict, first match wins: elsewhere (own is not the session's repository) · landed (own reads
+# landed) · land (the session's repository may run its Final integration now).
 #
 # Exit codes: 0 the record was read · 1 the edges hold a cycle · 2 usage, no file at the path, or
 # not a git repository.
@@ -132,15 +142,44 @@ ordered="$(landing_order)" || {
 
 echo "ticket=${path#"$main"/}"
 echo "repositories=${#names[@]}"
+build_repository_of "$path"
+own="$word"
+declare -A location_of=() state_of=()
+own_here=no waits_for=none next_landing=""
 while IFS= read -r name; do
   file="${last_ticket[$name]}"
   repository_location_of "$file" "$name"
   location="${word/#none/unlisted}"
+  here_word=no
+  [ "$(build_check_of "$name" "$location")" != here ] || here_word=yes
+  state="$(repository_state_of "$name" "$location" "$file")"
+  location_of[$name]="$location" state_of[$name]="${state%% *}"
   echo "repository=$name"
   echo "repository_location=$location"
-  if [ "$(build_check_of "$name" "$location")" = here ]; then echo "repository_here=yes"; else echo "repository_here=no"; fi
-  state="$(repository_state_of "$name" "$location" "$file")"
+  echo "repository_here=$here_word"
   echo "repository_state=${state%% *}"
   case "$state" in unreadable*) echo "repository_reason=${state#* }" ;; esac
   echo "repository_ticket=$file"
+  [ "$name" != "$own" ] || own_here="$here_word"
+  [ "${state%% *}" != landed ] || continue
+  [ -n "$next_landing" ] || next_landing="$name"
+  [ "$waits_for" != none ] || ! grep -qxF -- "$name" <<<"${providers[$own]:-}" || waits_for="$name"
 done <<<"$ordered"
+
+echo "own=$own"
+echo "waits_for=$waits_for"
+if [ -z "$next_landing" ]; then
+  echo "next_landing=done"
+else
+  echo "next_landing=$next_landing"
+  echo "next_landing_location=${location_of[$next_landing]}"
+  echo "next_landing_ticket=${last_ticket[$next_landing]}"
+fi
+if [ "$own_here" = no ]; then
+  verdict=elsewhere
+elif [ "${state_of[$own]}" = landed ]; then
+  verdict=landed
+else
+  verdict=land
+fi
+echo "verdict=$verdict"
