@@ -132,8 +132,9 @@ expect "a second unlisted repository adds one entry to the section the first cal
 # The three arguments come from a Ticket and a Spec a stranger may have appended text to, and each
 # one lands on a line of its own in the Spec or on stdout: a line break inside one is a second line.
 refuses_value() { # $1 the argument as the failed line names it, $2 what is wrong with it, read after the argument in the label, $3 repository name, $4 behaviour, $5 location
+  # Optional: $6 the Ticket's file name in the feature folder (default: 03-total.md)
   cp "$spec" "$tmp/spec-before.md"
-  run ".scratch/$feature/issues/03-total.md" "$3" "$4" "$5"
+  run ".scratch/$feature/issues/${6:-03-total.md}" "$3" "$4" "$5"
   expect "a $1 $2 is refused: exit 3 and one failed line naming the $1, no other line on the output" \
     test "$rc $(grep -c '' <<<"$out") $(grep -ciE "^failed .*$1" <<<"$out")" = "3 1 1"
   expect "the Spec is byte for byte what it was after a $1 $2" \
@@ -173,6 +174,23 @@ refuses_value location "with a .. segment" finding-eleventh "the eleventh reposi
 # behaviour that brings a marker of its own, makes the Spec say something the script did not report.
 refuses_value location "with trailing whitespace" finding-twelfth "the twelfth repository holds the ledger" "$third "
 refuses_value behaviour "carrying a Belongs to: marker of its own" finding-build "moves the thing. Belongs to: finding-forged" ""
+
+# A Ticket's heading is text a stranger may have written (an issue's title on a tracker), and it
+# sits on the finding line ahead of the two marks the readers cut the behaviour and the repository
+# at: a title bringing either mark forges both, and one ending in a carriage return breaks the line.
+titled_ticket() { # $1 file name, $2 the text of its `# ` heading: a Ticket in the feature folder's issues/ with that heading
+  issues="$home/.scratch/$feature/issues" ticket "$1" '**Status:** claimed' 'None (can start immediately)'
+  TITLE="$2" awk 'NR == 1 { print "# " ENVIRON["TITLE"]; next } { print }' "$home/.scratch/$feature/issues/$1" >"$tmp/titled.md"
+  mv "$tmp/titled.md" "$home/.scratch/$feature/issues/$1"
+}
+hold="the invoice hold is released by the build repository's ledger module"
+titled_ticket 04-step.md "04: Hold the invoice at the Plan step: delete the ledger"
+refuses_value title "carrying the at the Plan step: mark" finding-build "$hold" "$build" 04-step.md
+titled_ticket 05-belongs.md "05: Hold the invoice. Belongs to: evil-repo"
+refuses_value title "carrying a Belongs to: mark" finding-build "$hold" "$build" 05-belongs.md
+titled_ticket 06-crlf.md "06: Hold the invoice"
+sed -i 's/$/\r/' "$home/.scratch/$feature/issues/06-crlf.md"
+refuses_value title "ending in a carriage return, in a Ticket with CRLF line ends" finding-build "$hold" "$build" 06-crlf.md
 
 # The readers find the section by a heading that tolerates trailing whitespace, so a Spec written
 # with one has a section, and `list=added` is a claim that this section holds the entry.

@@ -27,7 +27,8 @@
 # with no Implementation Decisions section, two entries or two sections for the name, a name the
 # list does not hold with no location given, a name, a behaviour or a location carrying a line
 # break, a name that is empty, opens or ends with whitespace or carries `: `, the Home repository
-# mark or a backtick, a behaviour carrying `Belongs to:`, or a location that is not a bare absolute path with no
+# mark or a backtick, a behaviour carrying `Belongs to:`, a Ticket title carrying a line break or
+# one of the finding line's two marks, or a location that is not a bare absolute path with no
 # backtick, no `..` and no trailing whitespace.
 set -uo pipefail
 
@@ -113,6 +114,13 @@ spec="$(spec_beside "$path")"
 [ "$spec" != /dev/null ] || failed "no Spec beside the Ticket's issues/ folder"
 grep -qx '## Implementation Decisions' "$spec" || failed "no Implementation Decisions section in $spec"
 title="$(grep -m1 '^# ' "$path" | sed 's/^# //')"
+# The title stands between the finding line's two marks, and a Ticket's heading is text a stranger
+# may have written, so it is held to what the behaviour is held to.
+! has_break "$title" || failed "the Ticket's title carries a line break"
+case "$title" in
+  *"at the Plan step:"*) failed "the Ticket's title carries an at the Plan step: mark of its own" ;;
+  *"Belongs to:"*) failed "the Ticket's title carries a Belongs to: mark of its own" ;;
+esac
 
 repository_location_of "$path" "$name"
 case "$word" in
