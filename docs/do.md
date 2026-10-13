@@ -352,10 +352,52 @@ return with `landed at <sha>`, and `spec/<slug> removed`, and its Next step is
 `git push <your branch>`
 ([ADR 0061](adr/0061-the-review-runs-once-per-spec-on-its-spec-branch-before-it-lands.md)).
 
+A feature across repositories lands one repository at a time, each through a Final integration of
+its own, in a session of that repository, so the Review and the Gate are that project's own
+([ADR 0084](adr/0084-a-feature-across-repositories-lands-in-sequence-and-what-landed-stays.md)).
+Nothing lands anywhere while a Ticket of the feature is open in any repository. Once every Ticket
+reads `resolved`, the order comes from the Tickets' `Blocked by` lines: a repository whose Ticket
+blocks a Ticket of another one is its provider and lands first. Whether a repository already landed
+is read from its own Spec branch each time, so no command depends on what an earlier one remembered.
+
+The run that completes the feature lands its own repository when nothing it consumes from is still
+unlanded, and no other. Its reply then names what landed and what is left, and for each repository
+still to land, in order, where to open a session and the command to type there, a `do` on a Ticket
+of that repository. The last line is the command for the next one:
+
+```
+spec/hold-disputed-invoice removed
+Push: git push main
+Landed: billing-service
+Still to land: orders-service
+orders-service: open a session in /home/dev/orders-service
+/do /home/dev/orders-service/.scratch/hold-disputed-invoice/issues/04-show-the-hold.md
+```
+
+When that run sits in a repository whose provider has not landed, the order holds for it too and
+it lands nothing. Its reply says the feature is complete and which repository its own waits for,
+lists the command of every repository in order, its own among them, and ends on the first:
+
+```
+Final integration: not started, the feature is complete and orders-service waits for billing-service to land, at /home/dev/billing-service
+Open: none
+Landed: none
+Still to land: billing-service, orders-service
+billing-service: open a session in /home/dev/billing-service
+/do /home/dev/orders-service/.scratch/hold-disputed-invoice/issues/02-hold-the-invoice.md
+orders-service: this session's repository, once billing-service landed
+/do /home/dev/orders-service/.scratch/hold-disputed-invoice/issues/04-show-the-hold.md
+```
+
+Each repository claims its own Final integration, so the claim, the Loss ledger and the Review
+beside the Spec carry the repository's name in such a feature: `spec.billing-service.integration.claim`,
+`spec.billing-service.ledger.md`, `spec.billing-service.review.md`. A feature of one repository
+keeps the plain names above and its reply is unchanged.
+
 A Final integration that stops (a rebase question nobody answered, a Review that did not land,
 `not landed: target moved`) leaves the Spec branch, its worktree and the claim in place, and marks
 the claim yielded. The reply says it stopped and why, and `/do <the run's Ticket>`, or a `do` on
-any Ticket of the Spec, resumes it.
+any Ticket of the Spec built in that repository, resumes it.
 
 That second `/do` rebuilds nothing. Its Ticket reads `resolved`, and the door tells three cases
 apart:

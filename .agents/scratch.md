@@ -146,6 +146,25 @@ into the claim file: a resume takes the claim over by renaming that mark away, w
 two resumes can do, and a claim with no mark beside it still reads as taken. The mark is deleted
 with the claim.
 
+A feature across repositories has one Final integration per repository, each run by a session in
+that repository, and all of them write beside the one `spec.md`, in the Home repository's Feature
+folder. So the claim is taken per repository: a Ticket that carries a `**Build repository:**` line
+claims under that repository's key, the name lowercased with every run of other characters turned
+into one dash, and the four files beside the Spec carry the key:
+
+| File | A feature of one repository | A Ticket built in `<key>` |
+|---|---|---|
+| the claim | `spec.integration.claim` | `spec.<key>.integration.claim` |
+| the yielded mark | `spec.integration.yielded` | `spec.<key>.integration.yielded` |
+| the Loss ledger of the Spec's rebase | `spec.ledger.md` | `spec.<key>.ledger.md` |
+| the Review | `spec.review.md` | `spec.<key>.review.md` |
+
+One name for all of them would be a write target shared by runs that only the landing order keeps
+apart: the claim one repository holds would read as taken to the next, and each Review would
+overwrite the one before it. `skills/do/scripts/final-claim.sh` is the one place the names are
+composed, and every reader takes them from the lines it prints. Nothing beside the Spec records
+that a repository landed: that is read from the repository's own Spec branch.
+
 Never a lock file. An agent that crashes or is cancelled leaves its lock behind, and git ignores
 the whole folder, so the stale lock never appears in `git status` and the next run waits on a
 process that died yesterday: see
