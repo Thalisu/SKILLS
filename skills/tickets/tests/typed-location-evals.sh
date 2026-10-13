@@ -5,6 +5,9 @@
 # reaches the Spec. A case whose fixture already lists the repository, whose prompt types no
 # location, or whose graders never read the Spec stays green while the typed location is dropped,
 # and the developer is back to editing the Spec by hand.
+# The same holds for the stop on a location that is owed and was not typed: a case whose prompt types
+# it, or whose graders accept a run that wrote a ticket or edited the Spec, stays green while
+# `tickets` cuts a ticket naming a Build repository no `do` door can resolve.
 # No model session runs here: each case is read the way a run of it would meet it, the fixture laid
 # as scripts/run-eval.sh lays it, the prompt with the runner's {{fixture}} token replaced by the
 # folder the fixture was laid in, and each grader run against a work folder.
@@ -18,6 +21,11 @@ tmp="$(mktemp -d)"
 trap 'cd /; rm -rf "$tmp"' EXIT
 
 source_grade
+mapfile -t owed_location < <(owed_location_phrasings)
+mapfile -t none_typed < <(none_typed_phrasings)
+mapfile -t location_missing < <(location_missing_phrasings)
+mapfile -t nothing_written < <(nothing_written_phrasings)
+mapfile -t kept < <(kept_phrasings)
 tr '[:upper:]' '[:lower:]' <"$evals/README.md" >"$tmp/evals.md" 2>/dev/null
 
 # A case as a run of it starts: the fixture laid under a work folder, the feature it holds, the
@@ -73,25 +81,30 @@ with_entry() { # $1 name of the copy under $tmp, $2 the line
 found_grader() { # $1 grade_passes|grade_fails, $2 label, $3 work folder: red when the caller's $grader is empty
   if [ -n "$grader" ]; then "$1" "$2" "$3"; else fail "$2 (no such grader in the case)"; fi
 }
+# The fixture a run of the case starts from leaves the finding's repository without a location, and
+# nothing already cut for it.
+owes_the_location() { # reads what lay_case set
+  expect "the spec holds a finding line whose location is not known" test -n "$finding"
+  expect "which names the repository the work belongs to" test -n "$repo"
+  passage_of "${spec:-/dev/null}" "## Repositories" "## " >"$tmp/repositories.md"
+  expect "the spec's repositories list holds the home repository's entry" \
+    grep -qE '^- .+ \(Home repository\): /' "$tmp/repositories.md"
+  label="and no entry for the repository the finding names"
+  if [ -n "$repo" ] && ! grep -qE "^- ${repo}( \(|:)" "$tmp/repositories.md"; then ok "$label"; else fail "$label"; fi
+  expect "the feature has a ticket still open" \
+    grep -qE '^\*\*Status:\*\* (ready-for-agent|claimed|needs-triage|needs-info)' "${tickets[@]:-/dev/null}"
+  label="no ticket covers the finding: none is built in that repository"
+  if [ "${#tickets[@]}" -gt 0 ] && [ -n "$repo" ] &&
+    ! grep -qE "^\*\*Build repository:\*\* ${repo}\s*$" "${tickets[@]}"; then ok "$label"; else fail "$label"; fi
+}
 
 echo "# evals/location-typed-with-the-command: the fixture owes the location the prompt types"
 case_name="location-typed-with-the-command"
 lay_case "$case_name"
-expect "the spec holds a finding line whose location is not known" test -n "$finding"
-expect "which names the repository the work belongs to" test -n "$repo"
-passage_of "${spec:-/dev/null}" "## Repositories" "## " >"$tmp/repositories.md"
-expect "the spec's repositories list holds the home repository's entry" \
-  grep -qE '^- .+ \(Home repository\): /' "$tmp/repositories.md"
-label="and no entry for the repository the finding names"
-if [ -n "$repo" ] && ! grep -qE "^- ${repo}( \(|:)" "$tmp/repositories.md"; then ok "$label"; else fail "$label"; fi
+owes_the_location
 label="a git repository with a commit is laid beside the fixture root under that name"
 if [ -n "$sibling" ] && [ "$(git -C "$sibling" rev-parse --show-toplevel 2>/dev/null)" = "$sibling" ] &&
   git -C "$sibling" rev-parse -q --verify HEAD >/dev/null 2>&1; then ok "$label"; else fail "$label"; fi
-expect "the feature has a ticket still open" \
-  grep -qE '^\*\*Status:\*\* (ready-for-agent|claimed|needs-triage|needs-info)' "${tickets[@]:-/dev/null}"
-label="no ticket covers the finding: none is built in that repository"
-if [ "${#tickets[@]}" -gt 0 ] && [ -n "$repo" ] &&
-  ! grep -qE "^\*\*Build repository:\*\* ${repo}\s*$" "${tickets[@]}"; then ok "$label"; else fail "$label"; fi
 
 echo "# evals/location-typed-with-the-command: the prompt types the location with the command"
 command_line="$(grep -E '^/tickets ' <<<"$prompt" | head -n 1)"
@@ -174,5 +187,82 @@ carries_each "that the entry is written into the spec's repositories list" \
 carries_each "and that the ticket is cut for that repository" \
   "ticket" -- \
   "build repository" "built in" "cut for" "builds in" "for that repository" "in that repository"
+
+echo "# evals/location-owed-and-not-typed-stops: the fixture owes a location"
+case_name="location-owed-and-not-typed-stops"
+lay_case "$case_name"
+owes_the_location
+
+echo "# evals/location-owed-and-not-typed-stops: the prompt types the command and no location"
+command_line="$(grep -E '^/tickets( |$)' <<<"$prompt" | head -n 1)"
+read -ra typed_words <<<"$command_line"
+expect "the prompt types /tickets" test -n "$command_line"
+label="on the fixture's spec, and nothing after it"
+if [ -n "$spec" ] && [ "${#typed_words[@]}" = 2 ] && grep -qF -- "$slug" <<<"${typed_words[1]}"; then ok "$label"; else
+  fail "$label (typed: ${command_line:-nothing})"
+fi
+label="no pair names the repository the finding leaves without a location"
+if [ -n "$prompt" ] && [ -n "$repo" ] && [ -z "$(typed_location "$repo")" ] &&
+  ! grep -qF -- "$repo:" <<<"$prompt"; then ok "$label"; else fail "$label"; fi
+label="and the prompt carries no {{fixture}} token"
+if [ -n "$prompt" ] && ! grep -qF -- '{{fixture}}' <<<"$prompt"; then ok "$label"; else fail "$label"; fi
+
+echo "# evals/location-owed-and-not-typed-stops: the graders hold the run to the stop"
+with_entry owed-entry-written "- ${repo:-none}: /srv/checkouts/${repo:-none}"
+criteria=""
+held=no
+for g in "$case_dir"/graders/*.md; do
+  [ -f "$g" ] || continue
+  if [ "$(key "$g" type)" = llm ]; then
+    criteria="$criteria $(key "$g" criteria)"
+    continue
+  fi
+  case "$(key "$g" path)" in
+    *.scratch/*spec.md*) ;;
+    *) continue ;;
+  esac
+  # A Spec that gained the entry is a file a code grader reads: as laid it passes, and with the
+  # entry it fails.
+  [ -n "$(grade "$g" "$as_laid")" ] || [ -z "$(grade "$g" "$tmp/owed-entry-written")" ] || held=yes
+done
+flat="$(tr '\n' ' ' <<<"$criteria" | tr -s ' ')"
+flat="${flat,,}"
+named="$(tr '[:upper:]' '[:lower:]' <<<"${repo:-no repository named}")"
+expect "an llm grader judges the run" test -n "${flat// /}"
+carries_each "the run ends on one message naming the repository whose location is missing" \
+  "one message" "single message" "one short message" "a message" -- \
+  "$named" -- \
+  "location" -- \
+  "${location_missing[@]}"
+carries_each "no ticket file is created or edited" \
+  "ticket" "issues" -- \
+  "${nothing_written[@]}" "no ticket" "no new ticket" "no file" "no new file" "created or edited" \
+  "not created" "not written" "${kept[@]}"
+carries_each "the spec is left as it was" \
+  "spec" -- \
+  "${nothing_written[@]}" "${kept[@]}"
+label="no entry for the repository is added to the spec's repositories list"
+if [ "$held" = yes ]; then ok "$label"; else
+  carries_each "$label" \
+    "repositories" -- \
+    "entry" "entries" "line" -- \
+    "no entry" "no new entry" "no line" "no new line" "gained no" "gains no" "not added" "never added" \
+    "adds no" "added no" "nothing added" "not written" "never written" "holds no" "still holds" \
+    "${kept[@]}"
+fi
+
+echo "# skills/tickets/evals/README.md: the row of location-owed-and-not-typed-stops"
+flat="$(checks_of "$case_name")"
+expect "$case_name has a row" test -n "${flat// /}"
+carries_each "which says a location is owed" \
+  "location" -- \
+  "${owed_location[@]}"
+carries_each "and was not typed with the command" \
+  "${none_typed[@]}" -- \
+  "typed" "the command" "pair"
+carries_each "that the run ends on one message naming the repository" \
+  "one message" "single message" "one short message" "a message" -- \
+  "repositor" "$named"
+carries_any "and that nothing is written" "${nothing_written[@]}"
 
 exit $((fails > 0))
