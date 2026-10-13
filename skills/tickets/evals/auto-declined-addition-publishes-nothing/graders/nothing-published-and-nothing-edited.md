@@ -1,0 +1,6 @@
+---
+type: llm
+criteria: "Judge this on the tool calls and the changes to the fixture. The run published nothing and waited on nobody. No new ticket file was created under the feature's issues folder: no file numbered 04 and no other. The three existing ticket files are unedited, each as it was: ticket 01 keeps its resolved status, ticket 02 keeps all five of its criteria, the one about the customer receiving the email among them, and its Blocked by still names 01 alone, and ticket 03 keeps its criteria and its status. None of them was renumbered, renamed or deleted. The spec was not edited: its finding line, the one opening 'Moved by the run on Ticket 02', stays under Implementation Decisions as it was, and its Repositories section is unchanged. The journey was not edited, nothing was written in the billing-service or notifications-service folders beside the fixture's root, and no git commit was made in any repository. No message the session wrote to the user asks them to approve, choose, answer or confirm anything: the ruling against publishing was not put back to the user as a question."
+---
+A ruling against the addition leaves the feature as the stopped run left it: the missing work is
+still written down, in the spec, and nothing claims to have ticketed it.

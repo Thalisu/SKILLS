@@ -357,6 +357,16 @@ left alone
 no change
 EOF
 }
+# Written with printf, since some entries end on a space that a heredoc line would lose to an editor.
+kept_phrasings() { # one accepted phrasing per line: something a run could have edited is still what it was, untouched_phrasings included
+  untouched_phrasings
+  printf '%s\n' "unedited" "not edited" "no edit" "unmodified" "not modified" "intact" \
+    "keeps" "kept" "stays" "stay " "remains" "remain " "still " "as it was" "as they were" \
+    "as the fixture" "byte for byte" "identical" "nothing else" "no other"
+}
+never_phrasings() { # one accepted phrasing per line: the negation in "no existing Ticket is ..."
+  printf '%s\n' "never" "not " "no existing" "no ticket" "no file" "none of" "nor " "neither" "without"
+}
 changed_phrasings() { # one accepted stem per line: an existing Ticket is one the cut changes
   cat <<'EOF'
 chang

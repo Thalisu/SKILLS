@@ -24,13 +24,8 @@ source_grade
 
 mapfile -t moved_out < <(moved_out_phrasings)
 mapfile -t edge_added < <(edge_added_phrasings)
-mapfile -t untouched < <(untouched_phrasings)
-kept=(
-  "${untouched[@]}" "unedited" "not edited" "no edit" "unmodified" "not modified" "intact"
-  "keeps" "kept" "stays" "stay " "remains" "remain " "still " "as it was" "as they were"
-  "as the fixture" "byte for byte" "identical" "nothing else" "no other"
-)
-never=("never" "not " "no existing" "no ticket" "no file" "none of" "nor " "neither" "without")
+mapfile -t kept < <(kept_phrasings)
+mapfile -t never < <(never_phrasings)
 deleted=("delet" "erase" "removed" "removes" "remove an" "remove a " "dropped" "discard")
 
 echo "# SKILL.md / ## 5: the publish on a feature with open Tickets"

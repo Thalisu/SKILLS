@@ -348,6 +348,8 @@ Untouched: 01 "Mark an Order as disputed", 03 "See the hold on the Order's page"
 
 The closing parts follow as above (the splits, folds and placements among the new tickets, what was left out) and the message ends on the same one question.
 
+A no on the addition publishes nothing, as a no on any breakdown does: one line says nothing was published, and no next command follows, neither a `/do` line nor a `/tickets` line. No existing ticket is edited: the criterion stays in the ticket that holds it, and that ticket gains no blocking edge. The finding line stays in the spec as the stopped run wrote it, so a later `/tickets` run on the same spec reads it as uncovered and cuts from it. A Ruling under `--auto` to leave the addition unpublished ends the same way.
+
 ### Under `--auto`
 
 The flag is the developer handing the approval over for one run. The breakdown is still shown in full, on a local tracker and on a remote one: every field of every ticket, the splits, folds and placements, and what was left out, exactly as above. Showing it is not a question, so the flag replaces the answer and never the display. Only its closing question is left out of that message: it goes to the `choice-taker` below, and a question written to the user there would read as a run waiting on them.
