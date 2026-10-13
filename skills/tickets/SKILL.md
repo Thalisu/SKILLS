@@ -2,7 +2,7 @@
 name: tickets
 description: "Cut a spec, and the journey its verdict points at, into tracer-bullet tickets: one demoable vertical slice per ticket, or a Logic ticket and a Front-end ticket for a path with a screen when the spec names a front-end builder, sized by a token estimate, each declaring the tickets that block it, with the edges, folds and splits decided by the skill and only the approval asked. Published one file per ticket locally or one issue per ticket on the project's tracker. Stops before writing anything when the journey is required but missing, contested, or already ticketed."
 disable-model-invocation: true
-argument-hint: "[--auto] [the spec: a path, the feature slug, or an issue reference]"
+argument-hint: "[--auto] [the spec: a path, the feature slug, or an issue reference] [<repository>: <its location on this machine>, when a stopped do run asked for it]"
 ---
 
 # Tickets
@@ -57,7 +57,7 @@ Say in one line what is being read, then make the reads that do not depend on on
 
 **The tracker file** says where specs and tickets live and which triage labels exist. Without it, the tickets are published as local markdown under `issues/` in the spec's directory, the thread says so in one line, and no setup skill is ever demanded.
 
-**The spec.** `$ARGUMENTS` is the spec and it is mandatory. An `--auto` token among the arguments, before the spec, after it or inside it, is dropped wherever it sat and puts the run under `--auto` (step 4); the spec is the rest, with no flag in it, resolved exactly as it is without the flag. The chain is strict: `tickets` takes a spec and never the conversation, since a ticket cut from the conversation rests on decisions nobody wrote down, which the `do` session cannot read.
+**The spec.** `$ARGUMENTS` is the spec and it is mandatory. An `--auto` token among the arguments, before the spec, after it or inside it, is dropped wherever it sat and puts the run under `--auto` (step 4); the spec is the rest, with no flag in it, resolved exactly as it is without the flag. When the rest ends in `<repository>: <its absolute location on this machine>`, the last line of a stopped `do` Reply that could name a repository and not where it is, the spec is what stands before that pair and is resolved as it is without it. The pair is a repository's name and its location on this machine, split at the first `: ` and kept for the finding that owes that location (below). The chain is strict: `tickets` takes a spec and never the conversation, since a ticket cut from the conversation rests on decisions nobody wrote down, which the `do` session cannot read.
 
 | `$ARGUMENTS` | How it is read |
 |---|---|
@@ -129,6 +129,14 @@ The same reading answers a command that was repeated and one typed by accident: 
 - an uncovered finding line becomes a slice built in the repository the line names, with the line's behaviour as its acceptance criteria;
 - the ticket a finding line names is the one open ticket the cut changes. Its criterion stating the line's behaviour moves to the new slice, since its own repository cannot prove it, and it gains a blocking edge to the new slice, whose work it reads. Nothing else of it changes: its number, its status, its other criteria and its other blockers stay;
 - what the open tickets cover is left out of the cut. No open ticket is recut, renumbered or deleted, and a new slice that reads what an open ticket writes is blocked by that ticket, named by its number.
+
+**A finding that owes a location.** A finding line that ends in ` Location not known.` after the name's period was written by a run that could name the repository and not where it is on this machine. It owes a location while the spec's Repositories section holds no entry for the repository it names. Once the section holds one, the line owes nothing, whatever its ending still reads, so a repeated command is harmless. When `$ARGUMENTS` carried the pair for that repository, write the entry `- <name>: <location>` into the spec's Repositories section here, before the code is explored (step 2) and before any slice is drafted (step 3):
+
+- the entry takes the shape [spec-format.md](../../.agents/formats/spec-format.md) fixes, with the name as the finding line carries it and the location as it was typed;
+- it goes after the section's last entry. A spec with no Repositories section gains one where the format places it, between Solution and User Stories, with the Home repository's entry first, marked `(Home repository)` and located at this session's repository root, and the new entry after it;
+- the spec is edited where it lives: the file in local mode, the issue's body in remote mode. Nothing else in it changes, the finding line included, and the developer edits no file by hand.
+
+The run then goes on as the additive cut above, with that repository read at the location its new entry gives. A pair typed for a repository the section already holds, or for one no finding line names, writes nothing and is said in one line before the breakdown.
 
 ## 2. Explore the code
 
