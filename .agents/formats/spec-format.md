@@ -67,6 +67,12 @@ a run with `--auto` ruled reads
 A Design fork a `do` run met reads
 `- Ruled by the choice-taker on Ticket <the Ticket> at the <step> step: <the side taken>. Norm: <the norm>. Fork: <side A> or <side B>.`
 and only `do` writes the `on Ticket` form, since `do` reads a Ticket's own Rulings back by it.
+A behaviour a `do` run found has no place in the repository it builds in is a finding, one line of
+its own, marked as the run's by its prefix and carrying the behaviour that moved and the repository
+it belongs to:
+`- Moved by the run on Ticket <the Ticket> at the <step> step: <the behaviour>. Belongs to: <the repository's name>.`
+Only `do` writes it, with the entry for that repository in Repositories when the list did not hold
+one, and `tickets` cuts the moved behaviour from it.
 
 ## Testing Decisions
 
@@ -98,5 +104,7 @@ Anything else the implementer needs.
   name the plan gives the repository, a colon, and the repository's root as a bare absolute path,
   with no backticks and no `..` left in it. `tickets` and `do` read the entries by that shape.
 - A spec without a Repositories section is a feature of one repository, the **Home repository**,
-  and every skill that reads it treats it so. The section is never written with a single entry.
+  and every skill that reads it treats it so. The section is never written with a single entry: a
+  `do` run that finds work for a second repository creates it with the Home repository's entry
+  first.
 - No em-dash.

@@ -813,6 +813,28 @@ refusal of this step, so it comes before the claim, the worktree and the Spec br
 claimed, cut or committed, no Builder is forked, no behaviour of the list is built, and the Ticket
 keeps the status the door printed as `status=`. The Plan stays where it was written.
 
+Before it stops, the run writes the finding into the Spec, so that `tickets`, which reads the Spec
+and never this conversation, has the moved behaviour to cut from. It is the one write of this
+stop, made by a script and never by hand, once per `Elsewhere:` item, with the item's own values:
+
+```sh
+bash <skill-dir>/scripts/spec-finding.sh <the Ticket's path> "<Belongs to>" "<the behaviour>" "<Location>"
+```
+
+The script owns whether the Spec's `## Repositories` list already holds that repository, a match
+on the entry's whole name the session never makes by reading the Spec. It adds the entry when the
+list lacks it, creating the section with the Home repository's own entry first on a Spec that has
+none, and appends the finding line to the Spec's Implementation Decisions in the form
+[spec-format.md](../../../.agents/formats/spec-format.md) fixes, marked with this Ticket. It prints
+`spec=`, `repository=`, `listed=`, `list=`, `line=`, `home=`, `home_name=` and `here=`, and the run
+records them as printed for the Reply: `list=added` or `list=unchanged` says whether the list
+gained an entry, and `line=present` is a finding an earlier run on this Ticket already wrote,
+which is never written twice. No `choice-taker` is forked, since a finding is no Ruling: nothing is
+chosen between two sides. An exit of 3 prints `failed <reason>` and writes nothing, and the run
+stops on that reason in the finding's place. The fourth argument is left out when the item's
+`Location:` reads `not known`: the script then writes for a repository the list already holds and
+fails for one it does not, since an entry with no location is one no skill can read.
+
 The Plan's own `## Map` is
 the subsystem as it stood before the diff and goes no further than the loop: the review is never
 handed it, since each reviewer builds its own map after the diff, as the review in
