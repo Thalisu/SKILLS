@@ -217,6 +217,31 @@ in the command, in place of the angle brackets, and edit no file by hand:
 /tickets .scratch/hold-disputed-invoice/spec.md notifications-service: <its absolute location on this machine>
 ```
 
+The Ticket the run stopped on is not abandoned. `tickets` moves the criterion out of it into a new
+Ticket and makes that new Ticket its blocker, and the command that picks the stopped Ticket up
+again is the one you already know, `/do` on it. What that command does depends on the blocker:
+
+| The new blocker | The Ticket stopped at the Plan | The Ticket stopped mid-build |
+|---|---|---|
+| not `resolved` | refused, with nothing said of a claim, a worktree or commits, since it had none | refused, and the reply says the claim, the worktree, its branch and the commits already made stand |
+| `resolved` | planned again from the criteria the Ticket now holds, then built as a first run | resumed in its worktree, on a Plan cut again, at the first behaviour with no commit beside it |
+
+The refusal is the wait. No run stays open while the blocker is built: the reply names the blocker
+and its status, carries a `Yours: direction:` line, and ends on the command that builds the
+blocker, with the line naming its Build repository before it when the blocker is built elsewhere:
+
+```
+Open a session in notifications-service at /home/dev/notifications-service.
+/do /home/dev/orders-service/.scratch/hold-disputed-invoice/issues/05-notify-the-customer.md
+```
+
+Nothing is written by that refusal, so you can type `/do` on the stopped Ticket as often as you
+like to see where its blocker stands. Once the blocker reads `resolved`, the Plan left beside the
+Ticket is stale, because the Ticket lost a criterion, and the run removes it and plans again
+rather than build the behaviour that moved. A run resuming mid-build keeps the wording of every
+behaviour a commit already carries, so none of them is built or paid for twice. When the worktree
+of the stopped Ticket is gone by then, the run starts the Ticket over and says so in its reply.
+
 The gate runs after the last edit and never before it, because "it passed earlier" is stale. It runs
 from one script that prints the line to rerun it first, one line per green check and the capped
 failing block of a red one with the file holding its full output, so you rerun the gate yourself and
