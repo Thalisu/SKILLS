@@ -248,4 +248,53 @@ expect "the Spec of one repository gains no Repositories section for a repositor
 expect "the Spec of one repository holds the finding line once, its location marked as not known" \
   test "$(decisions_of "$bare_spec" | grep -cxF -- "$bare_finding")" = 1
 
+# A Ticket of a feature of one repository carries no Build repository line, and the doors and the
+# landing record read a lineless Ticket of a Spec with a list as naming none of its entries: the
+# call that creates the list must leave every Ticket the feature already had buildable and ordered.
+door="$here/../scripts/ticket-door.sh"
+landing="$here/../scripts/landing-order.sh"
+sibling_repos lineless-home lineless-build 20261013-lineless
+# shellcheck disable=SC2154 # lib.sh's sibling_repos assigns $home, $build and $issues
+lineless_spec="$home/.scratch/20261013-lineless/spec.md"
+cp "$(run_with_spec "" "")/fixture/.scratch/20260905-suppliers/spec.md" "$lineless_spec"
+ticket 01-first.md '**Status:** ready-for-agent' 'None (can start immediately)'
+ticket 02-second.md '**Status:** claimed' 'None (can start immediately)'
+cd "$build" || exit 1
+rc=0
+out="$(cd "$home" && bash "$door" "$issues/01-first.md" 2>&1)" || rc=$?
+check_lines "a Ticket with no Build repository line of a Spec with no list passes the door before any finding" 0 "$rc" \
+  "build_check=none" "verdict=start"
+
+lineless_behaviour="the invoice currency is formatted by the build repository's locale module"
+run "$issues/02-second.md" lineless-build "$lineless_behaviour" "$build"
+check_lines "a finding for a repository on a Spec with no list creates the list" 0 "$rc" \
+  "listed=no" "list=added" "line=written"
+rc=0
+out="$(cd "$home" && bash "$door" "$issues/01-first.md" 2>&1)" || rc=$?
+check_lines "a Ticket with no Build repository line that the feature already had still passes the door once the list exists" 0 "$rc" \
+  "build_repository=lineless-home" "build_check=here" "verdict=start"
+rc=0
+out="$(cd "$home" && bash "$door" "$issues/02-second.md" 2>&1)" || rc=$?
+check_lines "the stopped Ticket still passes the door once the list exists" 0 "$rc" \
+  "build_repository=lineless-home" "build_check=here" "verdict=start-over"
+
+ticket 03-third.md $'**Status:** ready-for-agent\n\n**Build repository:** lineless-build' 'None (can start immediately)'
+sed -i 's/^\*\*Blocked by:\*\* .*/**Blocked by:** 03, Title of 03-third/' "$issues/02-second.md"
+rc=0
+out="$(cd "$home" && bash "$door" "$issues/02-second.md" 2>&1)" || rc=$?
+check_lines "the stopped Ticket reads blocked once its blocker is added, the blocker's repository named" 1 "$rc" \
+  "next_blocker=$issues/03-third.md" "next_blocker_build=lineless-build" "verdict=blocked"
+
+for n in 01-first 02-second 03-third; do sed -i 's/^\*\*Status:\*\* .*/**Status:** resolved/' "$issues/$n.md"; done
+for repo in "$home" "$build"; do
+  (cd "$repo" && g branch -q --track spec/lineless main && spec_commit spec/lineless) ||
+    echo "FAIL  fixture: the unlanded Spec branch of $repo could not be built"
+done
+rc=0
+out="$(bash "$landing" "$issues/03-third.md" 2>&1)" || rc=$?
+check_lines "the landing record of the completed feature counts both repositories, as it does with every Ticket carrying its line" 0 "$rc" \
+  "repositories=2"
+expect "the landing record of the completed feature is not ambiguous" \
+  test -z "$(grep -E '^(ambiguous=|verdict=ambiguous)' <<<"$out")"
+
 exit "$((fails > 0))"

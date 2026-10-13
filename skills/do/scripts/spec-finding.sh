@@ -10,7 +10,9 @@
 # Writes to the spec.md beside the Ticket's issues/ folder: one entry `- <name>: <location>` at the
 # end of its ## Repositories section, the section created first where the spec format places it, with
 # the entry `- <the Home root's base name> (Home repository): <the Home root>`, when the Spec has
-# none, and the finding line
+# none, and, when it creates the section, the line `**Build repository:** <the Home entry's name>` into
+# the header of every Ticket of the folder that carries none, so the Tickets the feature already had
+# keep reading as built in the Home repository; and the finding line
 # `- Moved by the run on Ticket <title> at the Plan step: <behaviour>. Belongs to: <name>.`
 # at the end of its ## Implementation Decisions section, <title> being the Ticket's `# ` heading.
 # With no location given for a name the list does not hold, no entry is written, since an entry with
@@ -70,6 +72,27 @@ create_repositories_section() { # $1 file, $2 the Home repository's root: writes
     print "## Repositories"; print ""; print ENVIRON["ENTRY"]; print ""; done = 1 } { print }' "$1" >"$tmp"
   cat "$tmp" >"$1"
   rm -f "$tmp"
+}
+
+# A Ticket published before the list existed carries no Build repository line, and the readers take
+# a lineless Ticket of a Spec with a list as naming none of its entries: the Tickets the feature
+# already had were all built in the Home repository, so each gets that entry's name, on a line of
+# its own after its Kind line, else after its Status line, in the header only.
+name_lineless_tickets() { # $1 issues folder, $2 the Home repository's name: adds the Build repository line to every Ticket whose header has none
+  local file tmp
+  while IFS= read -r file; do
+    build_repository_of "$file"
+    [ "$word" = none ] || continue
+    tmp="$(mktemp)"
+    NAME="$2" awk '!past && /^## / { past = 1 }
+      { lines[NR] = $0 }
+      !past && /^\*\*Kind:\*\*/ { kind = NR }
+      !past && /^\*\*Status:\*\*/ && !status { status = NR }
+      END { at = kind ? kind : status
+        for (i = 1; i <= NR; i++) { print lines[i]; if (i == at) { print ""; print "**Build repository:** " ENVIRON["NAME"] } } }' "$file" >"$tmp"
+    cat "$tmp" >"$file"
+    rm -f "$tmp"
+  done < <(ticket_files "$1")
 }
 
 [ "$#" = 3 ] || [ "$#" = 4 ] || usage
@@ -142,7 +165,10 @@ elif [ -z "$location" ]; then
   finding="$finding Location not known."
   echo "list=no-location"
 else
-  grep -q '^## Repositories[[:space:]]*$' "$spec" || create_repositories_section "$spec" "$home"
+  if ! grep -q '^## Repositories[[:space:]]*$' "$spec"; then
+    create_repositories_section "$spec" "$home"
+    name_lineless_tickets "$(dirname "$path")" "$(basename "$home")"
+  fi
   append_to_section "$spec" "## Repositories" "- $name: $location"
   echo "list=added"
 fi
