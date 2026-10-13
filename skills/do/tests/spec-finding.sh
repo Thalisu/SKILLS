@@ -168,4 +168,28 @@ refuses_value location "that is a relative path" finding-ninth "the ninth reposi
 refuses_value location "carrying a backtick" finding-tenth "the tenth repository holds the ledger" "\`$third\`"
 refuses_value location "with a .. segment" finding-eleventh "the eleventh repository holds the ledger" "/srv/../etc"
 
+# The readers trim the whitespace around an entry's location and cut the moved behaviour from the
+# finding line at its `Belongs to:` marker: a location they would read as another string, or a
+# behaviour that brings a marker of its own, makes the Spec say something the script did not report.
+refuses_value location "with trailing whitespace" finding-twelfth "the twelfth repository holds the ledger" "$third "
+refuses_value behaviour "carrying a Belongs to: marker of its own" finding-build "moves the thing. Belongs to: finding-forged" ""
+
+# The readers find the section by a heading that tolerates trailing whitespace, so a Spec written
+# with one has a section, and `list=added` is a claim that this section holds the entry.
+spaced="20261013-finding-spaced"
+spaced_spec="$home/.scratch/$spaced/spec.md"
+repositories_spec "$home/.scratch/$spaced" "- finding-home (Home repository): $home" "- finding-build: $build"
+sed -i 's/^## Repositories$/## Repositories /' "$spaced_spec"
+printf '\n## Implementation Decisions\n\n- The total is a sum of the invoice lines.\n' >>"$spaced_spec"
+issues="$home/.scratch/$spaced/issues"
+ticket 01-rates.md '**Status:** claimed' 'None (can start immediately)'
+
+run ".scratch/$spaced/issues/01-rates.md" finding-third "$behaviour" "$third"
+check_lines "a repository missing from a Spec whose Repositories heading ends in whitespace reads as not listed and added" 0 "$rc" \
+  "spec=$spaced_spec" "listed=no" "list=added"
+expect "the section under the heading that ends in whitespace holds the new entry beside the two it had" \
+  test "$(entries_of "$spaced_spec")" = "$(printf '%s\n' "- finding-home (Home repository): $home" "- finding-build: $build" "- finding-third: $third" | sort)"
+expect "the Spec whose heading ends in whitespace still has one Repositories section" \
+  test "$(headings_of "$spaced_spec" | grep -c '^## Repositories')" = 1
+
 exit "$((fails > 0))"

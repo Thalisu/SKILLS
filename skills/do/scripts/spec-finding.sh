@@ -27,7 +27,8 @@
 # with no Implementation Decisions section, two entries or two sections for the name, a name the
 # list does not hold with no location given, a name, a behaviour or a location carrying a line
 # break, a name that is empty, opens or ends with whitespace or carries `: `, the Home repository
-# mark or a backtick, or a location that is not a bare absolute path with no backtick and no `..`.
+# mark or a backtick, a behaviour carrying `Belongs to:`, or a location that is not a bare absolute path with no
+# backtick, no `..` and no trailing whitespace.
 set -uo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd -P)"
@@ -44,12 +45,14 @@ failed() {
 }
 
 # The line goes through the environment: awk -v would read a backslash in a behaviour as an escape.
+# The heading is matched with its trailing whitespace left out, as the readers of the list match it.
 append_to_section() { # $1 file, $2 section heading, $3 line: writes the line after the section's last non-blank line
   local last tmp
-  last="$(awk -v heading="$2" '$0 == heading { on = 1; last = NR; next } on && /^## / { exit } on && NF { last = NR }
-    END { print last }' "$1")"
+  last="$(awk -v heading="$2" '!on && is_heading() { on = 1; last = NR; next } on && /^## / { exit } on && NF { last = NR }
+    END { print last }
+    function is_heading(  line) { line = $0; sub(/[[:space:]]+$/, "", line); return line == heading }' "$1")"
   tmp="$(mktemp)"
-  LINE="$3" awk -v last="$last" -v heading="$2" '{ print } NR == last { if ($0 == heading) print ""; print ENVIRON["LINE"] }' "$1" >"$tmp"
+  LINE="$3" awk -v last="$last" '{ print } NR == last { if (/^## /) print ""; print ENVIRON["LINE"] }' "$1" >"$tmp"
   cat "$tmp" >"$1"
   rm -f "$tmp"
 }
@@ -84,8 +87,12 @@ case "$name" in
   *'`'*) failed "the repository name carries a backtick" ;;
   [[:space:]]* | *[[:space:]]) failed "the repository name opens or ends with whitespace" ;;
 esac
+# The finding line is read back at its one `Belongs to:` mark, so a behaviour carrying the mark
+# would name a second repository for the same line.
+case "$behaviour" in *"Belongs to:"*) failed "the behaviour carries a Belongs to: mark of its own" ;; esac
 case "$location" in
   "") ;;
+  *[[:space:]]) failed "the location ends with whitespace" ;;
   *'`'*) failed "the location carries a backtick" ;;
   */../* | */..) failed "the location carries a .. segment" ;;
   /*) ;;
