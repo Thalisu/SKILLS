@@ -25,25 +25,11 @@ source_grade
 mapfile -t changed < <(changed_phrasings)
 mapfile -t kept < <(kept_phrasings)
 mapfile -t never < <(never_phrasings)
-declined=(
-  "a no " "a no," "a no:" "the no " "declin" "unpublished" "says no" "answers no" "answer is no"
-)
-on_open_tickets=(
-  "open ticket" "existing ticket" "published ticket" "tickets already" "ticket already"
-  "additive" "an addition" "the addition" "declined addition"
-)
-nothing_published=(
-  "nothing was published" "nothing is published" "nothing published" "published nothing"
-  "publishes nothing" "publish nothing" "no ticket was published" "no ticket is published"
-)
-finding_kept=(
-  "${kept[@]}" "not cleared" "never cleared" "not removed" "never removed" "is left" "left in"
-  "left where" "not struck" "not deleted"
-)
-later_run=(
-  "later" "next run" "next \`" "again" "another run" "second run" "new run" "rerun" "re-run"
-  "following run"
-)
+mapfile -t declined < <(declined_phrasings)
+mapfile -t on_open_tickets < <(on_open_tickets_phrasings)
+mapfile -t nothing_published < <(nothing_published_phrasings)
+mapfile -t finding_kept < <(finding_kept_phrasings)
+mapfile -t later_run < <(later_run_phrasings)
 
 # The finding line of a Spec, as `do` leaves it under Implementation Decisions for Ticket 02.
 finding_of() { # $1 spec: the first such line, whole, on stdout

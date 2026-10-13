@@ -26,7 +26,7 @@ mapfile -t moved_out < <(moved_out_phrasings)
 mapfile -t edge_added < <(edge_added_phrasings)
 mapfile -t kept < <(kept_phrasings)
 mapfile -t never < <(never_phrasings)
-deleted=("delet" "erase" "removed" "removes" "remove an" "remove a " "dropped" "discard")
+mapfile -t deleted < <(deleted_phrasings)
 
 echo "# SKILL.md / ## 5: the publish on a feature with open Tickets"
 passage_of "$skill" "## 5. Publish" "## 6. Close" >"$tmp/step5.md"

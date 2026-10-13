@@ -377,6 +377,65 @@ modif
 rewrit
 EOF
 }
+# A feature that already has Tickets is read for what they cover: open Tickets covering the whole
+# Spec stop the run, and open Tickets leaving something uncovered get only what is missing. The
+# skill, its graders and the page a developer reads after a stopped run all say so, each in its own
+# words, so they read the same phrasings, lowercase, against a lowercased passage.
+# A case reads each with `mapfile -t names < <(whole_spec_phrasings)`.
+whole_spec_phrasings() { # one accepted phrasing per line: the whole of the Spec is covered
+  printf '%s\n' "whole spec" "entire spec" "all of the spec" "all the spec" "spec whole" "spec in full" \
+    "the spec entirely" "everything the spec" "everything in the spec" "every path" "each path" \
+    "every story" "nothing the spec holds" "nothing in the spec" "left uncovered" "nothing uncovered" \
+    "leaves nothing" "leave nothing"
+}
+nothing_cut_phrasings() { # one accepted phrasing per line: the run cut no Ticket
+  printf '%s\n' "nothing was cut" "nothing is cut" "nothing cut" "nothing new was cut" "nothing new is cut" \
+    "nothing to cut" "no ticket was cut" "no ticket is cut" "no new ticket" "cut nothing" \
+    "cuts nothing"
+}
+with_status_phrasings() { # one accepted phrasing per line: a listed Ticket comes with its status
+  printf '%s\n' "its status" "their status" "status of each" "status of every" "with status" "the status" \
+    "own status"
+}
+recut_phrasings() { # one accepted phrasing per line: the feature is cut a second time
+  printf '%s\n' "recut" "re-cut" "cut again" "new cut"
+}
+no_next_command_phrasings() { # one accepted phrasing per line: the message hands over no command to run next
+  printf '%s\n' "no next command" "no command follows" "no next step" "without a next command" "no \`/do\`" \
+    "no /do" "names no command" "no next-step" "no command to run" "no next line" \
+    "suggests no command" "offers no command" "no follow-up command" "no command after" \
+    "not name a next command" "no command is named" "no command was named"
+}
+only_uncovered_phrasings() { # one accepted phrasing per line: the run cuts only what the open Tickets leave uncovered
+  printf '%s\n' "only what is uncovered" "only what is left uncovered" "only what they leave uncovered" \
+    "only what the open tickets leave uncovered" "only the uncovered" "only what no open ticket covers" \
+    "only what no ticket covers" "only what is not covered" "only what none of them covers" \
+    "only for what is uncovered" "only what remains uncovered" "only what stays uncovered" \
+    "additive"
+}
+deleted_phrasings() { # one accepted stem per line: an existing Ticket is removed
+  printf '%s\n' "delet" "erase" "removed" "removes" "remove an" "remove a " "dropped" "discard"
+}
+declined_phrasings() { # one accepted phrasing per line: the breakdown was answered with a no
+  printf '%s\n' "a no " "a no," "a no:" "the no " "declin" "unpublished" "says no" "answers no" "answer is no"
+}
+on_open_tickets_phrasings() { # one accepted phrasing per line: the passage speaks of a feature that already has Tickets
+  printf '%s\n' "open ticket" "existing ticket" "published ticket" "tickets already" "ticket already" \
+    "additive" "an addition" "the addition" "declined addition"
+}
+nothing_published_phrasings() { # one accepted phrasing per line: the run published no Ticket
+  printf '%s\n' "nothing was published" "nothing is published" "nothing published" "published nothing" \
+    "publishes nothing" "publish nothing" "no ticket was published" "no ticket is published"
+}
+finding_kept_phrasings() { # one accepted phrasing per line: the finding line is still in the Spec, kept_phrasings included
+  kept_phrasings
+  printf '%s\n' "not cleared" "never cleared" "not removed" "never removed" "is left" "left in" \
+    "left where" "not struck" "not deleted"
+}
+later_run_phrasings() { # one accepted phrasing per line: a run after this one
+  printf '%s\n' "later" "next run" "next \`" "again" "another run" "second run" "new run" "rerun" "re-run" \
+    "following run"
+}
 # A screen no flow ran over is proven by less than one a flow covered, and the Reply is where the
 # developer learns which one they got: the groups a passage has to carry to say so, in any wording.
 # A case reads them with `mapfile -t names < <(no_flow_proof_groups)` and passes them to carries_each.

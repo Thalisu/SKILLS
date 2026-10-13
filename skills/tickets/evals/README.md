@@ -9,8 +9,8 @@ the runner's help text and may need adjusting once it runs.
 is small, so nearly every ticket the run cuts is in the small band: a fixture that must not fold
 makes every neighbour of a single-edge ticket wait on a second blocker, so the fold would delay it,
 and a fixture that must split carries a path long enough to be judged large. No fixture but the
-calibration one holds a resolved ticket, so every other breakdown estimates on the defaults and says
-so. A run without `--auto` ends either at a
+calibration one holds a resolved ticket with a measured context, so every other breakdown estimates
+on the defaults and says so. A run without `--auto` ends either at a
 stop, or at the approval message, the only message that asks the user anything, since no user is
 there to say the breakdown goes out. Both are the moments the cases inspect: nothing is published in
 either. The `auto-` cases run under the flag, most with the linked `choice-taker` swapped for a
@@ -21,8 +21,8 @@ nothing ruled it: an `extreme` return, no `choice-taker` to fork, or a return th
 
 Every fixture is synthetic: a small notes module, a local-markdown tracker file, a spec in the
 format `spec` writes with its `Journey:` verdict under the title and, where the case needs one, a
-journey in the sections `tickets` reads. The idempotency case also plants one published ticket, in
-the local shape of the ticket format `tickets` links.
+journey in the sections `tickets` reads. The idempotency case and the additive ones also plant published tickets,
+in the local shape of the ticket format `tickets` links.
 
 | case | checks |
 |---|---|
@@ -35,7 +35,7 @@ the local shape of the ticket format `tickets` links.
 | `verdict-required-stops` | a verdict of `required` with no journey ends the run with one message naming `/journey`; nothing is written |
 | `journey-pointer-missing-stops` | a verdict naming a missing file ends the run with one message naming the location; nothing is written |
 | `reopen-stops` | a journey with a branch under `## Reopen in discuss` ends the run with one message naming the branch and `/discuss`; nothing is written |
-| `existing-tickets-stop` | tickets already under `issues/` beside the spec end the run with one message listing them; nothing is written or renumbered |
+| `existing-tickets-stop` | open tickets under `issues/` that cover the whole spec, one per journey path, end the run with one message saying nothing was cut, listing each with its status and naming no next command; nothing is written or renumbered |
 | `spec-required` | no argument: one message asking for the spec, nothing cut from the conversation, nothing written |
 | `dated-slug` | a bare slug goes through the resolver to its dated feature folder, `20260901-archive-notes`, and the breakdown is cut from that spec, never from the newer `20260905-bulk-archive-notes` a tail match would have taken; the one question is approval |
 | `unknown-slug-stops` | a bare slug that names no feature folder, beside a feature whose folder only ends in it, goes through the resolver, and its `spec=none` ends the run in one message asking for the spec's path; nothing is cut or written |
@@ -58,6 +58,9 @@ the local shape of the ticket format `tickets` links.
 | `auto-publishes-two-services-in-one-folder` | under `--auto` with a `choice-taker` stand-in that rules to publish, a chain of three tickets alternating between the Home repository and one invented sibling: every file is written under `issues/` of the Home repository's feature folder and nothing in the sibling, numbered in dependency order across repositories, each with a `**Build repository:**` line naming its entry alone, and each `Blocked by` naming its blocker by number though the blocker is built in the other repository; the first ticket of the frontier is built in the repository the session is in, so the close's last line is `/do --auto` with that ticket and no line tells the developer to open a session in a repository |
 | `auto-first-ticket-in-the-sibling-hands-over-by-absolute-path` | the same publish with the first ticket of the frontier built in the invented sibling: one line of the close names that Build repository and its absolute location as the place to open a session in, the last line is `/do --auto` with the ticket's absolute location in the Home repository, never a relative one, and no `cd`, `git -C` or session-launching command is handed over |
 | `auto-one-repository-adds-nothing` | the publish under `--auto` on a spec with no Repositories section: no ticket of the breakdown shows a Build repository, no published file carries such a line, and the close ends on `/do --auto` with the relative path of the first ticket and no line about opening a session anywhere |
+| `adds-only-the-missing-tickets` | on a feature with three open tickets whose spec carries a finding line none of them covers, left by a stopped `do` run: the run does not stop, the breakdown shows only the new ticket, numbered `04` and built in the repository the finding names, shows ticket `02` as changed, with the criterion moved out of it and the `Blocked by` edge it gains, names `01` and `03` as untouched, and ends on the one question with nothing written |
+| `auto-adds-the-missing-tickets` | the same feature under `--auto` with a `choice-taker` stand-in that rules to publish: the new ticket is written as `04` with the moved criterion and its Build repository line, ticket `02` loses that criterion and its `Blocked by` names `04` beside `01`, no existing file is renumbered or deleted, and the close lists what was added and changed and ends on `/do --auto` for `04`, after the line naming the sibling repository it is built in |
+| `auto-declined-addition-publishes-nothing` | the same feature with a stand-in that rules to leave the breakdown unpublished: no ticket file is written, ticket `02` keeps its criterion and its one blocker, the finding line stays in the spec for a later run to cut from, and the close says nothing was published and names no next command, neither `/do` nor `/tickets` |
 
 Run from the skill directory, granting the tools the cases need and opting in to their scaffold
 scripts:

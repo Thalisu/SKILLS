@@ -21,13 +21,7 @@ goes_on=(
   "goes on" "go on" "carries on" "continues" "proceeds" "keeps going" "does not stop"
   "is not stopped" "run moves on" "moves on to"
 )
-only_uncovered=(
-  "only what is uncovered" "only what is left uncovered" "only what they leave uncovered"
-  "only what the open tickets leave uncovered" "only the uncovered" "only what no open ticket covers"
-  "only what no ticket covers" "only what is not covered" "only what none of them covers"
-  "only for what is uncovered" "only what remains uncovered" "only what stays uncovered"
-  "additive"
-)
+mapfile -t only_uncovered < <(only_uncovered_phrasings)
 only_new=(
   "only the new ticket" "only new ticket" "only the ticket it adds" "only the tickets it adds"
   "only the added ticket" "only the tickets the run adds" "only the tickets this run adds"

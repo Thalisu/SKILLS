@@ -19,8 +19,12 @@ built on behaviour that already works and by the builder you chose for it.
 
 It publishes nothing when its input is broken. A verdict that requires a journey nobody walked, a
 verdict pointing at a file that is not there, a journey that lists branches to reopen in discuss,
-or tickets that already exist for the feature each stop the run with one message and nothing
+or open tickets that already cover the whole spec each stop the run with one message and nothing
 written; the way past is to fix the input and run again.
+
+On a feature that already has open tickets it only adds. It cuts only what no open ticket covers,
+numbers the new tickets after the feature's last one, and renumbers or deletes none of the tickets
+already there.
 
 ## When to reach for it
 
@@ -30,6 +34,7 @@ You invoke this by typing `/tickets <spec>`, and the agent won't reach for it on
 |---|---|
 | cut a spec, and the journey its verdict points at, into tickets | `/tickets <spec>`: a path, the feature slug, or an issue reference |
 | have the breakdown approved without you, for one run | `/tickets --auto <spec>`; the flag can sit before or after the spec, and `spec` or `journey` prints this line when its own run had the flag |
+| add the tickets for work a `/do` run stopped on, to a feature that already has open tickets | `/tickets <spec>` again, the line that stopped run ends on |
 | write the spec first, from a decided conversation | [spec](spec.md); its closing line names this skill when no journey is needed |
 | walk the user journey first, when the verdict says `required` | [journey](journey.md), `/journey <spec>`, typed by you |
 | decide the plan, or settle a branch the journey sent back | [discuss](discuss.md) |
@@ -107,7 +112,10 @@ Four inputs **stop** the run before anything is explored or written:
 | the verdict is `required` and names no journey | the verdict, and that `/journey` walks the spec first |
 | the verdict names a file that is not there | the line and the location it named |
 | the journey's `## Reopen in discuss` lists a branch | each branch, and that `/discuss` settles them before the journey is walked again |
-| tickets for the feature already exist | each one; close or delete them first for a recut |
+| the feature's open tickets already cover the whole spec | that nothing was cut, each existing ticket with its status, and that a recut needs them closed or deleted first; no next command |
+
+Open tickets that leave something of the spec uncovered are not a stop: the run adds to them, as
+[the additive run](#the-additive-run) describes.
 
 A wide refactor, one mechanical change whose blast radius spans the codebase, is the one exception
 to vertical slicing: it is sequenced as expand, migrate in batches, contract, each batch its own
@@ -178,6 +186,21 @@ there is yours.
 A spec with no such list is a feature of one repository: the breakdown shows no Build repository
 and the run reads as it always did.
 
+## The additive run
+
+Open tickets that leave something of the spec uncovered are not a stop. The run is then
+**additive**: it cuts only what no open ticket covers. That is the run a stopped `/do` hands over
+when it ends on `/tickets <spec>`: it found work that belongs to a repository its ticket is not
+built in, and wrote that finding into the spec, where no ticket covers it yet.
+
+| On an additive run | What happens |
+|---|---|
+| the breakdown | only the new tickets, each numbered after the feature's last one, then every open ticket as changed or untouched, then the one question |
+| the ticket the `/do` run stopped on | the criterion its repository cannot prove moves out of it to the new ticket, and it gains a `Blocked by` edge to that ticket |
+| every other open ticket | untouched: no existing ticket is renumbered, recut or deleted, so every `Blocked by` already written still names the same ticket |
+| a yes | the new tickets are published, the stopped ticket is edited, and the close lists what was added and what was changed, ending on `/do` for the first new ticket, after the line naming its Build repository when it is built in another |
+| a no | nothing is published and no next command follows; the finding stays in the spec, so a later run cuts from it |
+
 ## Under `--auto`
 
 `/tickets --auto <spec>` hands the approval over for one run
@@ -226,8 +249,11 @@ with no blocker.
 **It stopped and wrote nothing. Why?**
 One of the four stops fired, and the message names which: a verdict that requires a journey nobody
 walked, a verdict pointing at a missing file, a journey with branches to reopen in discuss, or
-tickets already published for the feature. There is no flag to push past it. Fix the input (walk
-or move the journey, settle the branches, close the old tickets) and run again.
+open tickets that already cover the whole spec. There is no flag to push past it. Fix the input
+(walk or move the journey, settle the branches) and run again. On the last one there is nothing to
+fix unless you want a recut, which needs the old tickets closed or deleted first. Open tickets that
+leave part of the spec uncovered are not a stop: the run adds the missing tickets and leaves the
+rest alone.
 
 **I ran it with `--auto` on a GitHub spec and it still asked before publishing. Why?**
 A write to a remote tracker is one of the stops the flag keeps: an issue is `ready-for-agent`, and
@@ -282,6 +308,9 @@ your reply if you want them apart; the fold is a default, not a stop.
 - What the journey cut or deferred shows up under what was left out, never as a ticket.
 - Nothing lands in `.scratch/` or on the tracker before you approve the breakdown, and nothing at
   all on a stop.
+- On a feature that already had open tickets, the breakdown lists only new tickets, numbered after
+  the last one, every older ticket keeps its number, and a second run right after says nothing was
+  cut.
 - The parent spec is untouched and the working tree is uncommitted after the run.
 - After an `--auto` run on local markdown you were shown the breakdown and asked nothing, the close
   lists the approval under `Rulings` as the `choice-taker`'s, and the last line reads

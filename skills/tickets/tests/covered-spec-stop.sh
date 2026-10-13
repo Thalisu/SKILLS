@@ -17,28 +17,11 @@ fails=0
 tmp="$(mktemp -d)"
 trap 'cd /; rm -rf "$tmp"' EXIT
 
-whole_spec=(
-  "whole spec" "entire spec" "all of the spec" "all the spec" "spec whole" "spec in full"
-  "the spec entirely" "everything the spec" "everything in the spec" "every path" "each path"
-  "every story" "nothing the spec holds" "nothing in the spec" "left uncovered" "nothing uncovered"
-  "leaves nothing" "leave nothing"
-)
-nothing_cut=(
-  "nothing was cut" "nothing is cut" "nothing cut" "nothing new was cut" "nothing new is cut"
-  "nothing to cut" "no ticket was cut" "no ticket is cut" "no new ticket" "cut nothing"
-  "cuts nothing"
-)
-with_status=(
-  "its status" "their status" "status of each" "status of every" "with status" "the status"
-  "own status"
-)
-recut=("recut" "re-cut" "cut again" "new cut")
-no_next_command=(
-  "no next command" "no command follows" "no next step" "without a next command" "no \`/do\`"
-  "no /do" "names no command" "no next-step" "no command to run" "no next line"
-  "suggests no command" "offers no command" "no follow-up command" "no command after"
-  "not name a next command" "no command is named" "no command was named"
-)
+mapfile -t whole_spec < <(whole_spec_phrasings)
+mapfile -t nothing_cut < <(nothing_cut_phrasings)
+mapfile -t with_status < <(with_status_phrasings)
+mapfile -t recut < <(recut_phrasings)
+mapfile -t no_next_command < <(no_next_command_phrasings)
 
 # The stop rows whose condition names tickets, read cell by cell: the other rows stop on the verdict
 # or the journey, and a sentence of theirs cannot answer for this one. Every phrasing is matched in
