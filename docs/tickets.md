@@ -34,7 +34,7 @@ You invoke this by typing `/tickets <spec>`, and the agent won't reach for it on
 |---|---|
 | cut a spec, and the journey its verdict points at, into tickets | `/tickets <spec>`: a path, the feature slug, or an issue reference |
 | have the breakdown approved without you, for one run | `/tickets --auto <spec>`; the flag can sit before or after the spec, and `spec` or `journey` prints this line when its own run had the flag |
-| add the tickets for work a `/do` run stopped on, to a feature that already has open tickets | `/tickets <spec>` again, the line that stopped run ends on |
+| add the tickets for work a `/do` run stopped on, to a feature that already has open tickets | `/tickets <spec>` again, the line that stopped run ends on. When the run could name the missing repository and not where it is, the line reads `/tickets <spec> <repository>: <its absolute location on this machine>` and you type the location in |
 | write the spec first, from a decided conversation | [spec](spec.md); its closing line names this skill when no journey is needed |
 | walk the user journey first, when the verdict says `required` | [journey](journey.md), `/journey <spec>`, typed by you |
 | decide the plan, or settle a branch the journey sent back | [discuss](discuss.md) |
@@ -105,7 +105,7 @@ title:
 | no line at all | the spec did not come from `spec`; the stories are the paths, and the run says so |
 | `required` | a stop: the journey comes first |
 
-Four inputs **stop** the run before anything is explored or written:
+Five inputs **stop** the run before anything is explored or written:
 
 | Condition | What you read |
 |---|---|
@@ -113,6 +113,7 @@ Four inputs **stop** the run before anything is explored or written:
 | the verdict names a file that is not there | the line and the location it named |
 | the journey's `## Reopen in discuss` lists a branch | each branch, and that `/discuss` settles them before the journey is walked again |
 | the feature's open tickets already cover the whole spec | that nothing was cut, each existing ticket with its status, and that a recut needs them closed or deleted first; no next command |
+| a finding in the spec owes the location of a repository and none was typed with the command | the repository whose location is missing, and that you type it with the command, after the spec |
 
 Open tickets that leave something of the spec uncovered are not a stop: the run adds to them, as
 [the additive run](#the-additive-run) describes.
@@ -201,6 +202,18 @@ built in, and wrote that finding into the spec, where no ticket covers it yet.
 | a yes | the new tickets are published, the stopped ticket is edited, and the close lists what was added and what was changed, ending on `/do` for the first new ticket, after the line naming its Build repository when it is built in another |
 | a no | nothing is published and no next command follows; the finding stays in the spec, so a later run cuts from it |
 
+A `/do` run that could name the missing repository and not where it is on this machine marks the
+location as not known in its finding, and ends on the command with a place for it:
+`/tickets <spec> <repository>: <its absolute location on this machine>`. You type the location
+there. The run writes it into the spec's Repositories list before it cuts anything, so you edit no
+file by hand.
+
+| With a location owed | What happens |
+|---|---|
+| the location typed with the command | it becomes that repository's entry of the spec's Repositories list, written as you typed it, and the run goes on to the breakdown |
+| no location typed with the command | a stop: one message names the repository whose location is missing, and nothing is written |
+| a typed location that is missing on this machine, or is not a git repository | it is written all the same and the run does not stop or ask; the close names it in a line of its own, saying which of the two it is, as the close of [spec](spec.md) does. `/do` checks the location again at its own door |
+
 ## Under `--auto`
 
 `/tickets --auto <spec>` hands the approval over for one run
@@ -247,13 +260,14 @@ with no blocker.
 ## Common questions
 
 **It stopped and wrote nothing. Why?**
-One of the four stops fired, and the message names which: a verdict that requires a journey nobody
-walked, a verdict pointing at a missing file, a journey with branches to reopen in discuss, or
-open tickets that already cover the whole spec. There is no flag to push past it. Fix the input
-(walk or move the journey, settle the branches) and run again. On the last one there is nothing to
-fix unless you want a recut, which needs the old tickets closed or deleted first. Open tickets that
-leave part of the spec uncovered are not a stop: the run adds the missing tickets and leaves the
-rest alone.
+One of the five stops fired, and the message names which: a verdict that requires a journey nobody
+walked, a verdict pointing at a missing file, a journey with branches to reopen in discuss, open
+tickets that already cover the whole spec, or a repository whose location a finding owes and the
+command did not carry. There is no flag to push past it. Fix the input (walk or move the journey,
+settle the branches, type the location with the command) and run again. On open tickets that cover
+the whole spec there is nothing to fix unless you want a recut, which needs the old tickets closed
+or deleted first. Open tickets that leave part of the spec uncovered are not a stop: the run adds
+the missing tickets and leaves the rest alone.
 
 **I ran it with `--auto` on a GitHub spec and it still asked before publishing. Why?**
 A write to a remote tracker is one of the stops the flag keeps: an issue is `ready-for-agent`, and

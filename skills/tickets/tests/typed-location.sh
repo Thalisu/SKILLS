@@ -14,9 +14,15 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 skill="$here/../SKILL.md"
 fails=0
 
-pair_form=(
-  "<repository>: <" "<name>: <" "{repository}: {" "{name}: {" "repository>: <" "name>: <"
-)
+mapfile -t pair_form < <(pair_form_phrasings)
+mapfile -t owed_location < <(owed_location_phrasings)
+mapfile -t none_typed < <(none_typed_phrasings)
+mapfile -t location_missing < <(location_missing_phrasings)
+mapfile -t not_there < <(not_there_phrasings)
+mapfile -t not_git < <(not_git_phrasings)
+mapfile -t written_all_the_same < <(written_all_the_same_phrasings)
+mapfile -t does_not_stop < <(does_not_stop_phrasings)
+mapfile -t own_line < <(own_line_phrasings)
 no_entry=(
   "no entry" "no such entry" "holds none" "lacks" "without an entry" "not listed" "not among"
   "missing from" "does not hold" "does not list" "has no" "names no" "no line for"
@@ -81,19 +87,16 @@ flat="${condition,,}"
 expect "a stop row of the ground step is conditioned on a location" test -n "${flat// /}"
 carries_each "the condition is a finding that owes a location" \
   "finding" -- \
-  "owes" "owed" "owing" "location not known" "unlocated" "not located"
+  "${owed_location[@]}"
 carries_each "while the command carried no location for that repository" \
-  "carried no" "carries no" "carried none" "carries none" "no pair" "no location" "none was typed" \
-  "none is typed" "nothing was typed" "not typed" "typed no" "typed none" "without a" "without one" \
-  "did not carry" "does not carry" "holds no" "held no" "gave no" "gives no" "names no" "named no" -- \
+  "${none_typed[@]}" -- \
   "typed" "\$arguments" "arguments" "the command" "pair"
 
 flat="${message,,}"
 carries_each "the message names the repository whose location is missing" \
   "repositor" -- \
   "location" -- \
-  "missing" "not known" "unknown" "owed" "owes" "lacks" "no location" "has none" "needs" "needed" \
-  "not typed" "not given" "to type" "is typed" "be typed"
+  "${location_missing[@]}"
 
 # The paragraph above the table speaks for every stop, so nothing written may be said there or in
 # the row itself. The paragraph answers for this stop only once the table holds its row.
@@ -108,9 +111,6 @@ fi
 echo "# SKILL.md / ## 1: a typed location that is missing or not a git repository is written all the same"
 # The paragraphs of the passage that speak of a git repository, matched in lower case: the rest of it
 # says where the entry goes and what else in the Spec stays, and cannot answer for a bad location.
-not_there=(
-  "missing" "not there" "nothing there" "does not exist" "no directory" "no such" "exists" "director"
-)
 passage="$(passage_of "$skill" "**A finding that owes a location.**" "## 2. Explore the code")"
 flat="$(paragraph_with <(printf '%s\n' "${passage,,}") "git repositor" all | tr '\n' ' ' | tr -s ' ')"
 expect "the ground step checks the typed location for a git repository" test -n "${flat// /}"
@@ -118,12 +118,9 @@ carries_each "the typed location is checked for a directory there and for a git 
   "${not_there[@]}" -- \
   "git repositor"
 carries_any "a location failing either check is written all the same" \
-  "all the same" "written anyway" "still writ" "written regardless" "regardless" "either way" \
-  "nonetheless" "nevertheless" "changes nothing" "change nothing" "stays" "remains" "is kept" \
-  "kept as" "whatever the check" "whatever either check" "whichever"
+  "${written_all_the_same[@]}"
 carries_each "the run does not stop on it and asks nothing about it" \
-  "not stop" "never stop" "no stop" "not a stop" "without stopping" "nor stops" "neither stops" \
-  "stops on neither" -- \
+  "${does_not_stop[@]}" -- \
   "asks nothing" "ask nothing" "no question" "without asking" "not ask" "never ask" "nor asks" \
   "nothing is asked" "is not asked"
 
@@ -138,8 +135,7 @@ flat="$({
 } | grep -F "git repositor" | tr '\n' ' ' | tr -s ' ')"
 expect "the close speaks of a location that is not a git repository" test -n "${flat// /}"
 carries_any "the bad location gets a line of its own" \
-  "line of its own" "its own line" "own line" "one line" "a line" "separate line" "line each" \
-  "line per"
+  "${own_line[@]}"
 carries_each "the line names the location as it was written" \
   "location" -- \
   "as written" "as it was written" "as typed" "as it was typed" "as the entry" "entry carries" \
@@ -147,6 +143,6 @@ carries_each "the line names the location as it was written" \
   "written" "typed"
 carries_each "the line says which of the two it is, missing or not a git repository" \
   "${not_there[@]}" -- \
-  "not a git repositor" "is not a git" "no git repositor" "isn't a git"
+  "${not_git[@]}"
 
 exit $((fails > 0))

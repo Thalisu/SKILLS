@@ -440,6 +440,48 @@ later_run_phrasings() { # one accepted phrasing per line: a run after this one
   printf '%s\n' "later" "next run" "next \`" "again" "another run" "second run" "new run" "rerun" "re-run" \
     "following run"
 }
+# A stopped `do` run may name a repository whose location it does not know, and `tickets` takes that
+# location with the command (`/tickets <spec> <repository>: <location>`). The skill and the page a
+# developer reads after the stopped run both say what is typed, the stop when a location is owed and
+# none was typed, and what happens to a typed location that cannot be built in, each in its own
+# words, so they read the same phrasings, lowercase, against a lowercased passage.
+# A case reads each with `mapfile -t names < <(pair_form_phrasings)`.
+pair_form_phrasings() { # one accepted phrasing per line: the name, a colon, the location, as placeholders
+  printf '%s\n' "<repository>: <" "<name>: <" "{repository}: {" "{name}: {" "repository>: <" "name>: <"
+}
+owed_location_phrasings() { # one accepted phrasing per line: a finding left a repository without its location
+  printf '%s\n' "owes" "owed" "owing" "location not known" "unlocated" "not located"
+}
+none_typed_phrasings() { # one accepted phrasing per line: the command carried no location for the repository
+  printf '%s\n' "carried no" "carries no" "carried none" "carries none" "no pair" "no location" \
+    "none was typed" "none is typed" "nothing was typed" "not typed" "typed no" "typed none" "without a" \
+    "without one" "did not carry" "does not carry" "holds no" "held no" "gave no" "gives no" "names no" \
+    "named no"
+}
+location_missing_phrasings() { # one accepted phrasing per line: what a stop says of the location it lacks
+  printf '%s\n' "missing" "not known" "unknown" "owed" "owes" "lacks" "no location" "has none" "needs" \
+    "needed" "not typed" "not given" "to type" "is typed" "be typed"
+}
+not_there_phrasings() { # one accepted phrasing per line: nothing sits at a location on this machine
+  printf '%s\n' "missing" "not there" "nothing there" "does not exist" "no directory" "no such" "exists" \
+    "director"
+}
+not_git_phrasings() { # one accepted phrasing per line: what sits at a location is no git repository
+  printf '%s\n' "not a git repositor" "is not a git" "no git repositor" "isn't a git"
+}
+written_all_the_same_phrasings() { # one accepted phrasing per line: a location failing a check is still written
+  printf '%s\n' "all the same" "written anyway" "still writ" "written regardless" "regardless" "either way" \
+    "nonetheless" "nevertheless" "changes nothing" "change nothing" "stays" "remains" "is kept" "kept as" \
+    "whatever the check" "whatever either check" "whichever"
+}
+does_not_stop_phrasings() { # one accepted phrasing per line: the run goes on past it
+  printf '%s\n' "not stop" "never stop" "no stop" "not a stop" "without stopping" "nor stops" \
+    "neither stops" "stops on neither"
+}
+own_line_phrasings() { # one accepted phrasing per line: the close gives it a line of its own
+  printf '%s\n' "line of its own" "its own line" "own line" "one line" "a line" "separate line" "line each" \
+    "line per"
+}
 # A screen no flow ran over is proven by less than one a flow covered, and the Reply is where the
 # developer learns which one they got: the groups a passage has to carry to say so, in any wording.
 # A case reads them with `mapfile -t names < <(no_flow_proof_groups)` and passes them to carries_each.
