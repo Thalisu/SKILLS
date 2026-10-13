@@ -658,6 +658,36 @@ for climb_cmd in \
     bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$climb_out"
 done
 
+# A sibling repository sits beside the main checkout, so neither rule above reaches it: the write
+# guard denies it by where the file sits, and the shell has to do the same, since a redirect, an
+# in-place `sed` or a `git commit` aimed at a sibling by its absolute path lands a change on no
+# branch, in no diff and under no Review. The deny follows the path into a git repository, found by
+# walking up from the path to the nearest directory that exists, so a file the command is about to
+# create is caught as well; `/tmp`, `/usr` and paths inside the run worktree sit in no other
+# repository and keep passing.
+mkdir -p "$stmp/outside"
+for sibling_cmd in \
+  "printf 'two\n' > $repos/sibling/src/export/notes.ts" \
+  "sed -i s/one/two/ $repos/sibling/src/export/notes.ts" \
+  "printf two > $repos/sibling/src/export/created.ts" \
+  "cd $repos/sibling && git commit -am x" \
+  "git -C $repos/sibling commit -am x"; do
+  sibling_bash_out="$(jq -n --arg c "$sibling_cmd" --arg w "$run_worktree" '{cwd: $w, tool_input: {command: $c}}' |
+    sh -c "$builder_bash_hook" 2>/dev/null)"
+  expect "the hook denies the Builder's Bash a command naming an absolute path inside a sibling repository: $sibling_cmd" \
+    bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$sibling_bash_out"
+done
+for outside_ok_cmd in \
+  "printf x > $stmp/outside/out.log" \
+  "printf x > /tmp/builder-out.log" \
+  "ls /usr/bin" \
+  "printf x > $run_worktree/src/export/created.ts"; do
+  outside_ok_out="$(jq -n --arg c "$outside_ok_cmd" --arg w "$run_worktree" '{cwd: $w, tool_input: {command: $c}}' |
+    sh -c "$builder_bash_hook" 2>/dev/null)"
+  expect "the hook lets the Builder's Bash through on an absolute path in no other repository: $outside_ok_cmd" \
+    bash -c '! grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$outside_ok_out"
+done
+
 # Both rules above read the main checkout off a `cwd` inside `.claude/worktrees/<name>`, and do
 # always forks the Builder there. A shell anywhere else, or a payload with no `cwd`, leaves them
 # nothing to apply, so the guard fails closed there as it does when jq is absent.
