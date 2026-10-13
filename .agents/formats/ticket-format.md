@@ -26,7 +26,7 @@ order:
   ticket published before the line existed carries none and stays valid: it reads as `logic`, the
   only kind there was.
 
-A ticket of a spec that has a Repositories section carries a fourth bold line, after the status:
+A ticket of a spec that has a Repositories section carries a fifth bold line, after the kind:
 
 - `**Build repository:**` the name of the one repository the ticket is built in: the name of
   exactly one entry of the spec's Repositories section, written as the section writes it and
