@@ -813,6 +813,19 @@ refusal of this step, so it comes before the claim, the worktree and the Spec br
 claimed, cut or committed, no Builder is forked, no behaviour of the list is built, and the Ticket
 keeps the status the door printed as `status=`. The Plan stays where it was written.
 
+A finding either moves a behaviour or changes the feature, and the run tells the two apart before
+it writes anything, reading the item against the Ticket's criteria and the Digest. It moves when
+the criterion or the story the item traces to still reads true as written once it is built in the
+repository the item names: the words stay and the place changes. It changes the feature when that
+criterion or story would have to be rewritten before anything could be built, there or anywhere:
+what it asks for does not exist as it reads, or building it there would contradict another story,
+criterion or decision. A change of direction is never patched in as one more Ticket, so on such a
+finding `spec-finding.sh` is not run, nothing is written into the Spec and no `/tickets` command is
+handed over. The run stops as blocked the same way, with nothing claimed, cut or built, under the
+`direction` Handover class, and its Reply ends on the `/discuss` command the change-of-direction
+stop of [forks.md](forks.md) fixes, naming the Ticket, the Spec and what the run found. The rest of
+this section is the finding that moves.
+
 Before it stops, the run writes the finding into the Spec, so that `tickets`, which reads the Spec
 and never this conversation, has the moved behaviour to cut from. It is the one write of this
 stop, made by a script and never by hand, once per `Elsewhere:` item, with the item's own values:
@@ -1135,6 +1148,9 @@ Route on the first line:
   differs is what the build already left, since this stop comes after the claim: the Ticket stays
   `claimed`, and the worktree, its branch and the commits already on it are kept and named in the
   Reply, as any blocked build leaves them, for the next `/do` on the Ticket to resume from.
+  The reading that tells a move from a change of direction is made here too, on the line's
+  behaviour, and a change of direction ends on that section's `/discuss` command with the same
+  Ticket, worktree, branch and commits kept and named.
 
 When `do-impeccable` returned `built` and the check of the main checkout read `verdict=untouched`,
 the run takes the same path from here as after a Builder: the diff of step 4, the Gate of step 5,
@@ -1324,7 +1340,8 @@ integration stopped, ends on the lines [reply.md](reply.md) fixes for it. A
 run that stopped on an Extreme fork, or on a Design fork no `choice-taker` ruled, ends instead on
 the `/discuss` command the forks in [forks.md](forks.md) fix, as its last line. A run that stopped
 on work for another repository, at the Plan or on a Builder's return, ends on `/tickets <spec>`, in
-the message [reply.md](reply.md) fixes for that stop. A run that forked
+the message [reply.md](reply.md) fixes for that stop. When the finding changes what the feature is,
+it ends on the `/discuss` command of the change-of-direction stop in [forks.md](forks.md) instead. A run that forked
 `do-impeccable`, on a Front-end ticket of a Spec reading `Front-end: impeccable`, writes no Plan
 line in its Run section, since no Planner ran, and its behaviours list is the Ticket's acceptance
 criteria, each with the commit beside it, as [reply.md](reply.md) says for both. Its Reply puts the

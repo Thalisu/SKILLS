@@ -1,0 +1,185 @@
+name: finding-that-changes-the-feature-goes-to-discuss
+tags: [playbook, ticket, stop, repositories, plan, discuss]
+runs: 1
+max_turns: 80
+timeout_seconds: 1800
+allowed_tools: [Bash, Read, Edit, Write, Glob, Grep, Agent, Skill]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # The session runs in orders-service, the Home repository, on Ticket 02, built there. The Spec
+    # lists orders-service and billing-service. The Ticket's third criterion is an email template
+    # and the Spec's second story is an email, and no repository sends email any more:
+    # notifications-service, a sibling repository the Spec does not list, delivers in-app messages
+    # only, one line of text with no subject and no template. The criterion cannot move there as it
+    # reads: it and the story would have to change. The run stops at the Plan with nothing built,
+    # writes nothing into the Spec, and its Reply ends on a whole /discuss command, with no tickets
+    # command in it.
+    set -e
+    mkdir -p src .scratch/hold-disputed-invoice/issues ../billing-service/src \
+      ../notifications-service/src
+    home="$(pwd -P)"
+    billing="$(cd ../billing-service && pwd -P)"
+    notifications="$(cd ../notifications-service && pwd -P)"
+
+    cat > package.json <<'JSON'
+    {
+      "name": "orders-service",
+      "version": "1.0.0",
+      "private": true,
+      "scripts": {
+        "test": "node --test"
+      }
+    }
+    JSON
+    cat > README.md <<MD
+    # orders-service
+
+    Records Orders and their status. \`node --test\` runs the suite.
+
+    ## What is not here
+
+    This repository sends no email and holds no email template, and neither does any other: customer
+    email was retired, and no service of ours renders or sends one. A customer is told things
+    through the in-app inbox, which notifications-service delivers, a repository of its own checked
+    out on this machine at $notifications. An in-app message is one line of text, built there by
+    \`src/message.js\` from the event's payload: it has no subject, no body apart from that line,
+    and no template. orders-service only posts an event name and a payload to it, through
+    \`src/notify.js\`, and an event \`src/message.js\` does not know makes the post fail with
+    \`unknown event\`.
+    MD
+    cat > src/order.js <<'JS'
+    const orders = new Map();
+    function record(id) { orders.set(id, { id, status: "open" }); return orders.get(id); }
+    function lookup(id) { return orders.get(id); }
+    module.exports = { record, lookup };
+    JS
+    cat > src/order.test.js <<'JS'
+    const test = require("node:test");
+    const assert = require("node:assert");
+    const { record, lookup } = require("./order");
+
+    test("a recorded Order reads open", () => {
+      record("o-1");
+      assert.equal(lookup("o-1").status, "open");
+    });
+    JS
+    cat > src/notify.js <<'JS'
+    // Posts an event to notifications-service, which builds the in-app message of every event.
+    async function notify(post, event, payload) { return post("/events", { event, payload }); }
+    module.exports = { notify };
+    JS
+
+    cat > ../billing-service/README.md <<'MD'
+    # billing-service
+
+    Opens Invoices for Orders.
+    MD
+    cat > ../billing-service/src/invoice.js <<'JS'
+    const invoices = new Map();
+    function open(orderId) { invoices.set(orderId, { orderId, status: "open" }); return invoices.get(orderId); }
+    module.exports = { open };
+    JS
+
+    cat > ../notifications-service/README.md <<'MD'
+    # notifications-service
+
+    Delivers every in-app message to the customer's inbox. A message is one line of text, built by
+    `src/message.js` from the event's payload. Customer email was retired: this service sends none,
+    and it holds no subject and no template.
+    MD
+    cat > ../notifications-service/src/message.js <<'JS'
+    const lines = {
+      "order-recorded": (payload) => `We recorded your Order ${payload.id}.`,
+    };
+    function message(event, payload) {
+      if (!lines[event]) throw new Error("unknown event");
+      return lines[event](payload);
+    }
+    module.exports = { message };
+    JS
+
+    cat > .scratch/hold-disputed-invoice/spec.md <<MD
+    # Hold the Invoice of a disputed Order
+
+    Journey: not needed, two short paths with no branching
+    Status: ready-for-agent
+
+    ## Problem Statement
+
+    A customer disputes an Order, nobody tells them the dispute was received, and the billing
+    service keeps chasing its open Invoice.
+
+    ## Solution
+
+    A support agent marks an Order as disputed, the customer gets an email saying the dispute was
+    received, and the billing console puts the Order's Invoice on hold.
+
+    ## Repositories
+
+    - orders-service (Home repository): $home
+    - billing-service: $billing
+
+    ## User Stories
+
+    1. As a support agent, I want to mark an Order as disputed, so that the dispute is on record where the Order lives
+    2. As a customer, I want an email saying my dispute was received, so that I know somebody is looking at it
+    3. As a support agent, I want to put the Invoice of a disputed Order on hold, so that the customer is not chased while the dispute is open
+
+    ## Implementation Decisions
+
+    - A disputed Order keeps its id and reads the status disputed.
+    - The email is the event dispute-received, posted by the service that records the dispute.
+
+    ## Testing Decisions
+
+    - Taken from the conversation: each module is tested through its exported functions with Node's own test runner.
+
+    ## Out of Scope
+
+    - Lifting a hold once the dispute is closed.
+    MD
+
+    cat > .scratch/hold-disputed-invoice/issues/01-hold-the-invoice-of-a-disputed-order.md <<'MD'
+    # 01: Hold the Invoice of a disputed Order
+
+    **What to build:** A support agent puts the Invoice of a disputed Order on hold from the billing console.
+
+    **Blocked by:** 02 Mark an Order disputed and tell the customer
+
+    **Status:** ready-for-agent
+
+    **Build repository:** billing-service
+
+    - [ ] Hold on the Invoice of a disputed Order sets the Invoice's status to held
+
+    ## Evidence
+    MD
+
+    cat > .scratch/hold-disputed-invoice/issues/02-mark-an-order-disputed-and-tell-the-customer.md <<'MD'
+    # 02: Mark an Order disputed and tell the customer
+
+    **What to build:** A support agent marks an Order as disputed, the Order's lookup returns that status, and the customer gets the email saying the dispute was received.
+
+    **Blocked by:** None (can start immediately)
+
+    **Status:** ready-for-agent
+
+    **Build repository:** orders-service
+
+    - [ ] Marking an Order disputed makes its lookup return the status disputed
+    - [ ] Marking an Order disputed posts the event dispute-received with the Order's id through the notify client
+    - [ ] The dispute-received email template renders the Order's id in its subject and in its body
+
+    ## Evidence
+    MD
+
+    printf '.scratch/\n' > .gitignore
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
+    for sibling in ../billing-service ../notifications-service; do
+      git -C "$sibling" init -q -b main
+      git -C "$sibling" -c user.email=fixture@example.com -c user.name=fixture add -A
+      git -C "$sibling" -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
+    done

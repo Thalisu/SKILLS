@@ -310,6 +310,32 @@ the run at its step, the blocked reply still ends on the `/discuss` command abov
 leaves the Ticket `claimed` still writes the `<Ticket>.extreme.md` sidecar, so the next `/do` is a
 resume that stops on the recorded command and never rules the fork a second time.
 
+### The change-of-direction stop
+
+A run that found work for another repository ends on a `/discuss` command, and never on `/tickets`,
+when the finding changes what the feature is rather than where a piece of it is built: a story or a
+criterion would have to change, not move, as the Plan step of [ticket.md](ticket.md) tells the two
+apart. It is no fork. Nothing has two sides for a `choice-taker` to rule between, so none is
+forked, under `--auto` as without it, and nothing is written into the Spec: no entry in its
+repositories list, no finding line, no Ruling.
+
+It is a blocked run, written by the blocked shape of [reply.md](reply.md), with one `Yours:` line
+under the `direction` Handover class:
+
+```
+Yours: direction: settle what <the story or the criterion> becomes with the command below, then run /do on this Ticket again
+```
+
+It writes no `<Ticket>.extreme.md` sidecar: the next `/do` on the Ticket reads the Spec as `discuss`
+left it. Its last line is the `/discuss` command the Extreme stop fixes, whole, with nothing after
+it and three replacements:
+
+- `on a finding that changes what the feature is` in place of
+  `on an Extreme fork, <side A> or <side B>`;
+- what the run found in place of the clause after the semicolon:
+  `<the story or the criterion, by its number> would have to change, not move: <what the run found>`;
+- `What does the Spec say now?` in place of `Which side does the Spec take?`.
+
 ### A run question under `--auto`
 
 A run question is one a step would put to the developer about the run itself: whether it carries
