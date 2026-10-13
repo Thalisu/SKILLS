@@ -13,12 +13,15 @@
 # at the end of its ## Implementation Decisions section, <title> being the Ticket's `# ` heading.
 #
 # Prints key=value lines and never a sentence, in this order: spec (the Spec's absolute path),
-# repository (the name given), listed (whether the Spec's list held the name before the call),
-# list (added), line (written).
+# repository (the name given), listed (yes or no: whether the Spec's list held the name before the
+# call, matched as ticket-read.sh's repository_location_of matches it), list (added, or unchanged for
+# a listed name, whose entry is never rewritten), line (written, or present when the section already
+# holds that very line, which is never written twice).
 #
 # Exit codes: 0 the lines above, the Spec written · 2 usage or no Ticket at the path · 3 `failed
-# <reason>` on one line and nothing written: no Spec beside the Ticket's issues/ folder, or a Spec
-# with no Implementation Decisions section.
+# <reason>` on one line and nothing written: no Spec beside the Ticket's issues/ folder, a Spec
+# with no Implementation Decisions section, two entries or two sections for the name, or a name the
+# list does not hold with no location given.
 set -uo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd -P)"
@@ -63,10 +66,29 @@ spec="$(spec_beside "$path")"
 grep -qx '## Implementation Decisions' "$spec" || failed "no Implementation Decisions section in $spec"
 title="$(grep -m1 '^# ' "$path" | sed 's/^# //')"
 
+repository_location_of "$path" "$name"
+case "$word" in
+  ambiguous) failed "$detail in $spec" ;;
+  none)
+    listed=no
+    [ -n "$location" ] || failed "$name is not in the Spec's list and no location was given"
+    ;;
+  *) listed=yes ;;
+esac
+
 echo "spec=$spec"
 echo "repository=$name"
-echo "listed=no"
-append_to_section "$spec" "## Repositories" "- $name: $location"
-echo "list=added"
-append_to_section "$spec" "## Implementation Decisions" "- Moved by the run on Ticket $title at the Plan step: $behaviour. Belongs to: $name."
-echo "line=written"
+echo "listed=$listed"
+if [ "$listed" = no ]; then
+  append_to_section "$spec" "## Repositories" "- $name: $location"
+  echo "list=added"
+else
+  echo "list=unchanged"
+fi
+finding="- Moved by the run on Ticket $title at the Plan step: $behaviour. Belongs to: $name."
+if awk '$0 == "## Implementation Decisions" { on = 1; next } on && /^## / { exit } on' "$spec" | grep -qxF -- "$finding"; then
+  echo "line=present"
+else
+  append_to_section "$spec" "## Implementation Decisions" "$finding"
+  echo "line=written"
+fi

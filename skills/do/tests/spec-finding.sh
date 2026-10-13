@@ -51,4 +51,30 @@ expect "the Spec's Implementation Decisions hold the finding line once, marked w
 expect "the Spec's Implementation Decisions still hold the line they had" \
   test "$(decisions_of "$spec" | grep -cxF -- "- The total is a sum of the invoice lines.")" = 1
 
+section_of() { # $1 Spec: its Repositories section as written, closed by a sentinel so trailing blank lines count, on stdout
+  passage_of "$1" "## Repositories" "## "
+  echo end
+}
+listed_behaviour="the invoice total is rounded by the build repository's money module"
+listed_finding="- Moved by the run on Ticket 03: Title of 03-total at the Plan step: $listed_behaviour. Belongs to: finding-build."
+section_before="$(section_of "$spec")"
+
+run ".scratch/$feature/issues/03-total.md" finding-build "$listed_behaviour"
+check_lines "a repository the Spec already lists reads as listed, the list unchanged, with the finding line written" 0 "$rc" \
+  "spec=$spec" "repository=finding-build" "listed=yes" "list=unchanged" "line=written"
+expect "the Spec's Repositories section is what it was before a finding for a listed repository" \
+  test "$(section_of "$spec")" = "$section_before"
+expect "the Spec's Implementation Decisions hold the listed repository's finding line once" \
+  test "$(decisions_of "$spec" | grep -cxF -- "$listed_finding")" = 1
+
+run ".scratch/$feature/issues/03-total.md" finding-build "$listed_behaviour"
+check_lines "the same finding given a second time reads as already in the Spec" 0 "$rc" \
+  "listed=yes" "list=unchanged" "line=present"
+expect "the Spec's Implementation Decisions still hold that finding line once after the second call" \
+  test "$(decisions_of "$spec" | grep -cxF -- "$listed_finding")" = 1
+
+run ".scratch/$feature/issues/03-total.md" finding-build "the rounding mode is read from the build repository's settings" "$third"
+expect "the Spec's Repositories section is what it was when a listed repository is named with another location" \
+  test "$(section_of "$spec")" = "$section_before"
+
 exit "$((fails > 0))"
