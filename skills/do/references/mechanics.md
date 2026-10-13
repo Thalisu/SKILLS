@@ -515,7 +515,8 @@ branch named.
 
 ## The final integration
 
-Run by the `ticket` run whose close read `verdict=complete` off the Completion check, once its own
+Run by the `ticket` run whose close read `verdict=complete` off the Completion check and whose
+landing record then read `verdict=land`, once its own
 Ticket has landed on the Spec branch and reads `resolved` and its own worktree is gone, per
 [ADR 0061](../../../docs/adr/0061-the-review-runs-once-per-spec-on-its-spec-branch-before-it-lands.md).
 Every Ticket of the Spec is on the Spec branch, and this section is where that branch reaches the
@@ -523,8 +524,38 @@ developer's branch: rebased onto the branch it was cut from, reviewed whole, lan
 then removed. It is the one place a run of a Spec changes the developer's branch.
 
 The section restates neither the integration nor the review. It walks both as they are written
-above and below, and states only what differs here: the claim, the tree, the target, the ledger,
-the spec source and the release.
+above and below, and states only what differs here: the landing record, the claim, the tree, the
+target, the ledger, the spec source and the release.
+
+**The landing record.** A feature across repositories lands one repository at a time, each through
+a Final integration of its own, run by a session in that repository, a provider before what
+consumes it, per
+[ADR 0084](../../../docs/adr/0084-a-feature-across-repositories-lands-in-sequence-and-what-landed-stays.md).
+One script reads that order and where each repository stands:
+
+```
+bash <skill-dir>/scripts/landing-order.sh <the Ticket's path>
+```
+
+It writes nothing. It prints `repositories=<n>`, then one group per repository in landing order
+(`repository=`, `repository_location=`, `repository_here=`, `repository_state=` reading `landed`,
+`unlanded` or `unreadable`, with `repository_reason=` after it on `unreadable`, and
+`repository_ticket=`, the Ticket its landing command takes), then `own=`, `waits_for=` with
+`waits_for_location=` when it names a repository, the `next_landing` lines and `verdict=`. Each
+state is read from that repository's own refs at the moment of the call, so no file says a
+repository landed and no run remembers it. The run reads the record twice:
+
+- **Before the claim.** Only `verdict=land` enters the steps below. On `verdict=wait` a repository
+  this one consumes from has not landed: the run claims nothing, cuts no tree and integrates
+  nothing, here or there, and its Reply hands over the landing commands in order, per
+  [reply.md](reply.md). The other verdicts are routed by step 9a of [ticket.md](ticket.md).
+- **After the release**, on a record that printed `repositories=` above 1. The Reply's landed and
+  still-to-land lines and its last line are copied from this second read, never predicted from the
+  first: a Final integration that stopped after the first read would otherwise be reported as
+  landed.
+
+A feature of one repository prints one group named `none` and `verdict=land`, is read once, and
+lands as the steps below say, with nothing added to its Reply.
 
 **1. The claim.** Before anything else, one script call:
 
@@ -532,16 +563,19 @@ the spec source and the release.
 bash <skill-dir>/scripts/final-claim.sh claim <the Ticket's path>
 ```
 
-It creates `spec.integration.claim` beside the Spec in the main checkout's scratch, exclusively, a
-claim made by creating it, per [scratch.md](../../../.agents/scratch.md) and
+It creates the claim file beside the Spec, in the Feature folder of the Home repository,
+exclusively: `spec.integration.claim`, or `spec.<key>.integration.claim` for a Ticket that carries
+a `**Build repository:**` line, `<key>` being that repository's name in a file-safe form, so each
+repository of a feature holds a claim of its own and one landing never reads `taken` to the next.
+It is a claim made by creating it, per [scratch.md](../../../.agents/scratch.md) and
 [ADR 0020](../../../docs/adr/0020-the-path-partitions-the-scratch-and-an-allocated-name-is-claimed-by-creating-it.md),
 so two runs that both read the Spec complete never both integrate it. The run routes on the exit
 code:
 
 - **`claim=claimed`, exit 0.** The run holds the Final integration. The call printed every path
   the steps below use, and the run composes none of them: `spec=`, `spec_branch=`,
-  `spec_upstream=` (the developer's branch, the one the Spec branch was cut from), `tree=` and
-  `ledger=`. Its `takeover=` line reads `no` here, since no claim file was there.
+  `spec_upstream=` (the developer's branch, the one the Spec branch was cut from), `tree=`,
+  `ledger=` and `review_file=`. Its `takeover=` line reads `no` here, since no claim file was there.
 - **`claim=taken`, exit 1.** Another run holds it. This run ends here, with nothing blocked: its
   own Ticket landed and reads `resolved`, and its Reply reads that the Spec is being integrated by
   another run, per [reply.md](reply.md). It waits on nothing and retries nothing. On a resume the
@@ -560,8 +594,9 @@ branch above, which is the refusal wanted while the Spec is being integrated.
 branch and the Spec branch as the branch that moves: the ancestor check, the rebase with conflict
 reuse off, the conflict loop of [conflict-loop.md](conflict-loop.md) at every stop, a contested
 hunk taking the **Target** side, here the developer's branch's. The Loss ledger is the path the
-claim printed as `ledger=`, `spec.ledger.md` beside the Spec, and never a Ticket's own ledger: a
-resume may come through any Ticket of the Spec, and it must find the same file. The ledger is
+claim printed as `ledger=`, beside the Spec and named for this repository as the claim is, and
+never a Ticket's own ledger: a resume may come through any Ticket of the Spec built in this
+repository, and it must find the same file. The ledger is
 judged and its reapplies brought back as the integration says.
 
 **4. The Post-feature gate and the flows.** The gate above, in that tree, with the full suites of
@@ -570,14 +605,25 @@ and the affected E2E flows of the verification below, here and not after a Ticke
 the developer's branch changes only here. A red gate stops the run as the integration's own red
 gate does.
 
-**5. The review.** The review below, called from that tree, with three of its arguments read off
+**5. The review.** The review below, called from that tree, with four of its arguments read off
 the claim: the spec source is the Spec, `spec=`, in the Ticket's place, so `do-code-review` reads
-the whole Spec and writes one Review beside it, `spec.review.md`; the fixed point is
-`spec_upstream`, the merge base the rebase left; the landing target is `spec_upstream`. The Gate,
+the whole Spec and writes one Review beside it; the fixed point is
+`spec_upstream`, the merge base the rebase left; the landing target is `spec_upstream`; and the
+Review's path is `review_file=`, sent as one line after the review token and before the Loss
+ledger, an argument only this call carries:
+
+```
+Review file: <the review_file= path>
+```
+
+The run never composes that path: each repository of a feature writes a Review of its own beside
+the one Spec, and a Review written at the Spec's own name would be overwritten by the next
+repository to land. A fix call of the Final integration names the same path as the Review's
+location. The Gate,
 the review token, the Loss ledger when the rebase wrote one and the held Rulings go over as the
 review says. The token is minted under the slug of the tree, `spec-<feature-slug>`, the value
 `final-state.sh` prints as `token_slug=`, and never under a Ticket's slug: a resume may come
-through any Ticket of the Spec, and it must find the token the marker beside the Review holds. The review fixes its `Act on` Findings and, when the Review is Green, lands the Spec
+through any Ticket of the Spec built in this repository, and it must find the token the marker beside the Review holds. The review fixes its `Act on` Findings and, when the Review is Green, lands the Spec
 branch on the developer's branch by fast-forward. The return is read as the review says, and
 `not landed: target moved` is answered as it says, in the same run.
 
@@ -641,8 +687,9 @@ first Final integration in three places:
 A resume that stops again yields and replies as any stopped Final integration does. One that
 finishes ends at the release above.
 
-Done when the Spec branch landed on the developer's branch, its tree is removed and the release
-read `claim=released`; or the claim read `taken` and the run ended; or the run stopped as blocked
+Done when the Spec branch landed on the developer's branch, its tree is removed, the release
+read `claim=released` and, on a feature of more than one repository, the landing record was read a
+second time; or the claim read `taken` and the run ended; or the run stopped as blocked
 with its reason, the tree, the Spec branch and the claim left in place and named, the claim
 yielded.
 

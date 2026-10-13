@@ -1314,18 +1314,43 @@ and its branch named under its `Yours: destroy:` line, or the step reads `skip: 
 **9a. Final integration.** Entered only when the Completion check of step 9 printed
 `verdict=complete`, after the run's own Ticket landed and reads `resolved` and its worktree is
 removed; on every other verdict the step reads `skip: Tickets of the Spec still open` and the run
-goes on to the Reply. It is the final integration in [mechanics.md](mechanics.md), in its order:
+goes on to the Reply. The check walks every Ticket of the feature, in every repository, so while
+one is open anywhere the run reads no landing record, claims nothing and integrates nothing, in
+this repository or in any other.
 
-- `bash <skill-dir>/scripts/final-claim.sh claim <the Ticket's path>`, routed on its exit code.
-  `claim=taken` (exit 1) ends the run, not as blocked: the Reply reads that the Spec is being
-  integrated by another run. `claim=failed` (exit 3) stops the run as blocked with its reason.
-- On `claim=claimed`, a worktree at the `tree=` path holding the Spec branch itself, the rebase
-  onto `spec_upstream` with the conflict loop and the Loss ledger at the `ledger=` path, the gate
-  with the **Post-feature gate**'s full suites and the affected E2E flows, then the review with the
-  Spec as its spec source and `spec_upstream` as both its fixed point and its landing target.
-- On `landed at <commit>`, that worktree removed and
-  `bash <skill-dir>/scripts/final-claim.sh release <the Ticket's path>`, whose `claim=released`
-  line is recorded for the Reply as `spec/<feature-slug> removed`.
+On `verdict=complete` the run reads the landing record before any claim,
+`bash <skill-dir>/scripts/landing-order.sh <the Ticket's path>`: the repositories of the feature in
+the order they land, a provider before what consumes it, each with the state its own refs give,
+then `own=`, `waits_for=`, the `next_landing` lines and `verdict=`. A feature of one repository
+prints one group and `verdict=land`. The run composes none of those lines, keeps them for the
+Reply, and routes on `verdict=`:
+
+- **`land`**: no repository this one's Tickets are blocked by is still unlanded, so the run lands
+  its own repository, and no other, through the final integration in
+  [mechanics.md](mechanics.md), in its order:
+  - `bash <skill-dir>/scripts/final-claim.sh claim <the Ticket's path>`, routed on its exit code.
+    `claim=taken` (exit 1) ends the run, not as blocked: the Reply reads that the Spec is being
+    integrated by another run. `claim=failed` (exit 3) stops the run as blocked with its reason.
+  - On `claim=claimed`, a worktree at the `tree=` path holding the Spec branch itself, the rebase
+    onto `spec_upstream` with the conflict loop and the Loss ledger at the `ledger=` path, the
+    gate with the **Post-feature gate**'s full suites and the affected E2E flows, then the review
+    with the Spec as its spec source, `spec_upstream` as both its fixed point and its landing
+    target, and the `review_file=` path as where its Review goes.
+  - On `landed at <commit>`, that worktree removed and
+    `bash <skill-dir>/scripts/final-claim.sh release <the Ticket's path>`, whose `claim=released`
+    line is recorded for the Reply as `spec/<feature-slug> removed`.
+  - After `claim=released`, when the first read printed `repositories=` above 1, the same
+    `landing-order.sh` call a second time. The Reply's lines are copied from this second read and
+    never from the first, so they state what the repositories hold now.
+- **`wait`**: a repository this one's Tickets are blocked by has not landed, and the order holds
+  for the run that completes the feature too. The step reads
+  `skip: <own=> waits for <waits_for=>`: no claim, no worktree, no rebase and no review, in this
+  repository or in the provider's. The record is the Reply's, which hands over the landing
+  commands in order.
+- **`ambiguous`** or **`unordered`**, exit 1: the run stops as blocked with the record's
+  `ambiguous=` or `cycle=` line quoted, and claims nothing.
+- **`landed`** or **`elsewhere`**: the step reads `skip:` with that verdict, nothing is claimed,
+  and the Reply says so in one line.
 
 Any stop on the way makes no `release` call: the Spec branch, its worktree and the claim stay, the
 Ticket stays `resolved`, and the Reply says the Final integration stopped, why, and how it is
@@ -1333,7 +1358,8 @@ resumed. Before that Reply the run yields its claim,
 `bash <skill-dir>/scripts/final-claim.sh yield <the Ticket's path>`, so the `/do` that resumes can
 take it over. A run that entered on the door's `verdict=resume-final` reaches this step through the
 stopped Final integration of the Resume section, with no step before it. Done when the release
-read `claim=released`, or the claim read `taken`, or the run stopped as blocked with the Spec
+read `claim=released` and, on a feature of more than one repository, the record was read a second
+time, or the claim read `taken`, or the run stopped as blocked with the Spec
 branch and its worktree named and the claim yielded, or the step reads its skip.
 
 **10. Reply.** Written by [reply.md](reply.md). What this Playbook puts in its sections: the
@@ -1355,8 +1381,14 @@ opens those landing lines, as the Spec landing lines of [reply.md](reply.md) wor
 `root=` and `build_repository=` lines. A run whose Final integration landed is
 the exception: the Spec branch reached the developer's branch, so its Reply carries the Review
 beside the Spec among the files left uncommitted, `Open: none`, and `git push` with the
-developer's branch named as its next step. A run whose claim read `taken`, or whose Final
-integration stopped, ends on the lines [reply.md](reply.md) fixes for it. A
+developer's branch named as its next step. On a feature of more than one repository that Reply
+names the repositories landed and still to land off the landing record's second read, with the
+landing command of each one still to land, and while one is left the push is a line of the Final
+integration lines and the next step is the command of the next repository to land, as
+[reply.md](reply.md) words both. A run whose landing record read `wait` landed nothing: its Reply
+says the feature is complete and which repository its own waits for, lists every repository's
+landing command in order, and ends on the first of them. A run whose claim read `taken`, or whose
+Final integration stopped, ends on the lines [reply.md](reply.md) fixes for it. A
 run that stopped on an Extreme fork, or on a Design fork no `choice-taker` ruled, ends instead on
 the `/discuss` command the forks in [forks.md](forks.md) fix, as its last line. A run that stopped
 on work for another repository, at the Plan or on a Builder's return, ends on `/tickets <spec>`, in

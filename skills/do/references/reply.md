@@ -228,7 +228,7 @@ worktree line comes before the audit line and before the hand-over, shaped-by an
     below, where it reads `Open: none`.
 30. **Final integration lines.** On the run whose Completion check printed `verdict=complete`,
     after the Spec landing lines of its own Ticket, what the final integration of
-    [mechanics.md](mechanics.md) recorded, in one of three shapes. A run that entered on the
+    [mechanics.md](mechanics.md) recorded, in one of four shapes. A run that entered on the
     door's `verdict=resume-final` carries the same lines with no Spec landing lines before them,
     since it built and landed no Ticket, and opens them with
     `Final integration: resumed from <where>`, `<where>` being the `verdict=` and, on an open
@@ -247,7 +247,59 @@ worktree line comes before the audit line and before the hand-over, shaped-by an
       the target the Spec branch was rebased onto, with the Loss ledger beside the Spec when a
       contested hunk took the **Target** side; the Review return of item 28 as on any reviewed
       run, its landing line `landed at <sha>`; then `spec/<feature-slug> removed`, off the
-      release's `claim=released` and `removed=yes` lines.
+      release's `claim=released` and `removed=yes` lines. On a feature of more than one
+      repository, the landing record printing `repositories=` above 1, the repository lines
+      below follow, off the record's second read, the one after the release. While that read
+      names a next landing, its `next_landing=` line reading anything but `done`, the push is a
+      line of its own before them, `Push: git push <the developer's branch>`, since the Reply's
+      last line is then another repository's command.
+    - **Waiting** (the landing record read `verdict=wait`):
+      `Final integration: not started, the feature is complete and <own=> waits for <waits_for=> to land`,
+      naming `waits_for_location=` as where that repository is. Nothing was claimed and nothing
+      landed, in this repository or in any other. Then `Open: none` and the repository lines
+      below, off the one read the run made.
+
+    The repository lines, on a record that printed `repositories=` above 1, each copied off the
+    record and never derived from the Tickets or from a probe of the session's own:
+    - `Landed:` names every group whose `repository_state=` reads `landed`, by its `repository=`
+      name, in the record's order, or `none`.
+    - `Still to land:` names every other group, in the record's order, which is the order the
+      blocking edges give, or `none`. A group reading `unreadable` is named with its reason, as
+      `orders-service (unreadable: missing)`, off its `repository_reason=` line.
+    - Then, for each group still to land, in that order, two lines. The first names the
+      repository as the place to open a session in, off its `repository=` and
+      `repository_location=` lines: `<repository=>: open a session in <repository_location=>`,
+      or, when `repository_location=` reads `unlisted`, the name and that the Spec's
+      `## Repositories` list holds no location for it. A group reading `repository_here=yes` is
+      the session's own and reads `<repository=>: this session's repository` instead, followed on
+      the Waiting shape by `, once <waits_for=> landed`. The second line is that repository's
+      landing command and nothing else on the line: `/do <repository_ticket=>`, a `do` on a Ticket
+      of that repository by its absolute location. Neither is a shell line. The Waiting shape
+      lists every repository this way, the session's own among them.
+
+    As on a run in `billing-service` that landed it, with `orders-service` left:
+
+    ```
+    spec/hold-disputed-invoice removed
+    Push: git push main
+    Landed: billing-service
+    Still to land: orders-service
+    orders-service: open a session in /home/dev/orders-service
+    /do /home/dev/orders-service/.scratch/hold-disputed-invoice/issues/04-show-the-hold.md
+    ```
+
+    And on a run in `orders-service` that completed the feature before `billing-service` landed:
+
+    ```
+    Final integration: not started, the feature is complete and orders-service waits for billing-service to land, at /home/dev/billing-service
+    Open: none
+    Landed: none
+    Still to land: billing-service, orders-service
+    billing-service: open a session in /home/dev/billing-service
+    /do /home/dev/orders-service/.scratch/hold-disputed-invoice/issues/02-hold-the-invoice.md
+    orders-service: this session's repository, once billing-service landed
+    /do /home/dev/orders-service/.scratch/hold-disputed-invoice/issues/04-show-the-hold.md
+    ```
     - **Stopped.** `Final integration: stopped` with the reason: the rebase question nobody
       answered, the red check, or the review's `not landed` line quoted. Then the Spec branch and
       its worktree, both left in place and named, and that the claim stays beside the Spec,
@@ -362,7 +414,13 @@ Ten sections, in this order, each one present in every Reply that carries sectio
     land and there is nothing to type. `next=ambiguous` names the Ticket on the check's
     `ambiguous=` line as the one whose `**Status:**` line to repair. A run whose Final
     integration landed the Spec branch did reach the developer's branch: its line is
-    `git push <the developer's branch>`. A run whose claim read `taken` has nothing to type, and
+    `git push <the developer's branch>`. On a feature of more than one repository the line is
+    read off the landing record instead, its second read on a run that landed: while
+    `next_landing=` reads anything but `done`, the line is `/do <next_landing_ticket=>` and
+    nothing else, the command of the next repository to land, and the push stands on its own
+    line among the Final integration lines. Once it reads `done`, the push is the last line
+    again. A run whose landing record read `verdict=wait` landed nothing and ends on the same
+    `/do <next_landing_ticket=>`, which is the first of the landing commands it listed. A run whose claim read `taken` has nothing to type, and
     its line says the Spec is being integrated by another run. A run whose Final integration
     stopped names `/do <the run's Ticket>`, and says a `do` on any Ticket of the Spec resumes it
     too. A resume of a Final integration ends the same two ways: one that stops again names the
