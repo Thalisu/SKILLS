@@ -389,6 +389,27 @@ orders-service: this session's repository, once billing-service landed
 /do /home/dev/orders-service/.scratch/hold-disputed-invoice/issues/04-show-the-hold.md
 ```
 
+From there the feature lands one command at a time, and no single command lands all of it. You open
+a session in the repository the last reply named and type its last line there. That `/do` is on a
+Ticket already `resolved`, so it builds nothing: it is the landing command of that repository, and
+it runs that repository's Final integration, with the Gate and the Review of the project the
+session is in. No other repository's branches move. Its reply has the same shape as the one before
+it, what landed, what is left and the commands in order, and you type its last line in the next
+repository in turn.
+
+Every landing is local, because the chain never pushes. Each reply that leaves a repository to land
+carries its own `Push: git push <your branch>` line for the repository that just landed, above the
+commands, and you push each one when you choose to. The last landing says so and ends on the push,
+with no command left to hand over:
+
+```
+spec/hold-disputed-invoice removed
+Landed: billing-service, orders-service
+Still to land: none
+Every repository of the feature landed
+git push main
+```
+
 Each repository claims its own Final integration, so the claim, the Loss ledger and the Review
 beside the Spec carry the repository's name in such a feature: `spec.billing-service.integration.claim`,
 `spec.billing-service.ledger.md`, `spec.billing-service.review.md`. A feature of one repository
@@ -423,7 +444,7 @@ apart:
 
 | The door finds | What the run does |
 |---|---|
-| the Spec branch there and not landed, every Ticket of the Spec `resolved` | resumes the Final integration, and only that |
+| the Spec branch there and not landed, every Ticket of the Spec `resolved` | resumes the Final integration, and only that, or starts it when this is the landing command of a repository whose providers all landed |
 | the Spec branch landed, or never there | stops in one line, as on any `resolved` Ticket, and writes nothing |
 | a Ticket of the Spec still open | stops in one line the same way: there is no Final integration to resume yet |
 
