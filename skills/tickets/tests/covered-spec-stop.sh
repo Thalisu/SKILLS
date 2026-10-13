@@ -22,6 +22,7 @@ mapfile -t nothing_cut < <(nothing_cut_phrasings)
 mapfile -t with_status < <(with_status_phrasings)
 mapfile -t recut < <(recut_phrasings)
 mapfile -t no_next_command < <(no_next_command_phrasings)
+mapfile -t nothing_written < <(nothing_written_phrasings)
 
 # The stop rows whose condition names tickets, read cell by cell: the other rows stop on the verdict
 # or the journey, and a sentence of theirs cannot answer for this one. Every phrasing is matched in
@@ -61,9 +62,7 @@ carries_any "no next command follows" "${no_next_command[@]}"
 # the row itself.
 flat="$(paragraph_with <(printf '%s\n' "$stops") "**Stops.**") $message"
 flat="${flat,,}"
-carries_any "the stop writes nothing" \
-  "before anything is written" "nothing is written" "nothing written" "writes nothing" \
-  "nothing was written" "no file is written" "without writing"
+carries_any "the stop writes nothing" "${nothing_written[@]}"
 
 echo "# evals/existing-tickets-stop: the grader asks for the same message"
 grader="$case_dir/graders/stops-lists-existing.md"

@@ -3,7 +3,8 @@
 # the spec (`/tickets <spec> <repository>: <its absolute location on this machine>`, the last line
 # of a stopped `do` Reply): it writes that location into the Spec's Repositories list, as the entry
 # of the repository a finding marked ` Location not known.`, before the code is explored or any
-# slice is drafted.
+# slice is drafted. With no location typed for a repository a finding still owes one for, the run
+# stops on one message naming that repository and writes nothing.
 # The session takes this from what it read of the arguments and of the Spec, which no script
 # carries, so the decision is proven over the passages that carry it.
 # Run: bash skills/tickets/tests/typed-location.sh
@@ -66,5 +67,42 @@ carries_each "the entry is written before the code is explored and before any sl
   "before" "ahead of" "prior to" -- \
   "explor" "step 2" "steps 2" -- \
   "slice" "draft" "is cut" "step 3" "steps 2 and 3"
+
+echo "# SKILL.md / ## 1: a finding that owes a location stops the run when none was typed"
+# The stop rows whose condition names a location, read cell by cell: the other rows stop on the
+# verdict, the journey or the open tickets, and a sentence of theirs cannot answer for this one.
+mapfile -t nothing_written < <(nothing_written_phrasings)
+stops="$(passage_of "$skill" "**Stops.**" "## 2. Explore the code")"
+rows="$(awk -F'|' '/^\|/ && tolower($2) ~ /location/' <<<"$stops")"
+condition="$(awk -F'|' '{ print $2 }' <<<"$rows" | tr '\n' ' ' | tr -s ' ')"
+message="$(awk -F'|' '{ print $3 }' <<<"$rows" | tr '\n' ' ' | tr -s ' ')"
+
+flat="${condition,,}"
+expect "a stop row of the ground step is conditioned on a location" test -n "${flat// /}"
+carries_each "the condition is a finding that owes a location" \
+  "finding" -- \
+  "owes" "owed" "owing" "location not known" "unlocated" "not located"
+carries_each "while the command carried no location for that repository" \
+  "carried no" "carries no" "carried none" "carries none" "no pair" "no location" "none was typed" \
+  "none is typed" "nothing was typed" "not typed" "typed no" "typed none" "without a" "without one" \
+  "did not carry" "does not carry" "holds no" "held no" "gave no" "gives no" "names no" "named no" -- \
+  "typed" "\$arguments" "arguments" "the command" "pair"
+
+flat="${message,,}"
+carries_each "the message names the repository whose location is missing" \
+  "repositor" -- \
+  "location" -- \
+  "missing" "not known" "unknown" "owed" "owes" "lacks" "no location" "has none" "needs" "needed" \
+  "not typed" "not given" "to type" "is typed" "be typed"
+
+# The paragraph above the table speaks for every stop, so nothing written may be said there or in
+# the row itself. The paragraph answers for this stop only once the table holds its row.
+flat="$(paragraph_with <(printf '%s\n' "$stops") "**Stops.**") $message"
+flat="${flat,,}"
+if [ -n "${rows// /}" ]; then
+  carries_any "the stop writes nothing" "${nothing_written[@]}"
+else
+  fail "the stop writes nothing (no stop row is conditioned on a location)"
+fi
 
 exit $((fails > 0))

@@ -406,6 +406,10 @@ no_next_command_phrasings() { # one accepted phrasing per line: the message hand
     "suggests no command" "offers no command" "no follow-up command" "no command after" \
     "not name a next command" "no command is named" "no command was named"
 }
+nothing_written_phrasings() { # one accepted phrasing per line: the run ends with nothing written
+  printf '%s\n' "before anything is written" "nothing is written" "nothing written" "writes nothing" \
+    "nothing was written" "no file is written" "without writing"
+}
 only_uncovered_phrasings() { # one accepted phrasing per line: the run cuts only what the open Tickets leave uncovered
   printf '%s\n' "only what is uncovered" "only what is left uncovered" "only what they leave uncovered" \
     "only what the open tickets leave uncovered" "only the uncovered" "only what no open ticket covers" \

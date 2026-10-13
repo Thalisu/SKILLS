@@ -116,6 +116,7 @@ A `journey.md` beside the spec that the verdict does not name is an orphan: name
 | the verdict names a file that does not exist | the line, and the location it named |
 | the journey's `## Reopen in discuss` lists a branch | each branch, and that `/discuss` settles them before the journey is walked again |
 | the feature's open tickets cover the whole spec: nothing the spec holds is left uncovered (below) | nothing was cut because the open tickets cover the whole spec; each existing ticket with its status; whoever wants a recut closes or deletes them first; no next command |
+| a finding line owes a location (below) and `$ARGUMENTS` carried no location for the repository it names | the repository whose location is missing, by the name the finding line gives it, and that its location on this machine is typed with the command, as `/tickets <spec> <repository>: <its absolute location on this machine>` |
 
 **Open tickets and what they cover.** The feature's open tickets are the files under `issues/` beside the spec in local mode, or the open issues naming the spec as their parent in remote mode. A local ticket that reads `resolved` stays in the folder and is read with the rest: it covers what it built and is listed with its status. Read every one of them in the same batch as the spec. With none, the cut is the whole spec and nothing below applies. With some, read what they cover against what the spec holds:
 
