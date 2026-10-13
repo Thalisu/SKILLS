@@ -41,7 +41,9 @@ door script knows that Review as the run's own file only when it is told that Sp
 runs it with `--spec <that path>` beside the short sha
 (`bash skills/do-code-review/scripts/fixed-point.sh <short sha> --spec <path>`), and `dirty=no`
 holds with only that Review untracked. Without the flag the door reads the Review as the
-developer's uncommitted work and the call refuses.
+developer's uncommitted work and the call refuses. The Review the caller named goes over with it,
+as `--review <the Review's location>`, since a Spec of a feature across repositories holds one
+Review per repository and the door would otherwise spare the Spec's own name alone.
 
 Each is one line and the run stops there: no worktree, no Fixer, nothing is written, and the reply
 is that line alone. The clean check is the door script's `dirty=` line and never a bare status,

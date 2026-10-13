@@ -20,6 +20,11 @@
 #                             way a Ticket's is; it is the spec source, read whole, and the Review's
 #                             home. One that names no file, an issue reference included, is a
 #                             refusal, and --spec beside --ticket is usage
+#   --review <path>           the Review's path a caller hands over beside --spec, for a Spec that
+#                             holds more than one Review, one per repository of its feature. It
+#                             names a file in the Spec's own folder, there yet or not, and
+#                             review= takes its name in place of the Spec's; a path in any other
+#                             folder is a refusal, and --review without --spec is usage
 #
 # Which paths a slug can name under the scratch is not this door's rule to hold: before it answers
 # it asks ../../../.agents/scripts/resolve-feature-folder.sh, the one executable form of that rule,
@@ -46,7 +51,7 @@
 # fixed point), status (the command that shows the working tree's short status with those two
 # files left out, the one a caller passes on), commits (the commits between the fixed point and
 # HEAD), review (the Review's path: beside a handed-over local Ticket or a handed-over Spec, taking
-# its name with .review before the extension, else in the scratch reviews folder of the main
+# its name with .review before the extension, or the name --review handed beside that Spec, else in the scratch reviews folder of the main
 # checkout, relative when this tree is the main checkout and absolute from a linked worktree, which has no scratch of its own
 # and is removed with everything in it), issue (a number in the branch name,
 # else one written as #<n> in a commit subject since the fixed point, else none), ticket (the
@@ -76,15 +81,17 @@
 # in when that entry is a bare repository: see .agents/worktrees.md.
 set -uo pipefail
 
-usage() { echo "usage: fixed-point.sh [<ref>] [--ticket <location> | --spec <path>]" >&2; exit 2; }
-ref=""; handed=""; handed_given=no; handed_spec=""; spec_handed_given=no
+usage() { echo "usage: fixed-point.sh [<ref>] [--ticket <location> | --spec <path> [--review <path>]]" >&2; exit 2; }
+ref=""; handed=""; handed_given=no; handed_spec=""; spec_handed_given=no; handed_review=""; review_given=no
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --ticket) [ "$#" -ge 2 ] && [ "$spec_handed_given" = no ] || usage; handed="$2"; handed_given=yes; shift 2 ;;
     --spec) [ "$#" -ge 2 ] && [ "$handed_given" = no ] || usage; handed_spec="$2"; spec_handed_given=yes; shift 2 ;;
+    --review) [ "$#" -ge 2 ] || usage; handed_review="$2"; review_given=yes; shift 2 ;;
     *) [ -z "$ref" ] || usage; ref="$1"; shift ;;
   esac
 done
+[ "$review_given" = no ] || [ "$spec_handed_given" = yes ] || usage
 here="$(cd "$(dirname "$0")" && pwd -P)"
 resolver="$here/../../../.agents/scripts/resolve-feature-folder.sh"
 top="$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "not a git repository" >&2; exit 2; }
@@ -180,6 +187,19 @@ if [ "$spec_handed_given" = yes ]; then
   refuse_link "$(dirname "$handed_at")"
   refuse_link "$handed_at"
   review="${spec%.md}.review.md"
+  if [ "$review_given" = yes ]; then
+    case "$handed_review" in
+      /*) review_at="$handed_review" ;;
+      *)
+        review_at="$invoked/$handed_review"
+        [ -d "$(dirname "$review_at")" ] || review_at="$top/$handed_review"
+        ;;
+    esac
+    review_dir="$(cd "$(dirname "$review_at")" 2>/dev/null && pwd -P)" &&
+      [ "$review_dir" = "$(cd "$(dirname "$handed_at")" && pwd -P)" ] ||
+      refuse "$handed_review is not beside the Spec; nothing reviewed"
+    review="$(dirname "$spec")/$(basename "$handed_review")"
+  fi
   # A Ticket found by slug beside a handed Spec would be read as the spec source over it.
   ticket=none; located=none
 fi

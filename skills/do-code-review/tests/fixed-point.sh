@@ -344,9 +344,9 @@ absent "that refusal prints no review path" "review="
 
 # --ticket without a location is a usage error, not a refusal.
 run --ticket
-check "--ticket with no location is a usage error" 2 "$rc" "usage: fixed-point.sh [<ref>] [--ticket <location> | --spec <path>]"
+check "--ticket with no location is a usage error" 2 "$rc" "usage: fixed-point.sh [<ref>] [--ticket <location> | --spec <path> [--review <path>]]"
 run one two
-check "a second ref is a usage error" 2 "$rc" "usage: fixed-point.sh [<ref>] [--ticket <location> | --spec <path>]"
+check "a second ref is a usage error" 2 "$rc" "usage: fixed-point.sh [<ref>] [--ticket <location> | --spec <path> [--review <path>]]"
 
 # do builds in a worktree and the Ticket belongs to the main checkout, which the worktree has no
 # copy of, so the location it hands over is a path outside the worktree. The Review goes there.
@@ -670,6 +670,25 @@ run --spec "$tmp/spec-docs/spec.md"
 check_lines "a Spec handed outside the repository is still the Review's home" 0 "$rc" \
   "review=$tmp/spec-docs/spec.review.md"
 
+# A feature across repositories has one Spec and one Review per repository, each beside that Spec
+# under its own name: the caller hands the name over, and a door that answered spec.review.md
+# instead would have two repositories overwrite each other's Review. A name that is not beside the
+# Spec is refused as handed, and a Review handed with no Spec has nothing to sit beside.
+keyed_review=.scratch/20260930-export/spec.api.review.md
+run --spec .scratch/20260930-export/spec.md --review "$keyed_review"
+check_lines "a Review handed beside a handed Spec is the run's Review" 0 "$rc" \
+  "review=$keyed_review" "spec=.scratch/20260930-export/spec.md" "spec_handed=yes"
+absent "a Review handed beside a handed Spec leaves the Spec's default Review unnamed" "spec.review.md"
+for handed in .scratch/reviews/spec.api.review.md "$tmp/spec-docs/spec.api.review.md"; do
+  run --spec .scratch/20260930-export/spec.md --review "$handed"
+  check_lines "a handed Review that is not beside the Spec is refused in one line ($handed)" 1 "$rc" \
+    "refusal=$handed is not beside the Spec; nothing reviewed"
+  check_absent "that refusal names no Review ($handed)" 1 "$rc" "review="
+done
+run --review "$keyed_review"
+check "a Review handed with no Spec is a usage error" 2 "$rc" "usage: fixed-point.sh"
+absent "a Review handed with no Spec names no Review" "review="
+
 # A Spec the door finds itself was handed over by nobody, whichever way the door reached it: beside
 # a Ticket the caller handed, or through the branch's own slug. The Review keeps the home it had.
 mkdir .scratch/20260930-export/issues && printf '# 01: Export\n' >.scratch/20260930-export/issues/01-export.md
@@ -742,7 +761,7 @@ done
 
 # --spec without a path, and a Spec handed together with a Ticket, are usage errors: one call hands
 # over one or the other.
-usage="usage: fixed-point.sh [<ref>] [--ticket <location> | --spec <path>]"
+usage="usage: fixed-point.sh [<ref>] [--ticket <location> | --spec <path> [--review <path>]]"
 run --spec
 check "--spec with no path is a usage error" 2 "$rc" "$usage"
 run --spec .scratch/20260930-export/spec.md --ticket .scratch/20260930-export/issues/01-export-step.md
@@ -774,6 +793,20 @@ same "the status line hands the handed Spec's Review on to nobody" ""
 printf 'notes\n' >.scratch/20260930-export/notes.md
 run --spec .scratch/20260930-export/spec.md
 check_lines "another untracked file beside the handed Spec is a change like any other" 0 "$rc" "dirty=yes"
+
+# The Review a caller hands over is the run's own output under that name: a fix call that read it as
+# the developer's uncommitted work would refuse to land.
+rm .scratch/20260930-export/notes.md .scratch/20260930-export/spec.review.md
+keyed_review=.scratch/20260930-export/spec.api.review.md
+printf '# Review: Export (api)\n' >"$keyed_review"
+expect "the handed Review is the one file git status shows" bash -c \
+  '[ "$(command git status --short)" = "?? .scratch/20260930-export/spec.api.review.md" ]'
+run --spec .scratch/20260930-export/spec.md --review "$keyed_review"
+check_lines "a handed Review does not mark the tree dirty" 0 "$rc" "dirty=no" "review=$keyed_review"
+status_line="$(term status)"
+expect "the status line spares the handed Review by name" grep -qF -- ":!$keyed_review" <<<"$status_line"
+out="$(eval "$status_line" 2>&1)"
+same "the status line hands the handed Review on to nobody" ""
 
 # The orchestrator and the fix call eval the status line, and the path in it is the name of a file
 # anyone can commit: a single quote in that name must stay text, or the rest of the name runs as
