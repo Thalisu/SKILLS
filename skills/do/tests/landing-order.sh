@@ -74,6 +74,22 @@ verdict=land"
 lands "from the provider, with both repositories unlanded, the record closes on its own repository waiting for none, named as the next landing with its location and highest-numbered Ticket, and the verdict land" \
   "$build" land-api 02-api-model.md 03-api-export.md
 
+# Both Spec branches are still unlanded here: the cases below are the ones that move the refs.
+want_tail="own=land-web
+waits_for=land-api
+waits_for_location=$build
+next_landing=land-api
+next_landing_location=$build
+next_landing_ticket=$issues/03-api-export.md
+verdict=wait"
+cd "$home" || exit 1
+run "$issues/01-web-screen.md"
+label="from the consumer, with its provider unlanded, the record closes on its own repository waiting for the provider at its listed location, the provider's highest-numbered Ticket as the next landing, and the verdict wait"
+if [ "$rc" = 0 ] && [ "$(after_groups)" = "$want_tail" ]; then ok "$label"; else
+  fail "$label (exit $rc, wanted 0 and, past the groups: ${want_tail//$'\n'/ · })"
+  dump_out
+fi
+
 state_of() { # $1 repository name: the repository_state of its group in the caller's $out, on stdout
   awk -v r="repository=$1" '$0 == r { on = 1; next } /^repository=/ { on = 0 } on && sub(/^repository_state=/, "")' <<<"$out"
 }

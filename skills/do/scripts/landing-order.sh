@@ -29,13 +29,14 @@
 #
 # After the groups: own (the group the argument Ticket belongs to), waits_for (the first group in
 # landing order that own is directly blocked by and that does not read landed, none with none),
-# then next_landing, next_landing_location and next_landing_ticket (the first group in landing
-# order that does not read landed, its location and its repository_ticket), or the single line
-# next_landing=done when every group reads landed, then verdict. An unreadable repository counts as
-# not landed.
+# waits_for_location only when that is a name, then next_landing, next_landing_location and
+# next_landing_ticket (the first group in landing order that does not read landed, its location
+# and its repository_ticket), or the single line next_landing=done when every group reads landed,
+# then verdict. An unreadable repository counts as not landed.
 #
 # verdict, first match wins: elsewhere (own is not the session's repository) · landed (own reads
-# landed) · land (the session's repository may run its Final integration now).
+# landed) · wait (waits_for is a name) · land (the session's repository may run its Final
+# integration now).
 #
 # Exit codes: 0 the record was read · 1 the edges hold a cycle · 2 usage, no file at the path, or
 # not a git repository.
@@ -168,6 +169,7 @@ done <<<"$ordered"
 
 echo "own=$own"
 echo "waits_for=$waits_for"
+[ "$waits_for" = none ] || echo "waits_for_location=${location_of[$waits_for]}"
 if [ -z "$next_landing" ]; then
   echo "next_landing=done"
 else
@@ -179,6 +181,8 @@ if [ "$own_here" = no ]; then
   verdict=elsewhere
 elif [ "${state_of[$own]}" = landed ]; then
   verdict=landed
+elif [ "$waits_for" != none ]; then
+  verdict="wait"
 else
   verdict=land
 fi
