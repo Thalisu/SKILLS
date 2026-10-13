@@ -413,4 +413,43 @@ expect "the claim file of a claim taken from a Build repository records the tree
 expect "the claim file of a claim taken from a Build repository records the Spec branch of the session's repository, as printed" \
   grep -qsxF -- "spec_branch=spec/keyed-export" "$keyed/spec.land-api-v2.integration.claim"
 
+# The same feature's other repository, the Home one, lands after the Build one: its Ticket names
+# the Home repository, its Spec branch is the Home repository's own, and the Build repository's
+# claim is still held when its session claims.
+build_claim="$keyed/spec.land-api-v2.integration.claim"
+ticket 02-web-export.md $'**Status:** resolved\n\n**Build repository:** claim-web' 'None (can start immediately)'
+ticket 03-api-import.md $'**Status:** resolved\n\n**Build repository:** land_api.v2' 'None (can start immediately)'
+{
+  cd "$home" && g branch -q --track spec/keyed-export main && spec_commit spec/keyed-export &&
+    cp "$build_claim" "$tmp/claim.build"
+} >/dev/null 2>&1 || {
+  echo "FAIL  fixture: the unlanded Spec branch of the Home repository beside a held Build claim could not be built"
+  exit 1
+}
+run claim "$issues/02-web-export.md"
+check_lines "a claim for one repository of a feature reads claimed and takes over nobody while another repository of the same feature holds its own claim" 0 "$rc" \
+  "claim=claimed" \
+  "takeover=no"
+home_claim="$(term file)"
+expect "a claim for one repository of a feature names a claim file other than the one another repository of the feature holds" \
+  test -n "$home_claim" -a "$home_claim" != "$build_claim"
+expect "the claim files of two repositories of one feature sit side by side in the Home Feature folder" \
+  test -f "$home_claim" -a -f "$build_claim" -a "$(dirname "$home_claim")" = "$keyed"
+expect "a claim for one repository of a feature leaves the claim another repository holds as its claimant wrote it" \
+  cmp -s "$tmp/claim.build" "$build_claim"
+expect "a claim for one repository of a feature leaves the claim another repository holds naming that repository's Ticket" \
+  grep -qsxF -- "ticket=$issues/01-api-export.md" "$build_claim"
+
+cd "$build" || exit 1
+run claim "$issues/01-api-export.md"
+check_lines "a second claim for a repository whose claim is held still reads taken after another repository of the feature claimed, naming the Ticket that holds it" 1 "$rc" \
+  "claim=taken" \
+  "file=$build_claim" \
+  "holder_ticket=$issues/01-api-export.md"
+run claim "$issues/03-api-import.md"
+check_lines "a claim on another Ticket built in a repository whose claim is held reads taken, naming the Ticket that holds it" 1 "$rc" \
+  "claim=taken" \
+  "file=$build_claim" \
+  "holder_ticket=$issues/01-api-export.md"
+
 [ "$fails" = 0 ]
