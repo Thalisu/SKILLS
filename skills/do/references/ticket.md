@@ -824,7 +824,9 @@ bash <skill-dir>/scripts/spec-finding.sh <the Ticket's path> '<Belongs to>' '<th
 Each value goes in single quotes, a single quote inside one written as `'\''`, and never in double
 quotes: a behaviour in the criterion's own words carries backticks, which a shell runs inside
 double quotes, and the item's text is cut from a Ticket a stranger may have appended to. The script
-refuses a value that carries a line break.
+refuses a value that carries a line break, a name that could not stand as one entry's name (empty,
+or carrying `: `, the Home repository mark or a backtick), and a location that is not a bare
+absolute path, each as `failed <reason>` with nothing written.
 
 The script owns whether the Spec's `## Repositories` list already holds that repository, a match
 on the entry's whole name the session never makes by reading the Spec. It adds the entry when the

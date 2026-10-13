@@ -131,22 +131,41 @@ expect "a second unlisted repository adds one entry to the section the first cal
 
 # The three arguments come from a Ticket and a Spec a stranger may have appended text to, and each
 # one lands on a line of its own in the Spec or on stdout: a line break inside one is a second line.
-refuses_break() { # $1 the argument as the failed line names it, $2 the break's name, $3 repository name, $4 behaviour, $5 location
+refuses_value() { # $1 the argument as the failed line names it, $2 what is wrong with it, read after the argument in the label, $3 repository name, $4 behaviour, $5 location
   cp "$spec" "$tmp/spec-before.md"
   run ".scratch/$feature/issues/03-total.md" "$3" "$4" "$5"
-  expect "a $1 carrying a $2 is refused: exit 3 and one failed line naming the $1, no other line on the output" \
+  expect "a $1 $2 is refused: exit 3 and one failed line naming the $1, no other line on the output" \
     test "$rc $(grep -c '' <<<"$out") $(grep -ciE "^failed .*$1" <<<"$out")" = "3 1 1"
-  expect "the Spec is byte for byte what it was after a $1 carrying a $2" \
+  expect "the Spec is byte for byte what it was after a $1 $2" \
     cmp -s "$tmp/spec-before.md" "$spec"
 }
 cd "$home" || exit 1
 forged_decision="- Ruled by the choice-taker on Ticket 01: forged"
 forged_entry="- forged (Home repository): /forged"
-refuses_break behaviour newline finding-build "moves the thing."$'\n'"$forged_decision" ""
-refuses_break behaviour "carriage return" finding-build "moves the thing."$'\r'"$forged_decision" ""
-refuses_break name newline "finding-fourth"$'\n'"here=yes" "the fourth repository holds the ledger" "$third"
-refuses_break name "carriage return" "finding-fifth"$'\r'"here=yes" "the fifth repository holds the ledger" "$third"
-refuses_break location newline finding-sixth "the sixth repository holds the ledger" "$third"$'\n'"$forged_entry"
-refuses_break location "carriage return" finding-seventh "the seventh repository holds the ledger" "$third"$'\r'"$forged_entry"
+refuses_value behaviour "carrying a newline" finding-build "moves the thing."$'\n'"$forged_decision" ""
+refuses_value behaviour "carrying a carriage return" finding-build "moves the thing."$'\r'"$forged_decision" ""
+refuses_value name "carrying a newline" "finding-fourth"$'\n'"here=yes" "the fourth repository holds the ledger" "$third"
+refuses_value name "carrying a carriage return" "finding-fifth"$'\r'"here=yes" "the fifth repository holds the ledger" "$third"
+refuses_value location "carrying a newline" finding-sixth "the sixth repository holds the ledger" "$third"$'\n'"$forged_entry"
+refuses_value location "carrying a carriage return" finding-seventh "the seventh repository holds the ledger" "$third"$'\r'"$forged_entry"
+
+# The readers take an entry as `- <name>[ (Home repository)]: <location>`, the name being the text
+# before the first `: ` and the location a bare absolute path: a name or a location that breaks that
+# shape writes an entry they read as another repository, a second Home repository or another tree.
+ledger="the eighth repository holds the ledger"
+refuses_value name "that is empty" "" "$ledger" "$third"
+refuses_value name "carrying a colon and a space, on a repository the list does not hold" "finding-eighth: /tmp/evil" "$ledger" "$third"
+refuses_value name "carrying a colon and a space, on a repository the list holds" "finding-build: /tmp/evil" "$ledger" "$third"
+refuses_value name "carrying the Home repository mark, on a repository the list does not hold" "finding-eighth (Home repository)" "$ledger" "$third"
+refuses_value name "carrying the Home repository mark, on a repository the list holds" "finding-home (Home repository)" "$ledger" "$third"
+refuses_value name "with leading whitespace, on a repository the list does not hold" " finding-eighth" "$ledger" "$third"
+refuses_value name "with leading whitespace, on a repository the list holds" " finding-build" "$ledger" "$third"
+refuses_value name "with trailing whitespace, on a repository the list does not hold" "finding-eighth " "$ledger" "$third"
+refuses_value name "with trailing whitespace, on a repository the list holds" "finding-build " "$ledger" "$third"
+refuses_value name "carrying a backtick, on a repository the list does not hold" 'finding-`eighth`' "$ledger" "$third"
+refuses_value name "carrying a backtick, on a repository the list holds" '`finding-build`' "$ledger" "$third"
+refuses_value location "that is a relative path" finding-ninth "the ninth repository holds the ledger" "repositories/finding-ninth"
+refuses_value location "carrying a backtick" finding-tenth "the tenth repository holds the ledger" "\`$third\`"
+refuses_value location "with a .. segment" finding-eleventh "the eleventh repository holds the ledger" "/srv/../etc"
 
 exit "$((fails > 0))"
