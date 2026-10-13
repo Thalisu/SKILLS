@@ -452,4 +452,27 @@ check_lines "a claim on another Ticket built in a repository whose claim is held
   "file=$build_claim" \
   "holder_ticket=$issues/01-api-export.md"
 
+# A feature of its own in the same two repositories, claimed by nobody: its Ticket is built in the
+# Build repository and the session sits in the Home one, whose own Spec branch is unlanded. A claim
+# here would hold the session's Spec branch under the key of a repository another session lands.
+elsewhere="$home/.scratch/20261004-elsewhere-export"
+repositories_spec "$elsewhere" "- claim-web (Home repository): $home" "- land_api.v2: $build"
+issues="$elsewhere/issues"
+ticket 01-api-export.md $'**Status:** resolved\n\n**Build repository:** land_api.v2' 'None (can start immediately)'
+{
+  cd "$home" && g branch -q --track spec/elsewhere-export main && spec_commit spec/elsewhere-export &&
+    test "$(g for-each-ref --format='%(upstream:short)' refs/heads/spec/elsewhere-export)" = main &&
+    ! g merge-base --is-ancestor refs/heads/spec/elsewhere-export refs/heads/main &&
+    test -z "$(find "$elsewhere" -name '*.claim' -print)"
+} >/dev/null 2>&1 || {
+  echo "FAIL  fixture: the unclaimed feature whose session repository holds an unlanded Spec branch could not be built"
+  exit 1
+}
+run claim "$issues/01-api-export.md"
+check_lines "a claim on a Ticket built in a repository other than the session's reads failed and says the Ticket is built elsewhere, though the session's repository holds an unlanded Spec branch with an upstream" 3 "$rc" \
+  "claim=failed" \
+  "reason=elsewhere"
+expect "a claim on a Ticket built in a repository other than the session's creates no claim file, under the other repository's key or unkeyed, in the Home Feature folder or in the other repository" \
+  test -z "$(find "$elsewhere" "$build" -path "$build/.git" -prune -o -name '*.claim' -print 2>/dev/null)"
+
 [ "$fails" = 0 ]

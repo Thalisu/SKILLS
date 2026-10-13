@@ -48,7 +48,8 @@
 # print blockers=ambiguous with their line numbers, and no blocker is read out of any of them.
 #
 # verdict, first match wins: ambiguous (the Ticket's status) · resume-final (resolved, the Spec
-# branch there and not landed, the Spec complete: a stopped Final integration to resume) ·
+# branch there and not landed, the Spec complete, built here: a stopped Final integration to resume; a
+# Ticket built in another repository (build_check=elsewhere) is never one) ·
 # resolved · ambiguous (a blocker with
 # no file, two files, or no single status line; two Blocked by lines, or one naming no number and
 # not None, or a number it cannot split out) · unbuildable (build_check=unlisted, missing or not-git: the Build
@@ -182,7 +183,7 @@ if grep -qx 'spec_exists=no' <<<"$spec_facts" && ! grep -qx 'spec_branch=none' <
   grep -qxE 'protected=yes|branch=HEAD' <<<"$branch_facts"; then first_run_unsafe=1; fi
 
 if [ "$status" = ambiguous ]; then verdict=ambiguous
-elif [ "$status" = resolved ] && [ "$spec_complete" = yes ] && grep -qx 'spec_landed=no' <<<"$spec_facts"; then verdict=resume-final
+elif [ "$status" = resolved ] && [ "$build_check" != elsewhere ] && [ "$spec_complete" = yes ] && grep -qx 'spec_landed=no' <<<"$spec_facts"; then verdict=resume-final
 elif [ "$status" = resolved ]; then verdict=resolved
 elif [ "$stop_ambiguous" = 1 ]; then verdict=ambiguous
 elif grep -qxE 'unlisted|missing|not-git' <<<"$build_check"; then verdict=unbuildable

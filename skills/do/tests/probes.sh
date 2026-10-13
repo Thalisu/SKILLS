@@ -289,6 +289,18 @@ expect "the hand-over writes nothing in either repository: no ref, worktree or f
   test "$(both_states "$sibling")" = "$before"
 expect "the Ticket handed over still reads ready-for-agent" \
   grep -qxF '**Status:** ready-for-agent' "$across/issues/01-sibling.md"
+# The Final integration claim is keyed by the Build repository: going on from here would claim this
+# repository's Spec branch under the sibling's key, a claim the sibling's own session owns.
+handed=".scratch/20260113-handed"
+repositories_spec "$handed" "- main (Home repository): $top" "- sibling: $sibling"
+(issues="$handed/issues" && ticket 01-sibling.md $'**Status:** resolved\n\n**Build repository:** sibling' 'None (can start immediately)')
+bash "$skill/scripts/spec-branch.sh" cut "$handed/issues/01-sibling.md" >/dev/null 2>&1
+spec_commit spec/handed
+run "$door" "$handed/issues/01-sibling.md"
+check_lines "a resolved Ticket built in another repository, in a complete Spec whose Spec branch here has not landed, never reads verdict=resume-final: it stops as resolved" 1 "$rc" \
+  "status=resolved" "spec_landed=no" "spec_complete=yes" "build_check=elsewhere" "verdict=resolved"
+absent "a resolved Ticket built in another repository never resumes this repository's Final integration" "verdict=resume-final"
+g branch -D spec/handed >/dev/null
 # The session the hand-over named is the Build repository's own: its check compares physical
 # paths, so a session in a linked worktree of it, or a Spec entry reaching it through a symlink,
 # still reads as here and lets the Ticket start.

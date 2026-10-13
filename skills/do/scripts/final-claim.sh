@@ -30,7 +30,8 @@
 # yield_command, the shell-quoted command that yields that claim by hand when its holder died
 # without yielding; on failed: reason (no-feature-folder,
 # no-spec-branch, no-upstream, a Spec branch whose upstream is empty or names no local branch,
-# ambiguous-repository, a Ticket with two **Build repository:** lines, or not-writable). claimed
+# ambiguous-repository, a Ticket with two **Build repository:** lines, elsewhere, a Ticket built
+# in another repository than the session's, or not-writable). claimed
 # ends in takeover (yes or no): a claim file already there and yielded is
 # taken over, the file then naming this Ticket, and takeover=yes is followed by previous_ticket and
 # previous_claimed_at, the holder it replaced, and yielded_at.
@@ -126,6 +127,10 @@ claim_lines() { # $1 tree: what a claim file holds
 cmd_claim() {
   local tree won previous="" takeover=no
   resolve "$1"
+  # The Spec branch and the tree are the session's, so a Ticket built in another repository would
+  # take a second claim on them under that repository's key, which its own session owns.
+  build_of "$path"
+  [ "$build_check" != elsewhere ] || failed elsewhere
   [ "$spec_exists" = yes ] || failed no-spec-branch
   # Nothing to integrate into: the claim is refused before it creates the file.
   [ -n "$spec_upstream" ] && git -C "$main" show-ref --verify --quiet "refs/heads/$spec_upstream" || failed no-upstream
