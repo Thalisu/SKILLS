@@ -90,6 +90,12 @@ if [ "$rc" = 0 ] && [ "$(after_groups)" = "$want_tail" ]; then ok "$label"; else
   dump_out
 fi
 
+cd "$build" || exit 1
+run "$issues/01-web-screen.md"
+check_lines "from the provider, the record of a Ticket built in the consumer names the consumer as its own repository and closes on the verdict elsewhere, with exit 0" 0 "$rc" \
+  "own=land-web" \
+  "verdict=elsewhere"
+
 state_of() { # $1 repository name: the repository_state of its group in the caller's $out, on stdout
   awk -v r="repository=$1" '$0 == r { on = 1; next } /^repository=/ { on = 0 } on && sub(/^repository_state=/, "")' <<<"$out"
 }
@@ -162,6 +168,14 @@ reads "the same call, once the sibling's Spec branch is removed too, still reads
   "$home" landed landed
 reads "from the sibling, with both Spec branches removed, both repositories read landed" \
   "$build" landed landed
+cd "$build" || exit 1
+run "$issues/03-api-export.md"
+check_lines "with every repository of the feature landed, the record carries the single line next_landing=done and the verdict landed, with exit 0" 0 "$rc" \
+  "next_landing=done" \
+  "verdict=landed"
+check_absent "with every repository of the feature landed, the record names no location and no Ticket of a next landing" 0 "$rc" \
+  "next_landing_location=" \
+  "next_landing_ticket="
 expect "no reading of the record changes a ref or a file of either repository or of the Home feature folder${touched:+ (changed by:${touched#;})}" \
   test -z "$touched"
 
@@ -257,5 +271,77 @@ run "$issues/01-web-screen.md"
 check_lines "on a feature whose Blocked by edges hold a cycle between two repositories beside a free one, the cycle line names the two in cycle and not the free one, with the verdict unordered and exit 1" 1 "$rc" \
   "cycle=b c" \
   "verdict=unordered"
+
+# A Ticket with no Spec, in a repository of its own: the folder that holds it is no feature
+# folder's issues/, so there is no feature whose repositories could be read.
+fresh land-loose
+printf 'one\n' >notes.txt
+commit fixture
+loose="$(pwd -P)"
+issues="$loose/notes"
+mkdir -p "$issues"
+ticket 01-loose-note.md '**Status:** resolved' 'None (can start immediately)'
+want_out="ticket=notes/01-loose-note.md
+repositories=0
+verdict=no-spec"
+rc=0
+out="$(bash "$script" "$issues/01-loose-note.md" 2>"$tmp/loose.err")" || rc=$?
+label="on a Ticket that sits in a plain folder of a repository, outside any feature folder's issues/, the record is the Ticket, no repository and the verdict no-spec, with exit 0"
+if [ "$rc" = 0 ] && [ "$out" = "$want_out" ]; then ok "$label"; else
+  fail "$label (exit $rc, wanted 0 and the whole of stdout: ${want_out//$'\n'/ · })"
+  dump_out
+  echo "      stderr: $(cat "$tmp/loose.err")"
+fi
+
+# The unreadable Ticket is not the argument and reads a word a hasty reader takes for resolved, so
+# a record that only read the argument's status, or counted any closed-sounding word, lands here.
+fresh land-unread
+printf '.scratch/\n' >.gitignore
+printf 'one\n' >notes.txt
+commit fixture
+unread="$(pwd -P)"
+issues="$unread/.scratch/20261004-unread/issues"
+repositories_spec "$unread/.scratch/20261004-unread" "- land-unread (Home repository): $unread"
+ticket 01-unread-model.md $'**Status:** resolved\n\n**Build repository:** land-unread' 'None (can start immediately)'
+ticket 02-unread-export.md $'**Status:** done\n\n**Build repository:** land-unread' '01, Title of 01-unread-model'
+want_out="ticket=.scratch/20261004-unread/issues/01-unread-model.md
+repositories=0
+ambiguous=02 status word done
+verdict=ambiguous"
+rc=0
+out="$(bash "$script" "$issues/01-unread-model.md" 2>"$tmp/unread.err")" || rc=$?
+label="on a feature one of whose Tickets carries a status word outside ready-for-agent, claimed and resolved, the record is the Ticket, no repository, the ambiguous line naming that Ticket's number and its status word, and the verdict ambiguous, with exit 1"
+if [ "$rc" = 1 ] && [ "$out" = "$want_out" ]; then ok "$label"; else
+  fail "$label (exit $rc, wanted 1 and the whole of stdout: ${want_out//$'\n'/ · })"
+  dump_out
+  echo "      stderr: $(cat "$tmp/unread.err")"
+fi
+
+reason_of() { # $1 repository name: the repository_reason of its group in the caller's $out, empty when the group carries none, on stdout
+  awk -v r="repository=$1" '$0 == r { on = 1; next } /^repository=/ { on = 0 } on && sub(/^repository_reason=/, "")' <<<"$out"
+}
+# The provider is the repository that cannot be read, and the consumer's own Spec branch is
+# unlanded: a record that took the unread provider for landed would tell the consumer to land.
+sibling_repos land-lost-web land-lost-api 20261005-lost
+repositories_spec "$home/.scratch/20261005-lost" "- land-lost-web (Home repository): $tmp/land-lost-gone" "- land-lost-api: $build"
+ticket 01-lost-screen.md $'**Status:** resolved\n\n**Build repository:** land-lost-web' 'None (can start immediately)'
+ticket 02-lost-export.md $'**Status:** resolved\n\n**Build repository:** land-lost-api' '01, Title of 01-lost-screen'
+(cd "$build" && g branch -q --track spec/lost main && spec_commit spec/lost) ||
+  echo "FAIL  fixture: the unlanded Spec branch of land-lost-api could not be built"
+want_tail="own=land-lost-api
+waits_for=land-lost-web
+waits_for_location=$tmp/land-lost-gone
+next_landing=land-lost-web
+next_landing_location=$tmp/land-lost-gone
+next_landing_ticket=$issues/01-lost-screen.md
+verdict=wait"
+cd "$build" || exit 1
+run "$issues/02-lost-export.md"
+label="from the consumer, a provider whose listed location does not exist reads unreadable with the reason missing while the consumer's own unlanded Spec branch reads unlanded, and the record counts the provider as not landed: the consumer waits for it, it is the next landing, and the verdict is wait"
+if [ "$rc" = 0 ] && [ "$(state_of land-lost-web)" = unreadable ] && [ "$(reason_of land-lost-web)" = missing ] &&
+  [ "$(state_of land-lost-api)" = unlanded ] && [ "$(after_groups)" = "$want_tail" ]; then ok "$label"; else
+  fail "$label (exit $rc, wanted 0, land-lost-web unreadable for missing, land-lost-api unlanded and, past the groups: ${want_tail//$'\n'/ · })"
+  dump_out
+fi
 
 exit "$((fails > 0))"
