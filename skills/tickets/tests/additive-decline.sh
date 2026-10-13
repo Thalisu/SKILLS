@@ -155,10 +155,6 @@ for grader in "${code_graders[@]}"; do
 done
 
 # Each tree below breaks one outcome of a no and nothing else.
-mutated() { # $1 name: a copy of the fixture as laid, under $tmp/<name>; its feature folder on stdout
-  cp -r "$as_laid" "$tmp/$1" 2>/dev/null || mkdir -p "$tmp/$1/fixture"
-  echo "$tmp/$1/fixture/.scratch/$slug"
-}
 at="$(mutated criterion-moved)"
 for f in "$at"/issues/02-*.md; do [ ! -f "$f" ] || sed -i -E '/^- \[ \] .*[Ee]mail/d' "$f"; done
 at="$(mutated edge-added)"

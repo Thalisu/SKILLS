@@ -156,10 +156,6 @@ stop_lists_key_on_coverage "no answer lists tickets as a stop without what they 
 
 echo "# skills/tickets/evals/README.md: the rows of the additive cases and of the stop"
 tr '[:upper:]' '[:lower:]' <"$evals" >"$tmp/evals.md" 2>/dev/null
-checks_of() { # $1 case name: the checks cell of its row in the cases table, on stdout
-  awk -F'|' -v name="\`$1\`" '{ cell = $2; gsub(/^ +| +$/, "", cell) } cell == name { print $3 }' "$tmp/evals.md" |
-    tr '\n' ' ' | tr -s ' '
-}
 flat="$(checks_of adds-only-the-missing-tickets)"
 expect "adds-only-the-missing-tickets has a row" test -n "${flat// /}"
 carries_each "which says the breakdown holds the new tickets for what no open ticket covers" \

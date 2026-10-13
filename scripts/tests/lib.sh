@@ -518,6 +518,18 @@ lay_scaffold() { # $1 the case's case.yaml, $2 an existing empty folder to lay i
   yq -r '.context.scaffold_script // ""' "$1" >"$tmp/scaffold.sh" 2>"$tmp/extract.log"
   (cd "$2" && bash "$tmp/scaffold.sh") >"$tmp/scaffold.log" 2>&1
 }
+# A work folder that breaks, or reaches, one outcome and nothing else starts as a copy of the fixture
+# as laid, with whatever the scaffold laid beside the fixture root.
+mutated() { # $1 name: a copy of the caller's $as_laid, under $tmp/<name>; its feature folder, named by the caller's $slug, on stdout
+  cp -r "$as_laid" "$tmp/$1" 2>/dev/null || mkdir -p "$tmp/$1/fixture"
+  echo "$tmp/$1/fixture/.scratch/$slug"
+}
+# A skill's evals/README.md is the list a developer picks an eval case from. The caller leaves it
+# lowercased at $tmp/evals.md, since a row may write Ticket and Spec.
+checks_of() { # $1 case name: the checks cell of its row in the cases table, on stdout
+  awk -F'|' -v name="\`$1\`" '{ cell = $2; gsub(/^ +| +$/, "", cell) } cell == name { print $3 }' "$tmp/evals.md" |
+    tr '\n' ' ' | tr -s ' '
+}
 g() { command git -c user.email=t@example.com -c user.name=t -c init.defaultBranch=main "$@"; }
 commit() {
   g add -A >/dev/null

@@ -59,6 +59,7 @@ in the local shape of the ticket format `tickets` links.
 | `auto-first-ticket-in-the-sibling-hands-over-by-absolute-path` | the same publish with the first ticket of the frontier built in the invented sibling: one line of the close names that Build repository and its absolute location as the place to open a session in, the last line is `/do --auto` with the ticket's absolute location in the Home repository, never a relative one, and no `cd`, `git -C` or session-launching command is handed over |
 | `auto-one-repository-adds-nothing` | the publish under `--auto` on a spec with no Repositories section: no ticket of the breakdown shows a Build repository, no published file carries such a line, and the close ends on `/do --auto` with the relative path of the first ticket and no line about opening a session anywhere |
 | `adds-only-the-missing-tickets` | on a feature with three open tickets whose spec carries a finding line none of them covers, left by a stopped `do` run: the run does not stop, the breakdown shows only the new ticket, numbered `04` and built in the repository the finding names, shows ticket `02` as changed, with the criterion moved out of it and the `Blocked by` edge it gains, names `01` and `03` as untouched, and ends on the one question with nothing written |
+| `location-typed-with-the-command` | the same feature with the finding line ending in `Location not known.` and no entry for `notifications-service` in the spec, the location typed with the command as `/tickets <spec> notifications-service: <location>`: the run writes the entry into the spec's Repositories list itself, before it reads that repository or shows the breakdown, asks the developer to edit nothing, and the breakdown shows the new ticket `04` built in `notifications-service`, ending on the one question with no ticket written |
 | `auto-adds-the-missing-tickets` | the same feature under `--auto` with a `choice-taker` stand-in that rules to publish: the new ticket is written as `04` with the moved criterion and its Build repository line, ticket `02` loses that criterion and its `Blocked by` names `04` beside `01`, no existing file is renumbered or deleted, and the close lists what was added and changed and ends on `/do --auto` for `04`, after the line naming the sibling repository it is built in |
 | `auto-declined-addition-publishes-nothing` | the same feature with a stand-in that rules to leave the breakdown unpublished: no ticket file is written, ticket `02` keeps its criterion and its one blocker, the finding line stays in the spec for a later run to cut from, and the close says nothing was published and names no next command, neither `/do` nor `/tickets` |
 
@@ -77,3 +78,8 @@ cases to run only some of them:
 ```
 bash scripts/run-eval.sh tickets dated-slug
 ```
+
+A prompt that types a location writes it with the `{{fixture}}` token, which `scripts/run-eval.sh`
+replaces with the absolute path of the run's fixture root once the scaffold is laid: the repository
+a case lays beside the fixture exists under no path known before the run. `claude plugin eval` does
+not know the token, so those cases run under the script only.
