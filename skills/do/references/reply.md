@@ -249,7 +249,10 @@ worktree line comes before the audit line and before the hand-over, shaped-by an
       run, its landing line `landed at <sha>`; then `spec/<feature-slug> removed`, off the
       release's `claim=released` and `removed=yes` lines. On a feature of more than one
       repository, the landing record printing `repositories=` above 1, the repository lines
-      below follow, off the record's second read, the one after the release. While that read
+      below follow, off the record's second read, the one after the release. A resume read no
+      record before its claim, so that read is its only one, and its lines are the same: what
+      landed, the repository it just finished among them, what is left, and the command of each
+      repository left, in the record's order. While that read
       names a next landing, its `next_landing=` line reading anything but `done`, the push is a
       line of its own before them, `Push: git push <the developer's branch>`, since the Reply's
       last line is then another repository's command.
@@ -447,7 +450,9 @@ Ten sections, in this order, each one present in every Reply that carries sectio
     `Yours: direction:` line, and what to fix first is said there or above it, never after the
     command. A resume of a Final integration ends the same two ways: one that stops again names the
     same `/do` it was started with, and one that finishes is the run that shipped the Spec, its
-    line `git push <the developer's branch>`. A resume stopped on a claim nobody yielded names
+    line `git push <the developer's branch>`, or, on a feature of more than one repository with
+    one still to land, `/do <next_landing_ticket=>` off the record it read after the release. A
+    resume stopped on a claim nobody yielded names
     the same `/do`, to type once the holder finished or its claim was yielded. A landed run whose close finished is not a stop: the push stays on this line, the run
     never pushes, and its Reply carries no `Yours:` line. A landed run that then stopped at the
     close's `destroy` stop carries exactly one `Yours: destroy:` line, per the section below; the

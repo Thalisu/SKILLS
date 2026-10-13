@@ -693,7 +693,8 @@ first Final integration in three places:
   [ADR 0044](../../../docs/adr/0044-the-re-integration-retries-while-the-target-tip-changes.md).
 
 A resume that stops again yields and replies as any stopped Final integration does. One that
-finishes ends at the release above.
+finishes ends at the release above, and reads the landing record after it as a first run does: it
+read none before its claim, so this is the one read its Reply's repository lines come from.
 
 Done when the Spec branch landed on the developer's branch, its tree is removed, the release
 read `claim=released` and, on a feature of more than one repository, the landing record was read a

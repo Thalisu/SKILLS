@@ -502,7 +502,11 @@ stops again: one whose claim printed `takeover=no` entered through this door on 
 no run had claimed, so its stop is a first stop and its Reply says stopped, per
 [reply.md](reply.md). A resume that finishes ends as the run that
 ships a Spec ends: the Spec branch landed and removed, the claim released, the Reply and the Next
-step of the landed Final integration in [reply.md](reply.md).
+step of the landed Final integration in [reply.md](reply.md). On a feature of more than one
+repository it reads the landing record after the release, the `landing-order.sh` call of step 9a,
+so its Reply names what landed and what is left, with the command of each repository left in
+landing order. It lands this repository and no other: one that landed before the stop is read by
+that record and never claimed, rebased or reviewed again.
 
 ## Checklist
 
