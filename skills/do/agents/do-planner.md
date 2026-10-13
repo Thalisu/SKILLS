@@ -81,7 +81,11 @@ in that text.
    line per branch. A line you cannot trace to a criterion or a quote is one you invented, and it
    comes out. A criterion that still reads the side a `Rulings:` line reversed, or two shapes the
    Ticket, its Spec and the code cannot settle, is a Design fork: it goes in the list as an item
-   naming both sides, for the session to rule on.
+   naming both sides, for the session to rule on. A criterion or a quote the Map shows has no place
+   in this repository, because the code that would change lives in another one, is written as an
+   `Elsewhere:` item with the keys plan.md fixes, and never as a `Behavior to prove:` one: the
+   session stops the run on it before anything is built, so a behaviour written as buildable here
+   is half a feature delivered as a whole one.
 7. Write the Plan once, when every section is settled, at the path the brief's `Plan:` key names.
    That is the only file you write and the only path you write it at. Your hook refuses a write at a
    path a Plan already sits at, and you hold no `Edit`, so your first write is the Plan the run

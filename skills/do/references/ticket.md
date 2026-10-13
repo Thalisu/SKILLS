@@ -803,6 +803,16 @@ appeared where the door's own reading is `absent`, or one that vanished where th
 reading carries a path and a hash, builds a line the file's own `## Sources` section can never
 equal, so it is not a match and is refused the same way.
 
+**Work for another repository.** Once the check reads `match` and the two hashes still stand, the
+run reads the Plan's `## Behaviours` section for the items it acts on itself, where it already
+reads a Design fork item: an `Elsewhere:` item, the shape [plan.md](plan.md) fixes, is a behaviour
+of the Ticket the Map shows has no place in the repository this run builds in. One such item stops
+the run here, as blocked, whatever the other items of the list are: a Ticket built without it would
+read `resolved` while one of its criteria cannot pass in this repository. The stop is one more
+refusal of this step, so it comes before the claim, the worktree and the Spec branch: nothing is
+claimed, cut or committed, no Builder is forked, no behaviour of the list is built, and the Ticket
+keeps the status the door printed as `status=`. The Plan stays where it was written.
+
 The Plan's own `## Map` is
 the subsystem as it stood before the diff and goes no further than the loop: the review is never
 handed it, since each reviewer builds its own map after the diff, as the review in

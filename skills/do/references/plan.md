@@ -115,6 +115,26 @@ the shape.
   rule on. Two cases make one. A `Rulings:` line the developer edited reverses a criterion that
   still reads the old side: the item names the criterion and the edited line. Or the Ticket, its
   Spec and the code leave two shapes open: the item names both.
+- A behaviour of the Ticket with no place in this repository is an item too, opened by `Elsewhere:`
+  in place of `Behavior to prove:`, and built by nobody. It is a criterion, or a Digest quote the
+  Ticket's slice holds, that the Map shows can only be built in another repository: the code that
+  would change lives there, and this tree at most calls it. The item carries four keys under its
+  opening line:
+
+  ```
+  3. Elsewhere: <the behaviour in one line, in the criterion's or the quote's own words>
+     Belongs to: <the repository's name>
+     Location: <its absolute location on this machine> | not known
+     Traces to: criterion <n> | <the Digest quote's document, heading and line>
+     Shown by: <what in the Map shows it has no place here, one line>
+  ```
+
+  The item says where the behaviour belongs and never whether the Spec lists that repository: the
+  fork opens no Spec, and the session reads the list. The behaviours that do have a place here
+  stay in the list as they are, and the session stops the run on the item before any of them is
+  built, per the Plan step of [ticket.md](ticket.md). A behaviour this repository can build, by
+  calling the other one as it stands, is no such item: only a change the other repository has to
+  carry is.
 
 ### An example
 
