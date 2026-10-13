@@ -117,8 +117,13 @@ the tracker file describes. Before anything is written:
   run, and no `Yours:` line, since there is nothing to choose. Under `--auto` the stop is the same
   line, with no `choice-taker` forked.
 - A Ticket whose `Blocked by` names one not `resolved` (`verdict=blocked`) is refused before the
-  claim, in one message naming the blocker and its status. Nothing is written. The build order is
-  the developer's call, so the message carries `Yours: direction:` with the choice, per
+  claim, in one message naming the blocker and its status. Nothing is written. A Ticket an earlier
+  run stopped on meets this stop too, since `tickets` adds a blocker to an open Ticket. When the
+  door printed `status=claimed`, the message never reads "before the claim": it says the Ticket is
+  refused, and one sentence, built from the door's lines alone, says what stands. That is the
+  claim and, when `worktree=` names one, that worktree, its `run_branch=` and the commits already
+  on that branch, which the next `/do` on the Ticket resumes from once the blocker is `resolved`.
+  The build order is the developer's call, so the message carries `Yours: direction:` with the choice, per
   [reply.md](reply.md): build the blocker first, or set its status by hand when it was done outside
   the chain. The message ends on the command that builds the blocker, built from the door's lines
   alone. Its last line is `/do <next_blocker=>`, the absolute location of the first blocker not

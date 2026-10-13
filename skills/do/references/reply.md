@@ -444,6 +444,13 @@ before it names that repository, with its `next_blocker_build_location=`, as the
 session in, and it comes after the `Yours:` line. A blocker built in the repository the session is
 in gets no such line.
 
+When the door printed `status=claimed` for the refused Ticket, an earlier run stopped on it and
+`tickets` gave it the blocker since. The refusal then says what of that run stands, in the sentence
+where a first refusal says "before the claim": the claim, and, when the door's `worktree=` line
+names one, that worktree, the branch on its `run_branch=` line and the commits already on it. The
+developer reads there that the Ticket is kept for the `/do` that follows the blocker, so the
+sentence never reads as nothing existing.
+
 A `ticket` run stopped at the Plan on work for another repository, the `Elsewhere:` stop of the
 Plan step of [ticket.md](ticket.md), is another. Its whole message is these lines after the first
 line, in this order, each value taken from the Plan's item and from the lines `spec-finding.sh`
@@ -673,6 +680,26 @@ Yours: direction: build 02-export-notes.md first, or set its status to resolved 
 Open a session in notes-api, at /home/dev/notes-api, and run it there:
 
 /do /home/dev/notes/.scratch/20260101-notes/issues/02-export-notes.md
+```
+
+</example>
+
+<example>
+
+The same refusal on a Ticket an earlier run stopped on mid-build, which `tickets` has blocked by a
+new one since: the door printed `status=claimed`, a `worktree=` and a `run_branch=`.
+
+```md
+Playbook: ticket
+
+Refused. 03-share-notes.md is blocked by 04-sign-share-links.md, whose status is ready-for-agent.
+Nothing was written: the claim on 03-share-notes.md stands, and so do its worktree at
+/home/dev/notes/.claude/worktrees/do-share-notes, the branch do/share-notes and the commits already
+on it, for the next /do on it to resume from once the blocker is resolved.
+
+Yours: direction: build 04-sign-share-links.md first, or set its status to resolved by hand if it was done outside the chain
+
+/do /home/dev/notes/.scratch/20260101-notes/issues/04-sign-share-links.md
 ```
 
 </example>
