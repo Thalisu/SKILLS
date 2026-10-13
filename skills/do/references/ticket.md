@@ -847,19 +847,28 @@ list lacks it, creating the section with the Home repository's own entry first o
 none, and appends the finding line to the Spec's Implementation Decisions in the form
 [spec-format.md](../../../.agents/formats/spec-format.md) fixes, marked with this Ticket. It prints
 `spec=`, `repository=`, `listed=`, `list=`, `line=`, `home=`, `home_name=` and `here=`, and the run
-records them as printed for the Reply: `list=added` or `list=unchanged` says whether the list
-gained an entry, and `line=present` is a finding an earlier run on this Ticket already wrote,
+records them as printed for the Reply: `list=added`, `list=unchanged` or `list=no-location` says
+whether the list gained an entry, and `line=present` is a finding an earlier run on this Ticket already wrote,
 which is never written twice. No `choice-taker` is forked, since a finding is no Ruling: nothing is
 chosen between two sides. An exit of 3 prints `failed <reason>` and writes nothing, and the run
-stops on that reason in the finding's place. The fourth argument is left out when the item's
-`Location:` reads `not known`: the script then writes for a repository the list already holds and
-fails for one it does not, since an entry with no location is one no skill can read.
+stops on that reason in the finding's place.
+
+A run that can name the repository and not its location on this machine still writes the finding.
+The fourth argument is left out when the item's `Location:` reads `not known`, and never guessed
+from a sibling folder's name or filled with a placeholder. For a repository the list already holds
+nothing changes: the entry carries the location and the script prints `list=unchanged`. For one it
+does not hold, the script prints `list=no-location`: it writes the finding line with the repository
+named and ` Location not known.` at its end, and no entry in the list, since an entry with no
+location is one no skill can read. The location is then the one thing the developer supplies, and
+they type it with the `tickets` command the Reply ends on, which writes the entry: the run asks
+nobody for it, edits no file to hold it, and under `--auto` forks no `choice-taker` over it.
 
 The stop is the `outward` Handover class, keyed on the `Elsewhere:` item and never on the session's
 own reading of the tree: the behaviour is a write to a repository this run was not opened in, and
 cutting it into a Ticket there is the developer's command to type. The Reply is the blocked one
 [reply.md](reply.md) fixes for this stop, filled from the item and from the script's lines, with
-its `Yours: outward:` line and `/tickets <spec>` as its last line. On a Ticket run from its Build
+its `Yours: outward:` line and `/tickets <spec>` as its last line, which on `list=no-location`
+carries the repository and a place for its location after the Spec. On a Ticket run from its Build
 repository the script printed `here=no`, and that Reply names the Home repository, off `home_name=`
 and `home=`, as the place to open a session in on the line before the command, since `tickets`
 runs where the Feature folder is. The run asks nothing before it:

@@ -464,6 +464,19 @@ Yours: outward: cut the moved behaviour for <repository=> with the command below
   list and the one line. On `list=unchanged` it names the one line alone and says the repository
   was already in the list. On `line=present` it says the line was already there, written by an
   earlier run on this Ticket.
+- On `list=no-location` the run could name the repository and not its location on this machine,
+  and three lines change. The second says the one line was written with the location of
+  `<repository=>` marked as not known, and that no entry was added to the repositories list. The
+  `Yours:` line says the location is the one thing the developer supplies, typed in the command
+  below in place of `<its absolute location on this machine>`, with no file to edit by hand. And
+  the last line carries the repository and that place after the Spec, the angle brackets written
+  as they stand here for the developer to replace:
+
+  ```
+  Written into the Spec (<spec>): one line naming the behaviour as moved by the run on Ticket <NN>, with the location of <repository=> marked as not known. No entry was added to its repositories list.
+  Yours: outward: the location of <repository=> on this machine is the one thing you supply: type it in the command below in place of <its absolute location on this machine>, with no file to edit by hand, then run /do on this Ticket again
+  /tickets <spec> <repository=>: <its absolute location on this machine>
+  ```
 - `<spec>` is the `spec=` path relative to `home=`, in both places it stands, since the command is
   typed in a session of the Home repository.
 - On `here=no` the run stopped in a repository other than the Home repository, where no Feature
@@ -481,7 +494,8 @@ Yours: outward: cut the moved behaviour for <repository=> with the command below
   next `/do` on the Ticket to resume from. These lines then close a message that carries the Run
   section of a run stopped after work exists, and the bullet below on no Run section holds for the
   stop at the Plan alone.
-- `/tickets <spec>` is the Reply's last line, with nothing else on it and nothing after it. The
+- `/tickets <spec>` is the Reply's last line, with nothing else on it but the arguments of
+  `list=no-location` and nothing after it. The
   message carries no Run section and no other command, neither `/do` nor `/discuss` nor a shell
   line: the stop is a refusal of the Plan step, and these lines say everything the run did.
 

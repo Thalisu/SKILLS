@@ -13,20 +13,22 @@
 # none, and the finding line
 # `- Moved by the run on Ticket <title> at the Plan step: <behaviour>. Belongs to: <name>.`
 # at the end of its ## Implementation Decisions section, <title> being the Ticket's `# ` heading.
+# With no location given for a name the list does not hold, no entry is written, since an entry with
+# no location is one no skill can read, and the finding line ends in ` Location not known.` instead.
 #
 # Prints key=value lines and never a sentence, in this order: spec (the Spec's absolute path),
 # repository (the name given), listed (yes or no: whether the Spec's list held the name before the
-# call, matched as ticket-read.sh's repository_location_of matches it), list (added, or unchanged for
-# a listed name, whose entry is never rewritten), line (written, or present when the section already
+# call, matched as ticket-read.sh's repository_location_of matches it), list (added, unchanged for
+# a listed name, whose entry is never rewritten, or no-location for a name not listed and given no
+# location, which gets no entry), line (written, or present when the section already
 # holds that very line, which is never written twice), home (the Home repository, the root
 # ticket-door.sh prints as root), home_name (the name of the list's entry marked `(Home repository)`,
 # none with no such entry), here (yes when home is this session's main checkout, else no).
 #
 # Exit codes: 0 the lines above, the Spec written · 2 usage or no Ticket at the path · 3 `failed
 # <reason>` on one line and nothing written: no Spec beside the Ticket's issues/ folder, a Spec
-# with no Implementation Decisions section, two entries or two sections for the name, a name the
-# list does not hold with no location given, a name, a behaviour or a location carrying a line
-# break, a name that is empty, opens or ends with whitespace or carries `: `, the Home repository
+# with no Implementation Decisions section, two entries or two sections for the name, a name, a
+# behaviour or a location carrying a line break, a name that is empty, opens or ends with whitespace or carries `: `, the Home repository
 # mark or a backtick, a behaviour carrying `Belongs to:`, a Ticket title carrying a line break or
 # one of the finding line's two marks, or a location that is not a bare absolute path with no
 # backtick, no `..` and no trailing whitespace.
@@ -125,10 +127,7 @@ esac
 repository_location_of "$path" "$name"
 case "$word" in
   ambiguous) failed "$detail in $spec" ;;
-  none)
-    listed=no
-    [ -n "$location" ] || failed "$name is not in the Spec's list and no location was given"
-    ;;
+  none) listed=no ;;
   *) listed=yes ;;
 esac
 
@@ -136,14 +135,17 @@ echo "spec=$spec"
 echo "repository=$name"
 echo "listed=$listed"
 home="$(home_root "$path" "$main")"
-if [ "$listed" = no ]; then
+finding="- Moved by the run on Ticket $title at the Plan step: $behaviour. Belongs to: $name."
+if [ "$listed" = yes ]; then
+  echo "list=unchanged"
+elif [ -z "$location" ]; then
+  finding="$finding Location not known."
+  echo "list=no-location"
+else
   grep -q '^## Repositories[[:space:]]*$' "$spec" || create_repositories_section "$spec" "$home"
   append_to_section "$spec" "## Repositories" "- $name: $location"
   echo "list=added"
-else
-  echo "list=unchanged"
 fi
-finding="- Moved by the run on Ticket $title at the Plan step: $behaviour. Belongs to: $name."
 if awk '$0 == "## Implementation Decisions" { on = 1; next } on && /^## / { exit } on' "$spec" | grep -qxF -- "$finding"; then
   echo "line=present"
 else

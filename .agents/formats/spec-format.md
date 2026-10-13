@@ -72,7 +72,10 @@ its own, marked as the run's by its prefix and carrying the behaviour that moved
 it belongs to:
 `- Moved by the run on Ticket <the Ticket> at the <step> step: <the behaviour>. Belongs to: <the repository's name>.`
 Only `do` writes it, with the entry for that repository in Repositories when the list did not hold
-one, and `tickets` cuts the moved behaviour from it.
+one, and `tickets` cuts the moved behaviour from it. When the run could name the repository and not
+its location on this machine, the line ends in ` Location not known.` after the name's period and
+no entry is written, since an entry has no place for a location nobody knows: the location is typed
+with the `tickets` command, which writes the entry.
 
 ## Testing Decisions
 

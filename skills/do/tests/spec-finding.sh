@@ -210,4 +210,42 @@ expect "the section under the heading that ends in whitespace holds the new entr
 expect "the Spec whose heading ends in whitespace still has one Repositories section" \
   test "$(headings_of "$spaced_spec" | grep -c '^## Repositories')" = 1
 
+# An entry with no location is one no reader of the list can take, so a repository the run can name
+# and cannot locate is recorded on the finding line alone, for the developer to locate afterwards.
+unlocated_behaviour="the supplier ledger is exported by the archive repository's batch module"
+unlocated_finding="- Moved by the run on Ticket 03: Title of 03-total at the Plan step: $unlocated_behaviour. Belongs to: finding-archive. Location not known."
+section_before="$(section_of "$spec")"
+
+run ".scratch/$feature/issues/03-total.md" finding-archive "$unlocated_behaviour"
+check_lines "a repository the Spec does not list, named with no location, reads as not listed and not located, with the finding line written" 0 "$rc" \
+  "spec=$spec" "repository=finding-archive" "listed=no" "list=no-location" "line=written"
+expect "the Spec's Repositories section is byte for byte what it was after a finding for a repository with no known location" \
+  test "$(section_of "$spec")" = "$section_before"
+expect "the Spec's Implementation Decisions hold the finding line once, naming the repository and marking its location as not known" \
+  test "$(decisions_of "$spec" | grep -cxF -- "$unlocated_finding")" = 1
+cp "$spec" "$tmp/unlocated-once.md"
+
+run ".scratch/$feature/issues/03-total.md" finding-archive "$unlocated_behaviour"
+check_lines "the same finding with no known location given a second time reads as already in the Spec" 0 "$rc" \
+  "listed=no" "list=no-location" "line=present"
+expect "the Spec is byte for byte what the first call left after the second call" \
+  cmp -s "$tmp/unlocated-once.md" "$spec"
+
+bare="20261013-finding-bare"
+bare_spec="$home/.scratch/$bare/spec.md"
+issues="$home/.scratch/$bare/issues"
+mkdir -p "$issues"
+cp "$(run_with_spec "" "")/fixture/.scratch/20260905-suppliers/spec.md" "$bare_spec"
+ticket 01-rates.md '**Status:** claimed' 'None (can start immediately)'
+bare_headings="$(headings_of "$bare_spec")"
+bare_finding="- Moved by the run on Ticket 01: Title of 01-rates at the Plan step: $unlocated_behaviour. Belongs to: finding-archive. Location not known."
+
+run ".scratch/$bare/issues/01-rates.md" finding-archive "$unlocated_behaviour"
+check_lines "a repository with no known location on a Spec of one repository reads as not listed and not located, with the finding line written" 0 "$rc" \
+  "spec=$bare_spec" "repository=finding-archive" "listed=no" "list=no-location" "line=written"
+expect "the Spec of one repository gains no Repositories section for a repository with no known location" \
+  test "$(headings_of "$bare_spec")" = "$bare_headings"
+expect "the Spec of one repository holds the finding line once, its location marked as not known" \
+  test "$(decisions_of "$bare_spec" | grep -cxF -- "$bare_finding")" = 1
+
 exit "$((fails > 0))"
