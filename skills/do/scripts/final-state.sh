@@ -32,6 +32,8 @@ set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
 # shellcheck source=skills/do/scripts/resume-read.sh
 . "$here/resume-read.sh"
+# shellcheck source=skills/do/scripts/ticket-read.sh
+. "$here/ticket-read.sh"
 
 usage() {
   echo "usage: final-state.sh <Ticket path>" >&2
@@ -39,14 +41,11 @@ usage() {
 }
 [ "$#" = 1 ] || usage
 
-top="$(git rev-parse --show-toplevel 2>/dev/null)" || {
+main="$(main_of .)"
+[ -n "$main" ] || {
   echo "not a git repository" >&2
   exit 2
 }
-# A bare main worktree has no working tree to anchor on, and git lists it first all the same.
-main="$(git worktree list --porcelain 2>/dev/null |
-  awk '/^$/ { exit } /^worktree /{ p = substr($0, 10) } /^bare$/ { p = "" } END { print p }')"
-[ -n "$main" ] && [ -d "$main" ] || main="$top"
 
 probe="$(bash "$here/spec-branch.sh" probe "$1")" || exit 2
 spec_branch="$(sed -n 's/^spec_branch=//p' <<<"$probe")"

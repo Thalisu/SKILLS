@@ -8,32 +8,32 @@
 #                                         directory the script runs in, then from the main checkout
 #
 # Prints key=value lines, in this order: ticket (relative to the main checkout when root is the
-# main checkout, else absolute, the rule every path below follows), root (the Home repository: the main checkout when
-# the Ticket sits in a working tree of this session's repository, else the Ticket path's prefix
-# before its last /.scratch/ segment, else the main checkout), title, status, one blocker=<NN> <status> <path> per
-# Ticket the Blocked by line names (blockers=none for None), slug, worktree (the do-<slug> worktree
-# when git lists one at that path, else none), run_branch (do/<slug> when git lists that branch
-# locally, else none, read beside worktree so a start-over knows whether the branch survived the
-# worktree's removal), loop (policy when the project has
-# .claude/agents/unit-test-author.md, else global when ~/.claude/agents/global-unit-test-author.md
-# is linked, else fallback), branch, protected and reason as
-# `trivial-door.sh branch` prints them in the main checkout, spec_branch, spec_exists,
-# spec_upstream and spec_landed as `spec-branch.sh probe` prints them, spec_complete (the door's own
-# count: yes when every Ticket of the issues/ folder reads resolved, no on any other status, an
-# ambiguous one included, none when spec_branch=none), front_end (the Front-end: line of the
-# spec.md beside the Ticket's issues/ folder), then verdict. An ambiguous=<what>
-# ambiguous one included, none when spec_branch=none), build_repository (the name the Ticket's one
+# main checkout, else absolute, the rule every path below follows), root (the Home repository: the
+# main checkout when the Ticket sits in a working tree of this session's repository, else the Ticket
+# path's prefix before its last /.scratch/ segment, else the main checkout), title, status, kind
+# (the word the Ticket's **Kind:** line reads, logic with no line), one blocker=<NN> <status> <path>
+# per Ticket the Blocked by line names (blockers=none for None), slug, worktree (the do-<slug>
+# worktree when git lists one at that path, else none), run_branch (do/<slug> when git lists that
+# branch locally, else none, read beside worktree so a start-over knows whether the branch survived
+# the worktree's removal), loop (policy when the project has .claude/agents/unit-test-author.md,
+# else global when ~/.claude/agents/global-unit-test-author.md is linked, else fallback), branch,
+# protected and reason as `trivial-door.sh branch` prints them in the main checkout, spec_branch,
+# spec_exists, spec_upstream and spec_landed as `spec-branch.sh probe` prints them, spec_complete
+# (the door's own count: yes when every Ticket of the issues/ folder reads resolved, no on any other
+# status, an ambiguous one included, none when spec_branch=none), front_end (the Front-end: line of
+# the spec.md beside the Ticket's issues/ folder), build_repository (the name the Ticket's one
 # **Build repository:** header line reads, none with no line), build_location (that entry's location
 # in the Spec's ## Repositories section, none with no entry), build_check (none with no Build
 # repository line and no ## Repositories section in the Spec, unlisted when the Spec's list holds
 # no entry of that name, no list or no Spec included, or when the Ticket has no such line and the
 # Spec has a list, missing when the entry's location is not an absolute path to a directory on this
-# machine, not-git when it is one and not the top of a git working tree, here when the location's main worktree is this session's main checkout, physical
-# paths compared, else elsewhere), ticket_location (the Ticket's absolute path), next_blocker (on verdict=blocked
-# only: the absolute path of the first blocker in Blocked by order not resolved), next_blocker_build
-# and next_blocker_build_location (only when that blocker is built in another repository: the name
-# its own **Build repository:** line reads and that entry's location in the Spec's list, unlisted
-# with no entry), then verdict. An ambiguous=<what>
+# machine, not-git when it is one and not the top of a git working tree, here when the location's
+# main worktree is this session's main checkout, physical paths compared, else elsewhere),
+# ticket_location (the Ticket's absolute path), next_blocker (on verdict=blocked only: the absolute
+# path of the first blocker in Blocked by order not resolved), next_blocker_build and
+# next_blocker_build_location (only when that blocker is built in another repository: the name its
+# own **Build repository:** line reads and that entry's location in the Spec's list, unlisted with
+# no entry), then verdict. An ambiguous=<what>
 # <detail> line follows the line it concerns. A blocker is the leading number of each part of the
 # Blocked by paragraph split on `;`, `,`, the word `and` and each line break, the paragraph starting
 # on the header's line or the line below it and a `-`, `*` or `+` list marker dropped, a blank line
@@ -57,7 +57,7 @@
 # blocked (a blocker not resolved) · elsewhere (build_check=elsewhere: the Ticket is built in another
 # repository, handed over before anything is claimed) · resume (claimed, the worktree there) · start-over (claimed, the
 # worktree gone) · ambiguous (ready-for-agent with a worktree already there) · start. Then refused
-# replaces start, resume or start-over when the Ticket's Spec has no Spec branch yet and the main
+# replaces start or start-over when the Ticket's Spec has no Spec branch yet and the main
 # checkout is protected or detached (branch=HEAD), since the first cut would land the Spec there;
 # otherwise a protected branch is a warning for the Reply's Run section, never a stop. A Ticket
 # outside a feature folder's issues/ (spec_branch=none) is never refused on that ground.

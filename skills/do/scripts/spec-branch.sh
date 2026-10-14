@@ -50,16 +50,6 @@ resolver="$here/../../../.agents/scripts/resolve-feature-folder.sh"
 
 usage() { echo "usage: spec-branch.sh probe|cut|remove <Ticket path>" >&2; exit 2; }
 
-main_checkout() {
-  local top main
-  top="$(git rev-parse --show-toplevel 2>/dev/null)" || return 1
-  # A bare main worktree has no working tree to anchor on, and git lists it first all the same.
-  main="$(git worktree list --porcelain 2>/dev/null |
-    awk '/^$/ { exit } /^worktree /{ p = substr($0, 10) } /^bare$/ { p = "" } END { print p }')"
-  [ -n "$main" ] && [ -d "$main" ] || main="$top"
-  echo "$main"
-}
-
 upstream_of() { # $1 main checkout, $2 branch: its upstream, or nothing
   git -C "$1" for-each-ref --format='%(upstream:short)' "refs/heads/$2"
 }
@@ -109,13 +99,14 @@ feature_slug() { # $1 the Ticket's absolute path, $2 the main checkout: the norm
   issues="$(dirname "$1")"
   [ "$(basename "$issues")" = issues ] || return 0
   folder="$(basename "$(dirname "$issues")")"
-  root="$(home_root "$1" "$(cd "$2" && pwd -P)")"
+  root="$(home_root "$1" "$2")"
   (cd "$root" 2>/dev/null && bash "$resolver" "$folder" 2>/dev/null) | sed -n 's/^slug=//p'
 }
 
 cmd_cut() {
   local main path slug name dev tip
-  main="$(main_checkout)" || { echo "not a git repository" >&2; exit 2; }
+  main="$(main_of .)"
+  [ -n "$main" ] || { echo "not a git repository" >&2; exit 2; }
   case "$1" in /*) path="$1" ;; *) path="$main/${1#./}" ;; esac
   slug="$(feature_slug "$path" "$main")"
   [ -n "$slug" ] || { echo "no feature folder holds $1" >&2; exit 2; }
@@ -147,7 +138,8 @@ cmd_cut() {
 
 cmd_probe() {
   local main path slug name tip up
-  main="$(main_checkout)" || { echo "not a git repository" >&2; exit 2; }
+  main="$(main_of .)"
+  [ -n "$main" ] || { echo "not a git repository" >&2; exit 2; }
   case "$1" in /*) path="$1" ;; *) path="$main/${1#./}" ;; esac
   slug="$(feature_slug "$path" "$main")"
   if [ -z "$slug" ]; then
@@ -173,7 +165,8 @@ refuse_removal() { # $1 reason
 
 cmd_remove() {
   local main path slug name tip up
-  main="$(main_checkout)" || { echo "not a git repository" >&2; exit 2; }
+  main="$(main_of .)"
+  [ -n "$main" ] || { echo "not a git repository" >&2; exit 2; }
   case "$1" in /*) path="$1" ;; *) path="$main/${1#./}" ;; esac
   slug="$(feature_slug "$path" "$main")"
   [ -n "$slug" ] || { echo "no feature folder holds $1" >&2; exit 2; }
