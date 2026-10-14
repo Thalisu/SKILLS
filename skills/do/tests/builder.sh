@@ -422,7 +422,8 @@ for tool in Write Edit; do
   # The other half of the same hook: the code the Ticket's behaviours change is what this fork
   # exists to write, and a guard that denied it would leave the Builder unable to turn any test
   # green, which is the same dead loop as a missing Bash.
-  source_out="$(printf '{"tool_input": {"file_path": "%s"}}' "src/export/notes.ts" |
+  source_out="$(printf '{"tool_input": {"file_path": "%s"}, "cwd": "%s"}' \
+    "/home/dev/proj/.claude/worktrees/do-export/src/export/notes.ts" "/home/dev/proj/.claude/worktrees/do-export" |
     sh -c "$tool_hook" 2>/dev/null)"
   expect "the hook lets the Builder's $tool through at the source path a behaviour changes" \
     bash -c '! grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$source_out"
@@ -524,6 +525,44 @@ for tool in Write Edit; do
     sh -c "$tool_hook" 2>/dev/null | jq -r '.. | .permissionDecisionReason? // empty' 2>/dev/null)"
   expect "the hook's reason for the Builder's denied $tool in a sibling repository says the place belongs to the session and the developer, and to report it on the return line" \
     bash -c 'grep -qE "belongs? to the session and the developer" <<<"$1" && grep -qiE "report.*return line" <<<"$1"' _ "$sibling_reason"
+done
+
+# The worktree rule above reads the run worktree off a `cwd` inside `.claude/worktrees/<name>`, and
+# do always forks the Builder there. A payload with no `cwd`, or one in the main checkout, leaves the
+# rule nothing to apply, and a guard that let the write through there would let the fork write
+# anywhere on disk. The path names no protected artifact, so a deny can only come from the `cwd`.
+for tool in Write Edit; do
+  case "$tool" in
+    Write) tool_hook="$builder_write_hook" ;;
+    *) tool_hook="$builder_edit_hook" ;;
+  esac
+  for off_worktree_payload in \
+    '{"cwd": "/home/dev/proj", "tool_input": {"file_path": "/home/dev/proj/src/export/notes.ts"}}' \
+    '{"tool_input": {"file_path": "/home/dev/proj/src/export/notes.ts"}}'; do
+    off_worktree_out="$(printf '%s' "$off_worktree_payload" | sh -c "$tool_hook" 2>/dev/null)"
+    expect "the hook denies the Builder's $tool a source path when cwd is not a run worktree: $off_worktree_payload" \
+      bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$off_worktree_out"
+  done
+done
+
+# A run worktree can sit inside another run's worktree, and the Builder's own is the innermost one
+# around its `cwd`: the outer worktree is another run's branch, so a write there lands outside this
+# Builder's diff exactly as a sibling repository's does.
+nested_outer="/home/dev/proj/.claude/worktrees/t1"
+nested_inner="$nested_outer/.claude/worktrees/t2"
+for tool in Write Edit; do
+  case "$tool" in
+    Write) tool_hook="$builder_write_hook" ;;
+    *) tool_hook="$builder_edit_hook" ;;
+  esac
+  outer_out="$(printf '{"cwd": "%s", "tool_input": {"file_path": "%s"}}' "$nested_inner" "$nested_outer/README.md" |
+    sh -c "$tool_hook" 2>/dev/null)"
+  expect "the hook denies the Builder's $tool a path in the outer worktree when cwd sits in a run worktree nested inside it" \
+    bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$outer_out"
+  inner_out="$(printf '{"cwd": "%s", "tool_input": {"file_path": "%s"}}' "$nested_inner" "$nested_inner/src/export/notes.ts" |
+    sh -c "$tool_hook" 2>/dev/null)"
+  expect "the hook lets the Builder's $tool through at a source path in the innermost run worktree around its cwd" \
+    bash -c '! grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$inner_out"
 done
 
 # A machine with no `jq`: a guard that reads its payload with jq and exits 0 when jq is missing is a
@@ -698,6 +737,18 @@ for off_worktree_payload in \
   expect "the hook denies the Builder's Bash a build-loop command when cwd is not a run worktree: $off_worktree_payload" \
     bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$off_worktree_out"
 done
+
+# The same nesting the Write|Edit guard reads: the Builder's worktree is the innermost one around
+# its `cwd`, so the outer worktree is another run's branch, and a shell command that reads, writes or
+# runs a path there reaches outside this Builder's diff.
+outer_bash_out="$(jq -n --arg c "cat $nested_outer/README.md" --arg w "$nested_inner" '{cwd: $w, tool_input: {command: $c}}' |
+  sh -c "$builder_bash_hook" 2>/dev/null)"
+expect "the hook denies the Builder's Bash a command naming a path in the outer worktree when cwd sits in a run worktree nested inside it" \
+  bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$outer_bash_out"
+inner_bash_out="$(jq -n --arg c "cat $nested_inner/src/export/notes.ts" --arg w "$nested_inner" '{cwd: $w, tool_input: {command: $c}}' |
+  sh -c "$builder_bash_hook" 2>/dev/null)"
+expect "the hook lets the Builder's Bash through on a command naming a path in the innermost run worktree around its cwd" \
+  bash -c '! grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$inner_bash_out"
 
 # The other half: a Bash command that runs a test or a build step against the source the Ticket's
 # behaviours change is what the loop exists to run, and a guard that denied it would leave the
