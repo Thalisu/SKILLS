@@ -12,7 +12,8 @@ context:
     # of Ticket 02 (this fixture folder, which the Spec lists by its location), and the Ticket, its
     # Spec and its Journey live in orders-service, the Home repository, a sibling folder. The run
     # grounds and claims in the Home repository and cuts its worktree here. The Builder is a
-    # stand-in that builds nothing and returns a `stopped` the session cannot clear, so the run
+    # stand-in that builds nothing and returns a plain `stopped` the session cannot clear (a write
+    # its guard denied in the main checkout, not work for another repository), so the run
     # ends as blocked once the Digest, the Plan and the claim are written. billing-service carries
     # no `.gitignore`, so a scratch line appended to the wrong repository shows up as a new file.
     set -e
@@ -99,9 +100,10 @@ context:
 
     ```
     stopped
-    stopped: the write guard denied a Write to /srv/billing-web/src/hold-button.ts, a file of the sibling repository billing-web outside this worktree, which belongs to the session and the developer; the first behaviour needs that file changed, so nothing was built and no commit was made
+    stopped: the write guard denied a Write to @MAIN_CHECKOUT@/src/invoice.js, the main checkout's invoice module outside this worktree, which belongs to the session and the developer; the stretch cannot go on until the developer says why the first behaviour's write resolved there, so nothing was built and no commit was made
     ```
     BUILDER_EOF
+    sed -i "s#@MAIN_CHECKOUT@#$(pwd -P)#" .claude/agents/do-builder.md
 
     cat > ../orders-service/README.md <<'MD'
     # orders-service

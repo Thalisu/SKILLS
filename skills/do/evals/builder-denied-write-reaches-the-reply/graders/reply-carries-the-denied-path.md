@@ -1,7 +1,8 @@
 ---
 type: regex
-pattern: "/srv/notes-web/src/archive-button\\.ts"
+pattern: "/fixture/README\\.md"
 match: contains
 target: last_message
 ---
-The Reply names the file the Builder reported as denied, the one piece of its `stopped:` line no session could have invented.
+The Reply names the file the Builder reported as denied by its absolute path in the main checkout,
+the one piece of its `stopped:` line the session copies rather than composes.

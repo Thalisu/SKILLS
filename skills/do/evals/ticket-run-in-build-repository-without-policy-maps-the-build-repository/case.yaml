@@ -14,7 +14,8 @@ context:
     # repository carries a Testing Policy or a unit author, so on the runner HOME that links the
     # global authors the loop reads `global` and the run derives a Project map. The map names the
     # project it was derived from on its opening line, which tells the two apart. The Builder is
-    # a stand-in that builds nothing and returns a `stopped` the session cannot clear, so the run
+    # a stand-in that builds nothing and returns a plain `stopped` the session cannot clear (a
+    # write its guard denied in the main checkout, not work for another repository), so the run
     # ends as blocked with the map written, the worktree cut and the brief handed over.
     set -e
     mkdir -p src .claude/agents ../orders-service/src ../orders-service/.scratch/hold-disputed-invoice/issues
@@ -60,9 +61,10 @@ context:
 
     ```
     stopped
-    stopped: the write guard denied a Write to /srv/billing-web/src/hold-button.ts, a file of the sibling repository billing-web outside this worktree, which belongs to the session and the developer; the first behaviour needs that file changed, so nothing was built and no commit was made
+    stopped: the write guard denied a Write to @MAIN_CHECKOUT@/src/invoice.js, the main checkout's invoice module outside this worktree, which belongs to the session and the developer; the stretch cannot go on until the developer says why the first behaviour's write resolved there, so nothing was built and no commit was made
     ```
     BUILDER_EOF
+    sed -i "s#@MAIN_CHECKOUT@#$(pwd -P)#" .claude/agents/do-builder.md
 
     cat > ../orders-service/README.md <<'MD'
     # orders-service

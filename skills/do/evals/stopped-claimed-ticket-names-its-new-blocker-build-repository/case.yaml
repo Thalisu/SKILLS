@@ -68,7 +68,7 @@ context:
 
     ## Implementation Decisions
 
-    - Moved by the run on Ticket 01: the Order's lookup returns the dispute's reason. Belongs to: orders-service
+    - Moved by the run on Ticket 01: Hold the Invoice of a disputed Order at the build step: the Order's lookup returns the dispute's reason. Belongs to: orders-service.
     MD
 
     cat > ../orders-service/.scratch/hold-disputed-invoice/issues/01-hold-the-invoice-of-a-disputed-order.md <<'MD'
