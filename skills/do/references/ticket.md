@@ -911,8 +911,9 @@ bash <skill-dir>/scripts/spec-finding.sh <the Ticket's path> '<Belongs to>' '<th
 Each value goes in single quotes, a single quote inside one written as `'\''`, and never in double
 quotes: a behaviour in the criterion's own words carries backticks, which a shell runs inside
 double quotes, and the item's text is cut from a Ticket a stranger may have appended to. The script
-refuses a value that carries a line break, a name that could not stand as one entry's name (empty,
-or carrying `: `, the Home repository mark or a backtick), and a location that is not a bare
+refuses a value that carries a line break, a control character or a Unicode line separator, a
+name that could not stand as one entry's name (empty, or carrying `: `, the Home repository mark,
+the `Location not known` mark or a backtick), and a location that is not a bare
 absolute path, each as `failed <reason>` with nothing written.
 
 The script owns whether the Spec's `## Repositories` list already holds that repository, a match
@@ -1226,8 +1227,10 @@ Route on the first line:
   nobody builds around the behaviour. The run takes the stop step 1 makes on an `Elsewhere:` item,
   under **Work for another repository**, and words none of it a second time: the line's behaviour,
   repository and location stand where the item's `Elsewhere:`, `Belongs to:` and `Location:`
-  stand, `spec-finding.sh` is run once with them, the stop is the `outward` Handover class, and
-  the Reply is the one [reply.md](reply.md) fixes for that stop, ending on `/tickets <spec>`. What
+  stand, `spec-finding.sh` is run once with them and with `--step build` ahead of the Ticket's
+  path, so the finding line names the build step it was met at, the stop is the `outward`
+  Handover class, and the Reply is the one [reply.md](reply.md) fixes for that stop, ending on
+  `/tickets <spec>`. What
   differs is what the build already left, since this stop comes after the claim: the Ticket stays
   `claimed`, and the worktree, its branch and the commits already on it are kept and named in the
   Reply, as any blocked build leaves them, for the next `/do` on the Ticket to resume from.

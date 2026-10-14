@@ -81,7 +81,7 @@ session_root="$(cd "$fixture" && pwd -P)"
 home_at="$(sed -nE 's/^- orders-service \(Home repository\): *//p' <<<"$repositories" | head -n 1)"
 expect "the session runs in orders-service, the Home repository" test "$home_at" = "$session_root"
 built_in="$(passage_of "${spec:-/dev/null}" "## Implementation Decisions" "## " |
-  sed -nE 's/^- Moved by the run on Ticket [0-9]+.* at the Plan step: .+\. Belongs to: ([^.]+)\.$/\1/p' |
+  sed -nE 's/^- Moved by the run on Ticket [0-9]+.* at the [^ ]+ step: .+\. Belongs to: ([^.]+)\.$/\1/p' |
   head -n 1)"
 expect "the finding line names notifications-service, where the new ticket is built" \
   test "$built_in" = "notifications-service"

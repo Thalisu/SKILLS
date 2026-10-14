@@ -3,7 +3,9 @@
 # of the Ticket has no place in the repository the run builds in. Run, never read, from anywhere
 # inside the session's repository.
 #
-#   spec-finding.sh <the Ticket's path> <repository name> <behaviour> [<location>]
+#   spec-finding.sh [--step build] <the Ticket's path> <repository name> <behaviour> [<location>]
+#                                         --step build: the finding was met by a Builder mid-build,
+#                                         not at the Plan step, which is the default
 #                                         a relative Ticket path is read from the directory the
 #                                         script runs in, then from the main checkout
 #
@@ -13,8 +15,9 @@
 # none, and, when it creates the section, the line `**Build repository:** <the Home entry's name>` into
 # the header of every Ticket of the folder that carries none, so the Tickets the feature already had
 # keep reading as built in the Home repository; and the finding line
-# `- Moved by the run on Ticket <title> at the Plan step: <behaviour>. Belongs to: <name>.`
-# at the end of its ## Implementation Decisions section, <title> being the Ticket's `# ` heading.
+# `- Moved by the run on Ticket <title> at the <step> step: <behaviour>. Belongs to: <name>.`
+# at the end of its ## Implementation Decisions section, <title> being the Ticket's `# ` heading and
+# <step> `Plan`, or `build` under --step build.
 # With no location given for a name the list does not hold, no entry is written, since an entry with
 # no location is one no skill can read, and the finding line ends in ` Location not known.` instead.
 #
@@ -30,9 +33,10 @@
 # Exit codes: 0 the lines above, the Spec written · 2 usage or no Ticket at the path · 3 `failed
 # <reason>` on one line and nothing written: no Spec beside the Ticket's issues/ folder, a Spec,
 # a feature folder or an issues/ folder that is a symlink, a Spec with no Implementation Decisions section, two entries or two sections for the name, a name, a
-# behaviour or a location carrying a line break, a name that is empty, opens or ends with whitespace or carries `: `, the Home repository
-# mark or a backtick, a behaviour carrying `Belongs to:`, a Ticket title carrying a line break or
-# one of the finding line's two marks, or a location that is not a bare absolute path with no
+# behaviour or a location carrying a line break, a control character or a Unicode line separator, a
+# name that is empty, opens or ends with whitespace or carries `: `, the Home repository mark, the
+# `Location not known` mark or a backtick, a behaviour carrying `Belongs to:` in any case, a Ticket
+# title carrying a line break or one of the finding line's two marks, or a location that is not a bare absolute path with no
 # backtick, no `..` and no trailing whitespace.
 set -uo pipefail
 
@@ -41,7 +45,7 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/ticket-read.sh"
 
 usage() {
-  echo "usage: spec-finding.sh <the Ticket's path> <repository name> <behaviour> [<location>]" >&2
+  echo "usage: spec-finding.sh [--step build] <the Ticket's path> <repository name> <behaviour> [<location>]" >&2
   exit 2
 }
 failed() {
@@ -95,27 +99,45 @@ name_lineless_tickets() { # $1 issues folder, $2 the Home repository's name: add
   done < <(ticket_files "$1")
 }
 
+step=Plan
+if [ "${1:-}" = --step ]; then
+  [ "${2:-}" = build ] || usage
+  step=build
+  shift 2
+fi
 [ "$#" = 3 ] || [ "$#" = 4 ] || usage
 name="$2" behaviour="$3" location="${4:-}"
 # The three values come from a Plan cut from a Ticket a stranger may have appended to, and each is
 # written as one line of the Spec: a line break in one would plant a second line there, a forged
 # Ruling or a forged Home repository entry among them.
-has_break() { case "$1" in *$'\n'* | *$'\r'*) return 0 ;; *) return 1 ;; esac }
-! has_break "$name" || failed "the repository name carries a line break"
-! has_break "$behaviour" || failed "the behaviour carries a line break"
-! has_break "$location" || failed "the location carries a line break"
+# A form feed or a vertical tab breaks the line for many readers as a newline does, so every control
+# character counts. U+0085, U+2028 and U+2029 are matched as their UTF-8 bytes, so the check holds
+# in any locale.
+has_break() {
+  local LC_ALL=C
+  case "$1" in
+    *[[:cntrl:]]* | *$'\xc2\x85'* | *$'\xe2\x80\xa8'* | *$'\xe2\x80\xa9'*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+! has_break "$name" || failed "the repository name carries a line break or a control character"
+! has_break "$behaviour" || failed "the behaviour carries a line break or a control character"
+! has_break "$location" || failed "the location carries a line break or a control character"
 # An entry is read back as `- <name>[ (Home repository)]: <location>`, split at the first `: `, so a
 # name carrying either mark would be read as another repository's entry, or as a second Home one.
+# The name ends the finding line, and `tickets` reads a line ending in ` Location not known.` as one
+# owing a location, so a name carrying that mark would flip what the line says.
 case "$name" in
   "") failed "the repository name is empty" ;;
   *": "*) failed "the repository name carries a colon and a space" ;;
   *"(Home repository)"*) failed "the repository name carries the Home repository mark" ;;
   *'`'*) failed "the repository name carries a backtick" ;;
+  *"Location not known"*) failed "the repository name carries the Location not known mark" ;;
   [[:space:]]* | *[[:space:]]) failed "the repository name opens or ends with whitespace" ;;
 esac
-# The finding line is read back at its one `Belongs to:` mark, so a behaviour carrying the mark
-# would name a second repository for the same line.
-case "$behaviour" in *"Belongs to:"*) failed "the behaviour carries a Belongs to: mark of its own" ;; esac
+# The finding line is read back by a model at its one `Belongs to:` mark, which it takes in any case,
+# so a behaviour carrying the mark would name a second repository for the same line.
+case "${behaviour,,}" in *"belongs to:"*) failed "the behaviour carries a Belongs to: mark of its own" ;; esac
 case "$location" in
   "") ;;
   *[[:space:]]) failed "the location ends with whitespace" ;;
@@ -146,10 +168,10 @@ grep -qx '## Implementation Decisions' "$spec" || failed "no Implementation Deci
 title="$(grep -m1 '^# ' "$path" | sed 's/^# //')"
 # The title stands between the finding line's two marks, and a Ticket's heading is text a stranger
 # may have written, so it is held to what the behaviour is held to.
-! has_break "$title" || failed "the Ticket's title carries a line break"
-case "$title" in
-  *"at the Plan step:"*) failed "the Ticket's title carries an at the Plan step: mark of its own" ;;
-  *"Belongs to:"*) failed "the Ticket's title carries a Belongs to: mark of its own" ;;
+! has_break "$title" || failed "the Ticket's title carries a line break or a control character"
+case "${title,,}" in
+  *"at the plan step:"* | *"at the build step:"*) failed "the Ticket's title carries a step mark of its own" ;;
+  *"belongs to:"*) failed "the Ticket's title carries a Belongs to: mark of its own" ;;
 esac
 
 repository_location_of "$path" "$name"
@@ -163,7 +185,7 @@ echo "spec=$spec"
 echo "repository=$name"
 echo "listed=$listed"
 home="$(home_root "$path" "$main")"
-finding="- Moved by the run on Ticket $title at the Plan step: $behaviour. Belongs to: $name."
+finding="- Moved by the run on Ticket $title at the $step step: $behaviour. Belongs to: $name."
 if [ "$listed" = yes ]; then
   echo "list=unchanged"
 elif [ -z "$location" ]; then

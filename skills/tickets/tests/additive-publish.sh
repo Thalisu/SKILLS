@@ -94,7 +94,7 @@ if grep -qE '^- orders-service \(Home repository\)' <<<"$repositories" &&
   grep -qE '^- billing-service\b' <<<"$repositories" &&
   grep -qE '^- notifications-service\b' <<<"$repositories"; then ok "$label"; else fail "$label"; fi
 finding="$(passage_of "${spec:-/dev/null}" "## Implementation Decisions" "## " |
-  grep -E '^- Moved by the run on Ticket 02\b.* at the Plan step: .+\. Belongs to: notifications-service\.$' |
+  grep -E '^- Moved by the run on Ticket 02\b.* at the [^ ]+ step: .+\. Belongs to: notifications-service\.$' |
   head -n 1)"
 expect "the finding line names Ticket 02 and notifications-service" test -n "$finding"
 

@@ -123,9 +123,9 @@ expect "the feature holds at least one published ticket" test "${#tickets[@]}" -
 expect "the spec lists its repositories" grep -qx -- "## Repositories" "${spec:-/dev/null}"
 
 finding="$(passage_of "${spec:-/dev/null}" "## Implementation Decisions" "## " |
-  grep -E '^- Moved by the run on Ticket .+ at the Plan step: .+\. Belongs to: .+\.$' | head -n 1)"
+  grep -E '^- Moved by the run on Ticket .+ at the [^ ]+ step: .+\. Belongs to: .+\.$' | head -n 1)"
 expect "the spec's Implementation Decisions hold a finding line a stopped do run wrote" test -n "$finding"
-behaviour="$(sed -E 's/^- Moved by the run on Ticket .* at the Plan step: (.*)\. Belongs to: [^.]*\.$/\1/' <<<"$finding")"
+behaviour="$(sed -E 's/^- Moved by the run on Ticket .* at the [^ ]+ step: (.*)\. Belongs to: [^.]*\.$/\1/' <<<"$finding")"
 label="no published ticket carries the finding's behaviour, so it is uncovered"
 if [ -n "$finding" ] && [ "${#tickets[@]}" -gt 0 ] && ! grep -qiF -- "$behaviour" "${tickets[@]}"; then
   ok "$label"

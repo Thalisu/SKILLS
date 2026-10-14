@@ -32,7 +32,7 @@ mapfile -t later_run < <(later_run_phrasings)
 # The finding line of a Spec, as `do` leaves it under Implementation Decisions for Ticket 02.
 finding_of() { # $1 spec: the first such line, whole, on stdout
   passage_of "${1:-/dev/null}" "## Implementation Decisions" "## " |
-    grep -E '^- Moved by the run on Ticket 02\b.* at the Plan step: .+\. Belongs to: notifications-service\.$' |
+    grep -E '^- Moved by the run on Ticket 02\b.* at the [^ ]+ step: .+\. Belongs to: notifications-service\.$' |
     head -n 1
 }
 caught() { # $1 label, $2 a work folder where the outcome is broken

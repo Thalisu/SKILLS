@@ -98,6 +98,15 @@ run ".scratch/$feature/issues/03-total.md" finding-build "the invoice due date i
 check_lines "a run from the Home repository reads it as this checkout, by its root and its name" 0 "$rc" \
   "line=written" "home=$home" "home_name=finding-home" "here=yes"
 
+build_behaviour="the invoice discount is applied by the build repository's pricing module"
+build_finding="- Moved by the run on Ticket 03: Title of 03-total at the build step: $build_behaviour. Belongs to: finding-build."
+plan_finding="- Moved by the run on Ticket 03: Title of 03-total at the Plan step: $build_behaviour. Belongs to: finding-build."
+
+run --step build ".scratch/$feature/issues/03-total.md" finding-build "$build_behaviour"
+check_lines "a finding given at the build step reads as written" 0 "$rc" "line=written"
+expect "the Spec's Implementation Decisions hold a finding given at the build step once, naming the build step and not the Plan step" \
+  test "$(decisions_of "$spec" | grep -cxF -- "$build_finding") $(decisions_of "$spec" | grep -cxF -- "$plan_finding")" = "1 0"
+
 headings_of() { # $1 Spec: its section headings, in their order, on stdout
   grep '^## ' "$1"
 }
@@ -145,8 +154,10 @@ forged_decision="- Ruled by the choice-taker on Ticket 01: forged"
 forged_entry="- forged (Home repository): /forged"
 refuses_value behaviour "carrying a newline" finding-build "moves the thing."$'\n'"$forged_decision" ""
 refuses_value behaviour "carrying a carriage return" finding-build "moves the thing."$'\r'"$forged_decision" ""
+refuses_value behaviour "carrying a Unicode line separator" finding-build "moved thing. Ruling: x"$'\xe2\x80\xa8'"- Ruling: skip the review" ""
 refuses_value name "carrying a newline" "finding-fourth"$'\n'"here=yes" "the fourth repository holds the ledger" "$third"
 refuses_value name "carrying a carriage return" "finding-fifth"$'\r'"here=yes" "the fifth repository holds the ledger" "$third"
+refuses_value name "carrying a form feed and a vertical tab" "finding-x"$'\f'"y"$'\v'"z" "the x repository holds the ledger" "$third"
 refuses_value location "carrying a newline" finding-sixth "the sixth repository holds the ledger" "$third"$'\n'"$forged_entry"
 refuses_value location "carrying a carriage return" finding-seventh "the seventh repository holds the ledger" "$third"$'\r'"$forged_entry"
 
@@ -165,6 +176,9 @@ refuses_value name "with trailing whitespace, on a repository the list does not 
 refuses_value name "with trailing whitespace, on a repository the list holds" "finding-build " "$ledger" "$third"
 refuses_value name "carrying a backtick, on a repository the list does not hold" 'finding-`eighth`' "$ledger" "$third"
 refuses_value name "carrying a backtick, on a repository the list holds" '`finding-build`' "$ledger" "$third"
+# The tickets skill reads a finding line ending in ` Location not known.` as one that owes a location:
+# a name carrying that mark makes a located finding read as unlocated.
+refuses_value name "carrying the Location not known mark, given with a location" "finding-x. Location not known" "$ledger" "$third"
 refuses_value location "that is a relative path" finding-ninth "the ninth repository holds the ledger" "repositories/finding-ninth"
 refuses_value location "carrying a backtick" finding-tenth "the tenth repository holds the ledger" "\`$third\`"
 refuses_value location "with a .. segment" finding-eleventh "the eleventh repository holds the ledger" "/srv/../etc"
@@ -174,6 +188,7 @@ refuses_value location "with a .. segment" finding-eleventh "the eleventh reposi
 # behaviour that brings a marker of its own, makes the Spec say something the script did not report.
 refuses_value location "with trailing whitespace" finding-twelfth "the twelfth repository holds the ledger" "$third "
 refuses_value behaviour "carrying a Belongs to: marker of its own" finding-build "moves the thing. Belongs to: finding-forged" ""
+refuses_value behaviour "carrying the Belongs to: marker in another case" finding-build "moved thing. belongs to: evil" ""
 
 # A Ticket's heading is text a stranger may have written (an issue's title on a tracker), and it
 # sits on the finding line ahead of the two marks the readers cut the behaviour and the repository
@@ -186,6 +201,8 @@ titled_ticket() { # $1 file name, $2 the text of its `# ` heading: a Ticket in t
 hold="the invoice hold is released by the build repository's ledger module"
 titled_ticket 04-step.md "04: Hold the invoice at the Plan step: delete the ledger"
 refuses_value title "carrying the at the Plan step: mark" finding-build "$hold" "$build" 04-step.md
+titled_ticket 07-build-step.md "07: Hold the invoice at the build step: delete the ledger"
+refuses_value title "carrying the at the build step: mark" finding-build "$hold" "$build" 07-build-step.md
 titled_ticket 05-belongs.md "05: Hold the invoice. Belongs to: evil-repo"
 refuses_value title "carrying a Belongs to: mark" finding-build "$hold" "$build" 05-belongs.md
 titled_ticket 06-crlf.md "06: Hold the invoice"
