@@ -268,7 +268,7 @@ ticket 01-api-state.md $'**Status:** resolved\n\n**Build repository:** state_api
 }
 cd "$build" || exit 1
 keyed_tree="$build/.claude/worktrees/spec-keyed-state"
-keyed_review="$keyed/spec.state-api-v2.review.md"
+keyed_review="$keyed/spec.state-api-v2--73746174655f6170692e7632.review.md"
 
 run "$issues/01-api-state.md"
 check_lines "the Final integration's state of a Ticket that names a Build repository names the claim, the ledger and the Review in the Home Feature folder under that repository's key, and the tree and token slug of the session's repository" 0 "$rc" \
@@ -276,8 +276,8 @@ check_lines "the Final integration's state of a Ticket that names a Build reposi
   "spec_branch=spec/keyed-state" \
   "tree=$keyed_tree" \
   "token_slug=spec-keyed-state" \
-  "file=$keyed/spec.state-api-v2.integration.claim" \
-  "ledger=$keyed/spec.state-api-v2.ledger.md" \
+  "file=$keyed/spec.state-api-v2--73746174655f6170692e7632.integration.claim" \
+  "ledger=$keyed/spec.state-api-v2--73746174655f6170692e7632.ledger.md" \
   "review_file=$keyed_review"
 expect "the Final integration's state of a Ticket that names a Build repository names one ledger only" \
   test "$(grep -c '^ledger=' <<<"$out")" = 1

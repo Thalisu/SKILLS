@@ -394,29 +394,29 @@ cd "$build" || exit 1
 run claim "$issues/01-api-export.md"
 check_lines "a claim taken from a Build repository on a Ticket of a sibling Home repository reads claimed, naming the claim file, the ledger and the Review in the Home Feature folder under the Build repository's key, and the Spec branch, its upstream and the tree of the session's repository" 0 "$rc" \
   "claim=claimed" \
-  "file=$keyed/spec.land-api-v2.integration.claim" \
+  "file=$keyed/spec.land-api-v2--6c616e645f6170692e7632.integration.claim" \
   "spec=$keyed/spec.md" \
   "spec_branch=spec/keyed-export" \
   "spec_upstream=main" \
   "tree=$build/.claude/worktrees/spec-keyed-export" \
-  "ledger=$keyed/spec.land-api-v2.ledger.md" \
-  "review_file=$keyed/spec.land-api-v2.review.md" \
+  "ledger=$keyed/spec.land-api-v2--6c616e645f6170692e7632.ledger.md" \
+  "review_file=$keyed/spec.land-api-v2--6c616e645f6170692e7632.review.md" \
   "takeover=no"
 expect "a claim taken from a Build repository creates the claim file in the Home Feature folder under the Build repository's key" \
-  test -f "$keyed/spec.land-api-v2.integration.claim"
+  test -f "$keyed/spec.land-api-v2--6c616e645f6170692e7632.integration.claim"
 expect "a claim taken from a Build repository creates no claim file under the unkeyed name" \
   test ! -e "$keyed/spec.integration.claim"
 expect "a claim taken from a Build repository creates no claim file in the Build repository" \
   test -z "$(find "$build" -path "$build/.git" -prune -o -name '*.claim' -print 2>/dev/null)"
 expect "the claim file of a claim taken from a Build repository records the tree of the session's repository, as printed" \
-  grep -qsxF -- "tree=$build/.claude/worktrees/spec-keyed-export" "$keyed/spec.land-api-v2.integration.claim"
+  grep -qsxF -- "tree=$build/.claude/worktrees/spec-keyed-export" "$keyed/spec.land-api-v2--6c616e645f6170692e7632.integration.claim"
 expect "the claim file of a claim taken from a Build repository records the Spec branch of the session's repository, as printed" \
-  grep -qsxF -- "spec_branch=spec/keyed-export" "$keyed/spec.land-api-v2.integration.claim"
+  grep -qsxF -- "spec_branch=spec/keyed-export" "$keyed/spec.land-api-v2--6c616e645f6170692e7632.integration.claim"
 
 # The same feature's other repository, the Home one, lands after the Build one: its Ticket names
 # the Home repository, its Spec branch is the Home repository's own, and the Build repository's
 # claim is still held when its session claims.
-build_claim="$keyed/spec.land-api-v2.integration.claim"
+build_claim="$keyed/spec.land-api-v2--6c616e645f6170692e7632.integration.claim"
 ticket 02-web-export.md $'**Status:** resolved\n\n**Build repository:** claim-web' 'None (can start immediately)'
 ticket 03-api-import.md $'**Status:** resolved\n\n**Build repository:** land_api.v2' 'None (can start immediately)'
 {
@@ -474,5 +474,31 @@ check_lines "a claim on a Ticket built in a repository other than the session's 
   "reason=elsewhere"
 expect "a claim on a Ticket built in a repository other than the session's creates no claim file, under the other repository's key or unkeyed, in the Home Feature folder or in the other repository" \
   test -z "$(find "$elsewhere" "$build" -path "$build/.git" -prune -o -name '*.claim' -print 2>/dev/null)"
+
+# A feature whose two Build repositories are named apart only by their punctuation: each repository
+# holds a claim of its own, so neither may read the other's claim or Review as its own.
+punctuated="$home/.scratch/20261005-punctuated-names"
+repositories_spec "$punctuated" "- claim-web (Home repository): $home" "- api.v1: $build" "- api v1: $tmp/api-v1"
+issues="$punctuated/issues"
+ticket 01-dotted.md $'**Status:** resolved\n\n**Build repository:** api.v1' 'None (can start immediately)'
+ticket 02-spaced.md $'**Status:** resolved\n\n**Build repository:** api v1' 'None (can start immediately)'
+cd "$home" || exit 1
+run show "$issues/01-dotted.md"
+dotted_claim="$(term file)"
+run show "$issues/02-spaced.md"
+spaced_claim="$(term file)"
+expect "show on two Tickets of one feature whose Build repository names differ only in punctuation names two different claim files" \
+  test -n "$dotted_claim" -a -n "$spaced_claim" -a "$dotted_claim" != "$spaced_claim"
+
+# A Build repository named with no letter or digit still holds a claim of its own, apart from the
+# unkeyed one a Ticket of the same feature with no Build repository line holds.
+ticket 03-underscored.md $'**Status:** resolved\n\n**Build repository:** ___' 'None (can start immediately)'
+ticket 04-unkeyed.md '**Status:** resolved' 'None (can start immediately)'
+run show "$issues/03-underscored.md"
+underscored_claim="$(term file)"
+run show "$issues/04-unkeyed.md"
+unkeyed_claim="$(term file)"
+expect "show on a Ticket whose Build repository name has no letter or digit names a claim file other than the unkeyed one of a Ticket of the same feature with no Build repository line" \
+  test -n "$underscored_claim" -a -n "$unkeyed_claim" -a "$underscored_claim" != "$unkeyed_claim"
 
 [ "$fails" = 0 ]

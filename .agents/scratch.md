@@ -149,8 +149,10 @@ with the claim.
 A feature across repositories has one Final integration per repository, each run by a session in
 that repository, and all of them write beside the one `spec.md`, in the Home repository's Feature
 folder. So the claim is taken per repository: a Ticket that carries a `**Build repository:**` line
-claims under that repository's key, the name lowercased with every run of other characters turned
-into one dash, and the four files beside the Spec carry the key:
+claims under that repository's key, and the four files beside the Spec carry the key. A name made
+of lowercase letters and digits in words joined by single dashes is its own key; any other name
+becomes its lowercased slug, two dashes and the hex of its bytes, so two names never share a key
+and a name with no letter or digit never falls back to the unkeyed names:
 
 | File | A feature of one repository | A Ticket built in `<key>` |
 |---|---|---|

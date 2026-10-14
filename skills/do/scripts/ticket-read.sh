@@ -34,8 +34,10 @@
 #                                 build_repository_of, repository_location_of and build_check_of
 #                                 read for the Ticket, with name_detail and place_detail
 #   repository_key_of <file>      sets word to the file-safe key of its **Build repository:** name
-#                                 (lowercased, each run of characters outside a-z0-9 one -, no - at
-#                                 either end), empty with no line, or ambiguous with detail set
+#                                 (a name of a-z0-9 words joined by single - is its own key; any
+#                                 other name is its lowercased slug, -- and the hex of its bytes,
+#                                 so two names never share a key), empty with no line, or ambiguous
+#                                 with detail set
 #   blockers_of <file>            sets word to the numbers its one **Blocked by:** paragraph names,
 #                                 space separated in the order written, none for None, none with
 #                                 detail set when it names no Ticket number, or ambiguous with
@@ -143,7 +145,12 @@ repository_key_of() { # $1 file: sets word to the file-safe key of its Build rep
   case "$word" in
     none) word="" ;;
     ambiguous) ;;
-    *) word="$(tr '[:upper:]' '[:lower:]' <<<"$word" | sed -E 's/[^a-z0-9]+/-/g; s/^-//; s/-$//')" ;;
+    *)
+      [[ "$word" =~ ^[a-z0-9]+(-[a-z0-9]+)*$ ]] && return
+      local hex
+      hex="$(printf '%s' "$word" | od -An -v -tx1 | tr -d ' \n')"
+      word="$(tr '[:upper:]' '[:lower:]' <<<"$word" | sed -E 's/[^a-z0-9]+/-/g; s/^-//; s/-$//')--$hex"
+      ;;
   esac
 }
 
