@@ -28,8 +28,8 @@
 # none with no such entry), here (yes when home is this session's main checkout, else no).
 #
 # Exit codes: 0 the lines above, the Spec written · 2 usage or no Ticket at the path · 3 `failed
-# <reason>` on one line and nothing written: no Spec beside the Ticket's issues/ folder, a Spec
-# with no Implementation Decisions section, two entries or two sections for the name, a name, a
+# <reason>` on one line and nothing written: no Spec beside the Ticket's issues/ folder, a Spec,
+# a feature folder or an issues/ folder that is a symlink, a Spec with no Implementation Decisions section, two entries or two sections for the name, a name, a
 # behaviour or a location carrying a line break, a name that is empty, opens or ends with whitespace or carries `: `, the Home repository
 # mark or a backtick, a behaviour carrying `Belongs to:`, a Ticket title carrying a line break or
 # one of the finding line's two marks, or a location that is not a bare absolute path with no
@@ -137,6 +137,11 @@ esac
 
 spec="$(spec_beside "$path")"
 [ "$spec" != /dev/null ] || failed "no Spec beside the Ticket's issues/ folder"
+# The Spec and the Tickets beside it are written whole, so a link would carry those writes into
+# whatever it names, another repository's files included.
+for link in "$(dirname "$spec")" "$(dirname "$path")" "$spec"; do
+  [ ! -L "$link" ] || failed "$link is a symlink"
+done
 grep -qx '## Implementation Decisions' "$spec" || failed "no Implementation Decisions section in $spec"
 title="$(grep -m1 '^# ' "$path" | sed 's/^# //')"
 # The title stands between the finding line's two marks, and a Ticket's heading is text a stranger
