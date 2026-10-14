@@ -504,8 +504,8 @@ location_missing_phrasings() { # one accepted phrasing per line: what a stop say
     "needed" "not typed" "not given" "to type" "is typed" "be typed"
 }
 not_there_phrasings() { # one accepted phrasing per line: nothing sits at a location on this machine
-  printf '%s\n' "missing" "not there" "nothing there" "does not exist" "no directory" "no such" "exists" \
-    "director"
+  printf '%s\n' "missing" "not there" "nothing there" "does not exist" "no directory" "no such" \
+    "is not a directory" "absent"
 }
 not_git_phrasings() { # one accepted phrasing per line: what sits at a location is no git repository
   printf '%s\n' "not a git repositor" "is not a git" "no git repositor" "isn't a git"
