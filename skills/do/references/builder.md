@@ -334,6 +334,26 @@ Ruled out: <what an earlier attempt at this edit established does not work> | no
 The Implementer never explores and never decides where to write, so `Where:` is the whole of its
 reach: a brief that leaves out a file the edit needs comes back `OUT OF BRIEF` with nothing edited.
 
+Nothing but the Implementer's own word keeps it off the test the behaviour is proven by, so the
+Builder reads what each dispatch changed by script, in this order:
+
+1. Before the dispatch, with the test author's test already on disk, it snapshots the worktree into
+   a state file outside it, a `mktemp` path it keeps in its window:
+
+   ```
+   bash "$(readlink -f ~/.claude/skills/do)/scripts/main-untouched.sh" snapshot <the brief's Tree: path> <the state file>
+   ```
+
+2. It dispatches `do-implementer` with the brief.
+3. After the Implementer returns, it runs the changeset check against that snapshot, naming every
+   path the test author's report listed under its Test changeset and its Promotion changeset:
+
+   ```
+   bash "$(readlink -f ~/.claude/skills/do)/scripts/changeset-check.sh" <the brief's Tree: path> <the state file> <each path of the author's Test changeset and Promotion changeset>
+   ```
+
+   Only `verdict=pass` goes on toward the commit.
+
 ## The flows
 
 After the feature exists, every criterion a user can observe gets its flow authored or extended,

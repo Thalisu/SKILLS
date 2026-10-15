@@ -1121,6 +1121,75 @@ out="$author_step"
 check_absent "build-loop.md: the test author's dispatch step carries none of the Implementer's keys" 0 0 \
   "Worktree:" "Edit:" "Ask:" "Where:" "Ruled out:" "do-implementer"
 
+echo "# skills/do/references/builder.md / ## The Implementer, skills/do/agents/do-builder.md: the changeset check runs after each Implementer return, before the commit"
+
+# The Implementer edits production code from a brief it takes literally, and nothing in its edit
+# stops it touching the test the behaviour is proven by. A change that moved that test, landed by
+# the Builder's commit, reaches the session and the review as a behaviour proven green when the
+# proof itself was rewritten. The snapshot is the baseline the check reads the changeset against,
+# so it has to be taken before the dispatch it covers, and the check has to run before the commit
+# that would land the change, against the paths the test author named. The order is read off the
+# two command blocks: the Implementer sits between them, and the commit after the second.
+flat="$(flat_section "$contract" "## The Implementer")"
+snapshot_cmd="$(blocks_of "$contract" "## The Implementer" | grep -E '^bash .*main-untouched\.sh"? +snapshot' | head -n 1)"
+changeset_cmd="$(blocks_of "$contract" "## The Implementer" | grep -E '^bash .*changeset-check\.sh' | head -n 1)"
+expect "builder.md's \`## The Implementer\` names the snapshot as a runnable \`bash\` line" test -n "$snapshot_cmd"
+expect "builder.md's \`## The Implementer\` names the changeset check as a runnable \`bash\` line" test -n "$changeset_cmd"
+after_snapshot="${flat#*"$snapshot_cmd"}"
+expect "builder.md: the changeset check comes after the snapshot" \
+  bash -c '[ -n "$1" ] && [ -n "$2" ] && [ "$3" != "$4" ] && grep -qF -- "$2" <<<"$3"' _ \
+  "$snapshot_cmd" "$changeset_cmd" "$after_snapshot" "$flat"
+# With either command missing the slices below would be the whole section, and pass on it.
+flat=""
+[ -n "$snapshot_cmd" ] && [ -n "$changeset_cmd" ] && flat="${after_snapshot%%"$changeset_cmd"*}"
+carries_any "builder.md: the Implementer is dispatched between the snapshot and the changeset check" \
+  "do-implementer" "Implementer"
+flat=""
+[ -n "$snapshot_cmd" ] && [ -n "$changeset_cmd" ] && flat="${after_snapshot#*"$changeset_cmd"}"
+carries_any "builder.md: the commit comes after the changeset check" "commit"
+flat="$(flat_section "$contract" "## The Implementer")"
+carries_each "builder.md: the changeset check is handed the test author's named paths" \
+  "Test changeset" -- "Promotion changeset"
+
+flat="$(body_of "$agent" | awk 'BEGIN { RS = "" } /changeset-check\.sh|changeset check/' | tr '\n' ' ' | tr -s ' ')"
+changeset_at="$(first_at "changeset-check.sh" "changeset check")"
+expect "do-builder.md's body names the changeset check" test "$changeset_at" -gt 0
+body_tail="${flat:changeset_at}"
+flat="${flat:0:changeset_at}"
+carries_any "do-builder.md: the changeset check follows the Implementer's return" "Implementer" "do-implementer"
+flat="$body_tail"
+carries_any "do-builder.md: the changeset check comes before the commit" "commit"
+
+# Both commands run in the worktree of whatever project is being built, from the Builder's own Bash,
+# under the guard its frontmatter carries. Each placeholder is filled the way the Builder fills it:
+# the run worktree, a state file outside it, and a named path from its root. The commands then run
+# from a project that does not hold the skill, with the skill linked under a throwaway HOME.
+changeset_proj="$stmp/changeset/proj"
+changeset_tree="$changeset_proj/.claude/worktrees/do-w1"
+changeset_home="$stmp/changeset/home"
+changeset_state="$stmp/changeset/state"
+mkdir -p "$changeset_tree" "$changeset_home/.claude/skills"
+ln -s "$here/.." "$changeset_home/.claude/skills/do"
+(cd "$changeset_proj" && git init -q && cd "$changeset_tree" && git init -q && printf 'a\n' >a.txt && g add -A && g commit -qm init)
+fill_placeholders() { # $1 a command line: each <placeholder> filled, on stdout
+  sed -E -e 's/>\.\.\./>/g' -e "s#<[^>]*state[^>]*>#$changeset_state#g" \
+    -e "s#<[^>]*([Tt]ree|[Ww]orktree)[^>]*>#$changeset_tree#g" -e 's#<[^>]*>#tests/a.test.sh#g' <<<"$1"
+}
+snapshot_run="$(fill_placeholders "$snapshot_cmd")"
+changeset_run="$(fill_placeholders "$changeset_cmd")"
+for run_line in "$snapshot_run" "$changeset_run"; do
+  hook_out="$(jq -n --arg command "$run_line" --arg cwd "$changeset_tree" \
+    '{tool_input: {command: $command}, cwd: $cwd}' | sh -c "$(hook_command "$agent" Bash)" 2>/dev/null)"
+  expect "the Builder's Bash guard lets the command through from its worktree: ${run_line:-<missing>}" \
+    bash -c '[ -n "$1" ] && ! grep -qF "\"permissionDecision\": \"deny\"" <<<"$2"' _ "$run_line" "$hook_out"
+done
+
+snapshot_out="$(cd "$changeset_tree" && HOME="$changeset_home" bash -c "$snapshot_run" 2>&1)"
+changeset_out="$(cd "$changeset_tree" && HOME="$changeset_home" bash -c "$changeset_run" 2>&1)"
+expect "the snapshot and the changeset check run from a project that does not hold the skill" \
+  bash -c '[ -n "$1" ] && grep -q "^state=" <<<"$2" && grep -q "^verdict=pass" <<<"$3"' _ \
+  "$snapshot_run" "$snapshot_out" "$changeset_out"
+
 echo "# skills/do/references/builder.md, skills/do/agents/do-builder.md: work for another repository ends the Stretch on \`stopped\`"
 
 # A feature that spans repositories can hand the Builder a behaviour whose change belongs in a

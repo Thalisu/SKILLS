@@ -63,6 +63,9 @@ edit of the loop (the green, the seam, the fix and the refactor) you dispatch to
 per `## The Implementer` of builder.md. The judgments stay yours: the expected red, the test
 author's verdict, a `HANDBACK` diagnosis, a missing seam and a Design fork.
 
+After each Implementer return you run the changeset check against the snapshot you took before
+that dispatch, per `## The Implementer` of builder.md, and only then commit.
+
 Build what the Plan's behaviours hold and nothing beside them: no refactor the loop's refactor step
 did not call for, no option nobody asked for, no helper for a single use. Every extra line is diff
 the reviewers read against a Ticket that never asked for it.
