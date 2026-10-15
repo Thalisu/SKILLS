@@ -54,4 +54,22 @@ else
   [ -n "$err" ] && echo "      stderr: ${err//$'\n'/$'\n'      }"
 fi
 
+# The Implementer shape costs less and raises fewer Act on Findings, but one of its runs returns an
+# unexpected fork (1 against 0): a shape that stops runs the developer then resumes by hand must not
+# ship. Its other run stopped on the budget, which is expected and stays out of the total.
+run <<'EOF'
+run shape=opus case=adds-a-seam folder=/tmp/run-eval-adds-a-seam.Q3x9Lm cost_usd=4.12 review=present act_on=1 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=0 implementer_not_green=0 implementer_out_of_brief=0
+run shape=implementer case=adds-a-seam folder=/tmp/run-eval-adds-a-seam.Impl01 cost_usd=2.50 review=present act_on=1 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=1 unreadable=0 implementer_returns=2 implementer_not_green=0 implementer_out_of_brief=0
+run shape=opus case=renames-a-field folder=/tmp/run-eval-renames-a-field.Op02Zz cost_usd=3.00 review=present act_on=1 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=0 implementer_not_green=0 implementer_out_of_brief=0
+run shape=implementer case=renames-a-field folder=/tmp/run-eval-renames-a-field.Impl02 cost_usd=2.10 review=present act_on=0 builder_returns=1 built=1 budget_stopped=1 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=1 implementer_not_green=0 implementer_out_of_brief=0
+EOF
+last="$(tail -n 1 <<<"$out")"
+if [ "$rc" = 1 ] && [ "$last" = "verdict=fail" ] && grep -qxF -- "check unexpected=fail implementer=1 opus=0" <<<"$out"; then
+  ok "an Implementer shape that adds an unexpected stopped or fork return fails the verdict and names the unexpected check"
+else
+  fail "an Implementer shape that adds an unexpected stopped or fork return fails the verdict and names the unexpected check (exit $rc, wanted 1; last line: $last; wanted the line: check unexpected=fail implementer=1 opus=0)"
+  dump_out
+  [ -n "$err" ] && echo "      stderr: ${err//$'\n'/$'\n'      }"
+fi
+
 [ "$fails" = 0 ]

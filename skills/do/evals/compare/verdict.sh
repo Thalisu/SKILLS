@@ -20,7 +20,9 @@ awk '
   }
   END {
     failed = 0
-    if (unexpected["implementer"] > unexpected["opus"]) failed = 1
+    check_unexpected = unexpected["implementer"] <= unexpected["opus"] ? "pass" : "fail"
+    printf "check unexpected=%s implementer=%d opus=%d\n", check_unexpected, unexpected["implementer"], unexpected["opus"]
+    if (check_unexpected == "fail") failed = 1
     check_act_on = act_on["implementer"] <= act_on["opus"] ? "pass" : "fail"
     printf "check act_on=%s implementer=%d opus=%d\n", check_act_on, act_on["implementer"], act_on["opus"]
     if (check_act_on == "fail") failed = 1
