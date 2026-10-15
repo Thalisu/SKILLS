@@ -107,4 +107,112 @@ else
   [ -n "$err" ] && echo "      stderr: ${err//$'\n'/$'\n'      }"
 fi
 
+verdict_is() { # $1 label, $2 the wanted last line, $3 the wanted exit, $4.. extended regexes a whole line of $out must match
+  local label="$1" want="$2" want_rc="$3" last pattern good=1 missing=""
+  shift 3
+  last="$(tail -n 1 <<<"$out")"
+  [ "$rc" = "$want_rc" ] && [ "$last" = "$want" ] || good=0
+  for pattern in "$@"; do grep -qE -- "^$pattern\$" <<<"$out" || {
+    good=0
+    missing="$missing; wanted a line matching: $pattern"
+  }; done
+  if [ "$good" = 1 ]; then ok "$label"; else
+    fail "$label (exit $rc, wanted $want_rc; last line: $last, wanted $want$missing)"
+    dump_out
+    [ -n "$err" ] && echo "      stderr: ${err//$'\n'/$'\n'      }"
+  fi
+}
+
+# Each case below starts from the run lines of the passing case above and breaks one thing, so the
+# input would otherwise pass. A run with no cost leaves both totals unknowable: the maintainer must
+# not record a pass for a comparison whose bill was never read.
+run <<'EOF'
+run shape=implementer case=adds-a-seam folder=/tmp/run-eval-adds-a-seam.Impl01 cost_usd=2.50 review=present act_on=1 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=2 implementer_not_green=0 implementer_out_of_brief=0
+run shape=opus case=adds-a-seam folder=/tmp/run-eval-adds-a-seam.Q3x9Lm cost_usd=4.12 review=present act_on=1 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=0 implementer_not_green=0 implementer_out_of_brief=0
+run shape=opus case=renames-a-field folder=/tmp/run-eval-renames-a-field.Op02Zz cost_usd=3.00 review=present act_on=1 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=0 implementer_not_green=0 implementer_out_of_brief=0
+run shape=implementer case=renames-a-field folder=/tmp/run-eval-renames-a-field.Impl02 cost_usd=absent review=present act_on=0 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=1 implementer_not_green=0 implementer_out_of_brief=0
+EOF
+verdict_is "a run with no cost reads the verdict as incomplete, with act_on and cost unknown" verdict=incomplete 3 \
+  "check act_on=unknown( .*)?" "check cost=unknown( .*)?"
+
+# A run that never reached its Review has no Act on Findings to count.
+run <<'EOF'
+run shape=implementer case=adds-a-seam folder=/tmp/run-eval-adds-a-seam.Impl01 cost_usd=2.50 review=present act_on=1 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=2 implementer_not_green=0 implementer_out_of_brief=0
+run shape=opus case=adds-a-seam folder=/tmp/run-eval-adds-a-seam.Q3x9Lm cost_usd=4.12 review=absent act_on=absent builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=0 implementer_not_green=0 implementer_out_of_brief=0
+run shape=opus case=renames-a-field folder=/tmp/run-eval-renames-a-field.Op02Zz cost_usd=3.00 review=present act_on=1 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=0 implementer_not_green=0 implementer_out_of_brief=0
+run shape=implementer case=renames-a-field folder=/tmp/run-eval-renames-a-field.Impl02 cost_usd=2.10 review=present act_on=0 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=1 implementer_not_green=0 implementer_out_of_brief=0
+EOF
+verdict_is "a run with no Review reads the verdict as incomplete, with act_on and cost unknown" verdict=incomplete 3 \
+  "check act_on=unknown( .*)?" "check cost=unknown( .*)?"
+
+# A run that built nothing never exercised the shape it names.
+run <<'EOF'
+run shape=implementer case=adds-a-seam folder=/tmp/run-eval-adds-a-seam.Impl01 cost_usd=2.50 review=present act_on=1 builder_returns=1 built=0 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=2 implementer_not_green=0 implementer_out_of_brief=0
+run shape=opus case=adds-a-seam folder=/tmp/run-eval-adds-a-seam.Q3x9Lm cost_usd=4.12 review=present act_on=1 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=0 implementer_not_green=0 implementer_out_of_brief=0
+run shape=opus case=renames-a-field folder=/tmp/run-eval-renames-a-field.Op02Zz cost_usd=3.00 review=present act_on=1 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=0 implementer_not_green=0 implementer_out_of_brief=0
+run shape=implementer case=renames-a-field folder=/tmp/run-eval-renames-a-field.Impl02 cost_usd=2.10 review=present act_on=0 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=1 implementer_not_green=0 implementer_out_of_brief=0
+EOF
+verdict_is "a run that built nothing reads the verdict as incomplete" verdict=incomplete 3
+
+# The Implementer shape has no run for renames-a-field: its totals cover fewer cases than the Opus-only
+# shape's, so a lower cost there proves nothing.
+run <<'EOF'
+run shape=implementer case=adds-a-seam folder=/tmp/run-eval-adds-a-seam.Impl01 cost_usd=2.50 review=present act_on=1 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=2 implementer_not_green=0 implementer_out_of_brief=0
+run shape=opus case=adds-a-seam folder=/tmp/run-eval-adds-a-seam.Q3x9Lm cost_usd=4.12 review=present act_on=1 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=0 implementer_not_green=0 implementer_out_of_brief=0
+run shape=opus case=renames-a-field folder=/tmp/run-eval-renames-a-field.Op02Zz cost_usd=3.00 review=present act_on=1 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=0 implementer_not_green=0 implementer_out_of_brief=0
+EOF
+verdict_is "a case run in one shape and missing from the other reads the verdict as incomplete" verdict=incomplete 3
+
+# An Opus-only run dispatched the Implementer twice: that shape never ran as named.
+run <<'EOF'
+run shape=implementer case=adds-a-seam folder=/tmp/run-eval-adds-a-seam.Impl01 cost_usd=2.50 review=present act_on=1 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=2 implementer_not_green=0 implementer_out_of_brief=0
+run shape=opus case=adds-a-seam folder=/tmp/run-eval-adds-a-seam.Q3x9Lm cost_usd=4.12 review=present act_on=1 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=0 implementer_not_green=0 implementer_out_of_brief=0
+run shape=opus case=renames-a-field folder=/tmp/run-eval-renames-a-field.Op02Zz cost_usd=3.00 review=present act_on=1 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=2 implementer_not_green=0 implementer_out_of_brief=0
+run shape=implementer case=renames-a-field folder=/tmp/run-eval-renames-a-field.Impl02 cost_usd=2.10 review=present act_on=0 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=1 implementer_not_green=0 implementer_out_of_brief=0
+EOF
+verdict_is "an Opus-only shape that dispatched an Implementer reads the verdict as incomplete and names the shape check" verdict=incomplete 3 \
+  "check shape=fail opus_implementer_returns=2 implementer_implementer_returns=[0-9]+"
+
+# No Implementer run dispatched an Implementer: the Implementer shape never ran as named.
+run <<'EOF'
+run shape=implementer case=adds-a-seam folder=/tmp/run-eval-adds-a-seam.Impl01 cost_usd=2.50 review=present act_on=1 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=0 implementer_not_green=0 implementer_out_of_brief=0
+run shape=opus case=adds-a-seam folder=/tmp/run-eval-adds-a-seam.Q3x9Lm cost_usd=4.12 review=present act_on=1 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=0 implementer_not_green=0 implementer_out_of_brief=0
+run shape=opus case=renames-a-field folder=/tmp/run-eval-renames-a-field.Op02Zz cost_usd=3.00 review=present act_on=1 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=0 implementer_not_green=0 implementer_out_of_brief=0
+run shape=implementer case=renames-a-field folder=/tmp/run-eval-renames-a-field.Impl02 cost_usd=2.10 review=present act_on=0 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=0 implementer_not_green=0 implementer_out_of_brief=0
+EOF
+verdict_is "an Implementer shape that dispatched no Implementer reads the verdict as incomplete and names the shape check" verdict=incomplete 3 \
+  "check shape=fail opus_implementer_returns=0 implementer_implementer_returns=0"
+
+# The Opus-only shape dispatched an Implementer and the Implementer shape also costs more (11.60
+# against 7.12): a comparison of shapes that never ran as named decides nothing, so the cost failure
+# does not turn it into a fail.
+run <<'EOF'
+run shape=implementer case=adds-a-seam folder=/tmp/run-eval-adds-a-seam.Impl01 cost_usd=9.50 review=present act_on=1 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=2 implementer_not_green=0 implementer_out_of_brief=0
+run shape=opus case=adds-a-seam folder=/tmp/run-eval-adds-a-seam.Q3x9Lm cost_usd=4.12 review=present act_on=1 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=0 implementer_not_green=0 implementer_out_of_brief=0
+run shape=opus case=renames-a-field folder=/tmp/run-eval-renames-a-field.Op02Zz cost_usd=3.00 review=present act_on=1 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=2 implementer_not_green=0 implementer_out_of_brief=0
+run shape=implementer case=renames-a-field folder=/tmp/run-eval-renames-a-field.Impl02 cost_usd=2.10 review=present act_on=0 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=1 implementer_not_green=0 implementer_out_of_brief=0
+EOF
+verdict_is "a failed shape check reads the verdict as incomplete even when another check fails" verdict=incomplete 3 \
+  "check shape=fail opus_implementer_returns=2 implementer_implementer_returns=[0-9]+"
+
+# The Implementer shape has no run for renames-a-field and its other run returns an unexpected fork:
+# a failure already observed sinks the shape, whatever the missing run would have shown.
+run <<'EOF'
+run shape=implementer case=adds-a-seam folder=/tmp/run-eval-adds-a-seam.Impl01 cost_usd=2.50 review=present act_on=1 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=1 unreadable=0 implementer_returns=2 implementer_not_green=0 implementer_out_of_brief=0
+run shape=opus case=adds-a-seam folder=/tmp/run-eval-adds-a-seam.Q3x9Lm cost_usd=4.12 review=present act_on=1 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=0 implementer_not_green=0 implementer_out_of_brief=0
+run shape=opus case=renames-a-field folder=/tmp/run-eval-renames-a-field.Op02Zz cost_usd=3.00 review=present act_on=1 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=0 implementer_not_green=0 implementer_out_of_brief=0
+EOF
+verdict_is "a failed check reads the verdict as fail before a missing case reads it as incomplete" verdict=fail 1 \
+  "check unexpected=fail implementer=1 opus=0"
+
+# On the passing input, each shape dispatched the Implementer as named, and the shape check says so.
+run <<'EOF'
+run shape=implementer case=adds-a-seam folder=/tmp/run-eval-adds-a-seam.Impl01 cost_usd=2.50 review=present act_on=1 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=2 implementer_not_green=0 implementer_out_of_brief=0
+run shape=opus case=adds-a-seam folder=/tmp/run-eval-adds-a-seam.Q3x9Lm cost_usd=4.12 review=present act_on=1 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=0 implementer_not_green=0 implementer_out_of_brief=0
+run shape=opus case=renames-a-field folder=/tmp/run-eval-renames-a-field.Op02Zz cost_usd=3.00 review=present act_on=1 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=0 implementer_not_green=0 implementer_out_of_brief=0
+run shape=implementer case=renames-a-field folder=/tmp/run-eval-renames-a-field.Impl02 cost_usd=2.10 review=present act_on=0 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=1 implementer_not_green=0 implementer_out_of_brief=0
+EOF
+verdict_is "shapes that ran as named pass the shape check and the verdict" verdict=pass 0 \
+  "check shape=pass opus_implementer_returns=0 implementer_implementer_returns=[0-9]+"
+
 [ "$fails" = 0 ]
