@@ -1884,4 +1884,15 @@ carries_each "the do-builder row says the brief carries the behaviour, the test 
   "brief" -- "behaviour" -- "test file" "test's file" -- "command" -- "files to edit" "files it edits" "file to edit" \
   -- "symbol" -- "signature" -- "seam" -- "typecheck" "type-check" "type check"
 
+# ADR 0091: the Reply never carries the per-fork lines nor `Planner/Builder: none`; they live in the
+# Run report, which only `--auto` writes. A row that sends a reader to the Reply for that line has
+# them read its absence as "the Builder was forked" when no fork could run.
+flat="$(tr -s ' ' <<<"$builder_row")"
+carries "the do-builder row says the Builder returns the lines the run records" "the lines the run records"
+out="$flat"
+absent "the do-builder row never says the Builder returns lines the Reply owes" "your Reply owes"
+absent "the do-builder row never puts the \`Planner/Builder: none\` line in the Reply" "Reply carries one \`Planner/Builder: none\`"
+flat="$(grep -oE '[^.]*Planner/Builder: none[^.]*' <<<"$out" | tr '\n' ' ')"
+before "the do-builder row's sentence on \`Planner/Builder: none\` puts that line in the Run report" "Run report" "Planner/Builder: none"
+
 exit $((fails > 0))
