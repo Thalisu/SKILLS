@@ -373,6 +373,21 @@ check "a case that unlinks a skill the sandbox never linked is red before any se
   "unlink-skill-unknown: 0 run, a skill it unlinks was never linked"
 expect "that case started no session" test "$(calls)" = 0
 
+# The command line can keep an agent out of every case of one invocation, on top of each case's own
+# context, the way a comparison runs one shape without an agent its cases do not name.
+reset
+STUB_TOUCH=made-by-run.txt run "$evals" walk unlink-skill --runs 1 --unlink-agent do-reader
+check "an invocation that unlinks an agent runs every case green" 0 "$rc" \
+  "walk: 1/1 green" "unlink-skill: 1/1 green"
+expect "the invocation ran one session per case" test "$(calls)" = 2
+expect "the first case's session lists no do-reader" grep -qF "reader=no" <<<"$(sed -n 1p "$STUB_DIR/calls")"
+expect "the second case's session lists no do-reader either" grep -qF "reader=no" <<<"$(sed -n 2p "$STUB_DIR/calls")"
+reset
+run "$evals" walk --runs 1 --unlink-agent no-such-agent
+check "an invocation that unlinks an agent the sandbox never linked is red before any session" 1 "$rc" \
+  "FAIL  walk: the case unlinks no-such-agent, which the sandbox never linked"
+expect "that invocation started no session" test "$(calls)" = 0
+
 # The session's own calls are few and are the ones a grader compares key by key, so the judge reads
 # them past the clip that bounds a subagent's many: a brief's last keys and a script's last lines.
 filler="$(head -c 2900 /dev/zero | tr '\0' a)"

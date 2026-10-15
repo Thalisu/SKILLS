@@ -3,6 +3,7 @@
 # as that command stays gated on this machine. Dev-only, for maintainers of this repo.
 #
 #   run-eval.sh <skill|evals folder> [<case> ...] [--runs N] [--model NAME] [--judge-model NAME] [--keep]
+#                 [--unlink-agent NAME]...
 #     <skill>             a skill of this repo by name, under skills/ or vendor/, or the path of an
 #                         evals folder
 #     <case>              the cases to run, by folder name; every case in the folder when none
@@ -10,6 +11,8 @@
 #     --model NAME        the model of the session under test (default: the CLI's own)
 #     --judge-model NAME  the model that reads an llm grader (default: sonnet)
 #     --keep              keeps the work folder of a green run too; a red run's is always kept
+#     --unlink-agent NAME keeps the agent NAME out of the sessions of every case, on top of each
+#                         case's own context.unlinked_agents; repeatable
 #
 # A case is <case>/case.yaml (runs, max_turns, timeout_seconds, allowed_tools, the
 # context.scaffold_script that lays the fixture in an empty folder, context.unlinked_agents,
@@ -48,18 +51,19 @@
 set -uo pipefail
 
 usage() {
-  echo "usage: run-eval.sh <skill|evals folder> [<case> ...] [--runs N] [--model NAME] [--judge-model NAME] [--keep]" >&2
+  echo "usage: run-eval.sh <skill|evals folder> [<case> ...] [--runs N] [--model NAME] [--judge-model NAME] [--keep] [--unlink-agent NAME]..." >&2
   exit 2
 }
 here="$(cd "$(dirname "$0")" && pwd -P)"
 repo="$(cd "$here/.." && pwd -P)"
-target=""; cases=(); runs_override=""; model=""; judge_model=sonnet; keep=no
+target=""; cases=(); runs_override=""; model=""; judge_model=sonnet; keep=no; unlink_agents=()
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --runs) [ "$#" -ge 2 ] || usage; runs_override="$2"; shift 2 ;;
     --model) [ "$#" -ge 2 ] || usage; model="$2"; shift 2 ;;
     --judge-model) [ "$#" -ge 2 ] || usage; judge_model="$2"; shift 2 ;;
     --keep) keep=yes; shift ;;
+    --unlink-agent) [ "$#" -ge 2 ] || usage; unlink_agents+=("$2"); shift 2 ;;
     -h|--help) awk 'NR > 1 && /^#/ { sub(/^# ?/, ""); print; next } NR > 1 { exit }' "$0"; exit 0 ;;
     -*) usage ;;
     *) if [ -z "$target" ]; then target="$1"; else cases+=("$1"); fi; shift ;;
@@ -264,7 +268,7 @@ for c in "${cases[@]}"; do
     if [ -L "$config/agents/$a.md" ] || [ -e "$config/agents/$a.md" ]; then
       mkdir -p "$sandbox/unlinked" && mv "$config/agents/$a.md" "$sandbox/unlinked/$a.md"
     else missing="$a"; missing_kind="an agent"; fi
-  done < <(yq -r '.context.unlinked_agents // [] | .[]' "$case_file")
+  done < <({ yq -r '.context.unlinked_agents // [] | .[]' "$case_file"; printf '%s\n' ${unlink_agents[@]+"${unlink_agents[@]}"}; } | awk '!seen[$0]++')
   while IFS= read -r s; do
     [ -n "$s" ] || continue
     if [ -L "$config/skills/$s" ] || [ -e "$config/skills/$s" ]; then
