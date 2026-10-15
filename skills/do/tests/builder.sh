@@ -394,8 +394,11 @@ expect "the hook lets the Builder dispatch do-implementer to write production co
 # rule from two layers below the session, against a Spec this fork never read, and the next Ticket
 # of the same feature would be free to rule the same fork the other way: two Rulings, one Spec, and
 # nothing in the run comparing them. `general-purpose` is the way around every other line of this
-# hook, since it holds the tools to fork anything itself.
-for forbidden in choice-taker general-purpose; do
+# hook, since it holds the tools to fork anything itself. `do-builder` would fork a Builder from a
+# Builder, a third layer ADR 0047 keeps out of reach. The names that only contain or extend
+# `do-implementer` hold whatever tools their own definitions grant, which the Builder's guards never
+# reach: `do-implementer` is admitted by its exact name and by nothing that resembles it.
+for forbidden in choice-taker general-purpose do-builder do-implementer-x implementer x-do-implementer; do
   forbidden_out="$(printf '{"tool_input": {"subagent_type": "%s"}}' "$forbidden" |
     sh -c "$builder_agent_hook" 2>/dev/null)"
   expect "the hook denies the Builder forking $forbidden" \
