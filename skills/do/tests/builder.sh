@@ -1026,6 +1026,38 @@ for edit in green seam fix refactor; do
     "Builder" -- "do-implementer" -- "dispatch"
 done
 
+echo "# skills/do/references/builder.md / ## The Implementer: the brief the Builder writes carries every key the Implementer reads"
+
+# The Implementer never explores and never decides where to write: a brief missing what the edit
+# needs comes back `OUT OF BRIEF` with nothing edited, and the cycle has paid a dispatch for no
+# edit. The keys are read off the Implementer's own `## Where you start`, so the brief the Builder
+# writes and the one the Implementer reads cannot drift apart.
+implementer="$here/../agents/do-implementer.md"
+mapfile -t implementer_keys < <(paragraph_with "$implementer" "The brief is one key per line" |
+  grep -oE '`[A-Z][A-Za-z ]*:`' | tr -d '`' | awk '!seen[$0]++')
+expect "do-implementer.md lists the brief keys it reads, to read them off" \
+  test "${#implementer_keys[@]}" -gt 1
+# shellcheck disable=SC2034  # lib.sh's check_lines reads $out
+out="$(blocks_of "$contract" "## The Implementer" | sed -nE 's/^([A-Z][A-Za-z ]*:).*/\1/p')"
+check_lines "the brief's block in \`## The Implementer\` opens a line on every key do-implementer.md reads" 0 0 \
+  "${implementer_keys[@]}"
+
+# A brief written from the Plan or from an earlier cycle names files and signatures the tree no
+# longer has, and the Implementer stops on them.
+flat="$(flat_section "$contract" "## The Implementer")"
+affirms "the Builder writes the brief from the tree as it stands at that cycle" \
+  "the tree" "the worktree" -- "that cycle" "this cycle" "each cycle" "every cycle" "the cycle"
+
+# `Where:` is what spares the Implementer the exploring: its block line, and every paragraph that
+# speaks of it, are read together, since the contract may say it in either.
+passage_of "$contract" "## The Implementer" "## " >"$stmp/implementer-section.md"
+flat="$({
+  blocks_of "$contract" "## The Implementer" | grep -E '^Where:'
+  paragraph_with "$stmp/implementer-section.md" '`Where:`' all
+} | tr '\n' ' ' | tr -s ' ')"
+carries_each "\`Where:\` names the files to edit, the symbols and signatures to create or change, and the seam when there is one" \
+  "file" -- "symbol" -- "signature" -- "seam"
+
 echo "# skills/do/references/builder.md, skills/do/agents/do-builder.md: work for another repository ends the Stretch on \`stopped\`"
 
 # A feature that spans repositories can hand the Builder a behaviour whose change belongs in a

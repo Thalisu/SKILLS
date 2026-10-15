@@ -312,6 +312,25 @@ the four it is.
 | `fix` | the production change a `HANDBACK` diagnosed as `production` asks for | step 2, before a fresh author is dispatched |
 | `refactor` | the refactor on green this behaviour's change calls for | step 4 |
 
+The Builder writes the brief from the tree as it stands at that cycle, since the behaviours
+committed before it have already moved the code the Plan's `## Map` describes. Every key is
+present, and one with nothing to say reads `none`:
+
+```
+Worktree: <the brief's Tree: path>
+Behaviour: <the Plan's behaviour line, verbatim>
+Edit: green | seam | fix | refactor
+Ask: <what has to hold once the edit is done>
+Test: <the test file the author wrote or extended>
+Run: <the project's single-file command over that file> | none
+Typecheck: <the project's typecheck command> | none
+Where: <the files to edit, the symbols and signatures to create or change, and the seam when there is one>
+Ruled out: <what an earlier attempt at this edit established does not work> | none
+```
+
+The Implementer never explores and never decides where to write, so `Where:` is the whole of its
+reach: a brief that leaves out a file the edit needs comes back `OUT OF BRIEF` with nothing edited.
+
 ## The flows
 
 After the feature exists, every criterion a user can observe gets its flow authored or extended,
