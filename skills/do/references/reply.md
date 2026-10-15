@@ -189,7 +189,7 @@ worktree line comes before the audit line and before the hand-over, shaped-by an
     no Plan: its list is the Ticket's acceptance criteria, never a Plan's `## Behaviours` section,
     each criterion verbatim with the commit beside it, off the `behaviour:` lines the fork
     returned.
-23. **Build lines.** Two kinds of line, the behaviours first:
+23. **Build lines.** Three kinds of line, the behaviours first:
     - One line per behaviour as it landed: the files the loop opened for it, the author's verdict
       and what was done with it, the commit, and, when the behaviour went to
       [tdd-fallback.md](tdd-fallback.md), the reason it did and the check that stood in.
@@ -198,6 +198,10 @@ worktree line comes before the audit line and before the hand-over, shaped-by an
       where none was, the reason it needed none or the empty command slot that stopped it. A
       criterion whose flow was skipped is read here or nowhere, since the close leaves it unticked
       and the diff carries no trace of a flow nobody wrote.
+    - Then the `fallback:` lines the Builder returned, copied unchanged, among them the one naming
+      why no Implementer was dispatched: `do-implementer` not linked, or its dispatch refused, so
+      the Builder wrote the production code itself. Without it the Reply reads as if the
+      Implementers wrote the code.
 24. **Answer lines.** In `refactoring`, each answer with its reason: the exit test's, with the
     developer's answer when the test failed, and a behaviour change the cleanup found, with its
     command.

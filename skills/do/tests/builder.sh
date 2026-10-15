@@ -962,6 +962,34 @@ carries_any "the home takes a criterion whose flow was skipped, with the reason 
   "the reason none" "its skip" "skipped" "the reason it was not" "the reason it did not" \
   "fallback:" "the \`fallback:\` line"
 
+echo "# skills/do/references/ticket.md, skills/do/references/reply.md: the Builder's \`fallback:\` lines reach the Reply, naming why no Implementer was dispatched"
+
+# A Builder that wrote the code itself, because `do-implementer` is not linked or its dispatch was
+# refused, says so on a `fallback:` line of its return. A session that routes `built` off the
+# `behaviour:`, `build:` and `flow:` lines alone drops that line, and the developer reads a Reply in
+# which the Implementers wrote the code: the run's cost and ADR 0090's eval are then read against a
+# shape the run never had. The route copies the line as returned, the way it copies the others.
+# The `built` bullet is scoped from the route's own opening line, so a `built` elsewhere in the
+# Playbook never answers for it.
+flat="$(bullets_opening_on <(passage_of "$playbook" "Route on the first line:" "## ") "\`built\`:" | head -n 1)"
+expect "the Playbook routes the Builder's \`built\` return" test -n "$flat"
+carries_each "the \`built\` route copies the returned \`fallback:\` lines into the Reply unchanged" \
+  "\`fallback:\`" "fallback:" -- "Reply" "Run section" -- \
+  "unchanged" "verbatim" "never composed" "as returned" "as the Builder returned"
+
+# The Run list is where the copied line lands. Its home is found by the Implementer it speaks of,
+# not by its number, so folding it into the Build lines and giving it an item of its own both count;
+# the Planner's fallbacks in the Plan line carry no Implementer and never answer for it.
+implementer_item="$(item_holding <(passage_of "$reply" "## Run" "## Sections") '[0-9]+\.' "mplementer")"
+expect "the Run list carries a home for the Builder's lines on the Implementer" test -n "$implementer_item"
+flat="$(tr '\n' ' ' <<<"$implementer_item" | tr -s ' ')"
+carries_each "the home takes the Builder's \`fallback:\` lines with the reason no Implementer was dispatched" \
+  "fallback:" "fallback\` line" "fallback line" -- \
+  "Builder" "the build returned" "the fork returned" -- \
+  "not linked" "isn't linked" "is unlinked" "not installed" "no \`do-implementer\`" -- \
+  "dispatch is refused" "dispatch refused" "refuses the dispatch" "refused dispatch" "is refused" \
+  "was refused" "is denied" "denies the dispatch" "dispatch denied"
+
 echo "# skills/do/agents/do-builder.md: the fork's own definition binds it to that same return"
 
 # The fork reads its own definition and may never open the contract: a definition with nothing on
