@@ -19,13 +19,22 @@ awk '
     s = field["shape"]
     runs_of[s, field["case"]]++
     cases[field["case"]] = 1
+    runs[s]++
     if (field["cost_usd"] == "absent" || field["review"] != "present" || field["act_on"] == "absent" || field["built"] < 1) incomplete_runs++
+    else complete[s]++
     cost[s] += field["cost_usd"]
     act_on[s] += field["act_on"]
     unexpected[s] += field["unexpected_stopped"] + field["unexpected_fork"] + field["unreadable"]
     implementer_returns[s] += field["implementer_returns"]
+    not_green[s] += field["implementer_not_green"]
+    out_of_brief[s] += field["implementer_out_of_brief"]
   }
   END {
+    for (n = 1; n <= 2; n++) {
+      s = n == 1 ? "opus" : "implementer"
+      printf "total shape=%s runs=%d complete=%d cost_usd=%.2f act_on=%d unexpected=%d implementer_returns=%d implementer_not_green=%d implementer_out_of_brief=%d\n", s, runs[s], complete[s], cost[s], act_on[s], unexpected[s], implementer_returns[s], not_green[s], out_of_brief[s]
+    }
+
     check_shape = implementer_returns["opus"] == 0 && implementer_returns["implementer"] > 0 ? "pass" : "fail"
     printf "check shape=%s opus_implementer_returns=%d implementer_implementer_returns=%d\n", check_shape, implementer_returns["opus"], implementer_returns["implementer"]
 

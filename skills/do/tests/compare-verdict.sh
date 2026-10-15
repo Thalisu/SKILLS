@@ -215,4 +215,26 @@ EOF
 verdict_is "shapes that ran as named pass the shape check and the verdict" verdict=pass 0 \
   "check shape=pass opus_implementer_returns=0 implementer_implementer_returns=[0-9]+"
 
+# The maintainer copies each shape's totals into the Ticket's Evidence and raises the Implementer
+# only when they show it stopping. Every sum differs from its neighbours, and unexpected mixes
+# stopped, fork and unreadable so a sum that drops one kind shows (opus 2+2=4, implementer 2+1=3).
+# The Implementer's NOT GREEN and out-of-brief returns leave the passing verdict as it is.
+run <<'EOF'
+run shape=implementer case=adds-a-seam folder=/tmp/run-eval-adds-a-seam.Impl01 cost_usd=2.50 review=present act_on=1 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=1 unexpected_fork=0 unreadable=1 implementer_returns=6 implementer_not_green=4 implementer_out_of_brief=1
+run shape=opus case=adds-a-seam folder=/tmp/run-eval-adds-a-seam.Q3x9Lm cost_usd=4.12 review=present act_on=2 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=1 unexpected_fork=1 unreadable=0 implementer_returns=0 implementer_not_green=0 implementer_out_of_brief=0
+run shape=opus case=renames-a-field folder=/tmp/run-eval-renames-a-field.Op02Zz cost_usd=3.00 review=present act_on=1 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=2 implementer_returns=0 implementer_not_green=0 implementer_out_of_brief=0
+run shape=implementer case=renames-a-field folder=/tmp/run-eval-renames-a-field.Impl02 cost_usd=2.10 review=present act_on=0 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=1 unreadable=0 implementer_returns=3 implementer_not_green=1 implementer_out_of_brief=1
+EOF
+want_totals="total shape=opus runs=2 complete=2 cost_usd=7.12 act_on=3 unexpected=4 implementer_returns=0 implementer_not_green=0 implementer_out_of_brief=0
+total shape=implementer runs=2 complete=2 cost_usd=4.60 act_on=1 unexpected=3 implementer_returns=9 implementer_not_green=5 implementer_out_of_brief=2"
+totals="$(sed '/^check /,$d' <<<"$out")"
+last="$(tail -n 1 <<<"$out")"
+if [ "$rc" = 0 ] && [ "$last" = "verdict=pass" ] && [ "$totals" = "$want_totals" ]; then
+  ok "each shape's totals print as two lines, opus first, before the check lines, and NOT GREEN returns leave the verdict passing"
+else
+  fail "each shape's totals print as two lines, opus first, before the check lines, and NOT GREEN returns leave the verdict passing (exit $rc, wanted 0; last line: $last, wanted verdict=pass; wanted before the check lines exactly:"$'\n'"$want_totals)"
+  dump_out
+  [ -n "$err" ] && echo "      stderr: ${err//$'\n'/$'\n'      }"
+fi
+
 [ "$fails" = 0 ]
