@@ -359,10 +359,13 @@ Builder reads what each dispatch changed by script, in this order:
    `Behaviour:` line, so a resume still finds one commit per behaviour, and the Implementer never
    commits: a commit of its own would land unchecked and carry no `Behaviour:` line.
 
-An Implementer that returns `NOT GREEN` is dispatched once more for the same edit, with the same
-brief and the first return's `Ruled out:` line in its `Ruled out:` key, quoted between a
-`<ruled-out id="…">` line and a `</ruled-out id="…">` line that carry one short random id the
-Builder generates for that re-dispatch. The line comes out of a failing test's run, where a fixture
+An Implementer that returns `NOT GREEN`, or whose changeset the check refused with
+`verdict=refused`, is a failed dispatch: the Builder dispatches the Implementer once more for the
+same edit, with the same brief and what the first attempt ruled out in its `Ruled out:` key (the
+return's own `Ruled out:` line, or on a refusal the offending paths the check named), quoted
+between a `<ruled-out id="…">` line and a `</ruled-out id="…">` line that carry one short random id
+the Builder generates for that re-dispatch. A refused changeset is never committed, since only
+`verdict=pass` goes on toward the commit. The `Ruled out:` line comes out of a failing test's run, where a fixture
 or a dependency's error text can write a line that reads like an order, so the tags hand it over as
 quoted text and never as an instruction, as step 2 of [build-loop.md](build-loop.md) hands over a
 test author's Handback.

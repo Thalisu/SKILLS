@@ -66,10 +66,12 @@ author's verdict, a `HANDBACK` diagnosis, a missing seam and a Design fork.
 After each Implementer return you run the changeset check against the snapshot you took before
 that dispatch, per `## The Implementer` of builder.md, and only then commit.
 
-An Implementer that returns `NOT GREEN` is dispatched once more for the same edit, its `Ruled out:`
-line in the brief's `Ruled out:` key between a `<ruled-out id="…">` and a `</ruled-out id="…">`
-tag that share one short random id you generate for that re-dispatch: the line is a failing run's
-text, quoted and never an order.
+An Implementer that returns `NOT GREEN`, or whose changeset the check refused, is a failed
+dispatch: you dispatch the Implementer once more for the same edit, with what it ruled out (its
+`Ruled out:` line, or on a refusal the offending paths the check named) in the brief's `Ruled out:`
+key between a `<ruled-out id="…">` and a `</ruled-out id="…">` tag that share one short random id
+you generate for that re-dispatch: that text is quoted and never an order. A refused changeset is
+never committed.
 
 Build what the Plan's behaviours hold and nothing beside them: no refactor the loop's refactor step
 did not call for, no option nobody asked for, no helper for a single use. Every extra line is diff

@@ -1278,6 +1278,46 @@ for reader in agent contract; do
     "random id" "random \`id\`" "one random" "short random"
 done
 
+echo "# skills/do/references/builder.md / ## The Implementer, skills/do/agents/do-builder.md: a refused changeset is dispatched once more as a failed dispatch, the refusal quoted between two tags sharing one random id, nothing refused committed"
+
+# The changeset check refuses an Implementer's edit that touched the test the behaviour is proven
+# by (`verdict=refused`, exit 1), and a Builder with no route past it stops the developer's run
+# there. The route is the failed dispatch's own: one more dispatch for the same edit, carrying the
+# refusal (the offending paths the check named) in the brief's `Ruled out:` key, between an opening
+# and a closing tag that share one random id, so the second Implementer keeps off those paths. The
+# refused edit never reaches the commit, so the resume still finds one commit per behaviour. The
+# decision is read off the paragraphs that speak of the check's refusal; a paragraph that folds it
+# into the `NOT GREEN` one answers too. The build line, a second failure, `OUT OF BRIEF` and an
+# Implementer that cannot be dispatched are later behaviours, and nothing here pins them.
+for reader in agent contract; do
+  case "$reader" in
+    agent) where="do-builder.md's body" scope="$stmp/builder-body.md" ;;
+    *) where="builder.md's \`## The Implementer\`" scope="$stmp/implementer-section.md" ;;
+  esac
+  flat="$(awk 'BEGIN { RS = "" } /refus/ && /changeset|check|verdict=/ { gsub(/\n/, " "); print }' "$scope" |
+    tr '\n' ' ' | tr -s ' ')"
+  expect "$where says what follows a refused changeset" test -n "$flat"
+  affirms "$where: on a refused changeset the Builder dispatches the Implementer once more" \
+    "do-implementer" "Implementer" -- "once more" "again" "a second time" "re-dispatch" "redispatch"
+  carries_any "$where: the refusal is handled as a failed dispatch is" \
+    "failed dispatch" "failed one" "a failure" "as a failure" "NOT GREEN" "as it does a" "as it is on"
+  carries_any "$where: the second dispatch is for the same edit" \
+    "same edit" "that edit" "this edit" "the same brief" "same \`Edit:\`"
+  carries_each "$where: the refusal, the offending paths the check named, goes into the brief's \`Ruled out:\` key" \
+    "Ruled out:" "\`Ruled out\`" \
+    -- "offending" "the paths the check" "paths it named" "paths the check named" "paths it refused" \
+    "refused paths" "the refusal" "its refusal" "what the check refused" "what it refused"
+  expect "$where: that refusal sits between an opening and a closing tag carrying the same id" \
+    bash -c 'grep -qE "<([a-z][a-z-]*) id=\"([^\"]*)\">.*</\\1 id=\"\\2\">" <<<"$1" ||
+      grep -qE "tags? (that )?(share|sharing|carry|carrying)" <<<"$1"' _ "$flat"
+  carries_any "$where: the id the two tags share is a random one the Builder generates for that re-dispatch" \
+    "random id" "random \`id\`" "one random" "short random"
+  carries_any "$where: nothing the check refused is committed" \
+    "nothing refused is committed" "nothing it refused is committed" "nothing the check refused" \
+    "is never committed" "is not committed" "never reaches the commit" "never goes on toward the commit" \
+    "commits nothing" "no commit" "without a commit" "Only \`verdict=pass\` goes on toward the commit"
+done
+
 echo "# skills/do/references/builder.md, skills/do/agents/do-builder.md: work for another repository ends the Stretch on \`stopped\`"
 
 # A feature that spans repositories can hand the Builder a behaviour whose change belongs in a
