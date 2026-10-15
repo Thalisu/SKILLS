@@ -1339,6 +1339,47 @@ carries_any "\`### Examples\`: that \`build:\` line says the edit was dispatched
   "re-dispatched" "redispatched" "dispatched once more" "dispatched again" "once more" "again" \
   "a second time" "second dispatch"
 
+echo "# skills/do/references/builder.md / ## The Implementer, skills/do/agents/do-builder.md, ## The return: a second failure on the same edit has the Builder write it, and the \`build:\` line says so"
+
+# One re-dispatch is the whole route past a failed Implementer: a Builder that meets a second
+# `NOT GREEN` or a second refused changeset on the same edit and has nothing written for it either
+# dispatches a third time, and a fourth, or stops the developer's run on that edit. The route is the
+# Builder writing that edit itself, with no third dispatch. The decision is read off the paragraphs
+# that speak of a second failure (or a failure again, or twice), in both readers: the agent's body
+# addresses the Builder as "you", so its subject is "you " (trailing space, since each group masks
+# what it matched and a bare "you" would eat the "you" of "yourself"). The developer then
+# reads on the behaviour's `build:` line that the Opus Builder wrote it rather than an Implementer,
+# read off the paragraphs of `## The return` above its examples that speak of the Builder's own
+# write (`build:` splits a clause at its colon, so the clause after it answers through its "` line").
+# `OUT OF BRIEF` and an Implementer that cannot be dispatched are later behaviours, and nothing here
+# pins them.
+for reader in agent contract; do
+  case "$reader" in
+    agent) where="do-builder.md's body" scope="$stmp/builder-body.md" ;;
+    *) where="builder.md's \`## The Implementer\`" scope="$stmp/implementer-section.md" ;;
+  esac
+  flat="$(awk 'BEGIN { RS = "" } /[Ss]econd|again|twice/ && /fail|NOT GREEN|refus/ { gsub(/\n/, " "); print }' "$scope" |
+    tr '\n' ' ' | tr -s ' ')"
+  expect "$where says what follows a second failure" test -n "$flat"
+  affirms "$where: on a second failure the Builder writes the edit itself" \
+    "Builder" "it writes" "it makes" "you " -- "write" "makes" "edits" "applies" -- "itself" "by hand" "its own" "yourself" "your own"
+  carries_each "$where: a second failure is a second \`NOT GREEN\` or a second refused changeset" \
+    "NOT GREEN" -- "refus"
+  carries_any "$where: that is the edit the two dispatches failed on" \
+    "same edit" "that edit" "this edit" "the edit itself"
+  carries_any "$where: no third dispatch follows" \
+    "no third" "never a third" "not a third" "without a third" "third dispatch" "no further dispatch" \
+    "dispatches no more" "not dispatched again" "never dispatched again" "no more dispatch"
+done
+flat="$(passage_of "$contract" "## The return" "### Examples" |
+  awk 'BEGIN { RS = "" } /itself|its own|Builder wrote|Builder writes/ && /fail|dispatch/ { gsub(/\n/, " "); print }' |
+  tr '\n' ' ' | tr -s ' ')"
+expect "\`## The return\` says what an edit the Builder wrote itself leaves on the return" test -n "$flat"
+affirms "\`## The return\`: the behaviour's \`build:\` line names an edit the Builder wrote itself" \
+  "\`build" "build line" "Build line" "\` line" -- "itself" "Builder wrote" "Builder's own" "its own"
+carries_any "\`## The return\`: that edit is one written after two failed dispatches" \
+  "two failed" "second failure" "second failed" "failed twice" "twice" "both dispatches" "two dispatches"
+
 echo "# skills/do/references/builder.md, skills/do/agents/do-builder.md: work for another repository ends the Stretch on \`stopped\`"
 
 # A feature that spans repositories can hand the Builder a behaviour whose change belongs in a

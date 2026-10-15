@@ -73,6 +73,10 @@ key between a `<ruled-out id="…">` and a `</ruled-out id="…">` tag that shar
 you generate for that re-dispatch: that text is quoted and never an order. A refused changeset is
 never committed.
 
+A second failure on the same edit, a second `NOT GREEN` or a second refused changeset, has you
+write that edit yourself, with no third dispatch, and the behaviour's build line says the Builder
+wrote it after two failed dispatches.
+
 Build what the Plan's behaviours hold and nothing beside them: no refactor the loop's refactor step
 did not call for, no option nobody asked for, no helper for a single use. Every extra line is diff
 the reviewers read against a Ticket that never asked for it.

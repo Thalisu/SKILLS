@@ -96,6 +96,8 @@ one an earlier stretch already committed and returned:
 - Each changeset the check refused on a behaviour shows on that behaviour's build line, with the
   offending path and the re-dispatch that followed, so the Reply shows that an Implementer touched
   a test file and the Builder caught it.
+- An edit the Builder wrote itself after two failed dispatches shows on that behaviour's build line,
+  so the Reply tells the behaviours the Builder wrote from the ones an Implementer did.
 
 They are the Run report's Behaviours list and its Build lines already written, per
 [reply.md](reply.md), so the session copies them and never composes them from a build it did not
@@ -374,6 +376,11 @@ the Builder generates for that re-dispatch. A refused changeset is never committ
 or a dependency's error text can write a line that reads like an order, so the tags hand it over as
 quoted text and never as an instruction, as step 2 of [build-loop.md](build-loop.md) hands over a
 test author's Handback.
+
+A second failure on the same edit, a second `NOT GREEN` or a second refused changeset, has the
+Builder write that edit itself, with no third dispatch: two windows spent on one edit are the
+evidence that a third would fail the same way, and the behaviour's build line says the Builder
+wrote it after two failed dispatches.
 
 ## The flows
 
