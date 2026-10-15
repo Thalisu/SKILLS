@@ -30,13 +30,18 @@ act_on_of() { # $1 spec.review.md: the Findings raised under `## Act on`, settle
 agent_returns() { # $1 work folder: one `<subagent_type>\t<kind>` line per distinct Agent tool_use_id
   # A forked agent's result shows in the session's transcript and again in its subagent file, so
   # dispatches and results are joined by tool_use_id across every file and each id counts once.
+  # A do-implementer dispatch the harness refused (an error result) or that came back with no
+  # Verdict line never ran an Implementer, so it is no return: an opus-shape Builder that fell back
+  # must read implementer_returns=0.
   cat "$1/transcript.jsonl" "$1"/subagents/agent-*.jsonl 2>/dev/null | jq -Rnr '
     [inputs | fromjson? // empty | .message.content? | arrays | .[]] as $items
     | ($items | map(select(.type == "tool_use" and (.name == "Agent" or .name == "Task")) | {key: .id, value: (.input.subagent_type // "")}) | from_entries) as $dispatched
     | ($items | map(select(.type == "tool_result")
         | {key: .tool_use_id, value: (if (.content | type) == "string" then .content else ([.content[]? | .text? // empty] | join("\n")) end)})
         | from_entries) as $returned
+    | ($items | map(select(.type == "tool_result") | {key: .tool_use_id, value: (.is_error == true)}) | from_entries) as $errored
     | $returned | to_entries[] | select($dispatched[.key] == "do-builder" or $dispatched[.key] == "do-implementer")
+    | .key as $id
     | $dispatched[.key] as $agent
     | (.value | split("\n")) as $lines
     | if $agent == "do-builder" then
@@ -47,7 +52,8 @@ agent_returns() { # $1 work folder: one `<subagent_type>\t<kind>` line per disti
           else "unreadable" end)
       else
         ([$lines[] | select(startswith("Verdict:")) | sub("^Verdict:"; "") | gsub("^\\s+|\\s+$"; "")][0] // "") as $verdict
-        | "do-implementer\t" + (if $verdict == "GREEN" or $verdict == "NOT GREEN" or $verdict == "OUT OF BRIEF" then $verdict else "unreadable" end)
+        | if $errored[$id] == true or $verdict == "" then empty
+          else "do-implementer\t" + (if $verdict == "GREEN" or $verdict == "NOT GREEN" or $verdict == "OUT OF BRIEF" then $verdict else "unreadable" end) end
       end'
 }
 

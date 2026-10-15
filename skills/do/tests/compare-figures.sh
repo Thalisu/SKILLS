@@ -159,4 +159,36 @@ carries "each Implementer return counts by its Verdict line, a NOT GREEN the ret
   "$implemented" implementer_returns=4 implementer_not_green=1 implementer_out_of_brief=1 \
   builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0
 
+fell_back="$(work_folder adds-a-seam)"
+agent_call_transcript do-builder "$fell_back" "" "" "Build the seam."
+cat >>"$fell_back/transcript.jsonl" <<'EOF'
+{"type":"user","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"t1","content":"built\nbehaviour: pages the note list | 3f2a91c\nbuild: added"}]}}
+{"type":"result","subtype":"success","result":"done","total_cost_usd":4.80}
+EOF
+mkdir -p "$fell_back/subagents"
+cat >"$fell_back/subagents/agent-c9e2f4.jsonl" <<'EOF'
+{"type":"assistant","isSidechain":true,"agentId":"c9e2f4","message":{"content":[{"type":"tool_use","id":"i1","name":"Agent","input":{"description":"x","subagent_type":"do-implementer","prompt":"Make the page test green."}}]}}
+{"type":"user","isSidechain":true,"agentId":"c9e2f4","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"i1","is_error":true,"content":"Agent type 'do-implementer' not found. Available agents: general-purpose, do-builder"}]}}
+EOF
+carries "a do-implementer dispatch the harness refused is no Implementer return, so an opus run whose Builder fell back reads none" \
+  "$fell_back" implementer_returns=0 implementer_not_green=0 implementer_out_of_brief=0 \
+  builder_returns=1 built=1 unreadable=0
+
+unverdicted="$(work_folder adds-a-seam)"
+agent_call_transcript do-builder "$unverdicted" "" "" "Build the seam."
+cat >>"$unverdicted/transcript.jsonl" <<'EOF'
+{"type":"user","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"t1","content":"built\nbehaviour: pages the note list | 3f2a91c\nbuild: added"}]}}
+{"type":"result","subtype":"success","result":"done","total_cost_usd":4.95}
+EOF
+mkdir -p "$unverdicted/subagents"
+cat >"$unverdicted/subagents/agent-d3a7b8.jsonl" <<'EOF'
+{"type":"assistant","isSidechain":true,"agentId":"d3a7b8","message":{"content":[{"type":"tool_use","id":"i1","name":"Agent","input":{"description":"x","subagent_type":"do-implementer","prompt":"Make the page test green."}}]}}
+{"type":"user","isSidechain":true,"agentId":"d3a7b8","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"i1","content":[{"type":"text","text":"I could not finish the change."}]}]}}
+{"type":"assistant","isSidechain":true,"agentId":"d3a7b8","message":{"content":[{"type":"tool_use","id":"i2","name":"Agent","input":{"description":"x","subagent_type":"do-implementer","prompt":"Make the page test green."}}]}}
+{"type":"user","isSidechain":true,"agentId":"d3a7b8","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"i2","content":"Verdict: GREEN\nChanged: src/notes.js"}]}}
+EOF
+carries "a do-implementer answer with no Verdict line is no Implementer return, while a GREEN return beside it still counts" \
+  "$unverdicted" implementer_returns=1 implementer_not_green=0 implementer_out_of_brief=0 \
+  builder_returns=1 built=1 unreadable=0
+
 [ "$fails" = 0 ]
