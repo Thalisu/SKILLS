@@ -1346,6 +1346,40 @@ for reader in agent contract; do
     "commits nothing" "no commit" "without a commit" "Only \`verdict=pass\` goes on toward the commit"
 done
 
+echo "# skills/do/references/builder.md / ## The Implementer, skills/do/agents/do-builder.md: a refused changeset's offending paths are put back as the first snapshot read them before the Implementer is dispatched again, so no commit carries a test file the check refused"
+
+# The re-dispatch takes its own step 1 snapshot, so a test file the first Implementer bent and
+# nobody put back is that snapshot's baseline: the second changeset check prints `verdict=pass`
+# over it and the bent test is committed with the behaviour. Leaving the refused changeset out of
+# the commit is not enough, the offending paths have to read as they did at the edit's first
+# snapshot before the next dispatch. Read off the same paragraphs as the case above.
+for reader in agent contract; do
+  case "$reader" in
+    agent) where="do-builder.md's body" scope="$stmp/builder-body.md" ;;
+    *) where="builder.md's \`## The Implementer\`" scope="$stmp/implementer-section.md" ;;
+  esac
+  flat="$(awk 'BEGIN { RS = "" } /refus/ && /changeset|check|verdict=/ { gsub(/\n/, " "); print }' "$scope" |
+    tr '\n' ' ' | tr -s ' ')"
+  expect "$where says what follows a refused changeset" test -n "$flat"
+  carries_each "$where: the offending paths the check named are put back as they read at the edit's first snapshot" \
+    "puts back" "put back" "puts every" "puts each" "restore" "restoring" "resets" "reset" "reverts" \
+    "reads as it did" "read as it did" "read as they did" \
+    -- "offending" "the paths the check named" "paths it named" "refused paths" "every path the check" \
+    "each path the check" \
+    -- "first snapshot" "first dispatch's snapshot" "snapshot taken before the first" "as it read before" \
+    "as they read before" "as it did before" "as they did before" "reads as it did" "read as it did" \
+    "read as they did"
+  carries_any "$where: the offending paths are put back before the Implementer is dispatched again" \
+    "before it dispatches" "before the re-dispatch" "before re-dispatching" "before it re-dispatches" \
+    "before any re-dispatch" "before that re-dispatch" "before the next dispatch" "before the second dispatch" \
+    "before dispatching" "before the Implementer is dispatched" "before you dispatch" "before you re-dispatch" \
+    "only then dispatches" "only then re-dispatches" "only then dispatch"
+  carries_any "$where: so no commit of the behaviour carries a test file the check refused" \
+    "no commit carries" "no commit of the behaviour carries" "carries no test file" "never carries a test" \
+    "no refused test file" "test file the check refused" "test the check refused" "refused test file" \
+    "refused test is never committed" "refused test is not committed"
+done
+
 echo "# skills/do/references/builder.md / ## The return: a refused changeset shows on that behaviour's \`build:\` line"
 
 # The developer reads the Reply's Build lines, copied out of the return unchanged, and nothing else

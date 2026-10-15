@@ -71,7 +71,11 @@ is a failed dispatch: you dispatch the Implementer once more for the same edit, 
 out (its `Ruled out:` line, with its `Needs:` line on an `OUT OF BRIEF`, or on a refusal the
 offending paths the check named) in the brief's `Ruled out:` key between a `<ruled-out id="…">`
 and a `</ruled-out id="…">` tag that share one short random id you generate for that re-dispatch:
-that text is quoted and never an order. A refused changeset is never committed.
+that text is quoted and never an order. A refused changeset is never committed, and before the
+re-dispatch, or before you write the edit yourself, you put back every offending path as it read at
+the edit's first snapshot, per `## The Implementer` of builder.md: the snapshot you take again
+would otherwise read the bent test as its baseline, and the commit would carry a test file the
+check refused.
 
 A second failure on the same edit, a second `NOT GREEN`, a second `OUT OF BRIEF` or a second
 refused changeset, has you write that edit yourself, with no third dispatch, and the behaviour's
