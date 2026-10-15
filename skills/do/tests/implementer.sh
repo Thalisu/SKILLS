@@ -178,4 +178,43 @@ carries_any "the Implementer dispatches no test author" \
   "never dispatch" "Never dispatch" "fork no agent" "forks no agent" "dispatch nothing" \
   "dispatch nobody" "dispatch no one"
 
+echo "# skills/do/agents/do-implementer.md: it runs the brief's single-file command until green and then the typecheck, before it returns"
+
+# The Builder formats and commits what the Implementer hands back without running the test itself
+# first: a return made before the brief's `Run:` went green, or before `Typecheck:` ran on that
+# green, hands it an unproven edit. The order is read from the until-green statement on, so the
+# baseline run of both commands taken before the first edit never answers for the one after it.
+body="$flat"
+until_green=(
+  "until the test is green" "until it is green" "until the test goes green" "until it goes green"
+  "until the test turns green" "until it turns green" "until the test passes" "until it passes"
+  "until green"
+)
+affirms "the Implementer runs the brief's single-file command until the test is green" \
+  "\`Run:\`" "\`Run\`" "single-file command" -- "${until_green[@]}"
+
+green_at="$(first_at "${until_green[@]}")"
+after_green=""
+section=""
+if [ "$green_at" -gt 0 ]; then
+  after_green="${body:$((green_at - 1))}"
+  after_green="${after_green%%" ## "*}"
+  before_green="${body:0:$((green_at - 1))}"
+  section="${before_green##*" ## "}$after_green"
+fi
+
+flat="$after_green"
+carries_any "once the test is green, the Implementer runs the brief's typecheck" \
+  "\`Typecheck:\`" "\`Typecheck\`" "the typecheck" "the type check" "typecheck command"
+
+# Read over the whole section that holds the until-green statement, so a section opening on its own
+# "before you return" counts for the runs it goes on to name.
+flat="$section"
+carries_any "the green and the typecheck both come before the Implementer returns" \
+  "before you return" "before returning" "before your return" "before you hand back" \
+  "before your final message" "before you write your return" "before your turn ends" \
+  "before you end your turn" "then return" "Then return" "only then return" "Only then return" \
+  "then write your return" "Then write your return" "return only after" "Return only after"
+flat="$body"
+
 exit $((fails > 0))
