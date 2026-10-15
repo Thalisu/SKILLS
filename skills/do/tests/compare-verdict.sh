@@ -72,4 +72,39 @@ else
   [ -n "$err" ] && echo "      stderr: ${err//$'\n'/$'\n'      }"
 fi
 
+# The Implementer shape raises no more Act on Findings and adds no unexpected return, but costs the
+# same in total (2.10 + 2.50 against 1.60 + 3.00, both 4.60): moving the pin buys no saving, so an
+# equal cost fails the verdict. The per-run figures differ so that only the decimal totals tie.
+run <<'EOF'
+run shape=implementer case=adds-a-seam folder=/tmp/run-eval-adds-a-seam.Impl01 cost_usd=2.10 review=present act_on=1 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=2 implementer_not_green=0 implementer_out_of_brief=0
+run shape=opus case=adds-a-seam folder=/tmp/run-eval-adds-a-seam.Q3x9Lm cost_usd=1.60 review=present act_on=1 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=0 implementer_not_green=0 implementer_out_of_brief=0
+run shape=opus case=renames-a-field folder=/tmp/run-eval-renames-a-field.Op02Zz cost_usd=3.00 review=present act_on=1 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=0 implementer_not_green=0 implementer_out_of_brief=0
+run shape=implementer case=renames-a-field folder=/tmp/run-eval-renames-a-field.Impl02 cost_usd=2.50 review=present act_on=0 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=1 implementer_not_green=0 implementer_out_of_brief=0
+EOF
+last="$(tail -n 1 <<<"$out")"
+if [ "$rc" = 1 ] && [ "$last" = "verdict=fail" ] && grep -qxF -- "check cost=fail implementer=4.60 opus=4.60" <<<"$out"; then
+  ok "an Implementer shape that costs the same as the Opus-only shape fails the verdict and names the cost check"
+else
+  fail "an Implementer shape that costs the same as the Opus-only shape fails the verdict and names the cost check (exit $rc, wanted 1; last line: $last; wanted the line: check cost=fail implementer=4.60 opus=4.60)"
+  dump_out
+  [ -n "$err" ] && echo "      stderr: ${err//$'\n'/$'\n'      }"
+fi
+
+# The Implementer shape raises no more Act on Findings and adds no unexpected return, but costs more
+# in total (5.60 against 4.60): a shape that raises the bill must not ship.
+run <<'EOF'
+run shape=opus case=adds-a-seam folder=/tmp/run-eval-adds-a-seam.Q3x9Lm cost_usd=1.60 review=present act_on=1 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=0 implementer_not_green=0 implementer_out_of_brief=0
+run shape=implementer case=adds-a-seam folder=/tmp/run-eval-adds-a-seam.Impl01 cost_usd=3.10 review=present act_on=1 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=2 implementer_not_green=0 implementer_out_of_brief=0
+run shape=opus case=renames-a-field folder=/tmp/run-eval-renames-a-field.Op02Zz cost_usd=3.00 review=present act_on=1 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=0 implementer_not_green=0 implementer_out_of_brief=0
+run shape=implementer case=renames-a-field folder=/tmp/run-eval-renames-a-field.Impl02 cost_usd=2.50 review=present act_on=1 builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0 implementer_returns=1 implementer_not_green=0 implementer_out_of_brief=0
+EOF
+last="$(tail -n 1 <<<"$out")"
+if [ "$rc" = 1 ] && [ "$last" = "verdict=fail" ] && grep -qxF -- "check cost=fail implementer=5.60 opus=4.60" <<<"$out"; then
+  ok "an Implementer shape that costs more than the Opus-only shape fails the verdict and names the cost check"
+else
+  fail "an Implementer shape that costs more than the Opus-only shape fails the verdict and names the cost check (exit $rc, wanted 1; last line: $last; wanted the line: check cost=fail implementer=5.60 opus=4.60)"
+  dump_out
+  [ -n "$err" ] && echo "      stderr: ${err//$'\n'/$'\n'      }"
+fi
+
 [ "$fails" = 0 ]
