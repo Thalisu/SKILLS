@@ -98,3 +98,16 @@ fill the window the dispatch exists to keep empty.
 Verdict: GREEN
 Changed: src/export/markdown.ts, src/export/job.ts
 ```
+
+A return without a green, `NOT GREEN` and `OUT OF BRIEF` alike, adds a third line, `Ruled out:`:
+one line naming what the attempt established does not make the test green. The Builder dispatches
+once more with that line in the brief's `Ruled out:` key, so the second attempt does not buy the
+same failed experiment again. An `OUT OF BRIEF` return adds a fourth line, `Needs:`: one line
+naming the edit or the fact the brief does not grant (a test file that must change, a path outside
+`Where:`, a test already green before the edit, a working directory that is not `Worktree:`).
+
+```
+Verdict: NOT GREEN
+Changed: src/export/markdown.ts
+Ruled out: escaping the heading in renderTitle alone, the test still reads the title cut at 80
+```

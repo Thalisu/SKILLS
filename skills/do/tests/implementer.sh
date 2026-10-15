@@ -237,6 +237,38 @@ carries_any "the Implementer's return never carries the diff" \
   "not the diff" "never include the diff" "Never include the diff" "never paste the diff" \
   "Never paste the diff" "without the diff" "never carries the diff" "leave the diff out" \
   "Leave the diff out" "the diff stays out"
+
+# The Builder dispatches a failed attempt once more with this line under the brief's `Ruled out:`
+# key, and writes the change itself after a second failure: a return without it leaves the second
+# dispatch to buy the same failed experiment again.
+carries "the Implementer's return names a Ruled out: line" "Ruled out:"
+
+# Read over the paragraphs that name the line, so a `Ruled out:` in a sentence about something else
+# never answers for the verdicts that must carry it.
+flat="$(passage_of "$agent" "## What you return" "## " | paragraph_with /dev/stdin "Ruled out:" all |
+  tr '\n' ' ' | tr -s ' ')"
+without_green=(
+  "without a green" "without a \`GREEN\`" "short of green" "short of \`GREEN\`"
+  "any verdict but" "every verdict but" "any return but" "every return but"
+  "other than \`GREEN\`" "other than GREEN" "but \`GREEN\`" "not \`GREEN\`"
+)
+carries_each "a return without a green, NOT GREEN and OUT OF BRIEF alike, carries the Ruled out: line" \
+  "NOT GREEN" "${without_green[@]}" -- "OUT OF BRIEF" "${without_green[@]}"
+
+# A GREEN return is what the Builder formats and commits: the return's own shape for it carries no
+# Ruled out: line, so a green edit never reads as a failed attempt to dispatch again.
+green_blocks=0
+green_ruled=0
+k=1
+while block="$(blocks_of "$agent" "## What you return" "" "$k")" && [ -n "$block" ]; do
+  if grep -qx 'Verdict: GREEN' <<<"$block"; then
+    green_blocks=$((green_blocks + 1))
+    grep -q '^Ruled out:' <<<"$block" && green_ruled=$((green_ruled + 1))
+  fi
+  k=$((k + 1))
+done
+expect "the Implementer's GREEN return carries Verdict: and Changed: with no Ruled out: line" \
+  test "$green_blocks" -gt 0 -a "$green_ruled" = 0
 flat="$body"
 
 exit $((fails > 0))
