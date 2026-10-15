@@ -118,6 +118,10 @@ back, none when nothing did. Where a criterion ships with no flow, the reason st
 line in the commit's place. `built` is true only when every behaviour and every flow is committed
 and the worktree holds no uncommitted work.
 
+An Implementer that cannot be dispatched falls back too: its `fallback:` line names which reason
+held, `do-implementer` not linked or the dispatch refused, and says the Builder wrote the
+production code itself.
+
 A stretch that stopped on a Design fork:
 
 ```
@@ -381,6 +385,10 @@ A second failure on the same edit, a second `NOT GREEN` or a second refused chan
 Builder write that edit itself, with no third dispatch: two windows spent on one edit are the
 evidence that a third would fail the same way, and the behaviour's build line says the Builder
 wrote it after two failed dispatches.
+
+When the Implementer cannot be dispatched, because `do-implementer` is not linked or the dispatch
+is refused, the Builder writes the production code itself, as the loop did before the Implementer,
+and the run goes on. Its return names which of the two held on a `fallback:` line.
 
 ## The flows
 

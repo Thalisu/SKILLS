@@ -1072,7 +1072,7 @@ echo "# skills/do/agents/do-builder.md, skills/do/references/builder.md / ## The
 # diagnosis, a missing seam, a Design fork) are the ones a literal model gets wrong, so both
 # readers have to keep them on the Builder's side of the dispatch, in the passage that names the
 # Implementer, all five by name. And the dispatch only moves the code off Opus when the Builder
-# writes none of it itself. The case of an Implementer that cannot be dispatched is a later Ticket's.
+# writes none of it itself. An Implementer that cannot be dispatched has its own group below.
 for reader in agent contract; do
   case "$reader" in
     agent) where="do-builder.md's body" scope="$stmp/builder-body.md" ;;
@@ -1379,6 +1379,45 @@ affirms "\`## The return\`: the behaviour's \`build:\` line names an edit the Bu
   "\`build" "build line" "Build line" "\` line" -- "itself" "Builder wrote" "Builder's own" "its own"
 carries_any "\`## The return\`: that edit is one written after two failed dispatches" \
   "two failed" "second failure" "second failed" "failed twice" "twice" "both dispatches" "two dispatches"
+
+echo "# skills/do/references/builder.md / ## The Implementer, skills/do/agents/do-builder.md, ## The return: an Implementer that cannot be dispatched has the Builder write the code, and a \`fallback:\` line names why"
+
+# A developer whose machine has no `do-implementer` linked, or whose harness refuses the dispatch,
+# would see the run stop on a missing agent unless the Builder has a route past it: writing the
+# production code itself, as the loop did before the Implementer, and going on. The decision is read
+# off the paragraphs that speak of the Implementer being unlinked or undispatchable, in both
+# readers; the agent's body addresses the Builder as "you" (trailing space, as in the group above).
+# The session then reads the reason off the return, so `## The return` above its examples has to
+# put it on a `fallback:` line naming which of the two held. `OUT OF BRIEF` is a later behaviour.
+undispatchable='linked|not installed|cannot be dispatched|can.t be dispatched|could not be dispatched|cannot dispatch|can.t dispatch|unavailable'
+for reader in agent contract; do
+  case "$reader" in
+    agent) where="do-builder.md's body" scope="$stmp/builder-body.md" ;;
+    *) where="builder.md's \`## The Implementer\`" scope="$stmp/implementer-section.md" ;;
+  esac
+  flat="$(awk -v k="$undispatchable" 'BEGIN { RS = "" } $0 ~ k && /[Ii]mplementer/ { gsub(/\n/, " "); print }' "$scope" |
+    tr '\n' ' ' | tr -s ' ')"
+  expect "$where says what follows an Implementer that cannot be dispatched" test -n "$flat"
+  carries_each "$where: the two reasons are an Implementer not linked and a dispatch refused" \
+    "not linked" "isn't linked" "is unlinked" "not installed" "no \`do-implementer\`" \
+    -- "dispatch is refused" "dispatch refused" "refuses the dispatch" "refused dispatch" "is refused" \
+    "is denied" "denies the dispatch" "dispatch denied"
+  affirms "$where: the Builder then writes the production code itself" \
+    "Builder" "it writes" "you " -- "write" "writes" -- "itself" "yourself" "by hand" "its own" "your own"
+  carries_any "$where: the run goes on" \
+    "run goes on" "run continues" "run carries on" "run keeps going" "goes on" "carries on" \
+    "never stops the run" "does not stop the run" "without stopping" "instead of stopping" \
+    "rather than stopping" "rather than stop"
+done
+flat="$(passage_of "$contract" "## The return" "### Examples" |
+  awk -v k="$undispatchable" 'BEGIN { RS = "" } $0 ~ k && /[Ii]mplementer/ { gsub(/\n/, " "); print }' |
+  tr '\n' ' ' | tr -s ' ')"
+expect "\`## The return\` says what an Implementer that cannot be dispatched leaves on the return" test -n "$flat"
+carries_each "\`## The return\`: a \`fallback:\` line names which reason held, not linked or the dispatch refused" \
+  "\`fallback:\`" "\`fallback\` line" "fallback line" \
+  -- "not linked" "isn't linked" "is unlinked" "not installed" "no \`do-implementer\`" \
+  -- "dispatch is refused" "dispatch refused" "refuses the dispatch" "refused dispatch" "is refused" \
+  "is denied" "denies the dispatch" "dispatch denied"
 
 echo "# skills/do/references/builder.md, skills/do/agents/do-builder.md: work for another repository ends the Stretch on \`stopped\`"
 
