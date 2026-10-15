@@ -1583,4 +1583,22 @@ for budget_scope in contract agent; do
     " never " " not " " no " " nor " "n't "
 done
 
+echo "# docs/do.md: the do-builder row says the Builder hands every production edit to the Implementer, and what its brief carries"
+
+# A developer learns what a ticket run does on their machine from this page, not from the agent
+# files: a row that says the Builder writes the code leaves them unable to tell which agent wrote
+# it, or why a second agent runs under the Builder. The row is selected by its first cell, so the
+# do-impeccable row, which also speaks of the Builder, never answers for it.
+do_doc="$here/../../../docs/do.md"
+builder_row="$(grep -E '^\| \[do-builder\]' "$do_doc")"
+expect "docs/do.md carries the do-builder row of its Prerequisites table" test -n "$builder_row"
+flat="$(tr -s ' ' <<<"$builder_row")"
+carries_each "the do-builder row names \`do-implementer\` as the agent the Builder dispatches" \
+  "do-implementer" -- "dispatch" "fork" "hands"
+carries_each "the do-builder row names each production edit the Implementer takes: green, seam, fix and refactor" \
+  "green" -- "seam" -- "fix" -- "refactor"
+carries_each "the do-builder row says the brief carries the behaviour, the test file and its command, the files, the symbols and signatures, the seam and the typecheck command" \
+  "brief" -- "behaviour" -- "test file" "test's file" -- "command" -- "files to edit" "files it edits" "file to edit" \
+  -- "symbol" -- "signature" -- "seam" -- "typecheck" "type-check" "type check"
+
 exit $((fails > 0))
