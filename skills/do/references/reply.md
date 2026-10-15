@@ -145,7 +145,7 @@ worktree line comes before the audit line and before the hand-over, shaped-by an
     - On `header-only`, the header check alone, the whole guard over the fork itself, with the
       review marker's token, revoked again as soon as the Builder returns, guarding the window
       after that the header check never reaches, and the `disabled_by=` file when the probe named
-      one.
+      one. This line is also listed under Pending debt, per item 9 of [Sections](#sections).
 
     When neither fork could run, the Agent tool withheld or neither agent listed, the one
     `Planner/Builder: none` line rides it in place of the Planner's and the Builder's per-fork
@@ -481,7 +481,12 @@ of the message: For whom, Pending debt and Next step, written the same way in bo
    on the way and not done. A held Ruling the close did not post, per the Rulings item above, with its
    whole Spec line and its `Criterion:` and `Now reads:` lines. On a run that forked `do-impeccable`, each `finding:` line the fork
    returned is listed here, one line per finding, so a finding counted under Evidence is always
-   named. Findings that remain are debt and never a stop: the Ticket still lands. The line for
+   named. Findings that remain are debt and never a stop: the Ticket still lands. A run whose guard
+   probe printed `guard=header-only`, or failed and printed no verdict, lists its `Guard:` line
+   here too, with the `disabled_by=` file when the probe named one (for a probe that failed, the
+   line says it printed no verdict), in the message, with or without `--auto`: a repository whose
+   settings turn hooks off strips the forks' pattern guard, and the Run report that also holds the
+   line is written only under `--auto`. A `pattern-and-header` verdict adds nothing here. The line for
    consumer flows not run opens `consumer flows not run:` and names the Ticket that carries them,
    off the Completion check's `consumer=` lines: each `consumer=<NN> <name>` line is a Ticket of
    another repository blocked by the one this run built, the one whose criteria cross the two

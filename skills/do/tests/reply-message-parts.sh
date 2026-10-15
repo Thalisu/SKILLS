@@ -91,5 +91,16 @@ carries_any "a second --auto run keeps the earlier run's Run report readable" \
   "appends" "below the earlier" "never replace" "never overwrite" "unique to each run" \
   "unique to the run" "one file per run" "a file of its own"
 
+echo "# a weakened guard reaches the message through Pending debt, with or without --auto"
+
+# A committed `disableAllHooks` makes the probe print guard=header-only: when that Guard: line rides
+# only the Run report, a run without --auto never tells the developer the pattern guard was off.
+flat="$(item_holding <(passage_of "$reply" "## Sections" "## ") '[0-9]+\.' '**Pending debt.**' |
+  tr '\n' ' ' | tr -s ' ')"
+carries_each "Pending debt lists the Guard: line of a header-only or verdict-less probe, its disabled_by= file, with or without --auto" \
+  "Guard:" -- "header-only" -- "disabled_by=" -- \
+  "printed no verdict" "no verdict" "failed and printed" "probe failed" "probe that failed" -- \
+  "with or without \`--auto\`"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1

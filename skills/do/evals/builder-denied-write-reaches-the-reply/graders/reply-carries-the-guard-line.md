@@ -1,7 +1,7 @@
 ---
-type: tool_used
-tool: Bash
-input_match: 'harness-hooks\.sh'
-min: 1
+type: regex
+pattern: "Guard: guard=header-only"
+match: contains
+target: last_message
 ---
-The guard probe ran before the Builder was forked, so the fork's writes were guarded; its `Guard:` line is the Run report's and no longer the Reply's.
+The Reply of a run whose project settings turn hooks off carries the `Guard:` line of the fork that ran, quoting the probe's `guard=header-only` value, although the run is not `--auto`.

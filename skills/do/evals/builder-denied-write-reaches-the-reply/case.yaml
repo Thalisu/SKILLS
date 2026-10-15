@@ -15,7 +15,9 @@ context:
     # than work for another repository. The scaffold writes the main checkout's absolute path into
     # that line once the stand-in is laid. The session cannot clear that reason, so the run ends
     # as blocked, and its Reply still carries the `Guard:` line of the fork that ran and what the
-    # Builder reported, the denied path included.
+    # Builder reported, the denied path included. The project's committed settings turn hooks off,
+    # so the guard probe prints `guard=header-only` with the file that disabled them, and that line
+    # rides the Reply's Pending debt although the run is not `--auto`.
     # No review is installed, and none is reached.
     set -e
     mkdir -p src docs/agents .scratch/archive-notes/issues .claude/agents .claude/skills/test-author
@@ -516,6 +518,8 @@ context:
 
     ## Evidence
     MD
+
+    printf '{"disableAllHooks": true}\n' > .claude/settings.json
 
     printf '.scratch/\n' > .gitignore
     git init -q -b main
