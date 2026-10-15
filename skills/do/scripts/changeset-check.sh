@@ -13,8 +13,11 @@
 # Prints verdict=<pass|refused>, changed=<n> and one file=<path> line per changed path, sorted,
 # then only on a refusal refused=<n> and one offending=<classes|named|test> <path> line per
 # offending path, sorted: classes for the Testing Policy's skip-patterns.sh or
-# skip-patterns.local.sh, named for a named path, test for any other path test-files.sh classifies
-# as a test file of the worktree. A refusal is whole: no part of a refused changeset passes.
+# skip-patterns.local.sh, git for the git config or a hook (the only paths main-untouched.sh
+# prints as absolute: a hook runs inside the Builder's own commit and the config outlives the run
+# in the checkout every worktree shares), named for a named path, test for any other path
+# test-files.sh classifies as a test file of the worktree. A refusal is whole: no part of a refused
+# changeset passes.
 #
 # Exit codes: 0 pass · 1 refused · 2 usage, a worktree that is not a git working tree, or a state
 # file main-untouched.sh cannot read, which prints no verdict: a missing baseline is never a pass.
@@ -52,6 +55,8 @@ offence() { # $1 a changed path: prints classes, named, test, or nothing
   case "$1" in /*) abs="$1" ;; esac
   if [ -n "${classes_files[$1]:-}" ]; then
     echo classes
+  elif [ "$abs" = "$1" ]; then
+    echo git
   elif [ -n "${named[$1]:-}" ]; then
     echo named
   elif is_test_file "$abs"; then

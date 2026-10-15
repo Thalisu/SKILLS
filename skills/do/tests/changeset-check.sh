@@ -112,4 +112,23 @@ check_lines "a production-only changeset in a repository under a spec/ ancestor 
 check_absent "a production path is never classified a test file by a directory above the repository" 0 "$rc" \
   'refused=' 'offending='
 
+fresh git-config-and-hook
+git_config_and_hook="$(pwd -P)"
+mkdir -p scripts
+echo one >scripts/bar.sh
+commit "base"
+git_common="$(g rev-parse --path-format=absolute --git-common-dir)"
+git_config_and_hook_state="$tmp/state/git-config-and-hook.state"
+bash "$snapshot" snapshot "$git_config_and_hook" "$git_config_and_hook_state" >/dev/null
+
+g config core.hooksPath "$git_config_and_hook/scripts/hooks"
+printf '#!/bin/sh\nexit 0\n' >"$git_common/hooks/pre-commit"
+echo two >>scripts/bar.sh
+run "$git_config_and_hook" "$git_config_and_hook_state"
+check_lines "a changeset that changed the git config or wrote a git hook is refused, naming each by its absolute path" 1 "$rc" \
+  'verdict=refused' "offending=git $git_common/config" "offending=git $git_common/hooks/pre-commit" \
+  'file=scripts/bar.sh'
+check_absent "a changeset that changed the git config or a hook is refused whole, even with a production file beside it" 1 "$rc" \
+  'verdict=pass'
+
 [ "$fails" = 0 ]
