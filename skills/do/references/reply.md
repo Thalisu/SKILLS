@@ -853,7 +853,7 @@ none
 ## Rulings
 
 On the Spec: none
-On the run: resume the worktree or start over: resume the worktree. Norm: no norm: the side easiest to undo.
+On the run: run the full suite or record each flow that needed it as not run: record each flow that needed it as not run. Norm: no norm: the side easiest to undo.
 
 ## Skipped
 
