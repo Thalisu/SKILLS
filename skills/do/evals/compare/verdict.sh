@@ -21,7 +21,9 @@ awk '
   END {
     failed = 0
     if (unexpected["implementer"] > unexpected["opus"]) failed = 1
-    if (act_on["implementer"] > act_on["opus"]) failed = 1
+    check_act_on = act_on["implementer"] <= act_on["opus"] ? "pass" : "fail"
+    printf "check act_on=%s implementer=%d opus=%d\n", check_act_on, act_on["implementer"], act_on["opus"]
+    if (check_act_on == "fail") failed = 1
     if (cost["implementer"] >= cost["opus"]) failed = 1
     if (failed) { print "verdict=fail"; exit 1 }
     print "verdict=pass"
