@@ -138,4 +138,25 @@ EOF
 carries "a budget stop is an expected Builder return, every other stop, fork or unreadable first line is not, each return counted once" \
   "$returned" builder_returns=5 built=1 budget_stopped=1 unexpected_stopped=1 unexpected_fork=1 unreadable=1
 
+implemented="$(work_folder adds-a-seam)"
+agent_call_transcript do-builder "$implemented" "" "" "Build the seam."
+cat >>"$implemented/transcript.jsonl" <<'EOF'
+{"type":"user","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"t1","content":"built\nbehaviour: pages the note list | 3f2a91c\nbuild: added"}]}}
+{"type":"result","subtype":"success","result":"done","total_cost_usd":5.10}
+EOF
+mkdir -p "$implemented/subagents"
+cat >"$implemented/subagents/agent-b7d4e1.jsonl" <<'EOF'
+{"type":"assistant","isSidechain":true,"agentId":"b7d4e1","message":{"content":[{"type":"tool_use","id":"i1","name":"Agent","input":{"description":"x","subagent_type":"do-implementer","prompt":"Make the page test green."}}]}}
+{"type":"user","isSidechain":true,"agentId":"b7d4e1","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"i1","content":[{"type":"text","text":"Verdict: GREEN\nChanged: src/notes.js"}]}]}}
+{"type":"assistant","isSidechain":true,"agentId":"b7d4e1","message":{"content":[{"type":"tool_use","id":"i2","name":"Agent","input":{"description":"x","subagent_type":"do-implementer","prompt":"Make the export test green."}}]}}
+{"type":"user","isSidechain":true,"agentId":"b7d4e1","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"i2","content":"Verdict: NOT GREEN\nChanged: src/export.js\nRuled out: escaping the header in renderHeader alone, the test still reads no header line"}]}}
+{"type":"assistant","isSidechain":true,"agentId":"b7d4e1","message":{"content":[{"type":"tool_use","id":"i3","name":"Agent","input":{"description":"x","subagent_type":"do-implementer","prompt":"Make the export test green.\nRuled out: escaping the header in renderHeader alone"}}]}}
+{"type":"user","isSidechain":true,"agentId":"b7d4e1","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"i3","content":[{"type":"text","text":"Verdict: GREEN\nChanged: src/export.js, src/csv.js"}]}]}}
+{"type":"assistant","isSidechain":true,"agentId":"b7d4e1","message":{"content":[{"type":"tool_use","id":"i4","name":"Agent","input":{"description":"x","subagent_type":"do-implementer","prompt":"Make the archive test green."}}]}}
+{"type":"user","isSidechain":true,"agentId":"b7d4e1","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"i4","content":"Verdict: OUT OF BRIEF\nChanged: none\nRuled out: filtering archived notes in exportCsv, the brief names src/export.js only\nNeeds: an edit to src/archive.js, outside the Where: paths"}]}}
+EOF
+carries "each Implementer return counts by its Verdict line, a NOT GREEN the retry turned GREEN counting once for each, and none enters the Builder counts" \
+  "$implemented" implementer_returns=4 implementer_not_green=1 implementer_out_of_brief=1 \
+  builder_returns=1 built=1 budget_stopped=0 unexpected_stopped=0 unexpected_fork=0 unreadable=0
+
 [ "$fails" = 0 ]

@@ -2,8 +2,7 @@
 # usage: figures.sh <work-folder>
 # Reads one run-eval work folder (`run-eval-<case>.XXXXXX`, kept with --keep) and prints its run
 # line without the shape: `case=<case> folder=<abs> cost_usd=... review=... act_on=...`, then the
-# Builder return counts. A figure the run never produced
-# reads `absent`, never zero.
+# Builder and Implementer return counts. A figure the run never produced reads `absent`, never zero.
 # Exit 0 on an existing folder, 2 on usage or no such folder.
 set -uo pipefail
 
@@ -37,13 +36,19 @@ agent_returns() { # $1 work folder: one `<subagent_type>\t<kind>` line per disti
     | ($items | map(select(.type == "tool_result")
         | {key: .tool_use_id, value: (if (.content | type) == "string" then .content else ([.content[]? | .text? // empty] | join("\n")) end)})
         | from_entries) as $returned
-    | $returned | to_entries[] | select($dispatched[.key] == "do-builder")
+    | $returned | to_entries[] | select($dispatched[.key] == "do-builder" or $dispatched[.key] == "do-implementer")
+    | $dispatched[.key] as $agent
     | (.value | split("\n")) as $lines
-    | ($lines[0] | gsub("^\\s+|\\s+$"; "")) as $verb
-    | "do-builder\t" + (
-        if $verb == "built" or $verb == "fork" then $verb
-        elif $verb == "stopped" then (if any($lines[]; startswith("stopped: time budget spent")) then "budget_stopped" else "stopped" end)
-        else "unreadable" end)'
+    | if $agent == "do-builder" then
+        ($lines[0] | gsub("^\\s+|\\s+$"; "")) as $verb
+        | "do-builder\t" + (
+          if $verb == "built" or $verb == "fork" then $verb
+          elif $verb == "stopped" then (if any($lines[]; startswith("stopped: time budget spent")) then "budget_stopped" else "stopped" end)
+          else "unreadable" end)
+      else
+        ([$lines[] | select(startswith("Verdict:")) | sub("^Verdict:"; "") | gsub("^\\s+|\\s+$"; "")][0] // "") as $verdict
+        | "do-implementer\t" + (if $verdict == "GREEN" or $verdict == "NOT GREEN" or $verdict == "OUT OF BRIEF" then $verdict else "unreadable" end)
+      end'
 }
 
 work="$(cd "$1" && pwd -P)"
@@ -57,8 +62,10 @@ review_state=absent
 
 returns="$(agent_returns "$work" | awk -F '\t' '
   $1 == "do-builder" { builder++; kind[$2]++ }
+  $1 == "do-implementer" { implementer++; verdict[$2]++ }
   END {
     printf "builder_returns=%d built=%d budget_stopped=%d unexpected_stopped=%d unexpected_fork=%d unreadable=%d", builder, kind["built"], kind["budget_stopped"], kind["stopped"], kind["fork"], kind["unreadable"]
+    printf " implementer_returns=%d implementer_not_green=%d implementer_out_of_brief=%d", implementer, verdict["NOT GREEN"], verdict["OUT OF BRIEF"]
   }')"
 
 echo "case=$case_name folder=$work cost_usd=$(cost_of "$work/transcript.jsonl") review=$review_state act_on=$(act_on_of "$review") $returns"
