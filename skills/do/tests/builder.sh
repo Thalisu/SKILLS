@@ -1243,6 +1243,41 @@ for what in format commit; do
     "the Implementer never" "\`do-implementer\` never" "never \`do-implementer\`"
 done
 
+echo "# skills/do/references/builder.md / ## The Implementer, skills/do/agents/do-builder.md: a \`NOT GREEN\` return is dispatched once more, its Ruled out quoted between two tags sharing one random id"
+
+# An Implementer that spent its budget returns `NOT GREEN` with a `Ruled out:` line, and a Builder
+# that has no route for it stops the developer's run on one stuck dispatch. The route is one more
+# dispatch for the same edit, carrying that line in the brief's `Ruled out:` key so the second
+# Implementer does not buy the same experiment again. The line comes out of a failing test's run, a
+# place a stranger's fixture or a dependency's error can write into, so it goes over between an
+# opening and a closing tag that share one random id the Builder generates for that re-dispatch, the
+# way build-loop.md hands a test author's Handback over: quoted text, never an order. The dispatch
+# is read off the paragraphs that name `NOT GREEN`; the tags may sit there or beside the brief's
+# `Ruled out:` key, so those paragraphs are read too. A refused changeset, `OUT OF BRIEF`, a second
+# failure and an Implementer that cannot be dispatched are later behaviours, and nothing here pins them.
+for reader in agent contract; do
+  case "$reader" in
+    agent) where="do-builder.md's body" scope="$stmp/builder-body.md" ;;
+    *) where="builder.md's \`## The Implementer\`" scope="$stmp/implementer-section.md" ;;
+  esac
+  flat="$(paragraph_with "$scope" "NOT GREEN" all | tr '\n' ' ' | tr -s ' ')"
+  expect "$where names the Implementer's \`NOT GREEN\` return" test -n "$flat"
+  affirms "$where: on \`NOT GREEN\` the Builder dispatches the Implementer once more" \
+    "do-implementer" "Implementer" -- "once more" "again" "a second time" "re-dispatch" "redispatch"
+  carries_any "$where: the second dispatch is for the same edit" \
+    "same edit" "that edit" "this edit" "the same brief" "same \`Edit:\`"
+  flat="$({
+    paragraph_with "$scope" "NOT GREEN" all
+    paragraph_with "$scope" "Ruled out:" all
+  } | awk '!seen[$0]++' | tr '\n' ' ' | tr -s ' ')"
+  carries_each "$where: the first return's Ruled out goes into the brief's \`Ruled out:\` key" \
+    "Ruled out:" -- "NOT GREEN"
+  expect "$where: that Ruled out sits between an opening and a closing tag carrying the same id" \
+    bash -c 'grep -qE "<([a-z][a-z-]*) id=\"([^\"]*)\">.*</\\1 id=\"\\2\">" <<<"$1"' _ "$flat"
+  carries_any "$where: the id the two tags share is a random one the Builder generates for that re-dispatch" \
+    "random id" "random \`id\`" "one random" "short random"
+done
+
 echo "# skills/do/references/builder.md, skills/do/agents/do-builder.md: work for another repository ends the Stretch on \`stopped\`"
 
 # A feature that spans repositories can hand the Builder a behaviour whose change belongs in a
