@@ -26,60 +26,8 @@ calls() { if [ -f "$STUB_DIR/calls" ]; then wc -l <"$STUB_DIR/calls"; else echo 
 judge_calls() { if [ -f "$STUB_DIR/judge-calls" ]; then wc -l <"$STUB_DIR/judge-calls"; else echo 0; fi; }
 reset() { rm -f "$STUB_DIR/calls" "$STUB_DIR/judge-calls" "$STUB_DIR/judge-prompts" "$STUB_DIR/judge-args"; }
 
-# The stand-in CLI: a judge call carries --tools and logs its arguments and prompt, and every other
-# call is the session under test, which logs its arguments and environment, prints the canned
-# transcript and touches a file.
-# The judge answers one line per "### <grader>" heading of its prompt: STUB_VERDICT for every
-# grader (PASS by default), FAIL for the graders STUB_FAIL names. STUB_REPLY replaces the whole reply.
-cat >"$tmp/bin/claude" <<'SH'
-#!/usr/bin/env bash
-for a in "$@"; do
-  if [ "$a" = --tools ]; then
-    echo judge >> "$STUB_DIR/judge-calls"
-    { printf 'judge'; printf ' [%s]' "$@"; printf '\n'; } >> "$STUB_DIR/judge-args"
-    prompt="$(cat)"
-    printf '%s\n' "$prompt" >> "$STUB_DIR/judge-prompts"
-    [ -z "${STUB_JUDGE_ERR:-}" ] || { echo "$STUB_JUDGE_ERR" >&2; exit 1; }
-    reply=""
-    while IFS= read -r name; do
-      verdict="${STUB_VERDICT:-PASS}"
-      case " ${STUB_FAIL:-} " in *" $name "*) verdict=FAIL ;; esac
-      reply="$reply$name: $verdict the stand-in judge says so"$'\n'
-    done < <(sed -n 's/^### //p' <<<"$prompt")
-    [ -z "${STUB_REPLY:-}" ] || reply="$STUB_REPLY"
-    jq -cn --arg r "${reply%$'\n'}" '{type: "result", result: $r}'
-    exit 0
-  fi
-done
-journey=no; [ -e "${CLAUDE_CONFIG_DIR:-/nonexistent}/skills/journey/SKILL.md" ] && journey=yes
-reader=no; [ -e "${CLAUDE_CONFIG_DIR:-/nonexistent}/agents/do-reader.md" ] && reader=yes
-# What a session reaches by following a linked skill two folders up, the way a skill's own prose does.
-root="$(readlink -f ~/.claude/skills/do-code-review)/../.."
-reach=""
-for entry in skills .agents CONTEXT.md docs; do [ ! -e "$root/$entry" ] || reach="$reach$entry,"; done
-for folder in "$root"/skills/*/evals; do
-  [ ! -e "$folder" ] || { reach="${reach}evals,"; break; }
-done
-{ printf 'call'; printf ' [%s]' "$@"
-  printf ' config=%s claudecode=%s journey=%s reader=%s creds=%s home-skill=%s reach=%s cwd=%s\n' "${CLAUDE_CONFIG_DIR:-unset}" \
-    "${CLAUDECODE:-unset}" "$journey" "$reader" "$(readlink "${CLAUDE_CONFIG_DIR:-/nonexistent}/.credentials.json")" \
-    "$(readlink -f ~/.claude/skills/do-code-review)" "$reach" "$(pwd -P)"
-} >> "$STUB_DIR/calls"
-[ -z "${STUB_TOUCH:-}" ] || : > "$STUB_TOUCH"
-# STUB_SUBAGENT: a subagent transcript the session persists, as the real CLI does, under its config
-# dir, keyed by its cwd and the session_id of the stream's init line; never with persistence off.
-if [ -n "${STUB_SUBAGENT:-}" ] && ! printf '%s\n' "$@" | grep -qx -- --no-session-persistence; then
-  sid="$(head -1 "$STUB_TRANSCRIPT" | jq -r .session_id)"
-  id="$(head -1 "$STUB_SUBAGENT" | jq -r .agentId)"
-  dir="$CLAUDE_CONFIG_DIR/projects/$(pwd -P | tr '/.' '--')/$sid/subagents"
-  mkdir -p "$dir"
-  cp "$STUB_SUBAGENT" "$dir/agent-$id.jsonl"
-  printf '{"agentType":"general-purpose"}\n' >"$dir/agent-$id.meta.json"
-fi
-[ -z "${STUB_TRANSCRIPT:-}" ] || cat "$STUB_TRANSCRIPT"
-exit "${STUB_RC:-0}"
-SH
-chmod +x "$tmp/bin/claude"
+# The stand-in CLI: scripts/tests/stubs/claude, whose header names the STUB_* variables it reads.
+cp "$here/stubs/claude" "$tmp/bin/claude"
 
 # One run: the session calls the resolver itself, a subagent runs a Bash call of its own, and the
 # last message opens with the Playbook line.
