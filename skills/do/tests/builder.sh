@@ -382,6 +382,14 @@ for author in unit-test-author e2e-test-author global-unit-test-author global-e2
     bash -c '! grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$author_out"
 done
 
+# `do-implementer` writes the production code every behaviour needs, on a cheaper model than the
+# Builder's (ADR 0090). A hook that denies it leaves the Builder writing that code itself, and every
+# Ticket pays the Builder's model for the work the Implementer exists to take.
+implementer_out="$(printf '{"tool_input": {"subagent_type": "do-implementer"}}' |
+  sh -c "$builder_agent_hook" 2>/dev/null)"
+expect "the hook lets the Builder dispatch do-implementer to write production code" \
+  bash -c '! grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$implementer_out"
+
 # `choice-taker` rules a Design fork and writes the Ruling into the Spec. Forked from here it would
 # rule from two layers below the session, against a Spec this fork never read, and the next Ticket
 # of the same feature would be free to rule the same fork the other way: two Rulings, one Spec, and
