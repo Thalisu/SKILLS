@@ -18,6 +18,11 @@ out="$(frontmatter "$agent" 2>/dev/null)" || rc=$?
 check_lines "the Implementer's frontmatter names it do-implementer, the name the Builder dispatches" 0 "$rc" \
   "name: do-implementer"
 
+# The pin rests on what the eval measured: without it the fork writes production code on the
+# session's model and effort, and the saving the Builder dispatches it for is gone.
+check_lines "the Implementer runs on sonnet at medium effort" 0 "$rc" \
+  "model: sonnet" "effort: medium"
+
 # link-skills.sh links the definition under its file name while the harness dispatches on the
 # frontmatter `name`: a disagreement leaves the Builder naming a fork nothing can hand the edit to.
 expect "the Implementer's file name and its frontmatter name agree" \
