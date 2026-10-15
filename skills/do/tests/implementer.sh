@@ -96,4 +96,51 @@ for tool in Write Edit; do
     test "$source_rc" = 0 -a -z "$source_out"
 done
 
+echo "# skills/do/agents/do-implementer.md: its Bash hook keeps git's history and index with the Builder and the shell inside its run worktree"
+
+# The Builder commits each behaviour itself, with its Behaviour: line, once the changeset check has
+# passed: a commit or a stage from the Implementer lands unchecked and leaves a resume short of one
+# commit per behaviour, and a restore, a reset or a stash wipes the test author's uncommitted test
+# file. The worktree is a real one, cut off a real main checkout, so the hook's git checks run
+# against what git reports rather than a directory that merely looks like a worktree.
+bash_hook="$(hook_command "$agent" Bash)"
+# An empty command prints no deny either, so the commands let through below would pass on a
+# definition carrying no Bash hook at all. The payload goes in on a here-string rather than a pipe:
+# under pipefail a hook that exits before reading its stdin would break jq's pipe and turn a pass red.
+expect "a PreToolUse hook scopes the Implementer's Bash" test -n "$bash_hook"
+
+mkdir -p "$tmp/repos/home"
+checkout="$(cd "$tmp/repos/home" && pwd -P)"
+g -C "$checkout" init -q
+printf 'readme\n' >"$checkout/README.md"
+g -C "$checkout" add -A
+g -C "$checkout" commit -qm fixture
+run_worktree="$(branch_worktree "$checkout" export)"
+mkdir -p "$run_worktree/src"
+printf 'one\n' >"$run_worktree/src/a.sh"
+
+for denied_cmd in \
+  "git commit -m x|a commit, which only the Builder makes" \
+  "git add src/a.sh|a stage, which only the Builder makes" \
+  "git reset --hard|a reset, which wipes the test author's uncommitted test file" \
+  "git restore src/a.sh|a restore, which wipes the test author's uncommitted test file" \
+  "git stash|a stash, which wipes the test author's uncommitted test file" \
+  "cat $checkout/README.md|a path in the main checkout outside its run worktree"; do
+  payload="$(jq -n --arg c "${denied_cmd%%|*}" --arg w "$run_worktree" '{cwd: $w, tool_input: {command: $c}}')"
+  denied_out="$(cd "$run_worktree" && sh -c "$bash_hook" <<<"$payload" 2>/dev/null)"
+  expect "the hook denies the Implementer's Bash ${denied_cmd#*|}: ${denied_cmd%%|*}" \
+    bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$denied_out"
+done
+
+# The other half: the single-file command is how the Implementer learns its edit turned the test
+# green, and status and diff are how it reads the paths it changed for its return. A guard that
+# denied any of them leaves the Builder's green with no one able to make it.
+for passed_cmd in "bash skills/do/tests/x.sh" "git status" "git diff"; do
+  passed_rc=0
+  payload="$(jq -n --arg c "$passed_cmd" --arg w "$run_worktree" '{cwd: $w, tool_input: {command: $c}}')"
+  passed_out="$(cd "$run_worktree" && sh -c "$bash_hook" <<<"$payload" 2>/dev/null)" || passed_rc=$?
+  expect "the hook lets the Implementer's Bash through on $passed_cmd, printing nothing" \
+    test "$passed_rc" = 0 -a -z "$passed_out"
+done
+
 exit $((fails > 0))
