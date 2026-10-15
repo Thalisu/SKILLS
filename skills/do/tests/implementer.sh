@@ -41,4 +41,14 @@ desc="${flat%\"}"
 expect "the Implementer's description closes on its refusal of a dispatch on anyone's own initiative" \
   test "${desc%Never on your own initiative.}" != "$desc"
 
+# The session keeps every step within two layers below it: a held Agent or Skill reaches a test
+# author or another fork a third layer down, and a missing Bash leaves the fork unable to run the
+# test it is turning green. The list is read with its separators turned to spaces and padded, so a
+# `NotebookEdit` on the line never answers for `Edit`.
+flat=" $(field tools | tr ',' ' ' | tr -s ' ') "
+carries "the Implementer holds the tools one production edit takes, Bash among them" \
+  " Read " " Glob " " Grep " " Bash " " Write " " Edit "
+expect "the Implementer holds neither Agent nor Skill, so nothing it runs reaches a third layer" \
+  bash -c '! grep -qF " Agent " <<<"$1" && ! grep -qF " Skill " <<<"$1"' _ "$flat"
+
 exit $((fails > 0))
