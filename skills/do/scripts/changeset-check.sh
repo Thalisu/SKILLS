@@ -46,7 +46,9 @@ for reported in "$@"; do
 done
 
 offence() { # $1 a changed path: prints classes, named, test, or nothing
-  local abs="$root/$1"
+  # Rooted at "/" rather than at $root: a directory named spec or tests above the worktree must not
+  # turn every production path into a test file.
+  local abs="/$1"
   case "$1" in /*) abs="$1" ;; esac
   if [ -n "${classes_files[$1]:-}" ]; then
     echo classes

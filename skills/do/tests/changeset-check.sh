@@ -97,4 +97,19 @@ check_lines "a changeset that rewrote the file the test-file classes come from i
 check_absent "a changeset that rewrote the classes file is refused whole, even when the rewritten file reads a pass" 1 "$rc" \
   'verdict=pass'
 
+fresh spec/under-spec-ancestor
+under_spec="$(pwd -P)"
+mkdir -p scripts
+echo one >scripts/bar.sh
+commit "base"
+under_spec_state="$tmp/state/under-spec.state"
+bash "$snapshot" snapshot "$under_spec" "$under_spec_state" >/dev/null
+
+echo two >>scripts/bar.sh
+run "$under_spec" "$under_spec_state"
+check_lines "a production-only changeset in a repository under a spec/ ancestor directory passes" 0 "$rc" \
+  'verdict=pass' 'changed=1' 'file=scripts/bar.sh'
+check_absent "a production path is never classified a test file by a directory above the repository" 0 "$rc" \
+  'refused=' 'offending='
+
 [ "$fails" = 0 ]
