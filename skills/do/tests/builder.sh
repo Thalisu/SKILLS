@@ -1090,6 +1090,37 @@ for reader in agent contract; do
     "writes none of the production code" "write none of the production code"
 done
 
+echo "# skills/do/references/build-loop.md: the test author's dispatch input is unchanged by the Implementer's"
+
+# The unit and E2E test authors return `REFUSED_INCOMPLETE_INPUT` on an input that lost or renamed a
+# key, and every cycle the loop runs starts at that dispatch. The Implementer's brief now sits in the
+# steps around it, so step 1 has to keep naming the field of every key the Testing Policy fixes, and
+# carry none of the Implementer's own keys: a `Where:` or an `Edit:` handed to a test author is a
+# field it does not read, in place of one it refuses without. The keys are checked on the policy's
+# own block first, so a key the policy renames fails here rather than passing on stale phrasings.
+policy="$here/../../../.claude/testing-policy/policy.md"
+# shellcheck disable=SC2034  # lib.sh's check_lines reads $out
+out="$(blocks_of "$policy" "## Test authoring: delegation and reuse" | sed -nE 's/^([A-Z][A-Za-z ()]*:).*/\1/p')"
+check_lines "the Testing Policy still fixes the six dispatch input keys step 1 is read against" 0 0 \
+  "Behavior to prove:" "Relied on by:" "Target:" "Origin:" "Expected red:" "Placement (optional):"
+
+author_step="$(item_holding "$build_loop" '[0-9]+\.' "unit test author")"
+expect "build-loop.md carries the step that dispatches the unit test author" test -n "$author_step"
+flat="$(tr '\n' ' ' <<<"$author_step" | tr -s ' ')"
+carries_each "build-loop.md: the test author's dispatch step names the field of every key the policy fixes" \
+  "behaviour to prove" "behavior to prove" "Behavior to prove:" \
+  -- "who relies on it" "Relied on by:" \
+  -- "what a wrong or missing result costs" "a wrong or missing result costs" \
+  -- "the target" "Target:" \
+  -- "the origin" "Origin:" \
+  -- "\`new feature\`" -- "\`bugfix\`" \
+  -- "the expected red" "Expected red:" \
+  -- "placement" "Placement"
+# shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+out="$author_step"
+check_absent "build-loop.md: the test author's dispatch step carries none of the Implementer's keys" 0 0 \
+  "Worktree:" "Edit:" "Ask:" "Where:" "Ruled out:" "do-implementer"
+
 echo "# skills/do/references/builder.md, skills/do/agents/do-builder.md: work for another repository ends the Stretch on \`stopped\`"
 
 # A feature that spans repositories can hand the Builder a behaviour whose change belongs in a
