@@ -1058,6 +1058,38 @@ flat="$({
 carries_each "\`Where:\` names the files to edit, the symbols and signatures to create or change, and the seam when there is one" \
   "file" -- "symbol" -- "signature" -- "seam"
 
+echo "# skills/do/agents/do-builder.md, skills/do/references/builder.md / ## The Implementer: the judgments stay the Builder's and the code goes to the Implementer"
+
+# The Implementer runs on a cheaper model that takes its brief literally. The five judgments the
+# loop turns on (whether the red is the expected one, the test author's verdict, a `HANDBACK`'s
+# diagnosis, a missing seam, a Design fork) are the ones a literal model gets wrong, so both
+# readers have to keep them on the Builder's side of the dispatch, in the passage that names the
+# Implementer, all five by name. And the dispatch only moves the code off Opus when the Builder
+# writes none of it itself. The case of an Implementer that cannot be dispatched is a later Ticket's.
+for reader in agent contract; do
+  case "$reader" in
+    agent) where="do-builder.md's body" scope="$stmp/builder-body.md" ;;
+    *) where="builder.md's \`## The Implementer\`" scope="$stmp/implementer-section.md" ;;
+  esac
+  flat="$({
+    paragraph_with "$scope" "Implementer" all
+    paragraph_with "$scope" "do-implementer" all
+  } | awk '!seen[$0]++' | grep -F "Design fork" | tr '\n' ' ' | tr -s ' ')"
+  carries_each "$where: the paragraph naming the Implementer keeps all five judgments the Builder's" \
+    "expected red" "red is the expected" "declared red" "red for the reason" "red as expected" \
+    -- "verdict" \
+    -- "\`HANDBACK\`" "HANDBACK" -- "diagnosis" "diagnoses" \
+    -- "missing seam" "seam is missing" \
+    -- "Design fork" \
+    -- "the Builder's" "stay with the Builder" "the Builder keeps" "Builder's own" "yours" \
+    "you keep" "stay with you" "remain with you"
+  flat="$(tr '\n' ' ' <"$scope" | tr -s ' ')"
+  carries_any "$where: the Builder writes no production code itself" \
+    "writes no production code" "write no production code" "never writes production code" \
+    "never write production code" "does not write production code" "do not write production code" \
+    "writes none of the production code" "write none of the production code"
+done
+
 echo "# skills/do/references/builder.md, skills/do/agents/do-builder.md: work for another repository ends the Stretch on \`stopped\`"
 
 # A feature that spans repositories can hand the Builder a behaviour whose change belongs in a

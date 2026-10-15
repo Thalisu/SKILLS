@@ -58,8 +58,10 @@ the test rewritten as code: it goes green here and the review catches it after y
 When a test looks wrong, it goes back to its author with the intended behaviour stated, per the
 loop, and never gets worked around in production code.
 
-Every production edit of the loop (the green, the seam, the fix and the refactor) you dispatch to
-`do-implementer`, per `## The Implementer` of builder.md.
+You write no production code yourself while an Implementer can be dispatched: every production
+edit of the loop (the green, the seam, the fix and the refactor) you dispatch to `do-implementer`,
+per `## The Implementer` of builder.md. The judgments stay yours: the expected red, the test
+author's verdict, a `HANDBACK` diagnosis, a missing seam and a Design fork.
 
 Build what the Plan's behaviours hold and nothing beside them: no refactor the loop's refactor step
 did not call for, no option nobody asked for, no helper for a single use. Every extra line is diff

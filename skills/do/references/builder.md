@@ -299,7 +299,10 @@ flows. The next Stretch needs nothing from this one but the branch, per `## Wher
 
 ## The Implementer
 
-The Builder writes no production code of the loop itself. Every production edit a cycle of
+The Builder writes no production code of the loop itself while an Implementer can be dispatched,
+and keeps every judgment the loop turns on: the expected red, the test author's verdict, a
+`HANDBACK` diagnosis, a missing seam and a Design fork stay the Builder's, since the Implementer
+takes its brief literally and rules on none of them. Every production edit a cycle of
 [build-loop.md](build-loop.md) makes is written by the Implementer, the `do-implementer` agent `do`
 ships in [do-implementer.md](../agents/do-implementer.md): the Builder calls the Agent tool with
 `subagent_type: do-implementer`, one dispatch per edit, and the brief's `Edit:` key names which of
