@@ -186,6 +186,31 @@ out at onboarding, and there is no settings flag for it. Until it is enabled the
 a throwaway directory and commits its fixture; the cases themselves were authored against the
 runner's help text.
 
+The comparative eval under `compare/` is not a case of this table and is run apart from it. It
+builds each frozen one-Ticket Spec twice, once with the Opus-only Builder and once with the Builder
+that dispatches Implementers, through `scripts/run-eval.sh`, and decides whether the second shape
+ships. The maintainer runs it from the repository root, against a live `claude`:
+
+```
+bash skills/do/evals/compare/compare.sh [<case> ...] [--runs N] [--model NAME] [--cases FOLDER]
+```
+
+Stdout carries one `run` line per kept work folder, then a `total` line per shape, the four
+`check` lines and the `verdict=` line. Stderr carries run-eval's own output. The exit code reads:
+
+- `0`: pass, the Implementer shape raised no more `Act on` Findings, added no unexpected `stopped`
+  or `fork` return and cost less in total.
+- `1`: fail, a check named on its `check` line did not hold.
+- `2`: usage, or a run that could not be read: a missing cases folder, a run-eval usage error, or a
+  shape that kept no work folder.
+- `3`: incomplete, a shape did not run as named, a run has no cost, no Review or no build, or a case
+  ran in one shape only.
+
+The build that ships this eval never runs it: the comparison costs live sessions that only the
+maintainer pays for. Once it has run, the maintainer copies the figures (the `total`, `check` and
+`verdict=` lines) into the Ticket's `## Evidence` by hand, together with any pin raise the
+Implementer's `implementer_not_green` and `implementer_out_of_brief` totals led to.
+
 ## Adding a Playbook
 
 Adding a Playbook is three edits and nothing else: one reference file under `references/`, with
