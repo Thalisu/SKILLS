@@ -143,4 +143,39 @@ for passed_cmd in "bash skills/do/tests/x.sh" "git status" "git diff"; do
     test "$passed_rc" = 0 -a -z "$passed_out"
 done
 
+echo "# skills/do/agents/do-implementer.md: its body binds it to production code from its brief, with no commit, no test edit and no test author"
+
+# The body, flattened: the definition hard-wraps its prose, so a phrase sits across two lines as
+# often as not. The frontmatter is dropped because its description already says most of this, and
+# the description is what a dispatcher reads, not the prompt the fork itself runs on.
+flat="$(body_of "$agent" | tr '\n' ' ' | tr -s ' ')"
+expect "the Implementer carries a body below its frontmatter" test -n "${flat// /}"
+
+# The test author's red-first test is the proof of the behaviour: a writer of the code that also
+# edits the test, or forks its own author, leaves a test that proves only what the code does.
+carries_any "the Implementer writes production code only" \
+  "production code only" "only production code" "nothing but production code" \
+  "production code and nothing else" "no file but production code" "no code but production code"
+
+carries_any "the Implementer works from its brief" \
+  "from your brief" "from the brief" "From your brief" "From the brief" \
+  "what your brief names" "what the brief names" "your brief is all" "the brief is all"
+
+# The Builder checks the changeset and commits each behaviour with its Behaviour: line: a commit
+# from the Implementer lands before that check and without that line.
+carries_any "the Implementer never commits" \
+  "never commit" "Never commit" "commit nothing" "make no commit" "makes no commit" \
+  "do not commit" "don't commit" "leave your edits uncommitted" "leave them uncommitted" \
+  "leave every edit uncommitted" "leave everything uncommitted"
+
+carries_any "the Implementer never edits a test file" \
+  "never edit a test" "Never edit a test" "never edits a test" "never touch a test" \
+  "Never touch a test" "never change a test" "never modify a test" "never write or edit a test" \
+  "edit no test" "touch no test" "change no test" "modify no test" "write or edit no test"
+
+carries_any "the Implementer dispatches no test author" \
+  "dispatch no test author" "dispatches no test author" "dispatch no agent" "dispatches no agent" \
+  "never dispatch" "Never dispatch" "fork no agent" "forks no agent" "dispatch nothing" \
+  "dispatch nobody" "dispatch no one"
+
 exit $((fails > 0))
