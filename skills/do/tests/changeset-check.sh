@@ -38,4 +38,21 @@ check_lines "a changeset touching only production paths passes, listing each pro
 check_absent "a passing changeset lists no named test path it left alone and no offending line" 0 "$rc" \
   'file=tests/bar.sh' 'refused=' 'offending='
 
+fresh named-uncommitted
+named_uncommitted="$(pwd -P)"
+mkdir -p scripts tests
+echo one >scripts/bar.sh
+commit "base"
+echo 'red case' >tests/bar.sh
+named_uncommitted_state="$tmp/state/named-uncommitted.state"
+bash "$snapshot" snapshot "$named_uncommitted" "$named_uncommitted_state" >/dev/null
+
+echo 'bent to fit' >>tests/bar.sh
+echo two >>scripts/bar.sh
+run "$named_uncommitted" "$named_uncommitted_state" tests/bar.sh
+check_lines "a changeset touching a named path already uncommitted at the snapshot is refused, naming that path" 1 "$rc" \
+  'verdict=refused' 'refused=1' 'offending=named tests/bar.sh'
+check_absent "a refused changeset is refused whole, with no line reading a pass" 1 "$rc" \
+  'verdict=pass'
+
 [ "$fails" = 0 ]
