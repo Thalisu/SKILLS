@@ -356,6 +356,11 @@ Builder reads what each dispatch changed by script, in this order:
    bash "$(readlink -f ~/.claude/skills/do)/scripts/main-untouched.sh" snapshot <the brief's Tree: path> <the state file>
    ```
 
+   The snapshot prints a `digest=` line besides the state file's path. The Builder keeps that
+   digest in its window, never in a file: the state file sits where the Implementer can reach it,
+   and one re-snapshotted after the author's test was bent would read the bent test as the
+   baseline.
+
    On the first dispatch of an edit it also copies each path of the author's Test changeset and
    Promotion changeset into a `mktemp -d` directory outside the worktree, since the snapshot holds
    hashes and the test is not committed yet: that copy is what a refusal is undone from.
@@ -365,10 +370,12 @@ Builder reads what each dispatch changed by script, in this order:
    path the test author's report listed under its Test changeset and its Promotion changeset:
 
    ```
-   bash "$(readlink -f ~/.claude/skills/do)/scripts/changeset-check.sh" <the brief's Tree: path> <the state file> <each path of the author's Test changeset and Promotion changeset>
+   bash "$(readlink -f ~/.claude/skills/do)/scripts/changeset-check.sh" <the brief's Tree: path> <the state file> <the digest the snapshot printed> <each path of the author's Test changeset and Promotion changeset>
    ```
 
-   Only `verdict=pass` goes on toward the commit.
+   Only `verdict=pass` goes on toward the commit. A state file that no longer matches the digest
+   makes the check exit 2 with no verdict: a failed dispatch, with the author's test paths put back
+   from the first-dispatch copy before the re-dispatch.
 4. Once the behaviour's last edit has passed, the Builder itself formats the touched files and
    commits the behaviour, per steps 5 and 6 of [build-loop.md](build-loop.md), with its
    `Behaviour:` line, so a resume still finds one commit per behaviour, and the Implementer never

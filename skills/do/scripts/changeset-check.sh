@@ -2,10 +2,12 @@
 # changeset-check.sh: whether an Implementer's changeset left every test file alone, read against
 # the baseline main-untouched.sh took before the Implementer's dispatch. Run from anywhere.
 #
-#   changeset-check.sh <worktree> <state file> [<named path>...]
+#   changeset-check.sh <worktree> <state file> <digest> [<named path>...]
 #
 # <state file> is the one `main-untouched.sh snapshot <worktree> <state file>` wrote before the
-# Implementer's first edit. The changeset is the file= set `main-untouched.sh check` prints against
+# Implementer's first edit, and <digest> the digest= line that snapshot printed, which the caller
+# kept in its own window: the state file sits where the Implementer can reach it, and a state file
+# rewritten after the snapshot (re-snapshotted over a bent test) no longer matches it. The changeset is the file= set `main-untouched.sh check` prints against
 # it: each path from the worktree's root, a hook or the git config as an absolute path. The named
 # paths are the ones the test author's report named, its Test changeset and its Promotion
 # changeset as one set, each relative to the worktree's root, ./-prefixed or absolute.
@@ -21,18 +23,24 @@
 # changeset passes.
 #
 # Exit codes: 0 pass · 1 refused · 2 usage, a worktree that is not a git working tree, or a state
-# file main-untouched.sh cannot read, which prints no verdict: a missing baseline is never a pass.
+# file main-untouched.sh cannot read or whose sha256 is not <digest>, which prints no verdict: a
+# missing or rewritten baseline is never a pass.
 set -uo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd -P)"
 
 usage() {
-  echo "usage: changeset-check.sh <worktree> <state file> [<named path>...]" >&2
+  echo "usage: changeset-check.sh <worktree> <state file> <digest> [<named path>...]" >&2
   exit 2
 }
-[ "$#" -ge 2 ] || usage
-worktree="$1" state="$2"
-shift 2
+[ "$#" -ge 3 ] || usage
+worktree="$1" state="$2" digest="$3"
+shift 3
+
+[ -r "$state" ] && [ "$(sha256sum <"$state" | cut -d' ' -f1)" = "$digest" ] || {
+  echo "$state does not match the digest the snapshot printed: the baseline was rewritten or is gone" >&2
+  exit 2
+}
 
 checked="$(bash "$here/main-untouched.sh" check "$worktree" "$state")" || exit 2
 root="$(git -C "$worktree" rev-parse --show-toplevel)"

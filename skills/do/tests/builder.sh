@@ -1229,11 +1229,12 @@ changeset_proj="$stmp/changeset/proj"
 changeset_tree="$changeset_proj/.claude/worktrees/do-w1"
 changeset_home="$stmp/changeset/home"
 changeset_state="$stmp/changeset/state"
+changeset_digest=0
 mkdir -p "$changeset_tree" "$changeset_home/.claude/skills"
 ln -s "$here/.." "$changeset_home/.claude/skills/do"
 (cd "$changeset_proj" && git init -q && cd "$changeset_tree" && git init -q && printf 'a\n' >a.txt && g add -A && g commit -qm init)
 fill_placeholders() { # $1 a command line: each <placeholder> filled, on stdout
-  sed -E -e 's/>\.\.\./>/g' -e "s#<[^>]*state[^>]*>#$changeset_state#g" \
+  sed -E -e 's/>\.\.\./>/g' -e "s#<[^>]*digest[^>]*>#$changeset_digest#g" -e "s#<[^>]*state[^>]*>#$changeset_state#g" \
     -e "s#<[^>]*([Tt]ree|[Ww]orktree)[^>]*>#$changeset_tree#g" -e 's#<[^>]*>#tests/a.test.sh#g' <<<"$1"
 }
 snapshot_run="$(fill_placeholders "$snapshot_cmd")"
@@ -1246,6 +1247,8 @@ for run_line in "$snapshot_run" "$changeset_run"; do
 done
 
 snapshot_out="$(cd "$changeset_tree" && HOME="$changeset_home" bash -c "$snapshot_run" 2>&1)"
+changeset_digest="$(sed -n 's/^digest=//p' <<<"$snapshot_out")"
+changeset_run="$(fill_placeholders "$changeset_cmd")"
 changeset_out="$(cd "$changeset_tree" && HOME="$changeset_home" bash -c "$changeset_run" 2>&1)"
 expect "the snapshot and the changeset check run from a project that does not hold the skill" \
   bash -c '[ -n "$1" ] && grep -q "^state=" <<<"$2" && grep -q "^verdict=pass" <<<"$3"' _ \

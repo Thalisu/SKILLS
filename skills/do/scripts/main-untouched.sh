@@ -9,8 +9,9 @@
 # snapshot writes the state file, one record per path git reports as not clean (modified, staged,
 # deleted, or untracked and not ignored) with the hash of its working content, then one per file of
 # the checkout's git hooks directory and one for its git config, which every worktree of the
-# checkout shares and git status never reports, and prints state=<state file> and
-# recorded=<n records>. The hooks directory is the git directory's own: one that core.hooksPath
+# checkout shares and git status never reports, and prints state=<state file>,
+# recorded=<n records> and digest=<sha256 of the state file>, which the caller keeps out of any
+# reach of the fork it covers: a state file rewritten after the snapshot no longer matches it. The hooks directory is the git directory's own: one that core.hooksPath
 # names is read as any other path, and the setting moving there is a change of the config. A file
 # git ignores is outside what the script reads, so a write to one is never reported. The config is
 # read as its settings, less the upstream of a branch. The state file sits outside the checkout or
@@ -118,6 +119,7 @@ if [ "$mode" = snapshot ]; then
   }
   echo "state=$state"
   echo "recorded=$(tr -cd '\0' <"$state" | wc -c)"
+  echo "digest=$(sha256sum <"$state" | cut -d' ' -f1)"
   exit 0
 fi
 
