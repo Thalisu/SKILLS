@@ -115,4 +115,27 @@ unreviewed="$(work_folder adds-a-seam)"
 carries "a case whose Review was never written reads its count as absent, never as zero" \
   "$unreviewed" review=absent act_on=absent
 
+returned="$(work_folder adds-a-seam)"
+agent_call_transcript do-builder "$returned" "" "" "Build the seam."
+agent_call_append do-builder "$returned" "" "" "Build the seam, next Stretch."
+agent_call_append do-builder "$returned" "" "" "Build the seam, third Stretch."
+agent_call_append do-builder "$returned" "" "" "Build the seam, after the Ruling."
+agent_call_append do-builder "$returned" "" "" "Build the seam, once more."
+agent_call_append do-impeccable "$returned" "" "" "Polish the page."
+cat >>"$returned/transcript.jsonl" <<'EOF'
+{"type":"user","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"t1","content":[{"type":"text","text":"stopped\nbehaviour: pages the note list | 3f2a91c\nbuild: added\nstopped: time budget spent after 1 of 3 behaviours, nothing uncommitted: fork the next Stretch with the same brief"}]}]}}
+{"type":"user","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"t2","content":"stopped\nstopped: window spent after the export behaviour, nothing uncommitted: fork the next Stretch"}]}}
+{"type":"user","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"t3","content":[{"type":"text","text":"fork\nfork: whether an archived note is exported\nstopped at: skips an archived note when exporting a notebook"}]}]}}
+{"type":"user","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"t4","content":"built\nbehaviour: exports the header line alone | 5d18bc3\nbuild: added"}]}}
+{"type":"user","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"t5","content":[{"type":"text","text":"I finished most of the seam and will carry on if you want."}]}]}}
+{"type":"user","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"t6","content":"built\nbehaviour: polishes the page | 9c4e2b7"}]}}
+{"type":"result","subtype":"success","result":"done","total_cost_usd":6.40}
+EOF
+mkdir -p "$returned/subagents"
+cat >"$returned/subagents/agent-a1b2c3.jsonl" <<'EOF'
+{"type":"user","isSidechain":true,"agentId":"a1b2c3","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"t1","content":[{"type":"text","text":"stopped\nbehaviour: pages the note list | 3f2a91c\nbuild: added\nstopped: time budget spent after 1 of 3 behaviours, nothing uncommitted: fork the next Stretch with the same brief"}]}]}}
+EOF
+carries "a budget stop is an expected Builder return, every other stop, fork or unreadable first line is not, each return counted once" \
+  "$returned" builder_returns=5 built=1 budget_stopped=1 unexpected_stopped=1 unexpected_fork=1 unreadable=1
+
 [ "$fails" = 0 ]
