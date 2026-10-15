@@ -364,6 +364,13 @@ flat=" $(tr ',' ' ' <<<"$tools" | tr -s ' ') "
 carries "the building agent holds every tool one turn of the build loop takes" \
   " Read " " Glob " " Grep " " Bash " " Write " " Edit " " Agent " " Skill "
 
+# The production code moved to a Sonnet Implementer, and the loop's judgments (what the next
+# behaviour is, whether a changeset is in scope, whether a red is the declared one) stayed here. A
+# pin that drifts with that move hands those judgments to a weaker model before a comparative eval
+# has said it can carry them.
+check_lines "the Builder runs on opus at medium effort" 0 0 \
+  "model: opus" "effort: medium"
+
 # The Builder holds `Agent` because the loop's proof step is a dispatch, and holds it with no scope
 # of its own: the Plan, the Ticket and the Digest may carry text a stranger appended to a tracker
 # issue, so which agents that tool reaches is a hook-level guarantee and never prose the fork could
