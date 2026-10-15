@@ -95,7 +95,7 @@ being built, and the Home repository holds the Ticket and its record alone.
 
 The worktree stays until the run's work has landed and its affected flows are green. The run
 removes it and its branch itself, from the main checkout; a run that stops as blocked leaves both
-in place and names them in the reply. One writer at a time in the worktree, per
+in place and names them on the Reply's blocker lines. One writer at a time in the worktree, per
 [separate-before-serializing-shared-state](../../../.agents/principles/separate-before-serializing-shared-state.md):
 the session, or the test author it dispatched while that author runs.
 
@@ -105,13 +105,13 @@ The rule is the one `test-triage` uses: `main` or `master` is protected when `de
 `development`, `staging` or `release*` exists locally or on a remote; `production` or `prod` is
 protected when any of those or `main` or `master` exists; a default branch that is the only
 branch is the working branch. Nothing lands on a protected branch. A Playbook checks the
-developer's branch against it before the work starts and records the warning for the Reply's Run
+developer's branch against it before the work starts and records the warning for the Run report's Run
 section, per [reply.md](reply.md). The warning guards nothing: the review refuses the landing on a
 protected branch whatever the run wrote, so a warning the developer never read cannot let the work
 land where the rule forbids it.
 
 Done when the developer's branch was read against the rule before the work started, and the
-warning, when the branch is protected, is recorded for the Reply's Run section.
+warning, when the branch is protected, is recorded for the Run report's Run section.
 
 One case stops instead of warning: the first run of a Spec, whose Spec branch does not exist yet,
 while the main checkout is on a protected branch or on no branch at all. That run would cut
@@ -185,7 +185,7 @@ The door also reads this Ticket's own `Ruled by the choice-taker on Ticket <this
 Spec's Implementation Decisions already carries, when it carries any, straight off the Spec text it
 just hashed, and records them, their `Fork:`, side-taken and `Norm:` text, for the session: the
 Digest carries no Implementation Decisions section, so this is the one place those lines reach the
-behaviours step and the reply's `Rulings` section.
+behaviours step and the Run report's `Rulings` section.
 
 No reader can be forked on two branches: the Agent tool is withheld from the session, or
 the Agent tool lists no `do-reader`, as it does on a machine that never linked the reader `do`
@@ -338,7 +338,7 @@ command line it stands for, with one `--infra` pattern per known infra failure t
 `<key>=green` line. A red one is `<key>=red exit=<n> log=<file>` with its failing block under it,
 capped at the last twenty lines, and the full output in the file that line names, so the
 session's window holds the lines to act on and never the whole output. The `command=` line is
-recorded for the Reply's Run section as its gate line, and each check's line is quoted in its
+recorded for the Run report's Run section as its gate line, and each check's line is quoted in its
 Evidence. Every check runs whatever the one before it
 returned, and the script exits 0 on `verdict=green`, 1 on `verdict=red` and 3 on `verdict=blocked`.
 
@@ -349,13 +349,14 @@ returned, and the script exits 0 on `verdict=green`, 1 on `verdict=red` and 3 on
 - `verdict=blocked`: a check exited 126 or 127, a runner that cannot start, or printed a line
   matching a pattern for a service down or unreachable, an infrastructure failure and not the code's.
   The run stops as blocked and names the cause from its `cause=` line, and never works around it.
-  Only the developer can waive it, and a waiver is recorded as debt in the reply, never as green.
+  Only the developer can waive it, and a waiver is recorded under the Reply's Pending debt, never as
+  green.
 - A tool timeout is "did not finish", neither red nor green: the command line is reported and the
   run stops.
 
 Done when the unit tests the gate runs and the typecheck are green in output produced after the
 last edit, every other check is green or reads `skip: <reason>`, and the `command=` line is recorded
-for the Reply's Run section.
+for the Run report's Run section.
 
 ## The integration
 
@@ -390,7 +391,7 @@ the developer's own and may be on: then a resolution recorded at one stop is rep
 stop of the same shape, the class would be read from what the cache put back instead of from what
 git left, and the run's own resolutions would land in a cache that outlives it.
 
-The step walks the states below, and the state it reached is recorded for the Reply's Run section
+The step walks the states below, and the state it reached is recorded for the Run report's Run section
 as its integration line, per [reply.md](reply.md).
 
 **A rebase that replays no commit.** Before the rebase runs, the step checks whether the
@@ -420,8 +421,8 @@ where that file exists, as the reviewer does. Then one of two:
 **A rebase that replayed commits.** The run ticks the step with the target and the count, the
 branch it rebased onto and how many of its own commits git replayed. The gate that was green before
 the replay is stale, since the run's commits now sit on code the branch had not seen: the gate's
-command lines run a second time, each command line and its output line quoted in the Reply's
-Evidence, and a green gate calls the review on the rebased diff. The replay moves the branch's base, so the fixed
+command lines run a second time, each command line and its output line quoted in the Run report's
+Evidence under `--auto`, and a green gate calls the review on the rebased diff. The replay moves the branch's base, so the fixed
 point the review is called with is the commit it rebased onto, never the commit the worktree was
 created from: that one is behind the developer's own commits now, and a review given it would read
 their work as part of the diff under review.
@@ -429,8 +430,8 @@ their work as part of the diff under review.
 **A red gate after a rebase that replayed commits.** The run stops as blocked, the way a red gate
 after the review's fix run does and never back to the build loop of
 [build-loop.md](build-loop.md): the replay brought in code the
-developer's branch carries, and a run that loops on it edits their work. The reply carries the
-failing check named, the command that undoes the rebase, `git reset --hard <the commit recorded
+developer's branch carries, and a run that loops on it edits their work. The blocker lines carry
+the failing check named, the command that undoes the rebase, `git reset --hard <the commit recorded
 before it started>`, the worktree and its branch left in place and named, the Ticket left
 `claimed`, nothing landed and nothing pushed.
 
@@ -449,7 +450,7 @@ nothing moved, and the tip of the developer's branch when they rebased or merged
 Done when the step is ticked as a no-op, or ticked with the target and the count and the tree
 handed over with no **Gate** of the run's own, or the run stopped as blocked with its reason, its
 undo command and its worktree named,
-and in each case the integration line is recorded for the Reply's Run section.
+and in each case the integration line is recorded for the Run report's Run section.
 
 ## The landing on the Spec branch
 
@@ -479,7 +480,7 @@ untouched. It prints one line, and the run routes on the exit code:
 
 - **`landed <sha>`, exit 0.** The Spec branch reads the tip of the run's branch. The run records
   `landed at <sha> on spec/<feature-slug>` and
-  `Review: none, the Spec is reviewed once its last Ticket lands` for the Reply's Run section, per
+  `Review: none, the Spec is reviewed once its last Ticket lands` for the Run report's Run section, per
   [reply.md](reply.md), and goes on to the close.
 - **`moved <tip>`, exit 1.** The Spec branch holds a commit the run's branch lacks, another
   Ticket's landing. The run answers it in the same run: the integration again onto that tip, as the
@@ -638,7 +639,8 @@ bash <skill-dir>/scripts/final-claim.sh release <the Ticket's path>
 The script removes the Spec branch only when its tip is on its upstream, the proof that it
 landed, and deletes the claim file, with the yielded mark of an earlier stop beside it, only when
 the branch was removed or already absent.
-`claim=released` with `removed=yes` is recorded for the Reply as `spec/<feature-slug> removed`.
+`claim=released` with `removed=yes` is recorded for the Run report as
+`spec/<feature-slug> removed`.
 `claim=held` (exit 1) means the branch did not land after all or a worktree still holds it: the
 run stops as blocked with the `reason=` line quoted, and never deletes the branch or the claim
 file by hand.
@@ -724,7 +726,7 @@ Run once per run, after the gate, and never by hand: the review fixes and lands,
 and whatever the run commits after it lands through the fix call below, never a second review, per
 [ADR 0033](../../../docs/adr/0033-the-review-runs-once-per-run-and-what-comes-after-it-lands-through-the-gate-alone.md).
 
-Done when the return's lines are recorded for the Reply's Run section and the work landed, so the
+Done when the return's lines are recorded for the Run report's Run section and the work landed, so the
 run goes on to the verification; or when the run stopped as blocked with the reason the return
 gave quoted, the worktree and its branch named and the `Yours:` line that stop calls for; or when
 the step reads `skip: do-code-review not listed`.
@@ -829,7 +831,7 @@ judge comes back to this run in its return.
 
 The run reads the outcome off the return and never opens the Review file: the return carries no
 Review text, only the outcome, so the Review's Findings never reach the session's window. The
-return is recorded for the Reply's Run section, one line per part, per [reply.md](reply.md):
+return is recorded for the Run report's Run section, one line per part, per [reply.md](reply.md):
 
 - the Review's location, its `Review:` line;
 - the `Act on:` line, how many Findings the review found and how many its Fixers fixed;
@@ -859,7 +861,7 @@ last of them. Each reapply goes through `check-reapply.sh` with its `replace` an
 [conflict-loop.md](conflict-loop.md) says,
 and on this integration that check is the only reading its `with` text gets, since no reviewer
 reads a commit made after the review: a block the script refuses writes nothing, is recorded
-`none`, and is listed in the reply among this integration's drops, marked as coming after the
+`none`, and is listed in the Run report among this integration's drops, marked as coming after the
 review. The integration hands the branch straight to the fix call on the Review the run already
 has, as the paragraph below says for what the run commits after the review, never a second review:
 the fix call gates the same tree itself and refuses to land it red, and this retry has no fixed
@@ -902,7 +904,7 @@ the fix call on the Review the run already has, never a second review. In `bug-f
 `refactoring` the path is the Resume of [bug-fix.md](bug-fix.md), the one step 2 of
 [refactoring.md](refactoring.md) hands its resume to: the Review the run already has counts, so the run integrates again, its Loss ledger
 keyed by the branch, and lands through the fix call on that Review. The run lands or stops on
-that path's own outcome, and the integration line of the Reply's Run section carries the lines of
+that path's own outcome, and the integration line of the Run report's Run section carries the lines of
 both integrations, per [reply.md](reply.md), never the resume as a next step.
 
 That resume is taken once per no-op state and is never a loop on it. When the integration inside it
@@ -964,7 +966,8 @@ A run that reaches this point having run no gate of its own, the resume on `verd
 the session that printed it was another run's: it hands the fix call no `command=` line, and the
 fix call runs the Gate itself from the Testing Policy's Project facts, as
 [fix.md](../../do-code-review/references/fix.md) has it do with no line handed. What that Gate ran
-is in the fix call's return, which the Reply's gate line carries instead, per [reply.md](reply.md).
+is in the fix call's return, which the Run report's gate line carries instead, per
+[reply.md](reply.md).
 Last of all the call carries one line that marks it as the run's own, after its one review:
 
 ```
@@ -984,8 +987,8 @@ one's, and a return that reads not landed stops the run the way the first one do
 
 When the session does not list `do-code-review`, the step reads
 `skip: do-code-review not listed`: nothing lands, the worktree and its branch stay in place and
-are named in the reply, and the reply names the review and the landing as the developer's next
-step.
+are named on the Reply's blocker lines, and its Next step names the review and the landing as
+the developer's.
 
 ## The verification
 
@@ -1011,7 +1014,7 @@ worktree stays, since it is where a red flow is fixed.
    per [never-block-on-the-human](../../../.agents/principles/never-block-on-the-human.md), because
    its cost is the one thing only the developer can weigh.
    A no records each flow that needed it as not run, leaves the criterion it would have proven
-   unticked, and records the waiver as debt in the reply; the close still happens.
+   unticked, and records the waiver under the Reply's Pending debt; the close still happens.
    Under `--auto` the developer handed that weighing over, so the question is not put to them: it
    is a run question the `choice-taker` rules, per [forks.md](forks.md). Its `Options:` are
    `yes: run <the command line>` and `no: record each flow that needed it as not run`, its
@@ -1020,8 +1023,8 @@ worktree stays, since it is where a red flow is fixed.
    carries on to the close either way.
 3. An infrastructure failure, the script's `verdict=blocked` (a service down, a runner that cannot
    start, a device missing), stops the run as blocked with the cause named from its `cause=` line
-   and is never worked around; only the developer can waive it, and the waiver is debt in the
-   reply, never green.
+   and is never worked around; only the developer can waive it, and the waiver is the Reply's
+   Pending debt, never green.
 
 4. A red flow is a defect in the landed work, not in the flow: it is fixed in the worktree as one
    more unit of the build loop of [build-loop.md](build-loop.md), with origin `bugfix` and the
@@ -1031,7 +1034,8 @@ worktree stays, since it is where a red flow is fixed.
    itself and lands it again with no second review. A fix call that returns not landed stops the
    run the way the first call does.
 Done when every affected flow is green in output produced after the last landing, or recorded as
-not run on the developer's no, with every command line quoted in the Reply's Evidence.
+not run on the developer's no, with every command line quoted in the Run report's Evidence under
+`--auto`.
 
 ## The close
 
@@ -1057,7 +1061,7 @@ repository.
    [ticket-format.md](../../../.agents/formats/ticket-format.md). Then the landed commit, the Review's location, the command lines of the gate
    and the flows with their quoted output lines, and each waiver.
 3. Set the `**Status:**` line to `resolved`. The file stays uncommitted, for the developer, and
-   the reply lists it beside the Review under the files left uncommitted.
+   the Run report lists it beside the Review under the files left uncommitted.
 4. On a remote tracker the run asks first, per the tracker file, in one question that lists every
    write the yes makes, in the order it makes them, from the run's own record, and carries the
    `Yours: outward:` line of [reply.md](reply.md), its choice the yes that makes those writes or
@@ -1072,9 +1076,10 @@ repository.
    - then the Ticket issue closed.
 
    On the developer's yes the run makes the writes in that order. A write the tracker refuses
-   stops the rest: nothing after it is made, the Ticket issue stays open, and the reply names each
-   write made and the one refused. A no makes none of them: the Ticket issue stays open with its
-   old criterion text, and the evidence and the held Rulings are in the reply only. A run with no
+   stops the rest: nothing after it is made, the Ticket issue stays open, and the Reply's blocker
+   lines name each write made and the one refused. A no makes none of them: the Ticket issue stays open with its
+   old criterion text, the held Rulings are in the Reply's Pending debt only, and the evidence in
+   the Run report under `--auto`. A run with no
    held Ruling asks the same question with the evidence comment and the close alone.
 
    Under `--auto` the question is still asked of the developer, the same list in the same order
@@ -1085,7 +1090,8 @@ repository.
    `bash <skill-dir>/scripts/completion-check.sh <the Ticket's path>`. The order is the guarantee:
    a run that wrote `resolved` first is counted by every check that runs after it, so the last of
    two concurrent runs always sees every Ticket resolved. The script writes nothing. Its `open=`
-   and `next=` lines are recorded as printed for the Reply's `Open:` line and Next step, per
+   and `next=` lines are recorded as printed for the Run report's `Open:` line and the Reply's Next
+   step, per
    [reply.md](reply.md), with the `next_build=`, `next_build_location=` and `next_location=` lines
    when it printed them and its `consumer=` lines for the Pending debt, and on exit 1 its `ambiguous=` line too. A Ticket that is a tracker
    reference has no path, so the check is not run and nothing is taken as open.

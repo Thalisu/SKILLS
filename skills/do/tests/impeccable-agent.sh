@@ -501,7 +501,7 @@ carries_each "the flows are written after the screen exists, by the end-to-end a
   "\`## The flows\`"
 
 carries_each "the session copies the flow: lines into the Reply's Evidence unchanged" \
-  "Reply" \
+  "Reply" "Run report" \
   -- \
   "Evidence" \
   -- \
@@ -579,7 +579,7 @@ carries_each "the fallback: line comes back in a project with no end-to-end comm
 
 mapfile -t no_flow_proof < <(no_flow_proof_groups)
 carries_each "the session then writes one line in the Reply: no flow covered the screen, the detector scan and the Gate are its proof" \
-  "Reply" -- "${no_flow_proof[@]}"
+  "Reply" "Run report" -- "${no_flow_proof[@]}"
 
 echo "# skills/do/agents/do-impeccable.md: its body runs the detector scan by script, fixes what it reports and returns a scan: line with one finding: line per finding left"
 
@@ -810,7 +810,7 @@ carries_each "the no scan: line comes back in place of the scan: line, with no d
 carries_each "the session copies the no scan: line into the Reply's Evidence" \
   "copies" "copy" "copied" \
   -- \
-  "Reply" \
+  "Reply" "Run report" \
   -- \
   "Evidence"
 

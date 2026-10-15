@@ -2,32 +2,58 @@
 
 Every Playbook reads this file last and writes its reply by it. The Reply is the one place a run
 reaches the developer: a run lasts long enough that its reader comes back to it afterwards, with
-none of the run in mind, and reads only this message.
+none of the run in mind, and reads only this message. So it is kept short: five parts, and every
+other line a step names goes to the Run report, written under `--auto` alone.
 
-So every line a step names reaches the developer through the Reply, per
-[ADR 0039](../../../docs/adr/0039-a-do-runs-lines-reach-the-developer-through-the-reply-never-through-text-written-mid-run.md).
-A line counts once the Reply carries it. Text the session wrote mid-run is never where a line has
-to be, since a note written between two tool calls may reach nobody.
+Text the session wrote mid-run is never where a line has to be, since a note written between two
+tool calls may reach nobody, per
+[ADR 0039](../../../docs/adr/0039-a-do-runs-lines-reach-the-developer-through-the-reply-never-through-text-written-mid-run.md)
+as [ADR 0091](../../../docs/adr/0091-the-do-reply-is-five-parts-and-the-run-report-is-written-only-under-auto.md)
+amends it.
 
 ## The message
 
-One message, in the language the session opened in, built in this order:
+One short message, in the language the session opened in, read by a developer who wants to know
+what was done for whom, what is left and what to type next, and nothing more. It is built from
+these parts, in this order:
 
-1. **First line.** `Playbook: <name>` as plain text, with no code formatting around it, so that a
-   reader or a grader finds it at column one.
-2. **Run.** The [Run](#run) section, right after that line, under a `## Run` heading.
-3. **Sections.** The ten [Sections](#sections), in their order, each under a `##` heading of its
-   name.
+1. **Plan.** `Playbook: <name>` as plain text on the first line, with no code formatting around
+   it, so that a reader or a grader finds it at column one, then a `Plan:` line on the next line
+   naming the plan the run built from: in `ticket` the Plan's file name, or
+   `Plan: none, <reason>` when the run opened no Plan (a fork of `do-impeccable`, which builds from
+   the Ticket's acceptance criteria, or a resume whose only work left was the landing); in every
+   other Playbook the request read back in a few words. Under `--auto` a `Report:` line follows,
+   naming the Run report's absolute location.
+2. **For whom.** The [For whom](#sections) section, under a `## For whom` heading.
+3. **Pending debt.** The [Pending debt](#sections) section, under a `## Pending debt` heading.
+4. **Yours.** The `Yours: <class>: <the choice>` line, only when the run hands the developer
+   something, per [A refusal or a blocked run](#a-refusal-or-a-blocked-run), with the blocker it
+   stopped on and its reason on the lines right above it. A run that hands over nothing writes no
+   such line and no heading for it.
+5. **Next step.** The [Next step](#sections) section, under a `## Next step` heading, last. When a
+   `Yours:` line stands, it opens on one line saying to do what that line names first, and the
+   command comes after it.
 
 Three rules hold across all of it:
 
-- **`none`.** A section with nothing to say reads `none` on one line, so that the shape holds from
-  one run to the next and a missing section is a missing section, not a style choice.
+- **`none`.** For whom and Pending debt with nothing to say read `none` on one line, so that the
+  shape holds from one run to the next.
 - **Quotes.** Everything quoted was produced in this run, after the last edit. Nothing is a link, a
   sha or a transcript reference the run did not see.
-- **Nothing added.** The Run section and the ten sections are the whole shape: no `## Summary` and
-  no `## Test plan` joins them, and nothing comes after the last section, neither a recap nor an
-  offer to carry on.
+- **Nothing added.** The five parts are the whole message: no `## Summary` and no `## Test plan`
+  joins them, and nothing comes after the Next step, neither a recap nor an offer to carry on.
+
+Every other line the run's steps name, the [Run](#run) section and the other
+[Sections](#sections) (Inherited, Commits, Evidence, Principles, Rulings, Skipped and Left
+uncommitted), makes up the Run report, which is never part of the message. The run writes the Run
+report to a file only under `--auto`, since a Ruling the `choice-taker` made on a run question
+sits in no other file: in a `ticket` run beside the Plan, its stem with `.report.md` in place of
+`.plan.md`, and in every other Playbook at
+`.scratch/do-reports/<YYYYMMDD>-<the branch's slug>.md` in the main checkout, appending the
+`.scratch/` line first per [scratch.md](../../../.agents/scratch.md). It holds the Run section,
+then the ten sections in their order, each under a `##` heading of its name, with a section that
+has nothing to say reading `none`. Without `--auto` the Run report is not written at all, per
+[ADR 0091](../../../docs/adr/0091-the-do-reply-is-five-parts-and-the-run-report-is-written-only-under-auto.md).
 
 A run that ends early writes a shorter message, per
 [A refusal or a blocked run](#a-refusal-or-a-blocked-run). [Whole replies](#whole-replies) shows
@@ -48,7 +74,8 @@ was not there.
 
 ## Run
 
-How the run was set up and what its steps decided, one line each. Three rules pick the lines and
+The Run report's first section, under a `## Run` heading: how the run was set up and what its
+steps decided, one line each. It is never part of the message. Three rules pick the lines and
 place them:
 
 - **Which lines.** A line is written only when the matched Playbook's steps name it. The numbered
@@ -93,8 +120,8 @@ worktree line comes before the audit line and before the hand-over, shaped-by an
    refused on it.
 9. **Checklist.** The matched Playbook's checklist, verbatim, every step the run reached ticked
    `done:` or reading `skip: <reason>`, and a step it never reached left as it was copied. The run
-   copied it at its start as its own todo list; the copy in the Reply is the one the developer
-   reads, so it is never required as text before the first edit.
+   copied it at its start as its own todo list; the copy in the Run report is the record of it, so
+   it is never required as text before the first edit.
 10. **Plan line.** In `ticket`, the Plan's location and every fallback the Planner's return
     named: a Map built from search output because `how` was not listed, one `rg -n -w` per
     candidate in place of the discover batch, or a shape the fork stated itself. The grounding
@@ -361,13 +388,21 @@ worktree line comes before the audit line and before the hand-over, shaped-by an
     Still to land: orders-service
     ```
 
+Of these lines, the message carries only what its Next step needs: on a feature of more than one
+repository, the `Push:` line, the repository lines above and `Every repository of the feature
+landed` stand under `## Next step`, before its last line, and a `Final integration: stopped` or
+`not resumed` line is the blocker above the `Yours:` line. The Already landed and Out of order
+shapes are whole messages and stay as item 30 writes them: the first line, their
+`Final integration: not started` line, then the lines that shape names, with no other part.
+
 The lines record what the steps decided; they gate nothing. The order constraints on actions stay
 with the steps that carry them (the door script before any write, the worktree before the first
 edit), and a landing on a protected branch is refused by the review whatever the Run section says.
 
 ## Sections
 
-Ten sections, in this order, each one present in every Reply that carries sections.
+Ten sections, in this order, each one present in every Run report. Three of them are also parts
+of the message: For whom, Pending debt and Next step, written the same way in both.
 
 1. **For whom.** Who the work is for and what changes for them: the end user, the colleague who
    imports the module, the reader of the doc.
@@ -418,18 +453,20 @@ Ten sections, in this order, each one present in every Reply that carries sectio
      the forks in [forks.md](forks.md), follows under `On the Spec:` in the same shape, with the Spec issue it was
      posted on once the close's yes posted it, and otherwise with its whole Spec line and its
      `Criterion:` and `Now reads:` lines, for the developer to carry to the issues: on a no, a
-     refused write or a stop, nothing else carries it. A Ruling an earlier session held and never
+     refused write or a stop, nothing else carries it, so that unposted Ruling is also listed
+     under Pending debt, in the message, with or without `--auto`. A Ruling an earlier session held and never
      posted is lost.
    - **A Ruling on a run question.** A Ruling the `choice-taker` made under `--auto` on a
      question about the run itself, the run questions in [forks.md](forks.md), goes under
      `On the run:` and never among the Spec's lines, one line per Ruling in the order the run met
      them, naming both options, the option taken and the norm:
      `<option A> or <option B>: <the option taken>. Norm: <the norm>.` Each slot is read back from
-     the return's own `Fork:`, `Side:` and `Norm:` lines. That Ruling sits in no file, so this
-     group is the one place the developer reads what was decided for them: it is listed on
-     every Playbook, and on a blocked reply as well as a finished one. A return shown above a
+     the return's own `Fork:`, `Side:` and `Norm:` lines. That Ruling sits in no other file, so this
+     group is the one place the developer reads what was decided for them, and the reason the
+     Run report is written under `--auto`: it is listed on every Playbook, and on a blocked run as
+     well as a finished one. A return shown above a
      question the developer still answered steered nothing and is not listed.
-   - **An empty group.** Both labels are written on every Reply, and a group with no Ruling
+   - **An empty group.** Both labels are written in every Run report, and a group with no Ruling
      reads `none` on its label's line: `On the Spec: none` when the Spec carries no such line and
      this run holds none of its own, `On the run: none` when it ruled no run question. A Playbook
      other than `ticket` has no Spec line to list, so its `On the Spec:` group reads `none`.
@@ -440,7 +477,8 @@ Ten sections, in this order, each one present in every Reply that carries sectio
    Ticket, the Review, and the `.gitignore` line when the run appended it. `none` when the run
    wrote only what it committed.
 9. **Pending debt.** Waivers, consumer coverage not run, an equivalence gap, a second thing found
-   on the way and not done. On a run that forked `do-impeccable`, each `finding:` line the fork
+   on the way and not done. A held Ruling the close did not post, per the Rulings item above, with its
+   whole Spec line and its `Criterion:` and `Now reads:` lines. On a run that forked `do-impeccable`, each `finding:` line the fork
    returned is listed here, one line per finding, so a finding counted under Evidence is always
    named. Findings that remain are debt and never a stop: the Ticket still lands. The line for
    consumer flows not run opens `consumer flows not run:` and names the Ticket that carries them,
@@ -638,22 +676,23 @@ Yours: outward: cut the moved behaviour for <repository=> with the command below
   left. The first line opens `Stopped at the build step:` in place of
   `Stopped at the Plan, before anything was built:`. The status line reads `claimed`. And one line
   right after it names the worktree, its branch and the commits already made as kept, for the
-  next `/do` on the Ticket to resume from. These lines then close a message that carries the Run
-  section of a run stopped after work exists, and the bullet below on no Run section holds for the
-  stop at the Plan alone.
+  next `/do` on the Ticket to resume from. These lines then stand as the blocker, the `Yours:`
+  line and the Next step of a run stopped after work exists, and the bullet below on no other
+  part holds for the stop at the Plan alone.
 - `/tickets <spec>` is the Reply's last line, with nothing else on it but the arguments of
   `list=no-location` and nothing after it. The
-  message carries no Run section and no other command, neither `/do` nor `/discuss` nor a shell
+  message carries no `Plan:` line, no other part and no other command, neither `/do` nor `/discuss` nor a shell
   line: the stop is a refusal of the Plan step, and these lines say everything the run did.
 
 How much more it carries depends on where the run stopped:
 
-- **Refused before any edit.** It adds nothing, not even a Run section: its one message is the
+- **Refused before any edit.** It adds nothing, not even a `Plan:` line: its one message is the
   refusal.
-- **Stopped after work exists.** It adds the Run section and the sections that apply: the commits
-  made, the worktree and its branch named, the files restored.
-- **Stopped as blocked.** It names the step it stopped at, and its Skipped section lists no step
-  after it as skipped: the run never reached those steps.
+- **Stopped after work exists.** It writes the five parts of [The message](#the-message), the
+  blocker and the `Yours:` line in their place: the worktree and its branch are named on the
+  blocker's lines, and the commits made and the files restored go to the Run report.
+- **Stopped as blocked.** It names the step it stopped at on the blocker's line, and the Run
+  report's Skipped section lists no step after it as skipped: the run never reached those steps.
 
 Every blocked Reply, and every refusal at a door, carries one line that says what the run hands the
 developer and why only the developer can give it, except the `ticket` door's stops on a Build
@@ -679,7 +718,9 @@ Yours: <class>: <the choice>
 - **The choice** is what the developer does next, every option named when there is more than one,
   in the words they act on.
 - **Where it sits.** Beside the refusal or the blocker and its reason, before the Playbook or the
-  door the request goes to; in a refusal before any edit it is part of the one message.
+  door the request goes to; in a message of five parts it is the fourth, before the Next step,
+  which opens by saying to do it first; in a refusal before any edit it is part of the one
+  message.
 
 One line of each class:
 
@@ -713,69 +754,21 @@ Three writes outside the repository have a fixed place:
 
 ## Whole replies
 
-Two replies as a run writes them. They show the shape, never which lines a Playbook carries: that
-is the matched Playbook's steps'. The first is a `trivial` run that landed one commit. The second
-is a `ticket` run refused at the door before any edit.
+Replies as a run writes them. They show the shape, never which lines a Playbook carries: that is
+the matched Playbook's steps'. The first is a `trivial` run that landed one commit. The second is a
+`ticket` run under `--auto` stopped after work exists, and the third the Run report it wrote. The
+others are `ticket` runs refused at the
+door before any edit.
 
 <example>
 
 ```md
 Playbook: trivial
-
-## Run
-
-Fix the typo "recieve" in the comment above exportNote.
-
-trivial:
-1. door: done: no refusal held, branch notes-export not protected
-2. discover: skip: no symbol created
-3. edit: done: src/notes/export.ts
-4. gate: done: typecheck and the covering suite ran after the edit
-5. door on the diff: done: verdict=trivial
-6. commit: done: 3f2a91c
-7. reply: done
-
-Target files: src/notes/export.ts
-Gate: `npm run typecheck`, then `npx vitest run src/notes/export.test.ts`
-Door verdict: verdict=trivial
+Plan: fix the typo "recieve" in the comment above exportNote
 
 ## For whom
 
 The colleague who reads export.ts. The comment above exportNote now spells "receive" correctly.
-
-## Inherited
-
-Nothing new. A spelling fix encodes no rule.
-
-## Commits
-
-3f2a91c docs(notes): fix a typo in the export comment. src/notes/export.ts
-
-## Evidence
-
-`npm run typecheck` printed nothing and exited 0.
-`bash ~/.claude/skills/do/scripts/trivial-door.sh covering src/notes/export.ts` printed
-`covering=src/notes/export.test.ts`.
-`npx vitest run src/notes/export.test.ts` printed `Tests 6 passed (6)`.
-`bash ~/.claude/skills/do/scripts/trivial-door.sh diff src/notes/export.ts` printed
-`verdict=trivial`.
-
-## Principles
-
-none
-
-## Rulings
-
-On the Spec: none
-On the run: none
-
-## Skipped
-
-discover: skip: no symbol created
-
-## Left uncommitted
-
-none
 
 ## Pending debt
 
@@ -784,6 +777,98 @@ none
 ## Next step
 
 git push origin notes-export
+```
+
+</example>
+
+<example>
+
+```md
+Playbook: ticket
+Plan: 03-share-notes.plan.md
+Report: /home/dev/notes/.scratch/20260101-notes/issues/03-share-notes.report.md
+
+## For whom
+
+The reader of a shared note. A share link now opens the note read-only.
+
+## Pending debt
+
+consumer flows not run: the share link on the mobile app, carried by Ticket 05 (built in notes-mobile)
+
+not landed: spec/notes is checked out in /home/dev/notes-spec
+Yours: direction: switch /home/dev/notes-spec off spec/notes and run /do 03-share-notes.md again, or leave do/share-notes unlanded in its worktree
+
+## Next step
+
+First do what the Yours: line names, then:
+
+/do /home/dev/notes/.scratch/20260101-notes/issues/03-share-notes.md
+```
+
+</example>
+
+<example>
+
+The Run report that `--auto` run wrote at the `Report:` location, shortened to one line where a
+section holds several.
+
+```md
+## Run
+
+03: share a note by link
+Loop: policy
+Claimed: .scratch/20260101-notes/issues/03-share-notes.md
+
+ticket:
+1. door: done: verdict=build
+...
+
+Plan: .scratch/20260101-notes/issues/03-share-notes.plan.md
+Guard: guard=pattern-and-header (harness=claude-code, hooks=run): the pattern guard beside the header check.
+Worktree: .claude/worktrees/do-share-notes on do/share-notes
+not landed: spec/notes is checked out in /home/dev/notes-spec
+
+## For whom
+
+The reader of a shared note. A share link now opens the note read-only.
+
+## Inherited
+
+A share link is a signed token the notes module verifies before it reads.
+
+## Commits
+
+a41c0de feat(notes): open a shared note read-only by its link. src/notes/share.ts, src/notes/share.test.ts
+
+## Evidence
+
+`npx vitest run src/notes/share.test.ts` printed `Tests 4 passed (4)`.
+
+## Principles
+
+none
+
+## Rulings
+
+On the Spec: none
+On the run: resume the worktree or start over: resume the worktree. Norm: no norm: the side easiest to undo.
+
+## Skipped
+
+none
+
+## Left uncommitted
+
+.scratch/20260101-notes/issues/03-share-notes.md
+
+## Pending debt
+
+consumer flows not run: the share link on the mobile app, carried by Ticket 05 (built in notes-mobile)
+
+## Next step
+
+/do /home/dev/notes/.scratch/20260101-notes/issues/03-share-notes.md
 ```
 
 </example>

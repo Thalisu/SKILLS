@@ -6,8 +6,10 @@ never a session summary. The parts it shares with the other Playbooks that build
 are in [mechanics.md](mechanics.md), linked from the steps that use them, with the loop and its
 test authors in [build-loop.md](build-loop.md), the forks in [forks.md](forks.md) and every stop of
 the integration in [conflict-loop.md](conflict-loop.md), each read by the step that reaches it and
-by no other. The reply is written by [reply.md](reply.md). The checklist below is copied verbatim into the run as its todo
-list before any task-specific item, and the Reply's Run section carries it ticked, the research
+by no other. The reply is written by [reply.md](reply.md): five parts, and every other line a step
+records here goes to the Run report, a file written under `--auto` alone and kept nowhere without
+the flag. The checklist below is copied verbatim into the run as its todo
+list before any task-specific item, and the Run report's Run section carries it ticked, the research
 brief's ten steps with the review and landing step reading as
 the review's and the grounding as the Planner's; each step carries its done condition below.
 
@@ -170,7 +172,7 @@ the tracker file describes. Before anything is written:
 - A `claimed` Ticket whose `do/<slug>` worktree exists is resumed, as the Resume section says:
   never a second worktree, and the claim stands.
 - A `claimed` Ticket whose worktree is gone starts over: the run records the start-over line for
-  the Reply's Run section, per [reply.md](reply.md), saying so in one line and naming the door's
+  the Run report's Run section, per [reply.md](reply.md), saying so in one line and naming the door's
   `run_branch=` fact, and the claim stands, since the claim is idempotent. A `do/<slug>` branch the
   worktree's removal left behind is named there, and step 2 enters it rather than meeting it as a
   dead `git worktree add -b`.
@@ -269,10 +271,10 @@ Exit 2 after the door's `resume` is a worktree on a detached HEAD with no rebase
 the run stops as blocked in one line naming the worktree and the script's reason, writes nothing,
 and leaves the worktree as it is, since no branch can be read from it to build on.
 
-- The run records the resume line for the Reply's Run section, per [reply.md](reply.md): it says
+- The run records the resume line for the Run report's Run section, per [reply.md](reply.md): it says
   the run resumed, names the worktree and its branch, and lists the commits found, one line each
   with its `Behaviour:` line, off the script's lines. The claim line is not written again. The
-  Reply's Run section carries the checklist with steps 0 and 2 reading `done: resumed`.
+  Run report's Run section carries the checklist with steps 0 and 2 reading `done: resumed`.
 - The worktree is entered, never created: a second worktree is never made.
 - An `extreme=` line means an earlier run stopped on an Extreme fork and left its sidecar, per the
   forks in [forks.md](forks.md). It is read on `verdict=extreme` and on `verdict=ask` alike, since
@@ -311,7 +313,7 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   [ADR 0033](../../../docs/adr/0033-the-review-runs-once-per-run-and-what-comes-after-it-lands-through-the-gate-alone.md),
   so the resume is never a second review. Only the landing is left, so the Plan step is skipped:
   the run forks no Planner, and no Plan is hashed, checked or opened, whatever state the one beside
-  the Ticket is in, carried, stale or absent. The Reply's Run section carries the checklist with
+  the Ticket is in, carried, stale or absent. The Run report's Run section carries the checklist with
   step 1 reading `skip: resumed, only the landing left`, and step 3 is never reached, so its second
   reading of the Plan never runs either. The one part of step 1 that still runs is its context
   reading, `bash <skill-dir>/scripts/context-usage.sh`, taken where the skipped step would have
@@ -360,7 +362,7 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   second `git worktree add <path> -b do/<slug>` would die on it. The branch is read from the rebase
   state, `cat "$(git rev-parse --git-path rebase-merge/head-name)"`, which holds
   `refs/heads/do/<slug>` while the rebase is open, never from `git branch --show-current`. The
-  resume line the Reply's Run section carries names the worktree and that branch, lists the commits
+  resume line the Run report's Run section carries names the worktree and that branch, lists the commits
   found, says the rebase is open, names the files git left conflicted, and names each file the
   conflict class printed `trusted` as the hand resolution the run kept, and the run picks up at the
   integration in [mechanics.md](mechanics.md) rather than at the build loop. What it does there is
@@ -464,7 +466,7 @@ Entered on the door's `verdict=resume-final` and on nothing else. The Ticket han
 to the same Spec branch, the same tree, the same ledger and the same claim. The run walks the final
 integration of [mechanics.md](mechanics.md) from where it stopped, and nothing before it: no Digest,
 no Plan, no Builder, no `do/<slug>` worktree. Steps 1 to 9 of the checklist are never reached, so
-they are neither ticked nor skipped, and the Reply's Run section carries steps 0, 9a and 10.
+they are neither ticked nor skipped, and the Run report's Run section carries steps 0, 9a and 10.
 
 The same entry is the landing command of a feature across repositories: a `do` on a `resolved`
 Ticket built in the session's repository, typed there once every repository it consumes from has
@@ -501,7 +503,7 @@ of this project's facts and the Review at the `review_file=` path the claim prin
    anything is read from the tree, so two resumes never both walk it.
    - `claim=claimed` with `takeover=yes`: the run that stopped yielded its claim and this run holds
      it now. The `previous_ticket=`, `previous_claimed_at=` and `yielded_at=` lines are recorded
-     for the Reply. `takeover=no` means no claim file was there, and the run holds a fresh one.
+     for the Run report. `takeover=no` means no claim file was there, and the run holds a fresh one.
    - `claim=taken`, exit 1: a claim nobody yielded. Its holder is either still integrating or died
      without yielding, and the script cannot tell which, so the run stops in one line and writes
      nothing, per ADR 0063. The Reply quotes `holder_ticket=`, `claimed_at=` and `yield_command=`
@@ -587,12 +589,12 @@ Do:
 
 ## Steps
 
-**0. Resolve and show.** Before any edit, step 0 records its lines for the Reply's Run section,
-in the order [reply.md](reply.md) fixes, its facts taken off the lines the door script printed and
-never restated from a file the session read. The Reply carries them; the session may also write
-them as it goes, and nothing depends on that:
+**0. Resolve and show.** Before any edit, step 0 records its lines for the Run report's Run
+section, in the order [reply.md](reply.md) fixes, its facts taken off the lines the door script
+printed and never restated from a file the session read. The Run report carries them under
+`--auto`; the session may also write them as it goes, and nothing depends on that:
 
-- `Playbook: ticket`.
+- `Playbook: ticket`, which the message carries too, as its first line.
 - The title confirmed back, `<NN>: <title>`.
 - Done as a predicate: the acceptance criteria plus the gate (the unit tests the run added and the
   ones covering the code it touched, the typecheck, the lint and the format green in the worktree
@@ -619,13 +621,13 @@ them as it goes, and nothing depends on that:
   only once the Spec branch exists: a first run on a protected branch never gets this far, the door
   refused it.
 - The checklist above, verbatim, copied as the run's todo list with no step marked skipped: every
-  step stays open until the run reaches it. The Reply's Run section carries it after the lines
+  step stays open until the run reaches it. The Run report's Run section carries it after the lines
   above, each step the run reached ticked `done:` or reading `skip: <reason>`.
 
-The door script still runs before any write; recording the lines for the Reply moves none of those
+The door script still runs before any write; recording the lines for the Run report moves none of those
 actions. A Ticket the door refuses ends in one message, the refusal, as [reply.md](reply.md) says
 for a refusal before any edit. Done when the title, the predicate and the loop line are recorded
-for the Reply's Run section.
+for the Run report's Run section.
 
 **1. Plan.** The grounding is one fork's work and one file, per
 [ADR 0047](../../../docs/adr/0047-the-ticket-run-forks-a-planner-then-a-builder-and-the-session-stops-writing-code.md).
@@ -736,7 +738,7 @@ rm -f -- <the destination>
 
 Right before it forks the Planner, the run takes the guard probe, `bash <skill-dir>/scripts/harness-hooks.sh`
 from the main checkout with no argument, and keeps its `guard=` line, with its `harness=`,
-`hooks=` and `disabled_by=` lines, for the Reply's Plan line, per [reply.md](reply.md). It runs once per run, right
+`hooks=` and `disabled_by=` lines, for the Run report's Plan line, per [reply.md](reply.md). It runs once per run, right
 before the run's first fork of either agent, the Planner here or the Builder at step 3, since a harness does not change within
 a session and a resume is a new session that takes it again before its own first fork. It is never
 taken on a run that forks neither agent: no pattern guard can hold where no agent runs. The verdict
@@ -776,7 +778,7 @@ with the brief's `Tree:` naming it. That worktree is cut before the claim, so on
 the door printed `spec_exists=no`, `spec/<feature-slug>` does not exist yet and is no start point:
 it is cut from the main checkout's HEAD, the tip the Spec branch's cut takes later (HEAD too when
 the door printed `spec_branch=none`), and from the Spec branch's tip, with step 2's `--track`, when
-the door printed `spec_exists=yes`. The claim still waits for the verified Plan. Those steps record their lines for the Reply's Run section, per
+the door printed `spec_exists=yes`. The claim still waits for the verified Plan. Those steps record their lines for the Run report's Run section, per
 [reply.md](reply.md). When `bug-fix` is not installed under Links, those two steps stand on their
 own. They are the exception the Links rule of [SKILL.md](../SKILL.md) names, and the step numbers
 there are `bug-fix`'s, not this checklist's: the second ask a surface the session cannot reach gets
@@ -973,7 +975,7 @@ repository's own scratch, so the ignore check and the append the fork's destinat
 
 The script fills only the slots a command read, the run commands and the
 test layout, and every other slot reads `none yet → /testing-policy`. The step names in one line
-the map's location and the slots it filled, off the lines the script printed, for the Reply's Run
+the map's location and the slots it filled, off the lines the script printed, for the Run report's Run
 section's map line per [reply.md](reply.md); the loop and the flows step read that file and never
 derive it again. Then read the session's context once,
 `bash <skill-dir>/scripts/context-usage.sh`, and keep its `current` figure: it is the `grounded`
@@ -983,20 +985,21 @@ which no fork can read from inside its own window.
 
 The build is held to the Plan, its `## Sketch` section where the shape step fired and its shape in
 hand where it did not. The loop implements the `## Behaviours` list one item at a time, and every
-test still goes through a test author. A deviation from that contract during the build is surfaced
-in the reply, and a second deviation of the same shape stops the run as a wrong Plan, the
+test still goes through a test author. A deviation from that contract during the build is recorded
+in the Run report, and a second deviation of the same shape stops the run as a wrong Plan, the
 deviations listed, the worktree and its branch named, the message naming `discuss`.
 
-Done when the Plan line is recorded for the Reply's Run section, per [reply.md](reply.md), with the
-Plan's location and every fallback the return named, the context reading is kept for the close,
-and, with no Testing Policy, the map line is recorded for the Reply.
+Done when the Plan line is recorded for the Run report's Run section, per [reply.md](reply.md),
+with the Plan's location and every fallback the return named, the Plan's file name is kept for the
+message's `Plan:` line, the context reading is kept for the close, and, with no Testing Policy, the
+map line is recorded for the Run report.
 
 **2. Claim and worktree.** The Plan is verified, so the run has something to build and the two
 writes that cost the developer cleanup are made together. First the claim, written as the Ticket
 file in [mechanics.md](mechanics.md) says: the `**Status:**` line set to `claimed`, in the file the
 door printed as `ticket=`, which on a Ticket run from its Build repository is the Ticket in the
 Home repository and never a copy in the repository the session is in. The claim line,
-`Claimed: <the Ticket's path or reference>`, is recorded for the Reply's Run section once it is
+`Claimed: <the Ticket's path or reference>`, is recorded for the Run report's Run section once it is
 written. On a remote
 tracker the run waits for a yes before it, asked with the `Yours: outward:` line the claim in
 [mechanics.md](mechanics.md) carries; a no stops the run with nothing written. Under `--auto`
@@ -1040,7 +1043,7 @@ checkout. `action=refused` (exit 1) stops the run as blocked with the Ticket `cl
 a Spec branch that records none, whose Reply names
 `git branch --set-upstream-to=<branch> spec/<feature-slug>` as the developer's fix, since the run
 never guesses the branch a whole Spec lands on. The cut line, the branch, its action and its
-upstream, is recorded for the Reply's Run section. A Ticket whose door printed `spec_branch=none`
+upstream, is recorded for the Run report's Run section. A Ticket whose door printed `spec_branch=none`
 runs no cut.
 
 Then the worktree in [mechanics.md](mechanics.md): created on `do/<slug>` from the tip of the Spec
@@ -1064,7 +1067,7 @@ a branch that already records it.
 
 Done when the Ticket reads `claimed`, the Spec branch the door named exists with its upstream, the worktree's status prints
 nothing, and the claim line, the cut line and the worktree line, its path and its branch, are
-recorded for the Reply's Run section.
+recorded for the Run report's Run section.
 
 **3. Build.** Before the Builder is forked, revoke the run's review token:
 `bash <skill-dir>/scripts/review-token.sh revoke <the slug>`. It runs on every run, a first run
@@ -1131,7 +1134,7 @@ that forks again, snapshots again first, since the developer may have worked in 
 between the two forks.
 
 On `verdict=untouched` from `main-untouched.sh check` the run goes on to the checks and the routes
-below with nothing added to the Reply. On `verdict=changed` the run stops as blocked before the
+below with nothing added to the Run report. On `verdict=changed` the run stops as blocked before the
 Gate, whatever verdict the fork returned. The stop's class is `direction`: the Reply lists the
 `file=` lines the check printed, which are the files that changed since the fork began and never
 the work that was already uncommitted, a git hook or the git config among them as an absolute
@@ -1177,7 +1180,7 @@ reference, the slug step 2 already cut the worktree under, and never a path the 
 no file at: a probe that
 refused to read the branch would drop every `built` return an issue-backed run ever made. A return that fails either check is a fork that went wrong and not a build: the session
 drops the return, picks the stretch up from what `resume-state.sh` just printed, which is the
-Resume section's own path, and records the fallback line for the Reply's Run section.
+Resume section's own path, and records the fallback line for the Run report's Run section.
 
 Before the route below is taken, the Plan is read once more: before it is, the run hashes the
 Ticket and the Digest again, `git hash-object` run again in the main checkout over the two paths
@@ -1200,8 +1203,8 @@ on a Plan the door no longer vouches for.
 
 Route on the first line:
 
-- `built`: the stretch is done. The `behaviour:` lines are the Reply's Behaviours list and the
-  `build:` and `flow:` lines its Build lines, copied unchanged and never composed, per
+- `built`: the stretch is done. The `behaviour:` lines are the Run report's Behaviours list and
+  the `build:` and `flow:` lines its Build lines, copied unchanged and never composed, per
   [reply.md](reply.md). The step goes on to step 4.
 - `fork`: the Builder met a Design fork and ruled on nothing. The run says in one line that it met
   one and names both sides, then follows the Design fork in [forks.md](forks.md): the
@@ -1265,20 +1268,20 @@ Spec's line names who builds the screen, and only the developer changes it.
 
 Done when the return's `behaviour:` lines each carry a commit and match what `resume-state.sh`
 prints, or the run took one of the two routes above that end it, and the build lines are recorded
-for the Reply's Run section.
+for the Run report's Run section.
 
 **4. Diff.** Read the diff the Builder left on the branch, `git diff <the merge base>..HEAD` in
 the worktree with the merge base of the branch the run started on, and write the run's own summary
-of it for the Reply's Run section. The Builder's return names what it built and never what the
+of it for the Run report's Run section. The Builder's return names what it built and never what the
 files now hold, so this is the one place the run sees the work it is about to gate, per the
 Non-negotiables of [SKILL.md](../SKILL.md): every delegate's diff is read by the session, which
 writes its own summary, and the delegate's summary is never passed through. The E2E flows are the
 Builder's, authored inside its own window and reported on its `flow:` lines, per
 [builder.md](builder.md): no author is dispatched here. Done when the diff has been read and the
-summary is recorded for the Reply's Run section.
+summary is recorded for the Run report's Run section.
 
 **5. Gate.** The gate in [mechanics.md](mechanics.md), in the worktree, after the last edit, run
-from `scripts/gate.sh` with its `command=` line recorded for the Reply's Run section. Whether this
+from `scripts/gate.sh` with its `command=` line recorded for the Run report's Run section. Whether this
 is the feature's last Ticket, and so whether the full suites of the Post-feature gate are added, is
 the `last=` line of `bash <skill-dir>/scripts/completion-check.sh <the Ticket's path>`, run while
 the Ticket still reads `claimed`: `last=yes` adds them and `last=no` does not. A Ticket that is a
@@ -1294,7 +1297,7 @@ classed by the door script before anything is resolved, and the gate's command l
 the rebase replayed commits. Every contested hunk takes the **Target** side, and its **Incoming** side goes to
 the Loss ledger beside the Ticket in the main checkout, `.ledger` before the extension, or, on a Ticket run from its Build repository, beside the Ticket in the Home repository, by the door's `ticket=` path, while the rebase runs in the Build repository's worktree. Done when the step reads the no-op, or the target and the count with
 the tree handed over with no **Gate** of the run's own, or the run stopped as blocked with the worktree and its branch named, and
-the integration line is recorded for the Reply's Run section.
+the integration line is recorded for the Run report's Run section.
 
 **7. Landing, and on a Ticket with no Spec the review.** A Ticket of a Spec calls no review. After
 the green **Gate** and the integration onto the Spec branch, the run lands the branch itself, by
@@ -1305,7 +1308,7 @@ a Ticket run from its Build repository lands on that repository's Spec branch, a
 Home repository moves.
 
 - `landed <sha>` (exit 0): the Spec branch's ref reads the branch's tip. The landing line recorded
-  for the Reply's Run section is `landed at <sha> on spec/<feature-slug>`, with
+  for the Run report's Run section is `landed at <sha> on spec/<feature-slug>`, with
   `Review: none, the Spec is reviewed once its last Ticket lands` under it.
 - `moved <tip>` (exit 1): another Ticket of the Spec landed first. The run integrates again onto
   that tip in the same run, step 6 with its Loss ledger judged and reapplied, runs the **Gate**
@@ -1334,7 +1337,7 @@ location as the spec source, the merge base of the branch and the branch the run
 `git merge-base refs/heads/<that branch> HEAD`, qualified so a same-named tag can never
 shadow the branch, read after the integration as the fixed point, and the branch
 the run started on as the landing target, with the held Rulings after the Gate when the run holds
-any, as the review in [mechanics.md](mechanics.md) says. The return is recorded for the Reply's Run section,
+any, as the review in [mechanics.md](mechanics.md) says. The return is recorded for the Run report's Run section,
 one line per part. A `not landed: target moved` runs the integration again, in the same run, its
 Loss ledger judged and reapplied with no **Gate** of the run's own, then the fix call on the Review
 the run already has, as that review says, and repeats with no fixed count while each integration replayed
@@ -1365,7 +1368,7 @@ among them, under its `Yours: outward:` line, a question still asked of the deve
 `--auto`, with the `choice-taker`'s return shown above it, per [forks.md](forks.md); then the Completion check,
 `bash <skill-dir>/scripts/completion-check.sh <the Ticket's path>`, run only after the `resolved`
 write, so the last of two concurrent runs always sees every Ticket resolved, with its `open=` and
-`next=` lines recorded for the Reply, and with them the `next_build=`, `next_build_location=` and
+`next=` lines recorded for the message's Next step and the Run report, and with them the `next_build=`, `next_build_location=` and
 `next_location=` lines as printed, when the next Ticket is built in another repository, and its
 `consumer=` lines as printed; then the worktree and its branch removed, from the main
 checkout that holds them, the Build repository's. A Ticket that is a
@@ -1389,7 +1392,7 @@ On `verdict=complete` the run reads the landing record before any claim,
 the order they land, a provider before what consumes it, each with the state its own refs give,
 then `own=`, `waits_for=`, the `next_landing` lines and `verdict=`. A feature of one repository
 prints one group and `verdict=land`. The run composes none of those lines, keeps them for the
-Reply, and routes on `verdict=`:
+Reply's Next step and the Run report, and routes on `verdict=`:
 
 - **`land`**: no repository this one's Tickets are blocked by is still unlanded, so the run lands
   its own repository, and no other, through the final integration in
@@ -1404,7 +1407,7 @@ Reply, and routes on `verdict=`:
     target, and the `review_file=` path as where its Review goes.
   - On `landed at <commit>`, that worktree removed and
     `bash <skill-dir>/scripts/final-claim.sh release <the Ticket's path>`, whose `claim=released`
-    line is recorded for the Reply as `spec/<feature-slug> removed`.
+    line is recorded for the Run report as `spec/<feature-slug> removed`.
   - After `claim=released`, when the first read printed `repositories=` above 1, the same
     `landing-order.sh` call a second time. The Reply's lines are copied from this second read and
     never from the first, so they state what the repositories hold now.
@@ -1431,44 +1434,54 @@ read `claim=released` and, on a feature of more than one repository, the record 
 time, or the claim read `taken`, or the run stopped as blocked with the Spec
 branch and its worktree named and the claim yielded, or the step reads its skip.
 
-**10. Reply.** Written by [reply.md](reply.md). What this Playbook puts in its sections: the
-Ticket and the Review under the files left uncommitted; under `Rulings`, every Ruling the forks in
-[forks.md](forks.md) made, a Design fork's in the `On the Spec:` group and a run question's in the
-`On the run:` group, each group `none` when it holds no Ruling; the flows the developer waived and the
-consumer flows not run under pending debt, naming the consuming Ticket off the check's `consumer=`
-lines as the Pending debt of [reply.md](reply.md) words it, beside
-a criterion the flows step skipped for no end-to-end command, with the command that would fill it; and the next step, `git push` with the developer's
-branch named when the review landed, or, when nothing landed, the worktree, its branch, and the
-review and the landing as what the developer runs next. On a Ticket of a Spec the Review is never
-among the files left uncommitted, and the next step names no push, since nothing reached the
-developer's branch: when the run landed it is what the Completion check's `next=` line names, as
-the Next step of [reply.md](reply.md) reads it, the check's `next_build=` lines included when the
-next Ticket is built in another repository, with the `Open:` line under the landing lines, and
-what the blocked stop of step 7 names when it did not. On a Ticket run from its Build repository,
-the door's `root=` naming another repository than the main checkout, the `Repositories:` line
-opens those landing lines, as the Spec landing lines of [reply.md](reply.md) word it off the door's
-`root=` and `build_repository=` lines. A run whose Final integration landed is
-the exception: the Spec branch reached the developer's branch, so its Reply carries the Review
-beside the Spec among the files left uncommitted, `Open: none`, and `git push` with the
-developer's branch named as its next step. On a feature of more than one repository that Reply
-names the repositories landed and still to land off the landing record's second read, with the
-landing command of each one still to land, and while one is left the push is a line of the Final
-integration lines and the next step is the command of the next repository to land, as
-[reply.md](reply.md) words both. A run whose landing record read `wait` landed nothing: its Reply
-says the feature is complete and which repository its own waits for, lists every repository's
-landing command in order, and ends on the first of them. A run whose claim read `taken`, or whose
-Final integration stopped, ends on the lines [reply.md](reply.md) fixes for it. A
-run that stopped on an Extreme fork, or on a Design fork no `choice-taker` ruled, ends instead on
-the `/discuss` command the forks in [forks.md](forks.md) fix, as its last line. A run that stopped
-on work for another repository, at the Plan or on a Builder's return, ends on `/tickets <spec>`, in
-the message [reply.md](reply.md) fixes for that stop. When the finding changes what the feature is,
-it ends on the `/discuss` command of the change-of-direction stop in [forks.md](forks.md) instead. A run that forked
-`do-impeccable`, on a Front-end ticket of a Spec reading `Front-end: impeccable`, writes no Plan
-line in its Run section, since no Planner ran, and its behaviours list is the Ticket's acceptance
-criteria, each with the commit beside it, as [reply.md](reply.md) says for both. Its Reply puts the
-`flow:` lines the fork returned under Evidence, with the `scan:` line beside the flows, or the one
-line [reply.md](reply.md) fixes when no flow covered the screen, and each `finding:` line under
-Pending debt. Findings that remain stop nothing: the Ticket landed and reads `resolved` all the
-same. Done when
-the reply is sent with
-every section that applies.
+**10. Reply.** Written by [reply.md](reply.md): the five parts of its message, and, under
+`--auto`, the Run report first, at the location [reply.md](reply.md) gives beside the Plan. The
+message's `Plan:` line is the Plan's file name, or `Plan: none` with its reason on a run that
+opened no Plan.
+
+What this Playbook puts in the message: under pending debt, the flows the developer waived and the
+consumer flows not run, naming the consuming Ticket off the check's `consumer=` lines as the
+Pending debt of [reply.md](reply.md) words it, beside a criterion the flows step skipped for no
+end-to-end command, with the command that would fill it; and the next step, `git push` with the
+developer's branch named when the review landed, or, when nothing landed, the worktree, its
+branch, and the review and the landing as what the developer runs next. On a Ticket of a Spec the
+next step names no push, since nothing reached the developer's branch: when the run landed it is
+what the Completion check's `next=` line names, as the Next step of [reply.md](reply.md) reads it,
+the check's `next_build=` lines included when the next Ticket is built in another repository, and
+what the blocked stop of step 7 names when it did not. A run whose Final integration landed is the
+exception: the Spec branch reached the developer's branch, so its next step is `git push` with the
+developer's branch named. On a feature of more than one repository that next step carries the
+repositories landed and still to land off the landing record's second read, with the landing
+command of each one still to land, and while one is left the push is a line of its own above them
+and the last line is the command of the next repository to land, as [reply.md](reply.md) words
+both. A run whose landing record read `wait` landed nothing: its next step says the feature is
+complete and which repository its own waits for, lists every repository's landing command in
+order, and ends on the first of them. A run whose claim read `taken`, or whose Final integration
+stopped, ends on the lines [reply.md](reply.md) fixes for it. A run that stopped on an Extreme
+fork, or on a Design fork no `choice-taker` ruled, ends instead on the `/discuss` command the forks
+in [forks.md](forks.md) fix, as its last line. A run that stopped on work for another repository,
+at the Plan or on a Builder's return, ends on `/tickets <spec>`, in the message
+[reply.md](reply.md) fixes for that stop. When the finding changes what the feature is, it ends on
+the `/discuss` command of the change-of-direction stop in [forks.md](forks.md) instead. A run that
+forked `do-impeccable`, on a Front-end ticket of a Spec reading `Front-end: impeccable`, puts each
+`finding:` line the fork returned under Pending debt. Findings that remain stop nothing: the
+Ticket landed and reads `resolved` all the same.
+
+What it puts in the Run report: the Ticket and the Review under the files left uncommitted; under
+`Rulings`, every Ruling the forks in [forks.md](forks.md) made, a Design fork's in the
+`On the Spec:` group and a run question's in the `On the run:` group, each group `none` when it
+holds no Ruling; the `Open:` line under the landing lines; on a Ticket run from its Build
+repository, the door's `root=` naming another repository than the main checkout, the
+`Repositories:` line opening those landing lines, as the Spec landing lines of
+[reply.md](reply.md) word it off the door's `root=` and `build_repository=` lines. On a Ticket of a
+Spec the Review is never among the files left uncommitted, except on a run whose Final
+integration landed, which lists the Review beside the Spec there with `Open: none`. A run that
+forked `do-impeccable` writes no Plan line in its Run section, since no Planner ran, and its
+behaviours list is the Ticket's acceptance criteria, each with the commit beside it, as
+[reply.md](reply.md) says for both; it puts the `flow:` lines the fork returned under Evidence,
+with the `scan:` line beside the flows, or the one line [reply.md](reply.md) fixes when no flow
+covered the screen.
+
+Done when the message is sent with its five parts, the `Yours:` line among them only when the run
+hands something over, and, under `--auto`, the Run report is written with every section that
+applies.

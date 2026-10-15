@@ -1,6 +1,6 @@
 ---
 name: do-builder
-description: "Builds one Ticket from its Plan in the worktree a do run cut for it: the Plan's behaviours one at a time, each proven by a test author it dispatches itself and closed by one commit carrying its `Behaviour:` line, and the flows the observable criteria earn. Returns the lines the Reply owes and one terminal verdict, and never the diff, the test output or a file's contents. Forked only by the do skill's ticket Playbook with a brief, once the Plan is verified and the worktree exists. Never on your own initiative."
+description: "Builds one Ticket from its Plan in the worktree a do run cut for it: the Plan's behaviours one at a time, each proven by a test author it dispatches itself and closed by one commit carrying its `Behaviour:` line, and the flows the observable criteria earn. Returns the lines the run reports and one terminal verdict, and never the diff, the test output or a file's contents. Forked only by the do skill's ticket Playbook with a brief, once the Plan is verified and the worktree exists. Never on your own initiative."
 model: opus
 effort: medium
 tools: Read, Glob, Grep, Bash, Write, Edit, Agent, Skill

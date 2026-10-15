@@ -18,7 +18,7 @@ One behaviour at a time, from the list the Playbook wrote, in its order. Each be
 verifiable unit that ends in one green commit, per
 [sequence-verifiable-units](../../../.agents/principles/sequence-verifiable-units.md).
 Open each file when the loop is about to edit it, never ahead of the behaviour that edits it, and
-name it on that behaviour's build line for the Reply's Run section, per [reply.md](reply.md). The
+name it on that behaviour's build line for the Run report's Run section, per [reply.md](reply.md). The
 only source the loop then brings into the window is source the run changed, which leaves the window
 to the behaviours still ahead.
 
@@ -104,7 +104,7 @@ to the behaviours still ahead.
    which it asks, and a loop the session runs itself asks nothing.
 
 Done when every behaviour line has a commit beside it and its build line is recorded for the
-Reply's Run section.
+Run report's Run section.
 
 Under the fallback, when the loop line reads `Loop: fallback` (no unit test author
 in the project and no global one that can be dispatched), the same loop runs by

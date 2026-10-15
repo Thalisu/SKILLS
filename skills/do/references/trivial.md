@@ -26,9 +26,10 @@ The run takes these steps in order, in one turn:
 1. Open with `Playbook: trivial` as plain text on the first line.
 2. Copy the checklist under Steps verbatim as the run's todo list.
 3. Do the work, step by step.
-4. Close the same message with the Run section and the sections of [reply.md](reply.md).
+4. Close the same message with the five parts of [reply.md](reply.md), and under `--auto` write
+   the Run report it names.
 
-The Run section carries these lines, in this order, per [reply.md](reply.md):
+The Run report's Run section carries these lines, in this order, per [reply.md](reply.md):
 
 1. the request read back in one line;
 2. the checklist, each step the run reached ticked `done:` or reading `skip: <reason>`;
@@ -36,8 +37,9 @@ The Run section carries these lines, in this order, per [reply.md](reply.md):
 4. the gate's command lines;
 5. the door's verdict on the diff.
 
-The copy in the Run section is the one the developer reads. Neither the checklist nor any of those
-lines is required as text written mid-run, and a session that writes them as it goes is free to.
+The copy in the Run report is the record of them, and without `--auto` the run writes none. Neither
+the checklist nor any of those lines is required as text written mid-run, and a session that writes
+them as it goes is free to.
 
 There is no loop line, no claim line and no protected-branch warning, since a protected branch is a
 refusal here. Nothing is pushed.
@@ -107,7 +109,7 @@ is edited and nothing is written.
      [forks.md](forks.md), the one reference this Playbook reads beyond its own and only then,
      with one option per file, each naming the file and what of the request fits there, and
      `Recommendation:` `none`. The run edits the file the Ruling names and lists the Ruling in
-     the reply's `Rulings` section, in its `On the run:` group, with `On the Spec: none` above
+     the Run report's `Rulings` section, in its `On the run:` group, with `On the Spec: none` above
      it.
    - A rename inside one file holds only when the name has no reference outside that file
      (`rg -w <name>` over the project).
@@ -122,7 +124,7 @@ is edited and nothing is written.
    developer's work in progress, and the restore steps 4 and 5 run on a stop would destroy it.
    Other dirty files in the checkout are left alone and never staged.
 
-Done when the five checks ran, none held, and the target files are recorded for the Reply's Run
+Done when the five checks ran, none held, and the target files are recorded for the Run report's Run
 section.
 
 ### 2. Discover
@@ -141,7 +143,7 @@ names and nothing else, per
 - everything written into the project is in English, and a typo fix in a doc keeps that doc's
   language.
 
-Done when the touched files are listed, recorded for the Reply's Commits section.
+Done when the touched files are listed, recorded for the Run report's Commits section.
 
 ### 4. Gate
 
@@ -153,8 +155,8 @@ commands come from the first of these sources that names them:
 2. the repository's own scripts: `package.json` scripts, a `Makefile` target, a `pyproject` runner;
 3. neither, and the check reads `skip: <reason>`.
 
-Each command line is recorded for the Reply's Run section, and its relevant output line is quoted
-in the Reply's Evidence. That output is produced after the edit and never taken from an earlier
+Each command line is recorded for the Run report's Run section, and its relevant output line is quoted
+in the Run report's Evidence. That output is produced after the edit and never taken from an earlier
 run, per [prove-it-works](../../../.agents/principles/prove-it-works.md).
 
 - **Typecheck.** No command in the facts or the scripts reads
@@ -180,14 +182,14 @@ after. The run takes these steps in order, and commits nothing on either outcome
 
 **Infrastructure.** A command that did not run (a missing binary, a module not found, a timeout) is
 neither red nor green. The touched files are restored, nothing is committed, and the reply says
-blocked with the command and its error. The developer fixes the runner and types the request again.
+blocked, with the command and its error on the blocker's line. The developer fixes the runner and types the request again.
 
 Done when both lines are quoted, or read `skip: <reason>`.
 
 ### 5. Door on the diff
 
 `bash <skill-dir>/scripts/trivial-door.sh diff <touched files>`. Its command line and its lines are
-quoted in the reply's Evidence, and its `verdict=` line is recorded for the Run section.
+quoted in the Run report's Evidence, and its `verdict=` line is recorded for the Run section.
 
 The script is the lever a reviewer reruns, per
 [build-the-lever](../../../.agents/principles/build-the-lever.md). It reads the diff this way:
@@ -205,10 +207,10 @@ The exit code decides what the run does next:
 |---|---|---|
 | 0 | `verdict=trivial` | goes on to the commit |
 | 1 | `verdict=not-trivial`, `goes_to=<playbook>` | restores the touched files (`git checkout -- <files>`, exact because step 1 refused a dirty target), commits nothing, and ends in one message quoting the script's lines and naming the Playbook: `refactoring` for a changed signature, a renamed or an extracted export; `discuss` for a new exported symbol or a new file; `bug-fix` for a test file the change had to touch, since a test is the test author's and goes red-first |
-| 2 | usage, or not a git repository | blocked; the reply quotes the error |
-| 3 | `verdict=judgment` | a touched file's language has no pattern: the run reads the diff itself against the same three questions (a test file, a new exported symbol, a changed signature), stops as for exit 1 when one holds, and says in the reply that the second check was its own judgment and not the script's |
+| 2 | usage, or not a git repository | blocked; the reply quotes the error on the blocker's line |
+| 3 | `verdict=judgment` | a touched file's language has no pattern: the run reads the diff itself against the same three questions (a test file, a new exported symbol, a changed signature), stops as for exit 1 when one holds, and says in the Run report that the second check was its own judgment and not the script's |
 
-Done when the verdict is recorded for the Reply's Run section.
+Done when the verdict is recorded for the Run report's Run section.
 
 ### 6. Commit
 
@@ -220,7 +222,7 @@ files for this commit and leaves whatever else the developer had staged as it wa
   `refactor` or `chore`, never `feat` or `fix`, which a Trivial change is not.
 - **Body.** The gate as it ran: each command with its result, or its skip reason.
 
-Nothing is pushed. Done when the commit's short sha is recorded for the Reply's Commits section.
+Nothing is pushed. Done when the commit's short sha is recorded for the Run report's Commits section.
 
 ### 7. Reply
 

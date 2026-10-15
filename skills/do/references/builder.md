@@ -94,7 +94,7 @@ one an earlier stretch already committed and returned:
   `git rev-parse --short` prints it, after a ` | ` separator.
 - A `fork` or a `stopped` that closed no behaviour in its stretch carries none of these lines.
 
-They are the Reply's Behaviours list and its Build lines already written, per
+They are the Run report's Behaviours list and its Build lines already written, per
 [reply.md](reply.md), so the session copies them and never composes them from a build it did not
 see.
 

@@ -64,10 +64,17 @@ _Avoid_: small (a small **Ticket** is a size band, never a Trivial change), quic
 one-liner (size is never the test)
 
 **Reply**:
-The one message a `do` run ends with, and the record every line a step names reaches the developer
-through: the read-back, the checklist, the audit line, what was handed to a fork and what came back.
+The one short message a `do` run ends with: the Plan, For whom, Pending debt, the `Yours:` line when
+the run hands something over, and the Next step. Every other line a step names is the **Run
+report**'s.
 _Avoid_: the thread (a line written mid-run, before a tool call, is never where a line has to be),
-narration, first message
+narration, first message, summary
+
+**Run report**:
+The file a `do` run under `--auto` writes beside its Plan, or under `.scratch/do-reports/`: the Run
+section and the ten sections a **Reply** used to carry, read back for the **Ruling**s on run
+questions, which sit in no other file. A run without `--auto` writes none.
+_Avoid_: log, transcript, the long reply
 
 **Digest**:
 The slice of a **Ticket**'s **Spec** and **Journey** that a `do` run needs, read out of both by a
@@ -130,7 +137,7 @@ What the `choice-taker` returns on a question it settles, a **Design fork** a `d
 question a chain skill run with `--auto` would otherwise put to the developer: the side taken, and
 the norm that backs it or "no norm: the side easiest to undo". A **Design fork**'s Ruling is
 written as one line in the **Spec**'s Implementation Decisions and listed under `Rulings` in the
-run's reply, read back from that line. A Ruling on a question that is not a **Design fork** is
+run's **Run report**, read back from that line. A Ruling on a question that is not a **Design fork** is
 written where the question already has a home: a branch or a seam a `discuss` or `spec` run ruled
 under `--auto` is the **Spec**'s marked line (Implementation Decisions or Testing Decisions), a
 fork of a **Journey** path is that path's `Ruled by the choice-taker:` line, and a branch that

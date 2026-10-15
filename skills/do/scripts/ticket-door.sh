@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # ticket-door.sh: the door facts of the ticket Playbook of do that a script can observe, so the
-# Reply's Run section states what one run printed and the developer can rerun it for the same answer.
+# Run report's Run section states what one run printed and the developer can rerun it for the
+# same answer.
 # Run from anywhere inside the project, the main checkout or a worktree of it.
 #
 #   ticket-door.sh <the Ticket's path>    the Ticket, its blockers, its worktree, the loop and the
@@ -59,7 +60,7 @@
 # worktree gone) · ambiguous (ready-for-agent with a worktree already there) · start. Then refused
 # replaces start or start-over when the Ticket's Spec has no Spec branch yet and the main
 # checkout is protected or detached (branch=HEAD), since the first cut would land the Spec there;
-# otherwise a protected branch is a warning for the Reply's Run section, never a stop. A Ticket
+# otherwise a protected branch is a warning for the Run report's Run section, never a stop. A Ticket
 # outside a feature folder's issues/ (spec_branch=none) is never refused on that ground.
 #
 # Exit codes: 0 the run may go on: start, resume, start-over or resume-final · 1 the door stops

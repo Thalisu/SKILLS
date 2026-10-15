@@ -1,5 +1,5 @@
 ---
 type: llm
-criteria: "The reply says what the rebase did (one commit replayed onto main), says one hunk was resolved mechanically and none was asked, and ends with the command for the developer to run next (a push they run themselves, or another command), not with a push the run made."
+criteria: "The transcript shows what the rebase did, in the run's own tool output: one commit replayed onto main, one hunk resolved mechanically and none put to the developer as a question. The final message carries no Run section and ends with the command for the developer to run next (a push they run themselves, or another command), not with a push the run made."
 ---
-The reply carries the counts and ends with the next command.
+The rebase replayed one commit with one mechanical hunk, and the reply ends on the developer's next command.

@@ -1,9 +1,5 @@
 ---
-type: regex
-pattern: '^\W*Open:\W*03-show-the-dispute-on-the-order-page\W*\(ready-for-agent\),\W*04-show-the-hold-on-the-order-page\W*\(ready-for-agent\),\W*05-record-when-the-invoice-was-held\W*\(ready-for-agent\)\W*$'
-match: contains
-target: last_message
+type: llm
+criteria: "Judge this on the TOOL CALL lines of the transcript and their output. The session ran the Completion check after landing Ticket 02 on spec/hold-disputed-invoice, and its output lists the three Tickets still open across both repositories, one `open=` line each: 03-show-the-dispute-on-the-order-page, 04-show-the-hold-on-the-order-page and 05-record-when-the-invoice-was-held, each `ready-for-agent`. The run's last message carries no `Open:` line, since that line belongs to the Run report, which a run without `--auto` does not write. Any of these fails: no Completion check run after the landing, an output that leaves one of the three out, an `Open:` line in the last message."
 ---
-The Reply's `Open:` line names every Ticket of the feature still open with its status, the two
-built in `orders-service` and the one built in `billing-service`, the repository the session runs
-in: a line cut to one repository would hide the others.
+The Completion check spans both repositories, and its line stays out of the Reply.

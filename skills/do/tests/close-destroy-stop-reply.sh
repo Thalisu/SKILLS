@@ -19,7 +19,7 @@ mech="$here/../references/mechanics.md"
 fails=0
 
 echo "# reply.md item 11 (Next step) names the close's destroy stop as an exception"
-item="$(item_holding "$reply" '[0-9]+\.' 'Next step')"
+item="$(item_holding "$reply" '[0-9]+\.' "One line, the Reply's last")"
 flat="$(tr '\n' ' ' <<<"$item" | tr -s ' ')"
 carries "item 11 distinguishes a landed run whose close finished from one that stopped at the close's destroy stop" \
   "is not a stop" "carries no \`Yours:\` line"

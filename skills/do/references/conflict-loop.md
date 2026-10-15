@@ -39,18 +39,19 @@ as blocked. Between those two the run keeps going: a resolved stop, a judged led
 commit are each followed by the next command, never by a summary that closes the turn or a question
 to the developer.
 
-A blocked stop while the rebase is open always carries the same reply, so the states below name
-only the reason each one quotes: the rebase left open at that commit, the conflicting files named,
-`git rebase --abort` named as the command that undoes it, the worktree and its branch left in place
-and named, the Ticket left `claimed`, nothing landed and nothing pushed.
+A blocked stop while the rebase is open always carries the same blocker lines above its `Yours:`
+line, so the states below name only the reason each one quotes: the rebase left open at that
+commit, the conflicting files named, `git rebase --abort` named as the command that undoes it, the
+worktree and its branch left in place and named, the Ticket left `claimed`, nothing landed and
+nothing pushed.
 
 **A rebase that stopped.** At every stop of the rebase, before it resolves, stages or writes
 anything, the run classes the conflicted hunks: `bash <skill-dir>/scripts/conflict-class.sh`. The
 script's verdict is the class, never the session's own reading of the markers, per
 [ADR 0028](../../../docs/adr/0028-the-conflict-class-is-a-scripts-verdict-never-the-sessions-reading.md).
-Its lines, one per conflicted hunk, are quoted in the Reply's Evidence, and the counts, how many
-hunks were resolved mechanically and how many took the **Target** side, go on the integration line
-of the Run section.
+Its lines, one per conflicted hunk, are quoted in the Run report's Evidence, and the counts, how
+many hunks were resolved mechanically and how many took the **Target** side, go on the integration
+line of its Run section, both written under `--auto` alone.
 
 A stop the script answers with `no conflicted state, nothing classed` is never continued unasked:
 the rebase stopped with nothing unmerged, so whatever is staged for that commit carries nobody's
@@ -102,9 +103,9 @@ git diff --name-only --diff-filter=U -z | bash <skill-dir>/scripts/last-wins.sh 
 ```
 
 Then the continue block, the one every stop of this step ends in, carries the rebase to the next
-commit, and every further stop is classed and resolved the same way. The reply names every hunk it
-resolved with its file and location, and every `trusted` file as taken on trust, kept as the
-developer wrote it and out of the ledger. The first block staged that file before the read-back
+commit, and every further stop is classed and resolved the same way. The Run report names every
+hunk it resolved with its file and location, and every `trusted` file as taken on trust, kept as
+the developer wrote it and out of the ledger. The first block staged that file before the read-back
 ran, so it is never among the paths the read-back is handed: a key the developer's own resolution
 defines twice is theirs, and nothing of this step rewrites it.
 
@@ -130,8 +131,8 @@ What the read-back does, by what it finds, with nobody asked anything in any of 
 - A file whose format the script does not know: left untouched.
 
 The script prints `kept <file> <key path>` and `deduped <file> <key path>`, then
-`read-back files=<n> kept=<n> deduped=<n>`, and those lines are quoted in the Reply's Evidence
-beside the hunks the union resolved. A read-back that exits non-zero, a refused ledger or a file it
+`read-back files=<n> kept=<n> deduped=<n>`, and those lines are quoted in the Run report's
+Evidence beside the hunks the union resolved. A read-back that exits non-zero, a refused ledger or a file it
 could not rewrite, leaves the staging beside it unrun, since the block runs that only on the
 read-back's success, and the continue then meets a stop git refuses, which the last state of this
 section handles.
@@ -187,7 +188,8 @@ same rebase passes the same path. The script refuses a path that does not resolv
 checkout's `.scratch/`, with nothing written.
 
 What the script prints and the code it exits with say what the run does next. On exit 2, 3 or 4 the
-run stops as blocked, with the reply the top of this section fixes and the reason named here.
+run stops as blocked, with the blocker lines the top of this section fixes and the reason named
+here.
 
 - `resolved` (exit 0): the stop is resolved and staged, each file the script wrote by the union rule
   already read back for a key defined twice on its way through, as the state above says. The run
@@ -356,8 +358,8 @@ A red **Gate** after the reapplied commits stops as blocked, never back to the b
 [build-loop.md](build-loop.md): the branch now holds the developer's code the replay brought in
 beside the work that came back, and a run that loops on it edits their work. The run never edits
 the branch's code to make the **Gate** pass, never reruns it and never reverts a reapply commit to
-chase green. The rebase has finished by then, so this reply is its own and not the open-rebase one:
-it carries the failing check named off its red line, or the infrastructure cause on
+chase green. The rebase has finished by then, so this blocker is its own and not the open-rebase
+one: it carries the failing check named off its red line, or the infrastructure cause on
 `verdict=blocked`, the ledger's location, since the ledger holds what came back and what did not,
 and the command that undoes the whole integration,
 `git reset --hard <the commit recorded before it started>`. The worktree and its branch stay in
@@ -378,14 +380,15 @@ else
 fi
 ```
 
-The commit it skips is named in the reply off the `skipped <sha> <subject>` line the block printed,
+The commit it skips is named in the Run report off the `skipped <sha> <subject>` line the block
+printed,
 and the rebase carries on to the next commit, where the stop is classed and resolved like any
 other. Nothing of the run's work is lost without a trace: the change is either already on the
 branch it was going to land on, or it is the **Incoming** side of a `contested` hunk and the
 **Loss ledger** holds it whole.
 
 **Git refusing to continue for any other reason.** The run stops as blocked with git's own message
-quoted and the reply the top of this section fixes: the rebase has not finished, so
+quoted and the blocker lines the top of this section fixes: the rebase has not finished, so
 `git rebase --abort` is still there to take. The blocked stops carry two different undo commands,
 and each names its own: the abort while the rebase is open, the reset to the recorded commit once
 it has finished.
