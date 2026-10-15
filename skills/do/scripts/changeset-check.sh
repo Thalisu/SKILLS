@@ -16,7 +16,8 @@
 # skip-patterns.local.sh, git for the git config or a hook (the only paths main-untouched.sh
 # prints as absolute: a hook runs inside the Builder's own commit and the config outlives the run
 # in the checkout every worktree shares), named for a named path, test for any other path
-# test-files.sh classifies as a test file of the worktree. A refusal is whole: no part of a refused
+# test-files.sh classifies as a test file of the worktree, under the policy's classes or the
+# built-in list, either one. A refusal is whole: no part of a refused
 # changeset passes.
 #
 # Exit codes: 0 pass · 1 refused · 2 usage, a worktree that is not a git working tree, or a state
@@ -59,7 +60,10 @@ offence() { # $1 a changed path: prints classes, named, test, or nothing
     echo git
   elif [ -n "${named[$1]:-}" ]; then
     echo named
-  elif is_test_file "$abs"; then
+  elif is_test_file "$abs" || { classes=built-in; is_test_file "$abs"; }; then
+    # The policy's classes are narrow (no snapshots, no fixtures), so a path is a test when either
+    # the policy or the built-in list says so. offence() runs in a command substitution: setting
+    # classes here does not leak into the caller.
     echo test
   fi
 }

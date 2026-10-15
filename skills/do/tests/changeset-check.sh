@@ -131,4 +131,22 @@ check_lines "a changeset that changed the git config or wrote a git hook is refu
 check_absent "a changeset that changed the git config or a hook is refused whole, even with a production file beside it" 1 "$rc" \
   'verdict=pass'
 
+fresh policy-snapshot-and-fixture
+policy_snapshot="$(pwd -P)"
+mkdir -p src/__snapshots__ tests/fixtures .claude/testing-policy
+cp "$here/../../../.claude/testing-policy/skip-patterns.sh" .claude/testing-policy/skip-patterns.sh
+echo 'exports[`a 1`] = `one`;' >src/__snapshots__/a.test.ts.snap
+echo '{"total": 1}' >tests/fixtures/data.json
+commit "base"
+policy_snapshot_state="$tmp/state/policy-snapshot.state"
+bash "$snapshot" snapshot "$policy_snapshot" "$policy_snapshot_state" >/dev/null
+
+echo 'exports[`a 1`] = `two`;' >src/__snapshots__/a.test.ts.snap
+echo '{"total": 2}' >tests/fixtures/data.json
+run "$policy_snapshot" "$policy_snapshot_state"
+check_lines "with the Testing Policy installed, a changeset rewriting a Jest snapshot and a fixture is refused, naming each as test material" 1 "$rc" \
+  'verdict=refused' 'offending=test src/__snapshots__/a.test.ts.snap' 'offending=test tests/fixtures/data.json'
+check_absent "a rewritten snapshot or fixture never passes as production under the policy's narrower classes" 1 "$rc" \
+  'verdict=pass'
+
 [ "$fails" = 0 ]
