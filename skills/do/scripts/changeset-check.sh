@@ -11,9 +11,10 @@
 # changeset as one set, each relative to the worktree's root, ./-prefixed or absolute.
 #
 # Prints verdict=<pass|refused>, changed=<n> and one file=<path> line per changed path, sorted,
-# then only on a refusal refused=<n> and one offending=<named|test> <path> line per offending path,
-# sorted: named for a named path, test for any other path test-files.sh classifies as a test file
-# of the worktree. A refusal is whole: no part of a refused changeset passes.
+# then only on a refusal refused=<n> and one offending=<classes|named|test> <path> line per
+# offending path, sorted: classes for the Testing Policy's skip-patterns.sh or
+# skip-patterns.local.sh, named for a named path, test for any other path test-files.sh classifies
+# as a test file of the worktree. A refusal is whole: no part of a refused changeset passes.
 #
 # Exit codes: 0 pass · 1 refused · 2 usage, a worktree that is not a git working tree, or a state
 # file main-untouched.sh cannot read, which prints no verdict: a missing baseline is never a pass.
@@ -32,10 +33,6 @@ shift 2
 checked="$(bash "$here/main-untouched.sh" check "$worktree" "$state")" || exit 2
 root="$(git -C "$worktree" rev-parse --show-toplevel)"
 
-# shellcheck source=test-files.sh
-. "$here/test-files.sh"
-test_classes "$root"
-
 named_key() { # $1 a reported path: the path from the worktree's root
   local path="$1"
   case "$path" in "$root"/*) path="${path#"$root"/}" ;; esac
@@ -48,10 +45,12 @@ for reported in "$@"; do
   named["$(named_key "$reported")"]=1
 done
 
-offence() { # $1 a changed path: prints named, test, or nothing
+offence() { # $1 a changed path: prints classes, named, test, or nothing
   local abs="$root/$1"
   case "$1" in /*) abs="$1" ;; esac
-  if [ -n "${named[$1]:-}" ]; then
+  if [ -n "${classes_files[$1]:-}" ]; then
+    echo classes
+  elif [ -n "${named[$1]:-}" ]; then
     echo named
   elif is_test_file "$abs"; then
     echo test
@@ -62,6 +61,25 @@ changed=()
 while IFS= read -r line; do
   case "$line" in file=*) changed+=("${line#file=}") ;; esac
 done <<<"$checked"
+
+# A classes file the changeset touched is never sourced: it runs as code inside this check, so a
+# rewritten one could classify nothing as a test, or print a pass and exit before the verdict.
+declare -A classes_files=(
+  [.claude/testing-policy/skip-patterns.sh]=1
+  [.claude/testing-policy/skip-patterns.local.sh]=1
+)
+classes_touched=no
+for path in "${changed[@]}"; do
+  [ -n "${classes_files[$path]:-}" ] && classes_touched=yes
+done
+
+# shellcheck source=test-files.sh
+. "$here/test-files.sh"
+if [ "$classes_touched" = yes ]; then
+  classes=built-in
+else
+  test_classes "$root"
+fi
 
 offending=()
 for path in "${changed[@]}"; do

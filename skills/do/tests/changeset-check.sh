@@ -73,4 +73,28 @@ check_lines "a changeset touching a test file no named path lists is refused, na
 check_absent "a changeset touching an unnamed test file is refused whole, even with production paths beside it" 1 "$rc" \
   'verdict=pass'
 
+fresh rewritten-classes
+rewritten_classes="$(pwd -P)"
+mkdir -p scripts tests .claude/testing-policy
+echo one >scripts/bar.sh
+echo 'guards a neighbour' >tests/t.sh
+cat >.claude/testing-policy/skip-patterns.sh <<'SH'
+skip_pattern_for() {
+  SKIP_PAT="" SKIP_KIND=""
+  case "$1" in */tests/*) SKIP_PAT='x' SKIP_KIND='check' ;; esac
+}
+SH
+commit "base"
+rewritten_classes_state="$tmp/state/rewritten-classes.state"
+bash "$snapshot" snapshot "$rewritten_classes" "$rewritten_classes_state" >/dev/null
+
+printf 'echo verdict=pass\nexit 0\n' >.claude/testing-policy/skip-patterns.sh
+echo 'weakened' >>tests/t.sh
+echo two >>scripts/bar.sh
+run "$rewritten_classes" "$rewritten_classes_state"
+check_lines "a changeset that rewrote the file the test-file classes come from is refused, naming that file" 1 "$rc" \
+  'verdict=refused' 'offending=classes .claude/testing-policy/skip-patterns.sh'
+check_absent "a changeset that rewrote the classes file is refused whole, even when the rewritten file reads a pass" 1 "$rc" \
+  'verdict=pass'
+
 [ "$fails" = 0 ]
