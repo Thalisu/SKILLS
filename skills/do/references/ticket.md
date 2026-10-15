@@ -1204,9 +1204,9 @@ on a Plan the door no longer vouches for.
 Route on the first line:
 
 - `built`: the stretch is done. The `behaviour:` lines are the Run report's Behaviours list and
-  `build:`, `flow:` and `fallback:` lines its Build lines, copied unchanged and never composed, per
-  [reply.md](reply.md): a `fallback:` line is how the Reply says the Builder wrote the code itself
-  because no Implementer could be dispatched. The step goes on to step 4.
+  the `build:`, `flow:` and `fallback:` lines its Build lines, copied unchanged and never composed,
+  per [reply.md](reply.md): a `fallback:` line is how the Run report says the Builder wrote the code
+  itself because no Implementer could be dispatched. The step goes on to step 4.
 - `fork`: the Builder met a Design fork and ruled on nothing. The run says in one line that it met
   one and names both sides, then follows the Design fork in [forks.md](forks.md): the
   `choice-taker` forked in this session, the returned Ruling written to the Spec's Implementation

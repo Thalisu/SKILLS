@@ -94,10 +94,10 @@ one an earlier stretch already committed and returned:
   `git rev-parse --short` prints it, after a ` | ` separator.
 - A `fork` or a `stopped` that closed no behaviour in its stretch carries none of these lines.
 - Each changeset the check refused on a behaviour shows on that behaviour's build line, with the
-  offending path and the re-dispatch that followed, so the Reply shows that an Implementer touched
+  offending path and the re-dispatch that followed, so the Run report shows that an Implementer touched
   a test file and the Builder caught it.
 - An edit the Builder wrote itself after two failed dispatches shows on that behaviour's build line,
-  so the Reply tells the behaviours the Builder wrote from the ones an Implementer did.
+  so the Run report tells the behaviours the Builder wrote from the ones an Implementer did.
 
 They are the Run report's Behaviours list and its Build lines already written, per
 [reply.md](reply.md), so the session copies them and never composes them from a build it did not

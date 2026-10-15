@@ -200,7 +200,7 @@ worktree line comes before the audit line and before the hand-over, shaped-by an
       and the diff carries no trace of a flow nobody wrote.
     - Then the `fallback:` lines the Builder returned, copied unchanged, among them the one naming
       why no Implementer was dispatched: `do-implementer` not linked, or its dispatch refused, so
-      the Builder wrote the production code itself. Without it the Reply reads as if the
+      the Builder wrote the production code itself. Without it the Run report reads as if the
       Implementers wrote the code.
 24. **Answer lines.** In `refactoring`, each answer with its reason: the exit test's, with the
     developer's answer when the test failed, and a behaviour change the cleanup found, with its

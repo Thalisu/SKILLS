@@ -973,8 +973,8 @@ echo "# skills/do/references/ticket.md, skills/do/references/reply.md: the Build
 # Playbook never answers for it.
 flat="$(bullets_opening_on <(passage_of "$playbook" "Route on the first line:" "## ") "\`built\`:" | head -n 1)"
 expect "the Playbook routes the Builder's \`built\` return" test -n "$flat"
-carries_each "the \`built\` route copies the returned \`fallback:\` lines into the Reply unchanged" \
-  "\`fallback:\`" "fallback:" -- "Reply" "Run section" -- \
+carries_each "the \`built\` route copies the returned \`fallback:\` lines into the Run report unchanged" \
+  "\`fallback:\`" "fallback:" -- "Reply" "Run section" "Run report" -- \
   "unchanged" "verbatim" "never composed" "as returned" "as the Builder returned"
 
 # The Run list is where the copied line lands. Its home is found by the Implementer it speaks of,
@@ -989,6 +989,32 @@ carries_each "the home takes the Builder's \`fallback:\` lines with the reason n
   "not linked" "isn't linked" "is unlinked" "not installed" "no \`do-implementer\`" -- \
   "dispatch is refused" "dispatch refused" "refuses the dispatch" "refused dispatch" "is refused" \
   "was refused" "is denied" "denies the dispatch" "dispatch denied"
+
+echo "# skills/do/references/ticket.md, reply.md, builder.md: the Builder's \`fallback:\` and refused-changeset lines land in the Run report"
+
+# ADR 0091: Build lines sit under reply.md's `## Run`, never part of the five-part message, and a
+# run without `--auto` writes no Run report. A passage that sends the `fallback:` line or a refused
+# changeset's build line to "the Reply" has the session write it into the message, where reply.md
+# forbids it, or nowhere. The `built` bullet's opening clause already names the Run report for the
+# Build lines in general, so the check is scoped to the clause that says what a `fallback:` line
+# tells the developer (the Builder wrote the code itself, no Implementer was dispatched).
+flat="$(bullets_opening_on <(passage_of "$playbook" "Route on the first line:" "## ") "\`built\`:" | head -n 1 |
+  sed 's/: /:\n/g; s/; /;\n/g; s/\. /.\n/g' | grep -F "fallback:" | grep -E "itself|Implementer" | tr '\n' ' ')"
+expect "the \`built\` route has a clause saying what the \`fallback:\` line tells the developer" test -n "$flat"
+carries_each "the \`built\` route's \`fallback:\` clause names the Run report as where the line lands" "Run report"
+
+build_item="$(item_holding <(passage_of "$reply" "## Run" "## Sections") '[0-9]+\.' "Build lines")"
+flat="$(bullets_opening_on <(printf '%s\n' "$build_item") "\`fallback:\`" | head -n 1)"
+expect "the Run list's Build lines carry the Builder's \`fallback:\` lines" test -n "$flat"
+carries_each "the Build lines' \`fallback:\` sentence names the Run report as where the line lands" "Run report"
+
+flat="$(bullets_opening_on "$contract" "Each changeset the check refused" | head -n 1)"
+expect "the contract says where a refused changeset shows" test -n "$flat"
+carries_each "a refused changeset's build line is shown in the Run report" "Run report"
+
+flat="$(bullets_opening_on "$contract" "An edit the Builder wrote itself" | head -n 1)"
+expect "the contract says where an edit the Builder wrote itself shows" test -n "$flat"
+carries_each "an edit the Builder wrote itself is told apart in the Run report" "Run report"
 
 echo "# skills/do/agents/do-builder.md: the fork's own definition binds it to that same return"
 
