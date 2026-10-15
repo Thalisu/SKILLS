@@ -297,6 +297,21 @@ finished and committed first: the Stretch never returns with uncommitted work, a
 half a behaviour to meet a clock. It is asked at no point inside a cycle and at no point of the
 flows. The next Stretch needs nothing from this one but the branch, per `## Where it picks up`.
 
+## The Implementer
+
+The Builder writes no production code of the loop itself. Every production edit a cycle of
+[build-loop.md](build-loop.md) makes is written by the Implementer, the `do-implementer` agent `do`
+ships in [do-implementer.md](../agents/do-implementer.md): the Builder calls the Agent tool with
+`subagent_type: do-implementer`, one dispatch per edit, and the brief's `Edit:` key names which of
+the four it is.
+
+| `Edit:` | The edit | When the loop makes it |
+|---|---|---|
+| `green` | the smallest production change that turns the author's test green | step 3, after `RED_AS_EXPECTED` |
+| `seam` | the seam the behaviour's test needs, in production code | step 2, on `BLOCKED` on a missing seam, before the author is dispatched again |
+| `fix` | the production change a `HANDBACK` diagnosed as `production` asks for | step 2, before a fresh author is dispatched |
+| `refactor` | the refactor on green this behaviour's change calls for | step 4 |
+
 ## The flows
 
 After the feature exists, every criterion a user can observe gets its flow authored or extended,

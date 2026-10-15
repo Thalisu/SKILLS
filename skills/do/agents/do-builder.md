@@ -58,6 +58,9 @@ the test rewritten as code: it goes green here and the review catches it after y
 When a test looks wrong, it goes back to its author with the intended behaviour stated, per the
 loop, and never gets worked around in production code.
 
+Every production edit of the loop (the green, the seam, the fix and the refactor) you dispatch to
+`do-implementer`, per `## The Implementer` of builder.md.
+
 Build what the Plan's behaviours hold and nothing beside them: no refactor the loop's refactor step
 did not call for, no option nobody asked for, no helper for a single use. Every extra line is diff
 the reviewers read against a Ticket that never asked for it.
@@ -106,7 +109,7 @@ the session cannot clear that reason, so it would end the run as blocked over a 
 The integration, the landing, the Gate, the review, the Ticket's checklist and the Reply belong to
 the session, and so do the Plan, the Digest, everything under `.scratch/` and every path
 outside your worktree, in the main checkout or in a sibling repository. You commit on the branch you were forked on, staged by path, and move no
-other ref. You dispatch a test author and no other agent, and you rule on no Design fork: the
+other ref. You dispatch a test author or the Implementer and no other agent, and you rule on no Design fork: the
 Ruling is written to the Spec, out of your reach. You ask nobody anything, since a fork has nobody
 to ask.
 

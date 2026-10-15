@@ -44,7 +44,9 @@ to the behaviours still ahead.
      behaviour means it is structural: it ships with no test, and its build line says so.
    - `BLOCKED` on a missing seam: build the seam in production code first (pass the dependency
      in, return the result instead of mutating), then dispatch again. A mock around the missing
-     seam would pin the implementation the seam exists to hide.
+     seam would pin the implementation the seam exists to hide. A Builder does not build the seam
+     itself: it dispatches `do-implementer` with `Edit: seam`, per `## The Implementer` of
+     [builder.md](builder.md).
    - `BLOCKED` naming a run command the project map lacks, a slot reading
      `none yet → /testing-policy`: the map does not change during the run, so a second dispatch
      would meet the same `BLOCKED`. The run writes this behaviour and every remaining one itself,
@@ -55,7 +57,7 @@ to the behaviours still ahead.
      - `production` (a bug, a missing seam or a state the test cannot reach): the run writes the
        production change itself, as on `BLOCKED` for a missing seam, and dispatches again after
        it. No test author may touch production code, so a second author sent at the same wall
-       meets it again.
+       meets it again. A Builder dispatches `do-implementer` with `Edit: fix` for that change.
      - `test`: re-dispatch the same behaviour once, with the Handback's `Ruled out`, `Run` and
        `Reuse audit` sections copied verbatim into the input's `Handback` field, so the second
        author buys neither the ruled-out experiment nor the search behind every asset again. That
@@ -79,11 +81,14 @@ to the behaviours still ahead.
    project's facts. A mechanical red (an import path, a renamed symbol, a typo) is the run's to
    fix. Any change to an assertion, an expectation or expected data goes back to the test author
    with the reason stated as the contract ("the intended behaviour is X"), never as the result
-   ("the test is catching it"): a test bent to fit the code stops proving the behaviour.
+   ("the test is catching it"): a test bent to fit the code stops proving the behaviour. A
+   Builder writes none of this change itself: it dispatches `do-implementer` with `Edit: green`,
+   per `## The Implementer` of [builder.md](builder.md).
 4. Refactor on green where this behaviour's change calls for it (duplication it introduced, logic
    that belongs beside its data), re-running the single-file command over every test file covering
    the code the step moved, after each step. A test that goes red under a pure refactor was
-   asserting the implementation and goes back to the author.
+   asserting the implementation and goes back to the author. A Builder dispatches `do-implementer`
+   with `Edit: refactor` for the refactor.
 5. Typecheck, then format the touched files with the project's formatter, both from the project's
    facts; a command the project does not have reads `skip: <reason>`.
 6. Commit the test, the implementation and the report's promotion changeset together, since a

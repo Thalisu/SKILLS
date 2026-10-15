@@ -975,6 +975,57 @@ out="$flat"
 check_absent "it restates none of the return's keys in a second place" 0 0 \
   "side A:" "side B:" "losing criterion:" "stopped at:"
 
+echo "# skills/do/agents/do-builder.md, skills/do/references/builder.md, skills/do/references/build-loop.md: the Builder dispatches the Implementer at every production edit"
+
+# The Builder runs on Opus, and every production edit it still writes itself is paid at that rate
+# by the developer running `/do`. The Implementer exists to take those edits at a cheaper model, and
+# there are four of them in a cycle: the green, the seam a `BLOCKED` asks for, the fix a `HANDBACK`
+# diagnosed as `production` asks for, and the refactor. Any one the three readers leave to the
+# Builder is an edit it goes on writing itself. The fork reads its own definition first, the
+# contract fixes the call, and build-loop.md is the step the Builder is at when the edit comes up,
+# so all three have to say it.
+build_loop="$here/../references/build-loop.md"
+
+# The body, never the frontmatter: the Agent hook there already names `do-implementer` to let the
+# dispatch through, and an allowed dispatch is not a definition that tells the fork to make one.
+body_of "$agent" >"$stmp/builder-body.md"
+flat="$(paragraph_with "$stmp/builder-body.md" "do-implementer" all | tr '\n' ' ' | tr -s ' ')"
+carries_each "the building agent's body has it dispatch \`do-implementer\` for its production edits" \
+  "do-implementer" -- "dispatch" -- "production"
+
+# The contract fixes the call and names each edit by the `Edit:` kind the Implementer reads off its
+# brief: a kind missing here is an edit the Builder has no call for, and writes itself. Read over
+# every section of the contract that names the Implementer, so the call is found wherever the
+# contract puts it.
+flat="$(awk '/^## / { if (keep) print sec; sec = ""; keep = 0 }
+  { sec = sec " " $0; if (index($0, "do-implementer")) keep = 1 }
+  END { if (keep) print sec }' "$contract" | tr -s ' ')"
+carries_each "the contract has the Builder call the Agent tool with \`subagent_type: do-implementer\`" \
+  "Agent tool" "\`Agent\`" -- "subagent_type" -- "do-implementer" -- "Builder"
+carries_each "the contract names each of the four edits by its \`Edit:\` kind: green, seam, fix and refactor" \
+  "\`green\`" "Edit: green" -- "\`seam\`" "Edit: seam" -- "\`fix\`" "Edit: fix" \
+  -- "\`refactor\`" "Edit: refactor"
+
+# build-loop.md is also read by the bug-fix and refactoring sessions, which have no Implementer and
+# write the code themselves, so each step says it for a Builder by name rather than for every reader.
+# Each step is found by what it is about, not by its number or its wording.
+green_step="$(item_holding "$build_loop" '[0-9]+\.' "smallest production change")"
+refactor_step="$(item_holding "$build_loop" '[0-9]+\.' "Refactor on green")"
+seam_route="$(bullets_opening_on "$build_loop" "\`BLOCKED\`" | grep -F "seam" | head -n 1)"
+production_route="$(bullets_opening_on "$build_loop" "\`production\`")"
+for edit in green seam fix refactor; do
+  case "$edit" in
+    green) where="the green step" step="$green_step" ;;
+    seam) where="the route for \`BLOCKED\` on a missing seam" step="$seam_route" ;;
+    fix) where="the \`HANDBACK\` route diagnosed \`production\`" step="$production_route" ;;
+    *) where="the refactor step" step="$refactor_step" ;;
+  esac
+  expect "build-loop.md carries $where" test -n "$step"
+  flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ')"
+  carries_each "build-loop.md: $where has a Builder dispatch \`do-implementer\` for that edit" \
+    "Builder" -- "do-implementer" -- "dispatch"
+done
+
 echo "# skills/do/references/builder.md, skills/do/agents/do-builder.md: work for another repository ends the Stretch on \`stopped\`"
 
 # A feature that spans repositories can hand the Builder a behaviour whose change belongs in a
