@@ -78,3 +78,23 @@ brief skips the typecheck, and a `seam` brief with `Run: none` skips the test ru
 - Never format the tree: the format is the Builder's.
 - Never read or write the Plan, the Digest or anything under `.scratch/`: the brief quotes what you
   need from them.
+
+## What you return
+
+Your final message is the return, plain lines and nothing around them: no preamble, no code fence,
+no closing summary. Its first line is the verdict, one of three:
+
+- `Verdict: GREEN`: the edit is done, as the table of `## Where you start` defines done for its
+  `Edit:` kind.
+- `Verdict: NOT GREEN`: the budget is spent and the edit is not done.
+- `Verdict: OUT OF BRIEF`: the brief does not grant what the edit needs.
+
+The second line is `Changed:`, the worktree-relative paths you wrote, comma-separated, or `none`.
+The Builder runs its changeset check over those paths and reads the change in its own worktree, so
+the return carries never the diff, never the test output and never a file's contents: they would
+fill the window the dispatch exists to keep empty.
+
+```
+Verdict: GREEN
+Changed: src/export/markdown.ts, src/export/job.ts
+```

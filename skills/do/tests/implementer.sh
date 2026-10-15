@@ -217,4 +217,26 @@ carries_any "the green and the typecheck both come before the Implementer return
   "then write your return" "Then write your return" "return only after" "Return only after"
 flat="$body"
 
+echo "# skills/do/agents/do-implementer.md: it returns a short verdict and the paths it changed, never the diff"
+
+# The Builder acts on the verdict and runs the changeset check over the paths it names: a return
+# without them leaves that check nothing to check, and one carrying the diff fills the Opus window
+# the dispatch exists to save.
+flat="$(flat_section "$agent" "## What you return")"
+carries_each "the Implementer's return opens on a Verdict: line carrying GREEN, NOT GREEN or OUT OF BRIEF" \
+  "Verdict:" -- "Verdict: GREEN" "\`GREEN\`" -- "NOT GREEN" -- "OUT OF BRIEF"
+
+carries_each "the Implementer's return names the paths it changed on a Changed: line, or none" \
+  "Changed:" -- \
+  "paths you changed" "paths you wrote" "paths you edited" "every path you" "each path you" \
+  "path you changed" "path you wrote" "worktree-relative path" -- \
+  "\`none\`"
+
+carries_any "the Implementer's return never carries the diff" \
+  "never the diff" "Never the diff" "never a diff" "Never a diff" "no diff" "No diff" \
+  "not the diff" "never include the diff" "Never include the diff" "never paste the diff" \
+  "Never paste the diff" "without the diff" "never carries the diff" "leave the diff out" \
+  "Leave the diff out" "the diff stays out"
+flat="$body"
+
 exit $((fails > 0))
