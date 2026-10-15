@@ -87,6 +87,9 @@ carries_any "the Run report never goes into the message" \
   "never into the message" "never in the message" "not part of the message" \
   "no part of the message" "never part of the message" "not in the message" \
   "stays out of the message" "never goes into the message" "outside the message"
+carries_any "a second --auto run keeps the earlier run's Run report readable" \
+  "appends" "below the earlier" "never replace" "never overwrite" "unique to each run" \
+  "unique to the run" "one file per run" "a file of its own"
 
 [ "$fails" -eq 0 ] && exit 0
 exit 1

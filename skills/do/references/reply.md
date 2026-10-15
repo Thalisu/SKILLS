@@ -52,8 +52,9 @@ sits in no other file: in a `ticket` run beside the Plan, its stem with `.report
 `.scratch/do-reports/<YYYYMMDD>-<the branch's slug>.md` in the main checkout, appending the
 `.scratch/` line first per [scratch.md](../../../.agents/scratch.md). It holds the Run section,
 then the ten sections in their order, each under a `##` heading of its name, with a section that
-has nothing to say reading `none`. Without `--auto` the Run report is not written at all, per
-[ADR 0091](../../../docs/adr/0091-the-do-reply-is-five-parts-and-the-run-report-is-written-only-under-auto.md).
+has nothing to say reading `none`. A later `--auto` run that finds the file already there appends
+its own Run report below the earlier one, under a `---` rule, and never replaces it. Without `--auto` the Run report is not written at all,
+per [ADR 0091](../../../docs/adr/0091-the-do-reply-is-five-parts-and-the-run-report-is-written-only-under-auto.md).
 
 A run that ends early writes a shorter message, per
 [A refusal or a blocked run](#a-refusal-or-a-blocked-run). [Whole replies](#whole-replies) shows
