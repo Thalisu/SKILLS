@@ -1190,6 +1190,52 @@ expect "the snapshot and the changeset check run from a project that does not ho
   bash -c '[ -n "$1" ] && grep -q "^state=" <<<"$2" && grep -q "^verdict=pass" <<<"$3"' _ \
   "$snapshot_run" "$snapshot_out" "$changeset_out"
 
+echo "# skills/do/references/builder.md / ## The Implementer, skills/do/references/build-loop.md: the Builder formats and commits each behaviour, never the Implementer"
+
+# The resume step matches the `Behaviour:` lines on the branch one for one and rebuilds a behaviour
+# whose commit it cannot find. An Implementer that committed its own edit would land a commit with
+# no `Behaviour:` line, or a second one beside the Builder's, and the resume would rebuild a
+# behaviour already on the branch or count one twice. The contract says it past the changeset
+# check, the last thing a dispatch is put through before the commit: the brief's own `Behaviour:`
+# key, earlier in the section, cannot answer for it.
+flat="$(flat_section "$contract" "## The Implementer")"
+pass_line="Only \`verdict=pass\` goes on toward the commit."
+pass_at="$(first_at "$pass_line")"
+expect "builder.md's \`## The Implementer\` carries the \`verdict=pass\` line its commit step follows" \
+  test "$pass_at" -gt 0
+section="$flat"
+flat=""
+[ "$pass_at" -gt 0 ] && flat="${section:$((pass_at - 1 + ${#pass_line}))}"
+affirms "builder.md: past the changeset check, the Builder itself formats the touched files and commits the behaviour" \
+  "the Builder" "itself" -- "format" -- "commit"
+carries_each "builder.md: the Builder's commit carries the behaviour's \`Behaviour:\` line, one commit per behaviour" \
+  "Behaviour:" \
+  -- "one commit per behaviour" "one commit for each behaviour" "a commit per behaviour" \
+  "each behaviour its own commit" "one commit to each behaviour" "one behaviour per commit"
+carries_any "builder.md: the Implementer never commits" \
+  "the Implementer never commits" "\`do-implementer\` never commits" "the Implementer commits nothing" \
+  "the Implementer does not commit" "never the Implementer's" "never by the Implementer" \
+  "never the Implementer" "not the Implementer's"
+
+# bug-fix and refactoring read the same two steps and have no Implementer, so each says it for a
+# Builder by name. Each step is found by what it is about, not by its number.
+format_step="$(item_holding "$build_loop" '[0-9]+\.' "format the touched files")"
+commit_step="$(item_holding "$build_loop" '[0-9]+\.' "\`Behaviour: <line>\`")"
+for what in format commit; do
+  case "$what" in
+    format) where="the format step" step="$format_step" ;;
+    *) where="the commit step" step="$commit_step" ;;
+  esac
+  expect "build-loop.md carries $where" test -n "$step"
+  flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ')"
+  carries_each "build-loop.md: $where keeps the $what a Builder's and never the Implementer's" \
+    "Builder" \
+    -- "the Builder's" "a Builder's" "Builder's own" "the Builder itself" "a Builder itself" \
+    "stays with the Builder" "stay with the Builder" \
+    -- "never the Implementer's" "not the Implementer's" "never by the Implementer" \
+    "the Implementer never" "\`do-implementer\` never" "never \`do-implementer\`"
+done
+
 echo "# skills/do/references/builder.md, skills/do/agents/do-builder.md: work for another repository ends the Stretch on \`stopped\`"
 
 # A feature that spans repositories can hand the Builder a behaviour whose change belongs in a

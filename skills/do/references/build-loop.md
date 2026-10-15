@@ -90,13 +90,15 @@ to the behaviours still ahead.
    asserting the implementation and goes back to the author. A Builder dispatches `do-implementer`
    with `Edit: refactor` for the refactor.
 5. Typecheck, then format the touched files with the project's formatter, both from the project's
-   facts; a command the project does not have reads `skip: <reason>`.
+   facts; a command the project does not have reads `skip: <reason>`. The format is a Builder's
+   own, never the Implementer's.
 6. Commit the test, the implementation and the report's promotion changeset together, since a
    promotion split from its test leaves the other test file broken at that commit. Stage by path,
    never with `-A` or `.`, so nothing the behaviour did not write rides along. The title is a
    conventional commit, `type(scope): subject`, with `feat`, `fix`, `refactor`, `test`, `docs` or
    `chore`; the body carries the behaviour line, labelled `Behaviour: <line>` on a line of its own
-   so that a resume reads it off the branch, and the single-file command that passes. For example:
+   so that a resume reads it off the branch, and the single-file command that passes. The commit
+   is a Builder's own, never the Implementer's. For example:
 
    ```
    fix(billing): keep sub-cent credits in the invoice balance

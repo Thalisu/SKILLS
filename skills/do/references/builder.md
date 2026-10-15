@@ -353,6 +353,10 @@ Builder reads what each dispatch changed by script, in this order:
    ```
 
    Only `verdict=pass` goes on toward the commit.
+4. Once the behaviour's last edit has passed, the Builder itself formats the touched files and
+   commits the behaviour, per steps 5 and 6 of [build-loop.md](build-loop.md), with its
+   `Behaviour:` line, so a resume still finds one commit per behaviour, and the Implementer never
+   commits: a commit of its own would land unchecked and carry no `Behaviour:` line.
 
 ## The flows
 
