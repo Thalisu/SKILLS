@@ -1318,6 +1318,27 @@ for reader in agent contract; do
     "commits nothing" "no commit" "without a commit" "Only \`verdict=pass\` goes on toward the commit"
 done
 
+echo "# skills/do/references/builder.md / ## The return: a refused changeset shows on that behaviour's \`build:\` line"
+
+# The developer reads the Reply's Build lines, copied out of the return unchanged, and nothing else
+# of the build: a refusal the Builder caught and routed past leaves no trace there unless the
+# behaviour's `build:` line names it, and an Implementer that moved a test file passes unseen. The
+# prose is read off the paragraphs of `## The return` above its examples that speak of a refusal,
+# and the clause has to affirm it (`build:` splits a clause at its colon, so the line is matched by
+# its opening). The examples have to carry one such line, with what was done about it, since the
+# shape is what the Builder copies. A second failure, `OUT OF BRIEF` and an Implementer that cannot
+# be dispatched are later behaviours, and nothing here pins them.
+flat="$(passage_of "$contract" "## The return" "### Examples" |
+  awk 'BEGIN { RS = "" } /refus/ { gsub(/\n/, " "); print }' | tr '\n' ' ' | tr -s ' ')"
+expect "\`## The return\` says what a refused changeset leaves on the return" test -n "$flat"
+affirms "\`## The return\`: a changeset the check refused is named on that behaviour's \`build:\` line" \
+  "\`build" "build line" "Build line" -- "refus"
+flat="$(blocks_of "$contract" "### Examples" | grep -E '^build:' | grep -F 'refus' | tr '\n' ' ' | tr -s ' ')"
+expect "\`### Examples\` carries a return whose \`build:\` line names a refused changeset" test -n "$flat"
+carries_any "\`### Examples\`: that \`build:\` line says the edit was dispatched once more" \
+  "re-dispatched" "redispatched" "dispatched once more" "dispatched again" "once more" "again" \
+  "a second time" "second dispatch"
+
 echo "# skills/do/references/builder.md, skills/do/agents/do-builder.md: work for another repository ends the Stretch on \`stopped\`"
 
 # A feature that spans repositories can hand the Builder a behaviour whose change belongs in a

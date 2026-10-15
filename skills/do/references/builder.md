@@ -93,6 +93,9 @@ one an earlier stretch already committed and returned:
 - Each line ends in the short hash of the commit that closed the behaviour, as
   `git rev-parse --short` prints it, after a ` | ` separator.
 - A `fork` or a `stopped` that closed no behaviour in its stretch carries none of these lines.
+- Each changeset the check refused on a behaviour shows on that behaviour's build line, with the
+  offending path and the re-dispatch that followed, so the Reply shows that an Implementer touched
+  a test file and the Builder caught it.
 
 They are the Run report's Behaviours list and its Build lines already written, per
 [reply.md](reply.md), so the session copies them and never composes them from a build it did not
@@ -186,6 +189,8 @@ behaviour: exports every note of a notebook as one markdown file each | 3f2a91c
 build: src/export/markdown.ts, src/export/job.ts | RED_AS_EXPECTED, implemented to green | 3f2a91c
 behaviour: keeps a title longer than 80 characters whole in the exported heading | 8b07d4e
 build: src/export/markdown.ts | HANDBACK (test), re-dispatched once, RED_AS_EXPECTED, implemented to green | 8b07d4e
+behaviour: leaves an empty note out of the export | 5d19e02
+build: src/export/job.ts | RED_AS_EXPECTED, changeset refused (offending=test tests/export/job.test.ts), re-dispatched once, implemented to green | 5d19e02
 flow: criterion 1, a user exports a notebook from its menu | c41e6aa
 flow: criterion 2, a long title survives the export | no flow: the Digest's Observable criteria leaves it out
 fallback: criterion 3's flow lives in the consumer repository, pending debt for the web client
