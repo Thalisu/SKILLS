@@ -19,7 +19,9 @@
 # prints as absolute: a hook runs inside the Builder's own commit and the config outlives the run
 # in the checkout every worktree shares), named for a named path, test for any other path
 # test-files.sh classifies as a test file of the worktree, under the policy's classes or the
-# built-in list, either one. A refusal is whole: no part of a refused
+# built-in list, either one, and index for an index-flag:<path> entry, a tracked path that now
+# carries a skip-worktree or assume-unchanged flag the snapshot did not record, which hides an edit
+# to it from git status. A refusal is whole: no part of a refused
 # changeset passes.
 #
 # Exit codes: 0 pass · 1 refused · 2 usage, a worktree that is not a git working tree, or a state
@@ -64,6 +66,8 @@ offence() { # $1 a changed path: prints classes, named, test, or nothing
   case "$1" in /*) abs="$1" ;; esac
   if [ -n "${classes_files[$1]:-}" ]; then
     echo classes
+  elif [ "${1#index-flag:}" != "$1" ]; then
+    echo index
   elif [ "$abs" = "$1" ]; then
     echo git
   elif [ -n "${named[$1]:-}" ]; then

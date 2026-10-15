@@ -126,6 +126,7 @@ for denied_cmd in \
   "git restore src/a.sh|a restore, which wipes the test author's uncommitted test file" \
   "git stash|a stash, which wipes the test author's uncommitted test file" \
   "git config core.hooksPath $run_worktree/src/hooks|a git config write, which re-points the hooks every worktree shares at a hook that runs inside the Builder's commit" \
+  "git update-index --skip-worktree src/a.sh|an index flag, which hides an edit from git status and so from the Builder's changeset check" \
   "cat $checkout/README.md|a path in the main checkout outside its run worktree"; do
   payload="$(jq -n --arg c "${denied_cmd%%|*}" --arg w "$run_worktree" '{cwd: $w, tool_input: {command: $c}}')"
   denied_out="$(cd "$run_worktree" && sh -c "$bash_hook" <<<"$payload" 2>/dev/null)"

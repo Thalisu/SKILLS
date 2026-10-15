@@ -172,4 +172,20 @@ run "$resnapshotted" "$resnapshotted_state" "$resnapshotted_digest" tests/bar.sh
 check_absent "a baseline re-snapshotted after the author's test was bent no longer matches its digest, and reads no verdict" 2 "$rc" \
   'verdict='
 
+fresh skip-worktree-flag
+skip_worktree="$(pwd -P)"
+mkdir -p tests
+echo 'guards a neighbour' >tests/bar.sh
+commit "base"
+skip_worktree_state="$tmp/state/skip-worktree.state"
+skip_worktree_digest="$(snapshot_digest "$skip_worktree" "$skip_worktree_state")"
+
+echo 'weakened' >>tests/bar.sh
+g update-index --skip-worktree tests/bar.sh
+run "$skip_worktree" "$skip_worktree_state" "$skip_worktree_digest"
+check_lines "a changeset that hid a tracked file from git status behind a new skip-worktree flag is refused, naming that file" 1 "$rc" \
+  'verdict=refused' 'offending=index index-flag:tests/bar.sh'
+check_absent "a test file edited behind a skip-worktree flag never reads as a pass" 1 "$rc" \
+  'verdict=pass'
+
 [ "$fails" = 0 ]
