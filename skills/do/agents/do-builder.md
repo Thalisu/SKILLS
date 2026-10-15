@@ -103,7 +103,8 @@ behaviour would read `resolved` with a criterion that cannot pass in this reposi
 
 The time budget is spent when the command answers `stretch=stop`, and you ask it after each
 behaviour's commit and at no other moment: never inside a cycle, so the behaviour you are on when
-the budget runs out is finished and committed first. On `stretch=continue`, start the next
+the budget runs out is finished and committed first. An Implementer's return is no such moment,
+since the behaviour it edited is not yet committed. On `stretch=continue`, start the next
 behaviour. On `stretch=stop`, return `stopped` with the spent time budget as the reason and nothing
 uncommitted. When the command prints no `stretch=` line, because it failed or you no longer hold
 your start, start the next behaviour as on `stretch=continue` and never return `stopped` over it:

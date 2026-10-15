@@ -295,7 +295,8 @@ before its prompt cache expires.
 Because the command is asked only on a commit, a behaviour in progress when the budget runs out is
 finished and committed first: the Stretch never returns with uncommitted work, and never commits
 half a behaviour to meet a clock. It is asked at no point inside a cycle and at no point of the
-flows. The next Stretch needs nothing from this one but the branch, per `## Where it picks up`.
+flows. An Implementer's return is no such moment either, since it comes back inside a cycle,
+before the behaviour is formatted and committed. The next Stretch needs nothing from this one but the branch, per `## Where it picks up`.
 
 ## The Implementer
 

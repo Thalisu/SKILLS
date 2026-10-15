@@ -1553,4 +1553,27 @@ budget_out="$(cd "$budget_proj" && HOME="$budget_home" bash -c "$budget_run" 2>&
 expect "the command prints its verdict from a project that does not hold the skill" \
   bash -c 'grep -q "^stretch=continue" <<<"$1"' _ "$budget_out"
 
+echo "# builder.md / do-builder.md: the time budget is read after each behaviour's commit and never on an Implementer's return"
+
+# An Implementer's return sits inside a cycle, before the behaviour is formatted and committed: a
+# `stop` read there returns the Stretch with uncommitted work, which the resume refuses, and a
+# Builder that never reads it outlasts its budget past the session's prompt cache. The agent's side
+# is read over every paragraph naming the time budget, since the guarantee may sit in any of them.
+# The Implementer half is bound to one sentence, so a mention of the Implementer elsewhere in the
+# scope never answers for the negation.
+for budget_scope in contract agent; do
+  case "$budget_scope" in
+    contract) budget_label="builder.md's \`## The time budget\`" budget_flat="$(flat_section "$contract" "## The time budget")" ;;
+    agent) budget_label="do-builder.md's time budget paragraphs" budget_flat="$(paragraph_with "$agent" "time budget" all | tr '\n' ' ' | tr -s ' ')" ;;
+  esac
+  flat="$budget_flat"
+  carries_each "$budget_label: the budget is asked after each behaviour's commit and at no other moment" \
+    "fter each behaviour's commit" "fter every behaviour's commit" "fter each commit" "nce each behaviour is committed" -- \
+    "t no other moment" "t no other point" "ever at any other" "nly after each" "nly on a commit" "nly on each"
+  flat=" $(grep -oE "[^.;:]*Implementer[^.;:]*" <<<"$budget_flat" | tr '\n' ' ') "
+  carries_each "$budget_label: an Implementer's return is not a moment the budget is asked" \
+    "return" "comes back" "hands back" -- \
+    " never " " not " " no " " nor " "n't "
+done
+
 exit $((fails > 0))
