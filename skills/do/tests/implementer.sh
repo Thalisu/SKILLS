@@ -271,4 +271,21 @@ expect "the Implementer's GREEN return carries Verdict: and Changed: with no Rul
   test "$green_blocks" -gt 0 -a "$green_ruled" = 0
 flat="$body"
 
+echo "# README.md: its agent table lists the Implementer in the row of the do skill that installs it"
+
+# A developer reads the do row to learn which agents do puts on their machine: an agent the
+# installer links from skills/do and the row leaves out is one they never know they have.
+rc=0
+installed="$(HOME="$tmp/install-home" bash "$here/../../../scripts/link-skills.sh" claude 2>/dev/null |
+  awk '$1 == "linked" && $4 ~ /\/skills\/do\/agents\/[^\/]+\.md$/ { n = split($2, p, "/"); sub(/\.md$/, "", p[n]); print p[n] }')" ||
+  rc=$?
+[ -n "$installed" ] || rc=1
+wanted=()
+for name in $installed; do wanted+=("\`$name\`"); done
+# Selected by its first cell, so the do-code-review row never answers for the do one.
+# shellcheck disable=SC2034  # lib.sh's check reads $out
+out="$(grep -E '^\| `do` +\|' "$here/../../../README.md")"
+check "the README's do row names every agent the installer links from do, do-implementer among them" 0 "$rc" \
+  "${wanted[@]}"
+
 exit $((fails > 0))
