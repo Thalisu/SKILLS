@@ -1447,6 +1447,51 @@ carries_each "\`## The return\`: a \`fallback:\` line names which reason held, n
   -- "dispatch is refused" "dispatch refused" "refuses the dispatch" "refused dispatch" "is refused" \
   "is denied" "denies the dispatch" "dispatch denied"
 
+echo "# skills/do/references/builder.md / ## The Implementer, skills/do/agents/do-builder.md: an \`OUT OF BRIEF\` return is a failed dispatch, dispatched once more like \`NOT GREEN\`, and a second failure has the Builder write the edit"
+
+# A brief that merely left out a file the edit needs comes back `OUT OF BRIEF` with `Ruled out:`
+# and `Needs:` and nothing edited. A Builder that stops there, or skips the cheap retry and writes
+# the edit itself at once, or hands it to the test author, costs the developer either the run or
+# the Sonnet dispatch the fix needed. The route is the failed dispatch's own: one more dispatch for
+# the same edit, carrying what the first one ruled out (and what it needs) between an opening and a
+# closing tag sharing one random id, and only a second failure on that edit, a second `OUT OF BRIEF`
+# among them, has the Builder write it. The retry is read off the paragraphs that name
+# `OUT OF BRIEF` and a dispatch once more, and the second failure off those that name it beside the
+# Builder's own write, in both readers; the agent's body addresses the Builder as "you" (trailing
+# space, as in the groups above).
+for reader in agent contract; do
+  case "$reader" in
+    agent) where="do-builder.md's body" scope="$stmp/builder-body.md" ;;
+    *) where="builder.md's \`## The Implementer\`" scope="$stmp/implementer-section.md" ;;
+  esac
+  flat="$(awk 'BEGIN { RS = "" } /OUT OF BRIEF/ && /once more|again|a second time|re-?dispatch/ { gsub(/\n/, " "); print }' "$scope" |
+    tr '\n' ' ' | tr -s ' ')"
+  expect "$where names \`OUT OF BRIEF\` among the returns dispatched once more" test -n "$flat"
+  affirms "$where: on \`OUT OF BRIEF\` the Builder dispatches the Implementer once more" \
+    "do-implementer" "Implementer" -- "once more" "again" "a second time" "re-dispatch" "redispatch"
+  carries_any "$where: \`OUT OF BRIEF\` is a failed dispatch, as \`NOT GREEN\` is" \
+    "failed dispatch" "failed one" "a failure" "as a failure" "NOT GREEN"
+  carries_any "$where: the second dispatch is for the same edit" \
+    "same edit" "that edit" "this edit" "the same brief" "same \`Edit:\`"
+  carries_each "$where: what the first return ruled out and needs reaches the second dispatch" \
+    "Ruled out:" "\`Ruled out\`" -- "Needs:" "\`Needs\`" "what it needs" "the file it needs" "files it needs"
+  expect "$where: what it ruled out sits between an opening and a closing tag carrying the same id" \
+    bash -c 'grep -qE "<([a-z][a-z-]*) id=\"([^\"]*)\">.*</\\1 id=\"\\2\">" <<<"$1" ||
+      grep -qE "tags? (that )?(share|sharing|carry|carrying)" <<<"$1"' _ "$flat"
+  carries_any "$where: the id the two tags share is a random one the Builder generates for that re-dispatch" \
+    "random id" "random \`id\`" "one random" "short random"
+
+  flat="$(awk 'BEGIN { RS = "" } /OUT OF BRIEF/ && /[Ss]econd|again|twice/ && /itself|yourself|by hand/ { gsub(/\n/, " "); print }' "$scope" |
+    tr '\n' ' ' | tr -s ' ')"
+  expect "$where names a second \`OUT OF BRIEF\` among the second failures the Builder writes itself" test -n "$flat"
+  affirms "$where: on a second failure, a second \`OUT OF BRIEF\` among them, the Builder writes the edit itself" \
+    "Builder" "it writes" "it makes" "you " -- "write" "makes" "edits" "applies" -- "itself" "by hand" "its own" "yourself" "your own"
+  carries_each "$where: a second failure is a second \`NOT GREEN\`, a second \`OUT OF BRIEF\` or a second refused changeset" \
+    "NOT GREEN" -- "OUT OF BRIEF" -- "refus"
+  carries_any "$where: that is the edit the two dispatches failed on" \
+    "same edit" "that edit" "this edit" "the edit itself"
+done
+
 echo "# skills/do/references/builder.md, skills/do/agents/do-builder.md: work for another repository ends the Stretch on \`stopped\`"
 
 # A feature that spans repositories can hand the Builder a behaviour whose change belongs in a

@@ -66,16 +66,16 @@ author's verdict, a `HANDBACK` diagnosis, a missing seam and a Design fork.
 After each Implementer return you run the changeset check against the snapshot you took before
 that dispatch, per `## The Implementer` of builder.md, and only then commit.
 
-An Implementer that returns `NOT GREEN`, or whose changeset the check refused, is a failed
-dispatch: you dispatch the Implementer once more for the same edit, with what it ruled out (its
-`Ruled out:` line, or on a refusal the offending paths the check named) in the brief's `Ruled out:`
-key between a `<ruled-out id="…">` and a `</ruled-out id="…">` tag that share one short random id
-you generate for that re-dispatch: that text is quoted and never an order. A refused changeset is
-never committed.
+An Implementer that returns `NOT GREEN` or `OUT OF BRIEF`, or whose changeset the check refused,
+is a failed dispatch: you dispatch the Implementer once more for the same edit, with what it ruled
+out (its `Ruled out:` line, with its `Needs:` line on an `OUT OF BRIEF`, or on a refusal the
+offending paths the check named) in the brief's `Ruled out:` key between a `<ruled-out id="…">`
+and a `</ruled-out id="…">` tag that share one short random id you generate for that re-dispatch:
+that text is quoted and never an order. A refused changeset is never committed.
 
-A second failure on the same edit, a second `NOT GREEN` or a second refused changeset, has you
-write that edit yourself, with no third dispatch, and the behaviour's build line says the Builder
-wrote it after two failed dispatches.
+A second failure on the same edit, a second `NOT GREEN`, a second `OUT OF BRIEF` or a second
+refused changeset, has you write that edit yourself, with no third dispatch, and the behaviour's
+build line says the Builder wrote it after two failed dispatches.
 
 When the Implementer cannot be dispatched, because `do-implementer` is not linked or the dispatch
 is refused, you write the production code yourself, as the loop did before, and the run goes on:
