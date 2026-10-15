@@ -55,4 +55,22 @@ check_lines "a changeset touching a named path already uncommitted at the snapsh
 check_absent "a refused changeset is refused whole, with no line reading a pass" 1 "$rc" \
   'verdict=pass'
 
+fresh unnamed-test
+unnamed_test="$(pwd -P)"
+mkdir -p scripts tests
+echo one >scripts/bar.sh
+echo 'guards a neighbour' >tests/other.sh
+commit "base"
+echo 'red case' >tests/bar.sh
+unnamed_test_state="$tmp/state/unnamed-test.state"
+bash "$snapshot" snapshot "$unnamed_test" "$unnamed_test_state" >/dev/null
+
+echo two >>scripts/bar.sh
+echo 'weakened' >>tests/other.sh
+run "$unnamed_test" "$unnamed_test_state" tests/bar.sh
+check_lines "a changeset touching a test file no named path lists is refused, naming that test file" 1 "$rc" \
+  'verdict=refused' 'refused=1' 'offending=test tests/other.sh'
+check_absent "a changeset touching an unnamed test file is refused whole, even with production paths beside it" 1 "$rc" \
+  'verdict=pass'
+
 [ "$fails" = 0 ]
