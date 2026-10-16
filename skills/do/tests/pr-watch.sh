@@ -112,4 +112,13 @@ for review in APPROVED CHANGES_REQUESTED; do
   expect "a pull request blocked with review $review is a settled state no verdict covers: the watch exits 3" [ "$rc" = 3 ]
 done
 
+serve 42 CLEAN '[{"name":"lint","bucket":"pass"},{"name":"build (ubuntu-latest, 3.11)","bucket":"pending"},{"name":"deploy","bucket":"pending"}]'
+run 42
+state="$(sed -n 's/^state=//p' <<<"$out")"
+# A <since> of 1 is decades ago: the checks served unchanged since then have sat for far more than an hour.
+run 42 1 "$state"
+same "checks unchanged for an hour with some still pending: the watch returns verdict=stalled, naming each pending check in the order gh lists them" \
+  "verdict=stalled"$'\n'"pending=build (ubuntu-latest, 3.11)"$'\n'"pending=deploy"
+expect "a stalled pull request is a verdict printed: the watch exits 0" [ "$rc" = 0 ]
+
 exit "$((fails > 0))"
