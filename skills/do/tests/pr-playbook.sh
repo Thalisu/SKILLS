@@ -681,5 +681,33 @@ carries_any "and the create pushes nothing" \
   "pushes nothing" "pushing nothing" "never pushes" "does not push" "doesn't push" "no push" \
   "without pushing" "nor pushes" "nor push" "or push"
 
+# A developer who asked for the pull request to be opened and followed gets one opened and left with
+# its checks unread when the run holds no number for it: the read-back and the watch take the number,
+# and only `gh pr create`'s answer, the URL it prints, carries it. The create paragraph already names
+# the read-back beside the `Plan:` line, so the follow is read off a phrase that carries the run on to
+# it, and the step's `Done when` off the found or opened pull request it names.
+echo "# pr.md / ### 1. Pull request: the pull request the run opened for the pair is followed by the number off \`gh pr create\`'s URL, from the read-back on, the watch on that number, as an open one is"
+flat="$(piece_in="$pull_request" piece_with "gh pr create --head")"
+expect "a bullet or paragraph of ### 1. Pull request names \`gh pr create --head\`" test -n "$flat"
+affirms "the run takes the new pull request's number" \
+  "number" -- "takes" "holds" "keeps" "reads" "uses"
+carries_each "off the URL \`gh pr create\` prints" \
+  "URL" -- "prints" "printed" "answer" "answers" "returns" "output"
+affirms "and follows it by that number" \
+  "number" -- "follow"
+carries_any "from the read-back on" \
+  "from the read-back on" "from step 2 on" "on to the read-back" "on to step 2" \
+  "to the read-back and the watch" "the read-back and the watch" "through the read-back"
+affirms "the watch runs on that number" \
+  "watch" -- "number"
+carries_any "as an open one is followed" \
+  "as an open one" "as one already open" "as a pull request already open" "as the already-open" \
+  "as one found open" "named by number" "named by its number"
+flat="$(piece_in="$pull_request" piece_with "Done when")"
+expect "### 1. Pull request has a \`Done when\` line" test -n "$flat"
+carries_each "step 1 is done holding the number of a pull request the run found or opened for the pair" \
+  "number" -- "found" "already open" "listed" "looked up" "open for the pair" -- \
+  "opened" "created"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1
