@@ -8,6 +8,8 @@ follows that one pull request, and the developer reads it afterwards, through th
 
 - Merge the pull request: the run never runs `gh pr merge`, not even on a green run. The merge is
   the developer's call, named as the next step.
+- Rebase the head branch, or push to it, on a conflict with the base: the run stops and names the
+  owner of the head branch, the only one who may rewrite it.
 
 ## The message
 
@@ -87,6 +89,11 @@ the checks: a display read mid-run can show green while a check is still running
   the Reply.
 - `verdict=awaiting-approval`: every check passed and only a required approval blocks the merge. The
   run goes on to step 4, the Reply, as on green: the wait is the developer's to clear, not a stop.
+- `verdict=conflict`: the pull request conflicts with its base. The run stops with exactly one line,
+  `Yours: direction: <head> conflicts with <base>; the owner of <head> rebases it onto <base>, then /do the pull request again`,
+  taking `<head>` and `<base>` from the verdict's `head=` and `base=` lines, never from the
+  read-back, so the stop names what the script printed. The run never rebases and never pushes: the
+  head branch is its owner's to rewrite.
 - Any other verdict word: the run stops with one line quoting that verdict as printed, and follows
   nothing.
 - A non-zero exit of the script: the run stops with one line quoting the script's stderr line, with

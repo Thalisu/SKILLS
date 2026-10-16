@@ -476,5 +476,37 @@ carries_any "under the same no-\`Yours:\` rule" \
   "no \`Yours:\`" "No \`Yours:\`" "without a \`Yours:\`" "never a \`Yours:\`" "not a \`Yours:\`" \
   "same rule" "same way"
 
+# Only the owner of the head branch may rewrite it: a run that rebases a branch others write rewrites
+# their history, and a stop with no class, or naming the wrong branch, leaves the developer unsure
+# whose move it is. Step 2's read-back already names `<head>` and `<base>`, and the never-does section
+# already holds the merge bullet, so each guarantee is read off the piece that names the conflict or
+# the bullet that names the rebase.
+echo "# pr.md / ### 3. Watch and ## What this run never does: a conflicting pull request stops on one Yours: direction: line naming the head branch its owner rebases, rebasing and pushing nothing"
+flat="$(piece_with "verdict=conflict")"
+expect "a bullet or paragraph of the watch step names \`verdict=conflict\`" test -n "$flat"
+carries_any "it stops the run" "stops" "stop" "ends the run" "the run ends"
+carries "on a \`Yours: direction:\` line naming \`<head>\` and \`<base>\`" "Yours: direction:" "<head>" "<base>"
+carries_any "where the owner of \`<head>\` rebases it onto \`<base>\`" \
+  "the owner of <head> rebases it onto <base>" "the owner of <head> rebases <head> onto <base>" \
+  "owner of \`<head>\` rebases it onto \`<base>\`" "<head>'s owner rebases it onto <base>"
+carries_each "\`<head>\` and \`<base>\` come off the verdict's \`head=\` and \`base=\` lines" \
+  "head=" -- "base="
+carries_any "not off the read-back" \
+  "not the read-back" "never the read-back" "not off the read-back" "never off the read-back" \
+  "not from the read-back" "never from the read-back" "not step 2" "never step 2" "not off step 2" \
+  "never off step 2" "not from step 2" "never from step 2" "rather than the read-back" "instead of the read-back"
+carries_each "the run never rebases and never pushes" \
+  "never rebases" "does not rebase" "doesn't rebase" "rebases nothing" "no rebase" -- \
+  "never pushes" "does not push" "doesn't push" "pushes nothing" "no push" "nor pushes" "or pushes"
+never="$(passage_of "$pr" "## What this run never does" "## " 2>/dev/null)"
+flat=""
+for key in "Rebase" "rebase"; do
+  flat="$(item_holding <(printf '%s\n' "$never") '- ' "$key" | tr '\n' ' ' | tr -s ' ')"
+  [ -n "$flat" ] && break
+done
+expect "a bullet of \`## What this run never does\` names the rebase" test -n "$flat"
+carries_any "of the head branch" "head branch" "<head>" "its head" "the head"
+carries_any "on a conflict" "conflict"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1
