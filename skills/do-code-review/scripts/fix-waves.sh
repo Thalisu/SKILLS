@@ -109,50 +109,11 @@ finding_files() {
   done
 }
 
-# group_waves  (file-set records on stdin)
-# Reads `<n>\t<path> <path> ...` records, one per Finding, and prints one Wave line per Wave:
-#   wave=<n> findings=<n>[,<n>]...
-# Greedy first-fit in the order the records arrive, capped at four Findings per Wave so a larger
-# Wave is cut into consecutive Waves instead of forking more than four Fixers at once. spec.md:153.
-# Knows the disjointness rule and the cap and nothing else: never opens the Review, never decides
-# what a path is.
-group_waves() {
-  awk -F'\t' '
-    function meets(a, b,   i, j, x, y, na, nb) {
-      na = split(a, x, " "); nb = split(b, y, " ")
-      for (i = 1; i <= na; i++) for (j = 1; j <= nb; j++) if (x[i] == y[j]) return 1
-      return 0
-    }
-    {
-      n = $1; files = $2
-      placed = 0
-      if (files != "") {
-        for (w = 1; w <= waves; w++) {
-          if (closed[w] || meets(union[w], files)) continue
-          members[w] = members[w] "," n
-          union[w] = union[w] " " files
-          count[w]++
-          if (count[w] >= 4) closed[w] = 1
-          placed = 1
-          break
-        }
-      }
-      if (!placed) {
-        waves++
-        members[waves] = n
-        union[waves] = files
-        count[waves] = (files == "") ? 0 : 1
-        closed[waves] = (files == "")
-      }
-    }
-    END { for (w = 1; w <= waves; w++) print "wave=" w " findings=" members[w] }
-  '
-}
-
 # main "$@"
 # Validates the command line and the Review path, runs act_on_findings, turns each Finding record
-# into a file-set record with finding_files, feeds group_waves and lets its lines through to
-# stdout. Owns the boundary: the argument check and the exit code.
+# into a file-set record with finding_files, feeds group-waves.sh beside this script and lets its
+# lines through to stdout, `numbers=` read back as `findings=`. Owns the boundary: the argument
+# check and the exit code.
 main() {
   local review="${1:-}" held=""
   case "$#" in
@@ -183,7 +144,7 @@ main() {
   done <<<"$records"
 
   [ -n "$sets" ] || return 1
-  printf '%s' "$sets" | group_waves
+  printf '%s' "$sets" | bash "$(dirname "${BASH_SOURCE[0]}")/group-waves.sh" | sed 's/ numbers=/ findings=/'
 }
 
 [ "${BASH_SOURCE[0]}" = "$0" ] || return 0
