@@ -28,9 +28,10 @@ Before it reads the pull request, the run asks the GitHub CLI whether it is logg
 `gh auth status`. When that check fails, the run stops: the Reply opens with `Playbook: pr` on its
 first line, then one line saying the GitHub CLI is not logged in and naming `gh auth login`, with no
 `Yours:` line, since the one input to fix is the developer's session and there is no choice to hand
-over. The run follows nothing: no read-back, no watch, no worktree, no push, no file written. The
-check comes before the read-back so that a logged-out CLI never reads as a pull request that could
-not be opened.
+over. A `gh` that is not installed, not on the `PATH`, takes the same stop with the same line, since
+logging in is what follows installing it. The run follows nothing: no read-back, no watch, no
+worktree, no push, no file written. The check comes before the read-back so that a logged-out CLI
+never reads as a pull request that could not be opened.
 
 Done when the run holds the URL or the number and the GitHub CLI answered that it is logged in.
 

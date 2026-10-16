@@ -161,5 +161,17 @@ carries_any "and follows nothing: no read-back, no watch, no worktree, no push, 
   "follows nothing" "nothing is followed" "nothing followed" "follows none" "follows no step" \
   "no step after" "no later step" "no further step" "runs nothing else" "nothing else runs" "does nothing else"
 
+# A machine with no gh fails the auth check with the shell's "command not found", which reads as a
+# broken run instead of a CLI to install, or lets the run go on without the pull request.
+echo "# pr.md: a GitHub CLI that is not installed takes the same stop as one not logged in"
+flat="$(tr '\n' ' ' <<<"$auth_step" | tr -s ' ')"
+carries_any "the step that names \`gh auth login\` covers a \`gh\` missing from the PATH" \
+  "not installed" "isn't installed" "is not on the PATH" "not on the \`PATH\`" "not on the PATH" \
+  "missing from the PATH" "missing from the \`PATH\`" "no \`gh\` on the" "no gh on the" \
+  "command not found" "\`gh\` is missing" "gh is missing" "absent from the PATH" "absent from the \`PATH\`"
+carries_any "and stops it the same way, with the line naming \`gh auth login\`" \
+  "same stop" "same line" "same way" "the same one line" "stops the same" "either case" "both cases" \
+  "either way" "in both" "as when" "as for" "likewise" "also stops" "stops too" "too stops"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1
