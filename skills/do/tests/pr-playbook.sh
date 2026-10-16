@@ -400,5 +400,37 @@ carries_any "and follows nothing" \
   "follows nothing" "nothing is followed" "nothing followed" "follows none" "follows no step" \
   "no step after" "no later step" "no further step" "runs nothing else" "nothing else runs" "does nothing else"
 
+# The developer reading a `--auto` Run report sees how many rounds the watch took and how many checks
+# ran, while the Reply stays its five parts, which every grader and reply-message-parts.sh read: a
+# round section in the message breaks them. `### 3. Watch` and `### 4. Reply` already name the
+# verdicts and `checks=<n>`, and reply.md's `## Run` list is renumbered whenever an item lands, so
+# each check reads the item or the piece that names the round, never the whole step or section.
+echo "# reply.md / ## Run and pr.md / ### 3. Watch: the pr watch's round is a Run section line, each call's verdict in order with the check count, written under --auto only, never a part of the Reply"
+run_list="$(passage_of "$reply" "## Run" "## " 2>/dev/null)"
+flat=""
+for key in "verdict=pending" "pr-watch.sh" "watch"; do
+  flat="$(item_holding <(printf '%s\n' "$run_list") '[0-9]+\.' "$key" | tr '\n' ' ' | tr -s ' ')"
+  [ -n "$flat" ] && break
+done
+expect "an item of reply.md's \`## Run\` list names the \`pr\` watch's round" test -n "$flat"
+carries_any "as the \`pr\` Playbook's" "\`pr\`" "pr Playbook" "pr run"
+carries_each "with the verdict of each pending call and the green one with its check count" \
+  "verdict=pending" -- "verdict=green" -- "checks="
+carries_each "one per call, in the order the watch printed them" \
+  "each call" "every call" "per call" "each run of" "every run of" "each time" -- \
+  "in order" "in their order" "in the order" "as printed" "as the watch printed"
+flat="$(piece_with "Run report" "Run section")"
+expect "a bullet or paragraph of the watch step names the Run report" test -n "$flat"
+carries_each "records each call's verdict there" \
+  "verdict" -- "each call" "every call" "per call" "each run" "every run"
+carries_each "written under \`--auto\` only" \
+  "\`--auto\`" "--auto" -- "only" "alone"
+carries_any "never as a section of the Reply" \
+  "never a section of the Reply" "not a section of the Reply" "never as a section of the Reply" \
+  "never a part of the Reply" "not a part of the Reply" "never part of the Reply" "not part of the Reply" \
+  "never in the Reply" "not in the Reply" "never part of the message" "not part of the message" \
+  "never a part of the message" "never a section of the message" "no section of the Reply" \
+  "no part of the Reply" "never the Reply's"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1

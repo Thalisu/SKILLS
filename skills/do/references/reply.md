@@ -399,6 +399,10 @@ landed` stand under `## Next step`, before its last line, and a `Final integrati
 `not resumed` line is the blocker above the `Yours:` line. The Already landed and Out of order
 shapes are whole messages and stay as item 30 writes them: the first line, their
 `Final integration: not started` line, then the lines that shape names, with no other part.
+31. **Watch lines.** In `pr`, the round: the verdict line the watch printed on each call, one per
+    call in the order the watch printed them, each `verdict=pending` and then the `verdict=green`
+    with its `checks=<n>`. They are the Run report's, never a part of the message, whose For whom
+    already says the checks are green.
 
 The lines record what the steps decided; they gate nothing. The order constraints on actions stay
 with the steps that carry them (the door script before any write, the worktree before the first

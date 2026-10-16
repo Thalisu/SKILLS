@@ -90,6 +90,9 @@ the checks: a display read mid-run can show green while a check is still running
 - A non-zero exit of the script: the run stops with one line quoting the script's stderr line, with
   no `Yours:` line, and follows nothing.
 
+The verdict line of each call, in order, is recorded for the Run report's Run section, which is
+written under `--auto` only, per [reply.md](reply.md): the round is never a section of the Reply.
+
 Done when the watch has printed `verdict=green`, after as many `pending` calls as the checks took.
 
 ### 4. Reply
