@@ -1,0 +1,26 @@
+name: pr-unopenable-says-so
+tags: [router, pr, input]
+runs: 2
+max_turns: 8
+timeout_seconds: 300
+allowed_tools: [Bash, Read, Edit, Write]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # A pull request URL of a repository that does not exist: gh pr view fails at the read-back, so
+    # the Reply says in one line that the pull request could not be opened and follows nothing. The
+    # case needs a sandbox whose gh is installed and logged in, or the CLI stop answers first.
+    set -e
+    mkdir -p src
+    cat > src/notes.js <<'JS'
+    const notes = [];
+
+    export function create(title) {
+      const note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+    JS
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"

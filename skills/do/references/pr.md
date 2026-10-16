@@ -43,6 +43,12 @@ wording: `gh pr view <the URL or the number> --json number,headRefName,baseRefNa
 Reply's `Plan:` line, so a request the session misread shows on the Reply's first lines, as the
 wrong pull request or the wrong branches, before the developer reads anything else.
 
+When `gh pr view` fails, the GitHub CLI cannot open the pull request (a wrong number, or a
+repository the CLI cannot reach), and the run stops: the Reply opens with `Playbook: pr` on its
+first line, then one line saying the pull request could not be opened, with no `Yours:` line, as
+the router answers an issue reference its CLI cannot open. The run follows nothing: no watch, no
+worktree, no push, no file written.
+
 Done when the line is recorded for the `Plan:` line.
 
 ### 3. Reply

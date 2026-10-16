@@ -173,5 +173,28 @@ carries_any "and stops it the same way, with the line naming \`gh auth login\`" 
   "same stop" "same line" "same way" "the same one line" "stops the same" "either case" "both cases" \
   "either way" "in both" "as when" "as for" "likewise" "also stops" "stops too" "too stops"
 
+# A wrong number, or a URL of a repository gh cannot reach, leaves the read-back with no answer to
+# read: a session that goes on invents a read-back, or a watch, for a pull request that is not there.
+# The passage already speaks of "the Reply's first lines", so a bare "first line" proves nothing here.
+echo "# pr.md / ### 2. Read-back: a pull request gh cannot open stops the run with one line on Playbook: pr, following nothing"
+flat="$(passage_of "$pr" "### 2. Read-back" "##" 2>/dev/null | tr '\n' ' ' | tr -s ' ')"
+carries_any "the read-back stops when \`gh pr view\` fails to open the pull request" \
+  "fails" "non-zero" "errors" "an error" "cannot open" "can't open" "could not open" "couldn't open" \
+  "cannot be opened" "could not be opened" "can't be opened" "couldn't be opened"
+carries_each "the stop is one line saying the pull request could not be opened" \
+  "could not be opened" "cannot be opened" "couldn't be opened" "can't be opened" \
+  "could not open" "cannot open" "couldn't open" "can't open" -- \
+  "one line" "One line" "single line" "a line saying" "a line that says"
+carries "the stop names the pr Playbook" "Playbook: pr"
+carries_any "on its first line" \
+  "on its first line" "on the first line" "its first line" "opens with" "opens on" "opening line" \
+  "line one" "the reply opens"
+carries_any "with no \`Yours:\` line" \
+  "no \`Yours:\`" "No \`Yours:\`" "without a \`Yours:\`" "without the \`Yours:\`" "never a \`Yours:\`" \
+  "not a \`Yours:\`" "no Yours:" "without a Yours:"
+carries_any "and follows nothing: no watch, no worktree, no push, no file written" \
+  "follows nothing" "nothing is followed" "nothing followed" "follows none" "follows no step" \
+  "no step after" "no later step" "no further step" "runs nothing else" "nothing else runs" "does nothing else"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1
