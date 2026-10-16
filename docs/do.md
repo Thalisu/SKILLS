@@ -4,8 +4,8 @@
 
 `do` matches a request to one **Playbook** and runs its steps: a **Ticket**'s path or issue
 reference builds that Ticket as the last step of the chain, a request in words runs outside it, and
-a request that fits no Playbook is sent to the door that owns it in one message. Six Playbooks
-exist and one run reads one of them: `ticket`, `setup`, `trivial`, `bug-fix`, `refactoring`, `integrate`. Every reply
+a request that fits no Playbook is sent to the door that owns it in one message. Seven Playbooks
+exist and one run reads one of them: `ticket`, `setup`, `trivial`, `bug-fix`, `refactoring`, `integrate`, `pr`. Every reply
 opens with the Playbook it matched, so a wrong match costs you one retyped request and nothing
 else.
 
@@ -41,6 +41,7 @@ You invoke this by typing `/do <request>`, and the agent won't reach for it on i
 | reshape code whose behaviour stays where it is | `/do <the reshape in words>`: refactor, rename, extract, inline, dedupe, move a module |
 | any of the four above, with the run's own questions answered without you | add `--auto`, before or after the request: `/do --auto <ticket>`, the line `tickets` prints when its own run had the flag. The request routes to the same Playbook with the flag as without it |
 | run the Setup ticket `tickets` cut for impeccable | `/do <the Setup ticket's path>`, never with `--auto`: its steps are yours, and the flag is refused in one line |
+| follow a pull request, or fix its CI | `/do <the pull request's URL>`, or words naming it with its number: `/do acompanhe esse PR <url>`, `/do fix the CI of PR 12`. A bare number with no word naming a pull request still builds a ticket |
 | build a whole spec | not this skill: [tickets](tickets.md) cuts the spec first, and `do` takes one ticket of the cut |
 | decide the plan, or a feature with no ticket | [discuss](discuss.md), or [spec](spec.md) when the conversation already holds the discussion |
 | understand code rather than change it | `/how` for the mechanism, `/why` for the rationale, `/teach` to follow it end to end |
@@ -86,11 +87,11 @@ skill named here is the same procedure, and [the top-level README](../README.md)
 
 A **Playbook** is one execution model, one file in the skill's `references/` folder, read only when
 the router matches it. The skill file itself holds the router, the rules that apply to every run,
-and the links, so a run loads one Playbook and never the other five
+and the links, so a run loads one Playbook and never the other six
 ([ADR 0008](adr/0008-do-is-a-router-and-only-its-ticket-playbook-is-inside-the-chain.md)). `ticket`
 builds the chain's Tickets and `setup` runs its Setup ticket, the one Ticket whose steps are yours
 ([ADR 0076](adr/0076-the-front-end-builders-setup-is-a-ticket-run-by-a-playbook-of-its-own.md));
-the other four exist for work that never entered the chain.
+the other five exist for work that never entered the chain.
 
 | Playbook | Matched by | What the run does |
 |---|---|---|
@@ -99,6 +100,7 @@ the other four exist for work that never entered the chain.
 | `bug-fix` | a defect in words: what happened, where, and the error or the wrong output | reproduces it on the surface it happens on, rules hypotheses out with runtime evidence, commits the failing reproduction before the smallest fix, and verifies on that same surface |
 | `refactoring` | a reshape in words whose behaviour stays where it is | pins the behaviour before any structure moves, then commits subtraction, reshape and cleanup in that order, so one revert undoes one slice |
 | `integrate` | a rebase of one branch onto another, or a merge of one branch into another, in words | checks the branches exist, that a merge target is not protected, that you stand on the branch written to and that your tree is clean, then runs the operation, resolves the mechanical hunks and takes the target side of the contested ones, leaving what they set aside in a Loss ledger keyed by the branch. No worktree, no Gate, no review, nothing landed or pushed: the reply names the unchecked tree as debt for you to test before the push |
+| `pr` | a pull request URL, or words naming a pull request with its number, a request to fix its CI included; never a bare number with no such word | follows that pull request: reads it back off the GitHub CLI as `#<n>`, its head into its base, on the reply's first lines, so a misread request shows before anything else |
 | `trivial` | a change no test could tell before from after | edits in place on your branch, runs the suite that covers the touched files, and lands one commit. No worktree, no review, one message |
 
 ## The door a request goes to
