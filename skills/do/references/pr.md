@@ -22,7 +22,7 @@ on its first line, so a request the router misread shows at once, before anythin
 pr:
 1. pull request: its URL or its number, taken from the request as written, the GitHub CLI logged in
 2. read-back: #<n>, its head into its base, off the GitHub CLI's answer
-3. watch: pr-watch.sh in the foreground, called again on every pending verdict until green
+3. watch: pr-watch.sh in the foreground, called again on every pending verdict until it settles
 4. reply: by the reply reference
 ```
 
@@ -73,18 +73,21 @@ tool's timeout at its 600000 ms maximum, since its two-minute default kills the 
 prints a verdict:
 
 ```
-bash <skill-dir>/scripts/pr-watch.sh <pr>
+bash <skill-dir>/scripts/pr-watch.sh <pr> [<since> <state>]
 ```
 
-`<pr>` is the URL or the number step 1 took, passed as it stands. The script blocks on the checks
-for about nine minutes at most, and its first line is its verdict. The run routes on that line
-alone and never on its own reading of `gh pr checks` or `gh pr view`, which it never runs to judge
+`<pr>` is the URL or the number step 1 took, passed as it stands, and the first call passes `<pr>`
+alone. The script blocks on the checks for about nine minutes at most, and its first line is its
+verdict. The run routes on that line alone and never on its own reading of `gh pr checks` or `gh pr view`, which it never runs to judge
 the checks: a display read mid-run can show green while a check is still running.
 
-- `verdict=pending`: the checks are still running. The run runs the same line again at once, in
-  the foreground, without ending its turn: never in the background, never after a sleep of its own,
-  and goes on calling it until it reads `verdict=green`. The developer has walked away, and a run
-  that ends its turn here stands still until they come back.
+- `verdict=pending`: the checks are still running. The run runs the line again at once, in the
+  foreground, without ending its turn: never in the background, never after a sleep of its own,
+  and goes on calling it until it reads `verdict=green` or another settled verdict. On that next
+  call it passes the verdict's `since=` and `state=` values as `<since>` and `<state>`, copied as
+  they stand: the run never reads, never compares and never computes them, since they carry the
+  script's 60-minute window of unchanged checks from one call to the next. The developer has
+  walked away, and a run that ends its turn here stands still until they come back.
 - `verdict=green`: every check passed and the pull request is mergeable. The run goes on to step 4,
   the Reply.
 - `verdict=awaiting-approval`: every check passed and only a required approval blocks the merge. The
@@ -94,6 +97,11 @@ the checks: a display read mid-run can show green while a check is still running
   taking `<head>` and `<base>` from the verdict's `head=` and `base=` lines, never from the
   read-back, so the stop names what the script printed. The run never rebases and never pushes: the
   head branch is its owner's to rewrite.
+- `verdict=stalled`: a check is still pending and no check changed state for about 60 minutes of
+  consecutive watches. The run stops with exactly one line,
+  `Yours: direction: <the pending checks>; re-run or unblock the runner, then /do the pull request again`,
+  where `<the pending checks>` is the verdict's `pending=` values, in the order printed, joined with
+  `, `. The stop is keyed on the script's verdict alone, never on a count of watches the run keeps.
 - Any other verdict word: the run stops with one line quoting that verdict as printed, and follows
   nothing.
 - A non-zero exit of the script: the run stops with one line quoting the script's stderr line, with

@@ -508,5 +508,41 @@ expect "a bullet of \`## What this run never does\` names the rebase" test -n "$
 carries_any "of the head branch" "head branch" "<head>" "its head" "the head"
 carries_any "on a conflict" "conflict"
 
+# The developer who walked away needs a run on a dead runner to stop, or it holds its turn for good,
+# and only the script can tell a stall from slow checks: a run that counts its own watches stops on
+# checks that are still moving. The window lives in the script's `since=` and `state=`, so the run
+# hands them back untouched, and the stop is read off the piece naming `verdict=stalled`, since the
+# conflict bullet carries a `Yours: direction:` line too.
+echo "# pr.md / ### 3. Watch: the run hands each pending verdict's since= and state= back to the next call, and stops on verdict=stalled with one Yours: direction: line naming the pending checks"
+blocks="$(blocks_of "$pr" "### 3. Watch" 2>/dev/null)"
+expect "the step's call line takes the window back, \`pr-watch.sh <pr> [<since> <state>]\`" \
+  grep -qF -- "bash <skill-dir>/scripts/pr-watch.sh <pr> [<since> <state>]" <<<"$blocks"
+flat="$(passage_of "$pr" "### 3. Watch" "##" 2>/dev/null | tr '\n' ' ' | tr -s ' ')"
+affirms "the first call passes \`<pr>\` alone" \
+  "first call" "first time" "first run" -- \
+  "<pr>\` alone" "<pr> alone" "only \`<pr>\`" "only <pr>" "alone"
+flat="$(piece_with "verdict=pending")"
+expect "a bullet or paragraph of the watch step names \`verdict=pending\`" test -n "$flat"
+carries "it passes the verdict's \`since=\` and \`state=\` back as \`<since>\` and \`<state>\`" \
+  "since=" "state=" "<since>" "<state>"
+carries_any "on the next call" "next call" "following call" "next run" "call after"
+carries_any "copied as they stand" \
+  "as they stand" "as it stands" "as printed" "verbatim" "copied" "unchanged" "untouched"
+carries_each "the run never reads, compares or computes them" \
+  "unread" "never reads" "does not read" "doesn't read" "never read" -- \
+  "never compared" "never compares" "does not compare" "doesn't compare" "not compared" "compares nothing" -- \
+  "or computed" "or computes" "nor computes" "nor computed" "never computes" "never computed" \
+  "does not compute" "doesn't compute" "not computed" "computes nothing"
+flat="$(piece_with "verdict=stalled")"
+expect "a bullet or paragraph of the watch step names \`verdict=stalled\`" test -n "$flat"
+carries_any "it stops the run" "stops" "stop" "ends the run" "the run ends"
+carries "on the line \`Yours: direction: <the pending checks>; re-run or unblock the runner, then /do the pull request again\`" \
+  "Yours: direction: <the pending checks>; re-run or unblock the runner, then /do the pull request again"
+carries "\`<the pending checks>\` are the verdict's \`pending=\` values" "pending="
+carries_any "in the order printed" "in the order" "in order" "in their order" "as printed" "order printed"
+carries_any "joined with \`, \`" \
+  "joined with \`, \`" "joined by \`, \`" "separated by \`, \`" "joined with a comma" "joined by a comma" \
+  "comma-separated" "separated by a comma" "comma and a space"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1
