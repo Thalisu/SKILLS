@@ -90,5 +90,28 @@ carries_each "the pr row leaves a bare number, as in \`12\` or \`#12\`, to the r
 flat="$(argument_of "$(sed -n "${ticket_at}p" <<<"$rows")")"
 carries_any "the ticket row below it still takes an issue number" "number"
 
+# A read-back built from the session's own wording repeats whatever it misread: only the pull request
+# gh opens names the number and the two branches the run will actually follow.
+echo "# pr.md / ## Steps and ### 2. Read-back: the Plan: line reads the pull request back off gh's answer, never off the request's wording"
+steps="$(blocks_of "$pr" "## Steps" 2>/dev/null)"
+flat="$(grep -E '^1\. ' <<<"$steps")"
+carries_any "step 1 of the checklist takes the pull request from the request" "pull request"
+flat="$(grep -E '^2\. ' <<<"$steps")"
+carries_any "step 2 of the checklist is the read-back, before the run acts on the pull request" \
+  "read-back" "read back" "Read-back"
+flat="$(passage_of "$pr" "### 2. Read-back" "##" 2>/dev/null | tr '\n' ' ' | tr -s ' ')"
+carries_each "the line names the pull request by its number, its head into its base" \
+  "#<n>" -- "<head>" -- "<base>" -- "into"
+before "the head comes before the base it goes into" "<head>" "<base>"
+carries_each "the line is read off the GitHub CLI's answer for that pull request" \
+  "gh pr view" -- "headRefName" -- "baseRefName"
+carries_any "never off the session's wording" \
+  "never off the session's wording" "never the session's wording" "never from the session's wording" \
+  "not off the session's wording" "not the session's wording" "not from the session's wording" \
+  "never off the request's wording" "never the request's wording" "never from the request's wording" \
+  "not off the request's wording" "not the request's wording" "not from the request's wording"
+carries_each "it is recorded as the Reply's Plan: line" \
+  "Plan:" -- "Reply" "reply"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1
