@@ -223,5 +223,19 @@ carries_any "and follows nothing: no watch, no worktree, no push, no file writte
   "no step after" "no later step" "no further step" "runs nothing else" "nothing else runs" "does nothing else" \
   "same stop" "the same way"
 
+# `gh auth status` passes on a CLI logged in to one host while `gh pr view` fails on a URL of another
+# host it holds no login for: read as unopenable, the stop sends the developer to check the number
+# and the URL instead of logging in. The step 1 paragraph already names `gh auth login`, so the
+# handover is read off the unopenable stop's own paragraph, not the passage.
+echo "# pr.md / ### 2. Read-back: a gh pr view failure caused by a CLI not logged in takes the gh auth login line, not the unopenable one"
+read_back="$(passage_of "$pr" "### 2. Read-back" "##" 2>/dev/null)"
+flat="$(awk 'BEGIN { RS = "" } index($0, "could not be opened") { gsub(/\n/, " "); print; exit }' <<<"$read_back" | tr -s ' ')"
+expect "the read-back has a paragraph saying the pull request could not be opened" test -n "$flat"
+carries_each "that paragraph hands a failure whose cause is the CLI not being logged in to the \`gh auth login\` line instead" \
+  "not logged in" "logged out" "no login" "not authenticated" "unauthenticated" "authentication" -- \
+  "gh auth login" "step 1" "### 1" "the CLI's stop" "the CLI stop" "the login stop" -- \
+  "instead" "rather than" "in place of" "wins" "takes precedence" "never this line" "not this line" \
+  "never the line" "not the line" "never as" "not as"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1

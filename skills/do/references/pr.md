@@ -47,7 +47,9 @@ When `gh pr view` fails, the GitHub CLI cannot open the pull request (a wrong nu
 repository the CLI cannot reach), and the run stops: the Reply opens with `Playbook: pr` on its
 first line, then one line saying the pull request could not be opened, with no `Yours:` line, as
 the router answers an issue reference its CLI cannot open. The run follows nothing: no watch, no
-worktree, no push, no file written.
+worktree, no push, no file written. A failure whose cause is the CLI itself, its error saying it is
+not logged in, as on a pull request's host the CLI holds no login for, takes the step 1 stop and its
+line naming `gh auth login` instead, never this line.
 
 When gh opens the pull request and its `state` reads `CLOSED` or `MERGED`, the run stops the same
 way: the Reply opens with `Playbook: pr` on its first line, then one line saying the pull request is
