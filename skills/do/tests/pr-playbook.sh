@@ -1249,5 +1249,29 @@ carries_each "never named under outward" \
   "never named under" "never names it under" "not named under" "never under \`outward\`" \
   "never names that push under" "never named as" "never goes under"
 
+# A run that ends on the push leaves the developer who walked away with a fix nobody watched, and one
+# that loops on red with no round cap pushes without end: the push sends the run back to the watch,
+# and a red verdict after a pushed round stops it. The second-round bullet is keyed on a pushed
+# round, so the first-round bullet, which says "has pushed no round yet", never answers for it.
+echo "# pr.md / ### 4. Fix the red checks and ### 3. Watch: after the push the run watches again with <pr> alone, and verdict=red after a pushed round stops it on one line naming the checks still red"
+step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+flat="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.|[[:space:]]+[a-z]\.' "$push_line" | tr '\n' ' ' | tr -s ' ')"
+expect "the push line sits in an item of the step" test -n "$flat"
+carries_each "when git accepts the push, the run goes back to step 3" \
+  "accept" -- "step 3" "### 3. Watch"
+carries_any "calling the watch with \`<pr>\` alone, no \`<since>\` \`<state>\`" \
+  "\`<pr>\` alone" "with \`<pr>\` alone" "\`<pr>\` and nothing else" "only \`<pr>\`" "\`<pr>\` only"
+flat="$(piece_with "after step 4 has pushed" "after step 4 pushed" "once step 4 has pushed" \
+  "has pushed a round" "pushed a round" "after a pushed round" "a round was pushed" "round has been pushed")"
+expect "a bullet or paragraph of the watch step takes a verdict after a pushed round" test -n "$flat"
+out="$flat"
+absent "it is not the first-round bullet" "pushed no round"
+carries "it names \`verdict=red\`" "verdict=red"
+carries_any "the run stops" "stops" "ends the run" "the run ends"
+carries_each "with one line quoting the names on the verdict's \`red=\` lines" \
+  "one line" "One line" "single line" -- "red=" -- "quot" "nam"
+carries_any "and follows nothing" "follows nothing" "nothing followed" "follows no" "never follows"
+carries_any "one round per run" "one round"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1

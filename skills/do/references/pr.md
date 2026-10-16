@@ -178,6 +178,8 @@ the checks: a display read mid-run can show green while a check is still running
   run goes on to step 5, the Reply, as on green: the wait is the developer's to clear, not a stop.
 - `verdict=red`, when this run has pushed no round yet: a check failed. The run goes on to step 4,
   Fix the red checks, carrying the verdict's `head=`, `sha=` and `red=` lines as they stand.
+- `verdict=red` after step 4 has pushed a round: the run stops with one line quoting the names on
+  the verdict's `red=` lines, and follows nothing: one round per run until a round cap exists.
 - `verdict=conflict`: the pull request conflicts with its base. The run stops with exactly one line,
   `Yours: direction: <head> conflicts with <base>; the owner of <head> rebases it onto <base>, then /do the pull request again`,
   taking `<head>` and `<base>` from the verdict's `head=` and `base=` lines, never from the
@@ -257,9 +259,11 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
 
    The push is fast-forward only: never `--force`, never a merge, never to another branch
    (ADR 0086). git's own refusal of a non-fast-forward is the guard. When git accepts it, run
-   `git worktree remove <run tree>`. When git refuses it, the run stops quoting git's line, keeping
-   `<run tree>` and naming it. When no check was picked, nothing is pushed: remove `<run tree>`,
-   then stop with one line per check quoting its fixer's return, nothing followed.
+   `git worktree remove <run tree>` and go back to step 3, calling the watch with `<pr>` alone: the
+   push changed the checks, so the stall window starts over. When git refuses it, the run stops
+   quoting git's line, keeping `<run tree>` and naming it. When no check was picked, nothing is
+   pushed: remove `<run tree>`, then stop with one line per check quoting its fixer's return,
+   nothing followed.
 
 6. The brief of check `<k>`, with `<id>` a short random id the session generates for that dispatch:
 
