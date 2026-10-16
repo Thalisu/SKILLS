@@ -87,4 +87,14 @@ same "a pull request that conflicts with its base: the watch returns verdict=con
   "verdict=conflict"$'\n'"head=feature/login"$'\n'"base=main"
 expect "a conflicted pull request is a verdict printed: the watch exits 0" [ "$rc" = 0 ]
 
+serve 42 DIRTY '[{"name":"build","bucket":"pass"},{"name":"test","bucket":"pending"}]'
+echo '{"mergeStateStatus":"DIRTY","mergeable":"CONFLICTING","headRefName":"feature/login","baseRefName":"main"}' >"$GH_FAKE/view"
+rc=0
+# A conflicted pull request's CI may never start: the 5-second kill under the 60-second bound fails a
+# watch that waits the pending check out before it reads the merge state.
+out="$(DO_PR_WATCH_SECONDS=60 timeout 5 bash "$script" 42 2>/dev/null)" || rc=$?
+same "a pull request that conflicts while a check is still pending: the watch returns verdict=conflict at once, without waiting the checks out" \
+  "verdict=conflict"$'\n'"head=feature/login"$'\n'"base=main"
+expect "a conflict found while a check is pending is a verdict printed: the watch exits 0" [ "$rc" = 0 ]
+
 exit "$((fails > 0))"

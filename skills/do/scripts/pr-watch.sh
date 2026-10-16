@@ -35,7 +35,7 @@ read_pull() { # $1 pr: prints "<merge state> <mergeable> <review decision> <head
     | join(" ")'
 }
 
-classify() { # $1 read_checks lines, $2 merge state, $3 mergeable (both empty while a check is pending): prints conflict|green|wait, or exits 3 with its stderr line
+classify() { # $1 read_checks lines, $2 merge state, $3 mergeable: prints conflict|green|wait, or exits 3 with its stderr line
   local bucket name
   if [ "$3" = conflicting ] || [ "$2" = dirty ]; then
     echo conflict
@@ -67,10 +67,8 @@ classify() { # $1 read_checks lines, $2 merge state, $3 mergeable (both empty wh
 read_once() { # $1 pr: sets checks, the pull fields and result (conflict|green|wait); exits 1 on a read failure, 3 as classify does
   merge="" mergeable="" review="" head="" base=""
   checks="$(read_checks "$1")" || exit 1
-  if ! grep -q '^pending ' <<<"$checks"; then
-    read -r merge mergeable review head base <<<"$(read_pull "$1")" || exit 1
-    [ -n "$merge" ] || exit 1
-  fi
+  read -r merge mergeable review head base <<<"$(read_pull "$1")"
+  [ -n "$merge" ] || exit 1
   result="$(classify "$checks" "$merge" "$mergeable")" || exit "$?"
 }
 
