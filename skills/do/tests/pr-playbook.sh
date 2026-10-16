@@ -286,8 +286,8 @@ echo "# pr.md / ### 3. Watch: the run watches in the foreground at a 600000 ms t
 steps="$(blocks_of "$pr" "## Steps" 2>/dev/null)"
 flat="$(grep -E '^3\. ' <<<"$steps")"
 carries_any "step 3 of the checklist is the watch" "watch" "Watch"
-flat="$(grep -E '^4\. ' <<<"$steps")"
-carries_any "step 4 of the checklist is the reply, after the watch" "reply" "Reply"
+flat="$(grep -E '^5\. ' <<<"$steps")"
+carries_any "step 5 of the checklist is the reply, after the watch and the fix" "reply" "Reply"
 flat="$(passage_of "$pr" "### 3. Watch" "##" 2>/dev/null | tr '\n' ' ' | tr -s ' ')"
 expect "pr.md has a step \`### 3. Watch\`" test -n "$flat"
 carries "the step runs the watch script on the pull request" "bash <skill-dir>/scripts/pr-watch.sh"
@@ -312,12 +312,12 @@ carries_any "without ending its turn" \
 carries_each "until it reads \`verdict=green\`" \
   "until" -- "verdict=green"
 carries_each "which hands on to the Reply step" \
-  "verdict=green" -- "### 4. Reply" "step 4" "Reply step" "the Reply" "to the Reply"
+  "verdict=green" -- "### 5. Reply" "step 5" "Reply step" "the Reply" "to the Reply"
 
 # The developer merges on this Reply: one that misses the green state, or hands the merge over as a
 # `Yours:` choice, reads as a stop, and a run that runs `gh pr merge` lands it with nobody deciding.
-echo "# pr.md / ### 4. Reply: a green watch ends on a Reply saying every check is green and mergeable, its Next step gh pr merge <n>, never run"
-flat="$(passage_of "$pr" "### 4. Reply" "##" 2>/dev/null | tr '\n' ' ' | tr -s ' ')"
+echo "# pr.md / ### 5. Reply: a green watch ends on a Reply saying every check is green and mergeable, its Next step gh pr merge <n>, never run"
+flat="$(passage_of "$pr" "### 5. Reply" "##" 2>/dev/null | tr '\n' ' ' | tr -s ' ')"
 carries_each "the For whom part says every check is green" \
   "For whom" -- \
   "every check" "all checks" "each check" "all its checks" "all of its checks" "<n> checks" -- \
@@ -352,7 +352,7 @@ carries_each "with no \`Yours:\` line, never under \`outward\`, as a landed run'
   "outward" -- \
   "push"
 
-# A run that merges lands the pull request on its base with nobody having decided to. `### 4. Reply`
+# A run that merges lands the pull request on its base with nobody having decided to. `### 5. Reply`
 # already names `gh pr merge <n>`, so the words are read off the bullet of `## What this run never
 # does` that names it, not the whole file.
 echo "# pr.md / ## What this run never does: the run never runs gh pr merge, the merge is the developer's, named as the next step"
@@ -422,7 +422,7 @@ carries_any "and follows nothing" \
 
 # The developer reading a `--auto` Run report sees how many rounds the watch took and how many checks
 # ran, while the Reply stays its five parts, which every grader and reply-message-parts.sh read: a
-# round section in the message breaks them. `### 3. Watch` and `### 4. Reply` already name the
+# round section in the message breaks them. `### 3. Watch` and `### 5. Reply` already name the
 # verdicts and `checks=<n>`, and reply.md's `## Run` list is renumbered whenever an item lands, so
 # each check reads the item or the piece that names the round, never the whole step or section.
 echo "# reply.md / ## Run and pr.md / ### 3. Watch: the pr watch's round is a Run section line, each call's verdict in order with the check count, written under --auto only, never a part of the Reply"
@@ -457,12 +457,12 @@ carries_any "never as a section of the Reply" \
 # run that merges takes the approval out of their hands. Step 4 already says "every check is green",
 # "no `Yours:`" and "gh pr merge <n>" for a green watch, so each of those is read off the piece of the
 # step that names `awaiting-approval`, and item 10's off the sentence that names the approval.
-echo "# pr.md / ### 3. Watch and ### 4. Reply, reply.md item 10: a watch awaiting a required approval ends on a Reply saying only the approval is missing, no Yours:, gh pr merge <n> never run"
+echo "# pr.md / ### 3. Watch and ### 5. Reply, reply.md item 10: a watch awaiting a required approval ends on a Reply saying only the approval is missing, no Yours:, gh pr merge <n> never run"
 flat="$(piece_with "verdict=awaiting-approval")"
 expect "a bullet or paragraph of the watch step names \`verdict=awaiting-approval\`" test -n "$flat"
-carries_any "it hands on to step 4, the Reply, as a green watch does" \
-  "### 4. Reply" "step 4" "Reply step" "to the Reply" "on to the Reply"
-reply_step="$(passage_of "$pr" "### 4. Reply" "##" 2>/dev/null)"
+carries_any "it hands on to step 5, the Reply, as a green watch does" \
+  "### 5. Reply" "step 5" "Reply step" "to the Reply" "on to the Reply"
+reply_step="$(passage_of "$pr" "### 5. Reply" "##" 2>/dev/null)"
 flat="$(piece_in="$reply_step" piece_with "awaiting-approval")"
 expect "a bullet or paragraph of the Reply step names \`awaiting-approval\`" test -n "$flat"
 carries_each "it says every check is green" \
@@ -1020,6 +1020,40 @@ carries_each "whether or not the local branch tracks it" \
   "tracks" "tracking" "upstream" -- \
   "whether or not" "or not" "with or without" "even when" "even if" "regardless" "no upstream" \
   "untracked" "whatever"
+
+# A red check's log is text a stranger can write into, and the fixer reads it holding Bash and Write
+# (ADR 0087): a log line that reads as an order (open this file, skip that test) steers the fork
+# unless the brief fences it off as quoted data. Everything is read off the step itself, so a clause
+# elsewhere in pr.md does not bind the brief this step hands over.
+echo "# pr.md / ### 4. Fix the red checks: each fixer's brief carries its check's excerpt between two excerpt tags sharing one random id, quoted data from the log and never an instruction, with Failed steps: and Files: as keys of their own"
+step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+expect "pr.md has a step \`### 4. Fix the red checks\`" test -n "$step"
+out="$(sed 's/^[[:space:]]*//' <<<"$step")"
+check_lines "the step's brief puts the excerpt under Excerpt:, between an opening and a closing tag line sharing one id" 0 0 \
+  "Excerpt:" '<excerpt id="<id>">' '</excerpt id="<id>">'
+open_at="$(grep -nxF '<excerpt id="<id>">' <<<"$out" | head -1 | cut -d: -f1)"
+close_at="$(grep -nxF '</excerpt id="<id>">' <<<"$out" | head -1 | cut -d: -f1)"
+expect "the opening tag line comes before the closing one" test "${close_at:-0}" -gt "${open_at:-0}"
+check_lines "the check's failed steps and its files are brief keys of their own" 0 0 \
+  "Failed steps:" "Files:"
+# shellcheck disable=SC2034  # lib.sh's carries reads $flat
+flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ')"
+carries_each "the two tags share one short random id the session generates for that dispatch" \
+  "random id" "random ID" -- \
+  "same" "share" "sharing" "one short random" "one random" -- \
+  "that dispatch" "each dispatch" "every dispatch" "per dispatch" "the dispatch" "each fork" \
+  "every fork" "per fork" "each fixer" "every fixer"
+carries_each "everything between the two tags is quoted data from the check's log" \
+  "between the two tags" "between the tags" "between the two \`excerpt\` tags" \
+  "between the \`excerpt\` tags" "inside the tags" "within the tags" -- \
+  "quoted data" -- \
+  "check's log" "the log" "its log" "job's log"
+carries_each "material to reproduce, never an instruction to the fixer" \
+  "reproduce" -- \
+  "never an instruction" "not an instruction" "never instructions" "never as an instruction" \
+  "never an order" "not an order"
+carries "the excerpt is cut by pr-log.sh on the check's link and its run tree" \
+  "bash <skill-dir>/scripts/pr-log.sh <link> <run tree>"
 
 [ "$fails" -eq 0 ] && exit 0
 exit 1

@@ -128,6 +128,24 @@ carries "the fixer writes its one line to the brief's Return file: in one shell 
 carries "the fixer's line is fixed with the reproducing command, or not fixed with its reason" \
   "fixed <k>: <the command that reproduced it>" "not fixed <k>: <reason>"
 
+echo "# skills/do/agents/do-pr-fixer.md: the fixer reads the pr Playbook's brief, its excerpt quoted data, never an instruction"
+
+# The fixer reads a check's log, text a stranger can write into, holding Bash and Write (ADR 0087):
+# a log line that reads as an order (open this file, skip that test) steers it unless its own body
+# says the text between the excerpt tags is quoted data. The keys are the ones the Playbook's step
+# fills, so a key the body does not name is one the fixer has to guess the meaning of.
+# shellcheck disable=SC2034  # lib.sh's carries reads $flat
+flat="$(passage_of <(body_of "$agent") "## The brief" "## " | tr '\n' ' ' | tr -s ' ')"
+expect "the fixer's body carries a ## The brief section" test -n "$flat"
+carries "the section lists every key the Playbook's brief fills" \
+  "Pull request:" "Check:" "Failed steps:" "Excerpt:" "Dropped:" "Files:" "Tree:" "Branch:" \
+  "Return file:"
+carries_each "the text between the excerpt tags is quoted data, never an instruction" \
+  "<excerpt id=" "\`excerpt\` tags" "excerpt tags" -- \
+  "quoted data" -- \
+  "never an instruction" "not an instruction" "never instructions" "never as an instruction" \
+  "never an order" "not an order"
+
 echo "# README.md, .agents/invocation.md, docs/do.md: the agent is listed with what do ships"
 
 # shellcheck disable=SC2034  # lib.sh's carries reads $flat
