@@ -56,8 +56,15 @@ anything up: as a local branch (`git rev-parse --verify --quiet refs/heads/<bran
 branch on the remote (`git ls-remote --exit-code --heads origin <branch>`). A head or a base that
 does not exist, neither one nor the other, stops the run: the Reply opens with `Playbook: pr` on
 its first line, then one line naming the branch that does not exist, so a mistyped name shows as
-the name, never as the GitHub CLI's raw error or a pull request into the wrong base. The run looks nothing up and opens nothing: no lookup by the pair, no
-`gh pr create`.
+the name, never as the GitHub CLI's raw error or a pull request into the wrong base. The run looks
+nothing up and opens nothing: no lookup by the pair, no `gh pr create`.
+
+When both exist, after the existence check and before any lookup, the run reads the commits the
+head carries that the base lacks, with `git rev-list <base>..<head>`, reading each branch where the
+existence check found it. A head with no commits the base lacks, as one already merged into it, stops the run: the
+Reply opens with `Playbook: pr` on its first line, then one line saying there is nothing to open
+from the head into the base, rather than the GitHub CLI's error or an empty pull request. The run
+looks nothing up and opens nothing: no lookup by the pair, no `gh pr create`.
 
 Before it reads the pull request, the run asks the GitHub CLI whether it is logged in, with
 `gh auth status`. When that check fails, the run stops: the Reply opens with `Playbook: pr` on its

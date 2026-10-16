@@ -858,5 +858,41 @@ carries_any "and opening nothing, no \`gh pr create\`" \
   "without \`gh pr create\`" "not \`gh pr create\`" "does not run \`gh pr create\`" "opens nothing" \
   "nothing is opened" "never opens" "does not open" "opens no "
 
+# A developer whose head was already merged into the base gets the GitHub CLI's error read as a
+# failure, or an empty pull request opened for the pair, when the run opens one without reading the
+# commits between them. The create paragraph already says "commits between base and head" and the
+# existence paragraph "stops the run" and "one line", so the stop is read off the piece naming an
+# empty range or nothing to open, phrasings neither of those carries.
+echo "# pr.md / ### 1. Pull request: a branch pair whose head carries no commit its base lacks stops on one line saying there is nothing to open, after the existence check, nothing looked up or opened"
+empty_range_keys=("nothing to open" "Nothing to open" "no commits" "no commit" "empty range"
+  "range is empty" "..<head>" "rev-list" "already merged")
+flat="$(piece_in="$pull_request" piece_with "${empty_range_keys[@]}")"
+expect "a bullet or paragraph of ### 1. Pull request takes a pair whose head has no commit the base lacks" test -n "$flat"
+carries_any "the range read is the commits the head carries that the base lacks" \
+  "<base>..<head>" "base..head" "rev-list" "the base lacks" "base does not have" "base doesn't have" \
+  "not in the base" "not yet in the base" "not already in the base" "missing from the base"
+carries_each "an empty range ends the run" \
+  "no commits" "no commit" "empty" "nothing to open" -- \
+  "stops" "stop" "ends the run" "the run ends"
+carries_each "on one line saying there is nothing to open" \
+  "one line" "One line" "single line" "one message" "a single message" -- \
+  "nothing to open" "Nothing to open"
+carries_any "the range is read once both branches exist, after the existence check" \
+  "once both exist" "once both branches exist" "once the head and the base exist" \
+  "once the head and base exist" "once both are found" "once both were found" "after the existence" \
+  "after that check" "after the check that" "after checking" "after it checks" "after both exist" \
+  "With both branches existing" "with both branches existing" "both exist, the run" \
+  "When both exist" "when both exist"
+carries_any "ahead of the lookup by the pair, nothing looked up" \
+  "before the lookup" "before it looks" "before looking" "before the run looks" "before any lookup" \
+  "before \`gh pr list\`" "ahead of the lookup" "ahead of \`gh pr list\`" "no \`gh pr list\`" \
+  "never runs \`gh pr list\`" "never \`gh pr list\`" "nor \`gh pr list\`" "without \`gh pr list\`" \
+  "not \`gh pr list\`" "does not run \`gh pr list\`" "looks nothing up" "looks up nothing" \
+  "nothing is looked up" "no lookup"
+carries_any "and opening nothing, no \`gh pr create\`" \
+  "no \`gh pr create\`" "never runs \`gh pr create\`" "never \`gh pr create\`" "nor \`gh pr create\`" \
+  "without \`gh pr create\`" "not \`gh pr create\`" "does not run \`gh pr create\`" "opens nothing" \
+  "nothing is opened" "never opens" "does not open" "opens no "
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1
