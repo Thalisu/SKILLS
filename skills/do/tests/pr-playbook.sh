@@ -816,5 +816,47 @@ carries_any "and opening nothing, no \`gh pr create\`" \
   "without \`gh pr create\`" "not \`gh pr create\`" "does not run \`gh pr create\`" "opens nothing" \
   "nothing is opened" "never opens" "does not open" "opens no "
 
+# A developer who named a base the remote does not carry gets a failed create, or a pull request into
+# the wrong base, when the run checks only the head. The existence paragraph already says "both
+# branches named" (of the request, not of the check), "local", "remote" and "the branch that does
+# not exist" for the head, so the base is read off phrasings that put it among the branches checked
+# and off a stop worded for any branch of the pair, never off "both branches" or "branch that does
+# not exist" bare.
+echo "# pr.md / ### 1. Pull request: a branch pair whose base does not exist, neither locally nor on the remote, stops on Playbook: pr and one line naming that branch, nothing looked up or opened"
+flat="$(piece_in="$pull_request" piece_with "${missing_branch_keys[@]}")"
+expect "a bullet or paragraph of ### 1. Pull request takes a branch of the pair that does not exist" test -n "$flat"
+carries_any "the base is among the branches checked" \
+  "<base>" "head and the base" "head and base" "head or base" "head or the base" "head or a base" \
+  "base and the head" "base and head" "base or head" "base or the head" "base exists" \
+  "the base exist" "either branch" "Either branch" "each branch" "Each branch" "both branches exist" \
+  "both branches of the pair exist" "each of the two" "either of the two"
+carries_each "it exists when it is a local branch or a branch on the remote" \
+  "local" -- "remote" "origin"
+carries_any "a base that does not exist stops the run" \
+  "A base that does not exist" "a base that does not exist" "A base that doesn't exist" \
+  "the base does not exist" "base that does not exist" "A branch that does not exist" \
+  "a branch that does not exist" "A head or base that does not exist" \
+  "A head or a base that does not exist" "head or base that does not exist" \
+  "head or the base that does not exist" "Either branch that does not exist" \
+  "either branch does not exist" "either one does not exist" "Either one that does not exist" \
+  "a branch of the pair that does not exist" "A branch of the pair that does not exist"
+carries_any "it ends the run" "stops" "stop" "ends the run" "the run ends"
+carries "the Reply names the pr Playbook" "Playbook: pr"
+carries_any "on its first line" "first line" "opens with" "opens on"
+carries_each "then one line naming that branch" \
+  "one line" "One line" "single line" -- \
+  "naming" "names" "that names" "quoting" "quotes" -- \
+  "<base>" "the branch" "that branch" "the missing branch" "branch name" "its name" "the name"
+carries_any "the check runs ahead of the lookup by the pair, nothing looked up" \
+  "before the lookup" "before it looks" "before looking" "before the run looks" "before any lookup" \
+  "before \`gh pr list\`" "ahead of the lookup" "ahead of \`gh pr list\`" "no \`gh pr list\`" \
+  "never runs \`gh pr list\`" "never \`gh pr list\`" "nor \`gh pr list\`" "without \`gh pr list\`" \
+  "not \`gh pr list\`" "does not run \`gh pr list\`" "looks nothing up" "looks up nothing" \
+  "nothing is looked up" "no lookup"
+carries_any "and opening nothing, no \`gh pr create\`" \
+  "no \`gh pr create\`" "never runs \`gh pr create\`" "never \`gh pr create\`" "nor \`gh pr create\`" \
+  "without \`gh pr create\`" "not \`gh pr create\`" "does not run \`gh pr create\`" "opens nothing" \
+  "nothing is opened" "never opens" "does not open" "opens no "
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1
