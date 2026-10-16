@@ -80,4 +80,11 @@ out="$(DO_PR_WATCH_SECONDS=60 timeout 5 bash "$script" 42 2>/dev/null)" || rc=$?
 check_lines "a pending check that settles green inside the bound: the watch returns verdict=green with its check count at once, without waiting the bound out" 0 "$rc" \
   "verdict=green" "checks=2"
 
+serve 42 DIRTY '[{"name":"build","bucket":"pass"},{"name":"test","bucket":"pass"}]'
+echo '{"mergeStateStatus":"DIRTY","mergeable":"CONFLICTING","headRefName":"feature/login","baseRefName":"main"}' >"$GH_FAKE/view"
+run 42
+same "a pull request that conflicts with its base: the watch returns verdict=conflict, naming its head and base branches" \
+  "verdict=conflict"$'\n'"head=feature/login"$'\n'"base=main"
+expect "a conflicted pull request is a verdict printed: the watch exits 0" [ "$rc" = 0 ]
+
 exit "$((fails > 0))"

@@ -5,7 +5,8 @@
 #
 #   pr-watch.sh <pr>        <pr> a pull request number or URL, passed to gh as it stands
 #
-# Prints key=value lines, verdict first: verdict=green, checks=<n> | verdict=pending. Later
+# Prints key=value lines, verdict first: verdict=green, checks=<n> | verdict=pending |
+# verdict=conflict, head=<head branch>, base=<base branch>. Later
 # verdict words and keys append; a reader ignores keys it does not know.
 # Exit codes: 0 a verdict printed · 1 gh missing or unable to read · 2 usage · 3 a settled state no
 # verdict word covers yet. Nothing on stdout for 1, 2 or 3.
@@ -26,12 +27,20 @@ read_checks() { # $1 pr: prints one "<bucket> <name>" line per check; 1 on a rea
   gh pr checks "$1" --json name,bucket --jq '.[] | "\(.bucket) \(.name)"'
 }
 
-read_merge_state() { # $1 pr: prints the lowercased mergeStateStatus; 1 on a read failure
-  gh pr view "$1" --json mergeStateStatus --jq '.mergeStateStatus | ascii_downcase'
+read_pull() { # $1 pr: prints "<merge state> <mergeable> <review decision> <head> <base>", states lowercased, an absent or empty field as none; 1 on a read failure
+  gh pr view "$1" --json mergeStateStatus,mergeable,reviewDecision,headRefName,baseRefName --jq '
+    def field: if . == null or . == "" then "none" else . end;
+    [(.mergeStateStatus | field | ascii_downcase), (.mergeable | field | ascii_downcase),
+      (.reviewDecision | field | ascii_downcase), (.headRefName | field), (.baseRefName | field)]
+    | join(" ")'
 }
 
-classify() { # $1 read_checks lines, $2 merge state or empty: prints green|wait, or exits 3 with its stderr line
+classify() { # $1 read_checks lines, $2 merge state, $3 mergeable (both empty while a check is pending): prints conflict|green|wait, or exits 3 with its stderr line
   local bucket name
+  if [ "$3" = conflicting ] || [ "$2" = dirty ]; then
+    echo conflict
+    return
+  fi
   if grep -q '^pending ' <<<"$1"; then
     echo wait
     return
@@ -55,13 +64,14 @@ classify() { # $1 read_checks lines, $2 merge state or empty: prints green|wait,
   esac
 }
 
-read_once() { # $1 pr: sets checks and result (green|wait); exits 1 on a read failure, 3 as classify does
-  state=""
+read_once() { # $1 pr: sets checks, the pull fields and result (conflict|green|wait); exits 1 on a read failure, 3 as classify does
+  merge="" mergeable="" review="" head="" base=""
   checks="$(read_checks "$1")" || exit 1
   if ! grep -q '^pending ' <<<"$checks"; then
-    state="$(read_merge_state "$1")" || exit 1
+    read -r merge mergeable review head base <<<"$(read_pull "$1")" || exit 1
+    [ -n "$merge" ] || exit 1
   fi
-  result="$(classify "$checks" "$state")" || exit "$?"
+  result="$(classify "$checks" "$merge" "$mergeable")" || exit "$?"
 }
 
 main() {
@@ -71,7 +81,7 @@ main() {
     echo "pr-watch.sh: gh not found" >&2
     exit 1
   }
-  local checks state result count remaining
+  local checks merge mergeable review head base result count remaining
   read_once "$1"
   while [ "$result" = wait ]; do
     remaining=$((bound - SECONDS))
@@ -82,6 +92,12 @@ main() {
     sleep "$((interval < remaining ? interval : remaining))"
     read_once "$1"
   done
+  if [ "$result" = conflict ]; then
+    echo "verdict=conflict"
+    echo "head=$head"
+    echo "base=$base"
+    return 0
+  fi
   count=0
   [ -n "$checks" ] && count="$(grep -c '' <<<"$checks")"
   echo "verdict=green"
