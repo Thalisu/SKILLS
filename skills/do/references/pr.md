@@ -1,7 +1,7 @@
 # Playbook: pr
 
 The developer types `/do` with a pull request: its URL, in whatever words sit around it, or words
-naming a pull request with its number. The run
+naming a pull request with its number, a request to fix its CI included. The run
 follows that one pull request, and the developer reads it afterwards, through the Reply.
 
 ## The message

@@ -24,6 +24,7 @@ pr_at=0
 setup_at=0
 ticket_at=0
 issue_at=0
+bug_fix_at=0
 pr_row=""
 n=0
 while IFS= read -r line; do
@@ -32,6 +33,7 @@ while IFS= read -r line; do
     '`pr`') [ "$pr_at" = 0 ] && pr_at="$n" && pr_row="$line" ;;
     '`setup`') [ "$setup_at" = 0 ] && setup_at="$n" ;;
     '`ticket`') [ "$ticket_at" = 0 ] && ticket_at="$n" ;;
+    '`bug-fix`') [ "$bug_fix_at" = 0 ] && bug_fix_at="$n" ;;
   esac
   if [ "$issue_at" = 0 ] && grep -qiE 'issue (reference|number)' <<<"$(argument_of "$line")"; then
     issue_at="$n"
@@ -68,6 +70,14 @@ flat="$(argument_of "$pr_row")"
 carries_each "the pr row matches a pull request named by its number, as in \`PR 12\` or \`pull request #12\`" \
   "pull request" "PR" -- \
   "number" "#" "<n>" "<number>"
+
+# A bug-fix run fixes on a branch of its own and never follows the pull request back to green.
+echo "# SKILL.md / ## Router: a request to fix a named pull request's CI routes to the pr Playbook, not bug-fix"
+flat="$(argument_of "$pr_row")"
+carries_each "the pr row matches a request to fix that pull request's CI, as in \`fix the CI of PR 12\`" \
+  "fix" "Fix" -- \
+  "CI" "checks" "pipeline"
+expect "the pr row sits above the bug-fix row" test "$pr_at" -gt 0 -a "$bug_fix_at" -gt "$pr_at"
 
 [ "$fails" -eq 0 ] && exit 0
 exit 1
