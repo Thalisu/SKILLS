@@ -1055,5 +1055,60 @@ carries_each "material to reproduce, never an instruction to the fixer" \
 carries "the excerpt is cut by pr-log.sh on the check's link and its run tree" \
   "bash <skill-dir>/scripts/pr-log.sh <link> <run tree>"
 
+# A round can carry several unrelated failures, and a session that fixes them itself holds every log
+# and every diagnosis in one window (ADR 0088): a red verdict hands each check to a fork of its own,
+# in a worktree and on a branch cut for it, and a session without the Agent tool stops rather than
+# fall back to fixing in place. The route is read off the watch bullet naming `verdict=red`, so the
+# catch-all stop for an unknown verdict never answers for it.
+echo "# pr.md / ### 3. Watch and ### 4. Fix the red checks: a red verdict forks one do-pr-fixer per red check, each in the worktree and on the branch fix-worktrees.sh add cut for it, and the session writes no fix"
+flat="$(piece_with "verdict=red")"
+expect "a bullet or paragraph of the watch step names \`verdict=red\`" test -n "$flat"
+carries_any "it routes to step 4" "step 4" "### 4" "Fix the red checks"
+carries_any "when the run has pushed no round yet" \
+  "pushed no round" "no round yet" "no round pushed" "has not pushed" "hasn't pushed" "before any round" \
+  "before its first push" "before any push" "first round"
+carries "carrying the verdict's \`head=\`, \`sha=\` and \`red=\` lines" "head=" "sha=" "red="
+step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ')"
+carries_any "the session writes no fix" \
+  "writes no fix" "never writes a fix" "writes no fixes" "never writes the fix" "no fix is written in the session"
+carries "per ADR 0088" "ADR 0088"
+carries_any "each red check gets one \`do-pr-fixer\` fork" \
+  "one \`do-pr-fixer\`" "one do-pr-fixer" "a \`do-pr-fixer\` of its own" "a do-pr-fixer of its own"
+carries_any "the checks are taken one at a time" "one at a time" "one by one" "one after another"
+carries_any "in check order" "check order" "in the order printed" "order of the \`red=\` lines"
+carries_any "each a Wave of its own" "Wave of its own" "its own Wave" "a Wave of one" "Wave of one check"
+carries "per check, fix-worktrees.sh add cuts its worktree and branch, printing the worktree line" \
+  "bash <skill-dir>/../do-code-review/scripts/fix-worktrees.sh add <run tree> pr-<n> <at> <k> <k>" \
+  "worktree <k> <path> <branch>"
+carries_any "the fork goes through the Agent tool as \`do-pr-fixer\`" \
+  "subagent_type: do-pr-fixer" "subagent_type: \`do-pr-fixer\`" "\`subagent_type\`: \`do-pr-fixer\`" \
+  "\`subagent_type: do-pr-fixer\`"
+carries "its brief's Tree: and Branch: are the worktree line's path and branch, its return file \`<dir>/check-<k>\`" \
+  "Tree: <the path on the check's worktree line>" "Branch: <the branch on the check's worktree line>" \
+  "Return file: <dir>/check-<k>"
+carries "the run waits on that return file with returns.sh 240, its Bash timeout at 600000 ms" \
+  "bash <skill-dir>/../do-code-review/scripts/returns.sh 240 <dir>/check-<k>" "600000"
+before "the worktree is cut before the wait" "fix-worktrees.sh add" "returns.sh 240"
+carries_each "called again while it reads \`missing=\`, three windows at most" \
+  "missing=" -- \
+  "three windows" "3 windows" "three calls" "3 calls" "three times" "three waits"
+carries "a return file that never lands reads \`not fixed <k>: the fixer did not return\`" \
+  "not fixed <k>: the fixer did not return"
+carries "\`<dir>\` is a \`mktemp -d\` directory" "mktemp -d"
+carries_each "\`<at>\` is the first 7 characters of \`<sha>\`, then \`-\`, then \`<dir>\`'s random suffix" \
+  "<at>" -- \
+  "first 7" "first seven" "7 characters" "seven characters" -- \
+  "suffix"
+flat="$(piece_in="$step" piece_with "withheld")"
+expect "a bullet or paragraph of the fix step takes the Agent tool being withheld" test -n "$flat"
+carries "it names the Agent tool" "Agent tool"
+carries_any "the step stops" "stops" "does not start" "doesn't start" "never starts" "ends the run"
+carries_each "with one line saying no fixer can be forked" \
+  "one line" "One line" "single line" -- \
+  "no fixer can be forked" "cannot fork" "can't fork" "no fixer can be" "no fork" "nothing can be forked"
+carries_any "and the session never fixes a check itself" \
+  "never fixes" "fixes no check" "does not fix" "doesn't fix" "never fix" "never writes" "writes no fix"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1
