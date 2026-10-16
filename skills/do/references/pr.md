@@ -66,6 +66,14 @@ Reply opens with `Playbook: pr` on its first line, then one line saying there is
 from the head into the base, rather than the GitHub CLI's error or an empty pull request. The run
 looks nothing up and opens nothing: no lookup by the pair, no `gh pr create`.
 
+With something to open, after the nothing-to-open check and before any lookup, the run asks the
+remote itself whether it holds the head, with `git ls-remote --exit-code --heads origin <head>`. A
+head that exists locally and has no branch on the remote, one never published, stops the run:
+publishing a branch for the first time is a write outside the repository the request did not
+authorise, and a pull request against it would name a head nobody else can see. The run pushes
+nothing, no `git push`, and looks nothing up and opens nothing: no lookup by the pair, no
+`gh pr create`.
+
 Before it reads the pull request, the run asks the GitHub CLI whether it is logged in, with
 `gh auth status`. When that check fails, the run stops: the Reply opens with `Playbook: pr` on its
 first line, then one line saying the GitHub CLI is not logged in and naming `gh auth login`, with no

@@ -894,6 +894,50 @@ carries_any "and opening nothing, no \`gh pr create\`" \
   "without \`gh pr create\`" "not \`gh pr create\`" "does not run \`gh pr create\`" "opens nothing" \
   "nothing is opened" "never opens" "does not open" "opens no "
 
+# A developer whose head was never published finds it pushed to the shared remote without having
+# authorised it, or a pull request opened against a head nobody else can see, when the run takes a
+# local head as good enough. The existence paragraph already says `git ls-remote`, "local" and "a
+# branch on the remote", and the create paragraph "pushes nothing" and "already on the remote", so
+# the stop is read off the piece naming a head the remote does not have, phrasings neither carries.
+echo "# pr.md / ### 1. Pull request: a branch pair whose head exists locally with no branch on the remote stops the run, after the nothing-to-open check, nothing pushed, looked up or opened"
+unpublished_head_keys=("not on the remote" "no branch on the remote" "missing from the remote"
+  "absent from the remote" "never published" "unpublished" "not published" "not yet published"
+  "remote does not have" "remote doesn't have" "remote does not hold" "remote doesn't hold"
+  "remote lacks" "remote has no" "not pushed" "never pushed" "not yet pushed" "only locally"
+  "only as a local" "local only" "local-only")
+flat="$(piece_in="$pull_request" piece_with "${unpublished_head_keys[@]}")"
+expect "a bullet or paragraph of ### 1. Pull request takes a head the remote does not have" test -n "$flat"
+carries_each "a head that exists locally but is not on the remote" \
+  "head" -- \
+  "locally" "local branch" "local" -- \
+  "${unpublished_head_keys[@]}"
+carries_any "read off the remote itself" \
+  "ls-remote" "asks the remote" "asking the remote" "queries the remote" "querying the remote" \
+  "the remote itself" "the remote's own answer" "the remote answers" "what the remote holds"
+carries_any "it ends the run" "stops" "stop" "ends the run" "the run ends"
+carries_any "nothing pushed, no \`git push\`" \
+  "nothing pushed" "pushes nothing" "nothing is pushed" "no \`git push\`" "never runs \`git push\`" \
+  "never \`git push\`" "nor \`git push\`" "without \`git push\`" "not \`git push\`" \
+  "does not run \`git push\`" "never pushes" "does not push" "doesn't push" "no push"
+carries_any "the remote is asked after the nothing-to-open check" \
+  "after the nothing-to-open check" "after the nothing to open check" "after the range check" \
+  "after the empty-range check" "after the commit check" "after the commits check" \
+  "after the rev-list" "after \`git rev-list" "after reading the commits" "after it reads the commits" \
+  "after the run reads the commits" "once the range" "once the head carries" "once the head has commits" \
+  "With commits to open" "with commits to open" "When there is something to open" \
+  "when there is something to open" "once there is something to open" "With something to open" \
+  "with something to open"
+carries_any "ahead of the lookup by the pair, nothing looked up" \
+  "before the lookup" "before it looks" "before looking" "before the run looks" "before any lookup" \
+  "before \`gh pr list\`" "ahead of the lookup" "ahead of \`gh pr list\`" "no \`gh pr list\`" \
+  "never runs \`gh pr list\`" "never \`gh pr list\`" "nor \`gh pr list\`" "without \`gh pr list\`" \
+  "not \`gh pr list\`" "does not run \`gh pr list\`" "looks nothing up" "looks up nothing" \
+  "nothing is looked up" "no lookup"
+carries_any "and opening nothing, no \`gh pr create\`" \
+  "no \`gh pr create\`" "never runs \`gh pr create\`" "never \`gh pr create\`" "nor \`gh pr create\`" \
+  "without \`gh pr create\`" "not \`gh pr create\`" "does not run \`gh pr create\`" "opens nothing" \
+  "nothing is opened" "never opens" "does not open" "opens no "
+
 # A branch-pair run that stops on a branch that does not exist, or on a pair with nothing to open,
 # hands over no choice: unless reply.md's exception lists both beside the `pr` door's other stops,
 # the run writes a `Yours:` line under them and the developer reads a blocked run waiting on them.
