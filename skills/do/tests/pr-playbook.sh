@@ -1110,5 +1110,61 @@ carries_each "with one line saying no fixer can be forked" \
 carries_any "and the session never fixes a check itself" \
   "never fixes" "fixes no check" "does not fix" "doesn't fix" "never fix" "never writes" "writes no fix"
 
+# The developer may have the head checked out, dirty or on another branch: a round integrated in
+# their checkout moves their branch or mixes the run's commits with their work in progress. The
+# round is read off step 4 alone: `not fixed <k>:` already sits there, so the pick's trigger is
+# pinned with its opening backtick, and what follows the pick and the removal is read off the stretch
+# of the step from each command on, since step 3's sub-items already say "any other line stops the
+# run quoting it" in the same paragraph.
+echo "# pr.md / ### 4. Fix the red checks and ## What this run never does: the round is integrated in a detached worktree of the run's own cut at sha=, through fix-integrate.sh, and the developer's checkout is never committed in, checked out or moved"
+step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ')"
+whole="$flat"
+carries "the run tree is fetched and cut detached at the watched sha, under the main checkout's worktrees" \
+  "git fetch origin <head>" \
+  "git worktree add --detach <main checkout>/.claude/worktrees/pr-<n>-<at> <sha>"
+before "the run tree is cut before the excerpts are" "git worktree add --detach" "pr-log.sh"
+carries_each "detached because the developer may have the head checked out and git refuses a branch checked out twice" \
+  "detached" -- "developer" -- "twice" "checked out in two" "a second worktree" "already checked out" -- \
+  "refus" "won't" "will not"
+carries_each "nothing the run does moves the developer's head" \
+  "developer" -- \
+  "never moves" "moves nothing" "nothing the run does moves" "does not move" "doesn't move" "never move" \
+  "never touches" "leaves the developer's"
+carries_each "a refusal from git on either line stops the run quoting git's line" \
+  "refus" -- "either line" "either of" "both lines" "each line" "either command" -- \
+  "git's line" "git's own line" "git's error" "git's stderr" "line git printed" "git's message" "git's refusal"
+carries_any "a fixer's \`fixed <k>:\` return is what gets picked" "\`fixed <k>:" "\`fixed <k>\`"
+carries "fix-integrate.sh brings the fixer's branch onto the run tree, printing the picked line" \
+  "bash <skill-dir>/../do-code-review/scripts/fix-integrate.sh <run tree> <k>=<branch>" "picked <k> <sha>"
+before "the pick comes before the fixer's worktree is taken back" "fix-integrate.sh" "fix-worktrees.sh remove"
+flat=""
+[[ $whole == *fix-integrate.sh* ]] && flat="${whole#*fix-integrate.sh}" && flat="${flat%%fix-worktrees.sh remove*}"
+carries_each "past the pick, any other line from it stops the run quoting that line" \
+  "any other line" "Any other line" "other line" "anything else" -- "stops" -- "quoting" "quotes" "quoted"
+carries_each "any other return gets no pick and the check stays red this round" \
+  "any other return" "Any other return" "other return" "not fixed" -- \
+  "no pick" "not picked" "nothing is picked" "picks nothing" "nothing picked" "never picked" -- \
+  "stays red" "remains red" "still red" "left red" -- "this round" "the round"
+flat="$whole"
+carries "fix-worktrees.sh remove takes the fixer's worktree back" \
+  "bash <skill-dir>/../do-code-review/scripts/fix-worktrees.sh remove <run tree> <branch>"
+flat=""
+[[ $whole == *"fix-worktrees.sh remove"* ]] && flat="${whole#*fix-worktrees.sh remove}"
+carries "past the removal, its removed or kept line" "removed" "kept"
+carries_each "goes to the Reply's round lines as it stands" \
+  "round line" "round lines" "Round" -- "Reply" -- \
+  "as it stands" "as printed" "as they stand" "verbatim" "unchanged" "as it reads"
+never="$(passage_of "$pr" "## What this run never does" "##" 2>/dev/null)"
+flat="$(piece_in="$never" piece_with "developer's checkout" "developer's own checkout" \
+  "developer's working tree" "developer's work tree" "developer's tree" "checkout of the developer")"
+expect "a bullet of \`## What this run never does\` names the developer's checkout" test -n "$flat"
+carries_each "the run never commits in, checks out or moves anything in it" \
+  "commit" -- "check out" "checks out" "checking out" -- "move" "moving"
+flat="$(tr '\n' ' ' <<<"$never" | tr -s ' ')"
+carries_each "nor fixes a check in the session" \
+  "fix a check" "fixing a check" "fixes a check" "fix the check" "Fix a check" "Fixing a check" "a fix" -- \
+  "session"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1
