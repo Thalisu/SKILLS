@@ -84,6 +84,19 @@ for type in general-purpose do-pr-fixer e2e-test-author ""; do
     deny_in "$(agent_out "$type")"
 done
 
+echo "# skills/do/agents/do-pr-fixer.md: the fixer reproduces its check's failure before it edits anything"
+
+# A CI log only points at a failure (ADR 0087): a fix written from the log alone answers what the log
+# claims, and a commit for a failure nobody reproduced lands on a head others build on. The clauses
+# are read off the section itself, so one moved elsewhere in the body no longer binds this step.
+# shellcheck disable=SC2034  # lib.sh's carries reads $flat
+flat="$(passage_of <(body_of "$agent") "## Reproduce first" "## " | tr '\n' ' ' | tr -s ' ')"
+expect "the fixer's body carries a ## Reproduce first section" test -n "$flat"
+carries "the fixer runs the failing step's command under its Tree: before any edit" \
+  "failed step" "under your \`Tree:\`" "before any edit"
+carries "a failure the fixer cannot reproduce gets no edit and no commit, and its own return line" \
+  "no edit and no commit" "not reproduced <k>: <the command run> <what it showed instead>"
+
 echo "# README.md, .agents/invocation.md, docs/do.md: the agent is listed with what do ships"
 
 # shellcheck disable=SC2034  # lib.sh's carries reads $flat
