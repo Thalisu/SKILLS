@@ -770,7 +770,9 @@ Three writes outside the repository have a fixed place:
   `outward`, since a push is a write outside the repository the run never makes itself, except the
   close's `destroy` stop on a landed run: its push already sits on the Reply's Next step line, per
   the Next step section above, so the `Yours: destroy:` line names only the worktree and branch
-  choice, never the push.
+  choice, never the push. The `pr` round's push is the exception ADR 0086 authorises: the run makes
+  it itself, by fast-forward only, reports it on For whom's round lines, and it is never named
+  under `outward`.
 - **A write to a remote tracker.** The question a run puts before a write to a remote tracker, the
   claim's and the close's, carries the same line under `outward`, its choice the yes that makes
   every write the question lists or the no that makes none of them. Under `--auto` the question

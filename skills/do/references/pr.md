@@ -16,6 +16,9 @@ follows that one pull request, and the developer reads it afterwards, through th
 - Commit in, check out or move anything in the developer's checkout: the round is brought onto the
   head in a worktree of the run's own, cut detached at the commit the checks ran on, so the
   developer's branch, HEAD and uncommitted work read after the run as they did before it.
+- Push to any branch but the head, push with `--force`, or merge into the head: the round's one
+  push is `HEAD:refs/heads/<head>` by fast-forward only, and git's refusal of anything else stops
+  the run (ADR 0086).
 - Fix a check in the session: each red check is one `do-pr-fixer` fork (ADR 0088).
 
 ## The message
@@ -248,7 +251,17 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    The fork and the wait sit in one turn: the session never ends its turn while a fixer runs, as
    skills/do-code-review/references/fix.md warns.
 
-5. The brief of check `<k>`, with `<id>` a short random id the session generates for that dispatch:
+5. Push, when at least one check was picked:
+
+       git -C <run tree> push origin HEAD:refs/heads/<head>
+
+   The push is fast-forward only: never `--force`, never a merge, never to another branch
+   (ADR 0086). git's own refusal of a non-fast-forward is the guard. When git accepts it, run
+   `git worktree remove <run tree>`. When git refuses it, the run stops quoting git's line, keeping
+   `<run tree>` and naming it. When no check was picked, nothing is pushed: remove `<run tree>`,
+   then stop with one line per check quoting its fixer's return, nothing followed.
+
+6. The brief of check `<k>`, with `<id>` a short random id the session generates for that dispatch:
 
        Pull request: <the reference step 1 took> (#<n>, <head> into <base>)
        Check: <k> <the check's name>
@@ -271,7 +284,7 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    line can read like an order (ADR 0087).
 
 Done when every red check's fixer has returned or its three windows ran out, and each `fixed`
-return is picked onto `<run tree>`.
+return is picked onto `<run tree>`, and the round is pushed, or the run stopped.
 
 ### 5. Reply
 

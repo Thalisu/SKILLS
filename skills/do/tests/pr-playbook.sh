@@ -1166,5 +1166,88 @@ carries_each "nor fixes a check in the session" \
   "fix a check" "fixing a check" "fixes a check" "fix the check" "Fix a check" "Fixing a check" "a fix" -- \
   "session"
 
+# Others push to the head too, such as `dev`, and a forced push or a merge loses or rewrites their
+# commits: the round goes onto the head by fast-forward alone, and git refusing a non-fast-forward is
+# the guard (ADR 0086). The push item is read from its own marker line, top-level or a sub-item of
+# the per-check loop, to the next one, and the SKILL.md and reply.md guarantees off their one bullet,
+# so a clause elsewhere in either file does not count.
+echo "# pr.md / ### 4. Fix the red checks, ## What this run never does, SKILL.md / ## Non-negotiables, reply.md / **A push.**: the round is pushed to the head by fast-forward only, never --force, never a merge, never another branch, and it is the one push a run makes"
+push_line="git -C <run tree> push origin HEAD:refs/heads/<head>"
+step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ')"
+whole="$flat"
+carries "the step pushes the round with the exact push line" "$push_line"
+before "the push comes after the fix-integrate.sh pick" "fix-integrate.sh" "$push_line"
+out="$(grep -F "push origin" <<<"$step")"
+expect "the step has a line carrying \`push origin\`" test -n "$out"
+check_absent "the push line forces nothing: no --force, no -f, no + on the refspec" 0 0 \
+  "--force" " -f" "+HEAD" "+refs/"
+flat="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.|[[:space:]]+[a-z]\.' "$push_line" | tr '\n' ' ' | tr -s ' ')"
+expect "the push line sits in an item of the step" test -n "$flat"
+carries_any "the item runs when at least one check was picked" \
+  "at least one check" "at least one \`picked" "a check was picked" "any check was picked" \
+  "one check was picked" "something was picked" "at least one pick"
+carries_any "the push is fast-forward only" \
+  "fast-forward only" "only by fast-forward" "by fast-forward only" "fast-forwards only" \
+  "only a fast-forward" "only fast-forward"
+carries "never --force" "--force"
+carries_any "never a merge" \
+  "never a merge" "never as a merge" "not a merge" "no merge" "never merges" "never merged"
+carries_any "never to another branch" \
+  "never to another branch" "never to any other branch" "no other branch" "never another branch" \
+  "never to a branch" "any other branch" "never to any branch but"
+carries "per ADR 0086" "ADR 0086"
+carries_each "git's own refusal of a non-fast-forward is the guard" \
+  "refus" "reject" -- "non-fast-forward" "not a fast-forward" "not fast-forward" -- "guard"
+carries_each "when git refuses the push the run stops quoting git's line" \
+  "refus" "reject" -- "stops" -- \
+  "git's line" "git's own line" "git's error" "git's stderr" "line git printed" "git's message" "git's refusal"
+carries_each "keeping <run tree> and naming it" \
+  "<run tree>" -- "keep" "kept" "leaves" "left in place" -- "nam"
+flat=""
+[[ $whole == *fix-integrate.sh* ]] && flat="${whole#*fix-integrate.sh}"
+carries_each "when no check was picked nothing is pushed" \
+  "no check was picked" "no check is picked" "nothing was picked" "nothing is picked" "none was picked" \
+  "no pick" "picked nothing" -- \
+  "nothing is pushed" "pushes nothing" "no push" "never pushes" "nothing pushed" "is not pushed"
+carries_each "the run removes <run tree> and stops with one line per check quoting its fixer's return" \
+  "remove" -- "<run tree>" -- \
+  "one line per check" "a line per check" "one line for each check" "a line for each check" -- \
+  "quoting" "quotes" "quoted" -- "return"
+never="$(passage_of "$pr" "## What this run never does" "##" 2>/dev/null)"
+flat="$(piece_in="$never" piece_with "--force")"
+expect "a bullet of \`## What this run never does\` names --force" test -n "$flat"
+carries_any "a push with --force" "push" "Push"
+flat="$(piece_in="$never" piece_with "any branch but the head" "any branch but \`<head>\`" \
+  "another branch" "any other branch" "other than the head" "a branch other than")"
+expect "a bullet of \`## What this run never does\` names a branch other than the head" test -n "$flat"
+carries_any "a push to it" "push" "Push"
+flat="$(piece_in="$never" piece_with "merge into the head" "merge into \`<head>\`" "merge it into" \
+  "merge commit" "a merge into" "Merge into the head" "merging into the head" "merge onto the head")"
+expect "a bullet of \`## What this run never does\` names a merge into the head" test -n "$flat"
+flat="$(bullets_opening_on <(passage_of "$skill" "## Non-negotiables" "## ") \
+  "The run never lands and never fixes a Finding")"
+expect "SKILL.md's Non-negotiables carries the bullet on landing and fixing" test -n "$flat"
+carries_any "it names the \`pr\` Playbook's push" "\`pr\` Playbook" "pr Playbook"
+carries_any "as the one push a run makes" "one push" "only push"
+carries_each "its own fixers' commits onto its pull request's head branch" \
+  "fixer" -- "commit" -- "head branch" "pull request's head" "its head"
+carries_any "by fast-forward only" \
+  "fast-forward only" "only by fast-forward" "by fast-forward only" "fast-forwards only" "only a fast-forward"
+carries "never --force" "--force"
+carries_any "never a merge" \
+  "never a merge" "never as a merge" "not a merge" "no merge" "never merges" "never merged"
+carries_any "never to any other branch" \
+  "any other branch" "another branch" "no other branch" "never to a branch"
+carries "per ADR 0086" "0086"
+flat="$(bullets_opening_on <(passage_of "$reply" "## A refusal or a blocked run" "## ") "**A push.**")"
+expect "reply.md's refusal section carries the **A push.** bullet" test -n "$flat"
+carries_each "the \`pr\` round's push is the exception ADR 0086 authorises" \
+  "\`pr\`" -- "round" -- "ADR 0086" -- "authoris" "authoriz" "allows" "permits"
+carries_each "never named under outward" \
+  "outward" -- \
+  "never named under" "never names it under" "not named under" "never under \`outward\`" \
+  "never names that push under" "never named as" "never goes under"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1
