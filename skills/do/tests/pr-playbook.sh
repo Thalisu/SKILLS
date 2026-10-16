@@ -62,5 +62,12 @@ carries "the message names the pr Playbook" "Playbook: pr"
 carries_any "on its first line" \
   "first line" "First line" "opens with" "opens on" "opening line" "line one" "the reply opens"
 
+# The `ticket` row takes an issue number, so "PR 12" missing the pr row runs a Ticket on issue 12.
+echo "# SKILL.md / ## Router: words naming a pull request and its number, with no URL, route to the pr Playbook"
+flat="$(argument_of "$pr_row")"
+carries_each "the pr row matches a pull request named by its number, as in \`PR 12\` or \`pull request #12\`" \
+  "pull request" "PR" -- \
+  "number" "#" "<n>" "<number>"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1
