@@ -1,0 +1,97 @@
+name: pr-red-check-fixed-and-pushed-by-fast-forward
+tags: [pr, watch, fix]
+runs: 2
+max_turns: 60
+timeout_seconds: 1800
+allowed_tools: [Bash, Read, Edit, Write, Agent]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # A pull request whose `test` check failed on a planted defect: `total` starts its sum at 1, so
+    # `bash tests/total.sh` fails locally exactly as the recorded CI log says. The developer has the
+    # head `add-total` checked out with an untracked note of their own, and the remote is a bare
+    # repository under .fake/. A fake gh, first on the session's PATH through the project's
+    # settings, reads the remote's head on every call: while it is still the red commit, `pr checks`
+    # serves `test` failed with its Actions job link, and `gh run view --job 99 --log-failed`
+    # serves the recorded log; once the head moved, every check passes and the merge state is clean.
+    # Every gh call is logged with the command line that made it, in .fake/gh.log.
+    set -e
+    mkdir -p src tests .github/workflows .fake/bin .claude
+    printf '# notes\n' > README.md
+    printf '.fake/\n' > .gitignore
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
+    git checkout -q -b add-total
+    cat > src/total.sh <<'SH'
+    total() {
+      local sum=1 n
+      for n in "$@"; do
+        sum=$((sum + n))
+      done
+      echo "$sum"
+    }
+    SH
+    cat > tests/total.sh <<'SH'
+    #!/usr/bin/env bash
+    . "$(dirname "$0")/../src/total.sh"
+    got="$(total 2 3)"
+    [ "$got" = 5 ] || { echo "FAIL total 2 3: got $got, want 5"; exit 1; }
+    echo "ok    total 2 3"
+    SH
+    cat > .github/workflows/ci.yml <<'YML'
+    name: ci
+    on: pull_request
+    jobs:
+      test:
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v4
+          - name: Run tests
+            run: bash tests/total.sh
+    YML
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "add total"
+    git clone -q --bare . .fake/remote.git
+    git remote add origin "$PWD/.fake/remote.git"
+    git fetch -q origin
+    git branch -q -u origin/add-total
+    git rev-parse HEAD > .fake/red.sha
+    printf 'wip: ask about totals of an empty list\n' > NOTES.md
+    printf 'test\tRun tests\t2026-10-14T12:00:01.1000000Z ##[group]Run bash tests/total.sh\n' > .fake/log
+    printf 'test\tRun tests\t2026-10-14T12:00:01.2000000Z \033[31mFAIL total 2 3: got 6, want 5\033[0m\n' >> .fake/log
+    printf 'test\tRun tests\t2026-10-14T12:00:01.3000000Z /home/runner/work/notes/notes/tests/total.sh exited 1\n' >> .fake/log
+    printf 'test\tRun tests\t2026-10-14T12:00:01.4000000Z ##[error]Process completed with exit code 1.\n' >> .fake/log
+    cat > .fake/bin/gh <<'SH'
+    #!/usr/bin/env bash
+    printf '%s\t%s\n' "$*" "$(ps -o args= -p "$PPID" 2>/dev/null)" >> "$GH_FAKE/gh.log"
+    expr=
+    for ((i = 1; i <= $#; i++)); do
+      [ "${!i}" = --jq ] && { j=$((i + 1)); expr="${!j}"; }
+    done
+    answer() { if [ -n "$expr" ]; then jq -r "$expr"; else cat; fi; }
+    head="$(git --git-dir="$GH_FAKE/remote.git" rev-parse refs/heads/add-total)"
+    red="$(cat "$GH_FAKE/red.sha")"
+    case "$1 $2" in
+      "auth status") echo "Logged in to github.com account fixture"; exit 0 ;;
+      "pr view")
+        if [ "$head" = "$red" ]; then merge=UNSTABLE; else merge=CLEAN; fi
+        printf '{"number":42,"headRefName":"add-total","baseRefName":"main","state":"OPEN","mergeStateStatus":"%s","mergeable":"MERGEABLE","headRefOid":"%s"}\n' \
+          "$merge" "$head" | answer ;;
+      "pr checks")
+        if [ "$head" = "$red" ]; then test=fail; else test=pass; fi
+        printf '[{"name":"lint","bucket":"pass","link":"https://github.com/acme/notes/actions/runs/7/job/98"},{"name":"test","bucket":"%s","link":"https://github.com/acme/notes/actions/runs/7/job/99"}]\n' \
+          "$test" | answer ;;
+      "run view")
+        [ "$*" = "run view --job 99 --repo github.com/acme/notes --log-failed" ] || {
+          echo "fake gh: no answer recorded for: $*" >&2
+          exit 1
+        }
+        cat "$GH_FAKE/log" ;;
+      *) echo "fake gh: no answer recorded for: $*" >&2; exit 1 ;;
+    esac
+    SH
+    chmod +x .fake/bin/gh
+    printf '{"env": {"PATH": "%s/.fake/bin:%s", "GH_FAKE": "%s/.fake", "DO_PR_WATCH_SECONDS": "5", "DO_PR_WATCH_INTERVAL": "1"}}\n' \
+      "$PWD" "$PATH" "$PWD" > .claude/settings.json
+    printf '.claude/\n' >> .git/info/exclude
