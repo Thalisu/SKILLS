@@ -112,6 +112,13 @@ for review in APPROVED CHANGES_REQUESTED; do
   expect "a pull request blocked with review $review is a settled state no verdict covers: the watch exits 3" [ "$rc" = 3 ]
 done
 
+serve 42 BLOCKED '[{"name":"test (ubuntu-latest, 3.11)","bucket":"fail","link":"https://github.com/o/r/actions/runs/7/job/99"},{"name":"lint","bucket":"pass","link":"https://github.com/o/r/actions/runs/7/job/98"},{"name":"build","bucket":"fail","link":"https://github.com/o/r/actions/runs/7/job/97"}]'
+echo '{"mergeStateStatus":"BLOCKED","mergeable":"MERGEABLE","reviewDecision":"REVIEW_REQUIRED","headRefName":"feature/login","headRefOid":"3f2a9c1d8e7b6a5f4e3d2c1b0a9f8e7d6c5b4a39","baseRefName":"main"}' >"$GH_FAKE/view"
+run 42
+same "no check pending and some failed: the watch returns verdict=red, the head branch and commit, and each failed check's link and name in the order gh lists them" \
+  "verdict=red"$'\n'"head=feature/login"$'\n'"sha=3f2a9c1d8e7b6a5f4e3d2c1b0a9f8e7d6c5b4a39"$'\n'"red=https://github.com/o/r/actions/runs/7/job/99 test (ubuntu-latest, 3.11)"$'\n'"red=https://github.com/o/r/actions/runs/7/job/97 build"
+expect "a pull request with failed checks is a verdict printed: the watch exits 0" [ "$rc" = 0 ]
+
 serve 42 CLEAN '[{"name":"lint","bucket":"pass"},{"name":"build (ubuntu-latest, 3.11)","bucket":"pending"},{"name":"deploy","bucket":"pending"}]'
 run 42
 state="$(sed -n 's/^state=//p' <<<"$out")"
