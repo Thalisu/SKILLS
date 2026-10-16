@@ -1,0 +1,26 @@
+name: pr-gh-logged-out-names-auth-login
+tags: [router, pr, input]
+runs: 2
+max_turns: 8
+timeout_seconds: 300
+allowed_tools: [Bash, Read, Edit, Write]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # A pull request URL in a sandbox whose GitHub CLI holds no login, or is not installed at all:
+    # the pr door's CLI check fails before the read-back, so the Reply names `gh auth login` in one
+    # line and follows nothing. A sandbox whose gh is logged in cannot run this case.
+    set -e
+    mkdir -p src
+    cat > src/notes.js <<'JS'
+    const notes = [];
+
+    export function create(title) {
+      const note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+    JS
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"

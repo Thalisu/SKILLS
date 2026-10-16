@@ -133,5 +133,33 @@ carries_any "that example names \`bug-fix\` as the near miss it is not" "not \`b
 expect "an example routes a bare number, with no word naming a pull request, to \`ticket\`" test -n \
   "$(awk -F'\t' '$2 == "ticket" && $1 ~ /^#?[0-9]+$/' <<<"$examples")"
 
+# A logged-out gh fails the read-back as if the pull request were wrong: the developer whose session
+# expired reads a refusal blaming the pull request, or a choice where one input is broken, and types
+# the same request again.
+echo "# pr.md: a GitHub CLI that is not logged in stops the run before the read-back, naming gh auth login and following nothing"
+auth_step="$(item_holding "$pr" '### ' "gh auth login" 2>/dev/null)"
+expect "a step of pr.md names \`gh auth login\`" test -n "$auth_step"
+auth_heading_at="$(grep -nxF -- "$(head -n 1 <<<"$auth_step")" "$pr" 2>/dev/null | head -n 1 | cut -d: -f1)"
+read_back_at="$(grep -nE '^### [0-9]+\. Read-back' "$pr" 2>/dev/null | head -n 1 | cut -d: -f1)"
+expect "that step comes before the read-back's first call to gh" \
+  test -n "$auth_step" -a "${auth_heading_at:-0}" -gt 0 -a "${read_back_at:-0}" -gt "${auth_heading_at:-0}"
+flat="$(tr '\n' ' ' <<<"$auth_step" | tr -s ' ')"
+carries_any "it asks the GitHub CLI whether it is logged in" \
+  "gh auth status" "gh auth token" "gh api user"
+carries_any "and stops when that check fails" \
+  "fails" "non-zero" "not logged in" "logged out" "no session" "expired"
+carries_each "the stop is one line naming \`gh auth login\`" \
+  "gh auth login" -- \
+  "one line" "One line" "single line" "a line naming" "a line that names"
+carries "the stop names the pr Playbook" "Playbook: pr"
+carries_any "on its first line" \
+  "first line" "First line" "opens with" "opens on" "opening line" "line one" "the reply opens"
+carries_any "with no \`Yours:\` line" \
+  "no \`Yours:\`" "No \`Yours:\`" "without a \`Yours:\`" "without the \`Yours:\`" "never a \`Yours:\`" \
+  "not a \`Yours:\`" "no Yours:" "without a Yours:"
+carries_any "and follows nothing: no read-back, no watch, no worktree, no push, no file written" \
+  "follows nothing" "nothing is followed" "nothing followed" "follows none" "follows no step" \
+  "no step after" "no later step" "no further step" "runs nothing else" "nothing else runs" "does nothing else"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1
