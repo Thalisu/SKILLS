@@ -9,23 +9,29 @@
 # Prints key=value lines: one step=<step name> per failed step in log order, dropped=<n> (the lines
 # cut above the excerpt), then one file=<path> per tracked path the excerpt names (repo-relative,
 # first appearance first, once), then the last 200 lines of the failed steps' output as
-# excerpt=<text>, with the timestamp and ANSI escapes stripped. Keys repeat in order. Exits 0.
+# excerpt=<text>, with the timestamp and ANSI escapes stripped. Keys repeat in order.
+#
+# Exits 0 an excerpt printed · 1 gh missing or unable to read the log · 2 usage · 3 nothing to cut
+# (not an Actions job link, or no failed step). Nothing on stdout for 1, 2 or 3; a one-line
+# pr-log.sh: <reason> goes to stderr.
 set -uo pipefail
 
 excerpt_lines=200
 
-parse_link() { # $1 link: prints "<host>/<owner>/<repo> <job id>"
-  local rest host owner repo job
-  rest="${1#*://}"
-  IFS=/ read -r host owner repo _ _ _ _ job _ <<<"$rest"
-  printf '%s/%s/%s %s\n' "$host" "$owner" "$repo" "$job"
+parse_link() { # $1 link: prints "<host>/<owner>/<repo> <job id>", or exits 3 when it is not an Actions job URL
+  local re='^https://([^/]+)/([^/]+)/([^/]+)/actions/runs/[0-9]+/job/([0-9]+)([?#].*)?$'
+  if [[ ! "$1" =~ $re ]]; then
+    echo "pr-log.sh: not a GitHub Actions job link: $1" >&2
+    exit 3
+  fi
+  printf '%s/%s/%s %s\n' "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}" "${BASH_REMATCH[3]}" "${BASH_REMATCH[4]}"
 }
 
 read_failed_log() { # $1 repo, $2 job id: the raw log lines
   gh run view --job "$2" --repo "$1" --log-failed
 }
 
-cut_excerpt() { # stdin raw lines: prints step=, dropped= and excerpt= lines
+cut_excerpt() { # stdin raw lines: prints step=, dropped= and excerpt= lines; exits 3 when no failed step
   awk -v keep="$excerpt_lines" '
     BEGIN { esc = sprintf("%c", 27) }
     {
@@ -40,6 +46,7 @@ cut_excerpt() { # stdin raw lines: prints step=, dropped= and excerpt= lines
       lines[++n] = text
     }
     END {
+      if (n == 0) exit 3
       for (s = 1; s <= steps; s++) print "step=" order[s]
       start = n > keep ? n - keep + 1 : 1
       print "dropped=" start - 1
@@ -76,15 +83,33 @@ named_files() { # stdin: the excerpt's lines; $1 tree: prints one file=<path> pe
 }
 
 main() {
-  local parsed repo job cut
-  parsed="$(parse_link "$1")"
+  local parsed repo job log cut
+  if [ "$#" -ne 2 ]; then
+    echo "usage: pr-log.sh <link> <tree>" >&2
+    exit 2
+  fi
+  if ! git -C "$2" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    echo "pr-log.sh: not a git work tree: $2" >&2
+    exit 2
+  fi
+  parsed="$(parse_link "$1")" || exit $?
+  if ! command -v gh >/dev/null 2>&1; then
+    echo "pr-log.sh: gh is not on PATH" >&2
+    exit 1
+  fi
   repo="${parsed% *}"
   job="${parsed#* }"
-  cut="$(read_failed_log "$repo" "$job" | cut_excerpt)"
+  if ! log="$(read_failed_log "$repo" "$job")"; then
+    echo "pr-log.sh: gh could not read the log of job $job" >&2
+    exit 1
+  fi
+  [ -n "$log" ] && cut="$(printf '%s\n' "$log" | cut_excerpt)" || {
+    echo "pr-log.sh: no failed step in the log of job $job" >&2
+    exit 3
+  }
   printf '%s\n' "$cut" | grep -E '^(step|dropped)='
   printf '%s\n' "$cut" | sed -n 's/^excerpt=//p' | named_files "$2"
   printf '%s\n' "$cut" | grep '^excerpt='
 }
 
 main "$@"
-exit 0

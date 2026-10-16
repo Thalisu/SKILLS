@@ -14,10 +14,12 @@ export HOME="$tmp/home" GH_FAKE="$tmp/gh"
 mkdir -p "$HOME" "$GH_FAKE" "$tmp/bin"
 
 # The fake gh answers `gh run view --job 99 --repo github.com/o/r --log-failed` with the recorded
-# log in $GH_FAKE/log, and refuses any other command line.
+# log in $GH_FAKE/log, and refuses any other command line. While $GH_FAKE/fail exists it cannot read
+# the log, and prints that file's line on stderr instead.
 cat >"$tmp/bin/gh" <<'SH'
 #!/usr/bin/env bash
 [ "$*" = "run view --job 99 --repo github.com/o/r --log-failed" ] || { echo "fake gh: unexpected command: $*" >&2; exit 1; }
+[ -f "$GH_FAKE/fail" ] && { cat "$GH_FAKE/fail" >&2; exit 1; }
 cat "$GH_FAKE/log"
 SH
 chmod +x "$tmp/bin/gh"
@@ -80,5 +82,31 @@ run "https://github.com/o/r/actions/runs/7/job/99" "$tmp/named"
 same "a red check's excerpt naming files: one file= line per tracked file it names, repo-relative, first appearance first and once, a runner workspace path reduced to the repo path and a toolchain or untracked path left out, between dropped= and the excerpt" \
   "step=Run tests"$'\n'"dropped=0"$'\n'"file=tests/test_main.py"$'\n'"file=src/app/main.py"$'\n'"excerpt=ERROR tests/test_main.py:8 test_add failed"$'\n'"excerpt=raised at /home/runner/work/r/r/src/app/main.py:12:5 in add"$'\n'"excerpt=called from /usr/lib/python3.11/unittest/case.py:57 in run"$'\n'"excerpt=loaded node_modules/x/index.js:3 first"$'\n'"excerpt=rerun with pytest \"tests/test_main.py\""
 expect "a red check's excerpt naming files: the script exits 0" [ "$rc" = 0 ]
+
+mkdir -p "$tmp/plain"
+link="https://github.com/o/r/actions/runs/7/job/99"
+printf '%s\tRun tests\t2026-10-14T12:04:00.1234567Z %s\n' "$job" "FAIL src/a.test.ts" >"$tmp/log.red"
+unanswered() { # $1 the exit wanted, $2 what gh does: log|empty|fail, $3 label, $4.. the script's arguments
+  local want="$1" gh="$2" label="$3"
+  shift 3
+  rm -f "$GH_FAKE/fail"
+  case "$gh" in
+    log) cp "$tmp/log.red" "$GH_FAKE/log" ;;
+    empty) : >"$GH_FAKE/log" ;;
+    fail) echo "failed to get run log: HTTP 410" >"$GH_FAKE/fail" ;;
+  esac
+  run "$@"
+  same "$label: nothing on stdout" ""
+  expect "$label: the script exits $want" [ "$rc" = "$want" ]
+}
+unanswered 1 fail "gh cannot read the job's log" "$link" "$tmp/tree"
+unanswered 2 log "no argument"
+unanswered 2 log "the link alone" "$link"
+unanswered 2 log "a third argument" "$link" "$tmp/tree" extra
+unanswered 2 log "a tree that is not a git work tree" "$link" "$tmp/plain"
+unanswered 3 log "the link is none" none "$tmp/tree"
+unanswered 3 log "a pull request's checks page, not a job" "https://github.com/o/r/pull/42/checks" "$tmp/tree"
+unanswered 3 log "a link off GitHub Actions" "https://ci.example.com/build/7" "$tmp/tree"
+unanswered 3 empty "a job log holding no failed step" "$link" "$tmp/tree"
 
 exit "$((fails > 0))"
