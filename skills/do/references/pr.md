@@ -40,6 +40,12 @@ the pair from the request as written: the head is the branch the pull request co
 base is the branch it goes into, so in `de dev para prod`, as in `from dev into prod`, `dev` is the
 head and `prod` the base.
 
+Words that name a head and no base, as in `abra um PR de dev`, are half a pair, and the run stops
+there: it ends in one message asking for the base, and never fills the base in itself, not with
+the default branch, not with `main`, not with a branch read off the repository or the checkout,
+since a pull request opened into a base the run picked is one the developer has to close. It looks
+nothing up and opens nothing: no lookup by the pair, no `gh pr create`.
+
 Before it reads the pull request, the run asks the GitHub CLI whether it is logged in, with
 `gh auth status`. When that check fails, the run stops: the Reply opens with `Playbook: pr` on its
 first line, then one line saying the GitHub CLI is not logged in and naming `gh auth login`, with no

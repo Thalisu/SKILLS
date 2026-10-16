@@ -709,5 +709,43 @@ carries_each "step 1 is done holding the number of a pull request the run found 
   "number" -- "found" "already open" "listed" "looked up" "open for the pair" -- \
   "opened" "created"
 
+# A developer who typed half the pair, as in `abra um PR de dev`, gets a pull request opened into a
+# base the run picked and has to close it, or a run that ends with no word on what was missing. The
+# pair paragraph of step 1 already speaks of `<head>` and `<base>`, and the create paragraph of
+# opening exactly one, so the stop is read off the piece naming a request with no base.
+echo "# SKILL.md / ## Router and pr.md / ### 1. Pull request: a pull request naming a head and no base routes to pr and ends on one message asking for the base, never filled in, nothing looked up or opened"
+flat="$(argument_of "$pr_row")"
+carries_each "the pr row takes words asking for a pull request that name one branch only, as in \`abra um PR de dev\`" \
+  "pull request" "PR" -- \
+  "one branch only" "only one branch" "a single branch" "names one branch" "naming one branch" \
+  "head and no base" "head alone" "only the head" "no base" "without a base" "missing its base" \
+  "base is missing" "missing base"
+missing_base_keys=("no base" "without a base" "missing base" "missing its base" "base is missing"
+  "names no base" "lacks a base" "lacking a base" "one branch only" "only one branch" "a single branch"
+  "head alone" "only the head")
+flat="$(piece_in="$pull_request" piece_with "${missing_base_keys[@]}")"
+expect "a bullet or paragraph of ### 1. Pull request takes a request naming a head and no base" test -n "$flat"
+carries_any "it ends the run" "stops" "stop" "ends the run" "the run ends"
+carries_any "in one message" \
+  "one message" "a single message" "one line" "One line" "single line" "one Reply" "a single Reply"
+affirms "asking for the base" \
+  "asks" "asking" "ask" "which base" -- "base"
+carries_any "the run never fills the base in itself" \
+  "never fills" "does not fill" "doesn't fill" "never picks" "does not pick" "doesn't pick" \
+  "never guesses" "does not guess" "doesn't guess" "never chooses" "does not choose" "never assumes" \
+  "does not assume" "never supplies" "never takes a base" "never defaults"
+carries_each "not with the default branch, nor \`main\`" \
+  "default branch" -- "\`main\`"
+carries_any "nor a branch read off the repository" \
+  "repository" "checkout" "current branch"
+carries_any "looking nothing up, no \`gh pr list\`" \
+  "no \`gh pr list\`" "never runs \`gh pr list\`" "never \`gh pr list\`" "nor \`gh pr list\`" \
+  "without \`gh pr list\`" "not \`gh pr list\`" "does not run \`gh pr list\`" "looks nothing up" \
+  "looks up nothing" "nothing is looked up" "no lookup"
+carries_any "and opening nothing, no \`gh pr create\`" \
+  "no \`gh pr create\`" "never runs \`gh pr create\`" "never \`gh pr create\`" "nor \`gh pr create\`" \
+  "without \`gh pr create\`" "not \`gh pr create\`" "does not run \`gh pr create\`" "opens nothing" \
+  "nothing is opened" "never opens" "does not open" "opens no "
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1
