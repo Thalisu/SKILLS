@@ -783,5 +783,38 @@ carries_any "and opening nothing, no \`gh pr create\`" \
   "without \`gh pr create\`" "not \`gh pr create\`" "does not run \`gh pr create\`" "opens nothing" \
   "nothing is opened" "never opens" "does not open" "opens no "
 
+# A developer who mistyped the head sees the CLI's raw error, or a pull request attempted from a
+# branch that is not there, with no word on which name was wrong, when the run looks the pair up or
+# opens one before it knows both branches are there. Step 1 already says `Playbook: pr`, "one line",
+# `gh pr list` and `gh pr create` for other stops and the lookup, so the stop is read off the piece
+# naming a branch that does not exist; a piece saying it of either branch of the pair answers for the head.
+echo "# pr.md / ### 1. Pull request: a branch pair whose head does not exist, neither locally nor on the remote, stops on Playbook: pr and one line naming that branch, nothing looked up or opened"
+missing_branch_keys=("does not exist" "doesn't exist" "no such branch" "not exist" "nonexistent"
+  "non-existent")
+flat="$(piece_in="$pull_request" piece_with "${missing_branch_keys[@]}")"
+expect "a bullet or paragraph of ### 1. Pull request takes a branch of the pair that does not exist" test -n "$flat"
+carries_any "the head counts" \
+  "head" "branch of the pair" "branches of the pair" "pair's branches" "either branch" "each branch" \
+  "both branches"
+carries_each "a branch exists when it is a local branch or a branch on the remote" \
+  "local" -- "remote" "origin"
+carries_any "it ends the run" "stops" "stop" "ends the run" "the run ends"
+carries "the Reply names the pr Playbook" "Playbook: pr"
+carries_any "on its first line" "first line" "opens with" "opens on"
+carries_each "then one line naming that branch" \
+  "one line" "One line" "single line" -- \
+  "naming" "names" "that names" "quoting" "quotes" -- \
+  "<head>" "the branch" "that branch" "the missing branch" "branch name" "its name" "the name"
+carries_any "the check runs ahead of the lookup by the pair, nothing looked up" \
+  "before the lookup" "before it looks" "before looking" "before the run looks" "before any lookup" \
+  "before \`gh pr list\`" "ahead of the lookup" "ahead of \`gh pr list\`" "no \`gh pr list\`" \
+  "never runs \`gh pr list\`" "never \`gh pr list\`" "nor \`gh pr list\`" "without \`gh pr list\`" \
+  "not \`gh pr list\`" "does not run \`gh pr list\`" "looks nothing up" "looks up nothing" \
+  "nothing is looked up" "no lookup"
+carries_any "and opening nothing, no \`gh pr create\`" \
+  "no \`gh pr create\`" "never runs \`gh pr create\`" "never \`gh pr create\`" "nor \`gh pr create\`" \
+  "without \`gh pr create\`" "not \`gh pr create\`" "does not run \`gh pr create\`" "opens nothing" \
+  "nothing is opened" "never opens" "does not open" "opens no "
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1

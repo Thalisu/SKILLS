@@ -51,6 +51,14 @@ asking for the head, and the run looks nothing up and opens nothing. It never ta
 branch, the one checked out, as the head, since the developer may stand on a branch unrelated to
 the pull request they meant, and that branch opened into the base is one they have to close.
 
+With both branches named, the run checks that the head exists before it looks anything up: as a
+local branch (`git rev-parse --verify --quiet refs/heads/<head>`) or as a branch on the remote
+(`git ls-remote --exit-code --heads origin <head>`). A head that does not exist, neither one nor
+the other, stops the run: the Reply opens with `Playbook: pr` on its first line, then one line
+naming the branch that does not exist, so a mistyped name shows as the name, never as the GitHub
+CLI's raw error. The run looks nothing up and opens nothing: no lookup by the pair, no
+`gh pr create`.
+
 Before it reads the pull request, the run asks the GitHub CLI whether it is logged in, with
 `gh auth status`. When that check fails, the run stops: the Reply opens with `Playbook: pr` on its
 first line, then one line saying the GitHub CLI is not logged in and naming `gh auth login`, with no
