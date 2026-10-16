@@ -104,4 +104,12 @@ same "every check passed and only a required review blocks the merge: the watch 
   "verdict=awaiting-approval"$'\n'"checks=2"
 expect "a pull request awaiting approval is a verdict printed: the watch exits 0" [ "$rc" = 0 ]
 
+for review in APPROVED CHANGES_REQUESTED; do
+  serve 42 BLOCKED '[{"name":"build","bucket":"pass"},{"name":"test","bucket":"pass"}]'
+  printf '{"mergeStateStatus":"BLOCKED","mergeable":"MERGEABLE","reviewDecision":"%s","headRefName":"feature/login","baseRefName":"main"}\n' "$review" >"$GH_FAKE/view"
+  run 42
+  same "a pull request blocked with review $review, not a pending required review: the watch prints no verdict, awaiting-approval or any other" ""
+  expect "a pull request blocked with review $review is a settled state no verdict covers: the watch exits 3" [ "$rc" = 3 ]
+done
+
 exit "$((fails > 0))"
