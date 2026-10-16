@@ -49,9 +49,12 @@ never reads as a pull request that could not be opened.
 
 For a branch pair, once the GitHub CLI answered that it is logged in, the run first looks for the
 pair's open pull request before it opens anything, with
-`gh pr list --head <head> --base <base> --state open --json number,headRefName,baseRefName`, so a
-repeated request, or one a teammate already answered, never ends with two pull requests for one
-pair.
+`gh pr list --head <head> --base <base> --state open --json number,headRefName,baseRefName,state`,
+so a repeated request, or one a teammate already answered, never ends with two pull requests for one
+pair. The pair's open pull request is one whose head is the pair's head, whose base is the pair's
+base, and whose `state` reads `OPEN`, each read off that answer: a pull request open from the head
+into another base is not the pair's, and neither is a closed or merged one for the pair, so an
+answer holding only those counts as none open for the pair.
 
 When a pull request is already open for the pair, the run takes its number from that answer and
 follows it by its number from the read-back on, as a pull request named by number is followed. It

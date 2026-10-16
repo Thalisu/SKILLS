@@ -628,5 +628,26 @@ carries_any "never running \`gh pr create\`" \
 carries_each "the Reply says it was already open" \
   "Reply" -- "already open" "already opened" "already exists" "already existed" "was open"
 
+# A run that takes any pull request from the head for the pair's follows one into another base, and
+# one that takes a closed or merged one reports as already open a pull request nobody can merge: in
+# both cases it opens nothing. The lookup piece already carries `--head`, `--base` and `--state open`,
+# so the match is read off what it says counts as the pair's open pull request and what does not.
+echo "# pr.md / ### 1. Pull request: a pull request from the head into another base, or a closed or merged one for the pair, is not the pair's open pull request"
+flat="$(piece_in="$pull_request" piece_with "gh pr list")"
+expect "a bullet or paragraph of ### 1. Pull request names \`gh pr list\`" test -n "$flat"
+carries_each "the pair's open pull request is one whose head is the pair's head, whose base is the pair's base, and which is open" \
+  "whose head" "its head is" "head is the pair's" "the pair's head" -- \
+  "whose base" "its base is" "base is the pair's" "the pair's base" -- \
+  "open"
+carries_any "a pull request open from the head into another base" \
+  "another base" "other base" "different base" "base other than"
+carries_each "a closed or a merged one for the pair" "closed" -- "merged"
+carries_any "is not the pair's open pull request" \
+  "is not the pair's" "are not the pair's" "is not it" "are not it" "not the one" "neither is" \
+  "does not count" "do not count" "doesn't count" "don't count" "never counts" "never count"
+carries_any "either one counts as none open for the pair" \
+  "none open" "no open pull request" "no pull request open" "nothing open" "counts as none" \
+  "count as none" "as if none" "as though none"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1
