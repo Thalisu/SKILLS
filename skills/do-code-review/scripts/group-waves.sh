@@ -11,8 +11,28 @@ set -uo pipefail
 
 main() {
   awk -F'\t' '
-    { members = (members == "") ? $1 : members "," $1 }
-    END { print "wave=1 numbers=" members }
+    function meets(a, b,   i, j, x, y, na, nb) {
+      na = split(a, x, " "); nb = split(b, y, " ")
+      for (i = 1; i <= na; i++) for (j = 1; j <= nb; j++) if (x[i] == y[j]) return 1
+      return 0
+    }
+    {
+      n = $1; files = $2
+      placed = 0
+      for (w = 1; w <= waves; w++) {
+        if (meets(union[w], files)) continue
+        members[w] = members[w] "," n
+        union[w] = union[w] " " files
+        placed = 1
+        break
+      }
+      if (!placed) {
+        waves++
+        members[waves] = n
+        union[waves] = files
+      }
+    }
+    END { for (w = 1; w <= waves; w++) print "wave=" w " numbers=" members[w] }
   '
 }
 

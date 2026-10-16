@@ -21,6 +21,11 @@ check_lines "two numbers whose file sets are non-empty and disjoint come back on
   "wave=1 numbers=3,5"
 same "two numbers that cannot collide are never split across Waves" "wave=1 numbers=3,5"
 
+run < <(printf '3\tsrc/a.ts src/a.test.ts\n5\tsrc/b.ts src/a.ts\n')
+same "two numbers whose file sets share a file come back on two separate Waves" \
+  "wave=1 numbers=3"$'\n'"wave=2 numbers=5"
+check_lines "two numbers sharing a file still exit 0" 0 "$rc" "wave=1 numbers=3" "wave=2 numbers=5"
+
 echo
 if [ "$fails" = 0 ]; then echo "group-waves: all checks passed"; else
   echo "group-waves: $fails failed"
