@@ -67,8 +67,11 @@ from the head into the base, rather than the GitHub CLI's error or an empty pull
 looks nothing up and opens nothing: no lookup by the pair, no `gh pr create`.
 
 With something to open, after the nothing-to-open check and before any lookup, the run asks the
-remote itself whether it holds the head, with `git ls-remote --exit-code --heads origin <head>`. A
-head that exists locally and has no branch on the remote, one never published, stops the run:
+remote itself whether it holds the head, with `git ls-remote --exit-code --heads origin <head>`. It
+reads the answer off the remote and never off the local branch's upstream setting, nor off the
+remote-tracking ref `refs/remotes/origin/<head>`, which can be stale or missing until a fetch. A
+head the remote holds under the same name goes on to the lookup and is opened as before. That holds
+with or without an upstream on the local branch. A head that exists locally and has no branch on the remote, one never published, stops the run:
 publishing a branch for the first time is a write outside the repository the request did not
 authorise, and a pull request against it would name a head nobody else can see. The run pushes
 nothing, no `git push`, and looks nothing up and opens nothing: no lookup by the pair, no

@@ -986,5 +986,40 @@ unlisted_at="$(first_at "no branch on the remote" "unpublished" "never published
 expect "the stop on an unpublished head is not among the stops with no \`Yours:\` line" \
   test "$except_at" -gt 0 -a "$unlisted_at" -eq 0
 
+# A developer whose head is published, on a local branch that tracks no upstream or whose
+# remote-tracking ref is stale or was never fetched, is told to push a branch the remote already has
+# and gets nothing opened when the run reads "published" off local state. The paragraph already says
+# `git ls-remote`, so the guarantees read here are the local state it never answers from, and the
+# head the remote holds going on to be opened; read off the same piece as the two cases above.
+echo "# pr.md / ### 1. Pull request: a head the remote holds under the same name is opened as before, whatever the local branch tracks, never judged off its upstream or a remote-tracking ref"
+flat="$(piece_in="$pull_request" piece_with "${unpublished_head_keys[@]}")"
+expect "a bullet or paragraph of ### 1. Pull request takes a head the remote does not have" test -n "$flat"
+carries_each "the answer is never read off the local branch's upstream setting" \
+  "upstream" "@{u}" "branch.<head>.merge" "branch.<head>.remote" "tracking setting" \
+  "tracking configuration" "tracking config" "the branch it tracks" -- \
+  "never off" "not off" "never read off" "not read off" "never from" "not from" "never the local" \
+  "not the local" "never its" "not its" "rather than" "instead of" "regardless of" "ignores" \
+  "nor off" "nor from" "nor the local" "nor its" "never by" "not by" "nor by" "never on its" \
+  "not on its" "nor on its"
+carries_each "nor off a remote-tracking ref, which can be stale or missing" \
+  "refs/remotes/origin/<head>" "remote-tracking" "remote tracking" "origin/<head>" -- \
+  "stale" "out of date" "outdated" "lag" "behind the remote" "not fetched" "never fetched" \
+  "last fetch" "may not exist" "might not exist" "can be missing" "may be missing" "be missing"
+carries_any "a head on the remote under the same name" \
+  "same name" "its own name" "the name it has locally" "the same branch name" "named the same" \
+  "under that name" "by that name" "by the same name"
+affirms "a head the remote holds goes on to the lookup" \
+  "remote holds" "remote has" "remote does hold" "on the remote" "remote answers" "the remote's" \
+  "published" -- \
+  "goes on" "go on" "proceeds" "continues" "carries on" "moves on" "on to the lookup" "to the lookup"
+affirms "and is opened as before" \
+  "remote holds" "remote has" "remote does hold" "on the remote" "remote answers" "the remote's" \
+  "published" "it" -- \
+  "opened as before" "opens it as before" "opened as usual" "as before" "as it would" "like any other"
+carries_each "whether or not the local branch tracks it" \
+  "tracks" "tracking" "upstream" -- \
+  "whether or not" "or not" "with or without" "even when" "even if" "regardless" "no upstream" \
+  "untracked" "whatever"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1
