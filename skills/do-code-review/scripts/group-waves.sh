@@ -7,7 +7,9 @@
 # Reads one record per line on stdin, `<n>` TAB `<path>[ <path>]...`, and prints one line per Wave:
 #   wave=<w> numbers=<n>[,<n>]...
 # Two numbers share a Wave only when both of their file sets are non-empty and disjoint, and a
-# number with no files (an empty field, or no tab at all) is a Wave of its own.
+# number with no files (an empty field, or no tab at all) is a Wave of its own. Greedy first-fit in
+# the order the records arrive, capped at four numbers per Wave so a larger Wave is cut into
+# consecutive Waves instead of forking more than four Fixers at once. spec.md:153.
 # Never knows what a number names, never opens a file, never decides what a path is.
 set -uo pipefail
 
@@ -25,6 +27,7 @@ main() {
         if (closed[w] || meets(union[w], files)) continue
         members[w] = members[w] "," n
         union[w] = union[w] " " files
+        if (++count[w] >= 4) closed[w] = 1
         placed = 1
         break
       }
@@ -32,6 +35,7 @@ main() {
         waves++
         members[waves] = n
         union[waves] = files
+        count[waves] = 1
         closed[waves] = (files == "")
       }
     }

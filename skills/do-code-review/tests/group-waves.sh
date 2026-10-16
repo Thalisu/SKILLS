@@ -36,6 +36,16 @@ same "a number written alone with no tab, arriving first, opens a Wave no other 
   "wave=1 numbers=7"$'\n'"wave=2 numbers=3,5"
 check_lines "a number written alone with no tab still exits 0" 0 "$rc" "wave=1 numbers=7" "wave=2 numbers=3,5"
 
+run < <(printf '1\ta.ts\n2\tb.ts\n3\tc.ts\n4\td.ts\n5\te.ts\n6\tf.ts\n')
+same "more than four numbers with disjoint file sets are cut into consecutive Waves of at most four" \
+  "wave=1 numbers=1,2,3,4"$'\n'"wave=2 numbers=5,6"
+check_lines "six disjoint numbers cut into two Waves still exit 0" 0 "$rc" "wave=1 numbers=1,2,3,4" "wave=2 numbers=5,6"
+
+run < <(printf '1\ta.ts\n2\tb.ts\n3\tc.ts\n4\td.ts\n5\te.ts\n6\ta.ts\n')
+same "the cap of four applies during first-fit, so a full Wave's colliding number joins the next Wave" \
+  "wave=1 numbers=1,2,3,4"$'\n'"wave=2 numbers=5,6"
+check_lines "a number colliding with a full Wave still exits 0" 0 "$rc" "wave=1 numbers=1,2,3,4" "wave=2 numbers=5,6"
+
 echo
 if [ "$fails" = 0 ]; then echo "group-waves: all checks passed"; else
   echo "group-waves: $fails failed"
