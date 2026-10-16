@@ -962,5 +962,29 @@ carries_each "nothing to open names the commits the head still needs, or another
   "head needs" "commits to push" "push" -- \
   "another pair" "a different pair" "another branch pair" "other pair" "another base" "a different base"
 
+# A developer whose head was never published has to push it before the run can go on: a stop with
+# no command to type leaves them guessing, a `Yours:` line under another class files the push as a
+# different kind of choice, and a stop listed among reply.md's exceptions reads as a branch that does
+# not exist. The pr.md piece is the one the unpublished-head case above reads; the reply.md slice is
+# the exception list the case above reads, past its first "except".
+echo "# pr.md / ### 1. Pull request and reply.md / ## A refusal or a blocked run: the stop on a head the remote does not have carries exactly one Yours: outward: line, the push to type, and is no exception"
+flat="$(piece_in="$pull_request" piece_with "${unpublished_head_keys[@]}")"
+expect "a bullet or paragraph of ### 1. Pull request takes a head the remote does not have" test -n "$flat"
+carries "the Reply hands over the push of that head, then the request again" \
+  "Yours: outward: push <head> to the remote (git push -u origin <head>), then /do the request again"
+carries_any "as one \`Yours:\` line" \
+  "one \`Yours:\` line" "exactly one \`Yours:\`" "a single \`Yours:\`" "one Yours: line" \
+  "exactly one Yours:" "a single Yours:" "only \`Yours:\` line" "only Yours: line"
+yours_lines="$(grep -oE 'Yours: [a-z-]+:' <<<"$flat" | wc -l)"
+expect "and no other \`Yours: <class>:\` line beside it" test "$yours_lines" -eq 1
+flat="$(paragraph_with "$reply" "Every blocked Reply, and every refusal at a door" | tr -s ' ')"
+expect "reply.md has the paragraph asking every refusal at a door for its line" test -n "$flat"
+except_at="$(first_at "except" "Except" "other than" "save for" "apart from")"
+flat="${flat:$((except_at > 0 ? except_at - 1 : 0))}"
+unlisted_at="$(first_at "no branch on the remote" "unpublished" "never published" "not published" \
+  "not on the remote" "remote does not have" "remote doesn't have" "missing from the remote")"
+expect "the stop on an unpublished head is not among the stops with no \`Yours:\` line" \
+  test "$except_at" -gt 0 -a "$unlisted_at" -eq 0
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1

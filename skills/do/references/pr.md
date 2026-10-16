@@ -72,7 +72,10 @@ head that exists locally and has no branch on the remote, one never published, s
 publishing a branch for the first time is a write outside the repository the request did not
 authorise, and a pull request against it would name a head nobody else can see. The run pushes
 nothing, no `git push`, and looks nothing up and opens nothing: no lookup by the pair, no
-`gh pr create`.
+`gh pr create`. The Reply opens with `Playbook: pr` on its first line and carries exactly one
+`Yours:` line, under the `outward` class, handing the push over with the head's name in both
+places:
+`Yours: outward: push <head> to the remote (git push -u origin <head>), then /do the request again`.
 
 Before it reads the pull request, the run asks the GitHub CLI whether it is logged in, with
 `gh auth status`. When that check fails, the run stops: the Reply opens with `Playbook: pr` on its
