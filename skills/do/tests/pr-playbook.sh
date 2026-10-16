@@ -747,5 +747,41 @@ carries_any "and opening nothing, no \`gh pr create\`" \
   "without \`gh pr create\`" "not \`gh pr create\`" "does not run \`gh pr create\`" "opens nothing" \
   "nothing is opened" "never opens" "does not open" "opens no "
 
+# A developer standing on an unrelated branch who types `abra um PR para prod` gets that branch
+# opened as a pull request into `prod` and has to close it, when the run fills the missing head with
+# the branch checked out. The missing-base paragraph already says `checkout` for the base, so the
+# stop is read off the piece naming a request with no head, and the current branch off the phrasings
+# naming the branch checked out, which that paragraph does not carry.
+echo "# pr.md / ### 1. Pull request: a pull request naming a base and no head ends on one message asking for the head, never the branch checked out, nothing looked up or opened"
+missing_head_keys=("no head" "without a head" "missing head" "missing its head" "head is missing"
+  "lacks a head" "lacking a head" "base alone" "only the base")
+flat="$(piece_in="$pull_request" piece_with "${missing_head_keys[@]}")"
+expect "a bullet or paragraph of ### 1. Pull request takes a request naming a base and no head" test -n "$flat"
+carries_any "it ends the run" "stops" "stop" "ends the run" "the run ends"
+carries_any "in one message" \
+  "one message" "a single message" "one line" "One line" "single line" "one Reply" "a single Reply"
+affirms "asking for the head" \
+  "asks" "asking" "ask" "which head" -- "head" "missing branch" "missing half"
+carries_any "the run never takes a head itself" \
+  "never fills the head" "never fills in the head" "does not fill the head" "doesn't fill the head" \
+  "never picks the head" "never picks a head" "never guesses the head" "never guesses a head" \
+  "never takes a head" "never assumes the head" "never assumes a head" "never infers the head" \
+  "never defaults the head" "never takes the current branch" "never takes the checked-out branch" \
+  "never takes the branch checked out" "never the current branch" "not the current branch" \
+  "not with the current branch" "never with the current branch" "never the checked-out branch" \
+  "not the checked-out branch" "not with the checked-out branch" "never the branch checked out" \
+  "not the branch checked out" "not with the branch checked out" "is never the head" \
+  "never becomes the head" "never used as the head" "never as the head" "not as the head"
+carries_any "not the current branch, the one checked out" \
+  "current branch" "checked out" "checked-out"
+carries_any "looking nothing up, no lookup by the pair" \
+  "no \`gh pr list\`" "never runs \`gh pr list\`" "never \`gh pr list\`" "nor \`gh pr list\`" \
+  "without \`gh pr list\`" "not \`gh pr list\`" "does not run \`gh pr list\`" "looks nothing up" \
+  "looks up nothing" "nothing is looked up" "no lookup"
+carries_any "and opening nothing, no \`gh pr create\`" \
+  "no \`gh pr create\`" "never runs \`gh pr create\`" "never \`gh pr create\`" "nor \`gh pr create\`" \
+  "without \`gh pr create\`" "not \`gh pr create\`" "does not run \`gh pr create\`" "opens nothing" \
+  "nothing is opened" "never opens" "does not open" "opens no "
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1

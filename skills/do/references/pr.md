@@ -46,6 +46,11 @@ the default branch, not with `main`, not with a branch read off the repository o
 since a pull request opened into a base the run picked is one the developer has to close. It looks
 nothing up and opens nothing: no lookup by the pair, no `gh pr create`.
 
+Words that name a base and no head, as in `abra um PR para prod`, take the same stop: one message
+asking for the head, and the run looks nothing up and opens nothing. It never takes the current
+branch, the one checked out, as the head, since the developer may stand on a branch unrelated to
+the pull request they meant, and that branch opened into the base is one they have to close.
+
 Before it reads the pull request, the run asks the GitHub CLI whether it is logged in, with
 `gh auth status`. When that check fails, the run stops: the Reply opens with `Playbook: pr` on its
 first line, then one line saying the GitHub CLI is not logged in and naming `gh auth login`, with no
