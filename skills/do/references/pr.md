@@ -83,4 +83,13 @@ Done when the watch has printed `verdict=green`, after as many `pending` calls a
 
 ### 4. Reply
 
-The Reply, by [reply.md](reply.md), its `Plan:` line the read-back of step 2.
+The Reply, by [reply.md](reply.md), its `Plan:` line the read-back of step 2. Its five parts are
+the whole message, and a green watch adds no part of its own:
+
+- **For whom** says every check is green and the pull request mergeable, ready for the developer
+  to merge, with the count off the watch's `checks=<n>` line (`checks=0` reads as no checks
+  reported).
+- No `Yours:` line: a green run hands nothing over.
+- The **Next step** line ends with `gh pr merge <n>`, `<n>` the number step 2 read back. The run
+  never runs it and never names it under `outward`, the way a landed run names the push it never
+  makes, per the Next step item of [reply.md](reply.md).

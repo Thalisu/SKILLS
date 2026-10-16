@@ -295,5 +295,43 @@ carries_each "until it reads \`verdict=green\`" \
 carries_each "which hands on to the Reply step" \
   "verdict=green" -- "### 4. Reply" "step 4" "Reply step" "the Reply" "to the Reply"
 
+# The developer merges on this Reply: one that misses the green state, or hands the merge over as a
+# `Yours:` choice, reads as a stop, and a run that runs `gh pr merge` lands it with nobody deciding.
+echo "# pr.md / ### 4. Reply: a green watch ends on a Reply saying every check is green and mergeable, its Next step gh pr merge <n>, never run"
+flat="$(passage_of "$pr" "### 4. Reply" "##" 2>/dev/null | tr '\n' ' ' | tr -s ' ')"
+carries_each "the For whom part says every check is green" \
+  "For whom" -- \
+  "every check" "all checks" "each check" "all its checks" "all of its checks" "<n> checks" -- \
+  "green" "passed"
+carries_each "and the pull request mergeable" \
+  "For whom" -- "mergeable"
+carries_any "the count of checks is the watch's \`checks=<n>\`" "checks=<n>" "checks=\`" "\`checks=" "checks="
+carries_any "with no \`Yours:\` line" \
+  "no \`Yours:\`" "No \`Yours:\`" "without a \`Yours:\`" "without the \`Yours:\`" "never a \`Yours:\`" \
+  "not a \`Yours:\`" "no Yours:" "without a Yours:"
+carries_each "the Next step line ends with \`gh pr merge <n>\`" \
+  "Next step" -- "gh pr merge <n>" -- "ends" "last" "closes"
+carries_any "which the run never runs" \
+  "never runs" "does not run" "doesn't run" "never run" "not run" "never merges" "does not merge" \
+  "doesn't merge" "never merge"
+
+# Item 10 already says a landed run's push carries no `Yours:` line and is never named under
+# `outward`, so those words are read off the sentence naming `gh pr merge` and the one after it.
+echo "# reply.md / ## Sections item 10: a green pr run's Next step ends with gh pr merge <n>, never run, no Yours:, never under outward"
+item="$(item_holding <(passage_of "$reply" "## Sections" "## ") '[0-9]+\.' "10. **Next step.**" | tr '\n' ' ' | tr -s ' ')"
+expect "reply.md's Sections carry item 10, Next step" test -n "$item"
+flat="$item"
+carries "the item names \`gh pr merge <n>\`" "gh pr merge <n>"
+flat="$(sed 's/\. /.\n/g' <<<"$item" | awk 'index($0, "gh pr merge") { print; getline; print; exit }' | tr '\n' ' ')"
+carries_each "as the line a green \`pr\` run ends on" \
+  "\`pr\`" "pr run" "pull request" -- "green" "mergeable"
+carries_any "which the run never runs" \
+  "never runs" "does not run" "doesn't run" "never run" "not run" "never merges" "does not merge" \
+  "doesn't merge" "never merge"
+carries_each "with no \`Yours:\` line, never under \`outward\`, as a landed run's push" \
+  "no \`Yours:\`" "No \`Yours:\`" "without a \`Yours:\`" "never a \`Yours:\`" "not a \`Yours:\`" -- \
+  "outward" -- \
+  "push"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1

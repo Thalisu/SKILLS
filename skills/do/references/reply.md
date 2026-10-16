@@ -542,7 +542,11 @@ of the message: For whom, Pending debt and Next step, written the same way in bo
     the same `/do`, to type once the holder finished or its claim was yielded. A landed run whose close finished is not a stop: the push stays on this line, the run
     never pushes, and its Reply carries no `Yours:` line. A landed run that then stopped at the
     close's `destroy` stop carries exactly one `Yours: destroy:` line, per the section below; the
-    push still stays on this Next step line and is never named under `outward`.
+    push still stays on this Next step line and is never named under `outward`. A `pr` run whose
+    watch read green, every check passed and the pull request mergeable, ends its line with
+    `gh pr merge <n>`, its pull request's number, under that same rule as a landed run's push: the
+    run never runs it, its Reply carries no `Yours:` line, and the merge is never named under
+    `outward`.
 
 ## A refusal or a blocked run
 
