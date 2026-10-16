@@ -121,4 +121,22 @@ same "checks unchanged for an hour with some still pending: the watch returns ve
   "verdict=stalled"$'\n'"pending=build (ubuntu-latest, 3.11)"$'\n'"pending=deploy"
 expect "a stalled pull request is a verdict printed: the watch exits 0" [ "$rc" = 0 ]
 
+serve 42 CLEAN '[{"name":"build","bucket":"pending"},{"name":"deploy","bucket":"pending"}]'
+run 42
+handed="$(sed -n 's/^state=//p' <<<"$out")"
+serve 42 CLEAN '[{"name":"build","bucket":"pass"},{"name":"deploy","bucket":"pending"}]'
+before="$(date +%s)"
+# A <since> of 1 is decades ago: only a window restarted on the moved check keeps this call short of stalled.
+run 42 1 "$handed"
+since="$(sed -n 's/^since=//p' <<<"$out")"
+state="$(sed -n 's/^state=//p' <<<"$out")"
+restarted=no
+[[ "$since" =~ ^[0-9]+$ ]] && ((since >= before && since <= before + 60)) && restarted=yes
+moved=no
+[ -n "$handed" ] && [ -n "$state" ] && [ "$state" != "$handed" ] && moved=yes
+expect "a check that moved since the window began: the watch returns verdict=pending on its first line, not stalled" [ "${out%%$'\n'*}" = verdict=pending ]
+expect "a check that moved since the window began: the watch exits 0" [ "$rc" = 0 ]
+expect "a check that moved since the window began: the watch restarts the window at the current time, not at the <since> it was handed" [ "$restarted" = yes ]
+expect "a check that moved since the window began: the watch hands back a state other than the one it was handed" [ "$moved" = yes ]
+
 exit "$((fails > 0))"
