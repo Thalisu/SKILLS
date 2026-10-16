@@ -14,6 +14,7 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/../../../scripts/tests/lib.sh"
 skill="$here/../SKILL.md"
 pr="$here/../references/pr.md"
+reply="$here/../references/reply.md"
 fails=0
 
 router="$(passage_of "$skill" "## Router" "## ")"
@@ -236,6 +237,28 @@ carries_each "that paragraph hands a failure whose cause is the CLI not being lo
   "gh auth login" "step 1" "### 1" "the CLI's stop" "the CLI stop" "the login stop" -- \
   "instead" "rather than" "in place of" "wins" "takes precedence" "never this line" "not this line" \
   "never the line" "not the line" "never as" "not as"
+
+# reply.md asks every refusal at a door for a `Yours:` line, and the run writing the `pr` door's
+# refusals follows it: unless the exception lists those two stops beside the `ticket` door's, the
+# run adds a `Yours: direction:` line the stop never offers, and a grader fails it.
+echo "# reply.md / ## A refusal or a blocked run: the pr door's two stops hand over no choice, each with the one input it names"
+flat="$(paragraph_with "$reply" "Every blocked Reply, and every refusal at a door" | tr -s ' ')"
+expect "reply.md has the paragraph asking every refusal at a door for its line" test -n "$flat"
+carries "the \`ticket\` door's Build repository stops stay listed as exceptions" \
+  "verdict=elsewhere" "verdict=unbuildable"
+except_at="$(first_at "except" "Except" "other than" "save for" "apart from")"
+pr_door_at="$(first_at "\`pr\` door" "pr door" "\`pr\` Playbook" "pr Playbook" "Playbook: pr")"
+expect "the \`pr\` door is named among the exceptions" test "$except_at" -gt 0 -a "$pr_door_at" -gt "$except_at"
+carries_each "its first stop is a pull request the GitHub CLI cannot open, or closed or merged" \
+  "cannot open" "can't open" "could not be opened" "cannot be opened" "fails to open" "unopenable" -- \
+  "closed or merged" "merged or closed"
+carries_each "that stop's one input is another pull request or the same one reopened" \
+  "another pull request" "another one" "a different pull request" "another PR" -- \
+  "reopen"
+carries_each "its second stop is a GitHub CLI missing or not logged in, whose one input is \`gh auth login\`" \
+  "missing" "not installed" "absent" -- \
+  "not logged in" "logged out" "no login" "not authenticated" -- \
+  "gh auth login"
 
 [ "$fails" -eq 0 ] && exit 0
 exit 1

@@ -706,8 +706,10 @@ How much more it carries depends on where the run stopped:
 
 Every blocked Reply, and every refusal at a door, carries one line that says what the run hands the
 developer and why only the developer can give it, except the `ticket` door's stops on a Build
-repository (`verdict=elsewhere` and `verdict=unbuildable`), which hand over no choice: the first
-names the one repository to run in, the second the one input to fix. The line reads:
+repository (`verdict=elsewhere` and `verdict=unbuildable`) and the `pr` door's two stops, which hand
+over no choice: the first names the one repository to run in, the second the one input to fix; a
+pull request the GitHub CLI cannot open, or one closed or merged, names another pull request or the
+same one reopened, and a GitHub CLI missing or not logged in names `gh auth login`. The line reads:
 
 ```
 Yours: <class>: <the choice>
