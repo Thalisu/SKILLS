@@ -77,6 +77,22 @@ them: a rename that crosses files, an extract, a module moved.
 
 <examples>
 <example>
+`acompanhe esse PR https://github.com/acme/notes/pull/12`: `pr`, not `ticket`. The URL names a pull
+request, so its row above the issue rows takes it first.
+</example>
+<example>
+`follow pull request #12 to green`: `pr`, not `ticket`. The words name a pull request with its
+number, so number 12 is never read as an issue.
+</example>
+<example>
+`fix the CI of PR 12`: `pr`, not `bug-fix`. The fix is pushed to the pull request and followed to
+green, which a `bug-fix` run never does.
+</example>
+<example>
+`#12`: `ticket`, not `pr`. A bare number with no word naming a pull request is an issue number, as
+it always was.
+</example>
+<example>
 `the total shows 9.99 instead of 10.00 after a discount`: `bug-fix`, not `trivial`. A one-line
 defect is still a defect a test can tell.
 </example>

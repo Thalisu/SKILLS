@@ -113,5 +113,25 @@ carries_any "never off the session's wording" \
 carries_each "it is recorded as the Reply's Plan: line" \
   "Plan:" -- "Reply" "reply"
 
+# A session tells "PR 12" from issue 12, and a CI fix from a bug, by the examples under the table.
+# Each example opens on its backticked request, then `: ` and its backticked Playbook.
+routed_examples() { # the Router's <example> blocks: request, Playbook and the example flattened, tab-separated, one per line
+  awk '/^<example>$/ { on = 1; text = ""; next } /^<\/example>$/ { on = 0; print text; next } on { text = text " " $0 }' \
+    <<<"$router" | sed -E 's/^ +//' |
+    sed -nE 's/^`([^`]*)`: `([^`]*)`(.*)$/\1\t\2\t&/p'
+}
+examples="$(routed_examples)"
+echo "# SKILL.md / ## Router <examples>: one request for each pull request match, and a bare number to ticket"
+expect "an example routes a pull request URL to \`pr\`" test -n \
+  "$(awk -F'\t' '$2 == "pr" && tolower($1) ~ /https?:\/\/[^ ]*\/pull\/[0-9]+/' <<<"$examples")"
+expect "an example routes a pull request named with its number, with no URL, to \`pr\`" test -n \
+  "$(awk -F'\t' '$2 == "pr" && tolower($1) !~ /:\/\// && tolower($1) !~ /(^|[^a-z])(ci|checks?|pipeline)([^a-z]|$)/ && tolower($1) ~ /(^|[^a-z])(pr|pull request) *#?[0-9]+/' <<<"$examples")"
+ci_example="$(awk -F'\t' '$2 == "pr" && tolower($1) ~ /fix|conserta|corrig/ && $1 ~ /CI|[Cc]hecks|[Pp]ipeline/ && tolower($1) ~ /(^|[^a-z])(pr|pull request)/' <<<"$examples")"
+expect "an example routes a request to fix a pull request's CI to \`pr\`" test -n "$ci_example"
+flat="$ci_example"
+carries_any "that example names \`bug-fix\` as the near miss it is not" "not \`bug-fix\`" "never \`bug-fix\`"
+expect "an example routes a bare number, with no word naming a pull request, to \`ticket\`" test -n \
+  "$(awk -F'\t' '$2 == "ticket" && $1 ~ /^#?[0-9]+$/' <<<"$examples")"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1
