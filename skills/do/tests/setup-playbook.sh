@@ -64,10 +64,7 @@ flat="$(tr '\n' ' ' <<<"$router" | tr -s ' ')"
 carries "the router runs ticket-kind.sh on the Ticket's path" "bash <skill-dir>/scripts/ticket-kind.sh"
 before "the kind is read before the table" "ticket-kind.sh" "| The argument | Match |"
 
-# A row's Match is its last cell: the rows name other Playbooks in their prose, so only that cell
-# says where a row routes.
 rows="$(grep -E '^\| ' <<<"$router")"
-match_of() { awk -F'|' '{ m = $(NF - 1); gsub(/^ +| +$/, "", m); print m }' <<<"$1"; }
 setup_at=0
 ticket_at=0
 setup_row=""

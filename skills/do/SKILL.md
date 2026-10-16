@@ -53,6 +53,7 @@ costs one retyped request.
 |---|---|
 | empty | `Playbook: none`; one message asking for the task: a Ticket's path, an issue reference, or the request in words |
 | a path that does not exist | `Playbook: none`; one line saying so |
+| a pull request URL, whatever words sit around it, as in `acompanhe esse PR <url>` | `pr` |
 | a Ticket's path whose `ticket-kind.sh` output is `kind=setup` alone, with no `ambiguous=` line, or an issue reference whose `Kind` reads `setup`, read the way the tracker file describes. Any other kind, an ambiguous one included, goes on to the next row | `setup` |
 | a path to a Ticket, in the format of [ticket-format.md](../../.agents/formats/ticket-format.md), or an issue reference (a number or a URL) resolved through the tracker file, `docs/agents/issue-tracker.md` | `ticket` |
 | an issue reference the tracker's CLI cannot open | `Playbook: none`; one line saying so |
@@ -139,6 +140,7 @@ that Playbook. The reply reference is read last by every Playbook but `setup`, w
 
 - [ticket.md](references/ticket.md): the `ticket` Playbook, which links the shared mechanics and the reply reference.
 - [setup.md](references/setup.md): the `setup` Playbook, which runs a Setup ticket in the main checkout one step at a time. It links no other reference and writes its own messages.
+- [pr.md](references/pr.md): the `pr` Playbook, which follows one pull request: its steps, and the read-back of the pull request it follows.
 - [integrate.md](references/integrate.md): the `integrate` Playbook: its door script, its steps, and the link to the conflict loop it runs at every stop.
 - [bug-fix.md](references/bug-fix.md): the `bug-fix` Playbook, which links the shared mechanics and the reply reference.
 - [mechanics.md](references/mechanics.md): the shared mechanics the Playbooks that build in a worktree read through their steps: the worktree, the protected branch, the Ticket file, the reader, the delegates, the gate, the integration, the review, the verification, the close.

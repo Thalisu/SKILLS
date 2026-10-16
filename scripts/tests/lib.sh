@@ -167,6 +167,11 @@ flat_section() { # $1 file, $2 the section's heading line; the flattened section
 passage_of() { # $1 file, $2 the line the passage opens with, $3 the line past its end, both matched as a prefix; on stdout
   awk -v h="$2" -v e="$3" 'on && index($0, e) == 1 { exit } index($0, h) == 1 { on = 1 } on' "$1"
 }
+# A row's Match is its last cell: the rows name other Playbooks in their prose, so only that cell
+# says where a row routes.
+match_of() { # $1 one row of a Markdown table: its last cell, trimmed, on stdout
+  awk -F'|' '{ m = $(NF - 1); gsub(/^ +| +$/, "", m); print m }' <<<"$1"
+}
 # The numbered item that carries a phrase, from its own marker line to the one before the next
 # marker: a Playbook's steps and the reply's `## Run` items are renumbered whenever one is added or
 # absorbed into another, so a pin names what the item says and this finds where the item sits.
