@@ -53,7 +53,7 @@ costs one retyped request.
 |---|---|
 | empty | `Playbook: none`; one message asking for the task: a Ticket's path, an issue reference, or the request in words |
 | a path that does not exist | `Playbook: none`; one line saying so |
-| a pull request URL, whatever words sit around it, as in `acompanhe esse PR <url>`, or words naming a pull request with its number, as in `PR 12` or `pull request #12`, a request to fix that pull request's CI included. Above `bug-fix`, since that run never pushes to the pull request nor follows it to green | `pr` |
+| a pull request URL, whatever words sit around it, as in `acompanhe esse PR <url>`, or words naming a pull request with its number, as in `PR 12` or `pull request #12`, a request to fix that pull request's CI included. A bare number (`12`, `#12`) with no word naming a pull request goes on to the rows below. Above `bug-fix`, since that run never pushes to the pull request nor follows it to green | `pr` |
 | a Ticket's path whose `ticket-kind.sh` output is `kind=setup` alone, with no `ambiguous=` line, or an issue reference whose `Kind` reads `setup`, read the way the tracker file describes. Any other kind, an ambiguous one included, goes on to the next row | `setup` |
 | a path to a Ticket, in the format of [ticket-format.md](../../.agents/formats/ticket-format.md), or an issue reference (a number or a URL) resolved through the tracker file, `docs/agents/issue-tracker.md` | `ticket` |
 | an issue reference the tracker's CLI cannot open | `Playbook: none`; one line saying so |

@@ -1,0 +1,67 @@
+name: bare-number-routes-to-ticket
+tags: [router, pr]
+runs: 2
+max_turns: 6
+timeout_seconds: 300
+allowed_tools: [Bash, Read, Edit, Write]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # A bare number with no word naming a pull request, with a tracker file in Local Markdown and the
+    # Ticket it numbers on disk: the `pr` row above `ticket` leaves the number to the rows below, so
+    # the run opens on `ticket` as it does today.
+    set -e
+    mkdir -p src docs/agents .scratch/archive-notes/issues
+    cat > src/notes.js <<'JS'
+    const notes = [];
+
+    export function create(title) {
+      const note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+    JS
+    cat > docs/agents/issue-tracker.md <<'MD'
+    # Issue tracker: Local Markdown
+
+    Issues and specs for this repo live as markdown files in `.scratch/`.
+
+    - One feature per directory: `.scratch/<feature-slug>/`
+    - The spec is `.scratch/<feature-slug>/spec.md`
+    - Implementation issues are one file per ticket at `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01`
+    - Triage state is a `Status:` line near the top of each issue file
+    MD
+    cat > .scratch/archive-notes/spec.md <<'MD'
+    # Archive notes
+
+    Status: ready-for-agent
+
+    ## Problem Statement
+
+    Notes pile up in the list and there is no way to put one aside without deleting it.
+
+    ## Solution
+
+    A note can be archived. Archived notes leave the list.
+
+    ## User Stories
+
+    1. As a writer, I want to archive a note, so that it leaves my list without being deleted
+    MD
+    cat > .scratch/archive-notes/issues/01-archive-a-note.md <<'MD'
+    # 01: Archive a note
+
+    **What to build:** Archive a note. The writer picks Archive on a note; the note leaves the list.
+
+    **Blocked by:** None (can start immediately).
+
+    **Status:** ready-for-agent
+
+    - [ ] Picking Archive removes the note from the list
+
+    ## Evidence
+    MD
+    printf '.scratch/\n' > .gitignore
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"

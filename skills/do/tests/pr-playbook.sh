@@ -79,5 +79,16 @@ carries_each "the pr row matches a request to fix that pull request's CI, as in 
   "CI" "checks" "pipeline"
 expect "the pr row sits above the bug-fix row" test "$pr_at" -gt 0 -a "$bug_fix_at" -gt "$pr_at"
 
+# The pr row sits above the ticket row, so a pr row that reads "its number" loosely steals the issue
+# number a developer starts a Ticket run with.
+echo "# SKILL.md / ## Router: a bare number, with no word naming a pull request, still routes to the ticket Playbook"
+flat="$(argument_of "$pr_row")"
+carries_each "the pr row leaves a bare number, as in \`12\` or \`#12\`, to the rows below it" \
+  "bare number" "number alone" "number on its own" "number by itself" "lone number" \
+  "number with no word" "number without a word" -- \
+  "next row" "rows below" "row below" "goes on" "falls through" "falls to" "left to"
+flat="$(argument_of "$(sed -n "${ticket_at}p" <<<"$rows")")"
+carries_any "the ticket row below it still takes an issue number" "number"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1
