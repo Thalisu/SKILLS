@@ -333,5 +333,17 @@ carries_each "with no \`Yours:\` line, never under \`outward\`, as a landed run'
   "outward" -- \
   "push"
 
+# A run that merges lands the pull request on its base with nobody having decided to. `### 4. Reply`
+# already names `gh pr merge <n>`, so the words are read off the bullet of `## What this run never
+# does` that names it, not the whole file.
+echo "# pr.md / ## What this run never does: the run never runs gh pr merge, the merge is the developer's, named as the next step"
+never="$(passage_of "$pr" "## What this run never does" "## " 2>/dev/null)"
+expect "pr.md has a section \`## What this run never does\`" test -n "$never"
+flat="$(item_holding <(printf '%s\n' "$never") '- ' "gh pr merge" | tr '\n' ' ' | tr -s ' ')"
+expect "a bullet of that section names \`gh pr merge\`" test -n "$flat"
+carries_any "the merge is the developer's call" \
+  "developer's" "the developer merges" "the developer decides" "left to the developer" "up to the developer"
+carries_any "named as the next step" "next step" "Next step"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1

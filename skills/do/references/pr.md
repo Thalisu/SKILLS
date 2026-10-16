@@ -4,6 +4,11 @@ The developer types `/do` with a pull request: its URL, in whatever words sit ar
 naming a pull request with its number, a request to fix its CI included. The run
 follows that one pull request, and the developer reads it afterwards, through the Reply.
 
+## What this run never does
+
+- Merge the pull request: the run never runs `gh pr merge`, not even on a green run. The merge is
+  the developer's call, named as the next step.
+
 ## The message
 
 The run is one message, written by [reply.md](reply.md). It opens with `Playbook: pr` as plain text
