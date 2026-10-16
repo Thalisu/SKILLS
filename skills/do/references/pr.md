@@ -1,7 +1,8 @@
 # Playbook: pr
 
 The developer types `/do` with a pull request: its URL, in whatever words sit around it, or words
-naming a pull request with its number, a request to fix its CI included. The run
+naming a pull request with its number, a request to fix its CI included, or words asking for a pull
+request from one branch into another. The run
 follows that one pull request, and the developer reads it afterwards, through the Reply.
 
 ## What this run never does
@@ -20,7 +21,7 @@ on its first line, so a request the router misread shows at once, before anythin
 
 ```
 pr:
-1. pull request: its URL or its number, taken from the request as written, the GitHub CLI logged in
+1. pull request: its URL or its number, or a branch pair, taken from the request as written, the GitHub CLI logged in
 2. read-back: #<n>, its head into its base, off the GitHub CLI's answer
 3. watch: pr-watch.sh in the foreground, called again on every pending verdict until it settles
 4. reply: by the reply reference
@@ -31,6 +32,11 @@ pr:
 The run takes the pull request from the request as the developer wrote it: the URL, or the number
 the words name. It passes that to the GitHub CLI as it read it and never a pull request it guessed,
 since a guessed number that exists answers like the right one.
+
+Words asking for a pull request from one branch into another name a branch pair, and the run takes
+the pair from the request as written: the head is the branch the pull request comes from and the
+base is the branch it goes into, so in `de dev para prod`, as in `from dev into prod`, `dev` is the
+head and `prod` the base.
 
 Before it reads the pull request, the run asks the GitHub CLI whether it is logged in, with
 `gh auth status`. When that check fails, the run stops: the Reply opens with `Playbook: pr` on its
@@ -63,6 +69,10 @@ When gh opens the pull request and its `state` reads `CLOSED` or `MERGED`, the r
 way: the Reply opens with `Playbook: pr` on its first line, then one line saying the pull request is
 closed or merged, with no `Yours:` line, since such a pull request has no head left to follow to
 green. The run follows nothing: no watch, no worktree, no push, no file written.
+
+For a branch pair the read-back is the same line, off the GitHub CLI's answer for the pull request
+the run follows, its `headRefName` into its `baseRefName`, and never off the request's wording: a
+pair the session read backwards shows as `prod` into `dev` on the Reply's first lines.
 
 Done when the line is recorded for the `Plan:` line and the pull request reads `OPEN`.
 

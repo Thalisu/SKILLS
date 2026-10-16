@@ -563,5 +563,37 @@ carries_any "joined with \`, \`" \
   "joined with \`, \`" "joined by \`, \`" "separated by \`, \`" "joined with a comma" "joined by a comma" \
   "comma-separated" "separated by a comma" "comma and a space"
 
+# A session that reads `de dev para prod` backwards follows a pull request from `prod` into `dev`,
+# and a Plan: line built from the request's own wording repeats that misreading: only the pull
+# request gh answers for names the branches the run actually follows, so the developer sees the
+# reversal on the Reply's first lines.
+echo "# pr.md / ## Steps, ### 1. Pull request and ### 2. Read-back: a branch pair is taken head first, as the branch the pull request comes from, and read back off gh's answer, never off the request's wording"
+steps="$(blocks_of "$pr" "## Steps" 2>/dev/null)"
+flat="$(grep -E '^1\. ' <<<"$steps")"
+carries_any "step 1 of the checklist takes a branch pair beside the URL or the number" \
+  "branch pair" "pair of branches" "two branches" "head and base" "head and its base"
+pair_keys=("branch pair" "pair of branches" "two branches")
+flat="$(piece_in="$(passage_of "$pr" "### 1. Pull request" "##" 2>/dev/null)" piece_with "${pair_keys[@]}")"
+expect "a paragraph of ### 1. Pull request takes a branch pair from the request" test -n "$flat"
+affirms "the head is the branch the pull request comes from" \
+  "head" -- "comes from" "come from" "it is from" "opened from"
+affirms "the base is the branch it goes into" \
+  "base" -- "goes into" "go into" "merges into" "merged into" "lands in"
+carries_any "in \`de dev para prod\` or \`from dev into prod\`" \
+  "de dev para prod" "from dev into prod"
+carries_any "\`dev\` is the head" \
+  "\`dev\` is the head" "\`dev\` the head" "\`dev\` is its head" "head \`dev\`" "head is \`dev\`"
+carries_any "\`prod\` the base" \
+  "\`prod\` is the base" "\`prod\` the base" "\`prod\` its base" "base \`prod\`" "base is \`prod\`"
+flat="$(piece_in="$(passage_of "$pr" "### 2. Read-back" "##" 2>/dev/null)" piece_with "${pair_keys[@]}")"
+expect "a paragraph of ### 2. Read-back takes up a branch pair" test -n "$flat"
+carries_each "its read-back is gh's answer for the pull request the run follows, its headRefName into its baseRefName" \
+  "headRefName" -- "baseRefName" -- "into"
+carries_any "never off the request's wording" \
+  "never off the session's wording" "never the session's wording" "never from the session's wording" \
+  "not off the session's wording" "not the session's wording" "not from the session's wording" \
+  "never off the request's wording" "never the request's wording" "never from the request's wording" \
+  "not off the request's wording" "not the request's wording" "not from the request's wording"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1
