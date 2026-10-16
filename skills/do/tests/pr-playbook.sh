@@ -354,6 +354,7 @@ carries_any "named as the next step" "next step" "Next step"
 echo "# pr.md / ### 3. Watch: the run routes on the script's verdict line alone; another verdict word, or a non-zero exit, stops it on one line quoting it, nothing followed"
 watch="$(passage_of "$pr" "### 3. Watch" "##" 2>/dev/null)"
 piece_with() { # $1.. fixed strings: the first bullet or blank-line paragraph of $watch carrying any of them, flattened, on stdout
+  # Optional: piece_in set on the call's own line reads another step's passage in place of $watch.
   piece_keys="$(printf '%s\n' "$@")" awk '
     function flush(i) {
       for (i = 1; i <= n; i++) if (!done && keys[i] != "" && index(piece, keys[i])) { print piece; done = 1 }
@@ -363,7 +364,7 @@ piece_with() { # $1.. fixed strings: the first bullet or blank-line paragraph of
     /^ *$/ || /^- / { flush() }
     !/^ *$/ { piece = piece " " $0 }
     END { flush() }
-  ' <<<"$watch" | tr -s ' '
+  ' <<<"${piece_in:-$watch}" | tr -s ' '
 }
 flat="$(piece_with "gh pr checks")"
 expect "a bullet or paragraph of the step names \`gh pr checks\`" test -n "$flat"
@@ -431,6 +432,49 @@ carries_any "never as a section of the Reply" \
   "never in the Reply" "not in the Reply" "never part of the message" "not part of the message" \
   "never a part of the message" "never a section of the message" "no section of the Reply" \
   "no part of the Reply" "never the Reply's"
+
+# The developer whose pull request waits on a required review has nothing to fix and nothing to
+# choose: a run that stops on that verdict reads as broken, a `Yours:` line reads as a choice, and a
+# run that merges takes the approval out of their hands. Step 4 already says "every check is green",
+# "no `Yours:`" and "gh pr merge <n>" for a green watch, so each of those is read off the piece of the
+# step that names `awaiting-approval`, and item 10's off the sentence that names the approval.
+echo "# pr.md / ### 3. Watch and ### 4. Reply, reply.md item 10: a watch awaiting a required approval ends on a Reply saying only the approval is missing, no Yours:, gh pr merge <n> never run"
+flat="$(piece_with "verdict=awaiting-approval")"
+expect "a bullet or paragraph of the watch step names \`verdict=awaiting-approval\`" test -n "$flat"
+carries_any "it hands on to step 4, the Reply, as a green watch does" \
+  "### 4. Reply" "step 4" "Reply step" "to the Reply" "on to the Reply"
+reply_step="$(passage_of "$pr" "### 4. Reply" "##" 2>/dev/null)"
+flat="$(piece_in="$reply_step" piece_with "awaiting-approval")"
+expect "a bullet or paragraph of the Reply step names \`awaiting-approval\`" test -n "$flat"
+carries_each "it says every check is green" \
+  "every check" "all checks" "each check" "all its checks" "all of its checks" "<n> checks" -- \
+  "green" "passed"
+carries_each "and that only a required approval is missing" \
+  "only" -- \
+  "required approval" "required review" "approval required" "review required" "required approving review" -- \
+  "missing" "pending" "outstanding" "lacks" "lacking" "still needed" "not yet given" "yet to be given"
+carries_any "with no \`Yours:\` line" \
+  "no \`Yours:\`" "No \`Yours:\`" "without a \`Yours:\`" "without the \`Yours:\`" "never a \`Yours:\`" \
+  "not a \`Yours:\`" "no Yours:" "without a Yours:"
+carries_each "its Next step line names \`gh pr merge <n>\`" \
+  "Next step" -- "gh pr merge <n>"
+flat="${flat#*Next step}"
+approval_at="$(first_at "approval" "approve" "review")"
+merge_at="$(first_at "gh pr merge <n>")"
+expect "naming the approval before \`gh pr merge <n>\`" test "$approval_at" -gt 0 -a "$merge_at" -gt "$approval_at"
+carries_any "which the run never runs" \
+  "never runs" "does not run" "doesn't run" "never run" "not run" "never merges" "does not merge" \
+  "doesn't merge" "never merge" "merges nothing"
+item="$(item_holding <(passage_of "$reply" "## Sections" "## ") '[0-9]+\.' "10. **Next step.**" | tr '\n' ' ' | tr -s ' ')"
+flat="$(sed 's/\. /.\n/g' <<<"$item" | awk 'index($0, "approval")' | tr '\n' ' ')"
+expect "a sentence of reply.md's item 10 names a \`pr\` run missing an approval" test -n "$flat"
+carries_any "as a watch that read \`awaiting-approval\`" \
+  "awaiting-approval" "approval missing" "approval is missing" "missing approval" "approval pending" \
+  "approval is pending"
+carries "that sentence names \`gh pr merge <n>\`" "gh pr merge <n>"
+carries_any "under the same no-\`Yours:\` rule" \
+  "no \`Yours:\`" "No \`Yours:\`" "without a \`Yours:\`" "never a \`Yours:\`" "not a \`Yours:\`" \
+  "same rule" "same way"
 
 [ "$fails" -eq 0 ] && exit 0
 exit 1

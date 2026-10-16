@@ -85,6 +85,8 @@ the checks: a display read mid-run can show green while a check is still running
   that ends its turn here stands still until they come back.
 - `verdict=green`: every check passed and the pull request is mergeable. The run goes on to step 4,
   the Reply.
+- `verdict=awaiting-approval`: every check passed and only a required approval blocks the merge. The
+  run goes on to step 4, the Reply, as on green: the wait is the developer's to clear, not a stop.
 - Any other verdict word: the run stops with one line quoting that verdict as printed, and follows
   nothing.
 - A non-zero exit of the script: the run stops with one line quoting the script's stderr line, with
@@ -93,7 +95,8 @@ the checks: a display read mid-run can show green while a check is still running
 The verdict line of each call, in order, is recorded for the Run report's Run section, which is
 written under `--auto` only, per [reply.md](reply.md): the round is never a section of the Reply.
 
-Done when the watch has printed `verdict=green`, after as many `pending` calls as the checks took.
+Done when the watch has printed `verdict=green` or `verdict=awaiting-approval`, after as many
+`pending` calls as the checks took.
 
 ### 4. Reply
 
@@ -107,3 +110,8 @@ the whole message, and a green watch adds no part of its own:
 - The **Next step** line ends with `gh pr merge <n>`, `<n>` the number step 2 read back. The run
   never runs it and never names it under `outward`, the way a landed run names the push it never
   makes, per the Next step item of [reply.md](reply.md).
+- On `verdict=awaiting-approval`, **For whom** says every check is green, with the same count, and
+  that only a required approval is missing before the pull request can merge; no `Yours:` line,
+  since the approval is the developer's to get and there is no choice to hand over; and the
+  **Next step** line names the approval, then `gh pr merge <n>` once it is given, which the run
+  never runs and never names under `outward`.

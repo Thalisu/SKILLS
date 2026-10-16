@@ -550,7 +550,9 @@ of the message: For whom, Pending debt and Next step, written the same way in bo
     watch read green, every check passed and the pull request mergeable, ends its line with
     `gh pr merge <n>`, its pull request's number, under that same rule as a landed run's push: the
     run never runs it, its Reply carries no `Yours:` line, and the merge is never named under
-    `outward`.
+    `outward`. A `pr` run whose watch read `awaiting-approval`, every check passed and only a
+    required approval missing, names that approval and then `gh pr merge <n>` on its line, under
+    the same rule: no `Yours:` line, the merge never run and never named under `outward`.
 
 ## A refusal or a blocked run
 
