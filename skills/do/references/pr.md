@@ -75,7 +75,9 @@ bash <skill-dir>/scripts/pr-watch.sh <pr>
 ```
 
 `<pr>` is the URL or the number step 1 took, passed as it stands. The script blocks on the checks
-for about nine minutes at most, and its first line is its verdict:
+for about nine minutes at most, and its first line is its verdict. The run routes on that line
+alone and never on its own reading of `gh pr checks` or `gh pr view`, which it never runs to judge
+the checks: a display read mid-run can show green while a check is still running.
 
 - `verdict=pending`: the checks are still running. The run runs the same line again at once, in
   the foreground, without ending its turn: never in the background, never after a sleep of its own,
@@ -83,6 +85,10 @@ for about nine minutes at most, and its first line is its verdict:
   that ends its turn here stands still until they come back.
 - `verdict=green`: every check passed and the pull request is mergeable. The run goes on to step 4,
   the Reply.
+- Any other verdict word: the run stops with one line quoting that verdict as printed, and follows
+  nothing.
+- A non-zero exit of the script: the run stops with one line quoting the script's stderr line, with
+  no `Yours:` line, and follows nothing.
 
 Done when the watch has printed `verdict=green`, after as many `pending` calls as the checks took.
 

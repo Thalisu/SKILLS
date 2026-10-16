@@ -345,5 +345,60 @@ carries_any "the merge is the developer's call" \
   "developer's" "the developer merges" "the developer decides" "left to the developer" "up to the developer"
 carries_any "named as the next step" "next step" "Next step"
 
+# A run that judges the checks off `gh pr checks` or `gh pr view` itself can call green a pull
+# request whose checks are still running, and one that improvises on a verdict word it does not know
+# (later Tickets add words) or on a watch that failed reports a state nobody computed. The step
+# already says "its first line is its verdict" and names `verdict=pending` and `verdict=green`, so
+# each guarantee is read off the bullet or paragraph that carries it, never the whole step: the two
+# stops carry the same words, and only their own piece tells one from the other.
+echo "# pr.md / ### 3. Watch: the run routes on the script's verdict line alone; another verdict word, or a non-zero exit, stops it on one line quoting it, nothing followed"
+watch="$(passage_of "$pr" "### 3. Watch" "##" 2>/dev/null)"
+piece_with() { # $1.. fixed strings: the first bullet or blank-line paragraph of $watch carrying any of them, flattened, on stdout
+  piece_keys="$(printf '%s\n' "$@")" awk '
+    function flush(i) {
+      for (i = 1; i <= n; i++) if (!done && keys[i] != "" && index(piece, keys[i])) { print piece; done = 1 }
+      piece = ""
+    }
+    BEGIN { n = split(ENVIRON["piece_keys"], keys, "\n") }
+    /^ *$/ || /^- / { flush() }
+    !/^ *$/ { piece = piece " " $0 }
+    END { flush() }
+  ' <<<"$watch" | tr -s ' '
+}
+flat="$(piece_with "gh pr checks")"
+expect "a bullet or paragraph of the step names \`gh pr checks\`" test -n "$flat"
+carries "and \`gh pr view\` beside it" "gh pr view"
+carries_any "as what the run never judges the checks off itself" \
+  "never the run's own reading" "not the run's own reading" "never its own reading" "not its own reading" \
+  "never off its own reading" "never calls" "does not call" "doesn't call" "never runs" "does not run" \
+  "doesn't run" "never reads" "does not read" "doesn't read" "never judges" "does not judge"
+carries_each "the verdict being the script's first line" \
+  "verdict" -- "first line" "verdict line" "line the script prints" "script's line"
+flat="$(piece_with "any other verdict" "Any other verdict" "other verdict" "unknown verdict" \
+  "verdict it does not know" "verdict word it does not know" "another verdict" "any other \`verdict=" \
+  "Any other \`verdict=" "any other word" "Any other word")"
+expect "a bullet or paragraph of the step takes a verdict word other than pending and green" test -n "$flat"
+carries_any "it stops the run" "stops" "stop" "ends the run" "the run ends"
+carries_each "on one line quoting that verdict" \
+  "one line" "One line" "single line" "a line quoting" "a line that quotes" -- \
+  "quoting" "quotes" "quoted" "verbatim" "as printed"
+carries_any "and follows nothing" \
+  "follows nothing" "nothing is followed" "nothing followed" "follows none" "follows no step" \
+  "no step after" "no later step" "no further step" "runs nothing else" "nothing else runs" "does nothing else"
+flat="$(piece_with "non-zero" "Non-zero" "nonzero" "exits with an error" "exit status other than 0" \
+  "exit code other than 0" "exits other than 0")"
+expect "a bullet or paragraph of the step takes a non-zero exit of the script" test -n "$flat"
+carries_any "it stops the run" "stops" "stop" "ends the run" "the run ends"
+carries_each "on one line quoting the script's stderr line" \
+  "one line" "One line" "single line" "a line quoting" "a line that quotes" -- \
+  "stderr" "standard error" -- \
+  "quoting" "quotes" "quoted" "verbatim" "as printed"
+carries_any "with no \`Yours:\` line" \
+  "no \`Yours:\`" "No \`Yours:\`" "without a \`Yours:\`" "without the \`Yours:\`" "never a \`Yours:\`" \
+  "not a \`Yours:\`" "no Yours:" "without a Yours:"
+carries_any "and follows nothing" \
+  "follows nothing" "nothing is followed" "nothing followed" "follows none" "follows no step" \
+  "no step after" "no later step" "no further step" "runs nothing else" "nothing else runs" "does nothing else"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1
