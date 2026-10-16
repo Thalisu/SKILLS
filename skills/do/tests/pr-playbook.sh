@@ -1310,5 +1310,42 @@ carries_each "the commit pushed or what its fixer returned" \
 carries_each "and the verdict the watch read after the push" \
   "verdict" -- "after the push"
 
+# A pushed round moves the remote head past the developer's own checkout of it: a Next step naming
+# only the merge leaves their next commit on a stale head, whose push the remote then refuses. The
+# green-watch bullet already names `gh pr merge <n>` and `outward`, so the words are read off the
+# piece of the Reply step naming the pull, and off the sentence of item 10 naming it and the next.
+echo "# pr.md / ### 5. Reply and reply.md item 10: a pr run that pushed names git pull --ff-only origin <head> for the developer's checkout ahead of gh pr merge <n>, runs neither, names neither under outward"
+pull_line="git pull --ff-only origin <head>"
+reply_step="$(passage_of "$pr" "### 5. Reply" "##" 2>/dev/null)"
+flat="$(piece_in="$reply_step" piece_with "$pull_line")"
+expect "a bullet or paragraph of the Reply step names \`$pull_line\`" test -n "$flat"
+carries_any "on a run that pushed" "pushed" "push"
+carries_each "for the developer's checkout of \`<head>\`" \
+  "developer" -- "checkout" "local" "clone" "working tree" -- "<head>"
+carries_each "on the **Next step** line, with \`gh pr merge <n>\`" "Next step" -- "gh pr merge <n>"
+before "the pull comes before the merge" "$pull_line" "gh pr merge <n>"
+carries_any "the run runs neither" \
+  "never runs" "does not run" "doesn't run" "never run" "runs neither" "runs none" "not run" \
+  "runs nothing" "never runs either"
+carries_each "nor names either under \`outward\`" \
+  "outward" -- \
+  "never names them under" "never names either under" "never names it under" "never names either" \
+  "never named under" "not named under" "nor names them under" "nor names either" "nor under" \
+  "never under \`outward\`" "neither under" "never as \`outward\`" "never an \`outward\`"
+item="$(item_holding <(passage_of "$reply" "## Sections" "## ") '[0-9]+\.' "10. **Next step.**" | tr '\n' ' ' | tr -s ' ')"
+expect "reply.md's Sections carry item 10, Next step" test -n "$item"
+flat="$(sed 's/\. /.\n/g' <<<"$item" | awk 'index($0, "git pull --ff-only") { print; getline; print; exit }' | tr '\n' ' ')"
+expect "a sentence of item 10 names \`git pull --ff-only\`" test -n "$flat"
+carries_each "for a \`pr\` run that pushed" "\`pr\`" "pr run" -- "push"
+carries "naming \`$pull_line\`" "$pull_line"
+carries_each "the pull of the developer's local head" "developer" -- "local" "checkout" "clone"
+carries "then \`gh pr merge <n>\`" "gh pr merge <n>"
+before "the pull first, the merge after it" "$pull_line" "gh pr merge <n>"
+carries_each "the push reported on For whom's round lines" "For whom" -- "round line" "round lines"
+carries_each "never an \`outward\` hand-over" \
+  "outward" -- \
+  "never an \`outward\`" "never \`outward\`" "never under \`outward\`" "not an \`outward\`" \
+  "never named under" "never names it under" "no \`outward\`" "never an outward" "not under \`outward\`"
+carries "since ADR 0086 authorised it" "ADR 0086"
 [ "$fails" -eq 0 ] && exit 0
 exit 1

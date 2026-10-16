@@ -306,6 +306,9 @@ the whole message, and a green watch adds no part of its own:
       round 1: <check> red; do-pr-fixer on <fixer branch>: <its return line>; nothing pushed for it
       round 1: <a `kept` line, as fix-worktrees.sh printed it>
       round 1: after the push the watch read <verdict word>
+- When the run pushed, the **Next step** line names `git pull --ff-only origin <head>` on the
+  developer's checkout of `<head>`, then `gh pr merge <n>`. The run never runs either one, and
+  never names either under `outward`.
 - No `Yours:` line: a green run hands nothing over.
 - The **Next step** line ends with `gh pr merge <n>`, `<n>` the number step 2 read back. The run
   never runs it and never names it under `outward`, the way a landed run names the push it never

@@ -556,6 +556,10 @@ of the message: For whom, Pending debt and Next step, written the same way in bo
     `outward`. A `pr` run whose watch read `awaiting-approval`, every check passed and only a
     required approval missing, names that approval and then `gh pr merge <n>` on its line, under
     the same rule: no `Yours:` line, the merge never run and never named under `outward`.
+    A `pr` run that pushed a round names the pull of the developer's local head first,
+    `git pull --ff-only origin <head>` on their checkout of `<head>`, then `gh pr merge <n>`. Its
+    push is reported on For whom's round lines and is never an `outward` hand-over, since ADR 0086
+    authorised it.
 
 ## A refusal or a blocked run
 
