@@ -119,6 +119,19 @@ same "no check pending and some failed: the watch returns verdict=red, the head 
   "verdict=red"$'\n'"head=feature/login"$'\n'"sha=3f2a9c1d8e7b6a5f4e3d2c1b0a9f8e7d6c5b4a39"$'\n'"red=https://github.com/o/r/actions/runs/7/job/99 test (ubuntu-latest, 3.11)"$'\n'"red=https://github.com/o/r/actions/runs/7/job/97 build"
 expect "a pull request with failed checks is a verdict printed: the watch exits 0" [ "$rc" = 0 ]
 
+serve 42 DIRTY '[{"name":"build","bucket":"fail","link":"https://github.com/o/r/actions/runs/7/job/97"},{"name":"lint","bucket":"pass","link":"https://github.com/o/r/actions/runs/7/job/98"}]'
+echo '{"mergeStateStatus":"DIRTY","mergeable":"CONFLICTING","headRefName":"feature/login","headRefOid":"3f2a9c1d8e7b6a5f4e3d2c1b0a9f8e7d6c5b4a39","baseRefName":"main"}' >"$GH_FAKE/view"
+run 42
+same "a pull request that conflicts with its base while a check failed: the watch returns verdict=conflict with its head and base, not verdict=red" \
+  "verdict=conflict"$'\n'"head=feature/login"$'\n'"base=main"
+expect "a conflict found over a failed check is a verdict printed: the watch exits 0" [ "$rc" = 0 ]
+
+serve 42 UNSTABLE '[{"name":"build","bucket":"cancel","link":"https://github.com/o/r/actions/runs/7/job/97"},{"name":"lint","bucket":"pass","link":"https://github.com/o/r/actions/runs/7/job/98"}]'
+echo '{"mergeStateStatus":"UNSTABLE","mergeable":"MERGEABLE","headRefName":"feature/login","headRefOid":"3f2a9c1d8e7b6a5f4e3d2c1b0a9f8e7d6c5b4a39","baseRefName":"main"}' >"$GH_FAKE/view"
+run 42
+same "a cancelled check with none failed and none pending: the watch prints no verdict, red or any other" ""
+expect "a cancelled check with none failed and none pending is a settled state no verdict covers: the watch exits 3" [ "$rc" = 3 ]
+
 serve 42 CLEAN '[{"name":"lint","bucket":"pass"},{"name":"build (ubuntu-latest, 3.11)","bucket":"pending"},{"name":"deploy","bucket":"pending"}]'
 run 42
 state="$(sed -n 's/^state=//p' <<<"$out")"
