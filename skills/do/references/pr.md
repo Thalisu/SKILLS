@@ -47,7 +47,19 @@ logging in is what follows installing it. The run follows nothing: no read-back,
 worktree, no push, no file written. The check comes before the read-back so that a logged-out CLI
 never reads as a pull request that could not be opened.
 
-Done when the run holds the URL or the number and the GitHub CLI answered that it is logged in.
+For a branch pair, once the GitHub CLI answered that it is logged in, the run first looks for the
+pair's open pull request before it opens anything, with
+`gh pr list --head <head> --base <base> --state open --json number,headRefName,baseRefName`, so a
+repeated request, or one a teammate already answered, never ends with two pull requests for one
+pair.
+
+When a pull request is already open for the pair, the run takes its number from that answer and
+follows it by its number from the read-back on, as a pull request named by number is followed. It
+opens nothing and never runs `gh pr create`. The Reply says the pull request was already open, on
+its `Plan:` line beside the read-back.
+
+Done when the run holds the URL or the number, a branch pair's included, and the GitHub CLI
+answered that it is logged in.
 
 ### 2. Read-back
 

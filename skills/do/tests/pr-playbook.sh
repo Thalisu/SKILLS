@@ -595,5 +595,38 @@ carries_any "never off the request's wording" \
   "never off the request's wording" "never the request's wording" "never from the request's wording" \
   "not off the request's wording" "not the request's wording" "not from the request's wording"
 
+# A developer who repeats the request, or whose teammate opened the pull request first, ends with two
+# pull requests for one pair and reviews split across them when the run opens one without looking.
+# Step 1's pair paragraph and its logged-in stop already carry `number`, `follows nothing` and the
+# Reply, so the lookup is read off the piece naming `gh pr list` and the follow off the piece saying
+# the pull request was already open.
+echo "# pr.md / ### 1. Pull request: a branch pair whose pull request is already open is followed by its number, nothing opened, the Reply saying it was already open"
+pull_request="$(passage_of "$pr" "### 1. Pull request" "##" 2>/dev/null)"
+flat="$(piece_in="$pull_request" piece_with "gh pr list")"
+expect "a bullet or paragraph of ### 1. Pull request names \`gh pr list\`" test -n "$flat"
+carries_any "for a branch pair" "branch pair" "the pair" "pair of branches"
+carries "listed by the pair's head and base" "--head <head>" "--base <base>"
+carries_any "in the open state" "--state open" "open pull request" "open state" "an open one"
+carries_any "before the run opens anything" \
+  "before it opens" "before opening" "before the run opens" "before anything is opened" \
+  "before it creates" "before creating" "first looks" "first asks" "first lists"
+flat="$(piece_in="$pull_request" piece_with "already open" "already opened" "already exists" \
+  "already existed" "was open")"
+expect "a bullet or paragraph of ### 1. Pull request takes a pull request already open for the pair" test -n "$flat"
+affirms "the run takes its number" \
+  "number" -- "takes" "holds" "keeps" "reads" "uses"
+affirms "and follows it as a pull request named by its number" \
+  "number" -- "follow"
+carries_any "from the read-back on" "read-back" "step 2" "### 2"
+carries_any "opening nothing" \
+  "opens nothing" "opens none" "opens no " "never opens" "does not open" "doesn't open" \
+  "nothing is opened" "no pull request is opened" "no new pull request" "no second pull request"
+carries_any "never running \`gh pr create\`" \
+  "never runs \`gh pr create\`" "never \`gh pr create\`" "no \`gh pr create\`" \
+  "does not run \`gh pr create\`" "doesn't run \`gh pr create\`" "without \`gh pr create\`" \
+  "never calls \`gh pr create\`" "not \`gh pr create\`" "never running \`gh pr create\`"
+carries_each "the Reply says it was already open" \
+  "Reply" -- "already open" "already opened" "already exists" "already existed" "was open"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1

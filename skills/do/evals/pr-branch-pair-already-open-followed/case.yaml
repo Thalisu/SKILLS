@@ -1,0 +1,56 @@
+name: pr-branch-pair-already-open-followed
+tags: [pr, pair, watch, reply]
+runs: 2
+max_turns: 14
+timeout_seconds: 300
+allowed_tools: [Bash, Read, Edit, Write]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # A pull request already open from `dev` into `prod`: a fake gh, first on the session's PATH
+    # through the project's settings, answers the CLI check, a `pr list` with pull request #7 open
+    # for the pair, the read-back and every `pr checks` read with both checks passing. It answers
+    # `pr create` and `pr merge` too, so a run that opens a second pull request or merges is caught
+    # in .fake/gh.log, where every gh call is logged.
+    set -e
+    mkdir -p src .fake/bin .claude
+    cat > src/notes.js <<'JS'
+    const notes = [];
+
+    export function create(title) {
+      const note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+    JS
+    cat > .fake/bin/gh <<'SH'
+    #!/usr/bin/env bash
+    printf '%s\n' "$*" >> "$GH_FAKE/gh.log"
+    expr=
+    for ((i = 1; i <= $#; i++)); do
+      [ "${!i}" = --jq ] && { j=$((i + 1)); expr="${!j}"; }
+    done
+    answer() { if [ -n "$expr" ]; then jq -r "$expr"; else cat; fi; }
+    case "$1 $2" in
+      "auth status") echo "Logged in to github.com account fixture"; exit 0 ;;
+      "pr list")
+        echo '[{"number":7,"headRefName":"dev","baseRefName":"prod","state":"OPEN","url":"https://github.com/acme/notes/pull/7"}]' | answer ;;
+      "pr view")
+        echo '{"number":7,"headRefName":"dev","baseRefName":"prod","state":"OPEN","mergeStateStatus":"CLEAN","mergeable":"MERGEABLE","reviewDecision":""}' | answer ;;
+      "pr checks")
+        echo '[{"name":"build","bucket":"pass"},{"name":"test","bucket":"pass"}]' | answer ;;
+      "pr create") echo "https://github.com/acme/notes/pull/8"; exit 0 ;;
+      "pr merge") echo "Merged pull request #7"; exit 0 ;;
+      *) echo "fake gh: no answer recorded for: $*" >&2; exit 1 ;;
+    esac
+    SH
+    chmod +x .fake/bin/gh
+    printf '{"env": {"PATH": "%s/.fake/bin:%s", "GH_FAKE": "%s/.fake", "DO_PR_WATCH_SECONDS": "5", "DO_PR_WATCH_INTERVAL": "1"}}\n' \
+      "$PWD" "$PATH" "$PWD" > .claude/settings.json
+    printf '.fake/\n' > .gitignore
+    git init -q -b dev
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
+    git branch prod
+    printf 'export function archive(note) {\n  note.status = "archived";\n  return note;\n}\n' >> src/notes.js
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -am "feat: archive a note"
