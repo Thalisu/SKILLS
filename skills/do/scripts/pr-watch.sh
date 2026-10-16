@@ -6,7 +6,7 @@
 #   pr-watch.sh <pr>        <pr> a pull request number or URL, passed to gh as it stands
 #
 # Prints key=value lines, verdict first: verdict=green, checks=<n> | verdict=pending |
-# verdict=conflict, head=<head branch>, base=<base branch>. Later
+# verdict=awaiting-approval, checks=<n> | verdict=conflict, head=<head branch>, base=<base branch>. Later
 # verdict words and keys append; a reader ignores keys it does not know.
 # Exit codes: 0 a verdict printed · 1 gh missing or unable to read · 2 usage · 3 a settled state no
 # verdict word covers yet. Nothing on stdout for 1, 2 or 3.
@@ -35,7 +35,7 @@ read_pull() { # $1 pr: prints "<merge state> <mergeable> <review decision> <head
     | join(" ")'
 }
 
-classify() { # $1 read_checks lines, $2 merge state, $3 mergeable: prints conflict|green|wait, or exits 3 with its stderr line
+classify() { # $1 read_checks lines, $2 merge state, $3 mergeable, $4 review decision: prints conflict|green|awaiting-approval|wait, or exits 3 with its stderr line
   local bucket name
   if [ "$3" = conflicting ] || [ "$2" = dirty ]; then
     echo conflict
@@ -56,6 +56,14 @@ classify() { # $1 read_checks lines, $2 merge state, $3 mergeable: prints confli
   done <<<"$1"
   case "$2" in
     clean | has_hooks) echo green ;;
+    blocked)
+      if [ "$4" = review_required ]; then
+        echo awaiting-approval
+      else
+        echo "pr-watch.sh: no verdict yet for merge state blocked (review $4)" >&2
+        exit 3
+      fi
+      ;;
     unknown) echo wait ;;
     *)
       echo "pr-watch.sh: no verdict yet for merge state $2" >&2
@@ -64,12 +72,12 @@ classify() { # $1 read_checks lines, $2 merge state, $3 mergeable: prints confli
   esac
 }
 
-read_once() { # $1 pr: sets checks, the pull fields and result (conflict|green|wait); exits 1 on a read failure, 3 as classify does
+read_once() { # $1 pr: sets checks, the pull fields and result (conflict|green|awaiting-approval|wait); exits 1 on a read failure, 3 as classify does
   merge="" mergeable="" review="" head="" base=""
   checks="$(read_checks "$1")" || exit 1
   read -r merge mergeable review head base <<<"$(read_pull "$1")"
   [ -n "$merge" ] || exit 1
-  result="$(classify "$checks" "$merge" "$mergeable")" || exit "$?"
+  result="$(classify "$checks" "$merge" "$mergeable" "$review")" || exit "$?"
 }
 
 main() {
@@ -98,7 +106,7 @@ main() {
   fi
   count=0
   [ -n "$checks" ] && count="$(grep -c '' <<<"$checks")"
-  echo "verdict=green"
+  echo "verdict=$result"
   echo "checks=$count"
 }
 

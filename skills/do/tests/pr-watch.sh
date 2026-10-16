@@ -97,4 +97,11 @@ same "a pull request that conflicts while a check is still pending: the watch re
   "verdict=conflict"$'\n'"head=feature/login"$'\n'"base=main"
 expect "a conflict found while a check is pending is a verdict printed: the watch exits 0" [ "$rc" = 0 ]
 
+serve 42 BLOCKED '[{"name":"build","bucket":"pass"},{"name":"test","bucket":"pass"}]'
+echo '{"mergeStateStatus":"BLOCKED","mergeable":"MERGEABLE","reviewDecision":"REVIEW_REQUIRED","headRefName":"feature/login","baseRefName":"main"}' >"$GH_FAKE/view"
+run 42
+same "every check passed and only a required review blocks the merge: the watch returns verdict=awaiting-approval, with its check count" \
+  "verdict=awaiting-approval"$'\n'"checks=2"
+expect "a pull request awaiting approval is a verdict printed: the watch exits 0" [ "$rc" = 0 ]
+
 exit "$((fails > 0))"
