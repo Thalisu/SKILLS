@@ -1273,5 +1273,42 @@ carries_each "with one line quoting the names on the verdict's \`red=\` lines" \
 carries_any "and follows nothing" "follows nothing" "nothing followed" "follows no" "never follows"
 carries_any "one round per run" "one round"
 
+# A pushed round lands commits on a head others build on, in the developer's name: a Reply that
+# leaves it out hides what landed, and one that gives the round a part of its own breaks the five
+# parts every grader reads. The step's intro already says "adds no part of its own" for a green
+# watch, so the round's own guarantee is read off the bullet or paragraph naming the round.
+echo "# pr.md / ### 5. Reply and reply.md item 1: a pr run that pushed a round lists, under For whom, each red check with its fixer, the commit pushed or what the fixer returned, and the verdict the watch read after the push"
+reply_step="$(passage_of "$pr" "### 5. Reply" "##" 2>/dev/null)"
+out="$(sed 's/^[[:space:]]*//' <<<"$reply_step")"
+check_lines "the Reply step shows the round lines, as whole lines" 0 0 \
+  'round 1: <check> red; do-pr-fixer on <fixer branch>: <picked sha> pushed to <head>' \
+  'round 1: <check> red; do-pr-fixer on <fixer branch>: <its return line>; nothing pushed for it' \
+  'round 1: <a `kept` line, as fix-worktrees.sh printed it>' \
+  'round 1: after the push the watch read <verdict word>'
+flat="$(tr '\n' ' ' <<<"$reply_step" | tr -s ' ')"
+carries "the Reply keeps its five parts" "five parts"
+carries_any "as the whole message" "the whole message" "whole of the message"
+flat="$(piece_in="$reply_step" piece_with "pushed a round" "pushed its round" "pushed the round" \
+  "a pushed round" "round lines" "round line" "the round's lines")"
+expect "a bullet or paragraph of the Reply step names the pushed round" test -n "$flat"
+carries "the round lines sit under For whom" "For whom"
+carries_any "adding no part of their own" \
+  "no part of its own" "no part of their own" "not a part of its own" "never a part of its own" \
+  "no section of its own" "no section of their own" "never a section of its own" \
+  "inside the five parts" "within the five parts" "in the five parts" "adds no part" "add no part"
+item="$(item_holding <(passage_of "$reply" "## Sections" "## ") '[0-9]+\.' "1. **For whom.**" | tr '\n' ' ' | tr -s ' ')"
+expect "reply.md's Sections carry item 1, For whom" test -n "$item"
+flat="$item"
+carries_each "a \`pr\` run that pushed a round carries its round lines there" \
+  "\`pr\`" "pr run" "pr Playbook" -- "round" -- "pushed" "push"
+carries_each "one line per red check naming the check" \
+  "red check" "check that was red" "check red" -- \
+  "one line per" "a line per" "one line for each" "a line for each" "each red check" "every red check"
+carries_each "its fixer, do-pr-fixer and its branch" "do-pr-fixer" -- "branch"
+carries_each "the commit pushed or what its fixer returned" \
+  "commit" "sha" -- "pushed" -- "returned" "its return" "return line"
+carries_each "and the verdict the watch read after the push" \
+  "verdict" -- "after the push"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1

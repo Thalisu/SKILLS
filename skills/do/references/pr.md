@@ -298,6 +298,14 @@ the whole message, and a green watch adds no part of its own:
 - **For whom** says every check is green and the pull request mergeable, ready for the developer
   to merge, with the count off the watch's `checks=<n>` line (`checks=0` reads as no checks
   reported).
+- On a run that pushed a round, **For whom** carries the round lines ahead of the green line,
+  inside the five parts and adding no part of their own: one line per red check, one per `kept`
+  line `fix-worktrees.sh remove` printed, and the verdict the watch read after the push:
+
+      round 1: <check> red; do-pr-fixer on <fixer branch>: <picked sha> pushed to <head>
+      round 1: <check> red; do-pr-fixer on <fixer branch>: <its return line>; nothing pushed for it
+      round 1: <a `kept` line, as fix-worktrees.sh printed it>
+      round 1: after the push the watch read <verdict word>
 - No `Yours:` line: a green run hands nothing over.
 - The **Next step** line ends with `gh pr merge <n>`, `<n>` the number step 2 read back. The run
   never runs it and never names it under `outward`, the way a landed run names the push it never

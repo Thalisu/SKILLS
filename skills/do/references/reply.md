@@ -414,7 +414,10 @@ Ten sections, in this order, each one present in every Run report. Three of them
 of the message: For whom, Pending debt and Next step, written the same way in both.
 
 1. **For whom.** Who the work is for and what changes for them: the end user, the colleague who
-   imports the module, the reader of the doc.
+   imports the module, the reader of the doc. A `pr` run that pushed a round carries its round
+   lines here, one line per red check naming the check, its fixer (`do-pr-fixer` and its branch),
+   the commit pushed for it or what its fixer returned, then the verdict the watch read after the
+   push, so the developer can audit what the run pushed to a branch others build on.
 2. **Inherited.** What the next maintainer inherits: the shape, the structure, the names, the
    rule now encoded. A Trivial change usually inherits nothing new, and says so.
 3. **Commits.** One line per commit, in order: short sha, title, and the files it touched.
