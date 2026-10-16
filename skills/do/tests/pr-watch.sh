@@ -65,4 +65,10 @@ run 42
 check_lines "every check passed and the merge state is clean: the pull request is green, with its check count" 0 "$rc" \
   "verdict=green" "checks=2"
 
+serve 42 CLEAN '[{"name":"build","bucket":"pass"},{"name":"test","bucket":"pending"}]'
+run 42
+out="${out%%$'\n'*}"
+check_lines "a check still pending when the time bound runs out: the watch returns verdict=pending on its first line, for the step to call it again" 0 "$rc" \
+  "verdict=pending"
+
 exit "$((fails > 0))"
