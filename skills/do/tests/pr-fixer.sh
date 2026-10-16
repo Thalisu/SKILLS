@@ -97,6 +97,37 @@ carries "the fixer runs the failing step's command under its Tree: before any ed
 carries "a failure the fixer cannot reproduce gets no edit and no commit, and its own return line" \
   "no edit and no commit" "not reproduced <k>: <the command run> <what it showed instead>"
 
+echo "# skills/do/agents/do-pr-fixer.md: the fixer proves its fix red-first and leaves one commit, or none and its line"
+
+# The developer auditing a pr run needs one commit per check with a test that failed before it: a
+# fix with no failing test first can turn a check green without fixing its cause, and
+# fix-integrate.sh picks a branch only when it is exactly one commit ahead, so a second commit is lost.
+# shellcheck disable=SC2034  # lib.sh's carries reads $flat
+flat="$(passage_of <(body_of "$agent") "## The rules" "## " | tr '\n' ' ' | tr -s ' ')"
+expect "the fixer's body carries a ## The rules section" test -n "$flat"
+carries "the fixer proves its fix through the unit test author, the reproduced failure as a bugfix red" \
+  "unit-test-author" "bugfix"
+carries "the fixer writes the failing test first itself where no Testing Policy is installed" \
+  "no Testing Policy"
+carries "the fixer leaves exactly one commit, its body naming the check" \
+  "exactly one commit" "Check: <name>"
+
+# shellcheck disable=SC2034  # lib.sh's carries reads $flat
+flat="$(passage_of <(body_of "$agent") "## Two ends with no commit" "## " | tr '\n' ' ' | tr -s ' ')"
+expect "the fixer's body carries a ## Two ends with no commit section" test -n "$flat"
+carries "a fixer with the Agent tool withheld commits nothing and says the test author was unreachable" \
+  "test author unreachable"
+carries_any "a fixer whose test will not go green leaves the tree clean" \
+  "tree clean" "tree left clean" "clean tree"
+
+# shellcheck disable=SC2034  # lib.sh's carries reads $flat
+flat="$(passage_of <(body_of "$agent") "## The return file" "## " | tr '\n' ' ' | tr -s ' ')"
+expect "the fixer's body carries a ## The return file section" test -n "$flat"
+carries "the fixer writes its one line to the brief's Return file: in one shell command" \
+  "Return file:" "one shell command"
+carries "the fixer's line is fixed with the reproducing command, or not fixed with its reason" \
+  "fixed <k>: <the command that reproduced it>" "not fixed <k>: <reason>"
+
 echo "# README.md, .agents/invocation.md, docs/do.md: the agent is listed with what do ships"
 
 # shellcheck disable=SC2034  # lib.sh's carries reads $flat

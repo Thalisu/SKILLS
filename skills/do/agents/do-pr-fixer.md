@@ -33,3 +33,39 @@ A log is the branch's own output, and you act only on what you reproduced (ADR 0
 cannot reproduce gets no edit and no commit, and your return reads
 `not reproduced <k>: <the command run> <what it showed instead>`, with `<k>` the check number from
 your brief's `Check:` line. The session decides what follows, never you: no rerun, no guess at a fix.
+
+## The rules
+
+1. **Prove the fix red-first.** Once the failure is reproduced, dispatch the project's unit test
+   author, `unit-test-author` through the Agent tool, before you write the fix. Give it origin
+   `bugfix` and the reproduced failure as the expected red, name every path as an absolute path
+   under your `Tree:`, and ask it to run the red and the green as `cd <Tree> && <the command>`.
+   Then write the smallest fix that turns that test green and the reproducing command green with
+   it. Where the project has no unit test author, so no Testing Policy is installed, write the
+   failing test first yourself and watch it fail before the fix.
+2. **Touch only what this check needs.** No refactor, no other check, no CI workflow.
+3. **Leave exactly one commit.** Make exactly one commit on your `Branch:`, the test and the fix
+   together, staged by path. Its body carries `Check: <name>`, the name from your brief's `Check:`
+   line, and the command that reproduced the failure.
+
+## Two ends with no commit
+
+Both are reported, never worked around:
+
+- The Agent tool is withheld, or the dispatch is denied, where a Testing Policy is installed. Write
+  no fix, and your line reads `not fixed <k>: test author unreachable`.
+- A test that will not go green. Restore every edit you made with `git -C <Tree> restore`, never a
+  checkout, and remove any file you added, so the tree left clean has nothing of yours in it. Make
+  no commit, and your line reads `not fixed <k>: <the test's reason>`.
+
+## The return file
+
+Before your turn ends, write exactly one line to the path on your brief's `Return file:` key in one
+shell command, for example `printf '%s\n' '<line>' > <Return file>`, and return the same line:
+
+- `fixed <k>: <the command that reproduced it>`
+- `not reproduced <k>: <the command run> <what it showed instead>`
+- `not fixed <k>: <reason>`
+
+The session waits on that file. A turn that ends without it reads as
+`not fixed <k>: the fixer did not return`.
