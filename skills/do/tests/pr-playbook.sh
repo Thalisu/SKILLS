@@ -894,5 +894,29 @@ carries_any "and opening nothing, no \`gh pr create\`" \
   "without \`gh pr create\`" "not \`gh pr create\`" "does not run \`gh pr create\`" "opens nothing" \
   "nothing is opened" "never opens" "does not open" "opens no "
 
+# A branch-pair run that stops on a branch that does not exist, or on a pair with nothing to open,
+# hands over no choice: unless reply.md's exception lists both beside the `pr` door's other stops,
+# the run writes a `Yours:` line under them and the developer reads a blocked run waiting on them.
+echo "# reply.md / ## A refusal or a blocked run: a branch-pair run's stops on a missing branch and on nothing to open hand over no choice, each with the one input it names"
+flat="$(paragraph_with "$reply" "Every blocked Reply, and every refusal at a door" | tr -s ' ')"
+expect "reply.md has the paragraph asking every refusal at a door for its line" test -n "$flat"
+except_at="$(first_at "except" "Except" "other than" "save for" "apart from")"
+expect "the paragraph lists exceptions" test "$except_at" -gt 0
+flat="${flat:$((except_at > 0 ? except_at - 1 : 0))}"
+pr_door_at="$(first_at "\`pr\` door" "pr door" "\`pr\` Playbook" "pr Playbook" "Playbook: pr")"
+missing_branch_at="$(first_at "does not exist" "doesn't exist" "no such branch" "nonexistent" "non-existent")"
+nothing_to_open_at="$(first_at "nothing to open" "no commits" "no commit" "empty range" "nothing the base lacks" "carries nothing")"
+expect "a branch that does not exist is listed among the \`pr\` door's exceptions" \
+  test "$pr_door_at" -gt 0 -a "$missing_branch_at" -gt "$pr_door_at"
+expect "a pair with nothing to open is listed among the \`pr\` door's exceptions" \
+  test "$pr_door_at" -gt 0 -a "$nothing_to_open_at" -gt "$pr_door_at"
+carries_each "a branch that does not exist names the branch to correct" \
+  "branch" -- \
+  "correct" "right branch" "existing branch" "a branch that exists" "rename" "typo"
+carries_each "nothing to open names the commits the head still needs, or another pair" \
+  "commits the head" "commit on the head" "commits on the head" "commit to the head" "head still needs" \
+  "head needs" "commits to push" "push" -- \
+  "another pair" "a different pair" "another branch pair" "other pair" "another base" "a different base"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1
