@@ -26,6 +26,16 @@ same "two numbers whose file sets share a file come back on two separate Waves" 
   "wave=1 numbers=3"$'\n'"wave=2 numbers=5"
 check_lines "two numbers sharing a file still exit 0" 0 "$rc" "wave=1 numbers=3" "wave=2 numbers=5"
 
+run < <(printf '3\tsrc/a.ts\n7\t\n5\tdocs/x.md\n')
+same "a number with an empty file field comes back on a Wave of its own, the numbers with files still grouped" \
+  "wave=1 numbers=3,5"$'\n'"wave=2 numbers=7"
+check_lines "a number with an empty file field still exits 0" 0 "$rc" "wave=1 numbers=3,5" "wave=2 numbers=7"
+
+run < <(printf '7\n3\tsrc/a.ts\n5\tdocs/x.md\n')
+same "a number written alone with no tab, arriving first, opens a Wave no other number joins" \
+  "wave=1 numbers=7"$'\n'"wave=2 numbers=3,5"
+check_lines "a number written alone with no tab still exits 0" 0 "$rc" "wave=1 numbers=7" "wave=2 numbers=3,5"
+
 echo
 if [ "$fails" = 0 ]; then echo "group-waves: all checks passed"; else
   echo "group-waves: $fails failed"
