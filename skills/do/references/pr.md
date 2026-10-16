@@ -9,6 +9,8 @@ follows that one pull request, and the developer reads it afterwards, through th
 
 - Merge the pull request: the run never runs `gh pr merge`, not even on a green run. The merge is
   the developer's call, named as the next step.
+- Open a pull request when one is already open for the pair: the run runs `gh pr create` only when
+  no pull request is open for the branch pair it was asked for, and the create pushes nothing.
 - Rebase the head branch, or push to it, on a conflict with the base: the run stops and names the
   owner of the head branch, the only one who may rewrite it.
 
@@ -60,6 +62,12 @@ When a pull request is already open for the pair, the run takes its number from 
 follows it by its number from the read-back on, as a pull request named by number is followed. It
 opens nothing and never runs `gh pr create`. The Reply says the pull request was already open, on
 its `Plan:` line beside the read-back.
+
+When none is open for the pair, the run opens exactly one pull request, with
+`gh pr create --head <head> --base <base> --fill`: head and base named explicitly, so the CLI never
+guesses either from the checkout, and its title and body filled from the commits between base and
+head. It pushes nothing, since `--head` names a branch already on the remote. The Reply says the
+pull request was opened by the run, on its `Plan:` line beside the read-back.
 
 Done when the run holds the URL or the number, a branch pair's included, and the GitHub CLI
 answered that it is logged in.

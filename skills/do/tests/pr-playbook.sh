@@ -649,5 +649,37 @@ carries_any "either one counts as none open for the pair" \
   "none open" "no open pull request" "no pull request open" "nothing open" "counts as none" \
   "count as none" "as if none" "as though none"
 
+# A developer who asks for the pull request and gets nothing opened, one into the wrong base, or a
+# title and body to rewrite by hand, opens it themselves. The already-open paragraph names
+# `gh pr create` only to say it never runs, so the create is read off the piece naming
+# `gh pr create --head`, and the never-does allowance off the bullet naming `gh pr create`.
+echo "# pr.md / ### 1. Pull request and ## What this run never does: with none open for the pair, the run opens exactly one pull request from head into base, titled and described from the commits between them, pushing nothing, the Reply saying it was opened"
+flat="$(piece_in="$pull_request" piece_with "gh pr create --head")"
+expect "a bullet or paragraph of ### 1. Pull request names \`gh pr create --head\`" test -n "$flat"
+carries "the create names the pair's head and base and fills from the commits" \
+  "gh pr create --head <head> --base <base>" "--fill"
+carries_any "when none is open for the pair" \
+  "none open" "none is open" "no pull request is open" "no open pull request" "no pull request open" \
+  "nothing open" "none was open"
+carries_any "the run opens exactly one pull request" \
+  "exactly one" "a single pull request" "only one pull request" "one pull request and no more"
+carries_each "its title and body filled from the commits between base and head" \
+  "title" -- "body" -- "commits" "commit messages" -- "between" "ahead of" "not on <base>" "not on the base"
+carries_any "pushing nothing" \
+  "pushes nothing" "pushing nothing" "never pushes" "does not push" "doesn't push" "no push" \
+  "without pushing" "nor pushes"
+carries_each "the Reply says it was opened" \
+  "Reply" -- "was opened" "it opened" "opened it" "the run opened" "has been opened" "opened by the run"
+never="$(passage_of "$pr" "## What this run never does" "## " 2>/dev/null)"
+flat="$(item_holding <(printf '%s\n' "$never") '- ' "gh pr create" | tr '\n' ' ' | tr -s ' ')"
+expect "a bullet of \`## What this run never does\` names \`gh pr create\`" test -n "$flat"
+carries_each "it allows the create only when no pull request is open for the pair" \
+  "only" "unless" "except" "never" -- \
+  "none open" "none is open" "no pull request is open" "no open pull request" "no pull request open" \
+  "nothing open" "already open" "one is open"
+carries_any "and the create pushes nothing" \
+  "pushes nothing" "pushing nothing" "never pushes" "does not push" "doesn't push" "no push" \
+  "without pushing" "nor pushes" "nor push" "or push"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1

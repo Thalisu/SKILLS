@@ -1,0 +1,71 @@
+name: pr-branch-pair-none-open-opens-one
+tags: [pr, pair, watch, reply]
+runs: 2
+max_turns: 16
+timeout_seconds: 300
+allowed_tools: [Bash, Read, Edit, Write]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # No pull request open from `dev` into `prod`: a fake gh, first on the session's PATH through the
+    # project's settings, answers every `pr list` with two pull requests that are not the pair's,
+    # #3 open from `dev` into `main` and #5 closed from `dev` into `prod`, whatever flags it is
+    # handed. It answers `pr create` with pull request #9, and serves #9 open from `dev` into `prod`
+    # with both checks passing. Every gh call is logged in .fake/gh.log, one line per call, so the
+    # create, its flags and the watch on 9 after it all show there. Both branches sit on a fixture
+    # remote, with one commit between them, so the create needs no push.
+    set -e
+    mkdir -p src .fake/bin .claude
+    cat > src/notes.js <<'JS'
+    const notes = [];
+
+    export function create(title) {
+      const note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+    JS
+    cat > .fake/bin/gh <<'SH'
+    #!/usr/bin/env bash
+    printf '%s\n' "$*" >> "$GH_FAKE/gh.log"
+    expr=
+    for ((i = 1; i <= $#; i++)); do
+      [ "${!i}" = --jq ] && { j=$((i + 1)); expr="${!j}"; }
+    done
+    answer() { if [ -n "$expr" ]; then jq -r "$expr"; else cat; fi; }
+    case "$1 $2" in
+      "auth status") echo "Logged in to github.com account fixture"; exit 0 ;;
+      "pr list")
+        echo '[{"number":3,"headRefName":"dev","baseRefName":"main","state":"OPEN"},{"number":5,"headRefName":"dev","baseRefName":"prod","state":"CLOSED"}]' | answer ;;
+      "pr create")
+        touch "$GH_FAKE/created"
+        echo "https://github.com/acme/notes/pull/9" ;;
+      "pr view")
+        case "$3" in
+          3 | */pull/3) echo '{"number":3,"headRefName":"dev","baseRefName":"main","state":"OPEN","mergeStateStatus":"CLEAN","mergeable":"MERGEABLE","reviewDecision":""}' | answer ;;
+          5 | */pull/5) echo '{"number":5,"headRefName":"dev","baseRefName":"prod","state":"CLOSED","mergeStateStatus":"UNKNOWN","mergeable":"UNKNOWN","reviewDecision":""}' | answer ;;
+          9 | */pull/9)
+            [ -e "$GH_FAKE/created" ] || { echo "no pull requests found for 9" >&2; exit 1; }
+            echo '{"number":9,"headRefName":"dev","baseRefName":"prod","state":"OPEN","mergeStateStatus":"CLEAN","mergeable":"MERGEABLE","reviewDecision":""}' | answer ;;
+          *) echo "fake gh: no pull request recorded for: $*" >&2; exit 1 ;;
+        esac ;;
+      "pr checks")
+        echo '[{"name":"build","bucket":"pass"},{"name":"test","bucket":"pass"}]' | answer ;;
+      "pr merge") echo "Merged pull request"; exit 0 ;;
+      *) echo "fake gh: no answer recorded for: $*" >&2; exit 1 ;;
+    esac
+    SH
+    chmod +x .fake/bin/gh
+    printf '{"env": {"PATH": "%s/.fake/bin:%s", "GH_FAKE": "%s/.fake", "DO_PR_WATCH_SECONDS": "5", "DO_PR_WATCH_INTERVAL": "1"}}\n' \
+      "$PWD" "$PATH" "$PWD" > .claude/settings.json
+    printf '.fake/\n' > .gitignore
+    git init -q -b dev
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
+    git branch prod
+    printf 'export function archive(note) {\n  note.status = "archived";\n  return note;\n}\n' >> src/notes.js
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -am "feat: archive a note" \
+      -m "An archived note leaves the active list and keeps its title."
+    git init -q --bare .fake/remote.git
+    git remote add origin "$PWD/.fake/remote.git"
+    git push -q origin dev prod
