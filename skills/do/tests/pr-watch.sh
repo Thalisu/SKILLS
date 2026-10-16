@@ -71,4 +71,13 @@ out="${out%%$'\n'*}"
 check_lines "a check still pending when the time bound runs out: the watch returns verdict=pending on its first line, for the step to call it again" 0 "$rc" \
   "verdict=pending"
 
+serve 42 CLEAN '[{"name":"build","bucket":"pass"},{"name":"test","bucket":"pending"}]' \
+  '[{"name":"build","bucket":"pass"},{"name":"test","bucket":"pass"}]'
+rc=0
+# The 5-second kill sits far under the 60-second bound: a watch that waits its bound out is killed
+# before it prints, and fails the case instead of hanging it.
+out="$(DO_PR_WATCH_SECONDS=60 timeout 5 bash "$script" 42 2>/dev/null)" || rc=$?
+check_lines "a pending check that settles green inside the bound: the watch returns verdict=green with its check count at once, without waiting the bound out" 0 "$rc" \
+  "verdict=green" "checks=2"
+
 exit "$((fails > 0))"
