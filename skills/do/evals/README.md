@@ -57,6 +57,7 @@ typecheck and `node --test` as the suite, so both run offline with node alone.
 | `issue-number-without-tracker-file` | `#2` with no tracker file and a `02-` Ticket file on disk as bait: one message asking for the Ticket's path, the number never matched against the files |
 | `issue-unopenable-says-so` | `#7` with a tracker file naming GitHub and `gh`, in a fixture with no remote: one line saying the issue could not be opened, nothing invented |
 | `pr-url-routes-to-pr` | `acompanhe esse PR <url>` with a tracker file naming GitHub: the Reply's first line reads `Playbook: pr`, the URL never read as an issue reference |
+| `pr-branch-pair-routes-to-pr` | `faça um PR de dev para prod` with both branches present and a commit between them, the fake gh logged out: the Reply's first line reads `Playbook: pr`, never `integrate` or `Playbook: none` |
 | `pr-gh-logged-out-names-auth-login` | `acompanhe esse PR <url>` with a GitHub CLI not logged in or not installed: `Playbook: pr` and one line naming `gh auth login`, no `Yours:` line, nothing followed |
 | `pr-unopenable-says-so` | `acompanhe esse PR <url>` of a repository that does not exist, with gh logged in: `Playbook: pr` and one line saying the pull request could not be opened, no `Yours:` line, nothing followed |
 | `pr-closed-or-merged-says-so` | `acompanhe esse PR <url>` of a pull request gh reads `CLOSED`, with gh logged in: `Playbook: pr` and one line saying the pull request is closed or merged, no `Yours:` line, nothing followed |

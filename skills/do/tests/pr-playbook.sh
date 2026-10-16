@@ -26,6 +26,7 @@ setup_at=0
 ticket_at=0
 issue_at=0
 bug_fix_at=0
+integrate_at=0
 pr_row=""
 n=0
 while IFS= read -r line; do
@@ -35,6 +36,7 @@ while IFS= read -r line; do
     '`setup`') [ "$setup_at" = 0 ] && setup_at="$n" ;;
     '`ticket`') [ "$ticket_at" = 0 ] && ticket_at="$n" ;;
     '`bug-fix`') [ "$bug_fix_at" = 0 ] && bug_fix_at="$n" ;;
+    '`integrate`') [ "$integrate_at" = 0 ] && integrate_at="$n" ;;
   esac
   if [ "$issue_at" = 0 ] && grep -qiE 'issue (reference|number)' <<<"$(argument_of "$line")"; then
     issue_at="$n"
@@ -133,6 +135,23 @@ flat="$ci_example"
 carries_any "that example names \`bug-fix\` as the near miss it is not" "not \`bug-fix\`" "never \`bug-fix\`"
 expect "an example routes a bare number, with no word naming a pull request, to \`ticket\`" test -n \
   "$(awk -F'\t' '$2 == "ticket" && $1 ~ /^#?[0-9]+$/' <<<"$examples")"
+
+# A request for a pull request between two branches names both of them, as an integration does: a
+# session that reads it as `integrate` rebases or merges `dev` into `prod` itself, and one that reads
+# `dev` as the base opens the pull request the wrong way round.
+echo "# SKILL.md / ## Router: words asking for a pull request from one branch into another route to the pr Playbook, not integrate"
+flat="$(argument_of "$pr_row")"
+carries_each "the pr row matches words asking for a pull request from one branch into another, as in \`faça um PR de dev para prod\`" \
+  "pull request" "PR" -- \
+  "from one branch into another" "from a branch into another" "one branch into another" "branch into another" \
+  "from one branch to another" "branch pair" "pair of branches" "two branches"
+carries_each "naming the branch it comes from its head and the one it goes into its base" \
+  "head" -- "base"
+expect "the pr row sits above the integrate row" test "$pr_at" -gt 0 -a "$integrate_at" -gt "$pr_at"
+branch_pair_example="$(awk -F'\t' '$2 == "pr" && $1 == "faça um PR de dev para prod"' <<<"$examples")"
+expect "an example routes \`faça um PR de dev para prod\` to \`pr\`" test -n "$branch_pair_example"
+flat="$branch_pair_example"
+carries_any "that example names \`integrate\` as the near miss it is not" "not \`integrate\`" "never \`integrate\`"
 
 # A logged-out gh fails the read-back as if the pull request were wrong: the developer whose session
 # expired reads a refusal blaming the pull request, or a choice where one input is broken, and types
