@@ -196,5 +196,32 @@ carries_any "and follows nothing: no watch, no worktree, no push, no file writte
   "follows nothing" "nothing is followed" "nothing followed" "follows none" "follows no step" \
   "no step after" "no later step" "no further step" "runs nothing else" "nothing else runs" "does nothing else"
 
+# A pull request already merged or closed opens fine in gh, so nothing above stops it: the run would
+# watch its checks or push fixes onto a head nobody will merge. The unopenable stop already carries
+# `Playbook: pr`, `Yours:` and "follows nothing" in this passage, so those are read off the paragraph
+# that names the closed or merged state, not the whole passage.
+echo "# pr.md / ### 2. Read-back: a closed or merged pull request stops the run with one line on Playbook: pr, following nothing"
+read_back="$(passage_of "$pr" "### 2. Read-back" "##" 2>/dev/null)"
+flat="$(tr '\n' ' ' <<<"$read_back" | tr -s ' ')"
+expect "the read-back asks \`gh pr view\` for the pull request's \`state\`" test -n \
+  "$(grep -oE 'gh pr view [^`]*--json ([A-Za-z]+,)*state' <<<"$flat")"
+flat="$(awk 'BEGIN { RS = "" } index($0, "MERGED") { gsub(/\n/, " "); print; exit }' <<<"$read_back" | tr -s ' ')"
+carries_each "a \`CLOSED\` or \`MERGED\` state stops the run" \
+  "CLOSED" -- "MERGED" -- "stops" "stop" "ends the run" "the run ends"
+carries_each "the stop is one line saying the pull request is closed or merged" \
+  "closed or merged" "merged or closed" "is closed" "is merged" "already closed" "already merged" \
+  "was closed" "was merged" -- \
+  "one line" "One line" "single line" "a line saying" "a line that says"
+carries_any "the stop names the pr Playbook on its first line" \
+  "\`Playbook: pr\` on its first line" "\`Playbook: pr\` on the first line" "opens with \`Playbook: pr\`" \
+  "same stop" "the same way" "as when \`gh pr view\` fails" "as for a pull request"
+carries_any "with no \`Yours:\` line" \
+  "no \`Yours:\`" "No \`Yours:\`" "without a \`Yours:\`" "without the \`Yours:\`" "never a \`Yours:\`" \
+  "not a \`Yours:\`" "no Yours:" "without a Yours:" "same stop" "the same way"
+carries_any "and follows nothing: no watch, no worktree, no push, no file written" \
+  "follows nothing" "nothing is followed" "nothing followed" "follows none" "follows no step" \
+  "no step after" "no later step" "no further step" "runs nothing else" "nothing else runs" "does nothing else" \
+  "same stop" "the same way"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1

@@ -38,7 +38,7 @@ Done when the run holds the URL or the number and the GitHub CLI answered that i
 ### 2. Read-back
 
 The read-back line, off the GitHub CLI's answer for that pull request and never the session's
-wording: `gh pr view <the URL or the number> --json number,headRefName,baseRefName`, read as
+wording: `gh pr view <the URL or the number> --json number,headRefName,baseRefName,state`, read as
 `#<n>`, `<head>` into `<base>`, from its `number`, `headRefName` and `baseRefName`. It is the
 Reply's `Plan:` line, so a request the session misread shows on the Reply's first lines, as the
 wrong pull request or the wrong branches, before the developer reads anything else.
@@ -49,7 +49,12 @@ first line, then one line saying the pull request could not be opened, with no `
 the router answers an issue reference its CLI cannot open. The run follows nothing: no watch, no
 worktree, no push, no file written.
 
-Done when the line is recorded for the `Plan:` line.
+When gh opens the pull request and its `state` reads `CLOSED` or `MERGED`, the run stops the same
+way: the Reply opens with `Playbook: pr` on its first line, then one line saying the pull request is
+closed or merged, with no `Yours:` line, since such a pull request has no head left to follow to
+green. The run follows nothing: no watch, no worktree, no push, no file written.
+
+Done when the line is recorded for the `Plan:` line and the pull request reads `OPEN`.
 
 ### 3. Reply
 
