@@ -1,0 +1,56 @@
+name: pr-pending-watch-called-again-to-green
+tags: [pr, watch]
+runs: 2
+max_turns: 20
+timeout_seconds: 600
+allowed_tools: [Bash, Read, Edit, Write]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # A pull request whose checks are still running: a fake gh, first on the session's PATH through
+    # the project's settings, answers the CLI check and the read-back, and serves `pr checks` with a
+    # check pending for its first eight reads and every check passing from the ninth on. The watch's
+    # bound is cut to five seconds at a one-second interval, so its first call reads six times and
+    # prints verdict=pending, and only a run that calls it again reaches verdict=green. Every gh call
+    # is logged with the command line that made it, in .fake/gh.log.
+    set -e
+    mkdir -p src .fake/bin .claude
+    cat > src/notes.js <<'JS'
+    const notes = [];
+
+    export function create(title) {
+      const note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+    JS
+    cat > .fake/bin/gh <<'SH'
+    #!/usr/bin/env bash
+    printf '%s\t%s\n' "$*" "$(ps -o args= -p "$PPID" 2>/dev/null)" >> "$GH_FAKE/gh.log"
+    expr=
+    for ((i = 1; i <= $#; i++)); do
+      [ "${!i}" = --jq ] && { j=$((i + 1)); expr="${!j}"; }
+    done
+    answer() { if [ -n "$expr" ]; then jq -r "$expr"; else cat; fi; }
+    case "$1 $2" in
+      "auth status") echo "Logged in to github.com account fixture"; exit 0 ;;
+      "pr view")
+        echo '{"number":42,"headRefName":"add-archive","baseRefName":"main","state":"OPEN","mergeStateStatus":"CLEAN"}' | answer ;;
+      "pr checks")
+        n=$(($(cat "$GH_FAKE/checks.calls" 2>/dev/null || echo 0) + 1))
+        echo "$n" > "$GH_FAKE/checks.calls"
+        if [ "$n" -le 8 ]; then
+          echo '[{"name":"build","bucket":"pass"},{"name":"test","bucket":"pending"}]' | answer
+        else
+          echo '[{"name":"build","bucket":"pass"},{"name":"test","bucket":"pass"}]' | answer
+        fi ;;
+      *) echo "fake gh: no answer recorded for: $*" >&2; exit 1 ;;
+    esac
+    SH
+    chmod +x .fake/bin/gh
+    printf '{"env": {"PATH": "%s/.fake/bin:%s", "GH_FAKE": "%s/.fake", "DO_PR_WATCH_SECONDS": "5", "DO_PR_WATCH_INTERVAL": "1"}}\n' \
+      "$PWD" "$PATH" "$PWD" > .claude/settings.json
+    printf '.fake/\n' > .gitignore
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"

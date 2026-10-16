@@ -260,5 +260,40 @@ carries_each "its second stop is a GitHub CLI missing or not logged in, whose on
   "not logged in" "logged out" "no login" "not authenticated" -- \
   "gh auth login"
 
+# The developer who typed `/do` on a pull request has walked away: a run that ends its turn on
+# `pending`, or backgrounds the watch, stands still until they come back, and one left at the Bash
+# tool's two-minute default has the watch killed before it prints any verdict.
+echo "# pr.md / ### 3. Watch: the run watches in the foreground at a 600000 ms timeout, re-running on pending until green hands on to the Reply"
+steps="$(blocks_of "$pr" "## Steps" 2>/dev/null)"
+flat="$(grep -E '^3\. ' <<<"$steps")"
+carries_any "step 3 of the checklist is the watch" "watch" "Watch"
+flat="$(grep -E '^4\. ' <<<"$steps")"
+carries_any "step 4 of the checklist is the reply, after the watch" "reply" "Reply"
+flat="$(passage_of "$pr" "### 3. Watch" "##" 2>/dev/null | tr '\n' ' ' | tr -s ' ')"
+expect "pr.md has a step \`### 3. Watch\`" test -n "$flat"
+carries "the step runs the watch script on the pull request" "bash <skill-dir>/scripts/pr-watch.sh"
+carries_any "with the pull request as its argument" \
+  "pr-watch.sh <pr>" "pr-watch.sh <n>" "pr-watch.sh <number>"
+carries_each "the call sets the Bash tool's timeout to 600000 ms" \
+  "600000" -- "timeout"
+carries_each "in the foreground, never backgrounded" \
+  "foreground" -- \
+  "never in the background" "not in the background" "never backgrounds" "never background" \
+  "not background" "without backgrounding" "no background" "never \`run_in_background\`" \
+  "not \`run_in_background\`" "without \`run_in_background\`" "never run_in_background"
+carries_each "on \`verdict=pending\` it runs the same line again at once" \
+  "verdict=pending" -- \
+  "again" "re-run" "reruns" "re-runs" "rerun" -- \
+  "at once" "immediately" "straight away" "right away" "with no pause" "without a pause" "without pausing"
+carries_any "without ending its turn" \
+  "without ending its turn" "without ending the turn" "never ends its turn" "never ends the turn" \
+  "does not end its turn" "does not end the turn" "doesn't end its turn" "doesn't end the turn" \
+  "not ending its turn" "not ending the turn" "never end its turn" "never end the turn" \
+  "not end its turn" "not end the turn" "keeps its turn" "keeps the turn"
+carries_each "until it reads \`verdict=green\`" \
+  "until" -- "verdict=green"
+carries_each "which hands on to the Reply step" \
+  "verdict=green" -- "### 4. Reply" "step 4" "Reply step" "the Reply" "to the Reply"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1

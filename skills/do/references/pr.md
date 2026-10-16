@@ -15,7 +15,8 @@ on its first line, so a request the router misread shows at once, before anythin
 pr:
 1. pull request: its URL or its number, taken from the request as written, the GitHub CLI logged in
 2. read-back: #<n>, its head into its base, off the GitHub CLI's answer
-3. reply: by the reply reference
+3. watch: pr-watch.sh in the foreground, called again on every pending verdict until green
+4. reply: by the reply reference
 ```
 
 ### 1. Pull request
@@ -58,6 +59,28 @@ green. The run follows nothing: no watch, no worktree, no push, no file written.
 
 Done when the line is recorded for the `Plan:` line and the pull request reads `OPEN`.
 
-### 3. Reply
+### 3. Watch
+
+The run watches the pull request's checks with the watch script, in the foreground, with the Bash
+tool's timeout at its 600000 ms maximum, since its two-minute default kills the watch before it
+prints a verdict:
+
+```
+bash <skill-dir>/scripts/pr-watch.sh <pr>
+```
+
+`<pr>` is the URL or the number step 1 took, passed as it stands. The script blocks on the checks
+for about nine minutes at most, and its first line is its verdict:
+
+- `verdict=pending`: the checks are still running. The run runs the same line again at once, in
+  the foreground, without ending its turn: never in the background, never after a sleep of its own,
+  and goes on calling it until it reads `verdict=green`. The developer has walked away, and a run
+  that ends its turn here stands still until they come back.
+- `verdict=green`: every check passed and the pull request is mergeable. The run goes on to step 4,
+  the Reply.
+
+Done when the watch has printed `verdict=green`, after as many `pending` calls as the checks took.
+
+### 4. Reply
 
 The Reply, by [reply.md](reply.md), its `Plan:` line the read-back of step 2.
