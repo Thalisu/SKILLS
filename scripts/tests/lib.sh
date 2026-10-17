@@ -522,9 +522,9 @@ policy_pieces_fixture() { # $1 project dir, $2.. the agents to install (unit, e2
   for kind in "$@"; do
     bash "$scripts/render-agent.sh" "$kind" --model opus --effort medium >"$p/.claude/agents/$kind-test-author.md"
   done
-  bash "$scripts/render-agent.sh" test-author >"$p/.claude/skills/test-author/SKILL.md"
-  cp "$scripts/scan-test-assets.sh" "$scripts/skip-patterns.sh" "$p/.claude/testing-policy/"
   surface="$(sed -n 's/^<!-- testing-policy:start .*surface=\([a-z]*\).*/\1/p' "$p/CLAUDE.md" 2>/dev/null | head -n 1)"
+  bash "$scripts/render-agent.sh" test-author "${surface:-native}" >"$p/.claude/skills/test-author/SKILL.md"
+  cp "$scripts/scan-test-assets.sh" "$scripts/skip-patterns.sh" "$p/.claude/testing-policy/"
   [ -z "$surface" ] || bash "$scripts/render-policy.sh" "$surface" --reference >"$p/.claude/testing-policy/policy.md"
 }
 

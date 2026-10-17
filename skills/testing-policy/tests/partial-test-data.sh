@@ -48,7 +48,7 @@ render unit
 check "the rendered unit agent carries the template version" 0 "$rc" "<!-- testing-policy:agent v=$version -->"
 render e2e
 check "the rendered E2E agent carries the template version" 0 "$rc" "<!-- testing-policy:agent v=$version -->"
-render test-author
+render test-author native
 check "the rendered inline skill carries the template version" 0 "$rc" "<!-- testing-policy:skill v=$version -->"
 policy native
 check "the rendered policy section carries the template version" 0 "$rc" "<!-- testing-policy:start v=$version surface=native -->"

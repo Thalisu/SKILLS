@@ -50,6 +50,19 @@ else
 fi
 
 echo
+echo "# the inline test-author skill rendered for the unit surface"
+rc=0
+out="$(bash "$skill/scripts/render-agent.sh" test-author unit 2>&1)" || rc=$?
+e2e_lines="$(grep -inE -- 'e2e|journey|settle point|preflight' <<<"$out")"
+grep -q '^<!-- testing-policy:skill v=' <<<"$out" || e2e_lines="not the test-author skill: no testing-policy:skill marker${e2e_lines:+$'\n'}$e2e_lines"
+if [ "$rc" = 0 ] && [ -z "$e2e_lines" ]; then
+  ok "the unit test-author skill routes to the unit agent alone: no E2E argument, agent or step"
+else
+  fail "the unit test-author skill routes to the unit agent alone: no E2E argument, agent or step (exit $rc, wanted 0; lines naming E2E below)"
+  echo "      ${e2e_lines//$'\n'/$'\n'      }"
+fi
+
+echo
 if [ "$fails" = 0 ]; then echo "unit-surface: all checks passed"; else
   echo "unit-surface: $fails failed"
   exit 1
