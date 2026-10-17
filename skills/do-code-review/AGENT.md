@@ -44,6 +44,7 @@ labels are in English; its prose is in the report language of the brief.
 | `fix` with a Review's location | the fix of a Review a developer edited by hand: no review is run, and the whole run is [fix.md](references/fix.md), from its door checks to its landing |
 | a Ticket's location: a path, an issue number or a URL | that Ticket is the run's Ticket, the spec source and, when it is a local file, the Review's home; `do` passes it at its review step with the fixed point |
 | a Spec's location: a path its caller names as the Spec, in the Ticket's place | that Spec is the run's spec source, read whole, and the Review's home; `do` passes it at its Final integration with the fixed point, the branch the Spec branch was cut from, and the run has no Ticket |
+| a Review's path: a line whose first words read `Review file:`, followed by one path | `do` sends it beside the Spec, after the review token, at the Final integration of a feature across repositories, where each repository writes a Review of its own beside the one Spec; it goes to the door as `--review`, and the Review is written there and never at the Spec's own name |
 | a landing target: the branch a caller wants the reviewed branch landed on | `do` sends it third, after the Ticket and the fixed point; it is the branch the fix fast-forwards when the Review is Green |
 | a Gate: the `command=` line of `do`'s gate script, as it printed it before the review | `do` sends it fourth, after the landing target; it is the Gate the fixed branch is held to before it lands, run as it stands |
 | a caller line: a line whose first words read `Caller:`, followed by one value, `do` | `do` sends it on every `fix` call it makes, after the landing target and the Gate; it marks the call as `do`'s after its one review, on which [fix.md](references/fix.md) forks no Fixer and no Gate fixer; it never reaches the door, a review call ignores it, and any other value is refused as fix.md's door says |
@@ -81,7 +82,7 @@ under review and a path relative to this file resolves to nothing there:
 
 ## 1. The door
 
-Run `bash ~/.claude/skills/do-code-review/scripts/fixed-point.sh [<ref>] [--ticket <location> | --spec <path>]`
+Run `bash ~/.claude/skills/do-code-review/scripts/fixed-point.sh [<ref>] [--ticket <location> | --spec <path> [--review <path>]]`
 once, from the tree under review. Pass `--ticket` with the location a caller handed over, verbatim,
 and never with a Ticket you found yourself: the flag is what makes the Ticket the run's own, and
 the door answers with `ticket_handed=`, `ticket=` and `review=` together. A location that is all
@@ -97,6 +98,11 @@ and the door answers with `spec_handed=yes`, `spec=`, `review=` beside the Spec 
 A Spec is a file, so a number or a URL is refused like any path that names no file. The fixed point
 handed with it is a ref like any other: the diff is the local diff of the branch since that ref.
 
+Pass `--review` beside `--spec` only, with the path of a `Review file:` line a caller handed over,
+verbatim, and never with a path of your own. The door answers with that file as `review=`, in the
+Spec's folder, and refuses a path in any other folder:
+`<the path> is not beside the Spec; nothing reviewed`.
+
 | Exit | You do |
 |---|---|
 | 1 | print the value of its `refusal=` line, one line, nothing else, and stop; nothing is written |
@@ -107,7 +113,8 @@ The refusals are the script's, verbatim: `<ref> does not resolve; nothing review
 between <fixed point> and the working tree; nothing reviewed`, `no base branch found; pass a ref`,
 `no merge-base between <base> and HEAD; pass a ref`,
 `<the location> is not a Ticket file; nothing reviewed`,
-`<the location> is not a Spec file; nothing reviewed`.
+`<the location> is not a Spec file; nothing reviewed`,
+`<the path> is not beside the Spec; nothing reviewed`.
 
 A call that comes back `This session is isolated in the worktree <path>, but this command ...`, or
 the same line about an agent, ran none of that: the tree you were forked in is under the harness's

@@ -213,4 +213,25 @@ check_lines "a probe of a Spec with no Spec branch says there is none to have la
 expect "a probe that says whether the Spec branch landed creates, moves and re-points no ref" \
   test "$(g for-each-ref --format='%(refname) %(objectname) %(upstream)')" = "$refs_before"
 
+# The session's own .scratch is a link in a Build repository, so the feature the Ticket belongs to is
+# the one its absolute location names in the Home repository, and the branch is cut where it is built.
+sibling_repos ticket-home ticket-build 20260930-across-repos
+# shellcheck disable=SC2154 # lib.sh's sibling_repos assigns $home and $build
+home_repo="$home" build_repo="$build"
+ticket 01-first.md "**Status:** ready-for-agent" none
+g switch -q -c feat/build
+printf 'two\n' >>notes.txt
+commit "work in the Build repository"
+build_tip="$(g rev-parse feat/build)"
+mkdir -p "$tmp/scratch-elsewhere"
+ln -s "$tmp/scratch-elsewhere" .scratch
+home_refs_before="$(g -C "$home_repo" for-each-ref --format='%(refname) %(objectname) %(upstream)')"
+run cut "$issues/01-first.md"
+check_lines "a first cut on a Ticket's absolute location in a sibling Home repository, from a Build repository whose own .scratch is a symlink, cuts spec/<feature-slug> at the tip of the branch the Build repository is on and names it as upstream" 0 "$rc" \
+  "spec_branch=spec/across-repos" "action=cut" "upstream=feat/build" "tip=$build_tip"
+expect "the Spec branch of a Ticket of a sibling Home repository is a branch of the Build repository, at the tip of the branch its main checkout is on" \
+  test "$(g -C "$build_repo" rev-parse -q --verify refs/heads/spec/across-repos)" = "$build_tip"
+expect "a cut from the Build repository leaves every ref of the Home repository as it was" \
+  test "$(g -C "$home_repo" for-each-ref --format='%(refname) %(objectname) %(upstream)')" = "$home_refs_before"
+
 [ "$fails" = 0 ]

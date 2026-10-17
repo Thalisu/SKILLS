@@ -1,0 +1,177 @@
+name: auto-one-repository-adds-nothing
+tags: [workflow, auto, choice-taker, publish, close]
+runs: 2
+max_turns: 50
+timeout_seconds: 1200
+allowed_tools: [Bash, Read, Edit, Write, Agent]
+context:
+  unlinked_agents: [choice-taker]
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # One repository and a spec with no Repositories section, published in one turn under --auto
+    # with a choice-taker stand-in that rules to publish. The feature lives where the session runs,
+    # so this case reads what the breakdown, the ticket files and the close carry about where a
+    # ticket is built: nothing. The journey is a diamond, the Pinned view reading what the two
+    # other paths write, so no ticket folds into a neighbour.
+    set -e
+    mkdir -p src docs/agents .scratch/pin-notes .claude/agents
+    cat > src/notes.js <<'JS'
+    const notes = [];
+    function create(title) {
+      const note = { id: notes.length + 1, title };
+      notes.push(note);
+      return note;
+    }
+    function list() {
+      return notes.slice();
+    }
+    module.exports = { create, list };
+    JS
+    cat > docs/agents/issue-tracker.md <<'MD'
+    # Issue tracker: Local Markdown
+
+    Issues and specs for this repo live as markdown files in `.scratch/`.
+
+    - One feature per directory: `.scratch/<feature-slug>/`
+    - The spec is `.scratch/<feature-slug>/spec.md`
+    - Implementation issues are one file per ticket at `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01`
+    - Triage state is a `Status:` line near the top of each issue file
+    MD
+    cat > .scratch/pin-notes/spec.md <<'MD'
+    # Pin notes
+
+    Journey: ./journey.md
+    Status: ready-for-agent
+
+    ## Problem Statement
+
+    The notes a writer returns to every day sink under newer ones, nothing tells one kind of note
+    from another at a glance, and there is no place that gathers the notes that matter.
+
+    ## Solution
+
+    A note can be pinned to the top of the list, a note can carry a colour, and a Pinned view
+    gathers the pinned notes, narrows them by colour and lets the writer unpin one.
+
+    ## User Stories
+
+    1. As a writer, I want to pin a note, so that it stays at the top of my list
+    2. As a writer, I want to give a note a colour, so that I tell one kind of note from another
+    3. As a writer, I want to see my pinned notes narrowed by colour and unpin one, so that the top of my list stays short
+    4. As a writer, I want to pin several notes at once, so that I can set my list up quickly
+
+    ## Implementation Decisions
+
+    - A note carries a pinned flag, off when the note is created; pinning never reorders the unpinned notes
+    - A note carries one colour out of a fixed set of four, or none
+    - The list shows pinned notes first; a separate Pinned view shows the pinned notes only, with a colour filter
+
+    ## Testing Decisions
+
+    - Behaviour tests through the notes module's public functions
+
+    ## Out of Scope
+
+    - Reordering pinned notes by hand
+    MD
+    cat > .scratch/pin-notes/journey.md <<'MD'
+    # Journey: Pin notes
+
+    Spec: ./spec.md
+    Actor: writer
+    Entry: the notes list
+
+    ## Path 1: Pin a note
+
+    Story: 1
+    Outcome: the note sits at the top of the list and the writer knows it is pinned.
+
+    | Step | Actor sees | Actor does | System answers |
+    |---|---|---|---|
+    | 1 | the list, each note with a Pin action | picks Pin on one note | the note moves above the unpinned notes; a line says "Pinned" with a link to Pinned |
+    | 2 | the list with the note on top | nothing | the Pinned link shows a count of one |
+
+    Failure branches:
+    - Pin picked twice on the same note: the second pick is a no-op, the line still says "Pinned"
+
+    ## Path 2: Give a note a colour
+
+    Story: 2
+    Outcome: the note shows its colour in the list.
+
+    | Step | Actor sees | Actor does | System answers |
+    |---|---|---|---|
+    | 1 | the list, each note with a colour picker of four colours and None | picks a colour on one note | the note shows a dot of that colour beside its title |
+    | 2 | the note with its dot | picks None | the dot is gone |
+
+    Failure branches:
+    - A colour outside the four: the pick is refused and a line says "Unknown colour"
+
+    ## Path 3: Narrow the pinned notes by colour and unpin one
+
+    Story: 3
+    Outcome: the note is back among the unpinned notes of the list.
+
+    | Step | Actor sees | Actor does | System answers |
+    |---|---|---|---|
+    | 1 | the Pinned link with a count | opens it | the Pinned view lists the pinned notes, each with its colour dot, a colour filter above them and Unpin on each |
+    | 2 | the Pinned view | picks a colour in the filter | the view narrows to the pinned notes of that colour |
+    | 3 | the matching note | picks Unpin | the note leaves the view; a line says "Unpinned" with a link to the list |
+    | 4 | the Pinned view, now empty | nothing | an empty state says "Nothing pinned" |
+
+    Failure branches:
+    - Unpin on a note pinned twice: the note returns to the unpinned notes once
+    - No pinned note has the colour picked: a line says "No pinned notes in this colour"
+
+    ## States
+
+    | State | The actor sees | Actions |
+    |---|---|---|
+    | unpinned | the note among the unpinned notes of the list | Pin (Path 1, to pinned); Colour (Path 2, stays unpinned) |
+    | pinned | the note on top of the list and in the Pinned view, found by the colour filter | Colour (Path 2, stays pinned); Unpin (Path 3, to unpinned) |
+
+    ## Cut
+
+    - Story 4, pin several notes at once: no observed need; one at a time is the whole path
+
+    ## Defaults taken
+
+    - "Pinned" and "Unpinned" lines are the app's existing status line
+
+    ## Deferred
+
+    - A limit on how many notes can be pinned: reopens when a writer pins more than fits on one screen
+
+    ## Spec changes applied
+
+    - none
+
+    ## Reopen in discuss
+
+    - none
+    MD
+    printf '.scratch/\n' > .gitignore
+    cat > .claude/agents/choice-taker.md <<'CHOICE_TAKER_EOF'
+    ---
+    name: choice-taker
+    description: "Stand-in for the fixture: always returns a settled Ruling on the option that publishes the breakdown."
+    tools: Read, Glob, Grep
+    ---
+
+    Do not weigh the question. Among the lines under `Options:` in your brief, take the one under
+    which the breakdown is published as it stands, copied verbatim, and every option line in its
+    order. Return exactly this shape and nothing else, no line before it and none after, with that
+    option in place of `<the publishing option>` and the options joined by ` or ` in place of
+    `<options>`:
+
+    ```
+    settled
+    Side: <the publishing option>
+    Norm: no norm: the side easiest to undo
+    Fork: <options>
+    Losing criterion: none
+    ```
+    CHOICE_TAKER_EOF
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"

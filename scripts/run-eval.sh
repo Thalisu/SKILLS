@@ -3,6 +3,7 @@
 # as that command stays gated on this machine. Dev-only, for maintainers of this repo.
 #
 #   run-eval.sh <skill|evals folder> [<case> ...] [--runs N] [--model NAME] [--judge-model NAME] [--keep]
+#                 [--unlink-agent NAME]...
 #     <skill>             a skill of this repo by name, under skills/ or vendor/, or the path of an
 #                         evals folder
 #     <case>              the cases to run, by folder name; every case in the folder when none
@@ -10,13 +11,17 @@
 #     --model NAME        the model of the session under test (default: the CLI's own)
 #     --judge-model NAME  the model that reads an llm grader (default: sonnet)
 #     --keep              keeps the work folder of a green run too; a red run's is always kept
+#     --unlink-agent NAME keeps the agent NAME out of the sessions of every case, on top of each
+#                         case's own context.unlinked_agents; repeatable
 #
 # A case is <case>/case.yaml (runs, max_turns, timeout_seconds, allowed_tools, the
 # context.scaffold_script that lays the fixture in an empty folder, context.unlinked_agents,
 # the agents of this repo its sessions must not list, and context.unlinked_skills, the skills they
 # must not list, which is how a fixture's own stand-in under .claude/skills/<name> wins over the
-# linked one), prompt.md and graders/*.md, each grader a
-# frontmatter of one type:
+# linked one), prompt.md and graders/*.md. Every {{fixture}} in prompt.md is replaced, once the
+# scaffold is laid, by the absolute path of that run's fixture root, so a prompt can name a location
+# the scaffold laid in or beside the fixture, which exists under no path known before the run. Each
+# grader is a frontmatter of one type:
 #   llm          criteria, read against the run's transcript and what the run changed in the
 #                fixture by one judge session, which answers for every llm grader of the run
 #   regex        pattern (PCRE), match: contains, target: last_message
@@ -34,7 +39,9 @@
 # Every session runs under a throwaway CLAUDE_CONFIG_DIR, so the real ~/.claude (memory, hooks,
 # settings, plugins, CLAUDE.md) never loads: the credentials are linked in, and every skill and
 # agent of this repo is linked by scripts/link-skills.sh under a throwaway HOME, the layout a
-# maintainer's machine has. allowed_tools is a permission allowlist, as --allow-tools is to the
+# maintainer's machine has, from a copy of the repo that leaves out docs/, CONTEXT.md and every
+# skill's evals/, which no session reaches through a linked skill. allowed_tools is a permission
+# allowlist, as --allow-tools is to the
 # plugin, and nobody is there to approve anything else, so any other tool that asks is denied.
 #
 # Prints a line per grader and run, ok or FAIL with its reason, the path of every red run's work
@@ -44,18 +51,19 @@
 set -uo pipefail
 
 usage() {
-  echo "usage: run-eval.sh <skill|evals folder> [<case> ...] [--runs N] [--model NAME] [--judge-model NAME] [--keep]" >&2
+  echo "usage: run-eval.sh <skill|evals folder> [<case> ...] [--runs N] [--model NAME] [--judge-model NAME] [--keep] [--unlink-agent NAME]..." >&2
   exit 2
 }
 here="$(cd "$(dirname "$0")" && pwd -P)"
 repo="$(cd "$here/.." && pwd -P)"
-target=""; cases=(); runs_override=""; model=""; judge_model=sonnet; keep=no
+target=""; cases=(); runs_override=""; model=""; judge_model=sonnet; keep=no; unlink_agents=()
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --runs) [ "$#" -ge 2 ] || usage; runs_override="$2"; shift 2 ;;
     --model) [ "$#" -ge 2 ] || usage; model="$2"; shift 2 ;;
     --judge-model) [ "$#" -ge 2 ] || usage; judge_model="$2"; shift 2 ;;
     --keep) keep=yes; shift ;;
+    --unlink-agent) [ "$#" -ge 2 ] || usage; unlink_agents+=("$2"); shift 2 ;;
     -h|--help) awk 'NR > 1 && /^#/ { sub(/^# ?/, ""); print; next } NR > 1 { exit }' "$0"; exit 0 ;;
     -*) usage ;;
     *) if [ -z "$target" ]; then target="$1"; else cases+=("$1"); fi; shift ;;
@@ -82,7 +90,18 @@ done
 
 sandbox="$(mktemp -d -t run-eval-home.XXXXXX)"
 trap 'rm -rf "$sandbox"' EXIT
-HOME="$sandbox" bash "$repo/scripts/link-skills.sh" claude >/dev/null 2>&1 ||
+# The skills are linked from a copy that leaves out docs/, CONTEXT.md and every skill's evals/: a
+# session follows a skill's link back to the tree it sits in, and with the glossary and the ADRs
+# beside it there it improvises behaviour the skill does not state yet, and with the case's own
+# graders there it copies the wording they ask for, so a case goes green before the skill is written.
+linked="$sandbox/repo"
+mkdir "$linked"
+for part in skills vendor .agents scripts; do
+  [ ! -e "$repo/$part" ] || cp -R "$repo/$part" "$linked/$part" ||
+    { echo "could not copy $part into the sandbox" >&2; exit 2; }
+done
+rm -rf "$linked"/skills/*/evals "$linked"/vendor/*/evals
+HOME="$sandbox" bash "$linked/scripts/link-skills.sh" claude >/dev/null 2>&1 ||
   { echo "scripts/link-skills.sh could not link the skills into the sandbox" >&2; exit 2; }
 config="$sandbox/.claude"
 if [ -f "$HOME/.claude/.credentials.json" ]; then
@@ -146,8 +165,13 @@ run meets every part of that grader's criteria, judging each grader on its own c
 only on what the transcript and the changes to the fixture show: a claim the run makes about its
 own work is not proof of it.
 
-Answer with exactly one line per grader, in the order they are listed: the grader's name, a colon,
-PASS or FAIL, and one sentence giving the reason, as in "some-grader: FAIL the reason".
+Work first, verdicts last. For each grader, go through its criteria part by part and note, for each
+part, what in the transcript or the changes meets it or fails it. A grader fails only on a part of
+its own criteria the run does not meet, never on something its criteria do not ask for.
+
+Then write a line reading exactly VERDICTS, and after it exactly one line per grader, in the order
+they are listed: the grader's name, a colon, PASS or FAIL, and one sentence giving the reason, as
+in "some-grader: FAIL the reason".
 
 ## Criteria
 EOF
@@ -168,7 +192,11 @@ $(cat "$w/changes")
 EOF
   } | (cd "$w" && timeout 300 "${claude_cmd[@]}" --output-format json --max-turns 1 --tools "" \
     --strict-mcp-config --no-session-persistence --model "$judge_model") >"$w/judge.json" 2>"$w/judge.err"
-  jq -r '.result // ""' "$w/judge.json" 2>/dev/null
+  # The judge works through the criteria before it answers, and a verdict it tried out on the way is
+  # not its answer: only the lines after its last VERDICTS line are read, the whole reply when it
+  # wrote none.
+  jq -r '.result // ""' "$w/judge.json" 2>/dev/null |
+    awk '{ line[NR] = $0 } /^[^A-Za-z]*VERDICTS[^A-Za-z]*$/ { from = NR } END { for (i = from + 1; i <= NR; i++) print line[i] }'
 }
 
 grade() { # $1 grader, $2 work folder: prints why the run fails the grader, nothing when it passes
@@ -240,7 +268,7 @@ for c in "${cases[@]}"; do
     if [ -L "$config/agents/$a.md" ] || [ -e "$config/agents/$a.md" ]; then
       mkdir -p "$sandbox/unlinked" && mv "$config/agents/$a.md" "$sandbox/unlinked/$a.md"
     else missing="$a"; missing_kind="an agent"; fi
-  done < <(yq -r '.context.unlinked_agents // [] | .[]' "$case_file")
+  done < <({ yq -r '.context.unlinked_agents // [] | .[]' "$case_file"; printf '%s\n' ${unlink_agents[@]+"${unlink_agents[@]}"}; } | awk '!seen[$0]++')
   while IFS= read -r s; do
     [ -n "$s" ] || continue
     if [ -L "$config/skills/$s" ] || [ -e "$config/skills/$s" ]; then
@@ -268,6 +296,9 @@ for c in "${cases[@]}"; do
     elif [ "${#graders[@]}" = 0 ]; then
       echo "FAIL  $label: the case has no grader"; red=1
     else
+      prompt="$(cat "$work/prompt.md")"
+      # The replacement is quoted so that bash never reads an & in the path as the matched token.
+      printf '%s\n' "${prompt//'{{fixture}}'/"$(cd "$work/fixture" && pwd -P)"}" > "$work/prompt.md"
       snapshot "$work/fixture" > "$work/before"
       head_before="$(git -C "$work/fixture" rev-parse -q --verify HEAD 2>/dev/null)"
       # The session persists, into the throwaway config, because a forked skill's subagent writes its

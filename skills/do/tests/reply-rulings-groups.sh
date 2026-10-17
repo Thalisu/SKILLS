@@ -71,6 +71,22 @@ expect "reply.md's example reply carries a Rulings block" test -n "$example"
 expect "the example's Rulings block carries the On the Spec: line" grep -q "^$spec_label" <<<"$example"
 expect "the example's Rulings block carries the On the run: line" grep -q "^$run_label" <<<"$example"
 
+# The model copies the example's Ruling, so it may only show a question forks.md's run-question
+# table lets the choice-taker rule under --auto, or none. Resume or start over is no row there, and
+# the example's own Claimed: line is a fresh claim with nothing to resume.
+run_line="$(grep -m1 "^$run_label" <<<"$example")"
+expect "the example's On the run: line reads none or rules a question of forks.md's run-question table" \
+  grep -qE -e "^$run_label none *\$" \
+  -e "continue or stop|stop or continue|carry on or stop" \
+  -e "full suite|remote run" \
+  -e "harness" \
+  -e "two homes|which home" \
+  -e "two files|which file" <<<"$run_line"
+# shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+out="$run_line"
+check_absent "the example's On the run: line rules no resume-or-start-over question" 0 0 \
+  "start over" "start again" "start afresh" "start fresh" "resume the worktree" "resume or start"
+
 echo "# the Playbooks: what each puts under Rulings names the two groups"
 
 # A Playbook speaks of the section in its Reply step, found by its name since its number moves, and

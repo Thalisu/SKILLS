@@ -26,52 +26,8 @@ calls() { if [ -f "$STUB_DIR/calls" ]; then wc -l <"$STUB_DIR/calls"; else echo 
 judge_calls() { if [ -f "$STUB_DIR/judge-calls" ]; then wc -l <"$STUB_DIR/judge-calls"; else echo 0; fi; }
 reset() { rm -f "$STUB_DIR/calls" "$STUB_DIR/judge-calls" "$STUB_DIR/judge-prompts" "$STUB_DIR/judge-args"; }
 
-# The stand-in CLI: a judge call carries --tools and logs its arguments and prompt, and every other
-# call is the session under test, which logs its arguments and environment, prints the canned
-# transcript and touches a file.
-# The judge answers one line per "### <grader>" heading of its prompt: STUB_VERDICT for every
-# grader (PASS by default), FAIL for the graders STUB_FAIL names.
-cat >"$tmp/bin/claude" <<'SH'
-#!/usr/bin/env bash
-for a in "$@"; do
-  if [ "$a" = --tools ]; then
-    echo judge >> "$STUB_DIR/judge-calls"
-    { printf 'judge'; printf ' [%s]' "$@"; printf '\n'; } >> "$STUB_DIR/judge-args"
-    prompt="$(cat)"
-    printf '%s\n' "$prompt" >> "$STUB_DIR/judge-prompts"
-    [ -z "${STUB_JUDGE_ERR:-}" ] || { echo "$STUB_JUDGE_ERR" >&2; exit 1; }
-    reply=""
-    while IFS= read -r name; do
-      verdict="${STUB_VERDICT:-PASS}"
-      case " ${STUB_FAIL:-} " in *" $name "*) verdict=FAIL ;; esac
-      reply="$reply$name: $verdict the stand-in judge says so"$'\n'
-    done < <(sed -n 's/^### //p' <<<"$prompt")
-    jq -cn --arg r "${reply%$'\n'}" '{type: "result", result: $r}'
-    exit 0
-  fi
-done
-journey=no; [ -e "${CLAUDE_CONFIG_DIR:-/nonexistent}/skills/journey/SKILL.md" ] && journey=yes
-reader=no; [ -e "${CLAUDE_CONFIG_DIR:-/nonexistent}/agents/do-reader.md" ] && reader=yes
-{ printf 'call'; printf ' [%s]' "$@"
-  printf ' config=%s claudecode=%s journey=%s reader=%s creds=%s home-skill=%s cwd=%s\n' "${CLAUDE_CONFIG_DIR:-unset}" \
-    "${CLAUDECODE:-unset}" "$journey" "$reader" "$(readlink "${CLAUDE_CONFIG_DIR:-/nonexistent}/.credentials.json")" \
-    "$(readlink -f ~/.claude/skills/do-code-review)" "$(pwd -P)"
-} >> "$STUB_DIR/calls"
-[ -z "${STUB_TOUCH:-}" ] || : > "$STUB_TOUCH"
-# STUB_SUBAGENT: a subagent transcript the session persists, as the real CLI does, under its config
-# dir, keyed by its cwd and the session_id of the stream's init line; never with persistence off.
-if [ -n "${STUB_SUBAGENT:-}" ] && ! printf '%s\n' "$@" | grep -qx -- --no-session-persistence; then
-  sid="$(head -1 "$STUB_TRANSCRIPT" | jq -r .session_id)"
-  id="$(head -1 "$STUB_SUBAGENT" | jq -r .agentId)"
-  dir="$CLAUDE_CONFIG_DIR/projects/$(pwd -P | tr '/.' '--')/$sid/subagents"
-  mkdir -p "$dir"
-  cp "$STUB_SUBAGENT" "$dir/agent-$id.jsonl"
-  printf '{"agentType":"general-purpose"}\n' >"$dir/agent-$id.meta.json"
-fi
-[ -z "${STUB_TRANSCRIPT:-}" ] || cat "$STUB_TRANSCRIPT"
-exit "${STUB_RC:-0}"
-SH
-chmod +x "$tmp/bin/claude"
+# The stand-in CLI: scripts/tests/stubs/claude, whose header names the STUB_* variables it reads.
+cp "$here/stubs/claude" "$tmp/bin/claude"
 
 # One run: the session calls the resolver itself, a subagent runs a Bash call of its own, and the
 # last message opens with the Playbook line.
@@ -167,8 +123,16 @@ expect "the session's config is a sandbox, never the real one" \
   bash -c 'grep -q "config=$1/run-eval-home\.[^ ]*/\.claude " <<<"$2"' _ "$TMPDIR" "$session"
 expect "the sandbox holds the repo's skills" grep -qF "journey=yes" <<<"$session"
 expect "the sandbox links the credentials in" grep -qF "creds=$HOME/.claude/.credentials.json" <<<"$session"
-expect "the session's ~/.claude/skills resolves into the checkout under test, never the caller's own install" \
-  grep -qF " home-skill=$repo/skills/do-code-review " <<<"$session"
+expect "the session's ~/.claude/skills resolves into the sandbox's copy of the checkout under test, never the caller's own install" \
+  grep -qE " home-skill=$TMPDIR/run-eval-home\.[^ /]*/repo/skills/do-code-review " <<<"$session"
+expect "the tree a linked skill resolves to holds the repo's skills and its .agents folder" \
+  grep -qE " reach=skills,\.agents,[^ ]* " <<<"$session"
+expect "a session cannot reach the repo's CONTEXT.md through a linked skill" \
+  bash -c '! grep -qE " reach=[^ ]*CONTEXT\.md," <<<"$1"' _ "$session"
+expect "a session cannot reach the repo's docs folder through a linked skill" \
+  bash -c '! grep -qE " reach=[^ ]*docs," <<<"$1"' _ "$session"
+expect "a session cannot reach any skill's evals folder through a linked skill" \
+  bash -c '! grep -qE " reach=[^ ]*evals," <<<"$1"' _ "$session"
 expect "the session runs in the laid fixture" grep -qE "cwd=$TMPDIR/run-eval-walk\.[^ ]*/fixture$" <<<"$session"
 judged="$(cat "$STUB_DIR/judge-prompts")"
 expect "the judge reads the criteria" grep -qF "The run resolved the slug suppliers through the resolver." <<<"$judged"
@@ -227,6 +191,18 @@ expect "the judge reads the first grader's criteria under its name" \
 expect "the judge reads the second grader's criteria under its name" \
   bash -c 'sed -n "/^### breaks\$/,/^### /p" "$1" | grep -qF "The run exported the notes to a file."' _ "$STUB_DIR/judge-prompts"
 rm -rf "$(sed -n 's/^ *kept: //p' <<<"$out")"
+# A judge that works through the criteria before it answers may change its mind on the way: what it
+# writes before the VERDICTS line is its working, and never a verdict.
+mkdir -p "$evals/aloud"
+printf 'runs: 1\n' >"$evals/aloud/case.yaml" && printf 'hi\n' >"$evals/aloud/prompt.md"
+grader aloud settled 'type: llm
+criteria: "The run kept the notes it was given."'
+STUB_REPLY='settled: FAIL at first glance the notes look dropped
+On a second read the run kept every note.
+VERDICTS
+settled: PASS the run kept every note' run "$evals" aloud
+check "an llm grader is decided by its line after the VERDICTS marker, whatever the judge's working said before it" 0 "$rc" \
+  "ok    aloud run 1/1 settled" "aloud: 1/1 green" "PASS"
 reset
 run "$evals" walk --runs 1
 check "a file the run never made fails file_exists" 1 "$rc" "FAIL  walk run 1/1 made-file: no file matches made-*.txt"
@@ -345,6 +321,21 @@ check "a case that unlinks a skill the sandbox never linked is red before any se
   "unlink-skill-unknown: 0 run, a skill it unlinks was never linked"
 expect "that case started no session" test "$(calls)" = 0
 
+# The command line can keep an agent out of every case of one invocation, on top of each case's own
+# context, the way a comparison runs one shape without an agent its cases do not name.
+reset
+STUB_TOUCH=made-by-run.txt run "$evals" walk unlink-skill --runs 1 --unlink-agent do-reader
+check "an invocation that unlinks an agent runs every case green" 0 "$rc" \
+  "walk: 1/1 green" "unlink-skill: 1/1 green"
+expect "the invocation ran one session per case" test "$(calls)" = 2
+expect "the first case's session lists no do-reader" grep -qF "reader=no" <<<"$(sed -n 1p "$STUB_DIR/calls")"
+expect "the second case's session lists no do-reader either" grep -qF "reader=no" <<<"$(sed -n 2p "$STUB_DIR/calls")"
+reset
+run "$evals" walk --runs 1 --unlink-agent no-such-agent
+check "an invocation that unlinks an agent the sandbox never linked is red before any session" 1 "$rc" \
+  "FAIL  walk: the case unlinks no-such-agent, which the sandbox never linked"
+expect "that invocation started no session" test "$(calls)" = 0
+
 # The session's own calls are few and are the ones a grader compares key by key, so the judge reads
 # them past the clip that bounds a subagent's many: a brief's last keys and a script's last lines.
 filler="$(head -c 2900 /dev/zero | tr '\0' a)"
@@ -372,6 +363,25 @@ expect "the judge reads a subagent's call of that length from its start" \
   grep -qF "SUBAGENT-CALL-OPENS" "$STUB_DIR/judge-prompts"
 expect "the judge is not shown a subagent's call input past 2000 characters" \
   bash -c '! grep -qF "SUBAGENT-CALL-LAST-WORD" "$1"' _ "$STUB_DIR/judge-prompts"
+
+# A prompt can name a location that exists only once the run's throwaway folder is made: the token
+# stands for that run's fixture root, wherever the prompt carries it.
+mkdir -p "$evals/located"
+printf 'runs: 1\n' >"$evals/located/case.yaml"
+printf '/tickets suppliers notes: {{fixture}}/../notes then {{fixture}}/a.txt\n' >"$evals/located/prompt.md"
+grader located judged 'type: llm
+criteria: "The run wrote the location it was given."'
+reset
+run "$evals" located
+session="$(head -1 "$STUB_DIR/calls" 2>/dev/null)"
+fixture_root="$(sed -n 's/.* cwd=//p' <<<"$session")"
+located_prompt="/tickets suppliers notes: $fixture_root/../notes then $fixture_root/a.txt"
+expect "the session's prompt carries its fixture root wherever the prompt held the {{fixture}} token" \
+  bash -c 'test -n "$1" && grep -qF -e "[$2]" <<<"$3"' _ "$fixture_root" "$located_prompt" "$session"
+expect "the judge is shown the prompt with the fixture root in place of the {{fixture}} token" \
+  bash -c 'sed -n "/^## The prompt the run was given\$/,/^## The transcript\$/p" "$1" | grep -qxF -e "$2"' \
+  _ "$STUB_DIR/judge-prompts" "$located_prompt"
+rm -rf "$(sed -n 's/^ *kept: //p' <<<"$out")"
 
 # A `context: fork` skill's orchestrator never reaches the headless stream: its calls are held only in
 # a subagent transcript beside the run's own, which a `scope: all` grader counts too.

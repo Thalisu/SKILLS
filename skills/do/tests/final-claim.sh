@@ -377,4 +377,128 @@ check_lines "a claim on a Spec branch whose upstream is empty reads failed, nami
 expect "a claim on a Spec branch whose upstream is empty creates no claim file" \
   test ! -e "$orphaned/spec.integration.claim"
 
+# A feature across two sibling repositories, claimed from the Build one: the Ticket and the Spec
+# sit in the Home repository, and the Spec branch to land is the session's. The Build repository's
+# name is not its own key, so a file named after the name as written is not the keyed one.
+sibling_repos claim-web land_api.v2 20261003-keyed-export
+# shellcheck disable=SC2154 # lib.sh's sibling_repos assigns $home, $build and $issues
+keyed="$home/.scratch/20261003-keyed-export"
+# shellcheck disable=SC2154
+repositories_spec "$keyed" "- claim-web (Home repository): $home" "- land_api.v2: $build"
+ticket 01-api-export.md $'**Status:** resolved\n\n**Build repository:** land_api.v2' 'None (can start immediately)'
+(cd "$build" && g branch -q --track spec/keyed-export main && spec_commit spec/keyed-export) || {
+  echo "FAIL  fixture: the unlanded Spec branch of the Build repository could not be built"
+  exit 1
+}
+cd "$build" || exit 1
+run claim "$issues/01-api-export.md"
+check_lines "a claim taken from a Build repository on a Ticket of a sibling Home repository reads claimed, naming the claim file, the ledger and the Review in the Home Feature folder under the Build repository's key, and the Spec branch, its upstream and the tree of the session's repository" 0 "$rc" \
+  "claim=claimed" \
+  "file=$keyed/spec.land-api-v2--6c616e645f6170692e7632.integration.claim" \
+  "spec=$keyed/spec.md" \
+  "spec_branch=spec/keyed-export" \
+  "spec_upstream=main" \
+  "tree=$build/.claude/worktrees/spec-keyed-export" \
+  "ledger=$keyed/spec.land-api-v2--6c616e645f6170692e7632.ledger.md" \
+  "review_file=$keyed/spec.land-api-v2--6c616e645f6170692e7632.review.md" \
+  "takeover=no"
+expect "a claim taken from a Build repository creates the claim file in the Home Feature folder under the Build repository's key" \
+  test -f "$keyed/spec.land-api-v2--6c616e645f6170692e7632.integration.claim"
+expect "a claim taken from a Build repository creates no claim file under the unkeyed name" \
+  test ! -e "$keyed/spec.integration.claim"
+expect "a claim taken from a Build repository creates no claim file in the Build repository" \
+  test -z "$(find "$build" -path "$build/.git" -prune -o -name '*.claim' -print 2>/dev/null)"
+expect "the claim file of a claim taken from a Build repository records the tree of the session's repository, as printed" \
+  grep -qsxF -- "tree=$build/.claude/worktrees/spec-keyed-export" "$keyed/spec.land-api-v2--6c616e645f6170692e7632.integration.claim"
+expect "the claim file of a claim taken from a Build repository records the Spec branch of the session's repository, as printed" \
+  grep -qsxF -- "spec_branch=spec/keyed-export" "$keyed/spec.land-api-v2--6c616e645f6170692e7632.integration.claim"
+
+# The same feature's other repository, the Home one, lands after the Build one: its Ticket names
+# the Home repository, its Spec branch is the Home repository's own, and the Build repository's
+# claim is still held when its session claims.
+build_claim="$keyed/spec.land-api-v2--6c616e645f6170692e7632.integration.claim"
+ticket 02-web-export.md $'**Status:** resolved\n\n**Build repository:** claim-web' 'None (can start immediately)'
+ticket 03-api-import.md $'**Status:** resolved\n\n**Build repository:** land_api.v2' 'None (can start immediately)'
+{
+  cd "$home" && g branch -q --track spec/keyed-export main && spec_commit spec/keyed-export &&
+    cp "$build_claim" "$tmp/claim.build"
+} >/dev/null 2>&1 || {
+  echo "FAIL  fixture: the unlanded Spec branch of the Home repository beside a held Build claim could not be built"
+  exit 1
+}
+run claim "$issues/02-web-export.md"
+check_lines "a claim for one repository of a feature reads claimed and takes over nobody while another repository of the same feature holds its own claim" 0 "$rc" \
+  "claim=claimed" \
+  "takeover=no"
+home_claim="$(term file)"
+expect "a claim for one repository of a feature names a claim file other than the one another repository of the feature holds" \
+  test -n "$home_claim" -a "$home_claim" != "$build_claim"
+expect "the claim files of two repositories of one feature sit side by side in the Home Feature folder" \
+  test -f "$home_claim" -a -f "$build_claim" -a "$(dirname "$home_claim")" = "$keyed"
+expect "a claim for one repository of a feature leaves the claim another repository holds as its claimant wrote it" \
+  cmp -s "$tmp/claim.build" "$build_claim"
+expect "a claim for one repository of a feature leaves the claim another repository holds naming that repository's Ticket" \
+  grep -qsxF -- "ticket=$issues/01-api-export.md" "$build_claim"
+
+cd "$build" || exit 1
+run claim "$issues/01-api-export.md"
+check_lines "a second claim for a repository whose claim is held still reads taken after another repository of the feature claimed, naming the Ticket that holds it" 1 "$rc" \
+  "claim=taken" \
+  "file=$build_claim" \
+  "holder_ticket=$issues/01-api-export.md"
+run claim "$issues/03-api-import.md"
+check_lines "a claim on another Ticket built in a repository whose claim is held reads taken, naming the Ticket that holds it" 1 "$rc" \
+  "claim=taken" \
+  "file=$build_claim" \
+  "holder_ticket=$issues/01-api-export.md"
+
+# A feature of its own in the same two repositories, claimed by nobody: its Ticket is built in the
+# Build repository and the session sits in the Home one, whose own Spec branch is unlanded. A claim
+# here would hold the session's Spec branch under the key of a repository another session lands.
+elsewhere="$home/.scratch/20261004-elsewhere-export"
+repositories_spec "$elsewhere" "- claim-web (Home repository): $home" "- land_api.v2: $build"
+issues="$elsewhere/issues"
+ticket 01-api-export.md $'**Status:** resolved\n\n**Build repository:** land_api.v2' 'None (can start immediately)'
+{
+  cd "$home" && g branch -q --track spec/elsewhere-export main && spec_commit spec/elsewhere-export &&
+    test "$(g for-each-ref --format='%(upstream:short)' refs/heads/spec/elsewhere-export)" = main &&
+    ! g merge-base --is-ancestor refs/heads/spec/elsewhere-export refs/heads/main &&
+    test -z "$(find "$elsewhere" -name '*.claim' -print)"
+} >/dev/null 2>&1 || {
+  echo "FAIL  fixture: the unclaimed feature whose session repository holds an unlanded Spec branch could not be built"
+  exit 1
+}
+run claim "$issues/01-api-export.md"
+check_lines "a claim on a Ticket built in a repository other than the session's reads failed and says the Ticket is built elsewhere, though the session's repository holds an unlanded Spec branch with an upstream" 3 "$rc" \
+  "claim=failed" \
+  "reason=elsewhere"
+expect "a claim on a Ticket built in a repository other than the session's creates no claim file, under the other repository's key or unkeyed, in the Home Feature folder or in the other repository" \
+  test -z "$(find "$elsewhere" "$build" -path "$build/.git" -prune -o -name '*.claim' -print 2>/dev/null)"
+
+# A feature whose two Build repositories are named apart only by their punctuation: each repository
+# holds a claim of its own, so neither may read the other's claim or Review as its own.
+punctuated="$home/.scratch/20261005-punctuated-names"
+repositories_spec "$punctuated" "- claim-web (Home repository): $home" "- api.v1: $build" "- api v1: $tmp/api-v1"
+issues="$punctuated/issues"
+ticket 01-dotted.md $'**Status:** resolved\n\n**Build repository:** api.v1' 'None (can start immediately)'
+ticket 02-spaced.md $'**Status:** resolved\n\n**Build repository:** api v1' 'None (can start immediately)'
+cd "$home" || exit 1
+run show "$issues/01-dotted.md"
+dotted_claim="$(term file)"
+run show "$issues/02-spaced.md"
+spaced_claim="$(term file)"
+expect "show on two Tickets of one feature whose Build repository names differ only in punctuation names two different claim files" \
+  test -n "$dotted_claim" -a -n "$spaced_claim" -a "$dotted_claim" != "$spaced_claim"
+
+# A Build repository named with no letter or digit still holds a claim of its own, apart from the
+# unkeyed one a Ticket of the same feature with no Build repository line holds.
+ticket 03-underscored.md $'**Status:** resolved\n\n**Build repository:** ___' 'None (can start immediately)'
+ticket 04-unkeyed.md '**Status:** resolved' 'None (can start immediately)'
+run show "$issues/03-underscored.md"
+underscored_claim="$(term file)"
+run show "$issues/04-unkeyed.md"
+unkeyed_claim="$(term file)"
+expect "show on a Ticket whose Build repository name has no letter or digit names a claim file other than the unkeyed one of a Ticket of the same feature with no Build repository line" \
+  test -n "$underscored_claim" -a -n "$unkeyed_claim" -a "$underscored_claim" != "$unkeyed_claim"
+
 [ "$fails" = 0 ]

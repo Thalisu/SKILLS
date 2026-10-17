@@ -71,25 +71,25 @@ under the Builder's own rule, `## The flows` of [builder.md](builder.md), over t
 Digest's `## Observable criteria` section names. The fork holds the Agent tool and dispatches that
 author itself, the one its brief's `Loop:` key names, and a hook of its own keeps the tool to the
 two end-to-end authors and the helper agents impeccable ships. The session copies the `flow:` lines
-into the Reply's Evidence unchanged, per [reply.md](reply.md).
+into the Run report's Evidence unchanged, per [reply.md](reply.md).
 
 In a project with no end-to-end command the fork writes no flow, and one line comes back in place
 of the `flow:` lines: `fallback: no end-to-end command in the project`. The session then writes one
-line in the Reply's Evidence, saying that no flow covered the screen and that the detector scan and
+line in the Run report's Evidence, saying that no flow covered the screen and that the detector scan and
 the Gate are its proof.
 
 After those lines comes one `scan:` line, the command line of impeccable's detector scan as it was
 run and the count of findings that remain, then one `finding:` line per finding left. The scan is
 the fork's to run, by script, after the flows, and the fork fixes what it reports before it
 returns: the session never runs the detector. Findings that remain come back under `built` and do
-not stop the run, so the Ticket still lands. The session copies the `scan:` line into the Reply's
+not stop the run, so the Ticket still lands. The session copies the `scan:` line into the Run report's
 Evidence, beside the flows, and each `finding:` line into its Pending debt, per
 [reply.md](reply.md).
 
 Where the loaded impeccable skill names no detector for the project's platform, as with a native
 project, or the detector crashed, the fork returns one `no scan:` line in place of the `scan:` line,
 with its reason and no `finding:` line, still under `built`. The session copies the `no scan:` line
-into the Reply's Evidence, per [reply.md](reply.md).
+into the Run report's Evidence, per [reply.md](reply.md).
 
 The definition carries this shape itself, since the fork cannot open this file or
 [builder.md](builder.md): a change to the lines the Builder returns is made in

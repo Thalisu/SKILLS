@@ -11,7 +11,7 @@ context:
     # behaviour: the second /do resumes from them, creates no worktree, and continues at the third.
     # The Spec already carries a Ruling line for Ticket 01, appended by an earlier session that met
     # a Design fork and settled it before this run started: the resumed run meets no fork itself,
-    # writes nothing to the Spec, yet its reply's Rulings section must still list that Ruling.
+    # writes nothing to the Spec and forks no choice-taker for it.
     set -e
     mkdir -p src docs/agents .scratch/archive-notes/issues .claude/agents .claude/skills/test-author
     cat > package.json <<'JSON'

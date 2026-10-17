@@ -35,8 +35,13 @@ held_para="$(paragraph_with "$forks" "The held Ruling reaches the review as")"
 expect "forks.md's own body carries the paragraph naming the held Ruling's readers" test -n "$held_para"
 expect "forks.md's own body sends the held Ruling to the close" \
   grep -qF "the close's one question as the close there says" <<<"$held_para"
-expect "forks.md's own body sends the held Ruling to the reply" \
-  grep -qF "the reply's \`Rulings\` section and its Evidence, per [reply.md](reply.md)" <<<"$held_para"
+# ADR 0091: the Rulings section moved to the Run report, and an unposted held Ruling is the Reply's
+# Pending debt, since no file carries it.
+expect "forks.md's own body sends the held Ruling to the Run report's Rulings" \
+  grep -qF "the Run report's \`Rulings\` section and its Evidence under \`--auto\`, per [reply.md](reply.md)" \
+  <<<"$(tr '\n' ' ' <<<"$held_para" | tr -s ' ')"
+expect "forks.md's own body sends an unposted held Ruling to the Reply's Pending debt" \
+  grep -qF "line of the Reply's Pending debt" <<<"$(tr '\n' ' ' <<<"$held_para" | tr -s ' ')"
 
 # The paragraph describing the brief the fork hands the choice-taker no longer claims the brief
 # hands over no path to the principles: the choice-taker holds no shell to evaluate a literal

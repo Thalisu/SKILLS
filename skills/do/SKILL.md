@@ -100,9 +100,9 @@ A matched Playbook whose reference is missing from Links is not installed in thi
 Each holds in every Playbook. Each carries its reason, and a case none of them names is judged by
 those reasons.
 
-- Every line a step names is carried by the Reply, per [reply.md](references/reply.md), and none is required as text written mid-run: a session that writes text as it goes is free to, and nothing depends on it. A headless session writes a line meant for the moment as thinking, which nobody reads ([ADR 0039](../../docs/adr/0039-a-do-runs-lines-reach-the-developer-through-the-reply-never-through-text-written-mid-run.md)).
-- The matched Playbook's steps are copied verbatim as the checklist, the run's own todo list, before any task-specific item, and the Reply's Run section carries it with every step the run reached ticked `done:` or visible as `skip: <reason>`. A skipped step left visible is one the developer can question; a dropped one is not.
-- A principle is named in the reply only with the decision it changed. A name with no decision is a citation the reader cannot check.
+- The Reply is five parts, per [reply.md](references/reply.md): the Plan, For whom, Pending debt, the `Yours:` line when the run hands something over, and the Next step. Every other line a step names goes to the Run report, a file written under `--auto` alone ([ADR 0091](../../docs/adr/0091-the-do-reply-is-five-parts-and-the-run-report-is-written-only-under-auto.md)), and none is required as text written mid-run: a session that writes text as it goes is free to, and nothing depends on it. A headless session writes a line meant for the moment as thinking, which nobody reads ([ADR 0039](../../docs/adr/0039-a-do-runs-lines-reach-the-developer-through-the-reply-never-through-text-written-mid-run.md)).
+- The matched Playbook's steps are copied verbatim as the checklist, the run's own todo list, before any task-specific item, and under `--auto` the Run report's Run section carries it with every step the run reached ticked `done:` or visible as `skip: <reason>`. A skipped step left visible is one the developer can question; a dropped one is not.
+- A principle is named in the Run report only with the decision it changed. A name with no decision is a citation the reader cannot check.
 - A question is classified before it is asked: a fact a script can observe goes to a probe, and only a product or preference call goes to the human, since that call is the one answer the run cannot produce itself.
 - The data shape and its organising structure are named before any logic, since logic written first fixes a shape nobody chose.
 - Every delegate's diff is read by the session, which writes its own summary. A delegate's summary is its claim, and the diff is the evidence.
@@ -158,6 +158,6 @@ that Playbook. The reply reference is read last by every Playbook but `setup`, w
 - [tdd-fallback.md](references/tdd-fallback.md): the TDD fallback the build loop reads when the loop line reads `Loop: fallback`, with no unit test author in the project and no global one that can be dispatched, and a second way in under `Loop: global`, build-loop.md's `BLOCKED` route when the global unit test author comes back `BLOCKED` naming a run command the project map lacks: the run writes the failing test itself, and no test author is dispatched.
 - [trivial.md](references/trivial.md): the `trivial` Playbook: its door checks, its steps and the door script they run.
 - [refactoring.md](references/refactoring.md): the `refactoring` Playbook: its door checks, its steps and the pin it holds the reshape against.
-- [reply.md](references/reply.md): the reply every Playbook writes last, its sections in order.
+- [reply.md](references/reply.md): the reply every Playbook writes last, its five parts in order, and the Run report written under `--auto`.
 - [ticket-format.md](../../.agents/formats/ticket-format.md): the Ticket the `ticket` line matches, and the fields a run reads and writes.
 - [spec-format.md](../../.agents/formats/spec-format.md): the Spec the door recognises, and its `Journey:` line.

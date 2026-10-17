@@ -16,7 +16,8 @@
 #
 # <Ticket path> is absolute, or relative to the main checkout (the door's ticket= value). The
 # feature slug is the name of the folder that holds the Ticket's issues/ folder, as
-# .agents/scripts/resolve-feature-folder.sh normalises it.
+# .agents/scripts/resolve-feature-folder.sh normalises it, run in the repository that holds the
+# Ticket. Every ref read, created or deleted is in the main checkout of the repository run from.
 #
 # probe prints four key=value lines, in this order: spec_branch (spec/<feature-slug>, or none for a
 # Ticket outside a feature folder's issues/, such as one on a remote tracker), spec_exists (yes or
@@ -44,18 +45,10 @@ set -uo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd -P)"
 resolver="$here/../../../.agents/scripts/resolve-feature-folder.sh"
+# shellcheck source=skills/do/scripts/ticket-read.sh
+. "$here/ticket-read.sh"
 
 usage() { echo "usage: spec-branch.sh probe|cut|remove <Ticket path>" >&2; exit 2; }
-
-main_checkout() {
-  local top main
-  top="$(git rev-parse --show-toplevel 2>/dev/null)" || return 1
-  # A bare main worktree has no working tree to anchor on, and git lists it first all the same.
-  main="$(git worktree list --porcelain 2>/dev/null |
-    awk '/^$/ { exit } /^worktree /{ p = substr($0, 10) } /^bare$/ { p = "" } END { print p }')"
-  [ -n "$main" ] && [ -d "$main" ] || main="$top"
-  echo "$main"
-}
 
 upstream_of() { # $1 main checkout, $2 branch: its upstream, or nothing
   git -C "$1" for-each-ref --format='%(upstream:short)' "refs/heads/$2"
@@ -99,19 +92,23 @@ record() { # $1 name, $2 action, $3 upstream, $4 tip, $5 reason
   echo "reason=${5:-}"
 }
 
-feature_slug() { # $1 the Ticket's absolute path: the normalised feature slug, or nothing
-  local issues folder
+# The resolver vets the .scratch of the repository it runs in, so it runs in the one that holds the
+# Ticket: the session's own scratch says nothing about a Ticket of another repository.
+feature_slug() { # $1 the Ticket's absolute path, $2 the main checkout: the normalised feature slug, or nothing
+  local issues folder root
   issues="$(dirname "$1")"
   [ "$(basename "$issues")" = issues ] || return 0
   folder="$(basename "$(dirname "$issues")")"
-  bash "$resolver" "$folder" 2>/dev/null | sed -n 's/^slug=//p'
+  root="$(home_root "$1" "$2")"
+  (cd "$root" 2>/dev/null && bash "$resolver" "$folder" 2>/dev/null) | sed -n 's/^slug=//p'
 }
 
 cmd_cut() {
   local main path slug name dev tip
-  main="$(main_checkout)" || { echo "not a git repository" >&2; exit 2; }
+  main="$(main_of .)"
+  [ -n "$main" ] || { echo "not a git repository" >&2; exit 2; }
   case "$1" in /*) path="$1" ;; *) path="$main/${1#./}" ;; esac
-  slug="$(feature_slug "$path")"
+  slug="$(feature_slug "$path" "$main")"
   [ -n "$slug" ] || { echo "no feature folder holds $1" >&2; exit 2; }
   name="spec/$slug"
   if git -C "$main" rev-parse --verify -q "refs/heads/$name" >/dev/null; then
@@ -141,9 +138,10 @@ cmd_cut() {
 
 cmd_probe() {
   local main path slug name tip up
-  main="$(main_checkout)" || { echo "not a git repository" >&2; exit 2; }
+  main="$(main_of .)"
+  [ -n "$main" ] || { echo "not a git repository" >&2; exit 2; }
   case "$1" in /*) path="$1" ;; *) path="$main/${1#./}" ;; esac
-  slug="$(feature_slug "$path")"
+  slug="$(feature_slug "$path" "$main")"
   if [ -z "$slug" ]; then
     printf 'spec_branch=none\nspec_exists=no\nspec_upstream=\nspec_landed=none\n'
     return 0
@@ -167,9 +165,10 @@ refuse_removal() { # $1 reason
 
 cmd_remove() {
   local main path slug name tip up
-  main="$(main_checkout)" || { echo "not a git repository" >&2; exit 2; }
+  main="$(main_of .)"
+  [ -n "$main" ] || { echo "not a git repository" >&2; exit 2; }
   case "$1" in /*) path="$1" ;; *) path="$main/${1#./}" ;; esac
-  slug="$(feature_slug "$path")"
+  slug="$(feature_slug "$path" "$main")"
   [ -n "$slug" ] || { echo "no feature folder holds $1" >&2; exit 2; }
   name="spec/$slug"
   echo "spec_branch=$name"

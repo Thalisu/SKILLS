@@ -1,0 +1,96 @@
+name: stopped-claimed-ticket-refused-on-its-new-blocker
+tags: [playbook, ticket, stop, resume]
+runs: 2
+max_turns: 12
+timeout_seconds: 300
+allowed_tools: [Bash, Read, Edit, Write, Glob, Grep, Agent, Skill]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # Ticket 01 was stopped mid-build on work that belonged elsewhere: it reads claimed, its
+    # do/archive-a-note worktree holds one commit with its Behaviour: line, and `tickets` has since
+    # moved one criterion to a new Ticket 02 and written it on Ticket 01's Blocked by line. Ticket 02
+    # still reads ready-for-agent, so the run is refused, and the refusal says what of Ticket 01
+    # stands.
+    set -e
+    mkdir -p src .scratch/archive-notes/issues
+    cat > README.md <<'MD'
+    # notes
+
+    A small notes module: create a note, list the active ones.
+    MD
+    cat > src/notes.js <<'JS'
+    const notes = [];
+    function create(title) { const note = { id: notes.length + 1, title, status: "active" }; notes.push(note); return note; }
+    function list() { return notes.filter((n) => n.status === "active"); }
+    module.exports = { create, list };
+    JS
+
+    cat > .scratch/archive-notes/spec.md <<'MD'
+    # Archive notes
+
+    Journey: not needed, two short paths with no branching
+    Status: ready-for-agent
+
+    ## Problem Statement
+
+    Notes pile up in the list and there is no way to put one aside without deleting it.
+
+    ## Solution
+
+    A note can be archived. Archived notes leave the list, and a count says how many there are.
+
+    ## User Stories
+
+    1. As a writer, I want to archive a note, so that it leaves my list without being deleted
+    2. As a writer, I want to see how many notes I archived, so that I know they were kept
+    MD
+
+    cat > .scratch/archive-notes/issues/01-archive-a-note.md <<'MD'
+    # 01: Archive a note
+
+    **What to build:** Archive a note: the note leaves the list.
+
+    **Blocked by:** 02 Count the archived notes
+
+    **Status:** claimed
+
+    - [ ] Picking Archive on a note removes it from the list
+    - [ ] Archive picked twice on the same note is a no-op: the note stays out of the list
+
+    ## Evidence
+    MD
+
+    cat > .scratch/archive-notes/issues/02-count-the-archived-notes.md <<'MD'
+    # 02: Count the archived notes
+
+    **What to build:** Count the archived notes: after a note is archived, the Archived count reads one more.
+
+    **Blocked by:** None (can start immediately)
+
+    **Status:** ready-for-agent
+
+    - [ ] After archiving one note, the Archived count reads one
+
+    ## Evidence
+    MD
+
+    printf '.scratch/\n' > .gitignore
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
+
+    # What the stopped run left: the worktree, its branch and one behaviour's commit.
+    git worktree add -q .claude/worktrees/do-archive-a-note -b do/archive-a-note
+    echo ".claude/worktrees/" >> .git/info/exclude
+    cat > .claude/worktrees/do-archive-a-note/src/notes.js <<'JS'
+    const notes = [];
+    function create(title) { const note = { id: notes.length + 1, title, status: "active" }; notes.push(note); return note; }
+    function list() { return notes.filter((n) => n.status === "active"); }
+    function archive(id) { const note = notes.find((n) => n.id === id); if (note) note.status = "archived"; return note; }
+    module.exports = { create, list, archive };
+    JS
+    git -C .claude/worktrees/do-archive-a-note -c user.email=fixture@example.com -c user.name=fixture add src/notes.js
+    git -C .claude/worktrees/do-archive-a-note -c user.email=fixture@example.com -c user.name=fixture commit -q \
+      -m "feat(notes): archive a note out of the list" \
+      -m "Behaviour: picking Archive on a note removes it from the list"

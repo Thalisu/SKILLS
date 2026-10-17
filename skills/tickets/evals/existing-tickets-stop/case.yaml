@@ -7,8 +7,8 @@ allowed_tools: [Bash, Read, Edit, Write]
 context:
   scaffold_script: |
     #!/usr/bin/env bash
-    # A previous run already published one ticket for the feature: a second run stops and lists it
-    # instead of numbering over it.
+    # A previous run already published a ticket for every path of the journey, one of them claimed
+    # since: the open tickets cover the whole spec, so a second run cuts nothing and lists them.
     set -e
     mkdir -p src docs/agents .scratch/archive-notes
     cat > src/notes.js <<'JS'
@@ -136,9 +136,27 @@ context:
 
     **Blocked by:** None (can start immediately)
 
-    **Status:** ready-for-agent
+    **Status:** claimed
 
     - [ ] Picking Archive removes the note from the list and shows the Archived line
+    - [ ] The Archived link shows a count of one
+    - [ ] Archive picked twice on the same note is a no-op, and the line still says "Archived"
+
+    ## Evidence
+    MD
+    cat > .scratch/archive-notes/issues/02-find-and-restore-an-archived-note.md <<'MD'
+    # 02: Find and restore an archived note
+
+    **What to build:** Find and restore an archived note: the note is back in the list.
+
+    **Blocked by:** 01: Archive a note
+
+    **Status:** ready-for-agent
+
+    - [ ] Opening the Archived link lists the archived notes, each with Restore
+    - [ ] Picking Restore takes the note out of the view and shows the Restored line with a link to the list
+    - [ ] An Archived view with nothing in it says "Nothing archived"
+    - [ ] Restore on a note archived twice returns it once
 
     ## Evidence
     MD

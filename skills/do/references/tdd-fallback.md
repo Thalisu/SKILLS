@@ -132,15 +132,16 @@ it:
 
 ## What the run records
 
-The reply reports evidence, not the outcome, and each line below is what a later reader has in
-place of having watched the run.
+The run reports evidence, not the outcome, and each line below is what a later reader has in
+place of having watched the run: the Pending debt line in the message, the rest in the Run report
+under `--auto`.
 
 | Where | What it carries |
 |---|---|
-| The behaviour's build line, for the Reply's Run section per [reply.md](reply.md) | that the behaviour went to the fallback and why (no author to dispatch, or the missing slot and `/testing-policy` as the command that would fill it); the `RED_AS_EXPECTED` read at step 4; when a check stood in, the reason and the check |
+| The behaviour's build line, for the Run report's Run section per [reply.md](reply.md) | that the behaviour went to the fallback and why (no author to dispatch, or the missing slot and `/testing-policy` as the command that would fill it); the `RED_AS_EXPECTED` read at step 4; when a check stood in, the reason and the check |
 | The commit body | the behaviour line, labelled `Behaviour: <line>`, and the single-file command that passes; when a check stood in, the check and the reason in place of that command |
-| The Reply's Evidence section | the failing-before run and the failure it produced, the passing-after run and the nearby validation, quoted; when failing-before evidence could not be shown, why, and the closest check used instead |
-| The Reply's Pending debt | each behaviour where a check stood in for a test, named as that |
+| The Run report's Evidence section | the failing-before run and the failure it produced, the passing-after run and the nearby validation, quoted; when failing-before evidence could not be shown, why, and the closest check used instead |
+| The message's Pending debt | each behaviour where a check stood in for a test, named as that |
 
 For example, the commit of a behaviour a check stood in for:
 
@@ -165,7 +166,7 @@ Lauren Tan, MIT (see [PSTACK-LICENSE](../../../vendor/PSTACK-LICENSE)), upstream
 - Upstream is written for a bug fix. The feature case follows the same rule here: the failing test
   first where a cheap path exists, else the closest executable check with the reason stated.
 - The workflow is folded into the build loop of `build-loop.md`: the same steps, the loop's
-  verdicts, one commit per behaviour, and the reply's Evidence section in place of upstream's
+  verdicts, one commit per behaviour, and the Run report's Evidence section in place of upstream's
   "Final Response".
 - The commands come from the repository's own scripts, as the gate reads them.
 - The text is laid out for the run that reads it mid-loop: the ways in and the run's records as

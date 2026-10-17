@@ -1,0 +1,6 @@
+---
+type: llm
+criteria: "The Spec .scratch/hold-disputed-invoice/spec.md was changed by the run (the changes summary lists it), and the transcript shows how: by one call of the skill's `spec-finding.sh` script, whose printed lines read `listed=no`, `list=added` and `line=written`, and never by the session editing the Spec by hand with Edit, Write or a shell redirect. Pass only when all of these hold. First, the script was called once for the one behaviour that moved, with notifications-service as the repository, a behaviour sentence about the dispute-received email template, and the absolute location of notifications-service. Second, nothing in the transcript shows a second entry for notifications-service, an entry for any other repository, or a second finding line: no second call writes one, and any read-back of the Spec shows the list holding orders-service, billing-service and notifications-service once each, and one line starting `- Moved by the run on Ticket 02` in its Implementation Decisions. Third, the two decisions the fixture wrote there are still shown as they were in any read-back. A run that never changed the Spec fails."
+---
+The run writes the finding through the script: one entry added to the list and one line naming the
+behaviour that moved, with nothing else in the Spec changed.

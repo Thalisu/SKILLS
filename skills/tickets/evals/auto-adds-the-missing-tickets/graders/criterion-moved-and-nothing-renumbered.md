@@ -1,0 +1,6 @@
+---
+type: llm
+criteria: "Judge this on the tool calls and the changes to the fixture. Before the run the feature's issues folder held three ticket files, numbered 01, 02 and 03, and ticket 02 held five criteria, one of them that once the Invoice is held the customer receives the email 'Your Invoice is on hold'. Pass only when all of these hold. First, ticket 02 no longer holds the email criterion: it was moved out of that file. Second, ticket 02 keeps its other criteria, the four about the Hold action, the held Invoice, the reload and the Order that is not disputed, each still unticked, and its status still reads ready-for-agent, and its Blocked by still names 01. Third, tickets 01 and 03 are unedited: each file reads as it was, status and criteria included. Fourth, no existing ticket file was renumbered or renamed, and none was deleted: the files numbered 01, 02 and 03 are still there under the names they had. Fifth, exactly one new ticket file was written, the one numbered 04, and no other file was created in the issues folder. The spec and the journey were not edited, and no git commit was made."
+---
+The addition edits one ticket in two places and no other: a renumbered ticket would leave every
+Blocked by already written pointing at the wrong one.

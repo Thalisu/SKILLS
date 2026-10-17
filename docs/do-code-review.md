@@ -117,8 +117,10 @@ Review's text stays in the file and only the outcome comes back: the Review's lo
 - **Somewhere to write.** Hand a Ticket's location over and the Review goes beside the Ticket
   file, taking its name with `.review` before the extension: `02-export-notes.review.md` beside
   `02-export-notes.md`. A Spec handed over in a Ticket's place takes the Review beside it the same
-  way, `spec.review.md` beside `spec.md`. Otherwise it goes to `.scratch/reviews/<branch>.md` in the repository's
-  main checkout, slashes in the branch name turned into dashes: a run inside a linked worktree
+  way, `spec.review.md` beside `spec.md`, unless the caller also handed a `Review file:` line: the
+  Review then goes to that path beside the Spec (`spec.<key>.review.md`, one per repository of a
+  feature across repositories) and never at the Spec's own name. Otherwise it goes to
+  `.scratch/reviews/<branch>.md` in the repository's main checkout, slashes in the branch name turned into dashes: a run inside a linked worktree
   still writes there, since the worktree has no scratch folder of its own and is removed with
   everything in it. The run's last line says whether that file shows up in `git status`: a Review
   beside a Ticket the project tracks does, one written under an ignored `.scratch` does not.

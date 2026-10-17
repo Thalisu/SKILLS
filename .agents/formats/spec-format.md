@@ -38,6 +38,14 @@ The problem the user is facing, from the user's perspective.
 
 The solution to the problem, from the user's perspective.
 
+## Repositories
+
+Written when the feature is built in more than one repository. One line per repository of the
+feature, the **Home repository** among them and marked on its own line:
+
+- {name} (Home repository): {absolute location on this machine}
+- {name}: {absolute location on this machine}
+
 ## User Stories
 
 A long, numbered list. Each story reads `As a <actor>, I want <feature>, so that <benefit>`. The
@@ -59,6 +67,15 @@ a run with `--auto` ruled reads
 A Design fork a `do` run met reads
 `- Ruled by the choice-taker on Ticket <the Ticket> at the <step> step: <the side taken>. Norm: <the norm>. Fork: <side A> or <side B>.`
 and only `do` writes the `on Ticket` form, since `do` reads a Ticket's own Rulings back by it.
+A behaviour a `do` run found has no place in the repository it builds in is a finding, one line of
+its own, marked as the run's by its prefix and carrying the behaviour that moved and the repository
+it belongs to:
+`- Moved by the run on Ticket <the Ticket> at the <step> step: <the behaviour>. Belongs to: <the repository's name>.`
+Only `do` writes it, with the entry for that repository in Repositories when the list did not hold
+one, and `tickets` cuts the moved behaviour from it. When the run could name the repository and not
+its location on this machine, the line ends in ` Location not known.` after the name's period and
+no entry is written, since an entry has no place for a location nobody knows: the location is typed
+with the `tickets` command, which writes the entry.
 
 ## Testing Decisions
 
@@ -86,4 +103,11 @@ Anything else the implementer needs.
 - The stories are the source of the verdict: write each one so a reader can see the path it
   belongs to and count its steps.
 - UI copy the spec quotes stays in the product's language; everything else is English.
+- Repositories is the one section that carries a path. Each entry is one line, never wrapped: the
+  name the plan gives the repository, a colon, and the repository's root as a bare absolute path,
+  with no backticks and no `..` left in it. `tickets` and `do` read the entries by that shape.
+- A spec without a Repositories section is a feature of one repository, the **Home repository**,
+  and every skill that reads it treats it so. The section is never written with a single entry: a
+  `do` run that finds work for a second repository creates it with the Home repository's entry
+  first.
 - No em-dash.

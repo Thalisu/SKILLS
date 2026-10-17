@@ -1,5 +1,5 @@
 ---
 type: llm
-criteria: "The run's final message has a `Rulings` section right after `Principles`. It holds the Ruling the run made, in the shape `- Ruled by the choice-taker on Ticket <issue 3> at the <step> step: <the no-op>. Norm: <the Spec issue's one-way decision>. Fork: <the toggle> or <the no-op>.`, whole, with a `Criterion:` line quoting the old third criterion (a second Archive restores the note) and a `Now reads:` line with the no-op, for the developer to carry to the issues. The section does not read `none`, and it does not say the Ruling was posted on issue 1."
+criteria: "The last message is the five-part Reply: the `Playbook:` line, a `Plan:` line, `## For whom`, `## Pending debt`, a `Yours:` line only when the run hands something over, and `## Next step` last. It carries no `## Run` section and none of the sections `## Inherited`, `## Commits`, `## Evidence`, `## Principles`, `## Rulings`, `## Skipped` or `## Left uncommitted`, since those belong to the Run report, which a run without `--auto` does not write. Its `## Pending debt` section holds the Ruling the run held, whole, with its `Criterion:` and `Now reads:` lines, since nothing posted it. The message does not say the Ruling was posted on issue 1."
 ---
-The reply carries the held Ruling whole, with the rewritten criterion, since nothing posted it.
+The reply stays five parts, carries the held Ruling under Pending debt, and never claims it was posted.

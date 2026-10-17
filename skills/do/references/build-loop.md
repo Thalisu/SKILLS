@@ -18,7 +18,7 @@ One behaviour at a time, from the list the Playbook wrote, in its order. Each be
 verifiable unit that ends in one green commit, per
 [sequence-verifiable-units](../../../.agents/principles/sequence-verifiable-units.md).
 Open each file when the loop is about to edit it, never ahead of the behaviour that edits it, and
-name it on that behaviour's build line for the Reply's Run section, per [reply.md](reply.md). The
+name it on that behaviour's build line for the Run report's Run section, per [reply.md](reply.md). The
 only source the loop then brings into the window is source the run changed, which leaves the window
 to the behaviours still ahead.
 
@@ -44,7 +44,9 @@ to the behaviours still ahead.
      behaviour means it is structural: it ships with no test, and its build line says so.
    - `BLOCKED` on a missing seam: build the seam in production code first (pass the dependency
      in, return the result instead of mutating), then dispatch again. A mock around the missing
-     seam would pin the implementation the seam exists to hide.
+     seam would pin the implementation the seam exists to hide. A Builder does not build the seam
+     itself: it dispatches `do-implementer` with `Edit: seam`, per `## The Implementer` of
+     [builder.md](builder.md).
    - `BLOCKED` naming a run command the project map lacks, a slot reading
      `none yet → /testing-policy`: the map does not change during the run, so a second dispatch
      would meet the same `BLOCKED`. The run writes this behaviour and every remaining one itself,
@@ -55,7 +57,7 @@ to the behaviours still ahead.
      - `production` (a bug, a missing seam or a state the test cannot reach): the run writes the
        production change itself, as on `BLOCKED` for a missing seam, and dispatches again after
        it. No test author may touch production code, so a second author sent at the same wall
-       meets it again.
+       meets it again. A Builder dispatches `do-implementer` with `Edit: fix` for that change.
      - `test`: re-dispatch the same behaviour once, with the Handback's `Ruled out`, `Run` and
        `Reuse audit` sections copied verbatim into the input's `Handback` field, so the second
        author buys neither the ruled-out experiment nor the search behind every asset again. That
@@ -79,19 +81,24 @@ to the behaviours still ahead.
    project's facts. A mechanical red (an import path, a renamed symbol, a typo) is the run's to
    fix. Any change to an assertion, an expectation or expected data goes back to the test author
    with the reason stated as the contract ("the intended behaviour is X"), never as the result
-   ("the test is catching it"): a test bent to fit the code stops proving the behaviour.
+   ("the test is catching it"): a test bent to fit the code stops proving the behaviour. A
+   Builder writes none of this change itself: it dispatches `do-implementer` with `Edit: green`,
+   per `## The Implementer` of [builder.md](builder.md).
 4. Refactor on green where this behaviour's change calls for it (duplication it introduced, logic
    that belongs beside its data), re-running the single-file command over every test file covering
    the code the step moved, after each step. A test that goes red under a pure refactor was
-   asserting the implementation and goes back to the author.
+   asserting the implementation and goes back to the author. A Builder dispatches `do-implementer`
+   with `Edit: refactor` for the refactor.
 5. Typecheck, then format the touched files with the project's formatter, both from the project's
-   facts; a command the project does not have reads `skip: <reason>`.
+   facts; a command the project does not have reads `skip: <reason>`. The format is a Builder's
+   own, never the Implementer's.
 6. Commit the test, the implementation and the report's promotion changeset together, since a
    promotion split from its test leaves the other test file broken at that commit. Stage by path,
    never with `-A` or `.`, so nothing the behaviour did not write rides along. The title is a
    conventional commit, `type(scope): subject`, with `feat`, `fix`, `refactor`, `test`, `docs` or
    `chore`; the body carries the behaviour line, labelled `Behaviour: <line>` on a line of its own
-   so that a resume reads it off the branch, and the single-file command that passes. For example:
+   so that a resume reads it off the branch, and the single-file command that passes. The commit
+   is a Builder's own, never the Implementer's. For example:
 
    ```
    fix(billing): keep sub-cent credits in the invoice balance
@@ -104,7 +111,7 @@ to the behaviours still ahead.
    which it asks, and a loop the session runs itself asks nothing.
 
 Done when every behaviour line has a commit beside it and its build line is recorded for the
-Reply's Run section.
+Run report's Run section.
 
 Under the fallback, when the loop line reads `Loop: fallback` (no unit test author
 in the project and no global one that can be dispatched), the same loop runs by

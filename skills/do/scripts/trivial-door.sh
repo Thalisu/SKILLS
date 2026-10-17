@@ -14,19 +14,18 @@
 # 2 usage, or not a git repository · 3 a language the diff check has no pattern for, left to the
 # run's judgment. covering always exits 0.
 #
-# Test-file classes come from the project's installed Testing Policy
-# (<project>/.claude/testing-policy/skip-patterns.sh, skip_pattern_for) when it exists, else from
-# the built-in list below, which mirrors the policy's classes plus common ones for languages it does
-# not cover. Exports are matched by pattern for JavaScript, TypeScript and Python only; a head is the
-# declaration up to its body, whitespace-normalised, so a reflow passes and a changed parameter, a
-# widened type or a new interface member does not. The initializer of an exported variable is not
-# part of its head (a log wording held in an exported constant is the covering suite's to judge),
-# except for an arrow or function value, whose parameter list is, and for module.exports and
-# export lists, which name what the module exports.
+# Test-file classes come from test-files.sh beside this script: the project's installed Testing
+# Policy when it exists, else a built-in list. Exports are matched by pattern for JavaScript,
+# TypeScript and Python only; a head is the declaration up to its body, whitespace-normalised, so a
+# reflow passes and a changed parameter, a widened type or a new interface member does not. The
+# initializer of an exported variable is not part of its head (a log wording held in an exported
+# constant is the covering suite's to judge), except for an arrow or function value, whose parameter
+# list is, and for module.exports and export lists, which name what the module exports.
 set -uo pipefail
 
 usage() { echo "usage: trivial-door.sh branch [<name>] | trivial-door.sh covering <file>... | trivial-door.sh diff <file>..." >&2; exit 2; }
 
+here="$(cd "$(dirname "$0")" && pwd -P)"
 top="$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "not a git repository" >&2; exit 2; }
 prefix="$(git rev-parse --show-prefix 2>/dev/null)"
 
@@ -65,30 +64,9 @@ cmd_branch() {
   return 0
 }
 
-classes=built-in
-if [ -f "$top/.claude/testing-policy/skip-patterns.sh" ]; then
-  # shellcheck disable=SC1091
-  . "$top/.claude/testing-policy/skip-patterns.sh"
-  classes=policy
-fi
-
-is_test_file() { # $1 absolute path
-  if [ "$classes" = policy ]; then
-    SKIP_KIND=""
-    skip_pattern_for "$1"
-    [ -n "${SKIP_KIND:-}" ]
-    return
-  fi
-  case "$1" in
-    *.test.ts|*.test.tsx|*.test.mts|*.test.cts|*.test.js|*.test.jsx|*.test.mjs|*.test.cjs|\
-    *.spec.ts|*.spec.tsx|*.spec.mts|*.spec.cts|*.spec.js|*.spec.jsx|*.spec.mjs|*.spec.cjs|\
-    *.cy.ts|*.cy.tsx|*.cy.js|*.cy.jsx|*/__tests__/*|*/__snapshots__/*|*.snap|\
-    */test_*.py|*_test.py|*/conftest.py|*/.maestro/*.yaml|*/.maestro/*.yml|\
-    *_test.go|*_test.rb|*_spec.rb|*Test.java|*Tests.java|*Test.kt|*Tests.cs|*.feature|\
-    */tests/*|*/test/*|*/spec/*|*/e2e/*) return 0 ;;
-  esac
-  return 1
-}
+# shellcheck source=test-files.sh
+. "$here/test-files.sh"
+test_classes "$top"
 
 # A head is one exported declaration with its whitespace squeezed: one space between words, none
 # beside punctuation, `;` read as `,`, trailing commas and quotes unified.

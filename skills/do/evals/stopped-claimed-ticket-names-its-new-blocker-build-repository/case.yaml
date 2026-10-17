@@ -1,0 +1,129 @@
+name: stopped-claimed-ticket-names-its-new-blocker-build-repository
+tags: [playbook, ticket, stop, resume, repositories]
+runs: 2
+max_turns: 12
+timeout_seconds: 300
+allowed_tools: [Bash, Read, Edit, Write, Glob, Grep, Agent, Skill]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # The feature spans two repositories. The session runs in billing-service, the Build repository
+    # of Ticket 01 (this fixture folder, which the Spec lists by its location), and the Tickets live
+    # in orders-service, the Home repository, a sibling folder. An earlier run stopped Ticket 01
+    # mid-build on work for orders-service: it reads claimed and its worktree here holds one commit
+    # with its Behaviour: line. `tickets` has since cut that work as Ticket 02, built in
+    # orders-service and still ready-for-agent, and written it on Ticket 01's Blocked by line. The
+    # run is refused, says what of Ticket 01 stands, and hands the command over with the repository
+    # to run it in.
+    set -e
+    mkdir -p src ../orders-service/src ../orders-service/.scratch/hold-disputed-invoice/issues
+    cat > README.md <<'MD'
+    # billing-service
+
+    Opens Invoices for Orders.
+    MD
+    cat > src/invoice.js <<'JS'
+    const invoices = new Map();
+    function open(orderId) { invoices.set(orderId, { orderId, status: "open" }); return invoices.get(orderId); }
+    module.exports = { open };
+    JS
+    cat > ../orders-service/README.md <<'MD'
+    # orders-service
+
+    Records Orders and their status.
+    MD
+    cat > ../orders-service/src/order.js <<'JS'
+    const orders = new Map();
+    function record(id) { orders.set(id, { id, status: "open" }); return orders.get(id); }
+    function lookup(id) { return orders.get(id); }
+    module.exports = { record, lookup };
+    JS
+
+    build="$(pwd -P)"
+    home="$(cd ../orders-service && pwd -P)"
+    cat > ../orders-service/.scratch/hold-disputed-invoice/spec.md <<MD
+    # Hold the Invoice of a disputed Order
+
+    Journey: not needed, two short paths with no branching
+    Status: ready-for-agent
+
+    ## Problem Statement
+
+    A customer disputes an Order and the billing service keeps chasing its open Invoice.
+
+    ## Solution
+
+    A support agent puts the Invoice of a disputed Order on hold, and the hold shows the reason the
+    Order's dispute carries.
+
+    ## Repositories
+
+    - orders-service (Home repository): $home
+    - billing-service: $build
+
+    ## User Stories
+
+    1. As a support agent, I want to put the Invoice of a disputed Order on hold, so that the customer is not chased while the dispute is open
+    2. As a support agent, I want the hold to show the dispute's reason, so that I do not look it up in another screen
+
+    ## Implementation Decisions
+
+    - Moved by the run on Ticket 01: Hold the Invoice of a disputed Order at the build step: the Order's lookup returns the dispute's reason. Belongs to: orders-service.
+    MD
+
+    cat > ../orders-service/.scratch/hold-disputed-invoice/issues/01-hold-the-invoice-of-a-disputed-order.md <<'MD'
+    # 01: Hold the Invoice of a disputed Order
+
+    **What to build:** A support agent puts the Invoice of a disputed Order on hold, and the hold shows the dispute's reason.
+
+    **Blocked by:** 02 Return the reason of a dispute
+
+    **Status:** claimed
+
+    **Build repository:** billing-service
+
+    - [ ] Hold on an Order's open Invoice sets the Invoice's status to held
+    - [ ] A held Invoice shows the reason the Order's lookup returns
+
+    ## Evidence
+    MD
+
+    cat > ../orders-service/.scratch/hold-disputed-invoice/issues/02-return-the-reason-of-a-dispute.md <<'MD'
+    # 02: Return the reason of a dispute
+
+    **What to build:** The lookup of a disputed Order returns the reason its dispute carries.
+
+    **Blocked by:** None (can start immediately)
+
+    **Status:** ready-for-agent
+
+    **Build repository:** orders-service
+
+    - [ ] The lookup of a disputed Order returns the reason of its dispute
+
+    ## Evidence
+    MD
+
+    printf '.scratch/\n' > ../orders-service/.gitignore
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
+    git -C ../orders-service init -q -b main
+    git -C ../orders-service -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -C ../orders-service -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
+
+    # What the stopped run left in billing-service: the worktree, its branch and one behaviour's
+    # commit.
+    wt=.claude/worktrees/do-hold-the-invoice-of-a-disputed-order
+    git worktree add -q "$wt" -b do/hold-the-invoice-of-a-disputed-order
+    echo ".claude/worktrees/" >> .git/info/exclude
+    cat > "$wt/src/invoice.js" <<'JS'
+    const invoices = new Map();
+    function open(orderId) { invoices.set(orderId, { orderId, status: "open" }); return invoices.get(orderId); }
+    function hold(orderId) { const invoice = invoices.get(orderId); if (invoice && invoice.status === "open") invoice.status = "held"; return invoice; }
+    module.exports = { open, hold };
+    JS
+    git -C "$wt" -c user.email=fixture@example.com -c user.name=fixture add src/invoice.js
+    git -C "$wt" -c user.email=fixture@example.com -c user.name=fixture commit -q \
+      -m "feat(invoice): hold the open Invoice of an Order" \
+      -m "Behaviour: hold on an Order's open Invoice sets the Invoice's status to held"

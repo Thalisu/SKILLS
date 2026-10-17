@@ -1,5 +1,5 @@
 ---
 type: llm
-criteria: "The run's final message carries a `Rulings` section right after its `Principles` section, and it does not read `none`. It holds one line for the developer's edited Ruling as the Spec now carries it (the fork between a toggle and a no-op, the side taken being the toggle) and one line for the Ruling this run wrote when it ruled the third criterion back (the same two sides, the side taken being the toggle, with the norm this run's Ruling cites), in the order the Spec carries them. No line lists the no-op as the side taken."
+criteria: "The last message is the five-part Reply: the `Playbook:` line, a `Plan:` line, `## For whom`, `## Pending debt`, a `Yours:` line only when the run hands something over, and `## Next step` last. It carries no `## Run` section and none of the sections `## Inherited`, `## Commits`, `## Evidence`, `## Principles`, `## Rulings`, `## Skipped` or `## Left uncommitted`, since those belong to the Run report, which a run without `--auto` does not write. No line of the message says a second Archive is a no-op."
 ---
-The reply's `Rulings` section lists the developer's edited line and the Ruling that ruled the criterion back.
+The reply stays five parts and lists no Rulings; the Rulings live in the Spec.

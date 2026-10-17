@@ -9,8 +9,12 @@
 # snapshot writes the state file, one record per path git reports as not clean (modified, staged,
 # deleted, or untracked and not ignored) with the hash of its working content, then one per file of
 # the checkout's git hooks directory and one for its git config, which every worktree of the
-# checkout shares and git status never reports, and prints state=<state file> and
-# recorded=<n records>. The hooks directory is the git directory's own: one that core.hooksPath
+# checkout shares and git status never reports, and one per tracked path whose index entry carries
+# a skip-worktree or assume-unchanged flag (`git ls-files -v` shows it as S or a lowercase tag),
+# keyed index-flag:<path> with the tag as its content: git status stops reporting an edit to such
+# a path, so a flag set after the snapshot is a change of its own. Prints state=<state file>,
+# recorded=<n records> and digest=<sha256 of the state file>, which the caller keeps out of any
+# reach of the fork it covers: a state file rewritten after the snapshot no longer matches it. The hooks directory is the git directory's own: one that core.hooksPath
 # names is read as any other path, and the setting moving there is a change of the config. A file
 # git ignores is outside what the script reads, so a write to one is never reported. The config is
 # read as its settings, less the upstream of a branch. The state file sits outside the checkout or
@@ -66,9 +70,13 @@ settings() {
 }
 
 content() { # $1 a path relative to the checkout, or an absolute one: what stands there now, as one word
-  local at="$main/$1"
+  local at="$main/$1" tag
   case "$1" in /*) at="$1" ;; esac
-  if [ "$at" = "$common/config" ] && [ -f "$at" ]; then
+  if [ "${1#index-flag:}" != "$1" ]; then
+    tag="$(git -C "$main" --no-optional-locks ls-files -v -z -- ":(literal)${1#index-flag:}" | tr "\0" "\n" | head -n 1)"
+    tag="${tag:0:1}"
+    case "$tag" in S | [a-z]) echo "$tag" ;; *) echo clear ;; esac
+  elif [ "$at" = "$common/config" ] && [ -f "$at" ]; then
     settings
   elif [ -L "$at" ]; then
     readlink -- "$at" | git hash-object --stdin
@@ -98,6 +106,10 @@ records() { # one NUL-terminated `<content> <path>` record per path git reports 
       printf '%s %s\0' "$(content "$path")" "$path"
     done
   printf '%s %s\0' "$(content "$common/config")" "$common/config"
+  git -C "$main" --no-optional-locks ls-files -v -z -- . ':(exclude,top).claude/worktrees' |
+    while IFS= read -r -d '' path; do
+      case "${path:0:1}" in S | [a-z]) printf '%s index-flag:%s\0' "${path:0:1}" "${path:2}" ;; esac
+    done
 }
 
 if [ "$mode" = snapshot ]; then
@@ -118,6 +130,7 @@ if [ "$mode" = snapshot ]; then
   }
   echo "state=$state"
   echo "recorded=$(tr -cd '\0' <"$state" | wc -c)"
+  echo "digest=$(sha256sum <"$state" | cut -d' ' -f1)"
   exit 0
 fi
 

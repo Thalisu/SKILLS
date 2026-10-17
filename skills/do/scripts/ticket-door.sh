@@ -1,24 +1,40 @@
 #!/usr/bin/env bash
 # ticket-door.sh: the door facts of the ticket Playbook of do that a script can observe, so the
-# Reply's Run section states what one run printed and the developer can rerun it for the same answer.
+# Run report's Run section states what one run printed and the developer can rerun it for the
+# same answer.
 # Run from anywhere inside the project, the main checkout or a worktree of it.
 #
 #   ticket-door.sh <the Ticket's path>    the Ticket, its blockers, its worktree, the loop and the
 #                                         developer's branch; a relative path is read from the
 #                                         directory the script runs in, then from the main checkout
 #
-# Prints key=value lines, in this order: ticket, title, status, kind, one blocker=<NN> <status>
-# <path> per Ticket the Blocked by line names (blockers=none for None), slug, worktree (the
-# do-<slug> worktree when git lists one at that path, else none), run_branch (do/<slug> when git
-# lists that branch locally, else none, read beside worktree so a start-over knows whether the
-# branch survived the worktree's removal), loop (policy when the project has
-# .claude/agents/unit-test-author.md, else global when ~/.claude/agents/global-unit-test-author.md
-# is linked, else fallback), branch, protected and reason as
-# `trivial-door.sh branch` prints them in the main checkout, spec_branch, spec_exists,
-# spec_upstream and spec_landed as `spec-branch.sh probe` prints them, spec_complete (the door's own
-# count: yes when every Ticket of the issues/ folder reads resolved, no on any other status, an
-# ambiguous one included, none when spec_branch=none), front_end (the Front-end: line of the
-# spec.md beside the Ticket's issues/ folder), then verdict. An ambiguous=<what>
+# Prints key=value lines, in this order: ticket (relative to the main checkout when root is the
+# main checkout, else absolute, the rule every path below follows), root (the Home repository: the
+# main checkout when the Ticket sits in a working tree of this session's repository, else the Ticket
+# path's prefix before its last /.scratch/ segment, else the main checkout), title, status, kind
+# (the word the Ticket's **Kind:** line reads, logic with no line), one blocker=<NN> <status> <path>
+# per Ticket the Blocked by line names (blockers=none for None), slug, worktree (the do-<slug>
+# worktree when git lists one at that path, else none), run_branch (do/<slug> when git lists that
+# branch locally, else none, read beside worktree so a start-over knows whether the branch survived
+# the worktree's removal), loop (policy when the project has .claude/agents/unit-test-author.md,
+# else global when ~/.claude/agents/global-unit-test-author.md is linked, else fallback), branch,
+# protected and reason as `trivial-door.sh branch` prints them in the main checkout, spec_branch,
+# spec_exists, spec_upstream and spec_landed as `spec-branch.sh probe` prints them, spec_complete
+# (the door's own count: yes when every Ticket of the issues/ folder reads resolved, no on any other
+# status, an ambiguous one included, none when spec_branch=none), front_end (the Front-end: line of
+# the spec.md beside the Ticket's issues/ folder), build_repository (the name the Ticket's one
+# **Build repository:** header line reads, none with no line), build_location (that entry's location
+# in the Spec's ## Repositories section, none with no entry), build_check (none with no Build
+# repository line and no ## Repositories section in the Spec, unlisted when the Spec's list holds
+# no entry of that name, no list or no Spec included, or when the Ticket has no such line and the
+# Spec has a list, missing when the entry's location is not an absolute path to a directory on this
+# machine, not-git when it is one and not the top of a git working tree, here when the location's
+# main worktree is this session's main checkout, physical paths compared, else elsewhere),
+# ticket_location (the Ticket's absolute path), next_blocker (on verdict=blocked only: the absolute
+# path of the first blocker in Blocked by order not resolved), next_blocker_build and
+# next_blocker_build_location (only when that blocker is built in another repository: the name its
+# own **Build repository:** line reads and that entry's location in the Spec's list, unlisted with
+# no entry), then verdict. An ambiguous=<what>
 # <detail> line follows the line it concerns. A blocker is the leading number of each part of the
 # Blocked by paragraph split on `;`, `,`, the word `and` and each line break, the paragraph starting
 # on the header's line or the line below it and a `-`, `*` or `+` list marker dropped, a blank line
@@ -33,19 +49,22 @@
 # print blockers=ambiguous with their line numbers, and no blocker is read out of any of them.
 #
 # verdict, first match wins: ambiguous (the Ticket's status) · resume-final (resolved, the Spec
-# branch there and not landed, the Spec complete: a stopped Final integration to resume) ·
+# branch there and not landed, the Spec complete, built here: a stopped Final integration to resume; a
+# Ticket built in another repository (build_check=elsewhere) is never one) ·
 # resolved · ambiguous (a blocker with
 # no file, two files, or no single status line; two Blocked by lines, or one naming no number and
-# not None, or a number it cannot split out) ·
-# blocked (a blocker not resolved) · resume (claimed, the worktree there) · start-over (claimed, the
+# not None, or a number it cannot split out) · unbuildable (build_check=unlisted, missing or not-git: the Build
+# repository cannot be built anywhere until the Ticket or the Spec is fixed) ·
+# blocked (a blocker not resolved) · elsewhere (build_check=elsewhere: the Ticket is built in another
+# repository, handed over before anything is claimed) · resume (claimed, the worktree there) · start-over (claimed, the
 # worktree gone) · ambiguous (ready-for-agent with a worktree already there) · start. Then refused
-# replaces start, resume or start-over when the Ticket's Spec has no Spec branch yet and the main
+# replaces start or start-over when the Ticket's Spec has no Spec branch yet and the main
 # checkout is protected or detached (branch=HEAD), since the first cut would land the Spec there;
-# otherwise a protected branch is a warning for the Reply's Run section, never a stop. A Ticket
+# otherwise a protected branch is a warning for the Run report's Run section, never a stop. A Ticket
 # outside a feature folder's issues/ (spec_branch=none) is never refused on that ground.
 #
 # Exit codes: 0 the run may go on: start, resume, start-over or resume-final · 1 the door stops
-# the run: resolved, blocked, ambiguous or refused · 2 usage, no Ticket at the path, or not a git
+# the run: resolved, blocked, ambiguous, refused, unbuildable or elsewhere · 2 usage, no Ticket at the path, or not a git
 # repository.
 set -uo pipefail
 
@@ -53,14 +72,17 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 # shellcheck source=skills/do/scripts/ticket-read.sh
 . "$here/ticket-read.sh"
 
+# A Home repository nested under the main checkout keeps its paths absolute, since a relative one
+# reads as the session's own scratch.
+shown_path() { # $1 an absolute path: prints it relative to the main checkout when root is the main checkout, else as given
+  if [ "$root" = "$main" ]; then echo "${1#"$main"/}"; else echo "$1"; fi
+}
+
 usage() { echo "usage: ticket-door.sh <the Ticket's path>" >&2; exit 2; }
 [ "$#" = 1 ] || usage
 
 top="$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "not a git repository" >&2; exit 2; }
-# A bare main worktree has no working tree to anchor on, and git lists it first all the same.
-main="$(git worktree list --porcelain 2>/dev/null |
-  awk '/^$/ { exit } /^worktree /{ p = substr($0, 10) } /^bare$/ { p = "" } END { print p }')"
-[ -n "$main" ] && [ -d "$main" ] || main="$top"
+main="$(main_of .)"
 
 case "$1" in
   /*) path="$1" ;;
@@ -68,9 +90,11 @@ case "$1" in
 esac
 [ -f "$path" ] || { echo "no Ticket at $1" >&2; exit 2; }
 
-stop_ambiguous=0 stop_blocked=0
+stop_ambiguous=0 stop_blocked=0 next_blocker=""
 
-echo "ticket=${path#"$main"/}"
+root="$(home_root "$path" "$main")"
+echo "ticket=$(shown_path "$path")"
+echo "root=$root"
 title="$(grep -m1 '^# ' "$path" | sed 's/^# //')"
 echo "title=${title:-none}"
 status_of "$path"; status="$word"
@@ -81,42 +105,32 @@ echo "kind=$word"
 [ -z "$detail" ] || { echo "ambiguous=$detail"; stop_ambiguous=1; }
 
 folder="$(dirname "$path")"
-by_lines="$(grep -n '^\*\*Blocked by:\*\*' "$path" | cut -d: -f1 | tr '\n' ' ')"
-by_lines="${by_lines% }"
-blocked_by="$(awk '/^\*\*Blocked by:\*\*/ { on = 1; sub(/^\*\*Blocked by:\*\*[[:space:]]*/, ""); if ($0 == "") next }
-  on && /^[[:space:]]*$/ { gap = 1; next }
-  on { sub(/^[[:space:]]*[-*+][[:space:]]+/, ""); if (gap && $0 !~ /^[[:space:]]*[0-9]/) exit; gap = 0; print }' "$path")"
-numbers="$(sed -E 's/(^|[[:space:]])and([[:space:]]|$)/\1,\2/g' <<<"$blocked_by" | tr ';,' '\n\n' |
-  sed -nE 's/^[[:space:]]*([0-9]+)([^[:alnum:]].*)?$/\1/p' | awk '!seen[$0]++')"
-unsplit="$(grep -oE '[[:alnum:]]+' <<<"$blocked_by" | grep -xE '[0-9]+' |
-  awk -v read="$(tr '\n' ' ' <<<"$numbers")" 'BEGIN { split(read, r, " "); for (i in r) ok[r[i]] = 1 } !ok[$0] && !seen[$0]++' | tr '\n' ' ')"
-unsplit="${unsplit% }"
-if [ "$(wc -w <<<"$by_lines")" -gt 1 ]; then
-  echo "blockers=ambiguous"; echo "ambiguous=blocked-by lines $by_lines"; stop_ambiguous=1
-  numbers="" unsplit=""
-elif [ -z "$numbers" ]; then
-  case "$blocked_by" in
-    None*|none*) echo "blockers=none" ;;
-    *) echo "blockers=none"; echo "ambiguous=blocked-by names no Ticket number"; stop_ambiguous=1 ;;
-  esac
-fi
+blockers_of "$path"
+numbers="$word"
+case "$word" in
+  ambiguous) echo "blockers=ambiguous"; echo "ambiguous=$detail"; stop_ambiguous=1; numbers="" ;;
+  none)
+    echo "blockers=none"; numbers=""
+    [ -z "$detail" ] || { echo "ambiguous=$detail"; stop_ambiguous=1; }
+    ;;
+esac
 for n in $numbers; do
   files="$(ticket_files "$folder" "$n")"
   count="$(grep -c . <<<"$files")"
   if [ "$count" != 1 ]; then
     rel=""
-    while IFS= read -r f; do [ -z "$f" ] || rel="$rel ${f#"$main"/}"; done <<<"$files"
+    while IFS= read -r f; do [ -z "$f" ] || rel="$rel $(shown_path "$f")"; done <<<"$files"
     rel="${rel# }"
     if [ "$count" = 0 ]; then echo "blocker=$n missing none"; else echo "blocker=$n ambiguous $rel"; fi
     echo "ambiguous=$n files ${rel:-none}"
     stop_ambiguous=1; continue
   fi
   status_of "$files"
-  echo "blocker=$n $word ${files#"$main"/}"
+  echo "blocker=$n $word $(shown_path "$files")"
   case "$word" in
     ambiguous) echo "ambiguous=$n $detail"; stop_ambiguous=1 ;;
     resolved) ;;
-    *) stop_blocked=1 ;;
+    *) stop_blocked=1 && next_blocker="${next_blocker:-$files}" ;;
   esac
 done
 [ -z "$unsplit" ] || { echo "ambiguous=blocked-by numbers it cannot split $unsplit"; stop_ambiguous=1; }
@@ -155,20 +169,43 @@ echo "spec_complete=$spec_complete"
 front_end_of "$path"
 echo "front_end=$word"
 [ -z "$detail" ] || { echo "ambiguous=$detail"; stop_ambiguous=1; }
+build_of "$path"
+build_repository="$build_name" build_location="$build_place"
+echo "build_repository=$build_repository"
+[ -z "$name_detail" ] || { echo "ambiguous=$name_detail"; stop_ambiguous=1; }
+echo "build_location=$build_location"
+[ -z "$place_detail" ] || { echo "ambiguous=$place_detail"; stop_ambiguous=1; }
+# On a Spec with a list the Build repository is one of its entries, so no line names none of them.
+if [ "$build_check" = none ] && grep -q '^## Repositories[[:space:]]*$' "$(spec_beside "$path")"; then build_check=unlisted; fi
+echo "build_check=$build_check"
+echo "ticket_location=$path"
 first_run_unsafe=0
 if grep -qx 'spec_exists=no' <<<"$spec_facts" && ! grep -qx 'spec_branch=none' <<<"$spec_facts" &&
   grep -qxE 'protected=yes|branch=HEAD' <<<"$branch_facts"; then first_run_unsafe=1; fi
 
 if [ "$status" = ambiguous ]; then verdict=ambiguous
-elif [ "$status" = resolved ] && [ "$spec_complete" = yes ] && grep -qx 'spec_landed=no' <<<"$spec_facts"; then verdict=resume-final
+elif [ "$status" = resolved ] && [ "$build_check" != elsewhere ] && [ "$spec_complete" = yes ] && grep -qx 'spec_landed=no' <<<"$spec_facts"; then verdict=resume-final
 elif [ "$status" = resolved ]; then verdict=resolved
 elif [ "$stop_ambiguous" = 1 ]; then verdict=ambiguous
+elif grep -qxE 'unlisted|missing|not-git' <<<"$build_check"; then verdict=unbuildable
 elif [ "$stop_blocked" = 1 ]; then verdict=blocked
+elif [ "$build_check" = elsewhere ]; then verdict=elsewhere
 elif [ "$status" = claimed ] && [ "$worktree" != none ]; then verdict=resume
 elif [ "$status" = claimed ]; then verdict=start-over
 elif [ "$stale" = 1 ]; then verdict=ambiguous
 else verdict=start
 fi
 case "$verdict" in start|start-over) [ "$first_run_unsafe" = 0 ] || verdict=refused ;; esac
+if [ "$verdict" = blocked ]; then
+  echo "next_blocker=$next_blocker"
+  build_of "$next_blocker"
+  case "$build_check" in
+    here | none | ambiguous) ;;
+    *)
+      echo "next_blocker_build=$build_name"
+      echo "next_blocker_build_location=${build_place/#none/unlisted}"
+      ;;
+  esac
+fi
 echo "verdict=$verdict"
 case "$verdict" in start|resume|start-over|resume-final) exit 0 ;; *) exit 1 ;; esac

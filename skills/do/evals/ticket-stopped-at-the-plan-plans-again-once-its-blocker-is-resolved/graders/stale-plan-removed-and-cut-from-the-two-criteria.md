@@ -1,0 +1,6 @@
+---
+type: llm
+criteria: "Pass only when all of these hold. First, the door did not refuse the Ticket: Ticket 03, its only blocker, reads resolved, and the run went past the door. Second, the run removed the Plan the scaffold left beside Ticket 02 (02-mark-an-order-disputed-and-tell-the-customer.plan.md) before the do-planner agent wrote the new one, and it never built from the scaffold's Plan: the transcript shows the removal (the `rm` of that file, or another tool call that removes it) ahead of the Agent call whose subagent_type is do-planner. Third, the Plan the run then built from holds behaviours for the two criteria Ticket 02 now carries (the lookup of a disputed Order returns the status disputed; marking an Order disputed posts the event dispute-received through the notify client) and no item for the email template: no `Elsewhere:` item, and no behaviour about a template, a subject or a body. Fourth, the run did not stop at the Plan on work for another repository, wrote no finding into the Spec, and its final message does not end on a `/tickets` command."
+---
+A run that reused the old Plan would meet the moved behaviour again and stop on it a second time,
+or build it in the wrong repository.

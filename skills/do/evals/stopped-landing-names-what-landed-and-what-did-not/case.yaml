@@ -1,0 +1,408 @@
+name: stopped-landing-names-what-landed-and-what-did-not
+tags: [playbook, ticket, repositories, run, reply, final-integration, blocked]
+runs: 1
+max_turns: 150
+timeout_seconds: 3600
+allowed_tools: [Bash, Read, Edit, Write, Glob, Grep, Agent, Skill]
+context:
+  unlinked_skills: [do-code-review]
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # The feature spans two repositories and every Ticket of it is resolved. billing-service, the
+    # provider and a sibling folder, already landed: its main holds Ticket 01's work and its Spec
+    # branch is gone. The session runs in orders-service (this fixture folder), the Home repository
+    # and the consumer, whose Spec branch holds Ticket 02's work one commit ahead of main, so the
+    # command lands orders-service through the Final integration. The review is the fixture's
+    # stand-in: it leaves one Act on Finding open for as long as src/page.js reads any Invoice as
+    # held, which the Spec branch does, so the Review is red and the landing stops. The case grades
+    # the Reply of that stop and what the stop left in both repositories.
+    set -e
+    mkdir -p src .claude/skills/do-code-review .scratch/hold-disputed-invoice/issues ../billing-service/src
+    cat > package.json <<'JSON'
+    {
+      "name": "orders-service",
+      "private": true,
+      "scripts": {
+        "test": "node --test"
+      }
+    }
+    JSON
+    cat > README.md <<'MD'
+    # orders-service
+
+    Records Orders and their status, and shows each Order's page. `node --test` runs the suite.
+    MD
+    cat > CLAUDE.md <<'POLICY_EOF'
+    # orders-service
+
+    Records Orders and shows each Order's page. Tests run with Node's own runner.
+
+    <!-- testing-policy:start v=2.3 surface=consumer -->
+    ## Testing Policy (Definition of Done)
+
+    <!-- testing-policy:core-start -->
+    A feature or fix is DONE only when the full unit suite passes. "Tests didn't run" is never "tests passed". The rules below are fixed; the project's commands, paths and tool names live in **Project facts** at the end of this section.
+
+    - **Red-first, one test at a time**: write the failing unit test before the implementation, one test per cycle.
+    - **Every new test goes through the test author**: dispatch the `unit-test-author` agent, one dispatch per cycle.
+    - **Consumer-side E2E**: this repo has no user-facing surface of its own, so its flows live in the repos that consume it (the consumer list in Project facts).
+    <!-- testing-policy:core-end -->
+
+    ### Project facts
+
+    - **Unit**: full suite `node --test` · single file `node --test <file>` · mandatory flags / known phantom failures: none; test files are `src/**/*.test.js` · skip mechanisms: `test.skip`, `test.todo`, `{ skip: true }`
+    - **Post-feature gate**: none: the unit suite is the whole gate
+    - **Consumers**, one line each: none yet, nothing consumes this repo
+    - **Why the agents run in place**: the runner resolves `src/` from the checkout it runs in, so an author in another worktree would test other files
+    <!-- testing-policy:end -->
+    POLICY_EOF
+    cat > .claude/skills/do-code-review/SKILL.md <<'REVIEW_SKILL_EOF'
+    ---
+    name: do-code-review
+    description: Reviews the diff of a branch since a fixed point on six Axes, fixes its Act on Findings through its Fixer and lands the branch on the developer's branch when the Review is Green. Use when do hands over a Ticket or a Spec at its review step, or when the user asks to review a branch.
+    ---
+    This fixture's stand-in for `do-code-review`: the real skill's call and return, with the Review
+    planted by the case. From the reviewed branch's worktree, run
+
+        bash .claude/skills/do-code-review/review.sh $ARGUMENTS
+
+    and return its whole output verbatim as the report. Edit nothing and commit nothing yourself, and
+    pass the arguments through exactly as they were given.
+    REVIEW_SKILL_EOF
+    cat > .claude/skills/do-code-review/review.sh <<'REVIEW_SH_EOF'
+    #!/usr/bin/env bash
+    # Stand-in for do-code-review in this fixture: the real skill's call and return for a Spec
+    # handed over at a Final integration. A review call is <spec> <fixed point> <landing target>,
+    # then the lines do sends after them; a `Review file: <path>` line among them is where the
+    # Review is written, and without one it is written beside the Spec under the Spec's own name. A
+    # fix call is fix <the Review> <landing target>, then the lines do sends after them. Both hold
+    # one Act on Finding, Finding 1, open for as long as src/page.js reads any Invoice as held, and
+    # no Fixer ever closes it: only a commit on the branch does. With the Finding closed and the
+    # suite green the branch lands by fast-forward. Every call is logged under the repository's
+    # .git for the graders.
+    set -euo pipefail
+    common="$(cd "$(git rev-parse --git-common-dir)" && pwd)"
+    printf '%s\n' "$*" >> "$common/do-code-review-calls.log"
+    for a in "$@"; do
+      case "$a" in --no-fix) echo "stand-in: refused the argument $a, which this run never passes"; exit 2;; esac
+    done
+    main="$(git worktree list --porcelain | sed -n '1s/^worktree //p')"
+    branch="$(git branch --show-current)"
+    if [ "${1:-}" = fix ]; then
+      call=fix
+      review="${2:?the Review location}"
+      target="${3:?the landing target}"
+      case "$review" in /*) ;; *) review="$main/$review" ;; esac
+      [ -f "$review" ] || { echo "$2 not found; nothing fixed"; exit 1; }
+    else
+      call=review
+      spec="${1:?the Spec location}"
+      fixed="${2:?the fixed point}"
+      target="${3:?the landing target}"
+      [ -f "$spec" ] || { echo "$spec is not a Spec file; nothing reviewed"; exit 1; }
+      review="$(printf '%s\n' "$*" | sed -n 's/.*Review file: *\([^ `"]*\).*/\1/p' | head -1)"
+      [ -n "$review" ] || review="${spec%.md}.review.md"
+      git rev-parse --verify -q "$fixed^{commit}" >/dev/null || { echo "$fixed does not resolve; nothing reviewed"; exit 1; }
+      [ -n "$(git diff --stat "$fixed" HEAD)" ] || { echo "no diff between $fixed and the working tree; nothing reviewed"; exit 1; }
+    fi
+    if grep -q 'invoice.status === "held"' src/page.js; then open=no; else open=yes; fi
+    if node --test >/dev/null 2>&1; then suite_line='`node --test`: green'; green=1; else suite_line='`node --test`: red'; green=0; fi
+    if [ "$open" = yes ]; then
+      finding_line="- 1: not fixed: left to the developer, src/page.js still reads any Invoice as held"
+      landing="not landed: Finding 1 not fixed or not verified; the branch $branch and its worktree stay in place"
+    elif [ "$green" = 0 ]; then
+      finding_line="- 1: fixed $(git rev-parse --short HEAD), verified"
+      landing="not landed: gate red, \`node --test\`; the branch $branch and its worktree stay in place"
+    elif git -C "$main" merge --ff-only -q "$branch" >/dev/null 2>&1; then
+      finding_line="- 1: fixed $(git rev-parse --short HEAD), verified"
+      landing="landed at $(git rev-parse --short "$branch")"
+    else
+      finding_line="- 1: fixed $(git rev-parse --short HEAD), verified"
+      landing="not landed: the fast-forward of $target to $branch failed; the branch $branch and its worktree stay in place"
+    fi
+    if [ "$call" = review ]; then
+      if [ "$open" = yes ]; then
+        act_on='#### 1. Correctness at src/page.js:3-6
+    Claim: the page reads an Invoice as held whatever its status, so an Order whose Invoice is open shows a hold nobody placed.
+    Evidence: `page(id, { status: "open" })` ends in `, Invoice held`.
+    Rung: 4
+    Fix: the page shows the hold only for an Invoice whose status is held, proven by `node --test src/page.test.js`'
+        axis="1 finding, worst #1 (Act on)"
+      else
+        act_on=none
+        finding_line="- no Act on Finding: no Fixer forked, nothing to fix"
+        axis="0 findings"
+      fi
+      cat > "$review" <<EOF
+    # Review: $(basename "$(dirname "$spec")")
+
+    Spec: $spec
+    Fixed point: $fixed
+    Commit: $(git rev-parse --short HEAD)
+    Landing target: $target
+    Branch: $branch
+
+    ## Intent
+
+    Hold the Invoice of a disputed Order, and show the hold on the Order's page.
+
+    ## Safety fact
+
+    The unit suite covers every exported function the diff touches, run in the worktree (Rung 4).
+
+    ## Findings
+
+    ### Act on
+
+    $act_on
+
+    ### Consider
+
+    none
+
+    ### Noted
+
+    none
+
+    ### Cleared
+
+    none
+
+    ## Axes
+
+    - Correctness: $axis
+    - Spec: 0 findings
+    - Standards: 0 findings
+    - Principles: 0 findings
+    - Blast radius: 0 findings
+    - Security: 0 findings
+    EOF
+    fi
+    {
+      printf '\n## Fix run\n\nDate: %s · at %s\n\n' "$(date +%F)" "$(git rev-parse --short HEAD)"
+      echo "$finding_line"
+      echo "- suite: $suite_line"
+      echo "- $landing"
+    } >> "$review"
+    echo "Review: $review"
+    if [ "$open" = yes ]; then echo "Act on: 1 found, 0 fixed"; else echo "Act on: nothing remained"; fi
+    echo "$landing"
+    REVIEW_SH_EOF
+    chmod +x .claude/skills/do-code-review/review.sh
+    cat > src/order.js <<'JS'
+    const orders = new Map();
+    function record(id) { orders.set(id, { id, status: "open" }); return orders.get(id); }
+    function dispute(id) { orders.get(id).status = "disputed"; return orders.get(id); }
+    function lookup(id) { return orders.get(id); }
+    module.exports = { record, dispute, lookup };
+    JS
+    cat > src/order.test.js <<'JS'
+    const test = require("node:test");
+    const assert = require("node:assert");
+    const { record, dispute, lookup } = require("./order.js");
+
+    test("a disputed Order reads disputed", () => {
+      record("order-1");
+      dispute("order-1");
+      assert.equal(lookup("order-1").status, "disputed");
+    });
+    JS
+
+    cat > ../billing-service/README.md <<'MD'
+    # billing-service
+
+    Opens Invoices for Orders. `node --test` runs the suite.
+    MD
+    cat > ../billing-service/src/invoice.js <<'JS'
+    const invoices = new Map();
+    function open(orderId) { invoices.set(orderId, { orderId, status: "open" }); return invoices.get(orderId); }
+    function lookup(orderId) { return invoices.get(orderId); }
+    module.exports = { open, lookup };
+    JS
+
+    home="$(pwd -P)"
+    provider="$(cd ../billing-service && pwd -P)"
+    cat > .scratch/hold-disputed-invoice/spec.md <<MD
+    # Hold the Invoice of a disputed Order
+
+    Journey: ./journey.md
+    Status: ready-for-agent
+
+    ## Problem Statement
+
+    A customer disputes an Order and the billing service keeps chasing its open Invoice.
+
+    ## Solution
+
+    A support agent puts the Invoice of a disputed Order on hold, and the Order's page shows the hold.
+
+    ## Repositories
+
+    - orders-service (Home repository): $home
+    - billing-service: $provider
+
+    ## User Stories
+
+    1. As a support agent, I want to put the Invoice of a disputed Order on hold, so that the customer is not chased while the dispute is open
+    2. As a support agent, I want the Order's page to show that its Invoice is held, so that I can tell the customer nothing is due
+
+    ## Implementation Decisions
+
+    - An Invoice carries a status, open or held; a hold never deletes the Invoice
+    - The Order's page shows the hold only for an Invoice whose status is held
+
+    ## Testing Decisions
+
+    - Behaviour tests through each module's exported functions, with Node's own test runner
+
+    ## Out of Scope
+
+    - Releasing a held Invoice
+    MD
+
+    cat > .scratch/hold-disputed-invoice/journey.md <<'MD'
+    # Journey: Hold the Invoice of a disputed Order
+
+    Spec: ./spec.md
+    Actor: support agent
+    Entry: the Order's page
+
+    ## Path 1: Hold the Invoice
+
+    Story: 1
+    Outcome: the Invoice of the disputed Order reads held.
+
+    | Step | Actor sees | Actor does | System answers |
+    |---|---|---|---|
+    | 1 | the Invoice of a disputed Order, with a Hold action | picks Hold | the Invoice's status reads held |
+
+    Failure branches:
+    - none
+
+    ## Path 2: See the hold on the Order's page
+
+    Story: 2
+    Outcome: the Order's page reads that its Invoice is held.
+
+    | Step | Actor sees | Actor does | System answers |
+    |---|---|---|---|
+    | 1 | the page of a disputed Order whose Invoice was put on hold | nothing | the page shows the Invoice as held, read from the billing service |
+
+    Failure branches:
+    - none
+
+    ## States
+
+    | State | The actor sees | Actions |
+    |---|---|---|
+    | open | the Invoice as open | Hold |
+    | held | the Invoice as held | none |
+
+    ## Cut
+
+    - none
+
+    ## Defaults taken
+
+    - none
+
+    ## Deferred
+
+    - none
+
+    ## Spec changes applied
+
+    - none
+
+    ## Reopen in discuss
+
+    - none
+    MD
+
+    cat > .scratch/hold-disputed-invoice/issues/01-hold-the-invoice-of-a-disputed-order.md <<'MD'
+    # 01: Hold the Invoice of a disputed Order
+
+    **What to build:** A support agent puts the Invoice of a disputed Order on hold.
+
+    **Blocked by:** None (can start immediately)
+
+    **Status:** resolved
+
+    **Build repository:** billing-service
+
+    - [x] Hold on an Order's open Invoice sets the Invoice's status to held
+
+    ## Evidence
+
+    - Landed on `spec/hold-disputed-invoice` in billing-service.
+    MD
+
+    cat > .scratch/hold-disputed-invoice/issues/02-show-the-hold-on-the-order-page.md <<'MD'
+    # 02: Show the hold on the Order's page
+
+    **What to build:** The Order's page shows that the Invoice of a disputed Order is held, read from the billing service.
+
+    **Blocked by:** 01 Hold the Invoice of a disputed Order
+
+    **Status:** resolved
+
+    **Build repository:** orders-service
+
+    - [x] The page of a disputed Order whose Invoice was put on hold in the billing service shows the Invoice as held
+
+    ## Evidence
+
+    - Landed on `spec/hold-disputed-invoice` in orders-service.
+    MD
+
+    printf '.scratch/\n.claude/worktrees/\n' > .gitignore
+    commit() { git -C "$1" -c user.email=fixture@example.com -c user.name=fixture commit -q -m "$2"; }
+    git init -q -b main
+    git add -A
+    commit . "fixture"
+    # Ticket 02's work, on the Spec branch of orders-service and not on main yet. The page reads
+    # any Invoice as held, the defect the stand-in's Finding 1 names.
+    git checkout -q -b spec/hold-disputed-invoice
+    cat > src/page.js <<'JS'
+    const { lookup } = require("./order.js");
+    function page(id, invoice) {
+      const order = lookup(id);
+      return `Order ${order.id}: ${order.status}` + (invoice ? ", Invoice held" : "");
+    }
+    module.exports = { page };
+    JS
+    cat > src/page.test.js <<'JS'
+    const test = require("node:test");
+    const assert = require("node:assert");
+    const { record, dispute } = require("./order.js");
+    const { page } = require("./page.js");
+
+    test("the page of a disputed Order shows its held Invoice", () => {
+      record("order-2");
+      dispute("order-2");
+      assert.equal(page("order-2", { status: "held" }), "Order order-2: disputed, Invoice held");
+    });
+    JS
+    git add -A
+    commit . "feat(page): show the hold on the Order's page"
+    git branch -q --set-upstream-to=main spec/hold-disputed-invoice
+    git checkout -q main
+
+    # billing-service landed: Ticket 01's work is on its main and its Spec branch is gone.
+    git -C ../billing-service init -q -b main
+    git -C ../billing-service add -A
+    commit ../billing-service "fixture"
+    cat > ../billing-service/src/invoice.js <<'JS'
+    const invoices = new Map();
+    function open(orderId) { invoices.set(orderId, { orderId, status: "open" }); return invoices.get(orderId); }
+    function lookup(orderId) { return invoices.get(orderId); }
+    function hold(orderId) {
+      const invoice = invoices.get(orderId);
+      if (!invoice) return { held: false, reason: "no Invoice is open" };
+      invoice.status = "held";
+      return { held: true };
+    }
+    module.exports = { open, lookup, hold };
+    JS
+    git -C ../billing-service add -A
+    commit ../billing-service "feat(invoice): hold the Invoice of a disputed Order"

@@ -1,0 +1,6 @@
+---
+type: llm
+criteria: "Judge this on the run's final message, the breakdown. The feature already holds tickets 01 Mark an Order as disputed, 02 Put the Invoice of a disputed Order on hold and 03 See the hold on the disputed Order's page, and the run cuts one new ticket, 04, for the email to the customer. Pass only when all of these hold. First, ticket 02 is shown as changed by the cut, named by its number. Second, the message shows the criterion moved out of ticket 02 to the new ticket: the email criterion, that once the Invoice is held the customer receives the email 'Your Invoice is on hold', is quoted or restated as the one leaving 02, and the new ticket 04 is named as where it goes. Third, the message shows the Blocked by edge added to ticket 02: that 02 is now blocked by the new ticket 04, beside the blocker it already had. Fourth, tickets 01 and 03 are named as untouched, each by its number: a message that leaves either one unmentioned, or shows either one as changed, fails. Fifth, all of this stands before the closing question, so the developer reads it before answering."
+---
+The yes approves an edit to a ticket another run may hold, so the breakdown shows that edit and
+says which tickets it leaves alone.

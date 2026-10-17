@@ -130,6 +130,7 @@ same "a Ticket with no Spec behind it reads as the last Ticket with nothing open
 spec_branch=none
 spec_ticket=none
 open=none
+consumer=none
 next=none
 last=yes
 verdict=no-spec"
@@ -142,11 +143,90 @@ same "a Ticket with no Spec behind it reads as the last Ticket with nothing open
 spec_branch=none
 spec_ticket=none
 open=none
+consumer=none
 next=none
 last=yes
 verdict=no-spec"
 expect "a Ticket with no Spec behind it and no number in its name is read, with exit 0" test "$rc" = 0
 rm -rf "$issues"
 issues="$spec_issues"
+
+# A feature built across repositories keeps every Ticket in the Home repository, so what it still
+# has open is the whole folder, whichever repository each Ticket is built in.
+sibling_repos check-home check-build 20260930-across
+# shellcheck disable=SC2154 # lib.sh's sibling_repos assigns $home and $build
+repositories_spec "$home/.scratch/20260930-across" "- check-home (Home repository): $home" "- check-build: $build"
+ticket 01-done-here.md $'**Status:** resolved\n\n**Build repository:** check-build' 'None (can start immediately)'
+ticket 02-open-here.md $'**Status:** claimed\n\n**Build repository:** check-build' 'None (can start immediately)'
+ticket 03-ready-there.md $'**Status:** ready-for-agent\n\n**Build repository:** check-home' 'None (can start immediately)'
+ticket 04-claimed-there.md $'**Status:** claimed\n\n**Build repository:** check-home' 'None (can start immediately)'
+ticket 05-done-there.md $'**Status:** resolved\n\n**Build repository:** check-home' 'None (can start immediately)'
+run "$issues/02-open-here.md"
+expect "from a Build repository, on a Ticket's absolute location in a sibling Home repository, prints one open line for every unresolved Ticket of the folder, those built in another repository beside those built in the session's" \
+  test "$(term open)" = "02 claimed $issues/02-open-here.md
+03 ready-for-agent $issues/03-ready-there.md
+04 claimed $issues/04-claimed-there.md"
+expect "the Spec of a sibling Home repository is read from the Build repository, with exit 0" test "$rc" = 0
+expect "names the repository the next Ticket is built in, that repository's location from the Spec's list and the Ticket's absolute path, right after next= and before last=" \
+  test "$(printf '%s\n' "$out" | awk '/^last=/ { on = 0 } /^next=/ { on = 1 } on')" = "next=$issues/03-ready-there.md
+next_build=check-home
+next_build_location=$home
+next_location=$issues/03-ready-there.md"
+
+rm -f "$issues/03-ready-there.md"
+ticket 03-ready-here.md $'**Status:** ready-for-agent\n\n**Build repository:** check-build' 'None (can start immediately)'
+run "$issues/02-open-here.md"
+check_absent "names no other repository to open when the next Ticket is built in the session's own repository" 0 "$rc" \
+  "next_build=" "next_build_location=" "next_location="
+expect "a next Ticket built in the session's own repository is named by next= alone, with last= and verdict= right after it" \
+  test "$(printf '%s\n' "$out" | awk '/^next=/ { on = 1 } on')" = "next=$issues/03-ready-here.md
+last=no
+verdict=incomplete"
+expect "a next Ticket built in the session's own repository leaves the open lines as they read for any Ticket of the folder" \
+  test "$(term open)" = "02 claimed $issues/02-open-here.md
+03 ready-for-agent $issues/03-ready-here.md
+04 claimed $issues/04-claimed-there.md"
+
+rm -f "$issues/03-ready-here.md"
+ticket 03-ready-unplaced.md '**Status:** ready-for-agent' 'None (can start immediately)'
+run "$issues/02-open-here.md"
+check_absent "names no other repository to open when the next Ticket carries no Build repository line" 0 "$rc" \
+  "next_build=" "next_build_location=" "next_location="
+expect "a next Ticket with no Build repository line is named by next= alone, with last= and verdict= right after it" \
+  test "$(printf '%s\n' "$out" | awk '/^next=/ { on = 1 } on')" = "next=$issues/03-ready-unplaced.md
+last=no
+verdict=incomplete"
+expect "a next Ticket with no Build repository line leaves the open lines as they read for any Ticket of the folder" \
+  test "$(term open)" = "02 claimed $issues/02-open-here.md
+03 ready-for-agent $issues/03-ready-unplaced.md
+04 claimed $issues/04-claimed-there.md"
+
+rm -f "$issues/03-ready-unplaced.md"
+run "$issues/02-open-here.md"
+expect "every open Ticket of the folder reads claimed, one built in the session's repository and one in another" \
+  test "$(term open)" = "02 claimed $issues/02-open-here.md
+04 claimed $issues/04-claimed-there.md"
+expect "says to wait, once, when every open Ticket reads claimed, whatever repository each is built in" \
+  test "$(term next)" = "wait"
+check_absent "names no repository to open and no Ticket to hand over when every open Ticket reads claimed, one of them built in another repository" 0 "$rc" \
+  "next_build=" "next_build_location=" "next_location="
+
+# The cross-service flows of a Ticket are owed by the Tickets it blocks that are built elsewhere.
+between_open_and_next() { # the lines $out carries after its last open= line and before next=, on stdout
+  printf '%s\n' "$out" | awk '/^next=/ { printf "%s", kept; exit } /^open=/ { kept = ""; next } { kept = kept $0 "\n" }'
+}
+ticket 03-same-here.md $'**Status:** claimed\n\n**Build repository:** check-build' '01: done here'
+ticket 04-claimed-there.md $'**Status:** claimed\n\n**Build repository:** check-home' '02: open here'
+ticket 05-done-there.md $'**Status:** resolved\n\n**Build repository:** check-home' '02: open here'
+run "$issues/02-open-here.md"
+expect "names each Ticket blocked by the argument and built in another repository, with its number and that repository, in number order, after the open lines and before next=" \
+  test "$(between_open_and_next)" = "consumer=04 check-home
+consumer=05 check-home"
+expect "the Tickets that consume the argument from another repository are read with exit 0" test "$rc" = 0
+
+run "$issues/01-done-here.md"
+expect "names no consuming Ticket when the only Ticket blocked by the argument is built in the argument's own repository" \
+  test "$(between_open_and_next)" = "consumer=none"
+expect "a dependent built in the argument's own repository is read with exit 0" test "$rc" = 0
 
 exit "$((fails > 0))"

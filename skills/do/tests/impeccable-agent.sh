@@ -107,6 +107,41 @@ for tool in Write Edit; do
   done
 done
 
+# A run worktree can sit inside another run's worktree, and the fork's own is the innermost one
+# around its `cwd`: the outer worktree is another run's branch, so a write there lands outside this
+# fork's diff exactly as a write into the Main checkout does.
+nested_outer="$main/.claude/worktrees/t1"
+nested_inner="$nested_outer/.claude/worktrees/t2"
+mkdir -p "$nested_inner/src"
+printf 'outer\n' >"$nested_outer/README.md"
+for tool in Write Edit; do
+  tool_hook="$(hook_command "$agent" "$tool")"
+  outer_out="$(printf '{"cwd": "%s", "tool_input": {"file_path": "%s"}}' "$nested_inner" "$nested_outer/README.md" |
+    sh -c "$tool_hook" 2>/dev/null)"
+  expect "the hook denies the fork's $tool a path in the outer worktree when cwd sits in a run worktree nested inside it" \
+    bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$outer_out"
+  inner_out="$(printf '{"cwd": "%s", "tool_input": {"file_path": "%s"}}' "$nested_inner" "$nested_inner/src/screen.tsx" |
+    sh -c "$tool_hook" 2>/dev/null)"
+  expect "the hook lets the fork's $tool through at a source path in the innermost run worktree around its cwd" \
+    bash -c '! grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$inner_out"
+done
+
+# The same nesting the Write|Edit guard reads: the fork's worktree is the innermost one around its
+# `cwd`, so a shell command that reads, writes or runs a path in the outer worktree reaches another
+# run's branch, outside this fork's diff.
+bash_hook="$(hook_command "$agent" Bash)"
+# An empty command prints no deny either, so the command let through below would pass on a
+# definition carrying no hook at all.
+expect "a PreToolUse hook scopes the fork's Bash" test -n "$bash_hook"
+outer_bash_out="$(jq -n --arg c "cat $nested_outer/README.md" --arg w "$nested_inner" '{cwd: $w, tool_input: {command: $c}}' |
+  sh -c "$bash_hook" 2>/dev/null)"
+expect "the hook denies the fork's Bash a command naming a path in the outer worktree when cwd sits in a run worktree nested inside it" \
+  bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$outer_bash_out"
+inner_bash_out="$(jq -n --arg c "cat $nested_inner/src/screen.tsx" --arg w "$nested_inner" '{cwd: $w, tool_input: {command: $c}}' |
+  sh -c "$bash_hook" 2>/dev/null)"
+expect "the hook lets the fork's Bash through on a command naming a path in the innermost run worktree around its cwd" \
+  bash -c '! grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$inner_bash_out"
+
 echo "# skills/do/agents/do-impeccable.md: its Agent tool reaches the end-to-end authors and impeccable's own helpers, and no other agent"
 
 # The Spec has this fork dispatch the end-to-end author for the flows under the Builder's own rule,
@@ -466,7 +501,7 @@ carries_each "the flows are written after the screen exists, by the end-to-end a
   "\`## The flows\`"
 
 carries_each "the session copies the flow: lines into the Reply's Evidence unchanged" \
-  "Reply" \
+  "Reply" "Run report" \
   -- \
   "Evidence" \
   -- \
@@ -544,7 +579,7 @@ carries_each "the fallback: line comes back in a project with no end-to-end comm
 
 mapfile -t no_flow_proof < <(no_flow_proof_groups)
 carries_each "the session then writes one line in the Reply: no flow covered the screen, the detector scan and the Gate are its proof" \
-  "Reply" -- "${no_flow_proof[@]}"
+  "Reply" "Run report" -- "${no_flow_proof[@]}"
 
 echo "# skills/do/agents/do-impeccable.md: its body runs the detector scan by script, fixes what it reports and returns a scan: line with one finding: line per finding left"
 
@@ -775,7 +810,7 @@ carries_each "the no scan: line comes back in place of the scan: line, with no d
 carries_each "the session copies the no scan: line into the Reply's Evidence" \
   "copies" "copy" "copied" \
   -- \
-  "Reply" \
+  "Reply" "Run report" \
   -- \
   "Evidence"
 

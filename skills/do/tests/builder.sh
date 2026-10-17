@@ -364,6 +364,13 @@ flat=" $(tr ',' ' ' <<<"$tools" | tr -s ' ') "
 carries "the building agent holds every tool one turn of the build loop takes" \
   " Read " " Glob " " Grep " " Bash " " Write " " Edit " " Agent " " Skill "
 
+# The production code moved to a Sonnet Implementer, and the loop's judgments (what the next
+# behaviour is, whether a changeset is in scope, whether a red is the declared one) stayed here. A
+# pin that drifts with that move hands those judgments to a weaker model before a comparative eval
+# has said it can carry them.
+check_lines "the Builder runs on opus at medium effort" 0 0 \
+  "model: opus" "effort: medium"
+
 # The Builder holds `Agent` because the loop's proof step is a dispatch, and holds it with no scope
 # of its own: the Plan, the Ticket and the Digest may carry text a stranger appended to a tracker
 # issue, so which agents that tool reaches is a hook-level guarantee and never prose the fork could
@@ -382,12 +389,23 @@ for author in unit-test-author e2e-test-author global-unit-test-author global-e2
     bash -c '! grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$author_out"
 done
 
+# `do-implementer` writes the production code every behaviour needs, on a cheaper model than the
+# Builder's (ADR 0090). A hook that denies it leaves the Builder writing that code itself, and every
+# Ticket pays the Builder's model for the work the Implementer exists to take.
+implementer_out="$(printf '{"tool_input": {"subagent_type": "do-implementer"}}' |
+  sh -c "$builder_agent_hook" 2>/dev/null)"
+expect "the hook lets the Builder dispatch do-implementer to write production code" \
+  bash -c '! grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$implementer_out"
+
 # `choice-taker` rules a Design fork and writes the Ruling into the Spec. Forked from here it would
 # rule from two layers below the session, against a Spec this fork never read, and the next Ticket
 # of the same feature would be free to rule the same fork the other way: two Rulings, one Spec, and
 # nothing in the run comparing them. `general-purpose` is the way around every other line of this
-# hook, since it holds the tools to fork anything itself.
-for forbidden in choice-taker general-purpose; do
+# hook, since it holds the tools to fork anything itself. `do-builder` would fork a Builder from a
+# Builder, a third layer ADR 0047 keeps out of reach. The names that only contain or extend
+# `do-implementer` hold whatever tools their own definitions grant, which the Builder's guards never
+# reach: `do-implementer` is admitted by its exact name and by nothing that resembles it.
+for forbidden in choice-taker general-purpose do-builder do-implementer-x implementer x-do-implementer; do
   forbidden_out="$(printf '{"tool_input": {"subagent_type": "%s"}}' "$forbidden" |
     sh -c "$builder_agent_hook" 2>/dev/null)"
   expect "the hook denies the Builder forking $forbidden" \
@@ -422,7 +440,8 @@ for tool in Write Edit; do
   # The other half of the same hook: the code the Ticket's behaviours change is what this fork
   # exists to write, and a guard that denied it would leave the Builder unable to turn any test
   # green, which is the same dead loop as a missing Bash.
-  source_out="$(printf '{"tool_input": {"file_path": "%s"}}' "src/export/notes.ts" |
+  source_out="$(printf '{"tool_input": {"file_path": "%s"}, "cwd": "%s"}' \
+    "/home/dev/proj/.claude/worktrees/do-export/src/export/notes.ts" "/home/dev/proj/.claude/worktrees/do-export" |
     sh -c "$tool_hook" 2>/dev/null)"
   expect "the hook lets the Builder's $tool through at the source path a behaviour changes" \
     bash -c '! grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$source_out"
@@ -473,6 +492,95 @@ for tool in Write Edit; do
     expect "the hook denies the Builder's $tool through $alias_file, a symlink resolving to a protected suffix" \
       bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$file_alias_out"
   done
+done
+
+# A feature that spans repositories puts a second checkout beside the Home one, and the run's branch,
+# diff, Review and landing all belong to the run worktree alone: a write the Builder lands in the
+# sibling repository sits on no branch and in no diff, so nothing downstream ever reads it. The
+# sibling path names none of the artifact patterns above, so a deny here can only come from where
+# the file sits. The payload carries the `cwd` the harness sends with every PreToolUse call, and the
+# same `cwd` with a source file under the run worktree stays allowed, so the deny is never a blanket
+# one over every absolute path.
+mkdir -p "$stmp/repos/home" "$stmp/repos/sibling/src/export"
+repos="$(cd "$stmp/repos" && pwd -P)"
+g -C "$repos/home" init -q
+g -C "$repos/home" commit -q --allow-empty -m fixture
+g -C "$repos/sibling" init -q
+run_worktree="$(branch_worktree "$repos/home" export)"
+mkdir -p "$run_worktree/src/export"
+printf 'export const notes = 1\n' >"$repos/sibling/src/export/notes.ts"
+printf 'export const notes = 1\n' >"$run_worktree/src/export/notes.ts"
+for tool in Write Edit; do
+  case "$tool" in
+    Write) tool_hook="$builder_write_hook" ;;
+    *) tool_hook="$builder_edit_hook" ;;
+  esac
+  sibling_out="$(cd "$run_worktree" &&
+    printf '{"tool_input": {"file_path": "%s"}, "cwd": "%s"}' "$repos/sibling/src/export/notes.ts" "$run_worktree" |
+    sh -c "$tool_hook" 2>/dev/null)"
+  expect "the hook denies the Builder's $tool to an absolute path inside a sibling repository, outside its worktree" \
+    bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$sibling_out"
+  own_tree_out="$(cd "$run_worktree" &&
+    printf '{"tool_input": {"file_path": "%s"}, "cwd": "%s"}' "$run_worktree/src/export/notes.ts" "$run_worktree" |
+    sh -c "$tool_hook" 2>/dev/null)"
+  expect "the hook lets the Builder's $tool through at an absolute source path inside its own run worktree" \
+    bash -c '! grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$own_tree_out"
+done
+
+# The reason is all the Builder reads of that deny, and one that says only where the path resolves
+# reads as an obstacle to route around: the same file reached through the shell, or through a path
+# spelled another way. The Bash guard's reason for a path outside the worktree already says the two
+# things that make a deny final, whose place it is and where the finding goes instead, and the write
+# guard's reason is held to the same two. The rest of the Bash reason is about shell commands, so the
+# two strings are never compared whole.
+for tool in Write Edit; do
+  case "$tool" in
+    Write) tool_hook="$builder_write_hook" ;;
+    *) tool_hook="$builder_edit_hook" ;;
+  esac
+  sibling_reason="$(cd "$run_worktree" &&
+    printf '{"tool_input": {"file_path": "%s"}, "cwd": "%s"}' "$repos/sibling/src/export/notes.ts" "$run_worktree" |
+    sh -c "$tool_hook" 2>/dev/null | jq -r '.. | .permissionDecisionReason? // empty' 2>/dev/null)"
+  expect "the hook's reason for the Builder's denied $tool in a sibling repository says the place belongs to the session and the developer, and to report it on the return line" \
+    bash -c 'grep -qE "belongs? to the session and the developer" <<<"$1" && grep -qiE "report.*return line" <<<"$1"' _ "$sibling_reason"
+done
+
+# The worktree rule above reads the run worktree off a `cwd` inside `.claude/worktrees/<name>`, and
+# do always forks the Builder there. A payload with no `cwd`, or one in the main checkout, leaves the
+# rule nothing to apply, and a guard that let the write through there would let the fork write
+# anywhere on disk. The path names no protected artifact, so a deny can only come from the `cwd`.
+for tool in Write Edit; do
+  case "$tool" in
+    Write) tool_hook="$builder_write_hook" ;;
+    *) tool_hook="$builder_edit_hook" ;;
+  esac
+  for off_worktree_payload in \
+    '{"cwd": "/home/dev/proj", "tool_input": {"file_path": "/home/dev/proj/src/export/notes.ts"}}' \
+    '{"tool_input": {"file_path": "/home/dev/proj/src/export/notes.ts"}}'; do
+    off_worktree_out="$(printf '%s' "$off_worktree_payload" | sh -c "$tool_hook" 2>/dev/null)"
+    expect "the hook denies the Builder's $tool a source path when cwd is not a run worktree: $off_worktree_payload" \
+      bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$off_worktree_out"
+  done
+done
+
+# A run worktree can sit inside another run's worktree, and the Builder's own is the innermost one
+# around its `cwd`: the outer worktree is another run's branch, so a write there lands outside this
+# Builder's diff exactly as a sibling repository's does.
+nested_outer="/home/dev/proj/.claude/worktrees/t1"
+nested_inner="$nested_outer/.claude/worktrees/t2"
+for tool in Write Edit; do
+  case "$tool" in
+    Write) tool_hook="$builder_write_hook" ;;
+    *) tool_hook="$builder_edit_hook" ;;
+  esac
+  outer_out="$(printf '{"cwd": "%s", "tool_input": {"file_path": "%s"}}' "$nested_inner" "$nested_outer/README.md" |
+    sh -c "$tool_hook" 2>/dev/null)"
+  expect "the hook denies the Builder's $tool a path in the outer worktree when cwd sits in a run worktree nested inside it" \
+    bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$outer_out"
+  inner_out="$(printf '{"cwd": "%s", "tool_input": {"file_path": "%s"}}' "$nested_inner" "$nested_inner/src/export/notes.ts" |
+    sh -c "$tool_hook" 2>/dev/null)"
+  expect "the hook lets the Builder's $tool through at a source path in the innermost run worktree around its cwd" \
+    bash -c '! grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$inner_out"
 done
 
 # A machine with no `jq`: a guard that reads its payload with jq and exits 0 when jq is missing is a
@@ -607,6 +715,36 @@ for climb_cmd in \
     bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$climb_out"
 done
 
+# A sibling repository sits beside the main checkout, so neither rule above reaches it: the write
+# guard denies it by where the file sits, and the shell has to do the same, since a redirect, an
+# in-place `sed` or a `git commit` aimed at a sibling by its absolute path lands a change on no
+# branch, in no diff and under no Review. The deny follows the path into a git repository, found by
+# walking up from the path to the nearest directory that exists, so a file the command is about to
+# create is caught as well; `/tmp`, `/usr` and paths inside the run worktree sit in no other
+# repository and keep passing.
+mkdir -p "$stmp/outside"
+for sibling_cmd in \
+  "printf 'two\n' > $repos/sibling/src/export/notes.ts" \
+  "sed -i s/one/two/ $repos/sibling/src/export/notes.ts" \
+  "printf two > $repos/sibling/src/export/created.ts" \
+  "cd $repos/sibling && git commit -am x" \
+  "git -C $repos/sibling commit -am x"; do
+  sibling_bash_out="$(jq -n --arg c "$sibling_cmd" --arg w "$run_worktree" '{cwd: $w, tool_input: {command: $c}}' |
+    sh -c "$builder_bash_hook" 2>/dev/null)"
+  expect "the hook denies the Builder's Bash a command naming an absolute path inside a sibling repository: $sibling_cmd" \
+    bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$sibling_bash_out"
+done
+for outside_ok_cmd in \
+  "printf x > $stmp/outside/out.log" \
+  "printf x > /tmp/builder-out.log" \
+  "ls /usr/bin" \
+  "printf x > $run_worktree/src/export/created.ts"; do
+  outside_ok_out="$(jq -n --arg c "$outside_ok_cmd" --arg w "$run_worktree" '{cwd: $w, tool_input: {command: $c}}' |
+    sh -c "$builder_bash_hook" 2>/dev/null)"
+  expect "the hook lets the Builder's Bash through on an absolute path in no other repository: $outside_ok_cmd" \
+    bash -c '! grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$outside_ok_out"
+done
+
 # Both rules above read the main checkout off a `cwd` inside `.claude/worktrees/<name>`, and do
 # always forks the Builder there. A shell anywhere else, or a payload with no `cwd`, leaves them
 # nothing to apply, so the guard fails closed there as it does when jq is absent.
@@ -617,6 +755,18 @@ for off_worktree_payload in \
   expect "the hook denies the Builder's Bash a build-loop command when cwd is not a run worktree: $off_worktree_payload" \
     bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$off_worktree_out"
 done
+
+# The same nesting the Write|Edit guard reads: the Builder's worktree is the innermost one around
+# its `cwd`, so the outer worktree is another run's branch, and a shell command that reads, writes or
+# runs a path there reaches outside this Builder's diff.
+outer_bash_out="$(jq -n --arg c "cat $nested_outer/README.md" --arg w "$nested_inner" '{cwd: $w, tool_input: {command: $c}}' |
+  sh -c "$builder_bash_hook" 2>/dev/null)"
+expect "the hook denies the Builder's Bash a command naming a path in the outer worktree when cwd sits in a run worktree nested inside it" \
+  bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$outer_bash_out"
+inner_bash_out="$(jq -n --arg c "cat $nested_inner/src/export/notes.ts" --arg w "$nested_inner" '{cwd: $w, tool_input: {command: $c}}' |
+  sh -c "$builder_bash_hook" 2>/dev/null)"
+expect "the hook lets the Builder's Bash through on a command naming a path in the innermost run worktree around its cwd" \
+  bash -c '! grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$inner_bash_out"
 
 # The other half: a Bash command that runs a test or a build step against the source the Ticket's
 # behaviours change is what the loop exists to run, and a guard that denied it would leave the
@@ -812,6 +962,60 @@ carries_any "the home takes a criterion whose flow was skipped, with the reason 
   "the reason none" "its skip" "skipped" "the reason it was not" "the reason it did not" \
   "fallback:" "the \`fallback:\` line"
 
+echo "# skills/do/references/ticket.md, skills/do/references/reply.md: the Builder's \`fallback:\` lines reach the Reply, naming why no Implementer was dispatched"
+
+# A Builder that wrote the code itself, because `do-implementer` is not linked or its dispatch was
+# refused, says so on a `fallback:` line of its return. A session that routes `built` off the
+# `behaviour:`, `build:` and `flow:` lines alone drops that line, and the developer reads a Reply in
+# which the Implementers wrote the code: the run's cost and ADR 0090's eval are then read against a
+# shape the run never had. The route copies the line as returned, the way it copies the others.
+# The `built` bullet is scoped from the route's own opening line, so a `built` elsewhere in the
+# Playbook never answers for it.
+flat="$(bullets_opening_on <(passage_of "$playbook" "Route on the first line:" "## ") "\`built\`:" | head -n 1)"
+expect "the Playbook routes the Builder's \`built\` return" test -n "$flat"
+carries_each "the \`built\` route copies the returned \`fallback:\` lines into the Run report unchanged" \
+  "\`fallback:\`" "fallback:" -- "Reply" "Run section" "Run report" -- \
+  "unchanged" "verbatim" "never composed" "as returned" "as the Builder returned"
+
+# The Run list is where the copied line lands. Its home is found by the Implementer it speaks of,
+# not by its number, so folding it into the Build lines and giving it an item of its own both count;
+# the Planner's fallbacks in the Plan line carry no Implementer and never answer for it.
+implementer_item="$(item_holding <(passage_of "$reply" "## Run" "## Sections") '[0-9]+\.' "mplementer")"
+expect "the Run list carries a home for the Builder's lines on the Implementer" test -n "$implementer_item"
+flat="$(tr '\n' ' ' <<<"$implementer_item" | tr -s ' ')"
+carries_each "the home takes the Builder's \`fallback:\` lines with the reason no Implementer was dispatched" \
+  "fallback:" "fallback\` line" "fallback line" -- \
+  "Builder" "the build returned" "the fork returned" -- \
+  "not linked" "isn't linked" "is unlinked" "not installed" "no \`do-implementer\`" -- \
+  "dispatch is refused" "dispatch refused" "refuses the dispatch" "refused dispatch" "is refused" \
+  "was refused" "is denied" "denies the dispatch" "dispatch denied"
+
+echo "# skills/do/references/ticket.md, reply.md, builder.md: the Builder's \`fallback:\` and refused-changeset lines land in the Run report"
+
+# ADR 0091: Build lines sit under reply.md's `## Run`, never part of the five-part message, and a
+# run without `--auto` writes no Run report. A passage that sends the `fallback:` line or a refused
+# changeset's build line to "the Reply" has the session write it into the message, where reply.md
+# forbids it, or nowhere. The `built` bullet's opening clause already names the Run report for the
+# Build lines in general, so the check is scoped to the clause that says what a `fallback:` line
+# tells the developer (the Builder wrote the code itself, no Implementer was dispatched).
+flat="$(bullets_opening_on <(passage_of "$playbook" "Route on the first line:" "## ") "\`built\`:" | head -n 1 |
+  sed 's/: /:\n/g; s/; /;\n/g; s/\. /.\n/g' | grep -F "fallback:" | grep -E "itself|Implementer" | tr '\n' ' ')"
+expect "the \`built\` route has a clause saying what the \`fallback:\` line tells the developer" test -n "$flat"
+carries_each "the \`built\` route's \`fallback:\` clause names the Run report as where the line lands" "Run report"
+
+build_item="$(item_holding <(passage_of "$reply" "## Run" "## Sections") '[0-9]+\.' "Build lines")"
+flat="$(bullets_opening_on <(printf '%s\n' "$build_item") "\`fallback:\`" | head -n 1)"
+expect "the Run list's Build lines carry the Builder's \`fallback:\` lines" test -n "$flat"
+carries_each "the Build lines' \`fallback:\` sentence names the Run report as where the line lands" "Run report"
+
+flat="$(bullets_opening_on "$contract" "Each changeset the check refused" | head -n 1)"
+expect "the contract says where a refused changeset shows" test -n "$flat"
+carries_each "a refused changeset's build line is shown in the Run report" "Run report"
+
+flat="$(bullets_opening_on "$contract" "An edit the Builder wrote itself" | head -n 1)"
+expect "the contract says where an edit the Builder wrote itself shows" test -n "$flat"
+carries_each "an edit the Builder wrote itself is told apart in the Run report" "Run report"
+
 echo "# skills/do/agents/do-builder.md: the fork's own definition binds it to that same return"
 
 # The fork reads its own definition and may never open the contract: a definition with nothing on
@@ -831,6 +1035,593 @@ carries_any "it binds the fork to the return the contract fixes" \
 out="$flat"
 check_absent "it restates none of the return's keys in a second place" 0 0 \
   "side A:" "side B:" "losing criterion:" "stopped at:"
+
+echo "# skills/do/agents/do-builder.md, skills/do/references/builder.md, skills/do/references/build-loop.md: the Builder dispatches the Implementer at every production edit"
+
+# The Builder runs on Opus, and every production edit it still writes itself is paid at that rate
+# by the developer running `/do`. The Implementer exists to take those edits at a cheaper model, and
+# there are four of them in a cycle: the green, the seam a `BLOCKED` asks for, the fix a `HANDBACK`
+# diagnosed as `production` asks for, and the refactor. Any one the three readers leave to the
+# Builder is an edit it goes on writing itself. The fork reads its own definition first, the
+# contract fixes the call, and build-loop.md is the step the Builder is at when the edit comes up,
+# so all three have to say it.
+build_loop="$here/../references/build-loop.md"
+
+# The body, never the frontmatter: the Agent hook there already names `do-implementer` to let the
+# dispatch through, and an allowed dispatch is not a definition that tells the fork to make one.
+body_of "$agent" >"$stmp/builder-body.md"
+flat="$(paragraph_with "$stmp/builder-body.md" "do-implementer" all | tr '\n' ' ' | tr -s ' ')"
+carries_each "the building agent's body has it dispatch \`do-implementer\` for its production edits" \
+  "do-implementer" -- "dispatch" -- "production"
+
+# The contract fixes the call and names each edit by the `Edit:` kind the Implementer reads off its
+# brief: a kind missing here is an edit the Builder has no call for, and writes itself. Read over
+# every section of the contract that names the Implementer, so the call is found wherever the
+# contract puts it.
+flat="$(awk '/^## / { if (keep) print sec; sec = ""; keep = 0 }
+  { sec = sec " " $0; if (index($0, "do-implementer")) keep = 1 }
+  END { if (keep) print sec }' "$contract" | tr -s ' ')"
+carries_each "the contract has the Builder call the Agent tool with \`subagent_type: do-implementer\`" \
+  "Agent tool" "\`Agent\`" -- "subagent_type" -- "do-implementer" -- "Builder"
+carries_each "the contract names each of the four edits by its \`Edit:\` kind: green, seam, fix and refactor" \
+  "\`green\`" "Edit: green" -- "\`seam\`" "Edit: seam" -- "\`fix\`" "Edit: fix" \
+  -- "\`refactor\`" "Edit: refactor"
+
+# build-loop.md is also read by the bug-fix and refactoring sessions, which have no Implementer and
+# write the code themselves, so each step says it for a Builder by name rather than for every reader.
+# Each step is found by what it is about, not by its number or its wording.
+green_step="$(item_holding "$build_loop" '[0-9]+\.' "smallest production change")"
+refactor_step="$(item_holding "$build_loop" '[0-9]+\.' "Refactor on green")"
+seam_route="$(bullets_opening_on "$build_loop" "\`BLOCKED\`" | grep -F "seam" | head -n 1)"
+production_route="$(bullets_opening_on "$build_loop" "\`production\`")"
+for edit in green seam fix refactor; do
+  case "$edit" in
+    green) where="the green step" step="$green_step" ;;
+    seam) where="the route for \`BLOCKED\` on a missing seam" step="$seam_route" ;;
+    fix) where="the \`HANDBACK\` route diagnosed \`production\`" step="$production_route" ;;
+    *) where="the refactor step" step="$refactor_step" ;;
+  esac
+  expect "build-loop.md carries $where" test -n "$step"
+  flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ')"
+  carries_each "build-loop.md: $where has a Builder dispatch \`do-implementer\` for that edit" \
+    "Builder" -- "do-implementer" -- "dispatch"
+done
+
+echo "# skills/do/references/builder.md / ## The Implementer: the brief the Builder writes carries every key the Implementer reads"
+
+# The Implementer never explores and never decides where to write: a brief missing what the edit
+# needs comes back `OUT OF BRIEF` with nothing edited, and the cycle has paid a dispatch for no
+# edit. The keys are read off the Implementer's own `## Where you start`, so the brief the Builder
+# writes and the one the Implementer reads cannot drift apart.
+implementer="$here/../agents/do-implementer.md"
+mapfile -t implementer_keys < <(paragraph_with "$implementer" "The brief is one key per line" |
+  grep -oE '`[A-Z][A-Za-z ]*:`' | tr -d '`' | awk '!seen[$0]++')
+expect "do-implementer.md lists the brief keys it reads, to read them off" \
+  test "${#implementer_keys[@]}" -gt 1
+# shellcheck disable=SC2034  # lib.sh's check_lines reads $out
+out="$(blocks_of "$contract" "## The Implementer" | sed -nE 's/^([A-Z][A-Za-z ]*:).*/\1/p')"
+check_lines "the brief's block in \`## The Implementer\` opens a line on every key do-implementer.md reads" 0 0 \
+  "${implementer_keys[@]}"
+
+# A brief written from the Plan or from an earlier cycle names files and signatures the tree no
+# longer has, and the Implementer stops on them.
+flat="$(flat_section "$contract" "## The Implementer")"
+affirms "the Builder writes the brief from the tree as it stands at that cycle" \
+  "the tree" "the worktree" -- "that cycle" "this cycle" "each cycle" "every cycle" "the cycle"
+
+# `Where:` is what spares the Implementer the exploring: its block line, and every paragraph that
+# speaks of it, are read together, since the contract may say it in either.
+passage_of "$contract" "## The Implementer" "## " >"$stmp/implementer-section.md"
+flat="$({
+  blocks_of "$contract" "## The Implementer" | grep -E '^Where:'
+  paragraph_with "$stmp/implementer-section.md" '`Where:`' all
+} | tr '\n' ' ' | tr -s ' ')"
+carries_each "\`Where:\` names the files to edit, the symbols and signatures to create or change, and the seam when there is one" \
+  "file" -- "symbol" -- "signature" -- "seam"
+
+echo "# skills/do/agents/do-builder.md, skills/do/references/builder.md / ## The Implementer: the judgments stay the Builder's and the code goes to the Implementer"
+
+# The Implementer runs on a cheaper model that takes its brief literally. The five judgments the
+# loop turns on (whether the red is the expected one, the test author's verdict, a `HANDBACK`'s
+# diagnosis, a missing seam, a Design fork) are the ones a literal model gets wrong, so both
+# readers have to keep them on the Builder's side of the dispatch, in the passage that names the
+# Implementer, all five by name. And the dispatch only moves the code off Opus when the Builder
+# writes none of it itself. An Implementer that cannot be dispatched has its own group below.
+for reader in agent contract; do
+  case "$reader" in
+    agent) where="do-builder.md's body" scope="$stmp/builder-body.md" ;;
+    *) where="builder.md's \`## The Implementer\`" scope="$stmp/implementer-section.md" ;;
+  esac
+  flat="$({
+    paragraph_with "$scope" "Implementer" all
+    paragraph_with "$scope" "do-implementer" all
+  } | awk '!seen[$0]++' | grep -F "Design fork" | tr '\n' ' ' | tr -s ' ')"
+  carries_each "$where: the paragraph naming the Implementer keeps all five judgments the Builder's" \
+    "expected red" "red is the expected" "declared red" "red for the reason" "red as expected" \
+    -- "verdict" \
+    -- "\`HANDBACK\`" "HANDBACK" -- "diagnosis" "diagnoses" \
+    -- "missing seam" "seam is missing" \
+    -- "Design fork" \
+    -- "the Builder's" "stay with the Builder" "the Builder keeps" "Builder's own" "yours" \
+    "you keep" "stay with you" "remain with you"
+  flat="$(tr '\n' ' ' <"$scope" | tr -s ' ')"
+  carries_any "$where: the Builder writes no production code itself" \
+    "writes no production code" "write no production code" "never writes production code" \
+    "never write production code" "does not write production code" "do not write production code" \
+    "writes none of the production code" "write none of the production code"
+done
+
+echo "# skills/do/references/build-loop.md: the test author's dispatch input is unchanged by the Implementer's"
+
+# The unit and E2E test authors return `REFUSED_INCOMPLETE_INPUT` on an input that lost or renamed a
+# key, and every cycle the loop runs starts at that dispatch. The Implementer's brief now sits in the
+# steps around it, so step 1 has to keep naming the field of every key the Testing Policy fixes, and
+# carry none of the Implementer's own keys: a `Where:` or an `Edit:` handed to a test author is a
+# field it does not read, in place of one it refuses without. The keys are checked on the policy's
+# own block first, so a key the policy renames fails here rather than passing on stale phrasings.
+policy="$here/../../../.claude/testing-policy/policy.md"
+# shellcheck disable=SC2034  # lib.sh's check_lines reads $out
+out="$(blocks_of "$policy" "## Test authoring: delegation and reuse" | sed -nE 's/^([A-Z][A-Za-z ()]*:).*/\1/p')"
+check_lines "the Testing Policy still fixes the six dispatch input keys step 1 is read against" 0 0 \
+  "Behavior to prove:" "Relied on by:" "Target:" "Origin:" "Expected red:" "Placement (optional):"
+
+author_step="$(item_holding "$build_loop" '[0-9]+\.' "unit test author")"
+expect "build-loop.md carries the step that dispatches the unit test author" test -n "$author_step"
+flat="$(tr '\n' ' ' <<<"$author_step" | tr -s ' ')"
+carries_each "build-loop.md: the test author's dispatch step names the field of every key the policy fixes" \
+  "behaviour to prove" "behavior to prove" "Behavior to prove:" \
+  -- "who relies on it" "Relied on by:" \
+  -- "what a wrong or missing result costs" "a wrong or missing result costs" \
+  -- "the target" "Target:" \
+  -- "the origin" "Origin:" \
+  -- "\`new feature\`" -- "\`bugfix\`" \
+  -- "the expected red" "Expected red:" \
+  -- "placement" "Placement"
+# shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+out="$author_step"
+check_absent "build-loop.md: the test author's dispatch step carries none of the Implementer's keys" 0 0 \
+  "Worktree:" "Edit:" "Ask:" "Where:" "Ruled out:" "do-implementer"
+
+echo "# skills/do/references/builder.md / ## The Implementer, skills/do/agents/do-builder.md: the changeset check runs after each Implementer return, before the commit"
+
+# The Implementer edits production code from a brief it takes literally, and nothing in its edit
+# stops it touching the test the behaviour is proven by. A change that moved that test, landed by
+# the Builder's commit, reaches the session and the review as a behaviour proven green when the
+# proof itself was rewritten. The snapshot is the baseline the check reads the changeset against,
+# so it has to be taken before the dispatch it covers, and the check has to run before the commit
+# that would land the change, against the paths the test author named. The order is read off the
+# two command blocks: the Implementer sits between them, and the commit after the second.
+flat="$(flat_section "$contract" "## The Implementer")"
+snapshot_cmd="$(blocks_of "$contract" "## The Implementer" | grep -E '^bash .*main-untouched\.sh"? +snapshot' | head -n 1)"
+changeset_cmd="$(blocks_of "$contract" "## The Implementer" | grep -E '^bash .*changeset-check\.sh' | head -n 1)"
+expect "builder.md's \`## The Implementer\` names the snapshot as a runnable \`bash\` line" test -n "$snapshot_cmd"
+expect "builder.md's \`## The Implementer\` names the changeset check as a runnable \`bash\` line" test -n "$changeset_cmd"
+after_snapshot="${flat#*"$snapshot_cmd"}"
+expect "builder.md: the changeset check comes after the snapshot" \
+  bash -c '[ -n "$1" ] && [ -n "$2" ] && [ "$3" != "$4" ] && grep -qF -- "$2" <<<"$3"' _ \
+  "$snapshot_cmd" "$changeset_cmd" "$after_snapshot" "$flat"
+# With either command missing the slices below would be the whole section, and pass on it.
+flat=""
+[ -n "$snapshot_cmd" ] && [ -n "$changeset_cmd" ] && flat="${after_snapshot%%"$changeset_cmd"*}"
+carries_any "builder.md: the Implementer is dispatched between the snapshot and the changeset check" \
+  "do-implementer" "Implementer"
+flat=""
+[ -n "$snapshot_cmd" ] && [ -n "$changeset_cmd" ] && flat="${after_snapshot#*"$changeset_cmd"}"
+carries_any "builder.md: the commit comes after the changeset check" "commit"
+flat="$(flat_section "$contract" "## The Implementer")"
+carries_each "builder.md: the changeset check is handed the test author's named paths" \
+  "Test changeset" -- "Promotion changeset"
+
+flat="$(body_of "$agent" | awk 'BEGIN { RS = "" } /changeset-check\.sh|changeset check/' | tr '\n' ' ' | tr -s ' ')"
+changeset_at="$(first_at "changeset-check.sh" "changeset check")"
+expect "do-builder.md's body names the changeset check" test "$changeset_at" -gt 0
+body_tail="${flat:changeset_at}"
+flat="${flat:0:changeset_at}"
+carries_any "do-builder.md: the changeset check follows the Implementer's return" "Implementer" "do-implementer"
+flat="$body_tail"
+carries_any "do-builder.md: the changeset check comes before the commit" "commit"
+
+# Both commands run in the worktree of whatever project is being built, from the Builder's own Bash,
+# under the guard its frontmatter carries. Each placeholder is filled the way the Builder fills it:
+# the run worktree, a state file outside it, and a named path from its root. The commands then run
+# from a project that does not hold the skill, with the skill linked under a throwaway HOME.
+changeset_proj="$stmp/changeset/proj"
+changeset_tree="$changeset_proj/.claude/worktrees/do-w1"
+changeset_home="$stmp/changeset/home"
+changeset_state="$stmp/changeset/state"
+changeset_digest=0
+mkdir -p "$changeset_tree" "$changeset_home/.claude/skills"
+ln -s "$here/.." "$changeset_home/.claude/skills/do"
+(cd "$changeset_proj" && git init -q && cd "$changeset_tree" && git init -q && printf 'a\n' >a.txt && g add -A && g commit -qm init)
+fill_placeholders() { # $1 a command line: each <placeholder> filled, on stdout
+  sed -E -e 's/>\.\.\./>/g' -e "s#<[^>]*digest[^>]*>#$changeset_digest#g" -e "s#<[^>]*state[^>]*>#$changeset_state#g" \
+    -e "s#<[^>]*([Tt]ree|[Ww]orktree)[^>]*>#$changeset_tree#g" -e 's#<[^>]*>#tests/a.test.sh#g' <<<"$1"
+}
+snapshot_run="$(fill_placeholders "$snapshot_cmd")"
+changeset_run="$(fill_placeholders "$changeset_cmd")"
+for run_line in "$snapshot_run" "$changeset_run"; do
+  hook_out="$(jq -n --arg command "$run_line" --arg cwd "$changeset_tree" \
+    '{tool_input: {command: $command}, cwd: $cwd}' | sh -c "$(hook_command "$agent" Bash)" 2>/dev/null)"
+  expect "the Builder's Bash guard lets the command through from its worktree: ${run_line:-<missing>}" \
+    bash -c '[ -n "$1" ] && ! grep -qF "\"permissionDecision\": \"deny\"" <<<"$2"' _ "$run_line" "$hook_out"
+done
+
+snapshot_out="$(cd "$changeset_tree" && HOME="$changeset_home" bash -c "$snapshot_run" 2>&1)"
+changeset_digest="$(sed -n 's/^digest=//p' <<<"$snapshot_out")"
+changeset_run="$(fill_placeholders "$changeset_cmd")"
+changeset_out="$(cd "$changeset_tree" && HOME="$changeset_home" bash -c "$changeset_run" 2>&1)"
+expect "the snapshot and the changeset check run from a project that does not hold the skill" \
+  bash -c '[ -n "$1" ] && grep -q "^state=" <<<"$2" && grep -q "^verdict=pass" <<<"$3"' _ \
+  "$snapshot_run" "$snapshot_out" "$changeset_out"
+
+echo "# skills/do/references/builder.md / ## The Implementer, skills/do/references/build-loop.md: the Builder formats and commits each behaviour, never the Implementer"
+
+# The resume step matches the `Behaviour:` lines on the branch one for one and rebuilds a behaviour
+# whose commit it cannot find. An Implementer that committed its own edit would land a commit with
+# no `Behaviour:` line, or a second one beside the Builder's, and the resume would rebuild a
+# behaviour already on the branch or count one twice. The contract says it past the changeset
+# check, the last thing a dispatch is put through before the commit: the brief's own `Behaviour:`
+# key, earlier in the section, cannot answer for it.
+flat="$(flat_section "$contract" "## The Implementer")"
+pass_line="Only \`verdict=pass\` goes on toward the commit."
+pass_at="$(first_at "$pass_line")"
+expect "builder.md's \`## The Implementer\` carries the \`verdict=pass\` line its commit step follows" \
+  test "$pass_at" -gt 0
+section="$flat"
+flat=""
+[ "$pass_at" -gt 0 ] && flat="${section:$((pass_at - 1 + ${#pass_line}))}"
+affirms "builder.md: past the changeset check, the Builder itself formats the touched files and commits the behaviour" \
+  "the Builder" "itself" -- "format" -- "commit"
+carries_each "builder.md: the Builder's commit carries the behaviour's \`Behaviour:\` line, one commit per behaviour" \
+  "Behaviour:" \
+  -- "one commit per behaviour" "one commit for each behaviour" "a commit per behaviour" \
+  "each behaviour its own commit" "one commit to each behaviour" "one behaviour per commit"
+carries_any "builder.md: the Implementer never commits" \
+  "the Implementer never commits" "\`do-implementer\` never commits" "the Implementer commits nothing" \
+  "the Implementer does not commit" "never the Implementer's" "never by the Implementer" \
+  "never the Implementer" "not the Implementer's"
+
+# bug-fix and refactoring read the same two steps and have no Implementer, so each says it for a
+# Builder by name. Each step is found by what it is about, not by its number.
+format_step="$(item_holding "$build_loop" '[0-9]+\.' "format the touched files")"
+commit_step="$(item_holding "$build_loop" '[0-9]+\.' "\`Behaviour: <line>\`")"
+for what in format commit; do
+  case "$what" in
+    format) where="the format step" step="$format_step" ;;
+    *) where="the commit step" step="$commit_step" ;;
+  esac
+  expect "build-loop.md carries $where" test -n "$step"
+  flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ')"
+  carries_each "build-loop.md: $where keeps the $what a Builder's and never the Implementer's" \
+    "Builder" \
+    -- "the Builder's" "a Builder's" "Builder's own" "the Builder itself" "a Builder itself" \
+    "stays with the Builder" "stay with the Builder" \
+    -- "never the Implementer's" "not the Implementer's" "never by the Implementer" \
+    "the Implementer never" "\`do-implementer\` never" "never \`do-implementer\`"
+done
+
+echo "# skills/do/references/builder.md / ## The Implementer, skills/do/agents/do-builder.md: a \`NOT GREEN\` return is dispatched once more, its Ruled out quoted between two tags sharing one random id"
+
+# An Implementer that spent its budget returns `NOT GREEN` with a `Ruled out:` line, and a Builder
+# that has no route for it stops the developer's run on one stuck dispatch. The route is one more
+# dispatch for the same edit, carrying that line in the brief's `Ruled out:` key so the second
+# Implementer does not buy the same experiment again. The line comes out of a failing test's run, a
+# place a stranger's fixture or a dependency's error can write into, so it goes over between an
+# opening and a closing tag that share one random id the Builder generates for that re-dispatch, the
+# way build-loop.md hands a test author's Handback over: quoted text, never an order. The dispatch
+# is read off the paragraphs that name `NOT GREEN`; the tags may sit there or beside the brief's
+# `Ruled out:` key, so those paragraphs are read too. A refused changeset, `OUT OF BRIEF`, a second
+# failure and an Implementer that cannot be dispatched are later behaviours, and nothing here pins them.
+for reader in agent contract; do
+  case "$reader" in
+    agent) where="do-builder.md's body" scope="$stmp/builder-body.md" ;;
+    *) where="builder.md's \`## The Implementer\`" scope="$stmp/implementer-section.md" ;;
+  esac
+  flat="$(paragraph_with "$scope" "NOT GREEN" all | tr '\n' ' ' | tr -s ' ')"
+  expect "$where names the Implementer's \`NOT GREEN\` return" test -n "$flat"
+  affirms "$where: on \`NOT GREEN\` the Builder dispatches the Implementer once more" \
+    "do-implementer" "Implementer" -- "once more" "again" "a second time" "re-dispatch" "redispatch"
+  carries_any "$where: the second dispatch is for the same edit" \
+    "same edit" "that edit" "this edit" "the same brief" "same \`Edit:\`"
+  flat="$({
+    paragraph_with "$scope" "NOT GREEN" all
+    paragraph_with "$scope" "Ruled out:" all
+  } | awk '!seen[$0]++' | tr '\n' ' ' | tr -s ' ')"
+  carries_each "$where: the first return's Ruled out goes into the brief's \`Ruled out:\` key" \
+    "Ruled out:" -- "NOT GREEN"
+  expect "$where: that Ruled out sits between an opening and a closing tag carrying the same id" \
+    bash -c 'grep -qE "<([a-z][a-z-]*) id=\"([^\"]*)\">.*</\\1 id=\"\\2\">" <<<"$1"' _ "$flat"
+  carries_any "$where: the id the two tags share is a random one the Builder generates for that re-dispatch" \
+    "random id" "random \`id\`" "one random" "short random"
+done
+
+echo "# skills/do/references/builder.md / ## The Implementer, skills/do/agents/do-builder.md: a refused changeset is dispatched once more as a failed dispatch, the refusal quoted between two tags sharing one random id, nothing refused committed"
+
+# The changeset check refuses an Implementer's edit that touched the test the behaviour is proven
+# by (`verdict=refused`, exit 1), and a Builder with no route past it stops the developer's run
+# there. The route is the failed dispatch's own: one more dispatch for the same edit, carrying the
+# refusal (the offending paths the check named) in the brief's `Ruled out:` key, between an opening
+# and a closing tag that share one random id, so the second Implementer keeps off those paths. The
+# refused edit never reaches the commit, so the resume still finds one commit per behaviour. The
+# decision is read off the paragraphs that speak of the check's refusal; a paragraph that folds it
+# into the `NOT GREEN` one answers too. The build line, a second failure, `OUT OF BRIEF` and an
+# Implementer that cannot be dispatched are later behaviours, and nothing here pins them.
+for reader in agent contract; do
+  case "$reader" in
+    agent) where="do-builder.md's body" scope="$stmp/builder-body.md" ;;
+    *) where="builder.md's \`## The Implementer\`" scope="$stmp/implementer-section.md" ;;
+  esac
+  flat="$(awk 'BEGIN { RS = "" } /refus/ && /changeset|check|verdict=/ { gsub(/\n/, " "); print }' "$scope" |
+    tr '\n' ' ' | tr -s ' ')"
+  expect "$where says what follows a refused changeset" test -n "$flat"
+  affirms "$where: on a refused changeset the Builder dispatches the Implementer once more" \
+    "do-implementer" "Implementer" -- "once more" "again" "a second time" "re-dispatch" "redispatch"
+  carries_any "$where: the refusal is handled as a failed dispatch is" \
+    "failed dispatch" "failed one" "a failure" "as a failure" "NOT GREEN" "as it does a" "as it is on"
+  carries_any "$where: the second dispatch is for the same edit" \
+    "same edit" "that edit" "this edit" "the same brief" "same \`Edit:\`"
+  carries_each "$where: the refusal, the offending paths the check named, goes into the brief's \`Ruled out:\` key" \
+    "Ruled out:" "\`Ruled out\`" \
+    -- "offending" "the paths the check" "paths it named" "paths the check named" "paths it refused" \
+    "refused paths" "the refusal" "its refusal" "what the check refused" "what it refused"
+  expect "$where: that refusal sits between an opening and a closing tag carrying the same id" \
+    bash -c 'grep -qE "<([a-z][a-z-]*) id=\"([^\"]*)\">.*</\\1 id=\"\\2\">" <<<"$1" ||
+      grep -qE "tags? (that )?(share|sharing|carry|carrying)" <<<"$1"' _ "$flat"
+  carries_any "$where: the id the two tags share is a random one the Builder generates for that re-dispatch" \
+    "random id" "random \`id\`" "one random" "short random"
+  carries_any "$where: nothing the check refused is committed" \
+    "nothing refused is committed" "nothing it refused is committed" "nothing the check refused" \
+    "is never committed" "is not committed" "never reaches the commit" "never goes on toward the commit" \
+    "commits nothing" "no commit" "without a commit" "Only \`verdict=pass\` goes on toward the commit"
+done
+
+echo "# skills/do/references/builder.md / ## The Implementer, skills/do/agents/do-builder.md: a refused changeset's offending paths are put back as the first snapshot read them before the Implementer is dispatched again, so no commit carries a test file the check refused"
+
+# The re-dispatch takes its own step 1 snapshot, so a test file the first Implementer bent and
+# nobody put back is that snapshot's baseline: the second changeset check prints `verdict=pass`
+# over it and the bent test is committed with the behaviour. Leaving the refused changeset out of
+# the commit is not enough, the offending paths have to read as they did at the edit's first
+# snapshot before the next dispatch. Read off the same paragraphs as the case above.
+for reader in agent contract; do
+  case "$reader" in
+    agent) where="do-builder.md's body" scope="$stmp/builder-body.md" ;;
+    *) where="builder.md's \`## The Implementer\`" scope="$stmp/implementer-section.md" ;;
+  esac
+  flat="$(awk 'BEGIN { RS = "" } /refus/ && /changeset|check|verdict=/ { gsub(/\n/, " "); print }' "$scope" |
+    tr '\n' ' ' | tr -s ' ')"
+  expect "$where says what follows a refused changeset" test -n "$flat"
+  carries_each "$where: the offending paths the check named are put back as they read at the edit's first snapshot" \
+    "puts back" "put back" "puts every" "puts each" "restore" "restoring" "resets" "reset" "reverts" \
+    "reads as it did" "read as it did" "read as they did" \
+    -- "offending" "the paths the check named" "paths it named" "refused paths" "every path the check" \
+    "each path the check" \
+    -- "first snapshot" "first dispatch's snapshot" "snapshot taken before the first" "as it read before" \
+    "as they read before" "as it did before" "as they did before" "reads as it did" "read as it did" \
+    "read as they did"
+  carries_any "$where: the offending paths are put back before the Implementer is dispatched again" \
+    "before it dispatches" "before the re-dispatch" "before re-dispatching" "before it re-dispatches" \
+    "before any re-dispatch" "before that re-dispatch" "before the next dispatch" "before the second dispatch" \
+    "before dispatching" "before the Implementer is dispatched" "before you dispatch" "before you re-dispatch" \
+    "only then dispatches" "only then re-dispatches" "only then dispatch"
+  carries_any "$where: so no commit of the behaviour carries a test file the check refused" \
+    "no commit carries" "no commit of the behaviour carries" "carries no test file" "never carries a test" \
+    "no refused test file" "test file the check refused" "test the check refused" "refused test file" \
+    "refused test is never committed" "refused test is not committed"
+done
+
+echo "# skills/do/references/builder.md / ## The return: a refused changeset shows on that behaviour's \`build:\` line"
+
+# The developer reads the Reply's Build lines, copied out of the return unchanged, and nothing else
+# of the build: a refusal the Builder caught and routed past leaves no trace there unless the
+# behaviour's `build:` line names it, and an Implementer that moved a test file passes unseen. The
+# prose is read off the paragraphs of `## The return` above its examples that speak of a refusal,
+# and the clause has to affirm it (`build:` splits a clause at its colon, so the line is matched by
+# its opening). The examples have to carry one such line, with what was done about it, since the
+# shape is what the Builder copies. A second failure, `OUT OF BRIEF` and an Implementer that cannot
+# be dispatched are later behaviours, and nothing here pins them.
+flat="$(passage_of "$contract" "## The return" "### Examples" |
+  awk 'BEGIN { RS = "" } /refus/ { gsub(/\n/, " "); print }' | tr '\n' ' ' | tr -s ' ')"
+expect "\`## The return\` says what a refused changeset leaves on the return" test -n "$flat"
+affirms "\`## The return\`: a changeset the check refused is named on that behaviour's \`build:\` line" \
+  "\`build" "build line" "Build line" -- "refus"
+flat="$(blocks_of "$contract" "### Examples" | grep -E '^build:' | grep -F 'refus' | tr '\n' ' ' | tr -s ' ')"
+expect "\`### Examples\` carries a return whose \`build:\` line names a refused changeset" test -n "$flat"
+carries_any "\`### Examples\`: that \`build:\` line says the edit was dispatched once more" \
+  "re-dispatched" "redispatched" "dispatched once more" "dispatched again" "once more" "again" \
+  "a second time" "second dispatch"
+
+echo "# skills/do/references/builder.md / ## The Implementer, skills/do/agents/do-builder.md, ## The return: a second failure on the same edit has the Builder write it, and the \`build:\` line says so"
+
+# One re-dispatch is the whole route past a failed Implementer: a Builder that meets a second
+# `NOT GREEN` or a second refused changeset on the same edit and has nothing written for it either
+# dispatches a third time, and a fourth, or stops the developer's run on that edit. The route is the
+# Builder writing that edit itself, with no third dispatch. The decision is read off the paragraphs
+# that speak of a second failure (or a failure again, or twice), in both readers: the agent's body
+# addresses the Builder as "you", so its subject is "you " (trailing space, since each group masks
+# what it matched and a bare "you" would eat the "you" of "yourself"). The developer then
+# reads on the behaviour's `build:` line that the Opus Builder wrote it rather than an Implementer,
+# read off the paragraphs of `## The return` above its examples that speak of the Builder's own
+# write (`build:` splits a clause at its colon, so the clause after it answers through its "` line").
+# `OUT OF BRIEF` and an Implementer that cannot be dispatched are later behaviours, and nothing here
+# pins them.
+for reader in agent contract; do
+  case "$reader" in
+    agent) where="do-builder.md's body" scope="$stmp/builder-body.md" ;;
+    *) where="builder.md's \`## The Implementer\`" scope="$stmp/implementer-section.md" ;;
+  esac
+  flat="$(awk 'BEGIN { RS = "" } /[Ss]econd|again|twice/ && /fail|NOT GREEN|refus/ { gsub(/\n/, " "); print }' "$scope" |
+    tr '\n' ' ' | tr -s ' ')"
+  expect "$where says what follows a second failure" test -n "$flat"
+  affirms "$where: on a second failure the Builder writes the edit itself" \
+    "Builder" "it writes" "it makes" "you " -- "write" "makes" "edits" "applies" -- "itself" "by hand" "its own" "yourself" "your own"
+  carries_each "$where: a second failure is a second \`NOT GREEN\` or a second refused changeset" \
+    "NOT GREEN" -- "refus"
+  carries_any "$where: that is the edit the two dispatches failed on" \
+    "same edit" "that edit" "this edit" "the edit itself"
+  carries_any "$where: no third dispatch follows" \
+    "no third" "never a third" "not a third" "without a third" "third dispatch" "no further dispatch" \
+    "dispatches no more" "not dispatched again" "never dispatched again" "no more dispatch"
+done
+flat="$(passage_of "$contract" "## The return" "### Examples" |
+  awk 'BEGIN { RS = "" } /itself|its own|Builder wrote|Builder writes/ && /fail|dispatch/ { gsub(/\n/, " "); print }' |
+  tr '\n' ' ' | tr -s ' ')"
+expect "\`## The return\` says what an edit the Builder wrote itself leaves on the return" test -n "$flat"
+affirms "\`## The return\`: the behaviour's \`build:\` line names an edit the Builder wrote itself" \
+  "\`build" "build line" "Build line" "\` line" -- "itself" "Builder wrote" "Builder's own" "its own"
+carries_any "\`## The return\`: that edit is one written after two failed dispatches" \
+  "two failed" "second failure" "second failed" "failed twice" "twice" "both dispatches" "two dispatches"
+
+echo "# skills/do/references/builder.md / ## The Implementer, skills/do/agents/do-builder.md, ## The return: an Implementer that cannot be dispatched has the Builder write the code, and a \`fallback:\` line names why"
+
+# A developer whose machine has no `do-implementer` linked, or whose harness refuses the dispatch,
+# would see the run stop on a missing agent unless the Builder has a route past it: writing the
+# production code itself, as the loop did before the Implementer, and going on. The decision is read
+# off the paragraphs that speak of the Implementer being unlinked or undispatchable, in both
+# readers; the agent's body addresses the Builder as "you" (trailing space, as in the group above).
+# The session then reads the reason off the return, so `## The return` above its examples has to
+# put it on a `fallback:` line naming which of the two held. `OUT OF BRIEF` is a later behaviour.
+undispatchable='linked|not installed|cannot be dispatched|can.t be dispatched|could not be dispatched|cannot dispatch|can.t dispatch|unavailable'
+for reader in agent contract; do
+  case "$reader" in
+    agent) where="do-builder.md's body" scope="$stmp/builder-body.md" ;;
+    *) where="builder.md's \`## The Implementer\`" scope="$stmp/implementer-section.md" ;;
+  esac
+  flat="$(awk -v k="$undispatchable" 'BEGIN { RS = "" } $0 ~ k && /[Ii]mplementer/ { gsub(/\n/, " "); print }' "$scope" |
+    tr '\n' ' ' | tr -s ' ')"
+  expect "$where says what follows an Implementer that cannot be dispatched" test -n "$flat"
+  carries_each "$where: the two reasons are an Implementer not linked and a dispatch refused" \
+    "not linked" "isn't linked" "is unlinked" "not installed" "no \`do-implementer\`" \
+    -- "dispatch is refused" "dispatch refused" "refuses the dispatch" "refused dispatch" "is refused" \
+    "is denied" "denies the dispatch" "dispatch denied"
+  affirms "$where: the Builder then writes the production code itself" \
+    "Builder" "it writes" "you " -- "write" "writes" -- "itself" "yourself" "by hand" "its own" "your own"
+  carries_any "$where: the run goes on" \
+    "run goes on" "run continues" "run carries on" "run keeps going" "goes on" "carries on" \
+    "never stops the run" "does not stop the run" "without stopping" "instead of stopping" \
+    "rather than stopping" "rather than stop"
+done
+flat="$(passage_of "$contract" "## The return" "### Examples" |
+  awk -v k="$undispatchable" 'BEGIN { RS = "" } $0 ~ k && /[Ii]mplementer/ { gsub(/\n/, " "); print }' |
+  tr '\n' ' ' | tr -s ' ')"
+expect "\`## The return\` says what an Implementer that cannot be dispatched leaves on the return" test -n "$flat"
+carries_each "\`## The return\`: a \`fallback:\` line names which reason held, not linked or the dispatch refused" \
+  "\`fallback:\`" "\`fallback\` line" "fallback line" \
+  -- "not linked" "isn't linked" "is unlinked" "not installed" "no \`do-implementer\`" \
+  -- "dispatch is refused" "dispatch refused" "refuses the dispatch" "refused dispatch" "is refused" \
+  "is denied" "denies the dispatch" "dispatch denied"
+
+echo "# skills/do/references/builder.md / ## The Implementer, skills/do/agents/do-builder.md: an \`OUT OF BRIEF\` return is a failed dispatch, dispatched once more like \`NOT GREEN\`, and a second failure has the Builder write the edit"
+
+# A brief that merely left out a file the edit needs comes back `OUT OF BRIEF` with `Ruled out:`
+# and `Needs:` and nothing edited. A Builder that stops there, or skips the cheap retry and writes
+# the edit itself at once, or hands it to the test author, costs the developer either the run or
+# the Sonnet dispatch the fix needed. The route is the failed dispatch's own: one more dispatch for
+# the same edit, carrying what the first one ruled out (and what it needs) between an opening and a
+# closing tag sharing one random id, and only a second failure on that edit, a second `OUT OF BRIEF`
+# among them, has the Builder write it. The retry is read off the paragraphs that name
+# `OUT OF BRIEF` and a dispatch once more, and the second failure off those that name it beside the
+# Builder's own write, in both readers; the agent's body addresses the Builder as "you" (trailing
+# space, as in the groups above).
+for reader in agent contract; do
+  case "$reader" in
+    agent) where="do-builder.md's body" scope="$stmp/builder-body.md" ;;
+    *) where="builder.md's \`## The Implementer\`" scope="$stmp/implementer-section.md" ;;
+  esac
+  flat="$(awk 'BEGIN { RS = "" } /OUT OF BRIEF/ && /once more|again|a second time|re-?dispatch/ { gsub(/\n/, " "); print }' "$scope" |
+    tr '\n' ' ' | tr -s ' ')"
+  expect "$where names \`OUT OF BRIEF\` among the returns dispatched once more" test -n "$flat"
+  affirms "$where: on \`OUT OF BRIEF\` the Builder dispatches the Implementer once more" \
+    "do-implementer" "Implementer" -- "once more" "again" "a second time" "re-dispatch" "redispatch"
+  carries_any "$where: \`OUT OF BRIEF\` is a failed dispatch, as \`NOT GREEN\` is" \
+    "failed dispatch" "failed one" "a failure" "as a failure" "NOT GREEN"
+  carries_any "$where: the second dispatch is for the same edit" \
+    "same edit" "that edit" "this edit" "the same brief" "same \`Edit:\`"
+  carries_each "$where: what the first return ruled out and needs reaches the second dispatch" \
+    "Ruled out:" "\`Ruled out\`" -- "Needs:" "\`Needs\`" "what it needs" "the file it needs" "files it needs"
+  expect "$where: what it ruled out sits between an opening and a closing tag carrying the same id" \
+    bash -c 'grep -qE "<([a-z][a-z-]*) id=\"([^\"]*)\">.*</\\1 id=\"\\2\">" <<<"$1" ||
+      grep -qE "tags? (that )?(share|sharing|carry|carrying)" <<<"$1"' _ "$flat"
+  carries_any "$where: the id the two tags share is a random one the Builder generates for that re-dispatch" \
+    "random id" "random \`id\`" "one random" "short random"
+
+  flat="$(awk 'BEGIN { RS = "" } /OUT OF BRIEF/ && /[Ss]econd|again|twice/ && /itself|yourself|by hand/ { gsub(/\n/, " "); print }' "$scope" |
+    tr '\n' ' ' | tr -s ' ')"
+  expect "$where names a second \`OUT OF BRIEF\` among the second failures the Builder writes itself" test -n "$flat"
+  affirms "$where: on a second failure, a second \`OUT OF BRIEF\` among them, the Builder writes the edit itself" \
+    "Builder" "it writes" "it makes" "you " -- "write" "makes" "edits" "applies" -- "itself" "by hand" "its own" "yourself" "your own"
+  carries_each "$where: a second failure is a second \`NOT GREEN\`, a second \`OUT OF BRIEF\` or a second refused changeset" \
+    "NOT GREEN" -- "OUT OF BRIEF" -- "refus"
+  carries_any "$where: that is the edit the two dispatches failed on" \
+    "same edit" "that edit" "this edit" "the edit itself"
+done
+
+echo "# skills/do/references/builder.md, skills/do/agents/do-builder.md: work for another repository ends the Stretch on \`stopped\`"
+
+# A feature that spans repositories can hand the Builder a behaviour whose change belongs in a
+# repository its worktree is not part of, and nothing it builds there sits on the run's branch or in
+# its diff. The session routes on the `stopped:` line alone and writes the finding into the Spec
+# from it, so the line has to name the behaviour and the repository, with where that repository
+# sits on this machine or that nobody knows. Without the rule a guard-denied write in a sibling
+# repository reads as an obstacle to route around, or the Builder builds the rest and returns
+# `built`, and the Ticket reads `resolved` with a criterion that cannot pass in this repository.
+# Both readers are asked, since the fork may never open the contract and the session never opens
+# the agent. Each is read by paragraph, unwrapped first (the files hard-wrap), and only the
+# paragraphs that name another repository are kept: the `stopped` shape and the guard's own bullets
+# say plenty about stops and denials already, and none of it may answer for this decision.
+for reader in contract agent; do
+  case "$reader" in
+    contract)
+      reader_name="the contract"
+      reader_text="$(passage_of "$contract" "## The return" "## " &&
+        echo && passage_of "$contract" "## Its edges" "## ")"
+      ;;
+    *)
+      reader_name="the building agent's own definition"
+      reader_text="$(passage_of "$agent" "## How your turn ends" "## What you return" &&
+        echo && passage_of "$agent" "## What you return" "## ")"
+      ;;
+  esac
+  awk 'BEGIN { RS = ""; ORS = "\n\n" } { gsub(/\n/, " "); print }' <<<"$reader_text" >"$stmp/unwrapped.md"
+  flat="$(for naming in "other repository" "different repository" "sibling repository" \
+    "second repository" "repository other than" "repository that is not" "repository it does not" \
+    "repository you do not" "not the one its worktree" "not the one your worktree" \
+    "outside its repository" "outside your repository"; do
+    paragraph_with "$stmp/unwrapped.md" "$naming" all
+  done | tr '\n' ' ' | tr -s ' ')"
+  carries_each "$reader_name: a behaviour that needs a change in another repository ends the Stretch on \`stopped\`, its reason naming the behaviour, the repository and its location or that it is not known, a guard-denied write being one way of finding out, with nothing built there and nothing written into the Spec" \
+    "\`stopped\`" "stopped:" \
+    -- \
+    "names the behaviour" "naming the behaviour" "name the behaviour" "the behaviour and the repository" \
+    "which behaviour" "the behaviour that needs" "the behaviour that needed" "the behaviour needing" \
+    "the behaviour it" "the behaviour you" "the behaviour whose" \
+    -- \
+    "repository it belongs" "repository that owns" "repository the change belongs" \
+    "repository the behaviour belongs" "repository the work belongs" "and the repository" \
+    "which repository" "names the repository" "naming the repository" "name the repository" \
+    "the owning repository" "belongs to another repository" "belongs in another repository" \
+    -- \
+    "location" "where it sits" "where that repository" "where the repository" "its path" \
+    "path on this machine" \
+    -- \
+    "not known" "unknown" "nobody knows" "no one knows" "is not listed" "does not know" \
+    "do not know" "none is known" \
+    -- \
+    "a write its guard denied" "a write your guard denied" "a write the guard denied" \
+    "a write its hook denied" "a write your hook denied" "a write the hook denied" \
+    "a denied write" "denied write" "a write denied" "write that was denied" "write it denied" \
+    "guard denied" "hook denied" "guard denies" "hook denies" "denial of a write" \
+    -- \
+    "builds nothing there" "build nothing there" "nothing there" "nothing is built" \
+    "nothing in that repository" "nothing in the other repository" "nothing in the sibling" \
+    "never builds it" "does not build it" "do not build it" "leaves it unbuilt" "leave it unbuilt" \
+    "builds none of it" "build none of it" "never builds there" "never build there" \
+    -- \
+    "nothing into the Spec" "nothing to the Spec" "nothing in the Spec" "never writes the Spec" \
+    "never write the Spec" "does not write the Spec" "do not write the Spec" "no write to the Spec" \
+    "no Spec write" "never into the Spec" "not into the Spec" "the Spec is the session's" \
+    "the session writes the finding" "the session writes it into the Spec" \
+    "the Spec write is the session's" "the Spec is not the fork's" "the Spec is not yours"
+done
 
 echo "# skills/do/references/ticket.md: the Builder's diff is read and the tree gated before the review"
 
@@ -1080,5 +1871,57 @@ expect "the Builder's Bash guard lets the time budget command through" \
 budget_out="$(cd "$budget_proj" && HOME="$budget_home" bash -c "$budget_run" 2>&1)"
 expect "the command prints its verdict from a project that does not hold the skill" \
   bash -c 'grep -q "^stretch=continue" <<<"$1"' _ "$budget_out"
+
+echo "# builder.md / do-builder.md: the time budget is read after each behaviour's commit and never on an Implementer's return"
+
+# An Implementer's return sits inside a cycle, before the behaviour is formatted and committed: a
+# `stop` read there returns the Stretch with uncommitted work, which the resume refuses, and a
+# Builder that never reads it outlasts its budget past the session's prompt cache. The agent's side
+# is read over every paragraph naming the time budget, since the guarantee may sit in any of them.
+# The Implementer half is bound to one sentence, so a mention of the Implementer elsewhere in the
+# scope never answers for the negation.
+for budget_scope in contract agent; do
+  case "$budget_scope" in
+    contract) budget_label="builder.md's \`## The time budget\`" budget_flat="$(flat_section "$contract" "## The time budget")" ;;
+    agent) budget_label="do-builder.md's time budget paragraphs" budget_flat="$(paragraph_with "$agent" "time budget" all | tr '\n' ' ' | tr -s ' ')" ;;
+  esac
+  flat="$budget_flat"
+  carries_each "$budget_label: the budget is asked after each behaviour's commit and at no other moment" \
+    "fter each behaviour's commit" "fter every behaviour's commit" "fter each commit" "nce each behaviour is committed" -- \
+    "t no other moment" "t no other point" "ever at any other" "nly after each" "nly on a commit" "nly on each"
+  flat=" $(grep -oE "[^.;:]*Implementer[^.;:]*" <<<"$budget_flat" | tr '\n' ' ') "
+  carries_each "$budget_label: an Implementer's return is not a moment the budget is asked" \
+    "return" "comes back" "hands back" -- \
+    " never " " not " " no " " nor " "n't "
+done
+
+echo "# docs/do.md: the do-builder row says the Builder hands every production edit to the Implementer, and what its brief carries"
+
+# A developer learns what a ticket run does on their machine from this page, not from the agent
+# files: a row that says the Builder writes the code leaves them unable to tell which agent wrote
+# it, or why a second agent runs under the Builder. The row is selected by its first cell, so the
+# do-impeccable row, which also speaks of the Builder, never answers for it.
+do_doc="$here/../../../docs/do.md"
+builder_row="$(grep -E '^\| \[do-builder\]' "$do_doc")"
+expect "docs/do.md carries the do-builder row of its Prerequisites table" test -n "$builder_row"
+flat="$(tr -s ' ' <<<"$builder_row")"
+carries_each "the do-builder row names \`do-implementer\` as the agent the Builder dispatches" \
+  "do-implementer" -- "dispatch" "fork" "hands"
+carries_each "the do-builder row names each production edit the Implementer takes: green, seam, fix and refactor" \
+  "green" -- "seam" -- "fix" -- "refactor"
+carries_each "the do-builder row says the brief carries the behaviour, the test file and its command, the files, the symbols and signatures, the seam and the typecheck command" \
+  "brief" -- "behaviour" -- "test file" "test's file" -- "command" -- "files to edit" "files it edits" "file to edit" \
+  -- "symbol" -- "signature" -- "seam" -- "typecheck" "type-check" "type check"
+
+# ADR 0091: the Reply never carries the per-fork lines nor `Planner/Builder: none`; they live in the
+# Run report, which only `--auto` writes. A row that sends a reader to the Reply for that line has
+# them read its absence as "the Builder was forked" when no fork could run.
+flat="$(tr -s ' ' <<<"$builder_row")"
+carries "the do-builder row says the Builder returns the lines the run records" "the lines the run records"
+out="$flat"
+absent "the do-builder row never says the Builder returns lines the Reply owes" "your Reply owes"
+absent "the do-builder row never puts the \`Planner/Builder: none\` line in the Reply" "Reply carries one \`Planner/Builder: none\`"
+flat="$(grep -oE '[^.]*Planner/Builder: none[^.]*' <<<"$out" | tr '\n' ' ')"
+before "the do-builder row's sentence on \`Planner/Builder: none\` puts that line in the Run report" "Run report" "Planner/Builder: none"
 
 exit $((fails > 0))

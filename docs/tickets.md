@@ -19,8 +19,12 @@ built on behaviour that already works and by the builder you chose for it.
 
 It publishes nothing when its input is broken. A verdict that requires a journey nobody walked, a
 verdict pointing at a file that is not there, a journey that lists branches to reopen in discuss,
-or tickets that already exist for the feature each stop the run with one message and nothing
+or open tickets that already cover the whole spec each stop the run with one message and nothing
 written; the way past is to fix the input and run again.
+
+On a feature that already has open tickets it only adds. It cuts only what no open ticket covers,
+numbers the new tickets after the feature's last one, and renumbers or deletes none of the tickets
+already there.
 
 ## When to reach for it
 
@@ -30,6 +34,7 @@ You invoke this by typing `/tickets <spec>`, and the agent won't reach for it on
 |---|---|
 | cut a spec, and the journey its verdict points at, into tickets | `/tickets <spec>`: a path, the feature slug, or an issue reference |
 | have the breakdown approved without you, for one run | `/tickets --auto <spec>`; the flag can sit before or after the spec, and `spec` or `journey` prints this line when its own run had the flag |
+| add the tickets for work a `/do` run stopped on, to a feature that already has open tickets | `/tickets <spec>` again, the line that stopped run ends on. When the run could name the missing repository and not where it is, the line reads `/tickets <spec> <repository>: <its absolute location on this machine>` and you type the location in |
 | write the spec first, from a decided conversation | [spec](spec.md); its closing line names this skill when no journey is needed |
 | walk the user journey first, when the verdict says `required` | [journey](journey.md), `/journey <spec>`, typed by you |
 | decide the plan, or settle a branch the journey sent back | [discuss](discuss.md) |
@@ -100,14 +105,18 @@ title:
 | no line at all | the spec did not come from `spec`; the stories are the paths, and the run says so |
 | `required` | a stop: the journey comes first |
 
-Four inputs **stop** the run before anything is explored or written:
+Five inputs **stop** the run before anything is explored or written:
 
 | Condition | What you read |
 |---|---|
 | the verdict is `required` and names no journey | the verdict, and that `/journey` walks the spec first |
 | the verdict names a file that is not there | the line and the location it named |
 | the journey's `## Reopen in discuss` lists a branch | each branch, and that `/discuss` settles them before the journey is walked again |
-| tickets for the feature already exist | each one; close or delete them first for a recut |
+| the feature's open tickets already cover the whole spec | that nothing was cut, each existing ticket with its status, and that a recut needs them closed or deleted first; no next command |
+| a finding in the spec owes the location of a repository and none was typed with the command | the repository whose location is missing, and that you type it with the command, after the spec |
+
+Open tickets that leave something of the spec uncovered are not a stop: the run adds to them, as
+[the additive run](#the-additive-run) describes.
 
 A wide refactor, one mechanical change whose blast radius spans the codebase, is the one exception
 to vertical slicing: it is sequenced as expand, migrate in batches, contract, each batch its own
@@ -143,6 +152,67 @@ the setup was found, and the first ticket starts at once. On `builder` the setup
 Setup ticket is cut, whatever the project carries: the chain's own Builder needs nothing installed.
 When the check itself cannot run, the run ends with one message carrying the check's own error
 line: no breakdown, no question, nothing published.
+
+## A feature across repositories
+
+A spec that lists its repositories, in the Repositories section [spec](spec.md) writes, is cut in
+a session of the **Home repository**, the one whose scratch folder holds the feature. Every ticket
+is then cut for exactly one **Build repository**, an entry of that list, since a `do` run builds in
+one repository with one worktree and one gate. The breakdown shows it as one more field of every
+ticket, decided by the skill from where the code the ticket changes lives, and never asked.
+
+A slice that would need a change in two repositories is split into two tickets, one per
+repository, joined by a blocking edge: the ticket that reads what the other repository provides
+waits for the ticket that provides it. The breakdown lists the cut among the splits, with the rule
+that fired, and two tickets built in different repositories never fold into one.
+
+The proof that two services work together is never a note. The ticket that consumes another
+service's change carries the criteria that prove it, checked against the provider's real change,
+and is blocked by the provider's ticket. The breakdown shows those criteria on the consuming
+ticket, and its `do` run builds them in the consumer's repository like any other criterion.
+
+On a yes, every ticket of the feature is published in the one `issues/` folder of the feature
+folder, in the Home repository, whichever repository it is built in: one folder shows the whole
+feature, and nothing is written in the other repositories. The tickets are numbered in dependency
+order across repositories, `Blocked by` names those numbers as it always did, and each file
+carries a `**Build repository:**` line with the name of its repository.
+
+The close still ends on `/do <ticket>`. When the first ticket of the frontier is built in the
+repository you are in, nothing else changes. When it is built in another, one line names that
+Build repository and its location as the place to open a session in, and the last line is `/do`
+with the ticket's absolute location in the Home repository, so the paste resolves from the other
+repository. No `cd` and no command that launches a session is handed over: how you open a session
+there is yours.
+
+A spec with no such list is a feature of one repository: the breakdown shows no Build repository
+and the run reads as it always did.
+
+## The additive run
+
+Open tickets that leave something of the spec uncovered are not a stop. The run is then
+**additive**: it cuts only what no open ticket covers. That is the run a stopped `/do` hands over
+when it ends on `/tickets <spec>`: it found work that belongs to a repository its ticket is not
+built in, and wrote that finding into the spec, where no ticket covers it yet.
+
+| On an additive run | What happens |
+|---|---|
+| the breakdown | only the new tickets, each numbered after the feature's last one, then every open ticket as changed or untouched, then the one question |
+| the ticket the `/do` run stopped on | the criterion its repository cannot prove moves out of it to the new ticket, and it gains a `Blocked by` edge to that ticket |
+| every other open ticket | untouched: no existing ticket is renumbered, recut or deleted, so every `Blocked by` already written still names the same ticket |
+| a yes | the new tickets are published, the stopped ticket is edited, and the close lists what was added and what was changed, ending on `/do` for the first new ticket, after the line naming its Build repository when it is built in another |
+| a no | nothing is published and no next command follows; the finding stays in the spec, so a later run cuts from it |
+
+A `/do` run that could name the missing repository and not where it is on this machine marks the
+location as not known in its finding, and ends on the command with a place for it:
+`/tickets <spec> <repository>: <its absolute location on this machine>`. You type the location
+there. The run writes it into the spec's Repositories list before it cuts anything, so you edit no
+file by hand.
+
+| With a location owed | What happens |
+|---|---|
+| the location typed with the command | it becomes that repository's entry of the spec's Repositories list, written as you typed it, and the run goes on to the breakdown |
+| no location typed with the command | a stop: one message names the repository whose location is missing, and nothing is written |
+| a typed location that is missing on this machine, or is not a git repository | it is written all the same and the run does not stop or ask; the close names it in a line of its own, saying which of the two it is, as the close of [spec](spec.md) does. `/do` checks the location again at its own door |
 
 ## Under `--auto`
 
@@ -190,10 +260,14 @@ with no blocker.
 ## Common questions
 
 **It stopped and wrote nothing. Why?**
-One of the four stops fired, and the message names which: a verdict that requires a journey nobody
-walked, a verdict pointing at a missing file, a journey with branches to reopen in discuss, or
-tickets already published for the feature. There is no flag to push past it. Fix the input (walk
-or move the journey, settle the branches, close the old tickets) and run again.
+One of the five stops fired, and the message names which: a verdict that requires a journey nobody
+walked, a verdict pointing at a missing file, a journey with branches to reopen in discuss, open
+tickets that already cover the whole spec, or a repository whose location a finding owes and the
+command did not carry. There is no flag to push past it. Fix the input (walk or move the journey,
+settle the branches, type the location with the command) and run again. On open tickets that cover
+the whole spec there is nothing to fix unless you want a recut, which needs the old tickets closed
+or deleted first. Open tickets that leave part of the spec uncovered are not a stop: the run adds
+the missing tickets and leaves the rest alone.
 
 **I ran it with `--auto` on a GitHub spec and it still asked before publishing. Why?**
 A write to a remote tracker is one of the stops the flag keeps: an issue is `ready-for-agent`, and
@@ -234,8 +308,9 @@ your reply if you want them apart; the fold is a default, not a stop.
 - The first ticket has no blockers, and every other ticket's blockers are the tickets that write
   what it reads: a restore path is blocked by the archive path that creates the state it needs,
   never by an earlier ticket and never with a stub.
-- Every ticket in the breakdown carries an estimate and its band, a fold or a split names the rule
-  that fired, and the only question you get is whether the breakdown goes out.
+- Every ticket in the breakdown carries an estimate and its band, and its acceptance criteria
+  written out one per line, a fold or a split names the rule that fired, and the only question you
+  get is whether the breakdown goes out.
 - On a spec whose `Front-end:` line names a builder, a path with a screen shows up twice, its
   Logic ticket and then its Front-end ticket blocked by it, every ticket shows its kind, and a line
   under the list says which paths were cut in two. On `none`, or on a spec with no such line, the
@@ -247,10 +322,17 @@ your reply if you want them apart; the fold is a default, not a stop.
 - What the journey cut or deferred shows up under what was left out, never as a ticket.
 - Nothing lands in `.scratch/` or on the tracker before you approve the breakdown, and nothing at
   all on a stop.
+- On a feature that already had open tickets, the breakdown lists only new tickets, numbered after
+  the last one, every older ticket keeps its number, and a second run right after says nothing was
+  cut.
 - The parent spec is untouched and the working tree is uncommitted after the run.
 - After an `--auto` run on local markdown you were shown the breakdown and asked nothing, the close
   lists the approval under `Rulings` as the `choice-taker`'s, and the last line reads
   `/do --auto <ticket>`. On a remote tracker no issue exists until you said yes.
+- On a spec that lists its repositories, every ticket of the breakdown and every published file
+  names exactly one Build repository, all the files sit in the Home repository's feature folder,
+  and the close names another repository only when the first ticket of the frontier is built
+  there. On a spec with no list, none of that appears.
 
 ## Where it fits
 

@@ -1,0 +1,193 @@
+name: path-across-two-services
+tags: [workflow, cut, multi-repository]
+runs: 2
+max_turns: 20
+timeout_seconds: 600
+allowed_tools: [Bash, Read, Edit, Write, Agent]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # The fixture is the Home repository, the orders service, and the billing service is a sibling
+    # laid beside it. The spec lists both under Repositories with the absolute paths this machine
+    # gives them, so the scaffold computes them. The journey has one path of six criteria, small as
+    # a whole, and the spec's Implementation Decisions say outright that it changes both services:
+    # the billing service's lookup has to return the refunded amount before the orders service can
+    # read and show it.
+    set -e
+    mkdir -p src docs/agents .scratch/show-order-refund
+    cat > src/order.js <<'JS'
+    const STATUSES = ["placed", "fulfilled", "cancelled"];
+    function cancel(order) {
+      if (order.status === "fulfilled") throw new Error("cannot cancel a fulfilled order");
+      return { ...order, status: "cancelled" };
+    }
+    function view(order) {
+      return [`Order ${order.id}`, `Status: ${order.status}`];
+    }
+    module.exports = { STATUSES, cancel, view };
+    JS
+    cat > src/order.test.js <<'JS'
+    const { cancel } = require("./order");
+    test("a placed order can be cancelled", () => {
+      expect(cancel({ id: "o-1", status: "placed" }).status).toBe("cancelled");
+    });
+    JS
+    cat > src/billing-client.js <<'JS'
+    const BILLING_URL = process.env.BILLING_URL || "http://localhost:4100";
+    async function invoiceOf(orderId) {
+      const res = await fetch(`${BILLING_URL}/invoices?order=${orderId}`);
+      return res.ok ? res.json() : null;
+    }
+    module.exports = { invoiceOf };
+    JS
+    cat > docs/agents/issue-tracker.md <<'MD'
+    # Issue tracker: Local Markdown
+
+    Issues and specs for this repo live as markdown files in `.scratch/`.
+
+    - One feature per directory: `.scratch/<feature-slug>/`
+    - The spec is `.scratch/<feature-slug>/spec.md`
+    - Implementation issues are one file per ticket at `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01`
+    - Triage state is a `Status:` line near the top of each issue file
+    MD
+
+    mkdir -p ../billing-service/src
+    cat > ../billing-service/src/invoice.js <<'JS'
+    const invoices = [];
+    function open(orderId, amount) {
+      const invoice = { orderId, amount, status: "open", refunded: 0 };
+      invoices.push(invoice);
+      return invoice;
+    }
+    function pay(invoice) {
+      invoice.status = "paid";
+      return invoice;
+    }
+    function refund(invoice, amount) {
+      if (invoice.status !== "paid") throw new Error("only a paid invoice can be refunded");
+      invoice.refunded = Math.min(invoice.amount, invoice.refunded + amount);
+      return invoice;
+    }
+    function findByOrder(orderId) {
+      return invoices.find((i) => i.orderId === orderId) || null;
+    }
+    module.exports = { open, pay, refund, findByOrder };
+    JS
+    cat > ../billing-service/src/invoice.test.js <<'JS'
+    const { open, pay, refund } = require("./invoice");
+    test("a paid invoice can be refunded", () => {
+      expect(refund(pay(open("o-1", 10)), 4).refunded).toBe(4);
+    });
+    JS
+    cat > ../billing-service/src/lookup.js <<'JS'
+    const { findByOrder } = require("./invoice");
+    function lookup(orderId) {
+      const invoice = findByOrder(orderId);
+      if (!invoice) return null;
+      return { orderId: invoice.orderId, amount: invoice.amount, status: invoice.status };
+    }
+    module.exports = { lookup };
+    JS
+
+    home="$(pwd -P)"
+    billing="$(cd ../billing-service && pwd -P)"
+    cat > .scratch/show-order-refund/spec.md <<MD
+    # Show the Refund of a cancelled Order
+
+    Journey: ./journey.md
+    Status: ready-for-agent
+
+    ## Problem Statement
+
+    The billing service records the Refund of a paid Invoice, and nothing outside it can read that
+    amount. The Order's page in the orders service shows a cancelled Order with no word on the
+    money, so a support agent cannot tell a customer how much has come back to them.
+
+    ## Solution
+
+    The Order's page in the orders service shows a Refund line: how much of the Order's Invoice
+    has been refunded, read from the billing service.
+
+    ## Repositories
+
+    - orders-service (Home repository): $home
+    - billing-service: $billing
+
+    ## User Stories
+
+    1. As a support agent, I want to see the Refund of a cancelled Order on the Order's page, so that I can tell the customer how much has come back to them
+
+    ## Implementation Decisions
+
+    - The one path of this feature needs a change in both repositories: the billing service has to expose the refunded amount, and the orders service then reads it and shows it
+    - In the billing service, the lookup module returns the refunded amount of the Invoice beside its amount and its status, and zero for an Invoice with no Refund. Today the lookup returns the amount and the status only, so the orders service has nothing to read until this is built
+    - In the orders service, the billing client module reads the refunded amount from that lookup, and the order module adds the Refund line to the Order's page
+    - The billing client module stays the only place in the orders service that knows the billing service's address
+
+    ## Testing Decisions
+
+    - In the billing service, behaviour tests through the lookup module's public function
+    - In the orders service, behaviour tests through the order module's public functions, with an in-memory stand-in for the billing client
+
+    ## Out of Scope
+
+    - Recording a Refund from the Order's page
+    MD
+    cat > .scratch/show-order-refund/journey.md <<'MD'
+    # Journey: Show the Refund of a cancelled Order
+
+    Spec: ./spec.md
+    Actor: support agent
+    Entry: the Order's page in the orders service
+
+    ## Path 1: See the Refund on a cancelled Order
+
+    Story: 1
+    Outcome: the Order's page tells the support agent how much of the Order's Invoice has been refunded.
+
+    | Step | Actor sees | Actor does | System answers |
+    |---|---|---|---|
+    | 1 | the Order's page in the orders service, status cancelled | opens it | a Refund line under the status shows the amount refunded on the Order's Invoice |
+    | 2 | the Refund line with the whole amount refunded | nothing | the line says "Refunded in full" |
+    | 3 | the Refund line with part of the amount refunded | nothing | the line says "Partly refunded" with the amount still held |
+    | 4 | the Order's page | reloads after a further Refund was recorded in the billing service | the Refund line shows the new amount |
+
+    Failure branches:
+    - The Invoice has no Refund: the line says "No refund"
+    - The billing service does not answer: the line says "Refund state unavailable" and the rest of the page still shows
+
+    ## States
+
+    | State | The actor sees | Actions |
+    |---|---|---|
+    | not refunded | "No refund" on the Order's page | none |
+    | partly refunded | "Partly refunded" with the amount still held on the Order's page (Path 1) | none |
+    | refunded | "Refunded in full" on the Order's page (Path 1) | none |
+
+    ## Cut
+
+    - none
+
+    ## Defaults taken
+
+    - The Refund line sits under the status line, where the Order's page adds every line
+
+    ## Deferred
+
+    - Showing the date of each Refund: reopens when support agents ask for it more than ten times a week
+
+    ## Spec changes applied
+
+    - none
+
+    ## Reopen in discuss
+
+    - none
+    MD
+    printf '.scratch/\n' > .gitignore
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
+    git -C ../billing-service init -q -b main
+    git -C ../billing-service -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -C ../billing-service -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"

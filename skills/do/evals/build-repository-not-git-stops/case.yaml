@@ -1,0 +1,97 @@
+name: build-repository-not-git-stops
+tags: [playbook, ticket, stop, repositories]
+runs: 2
+max_turns: 12
+timeout_seconds: 300
+allowed_tools: [Bash, Read, Edit, Write]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # Ticket 02 is built in billing-service, which the Spec lists at a sibling folder that exists
+    # and is not a git repository: the door stops in one line naming the location and saying so,
+    # with no command, nothing written.
+    set -e
+    mkdir -p src .scratch/hold-disputed-invoice/issues ../billing-service/src
+    cat > README.md <<'MD'
+    # orders-service
+
+    Records Orders and their status.
+    MD
+    cat > src/order.js <<'JS'
+    const orders = new Map();
+    function record(id) { orders.set(id, { id, status: "open" }); return orders.get(id); }
+    function lookup(id) { return orders.get(id); }
+    module.exports = { record, lookup };
+    JS
+    cat > ../billing-service/src/invoice.js <<'JS'
+    const invoices = new Map();
+    function open(orderId) { invoices.set(orderId, { orderId, status: "open" }); return invoices.get(orderId); }
+    module.exports = { open };
+    JS
+
+    home="$(pwd -P)"
+    billing="$(cd ../billing-service && pwd -P)"
+    cat > .scratch/hold-disputed-invoice/spec.md <<MD
+    # Hold the Invoice of a disputed Order
+
+    Journey: not needed, two short paths with no branching
+    Status: ready-for-agent
+
+    ## Problem Statement
+
+    A customer disputes an Order and the billing service keeps chasing its open Invoice.
+
+    ## Solution
+
+    A support agent marks an Order as disputed, and the billing console puts its Invoice on hold.
+
+    ## Repositories
+
+    - orders-service (Home repository): $home
+    - billing-service: $billing
+
+    ## User Stories
+
+    1. As a support agent, I want to mark an Order as disputed, so that the dispute is on record where the Order lives
+    2. As a support agent, I want to put the Invoice of a disputed Order on hold, so that the customer is not chased while the dispute is open
+    MD
+
+    cat > .scratch/hold-disputed-invoice/issues/01-mark-an-order-disputed.md <<'MD'
+    # 01: Mark an Order disputed
+
+    **What to build:** A support agent marks an Order as disputed, and the Order's lookup returns that status.
+
+    **Blocked by:** None (can start immediately)
+
+    **Status:** resolved
+
+    **Build repository:** orders-service
+
+    - [x] Marking an Order disputed makes its lookup return the status disputed
+
+    ## Evidence
+
+    - Landed on `main`.
+    MD
+
+    cat > .scratch/hold-disputed-invoice/issues/02-hold-the-invoice-of-a-disputed-order.md <<'MD'
+    # 02: Hold the Invoice of a disputed Order
+
+    **What to build:** A support agent puts the Invoice of a disputed Order on hold from the billing console.
+
+    **Blocked by:** 01 Mark an Order disputed
+
+    **Status:** ready-for-agent
+
+    **Build repository:** billing-service
+
+    - [ ] Hold on the Invoice of a disputed Order sets the Invoice's status to held
+    - [ ] Hold is not offered on the Invoice of an Order that is not disputed
+
+    ## Evidence
+    MD
+
+    printf '.scratch/\n' > .gitignore
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"

@@ -100,6 +100,17 @@ nothing tracked to bring along and the worktree has no copy of it. An artifact i
 from there by its absolute path in the main checkout, which `do-code-review`'s door prints as
 `main_checkout=`, and is never copied into the worktree: see [worktrees.md](worktrees.md).
 
+A feature across repositories adds one case. Its Feature folder lives in the Home repository alone,
+and a Ticket built in another repository is run from a session opened there, by the Ticket's
+absolute location in the Home repository. Every artifact of that run that sits beside the Ticket
+(the Digest, the Plan, the Ticket's own status) is reached by its absolute path in the Home
+repository, which `do`'s ticket door prints as `root=`, and the `.scratch/` ignore line it needs is
+the Home repository's. The repository the run builds in gets a worktree and branches, and nothing
+of the feature's record. With no Testing Policy there, it also gets the run's Project map, under
+its own `.scratch/project-maps/`, since the map describes the project it is derived from and
+`do`'s script refuses to write one outside it, and that file brings the `.scratch/` ignore line to
+that repository too.
+
 ## Two runs at once
 
 The path is the partition. Every artifact is keyed by the feature slug or by the branch,
@@ -134,6 +145,27 @@ second file beside it, `spec.integration.yielded`, created under `set -C` too an
 into the claim file: a resume takes the claim over by renaming that mark away, which exactly one of
 two resumes can do, and a claim with no mark beside it still reads as taken. The mark is deleted
 with the claim.
+
+A feature across repositories has one Final integration per repository, each run by a session in
+that repository, and all of them write beside the one `spec.md`, in the Home repository's Feature
+folder. So the claim is taken per repository: a Ticket that carries a `**Build repository:**` line
+claims under that repository's key, and the four files beside the Spec carry the key. A name made
+of lowercase letters and digits in words joined by single dashes is its own key; any other name
+becomes its lowercased slug, two dashes and the hex of its bytes, so two names never share a key
+and a name with no letter or digit never falls back to the unkeyed names:
+
+| File | A feature of one repository | A Ticket built in `<key>` |
+|---|---|---|
+| the claim | `spec.integration.claim` | `spec.<key>.integration.claim` |
+| the yielded mark | `spec.integration.yielded` | `spec.<key>.integration.yielded` |
+| the Loss ledger of the Spec's rebase | `spec.ledger.md` | `spec.<key>.ledger.md` |
+| the Review | `spec.review.md` | `spec.<key>.review.md` |
+
+One name for all of them would be a write target shared by runs that only the landing order keeps
+apart: the claim one repository holds would read as taken to the next, and each Review would
+overwrite the one before it. `skills/do/scripts/final-claim.sh` is the one place the names are
+composed, and every reader takes them from the lines it prints. Nothing beside the Spec records
+that a repository landed: that is read from the repository's own Spec branch.
 
 Never a lock file. An agent that crashes or is cancelled leaves its lock behind, and git ignores
 the whole folder, so the stale lock never appears in `git status` and the next run waits on a

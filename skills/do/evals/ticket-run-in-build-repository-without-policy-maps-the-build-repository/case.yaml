@@ -1,0 +1,222 @@
+name: ticket-run-in-build-repository-without-policy-maps-the-build-repository
+tags: [playbook, ticket, repositories, global]
+runs: 1
+max_turns: 150
+timeout_seconds: 3600
+allowed_tools: [Bash, Read, Edit, Write, Glob, Grep, Agent, Skill]
+context:
+  unlinked_agents: [do-builder]
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # The feature spans two repositories. The session runs in billing-service, the Build repository
+    # of Ticket 02 (this fixture folder, which the Spec lists by its location), and the Ticket, its
+    # Spec and its Journey live in orders-service, the Home repository, a sibling folder. Neither
+    # repository carries a Testing Policy or a unit author, so on the runner HOME that links the
+    # global authors the loop reads `global` and the run derives a Project map. The map names the
+    # project it was derived from on its opening line, which tells the two apart. The Builder is
+    # a stand-in that builds nothing and returns a plain `stopped` the session cannot clear (a
+    # write its guard denied in the main checkout, not work for another repository), so the run
+    # ends as blocked with the map written, the worktree cut and the brief handed over.
+    set -e
+    mkdir -p src .claude/agents ../orders-service/src ../orders-service/.scratch/hold-disputed-invoice/issues
+    cat > package.json <<'JSON'
+    {
+      "name": "billing-service",
+      "private": true,
+      "scripts": {
+        "test": "node --test"
+      }
+    }
+    JSON
+    cat > README.md <<'MD'
+    # billing-service
+
+    Opens Invoices for Orders. `node --test` runs the suite.
+    MD
+    cat > src/invoice.js <<'JS'
+    const invoices = new Map();
+    function open(orderId) { invoices.set(orderId, { orderId, status: "open" }); return invoices.get(orderId); }
+    function lookup(orderId) { return invoices.get(orderId); }
+    module.exports = { open, lookup };
+    JS
+    cat > src/invoice.test.js <<'JS'
+    const test = require("node:test");
+    const assert = require("node:assert");
+    const { open, lookup } = require("./invoice.js");
+
+    test("an opened Invoice reads open", () => {
+      open("order-1");
+      assert.equal(lookup("order-1").status, "open");
+    });
+    JS
+    cat > .claude/agents/do-builder.md <<'BUILDER_EOF'
+    ---
+    name: do-builder
+    description: "Stand-in for the fixture: builds nothing and returns the lines of a Builder whose write guard denied a write outside its worktree. Forked only by the do skill's ticket Playbook with a brief."
+    tools: Read
+    ---
+
+    Do not build anything, open no file and write nothing. Return exactly these two lines and
+    nothing else, no line before them and none after:
+
+    ```
+    stopped
+    stopped: the write guard denied a Write to @MAIN_CHECKOUT@/src/invoice.js, the main checkout's invoice module outside this worktree, which belongs to the session and the developer; the stretch cannot go on until the developer says why the first behaviour's write resolved there, so nothing was built and no commit was made
+    ```
+    BUILDER_EOF
+    sed -i "s#@MAIN_CHECKOUT@#$(pwd -P)#" .claude/agents/do-builder.md
+
+    cat > ../orders-service/README.md <<'MD'
+    # orders-service
+
+    Records Orders and their status.
+    MD
+    cat > ../orders-service/src/order.js <<'JS'
+    const orders = new Map();
+    function record(id) { orders.set(id, { id, status: "open" }); return orders.get(id); }
+    function dispute(id) { orders.get(id).status = "disputed"; return orders.get(id); }
+    function lookup(id) { return orders.get(id); }
+    module.exports = { record, dispute, lookup };
+    JS
+
+    build="$(pwd -P)"
+    home="$(cd ../orders-service && pwd -P)"
+    cat > ../orders-service/.scratch/hold-disputed-invoice/spec.md <<MD
+    # Hold the Invoice of a disputed Order
+
+    Journey: ./journey.md
+    Status: ready-for-agent
+
+    ## Problem Statement
+
+    A customer disputes an Order and the billing service keeps chasing its open Invoice.
+
+    ## Solution
+
+    A support agent marks an Order as disputed, and the billing service puts its Invoice on hold.
+
+    ## Repositories
+
+    - orders-service (Home repository): $home
+    - billing-service: $build
+
+    ## User Stories
+
+    1. As a support agent, I want to mark an Order as disputed, so that the dispute is on record where the Order lives
+    2. As a support agent, I want to put the Invoice of a disputed Order on hold, so that the customer is not chased while the dispute is open
+
+    ## Implementation Decisions
+
+    - An Invoice carries a status, open or held; a hold never deletes the Invoice
+    - The hold is a function of the invoice module, beside open and lookup
+
+    ## Testing Decisions
+
+    - Behaviour tests through the invoice module's exported functions, with Node's own test runner
+
+    ## Out of Scope
+
+    - Releasing a held Invoice
+    MD
+
+    cat > ../orders-service/.scratch/hold-disputed-invoice/journey.md <<'MD'
+    # Journey: Hold the Invoice of a disputed Order
+
+    Spec: ./spec.md
+    Actor: support agent
+    Entry: the Order's page
+
+    ## Path 1: Mark an Order disputed
+
+    Story: 1
+    Outcome: the Order reads disputed.
+
+    | Step | Actor sees | Actor does | System answers |
+    |---|---|---|---|
+    | 1 | the Order, with a Dispute action | picks Dispute | the Order's status reads disputed |
+
+    Failure branches:
+    - none
+
+    ## Path 2: Hold the Invoice
+
+    Story: 2
+    Outcome: the Invoice of the disputed Order reads held.
+
+    | Step | Actor sees | Actor does | System answers |
+    |---|---|---|---|
+    | 1 | the Invoice of a disputed Order, with a Hold action | picks Hold | the Invoice's status reads held |
+
+    Failure branches:
+    - Hold on an Order with no Invoice: nothing is held and the answer says no Invoice is open
+
+    ## States
+
+    | State | The actor sees | Actions |
+    |---|---|---|
+    | open | the Invoice as open | Hold |
+    | held | the Invoice as held | none |
+
+    ## Cut
+
+    - none
+
+    ## Defaults taken
+
+    - none
+
+    ## Deferred
+
+    - none
+
+    ## Spec changes applied
+
+    - none
+
+    ## Reopen in discuss
+
+    - none
+    MD
+
+    cat > ../orders-service/.scratch/hold-disputed-invoice/issues/01-mark-an-order-disputed.md <<'MD'
+    # 01: Mark an Order disputed
+
+    **What to build:** A support agent marks an Order as disputed, and the Order's lookup returns that status.
+
+    **Blocked by:** None (can start immediately)
+
+    **Status:** resolved
+
+    **Build repository:** orders-service
+
+    - [x] Marking an Order disputed makes its lookup return the status disputed
+
+    ## Evidence
+
+    - Landed on `main`.
+    MD
+
+    cat > ../orders-service/.scratch/hold-disputed-invoice/issues/02-hold-the-invoice-of-a-disputed-order.md <<'MD'
+    # 02: Hold the Invoice of a disputed Order
+
+    **What to build:** A support agent puts the Invoice of a disputed Order on hold.
+
+    **Blocked by:** 01 Mark an Order disputed
+
+    **Status:** ready-for-agent
+
+    **Build repository:** billing-service
+
+    - [ ] Hold on an Order's open Invoice sets the Invoice's status to held
+    - [ ] Hold on an Order with no Invoice holds nothing and says no Invoice is open
+
+    ## Evidence
+    MD
+
+    printf '.scratch/\n' > ../orders-service/.gitignore
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
+    git -C ../orders-service init -q -b main
+    git -C ../orders-service -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -C ../orders-service -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"

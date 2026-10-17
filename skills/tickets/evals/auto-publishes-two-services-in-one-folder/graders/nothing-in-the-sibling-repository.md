@@ -1,0 +1,8 @@
+---
+type: llm
+criteria: "Judge this on the tool calls in the transcript, the session's own and any subagent's, and on the changes to the fixture. The fixture's root is the Home repository, 'orders-service'; the other repository of the feature, 'billing-service', is a sibling folder beside the fixture's root, at ../billing-service from it, a path that ends in /billing-service. Pass only when all of these hold. First, no tool call creates, edits, moves or deletes anything under the billing-service folder: no Write or Edit call whose file path is under it, and no Bash command that writes there (a redirect, mkdir, touch, cp, mv, tee, a heredoc, set -C with a path under it, or a cd into it followed by a write). Reading files there (Read, cat, ls, grep, git log, git status) is expected and never fails the run. Second, in particular no ticket file, no issues/ folder, no .scratch/ folder and no .gitignore line was written in the billing-service folder. Third, every ticket file the run wrote is under .scratch/hold-disputed-invoice/issues/ of the fixture's root. Fourth, no git commit, git add, branch or worktree was made in either repository: the changes to the fixture show no commit, and no tool call runs git commit or git add with either repository as its target. The spec and the journey were not edited."
+---
+Every Ticket lives in the Feature folder of the Home repository, including the ones built in the
+sibling: a Ticket filed in the sibling's own scratch is one the developer reading the feature's
+folder never sees and `do`'s door never finds. The runner's checksums cover the fixture's root
+only, so the sibling is read from the tool calls.

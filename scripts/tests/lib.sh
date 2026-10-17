@@ -54,6 +54,12 @@ check_absent() { # $1 label, $2 expected exit, $3 actual exit, $4.. fixed string
 absent() { # $1 label, $2 a fixed string that must not appear in $out
   if grep -qF -- "$2" <<<"$out"; then fail "$1 (found: $2)"; else ok "$1"; fi
 }
+absent_prefix() { # $1 label, $2 a line prefix that must not appear
+  if grep -q "^$2" <<<"$out"; then
+    echo "FAIL  $1 (found: $2)"
+    fails=$((fails + 1))
+  else echo "ok    $1"; fi
+}
 same() { # $1 label, $2 the expected output; the whole of $out must equal it
   if [ "$out" = "$2" ]; then ok "$1"; else
     fail "$1"
@@ -244,6 +250,41 @@ carries_each() { # $1 label, $2.. groups of fixed strings separated by `--`: eac
   done
   if [ -z "$missing" ]; then ok "$label"; else fail "$label$missing"; fi
 }
+# carries_each says a set of words is on the page; this says the page affirms them: the clause
+# that carries a match of every group must hold no negator word once those matches are set aside,
+# so "the run never goes on" no longer answers for "the run goes on".
+affirms() { # $1 label, $2.. groups of fixed strings separated by `--`: one clause of $flat (cut at . : ; ,) carries a match of every group and no negator word
+  local label="$1" groups
+  shift
+  groups="$(printf '%s\n' "$@")"
+  if groups="$groups" awk '
+    BEGIN {
+      n = split(ENVIRON["groups"], line, "\n"); g = 1
+      for (i = 1; i <= n; i++) {
+        if (line[i] == "--") { g++; continue }
+        c[g]++; phrase[g, c[g]] = line[i]
+      }
+      ng = g
+    }
+    {
+      m = split($0, clause, /[.:;,]/)
+      for (j = 1; j <= m; j++) {
+        text = clause[j]; good = 1
+        for (g = 1; g <= ng && good; g++) {
+          hit = 0
+          for (k = 1; k <= c[g]; k++) {
+            p = phrase[g, k]; masked = ""; rest = text
+            while ((at = index(rest, p)) > 0) { hit = 1; masked = masked substr(rest, 1, at - 1) " "; rest = substr(rest, at + length(p)) }
+            if (hit) text = masked rest
+          }
+          if (!hit) good = 0
+        }
+        if (good && (" " text " ") !~ /[^a-z](never|not|no|nothing|none|neither|nor|cannot|without)[^a-z]|n'"'"'t[^a-z]/) found = 1
+      }
+    }
+    END { exit !found }
+  ' <<<"$flat"; then ok "$label"; else fail "$label (no clause affirms: $*)"; fi
+}
 before() { # $1 label, $2 the fixed string that comes first in $flat, $3 the fixed string that follows it
   local first second
   first="$(awk -v s="$flat" -v k="$2" 'BEGIN { print index(s, k) }')"
@@ -305,6 +346,183 @@ the fix call's own **Gate**
 the fix call's own Gate
 EOF
 }
+# An additive cut edits a Ticket that is already published: a criterion leaves it, a Blocked by edge
+# is added to it, and every other Ticket stays as it was. The breakdown shows those three and the
+# publish writes them, so both read the same phrasings, lowercase, against a lowercased passage.
+# A case reads each with `mapfile -t names < <(moved_out_phrasings)`.
+moved_out_phrasings() { # one accepted phrasing per line: a criterion leaves the Ticket it was in
+  cat <<'EOF'
+moved out
+moves out
+moving out
+taken out
+takes out
+lifted out
+removed from
+leaves it
+leaves the ticket
+moved to
+moves to
+moved from
+moves from
+handed to
+handed over to
+goes to
+EOF
+}
+edge_added_phrasings() { # one accepted phrasing per line: a Ticket gets a blocker it did not have
+  cat <<'EOF'
+added
+adds
+gains
+gained
+new edge
+new blocker
+now waits
+now blocked
+now also blocked
+now also waits
+EOF
+}
+untouched_phrasings() { # one accepted phrasing per line: an existing Ticket, or the rest of one, is left as it was
+  cat <<'EOF'
+untouched
+unchanged
+not touched
+not changed
+left as it is
+left as they are
+stays as it is
+stay as they are
+left alone
+no change
+EOF
+}
+# Written with printf, since some entries end on a space that a heredoc line would lose to an editor.
+kept_phrasings() { # one accepted phrasing per line: something a run could have edited is still what it was, untouched_phrasings included
+  untouched_phrasings
+  printf '%s\n' "unedited" "not edited" "no edit" "unmodified" "not modified" "intact" \
+    "keeps" "kept" "stays" "stay " "remains" "remain " "still " "as it was" "as they were" \
+    "as the fixture" "byte for byte" "identical" "nothing else" "no other"
+}
+never_phrasings() { # one accepted phrasing per line: the negation in "no existing Ticket is ..."
+  printf '%s\n' "never" "not " "no existing" "no ticket" "no file" "none of" "nor " "neither" "without"
+}
+changed_phrasings() { # one accepted stem per line: an existing Ticket is one the cut changes
+  cat <<'EOF'
+chang
+edit
+amend
+alter
+modif
+rewrit
+EOF
+}
+# A feature that already has Tickets is read for what they cover: open Tickets covering the whole
+# Spec stop the run, and open Tickets leaving something uncovered get only what is missing. The
+# skill, its graders and the page a developer reads after a stopped run all say so, each in its own
+# words, so they read the same phrasings, lowercase, against a lowercased passage.
+# A case reads each with `mapfile -t names < <(whole_spec_phrasings)`.
+whole_spec_phrasings() { # one accepted phrasing per line: the whole of the Spec is covered
+  printf '%s\n' "whole spec" "entire spec" "all of the spec" "all the spec" "spec whole" "spec in full" \
+    "the spec entirely" "everything the spec" "everything in the spec" "every path" "each path" \
+    "every story" "nothing the spec holds" "nothing in the spec" "left uncovered" "nothing uncovered" \
+    "leaves nothing" "leave nothing"
+}
+nothing_cut_phrasings() { # one accepted phrasing per line: the run cut no Ticket
+  printf '%s\n' "nothing was cut" "nothing is cut" "nothing cut" "nothing new was cut" "nothing new is cut" \
+    "nothing to cut" "no ticket was cut" "no ticket is cut" "no new ticket" "cut nothing" \
+    "cuts nothing"
+}
+with_status_phrasings() { # one accepted phrasing per line: a listed Ticket comes with its status
+  printf '%s\n' "its status" "their status" "status of each" "status of every" "with status" "the status" \
+    "own status"
+}
+recut_phrasings() { # one accepted phrasing per line: the feature is cut a second time
+  printf '%s\n' "recut" "re-cut" "cut again" "new cut"
+}
+no_next_command_phrasings() { # one accepted phrasing per line: the message hands over no command to run next
+  printf '%s\n' "no next command" "no command follows" "no next step" "without a next command" "no \`/do\`" \
+    "no /do" "names no command" "no next-step" "no command to run" "no next line" \
+    "suggests no command" "offers no command" "no follow-up command" "no command after" \
+    "not name a next command" "no command is named" "no command was named"
+}
+nothing_written_phrasings() { # one accepted phrasing per line: the run ends with nothing written
+  printf '%s\n' "before anything is written" "nothing is written" "nothing written" "writes nothing" \
+    "nothing was written" "no file is written" "without writing"
+}
+only_uncovered_phrasings() { # one accepted phrasing per line: the run cuts only what the open Tickets leave uncovered
+  printf '%s\n' "only what is uncovered" "only what is left uncovered" "only what they leave uncovered" \
+    "only what the open tickets leave uncovered" "only the uncovered" "only what no open ticket covers" \
+    "only what no ticket covers" "only what is not covered" "only what none of them covers" \
+    "only for what is uncovered" "only what remains uncovered" "only what stays uncovered" \
+    "additive"
+}
+deleted_phrasings() { # one accepted stem per line: an existing Ticket is removed
+  printf '%s\n' "delet" "erase" "removed" "removes" "remove an" "remove a " "dropped" "discard"
+}
+declined_phrasings() { # one accepted phrasing per line: the breakdown was answered with a no
+  printf '%s\n' "a no " "a no," "a no:" "the no " "declin" "unpublished" "says no" "answers no" "answer is no"
+}
+on_open_tickets_phrasings() { # one accepted phrasing per line: the passage speaks of a feature that already has Tickets
+  printf '%s\n' "open ticket" "existing ticket" "published ticket" "tickets already" "ticket already" \
+    "additive" "an addition" "the addition" "declined addition"
+}
+nothing_published_phrasings() { # one accepted phrasing per line: the run published no Ticket
+  printf '%s\n' "nothing was published" "nothing is published" "nothing published" "published nothing" \
+    "publishes nothing" "publish nothing" "no ticket was published" "no ticket is published"
+}
+finding_kept_phrasings() { # one accepted phrasing per line: the finding line is still in the Spec, kept_phrasings included
+  kept_phrasings
+  printf '%s\n' "not cleared" "never cleared" "not removed" "never removed" "is left" "left in" \
+    "left where" "not struck" "not deleted"
+}
+later_run_phrasings() { # one accepted phrasing per line: a run after this one
+  printf '%s\n' "later" "next run" "next \`" "again" "another run" "second run" "new run" "rerun" "re-run" \
+    "following run"
+}
+# A stopped `do` run may name a repository whose location it does not know, and `tickets` takes that
+# location with the command (`/tickets <spec> <repository>: <location>`). The skill and the page a
+# developer reads after the stopped run both say what is typed, the stop when a location is owed and
+# none was typed, and what happens to a typed location that cannot be built in, each in its own
+# words, so they read the same phrasings, lowercase, against a lowercased passage.
+# A case reads each with `mapfile -t names < <(pair_form_phrasings)`.
+pair_form_phrasings() { # one accepted phrasing per line: the name, a colon, the location, as placeholders
+  printf '%s\n' "<repository>: <" "<name>: <" "{repository}: {" "{name}: {" "repository>: <" "name>: <"
+}
+owed_location_phrasings() { # one accepted phrasing per line: a finding left a repository without its location
+  printf '%s\n' "owes" "owed" "owing" "location not known" "unlocated" "not located"
+}
+none_typed_phrasings() { # one accepted phrasing per line: the command carried no location for the repository
+  printf '%s\n' "carried no" "carries no" "carried none" "carries none" "no pair" "no location" \
+    "none was typed" "none is typed" "nothing was typed" "not typed" "typed no" "typed none" "without a" \
+    "without one" "did not carry" "does not carry" "holds no" "held no" "gave no" "gives no" "names no" \
+    "named no"
+}
+location_missing_phrasings() { # one accepted phrasing per line: what a stop says of the location it lacks
+  printf '%s\n' "missing" "not known" "unknown" "owed" "owes" "lacks" "no location" "has none" "needs" \
+    "needed" "not typed" "not given" "to type" "is typed" "be typed"
+}
+not_there_phrasings() { # one accepted phrasing per line: nothing sits at a location on this machine
+  printf '%s\n' "missing" "not there" "nothing there" "does not exist" "no directory" "no such" \
+    "is not a directory" "absent"
+}
+not_git_phrasings() { # one accepted phrasing per line: what sits at a location is no git repository
+  printf '%s\n' "not a git repositor" "is not a git" "no git repositor" "isn't a git"
+}
+written_all_the_same_phrasings() { # one accepted phrasing per line: a location failing a check is still written
+  printf '%s\n' "all the same" "written anyway" "still writ" "written regardless" "regardless" "either way" \
+    "nonetheless" "nevertheless" "changes nothing" "change nothing" "stays" "remains" "is kept" "kept as" \
+    "whatever the check" "whatever either check" "whichever"
+}
+does_not_stop_phrasings() { # one accepted phrasing per line: the run goes on past it
+  printf '%s\n' "not stop" "never stop" "no stop" "not a stop" "without stopping" "nor stops" \
+    "neither stops" "stops on neither"
+}
+own_line_phrasings() { # one accepted phrasing per line: the close gives it a line of its own
+  printf '%s\n' "line of its own" "its own line" "own line" "one line" "a line" "separate line" "line each" \
+    "line per"
+}
 # A screen no flow ran over is proven by less than one a flow covered, and the Reply is where the
 # developer learns which one they got: the groups a passage has to carry to say so, in any wording.
 # A case reads them with `mapfile -t names < <(no_flow_proof_groups)` and passes them to carries_each.
@@ -333,6 +551,25 @@ proof
 proven by
 proves
 EOF
+}
+# An eval case's fixture, laid the way scripts/run-eval.sh lays it, so a test reads the tree a live
+# run of the case would start from. A case with no scaffold lays nothing and returns 0.
+lay_scaffold() { # $1 the case's case.yaml, $2 an existing empty folder to lay it in: returns the scaffold's exit
+  # leaves under the caller's $tmp: scaffold.sh, extract.log (yq's stderr) and scaffold.log (the scaffold's output)
+  yq -r '.context.scaffold_script // ""' "$1" >"$tmp/scaffold.sh" 2>"$tmp/extract.log"
+  (cd "$2" && bash "$tmp/scaffold.sh") >"$tmp/scaffold.log" 2>&1
+}
+# A work folder that breaks, or reaches, one outcome and nothing else starts as a copy of the fixture
+# as laid, with whatever the scaffold laid beside the fixture root.
+mutated() { # $1 name: a copy of the caller's $as_laid, under $tmp/<name>; its feature folder, named by the caller's $slug, on stdout
+  cp -r "$as_laid" "$tmp/$1" 2>/dev/null || mkdir -p "$tmp/$1/fixture"
+  echo "$tmp/$1/fixture/.scratch/$slug"
+}
+# A skill's evals/README.md is the list a developer picks an eval case from. The caller leaves it
+# lowercased at $tmp/evals.md, since a row may write Ticket and Spec.
+checks_of() { # $1 case name: the checks cell of its row in the cases table, on stdout
+  awk -F'|' -v name="\`$1\`" '{ cell = $2; gsub(/^ +| +$/, "", cell) } cell == name { print $3 }' "$tmp/evals.md" |
+    tr '\n' ' ' | tr -s ' '
 }
 g() { command git -c user.email=t@example.com -c user.name=t -c init.defaultBranch=main "$@"; }
 commit() {
@@ -376,6 +613,35 @@ door_state() { # every ref with its tip and upstream, then the working tree as s
   g for-each-ref --format='%(refname) %(objectname) %(upstream)'
   stop_state
 }
+both_states() { # $1 the sibling repository: door_state and the worktree list of the Home repository, then of the sibling, on stdout
+  door_state && git worktree list --porcelain && (cd "$1" && door_state && git worktree list --porcelain)
+}
+# A Ticket lives in its Home repository and is built from a session in another one.
+sibling_repos() { # $1 home name, $2 build name, $3 feature folder name: two repositories side by side under $tmp, each with one commit, the Home one holding .scratch/<feature folder name>/issues/
+  # sets: home and build (their absolute roots) and issues (absolute, in Home, so `ticket` writes there); leaves the cwd in the Build repository
+  fresh "$1"
+  printf 'one\n' >notes.txt
+  commit fixture
+  # shellcheck disable=SC2034 # home, build and issues are read by the sourcing script
+  home="$(pwd -P)"
+  issues="$home/.scratch/$3/issues"
+  mkdir -p "$issues"
+  fresh "$2"
+  printf 'one\n' >notes.txt
+  commit fixture
+  # shellcheck disable=SC2034
+  build="$(pwd -P)"
+}
+repositories_spec() { # $1 feature folder, $2.. its Repositories entries, one line each: a Spec at <folder>/spec.md and an empty issues/ beside it
+  local folder="$1"
+  shift
+  mkdir -p "$folder/issues"
+  {
+    printf '# Spec: across repositories\n\n## Repositories\n\n'
+    printf '%s\n' "$@"
+    printf '\n## User Stories\n\n1. As a developer, I want a note exported, so that I can share it.\n'
+  } >"$folder/spec.md"
+}
 # The conflict loop's own command (conflict-loop.md): without --diff3 git trims the lines both sides'
 # additions share, which drops one of two identical closing braces.
 union_of() { # $1 a conflicted path: the union of its three index stages, Target side first, on stdout
@@ -401,7 +667,7 @@ ledger_verdict_entry_fixture() { # $1 dir, $2 id, $3 verdict, $4 reason: an entr
   printf '%s\n' "$3" >"$1/verdict"
   printf '%s\n' "$4" >"$1/reason"
 }
-review_at() { # $1 the Review's Commit: sha, $2 the review file, $3 its Act on Findings, $4 its Fix run sections, $5 its Fixed point sha (default: $1); by default one Act on Finding on src/a.sh, not fixed by the one Fix run
+review_at() { # $1 the Review's Commit: sha, $2 the review file, $3 its Act on Findings, $4 its Fix run sections, $5 its Fixed point sha (default: $1), $6 its Consider Findings (default: none); by default one Act on Finding on src/a.sh, not fixed by the one Fix run
   local reviewed="$1"
   local act_on="${3:-### 1. Correctness at src/a.sh:3
 Claim: a call with no argument exits on an unbound variable.
@@ -418,6 +684,7 @@ Date: 2026-09-24 · at $reviewed
 - gate: \`bash tests/a.test.sh\`: green
 - not landed: a Fixer did not return}"
   local fixed_point="${5:-$reviewed}"
+  local consider="${6:-none}"
   cat >"$2" <<MD
 # Review: main
 
@@ -442,7 +709,7 @@ $act_on
 
 ## Consider
 
-none
+$consider
 
 ## Noted
 
@@ -585,6 +852,11 @@ run_with_spec() { # $1 the Spec's Front-end: line or empty for none, $2 the line
     printf '\n## Testing Decisions\n\n- The export handler of the order module, taken from the conversation.\n'
   } >"$w/fixture/.scratch/20260905-suppliers/spec.md"
   echo "$w"
+}
+# The final message a run closed on, as the runner leaves it in the work folder; the folder's path on stdout
+closing_on() { # $1 work folder, $2 the final message
+  printf '%s\n' "$2" >"$1/last_message"
+  echo "$1"
 }
 # grade() against the run in a work folder: the grader in the caller's $grader passes it (prints nothing)
 grade_passes() { # $1 label, $2 work folder

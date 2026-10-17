@@ -17,12 +17,6 @@ export TMPDIR="$tmp"
 export HOME="$tmp/home"
 mkdir -p "$HOME"
 
-absent_prefix() { # $1 label, $2 a line prefix that must not appear
-  if grep -q "^$2" <<<"$out"; then
-    echo "FAIL  $1 (found: $2)"
-    fails=$((fails + 1))
-  else echo "ok    $1"; fi
-}
 ordered_out() { # $1 label, $2.. key prefixes that must appear in this order in $out
   local label="$1"
   shift
@@ -96,6 +90,17 @@ check_lines "a ready Ticket whose blocker is resolved starts" 0 "$rc" \
   "branch=main" "protected=no" "verdict=start"
 ordered_out "the facts come in the order the Reply's Run section states them" \
   ticket= title= status= blocker= slug= worktree= run_branch= loop= branch= protected= verdict=
+check_lines "a Ticket with no Build repository line, of a Spec with no Repositories section, reads none for every build fact and still starts" 0 "$rc" \
+  "build_repository=none" "build_location=none" "build_check=none" "verdict=start"
+ordered_out "the build facts of a one-repository Ticket follow the Spec's completeness and precede the verdict" \
+  spec_complete= build_repository= build_location= build_check= ticket_location= verdict=
+# A Ticket's own Build repository line sits in its header: one under a column-0 `## ` heading is
+# body text (a line quoted from another Ticket under Evidence), and never routes the run.
+ticket 38-quoted.md '**Status:** ready-for-agent' 'None (can start immediately)' '- [ ] one' \
+  '**Build repository:** sibling'
+run "$door" "$issues/38-quoted.md"
+check_lines "a Build repository line only below the first column-0 heading is not the Ticket's own, and the run starts" 0 "$rc" \
+  "build_repository=none" "build_location=none" "build_check=none" "verdict=start"
 run "$door" "$issues/04-claimed.md"
 check_lines "a claimed Ticket whose worktree exists resumes" 0 "$rc" \
   "status=claimed" "blockers=none" "worktree=$wt" "verdict=resume"
@@ -256,6 +261,241 @@ check_lines "a word outside the status walk is ambiguous" 1 "$rc" "status=ambigu
 run "$door" "$issues/09-stale.md"
 check_lines "a ready Ticket whose worktree already exists is ambiguous" 1 "$rc" \
   "worktree=$top/.claude/worktrees/do-stale" "verdict=ambiguous"
+# A Ticket of a Spec built across repositories is built in the one its Build repository line names:
+# run from any other checkout, the door hands the run over before anything is claimed or cut, since
+# a claim written there would leave the Ticket claimed when the handed-over command runs.
+fresh sibling
+printf 'one\n' >notes.txt
+commit fixture
+sibling="$(pwd -P)"
+cd "$top" || exit 1
+across=".scratch/20260106-across"
+repositories_spec "$across" "- main (Home repository): $top" "- sibling: $sibling"
+(issues="$across/issues" && ticket 01-sibling.md $'**Status:** ready-for-agent\n\n**Build repository:** sibling' 'None (can start immediately)')
+before="$(both_states "$sibling")"
+run "$door" "$across/issues/01-sibling.md"
+check_lines "a ready Ticket built in a listed sibling repository, run from the Home repository, is handed over to the sibling" 1 "$rc" \
+  "build_repository=sibling" "build_location=$sibling" "build_check=elsewhere" \
+  "ticket_location=$top/$across/issues/01-sibling.md" "verdict=elsewhere"
+ordered_out "the build repository facts follow the Spec's completeness and precede the verdict" \
+  spec_complete= build_repository= build_location= build_check= ticket_location= verdict=
+expect "the hand-over writes nothing in either repository: no ref, worktree or file created or changed" \
+  test "$(both_states "$sibling")" = "$before"
+expect "the Ticket handed over still reads ready-for-agent" \
+  grep -qxF '**Status:** ready-for-agent' "$across/issues/01-sibling.md"
+# The Final integration claim is keyed by the Build repository: going on from here would claim this
+# repository's Spec branch under the sibling's key, a claim the sibling's own session owns.
+handed=".scratch/20260113-handed"
+repositories_spec "$handed" "- main (Home repository): $top" "- sibling: $sibling"
+(issues="$handed/issues" && ticket 01-sibling.md $'**Status:** resolved\n\n**Build repository:** sibling' 'None (can start immediately)')
+bash "$skill/scripts/spec-branch.sh" cut "$handed/issues/01-sibling.md" >/dev/null 2>&1
+spec_commit spec/handed
+run "$door" "$handed/issues/01-sibling.md"
+check_lines "a resolved Ticket built in another repository, in a complete Spec whose Spec branch here has not landed, never reads verdict=resume-final: it stops as resolved" 1 "$rc" \
+  "status=resolved" "spec_landed=no" "spec_complete=yes" "build_check=elsewhere" "verdict=resolved"
+absent "a resolved Ticket built in another repository never resumes this repository's Final integration" "verdict=resume-final"
+g branch -D spec/handed >/dev/null
+# The session the hand-over named is the Build repository's own: its check compares physical
+# paths, so a session in a linked worktree of it, or a Spec entry reaching it through a symlink,
+# still reads as here and lets the Ticket start.
+(issues="$across/issues" && ticket 02-in-sibling.md $'**Status:** ready-for-agent\n\n**Build repository:** sibling' 'None (can start immediately)')
+(issues="$across/issues" && ticket 03-home.md $'**Status:** ready-for-agent\n\n**Build repository:** main' 'None (can start immediately)')
+linked=".scratch/20260107-linked"
+ln -s "$sibling" "$tmp/sibling-link"
+repositories_spec "$linked" "- main (Home repository): $top" "- sibling: $tmp/sibling-link"
+(issues="$linked/issues" && ticket 01-linked.md $'**Status:** ready-for-agent\n\n**Build repository:** sibling' 'None (can start immediately)')
+echo ".claude/worktrees/" >>"$sibling/.git/info/exclude"
+aside="$(branch_worktree "$sibling" aside)"
+cd "$sibling" || exit 1
+run "$door" "$top/$across/issues/02-in-sibling.md"
+check_lines "a ready Ticket built in a listed sibling repository, run from the sibling, starts there" 0 "$rc" \
+  "build_repository=sibling" "build_check=here" "verdict=start"
+# The claim, the Digest and the Plan are written beside the Ticket, in the Home repository, while
+# the worktree is cut in the Build repository the session sits in.
+check_lines "a Ticket of the Home repository, run from the Build repository, names the Home repository as its root and no worktree" 0 "$rc" \
+  "ticket=$top/$across/issues/02-in-sibling.md" "root=$top" "worktree=none"
+expect "the root comes right after the ticket" grep -qE '(^| )ticket root ' <<<"$(keys_in_order)"
+(issues="$top/$across/issues" && ticket 06-aside.md $'**Status:** claimed\n\n**Build repository:** sibling' 'None (can start immediately)')
+run "$door" "$top/$across/issues/06-aside.md"
+check_lines "a claimed Ticket of the Home repository, run from the Build repository, names the Home repository as its root and the Build repository's worktree for its slug" 0 "$rc" \
+  "ticket=$top/$across/issues/06-aside.md" "root=$top" "worktree=$sibling/.claude/worktrees/do-aside"
+# A blocked Ticket names the blocker to run next as an absolute path into the Home repository's
+# issues folder, so the command the session builds from it resolves from the Build repository too.
+(issues="$top/$across/issues" && ticket 07-open.md $'**Status:** ready-for-agent\n\n**Build repository:** sibling' 'None (can start immediately)')
+(issues="$top/$across/issues" && ticket 08-done.md $'**Status:** resolved\n\n**Build repository:** sibling' 'None (can start immediately)')
+(issues="$top/$across/issues" && ticket 09-after-claimed.md $'**Status:** ready-for-agent\n\n**Build repository:** sibling' '06, Title of 06-aside')
+(issues="$top/$across/issues" && ticket 10-after-several.md $'**Status:** ready-for-agent\n\n**Build repository:** sibling' '08 Title of 08-done; 07 Title of 07-open; 06 Title of 06-aside')
+before="$(cd "$top" && both_states "$sibling")"
+run "$door" "$top/$across/issues/09-after-claimed.md"
+check_lines "a Ticket of the Home repository whose blocker is claimed, run from the Build repository, is blocked and names that blocker's absolute path" 1 "$rc" \
+  "verdict=blocked" "next_blocker=$top/$across/issues/06-aside.md"
+run "$door" "$top/$across/issues/10-after-several.md"
+check_lines "with several blockers, the next blocker is the first in Blocked by order not resolved, a resolved one before it skipped" 1 "$rc" \
+  "verdict=blocked" "next_blocker=$top/$across/issues/07-open.md"
+expect "a blocked Ticket run from the Build repository writes nothing in either repository: no ref, worktree or file created or changed" \
+  test "$(cd "$top" && both_states "$sibling")" = "$before"
+for blocked in 09-after-claimed 10-after-several; do
+  expect "the blocked Ticket $blocked still reads ready-for-agent" \
+    grep -qxF '**Status:** ready-for-agent' "$top/$across/issues/$blocked.md"
+done
+# A blocker is built in the repository its own Build repository line names, which may be neither
+# the Home repository nor the session's: the door names it, so the session that builds the blocker
+# is opened under that project's rules.
+fresh third
+printf 'one\n' >notes.txt
+commit fixture
+third="$(pwd -P)"
+cd "$sibling" || exit 1
+chain=".scratch/20260108-chain"
+(cd "$top" && repositories_spec "$chain" "- main (Home repository): $top" "- sibling: $sibling" "- third: $third")
+(issues="$top/$chain/issues" && ticket 01-third.md $'**Status:** ready-for-agent\n\n**Build repository:** third' 'None (can start immediately)')
+(issues="$top/$chain/issues" && ticket 02-third-done.md $'**Status:** resolved\n\n**Build repository:** third' 'None (can start immediately)')
+(issues="$top/$chain/issues" && ticket 03-unlisted.md $'**Status:** ready-for-agent\n\n**Build repository:** fourth' 'None (can start immediately)')
+(issues="$top/$chain/issues" && ticket 04-here.md $'**Status:** ready-for-agent\n\n**Build repository:** sibling' 'None (can start immediately)')
+(issues="$top/$chain/issues" && ticket 05-after-third.md $'**Status:** ready-for-agent\n\n**Build repository:** sibling' '01, Title of 01-third')
+(issues="$top/$chain/issues" && ticket 06-after-unlisted.md $'**Status:** ready-for-agent\n\n**Build repository:** sibling' '02 Title of 02-third-done; 03 Title of 03-unlisted; 04 Title of 04-here')
+(issues="$top/$chain/issues" && ticket 07-after-here.md $'**Status:** ready-for-agent\n\n**Build repository:** sibling' '02 Title of 02-third-done; 04 Title of 04-here; 01 Title of 01-third')
+run "$door" "$top/$chain/issues/05-after-third.md"
+check_lines "a blocker built in another listed repository is named with that repository and its location from the Spec" 1 "$rc" \
+  "next_blocker=$top/$chain/issues/01-third.md" "next_blocker_build=third" "next_blocker_build_location=$third" "verdict=blocked"
+expect "the blocker's repository and location sit right after the next blocker" \
+  grep -qE '(^| )next_blocker next_blocker_build next_blocker_build_location ' <<<"$(keys_in_order)"
+ordered_out "the blocker's repository and location precede the verdict" \
+  next_blocker= next_blocker_build= next_blocker_build_location= verdict=
+run "$door" "$top/$chain/issues/06-after-unlisted.md"
+check_lines "a blocker built in a repository the Spec does not list is named with it and the location unlisted, a resolved blocker built elsewhere before it skipped" 1 "$rc" \
+  "next_blocker=$top/$chain/issues/03-unlisted.md" "next_blocker_build=fourth" "next_blocker_build_location=unlisted" "verdict=blocked"
+run "$door" "$top/$chain/issues/07-after-here.md"
+check_lines "a Ticket whose next blocker is built in the session's repository is blocked on it" 1 "$rc" \
+  "next_blocker=$top/$chain/issues/04-here.md" "verdict=blocked"
+absent_prefix "a blocker built in the session's repository names no repository to build it in" "next_blocker_build="
+absent_prefix "a blocker built in the session's repository names no location to build it in" "next_blocker_build_location="
+cd "$top" || exit 1
+run "$door" "$issues/02-second.md"
+check_lines "a Ticket whose every blocker is resolved starts" 0 "$rc" "verdict=start"
+absent_prefix "a Ticket whose every blocker is resolved names no next blocker" "next_blocker="
+cd "$sibling" || exit 1
+run "$door" "$top/$linked/issues/01-linked.md"
+check_lines "a sibling the Spec lists through a symlink, run from the sibling, reads as here and starts" 0 "$rc" \
+  "build_repository=sibling" "build_check=here" "verdict=start"
+cd "$aside" || exit 1
+run "$door" "$top/$across/issues/02-in-sibling.md"
+check_lines "a ready Ticket built in a sibling, run from a linked worktree of the sibling, reads as here and starts" 0 "$rc" \
+  "build_repository=sibling" "build_check=here" "verdict=start"
+cd "$top" || exit 1
+run "$door" "$across/issues/03-home.md"
+check_lines "a ready Ticket built in the Home repository's own entry, run from the Home repository, starts" 0 "$rc" \
+  "build_repository=main" "build_location=$top" "build_check=here" "verdict=start"
+# A Build repository the Spec does not list has no location to compare, so the door names it as
+# unlisted and stops before anything is written, instead of handing the run to an empty path.
+(issues="$across/issues" && ticket 04-typo.md $'**Status:** ready-for-agent\n\n**Build repository:** sibblng' 'None (can start immediately)')
+before="$(both_states "$sibling")"
+run "$door" "$across/issues/04-typo.md"
+check_lines "a Build repository the Spec's Repositories list does not hold, run from the Home repository, is unbuildable" 1 "$rc" \
+  "build_repository=sibblng" "build_location=none" "build_check=unlisted" "verdict=unbuildable"
+expect "an unlisted Build repository writes nothing in either repository: no ref, worktree or file created or changed" \
+  test "$(both_states "$sibling")" = "$before"
+expect "the Ticket naming an unlisted Build repository still reads ready-for-agent" \
+  grep -qxF '**Status:** ready-for-agent' "$across/issues/04-typo.md"
+# A name spelled with an awk escape is not the entry it would decode to: it must not resolve to the
+# listed repository's location under a second identity.
+(issues="$across/issues" && ticket 06-escape.md $'**Status:** ready-for-agent\n\n**Build repository:** sibl\\x69ng' 'None (can start immediately)')
+before="$(both_states "$sibling")"
+run "$door" "$across/issues/06-escape.md"
+check_lines "a Build repository spelled with an awk escape of a listed name is unlisted, not that entry" 1 "$rc" \
+  "build_location=none" "build_check=unlisted" "verdict=unbuildable"
+expect "an escape-spelled Build repository writes nothing in either repository" \
+  test "$(both_states "$sibling")" = "$before"
+unlisted=".scratch/20260108-unlisted"
+mkdir -p "$unlisted/issues"
+printf '# Spec: one repository\n\n## User Stories\n\n1. As a developer, I want a note exported, so that I can share it.\n' >"$unlisted/spec.md"
+(issues="$unlisted/issues" && ticket 01-nolist.md $'**Status:** ready-for-agent\n\n**Build repository:** sibling' 'None (can start immediately)')
+before="$(both_states "$sibling")"
+run "$door" "$unlisted/issues/01-nolist.md"
+check_lines "a Build repository line in a Spec with no Repositories section is unbuildable" 1 "$rc" \
+  "build_repository=sibling" "build_location=none" "build_check=unlisted" "verdict=unbuildable"
+expect "a Build repository line with no Repositories section writes nothing in either repository" \
+  test "$(both_states "$sibling")" = "$before"
+expect "the Ticket of a Spec with no Repositories section still reads ready-for-agent" \
+  grep -qxF '**Status:** ready-for-agent' "$unlisted/issues/01-nolist.md"
+# On a Spec with a Repositories list, a Ticket's Build repository is an entry of it: a Ticket with
+# no Build repository line names none, so it stops like an unlisted value instead of building in
+# whichever repository the session sits in.
+(issues="$across/issues" && ticket 05-noline.md '**Status:** ready-for-agent' 'None (can start immediately)')
+before="$(both_states "$sibling")"
+run "$door" "$across/issues/05-noline.md"
+check_lines "a Ticket with no Build repository line, of a Spec with a Repositories list, is unbuildable" 1 "$rc" \
+  "build_repository=none" "build_location=none" "build_check=unlisted" "verdict=unbuildable"
+expect "a Ticket with no Build repository line of a listed Spec writes nothing in either repository" \
+  test "$(both_states "$sibling")" = "$before"
+expect "the Ticket with no Build repository line of a listed Spec still reads ready-for-agent" \
+  grep -qxF '**Status:** ready-for-agent' "$across/issues/05-noline.md"
+# A listed entry whose location is not a directory on this machine is missing: the developer whose
+# clone sits at another path fixes the Spec's location, instead of opening a repository that is not
+# there. A relative location is never resolved against the session, even where one would land on
+# the real sibling.
+missing=".scratch/20260109-missing"
+printf 'not a repository\n' >"$tmp/plain-note"
+repositories_spec "$missing" "- main (Home repository): $top" "- gone: $tmp/gone" \
+  "- up: ../sibling" "- bare: sibling" "- note: $tmp/plain-note"
+for entry in "gone|$tmp/gone|an absolute location that does not exist" \
+  "up|../sibling|a relative location that would reach the sibling from the session" \
+  "bare|sibling|a relative location that would reach the sibling from beside the session" \
+  "note|$tmp/plain-note|a location that is a regular file"; do
+  IFS='|' read -r name location what <<<"$entry"
+  (issues="$missing/issues" && ticket "01-$name.md" "**Status:** ready-for-agent"$'\n\n'"**Build repository:** $name" 'None (can start immediately)')
+  before="$(both_states "$sibling")"
+  run "$door" "$missing/issues/01-$name.md"
+  check_lines "a listed Build repository at $what is missing and unbuildable" 1 "$rc" \
+    "build_repository=$name" "build_location=$location" "build_check=missing" "verdict=unbuildable"
+  expect "a missing Build repository at $what writes nothing in either repository" \
+    test "$(both_states "$sibling")" = "$before"
+  expect "the Ticket naming a missing Build repository at $what still reads ready-for-agent" \
+    grep -qxF '**Status:** ready-for-agent' "$missing/issues/01-$name.md"
+done
+# A listed entry whose location is a directory but not the top of a git repository is not-git: a
+# check that asked git from inside it would find an enclosing repository and build in, or hand over
+# to, a repository the Spec never named.
+notgit=".scratch/20260110-not-git"
+plain="$(cd "$tmp" && pwd -P)/plain-dir"
+mkdir -p "$plain" "$sibling/nested" "$top/nested"
+repositories_spec "$notgit" "- main (Home repository): $top" "- plain: $plain" \
+  "- insibling: $sibling/nested" "- inhome: $top/nested"
+for entry in "plain|$plain|a plain directory outside any repository" \
+  "insibling|$sibling/nested|a plain directory inside the sibling's working tree" \
+  "inhome|$top/nested|a plain directory inside the Home repository's working tree"; do
+  IFS='|' read -r name location what <<<"$entry"
+  (issues="$notgit/issues" && ticket "01-$name.md" "**Status:** ready-for-agent"$'\n\n'"**Build repository:** $name" 'None (can start immediately)')
+  before="$(both_states "$sibling")"
+  run "$door" "$notgit/issues/01-$name.md"
+  check_lines "a listed Build repository at $what is not-git and unbuildable" 1 "$rc" \
+    "build_repository=$name" "build_location=$location" "build_check=not-git" "verdict=unbuildable"
+  expect "a not-git Build repository at $what writes nothing in either repository" \
+    test "$(both_states "$sibling")" = "$before"
+  expect "the Ticket naming a not-git Build repository at $what still reads ready-for-agent" \
+    grep -qxF '**Status:** ready-for-agent' "$notgit/issues/01-$name.md"
+done
+# Every run reads the door's paths against the main checkout, so a Ticket of this repository keeps
+# them relative to it, while a Ticket of a separate Home repository nested in the main checkout's
+# tree names its own root and absolute paths: one relative to the main checkout would be read as
+# the session's own scratch.
+fresh main/nested-home
+printf 'one\n' >notes.txt
+commit fixture
+nested="$(pwd -P)"
+nested_issues="$nested/.scratch/20260111-nested/issues"
+mkdir -p "$nested_issues"
+(issues="$nested_issues" && ticket 01-first.md '**Status:** resolved' 'None (can start immediately)')
+(issues="$nested_issues" && ticket 02-second.md '**Status:** ready-for-agent' '01, Title of 01-first')
+cd "$top" || exit 1
+run "$door" "$issues/02-second.md"
+check_lines "a Ticket of the session's own repository names the main checkout as its root and keeps its paths relative to it" 0 "$rc" \
+  "ticket=$issues/02-second.md" "root=$top" "blocker=01 resolved $issues/01-first.md"
+run "$door" "$nested_issues/02-second.md"
+check_lines "a Ticket of a separate Home repository nested in the main checkout names that repository as its root and its paths absolute" 0 "$rc" \
+  "ticket=$nested_issues/02-second.md" "root=$nested" "blocker=01 resolved $nested_issues/01-first.md"
+# The cases below read the main checkout's status, which an untracked nested repository would change.
+rm -rf "$nested"
 
 echo "# ticket-door.sh: the facts beside the verdict"
 mkdir -p .claude/agents && : >.claude/agents/unit-test-author.md
@@ -436,6 +676,30 @@ run "$door"
 check_lines "no argument is a usage error" 2 "$rc"
 run "$door" "$issues/99-nothing.md"
 check_lines "a Ticket that is not there is an error" 2 "$rc"
+# A Ticket named by an absolute location in a sibling Home repository that holds none there: the
+# mistyped name shares its number with a real neighbour, which a lookup by number would pick, and
+# the moved Home repository leaves a location whose folders a write would bring back.
+fresh away
+printf 'one\n' >notes.txt
+commit fixture
+away="$(pwd -P)"
+away_issues="$away/.scratch/20260112-away/issues"
+mkdir -p "$away_issues"
+(issues="$away_issues" && ticket 01-export.md '**Status:** ready-for-agent' 'None (can start immediately)')
+cd "$top" || exit 1
+moved_home="$(cd "$tmp" && pwd -P)/moved-home"
+for entry in "$away_issues/01-exprot.md|a mistyped name beside a real Ticket of an existing sibling repository" \
+  "$moved_home/.scratch/20260112-away/issues/01-export.md|a sibling repository that is not there"; do
+  IFS='|' read -r location what <<<"$entry"
+  before="$(both_states "$away")"
+  script="$door" refuses "an absolute location at $what is refused on stderr, apart from stdout" opens "no Ticket at $location" "$location"
+  same "an absolute location at $what prints nothing on stdout" ""
+  run "$door" "$location"
+  same "an absolute location at $what gets the one line naming it and nothing else" "no Ticket at $location"
+  expect "an absolute location at $what writes nothing in either repository" \
+    test "$(both_states "$away")" = "$before"
+  expect "an absolute location at $what leaves the moved repository's folder uncreated" test ! -e "$moved_home"
+done
 cd /
 run "$door" x
 check_lines "outside a repository is an error" 2 "$rc"

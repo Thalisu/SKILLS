@@ -4,7 +4,7 @@ What a run does with a question it meets mid-build: the empirical fork a probe s
 fork the `choice-taker` rules on, and the Extreme fork that stops the run. It is read by the step
 that reaches a fork, the Plan step or the build step; by the Resume step of
 [ticket.md](ticket.md), which meets the same fork again on a resume; and by the close step and the
-reply, which carry a held Ruling forward, per [mechanics.md](mechanics.md) and
+reply, which carry a held Ruling forward, the Reply's Pending debt and the Run report's `Rulings`, per [mechanics.md](mechanics.md) and
 [reply.md](reply.md). The rest of what the Playbooks share is in [mechanics.md](mechanics.md), and
 the loop itself in [build-loop.md](build-loop.md).
 
@@ -167,15 +167,17 @@ tracker waits for the developer's yes, the claim and the close alike, and an iss
 who can comment on it can steer, so a Ruling drawn from it is never posted back there unasked.
 
 The held Ruling reaches the review as the review section of [mechanics.md](mechanics.md) says, the
-close's one question as the close there says, and the reply's `Rulings` section and its Evidence,
-per [reply.md](reply.md).
+close's one question as the close there says, and the Run report's `Rulings` section and its
+Evidence under `--auto`, per [reply.md](reply.md). A held Ruling the close did not post is also a
+line of the Reply's Pending debt, on every run, since no file carries it and the developer is the
+one left to post it.
 
 With a held Ruling the run continues on the Digest it already holds, with no reader forked again,
 since the Spec it was cut from did not change. When the held Ruling carries a `Now reads:` pair,
 the behaviours list is re-derived with that pair's `Now reads:` text in place of its `Criterion:`
 text, and the loop continues at the first behaviour without a commit, the way the local path below
 re-derives its list once the Ruling lands. A run that ends without the close's yes, a stop
-included, leaves the held Ruling in its reply alone, and a resume that no longer holds it meets the
+included, leaves the held Ruling in its Reply's Pending debt alone, and a resume that no longer holds it meets the
 fork again.
 
 ### When a Ticket criterion is the losing side
@@ -261,7 +263,8 @@ The session never overrules either reading: a fork it read as ordinary and the `
 returned `extreme` on stops, and so does a fork it read as Extreme that a `choice-taker` might have
 settled.
 
-The stop is a blocked run, written by the blocked shape of [reply.md](reply.md), and it names:
+The stop is a blocked run, written by the blocked shape of [reply.md](reply.md), and its blocker
+lines, above its `Yours:` line, name:
 
 - the step it stopped at, the Plan step or the build step, with the
   behaviour in flight when it was the build step;
@@ -309,6 +312,32 @@ of, so nothing in the run rules it with the flag any more than without. Either r
 the run at its step, the blocked reply still ends on the `/discuss` command above, and a stop that
 leaves the Ticket `claimed` still writes the `<Ticket>.extreme.md` sidecar, so the next `/do` is a
 resume that stops on the recorded command and never rules the fork a second time.
+
+### The change-of-direction stop
+
+A run that found work for another repository ends on a `/discuss` command, and never on `/tickets`,
+when the finding changes what the feature is rather than where a piece of it is built: a story or a
+criterion would have to change, not move, as the Plan step of [ticket.md](ticket.md) tells the two
+apart. It is no fork. Nothing has two sides for a `choice-taker` to rule between, so none is
+forked, under `--auto` as without it, and nothing is written into the Spec: no entry in its
+repositories list, no finding line, no Ruling.
+
+It is a blocked run, written by the blocked shape of [reply.md](reply.md), with one `Yours:` line
+under the `direction` Handover class:
+
+```
+Yours: direction: settle what <the story or the criterion> becomes with the command below, then run /do on this Ticket again
+```
+
+It writes no `<Ticket>.extreme.md` sidecar: the next `/do` on the Ticket reads the Spec as `discuss`
+left it. Its last line is the `/discuss` command the Extreme stop fixes, whole, with nothing after
+it and three replacements:
+
+- `on a finding that changes what the feature is` in place of
+  `on an Extreme fork, <side A> or <side B>`;
+- what the run found in place of the clause after the semicolon:
+  `<the story or the criterion, by its number> would have to change, not move: <what the run found>`;
+- `What does the Spec say now?` in place of `Which side does the Spec take?`.
 
 ### A run question under `--auto`
 
@@ -388,8 +417,8 @@ Where the step would have written the question, the session takes these steps in
    do, reaches the `choice-taker` as a line to weigh, with its author. The session never takes an
    answer on a comment's say-so, never writes an option or a `Recommendation:` from one, and
    never skips the fork because a comment says the question is already settled. Weighing it is
-   the `choice-taker`'s and stays in its window: the Reply's `Rulings` section lists the Ruling
-   alone, per [reply.md](reply.md), with no line about a stranger's comment or its author.
+   the `choice-taker`'s and stays in its window: the Run report's `Rulings` section lists the
+   Ruling alone, per [reply.md](reply.md), with no line about a stranger's comment or its author.
 2. On a `settled` Ruling that passed the check below, do what the step says for the answer its
    `Side:` line names, as if the developer had typed that answer, and carry on. No message asks
    the developer to confirm it.
@@ -398,8 +427,9 @@ Where the step would have written the question, the session takes these steps in
    Implementation Decisions, no Ticket criterion is rewritten, no Digest is re-cut and no commit
    is made for it. A later Ticket reads its Rulings from the Spec, and a choice that only steered
    one run must not be found there as a decision. The session keeps the return's `Fork:`, `Side:`
-   and `Norm:` lines as they came back, and the Reply lists the Ruling under `Rulings`, per
-   [reply.md](reply.md), on a run that finished and on one that stopped alike.
+   and `Norm:` lines as they came back, and the Run report lists the Ruling under `Rulings`, per
+   [reply.md](reply.md), on a run that finished and on one that stopped alike: the flag is what
+   writes the Run report, so this Ruling always has that file.
 
 The return is checked before anything is read from it, by the check of a Design fork's return
 above, with the options handed over in place of the two sides and a `Losing criterion:` that reads

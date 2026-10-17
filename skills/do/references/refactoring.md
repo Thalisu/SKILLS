@@ -24,7 +24,8 @@ the others guard the errors [mechanics.md](mechanics.md) names.
 Those shared parts are in [mechanics.md](mechanics.md), linked from the steps that use them: the
 worktree, the protected branch, the gate, the integration, the review, the verification and the
 close, with the loop and its test authors in [build-loop.md](build-loop.md) and every stop of the
-integration in [conflict-loop.md](conflict-loop.md). The reply is written by [reply.md](reply.md).
+integration in [conflict-loop.md](conflict-loop.md). The reply is written by [reply.md](reply.md):
+five parts, and every line a step records for the Run report reaches a file under `--auto` alone.
 
 `<skill-dir>`, in the commands those references give, is the folder that holds this file's
 `references/`: `${CLAUDE_SKILL_DIR}` in Claude Code, the `do` folder under the harness's skills
@@ -78,7 +79,7 @@ Everything else the run settles itself and carries on, in the same turn:
 ## Steps
 
 Copied verbatim into the run as its todo list before any task-specific item; each step is ticked
-with its done line or stays visible as `skip: <reason>`, and the Reply's Run section carries the
+with its done line or stays visible as `skip: <reason>`, and the Run report's Run section carries the
 checklist so ticked:
 
 ```
@@ -153,16 +154,16 @@ Four checks, before any edit and in this order.
    the registry) are checked before the first of them exists, the way the Discovery rule fixes: one
    `discover` batch for two or more names, one `rg -n -w` for a single one. A name that comes back
    FOUND is reused rather than created, and the audit line,
-   `Discovery: n FOUND · n DUPLICATE · n NOT_FOUND`, is recorded for the Reply's Run section, which
+   `Discovery: n FOUND · n DUPLICATE · n NOT_FOUND`, is recorded for the Run report's Run section, which
    carries it after the checklist per [reply.md](reply.md).
 4. **The branch.** The protected branch in [mechanics.md](mechanics.md). This is a warning and not a
    refusal: the run builds to the gate and the review refuses the landing, as step 12 says.
 
-Then, still before any edit, the run records these lines for the Reply's Run section, in the order
-[reply.md](reply.md) fixes. The Reply carries them; the session may also write them as it goes, and
-nothing depends on that:
+Then, still before any edit, the run records these lines for the Run report's Run section, in the order
+[reply.md](reply.md) fixes. The Run report carries them under `--auto`; the session may also write
+them as it goes, and nothing depends on that:
 
-- `Playbook: refactoring`, as plain text on the first line.
+- `Playbook: refactoring`, as plain text on the first line, which also opens the message.
 - The reshape confirmed back in one line, with the target files named, the same files the Run
   section carries again on their own line before the audit line.
 - Done as a predicate: the pin green before and after, the target shape reached, every caller
@@ -173,7 +174,7 @@ nothing depends on that:
   test itself with no test author dispatched; under `policy` that file is never read.
 - The protected-branch warning when it applies: the branch, the rule, and the line saying landing
   will be refused on it, which the review does whatever the run wrote.
-- The checklist above, verbatim, copied as the run's todo list. The Reply's Run section carries it
+- The checklist above, verbatim, copied as the run's todo list. The Run report's Run section carries it
   after the lines above, each step the run reached ticked `done:` or reading `skip: <reason>`.
 
 There is no claim line and no Ticket: outside the chain the branch and its commits are the whole
@@ -182,7 +183,7 @@ state. The run proceeds without a yes, per
 still ends the run in its one message before any edit.
 
 Done when the four checks ran, and the read-back, the predicate, the loop line, the warning when it
-applies, the target files and the audit line are recorded for the Reply's Run section.
+applies, the target files and the audit line are recorded for the Run report's Run section.
 
 ### 2. Worktree
 
@@ -210,7 +211,7 @@ commit. It integrates again and lands through the fix call on that Review, with 
 run's own and never a second review.
 
 Done when its status prints nothing and the worktree line, its path and its branch, is recorded for
-the Reply's Run section.
+the Run report's Run section.
 
 ### 3. Pin
 
@@ -232,7 +233,7 @@ and born green. So no test that asserts the present enters the tree.
 #### The suite and the typecheck
 
 Run in the worktree before the first edit, the command line and the relevant output line quoted in
-the Reply's Evidence. The commands come from the project's facts, the way the gate in
+the Run report's Evidence. The commands come from the project's facts, the way the gate in
 [mechanics.md](mechanics.md) reads them.
 
 Red here is not this Playbook's to fix: the suite was red before the reshape, so the run stops in
@@ -249,7 +250,7 @@ The harness is a script outside the test tree, in the worktree, that drives the 
 the inputs the reshape touches and prints what comes back. It is not a test and never enters the
 test tree. Its life runs through four steps:
 
-1. Here, it runs on the old code and its output is quoted in the Reply's Evidence.
+1. Here, it runs on the old code and its output is quoted in the Run report's Evidence.
 2. Steps 5 and 6 run it after every change, beside the suite and the typecheck.
 3. Step 7 runs it on the new code, its output quoted beside the first run.
 4. Step 9 deletes it and names the gap it covered as debt in the reply.
@@ -355,7 +356,7 @@ so the rival shapes stay out of the session's:
 - The agent writes nothing. It returns the Sketch's text and the shape in one line, and the session
   files that text at the destination, whole and with nothing added, appending the `.scratch/`
   ignore line first when [scratch.md](../../../.agents/scratch.md) owes it. The run records for
-  the Reply's Run section what it handed over, in one line, and the Sketch's location with the
+  the Run report's Run section what it handed over, in one line, and the Sketch's location with the
   shape it settled, per [reply.md](reply.md).
 - Reshape against the Sketch. The sketch is the contract, and it is also what settles step 3's
   target interface when the request did not.
@@ -365,7 +366,7 @@ so the rival shapes stay out of the session's:
   reason, so the developer knows who shaped it. With the Agent tool withheld it also files that
   shape at the same destination, in the
   [Sketch format](../../../.agents/formats/sketch-format.md).
-- A deviation from the sketch during the reshape is surfaced in the reply. A second deviation of
+- A deviation from the sketch during the reshape is recorded for the Run report. A second deviation of
   the same shape stops the run as a wrong sketch, the deviations listed, the worktree and its
   branch named.
 
@@ -373,7 +374,7 @@ When no boundary is crossed the step reads `skip: no boundary crossed`, and the 
 is still named.
 
 Done when the structure and the target shape, with the sketch or its skip, are recorded for the
-Reply's Run section as its structure line, per [reply.md](reply.md), beside the hand-over and
+Run report's Run section as its structure line, per [reply.md](reply.md), beside the hand-over and
 Sketch lines or the shaped-by line where the reshape crossed a boundary.
 
 ### 5. Subtract
@@ -480,7 +481,7 @@ half, not the whole proof: the suite covers what it covered before, and the harn
 that was not everything.
 
 - The harness from step 3 runs again on the new code, with the same inputs, and its output is quoted
-  beside the run on the old code so a reader compares the two lines without leaving the reply. Where
+  beside the run on the old code so a reader compares the two lines without leaving the Run report. Where
   step 3 read its skip, this step reads the same skip.
 - A large reshape, one that moves behaviour across a module boundary or touches more callers than a
   reader will check by eye, gets an equivalence script: it drives both the old and the new artifact
@@ -522,7 +523,7 @@ waived here: step 3 carries one when the harness cannot stay inside its bound, a
 the question before a full suite or a remote run. Both are asked whenever the run reaches them,
 and under `--auto` both go to the `choice-taker`, per [forks.md](forks.md).
 
-Done when the answer and its reason are recorded for the Reply's Run section, with the developer's
+Done when the answer and its reason are recorded for the Run report's Run section, with the developer's
 answer when the test failed.
 
 ### 9. Cleanup
@@ -554,7 +555,7 @@ feature. The run does not fix it here, per
 and its own red-first fix, which this Playbook's pin is the wrong instrument for.
 
 Done when the cleanup is committed or reads its skip, and a behaviour change found here is recorded
-for the Reply's Run section with its command.
+for the Run report's Run section with its command.
 
 ### 10. Gate
 
@@ -565,7 +566,7 @@ The gate in [mechanics.md](mechanics.md), in the worktree, after the last edit:
 - the full suites the project's Post-feature gate names, since a run with no Spec behind it is its
   feature's last.
 
-The `command=` line is recorded for the Reply's Run section and each relevant output line quoted in
+The `command=` line is recorded for the Run report's Run section and each relevant output line quoted in
 its Evidence.
 
 A red gate is one more step of the reshape, taken as step 6 takes one, and then the whole gate
@@ -598,7 +599,7 @@ The review writes the Review, fixes its `Act on` Findings through its Fixers, on
 Fixers of one Wave at once and each in a worktree of its own, and lands the branch by fast-forward
 when the Review is Green. The run fixes no Finding and lands nothing itself.
 
-The return is recorded for the Reply's Run section, one line per part, as the shared section says.
+The return is recorded for the Run report's Run section, one line per part, as the shared section says.
 The five returns are the ones the `ticket` Playbook gets:
 
 - **Landed.** The line reads `landed at <commit>` and the run goes to the verification.
@@ -628,7 +629,7 @@ git switch <a branch that takes commits>
 git merge --ff-only do/<slug>
 ```
 
-Done when the return is recorded for the Reply's Run section with its landing line reading
+Done when the return is recorded for the Run report's Run section with its landing line reading
 `landed at <commit>`, or the run stopped as blocked with the review's reason quoted, or the step
 reads its skip with the worktree and its branch named.
 
@@ -660,8 +661,9 @@ Done when `git worktree list` no longer shows the run's worktree, or the step re
 
 ### 15. Reply
 
-Written by [reply.md](reply.md), its Run section then its sections, which carry, each where
-[reply.md](reply.md) puts it:
+Written by [reply.md](reply.md), its five parts: the `Plan:` line reads the reshape back in a few
+words, For whom names the reader whose load dropped, and Pending debt carries what the list below
+puts there. Under `--auto` the Run report carries the rest, each where [reply.md](reply.md) puts it:
 
 - In the Run section, the structure line: the structure the reshape gave the code, the one step 4
   named, and the target shape it reached, with the sketch or its skip.

@@ -64,10 +64,17 @@ _Avoid_: small (a small **Ticket** is a size band, never a Trivial change), quic
 one-liner (size is never the test)
 
 **Reply**:
-The one message a `do` run ends with, and the record every line a step names reaches the developer
-through: the read-back, the checklist, the audit line, what was handed to a fork and what came back.
+The one short message a `do` run ends with: the Plan, For whom, Pending debt, the `Yours:` line when
+the run hands something over, and the Next step. Every other line a step names is the **Run
+report**'s.
 _Avoid_: the thread (a line written mid-run, before a tool call, is never where a line has to be),
-narration, first message
+narration, first message, summary
+
+**Run report**:
+The file a `do` run under `--auto` writes beside its Plan, or under `.scratch/do-reports/`: the Run
+section and the ten sections a **Reply** used to carry, read back for the **Ruling**s on run
+questions, which sit in no other file. A run without `--auto` writes none.
+_Avoid_: log, transcript, the long reply
 
 **Digest**:
 The slice of a **Ticket**'s **Spec** and **Journey** that a `do` run needs, read out of both by a
@@ -103,10 +110,17 @@ _Avoid_: architect, designer, orchestrator, delegate
 
 **Builder**:
 The sub-agent a `do` ticket run forks for each **Stretch** of a **Ticket**'s build: it runs the
-build loop in the worktree from the **Plan**, dispatches its own test authors, and commits one
-behaviour at a time.
-_Avoid_: executor, implementer, coder, delegate (the delegate was the exception writer of the
-shape before this one), **Fixer** (a **Fixer** belongs to the review)
+build loop in the worktree from the **Plan**, dispatches its own test authors and **Implementers**,
+and commits one behaviour at a time.
+_Avoid_: executor, coder, delegate (the delegate was the exception writer of the shape before this
+one), **Implementer** (the **Builder** rules on the loop, the **Implementer** writes what it is
+told), **Fixer** (a **Fixer** belongs to the review)
+
+**Implementer**:
+The sub-agent a **Builder** dispatches for one production change of one behaviour, from a brief
+the **Builder** wrote against the tree as it stands: it writes production code only, and rules on
+nothing.
+_Avoid_: coder, executor, builder, worker, **Fixer** (a **Fixer** belongs to the review)
 
 **Stretch**:
 One fork of the **Builder**, from its dispatch to its return: the behaviours it committed in
@@ -130,7 +144,7 @@ What the `choice-taker` returns on a question it settles, a **Design fork** a `d
 question a chain skill run with `--auto` would otherwise put to the developer: the side taken, and
 the norm that backs it or "no norm: the side easiest to undo". A **Design fork**'s Ruling is
 written as one line in the **Spec**'s Implementation Decisions and listed under `Rulings` in the
-run's reply, read back from that line. A Ruling on a question that is not a **Design fork** is
+run's **Run report**, read back from that line. A Ruling on a question that is not a **Design fork** is
 written where the question already has a home: a branch or a seam a `discuss` or `spec` run ruled
 under `--auto` is the **Spec**'s marked line (Implementation Decisions or Testing Decisions), a
 fork of a **Journey** path is that path's `Ruled by the choice-taker:` line, and a branch that
@@ -239,7 +253,8 @@ _Avoid_: report (the message returned to the caller, not the file), task review,
 The sub-agent `do-code-review` forks for one `Act on` **Finding** of a **Review**, writing that
 **Finding**'s one commit in a worktree and on a branch of its own; one **Fixer** per **Finding**,
 and the **Fixers** of one **Wave** at once.
-_Avoid_: fix agent, implementer, delegate (a delegate is `do`'s exception writer, not the review's)
+_Avoid_: fix agent, **Implementer** (an **Implementer** belongs to the **Builder**), delegate (a
+delegate is `do`'s exception writer, not the review's)
 
 **Wave**:
 The `Act on` **Finding**s whose **Fixers** run at once: a script's floor, where two **Finding**s
@@ -557,3 +572,6 @@ _Avoid_: model page (one link of the chain), doc set, lineage
 - "main checkout" was defined as both the tree a `do` run is invoked from and the tree the
   artifacts live in. Resolved: once a **Spec** spans repositories the two differ. The artifacts live
   in the **Home repository**, and a run builds in its **Ticket**'s **Build repository**.
+- "wave" was proposed for a slice of a **Ticket**'s build handed to a cheaper model. Resolved: a
+  **Wave** stays the review's group of **Fixers**; the build hands one production change at a time
+  to an **Implementer**, dispatched by the **Builder**.

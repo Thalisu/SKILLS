@@ -2,7 +2,7 @@
 name: tickets
 description: "Cut a spec, and the journey its verdict points at, into tracer-bullet tickets: one demoable vertical slice per ticket, or a Logic ticket and a Front-end ticket for a path with a screen when the spec names a front-end builder, sized by a token estimate, each declaring the tickets that block it, with the edges, folds and splits decided by the skill and only the approval asked. Published one file per ticket locally or one issue per ticket on the project's tracker. Stops before writing anything when the journey is required but missing, contested, or already ticketed."
 disable-model-invocation: true
-argument-hint: "[--auto] [the spec: a path, the feature slug, or an issue reference]"
+argument-hint: "[--auto] [the spec: a path, the feature slug, or an issue reference] [<repository>: <its location on this machine>, when a stopped do run asked for it]"
 ---
 
 # Tickets
@@ -27,9 +27,11 @@ Used consistently, in the thread and in what the session writes:
 - _band_: where an estimate falls. Small under 150k tokens, medium up to 200k, large beyond.
 - _blocking edge_: a ticket that must complete before another can start, because the other reads what it writes.
 - _fold_: a small ticket merged into the one neighbour its single edge ties it to.
-- _split_: a large ticket cut along its steps into pieces, none of them large.
+- _split_: a large ticket cut along its steps into pieces, none of them large, or a slice that needs two repositories cut where one repository's work ends and the other's begins.
 - _placement_: a stray piece of work put in the ticket that builds what it describes.
 - _frontier_: every ticket whose blockers are all done.
+- _Build repository_: the one repository a ticket is built in, an entry of the spec's Repositories section. A spec with no such section is a feature of one repository, and none of its tickets names one.
+- _Home repository_: the repository whose `.scratch/` holds the feature folder, the one this session runs in, marked on its entry of the Repositories section.
 - _tracker file_: `docs/agents/issue-tracker.md`, which says where specs and tickets live in this project.
 - _parent_: the spec the tickets hang from.
 - _stop_: the run ending on a broken input, with one message and nothing written.
@@ -55,7 +57,7 @@ Say in one line what is being read, then make the reads that do not depend on on
 
 **The tracker file** says where specs and tickets live and which triage labels exist. Without it, the tickets are published as local markdown under `issues/` in the spec's directory, the thread says so in one line, and no setup skill is ever demanded.
 
-**The spec.** `$ARGUMENTS` is the spec and it is mandatory. An `--auto` token among the arguments, before the spec, after it or inside it, is dropped wherever it sat and puts the run under `--auto` (step 4); the spec is the rest, with no flag in it, resolved exactly as it is without the flag. The chain is strict: `tickets` takes a spec and never the conversation, since a ticket cut from the conversation rests on decisions nobody wrote down, which the `do` session cannot read.
+**The spec.** `$ARGUMENTS` is the spec and it is mandatory. An `--auto` token among the arguments, before the spec, after it or inside it, is dropped wherever it sat and puts the run under `--auto` (step 4); the spec is the rest, with no flag in it, resolved exactly as it is without the flag. When the rest ends in `<repository>: <its absolute location on this machine>`, the last line of a stopped `do` Reply that could name a repository and not where it is, the spec is what stands before that pair and is resolved as it is without it. The pair is a repository's name and its location on this machine, split at the first `: ` and kept for the finding that owes that location (below). The chain is strict: `tickets` takes a spec and never the conversation, since a ticket cut from the conversation rests on decisions nobody wrote down, which the `do` session cannot read.
 
 | `$ARGUMENTS` | How it is read |
 |---|---|
@@ -66,19 +68,22 @@ Say in one line what is being read, then make the reads that do not depend on on
 
 The resolver is the one executable form of the rule that says which feature folder a slug names, per [.agents/scratch.md](../../.agents/scratch.md), so `/journey <slug>` and `/tickets <slug>` open the same spec. Nothing readable ends the turn with one message asking for the path. That covers a resolver that answers `spec=none` or exits 2, and a resolver the session cannot find at that path, since a machine may have linked `skills/` without the rest of this repo. The run never falls back to a rule of its own: a guessed folder can be a different feature whose name only ends in the slug.
 
+That message says the slug named no spec and asks for the spec's path, and that is all of it. `.scratch/` is not listed to see what else is there, and no folder found in it is named, even to say it was left alone: a neighbour named in a stop reads as the run's proposal for the spec that was meant.
+
 A comment's author is read from the structured form of the comment, the record the tracker file names with its author and its body apart, and is never parsed out of the printed thread. The printed thread is one text stream with the body printed into it, so a body can carry a line shaped like a header (`--- comment by carol` inside rando's comment) that is nothing but part of rando's text. Everything between one real comment and the next is that one author's, whatever it looks like. Where the tracker file names no structured form, the session asks the tracker for the comments as separate records, and it treats a comment whose author it cannot fix by field as a stranger's.
 
 Read the spec fully, in the format of [.agents/formats/spec-format.md](../../.agents/formats/spec-format.md):
 
 - its User Stories are the candidate paths when there is no journey;
-- its Implementation Decisions, Testing Decisions and Out of Scope are constraints every ticket respects.
+- its Implementation Decisions, Testing Decisions and Out of Scope are constraints every ticket respects;
+- its Repositories section, when it has one, lists every repository the feature is built in, one entry per line with the repository's name and its absolute location, the Home repository marked. Every ticket is cut for one of those entries (step 3).
 
 **The verdict.** The `Journey:` line under the spec's title says whether there is a journey:
 
 | The line | What happens |
 |---|---|
 | a location: `./journey.md`, `docs/journeys/<slug>.md`, or a link | the journey is read, fully; a relative location resolves from the spec file in local mode and from the repository root in a remote tracker |
-| `not needed, <condition>` | the User Stories are the paths, said in one line |
+| `not needed, <condition>` | the User Stories are the paths, said in one line of its own before the breakdown, which names the verdict: "The spec's verdict is `not needed`, so the cut comes from its User Stories." |
 | `required` | a stop: the journey was never walked |
 | no line | the spec did not come from `spec`; the User Stories are the paths, said in one line |
 
@@ -110,7 +115,31 @@ A `journey.md` beside the spec that the verdict does not name is an orphan: name
 | the verdict is `required` and names no journey | the verdict, and that `/journey` walks the spec before tickets are cut; a `journey.md` beside the spec that the verdict does not name is mentioned |
 | the verdict names a file that does not exist | the line, and the location it named |
 | the journey's `## Reopen in discuss` lists a branch | each branch, and that `/discuss` settles them before the journey is walked again |
-| tickets for this feature already exist: files under `issues/` beside the spec in local mode, or open issues naming the spec as their parent in remote mode | each existing ticket; whoever wants a recut closes or deletes them first |
+| the feature's open tickets cover the whole spec: nothing the spec holds is left uncovered (below) | nothing was cut because the open tickets cover the whole spec; each existing ticket with its status; whoever wants a recut closes or deletes them first; no next command |
+| a finding line owes a location (below) and `$ARGUMENTS` carried no location for the repository it names | the repository whose location is missing, by the name the finding line gives it, and that its location on this machine is typed with the command, as `/tickets <spec> <repository>: <its absolute location on this machine>` |
+
+**Open tickets and what they cover.** The feature's open tickets are the files under `issues/` beside the spec in local mode, or the open issues naming the spec as their parent in remote mode. A local ticket that reads `resolved` stays in the folder and is read with the rest: it covers what it built and is listed with its status. Read every one of them in the same batch as the spec. With none, the cut is the whole spec and nothing below applies. With some, read what they cover against what the spec holds:
+
+- a path of the journey, or a User Story when there is no journey, is covered when an open ticket names it;
+- a finding line under the spec's Implementation Decisions, `- Moved by the run on Ticket <title> at the <step> step: <behaviour>. Belongs to: <name>.`, whatever step it names (the Plan step, or the build step when a Builder met the work mid-build), is covered when an open ticket built in the repository it names carries that behaviour among its criteria. A stopped `do` run wrote the line because the behaviour has no place in the repository of the ticket it names, so that ticket never covers it;
+- the journey's `## Cut` and `## Deferred` and the spec's Out of Scope are never ticketed, so they are never uncovered.
+
+The same reading answers a command that was repeated and one typed by accident: when nothing is left uncovered, the last stop of the table is the whole run. That message carries no `/do` line and no `/tickets` line, and no ticket is written, edited or renumbered. Open tickets that leave something uncovered are not that stop: the run goes on and cuts only what is uncovered. That is the additive cut, the one a stopped `do` run hands over when it ends on `/tickets <spec>`. Steps 2 and 3 run as they do on a whole spec, over the uncovered part alone:
+
+- an uncovered path is cut as any path is;
+- an uncovered finding line becomes a slice built in the repository the line names, with the line's behaviour as its acceptance criteria;
+- the ticket a finding line names is the one open ticket the cut changes. Its criterion stating the line's behaviour moves to the new slice, since its own repository cannot prove it, and it gains a blocking edge to the new slice, whose work it reads. Nothing else of it changes: its number, its status, its other criteria and its other blockers stay;
+- what the open tickets cover is left out of the cut. No open ticket is recut, renumbered or deleted, and a new slice that reads what an open ticket writes is blocked by that ticket, named by its number.
+
+**A finding that owes a location.** A finding line that ends in ` Location not known.` after the name's period was written by a run that could name the repository and not where it is on this machine. It owes a location while the spec's Repositories section holds no entry for the repository it names. Once the section holds one, the line owes nothing, whatever its ending still reads, so a repeated command is harmless. When `$ARGUMENTS` carried the pair for that repository, write the entry `- <name>: <location>` into the spec's Repositories section here, before the code is explored (step 2) and before any slice is drafted (step 3):
+
+- the entry takes the shape [spec-format.md](../../.agents/formats/spec-format.md) fixes, with the name as the finding line carries it and the location as it was typed;
+- it goes after the section's last entry. A spec with no Repositories section gains one where the format places it, between Solution and User Stories, with the Home repository's entry first, marked `(Home repository)` and located at this session's repository root, and the new entry after it;
+- the spec is edited where it lives: the file in local mode, the issue's body in remote mode. Nothing else in it changes, the finding line included, and the developer edits no file by hand.
+
+Once the entry is written, check the typed location: whether a directory exists there, and if one does, whether `git -C <location> rev-parse --is-inside-work-tree` succeeds. A location that is missing or is not a git repository changes nothing in the spec: the entry stays as written, with the location as it was typed. The run does not stop on it and asks nothing about it, and nothing is created, cloned or initialised there. The close names it (step 6), and `do` validates the location again at its own door.
+
+The run then goes on as the additive cut above, with that repository read at the location its new entry gives. A repository whose location failed the check has no code to read, so its slice is cut from the finding line alone. A pair typed for a repository the section already holds, or for one no finding line names, writes nothing and is said in one line before the breakdown.
 
 ## 2. Explore the code
 
@@ -119,6 +148,8 @@ Explore the codebase the spec touches, unless the conversation already did. Enou
 - naming the modules each slice crosses;
 - writing every title and description in the glossary's words;
 - respecting the ADRs in that area.
+
+When the spec has a Repositories section, the codebase is every repository it lists, each read at the location its entry gives and never written to.
 
 A search or a handful of reads stays in the thread. Exploration whose output would run to pages goes to a subagent on `model: sonnet`, and the thread keeps the summary.
 
@@ -158,6 +189,7 @@ Cut the work into tracer-bullet tickets.
 - **Demoable.** A completed slice is demoable or verifiable on its own.
 - **Estimated.** Each slice carries its estimate and the band it falls in, from the calibration in step 2. What the slice crosses adds to the load: a migration, a delegate's diff, or files far larger than the measured tickets touched. The drivers are stated with the number, so a reader can check it. On the defaults, a slice of 5 criteria that crosses nothing heavy is 40k + 5 × 15k = 115k, small. The estimate and the band are read off the script's `estimate=` and `band=` lines, for every slice and again for every merged fold: `bash <skill-dir>/scripts/estimate.sh size <fixed load> <per-criterion cost> <criteria> [<crossing tokens>]`, every figure a plain integer in tokens. What the slice crosses stays a judgement, passed in as the last figure.
 - **Prefactoring first.**
+- **One Build repository**, when the spec has a Repositories section. Each slice is built in exactly one repository, an entry of that section and never one it does not list: the repository whose code the slice changes, read from the Implementation Decisions and from what step 2 found. A `do` session builds in one repository, with one worktree, one gate and one landing, so a slice naming two has no run that can build it. With no Repositories section no slice names a repository, and nothing in the cut, the breakdown, the tickets or the close mentions one.
 
 | Band | Estimate | What happens to the slice |
 |---|---|---|
@@ -214,12 +246,19 @@ On a spec that reads `Front-end: builder` the setup check is never run and no Se
 **Splits, folds and placements**, in this order:
 
 1. **Split** every large ticket along its steps, every piece still demoable and none of them large. The pieces of one split never fold back into each other.
+
+   Each piece takes a run of consecutive steps, with the failure branches that belong to them, and ends on something the actor can see. A migration, a schema or a job on its own is a layer and never a piece: it rides in the first piece whose steps need it, and adds to that piece's estimate. Every piece after the first is blocked by the piece before it, since its steps start from the state that piece leaves, so only the first piece of a split can read `Blocked by: none`.
+
+   When the spec has a Repositories section, split as well every slice that would need a change in two of its repositories, whatever its band: one ticket per repository, each with that one Build repository, joined by a blocking edge. The ticket that reads what the other repository's change provides is blocked by the ticket that provides it. The rule that fired is that a ticket is built in exactly one Build repository, and the breakdown lists the cut under the splits with that rule, never as a note beside the tickets.
+
+   The proof that the two repositories work together is the consuming ticket's own: the ticket that consumes another repository's change, whether a split made it or the paths were cut that way, carries among its acceptance criteria the ones that prove the two work together, each checked against the provider's change as the provider's ticket leaves it and never against a stand-in for it. The provider's ticket carries none of them: it is built first, in a repository where the consumer's side does not exist yet. A proof left as a note is built by nobody, and the consumer's test author writes its tests from the criteria.
 2. **Fold** a small ticket into a neighbour when all of these hold:
    - a single edge ties it to exactly one neighbour;
    - the two tickets are of the same kind: a Logic ticket and a Front-end ticket are never joined, whatever the estimates say. The edge between a path's two tickets is exactly the single edge a fold looks for, and folding across it would undo the cut and hand the logic to the screen's builder;
    - that neighbour is its only blocker, or its only dependent when that dependent has no other blocker. Folding into a neighbour that waits on something else would hold the small ticket's work behind it;
    - the fold delays no ticket's start;
-   - the merged estimate (the fixed load plus the per-criterion cost times the combined criteria) stays medium at most.
+   - the merged estimate (the fixed load plus the per-criterion cost times the combined criteria) stays medium at most;
+   - both tickets have the same Build repository, when the spec has a Repositories section.
 
    The merged ticket keeps the earlier ticket's title and place and names every path it realises. A medium ticket is left as cut.
 3. **Place** a stray piece of work (a README line, a page re-synced after a change) in the ticket that builds what it describes.
@@ -240,8 +279,11 @@ Present the breakdown as a numbered list. For each ticket:
 
 - **Title**: short, in the glossary's words
 - **Path**: the journey path it realises, when there is a journey; every path when it is a fold. A path cut into a Logic ticket and a Front-end ticket is named by both, the Logic ticket listed first
-- **Estimate**: the peak context the `do` session is expected to reach, the band, what drives the number, and whether it is calibrated or on the defaults
+- **Estimate**: the peak context the `do` session is expected to reach, the band, what drives the number, and whether it is calibrated or on the defaults. The drivers are said in words beside the arithmetic: how many criteria and where they come from, and each thing the slice crosses with its tokens, or that it crosses nothing heavy
 - **Blocked by**: each blocking ticket with what this one reads and that the blocker writes it, or none
+- **Build repository**: only when the spec has a Repositories section, a line of its own under that label on every ticket, naming exactly one entry of the section by the name the section gives it, with `(Home repository)` after the name when it is that entry. With no such section the field is left out of every ticket
+- **Cross-service criteria**: only on a ticket that consumes another repository's change, the acceptance criteria that prove the two work together, one per line, each naming the provider's change it is checked against
+- **Acceptance criteria**: every criterion the ticket is published with, written out in full, one per line, and under the path each comes from when the ticket is a fold. Never a count, a summary or a sentence in another field standing in for them: the yes approves these lines, and the estimate counts them, so the number of lines is the criteria count the estimate states
 - **What it delivers**: the end-to-end behaviour this ticket makes work
 - **Kind**: `logic`, `front-end` or `setup`, on a spec that reads `Front-end: builder` or `Front-end: impeccable` only. On `none` the list carries no such field
 
@@ -251,7 +293,7 @@ After the list:
 2. on a spec that reads `Front-end: builder` or `Front-end: impeccable`, one more line beside those: the paths cut in two, and the paths left as a Logic ticket alone, each of these with the reason no screen was read in it. For example: `Cut in two: "Archive a note". Logic ticket alone: "Export the notes" (run from the command line, no screen).` When no path has a screen the line says so: every path was cut as a Logic ticket alone, with the reason. The reading of each path is the one thing here the user can know better than the session, so it is shown where they can overrule it. On `none` the line is left out;
 3. on a spec that reads `Front-end: impeccable` whose setup check exited 0, one line saying the setup was found in the project, so the reader knows why no Setup ticket heads the list. With a Setup ticket in the list the line is left out;
 4. what was left out: the journey's cut and deferred items, and the spec's Out of Scope;
-5. one question: does the breakdown go out as it stands?
+3. one question: does the breakdown go out as it stands? It is the last line of the message, on a line of its own. No second question, no offer and no remark sits beside it or after it: anything the user should know before answering belongs in the parts above, and a remark next to the question reads as something else to answer.
 
 One shape the message can take, in the user's language (the labels are translated with the rest). The layout is free; the fields on every ticket, the closing parts and the single question are not. The domain and the figures are this example's own:
 
@@ -260,13 +302,31 @@ Estimates are uncalibrated: no resolved ticket in the repo carries a measured `C
 
 1. **Set the snooze presets**
    - Path: Set the snooze presets
-   - Estimate: 160k, medium. 40k + 6 criteria × 15k = 130k, plus 30k for the settings migration. Uncalibrated.
+   - Estimate: 160k, medium. 40k + 6 criteria × 15k = 130k, plus 30k for the settings migration. Driven by the path's four steps and two failure branches, and by the migration that adds the presets to stored settings. Uncalibrated.
    - Blocked by: none
+   - Acceptance criteria:
+     - Settings shows the snooze presets, three by default
+     - Adding a preset puts it in the list at once
+     - Removing a preset takes it out of the list
+     - The list is kept after a reload
+     - A duration of zero is refused with "Pick a time above zero"
+     - The last preset cannot be removed: its Remove is disabled
    - What it delivers: the actor edits the list of snooze presets in settings and finds it kept after a reload.
 2. **Snooze a reminder**
    - Paths: Snooze a reminder; Undo a snooze
-   - Estimate: 175k, medium. 40k + 9 criteria × 15k (6 from snoozing, 3 from undoing). Uncalibrated.
+   - Estimate: 175k, medium. 40k + 9 criteria × 15k. Driven by the criteria alone, 6 from snoozing and 3 from undoing; it crosses nothing heavy. Uncalibrated.
    - Blocked by: 1, since the snooze picker reads the presets, which 1 writes.
+   - Acceptance criteria, from "Snooze a reminder":
+     - A due reminder offers Snooze
+     - Snooze opens a picker listing the presets
+     - Picking a preset takes the reminder out of the due list
+     - The reminder shows "Snoozed until" with the time it returns
+     - At that time the reminder is due again
+     - A reminder deleted while snoozed never comes back
+   - Acceptance criteria, from "Undo a snooze":
+     - A snoozed reminder offers Undo snooze
+     - Undo puts the reminder back in the due list at once
+     - Undo after the snooze has ended is not offered
    - What it delivers: the actor snoozes a due reminder to a preset, sees it come back at that time, and can undo the snooze before then.
 
 Splits: none.
@@ -279,6 +339,27 @@ Does the breakdown go out as it stands?
 </example>
 
 Granularity, edges, folds and splits are never asked. The session decided them from the estimates and the edge graph, and the breakdown shows the reasoning so the user can overrule any of it. A correction is applied and the breakdown is shown again, with the same one question. A path the user names as read wrongly, as having a screen or as having none, is such a correction: the path is recut the other way, so its two tickets become one Logic ticket, or its one ticket becomes a Logic ticket and a Front-end ticket blocked by it. The estimates and the blocking edges are redone for every ticket the recut touches, and the breakdown is shown again, with the same one question. Nothing is published before the yes.
+
+### On a feature with open tickets
+
+After an additive cut (step 1) the breakdown is the addition and nothing else. The message opens on one line saying the feature already has open tickets and that only what they leave uncovered was cut, then lists only the new tickets. The open tickets are never recut, so none of them is listed as a ticket of this run.
+
+- **Number**: each new ticket is shown under the number it will be published with, counted on after the feature's last one, in dependency order among the new tickets. With tickets up to `03` in the folder, the first new ticket is `04`.
+- **Fields**: each new ticket carries the same fields as a ticket of any breakdown, written out the same way, its Build repository among them when the spec has a Repositories section. A blocker that is an open ticket is named in `Blocked by` by its number and title.
+
+After the new tickets, the open tickets, every one of them accounted for, since the yes also approves an edit to a ticket another run may have claimed:
+
+- **Changed**: each open ticket the cut changes, by its number and title, with the criterion moved out of it, quoted as the ticket writes it, the new ticket it moves to, and the `Blocked by` edge added to it, naming the new ticket it now waits on.
+- **Untouched**: every other open ticket, by its number and title, on one line.
+
+<example>
+Changed: 02 "Put the Invoice on hold". The criterion "Once the Invoice is held, the customer receives the email" moves out of it to 04, and 02 gains `Blocked by` 04, which sends the email it reads.
+Untouched: 01 "Mark an Order as disputed", 03 "See the hold on the Order's page".
+</example>
+
+The closing parts follow as above (the splits, folds and placements among the new tickets, what was left out) and the message ends on the same one question.
+
+A no on the addition publishes nothing, as a no on any breakdown does: one line says nothing was published, and no next command follows, neither a `/do` line nor a `/tickets` line. No existing ticket is edited: the criterion stays in the ticket that holds it, and that ticket gains no blocking edge. The finding line stays in the spec as the stopped run wrote it, so a later `/tickets` run on the same spec reads it as uncovered and cuts from it. A Ruling under `--auto` to leave the addition unpublished ends the same way.
 
 ### Under `--auto`
 
@@ -331,10 +412,23 @@ Every ticket is written in the format of [.agents/formats/ticket-format.md](../.
 
 - **Where**: under `issues/` in the spec's own folder, `.scratch/<YYYYMMDD>-<feature-slug>/issues/<NN>-<slug>.md`, or `issues/` beside a spec that lives elsewhere.
 - **Numbering**: from `01` in dependency order, blockers first. Each file's "Blocked by" lists the numbers and titles it depends on. The Setup ticket, when one was cut, takes `00`, so the other tickets count from `01` whether or not it is there.
-- **Claiming a number**: by creating the file under `set -C`, never by scanning the folder and then writing. A create that fails means a second run is publishing this feature, so the run stops there as it would have on tickets that already exist, naming the file it hit, and never renumbers around it.
+- **Numbering**: from `01` in dependency order, blockers first. Each file's "Blocked by" lists the numbers and titles of every ticket it depends on, each blocker the breakdown named for it, whatever repository the blocker is built in.
+- **Header lines**: each bold header line (`**Blocked by:**`, `**Status:**`, `**Build repository:**`) is one line, never wrapped, however long it runs: `do` reads each one line by line, so a blocker wrapped onto the next line is a blocker it never sees.
+- **A spec with a Repositories section**: every ticket is still written in that one `issues/` folder, in the Home repository, whichever repository it is built in, and nothing is written in any other repository. One sequence numbers them all, in dependency order across repositories, and "Blocked by" names numbers of that folder whatever repository the blocker is built in. Each file carries the format's `**Build repository:**` line, whose value is the entry's name alone: the breakdown's `(Home repository)` mark and the location stay out of the file, since `do` matches the line against the section's names. With no Repositories section no file carries the line.
+- **Claiming a number**: by creating the file under `set -C`, never by scanning the folder and then writing. A create that fails means a second run is publishing this feature, so the run stops there on one message naming the file it hit, writes nothing more, and never renumbers around it.
 - **The ignore line**: the project's `.gitignore` carries the `.scratch/` line before the first write.
 
 The last two per [.agents/scratch.md](../../.agents/scratch.md).
+
+**On a feature with open tickets.** After an additive cut (step 1) the publish writes what the breakdown showed and nothing more:
+
+- each new ticket is a new file in that same `issues/` folder, numbered on after the feature's last one, in dependency order among the new tickets, each number claimed under `set -C` as above;
+- the criterion the breakdown showed as moved is taken out of the ticket it leaves and written, unticked, in the new ticket that takes it. A criterion never sits in both;
+- that ticket's `**Blocked by:**` line gains the new ticket, by its number and title, beside the blockers it already had, still on one line. A line reading `None (can start immediately)` becomes the new blocker alone;
+- nothing else of an existing ticket is edited: its title, its status, its other criteria, its ticks and its evidence stay as they were, so a ticket a run has claimed keeps that word;
+- no existing ticket is renumbered, renamed or deleted, so every `Blocked by` already written still names the same ticket.
+
+On a real tracker the same holds issue by issue: the new tickets are new issues, the criterion is edited out of the body of the issue it leaves, that issue gains the blocking edge to the new one, and no existing issue is closed.
 
 **A real tracker (GitHub, GitLab, Linear).** One issue per ticket, in the format's issue shape.
 
@@ -356,6 +450,26 @@ In the thread:
 - `Rulings`, under `--auto`: a group of its own, one line per Ruling with the question, the side the `choice-taker` took and its norm. It is the `choice-taker`'s answer and is never written as the user's approval;
 - the `.scratch/` line, when the publish added it to the project's `.gitignore`;
 - the next step: one ticket at a time from the frontier. The last line is the exact next command, `/do <ticket>`, with the first ticket of the frontier as its path, or as its issue reference on a tracker. When a Setup ticket was cut it is the whole frontier, since every other ticket is blocked by it, so the last line is `/do` on the Setup ticket. Under `--auto` it reads `/do --auto <ticket>`, so the user keeps the mode down the chain by pasting the line. The one exception is a Setup ticket at the head of the frontier: under `--auto` the last line is still the plain `/do <ticket>` for it, with no flag, since `do` refuses `--auto` on a Setup ticket, whose steps are the developer's to run. One line above it says this one ticket needs the developer and that the flag returns from the next ticket on.
+
+When the spec has a Repositories section, where that command runs depends on the Build repository of the first ticket of the frontier. Compare the location of its entry with the root of the repository this session is in:
+
+- **The same repository**: the close ends exactly as above. The session the user is in can build the ticket, so the close says nothing about repositories or sessions after its list: the command follows the list directly. A ticket further down that is built in another repository gets no sentence either. The list already shows where each ticket is built, and its hand-over is written when it is the first ticket of the frontier, since a line about a session the user cannot use yet reads as something to do now.
+- **Another repository**: a `do` session builds only in the repository it is opened in, so the command has to be pasted into a session of that one. One line before the command names the Build repository and the location its entry gives, as the place to open a session in. The last line is still the command, with the ticket's absolute location in the Home repository in place of the relative one, since a relative location resolves to nothing from the other repository. No shell line is handed over, neither a `cd`, a `git -C` nor a command that launches a session: how the user opens a session there is theirs, and a shell line assumes a shell they may not be in.
+
+<example>
+Ticket 01 is built in billing-service: open a session in /home/dev/billing-service and run this there.
+
+/do /home/dev/orders-service/.scratch/20260914-refund-on-order/issues/01-refund-a-paid-invoice.md
+</example>
+
+**On a feature with open tickets.** After an additive publish the close lists what the run wrote, in two groups, in place of the list of every ticket published:
+
+- **Added**: each new ticket, with its identifier, its kind beside its blocking edges, and its Build repository when the spec has a Repositories section;
+- **Changed**: each existing ticket the publish edited, with the criterion moved out of it, the new ticket that took it, and the `Blocked by` edge it gained.
+
+A location typed with the command that step 1 found missing or not a git repository gets a line of its own after the two groups: the location as it was written into the Repositories section, and which of the two it is, missing or not a git repository. It is the state of this machine, the developer's to fix before `do`, and it is said once, as a warning and never as a question.
+
+The open tickets the run left untouched are not listed again. The last line is the `/do` command for the first new ticket, the first in dependency order among the ones this run added, and never an older ticket of the frontier: the developer came from a run that stopped on work nobody had ticketed, and that ticket is the one it now waits on. Where the command runs follows the rule above. When the first new ticket's Build repository is the repository this session is in, the command follows the list directly. When it is another repository, the line before the command names that Build repository and its location as the place to open a session in, and the command carries the ticket's absolute location in the Home repository.
 
 Nothing is committed.
 

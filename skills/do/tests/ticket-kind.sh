@@ -83,4 +83,28 @@ expect "a path with no file exits 2 with nothing on stdout" test "$rc:$out" = "2
 run
 expect "a call with no argument exits 2 with nothing on stdout" test "$rc:$out" = "2:"
 
+# A Ticket named by an absolute location in a sibling Home repository that holds none there, read
+# from a session in the Build repository: the mistyped name shares its number with a real neighbour,
+# which a lookup by number would pick, and the moved Home repository leaves a location whose folders
+# a write would bring back.
+sibling_repos home build 20260112-away
+# shellcheck disable=SC2154 # lib.sh's sibling_repos assigns $home
+home_repo="$home"
+home_issues="$issues"
+ticket 01-export.md $'**Status:** ready-for-agent\n**Kind:** setup' 'None (can start immediately)'
+moved_home="$(cd "$tmp" && pwd -P)/moved-home"
+for entry in "$home_issues/01-exprot.md|a mistyped name beside a real Ticket of an existing sibling repository" \
+  "$moved_home/.scratch/20260112-away/issues/01-export.md|a sibling repository that is not there"; do
+  IFS='|' read -r location what <<<"$entry"
+  before="$(both_states "$home_repo")"
+  refuses "an absolute location at $what is refused on stderr, apart from stdout" opens "no Ticket at $location" "$location"
+  same "an absolute location at $what prints nothing on stdout" ""
+  rc=0
+  out="$(bash "$script" "$location" 2>&1)" || rc=$?
+  same "an absolute location at $what gets the one line naming it and nothing else" "no Ticket at $location"
+  expect "an absolute location at $what writes nothing in either repository" \
+    test "$(both_states "$home_repo")" = "$before"
+  expect "an absolute location at $what leaves the moved repository's folder uncreated" test ! -e "$moved_home"
+done
+
 exit "$((fails > 0))"

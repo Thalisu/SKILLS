@@ -35,17 +35,18 @@ Each of these costs one of the three errors, so none bends to a step's convenien
   [ADR 0034](../../../docs/adr/0034-a-contested-hunk-takes-the-target-side-and-what-it-sets-aside-is-reapplied-after-the-integration.md):
   a Gate guards a landing or a review, and this run has neither. No Gate ran green before the
   operation, so a red one could not tell a break the operation caused from one the branch already
-  carried, and the run may not edit the developer's code to turn it green. The Reply records the
-  check that did not run as debt instead.
+  carried, and the run may not edit the developer's code to turn it green. The Reply's Pending debt
+  records the check that did not run instead.
 - Land, push, or claim or close a Ticket: the push is the developer's, named as the next step.
 
 ## The message
 
 The run is one message, written by [reply.md](reply.md). It opens with `Playbook: integrate` as
 plain text on its first line; the checklist below is copied verbatim as the run's todo list; the
-work runs; the same message closes with the Run section and the sections of reply.md. The Run
-section carries the operation read back in one line, the checklist with each step the run reached
-ticked `done:` or reading `skip: <reason>`, then the integration line, in that order.
+work runs; the same message closes with the parts of reply.md, its `Plan:` line the operation read
+back in one line. Under `--auto` the Run report's Run section carries the operation read back, the
+checklist with each step the run reached ticked `done:` or reading `skip: <reason>`, then the
+integration line, in that order.
 
 Three early ends cut that message short, each with nothing integrated: a request missing its
 operation or its branch (step 1), a door refusal (the first line and the door's `message=` line,
@@ -129,12 +130,12 @@ above.
 
 ### 2. Read-back
 
-The Run section's read-back line, off the door's lines and never the session's wording: `<moves>`
-rebased onto `<onto>`, or `<moves>` merged into `<onto>`, and the branch the operation writes to.
-A request the session misread then shows on the Reply's first lines, before the developer reads a
-count.
+The read-back line, off the door's lines and never the session's wording: `<moves>` rebased onto
+`<onto>`, or `<moves>` merged into `<onto>`, and the branch the operation writes to. It is the
+Reply's `Plan:` line, so a request the session misread shows on the Reply's first lines, before
+the developer reads anything else.
 
-Done when the line is recorded for the Run section.
+Done when the line is recorded for the `Plan:` line.
 
 ### 3. Operation
 
@@ -144,7 +145,7 @@ In place, in the developer's checkout.
    names. Exit 0 means the branch already carries it: the step reads `done: no-op`, nothing is
    started and nothing is asked.
 2. **The recorded commit.** `git rev-parse HEAD` before the operation starts: once it has finished,
-   `git reset --hard <that commit>` is the undo, and the reply names it.
+   `git reset --hard <that commit>` is the undo, and the Reply's Pending debt names it.
 3. **The start.** The `start=` line, as the door printed it. A replay with no conflict finishes
    there, and the step reads `done:` with what the operation did: how many commits the rebase
    replayed, or the merge commit.
@@ -175,17 +176,19 @@ and every other line of it holds as written:
 
 Done when the step reads the no-op, or the operation finished with the mechanical and the contested
 counts across every stop, or the run stopped as blocked with its reason and its undo, and the
-integration line is recorded for the Reply's Run section.
+integration line is recorded for the Run report's Run section.
 
 ### 4. Reply
 
-Written by [reply.md](reply.md). What this Playbook puts in its sections:
+Written by [reply.md](reply.md). What this Playbook puts in its parts, the three that only the Run
+report carries written under `--auto` alone:
 
-- what the operation did: the commits the rebase replayed, or the merge commit, and each reapply
-  commit;
-- under Evidence, the door's lines, the start, the conflict class's lines at every stop, each
-  contested hunk that took the **Target** side and the Loss ledger holding what they set aside;
-- under `Rulings`, `On the Spec: none` and `On the run: none`;
+- under Commits, in the Run report, what the operation did: the commits the rebase replayed, or the
+  merge commit, and each reapply commit;
+- under Evidence, in the Run report, the door's lines, the start, the conflict class's lines at
+  every stop, each contested hunk that took the **Target** side and the Loss ledger holding what
+  they set aside;
+- under `Rulings`, in the Run report, `On the Spec: none` and `On the run: none`;
 - under Pending debt, the undo, `git reset --hard <the recorded commit>` once the operation
   finished, and, when any stop resolved a hunk, mechanical or contested, the line saying no check
   ran over the integrated tree: the text the union wrote and every reapply commit reach the branch
@@ -194,6 +197,6 @@ Written by [reply.md](reply.md). What this Playbook puts in its sections:
   rebase of a branch that has an upstream, `git push` after a merge, or, on a blocked stop, the
   operation's `abort=` command. On the no-op there is no undo and no push, since nothing moved.
 
-Nothing is landed, nothing is pushed, no review is called, and the Skipped section lists no Gate,
-land, push or review step, since this Playbook has none: the check that did not run is carried
-under Pending debt instead.
+Nothing is landed, nothing is pushed, no review is called, and the Run report's Skipped section
+lists no Gate, land, push or review step, since this Playbook has none: the check that did not run
+is carried under Pending debt instead.
