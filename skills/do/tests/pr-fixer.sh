@@ -78,8 +78,64 @@ for cmd in \
   "git -C /t config core.hooksPath /tmp/h" \
   "git --git-dir=/t/.git config core.hooksPath /tmp/h" \
   "git config --get user.name && git config core.hooksPath /tmp/h" \
-  "git -C /t config user.name x"; do
+  "git -C /t config user.name x" \
+  "git --git-dir /t/.git status"; do
   expect "the hook denies the fixer's Bash a write to the shared head, its git dir or GitHub: $cmd" \
+    deny_in "$(bash_out "$cmd")"
+done
+
+# The guard holds on what the shell runs, not on how the line spells it: a fixer steered by a log it
+# reads reaches gh or a git write as easily through a prefix command, a path, a quote, a variable,
+# an alias or a config set for one command, and a hook matching the literal text lets each through.
+spelled=(
+  'env gh pr view'
+  'command gh pr view'
+  'xargs gh pr view'
+  'echo 1 | xargs -I{} gh api x'
+  'env -i git push origin HEAD'
+  '/usr/bin/env git push'
+  'time gh run rerun 7'
+  'exec gh pr view'
+  'bash -c "gh pr view"'
+  'sh -c "cd /t; git push"'
+  'eval gh pr view'
+  'find . -exec gh api x ;'
+  '/usr/bin/gh pr view'
+  '/usr/bin/git push origin HEAD'
+  './node_modules/.bin/gh x'
+  $'gh\tpr view'
+  $'git\tpush'
+  $'g\\\nh pr view'
+  '\gh pr view'
+  "'gh' pr view"
+  "g''h pr view"
+  '"git" push'
+  'g=gh; $g pr view'
+  'g=git; ${g} push'
+  's=push; git $s origin HEAD'
+  '$(printf gh) pr view'
+  '/usr/bin/g? pr view'
+  '`printf gh` pr view'
+  'git -c alias.p=push p origin HEAD'
+  "git -c alias.p='!gh pr view' p"
+  'git config alias.p push'
+  'git config --global alias.p push'
+  'git config core.hooksPath /tmp/h'
+  'git -c core.hooksPath=/tmp/h commit -m x'
+  "alias p='git push'"
+  'GIT_CONFIG_COUNT=1 git status'
+  'PATH=/tmp:$PATH git status'
+  'git stash'
+  'git tag v1'
+  'git remote add o x'
+  'git branch new'
+  'git --no-pager push'
+  'echo x > /main/.git/hooks/pre-push'
+  'cp x ../../.git/hooks/pre-push'
+  'git rev-parse --git-path hooks'
+)
+for cmd in "${spelled[@]}"; do
+  expect "the hook denies the fixer's Bash gh or a git write however it is spelled: ${cmd@Q}" \
     deny_in "$(bash_out "$cmd")"
 done
 
@@ -93,12 +149,20 @@ for cmd in \
   "git -C /t diff" \
   "git -C /t restore src/a.py" \
   'x=$(git -C /t rev-parse HEAD)' \
-  "git --git-dir /t/.git status" \
   "git -C /t config --get user.name" \
   "git config --list" \
   "cat .gitignore" \
   "git add .gitignore .github/workflows/ci.yml" \
-  "ls .githooks"; do
+  "ls .githooks" \
+  "git -c user.email=a@b -c user.name=n commit -m 'fix'" \
+  "git branch" \
+  "git config --get user.name" \
+  "cd /t && git commit -m 'fix(ci): the gh step'" \
+  "timeout 60 bash tests/run.sh" \
+  "git ls-files | xargs grep -n foo" \
+  'x=$(git rev-parse HEAD); echo $x' \
+  "cat .github/workflows/ci.yml" \
+  "git log --format=%(refname) -n1"; do
   expect "the hook lets the fixer's Bash do ordinary fix work: $cmd" \
     bash -c '[ -n "$1" ] && ! grep -qF "\"permissionDecision\": \"deny\"" <<<"$2"' _ "$bash_hook" "$(bash_out "$cmd")"
 done
@@ -117,63 +181,81 @@ for type in general-purpose do-pr-fixer e2e-test-author ""; do
     deny_in "$(agent_out "$type")"
 done
 
-# The fixer's worktree shares one git common dir with the run tree, and the session's own push runs
-# whatever hook sits there: Write and Edit reach it as surely as a redirect does, so each holds its
-# own guard. A path is asked both literally and through `..`, the pointer file `.git` included, and
-# a repo whose common dir carries no `.git` component is asked from its own cwd.
-for tool in Write Edit; do
-  write_hook="$(hook_command "$agent" "$tool" 2>/dev/null)"
-  expect "a PreToolUse hook scopes the fixer's $tool" test -n "$write_hook"
+echo "# skills/do/agents/do-pr-fixer.md: the fixer writes and edits inside a fixer worktree only, never a .git path"
 
-  write_out() { # $1 the file_path, $2 the cwd it runs from (the repo root when left out): the hook's output
-    local cwd="${2:-$root}"
-    jq -n --arg p "$1" --arg d "$cwd" '{cwd: $d, tool_input: {file_path: $p}}' 2>/dev/null |
-      (cd "$cwd" && sh -c "$write_hook" 2>/dev/null)
-  }
+# A fixer steered by a log a stranger wrote can aim Write or Edit anywhere: a file in the run tree or
+# the main checkout lands outside the one commit the session vouches for, and a .git path (the
+# shared hooks and config) runs on the session's own push. The guard is read off where the path
+# resolves to, so a `..`, a symlink or a look-alike directory name must not carry a write past it.
+write_hook="$(hook_command "$agent" Write 2>/dev/null)"
+expect "a PreToolUse hook scopes the fixer's Write" test -n "$write_hook"
+expect "the same hook scopes the fixer's Edit, on one Write|Edit matcher" \
+  bash -c '[ -n "$1" ] && [ "$1" = "$2" ]' _ "$write_hook" "$(hook_command "$agent" Edit 2>/dev/null)"
 
-  common_hook="$(cd "$root" && cd "$(git rev-parse --git-common-dir)" && pwd -P)/hooks/pre-push"
-  for p in \
-    "/t/.git/hooks/pre-push" \
-    "/t/.git/config" \
-    "/t/.git/info/exclude" \
-    "/t/src/../.git/hooks/pre-push" \
-    "/t/.git" \
-    "$common_hook"; do
-    expect "the hook denies the fixer's $tool a write under the shared git dir: $p" \
-      deny_in "$(write_out "$p")"
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+fresh main
+mkdir -p src && printf 'x\n' >src/a.py
+commit "first"
+main="$(pwd -P)"
+g worktree add -q --detach "$main/.claude/worktrees/pr-1-abc1234" 2>/dev/null
+g worktree add -q -b fixer/s/abc/w1-1 "$main/.claude/worktrees/fixer-s-abc-w1-1" 2>/dev/null
+run_tree="$(cd "$main/.claude/worktrees/pr-1-abc1234" && pwd -P)"
+fixer="$(cd "$main/.claude/worktrees/fixer-s-abc-w1-1" && pwd -P)"
+mkdir -p "$fixer/src"
+ln -s "$main/.git/hooks" "$fixer/hooklink"
+mkdir "$tmp/plain"
+plain="$(cd "$tmp/plain" && pwd -P)"
+
+write_out() { # $1 cwd, $2 file_path: the Write|Edit hook's output on that payload, run from that cwd as the harness runs it
+  jq -n --arg f "$2" --arg c "$1" '{tool_input: {file_path: $f}, cwd: $c}' 2>/dev/null |
+    (cd "$1" && sh -c "$write_hook") 2>/dev/null
+}
+# An empty hook prints nothing, so an allow case holds only when the hook is there to have said so.
+write_allows() { # $1 cwd, $2 file_path: succeeds when the hook exists, exits 0 and prints no deny
+  local o
+  [ -n "$write_hook" ] || return 1
+  o="$(write_out "$1" "$2")" || return 1
+  ! deny_in "$o"
+}
+
+for cwd in "$main" "$run_tree" "$fixer"; do
+  for path in "$fixer/src/a.py" "$fixer/new/dir/test.sh"; do
+    expect "the hook lets the fixer write inside its worktree (cwd ${cwd#"$tmp"/}): ${path#"$tmp"/}" \
+      write_allows "$cwd" "$path"
   done
-
-  for p in \
-    "/t/src/a.py" \
-    "/t/.gitignore" \
-    "/t/.github/workflows/ci.yml" \
-    "/t/.githooks/pre-commit" \
-    "/t/docs/x.git.md"; do
-    expect "the hook lets the fixer's $tool write a tracked file: $p" \
-      bash -c '[ -n "$1" ] && ! grep -qF "\"permissionDecision\": \"deny\"" <<<"$2"' _ "$write_hook" "$(write_out "$p")"
-  done
-
-  bare="$(mktemp -d)"
-  bare="$(cd "$bare" && pwd -P)"
-  git init -q --bare "$bare"
-  expect "the hook denies the fixer's $tool a hook in a common dir with no .git component" \
-    deny_in "$(write_out "$bare/hooks/pre-push" "$bare")"
-  expect "the hook lets the fixer's $tool write outside that common dir" \
-    bash -c '[ -n "$1" ] && ! grep -qF "\"permissionDecision\": \"deny\"" <<<"$2"' _ "$write_hook" "$(write_out "$bare-other/src/a.py" "$bare")"
-  rm -rf "$bare"
-
-  # A guard that exits 0 when jq is missing is one the harness reads as allow, so it is asked with a
-  # path it would otherwise let through: a deny there can only come from the blind path.
-  no_jq_dir="$(path_without jq)"
-  blind_rc=0
-  blind_out="$(jq -n --arg d "$root" '{cwd: $d, tool_input: {file_path: "/t/src/a.py"}}' 2>/dev/null |
-    (cd "$root" && PATH="$no_jq_dir" sh -c "$write_hook" 2>"$no_jq_dir/.err"))" || blind_rc=$?
-  blind_err="$(cat "$no_jq_dir/.err" 2>/dev/null)"
-  expect "the hook on the fixer's $tool fails closed when jq is absent from PATH, instead of exiting 0 silently" \
-    bash -c '[ -n "$4" ] && { { [ "$1" -ne 0 ] && [ -n "$2" ]; } || grep -qF "\"permissionDecision\": \"deny\"" <<<"$3"; }' \
-    _ "$blind_rc" "$blind_err" "$blind_out" "$write_hook"
-  rm -rf "$no_jq_dir"
 done
+expect "the hook lets the fixer write a path relative to its worktree as cwd: src/a.py" \
+  write_allows "$fixer" "src/a.py"
+
+for cwd in "$main" "$run_tree" "$fixer"; do
+  for path in \
+    "$main/src/a.py" \
+    "$run_tree/src/a.py" \
+    "$main/.git/hooks/pre-push" \
+    "$main/.git/config" \
+    "$main/.git/worktrees/fixer-s-abc-w1-1/hooks/pre-push" \
+    "$fixer/.git" \
+    "$fixer/../../../.git/hooks/pre-push" \
+    "$fixer/hooklink/pre-push" \
+    "/tmp/outside.txt" \
+    "$main/.claude/worktrees/not-a-fixer/x.txt" \
+    "$main/.claude/worktrees/fixer-s-abc-w1-1/../pr-1-abc1234/x.txt" \
+    "$main/.claude/worktrees/fixer-s-abc-w1-1evil/../../x"; do
+    expect "the hook denies the fixer a write outside a fixer worktree or to a .git path (cwd ${cwd#"$tmp"/}): ${path#"$tmp"/}" \
+      deny_in "$(write_out "$cwd" "$path")"
+  done
+done
+
+expect "the hook denies every write when its cwd is in no git repository, since it cannot find the fixer worktrees" \
+  deny_in "$(write_out "$plain" "$fixer/src/a.py")"
+
+no_jq_dir="$(path_without jq)"
+no_jq_out="$(jq -n --arg f "$fixer/src/a.py" --arg c "$fixer" '{tool_input: {file_path: $f}, cwd: $c}' 2>/dev/null |
+  (cd "$fixer" && PATH="$no_jq_dir" sh -c "$write_hook") 2>/dev/null)"
+expect "the hook denies every write when jq is absent from PATH, instead of letting it through blind" \
+  deny_in "$no_jq_out"
+rm -rf "$no_jq_dir"
 
 echo "# skills/do/agents/do-pr-fixer.md: the fixer reproduces its check's failure before it edits anything"
 
