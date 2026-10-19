@@ -18,7 +18,8 @@
 #
 # - A return ending on Fix and Small at Rung 3 or above with Small: yes is a Finding under Act on.
 # - A return ending on Fix and Small at Rung 1 or 2, or at Rung 3 or above whose fix is not small,
-#   is a Finding under Consider, with the evaluator's own evidence.
+#   is a Finding under Consider, with the evaluator's own evidence. When its fix is not small it
+#   carries the line "Mark: too big for a Fixer" right before its Fix line, at any Rung.
 # - A return ending on Refuted by (no Fix, no Small) at Rung 3 or above is a Finding under Cleared,
 #   with the evaluator's own evidence and Refuted by in place of Fix. At Rung 1 or 2 it is a Finding
 #   under Consider, the refutation in its evidence ("; refuted only at Rung <r>: <Refuted by>") and
@@ -150,7 +151,8 @@ read_return() { # $1 return file, $2 source: kind=returned|outside|missing, then
   printf 'kind=returned\n%sending=%s\n' "$out" "$ending"
 }
 
-place() { # $1 source, stdin: read_return's lines. Prints the Placement: bucket, rung, evidence, risk, last
+# The Placement: bucket, rung, evidence, risk, mark (a fixed constant, never a return's value), last.
+place() { # $1 source, stdin: read_return's lines
   local key val kind="" rung="" evidence="" risk="" fix="" small="" refuted="" settles="" ending="" axis="" file="${1%%, *}"
   while IFS= read -r line; do
     key="${line%%=*}" val="${line#*=}"
@@ -192,6 +194,7 @@ place() { # $1 source, stdin: read_return's lines. Prints the Placement: bucket,
   fi
   printf 'rung=%s\nevidence=%s\n' "$rung" "$evidence"
   [ -z "$risk" ] || printf 'risk=%s\n' "$risk"
+  [ "$ending" = fix ] && [ "$small" = no ] && printf 'mark=too big for a Fixer\n'
   case "$ending" in
     refuted) printf 'last=Refuted by: %s\n' "$refuted" ;;
     outside-code) printf 'last=Fix: %s\n' "$settles" ;;
@@ -264,14 +267,14 @@ main() {
   review="$(dirname "$spec")/$(basename "$spec" .md).debt.review.md"
   local -a b_act=() b_con=() b_note=() b_clr=()
   local rr placement line key val
-  local bucket prung pevidence prisk plast axis location claim heading body
+  local bucket prung pevidence prisk pmark plast axis location claim heading body
   while IFS=$'\t' read -r k source text; do
     k="${k#item=}"
     source="${source#source=}"
     text="${text#text=}"
     rr="$(read_return "$2/item-$k.md" "$source")"
     placement="$(place "$source" <<<"$rr")"
-    bucket="" prung="" pevidence="" prisk="" plast="" axis="" location="" claim=""
+    bucket="" prung="" pevidence="" prisk="" pmark="" plast="" axis="" location="" claim=""
     while IFS= read -r line; do
       key="${line%%=*}" val="${line#*=}"
       case "$key" in
@@ -279,6 +282,7 @@ main() {
         rung) prung="$val" ;;
         evidence) pevidence="$val" ;;
         risk) prisk="$val" ;;
+        mark) pmark="$val" ;;
         last) plast="$val" ;;
       esac
     done <<<"$placement"
@@ -301,6 +305,7 @@ main() {
     esac
     body="Claim: $claim"$'\n'"Evidence: $pevidence"$'\n'"Rung: $prung"$'\n'
     [ -z "$prisk" ] || body+="Risk: $prisk"$'\n'
+    [ -z "$pmark" ] || body+="Mark: $pmark"$'\n'
     body+="$plast"$'\n'"Source: $source"
     case "$bucket" in
       "Act on") b_act+=("$heading"$'\n'"$body") ;;

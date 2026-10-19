@@ -199,6 +199,17 @@ check_lines "a return missing its Fix line is a Finding under Consider, marked o
   "Claim: the queue drops a message on restart" "Evidence: the evaluator returned outside the shape" "Rung: 1" \
   "Source: $ninth"
 
+line_before_fix() { # stdin: a Finding; the line right above its Fix: line, on stdout
+  awk '/^Fix: / { print prev; exit } { prev = $0 }'
+}
+# shellcheck disable=SC2034  # lib.sh's same reads $out
+out="$(consider_item "Claim: every request reads the whole session store." | line_before_fix)"
+same "an item at Rung 3 or above whose fix is not small is marked too big for a Fixer, right above its Fix line" \
+  "Mark: too big for a Fixer"
+# shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+out="$(consider_item "Claim: the error path is never logged.")"
+check_absent "an item whose fix is small carries no mark under Consider" 0 "$rc" "Mark:"
+
 fresh traced
 traced="$(pwd -P)"
 traced_feature="$traced/.scratch/20261019-traced-debt"
@@ -450,6 +461,7 @@ cat >"$cleared_feature/issues/01-a.debt.md" <<'EOF'
 - the page size is parsed twice
 - the consumer flows were not run against the new page signature
 - the export token is never rotated
+- the page cursor is rebuilt by every caller
 EOF
 commit "seed the cleared feature"
 cleared_source_of() { # $1 item number: its source, as gather.sh records it, on stdout
@@ -460,8 +472,10 @@ cleared_source="$(cleared_source_of 1)"
 weak_source="$(cleared_source_of 2)"
 outside_source="$(cleared_source_of 3)"
 secure_source="$(cleared_source_of 4)"
-if [ -z "$cleared_source" ] || [ -z "$weak_source" ] || [ -z "$outside_source" ] || [ -z "$secure_source" ]; then
-  echo "FAIL  fixture: gather.sh named no source for the cleared-debt items 1 to 4"
+large_source="$(cleared_source_of 5)"
+if [ -z "$cleared_source" ] || [ -z "$weak_source" ] || [ -z "$outside_source" ] || [ -z "$secure_source" ] ||
+  [ -z "$large_source" ]; then
+  echo "FAIL  fixture: gather.sh named no source for the cleared-debt items 1 to 5"
   exit 1
 fi
 cleared_returns="$tmp/cleared-returns"
@@ -502,6 +516,16 @@ Evidence: src/export.sh:9 reads a token minted once at deploy, read from the sou
 Rung: 3
 Risk: auth
 Outside code: the token rotates on the vault's schedule, in the deployment's vault policy
+EOF
+cat >"$cleared_returns/item-5.md" <<EOF
+Source: $large_source
+Axis: Principles
+Location: src/report.sh:20
+Claim: every caller rebuilds the page cursor.
+Evidence: an earlier note says three callers build it; none was run.
+Rung: 2
+Fix: one cursor type is shared by every caller, across src/
+Small: no
 EOF
 cleared_review="$cleared_feature/spec.debt.review.md"
 rc=0
@@ -571,6 +595,17 @@ expect "a Security item that no code settles keeps its own Axis and Location in 
 # shellcheck disable=SC2034  # lib.sh's check_absent reads $out
 out="$(grep -qx '## Cleared' "$cleared_review" 2>/dev/null && passage_of "$cleared_review" "## Noted" "## Cleared")"
 check_absent "a Security item that no code settles never lands in Noted" 0 "$cleared_rc" "the export token is never rotated"
+
+# shellcheck disable=SC2034  # lib.sh's same reads $out
+out="$(grep -qx '## Noted' "$cleared_review" 2>/dev/null &&
+  item_holding <(passage_of "$cleared_review" "## Consider" "## Noted") '### [0-9]+\.' "Claim: every caller rebuilds" |
+  line_before_fix)"
+same "an item at Rung 1 or 2 whose fix is not small is marked too big for a Fixer, right above its Fix line" \
+  "Mark: too big for a Fixer"
+# shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+out="$(grep -qx '## Consider' "$cleared_review" 2>/dev/null && passage_of "$cleared_review" "## Act on" "## Consider")"
+check_absent "an item at Rung 1 or 2 whose fix is not small stays out of Act on" 0 "$cleared_rc" \
+  "every caller rebuilds the page cursor"
 
 fresh idle
 idle="$(pwd -P)"
