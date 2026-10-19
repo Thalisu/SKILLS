@@ -56,6 +56,13 @@ has nothing to say reading `none`. A later `--auto` run that finds the file alre
 its own Run report below the earlier one, under a `---` rule, and never replaces it. Without `--auto` the Run report is not written at all,
 per [ADR 0091](../../../docs/adr/0091-the-do-reply-is-five-parts-and-the-run-report-is-written-only-under-auto.md).
 
+Every run on a Ticket, with or without `--auto`, writes the Reply's Pending debt part, and nothing
+else of the Reply, to the Debt file beside the Ticket: the Ticket's file name with `.debt` before
+the extension (`<ticket stem>.debt.md`), in the Home repository's main checkout. For a tracker
+Ticket it sits beside the Plan, with `.debt.md` in place of `.plan.md`, the way the Run report sits
+beside it. Each run adds one section to that file, headed by the run's date and time, holding the
+Pending debt part verbatim, as the message carries it.
+
 A run that ends early writes a shorter message, per
 [A refusal or a blocked run](#a-refusal-or-a-blocked-run). [Whole replies](#whole-replies) shows
 both shapes.
