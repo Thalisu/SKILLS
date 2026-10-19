@@ -596,6 +596,18 @@ committer_identity() { # a committer identity in the current repository, for com
   g config user.email t@example.com
   g config user.name t
 }
+fixer_branch() { # $1 name, $2 file, $3 content, [$4 file, $5 content...]: a branch one commit (message <name>) ahead of main writing each file, back on main
+  local name="$1"
+  shift
+  g checkout -q -b "$name" main
+  while [ "$#" -ge 2 ]; do
+    mkdir -p "$(dirname "$1")"
+    printf '%s\n' "$2" >"$1"
+    shift 2
+  done
+  commit "$name"
+  g checkout -q main
+}
 branch_worktree() { # $1 main checkout, $2 name: a worktree at .claude/worktrees/do-<name> on a new branch do/<name> off the checkout's HEAD; its path on stdout
   local wt="$1/.claude/worktrees/do-$2"
   g -C "$1" worktree add -q "$wt" -b "do/$2" && echo "$wt"

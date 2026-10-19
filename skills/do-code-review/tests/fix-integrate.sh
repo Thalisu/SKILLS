@@ -24,12 +24,6 @@ run() {
   # shellcheck disable=SC2034  # lib.sh's check_lines reads $out
   out="$(cd "$tmp" && bash "$script" "$@" 2>&1)" || rc=$?
 }
-fixer_branch() { # $1 name, $2 file, $3 content: a branch one commit (message <name>) ahead of main, back on main
-  git checkout -q -b "$1" main
-  printf '%s\n' "$3" >"$2"
-  commit "$1"
-  git checkout -q main
-}
 
 fresh clean
 main="$tmp/clean"
