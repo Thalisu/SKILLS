@@ -266,6 +266,15 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    e. `bash <skill-dir>/../do-code-review/scripts/fix-worktrees.sh remove <run tree> <branch>`. Its
       `removed` or `kept` line goes to the Reply's round lines as it stands.
 
+   The checks moved out of one Wave run in Waves of their own, right after the Wave they were moved
+   out of and before any later printed Wave of `group-waves.sh`'s; moved out of the last printed Wave,
+   they run after it, as the new last. A `conflicted` line names the files that aborted its pick, so two
+   moved checks whose `conflicted` lines name a common file are never forked together: each goes in a
+   separate Wave, since together they would conflict over that file again. A moved check whose
+   `conflicted` line shares no file with another moved check may share its Wave. Such a Wave is never
+   merged into a Wave `group-waves.sh` printed, which could put two fixers on one file. Each of these
+   Waves runs sub-items a to e like any Wave.
+
    The next Wave's worktrees are cut only after this Wave's picks, from the run tree's HEAD as those
    picks left it, since `fix-integrate.sh` refuses a branch that is not exactly one commit ahead of
    the HEAD it starts on, so a Wave cut before the one ahead of it was integrated could never be

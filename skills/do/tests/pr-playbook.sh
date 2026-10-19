@@ -1243,6 +1243,39 @@ carries_each "any line other than picked and conflicted still stops the run quot
   "any other line" "other line" "another line" "any line other" "anything else" -- \
   "stops the run" "stop the run" -- "quoting"
 
+# Two checks moved out of one Wave that conflicted over the same file would conflict again if forked
+# side by side, spending their moves on the very collision that moved them. Step 4 already says
+# "later Wave", "next Wave" and "HEAD" for other reasons, so the guarantees are read off the
+# paragraph about the moved checks alone, keyed on wording no other paragraph of the step carries.
+echo "# pr.md / ### 4. Fix the red checks: checks moved out of one Wave whose conflicted lines name a common file are forked in separate Waves of their own, right after that Wave and before the next printed one, and never merged into a Wave group-waves.sh printed"
+step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+flat="$(piece_in="$step" piece_with "moved out of" "moved checks" "moved check" "checks moved" "check moved")"
+expect "a paragraph of the step is about the checks moved out of a Wave" test -n "$flat"
+carries_any "the moved checks run in Waves of their own" \
+  "Waves of their own" "Wave of their own" "their own Waves" "their own Wave" "Waves of its own" \
+  "new Waves" "new Wave" "extra Wave" "extra Waves" "added Wave" "added Waves"
+carries_each "right after the Wave they were moved out of" \
+  "right after" "straight after" "immediately after" "just after" "directly after" "right behind" -- \
+  "moved out of" "they left" "they came from" "they were moved"
+carries_each "and before the next Wave group-waves.sh printed" \
+  "before the next" "ahead of the next" "before group-waves.sh's next" "before any later printed" -- \
+  "printed" "group-waves.sh"
+carries_each "after the last printed Wave when moved out of the last one" \
+  "last" -- "after"
+carries_each "two moved checks whose conflicted lines name a common file are never forked together" \
+  "common file" "a file in common" "share a file" "shares a file" "sharing a file" "same file" \
+  "name a file" "names a file" -- \
+  "conflicted" -- \
+  "never forked together" "not forked together" "never together" "never in the same Wave" \
+  "never share a Wave" "never in one Wave" "not in the same Wave" "never side by side"
+carries_any "each going in a separate Wave" \
+  "separate Wave" "separate Waves" "different Wave" "different Waves" "a Wave each" "one per Wave" \
+  "Waves apart" "a Wave apart" "each in its own Wave" "each in a Wave of its own"
+carries_each "and such a Wave is never merged into a Wave group-waves.sh printed" \
+  "never merged" "not merged" "never folded" "not folded" "never joins" "never added to" "never put in" \
+  "never mixed" "never combined" "not combined" -- \
+  "printed" "group-waves.sh"
+
 # The developer may have the head checked out, dirty or on another branch: a round integrated in
 # their checkout moves their branch or mixes the run's commits with their work in progress. The
 # round is read off step 4 alone: `not fixed <k>:` already sits there, so the pick's trigger is
