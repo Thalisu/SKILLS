@@ -393,12 +393,17 @@ the whole message, and a green watch adds no part of its own:
   inside the five parts and adding no part of their own: one line per red check, one per `kept`
   line `fix-worktrees.sh remove` printed, and the verdict the watch read after the push:
 
-      round 1: <check> red; do-pr-fixer on <fixer branch>: <picked sha> pushed to <head>
-      round 1: <check> red; do-pr-fixer on <fixer branch>: <its return line>; nothing pushed for it
-      round 1: <check> red; do-pr-fixer on <fixer branch>: not fixed: conflicted with check <m>; nothing pushed for it
-      round 1: <a `kept` line, as fix-worktrees.sh printed it>
-      round 1: kept <branch> <path> <reason>, as fix-worktrees.sh printed it
-      round 1: after the push the watch read <verdict word>
+      round <r>: <check> red; do-pr-fixer on <fixer branch>: <picked sha> pushed to <head>
+      round <r>: <check> red; do-pr-fixer on <fixer branch>: <its return line>; nothing pushed for it
+      round <r>: <check> red; do-pr-fixer on <fixer branch>: not fixed: conflicted with check <m>; nothing pushed for it
+      round <r>: <a `kept` line, as fix-worktrees.sh printed it>
+      round <r>: kept <branch> <path> <reason>, as fix-worktrees.sh printed it
+      round <r>: after the push the watch read <verdict word>
+
+  `<r>` is the round's number, 1, 2, 3 in the order the rounds pushed, so each round is listed
+  under its own number, `round 1:`, `round 2:`, `round 3:`, each with its red checks, the fixer of
+  each, the commits pushed and the verdict that ended it. A redone round is listed under the number
+  of the round it redid: it counts once, never a new number.
 - When the run pushed, the **Next step** line names `git pull --ff-only origin <head>` on the
   developer's checkout of `<head>`, then `gh pr merge <n>`. The run never runs either one, and
   never names either under `outward`.

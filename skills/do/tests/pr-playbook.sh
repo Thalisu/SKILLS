@@ -1591,10 +1591,10 @@ echo "# pr.md / ### 5. Reply and reply.md item 1: a pr run that pushed a round l
 reply_step="$(passage_of "$pr" "### 5. Reply" "##" 2>/dev/null)"
 out="$(sed 's/^[[:space:]]*//' <<<"$reply_step")"
 check_lines "the Reply step shows the round lines, as whole lines" 0 0 \
-  'round 1: <check> red; do-pr-fixer on <fixer branch>: <picked sha> pushed to <head>' \
-  'round 1: <check> red; do-pr-fixer on <fixer branch>: <its return line>; nothing pushed for it' \
-  'round 1: <a `kept` line, as fix-worktrees.sh printed it>' \
-  'round 1: after the push the watch read <verdict word>'
+  'round <r>: <check> red; do-pr-fixer on <fixer branch>: <picked sha> pushed to <head>' \
+  'round <r>: <check> red; do-pr-fixer on <fixer branch>: <its return line>; nothing pushed for it' \
+  'round <r>: <a `kept` line, as fix-worktrees.sh printed it>' \
+  'round <r>: after the push the watch read <verdict word>'
 flat="$(tr '\n' ' ' <<<"$reply_step" | tr -s ' ')"
 carries "the Reply keeps its five parts" "five parts"
 carries_any "as the whole message" "the whole message" "whole of the message"
@@ -1909,5 +1909,46 @@ out="$(sed 's/^[[:space:]]*//' <<<"$watch" | grep -E '^`?Yours: direction:' | gr
   grep -F -e '<the checks still red>' -e '<the red checks>' -e '<the checks still failing>' -e '<the failing checks>')"
 expect "the step shows the stop as a whole line opening \`Yours: direction:\` with the checks still red and \`/do the pull request again\`" \
   test -n "$out"
+
+# The developer auditing what a run pushed to a branch others build on, across several rounds,
+# relies on each round being listed under its own number: round lines that all read `round 1:` hide
+# which round pushed which commit. A redone round counts once, so it keeps the number of the round
+# it redid. The rule is read off the bullet or paragraph naming `<r>`, the template block passed
+# over, and off reply.md's item 1; the watch step's stop lines are not read here.
+echo "# pr.md / ### 5. Reply and reply.md item 1: a pr run lists each round under its own number, with its red checks, the fixer of each, the commits pushed and the verdict that ended it"
+reply_step="$(passage_of "$pr" "### 5. Reply" "##" 2>/dev/null)"
+out="$(sed 's/^[[:space:]]*//' <<<"$reply_step")"
+check_lines "the Reply step's round line templates open with \`round <r>:\`, as whole lines" 0 0 \
+  'round <r>: <check> red; do-pr-fixer on <fixer branch>: <picked sha> pushed to <head>' \
+  'round <r>: <check> red; do-pr-fixer on <fixer branch>: <its return line>; nothing pushed for it' \
+  'round <r>: <a `kept` line, as fix-worktrees.sh printed it>' \
+  'round <r>: after the push the watch read <verdict word>'
+absent_prefix "no round line template keeps a fixed \`round 1:\`" 'round 1: <'
+flat="$(piece_in="$reply_step" piece_without="$(printf '%s\n' "<fixer branch>" "<verdict word>")" \
+  piece_with "<r>")"
+expect "a bullet or paragraph of the Reply step, past the templates, names \`<r>\`" test -n "$flat"
+carries_any "\`<r>\` is the round's number" \
+  "round's number" "number of the round" "round number" "round's own number" "the round it numbers"
+carries_any "counting 1, 2, 3" "1, 2, 3" "1, 2 and 3" "1, 2, then 3" "round 2:"
+carries_each "in the order the rounds pushed" "order" -- "push"
+carries_each "so each round is listed under its own number" \
+  "each round" "every round" -- "own number" "its number" "a number of its own"
+carries_each "each with its red checks, the fixer of each, the commits pushed and the verdict that ended it" \
+  "red check" "checks red" "check red" -- "fixer" -- "commit" -- "pushed" -- "verdict"
+carries_each "a redone round is listed under the number of the round it redid" \
+  "redone" "redo" "redid" -- \
+  "the round it redid" "the round it redoes" "the number of the round it" "the same number" \
+  "the round it replaced" "that round's number"
+carries_any "it counts once" \
+  "counts once" "count once" "counted once" "counts as one" "one number" "a single number" \
+  "no number of its own" "never a number of its own" "never a new number" "no new number"
+item="$(item_holding <(passage_of "$reply" "## Sections" "## ") '[0-9]+\.' "1. **For whom.**" | tr '\n' ' ' | tr -s ' ')"
+expect "reply.md's Sections carry item 1, For whom" test -n "$item"
+flat="$item"
+carries_each "a \`pr\` run's round lines are listed per round, each under its own number" \
+  "\`pr\`" "pr run" -- \
+  "round lines" "round line" -- \
+  "per round" "each round" "every round" "round by round" -- \
+  "own number" "its number" "round's number" "number of the round" "round <r>"
 [ "$fails" -eq 0 ] && exit 0
 exit 1
