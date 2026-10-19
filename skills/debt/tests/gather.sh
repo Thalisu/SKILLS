@@ -185,4 +185,37 @@ check_lines "a slug that names no folder says so, quoting the slug as typed, and
 expect "a slug that names no folder writes nothing in the directory it ran from" \
   test "$before" = "$(snapshot "$tmp" "$entries")"
 
+clean="$tmp/.scratch/20261019-clean-feature"
+mkdir -p "$clean/issues"
+printf '# Spec: clean feature\n' >"$clean/spec.md"
+printf '## 2026-10-19 15:01\n\nnone\n\n## 2026-10-20 09:00\n\nnone\n' >"$clean/issues/01-a.debt.md"
+fixed_last="## Fix run
+
+Date: 2026-10-19 · at 8b1d0e4
+
+- 1: not fixed: the Fixer never returned
+- gate: \`bash tests/a.test.sh\`: green
+- not landed: Finding 1 not fixed
+
+## Fix run
+
+Date: 2026-10-20 · at 8b1d0e4
+
+- 1: fixed 1a2b3c4, verified (\`bash tests/a.test.sh\`)
+- gate: \`bash tests/a.test.sh\`: green
+- landed at 1a2b3c4"
+review_at 8b1d0e4 "$clean/spec.review.md" "" "$fixed_last" "" "none" "none" "### 2. Blast radius at src/e.sh:7, outside the diff
+Claim: the caller breaks on the new argument order.
+Evidence: the caller passes the path first.
+Rung: 4
+Refuted by: a proof script that calls src/e.sh exits 0."
+review_at 8b1d0e4 "$clean/issues/01-a.review.md" "none" "$landed"
+before="$(snapshot "$tmp" "$entries")"
+run clean-feature
+check_lines "a feature with no pending debt says so, naming its folder, and exits 1" 1 "$rc" \
+  "line=no pending debt in 20261019-clean-feature; nothing judged"
+check_absent "a feature with no pending debt gives no item" 1 "$rc" "item="
+expect "a feature with no pending debt writes nothing in the directory it ran from" \
+  test "$before" = "$(snapshot "$tmp" "$entries")"
+
 exit "$fails"

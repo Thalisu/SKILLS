@@ -11,7 +11,7 @@
 # fixed, of the feature's Reviews (the Spec's, then the Tickets', never the Debt review), k
 # continuing, the source naming the review file and the Finding.
 #
-# Exit codes: 0 it gathered · 2 usage, or the resolver refused the slug (its stderr is relayed) · 3 the slug names no feature folder, nothing written.
+# Exit codes: 0 it gathered · 1 it gathered no record, nothing judged · 2 usage, or the resolver refused the slug (its stderr is relayed) · 3 the slug names no feature folder, nothing written.
 set -uo pipefail
 
 debt_items() {
@@ -121,6 +121,10 @@ main() {
     debt_items "$dir"
     review_items "$dir" "$spec"
   )
+  if [ "$k" = 0 ]; then
+    echo "line=no pending debt in $(basename "$dir"); nothing judged"
+    return 1
+  fi
 }
 
 main "$@"
