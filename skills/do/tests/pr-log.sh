@@ -59,7 +59,7 @@ want_tail+="excerpt=FAIL src/a.test.ts"$'\n'"excerpt=Tests: 1 failed, 177 passed
 
 run "https://github.com/o/r/actions/runs/7/job/99" "$tmp/tree"
 same "a red check's log of 210 lines over two failed steps: the excerpt names each failed step once in log order, the 10 lines dropped, then the last 200 lines without the job and step columns, the timestamp or ANSI escapes" \
-  "step=Type check"$'\n'"step=Run tests"$'\n'"dropped=10"$'\n'"$want_tail"
+  "step=Type check"$'\n'"step=Run tests"$'\n'"dropped=10"$'\n'"$want_tail"$'\n'"repo=github.com/o/r"$'\n'"run=7"
 expect "a red check's log cut to its excerpt: the script exits 0" [ "$rc" = 0 ]
 
 fresh named
@@ -80,8 +80,14 @@ cd "$tmp" || exit 1
 
 run "https://github.com/o/r/actions/runs/7/job/99" "$tmp/named"
 same "a red check's excerpt naming files: one file= line per tracked file it names, repo-relative, first appearance first and once, a runner workspace path reduced to the repo path and a toolchain or untracked path left out, between dropped= and the excerpt" \
-  "step=Run tests"$'\n'"dropped=0"$'\n'"file=tests/test_main.py"$'\n'"file=src/app/main.py"$'\n'"excerpt=ERROR tests/test_main.py:8 test_add failed"$'\n'"excerpt=raised at /home/runner/work/r/r/src/app/main.py:12:5 in add"$'\n'"excerpt=called from /usr/lib/python3.11/unittest/case.py:57 in run"$'\n'"excerpt=loaded node_modules/x/index.js:3 first"$'\n'"excerpt=rerun with pytest \"tests/test_main.py\""
+  "step=Run tests"$'\n'"dropped=0"$'\n'"file=tests/test_main.py"$'\n'"file=src/app/main.py"$'\n'"excerpt=ERROR tests/test_main.py:8 test_add failed"$'\n'"excerpt=raised at /home/runner/work/r/r/src/app/main.py:12:5 in add"$'\n'"excerpt=called from /usr/lib/python3.11/unittest/case.py:57 in run"$'\n'"excerpt=loaded node_modules/x/index.js:3 first"$'\n'"excerpt=rerun with pytest \"tests/test_main.py\""$'\n'"repo=github.com/o/r"$'\n'"run=7"
 expect "a red check's excerpt naming files: the script exits 0" [ "$rc" = 0 ]
+
+printf '%s\tRun tests\t2026-10-14T12:03:00.1234567Z %s\n' "$job" "ERROR tests/test_main.py:8 test_add failed" >"$GH_FAKE/log"
+run "https://github.com/o/r/actions/runs/4242/job/99" "$tmp/named"
+same "a red check's workflow run to rerun: repo= with the link's host, owner and repo, then run= with the run id of the link, not its job id, both after every step=, dropped=, file= and excerpt= line" \
+  "step=Run tests"$'\n'"dropped=0"$'\n'"file=tests/test_main.py"$'\n'"excerpt=ERROR tests/test_main.py:8 test_add failed"$'\n'"repo=github.com/o/r"$'\n'"run=4242"
+expect "a red check's workflow run to rerun: the script exits 0" [ "$rc" = 0 ]
 
 mkdir -p "$tmp/plain"
 link="https://github.com/o/r/actions/runs/7/job/99"

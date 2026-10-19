@@ -9,7 +9,8 @@
 # Prints key=value lines: one step=<step name> per failed step in log order, dropped=<n> (the lines
 # cut above the excerpt), then one file=<path> per tracked path the excerpt names (repo-relative,
 # first appearance first, once), then the last 200 lines of the failed steps' output as
-# excerpt=<text>, with the timestamp and ANSI escapes stripped. Keys repeat in order.
+# excerpt=<text>, with the timestamp and ANSI escapes stripped, then repo=<host>/<owner>/<repo> and
+# run=<run id> as the last two lines, the run id read off the link. Keys repeat in order.
 #
 # Exits 0 an excerpt printed · 1 gh missing or unable to read the log · 2 usage · 3 nothing to cut
 # (not an Actions job link, or no failed step). Nothing on stdout for 1, 2 or 3; a one-line
@@ -18,13 +19,13 @@ set -uo pipefail
 
 excerpt_lines=200
 
-parse_link() { # $1 link: prints "<host>/<owner>/<repo> <job id>", or exits 3 when it is not an Actions job URL
-  local re='^https://([^/]+)/([^/]+)/([^/]+)/actions/runs/[0-9]+/job/([0-9]+)([?#].*)?$'
+parse_link() { # $1 link: prints "<host>/<owner>/<repo> <run id> <job id>", or exits 3 when it is not an Actions job URL
+  local re='^https://([^/]+)/([^/]+)/([^/]+)/actions/runs/([0-9]+)/job/([0-9]+)([?#].*)?$'
   if [[ ! "$1" =~ $re ]]; then
     echo "pr-log.sh: not a GitHub Actions job link: $1" >&2
     exit 3
   fi
-  printf '%s/%s/%s %s\n' "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}" "${BASH_REMATCH[3]}" "${BASH_REMATCH[4]}"
+  printf '%s/%s/%s %s %s\n' "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}" "${BASH_REMATCH[3]}" "${BASH_REMATCH[4]}" "${BASH_REMATCH[5]}"
 }
 
 read_failed_log() { # $1 repo, $2 job id: the raw log lines
@@ -83,7 +84,7 @@ named_files() { # stdin: the excerpt's lines; $1 tree: prints one file=<path> pe
 }
 
 main() {
-  local parsed repo job log cut
+  local parsed repo run job log cut
   if [ "$#" -ne 2 ]; then
     echo "usage: pr-log.sh <link> <tree>" >&2
     exit 2
@@ -97,8 +98,7 @@ main() {
     echo "pr-log.sh: gh is not on PATH" >&2
     exit 1
   fi
-  repo="${parsed% *}"
-  job="${parsed#* }"
+  read -r repo run job <<<"$parsed"
   if ! log="$(read_failed_log "$repo" "$job")"; then
     echo "pr-log.sh: gh could not read the log of job $job" >&2
     exit 1
@@ -110,6 +110,7 @@ main() {
   printf '%s\n' "$cut" | grep -E '^(step|dropped)='
   printf '%s\n' "$cut" | sed -n 's/^excerpt=//p' | named_files "$2"
   printf '%s\n' "$cut" | grep '^excerpt='
+  printf 'repo=%s\nrun=%s\n' "$repo" "$run"
 }
 
 main "$@"
