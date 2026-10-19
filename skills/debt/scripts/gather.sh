@@ -7,8 +7,9 @@
 # Prints slug=, folder= and spec= lines, the values resolve-feature-folder.sh prints, then one
 # item=<k><TAB>source=<source><TAB>text=<text> line per Debt item of the folder's issues/*.debt.md
 # files, k from 1, the source naming the Debt file, its section and the item within the section,
-# then one per Consider or Noted Finding of the feature's Reviews (the Spec's, then the Tickets',
-# never the Debt review), k continuing, the source naming the review file and the Finding.
+# then one per Consider or Noted Finding, and per Act on Finding whose latest fix line reads not
+# fixed, of the feature's Reviews (the Spec's, then the Tickets', never the Debt review), k
+# continuing, the source naming the review file and the Finding.
 #
 # Exit codes: 0 it gathered · 2 usage, or the resolver refused the slug (its stderr is relayed) · 3 the slug names no feature folder, nothing written.
 set -uo pipefail
@@ -70,6 +71,11 @@ review_items() {
     while IFS=$'\t' read -r n bucket latest header; do
       case "${bucket#bucket=}" in
         Consider | Noted) printf '%s, Finding %s\t%s\n' "$rel" "${n#finding=}" "${header#header=}" ;;
+        "Act on")
+          case "${latest#latest=}" in
+            "not fixed"*) printf '%s, Finding %s\t%s\n' "$rel" "${n#finding=}" "${header#header=}" ;;
+          esac
+          ;;
       esac
     done < <(bash "$here/../../../.agents/scripts/review-findings.sh" "$dir/$rel")
   done < <(review_files "$dir" "$spec")

@@ -103,6 +103,80 @@ check_lines "each Consider and Noted Finding of a Review is one record after the
 check_absent "a Cleared Finding, an empty Bucket and the Debt review's own Findings give no item" "$rc" "$rc" \
   "Blast radius at src/e.sh:7" "text=none" "source=spec.debt.review.md" "Standards at src/g.sh:4"
 
+open="$tmp/.scratch/20261019-open-findings"
+mkdir -p "$open/issues"
+printf '# Spec: open findings\n' >"$open/spec.md"
+printf '## first run\n\n- the timeout is hardcoded\n' >"$open/issues/01-a.debt.md"
+act_on="### 1. Correctness at src/a.sh:3
+Claim: a call with no argument exits on an unbound variable.
+Evidence: \`bash src/a.sh\` exits 1.
+Rung: 4
+
+### 2. Correctness at src/b.sh:4
+Claim: the loop skips the last line.
+Evidence: \`bash src/b.sh\` prints two of three lines.
+Rung: 4
+
+### 3. Correctness at src/c.sh:5
+Claim: the exit code is lost in the pipe.
+Evidence: \`bash src/c.sh\` exits 0 on a failure.
+Rung: 4
+
+### 4. Correctness at src/d.sh:6
+Claim: the path is unquoted.
+Evidence: a path with a space splits.
+Rung: 4
+
+### 5. Correctness at src/e.sh:7
+Claim: the counter starts at one.
+Evidence: \`bash src/e.sh\` reports one too many.
+Rung: 4
+
+### 6. Spec at src/f.sh:8
+Claim: the flag the Spec names is ignored.
+Evidence: \`bash src/f.sh --dry\` writes the file.
+Rung: 4
+
+### 7. Security at src/g.sh:9
+Claim: the token is echoed to the log.
+Evidence: \`bash src/g.sh\` prints the token.
+Rung: 4"
+two_runs="## Fix run
+
+Date: 2026-10-19 · at 8b1d0e4
+
+- 1: not fixed: the Fixer never returned
+- 2: fixed 1a2b3c4, verified (\`bash tests/b.test.sh\`)
+- 6: not fixed: the Fixer could not turn it green
+- 7: fixed 1a2b3c4, verified (\`bash tests/g.test.sh\`)
+- gate: \`bash tests/a.test.sh\`: green
+- not landed: Finding 1, 6 not fixed
+
+## Fix run
+
+Date: 2026-10-20 · at 1a2b3c4
+
+- 3: fixed 5d6e7f8, not verified
+- 4: stale
+- 6: fixed 5d6e7f8, verified (\`bash tests/f.test.sh\`)
+- 7: not fixed: the Fixer dropped its edits
+- gate: \`bash tests/a.test.sh\`: green
+- not landed: Finding 3 not verified, Finding 7 not fixed"
+review_at 8b1d0e4 "$open/spec.review.md" "$act_on" "$two_runs" "" "### 8. Standards at src/h.sh:2
+Claim: \`echo -e\` in \`src/\`, which CLAUDE.md forbids.
+Evidence: CLAUDE.md, \"use printf\".
+Rung: 2"
+review_at 8b1d0e4 "$open/issues/01-a.review.md"
+run open-findings
+check_lines "an Act on Finding whose latest Fix run line reads not fixed is one record, before its Review's Consider and Noted, in the gathered order" "$rc" "$rc" \
+  "item=1${tab}source=issues/01-a.debt.md, section first run, item 1${tab}text=the timeout is hardcoded" \
+  "item=2${tab}source=spec.review.md, Finding 1${tab}text=Correctness at src/a.sh:3" \
+  "item=3${tab}source=spec.review.md, Finding 7${tab}text=Security at src/g.sh:9" \
+  "item=4${tab}source=spec.review.md, Finding 8${tab}text=Standards at src/h.sh:2" \
+  "item=5${tab}source=issues/01-a.review.md, Finding 1${tab}text=Correctness at src/a.sh:3"
+check_absent "an Act on Finding whose latest line reads fixed or stale, or that has no fix line, gives no item" "$rc" "$rc" \
+  "src/b.sh:4" "src/c.sh:5" "src/d.sh:6" "src/e.sh:7" "src/f.sh:8" "item=6${tab}"
+
 entries='%p %y %s %T@\n'
 before="$(snapshot "$tmp" "$entries")"
 run Pending-Debt-Typo
