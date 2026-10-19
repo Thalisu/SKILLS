@@ -2896,5 +2896,120 @@ carries_each "the verdict's other red names, which no clause names, go in the st
   "still red:" -- \
   "other red" "other \`red=\`" "other checks" "no clause names" "no clause" "rest of" "remaining" \
   "the others"
+# The developer relies on a round that stops on a stop-case beside a not reproduced check getting
+# that check's answer in the same stop (the journey's Ruling on Path 4: rerun once and watch before
+# the stop): a stop made before the rerun hands over a check one rerun could have settled. Step 4's
+# route is read off the push item's pieces naming both a stop-case and the not reproduced check or
+# its rerun, the empty-stop-set pieces passed over so the empty-set rerun paragraph never answers for
+# it; the one watch after it off the watch step's pieces naming a rerun beside the stop set, the
+# came-back bullet passed over, and its place off the order of the step's pieces; the round line off
+# the Reply step's round templates, a line of its own or a code span.
+echo "# pr.md / ### 4. Fix the red checks, ### 3. Watch and ### 5. Reply: a round that pushes nothing, with a stop-case and a not reproduced check outside the retry record, reruns it once and watches once more before it stops on the carried stop set, whatever the verdict; on moved= it stops at once, the check in the still red: tail"
+step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+push_item="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.' "$push_line" | sed 's/^[[:space:]]*//')"
+stop_case_marks=("stop-case" "stop case" "non-empty stop set" "stop set is not empty" "stop set isn't empty"
+  "carried stop set" "carrying the stop set" "carries the stop set" "carrying its stop set"
+  "carries its stop set" "stop set it carries" "stop set it carried" "stop set carried")
+empty_set_marks="$(printf '%s\n' "stop set is empty" "empty stop set" "stop set empty" "stop set holds nothing")"
+flat4="$(piece_in="$push_item" piece_all=1 piece_without="$empty_set_marks" piece_with "${stop_case_marks[@]}" |
+  grep -F -e "not-reproduced list" -e "not reproduced list" -e "not reproduced" -e "rerun=" -e "moved=" \
+    -e "pr-rerun.sh" | tr '\n' ' ')"
+flat="$flat4"
+expect "pieces of the end-of-round item take a round with a stop-case beside a not reproduced check" test -n "$flat"
+carries_each "when no check was picked, the stop set holds a stop-case and a check on the not-reproduced list is outside the retry record" \
+  "no check was picked" "no check picked" "nothing was picked" "nothing picked" "picked nothing" "no pick" \
+  "no check is picked" -- \
+  "not-reproduced list" "not reproduced list" -- \
+  "not in the run's retry record" "not in the retry record" "outside the retry record" \
+  "absent from the retry record" "missing from the retry record" "not on the retry record" \
+  "not yet in the retry record"
+carries_each "the run makes the one pr-rerun.sh call, as the empty-set row makes it" \
+  "pr-rerun.sh" "rerun call" -- \
+  "once" "one call" "a single call" "one rerun call" "the rerun call" "same call" "same rerun" \
+  "as the empty" "as for an empty" "as on an empty" "as when the stop set is empty" "as the row"
+carries_any "before it stops" \
+  "before it stops" "before the stop" "before stopping" "before the run stops" "before any stop" \
+  "ahead of the stop" "then stops" "only then" "rather than stopping" "instead of stopping" \
+  "not at once" "never at once" "stops only after" "stops after"
+carries_each "on rerun=, the round's rerun line is written" \
+  "rerun=" -- \
+  "rerun line" "nothing pushed; failed jobs rerun"
+carries_any "and the run tree removed" \
+  "git worktree remove <run tree>" "remove \`<run tree>\`" "removes \`<run tree>\`" "removing \`<run tree>\`" \
+  "\`<run tree>\` is removed" "removes the run tree" "remove the run tree" "run tree is removed"
+carries_each "and the run goes back to step 3 carrying the stop set" \
+  "step 3" -- \
+  "carrying the stop set" "carries the stop set" "carrying its stop set" "carries its stop set" \
+  "stop set carried" "with the stop set" "keeps the stop set" "keeping the stop set" "keeping its stop set" \
+  "stop set it carries" "stop set is carried" "carried stop set"
+carries_each "on moved=, nothing is rerun and the moved line is written" \
+  "moved=" -- \
+  "nothing is rerun" "nothing rerun" "reruns nothing" "no rerun is made" "nothing was rerun" -- \
+  "moved line" "nothing rerun: <head> moved"
+carries_any "and the run stops at once on the carried stop set" \
+  "at once" "stops now" "immediately" "right away" "straight away" "stops there" "stops then"
+carries_any "with no redone round" \
+  "no redone round" "never redoes" "not redone" "does not redo" "doesn't redo" "redoes nothing" "no redo" \
+  "without redoing" "never redone" "never redo" "redoes no" "no round is redone" "instead of redoing" \
+  "rather than redoing" "nor redoes" "not redo"
+flat="$(sed 's/\. /.\n/g' <<<"$flat4" | grep -F "still red:" | tr '\n' ' ')"
+expect "a sentence of those pieces names the still red: tail" test -n "$flat"
+carries_any "the not reproduced check is named in the still red: tail" \
+  "not reproduced" "not-reproduced" "left to rerun" "not rerun" "the check it did not rerun" \
+  "the check that was not rerun"
+flat="$(piece_in="$push_item" piece_all=1 piece_with "one clause per" |
+  grep -F -e "no check was picked" -e "no check picked" -e "nothing was picked" -e "nothing picked" \
+    -e "picked nothing" -e "no pick" -e "no check is picked" | tr '\n' ' ')"
+expect "the item keeps the no-pick stop-case stop on one Yours: direction: line" test -n "$flat"
+carries_any "and that stop no longer comes before a rerun the not-reproduced list still owes" \
+  "not-reproduced list" "not reproduced list" "nothing to rerun" "no check to rerun" "nothing left to rerun" \
+  "no check left to rerun" "after the rerun" "after its rerun" "after a rerun" "retry record" "rerun"
+watch="$(passage_of "$pr" "### 3. Watch" "##" 2>/dev/null | sed 's/^[[:space:]]*//')"
+after_rerun=("after the rerun" "after a rerun" "after its rerun" "after the round's rerun"
+  "after a round that reran" "after a round that ended in a rerun" "after a rerun round")
+flat3="$(piece_all=1 piece_without="pushed to <head>" piece_with "${after_rerun[@]}" |
+  grep -F -e "stop set" -e "stop-case" | tr '\n' ' ')"
+flat="$flat3"
+expect "a bullet or paragraph of the watch step takes the watch after a rerun that carried a stop set" test -n "$flat"
+carries_any "the run watches once" \
+  "once more" "one more watch" "watches once" "one watch" "a single watch" "watch once" "watched once" \
+  "the one watch" "one last watch" "a last watch" "watches again" "watch again"
+carries_any "again on pending, as any watch" "pending"
+carries_each "and stops on whatever verdict that watch settles on, green included" \
+  "whatever" "any verdict" "every verdict" "whichever" "any settled verdict" "regardless" -- \
+  "green"
+affirms "the run stops" "stops" "stop" "ends the run" "the run ends"
+carries "writing the round line with the verdict word the watch read" \
+  "round <r>: after the rerun the watch read <verdict word>"
+carries_each "and exactly one Yours: direction: line holding the carried stop-cases' clauses" \
+  "exactly one" "one line" "a single line" "one \`Yours: direction:\` line" "single \`Yours: direction:\`" -- \
+  "Yours: direction:" -- \
+  "clause per stop-case" "clauses of the stop" "stop-cases' clauses" "stop set's clauses" "its clauses" \
+  "each stop-case" "every stop-case" "one clause per" "clause for each"
+flat="$flat3 $flat4"
+carries_any "it never starts a new round" \
+  "no new round" "never starts a new round" "starts no new round" "no next round" "no further round" \
+  "no other round" "starts no" "no round is started" "never starts a" "does not start a" "doesn't start a" \
+  "not start a" "ahead of the next round"
+carries_each "and never forks a fixer again" \
+  "do-pr-fixer" "fixer" -- \
+  "forks no" "no fork" "never forks" "never forked" "not forked" "does not fork" "doesn't fork" \
+  "without forking" "no \`do-pr-fixer\`" "no do-pr-fixer" "no fixer"
+pieces="$(piece_all=1 piece_with "verdict=" "${after_rerun[@]}")"
+rerun_at="$(grep -nF "${after_rerun[@]/#/-e}" <<<"$pieces" | grep -vF "pushed to <head>" |
+  grep -E "stop set|stop-case" | head -1 | cut -d: -f1)"
+others="$(grep -n '' <<<"$pieces" | grep -v "^${rerun_at:-0}:")"
+next_at="$(grep -F "while fewer than three rounds have pushed" <<<"$others" | head -1 | cut -d: -f1)"
+cap_at="$(grep -F "after the third pushed round" <<<"$others" | head -1 | cut -d: -f1)"
+expect "the after-the-rerun piece comes before the bullet starting the next round while fewer than three rounds have pushed" \
+  test "${rerun_at:-0}" -gt 0 -a "${next_at:-0}" -gt "${rerun_at:-0}"
+expect "and before the three-round stop" test "${rerun_at:-0}" -gt 0 -a "${cap_at:-0}" -gt "${rerun_at:-0}"
+reply_step="$(passage_of "$pr" "### 5. Reply" "##" 2>/dev/null)"
+templates="$(
+  sed 's/^[[:space:]]*//' <<<"$reply_step" | grep '^round <r>:'
+  tr '\n' ' ' <<<"$reply_step" | tr -s ' ' | grep -oE '`round <r>:[^`]*`' | tr -d '`'
+)"
+out="$(grep -xF "round <r>: after the rerun the watch read <verdict word>" <<<"$templates")"
+expect "the watch after the rerun has its own round line in the Reply's round templates" test -n "$out"
 [ "$fails" -eq 0 ] && exit 0
 exit 1

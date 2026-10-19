@@ -202,13 +202,21 @@ the checks: a display read mid-run can show green while a check is still running
   with `<r>` the round whose fixer returned `not reproduced` for it. That line settles the retry
   once: a settled retry stays in the retry record, so it is never rerun again and gets no second
   green line. It raises no stop and adds no `Yours:` line for it, and the verdict goes on by the
-  verdict's own route: green to step 5, red to the next round, and so on.
+  verdict's own route: green to step 5, red to the next round, and so on. After a rerun that carried
+  a stop set, the run still stops by the route below for that watch.
 - After a pushed round that carries a stop set holding a stop-case (raised in step 4 while some other
   check was picked), whatever the verdict: the run watches once more, after the `pending` calls it
   takes, and stops on whatever verdict the watch settles on, green included. This route comes first,
   ahead of the next round and of the three-round stop. It writes
   `round <r>: after the push the watch read <verdict word>`, then exactly one `Yours: direction:`
   line, one clause per stop-case and the `still red:` tail, as step 4 item 5 gives it.
+- After a rerun that carried a stop set holding a stop-case (step 4's no-pick round), whatever the
+  verdict: the run watches once, calling the watch again on `pending` as any watch, settles the open
+  retries by the retry routes of this step, and stops on whatever verdict that watch settles on,
+  green included. It writes `round <r>: after the rerun the watch read <verdict word>`, then exactly
+  one `Yours: direction:` line holding the carried stop-cases' clauses, as step 4 item 5 gives it.
+  It never starts a new round and never forks a `do-pr-fixer` again. This route comes first, ahead
+  of the next round and of the three-round stop.
 - `verdict=red`, when this run has pushed no round yet: a check failed. The run goes on to step 4,
   Fix the red checks, carrying the verdict's `head=`, `sha=` and `red=` lines as they stand.
 - `verdict=red` after step 4 has pushed a round, while fewer than three rounds have pushed: a check
@@ -470,7 +478,8 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    no `pr-rerun.sh` call is made that round. The new run on the pushed head is that check's retry,
    and its round line ends `; retried by the run on <picked sha>`.
 
-   When no check was picked and the round's stop set holds a stop-case, nothing is pushed: remove
+   When no check was picked, the round's stop set holds a stop-case and the round's not-reproduced
+   list holds no check outside the retry record, nothing is pushed: remove
    `<run tree>`, then the run stops with exactly one `Yours: direction:` line holding one clause per
    stop-case, the clauses joined by `; `. The whole form is:
 
@@ -558,6 +567,15 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
      run stops now too (a slot Ticket 15 fills).
    - On exit 2 (usage): as exit 1, every check's reason reading `the rerun script refused its arguments`.
 
+   When no check was picked, the round's stop set holds a stop-case and at least one check on the
+   round's not-reproduced list is not in the retry record, nothing is pushed and the run makes the
+   one `pr-rerun.sh` call as the empty-set row makes it, before it stops. On `rerun=`, the round's
+   rerun line is written, each such check's round line ends `; rerun <run id> attempt <n>`,
+   `<run tree>` is removed, and the run goes back to step 3 carrying the stop set, calling the
+   watch with `<pr>` alone. On `moved=`, nothing is rerun, the moved line is written, `<run tree>`
+   is removed, and the run stops at once on the carried stop set, with no redone round, the not
+   reproduced check named in the `still red:` tail.
+
    The run's retry record is the check names on round lines ending `; rerun <run id> attempt <n>` or
    `; retried by the run on <sha>`, keyed on the check name as the came-back match is. A line enters
    the retry record only when its round ended in a push or a rerun, so a redone round records nothing
@@ -629,6 +647,7 @@ the whole message, and a green watch adds no part of its own:
       round <r>: nothing pushed; failed jobs rerun on run <run id>[, run <run id>...]; not counted toward the three pushed rounds
       round <r>: nothing rerun: <head> moved to <short sha> after the watch; the round is redone from the watch
       round <r>: after the push the watch read <verdict word>
+      round <r>: after the rerun the watch read <verdict word>
 
   The first `not picked` line is written once per path the guard named. The `stale base` line is
   written once per stale check, in place of any fixer line for that check, with
