@@ -76,6 +76,26 @@ section and the ten sections a **Reply** used to carry, read back for the **Ruli
 questions, which sit in no other file. A run without `--auto` writes none.
 _Avoid_: log, transcript, the long reply
 
+**Pending debt**:
+What a feature left undone once its **Ticket**s ran: the Pending debt part of each **Reply**,
+kept in a **Debt file** beside its **Ticket** on every run, with or without `--auto`, together with
+the **Finding**s its **Review** left under `Consider` and `Noted` and the ones a fix run left not
+fixed. A `Cleared` **Finding** is not debt: its reviewer already refuted it.
+_Avoid_: backlog, leftovers, follow-ups, TODOs
+
+**Debt file**:
+The file `do` writes beside a **Ticket** as `<ticket>.debt.md`, one dated section per run on that
+**Ticket**, each holding that run's **Pending debt** part and nothing else of the **Reply**, so the
+debt outlives the session. A later run appends its section and never replaces an earlier one.
+_Avoid_: debt report, **Run report** (the **Run report** is written under `--auto` alone)
+
+**Debt review**:
+The **Review** a feature's **Pending debt** is judged into, beside its **Spec**: each item is
+weighed for whether it is really needed or something an earlier agent saw where nothing is, and
+only an item that holds up lands in `Act on`, for the fix run to hand to its **Fixer**s. Its
+author is that judgment, never a reviewer reading a diff.
+_Avoid_: debt triage (`test-triage` is a different skill), cleanup pass, backlog grooming
+
 **Digest**:
 The slice of a **Ticket**'s **Spec** and **Journey** that a `do` run needs, read out of both by a
 forked agent at the run's door and returned quoted, with the location of every quote.
