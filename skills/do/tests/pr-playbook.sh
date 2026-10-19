@@ -2066,5 +2066,41 @@ carries_each "for a check back red after its fix was pushed, the command of that
   "back red" "still red" "red again" "turned red" "went red" "red after" "failed again" "fails again" -- \
   "the \`<command>\`" "its \`<command>\`" "\`<command>\` of" "the command" "its command" -- \
   "reproduced" "reproduce" "local command"
+
+# A fixer that reports it cannot fix its check hands the check to the developer: a run that goes on
+# churns rounds and CI on a diagnosis the fixer already ruled out. The stop is read off the
+# sentences of the step naming `not fixed` together with the stop set, so "Any other return gets no
+# pick" never answers for it, and affirmed clause by clause, so the sentence keeping the session's
+# own `not fixed` line out of the stop set never answers for it either. Punctuation inside a code
+# span (`not fixed <k>: <reason>`) and the dot of a file name (returns.sh) do not cut a clause, and
+# the no pick a stop-case gets is no negation of the stop.
+echo "# pr.md / ### 4. Fix the red checks: a fixer's own not fixed return is a stop-case, and the session's own not fixed line is not"
+step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+not_fixed_sentences="$(tr '\n' ' ' <<<"$step" | tr -s ' ' | sed 's/\. /.\n/g' |
+  awk 'index($0, "not fixed") && (index($0, "stop set") || index($0, "stop-case") || index($0, "stop case"))')"
+flat="$(awk '{ s = ""; c = 0; for (i = 1; i <= length($0); i++) { ch = substr($0, i, 1); if (ch == "`") c = !c; if (c && index(".:;,", ch)) ch = " "; s = s ch } print s }' <<<"$not_fixed_sentences" |
+  sed -E 's/\.([A-Za-z])/ \1/g; s/(gets no pick|no pick|never picked|not picked|is never picked)/ /g' | tr '\n' ' ')"
+expect "sentences of the step name a \`not fixed\` return together with the round's stop set" test -n "$not_fixed_sentences"
+carries_any "the \`not fixed\` line is the fixer's own report" \
+  "fixer's own" "own report" "its own return" "return file" "do-pr-fixer" "fixer"
+affirms "a fixer's \`not fixed <k>: <reason>\` puts check \`<k>\` in the round's stop set" \
+  "not fixed" -- "stop set" "stop-case" "stop case"
+flat="$(grep -E "did not return|session's own|session writes|session wrote|session itself" <<<"$not_fixed_sentences" | tr '\n' ' ')"
+expect "a sentence naming the stop set names the session's own \`not fixed\` line" test -n "$flat"
+carries_each "the session's own \`not fixed\` line, for a file that never landed, stays out of the stop set" \
+  "did not return" "session's own" "session writes" "session wrote" "session itself" -- \
+  "no stop-case" "not a stop-case" "never a stop-case" "no stop case" "not a stop case" "never a stop case" \
+  "raises no" "raise no" "stays out" "stay out" "kept out" "left out" "never goes into" "never go into" \
+  "does not go into" "do not go into" "never enters" "never enter" "not in the stop set" \
+  "never in the stop set" "outside the stop set" "no entry" "not a fixer's report" "no fixer's report"
+
+# The developer taking a check over by hand needs the check and what its fixer already tried in the
+# one line the run stops on, so the template is read whole, off a line of pr.md opening
+# `Yours: direction:`, as the guarded-file clause is.
+echo "# pr.md: the stop on a fixer's not fixed is a Yours: direction: line naming the check and what the fixer ruled out"
+clause='Yours: direction: <check> not fixed by do-pr-fixer (<what the fixer ruled out>): fix it by hand on <head>, or rerun /do <pr url> once its cause is known'
+out="$(sed 's/^[[:space:]]*//' "$pr" | grep -E '^`?Yours: direction:' | sed 's/^`//; s/`$//' | grep -xF -- "$clause")"
+expect "a line of pr.md is the \`not fixed\` clause opening \`Yours: direction:\`, naming the check and what the fixer ruled out" \
+  test -n "$out"
 [ "$fails" -eq 0 ] && exit 0
 exit 1

@@ -261,6 +261,12 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
       one call that waits on every return file of that Wave, with the Bash timeout at 600000 ms.
       Call it again over the files still `missing=`, three windows and no more. A file that never
       lands reads `not fixed <k>: the fixer did not return`.
+      A `not fixed <k>: <reason>` line `returns.sh` printed from the fixer's own return file is the
+      fixer's own report that it cannot fix its check, and it puts check `<k>` in the round's stop
+      set as a stop-case: the check gets no pick, and the round goes on. The session's own
+      `not fixed` line for a file that never landed (`the fixer did not return`) is not a fixer's
+      report: it raises no stop-case and stays out of the stop set, and that check stays red this
+      round like any other return with no pick.
 
    d. First, one guard call over every check of the Wave that returned `fixed <k>: ...`:
 
@@ -381,6 +387,12 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    and the clause of a `failed` stop-case, which names no push, is
    `<check> was not picked, the guard could not read <fixer branch> (<reason>): review the commit kept on <fixer branch>, or fix <check> by hand`.
    `<check>` is the check's name, `<path>` and `<class>` the ones off its `touches` line.
+
+   The clause of a `not fixed` stop-case is:
+
+       Yours: direction: <check> not fixed by do-pr-fixer (<what the fixer ruled out>): fix it by hand on <head>, or rerun /do <pr url> once its cause is known
+
+   with `<pr url>` the reference step 1 took.
 
    A stop-case clause of a `Yours: direction:` line that names a fixer's own report carries a
    `<what the fixer ruled out>` slot. It is read off the fixer's return line as it stands, never
