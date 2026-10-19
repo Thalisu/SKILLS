@@ -8,7 +8,8 @@
 #     <since> <state>    the since= and state= of the previous pending verdict, as printed, which
 #                        carry the 60-minute stall window across calls
 #
-# Prints key=value lines, verdict first: verdict=green, checks=<n> | verdict=pending, since=<epoch>,
+# Prints key=value lines, verdict first: verdict=green, checks=<n> (0 once no check registered inside
+# DO_PR_WATCH_REGISTER_SECONDS, default 120) | verdict=pending, since=<epoch>,
 # state=<token> | verdict=awaiting-approval, checks=<n> | verdict=conflict, head=<head branch>,
 # base=<base branch> | verdict=red, head=<head branch>, sha=<head commit>, then one
 # red=<link> <name> line per failed check | verdict=stalled, then one pending=<check name> line per
@@ -24,16 +25,27 @@ bound="${DO_PR_WATCH_SECONDS:-540}"
 interval="${DO_PR_WATCH_INTERVAL:-30}"
 # A pending check whose set of checks has not changed for this long is on a runner that is gone.
 stall_seconds=3600
+# A pull request with no checks stays pending this long, from the first read, before it is green with
+# checks=0: the workflows of a repository with CI register seconds after the pull request opens.
+register_seconds="${DO_PR_WATCH_REGISTER_SECONDS:-120}"
+gh_err="$(mktemp)"
+trap 'rm -f "$gh_err"' EXIT
 
 usage() {
   echo "usage: pr-watch.sh <pr> [<since> <state>]" >&2
   exit 2
 }
 
-read_checks() { # $1 pr: prints one "<bucket> <link|none> <name>" line per check; 1 on a read failure
-  gh pr checks "$1" --json name,bucket,link --jq '
+# gh exits 1 with "no checks reported" on a pull request that has none, which is not a read failure.
+read_checks() { # $1 pr: prints one "<bucket> <link|none> <name>" line per check, nothing for a pull request with none; 1 on a read failure
+  local out
+  out="$(gh pr checks "$1" --json name,bucket,link --jq '
     def field: if . == null or . == "" then "none" else . end;
-    .[] | "\(.bucket) \(.link | field) \(.name)"'
+    .[] | "\(.bucket) \(.link | field) \(.name)"' 2>"$gh_err")" || {
+    grep -qi 'no checks reported' "$gh_err" && return 0
+    return 1
+  }
+  [ -z "$out" ] || echo "$out"
 }
 
 fingerprint() { # stdin: read_checks lines: prints the state token (bucket and name only, the link ignored) of that set of checks, independent of their order
@@ -48,7 +60,7 @@ read_pull() { # $1 pr: prints "<merge state> <mergeable> <review decision> <head
     | join(" ")'
 }
 
-classify() { # $1 read_checks lines, $2 merge state, $3 mergeable, $4 review decision: prints conflict|red|green|awaiting-approval|wait, or exits 3 with its stderr line
+classify() { # $1 read_checks lines, $2 merge state, $3 mergeable, $4 review decision: prints conflict|red|green|settling|awaiting-approval|wait, or exits 3 with its stderr line
   local bucket link name
   if [ "$3" = conflicting ] || [ "$2" = dirty ]; then
     echo conflict
@@ -72,7 +84,9 @@ classify() { # $1 read_checks lines, $2 merge state, $3 mergeable, $4 review dec
     esac
   done <<<"$1"
   case "$2" in
-    clean | has_hooks) echo green ;;
+    clean | has_hooks)
+      if [ -n "$1" ]; then echo green; else echo settling; fi
+      ;;
     blocked)
       if [ "$4" = review_required ]; then
         echo awaiting-approval
@@ -89,7 +103,7 @@ classify() { # $1 read_checks lines, $2 merge state, $3 mergeable, $4 review dec
   esac
 }
 
-read_once() { # $1 pr: sets checks, the pull fields and result (conflict|green|awaiting-approval|wait); exits 1 on a read failure, 3 as classify does
+read_once() { # $1 pr: sets checks, the pull fields and result (conflict|green|settling|awaiting-approval|wait); exits 1 on a read failure, 3 as classify does
   merge="" mergeable="" review="" head="" base="" sha=""
   checks="$(read_checks "$1")" || exit 1
   read -r merge mergeable review head base sha <<<"$(read_pull "$1")"
@@ -97,7 +111,7 @@ read_once() { # $1 pr: sets checks, the pull fields and result (conflict|green|a
   result="$(classify "$checks" "$merge" "$mergeable" "$review")" || exit "$?"
 }
 
-keep_window() { # after a wait read: keeps since and state while the checks are unchanged, restarts them otherwise; sets result to stalled once a pending check sat unchanged for stall_seconds
+keep_window() { # after a wait or settling read: keeps since and state while the checks are unchanged, restarts them otherwise; sets result to stalled once a pending check sat unchanged for stall_seconds, to green once no check appeared for register_seconds
   local now fresh
   now="$(date +%s)"
   fresh="$(fingerprint <<<"$checks")"
@@ -108,11 +122,17 @@ keep_window() { # after a wait read: keeps since and state while the checks are 
   if grep -q '^pending ' <<<"$checks" && [ $((now - since)) -ge "$stall_seconds" ]; then
     result=stalled
   fi
+  if [ "$result" = settling ] && [ $((now - since)) -ge "$register_seconds" ]; then
+    result=green
+  fi
 }
+
+holding() { [ "$result" = wait ] || [ "$result" = settling ]; }
 
 main() {
   [ "$#" = 1 ] || [ "$#" = 3 ] || usage
   [[ "$bound" =~ ^[0-9]+$ ]] && [[ "$interval" =~ ^[0-9]+$ ]] || usage
+  [[ "$register_seconds" =~ ^[0-9]+$ ]] || usage
   local since="" state=""
   if [ "$#" = 3 ]; then
     [[ "$2" =~ ^[0-9]+$ ]] && [[ "$3" =~ ^[0-9-]+$ ]] || usage
@@ -124,8 +144,8 @@ main() {
   }
   local checks merge mergeable review head base sha result count remaining
   read_once "$1"
-  [ "$result" = wait ] && keep_window
-  while [ "$result" = wait ]; do
+  holding && keep_window
+  while holding; do
     remaining=$((bound - SECONDS))
     if [ "$remaining" -le 0 ]; then
       echo "verdict=pending"
@@ -135,7 +155,7 @@ main() {
     fi
     sleep "$((interval < remaining ? interval : remaining))"
     read_once "$1"
-    [ "$result" = wait ] && keep_window
+    holding && keep_window
   done
   if [ "$result" = stalled ]; then
     echo "verdict=stalled"

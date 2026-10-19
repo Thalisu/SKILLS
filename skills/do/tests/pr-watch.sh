@@ -16,6 +16,7 @@ mkdir -p "$HOME" "$GH_FAKE" "$tmp/bin"
 # The fake gh answers `gh pr checks <pr> --json ... --jq <expr>` with the recorded answers in
 # $GH_FAKE/checks.1, checks.2, ... one per call, the last one repeating, and
 # `gh pr view <pr> --json ... --jq <expr>` with $GH_FAKE/view, applying <expr> with the system jq.
+# A recorded answer that opens with `fail:` is a call gh refuses: the rest goes to stderr, and gh exits 1.
 # A pull request other than the one in $GH_FAKE/pr is one gh cannot open.
 cat >"$tmp/bin/gh" <<'SH'
 #!/usr/bin/env bash
@@ -38,12 +39,16 @@ case "$sub" in
   view) answer="$GH_FAKE/view" ;;
   *) echo "fake gh: unexpected command: pr $sub" >&2; exit 1 ;;
 esac
+if IFS= read -r first <"$answer" && [ "${first#fail:}" != "$first" ]; then
+  echo "${first#fail:}" >&2
+  exit 1
+fi
 jq -r "$expr" "$answer"
 SH
 chmod +x "$tmp/bin/gh"
 export PATH="$tmp/bin:$PATH"
 
-serve() { # $1 the pull request, $2 its merge state, $3.. the `pr checks` JSON of each call in turn
+serve() { # $1 the pull request, $2 its merge state, $3.. the `pr checks` JSON of each call in turn, or fail:<gh's stderr> for a call gh refuses
   rm -f "$GH_FAKE"/checks.* "$GH_FAKE/view"
   echo "$1" >"$GH_FAKE/pr"
   printf '{"mergeStateStatus":"%s"}\n' "$2" >"$GH_FAKE/view"
@@ -64,6 +69,26 @@ serve 42 CLEAN '[{"name":"build","bucket":"pass"},{"name":"test","bucket":"pass"
 run 42
 check_lines "every check passed and the merge state is clean: the pull request is green, with its check count" 0 "$rc" \
   "verdict=green" "checks=2"
+
+# gh reports a pull request with no checks as a failure: exit 1, this line on stderr, nothing on stdout.
+serve 42 CLEAN "fail:no checks reported on the 'feature' branch"
+DO_PR_WATCH_REGISTER_SECONDS=0 run 42
+check_lines "a clean pull request on a repository with no CI, once the registration grace has passed: the watch returns verdict=green with no checks counted, not a read failure" 0 "$rc" \
+  "verdict=green" "checks=0"
+
+serve 42 CLEAN "fail:no checks reported on the 'feature' branch"
+DO_PR_WATCH_REGISTER_SECONDS=3600 run 42
+since="$(term since)"
+state="$(term state)"
+handed=no
+[[ "$since" =~ ^[0-9]+$ ]] && [ -n "$state" ] && handed=yes
+out="${out%%$'\n'*}"
+check_lines "no checks reported on a clean pull request inside the registration grace, when the time bound runs out: the watch returns verdict=pending on its first line, not green, for the step to call it again" 0 "$rc" \
+  "verdict=pending"
+expect "no checks reported inside the registration grace: the pending verdict carries a since= epoch and a state= token to hand back" [ "$handed" = yes ]
+DO_PR_WATCH_REGISTER_SECONDS=0 run 42 "$since" "$state"
+check_lines "no checks reported, called again with the since and state it handed back once the grace has passed: the watch returns verdict=green with no checks counted" 0 "$rc" \
+  "verdict=green" "checks=0"
 
 serve 42 CLEAN '[{"name":"build","bucket":"pass"},{"name":"test","bucket":"pending"}]'
 run 42
