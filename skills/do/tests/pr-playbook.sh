@@ -2102,5 +2102,21 @@ clause='Yours: direction: <check> not fixed by do-pr-fixer (<what the fixer rule
 out="$(sed 's/^[[:space:]]*//' "$pr" | grep -E '^`?Yours: direction:' | sed 's/^`//; s/`$//' | grep -xF -- "$clause")"
 expect "a line of pr.md is the \`not fixed\` clause opening \`Yours: direction:\`, naming the check and what the fixer ruled out" \
   test -n "$out"
+
+# A check two Waves fought over needs one more round, and the next round takes it again: read as a
+# fixer's `not fixed`, its `not fixed: conflicted with ...` line would stop a run that round closes.
+# Sub-item c keeps the session's own `not fixed` line out of the stop set already, so the guarantee
+# is read off the sentences of the two paragraphs on a check moved twice that name the stop set.
+echo "# pr.md / ### 4. Fix the red checks: a check whose pick conflicts after two moves raises no stop-case and stays out of the round's stop set"
+step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+pieces="$(piece_in="$step" piece_all=1 piece_with "moved twice" "two moves" "twice already" "moved two times" \
+  "a third time" "third conflict" "third time")"
+flat="$(sed 's/\. /.\n/g' <<<"$pieces" | grep -E "stop set|stop-case|stop case" | tr '\n' ' ')"
+expect "a sentence of the paragraphs on a check moved twice names the round's stop set" test -n "$flat"
+carries_any "its conflict raises no stop-case and stays out of the stop set" \
+  "no stop-case" "not a stop-case" "never a stop-case" "no stop case" "not a stop case" "never a stop case" \
+  "raises no" "raise no" "stays out" "stay out" "kept out" "left out" "never goes into" "never go into" \
+  "does not go into" "do not go into" "never enters" "never enter" "not in the stop set" \
+  "never in the stop set" "outside the stop set" "no entry"
 [ "$fails" -eq 0 ] && exit 0
 exit 1

@@ -329,6 +329,8 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    `not fixed: conflicted with no check of its Wave` and the files the line quoted. The conflicted
    branches of a check left red after two moves stay kept: no retry of that check was picked, so they
    never go through `remove --superseded`, and they reach the Reply as `kept` lines.
+   This `not fixed` is the session's own reading of a conflict, never a fixer's report, so it raises
+   no stop-case and stays out of the round's stop set: the run does not stop on it.
 
    The count of moves belongs to the round, and a check left red after two moves carries no mark out
    of the round, nor does anything the run keeps. A later round numbers and groups its checks from
