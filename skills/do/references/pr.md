@@ -303,7 +303,8 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
 
        bash <skill-dir>/scripts/pr-log.sh <link> <run tree>
 
-   `<run tree>` is the worktree item 2 cut. On a non-zero exit the run stops, quoting the script's
+   `<run tree>` is the worktree item 2 cut. On a non-zero exit the run removes `<run tree>`
+   (`git worktree remove <run tree>`), no commit sits on it yet, then stops, quoting the script's
    stderr line.
 
 4. Classify every red check, then group the real ones into Waves. First the run writes one record
@@ -341,7 +342,8 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
 
    a. `bash <skill-dir>/../do-code-review/scripts/fix-worktrees.sh add <run tree> pr-<n> <at> <w> <k>...`,
       with the Wave's number and its check numbers, prints one `worktree <k> <path> <branch>` line
-      per check; any other line stops the run quoting it.
+      per check; any other line stops the run quoting it. The stop line also names `<run tree>`,
+      which the run keeps on disk with the picks of the Waves before this one.
    b. Fork every `do-pr-fixer` of the Wave in one message through the Agent tool,
       `subagent_type: do-pr-fixer`, each with the brief below, its `Tree:` and `Branch:` the path and
       the branch on its own worktree line, and the return file `<dir>/check-<k>`.
@@ -389,7 +391,8 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
       classed (ADR 0054). Check `<k>` moves to a later Wave, where its `do-pr-fixer` is forked again
       in a fresh worktree cut over the run tree's HEAD as this Wave's integration left it, which holds
       the pick it lost to. Past `picked` and `conflicted`, any other line from it stops the run
-      quoting that line. Any other return gets no pick, and the check stays red this round.
+      quoting that line. The stop line also names `<run tree>`, which the run keeps on disk with the
+      picks it holds. Any other return gets no pick, and the check stays red this round.
    e. After the Wave's one `fix-integrate.sh` call, one call over every branch the Wave's `add`
       printed: `bash <skill-dir>/../do-code-review/scripts/fix-worktrees.sh remove <run tree> <branch>...`.
       It takes back, printing `removed <branch> <path>`, each worktree and branch whose commit is on

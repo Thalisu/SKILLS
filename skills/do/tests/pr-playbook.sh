@@ -3121,5 +3121,32 @@ carries_each "with no rerun made, the refusal still stops at once" \
 out="$flat"
 absent "the interim stop on a made rerun is gone" "a slot Ticket 15 fills"
 absent "and the run no longer stops at once after a made rerun" "stops now too"
+
+# A stop after item 2 has cut the run tree leaves a worktree under the developer's .claude/worktrees/
+# unless the run removes it or names it on its stop line. A non-zero pr-log.sh exit comes before any
+# commit sits on the tree, so it removes the tree; an unknown fix-worktrees.sh add line and an unknown
+# fix-integrate.sh line come after earlier Waves' picks may sit there, so they keep the tree and name
+# it on the stop line.
+echo "# pr.md / ### 4. Fix the red checks: a non-zero pr-log.sh exit removes the run tree, and an unknown fix-worktrees.sh add line or fix-integrate.sh line names the kept run tree on its stop line"
+step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+flat="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.' "pr-log.sh <link> <run tree>" | tr '\n' ' ' | tr -s ' ')"
+expect "an item of the step carries the pr-log.sh call" test -n "$flat"
+carries_each "a non-zero exit removes the run tree before the run stops" \
+  "non-zero exit" -- \
+  "git worktree remove <run tree>" -- \
+  "then stops" "and stops"
+flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ' | grep -oF "any other line stops the run quoting it. The stop line also names \`<run tree>\`, which the run keeps on disk" || true)"
+expect "a sentence of the step answers an unknown fix-worktrees.sh add line" test -n "$flat"
+carries_each "the unknown add line's stop line names the run tree and the run keeps it" \
+  "stops the run quoting it" -- \
+  "also names \`<run tree>\`" -- \
+  "keeps on disk"
+flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ' | grep -oF "any other line from it stops the run quoting that line. The stop line also names \`<run tree>\`, which the run keeps on disk" || true)"
+expect "a sentence of the step answers an unknown fix-integrate.sh line" test -n "$flat"
+carries_each "the unknown integrate line's stop line names the run tree and the run keeps it" \
+  "stops the run quoting that line" -- \
+  "also names \`<run tree>\`" -- \
+  "keeps on disk"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1
