@@ -111,6 +111,32 @@ carries_each "a run refused before any edit writes no section to the Debt file" 
   "no section" "writes nothing" "adds nothing to the Debt file" "nothing to the Debt file" \
   "leaves the Debt file untouched" "not write" "never writes" "no Debt file section"
 
+echo "# a later run on the same Ticket appends its section and never replaces one"
+
+# The developer resuming a stopped run reads the stopped run's items in the Debt file: a later run
+# that overwrote or edited an earlier section would lose them.
+flat="$(passage_of "$reply" "## The message" "## " | debt_file_paragraphs)"
+carries_any "a later run on the same Ticket is named, a resume or a run again" \
+  "later run" "a resume" "resumed run" "run again" "runs again" "next run" "second run" \
+  "a rerun" "a re-run"
+affirms "a later run appends its section below the earlier ones" \
+  "appends" "adds its section" "adds its own section" "writes its section" -- \
+  "below the earlier" "under the earlier" "after the earlier" "beneath the earlier" \
+  "below those" "below the sections"
+carries_each "a later run never replaces or edits an earlier section" \
+  "never replaces" "does not replace" "not replace" "never overwrites" "not overwrite" \
+  "never rewrites" -- \
+  "or edits" "nor edits" "never edits" "not edit" "or changes" "nor changes" "or rewrites" \
+  "nor rewrites" "or touches" "nor touches"
+
+flat="$(bullets_opening_on <(passage_of "$reply" "## A refusal or a blocked run" "## ") \
+  "**Stopped after work exists.**" | head -n 1)"
+expect "reply.md's Stopped after work exists bullet is found" test -n "$flat"
+affirms "a run stopped after work exists writes its section to the Debt file" \
+  "Debt file" -- \
+  "writes" "adds" "appends" "written" -- \
+  "section"
+
 echo "# ticket.md's Reply step names the Debt file write on every run"
 
 flat="$(item_holding "$ticket" '\*\*[0-9]+\.' 'Reply.**' | debt_file_paragraphs)"

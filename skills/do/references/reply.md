@@ -63,11 +63,12 @@ Ticket it sits beside the Plan, with `.debt.md` in place of `.plan.md`, the way 
 beside it. Each run adds one section to that file, headed by the run's date and time, holding the
 Pending debt part verbatim, as the message carries it. A run that owes nothing still writes its
 section, which reads `none`, so the file tells a run that owed nothing apart from a Ticket with no
-Debt file, one whose runs never wrote their debt down. Under `--auto` a run writes that same section
-as well as the Run report, since the Run report does not stand in for the Debt file, and the Run
-report stays written under `--auto` alone. The Reply itself carries no line naming the Debt file: no
-`Debt:` line beside the `Report:` line in the Plan block, and the Next step says nothing about it,
-so the message stays the five parts.
+Debt file, one whose runs never wrote their debt down. A later run on the same Ticket appends its
+section below the earlier ones, and never replaces or edits one, be it a resume after a stop or a
+run again. Under `--auto` a run writes that same section as well as the Run report, since the Run
+report does not stand in for the Debt file, and the Run report stays written under `--auto` alone.
+The Reply itself carries no line naming the Debt file: no `Debt:` line beside the `Report:` line in
+the Plan block, and the Next step says nothing about it, so the message stays the five parts.
 
 A run that ends early writes a shorter message, per
 [A refusal or a blocked run](#a-refusal-or-a-blocked-run). [Whole replies](#whole-replies) shows
@@ -733,6 +734,8 @@ How much more it carries depends on where the run stopped:
 - **Stopped after work exists.** It writes the five parts of [The message](#the-message), the
   blocker and the `Yours:` line in their place: the worktree and its branch are named on the
   blocker's lines, and the commits made and the files restored go to the Run report.
+  It writes its section to the Debt file as well, since it writes the Pending debt part among the
+  five parts, so its items survive into the file the next run appends to.
 - **Stopped as blocked.** It names the step it stopped at on the blocker's line, and the Run
   report's Skipped section lists no step after it as skipped: the run never reached those steps.
 
