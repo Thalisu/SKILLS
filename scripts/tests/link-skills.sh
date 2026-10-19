@@ -21,7 +21,6 @@ run() {
 links_to() { # $1 link path, $2 target
   [ -L "$1" ] && [ "$(readlink "$1")" = "$2" ]
 }
-snapshot() { find "${1:-$HOME}" -mindepth 1 -printf '%p %y %l\n' | sort; }
 skill() { # $1 skills|vendor, $2 name: a skill directory with its SKILL.md and Codex metadata
   mkdir -p "$repo/$1/$2/agents"
   printf -- '---\nname: %s\n---\n' "$2" >"$repo/$1/$2/SKILL.md"

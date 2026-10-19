@@ -32,4 +32,12 @@ check_lines "a bare slug gathers the folder the resolver names" "$rc" "$rc" "fol
 run 20261019-pending-debt-review
 check_lines "the dated folder name gathers the same folder as the bare slug" "$rc" "$rc" "folder=$want"
 
+entries='%p %y %s %T@\n'
+before="$(snapshot "$tmp" "$entries")"
+run Pending-Debt-Typo
+check_lines "a slug that names no folder says so, quoting the slug as typed, and exits 3" 3 "$rc" \
+  "line=no feature folder for Pending-Debt-Typo; nothing written"
+expect "a slug that names no folder writes nothing in the directory it ran from" \
+  test "$before" = "$(snapshot "$tmp" "$entries")"
+
 exit "$fails"

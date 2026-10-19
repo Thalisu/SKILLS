@@ -634,6 +634,9 @@ spec_commit() { # $1 Spec branch: one commit on it that its upstream lacks, no c
   g update-ref "refs/heads/$1" \
     "$(g commit-tree -p "$1" -m "a Ticket's work, landed on the Spec branch" "$1^{tree}")"
 }
+snapshot() { # $1 directory (default $HOME), $2 the find -printf format of one entry (default its path, type and link target): every entry under it, sorted, on stdout
+  find "${1:-$HOME}" -mindepth 1 -printf "${2:-%p %y %l\\n}" | sort
+}
 stop_state() { # the stop as git left it, on stdout: the index and status, and the hash of every working file
   git status --porcelain=v2
   find . -path ./.git -prune -o -type f -print0 | sort -z | xargs -0 sha256sum

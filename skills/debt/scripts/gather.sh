@@ -6,7 +6,7 @@
 #
 # Prints slug=, folder= and spec= lines, the values resolve-feature-folder.sh prints.
 #
-# Exit codes: 0 it gathered · 2 usage, or the resolver refused the slug (its stderr is relayed).
+# Exit codes: 0 it gathered · 2 usage, or the resolver refused the slug (its stderr is relayed) · 3 the slug names no feature folder, nothing written.
 set -uo pipefail
 
 main() {
@@ -26,6 +26,10 @@ main() {
   for key in slug folder spec; do
     printf '%s\n' "$out" | grep -m1 "^$key=" || echo "$key=none"
   done
+  if [ "$(printf '%s\n' "$out" | grep -m1 '^folder=')" = "folder=none" ]; then
+    echo "line=no feature folder for $1; nothing written"
+    return 3
+  fi
 }
 
 main "$@"
