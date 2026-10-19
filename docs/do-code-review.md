@@ -95,6 +95,7 @@ push, in English or in Portuguese ("revisa esse diff").
 | every Ticket of a Spec, landed on its Spec branch | nothing to type: `do` makes this call at its Final integration, with the Spec in the Ticket's place and the branch the Spec branch was cut from as the fixed point, which puts one Review of the whole feature beside the Spec |
 | read the Review before any agent touches the branch | `/do-code-review --no-fix`, which writes the file and stops |
 | fix a Review you have edited by hand | `/do-code-review fix <the Review's path>` |
+| fix a Debt review, the judgment of a feature's Pending debt beside its Spec | `/do-code-review fix <the Debt review's path>`, taken as a reviewer's Review is |
 
 The session shows nothing while the run is in flight, as [prototype](prototype.md) does; the
 Review's text lands in the thread when it is written, with its location. The prose comes back in
@@ -172,6 +173,13 @@ A `fix` call stops in one line, before anything is written, when the Review is n
 fixed point no longer resolves, or when your working tree has uncommitted changes. The tree has to
 be clean because the Review judged a diff, and a Fixer let loose on a tree nobody reviewed would
 commit work nobody read.
+
+A Debt review is taken the same way. It sits beside the Spec as `spec.debt.review.md`, written by
+the judgment of a feature's Pending debt rather than by a reviewer reading a diff, and each of its
+Findings names its `Source:`, the Debt file and the item or the Review and its Finding number. The
+call reads that one file as its own and not as your uncommitted work, so a tree where it is the
+only untracked file is clean, and the run goes on to its Fixers, its Gate and its landing as it does
+for any Review.
 
 You may have fixed a Finding yourself since the review. Before it forks any Fixer, the call checks
 each Finding not yet `fixed` against your commits: when a commit since the review touched its
