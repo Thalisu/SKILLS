@@ -447,12 +447,17 @@ cat >"$cleared_feature/issues/01-a.debt.md" <<'EOF'
 ## 2026-10-19 15:01
 
 - summary breaks on the new page signature
+- the page size is parsed twice
 EOF
 commit "seed the cleared feature"
-cleared_source="$(cd "$cleared" && bash "$gather" cleared-debt 2>/dev/null |
-  awk -F'\t' '$1 == "item=1" { sub(/^source=/, "", $2); print $2 }')"
-if [ -z "$cleared_source" ]; then
-  echo "FAIL  fixture: gather.sh named no source for the cleared-debt item"
+cleared_source_of() { # $1 item number: its source, as gather.sh records it, on stdout
+  (cd "$cleared" && bash "$gather" cleared-debt 2>/dev/null) |
+    awk -F'\t' -v k="item=$1" '$1 == k { sub(/^source=/, "", $2); print $2 }'
+}
+cleared_source="$(cleared_source_of 1)"
+weak_source="$(cleared_source_of 2)"
+if [ -z "$cleared_source" ] || [ -z "$weak_source" ]; then
+  echo "FAIL  fixture: gather.sh named no source for the cleared-debt items 1 and 2"
   exit 1
 fi
 cleared_returns="$tmp/cleared-returns"
@@ -465,6 +470,15 @@ Claim: summary breaks on the new page signature.
 Evidence: the caller passes the notes first; the change moved them last.
 Rung: 4
 Refuted by: a proof script that sources src/report.sh and calls summary prints the ten rows.
+EOF
+cat >"$cleared_returns/item-2.md" <<EOF
+Source: $weak_source
+Axis: Correctness
+Location: src/report.sh:12
+Claim: the page size is parsed twice.
+Evidence: an earlier note says the parser runs on each call
+Rung: 2
+Refuted by: src/report.sh:12 keeps the parsed size, read from the source.
 EOF
 cleared_review="$cleared_feature/spec.debt.review.md"
 rc=0
@@ -484,6 +498,24 @@ check_absent "a refuted Finding under Cleared carries Refuted by in place of Fix
 # shellcheck disable=SC2034  # lib.sh's check_absent reads $out
 out="$(grep -qx '## Consider' "$cleared_review" 2>/dev/null && passage_of "$cleared_review" "## Act on" "## Consider")"
 check_absent "an item refuted at Rung 3 or above stays out of Act on" 0 "$cleared_rc" "summary breaks on the new page signature"
+
+# shellcheck disable=SC2034  # lib.sh's check_lines reads $out
+out="$(grep -qx '## Noted' "$cleared_review" 2>/dev/null &&
+  item_holding <(passage_of "$cleared_review" "## Consider" "## Noted") '### [0-9]+\.' "the page size is parsed twice")"
+check_lines "an item refuted only at Rung 2 is a Finding under Consider, the refutation in its evidence" 0 "$cleared_rc" \
+  "Claim: the page size is parsed twice." \
+  "Evidence: an earlier note says the parser runs on each call; refuted only at Rung 2: src/report.sh:12 keeps the parsed size, read from the source." \
+  "Rung: 2" \
+  "Fix: judge the item by hand, in ${weak_source%%, *}"
+expect "an item refuted only at Rung 2 keeps its own Axis and Location in its heading under Consider" \
+  grep -qxE '### [0-9]+\. Correctness at src/report\.sh:12' <<<"$out"
+check_absent "an item refuted only at Rung 2 carries no Refuted by line under Consider" 0 "$cleared_rc" "Refuted by:"
+# shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+out="$(grep -qx '## Axes' "$cleared_review" 2>/dev/null && passage_of "$cleared_review" "## Cleared" "## Axes")"
+check_absent "an item refuted only at Rung 2 stays out of Cleared" 0 "$cleared_rc" "the page size is parsed twice"
+# shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+out="$(grep -qx '## Consider' "$cleared_review" 2>/dev/null && passage_of "$cleared_review" "## Act on" "## Consider")"
+check_absent "an item refuted only at Rung 2 stays out of Act on" 0 "$cleared_rc" "the page size is parsed twice"
 
 fresh idle
 idle="$(pwd -P)"

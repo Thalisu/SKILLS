@@ -20,8 +20,9 @@
 # - A return ending on Fix and Small at Rung 1 or 2, or at Rung 3 or above whose fix is not small,
 #   is a Finding under Consider, with the evaluator's own evidence.
 # - A return ending on Refuted by (no Fix, no Small) at Rung 3 or above is a Finding under Cleared,
-#   with the evaluator's own evidence and Refuted by in place of Fix. At Rung 1 or 2 it is outside
-#   the shape.
+#   with the evaluator's own evidence and Refuted by in place of Fix. At Rung 1 or 2 it is a Finding
+#   under Consider, the refutation in its evidence ("; refuted only at Rung <r>: <Refuted by>") and
+#   the last line "Fix: judge the item by hand, in <file>".
 # - An item whose return is missing or empty is a Finding under Consider with the evidence
 #   "the evaluator did not return".
 # - A non-empty return is first checked against the shape (the keys in order, Source equal to the
@@ -125,7 +126,6 @@ read_return() { # $1 return file, $2 source: kind=returned|outside|missing, then
       "Refuted by: "*) v="${line#"Refuted by: "}" ;;
       *) v="" ;;
     esac
-    case "$rung" in 3 | 4 | 5) ;; *) v="" ;; esac
     [ -n "$v" ] || {
       echo "kind=outside"
       return 0
@@ -161,6 +161,12 @@ place() { # $1 source, stdin: read_return's lines. Prints the Placement: bucket,
       return 0
       ;;
   esac
+  if [ "$ending" = refuted ] && [ "$rung" -le 2 ]; then
+    printf 'bucket=Consider\nrung=%s\nevidence=%s; refuted only at Rung %s: %s\n' "$rung" "$evidence" "$rung" "$refuted"
+    [ -z "$risk" ] || printf 'risk=%s\n' "$risk"
+    printf 'last=Fix: judge the item by hand, in %s\n' "$file"
+    return 0
+  fi
   if [ "$ending" = refuted ]; then
     printf 'bucket=Cleared\n'
   elif [ "$small" = yes ] && [ "$rung" -ge 3 ]; then
