@@ -1276,6 +1276,49 @@ carries_each "and such a Wave is never merged into a Wave group-waves.sh printed
   "never mixed" "never combined" "not combined" -- \
   "printed" "group-waves.sh"
 
+# A check moved on every conflict never ends the round, and a Reply silent about it reads as every
+# check fixed. Step 4 already says "a branch twice" and "stays red this round" for other reasons, so
+# the cap is read off the paragraph keyed on wording only it carries, and the round line off the
+# piece naming `not fixed: conflicted with`, wherever the step puts it.
+echo "# pr.md / ### 4. Fix the red checks and ### 5. Reply: a check whose pick conflicts after it was moved twice gets no third fixer and no pick that round, and its round line reads not fixed, naming the checks it conflicted with"
+step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+flat="$(piece_in="$step" piece_with "moved twice" "twice already" "moved two times" "two moves" \
+  "a third time" "third conflict" "third time")"
+expect "a paragraph of the step caps the moves of a conflicted check" test -n "$flat"
+carries_each "a check is moved twice at most" \
+  "moved twice" "two moves" "moved two times" "twice already" -- \
+  "at most" "no more than" "not moved again" "never moved again" "no third move" "not a third" \
+  "never a third" "is not moved" "never moved a third" "not moved a third"
+carries_each "its pick conflicting a third time" \
+  "a third time" "third conflict" "third time" "conflicts again" -- "conflict"
+carries_each "gets no third do-pr-fixer" \
+  "do-pr-fixer" "fixer" -- \
+  "no third" "not forked again" "never forked again" "not forked a third" "never forked a third" \
+  "no new fork" "not re-forked" "never re-forked"
+carries_each "and no pick that round" \
+  "no pick" "not picked" "never picked" "no further pick" "no third pick" "nothing is picked" -- \
+  "round"
+carries_any "it stays red this round" \
+  "stays red" "remains red" "left red" "still red" "stay red" "remain red"
+flat="$(piece_in="$step" piece_with "not fixed: conflicted with")"
+expect "a piece of the step gives such a check's round line" test -n "$flat"
+carries "its round line reads not fixed: conflicted with check <m>" \
+  "not fixed: conflicted with" "check <m>"
+carries_each "naming every check of the conflicted line's with list" \
+  "every check" "each check" "all the checks" "every number" "each number" "all checks" \
+  "every <m>" "each <m>" -- \
+  "\`with\`" "with list" "with <m" "with\` list"
+carries_any "as checks <m>, <m> for several" \
+  "checks <m>, <m>" "checks <m>,<m>" "checks <m> and <m>" "checks <m,...>" "checks <m>, ..."
+carries_each "a with none line reads not fixed: conflicted with no check of its Wave" \
+  "with none" "\`none\`" -- "not fixed: conflicted with no check of its Wave"
+carries_each "naming the files that line quoted" \
+  "files" "paths" "<path>" -- "quoted" "quotes" "the line names" "it names" "named"
+reply_step="$(passage_of "$pr" "### 5. Reply" "##" 2>/dev/null)"
+flat="$(sed 's/^[[:space:]]*//' <<<"$reply_step" | grep '^round [0-9<]')"
+carries "the Reply's round lines give one reading not fixed: conflicted with" \
+  "not fixed: conflicted with"
+
 # The developer may have the head checked out, dirty or on another branch: a round integrated in
 # their checkout moves their branch or mixes the run's commits with their work in progress. The
 # round is read off step 4 alone: `not fixed <k>:` already sits there, so the pick's trigger is

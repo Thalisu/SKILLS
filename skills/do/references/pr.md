@@ -275,6 +275,14 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    merged into a Wave `group-waves.sh` printed, which could put two fixers on one file. Each of these
    Waves runs sub-items a to e like any Wave.
 
+   A check is moved twice at most. A check already moved twice in this round whose pick conflicts a
+   third time is not moved again: it gets no third `do-pr-fixer` and no pick that round, and stays
+   red this round, since the run stops paying for a coupling it cannot resolve. Its round line reads
+   `not fixed: conflicted with check <m>`, naming every check of the conflicted line's `with` list,
+   `check <m>` for one and `checks <m>, <m>` for several, so the developer reads which checks
+   disagree. A line reading `with none` names no check: it reads
+   `not fixed: conflicted with no check of its Wave` and the files the line quoted.
+
    The next Wave's worktrees are cut only after this Wave's picks, from the run tree's HEAD as those
    picks left it, since `fix-integrate.sh` refuses a branch that is not exactly one commit ahead of
    the HEAD it starts on, so a Wave cut before the one ahead of it was integrated could never be
@@ -332,6 +340,7 @@ the whole message, and a green watch adds no part of its own:
 
       round 1: <check> red; do-pr-fixer on <fixer branch>: <picked sha> pushed to <head>
       round 1: <check> red; do-pr-fixer on <fixer branch>: <its return line>; nothing pushed for it
+      round 1: <check> red; do-pr-fixer on <fixer branch>: not fixed: conflicted with check <m>; nothing pushed for it
       round 1: <a `kept` line, as fix-worktrees.sh printed it>
       round 1: after the push the watch read <verdict word>
 - When the run pushed, the **Next step** line names `git pull --ff-only origin <head>` on the
