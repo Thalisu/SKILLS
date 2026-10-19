@@ -75,4 +75,15 @@ out="$(grep '^run rerun ' "$GH_FAKE/calls" 2>/dev/null)"
 same "a run named twice on the command line: gh reruns the failed jobs of each run once, in first-seen order, and never a run twice" \
   "run rerun 7 --repo github.com/o/r --failed"$'\n'"run rerun 9 --repo github.com/o/r --failed"
 
+moved=9c8b7a6f5e4d3c2b1a0f9e8d7c6b5a4f3e2d1c0b
+rm -f "$GH_FAKE/calls"
+echo "$moved" >"$GH_FAKE/head"
+rc=0
+out="$(timeout 30 bash "$script" 42 "$sha" github.com/o/r 7 9 2>/dev/null)" || rc=$?
+check_lines "the head moved past the watched sha: the script prints moved= with the head gh reads and exits 0" \
+  0 "$rc" "moved=$moved"
+absent "the head moved past the watched sha: no rerun= line on stdout" "rerun="
+out="$(grep '^run rerun ' "$GH_FAKE/calls" 2>/dev/null)"
+same "the head moved past the watched sha: gh reruns no run at all" ""
+
 exit "$((fails > 0))"

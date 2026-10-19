@@ -9,14 +9,19 @@
 #     <run id>  a workflow run to rerun; one named twice is rerun once
 #
 # Prints one rerun=<run id> <attempt> line per distinct run, in first-seen order, once gh reads an
-# attempt higher than the one before the rerun.
+# attempt higher than the one before the rerun. When the pull request's head is no longer <sha>, it
+# prints moved=<head sha> instead and reruns nothing.
 #
-# Exits 0 every run reran · 1 gh missing, or a rerun refused or not seen (a one-line failed: <reason>
-# goes to stderr) · 2 usage, nothing on stdout.
+# Exits 0 every run reran, or the head moved · 1 gh missing, or a rerun refused or not seen (a
+# one-line failed: <reason> goes to stderr) · 2 usage, nothing on stdout.
 set -uo pipefail
 
 # Roughly the time GitHub takes to register a new attempt, with margin.
 wait_seconds="${DO_PR_RERUN_SECONDS:-300}"
+
+read_head() { # $1 pr: prints the pull request's head commit; 1 on a read failure
+  gh pr view "$1" --json headRefOid --jq .headRefOid
+}
 
 read_attempt() { # $1 repo, $2 run id: prints the run's attempt; 1 on a read failure
   gh run view "$2" --repo "$1" --json attempt --jq .attempt
@@ -47,6 +52,15 @@ main() {
   if ! command -v gh >/dev/null 2>&1; then
     echo "failed: gh missing" >&2
     exit 1
+  fi
+  local head
+  head="$(read_head "$1")" || {
+    echo "failed: cannot read the head of pull request $1" >&2
+    exit 1
+  }
+  if [ "$head" != "$2" ]; then
+    printf 'moved=%s\n' "$head"
+    exit 0
   fi
   local repo="$3" id before after seen=" "
   shift 3
