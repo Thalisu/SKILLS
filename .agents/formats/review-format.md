@@ -108,6 +108,7 @@ Claim: <what is wrong, one line>
 Evidence: <in the Axis's shape, below>
 Rung: <1 to 5>
 Risk: <security, privacy, data loss, auth, billing, migration, idempotency, race>
+Mark: too big for a Fixer
 Fix: <the behaviour to prove>, in <the target: a file, a function, a test>
 ```
 
@@ -123,6 +124,9 @@ Fix: <the behaviour to prove>, in <the target: a file, a function, a test>
 - `Rung:` is how far the review climbed to back the claim: 1 said so, 2 pointed at `file:line`,
   3 walked the failure, 4 ran it, 5 reproduced it in the app.
 - `Risk:` is present only when a risk class applies. A Security Finding always carries one.
+- `Mark: too big for a Fixer` is present only under `Consider`, when a debt item's fix is not small
+  by structure. It is that whole fixed line before `Fix:`, so a reader finds it by the line and a
+  fix run reading `Fix:` never folds it into the target.
 - `Fix:` is the behaviour to prove and its target, in the words a test author takes. In `Cleared`
   the line is `Refuted by:` instead, with the evidence that refuted the claim, so the reader can
   overrule it.

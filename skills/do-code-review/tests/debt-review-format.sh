@@ -63,6 +63,15 @@ carries_each "naming the Debt file and its item" "Debt file" -- "item"
 carries_each "or the Review and its Finding number" "Review" -- \
   "Finding number" "Finding's number" "its number" "the number"
 
+echo "# review-format.md / ## Findings, by Bucket: a Finding may carry the line Mark: too big for a Fixer, before its Fix:, only under Consider"
+block="$(blocks_of "$format" "## Findings, by Bucket" "" 1)"
+expect "the Finding block holds the whole line Mark: too big for a Fixer directly before its Fix: line" \
+  bash -c 'grep -x -A1 "Mark: too big for a Fixer" <<<"$1" | sed -n 2p | grep -q "^Fix:"' _ "$block"
+flat="$(passage_of "$format" "## Findings, by Bucket" "## " | units_of | grep -E '^ ?- ' | grep -F "Mark:" | tr '\n' ' ')"
+expect "a bullet after the Finding block says what its Mark: line is" test -n "$flat"
+carries "the line belongs under Consider" "Consider"
+carries_any "and only there" "only under" "only in" "only when" "present only" "never under" "never in"
+
 echo "# review-format.md / ## Axes: a Debt review's Axis lines never carry not run, so a fix run can find it Green"
 flat="$(passage_of "$format" "## Axes" "## " | units_of | grep -F "Debt review" | tr '\n' ' ')"
 expect "the Axes section says what a Debt review's Axis lines carry" test -n "$flat"
