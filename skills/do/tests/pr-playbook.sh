@@ -2701,7 +2701,7 @@ carries_any "and the run ids it passes are those of such checks alone" \
 # rerun spends the one retry twice (ADR 0089). The route is read off the watch step's bullet that
 # names the retry record beside verdict=red, the came-back bullet passed over, so the came-back
 # route's own stop never answers for it.
-echo "# pr.md / ### 3. Watch: a red verdict naming a check in the retry record is red again on its retry, goes to Ticket 15's slot and stops on one Yours: direction: line, ahead of the next round and the three-round stop"
+echo "# pr.md / ### 3. Watch: a red verdict naming a check in the retry record is red again on its retry, never goes to step 4, forks no fixer, starts no new round and gets no second rerun, ahead of the next round and the three-round stop"
 watch="$(passage_of "$pr" "### 3. Watch" "##" 2>/dev/null)"
 flat="$(piece_all=1 piece_without="reported fixed that came back red" piece_with "retry record" |
   grep -F "verdict=red" | tr '\n' ' ')"
@@ -2727,15 +2727,6 @@ carries_any "and it is not rerun a second time" \
   "no second rerun" "never rerun again" "not rerun again" "never rerun twice" "not rerun twice" \
   "reruns nothing" "nothing is rerun" "nothing rerun" "never reruns" "no rerun" "no \`pr-rerun.sh\`" \
   "no pr-rerun.sh" "never calls \`pr-rerun.sh\`" "rerun no"
-carries "the route is Ticket 15's slot" "Ticket 15"
-carries_each "until it lands, the run stops on exactly one Yours: direction: line" \
-  "stop" -- \
-  "exactly one \`Yours: direction:\`" "exactly one Yours: direction:" "one \`Yours: direction:\` line" \
-  "one Yours: direction: line"
-carries_each "whose still red: tail names that check" \
-  "still red:" -- \
-  "names that check" "naming that check" "names the check" "naming the check" "names it" "naming it" \
-  "names those checks" "naming those checks" "names each" "naming each"
 carries_each "this route comes ahead of the next round and of the three-round stop" \
   "ahead of" "before" "comes first" -- \
   "next round" -- \
@@ -2817,5 +2808,60 @@ templates="$(
 )"
 out="$(grep -xF "round <r>: <check> not reproduced locally, retried once, green" <<<"$templates")"
 expect "a check green on its retry has its own round line in the Reply's round templates" test -n "$out"
+# The developer decides between a hand fix and a flake from the two excerpts side by side: a stop
+# without the first excerpt leaves only the retry's failure, and a `Yours:` line that offered the
+# run's own rerun again would hand over a command the run already spent (ADR 0089). The route is
+# read off the watch step's pieces naming the retry record beside a red verdict, the came-back
+# bullet passed over; the first excerpt off step 4's sentences naming an excerpt and the retry; the
+# round line, the labels and the stop's line off the Reply step and the steps that carry them.
+echo "# pr.md / ### 3. Watch, ### 4. Fix the red checks and ### 5. Reply: a check red again on its retry stops the run as not reproducible on one not-reproducible entry, quoting the first excerpt and the retry's, cut by pr-log.sh on a run tree at the verdict's sha="
+watch="$(passage_of "$pr" "### 3. Watch" "##" 2>/dev/null)"
+flat="$(piece_all=1 piece_without="reported fixed that came back red" piece_with "retry record" "red again on its retry" |
+  grep -F -e "verdict=red" -e "red again" | tr '\n' ' ')"
+expect "a piece of the watch step routes a verdict=red name in the retry record" test -n "$flat"
+carries_each "it raises one not-reproducible stop entry" \
+  "not-reproducible" -- \
+  "stop entry" "stop-case" "stop set" "entry"
+carries_any "and stops the run" "stops" "the run stop" "a stop"
+carries "the retry's excerpt is cut with pr-log.sh <link> <run tree>" "pr-log.sh <link> <run tree>"
+carries_each "on a run tree cut at the verdict's sha=, as step 4 cuts one" \
+  "run tree" -- \
+  "sha=" -- \
+  "as step 4" "step 4 item 2" "item 2" "git worktree add" "as step 4 cuts" "the way step 4"
+carries_any "the run tree removed after" \
+  "removed after" "removes it" "removes the run tree" "removes \`<run tree>\`" "remove \`<run tree>\`" \
+  "git worktree remove" "then removed" "is removed" "removed once" "removes that run tree"
+carries_each "on a non-zero exit the script's stderr line stands in the excerpt's place" \
+  "non-zero exit" "exits non-zero" "nonzero exit" -- \
+  "stderr" -- \
+  "in the excerpt's place" "in place of the excerpt" "in its place" "stands in for" "stands in" \
+  "takes the excerpt's place" "instead of the excerpt" "in place of the retry's excerpt" \
+  "in place of its excerpt" "as the retry's excerpt" "quoted as the excerpt"
+step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ' | sed 's/\. /.\n/g' | grep -F "excerpt" | grep -F "retry" | tr '\n' ' ')"
+expect "a sentence of step 4 names an excerpt beside the retry" test -n "$flat"
+carries_each "the session keeps the excerpt= values read for a not reproduced check with its open retry" \
+  "excerpt=" "excerpt values" "first excerpt" "its excerpt" -- \
+  "not reproduced" "not-reproduced" -- \
+  "keep" "kept" "hold" "held" "retain" "store" "remember" "carries" "carry" "saved" "saves"
+reply_step="$(passage_of "$pr" "### 5. Reply" "##" 2>/dev/null)"
+templates="$(
+  sed 's/^[[:space:]]*//' <<<"$reply_step" | grep '^round <r>:'
+  tr '\n' ' ' <<<"$reply_step" | tr -s ' ' | grep -oE '`round <r>:[^`]*`' | tr -d '`'
+)"
+out="$(grep -xF "round <r>: <check> red again on its retry (<the retry>); not reproducible, no fixer forked" <<<"$templates")"
+expect "a check red again on its retry has its own round line in the Reply's round templates" test -n "$out"
+flat="$(piece_all=1 piece_in="$reply_step" piece_with "first excerpt (round <r>):" | tr '\n' ' ')"
+expect "a piece of the Reply step names the first excerpt label \`first excerpt (round <r>):\`" test -n "$flat"
+carries "and the retry excerpt label beside it" "retry excerpt"
+before "the first excerpt comes ahead of the retry's" "first excerpt (round <r>):" "retry excerpt"
+carries_any "each excerpt quoted" "quoted" "quotes" "quote" "quoting"
+steps="$(sed -n '/^### 3\. Watch/,$p' "$pr")"
+lines="$(
+  sed 's/^[[:space:]]*//' <<<"$steps"
+  tr '\n' ' ' <<<"$steps" | tr -s ' ' | grep -oE '`Yours: direction:[^`]*`' | tr -d '`'
+)"
+out="$(grep -xF "Yours: direction: fix <check> by hand, or re-run it yourself if you judge it a flake" <<<"$lines")"
+expect "the stop's line reads Yours: direction: fix <check> by hand, or re-run it yourself if you judge it a flake" test -n "$out"
 [ "$fails" -eq 0 ] && exit 0
 exit 1

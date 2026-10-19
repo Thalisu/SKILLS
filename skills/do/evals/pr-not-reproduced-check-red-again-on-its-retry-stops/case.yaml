@@ -1,0 +1,107 @@
+name: pr-not-reproduced-check-red-again-on-its-retry-stops
+tags: [pr, watch, fix, rerun, stop]
+runs: 2
+max_turns: 120
+timeout_seconds: 3600
+allowed_tools: [Bash, Read, Edit, Write, Agent]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # A pull request whose head `add-greet` has its `e2e` check red in CI on both attempts of its
+    # workflow run: attempt 1's log reads a database the runner could not reach, attempt 2's a
+    # timeout waiting on the same service, while tests/e2e.sh passes locally at the same commit, so
+    # its fixer cannot reproduce the failure and returns `not reproduced`. A fake gh, first on the
+    # session's PATH through the project's settings, reports `e2e` failed on job 101 while the
+    # workflow run's attempt in .fake/attempt is 1, and failed again on job 102 once
+    # `gh run rerun 7 --failed` has raised it. The developer has the head checked out with an untracked note of their own, the
+    # remote is a bare repository under .fake/, and every gh call is logged in .fake/gh.log.
+    set -e
+    mkdir -p src tests .github/workflows .fake/bin .claude
+    printf '# notes\n' > README.md
+    printf '.fake/\n' > .gitignore
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
+    git checkout -q -b add-greet
+    cat > src/greet.sh <<'SH'
+    #!/usr/bin/env bash
+    printf 'hello, %s\n' "$1"
+    SH
+    cat > tests/e2e.sh <<'SH'
+    #!/usr/bin/env bash
+    got="$(bash "$(dirname "$0")/../src/greet.sh" ana)"
+    [ "$got" = "hello, ana" ] || { echo "FAIL greet: got '$got', want 'hello, ana'"; exit 1; }
+    echo "ok    greet says hello"
+    SH
+    cat > .github/workflows/ci.yml <<'YML'
+    name: ci
+    on: pull_request
+    jobs:
+      e2e:
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v4
+          - name: Run tests
+            run: bash tests/e2e.sh
+    YML
+    printf 'add-greet\n' > .fake/branch
+    printf '1\n' > .fake/attempt
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "open the pull request"
+    git clone -q --bare . .fake/remote.git
+    git remote add origin "$PWD/.fake/remote.git"
+    git fetch -q origin
+    git branch -q -u origin/add-greet
+    git rev-parse HEAD > .fake/red.sha
+    printf 'wip: greet in other languages\n' > NOTES.md
+    cat > .fake/bin/gh <<'SH'
+    #!/usr/bin/env bash
+    printf '%s\t%s\n' "$*" "$(ps -o args= -p "$PPID" 2>/dev/null)" >> "$GH_FAKE/gh.log"
+    expr=
+    for ((i = 1; i <= $#; i++)); do
+      [ "${!i}" = --jq ] && { j=$((i + 1)); expr="${!j}"; }
+    done
+    answer() { if [ -n "$expr" ]; then jq -r "$expr"; else cat; fi; }
+    remote="$GH_FAKE/remote.git"
+    branch="$(cat "$GH_FAKE/branch")"
+    head="$(git --git-dir="$remote" rev-parse "refs/heads/$branch")"
+    attempt="$(cat "$GH_FAKE/attempt")"
+    bucket=fail merge=UNSTABLE
+    if [ "$attempt" -ge 2 ]; then job=102; else job=101; fi
+    case "$1 $2" in
+      "auth status") echo "Logged in to github.com account fixture"; exit 0 ;;
+      "pr view")
+        printf '{"number":42,"headRefName":"%s","baseRefName":"main","state":"OPEN","mergeStateStatus":"%s","mergeable":"MERGEABLE","headRefOid":"%s"}\n' \
+          "$branch" "$merge" "$head" | answer ;;
+      "pr checks")
+        printf '[{"name":"e2e","bucket":"%s","link":"https://github.com/acme/notes/actions/runs/7/job/%s"}]\n' "$bucket" "$job" | answer ;;
+      "run view")
+        if [ "$*" = "run view 7 --repo github.com/acme/notes --json attempt --jq .attempt" ]; then
+          printf '{"attempt":%s}\n' "$attempt" | answer
+        elif [ "$*" = "run view --job 101 --repo github.com/acme/notes --log-failed" ]; then
+          printf 'e2e\tRun tests\t2026-10-14T12:00:01.1000000Z ##[group]Run bash tests/e2e.sh\n'
+          printf 'e2e\tRun tests\t2026-10-14T12:00:01.2000000Z curl: (7) Failed to connect to 10.1.0.4 port 5432: Connection refused (service container not ready)\n'
+          printf 'e2e\tRun tests\t2026-10-14T12:00:01.3000000Z /home/runner/work/notes/notes/tests/e2e.sh exited 1\n'
+          printf 'e2e\tRun tests\t2026-10-14T12:00:01.4000000Z ##[error]Process completed with exit code 1.\n'
+        elif [ "$*" = "run view --job 102 --repo github.com/acme/notes --log-failed" ] && [ "$attempt" -ge 2 ]; then
+          printf 'e2e\tRun tests\t2026-10-14T12:20:01.1000000Z ##[group]Run bash tests/e2e.sh\n'
+          printf 'e2e\tRun tests\t2026-10-14T12:20:31.2000000Z wait-for-db: timed out after 30s waiting for 10.1.0.4:5432 (service container unhealthy)\n'
+          printf 'e2e\tRun tests\t2026-10-14T12:20:31.3000000Z /home/runner/work/notes/notes/tests/e2e.sh exited 1\n'
+          printf 'e2e\tRun tests\t2026-10-14T12:20:31.4000000Z ##[error]Process completed with exit code 1.\n'
+        else
+          echo "fake gh: no answer recorded for: $*" >&2
+          exit 1
+        fi ;;
+      "run rerun")
+        [ "$*" = "run rerun 7 --repo github.com/acme/notes --failed" ] || {
+          echo "fake gh: no answer recorded for: $*" >&2
+          exit 1
+        }
+        printf '%s\n' "$((attempt + 1))" > "$GH_FAKE/attempt" ;;
+      *) echo "fake gh: no answer recorded for: $*" >&2; exit 1 ;;
+    esac
+    SH
+    chmod +x .fake/bin/gh
+    printf '{"env": {"PATH": "%s/.fake/bin:%s", "GH_FAKE": "%s/.fake", "DO_PR_WATCH_SECONDS": "5", "DO_PR_WATCH_INTERVAL": "1", "DO_PR_RERUN_SECONDS": "5"}}\n' \
+      "$PWD" "$PATH" "$PWD" > .claude/settings.json
+    printf '.claude/\n' >> .git/info/exclude

@@ -203,11 +203,6 @@ the checks: a display read mid-run can show green while a check is still running
   once: a settled retry stays in the retry record, so it is never rerun again and gets no second
   green line. It raises no stop and adds no `Yours:` line for it, and the verdict goes on by the
   verdict's own route: green to step 5, red to the next round, and so on.
-- `verdict=red` with a `red=` name that is in the retry record: that check is red again on its
-  retry. It never goes to step 4: no new round is started for it, no `do-pr-fixer` is forked for it
-  again, and it gets no second rerun. This route is Ticket 15's slot; until Ticket 15 lands, the run
-  stops on exactly one `Yours: direction:` line whose `still red:` tail names that check. This route
-  comes ahead of the next round and of the three-round stop.
 - After a pushed round that carries a stop set holding a stop-case (raised in step 4 while some other
   check was picked), whatever the verdict: the run watches once more, after the `pending` calls it
   takes, and stops on whatever verdict the watch settles on, green included. This route comes first,
@@ -240,6 +235,22 @@ the checks: a display read mid-run can show green while a check is still running
   nothing.
 - A non-zero exit of the script: the run stops with one line quoting the script's stderr line, with
   no `Yours:` line, and follows nothing.
+- `verdict=red` with a `red=` name that is in the retry record: that check is red again on its
+  retry. It never goes to step 4: no new round is started for it, no `do-pr-fixer` is forked for it
+  again, and it gets no second rerun. The run cuts that check's retry excerpt on a run tree cut at
+  the verdict's `sha=` as step 4 item 2 cuts one (`git fetch origin <head>`, then
+  `git worktree add --detach ...`), with `bash <skill-dir>/scripts/pr-log.sh <link> <run tree>`,
+  its `<link>` the one on the check's `red=` line, keeping its `excerpt=` values, and removes the
+  run tree after (`git worktree remove <run tree>`). On a non-zero exit of the script, its stderr
+  line stands in the excerpt's place. The check raises one `not-reproducible` stop entry in the
+  stop set, carrying the check, its round `<r>`, its retry (`rerun <run id> attempt <n>` or
+  `the run on <picked sha>`), the first excerpt and the retry's excerpt. The run stops on exactly
+  one `Yours: direction:` line whose clause for it is
+  `fix <check> by hand, or re-run it yourself if you judge it a flake`; when it is the only stop,
+  the line reads exactly
+  `Yours: direction: fix <check> by hand, or re-run it yourself if you judge it a flake`. It never
+  offers the run's own rerun again: the one rerun is spent (ADR 0089). This route comes ahead of the
+  next round and of the three-round stop.
 
 The verdict line of each call, in order, is recorded for the Run report's Run section, which is
 written under `--auto` only, per [reply.md](reply.md): the round is never a section of the Reply.
@@ -549,6 +560,10 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    in the retry record. A check whose name is in the retry record is never passed to `pr-rerun.sh`,
    so no check is rerun twice in one run.
 
+   The session keeps the `excerpt=` values `pr-log.sh` printed for a not reproduced check (item 3)
+   with its open retry, as its first excerpt, carried through the watch like the stop set, so step 3
+   can quote it if the retry is red again.
+
    The clause of a `rerun-refused` stop entry is:
 
        Yours: direction: <check> did not reproduce locally and its rerun was refused (<reason>): re-run its failed jobs yourself, or fix <check> by hand on <head>
@@ -606,6 +621,7 @@ the whole message, and a green watch adds no part of its own:
       round <r>: <check> red; do-pr-fixer on <fixer branch>: not reproduced <k>: <command> <what it showed>; nothing pushed for it; rerun <run id> attempt <n>
       round <r>: <check> red; do-pr-fixer on <fixer branch>: not reproduced <k>: <command> <what it showed>; nothing pushed for it; rerun <run id> refused: <reason>
       round <r>: <check> not reproduced locally, retried once, green
+      round <r>: <check> red again on its retry (<the retry>); not reproducible, no fixer forked
       round <r>: nothing pushed; failed jobs rerun on run <run id>[, run <run id>...]; not counted toward the three pushed rounds
       round <r>: nothing rerun: <head> moved to <short sha> after the watch; the round is redone from the watch
       round <r>: after the push the watch read <verdict word>
@@ -625,6 +641,10 @@ the whole message, and a green watch adds no part of its own:
   under its own number, `round 1:`, `round 2:`, `round 3:`, each with its red checks, the fixer of
   each, the commits pushed and the verdict that ended it. A redone round is listed under the number
   of the round it redid: it counts once, never a new number.
+
+  The red again line is followed by the two excerpts, each quoted, the first excerpt under the label
+  `first excerpt (round <r>):` and then the retry's under `retry excerpt (attempt <n>):` (or
+  `retry excerpt (the run on <picked sha>):`), so the developer reads them side by side.
 - When the run pushed, the **Next step** line names `git pull --ff-only origin <head>` on the
   developer's checkout of `<head>`, then `gh pr merge <n>`. The run never runs either one, and
   never names either under `outward`.
