@@ -1207,6 +1207,42 @@ carries_each "from the run tree's HEAD as those picks left it" \
 carries_each "since fix-integrate.sh refuses a branch not cut from the HEAD it starts on" \
   "fix-integrate.sh" -- "refus" "rejects" "won't take" "will not take" "takes a branch only" -- "HEAD"
 
+# A developer shares the head with others: a conflicted fix resolved by the run is a guess merged
+# into their branch, and a conflict that stops the run leaves that check with no fix at all. Step 4
+# already says "next Wave", "HEAD" and "stops the run" for other reasons, so every guarantee is read
+# off the paragraph naming the script's `conflicted <k> with` line, which also keeps the stop for
+# any line other than `picked` and `conflicted`.
+echo "# pr.md / ### 4. Fix the red checks: a fixer whose pick conflicts with an earlier pick of the round has its pick aborted, moves to the next Wave and is forked again in a new worktree over the run tree's HEAD as it now stands, and the run neither stops on the conflict nor resolves it"
+step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+flat="$(piece_in="$step" piece_with "conflicted <k> with")"
+expect "a paragraph of the step names fix-integrate.sh's \`conflicted <k> with\` line" test -n "$flat"
+carries_any "the script has already aborted that pick" \
+  "aborted" "aborts" "abort" "already undone" "undid" "rolled back" "rolls back" "backed out"
+carries_any "the run does not stop on it" \
+  "does not stop" "doesn't stop" "never stops" "not stop" "without stopping" "is not a stop" \
+  "no stop" "keeps going" "carries on" "goes on"
+carries_each "and never resolves it, merging or classing no conflicted hunk" \
+  "never resolve" "does not resolve" "doesn't resolve" "not resolved" "never resolved" \
+  "no resolution" "resolves nothing" "resolves no" "unresolved" "not resolve" -- \
+  "hunk" "merge" "merged" "class"
+carries_each "the check moves to the next Wave" \
+  "next Wave" "later Wave" "following Wave" "Wave after" "a new Wave" -- \
+  "moves" "moved" "goes" "joins" "carried" "put in" "added to" "runs in" "re-queued" "requeued"
+carries_each "its do-pr-fixer is forked again in a fresh worktree" \
+  "do-pr-fixer" "fixer" -- \
+  "forked again" "fork it again" "forks it again" "re-forked" "forked anew" "a new fork" \
+  "forked a second time" "fork again" -- \
+  "fresh worktree" "new worktree" "worktree of its own" "fix-worktrees.sh add"
+carries_each "cut over the run tree's HEAD as the integration left it, holding the pick it lost to" \
+  "HEAD" -- \
+  "left it" "now stands" "as it stands" "now carries" "now holds" "holds the pick" "carries the pick" \
+  "on top of" -- \
+  "lost to" "earlier pick" "pick it conflicted with" "conflicting pick" "winning pick" "the pick it" \
+  "this Wave's picks" "the Wave's picks"
+carries_each "any line other than picked and conflicted still stops the run quoting it" \
+  "any other line" "other line" "another line" "any line other" "anything else" -- \
+  "stops the run" "stop the run" -- "quoting"
+
 # The developer may have the head checked out, dirty or on another branch: a round integrated in
 # their checkout moves their branch or mixes the run's commits with their work in progress. The
 # round is read off step 4 alone: `not fixed <k>:` already sits there, so the pick's trigger is

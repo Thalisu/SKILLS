@@ -255,9 +255,14 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    d. One call per Wave, over every check of the Wave that returned `fixed <k>: ...` and only those:
       `bash <skill-dir>/../do-code-review/scripts/fix-integrate.sh <run tree> <k>=<branch>...`, each
       `<branch>` the one its worktree line printed. The script picks them in ascending check number,
-      whatever order they are given in, and prints one `picked <k> <sha>` per check; any other line
-      from it stops the run quoting that line. Any other return gets no pick, and the check stays red
-      this round.
+      whatever order they are given in, and prints one `picked <k> <sha>` per check. It may print
+      `conflicted <k> with <m,...|none> files "<path>"...` for a check instead: the script has already
+      aborted that pick, so the run tree holds every clean pick of the Wave and nothing of check
+      `<k>`. The run does not stop on it and never resolves it, no conflicted hunk is merged or
+      classed (ADR 0054). Check `<k>` moves to a later Wave, where its `do-pr-fixer` is forked again
+      in a fresh worktree cut over the run tree's HEAD as this Wave's integration left it, which holds
+      the pick it lost to. Past `picked` and `conflicted`, any other line from it stops the run
+      quoting that line. Any other return gets no pick, and the check stays red this round.
    e. `bash <skill-dir>/../do-code-review/scripts/fix-worktrees.sh remove <run tree> <branch>`. Its
       `removed` or `kept` line goes to the Reply's round lines as it stands.
 
