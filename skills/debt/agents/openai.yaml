@@ -1,0 +1,5 @@
+interface:
+  display_name: "Debt"
+  short_description: "A feature's Pending debt, gathered and judged into a Debt review"
+policy:
+  allow_implicit_invocation: false

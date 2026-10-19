@@ -1,6 +1,7 @@
 ---
 name: debt
 description: "Gather a feature's Pending debt (its Debt files and the Review Findings still open) and judge it into a Debt review beside the Spec"
+disable-model-invocation: true
 argument-hint: "<slug>"
 ---
 
