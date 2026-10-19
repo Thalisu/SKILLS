@@ -17,6 +17,11 @@ which the run writes to a file only under `--auto` and names on a `Report:` line
 ([ADR 0091](adr/0091-the-do-reply-is-five-parts-and-the-run-report-is-written-only-under-auto.md)).
 Without `--auto` it is not written: the commits are in git and the review's lines in its Review.
 
+The debt part is kept on every run on a Ticket, with or without `--auto`. The run adds a dated
+section to the **Debt file** beside the Ticket (`<ticket stem>.debt.md`), holding the reply's
+Pending debt word for word, or `none`, below the sections earlier runs left. The reply itself does
+not name the file.
+
 The three Playbooks that build never land their own work and never fix what a review found. Each
 builds in a git worktree of its own, one behaviour per green commit, runs the gate, and hands the
 branch to [do-code-review](do-code-review.md), which fixes the Findings it marked `Act on` and
@@ -688,6 +693,8 @@ Design fork under `On the Spec:`.
   nothing new under a `.scratch/` the project's `.gitignore` carries, both of them in a project
   that never got that line or that keeps its tickets on a tracked path, where they are yours to
   commit or drop. Either way, under `--auto` the Run report's `Left uncommitted` section is where they are named.
+- The Debt file beside the Ticket is among the files the run leaves for you. It holds one section
+  per run, the newest at the bottom.
 - The branch history reads one commit per behaviour, each body carrying a `Behaviour:` line, with
   the review's fix commits on top and nothing pushed.
 - The review ran once. A run that fixed a red flow, or that you resumed after the review, shows one

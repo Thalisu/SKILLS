@@ -15,6 +15,7 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/../../../scripts/tests/lib.sh"
 reply="$here/../references/reply.md"
 ticket="$here/../references/ticket.md"
+do_doc="$here/../../../docs/do.md"
 fails=0
 
 # Every paragraph of a passage that names the Debt file, flattened onto one line.
@@ -144,6 +145,32 @@ expect "ticket.md's Reply step names the Debt file" test -n "$flat"
 carries_any "the Reply step writes the Debt file on every run, not only under --auto" \
   "every run" "each run" "with or without \`--auto\`" "whether or not" "not only under \`--auto\`" \
   "with \`--auto\` or without" "without \`--auto\` too" "also without \`--auto\`"
+
+echo "# docs/do.md names the Debt file beside the Ticket among what every run leaves, with or without --auto"
+
+# The page tells the developer the Run report is written only under --auto: one that never names
+# the Debt file leaves them believing a run without the flag kept nothing of the debt it named.
+reply_paragraphs="$(passage_of "$do_doc" "## What it does" "## " |
+  awk 'BEGIN { RS = "" } index($0, "The reply is kept short") { at = NR } at && NR <= at + 1 { print; print "" }')"
+expect "docs/do.md's What it does paragraph on the reply is found" test -n "$reply_paragraphs"
+flat="$(debt_file_paragraphs <<<"$reply_paragraphs")"
+expect "What it does names the Debt file in or right after the paragraph on the reply" test -n "$flat"
+carries_any "What it does puts the Debt file beside the Ticket" \
+  "beside the Ticket" "next to the Ticket" "beside a Ticket" "beside its Ticket" "Ticket's own folder"
+carries_any "What it does says every run on a Ticket writes it, with or without --auto" \
+  "every run" "each run" "with or without \`--auto\`" "whether or not" "not only under \`--auto\`" \
+  "with \`--auto\` or without" "without \`--auto\` too" "also without \`--auto\`" \
+  "even without \`--auto\`" "without \`--auto\` as well"
+carries_any "What it does says the Debt file holds the debt the reply named" \
+  "Pending debt" "debt the reply named" "debt the reply names" "debt it named" \
+  "debt the run left" "the reply's debt"
+
+flat="$(bullets_opening_on <(passage_of "$do_doc" "## It's working if" "## ") "- " |
+  grep -i -F "debt file" | tr '\n' ' ')"
+expect "It's working if names the Debt file" test -n "$flat"
+carries_each "It's working if lists the Debt file beside the Ticket among the files the run leaves you" \
+  "beside the Ticket" "next to the Ticket" "beside a Ticket" "beside its Ticket" -- \
+  "files the run leaves" "leaves for you" "left for you" "leaves you" "\`git status\`"
 
 [ "$fails" -eq 0 ] && exit 0
 exit 1
