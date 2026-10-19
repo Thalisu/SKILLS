@@ -373,13 +373,16 @@ carries_any "named as the next step" "next step" "Next step"
 echo "# pr.md / ### 3. Watch: the run routes on the script's verdict line alone; another verdict word, or a non-zero exit, stops it on one line quoting it, nothing followed"
 watch="$(passage_of "$pr" "### 3. Watch" "##" 2>/dev/null)"
 piece_with() { # $1.. fixed strings: the first bullet or blank-line paragraph of $watch carrying any of them, flattened, on stdout
-  # Optional: piece_in set on the call's own line reads another step's passage in place of $watch.
-  piece_keys="$(printf '%s\n' "$@")" awk '
+  # Optional: piece_in set on the call's own line reads another step's passage in place of $watch;
+  # piece_without, fixed strings one per line, passes over a piece carrying any of them, so a key a
+  # sibling bullet shares never hands that sibling back.
+  piece_keys="$(printf '%s\n' "$@")" piece_skips="${piece_without:-}" awk '
     function flush(i) {
+      for (i = 1; i <= m; i++) if (skips[i] != "" && index(piece, skips[i])) { piece = ""; return }
       for (i = 1; i <= n; i++) if (!done && keys[i] != "" && index(piece, keys[i])) { print piece; done = 1 }
       piece = ""
     }
-    BEGIN { n = split(ENVIRON["piece_keys"], keys, "\n") }
+    BEGIN { n = split(ENVIRON["piece_keys"], keys, "\n"); m = split(ENVIRON["piece_skips"], skips, "\n") }
     /^ *$/ || /^- / { flush() }
     !/^ *$/ { piece = piece " " $0 }
     END { flush() }
@@ -1862,5 +1865,49 @@ carries_each "a later round numbers and groups its checks into Waves from that r
   "later round" "next round" "each round" "every round" -- \
   "number" -- "group" "Wave" -- \
   "that round's" "its own" "alone" "only"
+
+# The developer and the team sharing CI rely on a pull request that three pushed rounds did not turn
+# green stopping the run: past that, each round burns CI and pushes more commits onto a head others
+# may share, with no end in sight. The checks the stop names are what the developer picks up next,
+# so they come off the verdict's own `red=` lines. The piece is keyed on the third round, and the
+# "fewer than three" bullet and the first-round bullet, which share its words, are passed over.
+echo "# pr.md / ### 3. Watch: verdict=red after the third pushed round stops the run on one Yours: direction: line naming the checks still red, with no fourth round"
+watch="$(passage_of "$pr" "### 3. Watch" "##" 2>/dev/null)"
+flat="$(piece_without="$(printf '%s\n' "fewer than three" "Fewer than three" "under three" "Under three" \
+  "less than three" "Less than three" "pushed no round")" piece_with "three rounds" "third round" \
+  "Three rounds" "Third round" "three pushed rounds" "third pushed round")"
+expect "a bullet or paragraph of the watch step takes the third pushed round" test -n "$flat"
+carries "it takes \`verdict=red\`" "verdict=red"
+affirms "the run stops" "stops" "stop" "ends the run" "the run ends"
+carries_each "on exactly one line opening \`Yours: direction:\`" \
+  "exactly one line" "one line" "a single line" "one \`Yours: direction:\` line" -- \
+  "Yours: direction:"
+carries_any "naming the checks still red" \
+  "<the checks still red>" "<the red checks>" "<the checks still failing>" "<the failing checks>"
+carries "the checks are the verdict's \`red=\` values" "red="
+carries_any "in the order printed" "in the order" "in order" "in their order" "as printed" "order printed"
+carries_any "joined with \`, \`" \
+  "joined with \`, \`" "joined by \`, \`" "separated by \`, \`" "joined with a comma" "joined by a comma" \
+  "comma-separated" "separated by a comma" "comma and a space"
+carries_any "no fourth round is started" \
+  "no fourth round" "never a fourth" "no fourth" "not a fourth" "never starts a fourth" "starts no fourth" \
+  "no further round" "no next round" "starts no round" "never starts another round" "no other round"
+carries_any "no do-pr-fixer is forked for it" \
+  "forks no" "no \`do-pr-fixer\`" "no do-pr-fixer" "no fixer" "never forks" "forks nothing" "not forked" \
+  "never forked" "no fork"
+carries_any "and nothing more is pushed" \
+  "nothing more is pushed" "nothing more pushed" "pushes nothing more" "nothing is pushed" "pushes nothing" \
+  "no further push" "never pushes again" "pushes no more" "no more push" "nothing else is pushed" \
+  "not pushed again" "never pushed again"
+carries_each "a redone round counts once" \
+  "redone" "redo" -- \
+  "counts once" "count once" "counted once" "counts as one" "counts as a single" "one round" "a single round"
+carries_any "since a round counts by the push it ends in" \
+  "push it ends in" "push that ends it" "push it ends on" "by its push" "by the push" "ends in a push" \
+  "ends in one push"
+out="$(sed 's/^[[:space:]]*//' <<<"$watch" | grep -E '^`?Yours: direction:' | grep -F '/do the pull request again' |
+  grep -F -e '<the checks still red>' -e '<the red checks>' -e '<the checks still failing>' -e '<the failing checks>')"
+expect "the step shows the stop as a whole line opening \`Yours: direction:\` with the checks still red and \`/do the pull request again\`" \
+  test -n "$out"
 [ "$fails" -eq 0 ] && exit 0
 exit 1

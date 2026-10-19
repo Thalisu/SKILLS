@@ -182,6 +182,12 @@ the checks: a display read mid-run can show green while a check is still running
   is still red. The run goes on to step 4, Fix the red checks, for the next round, carrying the
   verdict's `head=`, `sha=` and `red=` lines as they stand, the checks still red. A round counts by
   the push it ends in, so a redone round counts once.
+- `verdict=red` after the third pushed round: three rounds of pushes did not reach green. The run
+  stops with exactly one line,
+  `Yours: direction: <the checks still red> stayed red after three pushed rounds; fix them by hand or leave the pull request as it is, then /do the pull request again`,
+  where `<the checks still red>` is the verdict's `red=` names, in the order printed, joined with
+  `, `. The run starts no fourth round: it forks no do-pr-fixer for it, and nothing more is
+  pushed. A round counts by the push it ends in, so a redone round counts once.
 - `verdict=conflict`: the pull request conflicts with its base. The run stops with exactly one line,
   `Yours: direction: <head> conflicts with <base>; the owner of <head> rebases it onto <base>, then /do the pull request again`,
   taking `<head>` and `<base>` from the verdict's `head=` and `base=` lines, never from the
