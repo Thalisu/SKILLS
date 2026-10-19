@@ -2173,5 +2173,98 @@ clause="Yours: direction: <check> red again after <sha> pushed in round <r'> (<w
 out="$(sed 's/^[[:space:]]*//' "$pr" | grep -E '^`?Yours: direction:' | sed 's/^`//; s/`$//' | grep -xF -- "$clause")"
 expect "a line of pr.md is the came-back clause opening \`Yours: direction:\`, naming the check, the pushed sha, its round and what the fixer ruled out" \
   test -n "$out"
+
+# The developer keeps the fixes the run could make: a round that picked some checks and holds a
+# stop-case for another still pushes its clean picks, and only then hands the stop over. The route
+# is read off the sentences of the push item naming the stop set with a pick, a push or the watch,
+# the no-pick stop's own sentences and the clause templates (`Yours: direction: <check> ...`) passed
+# over, so "nothing is pushed" there, or a `failed` clause's "was not picked", never answers for it.
+echo "# pr.md / ### 4. Fix the red checks: a round with a pick and a stop-case still pushes its clean picks by fast-forward and goes back to the watch carrying the stop set, a redone round keeping it with no fixer forked again"
+step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+push_item="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.|[[:space:]]+[a-z]\.' "$push_line" | tr '\n' ' ' | tr -s ' ')"
+flat="$(sed 's/\. /.\n/g' <<<"$push_item" |
+  grep -E "stop set|stop-case|stop case" | grep -E "pick|push|step 3|watch|redo|redone" |
+  grep -vF -e "no check was picked" -e "no check picked" -e "nothing was picked" -e "nothing picked" \
+    -e "picked nothing" -e "stop set is empty" -e "Yours: direction: <check>" | tr '\n' ' ')"
+expect "sentences of the push item, past the no-pick stop, name the round's stop set" test -n "$flat"
+carries_any "when at least one check was picked" \
+  "at least one check was picked" "at least one check" "at least one pick" "a check was picked" \
+  "some checks were picked" "checks were picked" "picked at least one" "with a pick" "any check was picked"
+carries_any "the clean picks are still pushed, as for any round" \
+  "still pushed" "still pushes" "still fetched and pushed" "pushed as for any round" "pushes them as" \
+  "pushed like any round" "pushed as any round" "push them as" "are pushed" "is pushed as"
+carries_each "fetched and pushed by fast-forward" \
+  "fetch" "fetched" -- "fast-forward"
+carries_any "the stop-case's commit was never picked, so nothing of it is pushed" \
+  "nothing of it" "nothing of its commit" "none of its commit" "never picked" "was not picked" \
+  "never reaches" "never pushed" "not pushed"
+carries_each "the run goes back to step 3's watch carrying the stop set" \
+  "back to step 3" "returns to step 3" "step 3's watch" "to step 3" "back to the watch" -- \
+  "carrying the stop set" "carries the stop set" "carrying its stop set" "carries its stop set" \
+  "with the stop set" "with its stop set" "keeps the stop set" "keeping the stop set" "stop set with it"
+carries_each "a redone round, on a moved remote, keeps the stop set" \
+  "redone" "redoes" "redo" -- \
+  "keeps the stop set" "keeps its stop set" "stop set is kept" "keeping the stop set" "same stop set" \
+  "stop set stays" "carries the stop set" "carries its stop set" "stop set it carried"
+carries_any "and forks no do-pr-fixer again for its checks" \
+  "forks no" "no \`do-pr-fixer\`" "no do-pr-fixer" "never forks" "not forked" "never forked" "no fixer" \
+  "forks nothing"
+
+# The developer is handed the one choice the run could not make only once the pushed fixes have run:
+# after a pushed round carrying a stop set the run watches once more and stops on whatever the watch
+# settles on, green included, ahead of the next round and of the three-round stop, so neither catches
+# that round first. The route is read off the watch pieces naming the stop set, the came-back bullet
+# (keyed on the `pushed to <head>` round line it matches) passed over, and its place off the order of
+# the step's pieces, as the came-back case reads its own.
+echo "# pr.md / ### 3. Watch: after a pushed round carrying a stop set the run watches once more and stops whatever the verdict, green included, on its round line and one Yours: direction: line, ahead of the next round and the three-round stop"
+watch="$(passage_of "$pr" "### 3. Watch" "##" 2>/dev/null)"
+flat="$(piece_without="pushed to <head>" piece_all=1 piece_with "stop set" | tr '\n' ' ')"
+expect "a bullet or paragraph of the watch step takes a pushed round carrying a stop set" test -n "$flat"
+carries_each "after a pushed round that carries a non-empty stop set" \
+  "pushed" "push" -- "stop set"
+carries_any "the run watches once more" \
+  "once more" "one more watch" "one more time" "watches again" "watch again" "one last watch" "a last watch" \
+  "another watch"
+carries_each "and stops whatever verdict the watch settles on, green included" \
+  "whatever" "any verdict" "every verdict" "whichever" "any settled verdict" "regardless" -- \
+  "green"
+affirms "the run stops" "stops" "stop" "ends the run" "the run ends"
+carries "writing the round line with the verdict word the watch read" \
+  "round <r>: after the push the watch read <verdict word>"
+carries_each "and then exactly one \`Yours: direction:\` line" \
+  "then" "followed by" "after it" "after that line" "below it" -- \
+  "exactly one" "one line" "a single line" "one \`Yours: direction:\` line" "single \`Yours: direction:\`" -- \
+  "Yours: direction:"
+pieces="$(piece_all=1 piece_with "verdict=" "stop set")"
+stop_at="$(grep -nF "stop set" <<<"$pieces" | grep -vF "pushed to <head>" | head -1 | cut -d: -f1)"
+others="$(grep -n '' <<<"$pieces" | grep -v "^${stop_at:-0}:")"
+next_at="$(grep -F "while fewer than three rounds have pushed" <<<"$others" | head -1 | cut -d: -f1)"
+cap_at="$(grep -F "after the third pushed round" <<<"$others" | head -1 | cut -d: -f1)"
+expect "the carried stop set's piece comes before the bullet starting the next round while fewer than three rounds have pushed" \
+  test "${stop_at:-0}" -gt 0 -a "${next_at:-0}" -gt "${stop_at:-0}"
+expect "and before the three-round stop" test "${stop_at:-0}" -gt 0 -a "${cap_at:-0}" -gt "${stop_at:-0}"
+
+# The developer reads one line for the whole stop: one clause per stop-case and, past them, the red
+# checks no clause names, so nothing the watch read red goes unmentioned. The push is the run's own
+# (ADR 0086): a line naming one, the run's or one offered to the developer, hands over a write the
+# run already holds. The form is read whole off a line of pr.md opening `Yours: direction:`, and the
+# rule off the sentences of pr.md naming ADR 0086 and the `Yours:` line.
+echo "# pr.md: the stop set's Yours: direction: line is one clause per stop-case and a still red: tail of the red checks no clause names, and never names a push"
+form='Yours: direction: <clause>[; <clause>...][; still red: <name>, ...]'
+out="$(sed 's/^[[:space:]]*//' "$pr" | grep -E '^`?Yours: direction:' | sed 's/^`//; s/`$//' | grep -xF -- "$form")"
+expect "a line of pr.md is the whole form opening \`Yours: direction:\`, its clauses and the \`still red:\` tail" \
+  test -n "$out"
+flat="$(tr '\n' ' ' <"$pr" | tr -s ' ' | sed 's/\. /.\n/g' | grep -F "still red:" | tr '\n' ' ')"
+expect "a sentence of pr.md names the \`still red:\` tail" test -n "$flat"
+carries_each "the tail names the red checks no clause names" \
+  "no clause" "not named by a clause" "none of the clauses" "without a clause" "no clause of" -- \
+  "red"
+flat="$(tr '\n' ' ' <"$pr" | tr -s ' ' | sed 's/\. /.\n/g' | grep -F "0086" | grep -F "Yours" | tr '\n' ' ')"
+expect "a sentence of pr.md names ADR 0086 together with the \`Yours:\` line" test -n "$flat"
+carries_any "the line never names a push" \
+  "never names a push" "names no push" "never name a push" "does not name a push" "no push" "never a push"
+carries_each "neither the run's own push nor one offered to the developer" \
+  "run's own" "its own" -- \
+  "offered" "offers" "handed" "hands" "to the developer"
 [ "$fails" -eq 0 ] && exit 0
 exit 1

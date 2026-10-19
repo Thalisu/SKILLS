@@ -187,6 +187,12 @@ the checks: a display read mid-run can show green while a check is still running
   next round is started. The match is by name, and it reads the verdict's `head=`, `sha=` and `red=`
   lines as they stand, the `<head>` of the stop line being the `head=` one. A run that has pushed
   no round yet has no earlier round to match, so it never takes this route.
+- After a pushed round that carries a stop set holding a stop-case (raised in step 4 while some other
+  check was picked), whatever the verdict: the run watches once more, after the `pending` calls it
+  takes, and stops on whatever verdict the watch settles on, green included. This route comes first,
+  ahead of the next round and of the three-round stop. It writes
+  `round <r>: after the push the watch read <verdict word>`, then exactly one `Yours: direction:`
+  line, one clause per stop-case and the `still red:` tail, as step 4 item 5 gives it.
 - `verdict=red`, when this run has pushed no round yet: a check failed. The run goes on to step 4,
   Fix the red checks, carrying the verdict's `head=`, `sha=` and `red=` lines as they stand.
 - `verdict=red` after step 4 has pushed a round, while fewer than three rounds have pushed: a check
@@ -389,9 +395,22 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
 
        Yours: direction: <head> moved again during the redone round; the fix commits <kept sha>, ... are kept in <run tree>; bring them onto <head> yourself or drop them, then /do the pull request again
 
+   When at least one check was picked and the round's stop set holds a stop-case, the clean picks
+   are still fetched and pushed by fast-forward, as for any round. The stop-case's commit was never
+   picked, so nothing of it is pushed. The run goes back to step 3's watch carrying the stop set. A
+   redone round, on a moved remote, keeps the stop set and forks no `do-pr-fixer` again for its
+   checks.
+
    When no check was picked and the round's stop set holds a stop-case, nothing is pushed: remove
    `<run tree>`, then the run stops with exactly one `Yours: direction:` line holding one clause per
-   stop-case, the clauses joined by `; `. The clause of a `touches` stop-case is:
+   stop-case, the clauses joined by `; `. The whole form is:
+
+       Yours: direction: <clause>[; <clause>...][; still red: <name>, ...]
+
+   The `still red:` tail names the red checks no clause names, in the order the watch printed them.
+   The line never names a push, neither the run's own push nor one offered to the developer: the
+   push is the run's own under ADR 0086, so a `Yours:` line handing one over would hand back a write
+   the run already holds. The clause of a `touches` stop-case is:
 
        Yours: direction: <check> needs <path>, a <class> file the run never changes (its commit is kept on <fixer branch>): change that file yourself, or fix <check> another way by hand
 
