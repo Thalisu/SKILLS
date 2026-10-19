@@ -57,11 +57,42 @@ g checkout -q main
 printf 'base moved on\n' >lib/base.js
 commit "base after the cut"
 g checkout -q head
+g clone -q --bare "$tmp/moved" "$tmp/moved-origin.git"
+g remote add origin "$tmp/moved-origin.git"
 run "$tmp/moved" main <<<$'1\tlib/base.js\n2\tsrc/old.js\n3\tsrc/gone.js'
 check_lines "a file only the base changed after the cut reads stale, and the path the head renamed away and a file it deleted read real: exit 0" \
   0 "$rc" "stale 1 lib/base.js" "real 2" "real 3"
 absent "the file only the base changed is not read as the pull request's" "real 1"
 absent "the path the head renamed away is not read as untouched" "stale 2"
 absent "the file the head deleted is not read as untouched" "stale 3"
+
+fresh fetched-seed
+mkdir -p src lib
+printf 'base\n' >src/app.js
+printf 'base\n' >lib/base.js
+commit base
+g clone -q --bare "$tmp/fetched-seed" "$tmp/fetched-origin.git"
+g clone -q "$tmp/fetched-origin.git" "$tmp/fetched-tree"
+g -C "$tmp/fetched-tree" config gc.auto 0
+g -C "$tmp/fetched-tree" config maintenance.auto false
+g clone -q "$tmp/fetched-origin.git" "$tmp/fetched-pusher"
+cd "$tmp/fetched-pusher" || exit 1
+g config gc.auto 0
+g config maintenance.auto false
+printf 'base moved on\n' >lib/base.js
+commit "base after the clone"
+g push -q origin main
+g checkout -q -b head main
+printf 'changed\n' >src/app.js
+commit head
+g push -q origin head
+cd "$tmp/fetched-tree" || exit 1
+g fetch -q origin head
+g checkout -q --detach FETCH_HEAD
+origin_tip="$(git --git-dir="$tmp/fetched-origin.git" rev-parse main)"
+run "$tmp/fetched-tree" main <<<$'1\tlib/base.js\n2\tsrc/app.js'
+check_lines "with the clone's main left behind origin's, base= names origin's tip, a file only that later base commit changed reads stale, and the head's own change reads real: exit 0" \
+  0 "$rc" "base=$origin_tip" "stale 1 lib/base.js" "real 2"
+absent "the file only origin's later base commit changed is not read as the pull request's" "real 1"
 
 exit "$((fails > 0))"

@@ -4,15 +4,16 @@
 #
 #   pr-classify.sh <tree> <base>
 #
-# <tree> is a git work tree, <base> the name of a local branch (refs/heads/<base>). stdin holds one
-# record per line: <k>, a tab, then space-separated repo-relative paths. The diff examined is
+# <tree> is a git work tree, <base> the pull request's base branch name, fetched from <tree>'s
+# `origin` on each call. stdin holds one record per line: <k>, a tab, then space-separated
+# repo-relative paths. The diff examined is
 # `git diff --name-only --no-renames -z <merge base> HEAD`: additions, modifications, deletions,
 # mode changes and both sides of a rename all count as changed. Paths match as exact,
 # case-sensitive strings. Moves no branch, checks nothing out and writes no work-tree file.
 #
 # Prints:
-#   base=<sha of refs/heads/<base>>
-#   merge-base=<sha>
+#   base=<sha of the base tip this call fetched>
+#   merge-base=<sha of the merge base of that tip and HEAD>
 # then, per record in input order:
 #   real <k>               the record names no file, or names a file the diff changes
 #   stale <k> <path>       the record names at least one file and none is in the diff, one line per
@@ -34,8 +35,9 @@ pr_classify() {
 
   local base_sha merge_base p
   local -A changed=()
-  base_sha=$(git -C "$tree" rev-parse "refs/heads/$base")
-  merge_base=$(git -C "$tree" merge-base "refs/heads/$base" HEAD)
+  git -C "$tree" fetch -q origin "refs/heads/$base"
+  base_sha=$(git -C "$tree" rev-parse --verify --quiet 'FETCH_HEAD^{commit}')
+  merge_base=$(git -C "$tree" merge-base "$base_sha" HEAD)
   while IFS= read -r -d '' p; do
     changed["$p"]=1
   done < <(git -C "$tree" diff --name-only --no-renames -z "$merge_base" HEAD --)
