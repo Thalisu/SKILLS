@@ -11,6 +11,11 @@
 # Cleared, each holding its Findings or none. Findings are numbered from 1 across the file, Act on
 # first, then Consider.
 #
+# The review opens on the header: "# Review: <title>" (the Spec's first "# " line), then Spec,
+# Fixed point (branch and short sha of the Spec's folder), Commit, Spec source, Mode and Language.
+# It ends on "## Axes": the six Axes in order, each its Finding count and the first Finding naming
+# it with its Bucket, or "0 findings". It never reads "not run".
+#
 # - A return at Rung 3 or above with Small: yes is a Finding under Act on.
 # - A return at Rung 1 or 2, or at Rung 3 or above whose fix is not small, is a Finding under
 #   Consider, with the evaluator's own evidence.
@@ -103,6 +108,30 @@ unreturned() { # $1 number, $2 text, $3 source, $4 evidence: one Finding block f
   printf 'Source: %s' "$3"
 }
 
+axes() { # stdin: "<n>\t<Bucket>\t<heading>" per Finding: the six Axes lines
+  local axis count worst n bucket heading
+  local -a rows=()
+  local row
+  mapfile -t rows
+  for axis in Correctness Spec Standards Principles "Blast radius" Security; do
+    count=0 worst=""
+    for row in "${rows[@]}"; do
+      IFS=$'\t' read -r n bucket heading <<<"$row"
+      case "$heading" in
+        "$axis at "*)
+          count=$((count + 1))
+          [ -n "$worst" ] || worst="#$n ($bucket)"
+          ;;
+      esac
+    done
+    case "$count" in
+      0) printf -- '- %s: 0 findings\n' "$axis" ;;
+      1) printf -- '- %s: 1 finding, worst %s\n' "$axis" "$worst" ;;
+      *) printf -- '- %s: %s findings, worst %s\n' "$axis" "$count" "$worst" ;;
+    esac
+  done
+}
+
 main() {
   [ "$#" = 2 ] || {
     echo "usage: debt-review.sh <slug> <returns dir>" >&2
@@ -156,10 +185,11 @@ main() {
         ;;
     esac
   done < <(printf '%s\n' "$gathered" | grep '^item=')
-  local i
+  local i frows="" title dir branch sha
   for i in "${!acts[@]}"; do
     n=$((n + 1))
     act+="$(finding "$n" "${acts[$i]}" "${act_src[$i]}")"$'\n\n'
+    frows+="$n"$'\tAct on\t'"$(sed -n "s/^### $n\. //p" <<<"$act" | head -1)"$'\n'
   done
   for i in "${!considers[@]}"; do
     n=$((n + 1))
@@ -168,14 +198,22 @@ main() {
     else
       consider+="$(unreturned "$n" "${con_txt[$i]}" "${con_src[$i]}" "${con_ev[$i]}")"$'\n\n'
     fi
+    frows+="$n"$'\tConsider\t'"$(sed -n "s/^### $n\. //p" <<<"$consider" | head -1)"$'\n'
   done
+  title="$(sed -n 's/^# //p' "$spec" | head -1)"
+  dir="$(dirname "$spec")"
+  branch="$(git -C "$dir" rev-parse --abbrev-ref HEAD 2>/dev/null)"
+  sha="$(git -C "$dir" rev-parse --short HEAD 2>/dev/null)"
   {
+    printf '# Review: %s\n\nSpec: %s\nFixed point: %s (%s)\nCommit: %s\nSpec source: %s\nMode: default\nLanguage: English\n\n' \
+      "$title" "$spec" "$branch" "$sha" "$sha" "$spec"
     echo "## Act on"
     echo
     if [ -n "$act" ]; then printf '%s' "$act"; else printf 'none\n\n'; fi
     printf '## Consider\n\n'
     if [ -n "$consider" ]; then printf '%s' "$consider"; else printf 'none\n\n'; fi
-    printf '## Noted\n\nnone\n\n## Cleared\n\nnone\n'
+    printf '## Noted\n\nnone\n\n## Cleared\n\nnone\n\n## Axes\n\n'
+    printf '%s' "$frows" | axes
   } >"$review"
   echo "review=$review"
   echo "line=Written to $review"

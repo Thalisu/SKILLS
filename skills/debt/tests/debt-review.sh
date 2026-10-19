@@ -278,4 +278,164 @@ for where in "the project root:" "a subdirectory:src"; do
     "$(LC_ALL=C sort <<<"$gathered_sources")"
 done
 
+fresh shaped
+shaped="$(pwd -P)"
+spread_feature="$shaped/.scratch/20261019-spread-debt"
+consider_feature="$shaped/.scratch/20261019-consider-debt"
+mkdir -p "$spread_feature/issues" "$consider_feature/issues"
+printf '# Notes export\n\nExport the notes as CSV.\n' >"$spread_feature/spec.md"
+printf '# Session cache\n\nCache the session store.\n' >"$consider_feature/spec.md"
+cat >"$spread_feature/issues/01-a.debt.md" <<'EOF'
+## 2026-10-19 15:01
+
+- a page of ten notes returns nine
+- the export prints through echo -e
+- the CSV writer is copied in two modules
+EOF
+cat >"$consider_feature/issues/01-a.debt.md" <<'EOF'
+## 2026-10-19 15:01
+
+- the session store hides its own cache
+- every request reads the whole session store
+EOF
+commit "seed the shaped features"
+shaped_sha="$(g rev-parse --short HEAD)"
+
+shaped_sources() { # $1 slug: the sources gather.sh records for its items, in their order, one per line, on stdout
+  (cd "$shaped" && bash "$gather" "$1" 2>/dev/null) |
+    awk -F'\t' '/^item=/ { sub(/^source=/, "", $2); print $2 }'
+}
+spread_sources="$(shaped_sources spread-debt)"
+consider_sources="$(shaped_sources consider-debt)"
+if [ "$(grep -c . <<<"$spread_sources")" != 3 ] || [ "$(grep -c . <<<"$consider_sources")" != 2 ]; then
+  echo "FAIL  fixture: gather.sh did not name three items for spread-debt and two for consider-debt"
+  exit 1
+fi
+spread_returns="$tmp/spread-returns"
+consider_returns="$tmp/consider-returns"
+mkdir -p "$spread_returns" "$consider_returns"
+cat >"$spread_returns/item-1.md" <<EOF
+Source: $(sed -n 1p <<<"$spread_sources")
+Axis: Correctness
+Location: src/notes.sh:31
+Claim: a page of ten notes returns nine.
+Evidence: eleven notes created, a page of ten asked for; nine rows came back, run by a proof script.
+Rung: 4
+Fix: a page of ten over eleven notes returns ten rows, in src/notes.sh
+Small: yes
+EOF
+cat >"$spread_returns/item-2.md" <<EOF
+Source: $(sed -n 2p <<<"$spread_sources")
+Axis: Standards
+Location: src/export.sh:12
+Claim: the export prints through \`echo -e\`, which CLAUDE.md forbids.
+Evidence: CLAUDE.md, "use printf"; src/export.sh:12.
+Rung: 2
+Fix: the export prints through printf, in src/export.sh
+Small: yes
+EOF
+cat >"$spread_returns/item-3.md" <<EOF
+Source: $(sed -n 3p <<<"$spread_sources")
+Axis: Standards
+Location: src/csv.sh:4
+Claim: the CSV writer is copied in two modules.
+Evidence: src/csv.sh:4 and src/report.sh:9 hold the same writer, walked line by line.
+Rung: 3
+Fix: one CSV writer serves both modules, across src/
+Small: no
+EOF
+cat >"$consider_returns/item-1.md" <<EOF
+Source: $(sed -n 1p <<<"$consider_sources")
+Axis: Principles
+Location: src/session.sh:3
+Claim: the session store hides its own cache.
+Evidence: deep modules, the cache leaks through the store's signature at src/session.sh:3.
+Rung: 2
+Fix: the store keeps its cache behind its own interface, in src/session.sh
+Small: yes
+EOF
+cat >"$consider_returns/item-2.md" <<EOF
+Source: $(sed -n 2p <<<"$consider_sources")
+Axis: Principles
+Location: src/session.sh:12
+Claim: every request reads the whole session store.
+Evidence: a proof script timed 200 requests, each one opening the store file.
+Rung: 4
+Fix: the session store moves behind a cache shared by every handler, across src/
+Small: no
+EOF
+
+under() { # $1 file, $2 a heading line: the first non-blank line under it, on stdout
+  awk -v h="$2" 'on && NF { print; exit } $0 == h { on = 1 }' "$1"
+}
+spec_named() { # $1 the value of a Spec: line, $2 the Spec's absolute path: success when the value names that file, absolute or from the project root
+  case "$1" in
+    /*) [ "$1" = "$2" ] ;;
+    *) [ "$shaped/$1" = "$2" ] ;;
+  esac
+}
+shaped_review() { # $1 label, $2 slug, $3 returns dir, $4 feature folder, $5 the Spec's title, $6 the Finding numbers wanted, space-separated, $7 the six Axes lines wanted
+  local label="$1" feature="$4" review="$4/spec.debt.review.md" spec_line bucket
+  rc=0
+  # shellcheck disable=SC2034  # lib.sh's check reads $out
+  out="$(cd "$shaped" && bash "$script" "$2" "$3" 2>&1)" || rc=$?
+  check "$label: the run writes the Debt review" 0 "$rc" "review=$review"
+
+  # shellcheck disable=SC2034  # lib.sh's same reads $out
+  out="$(awk '/^## / { exit } NF' "$review" 2>/dev/null | sed -n '1p;3p')"
+  same "$label: it opens on # Review: and the Spec's title, its Fixed point the branch and its short sha" \
+    "# Review: $5
+Fixed point: main ($shaped_sha)"
+  spec_line="$(awk '/^## / { exit } NF' "$review" 2>/dev/null | sed -n 2p)"
+  expect "$label: the header's first line is Spec: with the Spec's path, never Ticket:" \
+    spec_named "${spec_line#Spec: }" "$feature/spec.md"
+  expect "$label: the header's first line opens on Spec:" grep -q '^Spec: ' <<<"$spec_line"
+
+  # shellcheck disable=SC2034  # lib.sh's same reads $out
+  out="$(
+    grep -xE '## (Act on|Consider|Noted|Cleared|Axes)' "$review" 2>/dev/null
+    grep '^## ' "$review" 2>/dev/null | tail -n 1
+  )"
+  same "$label: the Buckets read Act on, Consider, Noted, Cleared in that order, and ## Axes ends the review" \
+    "## Act on
+## Consider
+## Noted
+## Cleared
+## Axes
+## Axes"
+
+  for bucket in "## Noted" "## Cleared"; do
+    # shellcheck disable=SC2034  # lib.sh's same reads $out
+    out="$(under "$review" "$bucket" 2>/dev/null)"
+    same "$label: the empty Bucket $bucket reads none on the line under it" "none"
+  done
+
+  # shellcheck disable=SC2034  # lib.sh's same reads $out
+  out="$(sed -n 's/^### \([0-9]*\)\. .*/\1/p' "$review" 2>/dev/null | tr '\n' ' ' | sed 's/ $//')"
+  same "$label: the Findings are numbered from 1 in reading order, with no gap and no repeat" "$6"
+
+  # shellcheck disable=SC2034  # lib.sh's same reads $out
+  out="$(passage_of "$review" "## Axes" "## " 2>/dev/null | grep '^- ')"
+  same "$label: ## Axes holds the six Axes in order, each its count and worst Finding or 0 findings, never not run" "$7"
+}
+
+shaped_review "Findings in both Buckets over two Axes" spread-debt "$spread_returns" "$spread_feature" \
+  "Notes export" "1 2 3" "- Correctness: 1 finding, worst #1 (Act on)
+- Spec: 0 findings
+- Standards: 2 findings, worst #2 (Consider)
+- Principles: 0 findings
+- Blast radius: 0 findings
+- Security: 0 findings"
+
+shaped_review "every item under Consider" consider-debt "$consider_returns" "$consider_feature" \
+  "Session cache" "1 2" "- Correctness: 0 findings
+- Spec: 0 findings
+- Standards: 0 findings
+- Principles: 2 findings, worst #1 (Consider)
+- Blast radius: 0 findings
+- Security: 0 findings"
+# shellcheck disable=SC2034  # lib.sh's same reads $out
+out="$(under "$consider_feature/spec.debt.review.md" "## Act on" 2>/dev/null)"
+same "every item under Consider: the empty Act on reads none on the line under it" "none"
+
 exit "$fails"
