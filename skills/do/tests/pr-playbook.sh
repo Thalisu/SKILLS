@@ -2740,5 +2740,44 @@ carries_each "this route comes ahead of the next round and of the three-round st
   "ahead of" "before" "comes first" -- \
   "next round" -- \
   "three-round" "three rounds" "third pushed round"
+# The developer relies on a rerun going only to a check its fixer could not reproduce: a rerun of a
+# check whose fixer returned `fixed` or `not fixed` hides a real failure behind a lucky retry, and a
+# rerun keyed on the session's reading of a log is spent before anyone knows whether the failure
+# reproduces (ADR 0089; ADR 0028: a class is a script's verdict, never the session's reading). The
+# case reads step 4's push item, one sentence at a time, and keeps those naming a rerun, the
+# `Yours: direction:` clauses set aside, so the never-does bullet cannot answer for it.
+echo "# pr.md / ### 4. Fix the red checks: only a not reproduced check is passed to pr-rerun.sh, never a fixed or not fixed one, and never on the session's reading of its log"
+step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+rerun_sentences="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.' "$push_line" | tr '\n' ' ' |
+  tr -s ' ' | sed 's/\. /.\n/g' | grep -E 'pr-rerun\.sh|rerun' | grep -vF 'Yours: direction:')"
+flat="$(tr '\n' ' ' <<<"$rerun_sentences")"
+carries_any "only a check on the round's not-reproduced list is passed to pr-rerun.sh" \
+  "only a check on the round's not-reproduced list" "only the checks on the round's not-reproduced list" \
+  "only checks on the round's not-reproduced list" "only a check on the not-reproduced list" \
+  "only the checks on the not-reproduced list" "only checks on the not-reproduced list" \
+  "only those on the round's not-reproduced list" "only those on the not-reproduced list" \
+  "only a check whose fixer returned \`not reproduced" "only the checks whose fixer returned \`not reproduced" \
+  "only a check whose \`do-pr-fixer\` returned \`not reproduced" "only a \`not reproduced\` check" \
+  "only the \`not reproduced\` checks" "only \`not reproduced\` checks" "only a not reproduced check" \
+  "only not reproduced checks"
+flat="$(grep -F "not fixed" <<<"$rerun_sentences" | tr '\n' ' ')"
+expect "a sentence of the push item naming a rerun names a not fixed return" test -n "$flat"
+carries_any "it names a fixed return beside it" \
+  "\`fixed" "fixed or not fixed" "fixed nor not fixed" "fixed and not fixed" "fixed, not fixed" \
+  "returned fixed" "a fixed check" "a check that was fixed"
+carries_any "whichever wrote the not fixed: the fixer, the session's did not return, or the conflicted-twice line" \
+  "did not return" "conflict" "the session's own" "the session's" "whoever" "whichever" \
+  "any \`not fixed\`" "every \`not fixed\`" "any not fixed" "every not fixed" "any source" "every source"
+carries_any "such a check is never passed to pr-rerun.sh" \
+  "never passed to" "is never passed" "are never passed" "not passed to" "never handed to" \
+  "never goes to \`pr-rerun.sh\`" "never goes into the \`pr-rerun.sh\`" "never rerun" "is never rerun" \
+  "never reruns" "no rerun" "never earns" "earns no" "never gets a rerun" "gets no rerun" "get no rerun"
+flat="$(grep -F "session" <<<"$rerun_sentences" | tr '\n' ' ')"
+expect "a sentence of the push item naming a rerun names the session" test -n "$flat"
+carries_each "the session's own reading of a check's log or excerpt never earns a rerun" \
+  "reading" "read" "judg" -- \
+  "log" "excerpt" -- \
+  "never" "no check" "nor " "not on" "does not" "doesn't"
+carries_any "there is no flake class" "flake" "flaky" "transient" "intermittent" "class"
 [ "$fails" -eq 0 ] && exit 0
 exit 1
