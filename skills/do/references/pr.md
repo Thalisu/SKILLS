@@ -215,6 +215,12 @@ the checks: a display read mid-run can show green while a check is still running
   retries by the retry routes of this step, and stops on whatever verdict that watch settles on,
   green included. It writes `round <r>: after the rerun the watch read <verdict word>`, then exactly
   one `Yours: direction:` line holding the carried stop-cases' clauses, as step 4 item 5 gives it.
+  The stop names, for each retried check, whether its retry went green or red again. A retry green
+  gets its `round <r>: <check> not reproduced locally, retried once, green` line. A retry red again
+  gets its `round <r>: <check> red again on its retry (<the retry>); not reproducible, no fixer forked`
+  line with both excerpts quoted under it, and raises its `not-reproducible` entry, whose clause
+  `fix <check> by hand, or re-run it yourself if you judge it a flake` joins the stop-case's clauses
+  on the same `Yours: direction:` line, after the carried entries, never on a second `Yours:` line.
   It never starts a new round and never forks a `do-pr-fixer` again. This route comes first, ahead
   of the next round and of the three-round stop.
 - `verdict=red`, when this run has pushed no round yet: a check failed. The run goes on to step 4,
@@ -496,7 +502,9 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    stop set's clauses follow it on that same line, never on a second `Yours:` line. Then come the stop-cases in the order they were raised: the
    `stale-base` entries in check-number order, since they are raised before any Wave, then the
    entries of the Waves in Wave order, and in check-number order within a Wave, then the
-   `rerun-refused` entries, then the checks that came back red after their fix was pushed. The `still red:` tail comes last. No clause is
+   `rerun-refused` entries, then the checks that came back red after their fix was pushed, then the
+   `not-reproducible` entries, the checks red again on their retry, both raised in step 3, in the
+   order the watch's `red=` lines name them. The `still red:` tail comes last. No clause is
    merged with another, even when two clauses offer the same option, so each stop keeps a clause
    of its own.
 

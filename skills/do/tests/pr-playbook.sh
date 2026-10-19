@@ -3011,5 +3011,46 @@ templates="$(
 )"
 out="$(grep -xF "round <r>: after the rerun the watch read <verdict word>" <<<"$templates")"
 expect "the watch after the rerun has its own round line in the Reply's round templates" test -n "$out"
+# The developer reading one stop with two causes relies on it saying how each retry ended: a Reply
+# silent on the retry leaves them not knowing whether the flake still needs a hand, and a second
+# `Yours:` line breaks the one-line contract every stop keeps (Journey Path 4, two stops in one
+# round). The after-the-rerun route is read off the watch step's pieces naming a rerun beside the
+# stop set, as the case above reads it; the clause order off the push item's paragraph naming the
+# Waves and the order, as the rerun-refused order case reads it.
+echo "# pr.md / ### 3. Watch and ### 4. Fix the red checks: the stop after the rerun that carried a stop set names each retry's outcome, green or red again with both excerpts, and a retry red again adds its not-reproducible clause after the carried stop-cases on the one Yours: direction: line"
+watch="$(passage_of "$pr" "### 3. Watch" "##" 2>/dev/null | sed 's/^[[:space:]]*//')"
+flat="$(piece_all=1 piece_without="pushed to <head>" piece_with "${after_rerun[@]}" |
+  grep -F -e "stop set" -e "stop-case" | tr '\n' ' ')"
+expect "a bullet or paragraph of the watch step takes the watch after a rerun that carried a stop set" test -n "$flat"
+carries_each "the stop names, per retried check, whether its retry went green or red again" \
+  "each retried check" "every retried check" "per retried check" "each check retried" "each check it retried" \
+  "each check it reran" "each retry" "every retry" "each open retry" "every open retry" "each of the retries" \
+  "each check in the retry record" "every check in the retry record" "each such check" "per check" \
+  "for each check" "every check it retried" -- \
+  "retried once, green" "green on its retry" "its retry went green" "its retry green" -- \
+  "red again on its retry" "red again on the retry" "its retry went red" "its retry red"
+carries_each "a retry red again quotes both excerpts" \
+  "both excerpts" "the two excerpts" "first excerpt" -- \
+  "quoted" "quotes" "quoting" "quote"
+carries_each "a retry red again adds its not-reproducible clause to the stop" \
+  "not-reproducible" -- \
+  "fix <check> by hand, or re-run it yourself if you judge it a flake" "clause" -- \
+  "red again"
+carries_any "on the same Yours: direction: line as the stop-case's clause, never a second Yours: line" \
+  "same \`Yours: direction:\` line" "same Yours: direction: line" "same \`Yours:\` line" "same Yours: line" \
+  "that same line" "the same line" "on one line" "never on a second" "never a second" "not on a second" \
+  "no second \`Yours:" "no second Yours:" "not a second" "nor a second"
+step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+push_item="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.' "$push_line" | sed 's/^[[:space:]]*//')"
+flat="$(piece_in="$push_item" piece_all=1 piece_with "Wave" | grep -F "order" | tr '\n' ' ')"
+expect "a paragraph of the push item names the Waves and the order of the clauses" test -n "$flat"
+stale_at="$(first_at "stale-base")"
+wave_at="$(first_at "Wave")"
+refused_at="$(first_at "rerun-refused" "rerun was refused" "rerun refused" "refused rerun")"
+notrep_at="$(first_at "not-reproducible" "not reproducible" "red again on its retry" "red again on their retry")"
+expect "the clause order names the not-reproducible entries" test "$notrep_at" -gt 0
+expect "after the carried stale-base entries" test "$stale_at" -gt 0 -a "$notrep_at" -gt "$stale_at"
+expect "after the carried Wave entries" test "$wave_at" -gt 0 -a "$notrep_at" -gt "$wave_at"
+expect "and after the carried rerun-refused entries" test "$refused_at" -gt 0 -a "$notrep_at" -gt "$refused_at"
 [ "$fails" -eq 0 ] && exit 0
 exit 1
