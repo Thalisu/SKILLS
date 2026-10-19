@@ -126,6 +126,10 @@ Fix: <the behaviour to prove>, in <the target: a file, a function, a test>
 - `Fix:` is the behaviour to prove and its target, in the words a test author takes. In `Cleared`
   the line is `Refuted by:` instead, with the evidence that refuted the claim, so the reader can
   overrule it.
+- Every Finding of a Debt review carries one more line, `Source:`, after its `Fix:` (or
+  `Refuted by:`) line. It names where the item came from: the Debt file and the item in it, or the
+  Review and its Finding number, as in `Source: issues/02-export.debt.md, item 3` or
+  `Source: spec.review.md, Finding 4`. A reviewer's Review carries no `Source:` line.
 
 The Bucket is decided by the evidence, never by the severity:
 

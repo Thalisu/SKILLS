@@ -54,4 +54,13 @@ carries_any "as a judgment of that debt" "judgment" "judges" "judged" "judging"
 carries_each "and not a reviewer reading a diff" \
   "never a reviewer" "not a reviewer" "no reviewer" "never by a reviewer" "not by a reviewer" -- "diff"
 
+echo "# review-format.md / ## Findings, by Bucket: every Finding of a Debt review names its Source:, the Debt file's item or the Review's Finding"
+flat="$(passage_of "$format" "## Findings, by Bucket" "## " | units_of | grep -F "Source:" | tr '\n' ' ')"
+expect "the Finding block notes say what a Finding's Source: line is" test -n "$flat"
+carries "the line belongs to a Debt review" "Debt review"
+carries_any "and every Finding of one carries it" "every Finding" "each Finding" "Every Finding" "Each Finding"
+carries_each "naming the Debt file and its item" "Debt file" -- "item"
+carries_each "or the Review and its Finding number" "Review" -- \
+  "Finding number" "Finding's number" "its number" "the number"
+
 exit $((fails > 0))
