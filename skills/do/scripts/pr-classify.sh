@@ -19,7 +19,12 @@
 #   stale <k> <path>       the record names at least one file and none is in the diff, one line per
 #                          file in record order
 #
-# Exit codes: 0 classified · 2 usage, nothing on stdout.
+# When the base, the merge base or the diff cannot be read, it prints instead, and returns 1:
+#   failed: <reason>       one of `base <base> not fetched from origin`,
+#                          `no merge base of <base> and HEAD` or `diff unreadable`
+#   real <k>               per record in input order, with no base=, merge-base= or stale line
+#
+# Exit codes: 0 classified · 1 base, merge base or diff unreadable · 2 usage, nothing on stdout.
 set -uo pipefail
 
 pr_classify() {
@@ -33,20 +38,49 @@ pr_classify() {
     return 2
   fi
 
-  local base_sha merge_base p
+  local -a records=()
+  local rec
+  while IFS= read -r rec || [ -n "$rec" ]; do
+    records+=("$rec")
+  done
+
+  local base_sha merge_base p reason="" difffile
   local -A changed=()
-  git -C "$tree" fetch -q origin "refs/heads/$base"
-  base_sha=$(git -C "$tree" rev-parse --verify --quiet 'FETCH_HEAD^{commit}')
-  merge_base=$(git -C "$tree" merge-base "$base_sha" HEAD)
-  while IFS= read -r -d '' p; do
-    changed["$p"]=1
-  done < <(git -C "$tree" diff --name-only --no-renames -z "$merge_base" HEAD --)
+  if git -C "$tree" fetch -q origin "refs/heads/$base" 2>/dev/null &&
+    base_sha=$(git -C "$tree" rev-parse --verify --quiet 'FETCH_HEAD^{commit}' 2>/dev/null) &&
+    [ -n "$base_sha" ]; then
+    merge_base=$(git -C "$tree" merge-base "$base_sha" HEAD 2>/dev/null)
+    if [ -z "$merge_base" ]; then
+      reason="no merge base of $base and HEAD"
+    else
+      difffile=$(mktemp)
+      if git -C "$tree" diff --name-only --no-renames -z "$merge_base" HEAD -- \
+        >"$difffile" 2>/dev/null; then
+        while IFS= read -r -d '' p; do
+          changed["$p"]=1
+        done <"$difffile"
+      else
+        reason="diff unreadable"
+      fi
+      rm -f "$difffile"
+    fi
+  else
+    reason="base $base not fetched from origin"
+  fi
+  if [ -n "$reason" ]; then
+    echo "failed: $reason"
+    for rec in "${records[@]}"; do
+      [ -z "$rec" ] && continue
+      echo "real ${rec%%$'\t'*}"
+    done
+    return 1
+  fi
   echo "base=$base_sha"
   echo "merge-base=$merge_base"
 
   local k files line f hit
   local -a paths
-  while IFS= read -r line || [ -n "$line" ]; do
+  for line in "${records[@]}"; do
     [ -z "$line" ] && continue
     k="${line%%$'\t'*}"
     files="${line#*$'\t'}"

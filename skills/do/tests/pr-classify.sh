@@ -95,4 +95,34 @@ check_lines "with the clone's main left behind origin's, base= names origin's ti
   0 "$rc" "base=$origin_tip" "stale 1 lib/base.js" "real 2"
 absent "the file only origin's later base commit changed is not read as the pull request's" "real 1"
 
+fresh unread-seed
+mkdir -p src tests/e2e
+printf 'base\n' >src/app.js
+printf 'test("login")\n' >tests/e2e/login.spec.ts
+commit base
+g checkout -q --orphan other
+g rm -rqf .
+printf 'unrelated\n' >other.txt
+commit "unrelated history"
+g checkout -q main
+g clone -q --bare "$tmp/unread-seed" "$tmp/unread-origin.git"
+g clone -q "$tmp/unread-origin.git" "$tmp/unread-tree"
+cd "$tmp/unread-tree" || exit 1
+g config gc.auto 0
+g config maintenance.auto false
+g checkout -q -b head main
+printf 'changed\n' >src/app.js
+commit head
+run "$tmp/unread-tree" nope <<<$'1\ttests/e2e/login.spec.ts\n2\t'
+check_lines "a base origin does not have prints failed naming it, and every check reads real, the one naming an untouched file too: exit 1" \
+  1 "$rc" "failed: base nope not fetched from origin" "real 1" "real 2"
+same "on an unfetched base the failed line comes first, then one real line per check in input order, with no stale, base= or merge-base= line" \
+  $'failed: base nope not fetched from origin\nreal 1\nreal 2'
+
+run "$tmp/unread-tree" other <<<$'1\ttests/e2e/login.spec.ts\n2\t'
+check_lines "a base sharing no history with HEAD prints failed naming the missing merge base, and every check reads real: exit 1" \
+  1 "$rc" "failed: no merge base of other and HEAD" "real 1" "real 2"
+same "with no merge base the failed line comes first, then one real line per check in input order, with no stale, base= or merge-base= line" \
+  $'failed: no merge base of other and HEAD\nreal 1\nreal 2'
+
 exit "$((fails > 0))"
