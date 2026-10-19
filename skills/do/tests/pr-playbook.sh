@@ -1666,5 +1666,34 @@ carries_each "never an \`outward\` hand-over" \
   "never an \`outward\`" "never \`outward\`" "never under \`outward\`" "not an \`outward\`" \
   "never named under" "never names it under" "no \`outward\`" "never an outward" "not under \`outward\`"
 carries "since ADR 0086 authorised it" "ADR 0086"
+
+# Others push to a shared head such as `dev` while a round is cut, fixed and picked: a push from a
+# tree built on a tip the remote has since moved past is refused late with nothing redone, and a run
+# that never fetches first learns the head moved only from git's refusal, stopping a round a pull
+# would have saved. Item 2 already fetches `<head>` before the run tree is cut, and the push item
+# already says "nothing is pushed" when no check was picked, so the fetch and the comparison are
+# read off the push item alone, and the rule off the sentences of it that name the moved tip.
+echo "# pr.md / ### 4. Fix the red checks: before each push the run fetches <head> and pushes no round whose tree was built on a tip the remote has since moved past"
+step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+push_item="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.|[[:space:]]+[a-z]\.' "$push_line" | tr '\n' ' ' | tr -s ' ')"
+flat="$push_item"
+expect "the push line sits in an item of the step" test -n "$flat"
+fetch_at="$(first_at "git -C <run tree> fetch origin <head>" "git fetch origin <head>" "fetch origin <head>" \
+  "fetch origin refs/heads/<head>")"
+push_at="$(first_at "$push_line")"
+expect "the item fetches \`<head>\` from origin ahead of its push line" \
+  test "$fetch_at" -gt 0 -a "$push_at" -gt "$fetch_at"
+carries_each "it compares the fetched tip with \`<sha>\`, the commit the run tree was built on" \
+  "origin/<head>" "FETCH_HEAD" "fetched tip" "tip it fetched" "tip fetched" -- "<sha>"
+flat="$(sed 's/\. /.\n/g' <<<"$push_item" | awk '
+  index($0, "moved past") || index($0, "has moved") || index($0, "moved on") ||
+  index($0, "is not `<sha>`") || index($0, "is not <sha>") || index($0, "isn'"'"'t `<sha>`") ||
+  index($0, "differs from `<sha>`") || index($0, "differs from <sha>") || index($0, "other than `<sha>`") ||
+  index($0, "not `<sha>`") || index($0, "!= <sha>") || index($0, "!= `<sha>`")
+' | tr '\n' ' ')"
+expect "a sentence of the push item takes a fetched tip that is not \`<sha>\`" test -n "$flat"
+carries_any "that round is not pushed as it stands" \
+  "not pushed" "no push" "never pushed" "pushes nothing" "nothing is pushed" "does not push" \
+  "doesn't push" "never pushes" "pushes no" "without pushing" "never goes out" "does not go out"
 [ "$fails" -eq 0 ] && exit 0
 exit 1

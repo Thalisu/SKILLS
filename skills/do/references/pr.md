@@ -309,7 +309,14 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    picked. The fork and the wait sit in one turn: the session never ends its turn while a fixer
    runs, as skills/do-code-review/references/fix.md warns.
 
-5. Push, when at least one check was picked:
+5. Push, when at least one check was picked. Before each push this step makes, fetch `<head>`
+   from origin:
+
+       git -C <run tree> fetch origin <head>
+
+   Then compare the fetched tip `origin/<head>` with `<sha>`, the commit the run tree was cut at
+   (the commit the checks ran on). When the fetched tip is not `<sha>`, the remote has moved past
+   the tree's base and the round is not pushed as it stands. When it is `<sha>`, push:
 
        git -C <run tree> push origin HEAD:refs/heads/<head>
 
