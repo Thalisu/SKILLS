@@ -36,4 +36,9 @@ check_lines "a check naming only a file the pull request leaves untouched prints
 absent "the check naming the untouched file is not read as real" "real 1"
 absent "the check naming the changed file is not read as stale" "stale 2"
 
+run "$tmp/tree" main <<<$'1\t\n2\tsrc/app.js tests/e2e/login.spec.ts'
+check_lines "a check naming no file, and one naming a changed file beside an untouched one, both print real: exit 0" \
+  0 "$rc" "real 1" "real 2"
+absent "neither the check naming no file nor the mixed check is read as stale" "stale "
+
 exit "$((fails > 0))"

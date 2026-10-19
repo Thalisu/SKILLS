@@ -13,8 +13,9 @@
 #   base=<sha of refs/heads/<base>>
 #   merge-base=<sha>
 # then, per record in input order:
-#   real <k>               the record names a file the diff changes
-#   stale <k> <path>       otherwise, one line per file of the record, in record order
+#   real <k>               the record names no file, or names a file the diff changes
+#   stale <k> <path>       the record names at least one file and none is in the diff, one line per
+#                          file in record order
 #
 # Exit codes: 0 classified · 2 usage, nothing on stdout.
 set -uo pipefail
@@ -43,7 +44,12 @@ pr_classify() {
     [ -z "$line" ] && continue
     k="${line%%$'\t'*}"
     files="${line#*$'\t'}"
+    [ "$files" = "$line" ] && files=""
     read -r -a paths <<<"$files"
+    if [ "${#paths[@]}" -eq 0 ]; then
+      echo "real $k"
+      continue
+    fi
     hit=0
     for f in "${paths[@]}"; do
       if printf '%s\n' "$changed" | grep -qxF -- "$f"; then
