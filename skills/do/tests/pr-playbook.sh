@@ -2627,5 +2627,40 @@ carries_each "the came-back match reads only \`pushed to\` round lines, so a rer
   "never match" "never matches" "does not match" "do not match" "doesn't match" "don't match" \
   "not matched" "never matched" "no match" "never read" "not read" "passes over" "pass over" "skips" \
   "ignores" "never a check reported fixed" "not a check reported fixed" "never reports" "never count"
+
+# The team sharing CI relies on a pushed round spending no rerun: the push starts a new run on the
+# pushed head, and that run is the not reproduced check's retry already (ADR 0089), so a rerun beside
+# it spends a run on a commit the head has moved past. The routing is read off the push item's
+# sentences naming the not-reproduced list or the retry, the no-pick sentences passed over, so the
+# rerun paragraph of a round that picked nothing never answers for a pushed one; the round line off
+# the Reply step's round templates, a line of its own or a code span.
+echo "# pr.md / ### 4. Fix the red checks and ### 5. Reply: on a round that pushes fixes, a not reproduced check gets no rerun, the new run on the pushed head is its retry, and its round line ends retried by the run on <picked sha>"
+step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+push_item="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.' "$push_line")"
+flat="$(tr '\n' ' ' <<<"$push_item" | tr -s ' ' | sed 's/\. /.\n/g' |
+  grep -F -e "not reproduced" -e "not-reproduced" -e "retried by the run" |
+  grep -vF -e "no check was picked" -e "no check picked" -e "nothing was picked" -e "nothing picked" \
+    -e "picked nothing" -e "no check is picked" | tr '\n' ' ')"
+expect "sentences of the push item name a not reproduced check on a round that picked one" test -n "$flat"
+carries_each "when at least one check was picked, a check on the round's not-reproduced list" \
+  "at least one check was picked" "at least one check is picked" "a check was picked" "a check is picked" \
+  "checks were picked" "round that pushes" "round that pushed" "pushed round" "round is pushed" \
+  "round was pushed" "round pushes" -- \
+  "not-reproduced list" "not reproduced list"
+carries_any "gets no rerun, no pr-rerun.sh call on that round" \
+  "no rerun" "not rerun" "never rerun" "nothing is rerun" "nothing rerun" "reruns nothing" \
+  "without a rerun" "without rerunning" "no \`pr-rerun.sh\`" "no pr-rerun.sh" "never calls \`pr-rerun.sh\`"
+carries_each "the new run on the pushed head is that check's retry" \
+  "new run" "run on the pushed head" "run the push starts" "run the push triggers" "run the push started" -- \
+  "retry" "retries" "retried"
+carries_each "and its round line ends \`; retried by the run on <picked sha>\`" \
+  "round line" -- "; retried by the run on <picked sha>"
+reply_step="$(passage_of "$pr" "### 5. Reply" "##" 2>/dev/null)"
+templates="$(
+  sed 's/^[[:space:]]*//' <<<"$reply_step" | grep '^round <r>:'
+  tr '\n' ' ' <<<"$reply_step" | tr -s ' ' | grep -oE '`round <r>:[^`]*`' | tr -d '`'
+)"
+out="$(grep -xF "round <r>: <check> red; do-pr-fixer on <fixer branch>: not reproduced <k>: <command> <what it showed>; nothing pushed for it; retried by the run on <picked sha>" <<<"$templates")"
+expect "a not reproduced check's round line on a pushed round ends retried by the run on the picked sha" test -n "$out"
 [ "$fails" -eq 0 ] && exit 0
 exit 1

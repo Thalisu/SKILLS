@@ -439,6 +439,10 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    3's watch carrying the stop set. A redone round, on a moved remote, keeps the stop set and forks
    no `do-pr-fixer` again for its checks.
 
+   When at least one check was picked, a check on the round's not-reproduced list gets no rerun, and
+   no `pr-rerun.sh` call is made that round. The new run on the pushed head is that check's retry,
+   and its round line ends `; retried by the run on <picked sha>`.
+
    When no check was picked and the round's stop set holds a stop-case, nothing is pushed: remove
    `<run tree>`, then the run stops with exactly one `Yours: direction:` line holding one clause per
    stop-case, the clauses joined by `; `. The whole form is:
@@ -575,6 +579,7 @@ the whole message, and a green watch adds no part of its own:
       round <r>: <check> red; stale base: <path>[, <path>...] not changed by this pull request against <base> at <merge base short sha>; no fixer forked
       round <r>: <a `kept` line, as fix-worktrees.sh printed it>
       round <r>: kept <branch> <path> <reason>, as fix-worktrees.sh printed it
+      round <r>: <check> red; do-pr-fixer on <fixer branch>: not reproduced <k>: <command> <what it showed>; nothing pushed for it; retried by the run on <picked sha>
       round <r>: <check> red; do-pr-fixer on <fixer branch>: not reproduced <k>: <command> <what it showed>; nothing pushed for it; rerun <run id> attempt <n>
       round <r>: <check> red; do-pr-fixer on <fixer branch>: not reproduced <k>: <command> <what it showed>; nothing pushed for it; rerun <run id> refused: <reason>
       round <r>: nothing pushed; failed jobs rerun on run <run id>[, run <run id>...]; not counted toward the three pushed rounds
