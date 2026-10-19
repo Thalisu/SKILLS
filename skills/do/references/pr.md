@@ -307,6 +307,12 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
       `not fixed` line for a file that never landed (`the fixer did not return`) is not a fixer's
       report: it raises no stop-case and stays out of the stop set, and that check stays red this
       round like any other return with no pick.
+      A `not reproduced <k>: <command> <what it showed instead>` line `returns.sh` printed is the
+      fixer's report that it could not reproduce the failure locally, so check `<k>` goes to the
+      round's not-reproduced list, never to `pr-guard.sh` or `fix-integrate.sh`; a `not reproduced`
+      fixer branch is never picked, even when it holds a commit (then taking its worktree back
+      prints it as a kept line), so nothing of its fixer branch reaches the run tree or the head,
+      and a `not reproduced` return raises no stop-case and stays out of the round's stop set.
 
    d. First, one guard call over every check of the Wave that returned `fixed <k>: ...`:
 
@@ -524,6 +530,7 @@ the whole message, and a green watch adds no part of its own:
 
       round <r>: <check> red; do-pr-fixer on <fixer branch>: <its return line>; <picked sha> pushed to <head>
       round <r>: <check> red; do-pr-fixer on <fixer branch>: <its return line>; nothing pushed for it
+      round <r>: <check> red; do-pr-fixer on <fixer branch>: not reproduced <k>: <command> <what it showed>; nothing pushed for it
       round <r>: <check> red; do-pr-fixer on <fixer branch>: <its return line>; not picked: <path> is a <class> file
       round <r>: <check> red; do-pr-fixer on <fixer branch>: <its return line>; not picked: the guard could not read it: <reason>
       round <r>: <check> red again; pushed as fixed in round <r'> as <sha>

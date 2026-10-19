@@ -2425,5 +2425,45 @@ carries_each "each stop is listed on a round line of its own" \
   "each stop" "every stop" "one per stop" "per stop" -- \
   "its own round line" "a round line of its own" "own round line" "one round line"
 carries_any "with its reason" "its reason" "with the reason" "the reason it stopped" "why it stopped"
+
+# A fixer that could not reproduce its check found nothing to fix (ADR 0087): read as `fixed`, the
+# run would pick and push a commit for a failure nobody reproduced, and read as `not fixed`, it
+# would stop a run that a rerun of the failed jobs could close. The routing is read off the
+# sentences of step 4 naming `not reproduced`, so the sentences keeping the session's own
+# `not fixed` line out of the stop set never answer for it, and the round line off the Reply step's
+# round templates, a line of its own or a code span.
+echo "# pr.md / ### 4. Fix the red checks and ### 5. Reply: a fixer's not reproduced return goes to the round's not-reproduced list, never to pr-guard.sh or fix-integrate.sh, is never picked and raises no stop-case, and its round line reads that return line then nothing pushed for it"
+step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ' | sed 's/\. /.\n/g' | grep -F "not reproduced" | tr '\n' ' ')"
+expect "sentences of the step name a \`not reproduced\` return" test -n "$flat"
+carries_each "a \`not reproduced <k>:\` line returns.sh printed" \
+  "not reproduced <k>:" -- "returns.sh"
+carries_any "goes to the round's not-reproduced list" \
+  "not-reproduced list" "not reproduced list" "list of not reproduced" "list of the not reproduced" \
+  "list of not-reproduced" "list of the not-reproduced"
+carries_each "never to pr-guard.sh or fix-integrate.sh" \
+  "pr-guard" -- "fix-integrate" -- \
+  "never" "not into" "no call" "kept out" "stays out" "skips" "neither" "nor"
+carries_each "its branch is never picked, even when it holds a commit" \
+  "never picked" "not picked" "no pick" "never pick" "is not picked" -- \
+  "even when" "even if" "whether or not" "whatever" "holds a commit" "carries a commit" "has a commit"
+carries_each "so nothing of its fixer branch reaches the run tree or the head" \
+  "nothing of" "none of" "never reaches" "no commit of" "never reach" -- \
+  "run tree" -- "head"
+carries_each "it raises no stop-case and stays out of the round's stop set" \
+  "no stop-case" "not a stop-case" "never a stop-case" "no stop case" "not a stop case" \
+  "raises no" "raise no" -- \
+  "stays out of the" "stay out of the" "kept out of the" "never enters the" "never goes into the" \
+  "not in the" "outside the" "out of the round's" -- \
+  "stop set"
+reply_step="$(passage_of "$pr" "### 5. Reply" "##" 2>/dev/null)"
+templates="$(
+  sed 's/^[[:space:]]*//' <<<"$reply_step" | grep '^round <r>:'
+  tr '\n' ' ' <<<"$reply_step" | tr -s ' ' | grep -oE '`round <r>:[^`]*`' | tr -d '`'
+)"
+out="$(grep -F "not reproduced" <<<"$templates")"
+expect "a round line template of the Reply step names the fixer's \`not reproduced\` return" test -n "$out"
+out="$(grep -E 'not reproduced.*; nothing pushed for it$' <<<"$out")"
+expect "and reads it followed by \`nothing pushed for it\`" test -n "$out"
 [ "$fails" -eq 0 ] && exit 0
 exit 1
