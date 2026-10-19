@@ -51,5 +51,16 @@ pr_ask="$(while IFS= read -r row; do
 done <<<"$ask_rows")"
 expect "a row's Use cell types \`/do\` with a pull request" test -n "$pr_ask"
 
+echo "# docs/do.md / ## Prerequisites: the lead sentence counts the table's rows, and the other ones as that count minus one"
+count_name() { sed -n "${1}p" <<<$'one\ntwo\nthree\nfour\nfive\nsix\nseven\neight\nnine\nten\neleven\ntwelve\nthirteen\nfourteen\nfifteen\nsixteen\nseventeen\neighteen\nnineteen\ntwenty'; } # $1 a count from 1 to 20: its English word, lower case
+names_count() { [ -z "$1" ] || [ "$(tr '[:upper:]' '[:lower:]' <<<"$1")" = "$(count_name "$2")" ] || [ "$1" = "$2" ]; }                                                                       # $1 the word or digits the sentence states (empty when it states none), $2 the count it must name
+prereq_rows="$(passage_of "$do_doc" "## Prerequisites" "## The Playbook" | grep -E '^\| ' | tail -n +2)"
+rows="$(grep -c . <<<"$prereq_rows")"
+flat="$(flat_section "$do_doc" "## Prerequisites")"
+things_word="$(grep -oE '[A-Za-z0-9]+ things in the project change' <<<"$flat" | head -n 1 | cut -d' ' -f1)"
+other_word="$(grep -oE '[Tt]he other [A-Za-z0-9]+ surface' <<<"$flat" | head -n 1 | cut -d' ' -f3)"
+expect "the things it counts (${things_word:-none}) are the table's rows (${rows})" names_count "$things_word" "$rows"
+expect "the other ones it counts (${other_word:-none}) are the rows past the loop line ($((rows - 1)))" names_count "$other_word" "$((rows - 1))"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1

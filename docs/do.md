@@ -53,10 +53,10 @@ into the project is in English.
 
 ## Prerequisites
 
-Nothing has to be installed for `do` to run, but eleven things in the project change what a run can
+Nothing has to be installed for `do` to run, but twelve things in the project change what a run can
 do. Under `--auto` the Run report's Run section records one of them, the loop line, with the
 protected-branch warning beside it when it applies, so you find how the run was set up there. The
-other ten surface at the step that reads them, and each row below names that step.
+other eleven surface at the step that reads them, and each row below names that step.
 
 | In the project | What `do` does with it, and without it |
 |---|---|
