@@ -243,6 +243,13 @@ echo "# README.md, .agents/invocation.md, docs/do.md: the agent is listed with w
 flat="$(grep -E '^\| `do` +\|' "$root/README.md")"
 carries "the README's do row lists do-pr-fixer among the agents do ships" "do-pr-fixer"
 
+do_rows="$(grep -cE '^\| `do` +\|' "$root/README.md")"
+expect "the README's agents table has exactly one do row (found $do_rows)" test "$do_rows" = 1
+shipped=()
+for definition in "$root"/skills/do/agents/*.md; do shipped+=("\`$(basename "$definition" .md)\`"); done
+carries "the README's do row lists every agent under skills/do/agents/, which link-skills.sh installs" \
+  "${shipped[@]}"
+
 agents_table="$(passage_of "$root/.agents/invocation.md" "## Agents a skill ships" "## ")"
 expect "invocation.md's Agents a skill ships table has a do-pr-fixer row" \
   grep -qE '^\| `do-pr-fixer` +\|' <<<"$agents_table"
