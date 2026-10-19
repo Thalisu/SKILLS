@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# returns.sh: the contract of scripts/returns.sh, the wait the orchestrator runs on its reviewers'
-# return files, so a retry forks only the reviewer whose file never landed.
-# Run: bash skills/do-code-review/tests/returns.sh
+# returns.sh: the contract of .agents/scripts/returns.sh, the wait an orchestrator runs on its
+# forks' return files, so a retry forks only the one whose file never landed.
+# Run: bash scripts/tests/returns.sh
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
-. "$here/../../../scripts/tests/lib.sh"
-script="$here/../scripts/returns.sh"
+. "$here/lib.sh"
+script="$here/../../.agents/scripts/returns.sh"
 fails=0
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT

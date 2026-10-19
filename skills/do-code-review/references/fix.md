@@ -301,7 +301,7 @@ Then, for each Wave `<k>` as run, in order, while no stop below has fired:
    Fixer has returned only once its return file is on disk, so once the Agent tool has handed every
    call of the Wave back, wait for the Wave in one call over every return file it forked that is not
    already there,
-   `bash ~/.claude/skills/do-code-review/scripts/returns.sh 240 <every return file of the Wave>`,
+   `bash ~/.claude/skills/do-code-review/../../.agents/scripts/returns.sh 240 <every return file of the Wave>`,
    given the Bash tool's own `timeout` at its maximum, `600000` ms, so the script's window closes
    first, and call it again over the files still `missing=`, three windows and no more. A Fixer
    whose file has not landed after the third costs its own Finding and nothing else of its Wave:

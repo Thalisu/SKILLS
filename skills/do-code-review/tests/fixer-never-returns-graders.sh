@@ -26,6 +26,8 @@ bash_call_append() { # $1 work folder, $2 the command
 tree="/work/fixture/.claude/worktrees/fix-export-notes"
 # shellcheck disable=SC2088 # the literal tilde the orchestrator types, never expanded
 scripts="~/.claude/skills/do-code-review/scripts"
+# shellcheck disable=SC2088 # the literal tilde the orchestrator types, never expanded
+shared="~/.claude/skills/do-code-review/../../.agents/scripts"
 at="1a2b3c4-Xq9"
 wave_cut="bash $scripts/fix-worktrees.sh add $tree export-notes $at 1 1 2"
 # The brief the orchestrator hands a Finding's Fixer, naming the Finding's own location in the fixture
@@ -131,12 +133,12 @@ wave_integrated() {
   bash_call_append "$w" "$wave_cut"
   agent_call_append do-code-review-fixer "$w" s1 "" "$(fixer_brief 1 1)"
   agent_call_append do-code-review-fixer "$w" s1 "" "$(fixer_brief 1 2)"
-  bash_call_append "$w" "bash $scripts/returns.sh 240 $tree/.scratch/fixers/fixer-w1-1.md $tree/.scratch/fixers/fixer-w1-2.md"
+  bash_call_append "$w" "bash $shared/returns.sh 240 $tree/.scratch/fixers/fixer-w1-1.md $tree/.scratch/fixers/fixer-w1-2.md"
   bash_call_append "$w" "bash $scripts/fix-integrate.sh $tree 2=fixer/export-notes/$at/w1-2"
   bash_call_append "$w" "bash $scripts/fix-worktrees.sh remove $tree fixer/export-notes/$at/w1-2"
   bash_call_append "$w" "bash $scripts/fix-worktrees.sh add $tree export-notes $at 2 3"
   agent_call_append do-code-review-fixer "$w" s1 "" "$(fixer_brief 2 3)"
-  bash_call_append "$w" "bash $scripts/returns.sh 240 $tree/.scratch/fixers/fixer-w2-3.md"
+  bash_call_append "$w" "bash $shared/returns.sh 240 $tree/.scratch/fixers/fixer-w2-3.md"
   bash_call_append "$w" "bash $scripts/fix-integrate.sh $tree 3=fixer/export-notes/$at/w2-3"
   bash_call_append "$w" "bash $scripts/fix-worktrees.sh remove $tree fixer/export-notes/$at/w2-3"
   bash_call_append "$w" "cd $tree && node --test tests/*.test.js"

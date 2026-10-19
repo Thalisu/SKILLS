@@ -312,7 +312,7 @@ prompt and the brief after it.
 The run is not over until the Review is written, whatever the Agent tool does. When it returns both
 results, go on. When it returns before the reviewers do, because the harness runs subagents in the
 background, do not end your turn: wait for the return files with the wait script,
-`bash ~/.claude/skills/do-code-review/scripts/returns.sh 240 <technical.md> <security.md>`,
+`bash ~/.claude/skills/do-code-review/../../.agents/scripts/returns.sh 240 <technical.md> <security.md>`,
 given the Bash tool's own `timeout` at its maximum, `600000` ms, so the script's window is the one
 that closes first and the call comes back to you instead of being cut short and left running in the
 background. It prints one `returned=` or `missing=` line per file, in the order given, and comes
@@ -344,7 +344,7 @@ Shard:
 - **Wait** on every return file of the set in one call, in Row order:
 
   ```
-  bash ~/.claude/skills/do-code-review/scripts/returns.sh 240 <that directory>/shard-1.technical.md <that directory>/shard-1.security.md ... <that directory>/shard-<N>.security.md <that directory>/spec.md
+  bash ~/.claude/skills/do-code-review/../../.agents/scripts/returns.sh 240 <that directory>/shard-1.technical.md <that directory>/shard-1.security.md ... <that directory>/shard-<N>.security.md <that directory>/spec.md
   ```
 
   When it comes back at its window, read the files that landed and call it again over the paths
