@@ -466,6 +466,10 @@ cat >"$cleared_feature/issues/01-a.debt.md" <<'EOF'
 - the summary drops its last row
 - the page header repeats on every page
 - the README names the old page flag
+- the export path is hardcoded
+- the page cache never expires
+- the footer counts the wrong rows
+- the report locale is ignored
 EOF
 commit "seed the cleared feature"
 cleared_source_of() { # $1 item number: its source, as gather.sh records it, on stdout
@@ -576,6 +580,31 @@ Rung: 3
 Fix: the README names the new page flag, in ./README.md
 Small: yes
 EOF
+contradictory=()
+for k in 10 11 12 13; do
+  contradictory+=("$(cleared_source_of "$k")")
+  if [ -z "${contradictory[$((k - 10))]}" ]; then
+    echo "FAIL  fixture: gather.sh named no source for the cleared-debt item $k"
+    exit 1
+  fi
+done
+contradictory_return() { # $1 item number, $2 its source, $3 the Claim, $4.. the lines after its Rung
+  {
+    printf 'Source: %s\nAxis: Correctness\nLocation: src/report.sh:40\nClaim: %s\n' "$2" "$3"
+    printf 'Evidence: a proof script ran the report and read the output.\nRung: 4\n'
+    printf '%s\n' "${@:4}"
+  } >"$cleared_returns/item-$1.md"
+}
+contradictory_return 10 "${contradictory[0]}" "the export writes to a fixed path." \
+  "Refuted by: a proof script set EXPORT_DIR and the export wrote there." "Small: yes"
+contradictory_return 11 "${contradictory[1]}" "the page cache is never evicted." \
+  "Outside code: the cache expires on the CDN's schedule, in the CDN config" "Small: yes"
+contradictory_return 12 "${contradictory[2]}" "the footer total skips the header row." \
+  "Fix: the footer counts the body rows, in src/report.sh" "Small: yes" \
+  "Refuted by: a proof script summed the rows and the footer matched."
+contradictory_return 13 "${contradictory[3]}" "the report prints dates in the server locale." \
+  "Refuted by: a proof script set LANG and the dates followed it." \
+  "Outside code: the locale is set by the host, in the deployment's environment"
 cleared_review="$cleared_feature/spec.debt.review.md"
 rc=0
 # shellcheck disable=SC2034  # lib.sh's check reads $out
@@ -674,6 +703,25 @@ check_absent "a small item at Rung 3 or above whose Fix names no file stays out 
 check "a small item at Rung 3 or above whose Fix names a file in backticks with a line, or a root file, stays under Act on" \
   0 "$cleared_rc" "Claim: the page header repeats on every page." "Claim: the README names the old page flag."
 check_absent "an item under Act on carries no mark" 0 "$cleared_rc" "Mark:"
+
+for contradiction in "10|the export path is hardcoded|the export writes to a fixed path.|Refuted by then Small" \
+  "11|the page cache never expires|the page cache is never evicted.|Outside code then Small" \
+  "12|the footer counts the wrong rows|the footer total skips the header row.|Fix and Small then Refuted by" \
+  "13|the report locale is ignored|the report prints dates in the server locale.|Refuted by then Outside code"; do
+  IFS='|' read -r k debt claim label <<<"$contradiction"
+  # shellcheck disable=SC2034  # lib.sh's check_lines reads $out
+  out="$(grep -qx '## Noted' "$cleared_review" 2>/dev/null &&
+    item_holding <(passage_of "$cleared_review" "## Consider" "## Noted") '### [0-9]+\.' "Claim: $debt")"
+  check_lines "a return carrying $label is a Finding under Consider at Rung 1, marked outside the shape" 0 "$cleared_rc" \
+    "Claim: $debt" "Evidence: the evaluator returned outside the shape" "Rung: 1" \
+    "Source: ${contradictory[$((k - 10))]}"
+  # shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+  out="$(grep -qx '## Consider' "$cleared_review" 2>/dev/null && passage_of "$cleared_review" "## Act on" "## Consider")"
+  check_absent "a return carrying $label stays out of Act on" 0 "$cleared_rc" "$debt" "$claim"
+  # shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+  out="$(grep -qx '## Axes' "$cleared_review" 2>/dev/null && passage_of "$cleared_review" "## Noted" "## Axes")"
+  check_absent "a return carrying $label stays out of Noted and Cleared" 0 "$cleared_rc" "$debt" "$claim"
+done
 
 fresh idle
 idle="$(pwd -P)"
