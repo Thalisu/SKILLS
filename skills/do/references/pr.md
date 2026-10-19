@@ -564,7 +564,9 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
 
    When no check was picked, the stop set is empty and the round's not-reproduced list is empty, nothing
    is pushed: remove `<run tree>`, then stop with one line per check quoting its fixer's return,
-   nothing followed.
+   then exactly one
+   `Yours: direction: no fix was picked for <the checks, in the order the watch printed them, joined with ", ">; fix them by hand on <head>, or /do the pull request again`,
+   and follows nothing.
 
    When no check was picked, the stop set is empty and at least one check is on the round's
    not-reproduced list whose name is not in the run's retry record, nothing is pushed and the run

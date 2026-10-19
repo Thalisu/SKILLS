@@ -3217,5 +3217,20 @@ carries_each "a non-zero pr-log.sh exit stops the run quoting the script's stder
   "non-zero exit" -- "stops" -- "stderr line"
 yours_direction_once "the failed pr-log.sh's stop carries exactly one \`Yours: direction:\` line"
 
+# The no-pick, empty-set stop hands the developer only the fixers' returns, and reply.md's exception
+# list names no fixer's return, watch or pr-log.sh among the `pr` door's stops that owe no `Yours:`
+# line. The stop is read off its own paragraph of the push item, since the item's other stops carry
+# `Yours: direction:` lines that would otherwise answer for it.
+echo "# pr.md / ### 4. Fix the red checks: the no-pick, empty-set stop quoting each fixer's return carries exactly one Yours: direction: line, which reply.md's exception list does not waive"
+push_item="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.' "$push_line")"
+flat="$(piece_in="$push_item" piece_with "quoting its fixer's return" "one line per check quoting")"
+expect "a paragraph of the push item stops quoting each fixer's return" test -n "$flat"
+yours_direction_once "the no-pick, empty-set stop carries exactly one \`Yours: direction:\` line"
+carries_any "and follows nothing" "${follows_nothing[@]}"
+flat="$(paragraph_with <(passage_of "$reply" "## A refusal or a blocked run" "## ") "the \`pr\` door's four stops")"
+expect "reply.md names the \`pr\` door's stops that owe no \`Yours:\` line" test -n "$flat"
+expect "and none of them is a fixer's return, a failed watch or a failed pr-log.sh" \
+  test -z "$(grep -oiE 'fixer|watch|pr-log' <<<"$flat")"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1
