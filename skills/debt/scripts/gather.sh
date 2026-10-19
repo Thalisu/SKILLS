@@ -6,7 +6,9 @@
 #
 # Prints slug=, folder= and spec= lines, the values resolve-feature-folder.sh prints, then one
 # item=<k><TAB>source=<source><TAB>text=<text> line per Debt item of the folder's issues/*.debt.md
-# files, k from 1, the source naming the Debt file, its section and the item within the section.
+# files, k from 1, the source naming the Debt file, its section and the item within the section,
+# then one per Consider or Noted Finding of the feature's Reviews (the Spec's, then the Tickets',
+# never the Debt review), k continuing, the source naming the review file and the Finding.
 #
 # Exit codes: 0 it gathered · 2 usage, or the resolver refused the slug (its stderr is relayed) · 3 the slug names no feature folder, nothing written.
 set -uo pipefail
@@ -44,12 +46,41 @@ debt_items() {
   done
 }
 
+review_files() {
+  local dir="$1" spec="$2" stem f
+  [ "$spec" != none ] && [ -n "$spec" ] || return 0
+  stem="$(basename "$spec")"
+  stem="${stem%.md}"
+  for f in "$dir/$stem.review.md" "$dir/$stem".*.review.md; do
+    [ -f "$f" ] || continue
+    [ "$(basename "$f")" = "$stem.debt.review.md" ] && continue
+    printf '%s\n' "${f#"$dir"/}"
+  done | LC_ALL=C sort
+  for f in "$dir"/issues/*.review.md; do
+    [ -f "$f" ] || continue
+    printf 'issues/%s\n' "$(basename "$f")"
+  done | LC_ALL=C sort
+}
+
+review_items() {
+  local dir="$1" spec="$2" here rel n bucket latest header
+  here="$(cd "$(dirname "$0")" && pwd -P)"
+  while IFS= read -r rel; do
+    [ -n "$rel" ] || continue
+    while IFS=$'\t' read -r n bucket latest header; do
+      case "${bucket#bucket=}" in
+        Consider | Noted) printf '%s, Finding %s\t%s\n' "$rel" "${n#finding=}" "${header#header=}" ;;
+      esac
+    done < <(bash "$here/../../../.agents/scripts/review-findings.sh" "$dir/$rel")
+  done < <(review_files "$dir" "$spec")
+}
+
 main() {
   [ "$#" = 1 ] || {
     echo "usage: gather.sh <slug>" >&2
     return 2
   }
-  local here out err key root dir k=0 line
+  local here out err key root dir spec k=0 line
   here="$(cd "$(dirname "$0")" && pwd -P)"
   err="$(mktemp)"
   out="$(bash "$here/../../../.agents/scripts/resolve-feature-folder.sh" "$1" 2>"$err")" || {
@@ -71,11 +102,19 @@ main() {
     /*) ;;
     *) dir="${root:+$root/}$dir" ;;
   esac
+  spec="$(printf '%s\n' "$out" | sed -n 's/^spec=//p' | head -1)"
+  case "$spec" in
+    none | "" | /*) ;;
+    *) spec="${root:+$root/}$spec" ;;
+  esac
   while IFS= read -r line; do
     [ -n "$line" ] || continue
     k=$((k + 1))
     printf 'item=%d\tsource=%s\ttext=%s\n' "$k" "${line%%$'\t'*}" "${line#*$'\t'}"
-  done < <(debt_items "$dir")
+  done < <(
+    debt_items "$dir"
+    review_items "$dir" "$spec"
+  )
 }
 
 main "$@"
