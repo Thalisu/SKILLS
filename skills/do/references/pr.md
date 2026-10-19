@@ -283,6 +283,12 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    disagree. A line reading `with none` names no check: it reads
    `not fixed: conflicted with no check of its Wave` and the files the line quoted.
 
+   The count of moves belongs to the round, and a check left red after two moves carries no mark out
+   of the round, nor does anything the run keeps. A later round numbers and groups its checks from
+   that round's watch `red=` lines alone, so a check left red after two moves goes into that round's
+   Waves like any other red check, over a head that now carries the pick it lost to, and its moves
+   count from zero again.
+
    The next Wave's worktrees are cut only after this Wave's picks, from the run tree's HEAD as those
    picks left it, since `fix-integrate.sh` refuses a branch that is not exactly one commit ahead of
    the HEAD it starts on, so a Wave cut before the one ahead of it was integrated could never be

@@ -1319,6 +1319,31 @@ flat="$(sed 's/^[[:space:]]*//' <<<"$reply_step" | grep '^round [0-9<]')"
 carries "the Reply's round lines give one reading not fixed: conflicted with" \
   "not fixed: conflicted with"
 
+# A check left red after two moves lost to a coupling the head may since have absorbed: a mark
+# carried out of its round would keep it out of every later round's Waves, or spend its moves
+# before it ever ran. Step 4 says "this round" throughout, so the guarantee is read off the piece
+# keyed on wording only a later round's handling carries.
+echo "# pr.md / ### 4. Fix the red checks: a check left red after two moves carries no mark out of its round, so a later round groups its Waves from the watch's red= lines alone and the check's moves count from zero again"
+step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+flat="$(piece_in="$step" piece_with "later round" "next round" "following round" "from zero" \
+  "count again" "counted again" "lines alone")"
+expect "a paragraph of the step says what a later round does with a check left red after two moves" \
+  test -n "$flat"
+carries_each "the count of moves belongs to the round: nothing the run keeps from it marks the check" \
+  "no mark" "not marked" "never marked" "unmarked" "marks it" "marks the check" "keeps no" \
+  "carries nothing" "carries no" "no record" -- \
+  "round"
+carries_each "a later round numbers and groups its checks from that round's watch red= lines alone" \
+  "later round" "next round" "following round" -- \
+  "red=" -- \
+  "alone" "only" "nothing else"
+carries_each "the check left red goes into that round's Waves like any other red check" \
+  "like any other" "as any other" "same as any other" "with the other red checks" -- \
+  "Wave"
+carries_any "and its moves count from zero again" \
+  "from zero" "from 0" "count again" "counted again" "counted afresh" "count afresh" "anew" \
+  "start over" "starts over" "starts again" "reset"
+
 # The developer may have the head checked out, dirty or on another branch: a round integrated in
 # their checkout moves their branch or mixes the run's commits with their work in progress. The
 # round is read off step 4 alone: `not fixed <k>:` already sits there, so the pick's trigger is
