@@ -21,6 +21,8 @@ follows that one pull request, and the developer reads it afterwards, through th
   the run (ADR 0086).
 - Pick, and so push, a fixer's commit that changes a CI workflow, a secret or a migration file: that
   commit moves the bar the checks hold, so the run stops instead, naming the check and the file.
+- Fork a fixer for a check `pr-classify.sh` printed `stale`, or rebase the head to clear one: the
+  check stops the run, naming its file, and the rebase is the head owner's.
 - Fix a check in the session: each red check is one `do-pr-fixer` fork (ADR 0088).
 
 ## The message
@@ -266,11 +268,17 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    `<base>` is the `baseRefName` step 2 read, and the script fetches it from origin itself on each
    call, so nothing in the Playbook fetches the base or reads `origin/<base>`. It prints `base=`
    and `merge-base=` (kept for the round lines), then `real <k>`, or one `stale <k> <path>` line per
-   file. A check it printed `stale` for gets no `do-pr-fixer` and never enters a Wave. On its
-   `failed: <reason>` line, exit 1, the script has also printed `real <k>` for every check, so the
-   run writes `round <r>: no check classified, each sent to its fixer: <reason>` and every check
-   goes on as real. On exit 2 (usage) every check counts as real too and the run writes
+   file. A check it printed `stale` for gets no `do-pr-fixer` and never enters a Wave. It adds one
+   `stale-base` entry to the round's stop set, holding every path its `stale` lines name, as a
+   stop-case like the others. On its `failed: <reason>` line, exit 1, the script has also printed
+   `real <k>` for every check, so the run writes
+   `round <r>: no check classified, each sent to its fixer: <reason>` and every check goes on as
+   real. On exit 2 (usage) every check counts as real too and the run writes
    `round <r>: no check classified, each sent to its fixer: the classifier refused its arguments`.
+
+   When no record is real, no Wave runs and the round has no pick: it goes to the end of the round
+   in item 5, where nothing is pushed, the run tree is removed, and the run stops on its
+   `Yours: direction:` line.
 
    The run pipes only the records of the checks it printed `real` for to the `group-waves` script,
    `bash <skill-dir>/../do-code-review/scripts/group-waves.sh`.
@@ -440,6 +448,13 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
 
    with `<pr url>` the reference step 1 took.
 
+   The clause of a `stale-base` stop-case is:
+
+       Yours: direction: <check> fails in <path>[, <path>...], which this pull request does not change against <base>: have <head>'s owner rebase it onto <base>, or fix <path>[, <path>...] on <base>
+
+   `<path>` are the paths of its `stale` lines and `<base>` the `baseRefName` step 2 read. The
+   clause names no push and no rebase the run makes.
+
    The clause of a check that came back red after its fix was pushed is:
 
        Yours: direction: <check> red again after <sha> pushed in round <r'> (<what the fixer ruled out>): revert <sha> on <head>, or fix it by hand on <head>
@@ -500,11 +515,15 @@ the whole message, and a green watch adds no part of its own:
       round <r>: <check> red; do-pr-fixer on <fixer branch>: <its return line>; not picked: the guard could not read it: <reason>
       round <r>: <check> red again; pushed as fixed in round <r'> as <sha>
       round <r>: <check> red; do-pr-fixer on <fixer branch>: not fixed: conflicted with check <m>; nothing pushed for it
+      round <r>: <check> red; stale base: <path>[, <path>...] not changed by this pull request against <base> at <merge base short sha>; no fixer forked
       round <r>: <a `kept` line, as fix-worktrees.sh printed it>
       round <r>: kept <branch> <path> <reason>, as fix-worktrees.sh printed it
       round <r>: after the push the watch read <verdict word>
 
-  The first `not picked` line is written once per path the guard named.
+  The first `not picked` line is written once per path the guard named. The `stale base` line is
+  written once per stale check, in place of any fixer line for that check, with
+  `<merge base short sha>` the first 7 characters of the `merge-base=` value `pr-classify.sh`
+  printed.
 
   The pushed line carries the fixer's return line so that step 3 can match a check that came back
   red and quote it.

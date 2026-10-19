@@ -2150,6 +2150,52 @@ out="$(sed 's/^[[:space:]]*//' "$pr" | grep -E '^`?Yours: direction:' | sed 's/^
 expect "a line of pr.md is the \`not fixed\` clause opening \`Yours: direction:\`, naming the check and what the fixer ruled out" \
   test -n "$out"
 
+# A check failing in a file the pull request never changed leaves the developer a choice the run
+# cannot make: a rebase only the head's owner may do, or a fix on the base. A run that rebased would
+# rewrite a branch it does not own, and a stop that does not name the file sends them through the
+# log. The never-does bullet is read off the bullet naming `stale`, the stop set entry off the item
+# carrying the pr-classify.sh call, the route of a round with no real check off that item's
+# paragraph about it, and the clause and the round line, both contracts, whole.
+echo "# pr.md: a check pr-classify.sh printed stale is one stale-base entry of the round's stop set, and a round whose red checks are all stale forks no fixer, picks, pushes and rebases nothing, and stops on a Yours: direction: clause naming the check, its files and both options"
+never="$(passage_of "$pr" "## What this run never does" "## " 2>/dev/null)"
+flat="$(item_holding <(printf '%s\n' "$never") '- ' "stale" | tr '\n' ' ' | tr -s ' ')"
+expect "a bullet of \`## What this run never does\` names a stale check" test -n "$flat"
+carries "it is a check pr-classify.sh printed stale for" "pr-classify.sh"
+carries_any "the run never forks a fixer for it" "do-pr-fixer" "fixer"
+carries_each "and never rebases the head to clear it" "rebase" "Rebase" -- "head"
+step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+classify_item="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.' "pr-classify.sh <run tree> <base>")"
+flat="$(tr '\n' ' ' <<<"$classify_item" | tr -s ' ')"
+affirms "a check it printed stale for adds a \`stale-base\` entry to the round's stop set" \
+  "stale-base" -- "stop set"
+carries_any "one entry per stale check" \
+  "one \`stale-base\` entry" "one stale-base entry" "a single \`stale-base\` entry" "one entry per check" \
+  "one entry per stale check"
+carries_any "holding every path its stale lines name" \
+  "every path" "each path" "all the paths" "all its paths" "every \`<path>\`" "each \`<path>\`" "every file" \
+  "each file" "all the files" "all its files"
+flat="$(piece_in="$classify_item" piece_with "no record is real" "no check is real" "none is real" \
+  "none of them is real" "no real record" "no real check" "no \`real\` record" "no record printed \`real\`" \
+  "every record is stale" "every check is stale" "every red check is stale" "all the checks are stale" \
+  "all the red checks are stale" "all stale")"
+expect "a paragraph of the item takes a round where no record is real" test -n "$flat"
+carries_any "no Wave runs" "no Wave" "no wave" "skips the Waves" "skips every Wave" "Waves are skipped"
+carries_any "the round goes to its end with no pick" \
+  "no pick" "no check was picked" "no check picked" "nothing picked" "nothing was picked" "picks nothing" \
+  "picked nothing"
+carries_any "nothing is pushed" "nothing is pushed" "nothing pushed" "pushes nothing"
+carries_each "the run tree is removed" "remove" "removed" "removes" -- "run tree"
+carries_each "and the run stops on its \`Yours: direction:\` line" "stops" "stop" -- "Yours: direction:"
+flat="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.' "$push_line" | tr '\n' ' ' | tr -s ' ')"
+expect "an item of the step carries the push" test -n "$flat"
+carries "it names the \`stale-base\` stop-case among the stop-case clauses" "stale-base"
+carries "its clause names the check, its files, the base, a rebase by the head's owner and a fix on the base" \
+  "<check> fails in <path>[, <path>...], which this pull request does not change against <base>: have <head>'s owner rebase it onto <base>, or fix <path>[, <path>...] on <base>"
+reply_step="$(passage_of "$pr" "### 5. Reply" "##" 2>/dev/null)"
+out="$(sed 's/^[[:space:]]*//' <<<"$reply_step")"
+check_lines "the Reply step's round line for a stale check names its files, the base and the merge base, and no fixer forked, as a whole line" 0 0 \
+  'round <r>: <check> red; stale base: <path>[, <path>...] not changed by this pull request against <base> at <merge base short sha>; no fixer forked'
+
 # A check two Waves fought over needs one more round, and the next round takes it again: read as a
 # fixer's `not fixed`, its `not fixed: conflicted with ...` line would stop a run that round closes.
 # Sub-item c keeps the session's own `not fixed` line out of the stop set already, so the guarantee
