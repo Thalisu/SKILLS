@@ -723,6 +723,93 @@ for contradiction in "10|the export path is hardcoded|the export writes to a fix
   check_absent "a return carrying $label stays out of Noted and Cleared" 0 "$cleared_rc" "$debt" "$claim"
 done
 
+fresh kept
+kept="$(pwd -P)"
+kept_feature="$kept/.scratch/20261019-kept-debt"
+mkdir -p "$kept_feature/issues" "$kept/src"
+printf '# Spec: kept debt\n' >"$kept_feature/spec.md"
+printf 'retries=3\n' >"$kept/src/a.sh"
+cat >"$kept_feature/issues/01-a.debt.md" <<'EOF'
+## 2026-10-19 15:01
+
+- the retry budget is hardcoded
+- the error path is never logged
+- the consumer flows were not run against the new signature
+EOF
+review_at 8b1d0e4 "$kept_feature/spec.review.md" "none" "## Fix run
+
+Date: 2026-10-19 · at 8b1d0e4
+
+- gate fixer: not needed
+- gate: \`bash tests/a.test.sh\`: green
+- landed at 8b1d0e4" "" "### 1. Standards at src/c.sh:12
+Claim: \`echo -e\` in \`src/\`, which CLAUDE.md forbids.
+Evidence: CLAUDE.md, \"use printf\".
+Rung: 2
+Fix: the script writes through printf, in src/c.sh"
+commit "seed the kept feature"
+
+kept_sources="$(cd "$kept" && bash "$gather" kept-debt 2>/dev/null |
+  awk -F'\t' '/^item=/ { sub(/^source=/, "", $2); print $2 }')"
+kept_review_source="$(grep -x 'spec.review.md, Finding 1' <<<"$kept_sources")"
+kept_debt_sources="$(grep -v '^spec\.review\.md' <<<"$kept_sources")"
+if [ "$(grep -c . <<<"$kept_sources")" != 4 ] || [ -z "$kept_review_source" ] ||
+  [ "$(grep -c . <<<"$kept_debt_sources")" != 3 ]; then
+  echo "FAIL  fixture: gather.sh did not name three Debt items and the Review's Finding 1 for kept-debt"
+  exit 1
+fi
+kept_returns="$tmp/kept-returns"
+mkdir -p "$kept_returns"
+kept_return() { # $1 source, $2.. the lines after Source: the return for that source's item, in kept_returns
+  local k
+  k="$(grep -nxF "$1" <<<"$kept_sources" | cut -d: -f1)"
+  printf 'Source: %s\n' "$1" >"$kept_returns/item-$k.md"
+  printf '%s\n' "${@:2}" >>"$kept_returns/item-$k.md"
+}
+kept_return "$(sed -n 1p <<<"$kept_debt_sources")" "Axis: Standards" "Location: src/a.sh:1" \
+  "Claim: the retry budget is hardcoded at three." \
+  "Evidence: \`retries=3\` in src/a.sh:1, walked through the retry loop." "Rung: 3" \
+  "Fix: the retry budget is read from the config, in src/a.sh" "Small: yes"
+kept_return "$(sed -n 2p <<<"$kept_debt_sources")" "Axis: Correctness" "Location: src/b.sh:4" \
+  "Claim: the error path is never logged." \
+  "Evidence: an earlier agent's note says so; no run reached the error path." "Rung: 2" \
+  "Fix: the error path logs before it returns, in src/b.sh" "Small: yes"
+kept_return "$(sed -n 3p <<<"$kept_debt_sources")" "Axis: Blast radius" "Location: src/a.sh:1" \
+  "Claim: the consumers were not run against the new signature." \
+  "Evidence: the consumer calls src/a.sh with the old argument order, read from its source; no flow of it ran." \
+  "Rung: 3" "Outside code: the consumer flows run against this branch, in the consumer's repository"
+kept_return "$kept_review_source" "Axis: Standards" "Location: src/c.sh:12" \
+  "Claim: \`echo -e\` writes the output, which CLAUDE.md forbids." \
+  "Evidence: CLAUDE.md, \"use printf\"; src/c.sh:12." "Rung: 4" \
+  "Refuted by: a proof script ran src/c.sh and found it writes through printf."
+
+kept_before="$tmp/kept-before"
+mkdir -p "$kept_before"
+mapfile -t kept_records < <(cd "$kept_feature" && find . -type f \( -name '*.debt.md' -o -name '*.review.md' \) | sort)
+for record in "${kept_records[@]}"; do
+  mkdir -p "$kept_before/$(dirname "$record")"
+  cp "$kept_feature/$record" "$kept_before/$record"
+done
+if [ "${kept_records[*]}" != "./issues/01-a.debt.md ./spec.review.md" ]; then
+  echo "FAIL  fixture: kept-debt does not hold one Debt file and one Review"
+  exit 1
+fi
+kept_review="$kept_feature/spec.debt.review.md"
+rc=0
+# shellcheck disable=SC2034  # lib.sh's check reads $out
+out="$(cd "$kept" && bash "$script" kept-debt "$kept_returns" 2>&1)" || rc=$?
+check "Findings in all four Buckets: the run writes the Debt review" 0 "$rc" "review=$kept_review"
+for passage in "## Act on|## Consider" "## Consider|## Noted" "## Noted|## Cleared" "## Cleared|## Axes"; do
+  expect "Findings in all four Buckets: ${passage%%|*} holds a Finding" grep -qE '^### [0-9]+\.' \
+    <(grep -qx "${passage#*|}" "$kept_review" 2>/dev/null && passage_of "$kept_review" "${passage%%|*}" "${passage#*|}")
+done
+for record in "${kept_records[@]}"; do
+  expect "Findings in all four Buckets: ${record#./} is byte-identical after the run" \
+    cmp -s "$kept_before/$record" "$kept_feature/$record"
+done
+expect "Findings in all four Buckets: the only file the run added or changed in the project is spec.debt.review.md" \
+  test "$(g -C "$kept" status --porcelain --untracked-files=all)" = "?? .scratch/20261019-kept-debt/spec.debt.review.md"
+
 fresh idle
 idle="$(pwd -P)"
 mkdir -p "$idle/.scratch/20261019-idle-feature"
