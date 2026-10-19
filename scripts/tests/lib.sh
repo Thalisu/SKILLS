@@ -184,6 +184,18 @@ item_holding() { # $1 file, $2 the ERE a marker line opens with (`\*\*[0-9]+\.`,
     END { if (keep) printf "%s", item }
   ' "$1"
 }
+# A passage's first numbered list, one item per line, flattened: an item runs from its marker to
+# the line before the next marker, and the list ends at the first line that is neither a marker
+# nor indented under one, so the prose after the list never rides on its last item.
+numbered_items() { # stdin: a passage; stdout: its first numbered list's items, one per line
+  awk '
+    /^[0-9]+\. / { if (item != "") print item; item = $0; on = 1; next }
+    on && /^ +[^ ]/ { item = item " " $0; next }
+    on && /^ *$/ { next }
+    on { exit }
+    END { if (item != "") print item }
+  ' | tr -s ' '
+}
 # A bullet is read from its marker to the first line that is not indented under it, so the bullets
 # nested in it come along and a blank line inside it does not cut it short.
 bullets_opening_on() { # $1 file, $2 a fixed string a bullet's marker line carries within its first 30 characters: each such bullet flattened, one per line, on stdout

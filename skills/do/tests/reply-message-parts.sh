@@ -21,23 +21,10 @@ fails=0
 
 section="$(passage_of "$reply" "## The message" "## ")"
 
-# The section's first numbered list, one item per line, flattened: an item runs from its marker to
-# the line before the next marker, and the list ends at the first line that is neither a marker
-# nor indented under one.
-message_items() {
-  awk '
-    /^[0-9]+\. / { if (item != "") print item; item = $0; on = 1; next }
-    on && /^ +[^ ]/ { item = item " " $0; next }
-    on && /^ *$/ { next }
-    on { exit }
-    END { if (item != "") print item }
-  ' <<<"$section" | tr -s ' '
-}
-
 echo "# reply.md's The message: the five parts the Reply is built from, in order"
 
 expect "reply.md carries its The message section" test -n "$section"
-mapfile -t items < <(message_items)
+mapfile -t items < <(numbered_items <<<"$section")
 expect "The message builds the Reply from exactly five parts (found ${#items[@]})" \
   test "${#items[@]}" -eq 5
 

@@ -42,6 +42,28 @@ carries_each "each run's section is headed by the run's date and time" \
 carries_any "each run's section holds the Pending debt part verbatim" \
   "verbatim" "word for word" "as written" "exactly as" "unchanged"
 
+echo "# the Reply stays five parts and carries no line naming the Debt file"
+
+# ADR 0091 promised the developer a five-part Reply: a Debt: line beside Report:, or a Next step
+# that points at the file, hands them a longer message than that.
+flat="$(passage_of "$reply" "## The message" "## " | debt_file_paragraphs)"
+carries_any "the Plan block carries no Debt: line beside the Report: line" \
+  "no \`Debt:\` line" "never a \`Debt:\` line" "without a \`Debt:\` line" "nor a \`Debt:\` line" \
+  "no line \`Debt:" "no \`Debt: <"
+carries_each "the Next step says nothing about the Debt file" \
+  "Next step" -- \
+  "nothing about" "says nothing" "names no" "never names" "does not name" "no mention" \
+  "no word" "no line" "nor the Next step" "nor in the Next step" "neither in the"
+carries_any "the message stays the five parts" \
+  "five parts" "five-part" "stays five" "still five"
+
+mapfile -t items < <(passage_of "$reply" "## The message" "## " | numbered_items)
+expect "The message's numbered parts are found" test "${#items[@]}" -gt 0
+# shellcheck disable=SC2034 # lib.sh's check_absent reads $out
+out="$(printf '%s\n' "${items[@]}")"
+check_absent "no numbered part of The message names the Debt file" 0 0 \
+  "Debt file" "debt file" ".debt" "Debt:"
+
 echo "# ticket.md's Reply step names the Debt file write on every run"
 
 flat="$(item_holding "$ticket" '\*\*[0-9]+\.' 'Reply.**' | debt_file_paragraphs)"
