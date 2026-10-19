@@ -1170,6 +1170,43 @@ carries_any "group-waves.sh puts that check in a Wave of its own, sharing none w
   "Wave of its own" "its own Wave" "a Wave alone" "alone in a Wave" "alone in its Wave" \
   "shares no Wave" "share no Wave" "sharing no Wave" "no other check in its Wave" "the only check in its Wave"
 
+# The developer audits the pushed round in check order, and fix-integrate.sh takes a branch only when
+# it is one commit ahead of the run tree's HEAD: a Wave cut before the earlier picks fixes a head that
+# is gone by the time it is integrated. Step 4 already says "check order" for the excerpts and the
+# group-waves.sh records, so the pick's order is read off the paragraph carrying the call, and the
+# next Wave's cut off the paragraph that names the next Wave.
+echo "# pr.md / ### 4. Fix the red checks: a Wave's fixed commits come onto the run tree through one fix-integrate.sh call in check number order, and the next Wave's worktrees are cut only after those picks, from the run tree's HEAD as they left it"
+step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ')"
+carries "one fix-integrate.sh call takes every fixed branch of the Wave, printing a picked line" \
+  "bash <skill-dir>/../do-code-review/scripts/fix-integrate.sh <run tree> <k>=<branch>..." "picked <k> <sha>"
+flat="$(piece_in="$step" piece_with "fix-integrate.sh <run tree> <k>=<branch>...")"
+expect "a paragraph of the step carries the Wave's fix-integrate.sh call" test -n "$flat"
+carries_any "it is one call per Wave" \
+  "one call per Wave" "once per Wave" "one call" "a single call" "one \`fix-integrate.sh\`" \
+  "one fix-integrate.sh" "per Wave" "once for the Wave"
+carries_each "over the checks that returned \`fixed <k>:\` and only those" \
+  "\`fixed <k>:" "\`fixed <k>\`" -- \
+  "only those" "only the checks" "only them" "and no other" "no other check" "any other return gets no pick" \
+  "Any other return gets no pick" "none other"
+carries_any "the picks go in ascending check number" \
+  "ascending" "check number order" "order of their check numbers" "increasing check number" \
+  "check order" "lowest check number first"
+carries_each "one picked line per check" \
+  "picked <k> <sha>" -- "per check" "for each check" "each check" "every check" "per branch" "for each branch"
+flat="$(piece_in="$step" piece_with "next Wave" "Next Wave" "following Wave" "Wave after this" "Wave after it")"
+expect "a paragraph of the step is about the next Wave's cut" test -n "$flat"
+carries_each "its worktrees are cut only after this Wave's picks" \
+  "cut" "fix-worktrees.sh add" -- \
+  "only after" "not before" "never before" "only once" "after this Wave's picks" "after the picks" \
+  "after those picks" -- "pick"
+carries_each "from the run tree's HEAD as those picks left it" \
+  "HEAD" -- \
+  "left it" "leave it" "left by the picks" "moved by the picks" "the picks moved" "on top of the picks" \
+  "carrying the picks" "now carries"
+carries_each "since fix-integrate.sh refuses a branch not cut from the HEAD it starts on" \
+  "fix-integrate.sh" -- "refus" "rejects" "won't take" "will not take" "takes a branch only" -- "HEAD"
+
 # The developer may have the head checked out, dirty or on another branch: a round integrated in
 # their checkout moves their branch or mixes the run's commits with their work in progress. The
 # round is read off step 4 alone: `not fixed <k>:` already sits there, so the pick's trigger is

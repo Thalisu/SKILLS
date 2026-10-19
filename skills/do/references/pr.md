@@ -252,15 +252,20 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
       Call it again over the files still `missing=`, three windows and no more. A file that never
       lands reads `not fixed <k>: the fixer did not return`.
 
-   d. On a `fixed <k>: ...` return:
-      `bash <skill-dir>/../do-code-review/scripts/fix-integrate.sh <run tree> <k>=<branch>`. It
-      prints `picked <k> <sha>`, and any other line from it stops the run quoting that line. Any
-      other return gets no pick, and the check stays red this round.
+   d. One call per Wave, over every check of the Wave that returned `fixed <k>: ...` and only those:
+      `bash <skill-dir>/../do-code-review/scripts/fix-integrate.sh <run tree> <k>=<branch>...`, each
+      `<branch>` the one its worktree line printed. The script picks them in ascending check number,
+      whatever order they are given in, and prints one `picked <k> <sha>` per check; any other line
+      from it stops the run quoting that line. Any other return gets no pick, and the check stays red
+      this round.
    e. `bash <skill-dir>/../do-code-review/scripts/fix-worktrees.sh remove <run tree> <branch>`. Its
       `removed` or `kept` line goes to the Reply's round lines as it stands.
 
-   Steps d and e apply to each check of the Wave. The fork and the wait sit in one turn: the session
-   never ends its turn while a fixer runs, as skills/do-code-review/references/fix.md warns.
+   The next Wave's worktrees are cut only after this Wave's picks, from the run tree's HEAD as those
+   picks left it, since `fix-integrate.sh` refuses a branch that is not exactly one commit ahead of
+   the HEAD it starts on, so a Wave cut before the one ahead of it was integrated could never be
+   picked. The fork and the wait sit in one turn: the session never ends its turn while a fixer
+   runs, as skills/do-code-review/references/fix.md warns.
 
 5. Push, when at least one check was picked:
 
