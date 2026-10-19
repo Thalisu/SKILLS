@@ -830,6 +830,18 @@ expect "the status line spares the handed Review by name" grep -qF -- ":!$keyed_
 out="$(eval "$status_line" 2>&1)"
 same "the status line hands the handed Review on to nobody" ""
 
+# A Debt review sits beside its Spec as `spec.debt.review.md`, and the fix call on it hands the door
+# the short sha, the Spec and the Debt review: read as dirt, that file alone refuses the call as the
+# developer's uncommitted work.
+rm "$keyed_review"
+debt_review=.scratch/20260930-export/spec.debt.review.md
+printf '# Review: Export (debt)\n' >"$debt_review"
+run main --spec .scratch/20260930-export/spec.md
+check_lines "the Debt review is a change when it is not handed over" 0 "$rc" "dirty=yes"
+run main --spec .scratch/20260930-export/spec.md --review "$debt_review"
+check_lines "a handed Debt review beside its handed Spec does not mark the tree dirty" 0 "$rc" \
+  "dirty=no" "review=$debt_review"
+
 # The orchestrator and the fix call eval the status line, and the path in it is the name of a file
 # anyone can commit: a single quote in that name must stay text, or the rest of the name runs as
 # shell with the developer's rights. The Review beside the file is still the one path spared.
