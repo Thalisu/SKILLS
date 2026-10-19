@@ -2379,5 +2379,51 @@ carries_any "the line never names a push" \
 carries_each "neither the run's own push nor one offered to the developer" \
   "run's own" "its own" -- \
   "offered" "offers" "handed" "hands" "to the developer"
+
+# The developer acting on a round that stopped more than once reads every stop off one line, in an
+# order they can match against the round lines: a second `Yours:` line, or a clause dropped or merged
+# into another, leaves a stop unread or an option unnamed until the next run. The order is the run's
+# own decision over its own state, so it is read off the prose: the push item's paragraph naming the
+# Waves and an order, where each kind of stop must be named in turn, and the merge rule off the whole
+# item. Each stop's own round line is read off the Reply step's sentences naming a stop.
+echo "# pr.md / ### 4. Fix the red checks and ### 5. Reply: a round with two or more stops lists each on its own round line with its reason, under one Yours: direction: line of one clause per stop, never merged, the redone round's refusal first, then the stop-cases in raise order (stale-base in check order, the Wave entries in Wave and check order, the came-back ones), then the still red: tail"
+step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+push_item="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.' "$push_line")"
+flat="$(piece_in="$push_item" piece_all=1 piece_with "Wave" | grep -F "order" | tr '\n' ' ')"
+expect "a paragraph of the push item names the Waves and the order of the clauses" test -n "$flat"
+carries_each "the clauses of every stop share exactly one \`Yours: direction:\` line" \
+  "exactly one" "one line" "a single line" "one \`Yours: direction:\` line" "single \`Yours: direction:\`" \
+  "the same line" "that one line" -- \
+  "Yours: direction:"
+carries_any "the stop-cases come in the order they were raised" \
+  "order they were raised" "order they are raised" "order in which they were raised" \
+  "order in which they are raised" "order raised" "raise order" "raised order" "order of raising"
+carries_each "the \`stale-base\` entries in check-number order, the Wave entries in Wave order and check-number order within a Wave" \
+  "check-number order" "check number order" "order of their check numbers" "by check number" "in check order" -- \
+  "Wave order" "order of the Waves" "Wave by Wave" "Waves in order" "the order of its Waves" "the Waves' order"
+refusal_at="$(first_at "moved again" "refusal" "refused" "refuses")"
+stale_at="$(first_at "stale-base")"
+wave_at="$(first_at "Wave")"
+back_at="$(first_at "came back" "came-back" "comes back" "back red" "red again")"
+tail_at="$(first_at "still red:")"
+expect "the redone round's refusal clause is named first" \
+  test "$refusal_at" -gt 0 -a "$stale_at" -gt "$refusal_at"
+expect "then the \`stale-base\` entries, raised before any Wave" \
+  test "$stale_at" -gt 0 -a "$wave_at" -gt "$stale_at"
+expect "then the Wave entries" test "$wave_at" -gt 0 -a "$back_at" -gt "$wave_at"
+expect "then the came-back ones, and the \`still red:\` tail last" \
+  test "$back_at" -gt 0 -a "$tail_at" -gt "$back_at"
+flat="$(tr '\n' ' ' <<<"$push_item" | tr -s ' ')"
+carries_each "no clause is merged with another, even when two offer the same option" \
+  "never merged" "no clause is merged" "not merged" "never merges" "never combined" "never folded" \
+  "no two clauses are" "a clause of its own" "its own clause" -- \
+  "same option" "same choice" "the same offer" "offer the same" "share an option" "shares an option"
+reply_step="$(passage_of "$pr" "### 5. Reply" "##" 2>/dev/null)"
+flat="$(tr '\n' ' ' <<<"$reply_step" | tr -s ' ' | sed 's/\. /.\n/g' | grep -E "stop-case|stop set|each stop|every stop|stops" | tr '\n' ' ')"
+expect "a sentence of the Reply step names the round's stops" test -n "$flat"
+carries_each "each stop is listed on a round line of its own" \
+  "each stop" "every stop" "one per stop" "per stop" -- \
+  "its own round line" "a round line of its own" "own round line" "one round line"
+carries_any "with its reason" "its reason" "with the reason" "the reason it stopped" "why it stopped"
 [ "$fails" -eq 0 ] && exit 0
 exit 1

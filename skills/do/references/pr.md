@@ -435,7 +435,19 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    The `still red:` tail names the red checks no clause names, in the order the watch printed them.
    The line never names a push, neither the run's own push nor one offered to the developer: the
    push is the run's own under ADR 0086, so a `Yours:` line handing one over would hand back a write
-   the run already holds. The clause of a `touches` stop-case is:
+   the run already holds.
+
+   A round that stops on two or more stops writes every clause on exactly one `Yours: direction:`
+   line, in this order. The redone round's refusal clause,
+   `<head> moved again during the redone round ...`, comes first when the run stops on it, and the
+   stop set's clauses follow it on that same line, never on a second `Yours:` line. Then come the stop-cases in the order they were raised: the
+   `stale-base` entries in check-number order, since they are raised before any Wave, then the
+   entries of the Waves in Wave order, and in check-number order within a Wave, then the checks
+   that came back red after their fix was pushed. The `still red:` tail comes last. No clause is
+   merged with another, even when two clauses offer the same option, so each stop keeps a clause
+   of its own.
+
+   The clause of a `touches` stop-case is:
 
        Yours: direction: <check> needs <path>, a <class> file the run never changes (its commit is kept on <fixer branch>): change that file yourself, or fix <check> another way by hand
 
@@ -525,6 +537,9 @@ the whole message, and a green watch adds no part of its own:
   written once per stale check, in place of any fixer line for that check, with
   `<merge base short sha>` the first 7 characters of the `merge-base=` value `pr-classify.sh`
   printed.
+
+  When a round stops on more than one stop, each stop is listed on a round line of its own, with its
+  reason, and every clause sits on the one `Yours: direction:` line step 4 item 5 orders.
 
   The pushed line carries the fixer's return line so that step 3 can match a check that came back
   red and quote it.
