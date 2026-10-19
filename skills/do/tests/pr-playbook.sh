@@ -1387,6 +1387,48 @@ carries_each "a superseded branch taken back is never named as a commit the run 
   "never counted" "not counted" "never quoted" "names no" -- \
   "could not land" "couldn't land" "did not land" "not landed" "unlanded" "failed to land"
 
+# A `kept` worktree holds a dirty tree, an unlanded commit or a removal git refused: forcing it off
+# loses that work, and a kept worktree the Reply does not name blocks a later `fix-worktrees.sh add`
+# on its path and holds a commit nobody reads. Step 4 already says `kept` and "conflicted branch" for
+# the superseded call, so the guarantees are read off the piece carrying the `kept` line, and the
+# twice-moved check's branches off the piece keyed on its two moves, never off the whole step.
+echo "# pr.md / ### 4. Fix the red checks and ### 5. Reply: a worktree fix-worktrees.sh remove reports kept, the conflicted branches of a check left red after two moves among them, stays on disk, never forced off, and the round lines name its branch and path as fix-worktrees.sh printed them"
+step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+flat="$(piece_in="$step" piece_with "kept <branch>" "kept worktree" "\`kept\` line" "\`kept\`")"
+expect "a paragraph or sub-item of the step handles a kept line from fix-worktrees.sh remove" test -n "$flat"
+carries_each "the kept worktree and its branch stay on disk" \
+  "stay on disk" "stays on disk" "left on disk" "remain on disk" "remains on disk" "stay in place" \
+  "stays in place" "left in place" "left standing" "stay where" "stays where" -- \
+  "worktree" -- "branch"
+carries_each "the run never forces its removal" \
+  "--force" -- \
+  "never forc" "not forc" "never \`--force\`" "no \`--force\`" "without \`--force\`" "nor \`--force\`" \
+  "never with \`--force\`" "never runs \`--force\`"
+carries_each "nor deletes its branch with git branch -D" \
+  "git branch -D" -- "never" "nor" "not"
+carries_any "nor removes it with rm" "\`rm" "rm -rf" "rm -r " "never rm" "no rm"
+carries_each "since kept means a dirty tree, an unlanded commit or a refused removal" \
+  "dirty" -- "unlanded" "not landed" "could not land" -- "refus"
+carries_each "every kept line goes to the Reply's round lines" "round line" -- "kept"
+carries_each "naming its branch and its path as fix-worktrees.sh printed it" \
+  "kept <branch> <path>" "its branch and its path" "its branch and path" "branch and path" -- \
+  "as printed" "as fix-worktrees.sh printed" "as it was printed" "as they were printed" "as it stands" \
+  "as they stand" "verbatim"
+flat="$(piece_in="$step" piece_with "after two moves" "two moves" "moved twice")"
+expect "a paragraph or sub-item of the step speaks of a check left red after two moves" test -n "$flat"
+carries_each "its conflicted branches are among what stays kept" \
+  "conflicted" -- "branch" -- "kept"
+carries_each "and never go through remove --superseded" \
+  "--superseded" -- \
+  "never go" "never goes" "never pass" "not passed" "never taken back" "not taken back" "never given to" \
+  "never handed to" "kept out of" "left out of" "stay out of" "stays out of" "never reach" "never through"
+carries_each "since no retry of that check was picked" \
+  "retry" -- "no retry" "never picked" "not picked" "no pick" "nothing picked" "never retried"
+reply_step="$(passage_of "$pr" "### 5. Reply" "##" 2>/dev/null)"
+flat="$(sed 's/^[[:space:]]*//' <<<"$reply_step" | grep '^round [0-9<]')"
+carries_each "the Reply's round line for a kept worktree names its branch and path as fix-worktrees.sh printed them" \
+  "kept" -- "<branch> <path>" "<fixer branch> <path>" "<branch> <worktree path>" "<fixer branch> <worktree path>"
+
 # The developer may have the head checked out, dirty or on another branch: a round integrated in
 # their checkout moves their branch or mixes the run's commits with their work in progress. The
 # round is read off step 4 alone: `not fixed <k>:` already sits there, so the pick's trigger is

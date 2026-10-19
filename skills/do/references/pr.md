@@ -266,8 +266,12 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    e. After the Wave's one `fix-integrate.sh` call, one call over every branch the Wave's `add`
       printed: `bash <skill-dir>/../do-code-review/scripts/fix-worktrees.sh remove <run tree> <branch>...`.
       It takes back, printing `removed <branch> <path>`, each worktree and branch whose commit is on
-      the run tree's HEAD by patch or which holds no commit. Its `removed` or `kept` lines go to the
-      Reply's round lines as they stand. Then, when this Wave picked a check an earlier Wave moved
+      the run tree's HEAD by patch or which holds no commit. A `kept <branch> <path> <reason>` line
+      means a dirty tree, an unlanded commit or a removal git refused: that worktree and its branch
+      stay on disk, and the run never forces their removal, never with `--force`, never with
+      `git branch -D`, nor with `rm`. Its `removed` lines and each `kept` line go to the Reply's round
+      lines as printed, a `kept` line naming its branch and its path as fix-worktrees.sh printed
+      them. Then, when this Wave picked a check an earlier Wave moved
       out of, that check's earlier conflicted branch is still kept, since its aborted commit never
       matches the retry that superseded it, so a second call takes it back:
       `bash <skill-dir>/../do-code-review/scripts/fix-worktrees.sh remove --superseded <run tree> <branch>...`,
@@ -289,7 +293,9 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    `not fixed: conflicted with check <m>`, naming every check of the conflicted line's `with` list,
    `check <m>` for one and `checks <m>, <m>` for several, so the developer reads which checks
    disagree. A line reading `with none` names no check: it reads
-   `not fixed: conflicted with no check of its Wave` and the files the line quoted.
+   `not fixed: conflicted with no check of its Wave` and the files the line quoted. The conflicted
+   branches of a check left red after two moves stay kept: no retry of that check was picked, so they
+   never go through `remove --superseded`, and they reach the Reply as `kept` lines.
 
    The count of moves belongs to the round, and a check left red after two moves carries no mark out
    of the round, nor does anything the run keeps. A later round numbers and groups its checks from
@@ -356,6 +362,7 @@ the whole message, and a green watch adds no part of its own:
       round 1: <check> red; do-pr-fixer on <fixer branch>: <its return line>; nothing pushed for it
       round 1: <check> red; do-pr-fixer on <fixer branch>: not fixed: conflicted with check <m>; nothing pushed for it
       round 1: <a `kept` line, as fix-worktrees.sh printed it>
+      round 1: kept <branch> <path> <reason>, as fix-worktrees.sh printed it
       round 1: after the push the watch read <verdict word>
 - When the run pushed, the **Next step** line names `git pull --ff-only origin <head>` on the
   developer's checkout of `<head>`, then `gh pr merge <n>`. The run never runs either one, and
