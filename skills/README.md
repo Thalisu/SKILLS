@@ -11,6 +11,7 @@ Reachable only by the human typing the name.
 
 | Skill | Purpose |
 |---|---|
+| [`debt`](debt/SKILL.md) | Gather a feature's Pending debt (its Debt files and the Review Findings still open) and judge it into a Debt review beside the Spec |
 | [`discover-setup`](discover-setup/SKILL.md) | Link the discover agent and skills on this machine, then install or refresh the mandatory Discovery section in a project's `CLAUDE.md` or in `~/.claude/CLAUDE.md` |
 | [`discuss`](discuss/SKILL.md) | Interview the user about a plan before code, one question at a time with a recommendation, recording terms in `CONTEXT.md` as they land and writing the hard-to-reverse decisions as ADRs at the close |
 | [`do`](do/SKILL.md) | Match a request to one Playbook and run its steps: a Ticket's path or issue reference builds that Ticket as the last step of the chain, a request in words runs outside it, and a request that fits no Playbook is sent to the door that owns it in one message. A Front-end ticket of a Spec that chose impeccable is built by the `do-impeccable` agent it ships, with no Planner |
