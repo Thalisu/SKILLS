@@ -3052,5 +3052,54 @@ expect "the clause order names the not-reproducible entries" test "$notrep_at" -
 expect "after the carried stale-base entries" test "$stale_at" -gt 0 -a "$notrep_at" -gt "$stale_at"
 expect "after the carried Wave entries" test "$wave_at" -gt 0 -a "$notrep_at" -gt "$wave_at"
 expect "and after the carried rerun-refused entries" test "$refused_at" -gt 0 -a "$notrep_at" -gt "$refused_at"
+# The developer whose second rerun gh refused relies on the run still watching the rerun it already
+# made: a stop before that watch throws the paid-for retry away and leaves the Reply silent on
+# whether that check flaked. The route is read off the `failed: <run id>: <reason>` bullet of the
+# push item, its nested bullets with it, and any piece of the item that names that answer.
+echo "# pr.md / ### 4. Fix the red checks: a refused pr-rerun.sh call after a rerun= line keeps the made rerun's retry, carries the rerun-refused stop-cases to the one watch after the rerun, then stops on one Yours: direction: line; with no rerun made it stops at once"
+step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+push_item="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.' "$push_line")"
+flat="$(
+  bullets_opening_on <(printf '%s\n' "$push_item") "\`failed: <run id>: <reason>\`"
+  piece_in="$(sed 's/^[[:space:]]*//' <<<"$push_item")" piece_all=1 piece_with "failed: <run id>"
+)"
+flat="$(tr '\n' ' ' <<<"$flat" | tr -s ' ')"
+expect "the push item answers pr-rerun.sh's failed: <run id>: <reason>" test -n "$flat"
+carries_each "the refused run's checks add rerun-refused entries to the stop set as stop-cases" \
+  "rerun-refused" -- \
+  "stop set" "stop-case"
+carries_each "when a rerun= line was printed before the refusal" \
+  "rerun=" -- \
+  "one was made" "a rerun was made" "rerun was made" "were made" "already printed" "at least one" \
+  "were rerun" "was rerun" "already rerun"
+carries_any "the run ids printed on rerun= lines open their checks' retries, the round line ending with the rerun and its attempt" \
+  "; rerun <run id> attempt <n>" "; rerun <run id> attempt <attempt>" "; rerun <run id> attempt" \
+  "as on \`rerun=\`" "as the \`rerun=\` answer" "as for \`rerun=\`" "as \`rerun=\` does" "the \`rerun=\` row"
+carries_any "the run tree is removed" \
+  "git worktree remove <run tree>" "remove \`<run tree>\`" "removes \`<run tree>\`" "removing \`<run tree>\`" \
+  "\`<run tree>\` is removed" "removes the run tree" "remove the run tree" "run tree is removed"
+carries_each "and the run goes back to step 3 carrying the stop set" \
+  "step 3" -- \
+  "carrying the stop set" "carries the stop set" "carrying its stop set" "carries its stop set" \
+  "stop set carried" "with the stop set" "keeps the stop set" "keeping the stop set" "keeping its stop set" \
+  "stop set it carries" "stop set is carried" "carried stop set"
+carries_each "for the one watch after the rerun, and stops only then" \
+  "after the rerun" "after a rerun" "after its rerun" "after the round's rerun" -- \
+  "one watch" "the one watch" "watches once" "watch once" "one more watch" "once more" "a single watch" \
+  "one last watch" -- \
+  "then stops" "before it stops" "before the stop" "before stopping" "stops after" "stops only after" \
+  "only then" "not at once" "never at once" "rather than stopping" "instead of stopping"
+carries_each "the refused rerun's clause sits on the same Yours: direction: line" \
+  "Yours: direction:" -- \
+  "clause" "clauses" -- \
+  "same \`Yours: direction:\` line" "same Yours: direction: line" "one \`Yours: direction:\` line" \
+  "one Yours: direction: line" "that same line" "the same line" "one line" "a single line"
+carries_each "with no rerun made, the refusal still stops at once" \
+  "no rerun was made" "none was made" "none made" "no rerun made" "no \`rerun=\` line" "no rerun= line" \
+  "nothing was rerun" "nothing rerun" -- \
+  "stop" "stops"
+out="$flat"
+absent "the interim stop on a made rerun is gone" "a slot Ticket 15 fills"
+absent "and the run no longer stops at once after a made rerun" "stops now too"
 [ "$fails" -eq 0 ] && exit 0
 exit 1

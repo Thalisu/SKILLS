@@ -571,8 +571,14 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
      the record.
    - `failed: <run id>: <reason>` (exit 1): each check of that run id adds a `rerun-refused` entry to
      the stop set (the run ids already printed on `rerun=` lines were rerun). When no rerun was
-     made, remove `<run tree>` and stop on the one `Yours: direction:` line. When one was made, the
-     run stops now too (a slot Ticket 15 fills).
+     made, remove `<run tree>` and stop on the one `Yours: direction:` line. When a rerun was made (at
+     least one `rerun=` line printed before the refusal), the run does not stop at once: the run
+     ids printed on `rerun=` lines open their checks' retries as on `rerun=` (their round lines
+     end `; rerun <run id> attempt <n>`), the round's rerun line is written, `<run tree>` is
+     removed, and the run goes back to step 3 carrying the stop set, its `rerun-refused` entries
+     as stop-cases, for the one watch after the rerun. It stops only then, by that watch's route
+     in step 3, the refused rerun's clause on the same `Yours: direction:` line as every other
+     clause.
    - On exit 2 (usage): as exit 1, every check's reason reading `the rerun script refused its arguments`.
 
    When no check was picked, the round's stop set holds a stop-case and at least one check on the
