@@ -41,4 +41,27 @@ check_lines "a check naming no file, and one naming a changed file beside an unt
   0 "$rc" "real 1" "real 2"
 absent "neither the check naming no file nor the mixed check is read as stale" "stale "
 
+fresh moved
+mkdir -p src lib
+printf 'a\n' >src/a.js
+printf 'export const old = 1;\nexport const kept = 2;\n' >src/old.js
+printf 'gone\n' >src/gone.js
+printf 'base\n' >lib/base.js
+commit base
+g checkout -q -b head main
+g mv src/old.js src/new.js
+commit rename
+g rm -q src/gone.js
+commit delete
+g checkout -q main
+printf 'base moved on\n' >lib/base.js
+commit "base after the cut"
+g checkout -q head
+run "$tmp/moved" main <<<$'1\tlib/base.js\n2\tsrc/old.js\n3\tsrc/gone.js'
+check_lines "a file only the base changed after the cut reads stale, and the path the head renamed away and a file it deleted read real: exit 0" \
+  0 "$rc" "stale 1 lib/base.js" "real 2" "real 3"
+absent "the file only the base changed is not read as the pull request's" "real 1"
+absent "the path the head renamed away is not read as untouched" "stale 2"
+absent "the file the head deleted is not read as untouched" "stale 3"
+
 exit "$((fails > 0))"

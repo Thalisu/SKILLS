@@ -6,8 +6,9 @@
 #
 # <tree> is a git work tree, <base> the name of a local branch (refs/heads/<base>). stdin holds one
 # record per line: <k>, a tab, then space-separated repo-relative paths. The diff examined is
-# `git diff --name-only <merge base> HEAD`. Paths match as exact, case-sensitive strings. Moves no
-# branch, checks nothing out and writes no work-tree file.
+# `git diff --name-only --no-renames -z <merge base> HEAD`: additions, modifications, deletions,
+# mode changes and both sides of a rename all count as changed. Paths match as exact,
+# case-sensitive strings. Moves no branch, checks nothing out and writes no work-tree file.
 #
 # Prints:
 #   base=<sha of refs/heads/<base>>
@@ -31,10 +32,13 @@ pr_classify() {
     return 2
   fi
 
-  local base_sha merge_base changed
+  local base_sha merge_base p
+  local -A changed=()
   base_sha=$(git -C "$tree" rev-parse "refs/heads/$base")
   merge_base=$(git -C "$tree" merge-base "refs/heads/$base" HEAD)
-  changed=$(git -C "$tree" diff --name-only "$merge_base" HEAD)
+  while IFS= read -r -d '' p; do
+    changed["$p"]=1
+  done < <(git -C "$tree" diff --name-only --no-renames -z "$merge_base" HEAD --)
   echo "base=$base_sha"
   echo "merge-base=$merge_base"
 
@@ -52,7 +56,7 @@ pr_classify() {
     fi
     hit=0
     for f in "${paths[@]}"; do
-      if printf '%s\n' "$changed" | grep -qxF -- "$f"; then
+      if [ -n "${changed[$f]+x}" ]; then
         hit=1
         break
       fi
