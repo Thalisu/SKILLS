@@ -250,7 +250,11 @@ the checks: a display read mid-run can show green while a check is still running
   the line reads exactly
   `Yours: direction: fix <check> by hand, or re-run it yourself if you judge it a flake`. It never
   offers the run's own rerun again: the one rerun is spent (ADR 0089). This route comes ahead of the
-  next round and of the three-round stop.
+  next round and of the three-round stop. It holds alike whether the retry was a rerun or a pushed
+  round's new run (`retried by the run on <sha>`). The check is never classified again, whatever its
+  retry excerpt reads: no `pr-classify.sh` call is made for it, so its retry excerpt never turns it
+  into a stale-base or a real check sent to a fixer. The verdict's other `red=` names, which no
+  clause names, go in the `still red:` tail of the one `Yours: direction:` line.
 
 The verdict line of each call, in order, is recorded for the Run report's Run section, which is
 written under `--auto` only, per [reply.md](reply.md): the round is never a section of the Reply.

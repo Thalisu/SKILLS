@@ -2863,5 +2863,38 @@ lines="$(
 )"
 out="$(grep -xF "Yours: direction: fix <check> by hand, or re-run it yourself if you judge it a flake" <<<"$lines")"
 expect "the stop's line reads Yours: direction: fix <check> by hand, or re-run it yourself if you judge it a flake" test -n "$out"
+# The developer relies on a check red again on its retry ending there (Spec story 19, ADR 0087): a
+# classification of its retry excerpt could read it as stale or real and put it back in the fixing
+# loop, a route that held for one kind of retry only would send the other back to a fixer, and a
+# verdict's other red names left out of the stop line go unreported. The route is read off the watch
+# step's bullet that raises the not-reproducible stop, the came-back bullet passed over.
+echo "# pr.md / ### 3. Watch: a check red again on its retry, whatever its excerpt reads and whichever retry it had, is never classified again, and the verdict's other red names go in the still red: tail"
+watch="$(passage_of "$pr" "### 3. Watch" "##" 2>/dev/null)"
+flat="$(piece_all=1 piece_without="reported fixed that came back red" piece_with "retry record" "red again on its retry" |
+  grep -F "not-reproducible" | tr '\n' ' ')"
+expect "a piece of the watch step raises the not-reproducible stop for a check red again on its retry" test -n "$flat"
+carries_any "the check is not classified again: no pr-classify.sh call for it" \
+  "no \`pr-classify.sh\`" "no pr-classify.sh" "never calls \`pr-classify.sh\`" "never runs \`pr-classify.sh\`" \
+  "does not call \`pr-classify.sh\`" "does not run \`pr-classify.sh\`" "never passed to \`pr-classify.sh\`" \
+  "not passed to \`pr-classify.sh\`" "never goes to \`pr-classify.sh\`" "without \`pr-classify.sh\`" \
+  "never run through \`pr-classify.sh\`" "not run through \`pr-classify.sh\`" "not classified" \
+  "never classified" "never classifies" "not classify" "no classification" "classifies nothing" \
+  "nor classified" "nor classifies"
+carries_any "whatever its retry excerpt reads" \
+  "whatever its excerpt" "whatever the excerpt" "whatever its retry excerpt" "whatever the retry excerpt" \
+  "whatever its retry's excerpt" "whatever the retry's excerpt" "whatever that excerpt" \
+  "regardless of its excerpt" "regardless of the excerpt" "regardless of its retry excerpt" \
+  "regardless of the retry excerpt" "regardless of the retry's excerpt" "regardless of what" \
+  "no matter what its excerpt" "no matter what the excerpt" "no matter what the retry" \
+  "whatever its log" "whatever the log" "whatever it reads" "however its excerpt reads" \
+  "however the excerpt reads"
+carries_each "whether the retry was a rerun or a pushed round's new run" \
+  "rerun" -- \
+  "pushed round" "pushed" "a push" "retried by the run" "new run" -- \
+  "whether" "either" "alike" "both" "whichever" "any retry" "same for" "as well as" "or by"
+carries_each "the verdict's other red names, which no clause names, go in the still red: tail" \
+  "still red:" -- \
+  "other red" "other \`red=\`" "other checks" "no clause names" "no clause" "rest of" "remaining" \
+  "the others"
 [ "$fails" -eq 0 ] && exit 0
 exit 1
