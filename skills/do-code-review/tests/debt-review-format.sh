@@ -45,4 +45,13 @@ carries_any "it is the tip of a branch" "tip of the branch" "branch's tip" "bran
 carries_any "the branch the developer was on when the debt was judged" \
   "the developer was on" "the developer is on" "checked out" "current branch"
 
+echo "# review-format.md: a Debt review is written by the judgment of the feature's Pending debt, never a reviewer reading a diff"
+flat="$(units_of <"$format" | grep -F "Debt review" |
+  grep -iE "written by|writes|wrote|author|produced by|comes from" | tr '\n' ' ')"
+expect "the format says who writes a Debt review" test -n "$flat"
+carries "its author judged the feature's Pending debt" "Pending debt"
+carries_any "as a judgment of that debt" "judgment" "judges" "judged" "judging"
+carries_each "and not a reviewer reading a diff" \
+  "never a reviewer" "not a reviewer" "no reviewer" "never by a reviewer" "not by a reviewer" -- "diff"
+
 exit $((fails > 0))

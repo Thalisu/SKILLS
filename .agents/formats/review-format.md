@@ -7,6 +7,11 @@ the prose (the intent, the claims, the evidence) is in the language the caller's
 A reader finds every Finding by its number, every Bucket by its heading and every Axis by its
 line at the end, so a pass on one Axis never hides a fail on another.
 
+A Debt review is the exception: it is written by the judgment of a feature's Pending debt (the
+Debt files of its Tickets, its Review's `Consider` and `Noted` Findings, and the ones a fix run
+left not fixed), never a reviewer reading a diff. The fix run reads it as it reads any other
+Review.
+
 ## Where it lives
 
 - Beside the Ticket file when the caller handed one over, as `do` does at its review step, taking
