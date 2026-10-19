@@ -231,17 +231,23 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    `<run tree>` is the worktree item 2 cut. On a non-zero exit the run stops, quoting the script's
    stderr line.
 
-4. Take the checks one at a time, in check order. Each check is a Wave of its own, so `<k>` is both
-   the Wave and the check number:
+4. Group the checks into Waves. The run pipes one record per red check, in check order, to
+   `bash <skill-dir>/../do-code-review/scripts/group-waves.sh`: `<k>`, a tab, then that check's
+   `file=` values from its `pr-log.sh` output (item 3) joined by spaces. Each printed
+   `wave=<w> numbers=<k>[,<k>]...` line is one Wave, its numbers check numbers. Checks whose files
+   are disjoint share a Wave and run at once, and a check that shares a file with an earlier check
+   comes out in a later Wave and runs after it. Then each Wave, in the order printed:
 
-   a. `bash <skill-dir>/../do-code-review/scripts/fix-worktrees.sh add <run tree> pr-<n> <at> <k> <k>`
-      prints `worktree <k> <path> <branch>`; any other line stops the run quoting it.
-   b. Fork `do-pr-fixer` through the Agent tool, `subagent_type: do-pr-fixer`, with the brief below,
-      its `Tree:` and `Branch:` the path and the branch on that worktree line, and the return file
-      `<dir>/check-<k>`.
-   c. `bash <skill-dir>/../do-code-review/scripts/returns.sh 240 <dir>/check-<k>`, with the Bash
-      timeout at 600000 ms. Call it again while the file reads `missing=`, three windows and no
-      more. A file that never lands reads `not fixed <k>: the fixer did not return`.
+   a. `bash <skill-dir>/../do-code-review/scripts/fix-worktrees.sh add <run tree> pr-<n> <at> <w> <k>...`,
+      with the Wave's number and its check numbers, prints one `worktree <k> <path> <branch>` line
+      per check; any other line stops the run quoting it.
+   b. Fork every `do-pr-fixer` of the Wave in one message through the Agent tool,
+      `subagent_type: do-pr-fixer`, each with the brief below, its `Tree:` and `Branch:` the path and
+      the branch on its own worktree line, and the return file `<dir>/check-<k>`.
+   c. `bash <skill-dir>/../do-code-review/scripts/returns.sh 240 <every return file of the Wave>` is
+      one call that waits on every return file of that Wave, with the Bash timeout at 600000 ms.
+      Call it again over the files still `missing=`, three windows and no more. A file that never
+      lands reads `not fixed <k>: the fixer did not return`.
 
    d. On a `fixed <k>: ...` return:
       `bash <skill-dir>/../do-code-review/scripts/fix-integrate.sh <run tree> <k>=<branch>`. It
@@ -250,8 +256,8 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    e. `bash <skill-dir>/../do-code-review/scripts/fix-worktrees.sh remove <run tree> <branch>`. Its
       `removed` or `kept` line goes to the Reply's round lines as it stands.
 
-   The fork and the wait sit in one turn: the session never ends its turn while a fixer runs, as
-   skills/do-code-review/references/fix.md warns.
+   Steps d and e apply to each check of the Wave. The fork and the wait sit in one turn: the session
+   never ends its turn while a fixer runs, as skills/do-code-review/references/fix.md warns.
 
 5. Push, when at least one check was picked:
 

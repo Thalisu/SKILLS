@@ -1075,20 +1075,15 @@ carries_any "the session writes no fix" \
 carries "per ADR 0088" "ADR 0088"
 carries_any "each red check gets one \`do-pr-fixer\` fork" \
   "one \`do-pr-fixer\`" "one do-pr-fixer" "a \`do-pr-fixer\` of its own" "a do-pr-fixer of its own"
-carries_any "the checks are taken one at a time" "one at a time" "one by one" "one after another"
 carries_any "in check order" "check order" "in the order printed" "order of the \`red=\` lines"
-carries_any "each a Wave of its own" "Wave of its own" "its own Wave" "a Wave of one" "Wave of one check"
-carries "per check, fix-worktrees.sh add cuts its worktree and branch, printing the worktree line" \
-  "bash <skill-dir>/../do-code-review/scripts/fix-worktrees.sh add <run tree> pr-<n> <at> <k> <k>" \
-  "worktree <k> <path> <branch>"
 carries_any "the fork goes through the Agent tool as \`do-pr-fixer\`" \
   "subagent_type: do-pr-fixer" "subagent_type: \`do-pr-fixer\`" "\`subagent_type\`: \`do-pr-fixer\`" \
   "\`subagent_type: do-pr-fixer\`"
 carries "its brief's Tree: and Branch: are the worktree line's path and branch, its return file \`<dir>/check-<k>\`" \
   "Tree: <the path on the check's worktree line>" "Branch: <the branch on the check's worktree line>" \
   "Return file: <dir>/check-<k>"
-carries "the run waits on that return file with returns.sh 240, its Bash timeout at 600000 ms" \
-  "bash <skill-dir>/../do-code-review/scripts/returns.sh 240 <dir>/check-<k>" "600000"
+carries "the run waits on the return files with returns.sh 240, its Bash timeout at 600000 ms" \
+  "bash <skill-dir>/../do-code-review/scripts/returns.sh 240 " "600000"
 before "the worktree is cut before the wait" "fix-worktrees.sh add" "returns.sh 240"
 carries_each "called again while it reads \`missing=\`, three windows at most" \
   "missing=" -- \
@@ -1109,6 +1104,54 @@ carries_each "with one line saying no fixer can be forked" \
   "no fixer can be forked" "cannot fork" "can't fork" "no fixer can be" "no fork" "nothing can be forked"
 carries_any "and the session never fixes a check itself" \
   "never fixes" "fixes no check" "does not fix" "doesn't fix" "never fix" "never writes" "writes no fix"
+
+# Disjoint red checks are fixed at once and checks sharing a file one after the other: the Waves are
+# group-waves.sh's output over each check's `file=` lines, never a grouping the session works out.
+# What the run pipes to it is read off the stretch of step 4 before the first add call, since the
+# grouping has to be done before any worktree is cut and item 5 already says "one line per check".
+echo "# pr.md / ### 4. Fix the red checks: the red checks are grouped into Waves by group-waves.sh over their file= lines, every fixer of a Wave is forked at once, and a check sharing a file with an earlier one runs in a later Wave"
+step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ')"
+whole="$flat"
+carries "the red checks are piped to group-waves.sh" "bash <skill-dir>/../do-code-review/scripts/group-waves.sh"
+before "the grouping comes before any worktree is cut" "group-waves.sh" "fix-worktrees.sh add"
+flat="${whole%%fix-worktrees.sh add*}"
+carries_each "one record per red check, in check order" \
+  "one record per" "a record per" "one line per red check" "one line per check" "a line per check" \
+  "one per red check" "one per check" -- \
+  "check order" "in the order printed" "order of the \`red=\` lines"
+carries_each "each record is \`<k>\`, a tab, then the check's \`file=\` values joined by spaces" \
+  "<k>" -- \
+  "a tab" "TAB" "\\t" "tab-separated" "tab character" -- \
+  "file=" -- \
+  "joined by spaces" "joined by a space" "separated by spaces" "space-separated" "spaces between" \
+  "one space" "a space"
+carries_any "the check's files come from its \`pr-log.sh\` output" "pr-log.sh" "excerpt line" "item 3"
+flat="$whole"
+carries "each printed \`wave=<w> numbers=<k>[,<k>]...\` line is one Wave" "wave=<w> numbers=<k>[,<k>]..."
+carries_each "its numbers are check numbers" \
+  "numbers=" -- "check number" "check numbers" "the checks'" "numbers name checks" "number a check"
+carries_each "checks whose files are disjoint share a Wave and run at once" \
+  "disjoint" -- "at once" "in parallel" "together" "at the same time" "concurrently"
+carries_each "a check sharing a file with an earlier check comes out in a later Wave and runs after it" \
+  "shares a file" "share a file" "sharing a file" "a file in common" "same file" "file with an earlier" -- \
+  "later Wave" "next Wave" "Wave after" "subsequent Wave" "later one"
+carries_each "the Waves are taken in the order printed" \
+  "each Wave" "every Wave" "per Wave" "Wave by Wave" -- \
+  "order printed" "printed order" "in order" "Wave order" "one after another" "one after the other"
+carries "one fix-worktrees.sh add call per Wave cuts every worktree of it, one worktree line per check" \
+  "bash <skill-dir>/../do-code-review/scripts/fix-worktrees.sh add <run tree> pr-<n> <at> <w> <k>..." \
+  "worktree <k> <path> <branch>"
+carries_each "every \`do-pr-fixer\` of the Wave is forked in one message" \
+  "one message" "a single message" "the same message" "one response" "a single response" -- \
+  "every \`do-pr-fixer\`" "every do-pr-fixer" "every fixer" "all the fixers" "all of the Wave's fixers" \
+  "each fixer of the Wave" "the Wave's fixers" "every fork" "all its fixers" "all of its fixers"
+carries "one returns.sh 240 call waits on the Wave" "bash <skill-dir>/../do-code-review/scripts/returns.sh 240 "
+carries_each "that one call waits on every return file of the Wave" \
+  "one call" "a single call" "one \`returns.sh\`" "one returns.sh" "a single \`returns.sh\`" "one wait" -- \
+  "every return file of the Wave" "each return file of the Wave" "the Wave's return files" \
+  "all the Wave's return files" "every return file in the Wave" "return files of the Wave" \
+  "every return file of that Wave" "return files of that Wave"
 
 # The developer may have the head checked out, dirty or on another branch: a round integrated in
 # their checkout moves their branch or mixes the run's commits with their work in progress. The
