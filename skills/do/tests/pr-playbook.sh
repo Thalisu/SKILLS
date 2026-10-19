@@ -1593,7 +1593,7 @@ echo "# pr.md / ### 5. Reply and reply.md item 1: a pr run that pushed a round l
 reply_step="$(passage_of "$pr" "### 5. Reply" "##" 2>/dev/null)"
 out="$(sed 's/^[[:space:]]*//' <<<"$reply_step")"
 check_lines "the Reply step shows the round lines, as whole lines" 0 0 \
-  'round <r>: <check> red; do-pr-fixer on <fixer branch>: <picked sha> pushed to <head>' \
+  'round <r>: <check> red; do-pr-fixer on <fixer branch>: <its return line>; <picked sha> pushed to <head>' \
   'round <r>: <check> red; do-pr-fixer on <fixer branch>: <its return line>; nothing pushed for it' \
   'round <r>: <a `kept` line, as fix-worktrees.sh printed it>' \
   'round <r>: after the push the watch read <verdict word>'
@@ -1921,7 +1921,7 @@ echo "# pr.md / ### 5. Reply and reply.md item 1: a pr run lists each round unde
 reply_step="$(passage_of "$pr" "### 5. Reply" "##" 2>/dev/null)"
 out="$(sed 's/^[[:space:]]*//' <<<"$reply_step")"
 check_lines "the Reply step's round line templates open with \`round <r>:\`, as whole lines" 0 0 \
-  'round <r>: <check> red; do-pr-fixer on <fixer branch>: <picked sha> pushed to <head>' \
+  'round <r>: <check> red; do-pr-fixer on <fixer branch>: <its return line>; <picked sha> pushed to <head>' \
   'round <r>: <check> red; do-pr-fixer on <fixer branch>: <its return line>; nothing pushed for it' \
   'round <r>: <a `kept` line, as fix-worktrees.sh printed it>' \
   'round <r>: after the push the watch read <verdict word>'
@@ -2118,5 +2118,60 @@ carries_any "its conflict raises no stop-case and stays out of the stop set" \
   "raises no" "raise no" "stays out" "stay out" "kept out" "left out" "never goes into" "never go into" \
   "does not go into" "do not go into" "never enters" "never enter" "not in the stop set" \
   "never in the stop set" "outside the stop set" "no entry"
+
+# The developer and the team sharing CI rely on a check whose pushed fix did not cure it stopping
+# the run: another fixer forked over it pushes more commits onto a shared head on a diagnosis the red
+# check already showed wrong. The route is read off the pieces of the watch step naming the check
+# that came back, and its place off the order of the step's verdict pieces: it sits ahead of the
+# bullet starting the next round and of the three-round stop, so neither catches the check first.
+echo "# pr.md / ### 3. Watch: a red check a pushed round reported fixed is a stop-case that stops the run on one Yours: direction: line, ahead of the next round and the three-round stop, no fixer forked for it again"
+watch="$(passage_of "$pr" "### 3. Watch" "##" 2>/dev/null)"
+came_back=("came back" "came-back" "comes back red" "red again" "back red")
+flat="$(piece_all=1 piece_with "${came_back[@]}" | tr '\n' ' ')"
+expect "a bullet or paragraph of the watch step takes a check that came back red" test -n "$flat"
+carries "it takes \`verdict=red\`" "verdict=red"
+carries_each "a \`red=\` line whose name a \`... pushed to <head>\` round line of an earlier round of this run carries" \
+  "red=" -- "pushed to <head>" -- \
+  "earlier round" "previous round" "prior round" "round before" "earlier rounds" "previous rounds" "prior rounds"
+carries_any "it is a stop-case, in the stop set" "stop set" "stop-case" "stop case"
+affirms "the run stops" "stops" "stop" "ends the run" "the run ends"
+carries_each "on one \`Yours: direction:\` line" \
+  "exactly one" "one line" "a single line" "one \`Yours: direction:\` line" "single \`Yours: direction:\`" -- \
+  "Yours: direction:"
+carries_any "no do-pr-fixer is forked for it again" \
+  "forks no" "no \`do-pr-fixer\`" "no do-pr-fixer" "no fixer" "never forks" "forks nothing" "not forked" \
+  "never forked" "no fork"
+carries_any "and no next round is started" \
+  "no next round" "starts no next round" "no further round" "no other round" "starts no round" \
+  "no new round" "starts no new round" "never starts another round" "never starts the next round" \
+  "no round is started" "no round starts"
+pieces="$(piece_all=1 piece_with "verdict=red")"
+came_at="$(grep -nF "${came_back[@]/#/-e}" <<<"$pieces" | head -1 | cut -d: -f1)"
+others="$(grep -n '' <<<"$pieces" | grep -v "^${came_at:-0}:")"
+next_at="$(grep -F -e "fewer than three" -e "Fewer than three" -e "under three" -e "less than three" <<<"$others" |
+  head -1 | cut -d: -f1)"
+cap_at="$(grep -F -e "third pushed round" -e "three pushed rounds" -e "third round" <<<"$others" | head -1 | cut -d: -f1)"
+expect "the came-back piece comes before the bullet starting the next round while fewer than three rounds have pushed" \
+  test "${came_at:-0}" -gt 0 -a "${next_at:-0}" -gt "${came_at:-0}"
+expect "and before the three-round stop" test "${came_at:-0}" -gt 0 -a "${cap_at:-0}" -gt "${came_at:-0}"
+
+# The developer undoing or redoing a pushed fix the watch read red again needs the round lines to
+# show which round pushed it as fixed and what its fixer returned, so step 3 can quote that return:
+# both templates are read whole.
+echo "# pr.md / ### 5. Reply: a check back red after its fix was pushed has its own round line naming the round and the sha that pushed it as fixed"
+reply_step="$(passage_of "$pr" "### 5. Reply" "##" 2>/dev/null)"
+out="$(sed 's/^[[:space:]]*//' <<<"$reply_step")"
+check_lines "the Reply step's round line templates carry the pushed line with its return line and the red-again line, as whole lines" 0 0 \
+  'round <r>: <check> red; do-pr-fixer on <fixer branch>: <its return line>; <picked sha> pushed to <head>' \
+  "round <r>: <check> red again; pushed as fixed in round <r'> as <sha>"
+
+# The developer handed a check its pushed fix did not cure needs, in the one line the run stops on,
+# the check, the sha pushed and the round it went in, and what the fixer ruled out, so they can
+# revert it or redo it by hand: the template is read whole, as the not fixed clause is.
+echo "# pr.md: the stop on a check red again after its fix was pushed is a Yours: direction: line naming the check, the pushed sha, its round and what the fixer ruled out"
+clause="Yours: direction: <check> red again after <sha> pushed in round <r'> (<what the fixer ruled out>): revert <sha> on <head>, or fix it by hand on <head>"
+out="$(sed 's/^[[:space:]]*//' "$pr" | grep -E '^`?Yours: direction:' | sed 's/^`//; s/`$//' | grep -xF -- "$clause")"
+expect "a line of pr.md is the came-back clause opening \`Yours: direction:\`, naming the check, the pushed sha, its round and what the fixer ruled out" \
+  test -n "$out"
 [ "$fails" -eq 0 ] && exit 0
 exit 1

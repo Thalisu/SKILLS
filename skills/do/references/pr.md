@@ -178,6 +178,15 @@ the checks: a display read mid-run can show green while a check is still running
   the Reply.
 - `verdict=awaiting-approval`: every check passed and only a required approval blocks the merge. The
   run goes on to step 5, the Reply, as on green: the wait is the developer's to clear, not a stop.
+- `verdict=red` after step 4 has pushed a round, with a check that came back red: every
+  `red=<link> <name>` line whose `<name>` a `... pushed to <head>` round line of an earlier round
+  of this run carries is a check reported fixed that came back red. It is a stop-case and goes into
+  the stop set, and the run stops on exactly one `Yours: direction:` line, its came-back clause
+  (given in step 4 item 5) quoting that round line's return line. This route comes first, ahead of
+  the next round and of the three-round stop: the run forks no `do-pr-fixer` for it again, and no
+  next round is started. The match is by name, and it reads the verdict's `head=`, `sha=` and `red=`
+  lines as they stand, the `<head>` of the stop line being the `head=` one. A run that has pushed
+  no round yet has no earlier round to match, so it never takes this route.
 - `verdict=red`, when this run has pushed no round yet: a check failed. The run goes on to step 4,
   Fix the red checks, carrying the verdict's `head=`, `sha=` and `red=` lines as they stand.
 - `verdict=red` after step 4 has pushed a round, while fewer than three rounds have pushed: a check
@@ -396,6 +405,12 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
 
    with `<pr url>` the reference step 1 took.
 
+   The clause of a check that came back red after its fix was pushed is:
+
+       Yours: direction: <check> red again after <sha> pushed in round <r'> (<what the fixer ruled out>): revert <sha> on <head>, or fix it by hand on <head>
+
+   `<sha>` and `<r'>` are off the round line that pushed it.
+
    A stop-case clause of a `Yours: direction:` line that names a fixer's own report carries a
    `<what the fixer ruled out>` slot. It is read off the fixer's return line as it stands, never
    from the session's own reading. For a `not fixed <k>: <reason>` line it is its `<reason>`. For a
@@ -444,16 +459,20 @@ the whole message, and a green watch adds no part of its own:
   inside the five parts and adding no part of their own: one line per red check, one per `kept`
   line `fix-worktrees.sh remove` printed, and the verdict the watch read after the push:
 
-      round <r>: <check> red; do-pr-fixer on <fixer branch>: <picked sha> pushed to <head>
+      round <r>: <check> red; do-pr-fixer on <fixer branch>: <its return line>; <picked sha> pushed to <head>
       round <r>: <check> red; do-pr-fixer on <fixer branch>: <its return line>; nothing pushed for it
       round <r>: <check> red; do-pr-fixer on <fixer branch>: <its return line>; not picked: <path> is a <class> file
       round <r>: <check> red; do-pr-fixer on <fixer branch>: <its return line>; not picked: the guard could not read it: <reason>
+      round <r>: <check> red again; pushed as fixed in round <r'> as <sha>
       round <r>: <check> red; do-pr-fixer on <fixer branch>: not fixed: conflicted with check <m>; nothing pushed for it
       round <r>: <a `kept` line, as fix-worktrees.sh printed it>
       round <r>: kept <branch> <path> <reason>, as fix-worktrees.sh printed it
       round <r>: after the push the watch read <verdict word>
 
   The first `not picked` line is written once per path the guard named.
+
+  The pushed line carries the fixer's return line so that step 3 can match a check that came back
+  red and quote it.
 
   `<r>` is the round's number, 1, 2, 3 in the order the rounds pushed, so each round is listed
   under its own number, `round 1:`, `round 2:`, `round 3:`, each with its red checks, the fixer of
