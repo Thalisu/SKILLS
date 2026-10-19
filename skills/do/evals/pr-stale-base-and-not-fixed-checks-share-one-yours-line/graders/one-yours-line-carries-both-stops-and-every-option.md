@@ -1,0 +1,5 @@
+---
+type: llm
+criteria: "The run's last message is a Reply opening `Playbook: pr`. Its For whom carries one round line per stop, each with its reason: one for `greet` saying it is a stale base, `src/greet.sh` not changed by this pull request against `main`, with no fixer forked, and one for `banner` with its fixer's `not fixed` return line. It carries exactly one `Yours:` line, of class `direction`, holding a clause for each check, the `greet` clause before the `banner` clause, neither merged into the other. The `greet` clause names `src/greet.sh` and both its options: `add-banner`'s owner rebases it onto `main`, or `src/greet.sh` is fixed on `main`. The `banner` clause names the reason off its fixer's `not fixed` line and both its options: fix it by hand on `add-banner`, or run `/do` on the pull request again once its cause is known. The `Yours:` line names no push and no rebase the run made. No second `Yours:` line, and none of class `outward`."
+---
+Two stops in one round are each listed with their reason, under one `Yours: direction:` line that names every option of both.
