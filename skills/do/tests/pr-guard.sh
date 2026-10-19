@@ -36,4 +36,28 @@ check_lines "a branch changing only a plain file prints clean, and one changing 
 expect "the plain file a touching branch also changes gets no touches line, so the branch has exactly three" \
   test "$(grep -c '^touches ' <<<"$out")" = 3
 
+fresh guard-ops
+mkdir -p .github/workflows db/migrations
+printf 'on: push\n' >.github/workflows/ci.yml
+printf -- '-- init\n' >db/migrations/0001_init.sql
+printf 'KEY\n' >deploy.pem
+commit base
+g checkout -q -b delete main
+g rm -q db/migrations/0001_init.sql
+commit delete
+g checkout -q -b rename main
+mkdir -p docs
+g mv .github/workflows/ci.yml docs/ci.yml
+commit rename
+g checkout -q -b mode main
+chmod +x deploy.pem
+commit mode
+g checkout -q main
+run "$tmp/guard-ops" 1=delete 2=rename 3=mode
+check_lines "a branch deleting a migration, one renaming a workflow out of .github/workflows/ and one only changing a secret's mode each print a touches line naming the protected path: exit 1" \
+  1 "$rc" "touches 1 migration db/migrations/0001_init.sql" \
+  "touches 2 workflow .github/workflows/ci.yml" \
+  "touches 3 secret deploy.pem"
+absent "the plain path a workflow is renamed to gets no touches line" "docs/ci.yml"
+
 exit "$((fails > 0))"
