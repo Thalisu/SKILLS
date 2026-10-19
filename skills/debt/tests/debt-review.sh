@@ -462,6 +462,10 @@ cat >"$cleared_feature/issues/01-a.debt.md" <<'EOF'
 - the consumer flows were not run against the new page signature
 - the export token is never rotated
 - the page cursor is rebuilt by every caller
+- the export gives up on the first timeout
+- the summary drops its last row
+- the page header repeats on every page
+- the README names the old page flag
 EOF
 commit "seed the cleared feature"
 cleared_source_of() { # $1 item number: its source, as gather.sh records it, on stdout
@@ -473,9 +477,14 @@ weak_source="$(cleared_source_of 2)"
 outside_source="$(cleared_source_of 3)"
 secure_source="$(cleared_source_of 4)"
 large_source="$(cleared_source_of 5)"
+unbound_source="$(cleared_source_of 6)"
+targetless_source="$(cleared_source_of 7)"
+lined_source="$(cleared_source_of 8)"
+root_source="$(cleared_source_of 9)"
 if [ -z "$cleared_source" ] || [ -z "$weak_source" ] || [ -z "$outside_source" ] || [ -z "$secure_source" ] ||
-  [ -z "$large_source" ]; then
-  echo "FAIL  fixture: gather.sh named no source for the cleared-debt items 1 to 5"
+  [ -z "$large_source" ] || [ -z "$unbound_source" ] || [ -z "$targetless_source" ] || [ -z "$lined_source" ] ||
+  [ -z "$root_source" ]; then
+  echo "FAIL  fixture: gather.sh named no source for the cleared-debt items 1 to 9"
   exit 1
 fi
 cleared_returns="$tmp/cleared-returns"
@@ -526,6 +535,46 @@ Evidence: an earlier note says three callers build it; none was run.
 Rung: 2
 Fix: one cursor type is shared by every caller, across src/
 Small: no
+EOF
+cat >"$cleared_returns/item-6.md" <<EOF
+Source: $unbound_source
+Axis: Correctness
+Location: src/export.sh:14
+Claim: the export gives up on the first timeout.
+Evidence: a proof script timed out the export once and no file was written.
+Rung: 4
+Fix: the export retries once on a timeout, in the export module
+Small: yes
+EOF
+cat >"$cleared_returns/item-7.md" <<EOF
+Source: $targetless_source
+Axis: Correctness
+Location: src/report.sh:31
+Claim: the summary drops its last row.
+Evidence: a proof script summed eleven rows and the summary printed ten.
+Rung: 3
+Fix: the summary keeps its last row
+Small: yes
+EOF
+cat >"$cleared_returns/item-8.md" <<EOF
+Source: $lined_source
+Axis: Correctness
+Location: src/b.sh:7
+Claim: the page header repeats on every page.
+Evidence: a proof script paged three times and read the header three times.
+Rung: 4
+Fix: the header prints on the first page only, in \`src/b.sh:7\`
+Small: yes
+EOF
+cat >"$cleared_returns/item-9.md" <<EOF
+Source: $root_source
+Axis: Standards
+Location: README.md:12
+Claim: the README names the old page flag.
+Evidence: README.md:12 reads --pages, which the script no longer parses, run by a proof script.
+Rung: 3
+Fix: the README names the new page flag, in ./README.md
+Small: yes
 EOF
 cleared_review="$cleared_feature/spec.debt.review.md"
 rc=0
@@ -606,6 +655,25 @@ same "an item at Rung 1 or 2 whose fix is not small is marked too big for a Fixe
 out="$(grep -qx '## Consider' "$cleared_review" 2>/dev/null && passage_of "$cleared_review" "## Act on" "## Consider")"
 check_absent "an item at Rung 1 or 2 whose fix is not small stays out of Act on" 0 "$cleared_rc" \
   "every caller rebuilds the page cursor"
+
+for unbound in "Claim: the export gives up on the first timeout.|a target naming no file" \
+  "Claim: the summary drops its last row.|no target"; do
+  claim="${unbound%%|*}"
+  label="${unbound#*|}"
+  # shellcheck disable=SC2034  # lib.sh's same reads $out
+  out="$(grep -qx '## Noted' "$cleared_review" 2>/dev/null &&
+    item_holding <(passage_of "$cleared_review" "## Consider" "## Noted") '### [0-9]+\.' "$claim" |
+    line_before_fix)"
+  same "a small item at Rung 3 or above whose Fix has $label is under Consider, marked too big for a Fixer" \
+    "Mark: too big for a Fixer"
+done
+# shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+out="$(grep -qx '## Consider' "$cleared_review" 2>/dev/null && passage_of "$cleared_review" "## Act on" "## Consider")"
+check_absent "a small item at Rung 3 or above whose Fix names no file stays out of Act on" 0 "$cleared_rc" \
+  "the export gives up on the first timeout." "the summary drops its last row."
+check "a small item at Rung 3 or above whose Fix names a file in backticks with a line, or a root file, stays under Act on" \
+  0 "$cleared_rc" "Claim: the page header repeats on every page." "Claim: the README names the old page flag."
+check_absent "an item under Act on carries no mark" 0 "$cleared_rc" "Mark:"
 
 fresh idle
 idle="$(pwd -P)"

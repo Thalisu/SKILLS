@@ -16,10 +16,11 @@
 # It ends on "## Axes": the six Axes in order, each its Finding count and the first Finding naming
 # it with its Bucket, or "0 findings". It never reads "not run".
 #
-# - A return ending on Fix and Small at Rung 3 or above with Small: yes is a Finding under Act on.
-# - A return ending on Fix and Small at Rung 1 or 2, or at Rung 3 or above whose fix is not small,
-#   is a Finding under Consider, with the evaluator's own evidence. When its fix is not small it
-#   carries the line "Mark: too big for a Fixer" right before its Fix line, at any Rung.
+# - A return ending on Fix and Small at Rung 3 or above with Small: yes whose Fix target (the text
+#   after the last ", in ") names a file is a Finding under Act on.
+# - Any other return ending on Fix and Small is a Finding under Consider, with the evaluator's own
+#   evidence. When its fix is not small, or its Fix target names no file, it carries the line
+#   "Mark: too big for a Fixer" right before its Fix line, at any Rung.
 # - A return ending on Refuted by (no Fix, no Small) at Rung 3 or above is a Finding under Cleared,
 #   with the evaluator's own evidence and Refuted by in place of Fix. At Rung 1 or 2 it is a Finding
 #   under Consider, the refutation in its evidence ("; refuted only at Rung <r>: <Refuted by>") and
@@ -151,6 +152,21 @@ read_return() { # $1 return file, $2 source: kind=returned|outside|missing, then
   printf 'kind=returned\n%sending=%s\n' "$out" "$ending"
 }
 
+# Restates the path test of fix-waves.sh (target_of and finding_files) without calling it.
+fix_names_a_file() { # $1 fix value: exit 0 when the text after its last ", in " names a file
+  local target word
+  case "$1" in *", in "*) target="${1##*, in }" ;; *) return 1 ;; esac
+  for word in $target; do
+    word="${word//\`/}"
+    while :; do
+      case "$word" in *[.,\;:]) word="${word%?}" ;; *) break ;; esac
+    done
+    if [[ "$word" =~ :[0-9]+(-[0-9]+)?$ ]]; then word="${word%:*}"; fi
+    case "$word" in */*) return 0 ;; esac
+  done
+  return 1
+}
+
 # The Placement: bucket, rung, evidence, risk, mark (a fixed constant, never a return's value), last.
 place() { # $1 source, stdin: read_return's lines
   local key val kind="" rung="" evidence="" risk="" fix="" small="" refuted="" settles="" ending="" axis="" file="${1%%, *}"
@@ -187,14 +203,14 @@ place() { # $1 source, stdin: read_return's lines
     printf 'bucket=Cleared\n'
   elif [ "$ending" = outside-code ] && [ "$rung" -ge 3 ] && [ "$axis" != Security ]; then
     printf 'bucket=Noted\n'
-  elif [ "$small" = yes ] && [ "$rung" -ge 3 ]; then
+  elif [ "$small" = yes ] && [ "$rung" -ge 3 ] && fix_names_a_file "$fix"; then
     printf 'bucket=Act on\n'
   else
     printf 'bucket=Consider\n'
   fi
   printf 'rung=%s\nevidence=%s\n' "$rung" "$evidence"
   [ -z "$risk" ] || printf 'risk=%s\n' "$risk"
-  [ "$ending" = fix ] && [ "$small" = no ] && printf 'mark=too big for a Fixer\n'
+  if [ "$ending" = fix ] && { [ "$small" = no ] || ! fix_names_a_file "$fix"; }; then printf 'mark=too big for a Fixer\n'; fi
   case "$ending" in
     refuted) printf 'last=Refuted by: %s\n' "$refuted" ;;
     outside-code) printf 'last=Fix: %s\n' "$settles" ;;
