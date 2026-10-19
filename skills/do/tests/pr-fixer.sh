@@ -53,7 +53,19 @@ for cmd in \
   "cd /t && git update-ref refs/heads/main HEAD" \
   "gh run rerun 7" \
   "gh pr view 42" \
-  "cd /t && gh api x"; do
+  "cd /t && gh api x" \
+  "git --git-dir /t/.git push origin HEAD" \
+  "git --work-tree /t push origin HEAD" \
+  "git send-pack origin HEAD" \
+  'g\it push origin HEAD' \
+  'G=git; $G push origin HEAD' \
+  'g=git; ${g} push origin HEAD' \
+  "git config alias.p push" \
+  "git config --global alias.p push" \
+  "git -c alias.p=push p origin HEAD" \
+  "env gh pr view 42" \
+  "command gh pr view 42" \
+  "/usr/bin/gh pr view 42"; do
   expect "the hook denies the fixer's Bash a write to the shared head or GitHub: $cmd" \
     deny_in "$(bash_out "$cmd")"
 done
@@ -65,7 +77,10 @@ for cmd in \
   "cd /t && git add src/a.py && git commit -m 'fix'" \
   "bash tests/run.sh" \
   "git -C /t diff" \
-  "git -C /t restore src/a.py"; do
+  "git -C /t restore src/a.py" \
+  'x=$(git -C /t rev-parse HEAD)' \
+  "git -C /t config user.name x" \
+  "git --git-dir /t/.git status"; do
   expect "the hook lets the fixer's Bash do ordinary fix work: $cmd" \
     bash -c '[ -n "$1" ] && ! grep -qF "\"permissionDecision\": \"deny\"" <<<"$2"' _ "$bash_hook" "$(bash_out "$cmd")"
 done
