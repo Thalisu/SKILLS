@@ -196,6 +196,11 @@ the checks: a display read mid-run can show green while a check is still running
   lines as they stand, the `<head>` of the stop line being the `head=` one. A run that has pushed
   no round yet has no earlier round to match, so it never takes this route.
   The match reads only the `pushed to` round lines, so a round that ended in a rerun never matches a check as reported fixed.
+- `verdict=red` with a `red=` name that is in the retry record: that check is red again on its
+  retry. It never goes to step 4: no new round is started for it, no `do-pr-fixer` is forked for it
+  again, and it gets no second rerun. This route is Ticket 15's slot; until Ticket 15 lands, the run
+  stops on exactly one `Yours: direction:` line whose `still red:` tail names that check. This route
+  comes ahead of the next round and of the three-round stop.
 - After a pushed round that carries a stop set holding a stop-case (raised in step 4 while some other
   check was picked), whatever the verdict: the run watches once more, after the `pending` calls it
   takes, and stops on whatever verdict the watch settles on, green included. This route comes first,
@@ -525,6 +530,12 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
      made, remove `<run tree>` and stop on the one `Yours: direction:` line. When one was made, the
      run stops now too (a slot Ticket 15 fills).
    - On exit 2 (usage): as exit 1, every check's reason reading `the rerun script refused its arguments`.
+
+   The run's retry record is the check names on round lines ending `; rerun <run id> attempt <n>` or
+   `; retried by the run on <sha>`, keyed on the check name as the came-back match is. A line enters
+   the retry record only when its round ended in a push or a rerun, so a redone round records nothing
+   in the retry record. A check whose name is in the retry record is never passed to `pr-rerun.sh`,
+   so no check is rerun twice in one run.
 
    The clause of a `rerun-refused` stop entry is:
 

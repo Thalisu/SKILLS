@@ -2662,5 +2662,83 @@ templates="$(
 )"
 out="$(grep -xF "round <r>: <check> red; do-pr-fixer on <fixer branch>: not reproduced <k>: <command> <what it showed>; nothing pushed for it; retried by the run on <picked sha>" <<<"$templates")"
 expect "a not reproduced check's round line on a pushed round ends retried by the run on the picked sha" test -n "$out"
+
+# The team sharing CI relies on a check being retried once per run (ADR 0089): a check a rerun or a
+# pushed round's new run already retried, rerun again, turns one retry into a loop of reruns. Step 4
+# gates its pr-rerun.sh call on the run's retry record, so the record is read off the sentences of
+# steps 3 and 4 naming it, and the gate off the push item's sentence that names both it and the call.
+echo "# pr.md / ### 3. Watch and ### 4. Fix the red checks: the retry record is the check names on round lines ending in a rerun or a pushed round's retry, recorded only by a round that pushed or reran, and step 4 passes pr-rerun.sh no check whose name is in it"
+steps="$(passage_of "$pr" "### 3. Watch" "### 5. Reply" 2>/dev/null)"
+flat="$(tr '\n' ' ' <<<"$steps" | tr -s ' ' | sed 's/\. /.\n/g' | grep -F "retry record" | tr '\n' ' ')"
+expect "sentences of steps 3 and 4 name the retry record" test -n "$flat"
+carries_each "the record holds the checks whose round line ends in a rerun or in a pushed round's retry" \
+  "; rerun <run id> attempt" -- "; retried by the run on"
+carries_any "keyed on the check's name, as the came-back match is" \
+  "by name" "by its name" "by check name" "by the check name" "by the check's name" "keyed on" "keyed by" \
+  "on the check name" "on the check's name" "as the came-back match" "the came-back match is"
+carries_each "a round line enters it only when its round ended in a push or a rerun" \
+  "only when" "only if" "only on" "only a round" "only the round" "only lines" "only those" "unless" -- \
+  "push"
+carries_each "so a redone round records nothing" \
+  "redone" "redo" -- \
+  "records nothing" "records no" "nothing enters" "enters nothing" "no line enters" "never enters" \
+  "does not enter" "not enter" "nothing entering" "adds nothing" "adds no" "writes nothing" "puts nothing"
+step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+push_item="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.' "$push_line")"
+flat="$(tr '\n' ' ' <<<"$push_item" | tr -s ' ' | sed 's/\. /.\n/g' | grep -F "retry record" |
+  grep -F "pr-rerun.sh" | tr '\n' ' ')"
+expect "a sentence of the push item names the retry record beside the pr-rerun.sh call" test -n "$flat"
+carries_each "the call takes only a not reproduced check whose name is not in the record" \
+  "name" -- \
+  "not in the run's retry record" "not in the retry record" "outside the retry record" \
+  "absent from the retry record" "missing from the retry record" "not on the retry record" \
+  "not yet in the retry record"
+carries_any "and the run ids it passes are those of such checks alone" \
+  "every such check" "each such check" "such checks" "those checks" "each of them" "every one of them"
+
+# The developer relies on a check red again on its retry reaching them as one stop, never as a new
+# round: a new round forks a fixer again over a failure it already could not reproduce, and a second
+# rerun spends the one retry twice (ADR 0089). The route is read off the watch step's bullet that
+# names the retry record beside verdict=red, the came-back bullet passed over, so the came-back
+# route's own stop never answers for it.
+echo "# pr.md / ### 3. Watch: a red verdict naming a check in the retry record is red again on its retry, goes to Ticket 15's slot and stops on one Yours: direction: line, ahead of the next round and the three-round stop"
+watch="$(passage_of "$pr" "### 3. Watch" "##" 2>/dev/null)"
+flat="$(piece_all=1 piece_without="reported fixed that came back red" piece_with "retry record" |
+  grep -F "verdict=red" | tr '\n' ' ')"
+expect "a bullet of the watch step routes a verdict=red by the retry record" test -n "$flat"
+carries_each "on a red= name that is in the retry record" "red=" -- "retry record"
+carries_any "that check is red again on its retry" \
+  "red again on its retry" "red on its retry" "red again on the retry" "red on the retry" \
+  "red after its retry" "red after the retry" "red again after its retry" "failed its retry" \
+  "fails its retry" "retry came back red" "retry is red" "retry was red"
+carries_any "it never goes to step 4" \
+  "never goes to step 4" "never goes on to step 4" "does not go to step 4" "doesn't go to step 4" \
+  "not go to step 4" "never reaches step 4" "never sent to step 4" "not sent to step 4" \
+  "never back to step 4" "never carried to step 4" "not carried to step 4" "skips step 4" \
+  "rather than step 4" "instead of step 4" "no step 4"
+carries_each "no do-pr-fixer is forked for it again" \
+  "do-pr-fixer" -- \
+  "forks no" "no fork" "never forks" "never forked" "not forked" "does not fork" "doesn't fork" \
+  "without forking" "no \`do-pr-fixer\`" "no do-pr-fixer"
+carries_any "no new round is started" \
+  "no new round" "no next round" "no further round" "no other round" "starts no" "no round is started" \
+  "never starts a" "does not start a" "doesn't start a" "not start a"
+carries_any "and it is not rerun a second time" \
+  "no second rerun" "never rerun again" "not rerun again" "never rerun twice" "not rerun twice" \
+  "reruns nothing" "nothing is rerun" "nothing rerun" "never reruns" "no rerun" "no \`pr-rerun.sh\`" \
+  "no pr-rerun.sh" "never calls \`pr-rerun.sh\`" "rerun no"
+carries "the route is Ticket 15's slot" "Ticket 15"
+carries_each "until it lands, the run stops on exactly one Yours: direction: line" \
+  "stop" -- \
+  "exactly one \`Yours: direction:\`" "exactly one Yours: direction:" "one \`Yours: direction:\` line" \
+  "one Yours: direction: line"
+carries_each "whose still red: tail names that check" \
+  "still red:" -- \
+  "names that check" "naming that check" "names the check" "naming the check" "names it" "naming it" \
+  "names those checks" "naming those checks" "names each" "naming each"
+carries_each "this route comes ahead of the next round and of the three-round stop" \
+  "ahead of" "before" "comes first" -- \
+  "next round" -- \
+  "three-round" "three rounds" "third pushed round"
 [ "$fails" -eq 0 ] && exit 0
 exit 1
