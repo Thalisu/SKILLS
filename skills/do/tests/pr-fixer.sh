@@ -2,7 +2,9 @@
 # pr-fixer.sh: the agent the `pr` Playbook forks to fix a red check, `do-pr-fixer`. A pull request's
 # head may be shared, and ADR 0086 keeps the session's one fast-forward push as the only write to
 # it: a fixer that pushes, pulls, moves a ref, switches branch, opens a worktree or reaches GitHub
-# through `gh` makes a write the session never vouched for. The guarantee is the agent's own hooks,
+# through `gh` makes a write the session never vouched for, and one that writes under the git
+# directory its worktree shares with the run tree (a hook, the config, info/) plants code the
+# session's own push then runs. The guarantee is the agent's own hooks,
 # run live the way the harness runs them, since the fixer reads a check's log a stranger can write
 # into. And the agent is listed wherever the repo lists what `do` ships, so the installer's links
 # and the developer's docs name it.
@@ -65,13 +67,25 @@ for cmd in \
   "git -c alias.p=push p origin HEAD" \
   "env gh pr view 42" \
   "command gh pr view 42" \
-  "/usr/bin/gh pr view 42"; do
-  expect "the hook denies the fixer's Bash a write to the shared head or GitHub: $cmd" \
+  "/usr/bin/gh pr view 42" \
+  "printf x > /t/.git/hooks/pre-push" \
+  "cp hook.sh /t/.git/hooks/pre-push" \
+  "tee /t/.git/info/exclude" \
+  'printf x > "$(git rev-parse --git-common-dir)/hooks/pre-push"' \
+  'd=$(git rev-parse --git-path hooks/pre-push); printf x > $d' \
+  "echo x > .git" \
+  "git config core.hooksPath /tmp/h" \
+  "git -C /t config core.hooksPath /tmp/h" \
+  "git --git-dir=/t/.git config core.hooksPath /tmp/h" \
+  "git config --get user.name && git config core.hooksPath /tmp/h" \
+  "git -C /t config user.name x"; do
+  expect "the hook denies the fixer's Bash a write to the shared head, its git dir or GitHub: $cmd" \
     deny_in "$(bash_out "$cmd")"
 done
 
 # An empty hook prints nothing, so a case reading "no deny" off it alone would pass on an agent with
-# no guard at all: each one holds only when the hook is there to have said so.
+# no guard at all: each one holds only when the hook is there to have said so. A git config write
+# left this list on purpose: it changes the config the run tree shares, so it is denied above.
 for cmd in \
   "git -C /t status" \
   "cd /t && git add src/a.py && git commit -m 'fix'" \
@@ -79,8 +93,12 @@ for cmd in \
   "git -C /t diff" \
   "git -C /t restore src/a.py" \
   'x=$(git -C /t rev-parse HEAD)' \
-  "git -C /t config user.name x" \
-  "git --git-dir /t/.git status"; do
+  "git --git-dir /t/.git status" \
+  "git -C /t config --get user.name" \
+  "git config --list" \
+  "cat .gitignore" \
+  "git add .gitignore .github/workflows/ci.yml" \
+  "ls .githooks"; do
   expect "the hook lets the fixer's Bash do ordinary fix work: $cmd" \
     bash -c '[ -n "$1" ] && ! grep -qF "\"permissionDecision\": \"deny\"" <<<"$2"' _ "$bash_hook" "$(bash_out "$cmd")"
 done
@@ -97,6 +115,64 @@ expect "the hook lets the fixer dispatch unit-test-author to prove its fix" \
 for type in general-purpose do-pr-fixer e2e-test-author ""; do
   expect "the hook denies the fixer forking any agent but unit-test-author: '$type'" \
     deny_in "$(agent_out "$type")"
+done
+
+# The fixer's worktree shares one git common dir with the run tree, and the session's own push runs
+# whatever hook sits there: Write and Edit reach it as surely as a redirect does, so each holds its
+# own guard. A path is asked both literally and through `..`, the pointer file `.git` included, and
+# a repo whose common dir carries no `.git` component is asked from its own cwd.
+for tool in Write Edit; do
+  write_hook="$(hook_command "$agent" "$tool" 2>/dev/null)"
+  expect "a PreToolUse hook scopes the fixer's $tool" test -n "$write_hook"
+
+  write_out() { # $1 the file_path, $2 the cwd it runs from (the repo root when left out): the hook's output
+    local cwd="${2:-$root}"
+    jq -n --arg p "$1" --arg d "$cwd" '{cwd: $d, tool_input: {file_path: $p}}' 2>/dev/null |
+      (cd "$cwd" && sh -c "$write_hook" 2>/dev/null)
+  }
+
+  common_hook="$(cd "$root" && cd "$(git rev-parse --git-common-dir)" && pwd -P)/hooks/pre-push"
+  for p in \
+    "/t/.git/hooks/pre-push" \
+    "/t/.git/config" \
+    "/t/.git/info/exclude" \
+    "/t/src/../.git/hooks/pre-push" \
+    "/t/.git" \
+    "$common_hook"; do
+    expect "the hook denies the fixer's $tool a write under the shared git dir: $p" \
+      deny_in "$(write_out "$p")"
+  done
+
+  for p in \
+    "/t/src/a.py" \
+    "/t/.gitignore" \
+    "/t/.github/workflows/ci.yml" \
+    "/t/.githooks/pre-commit" \
+    "/t/docs/x.git.md"; do
+    expect "the hook lets the fixer's $tool write a tracked file: $p" \
+      bash -c '[ -n "$1" ] && ! grep -qF "\"permissionDecision\": \"deny\"" <<<"$2"' _ "$write_hook" "$(write_out "$p")"
+  done
+
+  bare="$(mktemp -d)"
+  bare="$(cd "$bare" && pwd -P)"
+  git init -q --bare "$bare"
+  expect "the hook denies the fixer's $tool a hook in a common dir with no .git component" \
+    deny_in "$(write_out "$bare/hooks/pre-push" "$bare")"
+  expect "the hook lets the fixer's $tool write outside that common dir" \
+    bash -c '[ -n "$1" ] && ! grep -qF "\"permissionDecision\": \"deny\"" <<<"$2"' _ "$write_hook" "$(write_out "$bare-other/src/a.py" "$bare")"
+  rm -rf "$bare"
+
+  # A guard that exits 0 when jq is missing is one the harness reads as allow, so it is asked with a
+  # path it would otherwise let through: a deny there can only come from the blind path.
+  no_jq_dir="$(path_without jq)"
+  blind_rc=0
+  blind_out="$(jq -n --arg d "$root" '{cwd: $d, tool_input: {file_path: "/t/src/a.py"}}' 2>/dev/null |
+    (cd "$root" && PATH="$no_jq_dir" sh -c "$write_hook" 2>"$no_jq_dir/.err"))" || blind_rc=$?
+  blind_err="$(cat "$no_jq_dir/.err" 2>/dev/null)"
+  expect "the hook on the fixer's $tool fails closed when jq is absent from PATH, instead of exiting 0 silently" \
+    bash -c '[ -n "$4" ] && { { [ "$1" -ne 0 ] && [ -n "$2" ]; } || grep -qF "\"permissionDecision\": \"deny\"" <<<"$3"; }' \
+    _ "$blind_rc" "$blind_err" "$blind_out" "$write_hook"
+  rm -rf "$no_jq_dir"
 done
 
 echo "# skills/do/agents/do-pr-fixer.md: the fixer reproduces its check's failure before it edits anything"
