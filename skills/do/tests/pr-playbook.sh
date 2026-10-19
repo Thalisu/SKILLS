@@ -1158,6 +1158,53 @@ carries_each "that one call waits on every return file of the Wave" \
   "all the Wave's return files" "every return file in the Wave" "return files of the Wave" \
   "every return file of that Wave" "return files of that Wave"
 
+# A red check can come from a file the pull request never changed, a base that moved under it: a
+# fixer forked over it edits code outside the pull request and may push that edit to a shared head,
+# and a classification run once the first Wave is forked lets a fixer run before it. So every red
+# check is classified by one pr-classify.sh call between the excerpts and the grouping, and only the
+# `real` ones reach group-waves.sh. The call's item says how it runs and the item carrying the round
+# line what a failed classification does; the stale check's fate is read off the step's own sentences.
+echo "# pr.md / ### 4. Fix the red checks: one pr-classify.sh <run tree> <base> call classifies every red check after its pr-log.sh call and before group-waves.sh, only the real records go on to group-waves.sh, a stale check gets no do-pr-fixer, and a failed: exit writes the no check classified round line and sends every check on as real"
+step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ')"
+whole="$flat"
+carries "the step runs pr-classify.sh on the run tree and the base" "pr-classify.sh <run tree> <base>"
+before "the classification comes after each check's pr-log.sh call" \
+  "pr-log.sh <link> <run tree>" "pr-classify.sh <run tree> <base>"
+before "and before the checks are piped to group-waves.sh" \
+  "pr-classify.sh <run tree> <base>" "scripts/group-waves.sh"
+before "and before any do-pr-fixer is forked" \
+  "pr-classify.sh <run tree> <base>" "subagent_type: do-pr-fixer"
+flat="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.' "pr-classify.sh <run tree> <base>" | tr '\n' ' ' | tr -s ' ')"
+expect "an item of the step carries the pr-classify.sh call" test -n "$flat"
+carries_each "it is one call over every red check of the round" \
+  "once" "one call" "a single call" "one \`pr-classify.sh\`" "one pr-classify.sh" -- \
+  "every red check" "each red check" "all the red checks" "every check" "each check" "all the checks" \
+  "one record per red check" "one record per check"
+carries_each "its <base> is the baseRefName step 2 read" \
+  "<base>" -- \
+  "baseRefName" "step 2"
+flat="$whole"
+affirms "only the records of the checks it printed real for are piped to group-waves.sh" \
+  "\`real\`" "real <k>" "as real" "real checks" "real ones" "real records" -- \
+  "group-waves" -- \
+  "only" "alone" "just the"
+flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ' | sed 's/\. /.\n/g' | grep -F "stale" | tr '\n' ' ')"
+expect "a sentence of the step names the stale checks" test -n "$flat"
+carries_any "a check it printed stale for gets no do-pr-fixer" \
+  "no \`do-pr-fixer\`" "no do-pr-fixer" "no fixer" "no fork" "is never forked" "is not forked" \
+  "never gets a fixer" "never gets a \`do-pr-fixer\`" "forks no fixer" "forks no \`do-pr-fixer\`"
+flat="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.' "no check classified" | tr '\n' ' ' | tr -s ' ')"
+expect "an item of the step carries the no check classified round line" test -n "$flat"
+carries "on a failed classification the run writes the round line quoting the reason" \
+  "round <r>: no check classified, each sent to its fixer: <reason>"
+carries_each "that is the script's failed: exit, 1" \
+  "failed:" -- \
+  "exit 1" "exits 1" "exit (1)" "exit code 1" "exits with 1" "returns 1" "status 1" "(1)"
+affirms "and every check goes on as real" \
+  "every check" "each check" "every red check" "each red check" "all the checks" "all the red checks" -- \
+  "\`real\`" "as real" "real"
+
 # A check that fails on a timeout or a crashed runner names no file in its log, so its fix may touch
 # any file and would collide with a fixer beside it. Item 4 already says "a tab" and "Wave" for every
 # check, so both guarantees are read off the paragraph about the check with no `file=` line alone.

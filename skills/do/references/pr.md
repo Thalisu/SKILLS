@@ -256,12 +256,28 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    `<run tree>` is the worktree item 2 cut. On a non-zero exit the run stops, quoting the script's
    stderr line.
 
-4. Group the checks into Waves. The run pipes one record per red check, in check order, to
-   `bash <skill-dir>/../do-code-review/scripts/group-waves.sh`: `<k>`, a tab, then that check's
-   `file=` values from its `pr-log.sh` output (item 3) joined by spaces. A check whose `pr-log.sh`
-   output printed no `file=` line still goes in, its record `<k>` and a tab with an empty field
-   after it, and `group-waves.sh` puts it in a Wave of its own, sharing no Wave with another check,
-   since its fix may touch any file. Each printed
+4. Classify every red check, then group the real ones into Waves. First the run writes one record
+   per red check, in check order, to `<dir>/records`: `<k>`, a tab, then that check's `file=`
+   values from its `pr-log.sh` output (item 3) joined by spaces, an empty field for a check with
+   none. Then one call over every red check of the round, before any `do-pr-fixer` is forked:
+
+       bash <skill-dir>/scripts/pr-classify.sh <run tree> <base> < <dir>/records
+
+   `<base>` is the `baseRefName` step 2 read, and the script fetches it from origin itself on each
+   call, so nothing in the Playbook fetches the base or reads `origin/<base>`. It prints `base=`
+   and `merge-base=` (kept for the round lines), then `real <k>`, or one `stale <k> <path>` line per
+   file. A check it printed `stale` for gets no `do-pr-fixer` and never enters a Wave. On its
+   `failed: <reason>` line, exit 1, the script has also printed `real <k>` for every check, so the
+   run writes `round <r>: no check classified, each sent to its fixer: <reason>` and every check
+   goes on as real. On exit 2 (usage) every check counts as real too and the run writes
+   `round <r>: no check classified, each sent to its fixer: the classifier refused its arguments`.
+
+   The run pipes only the records of the checks it printed `real` for to the `group-waves` script,
+   `bash <skill-dir>/../do-code-review/scripts/group-waves.sh`.
+
+   A real check whose `pr-log.sh` output printed no `file=` line still goes in, its record `<k>`
+   and a tab with an empty field after it, and `group-waves.sh` puts that check in a Wave of its
+   own, sharing no Wave with another check, since its fix may touch any file. Each printed
    `wave=<w> numbers=<k>[,<k>]...` line is one Wave, its numbers check numbers. Checks whose files
    are disjoint share a Wave and run at once, and a check that shares a file with an earlier check
    comes out in a later Wave and runs after it. Then each Wave, in the order printed:
