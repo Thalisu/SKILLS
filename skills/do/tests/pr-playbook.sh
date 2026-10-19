@@ -1950,5 +1950,94 @@ carries_each "a \`pr\` run's round lines are listed per round, each under its ow
   "round lines" "round line" -- \
   "per round" "each round" "every round" "round by round" -- \
   "own number" "its number" "round's number" "number of the round" "round <r>"
+
+# A fixer that turns a check green by editing the CI workflow, a secret or a migration moves the bar
+# the checks hold, and a pick of that commit pushes the moved bar to a head others build on. The
+# developer relies on the run never picking it, so never pushing it, and on the stop naming the check
+# and the file. The never-does bullet is read off the one bullet naming a migration or a secret.
+echo "# pr.md / ## What this run never does: the run never picks, and so never pushes, a fixer's commit that changes a CI workflow, a secret or a migration file"
+never="$(passage_of "$pr" "## What this run never does" "## " 2>/dev/null)"
+flat="$(piece_in="$never" piece_with "migration" "secret")"
+expect "a bullet of \`## What this run never does\` names a migration or a secret" test -n "$flat"
+carries_each "it names a CI workflow, a secret and a migration file" \
+  "workflow" -- "secret" -- "migration"
+carries_each "about a fixer's commit" \
+  "fixer" "do-pr-fixer" -- "commit"
+carries_each "which the run never picks, and so never pushes" \
+  "pick" "Pick" -- "push" "Push"
+
+# The guard has to read each fixed branch before any of it reaches the run tree: once picked, the
+# commit is on the HEAD the round pushes. The order is read off the step as a whole, the calls being
+# unique to their sub-items, and what the run does with each line off the sentences naming the guard
+# or its `touches` line, so the fix-integrate.sh sub-item's own "stops the run" never answers for it.
+echo "# pr.md / ### 4. Fix the red checks: each Wave runs pr-guard.sh over its fixed returns after returns.sh and before fix-integrate.sh, and only a check the guard printed clean is picked"
+step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ')"
+whole="$flat"
+carries "the step runs the guard over the run tree and each check's branch" "pr-guard.sh <run tree> <k>=<branch>..."
+carries_any "from the skill's own scripts" "<skill-dir>/scripts/pr-guard.sh"
+before "the guard runs after the Wave's returns.sh call" "returns.sh 240" "pr-guard.sh <run tree>"
+before "and before its fix-integrate.sh call" "pr-guard.sh <run tree>" "fix-integrate.sh <run tree>"
+guard_sentences="$(sed 's/\. /.\n/g' <<<"$whole" | awk 'index($0, "pr-guard") || index($0, "touches")' | tr '\n' ' ')"
+flat="$guard_sentences"
+expect "sentences of the step name the guard or its \`touches\` line" test -n "$flat"
+carries_each "the guard reads the checks of the Wave that returned fixed" \
+  "\`fixed <k>:" "\`fixed\`" "fixed <k>" "returned fixed" "fixed returns" "\`fixed\` returns" -- \
+  "Wave"
+carries_each "only a check the guard printed clean is passed to fix-integrate.sh" \
+  "clean <k>" "\`clean\`" "clean" -- \
+  "only" "and no other" "none other" "no other check" -- \
+  "fix-integrate.sh"
+carries_each "a check the guard printed touches is never picked" \
+  "touches <k>" "\`touches\`" "touches" -- \
+  "never picked" "not picked" "no pick" "gets no pick" "never passed" "not passed" "never given" \
+  "never handed" "left out" "kept out" "never reaches" "never goes to"
+carries_any "it is a stop-case for the round" \
+  "stop-case" "stop case" "stops the round" "the round stops" "a stop for the round" "stops the run" \
+  "the run stops" "stop the run"
+affirms "the later Waves of the round still run" \
+  "later Wave" "next Wave" "following Wave" "remaining Wave" "other Wave" "rest of the Wave" -- \
+  "still run" "run on" "go on" "goes on" "continue" "proceed" "run as" "carry on"
+carries_each "its fixer branch is kept by fix-worktrees.sh remove as an unlanded commit" \
+  "kept" "keeps" "stays on disk" "left on disk" -- \
+  "unlanded" "not landed" "never landed" "never lands" "could not land" "commit"
+
+# A round whose only fix the guard refused has nothing to push, and the developer needs one decision
+# handed over, not a line per check: the stop is read off the sentences of the step tied to the guard
+# or its stop-case, so the existing no-pick stop ("one line per check quoting its fixer's return")
+# never answers for it.
+echo "# pr.md / ### 4. Fix the red checks: a round that ends with no pick and a stop-case pushes nothing, removes the run tree and stops on exactly one Yours: direction: line"
+step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ' | sed 's/\. /.\n/g' |
+  awk 'index($0, "stop-case") || index($0, "stop case") || index($0, "touches") || index($0, "pr-guard")' | tr '\n' ' ')"
+expect "sentences of the step name the guard's stop-case" test -n "$flat"
+carries_any "when the round ends with no pick" \
+  "no pick" "no check was picked" "nothing picked" "nothing was picked" "picked nothing" "no check picked" \
+  "none picked" "nothing is picked"
+carries_any "nothing is pushed" \
+  "nothing is pushed" "nothing pushed" "pushes nothing" "no push" "never pushes" "not pushed" "nothing was pushed"
+carries_each "the run tree is removed" \
+  "<run tree>" "run tree" -- "remove" "removed" "removes"
+carries_each "the run stops on exactly one \`Yours: direction:\` line" \
+  "exactly one" "one line" "a single line" "one \`Yours: direction:\` line" "single \`Yours: direction:\`" -- \
+  "Yours: direction:"
+affirms "the run stops" "stops" "stop" "ends the run" "the run ends"
+
+# The developer reads the round lines to see what each fixer did: a check the guard refused has to
+# read as not picked, naming the file and its class, so the template is pinned whole.
+echo "# pr.md / ### 5. Reply: a check the guard refused has its own round line, naming the path and its class as not picked"
+reply_step="$(passage_of "$pr" "### 5. Reply" "##" 2>/dev/null)"
+out="$(sed 's/^[[:space:]]*//' <<<"$reply_step")"
+check_lines "the Reply step's round line templates carry the not-picked line, as a whole line" 0 0 \
+  'round <r>: <check> red; do-pr-fixer on <fixer branch>: <its return line>; not picked: <path> is a <class> file'
+
+# The developer has to decide whether that file may change: the stop line names the check, the file,
+# its class and the kept fixer branch, and offers both ways out. A template line is read whole, off
+# any line of pr.md opening `Yours: direction:`, as the third-round stop is.
+echo "# pr.md: the stop on a guarded file is a Yours: direction: line naming the check, the path, its class and the kept fixer branch"
+clause='<check> needs <path>, a <class> file the run never changes (its commit is kept on <fixer branch>): change that file yourself, or fix <check> another way by hand'
+out="$(sed 's/^[[:space:]]*//' "$pr" | grep -E '^`?Yours: direction:' | grep -F -- "$clause")"
+expect "a line opening \`Yours: direction:\` carries the clause naming the check, the path, its class and the kept fixer branch" \
+  test -n "$out"
 [ "$fails" -eq 0 ] && exit 0
 exit 1

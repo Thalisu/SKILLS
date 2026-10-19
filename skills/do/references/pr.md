@@ -19,6 +19,8 @@ follows that one pull request, and the developer reads it afterwards, through th
 - Push to any branch but the head, push with `--force`, or merge into the head: the round's one
   push is `HEAD:refs/heads/<head>` by fast-forward only, and git's refusal of anything else stops
   the run (ADR 0086).
+- Pick, and so push, a fixer's commit that changes a CI workflow, a secret or a migration file: that
+  commit moves the bar the checks hold, so the run stops instead, naming the check and the file.
 - Fix a check in the session: each red check is one `do-pr-fixer` fork (ADR 0088).
 
 ## The message
@@ -260,7 +262,22 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
       Call it again over the files still `missing=`, three windows and no more. A file that never
       lands reads `not fixed <k>: the fixer did not return`.
 
-   d. One call per Wave, over every check of the Wave that returned `fixed <k>: ...` and only those:
+   d. First, one guard call over every check of the Wave that returned `fixed <k>: ...`:
+
+          bash <skill-dir>/scripts/pr-guard.sh <run tree> <k>=<branch>...
+
+      each `<branch>` the one its worktree line printed. The guard prints `clean <k>`, or one
+      `touches <k> <workflow|secret|migration> <path>` line per such file the branch changes over the
+      run tree's HEAD, or `failed <k>: <reason>`. Of the checks `pr-guard` reads, only one it printed
+      `clean` for goes into the `fix-integrate.sh` call, and no other. A `touches` check is never
+      picked, so nothing of its commit reaches the run tree or the head, and it is a stop-case for
+      the round: it goes into the round's stop set, one entry per path. A `failed` check, or every
+      check of the call on a guard exit 2 usage refusal, is never picked either and is a stop-case
+      too. A stop-case leaves the round going: the later Waves still run after a `touches` line as
+      after any other.
+
+      Then one call per Wave, over every check the guard printed `clean`, and only those, all of them
+      checks that returned `fixed <k>: ...`:
       `bash <skill-dir>/../do-code-review/scripts/fix-integrate.sh <run tree> <k>=<branch>...`, each
       `<branch>` the one its worktree line printed. The script picks them in ascending check number,
       whatever order they are given in, and prints one `picked <k> <sha>` per check. It may print
@@ -279,7 +296,9 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
       stay on disk, and the run never forces their removal, never with `--force`, never with
       `git branch -D`, nor with `rm`. Its `removed` lines and each `kept` line go to the Reply's round
       lines as printed, a `kept` line naming its branch and its path as fix-worktrees.sh printed
-      them. Then, when this Wave picked a check an earlier Wave moved
+      them. The call keeps a stop-case's fixer branch, a `pr-guard` refusal's, as
+      `kept <branch> <path> unlanded commit`, since its commit never landed. Then, when this Wave
+      picked a check an earlier Wave moved
       out of, that check's earlier conflicted branch is still kept, since its aborted commit never
       matches the retry that superseded it, so a second call takes it back:
       `bash <skill-dir>/../do-code-review/scripts/fix-worktrees.sh remove --superseded <run tree> <branch>...`,
@@ -353,8 +372,18 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
 
        Yours: direction: <head> moved again during the redone round; the fix commits <kept sha>, ... are kept in <run tree>; bring them onto <head> yourself or drop them, then /do the pull request again
 
-   When no check was picked, nothing is pushed: remove `<run tree>`, then stop with one line per
-   check quoting its fixer's return, nothing followed.
+   When no check was picked and the round's stop set holds a stop-case, nothing is pushed: remove
+   `<run tree>`, then the run stops with exactly one `Yours: direction:` line holding one clause per
+   stop-case, the clauses joined by `; `. The clause of a `touches` stop-case is:
+
+       Yours: direction: <check> needs <path>, a <class> file the run never changes (its commit is kept on <fixer branch>): change that file yourself, or fix <check> another way by hand
+
+   and the clause of a `failed` stop-case, which names no push, is
+   `<check> was not picked, the guard could not read <fixer branch> (<reason>): review the commit kept on <fixer branch>, or fix <check> by hand`.
+   `<check>` is the check's name, `<path>` and `<class>` the ones off its `touches` line.
+
+   When no check was picked and the stop set is empty, nothing is pushed: remove `<run tree>`, then
+   stop with one line per check quoting its fixer's return, nothing followed.
 
 6. The brief of check `<k>`, with `<id>` a short random id the session generates for that dispatch:
 
@@ -395,10 +424,14 @@ the whole message, and a green watch adds no part of its own:
 
       round <r>: <check> red; do-pr-fixer on <fixer branch>: <picked sha> pushed to <head>
       round <r>: <check> red; do-pr-fixer on <fixer branch>: <its return line>; nothing pushed for it
+      round <r>: <check> red; do-pr-fixer on <fixer branch>: <its return line>; not picked: <path> is a <class> file
+      round <r>: <check> red; do-pr-fixer on <fixer branch>: <its return line>; not picked: the guard could not read it: <reason>
       round <r>: <check> red; do-pr-fixer on <fixer branch>: not fixed: conflicted with check <m>; nothing pushed for it
       round <r>: <a `kept` line, as fix-worktrees.sh printed it>
       round <r>: kept <branch> <path> <reason>, as fix-worktrees.sh printed it
       round <r>: after the push the watch read <verdict word>
+
+  The first `not picked` line is written once per path the guard named.
 
   `<r>` is the round's number, 1, 2, 3 in the order the rounds pushed, so each round is listed
   under its own number, `round 1:`, `round 2:`, `round 3:`, each with its red checks, the fixer of
