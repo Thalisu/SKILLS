@@ -64,6 +64,25 @@ out="$(printf '%s\n' "${items[@]}")"
 check_absent "no numbered part of The message names the Debt file" 0 0 \
   "Debt file" "debt file" ".debt" "Debt:"
 
+echo "# a run under --auto writes the same section to the Debt file as well as the Run report"
+
+# The debt skill reads the Debt file whatever flag the run had: an --auto run whose Run report held
+# the Debt file's place would leave its debt where that skill never reads it.
+flat="$(passage_of "$reply" "## The message" "## " | debt_file_paragraphs)"
+carries_each "under --auto the Debt file section is written as well as the Run report" \
+  "under \`--auto\`" "with \`--auto\`" "an \`--auto\` run" "\`--auto\` runs" -- \
+  "as well as the Run report" "besides the Run report" "in addition to the Run report" \
+  "alongside the Run report" "on top of the Run report" "the Run report too"
+carries_any "the Run report does not stand in for the Debt file" \
+  "not stand in for" "never stands in for" "not replace" "never replaces" "no substitute for" \
+  "not a substitute" "not take the Debt file's place" "never takes the Debt file's place" \
+  "not hold the Debt file's place" "never holds the Debt file's place" "not instead of" \
+  "not in place of"
+affirms "the Run report itself stays written under --auto alone" \
+  "Run report" -- \
+  "under \`--auto\` alone" "only under \`--auto\`" "only with \`--auto\`" "\`--auto\` alone" \
+  "\`--auto\` only" "only an \`--auto\` run" "only \`--auto\` runs"
+
 echo "# ticket.md's Reply step names the Debt file write on every run"
 
 flat="$(item_holding "$ticket" '\*\*[0-9]+\.' 'Reply.**' | debt_file_paragraphs)"

@@ -61,7 +61,9 @@ else of the Reply, to the Debt file beside the Ticket: the Ticket's file name wi
 the extension (`<ticket stem>.debt.md`), in the Home repository's main checkout. For a tracker
 Ticket it sits beside the Plan, with `.debt.md` in place of `.plan.md`, the way the Run report sits
 beside it. Each run adds one section to that file, headed by the run's date and time, holding the
-Pending debt part verbatim, as the message carries it. The Reply itself carries no line naming the
+Pending debt part verbatim, as the message carries it. Under `--auto` a run writes that same
+section as well as the Run report, since the Run report does not stand in for the Debt file, and
+the Run report stays written under `--auto` alone. The Reply itself carries no line naming the
 Debt file: no `Debt:` line beside the `Report:` line in the Plan block, and the Next step says
 nothing about it, so the message stays the five parts.
 
