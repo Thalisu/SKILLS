@@ -438,6 +438,53 @@ shaped_review "every item under Consider" consider-debt "$consider_returns" "$co
 out="$(under "$consider_feature/spec.debt.review.md" "## Act on" 2>/dev/null)"
 same "every item under Consider: the empty Act on reads none on the line under it" "none"
 
+fresh cleared
+cleared="$(pwd -P)"
+cleared_feature="$cleared/.scratch/20261019-cleared-debt"
+mkdir -p "$cleared_feature/issues"
+printf '# Report summary\n\nPage the report.\n' >"$cleared_feature/spec.md"
+cat >"$cleared_feature/issues/01-a.debt.md" <<'EOF'
+## 2026-10-19 15:01
+
+- summary breaks on the new page signature
+EOF
+commit "seed the cleared feature"
+cleared_source="$(cd "$cleared" && bash "$gather" cleared-debt 2>/dev/null |
+  awk -F'\t' '$1 == "item=1" { sub(/^source=/, "", $2); print $2 }')"
+if [ -z "$cleared_source" ]; then
+  echo "FAIL  fixture: gather.sh named no source for the cleared-debt item"
+  exit 1
+fi
+cleared_returns="$tmp/cleared-returns"
+mkdir -p "$cleared_returns"
+cat >"$cleared_returns/item-1.md" <<EOF
+Source: $cleared_source
+Axis: Blast radius
+Location: src/report.sh:7
+Claim: summary breaks on the new page signature.
+Evidence: the caller passes the notes first; the change moved them last.
+Rung: 4
+Refuted by: a proof script that sources src/report.sh and calls summary prints the ten rows.
+EOF
+cleared_review="$cleared_feature/spec.debt.review.md"
+rc=0
+# shellcheck disable=SC2034  # lib.sh's check reads $out
+out="$(cd "$cleared" && bash "$script" cleared-debt "$cleared_returns" 2>&1)" || rc=$?
+cleared_rc="$rc"
+# shellcheck disable=SC2034  # lib.sh's check_lines reads $out
+out="$(grep -qx '## Axes' "$cleared_review" 2>/dev/null &&
+  item_holding <(passage_of "$cleared_review" "## Cleared" "## Axes") '### [0-9]+\.' "Claim: summary breaks")"
+check_lines "an item refuted at Rung 3 or above is a Finding under Cleared, with its evidence and what refuted it" 0 "$cleared_rc" \
+  "Claim: summary breaks on the new page signature." \
+  "Evidence: the caller passes the notes first; the change moved them last." \
+  "Rung: 4" \
+  "Refuted by: a proof script that sources src/report.sh and calls summary prints the ten rows." \
+  "Source: $cleared_source"
+check_absent "a refuted Finding under Cleared carries Refuted by in place of Fix" 0 "$cleared_rc" "Fix:"
+# shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+out="$(grep -qx '## Consider' "$cleared_review" 2>/dev/null && passage_of "$cleared_review" "## Act on" "## Consider")"
+check_absent "an item refuted at Rung 3 or above stays out of Act on" 0 "$cleared_rc" "summary breaks on the new page signature"
+
 fresh idle
 idle="$(pwd -P)"
 mkdir -p "$idle/.scratch/20261019-idle-feature"

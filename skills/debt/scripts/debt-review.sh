@@ -6,25 +6,28 @@
 #                                          one item-<k>.md return per gathered item k
 #
 # Runs gather.sh for the slug, reads each return (Source, Axis, Location, Claim, Evidence, Rung,
-# optional Risk, Fix, Small, one key per line, in that order) and writes
-# <Spec stem>.debt.review.md beside the Spec, with the Buckets Act on, Consider, Noted and
-# Cleared, each holding its Findings or none. Findings are numbered from 1 across the file, Act on
-# first, then Consider.
+# optional Risk, then either Fix and Small, or the single line Refuted by, one key per line, in
+# that order) and writes <Spec stem>.debt.review.md beside the Spec, with the Buckets Act on,
+# Consider, Noted and Cleared, each holding its Findings or none. Findings are numbered from 1
+# across the file in reading order: Act on, Consider, Noted, Cleared.
 #
 # The review opens on the header: "# Review: <title>" (the Spec's first "# " line), then Spec,
 # Fixed point (branch and short sha of the Spec's folder), Commit, Spec source, Mode and Language.
 # It ends on "## Axes": the six Axes in order, each its Finding count and the first Finding naming
 # it with its Bucket, or "0 findings". It never reads "not run".
 #
-# - A return at Rung 3 or above with Small: yes is a Finding under Act on.
-# - A return at Rung 1 or 2, or at Rung 3 or above whose fix is not small, is a Finding under
-#   Consider, with the evaluator's own evidence.
+# - A return ending on Fix and Small at Rung 3 or above with Small: yes is a Finding under Act on.
+# - A return ending on Fix and Small at Rung 1 or 2, or at Rung 3 or above whose fix is not small,
+#   is a Finding under Consider, with the evaluator's own evidence.
+# - A return ending on Refuted by (no Fix, no Small) at Rung 3 or above is a Finding under Cleared,
+#   with the evaluator's own evidence and Refuted by in place of Fix. At Rung 1 or 2 it is outside
+#   the shape.
 # - An item whose return is missing or empty is a Finding under Consider with the evidence
 #   "the evaluator did not return".
 # - A non-empty return is first checked against the shape (the keys in order, Source equal to the
-#   item's, Axis, Rung and Small in range, Location, Claim, Evidence and Fix not empty); one
-#   outside it is a Finding under Consider with the evidence "the evaluator returned outside the
-#   shape".
+#   item's, Axis, Rung and Small in range, Location, Claim, Evidence, Fix and Refuted by not
+#   empty); one outside it is a Finding under Consider with the evidence "the evaluator returned
+#   outside the shape".
 #
 # Prints review=<path> then line=Written to <path>.
 #
@@ -50,62 +53,134 @@ field() { # $1 file, $2 key: the value of the first "<key>: " line
   sed -n "s/^$2: *//p" "$1" | head -1
 }
 
-finding() { # $1 number, $2 return file, $3 source: one Finding block
-  local r="$2" risk
-  printf '### %s. %s at %s\n' "$1" "$(field "$r" Axis)" "$(field "$r" Location)"
-  printf 'Claim: %s\n' "$(field "$r" Claim)"
-  printf 'Evidence: %s\n' "$(field "$r" Evidence)"
-  printf 'Rung: %s\n' "$(field "$r" Rung)"
-  risk="$(field "$r" Risk)"
-  [ -z "$risk" ] || printf 'Risk: %s\n' "$risk"
-  printf 'Fix: %s\n' "$(field "$r" Fix)"
-  printf 'Source: %s' "$3"
-}
-
-in_shape() { # $1 return file, $2 source: success when the return is inside the shape
+read_return() { # $1 return file, $2 source: kind=returned|outside|missing, then one key=value per key
   local -a lines=()
-  local -a keys=(Source Axis Location Claim Evidence Rung Risk Fix Small)
-  local i=0 k line v
+  local -a keys=(Source Axis Location Claim Evidence Rung)
+  local i=0 k line v n rung="" out="" ending
+  [ -s "$1" ] || {
+    echo "kind=missing"
+    return 0
+  }
   mapfile -t lines <"$1"
-  [ "${#lines[@]}" -ge 8 ] || return 1
+  n="${#lines[@]}"
   for k in "${keys[@]}"; do
-    if [ "$k" = Risk ] && [ "${#lines[@]}" = 8 ]; then continue; fi
     line="${lines[$i]:-}"
     i=$((i + 1))
     case "$line" in
       "$k: "*) v="${line#"$k: "}" ;;
-      *) return 1 ;;
+      *)
+        echo "kind=outside"
+        return 0
+        ;;
     esac
     case "$k" in
-      Source) [ "$v" = "$2" ] || return 1 ;;
+      Source) [ "$v" = "$2" ] || v="" ;;
       Axis)
         case "$v" in
           Correctness | Spec | Standards | Principles | "Blast radius" | Security) ;;
-          *) return 1 ;;
+          *) v="" ;;
         esac
         ;;
-      Rung) case "$v" in [1-5]) ;; *) return 1 ;; esac ;;
-      Small) case "$v" in yes | no) ;; *) return 1 ;; esac ;;
-      Location | Claim | Evidence | Fix) [ -n "$v" ] || return 1 ;;
+      Rung)
+        case "$v" in [1-5]) rung="$v" ;; *) v="" ;; esac
+        ;;
     esac
+    if [ -z "$v" ]; then
+      echo "kind=outside"
+      return 0
+    fi
+    out+="$(printf '%s' "$k" | tr 'A-Z ' 'a-z_')=$v"$'\n'
   done
-  [ "$i" = "${#lines[@]}" ]
+  line="${lines[$i]:-}"
+  case "$line" in
+    "Risk: "*)
+      v="${line#"Risk: "}"
+      i=$((i + 1))
+      out+="risk=$v"$'\n'
+      ;;
+  esac
+  line="${lines[$i]:-}"
+  if [ "$((n - i))" = 2 ]; then
+    ending=fix
+    case "$line" in
+      "Fix: "*) v="${line#"Fix: "}" ;;
+      *) v="" ;;
+    esac
+    [ -n "$v" ] || {
+      echo "kind=outside"
+      return 0
+    }
+    out+="fix=$v"$'\n'
+    line="${lines[$((i + 1))]:-}"
+    case "$line" in
+      "Small: yes" | "Small: no") out+="small=${line#"Small: "}"$'\n' ;;
+      *)
+        echo "kind=outside"
+        return 0
+        ;;
+    esac
+  elif [ "$((n - i))" = 1 ]; then
+    ending=refuted
+    case "$line" in
+      "Refuted by: "*) v="${line#"Refuted by: "}" ;;
+      *) v="" ;;
+    esac
+    case "$rung" in 3 | 4 | 5) ;; *) v="" ;; esac
+    [ -n "$v" ] || {
+      echo "kind=outside"
+      return 0
+    }
+    out+="refuted_by=$v"$'\n'
+  else
+    echo "kind=outside"
+    return 0
+  fi
+  printf 'kind=returned\n%sending=%s\n' "$out" "$ending"
 }
 
-unreturned() { # $1 number, $2 text, $3 source, $4 evidence: one Finding block for an item with no usable return
-  local text="${2#text=}" file="${3%%, *}" heading
+place() { # $1 source, stdin: read_return's lines. Prints the Placement: bucket, rung, evidence, risk, last
+  local key val kind="" rung="" evidence="" risk="" fix="" small="" refuted="" ending="" file="${1%%, *}"
+  while IFS= read -r line; do
+    key="${line%%=*}" val="${line#*=}"
+    case "$key" in
+      kind) kind="$val" ;;
+      rung) rung="$val" ;;
+      evidence) evidence="$val" ;;
+      risk) risk="$val" ;;
+      fix) fix="$val" ;;
+      small) small="$val" ;;
+      refuted_by) refuted="$val" ;;
+      ending) ending="$val" ;;
+    esac
+  done
+  case "$kind" in
+    returned) ;;
+    *)
+      if [ "$kind" = missing ]; then evidence="the evaluator did not return"; else evidence="the evaluator returned outside the shape"; fi
+      printf 'bucket=Consider\nrung=1\nevidence=%s\nlast=Fix: judge the item by hand, in %s\n' "$evidence" "$file"
+      return 0
+      ;;
+  esac
+  if [ "$ending" = refuted ]; then
+    printf 'bucket=Cleared\n'
+  elif [ "$small" = yes ] && [ "$rung" -ge 3 ]; then
+    printf 'bucket=Act on\n'
+  else
+    printf 'bucket=Consider\n'
+  fi
+  printf 'rung=%s\nevidence=%s\n' "$rung" "$evidence"
+  [ -z "$risk" ] || printf 'risk=%s\n' "$risk"
+  if [ "$ending" = refuted ]; then printf 'last=Refuted by: %s\n' "$refuted"; else printf 'last=Fix: %s\n' "$fix"; fi
+}
+
+unreturned_heading() { # $1 text, $2 source file: the heading of an item with no usable return
+  local text="${1#text=}"
   case "$text" in
     "Correctness at "* | "Spec at "* | "Standards at "* | "Principles at "* | "Blast radius at "* | "Security at "*)
-      heading="$text"
+      printf '%s' "$text"
       ;;
-    *) heading="Correctness at $file" ;;
+    *) printf 'Correctness at %s' "$2" ;;
   esac
-  printf '### %s. %s\n' "$1" "$heading"
-  printf 'Claim: %s\n' "$text"
-  printf 'Evidence: %s\n' "$4"
-  printf 'Rung: 1\n'
-  printf 'Fix: judge the item by hand, in %s\n' "$file"
-  printf 'Source: %s' "$3"
 }
 
 axes() { # stdin: "<n>\t<Bucket>\t<heading>" per Finding: the six Axes lines
@@ -137,7 +212,7 @@ main() {
     echo "usage: debt-review.sh <slug> <returns dir>" >&2
     return 2
   }
-  local here gathered spec k source ret n=0 rung review
+  local here gathered spec k source text n=0 review
   here="$(cd "$(dirname "$0")" && pwd -P)"
   local errfile code
   errfile="$(mktemp)"
@@ -161,61 +236,69 @@ main() {
   [ -n "$spec" ] && [ "$spec" != none ] || return 2
   spec="$(abs_path "$spec")"
   review="$(dirname "$spec")/$(basename "$spec" .md).debt.review.md"
-  local act="" consider=""
-  local -a acts=() considers=() act_src=() con_src=() con_txt=() con_ev=()
+  local -a b_act=() b_con=() b_note=() b_clr=()
+  local rr placement line key val
+  local bucket prung pevidence prisk plast axis location claim heading body
   while IFS=$'\t' read -r k source text; do
     k="${k#item=}"
     source="${source#source=}"
-    ret="$2/item-$k.md"
-    if [ ! -s "$ret" ]; then
-      considers+=("")
-      con_src+=("$source")
-      con_txt+=("$text")
-      con_ev+=("the evaluator did not return")
-      continue
-    fi
-    if ! in_shape "$ret" "$source"; then
-      considers+=("")
-      con_src+=("$source")
-      con_txt+=("$text")
-      con_ev+=("the evaluator returned outside the shape")
-      continue
-    fi
-    rung="$(field "$ret" Rung)"
-    case "$rung" in
-      1 | 2)
-        considers+=("$ret")
-        con_src+=("$source")
-        con_txt+=("")
-        con_ev+=("")
+    text="${text#text=}"
+    rr="$(read_return "$2/item-$k.md" "$source")"
+    placement="$(place "$source" <<<"$rr")"
+    bucket="" prung="" pevidence="" prisk="" plast="" axis="" location="" claim=""
+    while IFS= read -r line; do
+      key="${line%%=*}" val="${line#*=}"
+      case "$key" in
+        bucket) bucket="$val" ;;
+        rung) prung="$val" ;;
+        evidence) pevidence="$val" ;;
+        risk) prisk="$val" ;;
+        last) plast="$val" ;;
+      esac
+    done <<<"$placement"
+    case "$rr" in
+      kind=returned*)
+        while IFS= read -r line; do
+          key="${line%%=*}" val="${line#*=}"
+          case "$key" in
+            axis) axis="$val" ;;
+            location) location="$val" ;;
+            claim) claim="$val" ;;
+          esac
+        done <<<"$rr"
+        heading="$axis at $location"
         ;;
-      3 | 4 | 5)
-        if [ "$(field "$ret" Small)" = yes ]; then
-          acts+=("$ret")
-          act_src+=("$source")
-        else
-          considers+=("$ret")
-          con_src+=("$source")
-          con_txt+=("")
-          con_ev+=("")
-        fi
+      *)
+        heading="$(unreturned_heading "$text" "${source%%, *}")"
+        claim="$text"
         ;;
     esac
+    body="Claim: $claim"$'\n'"Evidence: $pevidence"$'\n'"Rung: $prung"$'\n'
+    [ -z "$prisk" ] || body+="Risk: $prisk"$'\n'
+    body+="$plast"$'\n'"Source: $source"
+    case "$bucket" in
+      "Act on") b_act+=("$heading"$'\n'"$body") ;;
+      Consider) b_con+=("$heading"$'\n'"$body") ;;
+      Noted) b_note+=("$heading"$'\n'"$body") ;;
+      Cleared) b_clr+=("$heading"$'\n'"$body") ;;
+    esac
   done < <(printf '%s\n' "$gathered" | grep '^item=')
-  local i frows="" title dir branch sha
-  for i in "${!acts[@]}"; do
-    n=$((n + 1))
-    act+="$(finding "$n" "${acts[$i]}" "${act_src[$i]}")"$'\n\n'
-    frows+="$n"$'\tAct on\t'"$(sed -n "s/^### $n\. //p" <<<"$act" | head -1)"$'\n'
-  done
-  for i in "${!considers[@]}"; do
-    n=$((n + 1))
-    if [ -n "${considers[$i]}" ]; then
-      consider+="$(finding "$n" "${considers[$i]}" "${con_src[$i]}")"$'\n\n'
-    else
-      consider+="$(unreturned "$n" "${con_txt[$i]}" "${con_src[$i]}" "${con_ev[$i]}")"$'\n\n'
-    fi
-    frows+="$n"$'\tConsider\t'"$(sed -n "s/^### $n\. //p" <<<"$consider" | head -1)"$'\n'
+  local frows="" title dir branch sha name entry
+  local -A sect=()
+  for name in "Act on" "Consider" "Noted" "Cleared"; do
+    case "$name" in
+      "Act on") set -- "${b_act[@]+"${b_act[@]}"}" ;;
+      Consider) set -- "${b_con[@]+"${b_con[@]}"}" ;;
+      Noted) set -- "${b_note[@]+"${b_note[@]}"}" ;;
+      Cleared) set -- "${b_clr[@]+"${b_clr[@]}"}" ;;
+    esac
+    sect[$name]=""
+    for entry in "$@"; do
+      n=$((n + 1))
+      heading="${entry%%$'\n'*}"
+      sect[$name]+="### $n. $heading"$'\n'"${entry#*$'\n'}"$'\n\n'
+      frows+="$n"$'\t'"$name"$'\t'"$heading"$'\n'
+    done
   done
   title="$(sed -n 's/^# //p' "$spec" | head -1)"
   dir="$(dirname "$spec")"
@@ -224,12 +307,11 @@ main() {
   {
     printf '# Review: %s\n\nSpec: %s\nFixed point: %s (%s)\nCommit: %s\nSpec source: %s\nMode: default\nLanguage: English\n\n' \
       "$title" "$spec" "$branch" "$sha" "$sha" "$spec"
-    echo "## Act on"
-    echo
-    if [ -n "$act" ]; then printf '%s' "$act"; else printf 'none\n\n'; fi
-    printf '## Consider\n\n'
-    if [ -n "$consider" ]; then printf '%s' "$consider"; else printf 'none\n\n'; fi
-    printf '## Noted\n\nnone\n\n## Cleared\n\nnone\n\n## Axes\n\n'
+    for name in "Act on" "Consider" "Noted" "Cleared"; do
+      printf '## %s\n\n' "$name"
+      if [ -n "${sect[$name]}" ]; then printf '%s' "${sect[$name]}"; else printf 'none\n\n'; fi
+    done
+    printf '## Axes\n\n'
     printf '%s' "$frows" | axes
   } >"$review"
   echo "review=$review"
