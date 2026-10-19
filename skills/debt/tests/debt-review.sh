@@ -26,6 +26,9 @@ cat >"$feature/issues/01-a.debt.md" <<'EOF'
 - the session store is read on every request
 - the config path is resolved twice
 - the temp dir is never removed
+- the log level is fixed at debug
+- the lock file outlives the process
+- the queue drops a message on restart
 EOF
 commit "seed the feature"
 
@@ -45,8 +48,12 @@ third="$(source_of 3)"
 fourth="$(source_of 4)"
 fifth="$(source_of 5)"
 sixth="$(source_of 6)"
-if [ -z "$first" ] || [ -z "$second" ] || [ -z "$third" ] || [ -z "$fourth" ] || [ -z "$fifth" ] || [ -z "$sixth" ]; then
-  echo "FAIL  fixture: gather.sh named no source for items 1 to 6"
+seventh="$(source_of 7)"
+eighth="$(source_of 8)"
+ninth="$(source_of 9)"
+if [ -z "$first" ] || [ -z "$second" ] || [ -z "$third" ] || [ -z "$fourth" ] || [ -z "$fifth" ] || [ -z "$sixth" ] ||
+  [ -z "$seventh" ] || [ -z "$eighth" ] || [ -z "$ninth" ]; then
+  echo "FAIL  fixture: gather.sh named no source for items 1 to 9"
   exit 1
 fi
 
@@ -93,6 +100,36 @@ Fix: the session store moves behind a cache shared by every handler, across src/
 Small: no
 EOF
 : >"$returns/item-6.md"
+cat >"$returns/item-7.md" <<EOF
+Source: $first
+Axis: Standards
+Location: src/e.sh:2
+Claim: the log level is pinned to debug in production.
+Evidence: a proof script started the service and read debug lines from its log.
+Rung: 4
+Fix: the log level is read from the environment, in src/e.sh
+Small: yes
+EOF
+cat >"$returns/item-8.md" <<EOF
+## Finding
+Source: $eighth
+Axis: Correctness
+Location: src/f.sh:9
+Claim: a killed process leaves its lock file behind.
+Evidence: a proof script killed the process and found the lock file still on disk.
+Rung: 4
+Fix: the lock file is removed by an exit trap, in src/f.sh
+Small: yes
+EOF
+cat >"$returns/item-9.md" <<EOF
+Source: $ninth
+Axis: Correctness
+Location: src/g.sh:5
+Claim: a restart loses the message in flight.
+Evidence: a proof script restarted the worker mid-message and the message never arrived.
+Rung: 4
+Small: yes
+EOF
 
 run pending-debt-review "$returns"
 review="$feature/spec.debt.review.md"
@@ -139,5 +176,27 @@ check_lines "an item whose evaluator wrote an empty return is a Finding under Co
 out="$(grep -qx '## Consider' "$review" 2>/dev/null && passage_of "$review" "## Act on" "## Consider")"
 check_absent "an item the evaluator did not return stays out of Act on" 0 "$rc" \
   "the config path is resolved twice" "the temp dir is never removed"
+
+# shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+out="$(grep -qx '## Consider' "$review" 2>/dev/null && passage_of "$review" "## Act on" "## Consider")"
+check_absent "a return outside the shape stays out of Act on, at Rung 4 and small" 0 "$rc" \
+  "the log level is pinned to debug in production." \
+  "a killed process leaves its lock file behind." \
+  "a restart loses the message in flight."
+# shellcheck disable=SC2034  # lib.sh's check_lines reads $out
+out="$(consider_item "Claim: the log level is fixed at debug")"
+check_lines "a return whose Source names another item is a Finding under Consider, marked outside the shape" 0 "$rc" \
+  "Claim: the log level is fixed at debug" "Evidence: the evaluator returned outside the shape" "Rung: 1" \
+  "Source: $seventh"
+# shellcheck disable=SC2034  # lib.sh's check_lines reads $out
+out="$(consider_item "Claim: the lock file outlives the process")"
+check_lines "a return carrying a line outside the shape is a Finding under Consider, marked outside the shape" 0 "$rc" \
+  "Claim: the lock file outlives the process" "Evidence: the evaluator returned outside the shape" "Rung: 1" \
+  "Source: $eighth"
+# shellcheck disable=SC2034  # lib.sh's check_lines reads $out
+out="$(consider_item "Claim: the queue drops a message on restart")"
+check_lines "a return missing its Fix line is a Finding under Consider, marked outside the shape" 0 "$rc" \
+  "Claim: the queue drops a message on restart" "Evidence: the evaluator returned outside the shape" "Rung: 1" \
+  "Source: $ninth"
 
 exit "$fails"

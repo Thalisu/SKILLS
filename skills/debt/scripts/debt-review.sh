@@ -6,13 +6,20 @@
 #                                          one item-<k>.md return per gathered item k
 #
 # Runs gather.sh for the slug, reads each return (Source, Axis, Location, Claim, Evidence, Rung,
-# optional Risk, Fix, Small, one key per line) and writes <Spec stem>.debt.review.md beside the
-# Spec, with the Buckets Act on, Consider, Noted and Cleared, each holding its Findings or none.
-# A return at Rung 3 or above with Small: yes is a Finding under Act on. A return at Rung 1 or 2
-# is a Finding under Consider, with the evaluator's own evidence. A return at Rung 3 or above whose
-# fix is not small is a Finding under Consider too. Findings are numbered from 1
-# across the file: Act on first, then Consider. An item whose return is missing or empty is a
-# Finding under Consider with the evidence "the evaluator did not return", never under Act on.
+# optional Risk, Fix, Small, one key per line, in that order) and writes
+# <Spec stem>.debt.review.md beside the Spec, with the Buckets Act on, Consider, Noted and
+# Cleared, each holding its Findings or none. Findings are numbered from 1 across the file, Act on
+# first, then Consider.
+#
+# - A return at Rung 3 or above with Small: yes is a Finding under Act on.
+# - A return at Rung 1 or 2, or at Rung 3 or above whose fix is not small, is a Finding under
+#   Consider, with the evaluator's own evidence.
+# - An item whose return is missing or empty is a Finding under Consider with the evidence
+#   "the evaluator did not return".
+# - A non-empty return is first checked against the shape (the keys in order, Source equal to the
+#   item's, Axis, Rung and Small in range, Location, Claim, Evidence and Fix not empty); one
+#   outside it is a Finding under Consider with the evidence "the evaluator returned outside the
+#   shape".
 #
 # Prints review=<path> then line=Written to <path>.
 #
@@ -50,7 +57,37 @@ finding() { # $1 number, $2 return file, $3 source: one Finding block
   printf 'Source: %s' "$3"
 }
 
-unreturned() { # $1 number, $2 text, $3 source: one Finding block for an item with no return
+in_shape() { # $1 return file, $2 source: success when the return is inside the shape
+  local -a lines=()
+  local -a keys=(Source Axis Location Claim Evidence Rung Risk Fix Small)
+  local i=0 k line v
+  mapfile -t lines <"$1"
+  [ "${#lines[@]}" -ge 8 ] || return 1
+  for k in "${keys[@]}"; do
+    if [ "$k" = Risk ] && [ "${#lines[@]}" = 8 ]; then continue; fi
+    line="${lines[$i]:-}"
+    i=$((i + 1))
+    case "$line" in
+      "$k: "*) v="${line#"$k: "}" ;;
+      *) return 1 ;;
+    esac
+    case "$k" in
+      Source) [ "$v" = "$2" ] || return 1 ;;
+      Axis)
+        case "$v" in
+          Correctness | Spec | Standards | Principles | "Blast radius" | Security) ;;
+          *) return 1 ;;
+        esac
+        ;;
+      Rung) case "$v" in [1-5]) ;; *) return 1 ;; esac ;;
+      Small) case "$v" in yes | no) ;; *) return 1 ;; esac ;;
+      Location | Claim | Evidence | Fix) [ -n "$v" ] || return 1 ;;
+    esac
+  done
+  [ "$i" = "${#lines[@]}" ]
+}
+
+unreturned() { # $1 number, $2 text, $3 source, $4 evidence: one Finding block for an item with no usable return
   local text="${2#text=}" file="${3%%, *}" heading
   case "$text" in
     "Correctness at "* | "Spec at "* | "Standards at "* | "Principles at "* | "Blast radius at "* | "Security at "*)
@@ -60,7 +97,7 @@ unreturned() { # $1 number, $2 text, $3 source: one Finding block for an item wi
   esac
   printf '### %s. %s\n' "$1" "$heading"
   printf 'Claim: %s\n' "$text"
-  printf 'Evidence: the evaluator did not return\n'
+  printf 'Evidence: %s\n' "$4"
   printf 'Rung: 1\n'
   printf 'Fix: judge the item by hand, in %s\n' "$file"
   printf 'Source: %s' "$3"
@@ -79,7 +116,7 @@ main() {
   spec="$(abs_path "$spec")"
   review="$(dirname "$spec")/$(basename "$spec" .md).debt.review.md"
   local act="" consider=""
-  local -a acts=() considers=() act_src=() con_src=() con_txt=()
+  local -a acts=() considers=() act_src=() con_src=() con_txt=() con_ev=()
   while IFS=$'\t' read -r k source text; do
     k="${k#item=}"
     source="${source#source=}"
@@ -88,6 +125,14 @@ main() {
       considers+=("")
       con_src+=("$source")
       con_txt+=("$text")
+      con_ev+=("the evaluator did not return")
+      continue
+    fi
+    if ! in_shape "$ret" "$source"; then
+      considers+=("")
+      con_src+=("$source")
+      con_txt+=("$text")
+      con_ev+=("the evaluator returned outside the shape")
       continue
     fi
     rung="$(field "$ret" Rung)"
@@ -96,6 +141,7 @@ main() {
         considers+=("$ret")
         con_src+=("$source")
         con_txt+=("")
+        con_ev+=("")
         ;;
       3 | 4 | 5)
         if [ "$(field "$ret" Small)" = yes ]; then
@@ -105,9 +151,9 @@ main() {
           considers+=("$ret")
           con_src+=("$source")
           con_txt+=("")
+          con_ev+=("")
         fi
         ;;
-      *) continue ;;
     esac
   done < <(printf '%s\n' "$gathered" | grep '^item=')
   local i
@@ -120,7 +166,7 @@ main() {
     if [ -n "${considers[$i]}" ]; then
       consider+="$(finding "$n" "${considers[$i]}" "${con_src[$i]}")"$'\n\n'
     else
-      consider+="$(unreturned "$n" "${con_txt[$i]}" "${con_src[$i]}")"$'\n\n'
+      consider+="$(unreturned "$n" "${con_txt[$i]}" "${con_src[$i]}" "${con_ev[$i]}")"$'\n\n'
     fi
   done
   {
