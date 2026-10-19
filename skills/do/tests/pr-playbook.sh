@@ -1158,6 +1158,26 @@ carries_each "that one call waits on every return file of the Wave" \
   "all the Wave's return files" "every return file in the Wave" "return files of the Wave" \
   "every return file of that Wave" "return files of that Wave"
 
+# returns.sh prints only `returned=<file>` and `missing=<file>`: the fixer's `fixed`, `not fixed` or
+# `not reproduced` line sits in the return file itself, so a step that routes on a line returns.sh
+# printed routes on nothing. The read is pinned on the step's sentences naming `returned=`, and the
+# false claim on any sentence that still has returns.sh print a fixer's line.
+echo "# pr.md / ### 4. Fix the red checks: the session reads the one line of each returned= file returns.sh printed and routes on that line, and never treats a fixer's not fixed or not reproduced line as one returns.sh printed"
+step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+sentences="$(tr '\n' ' ' <<<"$step" | tr -s ' ' | sed 's/\. /.\n/g')"
+flat="$(grep -F "returned=" <<<"$sentences" | tr '\n' ' ')"
+expect "a sentence of the step names returns.sh's \`returned=\` line" test -n "$flat"
+carries_each "the session reads the one line of each \`returned=\` file" \
+  "read the" "reads the" "Read the" "read its" "reads its" "Read its" "read each" "reads each" \
+  "Read each" "read every" "reads every" "Read every" -- \
+  "one line" "single line" "only line" -- \
+  "each" "every"
+carries_any "and routes on that line" \
+  "on that line" "on the line it read" "on the line read" "by that line" "on its line" "from that line"
+claim="$(grep -E '(not fixed|not reproduced) <k>:[^`]*` line `returns\.sh` printed' <<<"$sentences")"
+expect "no sentence of the step has returns.sh print a fixer's \`not fixed <k>:\` or \`not reproduced <k>:\` line" \
+  test -z "$claim"
+
 # A red check can come from a file the pull request never changed, a base that moved under it: a
 # fixer forked over it edits code outside the pull request and may push that edit to a shared head,
 # and a classification run once the first Wave is forked lets a fixer run before it. So every red

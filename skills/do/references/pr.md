@@ -349,14 +349,16 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
       one call that waits on every return file of that Wave, with the Bash timeout at 600000 ms.
       Call it again over the files still `missing=`, three windows and no more. A file that never
       lands reads `not fixed <k>: the fixer did not return`.
-      A `not fixed <k>: <reason>` line `returns.sh` printed from the fixer's own return file is the
+      `returns.sh` prints only `returned=<file>` and `missing=<file>`, so read the one line of each
+      `returned=` file and route on that line.
+      A `not fixed <k>: <reason>` line read from a fixer's own return file is the
       fixer's own report that it cannot fix its check, and it puts check `<k>` in the round's stop
       set as a stop-case: the check gets no pick, and the round goes on. The session's own
       `not fixed` line for a file that never landed (`the fixer did not return`) is not a fixer's
       report: it raises no stop-case and stays out of the stop set, and that check stays red this
       round like any other return with no pick.
-      A `not reproduced <k>: <command> <what it showed instead>` line `returns.sh` printed is the
-      fixer's report that it could not reproduce the failure locally, so check `<k>` goes to the
+      A `not reproduced <k>: <command> <what it showed instead>` line read from a file `returns.sh`
+      printed as `returned=` is the fixer's report that it could not reproduce the failure locally, so check `<k>` goes to the
       round's not-reproduced list, never to `pr-guard.sh` or `fix-integrate.sh`; a `not reproduced`
       fixer branch is never picked, even when it holds a commit (then taking its worktree back
       prints it as a kept line), so nothing of its fixer branch reaches the run tree or the head,
@@ -555,8 +557,8 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
 
    `<sha>` is the watch's `sha=`, and `<repo>` and each `<run id>` are the `repo=` and `run=` values
    `pr-log.sh` printed for every such check (two checks of one run pass the same run id, which the
-   script reruns once). Of the round's checks, only the checks on the round's not-reproduced list, those whose `returns.sh`
-   line read `not reproduced <k>:`, are passed to `pr-rerun.sh`. A check whose return read `fixed <k>:`
+   script reruns once). Of the round's checks, only the checks on the round's not-reproduced list, those whose return
+   file line read `not reproduced <k>:`, are passed to `pr-rerun.sh`. A check whose return read `fixed <k>:`
    or `not fixed <k>:` is never passed to `pr-rerun.sh`, whichever wrote the `not fixed` (the fixer, the
    session's `the fixer did not return`, or the conflicted-twice line). The session's own reading of a
    check's log or excerpt never earns a rerun, since a round has no flake class (ADR 0028). The
