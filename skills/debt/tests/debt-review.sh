@@ -199,4 +199,83 @@ check_lines "a return missing its Fix line is a Finding under Consider, marked o
   "Claim: the queue drops a message on restart" "Evidence: the evaluator returned outside the shape" "Rung: 1" \
   "Source: $ninth"
 
+fresh traced
+traced="$(pwd -P)"
+traced_feature="$traced/.scratch/20261019-traced-debt"
+mkdir -p "$traced_feature/issues" "$traced/src"
+printf '# Spec: traced debt\n' >"$traced_feature/spec.md"
+printf 'retries=3\n' >"$traced/src/a.sh"
+cat >"$traced_feature/issues/01-a.debt.md" <<'EOF'
+## 2026-10-19 15:01
+
+- the retry budget is hardcoded
+- the cache key ignores the locale
+EOF
+review_at 8b1d0e4 "$traced_feature/spec.review.md" "none" "## Fix run
+
+Date: 2026-10-19 · at 8b1d0e4
+
+- gate fixer: not needed
+- gate: \`bash tests/a.test.sh\`: green
+- landed at 8b1d0e4" "" "### 1. Standards at src/c.sh:12
+Claim: \`echo -e\` in \`src/\`, which CLAUDE.md forbids.
+Evidence: CLAUDE.md, \"use printf\".
+Rung: 2
+Fix: the script writes through printf, in src/c.sh"
+commit "seed the traced feature"
+
+gathered_sources="$(cd "$traced" && bash "$gather" traced-debt 2>/dev/null |
+  awk -F'\t' '/^item=/ { sub(/^source=/, "", $2); print $2 }')"
+if [ "$(wc -l <<<"$gathered_sources")" != 3 ] || ! grep -qx 'spec.review.md, Finding 1' <<<"$gathered_sources"; then
+  echo "FAIL  fixture: gather.sh did not name two Debt items and the Review's Finding 1"
+  exit 1
+fi
+traced_returns="$tmp/traced-returns"
+mkdir -p "$traced_returns"
+cat >"$traced_returns/item-1.md" <<EOF
+Source: $(sed -n 1p <<<"$gathered_sources")
+Axis: Standards
+Location: src/a.sh:1
+Claim: the retry budget is hardcoded at three.
+Evidence: \`retries=3\` in src/a.sh:1, walked through the retry loop.
+Rung: 3
+Fix: the retry budget is read from the config, in src/a.sh
+Small: yes
+EOF
+cat >"$traced_returns/item-3.md" <<EOF
+Source: $(sed -n 3p <<<"$gathered_sources")
+Axis: Standards
+Location: src/c.sh:12
+Claim: \`echo -e\` writes the output, which CLAUDE.md forbids.
+Evidence: the earlier Review's quote of CLAUDE.md; no run printed through it.
+Rung: 2
+Fix: the script writes through printf, in src/c.sh
+Small: yes
+EOF
+
+finding_sources() { # $1 review: each Finding's Source: values joined on one line, one line per Finding, sorted
+  awk '
+    function flush() { if (on) print srcs; on = 0; srcs = "" }
+    /^### [0-9]+\./ { flush(); on = 1; next }
+    /^## / { flush(); next }
+    on && /^Source: / { v = substr($0, 9); srcs = (srcs == "" ? v : srcs " | " v) }
+    END { flush() }
+  ' "$1" | LC_ALL=C sort
+}
+traced_review="$traced_feature/spec.debt.review.md"
+for where in "the project root:" "a subdirectory:src"; do
+  label="${where%%:*}"
+  rm -f "$traced_review"
+  rc=0
+  # shellcheck disable=SC2034  # lib.sh's check_lines reads $out
+  out="$(cd "$traced/${where#*:}" && bash "$script" traced-debt "$traced_returns" 2>&1)" || rc=$?
+  check_lines "run from $label, it prints the path of the Debt review beside the Spec" 0 "$rc" \
+    "review=$traced_review" "line=Written to $traced_review"
+  expect "run from $label, the Debt review exists beside the Spec" test -f "$traced_review"
+  # shellcheck disable=SC2034  # lib.sh's same reads $out
+  out="$(finding_sources "$traced_review" 2>&1)"
+  same "run from $label, every Finding carries one Source equal to its gathered item's, one per item" \
+    "$(LC_ALL=C sort <<<"$gathered_sources")"
+done
+
 exit "$fails"
