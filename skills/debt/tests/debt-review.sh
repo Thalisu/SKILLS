@@ -24,6 +24,8 @@ cat >"$feature/issues/01-a.debt.md" <<'EOF'
 - the cache key ignores the locale
 - the error path is never logged
 - the session store is read on every request
+- the config path is resolved twice
+- the temp dir is never removed
 EOF
 commit "seed the feature"
 
@@ -41,8 +43,10 @@ first="$(source_of 1)"
 second="$(source_of 2)"
 third="$(source_of 3)"
 fourth="$(source_of 4)"
-if [ -z "$first" ] || [ -z "$second" ] || [ -z "$third" ] || [ -z "$fourth" ]; then
-  echo "FAIL  fixture: gather.sh named no source for items 1, 2, 3 and 4"
+fifth="$(source_of 5)"
+sixth="$(source_of 6)"
+if [ -z "$first" ] || [ -z "$second" ] || [ -z "$third" ] || [ -z "$fourth" ] || [ -z "$fifth" ] || [ -z "$sixth" ]; then
+  echo "FAIL  fixture: gather.sh named no source for items 1 to 6"
   exit 1
 fi
 
@@ -88,6 +92,7 @@ Rung: 4
 Fix: the session store moves behind a cache shared by every handler, across src/
 Small: no
 EOF
+: >"$returns/item-6.md"
 
 run pending-debt-review "$returns"
 review="$feature/spec.debt.review.md"
@@ -115,5 +120,24 @@ check "a proven item at Rung 3 or above whose fix is not small is a Finding unde
 out="$(grep -qx '## Consider' "$review" 2>/dev/null && passage_of "$review" "## Act on" "## Consider")"
 check_absent "a proven item whose fix is not small stays out of Act on" 0 "$rc" \
   ". Principles at src/d.sh:12" "Claim: every request reads the whole session store."
+
+consider_item() { # $1 a fixed string the Finding carries: that Finding of the Consider passage, on stdout
+  grep -qx '## Noted' "$review" 2>/dev/null &&
+    item_holding <(passage_of "$review" "## Consider" "## Noted") '### [0-9]+\.' "$1"
+}
+# shellcheck disable=SC2034  # lib.sh's check_lines reads $out
+out="$(consider_item "Claim: the config path is resolved twice")"
+check_lines "an item whose evaluator wrote no return is a Finding under Consider, marked unjudged" 0 "$rc" \
+  "Claim: the config path is resolved twice" "Evidence: the evaluator did not return" "Rung: 1" \
+  "Source: $fifth"
+# shellcheck disable=SC2034  # lib.sh's check_lines reads $out
+out="$(consider_item "Claim: the temp dir is never removed")"
+check_lines "an item whose evaluator wrote an empty return is a Finding under Consider, marked unjudged" 0 "$rc" \
+  "Claim: the temp dir is never removed" "Evidence: the evaluator did not return" "Rung: 1" \
+  "Source: $sixth"
+# shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+out="$(grep -qx '## Consider' "$review" 2>/dev/null && passage_of "$review" "## Act on" "## Consider")"
+check_absent "an item the evaluator did not return stays out of Act on" 0 "$rc" \
+  "the config path is resolved twice" "the temp dir is never removed"
 
 exit "$fails"
