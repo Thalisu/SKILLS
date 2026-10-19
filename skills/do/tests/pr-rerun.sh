@@ -17,7 +17,9 @@ mkdir -p "$HOME" "$GH_FAKE" "$tmp/bin"
 # `gh pr view <pr> --json headRefOid --jq <expr>` with the head in $GH_FAKE/head, and
 # `gh run view <id> --repo <repo> --json attempt --jq <expr>` with the attempt in $GH_FAKE/attempt.<id>,
 # applying <expr> with the system jq. `gh run rerun <id> --repo <repo> --failed` starts a new attempt,
-# which the next views still hide behind the old one as many times as $GH_FAKE/lag.<id> says.
+# which the next views still hide behind the old one as many times as $GH_FAKE/lag.<id> says. A run
+# with $GH_FAKE/refuse.<id> is one gh refuses to rerun, that file's line on stderr; one with
+# $GH_FAKE/stuck.<id> accepts the rerun and its attempt never goes up.
 # A pull request other than $GH_FAKE/pr, or a run outside $GH_FAKE/repo, is one gh cannot find.
 cat >"$tmp/bin/gh" <<'SH'
 #!/usr/bin/env bash
@@ -39,6 +41,8 @@ case "$cmd" in
     [ "$repo" = "$(cat "$GH_FAKE/repo")" ] && [ -f "$GH_FAKE/attempt.$id" ] ||
       { echo "could not find any workflow run with ID $id" >&2; exit 1; }
     if [ "$cmd" = "run rerun" ]; then
+      [ -f "$GH_FAKE/refuse.$id" ] && { cat "$GH_FAKE/refuse.$id" >&2; exit 1; }
+      [ -f "$GH_FAKE/stuck.$id" ] && exit 0
       echo $(($(cat "$GH_FAKE/attempt.$id") + 1)) >"$GH_FAKE/next.$id"
       exit 0
     fi
@@ -85,5 +89,44 @@ check_lines "the head moved past the watched sha: the script prints moved= with 
 absent "the head moved past the watched sha: no rerun= line on stdout" "rerun="
 out="$(grep '^run rerun ' "$GH_FAKE/calls" 2>/dev/null)"
 same "the head moved past the watched sha: gh reruns no run at all" ""
+
+ends_failed() { # $1 label, $2 the run id, $3 a fixed string its reason must carry, $4 the whole of $out before that last line
+  local last="${out##*$'\n'}" before=""
+  [[ "$out" == *$'\n'* ]] && before="${out%$'\n'*}"
+  if [ "$before" = "$4" ] && [[ "$last" == "failed: $2: "*"$3"* ]]; then ok "$1"; else
+    fail "$1"
+    dump_out
+  fi
+}
+fresh_runs() { # the head back at the watched sha, runs 7 and 9 at attempt 1 and 11 at attempt 4, no gh call logged
+  rm -f "$GH_FAKE"/calls "$GH_FAKE"/next.* "$GH_FAKE"/lag.* "$GH_FAKE"/refuse.* "$GH_FAKE"/stuck.*
+  echo "$sha" >"$GH_FAKE/head"
+  echo 1 >"$GH_FAKE/attempt.7"
+  echo 1 >"$GH_FAKE/attempt.9"
+  echo 4 >"$GH_FAKE/attempt.11"
+}
+
+fresh_runs
+refusal="HTTP 403: run 9 cannot be rerun; its workflow file may be broken"
+echo "$refusal" >"$GH_FAKE/refuse.9"
+rc=0
+out="$(timeout 30 bash "$script" 42 "$sha" github.com/o/r 7 9 11 2>/dev/null)" || rc=$?
+ends_failed "gh refuses the rerun of the second run: stdout holds the first run's rerun= line, then last a failed: line naming the refused run with gh's own message" \
+  9 "$refusal" "rerun=7 2"
+expect "gh refuses a rerun: the script exits 1" [ "$rc" = 1 ]
+out="$(grep '^run rerun ' "$GH_FAKE/calls" 2>/dev/null)"
+same "gh refuses a rerun: no run named after the refused one is rerun" \
+  "run rerun 7 --repo github.com/o/r --failed"$'\n'"run rerun 9 --repo github.com/o/r --failed"
+
+fresh_runs
+touch "$GH_FAKE/stuck.9"
+rc=0
+out="$(DO_PR_RERUN_SECONDS=1 timeout 30 bash "$script" 42 "$sha" github.com/o/r 7 9 11 2>/dev/null)" || rc=$?
+same "the second run's new attempt never shows within DO_PR_RERUN_SECONDS: stdout holds the first run's rerun= line, then last failed: <run id>: rerun not seen" \
+  "rerun=7 2"$'\n'"failed: 9: rerun not seen"
+expect "a rerun never seen: the script exits 1" [ "$rc" = 1 ]
+out="$(grep '^run rerun ' "$GH_FAKE/calls" 2>/dev/null)"
+same "a rerun never seen: no run named after the unseen one is rerun" \
+  "run rerun 7 --repo github.com/o/r --failed"$'\n'"run rerun 9 --repo github.com/o/r --failed"
 
 exit "$((fails > 0))"
