@@ -449,6 +449,7 @@ cat >"$cleared_feature/issues/01-a.debt.md" <<'EOF'
 - summary breaks on the new page signature
 - the page size is parsed twice
 - the consumer flows were not run against the new page signature
+- the export token is never rotated
 EOF
 commit "seed the cleared feature"
 cleared_source_of() { # $1 item number: its source, as gather.sh records it, on stdout
@@ -458,8 +459,9 @@ cleared_source_of() { # $1 item number: its source, as gather.sh records it, on 
 cleared_source="$(cleared_source_of 1)"
 weak_source="$(cleared_source_of 2)"
 outside_source="$(cleared_source_of 3)"
-if [ -z "$cleared_source" ] || [ -z "$weak_source" ] || [ -z "$outside_source" ]; then
-  echo "FAIL  fixture: gather.sh named no source for the cleared-debt items 1 to 3"
+secure_source="$(cleared_source_of 4)"
+if [ -z "$cleared_source" ] || [ -z "$weak_source" ] || [ -z "$outside_source" ] || [ -z "$secure_source" ]; then
+  echo "FAIL  fixture: gather.sh named no source for the cleared-debt items 1 to 4"
   exit 1
 fi
 cleared_returns="$tmp/cleared-returns"
@@ -490,6 +492,16 @@ Claim: the report's consumers were not run against the new page signature.
 Evidence: the consumer's notes app calls summary with the old argument order, read from its source; no flow of it ran.
 Rung: 3
 Outside code: the consumer flows run against this branch, in the consumer's repository
+EOF
+cat >"$cleared_returns/item-4.md" <<EOF
+Source: $secure_source
+Axis: Security
+Location: src/export.sh:9
+Claim: the export token is never rotated.
+Evidence: src/export.sh:9 reads a token minted once at deploy, read from the source; the vault's rotation policy is not in this repository.
+Rung: 3
+Risk: auth
+Outside code: the token rotates on the vault's schedule, in the deployment's vault policy
 EOF
 cleared_review="$cleared_feature/spec.debt.review.md"
 rc=0
@@ -543,6 +555,22 @@ expect "an item that no code settles keeps its own Axis and Location in its head
 out="$(grep -qx '## Noted' "$cleared_review" 2>/dev/null && passage_of "$cleared_review" "## Act on" "## Noted")"
 check_absent "an item that no code settles stays out of Act on and Consider" 0 "$cleared_rc" \
   "the report's consumers were not run" "the consumer flows were not run"
+
+# shellcheck disable=SC2034  # lib.sh's check_lines reads $out
+out="$(grep -qx '## Noted' "$cleared_review" 2>/dev/null &&
+  item_holding <(passage_of "$cleared_review" "## Consider" "## Noted") '### [0-9]+\.' "Claim: the export token")"
+check_lines "a Security item found real that no code settles is a Finding under Consider, its Fix naming what settles it" 0 "$cleared_rc" \
+  "Claim: the export token is never rotated." \
+  "Evidence: src/export.sh:9 reads a token minted once at deploy, read from the source; the vault's rotation policy is not in this repository." \
+  "Rung: 3" \
+  "Risk: auth" \
+  "Fix: the token rotates on the vault's schedule, in the deployment's vault policy" \
+  "Source: $secure_source"
+expect "a Security item that no code settles keeps its own Axis and Location in its heading under Consider" \
+  grep -qxE '### [0-9]+\. Security at src/export\.sh:9' <<<"$out"
+# shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+out="$(grep -qx '## Cleared' "$cleared_review" 2>/dev/null && passage_of "$cleared_review" "## Noted" "## Cleared")"
+check_absent "a Security item that no code settles never lands in Noted" 0 "$cleared_rc" "the export token is never rotated"
 
 fresh idle
 idle="$(pwd -P)"

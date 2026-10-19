@@ -25,7 +25,8 @@
 #   the last line "Fix: judge the item by hand, in <file>".
 # - A return ending on Outside code (no Fix, no Small) at Rung 3 or above is a Finding under Noted,
 #   with the evaluator's own evidence and the last line "Fix: <the Outside code value>". At Rung 1
-#   or 2 it is a Finding under Consider with the same last line.
+#   or 2 it is a Finding under Consider with the same last line, and so is a Security one at any
+#   Rung.
 # - An item whose return is missing or empty is a Finding under Consider with the evidence
 #   "the evaluator did not return".
 # - A non-empty return is first checked against the shape (the keys in order, Source equal to the
@@ -150,11 +151,12 @@ read_return() { # $1 return file, $2 source: kind=returned|outside|missing, then
 }
 
 place() { # $1 source, stdin: read_return's lines. Prints the Placement: bucket, rung, evidence, risk, last
-  local key val kind="" rung="" evidence="" risk="" fix="" small="" refuted="" settles="" ending="" file="${1%%, *}"
+  local key val kind="" rung="" evidence="" risk="" fix="" small="" refuted="" settles="" ending="" axis="" file="${1%%, *}"
   while IFS= read -r line; do
     key="${line%%=*}" val="${line#*=}"
     case "$key" in
       kind) kind="$val" ;;
+      axis) axis="$val" ;;
       rung) rung="$val" ;;
       evidence) evidence="$val" ;;
       risk) risk="$val" ;;
@@ -181,7 +183,7 @@ place() { # $1 source, stdin: read_return's lines. Prints the Placement: bucket,
   fi
   if [ "$ending" = refuted ]; then
     printf 'bucket=Cleared\n'
-  elif [ "$ending" = outside-code ] && [ "$rung" -ge 3 ]; then
+  elif [ "$ending" = outside-code ] && [ "$rung" -ge 3 ] && [ "$axis" != Security ]; then
     printf 'bucket=Noted\n'
   elif [ "$small" = yes ] && [ "$rung" -ge 3 ]; then
     printf 'bucket=Act on\n'
