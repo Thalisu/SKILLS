@@ -23,6 +23,7 @@ cat >"$feature/issues/01-a.debt.md" <<'EOF'
 - the retry budget is hardcoded
 - the cache key ignores the locale
 - the error path is never logged
+- the session store is read on every request
 EOF
 commit "seed the feature"
 
@@ -39,8 +40,9 @@ source_of() { # $1 item number: its source, as gather.sh records it, on stdout
 first="$(source_of 1)"
 second="$(source_of 2)"
 third="$(source_of 3)"
-if [ -z "$first" ] || [ -z "$second" ] || [ -z "$third" ]; then
-  echo "FAIL  fixture: gather.sh named no source for items 1, 2 and 3"
+fourth="$(source_of 4)"
+if [ -z "$first" ] || [ -z "$second" ] || [ -z "$third" ] || [ -z "$fourth" ]; then
+  echo "FAIL  fixture: gather.sh named no source for items 1, 2, 3 and 4"
   exit 1
 fi
 
@@ -76,6 +78,16 @@ Rung: 2
 Fix: the error path logs before it returns, in src/c.sh
 Small: yes
 EOF
+cat >"$returns/item-4.md" <<EOF
+Source: $fourth
+Axis: Principles
+Location: src/d.sh:12
+Claim: every request reads the whole session store.
+Evidence: a proof script timed 200 requests, each one opening the store file.
+Rung: 4
+Fix: the session store moves behind a cache shared by every handler, across src/
+Small: no
+EOF
 
 run pending-debt-review "$returns"
 review="$feature/spec.debt.review.md"
@@ -94,5 +106,14 @@ check "an unproven item at Rung 2 is a Finding under Consider, with the evaluato
 out="$(grep -qx '## Consider' "$review" 2>/dev/null && passage_of "$review" "## Act on" "## Consider")"
 check_absent "an unproven item at Rung 2 stays out of Act on, even when small" 0 "$rc" \
   ". Blast radius at src/c.sh:4" "Claim: the error path is never logged."
+
+# shellcheck disable=SC2034  # lib.sh's check reads $out
+out="$(grep -qx '## Noted' "$review" 2>/dev/null && passage_of "$review" "## Consider" "## Noted")"
+check "a proven item at Rung 3 or above whose fix is not small is a Finding under Consider" 0 "$rc" \
+  ". Principles at src/d.sh:12" "Claim: every request reads the whole session store."
+# shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+out="$(grep -qx '## Consider' "$review" 2>/dev/null && passage_of "$review" "## Act on" "## Consider")"
+check_absent "a proven item whose fix is not small stays out of Act on" 0 "$rc" \
+  ". Principles at src/d.sh:12" "Claim: every request reads the whole session store."
 
 exit "$fails"

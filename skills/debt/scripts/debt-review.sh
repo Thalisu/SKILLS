@@ -9,7 +9,8 @@
 # optional Risk, Fix, Small, one key per line) and writes <Spec stem>.debt.review.md beside the
 # Spec, with the Buckets Act on, Consider, Noted and Cleared, each holding its Findings or none.
 # A return at Rung 3 or above with Small: yes is a Finding under Act on. A return at Rung 1 or 2
-# is a Finding under Consider, with the evaluator's own evidence. Findings are numbered from 1
+# is a Finding under Consider, with the evaluator's own evidence. A return at Rung 3 or above whose
+# fix is not small is a Finding under Consider too. Findings are numbered from 1
 # across the file: Act on first, then Consider. A missing return is skipped.
 #
 # Prints review=<path> then line=Written to <path>.
@@ -74,9 +75,13 @@ main() {
         con_src+=("$source")
         ;;
       3 | 4 | 5)
-        [ "$(field "$ret" Small)" = yes ] || continue
-        acts+=("$ret")
-        act_src+=("$source")
+        if [ "$(field "$ret" Small)" = yes ]; then
+          acts+=("$ret")
+          act_src+=("$source")
+        else
+          considers+=("$ret")
+          con_src+=("$source")
+        fi
         ;;
       *) continue ;;
     esac
