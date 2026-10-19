@@ -32,6 +32,33 @@ check_lines "a bare slug gathers the folder the resolver names" "$rc" "$rc" "fol
 run 20261019-pending-debt-review
 check_lines "the dated folder name gathers the same folder as the bare slug" "$rc" "$rc" "folder=$want"
 
+issues="$tmp/.scratch/20261019-pending-debt-review/issues"
+cat >"$issues/01-a.debt.md" <<'EOF'
+## 2026-10-19 15:01
+
+- the retry budget is hardcoded
+- the cache key ignores the locale
+  when the request carries one
+  - seen only on the fallback path
+
+## 2026-10-20 09:00
+
+none
+EOF
+cat >"$issues/02-b.debt.md" <<'EOF'
+## second run
+
+The fixture builder duplicates the
+seeding done by the migration.
+EOF
+tab=$'\t'
+run pending-debt-review
+check_lines "each Debt item is one record numbered in file order, its source naming the file, section and bullet" "$rc" "$rc" \
+  "item=1${tab}source=issues/01-a.debt.md, section 2026-10-19 15:01, item 1${tab}text=the retry budget is hardcoded" \
+  "item=2${tab}source=issues/01-a.debt.md, section 2026-10-19 15:01, item 2${tab}text=the cache key ignores the locale when the request carries one - seen only on the fallback path" \
+  "item=3${tab}source=issues/02-b.debt.md, section second run, item 1${tab}text=The fixture builder duplicates the seeding done by the migration."
+check_absent "a section reading none gives no Debt item" "$rc" "$rc" "section 2026-10-20 09:00" "item=4${tab}"
+
 entries='%p %y %s %T@\n'
 before="$(snapshot "$tmp" "$entries")"
 run Pending-Debt-Typo
