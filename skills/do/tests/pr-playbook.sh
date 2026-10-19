@@ -1344,6 +1344,49 @@ carries_any "and its moves count from zero again" \
   "from zero" "from 0" "count again" "counted again" "counted afresh" "count afresh" "anew" \
   "start over" "starts over" "starts again" "reset"
 
+# Every fixer leaves a worktree and a `fixer/` branch in the developer's main checkout, one per check
+# per round, and nobody sees them pile up. A moved check's first branch holds a commit whose pick was
+# aborted, which never matches the retry that superseded it, so the plain removal keeps it and only
+# the `--superseded` call takes it back. Step 4 already names `fix-worktrees.sh remove` per branch
+# for the round line, so the Wave's call and the superseded one are pinned by their exact lines, and
+# the superseded guarantees are read off the piece carrying `remove --superseded` alone.
+echo "# pr.md / ### 4. Fix the red checks: after each Wave's integration one fix-worktrees.sh remove call takes back every fixer worktree and branch of the Wave whose commit is on the run tree's HEAD or which made no commit, and a moved check's earlier conflicted branch goes through remove --superseded once its retry was picked"
+step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ')"
+carries "one call takes back every branch of the Wave, printing a removed line per branch" \
+  "bash <skill-dir>/../do-code-review/scripts/fix-worktrees.sh remove <run tree> <branch>..." \
+  "removed <branch> <path>"
+carries "a second call takes back the superseded branches" \
+  "bash <skill-dir>/../do-code-review/scripts/fix-worktrees.sh remove --superseded <run tree> <branch>..."
+before "the Wave's removal comes after its one fix-integrate.sh call" \
+  "fix-integrate.sh <run tree> <k>=<branch>..." "fix-worktrees.sh remove <run tree> <branch>..."
+before "the superseded removal comes after the pick of the retry" \
+  "fix-integrate.sh <run tree> <k>=<branch>..." "fix-worktrees.sh remove --superseded"
+flat="$(piece_in="$step" piece_with "fix-worktrees.sh remove <run tree> <branch>...")"
+expect "a paragraph or sub-item of the step carries the Wave's remove call" test -n "$flat"
+carries_each "over every branch the Wave's add printed" \
+  "every branch" "each branch" "all the branches" "every \`<branch>\`" "all branches" -- \
+  "add" "fix-worktrees.sh add"
+carries_each "taking back a branch whose commit is on the run tree's HEAD, or which holds no commit" \
+  "HEAD" -- \
+  "no commit" "made no commit" "holds no commit" "without a commit" "nothing committed" "no commits"
+flat="$(piece_in="$step" piece_with "remove --superseded")"
+expect "a paragraph or sub-item of the step carries the remove --superseded call" test -n "$flat"
+carries_each "it is for a check this Wave picked that an earlier Wave moved out of" \
+  "moved" -- \
+  "earlier Wave" "previous Wave" "a Wave before" "an earlier Wave" "prior Wave" -- \
+  "picked" "pick"
+carries_each "taking back that check's earlier conflicted branch" \
+  "conflicted" -- "branch"
+carries_each "since its aborted commit never matches the retry that superseded it" \
+  "abort" -- \
+  "never match" "does not match" "doesn't match" "not match" "matches no" "never on" "not on" -- \
+  "retry" "supersed"
+carries_each "a superseded branch taken back is never named as a commit the run could not land" \
+  "never named" "not named" "never reported" "not reported" "never listed" "not listed" \
+  "never counted" "not counted" "never quoted" "names no" -- \
+  "could not land" "couldn't land" "did not land" "not landed" "unlanded" "failed to land"
+
 # The developer may have the head checked out, dirty or on another branch: a round integrated in
 # their checkout moves their branch or mixes the run's commits with their work in progress. The
 # round is read off step 4 alone: `not fixed <k>:` already sits there, so the pick's trigger is
