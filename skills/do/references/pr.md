@@ -334,10 +334,19 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    The push is fast-forward only: never `--force`, never a merge, never to another branch
    (ADR 0086). git's own refusal of a non-fast-forward is the guard. When git accepts it, run
    `git worktree remove <run tree>` and go back to step 3, calling the watch with `<pr>` alone: the
-   push changed the checks, so the stall window starts over. When git refuses it, the run stops
-   quoting git's line, keeping `<run tree>` and naming it. When no check was picked, nothing is
-   pushed: remove `<run tree>`, then stop with one line per check quoting its fixer's return,
-   nothing followed.
+   push changed the checks, so the stall window starts over. When git refuses it on a first
+   attempt, the remote moved between the fetch and the push: the run redoes the round whole, as on a
+   moved tip. A round is redone once at most. On a redone round, git's non-fast-forward refusal of
+   the push, or the fetch before it showing the remote moved again (the fetched tip still not the
+   redone round's `sha=`), stops the run quoting git's line: no third attempt, and nothing more is
+   pushed. The run keeps `<run tree>` on disk, never removing it, with each commit kept there, every
+   fix commit on its HEAD above the `sha=` it was cut at, and ends on one line naming `<head>`,
+   `<run tree>` and the sha of each commit kept there:
+
+       Yours: direction: <head> moved again during the redone round; the fix commits <kept sha>, ... are kept in <run tree>; bring them onto <head> yourself or drop them, then /do the pull request again
+
+   When no check was picked, nothing is pushed: remove `<run tree>`, then stop with one line per
+   check quoting its fixer's return, nothing followed.
 
 6. The brief of check `<k>`, with `<id>` a short random id the session generates for that dispatch:
 

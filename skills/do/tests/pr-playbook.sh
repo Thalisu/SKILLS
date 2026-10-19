@@ -1769,5 +1769,71 @@ carries_each "no \`--force\` and no merge" \
   "no force" -- \
   "never a merge" "no merge" "without a merge" "not a merge" "never merges" "never merged" "not merged" \
   "nor a merge" "nor merged"
+
+# The developer relies on a redone round that still cannot land stopping the run and saying where its
+# fixes sit: they choose what becomes of fix commits the run could not land, and need the head, the
+# run tree and each commit's sha to do it. A run that retries without end pushes against a head it
+# cannot reach, and one that removes the run tree loses the fixes unseen. The first refusal's own
+# sentence ("When git refuses it, the run stops quoting git's line") is asserted by the case on the
+# push line, so this branch is read from the first sentence of the push item naming a redone round
+# with its refusal or its cap, up to a sentence opening a sibling branch (`When ...`) or holding the
+# push line.
+echo "# pr.md / ### 4. Fix the red checks: a push the head still refuses after a pull and a redone round stops the run on one Yours: direction: line naming <head>, the run tree and the commits kept there"
+step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+push_item="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.|[[:space:]]+[a-z]\.' "$push_line" | tr '\n' ' ' | tr -s ' ')"
+expect "the push line sits in an item of the step" test -n "$push_item"
+flat="$(sed 's/\. /.\n/g' <<<"$push_item" | awk -v push="$push_line" '
+  function redone(s) {
+    return index(s, "redone") || index(s, "redo") || index(s, "second attempt") || index(s, "after a pull") ||
+      index(s, "after the pull")
+  }
+  function edge(s) {
+    return index(s, "refus") || index(s, "reject") || index(s, "once at most") || index(s, "at most once") ||
+      index(s, "only once") || index(s, "more than once") || index(s, "third") || index(s, "moved again") ||
+      index(s, "a second time") || index(s, "twice")
+  }
+  on && (index($0, push) || (/^ *When / && !redone($0))) { on = 0 }
+  !on && redone($0) && edge($0) { on = 1 }
+  on { print }
+' | tr '\n' ' ' | tr -s ' ')"
+expect "the push item carries a branch for a push refused on a redone round" test -n "$flat"
+carries_each "a round is redone once at most" \
+  "redone" "redo" "redoes" -- \
+  "once at most" "at most once" "only once" "no more than once" "a single time" "never twice" \
+  "never a second time" "never redone twice" "not redone twice"
+carries_each "on a redone round, git's non-fast-forward refusal of the push counts" \
+  "refus" "reject" -- "non-fast-forward" "not a fast-forward" "git"
+carries_any "and so does the fetch before the push showing the remote moved again" \
+  "moved again" "has moved again" "moves again" "moved past it again" "moved on again" \
+  "again not \`<sha>\`" "still not \`<sha>\`" "is not \`<sha>\` again"
+affirms "the run stops" "stops" "stop" "ends the run" "the run ends"
+carries_any "with no third attempt" \
+  "no third attempt" "no third round" "never a third" "no third" "not a third" "never redone again" \
+  "never redoes it again" "not redone again" "no further round" "no further attempt" "no second redo" \
+  "never a second redo" "never retries" "no retry" "does not retry" "doesn't retry"
+carries_any "and nothing more pushed" \
+  "nothing more is pushed" "nothing more pushed" "pushes nothing more" "nothing is pushed" "pushes nothing" \
+  "no further push" "never pushes again" "pushes no more" "no more push" "nothing else is pushed" \
+  "not pushed again" "never pushed again"
+carries_each "the stop is one line opening \`Yours: direction:\`" \
+  "one line" "a single line" "one \`Yours: direction:\` line" "a \`Yours: direction:\` line" \
+  "single \`Yours: direction:\`" "the line" -- \
+  "Yours: direction:"
+carries_each "it names \`<head>\`, \`<run tree>\` and every commit kept there by its sha" \
+  "<head>" -- "<run tree>" -- \
+  "every commit" "each commit" "every fix commit" "each fix commit" "all the commits" "commits kept" \
+  "kept commits" "every kept commit" "each kept commit" "the commits it keeps" "the commits kept" -- \
+  "sha"
+carries_each "those are the fix commits on the run tree's HEAD above the \`sha=\` it was cut at" \
+  "<sha>" "sha=" -- \
+  "above" "on top of" "ahead of" "past" "beyond" "..HEAD" -- \
+  "HEAD" "cut at"
+carries_each "\`<run tree>\` is kept on disk, never removed" \
+  "<run tree>" "run tree" -- \
+  "keeps" "kept" "keep" "stays on disk" "left on disk" "leaves" -- \
+  "never remov" "not removed" "does not remove" "doesn't remove" "without removing" "no \`git worktree remove\`"
+out="$(sed 's/^[[:space:]]*//' <<<"$step" | grep -E '^Yours: direction:' | grep -F '<head>' | grep -F '<run tree>')"
+expect "the step shows the stop as a whole line opening \`Yours: direction:\` carrying \`<head>\` and \`<run tree>\`" \
+  test -n "$out"
 [ "$fails" -eq 0 ] && exit 0
 exit 1
