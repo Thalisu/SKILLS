@@ -28,7 +28,7 @@
 #
 # Prints review=<path> then line=Written to <path>.
 #
-# Exit codes: 0 it wrote the review · 2 usage.
+# Exit codes: 0 it wrote the review · 1 or 3 gather's own exit, its line= relayed, nothing written · 2 usage, or gather's usage or resolver refusal (its stderr relayed).
 set -uo pipefail
 
 abs_path() {
@@ -139,7 +139,24 @@ main() {
   }
   local here gathered spec k source ret n=0 rung review
   here="$(cd "$(dirname "$0")" && pwd -P)"
-  gathered="$(bash "$here/gather.sh" "$1" 2>/dev/null)"
+  local errfile code
+  errfile="$(mktemp)"
+  gathered="$(bash "$here/gather.sh" "$1" 2>"$errfile")"
+  code=$?
+  case "$code" in
+    0) ;;
+    1 | 3)
+      rm -f "$errfile"
+      printf '%s\n' "$gathered" | grep '^line='
+      return "$code"
+      ;;
+    *)
+      cat "$errfile" >&2
+      rm -f "$errfile"
+      return 2
+      ;;
+  esac
+  rm -f "$errfile"
   spec="$(printf '%s\n' "$gathered" | sed -n 's/^spec=//p' | head -1)"
   [ -n "$spec" ] && [ "$spec" != none ] || return 2
   spec="$(abs_path "$spec")"

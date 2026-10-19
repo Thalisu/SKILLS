@@ -438,4 +438,25 @@ shaped_review "every item under Consider" consider-debt "$consider_returns" "$co
 out="$(under "$consider_feature/spec.debt.review.md" "## Act on" 2>/dev/null)"
 same "every item under Consider: the empty Act on reads none on the line under it" "none"
 
+fresh idle
+idle="$(pwd -P)"
+mkdir -p "$idle/.scratch/20261019-idle-feature"
+printf '# Spec: idle feature\n' >"$idle/.scratch/20261019-idle-feature/spec.md"
+commit "seed the idle feature"
+idle_returns="$tmp/idle-returns"
+mkdir -p "$idle_returns"
+for refusal in "idle-feature:1:line=no pending debt in 20261019-idle-feature; nothing judged" \
+  "Idle-Feature-Typo:3:line=no feature folder for Idle-Feature-Typo; nothing written"; do
+  slug="${refusal%%:*}"
+  want="${refusal#*:}"
+  want_rc="${want%%:*}"
+  want="${want#*:}"
+  before="$(g -C "$idle" status --porcelain)"
+  rc=0
+  # shellcheck disable=SC2034  # lib.sh's check_lines reads $out
+  out="$(cd "$idle" && bash "$script" "$slug" "$idle_returns" 2>&1)" || rc=$?
+  check_lines "slug $slug: it relays gather's line and its exit $want_rc" "$want_rc" "$rc" "$want"
+  expect "slug $slug: it writes no file in the project" test "$before" = "$(g -C "$idle" status --porcelain)"
+done
+
 exit "$fails"
