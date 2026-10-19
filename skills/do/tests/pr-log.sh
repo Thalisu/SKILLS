@@ -13,16 +13,32 @@ trap 'rm -rf "$tmp"' EXIT
 export HOME="$tmp/home" GH_FAKE="$tmp/gh"
 mkdir -p "$HOME" "$GH_FAKE" "$tmp/bin"
 
-# The fake gh answers `gh run view --job 99 --repo github.com/o/r --log-failed` with the recorded
-# log in $GH_FAKE/log, and refuses any other command line. While $GH_FAKE/fail exists it cannot read
-# the log, and prints that file's line on stderr instead.
+# The fake gh logs every command line it receives to $GH_FAKE/calls. It answers
+# `gh repo view --json url --jq .url` with the pull request's repository in $GH_FAKE/repo_url, or,
+# while $GH_FAKE/repo_fail exists, prints that file's line on stderr instead. It answers
+# `gh run view --job 99 --repo <repo> --log-failed` with the recorded log in $GH_FAKE/log for the
+# pull request's repository github.com/o/r and for the two foreign ones the refusal cases link to,
+# which hold a log of their own too. While $GH_FAKE/fail exists it cannot read the log, and prints
+# that file's line on stderr instead. It refuses any other command line.
 cat >"$tmp/bin/gh" <<'SH'
 #!/usr/bin/env bash
-[ "$*" = "run view --job 99 --repo github.com/o/r --log-failed" ] || { echo "fake gh: unexpected command: $*" >&2; exit 1; }
+echo "$*" >>"$GH_FAKE/calls"
+if [ "$*" = "repo view --json url --jq .url" ]; then
+  [ -f "$GH_FAKE/repo_fail" ] && { cat "$GH_FAKE/repo_fail" >&2; exit 1; }
+  cat "$GH_FAKE/repo_url"
+  exit 0
+fi
+case "$*" in
+  "run view --job 99 --repo github.com/o/r --log-failed" | \
+    "run view --job 99 --repo github.com/someone-else/deploy-repo --log-failed" | \
+    "run view --job 99 --repo evil.example/o/r --log-failed") ;;
+  *) echo "fake gh: unexpected command: $*" >&2; exit 1 ;;
+esac
 [ -f "$GH_FAKE/fail" ] && { cat "$GH_FAKE/fail" >&2; exit 1; }
 cat "$GH_FAKE/log"
 SH
 chmod +x "$tmp/bin/gh"
+echo "https://github.com/o/r" >"$GH_FAKE/repo_url"
 export PATH="$tmp/bin:$PATH"
 
 run() { # $1.. the script's arguments: its stdout in $out, its exit in $rc
@@ -114,5 +130,26 @@ unanswered 3 log "the link is none" none "$tmp/tree"
 unanswered 3 log "a pull request's checks page, not a job" "https://github.com/o/r/pull/42/checks" "$tmp/tree"
 unanswered 3 log "a link off GitHub Actions" "https://ci.example.com/build/7" "$tmp/tree"
 unanswered 3 empty "a job log holding no failed step" "$link" "$tmp/tree"
+
+# A check's details link is set by whoever posts the status: a link to a repository other than the
+# pull request's would hand that repository's log to the fixer and its run to pr-rerun.sh.
+foreign_link() { # $1 label, $2 the link
+  rm -f "$GH_FAKE/fail" "$GH_FAKE/calls"
+  cp "$tmp/log.red" "$GH_FAKE/log"
+  refuses_exit=3 refuses "$1: refused, exit 3 and a pr-log.sh: reason on stderr" opens "pr-log.sh: " "$2" "$tmp/tree"
+  same "$1: nothing on stdout" ""
+  # shellcheck disable=SC2034  # lib.sh's same reads $out
+  out="$(grep '^run view ' "$GH_FAKE/calls" 2>/dev/null)"
+  same "$1: that repository's log is never read" ""
+}
+foreign_link "a check link to another repository on the pull request's host" "https://github.com/someone-else/deploy-repo/actions/runs/7/job/99"
+foreign_link "a check link to the pull request's owner and repo on another host" "https://evil.example/o/r/actions/runs/7/job/99"
+
+rm -f "$GH_FAKE/fail"
+cp "$tmp/log.red" "$GH_FAKE/log"
+echo "GraphQL: Could not resolve to a Repository" >"$GH_FAKE/repo_fail"
+refuses_exit=1 refuses "gh cannot read the pull request's repository: exit 1 and its reason on stderr" opens "pr-log.sh: cannot read the pull request's repository" "$link" "$tmp/tree"
+same "gh cannot read the pull request's repository: nothing on stdout" ""
+rm -f "$GH_FAKE/repo_fail"
 
 exit "$((fails > 0))"

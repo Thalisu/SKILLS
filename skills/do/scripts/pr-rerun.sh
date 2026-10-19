@@ -10,8 +10,11 @@
 #
 # Prints one rerun=<run id> <attempt> line per distinct run, in first-seen order, once gh reads an
 # attempt higher than the one before the rerun. When the pull request's head is no longer <sha>, it
-# prints moved=<head sha> instead and reruns nothing. A failure prints one failed: <reason> line,
-# the last stdout line, after the rerun= lines made so far, and reruns no later run.
+# prints moved=<head sha> instead and reruns nothing. A <repo> that is not the pull request's
+# repository, a run whose head commit is not <sha> and a run of another repository are refused
+# before any run is rerun: the run ids come from a check's details link, which whoever posts a
+# status sets. A failure prints one failed: <reason> line, the last stdout line, after the rerun=
+# lines made so far, and reruns no later run.
 #
 # Exits 0 every run reran, or the head moved · 1 gh missing, the head or a run unreadable, or a
 # rerun refused or not seen (the failed: line is on stdout) · 2 usage, on stderr, nothing on stdout.
@@ -22,6 +25,19 @@ wait_seconds="${DO_PR_RERUN_SECONDS:-300}"
 
 read_head() { # $1 pr: prints the pull request's head commit; 1 on a read failure
   gh pr view "$1" --json headRefOid --jq .headRefOid
+}
+
+read_pr_repo() { # $1 pr: prints <host>/<owner>/<repo> of the pull request; 1 on a read failure
+  local url
+  url="$(gh pr view "$1" --json url --jq .url 2>/dev/null)" || return 1
+  url="${url#https://}"
+  url="${url%%/pull/*}"
+  [ -n "$url" ] && [ "$url" != "${url#*/*/}" ] || return 1
+  printf '%s\n' "$url"
+}
+
+read_identity() { # $1 repo, $2 run id: prints the run's head commit, a tab, then its url; 1 on a read failure
+  gh run view "$2" --repo "$1" --json headSha,url --jq '[.headSha, .url] | @tsv'
 }
 
 read_attempt() { # $1 repo, $2 run id: prints the run's attempt; 1 on a read failure
@@ -60,17 +76,31 @@ main() {
     exit 2
   fi
   command -v gh >/dev/null 2>&1 || fail "gh missing"
-  local head
+  local head pr="$1"
   head="$(read_head "$1" 2>/dev/null)" || fail "cannot read the head of pull request $1"
   if [ "$head" != "$2" ]; then
     printf 'moved=%s\n' "$head"
     exit 0
   fi
-  local repo="$3" id before after reason seen=" "
+  local sha="$2" repo="$3" id before after reason seen=" " ids=() run_sha run_url run_repo pr_repo
   shift 3
+  pr_repo="$(read_pr_repo "$pr")" || fail "cannot read the repository of pull request $pr"
+  [ "${repo,,}" = "${pr_repo,,}" ] || fail "$1: the repository $repo is not the pull request's repository $pr_repo"
   for id in "$@"; do
     case "$seen" in *" $id "*) continue ;; esac
     seen="$seen$id "
+    ids+=("$id")
+  done
+  for id in "${ids[@]}"; do
+    run_sha="$(read_identity "$repo" "$id" 2>&1)" || fail "$id: $(printf '%s' "${run_sha:-cannot read the run}" | tr '\n' ' ' | sed 's/ *$//')"
+    run_url="${run_sha#*$'\t'}"
+    run_sha="${run_sha%%$'\t'*}"
+    [ "$run_sha" = "$sha" ] || fail "$id: its headSha $run_sha is not $sha"
+    run_repo="${run_url#https://}"
+    run_repo="${run_repo%%/actions/*}"
+    [ "${run_repo,,}" = "${pr_repo,,}" ] || fail "$id: the run belongs to $run_repo, not the pull request's repository $pr_repo"
+  done
+  for id in "${ids[@]}"; do
     before="$(read_attempt "$repo" "$id" 2>&1)" || fail "$id: $(printf '%s' "${before:-cannot read the run}" | tr '\n' ' ' | sed 's/ *$//')"
     reason="$(rerun_failed "$repo" "$id")" || fail "$id: $reason"
     after="$(await_attempt "$repo" "$id" "$before")" || fail "$id: rerun not seen"

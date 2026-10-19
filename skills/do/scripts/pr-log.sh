@@ -12,9 +12,13 @@
 # excerpt=<text>, with the timestamp and ANSI escapes stripped, then repo=<host>/<owner>/<repo> and
 # run=<run id> as the last two lines, the run id read off the link. Keys repeat in order.
 #
-# Exits 0 an excerpt printed · 1 gh missing or unable to read the log · 2 usage · 3 nothing to cut
-# (not an Actions job link, or no failed step). Nothing on stdout for 1, 2 or 3; a one-line
-# pr-log.sh: <reason> goes to stderr.
+# A link whose <host>/<owner>/<repo> is not the pull request's base repository, as gh resolves it
+# from <tree>, is refused unread: whoever posts a status sets the link, and its repo= and run= go on
+# to pr-rerun.sh.
+#
+# Exits 0 an excerpt printed · 1 gh missing or unable to read the repository or the log · 2 usage ·
+# 3 nothing to cut (not an Actions job link, a link to another repository, or no failed step).
+# Nothing on stdout for 1, 2 or 3; a one-line pr-log.sh: <reason> goes to stderr.
 set -uo pipefail
 
 excerpt_lines=200
@@ -26,6 +30,14 @@ parse_link() { # $1 link: prints "<host>/<owner>/<repo> <run id> <job id>", or e
     exit 3
   fi
   printf '%s/%s/%s %s %s\n' "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}" "${BASH_REMATCH[3]}" "${BASH_REMATCH[4]}" "${BASH_REMATCH[5]}"
+}
+
+read_base_repo() { # $1 tree: prints <host>/<owner>/<repo> of the pull request's base repository; 1 on a read failure
+  local url
+  url="$(cd "$1" && gh repo view --json url --jq .url 2>/dev/null)" || return 1
+  url="${url#https://}"
+  [ -n "$url" ] && [ "$url" != "${url#*/*/}" ] || return 1
+  printf '%s\n' "${url%/}"
 }
 
 read_failed_log() { # $1 repo, $2 job id: the raw log lines
@@ -84,7 +96,7 @@ named_files() { # stdin: the excerpt's lines; $1 tree: prints one file=<path> pe
 }
 
 main() {
-  local parsed repo run job log cut
+  local parsed repo run job log cut base
   if [ "$#" -ne 2 ]; then
     echo "usage: pr-log.sh <link> <tree>" >&2
     exit 2
@@ -99,6 +111,14 @@ main() {
     exit 1
   fi
   read -r repo run job <<<"$parsed"
+  base="$(read_base_repo "$2")" || {
+    echo "pr-log.sh: cannot read the pull request's repository" >&2
+    exit 1
+  }
+  if [ "${repo,,}" != "${base,,}" ]; then
+    echo "pr-log.sh: the link is to $repo, not the pull request's repository $base: $1" >&2
+    exit 3
+  fi
   if ! log="$(read_failed_log "$repo" "$job")"; then
     echo "pr-log.sh: gh could not read the log of job $job" >&2
     exit 1
