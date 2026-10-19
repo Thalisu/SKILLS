@@ -178,8 +178,10 @@ the checks: a display read mid-run can show green while a check is still running
   run goes on to step 5, the Reply, as on green: the wait is the developer's to clear, not a stop.
 - `verdict=red`, when this run has pushed no round yet: a check failed. The run goes on to step 4,
   Fix the red checks, carrying the verdict's `head=`, `sha=` and `red=` lines as they stand.
-- `verdict=red` after step 4 has pushed a round: the run stops with one line quoting the names on
-  the verdict's `red=` lines, and follows nothing: one round per run until a round cap exists.
+- `verdict=red` after step 4 has pushed a round, while fewer than three rounds have pushed: a check
+  is still red. The run goes on to step 4, Fix the red checks, for the next round, carrying the
+  verdict's `head=`, `sha=` and `red=` lines as they stand, the checks still red. A round counts by
+  the push it ends in, so a redone round counts once.
 - `verdict=conflict`: the pull request conflicts with its base. The run stops with exactly one line,
   `Yours: direction: <head> conflicts with <base>; the owner of <head> rebases it onto <base>, then /do the pull request again`,
   taking `<head>` and `<base>` from the verdict's `head=` and `base=` lines, never from the
@@ -198,8 +200,8 @@ the checks: a display read mid-run can show green while a check is still running
 The verdict line of each call, in order, is recorded for the Run report's Run section, which is
 written under `--auto` only, per [reply.md](reply.md): the round is never a section of the Reply.
 
-Done when the watch has printed `verdict=green` or `verdict=awaiting-approval`, or `verdict=red` on
-a run that has pushed no round yet, after as many `pending` calls as the checks took.
+Done when the watch has printed `verdict=green` or `verdict=awaiting-approval`, or `verdict=red` while
+fewer than three rounds have pushed, after as many `pending` calls as the checks took.
 
 ### 4. Fix the red checks
 
