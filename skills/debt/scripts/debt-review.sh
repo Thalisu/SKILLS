@@ -6,8 +6,8 @@
 #                                          one item-<k>.md return per gathered item k
 #
 # Runs gather.sh for the slug, reads each return (Source, Axis, Location, Claim, Evidence, Rung,
-# optional Risk, then either Fix and Small, or the single line Refuted by, one key per line, in
-# that order) and writes <Spec stem>.debt.review.md beside the Spec, with the Buckets Act on,
+# optional Risk, then either Fix and Small, or the single line Refuted by or Outside code, one key
+# per line, in that order) and writes <Spec stem>.debt.review.md beside the Spec, with the Buckets Act on,
 # Consider, Noted and Cleared, each holding its Findings or none. Findings are numbered from 1
 # across the file in reading order: Act on, Consider, Noted, Cleared.
 #
@@ -23,6 +23,9 @@
 #   with the evaluator's own evidence and Refuted by in place of Fix. At Rung 1 or 2 it is a Finding
 #   under Consider, the refutation in its evidence ("; refuted only at Rung <r>: <Refuted by>") and
 #   the last line "Fix: judge the item by hand, in <file>".
+# - A return ending on Outside code (no Fix, no Small) at Rung 3 or above is a Finding under Noted,
+#   with the evaluator's own evidence and the last line "Fix: <the Outside code value>". At Rung 1
+#   or 2 it is a Finding under Consider with the same last line.
 # - An item whose return is missing or empty is a Finding under Consider with the evidence
 #   "the evaluator did not return".
 # - A non-empty return is first checked against the shape (the keys in order, Source equal to the
@@ -121,16 +124,24 @@ read_return() { # $1 return file, $2 source: kind=returned|outside|missing, then
         ;;
     esac
   elif [ "$((n - i))" = 1 ]; then
-    ending=refuted
     case "$line" in
-      "Refuted by: "*) v="${line#"Refuted by: "}" ;;
+      "Refuted by: "*)
+        ending=refuted
+        v="${line#"Refuted by: "}"
+        k=refuted_by
+        ;;
+      "Outside code: "*)
+        ending=outside-code
+        v="${line#"Outside code: "}"
+        k=settles
+        ;;
       *) v="" ;;
     esac
     [ -n "$v" ] || {
       echo "kind=outside"
       return 0
     }
-    out+="refuted_by=$v"$'\n'
+    out+="$k=$v"$'\n'
   else
     echo "kind=outside"
     return 0
@@ -139,7 +150,7 @@ read_return() { # $1 return file, $2 source: kind=returned|outside|missing, then
 }
 
 place() { # $1 source, stdin: read_return's lines. Prints the Placement: bucket, rung, evidence, risk, last
-  local key val kind="" rung="" evidence="" risk="" fix="" small="" refuted="" ending="" file="${1%%, *}"
+  local key val kind="" rung="" evidence="" risk="" fix="" small="" refuted="" settles="" ending="" file="${1%%, *}"
   while IFS= read -r line; do
     key="${line%%=*}" val="${line#*=}"
     case "$key" in
@@ -150,6 +161,7 @@ place() { # $1 source, stdin: read_return's lines. Prints the Placement: bucket,
       fix) fix="$val" ;;
       small) small="$val" ;;
       refuted_by) refuted="$val" ;;
+      settles) settles="$val" ;;
       ending) ending="$val" ;;
     esac
   done
@@ -169,6 +181,8 @@ place() { # $1 source, stdin: read_return's lines. Prints the Placement: bucket,
   fi
   if [ "$ending" = refuted ]; then
     printf 'bucket=Cleared\n'
+  elif [ "$ending" = outside-code ] && [ "$rung" -ge 3 ]; then
+    printf 'bucket=Noted\n'
   elif [ "$small" = yes ] && [ "$rung" -ge 3 ]; then
     printf 'bucket=Act on\n'
   else
@@ -176,7 +190,11 @@ place() { # $1 source, stdin: read_return's lines. Prints the Placement: bucket,
   fi
   printf 'rung=%s\nevidence=%s\n' "$rung" "$evidence"
   [ -z "$risk" ] || printf 'risk=%s\n' "$risk"
-  if [ "$ending" = refuted ]; then printf 'last=Refuted by: %s\n' "$refuted"; else printf 'last=Fix: %s\n' "$fix"; fi
+  case "$ending" in
+    refuted) printf 'last=Refuted by: %s\n' "$refuted" ;;
+    outside-code) printf 'last=Fix: %s\n' "$settles" ;;
+    *) printf 'last=Fix: %s\n' "$fix" ;;
+  esac
 }
 
 unreturned_heading() { # $1 text, $2 source file: the heading of an item with no usable return

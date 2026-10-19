@@ -448,6 +448,7 @@ cat >"$cleared_feature/issues/01-a.debt.md" <<'EOF'
 
 - summary breaks on the new page signature
 - the page size is parsed twice
+- the consumer flows were not run against the new page signature
 EOF
 commit "seed the cleared feature"
 cleared_source_of() { # $1 item number: its source, as gather.sh records it, on stdout
@@ -456,8 +457,9 @@ cleared_source_of() { # $1 item number: its source, as gather.sh records it, on 
 }
 cleared_source="$(cleared_source_of 1)"
 weak_source="$(cleared_source_of 2)"
-if [ -z "$cleared_source" ] || [ -z "$weak_source" ]; then
-  echo "FAIL  fixture: gather.sh named no source for the cleared-debt items 1 and 2"
+outside_source="$(cleared_source_of 3)"
+if [ -z "$cleared_source" ] || [ -z "$weak_source" ] || [ -z "$outside_source" ]; then
+  echo "FAIL  fixture: gather.sh named no source for the cleared-debt items 1 to 3"
   exit 1
 fi
 cleared_returns="$tmp/cleared-returns"
@@ -479,6 +481,15 @@ Claim: the page size is parsed twice.
 Evidence: an earlier note says the parser runs on each call
 Rung: 2
 Refuted by: src/report.sh:12 keeps the parsed size, read from the source.
+EOF
+cat >"$cleared_returns/item-3.md" <<EOF
+Source: $outside_source
+Axis: Blast radius
+Location: src/report.sh:3
+Claim: the report's consumers were not run against the new page signature.
+Evidence: the consumer's notes app calls summary with the old argument order, read from its source; no flow of it ran.
+Rung: 3
+Outside code: the consumer flows run against this branch, in the consumer's repository
 EOF
 cleared_review="$cleared_feature/spec.debt.review.md"
 rc=0
@@ -516,6 +527,22 @@ check_absent "an item refuted only at Rung 2 stays out of Cleared" 0 "$cleared_r
 # shellcheck disable=SC2034  # lib.sh's check_absent reads $out
 out="$(grep -qx '## Consider' "$cleared_review" 2>/dev/null && passage_of "$cleared_review" "## Act on" "## Consider")"
 check_absent "an item refuted only at Rung 2 stays out of Act on" 0 "$cleared_rc" "the page size is parsed twice"
+
+# shellcheck disable=SC2034  # lib.sh's check_lines reads $out
+out="$(grep -qx '## Cleared' "$cleared_review" 2>/dev/null &&
+  item_holding <(passage_of "$cleared_review" "## Noted" "## Cleared") '### [0-9]+\.' "Claim: the report's consumers")"
+check_lines "an item found real at Rung 3 or above that no code settles is a Finding under Noted, its Fix naming what settles it" 0 "$cleared_rc" \
+  "Claim: the report's consumers were not run against the new page signature." \
+  "Evidence: the consumer's notes app calls summary with the old argument order, read from its source; no flow of it ran." \
+  "Rung: 3" \
+  "Fix: the consumer flows run against this branch, in the consumer's repository" \
+  "Source: $outside_source"
+expect "an item that no code settles keeps its own Axis and Location in its heading under Noted" \
+  grep -qxE '### [0-9]+\. Blast radius at src/report\.sh:3' <<<"$out"
+# shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+out="$(grep -qx '## Noted' "$cleared_review" 2>/dev/null && passage_of "$cleared_review" "## Act on" "## Noted")"
+check_absent "an item that no code settles stays out of Act on and Consider" 0 "$cleared_rc" \
+  "the report's consumers were not run" "the consumer flows were not run"
 
 fresh idle
 idle="$(pwd -P)"
