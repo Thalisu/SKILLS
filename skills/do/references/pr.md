@@ -196,6 +196,13 @@ the checks: a display read mid-run can show green while a check is still running
   lines as they stand, the `<head>` of the stop line being the `head=` one. A run that has pushed
   no round yet has no earlier round to match, so it never takes this route.
   The match reads only the `pushed to` round lines, so a round that ended in a rerun never matches a check as reported fixed.
+- A check in the run's retry record whose name no `red=` line of the settled verdict carries, or
+  any check of the record on a `verdict=green` or `verdict=awaiting-approval`: that check is green
+  on its retry. The run writes `round <r>: <check> not reproduced locally, retried once, green`,
+  with `<r>` the round whose fixer returned `not reproduced` for it. That line settles the retry
+  once: a settled retry stays in the retry record, so it is never rerun again and gets no second
+  green line. It raises no stop and adds no `Yours:` line for it, and the verdict goes on by the
+  verdict's own route: green to step 5, red to the next round, and so on.
 - `verdict=red` with a `red=` name that is in the retry record: that check is red again on its
   retry. It never goes to step 4: no new round is started for it, no `do-pr-fixer` is forked for it
   again, and it gets no second rerun. This route is Ticket 15's slot; until Ticket 15 lands, the run
@@ -598,6 +605,7 @@ the whole message, and a green watch adds no part of its own:
       round <r>: <check> red; do-pr-fixer on <fixer branch>: not reproduced <k>: <command> <what it showed>; nothing pushed for it; retried by the run on <picked sha>
       round <r>: <check> red; do-pr-fixer on <fixer branch>: not reproduced <k>: <command> <what it showed>; nothing pushed for it; rerun <run id> attempt <n>
       round <r>: <check> red; do-pr-fixer on <fixer branch>: not reproduced <k>: <command> <what it showed>; nothing pushed for it; rerun <run id> refused: <reason>
+      round <r>: <check> not reproduced locally, retried once, green
       round <r>: nothing pushed; failed jobs rerun on run <run id>[, run <run id>...]; not counted toward the three pushed rounds
       round <r>: nothing rerun: <head> moved to <short sha> after the watch; the round is redone from the watch
       round <r>: after the push the watch read <verdict word>

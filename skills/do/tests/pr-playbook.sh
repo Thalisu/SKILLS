@@ -2779,5 +2779,43 @@ carries_each "the session's own reading of a check's log or excerpt never earns 
   "log" "excerpt" -- \
   "never" "no check" "nor " "not on" "does not" "doesn't"
 carries_any "there is no flake class" "flake" "flaky" "transient" "intermittent" "class"
+
+# The developer whose check flaked relies on a flake costing one rerun and no stop (Spec story 20):
+# a green retry read as a stop hands over a run that should have gone on, and a missing round line
+# hides that the check failed once and was retried. The route is read off the watch step's pieces
+# naming the retry record beside a green outcome, the came-back bullet passed over; the round line
+# off the Reply step's round templates, a line of its own or a code span.
+echo "# pr.md / ### 3. Watch and ### 5. Reply: a check in the retry record that the settled verdict no longer names red is green on its retry, written as its round line, with no stop and no Yours: line, and the verdict keeps its own route"
+watch="$(passage_of "$pr" "### 3. Watch" "##" 2>/dev/null)"
+flat="$(piece_all=1 piece_without="reported fixed that came back red" piece_with "retry record" |
+  grep -F "green" | tr '\n' ' ')"
+expect "a bullet or paragraph of the watch step routes a check in the retry record to green" test -n "$flat"
+carries_each "on a check in the retry record whose name no red= line of the settled verdict carries" \
+  "retry record" -- \
+  "red=" -- \
+  "absent from" "not on" "not among" "not in the" "no longer" "missing from" "not named" "names no" \
+  "no \`red=\` line" "no red= line" "carries no" "is not" "isn't" "none of"
+carries_any "or a verdict green or awaiting-approval" \
+  "awaiting-approval" "whatever the verdict" "whichever the verdict" "any settled verdict" \
+  "every settled verdict" "whatever verdict" "whichever verdict"
+carries "it writes the round line" "round <r>: <check> not reproduced locally, retried once, green"
+carries_any "it raises no stop" \
+  "no stop" "not a stop" "never a stop" "never stops" "does not stop" "doesn't stop" "without a stop" \
+  "without stopping" "not stop" "stops nothing" "is no stop-case" "not a stop-case" "never a stop-case"
+carries_each "and adds no Yours: line for it" \
+  "Yours:" -- \
+  "no \`Yours:" "no Yours:" "adds no" "writes no" "never adds" "never writes" "without a \`Yours:" \
+  "without a Yours:" "without any \`Yours:" "nor a \`Yours:" "nor a Yours:" "no line \`Yours:"
+carries_any "the run goes on by the verdict's own route" \
+  "its own route" "the verdict's own route" "the verdict's route" "by its route" "routes as" \
+  "as the verdict routes" "by the verdict's" "the verdict keeps" "goes on by" "goes on as" \
+  "as it would" "the route the verdict" "its own bullet" "the verdict's bullet"
+reply_step="$(passage_of "$pr" "### 5. Reply" "##" 2>/dev/null)"
+templates="$(
+  sed 's/^[[:space:]]*//' <<<"$reply_step" | grep '^round <r>:'
+  tr '\n' ' ' <<<"$reply_step" | tr -s ' ' | grep -oE '`round <r>:[^`]*`' | tr -d '`'
+)"
+out="$(grep -xF "round <r>: <check> not reproduced locally, retried once, green" <<<"$templates")"
+expect "a check green on its retry has its own round line in the Reply's round templates" test -n "$out"
 [ "$fails" -eq 0 ] && exit 0
 exit 1
