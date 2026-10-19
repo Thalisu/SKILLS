@@ -10,7 +10,8 @@
 #
 # Prints key=value lines, verdict first: verdict=green, checks=<n> (0 once no check registered inside
 # DO_PR_WATCH_REGISTER_SECONDS, default 120) | verdict=pending, since=<epoch>,
-# state=<token> | verdict=awaiting-approval, checks=<n> | verdict=conflict, head=<head branch>,
+# state=<token> | verdict=awaiting-approval, checks=<n> | verdict=draft, checks=<n> (every check
+# passed on a draft pull request, which cannot merge until marked ready) | verdict=conflict, head=<head branch>,
 # base=<base branch> | verdict=red, head=<head branch>, sha=<head commit>, then one
 # red=<link> <name> line per failed check | verdict=stalled, then one pending=<check name> line per
 # pending check. Later verdict words and keys append; a reader ignores keys it does not know.
@@ -52,15 +53,16 @@ fingerprint() { # stdin: read_checks lines: prints the state token (bucket and n
   sed 's/^\([^ ]*\) [^ ]* /\1 /' | LC_ALL=C sort | cksum | tr ' ' '-'
 }
 
-read_pull() { # $1 pr: prints "<merge state> <mergeable> <review decision> <head> <base> <sha>", states lowercased, an absent or empty field as none; 1 on a read failure
-  gh pr view "$1" --json mergeStateStatus,mergeable,reviewDecision,headRefName,baseRefName,headRefOid --jq '
+read_pull() { # $1 pr: prints "<merge state> <mergeable> <review decision> <head> <base> <sha> <draft>", states lowercased, an absent or empty field as none, draft as true or false; 1 on a read failure
+  gh pr view "$1" --json mergeStateStatus,mergeable,reviewDecision,headRefName,baseRefName,headRefOid,isDraft --jq '
     def field: if . == null or . == "" then "none" else . end;
     [(.mergeStateStatus | field | ascii_downcase), (.mergeable | field | ascii_downcase),
-      (.reviewDecision | field | ascii_downcase), (.headRefName | field), (.baseRefName | field), (.headRefOid | field)]
+      (.reviewDecision | field | ascii_downcase), (.headRefName | field), (.baseRefName | field), (.headRefOid | field),
+      (.isDraft // false | tostring)]
     | join(" ")'
 }
 
-classify() { # $1 read_checks lines, $2 merge state, $3 mergeable, $4 review decision: prints conflict|red|green|settling|awaiting-approval|wait, or exits 3 with its stderr line
+classify() { # $1 read_checks lines, $2 merge state, $3 mergeable, $4 review decision, $5 draft: prints conflict|red|green|settling|awaiting-approval|draft|wait, or exits 3 with its stderr line
   local bucket link name
   if [ "$3" = conflicting ] || [ "$2" = dirty ]; then
     echo conflict
@@ -83,6 +85,10 @@ classify() { # $1 read_checks lines, $2 merge state, $3 mergeable, $4 review dec
         ;;
     esac
   done <<<"$1"
+  if [ "$5" = true ] && [ "$2" != unknown ]; then
+    echo draft
+    return
+  fi
   case "$2" in
     clean | has_hooks)
       if [ -n "$1" ]; then echo green; else echo settling; fi
@@ -103,12 +109,12 @@ classify() { # $1 read_checks lines, $2 merge state, $3 mergeable, $4 review dec
   esac
 }
 
-read_once() { # $1 pr: sets checks, the pull fields and result (conflict|green|settling|awaiting-approval|wait); exits 1 on a read failure, 3 as classify does
-  merge="" mergeable="" review="" head="" base="" sha=""
+read_once() { # $1 pr: sets checks, the pull fields and result (conflict|green|settling|awaiting-approval|draft|wait); exits 1 on a read failure, 3 as classify does
+  merge="" mergeable="" review="" head="" base="" sha="" draft=""
   checks="$(read_checks "$1")" || exit 1
-  read -r merge mergeable review head base sha <<<"$(read_pull "$1")"
+  read -r merge mergeable review head base sha draft <<<"$(read_pull "$1")"
   [ -n "$merge" ] || exit 1
-  result="$(classify "$checks" "$merge" "$mergeable" "$review")" || exit "$?"
+  result="$(classify "$checks" "$merge" "$mergeable" "$review" "$draft")" || exit "$?"
 }
 
 keep_window() { # after a wait or settling read: keeps since and state while the checks are unchanged, restarts them otherwise; sets result to stalled once a pending check sat unchanged for stall_seconds, to green once no check appeared for register_seconds
@@ -142,7 +148,7 @@ main() {
     echo "pr-watch.sh: gh not found" >&2
     exit 1
   }
-  local checks merge mergeable review head base sha result count remaining
+  local checks merge mergeable review head base sha draft result count remaining
   read_once "$1"
   holding && keep_window
   while holding; do

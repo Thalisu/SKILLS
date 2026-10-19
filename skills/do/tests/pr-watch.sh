@@ -129,6 +129,20 @@ same "every check passed and only a required review blocks the merge: the watch 
   "verdict=awaiting-approval"$'\n'"checks=2"
 expect "a pull request awaiting approval is a verdict printed: the watch exits 0" [ "$rc" = 0 ]
 
+serve 42 BLOCKED '[{"name":"build","bucket":"pass"},{"name":"test","bucket":"pass"}]'
+echo '{"mergeStateStatus":"BLOCKED","mergeable":"MERGEABLE","reviewDecision":"REVIEW_REQUIRED","isDraft":true,"headRefName":"feature/login","baseRefName":"main"}' >"$GH_FAKE/view"
+run 42
+same "a draft pull request with every check passed and a required review pending: the watch returns verdict=draft with its check count, not verdict=awaiting-approval" \
+  "verdict=draft"$'\n'"checks=2"
+expect "a draft pull request blocked on a required review is a verdict printed: the watch exits 0" [ "$rc" = 0 ]
+
+serve 42 CLEAN '[{"name":"build","bucket":"pass"},{"name":"test","bucket":"pass"}]'
+echo '{"mergeStateStatus":"CLEAN","mergeable":"MERGEABLE","isDraft":true,"headRefName":"feature/login","baseRefName":"main"}' >"$GH_FAKE/view"
+run 42
+same "a draft pull request with every check passed and a clean merge state: the watch returns verdict=draft with its check count, not verdict=green" \
+  "verdict=draft"$'\n'"checks=2"
+expect "a clean draft pull request is a verdict printed: the watch exits 0" [ "$rc" = 0 ]
+
 for review in APPROVED CHANGES_REQUESTED; do
   serve 42 BLOCKED '[{"name":"build","bucket":"pass"},{"name":"test","bucket":"pass"}]'
   printf '{"mergeStateStatus":"BLOCKED","mergeable":"MERGEABLE","reviewDecision":"%s","headRefName":"feature/login","baseRefName":"main"}\n' "$review" >"$GH_FAKE/view"
