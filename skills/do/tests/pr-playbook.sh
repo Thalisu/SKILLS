@@ -2196,6 +2196,26 @@ out="$(sed 's/^[[:space:]]*//' <<<"$reply_step")"
 check_lines "the Reply step's round line for a stale check names its files, the base and the merge base, and no fixer forked, as a whole line" 0 0 \
   'round <r>: <check> red; stale base: <path>[, <path>...] not changed by this pull request against <base> at <merge base short sha>; no fixer forked'
 
+# A stale check beside a real one that its fixer fixes cleanly must not cost the developer that fix:
+# a run that stopped on classifying the stale check would drop a pick the round could push. The
+# going-on is read off the classify item's sentences naming the stale check, the route off the step's
+# paragraphs naming the `stale-base` entry that take a round with a pick.
+echo "# pr.md / ### 4. Fix the red checks: a stale-base entry leaves the round going, so the real checks' clean picks are pushed and watched once more before the run stops on it"
+flat="$(tr '\n' ' ' <<<"$classify_item" | tr -s ' ' | sed 's/\. /.\n/g' | grep -F "stale" | tr '\n' ' ')"
+expect "a sentence of the classify item names the stale checks" test -n "$flat"
+carries_any "classifying a check stale leaves the round going: the real checks' Waves still run" \
+  "round goes on" "round going" "round keeps going" "round continues" "round runs on" "Waves still run" \
+  "Waves run all the same" "Waves run as usual" "Waves still go" "real checks still run" \
+  "real checks' Waves run" "real checks' Waves still run" "Waves of the real checks still run"
+flat="$(piece_in="$step" piece_all=1 piece_with "stale-base" | grep -E "pick" | tr '\n' ' ')"
+expect "a paragraph of the step naming the \`stale-base\` entry takes a round where a check was picked" \
+  test -n "$flat"
+affirms "the clean picks of that round are pushed" "picks" "picked" "pick" -- "pushed" "push"
+affirms "the run watches the checks once more" "watch"
+carries_any "and stops on the \`stale-base\` entry the stop set carried" \
+  "carrying the stop set" "carries the stop set" "stop set carried" "keeps the stop set" "stops on" \
+  "stop on" "the run stops" "then stops" "only then stops"
+
 # A check two Waves fought over needs one more round, and the next round takes it again: read as a
 # fixer's `not fixed`, its `not fixed: conflicted with ...` line would stop a run that round closes.
 # Sub-item c keeps the session's own `not fixed` line out of the stop set already, so the guarantee

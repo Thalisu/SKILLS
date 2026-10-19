@@ -270,8 +270,9 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    and `merge-base=` (kept for the round lines), then `real <k>`, or one `stale <k> <path>` line per
    file. A check it printed `stale` for gets no `do-pr-fixer` and never enters a Wave. It adds one
    `stale-base` entry to the round's stop set, holding every path its `stale` lines name, as a
-   stop-case like the others. On its `failed: <reason>` line, exit 1, the script has also printed
-   `real <k>` for every check, so the run writes
+   stop-case like the others. A stale classification leaves the round going: the real checks'
+   Waves still run. On its `failed: <reason>` line, exit 1, the script has also printed `real <k>`
+   for every check, so the run writes
    `round <r>: no check classified, each sent to its fixer: <reason>` and every check goes on as
    real. On exit 2 (usage) every check counts as real too and the run writes
    `round <r>: no check classified, each sent to its fixer: the classifier refused its arguments`.
@@ -419,11 +420,11 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
 
        Yours: direction: <head> moved again during the redone round; the fix commits <kept sha>, ... are kept in <run tree>; bring them onto <head> yourself or drop them, then /do the pull request again
 
-   When at least one check was picked and the round's stop set holds a stop-case, the clean picks
-   are still fetched and pushed by fast-forward, as for any round. The stop-case's commit was never
-   picked, so nothing of it is pushed. The run goes back to step 3's watch carrying the stop set. A
-   redone round, on a moved remote, keeps the stop set and forks no `do-pr-fixer` again for its
-   checks.
+   When at least one check was picked and the round's stop set holds a stop-case, a `stale-base`
+   entry included, the clean picks are still fetched and pushed by fast-forward, as for any round.
+   The stop-case's commit was never picked, so nothing of it is pushed. The run goes back to step
+   3's watch carrying the stop set. A redone round, on a moved remote, keeps the stop set and forks
+   no `do-pr-fixer` again for its checks.
 
    When no check was picked and the round's stop set holds a stop-case, nothing is pushed: remove
    `<run tree>`, then the run stops with exactly one `Yours: direction:` line holding one clause per
