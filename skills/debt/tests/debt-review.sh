@@ -22,6 +22,7 @@ cat >"$feature/issues/01-a.debt.md" <<'EOF'
 
 - the retry budget is hardcoded
 - the cache key ignores the locale
+- the error path is never logged
 EOF
 commit "seed the feature"
 
@@ -37,8 +38,9 @@ source_of() { # $1 item number: its source, as gather.sh records it, on stdout
 }
 first="$(source_of 1)"
 second="$(source_of 2)"
-if [ -z "$first" ] || [ -z "$second" ]; then
-  echo "FAIL  fixture: gather.sh named no source for items 1 and 2"
+third="$(source_of 3)"
+if [ -z "$first" ] || [ -z "$second" ] || [ -z "$third" ]; then
+  echo "FAIL  fixture: gather.sh named no source for items 1, 2 and 3"
   exit 1
 fi
 
@@ -64,6 +66,16 @@ Rung: 4
 Fix: the cache key carries the locale, in src/b.sh
 Small: yes
 EOF
+cat >"$returns/item-3.md" <<EOF
+Source: $third
+Axis: Blast radius
+Location: src/c.sh:4
+Claim: the error path is never logged.
+Evidence: an earlier agent's note says so; no run reached the error path.
+Rung: 2
+Fix: the error path logs before it returns, in src/c.sh
+Small: yes
+EOF
 
 run pending-debt-review "$returns"
 review="$feature/spec.debt.review.md"
@@ -72,5 +84,15 @@ out="$(grep -qx '## Consider' "$review" 2>/dev/null && passage_of "$review" "## 
 check "a proven, small item at Rung 3 or 4 is a Finding under Act on, before Consider" 0 "$rc" \
   ". Standards at src/a.sh:1" "Claim: the retry budget is hardcoded at three." \
   ". Correctness at src/b.sh:7" "Claim: two locales share one cache entry."
+
+# shellcheck disable=SC2034  # lib.sh's check reads $out
+out="$(grep -qx '## Noted' "$review" 2>/dev/null && passage_of "$review" "## Consider" "## Noted")"
+check "an unproven item at Rung 2 is a Finding under Consider, with the evaluator's own evidence" 0 "$rc" \
+  ". Blast radius at src/c.sh:4" "Claim: the error path is never logged." \
+  "Evidence: an earlier agent's note says so; no run reached the error path."
+# shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+out="$(grep -qx '## Consider' "$review" 2>/dev/null && passage_of "$review" "## Act on" "## Consider")"
+check_absent "an unproven item at Rung 2 stays out of Act on, even when small" 0 "$rc" \
+  ". Blast radius at src/c.sh:4" "Claim: the error path is never logged."
 
 exit "$fails"
