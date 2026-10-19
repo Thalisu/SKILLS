@@ -2596,5 +2596,36 @@ carries_each "never named under outward, never handed over on a Yours: line" \
   "outward" -- \
   "Yours:" -- \
   "never" "not"
+
+# The developer whose pull request needs three rounds of fixes beside a flake relies on a rerun
+# counting nothing toward the three-round cap: a rerun counted as a round stops the run one round
+# early, with a check still red that a third round would have fixed. The cap counts the rounds whose
+# round lines read `pushed to <head>`, and the came-back match reads those lines alone, so a rerun
+# round's lines never match as a check reported fixed. Both are read off the sentences of the watch
+# step that carry them.
+echo "# pr.md / ### 3. Watch: a round that ended in a rerun is not a pushed round and counts nothing toward the three-round cap; the cap and the came-back match read only the pushed to round lines"
+watch="$(passage_of "$pr" "### 3. Watch" "##" 2>/dev/null)"
+sentences="$(tr '\n' ' ' <<<"$watch" | tr -s ' ' | sed 's/\. /.\n/g')"
+flat="$(grep -F -e "rerun" -e "reran" <<<"$sentences" | tr '\n' ' ')"
+expect "a sentence of the watch step names a rerun" test -n "$flat"
+carries_each "a round that ended in a rerun is not a pushed round and counts nothing toward the three-round cap" \
+  "round" -- \
+  "not a pushed round" "no pushed round" "never a pushed round" "counts nothing" "counts for nothing" \
+  "counts toward none" "counts towards none" "not counted" "never counted" "never counts" "does not count" \
+  "doesn't count" "counts no" -- \
+  "three" "cap"
+flat="$(grep -F "pushed to" <<<"$sentences" | grep -F -e "three" -e "cap" | tr '\n' ' ')"
+expect "a sentence of the watch step ties the three-round cap to the \`pushed to\` round lines" test -n "$flat"
+carries_any "the cap counts only the rounds whose round lines read \`pushed to <head>\`" \
+  "only" "alone" "nothing but" "just" "counts by" "count by" "counted by"
+flat="$(piece_all=1 piece_with "${came_back[@]}" | tr '\n' ' ' | tr -s ' ' | sed 's/\. /.\n/g' |
+  grep -F -e "rerun" -e "reran" | tr '\n' ' ')"
+expect "a sentence of the came-back piece names a rerun round" test -n "$flat"
+carries_each "the came-back match reads only \`pushed to\` round lines, so a rerun round's lines never match as a check reported fixed" \
+  "pushed to" -- \
+  "only" "alone" "nothing but" "never" "not" -- \
+  "never match" "never matches" "does not match" "do not match" "doesn't match" "don't match" \
+  "not matched" "never matched" "no match" "never read" "not read" "passes over" "pass over" "skips" \
+  "ignores" "never a check reported fixed" "not a check reported fixed" "never reports" "never count"
 [ "$fails" -eq 0 ] && exit 0
 exit 1

@@ -195,6 +195,7 @@ the checks: a display read mid-run can show green while a check is still running
   next round is started. The match is by name, and it reads the verdict's `head=`, `sha=` and `red=`
   lines as they stand, the `<head>` of the stop line being the `head=` one. A run that has pushed
   no round yet has no earlier round to match, so it never takes this route.
+  The match reads only the `pushed to` round lines, so a round that ended in a rerun never matches a check as reported fixed.
 - After a pushed round that carries a stop set holding a stop-case (raised in step 4 while some other
   check was picked), whatever the verdict: the run watches once more, after the `pending` calls it
   takes, and stops on whatever verdict the watch settles on, green included. This route comes first,
@@ -206,13 +207,13 @@ the checks: a display read mid-run can show green while a check is still running
 - `verdict=red` after step 4 has pushed a round, while fewer than three rounds have pushed: a check
   is still red. The run goes on to step 4, Fix the red checks, for the next round, carrying the
   verdict's `head=`, `sha=` and `red=` lines as they stand, the checks still red. A round counts by
-  the push it ends in, so a redone round counts once.
+  the push it ends in, so a redone round counts once. The cap counts only the rounds whose round lines read `pushed to <head>`, and a round that ended in a rerun pushed nothing, so it is not a pushed round and counts nothing toward the three-round cap.
 - `verdict=red` after the third pushed round: three rounds of pushes did not reach green. The run
   stops with exactly one line,
   `Yours: direction: <the checks still red> stayed red after three pushed rounds; fix them by hand or leave the pull request as it is, then /do the pull request again`,
   where `<the checks still red>` is the verdict's `red=` names, in the order printed, joined with
   `, `. The run starts no fourth round: it forks no do-pr-fixer for it, and nothing more is
-  pushed. A round counts by the push it ends in, so a redone round counts once.
+  pushed. A round counts by the push it ends in, so a redone round counts once. The cap counts only the rounds whose round lines read `pushed to <head>`, and a round that ended in a rerun pushed nothing, so it is not a pushed round and counts nothing toward the three-round cap.
 - `verdict=conflict`: the pull request conflicts with its base. The run stops with exactly one line,
   `Yours: direction: <head> conflicts with <base>; the owner of <head> rebases it onto <base>, then /do the pull request again`,
   taking `<head>` and `<base>` from the verdict's `head=` and `base=` lines, never from the
