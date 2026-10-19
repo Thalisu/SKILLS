@@ -243,6 +243,36 @@ carries_any "and follows nothing: no watch, no worktree, no push, no file writte
   "no step after" "no later step" "no further step" "runs nothing else" "nothing else runs" "does nothing else" \
   "same stop" "the same way"
 
+# A pull request whose head lives in a fork runs checks on a stranger's code: followed, the log that
+# stranger's code wrote reaches a do-pr-fixer that holds write tools. The `--json` paragraph names
+# `isCrossRepository` too, so the stop's properties are read off the other paragraph that names it.
+echo "# pr.md / ### 2. Read-back: a pull request whose head lives in a fork stops the run with one line on Playbook: pr, following nothing"
+read_back="$(passage_of "$pr" "### 2. Read-back" "##" 2>/dev/null)"
+flat="$(tr '\n' ' ' <<<"$read_back" | tr -s ' ')"
+expect "the read-back asks \`gh pr view\` for \`isCrossRepository\`" test -n \
+  "$(grep -oE 'gh pr view [^`]*--json [A-Za-z,]*isCrossRepository' <<<"$flat")"
+expect "the read-back asks \`gh pr view\` for \`headRepositoryOwner\`" test -n \
+  "$(grep -oE 'gh pr view [^`]*--json [A-Za-z,]*headRepositoryOwner' <<<"$flat")"
+flat="$(awk 'BEGIN { RS = "" } index($0, "isCrossRepository") && !index($0, "--json") { gsub(/\n/, " "); print; exit }' <<<"$read_back" | tr -s ' ')"
+expect "the read-back has a paragraph on an \`isCrossRepository\` pull request, apart from the \`--json\` one" test -n "$flat"
+carries_each "an \`isCrossRepository\` that reads true stops the run" \
+  "isCrossRepository" -- "true" -- "stops" "stop" "ends the run" "the run ends"
+carries_each "the stop is one line naming the fork by its owner" \
+  "fork" -- "owner" "headRepositoryOwner" -- \
+  "one line" "One line" "single line" "a line naming" "a line that names"
+carries_any "the stop names the pr Playbook on its first line" \
+  "\`Playbook: pr\` on its first line" "\`Playbook: pr\` on the first line" "opens with \`Playbook: pr\`" \
+  "same stop" "the same way" "as when \`gh pr view\` fails" "as for a pull request"
+carries_any "with no \`Yours:\` line" \
+  "no \`Yours:\`" "No \`Yours:\`" "without a \`Yours:\`" "without the \`Yours:\`" "never a \`Yours:\`" \
+  "not a \`Yours:\`" "no Yours:" "without a Yours:" "same stop" "the same way"
+carries_any "and follows nothing: no watch, no worktree, no push, no file written" \
+  "follows nothing" "nothing is followed" "nothing followed" "follows none" "follows no step" \
+  "no step after" "no later step" "no further step" "runs nothing else" "nothing else runs" "does nothing else" \
+  "same stop" "the same way"
+carries_any "and forks no fixer, so the fork's log reaches no write tool" \
+  "no fixer" "no \`do-pr-fixer\`" "no do-pr-fixer" "forks no" "never forks" "nothing forked" "no fork of"
+
 # `gh auth status` passes on a CLI logged in to one host while `gh pr view` fails on a URL of another
 # host it holds no login for: read as unopenable, the stop sends the developer to check the number
 # and the URL instead of logging in. The step 1 paragraph already names `gh auth login`, so the

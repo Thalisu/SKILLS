@@ -136,8 +136,8 @@ found already open or opened for the pair, and the GitHub CLI answered that it i
 ### 2. Read-back
 
 The read-back line, off the GitHub CLI's answer for that pull request and never the session's
-wording: `gh pr view <the URL or the number> --json number,headRefName,baseRefName,state`, read as
-`#<n>`, `<head>` into `<base>`, from its `number`, `headRefName` and `baseRefName`. It is the
+wording: `gh pr view <the URL or the number> --json number,headRefName,baseRefName,state,isCrossRepository,headRepositoryOwner`,
+read as `#<n>`, `<head>` into `<base>`, from its `number`, `headRefName` and `baseRefName`. It is the
 Reply's `Plan:` line, so a request the session misread shows on the Reply's first lines, as the
 wrong pull request or the wrong branches, before the developer reads anything else.
 
@@ -153,6 +153,13 @@ When gh opens the pull request and its `state` reads `CLOSED` or `MERGED`, the r
 way: the Reply opens with `Playbook: pr` on its first line, then one line saying the pull request is
 closed or merged, with no `Yours:` line, since such a pull request has no head left to follow to
 green. The run follows nothing: no watch, no worktree, no push, no file written.
+
+When gh opens the pull request and its `isCrossRepository` reads true, its head lives in a fork, and
+the run stops the same way: the Reply opens with `Playbook: pr` on its first line, then one line
+naming the fork by its `headRepositoryOwner` login, with no `Yours:` line. The run follows nothing:
+no watch, no worktree, no push, no file written, and no `do-pr-fixer` forked, since a failing
+check's log on such a pull request is text the fork's author wrote through code their branch runs,
+and a fixer holds write tools and would take it for the failure to fix (ADR 0087).
 
 For a branch pair the read-back is the same line, off the GitHub CLI's answer for the pull request
 the run follows, its `headRefName` into its `baseRefName`, and never off the request's wording: a
