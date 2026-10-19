@@ -45,6 +45,13 @@ developer's uncommitted work and the call refuses. The Review the caller named g
 as `--review <the Review's location>`, since a Spec of a feature across repositories holds one
 Review per repository and the door would otherwise spare the Spec's own name alone.
 
+A Debt review, the Review beside the Spec (`spec.debt.review.md`) written by the judgment of a
+feature's Pending debt, per [`review-format.md`](../../../.agents/formats/review-format.md), is
+taken the same way. Its header reads `Spec: <path>`, so the call runs the door script with
+`--spec <that path>` and `--review <the Debt review's location>`, and `dirty=no` holds with only
+that Debt review untracked. A call with no `Caller:` line goes on to The Act on list and the Waves
+of The Fixer as it does for a reviewer's Review.
+
 Each is one line and the run stops there: no worktree, no Fixer, nothing is written, and the reply
 is that line alone. The clean check is the door script's `dirty=` line and never a bare status,
 because the Review the run is about to append to is untracked in most projects and a bare status

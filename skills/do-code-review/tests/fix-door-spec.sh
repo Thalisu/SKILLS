@@ -18,4 +18,13 @@ expect "fix.md carries a ## The door section" test -n "$flat"
 carries "a fix call on a Review whose header reads Spec: <path> runs the door script with --spec <that path> beside the short sha" \
   "--spec" "Spec:"
 
+# A Debt review sits beside its Spec as `spec.debt.review.md`, untracked like a reviewer's Review:
+# the debt skill's `fix` call on it is refused as uncommitted work unless the door is told both
+# the Spec and the Debt review, and with neither refusal it has to reach the Fixers.
+flat="$(paragraph_with <(passage_of "$refs/fix.md" "## The door" "## ") "Debt review")"
+expect "## The door names a Debt review" test -n "$flat"
+carries "a fix call on a Debt review runs the door script with its Spec: path as --spec and its location as --review" \
+  "--spec" "--review" "Spec:"
+carries_any "a fix call on a Debt review goes on to the Waves" "Wave" "Fixer"
+
 exit $((fails > 0))
