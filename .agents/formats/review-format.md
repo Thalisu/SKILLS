@@ -185,6 +185,11 @@ the line carries the reason and names no Shard, and it is an Axis that did not r
 - Spec: not run (<reason>)
 ```
 
+A Debt review keeps the six lines, each taken over its own Findings by their heading's Axis, its
+count and worst Finding or `0 findings`. It never carries `not run` on any line, since no reviewer
+was forked per Axis to fail to return, and the fix run's Green rule reads any `not run` as an Axis
+that did not run, so a Debt review carrying one could never land.
+
 After the Axes, when the scratch folder is not ignored by git, one line says the file shows up in
 `git status`.
 

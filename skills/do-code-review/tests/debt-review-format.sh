@@ -63,4 +63,11 @@ carries_each "naming the Debt file and its item" "Debt file" -- "item"
 carries_each "or the Review and its Finding number" "Review" -- \
   "Finding number" "Finding's number" "its number" "the number"
 
+echo "# review-format.md / ## Axes: a Debt review's Axis lines never carry not run, so a fix run can find it Green"
+flat="$(passage_of "$format" "## Axes" "## " | units_of | grep -F "Debt review" | tr '\n' ' ')"
+expect "the Axes section says what a Debt review's Axis lines carry" test -n "$flat"
+carries "the rule is about the not run marker" "not run"
+carries_any "and a Debt review's lines never carry it" \
+  "never carr" "never read" "never say" "carries no" "carry no" "no line" "none of" "without"
+
 exit $((fails > 0))
