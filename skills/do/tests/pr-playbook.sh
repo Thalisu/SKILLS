@@ -1153,6 +1153,23 @@ carries_each "that one call waits on every return file of the Wave" \
   "all the Wave's return files" "every return file in the Wave" "return files of the Wave" \
   "every return file of that Wave" "return files of that Wave"
 
+# A check that fails on a timeout or a crashed runner names no file in its log, so its fix may touch
+# any file and would collide with a fixer beside it. Item 4 already says "a tab" and "Wave" for every
+# check, so both guarantees are read off the paragraph about the check with no `file=` line alone.
+echo "# pr.md / ### 4. Fix the red checks: a red check whose pr-log.sh output prints no file= line still goes to group-waves.sh as <k>, a tab and an empty field, and is forked in a Wave of its own"
+step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+flat="$(piece_in="$step" piece_with "no \`file=\`" "no file=" "without a \`file=\`" "without \`file=\`" \
+  "names no file" "no file")"
+expect "a paragraph of the step is about the check with no \`file=\` line" test -n "$flat"
+carries_each "its record still goes in, written as \`<k>\`, a tab and an empty field after it" \
+  "<k>" -- \
+  "a tab" "TAB" "\\t" "tab character" -- \
+  "empty field" "empty files field" "empty \`file=\` field" "field empty" "nothing after the tab" \
+  "nothing after it" "empty after the tab" "an empty one"
+carries_any "group-waves.sh puts that check in a Wave of its own, sharing none with another check" \
+  "Wave of its own" "its own Wave" "a Wave alone" "alone in a Wave" "alone in its Wave" \
+  "shares no Wave" "share no Wave" "sharing no Wave" "no other check in its Wave" "the only check in its Wave"
+
 # The developer may have the head checked out, dirty or on another branch: a round integrated in
 # their checkout moves their branch or mixes the run's commits with their work in progress. The
 # round is read off step 4 alone: `not fixed <k>:` already sits there, so the pick's trigger is

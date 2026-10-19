@@ -233,7 +233,10 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
 
 4. Group the checks into Waves. The run pipes one record per red check, in check order, to
    `bash <skill-dir>/../do-code-review/scripts/group-waves.sh`: `<k>`, a tab, then that check's
-   `file=` values from its `pr-log.sh` output (item 3) joined by spaces. Each printed
+   `file=` values from its `pr-log.sh` output (item 3) joined by spaces. A check whose `pr-log.sh`
+   output printed no `file=` line still goes in, its record `<k>` and a tab with an empty field
+   after it, and `group-waves.sh` puts it in a Wave of its own, sharing no Wave with another check,
+   since its fix may touch any file. Each printed
    `wave=<w> numbers=<k>[,<k>]...` line is one Wave, its numbers check numbers. Checks whose files
    are disjoint share a Wave and run at once, and a check that shares a file with an earlier check
    comes out in a later Wave and runs after it. Then each Wave, in the order printed:
