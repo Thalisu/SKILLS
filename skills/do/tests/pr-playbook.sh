@@ -2465,5 +2465,136 @@ out="$(grep -F "not reproduced" <<<"$templates")"
 expect "a round line template of the Reply step names the fixer's \`not reproduced\` return" test -n "$out"
 out="$(grep -E 'not reproduced.*; nothing pushed for it$' <<<"$out")"
 expect "and reads it followed by \`nothing pushed for it\`" test -n "$out"
+
+# A check its fixer could not reproduce is most likely a flake, and a flake costs the developer one
+# rerun and no stop (ADR 0089): a round that pushed nothing and raised no stop-case reruns those
+# checks' failed jobs itself, once, and watches again, since a rerun handed over on a `Yours:` line
+# turns every flake into a stop whose command the run could have run itself. The routing is read
+# off the end-of-round item's pieces naming a rerun, the existing `not fixed` clause's
+# `rerun /do <pr url>` passed over, so no other rule of the item answers for it.
+echo "# pr.md / ### 4. Fix the red checks: a round that pushes nothing, with no stop-case and a not reproduced check, reruns that check's failed jobs once through pr-rerun.sh, removes the run tree and watches again, handing nothing over"
+step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+push_item="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.' "$push_line")"
+flat="$(piece_in="$push_item" piece_all=1 piece_without="rerun /do" piece_with "pr-rerun.sh" "rerun" | tr '\n' ' ')"
+expect "pieces of the end-of-round item name a rerun" test -n "$flat"
+carries "the run calls pr-rerun.sh with the pull request, the watched sha, the repo and the run ids" \
+  "bash <skill-dir>/scripts/pr-rerun.sh <pr> <sha> <repo> <run id> [<run id>...]"
+carries_each "when no check was picked, the stop set is empty and a check is on the round's not-reproduced list" \
+  "no check was picked" "no check picked" "nothing was picked" "nothing picked" "picked nothing" "no pick" -- \
+  "stop set is empty" "empty stop set" "stop set empty" "stop set holds nothing" "no stop-case" -- \
+  "not-reproduced list" "not reproduced list"
+carries_any "and only for a check the run has not rerun before" \
+  "retry record" "already rerun" "rerun earlier" "rerun before" "not been rerun" "not yet rerun" \
+  "never rerun" "once per run" "once in the run" "once a run"
+carries_each "one call over every such check, with its repo= and run= values off pr-log.sh" \
+  "once" "one call" "a single call" -- \
+  "repo=" -- "run="
+carries_any "nothing is pushed" \
+  "pushes nothing" "nothing is pushed" "nothing pushed" "no push" "without pushing" "pushing nothing"
+carries_any "the run tree is removed" \
+  "git worktree remove <run tree>" "remove \`<run tree>\`" "removes \`<run tree>\`" "removing \`<run tree>\`" \
+  "\`<run tree>\` is removed" "removes the run tree" "remove the run tree" "run tree is removed"
+carries_each "and the run goes back to step 3, calling the watch with <pr> alone" \
+  "back to step 3" "returns to step 3" "to step 3" -- \
+  "<pr>\` alone" "<pr> alone"
+carries_each "on rerun=, each check of that run id has its round line end with the rerun and its attempt" \
+  "rerun=<run id> <attempt>" -- \
+  "; rerun <run id> attempt <attempt>" "; rerun <run id> attempt <n>"
+carries_each "on moved=, nothing is rerun and the round is redone from step 3" \
+  "moved=<head sha>" -- \
+  "nothing is rerun" "nothing rerun" "reruns nothing" "no rerun is made" "nothing was rerun" -- \
+  "redoes the round" "redo the round" "round is redone" "redone from" "redoes it"
+carries_each "on failed: (exit 1), each check of that run id raises a rerun-refused stop entry" \
+  "failed: <run id>: <reason>" -- \
+  "exit 1" "exits 1" -- \
+  "rerun-refused"
+carries_each "an exit 2 usage refusal reads the same, with its own reason" \
+  "exit 2" "exits 2" -- \
+  "the rerun script refused its arguments"
+carries_each "a refused rerun, with none made, stops on the one Yours: direction: line" \
+  "Yours: direction:" -- \
+  "stop" "stops"
+carries "the rerun-refused clause names the reason and both options left" \
+  "rerun-refused" \
+  "<check> did not reproduce locally and its rerun was refused (<reason>): re-run its failed jobs yourself, or fix <check> by hand on <head>"
+flat="$(piece_in="$push_item" piece_all=1 piece_with "Wave" | grep -F "order" | tr '\n' ' ')"
+expect "a paragraph of the push item names the Waves and the order of the clauses" test -n "$flat"
+wave_at="$(first_at "Wave")"
+refused_at="$(first_at "rerun-refused" "rerun was refused" "rerun refused" "refused rerun" "rerun")"
+back_at="$(first_at "came back" "came-back" "comes back" "back red" "red again")"
+expect "the rerun-refused clauses come after the Wave entries" \
+  test "$wave_at" -gt 0 -a "$refused_at" -gt "$wave_at"
+expect "and before the came-back ones" test "$refused_at" -gt 0 -a "$back_at" -gt "$refused_at"
+flat="$(piece_in="$push_item" piece_with "quoting its fixer's return" "one line per check quoting")"
+expect "the item keeps the no-pick, empty-set stop quoting each fixer's return" test -n "$flat"
+carries_any "and that stop no longer covers a round with a check left to rerun" \
+  "not-reproduced list is empty" "not reproduced list is empty" "empty not-reproduced list" \
+  "no check is on the not-reproduced list" "no check on the not-reproduced list" \
+  "nothing on the not-reproduced list" "none not reproduced" "none was not reproduced" \
+  "no check was not reproduced" "no \`not reproduced\`" "no not reproduced" "nothing to rerun" \
+  "no check to rerun" "nothing left to rerun" "no check left to rerun"
+
+# The rerun answers a fact, the fixer's failed reproduction, never the session's reading of a log,
+# and it is spent once: on a pushed round the new run is the check's retry already (ADR 0089). The
+# guarantees are read off the bullets of the never-does section that name a rerun.
+echo "# pr.md / ## What this run never does: a rerun only after a not reproduced return, never for a log read as a flake, never on a pushed round or twice for one check, and never anything but gh run rerun --failed on the head's run through pr-rerun.sh"
+flat="$(passage_of "$pr" "## What this run never does" "## " | tr '\n' ' ' | tr -s ' ' | sed 's/ - /\n- /g' | grep -F "rerun" | tr '\n' ' ')"
+expect "bullets of the section name a rerun" test -n "$flat"
+carries_each "a check is rerun only when its do-pr-fixer returned not reproduced" \
+  "not reproduced" -- \
+  "unless" "only when" "only after" "only if" "only on" "only a check"
+carries_each "never because the session read its log as a flake" \
+  "flake" "flaky" -- "log"
+carries_each "never on a round that pushed" \
+  "round that pushed" "round that pushes" "pushed round" "round which pushed" "a round with a push" -- \
+  "rerun"
+carries_any "never one check twice in one run" \
+  "twice" "more than once" "a second time" "second rerun" "once per run" "once in a run" "once a run"
+carries_each "nothing but gh run rerun --failed, on the run of the pull request's head, through pr-rerun.sh" \
+  "gh run rerun --failed" -- \
+  "anything but" "anything other than" "nothing but" "nothing else" "other than" "only" -- \
+  "head" -- \
+  "pr-rerun.sh"
+
+# The developer reads each rerun, and each refused one, on the round lines of For whom, and a round
+# that only reran counts toward none of the three pushed rounds. The templates are read whole off
+# the Reply step's round lines, a line of their own or a code span.
+echo "# pr.md / ### 5. Reply: the round lines report a rerun with its attempt, a refused rerun with its reason, the round that only reran, and a round whose head moved before the rerun"
+reply_step="$(passage_of "$pr" "### 5. Reply" "##" 2>/dev/null)"
+templates="$(
+  sed 's/^[[:space:]]*//' <<<"$reply_step" | grep '^round <r>:'
+  tr '\n' ' ' <<<"$reply_step" | tr -s ' ' | grep -oE '`round <r>:[^`]*`' | tr -d '`'
+)"
+out="$(grep -xF "round <r>: <check> red; do-pr-fixer on <fixer branch>: not reproduced <k>: <command> <what it showed>; nothing pushed for it; rerun <run id> attempt <n>" <<<"$templates")"
+expect "a not reproduced check's round line ends with its rerun and the new attempt" test -n "$out"
+out="$(grep -F "not reproduced" <<<"$templates" | grep -E '; nothing pushed for it; rerun <run id> refused: <reason>$')"
+expect "a not reproduced check's round line ends with its refused rerun and the reason" test -n "$out"
+out="$(grep -xF "round <r>: nothing pushed; failed jobs rerun on run <run id>[, run <run id>...]; not counted toward the three pushed rounds" <<<"$templates")"
+expect "a round that only reran names its runs and counts toward none of the three pushed rounds" test -n "$out"
+out="$(grep -xF "round <r>: nothing rerun: <head> moved to <short sha> after the watch; the round is redone from the watch" <<<"$templates")"
+expect "a round whose head moved before the rerun says nothing was rerun and the round is redone" test -n "$out"
+
+# The rerun is the run's own write outside the repository, as the push is (ADR 0089 beside ADR
+# 0086): SKILL.md names it beside the one push, and reply.md keeps it off `outward` and off every
+# `Yours:` line, so no Reply hands the developer a rerun the run could make itself.
+echo "# SKILL.md / ## Non-negotiables and reply.md / **A push.**: the one rerun a check gets is named beside the one push, made by the run itself and never handed over"
+flat="$(flat_section "$skill" "## Non-negotiables" | sed 's/ - /\n- /g' | grep -F "0086" | tr '\n' ' ')"
+expect "a Non-negotiables bullet names ADR 0086's push" test -n "$flat"
+flat="$(sed 's/\. /.\n/g' <<<"$flat" | grep -F "0089" | tr '\n' ' ')"
+expect "and beside it, a sentence names ADR 0089" test -n "$flat"
+carries_each "the one rerun is gh run rerun --failed on the run of the pull request's head" \
+  "gh run rerun --failed" -- "head"
+carries_each "after its fixer could not reproduce the check" \
+  "could not reproduce" "couldn't reproduce" "not reproduced" "failed to reproduce" "cannot reproduce" -- \
+  "fixer"
+flat="$(bullets_opening_on <(passage_of "$reply" "## A refusal or a blocked run" "## ") "**A push.**" |
+  sed 's/\. /.\n/g' | grep -F "0089" | tr '\n' ' ')"
+expect "a sentence of the A push. bullet names ADR 0089" test -n "$flat"
+carries "the pr rerun is authorised, made by the run itself" "rerun" "itself"
+carries "reported on For whom's round lines" "round lines"
+carries_each "never named under outward, never handed over on a Yours: line" \
+  "outward" -- \
+  "Yours:" -- \
+  "never" "not"
 [ "$fails" -eq 0 ] && exit 0
 exit 1

@@ -24,6 +24,12 @@ follows that one pull request, and the developer reads it afterwards, through th
 - Fork a fixer for a check `pr-classify.sh` printed `stale`, or rebase the head to clear one: the
   check stops the run, naming its file, and the rebase is the head owner's.
 - Fix a check in the session: each red check is one `do-pr-fixer` fork (ADR 0088).
+- Rerun a check unless its `do-pr-fixer` returned `not reproduced`, and never rerun it because the
+  session read its log as a flake.
+- Rerun a check on a round that pushed, or rerun one check twice in one run: the rerun is once per
+  run.
+- Rerun anything but `gh run rerun --failed` on the run of the pull request's head, through
+  `pr-rerun.sh` (ADR 0089).
 
 ## The message
 
@@ -448,8 +454,8 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    `<head> moved again during the redone round ...`, comes first when the run stops on it, and the
    stop set's clauses follow it on that same line, never on a second `Yours:` line. Then come the stop-cases in the order they were raised: the
    `stale-base` entries in check-number order, since they are raised before any Wave, then the
-   entries of the Waves in Wave order, and in check-number order within a Wave, then the checks
-   that came back red after their fix was pushed. The `still red:` tail comes last. No clause is
+   entries of the Waves in Wave order, and in check-number order within a Wave, then the
+   `rerun-refused` entries, then the checks that came back red after their fix was pushed. The `still red:` tail comes last. No clause is
    merged with another, even when two clauses offer the same option, so each stop keeps a clause
    of its own.
 
@@ -488,8 +494,38 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    answered and the red check shows did not cure it. The return lines of `do-pr-fixer` stay as
    they are: the slot quotes them and adds no clause they do not carry.
 
-   When no check was picked and the stop set is empty, nothing is pushed: remove `<run tree>`, then
-   stop with one line per check quoting its fixer's return, nothing followed.
+   When no check was picked, the stop set is empty and the round's not-reproduced list is empty, nothing
+   is pushed: remove `<run tree>`, then stop with one line per check quoting its fixer's return,
+   nothing followed.
+
+   When no check was picked, the stop set is empty and at least one check is on the round's
+   not-reproduced list whose name is not in the run's retry record, nothing is pushed and the run
+   makes one rerun call, a single call for all of them:
+
+       bash <skill-dir>/scripts/pr-rerun.sh <pr> <sha> <repo> <run id> [<run id>...]
+
+   `<sha>` is the watch's `sha=`, and `<repo>` and each `<run id>` are the `repo=` and `run=` values
+   `pr-log.sh` printed for every such check (two checks of one run pass the same run id, which the
+   script reruns once). The script's answer routes the round:
+
+   - `rerun=<run id> <attempt>` (exit 0): every check of that run id has its round line end
+     `; rerun <run id> attempt <attempt>`. The run writes the round's rerun line, removes
+     `<run tree>` and goes back to step 3, calling the watch with `<pr>` alone, so the stall window
+     starts over. No pushed round is counted.
+   - `moved=<head sha>` (exit 0): nothing is rerun. The run writes the moved line, removes
+     `<run tree>` and redoes the round from step 3 as the moved-remote redo does, nothing entering
+     the record.
+   - `failed: <run id>: <reason>` (exit 1): each check of that run id adds a `rerun-refused` entry to
+     the stop set (the run ids already printed on `rerun=` lines were rerun). When no rerun was
+     made, remove `<run tree>` and stop on the one `Yours: direction:` line. When one was made, the
+     run stops now too (a slot Ticket 15 fills).
+   - On exit 2 (usage): as exit 1, every check's reason reading `the rerun script refused its arguments`.
+
+   The clause of a `rerun-refused` stop entry is:
+
+       Yours: direction: <check> did not reproduce locally and its rerun was refused (<reason>): re-run its failed jobs yourself, or fix <check> by hand on <head>
+
+   It may name the rerun, because the run could not make it.
 
 6. The brief of check `<k>`, with `<id>` a short random id the session generates for that dispatch:
 
@@ -538,6 +574,10 @@ the whole message, and a green watch adds no part of its own:
       round <r>: <check> red; stale base: <path>[, <path>...] not changed by this pull request against <base> at <merge base short sha>; no fixer forked
       round <r>: <a `kept` line, as fix-worktrees.sh printed it>
       round <r>: kept <branch> <path> <reason>, as fix-worktrees.sh printed it
+      round <r>: <check> red; do-pr-fixer on <fixer branch>: not reproduced <k>: <command> <what it showed>; nothing pushed for it; rerun <run id> attempt <n>
+      round <r>: <check> red; do-pr-fixer on <fixer branch>: not reproduced <k>: <command> <what it showed>; nothing pushed for it; rerun <run id> refused: <reason>
+      round <r>: nothing pushed; failed jobs rerun on run <run id>[, run <run id>...]; not counted toward the three pushed rounds
+      round <r>: nothing rerun: <head> moved to <short sha> after the watch; the round is redone from the watch
       round <r>: after the push the watch read <verdict word>
 
   The first `not picked` line is written once per path the guard named. The `stale base` line is

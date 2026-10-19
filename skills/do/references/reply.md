@@ -780,7 +780,10 @@ Three writes outside the repository have a fixed place:
   the Next step section above, so the `Yours: destroy:` line names only the worktree and branch
   choice, never the push. The `pr` round's push is the exception ADR 0086 authorises: the run makes
   it itself, by fast-forward only, reports it on For whom's round lines, and it is never named
-  under `outward`.
+  under `outward`. The `pr` rerun of a check its fixer could not reproduce is authorised the same
+  way ([ADR 0089](../../docs/adr/0089-the-pr-playbook-reruns-a-check-once-after-its-fixer-could-not-reproduce-it.md)):
+  the run makes it itself, reports it on For whom's round lines, and never names it under
+  `outward` nor hands it over on a `Yours:` line.
 - **A write to a remote tracker.** The question a run puts before a write to a remote tracker, the
   claim's and the close's, carries the same line under `outward`, its choice the yes that makes
   every write the question lists or the no that makes none of them. Under `--auto` the question
