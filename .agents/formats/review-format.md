@@ -17,6 +17,9 @@ line at the end, so a pass on one Axis never hides a fail on another.
   `spec.md`, in the feature folder its Tickets sit under. A Spec handed over with a `Review file:`
   line takes its Review at that path beside the Spec instead (`spec.<key>.review.md`, one per
   repository of a feature across repositories) and `spec.review.md` only without one.
+- Beside the Spec of the feature whose debt it judges, for a Debt review, named
+  `<Spec stem>.debt.review.md`: `spec.debt.review.md` beside `spec.md`. It is the keyed name
+  `spec.<key>.review.md` with the key `debt`, which is how the fix door spares it.
 - In the main checkout's scratch reviews folder, `.scratch/reviews/<branch>.md`, when neither was
   handed over or the Ticket is not a local file, `<branch>` being the branch name with every slash
   turned into a dash: `feat/export-notes` writes `.scratch/reviews/feat-export-notes.md`. From a
@@ -47,6 +50,9 @@ filled in.
 | `Spec source:` | the Spec handed over, the Ticket, the issue reference, the spec file's path, or `no spec` |
 | `Mode:` | `default`, `--no-fix` or `fix` |
 | `Language:` | the language the prose is written in |
+
+A Debt review's header opens on `Spec: <the Spec's path>` as its first line, never `Ticket:`. Its
+`Fixed point:` is the tip of the branch the developer was on when the debt was judged.
 
 ## Intent
 
