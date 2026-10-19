@@ -375,11 +375,13 @@ watch="$(passage_of "$pr" "### 3. Watch" "##" 2>/dev/null)"
 piece_with() { # $1.. fixed strings: the first bullet or blank-line paragraph of $watch carrying any of them, flattened, on stdout
   # Optional: piece_in set on the call's own line reads another step's passage in place of $watch;
   # piece_without, fixed strings one per line, passes over a piece carrying any of them, so a key a
-  # sibling bullet shares never hands that sibling back.
-  piece_keys="$(printf '%s\n' "$@")" piece_skips="${piece_without:-}" awk '
+  # sibling bullet shares never hands that sibling back. piece_all, set to anything, prints every
+  # piece carrying a key, one per line, for a contract a writer may split over several pieces.
+  piece_keys="$(printf '%s\n' "$@")" piece_skips="${piece_without:-}" piece_all="${piece_all:-}" awk '
     function flush(i) {
       for (i = 1; i <= m; i++) if (skips[i] != "" && index(piece, skips[i])) { piece = ""; return }
       for (i = 1; i <= n; i++) if (!done && keys[i] != "" && index(piece, keys[i])) { print piece; done = 1 }
+      if (ENVIRON["piece_all"] != "") done = 0
       piece = ""
     }
     BEGIN { n = split(ENVIRON["piece_keys"], keys, "\n"); m = split(ENVIRON["piece_skips"], skips, "\n") }
@@ -2039,5 +2041,30 @@ clause='<check> needs <path>, a <class> file the run never changes (its commit i
 out="$(sed 's/^[[:space:]]*//' "$pr" | grep -E '^`?Yours: direction:' | grep -F -- "$clause")"
 expect "a line opening \`Yours: direction:\` carries the clause naming the check, the path, its class and the kept fixer branch" \
   test -n "$out"
+
+# The developer handed a stopped check must know what its fixer already tried, or they test the
+# same hypothesis again: the slot is read off the fixer's return line as it stands, never the
+# session's own reading, and never off a clause do-pr-fixer does not write (pr-fixer.sh pins its
+# return lines). The pieces naming the slot are read together, since the template and the sentence
+# saying where it comes from may sit apart; the pushed-and-red case is read off its own sentence.
+echo "# pr.md: the <what the fixer ruled out> slot of a stop's Yours: direction: clause is read off the fixer's return line as it stands"
+pieces="$(piece_in="$(cat "$pr")" piece_all=1 piece_with "<what the fixer ruled out>")"
+flat="$(tr '\n' ' ' <<<"$pieces" | tr -s ' ')"
+expect "a paragraph or bullet of pr.md names the \`<what the fixer ruled out>\` slot" test -n "$pieces"
+carries_any "the slot sits in a stop's \`Yours: direction:\` clause" "Yours: direction:" "clause"
+carries_each "it is read off the fixer's return line as it stands" \
+  "return line" "returned line" "line it returned" "its return" -- \
+  "as it stands" "as written" "as it was written" "verbatim" "as printed" "as returned"
+carries_each "from a \`not fixed <k>: <reason>\` line, its reason" \
+  "not fixed <k>: <reason>" -- \
+  "the \`<reason>\`" "its \`<reason>\`" "\`<reason>\` of" "the reason" "its reason"
+fixed_forms=("fixed <k>: <command>" "fixed <k>: <the command that reproduced it>")
+flat="$(sed 's/\. /.\n/g' <<<"$flat" | grep -F -e "${fixed_forms[0]}" -e "${fixed_forms[1]}" | tr '\n' ' ')"
+expect "a sentence naming the slot names the \`fixed <k>: <command>\` line" test -n "$flat"
+carries_each "for a check back red after its fix was pushed, the command of that line, the local one that reproduced the failure" \
+  "pushed" "push" -- \
+  "back red" "still red" "red again" "turned red" "went red" "red after" "failed again" "fails again" -- \
+  "the \`<command>\`" "its \`<command>\`" "\`<command>\` of" "the command" "its command" -- \
+  "reproduced" "reproduce" "local command"
 [ "$fails" -eq 0 ] && exit 0
 exit 1

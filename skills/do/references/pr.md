@@ -382,6 +382,14 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    `<check> was not picked, the guard could not read <fixer branch> (<reason>): review the commit kept on <fixer branch>, or fix <check> by hand`.
    `<check>` is the check's name, `<path>` and `<class>` the ones off its `touches` line.
 
+   A stop-case clause of a `Yours: direction:` line that names a fixer's own report carries a
+   `<what the fixer ruled out>` slot. It is read off the fixer's return line as it stands, never
+   from the session's own reading. For a `not fixed <k>: <reason>` line it is its `<reason>`. For a
+   check that came back red after its fix was pushed it is the `<command>` of its
+   `fixed <k>: <command>` line, the local command that reproduced the failure, which the fix
+   answered and the red check shows did not cure it. The return lines of `do-pr-fixer` stay as
+   they are: the slot quotes them and adds no clause they do not carry.
+
    When no check was picked and the stop set is empty, nothing is pushed: remove `<run tree>`, then
    stop with one line per check quoting its fixer's return, nothing followed.
 
