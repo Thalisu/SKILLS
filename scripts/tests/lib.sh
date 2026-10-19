@@ -699,7 +699,7 @@ ledger_verdict_entry_fixture() { # $1 dir, $2 id, $3 verdict, $4 reason: an entr
   printf '%s\n' "$3" >"$1/verdict"
   printf '%s\n' "$4" >"$1/reason"
 }
-review_at() { # $1 the Review's Commit: sha, $2 the review file, $3 its Act on Findings, $4 its Fix run sections, $5 its Fixed point sha (default: $1), $6 its Consider Findings (default: none); by default one Act on Finding on src/a.sh, not fixed by the one Fix run
+review_at() { # $1 the Review's Commit: sha, $2 the review file, $3 its Act on Findings, $4 its Fix run sections, $5 its Fixed point sha (default: $1), $6 its Consider Findings (default: none), $7 its Noted Findings (default: none), $8 its Cleared Findings (default: none), $9 its Intent body (default: one line); by default one Act on Finding on src/a.sh, not fixed by the one Fix run
   local reviewed="$1"
   local act_on="${3:-### 1. Correctness at src/a.sh:3
 Claim: a call with no argument exits on an unbound variable.
@@ -717,6 +717,9 @@ Date: 2026-09-24 · at $reviewed
 - not landed: a Fixer did not return}"
   local fixed_point="${5:-$reviewed}"
   local consider="${6:-none}"
+  local noted="${7:-none}"
+  local cleared="${8:-none}"
+  local intent="${9:-Print the first argument.}"
   cat >"$2" <<MD
 # Review: main
 
@@ -729,7 +732,7 @@ Language: English
 
 ## Intent
 
-Print the first argument.
+$intent
 
 ## Safe because
 
@@ -745,11 +748,11 @@ $consider
 
 ## Noted
 
-none
+$noted
 
 ## Cleared
 
-none
+$cleared
 
 ## Axes
 

@@ -34,7 +34,7 @@ refuse() { echo "fix-waves.sh: $1" >&2; exit 2; }
 # below it up to the blank line or heading that ends the block included, and either is the empty
 # string when the block does not carry it. Prints nothing when the section reads `none` or is
 # absent.
-# The only reader of the Review format in this script.
+# The only reader of the Act on section in this script.
 act_on_findings() {
   awk '
     function target_of(s,   p, line) {
@@ -63,19 +63,16 @@ act_on_findings() {
   ' "$1"
 }
 
-# fix_run_latest <review file>
-# Prints <n>\t<text> per Finding that has a `- <n>: <text>` line in any `## Fix run` section, the
-# last one in file order, so a later section overrides an earlier one and none is read alone.
-fix_run_latest() {
-  awk '
-    /^## / { inrun = ($0 == "## Fix run"); next }
-    inrun && match($0, /^- [0-9]+: /) {
-      n = substr($0, 3, RLENGTH - 4)
-      if (!(n in text)) order[++count] = n
-      text[n] = substr($0, RLENGTH + 1)
-    }
-    END { for (i = 1; i <= count; i++) print order[i] "\t" text[order[i]] }
-  ' "$1"
+# latest_fix_lines <review file>
+# Prints <n>\t<text> per Finding whose latest line across every `## Fix run` section exists, read
+# through the shared review-findings.sh so a later section overrides an earlier one.
+latest_fix_lines() {
+  local reader
+  reader="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)/../../../.agents/scripts/review-findings.sh"
+  bash "$reader" "$1" | awk -F'\t' '
+    { n = substr($1, 9); l = substr($3, 8) }
+    l != "none" { print n "\t" l }
+  '
 }
 
 # finding_files <header location> <Fix target>
@@ -128,7 +125,7 @@ main() {
 
   local records latest n loc target files sets=""
   records="$(act_on_findings "$review")"
-  latest="$(fix_run_latest "$review")"
+  latest="$(latest_fix_lines "$review")"
   for n in ${held//,/ }; do
     grep -q "^$n	" <<<"$records" || refuse "--settled $n is no Act on Finding of the Review"
     ! grep -q "^$n	fixed [^ ,]*, verified" <<<"$latest" || refuse "--settled $n already reads fixed and verified in the Review's Fix run"

@@ -149,7 +149,7 @@ main() {
     fi
   fi
   records="$(act_on_findings "$review")"
-  latest="$(fix_run_latest "$review")"
+  latest="$(latest_fix_lines "$review")"
 
   while IFS=$'\t' read -r n loc target; do
     [ -n "$n" ] || continue
