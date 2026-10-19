@@ -245,10 +245,14 @@ the checks: a display read mid-run can show green while a check is still running
   `Yours: direction: <the pending checks>; re-run or unblock the runner, then /do the pull request again`,
   where `<the pending checks>` is the verdict's `pending=` values, in the order printed, joined with
   `, `. The stop is keyed on the script's verdict alone, never on a count of watches the run keeps.
-- Any other verdict word: the run stops with one line quoting that verdict as printed, and follows
-  nothing.
-- A non-zero exit of the script: the run stops with one line quoting the script's stderr line, with
-  no `Yours:` line, and follows nothing.
+- Any other verdict word: the run stops with one line quoting that verdict as printed, then
+  exactly one
+  `Yours: direction: pr-watch.sh printed a verdict this run does not follow; read what it printed, then /do the pull request again`,
+  and follows nothing.
+- A non-zero exit of the script: the run stops with one line quoting the script's stderr line, then
+  exactly one
+  `Yours: direction: pr-watch.sh failed; fix what its stderr line names, then /do the pull request again`,
+  and follows nothing.
 - `verdict=red` with a `red=` name that is in the retry record: that check is red again on its
   retry. It never goes to step 4: no new round is started for it, no `do-pr-fixer` is forked for it
   again, and it gets no second rerun. The run cuts that check's retry excerpt on a run tree cut at
@@ -279,8 +283,9 @@ fewer than three rounds have pushed, after as many `pending` calls as the checks
 ### 4. Fix the red checks
 
 The session writes no fix (ADR 0088): each red check gets one `do-pr-fixer` fork. Do not start when
-the Agent tool is withheld: the run stops with one line saying no fixer can be forked, and follows
-nothing. The session never fixes a check itself.
+the Agent tool is withheld: the run stops with one line saying no fixer can be forked, then exactly
+one `Yours: direction: run /do on the pull request again in a session that can fork a fixer`, and
+follows nothing. The session never fixes a check itself.
 
 Number the verdict's `red=` lines 1, 2, ... in the order printed. Check `<k>` is the k-th line, its
 link the value up to the first space and its name everything after that space. `<n>` is the number
@@ -297,7 +302,8 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
 
    It is detached because the developer may have `<head>` checked out, and git refuses to check out
    a branch twice, and nothing the run does moves the developer's `<head>`. This path is `<run tree>`
-   from here on. If git refuses either line, the run stops quoting git's line.
+   from here on. If git refuses either line, the run stops quoting git's line, then exactly one
+   `Yours: direction: git refused the run tree; fix what its line names, then /do the pull request again`.
 
 3. Cut each check's excerpt, in check order, with the line:
 
@@ -305,7 +311,8 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
 
    `<run tree>` is the worktree item 2 cut. On a non-zero exit the run removes `<run tree>`
    (`git worktree remove <run tree>`), no commit sits on it yet, then stops, quoting the script's
-   stderr line.
+   stderr line, then exactly one
+   `Yours: direction: pr-log.sh failed; fix what its stderr line names, then /do the pull request again`.
 
 4. Classify every red check, then group the real ones into Waves. First the run writes one record
    per red check, in check order, to `<dir>/records`: `<k>`, a tab, then that check's `file=`

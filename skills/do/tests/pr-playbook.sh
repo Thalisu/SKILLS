@@ -418,9 +418,6 @@ carries_each "on one line quoting the script's stderr line" \
   "one line" "One line" "single line" "a line quoting" "a line that quotes" -- \
   "stderr" "standard error" -- \
   "quoting" "quotes" "quoted" "verbatim" "as printed"
-carries_any "with no \`Yours:\` line" \
-  "no \`Yours:\`" "No \`Yours:\`" "without a \`Yours:\`" "without the \`Yours:\`" "never a \`Yours:\`" \
-  "not a \`Yours:\`" "no Yours:" "without a Yours:"
 carries_any "and follows nothing" \
   "follows nothing" "nothing is followed" "nothing followed" "follows none" "follows no step" \
   "no step after" "no later step" "no further step" "runs nothing else" "nothing else runs" "does nothing else"
@@ -3147,6 +3144,48 @@ carries_each "the unknown integrate line's stop line names the run tree and the 
   "stops the run quoting that line" -- \
   "also names \`<run tree>\`" -- \
   "keeps on disk"
+
+# reply.md asks every blocked Reply for one `Yours: <class>: <the choice>` line, and its exception
+# list names none of these five stops: a stop that hands the developer only a quoted line leaves
+# them to guess what is theirs to do, and breaks the rule every grader reads the Reply against. Each
+# stop is read off its own bullet, paragraph or item, since steps 3 and 4 carry other stops whose
+# `Yours: direction:` lines would otherwise answer for it.
+echo "# pr.md / ### 3. Watch and ### 4. Fix the red checks: an unknown verdict word, a failed watch, a withheld Agent tool, a git refusal on the run tree and a failed pr-log.sh each stop on their quoted line and exactly one Yours: direction: line, nothing followed"
+yours_direction_once() { # $1 label: $flat carries exactly one `Yours: direction:` line
+  expect "$1" test "$(grep -oF 'Yours: direction:' <<<"$flat" | wc -l)" -eq 1
+}
+follows_nothing=("follows nothing" "nothing is followed" "nothing followed" "follows none" "follows no step"
+  "no step after" "no later step" "no further step" "runs nothing else" "nothing else runs" "does nothing else")
+watch="$(passage_of "$pr" "### 3. Watch" "##" 2>/dev/null)"
+step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+flat="$(piece_with "Any other verdict word" "any other verdict word")"
+expect "a bullet of step 3 takes any other verdict word" test -n "$flat"
+carries_each "the unknown verdict stops on one line quoting the verdict as printed" \
+  "stops" -- "one line" -- "as printed"
+yours_direction_once "the unknown verdict's stop carries exactly one \`Yours: direction:\` line"
+carries_any "and follows nothing" "${follows_nothing[@]}"
+flat="$(piece_with "A non-zero exit of the script" "a non-zero exit of the script")"
+expect "a bullet of step 3 takes a non-zero exit of the script" test -n "$flat"
+carries_each "the failed watch stops on one line quoting the script's stderr line" \
+  "stops" -- "one line" -- "stderr line"
+yours_direction_once "the failed watch's stop carries exactly one \`Yours: direction:\` line"
+carries_any "and follows nothing" "${follows_nothing[@]}"
+flat="$(piece_in="$step" piece_with "withheld")"
+expect "a paragraph of step 4 takes the Agent tool being withheld" test -n "$flat"
+carries_each "the withheld Agent tool stops on one line saying no fixer can be forked" \
+  "stops" -- "one line" -- "no fixer can be forked"
+yours_direction_once "the withheld Agent tool's stop carries exactly one \`Yours: direction:\` line"
+carries_any "and follows nothing" "${follows_nothing[@]}"
+flat="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.' "git worktree add --detach <main checkout>" | tr '\n' ' ' | tr -s ' ')"
+expect "an item of step 4 carries the run tree's fetch and worktree add lines" test -n "$flat"
+carries_each "git refusing either line stops the run quoting git's line" \
+  "refuses" -- "stops" -- "git's line"
+yours_direction_once "git's refusal's stop carries exactly one \`Yours: direction:\` line"
+flat="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.' "pr-log.sh <link> <run tree>" | tr '\n' ' ' | tr -s ' ')"
+expect "an item of step 4 carries the pr-log.sh call" test -n "$flat"
+carries_each "a non-zero pr-log.sh exit stops the run quoting the script's stderr line" \
+  "non-zero exit" -- "stops" -- "stderr line"
+yours_direction_once "the failed pr-log.sh's stop carries exactly one \`Yours: direction:\` line"
 
 [ "$fails" -eq 0 ] && exit 0
 exit 1
