@@ -83,6 +83,22 @@ affirms "the Run report itself stays written under --auto alone" \
   "under \`--auto\` alone" "only under \`--auto\`" "only with \`--auto\`" "\`--auto\` alone" \
   "\`--auto\` only" "only an \`--auto\` run" "only \`--auto\` runs"
 
+echo "# a run that owes nothing writes a section reading none"
+
+# The debt skill and the developer read a Ticket with no Debt file as a run that never wrote its
+# debt down: a run that owed nothing and wrote nothing would look the same to them.
+flat="$(passage_of "$reply" "## The message" "## " | debt_file_paragraphs)"
+carries_each "a run with nothing owed still writes its section, which reads none" \
+  "owes nothing" "owed nothing" "nothing owed" "nothing to owe" "no debt" "nothing pending" -- \
+  "still writes" "writes it all the same" "writes its section" "still adds" "adds its section" \
+  "writes one all the same" -- \
+  "\`none\`"
+carries_each "a Ticket with no Debt file is told apart as a run that never wrote its debt down" \
+  "no Debt file" "without a Debt file" "has no Debt file" "Debt file is missing" \
+  "missing Debt file" "no \`.debt.md\`" -- \
+  "never wrote" "never written" "did not write" "was not written" "wrote nothing down" \
+  "never recorded" "never put"
+
 echo "# ticket.md's Reply step names the Debt file write on every run"
 
 flat="$(item_holding "$ticket" '\*\*[0-9]+\.' 'Reply.**' | debt_file_paragraphs)"
