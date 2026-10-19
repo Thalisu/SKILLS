@@ -1703,7 +1703,7 @@ carries_any "that round is not pushed as it stands" \
 # commits unseen. The moved-tip branch is read from the first sentence of the push item naming the
 # moved tip up to the sentence opening a sibling branch (`When ...`) or holding the push line.
 echo "# pr.md / ### 4. Fix the red checks: a fetched tip that moved keeps the run tree and redoes the round whole from step 3's watch, over the moved head"
-flat="$(sed 's/\. /.\n/g' <<<"$push_item" | awk -v push="$push_line" '
+moved_branch="$(sed 's/\. /.\n/g' <<<"$push_item" | awk -v push="$push_line" '
   function moved(s) {
     return index(s, "moved past") || index(s, "has moved") || index(s, "moved on") ||
       index(s, "is not `<sha>`") || index(s, "is not <sha>") || index(s, "isn'"'"'t `<sha>`") ||
@@ -1714,6 +1714,7 @@ flat="$(sed 's/\. /.\n/g' <<<"$push_item" | awk -v push="$push_line" '
   on && (index($0, push) || (/^ *When / && !moved($0))) { exit }
   on { print }
 ' | tr '\n' ' ' | tr -s ' ')"
+flat="$moved_branch"
 expect "the push item carries a branch for a fetched tip that is not \`<sha>\`" test -n "$flat"
 carries_each "that branch keeps \`<run tree>\` and its commits on disk" \
   "<run tree>" "run tree" -- \
@@ -1739,5 +1740,34 @@ carries_any "no fix commit is replayed, cherry-picked or rebased onto the moved 
   "No commit is replayed" "no commit is replayed" "Nothing is replayed" "nothing is replayed" \
   "never replayed" "never replays" "not replayed" "replays no" "never cherry-picked" \
   "never cherry-picks" "not cherry-picked" "never rebased" "never rebases" "not rebased" "no rebase"
+
+# The other writers of a shared head rely on the redone round keeping their commits: the new run
+# tree is cut at the moved tip, so their commits are already in it, the round's fixes sit on top of
+# them, and the push reaches `<head>` as a plain fast-forward, where a forced push or a merge would
+# lose or rewrite what they pushed. The developer relies on the same thing from the other side: the
+# fixes land on the branch as it now stands, not on one the checks never saw. Read off the same
+# moved-tip branch as the case above.
+echo "# pr.md / ### 4. Fix the red checks: the redone round reaches <head> by fast-forward on top of the other writer's commits, losing none of them"
+flat="$moved_branch"
+other_writer=("other writer" "other writers" "others pushed" "pushed by others" "another writer"
+  "someone else" "moved the remote" "remote moved by" "moved the head" "their commits")
+carries_each "the redone round's run tree, cut at the new \`sha=\`, already holds the other writer's commits" \
+  "${other_writer[@]}" -- \
+  "holds" "hold" "carries" "carry" "contains" "contain" "includes" "include" "already has" "already in" -- \
+  "run tree"
+affirms "the redone round's fix commits sit on top of those commits" \
+  "fix" "fixes" "pick" "picks" "commits" -- \
+  "on top of" "atop" "over them" "above them" "ahead of them"
+affirms "its push reaches \`<head>\` by fast-forward" \
+  "push" "pushes" "pushed" -- "fast-forward" "fast forward" "fast-forwards" -- "<head>" "the head"
+carries_any "so none of the other writer's commits is lost or rewritten" \
+  "none of them is lost" "none of their commits is lost" "none of those commits is lost" "none is lost" \
+  "nothing is lost" "never lost" "not lost" "loses none" "loses no" "without losing" "is lost or rewritten" \
+  "never rewritten" "not rewritten" "rewrites none" "rewrites no" "without rewriting"
+carries_each "no \`--force\` and no merge" \
+  "never \`--force\`" "no \`--force\`" "without \`--force\`" "not \`--force\`" "never forced" "not forced" \
+  "no force" -- \
+  "never a merge" "no merge" "without a merge" "not a merge" "never merges" "never merged" "not merged" \
+  "nor a merge" "nor merged"
 [ "$fails" -eq 0 ] && exit 0
 exit 1

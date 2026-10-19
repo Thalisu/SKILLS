@@ -322,7 +322,10 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    new verdict's `sha=`: item 2 cuts a new run tree at that new `sha=` after its
    `git fetch origin <head>` (that cut is the pull), with a new `<at>` from the new `sha=` and a new
    `<dir>`, so `fix-worktrees.sh add` meets no branch or worktree of the first attempt. Every
-   do-pr-fixer is forked again over the code the checks now ran on, the moved head. No fix commit is
+   do-pr-fixer is forked again over the code the checks now ran on, the moved head. The new run
+   tree, cut at the moved tip's `sha=`, already holds the other writer's commits. The redone round's
+   fix commits sit on top of them. Its push reaches `<head>` by fast-forward, never `--force` and
+   never a merge, so none of the other writer's commits is lost or rewritten. No fix commit is
    replayed, cherry-picked or rebased onto the moved tip, since a fix must answer the code the red
    checks ran on. When it is `<sha>`, push:
 
