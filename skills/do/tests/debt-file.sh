@@ -99,6 +99,18 @@ carries_each "a Ticket with no Debt file is told apart as a run that never wrote
   "never wrote" "never written" "did not write" "was not written" "wrote nothing down" \
   "never recorded" "never put"
 
+echo "# a run refused before any edit writes no section to the Debt file"
+
+# The debt skill reads every section as a run that built something: a refused run that wrote one,
+# even reading none, would pass there for a run that built and owed nothing.
+flat="$(bullets_opening_on <(passage_of "$reply" "## A refusal or a blocked run" "## ") \
+  "**Refused before any edit.**" | head -n 1)"
+expect "reply.md's Refused before any edit bullet is found" test -n "$flat"
+carries_each "a run refused before any edit writes no section to the Debt file" \
+  "Debt file" -- \
+  "no section" "writes nothing" "adds nothing to the Debt file" "nothing to the Debt file" \
+  "leaves the Debt file untouched" "not write" "never writes" "no Debt file section"
+
 echo "# ticket.md's Reply step names the Debt file write on every run"
 
 flat="$(item_holding "$ticket" '\*\*[0-9]+\.' 'Reply.**' | debt_file_paragraphs)"

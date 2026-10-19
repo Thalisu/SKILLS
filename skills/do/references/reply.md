@@ -728,7 +728,8 @@ Yours: outward: cut the moved behaviour for <repository=> with the command below
 How much more it carries depends on where the run stopped:
 
 - **Refused before any edit.** It adds nothing, not even a `Plan:` line: its one message is the
-  refusal.
+  refusal. It writes no section to the Debt file either, since the run built nothing and owes
+  nothing.
 - **Stopped after work exists.** It writes the five parts of [The message](#the-message), the
   blocker and the `Yours:` line in their place: the worktree and its branch are named on the
   blocker's lines, and the commits made and the files restored go to the Run report.
