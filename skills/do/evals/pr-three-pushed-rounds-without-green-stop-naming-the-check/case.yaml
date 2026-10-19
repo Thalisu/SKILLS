@@ -1,0 +1,189 @@
+name: pr-three-pushed-rounds-without-green-stop-naming-the-check
+tags: [pr, watch, fix, push]
+runs: 2
+max_turns: 160
+timeout_seconds: 3600
+allowed_tools: [Bash, Read, Edit, Write, Agent]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # A pull request whose head `add-stats` is a branch another writer pushes to. It carries four
+    # small functions, each in its own file under src/ with its own test under tests/ and its own
+    # CI check of the same name: `sum`, `max`, `min` and `count`. `sum` starts its sum at 1, so the
+    # `sum` check is red at the start and `bash tests/sum.sh` fails locally as its log says. A fake
+    # gh, first on the session's PATH through the project's settings, reads the remote's head on
+    # every call and runs each check's test at that head, so a check is red exactly while its test
+    # fails there, and a red check's log is that test's own output. Whenever the watch reads a head
+    # the fake does not know, which is a round the run pushed, the other writer pushes a commit of
+    # their own that breaks the next function before the watch answers: `max` after the first push,
+    # `min` after the second and `count` after the third. Each round so finds a different check red
+    # and fixes it, and the third pushed round is still red on `count`. The developer has the head
+    # checked out with an untracked note of their own, the remote is a bare repository under .fake/,
+    # each other writer's commit is appended to .fake/other.shas, and every gh call is logged in
+    # .fake/gh.log.
+    set -e
+    mkdir -p src tests .github/workflows .fake/bin .fake/breaks .claude
+    printf '# stats\n' > README.md
+    printf '.fake/\n' > .gitignore
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
+    git checkout -q -b add-stats
+    cat > src/sum.sh <<'SH'
+    sum() {
+      local s=1 n
+      for n in "$@"; do s=$((s + n)); done
+      echo "$s"
+    }
+    SH
+    cat > src/max.sh <<'SH'
+    max() {
+      local m=$1 n
+      for n in "$@"; do [ "$n" -gt "$m" ] && m=$n; done
+      echo "$m"
+    }
+    SH
+    cat > src/min.sh <<'SH'
+    min() {
+      local m=$1 n
+      for n in "$@"; do [ "$n" -lt "$m" ] && m=$n; done
+      echo "$m"
+    }
+    SH
+    cat > src/count.sh <<'SH'
+    count() {
+      echo "$#"
+    }
+    SH
+    cat > .fake/breaks/max.sh <<'SH'
+    max() {
+      local m=$1 n
+      for n in "$@"; do [ "$n" -lt "$m" ] && m=$n; done
+      echo "$m"
+    }
+    SH
+    cat > .fake/breaks/min.sh <<'SH'
+    min() {
+      local m=$1 n
+      for n in "$@"; do [ "$n" -gt "$m" ] && m=$n; done
+      echo "$m"
+    }
+    SH
+    cat > .fake/breaks/count.sh <<'SH'
+    count() {
+      echo "$(($# + 1))"
+    }
+    SH
+    printf 'max\nmin\ncount\n' > .fake/breaks/order
+    for spec in 'sum 2 3=5' 'max 2 7 3=7' 'min 4 1 6=1' 'count a b c=3'; do
+      call="${spec%=*}"; want="${spec#*=}"; fn="${call%% *}"
+      cat > "tests/$fn.sh" <<SH
+    #!/usr/bin/env bash
+    . "\$(dirname "\$0")/../src/$fn.sh"
+    got="\$($call)"
+    [ "\$got" = $want ] || { echo "FAIL $call (src/$fn.sh): got \$got, want $want"; exit 1; }
+    echo "ok    $call"
+    SH
+    done
+    cat > .github/workflows/ci.yml <<'YML'
+    name: ci
+    on: pull_request
+    jobs:
+      check:
+        strategy:
+          matrix:
+            fn: [sum, max, min, count]
+        name: ${{ matrix.fn }}
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v4
+          - name: Run tests
+            run: bash tests/${{ matrix.fn }}.sh
+    YML
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "add stats"
+    git clone -q --bare . .fake/remote.git
+    git remote add origin "$PWD/.fake/remote.git"
+    git fetch -q origin
+    git branch -q -u origin/add-stats
+    git rev-parse HEAD > .fake/red.sha
+    : > .fake/other.shas
+    printf 'wip: ask whether count should skip empty words\n' > NOTES.md
+    cat > .fake/bin/gh <<'SH'
+    #!/usr/bin/env bash
+    printf '%s\t%s\n' "$*" "$(ps -o args= -p "$PPID" 2>/dev/null)" >> "$GH_FAKE/gh.log"
+    expr=
+    for ((i = 1; i <= $#; i++)); do
+      [ "${!i}" = --jq ] && { j=$((i + 1)); expr="${!j}"; }
+    done
+    answer() { if [ -n "$expr" ]; then jq -r "$expr"; else cat; fi; }
+    remote="$GH_FAKE/remote.git"
+    fns=(sum max min count)
+    tip() { git --git-dir="$remote" rev-parse refs/heads/add-stats; }
+    known() { grep -qx "$1" "$GH_FAKE/red.sha" "$GH_FAKE/other.shas"; }
+    other_writer_breaks_the_next() {
+      local d n fn
+      n="$(wc -l < "$GH_FAKE/other.shas")"
+      fn="$(sed -n "$((n + 1))p" "$GH_FAKE/breaks/order")"
+      [ -n "$fn" ] || return 0
+      d="$(mktemp -d)"
+      git clone -q -b add-stats "$remote" "$d/c"
+      cp "$GH_FAKE/breaks/$fn.sh" "$d/c/src/$fn.sh"
+      git -C "$d/c" add src
+      git -C "$d/c" -c user.email=other@example.com -c user.name=other commit -q -m "refactor: tidy $fn"
+      git -C "$d/c" push -q origin add-stats
+      git -C "$d/c" rev-parse HEAD >> "$GH_FAKE/other.shas"
+      rm -rf "$d"
+    }
+    run_test() {
+      local d out rc
+      d="$(mktemp -d)"
+      git --git-dir="$remote" archive "$head" | tar -x -C "$d"
+      out="$(cd "$d" && bash "tests/$1.sh" 2>&1)" && rc=0 || rc=$?
+      rm -rf "$d"
+      printf '%s\n' "$out"
+      return "$rc"
+    }
+    case "$1 $2" in
+      "pr view"|"pr checks")
+        known "$(tip)" || other_writer_breaks_the_next ;;
+    esac
+    head="$(tip)"
+    case "$1 $2" in
+      "auth status") echo "Logged in to github.com account fixture"; exit 0 ;;
+      "pr view")
+        merge=CLEAN
+        for fn in "${fns[@]}"; do run_test "$fn" >/dev/null || merge=UNSTABLE; done
+        printf '{"number":42,"headRefName":"add-stats","baseRefName":"main","state":"OPEN","mergeStateStatus":"%s","mergeable":"MERGEABLE","headRefOid":"%s"}\n' \
+          "$merge" "$head" | answer ;;
+      "pr checks")
+        rows=
+        for i in "${!fns[@]}"; do
+          fn="${fns[$i]}"
+          if run_test "$fn" >/dev/null; then b=pass; else b=fail; fi
+          rows="$rows${rows:+,}{\"name\":\"$fn\",\"bucket\":\"$b\",\"link\":\"https://github.com/acme/stats/actions/runs/7/job/$((101 + i))\"}"
+        done
+        printf '[%s]\n' "$rows" | answer ;;
+      "run view")
+        job="$4"
+        [ "$*" = "run view --job $job --repo github.com/acme/stats --log-failed" ] || {
+          echo "fake gh: no answer recorded for: $*" >&2
+          exit 1
+        }
+        i=$((job - 101))
+        fn="${fns[$i]:-}"
+        [ "$i" -ge 0 ] && [ -n "$fn" ] || { echo "fake gh: no job $job" >&2; exit 1; }
+        out="$(run_test "$fn")" && { echo "fake gh: job $job did not fail" >&2; exit 1; }
+        printf '%s\tRun tests\t2026-10-14T12:00:01.1000000Z ##[group]Run bash tests/%s.sh\n' "$fn" "$fn"
+        while IFS= read -r line; do
+          printf '%s\tRun tests\t2026-10-14T12:00:01.2000000Z %s\n' "$fn" "$line"
+        done <<< "$out"
+        printf '%s\tRun tests\t2026-10-14T12:00:01.3000000Z /home/runner/work/stats/stats/tests/%s.sh exited 1\n' "$fn" "$fn"
+        printf '%s\tRun tests\t2026-10-14T12:00:01.4000000Z ##[error]Process completed with exit code 1.\n' "$fn" ;;
+      *) echo "fake gh: no answer recorded for: $*" >&2; exit 1 ;;
+    esac
+    SH
+    chmod +x .fake/bin/gh
+    printf '{"env": {"PATH": "%s/.fake/bin:%s", "GH_FAKE": "%s/.fake", "DO_PR_WATCH_SECONDS": "5", "DO_PR_WATCH_INTERVAL": "1"}}\n' \
+      "$PWD" "$PATH" "$PWD" > .claude/settings.json
+    printf '.claude/\n' >> .git/info/exclude
