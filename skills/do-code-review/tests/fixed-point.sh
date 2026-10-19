@@ -841,6 +841,11 @@ check_lines "the Debt review is a change when it is not handed over" 0 "$rc" "di
 run main --spec .scratch/20260930-export/spec.md --review "$debt_review"
 check_lines "a handed Debt review beside its handed Spec does not mark the tree dirty" 0 "$rc" \
   "dirty=no" "review=$debt_review"
+printf 'notes\n' >.scratch/20260930-export/notes.md
+run main --spec .scratch/20260930-export/spec.md --review "$debt_review"
+check_lines "another untracked file beside a handed Debt review is a change like any other" 0 "$rc" \
+  "dirty=yes"
+rm .scratch/20260930-export/notes.md
 
 # The orchestrator and the fix call eval the status line, and the path in it is the name of a file
 # anyone can commit: a single quote in that name must stay text, or the rest of the name runs as
