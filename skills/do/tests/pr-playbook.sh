@@ -1695,5 +1695,49 @@ expect "a sentence of the push item takes a fetched tip that is not \`<sha>\`" t
 carries_any "that round is not pushed as it stands" \
   "not pushed" "no push" "never pushed" "pushes nothing" "nothing is pushed" "does not push" \
   "doesn't push" "never pushes" "pushes no" "without pushing" "never goes out" "does not go out"
+
+# Everyone pushing to a shared head such as `dev` relies on a round redone over the moved head: its
+# fixers reproduce against the code the red checks now ran on, so their fixes land on the branch as
+# it stands, where old picks replayed onto the moved tip would carry fixes for code that is gone. The
+# developer relies on the first attempt's run tree staying on disk, since removing it would lose its
+# commits unseen. The moved-tip branch is read from the first sentence of the push item naming the
+# moved tip up to the sentence opening a sibling branch (`When ...`) or holding the push line.
+echo "# pr.md / ### 4. Fix the red checks: a fetched tip that moved keeps the run tree and redoes the round whole from step 3's watch, over the moved head"
+flat="$(sed 's/\. /.\n/g' <<<"$push_item" | awk -v push="$push_line" '
+  function moved(s) {
+    return index(s, "moved past") || index(s, "has moved") || index(s, "moved on") ||
+      index(s, "is not `<sha>`") || index(s, "is not <sha>") || index(s, "isn'"'"'t `<sha>`") ||
+      index(s, "differs from `<sha>`") || index(s, "differs from <sha>") || index(s, "other than `<sha>`") ||
+      index(s, "not `<sha>`") || index(s, "!= <sha>") || index(s, "!= `<sha>`")
+  }
+  !on && moved($0) { on = 1; print; next }
+  on && (index($0, push) || (/^ *When / && !moved($0))) { exit }
+  on { print }
+' | tr '\n' ' ' | tr -s ' ')"
+expect "the push item carries a branch for a fetched tip that is not \`<sha>\`" test -n "$flat"
+carries_each "that branch keeps \`<run tree>\` and its commits on disk" \
+  "<run tree>" "run tree" -- \
+  "keeps" "keep" "kept" "not removed" "does not remove" "doesn't remove" "never removes" "never removed" \
+  "stays on disk" "stay on disk" "left on disk" "leaves" -- \
+  "commit"
+carries_each "it goes back to step 3's watch, calling it with \`<pr>\` alone" \
+  "back to step 3" "returns to step 3" "step 3's watch" "to step 3" "back to the watch" -- \
+  "<pr>" -- "alone"
+carries_each "it runs the round again from the new verdict's \`sha=\`" \
+  "round" -- \
+  "again" "redo" "redoes" "redone" "anew" "re-run" "rerun" "reruns" "runs it over" -- \
+  "sha=" -- "new"
+carries_each "its run tree is cut by item 2 at that new \`sha=\`" "item 2" -- "cut" "cuts"
+carries_each "its fixers are forked over the code the checks now ran on" \
+  "do-pr-fixer" "fixer" -- "fork" "forked" "forks" -- \
+  "ran on" "run on" "moved head" "moved tip" "new head"
+carries_each "the redone round has a new \`<at>\`, so \`fix-worktrees.sh add\` meets no branch of the first attempt" \
+  "new \`<at>\`" "fresh \`<at>\`" "new <at>" "another \`<at>\`" "different \`<at>\`" "its own \`<at>\`" -- \
+  "branch" "worktree"
+carries_any "no fix commit is replayed, cherry-picked or rebased onto the moved tip" \
+  "No fix commit is replayed" "no fix commit is replayed" "No pick is replayed" "no pick is replayed" \
+  "No commit is replayed" "no commit is replayed" "Nothing is replayed" "nothing is replayed" \
+  "never replayed" "never replays" "not replayed" "replays no" "never cherry-picked" \
+  "never cherry-picks" "not cherry-picked" "never rebased" "never rebases" "not rebased" "no rebase"
 [ "$fails" -eq 0 ] && exit 0
 exit 1

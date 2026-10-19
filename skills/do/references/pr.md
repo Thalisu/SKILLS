@@ -316,7 +316,15 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
 
    Then compare the fetched tip `origin/<head>` with `<sha>`, the commit the run tree was cut at
    (the commit the checks ran on). When the fetched tip is not `<sha>`, the remote has moved past
-   the tree's base and the round is not pushed as it stands. When it is `<sha>`, push:
+   the tree's base and the round is not pushed as it stands. The run pulls the moved head and redoes
+   the round whole. It keeps `<run tree>` and its commits on disk, never removing it. It goes back to
+   step 3's watch, calling it with `<pr>` alone, on the moved head. It runs the round again from the
+   new verdict's `sha=`: item 2 cuts a new run tree at that new `sha=` after its
+   `git fetch origin <head>` (that cut is the pull), with a new `<at>` from the new `sha=` and a new
+   `<dir>`, so `fix-worktrees.sh add` meets no branch or worktree of the first attempt. Every
+   do-pr-fixer is forked again over the code the checks now ran on, the moved head. No fix commit is
+   replayed, cherry-picked or rebased onto the moved tip, since a fix must answer the code the red
+   checks ran on. When it is `<sha>`, push:
 
        git -C <run tree> push origin HEAD:refs/heads/<head>
 
