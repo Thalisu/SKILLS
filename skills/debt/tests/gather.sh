@@ -218,4 +218,22 @@ check_absent "a feature with no pending debt gives no item" 1 "$rc" "item="
 expect "a feature with no pending debt writes nothing in the directory it ran from" \
   test "$before" = "$(snapshot "$tmp" "$entries")"
 
+label="a feature with debt counts its items after the slug, folder and spec lines, before the first item, and ends judging that many, exit 0"
+run pending-debt-review
+count="$(grep -c '^item=' <<<"$out")"
+order="$(grep -oE '^(slug|folder|spec|items|item)=' <<<"$out" | uniq | tr -d = | tr '\n' ' ')"
+if [ "$rc" = 0 ] && [ "$order" = "slug folder spec items item " ] && [ "$(term items)" = "$count" ] &&
+  [ "$(tail -n 1 <<<"$out")" = "line=Judging $count debt items of 20261019-pending-debt-review" ]; then ok "$label"; else
+  fail "$label (exit $rc, wanted 0; order: $order; items=$(term items), item records: $count)"
+  dump_out
+fi
+
+label="a feature with no pending debt counts zero items before its status line"
+run clean-feature
+counted="$(grep -E '^(items|line)=' <<<"$out" | tr '\n' '|')"
+if [ "$rc" = 1 ] && [ "$counted" = "items=0|line=no pending debt in 20261019-clean-feature; nothing judged|" ]; then ok "$label"; else
+  fail "$label (exit $rc, wanted 1)"
+  dump_out
+fi
+
 exit "$fails"

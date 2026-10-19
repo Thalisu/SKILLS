@@ -5,11 +5,14 @@
 #   gather.sh <slug>    the bare slug or its <YYYYMMDD>-<slug> folder name
 #
 # Prints slug=, folder= and spec= lines, the values resolve-feature-folder.sh prints, then one
+# items=<n> line, the count of records (0 when none), then one
 # item=<k><TAB>source=<source><TAB>text=<text> line per Debt item of the folder's issues/*.debt.md
 # files, k from 1, the source naming the Debt file, its section and the item within the section,
 # then one per Consider or Noted Finding, and per Act on Finding whose latest fix line reads not
 # fixed, of the feature's Reviews (the Spec's, then the Tickets', never the Debt review), k
-# continuing, the source naming the review file and the Finding.
+# continuing, the source naming the review file and the Finding. With n > 0 it ends on
+# line=Judging <n> debt items of <folder name>; with none, line=no pending debt in <folder name>;
+# nothing judged (after items=0). No items= line is printed when the slug names no feature folder.
 #
 # Exit codes: 0 it gathered · 1 it gathered no record, nothing judged · 2 usage, or the resolver refused the slug (its stderr is relayed) · 3 the slug names no feature folder, nothing written.
 set -uo pipefail
@@ -113,18 +116,26 @@ main() {
     none | "" | /*) ;;
     *) spec="${root:+$root/}$spec" ;;
   esac
+  local -a recs=()
   while IFS= read -r line; do
     [ -n "$line" ] || continue
-    k=$((k + 1))
-    printf 'item=%d\tsource=%s\ttext=%s\n' "$k" "${line%%$'\t'*}" "${line#*$'\t'}"
+    recs+=("$line")
   done < <(
     debt_items "$dir"
     review_items "$dir" "$spec"
   )
+  k=${#recs[@]}
+  echo "items=$k"
+  local i
+  for ((i = 0; i < k; i++)); do
+    line="${recs[$i]}"
+    printf 'item=%d\tsource=%s\ttext=%s\n' "$((i + 1))" "${line%%$'\t'*}" "${line#*$'\t'}"
+  done
   if [ "$k" = 0 ]; then
     echo "line=no pending debt in $(basename "$dir"); nothing judged"
     return 1
   fi
+  echo "line=Judging $k debt items of $(basename "$dir")"
 }
 
 main "$@"
