@@ -13,30 +13,6 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 skill="$here/../SKILL.md"
 fails=0
 
-# The text from each exit marker naming the code to the next exit marker of any code: a table row,
-# a bullet or a sentence the door gives that exit, wherever it sits, so one exit's stop never
-# answers for another's. A marker may name several codes at once (`exit 3 or 1`), and `any other
-# exit` stands for 2, the one code the door leaves to it once 0, 1, 3 and 4 are named.
-exit_window() { # $1 the exit code; the windows naming it, joined, on stdout
-  code="$1" awk '
-    BEGIN {
-      re = "[Ee]xit(s| code| codes| with| status)? `?[0-9]`?((,|, and|, or| and| or| and exit| or exit) `?[0-9]`?)*|[Aa]ny other exit"
-    }
-    {
-      s = $0; off = 0; k = 0
-      while (match(substr(s, off + 1), re)) {
-        k++; at[k] = off + RSTART; text[k] = substr(s, at[k], RLENGTH); off = at[k] + RLENGTH - 1
-      }
-      at[k + 1] = length(s) + 1
-      for (i = 1; i <= k; i++) {
-        t = text[i]; gsub(/[^0-9]/, "", t)
-        if (index(t, ENVIRON["code"]) || (ENVIRON["code"] == "2" && text[i] ~ /[Aa]ny other exit/))
-          printf "%s ", substr(s, at[i], at[i + 1] - at[i])
-      }
-    }
-  ' <<<"$body"
-}
-
 body="$(body_of "$skill" 2>/dev/null | tr '\n' ' ' | tr -s ' ')"
 mapfile -t nothing_written < <(nothing_written_phrasings)
 ends=("ends the run" "the run ends" "end the run" "ends on" "end on" "stop" "Stop")
@@ -85,6 +61,23 @@ carries "exit 0 prints the line= value" "line="
 carries "it prints that value as the status line" "status line"
 carries "exit 0 hands the item= records on" "item="
 carries_any "the records go to the judgment step" "judg" "Judg"
+
+echo "# SKILL.md: exit 5 prints nothing, judges nothing and goes to the fix with gather.sh's review="
+flat="$(exit_window 5 "$(flat_section "$skill" "## 1.")")"
+expect "the door names what it does on exit 5" test -n "${flat// /}"
+carries_any "exit 5 prints no status line" \
+  "no status line" "prints nothing" "print nothing" "printing nothing" "nothing is printed" \
+  "prints no line" "print no line" "without printing" "no line is printed"
+carries_any "exit 5 forks no evaluator" "${no_fork[@]}" \
+  "forks no evaluator" "fork no evaluator" "forking no evaluator" "no evaluator" \
+  "no \`debt-evaluator\`" "no debt-evaluator"
+carries_any "exit 5 skips the judgment: no run directory, no debt-review.sh" \
+  "skips step 2" "skip step 2" "skipping step 2" "skips the judgment" "skip the judgment" \
+  "skipping the judgment" "past step 2" "past the judgment" "no judgment" \
+  "never calls debt-review.sh" "does not call debt-review.sh" "calls no debt-review.sh" \
+  "no \`debt-review.sh\`" "no debt-review.sh" "without calling debt-review.sh"
+carries_any "exit 5 goes on to the fix step" "step 3" "Step 3" "the fix" "The fix"
+carries "exit 5 hands on the review= value gather.sh printed" "review="
 
 echo "# SKILL.md: the door parses no Debt file or Review itself"
 flat="$body"

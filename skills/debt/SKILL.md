@@ -32,6 +32,7 @@ The session never parses a Debt file or a Review itself: gather.sh reads both. I
 | exit 1 | The feature owes no debt. Print the `line=` value as the run's only line and stop: the run ends on that one line, forks no agent and writes nothing. |
 | exit 2 | Stop, printing the script's stderr line as the one line. |
 | exit 0 | Print the `line=` value (`Judging <n> debt items of <folder>`) as the status line, then hand every `item=` record to step 2. |
+| exit 5 | A Debt review exists and no gathered item is new. Print nothing, with no status line: fork no evaluator, make no run directory, skip step 2 and never call debt-review.sh. Go straight to step 3 (the fix) with the `review=` value gather.sh printed. |
 
 ## 2. The judgment
 
@@ -80,13 +81,18 @@ bash <skill-dir>/scripts/debt-review.sh <slug> <dir>
 On exit 0 it prints `review=<path>` and `line=Written to <path>`. The session never reads a return
 file itself and never places an item in a Bucket: the script does both.
 
+On a rerun it appends the new Findings to the existing Debt review instead of rewriting it. When
+nothing is new beside an existing Debt review, the script's exit 5 prints `review=<path>` and no
+`line=`: the session prints nothing and goes straight to step 3 (the fix) with that `review=` value.
+
 Show the Debt review file's text, then the `line=` value (`Written to <location>`). The judgment
 ends on those lines, and step 3 follows.
 
 ## 3. The fix
 
 The fix runs after the Debt review's text and `Written to <location>`. Cut the branch, `<slug>` being
-the `slug=` value gather.sh printed and `<review>` the `review=` value debt-review.sh printed:
+the `slug=` value gather.sh printed and `<review>` the `review=` value gather.sh or debt-review.sh
+printed, whichever printed it:
 
 ```sh
 bash <skill-dir>/scripts/debt-branch.sh <slug> <review>

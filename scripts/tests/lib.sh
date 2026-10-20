@@ -172,6 +172,29 @@ passage_of() { # $1 file, $2 the line the passage opens with, $3 the line past i
 match_of() { # $1 one row of a Markdown table: its last cell, trimmed, on stdout
   awk -F'|' '{ m = $(NF - 1); gsub(/^ +| +$/, "", m); print m }' <<<"$1"
 }
+# The text from each exit marker naming the code to the next exit marker of any code: a table row,
+# a bullet or a sentence a step gives that exit, wherever it sits, so one exit's stop never
+# answers for another's. A marker may name several codes at once (`exit 3 or 1`), and `any other
+# exit` stands for 2, the one code a door leaves to it once the others are named.
+exit_window() { # $1 the exit code, $2 the flattened text, $body when left out; the windows naming it, joined, on stdout
+  code="$1" awk '
+    BEGIN {
+      re = "[Ee]xit(s| code| codes| with| status)? `?[0-9]`?((,|, and|, or| and| or| and exit| or exit) `?[0-9]`?)*|[Aa]ny other exit"
+    }
+    {
+      s = $0; off = 0; k = 0
+      while (match(substr(s, off + 1), re)) {
+        k++; at[k] = off + RSTART; text[k] = substr(s, at[k], RLENGTH); off = at[k] + RLENGTH - 1
+      }
+      at[k + 1] = length(s) + 1
+      for (i = 1; i <= k; i++) {
+        t = text[i]; gsub(/[^0-9]/, "", t)
+        if (index(t, ENVIRON["code"]) || (ENVIRON["code"] == "2" && text[i] ~ /[Aa]ny other exit/))
+          printf "%s ", substr(s, at[i], at[i + 1] - at[i])
+      }
+    }
+  ' <<<"${2-$body}"
+}
 # The numbered item that carries a phrase, from its own marker line to the one before the next
 # marker: a Playbook's steps and the reply's `## Run` items are renumbered whenever one is added or
 # absorbed into another, so a pin names what the item says and this finds where the item sits.

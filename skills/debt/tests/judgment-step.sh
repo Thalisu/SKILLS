@@ -118,6 +118,15 @@ denies "the session never reads a return file itself" \
 denies "the session never places an item in a Bucket itself" \
   "place" "put" "sort" "assign" -- "Bucket"
 
+echo "# the composer's exit 5: no line= to print, straight to the fix with its review="
+flat="$(exit_window 5 "$(flat_section "$skill" "## 2.")")"
+expect "the step names what it does on debt-review.sh's exit 5" test -n "${flat// /}"
+carries_any "exit 5 prints no line= value" \
+  "no \`line=\`" "no line=" "prints nothing" "print nothing" "printing nothing" \
+  "nothing is printed" "nothing to print" "without printing"
+carries_any "exit 5 goes on to the fix step" "step 3" "Step 3" "the fix" "The fix"
+carries "exit 5 hands on the review= value debt-review.sh printed" "review="
+
 echo "# the shared wait the step reaches through <skill-dir>/../../.agents/scripts/"
 expect "returns.sh sits at .agents/scripts/ from the repo root, where the step calls it" \
   test -f "$here/../../../.agents/scripts/returns.sh"
