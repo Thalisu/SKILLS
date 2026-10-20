@@ -49,7 +49,9 @@
 #                                          the first "Fixed point: " line keeps its branch and takes
 #                                          the short form of <sha>, the first "Commit: " line takes
 #                                          that short sha, every other byte is kept. Prints nothing,
-#                                          exit 0.
+#                                          exit 0. Exit 2 with one stderr line, nothing written, when
+#                                          the review has no "Fixed point: " line, no "Commit: " line,
+#                                          or <sha> names no commit.
 #
 # Exit codes: 0 it wrote the review · 1 or 3 gather's own exit, its line= relayed, nothing written · 2 usage, or gather's usage or resolver refusal (its stderr relayed) · 5 gather found nothing new beside an existing Debt review: its review= relayed, no line=, nothing written.
 set -uo pipefail
@@ -336,8 +338,16 @@ append_findings() { # $1 review path, $2 to $5 the new blocks of Act on, Conside
 
 move_fixed_point() { # $1 review path, $2 sha
   local review="$1" short tmp
+  grep -q '^Fixed point: ' "$review" 2>/dev/null || {
+    echo "debt-review.sh: $review: missing Fixed point: line" >&2
+    return 2
+  }
+  grep -q '^Commit: ' "$review" 2>/dev/null || {
+    echo "debt-review.sh: $review: missing Commit: line" >&2
+    return 2
+  }
   short="$(git -C "$(dirname "$review")" rev-parse --short --verify -q "$2^{commit}")" || {
-    echo "debt-review.sh: $2 names no commit" >&2
+    echo "debt-review.sh: $review: $2 names no commit" >&2
     return 2
   }
   tmp="$(mktemp "$review.XXXXXX")"

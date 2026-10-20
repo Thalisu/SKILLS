@@ -1188,4 +1188,56 @@ absent_prefix "on a rerun with nothing new, it prints no line=, no Written to fo
 expect "on a rerun with nothing new, the Debt review is byte-identical" \
   cmp -s "$tmp/held-all-review.before" "$held_all_review"
 
+run_apart() { # $1.. the script's arguments, run from outside every repository: its stdout in $out, its stderr in $err, its exit in $rc
+  rc=0
+  out="$(cd "$tmp" && bash "$script" "$@" 2>"$tmp/apart.err")" || rc=$?
+  err="$(cat "$tmp/apart.err")"
+}
+refused_naming() { # $1 review path: success when the run exited 2 with nothing on stdout and one stderr line, debt-review.sh: <review path>: <a cause>
+  local cause="${err#"debt-review.sh: $1: "}"
+  [ "$rc" = 2 ] && [ -z "$out" ] && [ "$(grep -c '' <<<"$err")" = 1 ] && [ "$cause" != "$err" ] && [ -n "$cause" ]
+}
+cd "$settled" || exit 1
+moved="$settled/.scratch/20261020-moved-debt"
+mkdir -p "$moved"
+moved_review="$moved/spec.debt.review.md"
+cp "$settled_before/review.md" "$moved_review"
+printf 'retries=4\n' >"$settled/src/a.sh"
+commit "the target moves on"
+moved_sha="$(g rev-parse HEAD)"
+moved_short="$(g rev-parse --short HEAD)"
+awk -v fp="Fixed point: main ($settled_sha)" -v c="Commit: $settled_sha" -v short="$moved_short" '
+  !f && $0 == fp { print "Fixed point: main (" short ")"; f = 1; next }
+  !k && $0 == c { print "Commit: " short; k = 1; next }
+  1
+' "$moved_review" >"$tmp/moved-review.want"
+if cmp -s "$tmp/moved-review.want" "$moved_review" || ! grep -qxF "Date: 2026-10-20 · at $settled_sha" "$moved_review"; then
+  echo "FAIL  fixture: the moved review's header does not carry the settled sha, or its Fix run does not repeat it"
+  exit 1
+fi
+
+run_apart --fixed-point "$moved_review" "$moved_sha"
+expect "--fixed-point on a held Debt review exits 0 and prints nothing on stdout or stderr" \
+  test "$rc:$out:$err" = "0::"
+expect "--fixed-point rewrites only the Fixed point and Commit lines to the new short sha, every Finding and Fix run byte-identical" \
+  cmp -s "$tmp/moved-review.want" "$moved_review"
+
+for missing in "Fixed point" "Commit"; do
+  headless="$moved/no-${missing// /-}.debt.review.md"
+  grep -v "^$missing: " "$settled_before/review.md" >"$headless"
+  cp "$headless" "$tmp/headless.before"
+  run_apart --fixed-point "$headless" "$moved_sha"
+  expect "--fixed-point on a review with no $missing: line exits 2, prints nothing on stdout and one stderr line naming the review" \
+    refused_naming "$headless"
+  expect "--fixed-point on a review with no $missing: line leaves it byte-identical" \
+    cmp -s "$tmp/headless.before" "$headless"
+done
+
+cp "$moved_review" "$tmp/moved-review.before"
+run_apart --fixed-point "$moved_review" 0000000000000000000000000000000000000000
+expect "--fixed-point given a sha that names no commit exits 2, prints nothing on stdout and one stderr line naming the review" \
+  refused_naming "$moved_review"
+expect "--fixed-point given a sha that names no commit leaves the review byte-identical" \
+  cmp -s "$tmp/moved-review.before" "$moved_review"
+
 exit "$fails"
