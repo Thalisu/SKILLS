@@ -600,6 +600,11 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
      as stop-cases, for the one watch after the rerun. It stops only then, by that watch's route
      in step 3, the refused rerun's clause on the same `Yours: direction:` line as every other
      clause.
+   - `failed: <reason>` with no run id first (exit 1), which the script prints for every refusal it
+     makes before it reruns any run (`gh` missing, an unreadable head, repository or run, a repository
+     or run that is not the pull request's, a run on another head): it names no one run, so every
+     check passed to the call adds a `rerun-refused` entry to the stop set with that reason. No
+     rerun was made: remove `<run tree>` and stop on the one `Yours: direction:` line.
    - On exit 2 (usage): as exit 1, every check's reason reading `the rerun script refused its arguments`.
 
    When no check was picked, the round's stop set holds a stop-case and at least one check on the

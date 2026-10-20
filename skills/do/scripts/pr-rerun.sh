@@ -13,8 +13,11 @@
 # prints moved=<head sha> instead and reruns nothing. A <repo> that is not the pull request's
 # repository, a run whose head commit is not <sha> and a run of another repository are refused
 # before any run is rerun: the run ids come from a check's details link, which whoever posts a
-# status sets. A failure prints one failed: <reason> line, the last stdout line, after the rerun=
-# lines made so far, and reruns no later run.
+# status sets. A failure prints one failed: line, the last stdout line, after the rerun= lines made
+# so far, and reruns no later run. A refusal made before any run is rerun carries no run id first
+# (failed: <reason>, a run named inside the reason as "run <run id>"): it concerns every run named,
+# and the caller refuses every check it passed. A failure of one run's own rerun reads
+# failed: <run id>: <reason>.
 #
 # Exits 0 every run reran, or the head moved · 1 gh missing, the head or a run unreadable, or a
 # rerun refused or not seen (the failed: line is on stdout) · 2 usage, on stderr, nothing on stdout.
@@ -85,20 +88,20 @@ main() {
   local sha="$2" repo="$3" id before after reason seen=" " ids=() run_sha run_url run_repo pr_repo
   shift 3
   pr_repo="$(read_pr_repo "$pr")" || fail "cannot read the repository of pull request $pr"
-  [ "${repo,,}" = "${pr_repo,,}" ] || fail "$1: the repository $repo is not the pull request's repository $pr_repo"
+  [ "${repo,,}" = "${pr_repo,,}" ] || fail "the repository $repo is not the pull request's repository $pr_repo"
   for id in "$@"; do
     case "$seen" in *" $id "*) continue ;; esac
     seen="$seen$id "
     ids+=("$id")
   done
   for id in "${ids[@]}"; do
-    run_sha="$(read_identity "$repo" "$id" 2>&1)" || fail "$id: $(printf '%s' "${run_sha:-cannot read the run}" | tr '\n' ' ' | sed 's/ *$//')"
+    run_sha="$(read_identity "$repo" "$id" 2>&1)" || fail "run $id: $(printf '%s' "${run_sha:-cannot read the run}" | tr '\n' ' ' | sed 's/ *$//')"
     run_url="${run_sha#*$'\t'}"
     run_sha="${run_sha%%$'\t'*}"
-    [ "$run_sha" = "$sha" ] || fail "$id: its headSha $run_sha is not $sha"
+    [ "$run_sha" = "$sha" ] || fail "run $id: its headSha $run_sha is not $sha"
     run_repo="${run_url#https://}"
     run_repo="${run_repo%%/actions/*}"
-    [ "${run_repo,,}" = "${pr_repo,,}" ] || fail "$id: the run belongs to $run_repo, not the pull request's repository $pr_repo"
+    [ "${run_repo,,}" = "${pr_repo,,}" ] || fail "run $id: the run belongs to $run_repo, not the pull request's repository $pr_repo"
   done
   for id in "${ids[@]}"; do
     before="$(read_attempt "$repo" "$id" 2>&1)" || fail "$id: $(printf '%s' "${before:-cannot read the run}" | tr '\n' ' ' | sed 's/ *$//')"

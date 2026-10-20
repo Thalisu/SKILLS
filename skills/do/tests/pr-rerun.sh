@@ -112,10 +112,16 @@ absent "the head moved past the watched sha: no rerun= line on stdout" "rerun="
 out="$(grep '^run rerun ' "$GH_FAKE/calls" 2>/dev/null)"
 same "the head moved past the watched sha: gh reruns no run at all" ""
 
-ends_failed() { # $1 label, $2 the run id, $3 a fixed string its reason must carry, $4 the whole of $out before that last line, $5.. other fixed strings the reason may carry instead of $3
+ends_failed() { # $1 label, $2 the run id, or empty for a failed: line with no run id first, $3 a fixed string its reason must carry, $4 the whole of $out before that last line, $5.. other fixed strings the reason may carry instead of $3
   local last="${out##*$'\n'}" before="" carried=0 want
   [[ "$out" == *$'\n'* ]] && before="${out%$'\n'*}"
-  for want in "$3" "${@:5}"; do [[ "$last" == "failed: $2: "*"$want"* ]] && carried=1; done
+  for want in "$3" "${@:5}"; do
+    if [ -n "$2" ]; then
+      [[ "$last" == "failed: $2: "*"$want"* ]] && carried=1
+    else
+      [[ "$last" == "failed: "*"$want"* && ! "$last" =~ ^failed:\ [0-9]+: ]] && carried=1
+    fi
+  done
   if [ "$before" = "$4" ] && [ "$carried" = 1 ]; then ok "$1"; else
     fail "$1"
     dump_out
@@ -155,42 +161,47 @@ out="$(grep '^run rerun ' "$GH_FAKE/calls" 2>/dev/null)"
 same "a rerun never seen: no run named after the unseen one is rerun" \
   "run rerun 7 --repo github.com/o/r --failed"$'\n'"run rerun 9 --repo github.com/o/r --failed"
 
-fresh_runs
 foreign=b7e6d5c4a3f2e1d0c9b8a7f6e5d4c3b2a1f0e9d8
-echo "$foreign" >"$GH_FAKE/headsha.9"
-rc=0
-out="$(timeout 30 bash "$script" 42 "$sha" github.com/o/r 7 9 2>/dev/null)" || rc=$?
-ends_failed "a named run whose head commit is not the watched sha: stdout is only a failed: line naming that run and its sha mismatch, with no rerun= line even for the earlier run that matched" \
-  9 headSha "" "$foreign"
-expect "a run on another head commit: the script exits 1" [ "$rc" = 1 ]
-out="$(grep '^run rerun ' "$GH_FAKE/calls" 2>/dev/null)"
-same "a run on another head commit: gh reruns no run at all, not even the earlier one on the watched sha" ""
 
 # A check's details link, set by any GitHub App, can name runs of a repository that is not the pull
 # request's: the runs are found there, and rerunning one would rerun an unrelated run under the
 # developer's token.
+# pr.md routes `failed: <run id>: <reason>` to the checks of that one run id, so a refusal printed
+# before any run is rerun carries no run id first: it must refuse every check the call was passed.
+fresh_runs
+echo "$foreign" >"$GH_FAKE/headsha.9"
+rc=0
+out="$(timeout 30 bash "$script" 42 "$sha" github.com/o/r 7 9 2>/dev/null)" || rc=$?
+ends_failed "refused before any rerun, a run on another head commit: stdout is only a failed: line with no run id first, so every check passed is refused, its reason naming the foreign sha" \
+  "" "$foreign" ""
+expect "refused before any rerun, a run on another head commit: the reason still names run 9" grep -qw 9 <<<"$out"
+expect "refused before any rerun, a run on another head commit: the script exits 1" [ "$rc" = 1 ]
+out="$(grep '^run rerun ' "$GH_FAKE/calls" 2>/dev/null)"
+same "refused before any rerun, a run on another head commit: gh reruns no run at all" ""
+
+fresh_runs
+echo github.com/someone-else/deploy-repo >"$GH_FAKE/runrepo.9"
+rc=0
+out="$(timeout 30 bash "$script" 42 "$sha" github.com/o/r 7 9 2>/dev/null)" || rc=$?
+ends_failed "refused before any rerun, a run reporting another repository: stdout is only a failed: line with no run id first, so every check passed is refused, its reason naming that repository" \
+  "" github.com/someone-else/deploy-repo ""
+expect "refused before any rerun, a run reporting another repository: the reason still names run 9" grep -qw 9 <<<"$out"
+expect "refused before any rerun, a run reporting another repository: the script exits 1" [ "$rc" = 1 ]
+out="$(grep '^run rerun ' "$GH_FAKE/calls" 2>/dev/null)"
+same "refused before any rerun, a run reporting another repository: gh reruns no run at all" ""
+
 for elsewhere in github.com/someone-else/deploy-repo evil.example/o/r; do
   fresh_runs
   echo "$elsewhere" >"$GH_FAKE/repo"
   echo github.com/o/r >"$GH_FAKE/prrepo"
   rc=0
   out="$(timeout 30 bash "$script" 42 "$sha" "$elsewhere" 7 9 2>/dev/null)" || rc=$?
-  ends_failed "<repo> $elsewhere is not the pull request's repository: stdout is only a failed: line naming the first run, its reason naming <repo>" \
-    7 "$elsewhere" ""
-  check "<repo> $elsewhere is not the pull request's repository: the reason also names the pull request's repository github.com/o/r, and the script exits 1" \
+  ends_failed "refused before any rerun, <repo> $elsewhere not the pull request's: stdout is only a failed: line with no run id first, so every check passed is refused, its reason naming <repo>" \
+    "" "$elsewhere" ""
+  check "refused before any rerun, <repo> $elsewhere not the pull request's: the reason also names github.com/o/r, and the script exits 1" \
     1 "$rc" "github.com/o/r"
   out="$(grep '^run ' "$GH_FAKE/calls" 2>/dev/null)"
-  same "<repo> $elsewhere is not the pull request's repository: gh neither reruns nor views any run" ""
+  same "refused before any rerun, <repo> $elsewhere not the pull request's: gh neither reruns nor views any run" ""
 done
-
-fresh_runs
-echo github.com/someone-else/deploy-repo >"$GH_FAKE/runrepo.9"
-rc=0
-out="$(timeout 30 bash "$script" 42 "$sha" github.com/o/r 7 9 2>/dev/null)" || rc=$?
-ends_failed "a named run whose url puts it in another repository than the pull request's, <repo> naming the pull request's: stdout is only a failed: line naming that run and its repository, with no rerun= line even for the earlier run that matched" \
-  9 github.com/someone-else/deploy-repo ""
-expect "a run reporting another repository: the script exits 1" [ "$rc" = 1 ]
-out="$(grep '^run rerun ' "$GH_FAKE/calls" 2>/dev/null)"
-same "a run reporting another repository: gh reruns no run at all, not even the earlier one of the pull request's repository" ""
 
 exit "$((fails > 0))"
