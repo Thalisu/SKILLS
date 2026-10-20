@@ -1179,6 +1179,133 @@ same "on a rerun over a settled Debt review, ## Axes counts every Finding, held 
 
 ."
 
+fresh overruled
+overruled="$(pwd -P)"
+overruled_feature="$overruled/.scratch/20261020-overruled-debt"
+mkdir -p "$overruled_feature/issues"
+printf '# Overruled debt\n' >"$overruled_feature/spec.md"
+cat >"$overruled_feature/issues/01-a.debt.md" <<'EOF'
+## 2026-10-19 15:01
+
+- the retry budget is hardcoded
+- the page header repeats on every page
+- the cache key ignores the locale
+- the export prints through echo -e
+EOF
+commit "seed the overruled feature"
+overruled_sha="$(g rev-parse --short HEAD)"
+mapfile -t overruled_sources < <(shaped_sources overruled-debt "$overruled")
+overruled_review="$overruled_feature/spec.debt.review.md"
+cat >"$overruled_review" <<EOF
+# Review: Overruled debt
+
+Spec: $overruled_feature/spec.md
+Fixed point: main ($overruled_sha)
+Commit: $overruled_sha
+Spec source: $overruled_feature/spec.md
+Mode: default
+Language: English
+
+## Act on
+
+### 3. Correctness at src/c.sh:7
+Claim: two locales share one cache entry.
+Evidence: an earlier agent's note says so; no run reached the cache.
+Rung: 2
+Fix: the cache key carries the locale, in src/c.sh
+Source: ${overruled_sources[2]:-}
+Acted on by hand: the locale bug blocks the release.
+
+### 2. Correctness at src/b.sh:2
+Claim: the page header repeats on every page.
+Evidence: a proof script paged three times and read the header three times.
+Rung: 4
+Fix: the header prints on the first page only, in src/b.sh
+Small: yes
+Source: ${overruled_sources[1]:-}
+
+## Consider
+
+none
+
+## Noted
+
+none
+
+## Cleared
+
+### 1. Standards at src/a.sh:1
+Claim: the retry budget is hardcoded at three.
+Evidence: \`retries=3\` in src/a.sh:1, walked through the retry loop.
+Rung: 3
+Fix: the retry budget is read from the config, in src/a.sh
+Source: ${overruled_sources[0]:-}
+Cleared by hand: the platform default caps the retries.
+
+## Axes
+
+- Correctness: 2 findings, worst #2 (Act on)
+- Spec: 0 findings
+- Standards: 1 finding, worst #1 (Cleared)
+- Principles: 0 findings
+- Blast radius: 0 findings
+- Security: 0 findings
+
+## Fix run
+
+Date: 2026-10-20 · at $overruled_sha
+
+- 1: not fixed: the Fixer never returned
+- 2: not fixed: the Fixer never returned
+- gate: \`bash tests/a.test.sh\`: green
+- not landed: a Fixer did not return
+EOF
+commit "seed the Debt review the developer overruled"
+overruled_records() { # $1 review: the number and Bucket of the held Findings 1 to 3, in file order, on stdout
+  bash "$here/../../../.agents/scripts/review-findings.sh" "$1" 2>/dev/null | cut -f1,2 | grep -E '^finding=(1|2|3)'$'\t'
+}
+overruled_want="$(printf 'finding=3\tbucket=Act on\nfinding=2\tbucket=Act on\nfinding=1\tbucket=Cleared')"
+if [ "${#overruled_sources[@]}" != 4 ] || [ "$(overruled_records "$overruled_review")" != "$overruled_want" ] ||
+  [ "$(shaped_sources overruled-debt "$overruled")" != "${overruled_sources[3]}" ]; then
+  echo "FAIL  fixture: gather.sh did not name four items for overruled-debt, the review does not read 3 and 2 under Act on and 1 under Cleared, or gather.sh did not keep the one new item"
+  exit 1
+fi
+overruled_returns="$tmp/overruled-returns"
+mkdir -p "$overruled_returns"
+cat >"$overruled_returns/item-1.md" <<EOF
+Source: ${overruled_sources[3]}
+Axis: Correctness
+Location: src/d.sh:5
+Claim: the export drops the last line of its output.
+Evidence: a proof script exported three lines and read two.
+Rung: 4
+Fix: the export prints its last line, in src/d.sh
+Small: yes
+EOF
+overruled_before="$tmp/overruled-before"
+mkdir -p "$overruled_before"
+for part in "moved Finding 1:finding_block 1" "moved Finding 3:finding_block 3" "Fix run sections:fix_runs_of"; do
+  read -ra extract <<<"${part#*:}"
+  "${extract[0]}" "$overruled_review" "${extract[@]:1}" >"$overruled_before/${part%%:*}"
+done
+
+rc=0
+# shellcheck disable=SC2034  # lib.sh's check_lines reads $out
+out="$(cd "$overruled" && bash "$script" overruled-debt "$overruled_returns" 2>&1)" || rc=$?
+check_lines "on a rerun over an overruled Debt review, it prints the path of the review it added to" 0 "$rc" \
+  "review=$overruled_review"
+expect "on a rerun over an overruled Debt review, the new item is appended as Finding 4" \
+  grep -qE '^### 4\. ' "$overruled_review"
+for part in "moved Finding 1:finding_block 1" "moved Finding 3:finding_block 3" "Fix run sections:fix_runs_of"; do
+  read -ra extract <<<"${part#*:}"
+  expect "on a rerun over an overruled Debt review, its ${part%%:*} is byte-identical" \
+    cmp -s "$overruled_before/${part%%:*}" <("${extract[0]}" "$overruled_review" "${extract[@]:1}")
+done
+# shellcheck disable=SC2034  # lib.sh's same reads $out
+out="$(overruled_records "$overruled_review")"
+same "on a rerun over an overruled Debt review, Finding 3 stays above 2 under Act on and Finding 1 stays under Cleared" \
+  "$overruled_want"
+
 fresh held-all
 held_all="$(pwd -P)"
 held_all_feature="$held_all/.scratch/20261020-held-all-debt"
