@@ -129,6 +129,32 @@ same "every check passed and only a required review blocks the merge: the watch 
   "verdict=awaiting-approval"$'\n'"checks=2"
 expect "a pull request awaiting approval is a verdict printed: the watch exits 0" [ "$rc" = 0 ]
 
+serve 42 BLOCKED "fail:no checks reported on the 'feature' branch"
+echo '{"mergeStateStatus":"BLOCKED","mergeable":"MERGEABLE","reviewDecision":"REVIEW_REQUIRED","headRefName":"feature/login","baseRefName":"main"}' >"$GH_FAKE/view"
+DO_PR_WATCH_REGISTER_SECONDS=3600 run 42
+since="$(term since)"
+state="$(term state)"
+handed=no
+[[ "$since" =~ ^[0-9]+$ ]] && [ -n "$state" ] && handed=yes
+out="${out%%$'\n'*}"
+check_lines "no check registered yet on a pull request awaiting a required review, inside the registration grace: the watch returns verdict=pending on its first line, not awaiting-approval, for no check proved green" 0 "$rc" \
+  "verdict=pending"
+expect "no check registered yet on a pull request awaiting a required review: the pending verdict carries a since= epoch and a state= token to hand back" [ "$handed" = yes ]
+
+serve 42 BLOCKED "fail:no checks reported on the 'feature' branch"
+echo '{"mergeStateStatus":"BLOCKED","mergeable":"MERGEABLE","reviewDecision":"REVIEW_REQUIRED","isDraft":true,"headRefName":"feature/login","baseRefName":"main"}' >"$GH_FAKE/view"
+DO_PR_WATCH_REGISTER_SECONDS=3600 run 42
+out="${out%%$'\n'*}"
+check_lines "no check registered yet on a draft pull request, inside the registration grace: the watch returns verdict=pending on its first line, not draft, for no check proved green" 0 "$rc" \
+  "verdict=pending"
+
+serve 42 BLOCKED "fail:no checks reported on the 'feature' branch"
+echo '{"mergeStateStatus":"BLOCKED","mergeable":"MERGEABLE","reviewDecision":"REVIEW_REQUIRED","headRefName":"feature/login","baseRefName":"main"}' >"$GH_FAKE/view"
+DO_PR_WATCH_REGISTER_SECONDS=0 run 42
+same "a pull request awaiting a required review on a repository with no CI, once the registration grace has passed: the watch returns verdict=awaiting-approval with no checks counted, not pending" \
+  "verdict=awaiting-approval"$'\n'"checks=0"
+expect "a pull request with no CI awaiting a required review past the grace is a verdict printed: the watch exits 0" [ "$rc" = 0 ]
+
 serve 42 BLOCKED '[{"name":"build","bucket":"pass"},{"name":"test","bucket":"pass"}]'
 echo '{"mergeStateStatus":"BLOCKED","mergeable":"MERGEABLE","reviewDecision":"REVIEW_REQUIRED","isDraft":true,"headRefName":"feature/login","baseRefName":"main"}' >"$GH_FAKE/view"
 run 42

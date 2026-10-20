@@ -9,7 +9,7 @@
 #                        carry the 60-minute stall window across calls
 #
 # Prints key=value lines, verdict first: verdict=green, checks=<n> (0 once no check registered inside
-# DO_PR_WATCH_REGISTER_SECONDS, default 120) | verdict=pending, since=<epoch>,
+# DO_PR_WATCH_REGISTER_SECONDS, default 120, which holds awaiting-approval and draft with no check the same way) | verdict=pending, since=<epoch>,
 # state=<token> | verdict=awaiting-approval, checks=<n> | verdict=draft, checks=<n> (every check
 # passed on a draft pull request, which cannot merge until marked ready) | verdict=conflict, head=<head branch>,
 # base=<base branch> | verdict=red, head=<head branch>, sha=<head commit>, then one
@@ -62,7 +62,7 @@ read_pull() { # $1 pr: prints "<merge state> <mergeable> <review decision> <head
     | join(" ")'
 }
 
-classify() { # $1 read_checks lines, $2 merge state, $3 mergeable, $4 review decision, $5 draft: prints conflict|red|green|settling|awaiting-approval|draft|wait, or exits 3 with its stderr line
+classify() { # $1 read_checks lines, $2 merge state, $3 mergeable, $4 review decision, $5 draft: prints conflict|red|green|awaiting-approval|draft|wait|settling-<green|awaiting-approval|draft> (no check yet, the verdict waits out the registration grace), or exits 3 with its stderr line
   local bucket link name
   if [ "$3" = conflicting ] || [ "$2" = dirty ]; then
     echo conflict
@@ -86,16 +86,16 @@ classify() { # $1 read_checks lines, $2 merge state, $3 mergeable, $4 review dec
     esac
   done <<<"$1"
   if [ "$5" = true ] && [ "$2" != unknown ]; then
-    echo draft
+    if [ -n "$1" ]; then echo draft; else echo settling-draft; fi
     return
   fi
   case "$2" in
     clean | has_hooks)
-      if [ -n "$1" ]; then echo green; else echo settling; fi
+      if [ -n "$1" ]; then echo green; else echo settling-green; fi
       ;;
     blocked)
       if [ "$4" = review_required ]; then
-        echo awaiting-approval
+        if [ -n "$1" ]; then echo awaiting-approval; else echo settling-awaiting-approval; fi
       else
         echo "pr-watch.sh: no verdict yet for merge state blocked (review $4)" >&2
         exit 3
@@ -109,7 +109,7 @@ classify() { # $1 read_checks lines, $2 merge state, $3 mergeable, $4 review dec
   esac
 }
 
-read_once() { # $1 pr: sets checks, the pull fields and result (conflict|green|settling|awaiting-approval|draft|wait); exits 1 on a read failure, 3 as classify does
+read_once() { # $1 pr: sets checks, the pull fields and result (as classify prints it); exits 1 on a read failure, 3 as classify does
   merge="" mergeable="" review="" head="" base="" sha="" draft=""
   checks="$(read_checks "$1")" || exit 1
   read -r merge mergeable review head base sha draft <<<"$(read_pull "$1")"
@@ -117,7 +117,7 @@ read_once() { # $1 pr: sets checks, the pull fields and result (conflict|green|s
   result="$(classify "$checks" "$merge" "$mergeable" "$review" "$draft")" || exit "$?"
 }
 
-keep_window() { # after a wait or settling read: keeps since and state while the checks are unchanged, restarts them otherwise; sets result to stalled once a pending check sat unchanged for stall_seconds, to green once no check appeared for register_seconds
+keep_window() { # after a wait or settling read: keeps since and state while the checks are unchanged, restarts them otherwise; sets result to stalled once a pending check sat unchanged for stall_seconds, to the verdict a settling-* result names once no check appeared for register_seconds
   local now fresh
   now="$(date +%s)"
   fresh="$(fingerprint <<<"$checks")"
@@ -128,12 +128,12 @@ keep_window() { # after a wait or settling read: keeps since and state while the
   if grep -q '^pending ' <<<"$checks" && [ $((now - since)) -ge "$stall_seconds" ]; then
     result=stalled
   fi
-  if [ "$result" = settling ] && [ $((now - since)) -ge "$register_seconds" ]; then
-    result=green
+  if [[ "$result" == settling-* ]] && [ $((now - since)) -ge "$register_seconds" ]; then
+    result="${result#settling-}"
   fi
 }
 
-holding() { [ "$result" = wait ] || [ "$result" = settling ]; }
+holding() { [ "$result" = wait ] || [[ "$result" == settling-* ]]; }
 
 main() {
   [ "$#" = 1 ] || [ "$#" = 3 ] || usage
