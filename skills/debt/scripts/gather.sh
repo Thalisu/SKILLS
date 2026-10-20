@@ -12,7 +12,8 @@
 # files, k from 1, the source naming the Debt file, its section and the item within the section,
 # then one per Consider or Noted Finding, and per Act on Finding whose latest fix line reads not
 # fixed, of the feature's Reviews (the Spec's, then the Tickets', never the Debt review), k
-# continuing, the source naming the review file and the Finding. A record whose source the
+# continuing, the source naming the review file and the Finding, its text= that Finding's Claim line
+# (the heading when it has none). A record whose source the
 # Debt review (<Spec stem>.debt.review.md) already holds in a Finding's Source: line, in any Bucket,
 # is dropped, and k counts the new items alone. With n > 0 it ends on
 # line=Judging <n> debt items of <folder name>; with none, line=no pending debt in <folder name>;
@@ -70,17 +71,32 @@ review_files() {
   done | LC_ALL=C sort
 }
 
+finding_claim() {
+  local review="$1" n="$2"
+  awk -v n="$n" '
+    /^## / { sec = substr($0, 4); sub(/[ \t\r]+$/, "", sec); bucket = (sec == "Act on" || sec == "Consider" || sec == "Noted" || sec == "Cleared"); infind = 0; next }
+    /^### / { infind = bucket && index($0, "### " n ". ") == 1; next }
+    infind && /^Claim: / { v = substr($0, 8); sub(/\r$/, "", v); print v; exit }
+  ' "$review"
+}
+
 review_items() {
-  local dir="$1" spec="$2" here rel n bucket latest header
+  local dir="$1" spec="$2" here rel n bucket latest header claim
   here="$(cd "$(dirname "$0")" && pwd -P)"
   while IFS= read -r rel; do
     [ -n "$rel" ] || continue
     while IFS=$'\t' read -r n bucket latest header; do
       case "${bucket#bucket=}" in
-        Consider | Noted) printf '%s, Finding %s\t%s\n' "$rel" "${n#finding=}" "${header#header=}" ;;
+        Consider | Noted)
+          claim="$(finding_claim "$dir/$rel" "${n#finding=}")"
+          printf '%s, Finding %s\t%s\n' "$rel" "${n#finding=}" "${claim:-${header#header=}}"
+          ;;
         "Act on")
           case "${latest#latest=}" in
-            "not fixed"*) printf '%s, Finding %s\t%s\n' "$rel" "${n#finding=}" "${header#header=}" ;;
+            "not fixed"*)
+              claim="$(finding_claim "$dir/$rel" "${n#finding=}")"
+              printf '%s, Finding %s\t%s\n' "$rel" "${n#finding=}" "${claim:-${header#header=}}"
+              ;;
           esac
           ;;
       esac

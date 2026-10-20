@@ -96,10 +96,13 @@ Evidence: \`load\` opens the file for its size and again for its lines.
 Rung: 2"
 run pending-debt-review
 check_lines "each Consider and Noted Finding of a Review is one record after the Debt items, the Spec's Reviews by name then the Tickets', in file order" "$rc" "$rc" \
-  "item=4${tab}source=spec.review.md, Finding 1${tab}text=Standards at src/c.sh:12" \
-  "item=5${tab}source=spec.review.md, Finding 2${tab}text=Principles at src/d.sh:5" \
-  "item=6${tab}source=spec.security.review.md, Finding 1${tab}text=Correctness at src/f.sh:2" \
-  "item=7${tab}source=issues/01-a.review.md, Finding 1${tab}text=Principles at src/h.sh:9"
+  "item=4${tab}source=spec.review.md, Finding 1${tab}text=\`echo -e\` in \`src/\`, which CLAUDE.md forbids." \
+  "item=5${tab}source=spec.review.md, Finding 2${tab}text=the parser and the printer share one function." \
+  "item=6${tab}source=spec.security.review.md, Finding 1${tab}text=the token is compared with a plain string match." \
+  "item=7${tab}source=issues/01-a.review.md, Finding 1${tab}text=the loader reads the file twice."
+check_lines "a Consider or Noted Finding's record carries its Claim as its text, so the evaluator reads what is wrong and not only where" "$rc" "$rc" \
+  "item=4${tab}source=spec.review.md, Finding 1${tab}text=\`echo -e\` in \`src/\`, which CLAUDE.md forbids." \
+  "item=7${tab}source=issues/01-a.review.md, Finding 1${tab}text=the loader reads the file twice."
 check_absent "a Cleared Finding, an empty Bucket and the Debt review's own Findings give no item" "$rc" "$rc" \
   "Blast radius at src/e.sh:7" "text=none" "source=spec.debt.review.md" "Standards at src/g.sh:4"
 
@@ -170,10 +173,12 @@ review_at 8b1d0e4 "$open/issues/01-a.review.md"
 run open-findings
 check_lines "an Act on Finding whose latest Fix run line reads not fixed is one record, before its Review's Consider and Noted, in the gathered order" "$rc" "$rc" \
   "item=1${tab}source=issues/01-a.debt.md, section first run, item 1${tab}text=the timeout is hardcoded" \
-  "item=2${tab}source=spec.review.md, Finding 1${tab}text=Correctness at src/a.sh:3" \
-  "item=3${tab}source=spec.review.md, Finding 7${tab}text=Security at src/g.sh:9" \
-  "item=4${tab}source=spec.review.md, Finding 8${tab}text=Standards at src/h.sh:2" \
-  "item=5${tab}source=issues/01-a.review.md, Finding 1${tab}text=Correctness at src/a.sh:3"
+  "item=2${tab}source=spec.review.md, Finding 1${tab}text=a call with no argument exits on an unbound variable." \
+  "item=3${tab}source=spec.review.md, Finding 7${tab}text=the token is echoed to the log." \
+  "item=4${tab}source=spec.review.md, Finding 8${tab}text=\`echo -e\` in \`src/\`, which CLAUDE.md forbids." \
+  "item=5${tab}source=issues/01-a.review.md, Finding 1${tab}text=a call with no argument exits on an unbound variable."
+check_lines "an Act on Finding left not fixed carries its Claim as its record's text" "$rc" "$rc" \
+  "item=2${tab}source=spec.review.md, Finding 1${tab}text=a call with no argument exits on an unbound variable."
 check_absent "an Act on Finding whose latest line reads fixed or stale, or that has no fix line, gives no item" "$rc" "$rc" \
   "src/b.sh:4" "src/c.sh:5" "src/d.sh:6" "src/e.sh:7" "src/f.sh:8" "item=6${tab}"
 
