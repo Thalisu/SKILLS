@@ -94,6 +94,10 @@ bash <skill-dir>/scripts/debt-branch.sh <slug> <review>
 
 The session runs no git and parses no file itself. It decides on the script's exit code:
 
+- exit 4: the main checkout has uncommitted changes. Print the `line=` value (`working tree has
+  uncommitted changes; commit or stash before fix`) as the run's last line, after
+  `Written to <location>`, and stop, with no `cd` and no Skill call, so no fix run is called and no
+  Fixer is forked.
 - exit 3: print the `line=` value as the run's last line and stop, calling no fix run.
 - exit 2: print the script's stderr line and stop.
 - exit 0: go on with the `worktree=`, `main=` and `call=` values, and with the `tickets=` value
