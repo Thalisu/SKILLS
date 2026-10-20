@@ -36,6 +36,13 @@
 #   empty); one outside it is a Finding under Consider with the evidence "the evaluator returned
 #   outside the shape".
 #
+# When the Debt review file already exists it is appended to, not rewritten: the new Findings are
+# numbered after the highest Finding number it holds, in Bucket order, each inserted under its
+# Bucket (replacing a lone "none"), ahead of "## Axes" and every "## Fix run" section; every other
+# line is kept as is, except the "## Axes" body, recomputed over every Finding of the file. A held
+# review lacking a Bucket heading or "## Axes" is refused: "debt-review.sh: <review>: missing
+# <heading>" on stderr, nothing written, exit 2.
+#
 # Prints review=<path> then line=Written to <path>.
 #
 # Exit codes: 0 it wrote the review · 1 or 3 gather's own exit, its line= relayed, nothing written · 2 usage, or gather's usage or resolver refusal (its stderr relayed).
@@ -252,6 +259,75 @@ axes() { # stdin: "<n>\t<Bucket>\t<heading>" per Finding: the six Axes lines
   done
 }
 
+last_number() { # $1 review path: the highest Finding number it holds, 0 when none
+  local here f max=0
+  here="$(cd "$(dirname "$0")" && pwd -P)"
+  while IFS=$'\t' read -r f _; do
+    f="${f#finding=}"
+    [ "$f" -le "$max" ] || max="$f"
+  done < <(bash "$here/../../../.agents/scripts/review-findings.sh" "$1")
+  echo "$max"
+}
+
+append_findings() { # $1 review path, $2 to $5 the new blocks of Act on, Consider, Noted, Cleared
+  local review="$1" here heading tmp1 tmp2 rows axes_text
+  here="$(cd "$(dirname "$0")" && pwd -P)"
+  for heading in "Act on" Consider Noted Cleared Axes; do
+    grep -qxF "## $heading" "$review" || {
+      echo "debt-review.sh: $review: missing ## $heading" >&2
+      return 2
+    }
+  done
+  tmp1="$(mktemp "$review.XXXXXX")"
+  tmp2="$(mktemp "$review.XXXXXX")"
+  NEW_ACT="$2" NEW_CON="$3" NEW_NOTE="$4" NEW_CLR="$5" awk '
+    function flush(   i) {
+      if (cur != "" && newtext[cur] != "") {
+        printf "\n%s", newtext[cur]
+      } else {
+        for (i = 0; i < pend; i++) print ""
+      }
+      pend = 0
+    }
+    BEGIN {
+      newtext["Act on"] = ENVIRON["NEW_ACT"]; newtext["Consider"] = ENVIRON["NEW_CON"]
+      newtext["Noted"] = ENVIRON["NEW_NOTE"]; newtext["Cleared"] = ENVIRON["NEW_CLR"]
+    }
+    /^## / {
+      flush()
+      cur = substr($0, 4)
+      if (!(cur in newtext)) cur = ""
+      content = 0
+      print; next
+    }
+    cur != "" {
+      if ($0 == "") { pend++; next }
+      if ($0 == "none" && !content && newtext[cur] != "") { pend = 0; next }
+      for (i = 0; i < pend; i++) print ""
+      pend = 0; content = 1; print; next
+    }
+    { print }
+    END { flush() }
+  ' "$review" >"$tmp1"
+  rows="$(bash "$here/../../../.agents/scripts/review-findings.sh" "$tmp1" |
+    awk -F'\t' '{ sub(/^finding=/, "", $1); sub(/^bucket=/, "", $2); sub(/^header=/, "", $4); print $1 "\t" $2 "\t" $4 }')"
+  axes_text="$(printf '%s\n' "$rows" | grep . | axes)"
+  AXES="$axes_text" awk '
+    /^## / {
+      if (inaxes) { print ENVIRON["AXES"]; print "" }
+      inaxes = ($0 == "## Axes")
+      print
+      if (inaxes) print ""
+      next
+    }
+    inaxes { next }
+    { print }
+    END { if (inaxes) print ENVIRON["AXES"] }
+  ' "$tmp1" >"$tmp2"
+  rm -f "$tmp1"
+  mv "$tmp2" "$review"
+}
+
 main() {
   [ "$#" = 2 ] || {
     echo "usage: debt-review.sh <slug> <returns dir>" >&2
@@ -332,6 +408,11 @@ main() {
   done < <(printf '%s\n' "$gathered" | grep '^item=')
   local frows="" title dir branch sha name entry
   local -A sect=()
+  local held=0
+  if [ -f "$review" ]; then
+    held=1
+    n="$(last_number "$review")"
+  fi
   for name in "Act on" "Consider" "Noted" "Cleared"; do
     case "$name" in
       "Act on") set -- "${b_act[@]+"${b_act[@]}"}" ;;
@@ -347,6 +428,12 @@ main() {
       frows+="$n"$'\t'"$name"$'\t'"$heading"$'\n'
     done
   done
+  if [ "$held" = 1 ]; then
+    append_findings "$review" "${sect["Act on"]}" "${sect[Consider]}" "${sect[Noted]}" "${sect[Cleared]}" || return $?
+    echo "review=$review"
+    echo "line=Written to $review"
+    return 0
+  fi
   title="$(sed -n 's/^# //p' "$spec" | head -1)"
   dir="$(dirname "$spec")"
   branch="$(git -C "$dir" rev-parse --abbrev-ref HEAD 2>/dev/null)"

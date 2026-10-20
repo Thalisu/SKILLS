@@ -312,8 +312,8 @@ EOF
 commit "seed the shaped features"
 shaped_sha="$(g rev-parse --short HEAD)"
 
-shaped_sources() { # $1 slug: the sources gather.sh records for its items, in their order, one per line, on stdout
-  (cd "$shaped" && bash "$gather" "$1" 2>/dev/null) |
+shaped_sources() { # $1 slug, $2 the project (default: $shaped): the sources gather.sh records for its items, in their order, one per line, on stdout
+  (cd "${2:-$shaped}" && bash "$gather" "$1" 2>/dev/null) |
     awk -F'\t' '/^item=/ { sub(/^source=/, "", $2); print $2 }'
 }
 spread_sources="$(shaped_sources spread-debt)"
@@ -829,6 +829,99 @@ for refusal in "idle-feature:1:line=no pending debt in 20261019-idle-feature; no
   out="$(cd "$idle" && bash "$script" "$slug" "$idle_returns" 2>&1)" || rc=$?
   check_lines "slug $slug: it relays gather's line and its exit $want_rc" "$want_rc" "$rc" "$want"
   expect "slug $slug: it writes no file in the project" test "$before" = "$(g -C "$idle" status --porcelain)"
+done
+
+fresh rerun
+rerun="$(pwd -P)"
+rerun_feature="$rerun/.scratch/20261020-rerun-debt"
+mkdir -p "$rerun_feature/issues" "$rerun/src"
+printf '# Spec: rerun debt\n' >"$rerun_feature/spec.md"
+printf 'retries=3\n' >"$rerun/src/a.sh"
+cat >"$rerun_feature/issues/01-a.debt.md" <<'EOF'
+## 2026-10-19 15:01
+
+- the retry budget is hardcoded
+- the cache key ignores the locale
+- the consumer flows were not run against the new signature
+- the page header repeats on every page
+EOF
+commit "seed the rerun feature"
+rerun_sha="$(g rev-parse --short HEAD)"
+mapfile -t rerun_sources < <(shaped_sources rerun-debt "$rerun")
+if [ "${#rerun_sources[@]}" != 4 ]; then
+  echo "FAIL  fixture: gather.sh did not name four items for rerun-debt"
+  exit 1
+fi
+rerun_review="$rerun_feature/spec.debt.review.md"
+review_at "$rerun_sha" "$rerun_review" "### 1. Standards at src/a.sh:1
+Claim: the retry budget is hardcoded at three.
+Evidence: \`retries=3\` in src/a.sh:1, walked through the retry loop.
+Rung: 3
+Fix: the retry budget is read from the config, in src/a.sh
+Source: ${rerun_sources[0]}" "## Fix run
+
+Date: 2026-10-20 · at $rerun_sha
+
+- 1: fixed 1a2b3c4, verified (\`bash tests/a.test.sh\`)
+- gate: \`bash tests/a.test.sh\`: green
+- landed at 1a2b3c4" "" "### 4. Correctness at src/b.sh:7
+Claim: two locales share one cache entry.
+Evidence: an earlier agent's note says so; no run reached the cache.
+Rung: 2
+Fix: the cache key carries the locale, in src/b.sh
+Source: ${rerun_sources[1]}"
+commit "seed the rerun Debt review"
+if [ "$(shaped_sources rerun-debt "$rerun")" != "$(printf '%s\n' "${rerun_sources[2]}" "${rerun_sources[3]}")" ]; then
+  echo "FAIL  fixture: gather.sh did not drop the two sources the Debt review holds for rerun-debt"
+  exit 1
+fi
+rerun_returns="$tmp/rerun-returns"
+mkdir -p "$rerun_returns"
+cat >"$rerun_returns/item-1.md" <<EOF
+Source: ${rerun_sources[2]}
+Axis: Blast radius
+Location: src/a.sh:1
+Claim: the consumers were not run against the new signature.
+Evidence: the consumer calls src/a.sh with the old argument order, read from its source; no flow of it ran.
+Rung: 3
+Outside code: the consumer flows run against this branch, in the consumer's repository
+EOF
+cat >"$rerun_returns/item-2.md" <<EOF
+Source: ${rerun_sources[3]}
+Axis: Correctness
+Location: src/c.sh:2
+Claim: the page header repeats on every page.
+Evidence: a proof script paged three times and read the header three times.
+Rung: 4
+Fix: the header prints on the first page only, in src/c.sh
+Small: yes
+EOF
+rc=0
+# shellcheck disable=SC2034  # lib.sh's check_lines reads $out
+out="$(cd "$rerun" && bash "$script" rerun-debt "$rerun_returns" 2>&1)" || rc=$?
+rerun_rc="$rc"
+check_lines "on a rerun, it prints the path of the Debt review it added the new Findings to" 0 "$rerun_rc" \
+  "review=$rerun_review" "line=Written to $rerun_review"
+# shellcheck disable=SC2034  # lib.sh's same reads $out
+out="$(sed -n 's/^### \([0-9]*\)\. .*/\1/p' "$rerun_review" 2>/dev/null | tr '\n' ' ' | sed 's/ $//')"
+same "on a rerun, the new Findings are numbered after the highest held one in Bucket order, each after its Bucket's held Findings" \
+  "1 5 4 6"
+# shellcheck disable=SC2034  # lib.sh's check_lines reads $out
+out="$(grep -qx '## Consider' "$rerun_review" 2>/dev/null &&
+  item_holding <(passage_of "$rerun_review" "## Act on" "## Consider") '### [0-9]+\.' "Source: ${rerun_sources[3]}")"
+check_lines "on a rerun, a new Act on Finding sits under ## Act on, numbered after the highest held Finding, with its item's Source" \
+  0 "$rerun_rc" "### 5. Correctness at src/c.sh:2" "Source: ${rerun_sources[3]}"
+# shellcheck disable=SC2034  # lib.sh's check_lines reads $out
+out="$(grep -qx '## Cleared' "$rerun_review" 2>/dev/null && passage_of "$rerun_review" "## Noted" "## Cleared")"
+check_lines "on a rerun, a new Noted Finding sits under ## Noted, numbered after the new Act on one, with its item's Source" \
+  0 "$rerun_rc" "### 6. Blast radius at src/a.sh:1" "Source: ${rerun_sources[2]}"
+expect "on a rerun, a new Finding in an empty Bucket replaces its none line" test "$(grep -cx none <<<"$out")" = 0
+# shellcheck disable=SC2034  # lib.sh's before reads $flat
+flat="$(cat "$rerun_review" 2>/dev/null)"
+for new in 5 6; do
+  for heading in "## Axes" "## Fix run"; do
+    before "on a rerun, the new Finding $new sits ahead of $heading" "### $new. " "$heading"
+  done
 done
 
 exit "$fails"
