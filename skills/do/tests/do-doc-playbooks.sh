@@ -29,6 +29,11 @@ carries_each "its Matched by cell names words naming a pull request with its num
   "number" "#"
 flat="$(cell "$pr_row" 3)"
 carries_any "its run cell says the run follows that pull request" "follow" "Follow"
+carries_each "its run cell says a red check is fixed, the fix pushed to the pull request's head, and the check rerun" \
+  "fix" "Fix" -- \
+  "push" -- \
+  "to its head" "onto its head" "to the head" "onto the head" "pull request's head" "head branch" -- \
+  "rerun" "re-run" "Rerun" "Re-run"
 
 echo "# docs/do.md / ## What it does: the Playbooks it lists are the table's, pr among them, and their count agrees"
 flat="$(flat_section "$do_doc" "## What it does")"
@@ -42,6 +47,12 @@ count_word="$(grep -oE '(One|Two|Three|Four|Five|Six|Seven|Eight|Nine|Ten|[0-9]+
 want_word="$(sed -n "$(grep -c . <<<"$names")p" <<<$'One\nTwo\nThree\nFour\nFive\nSix\nSeven\nEight\nNine\nTen')"
 expect "the count it states (${count_word:-none}) is the table's (${want_word})" \
   test -z "$count_word" -o "$count_word" = "$want_word" -o "$count_word" = "$(grep -c . <<<"$names")"
+expect "it no longer says a run pushes nothing (\"Nothing is pushed.\")" \
+  test "$(grep -cF 'Nothing is pushed.' <<<"$flat")" = 0
+carries_each "it names the \`pr\` run's fast-forward push to the pull request's head" \
+  "fast-forward" "fast forward" -- \
+  "push" -- \
+  "head"
 
 echo "# docs/do.md / ## When to reach for it: a row types /do with a pull request"
 ask_rows="$(passage_of "$do_doc" "## When to reach for it" "## " | grep -E '^\| ' | tail -n +3)"
