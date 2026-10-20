@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # door.sh: what SKILL.md has the session do with `gather.sh`: run it first on the slug as typed,
-# relay the `line=` value it printed, and decide on its exit code. Exits 3 (no feature folder) and 1
-# (no pending debt) each end the run on that one line, forking no agent and writing no file; exit 2
+# relay the `line=` value it printed, and decide on its exit code. Exits 3 (no feature folder), 1
+# (no pending debt) and 4 (a detached HEAD) each end the run on that one line, forking no agent and
+# writing no file; exit 2
 # ends it on the script's stderr line; exit 0 prints `line=` as the status line and hands the
 # `item=` records on to the judgment. The script carries every verdict (tests/gather.sh), so these
 # cases pin only that the door acts on its exit and never parses a Debt file or a Review itself.
@@ -15,7 +16,7 @@ fails=0
 # The text from each exit marker naming the code to the next exit marker of any code: a table row,
 # a bullet or a sentence the door gives that exit, wherever it sits, so one exit's stop never
 # answers for another's. A marker may name several codes at once (`exit 3 or 1`), and `any other
-# exit` stands for 2, the one code the door leaves to it once 0, 1 and 3 are named.
+# exit` stands for 2, the one code the door leaves to it once 0, 1, 3 and 4 are named.
 exit_window() { # $1 the exit code; the windows naming it, joined, on stdout
   code="$1" awk '
     BEGIN {
@@ -61,7 +62,7 @@ b="$(first_at "bash ")"
 expect "gather.sh is the first command the door runs" test "$g" -gt 0 -a "$g" = "$b"
 carries_any "the door relays the line= value gather.sh printed" "\`line=\`" "line="
 
-for code in 3 1; do
+for code in 3 1 4; do
   echo "# SKILL.md: exit $code ends the run on its one line, forking no agent and writing no file"
   flat="$(exit_window "$code")"
   expect "the door names what it does on exit $code" test -n "${flat// /}"

@@ -28,6 +28,7 @@ The session never parses a Debt file or a Review itself: gather.sh reads both. I
 | What came back | What this session does |
 |---|---|
 | exit 3 | The slug names no feature folder. Print the `line=` value as the run's only line and stop: the run ends on that one line, forks no agent and writes nothing. |
+| exit 4 | The checkout is on a detached HEAD. Print the `line=` value as the run's only line and stop: the run ends on that one line, forks no agent and writes nothing. |
 | exit 1 | The feature owes no debt. Print the `line=` value as the run's only line and stop: the run ends on that one line, forks no agent and writes nothing. |
 | exit 2 | Stop, printing the script's stderr line as the one line. |
 | exit 0 | Print the `line=` value (`Judging <n> debt items of <folder>`) as the status line, then hand every `item=` record to step 2. |
