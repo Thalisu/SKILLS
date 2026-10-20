@@ -103,9 +103,10 @@ for cmd in \
     deny_in "$(bash_out "$cmd")"
 done
 
-# The guard holds on what the shell runs, not on how the line spells it: a fixer steered by a log it
+# The guard reads the command line whichever way a word in it is spelled: a fixer steered by a log it
 # reads reaches gh or a git write as easily through a prefix command, a path, a quote, a variable,
-# an alias or a config set for one command, and a hook matching the literal text lets each through.
+# an alias, a config set for one command or an argument list an interpreter hands to gh, and a hook
+# matching the literal text lets each through. A script the fixer runs is the limit pinned below.
 spelled=(
   'env gh pr view'
   'command gh pr view'
@@ -152,6 +153,10 @@ spelled=(
   'echo x > /main/.git/hooks/pre-push'
   'cp x ../../.git/hooks/pre-push'
   'git rev-parse --git-path hooks'
+  $'perl -e \'system("gh", "api", "-X", "DELETE", "repos/o/r")\''
+  $'perl -e \'exec "gh", "pr", "merge", "1"\''
+  $'perl -e \'system("/usr/bin/env", "gh", "pr", "view")\''
+  $'python3 -c \'import subprocess; subprocess.run(["gh","pr","merge","1"])\''
 )
 for cmd in "${spelled[@]}"; do
   expect "the hook denies the fixer's Bash gh or a git write whichever way its command word is spelled: ${cmd@Q}" \
