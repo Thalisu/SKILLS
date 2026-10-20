@@ -923,6 +923,26 @@ expect "the Finding moved into Act on whose Fix line names no check is on a Wave
 expect "the run over a Finding whose Fix line names no check prints nothing but Wave lines, no refusal on stderr" \
   test -z "$(grep -v '^wave=' <<<"$out")"
 
+shared_source="$tmp/15-shared-debt-source.debt.review.md"
+review_at 8b1d0e4 "$shared_source" "### 1. Standards at src/r.sh:3
+Claim: the retry count is read from a variable nothing sets.
+Evidence: \`RETRIES\` is expanded unset and the loop never runs.
+Rung: 3
+Fix: a call with no retry count retries three times, in src/r.sh
+Source: issues/01-a.debt.md, section 2026-10-19 15:01, item 1
+
+### 2. Principles at src/k.sh:5
+Claim: the key path is hardcoded.
+Evidence: Configuration lives outside the code; \`/etc/k.key\` is written inline.
+Rung: 2
+Fix: the key path is read from the environment, in src/k.sh
+Source: issues/01-a.debt.md, section 2026-10-19 15:01, item 2"
+
+run "$shared_source"
+check_lines "two Act on Findings of a Debt review on disjoint files, sharing the Debt file their Source: lines name, come back on one Wave" 0 "$rc" \
+  "wave=1 findings=1,2"
+absent "the Debt file a Source: line names is no file a Fixer edits, so two Findings sharing it are never split across Waves" "wave=2"
+
 echo
 if [ "$fails" = 0 ]; then echo "fix-waves: all checks passed"; else
   echo "fix-waves: $fails failed"

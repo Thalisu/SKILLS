@@ -31,7 +31,8 @@ refuse() { echo "fix-waves.sh: $1" >&2; exit 2; }
 #   <n>\t<header location>\t<Fix target>
 # The location is the text after ` at ` in the `### <n>. <Axis> at <location>` header, the target
 # is the text after the last `, in ` of the block's `Fix:` line read whole, its continuation lines
-# below it up to the blank line or heading that ends the block included, and either is the empty
+# below it up to the blank line, the `Source:` line of a Debt review's Finding or the heading that
+# ends the block included, and either is the empty
 # string when the block does not carry it. Prints nothing when the section reads `none` or is
 # absent.
 # The only reader of the Act on section in this script.
@@ -55,7 +56,7 @@ act_on_findings() {
     }
     /^Fix: / { fix = $0; infix = 1; next }
     infix {
-      if ($0 ~ /^[[:space:]]*$/) { infix = 0; next }
+      if ($0 ~ /^[[:space:]]*$/ || $0 ~ /^Source: /) { infix = 0; next }
       fix = fix " " $0
       next
     }
