@@ -47,7 +47,9 @@ full="$(git -C "$main" rev-parse --verify -q "$tip^{commit}" 2>&1)" || {
   exit 3
 }
 
-if [ -n "$(git -C "$main" status --porcelain -- . ":!$dir/$(basename "$review")" 2>/dev/null)" ]; then
+spared="$dir/$(basename "$review")"
+spared="${spared#"$main"/}"
+if [ -n "$(git -C "$main" status --porcelain -- . ":(top,exclude)$spared" 2>/dev/null)" ]; then
   echo "line=working tree has uncommitted changes; commit or stash before fix"
   exit 4
 fi

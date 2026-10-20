@@ -263,4 +263,26 @@ expect "no debt/<slug> is created over an untracked file" \
 expect "no folder is made at the worktree path over an untracked file" \
   test ! -e "$main/.claude/worktrees/debt-payroll-export"
 
+fresh spared
+main="$tmp/spared"
+printf 'base\n' >README.md
+commit base
+g checkout -q -b tax
+feature="$main/.scratch/20261020-tax-export"
+mkdir -p "$feature"
+printf '# Spec: Tax export\n' >"$feature/spec.md"
+printf 'export\n' >tax.txt
+commit "tax export"
+short="$(g rev-parse --short HEAD)"
+review="$feature/spec.debt.review.md"
+printf '# Review: Tax export\n\nSpec: %s\nFixed point: tax (%s)\nCommit: %s\nSpec source: %s\nMode: default\nLanguage: English\n\n## Act on\n\nnone\n\n## Consider\n\nnone\n\n## Noted\n\nnone\n\n## Cleared\n\nnone\n\n## Axes\n\n' \
+  "$feature/spec.md" "$short" "$short" "$feature/spec.md" >"$review"
+expect "fixture: the Debt review is the only change, untracked and not ignored" \
+  test "$(g status --porcelain)" = "?? .scratch/20261020-tax-export/spec.debt.review.md"
+run tax-export "$review"
+check_lines "the run's own untracked Debt review is not an uncommitted change: the cut goes ahead, exit 0" \
+  0 "$rc" "branch=debt/tax-export" "worktree=$main/.claude/worktrees/debt-tax-export" "main=$main" \
+  "target=tax" "tip=$short" "call=fix $review tax"
+absent_prefix "a cut beside the run's own untracked Debt review prints no refusal line" "line="
+
 exit "$fails"
