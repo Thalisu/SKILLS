@@ -1950,6 +1950,38 @@ out="$(sed 's/^[[:space:]]*//' <<<"$step" | grep -E '^Yours: direction:' | grep 
 expect "the step shows the stop as a whole line opening \`Yours: direction:\` carrying \`<head>\` and \`<run tree>\`" \
   test -n "$out"
 
+# The developer relies on the first attempt's run tree being named once the redone round ends,
+# pushed or stopped: the redone round cuts a second run tree, the first one stays on disk as a
+# detached worktree holding the first attempt's fix commits, and a run that never names it again
+# leaves it behind unseen, with commits the developer never learns to bring over or drop. Read off
+# the sentences of the push item naming the first attempt's run tree, and off the Reply's round line
+# templates.
+echo "# pr.md / ### 4. Fix the red checks and ### 5. Reply: when a redone round ends, pushed or stopped, the first attempt's run tree is named on a round line with its path and the sha of each commit kept there, and stays on disk"
+step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+push_item="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.|[[:space:]]+[a-z]\.' "$push_line" | tr '\n' ' ' | tr -s ' ')"
+first_tree=("first attempt's run tree" "first run tree" "<first run tree>" "run tree of the first attempt"
+  "first attempt's tree")
+flat="$(sed 's/\. /.\n/g' <<<"$push_item" | grep -F "${first_tree[@]/#/-e}" | tr '\n' ' ')"
+expect "a sentence of the push item names the first attempt's run tree" test -n "$flat"
+carries_each "it is named when the redone round ends, pushed or stopped" \
+  "redone round" "redone" -- "ends" "is over" "finishes" "done" -- "pushed" -- "stopped" "stops"
+affirms "the first attempt's run tree is named on a round line" \
+  "round line" "\`round <r>:\` line" "round <r>:" -- "named" "names" "listed" "lists" "written" "reported"
+carries_each "that line carries the tree's path and the sha of each commit kept there" \
+  "path" "<first run tree>" -- "sha" -- \
+  "each commit" "every commit" "each fix commit" "every fix commit" "commits kept" "kept commit" "each kept" \
+  "every kept" "its fix commits" "the commits"
+carries_each "the first attempt's run tree stays on disk, never removed" \
+  "on disk" -- \
+  "never remov" "not removed" "not remove" "n't remove" "without removing" "no \`git worktree remove\`"
+reply_step="$(passage_of "$pr" "### 5. Reply" "##" 2>/dev/null)"
+out="$(sed 's/^[[:space:]]*//' <<<"$reply_step" | grep -E '^round <r>: kept ' |
+  grep -F -e "<first run tree>" -e "first attempt" -e "first run tree")"
+expect "the Reply's round line templates carry a \`round <r>: kept\` line naming the first attempt's run tree" \
+  test -n "$out"
+flat="$out"
+carries_any "that round line carries the sha of each commit kept there" "<kept sha>" "<sha>" "sha"
+
 # The developer whose pull request needs more than one round to close relies on a red watch after a
 # pushed round starting the next round: a run that stops there ends one fix short of green, leaving
 # them to /do the pull request again for what one more round would have closed. The round count is

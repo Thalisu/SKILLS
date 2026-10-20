@@ -478,7 +478,11 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    fix commits sit on top of them. Its push reaches `<head>` by fast-forward, never `--force` and
    never a merge, so none of the other writer's commits is lost or rewritten. No fix commit is
    replayed, cherry-picked or rebased onto the moved tip, since a fix must answer the code the red
-   checks ran on. When it is `<sha>`, push:
+   checks ran on. Once the redone round ends, pushed or stopped, the first attempt's run tree is named
+   on a round line with its path and the sha of each fix commit kept there, since the redo supersedes
+   its picks but never their commits. The first attempt's run tree stays on disk, never removed by
+   the run, so the developer reads which commits it holds and removes it by hand. When it is `<sha>`,
+   push:
 
        git -C <run tree> push origin HEAD:refs/heads/<head>
 
@@ -682,6 +686,7 @@ the whole message, and a green watch adds no part of its own:
       round <r>: <check> red; stale base: <path>[, <path>...] not changed by this pull request against <base> at <merge base short sha>; no fixer forked
       round <r>: <a `kept` line, as fix-worktrees.sh printed it>
       round <r>: kept <branch> <path> <reason>, as fix-worktrees.sh printed it
+      round <r>: kept <first run tree> from the first attempt, superseded by the redone round; its fix commits <kept sha>, ... stay there
       round <r>: <check> red; do-pr-fixer on <fixer branch>: not reproduced <k>: <command> <what it showed>; nothing pushed for it; retried by the run on <picked sha>
       round <r>: <check> red; do-pr-fixer on <fixer branch>: not reproduced <k>: <command> <what it showed>; nothing pushed for it; rerun <run id> attempt <n>
       round <r>: <check> red; do-pr-fixer on <fixer branch>: not reproduced <k>: <command> <what it showed>; nothing pushed for it; rerun <run id> refused: <reason>
@@ -691,6 +696,9 @@ the whole message, and a green watch adds no part of its own:
       round <r>: nothing rerun: <head> moved to <short sha> after the watch; the round is redone from the watch
       round <r>: after the push the watch read <verdict word>
       round <r>: after the rerun the watch read <verdict word>
+
+  The `kept <first run tree>` line is written once for a redone round, whether that round pushed
+  or stopped, and on a stop it sits ahead of the `Yours: direction:` line.
 
   The first `not picked` line is written once per path the guard named. The `stale base` line is
   written once per stale check, in place of any fixer line for that check, with
