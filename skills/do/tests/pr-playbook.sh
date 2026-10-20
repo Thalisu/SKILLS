@@ -2234,12 +2234,12 @@ carries_each "its fixer branch is kept by fix-worktrees.sh remove as an unlanded
 # the push carries everything on HEAD to the head under the developer's credentials. The session reads
 # what the tree holds above the commit it was cut at before it pushes, and anything that no
 # fix-integrate.sh pick explains stops the round with nothing pushed.
-echo "# pr.md / ### 4. Fix the red checks, item 5: before it pushes, the run refuses a run tree holding any commit above <sha> that fix-integrate.sh did not print as picked"
+echo "# pr.md / ### Fix the red checks, item 5: before it pushes, the run refuses a run tree holding any commit above <sha> that fix-integrate.sh did not print as picked"
 step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ')"
 carries "the run lists what the run tree holds above the commit it was cut at" \
   "git -C <run tree> rev-list <sha>..HEAD" "git -C <run tree> merge-base --is-ancestor <sha> HEAD"
-before "the read runs before the push" "git -C <run tree> rev-list <sha>..HEAD" "git -C <run tree> push origin HEAD:refs/heads/<head>"
+before "the read runs before the push" "git -C <run tree> rev-list <sha>..HEAD" "git -C <run tree> -c core.hooksPath=/dev/null push origin HEAD:refs/heads/<head>"
 carries_each "a commit that is no \`picked\` sha stops the run with nothing pushed" \
   "\`picked <k> <sha>\`" -- "no \`picked\` sha" -- "nothing pushed" -- "keeps \`<run tree>\` on disk"
 carries "the stop is one Yours: direction: line naming the run tree" "<run tree> holds <the shas that are no pick> that no fixer branch gave it"
