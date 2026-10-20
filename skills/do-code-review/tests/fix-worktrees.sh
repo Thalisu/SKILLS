@@ -16,9 +16,6 @@ run() {
   # shellcheck disable=SC2034  # lib.sh's check_lines reads $out
   out="$(cd "$tmp" && bash "$script" "$@" 2>&1)" || rc=$?
 }
-branch_of_worktree() { # $1 main checkout, $2 worktree path: the branch git lists that worktree on, on stdout
-  git -C "$1" worktree list --porcelain | awk -v wt="worktree $2" '$0 == wt { on = 1; next } on && /^branch / { print $2; exit } /^$/ { on = 0 }'
-}
 
 fresh add
 main="$tmp/add"

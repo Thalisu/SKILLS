@@ -624,6 +624,9 @@ branch_worktree() { # $1 main checkout, $2 name: a worktree at .claude/worktrees
   local wt="$1/.claude/worktrees/do-$2"
   g -C "$1" worktree add -q "$wt" -b "do/$2" && echo "$wt"
 }
+branch_of_worktree() { # $1 main checkout, $2 worktree path: the branch git lists that worktree on, on stdout
+  g -C "$1" worktree list --porcelain | awk -v wt="worktree $2" '$0 == wt { on = 1; next } on && /^branch / { print $2; exit } /^$/ { on = 0 }'
+}
 ticket() { # $1 file name, $2 status line(s), $3 blocked-by value: a Ticket in the caller's $issues folder
   # Optional: $4 its criteria lines (default: one unticked criterion), $5 the lines `do` left under `## Evidence` (default: none)
   printf '# %s: %s\n\n**What to build:** something.\n\n**Blocked by:** %s\n\n%s\n\n%s\n\n## Evidence\n%s' \
