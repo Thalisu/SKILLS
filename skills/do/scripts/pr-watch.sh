@@ -12,7 +12,10 @@
 # DO_PR_WATCH_REGISTER_SECONDS, default 120, which holds awaiting-approval and draft with no check the same way) | verdict=pending, since=<epoch>,
 # state=<token> | verdict=awaiting-approval, checks=<n> | verdict=draft, checks=<n> (every check
 # passed on a draft pull request, which cannot merge until marked ready) | verdict=conflict, head=<head branch>,
-# base=<base branch> | verdict=red, head=<head branch>, sha=<head commit>, then one
+# base=<base branch> | verdict=behind, head=<head branch>, base=<base branch> (every check passed and the head
+# lacks commits of its base) | verdict=changes-requested, head=<head branch>, base=<base branch> (every
+# check passed and a reviewer asked for changes) | verdict=cancelled, head=<head branch>, sha=<head commit>,
+# then one cancelled=<link> <name> line per cancelled check, none failed or pending | verdict=red, head=<head branch>, sha=<head commit>, then one
 # red=<link> <name> line per failed check | verdict=stalled, then one pending=<check name> line per
 # pending check. Later verdict words and keys append; a reader ignores keys it does not know.
 # Exit codes: 0 a verdict printed · 1 gh missing or unable to read · 2 usage · 3 a settled state no
@@ -62,7 +65,7 @@ read_pull() { # $1 pr: prints "<merge state> <mergeable> <review decision> <head
     | join(" ")'
 }
 
-classify() { # $1 read_checks lines, $2 merge state, $3 mergeable, $4 review decision, $5 draft: prints conflict|red|green|awaiting-approval|draft|wait|settling-<green|awaiting-approval|draft> (no check yet, the verdict waits out the registration grace), or exits 3 with its stderr line
+classify() { # $1 read_checks lines, $2 merge state, $3 mergeable, $4 review decision, $5 draft: prints conflict|red|green|awaiting-approval|draft|cancelled|behind|changes-requested|wait|settling-<green|awaiting-approval|draft|behind|changes-requested> (no check yet, the verdict waits out the registration grace), or exits 3 with its stderr line
   local bucket link name
   if [ "$3" = conflicting ] || [ "$2" = dirty ]; then
     echo conflict
@@ -74,6 +77,10 @@ classify() { # $1 read_checks lines, $2 merge state, $3 mergeable, $4 review dec
   fi
   if grep -q '^fail ' <<<"$1"; then
     echo red
+    return
+  fi
+  if grep -q '^cancel ' <<<"$1"; then
+    echo cancelled
     return
   fi
   while read -r bucket link name; do
@@ -96,10 +103,15 @@ classify() { # $1 read_checks lines, $2 merge state, $3 mergeable, $4 review dec
     blocked)
       if [ "$4" = review_required ]; then
         if [ -n "$1" ]; then echo awaiting-approval; else echo settling-awaiting-approval; fi
+      elif [ "$4" = changes_requested ]; then
+        if [ -n "$1" ]; then echo changes-requested; else echo settling-changes-requested; fi
       else
         echo "pr-watch.sh: no verdict yet for merge state blocked (review $4)" >&2
         exit 3
       fi
+      ;;
+    behind)
+      if [ -n "$1" ]; then echo behind; else echo settling-behind; fi
       ;;
     unknown) echo wait ;;
     *)
@@ -172,6 +184,19 @@ main() {
     echo "verdict=conflict"
     echo "head=$head"
     echo "base=$base"
+    return 0
+  fi
+  if [ "$result" = behind ] || [ "$result" = changes-requested ]; then
+    echo "verdict=$result"
+    echo "head=$head"
+    echo "base=$base"
+    return 0
+  fi
+  if [ "$result" = cancelled ]; then
+    echo "verdict=cancelled"
+    echo "head=$head"
+    echo "sha=$sha"
+    sed -n 's/^cancel /cancelled=/p' <<<"$checks"
     return 0
   fi
   if [ "$result" = red ]; then

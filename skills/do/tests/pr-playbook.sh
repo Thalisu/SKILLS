@@ -3403,5 +3403,65 @@ expect "and its exception list names the fork-head stop" grep -qiE 'head lives i
 expect "and none of them is a fixer's return, a failed watch or a failed pr-log.sh" \
   test -z "$(grep -oiE 'fixer|watch|pr-log' <<<"$flat")"
 
+# The developer whose settled pull request is behind its base has one move, bringing the base into the
+# head, and the catch-all stop on an unknown verdict names no such move. The conflict and stalled
+# pieces carry `Yours: direction:` lines of their own, so the stop is read off the piece naming
+# `verdict=behind`.
+echo "# pr.md / ### Watch: a pull request behind its base stops on exactly one Yours: direction: line naming the head to update from the base, both taken off the verdict's head= and base= lines"
+flat="$(piece_with "verdict=behind")"
+expect "a bullet or paragraph of step $watch_n names \`verdict=behind\`" test -n "$flat"
+carries_any "it stops the run" "stops" "stop" "ends the run" "the run ends"
+carries "on the line \`Yours: direction: <head> is behind <base>; update <head> from <base>, then /do the pull request again\`" \
+  "Yours: direction: <head> is behind <base>; update <head> from <base>, then /do the pull request again"
+yours_direction_once "the behind stop carries exactly one \`Yours: direction:\` line"
+carries_each "\`<head>\` and \`<base>\` come off the verdict's \`head=\` and \`base=\` lines" \
+  "head=" -- "base="
+
+# The developer whose settled pull request has changes requested has two moves, addressing them or
+# asking the reviewer to dismiss the review, and the catch-all stop on an unknown verdict names
+# neither. Sibling pieces carry `Yours: direction:` lines of their own, so the stop is read off the
+# piece naming `verdict=changes-requested`.
+echo "# pr.md / ### Watch: a pull request with changes requested stops on exactly one Yours: direction: line naming its head, taken off the verdict's head= line"
+flat="$(piece_with "verdict=changes-requested")"
+expect "a bullet or paragraph of step $watch_n names \`verdict=changes-requested\`" test -n "$flat"
+carries_any "it stops the run" "stops" "stop" "ends the run" "the run ends"
+carries "on the line \`Yours: direction: a reviewer requested changes on <head>; address them or ask the reviewer to dismiss the review, then /do the pull request again\`" \
+  "Yours: direction: a reviewer requested changes on <head>; address them or ask the reviewer to dismiss the review, then /do the pull request again"
+yours_direction_once "the changes-requested stop carries exactly one \`Yours: direction:\` line"
+carries "\`<head>\` comes off the verdict's \`head=\` line" "head="
+
+# The developer whose settled pull request has a cancelled check has one move, re-running it, and the
+# catch-all stop on an unknown verdict names neither that move nor the checks it applies to. Sibling
+# pieces carry `Yours: direction:` lines of their own, so the stop is read off the piece naming
+# `verdict=cancelled`.
+echo "# pr.md / ### Watch: a pull request with cancelled checks stops on exactly one Yours: direction: line naming the cancelled checks, taken off the verdict's cancelled= lines"
+flat="$(piece_with "verdict=cancelled")"
+expect "a bullet or paragraph of step $watch_n names \`verdict=cancelled\`" test -n "$flat"
+carries_any "it stops the run" "stops" "stop" "ends the run" "the run ends"
+carries "on the line \`Yours: direction: <the cancelled checks> were cancelled; re-run them, then /do the pull request again\`" \
+  "Yours: direction: <the cancelled checks> were cancelled; re-run them, then /do the pull request again"
+yours_direction_once "the cancelled stop carries exactly one \`Yours: direction:\` line"
+carries "\`<the cancelled checks>\` come off the verdict's \`cancelled=\` lines" "cancelled="
+carries_any "each is the check's name after the link, not the link" \
+  "name after the link" "names after the link" "name past the link" "names past the link" \
+  "name following the link" "names following the link" "without the link" "without their link" \
+  "check's name" "checks' names" "the name alone" "names alone"
+carries_any "in the order printed" "in the order" "in order" "in their order" "as printed" "order printed"
+carries_any "joined with \`, \`" \
+  "joined with \`, \`" "joined by \`, \`" "separated by \`, \`" "joined with a comma" "joined by a comma" \
+  "comma-separated" "separated by a comma" "comma and a space"
+
+# The developer whose draft pull request settled with every check passed has one move, marking it
+# ready for review, and the catch-all stop on an unknown verdict names no such move. Sibling pieces
+# carry `Yours: direction:` lines of their own, so the stop is read off the piece naming
+# `verdict=draft`.
+echo "# pr.md / ### Watch: a draft pull request whose checks all passed stops on exactly one Yours: direction: line telling the developer to mark it ready for review"
+flat="$(piece_with "verdict=draft")"
+expect "a bullet or paragraph of step $watch_n names \`verdict=draft\`" test -n "$flat"
+carries_any "it stops the run" "stops" "stop" "ends the run" "the run ends"
+carries "on the line \`Yours: direction: the pull request is a draft and every check passed; mark it ready for review, then /do the pull request again\`" \
+  "Yours: direction: the pull request is a draft and every check passed; mark it ready for review, then /do the pull request again"
+yours_direction_once "the draft stop carries exactly one \`Yours: direction:\` line"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1

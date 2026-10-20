@@ -250,6 +250,26 @@ the checks: a display read mid-run can show green while a check is still running
   taking `<head>` and `<base>` from the verdict's `head=` and `base=` lines, never from the
   read-back, so the stop names what the script printed. The run never rebases and never pushes: the
   head branch is its owner's to rewrite.
+- `verdict=draft`: every check passed on a draft pull request, which cannot merge until it is marked
+  ready. The run stops with exactly one line,
+  `Yours: direction: the pull request is a draft and every check passed; mark it ready for review, then /do the pull request again`.
+  The run never marks it ready itself.
+- `verdict=behind`: every check passed and the head branch lacks commits of its base. The run stops
+  with exactly one line,
+  `Yours: direction: <head> is behind <base>; update <head> from <base>, then /do the pull request again`,
+  taking `<head>` and `<base>` from the verdict's `head=` and `base=` lines. The run never updates
+  the branch and never pushes: the head branch is its owner's to write.
+- `verdict=changes-requested`: every check passed and a reviewer asked for changes. The run stops
+  with exactly one line,
+  `Yours: direction: a reviewer requested changes on <head>; address them or ask the reviewer to dismiss the review, then /do the pull request again`,
+  taking `<head>` from the verdict's `head=` line. The run never dismisses the review and never
+  pushes.
+- `verdict=cancelled`: no check is pending or failed and at least one was cancelled. The run stops
+  with exactly one line,
+  `Yours: direction: <the cancelled checks> were cancelled; re-run them, then /do the pull request again`,
+  where `<the cancelled checks>` is the names on the verdict's `cancelled=` lines (the name after
+  the link, never the link), in the order printed, joined with `, `. The run reruns nothing and forks
+  no `do-pr-fixer` for a cancelled check.
 - `verdict=stalled`: a check is still pending and no check changed state for about 60 minutes of
   consecutive watches. The run stops with exactly one line,
   `Yours: direction: <the pending checks>; re-run or unblock the runner, then /do the pull request again`,

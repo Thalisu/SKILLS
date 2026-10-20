@@ -122,6 +122,20 @@ same "a pull request that conflicts while a check is still pending: the watch re
   "verdict=conflict"$'\n'"head=feature/login"$'\n'"base=main"
 expect "a conflict found while a check is pending is a verdict printed: the watch exits 0" [ "$rc" = 0 ]
 
+serve 42 BEHIND '[{"name":"build","bucket":"pass"},{"name":"test","bucket":"pass"}]'
+echo '{"mergeStateStatus":"BEHIND","mergeable":"MERGEABLE","isDraft":false,"headRefName":"feature/login","baseRefName":"main"}' >"$GH_FAKE/view"
+run 42
+same "every check passed and the pull request is behind its base: the watch returns verdict=behind, naming its head and base branches, not green" \
+  "verdict=behind"$'\n'"head=feature/login"$'\n'"base=main"
+expect "a pull request behind its base is a verdict printed: the watch exits 0, not 3" [ "$rc" = 0 ]
+
+serve 42 BLOCKED '[{"name":"build","bucket":"pass"},{"name":"test","bucket":"pass"}]'
+echo '{"mergeStateStatus":"BLOCKED","mergeable":"MERGEABLE","reviewDecision":"CHANGES_REQUESTED","isDraft":false,"headRefName":"feature/login","baseRefName":"main"}' >"$GH_FAKE/view"
+run 42
+same "every check passed and a reviewer requested changes: the watch returns verdict=changes-requested, naming its head and base branches" \
+  "verdict=changes-requested"$'\n'"head=feature/login"$'\n'"base=main"
+expect "a pull request with changes requested is a verdict printed: the watch exits 0, not 3" [ "$rc" = 0 ]
+
 serve 42 BLOCKED '[{"name":"build","bucket":"pass"},{"name":"test","bucket":"pass"}]'
 echo '{"mergeStateStatus":"BLOCKED","mergeable":"MERGEABLE","reviewDecision":"REVIEW_REQUIRED","headRefName":"feature/login","baseRefName":"main"}' >"$GH_FAKE/view"
 run 42
@@ -169,13 +183,11 @@ same "a draft pull request with every check passed and a clean merge state: the 
   "verdict=draft"$'\n'"checks=2"
 expect "a clean draft pull request is a verdict printed: the watch exits 0" [ "$rc" = 0 ]
 
-for review in APPROVED CHANGES_REQUESTED; do
-  serve 42 BLOCKED '[{"name":"build","bucket":"pass"},{"name":"test","bucket":"pass"}]'
-  printf '{"mergeStateStatus":"BLOCKED","mergeable":"MERGEABLE","reviewDecision":"%s","headRefName":"feature/login","baseRefName":"main"}\n' "$review" >"$GH_FAKE/view"
-  run 42
-  same "a pull request blocked with review $review, not a pending required review: the watch prints no verdict, awaiting-approval or any other" ""
-  expect "a pull request blocked with review $review is a settled state no verdict covers: the watch exits 3" [ "$rc" = 3 ]
-done
+serve 42 BLOCKED '[{"name":"build","bucket":"pass"},{"name":"test","bucket":"pass"}]'
+echo '{"mergeStateStatus":"BLOCKED","mergeable":"MERGEABLE","reviewDecision":"APPROVED","headRefName":"feature/login","baseRefName":"main"}' >"$GH_FAKE/view"
+run 42
+same "a pull request blocked with review APPROVED, not a pending required review: the watch prints no verdict, awaiting-approval or any other" ""
+expect "a pull request blocked with review APPROVED is a settled state no verdict covers: the watch exits 3" [ "$rc" = 3 ]
 
 serve 42 BLOCKED '[{"name":"test (ubuntu-latest, 3.11)","bucket":"fail","link":"https://github.com/o/r/actions/runs/7/job/99"},{"name":"lint","bucket":"pass","link":"https://github.com/o/r/actions/runs/7/job/98"},{"name":"build","bucket":"fail","link":"https://github.com/o/r/actions/runs/7/job/97"}]'
 echo '{"mergeStateStatus":"BLOCKED","mergeable":"MERGEABLE","reviewDecision":"REVIEW_REQUIRED","headRefName":"feature/login","headRefOid":"3f2a9c1d8e7b6a5f4e3d2c1b0a9f8e7d6c5b4a39","baseRefName":"main"}' >"$GH_FAKE/view"
@@ -191,11 +203,12 @@ same "a pull request that conflicts with its base while a check failed: the watc
   "verdict=conflict"$'\n'"head=feature/login"$'\n'"base=main"
 expect "a conflict found over a failed check is a verdict printed: the watch exits 0" [ "$rc" = 0 ]
 
-serve 42 UNSTABLE '[{"name":"build","bucket":"cancel","link":"https://github.com/o/r/actions/runs/7/job/97"},{"name":"lint","bucket":"pass","link":"https://github.com/o/r/actions/runs/7/job/98"}]'
-echo '{"mergeStateStatus":"UNSTABLE","mergeable":"MERGEABLE","headRefName":"feature/login","headRefOid":"3f2a9c1d8e7b6a5f4e3d2c1b0a9f8e7d6c5b4a39","baseRefName":"main"}' >"$GH_FAKE/view"
+serve 42 UNSTABLE '[{"name":"test (ubuntu-latest, 3.11)","bucket":"cancel","link":"https://github.com/o/r/actions/runs/7/job/99"},{"name":"lint","bucket":"pass","link":"https://github.com/o/r/actions/runs/7/job/98"},{"name":"build","bucket":"cancel","link":"https://github.com/o/r/actions/runs/7/job/97"}]'
+echo '{"mergeStateStatus":"UNSTABLE","mergeable":"MERGEABLE","isDraft":false,"headRefName":"feature/login","headRefOid":"3f2a9c1d8e7b6a5f4e3d2c1b0a9f8e7d6c5b4a39","baseRefName":"main"}' >"$GH_FAKE/view"
 run 42
-same "a cancelled check with none failed and none pending: the watch prints no verdict, red or any other" ""
-expect "a cancelled check with none failed and none pending is a settled state no verdict covers: the watch exits 3" [ "$rc" = 3 ]
+same "no check pending, none failed and some cancelled: the watch returns verdict=cancelled, the head branch and commit, and each cancelled check's link and name in the order gh lists them" \
+  "verdict=cancelled"$'\n'"head=feature/login"$'\n'"sha=3f2a9c1d8e7b6a5f4e3d2c1b0a9f8e7d6c5b4a39"$'\n'"cancelled=https://github.com/o/r/actions/runs/7/job/99 test (ubuntu-latest, 3.11)"$'\n'"cancelled=https://github.com/o/r/actions/runs/7/job/97 build"
+expect "a pull request with cancelled checks is a verdict printed: the watch exits 0, not 3" [ "$rc" = 0 ]
 
 serve 42 CLEAN '[{"name":"lint","bucket":"pass"},{"name":"build (ubuntu-latest, 3.11)","bucket":"pending"},{"name":"deploy","bucket":"pending"}]'
 run 42
