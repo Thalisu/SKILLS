@@ -104,10 +104,17 @@ The session runs no git and parses no file itself. It decides on the script's ex
   uncommitted changes; commit or stash before fix`) as the run's last line, after
   `Written to <location>`, and stop, with no `cd` and no Skill call, so no fix run is called and no
   Fixer is forked.
-- exit 3: print the `line=` value as the run's last line and stop, calling no fix run.
+- exit 3: print the `line=` value as the run's last line and stop, calling no fix run. This covers
+  the refusals of a resume or a recut too (a landed `debt/<slug>` whose worktree has uncommitted
+  changes, or that git would not remove, or whose Debt review's Fixed point could not be moved; a
+  `debt/<slug>` checked out at another path), all handled the same way.
 - exit 2: print the script's stderr line and stop.
-- exit 0: go on with the `worktree=`, `main=` and `call=` values, and with the `tickets=` value
-  when the script printed one.
+- exit 0: a first cut, a resume of a `debt/<slug>` a run left in place without landing (its
+  worktree, its commits and the Debt review's Fixed point kept), or a recut of one that landed
+  (removed and cut again from the developer's current tip, which becomes the Fixed point). The
+  session does the same thing on all three: it goes on with the `worktree=`, `main=`, `call=` and
+  `tickets=` values (the last when the script printed one), and does not read or relay the line the
+  script prints first.
 
 On exit 0, enter the worktree with a bare `cd <worktree>` (the `worktree=` value) in a shell call of its
 own, nothing before or after it, per `.agents/worktrees.md`: never the harness's worktree tool.

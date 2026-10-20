@@ -54,6 +54,7 @@ echo "# a refused cut stops the run before any fix run"
 flat3="$(branch_of "exit 3")"
 flat2="$(branch_of "exit 2")"
 flat4="$(branch_of "exit 4")"
+flat0="$(branch_of "exit 0")"
 flat="$flat3"
 expect "the step names what it does on exit 3" test -n "${flat// /}"
 carries "on exit 3 the run prints the script's line= value" "line="
@@ -70,6 +71,34 @@ carries_any "on exit 4 the line= value is the run's last line" "last line" "ends
 carries_any "on exit 4 the run stops" "${stops[@]}"
 fix_at="$(first_at "cd <worktree>" "${skill_call[@]}")"
 expect "on exit 4 the run neither enters the worktree nor calls the fix run" test "$fix_at" = 0
+
+echo "# exit 0 is a first cut, a resume or a recut alike; exit 3 stops on a resume's or a recut's refusal"
+flat="$flat3"
+carries_any "on exit 3 the step names the refusals of a resume or a recut" \
+  "landed" "uncommitted" "checked out" "resum" "Resum" "recut" "Recut"
+fix_at="$(first_at "cd <worktree>" "${skill_call[@]}")"
+expect "on exit 3 the run neither enters the worktree nor calls the fix run" test "$fix_at" = 0
+flat="$flat0"
+expect "the step names what it does on exit 0" test -n "${flat// /}"
+carries_any "on exit 0 the step names a first cut" \
+  "first cut" "fresh cut" "new cut" "cut for the first time" "first time"
+carries_any "on exit 0 the step names a resume of a debt/<slug> that did not land" \
+  "resum" "Resum" "picked up again" "picks up"
+carries_any "on exit 0 the step names a recut of a debt/<slug> that landed" \
+  "recut" "Recut" "re-cut" "cut again"
+carries_any "on exit 0 the three are handled the same way" \
+  "the same way" "all three" "alike" "whether" "whichever" "either way" "in every case"
+flat="$(flat_section "$skill" "## 3.")"
+branched=""
+for key in "on cut=" "on \`cut=" "when cut=" "when \`cut=" "if cut=" "if \`cut=" "for cut=" \
+  "for \`cut=" "cut=new:" "cut=new\`:" "cut=resumed:" "cut=resumed\`:" "cut=recut:" "cut=recut\`:"; do
+  grep -qF -- "$key" <<<"$flat" && {
+    branched="$key"
+    break
+  }
+done
+expect "the step never branches on the cut= value${branched:+ (found: $branched)}" \
+  test -z "$branched"
 
 echo "# exit 0: into the worktree with a bare cd, never the harness's worktree tool"
 flat="$(flat_section "$skill" "## 3.")"
