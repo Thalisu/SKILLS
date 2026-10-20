@@ -5,7 +5,8 @@
 #   debt-branch.sh <slug> <review path>    the Debt review whose `Fixed point:` header names the cut
 #
 # Prints branch=debt/<slug>, worktree=<main>/.claude/worktrees/debt-<slug>, main=<main checkout>,
-# target=<the branch the review recorded in its Fixed point> and tip=<the short sha of that header>.
+# target=<the branch the review recorded in its Fixed point>, tip=<the short sha of that header> and
+# call=fix <the review path as handed in> <target>, the fix call with its landing target.
 # The main checkout's HEAD, branch and working tree are never touched, and neither is the developer's
 # branch. On a git failure it prints one line=<git's error line> instead.
 #
@@ -62,3 +63,4 @@ echo "worktree=$path"
 echo "main=$main"
 echo "target=$target"
 echo "tip=$tip"
+echo "call=fix $review $target"

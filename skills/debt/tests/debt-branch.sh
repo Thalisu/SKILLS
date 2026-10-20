@@ -115,6 +115,8 @@ expect "fixture: the developer's tip moved past the review" test "$(g rev-parse 
 run reports-export "$review"
 check_lines "a cut from the review debt-review.sh wrote targets the developer's branch: exit 0" \
   0 "$rc" "target=reports"
+check_lines "the cut hands the fix run the Debt review, then the developer's branch to land on: exit 0" \
+  0 "$rc" "call=fix $review reports"
 expect "debt/reports-export starts at the developer's tip when debt-review.sh ran" \
   test "$(g -C "$main" rev-parse -q --verify refs/heads/debt/reports-export)" = "$reviewed"
 
