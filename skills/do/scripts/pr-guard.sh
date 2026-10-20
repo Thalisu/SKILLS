@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
-# pr-guard.sh: reads each fixer branch of a pr round against the tree's HEAD and names every CI
-# workflow, secret or migration file the branch changes, so the round stops before it pushes one.
+# pr-guard.sh: reads each fixer branch of a pr round against the commit the checks ran on and names
+# every CI workflow, secret or migration file the branch changes, so the round stops before it
+# pushes one.
 #
-#   pr-guard.sh <tree> <k>=<branch> [<k>=<branch>...]
+#   pr-guard.sh <tree> <base> <k>=<branch> [<k>=<branch>...]
 #
-# <tree> is a git work tree whose HEAD is the base, <k> the check's number, <branch> the fixer's
-# branch. The paths examined are the diff of HEAD against the branch tip, over all its commits.
+# <tree> is a git work tree, <base> the commit the run tree was cut at (the verdict's sha=), <k> the
+# check's number, <branch> the fixer's branch. The paths examined are the diff of <base> against the
+# branch tip, over all its commits. The tree's moving HEAD is never the base: a commit planted in the
+# run tree is a part of every branch cut over it, and a diff against that HEAD would not show it.
 # Matching is case-sensitive on repo-relative paths and errs toward a stop. Writes nothing and
 # moves no ref.
 #
@@ -71,13 +74,14 @@ path_class() {
 }
 
 pr_guard() {
-  local tree k branch pair rc=0 usage="usage: pr-guard.sh <tree> <k>=<branch> [<k>=<branch>...]"
-  [ "$#" -ge 2 ] || {
+  local tree base k branch pair rc=0 usage="usage: pr-guard.sh <tree> <base> <k>=<branch> [<k>=<branch>...]"
+  [ "$#" -ge 3 ] || {
     echo "$usage" >&2
     return 2
   }
   tree="$1"
-  shift
+  base="$2"
+  shift 2
   for pair in "$@"; do
     case "$pair" in
       ?*=?*) ;;
@@ -88,6 +92,11 @@ pr_guard() {
     esac
   done
   [ "$(git -C "$tree" rev-parse --is-inside-work-tree 2>/dev/null)" = true ] || {
+    echo "$usage" >&2
+    return 2
+  }
+
+  git -C "$tree" rev-parse --verify --quiet "$base^{commit}" >/dev/null 2>&1 || {
     echo "$usage" >&2
     return 2
   }
@@ -107,7 +116,7 @@ pr_guard() {
       [ -n "$class" ] || continue
       echo "touches $k $class $path"
       hit=1
-    done < <(git -C "$tree" diff --name-only --no-renames -z HEAD "$branch" --)
+    done < <(git -C "$tree" diff --name-only --no-renames -z "$base" "$branch" --)
     if [ "$hit" = 0 ]; then
       echo "clean $k"
     else

@@ -29,8 +29,27 @@ expect "the fixer runs at effort high" test "$(field effort)" = "high"
 bash_hook="$(hook_command "$agent" Bash 2>/dev/null)"
 expect "a PreToolUse hook scopes the fixer's Bash" test -n "$bash_hook"
 
-bash_out() { # $1 the command: the Bash hook's output on that payload
-  jq -n --arg c "$1" '{tool_input: {command: $c}}' 2>/dev/null | sh -c "$bash_hook" 2>/dev/null
+# The fixture the Bash hook reads its worktrees off: a main checkout, the pull request's run tree and a
+# fixer worktree under .claude/worktrees/, the way the pr Playbook cuts them.
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+fresh main
+mkdir -p src && printf 'x\n' >src/a.py
+commit "first"
+main="$(pwd -P)"
+g worktree add -q --detach "$main/.claude/worktrees/pr-1-abc1234" 2>/dev/null
+g worktree add -q -b fixer/s/abc/w1-1 "$main/.claude/worktrees/fixer-s-abc-w1-1" 2>/dev/null
+run_tree="$(cd "$main/.claude/worktrees/pr-1-abc1234" && pwd -P)"
+fixer="$(cd "$main/.claude/worktrees/fixer-s-abc-w1-1" && pwd -P)"
+mkdir -p "$fixer/src"
+ln -s "$main/.git/hooks" "$fixer/hooklink"
+mkdir "$tmp/plain"
+plain="$(cd "$tmp/plain" && pwd -P)"
+
+bash_out() { # $1 the command, $2 the cwd the harness reports (the fixer's worktree by default): the Bash hook's output on that payload
+  local w="${2:-$fixer}"
+  jq -n --arg c "$1" --arg w "$w" '{tool_input: {command: $c}, cwd: $w}' 2>/dev/null |
+    (cd "$w" && sh -c "$bash_hook") 2>/dev/null
 }
 
 for cmd in \
@@ -143,13 +162,13 @@ done
 # no guard at all: each one holds only when the hook is there to have said so. A git config write
 # left this list on purpose: it changes the config the run tree shares, so it is denied above.
 for cmd in \
-  "git -C /t status" \
-  "cd /t && git add src/a.py && git commit -m 'fix'" \
+  "git -C $fixer status" \
+  "cd $fixer && git add src/a.py && git commit -m 'fix'" \
   "bash tests/run.sh" \
-  "git -C /t diff" \
-  "git -C /t restore src/a.py" \
-  'x=$(git -C /t rev-parse HEAD)' \
-  "git -C /t config --get user.name" \
+  "git -C $fixer diff" \
+  "git -C $fixer restore src/a.py" \
+  "x=\$(git -C $fixer rev-parse HEAD)" \
+  "git -C $fixer config --get user.name" \
   "git config --list" \
   "cat .gitignore" \
   "git add .gitignore .github/workflows/ci.yml" \
@@ -157,15 +176,113 @@ for cmd in \
   "git -c user.email=a@b -c user.name=n commit -m 'fix'" \
   "git branch" \
   "git config --get user.name" \
-  "cd /t && git commit -m 'fix(ci): the gh step'" \
+  "cd $fixer && git commit -m 'fix(ci): the gh step'" \
   "timeout 60 bash tests/run.sh" \
   "git ls-files | xargs grep -n foo" \
   'x=$(git rev-parse HEAD); echo $x' \
   "cat .github/workflows/ci.yml" \
   "git log --format=%(refname) -n1"; do
-  expect "the hook lets the fixer's Bash do ordinary fix work: $cmd" \
+  expect "the hook lets the fixer's Bash do ordinary fix work: ${cmd//$fixer/<Tree>}" \
     bash -c '[ -n "$1" ] && ! grep -qF "\"permissionDecision\": \"deny\"" <<<"$2"' _ "$bash_hook" "$(bash_out "$cmd")"
 done
+
+# The session pushes from the run tree, and pr-guard.sh reads the fixer branches, never a commit made
+# in the run tree itself: a fixer steered by a check's log that commits a CI workflow there, resets
+# the branch under its picks or writes a file into it rides the session's own fast-forward push to
+# the pull request head. So a git command that changes the index, the work tree or the branch is
+# denied unless the directory it runs in (its -C, a cd before it, or the cwd the harness reports) is
+# a fixer worktree, and a redirection into the run tree or the main checkout is denied too.
+in_tree_ok=(
+  "git -C $fixer commit -m x"
+  "cd $fixer && git add src/a.py && git commit -m x"
+  "cd $fixer && git reset --hard HEAD"
+  "git -C $fixer/src restore a.py"
+  "git -C $run_tree status"
+  "git -C $run_tree diff HEAD"
+  "git -C $run_tree log --oneline"
+  "git -C $run_tree rev-list abc1234..HEAD"
+  "cd $run_tree && git status"
+  "cd $run_tree && git -C $fixer commit -m x"
+  "echo x > $fixer/src/a.py"
+  "cd $fixer && echo x >> src/a.py"
+  "echo x > /dev/null 2>&1"
+  "echo x > $tmp/return.txt"
+  "git -C $fixer log 2>&1"
+)
+for cwd in "$run_tree" "$fixer"; do
+  for cmd in "${in_tree_ok[@]}"; do
+    expect "the hook lets the fixer change its own worktree and read the run tree (cwd ${cwd#"$tmp"/}): ${cmd//$tmp\//}" \
+      bash -c '[ -n "$1" ] && ! grep -qF "\"permissionDecision\": \"deny\"" <<<"$2"' _ "$bash_hook" "$(bash_out "$cmd" "$cwd")"
+  done
+done
+
+outside=(
+  "git -C $run_tree commit -m x"
+  "git -C $run_tree commit --allow-empty -m planted"
+  "git -C $run_tree add .github/workflows/ci.yml"
+  "git -C $run_tree reset --hard HEAD~1"
+  "git -C $run_tree reset --soft abc1234"
+  "git -C $run_tree restore ."
+  "git -C $run_tree apply fix.patch"
+  "git -C $run_tree rm src/a.py"
+  "git -C $run_tree mv src/a.py src/b.py"
+  "git -C $run_tree clean -fd"
+  "git -C $main commit -m x"
+  "git -C $main reset --hard"
+  "git -C $main/.claude/worktrees/not-a-fixer commit -m x"
+  "git -C $fixer/../pr-1-abc1234 commit -m x"
+  "git -C $fixer/../../x commit -m x"
+  "git -C $fixer -C .. commit -m x"
+  "cd $run_tree && git commit -m x"
+  "cd $run_tree && git add -A && git commit -m x"
+  "cd $main && git restore ."
+  "cd $fixer && cd .. && git commit -m x"
+  "cd .. && git commit -m x"
+  "git --work-tree $run_tree commit -m x"
+  'git -C $T commit -m x'
+  'cd $T && git commit -m x'
+  "env git -C $run_tree commit -m x"
+  "xargs git -C $run_tree add"
+  "timeout 5 git -C $run_tree reset --hard"
+  "echo x > $run_tree/.github/workflows/ci.yml"
+  "printf x >> $run_tree/src/a.py"
+  "echo x > $main/README.md"
+  "echo x 2> $run_tree/err.txt"
+  "echo x > $main/.claude/worktrees/not-a-fixer/y"
+  "cd $run_tree && echo x > src/a.py"
+  'echo x > $T/src/a.py'
+  "echo x > src/*.py"
+)
+for cwd in "$run_tree" "$fixer"; do
+  for cmd in "${outside[@]}"; do
+    expect "the hook denies the fixer's Bash a git change or a redirection outside a fixer worktree (cwd ${cwd#"$tmp"/}): ${cmd//$tmp\//}" \
+      deny_in "$(bash_out "$cmd" "$cwd")"
+  done
+done
+
+# With the harness's cwd on the run tree, where the fixer's shell starts, a bare command is a command
+# in the run tree: nothing short of a cd or a -C moves it into a worktree of its own.
+for cmd in \
+  "git commit -m x" \
+  "git add -A" \
+  "git reset --hard" \
+  "git restore ." \
+  "echo x > src/a.py" \
+  "echo x >> .github/workflows/ci.yml"; do
+  for cwd in "$run_tree" "$main"; do
+    expect "the hook denies a bare git change or redirection when the cwd is the run tree or the main checkout (cwd ${cwd#"$tmp"/}): $cmd" \
+      deny_in "$(bash_out "$cmd" "$cwd")"
+  done
+done
+expect "the hook denies a git change when its cwd is in no git repository, since it cannot find the fixer worktrees" \
+  deny_in "$(bash_out "git -C $fixer commit -m x" "$plain")"
+expect "the hook denies a redirection when its cwd is in no git repository, for the same reason" \
+  deny_in "$(bash_out "echo x > $fixer/src/a.py" "$plain")"
+
+out="$(bash_out "git -C $run_tree commit -m x" "$run_tree")"
+rc=$?
+check "the hook's denial of a git change outside a fixer worktree names the run tree and says it is a speed bump" 0 "$rc" \
+  '"permissionDecision": "deny"' "run tree" "fixer worktree" "speed bump"
 
 # The guard reads the command's words, never a program the command runs: a script the fixer writes
 # can start gh. A fixer or a reviewer told it is a sandbox trusts a wall that is not there, so the
@@ -203,21 +320,6 @@ write_hook="$(hook_command "$agent" Write 2>/dev/null)"
 expect "a PreToolUse hook scopes the fixer's Write" test -n "$write_hook"
 expect "the same hook scopes the fixer's Edit, on one Write|Edit matcher" \
   bash -c '[ -n "$1" ] && [ "$1" = "$2" ]' _ "$write_hook" "$(hook_command "$agent" Edit 2>/dev/null)"
-
-tmp="$(mktemp -d)"
-trap 'rm -rf "$tmp"' EXIT
-fresh main
-mkdir -p src && printf 'x\n' >src/a.py
-commit "first"
-main="$(pwd -P)"
-g worktree add -q --detach "$main/.claude/worktrees/pr-1-abc1234" 2>/dev/null
-g worktree add -q -b fixer/s/abc/w1-1 "$main/.claude/worktrees/fixer-s-abc-w1-1" 2>/dev/null
-run_tree="$(cd "$main/.claude/worktrees/pr-1-abc1234" && pwd -P)"
-fixer="$(cd "$main/.claude/worktrees/fixer-s-abc-w1-1" && pwd -P)"
-mkdir -p "$fixer/src"
-ln -s "$main/.git/hooks" "$fixer/hooklink"
-mkdir "$tmp/plain"
-plain="$(cd "$tmp/plain" && pwd -P)"
 
 write_out() { # $1 cwd, $2 file_path: the Write|Edit hook's output on that payload, run from that cwd as the harness runs it
   jq -n --arg f "$2" --arg c "$1" '{tool_input: {file_path: $f}, cwd: $c}' 2>/dev/null |

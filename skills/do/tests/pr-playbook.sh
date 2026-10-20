@@ -2153,10 +2153,12 @@ echo "# pr.md / ### Fix the red checks: each Wave runs pr-guard.sh over its fixe
 step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ')"
 whole="$flat"
-carries "the step runs the guard over the run tree and each check's branch" "pr-guard.sh <run tree> <k>=<branch>..."
+carries "the step runs the guard over the run tree, the commit it was cut at and each check's branch" "pr-guard.sh <run tree> <sha> <k>=<branch>..."
 carries_any "from the skill's own scripts" "<skill-dir>/scripts/pr-guard.sh"
 before "the guard runs after the Wave's returns.sh call" "returns.sh 240" "pr-guard.sh <run tree>"
 before "and before its fix-integrate.sh call" "pr-guard.sh <run tree>" "fix-integrate.sh <run tree>"
+carries_each "the guard reads each branch against the commit the run tree was cut at, never the run tree's moving HEAD" \
+  "<sha>" -- "never over the run tree's moving HEAD" "never the run tree's moving HEAD"
 guard_sentences="$(sed 's/\. /.\n/g' <<<"$whole" | awk 'index($0, "pr-guard") || index($0, "touches")' | tr '\n' ' ')"
 flat="$guard_sentences"
 expect "sentences of the step name the guard or its \`touches\` line" test -n "$flat"
@@ -2180,6 +2182,20 @@ affirms "the later Waves of the round still run" \
 carries_each "its fixer branch is kept by fix-worktrees.sh remove as an unlanded commit" \
   "kept" "keeps" "stays on disk" "left on disk" -- \
   "unlanded" "not landed" "never landed" "never lands" "could not land" "commit"
+
+# A fixer steered by a check's log can commit in the run tree itself, which pr-guard.sh never reads:
+# the push carries everything on HEAD to the head under the developer's credentials. The session reads
+# what the tree holds above the commit it was cut at before it pushes, and anything that no
+# fix-integrate.sh pick explains stops the round with nothing pushed.
+echo "# pr.md / ### 4. Fix the red checks, item 5: before it pushes, the run refuses a run tree holding any commit above <sha> that fix-integrate.sh did not print as picked"
+step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ')"
+carries "the run lists what the run tree holds above the commit it was cut at" \
+  "git -C <run tree> rev-list <sha>..HEAD" "git -C <run tree> merge-base --is-ancestor <sha> HEAD"
+before "the read runs before the push" "git -C <run tree> rev-list <sha>..HEAD" "git -C <run tree> push origin HEAD:refs/heads/<head>"
+carries_each "a commit that is no \`picked\` sha stops the run with nothing pushed" \
+  "\`picked <k> <sha>\`" -- "no \`picked\` sha" -- "nothing pushed" -- "keeps \`<run tree>\` on disk"
+carries "the stop is one Yours: direction: line naming the run tree" "<run tree> holds <the shas that are no pick> that no fixer branch gave it"
 
 # A round whose only fix the guard refused has nothing to push, and the developer needs one decision
 # handed over, not a line per check: the stop is read off the sentences of the step tied to the guard

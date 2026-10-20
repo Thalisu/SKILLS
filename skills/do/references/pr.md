@@ -385,12 +385,15 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
 
    d. First, one guard call over every check of the Wave that returned `fixed <k>: ...`:
 
-          bash <skill-dir>/scripts/pr-guard.sh <run tree> <k>=<branch>...
+          bash <skill-dir>/scripts/pr-guard.sh <run tree> <sha> <k>=<branch>...
 
       each `<branch>` the one its worktree line printed. The guard prints `clean <k>`, or one
-      `touches <k> <workflow|secret|migration> <path>` line per such file the branch changes over the
-      run tree's HEAD, or `failed <k>: <reason>`. Of the checks `pr-guard` reads, only one it printed
-      `clean` for goes into the `fix-integrate.sh` call, and no other. A `touches` check is never
+      `touches <k> <workflow|secret|migration> <path>` line per such file the branch changes over
+      `<sha>`, the commit the run tree was cut at, never over the run tree's moving HEAD: a commit
+      planted in the run tree is part of every branch cut over it, and read against that HEAD it
+      shows no change. It prints `failed <k>: <reason>` for a branch it cannot read. Of the checks
+      `pr-guard` reads, only one it printed `clean` for goes into the `fix-integrate.sh` call, and
+      no other. A `touches` check is never
       picked, so nothing of its commit reaches the run tree or the head, and it is a stop-case for
       the round: it goes into the round's stop set, one entry per path. A `failed` check, or every
       check of the call on a guard exit 2 usage refusal, is never picked either and is a stop-case
@@ -481,8 +484,26 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    checks ran on. Once the redone round ends, pushed or stopped, the first attempt's run tree is named
    on a round line with its path and the sha of each fix commit kept there, since the redo supersedes
    its picks but never their commits. The first attempt's run tree stays on disk, never removed by
-   the run, so the developer reads which commits it holds and removes it by hand. When it is `<sha>`,
-   push:
+   the run, so the developer reads which commits it holds and removes it by hand. When it is `<sha>`, the run
+   reads what its run tree holds above `<sha>` before it pushes, with two calls:
+
+       git -C <run tree> merge-base --is-ancestor <sha> HEAD
+       git -C <run tree> rev-list <sha>..HEAD
+
+   The first must succeed, and the second may print only shas that `fix-integrate.sh` printed on a
+   `picked <k> <sha>` line in this attempt, whichever Wave printed it. A fixer's Bash hook is a
+   speed bump and not a sandbox, so a fixer steered by a check's log can still commit in
+   `<run tree>`, and this read is the check that holds: `pr-guard.sh` reads fixer branches only,
+   and the push below carries everything on HEAD to `<head>` under the developer's credentials.
+   A `<sha>` that is not an ancestor of HEAD, or any printed commit that is no `picked` sha, stops
+   the run with nothing pushed: it keeps `<run tree>` on disk, never removing it, and ends on one
+   `Yours: direction:` line whose first clause is this one, the clauses of the round's stop set
+   following it on that same line:
+
+       Yours: direction: <run tree> holds <the shas that are no pick> that no fixer branch gave it, or no longer builds on the commit the checks ran on: read what it holds there, then /do the pull request again
+
+   On a redone round this read runs on the redone round's run tree against its own `sha=`, the
+   same way. When it passes, push:
 
        git -C <run tree> push origin HEAD:refs/heads/<head>
 
@@ -524,8 +545,10 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
 
    A round that stops on two or more stops writes every clause on exactly one `Yours: direction:`
    line, in this order. The redone round's refusal clause,
-   `<head> moved again during the redone round ...`, comes first when the run stops on it, and the
-   stop set's clauses follow it on that same line, never on a second `Yours:` line. Then come the stop-cases in the order they were raised: the
+   `<head> moved again during the redone round ...`, or the run tree clause,
+   `<run tree> holds ... that no fixer branch gave it ...`, comes first when the run stops on it (the
+   two are never both raised, each stopping the round before its push), and the stop set's clauses
+   follow it on that same line, never on a second `Yours:` line. Then come the stop-cases in the order they were raised: the
    `stale-base` entries in check-number order, since they are raised before any Wave, then the
    entries of the Waves in Wave order, and in check-number order within a Wave, then the
    `rerun-refused` entries, then the checks that came back red after their fix was pushed, then the
