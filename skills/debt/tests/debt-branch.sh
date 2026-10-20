@@ -396,4 +396,40 @@ expect "every ref, the working tree and the worktree list are as they were after
 expect "the Debt review keeps every byte after resuming" \
   test "$(sha256sum "$review")" = "$review_before"
 
+retry="$feature/retry.debt.review.md"
+sed '/^## Fix run$/,$d' "$review" >"$retry"
+retry_wt="$main/.claude/worktrees/debt-orders-retry"
+run orders-retry "$retry"
+fixed_point="$(g -C "$main" rev-parse "$short")"
+expect "fixture: the first run cut debt/orders-retry in its worktree at the Fixed point" \
+  test "$(g -C "$main" rev-parse -q --verify refs/heads/debt/orders-retry)" = "$fixed_point"
+printf 'later\n' >>orders.txt
+commit "after the review"
+expect "fixture: debt/orders-retry holds no commit of its own and the developer's branch moved past it" \
+  g -C "$main" merge-base --is-ancestor refs/heads/debt/orders-retry refs/heads/orders
+expect "fixture: the developer's tip is not the Fixed point" \
+  test "$(g -C "$main" rev-parse refs/heads/orders)" != "$fixed_point"
+cat >>"$retry" <<EOF
+## Fix run
+
+Date: 2026-10-20 · at $short
+
+- 1: not fixed: the Fixer could not turn \`bash tests/orders.test.sh\` green
+- wave 1: 1
+- duplication scan: skip: no Fixer commit
+- diff tests: skip: no Fixer commit
+- gate: \`bash tests/orders.test.sh\`: green
+- not landed: no Fixer commit; the branch debt/orders-retry and its worktree stay in place
+EOF
+retry_before="$(sha256sum "$retry")"
+run orders-retry "$retry"
+check_lines "a not-landed debt/<slug> with no Fixer commit, already inside the developer's moved branch, is resumed: exit 0" \
+  0 "$rc" "cut=resumed" "worktree=$retry_wt"
+expect "the resumed debt/<slug> with no Fixer commit is not removed and stays at the Fixed point" \
+  test "$(g -C "$main" rev-parse -q --verify refs/heads/debt/orders-retry)" = "$fixed_point"
+expect "the worktree of the resumed debt/<slug> with no Fixer commit is still listed on its branch" \
+  test "$(branch_of_worktree "$main" "$retry_wt")" = "refs/heads/debt/orders-retry"
+expect "the Debt review keeps every byte after resuming a debt/<slug> with no Fixer commit" \
+  test "$(sha256sum "$retry")" = "$retry_before"
+
 exit "$fails"
