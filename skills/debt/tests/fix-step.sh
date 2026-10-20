@@ -130,6 +130,21 @@ carries_any "with no tickets= printed, nothing is inserted" \
   "no \`tickets=\`" "no tickets=" "without a \`tickets=\`" "without a tickets=" \
   "inserts nothing" "nothing is inserted" "adds nothing" "nothing is added"
 
+echo "# an empty Act on: the fix run is still called, forks no Fixer, and its section reads nothing remained"
+carries_any "the fix run is called whatever Act on holds, an empty one included" \
+  "whatever \`Act on\` holds" "whatever Act on holds" \
+  "even when \`Act on\` is empty" "even when Act on is empty" \
+  "even with nothing in \`Act on\`" "even with nothing in Act on" \
+  "even an empty \`Act on\`" "even an empty Act on" \
+  "an empty \`Act on\` too" "an empty Act on too" "an empty \`Act on\` included"
+passage_of "$skill" "## 3." "## " >"$tmp/fix.md"
+flat="$(paragraph_with "$tmp/fix.md" "nothing remained" all)"
+expect "the step names the nothing remained the fix run writes on an empty Act on" \
+  test -n "${flat// /}"
+carries "nothing remained is what the Debt review's Fix run section reads" "Fix run"
+carries_any "with nothing in Act on the fix run forks no Fixer" \
+  "no Fixer" "no Fixers" "not fork a Fixer" "without forking a Fixer" "zero Fixers"
+
 echo "# the session lists no do-code-review: the step says what it does"
 passage_of "$skill" "## 3." "<arguments>" >"$tmp/step.md"
 fallback=""

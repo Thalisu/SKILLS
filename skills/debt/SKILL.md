@@ -112,7 +112,8 @@ cd <worktree>
 
 Then call the Skill tool with `do-code-review` and the `call=` value as its arguments, as printed: no
 Gate and no `Caller:` line, so it is a developer's fix run that forks the Fixers on `debt/<slug>` and
-lands on the developer's branch.
+lands on the developer's branch. The call is made whatever `Act on` holds: the run never skips it
+and never writes the `## Fix run` section itself.
 
 Then return with a bare `cd <main>` (the `main=` value) in a shell call of its own:
 
@@ -122,6 +123,10 @@ cd <main>
 
 The run ends with the fix run's reply as it returned: one fix line per `Act on` Finding, then
 `landed at <sha>`, then the `push command` as the run's last line.
+
+With nothing in `Act on`, the fix run forks no Fixer and the Debt review's `## Fix run` section reads
+`nothing remained`, written by the fix run, which still runs its Gate and ends on its landing line and
+the push command.
 
 The script prints a `tickets=` value when a `## Consider` Finding is marked `too big for a Fixer`.
 When it did, the run puts that `tickets=` value (the `/tickets <spec>` line) on its own line just
