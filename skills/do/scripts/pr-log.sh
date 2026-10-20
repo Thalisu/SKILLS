@@ -16,8 +16,13 @@
 # from <tree>, is refused unread: whoever posts a status sets the link, and its repo= and run= go on
 # to pr-rerun.sh.
 #
+# A link whose job is not one of its run's jobs, or whose run is not on the commit <tree> is at
+# (the watched sha: the run tree is cut detached there), is refused unread too: a job id in the same
+# repository can be a fork pull request's job, whose log its author controls.
+#
 # Exits 0 an excerpt printed · 1 gh missing or unable to read the repository or the log · 2 usage ·
-# 3 nothing to cut (not an Actions job link, a link to another repository, or no failed step).
+# 3 nothing to cut (not an Actions job link, a link to another repository, a job that is not of the
+# link's run or a run not on the watched commit, or no failed step).
 # Nothing on stdout for 1, 2 or 3; a one-line pr-log.sh: <reason> goes to stderr.
 set -uo pipefail
 
@@ -38,6 +43,10 @@ read_base_repo() { # $1 tree: prints <host>/<owner>/<repo> of the pull request's
   url="${url#https://}"
   [ -n "$url" ] && [ "$url" != "${url#*/*/}" ] || return 1
   printf '%s\n' "${url%/}"
+}
+
+read_run_identity() { # $1 repo, $2 run id: prints the run's head commit, then the id of each of its jobs, one per line
+  gh run view "$2" --repo "$1" --json headSha,jobs --jq '.headSha, (.jobs[].databaseId)'
 }
 
 read_failed_log() { # $1 repo, $2 job id: the raw log lines
@@ -96,7 +105,7 @@ named_files() { # stdin: the excerpt's lines; $1 tree: prints one file=<path> pe
 }
 
 main() {
-  local parsed repo run job log cut base
+  local parsed repo run job log cut base identity watched run_sha
   if [ "$#" -ne 2 ]; then
     echo "usage: pr-log.sh <link> <tree>" >&2
     exit 2
@@ -117,6 +126,20 @@ main() {
   }
   if [ "${repo,,}" != "${base,,}" ]; then
     echo "pr-log.sh: the link is to $repo, not the pull request's repository $base: $1" >&2
+    exit 3
+  fi
+  identity="$(read_run_identity "$repo" "$run" 2>/dev/null)" || {
+    echo "pr-log.sh: gh could not read run $run" >&2
+    exit 1
+  }
+  watched="$(git -C "$2" rev-parse HEAD 2>/dev/null)"
+  run_sha="$(printf '%s\n' "$identity" | head -n 1)"
+  if [ -z "$watched" ] || [ "$run_sha" != "$watched" ]; then
+    echo "pr-log.sh: run $run is on $run_sha, not the watched commit ${watched:-unknown}: $1" >&2
+    exit 3
+  fi
+  if ! printf '%s\n' "$identity" | tail -n +2 | grep -qx "$job"; then
+    echo "pr-log.sh: job $job is not a job of run $run: $1" >&2
     exit 3
   fi
   if ! log="$(read_failed_log "$repo" "$job")"; then
