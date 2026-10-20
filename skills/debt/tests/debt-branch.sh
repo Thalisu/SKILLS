@@ -285,4 +285,65 @@ check_lines "the run's own untracked Debt review is not an uncommitted change: t
   "target=tax" "tip=$short" "call=fix $review tax"
 absent_prefix "a cut beside the run's own untracked Debt review prints no refusal line" "line="
 
+fresh empty
+main="$tmp/empty"
+printf '.scratch/\n' >.gitignore
+printf 'base\n' >README.md
+commit base
+g checkout -q -b receipts
+printf 'export\n' >receipts.txt
+commit "receipts export"
+reviewed="$(g rev-parse HEAD)"
+short="$(g rev-parse --short HEAD)"
+feature="$main/.scratch/20261020-receipts-export"
+mkdir -p "$feature"
+printf '# Spec: Receipts export\n' >"$feature/spec.md"
+review="$feature/spec.debt.review.md"
+cat >"$review" <<EOF
+# Review: Receipts export
+
+Spec: $feature/spec.md
+Fixed point: receipts ($short)
+Commit: $short
+Spec source: $feature/spec.md
+Mode: default
+Language: English
+
+## Act on
+
+none
+
+## Consider
+
+### 1. Principles at receipts.txt:1
+Claim: the export format is decided in two places
+Evidence: Single source of truth; the format string is repeated across the export path
+Rung: 3
+Fix: one module owns the export format, in the receipts export
+Source: issues/01-export.debt.md, item 1
+
+## Noted
+
+none
+
+## Cleared
+
+### 2. Correctness at receipts.txt:1
+Claim: an empty receipt list writes no header
+Evidence: the export loop starts after the header line
+Rung: 4
+Refuted by: running the export over an empty list writes the header line alone
+Source: issues/01-export.debt.md, item 2
+
+## Axes
+
+EOF
+expect "fixture: the review's Act on is exactly none while Consider and Cleared each hold a Finding" \
+  test "$(awk '/^## /{s=$0; next} s=="## Act on" && NF' "$review")" = "none"
+run receipts-export "$review"
+check_lines "a Debt review with nothing to act on is cut like any other and handed to the fix run: exit 0" \
+  0 "$rc" "branch=debt/receipts-export" "target=receipts" "call=fix $review receipts"
+expect "debt/receipts-export is cut at the Fixed point when Act on is none" \
+  test "$(g -C "$main" rev-parse -q --verify refs/heads/debt/receipts-export)" = "$reviewed"
+
 exit "$fails"
