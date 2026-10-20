@@ -45,7 +45,7 @@
 #
 # Prints review=<path> then line=Written to <path>.
 #
-# Exit codes: 0 it wrote the review · 1 or 3 gather's own exit, its line= relayed, nothing written · 2 usage, or gather's usage or resolver refusal (its stderr relayed).
+# Exit codes: 0 it wrote the review · 1 or 3 gather's own exit, its line= relayed, nothing written · 2 usage, or gather's usage or resolver refusal (its stderr relayed) · 5 gather found nothing new beside an existing Debt review: its review= relayed, no line=, nothing written.
 set -uo pipefail
 
 abs_path() {
@@ -345,6 +345,11 @@ main() {
       rm -f "$errfile"
       printf '%s\n' "$gathered" | grep '^line='
       return "$code"
+      ;;
+    5)
+      rm -f "$errfile"
+      printf '%s\n' "$gathered" | grep '^review='
+      return 5
       ;;
     *)
       cat "$errfile" >&2

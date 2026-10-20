@@ -1108,4 +1108,84 @@ same "on a rerun over a settled Debt review, ## Axes counts every Finding, held 
 
 ."
 
+fresh held-all
+held_all="$(pwd -P)"
+held_all_feature="$held_all/.scratch/20261020-held-all-debt"
+mkdir -p "$held_all_feature/issues"
+printf '# Held all debt\n' >"$held_all_feature/spec.md"
+cat >"$held_all_feature/issues/01-a.debt.md" <<'EOF'
+## 2026-10-19 15:01
+
+- the retry budget is hardcoded
+- the cache key ignores the locale
+EOF
+commit "seed the held-all feature"
+held_all_sha="$(g rev-parse --short HEAD)"
+mapfile -t held_all_sources < <(shaped_sources held-all-debt "$held_all")
+held_all_review="$held_all_feature/spec.debt.review.md"
+cat >"$held_all_review" <<EOF
+# Review: Held all debt
+
+Spec: $held_all_feature/spec.md
+Fixed point: main ($held_all_sha)
+Commit: $held_all_sha
+Spec source: $held_all_feature/spec.md
+Mode: default
+Language: English
+
+## Act on
+
+### 1. Standards at src/a.sh:1
+Claim: the retry budget is hardcoded at three.
+Evidence: \`retries=3\` in src/a.sh:1.
+Rung: 3
+Fix: the retry budget is read from the config, in src/a.sh
+Source: ${held_all_sources[0]:-}
+
+## Consider
+
+### 2. Correctness at src/b.sh:7
+Claim: two locales share one cache entry.
+Evidence: an earlier agent's note says so; no run reached the cache.
+Rung: 2
+Fix: the cache key carries the locale, in src/b.sh
+Source: ${held_all_sources[1]:-}
+
+## Noted
+
+none
+
+## Cleared
+
+none
+
+## Axes
+
+- Correctness: 1 finding, worst #2 (Consider)
+- Spec: 0 findings
+- Standards: 1 finding, worst #1 (Act on)
+- Principles: 0 findings
+- Blast radius: 0 findings
+- Security: 0 findings
+EOF
+commit "seed the Debt review holding every Debt item"
+grc=0
+(cd "$held_all" && bash "$gather" held-all-debt >/dev/null 2>&1) || grc=$?
+if [ "${#held_all_sources[@]}" != 2 ] || [ "$grc" != 5 ]; then
+  echo "FAIL  fixture: gather.sh did not name two items for held-all-debt, or did not exit 5 once the Debt review held both"
+  exit 1
+fi
+held_all_returns="$tmp/held-all-returns"
+mkdir -p "$held_all_returns"
+cp "$held_all_review" "$tmp/held-all-review.before"
+
+rc=0
+# shellcheck disable=SC2034  # lib.sh's check_lines and absent_prefix read $out
+out="$(cd "$held_all" && bash "$script" held-all-debt "$held_all_returns" 2>&1)" || rc=$?
+check_lines "on a rerun with nothing new, it prints the path of the Debt review and exits 5" 5 "$rc" \
+  "review=$held_all_review"
+absent_prefix "on a rerun with nothing new, it prints no line=, no Written to for a write that never happened" "line="
+expect "on a rerun with nothing new, the Debt review is byte-identical" \
+  cmp -s "$tmp/held-all-review.before" "$held_all_review"
+
 exit "$fails"
