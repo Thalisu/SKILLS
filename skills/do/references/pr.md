@@ -78,8 +78,11 @@ the name, never as the GitHub CLI's raw error or a pull request into the wrong b
 nothing up and opens nothing: no lookup by the pair, no `gh pr create`.
 
 When both exist, after the existence check and before any lookup, the run reads the commits the
-head carries that the base lacks, with `git rev-list <base>..<head>`, reading each branch where the
-existence check found it. A head with no commits the base lacks, as one already merged into it, stops the run: the
+head carries that the base lacks, with `git rev-list <base>..<head>`. The pull request is opened
+between the branches on the remote, so a branch the remote holds is read at the remote's tip: the
+run fetches it (`git fetch origin <branch>`) and reads `origin/<branch>` in the range, never a local
+branch of the same name, which can be stale. A branch with no copy on the remote is read as the
+local branch. A head with no commits the base lacks, as one already merged into it, stops the run: the
 Reply opens with `Playbook: pr` on its first line, then one line saying there is nothing to open
 from the head into the base, rather than the GitHub CLI's error or an empty pull request. The run
 looks nothing up and opens nothing: no lookup by the pair, no `gh pr create`.

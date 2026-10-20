@@ -1,0 +1,52 @@
+name: pr-branch-pair-stale-local-base-reads-the-remote
+tags: [pr, pair, refusal]
+runs: 2
+max_turns: 8
+timeout_seconds: 300
+allowed_tools: [Bash, Read, Edit, Write]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # Words asking for a pull request from `dev` into `prod`, where the remote's `prod` already holds
+    # `dev`'s commit but the local `prod` was never updated and still stands one commit behind: read
+    # at the local `prod`, `dev` carries a commit `prod` lacks, and read at the remote's tips it
+    # carries none. Both branches sit on a fixture remote, and the remote's `prod` is moved inside
+    # the bare repository, so no remote-tracking ref hints at it before a fetch. A fake gh, first on
+    # the session's PATH through the project's settings, is logged in and answers `pr list` with none
+    # open and `pr create` with a URL, so a lookup or an empty pull request opened for the pair
+    # would show in .fake/gh.log, one line per call.
+    set -e
+    mkdir -p src .fake/bin .claude
+    cat > src/notes.js <<'JS'
+    const notes = [];
+
+    export function create(title) {
+      const note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+    JS
+    cat > .fake/bin/gh <<'SH'
+    #!/usr/bin/env bash
+    printf '%s\n' "$*" >> "$GH_FAKE/gh.log"
+    case "$1 $2" in
+      "auth status") echo "Logged in to github.com account fixture"; exit 0 ;;
+      "pr list") echo '[]' ;;
+      "pr create") echo "https://github.com/acme/notes/pull/9" ;;
+      *) echo "fake gh: no answer recorded for: $*" >&2; exit 1 ;;
+    esac
+    SH
+    chmod +x .fake/bin/gh
+    printf '{"env": {"PATH": "%s/.fake/bin:%s", "GH_FAKE": "%s/.fake"}}\n' \
+      "$PWD" "$PATH" "$PWD" > .claude/settings.json
+    printf '.fake/\n' > .gitignore
+    git init -q -b dev
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
+    printf 'export function archive(note) {\n  note.status = "archived";\n  return note;\n}\n' >> src/notes.js
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -am "feat: archive a note"
+    git branch prod HEAD~1
+    git init -q --bare .fake/remote.git
+    git remote add origin "$PWD/.fake/remote.git"
+    git push -q origin dev prod
+    git --git-dir=.fake/remote.git update-ref refs/heads/prod "$(git rev-parse dev)"

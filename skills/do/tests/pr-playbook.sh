@@ -926,6 +926,33 @@ carries_any "and opening nothing, no \`gh pr create\`" \
   "without \`gh pr create\`" "not \`gh pr create\`" "does not run \`gh pr create\`" "opens nothing" \
   "nothing is opened" "never opens" "does not open" "opens no "
 
+# A developer whose local base or head is stale gets a wrong "nothing to open" stop, or a pull
+# request opened for a pair the remote has nothing to open between, when the range is read off a
+# local branch: the pull request is opened between the remote's branches. Read off the same piece as
+# the case above. The phrasings for a branch the remote does not hold leave out every key of
+# unpublished_head_keys below, since a paragraph carrying one would hand the unpublished-head cases
+# this piece in place of their own.
+echo "# pr.md / ### 1. Pull request: the nothing-to-open range reads a branch the remote holds at the remote's tip, never at a local branch of the same name, and only a branch the remote does not hold as the local branch"
+flat="$(piece_in="$pull_request" piece_with "${empty_range_keys[@]}")"
+expect "a bullet or paragraph of ### 1. Pull request takes a pair whose head has no commit the base lacks" test -n "$flat"
+carries_any "a branch the remote holds is read at the remote's tip" \
+  "git fetch origin" "origin/<base>" "origin/<head>" "origin/<branch>" "refs/remotes/origin/" \
+  "the remote's tip" "remote tip" "tip on the remote" "tips on the remote" "tip the remote holds" \
+  "tips the remote holds" "ls-remote"
+carries_any "never at a local branch of the same name" \
+  "never the local branch" "never a local branch" "never at the local" "never at a local" \
+  "never off the local" "never off a local" "never from the local" "never from a local" \
+  "never reads the local" "never reads a local" "never its local" "never the stale local" \
+  "never a stale local" "not the local branch" "not a local branch" "not at the local" \
+  "not off the local" "rather than the local" "rather than a local" "rather than at the local" \
+  "instead of the local" "instead of a local" "never \`refs/heads/"
+carries_each "only a branch the remote does not hold is read as the local branch" \
+  "not held by the remote" "not held on the remote" "the remote holds no" "absent on the remote" \
+  "no remote branch" "no copy on the remote" "only in the checkout" "only the checkout" \
+  "otherwise" "Otherwise" "falls back" "fall back" "falling back" -- \
+  "the local branch" "a local branch" "its local branch" "\`refs/heads/" "read locally" \
+  "reads it locally" "locally held"
+
 # A developer whose head was never published finds it pushed to the shared remote without having
 # authorised it, or a pull request opened against a head nobody else can see, when the run takes a
 # local head as good enough. The existence paragraph already says `git ls-remote`, "local" and "a
