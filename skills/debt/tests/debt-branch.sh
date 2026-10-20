@@ -61,17 +61,25 @@ refused_once() { # $1 label: the run exited 3 and printed exactly one line, a li
 }
 
 g branch debt/taken "$tip"
-state_before="$(door_state && g worktree list --porcelain)"
+taken_wt="$main/.claude/worktrees/debt-taken"
+expect "fixture: debt/taken exists with no folder at its worktree path" test ! -e "$taken_wt"
+expect "fixture: git lists no worktree on debt/taken" \
+  test -z "$(g -C "$main" worktree list --porcelain | grep -Fx 'branch refs/heads/debt/taken')"
+head_before="$(g -C "$main" rev-parse HEAD)"
+review_before="$(sha256sum "$review")"
 run taken "$review"
-refused_once "an existing debt/<slug> refuses the cut with one line=: exit 3"
-absent_prefix "a refusal over an existing debt/<slug> names no branch" "branch="
-absent_prefix "a refusal over an existing debt/<slug> names no worktree" "worktree="
-expect "the existing debt/<slug> keeps the commits it held" \
+check_lines "a not-landed debt/<slug> with no worktree anywhere is resumed with its worktree added back: exit 0" \
+  0 "$rc" "cut=resumed" "branch=debt/taken" "worktree=$taken_wt" "tip=$short"
+expect "the worktree added back is one git lists under the main checkout, checked out on debt/taken" \
+  test "$(branch_of_worktree "$main" "$taken_wt")" = "refs/heads/debt/taken"
+expect "the resumed debt/<slug> keeps the commits it held, not reset to the Fixed point" \
   test "$(g -C "$main" rev-parse -q --verify refs/heads/debt/taken)" = "$tip"
-expect "every ref, the working tree and the worktree list are as they were after refusing over debt/<slug>" \
-  test "$(door_state && g worktree list --porcelain)" = "$state_before"
-expect "no folder is made at the worktree path of a refused debt/<slug>" \
-  test ! -e "$main/.claude/worktrees/debt-taken"
+expect "the developer's branch keeps its tip after resuming with the worktree added back" \
+  test "$(g -C "$main" rev-parse refs/heads/feature)" = "$tip"
+expect "the main checkout's HEAD stays on the developer's branch at its commit after resuming" \
+  test "$(g -C "$main" symbolic-ref HEAD) $(g -C "$main" rev-parse HEAD)" = "refs/heads/feature $head_before"
+expect "the Debt review keeps every byte after resuming with the worktree added back" \
+  test "$(sha256sum "$review")" = "$review_before"
 
 occupied="$main/.claude/worktrees/debt-occupied"
 mkdir -p "$occupied"
