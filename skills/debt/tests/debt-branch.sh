@@ -232,4 +232,35 @@ expect "no debt/<slug> is created over an uncommitted change" \
 expect "no folder is made at the worktree path over an uncommitted change" \
   test ! -e "$main/.claude/worktrees/debt-ledger-export"
 
+fresh untracked
+main="$tmp/untracked"
+printf '.scratch/\n' >.gitignore
+printf 'base\n' >README.md
+commit base
+g checkout -q -b payroll
+printf 'export\n' >payroll.txt
+commit "payroll export"
+short="$(g rev-parse --short HEAD)"
+feature="$main/.scratch/20261020-payroll-export"
+mkdir -p "$feature"
+printf '# Spec: Payroll export\n' >"$feature/spec.md"
+review="$feature/spec.debt.review.md"
+printf '# Review: Payroll export\n\nSpec: %s\nFixed point: payroll (%s)\nCommit: %s\nSpec source: %s\nMode: default\nLanguage: English\n\n## Act on\n\nnone\n\n## Consider\n\nnone\n\n## Noted\n\nnone\n\n## Cleared\n\nnone\n\n## Axes\n\n' \
+  "$feature/spec.md" "$short" "$short" "$feature/spec.md" >"$review"
+printf 'draft\n' >payroll-draft.txt
+expect "fixture: the developer's only change is a new file never added and not ignored" \
+  test "$(g status --porcelain)" = "?? payroll-draft.txt"
+state_before="$(door_state && g worktree list --porcelain)"
+run payroll-export "$review"
+check_lines "a new untracked file in the main checkout refuses the cut: exit 4" \
+  4 "$rc" "line=working tree has uncommitted changes; commit or stash before fix"
+same "a refusal over an untracked file prints that one line and nothing else" \
+  "line=working tree has uncommitted changes; commit or stash before fix"
+expect "every ref, the working tree and the worktree list are as they were after refusing over an untracked file" \
+  test "$(door_state && g worktree list --porcelain)" = "$state_before"
+expect "no debt/<slug> is created over an untracked file" \
+  test -z "$(g -C "$main" rev-parse -q --verify refs/heads/debt/payroll-export)"
+expect "no folder is made at the worktree path over an untracked file" \
+  test ! -e "$main/.claude/worktrees/debt-payroll-export"
+
 exit "$fails"
