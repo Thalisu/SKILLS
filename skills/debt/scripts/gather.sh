@@ -10,7 +10,9 @@
 # files, k from 1, the source naming the Debt file, its section and the item within the section,
 # then one per Consider or Noted Finding, and per Act on Finding whose latest fix line reads not
 # fixed, of the feature's Reviews (the Spec's, then the Tickets', never the Debt review), k
-# continuing, the source naming the review file and the Finding. With n > 0 it ends on
+# continuing, the source naming the review file and the Finding. A record whose source the
+# Debt review (<Spec stem>.debt.review.md) already holds in a Finding's Source: line, in any Bucket,
+# is dropped, and k counts the new items alone. With n > 0 it ends on
 # line=Judging <n> debt items of <folder name>; with none, line=no pending debt in <folder name>;
 # nothing judged (after items=0). No items= line is printed when the slug names no feature folder.
 #
@@ -84,6 +86,25 @@ review_items() {
   done < <(review_files "$dir" "$spec")
 }
 
+held_sources() {
+  local review="$1"
+  [ -f "$review" ] || return 0
+  awk '
+    /^## / { sec = substr($0, 4); sub(/[ \t\r]+$/, "", sec); bucket = (sec == "Act on" || sec == "Consider" || sec == "Noted" || sec == "Cleared"); infind = 0; next }
+    /^### [0-9]+\./ { infind = bucket; next }
+    /^### / { infind = 0; next }
+    infind && /^Source: / { v = substr($0, 9); sub(/\r$/, "", v); print v }
+  ' "$review"
+}
+
+drop_held() {
+  local held="$1"
+  awk -F'\t' -v held="$held" '
+    BEGIN { while ((getline h < held) > 0) seen[h] = 1 }
+    { if (!($1 in seen)) print }
+  '
+}
+
 main() {
   [ "$#" = 1 ] || {
     echo "usage: gather.sh <slug>" >&2
@@ -122,13 +143,23 @@ main() {
     return 4
   fi
   local -a recs=()
+  local held stem
+  held="$(mktemp)"
+  if [ "$spec" != none ] && [ -n "$spec" ]; then
+    stem="$(basename "$spec")"
+    stem="${stem%.md}"
+    held_sources "$dir/$stem.debt.review.md" >"$held"
+  fi
   while IFS= read -r line; do
     [ -n "$line" ] || continue
     recs+=("$line")
   done < <(
-    debt_items "$dir"
-    review_items "$dir" "$spec"
+    {
+      debt_items "$dir"
+      review_items "$dir" "$spec"
+    } | drop_held "$held"
   )
+  rm -f "$held"
   k=${#recs[@]}
   echo "items=$k"
   local i

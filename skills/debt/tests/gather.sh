@@ -236,6 +236,28 @@ if [ "$rc" = 1 ] && [ "$counted" = "items=0|line=no pending debt in 20261019-cle
   dump_out
 fi
 
+rerun="$tmp/.scratch/20261019-rerun-debt"
+mkdir -p "$rerun/issues"
+printf '# Spec: rerun debt\n' >"$rerun/spec.md"
+printf '## first run\n\n- the timeout is hardcoded\n- the log path is relative\n- the lock file is never removed\n' >"$rerun/issues/01-a.debt.md"
+review_at 8b1d0e4 "$rerun/spec.debt.review.md" "none" "$landed" "" "### 1. Standards at src/t.sh:2
+Claim: the timeout is hardcoded.
+Evidence: \`timeout=30\` in src/t.sh:2.
+Rung: 2
+Source: issues/01-a.debt.md, section first run, item 1" "none" "### 2. Principles at src/l.sh:8, outside the diff
+Claim: the lock file is never removed.
+Evidence: no trap removes \`run.lock\`.
+Rung: 4
+Refuted by: src/l.sh removes run.lock in its EXIT trap.
+Source: issues/01-a.debt.md, section first run, item 3"
+run rerun-debt
+check_lines "a rerun prints only the items the Debt review holds no Finding for, numbered from 1, and judges that many, exit 0" 0 "$rc" \
+  "items=1" \
+  "item=1${tab}source=issues/01-a.debt.md, section first run, item 2${tab}text=the log path is relative" \
+  "line=Judging 1 debt items of 20261019-rerun-debt"
+check_absent "a rerun gives no item for a source a Consider or a Cleared Finding of the Debt review holds" 0 "$rc" \
+  "section first run, item 1" "section first run, item 3" "item=2${tab}"
+
 fresh detached
 mkdir -p .scratch/20261019-detached-debt/issues
 printf '# Spec: detached debt\n' >.scratch/20261019-detached-debt/spec.md
