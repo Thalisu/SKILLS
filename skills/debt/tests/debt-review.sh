@@ -924,4 +924,188 @@ for new in 5 6; do
   done
 done
 
+fresh settled
+settled="$(pwd -P)"
+settled_feature="$settled/.scratch/20261020-settled-debt"
+mkdir -p "$settled_feature/issues" "$settled/src"
+printf '# Settled debt\n\nRetry the export.\n' >"$settled_feature/spec.md"
+printf 'retries=3\n' >"$settled/src/a.sh"
+cat >"$settled_feature/issues/01-a.debt.md" <<'EOF'
+## 2026-10-19 15:01
+
+- the retry budget is hardcoded
+- the cache key ignores the locale
+- the consumer flows were not run against the new signature
+- the page header repeats on every page
+- the export prints through echo -e
+EOF
+commit "seed the settled feature"
+settled_sha="$(g rev-parse --short HEAD)"
+mapfile -t settled_sources < <(shaped_sources settled-debt "$settled")
+if [ "${#settled_sources[@]}" != 5 ]; then
+  echo "FAIL  fixture: gather.sh did not name five items for settled-debt"
+  exit 1
+fi
+settled_review="$settled_feature/spec.debt.review.md"
+cat >"$settled_review" <<EOF
+# Review: Settled debt
+
+Spec: $settled_feature/spec.md
+Fixed point: main ($settled_sha)
+Commit: $settled_sha
+Spec source: $settled_feature/spec.md
+Mode: default
+Language: English
+
+## Act on
+
+### 1. Standards at src/a.sh:1
+Claim: the retry budget is hardcoded at three.
+Evidence: \`retries=3\` in src/a.sh:1, walked through the retry loop.
+Rung: 3
+Fix: the retry budget is read from the config, in src/a.sh
+Source: ${settled_sources[0]}
+
+## Consider
+
+### 2. Correctness at src/b.sh:7
+Claim: two locales share one cache entry.
+Evidence: an earlier agent's note says so; no run reached the cache.
+Rung: 2
+Fix: the cache key carries the locale, in src/b.sh
+Source: ${settled_sources[1]}
+Held by hand: the locale lands with the i18n release, not before.
+
+## Noted
+
+none
+
+## Cleared
+
+none
+
+## Axes
+
+- Correctness: 1 finding, worst #2 (Consider)
+- Spec: 0 findings
+- Standards: 1 finding, worst #1 (Act on)
+- Principles: 0 findings
+- Blast radius: 0 findings
+- Security: 0 findings
+
+## Fix run
+
+Date: 2026-10-20 · at $settled_sha
+
+- 1: fixed 1a2b3c4, verified (\`bash tests/a.test.sh\`)
+- gate: \`bash tests/a.test.sh\`: green
+- landed at 1a2b3c4
+
+## Fix run
+
+Date: 2026-10-20 · at 1a2b3c4
+
+- 2: not fixed: held by hand
+- gate: \`bash tests/a.test.sh\`: green
+- not landed: no Fixer commit
+EOF
+commit "seed the settled Debt review"
+settled_records() { # $1 review: review-findings.sh's records of the held Findings 1 and 2, on stdout
+  bash "$here/../../../.agents/scripts/review-findings.sh" "$1" 2>/dev/null | grep -E '^finding=(1|2)'$'\t'
+}
+records_before="$(settled_records "$settled_review")"
+if ! grep -qF "latest=fixed 1a2b3c4, verified (\`bash tests/a.test.sh\`)" <<<"$records_before" ||
+  [ "$(shaped_sources settled-debt "$settled")" != "$(printf '%s\n' "${settled_sources[@]:2}")" ]; then
+  echo "FAIL  fixture: the settled Debt review does not read Finding 1 as fixed, or gather.sh did not keep its three new items"
+  exit 1
+fi
+settled_returns="$tmp/settled-returns"
+mkdir -p "$settled_returns"
+cat >"$settled_returns/item-1.md" <<EOF
+Source: ${settled_sources[2]}
+Axis: Blast radius
+Location: src/a.sh:1
+Claim: the consumers were not run against the new signature.
+Evidence: the consumer calls src/a.sh with the old argument order, read from its source; no flow of it ran.
+Rung: 3
+Outside code: the consumer flows run against this branch, in the consumer's repository
+EOF
+cat >"$settled_returns/item-2.md" <<EOF
+Source: ${settled_sources[3]}
+Axis: Correctness
+Location: src/c.sh:2
+Claim: the page header repeats on every page.
+Evidence: a proof script paged three times and read the header three times.
+Rung: 4
+Fix: the header prints on the first page only, in src/c.sh
+Small: yes
+EOF
+cat >"$settled_returns/item-3.md" <<EOF
+Source: ${settled_sources[4]}
+Axis: Standards
+Location: src/d.sh:5
+Claim: the export prints through \`echo -e\`, which CLAUDE.md forbids.
+Evidence: CLAUDE.md, "use printf"; src/d.sh:5.
+Rung: 2
+Fix: the export prints through printf, in src/d.sh
+Small: yes
+EOF
+
+settled_before="$tmp/settled-before"
+mkdir -p "$settled_before"
+cp "$settled_review" "$settled_before/review.md"
+header_of() { # $1 review: every line before its first ## Act on, on stdout
+  awk '$0 == "## Act on" { exit } 1' "$1"
+}
+finding_block() { # $1 review, $2 Finding number: its ### line and every line up to the next ### or ## line, blank lines included, on stdout
+  awk -v n="### $2. " 'on && /^##/ { exit } index($0, n) == 1 { on = 1 } on' "$1"
+}
+fix_runs_of() { # $1 review: every line from its first ## Fix run to its end, on stdout
+  awk '$0 == "## Fix run" { on = 1 } on' "$1"
+}
+for part in "header:header_of" "Finding 1:finding_block 1" "Finding 2:finding_block 2" "Fix run sections:fix_runs_of"; do
+  read -ra extract <<<"${part#*:}"
+  "${extract[0]}" "$settled_review" "${extract[@]:1}" >"$settled_before/${part%%:*}"
+done
+if ! grep -qx 'Held by hand: the locale lands with the i18n release, not before.' "$settled_before/Finding 2" ||
+  [ "$(grep -cx '## Fix run' "$settled_before/Fix run sections")" != 2 ]; then
+  echo "FAIL  fixture: the held Finding 2 does not carry its hand edit, or the review does not hold two Fix runs"
+  exit 1
+fi
+
+rc=0
+# shellcheck disable=SC2034  # lib.sh's check_lines reads $out
+out="$(cd "$settled" && bash "$script" settled-debt "$settled_returns" 2>&1)" || rc=$?
+check_lines "on a rerun over a settled Debt review, it prints the path of the review it added to" 0 "$rc" \
+  "review=$settled_review"
+for part in "header:header_of" "Finding 1:finding_block 1" "Finding 2:finding_block 2" "Fix run sections:fix_runs_of"; do
+  read -ra extract <<<"${part#*:}"
+  expect "on a rerun over a settled Debt review, its ${part%%:*} is byte-identical" \
+    cmp -s "$settled_before/${part%%:*}" <("${extract[0]}" "$settled_review" "${extract[@]:1}")
+done
+# shellcheck disable=SC2034  # lib.sh's same reads $out
+out="$(sed -n 's/^### \([0-9]*\)\. .*/\1/p' "$settled_review" 2>/dev/null | tr '\n' ' ' | sed 's/ $//')"
+same "on a rerun over a settled Debt review, the held Findings keep their numbers and the new ones follow the highest" \
+  "1 3 2 4 5"
+# shellcheck disable=SC2034  # lib.sh's same reads $out
+out="$(settled_records "$settled_review")"
+same "on a rerun over a settled Debt review, review-findings.sh reads every held Finding as before, Finding 1 still fixed" \
+  "$records_before"
+# shellcheck disable=SC2034  # lib.sh's same reads $out
+out="$(
+  passage_of "$settled_review" "## Axes" "## Fix run" 2>/dev/null
+  echo "."
+)"
+same "on a rerun over a settled Debt review, ## Axes counts every Finding, held and new, one blank line from each heading" \
+  "## Axes
+
+- Correctness: 2 findings, worst #3 (Act on)
+- Spec: 0 findings
+- Standards: 2 findings, worst #1 (Act on)
+- Principles: 0 findings
+- Blast radius: 1 finding, worst #5 (Noted)
+- Security: 0 findings
+
+."
+
 exit "$fails"
