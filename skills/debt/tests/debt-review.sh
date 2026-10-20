@@ -1438,4 +1438,87 @@ expect "--fixed-point given a sha that names no commit exits 2, prints nothing o
 expect "--fixed-point given a sha that names no commit leaves the review byte-identical" \
   cmp -s "$tmp/moved-review.before" "$moved_review"
 
+fresh linked
+linked="$(pwd -P)"
+linked_feature="$linked/.scratch/20261020-linked-debt"
+mkdir -p "$linked_feature/issues"
+printf '# Linked debt\n' >"$linked_feature/spec.md"
+cat >"$linked_feature/issues/01-a.debt.md" <<'EOF'
+## 2026-10-19 15:01
+
+- the page header repeats on every page
+EOF
+commit "seed the linked feature"
+linked_returns="$tmp/linked-returns"
+mkdir -p "$linked_returns"
+cat >"$linked_returns/item-1.md" <<EOF
+Source: $(shaped_sources linked-debt "$linked")
+Axis: Correctness
+Location: src/c.sh:2
+Claim: the page header repeats on every page.
+Evidence: a proof script paged three times and read the header three times.
+Rung: 4
+Fix: the header prints on the first page only, in src/c.sh
+Small: yes
+EOF
+outside="$tmp/outside"
+mkdir -p "$outside"
+cat >"$outside/held.debt.review.md" <<EOF
+# Review: Linked debt
+
+Spec: $linked_feature/spec.md
+Fixed point: main ($(g rev-parse --short HEAD))
+Commit: $(g rev-parse --short HEAD)
+
+## Act on
+
+none
+
+## Consider
+
+none
+
+## Noted
+
+none
+
+## Cleared
+
+none
+
+## Axes
+
+- Correctness: 0 findings
+- Spec: 0 findings
+- Standards: 0 findings
+- Principles: 0 findings
+- Blast radius: 0 findings
+- Security: 0 findings
+EOF
+cp "$outside/held.debt.review.md" "$tmp/outside-held.before"
+linked_review="$linked_feature/spec.debt.review.md"
+for link in "dangling symlink:$outside/dangling.debt.review.md" "symlink to an existing file:$outside/held.debt.review.md"; do
+  kind="${link%%:*}"
+  target="${link#*:}"
+  ln -s "$target" "$linked_review"
+  before="$(g -C "$linked" status --porcelain --untracked-files=all)"
+  refuses "a $kind at spec.debt.review.md: it exits 2, names the review as a symlink on stderr, no review= or line= on stdout" \
+    names "$linked_review is a symlink" linked-debt "$linked_returns"
+  expect "a $kind at spec.debt.review.md: it writes no file in the project" \
+    test "$before" = "$(g -C "$linked" status --porcelain --untracked-files=all)"
+  expect "a $kind at spec.debt.review.md: it stays a symlink to the same target" \
+    test "$(readlink "$linked_review" 2>/dev/null)" = "$target"
+  case "$kind" in
+    "dangling symlink")
+      expect "a dangling symlink at spec.debt.review.md: its target outside the project is never created" \
+        test ! -e "$target"
+      ;;
+    *)
+      expect "a symlink to an existing file at spec.debt.review.md: that file outside the project is byte-identical" \
+        cmp -s "$tmp/outside-held.before" "$target"
+      ;;
+  esac
+  rm -f "$linked_review"
+done
+
 exit "$fails"

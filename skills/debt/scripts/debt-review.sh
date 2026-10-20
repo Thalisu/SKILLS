@@ -43,6 +43,9 @@
 # review lacking a Bucket heading or "## Axes" is refused: "debt-review.sh: <review>: missing
 # <heading>" on stderr, nothing written, exit 2.
 #
+# A Debt review path that is a symlink, dangling or not, is refused: "debt-review.sh: <review> is a
+# symlink; nothing written" on stderr, nothing written, exit 2.
+#
 # Prints review=<path> then line=Written to <path>.
 #
 #   debt-review.sh --fixed-point <review path> <sha>    moves a held review's header to a new tip:
@@ -53,7 +56,7 @@
 #                                          the review has no "Fixed point: " line, no "Commit: " line,
 #                                          or <sha> names no commit.
 #
-# Exit codes: 0 it wrote the review · 1 or 3 gather's own exit, its line= relayed, nothing written · 2 usage, or gather's usage or resolver refusal (its stderr relayed) · 5 gather found nothing new beside an existing Debt review: its review= relayed, no line=, nothing written.
+# Exit codes: 0 it wrote the review · 1 or 3 gather's own exit, its line= relayed, nothing written · 2 usage, a symlinked Debt review, or gather's usage or resolver refusal (its stderr relayed) · 5 gather found nothing new beside an existing Debt review: its review= relayed, no line=, nothing written.
 set -uo pipefail
 
 abs_path() {
@@ -405,6 +408,10 @@ main() {
   [ -n "$spec" ] && [ "$spec" != none ] || return 2
   spec="$(abs_path "$spec")"
   review="$(dirname "$spec")/$(basename "$spec" .md).debt.review.md"
+  if [ -L "$review" ]; then
+    echo "debt-review.sh: $review is a symlink; nothing written" >&2
+    return 2
+  fi
   local -a b_act=() b_con=() b_note=() b_clr=()
   local rr placement line key val
   local bucket prung pevidence prisk pmark plast axis location claim heading body
