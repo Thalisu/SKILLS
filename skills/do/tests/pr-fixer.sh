@@ -4,10 +4,10 @@
 # it: a fixer that pushes, pulls, moves a ref, switches branch, opens a worktree or reaches GitHub
 # through `gh` makes a write the session never vouched for, and one that writes under the git
 # directory its worktree shares with the run tree (a hook, the config, info/) plants code the
-# session's own push then runs. The guarantee is the agent's own hooks,
-# run live the way the harness runs them, since the fixer reads a check's log a stranger can write
-# into. And the agent is listed wherever the repo lists what `do` ships, so the installer's links
-# and the developer's docs name it.
+# session's own push then runs. The guard is the agent's own hooks, a speed bump over the command
+# text and not a sandbox, run live the way the harness runs them, since the fixer reads a check's
+# log a stranger can write into. And the agent is listed wherever the repo lists what `do` ships,
+# so the installer's links and the developer's docs name it.
 # Run: bash skills/do/tests/pr-fixer.sh
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
@@ -135,7 +135,7 @@ spelled=(
   'git rev-parse --git-path hooks'
 )
 for cmd in "${spelled[@]}"; do
-  expect "the hook denies the fixer's Bash gh or a git write however it is spelled: ${cmd@Q}" \
+  expect "the hook denies the fixer's Bash gh or a git write whichever way its command word is spelled: ${cmd@Q}" \
     deny_in "$(bash_out "$cmd")"
 done
 
@@ -164,6 +164,18 @@ for cmd in \
   "cat .github/workflows/ci.yml" \
   "git log --format=%(refname) -n1"; do
   expect "the hook lets the fixer's Bash do ordinary fix work: $cmd" \
+    bash -c '[ -n "$1" ] && ! grep -qF "\"permissionDecision\": \"deny\"" <<<"$2"' _ "$bash_hook" "$(bash_out "$cmd")"
+done
+
+# The guard reads the command's words, never a program the command runs: a script the fixer writes
+# can start gh. A fixer or a reviewer told it is a sandbox trusts a wall that is not there, so the
+# denial says what it is, and the limit stays pinned so that statement stays true.
+out="$(bash_out "gh pr view 42")"
+rc=$?
+check "the hook's gh denial says it is a speed bump, not a sandbox, and does not read a script the fixer runs" 0 "$rc" \
+  '"permissionDecision": "deny"' "speed bump" "not a sandbox" "script the fixer writes and runs is not read"
+for cmd in "bash ./fix.sh" "sh run-tests.sh" "make test" "npm test"; do
+  expect "the hook lets a script the fixer runs through unread, the limit its denial states: $cmd" \
     bash -c '[ -n "$1" ] && ! grep -qF "\"permissionDecision\": \"deny\"" <<<"$2"' _ "$bash_hook" "$(bash_out "$cmd")"
 done
 
@@ -366,5 +378,17 @@ expect "invocation.md's Agents a skill ships table has a do-pr-fixer row" \
   grep -qE '^\| `do-pr-fixer` +\|' <<<"$agents_table"
 
 has "docs/do.md names do-pr-fixer" "$root/docs/do.md" "do-pr-fixer"
+
+flat="$(grep -E '^\| `do-pr-fixer` +\|' "$root/.agents/invocation.md")"
+out="$flat"
+carries "invocation.md's do-pr-fixer row calls its hooks a speed bump, not a sandbox" "speed bump" "not a sandbox"
+absent "invocation.md's do-pr-fixer row does not claim its hooks deny every push and fetch" "deny every push, fetch"
+absent "invocation.md's do-pr-fixer row does not claim its hooks keep it off every push" "keep it off every push"
+flat="$(grep -E '^\| \[do-pr-fixer\]' "$root/docs/do.md")"
+# shellcheck disable=SC2034  # lib.sh's absent reads $out
+out="$flat"
+carries "docs/do.md's do-pr-fixer row calls its hooks a speed bump, not a sandbox" "speed bump" "not a sandbox"
+absent "docs/do.md's do-pr-fixer row does not claim its hooks deny every push and fetch" "deny every push, fetch"
+absent "docs/do.md's do-pr-fixer row does not claim its hooks keep it off every push" "keep it off every push"
 
 exit "$((fails > 0))"
