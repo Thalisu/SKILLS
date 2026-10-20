@@ -10,7 +10,8 @@
 # branch. On a git failure it prints one line=<git's error line> instead.
 #
 # Exit codes: 0 it cut the branch · 2 usage: not two arguments, a missing review, or a review with no
-# Spec: header or no parsable Fixed point: header · 3 git failed, nothing cut.
+# Spec: header or no parsable Fixed point: header · 3 git failed, or debt/<slug> or its
+# worktree path already exists (one line= says so), nothing cut.
 set -uo pipefail
 
 usage() {
@@ -39,6 +40,12 @@ full="$(git -C "$main" rev-parse --verify -q "$tip^{commit}" 2>&1)" || {
   exit 3
 }
 
+path="$main/.claude/worktrees/debt-$slug"
+if git -C "$main" show-ref -q --verify "refs/heads/debt/$slug" || [ -e "$path" ]; then
+  echo "line=debt/$slug or its worktree $path already exists; nothing cut"
+  exit 3
+fi
+
 # The exclude list and never the project's .gitignore: the list is this clone's, and the worktree
 # folder would otherwise read as untracked in the main checkout's status.
 if ! git -C "$main" check-ignore -q .claude/worktrees/; then
@@ -46,7 +53,6 @@ if ! git -C "$main" check-ignore -q .claude/worktrees/; then
   echo ".claude/worktrees/" >>"$common/info/exclude"
 fi
 
-path="$main/.claude/worktrees/debt-$slug"
 if ! said="$(git -C "$main" worktree add -q -b "debt/$slug" "$path" "$full" 2>&1)"; then
   echo "line=$(grep -m1 -E '^(error|fatal):' <<<"$said" || head -n1 <<<"$said")"
   exit 3

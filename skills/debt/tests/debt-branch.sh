@@ -53,6 +53,42 @@ expect "the main checkout stays on the developer's branch" \
 expect "the main checkout's working tree status is unchanged" \
   test "$(g -C "$main" status --porcelain)" = "$status_before"
 
+refused_once() { # $1 label: the run exited 3 and printed exactly one line, a line=
+  if [ "$rc" = 3 ] && [ "$(wc -l <<<"$out")" = 1 ] && [ "${out#line=}" != "$out" ]; then ok "$1"; else
+    fail "$1 (exit $rc, wanted 3)"
+    dump_out
+  fi
+}
+
+g branch debt/taken "$tip"
+state_before="$(door_state && g worktree list --porcelain)"
+run taken "$review"
+refused_once "an existing debt/<slug> refuses the cut with one line=: exit 3"
+absent_prefix "a refusal over an existing debt/<slug> names no branch" "branch="
+absent_prefix "a refusal over an existing debt/<slug> names no worktree" "worktree="
+expect "the existing debt/<slug> keeps the commits it held" \
+  test "$(g -C "$main" rev-parse -q --verify refs/heads/debt/taken)" = "$tip"
+expect "every ref, the working tree and the worktree list are as they were after refusing over debt/<slug>" \
+  test "$(door_state && g worktree list --porcelain)" = "$state_before"
+expect "no folder is made at the worktree path of a refused debt/<slug>" \
+  test ! -e "$main/.claude/worktrees/debt-taken"
+
+occupied="$main/.claude/worktrees/debt-occupied"
+mkdir -p "$occupied"
+printf 'earlier work\n' >"$occupied/keep.txt"
+contents_before="$(cd "$occupied" && snapshot . '%p %y %s\n' && sha256sum keep.txt)"
+state_before="$(door_state && g worktree list --porcelain)"
+run occupied "$review"
+refused_once "an existing folder at the worktree path refuses the cut with one line=: exit 3"
+absent_prefix "a refusal over an existing folder names no branch" "branch="
+absent_prefix "a refusal over an existing folder names no worktree" "worktree="
+expect "no debt/<slug> is created when its worktree path is taken" \
+  test -z "$(g -C "$main" rev-parse -q --verify refs/heads/debt/occupied)"
+expect "every ref, the working tree and the worktree list are as they were after refusing over the folder" \
+  test "$(door_state && g worktree list --porcelain)" = "$state_before"
+expect "the existing folder keeps its contents" \
+  test "$(cd "$occupied" && snapshot . '%p %y %s\n' && sha256sum keep.txt)" = "$contents_before"
+
 fresh pair
 main="$tmp/pair"
 printf '.scratch/\n' >.gitignore
