@@ -86,4 +86,82 @@ carries_each "the door leaves the Debt files and the Reviews to gather.sh" \
   "Debt file" -- \
   "Review"
 
+# The paragraphs, list items and table rows naming a fixed string, each flattened on a line of its
+# own: a table or a list is one paragraph to paragraph_with, so a neighbouring row's "no fix run"
+# would answer for the row that names the flag.
+units_naming() { # $1 file, $2 a fixed string; each unit carrying it, one per line, on stdout
+  unit_key="$2" awk '
+    function flush() { if (index(unit, ENVIRON["unit_key"])) print unit; unit = "" }
+    /^ *```/ { flush(); fence = !fence; next }
+    fence { next }
+    /^ *$/ || /^#+ / { flush(); next }
+    /^ *(- |\* |\| |[0-9]+\. )/ { flush() }
+    { unit = unit " " $0 }
+    END { flush() }
+  ' "$1" | tr -s ' '
+}
+
+echo "# SKILL.md: /debt --no-fix <slug> stops once the Debt review is written, or at once when nothing is new, cutting no debt/<slug> and calling no fix run"
+nf1="$(units_naming <(passage_of "$skill" "## 1." "## 2.") "--no-fix" | tr '\n' ' ')"
+nf2="$(units_naming <(passage_of "$skill" "## 2." "## 3.") "--no-fix" | tr '\n' ' ')"
+nf="$(units_naming <(body_of "$skill") "--no-fix" | tr '\n' ' ')"
+stops_here=("stop" "Stop" "ends the run" "the run ends" "ends the command" "ends there" "end there")
+nothing_new=(
+  "exit 5" "nothing is new" "nothing new" "no item is new" "no gathered item is new"
+  "nothing to judge"
+)
+flat="$nf1"
+expect "the door takes --no-fix" test -n "${flat// /}"
+carries_any "the flag comes before the slug" \
+  "--no-fix <slug>" "\`--no-fix\` before the slug" "--no-fix before the slug" "before the slug" \
+  "ahead of the slug" "precedes the slug" "preceding the slug" "followed by the slug" \
+  "then the slug" "opens with \`--no-fix\`" "opens with --no-fix" "first word"
+carries_any "gather.sh is handed the slug alone, never the flag" \
+  "the slug alone" "slug alone" "only the slug" "just the slug" "without the flag" \
+  "without \`--no-fix\`" "without --no-fix" "never the flag" "not the flag" "strip" "Strip" \
+  "drop" "Drop" "the rest as the slug" "the word after it" "what follows it"
+# shellcheck disable=SC2034  # lib.sh's absent reads $out
+out="$(awk '/^ *```/ { f = !f; next } f' "$skill")"
+absent "no command the skill hands the session carries the flag" "--no-fix"
+flat="$nf"
+carries_each "under --no-fix the run stops once the Debt review is written" \
+  "Written to" "Debt review is written" "Debt review written" "writes the Debt review" \
+  "wrote the Debt review" "after debt-review.sh" "once debt-review.sh" "after the judgment" \
+  "after step 2" "the judgment ends" "on those lines" "Debt review's text" \
+  "Debt review file's text" -- \
+  "${stops_here[@]}"
+carries_each "under --no-fix the run stops at once when nothing is new" \
+  "${nothing_new[@]}" -- "${stops_here[@]}"
+on_both=0
+both_scripts=(
+  "gather.sh or debt-review.sh" "debt-review.sh or gather.sh" "gather.sh and debt-review.sh"
+  "debt-review.sh and gather.sh" "either script" "both scripts" "whichever script" "either exit 5"
+  "both exit 5" "every exit 5" "any exit 5" "each exit 5" "on either" "from either"
+)
+[ "$(first_at "${both_scripts[@]}")" -gt 0 ] && [ "$(first_at "${nothing_new[@]}")" -gt 0 ] && on_both=1
+flat="$nf1"
+door_new="$(first_at "${nothing_new[@]}")"
+flat="$nf2"
+judged_new="$(first_at "${nothing_new[@]}")"
+[ "$door_new" -gt 0 ] && [ "$judged_new" -gt 0 ] && on_both=1
+expect "the nothing-new stop holds on gather.sh's exit 5 and on debt-review.sh's alike" \
+  test "$on_both" = 1
+flat="$nf"
+carries_each "under --no-fix the run calls no debt-branch.sh, so no debt/<slug> and no worktree is cut" \
+  "no debt-branch.sh" "no \`debt-branch.sh\`" "never calls debt-branch.sh" \
+  "never runs debt-branch.sh" "never call debt-branch.sh" "never run debt-branch.sh" \
+  "calls no debt-branch.sh" "runs no debt-branch.sh" "calling no debt-branch.sh" \
+  "without calling debt-branch.sh" "without running debt-branch.sh" \
+  "does not call debt-branch.sh" "does not run debt-branch.sh" "skips the cut" "skip the cut" \
+  "no cut" "cuts nothing" "cuts no" "nothing is cut" -- \
+  "debt/<slug>" "no branch" -- \
+  "worktree"
+carries_any "under --no-fix the run calls no do-code-review fix run" \
+  "no do-code-review" "no \`do-code-review\`" "never calls do-code-review" \
+  "never calls \`do-code-review\`" "never call do-code-review" "never call \`do-code-review\`" \
+  "calls no do-code-review" "calls no \`do-code-review\`" "without calling do-code-review" \
+  "without calling \`do-code-review\`" "does not call do-code-review" \
+  "does not call \`do-code-review\`" "no fix run" "calls no fix run" "calling no fix run" \
+  "never calls the fix run" "no Skill call"
+
 exit $((fails > 0))

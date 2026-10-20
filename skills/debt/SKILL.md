@@ -2,7 +2,7 @@
 name: debt
 description: "Gather a feature's Pending debt (its Debt files and the Review Findings still open) and judge it into a Debt review beside the Spec"
 disable-model-invocation: true
-argument-hint: "<slug>"
+argument-hint: "[--no-fix] <slug>"
 ---
 
 # Debt
@@ -11,8 +11,8 @@ Settle a feature's Pending debt: gather the Debt files and the Review Findings s
 judge them. This file holds three steps: the door, the judgment, then the fix.
 
 The developer's argument sits at the end of this file, between the `<arguments>` tags: the feature
-slug. `<skill-dir>` below is the directory this file sits in. The steps run in order, and each stop
-they name ends the command there.
+slug, optionally preceded by `--no-fix`. `<skill-dir>` below is the directory this file sits in.
+The steps run in order, and each stop they name ends the command there.
 
 ## 1. The door
 
@@ -21,6 +21,11 @@ Run the gather script on the slug exactly as the developer typed it, before anyt
 ```sh
 bash <skill-dir>/scripts/gather.sh <slug>
 ```
+
+When the argument opens with `--no-fix`, the session strips the flag and runs gather.sh on the slug
+alone (the word after it), never handing the flag to a script. Under `--no-fix`, gather.sh's exit 5
+(nothing is new) stops the run there: no fix, so no `debt/<slug>` and no worktree is cut, and no
+`do-code-review` is called.
 
 The session never parses a Debt file or a Review itself: gather.sh reads both. It relays the
 `line=` value the script printed and decides on the script's exit code:
@@ -87,6 +92,11 @@ nothing is new beside an existing Debt review, the script's exit 5 prints `revie
 
 Show the Debt review file's text, then the `line=` value (`Written to <location>`). The judgment
 ends on those lines, and step 3 follows.
+
+Under `--no-fix` the run stops once the Debt review is written, after the Debt review's text and
+`Written to <location>` are shown, and likewise stops at once on debt-review.sh's exit 5 (nothing is
+new): it calls no `debt-branch.sh`, so no `debt/<slug>` and no worktree is cut, and calls no
+`do-code-review` (no fix run).
 
 ## 3. The fix
 
