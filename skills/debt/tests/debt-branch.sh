@@ -432,4 +432,49 @@ expect "the worktree of the resumed debt/<slug> with no Fixer commit is still li
 expect "the Debt review keeps every byte after resuming a debt/<slug> with no Fixer commit" \
   test "$(sha256sum "$retry")" = "$retry_before"
 
+twice="$feature/twice.debt.review.md"
+sed '/^## Fix run$/,$d' "$review" >"$twice"
+twice_wt="$main/.claude/worktrees/debt-orders-twice"
+run orders-twice "$twice"
+expect "fixture: the first run cut debt/orders-twice in its worktree" \
+  test "$(branch_of_worktree "$main" "$twice_wt")" = "refs/heads/debt/orders-twice"
+expect "fixture: debt/orders-twice sits at the Fixed point, the earlier run's landed sha" \
+  test "$(g -C "$main" rev-parse -q --verify refs/heads/debt/orders-twice)" = "$fixed_point"
+expect "fixture: the earlier run's landed sha, the Fixed point, is inside the developer's branch" \
+  g -C "$main" merge-base --is-ancestor "$fixed_point" refs/heads/orders
+cat >>"$twice" <<EOF
+## Fix run
+
+Date: 2026-10-20 · at $short
+
+- 1: fixed $short, verified (\`bash tests/orders.test.sh\`)
+- wave 1: 1
+- duplication scan: skip: no test asset changed
+- diff tests: \`bash tests/orders.test.sh\`: green
+- gate: \`bash tests/orders.test.sh\`: green
+- landed at $short
+
+## Fix run
+
+Date: 2026-10-20 · at $short
+
+- 1: not fixed: the Fixer made no commit
+- wave 1: 1
+- duplication scan: skip: no Fixer commit
+- diff tests: skip: no Fixer commit
+- gate fixer: not needed
+- gate: \`bash tests/orders.test.sh\`: green
+- not landed: Finding 1 not fixed or not verified; the branch debt/orders-twice and its worktree stay in place
+EOF
+twice_before="$(sha256sum "$twice")"
+run orders-twice "$twice"
+check_lines "a landed Fix run followed by a not-landed one resumes debt/<slug>: the last landing line decides: exit 0" \
+  0 "$rc" "cut=resumed" "worktree=$twice_wt"
+expect "the debt/<slug> resumed after a later not-landed run is not removed and stays at the Fixed point" \
+  test "$(g -C "$main" rev-parse -q --verify refs/heads/debt/orders-twice)" = "$fixed_point"
+expect "the worktree of the debt/<slug> resumed after a later not-landed run is still listed on its branch" \
+  test "$(branch_of_worktree "$main" "$twice_wt")" = "refs/heads/debt/orders-twice"
+expect "the Debt review keeps every byte after resuming past an earlier landed run" \
+  test "$(sha256sum "$twice")" = "$twice_before"
+
 exit "$fails"
