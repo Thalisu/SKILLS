@@ -24,7 +24,8 @@
 # Exit codes: 0 it cut the branch · 2 usage: not two arguments, a missing review, or a review with no
 # Spec: header or no parsable Fixed point: header · 3 git failed, a landed debt/<slug> or its
 # worktree could not be removed because git refuses, its landed worktree holds an uncommitted change,
-# or its worktree path is taken by something else (one line= says so), nothing cut · 4 the main
+# or its worktree path is taken by something else, or debt/<slug> is checked out at another path
+# (one line= says so), nothing cut · 4 the main
 # checkout has uncommitted changes (one line= says so), nothing cut.
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
@@ -77,7 +78,7 @@ debt_state() {
   if [ "$has_branch" -eq 0 ]; then
     if [ -e "$path" ]; then echo Stray; else echo Absent; fi
   elif [ -n "$here" ]; then
-    if [ "$here" = "$path" ] || { [ -n "$real" ] && [ "$here" = "$real" ]; }; then echo Here; else echo Foreign; fi
+    if [ "$here" = "$path" ] || { [ -n "$real" ] && [ "$here" = "$real" ]; }; then echo Here; else echo "Foreign $here"; fi
   elif [ -e "$path" ]; then
     echo Foreign
   else
@@ -182,6 +183,13 @@ refuse() {
 
 path="$main/.claude/worktrees/debt-$slug"
 state="$(debt_state "$main" "$slug" "$path")"
+elsewhere=""
+case "$state" in
+  "Foreign "*)
+    elsewhere="${state#Foreign }"
+    state=Foreign
+    ;;
+esac
 case "$state" in
   Absent)
     cut_tree "$main" "$slug" "$path" "$full"
@@ -196,6 +204,13 @@ case "$state" in
       resume_tree "$main" "$slug" "$path" "$state"
       print_keys resumed
     fi
+    ;;
+  Foreign)
+    if [ -n "$elsewhere" ]; then
+      echo "line=debt/$slug is checked out at $elsewhere; nothing cut"
+      exit 3
+    fi
+    refuse
     ;;
   *) refuse ;;
 esac

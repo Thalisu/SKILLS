@@ -727,4 +727,54 @@ for dirt in tracked untracked; do
   rm -f shipments-draft.txt
 done
 
+moved="$feature/moved.debt.review.md"
+printf 'pending\n' >orders.txt
+commit "orders pending a fourth time"
+fixed_point="$(g rev-parse refs/heads/shipments)"
+fixed_short="$(g rev-parse --short refs/heads/shipments)"
+printf '# Review: Shipments export\n\nSpec: %s\nFixed point: shipments (%s)\nCommit: %s\nSpec source: %s\nMode: default\nLanguage: English\n\n## Act on\n\nnone\n\n## Consider\n\nnone\n\n## Noted\n\nnone\n\n## Cleared\n\nnone\n\n## Axes\n\n' \
+  "$feature/spec.md" "$fixed_short" "$fixed_short" "$feature/spec.md" >"$moved"
+moved_wt="$main/.claude/worktrees/debt-shipments-moved"
+elsewhere="$tmp/shipments-moved-elsewhere"
+cut_with_fixer shipments-moved "$moved"
+g merge -q --ff-only refs/heads/debt/shipments-moved
+moved_landed="$(g rev-parse --short "$fixer")"
+cat >>"$moved" <<EOF
+## Fix run
+
+Date: 2026-10-20 · at $fixed_short
+
+- 1: fixed $moved_landed, verified (\`bash tests/shipments.test.sh\`)
+- wave 1: 1
+- duplication scan: skip: no test asset changed
+- diff tests: \`bash tests/shipments.test.sh\`: green
+- gate: \`bash tests/shipments.test.sh\`: green
+- landed at $moved_landed
+EOF
+printf 'later a fourth time\n' >>shipments.txt
+commit "after the fourth landing"
+g -C "$main" worktree move "$moved_wt" "$elsewhere"
+expect "fixture: debt/shipments-moved's tip is the landed sha and inside the developer's branch" \
+  g -C "$main" merge-base --is-ancestor "$fixer" refs/heads/shipments
+expect "fixture: nothing is left at debt/shipments-moved's worktree path under the main checkout" \
+  test ! -e "$moved_wt"
+expect "fixture: git lists debt/shipments-moved checked out in the worktree outside the main checkout" \
+  test "$(branch_of_worktree "$main" "$elsewhere")" = "refs/heads/debt/shipments-moved"
+state_before="$(door_state && g worktree list --porcelain)"
+moved_before="$(sha256sum "$moved")"
+run shipments-moved "$moved"
+refused_once "a debt/<slug> checked out in a worktree at another path is refused with one line=: exit 3"
+check_lines "the refusal over a debt/<slug> checked out elsewhere names the branch and the other worktree's path, and that nothing was cut" \
+  3 "$rc" "line=debt/shipments-moved is checked out at $elsewhere; nothing cut"
+expect "no folder is created at the skill's worktree path for a debt/<slug> checked out elsewhere" \
+  test ! -e "$moved_wt"
+expect "the debt/<slug> checked out elsewhere keeps its tip" \
+  test "$(g -C "$main" rev-parse -q --verify refs/heads/debt/shipments-moved)" = "$fixer"
+expect "the other worktree is still listed on its debt/<slug>" \
+  test "$(branch_of_worktree "$main" "$elsewhere")" = "refs/heads/debt/shipments-moved"
+expect "every ref, the working tree and the worktree list are as they were after refusing a debt/<slug> checked out elsewhere" \
+  test "$(door_state && g worktree list --porcelain)" = "$state_before"
+expect "the Debt review keeps every byte, its Fixed point and Commit lines included, after refusing a debt/<slug> checked out elsewhere" \
+  test "$(sha256sum "$moved")" = "$moved_before"
+
 exit "$fails"
