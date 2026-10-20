@@ -145,6 +145,24 @@ carries "nothing remained is what the Debt review's Fix run section reads" "Fix 
 carries_any "with nothing in Act on the fix run forks no Fixer" \
   "no Fixer" "no Fixers" "not fork a Fixer" "without forking a Fixer" "zero Fixers"
 
+echo "# a Debt review that is not Green: the not landed: line relayed as returned, debt/<slug> and its worktree kept"
+flat="$(paragraph_with "$tmp/fix.md" "not landed" all)"
+expect "the step names the not landed: line the fix run ends on when the review is not Green" \
+  test -n "${flat// /}"
+carries "the landing line is the fix run's not landed: line" "not landed:"
+carries_any "the run relays the not landed: line as the fix run returned it, not rewritten" \
+  "as it returned" "as the fix run returned it" "as returned" "as printed" "word for word" \
+  "verbatim" "unchanged" "not rewritten" "never rewritten" "never rewrites" "does not rewrite"
+carries_any "the not landed: line names the open Findings" \
+  "not landed: Finding" "Finding <n>" "Findings not fixed" "not fixed or not verified" \
+  "open Findings" "names the Findings" "naming the Findings" "Findings it did not fix"
+carries "the not landed: case names the debt/<slug> branch" "debt/<slug>"
+carries "the not landed: case names the branch's worktree" "worktree"
+carries_any "the run removes neither debt/<slug> nor its worktree" \
+  "stay in place" "stays in place" "left in place" "remain in place" "remains in place" \
+  "removes neither" "never removes" "does not remove" "removes no" "kept in place" \
+  "keeps both" "are kept" "is kept"
+
 echo "# the session lists no do-code-review: the step says what it does"
 passage_of "$skill" "## 3." "<arguments>" >"$tmp/step.md"
 fallback=""

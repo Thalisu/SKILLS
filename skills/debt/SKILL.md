@@ -128,6 +128,12 @@ With nothing in `Act on`, the fix run forks no Fixer and the Debt review's `## F
 `nothing remained`, written by the fix run, which still runs its Gate and ends on its landing line and
 the push command.
 
+When the Debt review is not Green, the fix run's reply ends on its `not landed:` landing line instead
+of `landed at <sha>`, for example `not landed: Finding <n> not fixed or not verified; the branch
+debt/<slug> and its worktree stay in place`, naming the Findings it did not fix. The run relays that
+line as the fix run returned it, never rewritten, and removes neither `debt/<slug>` nor its worktree,
+which stay in place.
+
 The script prints a `tickets=` value when a `## Consider` Finding is marked `too big for a Fixer`.
 When it did, the run puts that `tickets=` value (the `/tickets <spec>` line) on its own line just
 before the push command, the fix run's reply's last line, so the push command stays the run's last
