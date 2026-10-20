@@ -4,16 +4,17 @@
 #
 #   debt-branch.sh <slug> <review path>    the Debt review whose `Fixed point:` header names the cut
 #
-# Prints cut=new on a first cut, cut=recut when a landed debt/<slug> is removed with its worktree and cut
-# again at the target's current tip, which tip= then names, or cut=resumed when debt/<slug> already exists and did not land: checked
-# out in its worktree (nothing is written then), or with no worktree, which is added back at the path on
-# the existing branch, its commits kept: not landed means the review's last landing line is missing
-# or reads `not landed:`, or its tip holds a commit past the landed sha, or the sha is not in the target. Then
-# it prints branch=debt/<slug>, worktree=<main>/.claude/worktrees/debt-<slug>, main=<main checkout>,
-# target=<the branch the review recorded in its Fixed point>, tip=<the short sha of that header> and
-# call=fix <the review path as handed in> <target>, the fix call with its landing target. After call=
-# it prints the optional tickets=/tickets <the review's Spec: value> when a line equal to
-# `Mark: too big for a Fixer` sits in the review's `## Consider` section, and no tickets= line otherwise.
+# Prints cut=new on a first cut, cut=recut when a landed debt/<slug> is removed with its worktree and
+# cut again at the target's current tip, which tip= then names, or cut=resumed when debt/<slug>
+# already exists and did not land: checked out in its worktree (nothing is written then), or with no
+# worktree, which is added back at the path on the existing branch, its commits kept: not landed
+# means the review's last landing line is missing or reads `not landed:`, or its tip holds a commit
+# past the landed sha, or the sha is not in the target. Then it prints branch=debt/<slug>,
+# worktree=<main>/.claude/worktrees/debt-<slug>, main=<main checkout>, target=<the branch the review
+# recorded in its Fixed point>, tip=<the short sha of that header> and call=fix <the review path as
+# handed in> <target>, the fix call with its landing target. After call= it prints the optional
+# tickets=/tickets <the review's Spec: value> when a line equal to `Mark: too big for a Fixer` sits
+# in the review's `## Consider` section, and no tickets= line otherwise.
 # It refuses when the main checkout has an uncommitted change, the Debt review itself spared, and
 # cuts nothing. The main checkout's HEAD, branch and working tree are never touched, and neither is
 # the developer's branch. On a git failure it prints one line=<git's error line> instead.
@@ -21,9 +22,10 @@
 # A recut moves the review's Fixed point and Commit to the new tip before anything is removed.
 #
 # Exit codes: 0 it cut the branch · 2 usage: not two arguments, a missing review, or a review with no
-# Spec: header or no parsable Fixed point: header · 3 git failed, a landed debt/<slug> or its worktree
-# could not be removed because git refuses, or its worktree path is taken by something else (one line= says so), nothing cut · 4 the main checkout has
-# uncommitted changes (one line= says so), nothing cut.
+# Spec: header or no parsable Fixed point: header · 3 git failed, a landed debt/<slug> or its
+# worktree could not be removed because git refuses, its landed worktree holds an uncommitted change,
+# or its worktree path is taken by something else (one line= says so), nothing cut · 4 the main
+# checkout has uncommitted changes (one line= says so), nothing cut.
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
 
@@ -134,6 +136,10 @@ resume_tree() {
 
 recut_tree() {
   local main="$1" slug="$2" path="$3" target="$4" review="$5" state="$6" old="$7" said
+  if [ "$state" = Here ] && [ -n "$(git -C "$path" status --porcelain 2>/dev/null)" ]; then
+    echo "line=debt/$slug landed but its worktree $path has uncommitted changes; nothing removed"
+    exit 3
+  fi
   full="$(git -C "$main" rev-parse --verify -q "refs/heads/$target^{commit}" 2>/dev/null)" || {
     echo "line=fatal: target $target names no commit"
     exit 3

@@ -618,4 +618,51 @@ expect "after a recut the Debt review's Commit names the same tip as the Fixed p
 expect "the recut changes no byte of the Debt review besides its Fixed point and Commit lines" \
   test "$(sed '1,/^## /{/^Fixed point: /d;/^Commit: /d}' "$review" | sha256sum)" = "$rest_before"
 
+dirty="$feature/dirty.debt.review.md"
+printf 'pending\n' >orders.txt
+commit "orders pending again"
+fixed_point="$(g rev-parse refs/heads/shipments)"
+fixed_short="$(g rev-parse --short refs/heads/shipments)"
+printf '# Review: Shipments export\n\nSpec: %s\nFixed point: shipments (%s)\nCommit: %s\nSpec source: %s\nMode: default\nLanguage: English\n\n## Act on\n\nnone\n\n## Consider\n\nnone\n\n## Noted\n\nnone\n\n## Cleared\n\nnone\n\n## Axes\n\n' \
+  "$feature/spec.md" "$fixed_short" "$fixed_short" "$feature/spec.md" >"$dirty"
+dirty_wt="$main/.claude/worktrees/debt-shipments-dirty"
+cut_with_fixer shipments-dirty "$dirty"
+g merge -q --ff-only refs/heads/debt/shipments-dirty
+dirty_landed="$(g rev-parse --short "$fixer")"
+cat >>"$dirty" <<EOF
+## Fix run
+
+Date: 2026-10-20 · at $fixed_short
+
+- 1: fixed $dirty_landed, verified (\`bash tests/shipments.test.sh\`)
+- wave 1: 1
+- duplication scan: skip: no test asset changed
+- diff tests: \`bash tests/shipments.test.sh\`: green
+- gate: \`bash tests/shipments.test.sh\`: green
+- landed at $dirty_landed
+EOF
+printf 'later again\n' >>shipments.txt
+commit "after the second landing"
+printf 'still writing\n' >"$dirty_wt/draft.txt"
+expect "fixture: debt/shipments-dirty's tip is the landed sha and inside the developer's branch" \
+  g -C "$main" merge-base --is-ancestor "$fixer" refs/heads/shipments
+expect "fixture: the landed worktree holds an untracked file" \
+  test "$(g -C "$dirty_wt" status --porcelain)" = "?? draft.txt"
+state_before="$(door_state && g worktree list --porcelain)"
+dirty_before="$(sha256sum "$dirty")"
+run shipments-dirty "$dirty"
+refused_once "a landed debt/<slug> whose worktree has uncommitted changes is refused with one line=: exit 3"
+check_lines "the refusal over a dirty landed worktree names the branch and the worktree, and that nothing was removed" \
+  3 "$rc" "line=debt/shipments-dirty landed but its worktree $dirty_wt has uncommitted changes; nothing removed"
+expect "the landed debt/<slug> with a dirty worktree keeps its tip" \
+  test "$(g -C "$main" rev-parse -q --verify refs/heads/debt/shipments-dirty)" = "$fixer"
+expect "the dirty worktree is still listed on its debt/<slug>" \
+  test "$(branch_of_worktree "$main" "$dirty_wt")" = "refs/heads/debt/shipments-dirty"
+expect "the dirty worktree keeps its uncommitted change" \
+  test "$(cat "$dirty_wt/draft.txt" 2>/dev/null)" = "still writing"
+expect "every ref, the working tree and the worktree list are as they were after refusing over a dirty landed worktree" \
+  test "$(door_state && g worktree list --porcelain)" = "$state_before"
+expect "the Debt review keeps every byte, its Fixed point and Commit lines included, after refusing over a dirty landed worktree" \
+  test "$(sha256sum "$dirty")" = "$dirty_before"
+
 exit "$fails"
