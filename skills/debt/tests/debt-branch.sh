@@ -665,4 +665,66 @@ expect "every ref, the working tree and the worktree list are as they were after
 expect "the Debt review keeps every byte, its Fixed point and Commit lines included, after refusing over a dirty landed worktree" \
   test "$(sha256sum "$dirty")" = "$dirty_before"
 
+held="$feature/held.debt.review.md"
+printf 'pending\n' >orders.txt
+commit "orders pending a third time"
+fixed_point="$(g rev-parse refs/heads/shipments)"
+fixed_short="$(g rev-parse --short refs/heads/shipments)"
+printf '# Review: Shipments export\n\nSpec: %s\nFixed point: shipments (%s)\nCommit: %s\nSpec source: %s\nMode: default\nLanguage: English\n\n## Act on\n\nnone\n\n## Consider\n\nnone\n\n## Noted\n\nnone\n\n## Cleared\n\nnone\n\n## Axes\n\n' \
+  "$feature/spec.md" "$fixed_short" "$fixed_short" "$feature/spec.md" >"$held"
+held_wt="$main/.claude/worktrees/debt-shipments-held"
+cut_with_fixer shipments-held "$held"
+g merge -q --ff-only refs/heads/debt/shipments-held
+held_landed="$(g rev-parse --short "$fixer")"
+cat >>"$held" <<EOF
+## Fix run
+
+Date: 2026-10-20 · at $fixed_short
+
+- 1: fixed $held_landed, verified (\`bash tests/shipments.test.sh\`)
+- wave 1: 1
+- duplication scan: skip: no test asset changed
+- diff tests: \`bash tests/shipments.test.sh\`: green
+- gate: \`bash tests/shipments.test.sh\`: green
+- landed at $held_landed
+EOF
+printf 'later a third time\n' >>shipments.txt
+commit "after the third landing"
+expect "fixture: debt/shipments-held's tip is the landed sha and inside the developer's branch" \
+  g -C "$main" merge-base --is-ancestor "$fixer" refs/heads/shipments
+expect "fixture: the developer's tip moved past debt/shipments-held's landed sha" \
+  test "$(g rev-parse refs/heads/shipments)" != "$fixer"
+expect "fixture: the landed worktree of debt/shipments-held is clean" \
+  test -z "$(g -C "$held_wt" status --porcelain)"
+held_before="$(sha256sum "$held")"
+for dirt in tracked untracked; do
+  if [ "$dirt" = tracked ]; then
+    dirt="an uncommitted edit to a tracked file"
+    printf 'unsaved\n' >>shipments.txt
+    expect "fixture: the main checkout's only change is an uncommitted edit to a tracked file" \
+      test "$(g status --porcelain)" = " M shipments.txt"
+  else
+    dirt="a new untracked file"
+    printf 'draft\n' >shipments-draft.txt
+    expect "fixture: the main checkout's only change is a new file never added and not ignored" \
+      test "$(g status --porcelain)" = "?? shipments-draft.txt"
+  fi
+  state_before="$(door_state && g worktree list --porcelain)"
+  run shipments-held "$held"
+  check_lines "$dirt in the main checkout refuses a landed debt/<slug> before recutting it: exit 4" \
+    4 "$rc" "line=working tree has uncommitted changes; commit or stash before fix"
+  same "the refusal over $dirt in the main checkout ahead of a recut prints that one line and nothing else" \
+    "line=working tree has uncommitted changes; commit or stash before fix"
+  expect "the landed debt/<slug> keeps its tip over $dirt in the main checkout" \
+    test "$(g -C "$main" rev-parse -q --verify refs/heads/debt/shipments-held)" = "$fixer"
+  expect "the landed worktree is still listed on its debt/<slug> over $dirt in the main checkout" \
+    test "$(branch_of_worktree "$main" "$held_wt")" = "refs/heads/debt/shipments-held"
+  expect "every ref, the working tree and the worktree list are as they were after refusing a recut over $dirt" \
+    test "$(door_state && g worktree list --porcelain)" = "$state_before"
+  expect "the Debt review keeps every byte, its Fixed point and Commit lines included, after refusing a recut over $dirt" \
+    test "$(sha256sum "$held")" = "$held_before"
+  g checkout -q -- shipments.txt
+  rm -f shipments-draft.txt
+done
+
 exit "$fails"
