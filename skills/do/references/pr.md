@@ -398,7 +398,7 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    b. Fork every `do-pr-fixer` of the Wave in one message through the Agent tool,
       `subagent_type: do-pr-fixer`, each with the brief below, its `Tree:` and `Branch:` the path and
       the branch on its own worktree line, and the return file `<dir>/check-<k>`.
-   c. `bash <skill-dir>/../do-code-review/scripts/returns.sh 240 <every return file of the Wave>` is
+   c. `bash <skill-dir>/../../.agents/scripts/returns.sh 240 <every return file of the Wave>` is
       one call that waits on every return file of that Wave, with the Bash timeout at 600000 ms.
       Call it again over the files still `missing=`, three windows and no more. A file that never
       lands reads `not fixed <k>: the fixer did not return`.

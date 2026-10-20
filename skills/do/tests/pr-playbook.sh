@@ -1166,7 +1166,7 @@ carries "its brief's Tree: and Branch: are the worktree line's path and branch, 
   "Tree: <the path on the check's worktree line>" "Branch: <the branch on the check's worktree line>" \
   "Return file: <dir>/check-<k>"
 carries "the run waits on the return files with returns.sh 240, its Bash timeout at 600000 ms" \
-  "bash <skill-dir>/../do-code-review/scripts/returns.sh 240 " "600000"
+  "bash <skill-dir>/../../.agents/scripts/returns.sh 240 " "600000"
 before "the worktree is cut before the wait" "fix-worktrees.sh add" "returns.sh 240"
 carries_each "called again while it reads \`missing=\`, three windows at most" \
   "missing=" -- \
@@ -1229,7 +1229,7 @@ carries_each "every \`do-pr-fixer\` of the Wave is forked in one message" \
   "one message" "a single message" "the same message" "one response" "a single response" -- \
   "every \`do-pr-fixer\`" "every do-pr-fixer" "every fixer" "all the fixers" "all of the Wave's fixers" \
   "each fixer of the Wave" "the Wave's fixers" "every fork" "all its fixers" "all of its fixers"
-carries "one returns.sh 240 call waits on the Wave" "bash <skill-dir>/../do-code-review/scripts/returns.sh 240 "
+carries "one returns.sh 240 call waits on the Wave" "bash <skill-dir>/../../.agents/scripts/returns.sh 240 "
 carries_each "that one call waits on every return file of the Wave" \
   "one call" "a single call" "one \`returns.sh\`" "one returns.sh" "a single \`returns.sh\`" "one wait" -- \
   "every return file of the Wave" "each return file of the Wave" "the Wave's return files" \
