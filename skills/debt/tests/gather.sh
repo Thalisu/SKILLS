@@ -288,6 +288,35 @@ check_lines "a rerun prints only the items no Finding holds, wherever the develo
 check_absent "a rerun gives no item for a Finding moved from Act on to Cleared or from Consider to Act on" 0 "$rc" \
   "section first run, item 2" "section first run, item 3" "item=2${tab}"
 
+deleted="$tmp/.scratch/20261019-deleted-debt"
+mkdir -p "$deleted/issues"
+printf '# Spec: deleted debt\n' >"$deleted/spec.md"
+printf '## first run\n\n- the timeout is hardcoded\n- the log path is relative\n- the lock file is never removed\n- the port is fixed\n' >"$deleted/issues/01-a.debt.md"
+review_at 8b1d0e4 "$deleted/spec.debt.review.md" "### 1. Standards at src/t.sh:2
+Claim: the timeout is hardcoded.
+Evidence: \`timeout=30\` in src/t.sh:2.
+Rung: 2
+Fix: the timeout is read from the config, in src/t.sh
+Source: issues/01-a.debt.md, section first run, item 1
+
+### 3. Principles at src/l.sh:8
+Claim: the lock file is never removed.
+Evidence: no trap removes \`run.lock\`.
+Rung: 2
+Fix: an EXIT trap removes run.lock, in src/l.sh
+Source: issues/01-a.debt.md, section first run, item 3" "$landed" "" "### 4. Standards at src/n.sh:3
+Claim: the port is fixed.
+Evidence: \`port=8080\` in src/n.sh:3.
+Rung: 3
+Source: issues/01-a.debt.md, section first run, item 4"
+run deleted-debt
+check_lines "a Finding deleted from the Debt review is gathered again as a new item and judged on the next run, exit 0" 0 "$rc" \
+  "items=1" \
+  "item=1${tab}source=issues/01-a.debt.md, section first run, item 2${tab}text=the log path is relative" \
+  "line=Judging 1 debt items of 20261019-deleted-debt"
+check_absent "a rerun after a Finding was deleted still gives no item for a source the remaining Findings hold" 0 "$rc" \
+  "section first run, item 1" "section first run, item 3" "section first run, item 4" "item=2${tab}"
+
 held="$tmp/.scratch/20261019-held-debt"
 mkdir -p "$held/issues"
 printf '# Spec: held debt\n' >"$held/spec.md"
