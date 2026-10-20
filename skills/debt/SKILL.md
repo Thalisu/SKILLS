@@ -8,7 +8,7 @@ argument-hint: "<slug>"
 # Debt
 
 Settle a feature's Pending debt: gather the Debt files and the Review Findings still open, then
-judge them. This file holds two steps: the door, then the judgment.
+judge them. This file holds three steps: the door, the judgment, then the fix.
 
 The developer's argument sits at the end of this file, between the `<arguments>` tags: the feature
 slug. `<skill-dir>` below is the directory this file sits in. The steps run in order, and each stop
@@ -80,8 +80,46 @@ bash <skill-dir>/scripts/debt-review.sh <slug> <dir>
 On exit 0 it prints `review=<path>` and `line=Written to <path>`. The session never reads a return
 file itself and never places an item in a Bucket: the script does both.
 
-Show the Debt review file's text, then the `line=` value (`Written to <location>`). Those are the
-run's last lines.
+Show the Debt review file's text, then the `line=` value (`Written to <location>`). The judgment
+ends on those lines, and step 3 follows.
+
+## 3. The fix
+
+The fix runs after the Debt review's text and `Written to <location>`. Cut the branch, `<slug>` being
+the `slug=` value gather.sh printed and `<review>` the `review=` value debt-review.sh printed:
+
+```sh
+bash <skill-dir>/scripts/debt-branch.sh <slug> <review>
+```
+
+The session runs no git and parses no file itself. It decides on the script's exit code:
+
+- exit 3: print the `line=` value as the run's last line and stop, calling no fix run.
+- exit 2: print the script's stderr line and stop.
+- exit 0: go on with the `worktree=`, `main=` and `call=` values.
+
+On exit 0, enter the worktree with a bare `cd <worktree>` (the `worktree=` value) in a shell call of its
+own, nothing before or after it, per `.agents/worktrees.md`: never the harness's worktree tool.
+
+```sh
+cd <worktree>
+```
+
+Then call the Skill tool with `do-code-review` and the `call=` value as its arguments, as printed: no
+Gate and no `Caller:` line, so it is a developer's fix run that forks the Fixers on `debt/<slug>` and
+lands on the developer's branch.
+
+Then return with a bare `cd <main>` (the `main=` value) in a shell call of its own:
+
+```sh
+cd <main>
+```
+
+The run ends with the fix run's reply as it returned: one fix line per `Act on` Finding, then
+`landed at <sha>`, then the `push command` as the run's last line.
+
+When the session does not list `do-code-review`, the run checks that before the cut, so nothing is cut:
+it prints `skip: do-code-review not listed` as its last line and stops.
 
 <arguments>
 $ARGUMENTS
