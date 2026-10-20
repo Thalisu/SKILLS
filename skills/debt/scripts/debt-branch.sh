@@ -18,11 +18,14 @@
 # cuts nothing. The main checkout's HEAD, branch and working tree are never touched, and neither is
 # the developer's branch. On a git failure it prints one line=<git's error line> instead.
 #
+# A recut moves the review's Fixed point and Commit to the new tip before anything is removed.
+#
 # Exit codes: 0 it cut the branch · 2 usage: not two arguments, a missing review, or a review with no
 # Spec: header or no parsable Fixed point: header · 3 git failed, a landed debt/<slug> or its worktree
 # could not be removed because git refuses, or its worktree path is taken by something else (one line= says so), nothing cut · 4 the main checkout has
 # uncommitted changes (one line= says so), nothing cut.
 set -uo pipefail
+here="$(cd "$(dirname "$0")" && pwd -P)"
 
 usage() {
   echo "usage: debt-branch.sh <slug> <review path>" >&2
@@ -136,6 +139,10 @@ recut_tree() {
     exit 3
   }
   tip="$(git -C "$main" rev-parse --short "$full")"
+  if ! said="$(bash "$here/debt-review.sh" --fixed-point "$review" "$full" 2>&1 >/dev/null)"; then
+    echo "line=debt/$slug landed but the Debt review's Fixed point could not be moved: $(head -n1 <<<"$said"); nothing removed"
+    exit 3
+  fi
   if [ "$state" = Here ]; then
     if ! said="$(git -C "$main" worktree remove "$path" 2>&1)"; then
       echo "line=debt/$slug landed but could not be removed: $(grep -m1 -E '^(error|fatal):' <<<"$said" || head -n1 <<<"$said"); nothing cut"

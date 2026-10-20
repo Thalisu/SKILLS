@@ -596,6 +596,7 @@ expect "fixture: the developer's tip moved past the landed sha" test "$tip" != "
 expect "fixture: the worktree is still listed on debt/shipments-export" \
   test "$(branch_of_worktree "$main" "$wt")" = "refs/heads/debt/shipments-export"
 head_before="$(g -C "$main" symbolic-ref HEAD) $(g -C "$main" rev-parse HEAD)"
+rest_before="$(sed '1,/^## /{/^Fixed point: /d;/^Commit: /d}' "$review" | sha256sum)"
 run shipments-export "$review"
 check_lines "a landed debt/<slug> is removed with its worktree and cut again at the target's tip: exit 0" \
   0 "$rc" "cut=recut" "branch=debt/shipments-export" "worktree=$wt" "target=shipments" "tip=$tip_short" \
@@ -610,5 +611,11 @@ expect "the developer's branch keeps its tip after the recut" \
   test "$(g -C "$main" rev-parse refs/heads/shipments)" = "$tip"
 expect "the main checkout's HEAD stays on the developer's branch at its commit after the recut" \
   test "$(g -C "$main" symbolic-ref HEAD) $(g -C "$main" rev-parse HEAD)" = "$head_before"
+expect "after a recut the Debt review's Fixed point names the target at the tip the recut cut at" \
+  test "$(sed -n '1,/^## /{/^Fixed point: /p}' "$review")" = "Fixed point: shipments ($tip_short)"
+expect "after a recut the Debt review's Commit names the same tip as the Fixed point" \
+  test "$(sed -n '1,/^## /{/^Commit: /p}' "$review")" = "Commit: $tip_short"
+expect "the recut changes no byte of the Debt review besides its Fixed point and Commit lines" \
+  test "$(sed '1,/^## /{/^Fixed point: /d;/^Commit: /d}' "$review" | sha256sum)" = "$rest_before"
 
 exit "$fails"

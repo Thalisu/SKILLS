@@ -45,6 +45,12 @@
 #
 # Prints review=<path> then line=Written to <path>.
 #
+#   debt-review.sh --fixed-point <review path> <sha>    moves a held review's header to a new tip:
+#                                          the first "Fixed point: " line keeps its branch and takes
+#                                          the short form of <sha>, the first "Commit: " line takes
+#                                          that short sha, every other byte is kept. Prints nothing,
+#                                          exit 0.
+#
 # Exit codes: 0 it wrote the review · 1 or 3 gather's own exit, its line= relayed, nothing written · 2 usage, or gather's usage or resolver refusal (its stderr relayed) · 5 gather found nothing new beside an existing Debt review: its review= relayed, no line=, nothing written.
 set -uo pipefail
 
@@ -328,7 +334,28 @@ append_findings() { # $1 review path, $2 to $5 the new blocks of Act on, Conside
   mv "$tmp2" "$review"
 }
 
+move_fixed_point() { # $1 review path, $2 sha
+  local review="$1" short tmp
+  short="$(git -C "$(dirname "$review")" rev-parse --short --verify -q "$2^{commit}")" || {
+    echo "debt-review.sh: $2 names no commit" >&2
+    return 2
+  }
+  tmp="$(mktemp "$review.XXXXXX")"
+  SHORT="$short" awk '
+    !fp && /^Fixed point: / { b = substr($0, 14); sub(/ \(.*$/, "", b); print "Fixed point: " b " (" ENVIRON["SHORT"] ")"; fp = 1; next }
+    !cm && /^Commit: / { print "Commit: " ENVIRON["SHORT"]; cm = 1; next }
+    { print }
+  ' "$review" >"$tmp" && mv "$tmp" "$review" || {
+    rm -f "$tmp"
+    return 2
+  }
+}
+
 main() {
+  if [ "${1:-}" = --fixed-point ] && [ "$#" = 3 ]; then
+    move_fixed_point "$2" "$3"
+    return $?
+  fi
   [ "$#" = 2 ] || {
     echo "usage: debt-review.sh <slug> <returns dir>" >&2
     return 2
