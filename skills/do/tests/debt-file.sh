@@ -172,5 +172,33 @@ carries_each "It's working if lists the Debt file beside the Ticket among the fi
   "beside the Ticket" "next to the Ticket" "beside a Ticket" "beside its Ticket" -- \
   "files the run leaves" "leaves for you" "left for you" "leaves you" "\`git status\`"
 
+echo "# each run's section is one ## heading over one - bullet per Pending debt line, so the debt skill splits it per run"
+
+# The debt skill's gather.sh reads a Debt file by its `## ` headings and `- ` bullets alone: a
+# `## Pending debt` heading under each run's heading gives every run's first item the same source,
+# so the Debt review that holds one drops the first item of every later run, and a `- none` bullet
+# is counted as an item owed.
+flat="$(passage_of "$reply" "## The message" "## " | debt_file_paragraphs)"
+carries_each "each run's section opens on one \`## <date and time>\` heading" \
+  "\`## <date and time>\`" "\`## <date-time>\`" "\`## <timestamp>\`" "\`## <the run's date and time>\`" \
+  "\`## <run's date and time>\`" "\`## <date> <time>\`" "\`## YYYY-" "\`## <YYYY-" "\`## \` heading" -- \
+  "one \`## " "a single \`## " "its own \`## " "one heading" "a single heading" "its one heading" \
+  "only heading" "one such heading"
+carries_each "each Pending debt line becomes one \`- \` bullet under that heading, its text verbatim" \
+  "\`- \`" "bullet" -- \
+  "per Pending debt line" "per line" "each line" "each Pending debt line" "every Pending debt line" \
+  "every line" "per item" "each item" "every item" "one per" -- \
+  "verbatim" "word for word" "as written" "exactly as" "unchanged"
+carries_any "the section carries no \`## Pending debt\` heading of its own" \
+  "no \`## Pending debt\`" "never a \`## Pending debt\`" "never \`## Pending debt\`" \
+  "not a \`## Pending debt\`" "not under a \`## Pending debt\`" "nor a \`## Pending debt\`" \
+  "without a \`## Pending debt\`" "without the \`## Pending debt\`" "without its \`## Pending debt\`" \
+  "drops the \`## Pending debt\`" "drops its \`## Pending debt\`" "leaves out the \`## Pending debt\`" \
+  "no Pending debt heading" "never a Pending debt heading" "without the Pending debt heading" \
+  "drops the Pending debt heading"
+carries_any "a run that owes nothing reads plain \`none\`, never a \`- none\` bullet" \
+  "plain \`none\`" "bare \`none\`" "not a \`- none\`" "never a \`- none\`" "no \`- none\`" \
+  "not \`- none\`" "never \`- none\`" "not as a bullet" "not a bullet" "never a bullet" "no bullet"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1

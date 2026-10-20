@@ -60,9 +60,12 @@ Every run on a Ticket, with or without `--auto`, writes the Reply's Pending debt
 else of the Reply, to the Debt file beside the Ticket: the Ticket's file name with `.debt` before
 the extension (`<ticket stem>.debt.md`), in the Home repository's main checkout. For a tracker
 Ticket it sits beside the Plan, with `.debt.md` in place of `.plan.md`, the way the Run report sits
-beside it. Each run adds one section to that file, headed by the run's date and time, holding the
-Pending debt part verbatim, as the message carries it. A run that owes nothing still writes its
-section, which reads `none`, so the file tells a run that owed nothing apart from a Ticket with no
+beside it. Each run adds one section to that file, headed by the run's date and time as one
+`## <date and time>` heading. Under it goes the Pending debt part's text verbatim, one `- ` bullet
+per Pending debt line, and no `## Pending debt` heading of its own: the debt skill reads the file
+by its `## ` headings and `- ` bullets alone, so a second heading under each run's would give every
+run's first item the same source. A run that owes nothing still writes its section, which reads
+plain `none` and not a `- none` bullet, so the file tells a run that owed nothing apart from a Ticket with no
 Debt file, one whose runs never wrote their debt down. A later run on the same Ticket appends its
 section below the earlier ones, and never replaces or edits one, be it a resume after a stop or a
 run again. Under `--auto` a run writes that same section as well as the Run report, since the Run
