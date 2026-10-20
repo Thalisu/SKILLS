@@ -26,6 +26,10 @@ When the argument opens with `--no-fix`, the session strips the flag and runs ga
 alone (the word after it), never handing the flag to a script. Under `--no-fix`, gather.sh's exit 5
 (nothing is new) stops the run there: no fix, so no `debt/<slug>` and no worktree is cut, and no
 `do-code-review` is called.
+The stop prints two lines and ends on them: first one line telling the developer to overrule a
+Finding by moving it to `Consider` or `Cleared` and never deleting it, because a deleted Finding
+comes back as new and is judged again on the next run; then `/debt <slug>` as the run's last line,
+`<slug>` being the `slug=` value gather.sh printed.
 
 The session never parses a Debt file or a Review itself: gather.sh reads both. It relays the
 `line=` value the script printed and decides on the script's exit code:
@@ -97,6 +101,10 @@ Under `--no-fix` the run stops once the Debt review is written, after the Debt r
 `Written to <location>` are shown, and likewise stops at once on debt-review.sh's exit 5 (nothing is
 new): it calls no `debt-branch.sh`, so no `debt/<slug>` and no worktree is cut, and calls no
 `do-code-review` (no fix run).
+Either stop prints two lines and ends on them: first one line telling the developer to overrule a
+Finding by moving it to `Consider` or `Cleared` and never deleting it, because a deleted Finding
+comes back as new and is judged again on the next run; then `/debt <slug>` as the run's last line,
+`<slug>` being the `slug=` value gather.sh printed.
 
 ## 3. The fix
 

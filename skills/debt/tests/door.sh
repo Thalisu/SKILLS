@@ -164,4 +164,40 @@ carries_any "under --no-fix the run calls no do-code-review fix run" \
   "does not call \`do-code-review\`" "no fix run" "calls no fix run" "calling no fix run" \
   "never calls the fix run" "no Skill call"
 
+# Each stop's window runs from its section's first --no-fix line to the section's end, fenced
+# blocks kept: the two closing lines may be shown as a printed block rather than told in a sentence.
+echo "# SKILL.md: each --no-fix stop ends on /debt <slug>, under a line that overrules a Finding by moving it to Consider or Cleared, never by deleting it"
+last_line=(
+  "last line" "final line" "closing line" "line it ends on" "ends on \`/debt <slug>\`"
+  "ends with \`/debt <slug>\`" "ends on /debt <slug>" "ends with /debt <slug>" "prints last"
+  "printed last" "comes last"
+)
+slug_value=("slug=" "gather.sh's slug" "slug gather.sh printed" "the slug gather.sh")
+above=(
+  "line above" "above it" "above that" "above the" "line before it" "before it" "second-to-last"
+  "next-to-last" "penultimate" "just before" "right before"
+)
+for stop in "1.|2.|the nothing-new stop on gather.sh's exit 5" "2.|3.|the stop after the Debt review is written"; do
+  from="${stop%%|*}" rest="${stop#*|}"
+  to="${rest%%|*}" name="${rest#*|}"
+  flat="$(passage_of "$skill" "## $from" "## $to" | sed -n '/--no-fix/,$p' | tr '\n' ' ' | tr -s ' ')"
+  expect "$name is a --no-fix stop" test -n "${flat// /}"
+  carries "$name names /debt <slug>, the command that resumes the run" "/debt <slug>"
+  carries_any "$name prints /debt <slug> as the run's last line" "${last_line[@]}"
+  carries_any "$name fills <slug> with gather.sh's slug= value" "${slug_value[@]}"
+  carries_each "$name prints a line saying to overrule a Finding by moving it to Consider or Cleared" \
+    "overrul" "Overrul" -- "move" "moving" "Move" "Moving" -- "Consider" -- "Cleared"
+  carries_each "$name's overrule line says never to delete a Finding, since a deleted one comes back as new" \
+    "never delet" "Never delet" "not delet" "no delet" "rather than delet" "instead of delet" \
+    "without delet" "don't delet" -- \
+    "as new" "comes back" "come back" "judged again" "judges it again" "judge it again" \
+    "new again"
+  ordered=0
+  [ "$(first_at "${above[@]}")" -gt 0 ] && ordered=1
+  o="$(first_at "Consider" "Cleared" "overrul" "Overrul")"
+  d="$(first_at "/debt <slug>")"
+  [ "$o" -gt 0 ] && [ "$d" -gt "$o" ] && ordered=1
+  expect "$name prints the overrule line above the /debt <slug> line" test "$ordered" = 1
+done
+
 exit $((fails > 0))
