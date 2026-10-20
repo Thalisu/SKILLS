@@ -4,7 +4,9 @@
 #
 #   debt-branch.sh <slug> <review path>    the Debt review whose `Fixed point:` header names the cut
 #
-# Prints branch=debt/<slug>, worktree=<main>/.claude/worktrees/debt-<slug>, main=<main checkout>,
+# Prints cut=new on a first cut, or cut=resumed when debt/<slug> is already checked out in its worktree
+# by a run whose Debt review's last landing line reads `not landed:` (nothing is written then). Then
+# it prints branch=debt/<slug>, worktree=<main>/.claude/worktrees/debt-<slug>, main=<main checkout>,
 # target=<the branch the review recorded in its Fixed point>, tip=<the short sha of that header> and
 # call=fix <the review path as handed in> <target>, the fix call with its landing target. After call=
 # it prints the optional tickets=/tickets <the review's Spec: value> when a line equal to
@@ -54,29 +56,80 @@ if [ -n "$(git -C "$main" status --porcelain -- . ":(top,exclude)$spared" 2>/dev
   exit 4
 fi
 
-path="$main/.claude/worktrees/debt-$slug"
-if git -C "$main" show-ref -q --verify "refs/heads/debt/$slug" || [ -e "$path" ]; then
+debt_state() {
+  local main="$1" slug="$2" path="$3" here="" cur="" line has_branch=0 real=""
+  git -C "$main" show-ref -q --verify "refs/heads/debt/$slug" && has_branch=1
+  while IFS= read -r line; do
+    case "$line" in
+      "worktree "*) cur="${line#worktree }" ;;
+      "branch refs/heads/debt/$slug") here="$cur" ;;
+    esac
+  done < <(git -C "$main" worktree list --porcelain 2>/dev/null)
+  [ -e "$path" ] && real="$(cd "$path" 2>/dev/null && pwd -P)"
+  if [ "$has_branch" -eq 0 ]; then
+    if [ -e "$path" ]; then echo Stray; else echo Absent; fi
+  elif [ -n "$here" ]; then
+    if [ "$here" = "$path" ] || { [ -n "$real" ] && [ "$here" = "$real" ]; }; then echo Here; else echo Foreign; fi
+  elif [ -e "$path" ]; then
+    echo Foreign
+  else
+    echo Alone
+  fi
+}
+
+last_landing() {
+  awk '
+    /^## Fix run/ { seen = 1; land = ""; next }
+    /^## / { next }
+    seen && /^- landed at / {
+      s = $0; sub(/^- landed at /, "", s); sub(/[ ,].*$/, "", s); land = "landed " s
+    }
+    seen && /^- not landed:/ { land = "not-landed" }
+    END { print (land == "" ? "unknown" : land) }
+  ' "$1"
+}
+
+cut_tree() {
+  local main="$1" slug="$2" path="$3" full="$4" said
+  # The exclude list and never the project's .gitignore: the list is this clone's, and the worktree
+  # folder would otherwise read as untracked in the main checkout's status.
+  if ! git -C "$main" check-ignore -q .claude/worktrees/; then
+    mkdir -p "$common/info"
+    echo ".claude/worktrees/" >>"$common/info/exclude"
+  fi
+  if ! said="$(git -C "$main" worktree add -q -b "debt/$slug" "$path" "$full" 2>&1)"; then
+    echo "line=$(grep -m1 -E '^(error|fatal):' <<<"$said" || head -n1 <<<"$said")"
+    exit 3
+  fi
+}
+
+print_keys() {
+  echo "cut=$1"
+  echo "branch=debt/$slug"
+  echo "worktree=$path"
+  echo "main=$main"
+  echo "target=$target"
+  echo "tip=$tip"
+  echo "call=fix $review $target"
+  if awk '/^## /{in_consider = ($0 == "## Consider")} in_consider && $0 == "Mark: too big for a Fixer"{found=1} END{exit !found}' "$review"; then
+    echo "tickets=/tickets $spec"
+  fi
+}
+
+refuse() {
   echo "line=debt/$slug or its worktree $path already exists; nothing cut"
   exit 3
-fi
+}
 
-# The exclude list and never the project's .gitignore: the list is this clone's, and the worktree
-# folder would otherwise read as untracked in the main checkout's status.
-if ! git -C "$main" check-ignore -q .claude/worktrees/; then
-  mkdir -p "$common/info"
-  echo ".claude/worktrees/" >>"$common/info/exclude"
-fi
-
-if ! said="$(git -C "$main" worktree add -q -b "debt/$slug" "$path" "$full" 2>&1)"; then
-  echo "line=$(grep -m1 -E '^(error|fatal):' <<<"$said" || head -n1 <<<"$said")"
-  exit 3
-fi
-echo "branch=debt/$slug"
-echo "worktree=$path"
-echo "main=$main"
-echo "target=$target"
-echo "tip=$tip"
-echo "call=fix $review $target"
-if awk '/^## /{in_consider = ($0 == "## Consider")} in_consider && $0 == "Mark: too big for a Fixer"{found=1} END{exit !found}' "$review"; then
-  echo "tickets=/tickets $spec"
-fi
+path="$main/.claude/worktrees/debt-$slug"
+case "$(debt_state "$main" "$slug" "$path")" in
+  Absent)
+    cut_tree "$main" "$slug" "$path" "$full"
+    print_keys new
+    ;;
+  Here)
+    [ "$(last_landing "$review")" = "not-landed" ] || refuse
+    print_keys resumed
+    ;;
+  *) refuse ;;
+esac

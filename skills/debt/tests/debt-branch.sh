@@ -346,4 +346,54 @@ check_lines "a Debt review with nothing to act on is cut like any other and hand
 expect "debt/receipts-export is cut at the Fixed point when Act on is none" \
   test "$(g -C "$main" rev-parse -q --verify refs/heads/debt/receipts-export)" = "$reviewed"
 
+fresh resumed
+main="$tmp/resumed"
+printf '.scratch/\n' >.gitignore
+printf 'base\n' >README.md
+commit base
+g checkout -q -b orders
+printf 'export\n' >orders.txt
+commit "orders export"
+short="$(g rev-parse --short HEAD)"
+feature="$main/.scratch/20261020-orders-export"
+mkdir -p "$feature"
+printf '# Spec: Orders export\n' >"$feature/spec.md"
+review="$feature/spec.debt.review.md"
+printf '# Review: Orders export\n\nSpec: %s\nFixed point: orders (%s)\nCommit: %s\nSpec source: %s\nMode: default\nLanguage: English\n\n## Act on\n\nnone\n\n## Consider\n\nnone\n\n## Noted\n\nnone\n\n## Cleared\n\nnone\n\n## Axes\n\n' \
+  "$feature/spec.md" "$short" "$short" "$feature/spec.md" >"$review"
+wt="$main/.claude/worktrees/debt-orders-export"
+run orders-export "$review"
+expect "fixture: the first run cut debt/orders-export in its worktree" \
+  test "$(branch_of_worktree "$main" "$wt")" = "refs/heads/debt/orders-export"
+printf 'fixed\n' >"$wt/orders.txt"
+g -C "$wt" add -A >/dev/null
+g -C "$wt" commit -qm "fix Finding 1"
+fixer="$(g -C "$main" rev-parse -q --verify refs/heads/debt/orders-export)"
+expect "fixture: debt/orders-export holds the Fixer's commit past the Fixed point" \
+  test "$(g -C "$main" rev-parse "$fixer^")" = "$(g -C "$main" rev-parse "$short")"
+cat >>"$review" <<EOF
+## Fix run
+
+Date: 2026-10-20 · at $short
+
+- 1: fixed $(g -C "$main" rev-parse --short "$fixer"), not verified (\`bash tests/orders.test.sh\`)
+- wave 1: 1
+- duplication scan: skip: no test asset changed
+- diff tests: \`bash tests/orders.test.sh\`: red
+- gate fixer: two attempts, still red
+- gate: \`bash tests/orders.test.sh\`: red
+- not landed: Finding 1 not fixed or not verified; the branch debt/orders-export and its worktree stay in place
+EOF
+review_before="$(sha256sum "$review")"
+state_before="$(door_state && g worktree list --porcelain)"
+run orders-export "$review"
+check_lines "a debt/<slug> a run left not landed is resumed in its worktree at the unchanged Fixed point: exit 0" \
+  0 "$rc" "cut=resumed" "worktree=$wt" "tip=$short" "call=fix $review orders"
+expect "the resumed debt/<slug> keeps the Fixer's commit as its tip" \
+  test "$(g -C "$main" rev-parse -q --verify refs/heads/debt/orders-export)" = "$fixer"
+expect "every ref, the working tree and the worktree list are as they were after resuming" \
+  test "$(door_state && g worktree list --porcelain)" = "$state_before"
+expect "the Debt review keeps every byte after resuming" \
+  test "$(sha256sum "$review")" = "$review_before"
+
 exit "$fails"
