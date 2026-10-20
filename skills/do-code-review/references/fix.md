@@ -49,7 +49,8 @@ A Debt review, the Review beside the Spec (`spec.debt.review.md`) written by the
 feature's Pending debt, per [`review-format.md`](../../../.agents/formats/review-format.md), is
 taken the same way. Its header reads `Spec: <path>`, so the call runs the door script with
 `--spec <that path>` and `--review <the Debt review's location>`, and `dirty=no` holds with only
-that Debt review untracked. A call with no `Caller:` line goes on to The Act on list and the Waves
+that Debt review untracked. The branch the debt skill cuts for it sits at the Fixed point, so the
+door skips its empty-diff refusal for a Debt review. A call with no `Caller:` line goes on to The Act on list and the Waves
 of The Fixer as it does for a reviewer's Review.
 
 Each is one line and the run stops there: no worktree, no Fixer, nothing is written, and the reply

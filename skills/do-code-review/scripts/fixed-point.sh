@@ -26,7 +26,9 @@
 #                             <Spec stem>.<key>.review.md with a key of a-z0-9-, and review= takes
 #                             its name in place of the Spec's; any other name, the Spec's own or a
 #                             folder's included, and a path in any other folder are refusals, and
-#                             --review without --spec is usage
+#                             --review without --spec is usage. A Debt review, key debt, is judged
+#                             on a branch cut at its Fixed point, so the empty-diff refusal does not
+#                             apply to it
 #
 # Which paths a slug can name under the scratch is not this door's rule to hold: before it answers
 # it asks ../../../.agents/scripts/resolve-feature-folder.sh, the one executable form of that rule,
@@ -181,6 +183,7 @@ if [ "$handed_given" = yes ]; then
 fi
 spec=none
 spec_handed=no
+debt_review=no
 if [ "$spec_handed_given" = yes ]; then
   spec_handed=yes
   spec="$(resolve "$handed_spec")" || refuse "$handed_spec is not a Spec file; nothing reviewed"
@@ -212,6 +215,7 @@ if [ "$spec_handed_given" = yes ]; then
       [ "$review_dir" = "$(cd "$(dirname "$handed_at")" && pwd -P)" ] ||
       refuse "${handed_review//$'\n'/ } is not beside the Spec; nothing reviewed"
     review="$(dirname "$spec")/$(basename "$handed_review")"
+    [ "$key" != debt ] || debt_review=yes
   fi
   # A Ticket found by slug beside a handed Spec would be read as the spec source over it.
   ticket=none; located=none
@@ -261,7 +265,8 @@ else
   label="$base ($(short "$fixed"))"
 fi
 
-if git diff --quiet "$fixed" -- . "${own[@]}" && [ -z "$(git ls-files --others --exclude-standard -- . "${own[@]}" | head -1)" ]; then
+# A Debt review is judged on a branch cut at its Fixed point, so it holds no diff to refuse on.
+if [ "$debt_review" = no ] && git diff --quiet "$fixed" -- . "${own[@]}" && [ -z "$(git ls-files --others --exclude-standard -- . "${own[@]}" | head -1)" ]; then
   refuse "no diff between $label and the working tree; nothing reviewed"
 fi
 

@@ -847,6 +847,27 @@ check_lines "another untracked file beside a handed Debt review is a change like
   "dirty=yes"
 rm .scratch/20260930-export/notes.md
 
+# The debt skill cuts `debt/<slug>` at the Fixed point itself, so the fix call on a Debt review runs
+# on a branch with no diff since that sha: refused there, every fix on a Debt review fixes nothing.
+# Any other handed Review on that same empty branch still has nothing to review.
+fresh debt-empty
+mkdir -p .scratch/20260930-export && printf '# Export\n' >.scratch/20260930-export/spec.md
+commit "first"
+git checkout -q -b debt/export
+debt_fp="$(sha main)"
+printf '# Review: Export (debt)\n' >.scratch/20260930-export/spec.debt.review.md
+expect "the Debt review is the one file git status shows on the freshly cut debt branch" bash -c \
+  '[ "$(command git status --short)" = "?? .scratch/20260930-export/spec.debt.review.md" ]'
+run "$debt_fp" --spec .scratch/20260930-export/spec.md --review .scratch/20260930-export/spec.debt.review.md
+check_lines "a handed Debt review on a branch with no commits since its Fixed point is reviewed, not refused" 0 "$rc" \
+  "commits=0" "dirty=no"
+absent "a handed Debt review on a branch with no commits since its Fixed point prints no refusal" "refusal="
+rm .scratch/20260930-export/spec.debt.review.md
+printf '# Review: Export (api)\n' >.scratch/20260930-export/spec.api.review.md
+run "$debt_fp" --spec .scratch/20260930-export/spec.md --review .scratch/20260930-export/spec.api.review.md
+check "a handed non-debt Review on a branch with no commits since its fixed point still refuses" 1 "$rc" \
+  "refusal=no diff between $debt_fp" "and the working tree; nothing reviewed"
+
 # The orchestrator and the fix call eval the status line, and the path in it is the name of a file
 # anyone can commit: a single quote in that name must stay text, or the rest of the name runs as
 # shell with the developer's rights. The Review beside the file is still the one path spared.
