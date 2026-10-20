@@ -173,4 +173,32 @@ run invoices-export "$review"
 check_lines "a marked Consider Finding hands the developer the /tickets call over the review's Spec: exit 0" \
   0 "$rc" "tickets=/tickets $feature/spec.md"
 
+invoices_review() { # $1 path, $2 the ## Consider body, $3 the ## Noted body: a review of the held fixture
+  printf '# Review: Invoices export\n\nSpec: %s\nFixed point: invoices (%s)\nCommit: %s\nSpec source: %s\nMode: default\nLanguage: English\n\n## Act on\n\nnone\n\n## Consider\n\n%s\n\n## Noted\n\n%s\n\n## Cleared\n\nnone\n\n## Axes\n\n' \
+    "$feature/spec.md" "$short" "$short" "$feature/spec.md" "$2" "$3" >"$1"
+}
+unmarked="### 1. Principles at invoices.txt:1
+Claim: the export format is decided in three places
+Evidence: Single source of truth; the format string is repeated across the export path
+Rung: 3
+Fix: one module owns the export format, in the invoices export
+Source: issues/01-export.debt.md, item 1"
+marked="### 2. Principles at invoices.txt:1
+Claim: the export pipeline mixes formatting and delivery
+Evidence: Separation of concerns; one function renders and uploads
+Rung: 3
+Mark: too big for a Fixer
+Fix: split rendering from delivery across the invoices export
+Source: issues/01-export.debt.md, item 2"
+
+invoices_review "$feature/unmarked.debt.review.md" "$unmarked" none
+run invoices-unmarked "$feature/unmarked.debt.review.md"
+check_absent "a review with no marked Finding hands the developer no /tickets call: exit 0" \
+  0 "$rc" "tickets="
+
+invoices_review "$feature/moved.debt.review.md" "$unmarked" "$marked"
+run invoices-moved "$feature/moved.debt.review.md"
+check_absent "a marked Finding moved out of Consider hands the developer no /tickets call: exit 0" \
+  0 "$rc" "tickets="
+
 exit "$fails"
