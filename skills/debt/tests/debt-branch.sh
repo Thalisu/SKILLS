@@ -53,4 +53,33 @@ expect "the main checkout stays on the developer's branch" \
 expect "the main checkout's working tree status is unchanged" \
   test "$(g -C "$main" status --porcelain)" = "$status_before"
 
+fresh pair
+main="$tmp/pair"
+printf '.scratch/\n' >.gitignore
+printf 'base\n' >README.md
+commit base
+g checkout -q -b reports
+printf 'export\n' >reports.txt
+commit "reports export"
+feature="$main/.scratch/20261020-reports-export"
+mkdir -p "$feature/issues"
+printf '# Spec: Reports export\n' >"$feature/spec.md"
+printf '## 2026-10-20 09:00\n\n- the export path is hardcoded\n' >"$feature/issues/01-export.debt.md"
+returns="$tmp/pair-returns"
+mkdir -p "$returns"
+reviewed="$(g rev-parse HEAD)"
+# shellcheck disable=SC2034  # lib.sh's term reads $out
+out="$(cd "$main" && bash "$here/../scripts/debt-review.sh" reports-export "$returns" 2>&1)"
+review="$(term review)"
+expect "fixture: debt-review.sh wrote the Debt review" test -f "$review"
+printf 'later\n' >>reports.txt
+commit "after the review"
+expect "fixture: the developer's tip moved past the review" test "$(g rev-parse reports)" != "$reviewed"
+
+run reports-export "$review"
+check_lines "a cut from the review debt-review.sh wrote targets the developer's branch: exit 0" \
+  0 "$rc" "target=reports"
+expect "debt/reports-export starts at the developer's tip when debt-review.sh ran" \
+  test "$(g -C "$main" rev-parse -q --verify refs/heads/debt/reports-export)" = "$reviewed"
+
 exit "$fails"
