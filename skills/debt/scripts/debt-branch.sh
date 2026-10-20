@@ -5,7 +5,8 @@
 #   debt-branch.sh <slug> <review path>    the Debt review whose `Fixed point:` header names the cut
 #
 # Prints cut=new on a first cut, or cut=resumed when debt/<slug> is already checked out in its worktree
-# by a run whose Debt review's last landing line reads `not landed:` (nothing is written then). Then
+# and did not land (nothing is written then): not landed means the review's last landing line is missing
+# or reads `not landed:`, or its tip holds a commit past the landed sha, or the sha is not in the target. Then
 # it prints branch=debt/<slug>, worktree=<main>/.claude/worktrees/debt-<slug>, main=<main checkout>,
 # target=<the branch the review recorded in its Fixed point>, tip=<the short sha of that header> and
 # call=fix <the review path as handed in> <target>, the fix call with its landing target. After call=
@@ -89,6 +90,15 @@ last_landing() {
   ' "$1"
 }
 
+is_landed() {
+  local main="$1" slug="$2" target="$3" review="$4" last sha
+  last="$(last_landing "$review")"
+  [ "${last%% *}" = "landed" ] || return 1
+  sha="$(git -C "$main" rev-parse --verify -q "${last#landed }^{commit}" 2>/dev/null)" || return 1
+  git -C "$main" merge-base --is-ancestor "refs/heads/debt/$slug" "$sha" 2>/dev/null || return 1
+  git -C "$main" merge-base --is-ancestor "$sha" "refs/heads/$target" 2>/dev/null
+}
+
 cut_tree() {
   local main="$1" slug="$2" path="$3" full="$4" said
   # The exclude list and never the project's .gitignore: the list is this clone's, and the worktree
@@ -128,7 +138,7 @@ case "$(debt_state "$main" "$slug" "$path")" in
     print_keys new
     ;;
   Here)
-    [ "$(last_landing "$review")" = "not-landed" ] || refuse
+    ! is_landed "$main" "$slug" "$target" "$review" || refuse
     print_keys resumed
     ;;
   *) refuse ;;

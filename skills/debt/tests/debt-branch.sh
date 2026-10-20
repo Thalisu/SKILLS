@@ -477,4 +477,73 @@ expect "the worktree of the debt/<slug> resumed after a later not-landed run is 
 expect "the Debt review keeps every byte after resuming past an earlier landed run" \
   test "$(sha256sum "$twice")" = "$twice_before"
 
+cut_with_fixer() { # $1 slug, $2 review: cuts debt/$1 and commits a Fixer change in its worktree; that commit's sha in $fixer
+  run "$1" "$2"
+  expect "fixture: the first run cut debt/$1 in its worktree" \
+    test "$(branch_of_worktree "$main" "$main/.claude/worktrees/debt-$1")" = "refs/heads/debt/$1"
+  printf 'fixed\n' >"$main/.claude/worktrees/debt-$1/orders.txt"
+  g -C "$main/.claude/worktrees/debt-$1" add -A >/dev/null
+  g -C "$main/.claude/worktrees/debt-$1" commit -qm "fix Finding 1"
+  fixer="$(g -C "$main" rev-parse -q --verify "refs/heads/debt/$1")"
+  expect "fixture: debt/$1 holds a Fixer commit past the Fixed point" \
+    test "$(g -C "$main" rev-parse "$fixer^")" = "$fixed_point"
+}
+kept_resumed() { # $1 the state the review is in, $2 slug, $3 review, $4 the review's sha256sum before the run: the run's outcome over a debt/<slug> holding $fixer
+  check_lines "a debt/<slug> holding a Fixer commit, with $1, is resumed in its worktree: exit 0" \
+    0 "$rc" "cut=resumed" "worktree=$main/.claude/worktrees/debt-$2"
+  expect "the debt/<slug> resumed with $1 keeps the Fixer's commit as its tip" \
+    test "$(g -C "$main" rev-parse -q --verify "refs/heads/debt/$2")" = "$fixer"
+  expect "the worktree of the debt/<slug> resumed with $1 is still listed on its branch" \
+    test "$(branch_of_worktree "$main" "$main/.claude/worktrees/debt-$2")" = "refs/heads/debt/$2"
+  expect "the Debt review keeps every byte after resuming with $1" \
+    test "$(sha256sum "$3")" = "$4"
+}
+
+landed="$feature/landed.debt.review.md"
+sed '/^## Fix run$/,$d' "$review" >"$landed"
+cut_with_fixer orders-landed "$landed"
+cat >>"$landed" <<EOF
+## Fix run
+
+Date: 2026-10-20 · at $short
+
+- 1: fixed $short, verified (\`bash tests/orders.test.sh\`)
+- wave 1: 1
+- duplication scan: skip: no test asset changed
+- diff tests: \`bash tests/orders.test.sh\`: green
+- gate: \`bash tests/orders.test.sh\`: green
+- landed at $short
+EOF
+expect "fixture: the review's landed sha is inside the developer's branch" \
+  g -C "$main" merge-base --is-ancestor "$fixed_point" refs/heads/orders
+expect "fixture: debt/orders-landed holds a commit the landed sha lacks" \
+  test "$(g -C "$main" merge-base refs/heads/debt/orders-landed "$fixed_point")" != "$fixer"
+landed_before="$(sha256sum "$landed")"
+run orders-landed "$landed"
+kept_resumed "a last landed at line its tip is past" orders-landed "$landed" "$landed_before"
+
+unrecorded="$feature/unrecorded.debt.review.md"
+sed '/^## Fix run$/,$d' "$review" >"$unrecorded"
+cut_with_fixer orders-unrecorded "$unrecorded"
+expect "fixture: the review holds no ## Fix run section" \
+  test "$(grep -c '^## Fix run$' "$unrecorded")" = 0
+unrecorded_before="$(sha256sum "$unrecorded")"
+run orders-unrecorded "$unrecorded"
+kept_resumed "no Fix run section in the review" orders-unrecorded "$unrecorded" "$unrecorded_before"
+
+interrupted="$feature/interrupted.debt.review.md"
+sed '/^## Fix run$/,$d' "$review" >"$interrupted"
+cut_with_fixer orders-interrupted "$interrupted"
+cat >>"$interrupted" <<EOF
+## Fix run
+
+Date: 2026-10-20 · at $short
+
+- 1: fixed $(g -C "$main" rev-parse --short "$fixer"), verified (\`bash tests/orders.test.sh\`)
+- wave 1: 1
+EOF
+interrupted_before="$(sha256sum "$interrupted")"
+run orders-interrupted "$interrupted"
+kept_resumed "a last Fix run section that stops before its landing line" orders-interrupted "$interrupted" "$interrupted_before"
+
 exit "$fails"
