@@ -258,6 +258,40 @@ check_lines "a rerun prints only the items the Debt review holds no Finding for,
 check_absent "a rerun gives no item for a source a Consider or a Cleared Finding of the Debt review holds" 0 "$rc" \
   "section first run, item 1" "section first run, item 3" "item=2${tab}"
 
+held="$tmp/.scratch/20261019-held-debt"
+mkdir -p "$held/issues"
+printf '# Spec: held debt\n' >"$held/spec.md"
+printf '## first run\n\n- the timeout is hardcoded\n- the log path is relative\n- the lock file is never removed\n' >"$held/issues/01-a.debt.md"
+review_at 8b1d0e4 "$held/spec.debt.review.md" "none" "$landed" "" "### 1. Standards at src/t.sh:2
+Claim: the timeout is hardcoded.
+Evidence: \`timeout=30\` in src/t.sh:2.
+Rung: 2
+Source: issues/01-a.debt.md, section first run, item 1" "### 2. Principles at src/p.sh:4
+Claim: the log path is relative.
+Evidence: \`log=run.log\` in src/p.sh:4.
+Rung: 2
+Source: issues/01-a.debt.md, section first run, item 2" "### 3. Principles at src/l.sh:8, outside the diff
+Claim: the lock file is never removed.
+Evidence: no trap removes \`run.lock\`.
+Rung: 4
+Refuted by: src/l.sh removes run.lock in its EXIT trap.
+Source: issues/01-a.debt.md, section first run, item 3"
+run held-debt
+check_lines "a rerun whose every gathered source the Debt review holds names the Debt review, counts zero items and exits 5" 5 "$rc" \
+  "review=$held/spec.debt.review.md" "items=0"
+expect "a rerun whose every gathered source the Debt review holds prints slug, folder, spec, review and items, and no status line or item" \
+  test "$(keys_in_order)" = "slug folder spec review items "
+
+judged="$tmp/.scratch/20261019-judged-empty"
+mkdir -p "$judged"
+printf '# Spec: judged empty\n' >"$judged/spec.md"
+review_at 8b1d0e4 "$judged/spec.debt.review.md" "none" "$landed"
+run judged-empty
+check_lines "a rerun that gathers nothing beside an existing Debt review names it, counts zero items and exits 5" 5 "$rc" \
+  "review=$judged/spec.debt.review.md" "items=0"
+expect "a rerun that gathers nothing beside an existing Debt review prints slug, folder, spec, review and items, and no status line or item" \
+  test "$(keys_in_order)" = "slug folder spec review items "
+
 fresh detached
 mkdir -p .scratch/20261019-detached-debt/issues
 printf '# Spec: detached debt\n' >.scratch/20261019-detached-debt/spec.md

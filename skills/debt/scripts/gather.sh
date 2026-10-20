@@ -4,7 +4,9 @@
 #
 #   gather.sh <slug>    the bare slug or its <YYYYMMDD>-<slug> folder name
 #
-# Prints slug=, folder= and spec= lines, the values resolve-feature-folder.sh prints, then one
+# Prints slug=, folder= and spec= lines, the values resolve-feature-folder.sh prints, then, when
+# a Debt review exists and no gathered item is new, review=<its absolute path> and items=0 with no
+# line= and no item= (exit 5), else one
 # items=<n> line, the count of records (0 when none), then one
 # item=<k><TAB>source=<source><TAB>text=<text> line per Debt item of the folder's issues/*.debt.md
 # files, k from 1, the source naming the Debt file, its section and the item within the section,
@@ -16,7 +18,7 @@
 # line=Judging <n> debt items of <folder name>; with none, line=no pending debt in <folder name>;
 # nothing judged (after items=0). No items= line is printed when the slug names no feature folder.
 #
-# Exit codes: 0 it gathered · 1 it gathered no record, nothing judged · 2 usage, or the resolver refused the slug (its stderr is relayed) · 3 the slug names no feature folder, nothing written · 4 the checkout holding the folder is on a detached HEAD, nothing written (a line= refusal follows slug=, folder=, spec=, with no items= or item=).
+# Exit codes: 0 it gathered · 1 it gathered no record and no Debt review exists, nothing judged · 5 a Debt review exists and no gathered item is new: review= and items=0, no line= and no item= · 2 usage, or the resolver refused the slug (its stderr is relayed) · 3 the slug names no feature folder, nothing written · 4 the checkout holding the folder is on a detached HEAD, nothing written (a line= refusal follows slug=, folder=, spec=, with no items= or item=).
 set -uo pipefail
 
 debt_items() {
@@ -143,12 +145,13 @@ main() {
     return 4
   fi
   local -a recs=()
-  local held stem
+  local held stem debt_review=""
   held="$(mktemp)"
   if [ "$spec" != none ] && [ -n "$spec" ]; then
     stem="$(basename "$spec")"
     stem="${stem%.md}"
-    held_sources "$dir/$stem.debt.review.md" >"$held"
+    debt_review="$dir/$stem.debt.review.md"
+    held_sources "$debt_review" >"$held"
   fi
   while IFS= read -r line; do
     [ -n "$line" ] || continue
@@ -161,6 +164,11 @@ main() {
   )
   rm -f "$held"
   k=${#recs[@]}
+  if [ "$k" = 0 ] && [ -n "$debt_review" ] && [ -f "$debt_review" ]; then
+    echo "review=$debt_review"
+    echo "items=0"
+    return 5
+  fi
   echo "items=$k"
   local i
   for ((i = 0; i < k; i++)); do
