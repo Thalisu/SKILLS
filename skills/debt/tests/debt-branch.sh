@@ -201,4 +201,35 @@ run invoices-moved "$feature/moved.debt.review.md"
 check_absent "a marked Finding moved out of Consider hands the developer no /tickets call: exit 0" \
   0 "$rc" "tickets="
 
+fresh dirty
+main="$tmp/dirty"
+printf '.scratch/\n' >.gitignore
+printf 'base\n' >README.md
+commit base
+g checkout -q -b ledger
+printf 'export\n' >ledger.txt
+commit "ledger export"
+short="$(g rev-parse --short HEAD)"
+feature="$main/.scratch/20261020-ledger-export"
+mkdir -p "$feature"
+printf '# Spec: Ledger export\n' >"$feature/spec.md"
+review="$feature/spec.debt.review.md"
+printf '# Review: Ledger export\n\nSpec: %s\nFixed point: ledger (%s)\nCommit: %s\nSpec source: %s\nMode: default\nLanguage: English\n\n## Act on\n\nnone\n\n## Consider\n\nnone\n\n## Noted\n\nnone\n\n## Cleared\n\nnone\n\n## Axes\n\n' \
+  "$feature/spec.md" "$short" "$short" "$feature/spec.md" >"$review"
+printf 'unsaved\n' >>ledger.txt
+expect "fixture: the developer has an uncommitted change to a tracked file" \
+  test "$(g status --porcelain)" = " M ledger.txt"
+state_before="$(door_state && g worktree list --porcelain)"
+run ledger-export "$review"
+check_lines "an uncommitted change in the main checkout refuses the cut: exit 4" \
+  4 "$rc" "line=working tree has uncommitted changes; commit or stash before fix"
+same "a refusal over an uncommitted change prints that one line and nothing else" \
+  "line=working tree has uncommitted changes; commit or stash before fix"
+expect "every ref, the working tree and the worktree list are as they were after refusing over an uncommitted change" \
+  test "$(door_state && g worktree list --porcelain)" = "$state_before"
+expect "no debt/<slug> is created over an uncommitted change" \
+  test -z "$(g -C "$main" rev-parse -q --verify refs/heads/debt/ledger-export)"
+expect "no folder is made at the worktree path over an uncommitted change" \
+  test ! -e "$main/.claude/worktrees/debt-ledger-export"
+
 exit "$fails"

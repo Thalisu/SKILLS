@@ -9,12 +9,14 @@
 # call=fix <the review path as handed in> <target>, the fix call with its landing target. After call=
 # it prints the optional tickets=/tickets <the review's Spec: value> when a line equal to
 # `Mark: too big for a Fixer` sits in the review's `## Consider` section, and no tickets= line otherwise.
-# The main checkout's HEAD, branch and working tree are never touched, and neither is the developer's
-# branch. On a git failure it prints one line=<git's error line> instead.
+# It refuses when the main checkout has an uncommitted change, the Debt review itself spared, and
+# cuts nothing. The main checkout's HEAD, branch and working tree are never touched, and neither is
+# the developer's branch. On a git failure it prints one line=<git's error line> instead.
 #
 # Exit codes: 0 it cut the branch · 2 usage: not two arguments, a missing review, or a review with no
 # Spec: header or no parsable Fixed point: header · 3 git failed, or debt/<slug> or its
-# worktree path already exists (one line= says so), nothing cut.
+# worktree path already exists (one line= says so), nothing cut · 4 the main checkout has
+# uncommitted changes (one line= says so), nothing cut.
 set -uo pipefail
 
 usage() {
@@ -44,6 +46,11 @@ full="$(git -C "$main" rev-parse --verify -q "$tip^{commit}" 2>&1)" || {
   echo "line=fatal: Fixed point $tip names no commit"
   exit 3
 }
+
+if [ -n "$(git -C "$main" status --porcelain -- . ":!$dir/$(basename "$review")" 2>/dev/null)" ]; then
+  echo "line=working tree has uncommitted changes; commit or stash before fix"
+  exit 4
+fi
 
 path="$main/.claude/worktrees/debt-$slug"
 if git -C "$main" show-ref -q --verify "refs/heads/debt/$slug" || [ -e "$path" ]; then
