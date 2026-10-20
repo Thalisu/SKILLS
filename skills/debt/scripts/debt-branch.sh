@@ -4,7 +4,8 @@
 #
 #   debt-branch.sh <slug> <review path>    the Debt review whose `Fixed point:` header names the cut
 #
-# Prints cut=new on a first cut, or cut=resumed when debt/<slug> already exists and did not land: checked
+# Prints cut=new on a first cut, cut=recut when a landed debt/<slug> is removed with its worktree and cut
+# again at the target's current tip, which tip= then names, or cut=resumed when debt/<slug> already exists and did not land: checked
 # out in its worktree (nothing is written then), or with no worktree, which is added back at the path on
 # the existing branch, its commits kept: not landed means the review's last landing line is missing
 # or reads `not landed:`, or its tip holds a commit past the landed sha, or the sha is not in the target. Then
@@ -18,8 +19,8 @@
 # the developer's branch. On a git failure it prints one line=<git's error line> instead.
 #
 # Exit codes: 0 it cut the branch · 2 usage: not two arguments, a missing review, or a review with no
-# Spec: header or no parsable Fixed point: header · 3 git failed, or debt/<slug> landed, or
-# its worktree path is taken by something else (one line= says so), nothing cut · 4 the main checkout has
+# Spec: header or no parsable Fixed point: header · 3 git failed, a landed debt/<slug> or its worktree
+# could not be removed because git refuses, or its worktree path is taken by something else (one line= says so), nothing cut · 4 the main checkout has
 # uncommitted changes (one line= says so), nothing cut.
 set -uo pipefail
 
@@ -128,6 +129,26 @@ resume_tree() {
   fi
 }
 
+recut_tree() {
+  local main="$1" slug="$2" path="$3" target="$4" review="$5" state="$6" old="$7" said
+  full="$(git -C "$main" rev-parse --verify -q "refs/heads/$target^{commit}" 2>/dev/null)" || {
+    echo "line=fatal: target $target names no commit"
+    exit 3
+  }
+  tip="$(git -C "$main" rev-parse --short "$full")"
+  if [ "$state" = Here ]; then
+    if ! said="$(git -C "$main" worktree remove "$path" 2>&1)"; then
+      echo "line=debt/$slug landed but could not be removed: $(grep -m1 -E '^(error|fatal):' <<<"$said" || head -n1 <<<"$said"); nothing cut"
+      exit 3
+    fi
+  fi
+  if ! said="$(git -C "$main" update-ref -d "refs/heads/debt/$slug" "$old" 2>&1)"; then
+    echo "line=debt/$slug landed but could not be removed: $(grep -m1 -E '^(error|fatal):' <<<"$said" || head -n1 <<<"$said"); nothing cut"
+    exit 3
+  fi
+  cut_tree "$main" "$slug" "$path" "$full"
+}
+
 print_keys() {
   echo "cut=$1"
   echo "branch=debt/$slug"
@@ -154,9 +175,14 @@ case "$state" in
     print_keys new
     ;;
   Here | Alone)
-    ! is_landed "$main" "$slug" "$target" "$review" || refuse
-    resume_tree "$main" "$slug" "$path" "$state"
-    print_keys resumed
+    old="$(git -C "$main" rev-parse --verify -q "refs/heads/debt/$slug^{commit}")"
+    if is_landed "$main" "$slug" "$target" "$review"; then
+      recut_tree "$main" "$slug" "$path" "$target" "$review" "$state" "$old"
+      print_keys recut
+    else
+      resume_tree "$main" "$slug" "$path" "$state"
+      print_keys resumed
+    fi
     ;;
   *) refuse ;;
 esac

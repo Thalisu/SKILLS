@@ -554,4 +554,61 @@ interrupted_before="$(sha256sum "$interrupted")"
 run orders-interrupted "$interrupted"
 kept_resumed "a last Fix run section that stops before its landing line" orders-interrupted "$interrupted" "$interrupted_before"
 
+fresh recut
+main="$tmp/recut"
+printf '.scratch/\n' >.gitignore
+printf 'base\n' >README.md
+commit base
+g checkout -q -b shipments
+printf 'export\n' >shipments.txt
+commit "shipments export"
+short="$(g rev-parse --short HEAD)"
+fixed_point="$(g rev-parse HEAD)"
+feature="$main/.scratch/20261020-shipments-export"
+mkdir -p "$feature"
+printf '# Spec: Shipments export\n' >"$feature/spec.md"
+review="$feature/spec.debt.review.md"
+printf '# Review: Shipments export\n\nSpec: %s\nFixed point: shipments (%s)\nCommit: %s\nSpec source: %s\nMode: default\nLanguage: English\n\n## Act on\n\nnone\n\n## Consider\n\nnone\n\n## Noted\n\nnone\n\n## Cleared\n\nnone\n\n## Axes\n\n' \
+  "$feature/spec.md" "$short" "$short" "$feature/spec.md" >"$review"
+wt="$main/.claude/worktrees/debt-shipments-export"
+cut_with_fixer shipments-export "$review"
+g merge -q --ff-only refs/heads/debt/shipments-export
+landed_short="$(g rev-parse --short "$fixer")"
+cat >>"$review" <<EOF
+## Fix run
+
+Date: 2026-10-20 · at $short
+
+- 1: fixed $landed_short, verified (\`bash tests/shipments.test.sh\`)
+- wave 1: 1
+- duplication scan: skip: no test asset changed
+- diff tests: \`bash tests/shipments.test.sh\`: green
+- gate: \`bash tests/shipments.test.sh\`: green
+- landed at $landed_short
+EOF
+printf 'later\n' >>shipments.txt
+commit "after the landing"
+tip="$(g rev-parse refs/heads/shipments)"
+tip_short="$(g rev-parse --short refs/heads/shipments)"
+expect "fixture: debt/shipments-export's tip is the landed sha and inside the developer's branch" \
+  g -C "$main" merge-base --is-ancestor "$fixer" refs/heads/shipments
+expect "fixture: the developer's tip moved past the landed sha" test "$tip" != "$fixer"
+expect "fixture: the worktree is still listed on debt/shipments-export" \
+  test "$(branch_of_worktree "$main" "$wt")" = "refs/heads/debt/shipments-export"
+head_before="$(g -C "$main" symbolic-ref HEAD) $(g -C "$main" rev-parse HEAD)"
+run shipments-export "$review"
+check_lines "a landed debt/<slug> is removed with its worktree and cut again at the target's tip: exit 0" \
+  0 "$rc" "cut=recut" "branch=debt/shipments-export" "worktree=$wt" "target=shipments" "tip=$tip_short" \
+  "call=fix $review shipments"
+expect "the recut debt/<slug> points at the target's tip, not at the old landed sha" \
+  test "$(g -C "$main" rev-parse -q --verify refs/heads/debt/shipments-export)" = "$tip"
+expect "the recut worktree is listed at the same path, checked out on debt/<slug>" \
+  test "$(branch_of_worktree "$main" "$wt")" = "refs/heads/debt/shipments-export"
+expect "the recut worktree's HEAD is the target's tip" \
+  test "$(g -C "$wt" rev-parse HEAD)" = "$tip"
+expect "the developer's branch keeps its tip after the recut" \
+  test "$(g -C "$main" rev-parse refs/heads/shipments)" = "$tip"
+expect "the main checkout's HEAD stays on the developer's branch at its commit after the recut" \
+  test "$(g -C "$main" symbolic-ref HEAD) $(g -C "$main" rev-parse HEAD)" = "$head_before"
+
 exit "$fails"
