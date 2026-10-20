@@ -236,4 +236,19 @@ if [ "$rc" = 1 ] && [ "$counted" = "items=0|line=no pending debt in 20261019-cle
   dump_out
 fi
 
+fresh detached
+mkdir -p .scratch/20261019-detached-debt/issues
+printf '# Spec: detached debt\n' >.scratch/20261019-detached-debt/spec.md
+printf '## first run\n\n- the timeout is hardcoded\n' >.scratch/20261019-detached-debt/issues/01-a.debt.md
+commit "a feature folder holding debt"
+g checkout -q --detach
+before="$(door_state)"
+rc=0
+out="$(bash "$script" detached-debt 2>&1)" || rc=$?
+check_lines "a feature folder in a checkout on a detached HEAD is refused, naming the slug as typed, and exits 4" 4 "$rc" \
+  "line=the checkout is on a detached HEAD; switch to the branch the fixes should land on and run /debt detached-debt again; nothing written"
+check_absent "a feature folder in a checkout on a detached HEAD gives no item" 4 "$rc" "item="
+expect "a feature folder in a checkout on a detached HEAD leaves every ref and the working tree as they were" \
+  test "$(door_state)" = "$before"
+
 exit "$fails"

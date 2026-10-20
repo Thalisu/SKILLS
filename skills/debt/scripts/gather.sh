@@ -14,7 +14,7 @@
 # line=Judging <n> debt items of <folder name>; with none, line=no pending debt in <folder name>;
 # nothing judged (after items=0). No items= line is printed when the slug names no feature folder.
 #
-# Exit codes: 0 it gathered · 1 it gathered no record, nothing judged · 2 usage, or the resolver refused the slug (its stderr is relayed) · 3 the slug names no feature folder, nothing written.
+# Exit codes: 0 it gathered · 1 it gathered no record, nothing judged · 2 usage, or the resolver refused the slug (its stderr is relayed) · 3 the slug names no feature folder, nothing written · 4 the checkout holding the folder is on a detached HEAD, nothing written (a line= refusal follows slug=, folder=, spec=, with no items= or item=).
 set -uo pipefail
 
 debt_items() {
@@ -116,6 +116,11 @@ main() {
     none | "" | /*) ;;
     *) spec="${root:+$root/}$spec" ;;
   esac
+  if git -C "$dir" rev-parse --is-inside-work-tree >/dev/null 2>&1 &&
+    ! git -C "$dir" symbolic-ref -q HEAD >/dev/null 2>&1; then
+    echo "line=the checkout is on a detached HEAD; switch to the branch the fixes should land on and run /debt $1 again; nothing written"
+    return 4
+  fi
   local -a recs=()
   while IFS= read -r line; do
     [ -n "$line" ] || continue
