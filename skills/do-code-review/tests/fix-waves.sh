@@ -899,6 +899,30 @@ check_absent "a hand-edited Debt review prints its Waves with exit 0, and no Wav
 expect "the Waves of a hand-edited Debt review name exactly the Findings under Act on as the file reads now, the one moved in and numbered above the one after it included, and never the one moved out" \
   test "$waved" = "1,3"
 
+unchecked="$tmp/14-moved-in-no-check.debt.review.md"
+review_at 8b1d0e4 "$unchecked" "### 1. Standards at src/kept.js:4
+Claim: the export helper is named for its caller instead of what it does.
+Evidence: \`exportForCron\` formats a row and is called from three places.
+Rung: 3
+Fix: the helper is named for the row it formats, in tests/kept.test.js
+Source: issues/01-export.debt.md, item 1
+
+### 2. Principles at src/server.sh:12
+Claim: the listening port is hardcoded.
+Evidence: Configuration lives outside the code; \`8080\` is written inline where the server starts.
+Rung: 2
+Fix: make the port configurable, in src/server.sh
+Source: issues/01-export.debt.md, item 2"
+
+run "$unchecked"
+waved="$(sed -n 's/^wave=[0-9][0-9]*[[:space:]]findings=//p' <<<"$out" | tr ',' '\n' | sort -n | paste -sd, -)"
+check "a Debt review whose Act on holds a Finding moved in with a Fix line naming no check is not refused: its Waves print with exit 0" 0 "$rc" \
+  "wave="
+expect "the Finding moved into Act on whose Fix line names no check is on a Wave beside the ordinary one" \
+  test "$waved" = "1,2"
+expect "the run over a Finding whose Fix line names no check prints nothing but Wave lines, no refusal on stderr" \
+  test -z "$(grep -v '^wave=' <<<"$out")"
+
 echo
 if [ "$fails" = 0 ]; then echo "fix-waves: all checks passed"; else
   echo "fix-waves: $fails failed"
