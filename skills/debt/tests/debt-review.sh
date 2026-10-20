@@ -924,6 +924,77 @@ for new in 5 6; do
   done
 done
 
+fresh deleted
+deleted="$(pwd -P)"
+deleted_feature="$deleted/.scratch/20261020-deleted-debt"
+mkdir -p "$deleted_feature/issues" "$deleted/src"
+printf '# Spec: deleted debt\n' >"$deleted_feature/spec.md"
+printf 'retries=3\n' >"$deleted/src/a.sh"
+cat >"$deleted_feature/issues/01-a.debt.md" <<'EOF'
+## 2026-10-19 15:01
+
+- the retry budget is hardcoded
+- the cache key ignores the locale
+- the page header repeats on every page
+EOF
+commit "seed the deleted feature"
+deleted_sha="$(g rev-parse --short HEAD)"
+mapfile -t deleted_sources < <(shaped_sources deleted-debt "$deleted")
+if [ "${#deleted_sources[@]}" != 3 ]; then
+  echo "FAIL  fixture: gather.sh did not name three items for deleted-debt"
+  exit 1
+fi
+deleted_review="$deleted_feature/spec.debt.review.md"
+review_at "$deleted_sha" "$deleted_review" "### 1. Standards at src/a.sh:1
+Claim: the retry budget is hardcoded at three.
+Evidence: \`retries=3\` in src/a.sh:1, walked through the retry loop.
+Rung: 3
+Fix: the retry budget is read from the config, in src/a.sh
+Source: ${deleted_sources[0]}
+
+### 2. Correctness at src/b.sh:7
+Claim: two locales share one cache entry.
+Evidence: a proof script read one cache entry for two locales.
+Rung: 4
+Fix: the cache key carries the locale, in src/b.sh
+Source: ${deleted_sources[1]}" "## Fix run
+
+Date: 2026-10-20 · at $deleted_sha
+
+- 3: fixed 1a2b3c4, verified (\`bash tests/c.test.sh\`)
+- gate: \`bash tests/c.test.sh\`: green
+- landed at 1a2b3c4"
+commit "seed the Debt review whose highest Finding was deleted"
+if [ "$(shaped_sources deleted-debt "$deleted")" != "${deleted_sources[2]}" ]; then
+  echo "FAIL  fixture: gather.sh did not gather again only the item of the deleted Finding 3"
+  exit 1
+fi
+deleted_returns="$tmp/deleted-returns"
+mkdir -p "$deleted_returns"
+cat >"$deleted_returns/item-1.md" <<EOF
+Source: ${deleted_sources[2]}
+Axis: Correctness
+Location: src/c.sh:2
+Claim: the page header repeats on every page.
+Evidence: a proof script paged three times and read the header three times.
+Rung: 4
+Fix: the header prints on the first page only, in src/c.sh
+Small: yes
+EOF
+rc=0
+# shellcheck disable=SC2034  # lib.sh's check_lines reads $out
+out="$(cd "$deleted" && bash "$script" deleted-debt "$deleted_returns" 2>&1)" || rc=$?
+check_lines "on a rerun after the highest Finding was deleted, it prints the path of the Debt review it added to" 0 "$rc" \
+  "review=$deleted_review"
+# shellcheck disable=SC2034  # lib.sh's same reads $out
+out="$(sed -n 's/^### \([0-9]*\)\. .*/\1/p' "$deleted_review" 2>/dev/null | tr '\n' ' ' | sed 's/ $//')"
+same "on a rerun after the highest Finding was deleted, the re-judged item takes a number above every heading and every Fix run line" \
+  "1 2 4"
+# shellcheck disable=SC2034  # lib.sh's check_lines reads $out
+out="$(bash "$here/../../../.agents/scripts/review-findings.sh" "$deleted_review" 2>&1 | cut -f1,3)"
+check_lines "on a rerun after the highest Finding was deleted, the re-judged Finding reads as not yet fixed" 0 "$rc" \
+  "finding=4"$'\t'"latest=none"
+
 fresh settled
 settled="$(pwd -P)"
 settled_feature="$settled/.scratch/20261020-settled-debt"

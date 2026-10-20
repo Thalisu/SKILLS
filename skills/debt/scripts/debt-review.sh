@@ -267,13 +267,19 @@ axes() { # stdin: "<n>\t<Bucket>\t<heading>" per Finding: the six Axes lines
   done
 }
 
-last_number() { # $1 review path: the highest Finding number it holds, 0 when none
+last_number() { # $1 review path: the highest number any Finding heading or Fix run line used, 0 when none
   local here f max=0
   here="$(cd "$(dirname "$0")" && pwd -P)"
   while IFS=$'\t' read -r f _; do
     f="${f#finding=}"
     [ "$f" -le "$max" ] || max="$f"
   done < <(bash "$here/../../../.agents/scripts/review-findings.sh" "$1")
+  while read -r f; do
+    [ "$f" -le "$max" ] || max="$f"
+  done < <(awk '
+    /^## / { run = ($0 ~ /^## Fix run/) }
+    run && /^- [0-9]+:/ { n = $2; sub(/:.*/, "", n); print n }
+  ' "$1")
   echo "$max"
 }
 
