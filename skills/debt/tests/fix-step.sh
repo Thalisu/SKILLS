@@ -162,6 +162,19 @@ carries_any "the run removes neither debt/<slug> nor its worktree" \
   "stay in place" "stays in place" "left in place" "remain in place" "remains in place" \
   "removes neither" "never removes" "does not remove" "removes no" "kept in place" \
   "keeps both" "are kept" "is kept"
+carries "the not landed: case keeps the push command in the run's ending" "push command"
+before "the not landed: line comes before the push command" "not landed:" "push command"
+# A bare "ends on" or "ends with" already sits in "ends on its not landed: landing line", so each
+# phrasing here ties the ending to the push command.
+carries_any "the push command stays the run's last line when nothing landed" \
+  "push command as the run's last line" "\`push command\` as the run's last line" \
+  "push command stays the run's last line" "\`push command\` stays the run's last line" \
+  "push command is still the run's last line" "\`push command\` is still the run's last line" \
+  "push command remains the run's last line" "\`push command\` remains the run's last line" \
+  "push command, still the run's last line" "\`push command\`, still the run's last line" \
+  "ends on the push command" "ends on the \`push command\`" \
+  "ends with the push command" "ends with the \`push command\`" \
+  "push command last" "\`push command\` last"
 
 echo "# the session lists no do-code-review: the step says what it does"
 passage_of "$skill" "## 3." "<arguments>" >"$tmp/step.md"
