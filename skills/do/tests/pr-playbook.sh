@@ -1641,7 +1641,7 @@ carries_each "nor fixes a check in the session" \
 # the per-check loop, to the next one, and the SKILL.md and reply.md guarantees off their one bullet,
 # so a clause elsewhere in either file does not count.
 echo "# pr.md / ### Fix the red checks, ## What this run never does, SKILL.md / ## Non-negotiables, reply.md / **A push.**: the round is pushed to the head by fast-forward only, never --force, never a merge, never another branch, and it is the one push a run makes"
-push_line="git -C <run tree> push origin HEAD:refs/heads/<head>"
+push_line="git -C <run tree> -c core.hooksPath=/dev/null push origin HEAD:refs/heads/<head>"
 step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ')"
 whole="$flat"
@@ -1717,6 +1717,53 @@ carries_each "never named under outward" \
   "outward" -- \
   "never named under" "never names it under" "not named under" "never under \`outward\`" \
   "never names that push under" "never named as" "never goes under"
+
+# The push runs with the developer's credentials, and a fixer forked over an attacker-writable CI log
+# can write a pre-push hook into the git directory its worktree shares with the run tree: a push
+# that runs it executes the attacker's code under the developer's login. The push line is read out
+# of step 4 and run for real against a throwaway origin, with the hook planted from a fixer's
+# worktree into the common git dir, once exiting 0 and once exiting 1 (which would block the push).
+echo "# pr.md / ### Fix the red checks: the push line never runs a pre-push hook a fixer wrote into the git dir it shares with the run tree"
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
+run_push="$(grep -F 'HEAD:refs/heads/<head>' <<<"$step" | sed 's/^[[:space:]]*//' | grep -E '^git ')"
+expect "step 4 carries exactly one git line pushing HEAD:refs/heads/<head>" \
+  test -n "$run_push" -a "$(grep -c . <<<"$run_push")" = 1
+g init -q --bare -b main "$tmp/origin.git"
+fresh main
+printf 'base\n' >file.txt
+commit base
+g remote add origin "$tmp/origin.git"
+g push -q origin main main:refs/heads/dev
+base_sha="$(g rev-parse HEAD)"
+main_tree="$tmp/main"
+run_tree="$main_tree/.claude/worktrees/pr-1-x"
+fixer_tree="$main_tree/.claude/worktrees/fixer-pr-1-x-w1-1"
+g worktree add -q --detach "$run_tree" "$base_sha"
+g worktree add -q --detach "$fixer_tree" "$base_sha"
+hook="$(cd "$fixer_tree" && g rev-parse --path-format=absolute --git-common-dir)/hooks/pre-push"
+expect "the fixer's worktree reaches the main checkout's hooks dir" test "$hook" = "$main_tree/.git/hooks/pre-push"
+push_line_cmd="${run_push//<run tree>/$(printf '%q' "$run_tree")}"
+push_line_cmd="${push_line_cmd//<head>/dev}"
+expect "the push line has no placeholder left once <run tree> and <head> are filled" \
+  test -z "$(grep -oE '<[a-z][a-z ]*>' <<<"$push_line_cmd")"
+for hook_exit in 0 1; do
+  marker="$tmp/hook-ran-$hook_exit"
+  printf '#!/bin/sh\necho ran >%q\nexit %s\n' "$marker" "$hook_exit" >"$hook"
+  chmod +x "$hook"
+  cd "$run_tree" || exit 1
+  printf 'round %s\n' "$hook_exit" >"file.txt"
+  commit "round $hook_exit"
+  cd "$main_tree" || exit 1
+  rc=0
+  out="$(GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 bash -c "$push_line_cmd" 2>&1)" || rc=$?
+  check "a hook exiting $hook_exit: the push succeeds" 0 "$rc"
+  expect "a hook exiting $hook_exit: origin's dev is now the run tree's HEAD" \
+    test "$(g -C "$tmp/origin.git" rev-parse refs/heads/dev)" = "$(g -C "$run_tree" rev-parse HEAD)"
+  expect "a hook exiting $hook_exit: the planted pre-push hook never ran" test ! -e "$marker"
+done
+cd "$here" || exit 1
 
 # A run that ends on the push leaves the developer who walked away with a fix nobody watched: the
 # push sends the run back to the watch. What a red verdict after a pushed round does is read by the
@@ -2188,7 +2235,7 @@ carries_each "its fixer branch is kept by fix-worktrees.sh remove as an unlanded
 # what the tree holds above the commit it was cut at before it pushes, and anything that no
 # fix-integrate.sh pick explains stops the round with nothing pushed.
 echo "# pr.md / ### 4. Fix the red checks, item 5: before it pushes, the run refuses a run tree holding any commit above <sha> that fix-integrate.sh did not print as picked"
-step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ')"
 carries "the run lists what the run tree holds above the commit it was cut at" \
   "git -C <run tree> rev-list <sha>..HEAD" "git -C <run tree> merge-base --is-ancestor <sha> HEAD"
@@ -3315,6 +3362,30 @@ expect "an item of step $fix_n carries the pr-log.sh call" test -n "$flat"
 carries_each "a non-zero pr-log.sh exit stops the run quoting the script's stderr line" \
   "non-zero exit" -- "stops" -- "stderr line"
 yours_direction_once "the failed pr-log.sh's stop carries exactly one \`Yours: direction:\` line"
+
+# core.hooksPath on the push line turns hooks off, not the config a fixer can also write into the git
+# dir its worktree shares with the run tree (a credential helper, an ssh command), nor the fetch
+# before the push: so the run records both before its first fork and reads them back before it
+# fetches or pushes. Each stop is read off the stretch between its script's line and the git line it
+# guards, so a sibling stop's `Yours: direction:` line never answers for it.
+echo "# pr.md / ### Fix the red checks: the hooks and config of the shared git dir are recorded before the first fixer is forked and verified before the fetch and the push, a failure or a change stopping on exactly one Yours: direction: line"
+expect "skills/do/scripts/pr-hooks.sh, the script the Playbook calls, exists" test -f "$here/../scripts/pr-hooks.sh"
+flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ')"
+before "the snapshot line comes before the first Wave's worktrees are cut" \
+  "pr-hooks.sh snapshot <run tree>" "fix-worktrees.sh add <run tree>"
+flat="$(awk '/pr-hooks\.sh snapshot/ { on = 1 } /fix-worktrees\.sh add/ { exit } on' <<<"$step" | tr '\n' ' ' | tr -s ' ')"
+carries_each "a non-zero snapshot exit stops the run with no fixer forked" \
+  "non-zero exit" -- "stops" -- "no fixer is forked" "forks no fixer" "no fixer forked" "no do-pr-fixer is forked"
+yours_direction_once "the failed snapshot's stop carries exactly one \`Yours: direction:\` line"
+flat="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.' "$push_line" | tr '\n' ' ' | tr -s ' ')"
+before "the verify line comes before the fetch of <head>" \
+  "pr-hooks.sh verify <run tree>" "git -C <run tree> fetch origin <head>"
+before "the verify line comes before the push line" "pr-hooks.sh verify <run tree>" "$push_line"
+flat="$(awk '/pr-hooks\.sh verify/ { on = 1 } /git -C <run tree> fetch origin <head>/ { exit } on' <<<"$step" | tr '\n' ' ' | tr -s ' ')"
+carries_each "a changed hooks or config stops the run with nothing fetched or pushed" \
+  "changed hooks" "changed config" -- "stops" -- \
+  "nothing is fetched or pushed" "neither fetched nor pushed" "nothing is fetched nor pushed" "no fetch and no push"
+yours_direction_once "the change's stop carries exactly one \`Yours: direction:\` line"
 
 # The no-pick, empty-set stop hands the developer only the fixers' returns, and reply.md's exception
 # list names no fixer's return, watch or pr-log.sh among the `pr` door's stops that owe no `Yours:`

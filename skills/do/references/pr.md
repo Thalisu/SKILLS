@@ -355,7 +355,21 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    own, sharing no Wave with another check, since its fix may touch any file. Each printed
    `wave=<w> numbers=<k>[,<k>]...` line is one Wave, its numbers check numbers. Checks whose files
    are disjoint share a Wave and run at once, and a check that shares a file with an earlier check
-   comes out in a later Wave and runs after it. Then each Wave, in the order printed:
+   comes out in a later Wave and runs after it.
+
+   Before the first Wave's worktrees are cut, the run records the hooks and the config of the git
+   directory every fixer worktree shares with `<run tree>`. A fixer can write into it, and the push
+   in item 5 runs with the developer's credentials:
+
+       bash <skill-dir>/scripts/pr-hooks.sh snapshot <run tree>
+
+   The run keeps the `hooks=` and `config=` values it prints in the session, in no file of `<dir>`,
+   which a fixer can reach. On a non-zero exit no fixer is forked: the run removes `<run tree>`
+   (`git worktree remove <run tree>`), no commit sits on it yet, then stops, quoting the script's
+   stderr line, then exactly one
+   `Yours: direction: pr-hooks.sh failed; fix what its stderr line names, then /do the pull request again`.
+
+   Then each Wave, in the order printed:
 
    a. `bash <skill-dir>/../do-code-review/scripts/fix-worktrees.sh add <run tree> pr-<n> <at> <w> <k>...`,
       with the Wave's number and its check numbers, prints one `worktree <k> <path> <branch>` line
@@ -463,8 +477,18 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    picked. The fork and the wait sit in one turn: the session never ends its turn while a fixer
    runs, as skills/do-code-review/references/fix.md warns.
 
-5. Push, when at least one check was picked. Before each push this step makes, fetch `<head>`
-   from origin:
+5. Push, when at least one check was picked. Before each push this step makes, and before the
+   fetch below, the run reads the git directory item 4 recorded before its first fork:
+
+       bash <skill-dir>/scripts/pr-hooks.sh verify <run tree> <hooks> <config>
+
+   `<hooks>` and `<config>` are the two values item 4 kept. On `unchanged`, exit 0, the step goes
+   on. On a `changed hooks` or `changed config` line, exit 1, or on exit 2, something wrote into the
+   hooks or the config every worktree shares: nothing is fetched or pushed, and no redone round
+   starts. The run keeps `<run tree>` on disk, never removing it, with each commit kept there, and
+   stops, quoting the script's lines, then exactly one
+   `Yours: direction: the hooks or the config of the git directory shared with the run changed during the round; read them, then /do the pull request again`.
+   Then, before each push, fetch `<head>` from origin:
 
        git -C <run tree> fetch origin <head>
 
@@ -505,7 +529,10 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    On a redone round this read runs on the redone round's run tree against its own `sha=`, the
    same way. When it passes, push:
 
-       git -C <run tree> push origin HEAD:refs/heads/<head>
+       git -C <run tree> -c core.hooksPath=/dev/null push origin HEAD:refs/heads/<head>
+
+   `-c core.hooksPath=/dev/null` turns every git hook off for the push, so a hook a fixer wrote
+   into the shared git directory never runs under the developer's credentials.
 
    The push is fast-forward only: never `--force`, never a merge, never to another branch
    (ADR 0086). git's own refusal of a non-fast-forward is the guard. When git accepts it, run
