@@ -247,6 +247,35 @@ for cwd in "$main" "$run_tree" "$fixer"; do
   done
 done
 
+# The fixer's one line goes to the brief's Return file: under the session's do-pr-fix.* temp
+# directory, outside every worktree. The Bash guard denies the documented printf redirect whenever
+# the reason holds a backtick, a `; gh` or a .git word, so the Write guard has to let that one path
+# shape through, and nothing around it.
+prdir="$(mktemp -d "${TMPDIR:-/tmp}/do-pr-fix.XXXX")"
+prlink="$(mktemp -u "${TMPDIR:-/tmp}/do-pr-fix.XXXX")"
+ln -s "$main/src" "$prlink"
+trap 'rm -rf "$tmp" "$prdir"; rm -f "$prlink"' EXIT
+for cwd in "$main" "$run_tree" "$fixer"; do
+  for path in "$prdir/check-1" "$prdir/check-12"; do
+    expect "the hook lets the fixer write its return file (cwd ${cwd#"$tmp"/}): $(basename "$path")" \
+      write_allows "$cwd" "$path"
+  done
+  for path in \
+    "$prdir/other.txt" \
+    "$prdir/check-" \
+    "$prdir/check-1x" \
+    "$prdir/sub/check-1" \
+    "$prdir/../check-1" \
+    "$prdir/check-1/../x" \
+    "$prdir/.git/check-1" \
+    "$tmp/check-1" \
+    "$main/do-pr-fix.x/check-1" \
+    "$prlink/check-1"; do
+    expect "the hook denies a write beside the return file, not the return file itself (cwd ${cwd#"$tmp"/}): ${path#"$tmp"/}" \
+      deny_in "$(write_out "$cwd" "$path")"
+  done
+done
+
 expect "the hook denies every write when its cwd is in no git repository, since it cannot find the fixer worktrees" \
   deny_in "$(write_out "$plain" "$fixer/src/a.py")"
 
