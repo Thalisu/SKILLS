@@ -3227,8 +3227,9 @@ flat="$(piece_in="$push_item" piece_with "quoting its fixer's return" "one line 
 expect "a paragraph of the push item stops quoting each fixer's return" test -n "$flat"
 yours_direction_once "the no-pick, empty-set stop carries exactly one \`Yours: direction:\` line"
 carries_any "and follows nothing" "${follows_nothing[@]}"
-flat="$(paragraph_with <(passage_of "$reply" "## A refusal or a blocked run" "## ") "the \`pr\` door's four stops")"
-expect "reply.md names the \`pr\` door's stops that owe no \`Yours:\` line" test -n "$flat"
+flat="$(paragraph_with <(passage_of "$reply" "## A refusal or a blocked run" "## ") "the \`pr\` door's five stops")"
+expect "reply.md names the \`pr\` door's five stops that owe no \`Yours:\` line, the fork head's among them" test -n "$flat"
+expect "and its exception list names the fork-head stop" grep -qiE 'head lives in a fork|fork head|head in a fork' <<<"$flat"
 expect "and none of them is a fixer's return, a failed watch or a failed pr-log.sh" \
   test -z "$(grep -oiE 'fixer|watch|pr-log' <<<"$flat")"
 
