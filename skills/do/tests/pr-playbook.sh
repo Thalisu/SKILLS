@@ -17,6 +17,30 @@ pr="$here/../references/pr.md"
 reply="$here/../references/reply.md"
 fails=0
 
+# pr.md's steps are renumbered whenever one is added or absorbed into another, so a pin finds a step
+# by the name its heading carries and a checklist line by the name it opens on, never by a digit.
+heading_of() { # $1 a step's name: pr.md's heading line for it, whatever its number
+  grep -m1 -E "^### [0-9]+\. $1" "$pr"
+}
+number_of() { # $1 a heading line from heading_of: its step number, or ? when the step is gone
+  local n="${1#\#\#\# }"
+  n="${n%%.*}"
+  case "$n" in '' | *[!0-9]*) echo '?' ;; *) echo "$n" ;; esac
+}
+checklist_line() { # $1 a checklist line's name: its line from $steps, whatever its number
+  grep -E "^[0-9]+\. $1:" <<<"$steps"
+}
+pull_h="$(heading_of 'Pull request')"
+read_h="$(heading_of 'Read-back')"
+watch_h="$(heading_of 'Watch')"
+fix_h="$(heading_of 'Fix the red checks')"
+reply_h="$(heading_of 'Reply')"
+pull_n="$(number_of "$pull_h")"
+read_n="$(number_of "$read_h")"
+watch_n="$(number_of "$watch_h")"
+fix_n="$(number_of "$fix_h")"
+reply_n="$(number_of "$reply_h")"
+
 router="$(passage_of "$skill" "## Router" "## ")"
 rows="$(grep -E '^\| ' <<<"$router")"
 # A row's argument is its first cell: the rows an issue reference reaches name it there.
@@ -95,14 +119,14 @@ carries_any "the ticket row below it still takes an issue number" "number"
 
 # A read-back built from the session's own wording repeats whatever it misread: only the pull request
 # gh opens names the number and the two branches the run will actually follow.
-echo "# pr.md / ## Steps and ### 2. Read-back: the Plan: line reads the pull request back off gh's answer, never off the request's wording"
+echo "# pr.md / ## Steps and ### Read-back: the Plan: line reads the pull request back off gh's answer, never off the request's wording"
 steps="$(blocks_of "$pr" "## Steps" 2>/dev/null)"
-flat="$(grep -E '^1\. ' <<<"$steps")"
-carries_any "step 1 of the checklist takes the pull request from the request" "pull request"
-flat="$(grep -E '^2\. ' <<<"$steps")"
-carries_any "step 2 of the checklist is the read-back, before the run acts on the pull request" \
+flat="$(checklist_line "pull request")"
+carries_any "the checklist's pull request line takes the pull request from the request" "pull request"
+flat="$(checklist_line "read-back")"
+carries_any "the checklist's read-back line is the read-back, before the run acts on the pull request" \
   "read-back" "read back" "Read-back"
-flat="$(passage_of "$pr" "### 2. Read-back" "##" 2>/dev/null | tr '\n' ' ' | tr -s ' ')"
+flat="$(passage_of "$pr" "$read_h" "##" 2>/dev/null | tr '\n' ' ' | tr -s ' ')"
 carries_each "the line names the pull request by its number, its head into its base" \
   "#<n>" -- "<head>" -- "<base>" -- "into"
 before "the head comes before the base it goes into" "<head>" "<base>"
@@ -196,8 +220,8 @@ carries_any "and stops it the same way, with the line naming \`gh auth login\`" 
 # A wrong number, or a URL of a repository gh cannot reach, leaves the read-back with no answer to
 # read: a session that goes on invents a read-back, or a watch, for a pull request that is not there.
 # The passage already speaks of "the Reply's first lines", so a bare "first line" proves nothing here.
-echo "# pr.md / ### 2. Read-back: a pull request gh cannot open stops the run with one line on Playbook: pr, following nothing"
-flat="$(passage_of "$pr" "### 2. Read-back" "##" 2>/dev/null | tr '\n' ' ' | tr -s ' ')"
+echo "# pr.md / ### Read-back: a pull request gh cannot open stops the run with one line on Playbook: pr, following nothing"
+flat="$(passage_of "$pr" "$read_h" "##" 2>/dev/null | tr '\n' ' ' | tr -s ' ')"
 carries_any "the read-back stops when \`gh pr view\` fails to open the pull request" \
   "fails" "non-zero" "errors" "an error" "cannot open" "can't open" "could not open" "couldn't open" \
   "cannot be opened" "could not be opened" "can't be opened" "couldn't be opened"
@@ -220,8 +244,8 @@ carries_any "and follows nothing: no watch, no worktree, no push, no file writte
 # watch its checks or push fixes onto a head nobody will merge. The unopenable stop already carries
 # `Playbook: pr`, `Yours:` and "follows nothing" in this passage, so those are read off the paragraph
 # that names the closed or merged state, not the whole passage.
-echo "# pr.md / ### 2. Read-back: a closed or merged pull request stops the run with one line on Playbook: pr, following nothing"
-read_back="$(passage_of "$pr" "### 2. Read-back" "##" 2>/dev/null)"
+echo "# pr.md / ### Read-back: a closed or merged pull request stops the run with one line on Playbook: pr, following nothing"
+read_back="$(passage_of "$pr" "$read_h" "##" 2>/dev/null)"
 flat="$(tr '\n' ' ' <<<"$read_back" | tr -s ' ')"
 expect "the read-back asks \`gh pr view\` for the pull request's \`state\`" test -n \
   "$(grep -oE 'gh pr view [^`]*--json ([A-Za-z]+,)*state' <<<"$flat")"
@@ -246,8 +270,8 @@ carries_any "and follows nothing: no watch, no worktree, no push, no file writte
 # A pull request whose head lives in a fork runs checks on a stranger's code: followed, the log that
 # stranger's code wrote reaches a do-pr-fixer that holds write tools. The `--json` paragraph names
 # `isCrossRepository` too, so the stop's properties are read off the other paragraph that names it.
-echo "# pr.md / ### 2. Read-back: a pull request whose head lives in a fork stops the run with one line on Playbook: pr, following nothing"
-read_back="$(passage_of "$pr" "### 2. Read-back" "##" 2>/dev/null)"
+echo "# pr.md / ### Read-back: a pull request whose head lives in a fork stops the run with one line on Playbook: pr, following nothing"
+read_back="$(passage_of "$pr" "$read_h" "##" 2>/dev/null)"
 flat="$(tr '\n' ' ' <<<"$read_back" | tr -s ' ')"
 expect "the read-back asks \`gh pr view\` for \`isCrossRepository\`" test -n \
   "$(grep -oE 'gh pr view [^`]*--json [A-Za-z,]*isCrossRepository' <<<"$flat")"
@@ -275,15 +299,15 @@ carries_any "and forks no fixer, so the fork's log reaches no write tool" \
 
 # `gh auth status` passes on a CLI logged in to one host while `gh pr view` fails on a URL of another
 # host it holds no login for: read as unopenable, the stop sends the developer to check the number
-# and the URL instead of logging in. The step 1 paragraph already names `gh auth login`, so the
+# and the URL instead of logging in. The Pull request step paragraph already names `gh auth login`, so the
 # handover is read off the unopenable stop's own paragraph, not the passage.
-echo "# pr.md / ### 2. Read-back: a gh pr view failure caused by a CLI not logged in takes the gh auth login line, not the unopenable one"
-read_back="$(passage_of "$pr" "### 2. Read-back" "##" 2>/dev/null)"
+echo "# pr.md / ### Read-back: a gh pr view failure caused by a CLI not logged in takes the gh auth login line, not the unopenable one"
+read_back="$(passage_of "$pr" "$read_h" "##" 2>/dev/null)"
 flat="$(awk 'BEGIN { RS = "" } index($0, "could not be opened") { gsub(/\n/, " "); print; exit }' <<<"$read_back" | tr -s ' ')"
 expect "the read-back has a paragraph saying the pull request could not be opened" test -n "$flat"
 carries_each "that paragraph hands a failure whose cause is the CLI not being logged in to the \`gh auth login\` line instead" \
   "not logged in" "logged out" "no login" "not authenticated" "unauthenticated" "authentication" -- \
-  "gh auth login" "step 1" "### 1" "the CLI's stop" "the CLI stop" "the login stop" -- \
+  "gh auth login" "step $pull_n" "### $pull_n" "the CLI's stop" "the CLI stop" "the login stop" -- \
   "instead" "rather than" "in place of" "wins" "takes precedence" "never this line" "not this line" \
   "never the line" "not the line" "never as" "not as"
 
@@ -312,14 +336,14 @@ carries_each "its second stop is a GitHub CLI missing or not logged in, whose on
 # The developer who typed `/do` on a pull request has walked away: a run that ends its turn on
 # `pending`, or backgrounds the watch, stands still until they come back, and one left at the Bash
 # tool's two-minute default has the watch killed before it prints any verdict.
-echo "# pr.md / ### 3. Watch: the run watches in the foreground at a 600000 ms timeout, re-running on pending until green hands on to the Reply"
+echo "# pr.md / ### Watch: the run watches in the foreground at a 600000 ms timeout, re-running on pending until green hands on to the Reply"
 steps="$(blocks_of "$pr" "## Steps" 2>/dev/null)"
-flat="$(grep -E '^3\. ' <<<"$steps")"
-carries_any "step 3 of the checklist is the watch" "watch" "Watch"
-flat="$(grep -E '^5\. ' <<<"$steps")"
-carries_any "step 5 of the checklist is the reply, after the watch and the fix" "reply" "Reply"
-flat="$(passage_of "$pr" "### 3. Watch" "##" 2>/dev/null | tr '\n' ' ' | tr -s ' ')"
-expect "pr.md has a step \`### 3. Watch\`" test -n "$flat"
+flat="$(checklist_line "watch")"
+carries_any "the checklist's watch line is the watch" "watch" "Watch"
+flat="$(checklist_line "reply")"
+carries_any "the checklist's reply line is the reply, after the watch and the fix" "reply" "Reply"
+flat="$(passage_of "$pr" "$watch_h" "##" 2>/dev/null | tr '\n' ' ' | tr -s ' ')"
+expect "pr.md has a step \`$watch_h\`" test -n "$flat"
 carries "the step runs the watch script on the pull request" "bash <skill-dir>/scripts/pr-watch.sh"
 carries_any "with the pull request as its argument" \
   "pr-watch.sh <pr>" "pr-watch.sh <n>" "pr-watch.sh <number>"
@@ -342,12 +366,12 @@ carries_any "without ending its turn" \
 carries_each "until it reads \`verdict=green\`" \
   "until" -- "verdict=green"
 carries_each "which hands on to the Reply step" \
-  "verdict=green" -- "### 5. Reply" "step 5" "Reply step" "the Reply" "to the Reply"
+  "verdict=green" -- "$reply_h" "step $reply_n" "Reply step" "the Reply" "to the Reply"
 
 # The developer merges on this Reply: one that misses the green state, or hands the merge over as a
 # `Yours:` choice, reads as a stop, and a run that runs `gh pr merge` lands it with nobody deciding.
-echo "# pr.md / ### 5. Reply: a green watch ends on a Reply saying every check is green and mergeable, its Next step gh pr merge <n>, never run"
-flat="$(passage_of "$pr" "### 5. Reply" "##" 2>/dev/null | tr '\n' ' ' | tr -s ' ')"
+echo "# pr.md / ### Reply: a green watch ends on a Reply saying every check is green and mergeable, its Next step gh pr merge <n>, never run"
+flat="$(passage_of "$pr" "$reply_h" "##" 2>/dev/null | tr '\n' ' ' | tr -s ' ')"
 carries_each "the For whom part says every check is green" \
   "For whom" -- \
   "every check" "all checks" "each check" "all its checks" "all of its checks" "<n> checks" -- \
@@ -382,7 +406,7 @@ carries_each "with no \`Yours:\` line, never under \`outward\`, as a landed run'
   "outward" -- \
   "push"
 
-# A run that merges lands the pull request on its base with nobody having decided to. `### 5. Reply`
+# A run that merges lands the pull request on its base with nobody having decided to. `### Reply`
 # already names `gh pr merge <n>`, so the words are read off the bullet of `## What this run never
 # does` that names it, not the whole file.
 echo "# pr.md / ## What this run never does: the run never runs gh pr merge, the merge is the developer's, named as the next step"
@@ -400,8 +424,8 @@ carries_any "named as the next step" "next step" "Next step"
 # already says "its first line is its verdict" and names `verdict=pending` and `verdict=green`, so
 # each guarantee is read off the bullet or paragraph that carries it, never the whole step: the two
 # stops carry the same words, and only their own piece tells one from the other.
-echo "# pr.md / ### 3. Watch: the run routes on the script's verdict line alone; another verdict word, or a non-zero exit, stops it on one line quoting it, nothing followed"
-watch="$(passage_of "$pr" "### 3. Watch" "##" 2>/dev/null)"
+echo "# pr.md / ### Watch: the run routes on the script's verdict line alone; another verdict word, or a non-zero exit, stops it on one line quoting it, nothing followed"
+watch="$(passage_of "$pr" "$watch_h" "##" 2>/dev/null)"
 piece_with() { # $1.. fixed strings: the first bullet or blank-line paragraph of $watch carrying any of them, flattened, on stdout
   # Optional: piece_in set on the call's own line reads another step's passage in place of $watch;
   # piece_without, fixed strings one per line, passes over a piece carrying any of them, so a key a
@@ -454,10 +478,10 @@ carries_any "and follows nothing" \
 
 # The developer reading a `--auto` Run report sees how many rounds the watch took and how many checks
 # ran, while the Reply stays its five parts, which every grader and reply-message-parts.sh read: a
-# round section in the message breaks them. `### 3. Watch` and `### 5. Reply` already name the
+# round section in the message breaks them. `### Watch` and `### Reply` already name the
 # verdicts and `checks=<n>`, and reply.md's `## Run` list is renumbered whenever an item lands, so
 # each check reads the item or the piece that names the round, never the whole step or section.
-echo "# reply.md / ## Run and pr.md / ### 3. Watch: the pr watch's round is a Run section line, each call's verdict in order with the check count, written under --auto only, never a part of the Reply"
+echo "# reply.md / ## Run and pr.md / ### Watch: the pr watch's round is a Run section line, each call's verdict in order with the check count, written under --auto only, never a part of the Reply"
 run_list="$(passage_of "$reply" "## Run" "## " 2>/dev/null)"
 flat=""
 for key in "verdict=pending" "pr-watch.sh" "watch"; do
@@ -486,15 +510,15 @@ carries_any "never as a section of the Reply" \
 
 # The developer whose pull request waits on a required review has nothing to fix and nothing to
 # choose: a run that stops on that verdict reads as broken, a `Yours:` line reads as a choice, and a
-# run that merges takes the approval out of their hands. Step 4 already says "every check is green",
+# run that merges takes the approval out of their hands. The Fix step already says "every check is green",
 # "no `Yours:`" and "gh pr merge <n>" for a green watch, so each of those is read off the piece of the
 # step that names `awaiting-approval`, and item 10's off the sentence that names the approval.
-echo "# pr.md / ### 3. Watch and ### 5. Reply, reply.md item 10: a watch awaiting a required approval ends on a Reply saying only the approval is missing, no Yours:, gh pr merge <n> never run"
+echo "# pr.md / ### Watch and ### Reply, reply.md item 10: a watch awaiting a required approval ends on a Reply saying only the approval is missing, no Yours:, gh pr merge <n> never run"
 flat="$(piece_with "verdict=awaiting-approval")"
 expect "a bullet or paragraph of the watch step names \`verdict=awaiting-approval\`" test -n "$flat"
-carries_any "it hands on to step 5, the Reply, as a green watch does" \
-  "### 5. Reply" "step 5" "Reply step" "to the Reply" "on to the Reply"
-reply_step="$(passage_of "$pr" "### 5. Reply" "##" 2>/dev/null)"
+carries_any "it hands on to step $reply_n, the Reply, as a green watch does" \
+  "$reply_h" "step $reply_n" "Reply step" "to the Reply" "on to the Reply"
+reply_step="$(passage_of "$pr" "$reply_h" "##" 2>/dev/null)"
 flat="$(piece_in="$reply_step" piece_with "awaiting-approval")"
 expect "a bullet or paragraph of the Reply step names \`awaiting-approval\`" test -n "$flat"
 carries_each "it says every check is green" \
@@ -529,10 +553,10 @@ carries_any "under the same no-\`Yours:\` rule" \
 
 # Only the owner of the head branch may rewrite it: a run that rebases a branch others write rewrites
 # their history, and a stop with no class, or naming the wrong branch, leaves the developer unsure
-# whose move it is. Step 2's read-back already names `<head>` and `<base>`, and the never-does section
+# whose move it is. The Read-back step's read-back already names `<head>` and `<base>`, and the never-does section
 # already holds the merge bullet, so each guarantee is read off the piece that names the conflict or
 # the bullet that names the rebase.
-echo "# pr.md / ### 3. Watch and ## What this run never does: a conflicting pull request stops on one Yours: direction: line naming the head branch its owner rebases, rebasing and pushing nothing"
+echo "# pr.md / ### Watch and ## What this run never does: a conflicting pull request stops on one Yours: direction: line naming the head branch its owner rebases, rebasing and pushing nothing"
 flat="$(piece_with "verdict=conflict")"
 expect "a bullet or paragraph of the watch step names \`verdict=conflict\`" test -n "$flat"
 carries_any "it stops the run" "stops" "stop" "ends the run" "the run ends"
@@ -544,8 +568,8 @@ carries_each "\`<head>\` and \`<base>\` come off the verdict's \`head=\` and \`b
   "head=" -- "base="
 carries_any "not off the read-back" \
   "not the read-back" "never the read-back" "not off the read-back" "never off the read-back" \
-  "not from the read-back" "never from the read-back" "not step 2" "never step 2" "not off step 2" \
-  "never off step 2" "not from step 2" "never from step 2" "rather than the read-back" "instead of the read-back"
+  "not from the read-back" "never from the read-back" "not step $read_n" "never step $read_n" "not off step $read_n" \
+  "never off step $read_n" "not from step $read_n" "never from step $read_n" "rather than the read-back" "instead of the read-back"
 carries_each "the run never rebases and never pushes" \
   "never rebases" "does not rebase" "doesn't rebase" "rebases nothing" "no rebase" -- \
   "never pushes" "does not push" "doesn't push" "pushes nothing" "no push" "nor pushes" "or pushes"
@@ -564,11 +588,11 @@ carries_any "on a conflict" "conflict"
 # checks that are still moving. The window lives in the script's `since=` and `state=`, so the run
 # hands them back untouched, and the stop is read off the piece naming `verdict=stalled`, since the
 # conflict bullet carries a `Yours: direction:` line too.
-echo "# pr.md / ### 3. Watch: the run hands each pending verdict's since= and state= back to the next call, and stops on verdict=stalled with one Yours: direction: line naming the pending checks"
-blocks="$(blocks_of "$pr" "### 3. Watch" 2>/dev/null)"
+echo "# pr.md / ### Watch: the run hands each pending verdict's since= and state= back to the next call, and stops on verdict=stalled with one Yours: direction: line naming the pending checks"
+blocks="$(blocks_of "$pr" "$watch_h" 2>/dev/null)"
 expect "the step's call line takes the window back, \`pr-watch.sh <pr> [<since> <state>]\`" \
   grep -qF -- "bash <skill-dir>/scripts/pr-watch.sh <pr> [<since> <state>]" <<<"$blocks"
-flat="$(passage_of "$pr" "### 3. Watch" "##" 2>/dev/null | tr '\n' ' ' | tr -s ' ')"
+flat="$(passage_of "$pr" "$watch_h" "##" 2>/dev/null | tr '\n' ' ' | tr -s ' ')"
 affirms "the first call passes \`<pr>\` alone" \
   "first call" "first time" "first run" -- \
   "<pr>\` alone" "<pr> alone" "only \`<pr>\`" "only <pr>" "alone"
@@ -599,14 +623,14 @@ carries_any "joined with \`, \`" \
 # and a Plan: line built from the request's own wording repeats that misreading: only the pull
 # request gh answers for names the branches the run actually follows, so the developer sees the
 # reversal on the Reply's first lines.
-echo "# pr.md / ## Steps, ### 1. Pull request and ### 2. Read-back: a branch pair is taken head first, as the branch the pull request comes from, and read back off gh's answer, never off the request's wording"
+echo "# pr.md / ## Steps, ### Pull request and ### Read-back: a branch pair is taken head first, as the branch the pull request comes from, and read back off gh's answer, never off the request's wording"
 steps="$(blocks_of "$pr" "## Steps" 2>/dev/null)"
-flat="$(grep -E '^1\. ' <<<"$steps")"
-carries_any "step 1 of the checklist takes a branch pair beside the URL or the number" \
+flat="$(checklist_line "pull request")"
+carries_any "the checklist's pull request line takes a branch pair beside the URL or the number" \
   "branch pair" "pair of branches" "two branches" "head and base" "head and its base"
 pair_keys=("branch pair" "pair of branches" "two branches")
-flat="$(piece_in="$(passage_of "$pr" "### 1. Pull request" "##" 2>/dev/null)" piece_with "${pair_keys[@]}")"
-expect "a paragraph of ### 1. Pull request takes a branch pair from the request" test -n "$flat"
+flat="$(piece_in="$(passage_of "$pr" "$pull_h" "##" 2>/dev/null)" piece_with "${pair_keys[@]}")"
+expect "a paragraph of $pull_h takes a branch pair from the request" test -n "$flat"
 affirms "the head is the branch the pull request comes from" \
   "head" -- "comes from" "come from" "it is from" "opened from"
 affirms "the base is the branch it goes into" \
@@ -617,8 +641,8 @@ carries_any "\`dev\` is the head" \
   "\`dev\` is the head" "\`dev\` the head" "\`dev\` is its head" "head \`dev\`" "head is \`dev\`"
 carries_any "\`prod\` the base" \
   "\`prod\` is the base" "\`prod\` the base" "\`prod\` its base" "base \`prod\`" "base is \`prod\`"
-flat="$(piece_in="$(passage_of "$pr" "### 2. Read-back" "##" 2>/dev/null)" piece_with "${pair_keys[@]}")"
-expect "a paragraph of ### 2. Read-back takes up a branch pair" test -n "$flat"
+flat="$(piece_in="$(passage_of "$pr" "$read_h" "##" 2>/dev/null)" piece_with "${pair_keys[@]}")"
+expect "a paragraph of $read_h takes up a branch pair" test -n "$flat"
 carries_each "its read-back is gh's answer for the pull request the run follows, its headRefName into its baseRefName" \
   "headRefName" -- "baseRefName" -- "into"
 carries_any "never off the request's wording" \
@@ -629,13 +653,13 @@ carries_any "never off the request's wording" \
 
 # A developer who repeats the request, or whose teammate opened the pull request first, ends with two
 # pull requests for one pair and reviews split across them when the run opens one without looking.
-# Step 1's pair paragraph and its logged-in stop already carry `number`, `follows nothing` and the
+# The Pull request step's pair paragraph and its logged-in stop already carry `number`, `follows nothing` and the
 # Reply, so the lookup is read off the piece naming `gh pr list` and the follow off the piece saying
 # the pull request was already open.
-echo "# pr.md / ### 1. Pull request: a branch pair whose pull request is already open is followed by its number, nothing opened, the Reply saying it was already open"
-pull_request="$(passage_of "$pr" "### 1. Pull request" "##" 2>/dev/null)"
+echo "# pr.md / ### Pull request: a branch pair whose pull request is already open is followed by its number, nothing opened, the Reply saying it was already open"
+pull_request="$(passage_of "$pr" "$pull_h" "##" 2>/dev/null)"
 flat="$(piece_in="$pull_request" piece_with "gh pr list")"
-expect "a bullet or paragraph of ### 1. Pull request names \`gh pr list\`" test -n "$flat"
+expect "a bullet or paragraph of $pull_h names \`gh pr list\`" test -n "$flat"
 carries_any "for a branch pair" "branch pair" "the pair" "pair of branches"
 carries "listed by the pair's head and base" "--head <head>" "--base <base>"
 carries_any "in the open state" "--state open" "open pull request" "open state" "an open one"
@@ -644,12 +668,12 @@ carries_any "before the run opens anything" \
   "before it creates" "before creating" "first looks" "first asks" "first lists"
 flat="$(piece_in="$pull_request" piece_with "already open" "already opened" "already exists" \
   "already existed" "was open")"
-expect "a bullet or paragraph of ### 1. Pull request takes a pull request already open for the pair" test -n "$flat"
+expect "a bullet or paragraph of $pull_h takes a pull request already open for the pair" test -n "$flat"
 affirms "the run takes its number" \
   "number" -- "takes" "holds" "keeps" "reads" "uses"
 affirms "and follows it as a pull request named by its number" \
   "number" -- "follow"
-carries_any "from the read-back on" "read-back" "step 2" "### 2"
+carries_any "from the read-back on" "read-back" "step $read_n" "### $read_n"
 carries_any "opening nothing" \
   "opens nothing" "opens none" "opens no " "never opens" "does not open" "doesn't open" \
   "nothing is opened" "no pull request is opened" "no new pull request" "no second pull request"
@@ -664,9 +688,9 @@ carries_each "the Reply says it was already open" \
 # one that takes a closed or merged one reports as already open a pull request nobody can merge: in
 # both cases it opens nothing. The lookup piece already carries `--head`, `--base` and `--state open`,
 # so the match is read off what it says counts as the pair's open pull request and what does not.
-echo "# pr.md / ### 1. Pull request: a pull request from the head into another base, or a closed or merged one for the pair, is not the pair's open pull request"
+echo "# pr.md / ### Pull request: a pull request from the head into another base, or a closed or merged one for the pair, is not the pair's open pull request"
 flat="$(piece_in="$pull_request" piece_with "gh pr list")"
-expect "a bullet or paragraph of ### 1. Pull request names \`gh pr list\`" test -n "$flat"
+expect "a bullet or paragraph of $pull_h names \`gh pr list\`" test -n "$flat"
 carries_each "the pair's open pull request is one whose head is the pair's head, whose base is the pair's base, and which is open" \
   "whose head" "its head is" "head is the pair's" "the pair's head" -- \
   "whose base" "its base is" "base is the pair's" "the pair's base" -- \
@@ -685,9 +709,9 @@ carries_any "either one counts as none open for the pair" \
 # title and body to rewrite by hand, opens it themselves. The already-open paragraph names
 # `gh pr create` only to say it never runs, so the create is read off the piece naming
 # `gh pr create --head`, and the never-does allowance off the bullet naming `gh pr create`.
-echo "# pr.md / ### 1. Pull request and ## What this run never does: with none open for the pair, the run opens exactly one pull request from head into base, titled and described from the commits between them, pushing nothing, the Reply saying it was opened"
+echo "# pr.md / ### Pull request and ## What this run never does: with none open for the pair, the run opens exactly one pull request from head into base, titled and described from the commits between them, pushing nothing, the Reply saying it was opened"
 flat="$(piece_in="$pull_request" piece_with "gh pr create --head")"
-expect "a bullet or paragraph of ### 1. Pull request names \`gh pr create --head\`" test -n "$flat"
+expect "a bullet or paragraph of $pull_h names \`gh pr create --head\`" test -n "$flat"
 carries "the create names the pair's head and base and fills from the commits" \
   "gh pr create --head <head> --base <base>" "--fill"
 carries_any "when none is open for the pair" \
@@ -718,9 +742,9 @@ carries_any "and the create pushes nothing" \
 # and only `gh pr create`'s answer, the URL it prints, carries it. The create paragraph already names
 # the read-back beside the `Plan:` line, so the follow is read off a phrase that carries the run on to
 # it, and the step's `Done when` off the found or opened pull request it names.
-echo "# pr.md / ### 1. Pull request: the pull request the run opened for the pair is followed by the number off \`gh pr create\`'s URL, from the read-back on, the watch on that number, as an open one is"
+echo "# pr.md / ### Pull request: the pull request the run opened for the pair is followed by the number off \`gh pr create\`'s URL, from the read-back on, the watch on that number, as an open one is"
 flat="$(piece_in="$pull_request" piece_with "gh pr create --head")"
-expect "a bullet or paragraph of ### 1. Pull request names \`gh pr create --head\`" test -n "$flat"
+expect "a bullet or paragraph of $pull_h names \`gh pr create --head\`" test -n "$flat"
 affirms "the run takes the new pull request's number" \
   "number" -- "takes" "holds" "keeps" "reads" "uses"
 carries_each "off the URL \`gh pr create\` prints" \
@@ -728,7 +752,7 @@ carries_each "off the URL \`gh pr create\` prints" \
 affirms "and follows it by that number" \
   "number" -- "follow"
 carries_any "from the read-back on" \
-  "from the read-back on" "from step 2 on" "on to the read-back" "on to step 2" \
+  "from the read-back on" "from step $read_n on" "on to the read-back" "on to step $read_n" \
   "to the read-back and the watch" "the read-back and the watch" "through the read-back"
 affirms "the watch runs on that number" \
   "watch" -- "number"
@@ -736,16 +760,16 @@ carries_any "as an open one is followed" \
   "as an open one" "as one already open" "as a pull request already open" "as the already-open" \
   "as one found open" "named by number" "named by its number"
 flat="$(piece_in="$pull_request" piece_with "Done when")"
-expect "### 1. Pull request has a \`Done when\` line" test -n "$flat"
-carries_each "step 1 is done holding the number of a pull request the run found or opened for the pair" \
+expect "$pull_h has a \`Done when\` line" test -n "$flat"
+carries_each "step $pull_n is done holding the number of a pull request the run found or opened for the pair" \
   "number" -- "found" "already open" "listed" "looked up" "open for the pair" -- \
   "opened" "created"
 
 # A developer who typed half the pair, as in `abra um PR de dev`, gets a pull request opened into a
 # base the run picked and has to close it, or a run that ends with no word on what was missing. The
-# pair paragraph of step 1 already speaks of `<head>` and `<base>`, and the create paragraph of
+# pair paragraph of the Pull request step already speaks of `<head>` and `<base>`, and the create paragraph of
 # opening exactly one, so the stop is read off the piece naming a request with no base.
-echo "# SKILL.md / ## Router and pr.md / ### 1. Pull request: a pull request naming a head and no base routes to pr and ends on one message asking for the base, never filled in, nothing looked up or opened"
+echo "# SKILL.md / ## Router and pr.md / ### Pull request: a pull request naming a head and no base routes to pr and ends on one message asking for the base, never filled in, nothing looked up or opened"
 flat="$(argument_of "$pr_row")"
 carries_each "the pr row takes words asking for a pull request that name one branch only, as in \`abra um PR de dev\`" \
   "pull request" "PR" -- \
@@ -756,7 +780,7 @@ missing_base_keys=("no base" "without a base" "missing base" "missing its base" 
   "names no base" "lacks a base" "lacking a base" "one branch only" "only one branch" "a single branch"
   "head alone" "only the head")
 flat="$(piece_in="$pull_request" piece_with "${missing_base_keys[@]}")"
-expect "a bullet or paragraph of ### 1. Pull request takes a request naming a head and no base" test -n "$flat"
+expect "a bullet or paragraph of $pull_h takes a request naming a head and no base" test -n "$flat"
 carries_any "it ends the run" "stops" "stop" "ends the run" "the run ends"
 carries_any "in one message" \
   "one message" "a single message" "one line" "One line" "single line" "one Reply" "a single Reply"
@@ -784,11 +808,11 @@ carries_any "and opening nothing, no \`gh pr create\`" \
 # the branch checked out. The missing-base paragraph already says `checkout` for the base, so the
 # stop is read off the piece naming a request with no head, and the current branch off the phrasings
 # naming the branch checked out, which that paragraph does not carry.
-echo "# pr.md / ### 1. Pull request: a pull request naming a base and no head ends on one message asking for the head, never the branch checked out, nothing looked up or opened"
+echo "# pr.md / ### Pull request: a pull request naming a base and no head ends on one message asking for the head, never the branch checked out, nothing looked up or opened"
 missing_head_keys=("no head" "without a head" "missing head" "missing its head" "head is missing"
   "lacks a head" "lacking a head" "base alone" "only the base")
 flat="$(piece_in="$pull_request" piece_with "${missing_head_keys[@]}")"
-expect "a bullet or paragraph of ### 1. Pull request takes a request naming a base and no head" test -n "$flat"
+expect "a bullet or paragraph of $pull_h takes a request naming a base and no head" test -n "$flat"
 carries_any "it ends the run" "stops" "stop" "ends the run" "the run ends"
 carries_any "in one message" \
   "one message" "a single message" "one line" "One line" "single line" "one Reply" "a single Reply"
@@ -817,14 +841,14 @@ carries_any "and opening nothing, no \`gh pr create\`" \
 
 # A developer who mistyped the head sees the CLI's raw error, or a pull request attempted from a
 # branch that is not there, with no word on which name was wrong, when the run looks the pair up or
-# opens one before it knows both branches are there. Step 1 already says `Playbook: pr`, "one line",
+# opens one before it knows both branches are there. The Pull request step already says `Playbook: pr`, "one line",
 # `gh pr list` and `gh pr create` for other stops and the lookup, so the stop is read off the piece
 # naming a branch that does not exist; a piece saying it of either branch of the pair answers for the head.
-echo "# pr.md / ### 1. Pull request: a branch pair whose head does not exist, neither locally nor on the remote, stops on Playbook: pr and one line naming that branch, nothing looked up or opened"
+echo "# pr.md / ### Pull request: a branch pair whose head does not exist, neither locally nor on the remote, stops on Playbook: pr and one line naming that branch, nothing looked up or opened"
 missing_branch_keys=("does not exist" "doesn't exist" "no such branch" "not exist" "nonexistent"
   "non-existent")
 flat="$(piece_in="$pull_request" piece_with "${missing_branch_keys[@]}")"
-expect "a bullet or paragraph of ### 1. Pull request takes a branch of the pair that does not exist" test -n "$flat"
+expect "a bullet or paragraph of $pull_h takes a branch of the pair that does not exist" test -n "$flat"
 carries_any "the head counts" \
   "head" "branch of the pair" "branches of the pair" "pair's branches" "either branch" "each branch" \
   "both branches"
@@ -854,9 +878,9 @@ carries_any "and opening nothing, no \`gh pr create\`" \
 # not exist" for the head, so the base is read off phrasings that put it among the branches checked
 # and off a stop worded for any branch of the pair, never off "both branches" or "branch that does
 # not exist" bare.
-echo "# pr.md / ### 1. Pull request: a branch pair whose base does not exist, neither locally nor on the remote, stops on Playbook: pr and one line naming that branch, nothing looked up or opened"
+echo "# pr.md / ### Pull request: a branch pair whose base does not exist, neither locally nor on the remote, stops on Playbook: pr and one line naming that branch, nothing looked up or opened"
 flat="$(piece_in="$pull_request" piece_with "${missing_branch_keys[@]}")"
-expect "a bullet or paragraph of ### 1. Pull request takes a branch of the pair that does not exist" test -n "$flat"
+expect "a bullet or paragraph of $pull_h takes a branch of the pair that does not exist" test -n "$flat"
 carries_any "the base is among the branches checked" \
   "<base>" "head and the base" "head and base" "head or base" "head or the base" "head or a base" \
   "base and the head" "base and head" "base or head" "base or the head" "base exists" \
@@ -895,11 +919,11 @@ carries_any "and opening nothing, no \`gh pr create\`" \
 # commits between them. The create paragraph already says "commits between base and head" and the
 # existence paragraph "stops the run" and "one line", so the stop is read off the piece naming an
 # empty range or nothing to open, phrasings neither of those carries.
-echo "# pr.md / ### 1. Pull request: a branch pair whose head carries no commit its base lacks stops on one line saying there is nothing to open, after the existence check, nothing looked up or opened"
+echo "# pr.md / ### Pull request: a branch pair whose head carries no commit its base lacks stops on one line saying there is nothing to open, after the existence check, nothing looked up or opened"
 empty_range_keys=("nothing to open" "Nothing to open" "no commits" "no commit" "empty range"
   "range is empty" "..<head>" "rev-list" "already merged")
 flat="$(piece_in="$pull_request" piece_with "${empty_range_keys[@]}")"
-expect "a bullet or paragraph of ### 1. Pull request takes a pair whose head has no commit the base lacks" test -n "$flat"
+expect "a bullet or paragraph of $pull_h takes a pair whose head has no commit the base lacks" test -n "$flat"
 carries_any "the range read is the commits the head carries that the base lacks" \
   "<base>..<head>" "base..head" "rev-list" "the base lacks" "base does not have" "base doesn't have" \
   "not in the base" "not yet in the base" "not already in the base" "missing from the base"
@@ -932,9 +956,9 @@ carries_any "and opening nothing, no \`gh pr create\`" \
 # the case above. The phrasings for a branch the remote does not hold leave out every key of
 # unpublished_head_keys below, since a paragraph carrying one would hand the unpublished-head cases
 # this piece in place of their own.
-echo "# pr.md / ### 1. Pull request: the nothing-to-open range reads a branch the remote holds at the remote's tip, never at a local branch of the same name, and only a branch the remote does not hold as the local branch"
+echo "# pr.md / ### Pull request: the nothing-to-open range reads a branch the remote holds at the remote's tip, never at a local branch of the same name, and only a branch the remote does not hold as the local branch"
 flat="$(piece_in="$pull_request" piece_with "${empty_range_keys[@]}")"
-expect "a bullet or paragraph of ### 1. Pull request takes a pair whose head has no commit the base lacks" test -n "$flat"
+expect "a bullet or paragraph of $pull_h takes a pair whose head has no commit the base lacks" test -n "$flat"
 carries_any "a branch the remote holds is read at the remote's tip" \
   "git fetch origin" "origin/<base>" "origin/<head>" "origin/<branch>" "refs/remotes/origin/" \
   "the remote's tip" "remote tip" "tip on the remote" "tips on the remote" "tip the remote holds" \
@@ -958,14 +982,14 @@ carries_each "only a branch the remote does not hold is read as the local branch
 # local head as good enough. The existence paragraph already says `git ls-remote`, "local" and "a
 # branch on the remote", and the create paragraph "pushes nothing" and "already on the remote", so
 # the stop is read off the piece naming a head the remote does not have, phrasings neither carries.
-echo "# pr.md / ### 1. Pull request: a branch pair whose head exists locally with no branch on the remote stops the run, after the nothing-to-open check, nothing pushed, looked up or opened"
+echo "# pr.md / ### Pull request: a branch pair whose head exists locally with no branch on the remote stops the run, after the nothing-to-open check, nothing pushed, looked up or opened"
 unpublished_head_keys=("not on the remote" "no branch on the remote" "missing from the remote"
   "absent from the remote" "never published" "unpublished" "not published" "not yet published"
   "remote does not have" "remote doesn't have" "remote does not hold" "remote doesn't hold"
   "remote lacks" "remote has no" "not pushed" "never pushed" "not yet pushed" "only locally"
   "only as a local" "local only" "local-only")
 flat="$(piece_in="$pull_request" piece_with "${unpublished_head_keys[@]}")"
-expect "a bullet or paragraph of ### 1. Pull request takes a head the remote does not have" test -n "$flat"
+expect "a bullet or paragraph of $pull_h takes a head the remote does not have" test -n "$flat"
 carries_each "a head that exists locally but is not on the remote" \
   "head" -- \
   "locally" "local branch" "local" -- \
@@ -1026,9 +1050,9 @@ carries_each "nothing to open names the commits the head still needs, or another
 # different kind of choice, and a stop listed among reply.md's exceptions reads as a branch that does
 # not exist. The pr.md piece is the one the unpublished-head case above reads; the reply.md slice is
 # the exception list the case above reads, past its first "except".
-echo "# pr.md / ### 1. Pull request and reply.md / ## A refusal or a blocked run: the stop on a head the remote does not have carries exactly one Yours: outward: line, the push to type, and is no exception"
+echo "# pr.md / ### Pull request and reply.md / ## A refusal or a blocked run: the stop on a head the remote does not have carries exactly one Yours: outward: line, the push to type, and is no exception"
 flat="$(piece_in="$pull_request" piece_with "${unpublished_head_keys[@]}")"
-expect "a bullet or paragraph of ### 1. Pull request takes a head the remote does not have" test -n "$flat"
+expect "a bullet or paragraph of $pull_h takes a head the remote does not have" test -n "$flat"
 carries "the Reply hands over the push of that head, then the request again" \
   "Yours: outward: push <head> to the remote (git push -u origin <head>), then /do the request again"
 carries_any "as one \`Yours:\` line" \
@@ -1050,9 +1074,9 @@ expect "the stop on an unpublished head is not among the stops with no \`Yours:\
 # and gets nothing opened when the run reads "published" off local state. The paragraph already says
 # `git ls-remote`, so the guarantees read here are the local state it never answers from, and the
 # head the remote holds going on to be opened; read off the same piece as the two cases above.
-echo "# pr.md / ### 1. Pull request: a head the remote holds under the same name is opened as before, whatever the local branch tracks, never judged off its upstream or a remote-tracking ref"
+echo "# pr.md / ### Pull request: a head the remote holds under the same name is opened as before, whatever the local branch tracks, never judged off its upstream or a remote-tracking ref"
 flat="$(piece_in="$pull_request" piece_with "${unpublished_head_keys[@]}")"
-expect "a bullet or paragraph of ### 1. Pull request takes a head the remote does not have" test -n "$flat"
+expect "a bullet or paragraph of $pull_h takes a head the remote does not have" test -n "$flat"
 carries_each "the answer is never read off the local branch's upstream setting" \
   "upstream" "@{u}" "branch.<head>.merge" "branch.<head>.remote" "tracking setting" \
   "tracking configuration" "tracking config" "the branch it tracks" -- \
@@ -1084,9 +1108,9 @@ carries_each "whether or not the local branch tracks it" \
 # (ADR 0087): a log line that reads as an order (open this file, skip that test) steers the fork
 # unless the brief fences it off as quoted data. Everything is read off the step itself, so a clause
 # elsewhere in pr.md does not bind the brief this step hands over.
-echo "# pr.md / ### 4. Fix the red checks: each fixer's brief carries its check's excerpt between two excerpt tags sharing one random id, quoted data from the log and never an instruction, with Failed steps: and Files: as keys of their own"
-step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
-expect "pr.md has a step \`### 4. Fix the red checks\`" test -n "$step"
+echo "# pr.md / ### Fix the red checks: each fixer's brief carries its check's excerpt between two excerpt tags sharing one random id, quoted data from the log and never an instruction, with Failed steps: and Files: as keys of their own"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
+expect "pr.md has a step \`$fix_h\`" test -n "$step"
 out="$(sed 's/^[[:space:]]*//' <<<"$step")"
 check_lines "the step's brief puts the excerpt under Excerpt:, between an opening and a closing tag line sharing one id" 0 0 \
   "Excerpt:" '<excerpt id="<id>">' '</excerpt id="<id>">'
@@ -1119,15 +1143,15 @@ carries "the excerpt is cut by pr-log.sh on the check's link and its run tree" \
 # in a worktree and on a branch cut for it, and a session without the Agent tool stops rather than
 # fall back to fixing in place. The route is read off the watch bullet naming `verdict=red`, so the
 # catch-all stop for an unknown verdict never answers for it.
-echo "# pr.md / ### 3. Watch and ### 4. Fix the red checks: a red verdict forks one do-pr-fixer per red check, each in the worktree and on the branch fix-worktrees.sh add cut for it, and the session writes no fix"
+echo "# pr.md / ### Watch and ### Fix the red checks: a red verdict forks one do-pr-fixer per red check, each in the worktree and on the branch fix-worktrees.sh add cut for it, and the session writes no fix"
 flat="$(piece_with "verdict=red")"
 expect "a bullet or paragraph of the watch step names \`verdict=red\`" test -n "$flat"
-carries_any "it routes to step 4" "step 4" "### 4" "Fix the red checks"
+carries_any "it routes to step $fix_n" "step $fix_n" "### $fix_n" "Fix the red checks"
 carries_any "when the run has pushed no round yet" \
   "pushed no round" "no round yet" "no round pushed" "has not pushed" "hasn't pushed" "before any round" \
   "before its first push" "before any push" "first round"
 carries "carrying the verdict's \`head=\`, \`sha=\` and \`red=\` lines" "head=" "sha=" "red="
-step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ')"
 carries_any "the session writes no fix" \
   "writes no fix" "never writes a fix" "writes no fixes" "never writes the fix" "no fix is written in the session"
@@ -1166,10 +1190,10 @@ carries_any "and the session never fixes a check itself" \
 
 # Disjoint red checks are fixed at once and checks sharing a file one after the other: the Waves are
 # group-waves.sh's output over each check's `file=` lines, never a grouping the session works out.
-# What the run pipes to it is read off the stretch of step 4 before the first add call, since the
+# What the run pipes to it is read off the stretch of the Fix step before the first add call, since the
 # grouping has to be done before any worktree is cut and item 5 already says "one line per check".
-echo "# pr.md / ### 4. Fix the red checks: the red checks are grouped into Waves by group-waves.sh over their file= lines, every fixer of a Wave is forked at once, and a check sharing a file with an earlier one runs in a later Wave"
-step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+echo "# pr.md / ### Fix the red checks: the red checks are grouped into Waves by group-waves.sh over their file= lines, every fixer of a Wave is forked at once, and a check sharing a file with an earlier one runs in a later Wave"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ')"
 whole="$flat"
 carries "the red checks are piped to group-waves.sh" "bash <skill-dir>/../do-code-review/scripts/group-waves.sh"
@@ -1216,8 +1240,8 @@ carries_each "that one call waits on every return file of the Wave" \
 # `not reproduced` line sits in the return file itself, so a step that routes on a line returns.sh
 # printed routes on nothing. The read is pinned on the step's sentences naming `returned=`, and the
 # false claim on any sentence that still has returns.sh print a fixer's line.
-echo "# pr.md / ### 4. Fix the red checks: the session reads the one line of each returned= file returns.sh printed and routes on that line, and never treats a fixer's not fixed or not reproduced line as one returns.sh printed"
-step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+echo "# pr.md / ### Fix the red checks: the session reads the one line of each returned= file returns.sh printed and routes on that line, and never treats a fixer's not fixed or not reproduced line as one returns.sh printed"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 sentences="$(tr '\n' ' ' <<<"$step" | tr -s ' ' | sed 's/\. /.\n/g')"
 flat="$(grep -F "returned=" <<<"$sentences" | tr '\n' ' ')"
 expect "a sentence of the step names returns.sh's \`returned=\` line" test -n "$flat"
@@ -1238,8 +1262,8 @@ expect "no sentence of the step has returns.sh print a fixer's \`not fixed <k>:\
 # check is classified by one pr-classify.sh call between the excerpts and the grouping, and only the
 # `real` ones reach group-waves.sh. The call's item says how it runs and the item carrying the round
 # line what a failed classification does; the stale check's fate is read off the step's own sentences.
-echo "# pr.md / ### 4. Fix the red checks: one pr-classify.sh <run tree> <base> call classifies every red check after its pr-log.sh call and before group-waves.sh, only the real records go on to group-waves.sh, a stale check gets no do-pr-fixer, and a failed: exit writes the no check classified round line and sends every check on as real"
-step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+echo "# pr.md / ### Fix the red checks: one pr-classify.sh <run tree> <base> call classifies every red check after its pr-log.sh call and before group-waves.sh, only the real records go on to group-waves.sh, a stale check gets no do-pr-fixer, and a failed: exit writes the no check classified round line and sends every check on as real"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ')"
 whole="$flat"
 carries "the step runs pr-classify.sh on the run tree and the base" "pr-classify.sh <run tree> <base>"
@@ -1255,9 +1279,9 @@ carries_each "it is one call over every red check of the round" \
   "once" "one call" "a single call" "one \`pr-classify.sh\`" "one pr-classify.sh" -- \
   "every red check" "each red check" "all the red checks" "every check" "each check" "all the checks" \
   "one record per red check" "one record per check"
-carries_each "its <base> is the baseRefName step 2 read" \
+carries_each "its <base> is the baseRefName step $read_n read" \
   "<base>" -- \
-  "baseRefName" "step 2"
+  "baseRefName" "step $read_n"
 flat="$whole"
 affirms "only the records of the checks it printed real for are piped to group-waves.sh" \
   "\`real\`" "real <k>" "as real" "real checks" "real ones" "real records" -- \
@@ -1282,8 +1306,8 @@ affirms "and every check goes on as real" \
 # A check that fails on a timeout or a crashed runner names no file in its log, so its fix may touch
 # any file and would collide with a fixer beside it. Item 4 already says "a tab" and "Wave" for every
 # check, so both guarantees are read off the paragraph about the check with no `file=` line alone.
-echo "# pr.md / ### 4. Fix the red checks: a red check whose pr-log.sh output prints no file= line still goes to group-waves.sh as <k>, a tab and an empty field, and is forked in a Wave of its own"
-step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+echo "# pr.md / ### Fix the red checks: a red check whose pr-log.sh output prints no file= line still goes to group-waves.sh as <k>, a tab and an empty field, and is forked in a Wave of its own"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 flat="$(piece_in="$step" piece_with "no \`file=\`" "no file=" "without a \`file=\`" "without \`file=\`" \
   "names no file" "no file")"
 expect "a paragraph of the step is about the check with no \`file=\` line" test -n "$flat"
@@ -1298,11 +1322,11 @@ carries_any "group-waves.sh puts that check in a Wave of its own, sharing none w
 
 # The developer audits the pushed round in check order, and fix-integrate.sh takes a branch only when
 # it is one commit ahead of the run tree's HEAD: a Wave cut before the earlier picks fixes a head that
-# is gone by the time it is integrated. Step 4 already says "check order" for the excerpts and the
+# is gone by the time it is integrated. The Fix step already says "check order" for the excerpts and the
 # group-waves.sh records, so the pick's order is read off the paragraph carrying the call, and the
 # next Wave's cut off the paragraph that names the next Wave.
-echo "# pr.md / ### 4. Fix the red checks: a Wave's fixed commits come onto the run tree through one fix-integrate.sh call in check number order, and the next Wave's worktrees are cut only after those picks, from the run tree's HEAD as they left it"
-step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+echo "# pr.md / ### Fix the red checks: a Wave's fixed commits come onto the run tree through one fix-integrate.sh call in check number order, and the next Wave's worktrees are cut only after those picks, from the run tree's HEAD as they left it"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ')"
 carries "one fix-integrate.sh call takes every fixed branch of the Wave, printing a picked line" \
   "bash <skill-dir>/../do-code-review/scripts/fix-integrate.sh <run tree> <k>=<branch>..." "picked <k> <sha>"
@@ -1334,12 +1358,12 @@ carries_each "since fix-integrate.sh refuses a branch not cut from the HEAD it s
   "fix-integrate.sh" -- "refus" "rejects" "won't take" "will not take" "takes a branch only" -- "HEAD"
 
 # A developer shares the head with others: a conflicted fix resolved by the run is a guess merged
-# into their branch, and a conflict that stops the run leaves that check with no fix at all. Step 4
+# into their branch, and a conflict that stops the run leaves that check with no fix at all. The Fix step
 # already says "next Wave", "HEAD" and "stops the run" for other reasons, so every guarantee is read
 # off the paragraph naming the script's `conflicted <k> with` line, which also keeps the stop for
 # any line other than `picked` and `conflicted`.
-echo "# pr.md / ### 4. Fix the red checks: a fixer whose pick conflicts with an earlier pick of the round has its pick aborted, moves to the next Wave and is forked again in a new worktree over the run tree's HEAD as it now stands, and the run neither stops on the conflict nor resolves it"
-step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+echo "# pr.md / ### Fix the red checks: a fixer whose pick conflicts with an earlier pick of the round has its pick aborted, moves to the next Wave and is forked again in a new worktree over the run tree's HEAD as it now stands, and the run neither stops on the conflict nor resolves it"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 flat="$(piece_in="$step" piece_with "conflicted <k> with")"
 expect "a paragraph of the step names fix-integrate.sh's \`conflicted <k> with\` line" test -n "$flat"
 carries_any "the script has already aborted that pick" \
@@ -1370,11 +1394,11 @@ carries_each "any line other than picked and conflicted still stops the run quot
   "stops the run" "stop the run" -- "quoting"
 
 # Two checks moved out of one Wave that conflicted over the same file would conflict again if forked
-# side by side, spending their moves on the very collision that moved them. Step 4 already says
+# side by side, spending their moves on the very collision that moved them. The Fix step already says
 # "later Wave", "next Wave" and "HEAD" for other reasons, so the guarantees are read off the
 # paragraph about the moved checks alone, keyed on wording no other paragraph of the step carries.
-echo "# pr.md / ### 4. Fix the red checks: checks moved out of one Wave whose conflicted lines name a common file are forked in separate Waves of their own, right after that Wave and before the next printed one, and never merged into a Wave group-waves.sh printed"
-step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+echo "# pr.md / ### Fix the red checks: checks moved out of one Wave whose conflicted lines name a common file are forked in separate Waves of their own, right after that Wave and before the next printed one, and never merged into a Wave group-waves.sh printed"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 flat="$(piece_in="$step" piece_with "moved out of" "moved checks" "moved check" "checks moved" "check moved")"
 expect "a paragraph of the step is about the checks moved out of a Wave" test -n "$flat"
 carries_any "the moved checks run in Waves of their own" \
@@ -1403,11 +1427,11 @@ carries_each "and such a Wave is never merged into a Wave group-waves.sh printed
   "printed" "group-waves.sh"
 
 # A check moved on every conflict never ends the round, and a Reply silent about it reads as every
-# check fixed. Step 4 already says "a branch twice" and "stays red this round" for other reasons, so
+# check fixed. The Fix step already says "a branch twice" and "stays red this round" for other reasons, so
 # the cap is read off the paragraph keyed on wording only it carries, and the round line off the
 # piece naming `not fixed: conflicted with`, wherever the step puts it.
-echo "# pr.md / ### 4. Fix the red checks and ### 5. Reply: a check whose pick conflicts after it was moved twice gets no third fixer and no pick that round, and its round line reads not fixed, naming the checks it conflicted with"
-step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+echo "# pr.md / ### Fix the red checks and ### Reply: a check whose pick conflicts after it was moved twice gets no third fixer and no pick that round, and its round line reads not fixed, naming the checks it conflicted with"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 flat="$(piece_in="$step" piece_with "moved twice" "twice already" "moved two times" "two moves" \
   "a third time" "third conflict" "third time")"
 expect "a paragraph of the step caps the moves of a conflicted check" test -n "$flat"
@@ -1440,17 +1464,17 @@ carries_each "a with none line reads not fixed: conflicted with no check of its 
   "with none" "\`none\`" -- "not fixed: conflicted with no check of its Wave"
 carries_each "naming the files that line quoted" \
   "files" "paths" "<path>" -- "quoted" "quotes" "the line names" "it names" "named"
-reply_step="$(passage_of "$pr" "### 5. Reply" "##" 2>/dev/null)"
+reply_step="$(passage_of "$pr" "$reply_h" "##" 2>/dev/null)"
 flat="$(sed 's/^[[:space:]]*//' <<<"$reply_step" | grep '^round [0-9<]')"
 carries "the Reply's round lines give one reading not fixed: conflicted with" \
   "not fixed: conflicted with"
 
 # A check left red after two moves lost to a coupling the head may since have absorbed: a mark
 # carried out of its round would keep it out of every later round's Waves, or spend its moves
-# before it ever ran. Step 4 says "this round" throughout, so the guarantee is read off the piece
+# before it ever ran. The Fix step says "this round" throughout, so the guarantee is read off the piece
 # keyed on wording only a later round's handling carries.
-echo "# pr.md / ### 4. Fix the red checks: a check left red after two moves carries no mark out of its round, so a later round groups its Waves from the watch's red= lines alone and the check's moves count from zero again"
-step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+echo "# pr.md / ### Fix the red checks: a check left red after two moves carries no mark out of its round, so a later round groups its Waves from the watch's red= lines alone and the check's moves count from zero again"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 flat="$(piece_in="$step" piece_with "later round" "next round" "following round" "from zero" \
   "count again" "counted again" "lines alone")"
 expect "a paragraph of the step says what a later round does with a check left red after two moves" \
@@ -1473,11 +1497,11 @@ carries_any "and its moves count from zero again" \
 # Every fixer leaves a worktree and a `fixer/` branch in the developer's main checkout, one per check
 # per round, and nobody sees them pile up. A moved check's first branch holds a commit whose pick was
 # aborted, which never matches the retry that superseded it, so the plain removal keeps it and only
-# the `--superseded` call takes it back. Step 4 already names `fix-worktrees.sh remove` per branch
+# the `--superseded` call takes it back. The Fix step already names `fix-worktrees.sh remove` per branch
 # for the round line, so the Wave's call and the superseded one are pinned by their exact lines, and
 # the superseded guarantees are read off the piece carrying `remove --superseded` alone.
-echo "# pr.md / ### 4. Fix the red checks: after each Wave's integration one fix-worktrees.sh remove call takes back every fixer worktree and branch of the Wave whose commit is on the run tree's HEAD or which made no commit, and a moved check's earlier conflicted branch goes through remove --superseded once its retry was picked"
-step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+echo "# pr.md / ### Fix the red checks: after each Wave's integration one fix-worktrees.sh remove call takes back every fixer worktree and branch of the Wave whose commit is on the run tree's HEAD or which made no commit, and a moved check's earlier conflicted branch goes through remove --superseded once its retry was picked"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ')"
 carries "one call takes back every branch of the Wave, printing a removed line per branch" \
   "bash <skill-dir>/../do-code-review/scripts/fix-worktrees.sh remove <run tree> <branch>..." \
@@ -1515,11 +1539,11 @@ carries_each "a superseded branch taken back is never named as a commit the run 
 
 # A `kept` worktree holds a dirty tree, an unlanded commit or a removal git refused: forcing it off
 # loses that work, and a kept worktree the Reply does not name blocks a later `fix-worktrees.sh add`
-# on its path and holds a commit nobody reads. Step 4 already says `kept` and "conflicted branch" for
+# on its path and holds a commit nobody reads. The Fix step already says `kept` and "conflicted branch" for
 # the superseded call, so the guarantees are read off the piece carrying the `kept` line, and the
 # twice-moved check's branches off the piece keyed on its two moves, never off the whole step.
-echo "# pr.md / ### 4. Fix the red checks and ### 5. Reply: a worktree fix-worktrees.sh remove reports kept, the conflicted branches of a check left red after two moves among them, stays on disk, never forced off, and the round lines name its branch and path as fix-worktrees.sh printed them"
-step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+echo "# pr.md / ### Fix the red checks and ### Reply: a worktree fix-worktrees.sh remove reports kept, the conflicted branches of a check left red after two moves among them, stays on disk, never forced off, and the round lines name its branch and path as fix-worktrees.sh printed them"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 flat="$(piece_in="$step" piece_with "kept <branch>" "kept worktree" "\`kept\` line" "\`kept\`")"
 expect "a paragraph or sub-item of the step handles a kept line from fix-worktrees.sh remove" test -n "$flat"
 carries_each "the kept worktree and its branch stay on disk" \
@@ -1550,19 +1574,19 @@ carries_each "and never go through remove --superseded" \
   "never handed to" "kept out of" "left out of" "stay out of" "stays out of" "never reach" "never through"
 carries_each "since no retry of that check was picked" \
   "retry" -- "no retry" "never picked" "not picked" "no pick" "nothing picked" "never retried"
-reply_step="$(passage_of "$pr" "### 5. Reply" "##" 2>/dev/null)"
+reply_step="$(passage_of "$pr" "$reply_h" "##" 2>/dev/null)"
 flat="$(sed 's/^[[:space:]]*//' <<<"$reply_step" | grep '^round [0-9<]')"
 carries_each "the Reply's round line for a kept worktree names its branch and path as fix-worktrees.sh printed them" \
   "kept" -- "<branch> <path>" "<fixer branch> <path>" "<branch> <worktree path>" "<fixer branch> <worktree path>"
 
 # The developer may have the head checked out, dirty or on another branch: a round integrated in
 # their checkout moves their branch or mixes the run's commits with their work in progress. The
-# round is read off step 4 alone: `not fixed <k>:` already sits there, so the pick's trigger is
+# round is read off the Fix step alone: `not fixed <k>:` already sits there, so the pick's trigger is
 # pinned with its opening backtick, and what follows the pick and the removal is read off the stretch
-# of the step from each command on, since step 3's sub-items already say "any other line stops the
+# of the step from each command on, since the Watch step's sub-items already say "any other line stops the
 # run quoting it" in the same paragraph.
-echo "# pr.md / ### 4. Fix the red checks and ## What this run never does: the round is integrated in a detached worktree of the run's own cut at sha=, through fix-integrate.sh, and the developer's checkout is never committed in, checked out or moved"
-step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+echo "# pr.md / ### Fix the red checks and ## What this run never does: the round is integrated in a detached worktree of the run's own cut at sha=, through fix-integrate.sh, and the developer's checkout is never committed in, checked out or moved"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ')"
 whole="$flat"
 carries "the run tree is fetched and cut detached at the watched sha, under the main checkout's worktrees" \
@@ -1616,9 +1640,9 @@ carries_each "nor fixes a check in the session" \
 # the guard (ADR 0086). The push item is read from its own marker line, top-level or a sub-item of
 # the per-check loop, to the next one, and the SKILL.md and reply.md guarantees off their one bullet,
 # so a clause elsewhere in either file does not count.
-echo "# pr.md / ### 4. Fix the red checks, ## What this run never does, SKILL.md / ## Non-negotiables, reply.md / **A push.**: the round is pushed to the head by fast-forward only, never --force, never a merge, never another branch, and it is the one push a run makes"
+echo "# pr.md / ### Fix the red checks, ## What this run never does, SKILL.md / ## Non-negotiables, reply.md / **A push.**: the round is pushed to the head by fast-forward only, never --force, never a merge, never another branch, and it is the one push a run makes"
 push_line="git -C <run tree> push origin HEAD:refs/heads/<head>"
-step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ')"
 whole="$flat"
 carries "the step pushes the round with the exact push line" "$push_line"
@@ -1697,12 +1721,12 @@ carries_each "never named under outward" \
 # A run that ends on the push leaves the developer who walked away with a fix nobody watched: the
 # push sends the run back to the watch. What a red verdict after a pushed round does is read by the
 # round-cap cases further down.
-echo "# pr.md / ### 4. Fix the red checks and ### 3. Watch: after the push the run watches again with <pr> alone"
-step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+echo "# pr.md / ### Fix the red checks and ### Watch: after the push the run watches again with <pr> alone"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 flat="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.|[[:space:]]+[a-z]\.' "$push_line" | tr '\n' ' ' | tr -s ' ')"
 expect "the push line sits in an item of the step" test -n "$flat"
-carries_each "when git accepts the push, the run goes back to step 3" \
-  "accept" -- "step 3" "### 3. Watch"
+carries_each "when git accepts the push, the run goes back to step $watch_n" \
+  "accept" -- "step $watch_n" "$watch_h"
 carries_any "calling the watch with \`<pr>\` alone, no \`<since>\` \`<state>\`" \
   "\`<pr>\` alone" "with \`<pr>\` alone" "\`<pr>\` and nothing else" "only \`<pr>\`" "\`<pr>\` only"
 
@@ -1710,8 +1734,8 @@ carries_any "calling the watch with \`<pr>\` alone, no \`<since>\` \`<state>\`" 
 # leaves it out hides what landed, and one that gives the round a part of its own breaks the five
 # parts every grader reads. The step's intro already says "adds no part of its own" for a green
 # watch, so the round's own guarantee is read off the bullet or paragraph naming the round.
-echo "# pr.md / ### 5. Reply and reply.md item 1: a pr run that pushed a round lists, under For whom, each red check with its fixer, the commit pushed or what the fixer returned, and the verdict the watch read after the push"
-reply_step="$(passage_of "$pr" "### 5. Reply" "##" 2>/dev/null)"
+echo "# pr.md / ### Reply and reply.md item 1: a pr run that pushed a round lists, under For whom, each red check with its fixer, the commit pushed or what the fixer returned, and the verdict the watch read after the push"
+reply_step="$(passage_of "$pr" "$reply_h" "##" 2>/dev/null)"
 out="$(sed 's/^[[:space:]]*//' <<<"$reply_step")"
 check_lines "the Reply step shows the round lines, as whole lines" 0 0 \
   'round <r>: <check> red; do-pr-fixer on <fixer branch>: <its return line>; <picked sha> pushed to <head>' \
@@ -1747,9 +1771,9 @@ carries_each "and the verdict the watch read after the push" \
 # only the merge leaves their next commit on a stale head, whose push the remote then refuses. The
 # green-watch bullet already names `gh pr merge <n>` and `outward`, so the words are read off the
 # piece of the Reply step naming the pull, and off the sentence of item 10 naming it and the next.
-echo "# pr.md / ### 5. Reply and reply.md item 10: a pr run that pushed names git pull --ff-only origin <head> for the developer's checkout ahead of gh pr merge <n>, runs neither, names neither under outward"
+echo "# pr.md / ### Reply and reply.md item 10: a pr run that pushed names git pull --ff-only origin <head> for the developer's checkout ahead of gh pr merge <n>, runs neither, names neither under outward"
 pull_line="git pull --ff-only origin <head>"
-reply_step="$(passage_of "$pr" "### 5. Reply" "##" 2>/dev/null)"
+reply_step="$(passage_of "$pr" "$reply_h" "##" 2>/dev/null)"
 flat="$(piece_in="$reply_step" piece_with "$pull_line")"
 expect "a bullet or paragraph of the Reply step names \`$pull_line\`" test -n "$flat"
 carries_any "on a run that pushed" "pushed" "push"
@@ -1787,8 +1811,8 @@ carries "since ADR 0086 authorised it" "ADR 0086"
 # would have saved. Item 2 already fetches `<head>` before the run tree is cut, and the push item
 # already says "nothing is pushed" when no check was picked, so the fetch and the comparison are
 # read off the push item alone, and the rule off the sentences of it that name the moved tip.
-echo "# pr.md / ### 4. Fix the red checks: before each push the run fetches <head> and pushes no round whose tree was built on a tip the remote has since moved past"
-step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+echo "# pr.md / ### Fix the red checks: before each push the run fetches <head> and pushes no round whose tree was built on a tip the remote has since moved past"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 push_item="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.|[[:space:]]+[a-z]\.' "$push_line" | tr '\n' ' ' | tr -s ' ')"
 flat="$push_item"
 expect "the push line sits in an item of the step" test -n "$flat"
@@ -1816,7 +1840,7 @@ carries_any "that round is not pushed as it stands" \
 # developer relies on the first attempt's run tree staying on disk, since removing it would lose its
 # commits unseen. The moved-tip branch is read from the first sentence of the push item naming the
 # moved tip up to the sentence opening a sibling branch (`When ...`) or holding the push line.
-echo "# pr.md / ### 4. Fix the red checks: a fetched tip that moved keeps the run tree and redoes the round whole from step 3's watch, over the moved head"
+echo "# pr.md / ### Fix the red checks: a fetched tip that moved keeps the run tree and redoes the round whole from the Watch step's watch, over the moved head"
 moved_branch="$(sed 's/\. /.\n/g' <<<"$push_item" | awk -v push="$push_line" '
   function moved(s) {
     return index(s, "moved past") || index(s, "has moved") || index(s, "moved on") ||
@@ -1835,8 +1859,8 @@ carries_each "that branch keeps \`<run tree>\` and its commits on disk" \
   "keeps" "keep" "kept" "not removed" "does not remove" "doesn't remove" "never removes" "never removed" \
   "stays on disk" "stay on disk" "left on disk" "leaves" -- \
   "commit"
-carries_each "it goes back to step 3's watch, calling it with \`<pr>\` alone" \
-  "back to step 3" "returns to step 3" "step 3's watch" "to step 3" "back to the watch" -- \
+carries_each "it goes back to step $watch_n's watch, calling it with \`<pr>\` alone" \
+  "back to step $watch_n" "returns to step $watch_n" "step $watch_n's watch" "to step $watch_n" "back to the watch" -- \
   "<pr>" -- "alone"
 carries_each "it runs the round again from the new verdict's \`sha=\`" \
   "round" -- \
@@ -1861,7 +1885,7 @@ carries_any "no fix commit is replayed, cherry-picked or rebased onto the moved 
 # lose or rewrite what they pushed. The developer relies on the same thing from the other side: the
 # fixes land on the branch as it now stands, not on one the checks never saw. Read off the same
 # moved-tip branch as the case above.
-echo "# pr.md / ### 4. Fix the red checks: the redone round reaches <head> by fast-forward on top of the other writer's commits, losing none of them"
+echo "# pr.md / ### Fix the red checks: the redone round reaches <head> by fast-forward on top of the other writer's commits, losing none of them"
 flat="$moved_branch"
 other_writer=("other writer" "other writers" "others pushed" "pushed by others" "another writer"
   "someone else" "moved the remote" "remote moved by" "moved the head" "their commits")
@@ -1892,8 +1916,8 @@ carries_each "no \`--force\` and no merge" \
 # push line, so this branch is read from the first sentence of the push item naming a redone round
 # with its refusal or its cap, up to a sentence opening a sibling branch (`When ...`) or holding the
 # push line.
-echo "# pr.md / ### 4. Fix the red checks: a push the head still refuses after a pull and a redone round stops the run on one Yours: direction: line naming <head>, the run tree and the commits kept there"
-step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+echo "# pr.md / ### Fix the red checks: a push the head still refuses after a pull and a redone round stops the run on one Yours: direction: line naming <head>, the run tree and the commits kept there"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 push_item="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.|[[:space:]]+[a-z]\.' "$push_line" | tr '\n' ' ' | tr -s ' ')"
 expect "the push line sits in an item of the step" test -n "$push_item"
 flat="$(sed 's/\. /.\n/g' <<<"$push_item" | awk -v push="$push_line" '
@@ -1956,8 +1980,8 @@ expect "the step shows the stop as a whole line opening \`Yours: direction:\` ca
 # leaves it behind unseen, with commits the developer never learns to bring over or drop. Read off
 # the sentences of the push item naming the first attempt's run tree, and off the Reply's round line
 # templates.
-echo "# pr.md / ### 4. Fix the red checks and ### 5. Reply: when a redone round ends, pushed or stopped, the first attempt's run tree is named on a round line with its path and the sha of each commit kept there, and stays on disk"
-step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+echo "# pr.md / ### Fix the red checks and ### Reply: when a redone round ends, pushed or stopped, the first attempt's run tree is named on a round line with its path and the sha of each commit kept there, and stays on disk"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 push_item="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.|[[:space:]]+[a-z]\.' "$push_line" | tr '\n' ' ' | tr -s ' ')"
 first_tree=("first attempt's run tree" "first run tree" "<first run tree>" "run tree of the first attempt"
   "first attempt's tree")
@@ -1974,7 +1998,7 @@ carries_each "that line carries the tree's path and the sha of each commit kept 
 carries_each "the first attempt's run tree stays on disk, never removed" \
   "on disk" -- \
   "never remov" "not removed" "not remove" "n't remove" "without removing" "no \`git worktree remove\`"
-reply_step="$(passage_of "$pr" "### 5. Reply" "##" 2>/dev/null)"
+reply_step="$(passage_of "$pr" "$reply_h" "##" 2>/dev/null)"
 out="$(sed 's/^[[:space:]]*//' <<<"$reply_step" | grep -E '^round <r>: kept ' |
   grep -F -e "<first run tree>" -e "first attempt" -e "first run tree")"
 expect "the Reply's round line templates carry a \`round <r>: kept\` line naming the first attempt's run tree" \
@@ -1988,9 +2012,9 @@ carries_any "that round line carries the sha of each commit kept there" "<kept s
 # what bounds the loop, so the piece is keyed on it, and a redone round counts once since a round
 # counts by the push it ends in. What happens at three is a separate guarantee, not read here. Step
 # 4's own rule, that a later round numbers and groups its checks from its own watch's `red=` lines,
-# is read off the sentences of step 4 naming a round and `red=`.
-echo "# pr.md / ### 3. Watch: verdict=red after a pushed round goes on to step 4 for a next round over the checks still red, while fewer than three rounds have pushed"
-watch="$(passage_of "$pr" "### 3. Watch" "##" 2>/dev/null)"
+# is read off the sentences of the Fix step naming a round and `red=`.
+echo "# pr.md / ### Watch: verdict=red after a pushed round goes on to the Fix step for a next round over the checks still red, while fewer than three rounds have pushed"
+watch="$(passage_of "$pr" "$watch_h" "##" 2>/dev/null)"
 flat="$(piece_with "fewer than three" "under three" "less than three" "Fewer than three" "Under three" \
   "Less than three")"
 expect "a bullet or paragraph of the watch step names a count of fewer than three rounds" test -n "$flat"
@@ -2000,8 +2024,8 @@ carries "it takes \`verdict=red\`" "verdict=red"
 carries_each "after a pushed round, while fewer than three rounds have pushed" \
   "fewer than three" "under three" "less than three" "Fewer than three" "Under three" "Less than three" -- \
   "round" -- "push"
-affirms "the run goes on to step 4, Fix the red checks" \
-  "goes on" "goes back" "returns" "continues" "runs" -- "step 4" "Fix the red checks"
+affirms "the run goes on to step $fix_n, Fix the red checks" \
+  "goes on" "goes back" "returns" "continues" "runs" -- "step $fix_n" "Fix the red checks"
 carries_any "for a next round" \
   "next round" "another round" "a new round" "further round" "following round" "round again"
 carries "carrying the verdict's \`head=\`, \`sha=\` and \`red=\` lines" "head=" "sha=" "red="
@@ -2013,9 +2037,9 @@ carries_each "a redone round counts once" \
 carries_any "since a round counts by the push it ends in" \
   "push it ends in" "push that ends it" "push it ends on" "by its push" "by the push" "ends in a push" \
   "ends in one push"
-step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ' | sed 's/\. /.\n/g' | awk 'index($0, "round") && index($0, "red=")' | tr '\n' ' ')"
-expect "a sentence of step 4 names a round and its \`red=\` lines" test -n "$flat"
+expect "a sentence of step $fix_n names a round and its \`red=\` lines" test -n "$flat"
 carries_each "a later round numbers and groups its checks into Waves from that round's own watch \`red=\` lines" \
   "later round" "next round" "each round" "every round" -- \
   "number" -- "group" "Wave" -- \
@@ -2026,8 +2050,8 @@ carries_each "a later round numbers and groups its checks into Waves from that r
 # may share, with no end in sight. The checks the stop names are what the developer picks up next,
 # so they come off the verdict's own `red=` lines. The piece is keyed on the third round, and the
 # "fewer than three" bullet and the first-round bullet, which share its words, are passed over.
-echo "# pr.md / ### 3. Watch: verdict=red after the third pushed round stops the run on one Yours: direction: line naming the checks still red, with no fourth round"
-watch="$(passage_of "$pr" "### 3. Watch" "##" 2>/dev/null)"
+echo "# pr.md / ### Watch: verdict=red after the third pushed round stops the run on one Yours: direction: line naming the checks still red, with no fourth round"
+watch="$(passage_of "$pr" "$watch_h" "##" 2>/dev/null)"
 flat="$(piece_without="$(printf '%s\n' "fewer than three" "Fewer than three" "under three" "Under three" \
   "less than three" "Less than three" "pushed no round")" piece_with "three rounds" "third round" \
   "Three rounds" "Third round" "three pushed rounds" "third pushed round")"
@@ -2070,8 +2094,8 @@ expect "the step shows the stop as a whole line opening \`Yours: direction:\` wi
 # which round pushed which commit. A redone round counts once, so it keeps the number of the round
 # it redid. The rule is read off the bullet or paragraph naming `<r>`, the template block passed
 # over, and off reply.md's item 1; the watch step's stop lines are not read here.
-echo "# pr.md / ### 5. Reply and reply.md item 1: a pr run lists each round under its own number, with its red checks, the fixer of each, the commits pushed and the verdict that ended it"
-reply_step="$(passage_of "$pr" "### 5. Reply" "##" 2>/dev/null)"
+echo "# pr.md / ### Reply and reply.md item 1: a pr run lists each round under its own number, with its red checks, the fixer of each, the commits pushed and the verdict that ended it"
+reply_step="$(passage_of "$pr" "$reply_h" "##" 2>/dev/null)"
 out="$(sed 's/^[[:space:]]*//' <<<"$reply_step")"
 check_lines "the Reply step's round line templates open with \`round <r>:\`, as whole lines" 0 0 \
   'round <r>: <check> red; do-pr-fixer on <fixer branch>: <its return line>; <picked sha> pushed to <head>' \
@@ -2125,8 +2149,8 @@ carries_each "which the run never picks, and so never pushes" \
 # commit is on the HEAD the round pushes. The order is read off the step as a whole, the calls being
 # unique to their sub-items, and what the run does with each line off the sentences naming the guard
 # or its `touches` line, so the fix-integrate.sh sub-item's own "stops the run" never answers for it.
-echo "# pr.md / ### 4. Fix the red checks: each Wave runs pr-guard.sh over its fixed returns after returns.sh and before fix-integrate.sh, and only a check the guard printed clean is picked"
-step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+echo "# pr.md / ### Fix the red checks: each Wave runs pr-guard.sh over its fixed returns after returns.sh and before fix-integrate.sh, and only a check the guard printed clean is picked"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ')"
 whole="$flat"
 carries "the step runs the guard over the run tree and each check's branch" "pr-guard.sh <run tree> <k>=<branch>..."
@@ -2161,8 +2185,8 @@ carries_each "its fixer branch is kept by fix-worktrees.sh remove as an unlanded
 # handed over, not a line per check: the stop is read off the sentences of the step tied to the guard
 # or its stop-case, so the existing no-pick stop ("one line per check quoting its fixer's return")
 # never answers for it.
-echo "# pr.md / ### 4. Fix the red checks: a round that ends with no pick and a stop-case pushes nothing, removes the run tree and stops on exactly one Yours: direction: line"
-step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+echo "# pr.md / ### Fix the red checks: a round that ends with no pick and a stop-case pushes nothing, removes the run tree and stops on exactly one Yours: direction: line"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ' | sed 's/\. /.\n/g' |
   awk 'index($0, "stop-case") || index($0, "stop case") || index($0, "touches") || index($0, "pr-guard")' | tr '\n' ' ')"
 expect "sentences of the step name the guard's stop-case" test -n "$flat"
@@ -2180,8 +2204,8 @@ affirms "the run stops" "stops" "stop" "ends the run" "the run ends"
 
 # The developer reads the round lines to see what each fixer did: a check the guard refused has to
 # read as not picked, naming the file and its class, so the template is pinned whole.
-echo "# pr.md / ### 5. Reply: a check the guard refused has its own round line, naming the path and its class as not picked"
-reply_step="$(passage_of "$pr" "### 5. Reply" "##" 2>/dev/null)"
+echo "# pr.md / ### Reply: a check the guard refused has its own round line, naming the path and its class as not picked"
+reply_step="$(passage_of "$pr" "$reply_h" "##" 2>/dev/null)"
 out="$(sed 's/^[[:space:]]*//' <<<"$reply_step")"
 check_lines "the Reply step's round line templates carry the not-picked line, as a whole line" 0 0 \
   'round <r>: <check> red; do-pr-fixer on <fixer branch>: <its return line>; not picked: <path> is a <class> file'
@@ -2227,8 +2251,8 @@ carries_each "for a check back red after its fix was pushed, the command of that
 # own `not fixed` line out of the stop set never answers for it either. Punctuation inside a code
 # span (`not fixed <k>: <reason>`) and the dot of a file name (returns.sh) do not cut a clause, and
 # the no pick a stop-case gets is no negation of the stop.
-echo "# pr.md / ### 4. Fix the red checks: a fixer's own not fixed return is a stop-case, and the session's own not fixed line is not"
-step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+echo "# pr.md / ### Fix the red checks: a fixer's own not fixed return is a stop-case, and the session's own not fixed line is not"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 not_fixed_sentences="$(tr '\n' ' ' <<<"$step" | tr -s ' ' | sed 's/\. /.\n/g' |
   awk 'index($0, "not fixed") && (index($0, "stop set") || index($0, "stop-case") || index($0, "stop case"))')"
 flat="$(awk '{ s = ""; c = 0; for (i = 1; i <= length($0); i++) { ch = substr($0, i, 1); if (ch == "`") c = !c; if (c && index(".:;,", ch)) ch = " "; s = s ch } print s }' <<<"$not_fixed_sentences" |
@@ -2269,7 +2293,7 @@ expect "a bullet of \`## What this run never does\` names a stale check" test -n
 carries "it is a check pr-classify.sh printed stale for" "pr-classify.sh"
 carries_any "the run never forks a fixer for it" "do-pr-fixer" "fixer"
 carries_each "and never rebases the head to clear it" "rebase" "Rebase" -- "head"
-step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 classify_item="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.' "pr-classify.sh <run tree> <base>")"
 flat="$(tr '\n' ' ' <<<"$classify_item" | tr -s ' ')"
 affirms "a check it printed stale for adds a \`stale-base\` entry to the round's stop set" \
@@ -2297,7 +2321,7 @@ expect "an item of the step carries the push" test -n "$flat"
 carries "it names the \`stale-base\` stop-case among the stop-case clauses" "stale-base"
 carries "its clause names the check, its files, the base, a rebase by the head's owner and a fix on the base" \
   "<check> fails in <path>[, <path>...], which this pull request does not change against <base>: have <head>'s owner rebase it onto <base>, or fix <path>[, <path>...] on <base>"
-reply_step="$(passage_of "$pr" "### 5. Reply" "##" 2>/dev/null)"
+reply_step="$(passage_of "$pr" "$reply_h" "##" 2>/dev/null)"
 out="$(sed 's/^[[:space:]]*//' <<<"$reply_step")"
 check_lines "the Reply step's round line for a stale check names its files, the base and the merge base, and no fixer forked, as a whole line" 0 0 \
   'round <r>: <check> red; stale base: <path>[, <path>...] not changed by this pull request against <base> at <merge base short sha>; no fixer forked'
@@ -2306,7 +2330,7 @@ check_lines "the Reply step's round line for a stale check names its files, the 
 # a run that stopped on classifying the stale check would drop a pick the round could push. The
 # going-on is read off the classify item's sentences naming the stale check, the route off the step's
 # paragraphs naming the `stale-base` entry that take a round with a pick.
-echo "# pr.md / ### 4. Fix the red checks: a stale-base entry leaves the round going, so the real checks' clean picks are pushed and watched once more before the run stops on it"
+echo "# pr.md / ### Fix the red checks: a stale-base entry leaves the round going, so the real checks' clean picks are pushed and watched once more before the run stops on it"
 flat="$(tr '\n' ' ' <<<"$classify_item" | tr -s ' ' | sed 's/\. /.\n/g' | grep -F "stale" | tr '\n' ' ')"
 expect "a sentence of the classify item names the stale checks" test -n "$flat"
 carries_any "classifying a check stale leaves the round going: the real checks' Waves still run" \
@@ -2326,8 +2350,8 @@ carries_any "and stops on the \`stale-base\` entry the stop set carried" \
 # fixer's `not fixed`, its `not fixed: conflicted with ...` line would stop a run that round closes.
 # Sub-item c keeps the session's own `not fixed` line out of the stop set already, so the guarantee
 # is read off the sentences of the two paragraphs on a check moved twice that name the stop set.
-echo "# pr.md / ### 4. Fix the red checks: a check whose pick conflicts after two moves raises no stop-case and stays out of the round's stop set"
-step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+echo "# pr.md / ### Fix the red checks: a check whose pick conflicts after two moves raises no stop-case and stays out of the round's stop set"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 pieces="$(piece_in="$step" piece_all=1 piece_with "moved twice" "two moves" "twice already" "moved two times" \
   "a third time" "third conflict" "third time")"
 flat="$(sed 's/\. /.\n/g' <<<"$pieces" | grep -E "stop set|stop-case|stop case" | tr '\n' ' ')"
@@ -2343,8 +2367,8 @@ carries_any "its conflict raises no stop-case and stays out of the stop set" \
 # check already showed wrong. The route is read off the pieces of the watch step naming the check
 # that came back, and its place off the order of the step's verdict pieces: it sits ahead of the
 # bullet starting the next round and of the three-round stop, so neither catches the check first.
-echo "# pr.md / ### 3. Watch: a red check a pushed round reported fixed is a stop-case that stops the run on one Yours: direction: line, ahead of the next round and the three-round stop, no fixer forked for it again"
-watch="$(passage_of "$pr" "### 3. Watch" "##" 2>/dev/null)"
+echo "# pr.md / ### Watch: a red check a pushed round reported fixed is a stop-case that stops the run on one Yours: direction: line, ahead of the next round and the three-round stop, no fixer forked for it again"
+watch="$(passage_of "$pr" "$watch_h" "##" 2>/dev/null)"
 came_back=("came back" "came-back" "comes back red" "red again" "back red")
 flat="$(piece_all=1 piece_with "${came_back[@]}" | tr '\n' ' ')"
 expect "a bullet or paragraph of the watch step takes a check that came back red" test -n "$flat"
@@ -2375,10 +2399,10 @@ expect "the came-back piece comes before the bullet starting the next round whil
 expect "and before the three-round stop" test "${came_at:-0}" -gt 0 -a "${cap_at:-0}" -gt "${came_at:-0}"
 
 # The developer undoing or redoing a pushed fix the watch read red again needs the round lines to
-# show which round pushed it as fixed and what its fixer returned, so step 3 can quote that return:
+# show which round pushed it as fixed and what its fixer returned, so the Watch step can quote that return:
 # both templates are read whole.
-echo "# pr.md / ### 5. Reply: a check back red after its fix was pushed has its own round line naming the round and the sha that pushed it as fixed"
-reply_step="$(passage_of "$pr" "### 5. Reply" "##" 2>/dev/null)"
+echo "# pr.md / ### Reply: a check back red after its fix was pushed has its own round line naming the round and the sha that pushed it as fixed"
+reply_step="$(passage_of "$pr" "$reply_h" "##" 2>/dev/null)"
 out="$(sed 's/^[[:space:]]*//' <<<"$reply_step")"
 check_lines "the Reply step's round line templates carry the pushed line with its return line and the red-again line, as whole lines" 0 0 \
   'round <r>: <check> red; do-pr-fixer on <fixer branch>: <its return line>; <picked sha> pushed to <head>' \
@@ -2398,11 +2422,11 @@ expect "a line of pr.md is the came-back clause opening \`Yours: direction:\`, n
 # is read off the sentences of the push item naming the stop set with a pick, a push or the watch,
 # the no-pick stop's own sentences and the clause templates (`Yours: direction: <check> ...`) passed
 # over, so "nothing is pushed" there, or a `failed` clause's "was not picked", never answers for it.
-echo "# pr.md / ### 4. Fix the red checks: a round with a pick and a stop-case still pushes its clean picks by fast-forward and goes back to the watch carrying the stop set, a redone round keeping it with no fixer forked again"
-step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+echo "# pr.md / ### Fix the red checks: a round with a pick and a stop-case still pushes its clean picks by fast-forward and goes back to the watch carrying the stop set, a redone round keeping it with no fixer forked again"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 push_item="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.|[[:space:]]+[a-z]\.' "$push_line" | tr '\n' ' ' | tr -s ' ')"
 flat="$(sed 's/\. /.\n/g' <<<"$push_item" |
-  grep -E "stop set|stop-case|stop case" | grep -E "pick|push|step 3|watch|redo|redone" |
+  grep -E "stop set|stop-case|stop case" | grep -E "pick|push|step $watch_n|watch|redo|redone" |
   grep -vF -e "no check was picked" -e "no check picked" -e "nothing was picked" -e "nothing picked" \
     -e "picked nothing" -e "stop set is empty" -e "Yours: direction: <check>" | tr '\n' ' ')"
 expect "sentences of the push item, past the no-pick stop, name the round's stop set" test -n "$flat"
@@ -2417,8 +2441,8 @@ carries_each "fetched and pushed by fast-forward" \
 carries_any "the stop-case's commit was never picked, so nothing of it is pushed" \
   "nothing of it" "nothing of its commit" "none of its commit" "never picked" "was not picked" \
   "never reaches" "never pushed" "not pushed"
-carries_each "the run goes back to step 3's watch carrying the stop set" \
-  "back to step 3" "returns to step 3" "step 3's watch" "to step 3" "back to the watch" -- \
+carries_each "the run goes back to step $watch_n's watch carrying the stop set" \
+  "back to step $watch_n" "returns to step $watch_n" "step $watch_n's watch" "to step $watch_n" "back to the watch" -- \
   "carrying the stop set" "carries the stop set" "carrying its stop set" "carries its stop set" \
   "with the stop set" "with its stop set" "keeps the stop set" "keeping the stop set" "stop set with it"
 carries_each "a redone round, on a moved remote, keeps the stop set" \
@@ -2435,8 +2459,8 @@ carries_any "and forks no do-pr-fixer again for its checks" \
 # that round first. The route is read off the watch pieces naming the stop set, the came-back bullet
 # (keyed on the `pushed to <head>` round line it matches) passed over, and its place off the order of
 # the step's pieces, as the came-back case reads its own.
-echo "# pr.md / ### 3. Watch: after a pushed round carrying a stop set the run watches once more and stops whatever the verdict, green included, on its round line and one Yours: direction: line, ahead of the next round and the three-round stop"
-watch="$(passage_of "$pr" "### 3. Watch" "##" 2>/dev/null)"
+echo "# pr.md / ### Watch: after a pushed round carrying a stop set the run watches once more and stops whatever the verdict, green included, on its round line and one Yours: direction: line, ahead of the next round and the three-round stop"
+watch="$(passage_of "$pr" "$watch_h" "##" 2>/dev/null)"
 flat="$(piece_without="pushed to <head>" piece_all=1 piece_with "stop set" | tr '\n' ' ')"
 expect "a bullet or paragraph of the watch step takes a pushed round carrying a stop set" test -n "$flat"
 carries_each "after a pushed round that carries a non-empty stop set" \
@@ -2492,8 +2516,8 @@ carries_each "neither the run's own push nor one offered to the developer" \
 # own decision over its own state, so it is read off the prose: the push item's paragraph naming the
 # Waves and an order, where each kind of stop must be named in turn, and the merge rule off the whole
 # item. Each stop's own round line is read off the Reply step's sentences naming a stop.
-echo "# pr.md / ### 4. Fix the red checks and ### 5. Reply: a round with two or more stops lists each on its own round line with its reason, under one Yours: direction: line of one clause per stop, never merged, the redone round's refusal first, then the stop-cases in raise order (stale-base in check order, the Wave entries in Wave and check order, the came-back ones), then the still red: tail"
-step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+echo "# pr.md / ### Fix the red checks and ### Reply: a round with two or more stops lists each on its own round line with its reason, under one Yours: direction: line of one clause per stop, never merged, the redone round's refusal first, then the stop-cases in raise order (stale-base in check order, the Wave entries in Wave and check order, the came-back ones), then the still red: tail"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 push_item="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.' "$push_line")"
 flat="$(piece_in="$push_item" piece_all=1 piece_with "Wave" | grep -F "order" | tr '\n' ' ')"
 expect "a paragraph of the push item names the Waves and the order of the clauses" test -n "$flat"
@@ -2524,7 +2548,7 @@ carries_each "no clause is merged with another, even when two offer the same opt
   "never merged" "no clause is merged" "not merged" "never merges" "never combined" "never folded" \
   "no two clauses are" "a clause of its own" "its own clause" -- \
   "same option" "same choice" "the same offer" "offer the same" "share an option" "shares an option"
-reply_step="$(passage_of "$pr" "### 5. Reply" "##" 2>/dev/null)"
+reply_step="$(passage_of "$pr" "$reply_h" "##" 2>/dev/null)"
 flat="$(tr '\n' ' ' <<<"$reply_step" | tr -s ' ' | sed 's/\. /.\n/g' | grep -E "stop-case|stop set|each stop|every stop|stops" | tr '\n' ' ')"
 expect "a sentence of the Reply step names the round's stops" test -n "$flat"
 carries_each "each stop is listed on a round line of its own" \
@@ -2535,11 +2559,11 @@ carries_any "with its reason" "its reason" "with the reason" "the reason it stop
 # A fixer that could not reproduce its check found nothing to fix (ADR 0087): read as `fixed`, the
 # run would pick and push a commit for a failure nobody reproduced, and read as `not fixed`, it
 # would stop a run that a rerun of the failed jobs could close. The routing is read off the
-# sentences of step 4 naming `not reproduced`, so the sentences keeping the session's own
+# sentences of the Fix step naming `not reproduced`, so the sentences keeping the session's own
 # `not fixed` line out of the stop set never answer for it, and the round line off the Reply step's
 # round templates, a line of its own or a code span.
-echo "# pr.md / ### 4. Fix the red checks and ### 5. Reply: a fixer's not reproduced return goes to the round's not-reproduced list, never to pr-guard.sh or fix-integrate.sh, is never picked and raises no stop-case, and its round line reads that return line then nothing pushed for it"
-step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+echo "# pr.md / ### Fix the red checks and ### Reply: a fixer's not reproduced return goes to the round's not-reproduced list, never to pr-guard.sh or fix-integrate.sh, is never picked and raises no stop-case, and its round line reads that return line then nothing pushed for it"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ' | sed 's/\. /.\n/g' | grep -F "not reproduced" | tr '\n' ' ')"
 expect "sentences of the step name a \`not reproduced\` return" test -n "$flat"
 carries_each "a \`not reproduced <k>:\` line returns.sh printed" \
@@ -2562,7 +2586,7 @@ carries_each "it raises no stop-case and stays out of the round's stop set" \
   "stays out of the" "stay out of the" "kept out of the" "never enters the" "never goes into the" \
   "not in the" "outside the" "out of the round's" -- \
   "stop set"
-reply_step="$(passage_of "$pr" "### 5. Reply" "##" 2>/dev/null)"
+reply_step="$(passage_of "$pr" "$reply_h" "##" 2>/dev/null)"
 templates="$(
   sed 's/^[[:space:]]*//' <<<"$reply_step" | grep '^round <r>:'
   tr '\n' ' ' <<<"$reply_step" | tr -s ' ' | grep -oE '`round <r>:[^`]*`' | tr -d '`'
@@ -2578,8 +2602,8 @@ expect "and reads it followed by \`nothing pushed for it\`" test -n "$out"
 # turns every flake into a stop whose command the run could have run itself. The routing is read
 # off the end-of-round item's pieces naming a rerun, the existing `not fixed` clause's
 # `rerun /do <pr url>` passed over, so no other rule of the item answers for it.
-echo "# pr.md / ### 4. Fix the red checks: a round that pushes nothing, with no stop-case and a not reproduced check, reruns that check's failed jobs once through pr-rerun.sh, removes the run tree and watches again, handing nothing over"
-step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+echo "# pr.md / ### Fix the red checks: a round that pushes nothing, with no stop-case and a not reproduced check, reruns that check's failed jobs once through pr-rerun.sh, removes the run tree and watches again, handing nothing over"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 push_item="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.' "$push_line")"
 flat="$(piece_in="$push_item" piece_all=1 piece_without="rerun /do" piece_with "pr-rerun.sh" "rerun" | tr '\n' ' ')"
 expect "pieces of the end-of-round item name a rerun" test -n "$flat"
@@ -2600,13 +2624,13 @@ carries_any "nothing is pushed" \
 carries_any "the run tree is removed" \
   "git worktree remove <run tree>" "remove \`<run tree>\`" "removes \`<run tree>\`" "removing \`<run tree>\`" \
   "\`<run tree>\` is removed" "removes the run tree" "remove the run tree" "run tree is removed"
-carries_each "and the run goes back to step 3, calling the watch with <pr> alone" \
-  "back to step 3" "returns to step 3" "to step 3" -- \
+carries_each "and the run goes back to step $watch_n, calling the watch with <pr> alone" \
+  "back to step $watch_n" "returns to step $watch_n" "to step $watch_n" -- \
   "<pr>\` alone" "<pr> alone"
 carries_each "on rerun=, each check of that run id has its round line end with the rerun and its attempt" \
   "rerun=<run id> <attempt>" -- \
   "; rerun <run id> attempt <attempt>" "; rerun <run id> attempt <n>"
-carries_each "on moved=, nothing is rerun and the round is redone from step 3" \
+carries_each "on moved=, nothing is rerun and the round is redone from step $watch_n" \
   "moved=<head sha>" -- \
   "nothing is rerun" "nothing rerun" "reruns nothing" "no rerun is made" "nothing was rerun" -- \
   "redoes the round" "redo the round" "round is redone" "redone from" "redoes it"
@@ -2665,8 +2689,8 @@ carries_each "nothing but gh run rerun --failed, on the run of the pull request'
 # The developer reads each rerun, and each refused one, on the round lines of For whom, and a round
 # that only reran counts toward none of the three pushed rounds. The templates are read whole off
 # the Reply step's round lines, a line of their own or a code span.
-echo "# pr.md / ### 5. Reply: the round lines report a rerun with its attempt, a refused rerun with its reason, the round that only reran, and a round whose head moved before the rerun"
-reply_step="$(passage_of "$pr" "### 5. Reply" "##" 2>/dev/null)"
+echo "# pr.md / ### Reply: the round lines report a rerun with its attempt, a refused rerun with its reason, the round that only reran, and a round whose head moved before the rerun"
+reply_step="$(passage_of "$pr" "$reply_h" "##" 2>/dev/null)"
 templates="$(
   sed 's/^[[:space:]]*//' <<<"$reply_step" | grep '^round <r>:'
   tr '\n' ' ' <<<"$reply_step" | tr -s ' ' | grep -oE '`round <r>:[^`]*`' | tr -d '`'
@@ -2709,8 +2733,8 @@ carries_each "never named under outward, never handed over on a Yours: line" \
 # round lines read `pushed to <head>`, and the came-back match reads those lines alone, so a rerun
 # round's lines never match as a check reported fixed. Both are read off the sentences of the watch
 # step that carry them.
-echo "# pr.md / ### 3. Watch: a round that ended in a rerun is not a pushed round and counts nothing toward the three-round cap; the cap and the came-back match read only the pushed to round lines"
-watch="$(passage_of "$pr" "### 3. Watch" "##" 2>/dev/null)"
+echo "# pr.md / ### Watch: a round that ended in a rerun is not a pushed round and counts nothing toward the three-round cap; the cap and the came-back match read only the pushed to round lines"
+watch="$(passage_of "$pr" "$watch_h" "##" 2>/dev/null)"
 sentences="$(tr '\n' ' ' <<<"$watch" | tr -s ' ' | sed 's/\. /.\n/g')"
 flat="$(grep -F -e "rerun" -e "reran" <<<"$sentences" | tr '\n' ' ')"
 expect "a sentence of the watch step names a rerun" test -n "$flat"
@@ -2740,8 +2764,8 @@ carries_each "the came-back match reads only \`pushed to\` round lines, so a rer
 # sentences naming the not-reproduced list or the retry, the no-pick sentences passed over, so the
 # rerun paragraph of a round that picked nothing never answers for a pushed one; the round line off
 # the Reply step's round templates, a line of its own or a code span.
-echo "# pr.md / ### 4. Fix the red checks and ### 5. Reply: on a round that pushes fixes, a not reproduced check gets no rerun, the new run on the pushed head is its retry, and its round line ends retried by the run on <picked sha>"
-step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+echo "# pr.md / ### Fix the red checks and ### Reply: on a round that pushes fixes, a not reproduced check gets no rerun, the new run on the pushed head is its retry, and its round line ends retried by the run on <picked sha>"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 push_item="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.' "$push_line")"
 flat="$(tr '\n' ' ' <<<"$push_item" | tr -s ' ' | sed 's/\. /.\n/g' |
   grep -F -e "not reproduced" -e "not-reproduced" -e "retried by the run" |
@@ -2761,7 +2785,7 @@ carries_each "the new run on the pushed head is that check's retry" \
   "retry" "retries" "retried"
 carries_each "and its round line ends \`; retried by the run on <picked sha>\`" \
   "round line" -- "; retried by the run on <picked sha>"
-reply_step="$(passage_of "$pr" "### 5. Reply" "##" 2>/dev/null)"
+reply_step="$(passage_of "$pr" "$reply_h" "##" 2>/dev/null)"
 templates="$(
   sed 's/^[[:space:]]*//' <<<"$reply_step" | grep '^round <r>:'
   tr '\n' ' ' <<<"$reply_step" | tr -s ' ' | grep -oE '`round <r>:[^`]*`' | tr -d '`'
@@ -2770,11 +2794,11 @@ out="$(grep -xF "round <r>: <check> red; do-pr-fixer on <fixer branch>: not repr
 expect "a not reproduced check's round line on a pushed round ends retried by the run on the picked sha" test -n "$out"
 
 # The team sharing CI relies on a check being retried once per run (ADR 0089): a check a rerun or a
-# pushed round's new run already retried, rerun again, turns one retry into a loop of reruns. Step 4
+# pushed round's new run already retried, rerun again, turns one retry into a loop of reruns. The Fix step
 # gates its pr-rerun.sh call on the run's retry record, so the record is read off the sentences of
 # steps 3 and 4 naming it, and the gate off the push item's sentence that names both it and the call.
-echo "# pr.md / ### 3. Watch and ### 4. Fix the red checks: the retry record is the check names on round lines ending in a rerun or a pushed round's retry, recorded only by a round that pushed or reran, and step 4 passes pr-rerun.sh no check whose name is in it"
-steps="$(passage_of "$pr" "### 3. Watch" "### 5. Reply" 2>/dev/null)"
+echo "# pr.md / ### Watch and ### Fix the red checks: the retry record is the check names on round lines ending in a rerun or a pushed round's retry, recorded only by a round that pushed or reran, and the Fix step passes pr-rerun.sh no check whose name is in it"
+steps="$(passage_of "$pr" "$watch_h" "$reply_h" 2>/dev/null)"
 flat="$(tr '\n' ' ' <<<"$steps" | tr -s ' ' | sed 's/\. /.\n/g' | grep -F "retry record" | tr '\n' ' ')"
 expect "sentences of steps 3 and 4 name the retry record" test -n "$flat"
 carries_each "the record holds the checks whose round line ends in a rerun or in a pushed round's retry" \
@@ -2789,7 +2813,7 @@ carries_each "so a redone round records nothing" \
   "redone" "redo" -- \
   "records nothing" "records no" "nothing enters" "enters nothing" "no line enters" "never enters" \
   "does not enter" "not enter" "nothing entering" "adds nothing" "adds no" "writes nothing" "puts nothing"
-step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 push_item="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.' "$push_line")"
 flat="$(tr '\n' ' ' <<<"$push_item" | tr -s ' ' | sed 's/\. /.\n/g' | grep -F "retry record" |
   grep -F "pr-rerun.sh" | tr '\n' ' ')"
@@ -2807,8 +2831,8 @@ carries_any "and the run ids it passes are those of such checks alone" \
 # rerun spends the one retry twice (ADR 0089). The route is read off the watch step's bullet that
 # names the retry record beside verdict=red, the came-back bullet passed over, so the came-back
 # route's own stop never answers for it.
-echo "# pr.md / ### 3. Watch: a red verdict naming a check in the retry record is red again on its retry, never goes to step 4, forks no fixer, starts no new round and gets no second rerun, ahead of the next round and the three-round stop"
-watch="$(passage_of "$pr" "### 3. Watch" "##" 2>/dev/null)"
+echo "# pr.md / ### Watch: a red verdict naming a check in the retry record is red again on its retry, never goes to the Fix step, forks no fixer, starts no new round and gets no second rerun, ahead of the next round and the three-round stop"
+watch="$(passage_of "$pr" "$watch_h" "##" 2>/dev/null)"
 flat="$(piece_all=1 piece_without="reported fixed that came back red" piece_with "retry record" |
   grep -F "verdict=red" | tr '\n' ' ')"
 expect "a bullet of the watch step routes a verdict=red by the retry record" test -n "$flat"
@@ -2817,11 +2841,11 @@ carries_any "that check is red again on its retry" \
   "red again on its retry" "red on its retry" "red again on the retry" "red on the retry" \
   "red after its retry" "red after the retry" "red again after its retry" "failed its retry" \
   "fails its retry" "retry came back red" "retry is red" "retry was red"
-carries_any "it never goes to step 4" \
-  "never goes to step 4" "never goes on to step 4" "does not go to step 4" "doesn't go to step 4" \
-  "not go to step 4" "never reaches step 4" "never sent to step 4" "not sent to step 4" \
-  "never back to step 4" "never carried to step 4" "not carried to step 4" "skips step 4" \
-  "rather than step 4" "instead of step 4" "no step 4"
+carries_any "it never goes to step $fix_n" \
+  "never goes to step $fix_n" "never goes on to step $fix_n" "does not go to step $fix_n" "doesn't go to step $fix_n" \
+  "not go to step $fix_n" "never reaches step $fix_n" "never sent to step $fix_n" "not sent to step $fix_n" \
+  "never back to step $fix_n" "never carried to step $fix_n" "not carried to step $fix_n" "skips step $fix_n" \
+  "rather than step $fix_n" "instead of step $fix_n" "no step $fix_n"
 carries_each "no do-pr-fixer is forked for it again" \
   "do-pr-fixer" -- \
   "forks no" "no fork" "never forks" "never forked" "not forked" "does not fork" "doesn't fork" \
@@ -2841,10 +2865,10 @@ carries_each "this route comes ahead of the next round and of the three-round st
 # check whose fixer returned `fixed` or `not fixed` hides a real failure behind a lucky retry, and a
 # rerun keyed on the session's reading of a log is spent before anyone knows whether the failure
 # reproduces (ADR 0089; ADR 0028: a class is a script's verdict, never the session's reading). The
-# case reads step 4's push item, one sentence at a time, and keeps those naming a rerun, the
+# case reads the Fix step's push item, one sentence at a time, and keeps those naming a rerun, the
 # `Yours: direction:` clauses set aside, so the never-does bullet cannot answer for it.
-echo "# pr.md / ### 4. Fix the red checks: only a not reproduced check is passed to pr-rerun.sh, never a fixed or not fixed one, and never on the session's reading of its log"
-step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+echo "# pr.md / ### Fix the red checks: only a not reproduced check is passed to pr-rerun.sh, never a fixed or not fixed one, and never on the session's reading of its log"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 rerun_sentences="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.' "$push_line" | tr '\n' ' ' |
   tr -s ' ' | sed 's/\. /.\n/g' | grep -E 'pr-rerun\.sh|rerun' | grep -vF 'Yours: direction:')"
 flat="$(tr '\n' ' ' <<<"$rerun_sentences")"
@@ -2882,8 +2906,8 @@ carries_any "there is no flake class" "flake" "flaky" "transient" "intermittent"
 # hides that the check failed once and was retried. The route is read off the watch step's pieces
 # naming the retry record beside a green outcome, the came-back bullet passed over; the round line
 # off the Reply step's round templates, a line of its own or a code span.
-echo "# pr.md / ### 3. Watch and ### 5. Reply: a check in the retry record that the settled verdict no longer names red is green on its retry, written as its round line, with no stop and no Yours: line, and the verdict keeps its own route"
-watch="$(passage_of "$pr" "### 3. Watch" "##" 2>/dev/null)"
+echo "# pr.md / ### Watch and ### Reply: a check in the retry record that the settled verdict no longer names red is green on its retry, written as its round line, with no stop and no Yours: line, and the verdict keeps its own route"
+watch="$(passage_of "$pr" "$watch_h" "##" 2>/dev/null)"
 flat="$(piece_all=1 piece_without="reported fixed that came back red" piece_with "retry record" |
   grep -F "green" | tr '\n' ' ')"
 expect "a bullet or paragraph of the watch step routes a check in the retry record to green" test -n "$flat"
@@ -2907,7 +2931,7 @@ carries_any "the run goes on by the verdict's own route" \
   "its own route" "the verdict's own route" "the verdict's route" "by its route" "routes as" \
   "as the verdict routes" "by the verdict's" "the verdict keeps" "goes on by" "goes on as" \
   "as it would" "the route the verdict" "its own bullet" "the verdict's bullet"
-reply_step="$(passage_of "$pr" "### 5. Reply" "##" 2>/dev/null)"
+reply_step="$(passage_of "$pr" "$reply_h" "##" 2>/dev/null)"
 templates="$(
   sed 's/^[[:space:]]*//' <<<"$reply_step" | grep '^round <r>:'
   tr '\n' ' ' <<<"$reply_step" | tr -s ' ' | grep -oE '`round <r>:[^`]*`' | tr -d '`'
@@ -2918,10 +2942,10 @@ expect "a check green on its retry has its own round line in the Reply's round t
 # without the first excerpt leaves only the retry's failure, and a `Yours:` line that offered the
 # run's own rerun again would hand over a command the run already spent (ADR 0089). The route is
 # read off the watch step's pieces naming the retry record beside a red verdict, the came-back
-# bullet passed over; the first excerpt off step 4's sentences naming an excerpt and the retry; the
+# bullet passed over; the first excerpt off the Fix step's sentences naming an excerpt and the retry; the
 # round line, the labels and the stop's line off the Reply step and the steps that carry them.
-echo "# pr.md / ### 3. Watch, ### 4. Fix the red checks and ### 5. Reply: a check red again on its retry stops the run as not reproducible on one not-reproducible entry, quoting the first excerpt and the retry's, cut by pr-log.sh on a run tree at the verdict's sha="
-watch="$(passage_of "$pr" "### 3. Watch" "##" 2>/dev/null)"
+echo "# pr.md / ### Watch, ### Fix the red checks and ### Reply: a check red again on its retry stops the run as not reproducible on one not-reproducible entry, quoting the first excerpt and the retry's, cut by pr-log.sh on a run tree at the verdict's sha="
+watch="$(passage_of "$pr" "$watch_h" "##" 2>/dev/null)"
 flat="$(piece_all=1 piece_without="reported fixed that came back red" piece_with "retry record" "red again on its retry" |
   grep -F -e "verdict=red" -e "red again" | tr '\n' ' ')"
 expect "a piece of the watch step routes a verdict=red name in the retry record" test -n "$flat"
@@ -2930,10 +2954,10 @@ carries_each "it raises one not-reproducible stop entry" \
   "stop entry" "stop-case" "stop set" "entry"
 carries_any "and stops the run" "stops" "the run stop" "a stop"
 carries "the retry's excerpt is cut with pr-log.sh <link> <run tree>" "pr-log.sh <link> <run tree>"
-carries_each "on a run tree cut at the verdict's sha=, as step 4 cuts one" \
+carries_each "on a run tree cut at the verdict's sha=, as step $fix_n cuts one" \
   "run tree" -- \
   "sha=" -- \
-  "as step 4" "step 4 item 2" "item 2" "git worktree add" "as step 4 cuts" "the way step 4"
+  "as step $fix_n" "step $fix_n item 2" "item 2" "git worktree add" "as step $fix_n cuts" "the way step $fix_n"
 carries_any "the run tree removed after" \
   "removed after" "removes it" "removes the run tree" "removes \`<run tree>\`" "remove \`<run tree>\`" \
   "git worktree remove" "then removed" "is removed" "removed once" "removes that run tree"
@@ -2943,14 +2967,14 @@ carries_each "on a non-zero exit the script's stderr line stands in the excerpt'
   "in the excerpt's place" "in place of the excerpt" "in its place" "stands in for" "stands in" \
   "takes the excerpt's place" "instead of the excerpt" "in place of the retry's excerpt" \
   "in place of its excerpt" "as the retry's excerpt" "quoted as the excerpt"
-step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ' | sed 's/\. /.\n/g' | grep -F "excerpt" | grep -F "retry" | tr '\n' ' ')"
-expect "a sentence of step 4 names an excerpt beside the retry" test -n "$flat"
+expect "a sentence of step $fix_n names an excerpt beside the retry" test -n "$flat"
 carries_each "the session keeps the excerpt= values read for a not reproduced check with its open retry" \
   "excerpt=" "excerpt values" "first excerpt" "its excerpt" -- \
   "not reproduced" "not-reproduced" -- \
   "keep" "kept" "hold" "held" "retain" "store" "remember" "carries" "carry" "saved" "saves"
-reply_step="$(passage_of "$pr" "### 5. Reply" "##" 2>/dev/null)"
+reply_step="$(passage_of "$pr" "$reply_h" "##" 2>/dev/null)"
 templates="$(
   sed 's/^[[:space:]]*//' <<<"$reply_step" | grep '^round <r>:'
   tr '\n' ' ' <<<"$reply_step" | tr -s ' ' | grep -oE '`round <r>:[^`]*`' | tr -d '`'
@@ -2962,7 +2986,7 @@ expect "a piece of the Reply step names the first excerpt label \`first excerpt 
 carries "and the retry excerpt label beside it" "retry excerpt"
 before "the first excerpt comes ahead of the retry's" "first excerpt (round <r>):" "retry excerpt"
 carries_any "each excerpt quoted" "quoted" "quotes" "quote" "quoting"
-steps="$(sed -n '/^### 3\. Watch/,$p' "$pr")"
+steps="$(sed -n "/^### [0-9]*\. Watch/,\$p" "$pr")"
 lines="$(
   sed 's/^[[:space:]]*//' <<<"$steps"
   tr '\n' ' ' <<<"$steps" | tr -s ' ' | grep -oE '`Yours: direction:[^`]*`' | tr -d '`'
@@ -2974,8 +2998,8 @@ expect "the stop's line reads Yours: direction: fix <check> by hand, or re-run i
 # loop, a route that held for one kind of retry only would send the other back to a fixer, and a
 # verdict's other red names left out of the stop line go unreported. The route is read off the watch
 # step's bullet that raises the not-reproducible stop, the came-back bullet passed over.
-echo "# pr.md / ### 3. Watch: a check red again on its retry, whatever its excerpt reads and whichever retry it had, is never classified again, and the verdict's other red names go in the still red: tail"
-watch="$(passage_of "$pr" "### 3. Watch" "##" 2>/dev/null)"
+echo "# pr.md / ### Watch: a check red again on its retry, whatever its excerpt reads and whichever retry it had, is never classified again, and the verdict's other red names go in the still red: tail"
+watch="$(passage_of "$pr" "$watch_h" "##" 2>/dev/null)"
 flat="$(piece_all=1 piece_without="reported fixed that came back red" piece_with "retry record" "red again on its retry" |
   grep -F "not-reproducible" | tr '\n' ' ')"
 expect "a piece of the watch step raises the not-reproducible stop for a check red again on its retry" test -n "$flat"
@@ -3004,14 +3028,14 @@ carries_each "the verdict's other red names, which no clause names, go in the st
   "the others"
 # The developer relies on a round that stops on a stop-case beside a not reproduced check getting
 # that check's answer in the same stop (the journey's Ruling on Path 4: rerun once and watch before
-# the stop): a stop made before the rerun hands over a check one rerun could have settled. Step 4's
+# the stop): a stop made before the rerun hands over a check one rerun could have settled. The Fix step's
 # route is read off the push item's pieces naming both a stop-case and the not reproduced check or
 # its rerun, the empty-stop-set pieces passed over so the empty-set rerun paragraph never answers for
 # it; the one watch after it off the watch step's pieces naming a rerun beside the stop set, the
 # came-back bullet passed over, and its place off the order of the step's pieces; the round line off
 # the Reply step's round templates, a line of its own or a code span.
-echo "# pr.md / ### 4. Fix the red checks, ### 3. Watch and ### 5. Reply: a round that pushes nothing, with a stop-case and a not reproduced check outside the retry record, reruns it once and watches once more before it stops on the carried stop set, whatever the verdict; on moved= it stops at once, the check in the still red: tail"
-step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+echo "# pr.md / ### Fix the red checks, ### Watch and ### Reply: a round that pushes nothing, with a stop-case and a not reproduced check outside the retry record, reruns it once and watches once more before it stops on the carried stop set, whatever the verdict; on moved= it stops at once, the check in the still red: tail"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 push_item="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.' "$push_line" | sed 's/^[[:space:]]*//')"
 stop_case_marks=("stop-case" "stop case" "non-empty stop set" "stop set is not empty" "stop set isn't empty"
   "carried stop set" "carrying the stop set" "carries the stop set" "carrying its stop set"
@@ -3043,8 +3067,8 @@ carries_each "on rerun=, the round's rerun line is written" \
 carries_any "and the run tree removed" \
   "git worktree remove <run tree>" "remove \`<run tree>\`" "removes \`<run tree>\`" "removing \`<run tree>\`" \
   "\`<run tree>\` is removed" "removes the run tree" "remove the run tree" "run tree is removed"
-carries_each "and the run goes back to step 3 carrying the stop set" \
-  "step 3" -- \
+carries_each "and the run goes back to step $watch_n carrying the stop set" \
+  "step $watch_n" -- \
   "carrying the stop set" "carries the stop set" "carrying its stop set" "carries its stop set" \
   "stop set carried" "with the stop set" "keeps the stop set" "keeping the stop set" "keeping its stop set" \
   "stop set it carries" "stop set is carried" "carried stop set"
@@ -3070,7 +3094,7 @@ expect "the item keeps the no-pick stop-case stop on one Yours: direction: line"
 carries_any "and that stop no longer comes before a rerun the not-reproduced list still owes" \
   "not-reproduced list" "not reproduced list" "nothing to rerun" "no check to rerun" "nothing left to rerun" \
   "no check left to rerun" "after the rerun" "after its rerun" "after a rerun" "retry record" "rerun"
-watch="$(passage_of "$pr" "### 3. Watch" "##" 2>/dev/null | sed 's/^[[:space:]]*//')"
+watch="$(passage_of "$pr" "$watch_h" "##" 2>/dev/null | sed 's/^[[:space:]]*//')"
 after_rerun=("after the rerun" "after a rerun" "after its rerun" "after the round's rerun"
   "after a round that reran" "after a round that ended in a rerun" "after a rerun round")
 flat3="$(piece_all=1 piece_without="pushed to <head>" piece_with "${after_rerun[@]}" |
@@ -3110,7 +3134,7 @@ cap_at="$(grep -F "after the third pushed round" <<<"$others" | head -1 | cut -d
 expect "the after-the-rerun piece comes before the bullet starting the next round while fewer than three rounds have pushed" \
   test "${rerun_at:-0}" -gt 0 -a "${next_at:-0}" -gt "${rerun_at:-0}"
 expect "and before the three-round stop" test "${rerun_at:-0}" -gt 0 -a "${cap_at:-0}" -gt "${rerun_at:-0}"
-reply_step="$(passage_of "$pr" "### 5. Reply" "##" 2>/dev/null)"
+reply_step="$(passage_of "$pr" "$reply_h" "##" 2>/dev/null)"
 templates="$(
   sed 's/^[[:space:]]*//' <<<"$reply_step" | grep '^round <r>:'
   tr '\n' ' ' <<<"$reply_step" | tr -s ' ' | grep -oE '`round <r>:[^`]*`' | tr -d '`'
@@ -3123,8 +3147,8 @@ expect "the watch after the rerun has its own round line in the Reply's round te
 # round). The after-the-rerun route is read off the watch step's pieces naming a rerun beside the
 # stop set, as the case above reads it; the clause order off the push item's paragraph naming the
 # Waves and the order, as the rerun-refused order case reads it.
-echo "# pr.md / ### 3. Watch and ### 4. Fix the red checks: the stop after the rerun that carried a stop set names each retry's outcome, green or red again with both excerpts, and a retry red again adds its not-reproducible clause after the carried stop-cases on the one Yours: direction: line"
-watch="$(passage_of "$pr" "### 3. Watch" "##" 2>/dev/null | sed 's/^[[:space:]]*//')"
+echo "# pr.md / ### Watch and ### Fix the red checks: the stop after the rerun that carried a stop set names each retry's outcome, green or red again with both excerpts, and a retry red again adds its not-reproducible clause after the carried stop-cases on the one Yours: direction: line"
+watch="$(passage_of "$pr" "$watch_h" "##" 2>/dev/null | sed 's/^[[:space:]]*//')"
 flat="$(piece_all=1 piece_without="pushed to <head>" piece_with "${after_rerun[@]}" |
   grep -F -e "stop set" -e "stop-case" | tr '\n' ' ')"
 expect "a bullet or paragraph of the watch step takes the watch after a rerun that carried a stop set" test -n "$flat"
@@ -3146,7 +3170,7 @@ carries_any "on the same Yours: direction: line as the stop-case's clause, never
   "same \`Yours: direction:\` line" "same Yours: direction: line" "same \`Yours:\` line" "same Yours: line" \
   "that same line" "the same line" "on one line" "never on a second" "never a second" "not on a second" \
   "no second \`Yours:" "no second Yours:" "not a second" "nor a second"
-step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 push_item="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.' "$push_line" | sed 's/^[[:space:]]*//')"
 flat="$(piece_in="$push_item" piece_all=1 piece_with "Wave" | grep -F "order" | tr '\n' ' ')"
 expect "a paragraph of the push item names the Waves and the order of the clauses" test -n "$flat"
@@ -3162,8 +3186,8 @@ expect "and after the carried rerun-refused entries" test "$refused_at" -gt 0 -a
 # made: a stop before that watch throws the paid-for retry away and leaves the Reply silent on
 # whether that check flaked. The route is read off the `failed: <run id>: <reason>` bullet of the
 # push item, its nested bullets with it, and any piece of the item that names that answer.
-echo "# pr.md / ### 4. Fix the red checks: a refused pr-rerun.sh call after a rerun= line keeps the made rerun's retry, carries the rerun-refused stop-cases to the one watch after the rerun, then stops on one Yours: direction: line; with no rerun made it stops at once"
-step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+echo "# pr.md / ### Fix the red checks: a refused pr-rerun.sh call after a rerun= line keeps the made rerun's retry, carries the rerun-refused stop-cases to the one watch after the rerun, then stops on one Yours: direction: line; with no rerun made it stops at once"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 push_item="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.' "$push_line")"
 flat="$(
   bullets_opening_on <(printf '%s\n' "$push_item") "\`failed: <run id>: <reason>\`"
@@ -3184,8 +3208,8 @@ carries_any "the run ids printed on rerun= lines open their checks' retries, the
 carries_any "the run tree is removed" \
   "git worktree remove <run tree>" "remove \`<run tree>\`" "removes \`<run tree>\`" "removing \`<run tree>\`" \
   "\`<run tree>\` is removed" "removes the run tree" "remove the run tree" "run tree is removed"
-carries_each "and the run goes back to step 3 carrying the stop set" \
-  "step 3" -- \
+carries_each "and the run goes back to step $watch_n carrying the stop set" \
+  "step $watch_n" -- \
   "carrying the stop set" "carries the stop set" "carrying its stop set" "carries its stop set" \
   "stop set carried" "with the stop set" "keeps the stop set" "keeping the stop set" "keeping its stop set" \
   "stop set it carries" "stop set is carried" "carried stop set"
@@ -3213,8 +3237,8 @@ absent "and the run no longer stops at once after a made rerun" "stops now too"
 # commit sits on the tree, so it removes the tree; an unknown fix-worktrees.sh add line and an unknown
 # fix-integrate.sh line come after earlier Waves' picks may sit there, so they keep the tree and name
 # it on the stop line.
-echo "# pr.md / ### 4. Fix the red checks: a non-zero pr-log.sh exit removes the run tree, and an unknown fix-worktrees.sh add line or fix-integrate.sh line names the kept run tree on its stop line"
-step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+echo "# pr.md / ### Fix the red checks: a non-zero pr-log.sh exit removes the run tree, and an unknown fix-worktrees.sh add line or fix-integrate.sh line names the kept run tree on its stop line"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 flat="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.' "pr-log.sh <link> <run tree>" | tr '\n' ' ' | tr -s ' ')"
 expect "an item of the step carries the pr-log.sh call" test -n "$flat"
 carries_each "a non-zero exit removes the run tree before the run stops" \
@@ -3239,39 +3263,39 @@ carries_each "the unknown integrate line's stop line names the run tree and the 
 # them to guess what is theirs to do, and breaks the rule every grader reads the Reply against. Each
 # stop is read off its own bullet, paragraph or item, since steps 3 and 4 carry other stops whose
 # `Yours: direction:` lines would otherwise answer for it.
-echo "# pr.md / ### 3. Watch and ### 4. Fix the red checks: an unknown verdict word, a failed watch, a withheld Agent tool, a git refusal on the run tree and a failed pr-log.sh each stop on their quoted line and exactly one Yours: direction: line, nothing followed"
+echo "# pr.md / ### Watch and ### Fix the red checks: an unknown verdict word, a failed watch, a withheld Agent tool, a git refusal on the run tree and a failed pr-log.sh each stop on their quoted line and exactly one Yours: direction: line, nothing followed"
 yours_direction_once() { # $1 label: $flat carries exactly one `Yours: direction:` line
   expect "$1" test "$(grep -oF 'Yours: direction:' <<<"$flat" | wc -l)" -eq 1
 }
 follows_nothing=("follows nothing" "nothing is followed" "nothing followed" "follows none" "follows no step"
   "no step after" "no later step" "no further step" "runs nothing else" "nothing else runs" "does nothing else")
-watch="$(passage_of "$pr" "### 3. Watch" "##" 2>/dev/null)"
-step="$(passage_of "$pr" "### 4. Fix the red checks" "##" 2>/dev/null)"
+watch="$(passage_of "$pr" "$watch_h" "##" 2>/dev/null)"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 flat="$(piece_with "Any other verdict word" "any other verdict word")"
-expect "a bullet of step 3 takes any other verdict word" test -n "$flat"
+expect "a bullet of step $watch_n takes any other verdict word" test -n "$flat"
 carries_each "the unknown verdict stops on one line quoting the verdict as printed" \
   "stops" -- "one line" -- "as printed"
 yours_direction_once "the unknown verdict's stop carries exactly one \`Yours: direction:\` line"
 carries_any "and follows nothing" "${follows_nothing[@]}"
 flat="$(piece_with "A non-zero exit of the script" "a non-zero exit of the script")"
-expect "a bullet of step 3 takes a non-zero exit of the script" test -n "$flat"
+expect "a bullet of step $watch_n takes a non-zero exit of the script" test -n "$flat"
 carries_each "the failed watch stops on one line quoting the script's stderr line" \
   "stops" -- "one line" -- "stderr line"
 yours_direction_once "the failed watch's stop carries exactly one \`Yours: direction:\` line"
 carries_any "and follows nothing" "${follows_nothing[@]}"
 flat="$(piece_in="$step" piece_with "withheld")"
-expect "a paragraph of step 4 takes the Agent tool being withheld" test -n "$flat"
+expect "a paragraph of step $fix_n takes the Agent tool being withheld" test -n "$flat"
 carries_each "the withheld Agent tool stops on one line saying no fixer can be forked" \
   "stops" -- "one line" -- "no fixer can be forked"
 yours_direction_once "the withheld Agent tool's stop carries exactly one \`Yours: direction:\` line"
 carries_any "and follows nothing" "${follows_nothing[@]}"
 flat="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.' "git worktree add --detach <main checkout>" | tr '\n' ' ' | tr -s ' ')"
-expect "an item of step 4 carries the run tree's fetch and worktree add lines" test -n "$flat"
+expect "an item of step $fix_n carries the run tree's fetch and worktree add lines" test -n "$flat"
 carries_each "git refusing either line stops the run quoting git's line" \
   "refuses" -- "stops" -- "git's line"
 yours_direction_once "git's refusal's stop carries exactly one \`Yours: direction:\` line"
 flat="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.' "pr-log.sh <link> <run tree>" | tr '\n' ' ' | tr -s ' ')"
-expect "an item of step 4 carries the pr-log.sh call" test -n "$flat"
+expect "an item of step $fix_n carries the pr-log.sh call" test -n "$flat"
 carries_each "a non-zero pr-log.sh exit stops the run quoting the script's stderr line" \
   "non-zero exit" -- "stops" -- "stderr line"
 yours_direction_once "the failed pr-log.sh's stop carries exactly one \`Yours: direction:\` line"
@@ -3280,7 +3304,7 @@ yours_direction_once "the failed pr-log.sh's stop carries exactly one \`Yours: d
 # list names no fixer's return, watch or pr-log.sh among the `pr` door's stops that owe no `Yours:`
 # line. The stop is read off its own paragraph of the push item, since the item's other stops carry
 # `Yours: direction:` lines that would otherwise answer for it.
-echo "# pr.md / ### 4. Fix the red checks: the no-pick, empty-set stop quoting each fixer's return carries exactly one Yours: direction: line, which reply.md's exception list does not waive"
+echo "# pr.md / ### Fix the red checks: the no-pick, empty-set stop quoting each fixer's return carries exactly one Yours: direction: line, which reply.md's exception list does not waive"
 push_item="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.' "$push_line")"
 flat="$(piece_in="$push_item" piece_with "quoting its fixer's return" "one line per check quoting")"
 expect "a paragraph of the push item stops quoting each fixer's return" test -n "$flat"
