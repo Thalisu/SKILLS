@@ -258,6 +258,36 @@ check_lines "a rerun prints only the items the Debt review holds no Finding for,
 check_absent "a rerun gives no item for a source a Consider or a Cleared Finding of the Debt review holds" 0 "$rc" \
   "section first run, item 1" "section first run, item 3" "item=2${tab}"
 
+moved="$tmp/.scratch/20261019-moved-debt"
+mkdir -p "$moved/issues"
+printf '# Spec: moved debt\n' >"$moved/spec.md"
+printf '## first run\n\n- the timeout is hardcoded\n- the log path is relative\n- the lock file is never removed\n- the port is fixed\n' >"$moved/issues/01-a.debt.md"
+review_at 8b1d0e4 "$moved/spec.debt.review.md" "### 3. Principles at src/l.sh:8
+Claim: the lock file is never removed.
+Evidence: no trap removes \`run.lock\`.
+Rung: 2
+Fix: an EXIT trap removes run.lock, in src/l.sh
+Source: issues/01-a.debt.md, section first run, item 3
+
+### 1. Standards at src/t.sh:2
+Claim: the timeout is hardcoded.
+Evidence: \`timeout=30\` in src/t.sh:2.
+Rung: 2
+Fix: the timeout is read from the config, in src/t.sh
+Source: issues/01-a.debt.md, section first run, item 1" "$landed" "" "none" "none" "### 2. Principles at src/p.sh:4
+Claim: the log path is relative.
+Evidence: \`log=run.log\` in src/p.sh:4.
+Rung: 2
+Fix: the log path is resolved against the run directory, in src/p.sh
+Source: issues/01-a.debt.md, section first run, item 2"
+run moved-debt
+check_lines "a rerun prints only the items no Finding holds, wherever the developer moved a Finding, and judges that many, exit 0" 0 "$rc" \
+  "items=1" \
+  "item=1${tab}source=issues/01-a.debt.md, section first run, item 4${tab}text=the port is fixed" \
+  "line=Judging 1 debt items of 20261019-moved-debt"
+check_absent "a rerun gives no item for a Finding moved from Act on to Cleared or from Consider to Act on" 0 "$rc" \
+  "section first run, item 2" "section first run, item 3" "item=2${tab}"
+
 held="$tmp/.scratch/20261019-held-debt"
 mkdir -p "$held/issues"
 printf '# Spec: held debt\n' >"$held/spec.md"
