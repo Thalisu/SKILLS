@@ -872,6 +872,33 @@ run "$settled" --settled 2
 check_absent "a Review whose Findings are settled part by a later Fix run and the rest by the fix call leaves nothing to fork: exit 1 and no Wave" 1 "$rc" \
   "wave="
 
+overruled="$tmp/13-overruled.debt.review.md"
+review_at 8b1d0e4 "$overruled" "### 3. Principles at src/moved.js:7
+Claim: the export format is decided in three places.
+Evidence: Single source of truth; the format string is repeated across the export path.
+Rung: 3
+Fix: one constant owns the export format, in tests/moved.test.js
+Source: issues/01-export.debt.md, item 3
+
+### 1. Standards at src/kept.js:4
+Claim: the export helper is named for its caller instead of what it does.
+Evidence: \`exportForCron\` formats a row and is called from three places.
+Rung: 3
+Fix: the helper is named for the row it formats, in tests/kept.test.js
+Source: issues/01-export.debt.md, item 1" "" "" "none" "none" "### 2. Principles at src/cleared.js:9
+Claim: the export pipeline mixes formatting and delivery.
+Evidence: Separation of concerns; one function renders and uploads.
+Rung: 3
+Fix: rendering is split from delivery, in tests/cleared.test.js
+Source: issues/01-export.debt.md, item 2"
+
+run "$overruled"
+waved="$(sed -n 's/^wave=[0-9][0-9]*[[:space:]]findings=//p' <<<"$out" | tr ',' '\n' | sort -n | paste -sd, -)"
+check_absent "a hand-edited Debt review prints its Waves with exit 0, and no Wave names the Finding moved out of Act on into Cleared" 0 "$rc" \
+  "findings=2"
+expect "the Waves of a hand-edited Debt review name exactly the Findings under Act on as the file reads now, the one moved in and numbered above the one after it included, and never the one moved out" \
+  test "$waved" = "1,3"
+
 echo
 if [ "$fails" = 0 ]; then echo "fix-waves: all checks passed"; else
   echo "fix-waves: $fails failed"
