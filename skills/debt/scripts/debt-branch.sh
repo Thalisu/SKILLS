@@ -6,7 +6,9 @@
 #
 # Prints branch=debt/<slug>, worktree=<main>/.claude/worktrees/debt-<slug>, main=<main checkout>,
 # target=<the branch the review recorded in its Fixed point>, tip=<the short sha of that header> and
-# call=fix <the review path as handed in> <target>, the fix call with its landing target.
+# call=fix <the review path as handed in> <target>, the fix call with its landing target. After call=
+# it prints the optional tickets=/tickets <the review's Spec: value> when a line equal to
+# `Mark: too big for a Fixer` sits in the review's `## Consider` section, and no tickets= line otherwise.
 # The main checkout's HEAD, branch and working tree are never touched, and neither is the developer's
 # branch. On a git failure it prints one line=<git's error line> instead.
 #
@@ -24,6 +26,8 @@ usage() {
 slug="$1" review="$2"
 [ -f "$review" ] || usage
 grep -q '^Spec: ' "$review" || usage
+spec="$(grep -m1 '^Spec: ' "$review")"
+spec="${spec#Spec: }"
 header="$(grep -m1 '^Fixed point: ' "$review")" || usage
 tip="$(sed -n 's/^Fixed point: .*(\([^)]*\)).*/\1/p' <<<"$header" | head -n 1)"
 target="${header#Fixed point: }"
@@ -64,3 +68,6 @@ echo "main=$main"
 echo "target=$target"
 echo "tip=$tip"
 echo "call=fix $review $target"
+if awk '/^## /{in_consider = ($0 == "## Consider")} in_consider && $0 == "Mark: too big for a Fixer"{found=1} END{exit !found}' "$review"; then
+  echo "tickets=/tickets $spec"
+fi

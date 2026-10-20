@@ -120,4 +120,57 @@ check_lines "the cut hands the fix run the Debt review, then the developer's bra
 expect "debt/reports-export starts at the developer's tip when debt-review.sh ran" \
   test "$(g -C "$main" rev-parse -q --verify refs/heads/debt/reports-export)" = "$reviewed"
 
+fresh held
+main="$tmp/held"
+printf '.scratch/\n' >.gitignore
+printf 'base\n' >README.md
+commit base
+g checkout -q -b invoices
+printf 'export\n' >invoices.txt
+commit "invoices export"
+short="$(g rev-parse --short HEAD)"
+feature="$main/.scratch/20261020-invoices-export"
+mkdir -p "$feature"
+printf '# Spec: Invoices export\n' >"$feature/spec.md"
+review="$feature/spec.debt.review.md"
+cat >"$review" <<EOF
+# Review: Invoices export
+
+Spec: $feature/spec.md
+Fixed point: invoices ($short)
+Commit: $short
+Spec source: $feature/spec.md
+Mode: default
+Language: English
+
+## Act on
+
+none
+
+## Consider
+
+### 1. Principles at invoices.txt:1
+Claim: the export format is decided in three places
+Evidence: Single source of truth; the format string is repeated across the export path
+Rung: 3
+Mark: too big for a Fixer
+Fix: one module owns the export format, in the invoices export
+Source: issues/01-export.debt.md, item 1
+
+## Noted
+
+none
+
+## Cleared
+
+none
+
+## Axes
+
+EOF
+
+run invoices-export "$review"
+check_lines "a marked Consider Finding hands the developer the /tickets call over the review's Spec: exit 0" \
+  0 "$rc" "tickets=/tickets $feature/spec.md"
+
 exit "$fails"
