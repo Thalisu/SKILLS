@@ -96,7 +96,8 @@ The session runs no git and parses no file itself. It decides on the script's ex
 
 - exit 3: print the `line=` value as the run's last line and stop, calling no fix run.
 - exit 2: print the script's stderr line and stop.
-- exit 0: go on with the `worktree=`, `main=` and `call=` values.
+- exit 0: go on with the `worktree=`, `main=` and `call=` values, and with the `tickets=` value
+  when the script printed one.
 
 On exit 0, enter the worktree with a bare `cd <worktree>` (the `worktree=` value) in a shell call of its
 own, nothing before or after it, per `.agents/worktrees.md`: never the harness's worktree tool.
@@ -117,6 +118,11 @@ cd <main>
 
 The run ends with the fix run's reply as it returned: one fix line per `Act on` Finding, then
 `landed at <sha>`, then the `push command` as the run's last line.
+
+The script prints a `tickets=` value when a `## Consider` Finding is marked `too big for a Fixer`.
+When it did, the run puts that `tickets=` value (the `/tickets <spec>` line) on its own line just
+before the push command, the fix run's reply's last line, so the push command stays the run's last
+line. When the script printed no `tickets=`, nothing is inserted.
 
 When the session does not list `do-code-review`, the run checks that before the cut, so nothing is cut:
 it prints `skip: do-code-review not listed` as its last line and stops.

@@ -103,6 +103,24 @@ before "the landing line comes before the push command" "landed at <sha>" "push 
 carries_any "the push command is the run's last line" "last line" "ends on" "ends with"
 before "the run returns to the main checkout before its closing lines" "cd <main>" "landed at <sha>"
 
+echo "# a printed tickets= value: its own line just before the push command, which stays last"
+carries "the run takes the tickets= value the script printed" "tickets="
+carries_any "the tickets= value goes on a line of its own" \
+  "its own line" "a line of its own" "on its own line" "own line"
+carries_any "the tickets= line sits just before the push command" \
+  "just before the push command" "just before the \`push command\`" \
+  "right before the push command" "right before the \`push command\`" \
+  "immediately before the push command" "immediately before the \`push command\`" \
+  "just above the push command" "just above the \`push command\`" \
+  "right above the push command" "right above the \`push command\`" \
+  "just before the reply's last line" "just before its last line" "right before its last line"
+carries_any "the push command stays the run's last line with a tickets= line in" \
+  "push command stays" "\`push command\` stays" "stays the run's last line" \
+  "still the run's last line" "remains the run's last line" "stays last" "still last"
+carries_any "with no tickets= printed, nothing is inserted" \
+  "no \`tickets=\`" "no tickets=" "without a \`tickets=\`" "without a tickets=" \
+  "inserts nothing" "nothing is inserted" "adds nothing" "nothing is added"
+
 echo "# the session lists no do-code-review: the step says what it does"
 passage_of "$skill" "## 3." "<arguments>" >"$tmp/step.md"
 fallback=""
