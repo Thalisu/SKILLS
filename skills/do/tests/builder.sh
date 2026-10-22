@@ -383,7 +383,7 @@ expect "the building agent's Agent-matcher PreToolUse hook carries a command to 
 # denies any of them leaves the behaviour it covers with no test to turn green, and the loop stops
 # at the first cycle that needs it.
 for author in unit-test-author e2e-test-author global-unit-test-author global-e2e-test-author; do
-  author_out="$(printf '{"tool_input": {"subagent_type": "%s"}}' "$author" |
+  author_out="$(printf '{"tool_input": {"subagent_type": "%s", "run_in_background": false}}' "$author" |
     sh -c "$builder_agent_hook" 2>/dev/null)"
   expect "the hook lets the Builder dispatch $author to prove a behaviour" \
     bash -c '! grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$author_out"
@@ -392,10 +392,29 @@ done
 # `do-implementer` writes the production code every behaviour needs, on a cheaper model than the
 # Builder's (ADR 0090). A hook that denies it leaves the Builder writing that code itself, and every
 # Ticket pays the Builder's model for the work the Implementer exists to take.
-implementer_out="$(printf '{"tool_input": {"subagent_type": "do-implementer"}}' |
+implementer_out="$(printf '{"tool_input": {"subagent_type": "do-implementer", "run_in_background": false}}' |
   sh -c "$builder_agent_hook" 2>/dev/null)"
 expect "the hook lets the Builder dispatch do-implementer to write production code" \
   bash -c '! grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$implementer_out"
+
+# Every agent the Builder may reach is dispatched in the foreground, since its verdict is what the
+# loop's next step reads. One launched in the background returns no verdict: the Builder falls back
+# to polling a side effect for it, and the background shell outlives the Stretch it ran in. The
+# harness launches in the background when `run_in_background` is left out, so an absent flag is
+# denied as surely as a `true` one, and the reason names the flag, the one thing the Builder has to
+# change to dispatch again.
+for allowed in unit-test-author e2e-test-author global-unit-test-author global-e2e-test-author do-implementer; do
+  for background in absent true; do
+    case "$background" in
+      absent) payload="$(printf '{"tool_input": {"subagent_type": "%s"}}' "$allowed")" ;;
+      *) payload="$(printf '{"tool_input": {"subagent_type": "%s", "run_in_background": true}}' "$allowed")" ;;
+    esac
+    background_out="$(printf '%s' "$payload" | sh -c "$builder_agent_hook" 2>/dev/null)"
+    expect "the hook denies a dispatch of $allowed with run_in_background $background, naming the flag in its reason" \
+      bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1" &&
+        jq -r ".. | .permissionDecisionReason? // empty" <<<"$1" 2>/dev/null | grep -qF run_in_background' _ "$background_out"
+  done
+done
 
 # `choice-taker` rules a Design fork and writes the Ruling into the Spec. Forked from here it would
 # rule from two layers below the session, against a Spec this fork never read, and the next Ticket
