@@ -122,6 +122,33 @@ for typed in "@.scratch/20240101-nightly-purge/" ".scratch/20240101-nightly-purg
     "date=20240101"
 done
 
+# An absolute path ending in .scratch/<folder>, the form the resolver prints from a linked worktree,
+# names that same folder, so a caller can hand back a path it was given.
+mkdir "$tmp/path-absolute" && cd "$tmp/path-absolute" && git init -q
+mkdir -p ".scratch/$today-nightly-purge" && touch ".scratch/$today-nightly-purge/spec.md"
+absolute="$(pwd -P)/.scratch/$today-nightly-purge"
+for typed in "@$absolute/" "$absolute"; do
+  run "$typed"
+  check_lines "an absolute path typed as $typed resolves to that folder" 0 "$rc" \
+    "slug=nightly-purge" \
+    "folder=.scratch/$today-nightly-purge" \
+    "spec=.scratch/$today-nightly-purge/spec.md" \
+    "date=$today"
+done
+
+# A path to a file inside a feature folder is not a feature folder's path, so it names no folder,
+# not even another feature whose slug the path spells once its slash and dot become dashes.
+mkdir "$tmp/path-file" && cd "$tmp/path-file" && git init -q
+mkdir -p ".scratch/$today-nightly-purge" ".scratch/$today-nightly-purge-spec-md"
+touch ".scratch/$today-nightly-purge/spec.md" ".scratch/$today-nightly-purge-spec-md/spec.md"
+for typed in "@.scratch/$today-nightly-purge/spec.md" ".scratch/$today-nightly-purge/spec.md"; do
+  run "$typed"
+  check_lines "a file's path typed as $typed names no feature folder" 0 "$rc" \
+    "folder=none" \
+    "spec=none" \
+    "date=none"
+done
+
 # A usage error and a slug that normalises to nothing each refuse with their own reason, so a
 # caller never reads none for a slug it never managed to hand over.
 mkdir "$tmp/usage" && cd "$tmp/usage" && git init -q
