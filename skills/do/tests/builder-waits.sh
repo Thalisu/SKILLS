@@ -21,25 +21,37 @@ foreground_flag=(
   "run_in_background\` set to false" "run_in_background\` to false"
 )
 
-# A sentence that says the thing is not done: the passage names a loop, and one of its sentences
-# carries both the loop and a negator, so a passage that only describes a poll never answers for one
-# that forbids it.
-denies() { # $1 label, $2.. fixed strings naming the thing; one sentence of $flat carries one of them and a negator word
-  local label="$1" phrases
-  shift
+# A clause that says the subject does not do the thing: the passage names a loop, and the stretch of
+# one clause between its subject and the first phrase naming the loop carries a negator, so a
+# negator elsewhere in the sentence (the failure the ban describes, "a poll whose condition never
+# holds") never answers for a ban that was dropped.
+denies() { # $1 label, $2 the subject, $3.. fixed strings naming the thing; a clause of $flat carries the subject, then a negator, then one of them
+  local label="$1" subject="$2" phrases
+  shift 2
   phrases="$(printf '%s\n' "$@")"
-  if phrases="$phrases" awk '
-    BEGIN { n = split(ENVIRON["phrases"], p, "\n") }
+  if phrases="$phrases" subject="$subject" awk '
+    BEGIN { n = split(ENVIRON["phrases"], p, "\n"); subject = ENVIRON["subject"] }
     {
       m = split($0, sentence, /\. /)
       for (j = 1; j <= m; j++) {
-        named = 0
-        for (k = 1; k <= n; k++) if (index(sentence[j], p[k])) named = 1
-        if (named && (" " sentence[j] " ") ~ /[^A-Za-z](never|Never|not|no|No|nor|without|forbidden|forbids)[^A-Za-z]|n'"'"'t[^A-Za-z]/) found = 1
+        c = split(sentence[j], clause, /[:;]/)
+        for (q = 1; q <= c; q++) {
+          at = index(clause[q], subject)
+          if (!at) continue
+          rest = substr(clause[q], at + length(subject))
+          first = 0
+          for (k = 1; k <= n; k++) {
+            pos = index(rest, p[k])
+            if (pos && (!first || pos < first)) first = pos
+          }
+          if (!first) continue
+          between = " " substr(rest, 1, first - 1) " "
+          if (between ~ /[^A-Za-z](never|Never|not|no|No|nor|without|forbidden|forbids)[^A-Za-z]|n'"'"'t[^A-Za-z]/) found = 1
+        }
       }
     }
     END { exit !found }
-  ' <<<"$flat"; then ok "$label"; else fail "$label (no sentence denies: $*)"; fi
+  ' <<<"$flat"; then ok "$label"; else fail "$label (no clause of $subject denies: $*)"; fi
 }
 
 echo "# build-loop.md / ## The test authors: every author whose verdict the loop waits on is dispatched in the foreground"
@@ -68,7 +80,7 @@ paras="$(
 flat="$(grep -E 'timeout|time out|times out' <<<"$paras" | head -n1)"
 [ -n "$flat" ] || flat="$(head -n1 <<<"$paras")"
 expect "the Builder's contract has a passage on waiting with a loop of its own" test -n "$flat"
-denies "it forbids the Builder a wait loop or a poll of its own" "${loop_terms[@]}"
+denies "it forbids the Builder a wait loop or a poll of its own" "Builder" "${loop_terms[@]}"
 carries_each "the ban covers a dispatch and a slow command alike" \
   "dispatch" "agent" "Agent" -- \
   "command" "shell call" "Bash call"
