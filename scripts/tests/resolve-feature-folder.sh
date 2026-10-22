@@ -95,6 +95,19 @@ check_lines "every other character becomes a dash, squeezed and trimmed" 0 "$rc"
   "slug=nightly-purge" \
   "folder=.scratch/$today-nightly-purge"
 
+# A feature folder's path, as an @ file mention types it or without the @ and the trailing slash,
+# names that same folder, so a developer can hand a door the folder they see instead of its slug.
+mkdir "$tmp/path" && cd "$tmp/path" && git init -q
+mkdir -p ".scratch/$today-nightly-purge" && touch ".scratch/$today-nightly-purge/spec.md"
+for typed in "@.scratch/$today-nightly-purge/" ".scratch/$today-nightly-purge"; do
+  run "$typed"
+  check_lines "a feature folder's path typed as $typed resolves to that folder" 0 "$rc" \
+    "slug=nightly-purge" \
+    "folder=.scratch/$today-nightly-purge" \
+    "spec=.scratch/$today-nightly-purge/spec.md" \
+    "date=$today"
+done
+
 # A usage error and a slug that normalises to nothing each refuse with their own reason, so a
 # caller never reads none for a slug it never managed to hand over.
 mkdir "$tmp/usage" && cd "$tmp/usage" && git init -q
@@ -213,7 +226,6 @@ run nightly-purge
 expect "an existing ignore file is left untouched" \
   test "$(cat .gitignore)" = "node_modules/"
 expect "no scratch was made for a slug that named nothing" test ! -e .scratch
-
 
 if [ "$fails" = 0 ]; then echo "PASS"; else
   echo "$fails failing"
