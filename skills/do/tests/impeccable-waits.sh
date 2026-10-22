@@ -23,10 +23,6 @@ body_of "$agent" >"$body"
 
 mapfile -t foreground_flag < <(foreground_phrasings)
 
-paragraphs_naming() { # $@ fixed strings: every paragraph of $body carrying one of them, flattened, once each
-  local term
-  for term in "$@"; do paragraph_with "$body" "$term" all; done | tr -s ' ' | awk '!seen[$0]++'
-}
 every_agent=("every agent" "every dispatch" "each dispatch" "every Agent tool call" "every call to the Agent tool")
 
 echo "# do-impeccable.md: every agent whose verdict the fork's next step waits on is dispatched in the foreground"

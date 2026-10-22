@@ -110,6 +110,12 @@ paragraph_with() { # $1 file, $2 a fixed string; the first blank-line-delimited 
   # over the paragraphs of one step rather than pack into the first.
   awk -v k="$2" -v all="${3:-}" 'BEGIN { RS = "" } index($0, k) { gsub(/\n/, " "); print; if (all == "") exit }' "$1"
 }
+# A guarantee an agent body may carry in any paragraph that names its subject: the caller sets
+# $body to the file (the body_of output) and lists the names the subject goes by.
+paragraphs_naming() { # $@ fixed strings: every paragraph of $body carrying one of them, flattened, once each
+  local term
+  for term in "$@"; do paragraph_with "$body" "$term" all; done | tr -s ' ' | awk '!seen[$0]++'
+}
 # An agent definition's YAML header, and one key read off it: a test that pins a tool list or a
 # description reads it here, so a `Bash` in the body's prose never answers for the `tools:` line.
 frontmatter() { # $1 file: the YAML between the file's opening and closing `---`, on stdout

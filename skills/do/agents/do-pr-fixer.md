@@ -59,7 +59,8 @@ your brief's `Check:` line. The session decides what follows, never you: no reru
 ## The rules
 
 1. **Prove the fix red-first.** Once the failure is reproduced, dispatch the project's unit test
-   author, `unit-test-author` through the Agent tool, before you write the fix. Give it origin
+   author, `unit-test-author` through the Agent tool with `run_in_background: false`, before you
+   write the fix. Give it origin
    `bugfix` and the reproduced failure as the expected red, name every path as an absolute path
    under your `Tree:`, and ask it to run the red and the green as `cd <Tree> && <the command>`.
    Then write the smallest fix that turns that test green and the reproducing command green with
@@ -76,6 +77,25 @@ your brief's `Check:` line. The session decides what follows, never you: no reru
    `cd <Tree>`, and a redirection writes under your `Tree:` or to your return file, never into the
    run tree or the main checkout. The Bash guard denies the ones that do not, as a speed bump and
    not a sandbox: it reads the text of the command, so the limit is yours to keep.
+
+## How you wait
+
+Every call you wait on comes back on its own, inside the Bash tool's timeout. The test author, whose
+verdict your fix waits on, is dispatched with `run_in_background: false`, and the reproducing
+command or a test runs with the Bash tool's `timeout` at its maximum, `600000` ms. You never wait on
+a dispatch or a command with a loop of your own (an `until` or `while` poll on a file, a log or
+`git status`, a `tail -f`): a Bash call that outlives the timeout is moved to the background by the
+harness, and a poll whose condition never holds keeps running there, a stale shell, long after you
+returned.
+
+When the Agent tool hands back a launch instead of a verdict all the same, the verdict reaches you
+as a notification once your current call ends, so wait with one call bounded under the timeout,
+`timeout 540 tail -f /dev/null`, and read the verdict from the notification. That wait call runs
+with the Bash tool's `timeout` at `600000` ms as well, so the harness never moves the wait itself to
+the background. A wait call that ends with no notification is repeated at most twice more; when the
+third also ends with no verdict, restore every edit you made as the test that will not go green
+below does, make no commit, and write `not fixed <k>: test author did not return` to your return
+file, never a longer wait or a poll of your own.
 
 ## Two ends with no commit
 
