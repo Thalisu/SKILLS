@@ -108,6 +108,20 @@ for typed in "@.scratch/$today-nightly-purge/" ".scratch/$today-nightly-purge"; 
     "date=$today"
 done
 
+# A path names one dated folder, so it resolves to that folder even when a newer folder of the same
+# slug exists: a door handed an older feature's path must not read and edit the newer one's spec.
+mkdir "$tmp/path-dated" && cd "$tmp/path-dated" && git init -q
+mkdir -p .scratch/20240101-nightly-purge .scratch/20260909-nightly-purge
+touch .scratch/20240101-nightly-purge/spec.md .scratch/20260909-nightly-purge/spec.md
+for typed in "@.scratch/20240101-nightly-purge/" ".scratch/20240101-nightly-purge"; do
+  run "$typed"
+  check_lines "a path typed as $typed resolves to that folder, not a newer one" 0 "$rc" \
+    "slug=nightly-purge" \
+    "folder=.scratch/20240101-nightly-purge" \
+    "spec=.scratch/20240101-nightly-purge/spec.md" \
+    "date=20240101"
+done
+
 # A usage error and a slug that normalises to nothing each refuse with their own reason, so a
 # caller never reads none for a slug it never managed to hand over.
 mkdir "$tmp/usage" && cd "$tmp/usage" && git init -q

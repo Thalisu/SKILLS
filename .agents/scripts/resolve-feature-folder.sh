@@ -13,8 +13,9 @@
 #                                       becomes a dash, dashes are squeezed and trimmed, and a
 #                                       YYYYMMDD- prefix already on it is dropped
 #   resolve-feature-folder.sh <path>    a feature folder's path, .scratch/<folder> with or without
-#                                       the @ a file mention puts before it and a trailing slash,
-#                                       read as the slug <folder>
+#                                       the @ a file mention puts before it and a trailing slash:
+#                                       the folder it names when that folder exists, else read as
+#                                       the slug <folder>
 #
 # The rule: a slug names the folder called <slug> or <YYYYMMDD>-<slug> and no other, the newest of
 # them when a slug carries more than one, and an undated folder from before the dated rule over
@@ -36,9 +37,10 @@ usage() { echo "usage: resolve-feature-folder.sh <slug>" >&2; exit 2; }
 [ "$#" = 1 ] || usage
 
 arg="${1#@}"
+typed=""
 while [ "${arg%/}" != "$arg" ]; do arg="${arg%/}"; done
 case "$arg" in
-  .scratch/* | */.scratch/*) [[ "${arg##*.scratch/}" == */* ]] || arg="${arg##*.scratch/}" ;;
+  .scratch/* | */.scratch/*) [[ "${arg##*.scratch/}" == */* ]] || { typed="${arg##*.scratch/}"; arg="$typed"; } ;;
 esac
 
 slug="$(tr '[:upper:]' '[:lower:]' <<<"$arg" | tr -c 'a-z0-9' '-' | tr -s '-')"
@@ -69,6 +71,10 @@ for d in .scratch/[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]-"$slug"; do
   [ -d "$d" ] && folder="$d"   # the glob is sorted, so the last match is the newest date
 done
 [ -d ".scratch/$slug" ] && folder=".scratch/$slug"
+# A path names the folder it points at, so an older dated folder is not swapped for a newer one.
+if [ -n "$typed" ] && [[ "$typed" =~ ^([0-9]{8}-)?"$slug"$ ]] && [ -d ".scratch/$typed" ]; then
+  folder=".scratch/$typed"
+fi
 if [ -n "$folder" ] && [ -L "$folder" ]; then
   echo "$prefix$folder is a symlink; nothing resolved" >&2; exit 2
 fi
