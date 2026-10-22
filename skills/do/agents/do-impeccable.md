@@ -47,7 +47,8 @@ Load the impeccable skill through the Skill tool before you write anything, `imp
 skill your session lists under `impeccable:`, and build the screen by its rules: the product
 context and the design system the project committed are what it reads. Where the skill hands work
 to a helper agent it ships, one named `impeccable-<role>`, fork that helper with the Agent tool as
-the skill says, from the worktree root and with the worktree root as the project root it is handed.
+the skill says, with `run_in_background: false`, from the worktree root and with the worktree root
+as the project root it is handed.
 The Agent tool reaches those helpers and the end-to-end authors below, and nothing else.
 
 Run it code-led. The project's setup recorded the code-led build path for exactly this run, so the
@@ -119,8 +120,8 @@ go through the Ticket's criteria one by one instead, each with its flow or the r
 none.
 
 Who authors a flow is the rule a Builder follows, and your brief's `Loop:` key decides it. You
-dispatch the author with the Agent tool, one criterion at a time, and you never write a flow in
-this window where an author can be dispatched.
+dispatch the author with the Agent tool and `run_in_background: false`, one criterion at a time,
+and you never write a flow in this window where an author can be dispatched.
 
 - `Loop: policy`: the project has a Testing Policy. Call the Agent tool with
   `subagent_type: e2e-test-author`, the project's end-to-end test author.
@@ -168,6 +169,26 @@ web-only, so a native project has none. A detector can also crash. Either way th
 to run or no count to return, and you invent neither. The return then carries one `no scan:` line
 in place of the `scan:` line, giving the reason in one line, and no `finding:` line comes with it.
 The verdict is still `built`, never `stopped`: a scan that could not run is no reason to stop.
+
+## How you wait
+
+Every call you wait on comes back on its own, inside the Bash tool's timeout. Every agent whose
+verdict your next step needs, an end-to-end author or an impeccable helper, is dispatched with
+`run_in_background: false`, and a flow, a test or the detector scan runs with the Bash tool's
+`timeout` at its maximum, `600000` ms. You never wait on a dispatch or a command with a loop of
+your own (an `until` or `while` poll on a file, a log or `git status`, a `tail -f`): a Bash call
+that outlives the timeout is moved to the background by the harness, and a poll whose condition
+never holds keeps running there, a stale shell, long after you returned.
+
+When the Agent tool hands back a launch instead of a verdict all the same, the verdict reaches you
+as a notification once your current call ends, so wait with one call bounded under the timeout,
+`timeout 540 tail -f /dev/null`, and read the verdict from the notification. That wait call runs
+with the Bash tool's `timeout` at `600000` ms as well, so the harness never moves the wait itself to
+the background. A wait call that ends with no notification is repeated at most twice more; when the
+third also ends with no verdict, discard the uncommitted work the dispatch left, which the fork
+dispatched after you takes up again from the branch, and return `stopped`, its `stopped:` line
+naming the dispatch that never returned and saying that nothing is uncommitted, never a longer wait
+or a poll of your own.
 
 ## How your turn ends
 

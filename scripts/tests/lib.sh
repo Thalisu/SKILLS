@@ -325,6 +325,38 @@ affirms() { # $1 label, $2.. groups of fixed strings separated by `--`: one clau
     END { exit !found }
   ' <<<"$flat"; then ok "$label"; else fail "$label (no clause affirms: $*)"; fi
 }
+# A clause that says the subject does not do the thing: the stretch of one clause between its
+# subject and the first phrase naming the thing carries a negator, so a negator elsewhere in the
+# sentence (the failure a ban describes, "a poll whose condition never holds") never answers for a
+# ban that was dropped. Not judgment-step.sh's local `denies`, which takes a negator anywhere.
+subject_denies() { # $1 label, $2 the subject, several joined by `|` when any may carry it, $3.. fixed strings naming the thing; a clause of $flat carries a subject, then a negator, then one of them
+  local label="$1" subject="$2" phrases
+  shift 2
+  phrases="$(printf '%s\n' "$@")"
+  if phrases="$phrases" subject="$subject" awk '
+    BEGIN { n = split(ENVIRON["phrases"], p, "\n"); ns = split(ENVIRON["subject"], s, "|") }
+    {
+      m = split($0, sentence, /\. /)
+      for (j = 1; j <= m; j++) {
+        c = split(sentence[j], clause, /[:;]/)
+        for (q = 1; q <= c; q++) for (u = 1; u <= ns; u++) {
+          at = index(clause[q], s[u])
+          if (!at) continue
+          rest = substr(clause[q], at + length(s[u]))
+          first = 0
+          for (k = 1; k <= n; k++) {
+            pos = index(rest, p[k])
+            if (pos && (!first || pos < first)) first = pos
+          }
+          if (!first) continue
+          between = " " substr(rest, 1, first - 1) " "
+          if (between ~ /[^A-Za-z](never|Never|not|no|No|nor|without|forbidden|forbids)[^A-Za-z]|n'"'"'t[^A-Za-z]/) found = 1
+        }
+      }
+    }
+    END { exit !found }
+  ' <<<"$flat"; then ok "$label"; else fail "$label (no clause of $subject denies: $*)"; fi
+}
 before() { # $1 label, $2 the fixed string that comes first in $flat, $3 the fixed string that follows it
   local first second
   first="$(awk -v s="$flat" -v k="$2" 'BEGIN { print index(s, k) }')"
@@ -370,6 +402,21 @@ never runs the **Gate**
 never runs the Gate
 does not run the **Gate**
 does not run the Gate
+EOF
+}
+# The Agent tool runs an agent in the background unless the call says otherwise: the phrasings a
+# contract may use for the flag that keeps a dispatch in the foreground. A case reads them with
+# `mapfile -t foreground_flag < <(foreground_phrasings)` and passes them to carries_any.
+foreground_phrasings() { # one accepted phrasing per line: the dispatch sets run_in_background to false
+  cat <<'EOF'
+run_in_background: false
+run_in_background: `false
+run_in_background`: `false
+run_in_background` set to `false
+run_in_background` to `false
+run_in_background=false
+run_in_background` set to false
+run_in_background` to false
 EOF
 }
 fix_call_gates_phrasings() { # one accepted phrasing per line: the call the branch is handed to gates that tree
