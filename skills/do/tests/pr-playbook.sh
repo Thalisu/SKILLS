@@ -619,6 +619,34 @@ carries_any "joined with \`, \`" \
   "joined with \`, \`" "joined by \`, \`" "separated by \`, \`" "joined with a comma" "joined by a comma" \
   "comma-separated" "separated by a comma" "comma and a space"
 
+# Right after a round's push, GitHub's pull request still shows the old head with its passed checks:
+# a watch that settles on it lets the came-back route stop the run on a fix CI never ran. The run
+# hands the watch the tip it pushed, and the script's own `expect=` back on each pending call, so the
+# watch holds until the pull request's head is that tip. The push route is read off the sentences of
+# the Push item that name git accepting it, since the moved-tip redo in that item still calls the
+# watch with `<pr>` alone.
+echo "# pr.md / ### Watch and ### Fix the red checks: after a push the run watches with <pr> and the pushed tip, and hands a pending verdict's expect= back as the last argument"
+blocks="$(blocks_of "$pr" "$watch_h" 2>/dev/null)"
+expect "the step's call line takes the expected sha last, \`pr-watch.sh <pr> [<since> <state>] [<expected-sha>]\`" \
+  grep -qF -- "bash <skill-dir>/scripts/pr-watch.sh <pr> [<since> <state>] [<expected-sha>]" <<<"$blocks"
+flat="$(piece_with "verdict=pending")"
+expect "a bullet or paragraph of the watch step names \`verdict=pending\`" test -n "$flat"
+carries_each "a pending verdict's \`expect=<sha>\` goes back as \`<expected-sha>\`, the next call's last argument" \
+  "expect=" -- "<expected-sha>" "last argument"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
+push_item="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.|[[:space:]]+[a-z]\.' \
+  "push origin HEAD:refs/heads/<head>" | tr '\n' ' ' | tr -s ' ')"
+expect "the push line sits in an item of the fix step" test -n "$push_item"
+flat="$push_item"
+carries "the pushed tip is the sha \`git -C <run tree> rev-parse HEAD\` printed" "rev-parse HEAD"
+flat="$(sed 's/\. /.\n/g' <<<"$push_item" | awk 'index($0, "accept")' | tr '\n' ' ')"
+expect "a sentence of the push item names git accepting the push" test -n "$flat"
+carries_any "the run goes back to step $watch_n" "step $watch_n" "$watch_h"
+affirms "calling the watch with \`<pr>\` and the pushed tip, not \`<pr>\` alone" \
+  "<pr>" -- \
+  "pushed tip" "tip it pushed" "tip the run pushed" "tip just pushed" "pushed sha" "sha it pushed" \
+  "sha the run pushed" "<expected-sha>" "<pushed tip>" "<pushed sha>"
+
 # A session that reads `de dev para prod` backwards follows a pull request from `prod` into `dev`,
 # and a Plan: line built from the request's own wording repeats that misreading: only the pull
 # request gh answers for names the branches the run actually follows, so the developer sees the
@@ -1768,14 +1796,15 @@ cd "$here" || exit 1
 # A run that ends on the push leaves the developer who walked away with a fix nobody watched: the
 # push sends the run back to the watch. What a red verdict after a pushed round does is read by the
 # round-cap cases further down.
-echo "# pr.md / ### Fix the red checks and ### Watch: after the push the run watches again with <pr> alone"
+echo "# pr.md / ### Fix the red checks and ### Watch: after the push the run watches again with the pushed tip and no <since> <state>"
 step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 flat="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.|[[:space:]]+[a-z]\.' "$push_line" | tr '\n' ' ' | tr -s ' ')"
 expect "the push line sits in an item of the step" test -n "$flat"
 carries_each "when git accepts the push, the run goes back to step $watch_n" \
   "accept" -- "step $watch_n" "$watch_h"
-carries_any "calling the watch with \`<pr>\` alone, no \`<since>\` \`<state>\`" \
-  "\`<pr>\` alone" "with \`<pr>\` alone" "\`<pr>\` and nothing else" "only \`<pr>\`" "\`<pr>\` only"
+flat="$(sed 's/\. /.\n/g' <<<"$flat" | awk 'index($0, "accept")' | tr '\n' ' ')"
+carries_any "calling the watch with no \`<since>\` \`<state>\`: the stall window starts over" \
+  "no \`<since>\` \`<state>\`" "without \`<since>\` \`<state>\`" "no \`<since>\`"
 
 # A pushed round lands commits on a head others build on, in the developer's name: a Reply that
 # leaves it out hides what landed, and one that gives the round a part of its own breaks the five

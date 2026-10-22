@@ -237,4 +237,43 @@ expect "a check that moved since the window began: the watch exits 0" [ "$rc" = 
 expect "a check that moved since the window began: the watch restarts the window at the current time, not at the <since> it was handed" [ "$restarted" = yes ]
 expect "a check that moved since the window began: the watch hands back a state other than the one it was handed" [ "$moved" = yes ]
 
+# Right after a push, GitHub still serves the old head with its passed checks and a clean merge state.
+pushed=9c8b7a6f5e4d3c2b1a0f9e8d7c6b5a4f3e2d1c0b
+serve 42 CLEAN '[{"name":"build","bucket":"pass"},{"name":"test","bucket":"pass"}]'
+echo '{"mergeStateStatus":"CLEAN","mergeable":"MERGEABLE","isDraft":false,"headRefName":"feature/login","headRefOid":"3f2a9c1d8e7b6a5f4e3d2c1b0a9f8e7d6c5b4a39","baseRefName":"main"}' >"$GH_FAKE/view"
+run 42 "$pushed"
+since="$(term since)"
+state="$(term state)"
+carried="$(term expect)"
+handed=no
+[[ "$since" =~ ^[0-9]+$ ]] && [ -n "$state" ] && [ "$carried" = "$pushed" ] && handed=yes
+out="${out%%$'\n'*}"
+check_lines "a clean pull request whose head is still an older commit than the expected sha, every check passed on it: the watch returns verdict=pending on its first line, not green on the old head's checks" 0 "$rc" \
+  "verdict=pending"
+expect "a pull request whose head is not yet the expected sha: the pending verdict carries a since= epoch, a state= token and expect= the expected sha to hand back" [ "$handed" = yes ]
+
+serve 42 CLEAN '[{"name":"build","bucket":"pass"},{"name":"test","bucket":"pending"}]'
+echo '{"mergeStateStatus":"CLEAN","mergeable":"MERGEABLE","isDraft":false,"headRefName":"feature/login","headRefOid":"'"$pushed"'","baseRefName":"main"}' >"$GH_FAKE/view"
+run 42
+run 42 "$(term since)" "$(term state)" "$pushed"
+since="$(term since)"
+state="$(term state)"
+handed=no
+[[ "$since" =~ ^[0-9]+$ ]] && [ -n "$state" ] && handed=yes
+check_lines "a pull request whose head is the expected sha, a check still pending when the time bound runs out: the watch returns verdict=pending" 0 "$rc" \
+  "verdict=pending"
+expect "a pull request whose head is the expected sha, still pending: verdict=pending is the first line" [ "${out%%$'\n'*}" = verdict=pending ]
+expect "a pull request whose head is the expected sha, still pending: the verdict carries a since= epoch and a state= token to hand back" [ "$handed" = yes ]
+absent_prefix "a pull request whose head is the expected sha: the expectation is released, the pending verdict carries no expect= line to hand back" "expect="
+
+# The developer pushed a newer commit over the expected one: the expected sha never shows up as the head.
+serve 42 CLEAN '[{"name":"build","bucket":"pass"},{"name":"test","bucket":"pass"}]'
+echo '{"mergeStateStatus":"CLEAN","mergeable":"MERGEABLE","isDraft":false,"headRefName":"feature/login","headRefOid":"3f2a9c1d8e7b6a5f4e3d2c1b0a9f8e7d6c5b4a39","baseRefName":"main"}' >"$GH_FAKE/view"
+DO_PR_WATCH_REGISTER_SECONDS=3600 run 42 "$pushed"
+state="$(term state)"
+# A <since> of 1 is decades ago: the hold on the expected sha has outlasted any registration grace.
+DO_PR_WATCH_REGISTER_SECONDS=120 run 42 1 "$state" "$pushed"
+check_lines "a head that is still not the expected sha once the hold has outlasted the registration grace: the watch drops the expectation and returns verdict=green on the head it finds, with its check count" 0 "$rc" \
+  "verdict=green" "checks=2"
+
 exit "$((fails > 0))"
