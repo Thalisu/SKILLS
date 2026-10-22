@@ -63,12 +63,15 @@ carries_each "the wait call runs with the Bash tool's timeout set to 600000 ms, 
   "timeout 540" "tail -f /dev/null" "wait call" "the wait" "waits with" "wait itself" -- \
   "timeout"
 flat="$wait_para"
-carries_each "a wait call that ends with no verdict is repeated a bounded number of times, then the Stretch returns blocked naming the dispatch" \
+# `stopped` is the only verdict of `## The return` that ends a stretch short of `built` over anything
+# but a Design fork: any other first line is a return the build step cannot route.
+carries_each "a wait call that ends with no verdict is repeated a bounded number of times, then the Stretch returns stopped naming the dispatch, with nothing uncommitted" \
   "no verdict" "without a verdict" "no notification" "without a notification" -- \
   "twice" "at most" "up to" "a bounded number" "once more" "no more than" -- \
-  "blocked" -- \
+  "returns \`stopped\`" -- \
   "naming the dispatch" "names the dispatch" "naming that dispatch" "names that dispatch" \
-  "naming the agent" "names the agent" "naming the dispatched" "names the dispatched"
+  "naming the agent" "names the agent" "naming the dispatched" "names the dispatched" -- \
+  "nothing uncommitted" "nothing is uncommitted" "nothing is left uncommitted" "no uncommitted work"
 
 [ "$fails" -eq 0 ] && exit 0
 exit 1

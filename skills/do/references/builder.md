@@ -321,8 +321,11 @@ reaches the Builder as a notification once its current call ends, so it waits wi
 under the timeout, `timeout 540 tail -f /dev/null`, and reads the verdict from the notification.
 That wait call runs with the Bash tool's `timeout` at `600000` ms as well, so the harness never
 moves the wait itself to the background. A wait call that ends with no notification is repeated at most
-twice more; when the third also ends with no verdict, the Stretch returns `blocked` naming the
-dispatch it waited on, never a longer wait or a poll of its own.
+twice more; when the third also ends with no verdict, the Stretch discards the uncommitted work of
+the behaviour in progress, which the next Stretch builds again from the branch per
+`## Where it picks up`, and returns `stopped`, in the shape `## The return` fixes, its `stopped:`
+line naming the dispatch that never returned and saying that nothing is uncommitted, never a
+longer wait or a poll of its own.
 
 ## The Implementer
 
