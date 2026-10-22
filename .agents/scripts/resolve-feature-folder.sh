@@ -12,6 +12,9 @@
 #                                       folder carries: it is lowercased, every other character
 #                                       becomes a dash, dashes are squeezed and trimmed, and a
 #                                       YYYYMMDD- prefix already on it is dropped
+#   resolve-feature-folder.sh <path>    a feature folder's path, .scratch/<folder> with or without
+#                                       the @ a file mention puts before it and a trailing slash,
+#                                       read as the slug <folder>
 #
 # The rule: a slug names the folder called <slug> or <YYYYMMDD>-<slug> and no other, the newest of
 # them when a slug carries more than one, and an undated folder from before the dated rule over
@@ -32,7 +35,13 @@ usage() { echo "usage: resolve-feature-folder.sh <slug>" >&2; exit 2; }
 
 [ "$#" = 1 ] || usage
 
-slug="$(tr '[:upper:]' '[:lower:]' <<<"$1" | tr -c 'a-z0-9' '-' | tr -s '-')"
+arg="${1#@}"
+while [ "${arg%/}" != "$arg" ]; do arg="${arg%/}"; done
+case "$arg" in
+  .scratch/* | */.scratch/*) [[ "${arg##*.scratch/}" == */* ]] || arg="${arg##*.scratch/}" ;;
+esac
+
+slug="$(tr '[:upper:]' '[:lower:]' <<<"$arg" | tr -c 'a-z0-9' '-' | tr -s '-')"
 slug="${slug#-}"; slug="${slug%-}"
 slug="$(sed -E 's/^[0-9]{8}-//' <<<"$slug")"
 [ -n "$slug" ] || { echo "a slug is needed: $1 normalises to nothing" >&2; exit 2; }
