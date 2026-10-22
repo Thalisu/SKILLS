@@ -27,6 +27,20 @@ for agent in "$here/../agents/do-code-review-fixer.md" "$here/../agents/do-code-
     test "$(field name)" = "$file"
 done
 
+fixer="$here/../agents/do-code-review-fixer.md"
+echo "# skills/do-code-review/agents/do-code-review-fixer.md: the Fixer dispatches in the foreground only"
+
+# The orchestrator waits on each Fixer's return file, and the Fixer waits on its test author's
+# verdict. One launched in the background returns no verdict: the Fixer falls back to polling for
+# it, and the shell it polls with outlives the Fixer. The hook checks the flag, never the agent type.
+fixer_agent_hook="$(hook_command "$fixer" Agent 2>/dev/null)"
+expect "a PreToolUse hook scopes the Fixer's Agent tool" test -n "$fixer_agent_hook"
+denies_background "$fixer_agent_hook" unit-test-author
+foreground_out="$(printf '{"tool_input": {"subagent_type": "unit-test-author", "run_in_background": false}}' |
+  sh -c "$fixer_agent_hook" 2>/dev/null)"
+expect "the hook lets the Fixer dispatch unit-test-author with run_in_background false" \
+  bash -c '[ -n "$1" ] && ! grep -qF "\"permissionDecision\": \"deny\"" <<<"$2"' _ "$fixer_agent_hook" "$foreground_out"
+
 spec="$here/../agents/do-code-review-spec-reviewer.md"
 echo "# skills/do-code-review/agents/do-code-review-spec-reviewer.md"
 
