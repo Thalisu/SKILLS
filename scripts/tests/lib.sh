@@ -425,6 +425,36 @@ run_in_background` set to false
 run_in_background` to false
 EOF
 }
+# The phrasings a contract may use for "every agent the fork dispatches", so a passage that sets the
+# flag once for all of them answers for each one. Read with
+# `mapfile -t every_agent < <(every_dispatch_phrasings)`.
+every_dispatch_phrasings() { # one accepted phrasing per line: every dispatch the contract makes
+  cat <<'EOF'
+every agent
+every dispatch
+each dispatch
+every Agent tool call
+every call to the Agent tool
+EOF
+}
+# The phrasings a contract may use for a wait the agent improvises on a side effect, the loop the
+# Bash timeout moves to the background. Read with `mapfile -t loop_terms < <(own_loop_phrasings)`
+# and passed to paragraphs_naming and subject_denies.
+own_loop_phrasings() { # one accepted phrasing per line: a wait loop or a poll of the agent's own
+  cat <<'EOF'
+wait loop
+poll
+`until
+`while
+tail -f
+sleep loop
+loop of your own
+loop of its own
+loop of their own
+until` loop
+while` loop
+EOF
+}
 fix_call_gates_phrasings() { # one accepted phrasing per line: the call the branch is handed to gates that tree
   cat <<'EOF'
 gates the same tree

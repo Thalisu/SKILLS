@@ -23,7 +23,7 @@ body_of "$agent" >"$body"
 
 mapfile -t foreground_flag < <(foreground_phrasings)
 
-every_agent=("every agent" "every dispatch" "each dispatch" "every Agent tool call" "every call to the Agent tool")
+mapfile -t every_agent < <(every_dispatch_phrasings)
 
 echo "# do-impeccable.md: every agent whose verdict the fork's next step waits on is dispatched in the foreground"
 flat="$(paragraphs_naming "e2e-test-author" "end-to-end author" "end-to-end test author" "${every_agent[@]}")"
@@ -35,10 +35,7 @@ carries_any "the impeccable helpers' dispatch sets the Agent tool's run_in_backg
 
 # The agent body speaks to the fork as "you", so the ban's subject is the fork in the second person.
 echo "# do-impeccable.md: the fork never waits with a loop of its own, since the Bash timeout moves the call to the background"
-loop_terms=(
-  "wait loop" "poll" "\`until" "\`while" "tail -f" "sleep loop" "loop of your own" "loop of its own"
-  "until\` loop" "while\` loop"
-)
+mapfile -t loop_terms < <(own_loop_phrasings)
 paras="$(paragraphs_naming "${loop_terms[@]}")"
 flat="$(grep -E 'timeout|time out|times out' <<<"$paras" | head -n1)"
 [ -n "$flat" ] || flat="$(head -n1 <<<"$paras")"

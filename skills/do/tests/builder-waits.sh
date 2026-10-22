@@ -30,10 +30,7 @@ carries_any "the Implementer's dispatch sets the Agent tool's run_in_background:
 # The ban may sit in either file the Builder follows, so the passage is the paragraph naming a loop
 # of the Builder's own, the one that also names the timeout when several do.
 echo "# builder.md / build-loop.md: the Builder never waits with a loop of its own, since the Bash timeout moves the call to the background"
-loop_terms=(
-  "wait loop" "poll" "\`until" "\`while" "tail -f" "sleep loop" "loop of its own" "loop of their own"
-  "until\` loop" "while\` loop"
-)
+mapfile -t loop_terms < <(own_loop_phrasings)
 paras="$(
   for term in "${loop_terms[@]}"; do
     paragraph_with "$builder" "$term" all
