@@ -309,6 +309,17 @@ half a behaviour to meet a clock. It is asked at no point inside a cycle and at 
 flows. An Implementer's return is no such moment either, since it comes back inside a cycle,
 before the behaviour is formatted and committed. The next Stretch needs nothing from this one but the branch, per `## Where it picks up`.
 
+Every call the Builder waits on comes back on its own, inside the Bash tool's timeout. An agent
+whose verdict the next step needs is dispatched in the foreground, per `## The Implementer` and the
+test authors of [build-loop.md](build-loop.md), and a test or a suite runs with the Bash tool's
+`timeout` at its maximum, `600000` ms. The Builder never waits on a dispatch or a command with a
+loop of its own that has no bound (an `until` or `while` poll on a file, a log or `git status`, a
+`tail -f`): a Bash call that outlives the timeout is moved to the background by the harness, and a
+poll whose condition never holds keeps running there, a stale shell, long after the Stretch
+returned. When the Agent tool hands back a launch instead of a verdict all the same, the verdict
+reaches the Builder as a notification once its current call ends, so it waits with one call bounded
+under the timeout, `timeout 540 tail -f /dev/null`, and reads the verdict from the notification.
+
 ## The Implementer
 
 The Builder writes no production code of the loop itself while an Implementer can be dispatched,
@@ -317,7 +328,7 @@ and keeps every judgment the loop turns on: the expected red, the test author's 
 takes its brief literally and rules on none of them. Every production edit a cycle of
 [build-loop.md](build-loop.md) makes is written by the Implementer, the `do-implementer` agent `do`
 ships in [do-implementer.md](../agents/do-implementer.md): the Builder calls the Agent tool with
-`subagent_type: do-implementer`, one dispatch per edit, and the brief's `Edit:` key names which of
+`subagent_type: do-implementer` and `run_in_background: false`, one dispatch per edit, and the brief's `Edit:` key names which of
 the four it is.
 
 | `Edit:` | The edit | When the loop makes it |

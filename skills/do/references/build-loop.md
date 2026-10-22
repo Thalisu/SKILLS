@@ -123,7 +123,9 @@ test author is dispatched. Nothing else changes: red first, the smallest green, 
 
 The Testing Policy's authors write every new test. With the Agent tool, call the Agent tool with
 `subagent_type: unit-test-author` for a unit test and `subagent_type: e2e-test-author` for a
-flow. Without the Agent tool, call the Skill tool with `test-author` and the argument `unit` or
+flow, and `run_in_background: false` on every author dispatch, the global authors below included:
+the loop's next step waits on the author's verdict, and an author left in the background comes back
+as a launch with no verdict to read. Without the Agent tool, call the Skill tool with `test-author` and the argument `unit` or
 `e2e`, the project's inline entry point, and fill the dispatch input for yourself before writing.
 The unit author returns `RED_AS_EXPECTED`, `GREEN`, `HANDBACK`, `BLOCKED` or
 `REFUSED_INCOMPLETE_INPUT`; the E2E author returns `GREEN`, `HANDBACK`, `BLOCKED` or
