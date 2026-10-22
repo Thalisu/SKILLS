@@ -304,8 +304,8 @@ done
 agent_hook="$(hook_command "$agent" Agent 2>/dev/null)"
 expect "a PreToolUse hook scopes the fixer's Agent" test -n "$agent_hook"
 
-agent_out() { # $1 the subagent_type: the Agent hook's output on that payload
-  jq -n --arg t "$1" '{tool_input: {subagent_type: $t}}' 2>/dev/null | sh -c "$agent_hook" 2>/dev/null
+agent_out() { # $1 the subagent_type: the Agent hook's output on that payload, dispatched in the foreground
+  jq -n --arg t "$1" '{tool_input: {subagent_type: $t, run_in_background: false}}' 2>/dev/null | sh -c "$agent_hook" 2>/dev/null
 }
 
 expect "the hook lets the fixer dispatch unit-test-author to prove its fix" \
@@ -314,6 +314,14 @@ for type in general-purpose do-pr-fixer e2e-test-author ""; do
   expect "the hook denies the fixer forking any agent but unit-test-author: '$type'" \
     deny_in "$(agent_out "$type")"
 done
+# The pr Playbook session waits on the fixer's return file, and the fixer waits on its test author's
+# verdict, so the author is dispatched in the foreground. One launched in the background returns no
+# verdict: the fixer falls back to polling for it, and the shell it polls with outlives the fixer.
+denies_background "$agent_hook" unit-test-author
+foreground_out="$(printf '{"tool_input": {"subagent_type": "unit-test-author", "run_in_background": false}}' |
+  sh -c "$agent_hook" 2>/dev/null)"
+expect "the hook lets the fixer dispatch unit-test-author with run_in_background false" \
+  bash -c '[ -n "$1" ] && ! grep -qF "\"permissionDecision\": \"deny\"" <<<"$2"' _ "$agent_hook" "$foreground_out"
 
 echo "# skills/do/agents/do-pr-fixer.md: the fixer writes and edits inside a fixer worktree only, never a .git path"
 

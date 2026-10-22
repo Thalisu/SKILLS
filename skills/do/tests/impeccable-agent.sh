@@ -172,21 +172,10 @@ done
 
 # The session waits on this fork's return, and the fork waits on each agent it forks, so every one
 # is dispatched in the foreground. One launched in the background returns no verdict: the fork falls
-# back to polling for it, and the shell it polls with outlives the fork. The harness launches in the
-# background when `run_in_background` is left out, so an absent flag is denied as surely as a `true`
-# one, and the reason names the flag, the one thing the fork has to change to dispatch again.
+# back to polling for it, and the shell it polls with outlives the fork.
 for allowed in e2e-test-author global-e2e-test-author \
   impeccable-finish-reviewer impeccable:impeccable-documenter; do
-  for background in absent true; do
-    case "$background" in
-      absent) payload="$(printf '{"tool_input": {"subagent_type": "%s"}}' "$allowed")" ;;
-      *) payload="$(printf '{"tool_input": {"subagent_type": "%s", "run_in_background": true}}' "$allowed")" ;;
-    esac
-    background_out="$(printf '%s' "$payload" | sh -c "$agent_hook" 2>/dev/null)"
-    expect "the hook denies a dispatch of $allowed with run_in_background $background, naming the flag in its reason" \
-      bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1" &&
-        jq -r ".. | .permissionDecisionReason? // empty" <<<"$1" 2>/dev/null | grep -qF run_in_background' _ "$background_out"
-  done
+  denies_background "$agent_hook" "$allowed"
 done
 
 # No test is written ahead of the screen (ADR 0079), so a unit author has nothing to prove here.

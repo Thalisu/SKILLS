@@ -404,16 +404,7 @@ expect "the hook lets the Builder dispatch do-implementer to write production co
 # denied as surely as a `true` one, and the reason names the flag, the one thing the Builder has to
 # change to dispatch again.
 for allowed in unit-test-author e2e-test-author global-unit-test-author global-e2e-test-author do-implementer; do
-  for background in absent true; do
-    case "$background" in
-      absent) payload="$(printf '{"tool_input": {"subagent_type": "%s"}}' "$allowed")" ;;
-      *) payload="$(printf '{"tool_input": {"subagent_type": "%s", "run_in_background": true}}' "$allowed")" ;;
-    esac
-    background_out="$(printf '%s' "$payload" | sh -c "$builder_agent_hook" 2>/dev/null)"
-    expect "the hook denies a dispatch of $allowed with run_in_background $background, naming the flag in its reason" \
-      bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1" &&
-        jq -r ".. | .permissionDecisionReason? // empty" <<<"$1" 2>/dev/null | grep -qF run_in_background' _ "$background_out"
-  done
+  denies_background "$builder_agent_hook" "$allowed"
 done
 
 # `choice-taker` rules a Design fork and writes the Ruling into the Spec. Forked from here it would

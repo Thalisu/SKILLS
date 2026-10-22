@@ -425,6 +425,24 @@ run_in_background` set to false
 run_in_background` to false
 EOF
 }
+# A fork waiting on an agent it dispatched needs that agent's verdict, and one launched in the
+# background returns none. The harness launches in the background when `run_in_background` is left
+# out, so an Agent hook denies the absent flag as surely as a `true` one, with a reason naming the
+# flag, the one thing the fork has to change to dispatch again. An empty hook prints no deny and
+# fails both cases.
+denies_background() { # $1 the Agent hook's command, $2 the subagent_type it otherwise lets through
+  local background payload hook_out
+  for background in absent true; do
+    case "$background" in
+      absent) payload="$(printf '{"tool_input": {"subagent_type": "%s"}}' "$2")" ;;
+      *) payload="$(printf '{"tool_input": {"subagent_type": "%s", "run_in_background": true}}' "$2")" ;;
+    esac
+    hook_out="$(printf '%s' "$payload" | sh -c "$1" 2>/dev/null)"
+    expect "the hook denies a dispatch of $2 with run_in_background $background, naming the flag in its reason" \
+      bash -c 'grep -qF "\"permissionDecision\": \"deny\"" <<<"$1" &&
+        jq -r ".. | .permissionDecisionReason? // empty" <<<"$1" 2>/dev/null | grep -qF run_in_background' _ "$hook_out"
+  done
+}
 # The phrasings a contract may use for "every agent the fork dispatches", so a passage that sets the
 # flag once for all of them answers for each one. Read with
 # `mapfile -t every_agent < <(every_dispatch_phrasings)`.
