@@ -127,7 +127,13 @@ its `Plan:` line beside the read-back.
 When none is open for the pair, the run opens exactly one pull request, with
 `gh pr create --head <head> --base <base> --fill`: head and base named explicitly, so the CLI never
 guesses either from the checkout, and its title and body filled from the commits between base and
-head. It pushes nothing, since `--head` names a branch already on the remote. The run takes the new
+head. A head that exists only on the remote, with no local branch of that name
+(`git rev-parse --verify --quiet refs/heads/<head>` finds none), is opened with
+`gh pr create --head <head> --base <base> --title <title> --body <body>` in place of `--fill`, the
+title and body taken from the commits `origin/<base>..origin/<head>`: `--fill` reads the local
+branch, so it ends on the GitHub CLI's raw error for a head the checkout does not hold, and the
+range on the remote creates no local branch and never reads a stale local head. It pushes nothing,
+since `--head` names a branch already on the remote. The run takes the new
 pull request's number from the URL `gh pr create` prints, and follows it by that number from the
 read-back on, as an open one is followed: the watch runs on that number and the Reply reads on as
 for a pull request named by its number. The Reply says the pull request was opened by the run, on

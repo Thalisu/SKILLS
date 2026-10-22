@@ -737,6 +737,27 @@ carries_any "and the create pushes nothing" \
   "pushes nothing" "pushing nothing" "never pushes" "does not push" "doesn't push" "no push" \
   "without pushing" "nor pushes" "nor push" "or push"
 
+# `--fill` reads the local branch, so for a head held only on the remote, as `dev` into `prod` with
+# no local `dev`, the create fails on the CLI's raw error and the developer opens it by hand. The
+# rule may sit in the create paragraph or one of its own, so every piece naming the create or the
+# remote range is read.
+echo "# pr.md / ### Pull request: for a head held only on the remote, the run opens the pull request with \`--title\` and \`--body\` from the commits \`origin/<base>..origin/<head>\` in place of \`--fill\`, creating no local branch and never reading a stale local head"
+flat="$(piece_in="$pull_request" piece_all=1 piece_with "gh pr create --head" "origin/<base>..origin/<head>" | tr '\n' ' ')"
+expect "a bullet or paragraph of $pull_h names \`gh pr create --head\`" test -n "$flat"
+carries_any "for a head with no local branch of that name, held only on the remote" \
+  "only on the remote" "no local branch" "not a local branch" "without a local branch" \
+  "no branch of that name locally" "only on origin" "remote-only"
+carries "it opens it with a title and a body taken from the commits between the remote base and the remote head" \
+  "--title" "--body" "origin/<base>..origin/<head>"
+carries_any "in place of \`--fill\`" \
+  "in place of \`--fill\`" "instead of \`--fill\`" "rather than \`--fill\`" "not \`--fill\`" \
+  "without \`--fill\`" "never \`--fill\`" "no \`--fill\`"
+carries_any "creating no local branch" \
+  "creates no local branch" "no local branch is created" "never creates a local branch" \
+  "without creating a local branch" "creating no local branch" "does not create a local branch" \
+  "no local branch created"
+carries "and never reading a stale local head" "stale"
+
 # A developer who asked for the pull request to be opened and followed gets one opened and left with
 # its checks unread when the run holds no number for it: the read-back and the watch take the number,
 # and only `gh pr create`'s answer, the URL it prints, carries it. The create paragraph already names
