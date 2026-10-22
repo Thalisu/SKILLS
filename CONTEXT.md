@@ -189,11 +189,20 @@ developer's own workspace and never reaches a teammate; what the team has to rea
 issue tracker or under `docs/`.
 _Avoid_: temp, workspace, drafts folder
 
+**Mirror**:
+The copy of a local artifact (a **Review**, a feature's **Pending debt**) that a run publishes to
+the issue tracker so the team sees it on the board. The artifact's home stays in the **Scratch**:
+no skill ever reads a **Mirror** back, so text a teammate edits there never reaches a fork.
+_Avoid_: sync, export, backup (nothing flows back from it)
+
 **Feature folder**:
 The directory in the **Scratch** that holds one feature's artifacts, `.scratch/<YYYYMMDD>-<feature-slug>/`,
 dated with the day it was allocated. A bare slug names the folder called `<slug>` or
 `<YYYYMMDD>-<slug>` and no other, the newest when a slug carries more than one, and an undated
-folder from before the dated rule over every dated one.
+folder from before the dated rule over every dated one. With the **Spec** and its **Tickets** on
+Jira, the folder still exists and records the **Spec**'s issue key: the **Tickets** live on the
+tracker, and each run's local artifacts (its **Plan**, **Debt file**, **Review**, claims and ledger)
+live here, reached from a **Ticket**'s key through its parent.
 _Avoid_: spec folder, slug folder, feature directory
 
 **Spec branch**:
