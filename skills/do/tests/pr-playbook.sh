@@ -1252,9 +1252,30 @@ carries_each "the session reads the one line of each \`returned=\` file" \
   "each" "every"
 carries_any "and routes on that line" \
   "on that line" "on the line it read" "on the line read" "by that line" "on its line" "from that line"
-claim="$(grep -E '(not fixed|not reproduced) <k>:[^`]*` line `returns\.sh` printed' <<<"$sentences")"
+# An aside in parentheses is read as a sentence of its own, since its print verb has its own subject
+# (taking a worktree back prints a kept line), and a print verb that names a `returned=` or
+# `missing=` file is what returns.sh does print, so neither counts toward the claim.
+returns_prints_fixer_line() { # stdin: one sentence per line; stdout: each sentence or aside that names returns.sh, a fixer's `fixed`, `not fixed` or `not reproduced` line and a print verb, in any word order
+  local s
+  while IFS= read -r s; do
+    sed -E 's/\([^)]*\)//g' <<<"$s"
+    grep -oE '\([^)]*\)' <<<"$s"
+  done | sed -E 's/print(s|ed)?( only| as)? `(returned|missing)=//g' |
+    grep -F 'returns.sh' | grep -E '`(fixed|not fixed|not reproduced) <k>:' |
+    grep -E '(^|[^[:alnum:]])print(s|ed)?([^[:alnum:]]|$)'
+}
+claim="$(returns_prints_fixer_line <<<"$sentences")"
 expect "no sentence of the step has returns.sh print a fixer's \`not fixed <k>:\` or \`not reproduced <k>:\` line" \
   test -z "$claim"
+expect "the claim is caught with the line first and returns.sh last" \
+  test -n "$(returns_prints_fixer_line <<<'The `not fixed <k>: <reason>` line is what `returns.sh` prints.')"
+expect "the claim is caught with returns.sh first and the print verb before the line" \
+  test -n "$(returns_prints_fixer_line <<<'`returns.sh` prints the fixer'"'"'s `fixed <k>:` line for each file.')"
+expect "the claim is caught with the line printed by returns.sh" \
+  test -n "$(returns_prints_fixer_line <<<'Each `not reproduced <k>:` line printed by `returns.sh` goes to the list.')"
+expect "a print verb that names a \`returned=\` or \`missing=\` file is not the claim" \
+  test -z "$(returns_prints_fixer_line <<<'`returns.sh` prints only `returned=<file>` and `missing=<file>`, so read the one line of each `returned=` file and route on that line.
+A `not reproduced <k>: <command> <what it showed instead>` line read from a file `returns.sh` printed as `returned=` is the fixer'"'"'s report that it could not reproduce the failure locally.')"
 
 # A red check can come from a file the pull request never changed, a base that moved under it: a
 # fixer forked over it edits code outside the pull request and may push that edit to a shared head,
