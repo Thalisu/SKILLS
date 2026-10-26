@@ -451,6 +451,16 @@ carries "the fixer writes the failing test first itself where no Testing Policy 
 carries "the fixer leaves exactly one commit, its body naming the check" \
   "exactly one commit" "Check: <name>"
 
+# A fix written from the log alone turns nothing red first and may silence the symptom while the
+# cause survives (ADR 0103): the mechanism's test goes through the test author like any bugfix red,
+# and no file is edited before something is red locally.
+# shellcheck disable=SC2034  # lib.sh's carries reads $flat
+flat="$(passage_of <(body_of "$agent") "## Reproduce first" "## How you wait" | tr '\n' ' ' | tr -s ' ')"
+carries_each "a pr fixer proves a mechanism fix red-first through the unit test author and edits nothing while nothing is red locally" \
+  "unit-test-author" -- \
+  "the mechanism as the expected red" "the mechanism as its expected red" -- \
+  "nothing is edited with nothing red locally" "nothing is edited while nothing is red locally"
+
 # shellcheck disable=SC2034  # lib.sh's carries reads $flat
 flat="$(passage_of <(body_of "$agent") "## Two ends with no commit" "## " | tr '\n' ' ' | tr -s ' ')"
 expect "the fixer's body carries a ## Two ends with no commit section" test -n "$flat"

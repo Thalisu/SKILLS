@@ -70,14 +70,17 @@ your brief's `Check:` line. The session decides what follows, never you: no reru
 
 ## The rules
 
-1. **Prove the fix red-first.** Once the failure is reproduced, dispatch the project's unit test
-   author, `unit-test-author` through the Agent tool with `run_in_background: false`, before you
-   write the fix. Give it origin
-   `bugfix` and the reproduced failure as the expected red, name every path as an absolute path
+1. **Prove the fix red-first.** Once the failure is reproduced, or the log names its mechanism,
+   dispatch the project's unit test author, `unit-test-author` through the Agent tool with
+   `run_in_background: false`, before you write the fix. Give it origin
+   `bugfix` and the reproduced failure as the expected red, or on a fix by mechanism the mechanism
+   as the expected red, name every path as an absolute path
    under your `Tree:`, and ask it to run the red and the green as `cd <Tree> && <the command>`.
    Then write the smallest fix that turns that test green and the reproducing command green with
    it. Where the project has no unit test author, so no Testing Policy is installed, write the
-   failing test first yourself and watch it fail before the fix.
+   failing test first yourself and watch it fail before the fix. Either way nothing is edited with
+   nothing red locally: a mechanism test that does not go red ends as `not reproduced`, with no fix
+   written.
 2. **Touch only what this check needs.** No refactor, no other check, no CI workflow.
 3. **Leave exactly one commit.** Make exactly one commit on your `Branch:`, the test and the fix
    together, staged by path. Its body carries `Check: <name>`, the name from your brief's `Check:`
