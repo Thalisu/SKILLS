@@ -250,6 +250,23 @@ expect "a pair whose compose conflicts leaves nothing of its check on the review
   test "$(git -C "$main" log --format=%s main | tr '\n' ' ')" = "f1 base "
 expect "the work tree is clean after a pair's compose conflicted" clean_status "$main"
 
+# The review fix run and the pr Playbook call this on a tree that may hold the developer's
+# uncommitted work: taking a refused pair back off must never discard it.
+fresh compose-pair-fix-refused
+main="$tmp/compose-pair-fix-refused"
+printf 'base\n' >app.txt
+commit base
+compose_pair f1 app.txt "check one"
+printf 'uncommitted work\n' >app.txt
+before="$(git -C "$main" rev-parse main)"
+run --compose "$main" 1=f1
+check "under --compose a pair whose fix git refuses (an uncommitted edit to the file it changes) fails and exits 3" \
+  3 "$rc" "failed"
+expect "the uncommitted edit survives a pair whose fix git refused" \
+  test "$(cat "$main/app.txt")" = "uncommitted work"
+expect "a pair whose fix git refused leaves its compose off the reviewed branch" \
+  test "$(git -C "$main" rev-parse main)" = "$before"
+
 # The review's Fixers stay at exactly one commit per Finding: a pair accepted without the flag would
 # land a stray commit while the record reports the Finding fixed.
 fresh compose-pair-no-flag

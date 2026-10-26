@@ -10,7 +10,8 @@
 # --compose is the pr Playbook's (ADR 0102): a branch may also be two commits ahead, a chore(e2e)
 # commit whose parent is HEAD and the fix on top. That pair prints composed <n> <sha> then
 # picked <n> <sha>, compose first, and one that conflicts or fails leaves nothing of check <n>,
-# compose included. Without the flag a branch is exactly one commit, as the review's Fixers are.
+# compose included, and keeps every uncommitted change in <tree>. Without the flag a branch is
+# exactly one commit, as the review's Fixers are.
 #
 # Judges nothing: a pick that conflicts is aborted, so the branch holds every clean pick of the Wave
 # and nothing of a conflicted one, and no conflict class, union resolution or ledger is reached.
@@ -139,9 +140,13 @@ for n in $(printf '%s\n' "${!fixer[@]}" | sort -n); do
   [ -z "${compose[$n]:-}" ] || attempt "${compose[$n]}"
   [ "$res" != picked ] || attempt "${fixer[$n]}"
   # A pair whose fix did not land takes its compose back off, so the tree never holds one without
-  # the other.
+  # the other. --keep, never --hard: an uncommitted change in the tree outside the compose's files
+  # survives, and one inside them makes git refuse rather than lose it.
   [ "$res" = picked ] || [ "$(git -C "$tree" rev-parse HEAD)" = "$base" ] ||
-    git -C "$tree" reset -q --hard "$base"
+    git -C "$tree" reset -q --keep "$base" 2>/dev/null || {
+    echo "failed $label $n: its compose could not come off without losing uncommitted work in $tree"
+    exit 3
+  }
   case "$res" in
     picked)
       while IFS= read -r path; do
