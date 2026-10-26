@@ -422,7 +422,8 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
       prints it as a kept line), so nothing of its fixer branch reaches the run tree or the head,
       and a `not reproduced` return raises no stop-case and stays out of the round's stop set.
 
-   d. First, one guard call over every check of the Wave that returned `fixed <k>: ...`:
+   d. First, one guard call over every check of the Wave that returned `fixed <k>: ...` or
+      `fixed <k> by mechanism: ...`:
 
           bash <skill-dir>/scripts/pr-guard.sh <run tree> <sha> <k>=<branch>...
 
@@ -440,7 +441,7 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
       after any other.
 
       Then one call per Wave, over every check the guard printed `clean`, and only those, all of them
-      checks that returned `fixed <k>: ...`:
+      checks that returned `fixed <k>: ...` or `fixed <k> by mechanism: ...`:
       `bash <skill-dir>/../do-code-review/scripts/fix-integrate.sh <run tree> <k>=<branch>...`, each
       `<branch>` the one its worktree line printed. The script picks them in ascending check number,
       whatever order they are given in, and prints one `picked <k> <sha>` per check. It may print
@@ -641,7 +642,8 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    from the session's own reading. For a `not fixed <k>: <reason>` line it is its `<reason>`. For a
    check that came back red after its fix was pushed it is the `<command>` of its
    `fixed <k>: <command>` line, the local command that reproduced the failure, which the fix
-   answered and the red check shows did not cure it. The return lines of `do-pr-fixer` stay as
+   answered and the red check shows did not cure it, and for a
+   `fixed <k> by mechanism: <the test> <the log line>` line it is its `<the test>`. The return lines of `do-pr-fixer` stay as
    they are: the slot quotes them and adds no clause they do not carry.
 
    When no check was picked, the stop set is empty and the round's not-reproduced list is empty, nothing
@@ -659,8 +661,8 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    `<sha>` is the watch's `sha=`, and `<repo>` and each `<run id>` are the `repo=` and `run=` values
    `pr-log.sh` printed for every such check (two checks of one run pass the same run id, which the
    script reruns once). Of the round's checks, only the checks on the round's not-reproduced list, those whose return
-   file line read `not reproduced <k>:`, are passed to `pr-rerun.sh`. A check whose return read `fixed <k>:`
-   or `not fixed <k>:` is never passed to `pr-rerun.sh`, whichever wrote the `not fixed` (the fixer, the
+   file line read `not reproduced <k>:`, are passed to `pr-rerun.sh`. A check whose return read `fixed <k>:`,
+   `fixed <k> by mechanism:` or `not fixed <k>:` is never passed to `pr-rerun.sh`, whichever wrote the `not fixed` (the fixer, the
    session's `the fixer did not return`, or the conflicted-twice line). The session's own reading of a
    check's log or excerpt never earns a rerun, since a round has no flake class (ADR 0028). The
    script's answer routes the round:

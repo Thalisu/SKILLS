@@ -2964,6 +2964,26 @@ carries_each "the session's own reading of a check's log or excerpt never earns 
   "never" "no check" "nor " "not on" "does not" "doesn't"
 carries_any "there is no flake class" "flake" "flaky" "transient" "intermittent" "class"
 
+# A mechanism fix (ADR 0103) must reach the head through the guard and the integration like any fix:
+# `fixed <k> by mechanism: ...` does not start with `fixed <k>:`, so a routing sentence naming only
+# that prefix leaves the check unpicked, and one left off the rerun sentence spends a rerun on a
+# check already fixed. Each routing sentence of the Fix step is read on its own.
+echo "# pr.md / ### Fix the red checks: a fixed by mechanism return goes through the guard, the integration and the push as any fixed return, and never to pr-rerun.sh"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
+sentences="$(tr '\n' ' ' <<<"$step" | tr -s ' ' | sed 's/\. /.\n/g')"
+flat="$(grep -F "pr-guard.sh <run tree> <sha> <k>=<branch>..." <<<"$sentences" | tr '\n' ' ')"
+expect "a sentence of the step carries the pr-guard.sh call" test -n "$flat"
+carries "the guard call takes the checks that returned \`fixed <k> by mechanism\` beside \`fixed <k>\`" \
+  "\`fixed <k>: ...\`" "\`fixed <k> by mechanism: ...\`"
+flat="$(grep -F "fix-integrate.sh <run tree> <k>=<branch>..." <<<"$sentences" | tr '\n' ' ')"
+expect "a sentence of the step carries the fix-integrate.sh call" test -n "$flat"
+carries "the integration takes the clean checks that returned \`fixed <k> by mechanism\` beside \`fixed <k>\`" \
+  "\`fixed <k>: ...\`" "\`fixed <k> by mechanism: ...\`"
+flat="$(grep -F "pr-rerun.sh" <<<"$sentences" | grep -F "not fixed <k>:" | tr '\n' ' ')"
+expect "a sentence of the step keeps the not fixed checks off pr-rerun.sh" test -n "$flat"
+carries "a check that returned \`fixed <k> by mechanism\` is never passed to pr-rerun.sh either" \
+  "fixed <k> by mechanism:"
+
 # The developer whose check flaked relies on a flake costing one rerun and no stop (Spec story 20):
 # a green retry read as a stop hands over a run that should have gone on, and a missing round line
 # hides that the check failed once and was retried. The route is read off the watch step's pieces
