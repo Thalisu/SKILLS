@@ -2659,6 +2659,25 @@ expect "a round line template of the Reply step names the fixer's \`not reproduc
 out="$(grep -E 'not reproduced.*; nothing pushed for it$' <<<"$out")"
 expect "and reads it followed by \`nothing pushed for it\`" test -n "$out"
 
+# A fixer whose stack could not be brought up never ran its check (`not run`), so like a `not
+# reproduced` one it found nothing to fix: read as `not fixed` it would stop a run a rerun could
+# close, and a real flake would cost the developer more than its one retry. The routing is read off
+# the Fix step's sentences naming `not run`, and the rerun off the push item's sentences naming it.
+echo "# pr.md / ### Fix the red checks and ## What this run never does: a fixer's not run return is routed as a not reproduced one, onto the round's not-reproduced list, and earns its check the one rerun"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
+flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ' | sed 's/\. /.\n/g' | grep -F "not run <k>:" | tr '\n' ' ')"
+expect "sentences of the step name a \`not run <k>:\` return" test -n "$flat"
+carries_each "a not run line goes to the round's not-reproduced list, as a not reproduced one does" \
+  "not-reproduced list" "not reproduced list" -- \
+  "as a \`not reproduced" "as it routes a \`not reproduced" "as the \`not reproduced" "like a \`not reproduced"
+rerun_sentences="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.' "$push_line" | tr '\n' ' ' |
+  tr -s ' ' | sed 's/\. /.\n/g' | grep -E 'pr-rerun\.sh' | grep -vF 'Yours: direction:')"
+flat="$(tr '\n' ' ' <<<"$rerun_sentences")"
+carries "a check whose return read not run is passed to pr-rerun.sh" "not run <k>:"
+flat="$(passage_of "$pr" "## What this run never does" "## " | tr '\n' ' ' | tr -s ' ' | sed 's/ - /\n- /g' | grep -F "rerun" | tr '\n' ' ')"
+carries_each "the never-does bullet reruns a check whose fixer returned not reproduced or not run" \
+  "not reproduced" -- "not run"
+
 # A check its fixer could not reproduce is most likely a flake, and a flake costs the developer one
 # rerun and no stop (ADR 0089): a round that pushed nothing and raised no stop-case reruns those
 # checks' failed jobs itself, once, and watches again, since a rerun handed over on a `Yours:` line

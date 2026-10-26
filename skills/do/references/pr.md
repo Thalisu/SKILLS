@@ -24,8 +24,8 @@ follows that one pull request, and the developer reads it afterwards, through th
 - Fork a fixer for a check `pr-classify.sh` printed `stale`, or rebase the head to clear one: the
   check stops the run, naming its file, and the rebase is the head owner's.
 - Fix a check in the session: each red check is one `do-pr-fixer` fork (ADR 0088).
-- Rerun a check unless its `do-pr-fixer` returned `not reproduced`, and never rerun it because the
-  session read its log as a flake.
+- Rerun a check unless its `do-pr-fixer` returned `not reproduced` or `not run`, and never rerun it
+  because the session read its log as a flake.
 - Rerun a check on a round that pushed, or rerun one check twice in one run: the rerun is once per
   run.
 - Rerun anything but `gh run rerun --failed` on the run of the pull request's head, through
@@ -421,6 +421,10 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
       fixer branch is never picked, even when it holds a commit (then taking its worktree back
       prints it as a kept line), so nothing of its fixer branch reaches the run tree or the head,
       and a `not reproduced` return raises no stop-case and stays out of the round's stop set.
+      A `not run <k>: <what the environment printed>` line read from a file `returns.sh` printed as
+      `returned=` is the fixer's report that the check's stack could not be brought up, so the
+      check never ran locally: the session routes it as a `not reproduced` line, check `<k>` going
+      to the round's not-reproduced list, never picked and raising no stop-case.
 
    d. First, one guard call over every check of the Wave that returned `fixed <k>: ...` or
       `fixed <k> by mechanism: ...`:
