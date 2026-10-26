@@ -757,6 +757,7 @@ the whole message, and a green watch adds no part of its own:
   line `fix-worktrees.sh remove` printed, and the verdict the watch read after the push:
 
       round <r>: <check> red; do-pr-fixer on <fixer branch>: <its return line>; <picked sha> pushed to <head>
+      round <r>: <check> red; do-pr-fixer on <fixer branch>: fixed <k> by mechanism: <the test> <the log line that names it>; end-to-end failure itself not reproduced locally, the fix stands on <the test> and <the log line that names it>; <picked sha> pushed to <head>
       round <r>: <check> red; do-pr-fixer on <fixer branch>: <its return line>; nothing pushed for it
       round <r>: <check> red; do-pr-fixer on <fixer branch>: not reproduced <k>: <command> <what it showed>; nothing pushed for it
       round <r>: <check> red; do-pr-fixer on <fixer branch>: <its return line>; not picked: <path> is a <class> file

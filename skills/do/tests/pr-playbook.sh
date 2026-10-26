@@ -3021,6 +3021,18 @@ templates="$(
 )"
 out="$(grep -xF "round <r>: <check> not reproduced locally, retried once, green" <<<"$templates")"
 expect "a check green on its retry has its own round line in the Reply's round templates" test -n "$out"
+
+# The developer deciding whether to trust and merge a mechanism fix (ADR 0103) must learn that the
+# end-to-end run was never seen failing locally, and what the proof stands on instead: a pushed line
+# that reads like any other passes the fix off as a reproduced failure.
+echo "# pr.md / ### Reply: the round line of a check pushed on a mechanism fix says the end-to-end failure was not reproduced locally, naming the test and the log line"
+flat="$(grep -F "by mechanism" <<<"$templates" | grep -F "pushed to <head>" | tr '\n' ' ')"
+expect "the Reply's round templates carry a pushed line for a fix by mechanism" test -n "$flat"
+carries_each "the pr Reply's round line for a check pushed on a mechanism fix says the end-to-end failure itself was not reproduced locally, naming the test and the log line the proof stands on" \
+  "end-to-end failure not reproduced locally" "end-to-end failure itself not reproduced locally" \
+  "end-to-end failure was not reproduced locally" "end-to-end failure itself was not reproduced locally" -- \
+  "<the test>" -- \
+  "<the log line"
 # The developer decides between a hand fix and a flake from the two excerpts side by side: a stop
 # without the first excerpt leaves only the retry's failure, and a `Yours:` line that offered the
 # run's own rerun again would hand over a command the run already spent (ADR 0089). The route is
