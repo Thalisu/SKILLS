@@ -11,31 +11,30 @@
 # the excerpt quotes is found in it by search. Prints log=<absolute path of out> then lines=<n>, n
 # being the file's line count.
 #
-# Exits 0 the log written · 1 gh missing or unable to read the log · 2 usage · 3 refused unread
-# (not an Actions job link) or an empty log. Nothing on stdout and no file for 1, 2 or 3; a one-line
-# pr-job-log.sh: <reason> goes to stderr.
+# The link is checked by pr-job-link.sh, the rule pr-log.sh applies too, before any log is read.
+#
+# Exits 0 the log written · 1 gh missing or unable to read the repository or the log · 2 usage ·
+# 3 refused unread (not an Actions job link, a link to another repository) or an empty log.
+# Nothing on stdout and no file for 1, 2 or 3; a one-line pr-job-log.sh: <reason> goes to stderr.
 set -uo pipefail
+here="$(cd "$(dirname "$0")" && pwd -P)"
+. "$here/pr-job-link.sh"
 
 read_whole_log() { # $1 repo, $2 job id: the raw log lines of every step
   gh run view --job "$2" --repo "$1" --log
 }
 
 main() {
-  local re='^https://([^/]+)/([^/]+)/([^/]+)/actions/runs/([0-9]+)/job/([0-9]+)([?#].*)?$'
-  local repo job log out esc
+  local repo run job reason code log out esc
   if [ "$#" -ne 3 ]; then
     echo "usage: pr-job-log.sh <link> <tree> <out>" >&2
     exit 2
   fi
-  if [[ ! "$1" =~ $re ]]; then
-    echo "pr-job-log.sh: not a GitHub Actions job link: $1" >&2
-    exit 3
-  fi
-  repo="${BASH_REMATCH[1]}/${BASH_REMATCH[2]}/${BASH_REMATCH[3]}" job="${BASH_REMATCH[5]}"
-  if ! command -v gh >/dev/null 2>&1; then
-    echo "pr-job-log.sh: gh is not on PATH" >&2
-    exit 1
-  fi
+  check_job_link "$1" "$2" || {
+    code=$?
+    echo "pr-job-log.sh: $reason" >&2
+    exit "$code"
+  }
   out="$(cd "$(dirname "$3")" && pwd)/$(basename "$3")"
   if ! log="$(read_whole_log "$repo" "$job")"; then
     echo "pr-job-log.sh: gh could not read the log of job $job" >&2

@@ -25,25 +25,10 @@
 # link's run or a run not on the watched commit, or no failed step).
 # Nothing on stdout for 1, 2 or 3; a one-line pr-log.sh: <reason> goes to stderr.
 set -uo pipefail
+here="$(cd "$(dirname "$0")" && pwd -P)"
+. "$here/pr-job-link.sh"
 
 excerpt_lines=200
-
-parse_link() { # $1 link: prints "<host>/<owner>/<repo> <run id> <job id>", or exits 3 when it is not an Actions job URL
-  local re='^https://([^/]+)/([^/]+)/([^/]+)/actions/runs/([0-9]+)/job/([0-9]+)([?#].*)?$'
-  if [[ ! "$1" =~ $re ]]; then
-    echo "pr-log.sh: not a GitHub Actions job link: $1" >&2
-    exit 3
-  fi
-  printf '%s/%s/%s %s %s\n' "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}" "${BASH_REMATCH[3]}" "${BASH_REMATCH[4]}" "${BASH_REMATCH[5]}"
-}
-
-read_base_repo() { # $1 tree: prints <host>/<owner>/<repo> of the pull request's base repository; 1 on a read failure
-  local url
-  url="$(cd "$1" && gh repo view --json url --jq .url 2>/dev/null)" || return 1
-  url="${url#https://}"
-  [ -n "$url" ] && [ "$url" != "${url#*/*/}" ] || return 1
-  printf '%s\n' "${url%/}"
-}
 
 read_run_identity() { # $1 repo, $2 run id: prints the run's head commit, then the id of each of its jobs, one per line
   gh run view "$2" --repo "$1" --json headSha,jobs --jq '.headSha, (.jobs[].databaseId)'
@@ -105,29 +90,16 @@ named_files() { # stdin: the excerpt's lines; $1 tree: prints one file=<path> pe
 }
 
 main() {
-  local parsed repo run job log cut base identity watched run_sha
+  local repo run job reason code log cut identity watched run_sha
   if [ "$#" -ne 2 ]; then
     echo "usage: pr-log.sh <link> <tree>" >&2
     exit 2
   fi
-  if ! git -C "$2" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    echo "pr-log.sh: not a git work tree: $2" >&2
-    exit 2
-  fi
-  parsed="$(parse_link "$1")" || exit $?
-  if ! command -v gh >/dev/null 2>&1; then
-    echo "pr-log.sh: gh is not on PATH" >&2
-    exit 1
-  fi
-  read -r repo run job <<<"$parsed"
-  base="$(read_base_repo "$2")" || {
-    echo "pr-log.sh: cannot read the pull request's repository" >&2
-    exit 1
+  check_job_link "$1" "$2" || {
+    code=$?
+    echo "pr-log.sh: $reason" >&2
+    exit "$code"
   }
-  if [ "${repo,,}" != "${base,,}" ]; then
-    echo "pr-log.sh: the link is to $repo, not the pull request's repository $base: $1" >&2
-    exit 3
-  fi
   identity="$(read_run_identity "$repo" "$run" 2>/dev/null)" || {
     echo "pr-log.sh: gh could not read run $run" >&2
     exit 1

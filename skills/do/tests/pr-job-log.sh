@@ -52,4 +52,20 @@ expect "a red check's whole job log: the script exits 0" [ "$rc" = 0 ]
 out="$(cat "$tmp/out/log-1" 2>/dev/null)"
 same "a red check's whole job log: the out file holds every step's lines as gh prints them, a step that passed included, with only the ANSI escapes stripped" "$want_log"
 
+# A check's details link is set by whoever posts the status: a link pr-log.sh refuses unread would
+# hand the fixer a log its poster controls, so the whole log is refused on the same link.
+refused_unread() { # $1 label, $2 the link
+  # Optional: $3 the pattern of the gh calls that must not happen (default: any run view, which reads a run or a log)
+  rm -f "$GH_FAKE/fail" "$GH_FAKE/calls" "$tmp/out/refused"
+  refuses_exit=3 refuses "$1: refused, exit 3 and a pr-job-log.sh: reason on stderr" opens "pr-job-log.sh: " "$2" "$tmp/tree" "$tmp/out/refused"
+  same "$1: nothing on stdout" ""
+  # shellcheck disable=SC2034  # lib.sh's same reads $out
+  out="$(grep "${3:-^run view }" "$GH_FAKE/calls" 2>/dev/null)"
+  same "$1: the linked log is never read" ""
+  expect "$1: no file is written" [ ! -e "$tmp/out/refused" ]
+}
+git -C "$tmp/tree" rev-parse HEAD >"$GH_FAKE/head"
+refused_unread "a check link to another repository on the pull request's host" "https://github.com/someone-else/deploy-repo/actions/runs/7/job/99"
+refused_unread "a check link to the pull request's owner and repo on another host" "https://evil.example/o/r/actions/runs/7/job/99"
+
 exit "$((fails > 0))"
