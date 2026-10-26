@@ -13,42 +13,8 @@ trap 'rm -rf "$tmp"' EXIT
 export HOME="$tmp/home" GH_FAKE="$tmp/gh"
 mkdir -p "$HOME" "$GH_FAKE" "$tmp/bin"
 
-# The fake gh logs every command line it receives to $GH_FAKE/calls. It answers
-# `gh repo view --json url --jq .url` with the pull request's repository in $GH_FAKE/repo_url, or,
-# while $GH_FAKE/repo_fail exists, prints that file's line on stderr instead. It answers
-# `gh run view --job 99 --repo <repo> --log-failed` with the recorded log in $GH_FAKE/log for the
-# pull request's repository github.com/o/r and for the two foreign ones the refusal cases link to,
-# which hold a log of their own too, and for job 999 of github.com/o/r, a job of another run. While
-# $GH_FAKE/fail exists it cannot read the log, and prints that file's line on stderr instead. It
-# answers `gh run view <run> --repo github.com/o/r --json headSha,jobs --jq '.headSha,
-# (.jobs[].databaseId)'` for any run with the head sha in $GH_FAKE/head, then the job ids in
-# $GH_FAKE/jobs, one per line, or, while $GH_FAKE/run_fail exists, prints that file's line on stderr
-# instead. It refuses any other command line.
-cat >"$tmp/bin/gh" <<'SH'
-#!/usr/bin/env bash
-echo "$*" >>"$GH_FAKE/calls"
-if [ "$*" = "repo view --json url --jq .url" ]; then
-  [ -f "$GH_FAKE/repo_fail" ] && { cat "$GH_FAKE/repo_fail" >&2; exit 1; }
-  cat "$GH_FAKE/repo_url"
-  exit 0
-fi
-case "$*" in
-  "run view "[0-9]*" --repo github.com/o/r --json headSha,jobs --jq .headSha, (.jobs[].databaseId)")
-    [ -f "$GH_FAKE/run_fail" ] && { cat "$GH_FAKE/run_fail" >&2; exit 1; }
-    cat "$GH_FAKE/head" "$GH_FAKE/jobs"
-    exit 0
-    ;;
-esac
-case "$*" in
-  "run view --job 99 --repo github.com/o/r --log-failed" | \
-    "run view --job 999 --repo github.com/o/r --log-failed" | \
-    "run view --job 99 --repo github.com/someone-else/deploy-repo --log-failed" | \
-    "run view --job 99 --repo evil.example/o/r --log-failed") ;;
-  *) echo "fake gh: unexpected command: $*" >&2; exit 1 ;;
-esac
-[ -f "$GH_FAKE/fail" ] && { cat "$GH_FAKE/fail" >&2; exit 1; }
-cat "$GH_FAKE/log"
-SH
+# The fake gh: scripts/tests/stubs/gh, whose header names the $GH_FAKE files it reads.
+cp "$here/../../../scripts/tests/stubs/gh" "$tmp/bin/gh"
 chmod +x "$tmp/bin/gh"
 echo "https://github.com/o/r" >"$GH_FAKE/repo_url"
 echo 99 >"$GH_FAKE/jobs"
