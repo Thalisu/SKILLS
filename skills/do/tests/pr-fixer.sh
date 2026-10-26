@@ -636,5 +636,10 @@ carries_any "docs/do.md's do-pr-fixer row says the fixer reads the red check's w
 # fix proven by the mechanism its log names (ADR 0103), and is surprised by one on the head.
 carries_any "docs/do.md's do-pr-fixer row says a fix may be proven by its mechanism" \
   "proven by its mechanism" "proves it by its mechanism" "proven by the mechanism" "by the mechanism its log names"
+# A developer reading the do page to learn what a pr run does on their machine needs to know it
+# starts containers there, isolated from their own stack, and tears down only its own.
+carries_each "docs/do.md's do-pr-fixer row says the fixer brings the job's stack up before it reproduces" \
+  "brings up the stack" "brings the job's stack up" "brings up the job's stack" "starts the job's stack" -- \
+  "fixer-<id>" "compose project of its own" "its own compose project"
 
 exit "$((fails > 0))"
