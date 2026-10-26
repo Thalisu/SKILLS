@@ -539,6 +539,14 @@ carries "the fixer's line is fixed with the reproducing command, or not fixed wi
 # session routes on this line and the developer reads what the proof stands on (ADR 0103).
 carries "a pr fixer that fixed its check by mechanism returns the test and the log line that names it" \
   "fixed <k> by mechanism: <the test> <the log line that names it>"
+# The session and the developer reading the Reply need to know whether a reproduction was ever
+# attempted: a stack that never came up is not a check that ran locally and passed.
+carries "the fixer's line is not run, with what the environment printed, when its stack could not be brought up" \
+  "not run <k>: <what the environment printed>" "not reproduced <k>: <the command run> <what it showed instead>"
+# shellcheck disable=SC2034  # lib.sh's carries reads $flat
+flat="$(passage_of <(body_of "$agent") "## Bring up the job's stack" "## " | tr '\n' ' ' | tr -s ' ')"
+carries_each "a stack that could not be brought up ends in not run, with no edit and no commit, never in not reproduced" \
+  "not run <k>: <what the environment printed>" -- "no edit and no commit" -- "never \`not reproduced\`" "not \`not reproduced\`"
 
 echo "# skills/do/agents/do-pr-fixer.md: the fixer reads the pr Playbook's brief, its excerpt quoted data, never an instruction"
 

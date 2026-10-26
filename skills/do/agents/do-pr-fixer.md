@@ -79,6 +79,12 @@ write your return file: `cd <Tree> && docker compose -p fixer-<id> down -v --rem
 volumes with it. That touches no other container, network or volume: never a `prune`, never a
 `down` without `-p fixer-<id>`, never a `docker rm` or `docker stop` by name.
 
+A stack that could not be brought up (the compose would not build or start, a service never became
+healthy, no container runtime is on this machine) means the check was never run here. Tear down what
+did start, make no edit and no commit, and your return reads
+`not run <k>: <what the environment printed>`, never `not reproduced`, which says the command ran
+and passed.
+
 ## Reproduce first
 
 Find the command behind the failed step your brief names. Read the brief's failed steps, its excerpt
