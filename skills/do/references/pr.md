@@ -322,8 +322,8 @@ link the value up to the first space and its name everything after that space. `
 step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
 
 1. The run's directory and stamp. `mktemp -d "${TMPDIR:-/tmp}/do-pr-fix.XXXX"` is `<dir>`, and
-   every return file goes in it. `<at>` is the first 7 characters of `<sha>`, then `-`, then
-   `<dir>`'s random suffix.
+   every return file and every whole job log goes in it. `<at>` is the first 7 characters of
+   `<sha>`, then `-`, then `<dir>`'s random suffix.
 
 2. The run's own worktree, on the commit the checks ran on and never on the developer's checkout:
 
@@ -335,14 +335,19 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    from here on. If git refuses either line, the run stops quoting git's line, then exactly one
    `Yours: direction: git refused the run tree; fix what its line names, then /do the pull request again`.
 
-3. Cut each check's excerpt, in check order, with the line:
+3. Cut each check's excerpt and fetch its whole job log, in check order, with the two lines:
 
        bash <skill-dir>/scripts/pr-log.sh <link> <run tree>
+       bash <skill-dir>/scripts/pr-job-log.sh <link> <run tree> <dir>/log-<k>
 
-   `<run tree>` is the worktree item 2 cut. On a non-zero exit the run removes `<run tree>`
+   `<run tree>` is the worktree item 2 cut. The second line writes the job's whole log, every step
+   included, to `<dir>/log-<k>`, outside the run tree the push leaves from, after the same link
+   checks the first applies, and prints `log=` and `lines=` for the brief's `Log:` line (item 6).
+   On a non-zero exit of either line the run removes `<run tree>`
    (`git worktree remove <run tree>`), no commit sits on it yet, then stops, quoting the script's
    stderr line, then exactly one
-   `Yours: direction: pr-log.sh failed; fix what its stderr line names, then /do the pull request again`.
+   `Yours: direction: <script> failed; fix what its stderr line names, then /do the pull request again`,
+   `<script>` being `pr-log.sh` or `pr-job-log.sh`, whichever exited non-zero.
 
 4. Classify every red check, then group the real ones into Waves. First the run writes one record
    per red check, in check order, to `<dir>/records`: `<k>`, a tab, then that check's `file=`

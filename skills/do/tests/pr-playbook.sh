@@ -3363,6 +3363,21 @@ carries_each "a non-zero pr-log.sh exit stops the run quoting the script's stder
   "non-zero exit" -- "stops" -- "stderr line"
 yours_direction_once "the failed pr-log.sh's stop carries exactly one \`Yours: direction:\` line"
 
+# Every pr fixer gets the red check's whole job log, which only the session can fetch, since the
+# fixer keeps no gh: the fetch writes into the run's temporary directory, outside the run tree the
+# push leaves from, before any fixer is forked, and a failed fetch stops the run as a failed excerpt
+# does, rather than fork a fixer with no log to read.
+echo "# pr.md / ### Fix the red checks: each red check's whole job log is fetched by pr-job-log.sh into <dir>/log-<k> before any do-pr-fixer is forked, and a non-zero exit removes the run tree and stops on one Yours: direction: line"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
+flat="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.' "pr-job-log.sh <link> <run tree> <dir>/log-<k>" | tr '\n' ' ' | tr -s ' ')"
+expect "an item of step $fix_n fetches each check's whole job log into <dir>/log-<k>, the run's temporary directory" test -n "$flat"
+carries_each "a non-zero pr-job-log.sh exit removes the run tree, then stops quoting the script's stderr line" \
+  "non-zero exit" -- "git worktree remove <run tree>" -- "stops" -- "stderr line"
+yours_direction_once "the failed fetch's stop carries exactly one \`Yours: direction:\` line"
+flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ')"
+before "the whole log is fetched before any do-pr-fixer is forked" \
+  "pr-job-log.sh <link> <run tree> <dir>/log-<k>" "subagent_type: do-pr-fixer"
+
 # core.hooksPath on the push line turns hooks off, not the config a fixer can also write into the git
 # dir its worktree shares with the run tree (a credential helper, an ssh command), nor the fetch
 # before the push: so the run records both before its first fork and reads them back before it
