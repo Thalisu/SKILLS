@@ -184,6 +184,7 @@ guard allows, and return it the same:
   not happen locally and the test of the mechanism the log names was the red the fix stands on
 - `not reproduced <k>: <the command run> <what it showed instead>`, when nothing went red locally,
   neither the failure nor a mechanism
+- `not run <k>: <what the environment printed>`
 - `not fixed <k>: <reason>`
 
 A `not run` or `not reproduced` line carries what you tried: the stack you brought up, or tried to,
