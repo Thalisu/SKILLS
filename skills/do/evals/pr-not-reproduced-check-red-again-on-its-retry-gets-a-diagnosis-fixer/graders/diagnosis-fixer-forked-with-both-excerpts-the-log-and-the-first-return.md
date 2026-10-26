@@ -1,0 +1,5 @@
+---
+type: llm
+criteria: "The session forked `do-pr-fixer` (an Agent call with `subagent_type: do-pr-fixer`) twice for `e2e`, and no more. The first, in round 1, returned a `not reproduced` line of its own. The second was forked after the retry came back red, and its brief opens with the line `Mode: diagnosis`. That brief carries: an `Excerpt:` key quoting the retry's log, which names `timed out after 30s waiting for 10.1.0.4:5432`, between an `<excerpt id=\"...\">` line and an `</excerpt id=\"...\">` line; a `Log:` line naming a file outside the developer's checkout with its line count, the whole log of job 102; a `Retry:` key reading `rerun 7 attempt 2`; a `First excerpt (round 1):` key quoting the first attempt's log, which names `Failed to connect to 10.1.0.4 port 5432`, between `excerpt` tags; and a `First return (round 1):` key quoting the first fixer's `not reproduced` line between a `<return id=\"...\">` line and a `</return id=\"...\">` line. Every one of those tags carries the same id."
+---
+A check red again on its retry earns a second pr fixer in diagnosis mode, handed both excerpts, the retry job's whole log and the first return as quoted data.
