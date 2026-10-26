@@ -209,7 +209,8 @@ the checks: a display read mid-run can show green while a check is still running
 - A check in the run's retry record whose name no `red=` line of the settled verdict carries, or
   any check of the record on a `verdict=green` or `verdict=awaiting-approval`: that check is green
   on its retry. The run writes `round <r>: <check> not reproduced locally, retried once, green`,
-  with `<r>` the round whose fixer returned `not reproduced` for it. That line settles the retry
+  with `<r>` the round whose fixer returned `not reproduced` for it, or
+  `round <r>: <check> not run locally, retried once, green` when that fixer returned `not run`. That line settles the retry
   once: a settled retry stays in the retry record, so it is never rerun again and gets no second
   green line. It raises no stop and adds no `Yours:` line for it, and the verdict goes on by the
   verdict's own route: green to step 5, red to the next round, and so on. After a rerun that carried
@@ -764,6 +765,7 @@ the whole message, and a green watch adds no part of its own:
       round <r>: <check> red; do-pr-fixer on <fixer branch>: fixed <k> by mechanism: <the test> <the log line that names it>; end-to-end failure itself not reproduced locally, the fix stands on <the test> and <the log line that names it>; <picked sha> pushed to <head>
       round <r>: <check> red; do-pr-fixer on <fixer branch>: <its return line>; nothing pushed for it
       round <r>: <check> red; do-pr-fixer on <fixer branch>: not reproduced <k>: <command> <what it showed>; nothing pushed for it
+      round <r>: <check> red; do-pr-fixer on <fixer branch>: not run <k>: <what the environment printed>; nothing pushed for it
       round <r>: <check> red; do-pr-fixer on <fixer branch>: <its return line>; not picked: <path> is a <class> file
       round <r>: <check> red; do-pr-fixer on <fixer branch>: <its return line>; not picked: the guard could not read it: <reason>
       round <r>: <check> red again; pushed as fixed in round <r'> as <sha>
@@ -773,9 +775,13 @@ the whole message, and a green watch adds no part of its own:
       round <r>: kept <branch> <path> <reason>, as fix-worktrees.sh printed it
       round <r>: kept <first run tree> from the first attempt, superseded by the redone round; its fix commits <kept sha>, ... stay there
       round <r>: <check> red; do-pr-fixer on <fixer branch>: not reproduced <k>: <command> <what it showed>; nothing pushed for it; retried by the run on <picked sha>
+      round <r>: <check> red; do-pr-fixer on <fixer branch>: not run <k>: <what the environment printed>; nothing pushed for it; retried by the run on <picked sha>
       round <r>: <check> red; do-pr-fixer on <fixer branch>: not reproduced <k>: <command> <what it showed>; nothing pushed for it; rerun <run id> attempt <n>
+      round <r>: <check> red; do-pr-fixer on <fixer branch>: not run <k>: <what the environment printed>; nothing pushed for it; rerun <run id> attempt <n>
       round <r>: <check> red; do-pr-fixer on <fixer branch>: not reproduced <k>: <command> <what it showed>; nothing pushed for it; rerun <run id> refused: <reason>
+      round <r>: <check> red; do-pr-fixer on <fixer branch>: not run <k>: <what the environment printed>; nothing pushed for it; rerun <run id> refused: <reason>
       round <r>: <check> not reproduced locally, retried once, green
+      round <r>: <check> not run locally, retried once, green
       round <r>: <check> red again on its retry (<the retry>); not reproducible, no fixer forked
       round <r>: nothing pushed; failed jobs rerun on run <run id>[, run <run id>...]; not counted toward the three pushed rounds
       round <r>: nothing rerun: <head> moved to <short sha> after the watch; the round is redone from the watch

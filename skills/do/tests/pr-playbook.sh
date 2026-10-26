@@ -2678,6 +2678,25 @@ flat="$(passage_of "$pr" "## What this run never does" "## " | tr '\n' ' ' | tr 
 carries_each "the never-does bullet reruns a check whose fixer returned not reproduced or not run" \
   "not reproduced" -- "not run"
 
+# The developer reading the Reply decides from one word whether to look at the code or at the
+# environment: a `not run` check written as `not reproduced` says the command ran and passed here,
+# when it never ran. The lines are read off the Reply step's round templates and the watch step.
+echo "# pr.md / ### Reply and ### Watch: a not run check's round lines read its not run return, apart from not reproduced"
+reply_step="$(passage_of "$pr" "$reply_h" "##" 2>/dev/null)"
+templates="$(
+  sed 's/^[[:space:]]*//' <<<"$reply_step" | grep '^round <r>:'
+  tr '\n' ' ' <<<"$reply_step" | tr -s ' ' | grep -oE '\`round <r>:[^\`]*\`' | tr -d '\`'
+)"
+for tail in "" "; retried by the run on <picked sha>" "; rerun <run id> attempt <n>" "; rerun <run id> refused: <reason>"; do
+  out="$(grep -xF "round <r>: <check> red; do-pr-fixer on <fixer branch>: not run <k>: <what the environment printed>; nothing pushed for it$tail" <<<"$templates")"
+  expect "a not run check's round line reads its not run return, then nothing pushed for it$tail" test -n "$out"
+done
+out="$(grep -xF "round <r>: <check> not run locally, retried once, green" <<<"$templates")"
+expect "a not run check green on its retry has a round line saying it was not run locally" test -n "$out"
+# shellcheck disable=SC2034  # lib.sh's carries reads $flat
+flat="$(passage_of "$pr" "$watch_h" "##" 2>/dev/null | tr '\n' ' ' | tr -s ' ')"
+carries "the watch step writes the not run retry's green line" "round <r>: <check> not run locally, retried once, green"
+
 # A check its fixer could not reproduce is most likely a flake, and a flake costs the developer one
 # rerun and no stop (ADR 0089): a round that pushed nothing and raised no stop-case reruns those
 # checks' failed jobs itself, once, and watches again, since a rerun handed over on a `Yours:` line
