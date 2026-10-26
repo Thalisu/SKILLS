@@ -521,11 +521,12 @@ carries_each "a fixer whose end-to-end failure does not happen locally fixes it 
   "goes red on that mechanism" "goes red on the mechanism" -- \
   "never the proof"
 
-echo "# skills/do/agents/do-pr-fixer.md: the fixer proves its fix red-first and leaves one commit, or none and its line"
+echo "# skills/do/agents/do-pr-fixer.md: the fixer proves its fix red-first and leaves at most two commits, or none and its line"
 
-# The developer auditing a pr run needs one commit per check with a test that failed before it: a
-# fix with no failing test first can turn a check green without fixing its cause, and
-# fix-integrate.sh picks a branch only when it is exactly one commit ahead, so a second commit is lost.
+# The developer auditing a pr run needs one fix commit per check with a test that failed before it:
+# a fix with no failing test first can turn a check green without fixing its cause. ADR 0102 lets a
+# compose ride ahead of the fix as a commit of its own, and fix-integrate.sh --compose takes only that
+# pair or a lone fix, so a third commit or a compose folded into the fix leaves the check red.
 # shellcheck disable=SC2034  # lib.sh's carries reads $flat
 flat="$(passage_of <(body_of "$agent") "## The rules" "## " | tr '\n' ' ' | tr -s ' ')"
 expect "the fixer's body carries a ## The rules section" test -n "$flat"
@@ -533,8 +534,22 @@ carries "the fixer proves its fix through the unit test author, the reproduced f
   "unit-test-author" "bugfix"
 carries "the fixer writes the failing test first itself where no Testing Policy is installed" \
   "no Testing Policy"
-carries "the fixer leaves exactly one commit, its body naming the check" \
-  "exactly one commit" "Check: <name>"
+carries "the fixer's fix commit carries the test and the fix, its body naming the check" \
+  "Check: <name>"
+carries_each "the pr fixer's compose arrives as a chore(e2e) commit separate from the fix commit and ahead of it, its branch holding at most two commits" \
+  "at most two commits" -- \
+  "\`chore(e2e)\`" -- \
+  "a commit of its own" "its own commit" "separate from the fix commit" -- \
+  "ahead of the fix commit" "before the fix commit" "the fix commit on top" "the fix commit comes on top"
+out="$flat"
+absent "the fixer's rules no longer hold it to exactly one commit" "exactly one commit"
+out="$(frontmatter "$agent" 2>/dev/null)" || out=""
+# shellcheck disable=SC2034  # lib.sh's carries reads $flat
+flat="$(field description)"
+out="$flat"
+carries "the fixer's description says it leaves at most two commits, the compose apart from the fix" \
+  "at most two commits"
+absent "the fixer's description no longer says it makes one commit" "makes one commit"
 
 # A fix written from the log alone turns nothing red first and may silence the symptom while the
 # cause survives (ADR 0103): the mechanism's test goes through the test author like any bugfix red,
