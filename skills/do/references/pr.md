@@ -666,7 +666,7 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    `<sha>` is the watch's `sha=`, and `<repo>` and each `<run id>` are the `repo=` and `run=` values
    `pr-log.sh` printed for every such check (two checks of one run pass the same run id, which the
    script reruns once). Of the round's checks, only the checks on the round's not-reproduced list, those whose return
-   file line read `not reproduced <k>:` or `not run <k>:`, are passed to `pr-rerun.sh`. A check whose return read `fixed <k>:`
+   file line read `not reproduced <k>:` or `not run <k>:`, are passed to `pr-rerun.sh`. A check whose return read `fixed <k>:`,
    `fixed <k> by mechanism:` or `not fixed <k>:` is never passed to `pr-rerun.sh`, whichever wrote the `not fixed` (the fixer, the
    session's `the fixer did not return`, or the conflicted-twice line). The session's own reading of a
    check's log or excerpt never earns a rerun, since a round has no flake class (ADR 0028). The
