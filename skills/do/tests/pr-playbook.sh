@@ -3024,6 +3024,24 @@ carries_each "the call takes only a not reproduced check whose name is not in th
 carries_any "and the run ids it passes are those of such checks alone" \
   "every such check" "each such check" "such checks" "those checks" "each of them" "every one of them"
 
+# The developer relies on one check costing at most one rerun and one diagnosis per run: a second
+# rerun or a second diagnosis of a check its diagnosis could not explain spends CI minutes and a
+# fork for nothing (ADR 0089, ADR 0104). The rule is read off the Fix step's sentences naming the
+# diagnosis record.
+echo "# pr.md / ### Fix the red checks: a check red again on its retry is never rerun a second time and never diagnosed twice in one run, whatever its diagnosis returns"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
+# shellcheck disable=SC2034  # lib.sh's carries reads $flat
+flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ' | sed 's/\. /.\n/g' | grep -F "diagnosis record" | tr '\n' ' ')"
+expect "a sentence of step $fix_n names the run's diagnosis record" test -n "$flat"
+carries "the record is the check names on round lines naming a diagnosis fixer" "diagnosis do-pr-fixer on"
+carries_any "a check is diagnosed once per run" \
+  "diagnosed once per run" "never diagnosed again" "never diagnosed twice" "diagnosed once in one run" \
+  "no second diagnosis"
+carries_any "and never passed to pr-rerun.sh again" \
+  "never passed to \`pr-rerun.sh\`" "never rerun a second time" "no second rerun" "never rerun again"
+carries_any "whatever its diagnosis returns" \
+  "whatever its diagnosis returns" "whatever the diagnosis returns" "whatever its diagnosis returned" \
+  "whichever line its diagnosis returns"
 # The developer relies on a check red again on its retry never being rerun a second time: a second
 # rerun spends the one retry twice (ADR 0089). The route is read off the watch step's bullet that
 # names the retry record beside verdict=red, the came-back bullet passed over, so the came-back

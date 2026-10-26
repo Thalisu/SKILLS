@@ -751,6 +751,14 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    in the retry record. A check whose name is in the retry record is never passed to `pr-rerun.sh`,
    so no check is rerun twice in one run.
 
+   The run's diagnosis record is the check names on round lines reading `diagnosis do-pr-fixer on`,
+   keyed on the check name as the retry record is, and a redone diagnosis round counts once and
+   keeps its number. A check in the diagnosis record is never diagnosed again and never passed to
+   `pr-rerun.sh`, whatever its diagnosis returns: a diagnosis return never goes on the round's
+   not-reproduced list, and a check in the diagnosis record whose diagnosis fix was pushed and that
+   comes back red takes the came-back stop of step 3, so it gets no second rerun and no second
+   diagnosis in one run.
+
    The session keeps the `excerpt=` values `pr-log.sh` printed for a not reproduced check (item 3)
    with its open retry, as its first excerpt, and its fixer's return line as its first return,
    carried through the watch like the stop set, so a diagnosis brief can quote both if the retry is
