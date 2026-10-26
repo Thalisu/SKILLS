@@ -250,6 +250,22 @@ expect "a pair whose compose conflicts leaves nothing of its check on the review
   test "$(git -C "$main" log --format=%s main | tr '\n' ' ')" = "f1 base "
 expect "the work tree is clean after a pair's compose conflicted" clean_status "$main"
 
+# The review's Fixers stay at exactly one commit per Finding: a pair accepted without the flag would
+# land a stray commit while the record reports the Finding fixed.
+fresh compose-pair-no-flag
+main="$tmp/compose-pair-no-flag"
+printf 'base\n' >README.md
+commit base
+fixer_branch f1 one.txt "finding one"
+compose_pair f2 two.txt "finding two"
+before="$(git -C "$main" rev-parse main)"
+run "$main" 1=f1 2=f2
+check "without --compose a fixer branch of a well-formed chore(e2e) commit then a fix commit is refused with exit 3" 3 "$rc" "failed "
+absent "no Finding is picked when a well-formed pair is given without --compose" "picked "
+absent "no composed line is printed without --compose" "composed "
+expect "the reviewed branch is left unmoved when a well-formed pair is given without --compose" \
+  test "$(git -C "$main" rev-parse main)" = "$before"
+
 echo
 if [ "$fails" = 0 ]; then echo "fix-integrate: all checks passed"; else
   echo "fix-integrate: $fails failed"
