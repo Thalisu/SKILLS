@@ -769,6 +769,8 @@ the whole message, and a green watch adds no part of its own:
 
       round <r>: <check> red; do-pr-fixer on <fixer branch>: <its return line>; <picked sha> pushed to <head>
       round <r>: <check> red; do-pr-fixer on <fixer branch>: fixed <k> by mechanism: <the test> <the log line that names it>; end-to-end failure itself not reproduced locally, the fix stands on <the test> and <the log line that names it>; <picked sha> pushed to <head>
+      round <r>: <check>: compose commit <composed sha> (chore(e2e)) pushed to <head> ahead of <picked sha>
+      round <r>: <check>: compose commit <composed sha> (chore(e2e)) kept in <run tree>, not pushed
       round <r>: <check> red; do-pr-fixer on <fixer branch>: <its return line>; nothing pushed for it
       round <r>: <check> red; do-pr-fixer on <fixer branch>: not reproduced <k>: <command> <what it showed>; nothing pushed for it
       round <r>: <check> red; do-pr-fixer on <fixer branch>: not run <k>: <what the environment printed>; nothing pushed for it
@@ -796,6 +798,11 @@ the whole message, and a green watch adds no part of its own:
 
   The `kept <first run tree>` line is written once for a redone round, whether that round pushed
   or stopped, and on a stop it sits ahead of the `Yours: direction:` line.
+
+  The compose line is written once per `composed <k> <sha>` line the integration printed, on a line
+  of its own directly under that check's round line, so the developer reads that the run added
+  infrastructure to the pull request apart from the fix. It reads `pushed to <head> ahead of
+  <picked sha>` on a round that pushed, and `kept in <run tree>, not pushed` on one that stopped.
 
   The first `not picked` line is written once per path the guard named. The `stale base` line is
   written once per stale check, in place of any fixer line for that check, with

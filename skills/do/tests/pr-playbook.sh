@@ -1821,6 +1821,19 @@ carries_each "the commit pushed or what its fixer returned" \
 carries_each "and the verdict the watch read after the push" \
   "verdict" -- "after the push"
 
+# A compose folded into the fix's round line reads as part of the fix, and the developer never learns
+# the run added infrastructure to their pull request (ADR 0102): it gets a line of its own.
+echo "# pr.md / ### Reply: the Reply names a check's compose commit on a line of its own"
+reply_step="$(passage_of "$pr" "$reply_h" "##" 2>/dev/null)"
+out="$(sed 's/^[[:space:]]*//' <<<"$reply_step")"
+check_lines "the Reply names the compose commit on a line of its own, pushed ahead of its fix" 0 0 \
+  'round <r>: <check>: compose commit <composed sha> (chore(e2e)) pushed to <head> ahead of <picked sha>'
+check_lines "a compose commit of a round that did not push is named kept in the run tree" 0 0 \
+  'round <r>: <check>: compose commit <composed sha> (chore(e2e)) kept in <run tree>, not pushed'
+flat="$(piece_in="$reply_step" piece_with "The compose line" "the compose line")"
+carries_each "the compose line sits under its check's round line, one per composed line the integration printed" \
+  "\`composed <k> <sha>\`" "\`composed\` line" -- "line of its own" "its own line"
+
 # A pushed round moves the remote head past the developer's own checkout of it: a Next step naming
 # only the merge leaves their next commit on a stale head, whose push the remote then refuses. The
 # green-watch bullet already names `gh pr merge <n>` and `outward`, so the words are read off the
