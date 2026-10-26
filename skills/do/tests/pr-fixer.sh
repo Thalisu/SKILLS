@@ -413,6 +413,25 @@ expect "the hook denies every write when jq is absent from PATH, instead of lett
   deny_in "$no_jq_out"
 rm -rf "$no_jq_dir"
 
+echo "# skills/do/agents/do-pr-fixer.md: the fixer brings up the job's stack before it runs the failed step"
+
+# A check whose job starts services (a database, the end-to-end stack) fails locally for a reason the
+# check never met when the fixer runs the failed step alone against a stack that is down: the fixer
+# then returns `not reproduced`, and the developer pays a rerun for a failure nobody looked at.
+# shellcheck disable=SC2034  # lib.sh's carries reads $flat
+flat="$(passage_of <(body_of "$agent") "## Bring up the job's stack" "## " | tr '\n' ' ' | tr -s ' ')"
+expect "the fixer's body carries a ## Bring up the job's stack section" test -n "$flat"
+carries_each "the fixer starts what the check's job starts, before it runs the failed step's command" \
+  "what the check's job starts" "what the job starts" "the services the job starts" -- \
+  "before you run the failed step" "before it runs the failed step" "before the failed step's command" \
+  "before you run the command"
+carries_each "the fixer works the stack out from the project's workflow and its scripts" \
+  "workflow" -- "scripts"
+# shellcheck disable=SC2034  # lib.sh's carries reads $flat
+flat="$(passage_of <(body_of "$agent") "## Reproduce first" "## " | tr '\n' ' ' | tr -s ' ')"
+carries_any "the fixer runs the failed step's command only once the job's stack is up" \
+  "once the job's stack is up" "with the job's stack up" "once the stack is up" "with the stack up"
+
 echo "# skills/do/agents/do-pr-fixer.md: the fixer reproduces its check's failure before it edits anything"
 
 # A CI log only points at a failure (ADR 0087): a fix written from the log alone answers what the log
