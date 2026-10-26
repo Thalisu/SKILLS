@@ -368,7 +368,10 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    `<base>` is the `baseRefName` step 2 read, and the script fetches it from origin itself on each
    call, so nothing in the Playbook fetches the base or reads `origin/<base>`. It prints `base=`
    and `merge-base=` (kept for the round lines), then `real <k>`, or one `stale <k> <path>` line per
-   file. A check it printed `stale` for gets no `do-pr-fixer` and never enters a Wave. It adds one
+   file. A check it printed `stale` for gets no `do-pr-fixer` and never enters a Wave. A check
+   `pr-classify.sh` printed `stale` for gets no diagnosis either: with no fixer it never returns
+   `not reproduced`, so it never enters the retry record, and its fix stays on the branch that owns
+   its file. It adds one
    `stale-base` entry to the round's stop set, holding every path its `stale` lines name, as a
    stop-case like the others. A stale classification leaves the round going: the real checks'
    Waves still run. On its `failed: <reason>` line, exit 1, the script has also printed `real <k>`

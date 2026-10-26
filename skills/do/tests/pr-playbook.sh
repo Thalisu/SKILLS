@@ -2577,6 +2577,19 @@ carries_each "its entries are read off the return line as it stands, never the s
 out="$(cat "$pr")"
 absent "pr.md no longer hands over the flake clause" "re-run it yourself if you judge it a flake"
 absent "pr.md raises no not-reproducible stop entry" "not-reproducible"
+# The developer whose check fails in a file the pull request does not change relies on the fix going
+# to the branch that owns that file (Spec story 24): a diagnosis forked for a stale check would fix
+# it on this pull request, where the code does not live. The rule is read off the Fix step's
+# sentences naming a stale check beside a diagnosis.
+echo "# pr.md / ### Fix the red checks: a check whose failing file is outside the pull request's diff is still classified stale, and gets no pr fixer and no diagnosis"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
+# shellcheck disable=SC2034  # lib.sh's carries reads $flat
+flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ' | sed 's/\. /.\n/g' | grep -F "stale" | grep -F "diagnosis" | tr '\n' ' ')"
+expect "a sentence of step $fix_n names a stale check beside a diagnosis" test -n "$flat"
+carries_each "a stale check gets no do-pr-fixer and no diagnosis" \
+  "no \`do-pr-fixer\`" "no do-pr-fixer" "no fixer" -- \
+  "no diagnosis" "never diagnosed" "never a diagnosis" "nor a diagnosis" "first or diagnosis"
+carries_any "it is still classified by pr-classify.sh" "pr-classify.sh" "printed \`stale\`" "classified stale"
 # The developer keeps the fixes the run could make: a round that picked some checks and holds a
 # stop-case for another still pushes its clean picks, and only then hands the stop over. The route
 # is read off the sentences of the push item naming the stop set with a pick, a push or the watch,
