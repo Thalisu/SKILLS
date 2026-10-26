@@ -228,12 +228,17 @@ the checks: a display read mid-run can show green while a check is still running
   one `Yours: direction:` line holding the carried stop-cases' clauses, as step 4 item 5 gives it.
   The stop names, for each retried check, whether its retry went green or red again. A retry green
   gets its `round <r>: <check> not reproduced locally, retried once, green` line. A retry red again
-  gets its `round <r>: <check> red again on its retry (<the retry>); not reproducible, no fixer forked`
-  line with both excerpts quoted under it, and raises its `not-reproducible` entry, whose clause
-  `fix <check> by hand, or re-run it yourself if you judge it a flake` joins the stop-case's clauses
-  on the same `Yours: direction:` line, after the carried entries, never on a second `Yours:` line.
-  It never starts a new round and never forks a `do-pr-fixer` again. This route comes first, ahead
-  of the next round and of the three-round stop.
+  is diagnosed before the stop (ADR 0104): the run forks one diagnosis `do-pr-fixer` for it, in
+  diagnosis mode, as step 4 forks one (items 1 to 4 and 6, on a run tree cut at the verdict's
+  `sha=`, the check never classified), and reads its return as item 4 c does. The run pushes nothing,
+  since this route never pushes: a `fixed <k> by mechanism` return is never picked, and its fix is
+  kept on its fixer branch, which `fix-worktrees.sh remove` keeps as an unlanded commit. The
+  diagnosis's clause joins the stop-case's clauses on the same `Yours: direction:` line, after the
+  carried entries, never on a second `Yours:` line. For a `fixed <k> by mechanism` return it reads
+  `<check> red again on its retry (<the retry>) and its diagnosis found its mechanism (<the test>), its fix kept on <fixer branch>: review it and bring it onto <head>, or /do <pr url> again once the other stops are cleared`,
+  and for any other return it is the `no-mechanism` clause step 4 item 5 gives. The check's round
+  line has both excerpts quoted under it. The run starts no new round and forks no `do-pr-fixer`
+  but that diagnosis. This route comes first, ahead of the next round and of the three-round stop.
 - `verdict=red`, when this run has pushed no round yet: a check failed. The run goes on to step 4,
   Fix the red checks, carrying the verdict's `head=`, `sha=` and `red=` lines as they stand.
 - `verdict=red` after step 4 has pushed a round, while fewer than three rounds have pushed: a check

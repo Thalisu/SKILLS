@@ -3357,7 +3357,7 @@ expect "the watch after the rerun has its own round line in the Reply's round te
 # round). The after-the-rerun route is read off the watch step's pieces naming a rerun beside the
 # stop set, as the case above reads it; the clause order off the push item's paragraph naming the
 # Waves and the order, as the rerun-refused order case reads it.
-echo "# pr.md / ### Watch and ### Fix the red checks: the stop after the rerun that carried a stop set names each retry's outcome, green or red again with both excerpts, and a retry red again adds its not-reproducible clause after the carried stop-cases on the one Yours: direction: line"
+echo "# pr.md / ### Watch and ### Fix the red checks: the stop after the rerun that carried a stop set names each retry's outcome, green or red again with both excerpts, and a retry red again is diagnosed before the stop, its diagnosis's clause or its fix kept on its branch joining the carried stop-cases on the one Yours: direction: line"
 watch="$(passage_of "$pr" "$watch_h" "##" 2>/dev/null | sed 's/^[[:space:]]*//')"
 flat="$(piece_all=1 piece_without="pushed to <head>" piece_with "${after_rerun[@]}" |
   grep -F -e "stop set" -e "stop-case" | tr '\n' ' ')"
@@ -3372,10 +3372,24 @@ carries_each "the stop names, per retried check, whether its retry went green or
 carries_each "a retry red again quotes both excerpts" \
   "both excerpts" "the two excerpts" "first excerpt" -- \
   "quoted" "quotes" "quoting" "quote"
-carries_each "a retry red again adds its not-reproducible clause to the stop" \
-  "not-reproducible" -- \
-  "fix <check> by hand, or re-run it yourself if you judge it a flake" "clause" -- \
-  "red again"
+# The developer handed this stop relies on a check red again on its retry being diagnosed before it
+# (ADR 0104, the Ruling on Ticket 05's Design fork): a stop that skips the diagnosis hands over a
+# deterministic failure with no hypothesis tested, and a diagnosed fix pushed past a carried stop
+# lands a commit the stop never vouched for.
+carries_each "a retry red again gets a diagnosis do-pr-fixer forked before the stop" \
+  "do-pr-fixer" -- \
+  "diagnosis mode" "diagnosis \`do-pr-fixer\`" "diagnosis fixer" -- \
+  "before the stop" "before it stops" "before the run stops" "ahead of the stop"
+carries_each "nothing is pushed, a diagnosed fix kept on its fixer branch" \
+  "nothing is pushed" "pushes nothing" "never pushed" "not pushed" -- \
+  "kept on" "stays on" "left on" -- \
+  "fixer branch" "its branch"
+carries_each "the diagnosis's clause joins the stop" \
+  "diagnosis" -- \
+  "clause" -- \
+  "joins" "join" "after the carried"
+out="$flat"
+absent "the route no longer hands over the flake clause" "re-run it yourself if you judge it a flake"
 carries_any "on the same Yours: direction: line as the stop-case's clause, never a second Yours: line" \
   "same \`Yours: direction:\` line" "same Yours: direction: line" "same \`Yours:\` line" "same Yours: line" \
   "that same line" "the same line" "on one line" "never on a second" "never a second" "not on a second" \
