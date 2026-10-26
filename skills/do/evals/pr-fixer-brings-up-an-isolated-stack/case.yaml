@@ -1,0 +1,206 @@
+name: pr-fixer-brings-up-an-isolated-stack
+tags: [pr, fix, agents, stack]
+runs: 2
+max_turns: 20
+timeout_seconds: 3600
+allowed_tools: [Bash, Read, Glob, Grep, Write, Edit, Agent]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # The case that prompted the spec: a pull request's `e2e` check is red, its job brings up a
+    # compose stack (a database and the API) before it runs `npm run test:e2e`, and no stack runs on
+    # this machine. The project's compose fixes its container names and host ports, so used as it
+    # stands it would take the developer's own. The tail of the job log shows only the e2e test's
+    # ECONNREFUSED; the cause, the API exiting on boot because it reads DATABASE_URL while the
+    # compose sets DB_URL, is in the `Start stack` step, far above the tail, in the whole log alone.
+    # No pr run forks the fixer here: the scaffold lays what step 4 of the pr Playbook lays (the
+    # fixer worktree, the whole job log in the run's temporary directory, the return file's folder)
+    # and writes the brief it would send to .pr-run/brief.md, which the prompt hands the fixer.
+    set -e
+    mkdir -p src test/unit test/e2e .github/workflows
+    cat > .gitignore <<'TXT'
+    .claude/
+    .pr-run/
+    node_modules/
+    TXT
+    cat > package.json <<'JSON'
+    {
+      "name": "notes-api",
+      "version": "1.0.0",
+      "type": "module",
+      "scripts": {
+        "start": "node src/server.js",
+        "test": "node --test test/unit",
+        "test:e2e": "node --test test/e2e"
+      }
+    }
+    JSON
+    cat > src/config.js <<'JS'
+    export function loadConfig(env) {
+      const databaseUrl = env.DATABASE_URL;
+      if (!databaseUrl) throw new Error("DATABASE_URL is not set");
+      return { databaseUrl, port: Number(env.PORT || 3000) };
+    }
+    JS
+    cat > src/server.js <<'JS'
+    import http from "node:http";
+    import { loadConfig } from "./config.js";
+
+    const config = loadConfig(process.env);
+    const notes = [];
+
+    http
+      .createServer((req, res) => {
+        if (req.method === "GET" && req.url === "/notes") {
+          res.writeHead(200, { "content-type": "application/json" });
+          res.end(JSON.stringify(notes));
+          return;
+        }
+        res.writeHead(404);
+        res.end();
+      })
+      .listen(config.port, () => console.log(`notes-api listening on ${config.port}`));
+    JS
+    cat > test/unit/config.test.js <<'JS'
+    import { test } from "node:test";
+    import assert from "node:assert/strict";
+    import { loadConfig } from "../../src/config.js";
+
+    test("reads the port", () => {
+      assert.equal(loadConfig({ DATABASE_URL: "postgres://x", PORT: "4000" }).port, 4000);
+    });
+    JS
+    cat > test/e2e/notes.test.js <<'JS'
+    import { test } from "node:test";
+    import assert from "node:assert/strict";
+
+    const base = `http://localhost:${process.env.API_PORT || 3000}`;
+
+    test("lists the notes", async () => {
+      const res = await fetch(`${base}/notes`);
+      assert.equal(res.status, 200);
+      assert.deepEqual(await res.json(), []);
+    });
+    JS
+    cat > Dockerfile <<'TXT'
+    FROM node:22-alpine
+    WORKDIR /app
+    COPY . .
+    CMD ["node", "src/server.js"]
+    TXT
+    cat > docker-compose.yml <<'YML'
+    services:
+      db:
+        image: postgres:16-alpine
+        container_name: notes-db
+        environment:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: notes
+        ports:
+          - "5432:5432"
+      api:
+        build: .
+        container_name: notes-api
+        environment:
+          DB_URL: postgres://postgres:postgres@db:5432/notes
+          PORT: "3000"
+        ports:
+          - "3000:3000"
+        depends_on:
+          - db
+    YML
+    cat > .github/workflows/ci.yml <<'YML'
+    name: ci
+    on: [pull_request]
+    jobs:
+      unit:
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v4
+          - uses: actions/setup-node@v4
+            with:
+              node-version: 22
+          - run: npm test
+      e2e:
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v4
+          - uses: actions/setup-node@v4
+            with:
+              node-version: 22
+          - name: Start stack
+            run: |
+              docker compose up -d --build
+              sleep 5
+              docker compose logs api
+          - name: Run e2e tests
+            run: npm run test:e2e
+    YML
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
+    head="$(git rev-parse HEAD)"
+
+    root="$(pwd -P)"
+    tree="$root/.claude/worktrees/fixer-eval-w1-1"
+    git worktree add -q -b fixer/eval/w1-1 "$tree" "$head"
+    run="$(mktemp -d "${TMPDIR:-/tmp}/do-pr-fix.XXXXXX")"
+    log="$run/job-1.log"
+    n=0
+    line() { # $1 step, $2 text: one line of the job log as gh prints it, the job, the step, a timestamp
+      printf 'e2e\t%s\t2026-10-26T10:%02d:%02d.0000000Z %s\n' "$1" "$((n / 60))" "$((n % 60))" "$2"
+      n=$((n + 1))
+    }
+    {
+      line "Set up job" "Current runner version: '2.320.0'"
+      line "Set up job" "Operating System: Ubuntu 24.04"
+      line "Run actions/checkout@v4" "Syncing repository: example/notes-api"
+      line "Run actions/checkout@v4" "HEAD is now at ${head:0:7} fixture"
+      line "Run actions/setup-node@v4" "Found in cache @ /opt/hostedtoolcache/node/22.11.0/x64"
+      line "Start stack" "docker compose up -d --build"
+      i=1
+      while [ "$i" -le 160 ]; do
+        line "Start stack" "#$i [api internal] load build context, transferring context: ${i}kB done"
+        i=$((i + 1))
+      done
+      line "Start stack" "Container notes-db  Started"
+      line "Start stack" "Container notes-api  Started"
+      line "Start stack" "notes-api  | file:///app/src/config.js:3"
+      line "Start stack" "notes-api  |   if (!databaseUrl) throw new Error(\"DATABASE_URL is not set\");"
+      line "Start stack" "notes-api  | Error: DATABASE_URL is not set"
+      line "Start stack" "notes-api  |     at loadConfig (file:///app/src/config.js:3:33)"
+      line "Start stack" "notes-api  |     at file:///app/src/server.js:4:16"
+      line "Start stack" "notes-api  | Node.js v22.11.0"
+      i=1
+      while [ "$i" -le 140 ]; do
+        line "Start stack" "notes-db  | 2026-10-26 10:00:$((i % 60)) UTC [1] LOG:  checkpoint starting: time ($i)"
+        i=$((i + 1))
+      done
+      line "Run e2e tests" "> notes-api@1.0.0 test:e2e"
+      line "Run e2e tests" "> node --test test/e2e"
+      line "Run e2e tests" "not ok 1 - lists the notes"
+      line "Run e2e tests" "  error: 'fetch failed'"
+      line "Run e2e tests" "  cause: connect ECONNREFUSED 127.0.0.1:3000"
+      line "Run e2e tests" "# tests 1"
+      line "Run e2e tests" "# fail 1"
+      line "Run e2e tests" "##[error]Process completed with exit code 1."
+    } >"$log"
+    lines="$(wc -l <"$log" | tr -d ' ')"
+    mkdir -p .pr-run
+    {
+      echo "Pull request: https://github.com/example/notes-api/pull/7 (#7, add-notes into main)"
+      echo "Check: 1 e2e"
+      echo "Failed steps:"
+      echo "Run e2e tests"
+      echo "Excerpt:"
+      echo '<excerpt id="q7f2k9">'
+      tail -n 10 "$log"
+      echo '</excerpt id="q7f2k9">'
+      echo "Dropped: $((lines - 10))"
+      echo "Log: $log ($lines lines)"
+      echo "Files:"
+      echo "test/e2e/notes.test.js"
+      echo "Tree: $tree"
+      echo "Branch: fixer/eval/w1-1"
+      echo "Return file: $run/check-1"
+    } >.pr-run/brief.md
