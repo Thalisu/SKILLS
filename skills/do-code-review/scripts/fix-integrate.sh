@@ -108,7 +108,10 @@ declare -A touched_by=()
 
 attempt() { # $1 commit: cherry-picks it onto the tree; sets res to picked, conflicted (files holds its paths) or failed (err holds git's reason)
   local pick_err
-  pick_err="$(git -C "$tree" cherry-pick "$1" 2>&1)" && {
+  # Hooks off, as on the pr Playbook's push: the git directory is shared with every Fixer worktree,
+  # and a hook a Fixer (or a container it ran) planted there would run here with the developer's
+  # credentials.
+  pick_err="$(git -C "$tree" -c core.hooksPath=/dev/null cherry-pick "$1" 2>&1)" && {
     res=picked
     return
   }
@@ -129,7 +132,7 @@ attempt() { # $1 commit: cherry-picks it onto the tree; sets res to picked, conf
   else
     files="$unmerged"
   fi
-  git -C "$tree" cherry-pick --abort >/dev/null 2>&1
+  git -C "$tree" -c core.hooksPath=/dev/null cherry-pick --abort >/dev/null 2>&1
   res=conflicted
 }
 

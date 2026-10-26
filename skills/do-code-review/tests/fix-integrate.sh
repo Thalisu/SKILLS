@@ -193,6 +193,33 @@ check_lines "a pick that lands empty, because an earlier Finding already made th
 expect "no cherry-pick is left in progress after an empty pick" no_pick_in_progress "$main"
 expect "the work tree is clean after an empty pick" clean_status "$main"
 
+# A pr fixer's container can plant a hook in the git directory every worktree shares: the session's
+# own pick must not run it with the developer's credentials.
+fresh planted-hook
+main="$tmp/planted-hook"
+# Pinned to this fixture's own hooks directory, so a developer's global core.hooksPath neither
+# receives the planted hook nor stops it from running.
+git config core.hooksPath "$main/.git/hooks"
+hooks="$(git -C "$main" rev-parse --git-path hooks)"
+marker="$tmp/planted-hook.marker"
+mkdir -p "$hooks"
+for hook in post-commit prepare-commit-msg; do
+  printf '#!/bin/sh\necho %s >>"%s"\n' "$hook" "$marker" >"$hooks/$hook"
+  chmod +x "$hooks/$hook"
+done
+printf 'base\n' >README.md
+commit base
+expect "the planted hook runs on a plain commit in the fixture, so its absence below is not vacuous" \
+  test -s "$marker"
+rm -f "$marker"
+fixer_branch f1 one.txt "finding one"
+rm -f "$marker"
+run "$main" 1=f1
+check_lines "a Fixer commit picked onto a tree whose git directory holds a planted hook still lands: exit 0" \
+  0 "$rc" "picked 1 $(git -C "$main" rev-parse main 2>/dev/null)"
+expect "no hook planted in the repository's hooks directory runs during the pick" \
+  test ! -e "$marker"
+
 compose_pair() { # $1 name, $2 fix file, $3 fix content: a branch of a chore(e2e) commit writing docker/compose.e2e.yml, then the fix commit <name>, back on main
   git checkout -q -b "$1" main
   mkdir -p docker
