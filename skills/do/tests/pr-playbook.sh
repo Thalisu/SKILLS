@@ -3378,6 +3378,16 @@ flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ')"
 before "the whole log is fetched before any do-pr-fixer is forked" \
   "pr-job-log.sh <link> <run tree> <dir>/log-<k>" "subagent_type: do-pr-fixer"
 
+# The fixer keeps no gh, so the Log: line is its only way to the lines the excerpt dropped: it names
+# the file pr-job-log.sh wrote and its line count, both off that script's own keys.
+echo "# pr.md / ### Fix the red checks: every fixer's brief carries a Log: line naming the whole job log pr-job-log.sh wrote and its line count"
+brief="$(sed 's/^[[:space:]]*//' <<<"$step" | awk '/^Pull request: /{on=1} on{print} /^Return file: /{on=0}')"
+log_line="$(grep -E '^Log: ' <<<"$brief")"
+expect "the brief carries one Log: line" test "$(grep -c . <<<"$log_line")" -eq 1
+flat="$log_line"
+carries "its path is pr-job-log.sh's log= value and its count the lines= value, as \`Log: <path> (<n> lines)\`" \
+  "log= value" "lines= value" " lines)"
+
 # core.hooksPath on the push line turns hooks off, not the config a fixer can also write into the git
 # dir its worktree shares with the run tree (a credential helper, an ssh command), nor the fetch
 # before the push: so the run records both before its first fork and reads them back before it
