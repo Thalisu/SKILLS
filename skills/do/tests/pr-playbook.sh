@@ -3646,11 +3646,35 @@ flat="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.' "$push_line" | tr '\n' 
 before "the verify line comes before the fetch of <head>" \
   "pr-hooks.sh verify <run tree>" "git -C <run tree> fetch origin <head>"
 before "the verify line comes before the push line" "pr-hooks.sh verify <run tree>" "$push_line"
-flat="$(awk '/pr-hooks\.sh verify/ { on = 1 } /git -C <run tree> fetch origin <head>/ { exit } on' <<<"$step" | tr '\n' ' ' | tr -s ' ')"
+flat="$(awk '/pr-hooks\.sh verify/ { on = 1 } /git -C <run tree> fetch origin <head>/ { exit } on' < <(item_holding <(printf '%s\n' "$step") '[0-9]+\.' "$push_line") | tr '\n' ' ' | tr -s ' ')"
 carries_each "a changed hooks or config stops the run with nothing fetched or pushed" \
   "changed hooks" "changed config" -- "stops" -- \
   "nothing is fetched or pushed" "neither fetched nor pushed" "nothing is fetched nor pushed" "no fetch and no push"
 yours_direction_once "the change's stop carries exactly one \`Yours: direction:\` line"
+
+# A fixer, or a container it started, can write a hook or an exec-capable config (core.fsmonitor, a
+# merge driver) into the git dir every worktree shares, and fix-integrate.sh's cherry-picks run it
+# with the developer's credentials: so the push step's verify comes too late, and each Wave reads the
+# git dir back after its fixers return and before its guard call. The stop is read off the stretch
+# between that verify line and the guard line of the Wave item, so the push step's own verify and
+# its stop never answer for it.
+echo "# pr.md / ### Fix the red checks: each Wave verifies the hooks and config of the shared git dir after its fixers return and before pr-guard.sh and fix-integrate.sh, a failure or a change picking nothing, keeping the run tree and stopping on exactly one Yours: direction: line"
+flat="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.' "pr-guard.sh <run tree>" | tr '\n' ' ' | tr -s ' ')"
+expect "an item of step $fix_n carries the Wave's pr-guard.sh call" test -n "$flat"
+before "the Wave's fixers return before its verify line" \
+  "returns.sh " "pr-hooks.sh verify <run tree> <hooks> <config>"
+before "the Wave's verify line comes before its pr-guard.sh call" \
+  "pr-hooks.sh verify <run tree> <hooks> <config>" "pr-guard.sh <run tree>"
+before "the Wave's verify line comes before its fix-integrate.sh call" \
+  "pr-hooks.sh verify <run tree> <hooks> <config>" "fix-integrate.sh --compose <run tree>"
+flat="$(item_holding <(printf '%s\n' "$step") '[0-9]+\.' "pr-guard.sh <run tree>" |
+  awk '/pr-hooks\.sh verify/ { on = 1 } /pr-guard\.sh <run tree>/ { exit } on' | tr '\n' ' ' | tr -s ' ')"
+carries_each "a changed hooks or config, or a non-zero verify exit, stops the run with nothing of the Wave picked and the run tree kept on disk" \
+  "changed hooks" "changed config" -- "non-zero exit" -- "stops" -- \
+  "nothing of the Wave is picked" "no check of the Wave is picked" "none of the Wave is picked" \
+  "no branch of the Wave is picked" "picks nothing" "nothing is picked" "no \`pr-guard.sh\`" -- \
+  "keeps on disk" "kept on disk" "keeps \`<run tree>\` on disk" "stays on disk"
+yours_direction_once "the Wave verify's stop carries exactly one \`Yours: direction:\` line"
 
 # The no-pick, empty-set stop hands the developer only the fixers' returns, and reply.md's exception
 # list names no fixer's return, watch or pr-log.sh among the `pr` door's stops that owe no `Yours:`

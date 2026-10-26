@@ -458,7 +458,20 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
       the session's own line, `the diagnosis did not return`), and never goes on the round's
       not-reproduced list, so it never earns a rerun.
 
-   d. First, one guard call over every check of the Wave that returned `fixed <k>: ...` or
+   d. Before any git call over the Wave's branches, the run reads the shared git directory back,
+      since the Wave's fixers and the containers they started could write into it, and the guard
+      and the picks below run git there with the developer's credentials:
+
+          bash <skill-dir>/scripts/pr-hooks.sh verify <run tree> <hooks> <config>
+
+      with the two values the snapshot above kept. On `unchanged`, exit 0, the Wave goes on. On a
+      `changed hooks` or `changed config` line, exit 1, or on a non-zero exit of any other kind,
+      nothing of the Wave is picked: no `pr-guard.sh` call, no `fix-integrate.sh` call, and no later
+      Wave. The run keeps `<run tree>` on disk with the picks of the Waves before this one, and
+      stops, quoting the script's lines, then exactly one
+      `Yours: direction: the hooks or the config of the git directory shared with the run changed while the Wave's fixers ran; read them, then /do the pull request again`.
+
+      Then one guard call over every check of the Wave that returned `fixed <k>: ...` or
       `fixed <k> by mechanism: ...`:
 
           bash <skill-dir>/scripts/pr-guard.sh <run tree> <sha> <k>=<branch>...
