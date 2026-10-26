@@ -13,7 +13,11 @@
 #
 # The link is checked by pr-job-link.sh, the rule pr-log.sh applies too, before any log is read.
 #
-# Exits 0 the log written · 1 gh missing or unable to read the repository or the log · 2 usage ·
+# <out> is refused when it resolves inside <tree>, symlinks followed: the push leaves from the run
+# tree, and a log written there could ride it.
+#
+# Exits 0 the log written · 1 gh missing or unable to read the repository or the log · 2 usage (an
+# out path whose directory is missing or that resolves inside <tree> included) ·
 # 3 refused unread (not an Actions job link, a link to another repository, a job that is not of
 # the link's run or a run not on the watched commit) or an empty log.
 # Nothing on stdout and no file for 1, 2 or 3; a one-line pr-job-log.sh: <reason> goes to stderr.
@@ -27,7 +31,7 @@ read_whole_log() { # $1 repo, $2 job id: the raw log lines of every step
 
 main() {
   # shellcheck disable=SC2034 # check_job_link sets run too, which this script never reads.
-  local repo run job reason code log out esc
+  local repo run job reason code log out out_dir real_dir top esc
   if [ "$#" -ne 3 ]; then
     echo "usage: pr-job-log.sh <link> <tree> <out>" >&2
     exit 2
@@ -37,7 +41,22 @@ main() {
     echo "pr-job-log.sh: $reason" >&2
     exit "$code"
   }
-  out="$(cd "$(dirname "$3")" && pwd)/$(basename "$3")"
+  out_dir="$(cd "$(dirname "$3")" 2>/dev/null && pwd)" && real_dir="$(cd "$out_dir" && pwd -P)" || {
+    echo "pr-job-log.sh: the out path's directory does not exist: $3" >&2
+    exit 2
+  }
+  out="$out_dir/$(basename "$3")"
+  if [ -e "$out" ] || [ -L "$out" ]; then
+    echo "pr-job-log.sh: the out path already exists: $3" >&2
+    exit 2
+  fi
+  top="$(cd "$(git -C "$2" rev-parse --show-toplevel)" && pwd -P)"
+  case "$real_dir/" in
+    "$top"/*)
+      echo "pr-job-log.sh: the out path is inside the run tree $2, whose push it could ride: $3" >&2
+      exit 2
+      ;;
+  esac
   if ! log="$(read_whole_log "$repo" "$job")"; then
     echo "pr-job-log.sh: gh could not read the log of job $job" >&2
     exit 1

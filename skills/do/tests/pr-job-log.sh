@@ -78,4 +78,19 @@ echo 0123456789abcdef0123456789abcdef01234567 >"$GH_FAKE/head"
 refused_unread "a check link to a run of another head than the tree's" "$link" '^run view --job '
 git -C "$tmp/tree" rev-parse HEAD >"$GH_FAKE/head"
 
+# The push leaves from the run tree: a log written inside it could ride the push to the pull
+# request's head.
+mkdir -p "$tmp/tree/logs"
+ln -s "$tmp/tree/logs" "$tmp/into-tree"
+inside_tree() { # $1 label, $2 the out path, $3 the path it lands on inside the tree
+  refuses "$1: refused, exit 2 and a pr-job-log.sh: reason on stderr" opens "pr-job-log.sh: " "$link" "$tmp/tree" "$2"
+  same "$1: nothing on stdout" ""
+  expect "$1: no file is written in the run tree" [ ! -e "$3" ]
+  # shellcheck disable=SC2034  # lib.sh's same reads $out
+  out="$(git -C "$tmp/tree" status --porcelain --untracked-files=all)"
+  same "$1: the run tree is left clean" ""
+}
+inside_tree "an out path inside the run tree" "$tmp/tree/logs/log-1" "$tmp/tree/logs/log-1"
+inside_tree "an out path outside the run tree by name that resolves inside it through a symlink" "$tmp/into-tree/log-1" "$tmp/tree/logs/log-1"
+
 exit "$((fails > 0))"
