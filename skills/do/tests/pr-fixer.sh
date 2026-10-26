@@ -672,5 +672,12 @@ carries_any "docs/do.md's do-pr-fixer row says a fix may be proven by its mechan
 carries_each "docs/do.md's do-pr-fixer row says the fixer brings the job's stack up before it reproduces" \
   "brings up the stack" "brings the job's stack up" "brings up the job's stack" "starts the job's stack" -- \
   "fixer-<id>" "compose project of its own" "its own compose project"
+# A developer reading the do page to know what a pr run may push to their head needs the compose
+# commit named: a row saying one commit hides the infrastructure the run adds ahead of the fix.
+carries_each "the do page's pr fixer row says the pr fixer leaves at most two commits" \
+  "at most two commits" -- "\`chore(e2e)\`" "compose"
+absent "docs/do.md's do-pr-fixer row no longer says the fixer leaves one commit" "leaves one commit"
+out="$(grep -E '^\| `pr` \|' "$root/docs/do.md")"
+absent "docs/do.md's pr Playbook row no longer says the run pushes one fixer commit" "whose commit the run pushes"
 
 exit "$((fails > 0))"
