@@ -549,5 +549,9 @@ absent "docs/do.md's do-pr-fixer row does not claim its hooks keep it off every 
 # tail, and debugs that miss themselves.
 carries_any "docs/do.md's do-pr-fixer row says the fixer reads the red check's whole job log" \
   "whole job log" "whole log of the red check's job" "whole log of its job"
+# A developer who reads that only a reproduced failure is ever fixed does not expect a run to push a
+# fix proven by the mechanism its log names (ADR 0103), and is surprised by one on the head.
+carries_any "docs/do.md's do-pr-fixer row says a fix may be proven by its mechanism" \
+  "proven by its mechanism" "proves it by its mechanism" "proven by the mechanism" "by the mechanism its log names"
 
 exit "$((fails > 0))"
