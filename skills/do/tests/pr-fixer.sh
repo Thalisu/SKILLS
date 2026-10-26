@@ -488,6 +488,16 @@ carries_each "on every end, the fixer tears down its own fixer-<id> project, its
 carries_each "the teardown reaches no other container, network or volume" \
   "no other container" "nothing else" -- "prune"
 
+# A compose left in the worktree is torn down with it, so the next run writes it again from nothing,
+# and one dropped in a folder of its own choosing is one the developer never finds: a compose that
+# brought the stack up healthy is versioned where the project keeps its composes.
+carries_each "the pr fixer commits a compose it wrote that brought the stack up healthy beside the project's existing composes, or in a docker/ folder when they sit in no folder" \
+  "brought the job's stack up healthy" "brought the stack up healthy" -- \
+  "commit" -- \
+  "beside the project's existing composes" "beside the project's composes" "next to the project's existing composes" "next to the project's composes" -- \
+  "\`docker/\`" -- \
+  "in no folder" "sit in no folder" "no folder"
+
 echo "# skills/do/agents/do-pr-fixer.md: the fixer reproduces its check's failure before it edits anything"
 
 # A CI log only points at a failure (ADR 0087): a fix written from the log alone answers what the log

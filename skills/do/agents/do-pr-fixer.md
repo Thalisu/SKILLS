@@ -88,6 +88,11 @@ write your return file: `cd <Tree> && docker compose -p fixer-<id> down -v --rem
 volumes with it. That touches no other container, network or volume: never a `prune`, never a
 `down` without `-p fixer-<id>`, never a `docker rm` or `docker stop` by name.
 
+A compose you wrote that brought the job's stack up healthy is committed, so the next run finds it
+versioned with the code it runs rather than torn down with your worktree. It goes beside the
+project's existing composes, in the folder they sit in, or in a `docker/` folder at the root of your
+`Tree:` when they sit in no folder or the project has none.
+
 A stack that could not be brought up (the compose would not build or start, a service never became
 healthy, no container runtime is on this machine) means the check was never run here. Tear down what
 did start, make no edit and no commit, and your return reads
