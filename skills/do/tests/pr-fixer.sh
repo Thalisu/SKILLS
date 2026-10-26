@@ -527,6 +527,58 @@ carries_each "a fixer whose end-to-end failure does not happen locally fixes it 
   "goes red on that mechanism" "goes red on the mechanism" -- \
   "never the proof"
 
+echo "# skills/do/agents/do-pr-fixer.md: a Mode: diagnosis brief has the fixer bring the stack up, set aside what the first return ruled out, weigh competing hypotheses from the log and close on a fix proven by its mechanism"
+
+# A check red again on its retry fails deterministically (ADR 0104): a diagnosis fixer that runs the
+# first fixer's reproduce-first path again returns the same `not reproduced`, and the developer is
+# handed a check the run never investigated. The procedure is read off its own section, and the
+# brief's diagnosis keys off the brief section.
+# shellcheck disable=SC2034  # lib.sh's carries reads $flat
+flat="$(passage_of <(body_of "$agent") "## Diagnosis mode" "## " | tr '\n' ' ' | tr -s ' ')"
+expect "the fixer's body carries a ## Diagnosis mode section" test -n "$flat"
+carries_any "the section binds a brief opening on Mode: diagnosis" "\`Mode: diagnosis\`"
+carries_each "the diagnosis fixer brings the job's stack up" \
+  "bring the job's stack up" "bring up the job's stack" "brings the job's stack up" "bring the stack up" \
+  "bring up the stack" -- \
+  "## Bring up the job's stack" "Bring up the job's stack"
+carries_each "it reads the whole Log: file" "\`Log:\`" -- "whole"
+carries_each "it sets aside what the first return already ruled out" \
+  "\`First return" "first return" -- \
+  "ruled out" -- \
+  "set aside" "never again" "not again" "do not repeat" "never repeat" "not repeat"
+carries_each "it weighs competing hypotheses from the log" \
+  "competing hypotheses" "hypotheses that compete" "rival hypotheses" -- \
+  "weigh" -- \
+  "log"
+carries_each "it closes with a fix proven by its mechanism" \
+  "fixed <k> by mechanism" -- \
+  "mechanism" -- \
+  "red" "goes red"
+flat="$(body_of "$agent" | tr '\n' ' ' | tr -s ' ')"
+before "the section comes after ## Reproduce first" "## Reproduce first" "## Diagnosis mode"
+# shellcheck disable=SC2034  # lib.sh's carries reads $flat
+flat="$(passage_of <(body_of "$agent") "## The brief" "## " | tr '\n' ' ' | tr -s ' ')"
+carries "the brief section lists the diagnosis keys" \
+  "\`Mode: diagnosis\`" "\`Retry:\`" "\`First excerpt" "\`First return"
+
+echo "# skills/do/agents/do-pr-fixer.md: a diagnosis fixer that finds no mechanism returns no mechanism <k>: with one <hypothesis>: ruled out by <why> entry per hypothesis it tested"
+
+# The session writes the developer's stop from this line alone (ADR 0104): a bare `not fixed`
+# reason gives it no hypothesis to name, and entries joined by `; ` would split into clauses of the
+# one `Yours:` line the stop is written on.
+# shellcheck disable=SC2034  # lib.sh's carries reads $flat
+flat="$(passage_of <(body_of "$agent") "## The return file" "## " | tr '\n' ' ' | tr -s ' ')"
+carries "the return file lists the no mechanism line, one entry per hypothesis, joined by |" \
+  "no mechanism <k>: <hypothesis>: ruled out by <why> | <hypothesis>: ruled out by <why>"
+carries_each "one entry per hypothesis tested, at least two" \
+  "one entry per hypothesis" "one per hypothesis" "each hypothesis" "every hypothesis" -- \
+  "at least two" "two or more"
+carries_each "<why> names the command run or the log line that ruled it out" \
+  "<why>" -- "command" -- "log line"
+carries_each "entries are never joined by ; " \
+  "\` | \`" -- "never by \`; \`" "never \`; \`" "not \`; \`"
+carries_any "the line is a diagnosis brief's" "diagnosis"
+
 echo "# skills/do/agents/do-pr-fixer.md: the fixer proves its fix red-first and leaves at most two commits, or none and its line"
 
 # The developer auditing a pr run needs one fix commit per check with a test that failed before it:
