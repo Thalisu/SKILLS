@@ -189,6 +189,16 @@ developer's own workspace and never reaches a teammate; what the team has to rea
 issue tracker or under `docs/`.
 _Avoid_: temp, workspace, drafts folder
 
+**Tracker file**:
+The project's `docs/agents/issue-tracker.md`, written by `setup-tracker` in one mode (local,
+GitHub or Jira), naming for each operation of the chain the concrete call it makes there.
+_Avoid_: tracker config, issue-tracker settings
+
+**Suggested changes**:
+The section of a **Tracker file** in Jira mode that lists what the Jira project lacks for the
+chain, for a Jira admin to act on; the setup never applies one itself.
+_Avoid_: todo list, migration, fixes
+
 **Mirror**:
 The copy of a local artifact (a **Review**, a feature's **Pending debt**) that a run publishes to
 the issue tracker so the team sees it on the board. The artifact's home stays in the **Scratch**:
