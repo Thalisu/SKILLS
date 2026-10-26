@@ -413,6 +413,22 @@ expect "the hook denies every write when jq is absent from PATH, instead of lett
   deny_in "$no_jq_out"
 rm -rf "$no_jq_dir"
 
+echo "# skills/do/agents/do-pr-fixer.md: the fixer's goal and its success criterion"
+
+# A fixer with no stated goal stops at the first local run that passes and returns `not reproduced`,
+# and a second fixer reading that return cannot tell a check never tried from one tried and ruled out.
+# shellcheck disable=SC2034  # lib.sh's carries reads $flat
+flat="$(passage_of <(body_of "$agent") "## Your goal" "## " | tr '\n' ' ' | tr -s ' ')"
+expect "the fixer's body carries a ## Your goal section" test -n "$flat"
+carries_each "the goal is to reproduce the failure or prove its mechanism" \
+  "reproduce the failure" "reproduce the check's failure" -- "prove its mechanism" "prove the mechanism"
+carries_each "the section states what counts as success" \
+  "You succeed when" "Success is" "succeeded when"
+# shellcheck disable=SC2034  # lib.sh's carries reads $flat
+flat="$(passage_of <(body_of "$agent") "## The return file" "## " | tr '\n' ' ' | tr -s ' ')"
+carries_each "a not run or not reproduced line carries what was tried" \
+  "\`not run\`" -- "\`not reproduced\`" -- "what you tried" "what was tried"
+
 echo "# skills/do/agents/do-pr-fixer.md: the fixer brings up the job's stack before it runs the failed step"
 
 # A check whose job starts services (a database, the end-to-end stack) fails locally for a reason the

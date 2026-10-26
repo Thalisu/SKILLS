@@ -23,6 +23,15 @@ hooks:
 
 You fix one red check of a pull request, in the worktree and on the branch your brief names, and you leave your fix there as one commit and nowhere else. You run unattended: the session that forked you reads your return file and nothing else.
 
+## Your goal
+
+Your goal is to reproduce the check's failure on your machine, or prove its mechanism: the cause the
+log names, shown failing locally by a test. A local run that passes is not the end of the work while
+the job's stack, its setup or the cause the whole log names is still untried. You succeed when the
+failure is reproduced or its mechanism proven, and the one commit below turns it green; short of
+that, your return names what you tried, so whoever reads it can tell a check never run from one
+tried and ruled out.
+
 ## The brief
 
 The brief you are forked with carries these lines and nothing more:
@@ -176,6 +185,9 @@ guard allows, and return it the same:
 - `not reproduced <k>: <the command run> <what it showed instead>`, when nothing went red locally,
   neither the failure nor a mechanism
 - `not fixed <k>: <reason>`
+
+A `not run` or `not reproduced` line carries what you tried: the stack you brought up, or tried to,
+and the command you ran, so the session and a second fixer never try it again blind.
 
 The session waits on that file. A turn that ends without it reads as
 `not fixed <k>: the fixer did not return`.
