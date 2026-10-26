@@ -333,6 +333,42 @@ for cmd in \
     bash -c '[ -n "$1" ] && ! grep -qF "\"permissionDecision\": \"deny\"" <<<"$2"' _ "$bash_hook" "$(bash_out "$cmd")"
 done
 
+# A compose the fixer writes, steered by a check's log, that bind-mounts the git directory its
+# worktree shares lets the container plant a hook or config the session's own git then runs with
+# the developer's credentials. The Write guard reads only the path, so the Bash guard reads the
+# compose file(s) a call uses and denies one whose bind mount leaves the fixer worktree or reaches
+# a .git path. Each compose sits in its own folder: $fixer's root carries none, so the no -f cases
+# above still find nothing there. $fixer is <main>/.claude/worktrees/fixer-s-abc-w1-1, so four
+# levels up from a folder under it is the main checkout.
+mkdir -p "$fixer/docker" "$fixer/rootmnt" "$fixer/sshmnt" "$fixer/longsyn" "$fixer/symlnk" \
+  "$fixer/deflt" "$fixer/deflt2" "$fixer/okstack" "$tmp/outside"
+printf 'services:\n  db:\n    image: postgres\n    volumes:\n      - ../../../../.git:/g\n' >"$fixer/docker/compose.yml"
+printf 'services:\n  db:\n    image: postgres\n    volumes:\n      - /:/host\n' >"$fixer/rootmnt/compose.yml"
+printf 'services:\n  db:\n    image: postgres\n    volumes:\n      - ~/.ssh:/root/.ssh\n' >"$fixer/sshmnt/compose.yml"
+printf 'services:\n  db:\n    image: postgres\n    volumes:\n      - type: bind\n        source: ../../..\n        target: /x\n' >"$fixer/longsyn/compose.yml"
+ln -s "$main/.git" "$fixer/symlnk/gitlink"
+printf 'services:\n  db:\n    image: postgres\n    volumes:\n      - ./gitlink:/g\n' >"$fixer/symlnk/compose.yml"
+printf 'services:\n  db:\n    image: postgres\n    volumes:\n      - ../../../../.git:/g\n' >"$fixer/deflt/compose.yaml"
+printf 'services:\n  db:\n    image: postgres\n    volumes:\n      - /:/host\n' >"$fixer/deflt2/compose.yaml"
+printf 'services:\n  db:\n    image: postgres\n    volumes:\n      - ./data:/var/lib/postgresql/data\n' >"$tmp/outside/compose.yml"
+printf 'services:\n  db:\n    image: postgres\n    ports:\n      - "5432:5432"\n    environment:\n      - POSTGRES_PASSWORD=x\n    volumes:\n      - ./data:/var/lib/postgresql/data\n      - pgdata:/var/lib/postgresql/data\nvolumes:\n  pgdata: {}\n' >"$fixer/okstack/compose.yml"
+for cmd in \
+  "cd $fixer && docker compose -p $own_project -f docker/compose.yml up -d" \
+  "cd $fixer/rootmnt && docker compose -p $own_project -f compose.yml up -d" \
+  "cd $fixer && docker compose -p $own_project --file sshmnt/compose.yml up -d" \
+  "cd $fixer/longsyn && docker compose -p $own_project -f compose.yml up -d" \
+  "cd $fixer/symlnk && docker compose -p $own_project -f compose.yml up -d" \
+  "cd $fixer/deflt && docker compose -p $own_project up -d" \
+  "cd $fixer/deflt2 && docker compose -p $own_project up -d" \
+  "cd $fixer && docker compose -p $own_project -f $tmp/outside/compose.yml up -d"; do
+  label="${cmd//$fixer/<Tree>}"
+  expect "the hook denies the fixer's Bash a compose up whose file bind-mounts outside its worktree or into .git, or lies outside it: ${label//$tmp/<tmp>}" \
+    deny_in "$(bash_out "$cmd")"
+done
+cmd="cd $fixer/okstack && docker compose -p $own_project -f compose.yml up -d"
+expect "the hook lets the fixer's Bash bring up a compose whose mounts stay inside its worktree: ${cmd//$fixer/<Tree>}" \
+  bash -c '[ -n "$1" ] && ! grep -qF "\"permissionDecision\": \"deny\"" <<<"$2"' _ "$bash_hook" "$(bash_out "$cmd")"
+
 agent_hook="$(hook_command "$agent" Agent 2>/dev/null)"
 expect "a PreToolUse hook scopes the fixer's Agent" test -n "$agent_hook"
 
