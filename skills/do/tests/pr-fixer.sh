@@ -444,6 +444,18 @@ carries_each "with no compose that fits, the fixer writes its own under its Tree
 carries_each "a project compose that fixes a container name or a host port does not fit as it stands" \
   "container_name" -- "host port" -- "does not fit"
 
+# A shared project name, a fixed container name or a fixed host port is how one stack renames over,
+# stops or port-clashes another: the developer's own, or the one a parallel fixer of the same run
+# started a second earlier. The project name is read off the fixer's own worktree, which no two
+# fixers share.
+carries "the stack runs under a compose project name of the fixer's own" "fixer-<id>"
+carries_each "the project name's id is read off the fixer's own worktree" \
+  "your \`Tree:\`" "your own worktree" "your worktree" -- "unique" "no two" "no other"
+carries_each "the stack fixes no container name" \
+  "no fixed \`container_name\`" "no \`container_name\`" "no fixed container name"
+carries_each "every host port is free or remapped" \
+  "free" -- "remap"
+
 echo "# skills/do/agents/do-pr-fixer.md: the fixer reproduces its check's failure before it edits anything"
 
 # A CI log only points at a failure (ADR 0087): a fix written from the log alone answers what the log

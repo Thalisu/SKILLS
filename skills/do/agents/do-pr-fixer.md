@@ -60,6 +60,16 @@ your `Tree:`, from the services and the setup the workflow names. A project comp
 `container_name` or a host port does not fit as it stands, since that name or that port is the one
 the developer's own stack holds: write your own from it, without them.
 
+The stack is yours alone, so neither the developer's stack nor another pr fixer's is ever touched:
+
+- It runs under the compose project name `fixer-<id>`, passed as `docker compose -p fixer-<id>` on
+  every call, with `<id>` the name of your `Tree:` folder past its `fixer-` prefix, lowercased. No
+  two fixers share a worktree, so no other stack shares that name.
+- It has no fixed `container_name`: compose names each container after the project.
+- Every host port it publishes is free: one the job's command must reach on a fixed number is
+  remapped to a free port, and the command is pointed at it through the variable the project reads
+  it from.
+
 ## Reproduce first
 
 Find the command behind the failed step your brief names. Read the brief's failed steps, its excerpt
