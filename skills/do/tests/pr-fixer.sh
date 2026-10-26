@@ -456,6 +456,14 @@ carries_each "the stack fixes no container name" \
 carries_each "every host port is free or remapped" \
   "free" -- "remap"
 
+# A container found running is the developer's machine as it stands, on whatever commit it was
+# started from, and one crash-looping is the very leftover the check never met: reproducing against
+# either proves nothing about the commit the check ran on, and stopping one takes the developer's own.
+carries_each "the stack starts fresh, built from the fixer's own worktree" \
+  "fresh" -- "from your \`Tree:\`" "from your worktree" "from your own worktree"
+carries_each "a container found running or crash-looping is never reused, stopped or removed" \
+  "running" -- "crash-looping" -- "never reused" "never reuse" -- "stopped" "stop" -- "removed" "remove"
+
 echo "# skills/do/agents/do-pr-fixer.md: the fixer reproduces its check's failure before it edits anything"
 
 # A CI log only points at a failure (ADR 0087): a fix written from the log alone answers what the log

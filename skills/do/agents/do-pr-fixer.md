@@ -70,6 +70,10 @@ The stack is yours alone, so neither the developer's stack nor another pr fixer'
   remapped to a free port, and the command is pointed at it through the variable the project reads
   it from.
 
+The stack starts fresh, built and started from your `Tree:`, so it runs the commit the check ran on
+(`up --build --force-recreate`). A container you find running or crash-looping, the developer's or
+another fixer's, is never reused, and never stopped or removed either: it is not yours.
+
 ## Reproduce first
 
 Find the command behind the failed step your brief names. Read the brief's failed steps, its excerpt
