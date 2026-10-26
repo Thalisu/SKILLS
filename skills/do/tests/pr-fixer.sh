@@ -301,6 +301,38 @@ for cmd in "bash ./fix.sh" "sh run-tests.sh" "make test" "npm test"; do
     bash -c '[ -n "$1" ] && ! grep -qF "\"permissionDecision\": \"deny\"" <<<"$2"' _ "$bash_hook" "$(bash_out "$cmd")"
 done
 
+# The fixer brings a stack up under its own compose project, -p fixer-<id>, the folder name past
+# fixer- lowercased. A fixer steered by a check's log that prunes, removes or stops a container,
+# volume or network of any other project deletes the developer's own (a local database's named
+# volume is data loss), so a docker call that can reach past its own project is denied.
+own_project="fixer-s-abc-w1-1"
+for cmd in \
+  "docker system prune -af --volumes" \
+  "docker volume prune -af" \
+  "docker rm -f devdb" \
+  "docker stop devdb" \
+  "docker kill devdb" \
+  "docker volume rm pgdata" \
+  "docker network rm appnet" \
+  "docker container prune -f" \
+  "cd $fixer && docker compose -p myapp down -v" \
+  "cd $fixer && docker compose down -v" \
+  "cd $fixer && docker compose -p $own_project rm -f" \
+  "docker-compose -p myapp down -v" \
+  "env docker system prune -af"; do
+  expect "the hook denies the fixer's Bash a docker call that removes, or reaches past its own compose project: ${cmd//$fixer/<Tree>}" \
+    deny_in "$(bash_out "$cmd")"
+done
+for cmd in \
+  "cd $fixer && docker compose -p $own_project up -d --build --force-recreate" \
+  "cd $fixer && docker compose -p $own_project down -v --remove-orphans" \
+  "cd $fixer && docker compose -p $own_project ps" \
+  "cd $fixer && docker compose -p $own_project logs db" \
+  "docker ps"; do
+  expect "the hook lets the fixer's Bash run its own compose stack: ${cmd//$fixer/<Tree>}" \
+    bash -c '[ -n "$1" ] && ! grep -qF "\"permissionDecision\": \"deny\"" <<<"$2"' _ "$bash_hook" "$(bash_out "$cmd")"
+done
+
 agent_hook="$(hook_command "$agent" Agent 2>/dev/null)"
 expect "a PreToolUse hook scopes the fixer's Agent" test -n "$agent_hook"
 
