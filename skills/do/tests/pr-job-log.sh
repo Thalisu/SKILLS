@@ -68,4 +68,9 @@ git -C "$tmp/tree" rev-parse HEAD >"$GH_FAKE/head"
 refused_unread "a check link to another repository on the pull request's host" "https://github.com/someone-else/deploy-repo/actions/runs/7/job/99"
 refused_unread "a check link to the pull request's owner and repo on another host" "https://evil.example/o/r/actions/runs/7/job/99"
 
+# A job id in the same repository can be a fork pull request's job, whose log its author controls.
+echo 98 >"$GH_FAKE/jobs"
+refused_unread "a check link whose job is not one of the link's run" "https://github.com/o/r/actions/runs/111/job/999" '^run view --job '
+echo 99 >"$GH_FAKE/jobs"
+
 exit "$((fails > 0))"

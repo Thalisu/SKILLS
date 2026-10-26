@@ -14,7 +14,8 @@
 # The link is checked by pr-job-link.sh, the rule pr-log.sh applies too, before any log is read.
 #
 # Exits 0 the log written · 1 gh missing or unable to read the repository or the log · 2 usage ·
-# 3 refused unread (not an Actions job link, a link to another repository) or an empty log.
+# 3 refused unread (not an Actions job link, a link to another repository, a job that is not of
+# the link's run) or an empty log.
 # Nothing on stdout and no file for 1, 2 or 3; a one-line pr-job-log.sh: <reason> goes to stderr.
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
@@ -25,7 +26,8 @@ read_whole_log() { # $1 repo, $2 job id: the raw log lines of every step
 }
 
 main() {
-  local repo run job reason code log out esc
+  # shellcheck disable=SC2034 # check_job_link sets run and run_sha too, which this script never reads.
+  local repo run job run_sha reason code log out esc
   if [ "$#" -ne 3 ]; then
     echo "usage: pr-job-log.sh <link> <tree> <out>" >&2
     exit 2

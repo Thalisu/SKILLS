@@ -30,10 +30,6 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 
 excerpt_lines=200
 
-read_run_identity() { # $1 repo, $2 run id: prints the run's head commit, then the id of each of its jobs, one per line
-  gh run view "$2" --repo "$1" --json headSha,jobs --jq '.headSha, (.jobs[].databaseId)'
-}
-
 read_failed_log() { # $1 repo, $2 job id: the raw log lines
   gh run view --job "$2" --repo "$1" --log-failed
 }
@@ -90,7 +86,7 @@ named_files() { # stdin: the excerpt's lines; $1 tree: prints one file=<path> pe
 }
 
 main() {
-  local repo run job reason code log cut identity watched run_sha
+  local repo run job run_sha reason code log cut watched
   if [ "$#" -ne 2 ]; then
     echo "usage: pr-log.sh <link> <tree>" >&2
     exit 2
@@ -100,18 +96,9 @@ main() {
     echo "pr-log.sh: $reason" >&2
     exit "$code"
   }
-  identity="$(read_run_identity "$repo" "$run" 2>/dev/null)" || {
-    echo "pr-log.sh: gh could not read run $run" >&2
-    exit 1
-  }
   watched="$(git -C "$2" rev-parse HEAD 2>/dev/null)"
-  run_sha="$(printf '%s\n' "$identity" | head -n 1)"
   if [ -z "$watched" ] || [ "$run_sha" != "$watched" ]; then
     echo "pr-log.sh: run $run is on $run_sha, not the watched commit ${watched:-unknown}: $1" >&2
-    exit 3
-  fi
-  if ! printf '%s\n' "$identity" | tail -n +2 | grep -qx "$job"; then
-    echo "pr-log.sh: job $job is not a job of run $run: $1" >&2
     exit 3
   fi
   if ! log="$(read_failed_log "$repo" "$job")"; then
