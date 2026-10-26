@@ -521,5 +521,9 @@ out="$flat"
 carries "docs/do.md's do-pr-fixer row calls its hooks a speed bump, not a sandbox" "speed bump" "not a sandbox"
 absent "docs/do.md's do-pr-fixer row does not claim its hooks deny every push and fetch" "deny every push, fetch"
 absent "docs/do.md's do-pr-fixer row does not claim its hooks keep it off every push" "keep it off every push"
+# A developer who reads that the fixer sees the excerpt alone expects it to miss a cause above the
+# tail, and debugs that miss themselves.
+carries_any "docs/do.md's do-pr-fixer row says the fixer reads the red check's whole job log" \
+  "whole job log" "whole log of the red check's job" "whole log of its job"
 
 exit "$((fails > 0))"
