@@ -296,6 +296,17 @@ the checks: a display read mid-run can show green while a check is still running
   (`retried by the run on <sha>`). The check is never classified again, whatever its retry excerpt reads: no
   `pr-classify.sh` call is made for it, so its retry excerpt never turns it into a stale-base check
   or sends it to a first fixer again.
+  The diagnosis round counts toward the cap only when one of its round lines reads
+  `pushed to <head>`, since a round counts by the push it ends in. Once three rounds have pushed,
+  no diagnosis is forked, since its fix would push a fourth round: the run takes the three-round
+  stop as it stands, the check among its `red=` names, and writes
+  `round <r>: <check> red again on its retry (<the retry>); not diagnosed: three rounds have pushed`
+  with both excerpts quoted under it. For that line the run cuts the check's retry excerpt on a run
+  tree cut at the verdict's `sha=` as step 4 item 2 cuts one (`git fetch origin <head>`, then
+  `git worktree add --detach ...`), with `bash <skill-dir>/scripts/pr-log.sh <link> <run tree>`,
+  its `<link>` the one on the check's `red=` line, keeping its `excerpt=` values, and removes the
+  run tree after (`git worktree remove <run tree>`). On a non-zero exit of the script, its stderr
+  line stands in the excerpt's place.
 
 The verdict line of each call, in order, is recorded for the Run report's Run section, which is
 written under `--auto` only, per [reply.md](reply.md): the round is never a section of the Reply.

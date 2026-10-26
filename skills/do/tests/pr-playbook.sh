@@ -3047,6 +3047,29 @@ carries_each "and no stop-case is carried" \
 carries_any "and the run does not stop there" \
   "does not stop" "doesn't stop" "never stops" "not stop there" "no longer stops" "is not a stop" \
   "instead of stopping" "rather than stopping"
+# The developer relies on a diagnosis never taking the run past the three-pushed-round cap (Spec
+# story 22): a diagnosis round outside the cap lets one check loop the run, and one forked after the
+# third pushed round pushes a fourth. The route is read off the watch step's pieces that name the
+# retry record beside a diagnosis, the came-back bullet passed over.
+echo "# pr.md / ### Watch: the diagnosis fork is a round under the three-pushed-round cap: numbered as the next round, its push counted as a pushed round, and no diagnosis is forked once three rounds have pushed"
+watch="$(passage_of "$pr" "$watch_h" "##" 2>/dev/null)"
+flat="$(piece_all=1 piece_without="reported fixed that came back red" piece_with "retry record" |
+  grep -F "diagnosis" | tr '\n' ' ')"
+expect "a piece of the watch step routes a check red again on its retry to a diagnosis" test -n "$flat"
+carries_each "the diagnosis round is numbered as the next round" \
+  "diagnosis round is the next round" "numbered one past" "numbered as the next round" "next round's number"
+carries_each "its push counts as a pushed round under the cap" \
+  "pushed to <head>" -- \
+  "counts toward the cap" "counts toward the three-round cap" "counts as a pushed round" \
+  "a pushed round like any" "counts under the cap"
+carries_each "once three rounds have pushed, no diagnosis is forked" \
+  "three rounds have pushed" "three pushed rounds" "after the third pushed round" -- \
+  "no diagnosis is forked" "forks no diagnosis" "no diagnosis fork" "not diagnosed"
+carries_each "and the run takes the three-round stop instead, the check among its red= names" \
+  "three-round stop" -- \
+  "among its" "among the" "with the check" "names it" "red= names"
+carries_any "a diagnosis there would push a fourth round" \
+  "fourth round" "fourth pushed round" "a fourth"
 # The developer relies on a rerun going only to a check its fixer could not reproduce: a rerun of a
 # check whose fixer returned `fixed` or `not fixed` hides a real failure behind a lucky retry, and a
 # rerun keyed on the session's reading of a log is spent before anyone knows whether the failure
