@@ -91,7 +91,9 @@ volumes with it. That touches no other container, network or volume: never a `pr
 A compose you wrote that brought the job's stack up healthy is committed, so the next run finds it
 versioned with the code it runs rather than torn down with your worktree. It goes beside the
 project's existing composes, in the folder they sit in, or in a `docker/` folder at the root of your
-`Tree:` when they sit in no folder or the project has none.
+`Tree:` when they sit in no folder or the project has none. A compose that did not bring the job's
+stack up healthy is never committed, whatever the check's end: it is a broken recipe, and once on the
+pull request's head everyone building there inherits it.
 
 A stack that could not be brought up (the compose would not build or start, a service never became
 healthy, no container runtime is on this machine) means the check was never run here. Tear down what

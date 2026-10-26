@@ -498,6 +498,12 @@ carries_each "the pr fixer commits a compose it wrote that brought the stack up 
   "\`docker/\`" -- \
   "in no folder" "sit in no folder" "no folder"
 
+# A compose that never got the stack healthy is a broken recipe, and once committed it reaches the
+# pull request's head, where everyone building on it inherits it under the developer's credentials.
+carries_each "a compose that did not bring the stack up healthy is never committed by the pr fixer" \
+  "did not bring the job's stack up healthy" "did not bring the stack up healthy" "never brought the stack up healthy" -- \
+  "is never committed" "never commit it" "is not committed"
+
 echo "# skills/do/agents/do-pr-fixer.md: the fixer reproduces its check's failure before it edits anything"
 
 # A CI log only points at a failure (ADR 0087): a fix written from the log alone answers what the log
