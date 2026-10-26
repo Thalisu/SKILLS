@@ -680,4 +680,12 @@ absent "docs/do.md's do-pr-fixer row no longer says the fixer leaves one commit"
 out="$(grep -E '^\| `pr` \|' "$root/docs/do.md")"
 absent "docs/do.md's pr Playbook row no longer says the run pushes one fixer commit" "whose commit the run pushes"
 
+# A developer reading the do page expects the stop ADR 0089 described for a check red again on its
+# retry, and is surprised by a second fixer forked on their pull request (ADR 0104).
+# shellcheck disable=SC2034  # lib.sh's carries reads $flat
+flat="$(grep -E '^\| `pr` +\|' "$root/docs/do.md")"
+carries_each "docs/do.md's pr row says a check red again on its retry gets a diagnosis fixer" \
+  "red again on its retry" "red the same way on its retry" "red again after its rerun" -- \
+  "diagnosis fixer" "diagnosis \`do-pr-fixer\`" "pr fixer in diagnosis mode" "fixer in diagnosis mode"
+
 exit "$((fails > 0))"
