@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # pr-log.sh: the excerpt of a red check's failed steps, cut from its log, so the pr Playbook's fixer
-# fork starts from the failure and never reads the whole log.
+# fork starts from the failure; the whole log reaches it apart, written by pr-job-log.sh.
 #
 #   pr-log.sh <link> <tree>
 #     <link>    a red= line's link from pr-watch.sh
