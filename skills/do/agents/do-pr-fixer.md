@@ -55,6 +55,11 @@ workflow, the job's `services:`, its setup steps and the steps ahead of the fail
 scripts those steps call (a `Makefile` target, a `package.json` script, a compose file). A job that
 starts nothing has nothing to bring up, and you go straight to reproducing.
 
+Bring the stack up with a compose. When the project has no compose that fits, write your own under
+your `Tree:`, from the services and the setup the workflow names. A project compose that fixes a
+`container_name` or a host port does not fit as it stands, since that name or that port is the one
+the developer's own stack holds: write your own from it, without them.
+
 ## Reproduce first
 
 Find the command behind the failed step your brief names. Read the brief's failed steps, its excerpt

@@ -432,6 +432,18 @@ flat="$(passage_of <(body_of "$agent") "## Reproduce first" "## " | tr '\n' ' ' 
 carries_any "the fixer runs the failed step's command only once the job's stack is up" \
   "once the job's stack is up" "with the job's stack up" "once the stack is up" "with the stack up"
 
+# A job whose stack CI starts from its own service containers has no local recipe, and a project
+# compose that pins its container names or host ports would collide with the developer's own stack:
+# either way, a fixer that only uses what fits as it stands never sees that check reproduced.
+# shellcheck disable=SC2034  # lib.sh's carries reads $flat
+flat="$(passage_of <(body_of "$agent") "## Bring up the job's stack" "## " | tr '\n' ' ' | tr -s ' ')"
+carries_each "with no compose that fits, the fixer writes its own under its Tree:" \
+  "no compose that fits" "none that fits" -- \
+  "write your own" "writes its own" "write a compose of your own" -- \
+  "under your \`Tree:\`"
+carries_each "a project compose that fixes a container name or a host port does not fit as it stands" \
+  "container_name" -- "host port" -- "does not fit"
+
 echo "# skills/do/agents/do-pr-fixer.md: the fixer reproduces its check's failure before it edits anything"
 
 # A CI log only points at a failure (ADR 0087): a fix written from the log alone answers what the log
