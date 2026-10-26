@@ -3217,13 +3217,26 @@ templates="$(
   sed 's/^[[:space:]]*//' <<<"$reply_step" | grep '^round <r>:'
   tr '\n' ' ' <<<"$reply_step" | tr -s ' ' | grep -oE '`round <r>:[^`]*`' | tr -d '`'
 )"
-out="$(grep -xF "round <r>: <check> red again on its retry (<the retry>); not reproducible, no fixer forked" <<<"$templates")"
-expect "a check red again on its retry has its own round line in the Reply's round templates" test -n "$out"
+# The developer reading the Reply tells a diagnosed fix from a first fixer's, and a fix proven by its
+# mechanism from one reproduced end to end, only by the round line (ADR 0104, ADR 0103).
+for line in \
+  "round <r>: <check> red again on its retry (<the retry>); diagnosis do-pr-fixer on <fixer branch>: <its return line>; <picked sha> pushed to <head>" \
+  "round <r>: <check> red again on its retry (<the retry>); diagnosis do-pr-fixer on <fixer branch>: fixed <k> by mechanism: <the test> <the log line that names it>; end-to-end failure itself not reproduced locally, the fix stands on <the test> and <the log line that names it>; <picked sha> pushed to <head>" \
+  "round <r>: <check> red again on its retry (<the retry>); diagnosis do-pr-fixer on <fixer branch>: <its return line>; nothing pushed for it" \
+  "round <r>: <check> red again on its retry (<the retry>); not diagnosed: three rounds have pushed"; do
+  out="$(grep -xF -- "$line" <<<"$templates")"
+  expect "the Reply's round templates carry \`$line\`" test -n "$out"
+done
+out="$templates"
+absent "the Reply no longer lists a check red again on its retry as not reproducible, no fixer forked" "not reproducible, no fixer forked"
 flat="$(piece_all=1 piece_in="$reply_step" piece_with "first excerpt (round <r>):" | tr '\n' ' ')"
 expect "a piece of the Reply step names the first excerpt label \`first excerpt (round <r>):\`" test -n "$flat"
 carries "and the retry excerpt label beside it" "retry excerpt"
 before "the first excerpt comes ahead of the retry's" "first excerpt (round <r>):" "retry excerpt"
 carries_any "each excerpt quoted" "quoted" "quotes" "quote" "quoting"
+carries_any "under every red again on its retry line, the diagnosis's included" \
+  "every \`red again on its retry\` line" "Every \`red again on its retry\` line" "each \`red again on its retry\` line" \
+  "every red again on its retry line" "each red again on its retry line" "every one of these lines"
 # The developer relies on a check red again on its retry reaching its diagnosis (ADR 0104): a
 # classification of its retry excerpt could read it as stale or real and send it to a first fixer
 # again, a route that held for one kind of retry only would send the other back to a first fixer,

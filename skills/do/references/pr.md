@@ -845,7 +845,10 @@ the whole message, and a green watch adds no part of its own:
       round <r>: <check> red; do-pr-fixer on <fixer branch>: not run <k>: <what the environment printed>; nothing pushed for it; rerun <run id> refused: <reason>
       round <r>: <check> not reproduced locally, retried once, green
       round <r>: <check> not run locally, retried once, green
-      round <r>: <check> red again on its retry (<the retry>); not reproducible, no fixer forked
+      round <r>: <check> red again on its retry (<the retry>); diagnosis do-pr-fixer on <fixer branch>: <its return line>; <picked sha> pushed to <head>
+      round <r>: <check> red again on its retry (<the retry>); diagnosis do-pr-fixer on <fixer branch>: fixed <k> by mechanism: <the test> <the log line that names it>; end-to-end failure itself not reproduced locally, the fix stands on <the test> and <the log line that names it>; <picked sha> pushed to <head>
+      round <r>: <check> red again on its retry (<the retry>); diagnosis do-pr-fixer on <fixer branch>: <its return line>; nothing pushed for it
+      round <r>: <check> red again on its retry (<the retry>); not diagnosed: three rounds have pushed
       round <r>: nothing pushed; failed jobs rerun on run <run id>[, run <run id>...]; not counted toward the three pushed rounds
       round <r>: nothing rerun: <head> moved to <short sha> after the watch; the round is redone from the watch
       round <r>: after the push the watch read <verdict word>
@@ -875,7 +878,9 @@ the whole message, and a green watch adds no part of its own:
   each, the commits pushed and the verdict that ended it. A redone round is listed under the number
   of the round it redid: it counts once, never a new number.
 
-  The red again line is followed by the two excerpts, each quoted, the first excerpt under the label
+  A diagnosis round's line names the diagnosis fixer and its return, and a diagnosis fix pushed on
+  its mechanism takes the line that says so. Every `red again on its retry` line is followed by the
+  two excerpts, each quoted, the first excerpt under the label
   `first excerpt (round <r>):` and then the retry's under `retry excerpt (attempt <n>):` (or
   `retry excerpt (the run on <picked sha>):`), so the developer reads them side by side.
 - When the run pushed, the **Next step** line names `git pull --ff-only origin <head>` on the
