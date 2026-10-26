@@ -447,15 +447,19 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
 
       Then one call per Wave, over every check the guard printed `clean`, and only those, all of them
       checks that returned `fixed <k>: ...` or `fixed <k> by mechanism: ...`:
-      `bash <skill-dir>/../do-code-review/scripts/fix-integrate.sh <run tree> <k>=<branch>...`, each
+      `bash <skill-dir>/../do-code-review/scripts/fix-integrate.sh --compose <run tree> <k>=<branch>...`, each
       `<branch>` the one its worktree line printed. The script picks them in ascending check number,
-      whatever order they are given in, and prints one `picked <k> <sha>` per check. It may print
+      whatever order they are given in, and prints one `picked <k> <sha>` per check. A fixer branch
+      whose compose rides ahead of its fix as a `chore(e2e)` commit (ADR 0102), the reason the call
+      passes `--compose`, has both commits brought onto the run tree, compose first: a
+      `composed <k> <sha>` line comes directly ahead of that check's `picked <k> <sha>` line, and the
+      run records each `composed` sha beside its check's `picked` sha. It may print
       `conflicted <k> with <m,...|none> files "<path>"...` for a check instead: the script has already
       aborted that pick, so the run tree holds every clean pick of the Wave and nothing of check
-      `<k>`. The run does not stop on it and never resolves it, no conflicted hunk is merged or
+      `<k>`, compose included. The run does not stop on it and never resolves it, no conflicted hunk is merged or
       classed (ADR 0054). Check `<k>` moves to a later Wave, where its `do-pr-fixer` is forked again
       in a fresh worktree cut over the run tree's HEAD as this Wave's integration left it, which holds
-      the pick it lost to. Past `picked` and `conflicted`, any other line from it stops the run
+      the pick it lost to. Past `composed`, `picked` and `conflicted`, any other line from it stops the run
       quoting that line. The stop line also names `<run tree>`, which the run keeps on disk with the
       picks it holds. Any other return gets no pick, and the check stays red this round.
    e. After the Wave's one `fix-integrate.sh` call, one call over every branch the Wave's `add`
@@ -503,7 +507,7 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    count from zero again.
 
    The next Wave's worktrees are cut only after this Wave's picks, from the run tree's HEAD as those
-   picks left it, since `fix-integrate.sh` refuses a branch that is not exactly one commit ahead of
+   picks left it, since `fix-integrate.sh` refuses a branch whose first commit does not sit directly on
    the HEAD it starts on, so a Wave cut before the one ahead of it was integrated could never be
    picked. The fork and the wait sit in one turn: the session never ends its turn while a fixer
    runs, as skills/do-code-review/references/fix.md warns.
@@ -546,11 +550,12 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
        git -C <run tree> rev-list <sha>..HEAD
 
    The first must succeed, and the second may print only shas that `fix-integrate.sh` printed on a
-   `picked <k> <sha>` line in this attempt, whichever Wave printed it. A fixer's Bash hook is a
+   `picked <k> <sha>` line or a `composed <k> <sha>` line in this attempt, whichever Wave printed
+   it. A fixer's Bash hook is a
    speed bump and not a sandbox, so a fixer steered by a check's log can still commit in
    `<run tree>`, and this read is the check that holds: `pr-guard.sh` reads fixer branches only,
    and the push below carries everything on HEAD to `<head>` under the developer's credentials.
-   A `<sha>` that is not an ancestor of HEAD, or any printed commit that is no `picked` sha, stops
+   A `<sha>` that is not an ancestor of HEAD, or any printed commit that is no `picked` sha and no `composed` sha, stops
    the run with nothing pushed: it keeps `<run tree>` on disk, never removing it, and ends on one
    `Yours: direction:` line whose first clause is this one, the clauses of the round's stop set
    following it on that same line:
@@ -566,7 +571,8 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    into the shared git directory never runs under the developer's credentials.
 
    The push is fast-forward only: never `--force`, never a merge, never to another branch
-   (ADR 0086). git's own refusal of a non-fast-forward is the guard. When git accepts it, run
+   (ADR 0086). It carries every commit on HEAD to `<head>` in the order it sits there, so a check
+   that left a compose arrives compose commit first, its fix commit on top (ADR 0102). git's own refusal of a non-fast-forward is the guard. When git accepts it, run
    `git worktree remove <run tree>` and go back to step 3, calling the watch with `<pr>` alone: the
    push changed the checks, so the stall window starts over. When git refuses it on a first
    attempt, the remote moved between the fetch and the push: the run redoes the round whole, as on a

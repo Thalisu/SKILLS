@@ -1329,8 +1329,8 @@ echo "# pr.md / ### Fix the red checks: a Wave's fixed commits come onto the run
 step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ')"
 carries "one fix-integrate.sh call takes every fixed branch of the Wave, printing a picked line" \
-  "bash <skill-dir>/../do-code-review/scripts/fix-integrate.sh <run tree> <k>=<branch>..." "picked <k> <sha>"
-flat="$(piece_in="$step" piece_with "fix-integrate.sh <run tree> <k>=<branch>...")"
+  "bash <skill-dir>/../do-code-review/scripts/fix-integrate.sh --compose <run tree> <k>=<branch>..." "picked <k> <sha>"
+flat="$(piece_in="$step" piece_with "fix-integrate.sh --compose <run tree> <k>=<branch>...")"
 expect "a paragraph of the step carries the Wave's fix-integrate.sh call" test -n "$flat"
 carries_any "it is one call per Wave" \
   "one call per Wave" "once per Wave" "one call" "a single call" "one \`fix-integrate.sh\`" \
@@ -1344,6 +1344,13 @@ carries_any "the picks go in ascending check number" \
   "check order" "lowest check number first"
 carries_each "one picked line per check" \
   "picked <k> <sha>" -- "per check" "for each check" "each check" "every check" "per branch" "for each branch"
+# ADR 0102: a fixer's healthy compose rides ahead of its fix as a commit of its own, so the pr call
+# passes --compose, and the run records the compose's sha beside the fix's for the push and the Reply.
+carries_each "the pr Playbook brings both commits of a pr fixer's branch onto the run tree, a composed line ahead of the picked line" \
+  "\`composed <k> <sha>\`" -- "\`picked <k> <sha>\`" -- \
+  "compose first" "compose commit first" "ahead of its fix" "ahead of the fix"
+carries_each "a check whose compose or fix does not land leaves nothing of that check on the run tree, compose included" \
+  "compose included" "its compose included" "nor its compose" "compose and all"
 flat="$(piece_in="$step" piece_with "next Wave" "Next Wave" "following Wave" "Wave after this" "Wave after it")"
 expect "a paragraph of the step is about the next Wave's cut" test -n "$flat"
 carries_each "its worktrees are cut only after this Wave's picks" \
@@ -1509,9 +1516,9 @@ carries "one call takes back every branch of the Wave, printing a removed line p
 carries "a second call takes back the superseded branches" \
   "bash <skill-dir>/../do-code-review/scripts/fix-worktrees.sh remove --superseded <run tree> <branch>..."
 before "the Wave's removal comes after its one fix-integrate.sh call" \
-  "fix-integrate.sh <run tree> <k>=<branch>..." "fix-worktrees.sh remove <run tree> <branch>..."
+  "fix-integrate.sh --compose <run tree> <k>=<branch>..." "fix-worktrees.sh remove <run tree> <branch>..."
 before "the superseded removal comes after the pick of the retry" \
-  "fix-integrate.sh <run tree> <k>=<branch>..." "fix-worktrees.sh remove --superseded"
+  "fix-integrate.sh --compose <run tree> <k>=<branch>..." "fix-worktrees.sh remove --superseded"
 flat="$(piece_in="$step" piece_with "fix-worktrees.sh remove <run tree> <branch>...")"
 expect "a paragraph or sub-item of the step carries the Wave's remove call" test -n "$flat"
 carries_each "over every branch the Wave's add printed" \
@@ -1605,7 +1612,7 @@ carries_each "a refusal from git on either line stops the run quoting git's line
   "git's line" "git's own line" "git's error" "git's stderr" "line git printed" "git's message" "git's refusal"
 carries_any "a fixer's \`fixed <k>:\` return is what gets picked" "\`fixed <k>:" "\`fixed <k>\`"
 carries "fix-integrate.sh brings the fixer's branch onto the run tree, printing the picked line" \
-  "bash <skill-dir>/../do-code-review/scripts/fix-integrate.sh <run tree> <k>=<branch>" "picked <k> <sha>"
+  "bash <skill-dir>/../do-code-review/scripts/fix-integrate.sh --compose <run tree> <k>=<branch>" "picked <k> <sha>"
 before "the pick comes before the fixer's worktree is taken back" "fix-integrate.sh" "fix-worktrees.sh remove"
 flat=""
 [[ $whole == *fix-integrate.sh* ]] && flat="${whole#*fix-integrate.sh}" && flat="${flat%%fix-worktrees.sh remove*}"
@@ -2203,7 +2210,7 @@ whole="$flat"
 carries "the step runs the guard over the run tree, the commit it was cut at and each check's branch" "pr-guard.sh <run tree> <sha> <k>=<branch>..."
 carries_any "from the skill's own scripts" "<skill-dir>/scripts/pr-guard.sh"
 before "the guard runs after the Wave's returns.sh call" "returns.sh 240" "pr-guard.sh <run tree>"
-before "and before its fix-integrate.sh call" "pr-guard.sh <run tree>" "fix-integrate.sh <run tree>"
+before "and before its fix-integrate.sh call" "pr-guard.sh <run tree>" "fix-integrate.sh --compose <run tree>"
 carries_each "the guard reads each branch against the commit the run tree was cut at, never the run tree's moving HEAD" \
   "<sha>" -- "never over the run tree's moving HEAD" "never the run tree's moving HEAD"
 guard_sentences="$(sed 's/\. /.\n/g' <<<"$whole" | awk 'index($0, "pr-guard") || index($0, "touches")' | tr '\n' ' ')"
@@ -2243,6 +2250,10 @@ before "the read runs before the push" "git -C <run tree> rev-list <sha>..HEAD" 
 carries_each "a commit that is no \`picked\` sha stops the run with nothing pushed" \
   "\`picked <k> <sha>\`" -- "no \`picked\` sha" -- "nothing pushed" -- "keeps \`<run tree>\` on disk"
 carries "the stop is one Yours: direction: line naming the run tree" "<run tree> holds <the shas that are no pick> that no fixer branch gave it"
+carries_each "the pre-push read admits a check's composed sha beside its picked one" \
+  "\`composed <k> <sha>\`" -- "\`picked <k> <sha>\`"
+carries_each "the fast-forward push carries both commits of a check, the compose commit first" \
+  "compose commit first" "the compose first" "compose arrives first" -- "fast-forward"
 
 # A round whose only fix the guard refused has nothing to push, and the developer needs one decision
 # handed over, not a line per check: the stop is read off the sentences of the step tied to the guard
@@ -3013,7 +3024,7 @@ flat="$(grep -F "pr-guard.sh <run tree> <sha> <k>=<branch>..." <<<"$sentences" |
 expect "a sentence of the step carries the pr-guard.sh call" test -n "$flat"
 carries "the guard call takes the checks that returned \`fixed <k> by mechanism\` beside \`fixed <k>\`" \
   "\`fixed <k>: ...\`" "\`fixed <k> by mechanism: ...\`"
-flat="$(grep -F "fix-integrate.sh <run tree> <k>=<branch>..." <<<"$sentences" | tr '\n' ' ')"
+flat="$(grep -F "fix-integrate.sh --compose <run tree> <k>=<branch>..." <<<"$sentences" | tr '\n' ' ')"
 expect "a sentence of the step carries the fix-integrate.sh call" test -n "$flat"
 carries "the integration takes the clean checks that returned \`fixed <k> by mechanism\` beside \`fixed <k>\`" \
   "\`fixed <k>: ...\`" "\`fixed <k> by mechanism: ...\`"
