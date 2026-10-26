@@ -2556,6 +2556,27 @@ out="$(sed 's/^[[:space:]]*//' "$pr" | grep -E '^`?Yours: direction:' | sed 's/^
 expect "a line of pr.md is the came-back clause opening \`Yours: direction:\`, naming the check, the pushed sha, its round and what the fixer ruled out" \
   test -n "$out"
 
+# The developer handed a check its diagnosis could not explain relies on the stop naming every
+# hypothesis tested and why each was ruled out (ADR 0104): a stop reading `fix <check> by hand`
+# hands back a failure with no diagnosis, and one the session words itself states what nobody
+# tested. The clause template is read whole, as the came-back clause is; the route off the Fix
+# step's sentences naming the `no mechanism` return.
+echo "# pr.md: a diagnosis that finds no mechanism stops the run on a Yours: direction: clause naming each hypothesis tested and why it was ruled out, in place of fix <check> by hand, or re-run it yourself if you judge it a flake"
+clause="Yours: direction: <check> red again on its retry (<the retry>) and its diagnosis in round <r> found no mechanism (<the entries as the return line carries them>): fix <check> by hand on <head>, or /do <pr url> again once its cause is known"
+out="$(sed 's/^[[:space:]]*//' "$pr" | grep -E '^`?Yours: direction:' | sed 's/^`//; s/`$//' | grep -xF -- "$clause")"
+expect "a line of pr.md is the no-mechanism clause, naming the check, its retry, its diagnosis round and the entries of its return" \
+  test -n "$out"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
+# shellcheck disable=SC2034  # lib.sh's carries reads $flat
+flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ' | sed 's/\. /.\n/g' | grep -F "no mechanism <k>:" | tr '\n' ' ')"
+expect "a sentence of step $fix_n routes a diagnosis's no mechanism <k>: return" test -n "$flat"
+carries_each "it raises a no-mechanism stop-case" \
+  "no-mechanism" -- "stop-case" "stop set"
+carries_each "its entries are read off the return line as it stands, never the session's own reading" \
+  "entries" -- "as it stands" "as the return line carries them" "off the return line"
+out="$(cat "$pr")"
+absent "pr.md no longer hands over the flake clause" "re-run it yourself if you judge it a flake"
+absent "pr.md raises no not-reproducible stop entry" "not-reproducible"
 # The developer keeps the fixes the run could make: a round that picked some checks and holds a
 # stop-case for another still pushes its clean picks, and only then hands the stop over. The route
 # is read off the sentences of the push item naming the stop set with a pick, a push or the watch,

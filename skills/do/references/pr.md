@@ -441,6 +441,15 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
       A diagnosis fixer's `fixed <k> by mechanism: <the test> <the log line that names it>` line is
       routed like any `fixed` return, through `pr-guard.sh` and `fix-integrate.sh` below and the push
       of item 5, after which the run goes back to the watch of step 3 for the round after it.
+      A diagnosis fixer's `no mechanism <k>: <hypothesis>: ruled out by <why> | ...` line is its
+      report that no hypothesis it weighed turned a local test red, and it puts check `<k>` in the
+      round's stop set as a `no-mechanism` stop-case, its entries read off the return line as it
+      stands: the check gets no pick, and the round goes on. A diagnosis's own `not fixed <k>:`
+      line is a `not fixed` stop-case as any fixer's. Any other line from a diagnosis, a
+      `not reproduced` or `not run` line or the session's own `not fixed <k>: the fixer did not
+      return`, is read as `no mechanism`, the line's text after `<k>: ` standing as its entries (for
+      the session's own line, `the diagnosis did not return`), and never goes on the round's
+      not-reproduced list, so it never earns a rerun.
 
    d. First, one guard call over every check of the Wave that returned `fixed <k>: ...` or
       `fixed <k> by mechanism: ...`:
@@ -631,8 +640,9 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    `stale-base` entries in check-number order, since they are raised before any Wave, then the
    entries of the Waves in Wave order, and in check-number order within a Wave, then the
    `rerun-refused` entries, then the checks that came back red after their fix was pushed, then the
-   `not-reproducible` entries, the checks red again on their retry, both raised in step 3, in the
-   order the watch's `red=` lines name them. The `still red:` tail comes last. No clause is
+   diagnosis clauses of the checks red again on their retry after a rerun that carried a stop set,
+   both raised in step 3, in the order the watch's `red=` lines name them. A `no-mechanism` entry
+   raised in step 4 is an entry of its Wave. The `still red:` tail comes last. No clause is
    merged with another, even when two clauses offer the same option, so each stop keeps a clause
    of its own.
 
@@ -663,13 +673,22 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
 
    `<sha>` and `<r'>` are off the round line that pushed it.
 
+   The clause of a `no-mechanism` stop-case is:
+
+       Yours: direction: <check> red again on its retry (<the retry>) and its diagnosis in round <r> found no mechanism (<the entries as the return line carries them>): fix <check> by hand on <head>, or /do <pr url> again once its cause is known
+
+   `<the retry>` is off the round line that opened the retry, `<r>` is the diagnosis round, and the
+   entries are the `<hypothesis>: ruled out by <why>` entries of its `no mechanism` line, joined by
+   ` | ` as it carries them, so each hypothesis tested stands with why it was ruled out.
+
    A stop-case clause of a `Yours: direction:` line that names a fixer's own report carries a
    `<what the fixer ruled out>` slot. It is read off the fixer's return line as it stands, never
    from the session's own reading. For a `not fixed <k>: <reason>` line it is its `<reason>`. For a
    check that came back red after its fix was pushed it is the `<command>` of its
    `fixed <k>: <command>` line, the local command that reproduced the failure, which the fix
    answered and the red check shows did not cure it, and for a
-   `fixed <k> by mechanism: <the test> <the log line>` line it is its `<the test>`. The return lines of `do-pr-fixer` stay as
+   `fixed <k> by mechanism: <the test> <the log line>` line it is its `<the test>`. For a
+   `no mechanism <k>:` line it is its entries. The return lines of `do-pr-fixer` stay as
    they are: the slot quotes them and adds no clause they do not carry.
 
    When no check was picked, the stop set is empty and the round's not-reproduced list is empty, nothing
