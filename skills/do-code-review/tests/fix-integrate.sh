@@ -193,6 +193,63 @@ check_lines "a pick that lands empty, because an earlier Finding already made th
 expect "no cherry-pick is left in progress after an empty pick" no_pick_in_progress "$main"
 expect "the work tree is clean after an empty pick" clean_status "$main"
 
+compose_pair() { # $1 name, $2 fix file, $3 fix content: a branch of a chore(e2e) commit writing docker/compose.e2e.yml, then the fix commit <name>, back on main
+  git checkout -q -b "$1" main
+  mkdir -p docker
+  printf 'services: {}\n' >docker/compose.e2e.yml
+  git add docker/compose.e2e.yml
+  git commit -q -m "chore(e2e): compose for $1"
+  printf '%s\n' "$3" >"$2"
+  commit "$1"
+  git checkout -q main
+}
+
+# The pr Playbook pushes everything on the run tree's HEAD, so a compose landed without its fix, or
+# a fix that silently lost its compose, reaches a shared head that nobody vouched for.
+fresh compose-pair
+main="$tmp/compose-pair"
+printf 'base\n' >README.md
+commit base
+compose_pair f2 two.txt "check two"
+fixer_branch f3 three.txt "check three"
+run --compose "$main" 3=f3 2=f2
+same "under --compose a chore(e2e) commit then a fix commit land compose first, printing composed then picked, beside a lone fix's picked line: exit 0" \
+  "composed 2 $(git -C "$main" rev-parse main~2 2>/dev/null)
+picked 2 $(git -C "$main" rev-parse main~1 2>/dev/null)
+picked 3 $(git -C "$main" rev-parse main 2>/dev/null)"
+check "a run whose every check landed exits 0" 0 "$rc"
+expect "the reviewed branch carries the compose, then its fix, then the next check's fix" \
+  test "$(git -C "$main" log --format=%s -4 main | tr '\n' ' ')" = "f3 f2 chore(e2e): compose for f2 base "
+
+fresh compose-pair-fix-conflicts
+main="$tmp/compose-pair-fix-conflicts"
+printf 'base\n' >a.txt
+commit base
+fixer_branch f1 a.txt "check one"
+compose_pair f2 a.txt "check two"
+run --compose "$main" 1=f1 2=f2
+check_lines "under --compose a pair whose fix conflicts is a conflicted line naming the earlier pick and the file, exit 1" \
+  1 "$rc" "picked 1 $(git -C "$main" rev-parse main 2>/dev/null)" "conflicted 2 with 1 files \"a.txt\""
+absent "a pair whose fix conflicts prints no composed line" "composed "
+expect "a pair whose fix conflicts leaves nothing of its check on the reviewed branch, compose included" \
+  test "$(git -C "$main" log --format=%s main | tr '\n' ' ')" = "f1 base "
+expect "the pair's compose file is gone from the work tree once its fix conflicted" test ! -e "$main/docker/compose.e2e.yml"
+expect "no cherry-pick is left in progress after a pair's fix conflicted" no_pick_in_progress "$main"
+expect "the work tree is clean after a pair's fix conflicted" clean_status "$main"
+
+fresh compose-pair-compose-conflicts
+main="$tmp/compose-pair-compose-conflicts"
+printf 'base\n' >README.md
+commit base
+fixer_branch f1 docker/compose.e2e.yml "services: {one: {}}"
+compose_pair f2 two.txt "check two"
+run --compose "$main" 1=f1 2=f2
+check_lines "under --compose a pair whose compose conflicts is a conflicted line naming the earlier pick and the compose file, exit 1" \
+  1 "$rc" "picked 1 $(git -C "$main" rev-parse main 2>/dev/null)" "conflicted 2 with 1 files \"docker/compose.e2e.yml\""
+expect "a pair whose compose conflicts leaves nothing of its check on the reviewed branch" \
+  test "$(git -C "$main" log --format=%s main | tr '\n' ' ')" = "f1 base "
+expect "the work tree is clean after a pair's compose conflicted" clean_status "$main"
+
 echo
 if [ "$fails" = 0 ]; then echo "fix-integrate: all checks passed"; else
   echo "fix-integrate: $fails failed"
