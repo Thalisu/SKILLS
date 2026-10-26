@@ -285,25 +285,17 @@ the checks: a display read mid-run can show green while a check is still running
   `Yours: direction: pr-watch.sh failed; fix what its stderr line names, then /do the pull request again`,
   and follows nothing.
 - `verdict=red` with a `red=` name that is in the retry record: that check is red again on its
-  retry. It never goes to step 4: no new round is started for it, no `do-pr-fixer` is forked for it
-  again, and it gets no second rerun. The run cuts that check's retry excerpt on a run tree cut at
-  the verdict's `sha=` as step 4 item 2 cuts one (`git fetch origin <head>`, then
-  `git worktree add --detach ...`), with `bash <skill-dir>/scripts/pr-log.sh <link> <run tree>`,
-  its `<link>` the one on the check's `red=` line, keeping its `excerpt=` values, and removes the
-  run tree after (`git worktree remove <run tree>`). On a non-zero exit of the script, its stderr
-  line stands in the excerpt's place. The check raises one `not-reproducible` stop entry in the
-  stop set, carrying the check, its round `<r>`, its retry (`rerun <run id> attempt <n>` or
-  `the run on <picked sha>`), the first excerpt and the retry's excerpt. The run stops on exactly
-  one `Yours: direction:` line whose clause for it is
-  `fix <check> by hand, or re-run it yourself if you judge it a flake`; when it is the only stop,
-  the line reads exactly
-  `Yours: direction: fix <check> by hand, or re-run it yourself if you judge it a flake`. It never
-  offers the run's own rerun again: the one rerun is spent (ADR 0089). This route comes ahead of the
-  next round and of the three-round stop. It holds alike whether the retry was a rerun or a pushed
-  round's new run (`retried by the run on <sha>`). The check is never classified again, whatever its
-  retry excerpt reads: no `pr-classify.sh` call is made for it, so its retry excerpt never turns it
-  into a stale-base or a real check sent to a fixer. The verdict's other `red=` names, which no
-  clause names, go in the `still red:` tail of the one `Yours: direction:` line.
+  retry, and a failure that repeats on its retry is deterministic (ADR 0104). While fewer than three
+  rounds have pushed and no stop-case is carried, the check goes to step 4 as a diagnosis round, and
+  the run does not stop there: step 4 forks a second `do-pr-fixer` for it in diagnosis mode. The
+  diagnosis round is the next round, numbered one past the round whose round line opened the retry,
+  and it holds every `red=` name of the verdict: the checks red again on their retry are forked in
+  diagnosis mode, and the verdict's other red names take the first fixer's path, stale
+  classification included. The check gets no second rerun: the one rerun is spent (ADR 0089). It
+  holds alike whether the retry was a rerun or a pushed round's new run
+  (`retried by the run on <sha>`). The check is never classified again, whatever its retry excerpt reads: no
+  `pr-classify.sh` call is made for it, so its retry excerpt never turns it into a stale-base check
+  or sends it to a first fixer again.
 
 The verdict line of each call, in order, is recorded for the Run report's Run section, which is
 written under `--auto` only, per [reply.md](reply.md): the round is never a section of the Reply.
@@ -368,6 +360,10 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    `round <r>: no check classified, each sent to its fixer: <reason>` and every check goes on as
    real. On exit 2 (usage) every check counts as real too and the run writes
    `round <r>: no check classified, each sent to its fixer: the classifier refused its arguments`.
+
+   A check step 3 sent to a diagnosis round is never classified: its record stays out of the
+   `pr-classify.sh` call and goes to `group-waves.sh` as a real one, and its `do-pr-fixer` is forked
+   in diagnosis mode.
 
    When no record is real, no Wave runs and the round has no pick: it goes to the end of the round
    in item 5, where nothing is pushed, the run tree is removed, and the run stops on its

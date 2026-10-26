@@ -2951,12 +2951,11 @@ carries_each "the call takes only a not reproduced check whose name is not in th
 carries_any "and the run ids it passes are those of such checks alone" \
   "every such check" "each such check" "such checks" "those checks" "each of them" "every one of them"
 
-# The developer relies on a check red again on its retry reaching them as one stop, never as a new
-# round: a new round forks a fixer again over a failure it already could not reproduce, and a second
+# The developer relies on a check red again on its retry never being rerun a second time: a second
 # rerun spends the one retry twice (ADR 0089). The route is read off the watch step's bullet that
 # names the retry record beside verdict=red, the came-back bullet passed over, so the came-back
 # route's own stop never answers for it.
-echo "# pr.md / ### Watch: a red verdict naming a check in the retry record is red again on its retry, never goes to the Fix step, forks no fixer, starts no new round and gets no second rerun, ahead of the next round and the three-round stop"
+echo "# pr.md / ### Watch: a red verdict naming a check in the retry record is red again on its retry and gets no second rerun"
 watch="$(passage_of "$pr" "$watch_h" "##" 2>/dev/null)"
 flat="$(piece_all=1 piece_without="reported fixed that came back red" piece_with "retry record" |
   grep -F "verdict=red" | tr '\n' ' ')"
@@ -2966,26 +2965,36 @@ carries_any "that check is red again on its retry" \
   "red again on its retry" "red on its retry" "red again on the retry" "red on the retry" \
   "red after its retry" "red after the retry" "red again after its retry" "failed its retry" \
   "fails its retry" "retry came back red" "retry is red" "retry was red"
-carries_any "it never goes to step $fix_n" \
-  "never goes to step $fix_n" "never goes on to step $fix_n" "does not go to step $fix_n" "doesn't go to step $fix_n" \
-  "not go to step $fix_n" "never reaches step $fix_n" "never sent to step $fix_n" "not sent to step $fix_n" \
-  "never back to step $fix_n" "never carried to step $fix_n" "not carried to step $fix_n" "skips step $fix_n" \
-  "rather than step $fix_n" "instead of step $fix_n" "no step $fix_n"
-carries_each "no do-pr-fixer is forked for it again" \
-  "do-pr-fixer" -- \
-  "forks no" "no fork" "never forks" "never forked" "not forked" "does not fork" "doesn't fork" \
-  "without forking" "no \`do-pr-fixer\`" "no do-pr-fixer"
-carries_any "no new round is started" \
-  "no new round" "no next round" "no further round" "no other round" "starts no" "no round is started" \
-  "never starts a" "does not start a" "doesn't start a" "not start a"
 carries_any "and it is not rerun a second time" \
   "no second rerun" "never rerun again" "not rerun again" "never rerun twice" "not rerun twice" \
   "reruns nothing" "nothing is rerun" "nothing rerun" "never reruns" "no rerun" "no \`pr-rerun.sh\`" \
   "no pr-rerun.sh" "never calls \`pr-rerun.sh\`" "rerun no"
-carries_each "this route comes ahead of the next round and of the three-round stop" \
-  "ahead of" "before" "comes first" -- \
-  "next round" -- \
-  "three-round" "three rounds" "third pushed round"
+# The developer whose check fails the same way on its retry relies on the run investigating it (ADR
+# 0104): a failure that repeats is deterministic, and a stop handing over `fix <check> by hand` leaves
+# them a failure the run could have diagnosed. The route is read off the watch step's bullet that
+# names the retry record beside verdict=red, the came-back bullet passed over, so the came-back
+# route's own stop never answers for it.
+echo "# pr.md / ### Watch: a check red again on its retry, with fewer than three rounds pushed and no stop-case carried, goes to the Fix step as a diagnosis round forking a do-pr-fixer in diagnosis mode, and the run does not stop there"
+watch="$(passage_of "$pr" "$watch_h" "##" 2>/dev/null)"
+flat="$(piece_all=1 piece_without="reported fixed that came back red" piece_with "retry record" |
+  grep -F "verdict=red" | grep -F "diagnosis" | tr '\n' ' ')"
+expect "a bullet of the watch step routes a verdict=red name in the retry record to a diagnosis" test -n "$flat"
+carries_each "the check goes to step $fix_n as a diagnosis round" \
+  "goes to step $fix_n" "goes on to step $fix_n" "sent to step $fix_n" "carried to step $fix_n" \
+  "to step $fix_n" -- \
+  "diagnosis round"
+carries_each "a do-pr-fixer is forked for it in diagnosis mode" \
+  "do-pr-fixer" -- \
+  "diagnosis mode" "\`Mode: diagnosis\`" "Mode: diagnosis"
+carries_each "while fewer than three rounds have pushed" \
+  "fewer than three" "under three" "less than three" "before three" -- \
+  "pushed"
+carries_each "and no stop-case is carried" \
+  "no stop-case" "no carried stop" "carries no stop" "no stop set" "stop set holds no" -- \
+  "carried" "carries" "carry"
+carries_any "and the run does not stop there" \
+  "does not stop" "doesn't stop" "never stops" "not stop there" "no longer stops" "is not a stop" \
+  "instead of stopping" "rather than stopping"
 # The developer relies on a rerun going only to a check its fixer could not reproduce: a rerun of a
 # check whose fixer returned `fixed` or `not fixed` hides a real failure behind a lucky retry, and a
 # rerun keyed on the session's reading of a log is spent before anyone knows whether the failure
@@ -3095,35 +3104,11 @@ carries_each "the pr Reply's round line for a check pushed on a mechanism fix sa
   "end-to-end failure was not reproduced locally" "end-to-end failure itself was not reproduced locally" -- \
   "<the test>" -- \
   "<the log line"
-# The developer decides between a hand fix and a flake from the two excerpts side by side: a stop
-# without the first excerpt leaves only the retry's failure, and a `Yours:` line that offered the
-# run's own rerun again would hand over a command the run already spent (ADR 0089). The route is
-# read off the watch step's pieces naming the retry record beside a red verdict, the came-back
-# bullet passed over; the first excerpt off the Fix step's sentences naming an excerpt and the retry; the
-# round line, the labels and the stop's line off the Reply step and the steps that carry them.
-echo "# pr.md / ### Watch, ### Fix the red checks and ### Reply: a check red again on its retry stops the run as not reproducible on one not-reproducible entry, quoting the first excerpt and the retry's, cut by pr-log.sh on a run tree at the verdict's sha="
-watch="$(passage_of "$pr" "$watch_h" "##" 2>/dev/null)"
-flat="$(piece_all=1 piece_without="reported fixed that came back red" piece_with "retry record" "red again on its retry" |
-  grep -F -e "verdict=red" -e "red again" | tr '\n' ' ')"
-expect "a piece of the watch step routes a verdict=red name in the retry record" test -n "$flat"
-carries_each "it raises one not-reproducible stop entry" \
-  "not-reproducible" -- \
-  "stop entry" "stop-case" "stop set" "entry"
-carries_any "and stops the run" "stops" "the run stop" "a stop"
-carries "the retry's excerpt is cut with pr-log.sh <link> <run tree>" "pr-log.sh <link> <run tree>"
-carries_each "on a run tree cut at the verdict's sha=, as step $fix_n cuts one" \
-  "run tree" -- \
-  "sha=" -- \
-  "as step $fix_n" "step $fix_n item 2" "item 2" "git worktree add" "as step $fix_n cuts" "the way step $fix_n"
-carries_any "the run tree removed after" \
-  "removed after" "removes it" "removes the run tree" "removes \`<run tree>\`" "remove \`<run tree>\`" \
-  "git worktree remove" "then removed" "is removed" "removed once" "removes that run tree"
-carries_each "on a non-zero exit the script's stderr line stands in the excerpt's place" \
-  "non-zero exit" "exits non-zero" "nonzero exit" -- \
-  "stderr" -- \
-  "in the excerpt's place" "in place of the excerpt" "in its place" "stands in for" "stands in" \
-  "takes the excerpt's place" "instead of the excerpt" "in place of the retry's excerpt" \
-  "in place of its excerpt" "as the retry's excerpt" "quoted as the excerpt"
+# The developer reads a check red again on its retry from the two excerpts side by side: a round
+# line without the first excerpt leaves only the retry's failure. The first excerpt is read off the
+# Fix step's sentences naming an excerpt and the retry; the round line and the labels off the Reply
+# step.
+echo "# pr.md / ### Fix the red checks and ### Reply: the first excerpt of a not reproduced check is kept with its open retry, and the Reply quotes it ahead of the retry's"
 step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
 flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ' | sed 's/\. /.\n/g' | grep -F "excerpt" | grep -F "retry" | tr '\n' ' ')"
 expect "a sentence of step $fix_n names an excerpt beside the retry" test -n "$flat"
@@ -3143,23 +3128,16 @@ expect "a piece of the Reply step names the first excerpt label \`first excerpt 
 carries "and the retry excerpt label beside it" "retry excerpt"
 before "the first excerpt comes ahead of the retry's" "first excerpt (round <r>):" "retry excerpt"
 carries_any "each excerpt quoted" "quoted" "quotes" "quote" "quoting"
-steps="$(sed -n "/^### [0-9]*\. Watch/,\$p" "$pr")"
-lines="$(
-  sed 's/^[[:space:]]*//' <<<"$steps"
-  tr '\n' ' ' <<<"$steps" | tr -s ' ' | grep -oE '`Yours: direction:[^`]*`' | tr -d '`'
-)"
-out="$(grep -xF "Yours: direction: fix <check> by hand, or re-run it yourself if you judge it a flake" <<<"$lines")"
-expect "the stop's line reads Yours: direction: fix <check> by hand, or re-run it yourself if you judge it a flake" test -n "$out"
-# The developer relies on a check red again on its retry ending there (Spec story 19, ADR 0087): a
-# classification of its retry excerpt could read it as stale or real and put it back in the fixing
-# loop, a route that held for one kind of retry only would send the other back to a fixer, and a
-# verdict's other red names left out of the stop line go unreported. The route is read off the watch
-# step's bullet that raises the not-reproducible stop, the came-back bullet passed over.
-echo "# pr.md / ### Watch: a check red again on its retry, whatever its excerpt reads and whichever retry it had, is never classified again, and the verdict's other red names go in the still red: tail"
+# The developer relies on a check red again on its retry reaching its diagnosis (ADR 0104): a
+# classification of its retry excerpt could read it as stale or real and send it to a first fixer
+# again, a route that held for one kind of retry only would send the other back to a first fixer,
+# and a verdict's other red names left out of the diagnosis round go unfixed. The route is read off
+# the watch step's bullet that sends the check to its diagnosis, the came-back bullet passed over.
+echo "# pr.md / ### Watch: a check red again on its retry, whatever its excerpt reads and whichever retry it had, is never classified again, and the verdict's other red names take the first fixer's path in the same round"
 watch="$(passage_of "$pr" "$watch_h" "##" 2>/dev/null)"
 flat="$(piece_all=1 piece_without="reported fixed that came back red" piece_with "retry record" "red again on its retry" |
-  grep -F "not-reproducible" | tr '\n' ' ')"
-expect "a piece of the watch step raises the not-reproducible stop for a check red again on its retry" test -n "$flat"
+  grep -F "diagnosis" | tr '\n' ' ')"
+expect "a piece of the watch step sends a check red again on its retry to its diagnosis" test -n "$flat"
 carries_any "the check is not classified again: no pr-classify.sh call for it" \
   "no \`pr-classify.sh\`" "no pr-classify.sh" "never calls \`pr-classify.sh\`" "never runs \`pr-classify.sh\`" \
   "does not call \`pr-classify.sh\`" "does not run \`pr-classify.sh\`" "never passed to \`pr-classify.sh\`" \
@@ -3179,10 +3157,10 @@ carries_each "whether the retry was a rerun or a pushed round's new run" \
   "rerun" -- \
   "pushed round" "pushed" "a push" "retried by the run" "new run" -- \
   "whether" "either" "alike" "both" "whichever" "any retry" "same for" "as well as" "or by"
-carries_each "the verdict's other red names, which no clause names, go in the still red: tail" \
-  "still red:" -- \
-  "other red" "other \`red=\`" "other checks" "no clause names" "no clause" "rest of" "remaining" \
-  "the others"
+carries_each "the verdict's other red names take the first fixer's path in the same round" \
+  "other red" "other \`red=\`" "other checks" "rest of" "remaining" "the others" -- \
+  "first-fixer path" "first fixer's path" "usual path" "first fixer" "as any red check" -- \
+  "stale classification included" "classified as usual" "\`pr-classify.sh\` included" "classification included"
 # The developer relies on a round that stops on a stop-case beside a not reproduced check getting
 # that check's answer in the same stop (the journey's Ruling on Path 4: rerun once and watch before
 # the stop): a stop made before the rerun hands over a check one rerun could have settled. The Fix step's
