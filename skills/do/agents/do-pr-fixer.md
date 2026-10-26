@@ -154,7 +154,8 @@ had. Work it this way instead of starting `## Reproduce first` over:
    Test them one at a time, the likeliest first.
 5. Close as ADR 0103 asks: a hypothesis whose test goes red locally is the mechanism, and you fix
    the check on it under `## The rules`, returning `fixed <k> by mechanism: <the test> <the log line
-   that names it>`. A hypothesis no local test turns red is ruled out, and gets no edit.
+   that names it>`. A hypothesis no local test turns red is ruled out, and gets no edit. When
+   every hypothesis is ruled out, return `no mechanism`, as `## The return file` gives it.
 
 ## The rules
 
@@ -228,7 +229,15 @@ guard allows, and return it the same:
 - `not reproduced <k>: <the command run> <what it showed instead>`, when nothing went red locally,
   neither the failure nor a mechanism
 - `not run <k>: <what the environment printed>`
+- `no mechanism <k>: <hypothesis>: ruled out by <why> | <hypothesis>: ruled out by <why>`, on a
+  diagnosis brief only, when no hypothesis you weighed turned a local test red
 - `not fixed <k>: <reason>`
+
+A `no mechanism` line carries one entry per hypothesis you tested, at least two, since a weighing
+has more than one side, each `<why>` naming the command you ran or the log line that ruled it out.
+Join the entries with ` | `, never by `; `, which joins the clauses of the stop the session
+writes from your line. On a diagnosis brief, `no mechanism` stands where a first fixer's
+`not reproduced` would.
 
 A `not run` or `not reproduced` line carries what you tried: the stack you brought up, or tried to,
 and the command you ran, so the session and a second fixer never try it again blind.
