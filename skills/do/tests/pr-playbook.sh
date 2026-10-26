@@ -3453,6 +3453,20 @@ carries_each "the diagnosis's clause joins the stop" \
   "diagnosis" -- \
   "clause" -- \
   "joins" "join" "after the carried"
+# The developer handed this stop relies on each diagnosis return reaching its own clause: a
+# diagnosis that reproduced the check and returned fixed <k>: told as "found no mechanism ... fix
+# by hand" hides a fix sitting on a kept fixer branch, and a not fixed <k>: told as no mechanism
+# hides the reason the fixer gave.
+carries_each "a diagnosis's fixed <k>: return gets a clause that names its fix and its fixer branch" \
+  "fixed <k>:" -- \
+  "found its fix" -- \
+  "<fixer branch>"
+carries_each "a diagnosis's not fixed <k>: return gets the not fixed clause" \
+  "not fixed <k>:" -- \
+  "\`not fixed\` clause"
+carries_each "only no mechanism, not reproduced, not run or no return gets the no-mechanism clause" \
+  "no mechanism" -- "not reproduced" -- "not run" -- "no return" -- \
+  "only"
 out="$flat"
 absent "the route no longer hands over the flake clause" "re-run it yourself if you judge it a flake"
 carries_any "on the same Yours: direction: line as the stop-case's clause, never a second Yours: line" \

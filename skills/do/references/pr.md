@@ -231,12 +231,16 @@ the checks: a display read mid-run can show green while a check is still running
   is diagnosed before the stop (ADR 0104): the run forks one diagnosis `do-pr-fixer` for it, in
   diagnosis mode, as step 4 forks one (items 1 to 4 and 6, on a run tree cut at the verdict's
   `sha=`, the check never classified), and reads its return as item 4 c does. The run pushes nothing,
-  since this route never pushes: a `fixed <k> by mechanism` return is never picked, and its fix is
+  since this route never pushes: a `fixed` return is never picked, and its fix is
   kept on its fixer branch, which `fix-worktrees.sh remove` keeps as an unlanded commit. The
   diagnosis's clause joins the stop-case's clauses on the same `Yours: direction:` line, after the
   carried entries, never on a second `Yours:` line. For a `fixed <k> by mechanism` return it reads
   `<check> red again on its retry (<the retry>) and its diagnosis found its mechanism (<the test>), its fix kept on <fixer branch>: review it and bring it onto <head>, or /do <pr url> again once the other stops are cleared`,
-  and for any other return it is the `no-mechanism` clause step 4 item 5 gives. The check's round
+  for a `fixed <k>: <command>` return, a diagnosis that reproduced the check end to end, it reads
+  `<check> red again on its retry (<the retry>) and its diagnosis found its fix (<command>), its fix kept on <fixer branch>: review it and bring it onto <head>, or /do <pr url> again once the other stops are cleared`,
+  for a `not fixed <k>: <reason>` return it is the `not fixed` clause step 4 item 5 gives, with the
+  `<reason>`, and only a `no mechanism` or `not reproduced` or `not run` return, or no return at
+  all, gets the `no-mechanism` clause step 4 item 5 gives. The check's round
   line has both excerpts quoted under it. The run starts no new round and forks no `do-pr-fixer`
   but that diagnosis. This route comes first, ahead of the next round and of the three-round stop.
 - `verdict=red`, when this run has pushed no round yet: a check failed. The run goes on to step 4,
