@@ -131,7 +131,10 @@ word, or a `>` that its redirection scan reads as a write into the run tree: the
 guard allows, and return it the same:
 
 - `fixed <k>: <the command that reproduced it>`
-- `not reproduced <k>: <the command run> <what it showed instead>`
+- `fixed <k> by mechanism: <the test> <the log line that names it>`, when the end-to-end failure did
+  not happen locally and the test of the mechanism the log names was the red the fix stands on
+- `not reproduced <k>: <the command run> <what it showed instead>`, when nothing went red locally,
+  neither the failure nor a mechanism
 - `not fixed <k>: <reason>`
 
 The session waits on that file. A turn that ends without it reads as

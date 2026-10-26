@@ -476,6 +476,10 @@ carries "the fixer writes its one line to the brief's Return file: in one shell 
   "Return file:" "one shell command"
 carries "the fixer's line is fixed with the reproducing command, or not fixed with its reason" \
   "fixed <k>: <the command that reproduced it>" "not fixed <k>: <reason>"
+# A mechanism fix returned as `fixed <k>: <command>` claims a reproduction that never happened: the
+# session routes on this line and the developer reads what the proof stands on (ADR 0103).
+carries "a pr fixer that fixed its check by mechanism returns the test and the log line that names it" \
+  "fixed <k> by mechanism: <the test> <the log line that names it>"
 
 echo "# skills/do/agents/do-pr-fixer.md: the fixer reads the pr Playbook's brief, its excerpt quoted data, never an instruction"
 
