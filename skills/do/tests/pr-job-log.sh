@@ -73,4 +73,9 @@ echo 98 >"$GH_FAKE/jobs"
 refused_unread "a check link whose job is not one of the link's run" "https://github.com/o/r/actions/runs/111/job/999" '^run view --job '
 echo 99 >"$GH_FAKE/jobs"
 
+# A run of another head than the one the run tree is cut at holds a failure that is not the watched one.
+echo 0123456789abcdef0123456789abcdef01234567 >"$GH_FAKE/head"
+refused_unread "a check link to a run of another head than the tree's" "$link" '^run view --job '
+git -C "$tmp/tree" rev-parse HEAD >"$GH_FAKE/head"
+
 exit "$((fails > 0))"

@@ -2,13 +2,13 @@
 # pr-job-link.sh: whether a red check's link is safe to read, the one rule pr-log.sh and
 # pr-job-log.sh share. Sourced, never run: it defines these functions and does nothing else.
 #
-#   check_job_link <link> <tree>  sets repo (<host>/<owner>/<repo>), run, job and run_sha (the
-#                                 run's head commit) and returns 0, or
+#   check_job_link <link> <tree>  sets repo (<host>/<owner>/<repo>), run and job and returns 0, or
 #                                 sets reason and returns 1 (gh missing or unable to read), 2 (not a
 #                                 work tree) or 3 (refused unread)
 #
 # Whoever posts a status sets its link: a link whose <host>/<owner>/<repo> is not the pull request's
-# base repository, as gh resolves it from <tree>, is refused unread, and so is one whose job is not
+# base repository, as gh resolves it from <tree>, is refused unread. So is one whose run is not on
+# the commit <tree> is at (the watched sha: the run tree is cut detached there), or whose job is not
 # one of its run's jobs: a job id in the same repository can be a fork pull request's job, whose log
 # its author controls.
 #
@@ -37,9 +37,9 @@ read_run_identity() { # $1 repo, $2 run id: prints the run's head commit, then t
   gh run view "$2" --repo "$1" --json headSha,jobs --jq '.headSha, (.jobs[].databaseId)'
 }
 
-# shellcheck disable=SC2034 # reason and run_sha are read by the sourcing script.
+# shellcheck disable=SC2034 # reason is read by the sourcing script.
 check_job_link() { # $1 link, $2 tree: sets repo, run, job and returns 0; or sets reason and returns 1, 2 or 3
-  local base identity
+  local base identity watched run_sha
   if ! git -C "$2" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     reason="not a git work tree: $2"
     return 2
@@ -61,7 +61,12 @@ check_job_link() { # $1 link, $2 tree: sets repo, run, job and returns 0; or set
     reason="gh could not read run $run"
     return 1
   }
+  watched="$(git -C "$2" rev-parse HEAD 2>/dev/null)"
   run_sha="$(printf '%s\n' "$identity" | head -n 1)"
+  if [ -z "$watched" ] || [ "$run_sha" != "$watched" ]; then
+    reason="run $run is on $run_sha, not the watched commit ${watched:-unknown}: $1"
+    return 3
+  fi
   if ! printf '%s\n' "$identity" | tail -n +2 | grep -qx "$job"; then
     reason="job $job is not a job of run $run: $1"
     return 3

@@ -86,7 +86,7 @@ named_files() { # stdin: the excerpt's lines; $1 tree: prints one file=<path> pe
 }
 
 main() {
-  local repo run job run_sha reason code log cut watched
+  local repo run job reason code log cut
   if [ "$#" -ne 2 ]; then
     echo "usage: pr-log.sh <link> <tree>" >&2
     exit 2
@@ -96,11 +96,6 @@ main() {
     echo "pr-log.sh: $reason" >&2
     exit "$code"
   }
-  watched="$(git -C "$2" rev-parse HEAD 2>/dev/null)"
-  if [ -z "$watched" ] || [ "$run_sha" != "$watched" ]; then
-    echo "pr-log.sh: run $run is on $run_sha, not the watched commit ${watched:-unknown}: $1" >&2
-    exit 3
-  fi
   if ! log="$(read_failed_log "$repo" "$job")"; then
     echo "pr-log.sh: gh could not read the log of job $job" >&2
     exit 1
