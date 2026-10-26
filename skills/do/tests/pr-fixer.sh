@@ -464,6 +464,14 @@ carries_each "the stack starts fresh, built from the fixer's own worktree" \
 carries_each "a container found running or crash-looping is never reused, stopped or removed" \
   "running" -- "crash-looping" -- "never reused" "never reuse" -- "stopped" "stop" -- "removed" "remove"
 
+# A teardown that reaches past the fixer's own project (a prune, a down without -p) stops the
+# developer's stack or deletes its data, and one that is skipped on an early end leaves the next run a
+# project it never started.
+carries_each "on every end, the fixer tears down its own fixer-<id> project, its volumes with it" \
+  "down -v" "--volumes" -- "every end" "however you end" "on each end" -- "-p fixer-<id>"
+carries_each "the teardown reaches no other container, network or volume" \
+  "no other container" "nothing else" -- "prune"
+
 echo "# skills/do/agents/do-pr-fixer.md: the fixer reproduces its check's failure before it edits anything"
 
 # A CI log only points at a failure (ADR 0087): a fix written from the log alone answers what the log

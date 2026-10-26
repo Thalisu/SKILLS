@@ -74,6 +74,11 @@ The stack starts fresh, built and started from your `Tree:`, so it runs the comm
 (`up --build --force-recreate`). A container you find running or crash-looping, the developer's or
 another fixer's, is never reused, and never stopped or removed either: it is not yours.
 
+On every end, fixed, not fixed, not reproduced or not run, tear down your own project before you
+write your return file: `cd <Tree> && docker compose -p fixer-<id> down -v --remove-orphans`, its
+volumes with it. That touches no other container, network or volume: never a `prune`, never a
+`down` without `-p fixer-<id>`, never a `docker rm` or `docker stop` by name.
+
 ## Reproduce first
 
 Find the command behind the failed step your brief names. Read the brief's failed steps, its excerpt
