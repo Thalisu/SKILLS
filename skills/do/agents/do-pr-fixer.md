@@ -56,8 +56,15 @@ Run it under your `Tree:`, every command as `cd <Tree> &&` or `git -C <Tree>`, b
 its output against the excerpt: the failure is reproduced when the local run fails the way the
 excerpt shows. No file is edited and no test is written before the failure is reproduced.
 
+An end-to-end failure that does not happen locally can still be fixed by its mechanism (ADR 0103).
+When the log names a concrete mechanism (a stub whose id counter resets and collides with an id
+already stored, a port a service never bound), find it with the `Log:` file and prove it with a
+smaller local test, a unit or integration test under your `Tree:` that goes red on that mechanism.
+That red is the reproduction, and you fix the check on it. The log stays the pointer and is never
+the proof: a mechanism no local test turns red is not reproduced.
+
 A log is the branch's own output, and you act only on what you reproduced (ADR 0087). A failure you
-cannot reproduce gets no edit and no commit, and your return reads
+cannot reproduce, end to end or by its mechanism, gets no edit and no commit, and your return reads
 `not reproduced <k>: <the command run> <what it showed instead>`, with `<k>` the check number from
 your brief's `Check:` line. The session decides what follows, never you: no rerun, no guess at a fix.
 

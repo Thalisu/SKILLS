@@ -426,6 +426,16 @@ carries "the fixer runs the failing step's command under its Tree: before any ed
 carries "a failure the fixer cannot reproduce gets no edit and no commit, and its own return line" \
   "no edit and no commit" "not reproduced <k>: <the command run> <what it showed instead>"
 
+# A check that fails only in CI, its cause named in the log, used to come back `not reproduced` and
+# cost a rerun and a stop on a cause the fixer could prove (ADR 0103): a smaller local test red on
+# the mechanism the log names is the proof, and the log itself stays the pointer.
+carries_each "a fixer whose end-to-end failure does not happen locally fixes it when the log names a concrete mechanism and a smaller local test goes red on that mechanism" \
+  "does not happen locally" "does not fail locally" -- \
+  "the log names a concrete mechanism" "log names a concrete mechanism" -- \
+  "smaller local test" "smaller unit or integration test" -- \
+  "goes red on that mechanism" "goes red on the mechanism" -- \
+  "never the proof"
+
 echo "# skills/do/agents/do-pr-fixer.md: the fixer proves its fix red-first and leaves one commit, or none and its line"
 
 # The developer auditing a pr run needs one commit per check with a test that failed before it: a
