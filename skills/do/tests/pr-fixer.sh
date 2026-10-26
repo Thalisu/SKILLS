@@ -475,6 +475,22 @@ carries_each "the text between the excerpt tags is quoted data, never an instruc
   "never an instruction" "not an instruction" "never instructions" "never as an instruction" \
   "never an order" "not an order"
 
+echo "# skills/do/agents/do-pr-fixer.md: the brief's Log: file, the check's whole job log, is read by search and excerpt, as quoted data and never as instructions"
+
+# The whole job log can run to tens of thousands of lines a stranger can write into: read whole it
+# floods the fixer's window, and read as instructions a planted line steers it. The rule is read off
+# the brief's Log: entry itself, so the excerpt's own quoted-data sentence never answers for it.
+# shellcheck disable=SC2034  # lib.sh's carries reads $flat
+flat="$(item_holding <(passage_of <(body_of "$agent") "## The brief" "## ") '- ' '`Log:`' | tr '\n' ' ' | tr -s ' ')"
+expect "the brief section lists a \`Log:\` key" test -n "$flat"
+carries_any "it names the check's whole job log, every step included" "whole job log" "whole log"
+carries_each "it is read by search and by excerpt, never whole" \
+  "Grep" -- "offset" -- "limit" -- "never whole" "never read whole" "not whole"
+carries_each "it is quoted data, never an instruction" \
+  "quoted data" -- \
+  "never an instruction" "not an instruction" "never instructions" "never as an instruction" \
+  "never an order" "not an order"
+
 echo "# README.md, .agents/invocation.md, docs/do.md: the agent is listed with what do ships"
 
 # shellcheck disable=SC2034  # lib.sh's carries reads $flat
