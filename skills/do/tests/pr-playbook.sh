@@ -1171,6 +1171,25 @@ carries_each "and the first return is the first fixer's return line as its retur
   "return line" -- \
   "as its return file holds it" "as it stands" "exactly as" "verbatim" "as written"
 
+# The developer whose check was diagnosed relies on the diagnosed fix reaching the pull request
+# (ADR 0104): a diagnosis return the session never guards, integrates and pushes is a fix left on a
+# fixer branch, and a run that stops after it never watches whether the fix turned the check green.
+# The route is read off the Fix step's sentences naming a diagnosis beside the mechanism return.
+echo "# pr.md / ### Fix the red checks: a diagnosis fixer's fixed <k> by mechanism return is guarded, integrated and pushed like any fixed return, and the run watches again for its next round"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
+# shellcheck disable=SC2034  # lib.sh's carries reads $flat
+flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ' | sed 's/\. /.\n/g' | grep -F "diagnosis" | grep -F "by mechanism" | tr '\n' ' ')"
+expect "a sentence of step $fix_n names a diagnosis fixer's mechanism return" test -n "$flat"
+carries_each "it goes through the guard, the integration and the push" \
+  "pr-guard.sh" "guard" -- \
+  "fix-integrate.sh" "integrat" -- \
+  "push"
+carries_any "like any fixed return" \
+  "like any \`fixed\` return" "like any fixed return" "as any \`fixed\` return" "as any fixed return" \
+  "as any other \`fixed\` return" "like any other \`fixed\` return"
+carries_each "after which the run watches again for its next round" \
+  "watch" "step $watch_n" -- \
+  "next round" "round after it" "following round"
 # A round can carry several unrelated failures, and a session that fixes them itself holds every log
 # and every diagnosis in one window (ADR 0088): a red verdict hands each check to a fork of its own,
 # in a worktree and on a branch cut for it, and a session without the Agent tool stops rather than

@@ -422,6 +422,9 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
       `returned=` is the fixer's report that the check's stack could not be brought up, so the
       check never ran locally: the session routes it as a `not reproduced` line, check `<k>` going
       to the round's not-reproduced list, never picked and raising no stop-case.
+      A diagnosis fixer's `fixed <k> by mechanism: <the test> <the log line that names it>` line is
+      routed like any `fixed` return, through `pr-guard.sh` and `fix-integrate.sh` below and the push
+      of item 5, after which the run goes back to the watch of step 3 for the round after it.
 
    d. First, one guard call over every check of the Wave that returned `fixed <k>: ...` or
       `fixed <k> by mechanism: ...`:
