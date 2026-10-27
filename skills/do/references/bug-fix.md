@@ -41,7 +41,9 @@ anything is written:
   `ticket`. A defect with a Ticket behind it is built through the chain, where the Ticket's
   criteria are the done predicate and the run claims and closes it. Nothing is written.
 
-There is no Ticket on this path, so the door reads no file and the run writes no claim line.
+Either refusal names the one way on, so it carries no `Yours:` line, per [reply.md](reply.md).
+Every stop after the door names its class at its step. There is no Ticket on this path, so the
+door reads no file and the run writes no claim line.
 
 ## Resume
 
@@ -90,7 +92,8 @@ branch and `refs/heads/do/<slug>`, qualified so a same-named tag can never shado
   run resumes, names the worktree and its branch, and names the changes one line per file from
   `git status --short`. A yes discards them, `git restore --staged --worktree .` then
   `git clean -fd` in the worktree; a no stops the run with the worktree as it is, the blocker's line
-  naming it and its branch.
+  naming it and its branch, and hands the changes over as work the run did not make:
+  `Yours: destroy: discard the uncommitted changes in <worktree>, or commit or move them yourself, then type the request again`.
   Under `--auto` the question is still asked of the developer, in the same place and the same
   words, with the `choice-taker`'s return shown above it as it came back, per the questions still
   asked under the flag in [Run questions under `--auto`](#run-questions-under---auto) below, and
@@ -208,7 +211,8 @@ twice: once here, before the cause hunt, and once more at step 7,
 on the fixed build. The Run report pastes both reports marked as the developer's, beside the run's
 own test output, so a reader tells one from the other. No report, or a no,
 stops the run as blocked with nothing landed and the hypotheses listed, the main checkout restored
-first, since a defect nobody has observed is never called fixed.
+first, since a defect nobody has observed is never called fixed. The observation is handed over:
+`Yours: direction: drive <the surface> and report what you see, then type the request again to resume in <worktree>, or leave do/<slug> unfixed in its worktree`.
 
 Under `--auto` both asks still go to the developer, in the same words. The request is for an
 observation only they can make, never a choice between options, so there is nothing for the
@@ -291,7 +295,8 @@ A Design fork the plan meets, two shapes step 3's evidence and the code cannot s
 
 A cause that needs a new shape or a new feature to remove is not a bug fix. The run stops there
 with one message naming `discuss`, the evidence listed and nothing landed, the worktree and its
-branch left in place and named, so the developer decides the design and `do` never reopens a plan.
+branch left in place and named, so the developer decides the design and `do` never reopens a plan:
+`Yours: direction: settle the design with /discuss, then type the request again to resume in <worktree>, or leave do/<slug> unfixed in its worktree`.
 Done when the fix and the shape, with the sketch or its skip, are recorded for the Run report's Run
 section as its fix line, per [reply.md](reply.md), beside the hand-over and Sketch lines or the
 shaped-by line where the fix crossed a boundary, or the run stopped naming `discuss`.
@@ -336,7 +341,8 @@ back to step 3 with what it saw.
 
 When the surface cannot be reached, the developer is asked a second time to drive the fixed build,
 the turn's final message as at step 2, and their second report is pasted in the Run report marked as theirs beside the run's own test output.
-No report, or a no, stops the run as blocked with nothing landed. Done when the original
+No report, or a no, stops the run as blocked with nothing landed, with step 2's `Yours: direction:`
+line on the fixed build. Done when the original
 reproduction's passing output is recorded for the Run report's Run section, or the developer's second
 report is, marked as theirs.
 
@@ -477,7 +483,8 @@ returned `extreme` on stops, under `--auto` as without it. The stop is a blocked
 the blocked shape of [reply.md](reply.md), nothing landed, and its blocker lines name the step, both
 sides, the guarantee the weaker side would lose with its risk class (or what could not be undone
 once landed), the worktree and its branch left in place, and the commits made so far, one line
-each, or `none`.
+each, or `none`. The choice between the sides is handed over:
+`Yours: direction: choose <side A> or <side B> through the /discuss below, then type the request again to resume in <worktree>`.
 
 There is no Ticket and no Spec, so the reply's last line is a `/discuss` command that names
 neither, whole, with nothing after it:

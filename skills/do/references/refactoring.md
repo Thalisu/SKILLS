@@ -112,7 +112,9 @@ Four checks, before any edit and in this order.
    for the pin to hold, and the run refuses it. The refusal ends the run in one message: the first
    line, the reason, and the door the request goes to with the command to type, nothing written.
    The door is `/do` with the bug in words for a defect, and `/discuss <the request>` for a feature,
-   or `/spec` when the conversation already holds the discussion.
+   or `/spec` when the conversation already holds the discussion. The refusal names the one way on,
+   so it carries no `Yours:` line, per [reply.md](reply.md); every stop after the door names its
+   class at its step.
 
    A reshape whose request also asks for a behaviour change is not refused. It is taken as the
    reshape alone, and the behaviour change is named in the reply as step 9 names one found on the
@@ -240,7 +242,9 @@ titles, and `git status --short` in the worktree.
   run resumes, names the worktree and its branch, and names the changes one line per file from
   `git status --short`. A yes discards them, `git restore --staged --worktree .` then
   `git clean -fd` in the worktree; a no stops the run with the worktree as it is, the blocker's
-  line naming it and its branch. Under `--auto` that question is still asked of the developer, in
+  line naming it and its branch, and hands the changes over as work the run did not make:
+  `Yours: destroy: discard the uncommitted changes in <worktree>, or commit or move them yourself, then type the request again`.
+  Under `--auto` that question is still asked of the developer, in
   the same words, with the `choice-taker`'s return shown above it and nothing discarded on that
   return, per [Forks and run questions](#forks-and-run-questions).
 - A run that stopped as blocked resumes the same way once its reason is gone, since every stop on
@@ -281,7 +285,8 @@ the Run report's Evidence. The commands come from the project's facts, the way t
 
 Red here is not this Playbook's to fix: the suite was red before the reshape, so the run stops in
 one message naming `test-triage` with the command `/test-triage <test file>`, and nothing is
-written.
+written. The worktree and its branch stay, named, for the resume:
+`Yours: direction: make <test file> green with /test-triage <test file>, then type the request again to resume in <worktree>, or leave do/<slug> in its worktree`.
 
 #### The harness
 
@@ -411,7 +416,8 @@ so the rival shapes stay out of the session's:
   [Sketch format](../../../.agents/formats/sketch-format.md).
 - A deviation from the sketch during the reshape is recorded for the Run report. A second deviation of
   the same shape stops the run as a wrong sketch, the deviations listed, the worktree and its
-  branch named.
+  branch named:
+  `Yours: direction: keep the Sketch's shape or take the deviation's, by editing the Sketch at <its location>, then type the request again to resume in <worktree>`.
 
 A Design fork the step meets, two target shapes the request and the code cannot settle, goes to
 [Forks and run questions](#forks-and-run-questions) below before the shape is recorded.
@@ -802,7 +808,8 @@ returned `extreme` on stops, under `--auto` as without it. The stop is a blocked
 the blocked shape of [reply.md](reply.md), nothing landed, and its blocker lines name the step, both
 sides, the guarantee the weaker side would lose with its risk class (or what could not be undone
 once landed), the worktree and its branch left in place, and the commits made so far, one line
-each, or `none`.
+each, or `none`. The choice between the sides is handed over:
+`Yours: direction: choose <side A> or <side B> through the /discuss below, then type the request again to resume in <worktree>`.
 
 There is no Ticket and no Spec, so the reply's last line is a `/discuss` command that names
 neither, whole, with nothing after it:

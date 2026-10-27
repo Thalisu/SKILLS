@@ -62,6 +62,9 @@ fact a search settles.
 
 A refusal is that message cut short: the first line, the refusal with its reason, and the Playbook
 or the door the request goes to with the command to type. Nothing is edited and nothing is written.
+Every refusal of this Playbook names the one way on, so none carries a `Yours:` line, per
+[reply.md](reply.md): the door's five checks, a red gate and a `verdict=not-trivial`. The stops
+that hand something over are the two blocked ones, at steps 4 and 5, and each names its class.
 
 ## Steps
 
@@ -178,7 +181,8 @@ after. The run takes these steps in order, and commits nothing on either outcome
 
 **Infrastructure.** A command that did not run (a missing binary, a module not found, a timeout) is
 neither red nor green. The touched files are restored, nothing is committed, and the reply says
-blocked, with the command and its error on the blocker's line. The developer fixes the runner and types the request again.
+blocked, with the command and its error on the blocker's line and the runner handed over:
+`Yours: direction: fix what the error names for <the command>, then type the request again`.
 
 Done when both lines are quoted, or read `skip: <reason>`.
 
@@ -209,7 +213,7 @@ The exit code decides what the run does next:
 |---|---|---|
 | 0 | `verdict=trivial` | goes on to the commit |
 | 1 | `verdict=not-trivial`, `goes_to=<playbook>` | restores the touched files (`git checkout -- <files>`, exact because step 1 refused a dirty target), commits nothing, and ends in one message quoting the script's lines and naming the Playbook: `refactoring` for a changed signature, a renamed, an extracted or an un-exported export; `discuss` for a new exported symbol or a new file; `bug-fix` for a test file the change had to touch, since a test is the test author's and goes red-first |
-| 2 | usage, or not a git repository | blocked; the reply quotes the error on the blocker's line |
+| 2 | usage, or not a git repository | blocked; the reply quotes the error on the blocker's line, with `Yours: direction: fix what the error names, then type the request again` |
 | 3 | `verdict=judgment` | a touched file's language has no pattern: the run reads the diff itself against the same three questions (a test file, a new exported symbol, a changed signature), stops as for exit 1 when one holds, and says in the Run report that the second check was its own judgment and not the script's |
 
 Done when the verdict is recorded for the Run report's Run section.

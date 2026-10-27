@@ -762,15 +762,18 @@ How much more it carries depends on where the run stopped:
 - **Stopped as blocked.** It names the step it stopped at on the blocker's line, and the Run
   report's Skipped section lists no step after it as skipped: the run never reached those steps.
 
-Every blocked Reply, and every refusal at a door, carries one line that says what the run hands the
-developer and why only the developer can give it, except the `ticket` door's stops on a Build
-repository (`verdict=elsewhere` and `verdict=unbuildable`) and six stops of the `pr` door, which
-hand over no choice: the first names the one repository to run in, the second the one input to
-fix; a pull request the GitHub CLI cannot open, or one closed or merged, names another pull request
+Every blocked Reply, and every refusal at a door that hands a choice over, carries one line that
+says what the run hands the developer and why only the developer can give it, except the
+`ticket` door's stops on a Build repository (`verdict=elsewhere` and `verdict=unbuildable`) and
+six stops of the `pr` door, which hand over no choice: the first names the one repository to run
+in, the second the one input to fix; a pull request the GitHub CLI cannot open, or one closed or merged, names another pull request
 or the same one reopened, a GitHub CLI missing or not logged in names `gh auth login`, a branch of
 the pair that does not exist names the branch to correct, a pair with nothing to open, its head
 carrying no commits its base lacks, names the commits the head still needs, or another pair, and a
-pull request whose head lives in a fork names that fork. The line reads:
+pull request whose head lives in a fork names that fork. A refusal that
+sends the request on, naming the Playbook, the door or the skill it goes to with the command to
+type, hands over no choice either: it is the router's own `Playbook: none` one step later, the
+command is the one way on, and it carries no such line. The line reads:
 
 ```
 Yours: <class>: <the choice>
