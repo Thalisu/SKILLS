@@ -297,7 +297,10 @@ a command line as text. For each entry, in order:
 
    On any of those the run writes nothing from the block: the outcome is recorded `none`, the reason
    the script's, through the `ledger.sh applied` call of step 5, and the run goes on to the next
-   entry rather than stopping over it.
+   entry rather than stopping over it. Exit 2 is a fault of the call rather than of the block (no
+   ledger at the path, no `realpath` on this machine, a block dir with no `id` or `file` file), so
+   the block was never checked: the run writes nothing from it either, and records it the same way,
+   `none` with the script's stderr line as the reason.
 3. **Apply the edit.** Only once the script exits 0 does the session apply the edit itself, from the
    block the judge returned, by what the block carries:
    - `replace` and `with`: the `replace` text swapped for the `with` text in the block's file;

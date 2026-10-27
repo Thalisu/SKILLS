@@ -51,6 +51,9 @@ file describes, and take the verdict from the same table.
 | `not-setup` | stops in one line: the Ticket is not a Setup ticket, with `/do <the Ticket's path>` to run it as a Ticket |
 | `ambiguous` | stops in one line naming the `ambiguous=` detail the door printed, the Ticket's line to fix by hand |
 
+Exit 2 prints no `verdict=` line, only one stderr line (`no Ticket at <path>`, `not a git
+repository`, or the usage line): the run stops in one line quoting it, with the path to fix.
+
 A stop writes nothing and claims nothing: the frontier's script on the `resolved` route reads only.
 
 A `resume` is any later `/do` on a Setup ticket left `claimed`, in the session that showed the
