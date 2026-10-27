@@ -171,7 +171,9 @@ The Ticket's Spec and its journey are read by a fork, never by the session, exce
 branches below where no reader can be forked. They are two whole documents the run needs a slice
 of, which is the exploration the Delegates rule below forks for. The session opens neither
 document, and it opens neither afterwards to check the fork: what comes back is quoted with the
-location of every quote, so the check is a quote read against its line.
+location of every quote, so the check is a quote read against its line. The one read of the Spec
+the session makes is the fixed command over its Ruling lines below, which prints those lines and
+no other part of it.
 
 Before anything is forked, the door resolves both paths from the Ticket, the way the second run
 below does, and the door hashes both itself before it forks: `git hash-object <path>` run under
@@ -181,11 +183,19 @@ Digest's `## Sources` lines, so the record the reuse gate trusts is the run's ow
 the fork's. When it forks the reader, the door says in one line that both are being read in a
 window of their own.
 
-The door also reads this Ticket's own `Ruled by the choice-taker on Ticket <this Ticket>` lines the
-Spec's Implementation Decisions already carries, when it carries any, straight off the Spec text it
-just hashed, and records them, their `Fork:`, side-taken and `Norm:` text, for the session: the
-Digest carries no Implementation Decisions section, so this is the one place those lines reach the
-Plan step, whose Planner brief carries them, and the Run report's `Rulings` section.
+On every run that reaches the Digest decision, whichever way it goes, a Digest reused, a reader
+forked or no reader forkable, the door also reads this Ticket's own
+`Ruled by the choice-taker on Ticket <this Ticket>` lines the Spec's Implementation Decisions
+already carries, right after it hashed the Spec, with one fixed command and never by opening it:
+`grep -F -- 'Ruled by the choice-taker on Ticket <this Ticket> at the ' <the Spec's path>`, run
+under the same `root=`, the trailing ` at the ` keeping one Ticket's lines from matching another
+whose name it begins. It
+records them, their `Fork:`, side-taken and `Norm:` text, for the session, none when the command
+prints nothing or the Spec is `absent`: the Digest carries no Implementation Decisions section, so this is the one place those lines reach the Plan step, whose
+Planner brief carries them, the Builder's `Rulings:` key and the Run report's `Rulings` section. A
+reused Digest needs them as much as a fresh one: a Spec whose hash still matches still carries
+the Rulings an earlier run wrote, and a brief that arrived without them would bring a settled
+Design fork back.
 
 No reader can be forked on two branches: the Agent tool is withheld from the session, or
 the Agent tool lists no `do-reader`, as it does on a machine that never linked the reader `do`

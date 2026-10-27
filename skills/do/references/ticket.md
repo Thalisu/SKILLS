@@ -224,7 +224,8 @@ left, and nothing they run opens a Digest.
 Every other run, a resume whose `review=` line reads `none` included, goes on to the Digest
 decision. Then the door decides between
 the Digest already beside the Ticket and a reader, as the second run section of
-[mechanics.md](mechanics.md) fixes. Two recorded hashes that both match are a reuse: the run says
+[mechanics.md](mechanics.md) fixes, and reads this Ticket's Ruling lines off the Spec by the fixed
+command of the reader section there, whichever way it decides. Two recorded hashes that both match are a reuse: the run says
 in one line that it reused the Digest and forked no reader, and derives its behaviours from the
 Digest already beside the Ticket. A hash that differs, and a Ticket with no Digest yet, are the
 two states the run forks the reader for, and it forks it for no other. The door resolves both
@@ -759,8 +760,8 @@ that file's own list and never a second one here: a copy of the list in this fil
 brief the fork is actually handed. A held Ruling that carries a `Now reads:` pair reaches the fork
 through the brief's `Criteria:` key, whose text is the `Now reads:` text and never the text the
 Ticket issue still carries, per the forks in [forks.md](forks.md). The door's own reading
-of this Ticket's `Ruled by the choice-taker on Ticket <this Ticket>` lines, recorded when it forked
-the reader per the reader section of [mechanics.md](mechanics.md), reaches it through the brief's
+of this Ticket's `Ruled by the choice-taker on Ticket <this Ticket>` lines, recorded when it forked the reader per the reader section of [mechanics.md](mechanics.md), and
+just as much at the Digest decision that reused a Digest and forked none, reaches it through the brief's
 `Rulings:` key, since the Digest carries no Implementation Decisions section and the fork opens no
 Spec: a criterion that still reads the side an edited line reversed comes back as a Design fork in
 the Plan rather than as a behaviour, and the session rules on it. A Design fork the Plan names, two
