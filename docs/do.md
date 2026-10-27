@@ -162,7 +162,7 @@ test written first would have to guess the selectors and labels impeccable has y
 things prove it, and the Run report's Evidence shows each under `--auto`:
 
 - The flows its observable criteria earn, written once the screen is committed by the same
-  end-to-end author a Builder's flows go through. A project with no end-to-end command gets one
+  end-to-end author, and under the same rule, a Builder's flows go through. A project with no end-to-end command gets one
   line instead, saying that no flow covered the screen and that the scan and the Gate are its
   proof.
 - impeccable's detector scan, run by script inside the fork, which fixes what the scan reports

@@ -114,24 +114,30 @@ The screen is proven after it is built, never red-first. No test is written befo
 exists, since one would have to guess the selectors, the labels and the structure the build has yet
 to decide. So the flows come after the last criterion is committed.
 
-Which criteria get a flow is the Digest's to say, never your reading of the diff. The Digest sits
-beside the Ticket, at the Ticket's path with `.digest.md` in place of `.md`: open it with the Read
-tool and read its `## Observable criteria` section. A criterion the section names gets a flow. One
-it leaves out gets no flow, and its `flow:` line says why none is needed. With no Digest to read,
-go through the Ticket's criteria one by one instead, each with its flow or the reason it needs
-none.
+Which criteria get a flow, and who authors each one, is the Builder's own rule, kept in one place:
+open `~/.claude/skills/do/references/builder.md` of the installed do skill with the Read tool and
+follow its `## The flows` section, `### Which criteria get a flow` and `### Who authors it`, as
+written, with your brief's `Loop:` and `Project map:` keys standing in for the Builder's and a stop
+it names returned as your `stopped`. Those two cover every case: a section reading `none`, a `none`
+read from neither a Path nor a story, a consumer surface, and a map that fills one end-to-end
+command and leaves the other reading `none yet → /testing-policy`. Its `### Reading the author's
+report` is not yours, since you route the verdicts yourself, below.
 
-Who authors a flow is the rule a Builder follows, and your brief's `Loop:` key decides it. You
-dispatch the author with the Agent tool and `run_in_background: false`, one criterion at a time,
-and you never write a flow in this window where an author can be dispatched.
+What it leaves to you is where the Digest sits, since your brief names none: beside the Ticket, at
+the Ticket's path with `.digest.md` in place of `.md`. Open it with the Read tool and read its
+`## Observable criteria` section, the section the rule reads. With no Digest to read, go through
+the Ticket's criteria one by one instead, each with its flow or the reason it needs none.
 
-- `Loop: policy`: the project has a Testing Policy. Call the Agent tool with
-  `subagent_type: e2e-test-author`, the project's end-to-end test author.
-- `Loop: global`: the project has none. Call the Agent tool with
-  `subagent_type: global-e2e-test-author`, the author `do` ships, and add one line to its input,
-  `Project map: <the path your brief names>`.
-- `Loop: fallback`: no author can be dispatched. Write the flow yourself, under the same rules, and
-  say so on a `fallback:` line beside its `flow:` line.
+You dispatch every author with the Agent tool and `run_in_background: false`, one criterion at a
+time, and you never write a flow in this window where an author can be dispatched. The authors
+are the two your Agent tool reaches:
+
+- `Loop: policy`: call the Agent tool with `subagent_type: e2e-test-author`, the project's
+  end-to-end test author.
+- `Loop: global`: call the Agent tool with `subagent_type: global-e2e-test-author`, the author `do`
+  ships, and add one line to its input, `Project map: <the path your brief names>`.
+- `Loop: fallback`: no author can be dispatched. Where the rule has the fork author the flow, write
+  the flow yourself, under the same rules, and say so on a `fallback:` line beside its `flow:` line.
 
 Fill the author's input before each dispatch: the behaviour to prove, who relies on it and what a
 wrong or missing result costs them, the screen, the origin, and the fixture state. Read the `Run`
@@ -150,12 +156,12 @@ dispatched again. Then the verdict routes:
 - `REFUSED_INCOMPLETE_INPUT`: sharpen the input and dispatch again. A refusal because nobody
   relies on the criterion means it is structural: it gets no flow, and its `flow:` line says so.
 
-Before the first flow, find out whether the project can run one. Under `Loop: policy` the project's
-Testing Policy says so in its Project facts, in the project's `CLAUDE.md`. Under `Loop: global` and
-`Loop: fallback` the Project map your brief names says so: open it with the Read tool and read its
-single-flow end-to-end command, which a project with none leaves reading
-`none yet → /testing-policy`. In a project with no end-to-end command, write no flow and call no
-author: your return says so on one `fallback:` line, in place of the `flow:` lines.
+Under `Loop: policy`, find out before the first flow whether the project can run one: its Testing
+Policy says so in its Project facts, in the project's `CLAUDE.md`. In a project whose facts name no
+end-to-end command, write no flow and call no author: your return says so on one `fallback:` line,
+in place of the `flow:` lines. Under `Loop: global` and `Loop: fallback` the Project map your brief
+names decides, by the rule above, which closes the flows on that same line when neither of the
+map's end-to-end commands is filled.
 
 After the flows, last before you return, run the impeccable skill's detector scan by script: the
 command the loaded impeccable skill names for its detector, run with the Bash tool from the

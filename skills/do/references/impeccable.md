@@ -9,8 +9,9 @@ below the session. No Planner runs ahead of it and no Plan exists: the Ticket's 
 are its work list.
 
 This file is the session's: it fills the brief from it and routes the return by it. The fork never
-opens it, since its brief names no repository root to open it from, and reads its standing rules
-in its own definition.
+opens it, and reads its standing rules in its own definition, but for which criteria get a flow and
+who authors each, which it reads in `## The flows` of [builder.md](builder.md) at the installed do
+skill, the way the Builder does.
 
 ## The brief
 
@@ -91,6 +92,6 @@ project, or the detector crashed, the fork returns one `no scan:` line in place 
 with its reason and no `finding:` line, still under `built`. The session copies the `no scan:` line
 into the Run report's Evidence, per [reply.md](reply.md).
 
-The definition carries this shape itself, since the fork cannot open this file or
-[builder.md](builder.md): a change to the lines the Builder returns is made in
+The definition carries this shape itself, since the fork never opens this file and reads
+[builder.md](builder.md) for its flows alone: a change to the lines the Builder returns is made in
 [do-impeccable.md](../agents/do-impeccable.md) in the same change.
