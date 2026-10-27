@@ -286,6 +286,9 @@ exported symbol runs the Discovery rule's check before it is created, one `disco
 or more names and one `rg -n -w` for a single one, with the audit line logged, `Discovery: n FOUND
 · n DUPLICATE · n NOT_FOUND`; a fix that creates none reads `skip: no symbol created`.
 
+A Design fork the plan meets, two shapes step 3's evidence and the code cannot settle, goes to the
+[Forks](#forks) below before the fix is recorded.
+
 A cause that needs a new shape or a new feature to remove is not a bug fix. The run stops there
 with one message naming `discuss`, the evidence listed and nothing landed, the worktree and its
 branch left in place and named, so the developer decides the design and `do` never reopens a plan.

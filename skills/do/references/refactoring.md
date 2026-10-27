@@ -411,6 +411,9 @@ so the rival shapes stay out of the session's:
   the same shape stops the run as a wrong sketch, the deviations listed, the worktree and its
   branch named.
 
+A Design fork the step meets, two target shapes the request and the code cannot settle, goes to
+[Forks and run questions](#forks-and-run-questions) below before the shape is recorded.
+
 When no boundary is crossed the step reads `skip: no boundary crossed`, and the missing structure
 is still named.
 
