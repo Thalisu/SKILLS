@@ -27,7 +27,7 @@ follows that one pull request, and the developer reads it afterwards, through th
 - Rerun a check unless its `do-pr-fixer` returned `not reproduced` or `not run`, and never rerun it
   because the session read its log as a flake.
 - Rerun a check on a round that pushed, or rerun one check twice in one run: the rerun is once per
-  run.
+  check per run.
 - Rerun anything but `gh run rerun --failed` on the run of the pull request's head, through
   `pr-rerun.sh` (ADR 0089).
 
