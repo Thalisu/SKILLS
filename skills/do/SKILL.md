@@ -148,7 +148,8 @@ back, which can be an hour later. The run ends a turn in five places only:
    ([ADR 0076](../../docs/adr/0076-the-front-end-builders-setup-is-a-ticket-run-by-a-playbook-of-its-own.md));
 5. a request for an observation of a surface only the developer can reach, which no script or
    probe can make, asked with nothing left to do that does not depend on it, as the `bug-fix`
-   Playbook asks it at its reproduce and verify steps. It is asked under `--auto` as without the
+   Playbook asks it at its reproduce and verify steps, and the `ticket` Playbook after its Gate
+   for a defect it diagnosed. It is asked under `--auto` as without the
    flag: it offers no options, so no `choice-taker` has a side to take
    ([ADR 0106](../../docs/adr/0106-an-observation-only-the-developer-can-make-is-a-place-a-do-turn-ends.md)).
 It never ends one on any of these, all met while work is still owed:

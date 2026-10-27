@@ -783,10 +783,10 @@ the door printed `spec_branch=none`), and from the Spec branch's tip, with step 
 the door printed `spec_exists=yes`. The claim still waits for the verified Plan. Those steps record their lines for the Run report's Run section, per
 [reply.md](reply.md). When `bug-fix` is not installed under Links, those two steps stand on their
 own. They are the exception the Links rule of [SKILL.md](../SKILL.md) names, and the step numbers
-there are `bug-fix`'s, not this checklist's: the second ask a surface the session cannot reach gets
-on the fixed build, `bug-fix`'s step 7, is asked at step 3 here, once the `bugfix` line's fix is
-green in the loop (under `--auto` both asks still go to the developer, as that step says, since an
-observation is no choice for the `choice-taker` to rule), and a defect that will not reproduce even when forced stops this run as blocked,
+there are `bug-fix`'s, not this checklist's. When the reproduction ran on a surface the session
+cannot reach, the developer driving it at the ask there, the second ask, the developer driving the
+fixed build, belongs to no step this run may read there: it is this Playbook's own, made by the
+session at step 5 once the Gate is green, as that step says. A defect that will not reproduce even when forced stops this run as blocked,
 the Ticket left at the status the door found it at and the worktree and its branch removed, as the
 refusals of this step on that branch say above.
 
@@ -1293,9 +1293,27 @@ is the feature's last Ticket, and so whether the full suites of the Post-feature
 the `last=` line of `bash <skill-dir>/scripts/completion-check.sh <the Ticket's path>`, run while
 the Ticket still reads `claimed`: `last=yes` adds them and `last=no` does not. A Ticket that is a
 tracker reference has no path, so the check is not run for it and the step takes it as `last=yes`.
+When step 1 diagnosed a defect with no named cause on a surface the session cannot reach, so the
+developer drove the reproduction and reported it there, the session asks them once more here, after
+the Gate is green and before the integration: to drive the fixed build, the worktree step 2 made at
+its branch's tip, on the same surface, and report what they see. The ask names the worktree, its
+branch and what their first report showed, and it is the turn's final message, the fifth place a
+turn ends in the "Where a turn ends" of [SKILL.md](../SKILL.md), since everything the run has
+left, from the integration on, depends on it. It goes to the developer under `--auto` as
+without the flag, in the same words: it asks for an observation only they can make and offers no
+options, so no `choice-taker` is forked for it, per
+[ADR 0106](../../../docs/adr/0106-an-observation-only-the-developer-can-make-is-a-place-a-do-turn-ends.md).
+The session makes it and never the Builder, which asks nobody. Their report is pasted in the Run
+report's Run section marked as theirs, beside the run's own test output, so a reader tells one from
+the other. A report that the defect is gone lets the run go on to step 6. No report, a no, or a
+report that still shows the defect stops the run as blocked with nothing landed, the Ticket still
+`claimed` and the worktree and its branch kept and named, since a defect nobody has observed fixed
+is never called fixed. A defect the session reproduced itself gets no ask here.
+
 Done when
 the suite and the typecheck are green in output produced after the last edit and the `command=` line
-is recorded.
+is recorded, and, on a defect step 1 diagnosed on a surface the session cannot reach, the
+developer's second report is recorded marked as theirs.
 
 **6. Integration.** The integration in [mechanics.md](mechanics.md), with the Ticket's Spec branch
 as the target, `refs/heads/spec/<feature-slug>`, or, on a Ticket with no Spec, the branch the run
