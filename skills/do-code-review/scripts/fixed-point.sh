@@ -23,8 +23,9 @@
 #   --review <path>           the Review's path a caller hands over beside --spec, for a Spec that
 #                             holds more than one Review, one per repository of its feature. It
 #                             names a file in the Spec's own folder, there yet or not, as
-#                             <Spec stem>.<key>.review.md with a key of a-z0-9-, and review= takes
-#                             its name in place of the Spec's; any other name, the Spec's own or a
+#                             <Spec stem>.<key>.review.md with a key of a-z0-9-, or as the Spec's
+#                             own default <Spec stem>.review.md, and review= takes its name in
+#                             place of the Spec's; any other name, the Spec itself or a
 #                             folder's included, and a path in any other folder are refusals, and
 #                             --review without --spec is usage. A Debt review, key debt, is judged
 #                             on a branch cut at its Fixed point, so the empty-diff refusal does not
@@ -199,6 +200,8 @@ if [ "$spec_handed_given" = yes ]; then
     review_name="${handed_review##*/}"
     key=""
     case "$review_name" in
+      # A one-repository feature's Final integration hands the Spec's own default Review name.
+      "$spec_stem".review.md) key=default ;;
       "$spec_stem".*.review.md) key="${review_name#"$spec_stem".}"; key="${key%.review.md}" ;;
     esac
     case "$key" in

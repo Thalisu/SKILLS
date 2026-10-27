@@ -689,6 +689,12 @@ run --review "$keyed_review"
 check "a Review handed with no Spec is a usage error" 2 "$rc" "usage: fixed-point.sh"
 absent "a Review handed with no Spec names no Review" "review="
 
+# A one-repository feature hands over the Spec's own default Review name: final-claim.sh prints
+# review_file=<dir>/spec.review.md and do-code-review passes it on verbatim as --review.
+run --spec .scratch/20260930-export/spec.md --review .scratch/20260930-export/spec.review.md
+check_lines "a Review handed under the Spec's own default name is the run's Review" 0 "$rc" \
+  "review=.scratch/20260930-export/spec.review.md" "spec=.scratch/20260930-export/spec.md" "spec_handed=yes"
+
 # The orchestrator and its Fixers write the whole Review to the path the door answers, and the
 # scratch is unversioned: a handed name that is not <Spec stem>.<key>.review.md would have the
 # Review overwrite the Spec, the Journey or a claim with no copy left in git. A name carrying a
