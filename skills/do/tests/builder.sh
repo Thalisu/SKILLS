@@ -864,14 +864,14 @@ expect "the do skill ships the Builder's contract at references/builder.md" test
 flat="$(blocks_of "$contract" "## The brief")"
 carries "the brief fixes every key the fork cannot find for itself" \
   "Ticket:" "Criteria:" "Digest:" "Plan:" "Rulings:" "Repository root:" "Tree:" "Branch:" \
-  "Loop:" "Project map:" "Agents folder:"
+  "Loop:" "Project map:"
 
 # Written here and nowhere else. A key list copied into a second file drifts from the brief the fork
 # is actually handed: the session fills the copy, the fork reads the original, and a key that moved
 # in one of them is a Builder dispatched without it, which is the reason plan.md already owns the
 # Planner's keys alone. A key line is what the brief's own block writes, `<key>: <...>`, so a
 # sentence naming one key in prose is not a copy of the list.
-brief_keys='Ticket|Criteria|Digest|Plan|Rulings|Repository root|Tree|Branch|Loop|Project map|Agents folder'
+brief_keys='Ticket|Criteria|Digest|Plan|Rulings|Repository root|Tree|Branch|Loop|Project map'
 key_lines() { # $1 the text to read; the brief key lines in it, with their line numbers, on stdout
   grep -nE "^[[:space:]]*[-*]?[[:space:]]*($brief_keys): " <<<"$1"
 }

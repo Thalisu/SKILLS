@@ -8,7 +8,7 @@ over, and a session that carries everything read to write it compacts before the
 Plan is written once and read many times, by the loop that builds from it and by the next run on the
 same Ticket, which reads it instead of grounding again.
 
-Three readers use this file, each for its own part. The session fills the brief, checks the
+Two readers use this file, each for its own part. The session fills the brief, checks the
 `## Sources` lines of the Plan that comes back, and applies the path and the edges. The Planner
 writes the six sections from the brief. When no Planner can be forked, the session writes the Plan
 itself under this same contract, per the Plan step of [ticket.md](ticket.md), and every rule below

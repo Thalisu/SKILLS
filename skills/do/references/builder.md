@@ -12,7 +12,7 @@ ran and the output it read all stay in its window: the grounding is what a run p
 over, and a session that carries the build as well compacts before the Ticket is done, per
 [guard-the-context-window](../../../.agents/principles/guard-the-context-window.md).
 
-Three readers use this file, each for its own part. The session fills the brief and routes the
+Two readers use this file, each for its own part. The session fills the brief and routes the
 return. The Builder reads the rest as its contract: what it builds from, where it picks up, the
 time budget, the flows, its edges, and the lines it returns. When no Builder can be forked, the session runs the
 loop itself, per the build step of [ticket.md](ticket.md), and `## The flows` binds the session in
@@ -40,7 +40,6 @@ Tree: <the worktree the build runs in>
 Branch: <the branch its commits land on>
 Loop: policy | global | fallback
 Project map: <the absolute path `project-map.sh` printed> | none
-Agents folder: <the absolute path of the chain's `.agents/` folder>
 ```
 
 `Criteria:` and `Rulings:` are the two keys whose text is copied from a document rather than
