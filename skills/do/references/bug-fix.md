@@ -96,8 +96,10 @@ branch and `refs/heads/do/<slug>`, qualified so a same-named tag can never shado
   asked under the flag in [Run questions under `--auto`](#run-questions-under---auto) below, and
   nothing is discarded on that return.
 - A run that stopped as blocked resumes the same way once its reason is gone, since every stop on
-  this path leaves the worktree and its branch in place and named: the developer's no at step 2 or
-  step 7, a `discuss` stop at step 4 once the design is settled.
+  this path but one leaves the worktree and its branch in place and named: the developer's no at
+  step 2 or step 7, a `discuss` stop at step 4 once the design is settled. The one is a bug that
+  does not reproduce at step 2: nothing was built, so that stop removes what it cut, and the next
+  run on the bug is a first run.
 
 ## Checklist
 
@@ -213,9 +215,13 @@ observation only they can make, never a choice between options, so there is noth
 `choice-taker` to rule and none is forked for it. No report, or a no, stops the run as blocked
 with nothing landed, as above.
 
-A bug that does not reproduce even when forced stops the run: the message says what it tried, and
-the run leaves nothing committed, the worktree removed by step 12 and the main checkout restored
-before the message. Done when the command line and the output showing the defect are
+A bug that does not reproduce even when forced stops the run, and leaves nothing behind, since it
+built nothing: the main checkout restored first, then a bare `cd` to it, and from there
+`git worktree remove <path>` then `git branch -d do/<slug>`, without `--force` and never `-D`, so
+only what this run cut goes. A worktree a resume entered rather than cut, or a remove or a delete
+git refuses, is left in place and named with git's own reason, never retried with a stronger flag.
+The message says what the run tried and that the worktree and its branch were removed, with
+`Yours: direction: give the run what makes the defect show (the input, the steps, the surface it needs) and type the request again, or leave the report unfixed`. Done when the command line and the output showing the defect are
 recorded for the Run report's Run section, or the run stopped with what it tried named and the main
 checkout's status quoted on its blocker's line.
 
