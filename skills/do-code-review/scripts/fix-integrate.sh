@@ -76,6 +76,17 @@ for n in "${!fixer[@]}"; do
         exit 3
         ;;
     esac
+    # The Reply tells the developer this commit can be dropped without losing the fix, so code that
+    # rides in it under the chore(e2e) subject would be pushed unread.
+    while IFS= read -r path; do
+      case "${path##*/}" in
+        compose*.yml | compose*.yaml | docker-compose*.yml | docker-compose*.yaml | *.compose.yml | *.compose.yaml) ;;
+        *)
+          echo "failed $label $n: ${fixer[$n]}'s chore(e2e) commit changes $(qpath "$path"), which is not a compose file"
+          exit 3
+          ;;
+      esac
+    done < <(git -C "$tree" diff-tree --no-commit-id --name-only -r "$first")
     if [ "$(git -C "$tree" rev-parse "$first^" 2>/dev/null)" != "$head_sha" ]; then
       echo "failed $label $n: ${fixer[$n]}'s first of two commits' parent is not the reviewed branch's HEAD"
       exit 3
