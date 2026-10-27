@@ -395,10 +395,8 @@ waived flow, a check that stood in for a test and a Design fork's Ruling, per [F
 below, go under Pending debt. The Next step is
 `git push` with the developer's branch named when the review landed, or, when nothing landed, the
 worktree, its branch, and the review and the landing as what the developer runs next. Under
-`--auto` the Run report opens its Run section with four lines of its own: what was broken, the
-root cause, the fix, and the verification with the failing-then-passing output pasted, the
-developer's reports among it marked as theirs when they drove the surface. It lists the Review
-under the files left uncommitted, and under `Rulings`, `On the Spec: none`, and in the
+`--auto` the Run report lists the Review under the files left uncommitted, and under `Rulings`,
+`On the Spec: none`, and in the
 `On the run:` group each Ruling made on a Design fork or a run question, or `none`. Done when the reply is sent,
 and under `--auto` the Run report written.
 
