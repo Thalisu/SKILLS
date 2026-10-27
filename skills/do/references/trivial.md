@@ -194,6 +194,12 @@ The script is the lever a reviewer reruns, per
   from a built-in list otherwise;
 - an exported symbol or a changed signature is matched by pattern for JavaScript, TypeScript and
   Python;
+- a new export whose name a touched file already declared before the edit, a helper made exported
+  or a declaration moved from another touched file, is an extract (`extracted_export=`), and any
+  other new export is a new symbol (`new_export=`);
+- an export dropped while its name is still declared in the file is a narrowed contract
+  (`unexported=`), and an export deleted whole is dead code (`removed_export=`), which passes
+  unless the same file gained a new export, the pair a rename prints;
 - the initializer of an exported variable is not part of its head, so a log wording held in an
   exported constant passes the script and is the covering suite's to judge.
 
@@ -202,7 +208,7 @@ The exit code decides what the run does next:
 | Exit | Meaning | The run |
 |---|---|---|
 | 0 | `verdict=trivial` | goes on to the commit |
-| 1 | `verdict=not-trivial`, `goes_to=<playbook>` | restores the touched files (`git checkout -- <files>`, exact because step 1 refused a dirty target), commits nothing, and ends in one message quoting the script's lines and naming the Playbook: `refactoring` for a changed signature, a renamed or an extracted export; `discuss` for a new exported symbol or a new file; `bug-fix` for a test file the change had to touch, since a test is the test author's and goes red-first |
+| 1 | `verdict=not-trivial`, `goes_to=<playbook>` | restores the touched files (`git checkout -- <files>`, exact because step 1 refused a dirty target), commits nothing, and ends in one message quoting the script's lines and naming the Playbook: `refactoring` for a changed signature, a renamed, an extracted or an un-exported export; `discuss` for a new exported symbol or a new file; `bug-fix` for a test file the change had to touch, since a test is the test author's and goes red-first |
 | 2 | usage, or not a git repository | blocked; the reply quotes the error on the blocker's line |
 | 3 | `verdict=judgment` | a touched file's language has no pattern: the run reads the diff itself against the same three questions (a test file, a new exported symbol, a changed signature), stops as for exit 1 when one holds, and says in the Run report that the second check was its own judgment and not the script's |
 

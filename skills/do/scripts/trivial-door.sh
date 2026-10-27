@@ -7,8 +7,9 @@
 #                                       is a verbatim copy of skills/test-triage/scripts/context.sh,
 #                                       and tests/trivial-door.sh fails when the two drift
 #   trivial-door.sh covering <file>...  the tracked test files that name a touched file, by its stem
-#   trivial-door.sh diff <file>...      the touched files against HEAD: a test file, a new file, a new
-#                                       exported symbol or a changed exported signature is not Trivial
+#   trivial-door.sh diff <file>...      the touched files against HEAD: a test file, a new file, a new,
+#                                       extracted or un-exported symbol or a changed exported signature
+#                                       is not Trivial
 #
 # Prints key=value lines. Exit codes: 0 the door holds · 1 not Trivial, with goes_to=<playbook> ·
 # 2 usage, or not a git repository · 3 a language the diff check has no pattern for, left to the
@@ -198,6 +199,32 @@ lang_of() { # $1 repo-relative path: js | py | none | other
   esac
 }
 
+# declares <lang> <name>: stdin, a file's text, declares <name> at top level, exported or not. A
+# name that is not an identifier (an export list, default) is never declared.
+declares() {
+  local lang="$1" name="$2"
+  case "$name" in '' | *[!A-Za-z0-9_\$]*) return 1 ;; esac
+  name="${name//\$/\\\$}"
+  case "$lang" in
+    js) grep -qE "^(export[[:space:]]+)?(default[[:space:]]+)?(declare[[:space:]]+)?(async[[:space:]]+)?(abstract[[:space:]]+)?(function\*?|class|const|let|var|type|interface|enum)[[:space:]]+${name}([^A-Za-z0-9_\$]|\$)" ;;
+    py) grep -qE "^((async[[:space:]]+)?def|class)[[:space:]]+${name}([^A-Za-z0-9_]|\$)|^${name}[[:space:]]*(:[^=]*)?=[^=]" ;;
+    *) return 1 ;;
+  esac
+}
+
+# declared_before <name> <file>...: a touched file, as HEAD holds it, declares <name>.
+declared_before() {
+  local name="$1" f rel l
+  shift
+  for f in "$@"; do
+    rel="$(rel_of "$f")"
+    l="$(lang_of "$rel")"
+    git cat-file -e "HEAD:$rel" 2>/dev/null || continue
+    declares "$l" "$name" <<<"$(git show "HEAD:$rel")" && return 0
+  done
+  return 1
+}
+
 rank_of() { case "$1" in refactoring) echo 3 ;; discuss) echo 2 ;; bug-fix) echo 1 ;; *) echo 0 ;; esac; }
 
 cmd_diff() {
@@ -232,6 +259,8 @@ cmd_diff() {
       grep -qxF -- "$name	$head" <<<"$before" && continue
       if cut -f1 <<<"$before" | grep -qxF -- "$name"; then
         echo "changed_signature=$rel: $head"; raise_goes refactoring
+      elif declared_before "$name" "$@"; then
+        echo "extracted_export=$rel: $head"; raise_goes refactoring
       else
         echo "new_export=$rel: $head"; raise_goes discuss; had_new=1
       fi
@@ -241,7 +270,12 @@ cmd_diff() {
       [ -n "$name" ] || continue
       grep -qxF -- "$name	$head" <<<"$after" && continue
       cut -f1 <<<"$after" | grep -qxF -- "$name" && continue
-      echo "removed_export=$rel: $name"; reported=1
+      reported=1
+      if [ -e "$abs" ] && declares "$lang" "$name" <"$abs"; then
+        echo "unexported=$rel: $name"; raise_goes refactoring
+        continue
+      fi
+      echo "removed_export=$rel: $name"
       [ "$had_new" = 1 ] && raise_goes refactoring
     done <<<"$before"
     [ "$reported" = 1 ] || echo "ok=$rel"

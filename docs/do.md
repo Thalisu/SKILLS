@@ -131,8 +131,8 @@ judged by structure and never by size, twice: on the request before any edit, an
 the commit, the second time by a script a reviewer can rerun
 ([ADR 0010](adr/0010-the-trivial-playbook-takes-only-a-behaviour-preserving-change-judged-by-structure.md)).
 A one-character "typo" inside a string the code reads at runtime is a defect, so it leaves for
-`bug-fix` and gets a failing test first. A rename that adds or changes an export is a reshape, so it
-leaves for `refactoring`. A fifty-line comment sweep stays Trivial. When the check on the diff fires
+`bug-fix` and gets a failing test first. A change that adds, changes or drops an export of a name the code
+still declares is a reshape, so it leaves for `refactoring`. A fifty-line comment sweep stays Trivial. When the check on the diff fires
 after the edit, the run restores the touched files and commits nothing.
 
 The `ticket` Playbook's door is one script, `skills/do/scripts/ticket-door.sh <ticket>`, so you

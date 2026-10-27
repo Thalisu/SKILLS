@@ -181,6 +181,16 @@ sed -i 's/craete/create2/' src/notes.js
 run diff src/notes.js
 check "a renamed export goes to refactoring" 1 "$rc" "removed_export=src/notes.js: craete" "new_export=src/notes.js: export function create2(title){" "goes_to=refactoring"
 restore
+sed -i 's/^function nextId() {$/export function nextId() {/' src/notes.js
+run diff src/notes.js
+check "an existing helper made exported goes to refactoring" 1 "$rc" "extracted_export=src/notes.js: export function nextId(){" "verdict=not-trivial" "goes_to=refactoring"
+absent "an existing helper made exported is not a new export" "new_export="
+restore
+sed -i 's/^export function list() {$/function list() {/' src/notes.js
+run diff src/notes.js
+check "an export made non-exported goes to refactoring" 1 "$rc" "unexported=src/notes.js: list" "verdict=not-trivial" "goes_to=refactoring"
+absent "an export made non-exported is not a removed export" "removed_export="
+restore
 sed -i 's/^  title: string$/  title: string, force = false/' src/shape.ts
 run diff src/shape.ts
 check "a parameter added across a multi-line head is a changed signature" 1 "$rc" "changed_signature=src/shape.ts: export function rename(note:Note,title:string,force=false):Note{" "goes_to=refactoring"
@@ -230,6 +240,18 @@ PYEOF
 run diff src/notes.js
 check "a removed export is dead code and passes" 0 "$rc" "removed_export=src/notes.js: craete" "verdict=trivial"
 absent "a removed export is not a new export" "new_export="
+restore
+python3 - <<'PYEOF'
+p = "src/notes.js"
+s = open(p).read()
+moved = 'export function craete(title) {\n  return create(title);\n}\n'
+s = s.replace(moved + "\n", "")
+open(p, "w").write(s)
+open("src/shape.ts", "a").write("\n" + moved)
+PYEOF
+run diff src/notes.js src/shape.ts
+check "an export moved to another file goes to refactoring" 1 "$rc" "extracted_export=src/shape.ts: export function craete(title){" "verdict=not-trivial" "goes_to=refactoring"
+absent "an export moved to another file is not a new export" "new_export="
 restore
 sed -i 's/module.exports = { add };/module.exports = { add, sub };/' src/legacy.cjs
 run diff src/legacy.cjs
