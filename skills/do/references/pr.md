@@ -183,7 +183,7 @@ tool's timeout at its 600000 ms maximum, since its two-minute default kills the 
 prints a verdict:
 
 ```
-bash <skill-dir>/scripts/pr-watch.sh <pr> [<since> <state>]
+bash <skill-dir>/scripts/pr-watch.sh <pr> [<since> <state>] [<expected-sha>]
 ```
 
 `<pr>` is the URL or the number step 1 took, passed as it stands, and the first call passes `<pr>`
@@ -196,7 +196,11 @@ the checks: a display read mid-run can show green while a check is still running
   and goes on calling it until it reads `verdict=green` or another settled verdict. On that next
   call it passes the verdict's `since=` and `state=` values as `<since>` and `<state>`, copied as
   they stand: the run never reads, never compares and never computes them, since they carry the
-  script's 60-minute window of unchanged checks from one call to the next. The developer has
+  script's 60-minute window of unchanged checks from one call to the next. A pending verdict that
+  carries an `expect=<sha>` line also hands that sha back, copied as it stands, as the last
+  argument `<expected-sha>` of the next call: the pull request has not yet shown the tip a push
+  sent it, and the script holds `verdict=pending` on that head rather than settle on the checks of
+  the old one. A verdict with no `expect=` line leaves the argument off. The developer has
   walked away, and a run that ends its turn here stands still until they come back.
 - `verdict=green`: every check passed and the pull request is mergeable. The run goes on to step 5,
   the Reply.
@@ -613,7 +617,8 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
        Yours: direction: <run tree> holds <the shas that are no pick> that no fixer branch gave it, or no longer builds on the commit the checks ran on: read what it holds there, then /do the pull request again
 
    On a redone round this read runs on the redone round's run tree against its own `sha=`, the
-   same way. When it passes, push:
+   same way. When it passes, read the tip the push will send with
+   `git -C <run tree> rev-parse HEAD`, then push:
 
        git -C <run tree> -c core.hooksPath=/dev/null push origin HEAD:refs/heads/<head>
 
@@ -630,9 +635,13 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    the ones the `remove --superseded` call kept going through
    `fix-worktrees.sh remove --superseded --pushed` instead. A landed branch is removed with its
    tree, and one whose commit never landed stays `kept ... unlanded commit`, since a `Yours:` clause
-   may name it. Its lines go to the Reply's round lines as item 4 e's do. Then run
-   `git worktree remove <run tree>` and go back to step 3, calling the watch with `<pr>` alone: the
-   push changed the checks, so the stall window starts over. When git refuses it on a first
+   may name it. Its lines go to the Reply's round lines as item 4 e's do. With the push accepted, run
+   `git worktree remove <run tree>` and go back to step 3, calling the watch with `<pr>` and the
+   pushed tip, the sha `git -C <run tree> rev-parse HEAD` printed, as `<expected-sha>`, with no
+   `<since>` `<state>`: the push changed the checks, so the stall window starts over. For a moment
+   after the push the pull request still reports its old head with the old head's passed checks,
+   and the watch holds `verdict=pending` until its head is the pushed tip, so a fix that CI never
+   ran is never read as passing. When git refuses it on a first
    attempt, the remote moved between the fetch and the push: the run redoes the round whole, as on a
    moved tip. A round is redone once at most. On a redone round, git's non-fast-forward refusal of
    the push, or the fetch before it showing the remote moved again (the fetched tip still not the

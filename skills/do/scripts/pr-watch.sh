@@ -3,14 +3,18 @@
 # checks for at most DO_PR_WATCH_SECONDS (default 540), so the pr Playbook never reads the checks
 # itself and never ends its turn while they run.
 #
-#   pr-watch.sh <pr> [<since> <state>]
+#   pr-watch.sh <pr> [<since> <state>] [<expected-sha>]
 #     <pr>               a pull request number or URL, passed to gh as it stands
 #     <since> <state>    the since= and state= of the previous pending verdict, as printed, which
 #                        carry the 60-minute stall window across calls
+#     <expected-sha>     the full sha of a tip just pushed, or the expect= of the previous pending
+#                        verdict: while the pull request's head is another commit the watch holds
+#                        verdict=pending and never settles on the old head's checks, for at most
+#                        DO_PR_WATCH_REGISTER_SECONDS, measured by the since= carried across calls
 #
 # Prints key=value lines, verdict first: verdict=green, checks=<n> (0 once no check registered inside
 # DO_PR_WATCH_REGISTER_SECONDS, default 120, which holds awaiting-approval and draft with no check the same way) | verdict=pending, since=<epoch>,
-# state=<token> | verdict=awaiting-approval, checks=<n> | verdict=draft, checks=<n> (every check
+# state=<token>, then expect=<sha> while the head is not yet the expected sha | verdict=awaiting-approval, checks=<n> | verdict=draft, checks=<n> (every check
 # passed on a draft pull request, which cannot merge until marked ready) | verdict=conflict, head=<head branch>,
 # base=<base branch> | verdict=behind, head=<head branch>, base=<base branch> (every check passed and the head
 # lacks commits of its base) | verdict=changes-requested, head=<head branch>, base=<base branch> (every
@@ -36,7 +40,7 @@ gh_err="$(mktemp)"
 trap 'rm -f "$gh_err"' EXIT
 
 usage() {
-  echo "usage: pr-watch.sh <pr> [<since> <state>]" >&2
+  echo "usage: pr-watch.sh <pr> [<since> <state>] [<expected-sha>]" >&2
   exit 2
 }
 
@@ -127,11 +131,27 @@ read_once() { # $1 pr: sets checks, the pull fields and result (as classify prin
   read -r merge mergeable review head base sha draft <<<"$(read_pull "$1")"
   [ -n "$merge" ] || exit 1
   result="$(classify "$checks" "$merge" "$mergeable" "$review" "$draft")" || exit "$?"
+  if [ "$sha" = "$expected" ]; then
+    expected=""
+  elif [ -n "$expected" ]; then
+    result="wait"
+  fi
 }
 
 keep_window() { # after a wait or settling read: keeps since and state while the checks are unchanged, restarts them otherwise; sets result to stalled once a pending check sat unchanged for stall_seconds, to the verdict a settling-* result names once no check appeared for register_seconds
   local now fresh
   now="$(date +%s)"
+  if [ -n "$expected" ]; then
+    fresh="$(fingerprint <<<"expect $expected")"
+    if [ "$fresh" != "$state" ]; then
+      since="$now"
+      state="$fresh"
+    fi
+    [ $((now - since)) -ge "$register_seconds" ] || return 0
+    expected=""
+    result="$(classify "$checks" "$merge" "$mergeable" "$review" "$draft")" || exit "$?"
+    holding || return 0
+  fi
   fresh="$(fingerprint <<<"$checks")"
   if [ "$fresh" != "$state" ]; then
     since="$now"
@@ -148,13 +168,17 @@ keep_window() { # after a wait or settling read: keeps since and state while the
 holding() { [ "$result" = wait ] || [[ "$result" == settling-* ]]; }
 
 main() {
-  [ "$#" = 1 ] || [ "$#" = 3 ] || usage
+  [ "$#" -ge 1 ] && [ "$#" -le 4 ] || usage
   [[ "$bound" =~ ^[0-9]+$ ]] && [[ "$interval" =~ ^[0-9]+$ ]] || usage
   [[ "$register_seconds" =~ ^[0-9]+$ ]] || usage
-  local since="" state=""
-  if [ "$#" = 3 ]; then
+  local since="" state="" expected=""
+  if [ "$#" = 3 ] || [ "$#" = 4 ]; then
     [[ "$2" =~ ^[0-9]+$ ]] && [[ "$3" =~ ^[0-9-]+$ ]] || usage
     since="$2" state="$3"
+  fi
+  if [ "$#" = 2 ] || [ "$#" = 4 ]; then
+    expected="${!#}"
+    [[ "$expected" =~ ^[0-9a-f]{40}$ ]] || usage
   fi
   command -v gh >/dev/null 2>&1 || {
     echo "pr-watch.sh: gh not found" >&2
@@ -169,6 +193,7 @@ main() {
       echo "verdict=pending"
       echo "since=$since"
       echo "state=$state"
+      [ -z "$expected" ] || echo "expect=$expected"
       return 0
     fi
     sleep "$((interval < remaining ? interval : remaining))"
