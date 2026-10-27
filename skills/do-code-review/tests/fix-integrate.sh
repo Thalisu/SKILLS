@@ -220,30 +220,6 @@ check_lines "a Fixer commit picked onto a tree whose git directory holds a plant
 expect "no hook planted in the repository's hooks directory runs during the pick" \
   test ! -e "$marker"
 
-compose_pair() { # $1 name, $2 fix file, $3 fix content, [$4 file, $5 content...]: a branch of a chore(e2e) commit writing docker/compose.e2e.yml (and each extra file), then the fix commit <name>, back on main
-  # Optional: $compose_link, set on the call's own line, makes docker/compose.e2e.yml a symlink to it instead of a regular file
-  local name="$1" fix_file="$2" fix_content="$3"
-  shift 3
-  git checkout -q -b "$name" main
-  mkdir -p docker
-  if [ -n "${compose_link:-}" ]; then
-    ln -s "$compose_link" docker/compose.e2e.yml
-  else
-    printf 'services: {}\n' >docker/compose.e2e.yml
-  fi
-  git add docker/compose.e2e.yml
-  while [ "$#" -ge 2 ]; do
-    mkdir -p "$(dirname "$1")"
-    printf '%s\n' "$2" >"$1"
-    git add "$1"
-    shift 2
-  done
-  git commit -q -m "chore(e2e): compose for $name"
-  printf '%s\n' "$fix_content" >"$fix_file"
-  commit "$name"
-  git checkout -q main
-}
-
 # The pr Playbook pushes everything on the run tree's HEAD, so a compose landed without its fix, or
 # a fix that silently lost its compose, reaches a shared head that nobody vouched for.
 fresh compose-pair

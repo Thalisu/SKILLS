@@ -21,3 +21,10 @@ this amends ADR 0086, whose push carried only fixes, and the fixer's one commit 
 The defect above is a rerun spent on a check the fixer never tried to run. A `not run` return, a
 stack the fixer tried and could not bring up, still earns the one rerun of ADR 0089, as amended
 there.
+
+Amended: `pr-guard.sh` reads each fixer branch's shape against the run tree's HEAD with the rule
+`fix-integrate.sh --compose` applies, and a branch that rule refuses is that check's stop-case,
+left out of the pick. `fix-integrate.sh` refuses its whole call over one such branch before any
+pick, so a single malformed branch used to cost every clean pick of its Wave and end the run. The
+rule lives in both scripts: `fix-integrate.sh` is shared with `do-code-review` and stays the
+backstop.

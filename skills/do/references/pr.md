@@ -514,7 +514,11 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
       `touches <k> <workflow|secret|migration> <path>` line per such file the branch changes over
       `<sha>`, the commit the run tree was cut at, never over the run tree's moving HEAD: a commit
       planted in the run tree is part of every branch cut over it, and read against that HEAD it
-      shows no change. It prints `failed <k>: <reason>` for a branch it cannot read. Of the checks
+      shows no change. It prints `failed <k>: <reason>` for a branch it cannot read, and for one
+      whose shape `fix-integrate.sh --compose` would refuse, read against the run tree's HEAD (not
+      one or two commits ahead, a first of two that is no `chore(e2e)` commit of composes alone, a
+      first commit whose parent is not that HEAD): that script refuses the whole call over one such
+      branch, so it would cost every clean pick of the Wave. Of the checks
       `pr-guard` reads, only one it printed `clean` for goes into the `fix-integrate.sh` call, and
       no other. A `touches` check is never
       picked, so nothing of its commit reaches the run tree or the head, and it is a stop-case for

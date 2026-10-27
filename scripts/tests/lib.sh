@@ -744,6 +744,29 @@ fixer_branch() { # $1 name, $2 file, $3 content, [$4 file, $5 content...]: a bra
   commit "$name"
   g checkout -q main
 }
+compose_pair() { # $1 name, $2 fix file, $3 fix content, [$4 file, $5 content...]: a branch of a chore(e2e) commit writing docker/compose.e2e.yml (and each extra file), then the fix commit <name>, back on main
+  # Optional, each set on the call's own line: $compose_path writes the compose at that path instead of docker/compose.e2e.yml; $compose_link makes it a symlink to that target instead of a regular file
+  local name="$1" fix_file="$2" fix_content="$3" compose="${compose_path:-docker/compose.e2e.yml}"
+  shift 3
+  g checkout -q -b "$name" main
+  mkdir -p "$(dirname "$compose")"
+  if [ -n "${compose_link:-}" ]; then
+    ln -s "$compose_link" "$compose"
+  else
+    printf 'services: {}\n' >"$compose"
+  fi
+  g add "$compose"
+  while [ "$#" -ge 2 ]; do
+    mkdir -p "$(dirname "$1")"
+    printf '%s\n' "$2" >"$1"
+    g add "$1"
+    shift 2
+  done
+  g commit -q -m "chore(e2e): compose for $name"
+  printf '%s\n' "$fix_content" >"$fix_file"
+  commit "$name"
+  g checkout -q main
+}
 branch_worktree() { # $1 main checkout, $2 name: a worktree at .claude/worktrees/do-<name> on a new branch do/<name> off the checkout's HEAD; its path on stdout
   local wt="$1/.claude/worktrees/do-$2"
   g -C "$1" worktree add -q "$wt" -b "do/$2" && echo "$wt"

@@ -180,8 +180,13 @@ had. Work it this way instead of starting `## Reproduce first` over:
    the fix commit, its subject starting `chore(e2e)` and nothing in it but the compose. The fix commit
    comes on top: the test and the fix together, its body carrying `Check: <name>`, the name from
    your brief's `Check:` line, and the command that reproduced the failure. A reviewer drops the
-   compose without dropping the fix, and the integration takes nothing else: a third commit, or a
-   compose folded into the fix commit, leaves the check red.
+   compose without dropping the fix. The session's guard reads your branch before any pick and
+   refuses one of any other shape (no commit, a third commit, two whose first is not a
+   `chore(e2e)` commit holding composes alone, a branch no longer based on the commit your `Tree:`
+   was cut at): the check is then a stop-case and none of its commits is picked. So before you return `fixed`, read
+   your branch back with `git -C <Tree> log --format='%h %s' --name-only <that commit>..HEAD`,
+   the commit read off `git -C <Tree> rev-parse HEAD` before your first commit, and reshape it
+   within these two commits when it is off.
 4. **Change nothing outside your `Tree:`.** The pull request run tree and the main checkout are the
    session's: the session pushes from the run tree, and a commit, a reset or a file written there
    reaches the pull request head without any guard having read it. Every `git add`, `commit`,
