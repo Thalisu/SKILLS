@@ -185,7 +185,7 @@ The door also reads this Ticket's own `Ruled by the choice-taker on Ticket <this
 Spec's Implementation Decisions already carries, when it carries any, straight off the Spec text it
 just hashed, and records them, their `Fork:`, side-taken and `Norm:` text, for the session: the
 Digest carries no Implementation Decisions section, so this is the one place those lines reach the
-behaviours step and the Run report's `Rulings` section.
+Plan step, whose Planner brief carries them, and the Run report's `Rulings` section.
 
 No reader can be forked on two branches: the Agent tool is withheld from the session, or
 the Agent tool lists no `do-reader`, as it does on a machine that never linked the reader `do`
@@ -206,7 +206,7 @@ The door calls the Agent tool with `subagent_type: do-reader`, the agent `do` sh
 than designs, with the brief [digest.md](digest.md) fixes and nothing else, that file's
 own list and never a second one here: a copy of the list in this file drifts from the brief the
 fork is actually handed. It writes nothing and returns the Digest's text, every section but
-`## Sources`, and the one line the run restates in the thread. No other part of either document
+`## Sources`. No other part of either document
 reaches the session.
 
 The session checks what comes back before it writes: a return must carry every section the Digest
@@ -227,9 +227,8 @@ own, and the run says so in one line, so the written Digest carries exactly one 
 section, the door's own. A Digest already at that path is replaced whole and never edited, with one
 exception the forks of [forks.md](forks.md) carry: the `## Sources` lines a `settled` Ruling that rewrote no Ticket
 criterion moves in place, the rest of the file left as it stands.
-The run shows the Digest's location and the one line in the thread, and the steps that build on
-the slice open that file and read its quotes there. The line is a restatement for the thread: a list
-written from it would be the paraphrase the Digest exists to keep out of the record.
+The run shows the Digest's location in the thread, and the steps that build on
+the slice open that file and read its quotes there.
 
 A Ticket whose Spec or journey is not on disk still builds. The door records the document as
 `absent` among its hashes and the reader quotes nothing under its section, and the run
@@ -599,7 +598,9 @@ hunk taking the **Target** side, here the developer's branch's. The Loss ledger 
 claim printed as `ledger=`, beside the Spec and named for this repository as the claim is, and
 never a Ticket's own ledger: a resume may come through any Ticket of the Spec built in this
 repository, and it must find the same file. The ledger is
-judged and its reapplies brought back as the integration says.
+judged and its reapplies brought back as the integration says. The judge's brief names the tree as
+the worktree root and the Spec (`spec=`) as the run's intent, since this ledger spans every Ticket
+of the Spec.
 
 **4. The Post-feature gate and the flows.** The gate above, in that tree, with the full suites of
 the **Post-feature gate** added, after a rebase that replayed commits or brought a reapply back,
@@ -836,9 +837,11 @@ return is recorded for the Run report's Run section, one line per part, per [rep
 - the Review's location, its `Review:` line;
 - the `Act on:` line, how many Findings the review found and how many its Fixers fixed;
 - the landing line, `landed at <commit>`, or `not landed` with the review's reason;
-- every `Risk:` line, a `Consider` Finding carrying a risk class, flagged to the developer, since a
-  risk class is never dismissed silently;
-- every `Axis not run:` line, named to the developer with its reason.
+- every `Risk:` line, a `Consider` Finding carrying a risk class, flagged to the developer as a line
+  of the Reply's Pending debt, with or without `--auto`, since a risk class is never dismissed
+  silently;
+- every `Axis not run:` line, named to the developer with its reason as a line of the Reply's
+  Pending debt, with or without `--auto`.
 
 The run makes no commit for a Finding and fixes none by hand: a Finding a Fixer left standing
 is the review's reason for not landing, and the run stops on it. Nor does it settle one in the
@@ -861,8 +864,8 @@ last of them. Each reapply goes through `check-reapply.sh` with its `replace` an
 [conflict-loop.md](conflict-loop.md) says,
 and on this integration that check is the only reading its `with` text gets, since no reviewer
 reads a commit made after the review: a block the script refuses writes nothing, is recorded
-`none`, and is listed in the Run report among this integration's drops, marked as coming after the
-review. The integration hands the branch straight to the fix call on the Review the run already
+`none`, and is listed among this integration's drops, marked as coming after the review, as a line
+of the Reply's Pending debt with or without `--auto`, and in the Run report under `--auto`. The integration hands the branch straight to the fix call on the Review the run already
 has, as the paragraph below says for what the run commits after the review, never a second review:
 the fix call gates the same tree itself and refuses to land it red, and this retry has no fixed
 count, so a **Gate** here would pay for the suite twice on every lap, per
@@ -964,8 +967,8 @@ printed: the fix call gates the same tree itself, from that very line, and refus
 A run that reaches this point having run no gate of its own, the resume on `verdict=land` of
 [ticket.md](ticket.md) and the resume of [bug-fix.md](bug-fix.md), has no such line to hand, since
 the session that printed it was another run's: it hands the fix call no `command=` line, and the
-fix call runs the Gate itself from the Testing Policy's Project facts, as
-[fix.md](../../do-code-review/references/fix.md) has it do with no line handed. What that Gate ran
+fix call runs the Gate itself from the Testing Policy's Project facts, which is what a fix call
+handed no `command=` line does. What that Gate ran
 is in the fix call's return, which the Run report's gate line carries instead, per
 [reply.md](reply.md).
 Last of all the call carries one line that marks it as the run's own, after its one review:
@@ -1016,7 +1019,8 @@ worktree stays, since it is where a red flow is fixed.
    A no records each flow that needed it as not run, leaves the criterion it would have proven
    unticked, and records the waiver under the Reply's Pending debt; the close still happens.
    Under `--auto` the developer handed that weighing over, so the question is not put to them: it
-   is a run question the `choice-taker` rules, per [forks.md](forks.md). Its `Options:` are
+   is a run question the `choice-taker` rules, per [forks.md](forks.md) on a `ticket` run and per
+   the Playbook's own Forks section in every other. Its `Options:` are
    `yes: run <the command line>` and `no: record each flow that needed it as not run`, its
    `Recommendation:` is `none`, and its `Context:` carries the command line and the flows that
    need it. A Ruling for `yes` runs the command and one for `no` takes the no above, and the run
@@ -1112,8 +1116,8 @@ repository.
 
 Outside the chain there is no Ticket: the close is the worktree's removal alone. A run that stops
 as blocked before it reaches the close closes nothing: the Ticket stays `claimed`, the worktree
-and its branch stay in place, and the reply names them. A run that stops at the close's own step 5
-already ran steps 1 through 4: the Ticket carries its ticked criteria, its evidence and its
+and its branch stay in place, and the reply names them. A run that stops at the close's own step 6
+already ran steps 1 through 5: the Ticket carries its ticked criteria, its evidence and its
 `resolved` status, and only the worktree and its branch remain, for the `Yours: destroy:` line to
 name.
 

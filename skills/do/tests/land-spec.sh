@@ -85,6 +85,46 @@ same "the moved line is the whole output" "moved $spec_tip"
 expect "a Spec branch holding a commit the branch lacks keeps its ref where it was" \
   test "$(g -C "$repo" rev-parse refs/heads/spec/feature)" = "$spec_tip"
 
+# The Spec's Final integration stores its review token under spec-<feature-slug>; a landing moves
+# the Spec branch past the commit that Review read, so the token must not outlive it.
+token_script="$here/../scripts/review-token.sh"
+fresh token-landed
+repo="$tmp/token-landed"
+printf 'base\n' >README.md
+commit base
+echo ".claude/worktrees/" >>.git/info/exclude
+g -C "$repo" branch spec/feature
+wt="$(branch_worktree "$repo" ticket)"
+printf 'built\n' >"$wt/notes.txt"
+g -C "$wt" add -A && g -C "$wt" commit -qm ticket
+tip="$(g -C "$repo" rev-parse refs/heads/do/ticket)"
+(cd "$repo" && bash "$token_script" new spec-feature >/dev/null)
+token="$(g -C "$repo" rev-parse --path-format=absolute --git-common-dir)/do/review-token/spec-feature"
+expect "the fixture's Spec review token is on disk before the landing" test -f "$token"
+run "$repo" spec/feature do/ticket
+check_lines "a landing on the Spec branch: exit 0 and the landed line" 0 "$rc" "landed $tip"
+expect "a landing on the Spec branch removes the review token stored under spec-<slug>" test ! -e "$token"
+
+fresh token-moved
+repo="$tmp/token-moved"
+printf 'base\n' >README.md
+commit base
+echo ".claude/worktrees/" >>.git/info/exclude
+g -C "$repo" branch spec/feature
+wt="$(branch_worktree "$repo" ticket)"
+printf 'built\n' >"$wt/notes.txt"
+g -C "$wt" add -A && g -C "$wt" commit -qm ticket
+other="$(branch_worktree "$repo" other)"
+printf 'landed first\n' >"$other/other.txt"
+g -C "$other" add -A && g -C "$other" commit -qm other
+g -C "$repo" branch -f spec/feature do/other
+spec_tip="$(g -C "$repo" rev-parse refs/heads/spec/feature)"
+(cd "$repo" && bash "$token_script" new spec-feature >/dev/null)
+token="$(g -C "$repo" rev-parse --path-format=absolute --git-common-dir)/do/review-token/spec-feature"
+run "$repo" spec/feature do/ticket
+check_lines "a refused landing on a moved Spec branch: exit 1 and the moved line" 1 "$rc" "moved $spec_tip"
+expect "a refused landing on a moved Spec branch leaves the review token stored under spec-<slug>" test -f "$token"
+
 worktree_on() { # $1 main checkout, $2 branch: the path of the worktree git lists on that branch, on stdout
   g -C "$1" worktree list --porcelain |
     awk -v b="branch refs/heads/$2" '/^worktree / { path = substr($0, 10) } $0 == b { print path; exit }'

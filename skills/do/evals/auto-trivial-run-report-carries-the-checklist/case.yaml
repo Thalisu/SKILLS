@@ -1,0 +1,67 @@
+name: auto-trivial-run-report-carries-the-checklist
+tags: [trivial, run, auto]
+runs: 2
+max_turns: 30
+timeout_seconds: 600
+allowed_tools: [Bash, Read, Edit, Write, Grep, Glob, Agent, Skill]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # The fixture of `trivial-run` typed with `--auto`: the run lands the one-commit rename and writes
+    # the Run report under .scratch/do-reports/, whose Run section carries the trivial checklist verbatim,
+    # every step the run reached ticked `done:` or reading `skip: <reason>`.
+    set -e
+    mkdir -p src
+    cat > package.json <<'JSON'
+    {
+      "name": "notes",
+      "private": true,
+      "type": "module",
+      "scripts": {
+        "typecheck": "node --check src/notes.js",
+        "test": "node --test"
+      }
+    }
+    JSON
+    cat > README.md <<'MD'
+
+    A notes module. Notes are listed by status, active first.
+    MD
+    cat > src/notes.js <<'JS'
+    const notes = [];
+
+    function nextIdentifer() {
+      return notes.length + 1;
+    }
+
+    export function create(title) {
+      const note = { id: nextIdentifer(), title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+
+    export function list() {
+      return notes.filter((n) => n.status === "active");
+    }
+    JS
+    cat > src/notes.test.js <<'JS'
+    import { test } from "node:test";
+    import assert from "node:assert/strict";
+    import { create, list } from "./notes.js";
+
+    test("create returns an active note with an id", () => {
+      const note = create("a");
+      assert.equal(note.status, "active");
+      assert.ok(note.id >= 1);
+    });
+
+    test("list shows active notes", () => {
+      create("b");
+      assert.ok(list().length >= 1);
+    });
+    JS
+    git init -q -b main
+    git config user.email fixture@example.com
+    git config user.name fixture
+    git add -A
+    git commit -q -m "fixture"

@@ -47,11 +47,11 @@ file describes, and take the verdict from the same table.
 |---|---|
 | `start` | goes on to the claim |
 | `resume` | goes on to the check, claiming nothing |
-| `resolved` | stops in one line: the Setup ticket is already resolved, with `/do` on the first Ticket it was blocking |
+| `resolved` | reads the frontier the way step 3 of the close does, `completion-check.sh` on the `ticket=` path, then stops in two lines: the Setup ticket is already resolved, and the last line the close's table reads off `next=` |
 | `not-setup` | stops in one line: the Ticket is not a Setup ticket, with `/do <the Ticket's path>` to run it as a Ticket |
 | `ambiguous` | stops in one line naming the `ambiguous=` detail the door printed, the Ticket's line to fix by hand |
 
-A stop writes nothing and claims nothing.
+A stop writes nothing and claims nothing: the frontier's script on the `resolved` route reads only.
 
 A `resume` is any later `/do` on a Setup ticket left `claimed`, in the session that showed the
 step or in a new one, and it is where a developer who left halfway comes back in. The run carries

@@ -3,7 +3,7 @@ name: do-pr-fixer
 description: 'Fixes one red check of a pull request in the worktree its brief names: reproduces the failure locally before editing anything, proves the fix with a failing test first, and leaves at most two commits (a compose it wrote that brought the stack up healthy, then the fix), or none with the reason. Writes its one line to the return file its brief names. Forked only by the do skill''s pr Playbook with a brief, one per red check, and a second in diagnosis mode for a check red again on its retry. Never on your own initiative.'
 model: sonnet
 effort: high
-tools: Bash, Read, Glob, Grep, Write, Edit, Agent, Skill
+tools: Bash, Read, Glob, Grep, Write, Edit, Agent
 maxTurns: 80
 hooks:
   PreToolUse:
@@ -168,8 +168,9 @@ had. Work it this way instead of starting `## Reproduce first` over:
    Then write the smallest fix that turns that test green and the reproducing command green with
    it. Where the project has no unit test author, so no Testing Policy is installed, write the
    failing test first yourself and watch it fail before the fix. Either way nothing is edited with
-   nothing red locally: a mechanism test that does not go red ends as `not reproduced`, with no fix
-   written.
+   nothing red locally: a mechanism test that does not go red ends as `not reproduced` on a first
+   fixer's brief, and on a diagnosis brief as one more hypothesis ruled out toward `no mechanism`,
+   with no fix written.
 2. **Touch only what this check needs.** No refactor, no other check, no CI workflow.
 3. **Leave at most two commits.** Your `Branch:` holds at most two commits, each staged by path.
    The compose you wrote, when it brought the job's stack up healthy, is a commit of its own, ahead of
@@ -204,6 +205,14 @@ the background. A wait call that ends with no notification is repeated at most t
 third also ends with no verdict, restore every edit you made as the test that will not go green
 below does, make no commit, and write `not fixed <k>: test author did not return` to your return
 file, never a longer wait or a poll of your own.
+
+Your whole run fits in 50 minutes, counted from your first command, which reads the time with
+`date +%s`: the session waits 54 minutes on your return file and then gives you up, and nothing
+you commit after that is ever picked, so before any command or wait call that could run past the
+budget (a command or a wait call can take its whole `600000` ms), read `date +%s` again; when that
+call could end past the 50 minutes, do not start it. Restore every edit you made as the test that
+will not go green below does, tear down your own stack (`docker compose -p fixer-<id> down -v
+--remove-orphans`), make no commit, and write `not fixed <k>: out of time` to your return file.
 
 ## Two ends with no commit
 

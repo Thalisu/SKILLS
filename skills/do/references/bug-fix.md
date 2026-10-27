@@ -93,7 +93,8 @@ branch and `refs/heads/do/<slug>`, qualified so a same-named tag can never shado
   naming it and its branch.
   Under `--auto` the question is still asked of the developer, in the same place and the same
   words, with the `choice-taker`'s return shown above it as it came back, per the questions still
-  asked under the flag in [forks.md](forks.md), and nothing is discarded on that return.
+  asked under the flag in [Run questions under `--auto`](#run-questions-under---auto) below, and
+  nothing is discarded on that return.
 - A run that stopped as blocked resumes the same way once its reason is gone, since every stop on
   this path leaves the worktree and its branch in place and named: the developer's no at step 2 or
   step 7, an inconclusive verification, a `discuss` stop at step 4 once the design is settled.
@@ -199,7 +200,9 @@ their next commit.
 
 When the surface cannot be reached from the session (a device, a production-only dataset, a
 third-party callback), the reason is stated and the developer is asked to drive it and report what
-they see. They are asked twice: once here, before the cause hunt, and once more at step 7,
+they see. The ask is the turn's final message, the fifth place a turn ends in the skill's "Where a
+turn ends", since nothing left in the run can be done without that observation. They are asked
+twice: once here, before the cause hunt, and once more at step 7,
 on the fixed build. The Run report pastes both reports marked as the developer's, beside the run's
 own test output, so a reader tells one from the other. No report, or a no,
 stops the run as blocked with nothing landed and the hypotheses listed, the main checkout restored
@@ -311,8 +314,8 @@ command green, a refactor on green, then typecheck and format the touched files,
 project's facts, with `skip: <reason>` for a command the project does not have. One commit, staged
 by path, its body carrying the behaviour line and the single-file command. A change to the test's
 assertion goes back to its author with the intended behaviour stated, never to make the red go
-away. A Design fork the fix meets, two shapes step 3's evidence cannot settle, goes to the forks in
-[forks.md](forks.md). Done when the fix commit sits on top of the reproduction commit with the suite
+away. A Design fork the fix meets, two shapes step 3's evidence cannot settle, goes to the
+[Forks](#forks) below. Done when the fix commit sits on top of the reproduction commit with the suite
 green.
 
 **7. Verify on the surface.** The original reproduction is run again, the same command line on the
@@ -323,7 +326,7 @@ Inconclusive is not a pass: an output that neither shows the defect nor shows it
 back to step 3 with what it saw.
 
 When the surface cannot be reached, the developer is asked a second time to drive the fixed build,
-and their second report is pasted in the Run report marked as theirs beside the run's own test output.
+the turn's final message as at step 2, and their second report is pasted in the Run report marked as theirs beside the run's own test output.
 No report, or a no, stops the run as blocked with nothing landed. Done when the original
 reproduction's passing output is recorded for the Run report's Run section, or the developer's second
 report is, marked as theirs.
@@ -333,7 +336,7 @@ when the suite and the typecheck are green in output produced after the last edi
 
 **9. Integration.** The integration in [mechanics.md](mechanics.md), with the branch the run
 started on as the target: the branch it built on rebased onto that branch, every conflicted hunk
-classed by the door script before anything is resolved, and the gate's command lines run again when
+classed by `conflict-class.sh`, per [conflict-loop.md](conflict-loop.md), before anything is resolved, and the gate's command lines run again when
 the rebase replayed commits. Every contested hunk takes the **Target** side, and its **Incoming** side goes to
 the Loss ledger keyed by the run's branch, `.scratch/ledgers/<branch>.md` in the main checkout.
 Done when the step reads the no-op, or the target and the count with the tree handed over with no
@@ -370,7 +373,8 @@ with the review's reason quoted and the worktree and its branch named, or the st
 
 **11. Verification.** The verification in [mechanics.md](mechanics.md): the affected flows from the
 main checkout with the command line printed first, the one question before a full suite or a remote
-run, which the `choice-taker` rules under `--auto`, per [forks.md](forks.md), and a red flow as one more unit of the loop, handed with no **Gate** of the run's own to the
+run, which the `choice-taker` rules under `--auto`, per
+[Run questions under `--auto`](#run-questions-under---auto) below, and a red flow as one more unit of the loop, handed with no **Gate** of the run's own to the
 fix call on the same Review, which lands it again with no second review. A defect with no user-observable surface
 has no affected flow and the step reads `skip: no affected flow` with that reason. Done when every
 affected flow is green or recorded as not run on the developer's no, or the step reads
@@ -387,12 +391,125 @@ Done when `git worktree list` no longer shows the run's worktree, or the step re
 
 **13. Reply.** Written by [reply.md](reply.md), its five parts. The `Plan:` line reads the bug
 back in a few words. For whom says who saw the defect and what they see now that it is fixed. A
-waived flow and a check that stood in for a test go under Pending debt. The Next step is
+waived flow, a check that stood in for a test and a Design fork's Ruling, per [Forks](#forks)
+below, go under Pending debt. The Next step is
 `git push` with the developer's branch named when the review landed, or, when nothing landed, the
 worktree, its branch, and the review and the landing as what the developer runs next. Under
 `--auto` the Run report opens its Run section with four lines of its own: what was broken, the
 root cause, the fix, and the verification with the failing-then-passing output pasted, the
 developer's reports among it marked as theirs when they drove the surface. It lists the Review
 under the files left uncommitted, and under `Rulings`, `On the Spec: none`, and in the
-`On the run:` group each Ruling made on a run question, or `none`. Done when the reply is sent,
+`On the run:` group each Ruling made on a Design fork or a run question, or `none`. Done when the reply is sent,
 and under `--auto` the Run report written.
+
+## Forks
+
+This Playbook runs outside the chain, with no Ticket and no Spec, so it reads no fork reference of
+the `ticket` Playbook: what a fork needs here is in this section, per
+[ADR 0105](../../../docs/adr/0105-forks-md-is-the-ticket-playbooks-and-each-outside-chain-playbook-carries-its-own-forks.md).
+A question the run meets is classified before it is asked, and its class decides who settles it:
+
+| The question | Settled by | The run |
+|---|---|---|
+| Empirical fork: a fact a script can observe (which timing, which output, whether an API does the thing) | a throwaway probe script in the worktree, deleted before the commit | carries on |
+| Design fork: two shapes step 3's evidence and the code cannot settle, each keeping every guarantee whole | the `choice-taker` | carries on |
+| Extreme fork: a Design fork with a side that weakens a guarantee in a risk class (security, privacy, data loss, auth, billing, migration, idempotency, race), or that cannot be undone once landed | the developer, through `/discuss` | stops, blocked |
+
+An empirical fork never reaches the developer, per
+[never-block-on-the-human](../../../.agents/principles/never-block-on-the-human.md). A surface only
+the developer can reach is no fork: it is the observation step 2 asks for.
+
+### A Design fork
+
+A Design fork is ruled inside the run, with or without `--auto`, per
+[ADR 0036](../../../docs/adr/0036-a-design-fork-is-settled-in-the-run-by-a-read-only-choice-taker-and-only-an-extreme-fork-stops-it.md).
+The session takes these steps in order:
+
+1. Say in one line that the run met a Design fork at its step, step 4 or step 6, and name both
+   sides.
+2. Read the two sides for an Extreme fork. A side read as Extreme stops the run there, by the
+   Extreme stop below, and no `choice-taker` is forked.
+3. Call the Agent tool with `subagent_type: choice-taker`, the agent `do` ships in
+   [choice-taker.md](../agents/choice-taker.md), never another agent in its place, with the brief
+   its definition names:
+   - `Caller:` is `do` at the step of the `bug-fix` Playbook, `Plan the fix` or `Fix`.
+   - `Question:` is the fork, `Options:` its two sides, and `Recommendation:` is `none`.
+   - `Repository root:` is the main checkout's absolute path.
+   - `Principles:` is the absolute path `readlink -f <skill-dir>/../../.agents/principles` prints,
+     with `<skill-dir>` the folder that holds this file's `references/`.
+   - `Context:` is the bug read back, step 3's hypothesis lines and mechanism, and the Sketch's
+     location when step 4 filed one. There is no Ticket, Spec or Digest to name.
+4. Check the return before reading a side from it. It is a Ruling only when its first line reads
+   `settled` or `extreme`, and a `settled` one only when its `Side:` line names one of the two
+   sides, its `Fork:` line names those two and no other, and its `Losing criterion:` reads `none`,
+   since no Ticket criterion exists to lose.
+5. On a `settled` Ruling, take its side and carry on in the same turn. On an `extreme` one, stop by
+   the Extreme stop below, its `Fork:`, `Weaker side:`, `Guarantee:` and `Risk class:` lines
+   filling the stop's slots.
+
+A `settled` Ruling is written to no file of the project: no Spec stands behind the run to carry
+it, and a commit is no place for a decision the developer did not make. It reaches the developer
+in two places. The Reply's Pending debt carries it on every run, as one line, since the developer
+reads a bug fix and a design choice rode inside it:
+`Ruled by the choice-taker at the <step> step: <the side taken>. Norm: <the norm, or "no norm: the side easiest to undo">. Fork: <side A> or <side B>.`
+Under `--auto` the Run report lists it under `Rulings`, in its `On the run:` group, per
+[reply.md](reply.md).
+
+On no Ruling (the Agent tool withheld, no `choice-taker` listed, or a return that fails the check)
+the run rules nothing itself, never forks the `choice-taker` a second time, and stops at its step
+as blocked, the unruled stop: the Extreme stop's message with `on a Design fork no choice-taker
+ruled` in place of `on an Extreme fork`, and the reason in place of the clause after the semicolon
+(`the Agent tool is withheld`, `choice-taker is not listed`, with `scripts/link-skills.sh` as what
+links it, or `the choice-taker returned no usable Ruling`, the return quoted whole on a blocker's
+line).
+
+### The Extreme stop
+
+The session never overrules either reading: a fork it read as ordinary that the `choice-taker`
+returned `extreme` on stops, under `--auto` as without it. The stop is a blocked run, written by
+the blocked shape of [reply.md](reply.md), nothing landed, and its blocker lines name the step, both
+sides, the guarantee the weaker side would lose with its risk class (or what could not be undone
+once landed), the worktree and its branch left in place, and the commits made so far, one line
+each, or `none`.
+
+There is no Ticket and no Spec, so the reply's last line is a `/discuss` command that names
+neither, whole, with nothing after it:
+
+```
+/discuss the do bug-fix run on "<the bug read back>" stopped at the <step> step on an Extreme fork, <side A> or <side B>; <the weaker side> would give up <the guarantee> (<the risk class>). Which side does the fix take?
+```
+
+A side that cannot be undone once landed reads `<the weaker side> cannot be undone once landed:
+<what could not be undone>` in place of the clause after the semicolon. No sidecar is written: the
+next `/do` on the same bug is a resume of the branch, which meets the fork again at its step.
+
+### Run questions under `--auto`
+
+A run question is one a step would put to the developer about the run itself: whether it carries
+on, and which way. Under `--auto` the developer handed that direction over, per
+[ADR 0045](../../../docs/adr/0045-auto-hands-direction-to-the-choice-taker-and-four-classes-still-stop.md).
+Without the flag each is asked as its step says.
+
+| The question | Its step | Under `--auto` |
+|---|---|---|
+| whether a full suite or a remote run runs | 11, the verification in [mechanics.md](mechanics.md) | ruled by the `choice-taker` |
+| whether uncommitted changes in the worktree are discarded | the Resume above | still asked, with the `choice-taker`'s return shown above it |
+
+A ruled question takes the Design fork's brief, with `Caller:` `do` at that step under `--auto`,
+`Question:` the question as the step words it, `Options:` the answers the step offers, each opening
+with its own word and saying what the run does on it (`yes: run <the command line>`, never a bare
+`yes`), `Recommendation:` the step's own or `none`, and `Context:` the lines the question would
+have shown the developer, inline. The return is checked as a Design fork's is, the options in place
+of the sides. On a `settled` Ruling the run does what the step says for that answer, as if the
+developer had typed it, and carries on with no message asking for a confirmation. The Ruling is
+written to no file of the project, and the Run report lists it under `Rulings`, in its `On the run:`
+group, per [reply.md](reply.md). On an `extreme` return or on no Ruling, the question is asked as
+without the flag, one line above it naming the reason or quoting the return.
+
+A question before something that cannot be undone is still asked under the flag, in the same place
+and the same words: uncommitted work thrown away is the one on this path. The session first forks
+the `choice-taker` on it with the brief above and shows its return directly above the question, a
+`settled` return's `Side:` and `Norm:` lines or an `extreme` return quoted whole, so the developer
+confirms an answer instead of deciding from scratch. Nothing is discarded on that return before the
+developer answers. A `choice-taker` that cannot be forked, or a return that fails the check, leaves
+one line in the answer's place naming the reason.

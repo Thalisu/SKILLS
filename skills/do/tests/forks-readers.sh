@@ -77,23 +77,24 @@ expect "reply.md's Rulings section links forks.md" \
   grep -qF "the forks in [forks.md](forks.md)" "$reply"
 
 # bug-fix.md's step 6, Fix, is the step that builds the fix and can meet a Design fork between two
-# shapes: it has to link forks.md the way ticket.md's build loop does.
+# shapes: it links its own Forks section, since forks.md is the ticket Playbook's alone (ADR 0105).
 bugfix_fix_step="$(passage_of "$bugfix" "**6. Fix.**" "**7.")"
 expect "bug-fix.md carries step 6, Fix" test -n "$bugfix_fix_step"
-if grep -qF "[forks.md](forks.md)" <<<"$bugfix_fix_step"; then
-  ok "bug-fix.md's Fix step links forks.md"
+if grep -qF "[Forks](#forks)" <<<"$bugfix_fix_step"; then
+  ok "bug-fix.md's Fix step links its own Playbook's forks section"
 else
-  fail "bug-fix.md's Fix step links forks.md"
+  fail "bug-fix.md's Fix step links its own Playbook's forks section"
 fi
 
 # refactoring.md's step 6, Reshape, is the step that builds the new structure and can meet a Design
-# fork between two shapes: it has to link forks.md the way ticket.md's step 5 does.
+# fork between two shapes: it links its own Forks section, since forks.md is the ticket Playbook's
+# alone (ADR 0105).
 refactoring_reshape_step="$(passage_of "$refactoring" "### 6. Reshape" "### 7.")"
 expect "refactoring.md carries step 6, Reshape" test -n "$refactoring_reshape_step"
-if grep -qF "[forks.md](forks.md)" <<<"$refactoring_reshape_step"; then
-  ok "refactoring.md's Reshape step links forks.md"
+if grep -qF "[Forks and run questions](#forks-and-run-questions)" <<<"$refactoring_reshape_step"; then
+  ok "refactoring.md's Reshape step links its own Playbook's forks section"
 else
-  fail "refactoring.md's Reshape step links forks.md"
+  fail "refactoring.md's Reshape step links its own Playbook's forks section"
 fi
 
 # forks.md's own preamble: the paragraph naming who reads it.

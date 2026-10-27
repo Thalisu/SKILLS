@@ -33,12 +33,11 @@ Rulings:
 </rulings id="<id>">
 Built:
 <built id="<id>">
-<the `behaviour=` lines `resume-state.sh` printed on a resume, one per line, or none>
+<each `behaviour=` line `resume-state.sh` printed, past its `behaviour=<sha> `, one per line, or none>
 </built id="<id>">
 Plan: <the absolute path this Plan is written at>
 Repository root: <the main checkout's absolute path>
 Tree: <the worktree the build runs in, or the repository root>
-Flow: ticket | bug-fix | refactoring
 Agents folder: <the absolute path of the chain's `.agents/` folder>
 ```
 
@@ -121,7 +120,9 @@ the shape.
   invented, and it comes out of the list.
 - The list holds the behaviours callers observe, the critical paths and the logic that can be wrong
   first, not one item per branch.
-- A line under the brief's `Built:` is a behaviour a commit on the branch already carries. Where a
+- A line under the brief's `Built:` is a behaviour a commit on the branch already carries, its
+  `Behaviour:` text alone: the session strips the `behaviour=<sha> ` prefix the script prints and
+  leaves out the lines reading `none`, the flow commits that carry no behaviour. Where a
   criterion the Ticket still holds, or a Digest quote, is the behaviour that line states, the item
   for it takes the line as its `Behavior to prove`, word for word, and no second item is cut for
   the same criterion in other words. The session ticks a built behaviour by matching the two

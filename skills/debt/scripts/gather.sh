@@ -9,7 +9,8 @@
 # line= and no item= (exit 5), else one
 # items=<n> line, the count of records (0 when none), then one
 # item=<k><TAB>source=<source><TAB>text=<text> line per Debt item of the folder's issues/*.debt.md
-# files, k from 1, the source naming the Debt file, its section and the item within the section,
+# files (their shape is .agents/formats/debt-format.md), k from 1, the source naming the Debt
+# file, its section and the item within the section,
 # then one per Consider or Noted Finding, and per Act on Finding whose latest fix line reads not
 # fixed, of the feature's Reviews (the Spec's, then the Tickets', never the Debt review), k
 # continuing, the source naming the review file and the Finding, its text= that Finding's Claim line

@@ -58,13 +58,13 @@ per [ADR 0091](../../../docs/adr/0091-the-do-reply-is-five-parts-and-the-run-rep
 
 Every run on a Ticket, with or without `--auto`, writes the Reply's Pending debt part, and nothing
 else of the Reply, to the Debt file beside the Ticket: the Ticket's file name with `.debt` before
-the extension (`<ticket stem>.debt.md`), in the Home repository's main checkout. For a tracker
-Ticket it sits beside the Plan, with `.debt.md` in place of `.plan.md`, the way the Run report sits
-beside it. Each run adds one section to that file, headed by the run's date and time as one
-`## <date and time>` heading. Under it goes the Pending debt part's text verbatim, one `- ` bullet
-per Pending debt line, and no `## Pending debt` heading of its own: the debt skill reads the file
-by its `## ` headings and `- ` bullets alone, so a second heading under each run's would give every
-run's first item the same source. A run that owes nothing still writes its section, which reads
+the extension (`<ticket stem>.debt.md`), in the Home repository's main checkout, in the shape of
+[debt-format.md](../../../.agents/formats/debt-format.md). For a tracker Ticket it sits beside the
+Plan, with `.debt.md` in place of `.plan.md`, the way the Run report sits beside it, where `/debt`
+never gathers it, per that format. Each run adds one section to that file, headed by the run's date
+and time as one `## <date and time>` heading. Under it goes the Pending debt part's text verbatim,
+one `- ` bullet per Pending debt line, and no `## Pending debt` heading of its own, for the reason
+the format gives. A run that owes nothing still writes its section, which reads
 plain `none` and not a `- none` bullet, so the file tells a run that owed nothing apart from a Ticket with no
 Debt file, one whose runs never wrote their debt down. A later run on the same Ticket appends its
 section below the earlier ones, and never replaces or edits one, be it a resume after a stop or a
@@ -106,7 +106,7 @@ place them:
   Playbook. Lines one step records together keep the order of the list below.
 
 The numbers identify the lines. They are not one single order every Playbook follows, since two
-Playbooks can produce the same lines in a different relative order: in `ticket` and `bug-fix` the
+Playbooks can produce the same lines in a different relative order: in `bug-fix` the
 worktree line comes before the audit line and before the hand-over, shaped-by and Sketch lines; in
 `refactoring` the target files and the audit line both come before the worktree line.
 
@@ -248,10 +248,13 @@ worktree line comes before the audit line and before the hand-over, shaped-by an
       `not landed: target moved` or a resumed run's, carries the lines of both integrations, each
       under its own integration line, and the integration after the review lists every `drop` of
       its own, each marked as coming after the review, since no reviewer reads what that
-      integration set aside and the reply is the one place the developer sees it before it reaches
-      their branch.
+      integration set aside. Each such drop is also a line of the Pending debt, per item 9 of
+      [Sections](#sections), with or without `--auto`: the message is the one place the developer
+      sees it before it reaches their branch.
 28. **Review return.** The review's return, one line per part: the Review's location, the
-    `Act on:` line, the landing line, every `Risk:` line and every `Axis not run:` line.
+    `Act on:` line, the landing line, every `Risk:` line and every `Axis not run:` line. The last
+    two are also lines of the Pending debt, per item 9 of [Sections](#sections), with or without
+    `--auto`.
 29. **Spec landing lines.** On a `ticket` run of a Spec, which calls no review, these lines in the
     Review return's place. First, on a run whose door printed a `root=` that is not the main
     checkout, the line naming the run's two repositories, the Build repository it built in and
@@ -359,7 +362,7 @@ worktree line comes before the audit line and before the hand-over, shaped-by an
     Landed: billing-service
     Still to land: orders-service
     orders-service: open a session in /home/dev/orders-service
-    /do /home/dev/orders-service/.scratch/hold-disputed-invoice/issues/04-show-the-hold.md
+    /do /home/dev/orders-service/.scratch/20260301-hold-disputed-invoice/issues/04-show-the-hold.md
     ```
 
     On the landing command typed in `orders-service` after it, the last repository left, a
@@ -380,9 +383,9 @@ worktree line comes before the audit line and before the hand-over, shaped-by an
     Landed: none
     Still to land: billing-service, orders-service
     billing-service: open a session in /home/dev/billing-service
-    /do /home/dev/orders-service/.scratch/hold-disputed-invoice/issues/02-hold-the-invoice.md
+    /do /home/dev/orders-service/.scratch/20260301-hold-disputed-invoice/issues/02-hold-the-invoice.md
     orders-service: this session's repository, once billing-service landed
-    /do /home/dev/orders-service/.scratch/hold-disputed-invoice/issues/04-show-the-hold.md
+    /do /home/dev/orders-service/.scratch/20260301-hold-disputed-invoice/issues/04-show-the-hold.md
     ```
     - **Stopped.** `Final integration: stopped` with the reason: the rebase question nobody
       answered, the red check, or the review's `not landed` line quoted. Then the Spec branch and
@@ -483,19 +486,26 @@ of the message: For whom, Pending debt and Next step, written the same way in bo
      the forks in [forks.md](forks.md), follows under `On the Spec:` in the same shape, with the Spec issue it was
      posted on once the close's yes posted it, and otherwise with its whole Spec line and its
      `Criterion:` and `Now reads:` lines, for the developer to carry to the issues: on a no, a
-     refused write or a stop, nothing else carries it, so that unposted Ruling is also listed
-     under Pending debt, in the message, with or without `--auto`. A Ruling an earlier session held and never
-     posted is lost.
+     refused write or a stop, neither the Spec nor the tracker carries it, so that unposted Ruling
+     is also listed under Pending debt, in the message and so in the Debt file, with or without
+     `--auto`. A Ruling an earlier session held and never posted is not held again: a resume meets
+     the fork again, and the earlier run's section of the Debt file still names it.
    - **A Ruling on a run question.** A Ruling the `choice-taker` made under `--auto` on a
-     question about the run itself, the run questions in [forks.md](forks.md), goes under
+     question about the run itself, the run questions in [forks.md](forks.md), or the Playbook's
+     own Forks section outside the chain, goes under
      `On the run:` and never among the Spec's lines, one line per Ruling in the order the run met
      them, naming both options, the option taken and the norm:
      `<option A> or <option B>: <the option taken>. Norm: <the norm>.` Each slot is read back from
      the return's own `Fork:`, `Side:` and `Norm:` lines. That Ruling sits in no other file, so this
      group is the one place the developer reads what was decided for them, and the reason the
      Run report is written under `--auto`: it is listed on every Playbook, and on a blocked run as
-     well as a finished one. A return shown above a
-     question the developer still answered steered nothing and is not listed.
+     well as a finished one. A return shown above a question the developer still answered steered
+     nothing and is not listed.
+   - **A Design fork outside the chain.** A `bug-fix` or `refactoring` run's Design fork Ruling,
+     ruled by the Playbook's own Forks section, goes under `On the run:` too, never under
+     `On the Spec:`, since that run has no Spec, in the same shape:
+     `<side A> or <side B>: <the side taken>. Norm: <the norm>.` It is also a line of the Pending
+     debt on every run, per item 9.
    - **An empty group.** Both labels are written in every Run report, and a group with no Ruling
      reads `none` on its label's line: `On the Spec: none` when the Spec carries no such line and
      this run holds none of its own, `On the run: none` when it ruled no run question. A Playbook
@@ -504,10 +514,19 @@ of the message: For whom, Pending debt and Next step, written the same way in bo
    only the steps the run reached: a step it never came to was never considered, so it is not a
    skip and is not listed.
 8. **Left uncommitted.** The files the run wrote and did not commit, for the developer: the
-   Ticket, the Review, and the `.gitignore` line when the run appended it. `none` when the run
-   wrote only what it committed.
+   Ticket, the Review, the `.gitignore` line when the run appended it, and every file it wrote
+   under `.scratch/`, which git ignores: the Digest, the Plan, the Sketch, the Loss ledger and the
+   Project map when the run wrote one, the Debt file on every run on a Ticket, and under `--auto`
+   the Run report itself. `none` when the run wrote only what it committed.
 9. **Pending debt.** Waivers, consumer coverage not run, an equivalence gap, a second thing found
-   on the way and not done. A held Ruling the close did not post, per the Rulings item above, with its
+   on the way and not done. It lists every `Risk:` line of the review's return, on every run, with
+   or without `--auto`, since a risk class is never dismissed silently. It lists every
+   `Axis not run:` line of the review's return too, with its reason, with or without `--auto`. So is
+   every `drop` of an integration that ran after the review, each marked as coming after the review,
+   with or without `--auto`, since no reviewer reads what that integration set aside. The Run report
+   still carries all three under `--auto`, and the message stays five parts. A `bug-fix` or
+   `refactoring` Design fork's Ruling is listed here on every run, in the line its Forks section
+   fixes. A held Ruling the close did not post, per the Rulings item above, with its
    whole Spec line and its `Criterion:` and `Now reads:` lines. On a run that forked `do-impeccable`, each `finding:` line the fork
    returned is listed here, one line per finding, so a finding counted under Evidence is always
    named. Findings that remain are debt and never a stop: the Ticket still lands. A run whose guard
@@ -744,7 +763,7 @@ How much more it carries depends on where the run stopped:
 
 Every blocked Reply, and every refusal at a door, carries one line that says what the run hands the
 developer and why only the developer can give it, except the `ticket` door's stops on a Build
-repository (`verdict=elsewhere` and `verdict=unbuildable`) and the `pr` door's five stops, which
+repository (`verdict=elsewhere` and `verdict=unbuildable`) and six stops of the `pr` door, which
 hand over no choice: the first names the one repository to run in, the second the one input to
 fix; a pull request the GitHub CLI cannot open, or one closed or merged, names another pull request
 or the same one reopened, a GitHub CLI missing or not logged in names `gh auth login`, a branch of
@@ -801,7 +820,7 @@ Three writes outside the repository have a fixed place:
   choice, never the push. The `pr` round's push is the exception ADR 0086 authorises: the run makes
   it itself, by fast-forward only, reports it on For whom's round lines, and it is never named
   under `outward`. The `pr` rerun of a check its fixer could not reproduce is authorised the same
-  way ([ADR 0089](../../docs/adr/0089-the-pr-playbook-reruns-a-check-once-after-its-fixer-could-not-reproduce-it.md)):
+  way ([ADR 0089](../../../docs/adr/0089-the-pr-playbook-reruns-a-check-once-after-its-fixer-could-not-reproduce-it.md)):
   the run makes it itself, reports it on For whom's round lines, and never names it under
   `outward` nor hands it over on a `Yours:` line.
 - **A write to a remote tracker.** The question a run puts before a write to a remote tracker, the
@@ -910,7 +929,7 @@ none
 ## Rulings
 
 On the Spec: none
-On the run: run the full suite or record each flow that needed it as not run: record each flow that needed it as not run. Norm: no norm: the side easiest to undo.
+On the run: yes: run npx playwright test (the full suite) or no: record each flow that needed it as not run: no: record each flow that needed it as not run. Norm: no norm: the side easiest to undo.
 
 ## Skipped
 
@@ -919,6 +938,10 @@ none
 ## Left uncommitted
 
 .scratch/20260101-notes/issues/03-share-notes.md
+.scratch/20260101-notes/issues/03-share-notes.digest.md
+.scratch/20260101-notes/issues/03-share-notes.plan.md
+.scratch/20260101-notes/issues/03-share-notes.debt.md
+.scratch/20260101-notes/issues/03-share-notes.report.md
 
 ## Pending debt
 

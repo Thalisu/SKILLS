@@ -31,7 +31,9 @@ Finding by moving it to `Consider` or `Cleared` and never deleting it, because a
 comes back as new and is judged again on the next run; then `/debt <slug>` as the run's last line,
 `<slug>` being the `slug=` value gather.sh printed.
 
-The session never parses a Debt file or a Review itself: gather.sh reads both. It relays the
+The session never parses a Debt file or a Review itself: gather.sh reads both, the Debt files in
+the shape of [debt-format.md](../../.agents/formats/debt-format.md), which also says why a tracker
+Ticket's Debt file is never gathered. It relays the
 `line=` value the script printed and decides on the script's exit code:
 
 | What came back | What this session does |

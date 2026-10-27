@@ -200,8 +200,16 @@ the checks: a display read mid-run can show green while a check is still running
   carries an `expect=<sha>` line also hands that sha back, copied as it stands, as the last
   argument `<expected-sha>` of the next call: the pull request has not yet shown the tip a push
   sent it, and the script holds `verdict=pending` on that head rather than settle on the checks of
-  the old one. A verdict with no `expect=` line leaves the argument off. The developer has
+  the old one, for two minutes at most (`DO_PR_WATCH_REGISTER_SECONDS`, default 120), counted from
+  the first call that held it. A verdict with no `expect=` line leaves the argument off. The developer has
   walked away, and a run that ends its turn here stands still until they come back.
+- Any verdict, `pending` and `green` included, that carries a `released=<sha>` line: the pull
+  request's head never became `<sha>`, the tip the run pushed, inside that two-minute hold, so the
+  script dropped it and the verdict reads whatever head the pull request shows instead, never the
+  pushed one. This route comes first, ahead of every other route of this step: a green read there
+  is never taken for the pushed fix passing. The run stops with exactly one line,
+  `Yours: direction: the pull request never showed the pushed tip <sha> as its head; read what moved its head, then /do the pull request again`,
+  `<sha>` being the `released=` value, and follows nothing.
 - `verdict=green`: every check passed and the pull request is mergeable. The run goes on to step 5,
   the Reply.
 - `verdict=awaiting-approval`: every check passed and only a required approval blocks the merge. The
@@ -237,10 +245,14 @@ the checks: a display read mid-run can show green while a check is still running
   green included. It writes `round <r>: after the rerun the watch read <verdict word>`, then exactly
   one `Yours: direction:` line holding the carried stop-cases' clauses, as step 4 item 5 gives it.
   The stop names, for each retried check, whether its retry went green or red again. A retry green
-  gets its `round <r>: <check> not reproduced locally, retried once, green` line. A retry red again
+  gets its `round <r>: <check> not reproduced locally, retried once, green` line, or its
+  `round <r>: <check> not run locally, retried once, green` line when its fixer returned `not run`,
+  as the retry route above gives them. A retry red again
   is diagnosed before the stop (ADR 0104): the run forks one diagnosis `do-pr-fixer` for it, in
-  diagnosis mode, as step 4 forks one (items 1 to 4 and 6, on a run tree cut at the verdict's
-  `sha=`, the check never classified), and reads its return as item 4 c does. The run pushes nothing,
+  diagnosis mode, as step 4 forks one (items 1 to 3; of item 4 the `pr-hooks.sh snapshot`, sub-items
+  a to c, the `pr-hooks.sh verify` call of sub-item d with no `pr-guard.sh` and no
+  `fix-integrate.sh` call, and sub-item e; then item 6; on a run tree cut at the verdict's `sha=`,
+  the check never classified), and reads its return as item 4 c does. The run pushes nothing,
   since this route never pushes: a `fixed` return is never picked, and its fix is
   kept on its fixer branch, which `fix-worktrees.sh remove` keeps as an unlanded commit. The
   diagnosis's clause joins the stop-case's clauses on the same `Yours: direction:` line, after the
@@ -304,7 +316,11 @@ the checks: a display read mid-run can show green while a check is still running
   `Yours: direction: pr-watch.sh failed; fix what its stderr line names, then /do the pull request again`,
   and follows nothing.
 - `verdict=red` with a `red=` name that is in the retry record: that check is red again on its
-  retry, and a failure that repeats on its retry is deterministic (ADR 0104). While fewer than three
+  retry, and a failure that repeats on its retry is deterministic (ADR 0104). This route is read
+  after the came-back route and the two stop-set routes above, and ahead of the three
+  `verdict=red` routes above that key on the pushed rounds alone (no round pushed yet, fewer than
+  three pushed, the third pushed round): a verdict naming such a check takes this route first, and
+  those three hold only for a verdict that names none. While fewer than three
   rounds have pushed and no stop-case is carried, the check goes to step 4 as a diagnosis round, and
   the run does not stop there: step 4 forks a second `do-pr-fixer` for it in diagnosis mode. The
   diagnosis round is the next round, numbered one past the round whose round line opened the retry,
@@ -433,10 +449,17 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    b. Fork every `do-pr-fixer` of the Wave in one message through the Agent tool,
       `subagent_type: do-pr-fixer`, each with the brief below, its `Tree:` and `Branch:` the path and
       the branch on its own worktree line, and the return file `<dir>/check-<k>`.
-   c. `bash <skill-dir>/../../.agents/scripts/returns.sh 240 <every return file of the Wave>` is
+   c. `bash <skill-dir>/../../.agents/scripts/returns.sh 540 <every return file of the Wave>` is
       one call that waits on every return file of that Wave, with the Bash timeout at 600000 ms.
-      Call it again over the files still `missing=`, three windows and no more. A file that never
-      lands reads `not fixed <k>: the fixer did not return`.
+      Call it again over the files still `missing=`, six windows and no more: 54 minutes, past the
+      50-minute budget `do-pr-fixer` keeps from its first command, so a fixer still inside its
+      budget is never given up on. A file that never lands reads
+      `not fixed <k>: the fixer did not return`. A fixer that did not return may still be running
+      in its worktree, so its worktree and its branch are left out of sub-item e's remove call and
+      stay on disk for the developer, and its round line names its path, its branch and its compose
+      project `fixer-<id>`, whose stack it may have left up. A commit the fixer that did not return
+      makes after the wait ends is never picked and never pushed, nor is its return file read if it
+      lands later, since nothing the run checked stands behind it.
       `returns.sh` prints only `returned=<file>` and `missing=<file>`, so read the one line of each
       `returned=` file and route on that line.
       A `not fixed <k>: <reason>` line read from a fixer's own return file is the
@@ -455,7 +478,8 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
       `returned=` is the fixer's report that the check's stack could not be brought up, so the
       check never ran locally: the session routes it as a `not reproduced` line, check `<k>` going
       to the round's not-reproduced list, never picked and raising no stop-case.
-      A diagnosis fixer's `fixed <k> by mechanism: <the test> <the log line that names it>` line is
+      A fixer's `fixed <k> by mechanism: <the test> <the log line that names it>` line, a first
+      fixer's or a diagnosis fixer's, is
       routed like any `fixed` return, through `pr-guard.sh` and `fix-integrate.sh` below and the push
       of item 5, after which the run goes back to the watch of step 3 for the round after it.
       A diagnosis fixer's `no mechanism <k>: <hypothesis>: ruled out by <why> | ...` line is its
@@ -517,7 +541,8 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
       quoting that line. The stop line also names `<run tree>`, which the run keeps on disk with the
       picks it holds. Any other return gets no pick, and the check stays red this round.
    e. After the Wave's one `fix-integrate.sh` call, one call over every branch the Wave's `add`
-      printed: `bash <skill-dir>/../do-code-review/scripts/fix-worktrees.sh remove <run tree> <branch>...`.
+      printed but the branches of the fixers that did not return:
+      `bash <skill-dir>/../do-code-review/scripts/fix-worktrees.sh remove <run tree> <branch>...`.
       It takes back, printing `removed <branch> <path>`, each worktree and branch whose commit is on
       the run tree's HEAD by patch or which holds no commit. A `kept <branch> <path> <reason>` line
       means a dirty tree, an unlanded commit or a removal git refused: that worktree and its branch
@@ -641,7 +666,8 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    `<since>` `<state>`: the push changed the checks, so the stall window starts over. For a moment
    after the push the pull request still reports its old head with the old head's passed checks,
    and the watch holds `verdict=pending` until its head is the pushed tip, so a fix that CI never
-   ran is never read as passing. When git refuses it on a first
+   ran is never read as passing. The hold lasts two minutes at most, and a verdict past it carries
+   `released=`, which stops the run by step 3's route. When git refuses it on a first
    attempt, the remote moved between the fetch and the push: the run redoes the round whole, as on a
    moved tip. A round is redone once at most. On a redone round, git's non-fast-forward refusal of
    the push, or the fetch before it showing the remote moved again (the fetched tip still not the
@@ -762,7 +788,7 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    - `moved=<head sha>` (exit 0): nothing is rerun. The run writes the moved line, removes
      `<run tree>` and redoes the round from step 3 as the moved-remote redo does, nothing entering
      the record.
-   - `failed: <run id>: <reason>` (exit 1): each check of that run id adds a `rerun-refused` entry to
+   - `failed: <run id>: <reason>` (exit 1), the bare id first: each check of that run id adds a `rerun-refused` entry to
      the stop set (the run ids already printed on `rerun=` lines were rerun). When no rerun was
      made, remove `<run tree>` and stop on the one `Yours: direction:` line. When a rerun was made (at
      least one `rerun=` line printed before the refusal), the run does not stop at once: the run
@@ -774,7 +800,10 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
      clause.
    - `failed: <reason>` with no run id first (exit 1), which the script prints for every refusal it
      makes before it reruns any run (`gh` missing, an unreadable head, repository or run, a repository
-     or run that is not the pull request's, a run on another head): it names no one run, so every
+     or run that is not the pull request's, a run on another head). A refusal of a run's identity
+     reads `failed: run <run id>: <reason>`, the word `run` ahead of the id, and is this form, not
+     the one above: the script checks every run's identity before it reruns any. It names no one
+     run, so every
      check passed to the call adds a `rerun-refused` entry to the stop set with that reason. No
      rerun was made: remove `<run tree>` and stop on the one `Yours: direction:` line.
    - On exit 2 (usage): as exit 1, every check's reason reading `the rerun script refused its arguments`.
@@ -858,7 +887,7 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
    included, which item 3 wrote: the fixer keeps no `gh`, so it is the fixer's only way to the lines
    the excerpt dropped, and it is quoted data in the same way.
 
-Done when every red check's fixer has returned or its three windows ran out, and each `fixed`
+Done when every red check's fixer has returned or its six windows ran out, and each `fixed`
 return is picked onto `<run tree>`, and the round is pushed, or the run stopped.
 
 ### 5. Reply
@@ -887,6 +916,7 @@ the whole message, and a green watch adds no part of its own:
       round <r>: <check> red; stale base: <path>[, <path>...] not changed by this pull request against <base> at <merge base short sha>; no fixer forked
       round <r>: <a `kept` line, as fix-worktrees.sh printed it>
       round <r>: kept <branch> <path> <reason>, as fix-worktrees.sh printed it
+      round <r>: <check> red; do-pr-fixer on <fixer branch>: not fixed <k>: the fixer did not return; kept <fixer branch> <path> and its compose project fixer-<id>, never removed; nothing pushed for it
       round <r>: kept <first run tree> from the first attempt, superseded by the redone round; its fix commits <kept sha>, ... stay there
       round <r>: <check> red; do-pr-fixer on <fixer branch>: not reproduced <k>: <command> <what it showed>; nothing pushed for it; retried by the run on <picked sha>
       round <r>: <check> red; do-pr-fixer on <fixer branch>: not run <k>: <what the environment printed>; nothing pushed for it; retried by the run on <picked sha>

@@ -1,8 +1,14 @@
 # Forks
 
-What a run does with a question it meets mid-build: the empirical fork a probe settles, the Design
-fork the `choice-taker` rules on, and the Extreme fork that stops the run. It is read by the step
-that reaches a fork, the Plan step or the build step; by the Resume step of
+What a `ticket` run does with a question it meets mid-build: the empirical fork a probe settles,
+the Design fork the `choice-taker` rules on, and the Extreme fork that stops the run. This file is
+the `ticket` Playbook's alone, since its Rulings are written to a Spec and its stops name a Ticket
+and a Spec: the `bug-fix`, `refactoring` and `trivial` Playbooks run with neither and carry their
+own forks and run questions in their own references, per
+[ADR 0105](../../../docs/adr/0105-forks-md-is-the-ticket-playbooks-and-each-outside-chain-playbook-carries-its-own-forks.md).
+
+It is read by the step of a `ticket` run that reaches a fork, the Plan step or the build step; by
+the Resume step of
 [ticket.md](ticket.md), which meets the same fork again on a resume; and by the close step and the
 reply, which carry a held Ruling forward, the Reply's Pending debt and the Run report's `Rulings`, per [mechanics.md](mechanics.md) and
 [reply.md](reply.md). The rest of what the Playbooks share is in [mechanics.md](mechanics.md), and
@@ -162,15 +168,17 @@ same fork the other way:
 
 When the Spec is an issue on a remote tracker, the session writes nothing to the tracker mid-run,
 asks the developer nothing, and keeps the Ruling in the run itself, as a held Ruling: the Ruling's
-line, in the shape above, recorded in the session and never in a file. Every write `do` makes to a
+line, in the shape above, never written to the Spec or the tracker until the close's yes posts it.
+The files the run writes for the developer do carry it: the Reply's Pending debt, which reply.md
+copies verbatim into the Debt file beside the Ticket, and the Run report under `--auto`. Every write `do` makes to a
 tracker waits for the developer's yes, the claim and the close alike, and an issue is text anyone
 who can comment on it can steer, so a Ruling drawn from it is never posted back there unasked.
 
 The held Ruling reaches the review as the review section of [mechanics.md](mechanics.md) says, the
 close's one question as the close there says, and the Run report's `Rulings` section and its
 Evidence under `--auto`, per [reply.md](reply.md). A held Ruling the close did not post is also a
-line of the Reply's Pending debt, on every run, since no file carries it and the developer is the
-one left to post it.
+line of the Reply's Pending debt, on every run, since neither the Spec nor the tracker carries it
+and the developer is the one left to post it.
 
 With a held Ruling the run continues on the Digest it already holds, with no reader forked again,
 since the Spec it was cut from did not change. When the held Ruling carries a `Now reads:` pair,
@@ -353,10 +361,7 @@ Only a question whose own step names it as ruled under `--auto` takes this route
 | The question | Its step |
 |---|---|
 | continue or stop, on a resumed integration whose rebase is open with no conflicted file | the Resume of [ticket.md](ticket.md) |
-| whether a full suite or a remote run runs | the verification of [mechanics.md](mechanics.md), in every Playbook that reaches it |
-| whether a harness that cannot stay inside its bound runs | step 3 of [refactoring.md](refactoring.md) |
-| which of two homes, when a reshape fits both equally | step 1 of [refactoring.md](refactoring.md) |
-| which of two files, when a `trivial` request fits both equally | step 1 of [trivial.md](trivial.md) |
+| whether a full suite or a remote run runs | the verification of [mechanics.md](mechanics.md), at the verification step of [ticket.md](ticket.md) |
 
 A question before something that cannot be undone or that leaves the machine is never one, and its
 step asks it under the flag as without it, in the same place and the same words: uncommitted work
@@ -392,9 +397,11 @@ or a return that was no usable Ruling. The session reads no side out of the fail
 shows none of it as an answer, forks no other agent in the `choice-taker`'s place and never forks
 the `choice-taker` a second time.
 
-A request to drive a surface the session cannot reach is not one either, per
-[bug-fix.md](bug-fix.md). It asks the developer for an observation, and no option exists for a
-`choice-taker` to take: the request is put to them under the flag as without it.
+A request to drive a surface the session cannot reach, which a `ticket` run whose Ticket carries a
+defect with no named cause meets at the reproduce step of [bug-fix.md](bug-fix.md), is not one
+either. It asks the developer for an observation, the fifth place a turn ends in the skill's
+"Where a turn ends", and no option exists for a `choice-taker` to take: the request is put to them
+under the flag as without it.
 
 Where the step would have written the question, the session takes these steps instead:
 

@@ -8,10 +8,10 @@ branch, the one the replay lands on (index stage 2), and the **Incoming** side i
 replayed (index stage 3).
 
 It is read by the step that reaches a stop, which reads it whole: the integration step of
-[mechanics.md](mechanics.md), which the worktree Playbooks run, and the operation step of
-[integrate.md](integrate.md). That second step builds in no worktree, so it substitutes its own
-continue, abort, ledger path and judge's brief for this file's, and runs no **Gate** after the
-reapplies.
+[mechanics.md](mechanics.md), which the worktree Playbooks run, the rebase of the Spec branch in
+the Final integration of that same file, and the operation step of [integrate.md](integrate.md).
+That last step builds in no worktree, so it substitutes its own continue, abort, ledger path and
+judge's brief for this file's, and runs no **Gate** after the reapplies.
 
 One reader reaches no stop at all and reads one state only: the no-op state of that same integration
 step, **A rebase that replays no commit.** of [mechanics.md](mechanics.md), where the ancestor
@@ -42,8 +42,10 @@ to the developer.
 A blocked stop while the rebase is open always carries the same blocker lines above its `Yours:`
 line, so the states below name only the reason each one quotes: the rebase left open at that
 commit, the conflicting files named, `git rebase --abort` named as the command that undoes it, the
-worktree and its branch left in place and named, the Ticket left `claimed`, nothing landed and
-nothing pushed.
+worktree and its branch left in place and named, nothing landed and nothing pushed, and, at a
+`ticket` run's own integration step only, the Ticket left `claimed`: a `bug-fix` or `refactoring`
+run has no Ticket, and the Final integration's Ticket has already landed, its claim yielded as
+[mechanics.md](mechanics.md) says.
 
 **A rebase that stopped.** At every stop of the rebase, before it resolves, stages or writes
 anything, the run classes the conflicted hunks: `bash <skill-dir>/scripts/conflict-class.sh`. The
@@ -194,8 +196,8 @@ here.
 - `resolved` (exit 0): the stop is resolved and staged, each file the script wrote by the union rule
   already read back for a key defined twice on its way through, as the state above says. The run
   ends the stop in the continue block, and the next stop is classed like any other.
-- Exit 2: a usage fault, no stopped rebase, no contested hunk at that stop, or the ledger refused,
-  with nothing written. The reply quotes the script's reason.
+- Exit 2: a usage fault, no stopped rebase or merge, no contested hunk at that stop, or the ledger
+  refused, with nothing written. The reply quotes the script's reason.
 - Exit 3: git refused to write the index for a file, named on the script's `git refused to stage
   <file>` line, with no `wrote`, `removed`, `trusted` or `resolved` line for it and every other file
   of the stop left as it stood. The reply quotes the script's reason.
@@ -229,10 +231,12 @@ that reading again for every hunk, per
 carries four things:
 
 - the ledger's location;
-- the worktree root;
+- the worktree root, which is the Spec's tree (`tree=`) in the Final integration;
 - the ids `pending` named;
-- the run's intent, which is the Digest's location in a `ticket` run and the request's line in
-  `bug-fix` and `refactoring`.
+- the run's intent, which is the Digest's location at a `ticket` run's own integration step, the
+  request's line in `bug-fix`, `refactoring` and `integrate`, and the Spec's location (the `spec=`
+  line its claim printed) in the Final integration, whose ledger gathers what the Spec branch's
+  rebase set aside across every Ticket of the Spec, so no one Ticket's Digest covers it.
 
 The fork holds reading and search alone, per
 [ADR 0032](../../../docs/adr/0032-a-fork-that-reads-a-strangers-text-holds-no-write-tool.md), since
@@ -363,7 +367,9 @@ one: it carries the failing check named off its red line, or the infrastructure 
 `verdict=blocked`, the ledger's location, since the ledger holds what came back and what did not,
 and the command that undoes the whole integration,
 `git reset --hard <the commit recorded before it started>`. The worktree and its branch stay in
-place and are named, the Ticket stays `claimed`, nothing lands and nothing is pushed.
+place and are named, nothing lands and nothing is pushed, and at a `ticket` run's own integration
+step the Ticket stays `claimed`, the clause the open-rebase blocker lines carry and on the same
+terms.
 
 **A replayed commit that is empty after the resolution.** The developer's branch already carries
 that change, or the resolution took the **Target** side of every hunk the commit brought, so the

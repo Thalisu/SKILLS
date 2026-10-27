@@ -17,3 +17,7 @@ this amends ADR 0086, whose push carried only fixes, and the fixer's one commit 
 - The compose inside the fix commit: a reviewer could not drop the infrastructure without the fix.
 - A check that needs a stack runs alone in its Wave: serialises the fixers where isolating them
   separates them.
+
+The defect above is a rerun spent on a check the fixer never tried to run. A `not run` return, a
+stack the fixer tried and could not bring up, still earns the one rerun of ADR 0089, as amended
+there.

@@ -112,10 +112,31 @@ GO
 commit fixture
 
 echo "# branch"
-if diff -q <(awk '/^is_protected\(\) \{/,/^}/' "$door") <(awk '/^is_protected\(\) \{/,/^}/' "$context") >/dev/null; then
-  echo "ok    is_protected is the verbatim copy of test-triage's context.sh"
+# Each case is the branch checked out, then the other branches beside it. Both scripts run over the
+# same repository and must give the same verdict, the branch that makes it protected included.
+agree_repo="$(mktemp -d)"
+drifted=""
+for case in "main" "main develop" "master release/1.0" "main staging" "main development" \
+  "production main" "production master" "prod develop" "prod" "develop main" "feature main develop"; do
+  read -r cur rest <<<"$case"
+  rm -rf "$agree_repo" && mkdir -p "$agree_repo"
+  git -C "$agree_repo" init -q -b "$cur"
+  git -C "$agree_repo" -c user.email=t@t -c user.name=t commit -q --allow-empty -m base
+  for b in $rest; do git -C "$agree_repo" branch "$b"; done
+  door_out="$(cd "$agree_repo" && bash "$door" branch 2>&1 || true)"
+  door_verdict="$(sed -n 's/^protected=//p' <<<"$door_out")"
+  door_reason="$(sed -n 's/^reason=//p' <<<"$door_out")"
+  [ -n "$door_reason" ] && door_verdict="$door_verdict ($door_reason)"
+  context_verdict="$(cd "$agree_repo" && bash "$context" . 2>/dev/null | sed -n 's/^protected: //p' || true)"
+  if [ -z "$door_verdict" ] || [ "$door_verdict" != "$context_verdict" ]; then
+    drifted="$drifted [$case: door '$door_verdict', context '$context_verdict']"
+  fi
+done
+rm -rf "$agree_repo"
+if [ -z "$drifted" ]; then
+  echo "ok    branch: the protected verdict agrees with test-triage's context.sh on every branch set"
 else
-  echo "FAIL  is_protected drifted from test-triage's context.sh"
+  echo "FAIL  branch: the protected verdict drifted from test-triage's context.sh:$drifted"
   fails=$((fails + 1))
 fi
 run branch

@@ -21,7 +21,10 @@
 # check passed and a reviewer asked for changes) | verdict=cancelled, head=<head branch>, sha=<head commit>,
 # then one cancelled=<link> <name> line per cancelled check, none failed or pending | verdict=red, head=<head branch>, sha=<head commit>, then one
 # red=<link> <name> line per failed check | verdict=stalled, then one pending=<check name> line per
-# pending check. Later verdict words and keys append; a reader ignores keys it does not know.
+# pending check. Any verdict, pending included, ends with released=<expected-sha> once the head never
+# became that sha inside DO_PR_WATCH_REGISTER_SECONDS: the verdict then reads whatever head the pull
+# request shows, never the expected one. Later verdict words and keys append; a reader ignores keys
+# it does not know.
 # Exit codes: 0 a verdict printed · 1 gh missing or unable to read · 2 usage · 3 a settled state no
 # verdict word covers yet. Nothing on stdout for 1, 2 or 3.
 # DO_PR_WATCH_SECONDS and DO_PR_WATCH_INTERVAL (default 30) override the bound and the poll interval.
@@ -148,6 +151,7 @@ keep_window() { # after a wait or settling read: keeps since and state while the
       state="$fresh"
     fi
     [ $((now - since)) -ge "$register_seconds" ] || return 0
+    released="$expected"
     expected=""
     result="$(classify "$checks" "$merge" "$mergeable" "$review" "$draft")" || exit "$?"
     holding || return 0
@@ -200,6 +204,10 @@ main() {
     read_once "$1"
     holding && keep_window
   done
+  settled
+}
+
+settled() { # after the watch settled: prints the verdict lines of result
   if [ "$result" = stalled ]; then
     echo "verdict=stalled"
     sed -n 's/^pending [^ ]* /pending=/p' <<<"$checks"
@@ -237,4 +245,10 @@ main() {
   echo "checks=$count"
 }
 
-main "$@"
+report() { # $@ main's arguments: main's lines, then released= when the expectation lapsed
+  main "$@"
+  [ -z "$released" ] || echo "released=$released"
+}
+
+released=""
+report "$@"

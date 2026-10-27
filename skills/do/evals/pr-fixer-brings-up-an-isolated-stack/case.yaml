@@ -196,7 +196,7 @@ context:
       echo '<excerpt id="q7f2k9">'
       tail -n 10 "$log"
       echo '</excerpt id="q7f2k9">'
-      echo "Dropped: $((lines - 10))"
+      echo "Dropped: $((lines - 10)) lines cut above the excerpt"
       echo "Log: $log ($lines lines)"
       echo "Files:"
       echo "test/e2e/notes.test.js"

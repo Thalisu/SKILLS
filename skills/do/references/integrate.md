@@ -119,8 +119,10 @@ operation writes to, and checks, first match wins:
 
 Exit 1 ends the run: the reply is the first line and the `message=` line, which ends
 `nothing integrated`. Exit 0 carries `in_progress=` and the operation's three commands, `start=`,
-`continue=` and `abort=`, each with git's conflict-resolution reuse off, for the reason the
-integration in [mechanics.md](mechanics.md) gives. An `in_progress=` other than `none` is an
+`continue=` and `abort=`, each with git's conflict-resolution reuse off: the setting is the
+developer's own and may be on, and then a resolution recorded at one stop would be replayed into
+the next stop of the same shape, the class read from what the cache put back instead of from what
+git left. An `in_progress=` other than `none` is an
 operation the developer already started, and a stop in it may hold resolutions of their own: the
 run starts nothing over it and ends in one message naming the operation in progress with its
 `continue=` and `abort=` commands, nothing integrated.

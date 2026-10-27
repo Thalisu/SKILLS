@@ -141,7 +141,8 @@ Under `Loop: global` the project has no Testing Policy, and the authors are the 
 its `agents/` folder, each carrying the policy's agent core unchanged: call the Agent tool with
 `subagent_type: global-unit-test-author` for a unit test and
 `subagent_type: global-e2e-test-author` for a flow, with the same dispatch input and one more line,
-`Project map: <the map's path>`, the file the ground step derived. Each author reads its commands
+`Project map: <the map's path>`, the file `project-map.sh` wrote once for the whole run, at the
+step its Playbook names. Each author reads its commands
 and its layout from that file, so no dispatch derives the map again, and the verdicts are the ones
 above. The global authors have no inline entry point: with the Agent tool withheld the loop line
 already reads `Loop: fallback`, the run writes every unit test itself by

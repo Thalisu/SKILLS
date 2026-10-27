@@ -90,8 +90,8 @@ no closing summary. Its first line is the verdict, one of three:
 - `Verdict: OUT OF BRIEF`: the brief does not grant what the edit needs.
 
 The second line is `Changed:`, the worktree-relative paths you wrote, comma-separated, or `none`.
-The Builder runs its changeset check over those paths and reads the change in its own worktree, so
-the return carries never the diff, never the test output and never a file's contents: they would
+The Builder's changeset check reads the change off the worktree itself, against the snapshot it
+took before dispatching you, so the return carries never the diff, never the test output and never a file's contents: they would
 fill the window the dispatch exists to keep empty.
 
 ```

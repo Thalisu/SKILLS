@@ -520,7 +520,8 @@ context:
     # a second call is always green, since it reviews what the run fixed). Writes the Review beside
     # the Ticket, plays the planted Fixer on the reviewed branch, re-runs the unit suite, lands by
     # fast-forward when the Review is Green, and prints the return the caller reads. Arguments:
-    # <ticket> <fixed point> <landing target>; fix and --no-fix are refused. Every call and every
+    # <ticket> <fixed point> <landing target> <the Gate's command= line>,
+    # then the `Review token:` block, the last two read by nothing here; fix and --no-fix are refused. Every call and every
     # landing is logged under the repository's .git for the graders.
     set -euo pipefail
     here="$(cd "$(dirname "$0")" && pwd)"
@@ -530,7 +531,7 @@ context:
     for a in "$@"; do
       case "$a" in fix|--no-fix) printf 'refused: %s\n' "$*" >> "$calls"; echo "stand-in: refused the argument $a, which do never passes"; exit 2;; esac
     done
-    printf '%s\n' "$*" >> "$calls"
+    printf '%s\n' "$(printf '%s' "$*" | tr '\n' ' ')" >> "$calls"
     call="$(grep -vc '^refused: ' "$calls")"
     ticket="${1:?the Ticket location}"
     fixed="${2:?the fixed point}"

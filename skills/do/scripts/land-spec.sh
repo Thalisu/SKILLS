@@ -31,6 +31,7 @@ failed() {
   exit 3
 }
 [ "$#" -eq 3 ] || usage
+here="$(cd "$(dirname "$0")" && pwd -P)"
 main="$1" spec="$2" branch="$3"
 
 # The lock file land.sh opens, so a landing here and one on the developer's branch serialize too.
@@ -64,5 +65,7 @@ fi
 # The tip read above is the old value, so a ref moved since that read fails the update.
 said="$(git -C "$main" update-ref "refs/heads/$spec" "$new" "$tip" 2>&1)" ||
   failed "$(grep -m1 -E '^(error|fatal):' <<<"$said" || head -n1 <<<"$said")"
-rm -f -- "$(git -C "$main" rev-parse --path-format=absolute --git-common-dir)/do/review-token/spec-${spec#spec/}"
+# review-token.sh resolves its store from the working directory, so it runs inside the main
+# checkout. A slug it refuses is one it never minted a token under, so there is nothing to revoke.
+(cd "$main" && bash "$here/review-token.sh" revoke "spec-${spec#spec/}") 2>/dev/null
 echo "landed $new"

@@ -175,7 +175,8 @@ context:
     # planted Green, so no Fixer runs. Writes the Review beside the Ticket in the main checkout,
     # re-runs the unit suite, lands by fast-forward under the protected-branch rule and prints the
     # return the caller reads. Arguments: <the Ticket's location, absolute or relative to the main
-    # checkout> <fixed point> <landing target>; fix and --no-fix are refused. Every call and every
+    # checkout> <fixed point> <landing target> <the Gate's command= line>,
+    # then the `Review token:` block, the last two read by nothing here; fix and --no-fix are refused. Every call and every
     # landing is logged under the repository's .git for the graders.
     set -euo pipefail
     common="$(cd "$(git rev-parse --git-common-dir)" && pwd)"
@@ -184,7 +185,7 @@ context:
     for a in "$@"; do
       case "$a" in fix|--no-fix) printf 'refused: %s\n' "$*" >> "$calls"; echo "stand-in: refused the argument $a, which do never passes"; exit 2;; esac
     done
-    printf '%s\n' "$*" >> "$calls"
+    printf '%s\n' "$(printf '%s' "$*" | tr '\n' ' ')" >> "$calls"
     ticket="${1:?the Ticket location}"
     fixed="${2:?the fixed point}"
     target="${3:?the landing target}"

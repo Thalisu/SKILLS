@@ -105,12 +105,8 @@ is edited and nothing is written.
 
    - A choice between two files the request fits equally is a preference call, and the one
      question this Playbook may ask. Everything else is a fact a search settles. Under `--auto`
-     the choice is not put to the developer: it is a run question the `choice-taker` rules, per
-     [forks.md](forks.md), the one reference this Playbook reads beyond its own and only then,
-     with one option per file, each naming the file and what of the request fits there, and
-     `Recommendation:` `none`. The run edits the file the Ruling names and lists the Ruling in
-     the Run report's `Rulings` section, in its `On the run:` group, with `On the Spec: none` above
-     it.
+     the choice is not put to the developer: it is a run question the `choice-taker` rules, by
+     [The run question under `--auto`](#the-run-question-under---auto) below.
    - A rename inside one file holds only when the name has no reference outside that file
      (`rg -w <name>` over the project).
    - Dead code holds only when the name has no caller.
@@ -214,8 +210,9 @@ Done when the verdict is recorded for the Run report's Run section.
 
 ### 6. Commit
 
-One commit: `git commit --only -m "<title>" -- <touched files>`, which stages exactly the touched
-files for this commit and leaves whatever else the developer had staged as it was.
+One commit: `git commit --only -m "<title>" -m "<body>" -- <touched files>`, which stages exactly
+the touched files for this commit and leaves whatever else the developer had staged as it was. The
+second `-m` is the body, a paragraph of its own under the title.
 
 - **Staging.** By path only: never `-A`, never `.`, never a file the run did not touch.
 - **Title.** A conventional commit, `type(scope): subject`, with the type one of `docs`, `style`,
@@ -227,3 +224,36 @@ Nothing is pushed. Done when the commit's short sha is recorded for the Run repo
 ### 7. Reply
 
 By [reply.md](reply.md), in the same message.
+
+## The run question under `--auto`
+
+This Playbook runs outside the chain, so it reads no fork reference of the `ticket` Playbook: the
+route is here whole, and [reply.md](reply.md) is the one other reference it reads
+([ADR 0105](../../../docs/adr/0105-forks-md-is-the-ticket-playbooks-and-each-outside-chain-playbook-carries-its-own-forks.md)).
+Its one run question is step 1's choice between two files. Without the flag it is asked, and the
+turn ends on it.
+
+Under `--auto` the session takes these steps instead:
+
+1. Call the Agent tool with `subagent_type: choice-taker`, the agent `do` ships in
+   [choice-taker.md](../agents/choice-taker.md), with the brief its definition names:
+   - `Caller:` is `do` at the door of the `trivial` Playbook, under `--auto`.
+   - `Question:` is the choice in one line.
+   - `Options:` are the two files, one per line, each naming the file and what of the request fits
+     there.
+   - `Recommendation:` is `none`.
+   - `Repository root:` is the repository root.
+   - `Principles:` is the absolute path `readlink -f <skill-dir>/../../.agents/principles` prints,
+     since the agent holds no shell to follow the install link itself.
+   - `Context:` is the request and the lines the question would have shown the developer, inline.
+2. Check the return before reading a side from it. It is a Ruling only when its first line reads
+   `settled` or `extreme`, and a `settled` one only when its `Side:` line names one of the two
+   files, its `Fork:` line names those two and no other, and its `Losing criterion:` reads `none`.
+3. On a `settled` Ruling, edit the file its `Side:` names and carry on in the same turn, with no
+   message asking the developer to confirm it. The Ruling is written to no file of the project: the
+   Run report lists it under `Rulings`, in its `On the run:` group, with `On the Spec: none` above
+   it, per [reply.md](reply.md).
+4. On anything else (an `extreme` return, a return that fails the check, the Agent tool withheld or
+   no `choice-taker` listed), the question is asked as without the flag, one line above it naming
+   the reason or quoting the return whole. The run rules nothing itself, forks no other agent in
+   the `choice-taker`'s place and never forks it a second time.

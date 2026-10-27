@@ -489,8 +489,8 @@ expect "the Plan step names a fixed command for the \`## Sources\` check" test -
 run_sources_check() { # $1 plan path, $2 ticket hash, $3 ticket path, $4 digest hash, $5 digest path
   local resolved
   resolved="$(printf '%s' "$sources_cmd" |
-    sed -e "s@<the Ticket's hash>@$2@g" -e "s@<the Ticket's path>@$3@g" \
-      -e "s@<the Digest's hash>@$4@g" -e "s@<the Digest's path>@$5@g" \
+    sed -e "s@<the Ticket's hash>@$2@g" -e "s@<the Ticket's absolute path>@$3@g" \
+      -e "s@<the Digest's hash>@$4@g" -e "s@<the Digest's absolute path>@$5@g" \
       -e "s@<the destination>@$1@g")"
   sh -c "$resolved"
 }

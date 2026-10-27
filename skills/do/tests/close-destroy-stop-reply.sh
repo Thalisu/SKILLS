@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 # close-destroy-stop-reply.sh: reply.md's Next step item and outward-push sentence agree with
 # mechanics.md's close section about what a run carries when it lands and then stops at the
-# close's own step 5 (the `destroy` stop, when `git worktree remove`/`git branch -d` refuses), as
+# close's own step 6 (the `destroy` stop, when `git worktree remove`/`git branch -d` refuses), as
 # opposed to a run that stops as blocked before it ever reaches the close, or a run whose close
 # finishes cleanly.
 #
 # Before this file's fix, reply.md said unconditionally that "a landed run is not a stop... its
 # Reply carries no `Yours:` line", with no exception for the close's destroy stop reachable only
 # after landing; and mechanics.md said a run that "stops as blocked closes nothing: the Ticket
-# stays `claimed`", with no exception for a stop at the close's own step 5, which runs after steps
-# 1-4 already resolved the Ticket. Both wordings contradict the close's own step 5.
+# stays `claimed`", with no exception for a stop at the close's own step 6, which runs after steps
+# 1-5 already resolved the Ticket. Both wordings contradict the close's own step 6.
 # Run: bash skills/do/tests/close-destroy-stop-reply.sh
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
@@ -35,13 +35,13 @@ carries "the outward-push sentence exempts the close's destroy stop on a landed 
 carries "the exempted push already sits on the Next step line, never renamed under outward" \
   "already sits on the Reply's Next step line" "never the push"
 
-echo "# mechanics.md's close section distinguishes a stop before the close from a stop at its own step 5"
+echo "# mechanics.md's close section distinguishes a stop before the close from a stop at its own step 6"
 para="$(paragraph_with "$mech" "Outside the chain there is no Ticket")"
 flat="$para"
 carries "a run stopped as blocked before it reaches the close closes nothing, Ticket stays claimed" \
   "as blocked before it reaches the close closes nothing" "Ticket stays \`claimed\`"
-carries "a run stopped at the close's own step 5 already ran steps 1 through 4, Ticket resolved" \
-  "stops at the close's own step 5" "already ran steps 1 through 4" "\`resolved\` status"
+carries "a run stopped at the close's own step 6 already ran steps 1 through 5, Ticket resolved" \
+  "stops at the close's own step 6" "already ran steps 1 through 5" "\`resolved\` status"
 carries "only the worktree and branch remain, for the Yours: destroy: line to name" \
   "only the worktree and its branch remain" "\`Yours: destroy:\` line to name"
 

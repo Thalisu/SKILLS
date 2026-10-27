@@ -25,3 +25,5 @@ An eval that graded a Run line or a section in the last message now grades the t
 repository or, under `--auto`, the Run report file. A Loss ledger `drop` and the checklist's skips
 are no longer shown to a developer who ran without `--auto`; the ledger file and the Review still
 hold them.
+
+Amended: by ADR 0108, a `Risk:` line and an `Axis not run:` line of the review return, and every drop of an integration after the review, are lines of the Reply's Pending debt on every run, with or without `--auto`, and no longer reach the developer through the Run report alone.

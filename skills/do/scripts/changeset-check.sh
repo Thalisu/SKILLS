@@ -13,7 +13,7 @@
 # changeset as one set, each relative to the worktree's root, ./-prefixed or absolute.
 #
 # Prints verdict=<pass|refused>, changed=<n> and one file=<path> line per changed path, sorted,
-# then only on a refusal refused=<n> and one offending=<classes|named|test> <path> line per
+# then only on a refusal refused=<n> and one offending=<classes|git|index|named|test> <path> line per
 # offending path, sorted: classes for the Testing Policy's skip-patterns.sh or
 # skip-patterns.local.sh, git for the git config or a hook (the only paths main-untouched.sh
 # prints as absolute: a hook runs inside the Builder's own commit and the config outlives the run
@@ -59,7 +59,7 @@ for reported in "$@"; do
   named["$(named_key "$reported")"]=1
 done
 
-offence() { # $1 a changed path: prints classes, named, test, or nothing
+offence() { # $1 a changed path: prints classes, index, git, named, test, or nothing
   # Rooted at "/" rather than at $root: a directory named spec or tests above the worktree must not
   # turn every production path into a test file.
   local abs="/$1"

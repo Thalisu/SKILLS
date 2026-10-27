@@ -23,8 +23,14 @@
 # the scaffold laid in or beside the fixture, which exists under no path known before the run. Each
 # grader is a frontmatter of one type:
 #   llm          criteria, read against the run's transcript and what the run changed in the
-#                fixture by one judge session, which answers for every llm grader of the run
-#   regex        pattern (PCRE), match: contains, target: last_message
+#                fixture by one judge session, which answers for every llm grader of the run;
+#                the fixture's changes are its files outside .git, its commits, branches and
+#                worktrees, and every .git/do-code-review-*.log a stand-in wrote, never the rest
+#                of .git
+#   regex        pattern (PCRE), match, target: last_message; match: contains passes when some line
+#                of the last message matches, so ^ anchors at any line's start, and
+#                match: first_line when its first non-blank line does, the blank or whitespace-only
+#                lines opening it skipped
 #   tool_used    tool, input_match (PCRE over the input as compact JSON), min, max, scope; it counts
 #                the calls the session makes itself, never a subagent's, unless scope reads all,
 #                which counts every call in the transcript and in the subagent transcripts beside it,
@@ -222,6 +228,9 @@ grade() { # $1 grader, $2 work folder: prints why the run fails the grader, noth
       [ "$target" = last_message ] || { echo "unsupported regex target ${target:-none}"; return; }
       case "$match" in
         contains) grep -qP -- "$pattern" "$w/last_message" || echo "the last message does not contain /$pattern/" ;;
+        first_line)
+          grep -m 1 '[^[:space:]]' "$w/last_message" | grep -qP -- "$pattern" ||
+            echo "the first line of the last message does not match /$pattern/" ;;
         *) echo "unsupported regex match ${match:-none}" ;;
       esac ;;
     tool_used)
@@ -339,6 +348,18 @@ for c in "${cases[@]}"; do
             echo
             echo "Worktrees after the run:"
             git -C "$work/fixture" worktree list 2>/dev/null | grep . || echo "no worktree"
+            # A fixture's do-code-review stand-in logs its calls, landings and Fixers under .git,
+            # which the snapshot never reads; the rest of .git stays out of the judge's sight.
+            echo
+            echo "Stand-in logs under .git after the run (each one's name, then its lines):"
+            logs=0
+            for f in "$work/fixture/.git"/do-code-review-*.log; do
+              [ -f "$f" ] || continue
+              logs=1
+              echo ".git/$(basename "$f"):"
+              if [ -s "$f" ]; then cat "$f"; else echo "(empty)"; fi
+            done
+            [ "$logs" = 1 ] || echo "no .git/do-code-review-*.log"
           else echo "no commit: the fixture is not a git repository with a commit"; fi
         } > "$work/changes"
         llm=()

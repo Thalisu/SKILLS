@@ -3,9 +3,9 @@
 # finds that route wherever the question is stated. The session follows the prose it reads at the
 # step, with nobody there to answer: a step that still says its question waits for the developer,
 # or a Playbook restating it as asked whenever the run reaches it, stops an unattended run with the
-# work already landed. forks.md is the one home of the route (the brief, and what the run does on a
-# `settled` Ruling), so each place stating a question names `--auto` and sends the reader there,
-# and forks.md's table of run questions has a row for it.
+# work already landed. forks.md is the home of the route for the `ticket` Playbook, and each Playbook
+# outside the chain carries its own (ADR 0105), so each place stating a question names `--auto` and
+# sends the reader to that home, and the home lists the question.
 #
 # The passages are found by what they say, never by their number: the steps are renumbered whenever
 # one is added or absorbed. Each is flattened before it is read, since the references hard-wrap.
@@ -94,13 +94,11 @@ pin="$(item_holding "$refactoring" '### [0-9]+\.' ". Pin")"
 flat="$(paragraph_with <(printf '%s\n' "$pin") "harness" all | tr -s ' ' | grep -F "cannot be driven inside")"
 rules_it_under_auto "refactoring.md's Pin, in the paragraph on a behaviour outside the harness's bound," "$harness"
 
-run_questions="$(passage_of "$forks" "### A run question under" "### " | grep '^|')"
-flat="$(grep -F "homes" <<<"$run_questions")"
-expect "forks.md's table of run questions has a row for $homes" test -n "$flat"
-carries "forks.md's row for that choice names refactoring.md, the file of its step" "(refactoring.md)"
-flat="$(grep -F "harness" <<<"$run_questions")"
-expect "forks.md's table of run questions has a row for $harness" test -n "$flat"
-carries "forks.md's row for that yes names refactoring.md, the file of its step" "(refactoring.md)"
+flat="$(passage_of "$refactoring" "### Run questions under" "## " | tr '\n' ' ' | tr -s ' ')"
+expect "refactoring.md carries its own section of run questions under --auto" test -n "$flat"
+carries "refactoring.md's run questions name step 1's two homes" "two homes"
+carries "refactoring.md's run questions name step 3's harness outside its bound" "harness outside its bound"
+carries "refactoring.md's run questions are ruled by the choice-taker" "choice-taker"
 
 # The index, read one statement at a time: a sentence of its prose naming `--auto`, or a row of its
 # table of questions. A row counts when it names `--auto` itself or sits under a column that does,
@@ -121,11 +119,15 @@ rules_it_under_auto "refactoring.md's index of questions" "$homes"
 flat="$(grep -E 'harness|steps? ([0-9]+(, and |, | and ))*3([^0-9]|$)|\| 3 \|' <<<"$index_under_auto" | tr '\n' ' ')"
 rules_it_under_auto "refactoring.md's index of questions" "$harness"
 
-# The discard and the revert cannot be undone, so the flag never reaches them. forks.md's table is
-# the whole list of what takes the route, and a statement of refactoring.md naming the choice-taker
-# beside either of the two has to say that one is still asked.
-flat="$(grep -iE 'discard|revert' <<<"$run_questions")"
-expect "forks.md's table of run questions has no row for the discard of uncommitted changes or the revert of the branch" \
+# The discard and the revert cannot be undone, so the flag never reaches them. The sentence of
+# refactoring.md's run questions naming the ruled ones is the whole list of what takes the route,
+# and a statement of refactoring.md naming the choice-taker beside either of the two has to say
+# that one is still asked.
+ruled="$(passage_of "$refactoring" "### Run questions under" "## " | tr '\n' ' ' | tr -s ' ' |
+  grep -oE 'The ruled ones are [^.]*\.')"
+expect "refactoring.md's run questions name the ruled ones in one sentence" test -n "$ruled"
+flat="$(grep -iE 'discard|revert' <<<"$ruled")"
+expect "refactoring.md's ruled run questions leave out the discard of uncommitted changes and the revert of the branch" \
   test -z "$flat"
 
 handed=""

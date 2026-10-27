@@ -17,7 +17,7 @@ in its own definition.
 The fork is dispatched with these four keys and nothing else:
 
 ```
-Ticket: <the absolute path in the main checkout, or the tracker reference>
+Ticket: <the absolute path in the Home repository, or the tracker reference>
 Worktree: <the absolute path of the worktree root the build runs in>
 Loop: policy | global | fallback
 Project map: <the absolute path `project-map.sh` printed> | none

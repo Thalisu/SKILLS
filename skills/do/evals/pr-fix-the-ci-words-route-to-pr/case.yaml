@@ -1,0 +1,31 @@
+name: pr-fix-the-ci-words-route-to-pr
+tags: [router, pr]
+runs: 2
+max_turns: 6
+timeout_seconds: 300
+allowed_tools: [Bash, Read, Edit, Write]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # Words naming a pull request by its number and asking for its CI fixed, with a tracker file naming
+    # GitHub: the request could read as a bug in words or as issue 12, and the router's `pr` row above
+    # the issue rows and above `bug-fix` takes it first.
+    set -e
+    mkdir -p src docs/agents
+    cat > src/notes.js <<'JS'
+    const notes = [];
+
+    export function create(title) {
+      const note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+    JS
+    cat > docs/agents/issue-tracker.md <<'MD'
+    # Issue tracker: GitHub
+
+    Issues and specs for this repo live as GitHub issues, read and written with the `gh` CLI.
+    MD
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"

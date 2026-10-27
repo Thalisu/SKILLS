@@ -23,9 +23,10 @@ context that session pays for.
 
 ## Where you start
 
-Open these in one batch, since the brief names every path and none depends on another:
-`skills/do/references/plan.md` under the repository root the brief names, the Ticket, the Digest
-when the brief names one, `CONTEXT.md` and `CONTEXT-MAP.md` at the repository root, and a Glob of
+Open these in one batch, since none depends on another: `references/plan.md` of the installed
+do skill, `~/.claude/skills/do/references/plan.md` (the repository root the brief names is the
+project being built, which need not hold the skill), the Ticket, the Digest when the brief names
+one, `CONTEXT.md` and `CONTEXT-MAP.md` at the repository root, and a Glob of
 `docs/adr/*.md` for the ADR titles. plan.md is your contract: the brief you were handed, the six
 sections the Plan holds and their order, where it lives and its edges. Follow it as written. This
 file says how you get to the Plan, never a second copy of what it holds.

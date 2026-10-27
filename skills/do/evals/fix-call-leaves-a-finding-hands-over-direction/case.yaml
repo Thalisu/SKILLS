@@ -534,7 +534,7 @@ context:
     calls="$common/do-code-review-calls.log"
     landings="$common/do-code-review-landings.log"
     fixers="$common/do-code-review-fixers.log"
-    printf '%s\n' "$*" >> "$calls"
+    printf '%s\n' "$(printf '%s' "$*" | tr '\n' ' ')" >> "$calls"
     for a in "$@"; do
       case "$a" in --no-fix) echo "stand-in: refused the argument $a, which do never passes"; exit 2;; esac
     done

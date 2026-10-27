@@ -67,5 +67,28 @@ carries_any "the not fixed line names the test author dispatch that never return
   "test author" "unit-test-author" "author dispatch" "naming the dispatch" "names the dispatch" \
   "naming that dispatch" "names that dispatch" "naming the agent" "names the agent"
 
+# The session waits six `returns.sh 540` windows, 54 minutes, then gives the fixer up as `the fixer
+# did not return`: a fixer still running past that can still commit and leave its stack up, so the
+# fork has to stop on a clock of its own with room to spare.
+echo "# do-pr-fixer.md: the fork keeps a 50-minute wall-clock budget from its first command and stops on not fixed <k>: out of time"
+budget_terms=("50 minutes" "50-minute" "fifty minutes" "fifty-minute" "Fifty minutes")
+paras="$(paragraphs_naming "${budget_terms[@]}")"
+flat="$(grep -F "out of time" <<<"$paras" | head -n1)"
+[ -n "$flat" ] || flat="$(head -n1 <<<"$paras")"
+expect "the agent body has a paragraph naming the fork's 50-minute budget" test -n "$flat"
+carries_each "the budget is 50 minutes, counted from the first command and read with date +%s" \
+  "${budget_terms[@]}" -- \
+  "first command" "first Bash call" "first shell call" "first call" -- \
+  "date +%s"
+carries_each "the budget is checked before a command or a wait call that could run past it" \
+  "before any command" "before a command" "before each command" "before every command" \
+  "before running a command" "before you run" "before any call" "before each call" "before a call" -- \
+  "wait call" "a wait" "any wait" "each wait" "the wait"
+carries_each "out of time, the fork restores its edits, tears down its stack and writes not fixed <k>: out of time, never a commit" \
+  "restore" "Restore" -- \
+  "tear down" "Tear down" "tears down" "teardown" "down -v" -- \
+  "not fixed <k>: out of time" -- \
+  "no commit" "never a commit" "never commit" "without a commit" "without committing" "not commit"
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1

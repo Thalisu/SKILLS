@@ -9,9 +9,9 @@ the integration in [conflict-loop.md](conflict-loop.md), each read by the step t
 by no other. The reply is written by [reply.md](reply.md): five parts, and every other line a step
 records here goes to the Run report, a file written under `--auto` alone and kept nowhere without
 the flag. The checklist below is copied verbatim into the run as its todo
-list before any task-specific item, and the Run report's Run section carries it ticked, the research
-brief's ten steps with the review and landing step reading as
-the review's and the grounding as the Planner's; each step carries its done condition below.
+list before any task-specific item, and the Run report's Run section carries it ticked, with the
+review and landing step reading as the review's and the grounding as the Planner's; each step
+carries its done condition below.
 
 A Ticket of a Spec, one whose door printed a `spec_branch=` other than `none` and, on a resume,
 `spec_exists=yes`, has no review step, per
@@ -297,8 +297,8 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   match is removed and the Planner forked again, per step 1, which writes the Plan anew at the same path. That is the state of a
   Ticket an earlier run stopped on mid-build for work in another repository, once its new blocker
   is `resolved`: `tickets` moved a criterion out of it, so its hash changed. The brief of that fork
-  carries, under its `Built:` key, every `behaviour=` line the script printed, copied whole, per
-  [plan.md](plan.md), so the list cut again words each behaviour a commit carries as the commit
+  carries, under its `Built:` key, the text of every `behaviour=` line the script printed after
+  its `behaviour=<sha> ` prefix, a line reading `none` left out, per [plan.md](plan.md), so the list cut again words each behaviour a commit carries as the commit
   does and the tick below stays a match of text, never the session's reading of what a commit
   proves. The list the loop works
   through is the Plan's `## Behaviours` section either way, never a list read off the commits;
@@ -610,7 +610,9 @@ printed and never restated from a file the session read. The Run report carries 
   carries one more line saying the Agent tool is withheld, so the run writes every unit test
   itself, red first, and authors the flow itself. Under `fallback` the build loop of
   [build-loop.md](build-loop.md) reads [tdd-fallback.md](tdd-fallback.md) and the run writes every
-  test itself, with no test author dispatched; under `policy` and `global` that file is never read.
+  test itself, with no test author dispatched. Under `policy` that file is never read, and under
+  `global` only when the global unit test author comes back `BLOCKED` naming a run command the
+  project map lacks, from that behaviour on (its `## When this file is read`).
 - A defect line when a behaviour reproduces a bug, judged from the Ticket's words per criterion
   line (a line that says something fails, throws, is wrong or came back) and never from a field:
   `Defect: origin bugfix, cause stated` when the Ticket names the cause, `Defect: cause unknown,
@@ -817,9 +819,9 @@ computed, a document the door found absent among them, into the shape below, and
 
 ```sh
 ticket="ticket: absent"; [ "<the Ticket's hash>" != absent ] &&
-  ticket="ticket: <the Ticket's path> <the Ticket's hash>"
+  ticket="ticket: <the Ticket's absolute path> <the Ticket's hash>"
 digest="digest: absent"; [ "<the Digest's hash>" != absent ] &&
-  digest="digest: <the Digest's path> <the Digest's hash>"
+  digest="digest: <the Digest's absolute path> <the Digest's hash>"
 awk -v t="$ticket" -v d="$digest" '
   /^## Sources$/ { s = 1; next }
   s && /^## /    { s = 0 }
@@ -827,6 +829,10 @@ awk -v t="$ticket" -v d="$digest" '
   END            { print (n == 2 && ok_t && ok_d) ? "match" : "refused" }
 ' <the destination>
 ```
+
+Both paths are absolute, as the Plan's `## Sources` lines are ([plan.md](plan.md)): the door
+prints `ticket=` relative to `<root>` when `<root>` is the main checkout, so that path is written
+joined to `<root>`, the same lines the brief's `Sources:` key carries.
 
 `match` is what the run needs before the steps that build on the grounding open the Plan
 and read it there. `refused` is what a Plan whose `## Sources` lines do not match the two
@@ -1183,7 +1189,7 @@ drops the return, picks the stretch up from what `resume-state.sh` just printed,
 Resume section's own path, and records the fallback line for the Run report's Run section.
 
 Before the route below is taken, the Plan is read once more: before it is, the run hashes the
-Ticket and the Digest again, `git hash-object` run again in the main checkout over the two paths
+Ticket and the Digest again, `git hash-object` run again under `<root>` over the two paths
 the door resolved before it forked, and compares each recomputed hash against the hash the door
 recorded for it there. Only when both still match does the `## Sources` check above run a second
 time at the destination step 1 named, over the same two hashes the door computed there, and print
@@ -1421,6 +1427,12 @@ Reply's Next step and the Run report, and routes on `verdict=`:
   `ambiguous=` or `cycle=` line quoted, and claims nothing.
 - **`landed`** or **`elsewhere`**: the step reads `skip:` with that verdict, nothing is claimed,
   and the Reply says so in one line.
+- **`incomplete`**, exit 0: a Ticket of the feature reads open again since the Completion check,
+  so the step reads `skip: Tickets of the Spec still open`, as on a Completion check that never
+  printed `verdict=complete`, and claims nothing.
+- **`no-spec`**, exit 0: the record finds the Ticket in no feature folder although the Completion
+  check found its Spec, so the two reads disagree on the Ticket's own place: the run stops as
+  blocked with `verdict=no-spec` quoted, and claims nothing.
 
 Any stop on the way makes no `release` call: the Spec branch, its worktree and the claim stay, the
 Ticket stays `resolved`, and the Reply says the Final integration stopped, why, and how it is

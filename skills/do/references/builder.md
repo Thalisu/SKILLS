@@ -40,7 +40,6 @@ Tree: <the worktree the build runs in>
 Branch: <the branch its commits land on>
 Loop: policy | global | fallback
 Project map: <the absolute path `project-map.sh` printed> | none
-Flow: ticket | bug-fix | refactoring
 Agents folder: <the absolute path of the chain's `.agents/` folder>
 ```
 
@@ -497,8 +496,8 @@ Then the verdict routes:
 
 ## Its edges
 
-- The Gate is the session's, run in the worktree after the last edit and before the first review
-  call, per [mechanics.md](mechanics.md). The fork runs the project's single-file command per cycle
+- The Gate is the session's, run in the worktree after the last edit and before the integration,
+  per [mechanics.md](mechanics.md). The fork runs the project's single-file command per cycle
   and never the gate.
 - The flows are the fork's, authored or extended after the feature exists, by the E2E author of
   [build-loop.md](build-loop.md), over the criteria the Digest's `## Observable criteria` names.

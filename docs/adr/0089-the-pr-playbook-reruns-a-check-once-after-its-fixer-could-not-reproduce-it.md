@@ -15,3 +15,9 @@ the run could have run itself.
   and a stop that hands the developer the rerun command.
 - A rerun when the log looks like a flake, as story 20 first read: a class the session reads off
   the log, and a rerun spent before anyone knows whether the failure reproduces.
+
+Amended: ADR 0104 replaces the stop above. A check red again after its retry is deterministic, and
+it earns a diagnosis `do-pr-fixer` rather than the stop; the run stops only when that fixer finds no
+mechanism either. The rerun is still the one triage ahead of it, once per check per run. A fixer's
+`not run` return earns that rerun as `not reproduced` does: the stack it brought up would not come
+up, so the local reproduction failed as a fact the fixer reports, never a flake the session read.

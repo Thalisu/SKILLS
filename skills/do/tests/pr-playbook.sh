@@ -1266,12 +1266,12 @@ carries_any "the fork goes through the Agent tool as \`do-pr-fixer\`" \
 carries "its brief's Tree: and Branch: are the worktree line's path and branch, its return file \`<dir>/check-<k>\`" \
   "Tree: <the path on the check's worktree line>" "Branch: <the branch on the check's worktree line>" \
   "Return file: <dir>/check-<k>"
-carries "the run waits on the return files with returns.sh 240, its Bash timeout at 600000 ms" \
-  "bash <skill-dir>/../../.agents/scripts/returns.sh 240 " "600000"
-before "the worktree is cut before the wait" "fix-worktrees.sh add" "returns.sh 240"
-carries_each "called again while it reads \`missing=\`, three windows at most" \
+carries "the run waits on the return files with returns.sh 540, its Bash timeout at 600000 ms" \
+  "bash <skill-dir>/../../.agents/scripts/returns.sh 540 " "600000"
+before "the worktree is cut before the wait" "fix-worktrees.sh add" "returns.sh 540"
+carries_each "called again while it reads \`missing=\`, six windows at most, outlasting the fixer's 50-minute budget" \
   "missing=" -- \
-  "three windows" "3 windows" "three calls" "3 calls" "three times" "three waits"
+  "six windows" "6 windows" "six calls" "6 calls" "six times" "six waits"
 carries "a return file that never lands reads \`not fixed <k>: the fixer did not return\`" \
   "not fixed <k>: the fixer did not return"
 carries "\`<dir>\` is a \`mktemp -d\` directory" "mktemp -d"
@@ -1288,6 +1288,33 @@ carries_each "with one line saying no fixer can be forked" \
   "no fixer can be forked" "cannot fork" "can't fork" "no fixer can be" "no fork" "nothing can be forked"
 carries_any "and the session never fixes a check itself" \
   "never fixes" "fixes no check" "does not fix" "doesn't fix" "never fix" "never writes" "writes no fix"
+
+# A fixer whose return file never landed may still be running past the six windows: removing its clean
+# worktree under it would leave its later writes and `git -C <Tree>` calls in a plain directory where
+# git resolves to the developer's repository, and its docker stack running unnamed. The pins are read
+# off the step's sentences naming the fixer that did not return.
+echo "# pr.md / ### Fix the red checks: a fixer that did not return keeps its worktree and branch out of the remove call, its round line names its path, branch and compose project fixer-<id>, and a commit it makes after the wait is never picked or pushed"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
+flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ' | sed 's/\. /.\n/g' |
+  grep -E "did not return|didn't return|never returned|not returned|has not returned" | tr '\n' ' ')"
+expect "a sentence of step $fix_n names the fixer that did not return" test -n "$flat"
+carries_each "its worktree and branch are left out of the remove call and stay on disk" \
+  "worktree" -- \
+  "branch" -- \
+  "fix-worktrees.sh remove" "\`remove\` call" "remove call" "\`remove\`" -- \
+  "left out of" "never removed" "not removed" "never taken back" "never passed to" "not passed to" \
+  "stays on disk" "stay on disk" "kept on disk" "keeps its worktree" "never goes to" "never handed to" \
+  "out of the \`remove\`" "out of the remove"
+carries_each "its round line names its path, its branch and its compose project \`fixer-<id>\`" \
+  "round line" "round's line" "round lines" "Reply's round" "line of its own" "its line" -- \
+  "path" -- \
+  "branch" -- \
+  "fixer-<id>"
+carries_each "a commit it makes after the wait ends is never picked or pushed" \
+  "after the wait" "past the wait" "once the wait" "wait ends" "wait ended" "late commit" "later commit" \
+  "commits later" "commits afterwards" "commits after" -- \
+  "never picked" "not picked" "never cherry-picked" "never pushed" "not pushed" "never integrated" \
+  "never lands on the pull request" "never reaches the pull request"
 
 # Disjoint red checks are fixed at once and checks sharing a file one after the other: the Waves are
 # group-waves.sh's output over each check's `file=` lines, never a grouping the session works out.
@@ -1330,7 +1357,7 @@ carries_each "every \`do-pr-fixer\` of the Wave is forked in one message" \
   "one message" "a single message" "the same message" "one response" "a single response" -- \
   "every \`do-pr-fixer\`" "every do-pr-fixer" "every fixer" "all the fixers" "all of the Wave's fixers" \
   "each fixer of the Wave" "the Wave's fixers" "every fork" "all its fixers" "all of its fixers"
-carries "one returns.sh 240 call waits on the Wave" "bash <skill-dir>/../../.agents/scripts/returns.sh 240 "
+carries "one returns.sh 540 call waits on the Wave" "bash <skill-dir>/../../.agents/scripts/returns.sh 540 "
 carries_each "that one call waits on every return file of the Wave" \
   "one call" "a single call" "one \`returns.sh\`" "one returns.sh" "a single \`returns.sh\`" "one wait" -- \
   "every return file of the Wave" "each return file of the Wave" "the Wave's return files" \
@@ -2369,7 +2396,7 @@ flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ')"
 whole="$flat"
 carries "the step runs the guard over the run tree, the commit it was cut at and each check's branch" "pr-guard.sh <run tree> <sha> <k>=<branch>..."
 carries_any "from the skill's own scripts" "<skill-dir>/scripts/pr-guard.sh"
-before "the guard runs after the Wave's returns.sh call" "returns.sh 240" "pr-guard.sh <run tree>"
+before "the guard runs after the Wave's returns.sh call" "returns.sh 540" "pr-guard.sh <run tree>"
 before "and before its fix-integrate.sh call" "pr-guard.sh <run tree>" "fix-integrate.sh --compose <run tree>"
 carries_each "the guard reads each branch against the commit the run tree was cut at, never the run tree's moving HEAD" \
   "<sha>" -- "never over the run tree's moving HEAD" "never the run tree's moving HEAD"
@@ -3698,6 +3725,32 @@ carries_each "a non-zero pr-log.sh exit stops the run quoting the script's stder
   "non-zero exit" -- "stops" -- "stderr line"
 yours_direction_once "the failed pr-log.sh's stop carries exactly one \`Yours: direction:\` line"
 
+# A push the pull request's head never shows inside the watch's hold leaves the script settling on
+# whatever head it finds and naming the pushed tip on a `released=` line: a session that routes that
+# verdict by its word alone reports a fix CI never ran as green and names a merge. The route is read
+# off the piece naming `released=`, since every stop of the step carries a `Yours: direction:` line.
+echo "# pr.md / ### Watch: any verdict carrying released=<sha>, green included, stops ahead of every other route on one Yours: direction: line naming the pushed tip, the hold capped at two minutes"
+watch="$(passage_of "$pr" "$watch_h" "##" 2>/dev/null)"
+flat="$(tr '\n' ' ' <<<"$watch" | tr -s ' ')"
+carries_each "the watch step states the hold's cap, \`DO_PR_WATCH_REGISTER_SECONDS\`, two minutes by default" \
+  "DO_PR_WATCH_REGISTER_SECONDS" -- "two minutes" "two-minute" "default 120" "120 seconds"
+flat="$(piece_with "released=")"
+expect "a bullet or paragraph of step $watch_n takes a verdict carrying \`released=\`" test -n "$flat"
+carries_any "it takes every verdict word, \`green\` included" \
+  "\`green\` included" "green included" "even \`green\`" "even green" "including \`green\`" "including green" \
+  "\`verdict=green\` included" "even \`verdict=green\`" "including \`verdict=green\`"
+carries_any "ahead of every other route of the step" \
+  "ahead of every other route" "before every other route" "ahead of any other route" "before any other route" \
+  "ahead of all other routes" "before all other routes" "ahead of every route" "before every route"
+carries_any "the run stops there" "run stops" "stops the run" "ends the run" "the run ends"
+yours_direction_once "the stop carries exactly one \`Yours: direction:\` line"
+carries_any "and follows nothing, so a green read there never reaches the Reply" "${follows_nothing[@]}"
+yours="$(grep -oE 'Yours: direction: [^`]*' <<<"$flat")"
+expect "its \`Yours: direction:\` line names the pushed tip \`<sha>\`" grep -qF -- "<sha>" <<<"$yours"
+carries_any "\`<sha>\` is the verdict's \`released=\` value" \
+  "released=<sha>" "<sha>\` being the \`released=\`" "<sha>\` is the \`released=\`" "<sha>\` from the \`released=\`" \
+  "\`released=\` value"
+
 # Every pr fixer gets the red check's whole job log, which only the session can fetch, since the
 # fixer keeps no gh: the fetch writes into the run's temporary directory, outside the run tree the
 # push leaves from, before any fixer is forked, and a failed fetch stops the run as a failed excerpt
@@ -3781,8 +3834,8 @@ flat="$(piece_in="$push_item" piece_with "quoting its fixer's return" "one line 
 expect "a paragraph of the push item stops quoting each fixer's return" test -n "$flat"
 yours_direction_once "the no-pick, empty-set stop carries exactly one \`Yours: direction:\` line"
 carries_any "and follows nothing" "${follows_nothing[@]}"
-flat="$(paragraph_with <(passage_of "$reply" "## A refusal or a blocked run" "## ") "the \`pr\` door's five stops")"
-expect "reply.md names the \`pr\` door's five stops that owe no \`Yours:\` line, the fork head's among them" test -n "$flat"
+flat="$(paragraph_with <(passage_of "$reply" "## A refusal or a blocked run" "## ") "six stops of the \`pr\` door")"
+expect "reply.md names the six stops of the \`pr\` door that owe no \`Yours:\` line, the fork head's among them" test -n "$flat"
 expect "and its exception list names the fork-head stop" grep -qiE 'head lives in a fork|fork head|head in a fork' <<<"$flat"
 expect "and none of them is a fixer's return, a failed watch or a failed pr-log.sh" \
   test -z "$(grep -oiE 'fixer|watch|pr-log' <<<"$flat")"

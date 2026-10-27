@@ -275,5 +275,7 @@ state="$(term state)"
 DO_PR_WATCH_REGISTER_SECONDS=120 run 42 1 "$state" "$pushed"
 check_lines "a head that is still not the expected sha once the hold has outlasted the registration grace: the watch drops the expectation and returns verdict=green on the head it finds, with its check count" 0 "$rc" \
   "verdict=green" "checks=2"
+check_lines "a verdict settled after the watch dropped the expected sha the head never became: it names that sha as released=, so the caller tells a verdict on another head from one on the tip it pushed" 0 "$rc" \
+  "released=$pushed"
 
 exit "$((fails > 0))"

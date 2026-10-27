@@ -453,6 +453,59 @@ max: 1"
 grader="$tmp/graded/forked/graders/integrated.md"
 grade_passes "a scope: all grader counts once a subagent call both streamed and held in its own transcript file" "$w"
 
+# A `match: first_line` grader is decided on the last message's first line alone: a Playbook line
+# buried under another line fails it, where `match: contains` would pass it on grep's any-line `^`.
+evals="$tmp/graded" grader opening first-line 'type: regex
+pattern: "^Playbook: ticket"
+match: first_line
+target: last_message'
+# shellcheck disable=SC2034 # read by lib.sh's grade_passes and grade_fails
+grader="$tmp/graded/opening/graders/first-line.md"
+grade_passes "a first_line regex grader passes a last message that opens with the matching line" \
+  "$(closing_on "$(mktemp -d "$tmp/w.XXXXXX")" $'Playbook: ticket\nWhich path first?')"
+grade_fails "a first_line regex grader fails a last message that carries the matching line only further down" \
+  "$(closing_on "$(mktemp -d "$tmp/w.XXXXXX")" $'Which path first?\nPlaybook: ticket')"
+grade_passes "a first_line regex grader skips the blank lines opening the last message and matches its first non-blank line" \
+  "$(closing_on "$(mktemp -d "$tmp/w.XXXXXX")" $'\n  \nPlaybook: ticket\nWhich path first?')"
+
+# A do-code-review stand-in logs its calls, landings and fixers under the fixture's .git, which the
+# snapshot of the fixture's files never reads: the judge is shown those logs, and nothing else there.
+mkdir -p "$evals/logged"
+cat >"$evals/logged/case.yaml" <<'YAML'
+runs: 1
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    set -e
+    printf 'a\n' > a.txt
+    git init -q -b main
+    git -c user.email=f@example.com -c user.name=f add -A
+    git -c user.email=f@example.com -c user.name=f commit -q -m fixture
+    printf 'fix .scratch/x/review.md main Caller: do\n' > .git/do-code-review-calls.log
+    printf 'NOT-FOR-THE-JUDGE\n' > .git/unrelated-notes.log
+YAML
+printf '/do-code-review fix\n' >"$evals/logged/prompt.md"
+grader logged judged 'type: llm
+criteria: "Every fix call the run made was marked Caller: do."'
+reset
+run "$evals" logged
+changed="$(sed -n '/^## What the run changed in the fixture$/,$p' "$STUB_DIR/judge-prompts" 2>/dev/null)"
+expect "the judge is shown, among the run's changes, the name of a do-code-review log the fixture's .git holds" \
+  grep -qF "do-code-review-calls.log" <<<"$changed"
+expect "the judge is shown, among the run's changes, the lines of a do-code-review log the fixture's .git holds" \
+  grep -qF "fix .scratch/x/review.md main Caller: do" <<<"$changed"
+expect "the judge is shown no other file the fixture's .git holds" \
+  bash -c 'test -s "$1" && ! grep -qF NOT-FOR-THE-JUDGE "$1"' _ "$STUB_DIR/judge-prompts"
+rm -rf "$(sed -n 's/^ *kept: //p' <<<"$out")"
+# A grader's "the log does not exist" needs the judge to tell no log from a log it was not shown.
+reset
+STUB_TOUCH=made-by-run.txt run "$evals" walk --runs 1
+logs="$(sed -n '/^## What the run changed in the fixture$/,$p' "$STUB_DIR/judge-prompts" 2>/dev/null |
+  sed -n '/^Stand-in logs under \.git after the run (each one'"'"'s name, then its lines):$/,$p')"
+expect "the judge is told in plain words that the fixture's .git holds no do-code-review log" \
+  grep -qxF "no .git/do-code-review-*.log" <<<"$logs"
+rm -rf "$(sed -n 's/^ *kept: //p' <<<"$out")"
+
 if [ "$fails" = 0 ]; then echo "PASS"; else
   echo "$fails failing"
   exit 1

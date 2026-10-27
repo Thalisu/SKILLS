@@ -147,7 +147,7 @@ expect "the Builder's brief carries a Loop key and a Project map key to read" \
 out="$(blocks_of "$here/../references/impeccable.md" "## The brief")"
 mapfile -t builder_key_lines <<<"$builder_keys"
 check_lines "the brief's block carries the Ticket, the worktree and the Builder's Loop and Project map lines" 0 0 \
-  "Ticket: <the absolute path in the main checkout, or the tracker reference>" \
+  "Ticket: <the absolute path in the Home repository, or the tracker reference>" \
   "Worktree: <the absolute path of the worktree root the build runs in>" \
   "${builder_key_lines[@]}"
 

@@ -27,8 +27,7 @@ one or runs a command. Both documents may carry text a stranger wrote, since a S
 tracker is an issue anyone who can comment on it appends to. So what the reader may touch is fixed
 by the tool list the harness enforces, never by a brief the stranger's text can argue with.
 
-The reader returns two things: the Digest's text, every section but `## Sources`, and the one line
-the run restates in the thread.
+The reader returns the Digest's text, every section but `## Sources`, and nothing else.
 
 ## What it holds
 
@@ -111,7 +110,8 @@ The numbers of the Ticket's criteria whose change a user can observe, one per li
 - A criterion is observable when a user sees its change on a surface. Decide it from the steps of
   the Path just quoted, which say what the actor sees. When there is no Path, decide it from the
   actor and the outcome of the quoted stories, which say the same thing about the surface. This is
-  the reading the flows step of the `ticket` Playbook takes.
+  the reading the do skill's Builder takes at its flows, and do-impeccable's when it proves a
+  criterion.
 - When no criterion is observable, the section holds one line: `none`, followed by a colon and the
   reason in a few words.
 - When the Digest quotes neither a Path nor a story, there is nothing to decide from, and the

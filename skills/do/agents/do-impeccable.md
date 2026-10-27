@@ -48,7 +48,9 @@ skill your session lists under `impeccable:`, and build the screen by its rules:
 context and the design system the project committed are what it reads. Where the skill hands work
 to a helper agent it ships, one named `impeccable-<role>`, fork that helper with the Agent tool as
 the skill says, with `run_in_background: false`, from the worktree root and with the worktree root
-as the project root it is handed.
+as the project root it is handed. When your session lists neither, build nothing and return
+`stopped`, its `stopped:` line naming the missing skill: `stopped: the impeccable skill is not listed in this session: install it, then fork
+the next Stretch with the same brief`.
 The Agent tool reaches those helpers and the end-to-end authors below, and nothing else.
 
 Run it code-led. The project's setup recorded the code-led build path for exactly this run, so the

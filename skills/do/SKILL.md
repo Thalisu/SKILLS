@@ -21,9 +21,9 @@ a reviewed branch. `do` is a router: it matches the request to one Playbook, and
 reference under Links is the run. The `ticket` Playbook is the last step of the chain and builds
 one Ticket; every other Playbook runs outside the chain and never builds a feature
 ([ADR 0008](../../docs/adr/0008-do-is-a-router-and-only-its-ticket-playbook-is-inside-the-chain.md)).
-A run never waits on the developer, and a long build spans several Stretches of the Builder, each
-returning to the session on a time budget, so a run can outlast an hour and they read it
-afterwards, through the Reply.
+A run waits on the developer only where "Where a turn ends" below says, and a long build spans
+several Stretches of the Builder, each returning to the session on a time budget, so a run can
+outlast an hour and they read it afterwards, through the Reply.
 
 Every reply opens with `Playbook: <name>` on its first line, so a wrong match shows at once and
 costs one retyped request.
@@ -54,10 +54,10 @@ costs one retyped request.
 | empty | `Playbook: none`; one message asking for the task: a Ticket's path, an issue reference, or the request in words |
 | a path that does not exist | `Playbook: none`; one line saying so |
 | a pull request URL, whatever words sit around it, as in `acompanhe esse PR <url>`, or words naming a pull request with its number, as in `PR 12` or `pull request #12`, a request to fix that pull request's CI included, or words asking for a pull request from one branch into another, as in `faça um PR de dev para prod`, the branch it comes from its head and the one it goes into its base, words naming one branch only included, as in `abra um PR de dev`. A bare number (`12`, `#12`) with no word naming a pull request goes on to the rows below. Above `integrate`, which would rebase or merge the pair itself, and above `bug-fix`, since that run never pushes to the pull request nor follows it to green | `pr` |
+| an issue number or URL with no tracker file, `docs/agents/issue-tracker.md`. Above `setup` and `ticket`, which open an issue only through that file | `Playbook: none`; one message asking for the Ticket's path. The number is never matched against a list in the conversation |
+| an issue reference the tracker's CLI cannot open, read with the tracker file's own command. Above `setup` and `ticket`, which both read an issue through that command | `Playbook: none`; one line saying so |
 | a Ticket's path whose `ticket-kind.sh` output is `kind=setup` alone, with no `ambiguous=` line, or an issue reference whose `Kind` reads `setup`, read the way the tracker file describes. Any other kind, an ambiguous one included, goes on to the next row | `setup` |
 | a path to a Ticket, in the format of [ticket-format.md](../../.agents/formats/ticket-format.md), or an issue reference (a number or a URL) resolved through the tracker file, `docs/agents/issue-tracker.md` | `ticket` |
-| an issue reference the tracker's CLI cannot open | `Playbook: none`; one line saying so |
-| an issue number or URL with no tracker file | `Playbook: none`; one message asking for the Ticket's path. The number is never matched against a list in the conversation |
 | a Spec's path, in the format of [spec-format.md](../../.agents/formats/spec-format.md), or a pasted session summary | `Playbook: none`; one line saying a Spec fits no Playbook, since `do` takes one Ticket, with the command: `/tickets <spec>`, or `/journey <spec>` first when the Spec's `Journey:` line reads `required` and no journey sits beside it; `/spec` for a summary, since the discussion already happened |
 | a question: how something works, why it was built that way | `Playbook: none`; `/how` for the mechanism, `/why` for the rationale, `/teach` to understand it end to end |
 | a runnable throwaway: a layout, a variant to try | `Playbook: none`; `/prototype` |
@@ -125,7 +125,7 @@ those reasons.
 - The Reply is five parts, per [reply.md](references/reply.md): the Plan, For whom, Pending debt, the `Yours:` line when the run hands something over, and the Next step. Every other line a step names goes to the Run report, a file written under `--auto` alone ([ADR 0091](../../docs/adr/0091-the-do-reply-is-five-parts-and-the-run-report-is-written-only-under-auto.md)), and none is required as text written mid-run: a session that writes text as it goes is free to, and nothing depends on it. A headless session writes a line meant for the moment as thinking, which nobody reads ([ADR 0039](../../docs/adr/0039-a-do-runs-lines-reach-the-developer-through-the-reply-never-through-text-written-mid-run.md)).
 - The matched Playbook's steps are copied verbatim as the checklist, the run's own todo list, before any task-specific item, and under `--auto` the Run report's Run section carries it with every step the run reached ticked `done:` or visible as `skip: <reason>`. A skipped step left visible is one the developer can question; a dropped one is not.
 - A principle is named in the Run report only with the decision it changed. A name with no decision is a citation the reader cannot check.
-- A question is classified before it is asked: a fact a script can observe goes to a probe, and only a product or preference call goes to the human, since that call is the one answer the run cannot produce itself.
+- A question is classified before it is asked: a fact a script can observe goes to a probe; an observation of a surface only the developer can reach, which no script or probe can make (a device, a production-only dataset, a third-party callback), goes to the developer as a request to drive it and report what they see; and of the calls, only a product or preference call goes to the human, since those are the answers the run cannot produce itself ([ADR 0106](../../docs/adr/0106-an-observation-only-the-developer-can-make-is-a-place-a-do-turn-ends.md)).
 - The data shape and its organising structure are named before any logic, since logic written first fixes a shape nobody chose.
 - Every delegate's diff is read by the session, which writes its own summary. A delegate's summary is its claim, and the diff is the evidence.
 - A pause comes only before an irreversible write; reversible work is presented instead, since it can be undone after the developer reads it.
@@ -137,12 +137,20 @@ those reasons.
 ## Where a turn ends
 
 A message with no tool call ends the turn, and the run stands still until the developer comes
-back, which can be an hour later. The run ends a turn in four places only: its last message (the
-Reply, or the one message of `Playbook: none`), whether the checklist ran through or a step's own
-route ended the run early; a pause before an irreversible write; a product or preference call
-with nothing left to do that does not depend on its answer; and the `setup` Playbook's step
-message, which shows the developer the first missing setup step to run by hand
-([ADR 0076](../../docs/adr/0076-the-front-end-builders-setup-is-a-ticket-run-by-a-playbook-of-its-own.md)).
+back, which can be an hour later. The run ends a turn in five places only:
+
+1. its last message (the Reply, or the one message of `Playbook: none`), whether the checklist ran
+   through or a step's own route ended the run early;
+2. a pause before an irreversible write;
+3. a product or preference call with nothing left to do that does not depend on its answer;
+4. the `setup` Playbook's step message, which shows the developer the first missing setup step to
+   run by hand
+   ([ADR 0076](../../docs/adr/0076-the-front-end-builders-setup-is-a-ticket-run-by-a-playbook-of-its-own.md));
+5. a request for an observation of a surface only the developer can reach, which no script or
+   probe can make, asked with nothing left to do that does not depend on it, as the `bug-fix`
+   Playbook asks it at its reproduce and verify steps. It is asked under `--auto` as without the
+   flag: it offers no options, so no `choice-taker` has a side to take
+   ([ADR 0106](../../docs/adr/0106-an-observation-only-the-developer-can-make-is-a-place-a-do-turn-ends.md)).
 It never ends one on any of these, all met while work is still owed:
 
 - a summary of what was done that announces the next step instead of taking it;
@@ -162,11 +170,11 @@ that Playbook. The reply reference is read last by every Playbook but `setup`, w
 - [ticket.md](references/ticket.md): the `ticket` Playbook, which links the shared mechanics and the reply reference.
 - [setup.md](references/setup.md): the `setup` Playbook, which runs a Setup ticket in the main checkout one step at a time. It links no other reference and writes its own messages.
 - [pr.md](references/pr.md): the `pr` Playbook, which follows one pull request: its steps, and the read-back of the pull request it follows.
-- [integrate.md](references/integrate.md): the `integrate` Playbook: its door script, its steps, and the link to the conflict loop it runs at every stop.
+- [integrate.md](references/integrate.md): the `integrate` Playbook: its door script, its steps, and the link to the conflict loop it runs at every stop, the one shared reference it reads besides the reply.
 - [bug-fix.md](references/bug-fix.md): the `bug-fix` Playbook, which links the shared mechanics and the reply reference.
 - [mechanics.md](references/mechanics.md): the shared mechanics the Playbooks that build in a worktree read through their steps: the worktree, the protected branch, the Ticket file, the reader, the delegates, the gate, the integration, the review, the verification, the close.
 - [build-loop.md](references/build-loop.md): the build loop and its test authors, read by the Builder in a `ticket` run, by the step that is about to build in `bug-fix` and `refactoring`, and by the resume step for the `Behaviour:` line the loop's commits carry, so those readers carry none of the rest of the shared mechanics.
-- [forks.md](references/forks.md): the forks, read by the step that reaches one, the shape step, the behaviours step or the build step, by the Resume step for the fork a resume meets again, by a step whose question the `choice-taker` rules under `--auto`, and by the close step and the reply for a held Ruling: the probe that settles an empirical fork, the `choice-taker` that rules on a Design fork, the Extreme fork that stops the run, and the run question `--auto` hands to the `choice-taker`.
+- [forks.md](references/forks.md): the forks of a `ticket` run, read by its Plan step and its build step when one reaches a fork, by its Resume for the fork a resume meets again, by a step of that run whose question the `choice-taker` rules under `--auto`, and by its close and the reply for a held Ruling: the probe that settles an empirical fork, the `choice-taker` that rules on a Design fork, the Extreme fork that stops the run, and the run question `--auto` hands to the `choice-taker`. The `bug-fix`, `refactoring` and `trivial` Playbooks carry their own forks and run questions in their own references and never read this one ([ADR 0105](../../docs/adr/0105-forks-md-is-the-ticket-playbooks-and-each-outside-chain-playbook-carries-its-own-forks.md)).
 - [conflict-loop.md](references/conflict-loop.md): the conflict loop every stop of a replay runs, read by the step that reaches a stop and by the no-op state of the integration step, `A rebase that replays no commit.`, for an unapplied ledger entry's reapply, and by no other: the class the script reads, the mechanical and contested resolutions, the Loss ledger judged and reapplied, and the states git refuses.
 - [digest.md](references/digest.md): the Digest the session writes from the reader's text and the run derives
   its behaviours from: the reader's brief, what the Digest holds, and where it is written.

@@ -1,7 +1,7 @@
 # formats
 
 The formats of the artifacts the skill chain shares (`CONTEXT.md`, an ADR, a spec, a journey, a
-ticket, a Sketch, a review, a Loss ledger), one per file. They are not skills: no frontmatter, no invocation, and no harness lists
+ticket, a Sketch, a review, a Loss ledger, a Debt file), one per file. They are not skills: no frontmatter, no invocation, and no harness lists
 them. Each is written by one skill and read by others, so it lives here, outside every skill, and
 every skill that writes or reads it links the file by relative path (`docs/adr/0004`). A format
 read by one skill only stays in that skill's `references/`.
@@ -16,5 +16,6 @@ read by one skill only stays in that skill's `references/`.
 | [review-format.md](review-format.md) | `do-code-review` | `do`, the Fixers |
 | [sketch-format.md](sketch-format.md) | the `/sketch` session; `do` at its shape step; `do-planner`, whose Plan the Sketch becomes one section of | `do`, which holds the build to it |
 | [loss-ledger-format.md](loss-ledger-format.md) | `do` at its integration, through `ledger.sh` | `do`'s ledger judge, `do-code-review`'s technical reviewer |
+| [debt-format.md](debt-format.md) | `do`, on every run on a Ticket | `debt`, through `gather.sh`; the developer |
 
 Adding, renaming or removing a format updates this table in the same change.

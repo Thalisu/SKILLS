@@ -1,0 +1,56 @@
+name: refactoring-refuses-a-behaviour-change
+tags: [refactoring, door]
+runs: 2
+max_turns: 10
+timeout_seconds: 300
+allowed_tools: [Bash, Read, Edit, Write, Grep, Glob]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # A request opening with the refactoring Playbook's name that asks a caller to observe a change:
+    # create() rejects an empty title, and the request wants it accepted. A reshape leaves behaviour
+    # where it was, so the door refuses it before any edit, naming /do with the bug in words or
+    # /discuss.
+    set -e
+    mkdir -p src
+    cat > package.json <<'JSON'
+    {
+      "name": "notes",
+      "private": true,
+      "type": "module",
+      "scripts": {
+        "typecheck": "node --check src/notes.js",
+        "test": "node --test"
+      }
+    }
+    JSON
+    cat > src/notes.js <<'JS'
+    const notes = [];
+
+    export function create(title) {
+      if (typeof title !== "string" || title.trim() === "") {
+        throw new Error("a note needs a title");
+      }
+      const note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+
+    export function list() {
+      return notes.filter((n) => n.status === "active");
+    }
+    JS
+    cat > src/notes.test.js <<'JS'
+    import { test } from "node:test";
+    import assert from "node:assert/strict";
+    import { create } from "./notes.js";
+
+    test("create rejects an empty title", () => {
+      assert.throws(() => create(""));
+    });
+    JS
+    git init -q -b main
+    git config user.email fixture@example.com
+    git config user.name fixture
+    git add -A
+    git commit -q -m "fixture"

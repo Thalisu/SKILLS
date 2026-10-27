@@ -1,0 +1,45 @@
+name: integrate-keyword-routes-to-integrate
+tags: [router, integrate]
+runs: 2
+max_turns: 40
+timeout_seconds: 600
+allowed_tools: [Bash, Read, Edit, Write, Grep, Glob, Agent, Skill]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # The fixture of `integrate-merge-run`, with an argument opening with the Playbook's name: the
+    # router's `integrate` row takes it on that word, and the rebase of feature/titles onto main is
+    # clean since main's commit touches README.md alone.
+    set -e
+    mkdir -p src
+    cat > src/notes.js <<'JS'
+    const notes = [];
+
+    export function create(title) {
+      const note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+    JS
+    git init -q -b main
+    git config user.email fixture@example.com
+    git config user.name fixture
+    git add -A
+    git commit -q -m "fixture"
+    git checkout -q -b feature/titles
+    cat >> src/notes.js <<'JS'
+
+    export function titles() {
+      return notes.map((n) => n.title);
+    }
+    JS
+    git commit -q -am "feat(notes): read the titles of the notes"
+    git checkout -q main
+    cat > README.md <<'MD'
+    # Notes
+
+    A notes module.
+    MD
+    git add README.md
+    git commit -q -m "docs: describe the notes module"
+    git checkout -q feature/titles

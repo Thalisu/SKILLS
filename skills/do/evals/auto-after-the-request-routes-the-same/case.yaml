@@ -1,0 +1,31 @@
+name: auto-after-the-request-routes-the-same
+tags: [router, pr, auto]
+runs: 2
+max_turns: 8
+timeout_seconds: 300
+allowed_tools: [Bash, Read, Edit, Write]
+context:
+  scaffold_script: |
+    #!/usr/bin/env bash
+    # The request of `pr-url-routes-to-pr` with `--auto` typed after it rather than before: the token is
+    # dropped wherever it sits, so the same words route to `pr` and the URL reaches the GitHub CLI
+    # without the token glued to it.
+    set -e
+    mkdir -p src docs/agents
+    cat > src/notes.js <<'JS'
+    const notes = [];
+
+    export function create(title) {
+      const note = { id: notes.length + 1, title, status: "active" };
+      notes.push(note);
+      return note;
+    }
+    JS
+    cat > docs/agents/issue-tracker.md <<'MD'
+    # Issue tracker: GitHub
+
+    Issues and specs for this repo live as GitHub issues, read and written with the `gh` CLI.
+    MD
+    git init -q -b main
+    git -c user.email=fixture@example.com -c user.name=fixture add -A
+    git -c user.email=fixture@example.com -c user.name=fixture commit -q -m "fixture"
