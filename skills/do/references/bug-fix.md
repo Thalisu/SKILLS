@@ -97,7 +97,7 @@ branch and `refs/heads/do/<slug>`, qualified so a same-named tag can never shado
   nothing is discarded on that return.
 - A run that stopped as blocked resumes the same way once its reason is gone, since every stop on
   this path leaves the worktree and its branch in place and named: the developer's no at step 2 or
-  step 7, an inconclusive verification, a `discuss` stop at step 4 once the design is settled.
+  step 7, a `discuss` stop at step 4 once the design is settled.
 
 ## Checklist
 
