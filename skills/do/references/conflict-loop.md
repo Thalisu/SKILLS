@@ -382,7 +382,7 @@ if git diff --cached --quiet HEAD; then
   git log -1 --format='skipped %h %s' REBASE_HEAD
   git -c rerere.enabled=false -c rerere.autoupdate=false rebase --skip
 else
-  git -c rerere.enabled=false -c rerere.autoupdate=false rebase --continue
+  git -c rerere.enabled=false -c rerere.autoupdate=false -c core.editor=true rebase --continue
 fi
 ```
 
