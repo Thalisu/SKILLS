@@ -20,8 +20,8 @@
 # against the Spec branch's reflog and the token stored under token_slug.
 #
 # verdict, first match wins: integration (a rebase is open in the tree) · ask (uncommitted work in
-# the tree) · land (the review already read the Spec branch, so the run goes to the Gate and the
-# fix call, never to a second review) · restart (add the tree when it is absent, then the rebase
+# the tree) · land (the review already read the Spec branch, so the run integrates with no Gate
+# of its own and lands through the fix call on that Review, never a second review) · restart (add the tree when it is absent, then the rebase
 # step).
 #
 # Exit codes: 0 restart · 1 ask · 3 integration · 4 land · 2 usage, a Ticket outside a feature

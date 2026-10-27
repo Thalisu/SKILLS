@@ -44,7 +44,8 @@
 # verdict, first match wins: integration (a rebase is open) · ask (uncommitted work in the
 # worktree) · extreme (exit 5, the sidecar of a first run's Extreme stop is still there, so the
 # resume prints its own discuss= line rather than meeting the fork again) · land (the review
-# already read the branch, so the run goes to the Gate and the fix call, never to a second review)
+# already read the branch, so the run integrates with no Gate of its own and lands through the fix
+# call on that Review, never a second review)
 # · build (the loop continues at the first behaviour without a commit).
 #
 # Exit codes: 0 build · 1 ask · 3 integration · 4 land · 5 extreme · 2 usage, an argument that is
