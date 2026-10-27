@@ -706,8 +706,16 @@ Done when `git worktree list` no longer shows the run's worktree, or the step re
 ### 15. Reply
 
 Written by [reply.md](reply.md), its five parts: the `Plan:` line reads the reshape back in a few
-words, For whom names the reader whose load dropped, and Pending debt carries what the list below
-puts there. Under `--auto` the Run report carries the rest, each where [reply.md](reply.md) puts it:
+words, and For whom names the reader whose load dropped. Pending debt carries, on every run, each
+of these that the run met:
+
+- the equivalence gap: the behaviour the harness drove and that no test in the tree covers now;
+- a caller in another repository the wave could not reach;
+- a test that went red under a pure reshape and was named rather than edited;
+- a failed exit test the developer chose to keep;
+- a Design fork's Ruling, in the line [Forks and run questions](#forks-and-run-questions) fixes.
+
+Under `--auto` the Run report carries the rest, each where [reply.md](reply.md) puts it:
 
 - In the Run section, the structure line: the structure the reshape gave the code, the one step 4
   named, and the target shape it reached, with the sketch or its skip.
@@ -720,12 +728,6 @@ puts there. Under `--auto` the Run report carries the rest, each where [reply.md
 - Under Evidence, the pin's before and after lines quoted, the suite, the typecheck and the
   harness's two runs. Those quoted lines are the harness's only record, since step 9 deleted it, so
   a line missing here is a proof nobody can reproduce.
-- Under Pending debt, each of these that the run met:
-  - the equivalence gap: the behaviour the harness drove and that no test in the tree covers now;
-  - a caller in another repository the wave could not reach;
-  - a test that went red under a pure reshape and was named rather than edited;
-  - a failed exit test the developer chose to keep;
-  - a Design fork's Ruling, in the line [Forks and run questions](#forks-and-run-questions) fixes.
 
 The reply ends with the push command naming the developer's branch when the review landed, and with
 the next command otherwise.
