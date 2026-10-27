@@ -2,7 +2,8 @@
 
 The loop a Playbook that builds in a worktree runs once its behaviours list exists: one behaviour,
 one dispatch, one green commit, repeat. It is read by the Builder of [builder.md](builder.md) in a
-`ticket` run, which runs the loop and its flows in a window of its own, by the step that is about to
+`ticket` run, which runs the loop and its flows in a window of its own, by the session in the
+Builder's place when no Builder can be forked, per the build step of [ticket.md](ticket.md), by the step that is about to
 build in `bug-fix` and `refactoring`, and by the resume step for the `Behaviour:` line the loop's
 commits carry. The rest of what those Playbooks share is
 in [mechanics.md](mechanics.md).
