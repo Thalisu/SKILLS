@@ -17,8 +17,9 @@
 # reach of the fork it covers: a state file rewritten after the snapshot no longer matches it. The hooks directory is the git directory's own: one that core.hooksPath
 # names is read as any other path, and the setting moving there is a change of the config. A file
 # git ignores is outside what the script reads, so a write to one is never reported. The config is
-# read as its settings, less the upstream of a branch. The state file sits outside the checkout or
-# at a path git ignores in it, since a record git reported would be a change of its own. The state
+# read as its settings, less the upstream of a branch. The state file sits outside the checkout, under
+# its git common directory anywhere but the hooks directory and the config this script reads, or at
+# a path git ignores in the checkout, since a record git reported would be a change of its own. The state
 # path is resolved before that match: a relative path, or one through a symlink, counts where it
 # lands. Nothing under .claude/worktrees/ is read, at the snapshot or at the check: the worktrees
 # there are the runs' own.
@@ -32,8 +33,9 @@
 # included.
 #
 # Exit codes: 0 a snapshot written or a verdict printed · 2 usage, a checkout that is not a git
-# working tree, a state file inside the checkout that git does not ignore, or a check with no
-# readable state file, which prints no verdict: a missing record is never an untouched checkout.
+# working tree, a state file inside the checkout that git does not ignore, one at the hooks or the
+# config of its git common directory, or a check with no readable state file, which prints no
+# verdict: a missing record is never an untouched checkout.
 set -uo pipefail
 
 usage() {
@@ -115,8 +117,13 @@ records() { # one NUL-terminated `<content> <path>` record per path git reports 
 if [ "$mode" = snapshot ]; then
   # The match runs on the path as it lands: a relative path, or one through a symlink, would
   # otherwise skip the ignore check and sit in the checkout as a change of its own.
-  landing="$(realpath -m -- "$state")"
+  landing="$(realpath -m -- "$state")" gitdir="$(realpath -m -- "$common")"
   case "$landing" in
+    "$gitdir/hooks" | "$gitdir/hooks"/* | "$gitdir/config")
+      echo "$state is a path under $common that this script reads" >&2
+      exit 2
+      ;;
+    "$gitdir"/*) ;;
     "$main"/*)
       git -C "$main" check-ignore -q -- "$landing" || {
         echo "$state is inside $main at a path git does not ignore" >&2

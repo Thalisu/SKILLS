@@ -208,4 +208,36 @@ run check "$sibling_run" "$sibling_run_state"
 same "a worktree another run cut on a branch tracking the Spec branch after the snapshot leaves the checkout untouched" \
   $'verdict=untouched\nchanged=0'
 
+fresh unignored
+unignored="$(pwd -P)"
+echo one >tracked.txt
+commit "base"
+unignored_state="$unignored/.git/do/main-state/ticket.state"
+
+run snapshot "$unignored" "$unignored_state"
+expect "a snapshot whose state file sits under the checkout's git directory exits 0 in a checkout that ignores nothing" \
+  test "$rc" = 0
+run check "$unignored" "$unignored_state"
+same "a check right after a snapshot kept under the checkout's git directory reads untouched, the state file never listed" \
+  $'verdict=untouched\nchanged=0'
+
+fresh read-paths
+read_paths="$(pwd -P)"
+echo one >tracked.txt
+commit "base"
+config_before="$(sha256sum .git/config)"
+refuses "a snapshot whose state file is the checkout's git config refuses, naming the state file" names \
+  "$read_paths/.git/config" snapshot "$read_paths" "$read_paths/.git/config"
+expect "a snapshot refused over the checkout's git config leaves the config byte for byte as it was" \
+  test "$(sha256sum .git/config)" = "$config_before"
+
+fresh read-hooks
+read_hooks="$(pwd -P)"
+echo one >tracked.txt
+commit "base"
+refuses "a snapshot whose state file sits in the checkout's git hooks directory refuses, naming the state file" names \
+  "$read_hooks/.git/hooks/ticket.state" snapshot "$read_hooks" "$read_hooks/.git/hooks/ticket.state"
+expect "a snapshot refused over a state file in the git hooks directory creates no file there" \
+  test ! -e "$read_hooks/.git/hooks/ticket.state"
+
 [ "$fails" = 0 ]
