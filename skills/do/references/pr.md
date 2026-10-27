@@ -616,7 +616,15 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
 
    The push is fast-forward only: never `--force`, never a merge, never to another branch
    (ADR 0086). It carries every commit on HEAD to `<head>` in the order it sits there, so a check
-   that left a compose arrives compose commit first, its fix commit on top (ADR 0102). git's own refusal of a non-fast-forward is the guard. When git accepts it, run
+   that left a compose arrives compose commit first, its fix commit on top (ADR 0102). git's own refusal of a non-fast-forward is the guard. When git accepts it, the fixes are on `<head>`, so
+   a fixer tree item 4 e kept as dirty holds only what its runs left behind. One call takes back
+   every branch the round's item 4 e calls kept as `dirty tree`, while `<run tree>` still stands to
+   measure them against:
+   `bash <skill-dir>/../do-code-review/scripts/fix-worktrees.sh remove --pushed <run tree> <branch>...`,
+   the ones the `remove --superseded` call kept going through
+   `fix-worktrees.sh remove --superseded --pushed` instead. A landed branch is removed with its
+   tree, and one whose commit never landed stays `kept ... unlanded commit`, since a `Yours:` clause
+   may name it. Its lines go to the Reply's round lines as item 4 e's do. Then run
    `git worktree remove <run tree>` and go back to step 3, calling the watch with `<pr>` alone: the
    push changed the checks, so the stall window starts over. When git refuses it on a first
    attempt, the remote moved between the fetch and the push: the run redoes the round whole, as on a

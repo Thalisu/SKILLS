@@ -13,7 +13,7 @@
 # before anything is made; any other refusal from git prints `failed <git's line>` once the
 # worktrees this call made are taken back. Either way no `worktree` line is printed.
 #
-#   fix-worktrees.sh remove [--superseded] <reviewed tree> <branch>...
+#   fix-worktrees.sh remove [--superseded] [--pushed] <reviewed tree> <branch>...
 #
 # remove takes back only what add made: a branch outside the fixer/<slug>/<at>/w<k>-<n> namespace,
 # the caller's do/<slug> or fix/<slug> among them, refuses the whole list before anything is touched.
@@ -23,7 +23,10 @@
 # `kept <branch> <path> unlanded commit`. With --superseded the caller already knows, by Finding
 # number rather than by patch, that every listed branch's Finding is on the reviewed branch under a
 # different sha, its own commit having been aborted and never picked: the landed check is skipped,
-# so a clean tree is always removed and only a dirty one or a removal git refuses is kept.
+# so a clean tree is always removed and only a dirty one or a removal git refuses is kept. With
+# --pushed the caller already pushed the reviewed branch, so a dirty tree is only what the Fixer's
+# runs left behind: a landed branch is removed with its tree forced away, and an unlanded one is kept.
+# The two flags combine.
 #
 # Exit codes: add 0 every worktree created · remove 0 every one removed, 1 some kept · 2 usage ·
 # 3 add failed.
@@ -31,7 +34,7 @@ set -uo pipefail
 
 usage() {
   echo "usage: fix-worktrees.sh add <reviewed tree> <slug> <at> <wave> <n>..." >&2
-  echo "usage: fix-worktrees.sh remove [--superseded] <reviewed tree> <branch>..." >&2
+  echo "usage: fix-worktrees.sh remove [--superseded] [--pushed] <reviewed tree> <branch>..." >&2
   exit 2
 }
 [ "$#" -ge 1 ] || usage
@@ -86,11 +89,15 @@ worktree_of() { # $1 reviewed tree, $2 branch: the path of the worktree it is ch
 }
 
 remove() {
-  local superseded=0
-  if [ "${1:-}" = "--superseded" ]; then
-    superseded=1
+  local superseded=0 pushed=0
+  while :; do
+    case "${1:-}" in
+      --superseded) superseded=1 ;;
+      --pushed) pushed=1 ;;
+      *) break ;;
+    esac
     shift
-  fi
+  done
   [ "$#" -ge 2 ] || usage
   local tree="$1" main branch path
   shift
@@ -105,7 +112,7 @@ remove() {
   local verdict=0
   for branch in "$@"; do
     path="${path_of[$branch]}"
-    if [ -n "$(git -C "$path" status --porcelain)" ]; then
+    if [ "$pushed" -eq 0 ] && [ -n "$(git -C "$path" status --porcelain)" ]; then
       echo "kept $branch $path dirty tree"
       verdict=1
       continue
@@ -115,7 +122,12 @@ remove() {
       verdict=1
       continue
     fi
-    git -C "$tree" worktree remove "$path" >/dev/null 2>&1
+    if [ "$pushed" -eq 1 ]; then
+      # A single --force still refuses a locked worktree, which stays reported as refused below.
+      git -C "$tree" worktree remove --force "$path" >/dev/null 2>&1
+    else
+      git -C "$tree" worktree remove "$path" >/dev/null 2>&1
+    fi
     # The pick gave the commit a new sha, so `branch -d` would refuse a branch landed() just proved
     # is on the reviewed branch; the force is safe only behind that check and the namespace above.
     git -C "$tree" branch -D "$branch" >/dev/null 2>&1

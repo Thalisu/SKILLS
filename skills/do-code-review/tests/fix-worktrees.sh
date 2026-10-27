@@ -304,6 +304,36 @@ expect "git no longer lists the worktree of the superseded Finding's aborted bra
 expect "git no longer lists the superseded Finding's aborted branch" \
   no_branch fixer/x/r1/w1-2
 
+fresh pushed
+committer_identity
+main="$tmp/pushed"
+printf 'base\n' >README.md
+commit base
+reviewed="$(branch_worktree "$main" x)"
+run add "$reviewed" x r1 1 1 2
+earlier="$main/.claude/worktrees/fixer-x-r1-w1-1"
+pushed="$main/.claude/worktrees/fixer-x-r1-w1-2"
+printf 'earlier\n' >"$earlier/earlier.txt"
+git -C "$earlier" add -A && git -C "$earlier" commit -qm "Finding 1"
+printf 'fixed\n' >"$pushed/fix.txt"
+git -C "$pushed" add -A && git -C "$pushed" commit -qm "Finding 2"
+integrated="$(bash "$here/../scripts/fix-integrate.sh" "$reviewed" 1=fixer/x/r1/w1-1 2=fixer/x/r1/w1-2 2>&1)"
+expect "fixture: fix-integrate picked Finding 2 onto the reviewed branch under a new sha" \
+  test "$integrated" = "picked 1 $(git -C "$reviewed" rev-parse HEAD~1)
+picked 2 $(git -C "$reviewed" rev-parse HEAD)"
+printf 'run output\n' >"$pushed/run.log"
+printf 'touched by a run\n' >"$pushed/README.md"
+expect "fixture: Finding 2's landed worktree is dirty, with an untracked file and a modified tracked one" \
+  test "$(git -C "$pushed" status --porcelain | sort)" = " M README.md
+?? run.log"
+run remove --pushed "$reviewed" fixer/x/r1/w1-2
+check_lines "remove --pushed takes back a dirty Fixer worktree whose commit is on the reviewed HEAD by patch, naming it and its path: exit 0" \
+  0 "$rc" "removed fixer/x/r1/w1-2 $pushed"
+expect "git no longer lists the worktree of the pushed Fixer branch whose tree was dirty" \
+  unlisted "$pushed"
+expect "git no longer lists the pushed Fixer branch whose tree was dirty" \
+  no_branch fixer/x/r1/w1-2
+
 echo
 if [ "$fails" = 0 ]; then echo "fix-worktrees: all checks passed"; else
   echo "fix-worktrees: $fails failed"

@@ -1638,6 +1638,30 @@ flat="$(sed 's/^[[:space:]]*//' <<<"$reply_step" | grep '^round [0-9<]')"
 carries_each "the Reply's round line for a kept worktree names its branch and path as fix-worktrees.sh printed them" \
   "kept" -- "<branch> <path>" "<fixer branch> <path>" "<branch> <worktree path>" "<fixer branch> <worktree path>"
 
+# A fixer that ran its checks always leaves its tree dirty, so the Wave's removal keeps it as `dirty
+# tree` and nothing after the push takes it back: the developer's checkout piles up a `fixer/`
+# worktree and branch per check per round. The Push item mentions `git worktree remove <run tree>`
+# in its stops too, so the order is read from the push command on, where git's accepting the push is
+# what the item goes on to handle, and the run tree must still exist when the branches are measured.
+echo "# pr.md / ### Fix the red checks, Push: once git accepts the push, fix-worktrees.sh remove --pushed takes back every branch the Wave's removal kept as dirty tree, the superseded ones through remove --superseded --pushed, before git worktree remove <run tree>"
+step="$(passage_of "$pr" "$fix_h" "##" 2>/dev/null)"
+push_item="$(item_holding <(printf '%s\n' "$step") '[0-9]+\. ' "push origin HEAD:refs/heads/<head>")"
+flat="$(tr '\n' ' ' <<<"$push_item" | tr -s ' ')"
+carries "the Push item carries the push and the --pushed removal call" \
+  "git -C <run tree> -c core.hooksPath=/dev/null push origin HEAD:refs/heads/<head>" \
+  "bash <skill-dir>/../do-code-review/scripts/fix-worktrees.sh remove --pushed <run tree> <branch>..."
+carries "a branch the superseded call kept goes through remove --superseded --pushed" \
+  "fix-worktrees.sh remove --superseded --pushed"
+flat="${flat#*push origin HEAD:refs/heads/<head>}"
+before "the --pushed removal comes after the push and before the run tree is removed" \
+  "fix-worktrees.sh remove --pushed <run tree> <branch>..." "git worktree remove <run tree>"
+flat="$(piece_in="$push_item" piece_with "remove --pushed")"
+expect "a paragraph or sub-item of the Push item carries the remove --pushed call" test -n "$flat"
+carries_each "over every branch the Wave's removal kept as dirty tree" \
+  "every branch" "each branch" "all the branches" "every \`<branch>\`" "all branches" "every \`kept\`" \
+  "each \`kept\`" "every kept" "each kept" -- \
+  "dirty tree" -- "kept"
+
 # The developer may have the head checked out, dirty or on another branch: a round integrated in
 # their checkout moves their branch or mixes the run's commits with their work in progress. The
 # round is read off the Fix step alone: `not fixed <k>:` already sits there, so the pick's trigger is
