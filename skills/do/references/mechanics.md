@@ -174,9 +174,9 @@ document, and it opens neither afterwards to check the fork: what comes back is 
 location of every quote, so the check is a quote read against its line.
 
 Before anything is forked, the door resolves both paths from the Ticket, the way the second run
-below does, and the door hashes both itself before it forks: `git hash-object <path>` in the main
-checkout for each, recording `absent` for a document not on disk. It resolves and hashes them
-the same way when no reader can be forked, on the two branches below. Those two values are the
+below does, and the door hashes both itself before it forks: `git hash-object <path>` run under
+the door's `root=`, the Home repository, for each, recording `absent` for a document not on
+disk. It resolves and hashes them the same way when no reader can be forked, on the two branches below. Those two values are the
 Digest's `## Sources` lines, so the record the reuse gate trusts is the run's own reading and never
 the fork's. When it forks the reader, the door says in one line that both are being read in a
 window of their own.

@@ -56,8 +56,8 @@ spec: <absolute path> <hash>
 journey: <absolute path> <hash>
 ```
 
-- The hash is the one `git hash-object <path>` prints, run by the door in the Home repository before
-  it forks the reader. The session writes both lines from the door's own hashes, never from the
+- The hash is the one `git hash-object <path>` prints, run by the door under its `root=`, the Home
+  repository, before it forks the reader. The session writes both lines from the door's own hashes, never from the
   reader's text.
 - A document that is not on disk, and a journey the Spec's `Journey:` line names none for, is
   recorded as `<name>: absent`.
