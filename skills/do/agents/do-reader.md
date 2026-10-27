@@ -1,6 +1,6 @@
 ---
 name: do-reader
-description: "Reads a Ticket's Spec and its journey whole and returns the Digest a do run derives its behaviours from, every quote located at its document, heading and line. Holds reading and search alone and writes nothing: the session that forked it writes the Digest from the text it returns. Forked only by the do skill's door with a brief, once the door's stops have passed. Never on your own initiative."
+description: "Reads a Ticket's Spec and its journey whole and returns the Digest a do run derives its behaviours from, every quote located at its document, heading and line. Holds reading and search alone and writes nothing: the session that forked it writes the Digest from the text it returns. Forked only by the do skill with a brief: by its door, once the door's stops have passed, and by its ticket Playbook again at the Plan or build step, when a Ruling rewrote a Ticket criterion or the Spec or the journey moved past what the Ruling explains. Never on your own initiative."
 model: sonnet
 effort: medium
 tools: Read, Glob, Grep
