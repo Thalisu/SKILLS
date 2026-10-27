@@ -1,6 +1,6 @@
 ---
 name: do-pr-fixer
-description: 'Fixes one red check of a pull request in the worktree its brief names: reproduces the failure locally before editing anything, proves the fix with a failing test first, and leaves at most two commits (a compose it wrote that brought the stack up healthy, then the fix), or none with the reason. Writes its one line to the return file its brief names. Forked only by the do skill''s pr Playbook with a brief, one per red check. Never on your own initiative.'
+description: 'Fixes one red check of a pull request in the worktree its brief names: reproduces the failure locally before editing anything, proves the fix with a failing test first, and leaves at most two commits (a compose it wrote that brought the stack up healthy, then the fix), or none with the reason. Writes its one line to the return file its brief names. Forked only by the do skill''s pr Playbook with a brief, one per red check, and a second in diagnosis mode for a check red again on its retry. Never on your own initiative.'
 model: sonnet
 effort: high
 tools: Bash, Read, Glob, Grep, Write, Edit, Agent, Skill

@@ -676,6 +676,13 @@ out="$flat"
 carries "the fixer's description says it leaves at most two commits, the compose apart from the fix" \
   "at most two commits"
 absent "the fixer's description no longer says it makes one commit" "makes one commit"
+# The pr Playbook forks the fixer a second time, in diagnosis mode, for a check red again on its
+# retry (ADR 0104), and .agents/invocation.md has the description name every way the agent is
+# forked: a description that names only one fork per red check leaves the diagnosis fork unsanctioned.
+carries_each "the fixer's description names a second fork in diagnosis mode for a check red again on its retry, beside one per red check" \
+  "one per red check" -- \
+  "diagnosis mode" "diagnosis fork" "to diagnose" -- \
+  "red again on its retry" "red again on retry" "red again after its retry" "red on its retry"
 
 # A fix written from the log alone turns nothing red first and may silence the symptom while the
 # cause survives (ADR 0103): the mechanism's test goes through the test author like any bugfix red,
