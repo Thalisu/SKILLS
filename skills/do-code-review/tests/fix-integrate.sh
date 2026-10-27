@@ -221,11 +221,16 @@ expect "no hook planted in the repository's hooks directory runs during the pick
   test ! -e "$marker"
 
 compose_pair() { # $1 name, $2 fix file, $3 fix content, [$4 file, $5 content...]: a branch of a chore(e2e) commit writing docker/compose.e2e.yml (and each extra file), then the fix commit <name>, back on main
+  # Optional: $compose_link, set on the call's own line, makes docker/compose.e2e.yml a symlink to it instead of a regular file
   local name="$1" fix_file="$2" fix_content="$3"
   shift 3
   git checkout -q -b "$name" main
   mkdir -p docker
-  printf 'services: {}\n' >docker/compose.e2e.yml
+  if [ -n "${compose_link:-}" ]; then
+    ln -s "$compose_link" docker/compose.e2e.yml
+  else
+    printf 'services: {}\n' >docker/compose.e2e.yml
+  fi
   git add docker/compose.e2e.yml
   while [ "$#" -ge 2 ]; do
     mkdir -p "$(dirname "$1")"
@@ -317,6 +322,22 @@ expect "the refusal is a failed check line naming the check" starts_failed_check
 absent "no composed line is printed for a chore(e2e) commit carrying more than the compose" "composed "
 absent "no fix is picked when its chore(e2e) commit carries more than the compose" "picked "
 expect "the reviewed branch is left unmoved when a chore(e2e) commit carries more than the compose" \
+  test "$(git -C "$main" rev-parse main)" = "$before"
+
+# A symlink named like the compose points anywhere, outside the repository or at code, so the name
+# alone does not make the chore(e2e) commit a compose a reviewer can drop unread.
+fresh compose-pair-symlinked-compose
+main="$tmp/compose-pair-symlinked-compose"
+printf 'base\n' >README.md
+commit base
+compose_link=../../outside.sh compose_pair f1 one.txt "check one"
+before="$(git -C "$main" rev-parse main)"
+run --compose "$main" 1=f1
+check "under --compose a chore(e2e) commit whose compose path is a symlink, not a regular file, is refused with exit 3" 3 "$rc"
+expect "the refusal of a symlinked compose is a failed check line naming the check" starts_failed_check_1
+absent "no composed line is printed for a chore(e2e) commit whose compose is a symlink" "composed "
+absent "no fix is picked when its chore(e2e) commit's compose is a symlink" "picked "
+expect "the reviewed branch is left unmoved when a chore(e2e) commit's compose is a symlink" \
   test "$(git -C "$main" rev-parse main)" = "$before"
 
 # The review's Fixers stay at exactly one commit per Finding: a pair accepted without the flag would

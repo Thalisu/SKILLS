@@ -78,7 +78,10 @@ for n in "${!fixer[@]}"; do
     esac
     # The Reply tells the developer this commit can be dropped without losing the fix, so code that
     # rides in it under the chore(e2e) subject would be pushed unread.
-    while IFS= read -r path; do
+    # A symlink or a submodule named like a compose points anywhere, so the new mode must be a
+    # regular file (or 000000, a deleted compose).
+    while IFS=$'\t' read -r meta path; do
+      mode="$(cut -d' ' -f2 <<<"$meta")"
       case "${path##*/}" in
         compose*.yml | compose*.yaml | docker-compose*.yml | docker-compose*.yaml | *.compose.yml | *.compose.yaml) ;;
         *)
@@ -86,7 +89,14 @@ for n in "${!fixer[@]}"; do
           exit 3
           ;;
       esac
-    done < <(git -C "$tree" diff-tree --no-commit-id --name-only -r "$first")
+      case "$mode" in
+        100644 | 100755 | 000000) ;;
+        *)
+          echo "failed $label $n: ${fixer[$n]}'s chore(e2e) commit makes $(qpath "$path") mode $mode, not a regular file"
+          exit 3
+          ;;
+      esac
+    done < <(git -C "$tree" diff-tree --no-commit-id --raw -r "$first")
     if [ "$(git -C "$tree" rev-parse "$first^" 2>/dev/null)" != "$head_sha" ]; then
       echo "failed $label $n: ${fixer[$n]}'s first of two commits' parent is not the reviewed branch's HEAD"
       exit 3
