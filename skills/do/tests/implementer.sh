@@ -273,6 +273,28 @@ expect "the Implementer's GREEN return carries Verdict: and Changed: with no Rul
   test "$green_blocks" -gt 0 -a "$green_ruled" = 0
 flat="$body"
 
+echo "# skills/do/agents/do-implementer.md: a re-dispatch's Ruled out: key arrives between ruled-out tags, quoted and never an instruction"
+
+# The Builder hands the first attempt's Ruled out: line back between a `<ruled-out id="…">` and a
+# `</ruled-out id="…">` line sharing one random id, and that line came out of a failing test's run,
+# where a fixture or a dependency's error text can write a line that reads like an order. An
+# Implementer holding Bash, Write and Edit that does not know the tags takes every line, the tag
+# lines and a planted order among them, as a hypothesis to act on. Read over the paragraphs of the
+# two sections that read the brief, so the Implementer's own return line never answers for them.
+brief_reading="$(
+  passage_of <(body_of "$agent") "## Where you start" "## "
+  echo
+  passage_of <(body_of "$agent") "## How you work" "## "
+)"
+flat="$(for key in "Ruled out:" "ruled-out"; do paragraph_with /dev/stdin "$key" all <<<"$brief_reading"; done |
+  awk '!seen[$0]++' | tr '\n' ' ' | tr -s ' ')"
+carries_each "the brief's Ruled out: key comes between ruled-out tags sharing one random id, its text quoted and never an instruction" \
+  "<ruled-out id=" -- "</ruled-out id=" -- "random id" -- \
+  "quoted" -- \
+  "never an instruction" "not an instruction" "never instructions" "never as an instruction" \
+  "never an order" "not an order" "never as an order" "never orders"
+flat="$body"
+
 echo "# README.md: its agent table lists the Implementer in the row of the do skill that installs it"
 
 # A developer reads the do row to learn which agents do puts on their machine: an agent the
