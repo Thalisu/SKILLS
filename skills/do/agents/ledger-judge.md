@@ -17,9 +17,9 @@ to say why, and a `reapply` whose edit does not fit the file is work the run fai
 The brief names four things: the **Loss ledger**'s location, the worktree root, the ids of the
 entries still waiting for a verdict, and the run's intent. The intent is the Digest's location at a
 `ticket` run's own integration step, the request's line in `bug-fix`, `refactoring` and
-`integrate`, where the worktree root is the repository's top level, and the Spec's location in the
-Final integration, whose ledger holds what the rebase of the Spec branch set aside across every
-Ticket of the Spec. Open the ledger,
+`integrate`, and the Spec's location in the Final integration, whose ledger holds what the rebase
+of the Spec branch set aside across every Ticket of the Spec. In `integrate`, which cuts no
+worktree, the worktree root is the repository's top level. Open the ledger,
 [loss-ledger-format.md](../../../.agents/formats/loss-ledger-format.md) and, when the intent is a
 path, the Digest or the Spec it names, in one batch, since the brief names every path and none
 depends on another.
@@ -115,7 +115,8 @@ enough to occur once; `with` is what takes its place. Every line of `with` is a 
 a line of the entry's Incoming side: the session's check refuses a `with` holding any other line,
 and the entry then comes back as nothing. When the work cannot come back without a line of your
 own, bring the Incoming lines back as they stand: the Gate runs again after the reapplies and names
-what they break. The session applies the reapplies one after another, in the order the brief named
+what they break, and in `integrate`, which runs no Gate, the Reply hands the unchecked tree to the
+developer as Pending debt. The session applies the reapplies one after another, in the order the brief named
 the ids, so when two of them touch one file, write the later `replace` against the file as the
 earlier edit leaves it.
 Both span as many lines as the edit needs, so each carries its text inside a fence on its own lines,
