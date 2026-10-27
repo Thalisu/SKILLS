@@ -1187,13 +1187,15 @@ before the fork, could not.
 
 Check the return where it crosses, per [builder.md](builder.md)'s `## The return`: its first line
 reads `built`, `fork` or `stopped`, and every `behaviour:` line carries a commit. Then run
-`bash <skill-dir>/scripts/resume-state.sh <the Ticket's path>` once and match its trailing
-`commit=` and `behaviour=` pairs against the returned `behaviour:` lines, one for one, in the order
-both list: as many trailing pairs as there are `behaviour:` lines in the return, which is this
+`bash <skill-dir>/scripts/resume-state.sh <the Ticket's path>` once and match its `commit=` and
+`behaviour=` pairs against the returned `behaviour:` lines, one for one, in the order both list.
+Only a pair whose `behaviour=` carries a `Behaviour:` line takes part, wherever it sits on the
+branch, and the last of those pairs, as many as the return carries `behaviour:` lines, are this
 fork's own stretch and never a pair an earlier stretch already committed and returned before. A
-further trailing pair reading `behaviour=<sha> none` is the flow this fork committed on its own,
-which carries no `Behaviour:` line of the commit's own, and needs no returned line to match. On
-`built`, `uncommitted=` is empty. On a Ticket that is not a local file the argument is its issue
+pair reading `behaviour=<sha> none` is passed over wherever it sits, before, between or after
+them, and needs no returned line to match: it is one of the commits that carry no `Behaviour:`
+line by contract, a flow committed on its own and, from `do-impeccable`, the fix a `HANDBACK`
+diagnosed `production` and the fix of its detector scan. On `built`, `uncommitted=` is empty. On a Ticket that is not a local file the argument is its issue
 reference, the slug step 2 already cut the worktree under, and never a path the probe would find
 no file at: a probe that
 refused to read the branch would drop every `built` return an issue-backed run ever made. A return that fails either check is a fork that went wrong and not a build: the session
