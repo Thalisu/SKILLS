@@ -737,6 +737,27 @@ carries_any "and the create pushes nothing" \
   "pushes nothing" "pushing nothing" "never pushes" "does not push" "doesn't push" "no push" \
   "without pushing" "nor pushes" "nor push" "or push"
 
+# `--fill` reads the local branch, so for a head held only on the remote, as `dev` into `prod` with
+# no local `dev`, the create fails on the CLI's raw error and the developer opens it by hand. The
+# rule may sit in the create paragraph or one of its own, so every piece naming the create or the
+# remote range is read.
+echo "# pr.md / ### Pull request: for a head held only on the remote, the run opens the pull request with \`--title\` and \`--body\` from the commits \`origin/<base>..origin/<head>\` in place of \`--fill\`, creating no local branch and never reading a stale local head"
+flat="$(piece_in="$pull_request" piece_all=1 piece_with "gh pr create --head" "origin/<base>..origin/<head>" | tr '\n' ' ')"
+expect "a bullet or paragraph of $pull_h names \`gh pr create --head\`" test -n "$flat"
+carries_any "for a head with no local branch of that name, held only on the remote" \
+  "only on the remote" "no local branch" "not a local branch" "without a local branch" \
+  "no branch of that name locally" "only on origin" "remote-only"
+carries "it opens it with a title and a body taken from the commits between the remote base and the remote head" \
+  "--title" "--body" "origin/<base>..origin/<head>"
+carries_any "in place of \`--fill\`" \
+  "in place of \`--fill\`" "instead of \`--fill\`" "rather than \`--fill\`" "not \`--fill\`" \
+  "without \`--fill\`" "never \`--fill\`" "no \`--fill\`"
+carries_any "creating no local branch" \
+  "creates no local branch" "no local branch is created" "never creates a local branch" \
+  "without creating a local branch" "creating no local branch" "does not create a local branch" \
+  "no local branch created"
+carries "and never reading a stale local head" "stale"
+
 # A developer who asked for the pull request to be opened and followed gets one opened and left with
 # its checks unread when the run holds no number for it: the read-back and the watch take the number,
 # and only `gh pr create`'s answer, the URL it prints, carries it. The create paragraph already names
@@ -1304,9 +1325,30 @@ carries_each "the session reads the one line of each \`returned=\` file" \
   "each" "every"
 carries_any "and routes on that line" \
   "on that line" "on the line it read" "on the line read" "by that line" "on its line" "from that line"
-claim="$(grep -E '(not fixed|not reproduced) <k>:[^`]*` line `returns\.sh` printed' <<<"$sentences")"
+# An aside in parentheses is read as a sentence of its own, since its print verb has its own subject
+# (taking a worktree back prints a kept line), and a print verb that names a `returned=` or
+# `missing=` file is what returns.sh does print, so neither counts toward the claim.
+returns_prints_fixer_line() { # stdin: one sentence per line; stdout: each sentence or aside that names returns.sh, a fixer's `fixed`, `not fixed` or `not reproduced` line and a print verb, in any word order
+  local s
+  while IFS= read -r s; do
+    sed -E 's/\([^)]*\)//g' <<<"$s"
+    grep -oE '\([^)]*\)' <<<"$s"
+  done | sed -E 's/print(s|ed)?( only| as)? `(returned|missing)=//g' |
+    grep -F 'returns.sh' | grep -E '`(fixed|not fixed|not reproduced) <k>:' |
+    grep -E '(^|[^[:alnum:]])print(s|ed)?([^[:alnum:]]|$)'
+}
+claim="$(returns_prints_fixer_line <<<"$sentences")"
 expect "no sentence of the step has returns.sh print a fixer's \`not fixed <k>:\` or \`not reproduced <k>:\` line" \
   test -z "$claim"
+expect "the claim is caught with the line first and returns.sh last" \
+  test -n "$(returns_prints_fixer_line <<<'The `not fixed <k>: <reason>` line is what `returns.sh` prints.')"
+expect "the claim is caught with returns.sh first and the print verb before the line" \
+  test -n "$(returns_prints_fixer_line <<<'`returns.sh` prints the fixer'"'"'s `fixed <k>:` line for each file.')"
+expect "the claim is caught with the line printed by returns.sh" \
+  test -n "$(returns_prints_fixer_line <<<'Each `not reproduced <k>:` line printed by `returns.sh` goes to the list.')"
+expect "a print verb that names a \`returned=\` or \`missing=\` file is not the claim" \
+  test -z "$(returns_prints_fixer_line <<<'`returns.sh` prints only `returned=<file>` and `missing=<file>`, so read the one line of each `returned=` file and route on that line.
+A `not reproduced <k>: <command> <what it showed instead>` line read from a file `returns.sh` printed as `returned=` is the fixer'"'"'s report that it could not reproduce the failure locally.')"
 
 # A red check can come from a file the pull request never changed, a base that moved under it: a
 # fixer forked over it edits code outside the pull request and may push that edit to a shared head,

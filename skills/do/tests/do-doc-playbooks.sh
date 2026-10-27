@@ -10,12 +10,11 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 do_doc="$here/../../../docs/do.md"
 fails=0
 
-first_cell() { awk -F'|' '{ c = $2; gsub(/^ +| +$/, "", c); print c }' <<<"$1"; }
 cell() { awk -F'|' -v n="$2" '{ c = $(n + 1); gsub(/^ +| +$/, "", c); print c }' <<<"$1"; } # $1 row, $2 the cell's index from 1
 
 playbook_rows="$(passage_of "$do_doc" "## The Playbook" "## The door" | grep -E '^\| `')"
-names="$(while IFS= read -r row; do first_cell "$row"; done <<<"$playbook_rows")"
-pr_row="$(while IFS= read -r row; do [ "$(first_cell "$row")" = '`pr`' ] && printf '%s\n' "$row"; done <<<"$playbook_rows")"
+names="$(while IFS= read -r row; do cell "$row" 1; done <<<"$playbook_rows")"
+pr_row="$(while IFS= read -r row; do [ "$(cell "$row" 1)" = '`pr`' ] && printf '%s\n' "$row"; done <<<"$playbook_rows")"
 
 echo "# docs/do.md / ## The Playbook: the table has a pr row saying what matches it and what its run does"
 expect "the table has a row for the \`pr\` Playbook" test -n "$pr_row"
