@@ -174,13 +174,14 @@ worktree line comes before the audit line and before the hand-over, shaped-by an
     Planner/Builder: none; the session did the Planner's and the Builder's work itself, the Agent tool withheld.
     ```
 
-11. **Audit line.** In `bug-fix` and `refactoring`, the discover audit line the ground step
-    recorded,
+11. **Audit line.** In `bug-fix` and `refactoring`, the discover audit line recorded by the
+    step that ran the batch (`bug-fix`'s Plan the fix, `refactoring`'s Door),
     `Discovery: n FOUND · n DUPLICATE · n NOT_FOUND`, saying so when one `rg -n -w` per candidate
     stood in for the batch.
 12. **Map line.** With no Testing Policy in the project, the Project map's location and the slots
     it filled, off the lines `project-map.sh` printed.
-13. **Hand-over.** In `bug-fix` and `refactoring`, when the shape step forked `sketch`, what it
+13. **Hand-over.** In `bug-fix` and `refactoring`, when the step that shapes the work
+    (`bug-fix`'s Plan the fix, `refactoring`'s Structure) forked `sketch`, what it
     handed over, in one line: what to shape, the map, the Digest's location and the destination.
 14. **Shaped-by line.** In `bug-fix` and `refactoring`, when `sketch` wrote nothing (the Agent
     tool withheld, no `sketch` listed,
