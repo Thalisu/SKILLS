@@ -217,8 +217,10 @@ titles, and `git status --short` in the worktree.
 - The run continues at the first step the branch does not evidence, every step before it ticked
   `done: resumed`:
   - no commit: step 3, the pin taken from the start;
-  - a subtraction commit, `refactor(<scope>): subtract <what went>`, or reshape commits after it:
-    step 6, from the last reshape commit. Before the next edit the run restates step 4's target
+  - a subtraction commit, `refactor(<scope>): subtract <what went>`, reshape commits
+    `refactor(<scope>): <the step>` after it, or reshape commits alone where step 5 read its skip:
+    step 6, from the last reshape commit, step 5 ticked `done: resumed` when the subtraction commit
+    is there and its skip otherwise. Before the next edit the run restates step 4's target
     shape, from the Sketch at `.scratch/sketches/<the branch, each slash a dash>.md` when step 4
     filed one, with no `sketch` forked again, and runs the pin on the branch's tip; the harness's
     run on the old code, which the Run report quotes, is taken again from a worktree at the fixed
