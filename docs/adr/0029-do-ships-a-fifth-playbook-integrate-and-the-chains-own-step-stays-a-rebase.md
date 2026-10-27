@@ -17,3 +17,9 @@ other Playbook refuses one by.
   behind it.
 - Two Playbooks, `rebase` and `merge`: one door and one conflict loop duplicated for a single
   differing git command.
+
+Amended: "finish this rebase" no longer runs the conflict loop over a rebase already in progress.
+A stop the developer reached may hold resolutions of their own, which the loop would class and
+overwrite as if git had left them, so the door's `in_progress=` other than `none` ends the run in
+one message naming the operation with its `continue=` and `abort=` commands, nothing integrated.
+The Playbook runs the loop only over an operation it started itself.
