@@ -9,9 +9,10 @@
 # format of. The paths are the conflicted files the union block has already written, handed on stdin
 # and never as arguments: a path is a name a side chose and never reaches a command line.
 #
-# The script prints `kept <file> <key path>` for each definition it dropped, and the last line is
-# `read-back files=<n> kept=<n> deduped=<n>`. It stages nothing, writes no union, and leaves a file
-# whose format it does not know untouched and uncounted.
+# The script prints `kept <file> <key path>` for each definition it dropped, `deduped <file> <key
+# path>` for each key both sides defined byte for byte alike, collapsed to one with no entry, and
+# the last line is `read-back files=<n> kept=<n> deduped=<n>`. It stages nothing, writes no union,
+# and leaves a file whose format it does not know untouched and uncounted.
 #
 # Each dropped definition leaves one entry keyed by the file, the key path and the two sides' bytes,
 # written before the file is rewritten, so a refused ledger leaves the union as the block wrote it

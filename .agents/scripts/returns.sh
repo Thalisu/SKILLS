@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # returns.sh: the wait an orchestrator runs on the return files of its forks (do-code-review's
-# reviewers, Fixers and Gate fixer, the debt skill's evaluators), so a retry forks only the fork
+# reviewers, Fixers and Gate fixer, the debt skill's evaluators, the do pr Playbook's fixers), so a retry forks only the fork
 # whose file never landed, a return already in hand is never waited on again, and a fork the
 # harness ran in the background never ends the orchestrator's turn.
 #

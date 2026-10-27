@@ -3,7 +3,7 @@
 # fixer could not reproduce a red check.
 #
 #   pr-rerun.sh <pr> <sha> <repo> <run id> [<run id>...]
-#     <pr>      the pull request number
+#     <pr>      the pull request, its URL or its number, as gh pr view takes it
 #     <sha>     the head commit the checks were read on
 #     <repo>    the repository the runs belong to, as <host>/<owner>/<repo>
 #     <run id>  a workflow run to rerun; one named twice is rerun once
