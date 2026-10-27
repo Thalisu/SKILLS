@@ -102,7 +102,10 @@ volumes with it. That touches no other container, network or volume: never a `pr
 A compose you wrote that brought the job's stack up healthy is committed, so the next run finds it
 versioned with the code it runs rather than torn down with your worktree. It goes beside the
 project's existing composes, in the folder they sit in, or in a `docker/` folder at the root of your
-`Tree:` when they sit in no folder or the project has none. A compose that did not bring the job's
+`Tree:` when they sit in no folder or the project has none. Its file name is one the integration
+reads as a compose, `compose*.yml`, `docker-compose*.yml` or `*.compose.yml` (`.yaml` alike), and
+it is a regular file, never a symlink: a `chore(e2e)` commit holding any other file, a
+`docker/e2e-stack.yml` say, is refused whole, fix included. A compose that did not bring the job's
 stack up healthy is never committed, whatever the check's end: it is a broken recipe, and once on the
 pull request's head everyone building there inherits it.
 

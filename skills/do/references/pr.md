@@ -529,7 +529,10 @@ step 2 read back, `<head>` and `<sha>` the verdict's `head=` and `sha=` values.
       `<branch>` the one its worktree line printed. The script picks them in ascending check number,
       whatever order they are given in, and prints one `picked <k> <sha>` per check. A fixer branch
       whose compose rides ahead of its fix as a `chore(e2e)` commit (ADR 0102), the reason the call
-      passes `--compose`, has both commits brought onto the run tree, compose first: a
+      passes `--compose`, has both commits brought onto the run tree, compose first. That commit
+      holds only regular files named `compose*.yml`, `docker-compose*.yml` or `*.compose.yml`
+      (`.yaml` alike), the names the script reads as a compose, and it refuses one holding any
+      other file. A
       `composed <k> <sha>` line comes directly ahead of that check's `picked <k> <sha>` line, and the
       run records each `composed` sha beside its check's `picked` sha. It may print
       `conflicted <k> with <m,...|none> files "<path>"...` for a check instead: the script has already
