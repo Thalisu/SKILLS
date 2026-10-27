@@ -8,7 +8,8 @@ own forks and run questions in their own references, per
 [ADR 0105](../../../docs/adr/0105-forks-md-is-the-ticket-playbooks-and-each-outside-chain-playbook-carries-its-own-forks.md).
 
 It is read by the step of a `ticket` run that reaches a fork, the Plan step or the build step; by
-the Resume step of
+a step of that run whose question the `choice-taker` rules under `--auto`, such as the
+verification, per the run question section below; by the Resume step of
 [ticket.md](ticket.md), which meets the same fork again on a resume; and by the close step and the
 reply, which carry a held Ruling forward, the Reply's Pending debt and the Run report's `Rulings`, per [mechanics.md](mechanics.md) and
 [reply.md](reply.md). The rest of what the Playbooks share is in [mechanics.md](mechanics.md), and
