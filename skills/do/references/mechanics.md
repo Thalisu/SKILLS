@@ -21,7 +21,8 @@ A case no rule here names is judged by which of the three it risks.
 Read the section the step links whole, with the sections it points at. A part a step reads on its
 own is a file beside this one, so a step that reaches for it carries none of the rest:
 [build-loop.md](build-loop.md) carries the loop and its test authors, [forks.md](forks.md) the
-forks, and [conflict-loop.md](conflict-loop.md) the conflict loop every stop of the integration
+forks of the `ticket` Playbook, which `bug-fix` and `refactoring` never read since each carries its
+own, and [conflict-loop.md](conflict-loop.md) the conflict loop every stop of the integration
 runs. [integrate.md](integrate.md) builds in no worktree and reads that last file alone.
 
 ## What no step does

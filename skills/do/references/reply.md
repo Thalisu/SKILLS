@@ -491,8 +491,8 @@ of the message: For whom, Pending debt and Next step, written the same way in bo
      `--auto`. A Ruling an earlier session held and never posted is not held again: a resume meets
      the fork again, and the earlier run's section of the Debt file still names it.
    - **A Ruling on a run question.** A Ruling the `choice-taker` made under `--auto` on a
-     question about the run itself, the run questions in [forks.md](forks.md), or the Playbook's
-     own Forks section outside the chain, goes under
+     question about the run itself, the run questions in [forks.md](forks.md), or, outside the
+     chain, in the matched Playbook's own reference, goes under
      `On the run:` and never among the Spec's lines, one line per Ruling in the order the run met
      them, naming both options, the option taken and the norm:
      `<option A> or <option B>: <the option taken>. Norm: <the norm>.` Each slot is read back from
