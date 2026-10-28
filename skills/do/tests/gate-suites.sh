@@ -75,4 +75,22 @@ check_lines "gate-suites.sh run with no Ticket path takes the run as the feature
   "last=yes" "facts=full E2E suite" "full_unit=no" "full_e2e=yes"
 rm "$issues/03-c.md"
 
+# The Playbooks' gate steps and the Final integration take the suites off the script, so the rule
+# has one home: every passage that adds the full suites names gate-suites.sh, and the gate section
+# no longer maps the facts value to the suites itself.
+refs="$here/../references"
+for doc in mechanics.md ticket.md bug-fix.md refactoring.md; do
+  bare="$(tr '\n' ' ' <"$refs/$doc" | tr -s ' ' | grep -oE '([^.]|\.[^ ])*full suites([^.]|\.[^ ])*' | grep -vF 'gate-suites.sh')"
+  if [ -n "$(grep -F 'full suites' "$refs/$doc")" ] && [ -z "$bare" ]; then
+    ok "$doc takes every full suite it adds from gate-suites.sh"
+  else
+    fail "$doc takes every full suite it adds from gate-suites.sh (left: $bare)"
+  fi
+done
+gate="$(flat_section "$refs/mechanics.md" "## The gate")"
+expect "mechanics.md carries its gate section" test -n "$gate"
+if grep -qE '`full unit suite` or `both`|`none` adds nothing|no \*\*Post-feature gate\*\* line run' <<<"$gate"; then
+  fail "mechanics.md states the Post-feature gate rule as prose no more"
+else ok "mechanics.md states the Post-feature gate rule as prose no more"; fi
+
 [ "$fails" = 0 ]

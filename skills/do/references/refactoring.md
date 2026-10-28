@@ -94,7 +94,7 @@ refactoring:
 7. prove: the harness's run on the new code quoted, the equivalence script for a large reshape
 8. exit test: reader load lower with the reason, or the one question before the revert
 9. cleanup: the speculative cleanup reverted, the harness deleted and its gap named, one commit
-10. gate: the run's own tests, the typecheck, the lint and the format in the worktree, and the full suites the Post-feature gate names
+10. gate: the run's own tests, the typecheck, the lint and the format in the worktree, and the full suites gate-suites.sh prints with no argument
 11. integration: the branch rebased onto the developer's branch, the gate again when it replayed
 12. review: do-code-review on the branch's diff, landed when Green
 13. verification: the affected flows from the main checkout
@@ -615,8 +615,7 @@ The gate in [mechanics.md](mechanics.md), in the worktree, after the last edit:
 
 - the unit tests the run added and the ones covering the code it touched;
 - the typecheck, the lint and the format check;
-- the full suites the project's Post-feature gate names, since a run with no Spec behind it is its
-  feature's last.
+- the full suites `scripts/gate-suites.sh` prints with no argument.
 
 The `command=` line is recorded for the Run report's Run section and each relevant output line quoted in
 its Evidence.

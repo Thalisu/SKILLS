@@ -309,17 +309,12 @@ Run in the worktree after the last edit, never earlier, per
 the ones covering the code it touched, the typecheck, the lint and the format check. "Passed
 earlier" is stale; a check that ran before the last edit runs again.
 
-The full suites follow the project's **Post-feature gate** in Project facts and run once per
-feature, never on every Ticket. Whether the run's Ticket is the feature's last is read off the
-`last=` line of the Completion check,
-`bash <skill-dir>/scripts/completion-check.sh <the Ticket's path>`, and never off the session's own
-reading of the Tickets: `last=yes` is the feature's last Ticket, which the script also prints for a
-Ticket with no Spec behind it, and `last=no` is not. A run with no Ticket file to hand the script
-(a tracker reference, a run outside the chain) is taken as `last=yes`. There, the gate
-adds the full unit suite when the line reads `full unit suite` or `both`, and the full E2E suite
-of `full E2E suite` or `both` runs in the verification from the main checkout, where a full suite
-waits for the developer's yes; `none` adds nothing. Facts with no **Post-feature gate** line run
-the full unit suite on every Ticket.
+The full suites the project's **Post-feature gate** adds are read off
+`bash <skill-dir>/scripts/gate-suites.sh <the Ticket's path>`, run while the Ticket still reads
+`claimed`, or with no argument on a run with no Ticket file to hand it (a tracker reference, a
+bug-fix or refactoring run, the Final integration). On `full_unit=yes` the gate adds the facts'
+full unit command as one more check. On `full_e2e=yes` the full E2E suite runs in the verification
+from the main checkout, where a full suite waits for the developer's yes.
 
 The commands come from the project's facts, the Testing Policy's Project facts in `CLAUDE.md`. A
 command the facts do not carry comes from the repository's own scripts (`package.json` scripts, a
@@ -601,8 +596,8 @@ judged and its reapplies brought back as the integration says. The judge's brief
 the worktree root and the Spec (`spec=`) as the run's intent, since this ledger spans every Ticket
 of the Spec.
 
-**4. The Post-feature gate and the flows.** The gate above, in that tree, with the full suites of
-the **Post-feature gate** added, after a rebase that replayed commits or brought a reapply back,
+**4. The Post-feature gate and the flows.** The gate above, in that tree, with the full suites
+`gate-suites.sh` prints with no argument added, after a rebase that replayed commits or brought a reapply back,
 and the affected E2E flows of the verification below, here and not after a Ticket's landing, since
 the developer's branch changes only here. A red gate stops the run as the integration's own red
 gate does.

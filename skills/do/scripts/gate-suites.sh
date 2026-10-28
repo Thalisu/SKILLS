@@ -14,8 +14,7 @@
 # adds the full unit suite on every Ticket.
 # Prints last=, facts=, full_unit=yes|no, full_e2e=yes|no, in that order.
 # Exit codes: 0 read · 2 usage (more than one argument), not a git repository, or completion-check.sh
-# exiting 2 (its stderr passed
-# through, nothing printed).
+# exiting 2 (its stderr passed through, nothing printed).
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
 # shellcheck source=skills/do/scripts/ticket-read.sh

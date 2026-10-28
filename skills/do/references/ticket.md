@@ -585,7 +585,7 @@ Do:
 - [ ] 2. Ticket claimed; Spec branch cut or reused; worktree created from its tip and entered; tree clean
 - [ ] 3. Build: the Builder forked from the Plan, its return checked against the branch
 - [ ] 4. Diff: the Builder's diff read in the worktree, the run's own summary written
-- [ ] 5. Gate in the worktree: the Ticket's own tests, typecheck, format; the full suites when completion-check.sh prints last=yes
+- [ ] 5. Gate in the worktree: the Ticket's own tests, typecheck, format; the full suites gate-suites.sh prints
 - [ ] 6. Integration: the branch rebased onto its Spec branch, the gate again when it replayed (no Spec: onto the developer's branch)
 - [ ] 7. Landing on the Spec branch by land-spec.sh, no review (no Spec: review by do-code-review: Act on Findings fixed Wave by Wave by its Fixers, landed when Green)
 - [ ] 8. Affected E2E flows run from the main checkout
@@ -605,9 +605,8 @@ printed and never restated from a file the session read. The Run report carries 
 - The title confirmed back, `<NN>: <title>`.
 - Done as a predicate: the acceptance criteria plus the gate (the unit tests the run added and the
   ones covering the code it touched, the typecheck, the lint and the format green in the worktree
-  after the last edit, and the full suites the project's Post-feature gate names when this is the
-  feature's last Ticket, which is the `last=yes` line of `scripts/completion-check.sh` and never
-  the session's own reading of the Tickets), each part checkable.
+  after the last edit, and the full suites `scripts/gate-suites.sh` prints for the Ticket), each
+  part checkable.
 - The loop line, the lines `bash <skill-dir>/scripts/loop-line.sh <the door's loop= line>
   agent=<available|withheld>` prints, quoted as they stand, with `agent=withheld` when the Agent
   tool is withheld from the session. Its first line is the `Loop:` key a brief copies. Under
@@ -1295,11 +1294,10 @@ Builder's, authored inside its own window and reported on its `flow:` lines, per
 summary is recorded for the Run report's Run section.
 
 **5. Gate.** The gate in [mechanics.md](mechanics.md), in the worktree, after the last edit, run
-from `scripts/gate.sh` with its `command=` line recorded for the Run report's Run section. Whether this
-is the feature's last Ticket, and so whether the full suites of the Post-feature gate are added, is
-the `last=` line of `bash <skill-dir>/scripts/completion-check.sh <the Ticket's path>`, run while
-the Ticket still reads `claimed`: `last=yes` adds them and `last=no` does not. A Ticket that is a
-tracker reference has no path, so the check is not run for it and the step takes it as `last=yes`.
+from `scripts/gate.sh` with its `command=` line recorded for the Run report's Run section. The full suites
+it adds are the ones `bash <skill-dir>/scripts/gate-suites.sh <the Ticket's path>` prints, run
+while the Ticket still reads `claimed`, and with no argument for a Ticket that is a tracker
+reference.
 When step 1 diagnosed a defect with no named cause on a surface the session cannot reach, so the
 developer drove the reproduction and reported it there, the session asks them once more here, after
 the Gate is green and before the integration: to drive the fixed build, the worktree step 2 made at
@@ -1439,7 +1437,8 @@ on stdin, and routes on the one `route=` line it prints, choosing no route from 
     integrated by another run. `claim=failed` (exit 3) stops the run as blocked with its reason.
   - On `claim=claimed`, a worktree at the `tree=` path holding the Spec branch itself, the rebase
     onto `spec_upstream` with the conflict loop and the Loss ledger at the `ledger=` path, the
-    gate with the **Post-feature gate**'s full suites and the affected E2E flows, then the review
+    gate with the full suites `gate-suites.sh` prints with no argument and the affected E2E flows,
+    then the review
     with the Spec as its spec source, `spec_upstream` as both its fixed point and its landing
     target, and the `review_file=` path as where its Review goes.
   - On `landed at <commit>`, that worktree removed and
