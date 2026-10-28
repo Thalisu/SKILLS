@@ -166,7 +166,7 @@ foreign=b7e6d5c4a3f2e1d0c9b8a7f6e5d4c3b2a1f0e9d8
 # A check's details link, set by any GitHub App, can name runs of a repository that is not the pull
 # request's: the runs are found there, and rerunning one would rerun an unrelated run under the
 # developer's token.
-# pr.md routes `failed: <run id>: <reason>` to the checks of that one run id, so a refusal printed
+# pr-fix.md routes `failed: <run id>: <reason>` to the checks of that one run id, so a refusal printed
 # before any run is rerun carries no run id first: it must refuse every check the call was passed.
 fresh_runs
 echo "$foreign" >"$GH_FAKE/headsha.9"
