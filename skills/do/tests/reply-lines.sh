@@ -630,4 +630,42 @@ Kept for the next /do on this Ticket: $wt on do/export, 2 commits.
 Yours: outward: cut the moved behaviour for orders-service with the command below, then run /do on this Ticket again
 /tickets .scratch/feature/spec.md"
 
+finding_second="$(
+  src finding_second <<'EOF'
+spec=/home/dev/app/.scratch/feature/spec.md
+repository=billing-service
+listed=yes
+list=unchanged
+line=written
+home=/home/dev/app
+home_name=app
+here=yes
+EOF
+)"
+run elsewhere --door "$plan_door" "$finding_added" "show the hold" "$finding_second" "bill the hold"
+same "elsewhere with two findings prints each item's two lines, then the status, Yours and command lines once" \
+  "Stopped at the Plan, before anything was built: \"show the hold\" has no place in this repository. It belongs to orders-service.
+Written into the Spec (.scratch/feature/spec.md): orders-service added to its repositories list, and one line naming the behaviour as moved by the run on Ticket 03.
+Stopped at the Plan, before anything was built: \"bill the hold\" has no place in this repository. It belongs to billing-service.
+Written into the Spec (.scratch/feature/spec.md): one line naming the behaviour as moved by the run on Ticket 03; billing-service was already in its repositories list.
+Ticket 03 still reads ready-for-agent.
+Yours: outward: cut the moved behaviour for orders-service, billing-service with the command below, then run /do on this Ticket again
+/tickets .scratch/feature/spec.md"
+
+finding_other="$(
+  src finding_other <<'EOF'
+spec=/home/dev/app/.scratch/other/spec.md
+repository=billing-service
+listed=yes
+list=unchanged
+line=written
+home=/home/dev/app
+home_name=app
+here=yes
+EOF
+)"
+run elsewhere --door "$plan_door" "$finding_added" "show the hold" "$finding_other" "bill the hold"
+check_lines "elsewhere refuses findings that name different Specs: exit 3" 3 "$rc"
+same "elsewhere refuses findings that name different Specs with one failed line and no Reply line" "failed findings disagree"
+
 exit "$((fails > 0))"

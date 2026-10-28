@@ -322,6 +322,8 @@ cmd_elsewhere() { # $@ finding file and behaviour pairs: the whole stop message 
     if [ "$i" = 1 ]; then
       value_of spec finding1 spec
       value_of home finding1 home
+    elif [ "$(v "finding$i" spec)" != "$spec" ] || [ "$(v "finding$i" home)" != "$home" ]; then
+      failed "findings disagree"
     fi
     shift 2
   done
