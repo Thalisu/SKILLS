@@ -5,6 +5,8 @@
 #
 #   ledger.sh put <ledger> <entry-dir>    the entry <entry-dir> describes, written into <ledger>
 #   ledger.sh pending <ledger>            the id of each entry carrying no verdict, in file order
+#   ledger.sh owed <ledger>               the id of each entry judged reapply that carries no applied
+#                                         line, in file order
 #   ledger.sh verdict <ledger> <verdict-dir>
 #                                         the reading <verdict-dir> describes, written into the entry
 #   ledger.sh applied <ledger> <applied-dir>
@@ -51,7 +53,7 @@
 # that carries no verdict, or whose verdict is `drop`: a commit answers a reading that asked for one.
 # Its `commit` file is a full 40-hex sha or the word `none`, and its `reason` one line, like a verdict's.
 #
-# `pending`, `verdict` and `applied` read an entry's heading the way the rewrite does, outside fences
+# `pending`, `owed`, `verdict` and `applied` read an entry's heading the way the rewrite does, outside fences
 # only, so a `## <id>` line a side quotes is that side's text and never an entry of its own. A ledger
 # no stop ever wrote lists nothing and is not created by the asking.
 #
@@ -67,7 +69,7 @@
 set -uo pipefail
 
 usage() {
-  echo "usage: ledger.sh put <ledger> <entry-dir> | ledger.sh pending <ledger> | ledger.sh verdict <ledger> <verdict-dir> | ledger.sh applied <ledger> <applied-dir>" >&2
+  echo "usage: ledger.sh put <ledger> <entry-dir> | ledger.sh pending <ledger> | ledger.sh owed <ledger> | ledger.sh verdict <ledger> <verdict-dir> | ledger.sh applied <ledger> <applied-dir>" >&2
   exit 2
 }
 verb="${1:-}"
@@ -77,7 +79,7 @@ case "$verb" in
     ledger="$2" entry="$3"
     [ -d "$entry" ] || usage
     ;;
-  pending)
+  pending | owed)
     [ "$#" = 2 ] || usage
     ledger="$2" entry=""
     ;;
@@ -171,27 +173,33 @@ ledger_awk_lib='
   }
 '
 
-# The id of every entry carrying no verdict, in file order. Headings are read outside fences only and
+# The id of every entry carrying no verdict, or for `owed` every reapply with no applied line, in file
+# order. Headings are read outside fences only and
 # a verdict counted only above the entry's first `###`, by the reading `ledger_awk_lib` holds,
 # so a `## <id>` line a side quotes is that side's text and never an entry the judge is sent after.
-if [ "$verb" = pending ]; then
+if [ "$verb" = pending ] || [ "$verb" = owed ]; then
   # A ledger no stop ever wrote is a ledger with nothing set aside, never a path to refuse, and asking
   # it for its entries neither creates it nor the scratch on the way to it.
   [ -f "$ledger" ] || exit 0
   # A read that failed is not a ledger with nothing in it: awk's ids are held back until it exits
   # clean, so a ledger this run could not read never reaches the run as an empty one, and no id is
   # half-listed from the entries awk reached before it gave up.
-  ids="$(awk "$ledger_awk_lib"'
-    function flush() { if (id != "" && !judged) print id; id = "" }
+  ids="$(awk -v verb="$verb" "$ledger_awk_lib"'
+    function flush() {
+      if (id != "" && (verb == "pending" ? !judged : owed && !applied)) print id
+      id = ""
+    }
     {
       if (!track($0)) next
       if (is_heading($0)) {
         flush()
-        id = substr($0, 4); judged = 0; body = 0
+        id = substr($0, 4); judged = 0; owed = 0; applied = 0; body = 0
         next
       }
       if ($0 ~ /^### /) body = 1
       if (id != "" && !body && $0 ~ /^- verdict: /) judged = 1
+      if (id != "" && !body && $0 ~ /^- verdict: reapply,/) owed = 1
+      if (id != "" && !body && $0 ~ /^- applied: /) applied = 1
     }
     END { flush() }
   ' "$ledger")" || { echo "ledger could not be read: $ledger" >&2; exit 2; }

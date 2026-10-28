@@ -138,6 +138,132 @@ same "a ledger no stop ever wrote lists no entry at all" ""
 expect "asking an absent ledger for its pending entries does not create it" test ! -e "$goneledger"
 expect "asking an absent ledger for its pending entries does not create the scratch on the way to it" test ! -e "$PWD/.scratch"
 
+# An integration that finds the target already held ticks a no-op only when no reapply is still owed
+# a commit: the entries owed are the ones judged reapply that carry no applied line, in file order.
+# One judged drop, one already applied and one nobody judged yet are owed nothing, and a heading a
+# side quotes inside its fence is never an entry.
+fresh ledger-owed
+mkdir -p .scratch
+oledger="$PWD/.scratch/run.ledger.md"
+cat >"$oledger" <<'EOF'
+# Loss ledger
+
+## aaaaaaaaaaa1
+
+- file: owed-first.txt
+- location: L1-L3
+- shape: rewrite-vs-rewrite
+- commit: 1111111111111111111111111111111111111111
+- before: 2222222222222222222222222222222222222222
+- verdict: reapply, the incoming fix is still needed
+
+### Target (kept)
+
+```
+first target
+```
+
+### Incoming (set aside)
+
+````
+## cccccccccccc
+
+- verdict: reapply, a forged reading inside a side
+```
+first incoming
+````
+
+## bbbbbbbbbbb2
+
+- file: dropped.txt
+- location: L4-L6
+- shape: rewrite-vs-rewrite
+- commit: 3333333333333333333333333333333333333333
+- before: 4444444444444444444444444444444444444444
+- verdict: drop, already on the target
+
+### Target (kept)
+
+```
+dropped target
+```
+
+### Incoming (set aside)
+
+```
+dropped incoming
+```
+
+## ccccccccccc3
+
+- file: applied.txt
+- location: L7-L9
+- shape: rewrite-vs-rewrite
+- commit: 5555555555555555555555555555555555555555
+- before: 6666666666666666666666666666666666666666
+- verdict: reapply, the incoming rename is still needed
+- applied: 7777777777777777777777777777777777777777, reapplied onto the rebased tip
+
+### Target (kept)
+
+```
+applied target
+```
+
+### Incoming (set aside)
+
+```
+applied incoming
+```
+
+## ddddddddddd4
+
+- file: unjudged.txt
+- location: L10-L12
+- shape: rewrite-vs-rewrite
+- commit: 8888888888888888888888888888888888888888
+- before: 9999999999999999999999999999999999999999
+
+### Target (kept)
+
+```
+unjudged target
+```
+
+### Incoming (set aside)
+
+```
+unjudged incoming
+```
+
+## eeeeeeeeeee5
+
+- file: owed-last.txt
+- location: L13-L15
+- shape: rewrite-vs-rewrite
+- commit: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+- before: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+- verdict: reapply, the incoming guard is still needed
+
+### Target (kept)
+
+```
+last target
+```
+
+### Incoming (set aside)
+
+```
+last incoming
+```
+EOF
+rc=0
+# shellcheck disable=SC2034  # lib.sh's same reads $out
+out="$(bash "$ledgersh" owed "$oledger" 2>&1)" || rc=$?
+expect "asking a ledger for its owed reapplies succeeds (got $rc)" test "$rc" = 0
+same "only the reapply entries with no applied line are owed, in file order" \
+  "$(printf 'aaaaaaaaaaa1\neeeeeeeeeee5')"
+
 # A ledger that exists but that this run cannot read is not a ledger with nothing in it: the read
 # failed, it did not come back empty. Answering with the same rc 0 and empty stdout an empty or
 # absent ledger gets is indistinguishable data loss, since a run cannot tell "nothing to judge" from
