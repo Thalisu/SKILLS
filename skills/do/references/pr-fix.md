@@ -1,6 +1,9 @@
 # The fix round of the pr Playbook
 
-Read by the `pr` Playbook of [pr.md](pr.md) once its watch prints its first `verdict=red`.
+Read by the session on one `pr` run alone, the run whose watch prints its first `verdict=red`. The
+watch step of [pr.md](pr.md), step 3, sends that run here, and each of its readers then reads its
+own section: every later watch of the run, the fix step, step 4, and the Reply, step 5. A run whose
+watch never prints `verdict=red` never opens it.
 
 ## What this run never does
 
