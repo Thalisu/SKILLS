@@ -61,6 +61,8 @@ select_shape() { # the sources present -> one FinalShape word, or failed no-shap
   door="$(v door verdict)" claim="$(v claim claim)" order="$(v order verdict)"
   if [ "$door" = resume-final ] && [ -z "${given[claim]-}" ] && [ "$order" = wait ]; then
     echo out-of-order
+  elif [ "$door" = resolved ] && [ "$order" = landed ] && [ "$(v order next_landing)" != done ]; then
+    echo already-landed
   elif [ -z "${given[claim]-}" ] && [ "$order" = wait ]; then
     echo waiting
   elif [ "$claim" = taken ] && [ "$door" = resume-final ]; then
@@ -118,6 +120,10 @@ cmd_final() {
     out-of-order)
       value_of next order next_landing
       echo "Final integration: not started, $next has to land first"
+      ;;
+    already-landed)
+      value_of own order own
+      echo "Final integration: not started, $own already landed"
       ;;
     waiting)
       value_of own order own

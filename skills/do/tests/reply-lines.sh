@@ -196,4 +196,31 @@ check_lines "final on a landing command typed too early: exit 0" 0 "$rc"
 same "final on a landing command typed too early names the repository that has to land first, with no resumed line" \
   "Final integration: not started, api has to land first"
 
+landed_order="$(
+  src landed_order <<'EOF'
+ticket=/home/dev/api/.scratch/feature/issues/03-export.md
+repositories=2
+repository=api
+repository_location=/home/dev/api
+repository_here=yes
+repository_state=landed
+repository_ticket=/home/dev/app/.scratch/feature/issues/03-export.md
+repository=web
+repository_location=/home/dev/web
+repository_here=no
+repository_state=unlanded
+repository_ticket=/home/dev/app/.scratch/feature/issues/04-show.md
+own=api
+waits_for=none
+next_landing=web
+next_landing_location=/home/dev/web
+next_landing_ticket=/home/dev/app/.scratch/feature/issues/04-show.md
+verdict=landed
+EOF
+)"
+run final --door "$door" --order "$landed_order"
+check_lines "final on a repository that already landed, with another still to land: exit 0" 0 "$rc"
+same "final on a repository that already landed, with another still to land, says it already landed" \
+  "Final integration: not started, api already landed"
+
 exit "$((fails > 0))"
