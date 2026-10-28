@@ -96,8 +96,7 @@ one an earlier stretch already committed and returned:
 - An edit the Builder wrote itself after two failed dispatches shows on that behaviour's build line,
   so the Run report tells the behaviours the Builder wrote from the ones an Implementer did.
 
-They are the Run report's Behaviours list and its Build lines already written, per
-[reply.md](reply.md), so the session copies them and never composes them from a build it did not
+They are the Run report's Behaviours list and its Build lines already written, so the session copies them and never composes them from a build it did not
 see.
 
 A stretch that finished:

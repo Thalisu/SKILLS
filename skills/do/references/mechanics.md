@@ -107,7 +107,7 @@ The rule is the one `test-triage` uses: `main` or `master` is protected when `de
 protected when any of those or `main` or `master` exists; a default branch that is the only
 branch is the working branch. Nothing lands on a protected branch. A Playbook checks the
 developer's branch against it before the work starts and records the warning for the Run report's Run
-section, per [reply.md](reply.md). The warning guards nothing: the review refuses the landing on a
+section. The warning guards nothing: the review refuses the landing on a
 protected branch whatever the run wrote, so a warning the developer never read cannot let the work
 land where the rule forbids it.
 
@@ -347,7 +347,7 @@ stop of the same shape, the class would be read from what the cache put back ins
 git left, and the run's own resolutions would land in a cache that outlives it.
 
 The step walks the states below, and the state it reached is recorded for the Run report's Run section
-as its integration line, per [reply.md](reply.md).
+as its integration line.
 
 **A rebase that replays no commit.** Before the rebase runs, the run reads the ledger's location,
 fixed the same way it is fixed before a rebase starts, so a resumed run is never handed it back, and
@@ -792,7 +792,7 @@ judge comes back to this run in its return.
 
 The run reads the outcome off the return and never opens the Review file: the return carries no
 Review text, only the outcome, so the Review's Findings never reach the session's window. The
-return is recorded for the Run report's Run section, one line per part, per [reply.md](reply.md):
+return is recorded for the Run report's Run section, one line per part:
 
 - the Review's location, its `Review:` line;
 - the `Act on:` line, how many Findings the review found and how many its Fixers fixed;
@@ -899,8 +899,7 @@ repository.
    a run that wrote `resolved` first is counted by every check that runs after it, so the last of
    two concurrent runs always sees every Ticket resolved. The script writes nothing. Its `open=`
    and `next=` lines are recorded as printed for the Run report's `Open:` line and the Reply's Next
-   step, per
-   [reply.md](reply.md), with the `next_build=`, `next_build_location=` and `next_location=` lines
+   step, with the `next_build=`, `next_build_location=` and `next_location=` lines
    when it printed them and its `consumer=` lines for the Pending debt, and on exit 1 its `ambiguous=` line too. A Ticket that is a tracker
    reference has no path, so the check is not run and nothing is taken as open.
 6. Remove the worktree and its branch: the run created them, so the run removes them. Leave the

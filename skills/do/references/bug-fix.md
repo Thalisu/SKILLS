@@ -60,7 +60,7 @@ bug-fix:
 ## Steps
 
 **0. Read back, name the surface, show.** Before any edit, step 0 records its lines for the Run report's
-Run section, in the order [reply.md](reply.md) fixes. The Run report carries them under `--auto`;
+Run section, in the order the Run section fixes. The Run report carries them under `--auto`;
 the session may also write them as it goes, and nothing depends on that:
 
 - `Playbook: bug-fix`, which also opens the message.
@@ -190,7 +190,7 @@ The agent writes nothing. It returns the Sketch's text and the shape in one line
 files that text at the destination, whole and with nothing added, appending the `.scratch/` ignore
 line first when [scratch.md](../../../.agents/scratch.md) owes it. The run then implements the
 Sketch under the loop. It records for the Run report's Run section what it handed over, in one line,
-and the Sketch's location with the shape it settled, per [reply.md](reply.md).
+and the Sketch's location with the shape it settled.
 
 When `sketch` writes nothing (the Agent tool withheld, no `sketch` among the agents the session
 lists, or a return that is not a usable Sketch), the session shapes the work itself: it states the
@@ -212,7 +212,7 @@ with one message naming `discuss`, the evidence listed and nothing landed, the w
 branch left in place and named:
 `Yours: direction: settle the design with /discuss, then type the request again to resume in <worktree>, or leave do/<slug> unfixed in its worktree`.
 Done when the fix and the shape, with the sketch or its skip, are recorded for the Run report's Run
-section as its fix line, per [reply.md](reply.md), beside the hand-over and Sketch lines or the
+section as its fix line, beside the hand-over and Sketch lines or the
 shaped-by line where the fix crossed a boundary, or the run stopped naming `discuss`.
 
 **5. Red.** The build loop in [build-loop.md](build-loop.md), for one behaviour: the defect the run

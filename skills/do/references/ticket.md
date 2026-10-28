@@ -174,7 +174,7 @@ the tracker file describes. Before anything is written:
   theirs. Under `--auto` the stop is the same lines, with no `choice-taker` forked.
 - Read [resume.md](resume.md) when the door prints verdict=resume: a `claimed` Ticket whose `do/<slug>` worktree exists.
 - A `claimed` Ticket whose worktree is gone starts over: the run records the start-over line for
-  the Run report's Run section, per [reply.md](reply.md), saying so in one line and naming the door's
+  the Run report's Run section, saying so in one line and naming the door's
   `run_branch=` fact, and the claim stands, since the claim is idempotent. A `do/<slug>` branch the
   worktree's removal left behind is named there, and step 2 enters it rather than meeting it as a
   dead `git worktree add -b`.
@@ -357,7 +357,7 @@ Do:
 ## Steps
 
 **0. Resolve and show.** Before any edit, step 0 records its lines for the Run report's Run
-section, in the order [reply.md](reply.md) fixes, its facts taken off the lines the door script
+section, in the order the Run section fixes, its facts taken off the lines the door script
 printed and never restated from a file the session read. The Run report carries them under
 `--auto`; the session may also write them as it goes, and nothing depends on that:
 
@@ -485,7 +485,7 @@ into the printer of the `Guard:` line:
 bash <skill-dir>/scripts/harness-hooks.sh | bash <skill-dir>/scripts/guard-reply.sh
 ```
 
-It keeps the one line printed for the Run report's Plan line, per [reply.md](reply.md), and the
+It keeps the one line printed for the Run report's Plan line, and the
 exit: exit 1 lists that line under Pending debt too. The probe, `harness-hooks.sh`, runs once per run, right
 before the run's first fork of either agent, the Planner here or the Builder at step 3, since a harness does not change within
 a session and a resume is a new session that takes it again before its own first fork. It is never
@@ -525,8 +525,7 @@ with the brief's `Tree:` naming it. That worktree is cut before the claim, so on
 the door printed `spec_exists=no`, `spec/<feature-slug>` does not exist yet and is no start point:
 it is cut from the main checkout's HEAD, the tip the Spec branch's cut takes later (HEAD too when
 the door printed `spec_branch=none`), and from the Spec branch's tip, with step 2's `--track`, when
-the door printed `spec_exists=yes`. The claim still waits for the verified Plan. Those steps record their lines for the Run report's Run section, per
-[reply.md](reply.md). When `bug-fix` is not installed under Links, those two steps stand on their
+the door printed `spec_exists=yes`. The claim still waits for the verified Plan. Those steps record their lines for the Run report's Run section. When `bug-fix` is not installed under Links, those two steps stand on their
 own. They are the exception the Links rule of [SKILL.md](../SKILL.md) names, and the step numbers
 there are `bug-fix`'s, not this checklist's. When the reproduction ran on a surface the session
 cannot reach, the developer driving it at the ask there, the second ask, the developer driving the
@@ -613,7 +612,7 @@ repository's own scratch, so the ignore check and the append the fork's destinat
 The script fills only the slots a command read, the run commands and the
 test layout, and every other slot reads `none yet → /testing-policy`. The step names in one line
 the map's location and the slots it filled, off the lines the script printed, for the Run report's Run
-section's map line per [reply.md](reply.md); the loop and the flows step read that file and never
+section's map line; the loop and the flows step read that file and never
 derive it again. Then read the session's context once,
 `bash <skill-dir>/scripts/context-usage.sh`, and keep its `current` figure, or its stderr when it
 exits non-zero: the close feeds it to `evidence-lines.sh` as `grounded=` or `ground_reason=`, per
@@ -627,7 +626,7 @@ test still goes through a test author. A deviation from that contract during the
 in the Run report, and a second deviation of the same shape stops the run as a wrong Plan, the
 deviations listed, the worktree and its branch named, the message naming `discuss`.
 
-Done when the Plan line is recorded for the Run report's Run section, per [reply.md](reply.md),
+Done when the Plan line is recorded for the Run report's Run section,
 with the Plan's location and every fallback the return named, the Plan's file name is kept for the
 message's `Plan:` line, the context reading is kept for the close, and, with no Testing Policy, the
 map line is recorded for the Run report.
@@ -792,8 +791,7 @@ to skip it.
 Route on the first line:
 
 - `built`: the stretch is done. The `behaviour:` lines are the Run report's Behaviours list and
-  the `build:`, `flow:` and `fallback:` lines its Build lines, copied unchanged and never composed,
-  per [reply.md](reply.md): a `fallback:` line is how the Run report says the Builder wrote the code
+  the `build:`, `flow:` and `fallback:` lines its Build lines, copied unchanged and never composed: a `fallback:` line is how the Run report says the Builder wrote the code
   itself because no Implementer could be dispatched. The step goes on to step 4.
 - `fork`: the Builder met a Design fork and ruled on nothing. The run says in one line that it met
   one and names both sides, then follows the Design fork in [forks.md](forks.md): the
@@ -1022,7 +1020,7 @@ branch and its worktree named and the claim yielded, or the step reads its skip.
 
 **10. Reply.** Read [run-report.md](run-report.md) when the run is under `--auto`, before it writes the Run report. Written by [reply.md](reply.md): the five parts of its message, and,
 under
-`--auto`, the Run report first, at the location [reply.md](reply.md) gives beside the Plan. Every
+`--auto`, the Run report first, at its location beside the Plan. Every
 run, with or without `--auto`, also writes the Pending debt part to the Debt file, at the location
 [reply.md](reply.md) gives beside the Ticket. The message's `Plan:` line is the Plan's file name,
 or `Plan: none` with its reason on a run that opened no Plan.

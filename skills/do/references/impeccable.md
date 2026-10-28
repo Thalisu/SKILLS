@@ -249,7 +249,7 @@ under the Builder's own rule, over the criteria the Digest's `## Observable crit
 Read [flows.md](flows.md) when that section names a criterion, or no Digest sits beside the Ticket. The fork holds the Agent tool and dispatches that
 author itself, the one its brief's `Loop:` key names, and a hook of its own keeps the tool to the
 two end-to-end authors and the helper agents impeccable ships. The session copies the `flow:` lines
-into the Run report's Evidence unchanged, per [reply.md](reply.md).
+into the Run report's Evidence unchanged.
 
 In a project with no end-to-end command the fork writes no flow, and one line comes back in place
 of the `flow:` lines: `fallback: no end-to-end command in the project`. The session then writes one
@@ -261,13 +261,12 @@ run and the count of findings that remain, then one `finding:` line per finding 
 the fork's to run, by script, after the flows, and the fork fixes what it reports before it
 returns: the session never runs the detector. Findings that remain come back under `built` and do
 not stop the run, so the Ticket still lands. The session copies the `scan:` line into the Run report's
-Evidence, beside the flows, and each `finding:` line into its Pending debt, per
-[reply.md](reply.md).
+Evidence, beside the flows, and each `finding:` line into its Pending debt.
 
 Where the loaded impeccable skill names no detector for the project's platform, as with a native
 project, or the detector crashed, the fork returns one `no scan:` line in place of the `scan:` line,
 with its reason and no `finding:` line, still under `built`. The session copies the `no scan:` line
-into the Run report's Evidence, per [reply.md](reply.md).
+into the Run report's Evidence.
 
 The definition carries this shape itself, since the fork never opens this file and reads
 [builder.md](builder.md) for its flows alone: a change to the lines the Builder returns is made in

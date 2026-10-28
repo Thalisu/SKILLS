@@ -35,9 +35,10 @@ expect "forks.md's own body carries the paragraph naming the held Ruling's reade
 expect "forks.md's own body sends the held Ruling to the close" \
   grep -qF "the close's one question as the close there says" <<<"$held_para"
 # ADR 0091: the Rulings section moved to the Run report, and an unposted held Ruling is the Reply's
-# Pending debt, since no file carries it.
+# Pending debt, since no file carries it. The Run report's rules live in run-report.md, read under
+# `--auto` alone, so forks.md no longer cites reply.md for them.
 expect "forks.md's own body sends the held Ruling to the Run report's Rulings" \
-  grep -qF "the Run report's \`Rulings\` section and its Evidence under \`--auto\`, per [reply.md](reply.md)" \
+  grep -qF "the Run report's \`Rulings\` section and its Evidence under \`--auto\`" \
   <<<"$(tr '\n' ' ' <<<"$held_para" | tr -s ' ')"
 expect "forks.md's own body sends an unposted held Ruling to the Reply's Pending debt" \
   grep -qF "line of the Reply's Pending debt" <<<"$(tr '\n' ' ' <<<"$held_para" | tr -s ' ')"

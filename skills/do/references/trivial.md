@@ -25,9 +25,9 @@ The run takes these steps in order, in one turn:
 2. Copy the checklist under Steps verbatim as the run's todo list.
 3. Do the work, step by step.
 4. Close the same message with the five parts of [reply.md](reply.md), and under `--auto` write
-   the Run report it names.
+   the Run report.
 
-The Run report's Run section carries these lines, in this order, per [reply.md](reply.md):
+The Run report's Run section carries these lines, in this order:
 
 1. the request read back in one line;
 2. the checklist, each step the run reached ticked `done:` or reading `skip: <reason>`;

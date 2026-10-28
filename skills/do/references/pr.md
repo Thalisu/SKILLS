@@ -204,7 +204,7 @@ the checks.
   and follows nothing.
 
 The verdict line of each call, in order, is recorded for the Run report's Run section, which is
-written under `--auto` only, per [reply.md](reply.md): the round is never a section of the Reply.
+written under `--auto` only: the round is never a section of the Reply.
 
 Done when the watch has printed `verdict=green`, `verdict=awaiting-approval` or `verdict=red`, after as
 many `pending` calls as the checks took.

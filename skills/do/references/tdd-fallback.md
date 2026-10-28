@@ -138,7 +138,7 @@ under `--auto`.
 
 | Where | What it carries |
 |---|---|
-| The behaviour's build line, for the Run report's Run section per [reply.md](reply.md) | that the behaviour went to the fallback and why (no author to dispatch, or the missing slot and `/testing-policy` as the command that would fill it); the `RED_AS_EXPECTED` read at step 4; when a check stood in, the reason and the check |
+| The behaviour's build line, for the Run report's Run section | that the behaviour went to the fallback and why (no author to dispatch, or the missing slot and `/testing-policy` as the command that would fill it); the `RED_AS_EXPECTED` read at step 4; when a check stood in, the reason and the check |
 | The commit body | the behaviour line, labelled `Behaviour: <line>`, and the single-file command that passes; when a check stood in, the check and the reason in place of that command |
 | The Run report's Evidence section | the failing-before run and the failure it produced, the passing-after run and the nearby validation, quoted; when failing-before evidence could not be shown, why, and the closest check used instead |
 | The message's Pending debt | each behaviour where a check stood in for a test, named as that |
