@@ -61,4 +61,8 @@ for other in ambiguous:blocked-ambiguous unordered:blocked-unordered no-spec:blo
   same "at the resume site, verdict ${other%%:*} routes the run as the final site routes it" "route=${other#*:}"
 done
 
+route door < <(record landed 2 api)
+expect "at the door site, a landed record of two repositories with a next landing exits 0" [ "$rc" = 0 ]
+same "at the door site, a record of more than one repository reading verdict landed with a next landing that is not done routes the run to the already-landed stop" "route=already-landed"
+
 exit "$fails"
