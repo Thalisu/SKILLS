@@ -186,6 +186,10 @@ only. The reason a rule is shaped as it is lives in the ADRs alone, under `docs/
 `docs/adr/0113-a-prompt-carries-instructions-and-the-why-lives-in-the-adrs-alone.md`: no history,
 no rejected alternative and no argument for the rule beside it.
 
+The one exception is the Goal clause, as `CONTEXT.md` defines it: one clause beside an
+instruction, naming what the instruction protects, and only where the instruction is not a closed
+list of cases. It carries no history, no rejected alternative and no ADR argument.
+
 ## Setup skills stay project-scoped
 
 A skill that sets a project up writes its output into that project, scoped to it, never globally.

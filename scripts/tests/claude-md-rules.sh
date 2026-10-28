@@ -28,5 +28,11 @@ carries_each "a skill, a reference and an agent definition hold instructions onl
   "instructions only" "only instructions" -- \
   "docs/adr/" -- \
   "ADRs alone" "ADRs and nowhere else" "\`docs/adr/\` alone" "only in the ADRs" "only in \`docs/adr/\`"
+carries_each "the rule names the Goal clause as its one exception: one clause naming what the instruction protects, only where the instruction is not a closed list of cases" \
+  "Goal clause" -- \
+  "one exception" "only exception" "sole exception" -- \
+  "one clause" -- \
+  "what the instruction protects" -- \
+  "not a closed list of cases"
 
 exit "$fails"
