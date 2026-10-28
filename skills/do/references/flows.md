@@ -33,8 +33,8 @@ it quoted when the Digest carries no Path.
 The brief's `Loop:` key decides.
 
 - `Loop: policy`: the surface is the one the project's Testing Policy names on its section marker.
-  - On a native or mixed surface the flow is authored by the E2E test author of
-    [build-loop.md](build-loop.md) with the complete input: the behaviour to prove, who relies on
+  - On a native or mixed surface the flow is authored by the build loop's E2E test author (Read
+    [build-loop.md](build-loop.md) when a flow is authored) with the complete input: the behaviour to prove, who relies on
     it and what a wrong or missing result costs them, the journey or screen, the origin, the
     fixture state, placement when it matters.
   - On a consumer surface the flow lives in the consumer repository: no author is dispatched and
@@ -56,10 +56,11 @@ Then the verdict routes:
   last behaviour, and reported on a `flow:` line. A flow committed on its own carries no
   `Behaviour:` line.
 - `BLOCKED` on a preflight stops the fork with that reason.
-- `HANDBACK` takes the route the loop's `HANDBACK` takes in [build-loop.md](build-loop.md),
-  read off the Handback's `Diagnosis` line, and a second `HANDBACK` on the same criterion stops the
+- `HANDBACK` takes the route the loop's `HANDBACK` takes (Read [build-loop.md](build-loop.md) when
+  a flow comes back `HANDBACK`), read off the Handback's `Diagnosis` line, and a second `HANDBACK` on the same criterion stops the
   fork.
-- `REFUSED_INCOMPLETE_INPUT` takes the loop's own route in [build-loop.md](build-loop.md): a
+- `REFUSED_INCOMPLETE_INPUT` takes the loop's own route (Read [build-loop.md](build-loop.md) when a
+  flow comes back `REFUSED_INCOMPLETE_INPUT`): a
   criterion or a **Relied on by** too vague to become an outcome assertion is sharpened and
   dispatched again, and a refusal because no one relies on the criterion means it is structural, so
   it ships with no flow and its `flow:` line says so.

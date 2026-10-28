@@ -1,6 +1,6 @@
 # The global and fallback test authors
 
-Read by the build loop of [build-loop.md](build-loop.md), by whoever runs it (the Builder of
+Read by the build loop, by whoever runs it (the Builder of
 [builder.md](builder.md), the session in its place, the step about to build in `bug-fix` and
 `refactoring`), and by the flows step, only when the loop line reads
 `Loop: global` or `Loop: fallback`: the project has no Testing Policy of its own, or no unit test
@@ -12,25 +12,27 @@ Under `Loop: global` the project has no Testing Policy, and the authors are the 
 its `agents/` folder, each carrying the policy's agent core unchanged: call the Agent tool with
 `subagent_type: global-unit-test-author` for a unit test and
 `subagent_type: global-e2e-test-author` for a flow, `run_in_background: false` on each, with the
-dispatch input `## The test authors` of [build-loop.md](build-loop.md) fixes and one more line,
+dispatch input the build loop's `## The test authors` fixes (Read [build-loop.md](build-loop.md)
+when a global author is dispatched) and one more line,
 `Project map: <the map's path>`, the file `project-map.sh` wrote once for the whole run, at the
 step its Playbook names. Each author reads its commands and its layout from that file, so no
 dispatch derives the map again, and the verdicts are the ones that section names. The global authors have no inline entry point: with the Agent tool withheld the loop line
-already reads `Loop: fallback`, the run writes every unit test itself by
-[tdd-fallback.md](tdd-fallback.md) and authors the flow itself, and no author is dispatched.
+already reads `Loop: fallback`, the run writes every unit test itself (Read
+[tdd-fallback.md](tdd-fallback.md) when the loop line reads `Loop: fallback`) and authors the flow
+itself, and no author is dispatched.
 
 A global unit test author that comes back `BLOCKED` naming a run command the project map lacks, a
-slot reading `none yet → /testing-policy`, takes this route in place of step 2's `BLOCKED` routes of
-[build-loop.md](build-loop.md): the map does not change during the run, so a second dispatch would
-meet the same `BLOCKED`. The run writes this behaviour and every remaining one itself, under
-[tdd-fallback.md](tdd-fallback.md), naming the missing slot and `/testing-policy` as the command
+slot reading `none yet → /testing-policy`, takes this route in place of the build loop's step 2
+`BLOCKED` routes: the map does not change during the run, so a second dispatch would
+meet the same `BLOCKED`. The run writes this behaviour and every remaining one itself (Read
+[tdd-fallback.md](tdd-fallback.md) when the author comes back `BLOCKED` on a map slot), naming the missing slot and `/testing-policy` as the command
 that would fill it, and dispatches the unit test author no more this run.
 
 ## The fallback
 
 When the loop line reads `Loop: fallback` (no unit test author in the project and no global one
-that can be dispatched), the loop of [build-loop.md](build-loop.md) runs by
-[tdd-fallback.md](tdd-fallback.md), read only then: the run writes the failing test itself where a
+that can be dispatched), the build loop runs by the TDD fallback: Read
+[tdd-fallback.md](tdd-fallback.md) when the loop line reads `Loop: fallback`, and only then: the run writes the failing test itself where a
 cheap path exists, and otherwise the closest executable check with the reason stated, and no test
 author is dispatched. Nothing else changes: red first, the smallest green, one commit.
 

@@ -31,8 +31,9 @@ worktree stays, since it is where a red flow is fixed.
    A no records each flow that needed it as not run, leaves the criterion it would have proven
    unticked, and records the waiver under the Reply's Pending debt; the close still happens.
    Under `--auto` the developer handed that weighing over, so the question is not put to them: it
-   is a run question the `choice-taker` rules, per [forks.md](forks.md) on a `ticket` run and per
-   the Playbook's own Forks section in every other. Its `Options:` are
+   is a run question the `choice-taker` rules, per the Playbook's own Forks section outside the
+   `ticket` Playbook. Read [run-questions.md](run-questions.md) when a `ticket` run under `--auto`
+   meets it. Its `Options:` are
    `yes: run <the command line>` and `no: record each flow that needed it as not run`, its
    `Recommendation:` is `none`, and its `Context:` carries the command line and the flows that
    need it. A Ruling for `yes` runs the command and one for `no` takes the no above, and the run
@@ -43,7 +44,7 @@ worktree stays, since it is where a red flow is fixed.
    Pending debt, never green.
 
 4. A red flow is a defect in the landed work, not in the flow: it is fixed in the worktree as one
-   more unit of the build loop of [build-loop.md](build-loop.md), with origin `bugfix` and the
+   more unit of the build loop (Read [build-loop.md](build-loop.md) when a flow is red), with origin `bugfix` and the
    flow's failure as the expected red,
    and the branch handed to the fix call on the same Review with no **Gate** of the run's own, as
    the review section of [mechanics.md](mechanics.md) says for what the run commits after it: the fix call gates the same tree

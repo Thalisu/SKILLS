@@ -1,7 +1,7 @@
 # A run question under `--auto`
 
 Read by a step of a `ticket` run only under `--auto`, when the step meets a question about the run
-that it hands to the `choice-taker`, ruled or still asked: the Resume of [ticket.md](ticket.md) and
+that it hands to the `choice-taker`, ruled or still asked: the Resume of resume.md and
 its resumed integration, before a discard and at an open rebase; the verification, before a full
 suite or a remote run; the claim and the close of [mechanics.md](mechanics.md), before a write to a
 remote tracker; and the `Rulings` section of [reply.md](reply.md), which lists a run question's
@@ -19,8 +19,8 @@ Only a question whose own step names it as ruled under `--auto` takes this route
 
 | The question | Its step |
 |---|---|
-| continue or stop, on a resumed integration whose rebase is open with no conflicted file | the Resume of [ticket.md](ticket.md) |
-| whether a full suite or a remote run runs | the verification of [mechanics.md](mechanics.md), at the verification step of [ticket.md](ticket.md) |
+| continue or stop, on a resumed integration whose rebase is open with no conflicted file | the Resume of resume.md |
+| whether a full suite or a remote run runs | the verification of verification.md, at the verification step of [ticket.md](ticket.md) |
 
 A question before something that cannot be undone or that leaves the machine is never one, and its
 step asks it under the flag as without it, in the same place and the same words: uncommitted work

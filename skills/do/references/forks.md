@@ -8,8 +8,8 @@ own forks and run questions in their own references, per
 [ADR 0105](../../../docs/adr/0105-forks-md-is-the-ticket-playbooks-and-each-outside-chain-playbook-carries-its-own-forks.md).
 
 It is read by the step of a `ticket` run that reaches a fork, the Plan step or the build step; by
-the Resume step of
-[ticket.md](ticket.md), which meets the same fork again on a resume; and by the close step and the
+the Resume step, which meets the same fork again (Read [resume.md](resume.md) when the door
+prints `verdict=resume`); and by the close step and the
 reply, which carry a held Ruling forward, the Reply's Pending debt and the Run report's `Rulings`, per [mechanics.md](mechanics.md) and
 [reply.md](reply.md). The rest of what the Playbooks share is in [mechanics.md](mechanics.md). Read
 [build-loop.md](build-loop.md) when the fork is met inside the build loop.
@@ -401,7 +401,7 @@ the stop left:
 - The stop left nothing claimed. The run is a first run with no sidecar to read: it reuses the
   Digest, meets the same fork at the same step and stops as the first one did.
 
-Once `discuss` amended the Spec, the resume re-forks the reader and removes the sidecar before it does.
+Once `discuss` amended the Spec, the resume re-forks the reader before it does.
 Read [resume.md](resume.md) when the door prints verdict=resume on that Ticket: its amended-Spec bullet says how.
 
 A Ruling line is the Spec's, so the developer reverses one by editing it while the Ticket is

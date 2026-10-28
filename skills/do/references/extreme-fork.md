@@ -3,7 +3,7 @@
 Read by a `ticket` run only when a Design fork is Extreme: a side the session reads as Extreme, or a
 `choice-taker` return reading `extreme`, at the Design fork steps of forks.md, met at
 the Plan step or at the build step on the Builder's `fork` return. Its other readers are the Resume
-of [ticket.md](ticket.md), when `resume-state.sh` prints the `extreme=` line a stop left, the close,
+of resume.md, when `resume-state.sh` prints the `extreme=` line a stop left, the close,
 which ends that run on `outcome=extreme-fork`, and the unruled stop and the change-of-direction
 stop, which copy its blocker lines and its `/discuss` command.
 

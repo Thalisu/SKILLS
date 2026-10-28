@@ -29,7 +29,8 @@ A `claimed` Ticket whose `do/<slug>` worktree exists, an entry of `git worktree 
 is picked up where the last run stopped and never restarted. The state a resume reads is
 the branch and its worktree, never a run-state file: the commits since the developer's branch,
 `git log <base>..do/<slug>` with `<base>` their merge base, each with the `Behaviour:` line its
-body carries per the build loop in [build-loop.md](build-loop.md), and the working tree,
+body carries per the build loop (Read [build-loop.md](build-loop.md) when the resume reads that
+line), and the working tree,
 `git status --short` in the worktree. The run reads all of it from one script,
 `bash <skill-dir>/scripts/resume-state.sh <the Ticket's path>`: `worktree=` and `branch=`, one
 `commit=` line per commit with the `behaviour=` line its body carries under it, one `uncommitted=`
@@ -53,8 +54,9 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   with its `Behaviour:` line, off the script's lines. The claim line is not written again. The
   Run report's Run section carries the checklist with steps 0 and 2 reading `done: resumed`.
 - The worktree is entered, never created: a second worktree is never made.
-- An `extreme=` line means an earlier run stopped on an Extreme fork and left its sidecar, per the
-  forks in [forks.md](forks.md). It is read on `verdict=extreme` and on `verdict=ask` alike, since
+- An `extreme=` line means an earlier run stopped on an Extreme fork and left its sidecar. Read
+  [extreme-fork.md](extreme-fork.md) when the script prints this line. It is read on
+  `verdict=extreme` and on `verdict=ask` alike, since
   the script prints `ask` first and a Builder stopped mid-behaviour can leave uncommitted work. The
   door's Digest decision settles it before anything below runs, the `extreme=` value passed to the
   digest check as its fourth argument:
@@ -140,8 +142,8 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   Under `--auto` the question is still asked of the developer, in the same place and the same
   words, and still nothing is stashed, committed or restored before their answer. It carries what
   the `choice-taker` would have answered: the agent is forked on the question first and its return
-  rides above the question as it came back, per the questions still asked under the flag in
-  [forks.md](forks.md). The brief's `Options:` are `yes: discard the uncommitted changes and
+  rides above the question as it came back. Read [run-questions.md](run-questions.md) when the
+  run is under `--auto`, for the questions still asked under the flag. The brief's `Options:` are `yes: discard the uncommitted changes and
   restart the first behaviour without a commit` and `no: stop the run with the worktree as it
   is`, and its `Context:` carries the `uncommitted=` lines. The run discards nothing on that
   return.
@@ -176,8 +178,9 @@ and leaves the worktree as it is, since no branch can be read from it to build o
     the Ticket left `claimed`.
 
     Under `--auto` the question is not the turn's final message and the developer is not asked: it
-    is a run question the `choice-taker` rules, per [forks.md](forks.md), and still nothing is
-    continued before its return. The brief's `Question:` is the question above in one line, its
+    is a run question the `choice-taker` rules, and still nothing is continued before its return.
+    Read [run-questions.md](run-questions.md) when the run is under `--auto`, for how the
+    question is ruled. The brief's `Question:` is the question above in one line, its
     `Options:` are `continue: continue the rebase, committing what is staged for <stopped>` and
     `stop: leave the rebase open and stop the run as blocked`, its `Recommendation:` is `none`,
     and its `Context:` carries the `staged=` lines. A Ruling for `continue` runs the continue as
@@ -222,7 +225,8 @@ and leaves the worktree as it is, since no branch can be read from it to build o
     of `stop=resolved`, an abort drops work and a continue lands again what cannot be undone, so
     neither is taken on a Ruling. It carries what the `choice-taker` would have answered: the
     agent is forked on the question first and its return rides above the question as it came
-    back, per the questions still asked under the flag in [forks.md](forks.md). The brief's
+    back. Read [run-questions.md](run-questions.md) when the run is under `--auto`, for the
+    questions still asked under the flag. The brief's
     `Options:` are `abort: drop this rebase and rebase once onto <tip>` and `continue: finish this
     rebase onto <onto>, then integrate onto <tip>`, and its `Context:` carries the lines the
     question shows. Nothing is aborted or continued on that return.
@@ -231,7 +235,7 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   the branch lands through the fix call on that Review with no **Gate** of the run's own before it,
   and is never reviewed a second time. Read [not-landed.md](not-landed.md) when the run lands through the fix call on a Review it already has.
 - A Spec amended while the Ticket is `claimed` is resumed the same way whoever amended it: `discuss`
-  after a run stopped on an Extreme fork (the forks in [forks.md](forks.md)), or the
+  after a run stopped on an Extreme fork, or the
   developer editing a Ruling line in the Spec's Implementation Decisions to reverse it. No
   mechanism is added for either, and the rule does not fire on `verdict=land`: the review already
   read the branch and it lands as the `verdict=land` bullet says, and a Ruling reversed after that
@@ -244,7 +248,6 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   `Behaviour:` line still matches a line of it is kept, and the loop continues at the first
   behaviour without a commit, building the side the Spec now takes. A criterion an earlier Ruling
   rewrote to the side the developer's edit reversed is met at step 1 as a Design fork against the
-  edited line, as the forks in [forks.md](forks.md) say. After an Extreme stop with the Spec
-  unchanged, the digest check prints `verdict=extreme` and the resume stops on the sidecar's
-  `discuss=` line, as the
-  `extreme=` bullet above says.
+  edited line: Read [forks.md](forks.md) when step 1 meets it. Read [extreme-fork.md](extreme-fork.md)
+  when the digest check prints `verdict=extreme` after an Extreme stop with the Spec unchanged: the
+  resume stops on the sidecar's `discuss=` line, as the `extreme=` bullet above says.

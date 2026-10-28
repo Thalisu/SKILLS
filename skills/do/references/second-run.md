@@ -3,7 +3,7 @@
 Read by the door of [ticket.md](ticket.md) and by the reader section of
 [mechanics.md](mechanics.md), only when a Digest already sits beside the Ticket: the run reaches
 the reader a second time, on a resume, on a `/do` typed again on the same Ticket, or inside the run
-once a Ruling amended the Spec, per the forks of [forks.md](forks.md). A run that forks the reader
+once a Ruling amended the Spec (Read [forks.md](forks.md) when a Ruling lands). A run that forks the reader
 once, with no Digest beside the Ticket, never opens it.
 
 Before it dispatches anything the door runs the digest check of the reader section of
