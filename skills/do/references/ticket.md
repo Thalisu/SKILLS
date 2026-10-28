@@ -203,13 +203,8 @@ the tracker file describes. Before anything is written:
   name.
 
 The first write comes after those stops and never before one of them. On `verdict=resume-final`
-the run makes no Digest decision and forks no reader: it goes straight to the stopped Final
-integration of the Resume section, whose first step reads the landing record. On a resume the run reads
-`resume-state.sh` before the Digest decision, as the Resume section says. On `verdict=land` the run
-forks no reader, and neither does it on any resume whose `review=` line names a Review, whatever the
-verdict printed, `land` or `integration` on a rebase stopped after that review, and whatever the
-Digest's state, a hash that differs or no Digest at all: only the integration and the landing are
-left, and nothing they run opens a Digest.
+the run makes no Digest decision and forks no reader: it goes straight to
+`## A stopped Final integration` below, whose first step reads the landing record.
 Every other run, a resume whose `review=` line reads `none` included, goes on to the Digest
 decision. Read [second-run.md](second-run.md) when a Digest already sits beside the Ticket. Then
 the door runs the digest check,
