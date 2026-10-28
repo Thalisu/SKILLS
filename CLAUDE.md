@@ -179,6 +179,13 @@ comments.
   (`<signature> — <how it differs>`). Those, and the test data that exercises them, are syntax,
   not prose.
 
+## A prompt holds instructions only
+
+A skill (`SKILL.md` and its `references/`), a reference and an agent definition hold instructions
+only. The reason a rule is shaped as it is lives in the ADRs alone, under `docs/adr/`, per
+`docs/adr/0113-a-prompt-carries-instructions-and-the-why-lives-in-the-adrs-alone.md`: no history,
+no rejected alternative and no argument for the rule beside it.
+
 ## Setup skills stay project-scoped
 
 A skill that sets a project up writes its output into that project, scoped to it, never globally.
