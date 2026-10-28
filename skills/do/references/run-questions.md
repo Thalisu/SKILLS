@@ -1,5 +1,13 @@
 # A run question under `--auto`
 
+Read by a step of a `ticket` run only under `--auto`, when the step meets a question about the run
+that it hands to the `choice-taker`, ruled or still asked: the Resume of [ticket.md](ticket.md) and
+its resumed integration, before a discard and at an open rebase; the verification, before a full
+suite or a remote run; the claim and the close of [mechanics.md](mechanics.md), before a write to a
+remote tracker; and the `Rulings` section of [reply.md](reply.md), which lists a run question's
+Ruling. A run without the flag asks every one of these questions as its step says and never reads
+this file.
+
 A run question is one a step would put to the developer about the run itself: whether it carries
 on, and which way. It is no Design fork, since neither answer changes what the Ticket builds.
 Under `--auto` the developer handed that direction over for the run, per

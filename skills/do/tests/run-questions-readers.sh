@@ -60,4 +60,18 @@ echo "# every pointer to run-questions.md reads \`Read [run-questions.md](run-qu
 pointers_shaped "every pointer to run-questions.md has the \`Read <file> when <condition>\` shape" \
   "$do_dir" run-questions.md 12
 
+echo "# run-questions.md and SKILL.md's entry name its readers and the condition that sends them"
+readers=("Resume" -- "verification" -- "the claim" -- "the close" -- "\`Rulings\`")
+condition=("--auto" -- "\`ticket\` run" -- "choice-taker")
+flat="$(awk 'BEGIN { RS = "" } !/^#/ { gsub(/\n/, " "); print; exit }' "$questions" 2>/dev/null | tr -s ' ')"
+carries_each "the opening names the Resume, the verification, the claim, the close and the reply's Rulings" \
+  "${readers[@]}"
+carries_each "the opening names the condition: a \`ticket\` run under --auto handing a question to the choice-taker" \
+  "${condition[@]}"
+carries "the opening says a run without the flag never reads it" "without"
+flat="$(bullets_opening_on "$do_dir/SKILL.md" "[run-questions.md](references/run-questions.md)")"
+expect "SKILL.md's references list has an entry for run-questions.md" test -n "$flat"
+carries_each "the entry names the same readers" "${readers[@]}"
+carries_each "the entry names the same condition" "${condition[@]}"
+
 [ "$fails" -eq 0 ]
