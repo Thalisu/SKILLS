@@ -257,170 +257,30 @@ worktree line comes before the audit line and before the hand-over, shaped-by an
     `Risk:` line and every `Axis not run:` line. The last
     two are also lines of the Pending debt, per item 9 of [Sections](#sections), with or without
     `--auto`.
-29. **Spec landing lines.** On a `ticket` run of a Spec, which calls no review, these lines in the
-    Review return's place. First, on a run whose door printed a `root=` that is not the main
-    checkout, the line naming the run's two repositories, the Build repository it built in and
-    the Home repository its artifacts are in (the Ticket, the Digest, the Plan and the Evidence):
-    `Repositories: built in <build_repository=> (<the main checkout>), artifacts in <root=>`, as
-    `Repositories: built in billing-service (/home/dev/billing-service), artifacts in /home/dev/orders-service`.
-    When `build_repository=` reads `none` the name and the parentheses are left out:
-    `Repositories: built in <the main checkout>, artifacts in <root=>`. Both locations are
-    absolute and copied from the door's lines, and the line is written whether or not the run
-    landed. A run whose `root=` is the main checkout builds where its artifacts are and carries
-    no such line. Then the landing line, off the one line `land-spec.sh` printed:
-    `landed at <sha> on spec/<feature-slug>`, or
-    `not landed: spec/<feature-slug> is checked out in <worktree>`, or `not landed:` with the
-    script's `moved` or `failed` line quoted. Then, on every such run,
-    `Review: none, the Spec is reviewed once its last Ticket lands`. Then, on a run that landed
-    and whose close ran the Completion check, `Open:` naming each Ticket still open with its
-    status, one entry per `open=` line the check printed, its file stem and its status, as
-    `Open: 02-<slug> (claimed), 04-<slug> (ready-for-agent)`. The entries span every repository
-    of the feature: a Ticket built in another repository than the session's is listed like one
-    built here. The entries are copied from those
-    lines and never derived from the session's own reading of the Tickets, and the line is absent
-    when the check printed `open=none`, except on a run that went on to the Final integration,
-    below, where it reads `Open: none`.
+29. **Spec landing lines.** On a `ticket` run of a Spec, which calls no review, the lines
+    `reply-lines.sh landing` printed, copied as they stand, in the Review return's place, per step 7
+    of [ticket.md](ticket.md). The session composes none of them and never derives an `Open:` entry
+    from its own reading of the Tickets.
 30. **Final integration lines.** On the run whose Completion check printed `verdict=complete`,
-    after the Spec landing lines of its own Ticket, what the final integration of
-    [mechanics.md](mechanics.md) recorded, in one of six shapes. A run that entered on the
-    door's `verdict=resume-final` carries the same lines with no Spec landing lines before them,
-    since it built and landed no Ticket, and opens them with
-    `Final integration: resumed from <where>`, `<where>` being the `verdict=` and, on an open
-    rebase, the `stop=` line `final-state.sh` printed, then, when the claim's `takeover=` line
-    read `yes`, the holder it took over from and when that holder yielded, off the
-    `previous_ticket=` and `yielded_at=` lines:
-    - **Claimed by another run** (`claim=taken`):
-      `Final integration: the Spec is being integrated by another run`, with the holder's Ticket
-      and the time it claimed, off the `holder_ticket=` and `claimed_at=` lines. The run's own
-      Ticket landed and reads `resolved`, and the line says so. On a resume the same claim line is
-      a stop and the whole Reply, by the blocked shape below:
-      `Final integration: not resumed, its claim is held` with those two lines and the
-      `yield_command=` line quoted whole, since a claim nobody yielded is a run still integrating
-      or one that died, and only the developer can say which.
-    - **Landed.** `Open: none`; the Integration line of item 27, naming the developer's branch as
-      the target the Spec branch was rebased onto, with the Loss ledger beside the Spec when a
-      contested hunk took the **Target** side; the Review return of item 28 as on any reviewed
-      run, its landing line `landed at <sha>`; then `spec/<feature-slug> removed`, off the
-      release's `claim=released` and `removed=yes` lines. On a feature of more than one
-      repository, the landing record printing `repositories=` above 1, the repository lines
-      below follow, off the record's second read, the one after the release. A resume read no
-      record before its claim, so that read is its only one, and its lines are the same: what
-      landed, the repository it just finished among them, what is left, and the command of each
-      repository left, in the record's order. While that read
-      names a next landing, its `next_landing=` line reading anything but `done`, the push is a
-      line of its own before them, `Push: git push <the developer's branch>`, since the Reply's
-      last line is then another repository's command. A landing command typed in the next
-      repository, the run that entered on `verdict=resume-final`, carries the same lines off the
-      same second read, so every Reply of the sequence has one shape. When that read prints
-      `next_landing=done`, the landing was the last one: after `Landed:`, naming every repository
-      of the feature, and `Still to land: none`, one line more,
-      `Every repository of the feature landed`, with no repository to open a session in, no
-      `/do` line and no `Push:` line, since the push is then the Reply's last line.
-    - **Waiting** (the landing record read `verdict=wait`):
-      `Final integration: not started, the feature is complete and <own=> waits for <waits_for=> to land`,
-      naming `waits_for_location=` as where that repository is. Nothing was claimed and nothing
-      landed, in this repository or in any other. Then `Open: none` and the repository lines
-      below, off the one read the run made.
-    - **Already landed** (a `resolved` Ticket at the door whose landing record read
-      `verdict=landed` with a repository still to land, per the `ticket` door in
-      [ticket.md](ticket.md)): `Final integration: not started, <own=> already landed`, one line
-      and the first after the first line. The run built no Ticket and reached no step, so no
-      Spec landing line and no `Open:` line stands with it: the repository lines below follow
-      it, off the one read the run made, and they are the rest of the message. The session's own
-      repository reads `Landed:` there and is handed no command.
-    - **Out of order** (a run that entered on the door's `verdict=resume-final` and whose
-      landing record read `verdict=wait` before the claim):
-      `Final integration: not started, <next_landing=> has to land first`, one line and the
-      first after the first line, with no `resumed from` line before it, since nothing was
-      claimed and nothing resumed. Two lines follow it and end the message, both off the same
-      read: `<next_landing=>: open a session in <next_landing_location=>`, then
-      `/do <next_landing_ticket=>`. The repository lines below are not written on this shape:
-      no `Landed:` line, no `Still to land:` line and no command for the session's own
-      repository, whose turn comes with the Reply of the landing it waits for.
+    after the Spec landing lines of its own Ticket, and on a run that entered on the door's
+    `verdict=resume-final`, the lines `reply-lines.sh final` printed, copied as they stand, per
+    step 9a of [ticket.md](ticket.md). The script works the shape out from the files it is handed;
+    the session reads no rule of which shape applies. On a feature of more than one repository,
+    the lines `reply-lines.sh repositories` printed follow, from the same files.
 
-    The repository lines, on a record that printed `repositories=` above 1, each copied off the
-    record and never derived from the Tickets or from a probe of the session's own:
-    - `Landed:` names every group whose `repository_state=` reads `landed`, by its `repository=`
-      name, in the record's order, or `none`.
-    - `Still to land:` names every other group, in the record's order, which is the order the
-      blocking edges give, or `none`. A group reading `unreadable` is named with its reason, as
-      `orders-service (unreadable: missing)`, off its `repository_reason=` line.
-    - Then, for each group still to land, in that order, two lines. The first names the
-      repository as the place to open a session in, off its `repository=` and
-      `repository_location=` lines: `<repository=>: open a session in <repository_location=>`,
-      or, when `repository_location=` reads `unlisted`, the name and that the Spec's
-      `## Repositories` list holds no location for it. A group reading `repository_here=yes` is
-      the session's own and reads `<repository=>: this session's repository` instead, followed on
-      the Waiting shape by `, once <waits_for=> landed`. The second line is that repository's
-      landing command and nothing else on the line: `/do <repository_ticket=>`, a `do` on a Ticket
-      of that repository by its absolute location. Neither is a shell line. The Waiting shape
-      lists every repository this way, the session's own among them.
-
-    As on a run in `billing-service` that landed it, with `orders-service` left:
-
-    ```
-    spec/hold-disputed-invoice removed
-    Push: git push main
-    Landed: billing-service
-    Still to land: orders-service
-    orders-service: open a session in /home/dev/orders-service
-    /do /home/dev/orders-service/.scratch/20260301-hold-disputed-invoice/issues/04-show-the-hold.md
-    ```
-
-    On the landing command typed in `orders-service` after it, the last repository left, a
-    Reply that ends on `git push main`:
-
-    ```
-    spec/hold-disputed-invoice removed
-    Landed: billing-service, orders-service
-    Still to land: none
-    Every repository of the feature landed
-    ```
-
-    And on a run in `orders-service` that completed the feature before `billing-service` landed:
-
-    ```
-    Final integration: not started, the feature is complete and orders-service waits for billing-service to land, at /home/dev/billing-service
-    Open: none
-    Landed: none
-    Still to land: billing-service, orders-service
-    billing-service: open a session in /home/dev/billing-service
-    /do /home/dev/orders-service/.scratch/20260301-hold-disputed-invoice/issues/02-hold-the-invoice.md
-    orders-service: this session's repository, once billing-service landed
-    /do /home/dev/orders-service/.scratch/20260301-hold-disputed-invoice/issues/04-show-the-hold.md
-    ```
-    - **Stopped.** `Final integration: stopped` with the reason: the rebase question nobody
-      answered, the red check, or the review's `not landed` line quoted. Then the Spec branch and
-      its worktree, both left in place and named, and that the claim stays beside the Spec,
-      yielded for the `do` that resumes it. Then, on a landing record that printed
-      `repositories=` above 1, the `Landed:` and `Still to land:` lines above, those two and no
-      landing command under them, off the read of the record the run makes after the yield: a
-      stop undoes nothing, so a repository that landed before it reads `Landed:` still, and the
-      session's own, whose Spec branch never reached the developer's branch, reads
-      `Still to land:` with every repository after it. The two lines are copied off that read
-      and never off what the run remembers landing, a first run's or a resume's. A resume that
-      stops again reads `Final integration: stopped again` with its own reason, and the same
-      lines after it. Again is read off the claim and never off the door: only a run whose
-      claim printed `takeover=yes` stops again, since an earlier run stopped and yielded the
-      claim it took over. A run that entered on `verdict=resume-final` and whose claim printed
-      `takeover=no` found no claim to take over, as the landing command of a repository the
-      completing run left to its own session does, and its stop is a first one, reading
-      `Final integration: stopped:`.
-
-    As on a run in `orders-service` whose Review did not land, after `billing-service` landed:
-
-    ```
-    Final integration: stopped: not landed: Finding 1 not fixed or not verified
-    Landed: billing-service
-    Still to land: orders-service
-    ```
-
-Of these lines, the message carries only what its Next step needs: on a feature of more than one
-repository, the `Push:` line, the repository lines above and `Every repository of the feature
-landed` stand under `## Next step`, before its last line, and a `Final integration: stopped` or
-`not resumed` line is the blocker above the `Yours:` line. The Already landed and Out of order
-shapes are whole messages and stay as item 30 writes them: the first line, their
-`Final integration: not started` line, then the lines that shape names, with no other part.
+    Where the lines stand:
+    - `final`'s lines stand in the Run section. A `Final integration: stopped`,
+      `stopped again` or `not resumed` line is the blocker above the `Yours:` line, and the
+      `Yours:` line names the Spec branch and its worktree, both left in place, and that the claim
+      stays beside the Spec, yielded for the `do` that resumes it; on `not resumed` it quotes the
+      claim's `yield_command=` line whole.
+    - The `Push:` line and the lines `repositories` printed stand under `## Next step`, before its
+      last line.
+    - On a run that built no Ticket and took no claim, these lines are the whole message: the
+      first line, the lines `final` printed, then the lines `repositories` printed, with no other
+      part.
+    - On exit 3 the session copies nothing and reports the `failed <reason>` line as it reports
+      any script that failed.
 31. **Watch lines.** In `pr`, the round: the verdict line the watch printed on each call, one per
     call in the order the watch printed them, each `verdict=pending` and then the `verdict=green`
     with its `checks=<n>`. They are the Run report's, never a part of the message, whose For whom
@@ -620,10 +480,8 @@ Final integration: stopped: not landed: target moved
 Yours: direction: run /do <ticket> again, or a do on any Ticket of the Spec, to resume the Final integration of spec/<feature-slug>, or leave it unlanded in <worktree>
 ```
 
-On a feature of more than one repository the `Landed:` and `Still to land:` lines of the Final
-integration lines stand between those two, so the developer reads a partial landing as one: which
-repositories hold the feature on their developer's branch already, and which do not, this one
-among them. The `Yours: direction:` line keeps its two ways out, to resume or to leave unlanded,
+On a feature of more than one repository the lines `final` printed carry the `Landed:` and
+`Still to land:` lines too, and all of them stand above the `Yours:` line. The `Yours: direction:` line keeps its two ways out, to resume or to leave unlanded,
 whatever the reason: on a reason that names Findings it may name them and the Review as what to
 settle before the resume, and it still offers both. The Reply's last line is what
 `outcome=final-stopped` printed:
@@ -677,60 +535,15 @@ names one, that worktree, the branch on its `run_branch=` line and the commits a
 developer reads there that the Ticket is kept for the `/do` that follows the blocker, so the
 sentence never reads as nothing existing.
 
-A `ticket` run stopped at the Plan on work for another repository, the `Elsewhere:` stop of the
-Plan step of [ticket.md](ticket.md), is another. Its whole message is these lines after the first
-line, in this order, each value taken from the Plan's item and from the lines `spec-finding.sh`
-printed, never from the session's own reading of the Spec:
-
-```
-Stopped at the Plan, before anything was built: "<the behaviour>" has no place in this repository. It belongs to <repository=>.
-Written into the Spec (<spec>): <repository=> added to its repositories list, and one line naming the behaviour as moved by the run on Ticket <NN>.
-Ticket <NN> still reads <status=>.
-Yours: outward: cut the moved behaviour for <repository=> with the command below, then run /do on this Ticket again
-/tickets <spec>
-```
-
-- The behaviour is the item's `Elsewhere:` line and the repository its `Belongs to:` line. With
-  more than one item, the first two lines are written once per item, and the status line, the
-  `Yours:` line and the command once.
-- The second line reads off `list=` and `line=`. On `list=added` it names the entry added to the
-  list and the one line. On `list=unchanged` it names the one line alone and says the repository
-  was already in the list. On `line=present` it says the line was already there, written by an
-  earlier run on this Ticket.
-- On `list=no-location` the run could name the repository and not its location on this machine,
-  and three lines change. The second says the one line was written with the location of
-  `<repository=>` marked as not known, and that no entry was added to the repositories list. The
-  `Yours:` line says the location is the one thing the developer supplies, typed in the command
-  below in place of `<its absolute location on this machine>`, with no file to edit by hand. And
-  the last line carries the repository and that place after the Spec, the angle brackets written
-  as they stand here for the developer to replace:
-
-  ```
-  Written into the Spec (<spec>): one line naming the behaviour as moved by the run on Ticket <NN>, with the location of <repository=> marked as not known. No entry was added to its repositories list.
-  Yours: outward: the location of <repository=> on this machine is the one thing you supply: type it in the command below in place of <its absolute location on this machine>, with no file to edit by hand, then run /do on this Ticket again
-  /tickets <spec> <repository=>: <its absolute location on this machine>
-  ```
-- `<spec>` is the `spec=` path relative to `home=`, in both places it stands, since the command is
-  typed in a session of the Home repository.
-- On `here=no` the run stopped in a repository other than the Home repository, where no Feature
-  folder is, and one line stands right before the command, after the `Yours:` line: it names
-  `home_name=`, with `home=` as its location, as the place to open a session in, worded as the
-  hand-over of the `ticket` door in [ticket.md](ticket.md) words it for a Ticket built in another
-  repository. When `home_name=` reads `none`, the line names the location alone. On `here=yes` no
-  such line is written. Neither form carries a shell line.
-- When the stop came on a Builder's return, the `stopped:` line of work for another repository
-  that the Build step of [ticket.md](ticket.md) routes here, the same lines stand, filled from that
-  line where an item's values would be. Three things change, all of them what the build already
-  left. The first line opens `Stopped at the build step:` in place of
-  `Stopped at the Plan, before anything was built:`. The status line reads `claimed`. And one line
-  right after it names the worktree, its branch and the commits already made as kept, for the
-  next `/do` on the Ticket to resume from. These lines then stand as the blocker, the `Yours:`
-  line and the Next step of a run stopped after work exists, and the bullet below on no other
-  part holds for the stop at the Plan alone.
-- `/tickets <spec>` is the Reply's last line, with nothing else on it but the arguments of
-  `list=no-location` and nothing after it. The
-  message carries no `Plan:` line, no other part and no other command, neither `/do` nor `/discuss` nor a shell
-  line: the stop is a refusal of the Plan step, and these lines say everything the run did.
+A `ticket` run stopped on work for another repository, the `Elsewhere:` stop of the Plan step of
+[ticket.md](ticket.md) or a Builder's `stopped:` line of that kind the Build step routes there, is
+another. Its whole message is the first line, then the lines `reply-lines.sh elsewhere` printed,
+copied as they stand, per that step: the script reads them off the files `spec-finding.sh` printed
+and never off the session's own reading of the Spec. On the stop at the Plan the message carries
+no `Plan:` line, no other part and no other command, neither `/do` nor `/discuss` nor a shell
+line, and its last line is the `/tickets` line the script printed. On the stop at the build step
+those lines stand as the blocker, the `Yours:` line and the Next step of a run stopped after work
+exists. On exit 3 the session copies nothing and reports the `failed <reason>` line.
 
 How much more it carries depends on where the run stopped:
 

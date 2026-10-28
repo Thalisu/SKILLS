@@ -668,4 +668,22 @@ run elsewhere --door "$plan_door" "$finding_added" "show the hold" "$finding_oth
 check_lines "elsewhere refuses findings that name different Specs: exit 3" 3 "$rc"
 same "elsewhere refuses findings that name different Specs with one failed line and no Reply line" "failed findings disagree"
 
+# reply.md hands each of these groups of lines to the script and composes none of them itself: a
+# template or a selection rule left beside the call is the session composing the lines again.
+reply="$here/../references/reply.md"
+item29="$(item_holding "$reply" '[0-9]+\.' '**Spec landing lines.**')"
+item30="$(item_holding "$reply" '[0-9]+\.' '**Final integration lines.**')"
+elsewhere_passage="$(paragraph_with "$reply" 'stopped on work for another repository')"
+out="$item29"
+check "reply.md's Spec landing lines are the ones reply-lines.sh landing printed" 0 0 'reply-lines.sh landing'
+out="$item30"
+check "reply.md's Final integration lines are the ones reply-lines.sh final and repositories printed" 0 0 \
+  'reply-lines.sh final' 'reply-lines.sh repositories'
+out="$elsewhere_passage"
+check "reply.md's work-for-another-repository stop is the lines reply-lines.sh elsewhere printed" 0 0 'reply-lines.sh elsewhere'
+out="$(cat "$reply")"
+check_absent "reply.md carries no template and no selection rule for the lines reply-lines.sh prints" 0 0 \
+  'Repositories: built in <' 'Final integration: not started, <' 'Stopped at the Plan, before anything was built:' \
+  'Written into the Spec (<spec>)' 'takeover=yes' 'Every repository of the feature landed'
+
 exit "$((fails > 0))"
