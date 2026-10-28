@@ -116,8 +116,9 @@ and nothing is added for it: the same checks of the return against the branch, t
 the `resume-state.sh` pairs, and the same three routes, `built`, `fork` and `stopped`. Its
 `behaviour:` lines carry the Ticket's acceptance criteria where a Builder's carry the Plan's
 behaviours, and a criterion it could not build comes back as `stopped` or `fork`, never under
-`built`, and takes that route. With no Plan, the reading of the grounding before the route compares
-the Ticket's and the Digest's hashes and stops there. A re-fork after a `fork` or a cleared
+`built`, and takes that route. With no Plan, the re-check before the route is the call with no
+destination, `grounding.sh verify <root> <ticket=> <ticket_hash=> <digest=> <digest_hash=>`, routed
+the same way. A re-fork after a `fork` or a cleared
 `stopped` hands it the same four-key brief. A spent time budget is cleared for it as for a Builder,
 since it asks the same command after each criterion's commit: the next Stretch is a new Agent call
 with `subagent_type: do-impeccable` and that same brief, never a Builder or a Planner in its place,
