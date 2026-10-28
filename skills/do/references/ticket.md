@@ -297,17 +297,20 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   records, matched on name, path and hash together, and a Plan whose section is not that exact
   match is removed and the Planner forked again, per step 1, which writes the Plan anew at the same path. That is the state of a
   Ticket an earlier run stopped on mid-build for work in another repository, once its new blocker
-  is `resolved`: `tickets` moved a criterion out of it, so its hash changed. The brief of that fork
-  carries, under its `Built:` key, the text of every `behaviour=` line the script printed after
-  its `behaviour=<sha> ` prefix, a line reading `none` left out, per [plan.md](plan.md), so the list cut again words each behaviour a commit carries as the commit
-  does and the tick below stays a match of text, never the session's reading of what a commit
-  proves. The list the loop works
-  through is the Plan's `## Behaviours` section either way, never a list read off the commits;
-  then every line
-  whose behaviour a commit body carries is ticked with that commit's sha beside it, and a commit
-  whose `Behaviour:` line matches no line of the list is kept and named on the resume line.
-- The Builder is forked at the first behaviour without a commit, per step 3, and from there the
-  run is a first run: the diff, the gate, the review, the close, the reply.
+  is `resolved`: `tickets` moved a criterion out of it, so its hash changed. Before that fork, the
+  run calls `bash <skill-dir>/scripts/resume-tick.sh built <the Ticket's path>` and puts each
+  `built=` value under the brief's `Built:` key, one per line, in the order printed, per
+  [plan.md](plan.md). `built=none` is an empty list. The session strips and filters nothing itself.
+- Once the Plan is at its path, reused or written anew, the run calls
+  `bash <skill-dir>/scripts/resume-tick.sh tick <the Ticket's path> <the Plan's path>`. The list
+  the loop works through is the Plan's `## Behaviours` section either way, and the script reads it
+  there. The run quotes every `item=` line as the ticks, an `item=<n> <sha>` ticked and an
+  `item=<n> open` not, and names every `stray=` line on the resume line. It never ticks a line or
+  matches two texts itself.
+- On exit 0, `route=build`: the Builder is forked at the item `next=` names, per step 3, and from
+  there the run is a first run: the diff, the gate, the review, the close, the reply. On exit 1,
+  `route=resumed`, every line of the list is ticked, and the run takes the route the bullets
+  below give for that case.
 - On `verdict=land`, the review already read this branch, and so it did whenever `review=` names a
   Review, whatever the verdict printed, `land` or `integration` on a rebase stopped after that
   review: its Review is the script's `review=` line, and the review runs once per run, per

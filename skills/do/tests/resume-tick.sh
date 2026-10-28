@@ -155,4 +155,14 @@ absent_prefix "an Elsewhere item prints no item= line" "item=3"
 check_lines "the item after them is read, open, and next" 0 "$rc" "item=4 open" "next=4"
 absent_prefix "the wrapped behaviour's commit is not stray" "stray="
 
+echo "# skills/do/references/ticket.md: the Resume section takes the Built list and the tick from the script"
+flat="$(flat_section "$here/../references/ticket.md" "## Resume")"
+carries "the Resume section has the Planner's Built: lines printed by resume-tick.sh built" \
+  "resume-tick.sh built"
+carries "the Resume section has the ticks, the stray commits, the Builder's start and the all-ticked route printed by resume-tick.sh tick" \
+  "resume-tick.sh tick" "item=" "stray=" "next=" "route=resumed"
+out="$flat"
+check_absent "the Resume section has the session strip no behaviour= prefix and drop no none line itself" 0 0 \
+  "after its \`behaviour=<sha> \` prefix" "a line reading \`none\` left out"
+
 exit "$fails"
