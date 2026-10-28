@@ -274,17 +274,18 @@ echo "# skills/do/references/ticket.md: step 1 re-hashes the Ticket and the Dige
 flat="$(passage_of "$playbook" "**1. Plan.**" "**2. Claim and worktree.**" | tr '\n' ' ' | tr -s ' ')"
 expect "step 1's passage is present to scope the check against" test -n "$flat"
 
-carries_any "step 1 hashes the Ticket and the Digest again once the Planner returns" \
-  "hashes the Ticket and the Digest again" "re-hashes the Ticket and the Digest" \
-  "the Ticket and the Digest are hashed again" "hashes the Ticket and the Digest once more" \
-  "re-runs \`git hash-object\` over the Ticket and the Digest"
+# The re-hash moved into scripts/grounding.sh verify, proven by skills/do/tests/grounding.sh; the
+# step names the call over the recorded values.
+carries "step 1 re-hashes the Ticket and the Digest with grounding.sh verify once the Planner returns" \
+  "grounding.sh verify <root> <ticket=> <ticket_hash=> <digest=> <digest_hash=>"
 
 carries_any "step 1's second hashing runs as soon as the Planner returns, before the claim is written" \
   "as soon as the Planner returns" "once the Planner returns" "when the Planner returns" \
   "before the claim is written" "before anything is claimed"
 
 carries_any "step 1 refuses the Plan naming the document that moved from the door's recorded value" \
-  "naming the document that moved" "names the document that moved" "the document that moved"
+  "naming the document that moved" "names the document that moved" "the document that moved" \
+  "naming the document of each \`moved=\` line"
 
 echo "# skills/do/references/ticket.md: the claim's own re-hash absorbs only the claim's edit"
 

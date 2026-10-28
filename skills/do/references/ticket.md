@@ -297,10 +297,10 @@ and leaves the worktree as it is, since no branch can be read from it to build o
     on as the amended-Spec bullet below says, with `verdict=extreme` read as `build` and
     `verdict=ask` handled by its own bullet.
 - On every verdict but `land`, the Plan step runs again as step 1 says, unless `review=` names a
-  Review, which skips it as the `verdict=land` bullet says: the run hashes the Ticket and the Digest afresh and
-  reuses the Plan beside the Ticket while its `## Sources` section is still exactly those two
-  records, matched on name, path and hash together, and a Plan whose section is not that exact
-  match is removed and the Planner forked again, per step 1, which writes the Plan anew at the same path. That is the state of a
+  Review, which skips it as the `verdict=land` bullet says: the run runs `grounding.sh plan` as
+  step 1 says and reuses the Plan beside the Ticket on `verdict=carried`, and on `verdict=fork`
+  the script has removed a stale Plan and the Planner is forked again, per step 1, which writes
+  the Plan anew at the same path. That is the state of a
   Ticket an earlier run stopped on mid-build for work in another repository, once its new blocker
   is `resolved`: `tickets` moved a criterion out of it, so its hash changed. Before that fork, the
   run calls `bash <skill-dir>/scripts/resume-tick.sh built <the Ticket's path>` and puts each
@@ -724,25 +724,10 @@ writes and said in one line:
 Both run in `<root>`, so on a Ticket run from its Build repository the line is read, and appended
 when owed, in the Home repository, and never in the repository the session is in.
 
-Then the run hashes the two documents the Plan is cut from, `git hash-object` under `<root>`
-(`( cd <root> && git hash-object <ticket=> <the Digest's path> )`) over the Ticket and over the
-Digest, recording `absent` for one not on disk. Those two values are
-the Plan's `## Sources` lines, so the record the run trusts is its own reading and never the fork's.
-A Plan already at the destination whose `## Sources` section is exactly those two records, matched
-on name, path and hash together, the same match the returned-Plan check below runs, is carried: the
-run forks nobody, says in one line that it reused it, and builds from the Plan it already has. A
-Plan whose section is not that exact match, and a destination with no Plan yet, are the two states
-the run forks for. On the first, the run removes the stale Plan before it forks, or before it writes
-the Plan itself on the fallback below: the Planner's own hook refuses a write at a `.plan.md` that
-already exists, so a Plan left there denies the re-forked Planner its one write and wedges the
-Ticket at this step until someone deletes the file by hand. The removal is a fixed command over the
-destination the check above already placed inside `.scratch/`, the path itself and never what it
-resolves to, and it says in one line that the stale Plan was removed:
-
-**The stale Plan's removal.**
+Then the run decides the carry from the main checkout:
 
 ```sh
-rm -f -- <the destination>
+bash <skill-dir>/scripts/grounding.sh plan <root> <ticket=> <the Digest's path> <the destination>
 ```
 
 Right before it forks the Planner, the run takes the guard probe from the main checkout, piped
@@ -805,7 +790,8 @@ the Ticket left at the status the door found it at and the worktree and its bran
 No Planner can be forked on two branches: the Agent tool is withheld from the session, or the
 Agent tool lists no `do-planner`, as it does on a machine that never linked the agent `do` ships.
 On either branch the session grounds the Ticket and writes the Plan itself, at the same path and in
-the format [plan.md](plan.md) fixes, its `## Sources` lines from the door's own hashes, taking
+the format [plan.md](plan.md) fixes, its `## Sources` lines from the four values `grounding.sh plan`
+printed, taking
 [do-planner.md](../agents/do-planner.md) as the recipe rather than a second copy of it here. It
 says in one line which of the two holds: the Agent tool withheld, or `do-planner` not listed, the
 agent this machine has not linked, which one run of the skills repository's
@@ -821,83 +807,37 @@ here either, and goes on to the build, the gate, the review and the close. A mac
 only one of the two keeps the per-fork line of the one that fell back.
 
 What comes back is the Plan's path and one line for each thing that fell back, and never
-the Plan's text. The session never reads the Plan back, and the `## Sources` check runs as a
-fixed command precisely for that reason, the way the destination check above it does, so the
-section it reads never crosses into the session's own window: it folds the two records the door
-computed, a document the door found absent among them, into the shape below, and prints one word,
-`match` or `refused`, and never a line of the file.
+the Plan's text. The session never reads the Plan back.
+
+Two returns are refused before any check runs, each in one line with nothing built from it. A
+return that names no Plan at all, a line of prose and no Plan path, hands the session nothing to
+check, and the destination is not opened on the chance something wrote there. A return naming a
+path other than the destination the run named is refused without either file being read: the run
+named that destination itself and every step below the grounding opens it, so a Plan the fork
+wrote elsewhere is one the build never sees.
+
+As soon as the Planner returns naming the destination, and once the session's own fallback Plan is
+written, the run re-checks the grounding before the claim is written, over the four values it
+recorded:
 
 **The `## Sources` check.**
 
 ```sh
-ticket="ticket: absent"; [ "<the Ticket's hash>" != absent ] &&
-  ticket="ticket: <the Ticket's absolute path> <the Ticket's hash>"
-digest="digest: absent"; [ "<the Digest's hash>" != absent ] &&
-  digest="digest: <the Digest's absolute path> <the Digest's hash>"
-awk -v t="$ticket" -v d="$digest" '
-  /^## Sources$/ { s = 1; next }
-  s && /^## /    { s = 0 }
-  s && NF        { n++; if ($0 == t) ok_t = 1; if ($0 == d) ok_d = 1 }
-  END            { print (n == 2 && ok_t && ok_d) ? "match" : "refused" }
-' <the destination>
+bash <skill-dir>/scripts/grounding.sh verify <root> <ticket=> <ticket_hash=> <digest=> <digest_hash=> <the destination>
 ```
 
-Both paths are absolute, as the Plan's `## Sources` lines are ([plan.md](plan.md)): the door
-prints `ticket=` relative to `<root>` when `<root>` is the main checkout, so that path is written
-joined to `<root>`, the same lines the brief's `Sources:` key carries.
+- `verdict=match` (exit 0): the run goes on, and the steps that build on the grounding open the
+  Plan and read it there.
+- `verdict=moved` (exit 3): the run stops in one line naming the document of each `moved=` line.
+  The run never restores the document: the line names it for the developer to read before the
+  next run.
+- `verdict=refused` (exit 1): the run stops in one line naming the mismatch, and the next run
+  forks the Planner again.
 
-`match` is what the run needs before the steps that build on the grounding open the Plan
-and read it there. `refused` is what a Plan whose `## Sources` lines do not match the two
-hashes gets, whether the fork wrote lines of its own, cut the Plan from something other than
-what the door hashed, or the section carries lines past the two records, a stranger's text in
-the Ticket or the Digest steered the fork into copying included: it stops the run in one line
-naming the mismatch. Nothing is built from that Plan, the Ticket is left as the step found it,
-and the next run forks the Planner again.
+On either stop nothing is built from the Plan, nothing is claimed or written, and the Ticket's
+status is left as the door found it.
 
-Two more returns reach that command before it ever runs, and each is refused the same way,
-in one line with nothing built from it. A return that names no Plan at all, a line of prose
-and no Plan path, hands the session nothing to check, and the destination is not opened on the
-chance something wrote there. A return naming a path other than the destination the run named
-is refused without either file being read: the run named that destination itself and every step
-below the grounding opens it, so a Plan the fork wrote elsewhere is one the build never sees,
-and running the command at the returned path would vouch for a file nothing downstream touches.
-
-A return that names the destination still reaches that command only after the documents are read
-again. As soon as the Planner returns, and before the claim is written, the run hashes the Ticket
-and the Digest again, `git hash-object` run again under `<root>` over the two paths it hashed
-above, `absent` for one no longer on disk, and compares each value against the one it recorded
-before the fork. The same reading runs when the session grounded the Ticket itself in the
-Planner's place, once its Plan is written. A value that moved refuses the Plan the way the refusals
-above do: one line naming the document that moved, nothing built from the Plan, nothing claimed or
-written, and the Ticket's status left as the door found it. The `## Sources` check cannot catch
-this on its own, since the Plan's lines carry the hashes the door computed and never the files as
-they now stand, and the claim below adopts whatever the Ticket holds when it is written: a
-criterion the fork rewrote before the claim, steered by a stranger's line reaching it through the
-Digest, would otherwise become the Ticket the review is handed as its spec, on `guard=header-only`
-with nothing else to stop it. The rewrite is the fork's and not the run's, so the run never
-restores the document: the line names it for the developer to read before the next run.
-
-The command's own comparison is over records rather than over two loose values: [plan.md](plan.md)
-fixes each line as `<name>: <absolute path> <hash>`, so `ticket` and `digest` are each built
-as the whole record, name, path and hash together, and `n == 2` refuses a section that is
-not exactly the two records, one record missing, one name repeated in place of the other,
-or a third line appended past them, before any value inside it is trusted. A hash says what a
-document held and never which document it was, so the literal-line match, never the hash alone,
-is what catches a Plan whose two names are swapped, carrying both values the door computed
-while being cut from the Digest read as the Ticket.
-
-A record of `<name>: absent` carries no path and no hash for that match to compare, the shape
-step 1's own hashing writes for a document not on disk, an issue-backed Ticket among them,
-so `ticket` and `digest` are each built with their own form for it rather than refusing the
-one Plan a `ticket: absent` run was ever going to get. [mechanics.md](mechanics.md)'s reader
-section already fixes that form for the Digest, and the command reuses it here rather than
-restating a subset of it: `ticket: absent` is a match on its name alone against a document
-the door's own reading also found absent, since nothing about it moved, while a record that
-appeared where the door's own reading is `absent`, or one that vanished where the door's own
-reading carries a path and a hash, builds a line the file's own `## Sources` section can never
-equal, so it is not a match and is refused the same way.
-
-**Work for another repository.** Once the check reads `match` and the two hashes still stand, the
+**Work for another repository.** Once the check reads `verdict=match`, the
 run reads the Plan's `## Behaviours` section for the items it acts on itself, where it already
 reads a Design fork item: an `Elsewhere:` item, the shape [plan.md](plan.md) fixes, is a behaviour
 of the Ticket the Map shows has no place in the repository this run builds in. One such item stops

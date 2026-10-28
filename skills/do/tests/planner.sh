@@ -126,14 +126,10 @@ carries_any "the session never reads the Plan back" \
 # right Plan. A fork could write at the named path a Plan cut from a stale or a tampered Ticket or
 # Digest, and only the header comparison against the hashes the door computed before the fork,
 # per ADR 0048 and plan.md's `## Sources` rule, catches that: a run that skips this comparison
-# silently builds behaviours from an unverified grounding artifact.
-carries_any "the step refuses a Plan whose \`## Sources\` lines do not match the hashes the door computed" \
-  "do not match the two hashes" "does not match the two hashes" "don't match the two hashes" \
-  "not the two hashes" "not the hashes it computed" "not the hashes the door computed" \
-  "not match the hashes" "do not match the hashes" "does not match the hashes" \
-  "the hashes do not match" "the hashes don't match" "the hashes it computed do not match" \
-  "the Sources lines do not match" "\`## Sources\` lines do not match" \
-  "\`## Sources\` lines it computed" "a mismatch" "the hashes moved"
+# silently builds behaviours from an unverified grounding artifact. The comparison is
+# grounding.sh verify's (skills/do/tests/grounding.sh), so the step refuses on its verdict.
+carries "the step refuses a Plan whose \`## Sources\` lines do not match the hashes the door computed" \
+  "grounding.sh verify" "\`verdict=refused\` (exit 1): the run stops"
 
 carries_any "the step stops the run in one line naming the Sources mismatch" \
   "stops the run naming the Sources mismatch" "stops the door naming the Sources mismatch" \
@@ -314,67 +310,28 @@ carries_each "the step refuses a returned path that is not the destination the r
   "another path" "a different path" "a path the run did not name" "some other path" \
   -- "${refused[@]}"
 
-# A hash says what a document held, never which document it was. plan.md fixes each `## Sources`
-# line as `<name>: <absolute path> <hash>`, so a comparison that reads the hashes alone passes a
-# Plan whose two names are swapped, cut with the Digest read as the Ticket, and one whose paths
-# point into another checkout: both carry the two values the door computed and neither is the
-# grounding the door hashed.
-carries_each "the step matches each \`## Sources\` record on its name and its path as well as its hash" \
-  "name, path and hash" "the name, the path and the hash" "its name, its path and its hash" \
-  "name and path" "the path and the hash" "names and paths" "record whole" "whole record" \
-  "each record whole" \
-  -- "${refused[@]}"
-
-# An issue-backed Ticket is not a local file, so step 1's own hashing a few lines up records
-# `absent` for it, and plan.md has the fork copy that record whole as `ticket: absent`. An `absent`
-# record carries no path and no hash for the name-path-hash match above to compare against, so
-# without its own form the match above refuses a Plan cut from exactly the Ticket it was asked to
-# cut from. mechanics.md's reader section already fixes that form for the Digest, and this step
-# reuses it rather than restating a subset of it.
-carries "the step reuses mechanics.md's rule for an \`absent\` record rather than restating it" \
-  "mechanics.md"
-
-carries_each "the step accepts a \`## Sources\` record of \`absent\` matched on its name alone" \
-  "absent" \
-  -- \
-  "on its name alone" "name alone" "nothing about it moved" "still not on disk" "is a match"
-
-carries_each "the step refuses a record that appeared or vanished against the door's own reading" \
-  "appeared" \
-  -- \
-  "vanished" "is gone" "no longer on disk" \
-  -- "${refused[@]}"
-
-# Two records is what the format fixes, one per document, and the count is its own check. A section
-# carrying the Ticket's record alone, or carrying it twice and no Digest line, satisfies a
-# comparison that only asks whether every line it reads is one the door computed, and the Plan is
-# then vouched for against half of the grounding it claims to be cut from.
-carries_each "the step refuses a \`## Sources\` section that is not exactly the two records, one missing or one repeated included" \
-  "exactly the two records" "exactly two records" "two records and nothing" \
-  "the two records the door" "two complete records" "exactly the two" \
-  -- \
-  "a missing record" "a record missing" "a duplicated record" "a duplicate record" \
-  "the same name twice" "a name twice" "a second line for the same" \
-  "one record missing" \
-  -- "${refused[@]}"
+# The match itself, each record on its name, path and hash, the `absent` form, a record that
+# appeared or vanished and the count of exactly two, moved into scripts/grounding.sh and is proven
+# by skills/do/tests/grounding.sh; the step names the call and routes on its verdict.
+carries "the step checks the returned Plan with grounding.sh verify" "grounding.sh verify"
+carries_each "the step routes the returned Plan on the verify verdicts" \
+  "verdict=match" -- "verdict=refused" -- "verdict=moved"
+# shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+out="$flat"
+check_absent "the step carries no inline \`## Sources\` check or stale Plan removal of its own" 0 0 \
+  "awk -v t=" "rm -f -- <the destination>"
 
 echo "# skills/do/references/ticket.md and plan.md: the reuse/carry rule binds the same strict match the returned-Plan check does"
 
-# The two cases above prove the check on the fork's *return* matches each record on its name, its
-# path and its hash. The carry sentence is a different branch, a few lines above that check: a Plan
-# already sitting at the destination before any fork runs. `item_holding`/`carries_each` above read
-# step 1 whole, so a strict phrase sitting anywhere in the step, the returned-Plan check included,
-# would make those cases pass even if the carry sentence itself still compared hashes alone. Scoped
-# here to the carry sentence's own paragraph, isolated from the rest of the step, so this proves the
-# carry sentence's own words and nothing borrowed from a neighbour.
-carry_para="$(paragraph_with "$playbook" "is carried")"
-expect "the Playbook carries a paragraph naming a Plan already at the destination as carried" \
+# The carry is the branch before any fork runs, a Plan already at the destination: the step decides
+# it on grounding.sh plan's verdict, scoped to the paragraph that names the call.
+carry_para="$(paragraph_with "$playbook" "grounding.sh plan")"
+expect "the Playbook carries a paragraph running grounding.sh plan for the carry" \
   test -n "$carry_para"
 
 flat="$carry_para"
-carries_any "the carry sentence itself states the exact-match rule the returned-Plan check enforces: name, path and hash together, exactly the two records" \
-  "name, path and hash" "the name, the path and the hash" "its name, its path and its hash" \
-  "exactly the two records" "exactly two records" "the two records the door computed"
+carries_each "the carry routes on grounding.sh plan's carried and fork verdicts" \
+  "verdict=carried" -- "verdict=fork"
 
 # plan.md's own edge for the same branch, `## Its edges`, worded independently of the Playbook's
 # carry sentence: a fix that tightens ticket.md alone leaves this file still vouching for a Plan on
@@ -471,37 +428,25 @@ flat="$(flat_section "$plan" "## Sketch")"
 expect "the Plan's \`## Sketch\` section holds the Sketch whole, rejected rivals included, past the Sketch's own headings" \
   bash -c '[ -n "$1" ] && grep -qF "Nested shape" <<<"$1"' _ "$flat"
 
-echo "# skills/do/references/ticket.md: the \`## Sources\` check runs as a fixed command, never the session's own read"
+echo "# scripts/grounding.sh: the step's carry and returned-Plan check, run over fixture Plans"
 
-# Finding 6 of the 20260921 ticket-run-planner-and-builder review: the returned-Plan check was prose
-# the session read and parsed itself, the one gate in this step with no command, which put an
-# attacker-sized \`## Sources\` section (extra lines, an imperative addressed to the session) whole in
-# the deciding window before the count rule ever refused it. The fix names a fixed command, pulled
-# out of the step the same way \`skills/do/tests/integration.sh\` pulls a fenced command out of a
-# reference: the step's prose tells the run to act on the word this command prints, never to derive
-# the verdict by reading the section itself.
-sources_cmd="$(blocks_of "$playbook" "## Steps" "**The \`## Sources\` check.**" 1)"
-expect "the Plan step names a fixed command for the \`## Sources\` check" test -n "$sources_cmd"
-
-# The command's own placeholders, filled the way the door's hashing step feeds them, never with the
-# Plan's own text: a case builds the Plan file the command reads and the four values the door would
-# have computed for it, then runs the resolved command over that file.
-run_sources_check() { # $1 plan path, $2 ticket hash, $3 ticket path, $4 digest hash, $5 digest path
-  local resolved
-  resolved="$(printf '%s' "$sources_cmd" |
-    sed -e "s@<the Ticket's hash>@$2@g" -e "s@<the Ticket's absolute path>@$3@g" \
-      -e "s@<the Digest's hash>@$4@g" -e "s@<the Digest's absolute path>@$5@g" \
-      -e "s@<the destination>@$1@g")"
-  sh -c "$resolved"
+# The step names grounding.sh for the \`## Sources\` check and the stale Plan's removal, so the cases
+# that pulled the inline blocks out of the step now run the script the step names, over a throwaway
+# Home repository.
+grounding="$here/../scripts/grounding.sh"
+fresh sources
+root="$(pwd -P)"
+ticket_path="$root/ticket.md"
+digest_path="$root/digest.md"
+printf '# Ticket\n' >"$ticket_path"
+printf '# Digest\n' >"$digest_path"
+ticket_hash="$(git hash-object "$ticket_path")"
+digest_hash="$(git hash-object "$digest_path")"
+run_verify() { # $1 the Plan's path: verify's output
+  bash "$grounding" verify "$root" "$ticket_path" "$ticket_hash" "$digest_path" "$digest_hash" "$1" 2>&1
 }
 
-sources_tmp="$(mktemp -d)"
-ticket_path="$sources_tmp/ticket.md"
-digest_path="$sources_tmp/digest.md"
-ticket_hash="aaaa1111"
-digest_hash="bbbb2222"
-
-good_plan="$sources_tmp/good.plan.md"
+good_plan="$root/good.plan.md"
 cat >"$good_plan" <<EOF
 ## Sources
 ticket: $ticket_path $ticket_hash
@@ -511,14 +456,13 @@ digest: $digest_path $digest_hash
 none
 EOF
 
-out="$(run_sources_check "$good_plan" "$ticket_hash" "$ticket_path" "$digest_hash" "$digest_path")"
-same "the command prints \`match\` for a \`## Sources\` section that is exactly the two records the door computed" "match"
+out="$(run_verify "$good_plan")"
+check_lines "verify prints \`match\` for a \`## Sources\` section that is exactly the two records the door computed" 0 "$?" "verdict=match"
 
 # A section a stranger's text in the Ticket or the Digest steered the fork into padding: the two
 # correct records, then 41 further lines and an imperative addressed to the session, the shape the
-# review's evidence names. The count rule has to refuse this before any of those lines is trusted,
-# and the fixed command is what proves that without the session ever reading them to find out.
-injected_plan="$sources_tmp/injected.plan.md"
+# review's evidence names. The count rule has to refuse this before any of those lines is trusted.
+injected_plan="$root/injected.plan.md"
 {
   printf '## Sources\n'
   printf 'ticket: %s %s\n' "$ticket_path" "$ticket_hash"
@@ -528,25 +472,19 @@ injected_plan="$sources_tmp/injected.plan.md"
   printf '\n## Grounding\nnone\n'
 } >"$injected_plan"
 
-out="$(run_sources_check "$injected_plan" "$ticket_hash" "$ticket_path" "$digest_hash" "$digest_path")"
-same "the command prints \`refused\` for a \`## Sources\` section carrying injected lines past the two records" "refused"
+out="$(run_verify "$injected_plan")"
+check_lines "verify prints \`refused\` for a \`## Sources\` section carrying injected lines past the two records" 1 "$?" "verdict=refused"
 
-echo "# skills/do/references/ticket.md: a re-fork after the hashes moved removes the stale Plan, so the run gets past the Plan step"
+echo "# scripts/grounding.sh: a re-fork after the hashes moved removes the stale Plan, so the run gets past the Plan step"
 
 # A Ticket, Digest or Spec that moved after a Plan was written sends the run back to the Planner at
 # the same path. The Planner's own Write hook refuses any write at a \`.plan.md\` that already exists,
-# so unless the step removes the stale Plan first the re-forked Planner is denied its one write and
-# the Ticket is wedged at the Plan step until a human deletes the file. The removal is a fixed
-# command the step names, pulled out the way the \`## Sources\` check is, and run here for real.
-removal_cmd="$(blocks_of "$playbook" "## Steps" "**The stale Plan's removal.**" 1)"
-expect "the Plan step names a fixed command that removes the stale Plan at the destination" \
-  test -n "$removal_cmd"
-
-refork_dest="$sources_tmp/refork.plan.md"
+# so the carry has to remove the stale Plan first or the re-forked Planner is denied its one write.
+refork_dest="$root/refork.plan.md"
 cat >"$refork_dest" <<EOF
 ## Sources
-ticket: $ticket_path 0ld0ld00
-digest: $digest_path 0ld0ld11
+ticket: $ticket_path 0000000000000000000000000000000000000000
+digest: $digest_path 1111111111111111111111111111111111111111
 
 ## Grounding
 none
@@ -554,15 +492,13 @@ EOF
 expect "a stale Plan cut from the old hashes sits at the destination before the re-fork" \
   test -f "$refork_dest"
 
-if [ -n "$removal_cmd" ]; then
-  sh -c "$(printf '%s' "$removal_cmd" | sed -e "s@<the destination>@$refork_dest@g")" >/dev/null 2>&1
-fi
+out="$(bash "$grounding" plan "$root" "$ticket_path" "$digest_path" "$refork_dest" 2>&1)"
+check_lines "the carry removes the stale Plan and forks" 1 "$?" "removed=$refork_dest" "verdict=fork"
 
-# The re-forked Planner's first write, through its own hook: silence is the hook allowing it. An
-# empty or missing command leaves the stale Plan in place, and the hook denies.
+# The re-forked Planner's first write, through its own hook: silence is the hook allowing it.
 refork_hook_out="$(printf '{"tool_input": {"file_path": "%s"}}' "$refork_dest" | sh -c "$hook_cmd" 2>/dev/null)"
 expect "the re-forked Planner's own hook lets it write its Plan at the same destination" \
-  bash -c '[ -n "$1" ] && ! grep -qF "\"permissionDecision\": \"deny\"" <<<"$2"' _ "$removal_cmd" "$refork_hook_out"
+  bash -c '! grep -qF "\"permissionDecision\": \"deny\"" <<<"$1"' _ "$refork_hook_out"
 
 # The write the hook allowed, then the step's own check over it against the new hashes: the run
 # gets past the Plan step only when that check prints \`match\`.
@@ -576,9 +512,7 @@ digest: $digest_path $digest_hash
 none
 EOF
 fi
-out="$(run_sources_check "$refork_dest" "$ticket_hash" "$ticket_path" "$digest_hash" "$digest_path")"
-same "the re-forked Plan at the same destination passes the \`## Sources\` check against the new hashes" "match"
-
-rm -rf "$sources_tmp"
+out="$(run_verify "$refork_dest")"
+check_lines "the re-forked Plan at the same destination passes verify against the new hashes" 0 "$?" "verdict=match"
 
 exit $((fails > 0))
