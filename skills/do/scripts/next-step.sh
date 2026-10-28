@@ -37,8 +37,22 @@ push_line() {
   echo "git push origin ${key[branch]}"
 }
 
+repository_line() { # $1 the repository's name, $2 its location or unlisted
+  if [ "$2" = unlisted ]; then
+    echo "$1: the Spec's ## Repositories list holds no location for it"
+  else
+    echo "$1: open a session in $2"
+  fi
+}
+
 next_line() { # the Completion check's next= routes, shared by spec-landed and setup-resolved
   need next
+  if [ -n "${key[next_build]:-}" ]; then
+    need next_build_location next_location
+    repository_line "${key[next_build]}" "${key[next_build_location]}"
+    echo "/do ${key[next_location]}"
+    return
+  fi
   echo "/do ${key[next]}"
 }
 

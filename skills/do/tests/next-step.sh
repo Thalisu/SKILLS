@@ -25,4 +25,15 @@ for outcome in spec-landed setup-resolved; do
     "$(printf '%s\n' "/do $ready" 'exit 0')"
 done
 
+elsewhere=/home/dev/notes/.scratch/notes-export/issues/06-web-export-button.md
+run outcome=spec-landed yours=no next=.scratch/notes-export/issues/06-web-export-button.md \
+  next_build=notes-web next_build_location=/home/dev/notes-web "next_location=$elsewhere"
+same "a next Ticket built in another repository ends on that repository and its location, then /do of the Ticket's absolute location" \
+  "$(printf '%s\n' 'notes-web: open a session in /home/dev/notes-web' "/do $elsewhere" 'exit 0')"
+
+run outcome=setup-resolved yours=no next=.scratch/notes-export/issues/06-web-export-button.md \
+  next_build=notes-web next_build_location=unlisted "next_location=$elsewhere"
+same "a next Ticket built in a repository the Spec lists no location for says so, then /do of the Ticket's absolute location" \
+  "$(printf '%s\n' "notes-web: the Spec's ## Repositories list holds no location for it" "/do $elsewhere" 'exit 0')"
+
 exit "$((fails > 0))"
