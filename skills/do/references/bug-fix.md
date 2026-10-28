@@ -371,17 +371,8 @@ No Ticket exists to hand over, so the Review names the branch and its fixed poin
 The return is recorded for the Run report's Run section, one line per part, and routed on the
 `route=` line of `review-route.sh`, as the review in [mechanics.md](mechanics.md) says, with the
 request that started the run as `rerun=`. Read [not-landed.md](not-landed.md) when the `route=`
-line reads anything but `route=verify`.
-
-- `route=fix` integrates again in the same run, its Loss ledger keyed by the branch, and lands
-  through the fix call on the Review the run already has, from the printed lines, with no fixed
-  count.
-- `route=resume`, a `not landed: target moved` right after an integration that ticked as a no-op,
-  sends the run through the Resume above in the same run: the Review it already has counts, so it
-  integrates again and lands through the fix call on it.
-- `route=blocked` stops the run as blocked with the printed `yours=`, `by_hand=` and `undo=` lines,
-  and a `do-code-review` the session does not list is handled the way the `ticket` Playbook
-  handles it.
+line reads anything but `route=verify`. A `do-code-review` the session does not list is handled
+the way the `ticket` Playbook handles it.
 
 Done when the landing line recorded there reads `landed at <commit>`, or the run stopped as blocked
 with the review's reason quoted and the worktree and its branch named, or the step reads

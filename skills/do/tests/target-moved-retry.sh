@@ -140,10 +140,9 @@ flat="$whole"
 
 # Story 22: the three worktree Playbooks integrate alike. A session follows its own Playbook's review
 # and reply steps, so a step that stops on a moved target the loop answers, or hands the developer the
-# request to type again for one, undoes the retry mechanics.md carries. A step may point at that
-# review for the mechanics, as long as it names the retry or the no-op stop that ends it.
+# request to type again for one, undoes the retry not-landed.md carries. Each review step points at
+# that file for a return other than route=verify, and carries the retry itself no more.
 echo "# ticket.md, bug-fix.md, refactoring.md: each Playbook retries a moved target in the same run"
-retry=("${integrated[@]}" "${noop[@]}")
 # Each step is read from its own marker to the next one, and is found by a phrase of its own work:
 # `ticket` absorbed its grounding steps into one and renumbered everything below them, and the next
 # such change renumbers these again, so a step number, a step title and the order they sit in anchor
@@ -160,8 +159,8 @@ for row in "${playbooks[@]}"; do
 
   flat="$(item_holding "$book" "$marker" "$review_key" | tr '\n' ' ' | tr -s ' ')"
   expect "$name.md carries its review step" test -n "$flat"
-  carries_any "the $name review step integrates a target moved again, or names the no-op stop that ends the loop" \
-    "${retry[@]}"
+  carries "the $name review step reads not-landed.md, where a target moved is integrated again" \
+    "Read [not-landed.md](not-landed.md) when"
   # shellcheck disable=SC2034  # lib.sh's check_absent reads $out
   out="$flat"
   check_absent "the $name review step no longer stops the run as blocked on every not landed, a first target moved among them" \

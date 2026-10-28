@@ -67,7 +67,7 @@ Everything else the run settles itself and carries on, in the same turn:
 | an empirical fork or a Design fork | settles it by [Forks](#forks) | 4, 6 |
 | a behaviour change found on the way | leaves it out and names it in the reply with its command | 1, 6, 9 |
 | a red gate | takes one more step of the reshape, then the whole gate again | 10 |
-| `not landed: target moved` | integrates again and lands through the fix call | 12 |
+| a review whose target moved | integrates again and lands through the fix call, per not-landed.md | 12 |
 | a red flow | fixes it in the worktree and hands the branch to the fix call | 13 |
 
 ## Steps
@@ -595,28 +595,14 @@ when the Review is Green. The run fixes no Finding and lands nothing itself.
 The return is recorded for the Run report's Run section, one line per part, as the shared section says,
 and routed on the `route=` line of `review-route.sh`, with the request that started the run as
 `rerun=`. Read [not-landed.md](not-landed.md) when the `route=` line reads anything but
-`route=verify`. The five returns are the ones the `ticket` Playbook gets:
+`route=verify`. The returns are the ones the `ticket` Playbook gets:
 
 - **Landed.** `route=verify`, and the run goes to the verification.
-- **Not landed: target moved.** On `route=fix` the run integrates again in the same run, its Loss
-  ledger keyed by the branch, judged and reapplied with no **Gate** of the run's own after the last
-  reapply, and lands through the fix call on the Review it already has, from the printed lines, as
-  the review in [mechanics.md](mechanics.md) says, never a second review, with no fixed count. On
-  `route=resume`, right after an integration that ticked as a no-op, the run takes step 2's resume
-  in the same run: the Review it already has counts, so it integrates again and lands through the
-  fix call on that Review.
-- **Not landed**, on `route=blocked`. The run stops as blocked with the `reason=` line quoted, the
-  worktree and its branch left in place and named in the reply, nothing half fixed, and the reply's
-  `Yours: direction:` line carrying the choice, as the review in [mechanics.md](mechanics.md) says.
+- **Not landed**, a moved target, a protected branch or any other reason: not-landed.md, as the
+  pointer above says.
 - **`do-code-review` not listed.** The step reads `skip: do-code-review not listed`, nothing lands,
   and the reply's Next step is `scripts/next-step.sh`'s stdout on `outcome=unlanded`, piped with
   `worktree=` and `run_branch=`.
-- **A protected branch.** The review refuses the landing, whatever the run wrote, and the run
-  stops as blocked with the landing handed over under `direction`, as the review in
-  [mechanics.md](mechanics.md) says: `route=blocked` with `direction=protected`, the reply's
-  `Yours: direction:` line the printed `yours=` line, and the two printed `by_hand=` lines the
-  commands that land the reviewed branch by hand from a branch that takes commits, which the run
-  types neither of.
 
 Done when the return is recorded for the Run report's Run section with its landing line reading
 `landed at <commit>`, or the run stopped as blocked with the review's reason quoted, or the step

@@ -39,7 +39,7 @@ passages=(
   "bug-fix.md|- A Review of the branch,|- Uncommitted changes in the worktree|the resume on a Review that counts||"
   "bug-fix.md|**11. Verification.**|**12. Close.**|step 11, the red flow fixed in the worktree||"
   "refactoring.md|The run continues at the first step its branch does not evidence|Done when its status prints nothing|step 2's resume on a Review that counts||"
-  "refactoring.md|- **Not landed: target moved.**|- **Not landed**,|the moved target integrated again||"
+  "not-landed.md|On \`not landed: target moved\`|## Not landed for any other reason|the moved target integrated again||"
   "refactoring.md|### 13. Verification|### 14. Close|step 13, the red flow fixed in the worktree||"
   "mechanics.md|Done when the step is ticked as a no-op|and in each case the integration line is recorded|the integration step's own Done line||"
   "bug-fix.md|the Loss ledger keyed by the run's branch,|**10. Review and landing.**|step 9's Integration Done line||"
@@ -75,7 +75,6 @@ done
 # they sit in anchor nothing here. The key is never a clause the checks below read, so a step that
 # drops its no-Gate handover is found red rather than found empty.
 steps=(
-  "ticket.md|integration.sh settle <the worktree>|the review step, where a moved target is integrated again||"
   "ticket.md|scripts/flows.sh|the verification step, the red flow fixed in the worktree||"
   "ticket.md|the Loss ledger beside the Ticket in the main checkout|the integration step's Done line||"
 )

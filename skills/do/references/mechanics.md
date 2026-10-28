@@ -349,7 +349,7 @@ protected target is refused there as it is refused today. The run records the co
 on before the rebase starts: the command that undoes the rebase is not the same once the rebase has
 finished, and the recorded commit is what the later one names. A run the review already read, a
 resume whose `review=` line names a Review, walks this step the same way and then lands through
-the fix call the review section names, never a second review, per
+the fix call, never a second review, per
 [ADR 0033](../../../docs/adr/0033-the-review-runs-once-per-run-and-what-comes-after-it-lands-through-the-gate-alone.md).
 
 **The target on a Ticket of a Spec.** A `ticket` run whose Ticket has a Spec branch integrates onto
@@ -614,9 +614,9 @@ the review token, the Loss ledger when the rebase wrote one and the held Rulings
 review says. The token is minted under the slug of the tree, `spec-<feature-slug>`, the value
 `final-state.sh` prints as `token_slug=`, and never under a Ticket's slug: a resume may come
 through any Ticket of the Spec built in this repository, and it must find the token the marker beside the Review holds. The review fixes its `Act on` Findings and, when the Review is Green, lands the Spec
-branch on the developer's branch by fast-forward. The return is read as the review says, and
-`not landed: target moved` is answered as it says, in the same run. Read
-[not-landed.md](not-landed.md) when the return's `route=` line reads anything but `route=verify`.
+branch on the developer's branch by fast-forward. The return is read as the review says.
+Read [not-landed.md](not-landed.md) when the return's `route=` line reads anything but `route=verify`: a moved target
+is answered there, in the same run.
 
 **6. The release.** On `landed at <commit>` and on nothing else, the run leaves the tree with a
 bare `cd` to the main checkout, removes it with `git worktree remove <tree>`, and makes one call:
@@ -633,7 +633,8 @@ run stops as blocked with the `reason=` line quoted, and never deletes the branc
 file by hand.
 
 **A Final integration that stops.** A rebase question nobody answered, a red gate, a Review that
-did not land, a `not landed: target moved` the review section stops on: the run stops as blocked
+did not land, or a stop of the review's own (Read [not-landed.md](not-landed.md) when the review's
+`route=` line reads anything but `route=verify`): the run stops as blocked
 and makes no `release` call. The tree, the Spec branch and the claim file all stay in place, since
 they are what a later run resumes from, and the run's own Ticket stays `resolved`. Before its
 Reply, at every stop the run controls, a first run's or a resume's, it yields the claim:
@@ -686,8 +687,9 @@ first Final integration in four places:
   discard, `land` at the fix call on the Review already written, never a second review. Under
   `--auto` the `(abort / continue)` question and the one before a discard are still asked of the
   developer, each with the `choice-taker`'s return shown above it, per [forks.md](forks.md).
-- **`not landed: target moved` is unchanged.** A resume answers it by the loop of the review
-  below, integrating again while the target's tip keeps changing, per
+- **A moved target is unchanged.** Read [not-landed.md](not-landed.md) when the resume's review
+  returns a `route=` line other than `route=verify`: a resume answers a moved target by its loop,
+  integrating again while the target's tip keeps changing, per
   [ADR 0044](../../../docs/adr/0044-the-re-integration-retries-while-the-target-tip-changes.md).
 
 A resume that stops again yields and replies as any stopped Final integration does. One that
@@ -806,7 +808,7 @@ amends them: the fast-forward serialized with every other run landing on the rep
 protected branch refused; a developer's branch that moved while the review ran retried once, by a
 rebase whose every hunk the review's copy of the conflict class calls `mechanical`, resolved by the
 union in base order, and the Gate run again before the fast-forward; any `contested` hunk aborted,
-or the target moved again while that Gate ran, and returned as `not landed: target moved` with the
+or the target moved again while that Gate ran, and returned as not landed on a moved target, with the
 target and the conflicting files; a failed fast-forward left in place; nothing pushed. The review
 asks nobody anything on those paths, since it is a fork with nobody to ask: a hunk a person must
 judge comes back to this run in its return.
@@ -906,10 +908,10 @@ worktree stays, since it is where a red flow is fixed.
 4. A red flow is a defect in the landed work, not in the flow: it is fixed in the worktree as one
    more unit of the build loop of [build-loop.md](build-loop.md), with origin `bugfix` and the
    flow's failure as the expected red,
-   and the branch handed to the fix call on the same Review with no **Gate** of the run's own, as
-   the review section says for what the run commits after it: the fix call gates the same tree
-   itself and lands it again with no second review. A fix call that returns not landed stops the
-   run the way the first call does.
+   and the branch handed to the fix call on the same Review with no **Gate** of the run's own: the
+   fix call gates the same tree itself and lands it again with no second review.
+   Read [not-landed.md](not-landed.md) when the red flow's fix goes to the fix call: it carries the call's lines,
+   and a fix call that returns not landed stops the run the way the first call does.
 Done when every affected flow is green in output produced after the last landing, or recorded as
 not run on the developer's no, with every command line quoted in the Run report's Evidence under
 `--auto`.

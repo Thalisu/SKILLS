@@ -29,4 +29,18 @@ points_at_not_landed "bug-fix.md's review step" \
 points_at_not_landed "refactoring.md's review step" \
   "$(item_holding "$refs/refactoring.md" '### [0-9]+\.' "$key" | tr '\n' ' ' | tr -s ' ')"
 
+# A run whose review lands reads mechanics.md and its Playbook and never not-landed.md, so the
+# handling of a return that did not land, left in either, is text every landed run loads for
+# nothing. A line carrying the pointer may name the condition it sends the run on.
+echo "# mechanics.md and the three Playbooks: a run whose review lands loads no not-landed handling"
+not_landed_text='not landed: target moved|route=(fix|resume|blocked)([^a-z-]|$)|Caller: do|`(fix|gate|caller)=|fix <review>'
+for name in mechanics ticket bug-fix refactoring; do
+  left="$(grep -nE "$not_landed_text" "$refs/$name.md" | grep -vF '](not-landed.md)')"
+  if [ -z "$left" ]; then
+    ok "$name.md carries no not-landed route, fix call line or target moved handling outside its pointers"
+  else
+    fail "$name.md carries no not-landed route, fix call line or target moved handling outside its pointers (left: ${left//$'\n'/; })"
+  fi
+done
+
 exit $((fails > 0))

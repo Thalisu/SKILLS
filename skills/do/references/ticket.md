@@ -331,7 +331,9 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   and the run goes on at step 4, then the **Gate** of step 5, the integration of step 6 onto the
   Spec branch and the landing of step 7. That is how a run requested again after a refused landing
   resumes at the landing.
-- When every line of the list is ticked on a Ticket with no Spec, as on the branch a `route=resume` of `review-route.sh` leaves, a `not landed: target moved` right after an integration that ticked as a no-op,
+- When every line of the list is ticked on a Ticket with no Spec, as on the branch a moved target
+  leaves right after an integration that ticked as a no-op (Read [not-landed.md](not-landed.md)
+  when the review route sends the run here in the same run),
   whether a later run finds it or the same run takes this path at step 7 without a second request,
   step 3 reads `done: resumed` and the run never waits on a Builder with nothing left to build. It
   goes on at step 4 as a first run does, reading the diff already on the branch, its flows counting
@@ -547,9 +549,9 @@ of this project's facts and the Review at the `review_file=` path the claim prin
    - Exit 2: the tree is on a detached HEAD or on another branch with no rebase open. The run stops
      as blocked in one line naming the tree and the script's reason.
 4. **The rest of the final integration**, from the step the verdict named, ending in the release on
-   `landed at <commit>`. A `not landed: target moved` is answered as on a first Final integration,
-   by the loop of the review in [mechanics.md](mechanics.md), for as long as the target's tip keeps
-   changing. After `claim=released`, when the record of step 1 printed `repositories=` above 1,
+   `landed at <commit>`. Read [not-landed.md](not-landed.md) when the review's `route=` line reads
+   anything but `route=verify`: a moved target is answered there as on a first Final integration,
+   for as long as the target's tip keeps changing. After `claim=released`, when the record of step 1 printed `repositories=` above 1,
    the same `landing-order.sh` call a second time, as step 9a makes it, saved over
    `<state>/order`: the Reply's lines are printed from this second read, which counts this
    repository as landed, and never from the first.
@@ -1145,13 +1147,8 @@ location as the spec source, the `fixed_point=` line of
 the run started on as the landing target, with the held Rulings after the Gate when the run holds
 any, as the review in [mechanics.md](mechanics.md) says. The return is recorded for the Run report's Run section,
 one line per part. Each return, and each fix call's, is routed on the `route=` line of
-`review-route.sh`, as that review says: on `route=fix` the run integrates again, in the same run,
-its Loss ledger judged and reapplied with no **Gate** of the run's own, then makes the fix call on
-the Review the run already has from the printed lines, with no fixed count; on `route=resume`, a
-`not landed: target moved` right after an integration that ticked as a no-op, the run goes through
-the all-ticked bullet of the Resume above in the same run, and the step ends on that path's own
-landing line; on `route=blocked` it stops as blocked. Read [not-landed.md](not-landed.md) when
-the `route=` line reads anything but `route=verify`. Done when the landing line recorded there reads `landed at <commit>`, or the run stopped as
+`review-route.sh`, as that review says. Read [not-landed.md](not-landed.md) when the `route=` line
+reads anything but `route=verify`. Done when the landing line recorded there reads `landed at <commit>`, or the run stopped as
 blocked with the review's reason quoted and the worktree and its branch named, or the step reads
 `skip: do-code-review not listed` with the worktree and its branch named.
 
