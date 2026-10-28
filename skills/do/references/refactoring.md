@@ -233,6 +233,7 @@ The run continues at the first step its branch does not evidence, and a Review t
 the jump, not the cleanup commit: a branch carrying one resumes at step 11 whether or not step 9
 left a cleanup commit. It integrates again and lands through the fix call on that Review, with no
 **Gate** of the run's own and never a second review.
+[ADR 0033](../../../docs/adr/0033-the-review-runs-once-per-run-and-what-comes-after-it-lands-through-the-gate-alone.md). Read [not-landed.md](not-landed.md) when the run lands through the fix call on a Review it already has.
 
 Done when its status prints nothing and the worktree line, its path and its branch, is recorded for
 the Run report's Run section, or the resume line is.
