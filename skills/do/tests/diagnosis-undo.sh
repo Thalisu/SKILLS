@@ -93,4 +93,16 @@ check_lines "both are kept with reason entered, exit 1" 1 "$rc" \
 expect "the entered worktree is still listed" worktree_listed "$wt"
 expect "the entered do/tags branch is still there" branch_listed do/tags
 
+echo "# diagnosis-undo.sh: a start-over, a worktree cut onto a branch the door already listed"
+cd "$tmp" || exit 1
+diagnosis_repo start-over pin
+g branch do/pin
+wt="$top/.claude/worktrees/do-pin"
+g worktree add -q "$wt" do/pin
+run "$ticket_path" worktree=none run_branch=do/pin
+check_lines "the worktree this run cut is removed and the branch kept with reason not-cut, exit 1" 1 "$rc" \
+  "worktree=removed $wt" "branch=kept do/pin not-cut"
+gone "the start-over worktree is gone afterwards" worktree_listed "$wt"
+expect "the do/pin branch the door listed is still there" branch_listed do/pin
+
 exit "$fails"
