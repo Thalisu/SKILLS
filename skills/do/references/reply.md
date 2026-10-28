@@ -502,16 +502,6 @@ names one, that worktree, the branch on its `run_branch=` line and the commits a
 developer reads there that the Ticket is kept for the `/do` that follows the blocker, so the
 sentence never reads as nothing existing.
 
-A `ticket` run stopped on work for another repository, the `Elsewhere:` stop of the Plan step of
-[ticket.md](ticket.md) or a Builder's `stopped:` line of that kind the Build step routes there, is
-another. Its whole message is the first line, then the lines `reply-lines.sh elsewhere` printed,
-copied as they stand, per that step: the script reads them off the files `spec-finding.sh` printed
-and never off the session's own reading of the Spec. On the stop at the Plan the message carries
-no `Plan:` line, no other part and no other command, neither `/do` nor `/discuss` nor a shell
-line, and its last line is the `/tickets` line the script printed. On the stop at the build step
-those lines stand as the blocker, the `Yours:` line and the Next step of a run stopped after work
-exists. On exit 3 the session copies nothing and reports the `failed <reason>` line.
-
 How much more it carries depends on where the run stopped:
 
 - **Refused before any edit.** It adds nothing, not even a `Plan:` line: its one message is the
@@ -573,13 +563,8 @@ Yours: outward: yes makes every write the question lists on issue 41, no makes n
 A stop that cannot name a class is not a stop: whatever it would hand over is a reversible action
 inside the run's own artifacts, and the run takes it.
 
-Three writes outside the repository have a fixed place:
+Two writes outside the repository have a fixed place:
 
-- **Work for another repository.** The stop at the Plan on a behaviour with no place in the
-  repository the run builds in is named under `outward`, since building it is a write to a
-  repository this run was not opened in, which the run never makes itself. Its choice is the
-  `tickets` command the Reply ends on, which cuts the moved behaviour for that repository, then
-  `/do` on the same Ticket again.
 - **A push.** A blocked Reply whose handed-over commands include a push names that push under
   `outward`, since a push is a write outside the repository the run never makes itself, except the
   close's `destroy` stop on a landed run: its push already sits on the Reply's Next step line, per

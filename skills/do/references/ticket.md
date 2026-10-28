@@ -820,81 +820,6 @@ status is left as the door found it.
 Read [elsewhere.md](elsewhere.md) when the verified Plan's `## Behaviours` carry an `Elsewhere:`
 item, once the check reads `verdict=match`.
 
-**Work for another repository.** Once the check reads `verdict=match`, the
-run reads the Plan's `## Behaviours` section for the items it acts on itself, where it already
-reads a Design fork item: an `Elsewhere:` item, the shape [plan.md](plan.md) fixes, is a behaviour
-of the Ticket the Map shows has no place in the repository this run builds in. One such item stops
-the run here, as blocked, whatever the other items of the list are: a Ticket built without it would
-read `resolved` while one of its criteria cannot pass in this repository. The stop is one more
-refusal of this step, so it comes before the claim, the worktree and the Spec branch: nothing is
-claimed, cut or committed, no Builder is forked, no behaviour of the list is built, and the Ticket
-keeps the status the door printed as `status=`. The Plan stays where it was written.
-
-A finding either moves a behaviour or changes the feature, and the run tells the two apart before
-it writes anything, reading the item against the Ticket's criteria and the Digest. It moves when
-the criterion or the story the item traces to still reads true as written once it is built in the
-repository the item names: the words stay and the place changes. It changes the feature when that
-criterion or story would have to be rewritten before anything could be built, there or anywhere:
-what it asks for does not exist as it reads, or building it there would contradict another story,
-criterion or decision. A change of direction is never patched in as one more Ticket, so on such a
-finding `spec-finding.sh` is not run, nothing is written into the Spec and no `/tickets` command is
-handed over. The run stops as blocked the same way, with nothing claimed, cut or built, under the
-`direction` Handover class, and its Reply ends on the `/discuss` command the change-of-direction
-stop of [forks.md](forks.md) fixes, naming the Ticket, the Spec and what the run found. The rest of
-this section is the finding that moves.
-
-Before it stops, the run writes the finding into the Spec, so that `tickets`, which reads the Spec
-and never this conversation, has the moved behaviour to cut from. It is the one write of this
-stop, made by a script and never by hand, once per `Elsewhere:` item, with the item's own values:
-
-```sh
-bash <skill-dir>/scripts/spec-finding.sh <the Ticket's path> '<Belongs to>' '<the behaviour>' '<Location>' | tee <state>/finding.<n>
-```
-
-`<n>` is the item's number among the `Elsewhere:` items, from 1.
-
-Each value goes in single quotes, a single quote inside one written as `'\''`, and never in double
-quotes: a behaviour in the criterion's own words carries backticks, which a shell runs inside
-double quotes, and the item's text is cut from a Ticket a stranger may have appended to. The script
-refuses a value that carries a line break, a control character or a Unicode line separator, a
-name that could not stand as one entry's name (empty, or carrying `: `, the Home repository mark,
-the `Location not known` mark or a backtick), and a location that is not a bare
-absolute path, each as `failed <reason>` with nothing written.
-
-The script owns whether the Spec's `## Repositories` list already holds that repository, a match
-on the entry's whole name the session never makes by reading the Spec. It adds the entry when the
-list lacks it, creating the section with the Home repository's own entry first on a Spec that has
-none, and appends the finding line to the Spec's Implementation Decisions in the form
-[spec-format.md](../../../.agents/formats/spec-format.md) fixes, marked with this Ticket. It prints
-`spec=`, `repository=`, `listed=`, `list=`, `line=`, `home=`, `home_name=` and `here=`, saved in
-`<state>` for the Reply. `line=present` is a finding an earlier run on this Ticket already wrote,
-which is never written twice. No `choice-taker` is forked, since a finding is no Ruling: nothing is
-chosen between two sides. An exit of 3 prints `failed <reason>` and writes nothing, and the run
-stops on that reason in the finding's place.
-
-A run that can name the repository and not its location on this machine still writes the finding.
-The fourth argument is left out when the item's `Location:` reads `not known`, and never guessed
-from a sibling folder's name or filled with a placeholder. For a repository the list already holds
-nothing changes: the entry carries the location and the script prints `list=unchanged`. For one it
-does not hold, the script prints `list=no-location`: it writes the finding line with the repository
-named and ` Location not known.` at its end, and no entry in the list, since an entry with no
-location is one no skill can read. The location is then the one thing the developer supplies, and
-they type it with the `tickets` command the Reply ends on, which writes the entry: the run asks
-nobody for it, edits no file to hold it, and under `--auto` forks no `choice-taker` over it.
-
-The stop is the `outward` Handover class, keyed on the `Elsewhere:` item and never on the session's
-own reading of the tree: the behaviour is a write to a repository this run was not opened in, and
-cutting it into a Ticket there is the developer's command to type. The Reply is the first line,
-then the lines this call printed, copied as they stand, one finding file and its item's
-`Elsewhere:` behaviour per item, in the items' order:
-
-```sh
-bash <skill-dir>/scripts/reply-lines.sh elsewhere --door <state>/door <state>/finding.1 '<the behaviour>' [<state>/finding.2 '<the behaviour>' ...]
-```
-
-On exit 3 the run copies nothing and stops as blocked on the `failed <reason>` line. The run asks
-nothing before it: under `--auto` the stop is the same lines, with no `choice-taker` forked.
-
 The Plan's own `## Map` is
 the subsystem as it stood before the diff and goes no further than the loop: the review is never
 handed it, since each reviewer builds its own map after the diff, as the review in
@@ -1122,21 +1047,6 @@ Route on the first line:
   with the worktree and its branch named.
   Read [elsewhere.md](elsewhere.md) when the Builder's return carries a
   `stopped: work for another repository:` line.
-  One reason is neither kind: work for another repository, the `stopped:` line opening
-  `work for another repository:` in the shape [builder.md](builder.md) fixes, a behaviour that
-  needs a change in a repository this run does not build in. The Builder is not forked again and
-  nobody builds around the behaviour. The run takes the stop step 1 makes on an `Elsewhere:` item,
-  under **Work for another repository**, and words none of it a second time: the line's behaviour,
-  repository and location stand where the item's `Elsewhere:`, `Belongs to:` and `Location:`
-  stand, `spec-finding.sh` is run once with them and with `--step build` ahead of the Ticket's
-  path, so the finding line names the build step it was met at, the stop is the `outward`
-  Handover class, and the Reply is the lines `reply-lines.sh elsewhere` prints with
-  `--build <the run's worktree>` after `--door <state>/door`, the line's behaviour beside its
-  finding file. The worktree, its branch and the commits already on it are kept, as any blocked
-  build leaves them, for the next `/do` on the Ticket to resume from.
-  The reading that tells a move from a change of direction is made here too, on the line's
-  behaviour, and a change of direction ends on that section's `/discuss` command with the same
-  Ticket, worktree, branch and commits kept and named.
 
 Read [stand-in.md](stand-in.md) when no Builder can be forked: the Agent tool is withheld from the
 session, or it lists no `do-builder`.
@@ -1370,10 +1280,7 @@ landed, `outcome=landing-wait` when its landing record read `wait`, and `outcome
 integration lines above the Next step stay as [reply.md](reply.md) words them. A run that stopped
 on an Extreme fork ends on `outcome=extreme-fork` with `playbook=ticket`, per [forks.md](forks.md),
 and one on a Design fork no `choice-taker` ruled on the `/discuss` command [forks.md](forks.md)
-fixes, as its last line. A run that stopped on work for another repository,
-at the Plan or on a Builder's return, ends on `/tickets <spec>`, in the message
-[reply.md](reply.md) fixes for that stop. When the finding changes what the feature is, it ends on
-the `/discuss` command of the change-of-direction stop in [forks.md](forks.md) instead.
+fixes, as its last line.
 
 What it puts in the Run report: the Ticket and the Review under the files left uncommitted; under
 `Rulings`, every Ruling the forks in [forks.md](forks.md) made, a Design fork's in the

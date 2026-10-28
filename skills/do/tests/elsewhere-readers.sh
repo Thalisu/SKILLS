@@ -8,6 +8,7 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 elsewhere="$here/../references/elsewhere.md"
 skill="$here/../SKILL.md"
 ticket="$here/../references/ticket.md"
+reply="$here/../references/reply.md"
 fails=0
 
 echo "# elsewhere.md's readers: named in its opening, with the condition that sends them"
@@ -54,6 +55,19 @@ carries "the Reply passes --build with the run's worktree after --door" \
 carries "the worktree, its branch and the commits on it are kept" \
   "The worktree, its branch and the commits already on it are kept"
 carries "a change of direction there ends on the same /discuss command" "\`/discuss\`"
+
+echo "# a run that meets no work for another repository reads none of the stop's text"
+
+# ticket.md and reply.md are read by every ticket run; the stop lives in elsewhere.md alone.
+for file in "$ticket" "$reply"; do
+  out="$(tr '\n' ' ' <"$file" | tr -s ' ')"
+  name="$(basename "$file")"
+  absent "$name carries no Work for another repository block" "**Work for another repository.**"
+  absent "$name carries no spec-finding.sh call" "spec-finding.sh"
+  absent "$name carries no reply-lines.sh elsewhere call" "reply-lines.sh elsewhere"
+  absent "$name shapes no message for a run stopped on work for another repository" \
+    "stopped on work for another repository"
+done
 
 echo "# ticket.md's steps that meet work for another repository read elsewhere.md then"
 
