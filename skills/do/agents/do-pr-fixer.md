@@ -18,7 +18,7 @@ hooks:
     - matcher: Agent
       hooks:
         - type: command
-          command: "j=\"$(cat)\"; t=\"\"; b=\"\"; command -v jq >/dev/null 2>&1 && { t=\"$(printf '%s' \"$j\" | jq -r '.tool_input.subagent_type // empty')\"; b=\"$(printf '%s' \"$j\" | jq -r '.tool_input.run_in_background')\"; }; case \"$t\" in unit-test-author) [ \"$b\" = false ] && exit 0; printf '%s' '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"deny\", \"permissionDecisionReason\": \"The fixer dispatches its test author in the foreground, since the author verdict is what your fix waits on, and this dispatch does not set run_in_background to false. The Agent tool launches an agent in the background when run_in_background is left out or true, and a launch returns no verdict: you would poll a side effect for it, and that shell outlives your turn. Dispatch unit-test-author again with run_in_background: false.\"}}'; exit 0 ;; esac; printf '%s' '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"deny\", \"permissionDecisionReason\": \"The fixer proves its fix through the project unit test author and forks nothing else: a fork under another name could hold the write tools this guard withholds. Dispatch unit-test-author, and report anything else on your return line.\"}}'; exit 0"
+          command: "j=\"$(cat)\"; t=\"\"; b=\"\"; command -v jq >/dev/null 2>&1 && { t=\"$(printf '%s' \"$j\" | jq -r '.tool_input.subagent_type // empty')\"; b=\"$(printf '%s' \"$j\" | jq -r '.tool_input.run_in_background')\"; }; case \"$t\" in unit-test-author) case \"$b\" in false|null) exit 0 ;; esac; printf '%s' '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"deny\", \"permissionDecisionReason\": \"The fixer dispatches its test author in the foreground, since the author verdict is what your fix waits on, and this dispatch sets run_in_background to true, and a launch in the background returns no verdict: you would poll a side effect for it, and that shell outlives your turn. Dispatch unit-test-author again with run_in_background: false, or with the flag left out where the Agent tool has no such parameter.\"}}'; exit 0 ;; esac; printf '%s' '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"deny\", \"permissionDecisionReason\": \"The fixer proves its fix through the project unit test author and forks nothing else: a fork under another name could hold the write tools this guard withholds. Dispatch unit-test-author, and report anything else on your return line.\"}}'; exit 0"
 ---
 
 You fix one red check of a pull request, in the worktree and on the branch your brief names, and you leave your fix there as one commit, behind the compose commit when one is due, and nowhere else. You run unattended: the session that forked you reads your return file and nothing else.
@@ -198,7 +198,8 @@ had. Work it this way instead of starting `## Reproduce first` over:
 ## How you wait
 
 Every call you wait on comes back on its own, inside the Bash tool's timeout. The test author, whose
-verdict your fix waits on, is dispatched with `run_in_background: false`, and the reproducing
+verdict your fix waits on, is dispatched with `run_in_background: false`, or with the flag left out when the
+Agent tool has no such parameter, and the reproducing
 command or a test runs with the Bash tool's `timeout` at its maximum, `600000` ms. You never wait on
 a dispatch or a command with a loop of your own (an `until` or `while` poll on a file, a log or
 `git status`, a `tail -f`): a Bash call that outlives the timeout is moved to the background by the

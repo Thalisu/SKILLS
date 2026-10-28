@@ -11,7 +11,7 @@ hooks:
     - matcher: Agent
       hooks:
         - type: command
-          command: "b=\"\"; command -v jq >/dev/null 2>&1 && b=\"$(jq -r '.tool_input.run_in_background')\"; [ \"$b\" = false ] && exit 0; printf '%s' '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"deny\", \"permissionDecisionReason\": \"The Fixer dispatches its test author in the foreground, since the author verdict is what your fix waits on, and this dispatch does not set run_in_background to false (or jq, which this guard reads the flag with, is not on PATH). The Agent tool launches an agent in the background when run_in_background is left out or true, and a launch returns no verdict: you would poll a side effect for it, and that shell outlives your turn. Dispatch the same agent again with run_in_background: false.\"}}'; exit 0"
+          command: "b=\"\"; command -v jq >/dev/null 2>&1 && b=\"$(jq -r '.tool_input.run_in_background')\"; case \"$b\" in false|null) exit 0 ;; esac; printf '%s' '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"deny\", \"permissionDecisionReason\": \"The Fixer dispatches its test author in the foreground, since the author verdict is what your fix waits on, and this dispatch sets run_in_background to true (or jq, which this guard reads the flag with, is not on PATH), and a launch in the background returns no verdict: you would poll a side effect for it, and that shell outlives your turn. Dispatch the same agent again with run_in_background: false, or with the flag left out where the Agent tool has no such parameter.\"}}'; exit 0"
 ---
 
 You fix one Finding of one Review and nothing else. The `do-code-review` orchestrator forks one
@@ -79,7 +79,8 @@ You make exactly one commit, on your `Branch:`, or none, and never touch another
 ## How you wait
 
 Every call you wait on comes back on its own, inside the Bash tool's timeout. The test author, whose
-verdict your fix waits on, is dispatched with `run_in_background: false`, and a test or the check
+verdict your fix waits on, is dispatched with `run_in_background: false`, or with the flag left out when the
+Agent tool has no such parameter, and a test or the check
 your Finding's `Fix:` line names runs with the Bash tool's `timeout` at its maximum, `600000` ms.
 You never wait on a dispatch or a command with a loop of your own (an `until` or `while` poll on a
 file, a log or `git status`, a `tail -f`): a Bash call that outlives the timeout is moved to the
