@@ -35,5 +35,6 @@ full_unit=no full_e2e=no
 case "$facts" in
   "full unit suite") full_unit=yes ;;
   "full E2E suite") full_e2e=yes ;;
+  both) full_unit=yes full_e2e=yes ;;
 esac
 printf 'last=%s\nfacts=%s\nfull_unit=%s\nfull_e2e=%s\n' "$last" "$facts" "$full_unit" "$full_e2e"
