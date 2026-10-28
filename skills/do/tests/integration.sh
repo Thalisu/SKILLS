@@ -667,6 +667,32 @@ a_branch_behind_its_target_is_rebased_onto_the_branch_ref() {
 }
 a_branch_behind_its_target_is_rebased_onto_the_branch_ref
 
+# A tag named like the target never stands in for the branch: the run neither skips a rebase it
+# needs nor rebases over a move that never happened, whichever way the tag points.
+a_tag_named_like_the_target_never_decides_the_integration() {
+  run_held tag-ahead
+  g switch -q -c side
+  echo side >side.txt
+  g add side.txt
+  g commit -qm "a commit the branch never holds"
+  g tag main
+  g switch -q main
+  run_check "$wt" main "$PWD/.scratch/run.ledger.md"
+  check_lines "a tag named like the target pointing past the branch leaves a held target a no-op" 0 "$rc" \
+    "target=refs/heads/main" "verdict=noop"
+
+  run_held tag-behind
+  g tag main
+  echo moved >moved.txt
+  g add moved.txt
+  g commit -qm "the target moved"
+  run_check "$wt" main "$PWD/.scratch/run.ledger.md"
+  check_lines "a tag named like the target left at a held commit never hides the branch's move" 1 "$rc" \
+    "target=refs/heads/main" "verdict=rebase"
+  cd "$repo" || exit 1
+}
+a_tag_named_like_the_target_never_decides_the_integration
+
 if [ "$fails" = 0 ]; then echo "PASS"; else
   echo "$fails failing"
   exit 1
