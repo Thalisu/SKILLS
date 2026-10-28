@@ -1184,13 +1184,6 @@ Route on the first line:
   behaviour, and a change of direction ends on that section's `/discuss` command with the same
   Ticket, worktree, branch and commits kept and named.
 
-When `do-impeccable` returned `built` and the check of the main checkout read `verdict=untouched`,
-the run takes the same path from here as after a Builder: the diff of step 4, the Gate of step 5,
-the integration of step 6, the landing of step 7 and the close of step 9 run exactly as they do
-after a Builder, with no step added, skipped or changed for this fork. The run ends as a Builder's
-does: the Ticket reads `resolved`, and the Reply's last line is the next `/do`, the one the
-Completion check's `next=` line names.
-
 Read [stand-in.md](stand-in.md) when no Builder can be forked: the Agent tool is withheld from the
 session, or it lists no `do-builder`.
 
