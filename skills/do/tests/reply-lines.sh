@@ -671,6 +671,7 @@ same "elsewhere refuses findings that name different Specs with one failed line 
 # reply.md hands each of these groups of lines to the script and composes none of them itself: a
 # template or a selection rule left beside the call is the session composing the lines again.
 reply="$here/../references/reply.md"
+blocked="$here/../references/blocked-reply.md"
 elsewhere_ref="$here/../references/elsewhere.md"
 item29="$(item_holding "$reply" '[0-9]+\.' '**Spec landing lines.**')"
 item30="$(item_holding "$reply" '[0-9]+\.' '**Final integration lines.**')"
@@ -682,8 +683,8 @@ check "reply.md's Final integration lines are the ones reply-lines.sh final and 
   'reply-lines.sh final' 'reply-lines.sh repositories'
 out="$elsewhere_passage"
 check "elsewhere.md's work-for-another-repository stop is the lines reply-lines.sh elsewhere printed" 0 0 'reply-lines.sh elsewhere'
-out="$(cat "$reply")"
-check_absent "reply.md carries no template and no selection rule for the lines reply-lines.sh prints" 0 0 \
+out="$(cat "$reply" "$blocked")"
+check_absent "reply.md and blocked-reply.md carry no template and no selection rule for the lines reply-lines.sh prints" 0 0 \
   'Repositories: built in <' 'Final integration: not started, <' 'Stopped at the Plan, before anything was built:' \
   'Written into the Spec (<spec>)' 'takeover=yes' 'Every repository of the feature landed'
 
