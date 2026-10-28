@@ -305,8 +305,8 @@ Done when `git worktree list` no longer shows the run's worktree, or the step re
 
 **13. Reply.** Written by [reply.md](reply.md), its five parts. The `Plan:` line reads the bug
 back in a few words. For whom says who saw the defect and what they see now that it is fixed. A
-waived flow, a check that stood in for a test and a Design fork's Ruling go under Pending
-debt. The Next step is the stdout of `scripts/next-step.sh`, per item 10
+waived flow, a check that stood in for a test and a Design fork's Ruling, per [Forks](#forks)
+below, go under Pending debt. The Next step is the stdout of `scripts/next-step.sh`, per item 3
 of the Sections of [reply.md](reply.md): `outcome=landed` with `branch=` when the review landed,
 `outcome=unlanded` with `worktree=` and `run_branch=` when nothing landed. Read [run-report.md](run-report.md) when the run is under `--auto`, before it writes the Run report. Under
 `--auto` the Run report lists the Review under the files left uncommitted, and under `Rulings`,
