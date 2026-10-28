@@ -46,4 +46,21 @@ no_session_compare "the extreme= bullet leaves no hash comparison to the session
 out="$flat"
 check_absent "the session removes no sidecar itself, the script does" 0 0 "The run removes the sidecar"
 
+echo "# ticket.md / step 3: the re-check after a Builder's return, before the route"
+step="$(passage_of "$ticket" "**3. Build.**" "**4. Diff.**" | tr '\n' ' ' | tr -s ' ')"
+flat="$step"
+verify_at="$(first_at "grounding.sh verify <root> <ticket=> <ticket_hash=> <digest=> <digest_hash=> <the destination>")"
+route_at="$(first_at "Route on the first line")"
+expect "step 3 runs grounding.sh verify over the recorded values and the destination before the route" \
+  test "$verify_at" -gt 0 -a "$route_at" -gt "$verify_at"
+flat="${step:$((verify_at > 0 ? verify_at - 1 : 0)):$((route_at > verify_at ? route_at - verify_at : 0))}"
+carries_each "the re-check routes on the verify verdicts" \
+  "verdict=match" -- "verdict=moved" -- "verdict=refused"
+no_session_compare "the re-check leaves no hash comparison to the session"
+
+# do-impeccable returns no Plan, so its re-check is the call with no destination.
+flat="$(paragraph_with "$ticket" "The return of \`do-impeccable\` is the lines" | tr -s ' ')"
+carries "do-impeccable's return is re-checked by grounding.sh verify with no destination" \
+  "grounding.sh verify <root> <ticket=> <ticket_hash=> <digest=> <digest_hash=>\`"
+
 [ "$fails" = 0 ]

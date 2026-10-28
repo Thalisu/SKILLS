@@ -226,22 +226,17 @@ echo "# skills/do/references/ticket.md: the second \`## Sources\` reading re-has
 # rewrote a Ticket criterion (or the Digest) after the door hashed it sails through this gate
 # silently, since nothing re-reads the live file.
 flat="$(awk '
-  /^Before the route below is taken, the Plan is read once more:/ { on = 1 }
+  /^Before the route below is taken, the run re-checks the grounding/ { on = 1 }
   on { print }
   on && /^Route on the first line:/ { exit }
 ' "$playbook" | tr '\n' ' ' | tr -s ' ')"
 expect "the second-reading paragraph is present to scope the check against" test -n "$flat"
 
-carries_any "the second reading runs git hash-object again over the Ticket and the Digest" \
-  "hashes the Ticket and the Digest again" "git hash-object" "hashes them again" \
-  "re-hashes the Ticket and the Digest"
-
-carries_any "the second reading compares the recomputed hash against the door's recorded value" \
-  "against the door's recorded" "the door recorded for it" "the value the door recorded" \
-  "the hash the door recorded"
-
-carries_any "the second reading refuses on a Ticket or Digest hash that no longer matches" \
-  "no longer matches" "refuses when either" "refused when either" "either no longer matches"
+# The re-hash and its comparison moved into scripts/grounding.sh verify, proven by
+# skills/do/tests/grounding.sh; the step names the call over the recorded values.
+carries "the second reading re-hashes the Ticket and the Digest with grounding.sh verify over the recorded values" \
+  "grounding.sh verify <root> <ticket=> <ticket_hash=> <digest=> <digest_hash=>"
+carries "the second reading refuses on a Ticket or Digest hash that no longer matches" "verdict=moved"
 
 echo "# skills/do/references/ticket.md: the claim step re-hashes the Ticket and rewrites the Plan's \`## Sources\` line"
 

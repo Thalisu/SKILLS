@@ -1121,8 +1121,8 @@ the same checks of the return against the branch, the first line and the `resume
 and the same three routes, `built`, `fork` and `stopped`. Its `behaviour:` lines carry the Ticket's
 acceptance criteria where a Builder's carry the Plan's behaviours, and a criterion it could not
 build comes back as `stopped` or `fork`, never under `built`, and takes that route. With no Plan,
-the reading of the grounding before the route compares the Ticket's and the Digest's hashes and
-stops there. A re-fork after a `fork` or a cleared `stopped` hands it the same four-key brief. A
+the re-check before the route is the call with no destination,
+`grounding.sh verify <root> <ticket=> <ticket_hash=> <digest=> <digest_hash=>`, routed the same way. A re-fork after a `fork` or a cleared `stopped` hands it the same four-key brief. A
 spent time budget is cleared for it as for a Builder, since it asks the same command after each
 criterion's commit: the next Stretch is a new Agent call with `subagent_type: do-impeccable` and
 that same brief, never a Builder or a Planner in its place, and the run never ends as blocked over
@@ -1154,24 +1154,22 @@ refused to read the branch would drop every `built` return an issue-backed run e
 drops the return, picks the stretch up from what `resume-state.sh` just printed, which is the
 Resume section's own path, and records the fallback line for the Run report's Run section.
 
-Before the route below is taken, the Plan is read once more: before it is, the run hashes the
-Ticket and the Digest again, `git hash-object` run again under `<root>` over the two paths
-the door resolved before it forked, and compares each recomputed hash against the hash the door
-recorded for it there. Only when both still match does the `## Sources` check above run a second
-time at the destination step 1 named, over the same two hashes the door computed there, and print
-`match` or `refused` with no line of the file crossing into this window. A recomputed hash that no
-longer matches the door's recorded value is refused the same way, in one line naming the document
-that moved, before the check above ever runs, since a Plan whose `## Sources` lines still read
-`match` proves nothing about a Ticket or a Digest a fork rewrote after the door hashed it: the
-Plan's own lines never move to catch that. The Plan was verified before the fork and never read
-back after it, so this, together with the Ticket and Digest hashes just checked, is the run's one
-reading of the grounding a fork holding a shell in the worktree could have rewritten, and the
-`Bash` matcher on
-the Builder's own write guard is the layer above this reading, never a reason to skip it. On
-`refused` the return is dropped whatever wrote the mismatch, nothing it names is reported or
-landed, and the run stops as blocked in one line naming the mismatch, the worktree and its branch,
-the way step 1 stops on the same word: the next run grounds the Ticket again rather than building
-on a Plan the door no longer vouches for.
+Before the route below is taken, the run re-checks the grounding a fork holding a shell in the
+worktree could have rewritten, over the same records step 1 checked: the four values the run
+recorded, the Ticket's hash as the claim adopted it, and the destination step 1 named.
+
+```sh
+bash <skill-dir>/scripts/grounding.sh verify <root> <ticket=> <ticket_hash=> <digest=> <digest_hash=> <the destination>
+```
+
+- `verdict=match` (exit 0): the run takes the route below.
+- `verdict=moved` (exit 3) or `verdict=refused` (exit 1): the return is dropped whatever wrote the
+  mismatch, nothing it names is reported or landed, and the run stops as blocked in one line
+  naming the document of each `moved=` line or the `## Sources` mismatch, the worktree and its
+  branch. The next run grounds the Ticket again.
+
+The `Bash` matcher on the Builder's own write guard is the layer above this check, never a reason
+to skip it.
 
 Route on the first line:
 
