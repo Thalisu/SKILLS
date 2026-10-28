@@ -863,4 +863,27 @@ carries_each "the no scan: line is copied unchanged into Evidence in place of th
   -- \
   "reason" "why"
 
+echo "# skills/do/agents/do-impeccable.md: its body carries instructions only, no ADR and no argument beside a rule"
+
+# The fork runs on every stretch of a Front-end ticket, and every sentence of the body is paid in
+# each of those windows: why a rule holds lives in docs/adr/ alone. A Goal clause naming what an
+# instruction protects stays allowed, so only the argument forms are read, over the flattened body
+# since the definition hard-wraps: an ADR, a reason connective, and the arguments the body carried
+# before it was cut to instructions.
+impeccable_body="$(body_of "$agent" | tr '\n' ' ' | tr -s ' ')"
+out="$(grep -oE '.{0,40}(docs/adr/|\bADRs?\b).{0,40}' <<<"$impeccable_body")"
+same "the impeccable fork's body names no ADR and links nothing under docs/adr/" ""
+out="$(grep -oiE '.{0,40}(\b(because|so that|since)\b|, so (a|an|the|it|you)\b).{0,40}' <<<"$impeccable_body")"
+same "the impeccable fork's body gives no because, so-that, since or \", so a/the/it/you\" reason beside a rule" ""
+# shellcheck disable=SC2034  # lib.sh's check_absent reads $out
+out="$impeccable_body"
+check_absent "the impeccable fork's body keeps none of the arguments it carried beside its rules" 0 0 \
+  "anyone who can comment on it appends to" \
+  "nobody is there to look at one" "a fork has nobody to ask" \
+  "is a checkpoint nobody can trust" "the session and a fork resumed after you match commits" \
+  "The session cannot clear that reason" "would end the run as blocked over a clock" \
+  "that is what the budget is for" \
+  "one would have to guess the selectors" \
+  "keeps running there" "a stale shell"
+
 exit "$((fails > 0))"
