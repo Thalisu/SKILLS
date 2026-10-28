@@ -22,4 +22,18 @@ carries "the opening names the Resume that forks the Builder for unbuilt behavio
 carries_each "the opening names the condition: the Agent tool withheld, or the agent not listed" \
   "Agent tool" -- "withheld" -- "not listed" "lists no" "no \`do-reader\`"
 
+echo "# the session in the reader's place"
+
+flat="$(flat_section "$stand_in" "## The reader")"
+expect "stand-in.md carries a section for the reader" test -n "$flat"
+carries "the session reads the Spec and the journey itself" "reads both documents itself"
+carries_each "it writes the Digest at the same path and in the same format, Sources from the door's hashes" \
+  "same path" -- "same format" -- "the door's own hashes"
+carries "a document not on disk is recorded absent" "\`absent\`"
+carries "one line names the branch that holds, and the command that links the reader" \
+  "in one line which branch holds" "scripts/link-skills.sh"
+carries "the run neither stops nor asks for the tool or the agent" "neither stops nor asks"
+carries "no other agent is forked in the reader's place" "never forks another agent in the reader's place"
+carries "a reader failure is never stood in for" "never on a return the reader actually made"
+
 [ "$fails" -eq 0 ]
