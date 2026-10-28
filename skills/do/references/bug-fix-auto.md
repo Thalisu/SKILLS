@@ -1,5 +1,9 @@
 # bug-fix: run questions under `--auto`
 
+Read by the `bug-fix` Playbook only on a run under `--auto`: by step 11, Verification, when it
+reaches the question before a full suite or a remote run, and by the resume's discard question
+when it finds uncommitted changes in the worktree.
+
 A run question is one a step would put to the developer about the run itself: whether it carries
 on, and which way. Without the flag each is asked as its step says.
 

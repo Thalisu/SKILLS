@@ -1,5 +1,9 @@
 # bug-fix: the Extreme stop
 
+Read by the `bug-fix` Playbook's Design fork only when the run stops on it: when a side of the
+fork reads as Extreme, when the `choice-taker` returns `extreme`, and when no Ruling comes back,
+the unruled stop.
+
 The session never overrules either reading: a fork it read as ordinary that the `choice-taker`
 returned `extreme` on stops, under `--auto` as without it. The stop is a blocked run, written by
 the blocked shape of [reply.md](reply.md), nothing landed, and its blocker lines name the step, both

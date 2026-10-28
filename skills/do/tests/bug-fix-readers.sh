@@ -135,4 +135,30 @@ for file in "$bugfix" "$resume" "$design" "$extreme" "$auto"; do
     "docs/adr/" "](../../../.agents/principles/"
 done
 
+# Each reference cut from bug-fix.md, with the readers that reach it and the condition that sends
+# each one, groups separated by `--` and the reference's own entry closed by `==`.
+cut_references=(
+  "$resume" "step 1" "Worktree" -- "git worktree list" -- "git branch --list" -- "step 10" -- "route=resume" ==
+  "$design" "step 4" "Plan the fix" -- "step 6" "Fix" -- "Design fork" ==
+  "$extreme" "Design fork" -- "Extreme" -- "\`extreme\`" -- "no Ruling" ==
+  "$auto" "step 11" "Verification" -- "resume" -- "uncommitted" -- "--auto" ==
+)
+opening_of() { awk 'BEGIN { RS = "" } NR == 2 { gsub(/\n/, " "); print; exit }' "$1" 2>/dev/null | tr -s ' '; }
+
+echo "# each reference cut from bug-fix.md opens on the readers that reach it and the condition that sends them"
+group=()
+for item in "${cut_references[@]}"; do
+  if [ "$item" != "==" ]; then
+    group+=("$item")
+    continue
+  fi
+  file="${group[0]}"
+  name="$(basename "$file")"
+  flat="$(opening_of "$file")"
+  expect "$name opens on a paragraph after its title" test -n "$flat"
+  carries_each "$name's opening names every reader that reaches it and the condition that sends each one" \
+    "${group[@]:1}"
+  group=()
+done
+
 exit $((fails > 0))

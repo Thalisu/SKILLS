@@ -1,5 +1,9 @@
 # bug-fix: a Design fork
 
+Read by the `bug-fix` Playbook only when the run meets a Design fork, two shapes step 3's evidence
+and the code cannot settle: by step 4, Plan the fix, when the plan meets one, and by step 6, Fix,
+when the fix meets one.
+
 A Design fork is ruled inside the run, with or without `--auto`. The session takes these steps in
 order:
 
