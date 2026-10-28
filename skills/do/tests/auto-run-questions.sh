@@ -44,8 +44,8 @@ expect "verification.md's carries the item on a full suite or a remote run" test
 carries "verification.md's item says what its question becomes under --auto" "--auto"
 carries "verification.md's item names the choice-taker as what rules its question under --auto" \
   "choice-taker"
-carries "verification.md's item links forks.md, the home of the route" "(forks.md)"
-carries "verification.md's item still records each flow as not run on a no" "not run"
+carries "mechanics.md's verification item links run-questions.md, the home of the route" "(run-questions.md)"
+carries "mechanics.md's verification item still records each flow as not run on a no" "not run"
 
 # The one home of the route: only a question the table lists takes it, and the row names the file
 # of the step that asks it.
