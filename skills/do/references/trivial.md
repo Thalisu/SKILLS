@@ -63,8 +63,8 @@ fact a search settles.
 A refusal is that message cut short: the first line, the refusal with its reason, and the Playbook
 or the door the request goes to with the command to type. Nothing is edited and nothing is written.
 Every refusal of this Playbook names the one way on, so none carries a `Yours:` line, per
-[reply.md](reply.md): the door's five checks, a red gate and a `verdict=not-trivial`. The stops
-that hand something over are the two blocked ones, at steps 4 and 5, and each names its class.
+[reply.md](reply.md): the door's five checks and a red gate. The stops that hand something over
+are the blocked ones, and each names its class.
 
 ## Steps
 
@@ -207,14 +207,9 @@ The script is the lever a reviewer reruns, per
 - the initializer of an exported variable is not part of its head, so a log wording held in an
   exported constant passes the script and is the covering suite's to judge.
 
-The exit code decides what the run does next:
+Exit 0 prints `verdict=trivial`, and the run goes on to the commit.
 
-| Exit | Meaning | The run |
-|---|---|---|
-| 0 | `verdict=trivial` | goes on to the commit |
-| 1 | `verdict=not-trivial`, `goes_to=<playbook>` | restores the touched files (`git checkout -- <files>`, exact because step 1 refused a dirty target), commits nothing, and ends in one message quoting the script's lines and naming the Playbook: `refactoring` for a changed signature, a renamed, an extracted or an un-exported export; `discuss` for a new exported symbol or a new file; `bug-fix` for a test file the change had to touch, since a test is the test author's and goes red-first |
-| 2 | usage, or not a git repository | blocked; the reply quotes the error on the blocker's line, with `Yours: direction: fix what the error names, then type the request again` |
-| 3 | `verdict=judgment` | a touched file's language has no pattern: the run reads the diff itself against the same three questions (a test file, a new exported symbol, a changed signature), stops as for exit 1 when one holds, and says in the Run report that the second check was its own judgment and not the script's |
+Read [trivial-escape.md](trivial-escape.md) when `trivial-door.sh diff` exits other than 0.
 
 Done when the verdict is recorded for the Run report's Run section.
 

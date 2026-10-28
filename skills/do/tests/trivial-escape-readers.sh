@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# trivial-escape-readers.sh: trivial-escape.md holds what a trivial run does when the door on the
+# diff exits other than 0, so a run whose diff stays in the door's scope never loads it.
+# Run: bash skills/do/tests/trivial-escape-readers.sh
+set -uo pipefail
+here="$(cd "$(dirname "$0")" && pwd -P)"
+. "$here/../../../scripts/tests/lib.sh"
+trivial="$here/../references/trivial.md"
+fails=0
+
+echo "# trivial.md: the door on the diff keeps the exit-0 route and sends every other exit to trivial-escape.md"
+step="$(passage_of "$trivial" "### 5. Door on the diff" "### 6.")"
+expect "trivial.md carries its door on the diff" test -n "$step"
+flat="$(tr '\n' ' ' <<<"$step" | tr -s ' ')"
+carries "the step keeps the exit-0 route on to the commit" "verdict=trivial" "commit"
+pointer="$(grep -E '^Read \[trivial-escape\.md\]\(trivial-escape\.md\) when [^ ]' <<<"$step")"
+expect "the step sends a door exiting other than 0 to trivial-escape.md in one Read-when line" \
+  test "$(grep -c . <<<"$pointer")" = 1
+# shellcheck disable=SC2034  # lib.sh's absent reads $out
+out="$flat"
+absent "the step carries no not-trivial route" "verdict=not-trivial"
+absent "the step carries no re-route by goes_to=" "goes_to="
+absent "the step carries no judgment route" "verdict=judgment"
+absent "the step carries no restore of the touched files" "git checkout --"
+absent "the step carries no blocked reply for a door that could not run" "Yours: direction: fix what the error names"
+
+exit $((fails > 0))
