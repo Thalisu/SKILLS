@@ -108,23 +108,25 @@ the tracker file describes. Before anything is written:
   per
   [ADR 0084](../../../docs/adr/0084-a-feature-across-repositories-lands-in-sequence-and-what-landed-stays.md).
   Before the stop the run reads the landing record, in a call of its own:
-  `bash <skill-dir>/scripts/landing-order.sh <the Ticket's path>`, which writes nothing. A record
-  printing `repositories=` above 1, `verdict=landed` and a `next_landing=` line that reads
-  anything but `done` says the command was typed in a repository that already landed while
-  another is still to land, and the stop below takes the place of the resolved line. The record
-  reads each repository's state off that repository's own refs at the moment of the call, so the
-  run knows this one landed with no claim file, no Review and no memory of an earlier attempt.
-  The run does nothing: no claim, no worktree, no rebase, no review, no ref moved in any
-  repository, and nothing written. After the first line its message says in one line that this
+  `bash <skill-dir>/scripts/landing-order.sh <the Ticket's path>`, which writes nothing, then
+  hands the record's lines, as printed, to `bash <skill-dir>/scripts/landing-route.sh door` on
+  stdin and routes on the one `route=` line it prints. The run chooses no route from the record
+  itself.
+  - `route=already-landed`: the stop below takes the place of the resolved line. The run does
+    nothing: no claim, no worktree, no rebase, no review, no ref moved in any repository, and
+    nothing written.
+  - `route=resolved`: the run stops in the resolved line above, as a Ticket whose door printed
+    `build_repository=none` does without the call.
+  - An exit 2 stops the run as blocked with the script's stderr line quoted.
+
+  On `route=already-landed`, after the first line the message says in one line that this
   repository already landed, `Final integration: not started, <own=> already landed`, then names
   what is still to land with its command: the `Landed:` and `Still to land:` lines and the two
   lines of each repository still to land, as the Already landed shape of the Final integration
   lines in [reply.md](reply.md) words them, each copied off the record and never derived. Its
   last line is `/do <next_landing_ticket=>` and nothing else on the line. It carries no `Yours:`
-  line, since there is nothing to choose, and no shell line. Any other record (`repositories=`
-  reading 0 or 1, another verdict, or `next_landing=done`) stops in the resolved line above, as a
-  Ticket whose door printed `build_repository=none` does without the call. Under `--auto` the
-  stop is the same lines, with no `choice-taker` forked.
+  line, since there is nothing to choose, and no shell line. Under `--auto` either stop is the
+  same lines, with no `choice-taker` forked.
 - A Ticket whose Build repository cannot be built anywhere as it stands (`verdict=unbuildable`)
   stops the run before the claim in one line after the first line, chosen by `build_check=`, so the
   developer fixes the one input that is wrong instead of reading a git error:
@@ -479,15 +481,21 @@ there the run is a first Final integration of this repository and of no other, w
 of this project's facts and the Review at the `review_file=` path the claim prints.
 
 1. **The landing record.** `bash <skill-dir>/scripts/landing-order.sh <the Ticket's path>`, before
-   the claim and in a call of its own, as step 9a reads it on the run that completes the feature:
-   a repository is claimed only once the record says it is its turn. On `verdict=land` no
-   repository this one's Tickets are blocked by is still unlanded, and the run goes on to the
-   claim. The record's lines are kept as printed, `repositories=` among them.
-   On `verdict=wait` a repository this one consumes from has not landed: the landing command was
-   typed out of order, and the run stops here, before the claim. Nothing is integrated and
-   nothing is written: no claim file under this repository's key, no `spec-<feature-slug>`
-   worktree, no rebase, no review, no ref moved in any repository. The message is three lines
-   after the first line, each copied off the record, and carries no section of a Reply:
+   the claim and in a call of its own, as step 9a reads it on the run that completes the feature.
+   The record's lines are kept as printed, `repositories=` among them, and handed, as printed, to
+   `bash <skill-dir>/scripts/landing-route.sh resume` on stdin. The run routes on the one `route=`
+   line it prints and chooses no route from the record itself:
+   - `route=claim`: the run goes on to the claim of step 2.
+   - `route=out-of-order`: the run stops here, before the claim, as below.
+   - `route=skip-landed`, `route=skip-elsewhere`, `route=skip-open`, `route=blocked-ambiguous`,
+     `route=blocked-unordered` or `route=blocked-no-spec`: the run takes the route step 9a gives
+     the same `route=` line, and claims nothing.
+   - An exit 2 stops the run as blocked with the script's stderr line quoted, and claims nothing.
+
+   On `route=out-of-order` nothing is integrated and nothing is written: no claim file under this
+   repository's key, no `spec-<feature-slug>` worktree, no rebase, no review, no ref moved in any
+   repository. The message is three lines after the first line, each copied off the record, and
+   carries no section of a Reply:
    - `Final integration: not started, <next_landing=> has to land first`. `next_landing=` is the
      first repository in landing order that has not landed, the only one whose command lands
      anything now. On a chain of three it may differ from the one `waits_for=` names, whose own
@@ -1430,12 +1438,12 @@ On `verdict=complete` the run reads the landing record before any claim,
 `bash <skill-dir>/scripts/landing-order.sh <the Ticket's path>`: the repositories of the feature in
 the order they land, a provider before what consumes it, each with the state its own refs give,
 then `own=`, `waits_for=`, the `next_landing` lines and `verdict=`. A feature of one repository
-prints one group and `verdict=land`. The run composes none of those lines, keeps them for the
-Reply's Next step and the Run report, and routes on `verdict=`:
+prints one group. The run composes none of those lines and keeps them for the Reply's Next step
+and the Run report. It hands them, as printed, to `bash <skill-dir>/scripts/landing-route.sh final`
+on stdin, and routes on the one `route=` line it prints, choosing no route from the record itself:
 
-- **`land`**: no repository this one's Tickets are blocked by is still unlanded, so the run lands
-  its own repository, and no other, through the final integration in
-  [mechanics.md](mechanics.md), in its order:
+- **`route=claim`**: the run lands its own repository, and no other, through the final
+  integration in [mechanics.md](mechanics.md), in its order:
   - `bash <skill-dir>/scripts/final-claim.sh claim <the Ticket's path>`, routed on its exit code.
     `claim=taken` (exit 1) ends the run, not as blocked: the Reply reads that the Spec is being
     integrated by another run. `claim=failed` (exit 3) stops the run as blocked with its reason.
@@ -1450,21 +1458,20 @@ Reply's Next step and the Run report, and routes on `verdict=`:
   - After `claim=released`, when the first read printed `repositories=` above 1, the same
     `landing-order.sh` call a second time. The Reply's lines are copied from this second read and
     never from the first, so they state what the repositories hold now.
-- **`wait`**: a repository this one's Tickets are blocked by has not landed, and the order holds
-  for the run that completes the feature too. The step reads
-  `skip: <own=> waits for <waits_for=>`: no claim, no worktree, no rebase and no review, in this
-  repository or in the provider's. The record is the Reply's, which hands over the landing
-  commands in order.
-- **`ambiguous`** or **`unordered`**, exit 1: the run stops as blocked with the record's
-  `ambiguous=` or `cycle=` line quoted, and claims nothing.
-- **`landed`** or **`elsewhere`**: the step reads `skip:` with that verdict, nothing is claimed,
-  and the Reply says so in one line.
-- **`incomplete`**, exit 0: a Ticket of the feature reads open again since the Completion check,
-  so the step reads `skip: Tickets of the Spec still open`, as on a Completion check that never
-  printed `verdict=complete`, and claims nothing.
-- **`no-spec`**, exit 0: the record finds the Ticket in no feature folder although the Completion
-  check found its Spec, so the two reads disagree on the Ticket's own place: the run stops as
-  blocked with `verdict=no-spec` quoted, and claims nothing.
+- **`route=skip-waits`**: the step reads `skip: <own=> waits for <waits_for=>`: no claim, no
+  worktree, no rebase and no review, in this repository or in the provider's. The record is the
+  Reply's, which hands over the landing commands in order.
+- **`route=blocked-ambiguous`**: the run stops as blocked with the record's `ambiguous=` line
+  quoted, and claims nothing.
+- **`route=blocked-unordered`**: the run stops as blocked with the record's `cycle=` line quoted,
+  and claims nothing.
+- **`route=skip-landed`** or **`route=skip-elsewhere`**: the step reads `skip: landed` or
+  `skip: elsewhere`, nothing is claimed, and the Reply says so in one line.
+- **`route=skip-open`**: the step reads `skip: Tickets of the Spec still open`, as on a Completion
+  check that never printed `verdict=complete`, and claims nothing.
+- **`route=blocked-no-spec`**: the run stops as blocked with the record's `verdict=no-spec` line
+  quoted, and claims nothing.
+- An exit 2: the run stops as blocked with the script's stderr line quoted, and claims nothing.
 
 Any stop on the way makes no `release` call: the Spec branch, its worktree and the claim stay, the
 Ticket stays `resolved`, and the Reply says the Final integration stopped, why, and how it is
