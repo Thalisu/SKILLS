@@ -263,10 +263,10 @@ printed and never restated from a file the session read. The Run report carries 
   part checkable.
 - The loop line, the lines `bash <skill-dir>/scripts/loop-line.sh <the door's loop= line>
   agent=<available|withheld>` prints, quoted as they stand, with `agent=withheld` when the Agent
-  tool is withheld from the session. Its first line is the `Loop:` key a brief copies. Under
-  `fallback` the build loop reads [tdd-fallback.md](tdd-fallback.md) and the run writes every
-  test itself, with no test author dispatched. Under `policy` that file is never read, and under
-  `global` only when the global unit test author comes back `BLOCKED` naming a run command the
+  tool is withheld from the session. Its first line is the `Loop:` key a brief copies. Read
+  [tdd-fallback.md](tdd-fallback.md) when the loop line reads `Loop: fallback`: the run writes
+  every test itself, with no test author dispatched. Under `policy` that file is never read, and
+  under `global` only when the global unit test author comes back `BLOCKED` naming a run command the
   project map lacks, from that behaviour on (its `## When this file is read`).
 - A defect line when a behaviour reproduces a bug, judged from the Ticket's words per criterion
   line (a line that says something fails, throws, is wrong or came back) and never from a field:

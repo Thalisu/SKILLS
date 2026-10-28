@@ -158,8 +158,8 @@ the Run section fixes. The Run report carries them under `--auto`:
 - Done as a predicate: the pin green before and after, the target shape reached, every caller
   migrated and the old API gone, and the gate green in the worktree after the last edit.
 - The loop line: `Loop: policy` when `.claude/agents/unit-test-author.md` exists in the project,
-  `Loop: fallback` otherwise. Under `fallback` the pin's target-interface test and the build loop
-  read [tdd-fallback.md](tdd-fallback.md), and the run writes that
+  `Loop: fallback` otherwise. Read [tdd-fallback.md](tdd-fallback.md) when the loop line reads
+  `Loop: fallback`, for the pin's target-interface test and the build loop: the run writes that
   test itself with no test author dispatched; under `policy` that file is never read.
 - The protected-branch warning when it applies: the branch, the rule, and the line saying landing
   will be refused on it.
@@ -303,8 +303,9 @@ interface, written by the build loop's test authors and dispatched with the comp
 - an unresolved import of the target interface as the expected red.
 
 The step waits for `RED_AS_EXPECTED`; step 6 turns the test green. Its expectation comes from the
-target shape's contract and never from the code being moved. Under `Loop: fallback` the run writes
-that test itself by [tdd-fallback.md](tdd-fallback.md) and dispatches nobody.
+target shape's contract and never from the code being moved. Read
+[tdd-fallback.md](tdd-fallback.md) when the loop line reads `Loop: fallback`: the run writes that
+test itself and dispatches nobody.
 
 When the request does not settle the target interface, step 4's sketch settles it first and the
 test follows the sketch. The suite, the typecheck and the harness still come before any structure
