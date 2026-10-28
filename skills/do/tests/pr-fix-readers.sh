@@ -24,4 +24,22 @@ carries_each "the opening names the watch step, the later watches, the fix step 
 carries_any "the opening names the condition, the watch's first verdict=red" "${condition[@]}"
 carries_any "the opening names the pr Playbook it belongs to" "\`pr\` Playbook" "pr Playbook"
 
+echo "# SKILL.md: the references-list entry for pr-fix.md names the same readers and condition, and pr.md's entry leaves the fix round to it"
+skill="$here/../SKILL.md"
+flat="$(bullets_opening_on "$skill" "[pr-fix.md](references/pr-fix.md)" | tr -s ' ')"
+expect "SKILL.md's references list has an entry for pr-fix.md" test -n "$flat"
+carries_each "the entry names the watch step, the later watches, the fix step and the Reply" \
+  "${readers[@]}"
+carries_any "the entry names the condition, the watch's first verdict=red" "${condition[@]}"
+flat="$(bullets_opening_on "$skill" "[pr.md](references/pr.md)" | tr -s ' ')"
+expect "SKILL.md's references list has an entry for pr.md" test -n "$flat"
+carries_any "pr.md's entry leaves the fix round out of the steps it claims" \
+  "but the fix round" "except the fix round" "all but the fix round" "up to its first \`verdict=red\`"
+
+echo "# .agents/invocation.md: the do-pr-fixer row names pr-fix.md as the file that fixes its brief"
+row="$(grep -F '| `do-pr-fixer` |' "$here/../../../.agents/invocation.md")"
+expect "the do-pr-fixer row names skills/do/references/pr-fix.md" grep -qF "skills/do/references/pr-fix.md" <<<"$row"
+expect "the do-pr-fixer row no longer names skills/do/references/pr.md" \
+  bash -c '! grep -qF "skills/do/references/pr.md" <<<"$1"' _ "$row"
+
 exit $((fails > 0))
