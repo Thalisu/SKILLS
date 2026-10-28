@@ -278,8 +278,8 @@ and leaves the worktree as it is, since no branch can be read from it to build o
   bash <skill-dir>/scripts/grounding.sh digest <root> <ticket=> <the Digest's path> <the extreme= value>
   ```
 
-  - `verdict=extreme` (exit 5): the run stops again as blocked, by the blocked shape of
-    [reply.md](reply.md). The reply names what the Extreme stop names, the fork's
+  - `verdict=extreme` (exit 5): the run stops again as blocked, by the blocked shape.
+    Read [blocked-reply.md](blocked-reply.md) when the run stops again as blocked here. The reply names what the Extreme stop names, the fork's
     own facts read off the `discuss=` line and the commits off the script's `commit=` lines, and
     its last line is the `discuss=` line whole. The run forks no Planner, no Builder and no
     `choice-taker`, since judging the fork a second time could read it the other way, and it asks

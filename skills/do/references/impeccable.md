@@ -105,7 +105,8 @@ stop's class is `direction`: the Reply lists the `file=` lines the check printed
 files that changed since the fork began and never the work that was already uncommitted, a git hook
 or the git config among them as an absolute path, and carries one `Yours: direction:` line with the
 two choices, to move the files into the worktree by hand and run `/do` on the Ticket again, or to
-discard them and run `/do` again, in the blocked shape [reply.md](reply.md) fixes. The run removes
+discard them and run `/do` again, in the blocked shape.
+Read [blocked-reply.md](blocked-reply.md) when the run stops on a changed main checkout. The run removes
 nothing, in the main checkout or anywhere else: which of those files belong to the screen is the
 developer's to say. The worktree and its commits stay in place for the resume, and the Ticket still
 reads `claimed`.

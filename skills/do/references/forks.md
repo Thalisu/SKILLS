@@ -136,9 +136,10 @@ flag.
 
 ### The unruled stop
 
-The unruled stop is a blocked run, written by the blocked shape of [reply.md](reply.md), like the
-Extreme stop below and naming the same things, the reason in place of the guarantee: the Agent tool
-withheld, `choice-taker` not listed, or the return quoted.
+The unruled stop is a blocked run, written by the blocked shape, like the Extreme stop below and
+naming the same things, the reason in place of the guarantee: the Agent tool withheld,
+`choice-taker` not listed, or the return quoted.
+Read [blocked-reply.md](blocked-reply.md) when the run makes the unruled stop.
 
 Its last line is the `/discuss` command the Extreme stop fixes, whole, with two replacements:
 
@@ -272,8 +273,9 @@ The session never overrules either reading: a fork it read as ordinary and the `
 returned `extreme` on stops, and so does a fork it read as Extreme that a `choice-taker` might have
 settled.
 
-The stop is a blocked run, written by the blocked shape of [reply.md](reply.md), and its blocker
-lines, above its `Yours:` line, name:
+Read [blocked-reply.md](blocked-reply.md) when the run makes the Extreme stop.
+The stop is a blocked run, written by the blocked shape, and its blocker lines, above its `Yours:`
+line, name:
 
 - the step it stopped at, the Plan step or the build step, with the
   behaviour in flight when it was the build step;
@@ -336,8 +338,9 @@ apart. It is no fork. Nothing has two sides for a `choice-taker` to rule between
 forked, under `--auto` as without it, and nothing is written into the Spec: no entry in its
 repositories list, no finding line, no Ruling.
 
-It is a blocked run, written by the blocked shape of [reply.md](reply.md), with one `Yours:` line
-under the `direction` Handover class:
+Read [blocked-reply.md](blocked-reply.md) when the run makes the change-of-direction stop.
+It is a blocked run, written by the blocked shape, with one `Yours:` line under the `direction`
+Handover class:
 
 ```
 Yours: direction: settle what <the story or the criterion> becomes with the command below, then run /do on this Ticket again

@@ -72,7 +72,8 @@ report does not stand in for the Debt file, and the Run report stays written und
 The Reply itself carries no line naming the Debt file: no `Debt:` line beside the `Report:` line in
 the Plan block, and the Next step says nothing about it, so the message stays the five parts.
 
-A run that ends early writes a shorter message, per [blocked-reply.md](blocked-reply.md).
+A run that ends early writes a shorter message.
+Read [blocked-reply.md](blocked-reply.md) when the run ends blocked or refused.
 [Whole replies](#whole-replies) shows the shape of a run that landed.
 
 ## Voice
@@ -405,16 +406,17 @@ of the message: For whom, Pending debt and Next step, written the same way in bo
     | an `integrate` run blocked mid-operation | `integrate-blocked` | `integrate-door.sh`'s output |
     | a run that landed nothing, the review not callable or not landing | `unlanded` | `worktree=<the run's worktree>`, `run_branch=<its branch>` |
 
-    A refused or blocked run takes its route from [blocked-reply.md](blocked-reply.md),
-    and a run stopped on an Extreme fork from its Playbook's Extreme stop.
+    A refused or blocked run takes its route from the stop it made, and a run stopped on an
+    Extreme fork from its Playbook's Extreme stop.
+    Read [blocked-reply.md](blocked-reply.md) when the run ends blocked or refused, for the `outcome=` each stop names.
 
     A stopped Final integration says on its `Yours: direction:` line that a `do` on any Ticket of
     the Spec resumes it too, and what to fix first there or above it, never after the command. A
     landed run whose close finished is not a stop: the push stays on this line, the run
     never pushes, and its Reply carries no `Yours:` line. A landed run that then stopped at the
-    close's `destroy` stop carries exactly one `Yours: destroy:` line, per
-    [blocked-reply.md](blocked-reply.md); the push still stays on this Next step line and is never
-    named under `outward`. A `pr` run whose
+    close's `destroy` stop carries exactly one `Yours: destroy:` line; the push still stays on
+    this Next step line and is never named under `outward`.
+    Read [blocked-reply.md](blocked-reply.md) when the close stops at its `destroy` stop. A `pr` run whose
     watch read green, every check passed and the pull request mergeable, ends its line with
     `gh pr merge <n>`, its pull request's number, under that same rule as a landed run's push: the
     run never runs it, its Reply carries no `Yours:` line, and the merge is never named under

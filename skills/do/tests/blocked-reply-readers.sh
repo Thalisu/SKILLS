@@ -71,4 +71,18 @@ for where in opening entry; do
   absent "the $where does not send setup there" "\`setup\`"
 done
 
+# A maintainer finds every pointer by its shape: one written another way, or a step still sending
+# the session to reply.md for the blocked shape that left it, is a reader the search misses.
+echo "# skills/do: every pointer to blocked-reply.md reads Read [blocked-reply.md](blocked-reply.md) when <condition>"
+do_dir="$(cd "$here/.." && pwd -P)"
+pointers="$(grep -rnE '\]\(([^)]*/)?blocked-reply\.md\)' "$do_dir" --include='*.md' --exclude-dir=tests |
+  grep -vF -e "$do_dir/references/blocked-reply.md:" -e "$do_dir/SKILL.md:")"
+expect "the do skill carries at least one pointer to blocked-reply.md" test -n "$pointers"
+misshaped="$(grep -vE 'Read \[blocked-reply\.md\]\(blocked-reply\.md\) when [^ ]' <<<"$pointers")"
+expect "no pointer to blocked-reply.md has another shape" test -z "$misshaped"
+skill_links="$(grep -cE '\]\(([^)]*/)?blocked-reply\.md\)' "$skill")"
+expect "SKILL.md links blocked-reply.md in its references-list entry alone" test "$skill_links" = 1
+stale="$(grep -rnE 'blocked shape (of )?\[reply\.md\]' "$do_dir" --include='*.md' --exclude-dir=tests)"
+expect "no step still sends the blocked shape to reply.md" test -z "$stale"
+
 exit $((fails > 0))
