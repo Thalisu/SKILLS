@@ -57,6 +57,12 @@ on match.
 _Avoid_: mode, workflow, checklist (the checklist is a playbook's steps copied into the run's todo
 list), route (the route is the match, the playbook is what runs)
 
+**Goal clause**:
+The one clause a prompt may keep beside an instruction, naming what the instruction protects, and
+only where the instruction is not a closed list of cases. It carries no history, no rejected
+alternative and no ADR argument: those live in `docs/adr/` alone.
+_Avoid_: rationale, justification, why (in a prompt, each names what belongs in an ADR)
+
 **Trivial**:
 A change no test could tell before from after, so the existing suite is its whole gate: a typo, a
 doc or a comment, formatting, log wording, a rename inside one file, dead code, a lint fix.
