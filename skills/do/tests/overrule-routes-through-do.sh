@@ -8,7 +8,7 @@
 # sits in a worktree on `do/<slug>`, and the landing target is a separate branch only the `do` run
 # itself knows, so the call never lands the branch, silently contradicting this same doc's own claim
 # that `fix` "lands the branch once the Review is Green". Routing back through `/do` on the Ticket
-# resumes (ticket.md's Resume section, verdict=land) straight to that same fix call with the landing
+# resumes (resume.md's Resume section, verdict=land) straight to that same fix call with the landing
 # target the run already holds, and can close the Ticket.
 # Run: bash skills/do/tests/overrule-routes-through-do.sh
 set -uo pipefail

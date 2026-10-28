@@ -12,6 +12,7 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/../../../scripts/tests/lib.sh"
 playbook="$here/../references/ticket.md"
 mechanics="$here/../references/mechanics.md"
+resume="$here/../references/resume.md"
 fails=0
 
 # Every anchor below is a group of phrasings and every order is read with first_at, the way
@@ -85,7 +86,7 @@ echo "# skills/do/references/ticket.md: a resumed run keeps the claim and the wo
 
 # The order only moves the first run. A resume already holds both, and a run that rewrote the claim
 # or made a second worktree would be a fresh start over work the developer left half done.
-flat="$(flat_section "$playbook" "## Resume")"
+flat="$(flat_section "$resume" "## Resume")"
 expect "the Playbook carries a \`## Resume\` section" test -n "$flat"
 
 carries_any "a resumed run leaves the claim it already holds" \
@@ -103,7 +104,7 @@ echo "# skills/do/references/ticket.md: a resume the review already read lands w
 # would re-fork it, or a refused one stop the run as blocked, on a landing that never needed a Plan.
 # Scoped to the land bullet, since the bullet above it says every other resume runs the Plan step.
 land_open="- On \`verdict=land\`, the review already read this branch"
-flat="$(passage_of "$playbook" "$land_open" "- When every line of the list is ticked" |
+flat="$(passage_of "$resume" "$land_open" "- When every line of the list is ticked" |
   tr '\n' ' ' | tr -s ' ')"
 expect "the Resume section carries the \`verdict=land\` bullet" test -n "$flat"
 
@@ -125,7 +126,7 @@ carries_any "a landing-only resume hashes, checks and opens no Plan" \
 # The checklist line is what the Reply's Run section shows the developer: a step 1 reading `done:`
 # or left blank claims a grounding that never ran, and a skip with no landing reason reads as a
 # step the run dropped.
-flat="$(flat_section "$playbook" "## Resume")"
+flat="$(flat_section "$resume" "## Resume")"
 skip_reasons="$(grep -oE 'step 1[^`]{0,60}`skip: [^`]*`' <<<"$flat")"
 expect "the checklist's step 1 reads a skip whose reason names the landing-only resume" \
   grep -qiE '`skip: [^`]*land' <<<"$skip_reasons"
@@ -136,7 +137,7 @@ echo "# skills/do/references/ticket.md: a resume the review already read forks n
 # nowhere: the Plan step and the loop are skipped and the review already ran. A reader forked there
 # pays a window over the Spec and the journey both for a Digest nothing reads, so the verdict has to
 # be in hand before the decision, and the decision has to let it through whatever the hashes say.
-flat="$(passage_of "$playbook" "The first write comes after those stops" "## Resume" |
+flat="$(passage_of "$resume" "The run reads \`resume-state.sh\`" "A resumed Ticket is a Ticket of a Spec" |
   tr '\n' ' ' | tr -s ' ')"
 expect "the Door carries the Digest decision paragraph" test -n "$flat"
 
@@ -161,7 +162,7 @@ carries_any "the \`verdict=land\` exemption holds over a moved hash and a missin
 # The amended-Spec bullet re-forks the reader and continues the loop; on a landing-only resume the
 # loop is skipped, so a bullet read as firing there contradicts the land bullet and buys the fork
 # back.
-flat="$(passage_of "$playbook" "- A Spec amended while the Ticket is \`claimed\`" "## Checklist" |
+flat="$(passage_of "$resume" "- A Spec amended while the Ticket is \`claimed\`" "## Checklist" |
   tr '\n' ' ' | tr -s ' ')"
 expect "the Resume section carries the amended-Spec bullet" test -n "$flat"
 
@@ -178,7 +179,7 @@ echo "# skills/do/references/ticket.md: the reader-skip and Plan-skip rules key 
 # and the two Resume bullets below key their skip on the literal word `land`, so a resume stopped
 # there still forks a reader and re-runs the Plan step, burning a whole grounding window on a run
 # that builds nothing.
-flat="$(passage_of "$playbook" "The first write comes after those stops" "## Resume" |
+flat="$(passage_of "$resume" "The run reads \`resume-state.sh\`" "A resumed Ticket is a Ticket of a Spec" |
   tr '\n' ' ' | tr -s ' ')"
 
 carries_any "the door's reader-skip rule is keyed on \`review=\` naming a Review, not on \`verdict=land\` alone" \
@@ -192,7 +193,7 @@ carries_any "the door's reader-skip rule explicitly covers a \`verdict=integrati
   "\`land\` or \`integration\`" "land or integration" \
   "a rebase stopped mid-conflict after the review"
 
-flat="$(passage_of "$playbook" "- On every verdict but \`land\`, the Plan step runs again" \
+flat="$(passage_of "$resume" "- On every verdict but \`land\`, the Plan step runs again" \
   "- The Builder is forked at the first behaviour" | tr '\n' ' ' | tr -s ' ')"
 expect "the Resume section carries the Plan bullet" test -n "$flat"
 
@@ -201,7 +202,7 @@ carries_any "the Resume section's Plan bullet does not scope the re-run to the v
   "\`review=\` names no Review" "no Review named by \`review=\`" \
   "review= naming no Review" "review= names a Review"
 
-flat="$(passage_of "$playbook" "- On \`verdict=land\`, the review already read this branch" \
+flat="$(passage_of "$resume" "- On \`verdict=land\`, the review already read this branch" \
   "- When every line of the list is ticked" | tr '\n' ' ' | tr -s ' ')"
 
 carries_any "the verdict=land bullet's Plan-skip rule fires whenever \`review=\` names a Review, whatever the verdict printed" \
@@ -336,12 +337,12 @@ echo "# skills/do/references/ticket.md: a resumed Ticket whose Spec branch was n
 # blocked. Both passages have to turn on whether the Spec branch exists.
 spec_branch_exists=("spec_exists=yes" "spec_exists=no")
 
-flat="$(paragraph_with "$playbook" "A Ticket of a Spec" | tr -s ' ')"
+flat="$(paragraph_with "$resume" "is a Ticket of a Spec" | tr -s ' ')"
 expect "the Playbook carries the paragraph that says which Ticket is a Ticket of a Spec" test -n "$flat"
 carries_any "a Ticket is a Ticket of a Spec, with no review step, only when its Spec branch exists" \
   "${spec_branch_exists[@]}"
 
-flat="$(item_holding <(passage_of "$playbook" "## Resume" "## Checklist") '- ' "\`base=" |
+flat="$(item_holding <(passage_of "$resume" "## Resume" "## Checklist") '- ' "\`base=" |
   tr '\n' ' ' | tr -s ' ')"
 expect "the Resume section carries the bullet on the base the script prints for a Ticket of a Spec" test -n "$flat"
 carries_any "a resume reads the Spec branch as its base only when that branch exists, else the developer's branch" \

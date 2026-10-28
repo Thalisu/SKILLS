@@ -16,6 +16,7 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 mech="$here/../references/mechanics.md"
 forks="$here/../references/forks.md"
 ticket="$here/../references/ticket.md"
+resume="$here/../references/resume.md"
 bugfix="$here/../references/bug-fix.md"
 refactoring="$here/../references/refactoring.md"
 refactoring_auto="$here/../references/refactoring-auto.md"
@@ -210,11 +211,11 @@ still_asked_with_the_answer_shown() { # $1 the place, its statement of the disca
     "choice-taker" "(forks.md)"
 }
 
-# ticket.md routes a resume on the script's verdict, one bullet per verdict: every bullet that opens
-# on `verdict=ask` and speaks of the discard states the question, in a Ticket run's resume and in a
-# stopped Final integration's alike.
-ask_bullets="$(bullets_opening_on "$ticket" "\`verdict=ask\`" | grep -i "discard")"
-expect "ticket.md states the discard question on verdict=ask for a Ticket run's resume and for a stopped Final integration" \
+# resume.md and ticket.md route a resume on the script's verdict, one bullet per verdict: every bullet
+# that opens on `verdict=ask` and speaks of the discard states the question, in a Ticket run's resume
+# (resume.md) and in a stopped Final integration's (ticket.md) alike.
+ask_bullets="$({ bullets_opening_on "$resume" "\`verdict=ask\`"; bullets_opening_on "$ticket" "\`verdict=ask\`"; } | grep -i "discard")"
+expect "resume.md and ticket.md state the discard question on verdict=ask for a Ticket run's resume and for a stopped Final integration" \
   test "$(grep -c . <<<"$ask_bullets")" -ge 2
 n=0
 while IFS= read -r flat; do
@@ -224,12 +225,12 @@ done <<<"$ask_bullets"
 
 # The bullet that words the question in full is the one the session writes it from.
 flat="$(grep -E "per file|uncommitted=" <<<"$ask_bullets" | head -n 1)"
-expect "ticket.md has a verdict=ask bullet that words the discard question in full" test -n "$flat"
-carries_any "ticket.md's discard question names the changes one line per file" \
+expect "resume.md has a verdict=ask bullet that words the discard question in full" test -n "$flat"
+carries_any "resume.md's discard question names the changes one line per file" \
   "one line per file" "a line per file" "line per file" "one line each" "per file"
 # Read without the word `uncommitted`, which would answer for the commit.
 flat="${flat//uncommitted/}"
-carries_each "ticket.md has nothing stashed, committed or restored before the developer's answer" \
+carries_each "resume.md has nothing stashed, committed or restored before the developer's answer" \
   "stash" -- "commit" -- "restore" -- \
   "without the answer" "before the answer" "before it" "until the answer" "without their answer" \
   "before their answer" "before the developer answers" "until the developer answers" \
@@ -271,11 +272,11 @@ moved_moment="before an abort or a continue"
 # The bullet the session writes the question from, read from `moved=ask` on: what comes before it is
 # `moved=continue`, taken without asking. The `--auto` paragraph of the bullet above it belongs to
 # the `(continue / stop)` question, which the choice-taker rules, and is never read here.
-moved_bullet="$(bullets_opening_on "$ticket" "\`stop=moved\`" | grep -F "moved=ask" | grep -F "(abort / continue)" | head -n 1)"
-expect "ticket.md's stop=moved bullet words the (abort / continue) question on moved=ask" test -n "$moved_bullet"
+moved_bullet="$(bullets_opening_on "$resume" "\`stop=moved\`" | grep -F "moved=ask" | grep -F "(abort / continue)" | head -n 1)"
+expect "resume.md's stop=moved bullet words the (abort / continue) question on moved=ask" test -n "$moved_bullet"
 flat=""
 [ -z "$moved_bullet" ] || flat="${moved_bullet#*moved=ask}"
-still_asked_with_the_answer_shown "ticket.md's stop=moved bullet, at moved=ask," "$moved_question" "$moved_moment"
+still_asked_with_the_answer_shown "resume.md's stop=moved bullet, at moved=ask," "$moved_question" "$moved_moment"
 
 # The question as the developer reads it: the bullet's fenced block, one side at a time.
 asked=""
@@ -284,7 +285,7 @@ case "$flat" in *'```'*'(abort / continue)'*)
   asked="${asked%%\`\`\`*}"
   ;;
 esac
-expect "ticket.md's moved=ask question is a block closing on (abort / continue)" test -n "$asked"
+expect "resume.md's moved=ask question is a block closing on (abort / continue)" test -n "$asked"
 abort_side=""
 continue_side=""
 case "$asked" in *"abort:"*" continue:"*)
@@ -295,13 +296,13 @@ case "$asked" in *"abort:"*" continue:"*)
 esac
 # Read without `uncommitted=`, which would answer for `committed=`.
 flat="${abort_side//uncommitted=/}"
-carries_each "ticket.md's moved=ask question names what an abort drops line by line: the staged paths and the commits made by hand" \
+carries_each "resume.md's moved=ask question names what an abort drops line by line: the staged paths and the commits made by hand" \
   "one line per" "a line per" "line per" "per line" "one line each" "each on its own line" "each on a line" -- \
   "staged=" -- "committed="
 flat="$abort_side"
-carries "ticket.md's moved=ask question names the uncommitted work an abort drops" "uncommitted="
+carries "resume.md's moved=ask question names the uncommitted work an abort drops" "uncommitted="
 flat="$continue_side"
-carries_each "ticket.md's moved=ask question names what a continue lands again line by line: the commits the developer removed" \
+carries_each "resume.md's moved=ask question names what a continue lands again line by line: the commits the developer removed" \
   "one line per" "a line per" "line per" "per line" "one line each" "each on its own line" "each on a line" -- \
   "dropped="
 

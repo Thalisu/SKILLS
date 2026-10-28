@@ -325,7 +325,7 @@ echo "# skills/do/references/ticket.md and plan.md: the reuse/carry rule binds t
 
 # The carry is the branch before any fork runs, a Plan already at the destination: the step decides
 # it on grounding.sh plan's verdict, scoped to the paragraph that names the call.
-carry_para="$(paragraph_with "$playbook" "grounding.sh plan")"
+carry_para="$(paragraph_with "$here/../references/resume.md" "grounding.sh plan")"
 expect "the Playbook carries a paragraph running grounding.sh plan for the carry" \
   test -n "$carry_para"
 
@@ -345,13 +345,13 @@ carries_any "plan.md's carry paragraph states the same exact-match rule: name, p
   "name, path and hash" "the name, the path and the hash" "its name, its path and its hash" \
   "exactly the two records" "exactly two records" "the two records the door computed"
 
-echo "# skills/do/references/ticket.md: the Resume section names the Plan step's real behaviour"
+echo "# skills/do/references/resume.md: the Resume section names the Plan step's real behaviour"
 
 # The Resume section's own Plan bullet, not step 2's: step 2 already says a moved hash re-forks the
 # Planner with a write, and the Resume bullet has to agree with it rather than restate the step from
 # scratch. Scoped to the heading so a phrase step 2 carries legitimately is never read as this bullet's.
-flat="$(flat_section "$playbook" "## Resume")"
-expect "the Playbook carries a Resume section" test -n "$flat"
+flat="$(flat_section "$here/../references/resume.md" "## Resume")"
+expect "resume.md carries a Resume section" test -n "$flat"
 
 # shellcheck disable=SC2034  # lib.sh's check_absent reads $out
 out="$flat"

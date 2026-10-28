@@ -15,7 +15,7 @@ fails=0
 # pointer to the reference and the run of an impeccable Front-end ticket reads the rest there.
 echo "# ticket.md / ## Door: the Door points a Front-end: impeccable run at impeccable.md, once"
 expect "the Door carries the pointer to impeccable.md on a line of its own" \
-  grep -qF -- "$pointer" <(passage_of "$ticket" "## Door" "## Resume")
+  grep -qF -- "$pointer" <(passage_of "$ticket" "## Door" "## A stopped Final integration")
 expect "ticket.md carries that pointer exactly once" \
   test "$(grep -cF -- "$pointer" "$ticket")" = 1
 

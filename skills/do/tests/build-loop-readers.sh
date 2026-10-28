@@ -3,7 +3,7 @@
 # every step that reads the file. build-loop.md is read by the step that is about to build in
 # `bug-fix` and `refactoring`; in `ticket` it is read by the Builder, which the build step forks and
 # which runs the loop inside its own window, per builder.md; by the E2E author builder.md's flows
-# rule dispatches; and by the resume step (ticket.md and bug-fix.md read the `Behaviour:` line the
+# rule dispatches; and by the resume step (resume.md and bug-fix.md read the `Behaviour:` line the
 # build loop's commits carry per build-loop.md). A reader who trusts the "and by nothing else" /
 # "and by no other" claim concludes wrongly that only the build step reads it, and never checks the
 # Builder's or the resume step's own reading of it against a change here.
@@ -51,8 +51,8 @@ expect "the Builder's flows rule carries its REFUSED_INCOMPLETE_INPUT-route sent
 expect "the Builder's flows rule's REFUSED_INCOMPLETE_INPUT route resolves in build-loop.md" \
   grep -qF "[build-loop.md](build-loop.md)" <<<"$refused_para"
 
-expect "ticket.md's resume step links build-loop.md for the Behaviour: line" \
-  grep -qF "per the build loop in [build-loop.md](build-loop.md)" "$ticket"
+expect "resume.md's resume step links build-loop.md for the Behaviour: line" \
+  grep -qF "per the build loop in [build-loop.md](build-loop.md)" "$here/../references/resume.md"
 expect "bug-fix.md's resume step links build-loop.md for the Behaviour: line" \
   grep -qF "per the build loop in [build-loop.md](build-loop.md)" "$bug_fix"
 

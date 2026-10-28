@@ -17,6 +17,7 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 forks="$here/../references/forks.md"
 skill="$here/../SKILL.md"
 ticket="$here/../references/ticket.md"
+resume="$here/../references/resume.md"
 reply="$here/../references/reply.md"
 bugfix="$here/../references/bug-fix.md"
 fails=0
@@ -52,14 +53,14 @@ out="$principles_para"
 absent "forks.md no longer claims the brief hands no path to the principles" \
   "The brief hands no path to the principles"
 
-# ticket.md's Resume section actually links forks.md: the fork a resume meets again on an amended
+# resume.md's Resume section actually links forks.md: the fork a resume meets again on an amended
 # Spec or a reversed Ruling.
-resume_section="$(flat_section "$ticket" "## Resume")"
-expect "ticket.md carries a Resume section" test -n "$resume_section"
+resume_section="$(flat_section "$resume" "## Resume")"
+expect "resume.md carries a Resume section" test -n "$resume_section"
 if grep -qF "[forks.md](forks.md)" <<<"$resume_section"; then
-  ok "ticket.md's Resume section links forks.md"
+  ok "resume.md's Resume section links forks.md"
 else
-  fail "ticket.md's Resume section links forks.md"
+  fail "resume.md's Resume section links forks.md"
 fi
 
 # ticket.md's Reply step links forks.md for the Rulings it carries, and reply.md's own

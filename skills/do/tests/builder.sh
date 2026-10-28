@@ -166,8 +166,8 @@ flat="$step"
 # loop and author the flows in the session's own window, which is exactly what the pre-fix wording
 # had it do and what criterion 3 of the governing Ticket exists to prevent (the run reads the
 # Builder's diff and gates before the review, so nothing reaches the reviewers the run never checked).
-flat="$(flat_section "$playbook" "## Resume")"
-expect "the Playbook carries a \`## Resume\` section to scope this check against" test -n "$flat"
+flat="$(flat_section "$here/../references/resume.md" "## Resume")"
+expect "resume.md carries a \`## Resume\` section to scope this check against" test -n "$flat"
 
 carries_any "a resumed run with unbuilt behaviours forks the Builder rather than running the loop itself" \
   "The Builder is forked" "the Builder is forked"
@@ -179,7 +179,7 @@ check_absent "the Resume section no longer has the run build the flows itself be
 
 # The branch where every behaviour is already ticked still meets the fork's diff, never a flow it
 # treats as self-authored: it goes on at step 4 the way a first run does, reading the Builder's diff.
-flat="$(flat_section "$playbook" "## Resume")"
+flat="$(flat_section "$here/../references/resume.md" "## Resume")"
 carries_any "the branch where every behaviour is ticked reads the Builder's diff already on the branch" \
   "reading the diff already on the branch" "reads the diff already on the branch" \
   "the diff already on the branch"

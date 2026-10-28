@@ -8,6 +8,7 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/../../../scripts/tests/lib.sh"
 second_run="$here/../references/second-run.md"
 ticket="$here/../references/ticket.md"
+resume="$here/../references/resume.md"
 impeccable="$here/../references/impeccable.md"
 fails=0
 
@@ -29,16 +30,16 @@ carries_each "the second run routes on the digest check's reuse and fork verdict
 no_session_compare "the second run leaves no hash comparison to the session"
 
 echo "# ticket.md / ## Door: the Digest decision"
-flat="$(passage_of "$ticket" "Every other run, a resume whose" "## Resume" | tr '\n' ' ' | tr -s ' ')"
+flat="$(passage_of "$ticket" "Every other run goes on to the Digest decision" "## A stopped Final integration" | tr '\n' ' ' | tr -s ' ')"
 expect "ticket.md carries the door's Digest decision" test -n "$flat"
 carries "the door's Digest decision runs grounding.sh digest" "grounding.sh digest"
 carries_each "the door routes on the digest check's reuse and fork verdicts" \
   "verdict=reuse" -- "verdict=fork"
 no_session_compare "the door's Digest decision leaves no hash comparison to the session"
 
-echo "# ticket.md / ## Resume: the extreme= bullet"
-flat="$(passage_of "$ticket" "- An \`extreme=\` line means" "- On every verdict but" | tr '\n' ' ' | tr -s ' ')"
-expect "ticket.md carries the Resume extreme= bullet" test -n "$flat"
+echo "# resume.md / ## Resume: the extreme= bullet"
+flat="$(passage_of "$resume" "- An \`extreme=\` line means" "- On every verdict but" | tr '\n' ' ' | tr -s ' ')"
+expect "resume.md carries the Resume extreme= bullet" test -n "$flat"
 carries "the extreme= bullet hands the sidecar to grounding.sh digest" "grounding.sh digest"
 carries_each "the extreme= bullet routes on the extreme verdict and on the removed sidecar" \
   "verdict=extreme" -- "extreme=removed"

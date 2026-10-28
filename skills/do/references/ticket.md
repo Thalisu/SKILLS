@@ -1001,7 +1001,7 @@ reference, the slug step 2 already cut the worktree under, and never a path the 
 no file at: a probe that
 refused to read the branch would drop every `built` return an issue-backed run ever made. A return that fails either check is a fork that went wrong and not a build: the session
 drops the return and records the fallback line for the Run report's Run section.
-Read [resume.md](resume.md) when a Builder's return fails either check: the stretch is picked up from what `resume-state.sh` just printed, the Resume section's own path.
+Read [resume.md](resume.md) when a Builder's return fails either check: the run picks the stretch up from what `resume-state.sh` just printed, the Resume section's own path.
 
 Before the route below is taken, the run re-checks the grounding a fork holding a shell in the
 worktree could have rewritten, over the same records step 1 checked: the four values the run
