@@ -162,4 +162,33 @@ run final --door "$resume_door" --state "$state" --claim "$taken" --order "$orde
 same "final on a resume whose claim another run holds reads not resumed, with no resumed opener" \
   "Final integration: not resumed, its claim is held by /home/dev/app/.scratch/feature/issues/02-import.md since 2026-10-27T09:00:00Z"
 
+wait_order="$(
+  src wait_order <<'EOF'
+ticket=/home/dev/web/.scratch/feature/issues/04-show.md
+repositories=2
+repository=api
+repository_location=/home/dev/api
+repository_here=no
+repository_state=unlanded
+repository_ticket=/home/dev/app/.scratch/feature/issues/03-export.md
+repository=web
+repository_location=/home/dev/web
+repository_here=yes
+repository_state=unlanded
+repository_ticket=/home/dev/app/.scratch/feature/issues/04-show.md
+own=web
+waits_for=api
+waits_for_location=/home/dev/api
+next_landing=api
+next_landing_location=/home/dev/api
+next_landing_ticket=/home/dev/app/.scratch/feature/issues/03-export.md
+verdict=wait
+EOF
+)"
+run final --door "$door" --order "$wait_order"
+check_lines "final with no claim on a record that waits: exit 0" 0 "$rc"
+same "final with no claim on a record that waits says the feature is complete and the session's repository waits for its provider, at its location, then Open: none" \
+  "Final integration: not started, the feature is complete and web waits for api to land, at /home/dev/api
+Open: none"
+
 exit "$((fails > 0))"

@@ -57,9 +57,11 @@ select_shape() { # the sources present -> one FinalShape word, or failed no-shap
   for flag in claim release yield; do
     [ "$(v "$flag" claim)" != failed ] || failed "--$flag failed"
   done
-  local door claim
-  door="$(v door verdict)" claim="$(v claim claim)"
-  if [ "$claim" = taken ] && [ "$door" = resume-final ]; then
+  local door claim order
+  door="$(v door verdict)" claim="$(v claim claim)" order="$(v order verdict)"
+  if [ -z "${given[claim]-}" ] && [ "$order" = wait ]; then
+    echo waiting
+  elif [ "$claim" = taken ] && [ "$door" = resume-final ]; then
     echo not-resumed
   elif [ "$claim" = taken ]; then
     echo claimed-elsewhere
@@ -91,7 +93,7 @@ resume_line() { # the opener of a resumed Final integration
 }
 
 cmd_final() {
-  local shape branch holder since number resumed=no
+  local shape branch holder since number own waits location resumed=no
   shape="$(select_shape)" || {
     echo "$shape"
     exit 3
@@ -110,6 +112,13 @@ cmd_final() {
         }
         echo "Final integration: the Spec is being integrated by another run, $holder since $since; Ticket $number landed and reads resolved"
       fi
+      ;;
+    waiting)
+      value_of own order own
+      value_of waits order waits_for
+      value_of location order waits_for_location
+      echo "Final integration: not started, the feature is complete and $own waits for $waits to land, at $location"
+      echo "Open: none"
       ;;
     landed)
       [ -n "${given[review]-}" ] || failed "--review missing"
