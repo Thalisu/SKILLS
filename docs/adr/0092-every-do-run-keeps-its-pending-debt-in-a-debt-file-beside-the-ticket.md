@@ -14,3 +14,14 @@ the rest of the Run report is still written under `--auto` alone.
   item a run without `--auto` named would be lost, and those are most of them.
 - **Write the whole Run report on every run**: the file per run nobody opens that ADR 0091 removed,
   to keep one part of it.
+
+Amended: per ADR 0113, the reasons `reply.md` and `blocked-reply.md` gave beside the Debt file's
+rules live here. A tracker Ticket's Debt file sits beside the Plan, where `/debt` never gathers it,
+per `.agents/formats/debt-format.md`, which also carries why a run's section holds no
+`## Pending debt` heading of its own. A run that owes nothing still writes its section, reading
+plain `none`, so the file tells a run that owed nothing apart from a Ticket with no Debt file, one
+whose runs never wrote their debt down. The Reply carries no line naming the Debt file, so the
+message stays the five parts of ADR 0091. A run refused before any edit writes no section, since it
+built nothing and owes nothing, and a run stopped after work exists writes one, since it writes the
+Pending debt part among the five parts and its items have to survive into the file the next run
+appends to.

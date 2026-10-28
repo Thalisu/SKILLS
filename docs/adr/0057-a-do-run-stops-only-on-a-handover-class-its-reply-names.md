@@ -16,3 +16,17 @@ claim, an ambiguous status, an unresolved blocker and a protected target are sti
 - A test script that greps the references for the `Yours:` line: it pins structure, goes red on
   every rewording and catches no run that hands an action over. The proof is an eval reproducing
   a fix already on the branch behind a Finding that reads `not fixed`, graded on the run landing.
+
+Amended: per ADR 0113, the reasons `blocked-reply.md` gave beside its rules live here. A first run
+refused on a protected branch states the `status=` the door printed, since nothing was claimed or
+cut by that run. A resume whose claim of the Final integration read `taken` is a stop, unlike a
+first run's, since it came to finish the Final integration and could not, and whether the holder is
+alive is the developer's call. A refusal of a Ticket an earlier run claimed names the claim, the
+worktree, the branch and its commits, so the developer reads that the Ticket is kept for the `/do`
+that follows the blocker and the sentence never reads as nothing existing. A run stopped as blocked
+lists no later step as skipped, since it never reached those steps. A refusal that sends the
+request on to another Playbook, door or skill carries no `Yours:` line, since it is the router's own
+`Playbook: none` one step later and the command is the one way on. Work for another repository is
+handed over under `outward`, since building it is a write to a repository the run was not opened
+in, and a push a blocked Reply hands over is named under `outward`, since a push is a write outside
+the repository the run never makes itself.
