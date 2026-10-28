@@ -19,4 +19,6 @@ case "$1:$verdict" in
   final:land) echo "route=claim" ;;
   final:wait) echo "route=skip-waits" ;;
   final:ambiguous | final:unordered | final:no-spec) echo "route=blocked-$verdict" ;;
+  final:landed | final:elsewhere) echo "route=skip-$verdict" ;;
+  final:incomplete) echo "route=skip-open" ;;
 esac

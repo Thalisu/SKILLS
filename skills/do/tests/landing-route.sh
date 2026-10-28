@@ -40,4 +40,10 @@ for blocked in ambiguous unordered no-spec; do
   same "at the final site, verdict $blocked routes the run to its own blocked stop" "route=blocked-$blocked"
 done
 
+for skip in landed:skip-landed elsewhere:skip-elsewhere incomplete:skip-open; do
+  route final < <(record "${skip%%:*}")
+  expect "at the final site, verdict ${skip%%:*} exits 0" [ "$rc" = 0 ]
+  same "at the final site, verdict ${skip%%:*} routes the run to its own skip" "route=${skip#*:}"
+done
+
 exit "$fails"
