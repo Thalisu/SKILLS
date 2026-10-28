@@ -31,9 +31,9 @@ so the developer never types the request again only so that a human is present. 
 integration once more, in the worktree, onto the moved branch, as the integration of [mechanics.md](mechanics.md) says: every
 contested hunk takes the **Target** side and its **Incoming** side goes to the same Loss ledger,
 the Loss ledger judged and the reapplies brought back, with no **Gate** of the run's own after the
-last of them. Each reapply goes through `check-reapply.sh` with its `replace` and `with` exactly as
-[conflict-loop.md](conflict-loop.md) says,
-and on this integration that check is the only reading its `with` text gets, since no reviewer
+last of them. Each reapply goes through `check-reapply.sh` with its `replace` and `with`. Read
+[conflict-loop.md](conflict-loop.md) when the integration reaches a stop or brings a reapply back.
+On this integration that check is the only reading its `with` text gets, since no reviewer
 reads a commit made after the review: a block the script refuses writes nothing, is recorded
 `none`, and is listed among this integration's drops, marked as coming after the review, as a line
 of the Reply's Pending debt with or without `--auto`, and in the Run report under `--auto`. The integration hands the branch straight to the fix call on the Review the run already
