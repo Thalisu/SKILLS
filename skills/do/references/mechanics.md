@@ -20,10 +20,10 @@ A case no rule here names is judged by which of the three it risks.
 
 Read the section the step links whole, with the sections it points at. A part a step reads on its
 own is a file beside this one, so a step that reaches for it carries none of the rest:
-[build-loop.md](build-loop.md) carries the loop and its test authors, [forks.md](forks.md) the
-forks of the `ticket` Playbook, which `bug-fix` and `refactoring` never read since each carries its
-own, and [conflict-loop.md](conflict-loop.md) the conflict loop every stop of the integration
-runs. [integrate.md](integrate.md) builds in no worktree and reads that last file alone.
+[build-loop.md](build-loop.md) carries the loop and its test authors, and
+[conflict-loop.md](conflict-loop.md) the conflict loop every stop of the integration runs. Read
+[forks.md](forks.md) when a `ticket` run meets a fork: `bug-fix` and `refactoring` never read it,
+since each carries its own. [integrate.md](integrate.md) builds in no worktree and reads that last file alone.
 
 ## What no step does
 
@@ -153,7 +153,7 @@ run.
   that question.
 - During the build the file is read and never written: the criteria and the `What to build` line
   are where the behaviours come from. The one exception is a criterion's text a Ruling rewrote as
-  the losing side, the forks of [forks.md](forks.md). A Ticket that is an issue is never written
+  the losing side (Read [forks.md](forks.md) when a Ruling rewrites one). A Ticket that is an issue is never written
   during the build,
   that exception included: the rewrite rides the close's yes.
 - The status walk and who writes each word are the format's. The run writes `claimed` at the
@@ -227,7 +227,7 @@ then the text the reader returned. A `## Sources` section in the text the reader
 dropped before the write, since a stranger's text can steer the reader into returning one of its
 own, and the run says so in one line, so the written Digest carries exactly one `## Sources`
 section, the door's own. A Digest already at that path is replaced whole and never edited, with one
-exception the forks of [forks.md](forks.md) carry: the `## Sources` lines a `settled` Ruling that rewrote no Ticket
+exception (Read [forks.md](forks.md) when a Ruling lands): the `## Sources` lines a `settled` Ruling that rewrote no Ticket
 criterion moves in place, the rest of the file left as it stands.
 The run shows the Digest's location in the thread, and the steps that build on
 the slice open that file and read its quotes there.
@@ -673,7 +673,7 @@ Loss ledger: <the absolute path>
 The path alone goes over, never the ledger's text: the orchestrator relays the line and the
 technical reviewer opens the file. A run whose integration wrote no ledger has no ledger to name
 and sends no such argument, and the reviewer's own `none` is the orchestrator's to write. A run
-that holds a Ruling, the forks of [forks.md](forks.md), sends the held Rulings as one block of
+that holds a Ruling (Read [forks.md](forks.md) when it does) sends the held Rulings as one block of
 text, so the review
 holds the build to the Ruling and to a rewritten criterion the Ticket issue does not carry yet:
 

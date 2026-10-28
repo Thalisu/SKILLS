@@ -4,9 +4,9 @@ The last step of the chain. It takes one Ticket, in the format of
 [ticket-format.md](../../../.agents/formats/ticket-format.md), and nothing else: never a Spec,
 never a session summary. The parts it shares with the other Playbooks that build in a worktree
 are in [mechanics.md](mechanics.md), linked from the steps that use them, with the loop and its
-test authors in [build-loop.md](build-loop.md), the forks in [forks.md](forks.md) and every stop of
-the integration in [conflict-loop.md](conflict-loop.md), each read by the step that reaches it and
-by no other. The reply is written by [reply.md](reply.md): five parts, and every other line a step
+test authors in [build-loop.md](build-loop.md) and every stop of the integration in
+[conflict-loop.md](conflict-loop.md), each read by the step that reaches it and by no other. Read
+[forks.md](forks.md) when a step meets a fork. The reply is written by [reply.md](reply.md): five parts, and every other line a step
 records here goes to the Run report, a file written under `--auto` alone and kept nowhere without
 the flag. The checklist below is copied verbatim into the run as its todo
 list before any task-specific item, and the Run report's Run section carries it ticked, with the
@@ -396,15 +396,16 @@ through the Agent tool with `subagent_type: do-planner` and the brief [plan.md](
 that file's own list and never a second one here: a copy of the list in this file drifts from the
 brief the fork is actually handed. A held Ruling that carries a `Now reads:` pair reaches the fork
 through the brief's `Criteria:` key, whose text is the `Now reads:` text and never the text the
-Ticket issue still carries, per the forks in [forks.md](forks.md). The door's own reading
+Ticket issue still carries: Read [forks.md](forks.md) when a held Ruling carries that pair. The
+door's own reading
 of this Ticket's `Ruled by the choice-taker on Ticket <this Ticket>` lines, recorded when it forked the reader per the reader section of [mechanics.md](mechanics.md), and
 just as much at the Digest decision that reused a Digest and forked none, reaches it through the brief's
 `Rulings:` key, since the Digest carries no Implementation Decisions section and the fork opens no
 Spec: a criterion that still reads the side an edited line reversed comes back as a Design fork in
 the Plan rather than as a behaviour, and the session rules on it. A Design fork the Plan names, two
-shapes the Ticket, its Spec and the code cannot settle, goes to the forks in
-[forks.md](forks.md), which the session and never the fork walks, since the Ruling is
-written to the Spec and the fork holds no tool that writes one. A defect whose cause the
+shapes the Ticket, its Spec and the code cannot settle, is walked by the session and never the
+fork, since the Ruling is written to the Spec and the fork holds no tool that writes one: Read
+[forks.md](forks.md) when the Plan names one. A defect whose cause the
 Ticket does not name, the one step 0 wrote a defect line for reading `cause unknown, diagnosis
 first`, is diagnosed before the fork by the reproduce and cause steps of
 [bug-fix.md](bug-fix.md), steps 2 and 3 there, since the diagnosis needs a running program and the
@@ -533,8 +534,8 @@ Home repository and never a copy in the repository the session is in. The claim 
 written. On a remote
 tracker the run waits for a yes before it, asked with the `Yours: outward:` line the claim in
 [mechanics.md](mechanics.md) carries; a no stops the run with nothing written. Under `--auto`
-that question is still asked of the developer, with the `choice-taker`'s return shown above it,
-per [forks.md](forks.md). On a local
+that question is still asked of the developer, with the `choice-taker`'s return shown above it:
+Read [run-questions.md](run-questions.md) when the run is under `--auto` and asks it. On a local
 Ticket it proceeds without one, per
 [never-block-on-the-human](../../../.agents/principles/never-block-on-the-human.md): the claim is
 a reversible file write, and an interrupt costs the developer one turn.
@@ -687,7 +688,8 @@ Route on the first line:
   the `build:`, `flow:` and `fallback:` lines its Build lines, copied unchanged and never composed: a `fallback:` line is how the Run report says the Builder wrote the code
   itself because no Implementer could be dispatched. The step goes on to step 4.
 - `fork`: the Builder met a Design fork and ruled on nothing. The run says in one line that it met
-  one and names both sides, then follows the Design fork in [forks.md](forks.md): the
+  one and names both sides, then follows the Design fork (Read [forks.md](forks.md) when the
+  return reads `fork`): the
   `choice-taker` forked in this session, the returned Ruling written to the Spec's Implementation
   Decisions, the Ticket criterion rewritten only when that criterion was the losing side. Then the
   Builder is forked again with the same brief, its `Rulings:` key now carrying that Ruling. A
@@ -934,7 +936,8 @@ and one on a Design fork no `choice-taker` ruled on the `/discuss` command [fork
 fixes, as its last line.
 
 What it puts in the Run report: the Ticket and the Review under the files left uncommitted; under
-`Rulings`, every Ruling the forks in [forks.md](forks.md) made, a Design fork's in the
+`Rulings`, every Ruling the run's forks made (Read [forks.md](forks.md) when the run holds one), a
+Design fork's in the
 `On the Spec:` group and a run question's in the `On the run:` group, each group `none` when it
 holds no Ruling; the Spec landing lines `reply-lines.sh landing` printed, its `Open:` and
 `Repositories:` lines among them. On a Ticket of a

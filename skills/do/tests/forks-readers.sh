@@ -234,5 +234,9 @@ expect "forks.md's Design fork section says what --auto does to a Design fork" t
 carries_each "forks.md's Design fork section has an extreme return or a side read as Extreme stop the run under --auto" \
   "extreme" "Extreme" -- "stop"
 
+echo "# every pointer to forks.md reads \`Read [forks.md](forks.md) when <condition>\`"
+pointers_shaped "every pointer to forks.md has the \`Read <file> when <condition>\` shape" \
+  "$(cd "$here/.." && pwd -P)" forks.md 10
+
 [ "$fails" -eq 0 ] && exit 0
 exit 1

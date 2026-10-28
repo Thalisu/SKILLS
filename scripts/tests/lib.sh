@@ -250,7 +250,7 @@ pointers_to() { # $1 the skill's folder, $2 a reference's file name: every link 
   for file in "$1"/references/*.md "$1"/agents/*.md; do
     [ "$file" = "$1/references/$2" ] && continue
     tr '\n' ' ' <"$file" | tr -s ' ' |
-      grep -oE "(Read )?\[[^]]*\]\([^)]*$re[^)]*\)( when )?" | sed "s|^|$(basename "$file"): |"
+      grep -oE "(Read )?\[[^]]*\]\(([^)]*/)?$re(#[^)]*)?\)( when )?" | sed "s|^|$(basename "$file"): |"
   done
 }
 pointers_shaped() { # $1 label, $2 the skill's folder, $3 a reference's file name, $4 the fewest pointers the skill holds to it: each reads `Read [<file>](<file>) when `
