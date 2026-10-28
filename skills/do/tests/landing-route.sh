@@ -34,4 +34,10 @@ route final < <(record wait)
 expect "at the final site, verdict wait exits 0" [ "$rc" = 0 ]
 same "at the final site, verdict wait routes the run to the skip that waits for its provider" "route=skip-waits"
 
+for blocked in ambiguous unordered no-spec; do
+  route final < <(record "$blocked" 0)
+  expect "at the final site, verdict $blocked exits 0" [ "$rc" = 0 ]
+  same "at the final site, verdict $blocked routes the run to its own blocked stop" "route=blocked-$blocked"
+done
+
 exit "$fails"
