@@ -232,8 +232,10 @@ Run report's Run section and the reproduction is committed with its behaviour li
 command in the body.
 
 **6. Fix.** The smallest fix that removes the mechanism step 3 confirmed, written by the session on
-top of the red. It holds for every valid input, not only the test's: never a branch or a constant
-that recognises the reproduction's input. Then the rest of the build loop in [build-loop.md](build-loop.md): the single-file
+top of the red. It holds for every valid input, not only the test's: a branch or a constant that
+recognises the reproduction's input is the test rewritten as code, and the defect survives on the
+next input. Then the rest of the build loop (Read [build-loop.md](build-loop.md) when the fix is
+green): the single-file
 command green, a refactor on green, then typecheck and format the touched files, each from the
 project's facts, with `skip: <reason>` for a command the project does not have. One commit, staged
 by path, its body carrying the behaviour line and the single-file command. A change to the test's
