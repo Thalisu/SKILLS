@@ -33,4 +33,17 @@ echo "# every pointer to change-of-direction.md reads \`Read [change-of-directio
 pointers_shaped "every pointer to change-of-direction.md has the \`Read <file> when <condition>\` shape" \
   "$do_dir" change-of-direction.md 2
 
+echo "# change-of-direction.md and SKILL.md's entry name its readers and the condition that sends them"
+readers=("the Plan step" -- "the build step" -- "Reply" "reply")
+condition=("work for another repository" -- "changes what the feature is" "change, not move")
+flat="$(awk 'BEGIN { RS = "" } !/^#/ { gsub(/\n/, " "); print; exit }' "$direction" 2>/dev/null | tr -s ' ')"
+carries_each "the opening names the Plan step, the build step on a Builder's return, and the Reply" \
+  "${readers[@]}"
+carries_each "the opening names the condition: work for another repository that changes what the feature is" \
+  "${condition[@]}"
+flat="$(bullets_opening_on "$do_dir/SKILL.md" "[change-of-direction.md](references/change-of-direction.md)")"
+expect "SKILL.md's references list has an entry for change-of-direction.md" test -n "$flat"
+carries_each "the entry names the same readers" "${readers[@]}"
+carries_each "the entry names the same condition" "${condition[@]}"
+
 [ "$fails" -eq 0 ]
