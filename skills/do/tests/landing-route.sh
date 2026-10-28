@@ -72,4 +72,20 @@ for door in "landed 1 api:a record of one repository" "no-spec 0 done:a record o
   same "at the door site, ${door#*:} routes the run to the resolved stop" "route=resolved"
 done
 
+refuses "no site exits 2 with nothing on stdout" opens "usage: landing-route.sh" < <(record land)
+refuses "an unknown site exits 2 with nothing on stdout" opens "usage: landing-route.sh" gate < <(record land)
+refuses "more than one argument exits 2 with nothing on stdout" opens "usage: landing-route.sh" final resume < <(record land)
+refuses "a record with no verdict line exits 2 with nothing on stdout" opens "landing-route.sh:" final \
+  < <(record land | grep -v '^verdict=')
+refuses "a record with two verdict lines exits 2 with nothing on stdout" opens "landing-route.sh:" final \
+  < <(
+    record land
+    echo "verdict=wait"
+  )
+refuses "a verdict outside the eight exits 2 with nothing on stdout" opens "landing-route.sh:" final < <(record merged)
+refuses "at the door site, a repositories count that is no integer exits 2 with nothing on stdout" opens "landing-route.sh:" door \
+  < <(record landed many)
+refuses "at the door site, a landed record above one repository with no next landing exits 2 with nothing on stdout" \
+  opens "landing-route.sh:" door < <(record landed 2 | grep -v '^next_landing=')
+
 exit "$fails"
