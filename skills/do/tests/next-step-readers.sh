@@ -9,7 +9,7 @@ refs="$here/../references"
 script="$here/../scripts/next-step.sh"
 fails=0
 
-for name in reply ticket setup bug-fix refactoring integrate pr mechanics forks; do
+for name in reply ticket setup bug-fix refactoring integrate pr mechanics extreme-fork; do
   files=("$refs/$name.md")
   [ "$name" = reply ] && files+=("$refs/blocked-reply.md")
   if grep -qF 'scripts/next-step.sh' "${files[@]}"; then
