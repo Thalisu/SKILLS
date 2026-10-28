@@ -30,4 +30,8 @@ route final < <(record land)
 expect "at the final site, verdict land exits 0" [ "$rc" = 0 ]
 same "at the final site, verdict land routes the run to the claim" "route=claim"
 
+route final < <(record wait)
+expect "at the final site, verdict wait exits 0" [ "$rc" = 0 ]
+same "at the final site, verdict wait routes the run to the skip that waits for its provider" "route=skip-waits"
+
 exit "$fails"
