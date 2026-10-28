@@ -95,4 +95,8 @@ run outcome=integrate-blocked yours=no op=rebase 'abort=git rebase --abort'
 same "an integrate run blocked mid-operation ends on the abort command the door printed" \
   "$(printf '%s\n' 'git rebase --abort' 'exit 0')"
 
+run outcome=unlanded yours=no worktree=/home/dev/notes/.claude/worktrees/do-export run_branch=do/export
+same "a run that landed nothing names its worktree, its branch, and the review and the landing as the developer's to run" \
+  "$(printf '%s\n' 'Nothing landed: the work sits in /home/dev/notes/.claude/worktrees/do-export on do/export, and the review and the landing are yours to run.' 'exit 0')"
+
 exit "$((fails > 0))"

@@ -113,6 +113,10 @@ main() {
       need abort
       echo "${key[abort]}"
       ;;
+    unlanded)
+      need worktree run_branch
+      echo "Nothing landed: the work sits in ${key[worktree]} on ${key[run_branch]}, and the review and the landing are yours to run."
+      ;;
     claim-taken) echo "Another run is integrating the Spec, and there is nothing to type." ;;
     final-stopped)
       need ticket
