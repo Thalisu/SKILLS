@@ -34,22 +34,22 @@ rules_it_under_auto() { # $1 the place, its text flattened in $flat: it names `-
 
 echo "# the question before a full suite or a remote run: ruled by the choice-taker under --auto"
 
-# The shared mechanics: the verification's own item, where every Playbook sends the reader.
-verification="$(passage_of "$mech" "## The verification" "## The close")"
+# verification.md: the verification's own item, where every Playbook sends the reader.
+verification="$(cat "$here/../references/verification.md")"
 flat="$(item_holding <(printf '%s\n' "$verification") '[0-9]+\.' "remote run" | tr '\n' ' ' | tr -s ' ')"
-expect "mechanics.md's verification carries the item on a full suite or a remote run" test -n "$flat"
-carries "mechanics.md's verification item says what its question becomes under --auto" "--auto"
-carries "mechanics.md's verification item names the choice-taker as what rules its question under --auto" \
+expect "verification.md's carries the item on a full suite or a remote run" test -n "$flat"
+carries "verification.md's item says what its question becomes under --auto" "--auto"
+carries "verification.md's item names the choice-taker as what rules its question under --auto" \
   "choice-taker"
-carries "mechanics.md's verification item links forks.md, the home of the route" "(forks.md)"
-carries "mechanics.md's verification item still records each flow as not run on a no" "not run"
+carries "verification.md's item links forks.md, the home of the route" "(forks.md)"
+carries "verification.md's item still records each flow as not run on a no" "not run"
 
 # The one home of the route: only a question the table lists takes it, and the row names the file
 # of the step that asks it.
 flat="$(passage_of "$forks" "### A run question under" "### " | grep '^|' | grep -E 'full suite|remote run')"
 expect "forks.md's table of run questions has a row for the question before a full suite or a remote run" \
   test -n "$flat"
-carries "forks.md's row for that question names mechanics.md, the file of its step" "(mechanics.md)"
+carries "forks.md's row for that question names ticket.md, the file of its step" "(ticket.md)"
 
 # Every Playbook that reaches the verification restates the question at its own step.
 flat="$(item_holding "$ticket" '\*\*[0-9]+\.' ". Verification.**" | tr '\n' ' ' | tr -s ' ')"

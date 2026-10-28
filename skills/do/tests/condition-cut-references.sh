@@ -108,4 +108,33 @@ flat="$({ tr '\n' ' ' <"$refs/second-run.md"; } 2>/dev/null | tr -s ' ')"
 carries "second-run.md runs the digest check and routes on its reuse and fork verdicts" \
   "grounding.sh digest" "\`verdict=reuse\`" "\`verdict=fork\`"
 
+echo "# verification.md: a run with no affected flow loads none of the front-end verification text"
+
+# mechanics.md is read by every Playbook that builds in a worktree; the flows run after the landing
+# are read only by a run that has one.
+flat="$(tr '\n' ' ' <"$refs/mechanics.md" | tr -s ' ')"
+carries "mechanics.md points at verification.md when the run has an affected flow" \
+  "Read [verification.md](verification.md) when " "affected flow"
+# shellcheck disable=SC2034  # lib.sh's absent reads $out
+out="$flat"
+absent "mechanics.md no longer holds the verification" "## The verification"
+absent "mechanics.md no longer runs the affected flows itself" "scripts/flows.sh [--infra <pattern>]"
+for playbook in ticket.md bug-fix.md refactoring.md; do
+  flat="$(tr '\n' ' ' <"$refs/$playbook" | tr -s ' ')"
+  carries "$playbook's verification step points at verification.md" "Read [verification.md](verification.md) when "
+done
+for file in ticket.md bug-fix.md refactoring.md forks.md; do
+  # shellcheck disable=SC2034  # lib.sh's absent reads $out
+  out="$(tr '\n' ' ' <"$refs/$file" | tr -s ' ')"
+  absent "$file no longer sends the verification to mechanics.md" "verification in [mechanics.md](mechanics.md)"
+  absent "$file no longer names mechanics.md as the verification's home" "verification of [mechanics.md](mechanics.md)"
+done
+
+expect "verification.md exists" test -f "$refs/verification.md"
+flat="$({ tr '\n' ' ' <"$refs/verification.md"; } 2>/dev/null | tr -s ' ')"
+carries "verification.md runs the affected flows by script and stops blocked on an infrastructure failure" \
+  "scripts/flows.sh" "\`verdict=blocked\`"
+carries "verification.md asks before a full suite, ruled by the choice-taker under --auto" "--auto" "choice-taker"
+carries "verification.md fixes a red flow as one more unit of the build loop" "[build-loop.md](build-loop.md)" "\`bugfix\`"
+
 [ "$fails" -eq 0 ]

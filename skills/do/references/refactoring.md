@@ -610,7 +610,8 @@ reads its skip with the worktree and its branch named.
 
 ### 13. Verification
 
-The verification in [mechanics.md](mechanics.md), from the main checkout after the landing:
+Read [verification.md](verification.md) when the run has an affected flow, from the main checkout
+after the landing:
 
 - the affected flows run with the command line printed first;
 - the one question is asked before a full suite or a remote run, and under `--auto` the

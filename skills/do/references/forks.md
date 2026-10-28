@@ -370,7 +370,7 @@ Only a question whose own step names it as ruled under `--auto` takes this route
 | The question | Its step |
 |---|---|
 | continue or stop, on a resumed integration whose rebase is open with no conflicted file | the Resume of [ticket.md](ticket.md) |
-| whether a full suite or a remote run runs | the verification of [mechanics.md](mechanics.md), at the verification step of [ticket.md](ticket.md) |
+| whether a full suite or a remote run runs | the verification step of [ticket.md](ticket.md) |
 
 A question before something that cannot be undone or that leaves the machine is never one, and its
 step asks it under the flag as without it, in the same place and the same words: uncommitted work

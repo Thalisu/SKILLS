@@ -378,8 +378,8 @@ Done when the landing line recorded there reads `landed at <commit>`, or the run
 with the review's reason quoted and the worktree and its branch named, or the step reads
 `skip: do-code-review not listed` with the worktree and its branch named.
 
-**11. Verification.** The verification in [mechanics.md](mechanics.md): the affected flows from the
-main checkout with the command line printed first, the one question before a full suite or a remote
+**11. Verification.** Read [verification.md](verification.md) when the run has an affected flow:
+the affected flows from the main checkout with the command line printed first, the one question before a full suite or a remote
 run, which the `choice-taker` rules under `--auto`, per
 [Run questions under `--auto`](#run-questions-under---auto) below, and a red flow as one more unit of the loop, handed with no **Gate** of the run's own to the
 fix call on the same Review, which lands it again with no second review. A defect with no user-observable surface
@@ -504,7 +504,7 @@ Without the flag each is asked as its step says.
 
 | The question | Its step | Under `--auto` |
 |---|---|---|
-| whether a full suite or a remote run runs | 11, the verification in [mechanics.md](mechanics.md) | ruled by the `choice-taker` |
+| whether a full suite or a remote run runs | 11, the verification step | ruled by the `choice-taker` |
 | whether uncommitted changes in the worktree are discarded | the Resume above | still asked, with the `choice-taker`'s return shown above it |
 
 A ruled question takes the Design fork's brief, with `Caller:` `do` at that step under `--auto`,

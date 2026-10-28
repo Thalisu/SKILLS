@@ -1152,8 +1152,8 @@ blocked with the review's reason quoted and the worktree and its branch named, o
 **8. Verification.** On a Ticket of a Spec the step reads
 `skip: landed on the Spec branch, which the main checkout does not hold`: the flows run from the
 main checkout, and nothing of this Ticket is there until the Spec branch itself lands. On a Ticket
-with no Spec it is the verification in [mechanics.md](mechanics.md): the affected flows from
-the main checkout through `scripts/flows.sh`, its command line printed first, the one question
+with no Spec, Read [verification.md](verification.md) when the run has an affected flow: the
+affected flows from the main checkout through `scripts/flows.sh`, its command line printed first, the one question
 before a full suite or
 a remote run, which the `choice-taker` rules under `--auto`, per [forks.md](forks.md), and a red flow as one more unit of the loop, handed with no **Gate** of the run's own
 to the fix call on the same Review, which lands it again. Done when every affected
