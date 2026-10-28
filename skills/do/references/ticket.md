@@ -205,8 +205,7 @@ the tracker file describes. Before anything is written:
 The first write comes after those stops and never before one of them. On `verdict=resume-final`
 the run makes no Digest decision and forks no reader: it goes straight to
 `## A stopped Final integration` below, whose first step reads the landing record.
-Every other run, a resume whose `review=` line reads `none` included, goes on to the Digest
-decision. Read [second-run.md](second-run.md) when a Digest already sits beside the Ticket. Then
+Every other run goes on to the Digest decision. Read [second-run.md](second-run.md) when a Digest already sits beside the Ticket. Then
 the door runs the digest check,
 `bash <skill-dir>/scripts/grounding.sh digest <root> <ticket=> <the Digest's path>`, and reads this Ticket's Ruling lines off its
 `spec=` path by the fixed command of the reader section of [mechanics.md](mechanics.md), whichever verdict it prints. On
