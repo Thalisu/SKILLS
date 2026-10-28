@@ -21,6 +21,9 @@
 #                                 with no entry, section or Spec, or ambiguous with detail saying why
 #   spec_beside <file>            prints the spec.md beside its issues/ folder, /dev/null with no
 #                                 Spec or no issues/ folder
+#   journey_beside <spec>         prints the journey the Spec's first Journey: line names, a
+#                                 relative location joined to the Spec's folder; none for no line,
+#                                 required, not needed, or a Spec of /dev/null
 #   main_of <directory>           prints the main worktree of the repository holding it, nothing
 #                                 when it is in none
 #   home_root <file> <main checkout>
@@ -160,6 +163,16 @@ spec_beside() { # $1 Ticket file: prints the spec.md beside its issues/ folder, 
   if [ "$(basename "$folder")" = issues ] && [ -f "$(dirname "$folder")/spec.md" ]; then
     echo "$(dirname "$folder")/spec.md"
   else echo /dev/null; fi
+}
+
+journey_beside() { # $1 the Spec's path, or /dev/null: prints the journey's absolute path its Journey: line names, or none
+  local value
+  value="$(grep -m1 '^Journey:' "$1" 2>/dev/null | sed -E 's/^Journey:[[:space:]]*//; s/[[:space:]]+$//')"
+  case "$value" in
+    "" | required | "not needed"*) echo none ;;
+    /*) echo "$value" ;;
+    *) echo "$(dirname "$1")/$value" ;;
+  esac
 }
 
 # An entry is `- {name}[ (Home repository)]: {location}`, one line, the name matched whole with the

@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# grounding.sh: the contract of scripts/grounding.sh, the checks that a grounding artifact (a Digest,
+# a Plan) still matches the documents it was cut from, each decided by a printed verdict line.
+# Run: bash skills/do/tests/grounding.sh
+set -uo pipefail
+here="$(cd "$(dirname "$0")" && pwd -P)"
+. "$here/../../../scripts/tests/lib.sh"
+script="$here/../scripts/grounding.sh"
+fails=0
+tmp="$(mktemp -d)"
+trap 'cd /; rm -rf "$tmp"' EXIT
+
+run() { # $1.. the script's arguments: its stdout in $out, its exit in $rc
+  rc=0
+  # shellcheck disable=SC2034  # lib.sh's check_lines and same read $out
+  out="$(cd "$tmp" && bash "$script" "$@" 2>/dev/null)" || rc=$?
+}
+
+hash_of() { (cd "$root" && git hash-object "$1"); } # $1 path: its object name under $root
+
+# A Home repository at $tmp/<name> with one feature folder: sets root, feature, ticket_file, spec and
+# digest. $2 is the Spec's Journey: line.
+home() { # $1 name, $2 the Spec's Journey: line
+  fresh "$1"
+  root="$(pwd -P)"
+  feature="$root/.scratch/20260101-feature"
+  issues="$feature/issues"
+  mkdir -p "$issues"
+  ticket 01-thing.md '**Status:** open' none
+  ticket_file="$issues/01-thing.md"
+  spec="$feature/spec.md"
+  printf '# Spec\n\n%s\n\n## User Stories\n\n1. A story.\n' "$2" >"$spec"
+  digest="$issues/01-thing.digest.md"
+}
+
+digest_with() { # $1.. the Digest's ## Sources lines
+  {
+    printf '# Digest\n\n## Sources\n\n'
+    printf '%s\n' "$@"
+    printf '\n## Stories\n\nnone\n'
+  } >"$digest"
+}
+
+home reuse 'Journey: not needed'
+digest_with "spec: $spec $(hash_of "$spec")" "journey: absent"
+run digest "$root" "$ticket_file" "$digest"
+check_lines "digest reuses a Digest whose records match the Spec and a journey still absent" 0 "$rc" "digest=present" "verdict=reuse"
+
+[ "$fails" = 0 ]
