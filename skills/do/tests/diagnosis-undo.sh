@@ -71,4 +71,16 @@ check_lines "the Spec branch is the start, so the branch carrying only its lande
 gone "the Spec-branch worktree is gone afterwards" worktree_listed "$wt"
 gone "the do/restore branch is gone afterwards" branch_listed do/restore
 
+echo "# diagnosis-undo.sh: a diagnosis that committed something its start lacks"
+cd "$tmp" || exit 1
+diagnosis_repo ancestry-fails export
+wt="$(branch_worktree "$top" export)"
+printf 'probe\n' >>"$wt/notes.txt"
+g -C "$wt" commit -q -am "wip: instrument the export"
+run "$ticket_path" worktree=none run_branch=none
+check_lines "both are kept with reason ancestry, exit 1" 1 "$rc" \
+  "start=HEAD" "ancestry=fails" "worktree=kept $wt ancestry" "branch=kept do/export ancestry"
+expect "the worktree is still listed" worktree_listed "$wt"
+expect "the do/export branch is still there" branch_listed do/export
+
 exit "$fails"
