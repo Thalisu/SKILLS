@@ -23,6 +23,38 @@ carries "the opening names the build step" "build step"
 carries "the opening names the condition that sends the build step: the Builder's work-for-another-repository stopped line" \
   "\`stopped: work for another repository:\`"
 
+echo "# the stop at the Plan step, as it runs today"
+
+flat="$(flat_section "$elsewhere" "## At the Plan step")"
+expect "elsewhere.md carries a section for the Plan step" test -n "$flat"
+carries_each "one \`Elsewhere:\` item stops the run as blocked before the claim, the worktree and the Spec branch" \
+  "as blocked" -- "before the claim, the worktree and the Spec branch"
+carries "the Ticket keeps the status the door printed" "\`status=\`"
+carries_each "a change of direction runs no spec-finding.sh and ends on forks.md's /discuss command" \
+  "change of direction" -- "\`spec-finding.sh\` is not run" -- "\`direction\`" -- "\`/discuss\`" -- "[forks.md](forks.md)"
+carries "spec-finding.sh is run once per \`Elsewhere:\` item, its output saved per item" \
+  "scripts/spec-finding.sh <the Ticket's path> '<Belongs to>' '<the behaviour>' '<Location>' | tee <state>/finding.<n>"
+carries_each "each value is single-quoted, a quote inside written as '\\''" "single quotes" -- "'\\''"
+carries "the fourth argument is left out on \`Location: not known\`" "The fourth argument is left out"
+carries "no choice-taker is forked over a finding" "No \`choice-taker\` is forked"
+carries "the stop is the \`outward\` Handover class" "\`outward\` Handover class"
+carries "the Reply is the lines reply-lines.sh elsewhere prints" \
+  "scripts/reply-lines.sh elsewhere --door <state>/door <state>/finding.1 '<the behaviour>'"
+carries "on exit 3 the run copies nothing" "On exit 3 the run copies nothing"
+carries "under --auto the stop is the same lines" "under \`--auto\` the stop is the same lines"
+
+echo "# the stop at the build step, as it runs today"
+
+flat="$(flat_section "$elsewhere" "## At the build step")"
+expect "elsewhere.md carries a section for the build step" test -n "$flat"
+carries "the Builder is not forked again" "The Builder is not forked again"
+carries "spec-finding.sh runs with --step build ahead of the Ticket's path" "\`--step build\`"
+carries "the Reply passes --build with the run's worktree after --door" \
+  "\`--build <the run's worktree>\` after \`--door <state>/door\`"
+carries "the worktree, its branch and the commits on it are kept" \
+  "The worktree, its branch and the commits already on it are kept"
+carries "a change of direction there ends on the same /discuss command" "\`/discuss\`"
+
 echo "# ticket.md's steps that meet work for another repository read elsewhere.md then"
 
 # The pointer sentence of one step of ticket.md, flattened.
