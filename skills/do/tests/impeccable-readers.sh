@@ -48,4 +48,20 @@ expect "no pointer to impeccable.md has another shape" test -z "$misshaped"
 skill_links="$(grep -cE '\]\(([^)]*/)?impeccable\.md\)' "$skill")"
 expect "SKILL.md links impeccable.md in its references-list entry alone" test "$skill_links" = 1
 
+# A Logic ticket's run reads ticket.md, reply.md and SKILL.md and never impeccable.md, so any text
+# about building with do-impeccable left in the three is text every Logic run loads for nothing.
+echo "# ticket.md, reply.md and SKILL.md: a Logic ticket's run loads no text about building with do-impeccable"
+ticket="$do_dir/references/ticket.md"
+reply="$do_dir/references/reply.md"
+impeccable_text='do-impeccable|impeccable\.md|impeccable skill|Front-end: impeccable'
+in_ticket="$(grep -nE "$impeccable_text" "$ticket")"
+expect "ticket.md names do-impeccable's run in the Door's one pointer alone" \
+  test "$(grep -c . <<<"$in_ticket")" = 1 -a -n "$(grep -F "Read [impeccable.md](impeccable.md) when" <<<"$in_ticket")"
+expect "reply.md names no do-impeccable and no Front-end: impeccable" \
+  bash -c '! grep -qE -e "do-impeccable" -e "Front-end: impeccable" "$1"' _ "$reply"
+in_entry="$(bullets_opening_on "$skill" "[impeccable.md](references/impeccable.md)" | grep -o 'impeccable\.md' | wc -l)"
+in_file="$(grep -o 'impeccable\.md' "$skill" | wc -l)"
+expect "SKILL.md names impeccable.md in its references-list entry alone" \
+  test "$in_entry" -gt 0 -a "$in_entry" = "$in_file"
+
 exit $((fails > 0))
