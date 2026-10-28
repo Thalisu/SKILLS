@@ -12,6 +12,8 @@ questions="$do_dir/references/run-questions.md"
 forks="$do_dir/references/forks.md"
 ticket="$do_dir/references/ticket.md"
 mechanics="$do_dir/references/mechanics.md"
+resume="$do_dir/references/resume.md"
+verification="$do_dir/references/verification.md"
 reply="$do_dir/references/reply.md"
 blocked_reply="$do_dir/references/blocked-reply.md"
 fails=0
@@ -34,11 +36,11 @@ at() { # $1 label, $2 file, $3 a fixed string the step's paragraph carries
   flat="$(paragraph_with "$2" "$3" | tr -s ' ')"
   carries "$1" "$pointer"
 }
-at "ticket.md's Resume, before discarding uncommitted work" "$ticket" \
+at "resume.md's Resume, before discarding uncommitted work" "$resume" \
   "restart the first behaviour without a commit"
-at "ticket.md's Resume, on a rebase resolved with no conflicted file" "$ticket" \
+at "resume.md's Resume, on a rebase resolved with no conflicted file" "$resume" \
   "continue: continue the rebase, committing what is staged"
-at "ticket.md's Resume, on a rebase whose target moved" "$ticket" \
+at "resume.md's Resume, on a rebase whose target moved" "$resume" \
   "\`abort: drop this rebase and rebase once onto <tip>\`"
 at "ticket.md's resumed integration, on its open rebase" "$ticket" \
   "on \`moved=ask\`, each question in the words of that bullet"
@@ -50,7 +52,7 @@ at "ticket.md's close, before a write to a Ticket issue" "$ticket" "**9. Close.*
 at "mechanics.md's claim, before assigning an issue" "$mechanics" "issue is assigned on their yes alone"
 at "mechanics.md's resume, on its open rebase and before a discard" "$mechanics" \
   "\`land\` at the fix call on the Review already written"
-at "mechanics.md's verification, before a full suite or a remote run" "$mechanics" \
+at "verification.md's verification, before a full suite or a remote run" "$verification" \
   "\`yes: run <the command line>\`"
 at "mechanics.md's close, before a write to a remote tracker" "$mechanics" \
   "under the same \`Yours: outward:\` line, with the \`choice-taker\`'s return"
