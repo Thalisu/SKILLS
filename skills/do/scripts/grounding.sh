@@ -12,7 +12,8 @@
 #       otherwise fork, the sidecar removed
 #   grounding.sh plan <root> <ticket> <digest path> <destination>
 #       whether the Plan at <destination>, a .plan.md, carries over: carried when its ## Sources
-#       is exactly the Ticket's and the Digest's records, hashed now; fork otherwise. The ticket=,
+#       is exactly the Ticket's and the Digest's records, hashed now; fork otherwise, a Plan that
+#       is there removed first, since the Planner's hook refuses a write over one. The ticket=,
 #       ticket_hash=, digest= and digest_hash= lines are the values the session records
 #
 # A record is one ## Sources line, `<name>: <absolute path> <hash>`, or `<name>: absent`, a
@@ -86,9 +87,13 @@ cmd_plan() {
   echo "ticket_hash=$ticket_hash"
   echo "digest=$digest"
   echo "digest_hash=$digest_hash"
-  if [ -f "$4" ] && plan_matches "$4" "$(record ticket "$ticket" "$ticket_hash")" "$(record digest "$digest" "$digest_hash")"; then
-    echo "verdict=carried"
-    return 0
+  if [ -f "$4" ]; then
+    if plan_matches "$4" "$(record ticket "$ticket" "$ticket_hash")" "$(record digest "$digest" "$digest_hash")"; then
+      echo "verdict=carried"
+      return 0
+    fi
+    rm -f -- "$4"
+    echo "removed=$4"
   fi
   echo "verdict=fork"
   return 1

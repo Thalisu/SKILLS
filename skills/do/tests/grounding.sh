@@ -144,4 +144,14 @@ check_lines "plan carries a Plan whose Sources are exactly the Ticket's and the 
   "ticket=$ticket_file" "ticket_hash=$(hash_of "$ticket_file")" "digest=$digest" "digest_hash=$(hash_of "$digest")" "verdict=carried"
 expect "the carried Plan is left in place" test -f "$plan"
 
+# The re-forked Planner's hook refuses a write over an existing Plan, so a stale one is removed.
+printf 'amended\n' >>"$ticket_file"
+run plan "$root" "${ticket_file#"$root"/}" "$digest" "$plan"
+check_lines "plan removes a Plan whose Sources no longer match and forks" 1 "$rc" "removed=$plan" "verdict=fork"
+expect "the stale Plan is gone from disk" test ! -e "$plan"
+
+run plan "$root" "${ticket_file#"$root"/}" "$digest" "$plan"
+check_lines "plan forks with no Plan at the destination" 1 "$rc" "verdict=fork"
+absent "plan removes nothing when no Plan is there" "removed="
+
 [ "$fails" = 0 ]
