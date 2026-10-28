@@ -13,18 +13,14 @@ list before any task-specific item, and the Run report's Run section carries it 
 review and landing step reading as the review's and the grounding as the Planner's; each step
 carries its done condition below.
 
-A Ticket of a Spec, one whose door printed a `spec_branch=` other than `none` and, on a resume,
-`spec_exists=yes`, has no review step, per
+A Ticket of a Spec, one whose door printed a `spec_branch=` other than `none`, has no review step, per
 [ADR 0060](../../../docs/adr/0060-a-ticket-lands-on-its-spec-branch-and-do-lands-it-there-itself.md)
 and
 [ADR 0061](../../../docs/adr/0061-the-review-runs-once-per-spec-on-its-spec-branch-before-it-lands.md):
 its own **Gate** is its check, it rebases onto its **Spec branch** and lands there itself, and the
 Spec is reviewed once, after its last Ticket lands. Every passage below that names a review, a
 Review or a fix call is the path of a Ticket with no Spec (`spec_branch=none`), which keeps the
-review and the landing on the developer's branch. So does a resumed `claimed` Ticket whose door
-printed `spec_exists=no`: its `do/<slug>` worktree was cut from the developer's branch before this
-change and no Spec branch was ever cut, so it finishes on the old flow, nothing migrates it, and
-`resume-state.sh` prints the developer's branch as its `base=`, the same key read in both places.
+review and the landing on the developer's branch.
 
 ## Door
 
@@ -91,7 +87,7 @@ the tracker file describes. Before anything is written:
   complete (`verdict=resume-final`, exit 0, with `spec_exists=yes`, `spec_landed=no` and
   `spec_complete=yes`), is a stopped Final integration: every Ticket landed on the Spec branch and
   the branch never reached the developer's. The run resumes the Final integration and does only
-  that, as the Resume section says under a stopped Final integration. It forks no reader, no
+  that, as `## A stopped Final integration` below says. It forks no reader, no
   Planner and no Builder, cuts no `do/<slug>` worktree and writes no Ticket, so nothing that landed
   on the Spec branch is built again. Any Ticket of the Spec opens this door, whichever run stopped.
 - Every other Ticket that is `resolved` (`verdict=resolved`) stops the run in one line. Nothing is
@@ -176,8 +172,7 @@ the tracker file describes. Before anything is written:
   nothing from the other repository. It carries no `Yours:` line, since there is nothing to choose,
   and no shell line (no `cd`, no command that opens a session): how the developer gets there is
   theirs. Under `--auto` the stop is the same lines, with no `choice-taker` forked.
-- A `claimed` Ticket whose `do/<slug>` worktree exists is resumed, as the Resume section says:
-  never a second worktree, and the claim stands.
+- Read [resume.md](resume.md) when the door prints verdict=resume: a `claimed` Ticket whose `do/<slug>` worktree exists.
 - A `claimed` Ticket whose worktree is gone starts over: the run records the start-over line for
   the Run report's Run section, per [reply.md](reply.md), saying so in one line and naming the door's
   `run_branch=` fact, and the claim stands, since the claim is idempotent. A `do/<slug>` branch the
@@ -196,7 +191,7 @@ the tracker file describes. Before anything is written:
   branch in [mechanics.md](mechanics.md). Nothing is written, nothing is claimed and nothing is
   cut: the Ticket keeps the `status=` the door printed, `ready-for-agent` for a start and `claimed`
   for a start-over, whose claim an earlier run wrote and this one leaves as it found it. A `claimed`
-  Ticket whose worktree exists (`verdict=resume`) is never refused on this ground: its run was
+  Ticket whose worktree exists is never refused on this ground: its run was
   cut before, so the protected checkout is the warning it always was. The one message says the Spec would land on the
   protected branch it names (or, with `branch=HEAD`, on no branch at all) and to switch to a
   working branch and run `/do <ticket>` again; which branch the Spec integrates into is the
@@ -526,8 +521,9 @@ of this project's facts and the Review at the `review_file=` path the claim prin
      2 of the final integration, then rebases; with `worktree=present` it enters the tree and goes
      to the rebase, step 3, whose ancestor check ticks as a no-op when the stop came after it. From
      there the run is a first Final integration: the gate, the review, the release.
-   - `verdict=integration`, exit 3: a rebase is open in the tree. The run reads the `stop=` line
-     before it touches the rebase and does what the mid-rebase bullet above says for each class,
+   - `verdict=integration`, exit 3: a rebase is open in the tree.
+     Read [resume.md](resume.md) when final-state.sh prints verdict=integration: the run reads the `stop=` line
+     before it touches the rebase and does what its mid-rebase bullet says for each class,
      with the Spec branch as the branch that moves and `spec_upstream` as the developer's branch:
      `stop=conflicted` is classed and resolved as at any stop, `stop=resolved` asks
      `(continue / stop)`, `stop=moved` continues on `moved=continue` and asks
@@ -1004,8 +1000,8 @@ line by contract, a flow committed on its own. On `built`, `uncommitted=` is emp
 reference, the slug step 2 already cut the worktree under, and never a path the probe would find
 no file at: a probe that
 refused to read the branch would drop every `built` return an issue-backed run ever made. A return that fails either check is a fork that went wrong and not a build: the session
-drops the return, picks the stretch up from what `resume-state.sh` just printed, which is the
-Resume section's own path, and records the fallback line for the Run report's Run section.
+drops the return and records the fallback line for the Run report's Run section.
+Read [resume.md](resume.md) when a Builder's return fails either check: the stretch is picked up from what `resume-state.sh` just printed, the Resume section's own path.
 
 Before the route below is taken, the run re-checks the grounding a fork holding a shell in the
 worktree could have rewritten, over the same records step 1 checked: the four values the run
@@ -1128,7 +1124,7 @@ Home repository moves.
 - `checked-out <worktree>` (exit 4): a worktree holds the Spec branch, so its ref is not moved. The
   run stops as blocked on the landing lines, the Ticket stays `claimed`, the run's worktree and its branch stay in place and are
   named, and the Next step says to switch that checkout off the branch and run `/do <ticket>`
-  again, which resumes at the landing as the Resume above says.
+  again, which resumes at the landing.
 - `failed <reason>` (exit 3): the run stops as blocked with the reason quoted, the Ticket `claimed`
   and the worktree and its branch named.
 
@@ -1148,6 +1144,7 @@ one line per part. Each return, and each fix call's, is routed on the `route=` l
 reads anything but `route=verify`. Done when the landing line recorded there reads `landed at <commit>`, or the run stopped as
 blocked with the review's reason quoted and the worktree and its branch named, or the step reads
 `skip: do-code-review not listed` with the worktree and its branch named.
+Read [resume.md](resume.md) when review-route.sh prints route=resume: its all-ticked bullet is the path that route takes.
 
 **8. Verification.** On a Ticket of a Spec the step reads
 `skip: landed on the Spec branch, which the main checkout does not hold`: the flows run from the
@@ -1250,7 +1247,7 @@ bash <skill-dir>/scripts/reply-lines.sh repositories --door <state>/door --claim
 `--reason` is the rebase question nobody answered, the red check, or the review's `not landed`
 line, in single quotes. On `route=skip-waits` no claim was taken and both calls take `--door` and
 `--order` alone. On exit 3 the run copies nothing and reports the `failed <reason>` line. A run that entered on the door's `verdict=resume-final` reaches this step through the
-stopped Final integration of the Resume section, with no step before it. Done when the release
+stopped Final integration, `## A stopped Final integration`, with no step before it. Done when the release
 read `claim=released` and, on a feature of more than one repository, the record was read a second
 time, or the claim read `taken`, or the run stopped as blocked with the Spec
 branch and its worktree named and the claim yielded, or the step reads its skip.
