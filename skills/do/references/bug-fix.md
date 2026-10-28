@@ -74,7 +74,7 @@ the session may also write them as it goes, and nothing depends on that:
   covering the code it touched, the typecheck, the lint and the format green in the worktree after
   the last edit, and the full suites `scripts/gate-suites.sh` prints with no argument).
 - The loop line: `Loop: policy` when `.claude/agents/unit-test-author.md` exists in the project,
-  `Loop: fallback` otherwise. Under `fallback` the build loop of [build-loop.md](build-loop.md) reads
+  `Loop: fallback` otherwise. Under `fallback` the build loop reads
   [tdd-fallback.md](tdd-fallback.md) and the run writes the failing test itself, with no test author
   dispatched; under `policy` that file is never read.
 - The defect line, `Defect: cause unknown, diagnosis first`: steps 2 and 3 always run, even when
@@ -215,7 +215,8 @@ Done when the fix and the shape, with the sketch or its skip, are recorded for t
 section as its fix line, beside the hand-over and Sketch lines or the
 shaped-by line where the fix crossed a boundary, or the run stopped naming `discuss`.
 
-**5. Red.** The build loop in [build-loop.md](build-loop.md), for one behaviour: the defect the run
+**5. Red.** The build loop, for one behaviour (Read [build-loop.md](build-loop.md) when this step
+starts): the defect the run
 reproduced at step 2. The dispatch input carries origin `bugfix`, the actor who met the defect
 and what it cost them as who relies on the behaviour, and the failure scenario as the expected red,
 in the words step 2's output produced, so the test fails the way the surface did.

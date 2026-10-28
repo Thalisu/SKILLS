@@ -34,7 +34,7 @@ flows_rule="$here/../references/flows.md"
 flows="$(tr '\n' ' ' <"$flows_rule" 2>/dev/null | tr -s ' ')"
 expect "flows.md carries the flows rule that dispatches the E2E author" test -n "$flows"
 expect "the Builder's flows rule dispatches the E2E test author of build-loop.md" \
-  grep -qE 'E2E (test )?authors? (of|in) \[build-loop\.md\]\(build-loop\.md\)|test authors in \[build-loop\.md\]\(build-loop\.md\)' <<<"$flows"
+  grep -qE 'E2E (test )?authors? \(Read \[build-loop\.md\]\(build-loop\.md\) when ' <<<"$flows"
 
 # The flows rule's HANDBACK and REFUSED_INCOMPLETE_INPUT routes resolve in build-loop.md: it is the
 # file that actually carries both tokens (mechanics.md carries neither), so the paragraph a reader
@@ -44,7 +44,7 @@ expect "the Builder's flows rule dispatches the E2E test author of build-loop.md
 handback_para="$(paragraph_with "$flows_rule" "\`HANDBACK\` takes the route")"
 expect "the Builder's flows rule carries its HANDBACK-route sentence" test -n "$handback_para"
 expect "the Builder's flows rule's HANDBACK route links build-loop.md" \
-  grep -qF "loop's \`HANDBACK\` takes in [build-loop.md](build-loop.md)" <<<"$handback_para"
+  grep -qF "Read [build-loop.md](build-loop.md) when" <<<"$handback_para"
 
 refused_para="$(paragraph_with "$flows_rule" "\`REFUSED_INCOMPLETE_INPUT\` takes the")"
 expect "the Builder's flows rule carries its REFUSED_INCOMPLETE_INPUT-route sentence" test -n "$refused_para"
@@ -83,6 +83,10 @@ if grep -qiF "builder" <<<"$entry" && grep -qiF "resume" <<<"$entry"; then
 else
   fail "SKILL.md's build-loop.md entry names the Builder and the resume step as readers (entry: $entry)"
 fi
+
+echo "# every pointer to build-loop.md reads \`Read [build-loop.md](build-loop.md) when <condition>\`"
+pointers_shaped "every pointer to build-loop.md has the \`Read <file> when <condition>\` shape" \
+  "$(cd "$here/.." && pwd -P)" build-loop.md 20
 
 [ "$fails" -eq 0 ] && exit 0
 exit 1

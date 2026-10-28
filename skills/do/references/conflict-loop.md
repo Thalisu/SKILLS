@@ -362,8 +362,7 @@ applied line reads `none` among the dropped, and the ledger's location. The revi
 once that **Gate** is green, and the fix call on a run the review already read is made with no
 **Gate** of the run's own before it.
 
-A red **Gate** after the reapplied commits stops as blocked, never back to the build loop of
-[build-loop.md](build-loop.md): the branch now holds the developer's code the replay brought in
+A red **Gate** after the reapplied commits stops as blocked, never back to the build loop: the branch now holds the developer's code the replay brought in
 beside the work that came back, and a run that loops on it edits their work. The run never edits
 the branch's code to make the **Gate** pass, never reruns it and never reverts a reapply commit to
 chase green. The rebase has finished by then, so this blocker is its own and not the open-rebase

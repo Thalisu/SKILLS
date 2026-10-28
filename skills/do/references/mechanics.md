@@ -20,8 +20,8 @@ A case no rule here names is judged by which of the three it risks.
 
 Read the section the step links whole, with the sections it points at. A part a step reads on its
 own is a file beside this one, so a step that reaches for it carries none of the rest:
-[build-loop.md](build-loop.md) carries the loop and its test authors, and
-[conflict-loop.md](conflict-loop.md) the conflict loop every stop of the integration runs. Read
+[conflict-loop.md](conflict-loop.md) carries the conflict loop every stop of the integration
+runs. Read [build-loop.md](build-loop.md) when a step builds, for the loop and its test authors. Read
 [forks.md](forks.md) when a `ticket` run meets a fork: `bug-fix` and `refactoring` never read it,
 since each carries its own. [integrate.md](integrate.md) builds in no worktree and reads that last file alone.
 
@@ -299,8 +299,8 @@ Evidence. Every check runs whatever the one before it
 returned, and the script exits 0 on `verdict=green`, 1 on `verdict=red` and 3 on `verdict=blocked`.
 
 - Red: the failing block is already in the gate's output, so the work goes back to the build loop
-  of [build-loop.md](build-loop.md) as one more
-  unit without rerunning the command, then the whole gate again. The log is opened only when the
+  as one more unit without rerunning the command (Read [build-loop.md](build-loop.md) when the
+  gate is red), then the whole gate again. The log is opened only when the
   block does not show the cause. Never a skipped test, a weakened assertion or a sleep.
 - `verdict=blocked`: a check exited 126 or 127, a runner that cannot start, or printed a line
   matching a pattern for a service down or unreachable, an infrastructure failure and not the code's.
@@ -381,8 +381,7 @@ created from: that one is behind the developer's own commits now, and a review g
 their work as part of the diff under review.
 
 **A red gate after a rebase that replayed commits.** The run stops as blocked, the way a red gate
-after the review's fix run does and never back to the build loop of
-[build-loop.md](build-loop.md): the replay brought in code the
+after the review's fix run does and never back to the build loop: the replay brought in code the
 developer's branch carries, and a run that loops on it edits their work. The blocker lines carry
 the failing check named, the command that undoes the rebase, `git reset --hard <the commit recorded
 before it started>`, the worktree and its branch left in place and named, the Ticket left

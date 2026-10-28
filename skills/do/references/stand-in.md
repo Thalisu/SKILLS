@@ -29,8 +29,8 @@ made: a return missing a section stops the door, per the reader section of
 ## The Builder
 
 On either branch, the Agent tool withheld or `do-builder` not listed, the session runs the loop
-itself, in the worktree step 2 of [ticket.md](ticket.md) made, per [build-loop.md](build-loop.md),
-and says in one line which of the two holds. It never forks another agent in the Builder's place.
+itself, in the worktree step 2 of [ticket.md](ticket.md) made, and says in one line which of the
+two holds: Read [build-loop.md](build-loop.md) when the session runs the loop. It never forks another agent in the Builder's place.
 
 The session also authors the flows itself, in the same window, the way the Builder does. Read
 [flows.md](flows.md) when the Digest's `## Observable criteria` section names a criterion, or reads

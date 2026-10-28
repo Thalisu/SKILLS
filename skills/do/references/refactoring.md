@@ -17,8 +17,8 @@ A case no step names is judged by which of these three errors it risks:
 
 The shared parts are in [mechanics.md](mechanics.md), linked from the steps that use them: the
 worktree, the protected branch, the gate, the integration, the review, the verification and the
-close, with the loop and its test authors in [build-loop.md](build-loop.md) and every stop of the
-integration in [conflict-loop.md](conflict-loop.md). The reply is written by [reply.md](reply.md):
+close, with every stop of the integration in [conflict-loop.md](conflict-loop.md). Read
+[build-loop.md](build-loop.md) when a step builds, for the loop and its test authors. The reply is written by [reply.md](reply.md):
 five parts, and every line a step records for the Run report reaches a file under `--auto` alone.
 
 `<skill-dir>`, in the commands those references give, is the folder that holds this file's
@@ -158,8 +158,8 @@ the Run section fixes. The Run report carries them under `--auto`:
 - Done as a predicate: the pin green before and after, the target shape reached, every caller
   migrated and the old API gone, and the gate green in the worktree after the last edit.
 - The loop line: `Loop: policy` when `.claude/agents/unit-test-author.md` exists in the project,
-  `Loop: fallback` otherwise. Under `fallback` the pin's target-interface test and the build loop of
-  [build-loop.md](build-loop.md) read [tdd-fallback.md](tdd-fallback.md), and the run writes that
+  `Loop: fallback` otherwise. Under `fallback` the pin's target-interface test and the build loop
+  read [tdd-fallback.md](tdd-fallback.md), and the run writes that
   test itself with no test author dispatched; under `policy` that file is never read.
 - The protected-branch warning when it applies: the branch, the rule, and the line saying landing
   will be refused on it.
@@ -293,8 +293,8 @@ Read [refactoring-auto.md](refactoring-auto.md) when the run carries `--auto` an
 #### The target-interface test
 
 When the refactor extracts or moves something, the new shape is pinned by one test on the target
-interface, written by the test authors in [build-loop.md](build-loop.md) and dispatched with the
-complete input:
+interface, written by the build loop's test authors and dispatched with the complete input (Read
+[build-loop.md](build-loop.md) when the pin is dispatched):
 
 - the behaviour to prove;
 - the target interface's callers as who relies on it;

@@ -3,9 +3,10 @@
 The last step of the chain. It takes one Ticket, in the format of
 [ticket-format.md](../../../.agents/formats/ticket-format.md), and nothing else: never a Spec,
 never a session summary. The parts it shares with the other Playbooks that build in a worktree
-are in [mechanics.md](mechanics.md), linked from the steps that use them, with the loop and its
-test authors in [build-loop.md](build-loop.md) and every stop of the integration in
-[conflict-loop.md](conflict-loop.md), each read by the step that reaches it and by no other. Read
+are in [mechanics.md](mechanics.md), linked from the steps that use them, with every stop of the
+integration in [conflict-loop.md](conflict-loop.md), read by the step that reaches it and by no
+other. Read [build-loop.md](build-loop.md) when a step builds, for the loop and its test
+authors. Read
 [forks.md](forks.md) when a step meets a fork. The reply is written by [reply.md](reply.md): five parts, and every other line a step
 records here goes to the Run report, a file written under `--auto` alone and kept nowhere without
 the flag. The checklist below is copied verbatim into the run as its todo
@@ -263,8 +264,7 @@ printed and never restated from a file the session read. The Run report carries 
 - The loop line, the lines `bash <skill-dir>/scripts/loop-line.sh <the door's loop= line>
   agent=<available|withheld>` prints, quoted as they stand, with `agent=withheld` when the Agent
   tool is withheld from the session. Its first line is the `Loop:` key a brief copies. Under
-  `fallback` the build loop of
-  [build-loop.md](build-loop.md) reads [tdd-fallback.md](tdd-fallback.md) and the run writes every
+  `fallback` the build loop reads [tdd-fallback.md](tdd-fallback.md) and the run writes every
   test itself, with no test author dispatched. Under `policy` that file is never read, and under
   `global` only when the global unit test author comes back `BLOCKED` naming a run command the
   project map lacks, from that behaviour on (its `## When this file is read`).

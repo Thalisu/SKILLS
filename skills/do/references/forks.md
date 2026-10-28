@@ -12,8 +12,8 @@ a step of that run whose question the `choice-taker` rules under `--auto`, such 
 verification, per the run question section below; by the resume of a
 `ticket` run, which meets the same fork again; and by the close step and the
 reply, which carry a held Ruling forward, the Reply's Pending debt and the Run report's `Rulings`, per [mechanics.md](mechanics.md) and
-[reply.md](reply.md). The rest of what the Playbooks share is in [mechanics.md](mechanics.md), and
-the loop itself in [build-loop.md](build-loop.md).
+[reply.md](reply.md). The rest of what the Playbooks share is in [mechanics.md](mechanics.md). Read
+[build-loop.md](build-loop.md) when the fork is met inside the build loop.
 
 ## Forks
 
@@ -39,7 +39,7 @@ commit, and it never reaches the developer, per
 ### Design fork: the `choice-taker` rules, the session writes
 
 A Design fork (two shapes the Ticket, its Spec and the code cannot settle) met at the Plan step or
-in the build loop of [build-loop.md](build-loop.md) is ruled on inside the run, per
+in the build loop is ruled on inside the run, per
 [ADR 0036](../../../docs/adr/0036-a-design-fork-is-settled-in-the-run-by-a-read-only-choice-taker-and-only-an-extreme-fork-stops-it.md).
 An agent that meets one rules on nothing and hands both sides to the session. In a `ticket` run
 the fork is met at the Plan step, where the Planner writes both sides into the Plan it returns, per

@@ -1,7 +1,8 @@
 # The TDD fallback
 
-How the build loop of [build-loop.md](build-loop.md) proves a behaviour when no test author can be
-dispatched for it: the run writes the failing test itself.
+How the build loop proves a behaviour when no test author can be dispatched for it: the run writes
+the failing test itself. Read [build-loop.md](build-loop.md) when a step of the loop is not
+written here.
 
 The loop does not change: one behaviour at a time, red first, the smallest green, a refactor on
 green, one commit holding the test and the implementation with the behaviour line in its body.
