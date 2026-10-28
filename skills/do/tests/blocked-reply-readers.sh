@@ -6,6 +6,7 @@ set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/../../../scripts/tests/lib.sh"
 reference="$here/../references/blocked-reply.md"
+reply="$here/../references/reply.md"
 fails=0
 
 # The session writing a blocked Reply copies its shape from these examples: without them the
@@ -26,5 +27,15 @@ check "a refusal whose blocker is built in another repository names where to ope
 check "a refusal on a Ticket stopped mid-build says its claim, worktree and commits stand" 0 0 \
   "the claim on 03-share-notes.md stands" \
   "Yours: direction: build 04-sign-share-links.md first, or set its status to resolved by hand if it was done outside the chain"
+
+# Every run reads reply.md at its Reply, so blocked text left there is loaded by a run that ended
+# well, for nothing, and its session compacts sooner.
+echo "# reply.md: a run that ends well loads none of the blocked reply text"
+out="$(cat "$reply")"
+check_absent "reply.md carries no refusal-or-blocked section, no Yours: class definitions and no blocked or refused whole reply" 0 0 \
+  "## A refusal or a blocked run" "#a-refusal-or-a-blocked-run" \
+  "| \`direction\` | a choice between outcomes |" "| \`outward\` | a write outside the repository |" \
+  "Yours: direction: switch /home/dev/notes-spec off spec/notes" "First do what the Yours: line names, then:" \
+  "Refused before the claim." "Refused. 03-share-notes.md is blocked by"
 
 exit $((fails > 0))
