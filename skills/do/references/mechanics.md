@@ -481,20 +481,22 @@ untouched. It prints one line, and the run routes on the exit code:
   `Review: none, the Spec is reviewed once its last Ticket lands` for the Run report's Run section, per
   [reply.md](reply.md), and goes on to the close.
 - **`moved <tip>`, exit 1.** The Spec branch holds a commit the run's branch lacks, another
-  Ticket's landing. The run answers it in the same run: the integration again onto that tip, as the
-  integration above says, contested hunks to the **Target** side and the Loss ledger, the ledger
-  judged and the reapplies brought back, then the **Gate** on the tree that came out, then this
-  call again. A red **Gate** there stops the run as the integration's own red gate does. The retry
-  has no fixed count, per
-  [ADR 0044](../../../docs/adr/0044-the-re-integration-retries-while-the-target-tip-changes.md): it
-  repeats for as long as each call reads `moved` naming a tip the integration before it had not
-  met, since every such line is another Ticket's landing and the runs landing at once are finite.
-  The first lost race is one of them: step 6 ticks as a no-op whenever no sibling had landed yet,
-  and the `moved` that follows names a new tip, so the run integrates again, runs the **Gate** and
-  calls the script again. A `moved <tip>` ends the loop only when `<tip>` is the tip the
-  integration before it already met (the ancestor check against that tip still exits 0): the
-  branch already held it, integrating again would meet it again, and the run stops as blocked with
-  the script's line quoted.
+  Ticket's landing. The run hands the script's line whole to the integration script and acts on the
+  `verdict=` line it prints, never on an ancestor check of its own:
+
+  ```
+  bash <skill-dir>/scripts/integration.sh moved <the worktree> "<the line land-spec.sh printed>"
+  ```
+
+  - `verdict=integrate`, exit 0: `<tip>` is a tip the integration before it had not met, the first
+    lost race after a step 6 that ticked as a no-op included. The run integrates again onto that
+    tip, as the integration above says, contested hunks to the **Target** side and the Loss ledger,
+    the ledger judged and the reapplies brought back, then the **Gate** on the tree that came out,
+    then this call again. A red **Gate** there stops the run as the integration's own red gate
+    does. The retry has no fixed count, per
+    [ADR 0044](../../../docs/adr/0044-the-re-integration-retries-while-the-target-tip-changes.md).
+  - `verdict=blocked`, exit 4: `<tip>` is the tip the integration before it already met, and the run
+    stops as blocked with the script's line quoted.
 - **`checked-out <worktree>`, exit 4.** A worktree, the main checkout included, has the Spec branch
   checked out, and a ref moved under a checkout would leave that worktree's index showing the
   landing as a reversal. Nothing is written. The run stops as blocked with

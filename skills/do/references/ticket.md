@@ -1345,15 +1345,17 @@ Home repository moves.
 - `landed <sha>` (exit 0): the Spec branch's ref reads the branch's tip. The landing line recorded
   for the Run report's Run section is `landed at <sha> on spec/<feature-slug>`, with
   `Review: none, the Spec is reviewed once its last Ticket lands` under it.
-- `moved <tip>` (exit 1): another Ticket of the Spec landed first. The run integrates again onto
-  that tip in the same run, step 6 with its Loss ledger judged and reapplied, runs the **Gate**
-  again on the replayed tree, and calls the script again. It repeats with no fixed count for as
-  long as each `moved` names a tip the integration before it had not met, per
-  [ADR 0044](../../../docs/adr/0044-the-re-integration-retries-while-the-target-tip-changes.md). A
-  `moved` naming a new tip after a no-op step 6 is integrated again, gated and landed: the first
-  lost race is that case. A `moved <tip>` stops the run as blocked only when `<tip>` is the tip the
-  integration before it already met (the ancestor check against that tip still exits 0), since
-  integrating again would meet the same tip.
+- `moved <tip>` (exit 1): another Ticket of the Spec landed first. The run routes on the
+  `verdict=` line of
+  `bash <skill-dir>/scripts/integration.sh moved <the worktree> "<the line land-spec.sh printed>"`,
+  as the landing on the Spec branch in [mechanics.md](mechanics.md) says. On `verdict=integrate`,
+  a tip the integration before it had not met, a no-op step 6 before it included, the run
+  integrates again onto that tip in the same run, step 6 with its Loss ledger judged and
+  reapplied, runs the **Gate** again on the replayed tree, and calls the script again, with no
+  fixed count, per
+  [ADR 0044](../../../docs/adr/0044-the-re-integration-retries-while-the-target-tip-changes.md). On
+  `verdict=blocked`, the tip the integration before it already met, the run stops as blocked with
+  land-spec.sh's line quoted.
 - `checked-out <worktree>` (exit 4): a worktree holds the Spec branch, so its ref is not moved. The
   run stops as blocked: the Reply reads `not landed: spec/<feature-slug> is checked out in
   <worktree>`, the Ticket stays `claimed`, the run's worktree and its branch stay in place and are
