@@ -335,4 +335,41 @@ same "repositories at the last landing says every repository landed and hands ov
 Still to land: none
 Every repository of the feature landed"
 
+run repositories --door "$door" --order "$wait_order"
+same "repositories names the session's own group as this session's repository, once its provider landed, while waiting" \
+  "Landed: none
+Still to land: api, web
+api: open a session in /home/dev/api
+/do /home/dev/app/.scratch/feature/issues/03-export.md
+web: this session's repository, once api landed
+/do /home/dev/app/.scratch/feature/issues/04-show.md"
+
+unlisted_order="$(
+  src unlisted_order <<'EOF'
+ticket=/home/dev/api/.scratch/feature/issues/03-export.md
+repositories=2
+repository=api
+repository_location=/home/dev/api
+repository_here=yes
+repository_state=landed
+repository_ticket=/home/dev/app/.scratch/feature/issues/03-export.md
+repository=web
+repository_location=unlisted
+repository_here=no
+repository_state=unreadable
+repository_reason=unlisted
+repository_ticket=/home/dev/app/.scratch/feature/issues/04-show.md
+own=api
+waits_for=none
+next_landing=web
+next_landing_location=unlisted
+next_landing_ticket=/home/dev/app/.scratch/feature/issues/04-show.md
+verdict=landed
+EOF
+)"
+run repositories --door "$door" --order "$unlisted_order"
+check_lines "repositories names an unlisted location as one the Spec's list does not hold" 0 "$rc" \
+  "web: the Spec's ## Repositories list holds no location for it"
+absent "repositories hands over no unlisted location to open a session in" "open a session in unlisted"
+
 exit "$((fails > 0))"

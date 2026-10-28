@@ -81,7 +81,7 @@ select_shape() { # the sources present -> one FinalShape word, or failed no-shap
   fi
 }
 
-g_name=() g_location=() g_state=() g_reason=() g_ticket=()
+g_name=() g_location=() g_here=() g_state=() g_reason=() g_ticket=()
 
 load_groups() { # the --order record's repository groups, in its order, into the g_ arrays
   local line key value n=-1
@@ -91,9 +91,10 @@ load_groups() { # the --order record's repository groups, in its order, into the
     case "$key" in
       repository)
         n=$((n + 1))
-        g_name[n]="$value" g_location[n]="" g_state[n]="" g_reason[n]="" g_ticket[n]=""
+        g_name[n]="$value" g_location[n]="" g_here[n]="" g_state[n]="" g_reason[n]="" g_ticket[n]=""
         ;;
       repository_location) [ "$n" -lt 0 ] || g_location[n]="$value" ;;
+      repository_here) [ "$n" -lt 0 ] || g_here[n]="$value" ;;
       repository_state) [ "$n" -lt 0 ] || g_state[n]="$value" ;;
       repository_reason) [ "$n" -lt 0 ] || g_reason[n]="$value" ;;
       repository_ticket) [ "$n" -lt 0 ] || g_ticket[n]="$value" ;;
@@ -124,11 +125,18 @@ group_lines() { # the record's groups -> the Landed: and Still to land: lines
   echo "Still to land: $(joined "${still[@]}")"
 }
 
-command_lines() { # the record's groups -> a place line and a /do line per group still to land
-  local i
+command_lines() { # $1 the shape: the record's groups -> a place line and a /do line per group still to land
+  local i once=""
+  [ "$1" != waiting ] || once=", once $(v order waits_for) landed"
   for i in "${!g_name[@]}"; do
     [ "${g_state[i]}" != landed ] || continue
-    echo "${g_name[i]}: open a session in ${g_location[i]}"
+    if [ "${g_here[i]}" = yes ]; then
+      echo "${g_name[i]}: this session's repository$once"
+    elif [ "${g_location[i]}" = unlisted ]; then
+      echo "${g_name[i]}: the Spec's ## Repositories list holds no location for it"
+    else
+      echo "${g_name[i]}: open a session in ${g_location[i]}"
+    fi
     echo "/do ${g_ticket[i]}"
   done
 }
@@ -148,7 +156,7 @@ cmd_repositories() {
       if [ "$(v order next_landing)" = "done" ]; then
         echo "Every repository of the feature landed"
       else
-        command_lines
+        command_lines "$shape"
       fi
       ;;
   esac
