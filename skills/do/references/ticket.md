@@ -1330,7 +1330,7 @@ as the target, `refs/heads/spec/<feature-slug>`, or, on a Ticket with no Spec, t
 started on: the branch it built on rebased onto that branch, every conflicted hunk
 classed by the door script before anything is resolved, and the gate's command lines run again when
 the rebase replayed commits. Every contested hunk takes the **Target** side, and its **Incoming** side goes to
-the Loss ledger beside the Ticket in the main checkout, `.ledger` before the extension, or, on a Ticket run from its Build repository, beside the Ticket in the Home repository, by the door's `ticket=` path, while the rebase runs in the Build repository's worktree. Done when the step reads the no-op, or the target and the count with
+the Loss ledger beside the Ticket in the main checkout, `.ledger` before the extension, or, on a Ticket run from its Build repository, beside the Ticket in the Home repository, by the door's `ticket=` path, while the rebase runs in the Build repository's worktree. The no-op is ticked on `integration.sh check`'s `verdict=noop`, and never on an ancestor check of the run's own. Done when the step reads the no-op, or the target and the count with
 the tree handed over with no **Gate** of the run's own, or the run stopped as blocked with the worktree and its branch named, and
 the integration line is recorded for the Run report's Run section.
 
@@ -1368,9 +1368,9 @@ as blocked as steps 5 and 6 say. Done when the landing line reads
 quoted and the worktree and its branch named.
 
 On a Ticket with no Spec the step is the review in [mechanics.md](mechanics.md), with the Ticket's
-location as the spec source, the merge base of the branch and the branch the run started on,
-`git merge-base refs/heads/<that branch> HEAD`, qualified so a same-named tag can never
-shadow the branch, read after the integration as the fixed point, and the branch
+location as the spec source, the `fixed_point=` line of
+`integration.sh settle <the worktree> <that branch> <the ledger>`, read after the integration on its
+`verdict=settled`, as the fixed point, and the branch
 the run started on as the landing target, with the held Rulings after the Gate when the run holds
 any, as the review in [mechanics.md](mechanics.md) says. The return is recorded for the Run report's Run section,
 one line per part. A `not landed: target moved` runs the integration again, in the same run, its

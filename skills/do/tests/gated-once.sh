@@ -75,7 +75,7 @@ done
 # they sit in anchor nothing here. The key is never a clause the checks below read, so a step that
 # drops its no-Gate handover is found red rather than found empty.
 steps=(
-  "ticket.md|git merge-base refs/heads/|the review step, where a moved target is integrated again||"
+  "ticket.md|integration.sh settle <the worktree>|the review step, where a moved target is integrated again||"
   "ticket.md|scripts/flows.sh|the verification step, the red flow fixed in the worktree||"
   "ticket.md|the Loss ledger beside the Ticket in the main checkout|the integration step's Done line||"
 )

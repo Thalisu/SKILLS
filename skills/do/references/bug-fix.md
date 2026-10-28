@@ -354,7 +354,8 @@ started on as the target: the branch it built on rebased onto that branch, every
 classed by `conflict-class.sh`, per [conflict-loop.md](conflict-loop.md), before anything is resolved, and the gate's command lines run again when
 the rebase replayed commits. Every contested hunk takes the **Target** side, and its **Incoming** side goes to
 the Loss ledger keyed by the run's branch, `.scratch/ledgers/<branch>.md` in the main checkout.
-Done when the step reads the no-op, or the target and the count with the tree handed over with no
+The no-op is ticked on `integration.sh check`'s `verdict=noop`, and never on an ancestor check of
+the run's own. Done when the step reads the no-op, or the target and the count with the tree handed over with no
 **Gate** of the run's own, or the run stopped as blocked with the worktree and its branch named,
 and the integration line is recorded for the Run report's Run section.
 
@@ -362,9 +363,9 @@ and the integration line is recorded for the Run report's Run section.
 No Ticket exists to hand over, so the Review names the branch and its fixed point instead:
 
 - the spec source: the branch alone;
-- the fixed point: the merge base of the branch and the branch the run started on,
-  `git merge-base refs/heads/<that branch> HEAD`, read after the integration and qualified so a
-  same-named tag can never shadow the branch;
+- the fixed point: the `fixed_point=` line of
+  `integration.sh settle <the worktree> <that branch> <the ledger>`, read after the integration on
+  its `verdict=settled`;
 - the landing target: the branch the run started on.
 
 The return is recorded for the Run report's Run section, one line per part, and answered as the review

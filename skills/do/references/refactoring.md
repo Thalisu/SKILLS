@@ -632,7 +632,8 @@ The integration in [mechanics.md](mechanics.md), with the branch the run started
 the branch it built on rebased onto that branch, every conflicted hunk classed by
 `conflict-class.sh`, per [conflict-loop.md](conflict-loop.md), before anything is resolved, and the gate's command lines run again when the rebase replayed
 commits. Every contested hunk takes the **Target** side, and its **Incoming** side goes to the Loss
-ledger keyed by the run's branch, `.scratch/ledgers/<branch>.md` in the main checkout.
+ledger keyed by the run's branch, `.scratch/ledgers/<branch>.md` in the main checkout. The no-op is
+ticked on `integration.sh check`'s `verdict=noop`, and never on an ancestor check of the run's own.
 
 Done when the step reads the no-op, or the target and the count with the tree handed over with no
 **Gate** of the run's own, or the run stopped as blocked with the worktree and its branch named.
@@ -642,9 +643,9 @@ Done when the step reads the no-op, or the target and the count with the tree ha
 The review in [mechanics.md](mechanics.md), called once, with:
 
 - as its spec source, the branch alone, since there is no Ticket outside the chain;
-- as the fixed point, the merge base of the branch and the branch the run started on,
-  `git merge-base refs/heads/<that branch> HEAD`, qualified so a same-named tag can never shadow
-  the branch, read after the integration;
+- as the fixed point, the `fixed_point=` line of
+  `integration.sh settle <the worktree> <that branch> <the ledger>`, read after the integration on
+  its `verdict=settled`;
 - as the landing target, the branch the run started on.
 
 The review writes the Review, fixes its `Act on` Findings through its Fixers, one per Finding, the

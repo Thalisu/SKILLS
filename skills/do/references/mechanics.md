@@ -373,7 +373,7 @@ the fix call the review section names, never a second review, per
 that branch, `refs/heads/spec/<feature-slug>`, and never onto the developer's branch, per
 [ADR 0060](../../../docs/adr/0060-a-ticket-lands-on-its-spec-branch-and-do-lands-it-there-itself.md):
 wherever this section says the developer's branch, such a run reads its Spec branch, in the
-ancestor check, in the rebase and in the merge base alike. Nothing else changes. Every stop still
+target the integration script is handed and in the rebase alike. Nothing else changes. Every stop still
 runs the conflict loop, a contested hunk still takes the **Target** side, here the Spec branch's,
 and its **Incoming** side still goes to the Loss ledger beside the Ticket, judged and reapplied as
 on the developer's branch. No review follows, so where this section calls the review or hands the
@@ -391,29 +391,26 @@ git left, and the run's own resolutions would land in a cache that outlives it.
 The step walks the states below, and the state it reached is recorded for the Run report's Run section
 as its integration line, per [reply.md](reply.md).
 
-**A rebase that replays no commit.** Before the rebase runs, the step checks whether the
-developer's branch is already merged into the run's own: `git merge-base --is-ancestor
-refs/heads/<the developer's branch> HEAD`, the ref qualified so a same-named tag can never shadow
-it. Where it exits 0, the developer's branch did not move under the run, or
-the developer rebased or merged it into `do/<slug>` by hand between two runs, resolving any
-conflict along the way, and running the rebase now would only replay a commit git may not drop as
-empty, or hand the developer the same hunk their own merge just settled.
+**A rebase that replays no commit.** Before the rebase runs, the run reads the ledger's location,
+fixed the same way it is fixed before a rebase starts, so a resumed run is never handed it back, and
+asks the integration script which state the step is in:
 
-Before it ticks anything, the run reads the ledger's location, fixed the same way it is fixed
-before a rebase starts, so a resumed run is never handed it back, and opens the ledger itself
-where that file exists, as the reviewer does. Then one of two:
+```
+bash <skill-dir>/scripts/integration.sh check <the worktree> <the developer's branch> <the ledger>
+```
 
-- No ledger, or every entry on it carries an applied line or was judged `drop`: the ancestor check
-  stands on its own and the run skips the rebase. It ticks the step as a no-op, reruns nothing,
-  asks nothing, and the review is called with the fixed point this ancestry already gives, the tip
-  of the developer's branch.
-- The ledger holds an entry judged `reapply` with no applied line, left by a run cut short between
-  two reapply commits and resumed once its rebase had already finished: the ancestor check alone
-  does not excuse it. The run brings that entry back the same way **The reapplies brought back** of
+It acts on the `verdict=` line the script prints and never derives the verdict itself:
+
+- `verdict=noop`, exit 0: the run skips the rebase. It ticks the step as a no-op, reruns nothing,
+  asks nothing, and the review is called with the fixed point `settle` prints below.
+- `verdict=reapply`, exit 3: the run brings back each entry an `owed=` line names, an entry judged
+  `reapply` with no applied line, the same way **The reapplies brought back** of
   [conflict-loop.md](conflict-loop.md) does, one commit or `none` recorded into the ledger as that
   state records it, then runs the whole **Gate** once before the review is called, or, on a run the
   review already read, hands the tree to the fix call with no **Gate** of its own, never ticking
   the step as a no-op over an entry still owed a commit.
+- `verdict=rebase`, exit 1: the run rebases onto the ref the `target=` line names, and the step
+  reaches one of the two states below.
 
 **A rebase that replayed commits.** The run ticks the step with the target and the count, the
 branch it rebased onto and how many of its own commits git replayed. The gate that was green before
@@ -438,11 +435,15 @@ refuses, and never a copy of it here. The loop ends the step in one of the two s
 rebase carried to its end, or the run stopped as blocked with the rebase left open.
 
 The fixed point the review is called with is read once the step is done, whichever state it
-reached: `git merge-base refs/heads/<the developer's branch> HEAD` in the worktree, the ref
-qualified for the same reason the rebase above is. After a replay it is the
-commit the rebase landed on. After a no-op it is the commit the worktree was created from when
-nothing moved, and the tip of the developer's branch when they rebased or merged it into
-`do/<slug>` by hand, which the ancestor check above already read before the no-op ticked.
+reached, off the `fixed_point=` line of the same script:
+
+```
+bash <skill-dir>/scripts/integration.sh settle <the worktree> <the developer's branch> <the ledger>
+```
+
+On `verdict=settled`, exit 0, the review is called with that fixed point. `verdict=open`, exit 3, a
+rebase still open in the worktree, and `verdict=owed`, exit 1, a reapply still owed a commit, print
+no fixed point: the step is not done, and the run finishes it before it calls the review.
 
 Done when the step is ticked as a no-op, or ticked with the target and the count and the tree
 handed over with no **Gate** of the run's own, or the run stopped as blocked with its reason, its

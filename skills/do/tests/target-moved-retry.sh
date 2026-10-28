@@ -150,9 +150,9 @@ retry=("${integrated[@]}" "${noop[@]}")
 # nothing. The key is never a clause the checks below read, so a step that drops the retry is found
 # red rather than found empty.
 playbooks=(
-  "ticket|\*\*[0-9]+\.|git merge-base refs/heads/|Written by [reply.md](reply.md)"
-  "bug-fix|\*\*[0-9]+\.|git merge-base refs/heads/|Written by [reply.md](reply.md)"
-  "refactoring|### [0-9]+\.|git merge-base refs/heads/|Written by [reply.md](reply.md)"
+  "ticket|\*\*[0-9]+\.|integration.sh settle <the worktree>|Written by [reply.md](reply.md)"
+  "bug-fix|\*\*[0-9]+\.|integration.sh settle <the worktree>|Written by [reply.md](reply.md)"
+  "refactoring|### [0-9]+\.|integration.sh settle <the worktree>|Written by [reply.md](reply.md)"
 )
 for row in "${playbooks[@]}"; do
   IFS='|' read -r name marker review_key reply_key <<<"$row"
