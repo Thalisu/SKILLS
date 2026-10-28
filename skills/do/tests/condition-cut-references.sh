@@ -202,4 +202,30 @@ out="$(entry builder.md)"
 absent "the builder.md entry no longer lists the flows" "flows"
 absent "the builder.md entry no longer lists the time budget" "time budget"
 
+echo "# every pointer to a new reference reads \`Read <file> when <condition>\`"
+
+# A link to the file under any relative path, or its installed path in an agent definition, is a
+# pointer, except SKILL.md's references-list entry and the links a file makes to itself.
+for file in flows.md time-budget.md global-authors.md second-run.md verification.md; do
+  key="${file//./\\.}"
+  pointers=0
+  misshapen=""
+  for doc in "$refs"/*.md "$here"/../agents/*.md; do
+    [ "$(basename "$doc")" = "$file" ] && continue
+    while IFS= read -r hit; do
+      [ -n "$hit" ] || continue
+      pointers=$((pointers + 1))
+      grep -qE "^Read (\[$key\]\($key\)|\`~/\.claude/skills/do/references/$key\`) when " <<<"$hit" ||
+        misshapen="$misshapen${misshapen:+; }$(basename "$doc"): $hit"
+    done < <(tr '\n' ' ' <"$doc" | tr -s ' ' |
+      grep -oE "(Read )?(\[[^]]*\]\(([^)]*/)?$key\)|\`[^\`]*references/$key\`)( when )?")
+  done
+  expect "the do skill points at $file from the steps that read it" test "$pointers" -ge 1
+  if [ -z "$misshapen" ]; then
+    ok "every pointer to $file has the \`Read <file> when <condition>\` shape"
+  else
+    fail "every pointer to $file has the \`Read <file> when <condition>\` shape (misshapen: $misshapen)"
+  fi
+done
+
 [ "$fails" -eq 0 ]

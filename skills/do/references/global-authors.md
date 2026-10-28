@@ -2,7 +2,7 @@
 
 Read by the build loop of [build-loop.md](build-loop.md), by whoever runs it (the Builder of
 [builder.md](builder.md), the session in its place, the step about to build in `bug-fix` and
-`refactoring`), and by the flows step of [flows.md](flows.md), only when the loop line reads
+`refactoring`), and by the flows step, only when the loop line reads
 `Loop: global` or `Loop: fallback`: the project has no Testing Policy of its own, or no unit test
 author that can be dispatched. A run whose loop line reads `Loop: policy` never opens it.
 
@@ -36,7 +36,7 @@ author is dispatched. Nothing else changes: red first, the smallest green, one c
 
 ## Who authors a flow
 
-The flows step of [flows.md](flows.md) takes its author from the brief's `Loop:` key:
+The flows step takes its author from the brief's `Loop:` key:
 
 - `Loop: global`: the project has no Testing Policy and so no section marker naming a surface, and
   the Project map the brief names stands in for it.

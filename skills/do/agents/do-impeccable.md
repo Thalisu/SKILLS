@@ -115,8 +115,8 @@ exists, since one would have to guess the selectors, the labels and the structur
 to decide. So the flows come after the last criterion is committed.
 
 Which criteria get a flow, and who authors each one, is the Builder's own rule, kept in one place.
-Read `~/.claude/skills/do/references/flows.md` of the installed do skill when you reach the flows:
-open it with the Read tool and follow its `## Which criteria get a flow` and `## Who authors it`, as
+Read `~/.claude/skills/do/references/flows.md` when you reach the flows: open it, the installed do
+skill's, with the Read tool and follow its `## Which criteria get a flow` and `## Who authors it`, as
 written, with your brief's `Loop:` and `Project map:` keys standing in for the Builder's and a stop
 it names returned as your `stopped`. Those two cover every case: a section reading `none`, a `none`
 read from neither a Path nor a story, a consumer surface, and a map that fills one end-to-end
