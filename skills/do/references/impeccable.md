@@ -46,6 +46,52 @@ context reading at the end of step 1 are still the session's to take. Every othe
 that step as written: a Logic ticket, and a Front-end ticket under `Front-end: builder`, still fork
 the Planner and build from its Plan.
 
+## The build step
+
+At step 3 of [ticket.md](ticket.md), a Front-end ticket of a Spec reading `Front-end: impeccable`,
+the door's `kind=front-end` with `front_end=impeccable`, is built by another fork in the Builder's
+place, per
+[ADR 0078](../../../docs/adr/0078-an-impeccable-front-end-ticket-forks-no-planner-and-do-impeccable-stands-in-for-the-builder.md):
+call the Agent tool with `subagent_type: do-impeccable`, the agent `do` ships in
+[do-impeccable.md](../agents/do-impeccable.md), from inside the worktree and the branch step 2
+created, cut as for any Ticket. Its brief carries the Ticket, the worktree root, the loop line
+and the Project map and nothing else, the four keys `## The brief` below fixes.
+
+The brief of `do-impeccable` has no key for where the return goes: the return is the fork's final
+message, as the Builder's is, so no return file is written anywhere, the main checkout least of
+all. It carries no rule either: what the fork loads, where it may write, how it commits and what
+it returns are standing rules, and they live in the agent's definition, where a brief the session
+composed on one run cannot drop one. Everything step 3 does around the Builder's fork it does
+around this one, the two revokes before it, the guard probe and the revoke as soon as it returns,
+since `do-impeccable` holds a shell in the worktree as the Builder does. When the Agent tool is
+withheld or lists no `do-impeccable`, the run stops as blocked in one line saying which of the two
+holds, with the worktree and its branch named and `scripts/link-skills.sh` as the run that links
+the agent before the next `/do`.
+
+The return of `do-impeccable` is the lines and the one terminal verdict a Builder returns, so
+everything step 3 reads of a Builder's return is read with `do-impeccable` in the Builder's place
+and nothing is added for it: the same checks of the return against the branch, the first line and
+the `resume-state.sh` pairs, and the same three routes, `built`, `fork` and `stopped`. Its
+`behaviour:` lines carry the Ticket's acceptance criteria where a Builder's carry the Plan's
+behaviours, and a criterion it could not build comes back as `stopped` or `fork`, never under
+`built`, and takes that route. With no Plan, the reading of the grounding before the route compares
+the Ticket's and the Digest's hashes and stops there. A re-fork after a `fork` or a cleared
+`stopped` hands it the same four-key brief. A spent time budget is cleared for it as for a Builder,
+since it asks the same command after each criterion's commit: the next Stretch is a new Agent call
+with `subagent_type: do-impeccable` and that same brief, never a Builder or a Planner in its place,
+and the run never ends as blocked over it.
+
+Among the pairs `resume-state.sh` prints, step 3 passes over a pair reading `behaviour=<sha> none`
+wherever it sits, as one of the commits that carry no `Behaviour:` line by contract, and needs no
+returned line to match it. From `do-impeccable` those commits are a flow committed on its own, the
+fix a `HANDBACK` diagnosed `production` and the fix of its detector scan.
+
+The fallback of step 3, the session running the loop when no Builder can be forked, never reaches a
+Front-end ticket of a Spec reading `Front-end: impeccable`. The Door stopped it when the session lists no impeccable skill, and the
+build step never falls back to the Builder for it on its own, neither by forking `do-builder` nor
+by the session running the loop in its place: the Spec's line names who builds the screen, and
+only the developer changes it.
+
 ## The brief
 
 The fork is dispatched with these four keys and nothing else:

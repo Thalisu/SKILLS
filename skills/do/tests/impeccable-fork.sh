@@ -66,11 +66,11 @@ echo "# impeccable.md / ## The Door: the stop never falls back to the Builder on
 carries_each "the Door's stop says the run does not fall back to the Builder" \
   "${no_fallback[@]}" -- "${the_builder[@]}"
 
-echo "# ticket.md / step 3: a Front-end: impeccable ticket never falls back to the Builder on its own"
-flat="$(paragraph_with <(passage_of "$ticket" "**3. Build.**" "**4. Diff.**") "impeccable" all |
+echo "# impeccable.md / ## The build step: a Front-end: impeccable ticket never falls back to the Builder on its own"
+flat="$(paragraph_with <(passage_of "$reference" "## The build step" "## ") "impeccable" all |
   tr -s ' ' | grep -F "$(printf '%s\n' "${no_fallback[@]}")" | head -n 1)"
-expect "step 3 has a paragraph on impeccable that rules a fallback out" test -n "$flat"
-carries_each "step 3 says the run does not fall back to the Builder for that Ticket" \
+expect "the build step has a paragraph on impeccable that rules a fallback out" test -n "$flat"
+carries_each "the build step says the run does not fall back to the Builder for that Ticket" \
   "${no_fallback[@]}" -- "${the_builder[@]}"
 
 # impeccable builds from the Ticket and never opens a Plan, so a Planner forked for that Ticket is
@@ -124,10 +124,10 @@ absent "step 1 names no impeccable branch" "impeccable"
 # return would have the fork write a file the session never opens, and one named outside the
 # worktree would touch the developer's Main checkout, so the brief has to be said to carry no such
 # key, next to the two things it does carry.
-echo "# ticket.md / step 3: a Front-end: impeccable ticket is built by a do-impeccable fork"
-flat="$(paragraph_with <(passage_of "$ticket" "**3. Build.**" "**4. Diff.**") "impeccable" all |
+echo "# impeccable.md / ## The build step: a Front-end: impeccable ticket is built by a do-impeccable fork"
+flat="$(paragraph_with <(passage_of "$reference" "## The build step" "## ") "impeccable" all |
   tr '\n' ' ' | tr -s ' ')"
-expect "step 3 has a passage on impeccable" test -n "$flat"
+expect "the build step has a passage on impeccable" test -n "$flat"
 carries_each "the passage is for a Front-end ticket of a Spec reading Front-end: impeccable" \
   "\`kind=front-end\`" "Front-end ticket" -- \
   "\`front_end=impeccable\`" "\`Front-end: impeccable\`" "Front-end: impeccable"
@@ -175,7 +175,7 @@ check_lines "the brief's block carries the Ticket, the worktree and the Builder'
 # nowhere to go on `fork` or `stopped`. The paragraphs read are still the ones carrying
 # `impeccable`: the checks and the routes written for the Builder answer for this fork only where
 # the step says they do.
-echo "# ticket.md / step 3: the do-impeccable fork's verdict is checked and routed as a Builder's"
+echo "# impeccable.md / ## The build step: the do-impeccable fork's verdict is checked and routed as a Builder's"
 carries_each "the checks of the return against the branch apply to the do-impeccable fork" \
   "same checks" "same check" "checks below" "check below" "checks above" "check above" \
   "checked the same way" "checked as the Builder's" "checked as a Builder's" \
@@ -194,6 +194,17 @@ carries_each "the three routes, built, fork and stopped, apply to the do-impecca
   "\`fork\`" "three routes" "three verdicts" \
   -- \
   "\`stopped\`" "three routes" "three verdicts"
+
+# The return check refuses a return whose pairs it cannot match, so the commits this fork makes with
+# no `Behaviour:` line have to be named where the session reads the check for it, or every built
+# screen that fixed a HANDBACK or a scan finding is dropped as a fork that went wrong.
+echo "# impeccable.md / ## The build step: the fork's commits with no Behaviour: line are passed over by the return check"
+flat="$(paragraph_with <(passage_of "$reference" "## The build step" "## ") "behaviour=<sha> none" all |
+  tr '\n' ' ' | tr -s ' ')"
+expect "the build step has a passage on the pairs reading behaviour=<sha> none" test -n "$flat"
+carries_each "the fix a HANDBACK diagnosed production and the fix of the detector scan are passed over" \
+  "\`HANDBACK\`" "HANDBACK" -- "\`production\`" "production" -- "detector scan" -- \
+  "passed over" "pass over" "passes over" "needs no returned line" "need no returned line"
 
 # No Planner ran and no Plan was written, so a Reply that kept a Plan line would send the developer
 # looking for a file that does not exist, and a behaviours list read off a Plan's section would have

@@ -1051,26 +1051,6 @@ the brief that file fixes, filled from the Plan's path step 1 returned and the w
 branch step 2 created. The keys are in [builder.md](builder.md) and are never copied here, the way
 the Plan step's keys are never copied here.
 
-A Front-end ticket of a Spec reading `Front-end: impeccable`, the door's `kind=front-end` with
-`front_end=impeccable`, is built by another fork in the Builder's place, per
-[ADR 0078](../../../docs/adr/0078-an-impeccable-front-end-ticket-forks-no-planner-and-do-impeccable-stands-in-for-the-builder.md):
-call the Agent tool with `subagent_type: do-impeccable`, the agent `do` ships in
-[do-impeccable.md](../agents/do-impeccable.md), from inside the worktree and the branch step 2
-created, cut as for any Ticket. Its brief carries the Ticket, the worktree root, the loop line
-and the Project map and nothing else, the four keys [impeccable.md](impeccable.md) fixes, which are
-never copied here.
-
-The brief of `do-impeccable` has no key for where the return goes: the return is the fork's final
-message, as the Builder's is, so no return file is written anywhere, the main checkout least of
-all. It carries no rule either: what the fork loads, where it may write, how it commits and what
-it returns are standing rules, and they live in the agent's definition, where a brief the session
-composed on one run cannot drop one. Everything this step does around the Builder's fork it does
-around this one, the two revokes before it, the guard probe and the revoke as soon as it returns,
-since `do-impeccable` holds a shell in the worktree as the Builder does. When the Agent tool is
-withheld or lists no `do-impeccable`, the run stops as blocked in one line saying which of the two
-holds, with the worktree and its branch named and `scripts/link-skills.sh` as the run that links
-the agent before the next `/do`.
-
 Around the fork of `do-impeccable`, and around that fork alone, the run reads the main checkout
 twice by script: the fork's write guard matches text, and a builder that ignored its worktree
 leaves files in the developer's checkout that no commit carries. Before the fork,
@@ -1140,8 +1120,7 @@ branch, and the last of those pairs, as many as the return carries `behaviour:` 
 fork's own stretch and never a pair an earlier stretch already committed and returned before. A
 pair reading `behaviour=<sha> none` is passed over wherever it sits, before, between or after
 them, and needs no returned line to match: it is one of the commits that carry no `Behaviour:`
-line by contract, a flow committed on its own and, from `do-impeccable`, the fix a `HANDBACK`
-diagnosed `production` and the fix of its detector scan. On `built`, `uncommitted=` is empty. On a Ticket that is not a local file the argument is its issue
+line by contract, a flow committed on its own. On `built`, `uncommitted=` is empty. On a Ticket that is not a local file the argument is its issue
 reference, the slug step 2 already cut the worktree under, and never a path the probe would find
 no file at: a probe that
 refused to read the branch would drop every `built` return an issue-backed run ever made. A return that fails either check is a fork that went wrong and not a build: the session

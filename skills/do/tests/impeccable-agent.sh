@@ -7,7 +7,6 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/../../../scripts/tests/lib.sh"
 agent="$here/../agents/do-impeccable.md"
 builder="$here/../agents/do-builder.md"
-ticket="$here/../references/ticket.md"
 reference="$here/../references/impeccable.md"
 fails=0
 
@@ -22,9 +21,9 @@ builder_effort="$(field effort)"
 expect "the Builder pins a model and an effort for the pair to be read from" \
   test -n "$builder_model" -a -n "$builder_effort"
 
-# Every fork the build step names, one per line: the step is where the session reads the name it
-# hands the Agent tool, so a name found anywhere else in the Playbook never answers for it.
-dispatched="$(passage_of "$ticket" "**3. Build.**" "**4. Diff.**" |
+# Every fork the build step names, one per line: impeccable.md's build step section is where the
+# session reads the name it hands the Agent tool, so a name found anywhere else never answers for it.
+dispatched="$(passage_of "$reference" "## The build step" "## " |
   grep -oE 'subagent_type: [a-z0-9-]+' | sed 's/^subagent_type: //')"
 
 # shellcheck disable=SC2034  # lib.sh's field reads $out
