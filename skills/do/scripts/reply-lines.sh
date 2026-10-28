@@ -57,11 +57,24 @@ select_shape() { # the sources present -> one FinalShape word, or failed no-shap
   for flag in claim release yield; do
     [ "$(v "$flag" claim)" != failed ] || failed "--$flag failed"
   done
-  if [ "$(v claim claim)" = claimed ] && [ "$(v release claim)" = released ]; then
+  local door claim
+  door="$(v door verdict)" claim="$(v claim claim)"
+  if [ "$claim" = taken ] && [ "$door" = resume-final ]; then
+    echo not-resumed
+  elif [ "$claim" = taken ]; then
+    echo claimed-elsewhere
+  elif [ "$claim" = claimed ] && [ "$(v release claim)" = released ]; then
     echo landed
-    return
+  else
+    failed no-shape
   fi
-  failed no-shape
+}
+
+ticket_number() { # the door Ticket's leading number, from its file name
+  local ticket
+  value_of ticket door ticket
+  ticket="${ticket##*/}"
+  echo "${ticket%%[!0-9]*}"
 }
 
 resume_line() { # the opener of a resumed Final integration
@@ -78,13 +91,26 @@ resume_line() { # the opener of a resumed Final integration
 }
 
 cmd_final() {
-  local shape branch resumed=no
+  local shape branch holder since number resumed=no
   shape="$(select_shape)" || {
     echo "$shape"
     exit 3
   }
   [ "$(v door verdict)" != resume-final ] || resumed=yes
   case "$shape" in
+    claimed-elsewhere | not-resumed)
+      value_of holder claim holder_ticket
+      value_of since claim claimed_at
+      if [ "$shape" = not-resumed ]; then
+        echo "Final integration: not resumed, its claim is held by $holder since $since"
+      else
+        number="$(ticket_number)" || {
+          echo "$number"
+          exit 3
+        }
+        echo "Final integration: the Spec is being integrated by another run, $holder since $since; Ticket $number landed and reads resolved"
+      fi
+      ;;
     landed)
       [ -n "${given[review]-}" ] || failed "--review missing"
       [ "$(v release removed)" != yes ] || value_of branch release spec_branch

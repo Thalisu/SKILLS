@@ -144,4 +144,22 @@ check_lines "final on a resumed run with no stop and no takeover opens with the 
   "Final integration: resumed from integration"
 check_absent "final on a resumed run with no stop and no takeover names neither" 0 "$rc" ", stop " "taken over from"
 
+taken="$(
+  src taken <<'EOF'
+claim=taken
+file=/home/dev/app/.scratch/feature/spec.integration.claim
+holder_ticket=/home/dev/app/.scratch/feature/issues/02-import.md
+claimed_at=2026-10-27T09:00:00Z
+yield_command=bash final-claim.sh yield /home/dev/app/.scratch/feature/issues/02-import.md
+EOF
+)"
+run final --door "$door" --claim "$taken" --order "$order"
+check_lines "final on a claim held by another run: exit 0" 0 "$rc"
+same "final on a claim held by another run names the holder's Ticket and claim time, and this Ticket as landed" \
+  "Final integration: the Spec is being integrated by another run, /home/dev/app/.scratch/feature/issues/02-import.md since 2026-10-27T09:00:00Z; Ticket 03 landed and reads resolved"
+
+run final --door "$resume_door" --state "$state" --claim "$taken" --order "$order"
+same "final on a resume whose claim another run holds reads not resumed, with no resumed opener" \
+  "Final integration: not resumed, its claim is held by /home/dev/app/.scratch/feature/issues/02-import.md since 2026-10-27T09:00:00Z"
+
 exit "$((fails > 0))"
