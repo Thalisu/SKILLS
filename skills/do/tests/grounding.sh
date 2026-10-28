@@ -198,4 +198,15 @@ printf 'rewritten\n' >>"$digest"
 run verify "${recorded[@]}"
 check_lines "verify names both documents when the Ticket and the Digest moved" 3 "$rc" "moved=ticket" "moved=digest" "verdict=moved"
 
+# do-impeccable returns no Plan: its check is the re-hash alone.
+home impeccable 'Journey: not needed'
+digest_with "spec: $spec $(hash_of "$spec")" "journey: absent"
+t_hash="$(hash_of "$ticket_file")"
+d_hash="$(hash_of "$digest")"
+run verify "$root" "${ticket_file#"$root"/}" "$t_hash" "$digest" "$d_hash"
+check_lines "verify with no destination matches when neither document moved, reading no Plan" 0 "$rc" "verdict=match"
+printf 'rewritten\n' >>"$digest"
+run verify "$root" "${ticket_file#"$root"/}" "$t_hash" "$digest" "$d_hash"
+check_lines "verify with no destination reports the Digest that moved" 3 "$rc" "moved=digest" "verdict=moved"
+
 [ "$fails" = 0 ]
