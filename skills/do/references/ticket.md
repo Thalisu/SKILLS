@@ -608,14 +608,10 @@ printed and never restated from a file the session read. The Run report carries 
   after the last edit, and the full suites the project's Post-feature gate names when this is the
   feature's last Ticket, which is the `last=yes` line of `scripts/completion-check.sh` and never
   the session's own reading of the Tickets), each part checkable.
-- The loop line, off the door's `loop=` line:
-  `Loop: policy` when `.claude/agents/unit-test-author.md` exists in the project,
-  `Loop: global` when it does not and `~/.claude/agents/global-unit-test-author.md` is linked,
-  naming `global-unit-test-author` as the unit author it will dispatch, and
-  `Loop: fallback` otherwise. With the Agent tool withheld from the session there is no author to
-  dispatch: a door that printed `loop=global` reads `Loop: fallback` instead, and the loop line
-  carries one more line saying the Agent tool is withheld, so the run writes every unit test
-  itself, red first, and authors the flow itself. Under `fallback` the build loop of
+- The loop line, the lines `bash <skill-dir>/scripts/loop-line.sh <the door's loop= line>
+  agent=<available|withheld>` prints, quoted as they stand, with `agent=withheld` when the Agent
+  tool is withheld from the session. Its first line is the `Loop:` key a brief copies. Under
+  `fallback` the build loop of
   [build-loop.md](build-loop.md) reads [tdd-fallback.md](tdd-fallback.md) and the run writes every
   test itself, with no test author dispatched. Under `policy` that file is never read, and under
   `global` only when the global unit test author comes back `BLOCKED` naming a run command the

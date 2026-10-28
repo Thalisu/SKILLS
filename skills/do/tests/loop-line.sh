@@ -33,4 +33,14 @@ same "loop-line.sh prints Loop: fallback and a line saying the Agent tool is wit
   "Loop: fallback
 Agent tool withheld: the run writes every unit test itself, red first, and authors the flow itself"
 
+# The ticket Playbook's step 0 quotes what the script prints and keeps no mapping of its own, so the
+# rule has one home and the prose cannot drift from it.
+bullet="$(passage_of "$here/../references/ticket.md" "- The loop line" "- " | tr '\n' ' ' | tr -s ' ')"
+expect "ticket.md step 0 carries its loop line bullet" test -n "$bullet"
+expect "the ticket Playbook's step 0 takes its loop line from loop-line.sh off the door's loop= line" \
+  grep -qF "scripts/loop-line.sh <the door's loop= line>" <<<"$bullet"
+if grep -qE '`Loop: (policy|global|fallback)` (when|otherwise)|reads `Loop: fallback` instead' <<<"$bullet"; then
+  fail "ticket.md states the loop line mapping as prose no more"
+else ok "ticket.md states the loop line mapping as prose no more"; fi
+
 [ "$fails" = 0 ]
