@@ -37,12 +37,18 @@ push_line() {
   echo "git push origin ${key[branch]}"
 }
 
+next_line() { # the Completion check's next= routes, shared by spec-landed and setup-resolved
+  need next
+  echo "/do ${key[next]}"
+}
+
 main() {
   [ "$#" = 0 ] || usage "takes no argument"
   read_keys
   need outcome
   case "${key[outcome]}" in
     landed) push_line ;;
+    spec-landed | setup-resolved) next_line ;;
   esac
 }
 

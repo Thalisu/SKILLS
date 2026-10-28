@@ -18,4 +18,11 @@ run outcome=landed yours=no branch=main
 same "a run that landed on the developer's branch ends on the push of that branch, named" \
   "$(printf '%s\n' 'git push origin main' 'exit 0')"
 
+ready=.scratch/notes-export/issues/05-export-notebook.md
+for outcome in spec-landed setup-resolved; do
+  run "outcome=$outcome" yours=no "next=$ready" last=no verdict=open
+  same "a $outcome run whose Completion check names a ready Ticket ends on /do of that Ticket and nothing else" \
+    "$(printf '%s\n' "/do $ready" 'exit 0')"
+done
+
 exit "$((fails > 0))"
