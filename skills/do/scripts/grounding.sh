@@ -20,6 +20,9 @@
 #       moved= line per document, when the Ticket or the Digest no longer hashes to its recorded
 #       value; refused when the destination holds no file or its ## Sources is not exactly the two
 #       records; match otherwise
+#   grounding.sh claim <root> <ticket> <recorded ticket hash>
+#       the Ticket's re-hash right before the claim is written: unmoved when it still hashes to
+#       the recorded value; moved otherwise
 #
 # A record is one ## Sources line, `<name>: <absolute path> <hash>`, or `<name>: absent`, a
 # relative Ticket path joined to <root>. It matches a Digest's section when the section holds
@@ -27,8 +30,9 @@
 # holds exactly two non-blank lines, the Ticket's record and the Digest's.
 #
 # Prints key=value lines, verdict= last. Exit codes: digest 0 reuse, 1 fork, 5 extreme · plan
-# 0 carried, 1 fork · verify 0 match, 1 refused, 3 moved · 2 usage, <root> not a git work tree, a hash
-# argument that is neither an object name nor absent, or a sidecar that is not the Ticket's own.
+# 0 carried, 1 fork · verify 0 match, 1 refused, 3 moved · claim 0 unmoved, 3 moved · 2 usage,
+# <root> not a git work tree, a hash argument that is neither an object name nor absent, or a
+# sidecar that is not the Ticket's own.
 set -uo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd -P)"
@@ -39,6 +43,7 @@ usage() {
   echo "usage: grounding.sh digest <root> <ticket> <digest path> [<extreme sidecar>]" >&2
   echo "       grounding.sh plan <root> <ticket> <digest path> <destination>" >&2
   echo "       grounding.sh verify <root> <ticket> <ticket hash> <digest path> <digest hash> [<destination>]" >&2
+  echo "       grounding.sh claim <root> <ticket> <recorded ticket hash>" >&2
   exit 2
 }
 
@@ -140,6 +145,21 @@ cmd_verify() {
   echo "verdict=match"
 }
 
+cmd_claim() {
+  [ $# = 3 ] || usage
+  root="$1"
+  at_root "$root"
+  a_hash "$3"
+  local ticket_hash
+  ticket_hash="$(hash_at "$(ticket_of "$2")")"
+  echo "ticket_hash=$ticket_hash"
+  if [ "$ticket_hash" != "$3" ]; then
+    echo "verdict=moved"
+    return 3
+  fi
+  echo "verdict=unmoved"
+}
+
 cmd_digest() {
   [ $# = 3 ] || [ $# = 4 ] || usage
   root="$1"
@@ -205,6 +225,10 @@ case "${1:-}" in
   verify)
     shift
     cmd_verify "$@"
+    ;;
+  claim)
+    shift
+    cmd_claim "$@"
     ;;
   *) usage ;;
 esac

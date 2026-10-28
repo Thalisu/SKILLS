@@ -209,4 +209,15 @@ printf 'rewritten\n' >>"$digest"
 run verify "$root" "${ticket_file#"$root"/}" "$t_hash" "$digest" "$d_hash"
 check_lines "verify with no destination reports the Digest that moved" 3 "$rc" "moved=digest" "verdict=moved"
 
+# A Ticket edited since the door hashed it is never claimed: the edit would ride into the hash
+# the run adopts.
+home claim 'Journey: not needed'
+t_hash="$(hash_of "$ticket_file")"
+run claim "$root" "${ticket_file#"$root"/}" "$t_hash"
+check_lines "claim reports the Ticket unmoved when it still hashes to the recorded value" 0 "$rc" "ticket_hash=$t_hash" "verdict=unmoved"
+printf -- '- [ ] an edit since the door\n' >>"$ticket_file"
+run claim "$root" "${ticket_file#"$root"/}" "$t_hash"
+check_lines "claim reports the Ticket moved when it no longer hashes to the recorded value" 3 "$rc" \
+  "ticket_hash=$(hash_of "$ticket_file")" "verdict=moved"
+
 [ "$fails" = 0 ]
