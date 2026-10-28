@@ -149,11 +149,6 @@ worktree line comes before the audit line and before the hand-over, shaped-by an
     - On a resume whose only work left was the landing, the line says the Plan step was skipped
       for that reason and names no Plan, since the run opened none.
 
-    A run that forked `do-impeccable`, on a Front-end ticket of a Spec reading
-    `Front-end: impeccable`, carries no Plan line at all: no Planner ran and no Plan was written,
-    so there is neither a location nor a Planner's fallback to name. Its `Guard:` line below still
-    rides, on the fork of `do-impeccable`.
-
     Whenever a fork ran, the Planner or the Builder, one `Guard:` line rides it: the line
     `guard-reply.sh` printed from the guard probe, per the Plan step of [ticket.md](ticket.md),
     copied whole. It quotes the `guard=` line with its `harness=` and `hooks=` values and reads:
