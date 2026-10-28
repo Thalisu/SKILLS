@@ -21,4 +21,14 @@ carries_each "the opening names the Door and the Final integration" "${readers[@
 carries_each "the opening names each condition: the door printing verdict=resume-final, the Final integration when it stops" \
   "${conditions[@]}"
 
+echo "# SKILL.md: the references-list entry for final-stopped.md names the same readers and conditions"
+skill="$do_dir/SKILL.md"
+flat="$(bullets_opening_on "$skill" "[final-stopped.md](references/final-stopped.md)" | tr -s ' ')"
+expect "SKILL.md's references list has an entry for final-stopped.md" test -n "$flat"
+carries_each "the entry names the Door and the Final integration" "${readers[@]}"
+carries_each "the entry names each condition: the door printing verdict=resume-final, the Final integration when it stops" \
+  "${conditions[@]}"
+skill_links="$(grep -cE '\]\(([^)]*/)?final-stopped\.md\)' "$skill")"
+expect "SKILL.md links final-stopped.md in its references-list entry alone" test "$skill_links" = 1
+
 exit $((fails > 0))
