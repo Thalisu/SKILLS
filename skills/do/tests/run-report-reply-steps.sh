@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # run-report-reply-steps.sh: the Reply step of every Playbook that writes a Run report under --auto
-# (ticket, bug-fix, refactoring, trivial, integrate, pr), and reply.md's blocked-run section, sends
+# (ticket, bug-fix, refactoring, trivial, integrate, pr), and blocked-reply.md's blocked-run section, sends
 # the run to read run-report.md when it is under --auto, before it writes the Run report. A step
 # that never sends it there has the session write the report from no rules.
 # Run: bash skills/do/tests/run-report-reply-steps.sh
@@ -39,10 +39,10 @@ for row in "${rows[@]}"; do
     "before it writes the Run report" "before writing the Run report"
 done
 
-echo "# reply.md's blocked-run section sends an --auto run to run-report.md too"
+echo "# blocked-reply.md's blocked-run section sends an --auto run to run-report.md too"
 
-section="$(passage_of "$refs/reply.md" "## A refusal or a blocked run" "## ")"
-expect "reply.md carries its blocked-run section" test -n "$section"
+section="$(passage_of "$refs/blocked-reply.md" "## A refusal or a blocked run" "## ")"
+expect "blocked-reply.md carries its blocked-run section" test -n "$section"
 flat="$(pointer_sentence <<<"$(tr '\n' ' ' <<<"$section" | tr -s ' ')")"
 expect "the blocked-run section points at run-report.md in the Read-when shape" test -n "$flat"
 carries "the blocked-run pointer sends a run under --auto" "\`--auto\`"

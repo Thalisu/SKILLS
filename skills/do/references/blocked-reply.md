@@ -93,6 +93,7 @@ How much more it carries depends on where the run stopped:
 - **Stopped after work exists.** It writes the five parts of [The message](reply.md#the-message), the
   blocker and the `Yours:` line in their place: the worktree and its branch are named on the
   blocker's lines, and the commits made and the files restored go to the Run report.
+  Read [run-report.md](run-report.md) when the run is under `--auto`, before it writes the Run report.
   It writes its section to the Debt file as well, since it writes the Pending debt part among the
   five parts, so its items survive into the file the next run appends to.
 - **Stopped as blocked.** It names the step it stopped at on the blocker's line, and the Run
