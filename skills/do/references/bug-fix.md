@@ -166,7 +166,8 @@ the Run report's Run section and the checklist is copied.
 **1. Worktree.** The worktree in [mechanics.md](mechanics.md): created from the current HEAD on
 `do/<slug>`, where `<slug>` is a short slug of the bug in the developer's words, excluded locally,
 entered. It probes first, `git worktree list` and `git branch --list do/<slug>`: an entry in either
-is an earlier run on this bug, and the Resume section above takes the step over. Done when its
+is an earlier run on this bug: Read [bug-fix-resume.md](bug-fix-resume.md) when either probe
+prints an entry, and it takes the step over. Done when its
 status prints nothing and the worktree line, its path and its branch, is recorded for the Run report's
 Run section, or the resume line is recorded for the Run report.
 
