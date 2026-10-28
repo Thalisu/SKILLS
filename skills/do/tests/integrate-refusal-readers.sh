@@ -52,4 +52,16 @@ carries "the entry names the reader and the condition that sends it" \
 flat="$(bullets_opening_on "$skill" "[integrate.md](references/integrate.md)" | tr -s ' ')"
 carries "the integrate.md entry says the text cut from it is read from integrate-refusal.md" "integrate-refusal.md"
 
+echo "# skills/do: every pointer to integrate-refusal.md reads Read [integrate-refusal.md](integrate-refusal.md) when <condition>"
+# A link to the file under any relative path is a pointer, except SKILL.md's references-list entry
+# and a link the file makes to itself.
+do_dir="$(cd "$here/.." && pwd -P)"
+pointers="$(grep -rnE '\]\(([^)]*/)?integrate-refusal\.md\)' "$do_dir" --include='*.md' --exclude-dir=tests |
+  grep -vF -e "$do_dir/references/integrate-refusal.md:" -e "$do_dir/SKILL.md:")"
+expect "the do skill carries at least one pointer to integrate-refusal.md" test -n "$pointers"
+misshaped="$(grep -vE 'Read \[integrate-refusal\.md\]\(integrate-refusal\.md\) when [^ ]' <<<"$pointers")"
+expect "no pointer to integrate-refusal.md has another shape" test -z "$misshaped"
+expect "SKILL.md links integrate-refusal.md in its references-list entry alone" \
+  test "$(grep -cE '\]\(([^)]*/)?integrate-refusal\.md\)' "$skill")" = 1
+
 exit $((fails > 0))
