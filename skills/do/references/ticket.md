@@ -1020,7 +1020,8 @@ read `claim=released` and, on a feature of more than one repository, the record 
 time, or the claim read `taken`, or the run stopped as blocked with the Spec
 branch and its worktree named and the claim yielded, or the step reads its skip.
 
-**10. Reply.** Written by [reply.md](reply.md): the five parts of its message, and, under
+**10. Reply.** Read [run-report.md](run-report.md) when the run is under `--auto`, before it writes the Run report. Written by [reply.md](reply.md): the five parts of its message, and,
+under
 `--auto`, the Run report first, at the location [reply.md](reply.md) gives beside the Plan. Every
 run, with or without `--auto`, also writes the Pending debt part to the Debt file, at the location
 [reply.md](reply.md) gives beside the Ticket. The message's `Plan:` line is the Plan's file name,

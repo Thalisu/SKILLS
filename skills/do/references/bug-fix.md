@@ -308,7 +308,7 @@ back in a few words. For whom says who saw the defect and what they see now that
 waived flow, a check that stood in for a test and a Design fork's Ruling go under Pending
 debt. The Next step is the stdout of `scripts/next-step.sh`, per item 10
 of the Sections of [reply.md](reply.md): `outcome=landed` with `branch=` when the review landed,
-`outcome=unlanded` with `worktree=` and `run_branch=` when nothing landed. Under
+`outcome=unlanded` with `worktree=` and `run_branch=` when nothing landed. Read [run-report.md](run-report.md) when the run is under `--auto`, before it writes the Run report. Under
 `--auto` the Run report lists the Review under the files left uncommitted, and under `Rulings`,
 `On the Spec: none`, and in the
 `On the run:` group each Ruling made on a Design fork or a run question, or `none`. Done when the reply is sent,

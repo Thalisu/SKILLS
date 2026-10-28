@@ -648,6 +648,7 @@ of these that the run met:
 - a Design fork's Ruling. Read [refactoring-design-fork.md](refactoring-design-fork.md) when the
   run met a Design fork the `choice-taker` ruled, for the line that carries it.
 
+Read [run-report.md](run-report.md) when the run is under `--auto`, before it writes the Run report.
 Under `--auto` the Run report carries the rest, each where [reply.md](reply.md) puts it:
 
 - In the Run section, the structure line: the structure the reshape gave the code, the one step 4

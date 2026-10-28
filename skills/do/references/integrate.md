@@ -149,7 +149,7 @@ integration line is recorded for the Run report's Run section.
 
 ### 4. Reply
 
-Written by [reply.md](reply.md). What this Playbook puts in its parts, the three that only the Run
+Written by [reply.md](reply.md). Read [run-report.md](run-report.md) when the run is under `--auto`, before it writes the Run report. What this Playbook puts in its parts, the three that only the Run
 report carries written under `--auto` alone:
 
 - under Commits, in the Run report, what the operation did: the commits the rebase replayed, or the
