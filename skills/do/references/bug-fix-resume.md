@@ -10,8 +10,9 @@ run-state file: an entry of `git worktree list` on `do/<slug>`, then
 `git branch --list do/<slug>` when no entry is there, the commits since the branch the first run
 started from (`git log <base>..refs/heads/do/<slug>` with `<base>` the merge base of the developer's
 branch and `refs/heads/do/<slug>`, qualified so a same-named tag can never shadow the branch), each
-with the `Behaviour:` line its body carries per the build loop in [build-loop.md](build-loop.md),
-and `git status --short` in the worktree.
+with the `Behaviour:` line its body carries per the build loop
+(Read [build-loop.md](build-loop.md) when the resume reads that line), and `git status --short`
+in the worktree.
 
 - Step 1 probes before it creates. An existing worktree is entered with a bare `cd`: it is
   never created again. An existing branch with no worktree gets its worktree back on that
