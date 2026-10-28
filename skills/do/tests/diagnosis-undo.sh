@@ -48,4 +48,27 @@ check_lines "both are removed, exit 0" 0 "$rc" \
 gone "git lists no worktree at the path afterwards" worktree_listed "$wt"
 gone "the do/archive branch is gone afterwards" branch_listed do/archive
 
+echo "# diagnosis-undo.sh: a branch cut from a Spec branch that holds Tickets landed there"
+cd "$tmp" || exit 1
+fresh spec-start
+top="$(pwd -P)"
+mkdir -p .scratch/20260102-notes/issues
+printf '# 02: restore\n\n**Status:** ready-for-agent\n\n- [ ] one\n' >.scratch/20260102-notes/issues/02-restore.md
+printf 'notes\n' >notes.txt
+commit "chore: seed"
+ticket_path="$top/.scratch/20260102-notes/issues/02-restore.md"
+bash "$here/../scripts/spec-branch.sh" cut "$ticket_path" >/dev/null 2>&1
+spec="$(bash "$here/../scripts/spec-branch.sh" probe "$ticket_path" | sed -n 's/^spec_branch=//p')"
+g checkout -q "$spec"
+printf 'archive\n' >>notes.txt
+g commit -q -am "feat: an earlier Ticket lands on the Spec branch"
+g checkout -q main
+wt="$top/.claude/worktrees/do-restore"
+g worktree add -q "$wt" -b do/restore --track "$spec"
+run "$ticket_path" worktree=none run_branch=none
+check_lines "the Spec branch is the start, so the branch carrying only its landed Tickets is removed" 0 "$rc" \
+  "start=$spec" "ancestry=holds" "worktree=removed $wt" "branch=removed do/restore"
+gone "the Spec-branch worktree is gone afterwards" worktree_listed "$wt"
+gone "the do/restore branch is gone afterwards" branch_listed do/restore
+
 exit "$fails"
