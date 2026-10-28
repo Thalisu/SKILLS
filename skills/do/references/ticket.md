@@ -1120,6 +1120,8 @@ Route on the first line:
   a reason to end the run as blocked, and each such return carries at least one new commit, since
   the budget is asked only after one. A reason the session cannot clear ends the run as blocked,
   with the worktree and its branch named.
+  Read [elsewhere.md](elsewhere.md) when the Builder's return carries a
+  `stopped: work for another repository:` line.
   One reason is neither kind: work for another repository, the `stopped:` line opening
   `work for another repository:` in the shape [builder.md](builder.md) fixes, a behaviour that
   needs a change in a repository this run does not build in. The Builder is not forked again and

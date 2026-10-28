@@ -36,6 +36,11 @@ expect "ticket.md's Plan step points at elsewhere.md with \`Read [elsewhere.md](
 carries "the Plan step reads it when the verified Plan's behaviours carry an \`Elsewhere:\` item" \
   "\`Elsewhere:\`" "\`## Behaviours\`"
 
+flat="$(pointer_in_step '**3. Build.**')"
+expect "ticket.md's build step points at elsewhere.md with \`Read [elsewhere.md](elsewhere.md) when\`" test -n "$flat"
+carries "the build step reads it when the Builder's return carries a work-for-another-repository stopped line" \
+  "\`stopped: work for another repository:\`"
+
 echo "# SKILL.md's references list names elsewhere.md with its readers and its condition"
 
 flat="$(grep -F -- '- [elsewhere.md](references/elsewhere.md):' "$skill" | tr -s ' ')"
