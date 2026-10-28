@@ -230,18 +230,16 @@ commit_beside=(
 )
 reply="$here/../references/reply.md"
 
-echo "# reply.md / ## Run, Plan line: a Front-end: impeccable ticket's Reply carries no Planner line"
-flat="$(paragraph_with <(item_holding <(passage_of "$reply" "## Run" "## Sections") '[0-9]+\.' "**Plan line.**") \
-  "impeccable" all | tr '\n' ' ' | tr -s ' ')"
-expect "the Plan line item has a passage on impeccable" test -n "$flat"
+echo "# impeccable.md / ## The Reply, Plan line: a Front-end: impeccable ticket's Reply carries no Planner line"
+flat="$(bullets_opening_on <(passage_of "$reference" "## The Reply" "## ") "**Plan line.**" | tr -s ' ')"
+expect "the Reply section has a Plan line bullet" test -n "$flat"
 carries_any "the passage is for the run that forks do-impeccable on a Front-end: impeccable ticket" \
   "${this_flow[@]}"
 carries_any "that run's Reply carries no Plan line" "${no_plan_line[@]}"
 
-echo "# reply.md / ## Run, Behaviours list: a Front-end: impeccable ticket lists the Ticket's acceptance criteria"
-flat="$(item_holding <(passage_of "$reply" "## Run" "## Sections") '[0-9]+\.' "**Behaviours list.**" |
-  tr '\n' ' ' | tr -s ' ')"
-expect "the Run section has a Behaviours list item" test -n "$flat"
+echo "# impeccable.md / ## The Reply, Behaviours list: a Front-end: impeccable ticket lists the Ticket's acceptance criteria"
+flat="$(bullets_opening_on <(passage_of "$reference" "## The Reply" "## ") "**Behaviours list.**" | tr -s ' ')"
+expect "the Reply section has a Behaviours list bullet" test -n "$flat"
 carries_any "the item names the run that forks do-impeccable on a Front-end: impeccable ticket" \
   "${this_flow[@]}"
 carries_any "that run's list is the Ticket's acceptance criteria" "${criteria_list[@]}"
@@ -253,15 +251,22 @@ carries_any "that run's list is never a Plan's Behaviours section" \
   "any other \`ticket\` run" "every other Ticket" "any other Ticket" "every other run" \
   "any other run"
 
-echo "# ticket.md / step 10: a Front-end: impeccable ticket's Reply has no Planner line and lists the criteria"
-flat="$(passage_of "$ticket" "**10. Reply.**" "## " | tr '\n' ' ' | tr -s ' ')"
-expect "the Playbook has a Reply step" test -n "$flat"
-carries_any "step 10 names the run that forks do-impeccable on a Front-end: impeccable ticket" \
+echo "# impeccable.md / ## The Reply: a Front-end: impeccable ticket's Reply has no Planner line and lists the criteria"
+flat="$(passage_of "$reference" "## The Reply" "## " | tr '\n' ' ' | tr -s ' ')"
+expect "impeccable.md has a Reply section" test -n "$flat"
+carries_any "the section names the run that forks do-impeccable on a Front-end: impeccable ticket" \
   "${this_flow[@]}"
-carries_any "step 10 says that run's Reply carries no Plan line" "${no_plan_line[@]}"
-carries_any "step 10 says that run's behaviours list is the Ticket's acceptance criteria" \
+carries_any "the section says that run's Reply carries no Plan line" "${no_plan_line[@]}"
+carries_any "the section says that run's behaviours list is the Ticket's acceptance criteria" \
   "${criteria_list[@]}"
-carries_any "step 10 says each criterion has its commit beside it" "${commit_beside[@]}"
+carries_any "the section says each criterion has its commit beside it" "${commit_beside[@]}"
+
+# A Logic ticket's run reads steps 9 and 10 whole, so their do-impeccable lines live in impeccable.md.
+echo "# ticket.md / steps 9 and 10: the close and the Reply step carry no do-impeccable line"
+# shellcheck disable=SC2034  # lib.sh's absent reads $out
+out="$(passage_of "$ticket" "**9. Close.**" "## ")"
+expect "ticket.md has a close step and a Reply step" test -n "$out"
+absent "steps 9 and 10 name no do-impeccable run" "do-impeccable"
 
 # The do-impeccable fork is briefed with its worktree and nothing holds it there: one that wrote in
 # the developer's Main checkout instead would leave stray files behind a screen the Reply calls
@@ -379,10 +384,9 @@ carries "the Ticket still reads claimed" "\`claimed\`"
 # A project with no end-to-end command gets a screen no flow ran over, and the fork says so on a
 # `fallback:` line of its return. Evidence is where the developer reads what proved the screen: with
 # no line there, the unit suite and the Gate quoted above it read as the same proof a flow gives.
-echo "# reply.md / ## Sections, Evidence: a do-impeccable return carrying fallback: gets one line on a screen no flow covered"
-flat="$(item_holding <(passage_of "$reply" "## Sections" "$blocked_section") '[0-9]+\.' "**Evidence.**" |
-  tr '\n' ' ' | tr -s ' ')"
-expect "the Sections have an Evidence item" test -n "$flat"
+echo "# impeccable.md / ## The Reply, Evidence: a do-impeccable return carrying fallback: gets one line on a screen no flow covered"
+flat="$(passage_of "$reference" "## The Reply" "## " | tr '\n' ' ' | tr -s ' ')"
+expect "impeccable.md has a Reply section" test -n "$flat"
 carries_any "the item names the run that forks do-impeccable" "${this_flow[@]}"
 carries "the item names the return's fallback: line" "\`fallback:\`"
 mapfile -t no_flow_proof < <(no_flow_proof_groups)
@@ -417,18 +421,10 @@ findings_stop_nothing=(
   "not stop the landing" "never hold" "do not hold" "hold nothing back" "holds nothing back"
 )
 
-echo "# reply.md / ## Sections, Evidence: a do-impeccable return's scan: line stands beside the flows"
-flat="$(item_holding <(passage_of "$reply" "## Sections" "$blocked_section") '[0-9]+\.' "**Evidence.**" |
-  tr '\n' ' ' | tr -s ' ')"
-expect "the Sections have an Evidence item" test -n "$flat"
-# The item already says "unchanged" of the `flow:` lines and "command lines" of the integration's,
-# so the facts are read off the lead or the bullet that names `scan:` and never off a neighbour.
-flat="$(item_holding <(passage_of "$reply" "## Sections" "$blocked_section") '[0-9]+\.' "**Evidence.**" | awk '
-  function flush() { if (index(part, "`scan:`")) print part; part = "" }
-  /^ +- / { flush() }
-  { part = part " " $0 }
-  END { flush() }
-' | tr '\n' ' ' | tr -s ' ')"
+echo "# impeccable.md / ## The Reply, Evidence: a do-impeccable return's scan: line stands beside the flows"
+# The facts are read off the bullet that names the proof of the screen and never off a neighbour.
+flat="$(bullets_opening_on <(passage_of "$reference" "## The Reply" "## ") "The proof of an impeccable screen" | tr -s ' ')"
+expect "the Reply section has a bullet on the proof of an impeccable screen" test -n "$flat"
 carries_each "the item carries the scan: line the do-impeccable fork returned" \
   "${this_flow[@]}" -- "\`scan:\`"
 carries_each "that line is the detector scan's command line and the count of findings that remain" \
@@ -442,42 +438,39 @@ carries_each "that line is copied as the fork returned it, never composed by the
   "unchanged" "verbatim" "unedited" "as returned" "as it came back" "as they came back" \
   "as the fork returned" "word for word" "never composed" "never reworded"
 
-echo "# reply.md / ## Sections, Pending debt: each finding the do-impeccable fork returned is listed, and the Ticket still lands"
-flat="$(item_holding <(passage_of "$reply" "## Sections" "$blocked_section") '[0-9]+\.' "**Pending debt.**" |
-  tr '\n' ' ' | tr -s ' ')"
-expect "the Sections have a Pending debt item" test -n "$flat"
+echo "# impeccable.md / ## The Reply, Pending debt: each finding the do-impeccable fork returned is listed, and the Ticket still lands"
+flat="$(passage_of "$reference" "## The Reply" "## " | tr '\n' ' ' | tr -s ' ')"
+expect "impeccable.md has a Reply section" test -n "$flat"
 carries_each "the item lists each finding: line the do-impeccable fork returned, one line per finding" \
   "${this_flow[@]}" -- "\`finding:\`" -- "${each_finding_listed[@]}"
 carries_each "findings that remain never stop the landing" \
   "\`finding:\`" -- "${findings_stop_nothing[@]}"
 
-# Step 10 is one paragraph on every kind of run, so the sentences read are the ones from the first
-# naming of the fork on: Evidence, pending debt and a landing said of another run never answer.
-echo "# ticket.md / step 10: a do-impeccable run's Reply carries the scan: line under Evidence and each finding: line under Pending debt"
-flat="$(passage_of "$ticket" "**10. Reply.**" "## " | tr '\n' ' ' | tr -s ' ')"
+echo "# impeccable.md / ## The Reply: a do-impeccable run's Reply carries the scan: line under Evidence and each finding: line under Pending debt"
+flat="$(passage_of "$reference" "## The Reply" "## " | tr '\n' ' ' | tr -s ' ')"
 case "$flat" in
   *do-impeccable*) flat="${flat#*do-impeccable}" ;;
   *) flat="" ;;
 esac
-expect "step 10 has sentences on the run that forked do-impeccable" test -n "$flat"
-carries_each "step 10 puts the scan: line under Evidence beside the flow: lines" \
+expect "the Reply section has sentences on the run that forked do-impeccable" test -n "$flat"
+carries_each "the section puts the scan: line under Evidence beside the flow: lines" \
   "\`scan:\`" -- "Evidence" -- "${beside_the_flows[@]}"
-carries_each "step 10 puts each finding: line under Pending debt" \
+carries_each "the section puts each finding: line under Pending debt" \
   "\`finding:\`" -- "Pending debt" "pending debt" -- "${each_finding_listed[@]}"
-carries_each "step 10 says findings that remain stop nothing: the Ticket landed and reads resolved all the same" \
+carries_each "the section says findings that remain stop nothing: the Ticket landed and reads resolved all the same" \
   "\`finding:\`" "findings" -- \
   "\`resolved\`" -- \
   "all the same" "still" "anyway" "regardless" "nonetheless" "even so" "${findings_stop_nothing[@]}"
 
 # The Reply is read once and the Ticket file is what stays: a resolved Front-end ticket whose
 # `## Evidence` held the flows alone would leave no trace of which scan judged the screen or how
-# many findings it left. The close is the step that writes that section, so only step 9 is read and
-# step 10's wording on the Reply never answers for it.
-echo "# ticket.md / step 9: a do-impeccable run's close appends the scan: line under the Ticket's ## Evidence beside the flows"
-flat="$(passage_of "$ticket" "**9. Close.**" "**9a. Final integration.**" | tr '\n' ' ' | tr -s ' ')"
-expect "the Playbook has a Close step" test -n "$flat"
-carries_any "step 9 names the run that forked do-impeccable" "do-impeccable"
-carries_each "step 9 appends the fork's scan: line under the Ticket's ## Evidence" \
+# many findings it left. The close is the step that writes that section, so only the close section
+# is read and the Reply's wording never answers for it.
+echo "# impeccable.md / ## The close: a do-impeccable run's close appends the scan: line under the Ticket's ## Evidence beside the flows"
+flat="$(passage_of "$reference" "## The close" "## " | tr '\n' ' ' | tr -s ' ')"
+expect "impeccable.md has a close section" test -n "$flat"
+carries_any "the close names the run that forked do-impeccable" "do-impeccable"
+carries_each "the close appends the fork's scan: line under the Ticket's ## Evidence" \
   "do-impeccable" -- "\`scan:\`" -- "\`## Evidence\`" -- \
   "append" "added under" "adds" "written under" "writes" "goes under" "go under"
 carries_each "that line sits beside the flows' command lines" \

@@ -1433,10 +1433,7 @@ and one on a Design fork no `choice-taker` ruled on the `/discuss` command [fork
 fixes, as its last line. A run that stopped on work for another repository,
 at the Plan or on a Builder's return, ends on `/tickets <spec>`, in the message
 [reply.md](reply.md) fixes for that stop. When the finding changes what the feature is, it ends on
-the `/discuss` command of the change-of-direction stop in [forks.md](forks.md) instead. A run that
-forked `do-impeccable`, on a Front-end ticket of a Spec reading `Front-end: impeccable`, puts each
-`finding:` line the fork returned under Pending debt. Findings that remain stop nothing: the
-Ticket landed and reads `resolved` all the same.
+the `/discuss` command of the change-of-direction stop in [forks.md](forks.md) instead.
 
 What it puts in the Run report: the Ticket and the Review under the files left uncommitted; under
 `Rulings`, every Ruling the forks in [forks.md](forks.md) made, a Design fork's in the
@@ -1444,12 +1441,7 @@ What it puts in the Run report: the Ticket and the Review under the files left u
 holds no Ruling; the Spec landing lines `reply-lines.sh landing` printed, its `Open:` and
 `Repositories:` lines among them. On a Ticket of a
 Spec the Review is never among the files left uncommitted, except on a run whose Final
-integration landed, which lists the Review beside the Spec there with `Open: none`. A run that
-forked `do-impeccable` writes no Plan line in its Run section, since no Planner ran, and its
-behaviours list is the Ticket's acceptance criteria, each with the commit beside it, as
-[reply.md](reply.md) says for both; it puts the `flow:` lines the fork returned under Evidence,
-with the `scan:` line beside the flows, or the one line [reply.md](reply.md) fixes when no flow
-covered the screen.
+integration landed, which lists the Review beside the Spec there with `Open: none`.
 
 Done when the message is sent with its five parts, the `Yours:` line among them only when the run
 hands something over, and, under `--auto`, the Run report is written with every section that

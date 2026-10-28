@@ -846,14 +846,13 @@ carries_each "the session copies the no scan: line into the Reply's Evidence" \
   -- \
   "Evidence"
 
-echo "# skills/do/references/reply.md: the proof of an impeccable screen carries the no scan: line"
+echo "# skills/do/references/impeccable.md / ## The Reply: the proof of an impeccable screen carries the no scan: line"
 
 # The developer reads Evidence to tell a scanned screen from an unscanned one: a Reply with no rule
 # for the line shows neither a count nor the reason there is none.
-reply="$here/../references/reply.md"
 # shellcheck disable=SC2034  # lib.sh's carries_each reads $flat
-flat="$(bullets_opening_on "$reply" "The proof of an impeccable screen")"
-expect "the Evidence item carries the proof of an impeccable screen" test -n "$flat"
+flat="$(bullets_opening_on <(passage_of "$reference" "## The Reply" "## ") "The proof of an impeccable screen")"
+expect "the Reply section carries the proof of an impeccable screen" test -n "$flat"
 
 carries_each "the no scan: line is copied unchanged into Evidence in place of the scan: line, with its reason" \
   "\`no scan:\`" \

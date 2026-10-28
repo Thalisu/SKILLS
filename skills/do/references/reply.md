@@ -20,9 +20,8 @@ these parts, in this order:
 1. **Plan.** `Playbook: <name>` as plain text on the first line, with no code formatting around
    it, so that a reader or a grader finds it at column one, then a `Plan:` line on the next line
    naming the plan the run built from: in `ticket` the Plan's file name, or
-   `Plan: none, <reason>` when the run opened no Plan (a fork of `do-impeccable`, which builds from
-   the Ticket's acceptance criteria, or a resume whose only work left was the landing); in every
-   other Playbook the request read back in a few words. Under `--auto` a `Report:` line follows,
+   `Plan: none, <reason>` when the run opened no Plan (a resume whose only work left was the
+   landing); in every other Playbook the request read back in a few words. Under `--auto` a `Report:` line follows,
    naming the Run report's absolute location.
 2. **For whom.** The [For whom](#sections) section, under a `## For whom` heading.
 3. **Pending debt.** The [Pending debt](#sections) section, under a `## Pending debt` heading.
@@ -203,10 +202,7 @@ worktree line comes before the audit line and before the hand-over, shaped-by an
     its skip, and a deviation from that shape the build met.
 21. **Fix line.** In `bug-fix`, the planned fix and the shape, with the sketch or its skip.
 22. **Behaviours list.** The list the run built from, in `ticket` the Plan's `## Behaviours`
-    section, each line with the commit beside it. A run that forked `do-impeccable` built from
-    no Plan: its list is the Ticket's acceptance criteria, never a Plan's `## Behaviours` section,
-    each criterion verbatim with the commit beside it, off the `behaviour:` lines the fork
-    returned.
+    section, each line with the commit beside it.
 23. **Build lines.** Three kinds of line, the behaviours first:
     - One line per behaviour as it landed: the files the loop opened for it, the author's verdict
       and what was done with it, the commit, and, when the behaviour went to
@@ -306,16 +302,8 @@ of the message: For whom, Pending debt and Next step, written the same way in bo
 3. **Commits.** One line per commit, in order: short sha, title, and the files it touched.
 4. **Evidence.** The command lines and the relevant output line of each check, quoted: the unit
    suite or the covering suite, the flows, typecheck, and the door script's lines where a Playbook
-   runs one. A check that did not run appears under Skipped, never here. Three more kinds of line
+   runs one. A check that did not run appears under Skipped, never here. Two more kinds of line
    belong here:
-   - **The proof of an impeccable screen**, on a run that forked `do-impeccable`: the `flow:` lines
-     the fork returned and, beside the flows, its `scan:` line, which is the detector scan's
-     command line and the count of findings that remain, all copied unchanged. When its return
-     carried the `fallback:` line reading `no end-to-end command in the project` in place of the
-     `flow:` lines, one line stands here instead of them, saying that no flow covered the screen
-     and that the detector scan and the Gate are its proof. When its return carried the `no scan:`
-     line in place of the `scan:` line, because the impeccable skill has no detector for the
-     project's platform or the detector crashed, that line is copied unchanged, with its reason.
    - **The integration's lines**, where it did anything: what it rebased onto and how many commits
      replayed, every hunk it resolved with its file and location, every contested hunk that took
      the **Target** side with its file and its location, the Loss ledger that holds its
