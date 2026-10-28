@@ -23,6 +23,11 @@
 #   grounding.sh claim <root> <ticket> <recorded ticket hash>
 #       the Ticket's re-hash right before the claim is written: unmoved when it still hashes to
 #       the recorded value; moved otherwise
+#   grounding.sh adopt <root> <ticket> <recorded ticket hash> <destination>
+#       once the claim is written: rewrites the Plan's ticket: line, when its ## Sources holds
+#       exactly one and it is the recorded record, to the claimed Ticket's hash, every other byte
+#       left as it was, and prints that hash as the recorded value from here on; refused otherwise,
+#       the Plan untouched
 #
 # A record is one ## Sources line, `<name>: <absolute path> <hash>`, or `<name>: absent`, a
 # relative Ticket path joined to <root>. It matches a Digest's section when the section holds
@@ -30,9 +35,9 @@
 # holds exactly two non-blank lines, the Ticket's record and the Digest's.
 #
 # Prints key=value lines, verdict= last. Exit codes: digest 0 reuse, 1 fork, 5 extreme · plan
-# 0 carried, 1 fork · verify 0 match, 1 refused, 3 moved · claim 0 unmoved, 3 moved · 2 usage,
-# <root> not a git work tree, a hash argument that is neither an object name nor absent, or a
-# sidecar that is not the Ticket's own.
+# 0 carried, 1 fork · verify 0 match, 1 refused, 3 moved · claim 0 unmoved, 3 moved · adopt 0
+# adopted, 1 refused · 2 usage, <root> not a git work tree, a hash argument that is neither an
+# object name nor absent, or a sidecar that is not the Ticket's own.
 set -uo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd -P)"
@@ -44,6 +49,7 @@ usage() {
   echo "       grounding.sh plan <root> <ticket> <digest path> <destination>" >&2
   echo "       grounding.sh verify <root> <ticket> <ticket hash> <digest path> <digest hash> [<destination>]" >&2
   echo "       grounding.sh claim <root> <ticket> <recorded ticket hash>" >&2
+  echo "       grounding.sh adopt <root> <ticket> <recorded ticket hash> <destination>" >&2
   exit 2
 }
 
@@ -160,6 +166,35 @@ cmd_claim() {
   echo "verdict=unmoved"
 }
 
+cmd_adopt() {
+  [ $# = 4 ] || usage
+  root="$1"
+  at_root "$root"
+  a_hash "$3"
+  case "$4" in *.plan.md) ;; *) usage ;; esac
+  local ticket ticket_hash at rewritten
+  ticket="$(ticket_of "$2")"
+  ticket_hash="$(hash_at "$ticket")"
+  echo "ticket_hash=$ticket_hash"
+  # The line number of the recorded ticket: record, only when the section holds one ticket: line.
+  at="$(REC="$(record ticket "$ticket" "$3")" awk '
+    /^## Sources[[:space:]]*$/ { on = 1; next } on && /^## / { exit }
+    on && /^ticket:/ { n++; if ($0 == ENVIRON["REC"]) at = NR }
+    END { if (n == 1 && at) print at }' "$4" 2>/dev/null)"
+  if [ -z "$at" ]; then
+    echo "verdict=refused"
+    return 1
+  fi
+  rewritten="$(mktemp)"
+  {
+    head -n "$((at - 1))" "$4"
+    record ticket "$ticket" "$ticket_hash"
+    tail -n "+$((at + 1))" "$4"
+  } >"$rewritten" && cat "$rewritten" >"$4"
+  rm -f -- "$rewritten"
+  echo "verdict=adopted"
+}
+
 cmd_digest() {
   [ $# = 3 ] || [ $# = 4 ] || usage
   root="$1"
@@ -229,6 +264,10 @@ case "${1:-}" in
   claim)
     shift
     cmd_claim "$@"
+    ;;
+  adopt)
+    shift
+    cmd_adopt "$@"
     ;;
   *) usage ;;
 esac

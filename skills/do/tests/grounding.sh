@@ -220,4 +220,24 @@ run claim "$root" "${ticket_file#"$root"/}" "$t_hash"
 check_lines "claim reports the Ticket moved when it no longer hashes to the recorded value" 3 "$rc" \
   "ticket_hash=$(hash_of "$ticket_file")" "verdict=moved"
 
+# The claim moves the Ticket's bytes: the next resume matches only once the Plan records the
+# claimed Ticket.
+home adopt 'Journey: not needed'
+digest_with "spec: $spec $(hash_of "$spec")" "journey: absent"
+plan="$issues/01-thing.plan.md"
+t_hash="$(hash_of "$ticket_file")"
+plan_with "ticket: $ticket_file $t_hash" "digest: $digest $(hash_of "$digest")"
+printf 'ticket: %s %s is quoted in the Plan body too\n' "$ticket_file" "$t_hash" >>"$plan"
+sed -i 's/^\*\*Status:\*\* open$/**Status:** claimed/' "$ticket_file"
+new_hash="$(hash_of "$ticket_file")"
+sed "s|^ticket: $ticket_file $t_hash\$|ticket: $ticket_file $new_hash|" "$plan" >"$tmp/adopted.expected"
+run adopt "$root" "${ticket_file#"$root"/}" "$t_hash" "$plan"
+check_lines "adopt prints the claimed Ticket's hash and adopts it" 0 "$rc" "ticket_hash=$new_hash" "verdict=adopted"
+expect "adopt rewrites only the Plan's ticket: line, every other byte as it was" cmp -s "$plan" "$tmp/adopted.expected"
+
+cp "$plan" "$tmp/refused.before"
+run adopt "$root" "${ticket_file#"$root"/}" "$t_hash" "$plan"
+check_lines "adopt refuses a Plan whose ticket: line is not the recorded record" 1 "$rc" "verdict=refused"
+expect "a refused adopt leaves the Plan untouched" cmp -s "$plan" "$tmp/refused.before"
+
 [ "$fails" = 0 ]
