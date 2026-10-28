@@ -730,6 +730,53 @@ a_settled_integration_prints_the_commit_the_run_sits_on() {
 }
 a_settled_integration_prints_the_commit_the_run_sits_on
 
+# A step that is not done gives the review no fixed point at all: one read off a half-finished
+# rebase, or before an owed reapply came back, would hand the review the wrong diff.
+an_unfinished_integration_prints_no_fixed_point() {
+  run_held settle-open
+  echo target >run.txt
+  g add run.txt
+  g commit -qm "the target wrote the run's file"
+  g -C "$wt" rebase -q refs/heads/main >/dev/null 2>&1
+  run_settle "$wt" main "$PWD/.scratch/run.ledger.md"
+  check_lines "a rebase still open in the worktree leaves the step open" 3 "$rc" "verdict=open"
+  absent "an open step prints no fixed point" "fixed_point="
+  g -C "$wt" rebase --abort
+
+  run_held settle-owed
+  mkdir -p .scratch
+  cat >.scratch/run.ledger.md <<'LEDGER'
+# Loss ledger
+
+## aaaaaaaaaaa1
+
+- file: owed.txt
+- location: L1-L3
+- shape: rewrite-vs-rewrite
+- commit: 1111111111111111111111111111111111111111
+- before: 2222222222222222222222222222222222222222
+- verdict: reapply, the incoming fix is still needed
+
+### Target (kept)
+
+```
+kept
+```
+
+### Incoming (set aside)
+
+```
+set aside
+```
+LEDGER
+  run_settle "$wt" main "$PWD/.scratch/run.ledger.md"
+  check_lines "a reapply still owed a commit leaves the step owed" 1 "$rc" \
+    "owed=aaaaaaaaaaa1" "verdict=owed"
+  absent "an owed step prints no fixed point" "fixed_point="
+  cd "$repo" || exit 1
+}
+an_unfinished_integration_prints_no_fixed_point
+
 if [ "$fails" = 0 ]; then echo "PASS"; else
   echo "$fails failing"
   exit 1

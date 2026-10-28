@@ -13,14 +13,15 @@
 # verdict, first match wins: rebase (the target is not an ancestor of HEAD) · reapply (it is, and the
 # ledger owes an entry) · noop (it is, and the ledger is absent or owes nothing).
 #
-# settle: the fixed point the review is called with, once the step is done. Prints
-# fixed_point=<the merge base of refs/heads/<target> and HEAD>, then verdict=settled: the commit
-# rebased onto after a replay, the worktree's start commit after a no-op, the target's tip after the
-# developer merged it by hand.
+# settle: the fixed point the review is called with, once the step is done. Verdict, first match
+# wins: open (a rebase is open in the worktree) · owed (the ledger owes an entry, each printed as
+# owed=<id>) · settled, which alone prints fixed_point=<the merge base of refs/heads/<target> and
+# HEAD>: the commit rebased onto after a replay, the worktree's start commit after a no-op, the
+# target's tip after the developer merged it by hand.
 #
-# Exit codes, check: 0 noop · 1 rebase · 3 reapply; settle: 0 settled. Both: 2 usage, <worktree> not
-# a work tree, a rebase open in it, <target> not a branch, or the ledger refused or unreadable
-# (ledger.sh's stderr passed on).
+# Exit codes, check: 0 noop · 1 rebase · 3 reapply; settle: 0 settled · 1 owed · 3 open. Both: 2
+# usage, <worktree> not a work tree, <target> not a branch, or the ledger refused or unreadable
+# (ledger.sh's stderr passed on); check also on a rebase open in <worktree>.
 set -uo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd -P)"
@@ -50,17 +51,31 @@ rebase_open() {
   done
   return 1
 }
-rebase_open && refused "a rebase is open in $worktree"
 ref="refs/heads/$target"
 git -C "$worktree" show-ref -q --verify "$ref" || refused "$target is not a branch"
+if rebase_open; then
+  [ "$verb" = settle ] || refused "a rebase is open in $worktree"
+  echo "verdict=open"
+  exit 3
+fi
 
 # ledger.sh finds the main checkout from its working directory, so it is asked from inside the
 # worktree, whose common git directory is the main checkout's.
 owed_ids() {
   (cd "$worktree" && bash "$here/ledger.sh" owed "$ledger") || exit 2
 }
+# Prints each owed entry and closes on $1 with exit $2 when the ledger owes one; returns otherwise.
+close_if_owed() {
+  local owed
+  owed="$(owed_ids)" || exit 2
+  [ -n "$owed" ] || return 0
+  printf '%s\n' "$owed" | sed 's/^/owed=/'
+  echo "verdict=$1"
+  exit "$2"
+}
 
 if [ "$verb" = settle ]; then
+  close_if_owed owed 1
   fixed="$(git -C "$worktree" merge-base "$ref" HEAD)" || refused "$target and HEAD share no commit"
   echo "fixed_point=$fixed"
   echo "verdict=settled"
@@ -70,12 +85,7 @@ fi
 echo "target=$ref"
 if git -C "$worktree" merge-base --is-ancestor "$ref" HEAD; then
   echo "ancestor=yes"
-  owed="$(owed_ids)" || exit 2
-  if [ -n "$owed" ]; then
-    printf '%s\n' "$owed" | sed 's/^/owed=/'
-    echo "verdict=reapply"
-    exit 3
-  fi
+  close_if_owed reapply 3
   echo "verdict=noop"
   exit 0
 fi
