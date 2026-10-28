@@ -693,6 +693,43 @@ a_tag_named_like_the_target_never_decides_the_integration() {
 }
 a_tag_named_like_the_target_never_decides_the_integration
 
+# The review reads the diff since the fixed point settle prints, so it must be the commit the run's
+# own work sits on: never one that pulls the developer's commits into the diff, or leaves the run's out.
+run_settle() { # $1 worktree, $2 target, $3 ledger: integration.sh settle's output in $out, its exit in $rc
+  rc=0
+  # shellcheck disable=SC2034  # lib.sh's check_lines reads $out
+  out="$(bash "$integrationsh" settle "$1" "$2" "$3" 2>&1)" || rc=$?
+}
+a_settled_integration_prints_the_commit_the_run_sits_on() {
+  run_held settle-noop
+  start="$(g rev-parse main)"
+  run_settle "$wt" main "$PWD/.scratch/run.ledger.md"
+  check_lines "after a no-op the fixed point is the worktree's start commit" 0 "$rc" \
+    "fixed_point=$start" "verdict=settled"
+
+  run_held settle-replay
+  echo moved >moved.txt
+  g add moved.txt
+  g commit -qm "the target moved"
+  onto="$(g rev-parse main)"
+  g -C "$wt" rebase -q refs/heads/main
+  run_settle "$wt" main "$PWD/.scratch/run.ledger.md"
+  check_lines "after a replay the fixed point is the commit rebased onto" 0 "$rc" \
+    "fixed_point=$onto" "verdict=settled"
+
+  run_held settle-merge
+  echo moved >moved.txt
+  g add moved.txt
+  g commit -qm "the target moved"
+  tip="$(g rev-parse main)"
+  g -C "$wt" merge -q --no-edit refs/heads/main
+  run_settle "$wt" main "$PWD/.scratch/run.ledger.md"
+  check_lines "after the developer merged the target by hand the fixed point is the target's tip" 0 "$rc" \
+    "fixed_point=$tip" "verdict=settled"
+  cd "$repo" || exit 1
+}
+a_settled_integration_prints_the_commit_the_run_sits_on
+
 if [ "$fails" = 0 ]; then echo "PASS"; else
   echo "$fails failing"
   exit 1

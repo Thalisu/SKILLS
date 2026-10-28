@@ -4,6 +4,7 @@
 # ledger.sh alone reads.
 #
 #   integration.sh check <worktree> <target> <ledger>
+#   integration.sh settle <worktree> <target> <ledger>
 #
 # check: whether the step rebases, brings back an owed reapply, or ticks itself as a no-op. The target
 # is read as the branch refs/heads/<target>, so a tag of the same name never stands in for it.
@@ -12,14 +13,20 @@
 # verdict, first match wins: rebase (the target is not an ancestor of HEAD) · reapply (it is, and the
 # ledger owes an entry) · noop (it is, and the ledger is absent or owes nothing).
 #
-# Exit codes: 0 noop · 1 rebase · 3 reapply · 2 usage, <worktree> not a work tree, a rebase open in
-# it, <target> not a branch, or the ledger refused or unreadable (ledger.sh's stderr passed on).
+# settle: the fixed point the review is called with, once the step is done. Prints
+# fixed_point=<the merge base of refs/heads/<target> and HEAD>, then verdict=settled: the commit
+# rebased onto after a replay, the worktree's start commit after a no-op, the target's tip after the
+# developer merged it by hand.
+#
+# Exit codes, check: 0 noop · 1 rebase · 3 reapply; settle: 0 settled. Both: 2 usage, <worktree> not
+# a work tree, a rebase open in it, <target> not a branch, or the ledger refused or unreadable
+# (ledger.sh's stderr passed on).
 set -uo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd -P)"
 
 usage() {
-  echo "usage: integration.sh check <worktree> <target> <ledger>" >&2
+  echo "usage: integration.sh check|settle <worktree> <target> <ledger>" >&2
   exit 2
 }
 refused() {
@@ -29,7 +36,7 @@ refused() {
 
 verb="${1:-}"
 case "$verb" in
-  check) [ "$#" = 4 ] || usage ;;
+  check | settle) [ "$#" = 4 ] || usage ;;
   *) usage ;;
 esac
 worktree="$2" target="$3" ledger="$4"
@@ -52,6 +59,13 @@ git -C "$worktree" show-ref -q --verify "$ref" || refused "$target is not a bran
 owed_ids() {
   (cd "$worktree" && bash "$here/ledger.sh" owed "$ledger") || exit 2
 }
+
+if [ "$verb" = settle ]; then
+  fixed="$(git -C "$worktree" merge-base "$ref" HEAD)" || refused "$target and HEAD share no commit"
+  echo "fixed_point=$fixed"
+  echo "verdict=settled"
+  exit 0
+fi
 
 echo "target=$ref"
 if git -C "$worktree" merge-base --is-ancestor "$ref" HEAD; then
