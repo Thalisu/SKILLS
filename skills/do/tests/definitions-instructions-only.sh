@@ -29,5 +29,6 @@ argues_no_rule() { # $1 the definition's file name under skills/do/agents/
 echo "# skills/do/agents/: a definition do forks carries no reason clause, no ADR and no link into docs/adr/"
 argues_no_rule do-reader.md
 argues_no_rule do-planner.md
+argues_no_rule do-builder.md
 
 exit $((fails > 0))

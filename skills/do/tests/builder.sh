@@ -1412,10 +1412,9 @@ for reader in agent contract; do
     "before any re-dispatch" "before that re-dispatch" "before the next dispatch" "before the second dispatch" \
     "before dispatching" "before the Implementer is dispatched" "before you dispatch" "before you re-dispatch" \
     "only then dispatches" "only then re-dispatches" "only then dispatch"
-  carries_any "$where: so no commit of the behaviour carries a test file the check refused" \
-    "no commit carries" "no commit of the behaviour carries" "carries no test file" "never carries a test" \
-    "no refused test file" "test file the check refused" "test the check refused" "refused test file" \
-    "refused test is never committed" "refused test is not committed"
+  carries_any "$where: the offending paths are put back before the Builder writes the edit itself as well" \
+    "before you write the edit yourself" "before it writes the edit itself" \
+    "before the Builder writes the edit itself" "before writing the edit itself"
 done
 
 echo "# skills/do/references/builder.md / ## The return: a refused changeset shows on that behaviour's \`build:\` line"
