@@ -50,9 +50,9 @@ The questions of steps 1 and 8 are the two this Playbook raises of its own; the 
 yeses the shared references reserve to the developer. Under `--auto` the `choice-taker` rules the
 questions of steps 1, 3 and 13 (the two homes, the harness outside its bound, the full suite or
 remote run), and the questions of steps 2 and 8 (the discard and the revert) are still asked of the
-developer, with the `choice-taker`'s return shown above each. Read
-[refactoring-auto.md](refactoring-auto.md) when the run carries `--auto` and reaches one of these
-questions.
+developer, with the `choice-taker`'s return shown above each.
+Read [refactoring-auto.md](refactoring-auto.md) when the run carries `--auto` and reaches one of
+these questions.
 
 The run stops, in one message or as blocked, in these places:
 
@@ -316,8 +316,8 @@ harness's command line first and waits for the same yes [mechanics.md](mechanics
 before a remote run, since the cost of touching the real system is the developer's to weigh. A no
 leaves this part reading `skip: the behaviour cannot be driven inside the harness's bound`, and the
 gap the harness would have covered is named as debt in the reply the same way step 9 names one.
-Under `--auto` the `choice-taker` rules that yes. Read [refactoring-auto.md](refactoring-auto.md)
-when the run carries `--auto` and reaches it.
+Under `--auto` the `choice-taker` rules that yes.
+Read [refactoring-auto.md](refactoring-auto.md) when the run carries `--auto` and reaches it.
 
 #### The target-interface test
 

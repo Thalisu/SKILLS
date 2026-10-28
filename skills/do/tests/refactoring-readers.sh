@@ -99,4 +99,26 @@ flat="$(passage_of "$refactoring" "## Questions and stops" "## Steps" | tr '\n' 
 expect "the index of questions points at refactoring-auto.md with Read <file> when <condition>" \
   grep -qE "$auto_pointer" <<<"$flat"
 
+echo "# SKILL.md and skills/do: each reference cut from refactoring.md is listed, and pointed at in one shape"
+skill="$here/../SKILL.md"
+do_dir="$(cd "$here/.." && pwd -P)"
+for spec in "refactoring-design-fork.md|step 4|step 6|two shapes" \
+  "refactoring-extreme-stop.md|Design fork|Extreme|unruled" \
+  "refactoring-auto.md|--auto|step 1|step 13"; do
+  IFS='|' read -r file a b c <<<"$spec"
+  pattern="${file//./\\.}"
+  flat="$(bullets_opening_on "$skill" "[$file](references/$file)" | tr -s ' ')"
+  expect "SKILL.md's references list has an entry for $file" test -n "$flat"
+  carries "SKILL.md's entry for $file names its readers and the condition that sends them" "$a" "$b" "$c"
+  links="$(grep -cE "\]\(([^)]*/)?$pattern\)" "$skill")"
+  expect "SKILL.md links $file in its references-list entry alone" test "$links" = 1
+  pointers="$(grep -rnE "\]\(([^)]*/)?$pattern\)" "$do_dir" --include='*.md' --exclude-dir=tests |
+    grep -vF -e "$do_dir/references/$file:" -e "$do_dir/SKILL.md:")"
+  expect "the do skill carries at least one pointer to $file" test -n "$pointers"
+  misshaped="$(grep -vE "Read \[$pattern\]\($pattern\) when [^ ]" <<<"$pointers")"
+  expect "every pointer to $file reads Read [$file]($file) when <condition>" test -z "$misshaped"
+done
+flat="$(bullets_opening_on "$skill" "[refactoring.md](references/refactoring.md)" | tr -s ' ')"
+expect "SKILL.md's entry for refactoring.md still describes the Playbook" test -n "$flat"
+
 exit $((fails > 0))

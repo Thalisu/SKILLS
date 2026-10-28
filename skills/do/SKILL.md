@@ -197,6 +197,18 @@ that Playbook. The reply reference is read last by every Playbook but `setup`, w
 - [tdd-fallback.md](references/tdd-fallback.md): the TDD fallback the build loop reads when the loop line reads `Loop: fallback`, with no unit test author in the project and no global one that can be dispatched, and a second way in under `Loop: global`, build-loop.md's `BLOCKED` route when the global unit test author comes back `BLOCKED` naming a run command the project map lacks: the run writes the failing test itself, and no test author is dispatched.
 - [trivial.md](references/trivial.md): the `trivial` Playbook: its door checks, its steps and the door script they run.
 - [refactoring.md](references/refactoring.md): the `refactoring` Playbook: its door checks, its steps and the pin it holds the reshape against.
+- [refactoring-design-fork.md](references/refactoring-design-fork.md): the Design fork of a
+  `refactoring` run, read by its step 4, Structure, and step 6, Reshape, when the step meets two
+  shapes it cannot settle, and by its step 15, Reply, for the line of a Ruling the `choice-taker`
+  made: the `choice-taker`'s brief, the return check, the Ruling's line and the unruled stop.
+- [refactoring-extreme-stop.md](references/refactoring-extreme-stop.md): the Extreme stop of a
+  `refactoring` run, read by its Design fork procedure when a side reads as Extreme, when the
+  `choice-taker` returns `extreme`, and when the fork goes unruled: the blocked reply, its
+  `Yours: direction:` line and the `/discuss` command `next-step.sh` prints.
+- [refactoring-auto.md](references/refactoring-auto.md): the run questions of a `refactoring` run
+  under `--auto`, read by its step 1, step 2, step 3, step 8 and step 13 when the run carries
+  `--auto` and reaches the step's question: the `choice-taker`'s brief and return check, the three
+  questions it rules, and the discard and the revert still asked of the developer.
 - [reply.md](references/reply.md): the reply every Playbook writes last, its five parts in order, and the Run report written under `--auto`.
 - [ticket-format.md](../../.agents/formats/ticket-format.md): the Ticket the `ticket` line matches, and the fields a run reads and writes.
 - [spec-format.md](../../.agents/formats/spec-format.md): the Spec the door recognises, and its `Journey:` line.

@@ -1,6 +1,6 @@
 # The Extreme stop of a refactoring run
 
-It is read by [refactoring-design-fork.md](refactoring-design-fork.md) when step 4 or step 6 of
+It is read by the Design fork procedure of `refactoring-design-fork.md` when step 4 or step 6 of
 [refactoring.md](refactoring.md) meets a Design fork with a side read as Extreme, when the
 `choice-taker` returns `extreme` on that fork, and when the fork goes unruled, the unruled stop that
 borrows this stop's message.
