@@ -7,6 +7,7 @@ here="$(cd "$(dirname "$0")" && pwd -P)"
 . "$here/../../../scripts/tests/lib.sh"
 elsewhere="$here/../references/elsewhere.md"
 skill="$here/../SKILL.md"
+ticket="$here/../references/ticket.md"
 fails=0
 
 echo "# elsewhere.md's readers: named in its opening, with the condition that sends them"
@@ -21,6 +22,19 @@ carries "the opening names the condition that sends the Plan step: an \`Elsewher
 carries "the opening names the build step" "build step"
 carries "the opening names the condition that sends the build step: the Builder's work-for-another-repository stopped line" \
   "\`stopped: work for another repository:\`"
+
+echo "# ticket.md's steps that meet work for another repository read elsewhere.md then"
+
+# The pointer sentence of one step of ticket.md, flattened.
+pointer_in_step() { # $1 the step's marker text
+  item_holding "$ticket" '\*\*[0-9]+\.' "$1" | tr '\n' ' ' | tr -s ' ' |
+    grep -oE 'Read \[elsewhere\.md\]\(elsewhere\.md\) when [^.]*\.' | head -n 1
+}
+
+flat="$(pointer_in_step '**1. Plan.**')"
+expect "ticket.md's Plan step points at elsewhere.md with \`Read [elsewhere.md](elsewhere.md) when\`" test -n "$flat"
+carries "the Plan step reads it when the verified Plan's behaviours carry an \`Elsewhere:\` item" \
+  "\`Elsewhere:\`" "\`## Behaviours\`"
 
 echo "# SKILL.md's references list names elsewhere.md with its readers and its condition"
 

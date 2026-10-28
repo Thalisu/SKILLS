@@ -817,6 +817,9 @@ bash <skill-dir>/scripts/grounding.sh verify <root> <ticket=> <ticket_hash=> <di
 On either stop nothing is built from the Plan, nothing is claimed or written, and the Ticket's
 status is left as the door found it.
 
+Read [elsewhere.md](elsewhere.md) when the verified Plan's `## Behaviours` carry an `Elsewhere:`
+item, once the check reads `verdict=match`.
+
 **Work for another repository.** Once the check reads `verdict=match`, the
 run reads the Plan's `## Behaviours` section for the items it acts on itself, where it already
 reads a Design fork item: an `Elsewhere:` item, the shape [plan.md](plan.md) fixes, is a behaviour
