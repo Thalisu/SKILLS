@@ -77,10 +77,9 @@ carries_each "step 3 says the run does not fall back to the Builder for that Tic
 # a window the developer pays for and nobody reads. The skip is that Ticket's alone: a Builder run
 # builds from the Plan, so step 1 also has to say which Tickets keep the Planner, or the skip reads
 # as covering every Front-end ticket.
-echo "# ticket.md / step 1: a Front-end: impeccable ticket forks no Planner and gets no Plan"
-flat="$(paragraph_with <(passage_of "$ticket" "**1. Plan.**" "**2. Claim and worktree.**") "impeccable" all |
-  tr '\n' ' ' | tr -s ' ')"
-expect "step 1 has a passage on impeccable" test -n "$flat"
+echo "# impeccable.md / ## The Plan step: a Front-end: impeccable ticket forks no Planner and gets no Plan"
+flat="$(passage_of "$reference" "## The Plan step" "## " | tr '\n' ' ' | tr -s ' ')"
+expect "impeccable.md has a Plan step section" test -n "$flat"
 carries_each "the passage is for a Front-end ticket of a Spec reading Front-end: impeccable" \
   "\`kind=front-end\`" "Front-end ticket" -- \
   "\`front_end=impeccable\`" "\`Front-end: impeccable\`" "Front-end: impeccable"
@@ -111,6 +110,15 @@ carries_each "a Logic ticket and a Front-end: builder ticket still fork the Plan
   "fork \`do-planner\`" "Planner is forked" "\`do-planner\` is forked" "gets the Planner" \
   "get the Planner" "goes to the Planner" "go to the Planner" "is forked as below" \
   "forks as below" "fork as below"
+
+# A Logic ticket's run reads step 1 whole, so the skip lives in impeccable.md and step 1 keeps the
+# Planner path alone: an impeccable sentence left there is text every Logic run pays for.
+echo "# ticket.md / step 1: the Plan step keeps only the Planner path"
+flat="$(passage_of "$ticket" "**1. Plan.**" "**2. Claim and worktree.**" | tr '\n' ' ' | tr -s ' ')"
+expect "ticket.md has a Plan step" test -n "$flat"
+# shellcheck disable=SC2034  # lib.sh's absent reads $out
+out="$flat"
+absent "step 1 names no impeccable branch" "impeccable"
 
 # The session reads the fork's final message as the return. A brief that named a place for the
 # return would have the fork write a file the session never opens, and one named outside the

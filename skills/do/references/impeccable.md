@@ -30,6 +30,22 @@ it again. The run never falls back to the Builder on its own: the Spec's line is
 choice of who builds the screen, and a screen built by `do-builder` under `Front-end: impeccable`
 is one nobody chose.
 
+## The Plan step
+
+One Ticket skips step 1 of [ticket.md](ticket.md) whole: a Front-end ticket of a Spec reading
+`Front-end: impeccable`, the door's `kind=front-end` with `front_end=impeccable`, per
+[ADR 0078](../../../docs/adr/0078-an-impeccable-front-end-ticket-forks-no-planner-and-do-impeccable-stands-in-for-the-builder.md).
+It forks no Planner and writes no Plan, on a first run and on a resume alike, and the session does
+not ground it in the Planner's place either: impeccable builds from the Ticket's acceptance
+criteria and reads no Plan, so a Plan here is a fork paid for and never opened. The step reads
+`skip: an impeccable Front-end ticket forks no Planner` on the checklist, names no destination and
+runs none of that step's checks, and the run goes on to step 2 with the Ticket's and the Digest's
+hashes the door recorded. Every later passage that rewrites or checks the Plan's `## Sources` lines
+has no file to act on for this Ticket and compares those two hashes alone. The Project map and the
+context reading at the end of step 1 are still the session's to take. Every other Ticket keeps
+that step as written: a Logic ticket, and a Front-end ticket under `Front-end: builder`, still fork
+the Planner and build from its Plan.
+
 ## The brief
 
 The fork is dispatched with these four keys and nothing else:
