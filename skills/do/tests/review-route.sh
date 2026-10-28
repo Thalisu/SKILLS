@@ -88,4 +88,13 @@ for reason in "Finding 2, 5 not fixed or not verified" \
     "reason=$reason" "direction=findings" "findings=2, 5" "yours=$open_direction" "route=blocked"
 done
 
+# A reviewed, Green branch whose target refuses commits only needs landing elsewhere, and the
+# developer lands it by hand from the two lines printed.
+route "landing=not landed: spec/feature is a protected branch"
+check_lines "a protected target stops the run with the way to land the branch elsewhere" 4 "$rc" \
+  "direction=protected" \
+  "yours=Yours: direction: land do/ticket on a branch that takes commits, or leave it in its worktree" \
+  "by_hand=git switch <a branch that takes commits>" "by_hand=git merge --ff-only do/ticket" \
+  "route=blocked"
+
 exit $((fails > 0))

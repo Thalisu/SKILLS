@@ -25,6 +25,8 @@
 #
 #   findings  the reason names `Finding <n>[, <n>]... not fixed or not verified` anywhere in it:
 #             findings=<n>[, <n>]... and yours=, the developer's two ways to close them
+#   protected the reason carries the word `protected`, since the review fixes no wording for it:
+#             yours= and two by_hand= lines that land the branch elsewhere by hand
 #   reason    anything else: no yours= line, the session words the direction from the quoted reason
 #
 # Exit codes: 0 verify · 1 fix · 3 resume · 4 blocked · 2 usage: a missing required key, an unknown or repeated key, an integration=
@@ -96,6 +98,11 @@ if [[ "$reason" =~ Finding\ ([0-9]+(,\ [0-9]+)*)\ not\ fixed\ or\ not\ verified 
   echo "direction=findings"
   echo "findings=$findings"
   echo "yours=Yours: direction: Finding $findings stays open in ${in[review]}: fix it in ${in[worktree]} and run do on ${in[rerun]} again, or overrule it by editing ${in[review]} and running do on ${in[rerun]} again"
+elif [[ "$reason" =~ (^|[^[:alnum:]_])protected([^[:alnum:]_]|$) ]]; then
+  echo "direction=protected"
+  echo "yours=Yours: direction: land ${in[branch]} on a branch that takes commits, or leave it in its worktree"
+  echo "by_hand=git switch <a branch that takes commits>"
+  echo "by_hand=git merge --ff-only ${in[branch]}"
 else
   echo "direction=reason"
 fi
