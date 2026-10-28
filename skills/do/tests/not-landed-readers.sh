@@ -23,6 +23,16 @@ carries_each "the opening names each review step, the Final integration's review
   "${readers[@]}"
 carries_each "the opening names the condition, a route= line other than route=verify" "${condition[@]}"
 
+echo "# SKILL.md: the references-list entry for not-landed.md names the same readers and condition"
+skill="$here/../SKILL.md"
+flat="$(bullets_opening_on "$skill" "[not-landed.md](references/not-landed.md)" | tr -s ' ')"
+expect "SKILL.md's references list has an entry for not-landed.md" test -n "$flat"
+carries_each "the entry names each review step, the Final integration's review, stop and resume, the Resume paths and the verification's red flow" \
+  "${readers[@]}"
+carries_each "the entry names the condition, a route= line other than route=verify" "${condition[@]}"
+expect "SKILL.md links not-landed.md in its references-list entry alone" \
+  test "$(grep -cE '\]\(([^)]*/)?not-landed\.md\)' "$skill")" = 1
+
 echo "# each review step sends a return other than route=verify to not-landed.md at that point"
 # $1 the review step, $2 its text; the step carries the pointer followed by a condition.
 points_at_not_landed() {
