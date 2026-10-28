@@ -653,6 +653,20 @@ LEDGER
 }
 a_branch_that_holds_its_target_with_a_reapply_owed_brings_it_back
 
+# A target that moved past the branch is rebased onto, and the session rebases onto the ref printed,
+# so a missed move never leaves the review reading a stale diff.
+a_branch_behind_its_target_is_rebased_onto_the_branch_ref() {
+  run_held behind
+  echo moved >moved.txt
+  g add moved.txt
+  g commit -qm "the target moved"
+  run_check "$wt" main "$PWD/.scratch/run.ledger.md"
+  check_lines "a worktree its target moved past is rebased onto refs/heads/<target>" 1 "$rc" \
+    "target=refs/heads/main" "verdict=rebase"
+  cd "$repo" || exit 1
+}
+a_branch_behind_its_target_is_rebased_onto_the_branch_ref
+
 if [ "$fails" = 0 ]; then echo "PASS"; else
   echo "$fails failing"
   exit 1

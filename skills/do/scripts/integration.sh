@@ -66,3 +66,5 @@ if git -C "$worktree" merge-base --is-ancestor "$ref" HEAD; then
   exit 0
 fi
 echo "ancestor=no"
+echo "verdict=rebase"
+exit 1
