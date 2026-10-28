@@ -504,7 +504,7 @@ of this project's facts and the Review at the `review_file=` path the claim prin
      the same `route=` line, and claims nothing.
    - An exit 2 stops the run as blocked with the script's stderr line quoted, and claims nothing.
 
-   On `verdict=wait` a repository this one consumes from has not landed: the landing command was
+   On `route=out-of-order` a repository this one consumes from has not landed: the landing command was
    typed out of order, and the run stops here, before the claim. Nothing is integrated and
    nothing is written: no claim file under this repository's key, no `spec-<feature-slug>`
    worktree, no rebase, no review, no ref moved in any repository. The message is the first line,
@@ -1451,7 +1451,7 @@ bash <skill-dir>/scripts/reply-lines.sh repositories --door <state>/door --claim
 ```
 
 `--reason` is the rebase question nobody answered, the red check, or the review's `not landed`
-line, in single quotes. On `verdict=wait` no claim was taken and both calls take `--door` and
+line, in single quotes. On `route=skip-waits` no claim was taken and both calls take `--door` and
 `--order` alone. On exit 3 the run copies nothing and reports the `failed <reason>` line. A run that entered on the door's `verdict=resume-final` reaches this step through the
 stopped Final integration of the Resume section, with no step before it. Done when the release
 read `claim=released` and, on a feature of more than one repository, the record was read a second
