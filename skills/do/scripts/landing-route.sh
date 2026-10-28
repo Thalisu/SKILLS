@@ -16,7 +16,8 @@ while IFS= read -r line; do
 done
 
 case "$1:$verdict" in
-  final:land) echo "route=claim" ;;
+  final:land | resume:land) echo "route=claim" ;;
+  resume:wait) echo "route=out-of-order" ;;
   final:wait) echo "route=skip-waits" ;;
   final:ambiguous | final:unordered | final:no-spec) echo "route=blocked-$verdict" ;;
   final:landed | final:elsewhere) echo "route=skip-$verdict" ;;

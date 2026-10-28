@@ -46,4 +46,12 @@ for skip in landed:skip-landed elsewhere:skip-elsewhere incomplete:skip-open; do
   same "at the final site, verdict ${skip%%:*} routes the run to its own skip" "route=${skip#*:}"
 done
 
+route resume < <(record land)
+expect "at the resume site, verdict land exits 0" [ "$rc" = 0 ]
+same "at the resume site, verdict land routes the run to the claim" "route=claim"
+
+route resume < <(record wait)
+expect "at the resume site, verdict wait exits 0" [ "$rc" = 0 ]
+same "at the resume site, verdict wait routes the run to the out-of-order stop" "route=out-of-order"
+
 exit "$fails"
