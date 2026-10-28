@@ -192,92 +192,19 @@ verdict. The run routes on that line alone and never on its own reading of `gh p
 the checks: a display read mid-run can show green while a check is still running.
 
 - `verdict=pending`: the checks are still running. The run runs the line again at once, in the
-  foreground, without ending its turn: never in the background, never after a sleep of its own,
-  and goes on calling it until it reads `verdict=green` or another settled verdict. On that next
-  call it passes the verdict's `since=` and `state=` values as `<since>` and `<state>`, copied as
-  they stand: the run never reads, never compares and never computes them, since they carry the
-  script's 60-minute window of unchanged checks from one call to the next. A pending verdict that
-  carries an `expect=<sha>` line also hands that sha back, copied as it stands, as the last
-  argument `<expected-sha>` of the next call: the pull request has not yet shown the tip a push
-  sent it, and the script holds `verdict=pending` on that head rather than settle on the checks of
-  the old one, for two minutes at most (`DO_PR_WATCH_REGISTER_SECONDS`, default 120), counted from
-  the first call that held it. A verdict with no `expect=` line leaves the argument off. The developer has
-  walked away, and a run that ends its turn here stands still until they come back.
-- Any verdict, `pending` and `green` included, that carries a `released=<sha>` line: the pull
-  request's head never became `<sha>`, the tip the run pushed, inside that two-minute hold, so the
-  script dropped it and the verdict reads whatever head the pull request shows instead, never the
-  pushed one. This route comes first, ahead of every other route of this step: a green read there
-  is never taken for the pushed fix passing. The run stops with exactly one line,
-  `Yours: direction: the pull request never showed the pushed tip <sha> as its head; read what moved its head, then /do the pull request again`,
-  `<sha>` being the `released=` value, and follows nothing.
+  foreground, without ending its turn: never in the background, never after a sleep of its own, and
+  goes on calling it until it reads `verdict=green` or another settled verdict. On that next call it
+  passes the verdict's `since=` and `state=` values as `<since>` and `<state>`, copied as they
+  stand: the run never reads, never compares and never computes them, since they carry the script's
+  60-minute window of unchanged checks from one call to the next. The developer has walked away, and
+  a run that ends its turn here stands still until they come back.
 - `verdict=green`: every check passed and the pull request is mergeable. The run goes on to step 5,
   the Reply.
 - `verdict=awaiting-approval`: every check passed and only a required approval blocks the merge. The
   run goes on to step 5, the Reply, as on green: the wait is the developer's to clear, not a stop.
-- `verdict=red` after step 4 has pushed a round, with a check that came back red: every
-  `red=<link> <name>` line whose `<name>` a `... pushed to <head>` round line of an earlier round
-  of this run carries is a check reported fixed that came back red. It is a stop-case and goes into
-  the stop set, and the run stops on exactly one `Yours: direction:` line, its came-back clause
-  (given in step 4 item 5) quoting that round line's return line. This route comes first, ahead of
-  the next round and of the three-round stop: the run forks no `do-pr-fixer` for it again, and no
-  next round is started. The match is by name, and it reads the verdict's `head=`, `sha=` and `red=`
-  lines as they stand, the `<head>` of the stop line being the `head=` one. A run that has pushed
-  no round yet has no earlier round to match, so it never takes this route.
-  The match reads only the `pushed to` round lines, so a round that ended in a rerun never matches a check as reported fixed.
-- A check in the run's retry record whose name no `red=` line of the settled verdict carries, or
-  any check of the record on a `verdict=green` or `verdict=awaiting-approval`: that check is green
-  on its retry. The run writes `round <r>: <check> not reproduced locally, retried once, green`,
-  with `<r>` the round whose fixer returned `not reproduced` for it, or
-  `round <r>: <check> not run locally, retried once, green` when that fixer returned `not run`. That line settles the retry
-  once: a settled retry stays in the retry record, so it is never rerun again and gets no second
-  green line. It raises no stop and adds no `Yours:` line for it, and the verdict goes on by the
-  verdict's own route: green to step 5, red to the next round, and so on. After a rerun that carried
-  a stop set, the run still stops by the route below for that watch.
-- After a pushed round that carries a stop set holding a stop-case (raised in step 4 while some other
-  check was picked), whatever the verdict: the run watches once more, after the `pending` calls it
-  takes, and stops on whatever verdict the watch settles on, green included. This route comes first,
-  ahead of the next round and of the three-round stop. It writes
-  `round <r>: after the push the watch read <verdict word>`, then exactly one `Yours: direction:`
-  line, one clause per stop-case and the `still red:` tail, as step 4 item 5 gives it.
-- After a rerun that carried a stop set holding a stop-case (step 4's no-pick round), whatever the
-  verdict: the run watches once, calling the watch again on `pending` as any watch, settles the open
-  retries by the retry routes of this step, and stops on whatever verdict that watch settles on,
-  green included. It writes `round <r>: after the rerun the watch read <verdict word>`, then exactly
-  one `Yours: direction:` line holding the carried stop-cases' clauses, as step 4 item 5 gives it.
-  The stop names, for each retried check, whether its retry went green or red again. A retry green
-  gets its `round <r>: <check> not reproduced locally, retried once, green` line, or its
-  `round <r>: <check> not run locally, retried once, green` line when its fixer returned `not run`,
-  as the retry route above gives them. A retry red again
-  is diagnosed before the stop (ADR 0104): the run forks one diagnosis `do-pr-fixer` for it, in
-  diagnosis mode, as step 4 forks one (items 1 to 3; of item 4 the `pr-hooks.sh snapshot`, sub-items
-  a to c, the `pr-hooks.sh verify` call of sub-item d with no `pr-guard.sh` and no
-  `fix-integrate.sh` call, and sub-item e; then item 6; on a run tree cut at the verdict's `sha=`,
-  the check never classified), and reads its return as item 4 c does. The run pushes nothing,
-  since this route never pushes: a `fixed` return is never picked, and its fix is
-  kept on its fixer branch, which `fix-worktrees.sh remove` keeps as an unlanded commit. The
-  diagnosis's clause joins the stop-case's clauses on the same `Yours: direction:` line, after the
-  carried entries, never on a second `Yours:` line. For a `fixed <k> by mechanism` return it reads
-  `<check> red again on its retry (<the retry>) and its diagnosis found its mechanism (<the test>), its fix kept on <fixer branch>: review it and bring it onto <head>, or /do <pr url> again once the other stops are cleared`,
-  for a `fixed <k>: <command>` return, a diagnosis that reproduced the check end to end, it reads
-  `<check> red again on its retry (<the retry>) and its diagnosis found its fix (<command>), its fix kept on <fixer branch>: review it and bring it onto <head>, or /do <pr url> again once the other stops are cleared`,
-  for a `not fixed <k>: <reason>` return it is the `not fixed` clause step 4 item 5 gives, with the
-  `<reason>`, and only a `no mechanism` or `not reproduced` or `not run` return, or no return at
-  all, gets the `no-mechanism` clause step 4 item 5 gives. The check's round
-  line has both excerpts quoted under it. The run starts no new round and forks no `do-pr-fixer`
-  but that diagnosis. This route comes first, ahead of the next round and of the three-round stop.
 - `verdict=red`, when this run has pushed no round yet: a check failed.
   Read [pr-fix.md](pr-fix.md) when the watch prints its first `verdict=red`, then go on to its step
   4, Fix the red checks, carrying the verdict's `head=`, `sha=` and `red=` lines as they stand.
-- `verdict=red` after step 4 has pushed a round, while fewer than three rounds have pushed: a check
-  is still red. The run goes on to step 4, Fix the red checks, for the next round, carrying the
-  verdict's `head=`, `sha=` and `red=` lines as they stand, the checks still red. A round counts by
-  the push it ends in, so a redone round counts once. The cap counts only the rounds whose round lines read `pushed to <head>`, and a round that ended in a rerun pushed nothing, so it is not a pushed round and counts nothing toward the three-round cap.
-- `verdict=red` after the third pushed round: three rounds of pushes did not reach green. The run
-  stops with exactly one line,
-  `Yours: direction: <the checks still red> stayed red after three pushed rounds; fix them by hand or leave the pull request as it is, then /do the pull request again`,
-  where `<the checks still red>` is the verdict's `red=` names, in the order printed, joined with
-  `, `. The run starts no fourth round: it forks no do-pr-fixer for it, and nothing more is
-  pushed. A round counts by the push it ends in, so a redone round counts once. The cap counts only the rounds whose round lines read `pushed to <head>`, and a round that ended in a rerun pushed nothing, so it is not a pushed round and counts nothing toward the three-round cap.
 - `verdict=conflict`: the pull request conflicts with its base. The run stops with exactly one line,
   `Yours: direction: <head> conflicts with <base>; the owner of <head> rebases it onto <base>, then /do the pull request again`,
   taking `<head>` and `<base>` from the verdict's `head=` and `base=` lines, never from the
@@ -316,39 +243,12 @@ the checks: a display read mid-run can show green while a check is still running
   exactly one
   `Yours: direction: pr-watch.sh failed; fix what its stderr line names, then /do the pull request again`,
   and follows nothing.
-- `verdict=red` with a `red=` name that is in the retry record: that check is red again on its
-  retry, and a failure that repeats on its retry is deterministic (ADR 0104). This route is read
-  after the came-back route and the two stop-set routes above, and ahead of the three
-  `verdict=red` routes above that key on the pushed rounds alone (no round pushed yet, fewer than
-  three pushed, the third pushed round): a verdict naming such a check takes this route first, and
-  those three hold only for a verdict that names none. While fewer than three
-  rounds have pushed and no stop-case is carried, the check goes to step 4 as a diagnosis round, and
-  the run does not stop there: step 4 forks a second `do-pr-fixer` for it in diagnosis mode. The
-  diagnosis round is the next round, numbered one past the round whose round line opened the retry,
-  and it holds every `red=` name of the verdict: the checks red again on their retry are forked in
-  diagnosis mode, and the verdict's other red names take the first fixer's path, stale
-  classification included. The check gets no second rerun: the one rerun is spent (ADR 0089). It
-  holds alike whether the retry was a rerun or a pushed round's new run
-  (`retried by the run on <sha>`). The check is never classified again, whatever its retry excerpt reads: no
-  `pr-classify.sh` call is made for it, so its retry excerpt never turns it into a stale-base check
-  or sends it to a first fixer again.
-  The diagnosis round counts toward the cap only when one of its round lines reads
-  `pushed to <head>`, since a round counts by the push it ends in. Once three rounds have pushed,
-  no diagnosis is forked, since its fix would push a fourth round: the run takes the three-round
-  stop as it stands, the check among its `red=` names, and writes
-  `round <r>: <check> red again on its retry (<the retry>); not diagnosed: three rounds have pushed`
-  with both excerpts quoted under it. For that line the run cuts the check's retry excerpt on a run
-  tree cut at the verdict's `sha=` as step 4 item 2 cuts one (`git fetch origin <head>`, then
-  `git worktree add --detach ...`), with `bash <skill-dir>/scripts/pr-log.sh <link> <run tree>`,
-  its `<link>` the one on the check's `red=` line, keeping its `excerpt=` values, and removes the
-  run tree after (`git worktree remove <run tree>`). On a non-zero exit of the script, its stderr
-  line stands in the excerpt's place.
 
 The verdict line of each call, in order, is recorded for the Run report's Run section, which is
 written under `--auto` only, per [reply.md](reply.md): the round is never a section of the Reply.
 
-Done when the watch has printed `verdict=green` or `verdict=awaiting-approval`, or `verdict=red` while
-fewer than three rounds have pushed, after as many `pending` calls as the checks took.
+Done when the watch has printed `verdict=green`, `verdict=awaiting-approval` or `verdict=red`, after as
+many `pending` calls as the checks took.
 
 ### 4. Fix the red checks
 

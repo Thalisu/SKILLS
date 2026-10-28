@@ -644,7 +644,7 @@ echo "# pr.md / ### Watch and ### Fix the red checks: after a push the run watch
 blocks="$(blocks_of "$pr" "$watch_h" 2>/dev/null)"
 expect "the step's call line takes the expected sha last, \`pr-watch.sh <pr> [<since> <state>] [<expected-sha>]\`" \
   grep -qF -- "bash <skill-dir>/scripts/pr-watch.sh <pr> [<since> <state>] [<expected-sha>]" <<<"$blocks"
-flat="$(piece_with "verdict=pending")"
+flat="$(piece_in="$(passage_of "$pr_fix" "$watch_h" "##" 2>/dev/null)" piece_with "verdict=pending")"
 expect "a bullet or paragraph of the watch step names \`verdict=pending\`" test -n "$flat"
 carries_each "a pending verdict's \`expect=<sha>\` goes back as \`<expected-sha>\`, the next call's last argument" \
   "expect=" -- "<expected-sha>" "last argument"
@@ -2267,7 +2267,7 @@ carries_any "that round line carries the sha of each commit kept there" "<kept s
 # 4's own rule, that a later round numbers and groups its checks from its own watch's `red=` lines,
 # is read off the sentences of the Fix step naming a round and `red=`.
 echo "# pr.md / ### Watch: verdict=red after a pushed round goes on to the Fix step for a next round over the checks still red, while fewer than three rounds have pushed"
-watch="$(passage_of "$pr" "$watch_h" "##" 2>/dev/null)"
+watch="$(passage_of "$pr_fix" "$watch_h" "##" 2>/dev/null)"
 flat="$(piece_with "fewer than three" "under three" "less than three" "Fewer than three" "Under three" \
   "Less than three")"
 expect "a bullet or paragraph of the watch step names a count of fewer than three rounds" test -n "$flat"
@@ -2304,7 +2304,7 @@ carries_each "a later round numbers and groups its checks into Waves from that r
 # so they come off the verdict's own `red=` lines. The piece is keyed on the third round, and the
 # "fewer than three" bullet and the first-round bullet, which share its words, are passed over.
 echo "# pr.md / ### Watch: verdict=red after the third pushed round stops the run on one Yours: direction: line naming the checks still red, with no fourth round"
-watch="$(passage_of "$pr" "$watch_h" "##" 2>/dev/null)"
+watch="$(passage_of "$pr_fix" "$watch_h" "##" 2>/dev/null)"
 flat="$(piece_without="$(printf '%s\n' "fewer than three" "Fewer than three" "under three" "Under three" \
   "less than three" "Less than three" "pushed no round")" piece_with "three rounds" "third round" \
   "Three rounds" "Third round" "three pushed rounds" "third pushed round")"
@@ -2641,7 +2641,7 @@ carries_any "its conflict raises no stop-case and stays out of the stop set" \
 # that came back, and its place off the order of the step's verdict pieces: it sits ahead of the
 # bullet starting the next round and of the three-round stop, so neither catches the check first.
 echo "# pr.md / ### Watch: a red check a pushed round reported fixed is a stop-case that stops the run on one Yours: direction: line, ahead of the next round and the three-round stop, no fixer forked for it again"
-watch="$(passage_of "$pr" "$watch_h" "##" 2>/dev/null)"
+watch="$(passage_of "$pr_fix" "$watch_h" "##" 2>/dev/null)"
 came_back=("came back" "came-back" "comes back red" "red again" "back red")
 flat="$(piece_all=1 piece_with "${came_back[@]}" | tr '\n' ' ')"
 expect "a bullet or paragraph of the watch step takes a check that came back red" test -n "$flat"
@@ -2767,7 +2767,7 @@ carries_any "and forks no do-pr-fixer again for its checks" \
 # (keyed on the `pushed to <head>` round line it matches) passed over, and its place off the order of
 # the step's pieces, as the came-back case reads its own.
 echo "# pr.md / ### Watch: after a pushed round carrying a stop set the run watches once more and stops whatever the verdict, green included, on its round line and one Yours: direction: line, ahead of the next round and the three-round stop"
-watch="$(passage_of "$pr" "$watch_h" "##" 2>/dev/null)"
+watch="$(passage_of "$pr_fix" "$watch_h" "##" 2>/dev/null)"
 flat="$(piece_without="pushed to <head>" piece_all=1 piece_with "stop set" | tr '\n' ' ')"
 expect "a bullet or paragraph of the watch step takes a pushed round carrying a stop set" test -n "$flat"
 carries_each "after a pushed round that carries a non-empty stop set" \
@@ -2938,7 +2938,7 @@ done
 out="$(grep -xF "round <r>: <check> not run locally, retried once, green" <<<"$templates")"
 expect "a not run check green on its retry has a round line saying it was not run locally" test -n "$out"
 # shellcheck disable=SC2034  # lib.sh's carries reads $flat
-flat="$(passage_of "$pr" "$watch_h" "##" 2>/dev/null | tr '\n' ' ' | tr -s ' ')"
+flat="$(passage_of "$pr_fix" "$watch_h" "##" 2>/dev/null | tr '\n' ' ' | tr -s ' ')"
 carries "the watch step writes the not run retry's green line" "round <r>: <check> not run locally, retried once, green"
 
 # A check its fixer could not reproduce is most likely a flake, and a flake costs the developer one
@@ -3079,7 +3079,7 @@ carries_each "never named under outward, never handed over on a Yours: line" \
 # round's lines never match as a check reported fixed. Both are read off the sentences of the watch
 # step that carry them.
 echo "# pr.md / ### Watch: a round that ended in a rerun is not a pushed round and counts nothing toward the three-round cap; the cap and the came-back match read only the pushed to round lines"
-watch="$(passage_of "$pr" "$watch_h" "##" 2>/dev/null)"
+watch="$(passage_of "$pr_fix" "$watch_h" "##" 2>/dev/null)"
 sentences="$(tr '\n' ' ' <<<"$watch" | tr -s ' ' | sed 's/\. /.\n/g')"
 flat="$(grep -F -e "rerun" -e "reran" <<<"$sentences" | tr '\n' ' ')"
 expect "a sentence of the watch step names a rerun" test -n "$flat"
@@ -3197,7 +3197,7 @@ carries_any "whatever its diagnosis returns" \
 # names the retry record beside verdict=red, the came-back bullet passed over, so the came-back
 # route's own stop never answers for it.
 echo "# pr.md / ### Watch: a red verdict naming a check in the retry record is red again on its retry and gets no second rerun"
-watch="$(passage_of "$pr" "$watch_h" "##" 2>/dev/null)"
+watch="$(passage_of "$pr_fix" "$watch_h" "##" 2>/dev/null)"
 flat="$(piece_all=1 piece_without="reported fixed that came back red" piece_with "retry record" |
   grep -F "verdict=red" | tr '\n' ' ')"
 expect "a bullet of the watch step routes a verdict=red by the retry record" test -n "$flat"
@@ -3216,7 +3216,7 @@ carries_any "and it is not rerun a second time" \
 # names the retry record beside verdict=red, the came-back bullet passed over, so the came-back
 # route's own stop never answers for it.
 echo "# pr.md / ### Watch: a check red again on its retry, with fewer than three rounds pushed and no stop-case carried, goes to the Fix step as a diagnosis round forking a do-pr-fixer in diagnosis mode, and the run does not stop there"
-watch="$(passage_of "$pr" "$watch_h" "##" 2>/dev/null)"
+watch="$(passage_of "$pr_fix" "$watch_h" "##" 2>/dev/null)"
 flat="$(piece_all=1 piece_without="reported fixed that came back red" piece_with "retry record" |
   grep -F "verdict=red" | grep -F "diagnosis" | tr '\n' ' ')"
 expect "a bullet of the watch step routes a verdict=red name in the retry record to a diagnosis" test -n "$flat"
@@ -3241,7 +3241,7 @@ carries_any "and the run does not stop there" \
 # third pushed round pushes a fourth. The route is read off the watch step's pieces that name the
 # retry record beside a diagnosis, the came-back bullet passed over.
 echo "# pr.md / ### Watch: the diagnosis fork is a round under the three-pushed-round cap: numbered as the next round, its push counted as a pushed round, and no diagnosis is forked once three rounds have pushed"
-watch="$(passage_of "$pr" "$watch_h" "##" 2>/dev/null)"
+watch="$(passage_of "$pr_fix" "$watch_h" "##" 2>/dev/null)"
 flat="$(piece_all=1 piece_without="reported fixed that came back red" piece_with "retry record" |
   grep -F "diagnosis" | tr '\n' ' ')"
 expect "a piece of the watch step routes a check red again on its retry to a diagnosis" test -n "$flat"
@@ -3325,7 +3325,7 @@ carries "a check that returned \`fixed <k> by mechanism\` is never passed to pr-
 # naming the retry record beside a green outcome, the came-back bullet passed over; the round line
 # off the Reply step's round templates, a line of its own or a code span.
 echo "# pr.md / ### Watch and ### Reply: a check in the retry record that the settled verdict no longer names red is green on its retry, written as its round line, with no stop and no Yours: line, and the verdict keeps its own route"
-watch="$(passage_of "$pr" "$watch_h" "##" 2>/dev/null)"
+watch="$(passage_of "$pr_fix" "$watch_h" "##" 2>/dev/null)"
 flat="$(piece_all=1 piece_without="reported fixed that came back red" piece_with "retry record" |
   grep -F "green" | tr '\n' ' ')"
 expect "a bullet or paragraph of the watch step routes a check in the retry record to green" test -n "$flat"
@@ -3411,7 +3411,7 @@ carries_any "under every red again on its retry line, the diagnosis's included" 
 # and a verdict's other red names left out of the diagnosis round go unfixed. The route is read off
 # the watch step's bullet that sends the check to its diagnosis, the came-back bullet passed over.
 echo "# pr.md / ### Watch: a check red again on its retry, whatever its excerpt reads and whichever retry it had, is never classified again, and the verdict's other red names take the first fixer's path in the same round"
-watch="$(passage_of "$pr" "$watch_h" "##" 2>/dev/null)"
+watch="$(passage_of "$pr_fix" "$watch_h" "##" 2>/dev/null)"
 flat="$(piece_all=1 piece_without="reported fixed that came back red" piece_with "retry record" "red again on its retry" |
   grep -F "diagnosis" | tr '\n' ' ')"
 expect "a piece of the watch step sends a check red again on its retry to its diagnosis" test -n "$flat"
@@ -3506,7 +3506,7 @@ expect "the item keeps the no-pick stop-case stop on one Yours: direction: line"
 carries_any "and that stop no longer comes before a rerun the not-reproduced list still owes" \
   "not-reproduced list" "not reproduced list" "nothing to rerun" "no check to rerun" "nothing left to rerun" \
   "no check left to rerun" "after the rerun" "after its rerun" "after a rerun" "retry record" "rerun"
-watch="$(passage_of "$pr" "$watch_h" "##" 2>/dev/null | sed 's/^[[:space:]]*//')"
+watch="$(passage_of "$pr_fix" "$watch_h" "##" 2>/dev/null | sed 's/^[[:space:]]*//')"
 after_rerun=("after the rerun" "after a rerun" "after its rerun" "after the round's rerun"
   "after a round that reran" "after a round that ended in a rerun" "after a rerun round")
 flat3="$(piece_all=1 piece_without="pushed to <head>" piece_with "${after_rerun[@]}" |
@@ -3560,7 +3560,7 @@ expect "the watch after the rerun has its own round line in the Reply's round te
 # stop set, as the case above reads it; the clause order off the push item's paragraph naming the
 # Waves and the order, as the rerun-refused order case reads it.
 echo "# pr.md / ### Watch and ### Fix the red checks: the stop after the rerun that carried a stop set names each retry's outcome, green or red again with both excerpts, and a retry red again is diagnosed before the stop, its diagnosis's clause or its fix kept on its branch joining the carried stop-cases on the one Yours: direction: line"
-watch="$(passage_of "$pr" "$watch_h" "##" 2>/dev/null | sed 's/^[[:space:]]*//')"
+watch="$(passage_of "$pr_fix" "$watch_h" "##" 2>/dev/null | sed 's/^[[:space:]]*//')"
 flat="$(piece_all=1 piece_without="pushed to <head>" piece_with "${after_rerun[@]}" |
   grep -F -e "stop set" -e "stop-case" | tr '\n' ' ')"
 expect "a bullet or paragraph of the watch step takes the watch after a rerun that carried a stop set" test -n "$flat"
@@ -3745,7 +3745,7 @@ yours_direction_once "the failed pr-log.sh's stop carries exactly one \`Yours: d
 # verdict by its word alone reports a fix CI never ran as green and names a merge. The route is read
 # off the piece naming `released=`, since every stop of the step carries a `Yours: direction:` line.
 echo "# pr.md / ### Watch: any verdict carrying released=<sha>, green included, stops ahead of every other route on one Yours: direction: line naming the pushed tip, the hold capped at two minutes"
-watch="$(passage_of "$pr" "$watch_h" "##" 2>/dev/null)"
+watch="$(passage_of "$pr_fix" "$watch_h" "##" 2>/dev/null)"
 flat="$(tr '\n' ' ' <<<"$watch" | tr -s ' ')"
 carries_each "the watch step states the hold's cap, \`DO_PR_WATCH_REGISTER_SECONDS\`, two minutes by default" \
   "DO_PR_WATCH_REGISTER_SECONDS" -- "two minutes" "two-minute" "default 120" "120 seconds"
@@ -3860,6 +3860,7 @@ expect "and none of them is a fixer's return, a failed watch or a failed pr-log.
 # pieces carry `Yours: direction:` lines of their own, so the stop is read off the piece naming
 # `verdict=behind`.
 echo "# pr.md / ### Watch: a pull request behind its base stops on exactly one Yours: direction: line naming the head to update from the base, both taken off the verdict's head= and base= lines"
+watch="$(passage_of "$pr" "$watch_h" "##" 2>/dev/null)"
 flat="$(piece_with "verdict=behind")"
 expect "a bullet or paragraph of step $watch_n names \`verdict=behind\`" test -n "$flat"
 carries_any "it stops the run" "stops" "stop" "ends the run" "the run ends"
